@@ -87,6 +87,7 @@ export const ApplyTagsDialog: React.FC<ApplyTagsDialogProps> = ({
 
   return (
     <BaseDialog
+      name="apply-tags-dialog"
       title="Apply Tags"
       onClose={onClose}
       dialogHasChanges={hasChanges}

@@ -6,6 +6,7 @@ import { DialogProvider, useDialog } from "./DialogContext";
 import { ExistingContactType } from "./ManageContactsDialog";
 import { DocumentDialogFields } from "./document/DocumentDialog";
 import { DeclareIncompleteForm } from "./DeclareIncompleteDialog";
+import { DIALOG_CANCEL_BUTTON_NAME } from "./BaseDialog";
 
 const MockDialog = ({ onClose }: { onClose: () => void }) => (
   <div data-testid="mock-dialog">
@@ -241,17 +242,6 @@ vi.mock("./DemonstrationTypes/ApplyDemonstrationTypesDialog", () => ({
     <div data-testid="apply-demonstration-types-dialog">
       Apply Demonstration Types Dialog
       <span>Demonstration ID: {demonstrationId}</span>
-    </div>
-  ),
-}));
-vi.mock("./ApplyTagsDialog", () => ({
-  ApplyTagsDialog: ({ onClose, initialTags }: { onClose: () => void; initialTags: string[] }) => (
-    <div data-testid="apply-tags-dialog">
-      Apply Tags Dialog
-      <div>Tags: {initialTags.join(", ")}</div>
-      <button data-testid="close-apply-tags-btn" onClick={onClose}>
-        Close
-      </button>
     </div>
   ),
 }));
@@ -668,7 +658,7 @@ describe("DialogContext", () => {
     await user.click(screen.getByTestId("open-apply-tags-btn"));
     expect(screen.getByTestId("apply-tags-dialog")).toBeInTheDocument();
 
-    await user.click(screen.getByTestId("close-apply-tags-btn"));
+    await user.click(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME));
     expect(screen.queryByTestId("apply-tags-dialog")).not.toBeInTheDocument();
   });
 });
