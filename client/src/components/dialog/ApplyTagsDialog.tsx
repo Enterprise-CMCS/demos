@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import { Button } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
+import { TagChip } from "components/tags/TagChip";
 
 export interface ApplyTagsDialogProps {
   onClose: () => void;
@@ -36,14 +37,9 @@ export const ApplyTagsDialog: React.FC<ApplyTagsDialogProps> = ({ onClose, initi
       }
     >
       <div className="space-y-4">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1">
           {activeTags.map((tag) => (
-            <span
-              key={tag}
-              className="inline-flex items-center rounded-full border border-border-rules bg-surface-lighter px-3 py-1 text-sm text-text-font"
-            >
-              {tag}
-            </span>
+            <TagChip key={tag} tag={tag} onRemoveTag={() => {}} />
           ))}
         </div>
         {activeTags.length === 0 && (
