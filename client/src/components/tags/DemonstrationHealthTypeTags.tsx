@@ -4,6 +4,7 @@ import { SecondaryButton } from "components/button";
 import { useDialog } from "components/dialog/DialogContext";
 import { tw } from "tags/tw";
 import { TagChip } from "./TagChip";
+import { TEMP_ALL_TAGS } from "components/dialog/ApplyTagsDialog";
 
 const STYLES = {
   stepThree: tw`font-bold uppercase tracking-wide text-[#242424] mb-2`,
@@ -12,14 +13,14 @@ const STYLES = {
 };
 
 export interface DemonstrationHealthTypeTagsProps {
-  tags: string[];
+  selectedTags: string[];
   title: string;
   description?: string;
   onRemoveTag: (tag: string) => void;
 }
 // We could make this name more generic for reuse.
 export const DemonstrationHealthTypeTags = ({
-  tags,
+  selectedTags,
   title,
   description,
   onRemoveTag,
@@ -27,7 +28,7 @@ export const DemonstrationHealthTypeTags = ({
   const { showApplyTagsDialog } = useDialog();
 
   const handleApplyClick = () => {
-    showApplyTagsDialog(tags);
+    showApplyTagsDialog(TEMP_ALL_TAGS, selectedTags);
   };
 
   return (
@@ -37,7 +38,7 @@ export const DemonstrationHealthTypeTags = ({
       </h4>
       {description && description.trim() !== "" && <p className={STYLES.helper}>{description}</p>}
       <div className={STYLES.tagList}>
-        {tags.map((tag) => (
+        {selectedTags.map((tag) => (
           <TagChip key={tag} tag={tag} onRemoveTag={onRemoveTag} />
         ))}
         <SecondaryButton

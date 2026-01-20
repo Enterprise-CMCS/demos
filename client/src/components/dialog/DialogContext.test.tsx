@@ -382,7 +382,7 @@ const TestConsumer: React.FC = () => {
       </button>
       <button
         data-testid="open-apply-tags-btn"
-        onClick={() => showApplyTagsDialog(["Tag1", "Tag2", "Tag3"])}
+        onClick={() => showApplyTagsDialog(["Tag1", "Tag2", "Tag3"], ["Tag1", "Tag2", "Tag3"])}
       >
         Open Apply Tags Dialog
       </button>

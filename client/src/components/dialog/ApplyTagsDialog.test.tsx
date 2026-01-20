@@ -10,7 +10,7 @@ describe("ApplyTagsDialog", () => {
     const onClose = vi.fn();
     const tags = ["Behavioral Health", "Dental", "CHIP"];
 
-    render(<ApplyTagsDialog onClose={onClose} initialTags={tags} />);
+    render(<ApplyTagsDialog onClose={onClose} initialActiveTags={tags} />);
 
     expect(screen.getByText("Apply Tags")).toBeInTheDocument();
     expect(screen.getByText("Behavioral Health")).toBeInTheDocument();
@@ -22,7 +22,7 @@ describe("ApplyTagsDialog", () => {
   it("renders empty state when no tags provided", () => {
     const onClose = vi.fn();
 
-    render(<ApplyTagsDialog onClose={onClose} initialTags={[]} />);
+    render(<ApplyTagsDialog onClose={onClose} initialActiveTags={[]} />);
 
     expect(screen.getByText("Apply Tags")).toBeInTheDocument();
     expect(screen.getByText("No tags selected")).toBeInTheDocument();
@@ -33,7 +33,7 @@ describe("ApplyTagsDialog", () => {
     const onClose = vi.fn();
     const tags = ["Behavioral Health"];
 
-    render(<ApplyTagsDialog onClose={onClose} initialTags={tags} />);
+    render(<ApplyTagsDialog onClose={onClose} initialActiveTags={tags} />);
 
     await user.click(screen.getByRole("button", { name: "button-confirm-apply-tags" }));
 
@@ -44,7 +44,7 @@ describe("ApplyTagsDialog", () => {
     const user = userEvent.setup();
     const onClose = vi.fn();
 
-    render(<ApplyTagsDialog onClose={onClose} initialTags={["Tag1"]} />);
+    render(<ApplyTagsDialog onClose={onClose} initialActiveTags={["Tag1"]} />);
 
     const closeButton = screen.getByRole("button", { name: /close/i });
     await user.click(closeButton);
@@ -56,7 +56,7 @@ describe("ApplyTagsDialog", () => {
     const onClose = vi.fn();
     const tags = ["Tag1", "Tag2", "Tag3", "Tag4", "Tag5"];
 
-    render(<ApplyTagsDialog onClose={onClose} initialTags={tags} />);
+    render(<ApplyTagsDialog onClose={onClose} initialActiveTags={tags} />);
 
     tags.forEach((tag) => {
       expect(screen.getByText(tag)).toBeInTheDocument();
