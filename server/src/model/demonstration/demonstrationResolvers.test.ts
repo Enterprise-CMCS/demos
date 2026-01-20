@@ -12,12 +12,14 @@ import {
   __resolveDemonstrationSignatureLevel,
   __resolveDemonstrationRoleAssignments,
   __resolveDemonstrationPrimaryProjectOfficer,
+  resolveDemonstrationTypes,
 } from "./demonstrationResolvers.js";
 import {
   ApplicationStatus,
   ApplicationType,
   ClearanceLevel,
   CreateDemonstrationInput,
+  DemonstrationTypeAssignment,
   GrantLevel,
   PersonType,
   PhaseName,
@@ -26,7 +28,10 @@ import {
   SignatureLevel,
   UpdateDemonstrationInput,
 } from "../../types.js";
-import { Demonstration as PrismaDemonstration } from "@prisma/client";
+import {
+  Demonstration as PrismaDemonstration,
+  DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
+} from "@prisma/client";
 import { TZDate } from "@date-fns/tz";
 
 // Mock imports
@@ -47,6 +52,7 @@ import {
   resolveApplicationPhases,
   resolveApplicationStatus,
   resolveApplicationClearanceLevel,
+  resolveApplicationTags,
 } from "../application/applicationResolvers.js";
 import { parseDateTimeOrLocalDateToEasternTZDate, EasternTZDate } from "../../dateUtilities.js";
 
@@ -63,6 +69,7 @@ vi.mock("../application/applicationResolvers.js", () => ({
   resolveApplicationStatus: vi.fn(),
   resolveApplicationPhases: vi.fn(),
   resolveApplicationClearanceLevel: vi.fn(),
+  resolveApplicationTags: vi.fn(),
 }));
 
 vi.mock("../../errors/checkOptionalNotNullFields.js", () => ({
@@ -101,6 +108,9 @@ describe("demonstrationResolvers", () => {
     },
     primaryDemonstrationRoleAssignment: {
       findUnique: vi.fn(),
+    },
+    demonstrationTypeTagAssignment: {
+      findMany: vi.fn(),
     },
   };
   const transactionMocks = {
@@ -159,6 +169,9 @@ describe("demonstrationResolvers", () => {
     },
     primaryDemonstrationRoleAssignment: {
       findUnique: regularMocks.primaryDemonstrationRoleAssignment.findUnique,
+    },
+    demonstrationTypeTagAssignment: {
+      findMany: regularMocks.demonstrationTypeTagAssignment.findMany,
     },
   };
   type TestValues = {
@@ -773,6 +786,62 @@ describe("demonstrationResolvers", () => {
       expect(
         regularMocks.primaryDemonstrationRoleAssignment.findUnique
       ).toHaveBeenCalledExactlyOnceWith(expectedCall);
+    });
+  });
+
+  describe("resolveDemonstrationTypes", () => {
+    it("should look up the demonstration types for the demonstration", async () => {
+      // This is present just to test the map in the function
+      const resolvedValue: PrismaDemonstrationTypeTagAssignment[] = [
+        {
+          demonstrationId: testValues.demonstrationId,
+          tagId: "Test Demonstration Type A",
+          tagTypeId: "Demonstration Type",
+          effectiveDate: testValues.dateValue,
+          expirationDate: testValues.dateValue,
+          createdAt: testValues.dateValue,
+          updatedAt: testValues.dateValue,
+        },
+        {
+          demonstrationId: testValues.demonstrationId,
+          tagId: "Test Demonstration Type B",
+          tagTypeId: "Demonstration Type",
+          effectiveDate: testValues.dateValue,
+          expirationDate: testValues.dateValue,
+          createdAt: testValues.dateValue,
+          updatedAt: testValues.dateValue,
+        },
+      ];
+      regularMocks.demonstrationTypeTagAssignment.findMany.mockResolvedValueOnce(resolvedValue);
+      const input: Partial<PrismaDemonstration> = {
+        id: testValues.demonstrationId,
+      };
+      const expectedCall = {
+        where: {
+          demonstrationId: testValues.demonstrationId,
+        },
+      };
+      const expectedResult: DemonstrationTypeAssignment[] = [
+        {
+          demonstrationType: "Test Demonstration Type A",
+          effectiveDate: testValues.dateValue,
+          expirationDate: testValues.dateValue,
+          createdAt: testValues.dateValue,
+          updatedAt: testValues.dateValue,
+        },
+        {
+          demonstrationType: "Test Demonstration Type B",
+          effectiveDate: testValues.dateValue,
+          expirationDate: testValues.dateValue,
+          createdAt: testValues.dateValue,
+          updatedAt: testValues.dateValue,
+        },
+      ];
+      const result = await resolveDemonstrationTypes(input as PrismaDemonstration);
+      expect(regularMocks.demonstrationTypeTagAssignment.findMany).toHaveBeenCalledExactlyOnceWith(
+        expectedCall
+      );
+      expect(result).toStrictEqual(expectedResult);
     });
   });
 });

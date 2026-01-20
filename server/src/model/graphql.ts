@@ -25,6 +25,8 @@ import { dateTypeResolvers } from "./dateType/dateTypeResolvers.js";
 import { demonstrationRoleAssignmentSchema } from "./demonstrationRoleAssignment/demonstrationRoleAssignmentSchema.js";
 import { demonstrationRoleAssigmentResolvers } from "./demonstrationRoleAssignment/demonstrationRoleAssignmentResolvers.js";
 
+import { demonstrationTypeTagAssignmentSchema } from "./demonstrationTypeTagAssignment/demonstrationTypeTagAssignmentSchema.js";
+
 import { demonstrationSchema } from "./demonstration/demonstrationSchema.js";
 import { demonstrationResolvers } from "./demonstration/demonstrationResolvers.js";
 
@@ -70,6 +72,17 @@ import { signatureLevelResolvers } from "./signatureLevel/signatureLevelResolver
 import { stateSchema } from "./state/stateSchema.js";
 import { stateResolvers } from "./state/stateResolvers.js";
 
+import { tagSchema } from "./tag/tagSchema.js";
+
+import { tagConfigurationSourceSchema } from "./tagConfigurationSource/tagConfigurationSourceSchema.js";
+import { tagConfigurationSourceResolvers } from "./tagConfigurationSource/tagConfigurationSourceResolvers.js";
+
+import { tagConfigurationStatusSchema } from "./tagConfigurationStatus/tagConfigurationStatusSchema.js";
+import { tagConfigurationStatusResolvers } from "./tagConfigurationStatus/tagConfigurationStatusResolvers.js";
+
+import { tagTypeSchema } from "./tagType/tagTypeSchema.js";
+import { tagTypeResolvers } from "./tagType/tagTypeResolvers.js";
+
 import { userSchema } from "./user/userSchema.js";
 import { userResolvers } from "./user/userResolvers.js";
 
@@ -96,9 +109,11 @@ export const typeDefs = [
   applicationPhaseSchema,
   applicationSchema,
   applicationStatusSchema,
+  clearanceLevelSchema,
   dateTypeSchema,
   demonstrationRoleAssignmentSchema,
   demonstrationSchema,
+  demonstrationTypeTagAssignmentSchema,
   documentSchema,
   documentTypeSchema,
   eventSchema,
@@ -114,8 +129,11 @@ export const typeDefs = [
   sdgDivisionSchema,
   signatureLevelSchema,
   stateSchema,
+  tagSchema,
+  tagConfigurationSourceSchema,
+  tagConfigurationStatusSchema,
+  tagTypeSchema,
   userSchema,
-  clearanceLevelSchema,
   ...scalarTypes,
 ];
 
@@ -126,6 +144,7 @@ export const resolvers = [
   applicationPhaseResolvers,
   applicationResolvers,
   applicationStatusResolvers,
+  clearanceLevelResolvers,
   customScalarResolvers,
   dateTypeResolvers,
   demonstrationResolvers,
@@ -145,6 +164,8 @@ export const resolvers = [
   sdgDivisionResolvers,
   signatureLevelResolvers,
   stateResolvers,
+  tagConfigurationSourceResolvers,
+  tagConfigurationStatusResolvers,
+  tagTypeResolvers,
   userResolvers,
-  clearanceLevelResolvers,
 ];

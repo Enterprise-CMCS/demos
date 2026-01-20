@@ -24,7 +24,7 @@ docstring-parser-fork==0.0.12
     # via pydoclint
 duckdb==1.3.0
     # via -r requirements.in
-filelock==3.20.1
+filelock==3.20.3
     # via virtualenv
 identify==2.6.12
     # via pre-commit
@@ -86,7 +86,7 @@ six==1.17.0
     # via mando
 typing-extensions==4.14.0
     # via mypy
-virtualenv==20.31.2
+virtualenv==20.36.1
     # via pre-commit
 wheel==0.45.1
     # via pip-tools

@@ -11,6 +11,7 @@ import {
   ApplicationStatus,
   ApplicationType,
   CreateDemonstrationInput,
+  DemonstrationTypeAssignment,
   GrantLevel,
   PhaseName,
   Role,
@@ -28,6 +29,7 @@ import {
   resolveApplicationDocuments,
   resolveApplicationPhases,
   resolveApplicationStatus,
+  resolveApplicationTags,
 } from "../application/applicationResolvers.js";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
@@ -115,10 +117,7 @@ export async function __updateDemonstration(
   { id, input }: { id: string; input: UpdateDemonstrationInput }
 ): Promise<PrismaDemonstration> {
   const { effectiveDate, expirationDate } = resolveEffectiveAndExpirationDates(input);
-  checkOptionalNotNullFields(
-    ["name", "status", "stateId", "projectOfficerUserId"],
-    input
-  );
+  checkOptionalNotNullFields(["name", "status", "stateId", "projectOfficerUserId"], input);
   try {
     return await prisma().$transaction(async (tx) => {
       const demonstration = await tx.demonstration.update({
@@ -263,6 +262,23 @@ export async function __resolveDemonstrationPrimaryProjectOfficer(
   return primaryRoleAssignment!.demonstrationRoleAssignment!.person;
 }
 
+export async function resolveDemonstrationTypes(
+  parent: PrismaDemonstration
+): Promise<DemonstrationTypeAssignment[]> {
+  const assignments = await prisma().demonstrationTypeTagAssignment.findMany({
+    where: {
+      demonstrationId: parent.id,
+    },
+  });
+  return assignments.map((assignment) => ({
+    demonstrationType: assignment.tagId,
+    effectiveDate: assignment.effectiveDate,
+    expirationDate: assignment.expirationDate,
+    createdAt: assignment.createdAt,
+    updatedAt: assignment.updatedAt,
+  }));
+}
+
 export const demonstrationResolvers = {
   Query: {
     demonstration: __getDemonstration,
@@ -288,5 +304,7 @@ export const demonstrationResolvers = {
     phases: resolveApplicationPhases,
     primaryProjectOfficer: __resolveDemonstrationPrimaryProjectOfficer,
     clearanceLevel: resolveApplicationClearanceLevel,
+    tags: resolveApplicationTags,
+    demonstrationTypes: resolveDemonstrationTypes,
   },
 };
