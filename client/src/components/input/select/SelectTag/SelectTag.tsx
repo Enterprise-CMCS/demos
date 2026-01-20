@@ -1,17 +1,19 @@
 import React, { useMemo } from "react";
 import { AutoCompleteSelect } from "../AutoCompleteSelect";
+import { ApolloError } from "@apollo/client";
+import { Tag } from "mock-data/TagMocks";
 
 export type SelectTagProps = {
   label: string;
   useTagQuery: () => {
     loading: boolean;
-    error?: string;
-    data?: { tags: string[] };
+    error?: ApolloError;
+    data?: { tags: Tag[] };
   };
-  value: string;
-  onSelect: (value: string) => void;
+  value: Tag;
+  onSelect: (tag: Tag) => void;
   isRequired?: boolean;
-  filter?: (type: string) => boolean;
+  filter?: (tag: Tag) => boolean;
 };
 
 export const SelectTag = ({
@@ -24,17 +26,20 @@ export const SelectTag = ({
 }: SelectTagProps) => {
   const { loading, error, data } = useTagQuery();
   const tagOptions = (data?.tags || [])
-    .filter((type) => (filter ? filter(type) : true))
-    .map((type) => ({
-      label: type,
-      value: type,
+    .filter((tag) => (filter ? filter(tag) : true))
+    .map((tag) => ({
+      label: tag,
+      value: tag,
     }));
 
   const placeholderText = useMemo(() => {
     if (loading) return "Loading...";
-    if (error) return "Error loading types";
-    return tagOptions.length ? "Select" : "No types available";
-  }, [loading, error, tagOptions.length]);
+    return tagOptions.length ? "Select" : "No tags available";
+  }, [loading, tagOptions.length]);
+
+  if (error) {
+    return <p className="text-red-500">Error loading tags.</p>;
+  }
 
   return (
     <AutoCompleteSelect

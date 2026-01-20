@@ -2,13 +2,14 @@ import React from "react";
 import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
 import { DeleteIcon } from "components/icons";
 import { formatDate } from "util/formatDate";
+import { Tag } from "mock-data/TagMocks";
 
 export const DemonstrationTypesList = ({
   demonstrationTypes,
   removeDemonstrationType,
 }: {
   demonstrationTypes: DemonstrationType[];
-  removeDemonstrationType: (tag: string) => void;
+  removeDemonstrationType: (tag: Tag) => void;
 }) => {
   return (
     <div className="flex flex-col gap-2">

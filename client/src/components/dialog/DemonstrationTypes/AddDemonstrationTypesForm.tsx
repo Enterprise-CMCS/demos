@@ -3,29 +3,31 @@ import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
 import { DatePicker } from "components/input/date/DatePicker";
 import { SecondaryButton } from "components/button";
 import { SelectDemonstrationTypeTag } from "components/input/select/SelectTag/SelectDemonstrationTypeTag";
+import { Tag } from "mock-data/TagMocks";
 
 const isValid = (formData: DemonstrationType) => {
   return formData.tag && formData.effectiveDate && formData.expirationDate;
 };
 
 export const AddDemonstrationTypesForm = ({
-  existingTags,
+  selectedTags,
   addDemonstrationType,
 }: {
-  existingTags: string[];
+  selectedTags: Tag[];
   addDemonstrationType: (demonstrationType: DemonstrationType) => void;
 }) => {
-  const [formData, setFormData] = React.useState<DemonstrationType>({
-    tag: "",
-    effectiveDate: "",
-    expirationDate: "",
-  });
+  const [addDemonstrationTypesFormData, setAddDemonstrationTypesFormData] =
+    React.useState<DemonstrationType>({
+      tag: "",
+      effectiveDate: "",
+      expirationDate: "",
+    });
 
   const handleAddType = () => {
-    addDemonstrationType(formData);
-    setFormData(
-      (prev): DemonstrationType => ({
-        ...prev,
+    addDemonstrationType(addDemonstrationTypesFormData);
+    setAddDemonstrationTypesFormData(
+      (demonstrationType): DemonstrationType => ({
+        ...demonstrationType,
         tag: "",
       })
     );
@@ -36,19 +38,28 @@ export const AddDemonstrationTypesForm = ({
       <div className="flex gap-2">
         <div className="flex-1">
           <SelectDemonstrationTypeTag
-            filter={(tag) => !existingTags.includes(tag)}
+            filter={(tag) => !selectedTags.includes(tag)}
             isRequired
-            value={formData.tag}
-            onSelect={(tag) => setFormData((prev): DemonstrationType => ({ ...prev, tag }))}
+            value={addDemonstrationTypesFormData.tag}
+            onSelect={(tag) =>
+              setAddDemonstrationTypesFormData(
+                (demonstrationType): DemonstrationType => ({ ...demonstrationType, tag })
+              )
+            }
           />
         </div>
         <div className="flex-1 flex gap-2">
           <div className="flex-1">
             <DatePicker
               isRequired
-              value={formData.effectiveDate}
+              value={addDemonstrationTypesFormData.effectiveDate}
               onChange={(date) =>
-                setFormData((prev): DemonstrationType => ({ ...prev, effectiveDate: date }))
+                setAddDemonstrationTypesFormData(
+                  (demonstrationType): DemonstrationType => ({
+                    ...demonstrationType,
+                    effectiveDate: date,
+                  })
+                )
               }
               label="Effective Date"
               name="date-picker-effective-date"
@@ -57,9 +68,14 @@ export const AddDemonstrationTypesForm = ({
           <div className="flex-1">
             <DatePicker
               isRequired
-              value={formData.expirationDate}
+              value={addDemonstrationTypesFormData.expirationDate}
               onChange={(date) =>
-                setFormData((prev): DemonstrationType => ({ ...prev, expirationDate: date }))
+                setAddDemonstrationTypesFormData(
+                  (demonstrationType): DemonstrationType => ({
+                    ...demonstrationType,
+                    expirationDate: date,
+                  })
+                )
               }
               label="Expiration Date"
               name="date-picker-expiration-date"
@@ -69,7 +85,7 @@ export const AddDemonstrationTypesForm = ({
       </div>
       <div className="flex justify-end">
         <SecondaryButton
-          disabled={!isValid(formData)}
+          disabled={!isValid(addDemonstrationTypesFormData)}
           name="button-add-demonstration-type"
           type="button"
           onClick={handleAddType}
