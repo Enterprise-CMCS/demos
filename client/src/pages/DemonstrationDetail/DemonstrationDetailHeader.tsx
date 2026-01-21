@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from "react";
 
-import { CircleButton, IconButton } from "components/button";
+import { CircleButton } from "components/button";
+import { BaseButton } from "components/button/BaseButton";
 import { AddNewIcon, ChevronLeftIcon, DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { Demonstration, Person, State } from "demos-server";
 import { formatDate } from "util/formatDate";
@@ -108,15 +109,18 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
             >
               Demonstration List
             </a>
-            {">"} {demonstration.id}
+            {" > "} {demonstration.id}
           </span>
           <div className="flex gap-1 items-center -ml-2">
             <div>
-              <IconButton
-                icon={<ChevronLeftIcon />}
+              {/* Using w-10 and h-12 does not work b/c we are overriding matching sytles e.g. h-[40px] in BB */}
+              <BaseButton
                 name="Back to demonstrations"
                 onClick={() => navigate("/demonstrations")}
-              />
+                className="w-[50px] h-[60px] mt-[10px] bg-brand text-white hover:bg-white hover:text-brand border border-white"
+              >
+                <ChevronLeftIcon className="w-[20px] h-[20px]" />
+              </BaseButton>
             </div>
             <div>
               <div>
