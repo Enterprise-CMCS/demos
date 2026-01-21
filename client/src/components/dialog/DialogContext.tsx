@@ -175,8 +175,15 @@ export const useDialog = () => {
   const showApplyDemonstrationTypesDialog = (demonstrationId: string) => {
     context.showDialog(<ApplyDemonstrationTypesDialog demonstrationId={demonstrationId} />);
   };
-  const showApplyTagsDialog = (tags: string[]) => {
-    context.showDialog(<ApplyTagsDialog initialTags={tags} onClose={context.hideDialog} />);
+
+  const showApplyTagsDialog = (allTags: string[], selectedTags: string[]) => {
+    context.showDialog(
+      <ApplyTagsDialog
+        allTags={allTags}
+        initiallySelectedTags={selectedTags}
+        onClose={context.hideDialog}
+      />
+    );
   };
 
   return {
