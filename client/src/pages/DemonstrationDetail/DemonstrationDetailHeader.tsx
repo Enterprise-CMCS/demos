@@ -102,7 +102,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
     >
       <div className="flex items-start gap-2">
         <div>
-          <span className="-ml-2 block text-[16px] mb-0.5">
+          <span className="-ml-2 block text-[12px] mb-0.5">
             <a
               className="underline underline-offset-2 decoration-gray-400 decoration-1 decoration-opacity-40"
               href="/demonstrations"
@@ -116,8 +116,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
               <BaseButton
                 name="Back to demonstrations"
                 onClick={() => navigate("/demonstrations")}
-                className="bg-brand text-white hover:bg-white hover:text-brand border border-white"
-                customButtonSize="w-[60px] h-[70px] mt-[10px]"
+                className="w-[50px] h-[60px] mt-[10px] bg-brand text-white hover:bg-white hover:text-brand border border-white"
               >
                 <ChevronLeftIcon className="w-[20px] h-[20px]" />
               </BaseButton>
