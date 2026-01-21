@@ -12,5 +12,5 @@ export function determineDemonstrationTypeStatus(
   } else if (easternNow.easternTZDate > expirationDate) {
     return "Expired";
   }
-  return "Approved";
+  return "Active";
 }

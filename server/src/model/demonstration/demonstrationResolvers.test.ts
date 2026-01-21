@@ -820,7 +820,7 @@ describe("demonstrationResolvers", () => {
 
       // This mocks the return from the status function, again is present to make sure the map at the end is right
       vi.mocked(determineDemonstrationTypeStatus)
-        .mockReturnValueOnce("Approved")
+        .mockReturnValueOnce("Active")
         .mockReturnValueOnce("Pending");
 
       const input: Partial<PrismaDemonstration> = {
@@ -838,7 +838,7 @@ describe("demonstrationResolvers", () => {
           demonstrationType: "Test Demonstration Type A",
           effectiveDate: testValues.dateValue,
           expirationDate: testValues.dateValue,
-          status: "Approved",
+          status: "Active",
           createdAt: testValues.dateValue,
           updatedAt: testValues.dateValue,
         },

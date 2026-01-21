@@ -22,7 +22,7 @@ describe("determineDemonstrationTypeStatus", () => {
     {
       effectiveDate: new Date(2025, 0, 1, 0, 0, 0, 0),
       expirationDate: new Date(2025, 11, 31, 23, 59, 59, 999),
-      expectedResult: "Approved",
+      expectedResult: "Active",
     },
   ];
 
