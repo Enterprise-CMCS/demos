@@ -5,7 +5,6 @@ import { DemosApolloProvider } from "./DemosApolloProvider";
 import { DemosAuthProvider } from "./DemosAuthProvider";
 import { UserProvider } from "components/user/UserContext";
 import { DemonstrationsPage } from "pages/DemonstrationsPage";
-import { ActionsCenterPage } from "pages/ActionsCenterPage";
 import { ComponentLibrary, DialogSandbox } from "pages/debug";
 import { IconLibrary } from "pages/debug/IconLibrary";
 import { EventSandbox } from "pages/debug/EventSandbox";
@@ -25,7 +24,6 @@ export const DemosRouter: React.FC = () => {
                 <Route path="/" element={<DemonstrationsPage />} />
                 <Route path="demonstrations" element={<DemonstrationsPage />} />
                 <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
-                <Route path="actions" element={<ActionsCenterPage />} />
 
                 {isLocalDevelopment() && (
                   <>
