@@ -208,7 +208,7 @@ export function Table<T>({
       {!hideSearchAndActions && (
         <div className="flex flex-col gap-4 items-start sm:flex-row sm:items-center justify-between mb-[24px]">
           <TableSearch table={table} keywordSearch={keywordSearch} columnFilter={columnFilter} />
-          <div className="mr-1">{actionButtons && actionButtons(table)}</div>
+          <div className="mr-1">{actionButtons?.(table)}</div>
         </div>
       )}
 
