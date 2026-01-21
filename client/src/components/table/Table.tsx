@@ -88,11 +88,7 @@ function TableBody<T>({
         </tr>
       ) : (
         table.getRowModel().rows.map((row) => (
-          <tr
-            onClick={row.getToggleSelectedHandler()}
-            key={row.id}
-            className={row.depth > 0 ? STYLES.subrow : STYLES.tr}
-          >
+          <tr key={row.id} className={row.depth > 0 ? STYLES.subrow : STYLES.tr}>
             {row.getVisibleCells().map((cell) => {
               return (
                 <td key={cell.id} className={STYLES.td}>
@@ -205,14 +201,8 @@ export function Table<T>({
     <>
       {!hideSearchAndActions && (
         <div className="flex flex-col gap-4 items-start sm:flex-row sm:items-center justify-between mb-[24px]">
-          <TableSearch
-            table={table}
-            keywordSearch={keywordSearch}
-            columnFilter={columnFilter}
-          />
-          <div className="mr-1">
-            {actionButtons && actionButtons(table)}
-          </div>
+          <TableSearch table={table} keywordSearch={keywordSearch} columnFilter={columnFilter} />
+          <div className="mr-1">{actionButtons && actionButtons(table)}</div>
         </div>
       )}
 
