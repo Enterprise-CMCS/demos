@@ -13,7 +13,7 @@ describe("DemonstrationHealthTypeTags", () => {
         <DemonstrationHealthTypeTags
           title="STEP 3 - APPLY TAGS"
           description="You must tag this application with one or more demonstration types involved."
-          tags={["Behavioral Health", "Dental"]}
+          selectedTags={["Behavioral Health", "Dental"]}
           onRemoveTag={() => {}}
         />
       </DialogProvider>
@@ -41,7 +41,7 @@ describe("DemonstrationHealthTypeTags", () => {
         <DemonstrationHealthTypeTags
           title="STEP 3 - APPLY TAGS"
           description="You must tag this application with one or more demonstration types involved."
-          tags={["Behavioral Health", "Dental"]}
+          selectedTags={["Behavioral Health", "Dental"]}
           onRemoveTag={onRemoveTag}
         />
       </DialogProvider>

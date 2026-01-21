@@ -18,6 +18,7 @@ import { getPhaseCompletedMessage } from "util/messages";
 import { useToast } from "components/toast";
 import { DatePicker } from "components/input/date/DatePicker";
 import { DemonstrationHealthTypeTags } from "components/tags/DemonstrationHealthTypeTags";
+import { TEMP_SELECTED_TAGS } from "components/dialog/ApplyTagsDialog";
 
 /** Business Rules for this Phase:
  * - **Application Intake Start Date** - Can start in one of two ways, whichever comes first:
@@ -42,8 +43,6 @@ const STYLES = {
   fileMeta: tw`text-xs text-text-placeholder mt-0.5`,
   actions: tw`mt-8 flex justify-end gap-3`,
 };
-
-const TEMP_SELECTED_TAGS = ["Basic Health Plan (BHP)", "Behavioral Health", "Dental"];
 
 // Calculate completeness review due date (submitted date + 15 calendar days)
 export const getCompletenessReviewDueDate = (stateApplicationSubmittedDate: string): Date => {
@@ -250,7 +249,7 @@ export const ApplicationIntakePhase = ({
             description={
               "You must tag this application with one or more demonstration types involved in this request before it can be reviewed and approved."
             }
-            tags={selectedTags}
+            selectedTags={selectedTags}
             onRemoveTag={handleRemoveTag}
           />
         </div>

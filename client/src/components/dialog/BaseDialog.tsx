@@ -7,6 +7,7 @@ import { ConfirmCancellationDialog } from "./ConfirmCancellationDialog";
 export const DIALOG_CANCEL_BUTTON_NAME = "button-dialog-cancel";
 
 interface BaseDialogProps {
+  name?: string;
   title: string;
   onClose: () => void;
   children: React.ReactNode;
@@ -23,6 +24,7 @@ const TITLE = tw`text-[18px] font-semibold mb-xs`;
 const HR = tw`border-border-rules my-sm`;
 
 export const BaseDialog: React.FC<BaseDialogProps> = ({
+  name,
   title,
   onClose,
   children,
@@ -75,7 +77,12 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
 
   return (
     <>
-      <dialog ref={dialogRef} className={`${DIALOG} ${maxWidthClass}`} onClose={handleDialogClose}>
+      <dialog
+        ref={dialogRef}
+        className={`${DIALOG} ${maxWidthClass}`}
+        onClose={handleDialogClose}
+        data-testid={name}
+      >
         {!hideHeader && (
           <>
             <button onClick={onCloseClicked} className={CLOSE_BUTTON} aria-label="Close dialog">
