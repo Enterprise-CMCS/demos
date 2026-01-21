@@ -72,35 +72,41 @@ function TableBody<T>({
   const hasDataAfterFiltering = table.getFilteredRowModel().rows.length > 0;
   const filtersClearedOutData = hasDataInitially && !hasDataAfterFiltering;
 
-  return (
-    <tbody>
-      {filtersClearedOutData ? (
+  const renderTableContent = () => {
+    if (filtersClearedOutData) {
+      return (
         <tr>
           <td colSpan={table.getAllLeafColumns().length} className={STYLES.td}>
             {noResultsFoundMessage}
           </td>
         </tr>
-      ) : !hasDataInitially ? (
+      );
+    }
+
+    if (!hasDataInitially) {
+      return (
         <tr>
           <td colSpan={table.getAllLeafColumns().length} className={STYLES.td}>
             {emptyRowsMessage}
           </td>
         </tr>
-      ) : (
-        table.getRowModel().rows.map((row) => (
-          <tr key={row.id} className={row.depth > 0 ? STYLES.subrow : STYLES.tr}>
-            {row.getVisibleCells().map((cell) => {
-              return (
-                <td key={cell.id} className={STYLES.td}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              );
-            })}
-          </tr>
-        ))
-      )}
-    </tbody>
-  );
+      );
+    }
+
+    return table.getRowModel().rows.map((row) => (
+      <tr key={row.id} className={row.depth > 0 ? STYLES.subrow : STYLES.tr}>
+        {row.getVisibleCells().map((cell) => {
+          return (
+            <td key={cell.id} className={STYLES.td}>
+              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            </td>
+          );
+        })}
+      </tr>
+    ));
+  };
+
+  return <tbody>{renderTableContent()}</tbody>;
 }
 
 function TableSearch<T>({
