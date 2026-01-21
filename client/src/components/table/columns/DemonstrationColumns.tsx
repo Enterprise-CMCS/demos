@@ -103,8 +103,7 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
         const href = queryParam
           ? `/demonstrations/${demoId}?${queryParam}`
           : `/demonstrations/${demoId}`;
-        const handleClick = (e: React.MouseEvent) => {
-          e.stopPropagation();
+        const handleClick = () => {
           window.location.href = href;
         };
         return (
@@ -125,10 +124,7 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
         row.getCanExpand() ? (
           <button
             aria-label="expand"
-            onClick={(e) => {
-              e.stopPropagation();
-              row.getToggleExpandedHandler()();
-            }}
+            onClick={row.getToggleExpandedHandler()}
             style={{ cursor: "pointer" }}
           >
             {row.getIsExpanded() ? <ChevronDownIcon /> : <ChevronRightIcon />}
