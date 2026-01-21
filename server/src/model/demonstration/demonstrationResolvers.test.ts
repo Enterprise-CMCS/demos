@@ -17,7 +17,6 @@ import {
 import {
   ApplicationStatus,
   ApplicationType,
-  ClearanceLevel,
   CreateDemonstrationInput,
   DemonstrationTypeAssignment,
   GrantLevel,
@@ -55,6 +54,7 @@ import {
   resolveApplicationTags,
 } from "../application/applicationResolvers.js";
 import { parseDateTimeOrLocalDateToEasternTZDate, EasternTZDate } from "../../dateUtilities.js";
+import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -90,6 +90,10 @@ vi.mock("../applicationDate/checkInputDateFunctions.js", () => ({
 
 vi.mock("../../dateUtilities.js", () => ({
   parseDateTimeOrLocalDateToEasternTZDate: vi.fn(),
+}));
+
+vi.mock("./determineDemonstrationTypeStatus.js", () => ({
+  determineDemonstrationTypeStatus: vi.fn(),
 }));
 
 describe("demonstrationResolvers", () => {
@@ -813,19 +817,28 @@ describe("demonstrationResolvers", () => {
         },
       ];
       regularMocks.demonstrationTypeTagAssignment.findMany.mockResolvedValueOnce(resolvedValue);
+
+      // This mocks the return from the status function, again is present to make sure the map at the end is right
+      vi.mocked(determineDemonstrationTypeStatus)
+        .mockReturnValueOnce("Active")
+        .mockReturnValueOnce("Pending");
+
       const input: Partial<PrismaDemonstration> = {
         id: testValues.demonstrationId,
       };
+
       const expectedCall = {
         where: {
           demonstrationId: testValues.demonstrationId,
         },
       };
+
       const expectedResult: DemonstrationTypeAssignment[] = [
         {
           demonstrationType: "Test Demonstration Type A",
           effectiveDate: testValues.dateValue,
           expirationDate: testValues.dateValue,
+          status: "Active",
           createdAt: testValues.dateValue,
           updatedAt: testValues.dateValue,
         },
@@ -833,6 +846,7 @@ describe("demonstrationResolvers", () => {
           demonstrationType: "Test Demonstration Type B",
           effectiveDate: testValues.dateValue,
           expirationDate: testValues.dateValue,
+          status: "Pending",
           createdAt: testValues.dateValue,
           updatedAt: testValues.dateValue,
         },
