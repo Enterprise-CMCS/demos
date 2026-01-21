@@ -45,6 +45,7 @@ export interface ButtonProps {
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
   children: React.ReactNode;
   className: string;
+  customButtonSize?: string; // need for 1 off buttons
   ariaLabel?: string;
   type?: ButtonType;
   form?: string;
@@ -62,10 +63,11 @@ export const BaseButton: React.FC<ButtonProps> = ({
   ariaLabel,
   type = "button",
   size = "standard",
+  customButtonSize,
   disabled = false,
   isCircle = false,
 }) => {
-  const sizeClasses = getSizeClasses(isCircle, size);
+  const sizeClasses = customButtonSize || getSizeClasses(isCircle, size);
   const circleClasses = getCircleClasses(isCircle);
 
   return (

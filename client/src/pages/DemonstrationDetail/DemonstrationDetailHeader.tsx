@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from "react";
 
-import { CircleButton, IconButton } from "components/button";
+import { CircleButton } from "components/button";
+import { BaseButton } from "components/button/BaseButton";
 import { AddNewIcon, ChevronLeftIcon, DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { Demonstration, Person, State } from "demos-server";
 import { formatDate } from "util/formatDate";
@@ -101,22 +102,25 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
     >
       <div className="flex items-start gap-2">
         <div>
-          <span className="-ml-2 block text-[12px] mb-0.5">
+          <span className="-ml-2 block text-[16px] mb-0.5">
             <a
               className="underline underline-offset-2 decoration-gray-400 decoration-1 decoration-opacity-40"
               href="/demonstrations"
             >
               Demonstration List
             </a>
-            {">"} {demonstration.id}
+            {"\u00A0\u00A0\u00A0\u00A0>\u00A0\u00A0"} {demonstration.id}
           </span>
           <div className="flex gap-1 items-center -ml-2">
-            <div>
-              <IconButton
-                icon={<ChevronLeftIcon />}
+            <div className="">
+              <BaseButton
                 name="Back to demonstrations"
                 onClick={() => navigate("/demonstrations")}
-              />
+                className="bg-brand text-white hover:bg-white hover:text-brand border border-white"
+                customButtonSize="w-[60px] h-[70px] mt-[10px]"
+              >
+                <ChevronLeftIcon className="w-[20px] h-[20px]" />
+              </BaseButton>
             </div>
             <div>
               <div>
@@ -131,12 +135,12 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
                 >
                   {displayFields.map((field, index) => (
                     <React.Fragment key={field.label}>
-                      <li className="text-[12px]">
+                      <li className="text-[15px]">
                         <strong>{field.label}</strong>:{" "}
                         <span data-testid={`demonstration-${field.label}`}>{field.value}</span>
                       </li>
                       {index < displayFields.length - 1 && (
-                        <li className="text-[12px]" aria-hidden="true">
+                        <li className="text-auto" aria-hidden="true">
                           |
                         </li>
                       )}
@@ -176,7 +180,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
               <AddNewIcon width="24" height="40" />
             </CircleButton>
             {showDropdown && (
-              <div className="absolute w-[160px] bg-white text-black rounded-[6px] shadow-lg border z-20">
+              <div className="absolute w-40 bg-white text-black rounded-[6px] shadow-lg border z-20">
                 <button
                   data-testid="button-create-new-amendment"
                   onClick={() => {
