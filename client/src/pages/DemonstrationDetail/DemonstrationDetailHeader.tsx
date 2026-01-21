@@ -109,10 +109,11 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
             >
               Demonstration List
             </a>
-            {"\u00A0\u00A0\u00A0\u00A0>\u00A0\u00A0"} {demonstration.id}
+            {" > "} {demonstration.id}
           </span>
           <div className="flex gap-1 items-center -ml-2">
-            <div className="">
+            <div>
+              {/* Using w-10 and h-12 does not work b/c we are overriding matching sytles e.g. h-[40px] in BB */}
               <BaseButton
                 name="Back to demonstrations"
                 onClick={() => navigate("/demonstrations")}
@@ -125,6 +126,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
               <div>
                 <span className="font-bold block">{demonstration.name}</span>
               </div>
+
               <div>
                 <ul
                   className="inline-flex flex-wrap items-center gap-1"
@@ -133,12 +135,12 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
                 >
                   {displayFields.map((field, index) => (
                     <React.Fragment key={field.label}>
-                      <li className="text-[15px]">
+                      <li className="text-[12px]">
                         <strong>{field.label}</strong>:{" "}
                         <span data-testid={`demonstration-${field.label}`}>{field.value}</span>
                       </li>
                       {index < displayFields.length - 1 && (
-                        <li className="text-auto" aria-hidden="true">
+                        <li className="text-[12px]" aria-hidden="true">
                           |
                         </li>
                       )}
@@ -178,7 +180,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
               <AddNewIcon width="24" height="40" />
             </CircleButton>
             {showDropdown && (
-              <div className="absolute w-40 bg-white text-black rounded-[6px] shadow-lg border z-20">
+              <div className="absolute w-[160px] bg-white text-black rounded-[6px] shadow-lg border z-20">
                 <button
                   data-testid="button-create-new-amendment"
                   onClick={() => {
