@@ -126,7 +126,6 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
               <div>
                 <span className="font-bold block">{demonstration.name}</span>
               </div>
-
               <div>
                 <ul
                   className="inline-flex flex-wrap items-center gap-1"
