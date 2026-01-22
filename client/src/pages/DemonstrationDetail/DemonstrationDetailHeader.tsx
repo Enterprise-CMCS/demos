@@ -153,33 +153,36 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
           </div>
         </div>
       </div>
-      <div className="relative">
+      <div className="relative mt-4">
         {showButtons && (
           <span className="mr-0.75">
             <span>
               <CircleButton
                 name="Delete demonstration"
                 data-testid="delete-button"
+                size="small"
                 onClick={() => {}}
               >
-                <DeleteIcon width="24" height="40" />
+                <DeleteIcon />
               </CircleButton>
               <CircleButton
                 name="Edit demonstration"
                 data-testid="edit-button"
+                size="small"
                 onClick={() => {
                   setShowDropdown(false);
                   showEditDemonstrationDialog(demonstrationId);
                 }}
               >
-                <EditIcon width="24" height="40" />
+                <EditIcon />
               </CircleButton>
               <CircleButton
                 name="Create New"
                 data-testid="create-new-button"
+                size="small"
                 onClick={() => setShowDropdown((prev) => !prev)}
               >
-                <AddNewIcon width="24" height="40" />
+                <AddNewIcon />
               </CircleButton>
             </span>
             {showDropdown && (
@@ -211,6 +214,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
         <CircleButton
           name="Toggle more options"
           data-testid="toggle-ellipsis-button"
+          size="small"
           onClick={handleToggleButtons}
         >
           <span
@@ -218,7 +222,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
               showButtons ? "rotate-90" : "rotate-0"
             }`}
           >
-            <EllipsisIcon width="24" height="40" />
+            <EllipsisIcon />
           </span>
         </CircleButton>
       </div>
