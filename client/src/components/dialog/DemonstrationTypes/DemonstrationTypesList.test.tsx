@@ -42,10 +42,10 @@ describe("DemonstrationTypesList", () => {
     },
   ];
 
-  const renderDemonstrationTypesList = (demonstrationTypesOverride?: DemonstrationType[]) => {
+  const renderDemonstrationTypesList = () => {
     return render(
       <DemonstrationTypesList
-        demonstrationTypes={demonstrationTypesOverride || demonstrationTypes}
+        demonstrationTypes={demonstrationTypes}
         removeDemonstrationType={mockRemoveDemonstrationType}
       />
     );
