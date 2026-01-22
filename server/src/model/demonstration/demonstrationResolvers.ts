@@ -31,6 +31,7 @@ import {
   resolveApplicationStatus,
   resolveApplicationTags,
 } from "../application/applicationResolvers.js";
+import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -274,6 +275,7 @@ export async function resolveDemonstrationTypes(
     demonstrationType: assignment.tagId,
     effectiveDate: assignment.effectiveDate,
     expirationDate: assignment.expirationDate,
+    status: determineDemonstrationTypeStatus(assignment.effectiveDate, assignment.expirationDate),
     createdAt: assignment.createdAt,
     updatedAt: assignment.updatedAt,
   }));

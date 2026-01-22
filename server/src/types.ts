@@ -5,6 +5,7 @@ import {
   CLEARANCE_LEVELS,
   CMS_USER_DEMONSTRATION_ROLES,
   DATE_TYPES,
+  DEMONSTRATION_TYPE_STATUSES,
   DOCUMENT_TYPES,
   EVENT_TYPES,
   EXPECTED_TIMESTAMPS,
@@ -92,6 +93,7 @@ export type { Tag } from "./model/tag/tagSchema.js";
 // This is because the type is visible in the API documentation, etc
 export type { DemonstrationTypeAssignment } from "./model/demonstrationTypeTagAssignment/demonstrationTypeTagAssignmentSchema.js";
 
+export type DemonstrationTypeStatus = (typeof DEMONSTRATION_TYPE_STATUSES)[number];
 export type ClearanceLevel = (typeof CLEARANCE_LEVELS)[number];
 export type LocalDate = string & { readonly __brand: "LocalDate" };
 export type DateTimeOrLocalDate = Date | LocalDate;
