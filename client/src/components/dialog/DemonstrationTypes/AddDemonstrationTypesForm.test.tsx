@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AddDemonstrationTypesForm } from "./AddDemonstrationTypesForm";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
-import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectTag/SelectDemonstrationType";
+import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectDemonstrationTypeName";
 import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
 
 const mockSelectDemonstrationTypeQuery: MockedResponse = {
@@ -53,7 +53,7 @@ describe("AddDemonstrationTypesForm", () => {
   it("renders all form fields", async () => {
     await renderWithProvider();
 
-    expect(screen.getByTestId("input-autocomplete-select")).toBeInTheDocument();
+    expect(screen.getByTestId("select-demonstration-type-name")).toBeInTheDocument();
     expect(screen.getByLabelText(/effective date/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/expiration date/i)).toBeInTheDocument();
     expect(screen.getByTestId("button-add-demonstration-type")).toBeInTheDocument();

@@ -4,9 +4,9 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import {
   SELECT_DEMONSTRATION_TYPE_QUERY,
-  SelectDemonstrationType,
-  SelectDemonstrationTypeProps,
-} from "./SelectDemonstrationType";
+  SelectDemonstrationTypeName,
+  SelectDemonstrationTypeNameProps,
+} from "./SelectDemonstrationTypeName";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 
 const mockSelectDemonstrationTypeQuery: MockedResponse = {
@@ -41,7 +41,7 @@ const mockSelectDemonstrationTypeQueryEmpty: MockedResponse = {
 describe("SelectDemonstrationTypes", () => {
   const mockOnSelect = vi.fn();
 
-  const DEFAULT_PROPS: SelectDemonstrationTypeProps = {
+  const DEFAULT_PROPS: SelectDemonstrationTypeNameProps = {
     value: "",
     onSelect: mockOnSelect,
   };
@@ -49,18 +49,18 @@ describe("SelectDemonstrationTypes", () => {
   it("displays error message when query fails", async () => {
     render(
       <MockedProvider mocks={[mockSelectDemonstrationTypeQueryError]}>
-        <SelectDemonstrationType {...DEFAULT_PROPS} />
+        <SelectDemonstrationTypeName {...DEFAULT_PROPS} />
       </MockedProvider>
     );
     await waitFor(() => {
-      expect(screen.getByText("Error loading tags.")).toBeInTheDocument();
+      expect(screen.getByText("Error loading demonstration types.")).toBeInTheDocument();
     });
   });
 
   it("shows loading state initially", async () => {
     render(
       <MockedProvider mocks={[mockSelectDemonstrationTypeQuery]}>
-        <SelectDemonstrationType {...DEFAULT_PROPS} />
+        <SelectDemonstrationTypeName {...DEFAULT_PROPS} />
       </MockedProvider>
     );
 
@@ -70,12 +70,12 @@ describe("SelectDemonstrationTypes", () => {
   it("shows 'No tags available' when no demonstration types exist", async () => {
     render(
       <MockedProvider mocks={[mockSelectDemonstrationTypeQueryEmpty]}>
-        <SelectDemonstrationType {...DEFAULT_PROPS} />
+        <SelectDemonstrationTypeName {...DEFAULT_PROPS} />
       </MockedProvider>
     );
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText("No tags available")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("No demonstration types available")).toBeInTheDocument();
     });
   });
 
@@ -83,23 +83,23 @@ describe("SelectDemonstrationTypes", () => {
     const filterFn = () => false;
     render(
       <MockedProvider mocks={[mockSelectDemonstrationTypeQuery]}>
-        <SelectDemonstrationType {...DEFAULT_PROPS} filter={filterFn} />
+        <SelectDemonstrationTypeName {...DEFAULT_PROPS} filter={filterFn} />
       </MockedProvider>
     );
     const input = screen.getByRole("textbox");
     await userEvent.click(input);
 
-    expect(screen.getByPlaceholderText("No tags available")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("No demonstration types available")).toBeInTheDocument();
   });
 
   describe("loaded states", () => {
     const renderWithProvider = async (
-      propOverrides?: Partial<SelectDemonstrationTypeProps>,
+      propOverrides?: Partial<SelectDemonstrationTypeNameProps>,
       mock: MockedResponse = mockSelectDemonstrationTypeQuery
     ) => {
       const result = render(
         <MockedProvider mocks={[mock]}>
-          <SelectDemonstrationType {...DEFAULT_PROPS} {...propOverrides} />
+          <SelectDemonstrationTypeName {...DEFAULT_PROPS} {...propOverrides} />
         </MockedProvider>
       );
 

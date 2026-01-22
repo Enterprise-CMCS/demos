@@ -1,5 +1,5 @@
 import { MockedResponse } from "@apollo/client/testing";
-import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectTag/SelectDemonstrationType";
+import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectDemonstrationTypeName";
 
 export type Tag = string;
 

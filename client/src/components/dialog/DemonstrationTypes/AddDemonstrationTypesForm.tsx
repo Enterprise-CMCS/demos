@@ -1,7 +1,7 @@
 import React from "react";
 import { DatePicker } from "components/input/date/DatePicker";
 import { SecondaryButton } from "components/button";
-import { SelectDemonstrationType } from "components/input/select/SelectTag/SelectDemonstrationType";
+import { SelectDemonstrationTypeName } from "components/input/select/SelectDemonstrationTypeName";
 import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
 
 function isValid(demonstrationType: DemonstrationType): boolean {
@@ -45,7 +45,7 @@ export const AddDemonstrationTypesForm = ({
     <div className="flex flex-col gap-2">
       <div className="flex gap-2">
         <div className="flex-1">
-          <SelectDemonstrationType
+          <SelectDemonstrationTypeName
             filter={filterDemonstrationTypes}
             isRequired
             value={demonstrationTypeFormData.demonstrationTypeName}

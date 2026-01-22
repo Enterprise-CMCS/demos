@@ -8,7 +8,7 @@ import {
 } from "./ApplyDemonstrationTypesDialog";
 import type { Demonstration } from "./ApplyDemonstrationTypesDialog";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
-import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectTag/SelectDemonstrationType";
+import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectDemonstrationTypeName";
 
 // Mock dependencies
 const mockCloseDialog = vi.fn();
