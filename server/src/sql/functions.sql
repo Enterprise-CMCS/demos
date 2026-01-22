@@ -642,6 +642,7 @@ BEGIN
     END;
 
     IF old_record IS NOT DISTINCT FROM new_record THEN
+        RAISE WARNING 'Warning: A database change was suppressed because it contained no actual changes';
         RETURN NULL;
     END IF;
 
