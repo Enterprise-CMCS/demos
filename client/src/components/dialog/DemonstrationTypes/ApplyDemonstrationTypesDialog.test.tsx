@@ -1,9 +1,14 @@
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { render, screen, waitFor, within } from "@testing-library/react";
+import userEvent, { UserEvent } from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ApplyDemonstrationTypesDialog } from "./ApplyDemonstrationTypesDialog";
-import type { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
+import {
+  ApplyDemonstrationTypesDialog,
+  ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY,
+} from "./ApplyDemonstrationTypesDialog";
+import type { Demonstration } from "./ApplyDemonstrationTypesDialog";
+import { MockedProvider, MockedResponse } from "@apollo/client/testing";
+import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectTag/SelectDemonstrationType";
 
 // Mock dependencies
 const mockCloseDialog = vi.fn();
@@ -21,192 +26,179 @@ vi.mock("components/toast", () => ({
   }),
 }));
 
-vi.mock("../BaseDialog", () => ({
-  BaseDialog: ({
-    title,
-    children,
-    actionButton,
-    dialogHasChanges,
-  }: {
-    title: string;
-    children: React.ReactNode;
-    actionButton: React.ReactNode;
-    dialogHasChanges: boolean;
-  }) => (
-    <div data-testid="base-dialog">
-      <h1>{title}</h1>
-      <div data-testid="dialog-has-changes">{String(dialogHasChanges)}</div>
-      <div data-testid="dialog-content">{children}</div>
-      <div data-testid="dialog-actions">{actionButton}</div>
-    </div>
-  ),
-}));
+const mockDemonstrationTypes = [
+  {
+    demonstrationTypeName: "Type A",
+    effectiveDate: "2024-01-01",
+    expirationDate: "2025-01-01",
+  },
+  {
+    demonstrationTypeName: "Type B",
+    effectiveDate: "2024-01-02",
+    expirationDate: "2025-01-02",
+  },
+  {
+    demonstrationTypeName: "Type C",
+    effectiveDate: "2024-01-03",
+    expirationDate: "2025-01-03",
+  },
+];
+const mockDemonstrationTypeNames = ["Type A", "Type B", "Type C", "Type D"];
+const mockDemonstrationId = "demo-123";
+const mockDemonstration: Demonstration = {
+  id: mockDemonstrationId,
+  demonstrationTypes: mockDemonstrationTypes,
+};
+const mockApplyDemonstrationTypesDialogQuery: MockedResponse = {
+  request: {
+    query: ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY,
+    variables: { id: mockDemonstrationId },
+  },
+  result: {
+    data: {
+      demonstration: mockDemonstration,
+    },
+  },
+};
 
-vi.mock("components/button/SubmitButton", () => ({
-  SubmitButton: ({
-    disabled,
-    isSubmitting,
-    onClick,
-    name,
-  }: {
-    disabled: boolean;
-    isSubmitting: boolean;
-    onClick: () => void;
-    name: string;
-  }) => (
-    <button data-testid={name} disabled={disabled} onClick={onClick} aria-busy={isSubmitting}>
-      Submit
-    </button>
-  ),
-}));
+const mockSelectDemonstrationTypeQuery: MockedResponse = {
+  request: {
+    query: SELECT_DEMONSTRATION_TYPE_QUERY,
+  },
+  result: {
+    data: {
+      demonstrationTypes: mockDemonstrationTypeNames,
+    },
+  },
+};
 
-vi.mock("./DemonstrationTypesList", () => ({
-  DemonstrationTypesList: ({
-    demonstrationTypes,
-    removeDemonstrationType,
-  }: {
-    demonstrationTypes: DemonstrationType[];
-    removeDemonstrationType: (tag: string) => void;
-  }) => (
-    <div data-testid="demonstration-types-list">
-      <p>List Count: {demonstrationTypes.length}</p>
-      {demonstrationTypes.map((type, index) => (
-        <div key={index} data-testid={`list-item-${index}`}>
-          <span>{type.tag}</span>
-          <button onClick={() => removeDemonstrationType(type.tag)}>Remove {type.tag}</button>
-        </div>
-      ))}
-    </div>
-  ),
-}));
-
-vi.mock("./AddDemonstrationTypesForm", () => ({
-  AddDemonstrationTypesForm: ({
-    demonstrationTypes,
-    addDemonstrationType,
-  }: {
-    demonstrationTypes: DemonstrationType[];
-    addDemonstrationType: (type: DemonstrationType) => void;
-  }) => (
-    <div data-testid="add-demonstration-types-form">
-      <p>Form knows about {demonstrationTypes?.length || []} existing types</p>
-      <button
-        onClick={() =>
-          addDemonstrationType({
-            tag: "New Type",
-            effectiveDate: "2024-06-01",
-            expirationDate: "2024-12-31",
-          })
-        }
-      >
-        Add New Type
-      </button>
-    </div>
-  ),
-}));
-
-// TODO: many of these tests are reliant on the hardcoded data returned by the mock query fetching.
-// Upon integration, they will need to be updated
 describe("ApplyDemonstrationTypesDialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("renders dialog with correct title", () => {
-    render(<ApplyDemonstrationTypesDialog demonstrationId="demo-123" />);
+  const renderWithProvider = async () => {
+    const result = render(
+      <MockedProvider
+        mocks={[mockApplyDemonstrationTypesDialogQuery, mockSelectDemonstrationTypeQuery]}
+      >
+        <ApplyDemonstrationTypesDialog demonstrationId={mockDemonstrationId} />
+      </MockedProvider>
+    );
 
+    await waitFor(() => {
+      expect(screen.getByText("Demonstration Type")).toBeInTheDocument();
+    });
+
+    return result;
+  };
+
+  async function addDemonstrationTypeD(user: UserEvent) {
+    const input = screen.getByRole("textbox");
+    await user.click(input);
+    await user.click(screen.getByText("Type D"));
+    await user.type(screen.getByLabelText(/effective date/i), "2024-01-04");
+    await user.type(screen.getByLabelText(/expiration date/i), "2025-01-04");
+    await user.click(screen.getByTestId("button-add-demonstration-type"));
+  }
+
+  async function removeDemonstrationTypeA(user: UserEvent) {
+    const typeAItem = screen.getByText("Type A").closest("li");
+    const removeTypeAButton = within(typeAItem!).getByRole("button", { name: /delete/i });
+    await user.click(removeTypeAButton);
+  }
+
+  it("renders dialog with correct title", () => {
+    renderWithProvider();
     expect(screen.getByRole("heading", { name: "Apply Type(s)" })).toBeInTheDocument();
   });
 
-  it("initializes with existing demonstration types from data", () => {
-    render(<ApplyDemonstrationTypesDialog demonstrationId="demo-123" />);
+  it("initializes with existing demonstration types from data", async () => {
+    await renderWithProvider();
 
-    // The mock data has 2 initial types (Type A and Type B)
-    expect(screen.getByText("List Count: 2")).toBeInTheDocument();
+    expect(screen.getByText("Types to be added (3)")).toBeInTheDocument();
     expect(screen.getByText("Type A")).toBeInTheDocument();
     expect(screen.getByText("Type B")).toBeInTheDocument();
-  });
-
-  it("renders all child components", () => {
-    render(<ApplyDemonstrationTypesDialog demonstrationId="demo-123" />);
-
-    expect(screen.getByTestId("add-demonstration-types-form")).toBeInTheDocument();
-    expect(screen.getByTestId("demonstration-types-list")).toBeInTheDocument();
-    expect(screen.getByTestId("button-submit-demonstration-dialog")).toBeInTheDocument();
+    expect(screen.getByText("Type C")).toBeInTheDocument();
   });
 
   it("has submit button disabled initially when no changes", () => {
-    render(<ApplyDemonstrationTypesDialog demonstrationId="demo-123" />);
+    renderWithProvider();
 
     const submitButton = screen.getByTestId("button-submit-demonstration-dialog");
     expect(submitButton).toBeDisabled();
-  });
-
-  it("reports no changes initially", () => {
-    render(<ApplyDemonstrationTypesDialog demonstrationId="demo-123" />);
-
-    expect(screen.getByTestId("dialog-has-changes")).toHaveTextContent("false");
   });
 
   it("enables submit button when a new type is added", async () => {
     const user = userEvent.setup();
-    render(<ApplyDemonstrationTypesDialog demonstrationId="demo-123" />);
+    await renderWithProvider();
 
     const submitButton = screen.getByTestId("button-submit-demonstration-dialog");
     expect(submitButton).toBeDisabled();
 
-    // Add a new type
-    await user.click(screen.getByText("Add New Type"));
+    const input = screen.getByRole("textbox");
+    await user.click(input);
+    await user.click(screen.getByText("Type D"));
+    await user.type(screen.getByLabelText(/effective date/i), "2024-01-15");
+    await user.type(screen.getByLabelText(/expiration date/i), "2024-12-31");
+    await user.click(screen.getByTestId("button-add-demonstration-type"));
 
     expect(submitButton).toBeEnabled();
-    expect(screen.getByTestId("dialog-has-changes")).toHaveTextContent("true");
   });
 
   it("enables submit button when a type is removed", async () => {
     const user = userEvent.setup();
-    render(<ApplyDemonstrationTypesDialog demonstrationId="demo-123" />);
+    await renderWithProvider();
 
     const submitButton = screen.getByTestId("button-submit-demonstration-dialog");
     expect(submitButton).toBeDisabled();
 
-    // Remove Type A
-    await user.click(screen.getByText("Remove Type A"));
-
+    await removeDemonstrationTypeA(user);
     expect(submitButton).toBeEnabled();
-    expect(screen.getByTestId("dialog-has-changes")).toHaveTextContent("true");
   });
 
   it("adds new types to the list", async () => {
     const user = userEvent.setup();
-    render(<ApplyDemonstrationTypesDialog demonstrationId="demo-123" />);
+    await renderWithProvider();
 
-    expect(screen.getByText("List Count: 2")).toBeInTheDocument();
+    expect(screen.getByText("Types to be added (3)")).toBeInTheDocument();
+    expect(screen.getByText("Type A")).toBeInTheDocument();
+    expect(screen.getByText("Type B")).toBeInTheDocument();
+    expect(screen.getByText("Type C")).toBeInTheDocument();
 
-    await user.click(screen.getByText("Add New Type"));
+    await addDemonstrationTypeD(user);
 
-    expect(screen.getByText("List Count: 3")).toBeInTheDocument();
-    expect(screen.getByText("New Type")).toBeInTheDocument();
+    expect(screen.getByText("Types to be added (4)")).toBeInTheDocument();
+    expect(screen.getByText("Type A")).toBeInTheDocument();
+    expect(screen.getByText("Type B")).toBeInTheDocument();
+    expect(screen.getByText("Type C")).toBeInTheDocument();
+    expect(screen.getByText("Type D")).toBeInTheDocument();
+    expect(screen.getByText(/effective: 01\/04\/2024/i)).toBeInTheDocument();
+    expect(screen.getByText(/expires: 01\/04\/2025/i)).toBeInTheDocument();
   });
 
   it("removes types from the list", async () => {
     const user = userEvent.setup();
-    render(<ApplyDemonstrationTypesDialog demonstrationId="demo-123" />);
+    await renderWithProvider();
 
-    expect(screen.getByText("List Count: 2")).toBeInTheDocument();
+    expect(screen.getByText("Types to be added (3)")).toBeInTheDocument();
     expect(screen.getByText("Type A")).toBeInTheDocument();
+    expect(screen.getByText("Type B")).toBeInTheDocument();
+    expect(screen.getByText("Type C")).toBeInTheDocument();
 
-    await user.click(screen.getByText("Remove Type A"));
+    await removeDemonstrationTypeA(user);
 
-    expect(screen.getByText("List Count: 1")).toBeInTheDocument();
+    expect(screen.getByText("Types to be added (2)")).toBeInTheDocument();
     expect(screen.queryByText("Type A")).not.toBeInTheDocument();
+    expect(screen.getByText("Type B")).toBeInTheDocument();
+    expect(screen.getByText("Type C")).toBeInTheDocument();
   });
 
   it("calls showSuccess and closeDialog on submit", async () => {
     const user = userEvent.setup();
-    render(<ApplyDemonstrationTypesDialog demonstrationId="demo-123" />);
+    await renderWithProvider();
 
-    // Add a type to enable submit
-    await user.click(screen.getByText("Add New Type"));
+    await addDemonstrationTypeD(user);
 
     const submitButton = screen.getByTestId("button-submit-demonstration-dialog");
     await user.click(submitButton);
@@ -215,31 +207,22 @@ describe("ApplyDemonstrationTypesDialog", () => {
     expect(mockCloseDialog).toHaveBeenCalledTimes(1);
   });
 
-  it("passes current demonstration types to AddDemonstrationTypesForm", () => {
-    render(<ApplyDemonstrationTypesDialog demonstrationId="demo-123" />);
-
-    // The form should know about the 2 initial types
-    waitFor(() =>
-      expect(screen.getByText("Form knows about 2 existing types")).toBeInTheDocument()
-    );
-  });
-
   it("detects changes when adding and removing result in same count", async () => {
     const user = userEvent.setup();
-    render(<ApplyDemonstrationTypesDialog demonstrationId="demo-123" />);
+    await renderWithProvider();
 
-    // Initial: Type A, Type B (count: 2)
-    expect(screen.getByTestId("dialog-has-changes")).toHaveTextContent("false");
+    const submitButton = screen.getByTestId("button-submit-demonstration-dialog");
+    expect(submitButton).toBeDisabled();
+    expect(screen.getByText("Types to be added (3)")).toBeInTheDocument();
 
-    // Remove Type A (count: 1)
-    await user.click(screen.getByText("Remove Type A"));
-    expect(screen.getByTestId("dialog-has-changes")).toHaveTextContent("true");
+    await removeDemonstrationTypeA(user);
 
-    // Add New Type (count: 2 again, but different content)
-    await user.click(screen.getByText("Add New Type"));
-    expect(screen.getByTestId("dialog-has-changes")).toHaveTextContent("true");
+    expect(submitButton).toBeEnabled();
+    expect(screen.getByText("Types to be added (2)")).toBeInTheDocument();
 
-    // Even though count is same, content changed so hasChanges should be true
-    expect(screen.getByText("List Count: 2")).toBeInTheDocument();
+    await addDemonstrationTypeD(user);
+
+    expect(submitButton).toBeEnabled();
+    expect(screen.getByText("Types to be added (3)")).toBeInTheDocument();
   });
 });

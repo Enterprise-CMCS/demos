@@ -22,8 +22,11 @@ import { MockDocument, mockDocuments } from "./documentMocks";
 import { MockExtension, mockExtensions } from "./extensionMocks";
 import { mockPeople, MockPerson } from "./personMocks";
 import { MockState, mockStates } from "./stateMocks";
-import { DemonstrationType, MOCK_DEMONSTRATION_TYPES } from "./DemonstrationTypeMocks";
 import { ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY } from "components/dialog/DemonstrationTypes/ApplyDemonstrationTypesDialog";
+import {
+  MOCK_DEMONSTRATION_TYPE_ASSIGNMENTS,
+  MockDemonstrationTypeAssignment,
+} from "./DemonstrationTypeAssignmentMocks";
 
 export type MockDemonstration = Pick<
   Demonstration,
@@ -35,7 +38,7 @@ export type MockDemonstration = Pick<
   state: MockState;
   amendments: MockAmendment[];
   extensions: MockExtension[];
-  demonstrationTypes: DemonstrationType[];
+  demonstrationTypes: MockDemonstrationTypeAssignment[];
   documents: MockDocument[];
   roles: MockDemonstrationRoleAssignment[];
   primaryProjectOfficer: MockPerson;
@@ -66,7 +69,7 @@ export const MOCK_DEMONSTRATION: MockDemonstration = {
   ],
   currentPhaseName: "Concept",
   primaryProjectOfficer: mockPeople[0],
-  demonstrationTypes: MOCK_DEMONSTRATION_TYPES,
+  demonstrationTypes: MOCK_DEMONSTRATION_TYPE_ASSIGNMENTS,
 };
 
 export const mockAddDemonstrationInput: CreateDemonstrationInput = {

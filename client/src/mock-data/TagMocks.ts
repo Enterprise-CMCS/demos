@@ -1,5 +1,5 @@
 import { MockedResponse } from "@apollo/client/testing";
-import { SELECT_DEMONSTRATION_TYPE_TAG_QUERY } from "components/input/select/SelectTag/SelectDemonstrationTypeTag";
+import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectTag/SelectDemonstrationType";
 
 export type Tag = string;
 
@@ -17,14 +17,13 @@ export const MOCK_TAGS: Tag[] = [
 export const tagMocks: MockedResponse[] = [
   {
     request: {
-      query: SELECT_DEMONSTRATION_TYPE_TAG_QUERY,
+      query: SELECT_DEMONSTRATION_TYPE_QUERY,
     },
     // error: new Error("Failed to fetch demonstration type tags"),
     result: {
       data: {
-        demonstrationTypeTags: MOCK_TAGS,
+        demonstrationTypes: MOCK_TAGS,
       },
     },
-    delay: 3000,
   },
 ];
