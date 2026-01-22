@@ -97,19 +97,20 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
 
   return (
     <div
-      className="w-full bg-brand text-white px-4 py-1 flex items-center justify-between"
+      className="w-full bg-brand text-white px-4 flex items-center justify-between"
       data-testid="demonstration-detail-header"
     >
       <div className="flex items-start gap-2">
         <div>
-          <span className="-ml-2 block text-[12px] mb-0.5">
+          <span className="-ml-2 block text-[14px] mb-0.5">
             <a
               className="underline underline-offset-2 decoration-gray-400 decoration-1 decoration-opacity-40"
               href="/demonstrations"
             >
               Demonstration List
             </a>
-            {" > "} {demonstration.id}
+            {/* \u00A0 is unicode for non-breaking space */}
+            {"\u00A0 > \u00A0"} {demonstration.id}
           </span>
           <div className="flex gap-1 items-center -ml-2">
             <div>
@@ -117,16 +118,16 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
               <BaseButton
                 name="Back to demonstrations"
                 onClick={() => navigate("/demonstrations")}
-                className="w-[50px] h-[60px] mt-[10px] bg-brand text-white hover:bg-white hover:text-brand border border-white"
+                className="w-[50px] h-[60px] mt-[10px] bg-brand text-white hover:bg-white hover:text-brand border border-white mb-1"
               >
-                <ChevronLeftIcon className="w-[20px] h-[20px]" />
+                {/* BaseButton is overriding the values of Chevron, span somehow negates it */}
+                <span>
+                  <ChevronLeftIcon height="20" width="20" />
+                </span>
               </BaseButton>
             </div>
             <div>
-              <div>
-                <span className="font-bold block">{demonstration.name}</span>
-              </div>
-
+              <span className="text-[16px] font-bold block mb-[5px]">{demonstration.name}</span>
               <div>
                 <ul
                   className="inline-flex flex-wrap items-center gap-1"
@@ -135,12 +136,12 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
                 >
                   {displayFields.map((field, index) => (
                     <React.Fragment key={field.label}>
-                      <li className="text-[12px]">
+                      <li className="text-[16px] mt-1.5">
                         <strong>{field.label}</strong>:{" "}
                         <span data-testid={`demonstration-${field.label}`}>{field.value}</span>
                       </li>
                       {index < displayFields.length - 1 && (
-                        <li className="text-[12px]" aria-hidden="true">
+                        <li className="text-[16px] mt-1.5" aria-hidden="true">
                           |
                         </li>
                       )}
