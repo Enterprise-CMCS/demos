@@ -118,11 +118,11 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
               <BaseButton
                 name="Back to demonstrations"
                 onClick={() => navigate("/demonstrations")}
-                className="w-[50px] h-[60px] mt-[10px] bg-brand text-white hover:bg-white hover:text-brand border border-white mb-1"
+                className="w-[48px] h-[60px] mt-[10px] bg-brand text-white hover:bg-white hover:text-brand border border-white mb-1"
               >
                 {/* BaseButton is overriding the values of Chevron, span somehow negates it */}
                 <span>
-                  <ChevronLeftIcon height="20" width="20" />
+                  <ChevronLeftIcon height="14" width="14" />
                 </span>
               </BaseButton>
             </div>
@@ -156,30 +156,32 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
       <div className="relative">
         {showButtons && (
           <span className="mr-0.75">
-            <CircleButton
-              name="Delete demonstration"
-              data-testid="delete-button"
-              onClick={() => {}}
-            >
-              <DeleteIcon width="24" height="40" />
-            </CircleButton>
-            <CircleButton
-              name="Edit demonstration"
-              data-testid="edit-button"
-              onClick={() => {
-                setShowDropdown(false);
-                showEditDemonstrationDialog(demonstrationId);
-              }}
-            >
-              <EditIcon width="24" height="40" />
-            </CircleButton>
-            <CircleButton
-              name="Create New"
-              data-testid="create-new-button"
-              onClick={() => setShowDropdown((prev) => !prev)}
-            >
-              <AddNewIcon width="24" height="40" />
-            </CircleButton>
+            <span>
+              <CircleButton
+                name="Delete demonstration"
+                data-testid="delete-button"
+                onClick={() => {}}
+              >
+                <DeleteIcon width="24" height="40" />
+              </CircleButton>
+              <CircleButton
+                name="Edit demonstration"
+                data-testid="edit-button"
+                onClick={() => {
+                  setShowDropdown(false);
+                  showEditDemonstrationDialog(demonstrationId);
+                }}
+              >
+                <EditIcon width="24" height="40" />
+              </CircleButton>
+              <CircleButton
+                name="Create New"
+                data-testid="create-new-button"
+                onClick={() => setShowDropdown((prev) => !prev)}
+              >
+                <AddNewIcon width="24" height="40" />
+              </CircleButton>
+            </span>
             {showDropdown && (
               <div className="absolute w-[160px] bg-white text-black rounded-[6px] shadow-lg border z-20">
                 <button
