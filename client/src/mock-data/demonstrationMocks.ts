@@ -132,7 +132,6 @@ export const demonstrationMocks: MockedResponse[] = [
     result: {
       data: { demonstration: MOCK_DEMONSTRATION },
     },
-    delay: 2000,
   },
   {
     request: {

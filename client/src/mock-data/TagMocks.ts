@@ -19,7 +19,6 @@ export const tagMocks: MockedResponse[] = [
     request: {
       query: SELECT_DEMONSTRATION_TYPE_QUERY,
     },
-    // error: new Error("Failed to fetch demonstration type tags"),
     result: {
       data: {
         demonstrationTypes: MOCK_TAGS,
