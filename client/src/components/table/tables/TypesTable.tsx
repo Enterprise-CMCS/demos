@@ -15,7 +15,7 @@ export type TypeTableRow = {
   typeLabel: string;
   status: DemonstrationDetailDemonstrationType["status"];
   effectiveDate: Date;
-  expirationDate?: Date | null;
+  expirationDate: Date;
 };
 
 export type TypesTableProps = {
@@ -31,7 +31,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({ types }) => {
     typeLabel: a.demonstrationType,
     status: a.status,
     effectiveDate: new Date(a.effectiveDate),
-    expirationDate: a.expirationDate ? new Date(a.expirationDate) : null,
+    expirationDate: new Date(a.expirationDate),
   }));
 
   const initialState = {
