@@ -1,101 +1,89 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import { BaseDialog } from "../BaseDialog";
 import { useDialog } from "../DialogContext";
 import { DemonstrationTypesList } from "./DemonstrationTypesList";
 import { AddDemonstrationTypesForm } from "./AddDemonstrationTypesForm";
 import { useToast } from "components/toast";
 import { Button } from "components/button";
+import { gql, TypedDocumentNode, useQuery } from "@apollo/client";
+import { Demonstration as ServerDemonstration, Tag as DemonstrationTypeName } from "demos-server";
 
+// TODO: replace this with server type with updated DemonstrationTypeName field when available
 export type DemonstrationType = {
-  tag: string;
+  demonstrationTypeName: DemonstrationTypeName;
   effectiveDate: string;
   expirationDate: string;
 };
-
-type Demonstration = {
-  id: string;
+export type Demonstration = Pick<ServerDemonstration, "id"> & {
   demonstrationTypes: DemonstrationType[];
 };
 
-const getDemonstrationMock = (demonstrationId: string): Demonstration => ({
-  id: demonstrationId,
-  demonstrationTypes: [
-    {
-      tag: "Type A",
-      effectiveDate: "2024-01-01",
-      expirationDate: "2024-12-31",
-    },
-    {
-      tag: "Type B",
-      effectiveDate: "2024-02-01",
-      expirationDate: "2024-11-30",
-    },
-  ],
-});
+export const ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY: TypedDocumentNode<
+  { demonstration: Demonstration },
+  { id: string }
+> = gql`
+  query AssignDemonstrationTypesDialog($id: ID!) {
+    demonstration(id: $id) {
+      id
+      demonstrationTypes {
+        demonstrationTypeName
+        effectiveDate
+        expirationDate
+      }
+    }
+  }
+`;
+
+const hasChanges = (
+  initialDemonstrationTypes?: DemonstrationType[],
+  currentDemonstrationTypes?: DemonstrationType[]
+) => {
+  if (!initialDemonstrationTypes || !currentDemonstrationTypes) return false;
+  if (initialDemonstrationTypes.length !== currentDemonstrationTypes.length) return true;
+
+  return currentDemonstrationTypes.some(
+    (currentDemonstrationType) =>
+      !initialDemonstrationTypes.some(
+        (initialDemonstrationType) =>
+          initialDemonstrationType.demonstrationTypeName ===
+            currentDemonstrationType.demonstrationTypeName &&
+          initialDemonstrationType.effectiveDate === currentDemonstrationType.effectiveDate &&
+          initialDemonstrationType.expirationDate === currentDemonstrationType.expirationDate
+      )
+  );
+};
 
 export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrationId: string }) => {
   const { closeDialog } = useDialog();
   const { showSuccess } = useToast();
-  const [demonstrationTypes, setDemonstrationTypes] = React.useState<DemonstrationType[]>();
-  // emulate fetching demonstration data
-  const { data, loading, error } = useMemo<{
-    loading: boolean;
-    error?: string;
-    data?: { demonstration: Demonstration };
-  }>(
-    () => ({
-      loading: false,
-      error: undefined,
-      data: { demonstration: getDemonstrationMock(demonstrationId) },
-    }),
-    [demonstrationId]
-  );
+  const { data, loading, error } = useQuery(ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY, {
+    variables: { id: demonstrationId },
+  });
 
   const initialDemonstrationTypes = data?.demonstration.demonstrationTypes;
+  const [demonstrationTypes, setDemonstrationTypes] = React.useState(initialDemonstrationTypes);
 
   useEffect(() => {
-    if (initialDemonstrationTypes === undefined) return;
-    setDemonstrationTypes(initialDemonstrationTypes);
+    if (initialDemonstrationTypes) {
+      setDemonstrationTypes(initialDemonstrationTypes);
+    }
   }, [initialDemonstrationTypes]);
 
   const handleSubmit = () => {
-    console.log("Submitting demonstration types:", demonstrationTypes);
+    console.log("Submitting demonstration types", demonstrationTypes);
     showSuccess("Demonstration types applied successfully.");
     closeDialog();
-  };
-
-  const hasChanges = () => {
-    if (!initialDemonstrationTypes || !demonstrationTypes) return false;
-    if (initialDemonstrationTypes.length !== demonstrationTypes.length) return true;
-
-    return demonstrationTypes.some(
-      (newType) =>
-        !initialDemonstrationTypes.some(
-          (initialType) =>
-            initialType.tag === newType.tag &&
-            initialType.effectiveDate === newType.effectiveDate &&
-            initialType.expirationDate === newType.expirationDate
-        )
-    );
-  };
-
-  const addDemonstrationType = (demonstrationType: DemonstrationType) => {
-    setDemonstrationTypes((prev) => [...(prev || []), demonstrationType]);
-  };
-
-  const removeDemonstrationType = (tag: string) => {
-    setDemonstrationTypes((prev) => (prev || []).filter((type) => type.tag !== tag));
   };
 
   return (
     <BaseDialog
       title="Apply Type(s)"
       onClose={closeDialog}
-      dialogHasChanges={hasChanges()}
+      dialogHasChanges={hasChanges(initialDemonstrationTypes, demonstrationTypes)}
       actionButton={
         <Button
           name={"button-submit-demonstration-dialog"}
-          disabled={!hasChanges()}
+          disabled={!hasChanges(initialDemonstrationTypes, demonstrationTypes)}
           onClick={handleSubmit}
         >
           Apply Type(s)
@@ -103,19 +91,29 @@ export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrati
       }
     >
       <>
-        <h1>DemonstrationId: {demonstrationId}</h1>
-        <div className="flex flex-col gap-2">
-          <AddDemonstrationTypesForm
-            existingTags={(demonstrationTypes || []).map((type) => type.tag)}
-            addDemonstrationType={addDemonstrationType}
-          />
-          {loading && <p>loading...</p>}
-          {error && <p>Error: {error}</p>}
-          <DemonstrationTypesList
-            demonstrationTypes={demonstrationTypes || []}
-            removeDemonstrationType={removeDemonstrationType}
-          />
-        </div>
+        {loading && <p>Loading...</p>}
+        {error && <p>Error loading demonstration data.</p>}
+        {demonstrationTypes && (
+          <div className="flex flex-col gap-2">
+            <AddDemonstrationTypesForm
+              demonstrationTypes={demonstrationTypes}
+              addDemonstrationType={(demonstrationType: DemonstrationType) =>
+                setDemonstrationTypes([...demonstrationTypes, demonstrationType])
+              }
+            />
+            <DemonstrationTypesList
+              demonstrationTypes={demonstrationTypes}
+              removeDemonstrationType={(demonstrationTypeName: string) =>
+                setDemonstrationTypes(
+                  demonstrationTypes.filter(
+                    (demonstrationType) =>
+                      demonstrationType.demonstrationTypeName !== demonstrationTypeName
+                  )
+                )
+              }
+            />
+          </div>
+        )}
       </>
     </BaseDialog>
   );
