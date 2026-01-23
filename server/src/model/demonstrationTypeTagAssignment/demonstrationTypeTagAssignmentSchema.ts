@@ -5,7 +5,7 @@ export const demonstrationTypeTagAssignmentSchema = gql`
   scalar DemonstrationTypeStatus
 
   type DemonstrationTypeAssignment {
-    demonstrationType: Tag!
+    demonstrationTypeName: Tag!
     effectiveDate: DateTime!
     expirationDate: DateTime!
     status: DemonstrationTypeStatus!
@@ -15,7 +15,7 @@ export const demonstrationTypeTagAssignmentSchema = gql`
 `;
 
 export interface DemonstrationTypeAssignment {
-  demonstrationType: Tag;
+  demonstrationTypeName: Tag;
   effectiveDate: Date;
   expirationDate: Date;
   status: DemonstrationTypeStatus;
