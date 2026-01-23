@@ -11,7 +11,8 @@ export const MinimizeIcon: React.FC<Props> = ({
   height = "15",
   viewBox = "0 0 15 15",
   className = "",
-  thickness = 1.3, // as close as default as i could get
+  // This is thinkness by default apparantly...
+  thickness = 1.3,
 }: Props = {}) => {
   const y = (15 - thickness) / 2;
   return (
