@@ -16,10 +16,13 @@ export const Checkbox: React.FC<CheckboxProps> = ({
   indeterminate = false,
 }) => {
 
-  const setRef = (node: HTMLInputElement | null) => {
-    if (!node) return;
-    node.indeterminate = indeterminate && !checked;
-  };
+  const checkboxRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (checkboxRef.current) {
+      checkboxRef.current.indeterminate = indeterminate && !checked;
+    }
+  }, [checked, indeterminate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange?.(e);
@@ -32,7 +35,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
     <label className="flex items-center gap-2 cursor-pointer">
       <span className="relative inline-flex items-center justify-center">
         <input
-          ref={setRef}
+          ref={checkboxRef}
           id={name}
           name={name}
           data-testid={name}
