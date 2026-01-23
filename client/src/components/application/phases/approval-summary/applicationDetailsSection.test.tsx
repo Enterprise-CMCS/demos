@@ -19,8 +19,6 @@ type SelectUSAStatesProps = {
 
 type SelectUsersProps = {
   label: string;
-  value: string;
-  onSelect: (userId: string) => void;
 };
 
 vi.mock("components/input/select/SelectUSAStates", () => ({
@@ -34,7 +32,7 @@ vi.mock("components/input/select/SelectUSAStates", () => ({
 }));
 
 vi.mock("components/input/select/SelectUsers", () => ({
-  SelectUsers: ({ label, value, onSelect }: SelectUsersProps) => (
+  SelectUsers: ({ label }: SelectUsersProps) => (
     <div>
       <label>{label}</label>
       <p>Loading...</p>
