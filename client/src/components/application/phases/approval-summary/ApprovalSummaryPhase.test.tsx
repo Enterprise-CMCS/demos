@@ -1,7 +1,7 @@
 import "@testing-library/jest-dom";
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { ApprovalSummaryPhase } from "./ApprovalSummaryPhase";
@@ -52,10 +52,11 @@ describe("ApprovalSummaryPhase", () => {
     expect(screen.getByText("Application Details")).toBeInTheDocument();
   });
 
-  it("initially shows section as incomplete", () => {
+  it("initially shows application details section as incomplete", () => {
     setup();
 
-    expect(screen.getByText("Incomplete")).toBeInTheDocument();
+    const section = screen.getByText("Application Details").closest("section");
+    expect(within(section!).getByText("Incomplete")).toBeInTheDocument();
   });
 
   it("marks Application Details section as complete after clicking Mark Complete", async () => {
@@ -71,7 +72,7 @@ describe("ApprovalSummaryPhase", () => {
     setup();
 
     const toggle = screen.getByRole("switch", { name: /mark complete/i });
-    
+
     // Verify it's initially not checked
     expect(toggle).not.toBeChecked();
 
@@ -80,11 +81,20 @@ describe("ApprovalSummaryPhase", () => {
     expect(toggle).toBeChecked();
     expect(screen.getByText("Complete")).toBeInTheDocument();
 
-    // Second click to mark incomplete  
+    // Second click to mark incomplete
     await userEvent.click(toggle);
     expect(toggle).not.toBeChecked();
-    
+
     // The completion date should disappear (was showing it's marked incomplete)
     expect(screen.queryByTestId("application-details-completion-date")).not.toBeInTheDocument();
+  });
+
+  it("renders Demonstration Types section", () => {
+    setup();
+
+    const section = screen.getByText("Types").closest("section");
+    expect(section).toBeInTheDocument();
+
+    expect(within(section!).getByText("Incomplete")).toBeInTheDocument();
   });
 });

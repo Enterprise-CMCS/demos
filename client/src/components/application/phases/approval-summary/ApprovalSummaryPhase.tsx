@@ -1,10 +1,14 @@
+import React, { useState } from "react";
+
+import { format } from "date-fns";
 import { ApplicationWorkflowDemonstration } from "components/application/ApplicationWorkflow";
 import { ApplicationDetailsSection, ApplicationDetailsFormData } from "./applicationDetailsSection";
-import React, { useState } from "react";
-import { format } from "date-fns";
+import { DemonstrationTypesSection } from "./demonstrationTypesSection";
+import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 
 type ApprovalSummaryPhaseProps = {
   initialFormData: ApplicationDetailsFormData;
+  initialTypes?: DemonstrationDetailDemonstrationType[];
 };
 
 export const getApprovalSummaryFormData = (
@@ -52,17 +56,19 @@ export const getApprovalSummaryPhase = (
   return (
     <ApprovalSummaryPhase
       initialFormData={approvalSummaryFormData}
+      initialTypes={demonstration.demonstrationTypes}
     />
   );
 };
 
-export const ApprovalSummaryPhase = ({ initialFormData }: ApprovalSummaryPhaseProps) => {
+export const ApprovalSummaryPhase = ({ initialFormData, initialTypes }: ApprovalSummaryPhaseProps) => {
   const [approvalSummaryFormData, setApprovalSummaryFormData] =
     useState<ApplicationDetailsFormData>(initialFormData);
 
   const [isApplicationDetailsComplete, setIsApplicationDetailsComplete] = useState(false);
   const [applicationDetailsCompletionDate, setApplicationDetailsCompletionDate] =
     useState<string | undefined>(undefined);
+  const [isDemonstrationTypesComplete, setIsDemonstrationTypesComplete] = useState(false);
 
   return <div>
     <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">Approval Summary</h3>
@@ -85,6 +91,12 @@ export const ApprovalSummaryPhase = ({ initialFormData }: ApprovalSummaryPhasePr
           setApplicationDetailsCompletionDate(undefined);
         }}
         completionDate={applicationDetailsCompletionDate}
+      />
+
+      <DemonstrationTypesSection
+        initialTypes={initialTypes}
+        isComplete={isDemonstrationTypesComplete}
+        onMarkComplete={(complete: boolean) => setIsDemonstrationTypesComplete(complete)}
       />
     </section>
   </div>;

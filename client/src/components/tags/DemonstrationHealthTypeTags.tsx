@@ -4,7 +4,7 @@ import { SecondaryButton } from "components/button";
 import { useDialog } from "components/dialog/DialogContext";
 import { tw } from "tags/tw";
 import { TagChip } from "./TagChip";
-import { TEMP_ALL_TAGS } from "components/dialog/ApplyTagsDialog";
+import { DEMONSTRATION_TYPE_TAGS } from "demos-server-constants";
 
 const STYLES = {
   stepThree: tw`font-bold uppercase tracking-wide text-[#242424] mb-2`,
@@ -28,7 +28,7 @@ export const DemonstrationHealthTypeTags = ({
   const { showApplyTagsDialog } = useDialog();
 
   const handleApplyClick = () => {
-    showApplyTagsDialog(TEMP_ALL_TAGS, selectedTags);
+    showApplyTagsDialog(DEMONSTRATION_TYPE_TAGS, selectedTags);
   };
 
   return (

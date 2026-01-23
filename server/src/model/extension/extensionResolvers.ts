@@ -9,7 +9,7 @@ import {
 } from "../../types.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import { resolveEffectiveAndExpirationDates } from "../applicationDate/resolveEffectiveAndExpirationDates.js";
+import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate";
 import {
   deleteApplication,
   getApplication,
@@ -66,7 +66,7 @@ export async function __updateExtension(
   parent: unknown,
   { id, input }: { id: string; input: UpdateExtensionInput }
 ): Promise<PrismaExtension> {
-  const { effectiveDate, expirationDate } = resolveEffectiveAndExpirationDates(input);
+  const { effectiveDate, expirationDate } = parseAndValidateEffectiveAndExpirationDates(input);
   checkOptionalNotNullFields(["demonstrationId", "name", "status"], input);
   try {
     return await prisma().extension.update({

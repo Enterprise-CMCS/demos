@@ -21,7 +21,6 @@ type SelectUsersProps = {
   label: string;
   value: string;
   onSelect: (userId: string) => void;
-  personTypes: string[];
 };
 
 vi.mock("components/input/select/SelectUSAStates", () => ({
@@ -68,7 +67,7 @@ describe("ApplicationDetailsSection", () => {
     isReadonly = false
   ) => {
     render(
-      <MockedProvider mocks={[]} addTypename={false}>
+      <MockedProvider mocks={[]}>
         <ApplicationDetailsSection
           sectionFormData={{ ...baseFormData, ...overrides }}
           setSectionFormData={mockSetSectionFormData}
