@@ -4,6 +4,7 @@ import {
   Amendment,
   Demonstration,
   DemonstrationRoleAssignment,
+  DemonstrationTypeAssignment,
   Document,
   Extension,
   Person,
@@ -49,6 +50,12 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       extensions {
         id
       }
+      demonstrationTypes {
+        demonstrationType
+        status
+        effectiveDate
+        expirationDate
+      }
       documents {
         id
         name
@@ -79,6 +86,10 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
 export type DemonstrationDetail = Pick<Demonstration, "id" | "status" | "currentPhaseName"> & {
   amendments: Pick<Amendment, "id">[];
   extensions: Pick<Extension, "id">[];
+  demonstrationTypes: Pick<
+    DemonstrationTypeAssignment,
+    "demonstrationType" | "status" | "effectiveDate" | "expirationDate"
+  >[];
   documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
     owner: { person: Pick<Person, "fullName"> };
   })[];
