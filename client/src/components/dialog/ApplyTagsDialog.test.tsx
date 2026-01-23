@@ -66,4 +66,28 @@ describe("ApplyTagsDialog", () => {
       expect(screen.getByTestId(`checkbox-${tag}`)).toBeChecked();
     });
   });
+
+  it("filters tags based on search query", async () => {
+    const user = userEvent.setup();
+    setup([]);
+
+    const searchInput = screen.getByPlaceholderText("Search");
+    await user.type(searchInput, "dental");
+
+    // Should show only tags containing "dental"
+    expect(screen.getByTestId("checkbox-Dental")).toBeInTheDocument();
+
+    // Other tags should not be visible
+    expect(screen.queryByTestId("checkbox-Behavioral Health")).not.toBeInTheDocument();
+  });
+
+  it("shows 'No tags found' message when search returns no results", async () => {
+    const user = userEvent.setup();
+    setup([]);
+
+    const searchInput = screen.getByPlaceholderText("Search");
+    await user.type(searchInput, "nonexistenttag123");
+
+    expect(screen.getByText("No tags found")).toBeInTheDocument();
+  });
 });
