@@ -15,7 +15,7 @@ export type TypeTableRow = {
   typeLabel: string;
   status: DemonstrationDetailDemonstrationType["status"];
   effectiveDate: Date;
-  expirationDate?: Date | null;
+  expirationDate: Date;
 };
 
 export type TypesTableProps = {
@@ -28,12 +28,12 @@ export const TypesTable: React.FC<TypesTableProps> = ({ types, inputDisabled = f
   const columns = TypesColumns();
   // const { showEditTypeDialog, showRemoveTypeDialog } = useDialog();
 
-  const typeRows: TypeTableRow[] = types.map((a) => ({
-    id: a.demonstrationType,
-    typeLabel: a.demonstrationType,
-    status: a.status,
-    effectiveDate: new Date(a.effectiveDate),
-    expirationDate: a.expirationDate ? new Date(a.expirationDate) : null,
+  const typeRows: TypeTableRow[] = types.map((type) => ({
+    id: type.demonstrationType,
+    typeLabel: type.demonstrationType,
+    status: type.status,
+    effectiveDate: new Date(type.effectiveDate),
+    expirationDate: new Date(type.expirationDate),
   }));
 
   const initialState = {
