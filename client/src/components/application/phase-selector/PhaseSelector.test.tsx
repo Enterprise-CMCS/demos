@@ -42,6 +42,7 @@ describe("PhaseSelector", () => {
       clearanceLevel: "CMS (OSORA)",
       phases: [],
       documents: [],
+      demonstrationTypes: [],
     };
 
     render(
@@ -77,6 +78,7 @@ describe("PhaseSelector", () => {
       clearanceLevel: "CMS (OSORA)",
       phases: [],
       documents: [],
+      demonstrationTypes: [],
     };
 
     render(
@@ -120,6 +122,7 @@ describe("getDisplayedPhaseStatus", () => {
         },
       ],
       documents: [],
+      demonstrationTypes: [],
     };
 
     expect(getDisplayedPhaseStatus(demonstration, "Concept")).toBe("Started");
@@ -147,6 +150,7 @@ describe("getDisplayedPhaseStatus", () => {
         },
       ],
       documents: [],
+      demonstrationTypes: [],
     };
 
     expect(getDisplayedPhaseStatus(demonstration, "Completeness")).toBe("Not Started");
@@ -166,6 +170,7 @@ describe("getDisplayedPhaseStatus", () => {
       clearanceLevel: "CMS (OSORA)",
       phases: [],
       documents: [],
+      demonstrationTypes: [],
     };
 
     expect(getDisplayedPhaseStatus(demonstration, "Concept")).toBe("Not Started");
@@ -187,6 +192,7 @@ describe("getDisplayedPhaseDate", () => {
       clearanceLevel: "CMS (OSORA)",
       phases: [],
       documents: [],
+      demonstrationTypes: [],
     };
 
     expect(getDisplayedPhaseDate(demonstration, "Concept")).toBeUndefined();
@@ -213,6 +219,7 @@ describe("getDisplayedPhaseDate", () => {
         },
       ],
       documents: [],
+      demonstrationTypes: [],
     };
 
     expect(getDisplayedPhaseDate(demonstration, "Concept")).toBeUndefined();
@@ -256,6 +263,7 @@ describe("getDisplayedPhaseDate", () => {
         },
       ],
       documents: [],
+      demonstrationTypes: [],
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Concept");
@@ -295,6 +303,7 @@ describe("getDisplayedPhaseDate", () => {
         },
       ],
       documents: [],
+      demonstrationTypes: [],
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Review");
@@ -334,6 +343,7 @@ describe("getDisplayedPhaseDate", () => {
         },
       ],
       documents: [],
+      demonstrationTypes: [],
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Application Intake");
@@ -368,6 +378,7 @@ describe("getDisplayedPhaseDate", () => {
         },
       ],
       documents: [],
+      demonstrationTypes: [],
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Federal Comment");
@@ -407,6 +418,7 @@ describe("getDisplayedPhaseDate", () => {
         },
       ],
       documents: [],
+      demonstrationTypes: [],
     };
 
     const result = getDisplayedPhaseDate(demonstration, "SDG Preparation");
@@ -441,6 +453,7 @@ describe("getDisplayedPhaseDate", () => {
         },
       ],
       documents: [],
+      demonstrationTypes: [],
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Concept");
@@ -469,6 +482,7 @@ describe("Review phase component", () => {
       clearanceLevel: "CMS (OSORA)",
       phases: [],
       documents: [],
+      demonstrationTypes: [],
     };
 
     render(
