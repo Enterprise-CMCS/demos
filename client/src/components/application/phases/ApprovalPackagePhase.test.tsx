@@ -224,6 +224,7 @@ describe("getApprovalPackagePhase", () => {
           phaseNotes: [],
         },
       ],
+      demonstrationTypes: [],
     };
 
     render(getApprovalPackagePhase(demonstration));
@@ -264,6 +265,7 @@ describe("getApprovalPackagePhase", () => {
           phaseNotes: [],
         },
       ],
+      demonstrationTypes: [],
     };
 
     render(getApprovalPackagePhase(demonstration));
@@ -324,6 +326,7 @@ describe("getApprovalPackagePhase", () => {
           phaseNotes: [],
         },
       ],
+      demonstrationTypes: [],
     };
 
     render(getApprovalPackagePhase(demo));
@@ -380,6 +383,7 @@ describe("getApprovalPackagePhase", () => {
           phaseNotes: [],
         },
       ],
+      demonstrationTypes: [],
     };
 
     render(getApprovalPackagePhase(demo));
