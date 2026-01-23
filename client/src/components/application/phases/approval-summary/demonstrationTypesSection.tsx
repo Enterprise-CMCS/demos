@@ -47,8 +47,8 @@ export const DemonstrationTypesSection = ({ initialTypes = [], onMarkComplete, i
             data-testid="mark-complete-switch"
             checked={isComplete}
             onChange={(checked) => onMarkComplete(checked)}
-            onColor="#10B981" // green for "complete"
-            offColor="#E5E7EB" // gray for "incomplete"
+            onColor="#10B981"
+            offColor="#E5E7EB"
             checkedIcon={false}
             uncheckedIcon={false}
             height={18}
@@ -57,7 +57,7 @@ export const DemonstrationTypesSection = ({ initialTypes = [], onMarkComplete, i
             boxShadow="0 2px 8px rgba(0, 0, 0, 0.6)"
             activeBoxShadow="0 0 2px 3px #3bf"
             disabled={
-              types.length === 0 // optionally disable if no types are added yet
+              types.length === 0
             }
           />
         </div>
