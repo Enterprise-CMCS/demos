@@ -30,7 +30,7 @@ describe("ApprovalSummaryPhase", () => {
   const setup = (formData = buildInitialFormData()) => {
     render(
       <TestProvider>
-        <ApprovalSummaryPhase initialFormData={formData} />
+        <ApprovalSummaryPhase initialFormData={formData} initialTypes={[]} />
       </TestProvider>
     );
   };

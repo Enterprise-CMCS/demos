@@ -8,7 +8,7 @@ import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/
 
 type ApprovalSummaryPhaseProps = {
   initialFormData: ApplicationDetailsFormData;
-  initialTypes?: DemonstrationDetailDemonstrationType[];
+  initialTypes: DemonstrationDetailDemonstrationType[];
 };
 
 export const getApprovalSummaryFormData = (

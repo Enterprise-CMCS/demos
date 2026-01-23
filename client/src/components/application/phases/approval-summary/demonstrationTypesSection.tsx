@@ -9,12 +9,12 @@ import { AddNewIcon } from "components/icons";
 
 
 type DemonstrationTypesSectionProps = {
-  initialTypes?: DemonstrationDetailDemonstrationType[];
+  initialTypes: DemonstrationDetailDemonstrationType[];
   onMarkComplete: (complete: boolean) => void;
   isComplete?: boolean;
 };
 
-export const DemonstrationTypesSection = ({ initialTypes = [], onMarkComplete, isComplete = false }: DemonstrationTypesSectionProps) => {
+export const DemonstrationTypesSection = ({ initialTypes, onMarkComplete, isComplete = false }: DemonstrationTypesSectionProps) => {
   const [types] = useState<DemonstrationDetailDemonstrationType[]>(initialTypes);
 
   const applyTypes = () => {
