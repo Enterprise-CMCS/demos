@@ -156,5 +156,13 @@ describe("Checkbox component", () => {
       fireEvent.click(checkbox);
       expect(checkbox.checked).toBe(false);
     });
+
+    it("sets indeterminate state when provided", () => {
+      render(<Checkbox {...defaultProps} checked={false} indeterminate={true} />);
+
+      const checkbox = screen.getByTestId("test-checkbox") as HTMLInputElement;
+      expect(checkbox.indeterminate).toBe(true);
+      expect(checkbox.getAttribute("aria-checked")).toBe("mixed");
+    });
   });
 });

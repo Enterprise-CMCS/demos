@@ -9,6 +9,9 @@ export function createSelectColumnDef<T>(columnHelper: ColumnHelper<T>) {
       <Checkbox
         name="select-all-rows"
         checked={table.getIsAllPageRowsSelected()}
+        indeterminate={
+          table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected()
+        }
         onChange={table.getToggleAllPageRowsSelectedHandler()}
       />
     ),
