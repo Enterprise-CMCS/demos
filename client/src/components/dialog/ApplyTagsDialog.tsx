@@ -59,11 +59,11 @@ const TagSelector = ({
     <div className="flex flex-col gap-1">
       <SearchField searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
       <div className="text-md font-semibold">Select tags ({selectedTags.length} selected)</div>
-      <div className="flex flex-col border border-gray-300">
+      <div className="flex flex-col border border-gray-300 max-h-64 overflow-y-auto">
         {filteredTags.map((tag) => (
           <label
             key={tag}
-            className="flex items-center gap-1 p-1 cursor-pointer hover:bg-gray-50 rounded"
+            className="flex items-center gap-1 p-1 cursor-pointer hover:bg-gray-50 rounded border-b border-gray-200"
           >
             <Checkbox
               name={`checkbox-${tag}`}
