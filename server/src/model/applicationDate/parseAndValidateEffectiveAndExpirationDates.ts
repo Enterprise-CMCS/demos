@@ -1,8 +1,5 @@
 import { TZDate } from "@date-fns/tz";
-import {
-  checkInputDateIsStartOfDay,
-  checkInputDateIsEndOfDay,
-} from "./checkInputDateFunctions.js";
+import { checkInputDateIsStartOfDay, checkInputDateIsEndOfDay } from "./checkInputDateFunctions.js";
 import { parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities.js";
 import { DateTimeOrLocalDate } from "../../types.js";
 
@@ -11,9 +8,7 @@ type DateInput = {
   expirationDate?: DateTimeOrLocalDate | null;
 };
 
-export function resolveEffectiveAndExpirationDates(
-  input: DateInput
-): {
+export function parseAndValidateEffectiveAndExpirationDates(input: DateInput): {
   effectiveDate?: TZDate | null;
   expirationDate?: TZDate | null;
 } {
@@ -21,10 +16,7 @@ export function resolveEffectiveAndExpirationDates(
   let expirationDate: TZDate | null | undefined;
 
   if (input.effectiveDate) {
-    const parsed = parseDateTimeOrLocalDateToEasternTZDate(
-      input.effectiveDate,
-      "Start of Day"
-    );
+    const parsed = parseDateTimeOrLocalDateToEasternTZDate(input.effectiveDate, "Start of Day");
     checkInputDateIsStartOfDay("effectiveDate", parsed);
     effectiveDate = parsed.easternTZDate;
   } else if (input.effectiveDate === null) {
@@ -32,10 +24,7 @@ export function resolveEffectiveAndExpirationDates(
   }
 
   if (input.expirationDate) {
-    const parsed = parseDateTimeOrLocalDateToEasternTZDate(
-      input.expirationDate,
-      "End of Day"
-    );
+    const parsed = parseDateTimeOrLocalDateToEasternTZDate(input.expirationDate, "End of Day");
     checkInputDateIsEndOfDay("expirationDate", parsed);
     expirationDate = parsed.easternTZDate;
   } else if (input.expirationDate === null) {

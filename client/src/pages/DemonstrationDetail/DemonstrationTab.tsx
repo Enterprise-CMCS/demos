@@ -17,6 +17,7 @@ import { DocumentTable } from "components/table/tables/DocumentTable";
 import {
   Demonstration,
   DemonstrationRoleAssignment,
+  DemonstrationTypeAssignment,
   Document,
   Person,
   PhaseName,
@@ -27,12 +28,19 @@ import { SummaryDetailsTab } from "./SummaryDetailsTab";
 import { useDialog } from "components/dialog/DialogContext";
 import { ContactsTab } from "./ContactsTab";
 import { useApolloClient } from "@apollo/client/react/hooks/useApolloClient";
+import { TypesTable } from "components/table/tables/TypesTable";
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
   person: Pick<Person, "fullName" | "id" | "email" | "personType">;
 };
 
+export type DemonstrationDetailDemonstrationType = Pick<
+  DemonstrationTypeAssignment,
+  "demonstrationType" | "status" | "effectiveDate" | "expirationDate"
+>;
+
 export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "status"> & {
+  demonstrationTypes: DemonstrationDetailDemonstrationType[];
   documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
     owner: {
       person: Pick<Person, "fullName">;
@@ -61,9 +69,9 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
         <Tab icon={<DetailsIcon />} label="Details" value="details">
           <SummaryDetailsTab demonstrationId={demonstration.id} />
         </Tab>
-        <Tab icon={<StackIcon />} label="Types (0)" value="demonstrationTypes">
+        <Tab icon={<StackIcon />} label={`Types (${demonstration.demonstrationTypes.length ?? 0})`} value="demonstrationTypes">
           <TabHeader title="Types" />
-          {/* TO DO: Add New button? */}
+          <TypesTable types={demonstration.demonstrationTypes} />
         </Tab>
         <Tab
           icon={<OpenFolderIcon />}
