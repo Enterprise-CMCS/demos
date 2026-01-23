@@ -89,6 +89,8 @@ export type {
 
 export type { Tag } from "./model/tag/tagSchema.js";
 
+export type { SetApplicationTagsInput } from "./model/applicationTagAssignment/applicationTagAssignmentSchema";
+
 // Note that the type is intentionally named different from the underlying model name
 // This is because the type is visible in the API documentation, etc
 export type { DemonstrationTypeAssignment } from "./model/demonstrationTypeTagAssignment/demonstrationTypeTagAssignmentSchema.js";
