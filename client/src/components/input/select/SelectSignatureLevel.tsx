@@ -19,9 +19,13 @@ const options: Option[] = SIGNATURE_LEVEL.map((level) => ({
 export const SelectSignatureLevel = ({
   onSelect,
   initialValue,
+  isDisabled = false,
+  isRequired = false,
 }: {
   onSelect: (value: SignatureLevel | undefined) => void;
   initialValue?: SignatureLevel;
+  isDisabled?: boolean;
+  isRequired?: boolean;
 }) => {
   const [signatureLevel, setSignatureLevel] = React.useState<SignatureLevel | undefined>(
     initialValue
@@ -39,6 +43,8 @@ export const SelectSignatureLevel = ({
       }}
       id="signature-level-select"
       label="Signature Level"
+      isDisabled={isDisabled}
+      isRequired={isRequired}
     />
   );
 };

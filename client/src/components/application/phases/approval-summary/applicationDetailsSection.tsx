@@ -1,14 +1,13 @@
-import React from "react";
-import { DatePicker } from "components/input/date/DatePicker";
+import React, { useMemo } from "react";
 import { CompletableSection } from "layout/completableSection";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { Textarea, TextInput } from "components/input";
 import { tw } from "tags/tw";
-import { Button } from "components/button";
-import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
+import Switch from "react-switch";
 import { SdgDivision, SignatureLevel } from "demos-server";
-import { SelectSdgDivision } from "components/input/select/SelectSdgDivision";
 import { SelectUsers } from "components/input/select/SelectUsers";
+import { INPUT_BASE_CLASSES } from "components/input/Input";
+import { SDG_DIVISIONS, SIGNATURE_LEVEL } from "demos-server-constants";
 
 export type ApplicationDetailsFormData = {
   stateId: string;
@@ -38,6 +37,103 @@ export type ApplicationDetailsFormData = {
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-sm tracking-wide h-[14px] flex items-center`;
 const VALUE_CLASSES = tw`text-text-font text-base leading-relaxed h-[40px] flex items-start mt-1`;
+const REQUIRED_ASTERISK_CLASSES = tw`text-text-warn mr-xs`;
+const LABEL_VALID_CLASSES = tw`font-bold text-sm tracking-wide h-[14px] flex items-center text-text-font`;
+const LABEL_INVALID_CLASSES = tw`font-bold text-sm tracking-wide h-[14px] flex items-center text-error-dark`;
+
+const RequiredLabel = ({ children }: { children: React.ReactNode }) => (
+  <>
+    <span className={REQUIRED_ASTERISK_CLASSES}>*</span>
+    {" "}
+    {children}
+  </>
+);
+
+const ReadonlyField = ({ label, value, isRequired = false }: { label: string; value?: string; isRequired?: boolean }) => (
+  <>
+    <div className={LABEL_CLASSES}>
+      {isRequired && <RequiredLabel>{label}</RequiredLabel>}
+      {!isRequired && label}
+    </div>
+    <div className={VALUE_CLASSES}>{value || ""}</div>
+  </>
+);
+
+const DateField = ({
+  id,
+  label,
+  value,
+  isReadonly,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value?: string;
+  isReadonly: boolean;
+  onChange: (value: string) => void;
+}) => (
+  <>
+    <label
+      htmlFor={id}
+      className={value ? LABEL_VALID_CLASSES : LABEL_INVALID_CLASSES}
+    >
+      <RequiredLabel>{label}</RequiredLabel>
+    </label>
+    <input
+      id={id}
+      name={id}
+      type="date"
+      className={INPUT_BASE_CLASSES}
+      required
+      disabled={isReadonly}
+      value={value || ""}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  </>
+);
+
+const SelectField = ({
+  id,
+  label,
+  value,
+  options,
+  placeholder,
+  isReadonly,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value?: string;
+  options: readonly string[];
+  placeholder: string;
+  isReadonly: boolean;
+  onChange: (value: string | undefined) => void;
+}) => (
+  <>
+    <label
+      htmlFor={id}
+      className={value ? LABEL_VALID_CLASSES : LABEL_INVALID_CLASSES}
+    >
+      <RequiredLabel>{label}</RequiredLabel>
+    </label>
+    <select
+      id={id}
+      name={id.replace("-select", "")}
+      className={INPUT_BASE_CLASSES}
+      required
+      disabled={isReadonly}
+      value={value || ""}
+      onChange={(e) => onChange(e.target.value || undefined)}
+    >
+      <option value="">{placeholder}</option>
+      {options.map((option) => (
+        <option key={option} value={option}>
+          {option}
+        </option>
+      ))}
+    </select>
+  </>
+);
 
 export const ApplicationDetailsSection = ({
   sectionFormData,
@@ -45,30 +141,56 @@ export const ApplicationDetailsSection = ({
   isComplete,
   isReadonly,
   onMarkComplete,
+  onMarkIncomplete,
+  completionDate,
 }: {
   sectionFormData: ApplicationDetailsFormData;
   setSectionFormData: (data: ApplicationDetailsFormData) => void;
   isComplete: boolean;
   isReadonly: boolean;
   onMarkComplete: () => void;
+  onMarkIncomplete: () => void;
+  completionDate?: string;
 }) => {
+  const requiredFieldsFilled = useMemo(
+    () =>
+      !!(
+        sectionFormData.stateId &&
+        sectionFormData.name &&
+        sectionFormData.projectOfficerId &&
+        sectionFormData.status &&
+        sectionFormData.effectiveDate &&
+        sectionFormData.expirationDate &&
+        sectionFormData.sdgDivision &&
+        sectionFormData.signatureLevel
+      ),
+    [sectionFormData]
+  );
+
   return (
     <CompletableSection title="Application Details" isComplete={isComplete}>
       <p className="text-sm text-text-placeholder mt-1 mb-2">
         Confirm all demonstration information including dates and status are accurate.
       </p>
+      {completionDate && (
+        <p className="text-sm text-text-placeholder mb-2" data-testid="application-details-completion-date">
+          Completion Date: {completionDate}
+        </p>
+      )}
       <div className="grid grid-cols-4 gap-8 text-sm text-text-placeholder">
         <div className="flex flex-col">
           {sectionFormData.readonlyFields.stateId ? (
-            <>
-              <div className={LABEL_CLASSES}>State/Territory</div>
-              <div className={VALUE_CLASSES}>{sectionFormData.stateName}</div>
-            </>
+            <ReadonlyField
+              label="State/Territory"
+              value={sectionFormData.stateName}
+              isRequired
+            />
           ) : (
             <SelectUSAStates
               label="State/Territory"
               value={sectionFormData.stateId}
               isRequired
+              isDisabled={isReadonly}
               onSelect={(stateId) => setSectionFormData({ ...sectionFormData, stateId })}
             />
           )}
@@ -76,10 +198,11 @@ export const ApplicationDetailsSection = ({
 
         <div className="flex flex-col col-span-3">
           {sectionFormData.readonlyFields.name ? (
-            <>
-              <div className={LABEL_CLASSES}>Demonstration Title</div>
-              <div className={VALUE_CLASSES}>{sectionFormData.name}</div>
-            </>
+            <ReadonlyField
+              label="Demonstration Title"
+              value={sectionFormData.name}
+              isRequired
+            />
           ) : (
             <TextInput
               name="input-demonstration-title"
@@ -87,6 +210,7 @@ export const ApplicationDetailsSection = ({
               isRequired
               placeholder="Enter title"
               value={sectionFormData.name}
+              isDisabled={isReadonly}
               onChange={(e) => setSectionFormData({ ...sectionFormData, name: e.target.value })}
             />
           )}
@@ -94,15 +218,17 @@ export const ApplicationDetailsSection = ({
 
         <div className="flex flex-col">
           {sectionFormData.readonlyFields.projectOfficerId ? (
-            <>
-              <div className={LABEL_CLASSES}>Project Officer</div>
-              <div className={VALUE_CLASSES}>{sectionFormData.projectOfficerName}</div>
-            </>
+            <ReadonlyField
+              label="Project Officer"
+              value={sectionFormData.projectOfficerName}
+              isRequired
+            />
           ) : (
             <SelectUsers
               label="Project Officer"
               isRequired={true}
               value={sectionFormData.projectOfficerId}
+              isDisabled={isReadonly}
               onSelect={(projectOfficerId) =>
                 setSectionFormData({ ...sectionFormData, projectOfficerId })
               }
@@ -113,10 +239,11 @@ export const ApplicationDetailsSection = ({
 
         <div className="flex flex-col">
           {sectionFormData.readonlyFields.status ? (
-            <>
-              <div className={LABEL_CLASSES}>Status</div>
-              <div className={VALUE_CLASSES}>{sectionFormData.status}</div>
-            </>
+            <ReadonlyField
+              label="Status"
+              value={sectionFormData.status}
+              isRequired
+            />
           ) : (
             <TextInput
               name="input-status"
@@ -124,6 +251,7 @@ export const ApplicationDetailsSection = ({
               isRequired
               placeholder="Enter status"
               value={sectionFormData.status}
+              isDisabled={isReadonly}
               onChange={(e) => setSectionFormData({ ...sectionFormData, status: e.target.value })}
             />
           )}
@@ -131,62 +259,55 @@ export const ApplicationDetailsSection = ({
 
         <div className="flex flex-col">
           {sectionFormData.readonlyFields.effectiveDate ? (
-            <>
-              <div className={LABEL_CLASSES}>Effective Date</div>
-              <div className={VALUE_CLASSES}>{sectionFormData.effectiveDate}</div>
-            </>
-          ) : (
-            <DatePicker
+            <ReadonlyField
               label="Effective Date"
-              name="datepicker-effective-date"
               value={sectionFormData.effectiveDate}
-              isRequired
-              onChange={(val) =>
-                setSectionFormData({
-                  ...sectionFormData,
-                  effectiveDate: val,
-                })
+            />
+          ) : (
+            <DateField
+              id="datepicker-effective-date"
+              label="Effective Date"
+              value={sectionFormData.effectiveDate}
+              isReadonly={isReadonly}
+              onChange={(effectiveDate) =>
+                setSectionFormData({ ...sectionFormData, effectiveDate })
               }
-              isDisabled={isReadonly}
             />
           )}
         </div>
 
         <div className="flex flex-col">
           {sectionFormData.readonlyFields.expirationDate ? (
-            <>
-              <div className={LABEL_CLASSES}>Expiration Date</div>
-              <div className={VALUE_CLASSES}>{sectionFormData.expirationDate}</div>
-            </>
-          ) : (
-            <DatePicker
+            <ReadonlyField
               label="Expiration Date"
-              name="datepicker-expiration-date"
               value={sectionFormData.expirationDate}
-              isRequired
-              onChange={(val) =>
-                setSectionFormData({
-                  ...sectionFormData,
-                  expirationDate: val,
-                })
+            />
+          ) : (
+            <DateField
+              id="datepicker-expiration-date"
+              label="Expiration Date"
+              value={sectionFormData.expirationDate}
+              isReadonly={isReadonly}
+              onChange={(expirationDate) =>
+                setSectionFormData({ ...sectionFormData, expirationDate })
               }
-              isDisabled={isReadonly}
             />
           )}
         </div>
 
         <div className="flex flex-col col-span-4">
           {sectionFormData.readonlyFields.description ? (
-            <>
-              <div className={LABEL_CLASSES}>Description</div>
-              <div className={VALUE_CLASSES}>{sectionFormData.description}</div>
-            </>
+            <ReadonlyField
+              label="Description"
+              value={sectionFormData.description}
+            />
           ) : (
             <Textarea
               name="description"
               label="Demonstration Description"
               placeholder="Enter description"
               initialValue={sectionFormData.description ?? ""}
+              isDisabled={isReadonly}
               onChange={(e) => setSectionFormData({ ...sectionFormData, description: e.target.value })}
             />
           )}
@@ -194,52 +315,74 @@ export const ApplicationDetailsSection = ({
 
         <div className="flex flex-col">
           {sectionFormData.readonlyFields.sdgDivision ? (
-            <>
-              <div className={LABEL_CLASSES}>SDG Division</div>
-              <div className={VALUE_CLASSES}>{sectionFormData.sdgDivision}</div>
-            </>
+            <ReadonlyField
+              label="SDG Division"
+              value={sectionFormData.sdgDivision}
+            />
           ) : (
-            <SelectSdgDivision
-              initialValue={sectionFormData.sdgDivision}
-              onSelect={(sdgDivision) => setSectionFormData({ ...sectionFormData, sdgDivision })}
+            <SelectField
+              id="sdg-division-select"
+              label="SDG Division"
+              value={sectionFormData.sdgDivision}
+              options={SDG_DIVISIONS}
+              placeholder="Select SDG Division"
+              isReadonly={isReadonly}
+              onChange={(sdgDivision) =>
+                setSectionFormData({ ...sectionFormData, sdgDivision: sdgDivision as SdgDivision | undefined })
+              }
             />
           )}
         </div>
 
         <div className="flex flex-col">
           {sectionFormData.readonlyFields.signatureLevel ? (
-            <>
-              <div className={LABEL_CLASSES}>Signature Level</div>
-              <div className={VALUE_CLASSES}>{sectionFormData.signatureLevel}</div>
-            </>
+            <ReadonlyField
+              label="Signature Level"
+              value={sectionFormData.signatureLevel}
+            />
           ) : (
-            <SelectSignatureLevel
-              initialValue={sectionFormData.signatureLevel}
-              onSelect={(signatureLevel) => setSectionFormData({ ...sectionFormData, signatureLevel })}
+            <SelectField
+              id="signature-level-select"
+              label="Signature Level"
+              value={sectionFormData.signatureLevel}
+              options={SIGNATURE_LEVEL}
+              placeholder="Select Signature Level"
+              isReadonly={isReadonly}
+              onChange={(signatureLevel) =>
+                setSectionFormData({ ...sectionFormData, signatureLevel: signatureLevel as SignatureLevel | undefined })
+              }
             />
           )}
         </div>
       </div>
-      <div className="border-t-1 border-gray-dark">
-        <div className="flex justify-end mt-2 gap-2">
-          <Button
-            onClick={onMarkComplete}
-            size="small"
-            name="application-details-mark-complete"
-            disabled={
-              isComplete ||
-              !sectionFormData.stateId ||
-              !sectionFormData.name ||
-              !sectionFormData.projectOfficerId ||
-              !sectionFormData.status ||
-              !sectionFormData.effectiveDate ||
-              !sectionFormData.expirationDate ||
-              !sectionFormData.sdgDivision ||
-              !sectionFormData.signatureLevel
-            }
-          >
-            {isComplete ? "Completed" : "Mark Complete"}
-          </Button>
+      <div className="border-t-1 border-gray-dark mt-4">
+        <div className="flex justify-end items-center mt-2 gap-2">
+          <span className="text-sm font-semibold text-text-font">
+            <span className={REQUIRED_ASTERISK_CLASSES}>*</span>
+            {" "}
+            Mark Complete
+          </span>
+          <Switch
+            checked={isComplete}
+            onChange={() => {
+              if (isComplete) {
+                onMarkIncomplete();
+              } else if (requiredFieldsFilled) {
+                onMarkComplete();
+              }
+            }}
+            disabled={!isComplete && !requiredFieldsFilled}
+            onColor="#6B7280"
+            offColor="#E5E7EB"
+            checkedIcon={false}
+            uncheckedIcon={false}
+            height={18}
+            width={40}
+            handleDiameter={24}
+            boxShadow="0 2px 8px rgba(0, 0, 0, 0.6)"
+            activeBoxShadow="0 0 2px 3px #3bf"
+            aria-label="Mark Complete"
+          />
         </div>
       </div>
     </CompletableSection>

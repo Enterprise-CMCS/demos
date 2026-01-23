@@ -61,9 +61,30 @@ describe("ApprovalSummaryPhase", () => {
   it("marks Application Details section as complete after clicking Mark Complete", async () => {
     setup();
 
-    const button = screen.getByTestId("application-details-mark-complete");
-    await userEvent.click(button);
+    const toggle = screen.getByRole("switch", { name: /mark complete/i });
+    await userEvent.click(toggle);
 
     expect(screen.getByText("Complete")).toBeInTheDocument();
+  });
+
+  it("allows toggling Application Details section back to incomplete", async () => {
+    setup();
+
+    const toggle = screen.getByRole("switch", { name: /mark complete/i });
+    
+    // Verify it's initially not checked
+    expect(toggle).not.toBeChecked();
+
+    // First click to mark complete
+    await userEvent.click(toggle);
+    expect(toggle).toBeChecked();
+    expect(screen.getByText("Complete")).toBeInTheDocument();
+
+    // Second click to mark incomplete  
+    await userEvent.click(toggle);
+    expect(toggle).not.toBeChecked();
+    
+    // The completion date should disappear (was showing it's marked incomplete)
+    expect(screen.queryByTestId("application-details-completion-date")).not.toBeInTheDocument();
   });
 });

@@ -61,6 +61,8 @@ export const ApprovalSummaryPhase = ({ initialFormData }: ApprovalSummaryPhasePr
     useState<ApplicationDetailsFormData>(initialFormData);
 
   const [isApplicationDetailsComplete, setIsApplicationDetailsComplete] = useState(false);
+  const [applicationDetailsCompletionDate, setApplicationDetailsCompletionDate] =
+    useState<string | undefined>(undefined);
 
   return <div>
     <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">Approval Summary</h3>
@@ -74,7 +76,15 @@ export const ApprovalSummaryPhase = ({ initialFormData }: ApprovalSummaryPhasePr
         setSectionFormData={setApprovalSummaryFormData}
         isComplete={isApplicationDetailsComplete}
         isReadonly={isApplicationDetailsComplete}
-        onMarkComplete={() => setIsApplicationDetailsComplete(true)}
+        onMarkComplete={() => {
+          setIsApplicationDetailsComplete(true);
+          setApplicationDetailsCompletionDate(format(new Date(), "yyyy-MM-dd"));
+        }}
+        onMarkIncomplete={() => {
+          setIsApplicationDetailsComplete(false);
+          setApplicationDetailsCompletionDate(undefined);
+        }}
+        completionDate={applicationDetailsCompletionDate}
       />
     </section>
   </div>;
