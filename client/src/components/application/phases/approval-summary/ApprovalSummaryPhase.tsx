@@ -66,6 +66,7 @@ export const ApprovalSummaryPhase = ({ initialFormData, initialTypes }: Approval
     useState<ApplicationDetailsFormData>(initialFormData);
 
   const [isApplicationDetailsComplete, setIsApplicationDetailsComplete] = useState(false);
+  const [isDemonstrationTypesComplete, setIsDemonstrationTypesComplete] = useState(false);
 
   return <div>
     <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">Approval Summary</h3>
@@ -84,6 +85,8 @@ export const ApprovalSummaryPhase = ({ initialFormData, initialTypes }: Approval
 
       <DemonstrationTypesSection
         initialTypes={initialTypes}
+        isComplete={isDemonstrationTypesComplete}
+        onMarkComplete={(complete: boolean) => setIsDemonstrationTypesComplete(complete)}
       />
     </section>
   </div>;

@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { CircleButton } from "components/button/CircleButton";
-import { DeleteIcon, EditIcon } from "components/icons";
+import { DeleteIcon, EditIcon, ExportIcon } from "components/icons";
 import { KeywordSearch } from "../KeywordSearch";
 import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
@@ -20,9 +20,11 @@ export type TypeTableRow = {
 
 export type TypesTableProps = {
   types: DemonstrationDetailDemonstrationType[];
+  inputDisabled?: boolean;
+  hideSearch?: boolean;
 };
 
-export const TypesTable: React.FC<TypesTableProps> = ({ types }) => {
+export const TypesTable: React.FC<TypesTableProps> = ({ types, inputDisabled = false, hideSearch = false }) => {
   const columns = TypesColumns();
   // const { showEditTypeDialog, showRemoveTypeDialog } = useDialog();
 
@@ -44,7 +46,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({ types }) => {
         <Table<TypeTableRow>
           data={typeRows}
           columns={columns}
-          keywordSearch={(table) => <KeywordSearch table={table} />}
+          keywordSearch={!hideSearch ? (table) => <KeywordSearch table={table} /> : undefined}
           pagination={(table) => <PaginationControls table={table} />}
           emptyRowsMessage="You have no assigned Types at this time"
           noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
@@ -57,9 +59,21 @@ export const TypesTable: React.FC<TypesTableProps> = ({ types }) => {
             return (
               <div className="flex gap-1 ml-4">
                 <CircleButton
+                  name="add-type"
+                  ariaLabel="Add Type"
+                  disabled={inputDisabled}
+                  onClick={() =>
+                    // !addDisabled && showAddTypeDialog()
+                    console.log("Add Type Clicked")
+                  }
+                >
+                  <ExportIcon />
+                </CircleButton>
+
+                <CircleButton
                   name="edit-type"
                   ariaLabel="Edit Type"
-                  disabled={editDisabled}
+                  disabled={editDisabled || inputDisabled}
                   onClick={() =>
                     // !editDisabled && showEditTypeDialog(selected[0])
                     console.log("Edit Type Clicked", selected[0])
@@ -71,7 +85,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({ types }) => {
                 <CircleButton
                   name="remove-type"
                   ariaLabel="Remove Type"
-                  disabled={removeDisabled}
+                  disabled={removeDisabled || inputDisabled}
                   onClick={() =>
                     // !removeDisabled && showRemoveTypeDialog(selected.map((t) => t.id))
                     console.log("Remove Type Clicked", selected.map((t) => t.id))
