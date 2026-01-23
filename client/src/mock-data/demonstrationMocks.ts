@@ -22,6 +22,11 @@ import { MockDocument, mockDocuments } from "./documentMocks";
 import { MockExtension, mockExtensions } from "./extensionMocks";
 import { mockPeople, MockPerson } from "./personMocks";
 import { MockState, mockStates } from "./stateMocks";
+import { ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY } from "components/dialog/DemonstrationTypes/ApplyDemonstrationTypesDialog";
+import {
+  MOCK_DEMONSTRATION_TYPE_ASSIGNMENTS,
+  MockDemonstrationTypeAssignment,
+} from "./DemonstrationTypeAssignmentMocks";
 
 export type MockDemonstration = Pick<
   Demonstration,
@@ -33,7 +38,7 @@ export type MockDemonstration = Pick<
   state: MockState;
   amendments: MockAmendment[];
   extensions: MockExtension[];
-  demonstrationTypes: Array<object>;
+  demonstrationTypes: MockDemonstrationTypeAssignment[];
   documents: MockDocument[];
   roles: MockDemonstrationRoleAssignment[];
   primaryProjectOfficer: MockPerson;
@@ -50,7 +55,6 @@ export const MOCK_DEMONSTRATION: MockDemonstration = {
   state: mockStates.find((state) => state.id === "MT")!,
   sdgDivision: "Division of System Reform Demonstrations",
   signatureLevel: "OA",
-  demonstrationTypes: [],
   amendments: mockAmendments.filter((amendment) =>
     amendment.name.includes("Montana Medicaid Waiver")
   ),
@@ -65,6 +69,7 @@ export const MOCK_DEMONSTRATION: MockDemonstration = {
   ],
   currentPhaseName: "Concept",
   primaryProjectOfficer: mockPeople[0],
+  demonstrationTypes: MOCK_DEMONSTRATION_TYPE_ASSIGNMENTS,
 };
 
 export const mockAddDemonstrationInput: CreateDemonstrationInput = {
@@ -118,6 +123,15 @@ export const demonstrationMocks: MockedResponse[] = [
       data: { demonstration: MOCK_DEMONSTRATION },
     },
     maxUsageCount: Number.POSITIVE_INFINITY,
+  },
+  {
+    request: {
+      query: ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY,
+      variables: { id: "1" },
+    },
+    result: {
+      data: { demonstration: MOCK_DEMONSTRATION },
+    },
   },
   {
     request: {

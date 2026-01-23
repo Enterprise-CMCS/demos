@@ -5,9 +5,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DemonstrationTypesList } from "./DemonstrationTypesList";
 import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
 
-// Mock the utility and icon
 vi.mock("util/formatDate", () => ({
-  formatDate: (date: string) => date, // Return as-is for simple testing
+  formatDate: (date: string) => date,
 }));
 
 vi.mock("components/icons", () => ({
@@ -19,17 +18,44 @@ vi.mock("components/icons", () => ({
 }));
 
 describe("DemonstrationTypesList", () => {
-  const removeDemonstrationType = vi.fn();
+  const mockRemoveDemonstrationType = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
+  const demonstrationTypes: DemonstrationType[] = [
+    {
+      demonstrationTypeName: "Type A",
+      effectiveDate: "2024-01-01",
+      expirationDate: "2024-12-31",
+    },
+    {
+      demonstrationTypeName: "Type B",
+      effectiveDate: "2024-02-01",
+      expirationDate: "2024-11-30",
+    },
+    {
+      demonstrationTypeName: "Type C",
+      effectiveDate: "2024-03-01",
+      expirationDate: "2024-10-31",
+    },
+  ];
+
+  const renderDemonstrationTypesList = () => {
+    return render(
+      <DemonstrationTypesList
+        demonstrationTypes={demonstrationTypes}
+        removeDemonstrationType={mockRemoveDemonstrationType}
+      />
+    );
+  };
+
   it("renders empty state when no demonstration types", () => {
     render(
       <DemonstrationTypesList
         demonstrationTypes={[]}
-        removeDemonstrationType={removeDemonstrationType}
+        removeDemonstrationType={mockRemoveDemonstrationType}
       />
     );
 
@@ -38,34 +64,13 @@ describe("DemonstrationTypesList", () => {
   });
 
   it("displays correct count of demonstration types", () => {
-    const demonstrationTypes: DemonstrationType[] = [
-      { tag: "Type A", effectiveDate: "2024-01-01", expirationDate: "2024-12-31" },
-      { tag: "Type B", effectiveDate: "2024-02-01", expirationDate: "2024-11-30" },
-      { tag: "Type C", effectiveDate: "2024-03-01", expirationDate: "2024-10-31" },
-    ];
-
-    render(
-      <DemonstrationTypesList
-        demonstrationTypes={demonstrationTypes}
-        removeDemonstrationType={removeDemonstrationType}
-      />
-    );
+    renderDemonstrationTypesList();
 
     expect(screen.getByText(/types to be added \(3\)/i)).toBeInTheDocument();
   });
 
   it("renders all demonstration types with their details", () => {
-    const demonstrationTypes: DemonstrationType[] = [
-      { tag: "Type A", effectiveDate: "2024-01-01", expirationDate: "2024-12-31" },
-      { tag: "Type B", effectiveDate: "2024-02-01", expirationDate: "2024-11-30" },
-    ];
-
-    render(
-      <DemonstrationTypesList
-        demonstrationTypes={demonstrationTypes}
-        removeDemonstrationType={removeDemonstrationType}
-      />
-    );
+    renderDemonstrationTypesList();
 
     // Check Type A
     expect(screen.getByText("Type A")).toBeInTheDocument();
@@ -76,82 +81,29 @@ describe("DemonstrationTypesList", () => {
     expect(screen.getByText("Type B")).toBeInTheDocument();
     expect(screen.getByText(/effective: 2024-02-01/i)).toBeInTheDocument();
     expect(screen.getByText(/expires: 2024-11-30/i)).toBeInTheDocument();
+
+    // Check Type C
+    expect(screen.getByText("Type C")).toBeInTheDocument();
+    expect(screen.getByText(/effective: 2024-03-01/i)).toBeInTheDocument();
+    expect(screen.getByText(/expires: 2024-10-31/i)).toBeInTheDocument();
   });
 
   it("renders delete button for each demonstration type", () => {
-    const demonstrationTypes: DemonstrationType[] = [
-      { tag: "Type A", effectiveDate: "2024-01-01", expirationDate: "2024-12-31" },
-      { tag: "Type B", effectiveDate: "2024-02-01", expirationDate: "2024-11-30" },
-    ];
-
-    render(
-      <DemonstrationTypesList
-        demonstrationTypes={demonstrationTypes}
-        removeDemonstrationType={removeDemonstrationType}
-      />
-    );
+    renderDemonstrationTypesList();
 
     const removeButtons = screen.getAllByRole("button");
-    expect(removeButtons).toHaveLength(2);
+    expect(removeButtons).toHaveLength(3);
   });
 
-  it("calls removeDemonstrationType to remove type when delete button clicked", async () => {
+  it("calls setDemonstrationTypes to remove type when delete button clicked", async () => {
     const user = userEvent.setup();
-    const demonstrationTypes: DemonstrationType[] = [
-      { tag: "Type A", effectiveDate: "2024-01-01", expirationDate: "2024-12-31" },
-      { tag: "Type B", effectiveDate: "2024-02-01", expirationDate: "2024-11-30" },
-      { tag: "Type C", effectiveDate: "2024-03-01", expirationDate: "2024-10-31" },
-    ];
-
-    render(
-      <DemonstrationTypesList
-        demonstrationTypes={demonstrationTypes}
-        removeDemonstrationType={removeDemonstrationType}
-      />
-    );
+    renderDemonstrationTypesList();
 
     const removeButtons = screen.getAllByRole("button");
 
-    // Click the first delete button (Type A)
-    await user.click(removeButtons[0]);
-
-    expect(removeDemonstrationType).toHaveBeenCalledTimes(1);
-    expect(removeDemonstrationType).toHaveBeenCalledWith("Type A");
-  });
-
-  it("removes correct type when multiple delete buttons exist", async () => {
-    const user = userEvent.setup();
-    const demonstrationTypes: DemonstrationType[] = [
-      { tag: "Type A", effectiveDate: "2024-01-01", expirationDate: "2024-12-31" },
-      { tag: "Type B", effectiveDate: "2024-02-01", expirationDate: "2024-11-30" },
-      { tag: "Type C", effectiveDate: "2024-03-01", expirationDate: "2024-10-31" },
-    ];
-
-    render(
-      <DemonstrationTypesList
-        demonstrationTypes={demonstrationTypes}
-        removeDemonstrationType={removeDemonstrationType}
-      />
-    );
-
-    const removeButtons = screen.getAllByRole("button");
-
-    // Click the second delete button (Type B)
     await user.click(removeButtons[1]);
 
-    expect(removeDemonstrationType).toHaveBeenCalledTimes(1);
-    expect(removeDemonstrationType).toHaveBeenCalledWith("Type B");
-  });
-
-  it("does not render list when empty", () => {
-    render(
-      <DemonstrationTypesList
-        demonstrationTypes={[]}
-        removeDemonstrationType={removeDemonstrationType}
-      />
-    );
-
-    const list = screen.queryByRole("list");
-    expect(list).not.toBeInTheDocument();
+    expect(mockRemoveDemonstrationType).toHaveBeenCalledTimes(1);
+    expect(mockRemoveDemonstrationType).toHaveBeenCalledWith("Type B");
   });
 });

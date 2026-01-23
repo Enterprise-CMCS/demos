@@ -1,54 +1,76 @@
 import React from "react";
-import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
 import { DatePicker } from "components/input/date/DatePicker";
 import { SecondaryButton } from "components/button";
-import { SelectDemonstrationTypeTag } from "components/input/select/SelectTag/SelectDemonstrationTypeTag";
+import { SelectDemonstrationTypeName } from "components/input/select/SelectDemonstrationTypeName";
+import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
 
-const isValid = (formData: DemonstrationType) => {
-  return formData.tag && formData.effectiveDate && formData.expirationDate;
-};
+function isValid(demonstrationType: DemonstrationType): boolean {
+  return !!(
+    demonstrationType.demonstrationTypeName &&
+    demonstrationType.effectiveDate &&
+    demonstrationType.expirationDate
+  );
+}
 
 export const AddDemonstrationTypesForm = ({
-  existingTags,
+  demonstrationTypes,
   addDemonstrationType,
 }: {
-  existingTags: string[];
+  demonstrationTypes: DemonstrationType[];
   addDemonstrationType: (demonstrationType: DemonstrationType) => void;
 }) => {
-  const [formData, setFormData] = React.useState<DemonstrationType>({
-    tag: "",
-    effectiveDate: "",
-    expirationDate: "",
-  });
+  const [demonstrationTypeFormData, setDemonstrationTypeFormData] =
+    React.useState<DemonstrationType>({
+      demonstrationTypeName: "",
+      effectiveDate: "",
+      expirationDate: "",
+    });
 
-  const handleAddType = () => {
-    addDemonstrationType(formData);
-    setFormData(
-      (prev): DemonstrationType => ({
-        ...prev,
-        tag: "",
-      })
-    );
+  const handleAddDemonstrationType = () => {
+    if (!isValid(demonstrationTypeFormData)) return;
+    addDemonstrationType(demonstrationTypeFormData);
+    setDemonstrationTypeFormData({
+      ...demonstrationTypeFormData,
+      demonstrationTypeName: "",
+    });
+  };
+
+  const filterDemonstrationTypes = (demonstrationTypeName: string) => {
+    return !demonstrationTypes
+      .map((demonstrationType) => demonstrationType.demonstrationTypeName)
+      .includes(demonstrationTypeName);
   };
 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex gap-2">
         <div className="flex-1">
-          <SelectDemonstrationTypeTag
-            filter={(tag) => !existingTags.includes(tag)}
+          <SelectDemonstrationTypeName
+            filter={filterDemonstrationTypes}
             isRequired
-            value={formData.tag}
-            onSelect={(tag) => setFormData((prev): DemonstrationType => ({ ...prev, tag }))}
+            value={demonstrationTypeFormData.demonstrationTypeName}
+            onSelect={(demonstrationTypeName) =>
+              setDemonstrationTypeFormData(
+                (demonstrationType): DemonstrationType => ({
+                  ...demonstrationType,
+                  demonstrationTypeName,
+                })
+              )
+            }
           />
         </div>
         <div className="flex-1 flex gap-2">
           <div className="flex-1">
             <DatePicker
               isRequired
-              value={formData.effectiveDate}
+              value={demonstrationTypeFormData.effectiveDate}
               onChange={(date) =>
-                setFormData((prev): DemonstrationType => ({ ...prev, effectiveDate: date }))
+                setDemonstrationTypeFormData(
+                  (demonstrationType): DemonstrationType => ({
+                    ...demonstrationType,
+                    effectiveDate: date,
+                  })
+                )
               }
               label="Effective Date"
               name="date-picker-effective-date"
@@ -57,9 +79,14 @@ export const AddDemonstrationTypesForm = ({
           <div className="flex-1">
             <DatePicker
               isRequired
-              value={formData.expirationDate}
+              value={demonstrationTypeFormData.expirationDate}
               onChange={(date) =>
-                setFormData((prev): DemonstrationType => ({ ...prev, expirationDate: date }))
+                setDemonstrationTypeFormData(
+                  (demonstrationType): DemonstrationType => ({
+                    ...demonstrationType,
+                    expirationDate: date,
+                  })
+                )
               }
               label="Expiration Date"
               name="date-picker-expiration-date"
@@ -69,10 +96,10 @@ export const AddDemonstrationTypesForm = ({
       </div>
       <div className="flex justify-end">
         <SecondaryButton
-          disabled={!isValid(formData)}
+          disabled={!isValid(demonstrationTypeFormData)}
           name="button-add-demonstration-type"
           type="button"
-          onClick={handleAddType}
+          onClick={handleAddDemonstrationType}
         >
           + Add to List
         </SecondaryButton>
