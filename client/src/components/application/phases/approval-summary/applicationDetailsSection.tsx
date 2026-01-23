@@ -220,7 +220,7 @@ export const ApplicationDetailsSection = ({
           )}
         </div>
       </div>
-      <div className="border-t-1 border-gray-dark">
+      <div className="border-t-1 border-gray-dark mt-2">
         <div className="flex justify-end mt-2 gap-2">
           <Button
             onClick={onMarkComplete}

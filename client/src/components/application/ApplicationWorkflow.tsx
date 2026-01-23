@@ -10,6 +10,7 @@ import type {
   Person,
   ApplicationNote,
   State,
+  DemonstrationTypeAssignment,
 } from "demos-server";
 import { gql, useQuery } from "@apollo/client";
 import { Loading } from "components/loading/Loading";
@@ -42,6 +43,12 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
           noteType
           content
         }
+      }
+      demonstrationTypes {
+        demonstrationType
+        status
+        effectiveDate
+        expirationDate
       }
       documents {
         id
@@ -88,6 +95,7 @@ export type ApplicationWorkflowDemonstration = Pick<
   primaryProjectOfficer: Pick<Person, "id" | "fullName">
   phases: SimplePhase[];
   documents: ApplicationWorkflowDocument[];
+  demonstrationTypes: Pick<DemonstrationTypeAssignment, "demonstrationType" | "status" | "effectiveDate" | "expirationDate">[];
 };
 
 export const ApplicationWorkflow = ({ demonstrationId }: { demonstrationId: string }) => {
