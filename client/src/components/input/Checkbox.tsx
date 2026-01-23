@@ -15,26 +15,24 @@ export const Checkbox: React.FC<CheckboxProps> = ({
   checked,
   indeterminate = false,
 }) => {
-  const inputRef = React.useRef<HTMLInputElement>(null);
 
-  React.useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.indeterminate = indeterminate;
-    }
-  }, [indeterminate]);
+  const setRef = (node: HTMLInputElement | null) => {
+    if (!node) return;
+    node.indeterminate = indeterminate && !checked;
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange?.(e);
   };
 
   const showIndeterminate = indeterminate && !checked;
-  const classes = `form-checkbox w-[24px] h-[24px] cursor-pointer ${showIndeterminate ? "appearance-none border border-[#0071bc] bg-[#0071bc]" : ""}`;
+  const classes = `form-checkbox w-[24px] h-[24px] cursor-pointer ${showIndeterminate ? "appearance-none border border-[#0071bc] bg-[#0071bc] hover:bg-[#004F84]" : ""}`;
 
   return (
     <label className="flex items-center gap-2 cursor-pointer">
       <span className="relative inline-flex items-center justify-center">
         <input
-          ref={inputRef}
+          ref={setRef}
           id={name}
           name={name}
           data-testid={name}
@@ -47,7 +45,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
         />
         {showIndeterminate && (
           <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <MinimizeIcon className="text-white" width="14" height="14" />
+            <MinimizeIcon className="text-white"  thickness={2} />
           </span>
         )}
       </span>
