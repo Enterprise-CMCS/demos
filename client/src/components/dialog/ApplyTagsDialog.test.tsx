@@ -3,16 +3,25 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 
-import { ApplyTagsDialog, TEMP_ALL_TAGS } from "./ApplyTagsDialog";
+import { ApplyTagsDialog } from "./ApplyTagsDialog";
+import { DEMONSTRATION_TYPE_TAGS } from "demos-server-constants";
 
 describe("ApplyTagsDialog", () => {
-  it("renders with initial tags", () => {
+  const setup = (selectedTags: string[] = []) => {
     const onClose = vi.fn();
-    const tags = ["Behavioral Health", "Dental", "CHIP"];
-
-    render(
-      <ApplyTagsDialog onClose={onClose} initiallySelectedTags={tags} allTags={TEMP_ALL_TAGS} />
+    const result = render(
+      <ApplyTagsDialog
+        onClose={onClose}
+        initiallySelectedTags={selectedTags}
+        allTags={DEMONSTRATION_TYPE_TAGS}
+      />
     );
+    return { ...result, onClose };
+  };
+
+  it("renders with initial tags", () => {
+    const tags = ["Behavioral Health", "Dental", "CHIP"];
+    setup(tags);
 
     expect(screen.getByText("Apply Tags")).toBeInTheDocument();
     expect(screen.getByText("Selected Tag(s)")).toBeInTheDocument();
@@ -22,11 +31,7 @@ describe("ApplyTagsDialog", () => {
   });
 
   it("renders empty state when no tags provided", () => {
-    const onClose = vi.fn();
-
-    render(
-      <ApplyTagsDialog onClose={onClose} initiallySelectedTags={[]} allTags={TEMP_ALL_TAGS} />
-    );
+    setup();
 
     expect(screen.getByText("Apply Tags")).toBeInTheDocument();
     expect(screen.getByText("No tags selected")).toBeInTheDocument();
@@ -34,12 +39,8 @@ describe("ApplyTagsDialog", () => {
 
   it("calls onClose when apply button is clicked", async () => {
     const user = userEvent.setup();
-    const onClose = vi.fn();
-    const tags = ["Behavioral Health"];
-
-    render(
-      <ApplyTagsDialog onClose={onClose} initiallySelectedTags={tags} allTags={TEMP_ALL_TAGS} />
-    );
+    const selectedTags = ["Behavioral Health"];
+    const { onClose } = setup(selectedTags);
 
     await user.click(screen.getByRole("button", { name: "button-confirm-apply-tags" }));
 
@@ -48,11 +49,7 @@ describe("ApplyTagsDialog", () => {
 
   it("calls onClose when dialog is closed via BaseDialog", async () => {
     const user = userEvent.setup();
-    const onClose = vi.fn();
-
-    render(
-      <ApplyTagsDialog onClose={onClose} initiallySelectedTags={["Tag1"]} allTags={TEMP_ALL_TAGS} />
-    );
+    const { onClose } = setup(["Tag1"]);
 
     const closeButton = screen.getByRole("button", { name: /close/i });
     await user.click(closeButton);
@@ -61,15 +58,11 @@ describe("ApplyTagsDialog", () => {
   });
 
   it("displays multiple tags correctly", () => {
-    const onClose = vi.fn();
-    const tags = ["Behavioral Health", "Dental", "Health Homes"];
-
-    render(
-      <ApplyTagsDialog onClose={onClose} initiallySelectedTags={tags} allTags={TEMP_ALL_TAGS} />
-    );
+    const selectedTags = DEMONSTRATION_TYPE_TAGS.slice(3, 6);
+    setup(selectedTags);
 
     // Check that the selected tags are rendered as chips
-    tags.forEach((tag) => {
+    selectedTags.forEach((tag) => {
       expect(screen.getByTestId(`checkbox-${tag}`)).toBeChecked();
     });
   });

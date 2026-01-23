@@ -128,9 +128,7 @@ export const ApplyTagsDialog: React.FC<ApplyTagsDialogProps> = ({
               <TagChip key={tag} tag={tag} onRemoveTag={() => {}} />
             ))}
             {selectedTags.length === 0 && (
-              <p className="text-sm text-text-placeholder italic">
-                No tags matching search criteria
-              </p>
+              <p className="text-sm text-text-placeholder italic">No tags selected</p>
             )}
           </div>
         </div>
