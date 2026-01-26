@@ -36,7 +36,7 @@ type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
 
 export type DemonstrationDetailDemonstrationType = Pick<
   DemonstrationTypeAssignment,
-  "demonstrationType" | "status" | "effectiveDate" | "expirationDate"
+  "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate"
 >;
 
 export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "status"> & {
@@ -69,7 +69,11 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
         <Tab icon={<DetailsIcon />} label="Details" value="details">
           <SummaryDetailsTab demonstrationId={demonstration.id} />
         </Tab>
-        <Tab icon={<StackIcon />} label={`Types (${demonstration.demonstrationTypes?.length ?? 0})`} value="demonstrationTypes">
+        <Tab
+          icon={<StackIcon />}
+          label={`Types (${demonstration.demonstrationTypes?.length ?? 0})`}
+          value="demonstrationTypes"
+        >
           <TabHeader title="Types" />
           <TypesTable types={demonstration.demonstrationTypes} />
         </Tab>

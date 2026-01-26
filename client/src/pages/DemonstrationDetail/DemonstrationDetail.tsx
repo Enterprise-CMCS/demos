@@ -88,7 +88,7 @@ export type DemonstrationDetail = Pick<Demonstration, "id" | "status" | "current
   extensions: Pick<Extension, "id">[];
   demonstrationTypes: Pick<
     DemonstrationTypeAssignment,
-    "demonstrationType" | "status" | "effectiveDate" | "expirationDate"
+    "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate"
   >[];
   documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
     owner: { person: Pick<Person, "fullName"> };

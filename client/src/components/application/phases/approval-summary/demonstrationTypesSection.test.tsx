@@ -10,13 +10,13 @@ import { TestProvider } from "test-utils/TestProvider";
 
 const mockTypes: DemonstrationDetailDemonstrationType[] = [
   {
-    demonstrationType: "Environmental",
+    demonstrationTypeName: "Environmental",
     status: "Active",
     effectiveDate: new Date("2023-01-01"),
     expirationDate: new Date("2024-01-01"),
   },
   {
-    demonstrationType: "Economic",
+    demonstrationTypeName: "Economic",
     status: "Inactive",
     effectiveDate: new Date("2024-01-01"),
     expirationDate: new Date("2025-01-01"),
