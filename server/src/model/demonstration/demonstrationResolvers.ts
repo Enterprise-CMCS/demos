@@ -272,7 +272,7 @@ export async function resolveDemonstrationTypes(
     },
   });
   return assignments.map((assignment) => ({
-    demonstrationType: assignment.tagId,
+    demonstrationTypeName: assignment.tagId,
     effectiveDate: assignment.effectiveDate,
     expirationDate: assignment.expirationDate,
     status: determineDemonstrationTypeStatus(assignment.effectiveDate, assignment.expirationDate),

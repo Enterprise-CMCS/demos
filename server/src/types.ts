@@ -93,7 +93,12 @@ export type { SetApplicationTagsInput } from "./model/applicationTagAssignment/a
 
 // Note that the type is intentionally named different from the underlying model name
 // This is because the type is visible in the API documentation, etc
-export type { DemonstrationTypeAssignment } from "./model/demonstrationTypeTagAssignment/demonstrationTypeTagAssignmentSchema.js";
+export type {
+  DemonstrationTypeAssignment,
+  DemonstrationTypeDatesInput,
+  DemonstrationTypeInput,
+  SetDemonstrationTypesInput,
+} from "./model/demonstrationTypeTagAssignment/demonstrationTypeTagAssignmentSchema.js";
 
 export type DemonstrationTypeStatus = (typeof DEMONSTRATION_TYPE_STATUSES)[number];
 export type ClearanceLevel = (typeof CLEARANCE_LEVELS)[number];

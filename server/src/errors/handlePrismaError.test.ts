@@ -59,7 +59,9 @@ describe("handlePrismaError", () => {
   describe("PrismaClientUnknownRequestError", () => {
     it("throws friendly-ish message for check constraint", () => {
       const err = new Prisma.PrismaClientUnknownRequestError(
-        "Your payload violates check constraint check_my_payload.",
+        // Pulled example test message, this is just a portion of it
+        '\"new row for relation \\\"demonstration\\\" violates check constraint \\\"' +
+          'effective_date_check\\\"\", severity: \"ERROR\",',
         {
           clientVersion: "x",
         }
@@ -70,6 +72,7 @@ describe("handlePrismaError", () => {
         expect(error).toBeInstanceOf(GraphQLError);
         if (error instanceof GraphQLError) {
           expect(error.message).toContain("A check constraint was violated");
+          expect(error.extensions.constraintName).toBe("effective_date_check");
           expect(error.extensions.code).toBe("VIOLATED_CHECK_CONSTRAINT");
         }
       }
