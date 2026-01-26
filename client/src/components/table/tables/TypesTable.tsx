@@ -24,13 +24,17 @@ export type TypesTableProps = {
   hideSearch?: boolean;
 };
 
-export const TypesTable: React.FC<TypesTableProps> = ({ types, inputDisabled = false, hideSearch = false }) => {
+export const TypesTable: React.FC<TypesTableProps> = ({
+  types,
+  inputDisabled = false,
+  hideSearch = false,
+}) => {
   const columns = TypesColumns();
   // const { showEditTypeDialog, showRemoveTypeDialog } = useDialog();
 
   const typeRows: TypeTableRow[] = types.map((type) => ({
-    id: type.demonstrationType,
-    typeLabel: type.demonstrationType,
+    id: type.demonstrationTypeName,
+    typeLabel: type.demonstrationTypeName,
     status: type.status,
     effectiveDate: new Date(type.effectiveDate),
     expirationDate: new Date(type.expirationDate),
@@ -88,7 +92,10 @@ export const TypesTable: React.FC<TypesTableProps> = ({ types, inputDisabled = f
                   disabled={removeDisabled || inputDisabled}
                   onClick={() =>
                     // !removeDisabled && showRemoveTypeDialog(selected.map((t) => t.id))
-                    console.log("Remove Type Clicked", selected.map((t) => t.id))
+                    console.log(
+                      "Remove Type Clicked",
+                      selected.map((t) => t.id)
+                    )
                   }
                 >
                   <DeleteIcon />
