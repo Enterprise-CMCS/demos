@@ -33,6 +33,7 @@ export async function setDemonstrationTypes(
   return await getApplication(input.demonstrationId, "Demonstration");
 }
 
+// This lives here because there is no database model corresponding to it
 export const demonstrationTypeTagAssignmentResolvers = {
   DemonstrationTypeStatus: generateCustomSetScalar(
     DEMONSTRATION_TYPE_STATUSES,
