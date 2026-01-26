@@ -51,7 +51,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         id
       }
       demonstrationTypes {
-        demonstrationType
+        demonstrationTypeName
         status
         effectiveDate
         expirationDate
