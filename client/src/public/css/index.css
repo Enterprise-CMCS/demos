@@ -1,8 +1,15 @@
+@import url("https://fonts.googleapis.com/css2?family=Rubik:wght@400;600&display=swap");
 @import "tailwindcss";
 @import "./colors.css";
 @import "./spacing.css";
 @import "./radius.css";
 @import "./animations.css";
+
+@layer utilities {
+  .font-title {
+    font-family: "Rubik", "Gill Sans Extrabold", sans-serif;
+  }
+}
 
 /** TODO: Sepearate out font-styles and override defaults */
 @theme {
