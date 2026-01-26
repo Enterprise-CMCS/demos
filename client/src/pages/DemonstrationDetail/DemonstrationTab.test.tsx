@@ -97,6 +97,7 @@ const mockDemonstration: DemonstrationTabDemonstration = {
   id: "demo-123",
   status: "Pre-Submission" as const,
   currentPhaseName: "Concept" as const,
+  demonstrationTypes: [],
   documents: [
     {
       id: "doc-1",

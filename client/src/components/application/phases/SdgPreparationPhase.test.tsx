@@ -71,6 +71,7 @@ const mockDemonstration: ApplicationWorkflowDemonstration = {
       phaseNotes: [],
     },
   ],
+  demonstrationTypes: [],
 };
 
 const mockCompleteDemonstration: ApplicationWorkflowDemonstration = {
@@ -107,6 +108,7 @@ const mockCompleteDemonstration: ApplicationWorkflowDemonstration = {
       phaseNotes: [],
     },
   ],
+  demonstrationTypes: [],
 };
 
 describe("SdgPreparationPhase", () => {

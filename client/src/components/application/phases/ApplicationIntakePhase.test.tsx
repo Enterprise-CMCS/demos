@@ -343,6 +343,7 @@ describe("ApplicationIntakePhase", () => {
             createdAt: new Date(2024, 10, 10),
           },
         ],
+        demonstrationTypes: [],
       };
 
       const component = getApplicationIntakeComponentFromDemonstration(mockDemonstration);
