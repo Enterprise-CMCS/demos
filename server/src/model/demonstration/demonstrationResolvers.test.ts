@@ -835,7 +835,7 @@ describe("demonstrationResolvers", () => {
 
       const expectedResult: DemonstrationTypeAssignment[] = [
         {
-          demonstrationType: "Test Demonstration Type A",
+          demonstrationTypeName: "Test Demonstration Type A",
           effectiveDate: testValues.dateValue,
           expirationDate: testValues.dateValue,
           status: "Active",
@@ -843,7 +843,7 @@ describe("demonstrationResolvers", () => {
           updatedAt: testValues.dateValue,
         },
         {
-          demonstrationType: "Test Demonstration Type B",
+          demonstrationTypeName: "Test Demonstration Type B",
           effectiveDate: testValues.dateValue,
           expirationDate: testValues.dateValue,
           status: "Pending",

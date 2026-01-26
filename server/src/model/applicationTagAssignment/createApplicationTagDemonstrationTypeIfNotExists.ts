@@ -8,8 +8,8 @@ export async function createApplicationTagsDemonstrationTypesIfNotExists(
   tx: PrismaTransactionClient
 ): Promise<void> {
   for (const newTag of newTags) {
-    createNewTagIfNotExists(newTag, tx);
-    createNewTagConfigurationIfNotExists(newTag, "Application", tx);
-    createNewTagConfigurationIfNotExists(newTag, "Demonstration Type", tx);
+    await createNewTagIfNotExists(newTag, tx);
+    await createNewTagConfigurationIfNotExists(newTag, "Application", tx);
+    await createNewTagConfigurationIfNotExists(newTag, "Demonstration Type", tx);
   }
 }
