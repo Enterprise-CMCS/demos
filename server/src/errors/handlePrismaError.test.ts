@@ -77,6 +77,25 @@ describe("handlePrismaError", () => {
         }
       }
     });
+
+    it("throws fails gracefully if unable to extract the name of the constraint", () => {
+      const err = new Prisma.PrismaClientUnknownRequestError(
+        '\"new row for relation \\\"demonstration\\\" violates check constraint \\\"',
+        {
+          clientVersion: "x",
+        }
+      );
+      try {
+        handlePrismaError(err);
+      } catch (error) {
+        expect(error).toBeInstanceOf(GraphQLError);
+        if (error instanceof GraphQLError) {
+          expect(error.message).toContain("A check constraint was violated");
+          expect(error.extensions.constraintName).toBe("unknown");
+          expect(error.extensions.code).toBe("VIOLATED_CHECK_CONSTRAINT");
+        }
+      }
+    });
   });
 
   describe("Generic error path", () => {
