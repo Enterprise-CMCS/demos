@@ -1,0 +1,58 @@
+@theme {
+  --font-title: "Rubik", system-ui, sans-serif;
+  --font-display: "Oswald", system-ui, sans-serif;
+
+  /* typography/base */
+  --font-body: 1.4rem/2.1rem;
+  --font-regulatory-group: 1.2rem/2.1rem;
+
+  /* typography/base-styles */
+  --font-hyperlink: 1.4rem / auto;
+  --font-h1: 4.1rem / auto;
+  --font-h2: 2.9rem / auto;
+  --font-h3: 2.6rem / auto;
+  --font-modal-header: 2.4rem / auto;
+  --font-h4: 2rem / auto;
+  --font-h5: 1.6rem / auto;
+  --font-regular: 1.6rem/1.6rem;
+  --font-small: 1.4rem/2rem;
+  --font-tooltip: 1.4rem/2.1rem;
+  --font-id: 1.1rem/1.6rem;
+  --font-comment-text: 1.6rem/2rem;
+  --font-compare-content: 1.4rem/2.1rem;
+  --font-small-expansion: 1.6rem/2.4rem;
+  --font-small-text: 1rem/2.1rem;
+  --font-description: 1.4rem/2.1rem;
+
+  /* typography/button */
+  --font-button: 1.4rem / auto;
+  --font-button-large: 1.6rem / auto;
+  --font-button-expansion: 1.6rem/2.4rem;
+
+  /* typography/fields */
+  --text-field-placeholder: 1.6rem/2.4rem;
+  --text-field-active: 1.6rem/2.4rem;
+  --text-field-filled: 1.6rem/2.4rem;
+  --text-field-label: 1.4rem/1.4rem;
+  --text-field-label-active: 1.4rem/2.4rem;
+  --text-field-label-error: 1.4rem/2.4rem;
+  --text-field-validation: 1.4rem/2.4rem;
+
+  /* typography/question */
+  --font-question: 1.4rem / auto;
+
+  /* typography/tab */
+  --font-tab: 1.6rem / auto;
+  --font-tab-active: 1.6rem / auto;
+
+  /* typography/table */
+  --font-table-header: 1.4rem/2.4rem;
+  --font-table-row: 1.4rem/2.1rem;
+
+  /* typography/tag */
+  --font-tag-type: 1.6rem / auto;
+  --font-tag-amount: 1.4rem/2rem;
+
+  /* Animations */
+  --animate-fade-in: fade-in 0.3s ease-out;
+}
