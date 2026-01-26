@@ -5,8 +5,15 @@ import { BaseDialog } from "components/dialog/BaseDialog";
 import { TagChip } from "components/tags/TagChip";
 import { Checkbox } from "components/input";
 import { Input } from "components/input/Input";
+import { tw } from "tags/tw";
 
 export const TEMP_SELECTED_TAGS = ["Basic Health Plan (BHP)", "Behavioral Health", "Dental"];
+
+export const APPLY_TAGS_DIALOG_TITLE = "APPLY TAGS";
+const STYLES = {
+  tagLabel: tw`flex items-center gap-1 p-1 cursor-pointer hover:bg-gray-50 rounded border-b border-border-rules`,
+  tagList: tw`flex flex-col border border-border-rules max-h-64 overflow-y-auto`,
+};
 
 const tagSetsDiffer = (a: string[], b: string[]): boolean => {
   return a.length !== b.length || a.some((item) => !b.includes(item));
@@ -59,18 +66,15 @@ const TagSelector = ({
     <div className="flex flex-col gap-1">
       <SearchField searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
       <div className="text-md font-semibold">Select tags ({selectedTags.length} selected)</div>
-      <div className="flex flex-col border border-gray-300 max-h-64 overflow-y-auto">
+      <div className={STYLES.tagList}>
         {filteredTags.map((tag) => (
-          <label
-            key={tag}
-            className="flex items-center gap-1 p-1 cursor-pointer hover:bg-gray-50 rounded border-b border-gray-200"
-          >
+          <label key={tag} className={STYLES.tagLabel}>
             <Checkbox
               name={`checkbox-${tag}`}
               checked={selectedTags.includes(tag)}
               onChange={() => handleToggleTag(tag)}
             />
-            <span className="text-sm text-black">{tag}</span>
+            <span className="text-sm text-text-font">{tag}</span>
           </label>
         ))}
         {filteredTags.length === 0 && (
@@ -106,7 +110,7 @@ export const ApplyTagsDialog: React.FC<ApplyTagsDialogProps> = ({
   return (
     <BaseDialog
       name="apply-tags-dialog"
-      title="Apply Tags"
+      title={APPLY_TAGS_DIALOG_TITLE}
       onClose={onClose}
       dialogHasChanges={hasChanges}
       actionButton={
@@ -121,11 +125,17 @@ export const ApplyTagsDialog: React.FC<ApplyTagsDialogProps> = ({
           selectedTags={selectedTags}
           setSelectedTags={setSelectedTags}
         />
-        <div>
-          <label className="block text-sm font-medium text-black mb-2">Selected Tag(s)</label>
+        <div className="flex flex-col gap-1">
+          <label className="block text-md font-semibold text-text-font">
+            Selected Tag(s) ({selectedTags.length})
+          </label>
           <div className="flex flex-wrap gap-1 min-h-8">
             {selectedTags.map((tag) => (
-              <TagChip key={tag} tag={tag} onRemoveTag={() => {}} />
+              <TagChip
+                key={tag}
+                tag={tag}
+                onRemoveTag={() => setSelectedTags(selectedTags.filter((t) => t !== tag))}
+              />
             ))}
             {selectedTags.length === 0 && (
               <p className="text-sm text-text-placeholder italic">No tags selected</p>
