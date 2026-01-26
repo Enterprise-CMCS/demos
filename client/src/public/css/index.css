@@ -6,7 +6,7 @@
 @import "./radius.css";
 @import "./animations.css";
 
-/* ✅ Wiring: utilities that apply the font families */
+/* Wiring: utilities that apply the font families */
 @layer utilities {
   .font-title {
     font-family: "Rubik", system-ui, sans-serif;
