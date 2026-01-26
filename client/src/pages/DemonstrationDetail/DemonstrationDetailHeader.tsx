@@ -127,7 +127,9 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
               </BaseButton>
             </div>
             <div>
-              <span className="text-[18px] font-bold block mb-1.5">{demonstration.name}</span>
+              <span className="text-[20px] font-semibold font-title block mb-1.5">
+                {demonstration.name}
+              </span>
               <div>
                 <ul
                   className="inline-flex flex-wrap items-center gap-1"
@@ -136,12 +138,17 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
                 >
                   {displayFields.map((field, index) => (
                     <React.Fragment key={field.label}>
-                      <li className="text-[16px] mt-0.5">
-                        <strong>{field.label}</strong>:{" "}
-                        <span data-testid={`demonstration-${field.label}`}>{field.value}</span>
+                      <li className="text-[16px] mt-0.5 font-title">
+                        <span className="font-semibold">{field.label}:{" "}</span>
+                        <span className="font-normal" data-testid={`demonstration-${field.label}`}>
+                          {field.value}
+                        </span>
                       </li>
                       {index < displayFields.length - 1 && (
-                        <li className="text-[16px] mt-0.5" aria-hidden="true">
+                        <li
+                          className="text-[18px] mt-0.5 font-title font-normal opacity-70"
+                          aria-hidden="true"
+                        >
                           |
                         </li>
                       )}
