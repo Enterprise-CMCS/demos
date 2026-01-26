@@ -6,17 +6,6 @@
 @import "./radius.css";
 @import "./animations.css";
 
-/* Wiring: utilities that apply the font families */
-@layer utilities {
-  .font-title {
-    font-family: "Rubik", system-ui, sans-serif;
-  }
-
-  .font-display {
-    font-family: "Oswald", system-ui, sans-serif;
-  }
-}
-
 /* Dialog centering styles */
 dialog {
   position: fixed;

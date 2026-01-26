@@ -1,6 +1,6 @@
 @theme {
-  --font-title: Rubik, system-ui, sans-serif;
-  --font-display: Oswald, system-ui, sans-serif;
+  --font-title: "Rubik", system-ui, sans-serif;
+  --font-display: "Oswald", system-ui, sans-serif;
 
   /* typography/base */
   --font-body: 1.4rem/2.1rem;
