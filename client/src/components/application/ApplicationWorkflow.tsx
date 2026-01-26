@@ -45,7 +45,7 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
         }
       }
       demonstrationTypes {
-        demonstrationType
+        demonstrationTypeName
         status
         effectiveDate
         expirationDate
