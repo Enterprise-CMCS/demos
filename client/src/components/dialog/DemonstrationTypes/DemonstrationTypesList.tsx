@@ -2,12 +2,7 @@ import React from "react";
 import { DeleteIcon } from "components/icons";
 import { formatDate } from "util/formatDate";
 import { Tag as DemonstrationTypeName } from "mock-data/TagMocks";
-
-type DemonstrationType = {
-  demonstrationTypeName: DemonstrationTypeName;
-  effectiveDate: string;
-  expirationDate: string;
-};
+import { DemonstrationType } from "./useApplyDemonstrationTypesDialogData";
 
 export const DemonstrationTypesList = ({
   demonstrationTypes,

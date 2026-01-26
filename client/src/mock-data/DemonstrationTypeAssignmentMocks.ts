@@ -43,6 +43,7 @@ export const demonstrationTypeAssignmentMocks: MockedResponse[] = [
     result: (variables: { input: SetDemonstrationTypesInput }) => ({
       data: {
         setDemonstrationTypes: {
+          __typename: "Demonstration",
           id: variables.input.demonstrationId,
           demonstrationTypes: variables.input.demonstrationTypes
             .filter((dt) => dt.dates !== null)

@@ -2,7 +2,7 @@ import React from "react";
 import { DatePicker } from "components/input/date/DatePicker";
 import { SecondaryButton } from "components/button";
 import { SelectDemonstrationTypeName } from "components/input/select/SelectDemonstrationTypeName";
-import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
+import { DemonstrationType } from "./useApplyDemonstrationTypesDialogData";
 
 function isValid(demonstrationType: DemonstrationType): boolean {
   return !!(
