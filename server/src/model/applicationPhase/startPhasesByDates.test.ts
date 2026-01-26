@@ -6,6 +6,7 @@ import { PrismaTransactionClient } from "../../prismaClient";
 import { getOrderedPhaseDateTypes, OrderedPhaseDateTypes } from "../phaseDateType";
 import { createPhaseStartDate } from "../applicationDate";
 import { setPhaseToStarted, startPhasesByDates } from ".";
+import { updateStatusToUnderReviewIfNeeded } from "./updateApplicationStatus";
 
 vi.mock("../phaseDateType", () => ({
   getOrderedPhaseDateTypes: vi.fn(),
@@ -13,6 +14,10 @@ vi.mock("../phaseDateType", () => ({
 
 vi.mock("./setPhaseToStarted", () => ({
   setPhaseToStarted: vi.fn(),
+}));
+
+vi.mock("./updateApplicationStatus", () => ({
+  updateStatusToUnderReviewIfNeeded: vi.fn(),
 }));
 
 vi.mock("../applicationDate", () => ({

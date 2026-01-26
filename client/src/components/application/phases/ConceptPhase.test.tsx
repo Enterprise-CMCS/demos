@@ -265,6 +265,7 @@ describe("ConceptPhase", () => {
             createdAt: new Date("2024-04-02"),
           },
         ],
+        demonstrationTypes: [],
       };
 
       const component = getConceptPhaseComponentFromDemonstration(mockDemonstration);

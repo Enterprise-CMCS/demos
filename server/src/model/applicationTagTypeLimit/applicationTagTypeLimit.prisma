@@ -1,0 +1,10 @@
+// Flags: TYPE_LIMITER
+model ApplicationTagTypeLimit {
+  id String
+
+  tagType                   TagType                    @relation(fields: [id], references: [id])
+  applicationTagAssignments ApplicationTagAssignment[]
+
+  @@id([id])
+  @@map("application_tag_type_limit")
+}

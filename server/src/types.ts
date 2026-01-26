@@ -5,6 +5,7 @@ import {
   CLEARANCE_LEVELS,
   CMS_USER_DEMONSTRATION_ROLES,
   DATE_TYPES,
+  DEMONSTRATION_TYPE_STATUSES,
   DOCUMENT_TYPES,
   EVENT_TYPES,
   EXPECTED_TIMESTAMPS,
@@ -21,6 +22,9 @@ import {
   SDG_DIVISIONS,
   SIGNATURE_LEVEL,
   STATE_USER_DEMONSTRATION_ROLES,
+  TAG_CONFIGURATION_SOURCES,
+  TAG_CONFIGURATION_STATUSES,
+  TAG_TYPES,
 } from "./constants.js";
 
 export type {
@@ -83,6 +87,15 @@ export type {
   SetApplicationNotesInput,
 } from "./model/applicationNote/applicationNoteSchema.js";
 
+export type { Tag } from "./model/tag/tagSchema.js";
+
+export type { SetApplicationTagsInput } from "./model/applicationTagAssignment/applicationTagAssignmentSchema";
+
+// Note that the type is intentionally named different from the underlying model name
+// This is because the type is visible in the API documentation, etc
+export type { DemonstrationTypeAssignment } from "./model/demonstrationTypeTagAssignment/demonstrationTypeTagAssignmentSchema.js";
+
+export type DemonstrationTypeStatus = (typeof DEMONSTRATION_TYPE_STATUSES)[number];
 export type ClearanceLevel = (typeof CLEARANCE_LEVELS)[number];
 export type LocalDate = string & { readonly __brand: "LocalDate" };
 export type DateTimeOrLocalDate = Date | LocalDate;
@@ -108,3 +121,6 @@ export type CmsUserDemonstrationRole = (typeof CMS_USER_DEMONSTRATION_ROLES)[num
 export type StateUserDemonstrationRole = (typeof STATE_USER_DEMONSTRATION_ROLES)[number];
 export type ReviewPhaseDateTypes = (typeof REVIEW_PHASE_DATE_TYPES)[number];
 export type ReviewPhaseNoteTypes = (typeof REVIEW_PHASE_NOTE_TYPES)[number];
+export type TagConfigurationStatus = (typeof TAG_CONFIGURATION_STATUSES)[number];
+export type TagConfigurationSource = (typeof TAG_CONFIGURATION_SOURCES)[number];
+export type TagType = (typeof TAG_TYPES)[number];

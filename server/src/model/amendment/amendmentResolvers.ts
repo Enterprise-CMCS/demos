@@ -9,7 +9,7 @@ import {
 } from "../../types.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import { resolveEffectiveAndExpirationDates } from "../applicationDate/resolveEffectiveAndExpirationDates.js";
+import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate";
 import {
   deleteApplication,
   getApplication,
@@ -19,6 +19,7 @@ import {
   resolveApplicationDocuments,
   resolveApplicationPhases,
   resolveApplicationStatus,
+  resolveApplicationTags,
 } from "../application/applicationResolvers.js";
 
 const amendmentApplicationType: ApplicationType = "Amendment";
@@ -65,7 +66,7 @@ export async function __updateAmendment(
   parent: unknown,
   { id, input }: { id: string; input: UpdateAmendmentInput }
 ): Promise<PrismaAmendment> {
-  const { effectiveDate, expirationDate } = resolveEffectiveAndExpirationDates(input);
+  const { effectiveDate, expirationDate } = parseAndValidateEffectiveAndExpirationDates(input);
   checkOptionalNotNullFields(["demonstrationId", "name", "status"], input);
   try {
     return await prisma().amendment.update({
@@ -122,5 +123,6 @@ export const amendmentResolvers = {
     status: resolveApplicationStatus,
     phases: resolveApplicationPhases,
     clearanceLevel: resolveApplicationClearanceLevel,
+    tags: resolveApplicationTags,
   },
 };

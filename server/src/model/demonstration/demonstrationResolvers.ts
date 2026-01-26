@@ -11,6 +11,7 @@ import {
   ApplicationStatus,
   ApplicationType,
   CreateDemonstrationInput,
+  DemonstrationTypeAssignment,
   GrantLevel,
   PhaseName,
   Role,
@@ -18,7 +19,7 @@ import {
 } from "../../types.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import { resolveEffectiveAndExpirationDates } from "../applicationDate/resolveEffectiveAndExpirationDates.js";
+import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate";
 import {
   deleteApplication,
   getApplication,
@@ -28,7 +29,9 @@ import {
   resolveApplicationDocuments,
   resolveApplicationPhases,
   resolveApplicationStatus,
+  resolveApplicationTags,
 } from "../application/applicationResolvers.js";
+import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -114,11 +117,8 @@ export async function __updateDemonstration(
   parent: unknown,
   { id, input }: { id: string; input: UpdateDemonstrationInput }
 ): Promise<PrismaDemonstration> {
-  const { effectiveDate, expirationDate } = resolveEffectiveAndExpirationDates(input);
-  checkOptionalNotNullFields(
-    ["name", "status", "stateId", "projectOfficerUserId"],
-    input
-  );
+  const { effectiveDate, expirationDate } = parseAndValidateEffectiveAndExpirationDates(input);
+  checkOptionalNotNullFields(["name", "status", "stateId", "projectOfficerUserId"], input);
   try {
     return await prisma().$transaction(async (tx) => {
       const demonstration = await tx.demonstration.update({
@@ -263,6 +263,24 @@ export async function __resolveDemonstrationPrimaryProjectOfficer(
   return primaryRoleAssignment!.demonstrationRoleAssignment!.person;
 }
 
+export async function resolveDemonstrationTypes(
+  parent: PrismaDemonstration
+): Promise<DemonstrationTypeAssignment[]> {
+  const assignments = await prisma().demonstrationTypeTagAssignment.findMany({
+    where: {
+      demonstrationId: parent.id,
+    },
+  });
+  return assignments.map((assignment) => ({
+    demonstrationType: assignment.tagId,
+    effectiveDate: assignment.effectiveDate,
+    expirationDate: assignment.expirationDate,
+    status: determineDemonstrationTypeStatus(assignment.effectiveDate, assignment.expirationDate),
+    createdAt: assignment.createdAt,
+    updatedAt: assignment.updatedAt,
+  }));
+}
+
 export const demonstrationResolvers = {
   Query: {
     demonstration: __getDemonstration,
@@ -288,5 +306,7 @@ export const demonstrationResolvers = {
     phases: resolveApplicationPhases,
     primaryProjectOfficer: __resolveDemonstrationPrimaryProjectOfficer,
     clearanceLevel: resolveApplicationClearanceLevel,
+    tags: resolveApplicationTags,
+    demonstrationTypes: resolveDemonstrationTypes,
   },
 };

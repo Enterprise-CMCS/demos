@@ -11,6 +11,8 @@ export const APPLICATION_STATUS = [
   "On-hold",
 ] as const;
 
+export const DEMONSTRATION_TYPE_STATUSES = ["Expired", "Pending", "Active"];
+
 export const ROLES = [
   "Project Officer",
   "State Point of Contact",
@@ -138,6 +140,8 @@ export const DATE_TYPES = [
   "Approval Package Start Date",
   "Approval Package Completion Date",
   ...REVIEW_PHASE_DATE_TYPES,
+  "Application Details Marked Complete Date",
+  "Application Demonstration Types Marked Complete Date",
 ] as const;
 
 export const EXPECTED_TIMESTAMPS = ["Start of Day", "End of Day"] as const;
@@ -182,6 +186,8 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "OSORA R1 Comments Due": { expectedTimestamp: "End of Day" },
   "OSORA R2 Comments Due": { expectedTimestamp: "End of Day" },
   "CMS (OSORA) Clearance End": { expectedTimestamp: "End of Day" },
+  "Application Details Marked Complete Date": { expectedTimestamp: "Start of Day" },
+  "Application Demonstration Types Marked Complete Date": { expectedTimestamp: "Start of Day" },
 } as const;
 
 export const STATES_AND_TERRITORIES = [
@@ -366,3 +372,73 @@ export const PHASE_START_END_DATES: PhaseStartEndDateRecord = {
   },
   "Approval Summary": {},
 };
+
+export const TAG_CONFIGURATION_STATUSES = ["Unreviewed", "Approved"] as const;
+
+export const TAG_CONFIGURATION_SOURCES = ["User", "System"] as const;
+
+export const TAG_TYPES = ["Application", "Demonstration Type"] as const;
+
+export const DEMONSTRATION_TYPE_TAGS: string[] = [
+  "Aggregate Cap",
+  "Annual Limits",
+  "Basic Health Plan (BHP)",
+  "Behavioral Health",
+  "Beneficiary Engagement",
+  "Children's Health Insurance Program (CHIP)",
+  "CMMI - AHEAD",
+  "CMMI - Integrated Care for Kids (IncK)",
+  "CMMI - Maternal Opioid Misuse (MOM)",
+  "Community Engagement",
+  "Contingency Management",
+  "Continuous Eligibility",
+  "Delivery System Reform Incentive Payment (DSRIP)",
+  "Dental",
+  "Designated State Health Programs (DSHP)",
+  "Employment Supports",
+  "Enrollment Cap",
+  "End-Stage Renal Disease (ESRD)",
+  "Expenditure Cap",
+  "Former Foster Care Youth (FFCY)",
+  "Global Payment Program (GPP)",
+  "Health Equity",
+  "Health-Related Social Needs (HRSN)",
+  "Healthy Behavior Incentives",
+  "HIV",
+  "Home Community Based Services (HCBS)",
+  "Lead Exposure",
+  "Lifetime Limits",
+  "Long-Term Services and Supports (LTSS)",
+  "Managed Care",
+  "Marketplace Coverage/Premium Assistance Wrap",
+  "New Adult Group Expansion",
+  "Non-Eligibility Period",
+  "Non-Emergency Medical Transportation (NEMT)",
+  "Partial Expansion of the New Adult Group",
+  "Pharmacy",
+  "PHE-Appendix K",
+  "PHE-COVID-19",
+  "PHE-Reasonable Opportunity Period (ROP)",
+  "PHE-Risk Mitigation",
+  "PHE-Vaccine Coverage",
+  "Premium Assistance/Employer-Sponsored Health Insurance (ESI)/Qualified Health Plan (QHP)",
+  "Premiums/Cost-Sharing",
+  "Provider Cap",
+  "Provider Restriction",
+  "ReEntry",
+  "Reproductive Health: Family Planning",
+  "Reproductive Health: Fertility",
+  "Reproductive Health: Hyde",
+  "Reproductive Health: Maternal Health",
+  "Reproductive Health: Post-Partum Extension",
+  "Reproductive Health: RAD",
+  "Retroactive Eligibility",
+  "Serious Mental Illness (SMI)",
+  "Special Needs",
+  "Substance Use Disorder (SUD)",
+  "Targeted Population Expansion",
+  "Tribal",
+  "Uncompensated Care",
+  "Value Based Care (VBC)",
+  "Vision",
+] as const;

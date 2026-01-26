@@ -1,26 +1,23 @@
 import { describe, it, expect } from "vitest";
 import { TZDate } from "@date-fns/tz";
 import { DateTimeOrLocalDate } from "../../types.js";
-import { resolveEffectiveAndExpirationDates } from "./resolveEffectiveAndExpirationDates.js";
+import { parseAndValidateEffectiveAndExpirationDates } from "./parseAndValidateEffectiveAndExpirationDates.js";
 
-describe("resolveEffectiveAndExpirationDates", () => {
-  const startOfDayDateTime =
-    "2025-01-01T00:00:00.000-05:00" as DateTimeOrLocalDate;
+describe("parseAndValidateEffectiveAndExpirationDates", () => {
+  const startOfDayDateTime = "2025-01-01T00:00:00.000-05:00" as DateTimeOrLocalDate;
 
-  const endOfDayDateTime =
-    "2025-01-31T23:59:59.999-05:00" as DateTimeOrLocalDate;
+  const endOfDayDateTime = "2025-01-31T23:59:59.999-05:00" as DateTimeOrLocalDate;
 
-  const localDate =
-    "2025-10-31" as DateTimeOrLocalDate;
+  const localDate = "2025-10-31" as DateTimeOrLocalDate;
 
   it("should return an empty object when no date inputs are provided", () => {
-    const result = resolveEffectiveAndExpirationDates({});
+    const result = parseAndValidateEffectiveAndExpirationDates({});
 
     expect(result).toEqual({});
   });
 
   it("should parse and return an effectiveDate at start of day", () => {
-    const result = resolveEffectiveAndExpirationDates({
+    const result = parseAndValidateEffectiveAndExpirationDates({
       effectiveDate: startOfDayDateTime,
     });
 
@@ -29,7 +26,7 @@ describe("resolveEffectiveAndExpirationDates", () => {
   });
 
   it("should parse and return an expirationDate at end of day", () => {
-    const result = resolveEffectiveAndExpirationDates({
+    const result = parseAndValidateEffectiveAndExpirationDates({
       expirationDate: endOfDayDateTime,
     });
 
@@ -38,7 +35,7 @@ describe("resolveEffectiveAndExpirationDates", () => {
   });
 
   it("should parse local dates into Eastern TZ dates", () => {
-    const result = resolveEffectiveAndExpirationDates({
+    const result = parseAndValidateEffectiveAndExpirationDates({
       effectiveDate: localDate,
       expirationDate: localDate,
     });
@@ -48,7 +45,7 @@ describe("resolveEffectiveAndExpirationDates", () => {
   });
 
   it("should explicitly set dates to null when input is null", () => {
-    const result = resolveEffectiveAndExpirationDates({
+    const result = parseAndValidateEffectiveAndExpirationDates({
       effectiveDate: null,
       expirationDate: null,
     });
@@ -60,7 +57,7 @@ describe("resolveEffectiveAndExpirationDates", () => {
   });
 
   it("should normalize effectiveDate to start of day", () => {
-    const result = resolveEffectiveAndExpirationDates({
+    const result = parseAndValidateEffectiveAndExpirationDates({
       effectiveDate: "2025-01-01T12:34:56.000-05:00" as DateTimeOrLocalDate,
     });
 
@@ -70,7 +67,7 @@ describe("resolveEffectiveAndExpirationDates", () => {
   });
 
   it("should normalize expirationDate to end of day", () => {
-    const result = resolveEffectiveAndExpirationDates({
+    const result = parseAndValidateEffectiveAndExpirationDates({
       expirationDate: "2025-01-31T12:00:00.000-05:00" as DateTimeOrLocalDate,
     });
 

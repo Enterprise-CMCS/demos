@@ -1,5 +1,5 @@
 import React from "react";
-import { mockDemonstrations } from "mock-data/demonstrationMocks";
+import { MOCK_DEMONSTRATION } from "mock-data/demonstrationMocks";
 import { formatDate } from "util/formatDate";
 import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
@@ -13,7 +13,7 @@ const demonstrationDetailMock = {
   },
   result: {
     data: {
-      demonstration: mockDemonstrations[0],
+      demonstration: MOCK_DEMONSTRATION,
     },
   },
 };
@@ -30,7 +30,7 @@ async function renderSummaryDetailsTable() {
 }
 
 describe("SummaryDetailsTable", () => {
-  const testDemo = mockDemonstrations[0];
+  const testDemo = MOCK_DEMONSTRATION;
 
   beforeEach(async () => {
     await renderSummaryDetailsTable();

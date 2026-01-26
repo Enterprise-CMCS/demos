@@ -127,7 +127,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
           data-form-type="other"
           autoComplete="off"
         />
-        <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center">
+        <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center pr-1">
           <ChevronDownIcon className={ICON_CLASSES} />
         </div>
 

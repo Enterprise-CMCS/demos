@@ -6,6 +6,7 @@ import { DialogProvider, useDialog } from "./DialogContext";
 import { ExistingContactType } from "./ManageContactsDialog";
 import { DocumentDialogFields } from "./document/DocumentDialog";
 import { DeclareIncompleteForm } from "./DeclareIncompleteDialog";
+import { DIALOG_CANCEL_BUTTON_NAME } from "./BaseDialog";
 
 const MockDialog = ({ onClose }: { onClose: () => void }) => (
   <div data-testid="mock-dialog">
@@ -236,6 +237,15 @@ vi.mock("./DeclareIncompleteDialog", () => ({
   ),
 }));
 
+vi.mock("./DemonstrationTypes/ApplyDemonstrationTypesDialog", () => ({
+  ApplyDemonstrationTypesDialog: ({ demonstrationId }: { demonstrationId: string }) => (
+    <div data-testid="apply-demonstration-types-dialog">
+      Apply Demonstration Types Dialog
+      <span>Demonstration ID: {demonstrationId}</span>
+    </div>
+  ),
+}));
+
 const mockRoles: ExistingContactType[] = [
   {
     role: "Project Officer",
@@ -281,10 +291,16 @@ const TestConsumer: React.FC = () => {
     showConceptPreSubmissionDocumentUploadDialog,
     showFederalCommentDocumentUploadDialog,
     showDeclareIncompleteDialog,
+    showApplyDemonstrationTypesDialog,
+    showApplyTagsDialog,
+    closeDialog,
   } = useDialog();
 
   return (
     <div>
+      <button data-testid="close-active-dialog-btn" onClick={closeDialog}>
+        Close Active Dialog
+      </button>
       <button data-testid="open-create-btn" onClick={showCreateDemonstrationDialog}>
         Open Create Dialog
       </button>
@@ -348,6 +364,18 @@ const TestConsumer: React.FC = () => {
       >
         Open Declare Incomplete Dialog
       </button>
+      <button
+        data-testid="open-apply-demonstration-types-dialog-btn"
+        onClick={() => showApplyDemonstrationTypesDialog("app-1")}
+      >
+        Open Apply Demonstration Types Dialog
+      </button>
+      <button
+        data-testid="open-apply-tags-btn"
+        onClick={() => showApplyTagsDialog(["Tag1", "Tag2", "Tag3"], ["Tag1", "Tag2", "Tag3"])}
+      >
+        Open Apply Tags Dialog
+      </button>
     </div>
   );
 };
@@ -364,6 +392,19 @@ describe("DialogContext", () => {
       </DialogProvider>
     );
     expect(screen.getByTestId("child")).toBeInTheDocument();
+  });
+
+  it("closes dialogs on closeDialog", async () => {
+    render(
+      <DialogProvider>
+        <TestConsumer />
+      </DialogProvider>
+    );
+    const user = userEvent.setup();
+    await user.click(screen.getByTestId("open-create-btn"));
+    expect(screen.getByTestId("mock-dialog")).toBeInTheDocument();
+    await user.click(screen.getByTestId("close-active-dialog-btn"));
+    expect(screen.queryByTestId("mock-dialog")).not.toBeInTheDocument();
   });
 
   it("shows and hides CreateDemonstrationDialog via context", async () => {
@@ -592,5 +633,32 @@ describe("DialogContext", () => {
 
     await user.click(screen.getByTestId("close-declare-incomplete-btn"));
     expect(screen.queryByTestId("declare-incomplete-dialog")).not.toBeInTheDocument();
+  });
+  it("shows the ApplyDemonstrationTypesDialog", async () => {
+    render(
+      <DialogProvider>
+        <TestConsumer />
+      </DialogProvider>
+    );
+    const user = userEvent.setup();
+    await user.click(screen.getByTestId("open-apply-demonstration-types-dialog-btn"));
+    expect(screen.getByText("Apply Demonstration Types Dialog")).toBeInTheDocument();
+    expect(screen.getByText("Demonstration ID: app-1")).toBeInTheDocument();
+  });
+  it("shows and hides ApplyTagsDialog via context", async () => {
+    render(
+      <DialogProvider>
+        <TestConsumer />
+      </DialogProvider>
+    );
+    const user = userEvent.setup();
+
+    expect(screen.queryByTestId("apply-tags-dialog")).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("open-apply-tags-btn"));
+    expect(screen.getByTestId("apply-tags-dialog")).toBeInTheDocument();
+
+    await user.click(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME));
+    expect(screen.queryByTestId("apply-tags-dialog")).not.toBeInTheDocument();
   });
 });

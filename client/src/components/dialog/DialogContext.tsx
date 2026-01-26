@@ -17,6 +17,8 @@ import { ConceptPreSubmissionUploadDialog } from "./document/phases/ConceptPreSu
 import { FederalCommentUploadDialog } from "./document/phases/FederalCommentUploadDialog";
 import { ApprovalPackageUploadDialog } from "./document/phases/ApprovalPackageUploadDialog";
 import { DeclareIncompleteDialog, DeclareIncompleteForm } from "./DeclareIncompleteDialog";
+import { ApplyDemonstrationTypesDialog } from "./DemonstrationTypes/ApplyDemonstrationTypesDialog";
+import { ApplyTagsDialog } from "./ApplyTagsDialog";
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -170,7 +172,22 @@ export const useDialog = () => {
     );
   };
 
+  const showApplyDemonstrationTypesDialog = (demonstrationId: string) => {
+    context.showDialog(<ApplyDemonstrationTypesDialog demonstrationId={demonstrationId} />);
+  };
+
+  const showApplyTagsDialog = (allTags: string[], selectedTags: string[]) => {
+    context.showDialog(
+      <ApplyTagsDialog
+        allTags={allTags}
+        initiallySelectedTags={selectedTags}
+        onClose={context.hideDialog}
+      />
+    );
+  };
+
   return {
+    closeDialog: context.hideDialog,
     showCreateDemonstrationDialog,
     showEditDemonstrationDialog,
     showCreateAmendmentDialog,
@@ -185,5 +202,7 @@ export const useDialog = () => {
     showFederalCommentDocumentUploadDialog,
     showApprovalPackageDocumentUploadDialog,
     showDeclareIncompleteDialog,
+    showApplyDemonstrationTypesDialog,
+    showApplyTagsDialog,
   };
 };

@@ -6,7 +6,10 @@ client:
   - any-glob-to-any-file: client/**
 documentation:
 - changed-files:
-  - any-glob-to-any-file: docs/**
+  - any-glob-to-any-file: 
+    - docs/**
+    - data/docs/**
+    - "**/*.md"
 spike:
 - changed-files:
   - any-glob-to-any-file: spikes/**
@@ -31,3 +34,6 @@ lambda:
 "lambda:emailer":
 - changed-files:
   - any-glob-to-any-file: lambdas/emailer/**
+"lambda:deleteinfectedfile":
+- changed-files:
+  - any-glob-to-any-file: lambdas/deleteinfectedfile/**

@@ -11,8 +11,10 @@ import {
   PrismaApplication,
   resolveApplicationClearanceLevel,
   setApplicationClearanceLevel,
+  resolveApplicationTags,
 } from "./applicationResolvers.js";
-import { ApplicationStatus, ApplicationType, PhaseName, ClearanceLevel } from "../../types.js";
+import { ApplicationStatus, ApplicationType, PhaseName, ClearanceLevel, Tag } from "../../types.js";
+import { ApplicationTagAssignment as PrismaApplicationTagAssignment } from "@prisma/client";
 
 // Mock imports
 import { prisma } from "../../prismaClient.js";
@@ -44,6 +46,9 @@ describe("applicationResolvers", () => {
       findMany: vi.fn(),
     },
     applicationPhase: {
+      findMany: vi.fn(),
+    },
+    applicationTagAssignment: {
       findMany: vi.fn(),
     },
   };
@@ -101,6 +106,9 @@ describe("applicationResolvers", () => {
     },
     extension: {
       update: transactionMocks.extension.update,
+    },
+    applicationTagAssignment: {
+      findMany: regularMocks.applicationTagAssignment.findMany,
     },
   };
   const testApplicationId = "8167c039-9c08-4203-b7d2-9e35ec156993";
@@ -325,7 +333,7 @@ describe("applicationResolvers", () => {
     });
   });
 
-  describe("updateApplicationClearanceLevel", () => {
+  describe("setApplicationClearanceLevel", () => {
     const testClearanceLevel: ClearanceLevel = "CMS (OSORA)";
     const testUpdatedDemonstration = {
       id: testApplicationId,
@@ -537,6 +545,40 @@ describe("applicationResolvers", () => {
       expect(transactionMocks.amendment.update).not.toHaveBeenCalled();
       expect(transactionMocks.extension.update).not.toHaveBeenCalled();
       expect(result).toEqual(testUpdatedDemonstration);
+    });
+  });
+
+  describe("resolveApplicationTags", () => {
+    it("should resolve the tags on an application", async () => {
+      // This is present just to test the map in the function
+      const resolvedValue: Pick<PrismaApplicationTagAssignment, "tagId">[] = [
+        {
+          tagId: "Test Tag Value A",
+        },
+        {
+          tagId: "Test Tag Value B",
+        },
+      ];
+      regularMocks.applicationTagAssignment.findMany.mockResolvedValueOnce(resolvedValue);
+
+      const expectedCall = {
+        where: {
+          applicationId: testApplicationId,
+        },
+        select: {
+          tagId: true,
+        },
+      };
+      const expectedResult: Tag[] = ["Test Tag Value A", "Test Tag Value B"];
+      const input: Partial<PrismaApplication> = {
+        id: testApplicationId,
+      };
+
+      const result = await resolveApplicationTags(input as PrismaApplication);
+      expect(regularMocks.applicationTagAssignment.findMany).toHaveBeenCalledExactlyOnceWith(
+        expectedCall
+      );
+      expect(result).toStrictEqual(expectedResult);
     });
   });
 });

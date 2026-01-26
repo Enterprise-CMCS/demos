@@ -14,6 +14,18 @@ erDiagram
   classDef associativeTable stroke:darkmagenta,fill:plum
   classDef legend stroke:black,fill:#ddd
 
+  tag ||--|{ tag_configuration : "FK077"
+  tag_type ||--|{ tag_configuration : "FK078"
+  tag_configuration }|--|| tag_configuration_status : "FK079"
+  tag_configuration }|--|| tag_configuration_source : "FK080"
+  tag_configuration ||--|{ demonstration_type_tag_assignment : "FK081"
+  tag_configuration ||--|{ application_tag_assignment : "FK082"
+  tag_type ||--|| demonstration_type_tag_type_limit : "FK083"
+  tag_type ||--|| application_tag_type_limit : "FK084"
+  demonstration_type_tag_type_limit ||--|{ demonstration_type_tag_assignment : "FK085"
+  application_tag_type_limit ||--|{ application_tag_assignment : "FK086"
+  demonstration_type_tag_assignment }|--|| demonstration : "FK087"
+  application_tag_assignment }|--|| application : "FK088"
   phase_status ||--|{ phase_phase_status : "FK072"
   phase_phase_status }|--|| phase : "FK071"
   phase_phase_status ||--|{ application_phase  : "FK004"
@@ -100,15 +112,11 @@ erDiagram
     text id PK
   }
 
-  event_type:::staticConstraint {
-    text id PK
-  }
-
-  sdg_division:::staticConstraint {
-    text id PK
-  }
-
   date_type:::staticConstraint {
+    text id PK
+  }
+
+  event_type:::staticConstraint {
     text id PK
   }
 
@@ -153,6 +161,10 @@ erDiagram
     text grant_level_id FK, UK "FK035: grant_level_id ∈ grant_level.id<br>UK: (id, grant_level_id)"
   }
 
+  sdg_division:::staticConstraint {
+    text id PK
+  }
+
   signature_level:::staticConstraint {
     text id PK
   }
@@ -160,6 +172,18 @@ erDiagram
   state:::staticConstraint {
     text id PK
     text name
+  }
+
+  tag_configuration_status:::staticConstraint {
+    text id PK
+  }
+
+  tag_configuration_source:::staticConstraint {
+    text id PK
+  }
+
+  tag_type:::staticConstraint {
+    text id PK
   }
 
   %% Type Limiters
@@ -171,12 +195,20 @@ erDiagram
     text id PK, FK "FK067: id ∈ phase.id"
   }
 
+  application_tag_type_limit:::typeLimiter {
+    text id PK, FK "FK084: id ∈ tag_type.id"
+  }
+
   demonstration_application_type_limit:::typeLimiter {
     text id PK, FK "FK013: id ∈ application_type.id"
   }
 
   demonstration_grant_level_limit:::typeLimiter {
     text id PK, FK "FK045: id ∈ grant_level.id"
+  }
+
+  demonstration_type_tag_type_limit:::typeLimiter {
+    text id PK, FK "FK083: id ∈ tag_type.id"
   }
 
   extension_application_type_limit:::typeLimiter {
@@ -257,6 +289,17 @@ erDiagram
     CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
     CONSTRAINT_TRIGGER_DEFERRABLE check_demonstration_primary_project_officer_trigger "On insert or update, check that a primary project officer exists for this demonstration."
     BEFORE_DELETE_TRIGGER check_that_main_record_deleted_from_application_trigger "Before deletion, verify that no corresponding record exists in the application table."
+  }
+
+  demonstration_type_tag_assignment:::dataTable {
+    uuid demonstration_id PK, FK "FK087: demonstration_id ∈ demonstration.id"
+    text tag_id PK, FK "FK081: (tag_id, tag_type_id) ∈ tag_configuration.(tag_id, tag_type_id)"
+    text tag_type_id FK "FK081: (tag_id, tag_type_id) ∈ tag_configuration.(tag_id, tag_type_id)<br>FK085: tag_type_id ∈ demonstration_type_tag_type_limit.id"
+    timestamptz effective_date
+    timestamptz expiration_date
+    timestamptz created_at
+    timestamptz updated_at
+    CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
   }
 
   document:::dataTable {
@@ -343,6 +386,21 @@ erDiagram
     timestamptz updated_at
   }
 
+  tag:::dataTable {
+    text id PK
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  tag_configuration:::dataTable {
+    text tag_id PK, FK "FK077: tag_id ∈ tag.id"
+    text tag_type_id PK, FK "FK078: tag_type_id ∈ tag_type.id"
+    text source_id FK "FK079: source_id ∈ tag_configuration_source.id"
+    text status_id FK "FK080: status_id ∈ tag_configuration_status.id"
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
   users:::dataTable {
     uuid id PK, FK, UK "FK023: (id, person_type_id) ∈ person.(id, person_type_id)<br>UK: (id, person_type_id)"
     text person_type_id FK "FK023: (id, person_type_id) ∈ person.(id, person_type_id)<br>FK025: person_type_id ∈ user_person_type_limit.id<br>UK: (id, person_type_id)"
@@ -353,6 +411,12 @@ erDiagram
   }
 
   %% Associative Tables
+  application_tag_assignment:::associativeTable {
+    uuid application_id PK, FK "FK088: appliation_id ∈ application.id"
+    text tag_id PK, FK "FK082: (tag_id, tag_type_id) ∈ tag_configuration.(tag_id, tag_type_id)"
+    text tag_type_id FK "FK082: (tag_id, tag_type_id) ∈ tag_configuration.(tag_id, tag_type_id)<br>FK086: tag_type_id ∈ application_tag_type_limit.id"
+  }
+
   demonstration_role_assignment:::associativeTable {
     uuid person_id PK, FK "FK042: (person_id, state_id) ∈ person_state.(person_id, state_id)<br>FK048: (person_id, person_type_id) ∈ person.(id, person_type_id)"
     uuid demonstration_id PK, FK "FK050: (demonstration_id, state_id) ∈ demonstration.(id, state_id)"

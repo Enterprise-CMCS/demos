@@ -27,12 +27,15 @@ export * from "./Action/ThumbsUpIcon";
 export * from "./Action/UndoIcon";
 export * from "./Action/UnreadIcon";
 export * from "./Action/VersionIcon";
+export * from "./Action/WithdrawnIcon";
+export * from "./Action/PreSubmissionIcon";
 
 export * from "./Alert/ErrorIcon";
 export * from "./Alert/FailIcon";
 export * from "./Alert/InfoIcon";
 export * from "./Alert/NullIcon";
 export * from "./Alert/SuccessIcon";
+export * from "./Alert/SuccessInvertedIcon";
 export * from "./Alert/WarningIcon";
 export * from "./Alert/AlertIcon";
 

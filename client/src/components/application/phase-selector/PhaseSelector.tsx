@@ -73,7 +73,8 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
 
   const phaseComponentsLookup: Record<PhaseName, React.FC> = {
     Concept: () => getConceptPhaseComponentFromDemonstration(demonstration, setSelectedPhase),
-    "Application Intake": () => getApplicationIntakeComponentFromDemonstration(demonstration),
+    "Application Intake": () =>
+      getApplicationIntakeComponentFromDemonstration(demonstration, setSelectedPhase),
     Completeness: () => getApplicationCompletenessFromDemonstration(demonstration),
     "Federal Comment": () => getFederalCommentPhaseFromDemonstration(demonstration),
     "SDG Preparation": () => {

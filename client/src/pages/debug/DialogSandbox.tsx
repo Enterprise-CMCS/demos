@@ -20,6 +20,8 @@ export const DialogSandbox: React.FC = () => {
     showFederalCommentDocumentUploadDialog,
     showApprovalPackageDocumentUploadDialog,
     showDeclareIncompleteDialog,
+    showApplyDemonstrationTypesDialog,
+    showApplyTagsDialog,
   } = useDialog();
 
   const ID = "1";
@@ -127,6 +129,18 @@ export const DialogSandbox: React.FC = () => {
             onClick={() => showManageContactsDialog(ID, EXISTING_CONTACTS)}
           >
             Manage Contacts
+          </Button>
+          <Button
+            name="apply-demonstration-types"
+            onClick={() => showApplyDemonstrationTypesDialog(ID)}
+          >
+            Apply Demonstration Types
+          </Button>
+          <Button
+            name="apply-tags"
+            onClick={() => showApplyTagsDialog(["One", "Two", "Three"], ["One"])}
+          >
+            Apply Tags
           </Button>
         </div>
       </div>

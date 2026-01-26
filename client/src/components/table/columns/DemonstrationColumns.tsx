@@ -7,6 +7,8 @@ import { GenericDemonstrationTableRow } from "../tables/DemonstrationTable";
 import { Person } from "demos-server";
 import { createSelectColumnDef } from "./selectColumn";
 import { APPLICATION_STATUS, STATES_AND_TERRITORIES } from "demos-server-constants";
+import { DemonstrationStatusBadge } from "components/badge/DemonstrationStatusBadge";
+import type { ApplicationStatus } from "demos-server";
 
 // TODO: currently this is acting like a hook, but its not intended to be used generically like one. Perhaps
 // reformat to be more like a utility function.
@@ -56,7 +58,12 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
     columnHelper.accessor("status", {
       id: "status",
       header: "Status",
-      cell: highlightCell,
+      cell: (info) => (
+        <DemonstrationStatusBadge
+          demonstrationStatus={info.getValue<ApplicationStatus>()}
+          size="small"
+        />
+      ),
       filterFn: "arrIncludesSome",
       meta: {
         filterConfig: {

@@ -1,0 +1,12 @@
+model ApplicationTagAssignment {
+  applicationId String @map("application_id") @db.Uuid
+  tagId         String @map("tag_id")
+  tagTypeId     String @map("tag_type_id")
+
+  application      Application             @relation(fields: [applicationId], references: [id])
+  tagConfiguration TagConfiguration        @relation(fields: [tagId, tagTypeId], references: [tagId, tagTypeId])
+  tagType          ApplicationTagTypeLimit @relation(fields: [tagTypeId], references: [id])
+
+  @@id([applicationId, tagId])
+  @@map("application_tag_assignment")
+}

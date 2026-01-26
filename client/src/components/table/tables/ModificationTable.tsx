@@ -68,7 +68,7 @@ export function ModificationTable({
                   <div className="text-sm font-bold text-blue-900">{name}</div>
 
                   <div className="flex justify-center items-center h-full">
-                    {DemonstrationStatusBadge({ demonstrationStatus: status })}
+                    {DemonstrationStatusBadge({ demonstrationStatus: status, size: "small" })}
                   </div>
 
                   <div className="flex items-center gap-3 ">
