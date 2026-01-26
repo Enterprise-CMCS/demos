@@ -76,13 +76,16 @@ import { signatureLevelResolvers } from "./signatureLevel/signatureLevelResolver
 import { stateSchema } from "./state/stateSchema.js";
 import { stateResolvers } from "./state/stateResolvers.js";
 
-import { tagSchema } from "./tag/tagSchema.js";
+import { tagConfigurationSchema } from "./tagConfiguration/tagConfigurationSchema.js";
+import { tagConfigurationResolvers } from "./tagConfiguration/tagConfigurationResolvers.js";
 
 import { tagConfigurationSourceSchema } from "./tagConfigurationSource/tagConfigurationSourceSchema.js";
 import { tagConfigurationSourceResolvers } from "./tagConfigurationSource/tagConfigurationSourceResolvers.js";
 
 import { tagConfigurationStatusSchema } from "./tagConfigurationStatus/tagConfigurationStatusSchema.js";
 import { tagConfigurationStatusResolvers } from "./tagConfigurationStatus/tagConfigurationStatusResolvers.js";
+
+import { tagSchema } from "./tag/tagSchema.js";
 
 import { tagTypeSchema } from "./tagType/tagTypeSchema.js";
 import { tagTypeResolvers } from "./tagType/tagTypeResolvers.js";
@@ -134,9 +137,10 @@ export const typeDefs = [
   sdgDivisionSchema,
   signatureLevelSchema,
   stateSchema,
-  tagSchema,
+  tagConfigurationSchema,
   tagConfigurationSourceSchema,
   tagConfigurationStatusSchema,
+  tagSchema,
   tagTypeSchema,
   userSchema,
   ...scalarTypes,
@@ -171,6 +175,7 @@ export const resolvers = [
   sdgDivisionResolvers,
   signatureLevelResolvers,
   stateResolvers,
+  tagConfigurationResolvers,
   tagConfigurationSourceResolvers,
   tagConfigurationStatusResolvers,
   tagTypeResolvers,
