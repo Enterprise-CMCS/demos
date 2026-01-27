@@ -77,7 +77,9 @@ function TableBody<T>({
       return (
         <tr>
           <td colSpan={table.getAllLeafColumns().length} className={STYLES.td}>
-            {noResultsFoundMessage}
+            <div className="flex items-center justify-center h-full text-center">
+              {noResultsFoundMessage}
+            </div>
           </td>
         </tr>
       );
@@ -87,7 +89,9 @@ function TableBody<T>({
       return (
         <tr>
           <td colSpan={table.getAllLeafColumns().length} className={STYLES.td}>
-            {emptyRowsMessage}
+            <div className="flex items-center justify-center h-full text-center">
+              {emptyRowsMessage}
+            </div>
           </td>
         </tr>
       );

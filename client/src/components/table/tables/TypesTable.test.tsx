@@ -12,12 +12,14 @@ const mockTypes: DemonstrationDetailDemonstrationType[] = [
     status: "Active",
     effectiveDate: new Date("2023-01-01"),
     expirationDate: new Date("2024-01-01"),
+    createdAt: new Date("2022-12-01"),
   },
   {
     demonstrationTypeName: "Economic",
     status: "Inactive",
     effectiveDate: new Date("2024-01-01"),
     expirationDate: new Date("2025-01-01"),
+    createdAt: new Date("2023-06-01"),
   },
 ];
 
@@ -64,11 +66,13 @@ describe("TypesTable", () => {
     expect(screen.queryByLabelText(/input keyword search query/i)).not.toBeInTheDocument();
   });
 
-  it("defaults to sorting by Effective Date ascending (oldest first)", () => {
+  it("defaults to sorting by createdAt ascending (oldest first)", () => {
     render(<TypesTable types={mockTypes} />);
     const rows = screen.getAllByRole("row").slice(1);
+    const types = rows.map(
+      (row) => row.querySelectorAll("td")[1]?.textContent
+    );
 
-    const types = rows.map((row) => row.querySelectorAll("td")[1]?.textContent);
     expect(types).toEqual(["Environmental", "Economic"]);
   });
 
