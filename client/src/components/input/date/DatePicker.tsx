@@ -1,18 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
 import { Input } from "components/input/Input";
-import { tw } from "tags/tw";
-
-const REQUIRED_ASTERISK_CLASSES = tw`text-text-warn mr-xs`;
-const LABEL_VALID_CLASSES = tw`font-bold text-sm tracking-wide h-[14px] flex items-center text-text-font`;
-const LABEL_INVALID_CLASSES = tw`font-bold text-sm tracking-wide h-[14px] flex items-center text-error-dark`;
-
-const RequiredLabel = ({ children }: { children: React.ReactNode }) => (
-  <>
-    <span className={REQUIRED_ASTERISK_CLASSES}>*</span>
-    {" "}
-    {children}
-  </>
-);
 
 interface DatePickerProps {
   name: string;
@@ -24,6 +11,14 @@ interface DatePickerProps {
   getValidationMessage?: () => string;
 }
 
+const isInvalidDirtyState = (value: string, isDirty: boolean, isRequired?: boolean): boolean => {
+  if (!isDirty) return false;
+  if (isRequired && !value) return true;
+  if (value && !/^\d{4}-\d{2}-\d{2}$/.test(value)) return true;
+  if (value && isNaN(new Date(value).getTime())) return true;
+  return false;
+};
+
 export const DatePicker: React.FC<DatePickerProps> = ({
   label,
   name,
@@ -33,30 +28,32 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   isDisabled,
   getValidationMessage,
 }) => {
-  // This is only triggered when the input value is a valid date string
+  const [isDirty, setIsDirty] = useState(false);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsDirty(true);
     onChange?.(e.target.value);
   };
 
-  const showVisualValidation = isRequired && !getValidationMessage; // Only show if no custom validation
-  const labelContent = showVisualValidation && isRequired ? <RequiredLabel>{label}</RequiredLabel> : label;
+  const handleBlur = () => {
+    setIsDirty(true);
+  };
 
-  const labelClasses = showVisualValidation
-    ? (value ? LABEL_VALID_CLASSES : LABEL_INVALID_CLASSES)
-    : undefined;
+  // Show red label when dirty and invalid
+  const isInvalidState = isInvalidDirtyState(value || "", isDirty, isRequired);
+  const labelClasses = isInvalidState ? "text-error-dark font-semibold text-field-label flex gap-0-5" : undefined;
 
   return (
     <Input
       type="date"
       name={name}
-      label={labelContent}
+      label={label}
       labelClasses={labelClasses}
       value={value || ""}
       onChange={handleChange}
+      onBlur={handleBlur}
       isRequired={isRequired ?? false}
-      aria-required={isRequired ? "true" : "false"}
       isDisabled={isDisabled ?? false}
-      aria-disabled={isDisabled ? "true" : "false"}
       getValidationMessage={getValidationMessage}
     />
   );
