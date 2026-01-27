@@ -132,7 +132,7 @@ export const DialogSandbox: React.FC = () => {
           </Button>
           <Button
             name="apply-demonstration-types"
-            onClick={() => showApplyDemonstrationTypesDialog("1")}
+            onClick={() => showApplyDemonstrationTypesDialog(ID)}
           >
             Apply Demonstration Types
           </Button>
