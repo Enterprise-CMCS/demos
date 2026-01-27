@@ -15,6 +15,13 @@ export type DemonstrationType = {
 export type Demonstration = Pick<ServerDemonstration, "id"> & {
   demonstrationTypes: DemonstrationType[];
 };
+export const DEMONSTRATION_TYPE = gql`
+  fragment DemonstrationType on DemonstrationTypeAssignment {
+    demonstrationTypeName
+    effectiveDate
+    expirationDate
+  }
+`;
 export const ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY: TypedDocumentNode<
   { demonstration: Demonstration },
   { id: string }
@@ -23,12 +30,11 @@ export const ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY: TypedDocumentNode<
     demonstration(id: $id) {
       id
       demonstrationTypes {
-        demonstrationTypeName
-        effectiveDate
-        expirationDate
+        ...DemonstrationType
       }
     }
   }
+  ${DEMONSTRATION_TYPE}
 `;
 
 export const ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION: TypedDocumentNode<
@@ -39,16 +45,15 @@ export const ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION: TypedDocumentNode<
     setDemonstrationTypes(input: $input) {
       id
       demonstrationTypes {
-        demonstrationTypeName
+        ...DemonstrationType
         status
-        effectiveDate
-        expirationDate
       }
     }
   }
+  ${DEMONSTRATION_TYPE}
 `;
 
-export const getSetDemonstrationTypeInput = (
+export const getSetDemonstrationTypesInput = (
   demonstrationId: string,
   initialDemonstrationTypes: DemonstrationType[],
   currentDemonstrationTypes: DemonstrationType[]
@@ -91,7 +96,7 @@ export const useApplyDemonstrationTypesDialogData = (demonstrationId: string) =>
     variables: { id: demonstrationId },
   });
 
-  const [assignDemonstrationTypes, { loading: saving }] = useMutation(
+  const [setDemonstrationTypes, { loading: saving }] = useMutation(
     ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION
   );
 
@@ -100,14 +105,14 @@ export const useApplyDemonstrationTypesDialogData = (demonstrationId: string) =>
     initialDemonstrationTypes: DemonstrationType[],
     currentDemonstrationTypes: DemonstrationType[]
   ) => {
-    const demonstrationTypeInput = getSetDemonstrationTypeInput(
+    const demonstrationTypesInput = getSetDemonstrationTypesInput(
       demonstrationId,
       initialDemonstrationTypes,
       currentDemonstrationTypes
     );
-    return assignDemonstrationTypes({
+    return setDemonstrationTypes({
       variables: {
-        input: demonstrationTypeInput,
+        input: demonstrationTypesInput,
       },
     });
   };

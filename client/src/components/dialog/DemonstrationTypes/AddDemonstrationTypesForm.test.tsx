@@ -13,7 +13,7 @@ const mockSelectDemonstrationTypeQuery: MockedResponse = {
   },
   result: {
     data: {
-      demonstrationTypes: ["Type A", "Type B", "Type C", "Type D"],
+      demonstrationTypeNames: ["Type A", "Type B", "Type C", "Type D"],
     },
   },
 };

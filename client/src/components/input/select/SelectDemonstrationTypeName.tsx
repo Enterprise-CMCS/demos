@@ -1,26 +1,27 @@
 import React, { useMemo } from "react";
-import { gql, useQuery } from "@apollo/client";
-import { Tag } from "demos-server";
+import { gql, TypedDocumentNode, useQuery } from "@apollo/client";
+import { Tag as DemonstrationTypeName } from "demos-server";
 import { AutoCompleteSelect } from "./AutoCompleteSelect";
 
-export const SELECT_DEMONSTRATION_TYPE_QUERY = gql`
+export const SELECT_DEMONSTRATION_TYPE_QUERY: TypedDocumentNode<
+  { demonstrationTypeNames: DemonstrationTypeName[] },
+  Record<string, never>
+> = gql`
   query SelectDemonstrationTypeQuery {
     demonstrationTypeNames
   }
 `;
 
 export type SelectDemonstrationTypeNameProps = {
-  value: Tag;
-  onSelect: (tag: Tag) => void;
+  value: DemonstrationTypeName;
+  onSelect: (tag: DemonstrationTypeName) => void;
   isRequired?: boolean;
-  filter?: (tag: Tag) => boolean;
+  filter?: (tag: DemonstrationTypeName) => boolean;
 };
 export const SelectDemonstrationTypeName = (props: SelectDemonstrationTypeNameProps) => {
   const { filter } = props;
 
-  const { loading, error, data } = useQuery<{ demonstrationTypeNames: Tag[] }>(
-    SELECT_DEMONSTRATION_TYPE_QUERY
-  );
+  const { loading, error, data } = useQuery(SELECT_DEMONSTRATION_TYPE_QUERY);
 
   const typeNameOptions = (data?.demonstrationTypeNames || [])
     .filter((typeNames) => (filter ? filter(typeNames) : true))
