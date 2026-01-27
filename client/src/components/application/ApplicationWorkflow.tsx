@@ -49,6 +49,7 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
         status
         effectiveDate
         expirationDate
+        createdAt
       }
       documents {
         id
@@ -104,7 +105,7 @@ export type ApplicationWorkflowDemonstration = Pick<
   documents: ApplicationWorkflowDocument[];
   demonstrationTypes: Pick<
     DemonstrationTypeAssignment,
-    "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate"
+    "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "createdAt"
   >[];
 };
 
