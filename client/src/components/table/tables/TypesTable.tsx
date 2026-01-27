@@ -9,6 +9,7 @@ import { Table } from "../Table";
 import { TypesColumns } from "../columns/TypesColumns";
 
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
+import { isAfter, isBefore } from "date-fns";
 
 export type TypeTableRow = {
   id: string;
@@ -32,17 +33,28 @@ export const TypesTable: React.FC<TypesTableProps> = ({
   const columns = TypesColumns();
   // const { showEditTypeDialog, showRemoveTypeDialog } = useDialog();
 
-  const typeRows: TypeTableRow[] = types.map((type) => ({
-    id: type.demonstrationTypeName,
-    typeLabel: type.demonstrationTypeName,
-    status: type.status,
-    effectiveDate: new Date(type.effectiveDate),
-    expirationDate: new Date(type.expirationDate),
-  }));
+  /*
+   * Ensure initial sort by createdAt date ascending
+   * and map to expected data structure
+   */
+  const typeRows: TypeTableRow[] = React.useMemo(() => {
+    return [...types]
+      .sort((a, b) => {
+        const aDate = new Date(a.createdAt);
+        const bDate = new Date(b.createdAt);
 
-  const initialState = {
-    sorting: [{ id: "effectiveDate", desc: false }],
-  };
+        if (isBefore(aDate, bDate)) return -1;
+        if (isAfter(aDate, bDate)) return 1;
+        return 0;
+      })
+      .map((type) => ({
+        id: type.demonstrationTypeName,
+        typeLabel: type.demonstrationTypeName,
+        status: type.status,
+        effectiveDate: new Date(type.effectiveDate),
+        expirationDate: new Date(type.expirationDate),
+      }));
+  }, [types]);
 
   return (
     <div className="overflow-x-auto w-full mb-2">
@@ -54,7 +66,6 @@ export const TypesTable: React.FC<TypesTableProps> = ({
           pagination={(table) => <PaginationControls table={table} />}
           emptyRowsMessage="You have no assigned Types at this time"
           noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
-          initialState={initialState}
           actionButtons={(table) => {
             const selected = table.getSelectedRowModel().rows.map((r) => r.original);
             const editDisabled = selected.length !== 1;
