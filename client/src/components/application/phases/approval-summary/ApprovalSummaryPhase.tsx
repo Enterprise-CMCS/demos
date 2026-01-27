@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
 import { format } from "date-fns";
+import { getTodayEst } from "util/formatDate";
 import { ApplicationWorkflowDemonstration } from "components/application/ApplicationWorkflow";
 import { ApplicationDetailsSection, ApplicationDetailsFormData } from "./applicationDetailsSection";
 import { DemonstrationTypesSection } from "./demonstrationTypesSection";
@@ -84,7 +85,7 @@ export const ApprovalSummaryPhase = ({ initialFormData, initialTypes }: Approval
         isReadonly={isApplicationDetailsComplete}
         onMarkComplete={() => {
           setIsApplicationDetailsComplete(true);
-          setApplicationDetailsCompletionDate(format(new Date(), "yyyy-MM-dd"));
+          setApplicationDetailsCompletionDate(getTodayEst());
         }}
         onMarkIncomplete={() => {
           setIsApplicationDetailsComplete(false);

@@ -38,23 +38,12 @@ export type ApplicationDetailsFormData = {
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-sm tracking-wide h-[14px] flex items-center`;
 const VALUE_CLASSES = tw`text-text-font text-base leading-relaxed h-[40px] flex items-start mt-1`;
-const REQUIRED_ASTERISK_CLASSES = tw`text-text-warn mr-xs`;
-const LABEL_VALID_CLASSES = tw`font-bold text-sm tracking-wide h-[14px] flex items-center text-text-font`;
-const LABEL_INVALID_CLASSES = tw`font-bold text-sm tracking-wide h-[14px] flex items-center text-error-dark`;
-
-const RequiredLabel = ({ children }: { children: React.ReactNode }) => (
-  <>
-    <span className={REQUIRED_ASTERISK_CLASSES}>*</span>
-    {" "}
-    {children}
-  </>
-);
 
 const ReadonlyField = ({ label, value, isRequired = false }: { label: string; value?: string; isRequired?: boolean }) => (
   <>
     <div className={LABEL_CLASSES}>
-      {isRequired && <RequiredLabel>{label}</RequiredLabel>}
-      {!isRequired && label}
+      {isRequired && <span className="text-text-warn mr-xs">*</span>}
+      {label}
     </div>
     <div className={VALUE_CLASSES}>{value || ""}</div>
   </>
@@ -80,9 +69,10 @@ const SelectField = ({
   <>
     <label
       htmlFor={id}
-      className={value ? LABEL_VALID_CLASSES : LABEL_INVALID_CLASSES}
+      className="text-text-font font-semibold text-field-label flex gap-0-5"
     >
-      <RequiredLabel>{label}</RequiredLabel>
+      <span className="text-text-warn">*</span>
+      {label}
     </label>
     <select
       id={id}
@@ -328,7 +318,7 @@ export const ApplicationDetailsSection = ({
       <div className="border-t-1 border-gray-dark mt-4">
         <div className="flex justify-end items-center mt-2 gap-2">
           <span className="text-sm font-semibold text-text-font">
-            <span className={REQUIRED_ASTERISK_CLASSES}>*</span>
+            <span className="text-text-warn mr-xs">*</span>
             {" "}
             Mark Complete
           </span>
