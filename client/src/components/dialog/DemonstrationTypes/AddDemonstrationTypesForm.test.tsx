@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AddDemonstrationTypesForm } from "./AddDemonstrationTypesForm";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectDemonstrationTypeName";
-import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
+import { DemonstrationType } from "./useApplyDemonstrationTypesDialogData";
 
 const mockSelectDemonstrationTypeQuery: MockedResponse = {
   request: {
