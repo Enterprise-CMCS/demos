@@ -8,6 +8,10 @@ import { SelectUsers } from "components/input/select/SelectUsers";
 import { SelectSdgDivision } from "components/input/select/SelectSdgDivision";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
 import { DatePicker } from "components/input/date/DatePicker";
+import { tw } from "tags/tw";
+
+const LABEL_CLASSES = tw`text-text-font font-bold text-sm tracking-wide h-[14px] flex items-center`;
+const VALUE_CLASSES = tw`text-text-font text-base leading-relaxed h-[40px] flex items-start mt-1`;
 
 export type ApplicationDetailsFormData = {
   stateId: string;
@@ -82,11 +86,11 @@ export const ApplicationDetailsSection = ({
         <div className="flex flex-col">
           {sectionFormData.readonlyFields.stateId ? (
             <div>
-              <div className="text-text-font font-bold text-sm tracking-wide h-[14px] flex items-center">
+              <div className={LABEL_CLASSES}>
                 <span className="text-text-warn mr-xs">*</span>
                 State/Territory
               </div>
-              <div className="text-text-font text-base leading-relaxed h-[40px] flex items-start mt-1">
+              <div className={VALUE_CLASSES}>
                 {sectionFormData.stateName || ""}
               </div>
             </div>
@@ -104,11 +108,11 @@ export const ApplicationDetailsSection = ({
         <div className="flex flex-col col-span-3">
           {sectionFormData.readonlyFields.name ? (
             <div>
-              <div className="text-text-font font-bold text-sm tracking-wide h-[14px] flex items-center">
+              <div className={LABEL_CLASSES}>
                 <span className="text-text-warn mr-xs">*</span>
                 Demonstration Title
               </div>
-              <div className="text-text-font text-base leading-relaxed h-[40px] flex items-start mt-1">
+              <div className={VALUE_CLASSES}>
                 {sectionFormData.name || ""}
               </div>
             </div>
@@ -128,11 +132,11 @@ export const ApplicationDetailsSection = ({
         <div className="flex flex-col">
           {sectionFormData.readonlyFields.projectOfficerId ? (
             <div>
-              <div className="text-text-font font-bold text-sm tracking-wide h-[14px] flex items-center">
+              <div className={LABEL_CLASSES}>
                 <span className="text-text-warn mr-xs">*</span>
                 Project Officer
               </div>
-              <div className="text-text-font text-base leading-relaxed h-[40px] flex items-start mt-1">
+              <div className={VALUE_CLASSES}>
                 {sectionFormData.projectOfficerName || ""}
               </div>
             </div>
@@ -153,11 +157,11 @@ export const ApplicationDetailsSection = ({
         <div className="flex flex-col">
           {sectionFormData.readonlyFields.status ? (
             <div>
-              <div className="text-text-font font-bold text-sm tracking-wide h-[14px] flex items-center">
+              <div className={LABEL_CLASSES}>
                 <span className="text-text-warn mr-xs">*</span>
                 Status
               </div>
-              <div className="text-text-font text-base leading-relaxed h-[40px] flex items-start mt-1">
+              <div className={VALUE_CLASSES}>
                 {sectionFormData.status || ""}
               </div>
             </div>
@@ -177,10 +181,10 @@ export const ApplicationDetailsSection = ({
         <div className="flex flex-col">
           {sectionFormData.readonlyFields.effectiveDate ? (
             <div>
-              <div className="text-text-font font-bold text-sm tracking-wide h-[14px] flex items-center">
+              <div className={LABEL_CLASSES}>
                 Effective Date
               </div>
-              <div className="text-text-font text-base leading-relaxed h-[40px] flex items-start mt-1">
+              <div className={VALUE_CLASSES}>
                 {sectionFormData.effectiveDate || ""}
               </div>
             </div>
@@ -201,10 +205,10 @@ export const ApplicationDetailsSection = ({
         <div className="flex flex-col">
           {sectionFormData.readonlyFields.expirationDate ? (
             <div>
-              <div className="text-text-font font-bold text-sm tracking-wide h-[14px] flex items-center">
+              <div className={LABEL_CLASSES}>
                 Expiration Date
               </div>
-              <div className="text-text-font text-base leading-relaxed h-[40px] flex items-start mt-1">
+              <div className={VALUE_CLASSES}>
                 {sectionFormData.expirationDate || ""}
               </div>
             </div>
@@ -225,10 +229,10 @@ export const ApplicationDetailsSection = ({
         <div className="flex flex-col col-span-4">
           {sectionFormData.readonlyFields.description ? (
             <div>
-              <div className="text-text-font font-bold text-sm tracking-wide h-[14px] flex items-center">
+              <div className={LABEL_CLASSES}>
                 Description
               </div>
-              <div className="text-text-font text-base leading-relaxed h-[40px] flex items-start mt-1">
+              <div className={VALUE_CLASSES}>
                 {sectionFormData.description || ""}
               </div>
             </div>
@@ -247,10 +251,10 @@ export const ApplicationDetailsSection = ({
         <div className="flex flex-col">
           {sectionFormData.readonlyFields.sdgDivision ? (
             <div>
-              <div className="text-text-font font-bold text-sm tracking-wide h-[14px] flex items-center">
+              <div className={LABEL_CLASSES}>
                 SDG Division
               </div>
-              <div className="text-text-font text-base leading-relaxed h-[40px] flex items-start mt-1">
+              <div className={VALUE_CLASSES}>
                 {sectionFormData.sdgDivision || ""}
               </div>
             </div>
@@ -269,10 +273,10 @@ export const ApplicationDetailsSection = ({
         <div className="flex flex-col">
           {sectionFormData.readonlyFields.signatureLevel ? (
             <div>
-              <div className="text-text-font font-bold text-sm tracking-wide h-[14px] flex items-center">
+              <div className={LABEL_CLASSES}>
                 Signature Level
               </div>
-              <div className="text-text-font text-base leading-relaxed h-[40px] flex items-start mt-1">
+              <div className={VALUE_CLASSES}>
                 {sectionFormData.signatureLevel || ""}
               </div>
             </div>
