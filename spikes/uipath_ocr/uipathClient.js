@@ -5,9 +5,9 @@ export const UIPATH_TENANT = "globalalliant/Dev";
 export const UIPATH_API_VERSION = "1.0";
 
 export function getProjectId() {
-  const projectId = process.env.ZERO_PROJECT_ID;
+  const projectId = process.env.PROJECT_ID;
   if (!projectId) {
-    throw new Error("Missing ZERO_PROJECT_ID in environment.");
+    throw new Error("PROJECT_ID failed to populate in environment.");
   }
   return projectId;
 }
@@ -20,6 +20,14 @@ export function getExtractorGuid() {
     throw new Error("Missing EXTRACTOR_GUID in environment.");
   }
   return extractorGuid;
+}
+
+export function getExtractorId() {
+  const extractorId = process.env.EXTRACTOR_ID;
+  if (!extractorId) {
+    throw new Error("Missing EXTRACTOR_ID in environment.");
+  }
+  return extractorId;
 }
 
 // duPost == Document Understanding POST

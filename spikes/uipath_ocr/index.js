@@ -24,10 +24,6 @@ if (! inputFile) {
 log("Running on file: ", inputFile);
 
 try {
-  // Validate required env early to avoid undefined IDs in URLs
-  getProjectId();
-  getExtractorGuid();
-
   const token = await getToken();
   if (!token) {
     throw new Error("No auth token received.");
