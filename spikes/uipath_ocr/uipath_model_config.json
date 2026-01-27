@@ -1,0 +1,28 @@
+{
+  "id": "e797842e-acc4-f011-8194-001dd8017125",
+  "name": "demosOCR",
+  "type": "Modern",
+  "description": "",
+  "createdOn": "2025-11-18T18:27:09.4587267Z",
+  "detailsUrl": "https://govcloud.uipath.us:443/09bb7221-d194-4fad-995d-b445aed6ca66/48e48d41-bfd1-4fd8-9f33-960349fab185/du_/api/framework/projects/e797842e-acc4-f011-8194-001dd8017125?api-version=1.0",
+  "digitizationStartUrl": "https://govcloud.uipath.us:443/09bb7221-d194-4fad-995d-b445aed6ca66/48e48d41-bfd1-4fd8-9f33-960349fab185/du_/api/framework/projects/e797842e-acc4-f011-8194-001dd8017125/digitization/start?api-version=1.0",
+  "classifiersDiscoveryUrl": "https://govcloud.uipath.us:443/09bb7221-d194-4fad-995d-b445aed6ca66/48e48d41-bfd1-4fd8-9f33-960349fab185/du_/api/framework/projects/e797842e-acc4-f011-8194-001dd8017125/classifiers?api-version=1.0",
+  "extractorsDiscoveryUrl": "https://govcloud.uipath.us:443/09bb7221-d194-4fad-995d-b445aed6ca66/48e48d41-bfd1-4fd8-9f33-960349fab185/du_/api/framework/projects/e797842e-acc4-f011-8194-001dd8017125/extractors?api-version=1.0",
+  "properties": [
+    "SupportsTags",
+    "SupportsVersions"
+  ],
+  "extractors": [
+    {
+      "id": "78488ddf-8bfb-f011-8d4c-001dd8013850",
+      "name": "CMS_1115_Applications_CMS 1115 Applications_v1",
+      "documentTypeId": "e16c3391-41d1-f011-8195-001dd8008a8f",
+      "status": "Available",
+      "detailsUrl": "https://govcloud.uipath.us:443/09bb7221-d194-4fad-995d-b445aed6ca66/48e48d41-bfd1-4fd8-9f33-960349fab185/du_/api/framework/projects/e797842e-acc4-f011-8194-001dd8017125/extractors/78488ddf-8bfb-f011-8d4c-001dd8013850?api-version=1.0",
+      "syncUrl": "https://govcloud.uipath.us:443/09bb7221-d194-4fad-995d-b445aed6ca66/48e48d41-bfd1-4fd8-9f33-960349fab185/du_/api/framework/projects/e797842e-acc4-f011-8194-001dd8017125/extractors/78488ddf-8bfb-f011-8d4c-001dd8013850/extraction?api-version=1.0",
+      "asyncUrl": "https://govcloud.uipath.us:443/09bb7221-d194-4fad-995d-b445aed6ca66/48e48d41-bfd1-4fd8-9f33-960349fab185/du_/api/framework/projects/e797842e-acc4-f011-8194-001dd8017125/extractors/78488ddf-8bfb-f011-8d4c-001dd8013850/extraction/start?api-version=1.0",
+      "projectVersion": 1,
+      "projectVersionName": "CMS_1115_Applications"
+    }
+  ]
+}
