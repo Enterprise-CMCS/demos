@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import { compareAsc } from "date-fns";
 import { CircleButton } from "components/button/CircleButton";
 import { DeleteIcon, EditIcon, ExportIcon } from "components/icons";
 import { KeywordSearch } from "../KeywordSearch";
@@ -9,7 +10,6 @@ import { Table } from "../Table";
 import { TypesColumns } from "../columns/TypesColumns";
 
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
-import { isAfter, isBefore } from "date-fns";
 
 export type TypeTableRow = {
   id: string;
@@ -39,14 +39,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({
    */
   const typeRows: TypeTableRow[] = React.useMemo(() => {
     return [...types]
-      .sort((a, b) => {
-        const aDate = new Date(a.createdAt);
-        const bDate = new Date(b.createdAt);
-
-        if (isBefore(aDate, bDate)) return -1;
-        if (isAfter(aDate, bDate)) return 1;
-        return 0;
-      })
+      .sort((a, b) => compareAsc(a.createdAt, b.createdAt))
       .map((type) => ({
         id: type.demonstrationTypeName,
         typeLabel: type.demonstrationTypeName,
