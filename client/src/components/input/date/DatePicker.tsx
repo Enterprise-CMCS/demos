@@ -53,7 +53,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         required={isRequired ?? false}
         disabled={isDisabled ?? false}
         defaultValue={value}
-        onInput={handleChange}
+        onChange={handleChange}
         min={DEFAULT_MIN_DATE}
         max={DEFAULT_MAX_DATE}
       />
