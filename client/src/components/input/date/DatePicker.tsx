@@ -32,7 +32,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = e.target.value;
     if (isAfter(newDate, DEFAULT_MIN_DATE) && isBefore(newDate, DEFAULT_MAX_DATE)) {
-      console.log("Valid date", newDate);
       onChange?.(newDate);
     }
   };
