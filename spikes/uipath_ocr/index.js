@@ -5,7 +5,6 @@ import { uploadDocument } from "./uploadDocument.js";
 import { extractDoc } from "./extractDoc.js";
 import { fetchExtractionResult } from "./fetchExtractResult.js";
 import { createLogFile, log } from "./logFile.js";
-import { getProjectId, getExtractorGuid } from "./uipathClient.js";
 
 dotenv.config();
 
