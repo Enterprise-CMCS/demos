@@ -1,8 +1,8 @@
 import React from "react";
 import { DeleteIcon } from "components/icons";
 import { formatDate } from "util/formatDate";
-import { DemonstrationType } from "./useApplyDemonstrationTypesDialogData";
 import { Tag as DemonstrationTypeName } from "demos-server";
+import { DemonstrationType } from "./useApplyDemonstrationTypesDialogData";
 
 export const DemonstrationTypesList = ({
   demonstrationTypes,
