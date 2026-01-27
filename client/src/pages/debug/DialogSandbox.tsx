@@ -3,18 +3,6 @@ import { useDialog } from "components/dialog/DialogContext";
 import { Button } from "components/button";
 import { DocumentType } from "demos-server";
 import { ExistingContactType } from "components/dialog/ManageContactsDialog";
-import { gql, TypedDocumentNode, useQuery } from "@apollo/client";
-
-const ALL_DEMONSTRATION_IDS: TypedDocumentNode<
-  { demonstrations: { id: string }[] },
-  Record<string, never>
-> = gql`
-  query AllDemonstrationIds {
-    demonstrations {
-      id
-    }
-  }
-`;
 
 export const DialogSandbox: React.FC = () => {
   const {
@@ -35,8 +23,6 @@ export const DialogSandbox: React.FC = () => {
     showApplyDemonstrationTypesDialog,
     showApplyTagsDialog,
   } = useDialog();
-
-  const { data } = useQuery(ALL_DEMONSTRATION_IDS);
 
   const ID = "1";
 
@@ -144,14 +130,12 @@ export const DialogSandbox: React.FC = () => {
           >
             Manage Contacts
           </Button>
-          {data && (
-            <Button
-              name="apply-demonstration-types"
-              onClick={() => showApplyDemonstrationTypesDialog(data.demonstrations[0].id)}
-            >
-              Apply Demonstration Types
-            </Button>
-          )}
+          <Button
+            name="apply-demonstration-types"
+            onClick={() => showApplyDemonstrationTypesDialog("1")}
+          >
+            Apply Demonstration Types
+          </Button>
           <Button
             name="apply-tags"
             onClick={() => showApplyTagsDialog(["One", "Two", "Three"], ["One"])}

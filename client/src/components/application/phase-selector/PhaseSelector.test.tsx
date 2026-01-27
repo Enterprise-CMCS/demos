@@ -10,16 +10,15 @@ import { PhaseSelector, getDisplayedPhaseStatus, getDisplayedPhaseDate } from ".
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import { getReviewPhaseComponentFromDemonstration } from "../phases";
 
-vi.mock("components/dialog/DialogContext", () => ({
-  useDialog: () => ({
-    showApplyDemonstrationTypesDialog: vi.fn(),
-  }),
-}));
-
 const mockPO = {
   id: "po-1",
   fullName: "Jane Doe",
 };
+
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({}),
+}));
+
 vi.mock("../phases", async () => {
   const actual = await vi.importActual("../phases");
   return {
