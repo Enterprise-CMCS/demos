@@ -6,7 +6,7 @@ export const LABEL_CLASSES = tw`text-text-font font-semibold text-field-label fl
 export const INPUT_BASE_CLASSES = tw`border-1 rounded-minimal p-[12px] outline-none focus:ring-2
 bg-surface-white hover:text-text-font
 disabled:bg-surface-secondary disabled:border-border-fields disabled:text-text-placeholder`;
-const VALIDATION_MESSAGE_CLASSES = tw`text-error-dark`;
+export const VALIDATION_MESSAGE_CLASSES = tw`text-error-dark`;
 
 export const getInputColors = (validationMessage: string) => {
   let classes = "";

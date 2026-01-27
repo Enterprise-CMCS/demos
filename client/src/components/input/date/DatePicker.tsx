@@ -1,5 +1,14 @@
 import React from "react";
-import { Input } from "components/input/Input";
+import {
+  getInputColors,
+  INPUT_BASE_CLASSES,
+  LABEL_CLASSES,
+  VALIDATION_MESSAGE_CLASSES,
+} from "components/input/Input";
+import { isAfter, isBefore } from "date-fns";
+
+const DEFAULT_MIN_DATE = "1900-01-01";
+const DEFAULT_MAX_DATE = "2099-12-31";
 
 interface DatePickerProps {
   name: string;
@@ -20,23 +29,36 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   isDisabled,
   getValidationMessage,
 }) => {
-  // This is only triggered when the input value is a valid date string
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange?.(e.target.value);
+    const newDate = e.target.value;
+    if (isAfter(newDate, DEFAULT_MIN_DATE) && isBefore(newDate, DEFAULT_MAX_DATE)) {
+      console.log("Valid date", newDate);
+      onChange?.(newDate);
+    }
   };
 
+  const validationMessage = getValidationMessage ? getValidationMessage() : "";
+
   return (
-    <Input
-      type="date"
-      name={name}
-      label={label}
-      value={value || ""}
-      onChange={handleChange}
-      isRequired={isRequired ?? false}
-      aria-required={isRequired ? "true" : "false"}
-      isDisabled={isDisabled ?? false}
-      aria-disabled={isDisabled ? "true" : "false"}
-      getValidationMessage={getValidationMessage}
-    />
+    <div className="flex flex-col gap-xs">
+      <label className={LABEL_CLASSES} htmlFor={name}>
+        {isRequired && <span className="text-text-warn">*</span>}
+        {label}
+      </label>
+      <input
+        type="date"
+        id={name}
+        name={name}
+        data-testid={name}
+        className={`${INPUT_BASE_CLASSES} ${getInputColors(validationMessage ?? "")}`}
+        required={isRequired ?? false}
+        disabled={isDisabled ?? false}
+        defaultValue={value}
+        onInput={handleChange}
+        min={DEFAULT_MIN_DATE}
+        max={DEFAULT_MAX_DATE}
+      />
+      {validationMessage && <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>}
+    </div>
   );
 };
