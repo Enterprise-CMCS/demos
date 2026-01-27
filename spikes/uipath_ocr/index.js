@@ -5,6 +5,11 @@ import { uploadDocument } from "./uploadDocument.js";
 import { extractDoc } from "./extractDoc.js";
 import { fetchExtractionResult } from "./fetchExtractResult.js";
 import { createLogFile, log } from "./logFile.js";
+import {
+  getProjectId,
+  getExtractorId,
+  getExtractorGuid
+} from "./uipathClient.js";
 
 dotenv.config();
 
@@ -23,6 +28,11 @@ if (! inputFile) {
 log("Running on file: ", inputFile);
 
 try {
+  // Validate required env early to avoid undefined IDs in URLs
+  getProjectId();
+  getExtractorId();
+  getExtractorGuid();
+
   const token = await getToken();
   if (!token) {
     throw new Error("No auth token received.");
