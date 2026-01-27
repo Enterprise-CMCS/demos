@@ -15,13 +15,7 @@ export type DemonstrationType = {
 export type Demonstration = Pick<ServerDemonstration, "id"> & {
   demonstrationTypes: DemonstrationType[];
 };
-export const DEMONSTRATION_TYPE = gql`
-  fragment DemonstrationType on DemonstrationTypeAssignment {
-    demonstrationTypeName
-    effectiveDate
-    expirationDate
-  }
-`;
+
 export const ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY: TypedDocumentNode<
   { demonstration: Demonstration },
   { id: string }
@@ -30,11 +24,12 @@ export const ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY: TypedDocumentNode<
     demonstration(id: $id) {
       id
       demonstrationTypes {
-        ...DemonstrationType
+        demonstrationTypeName
+        effectiveDate
+        expirationDate
       }
     }
   }
-  ${DEMONSTRATION_TYPE}
 `;
 
 export const ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION: TypedDocumentNode<
@@ -45,12 +40,10 @@ export const ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION: TypedDocumentNode<
     setDemonstrationTypes(input: $input) {
       id
       demonstrationTypes {
-        ...DemonstrationType
-        status
+        demonstrationTypeName
       }
     }
   }
-  ${DEMONSTRATION_TYPE}
 `;
 
 export const getSetDemonstrationTypesInput = (
@@ -110,7 +103,7 @@ export const useApplyDemonstrationTypesDialogData = (demonstrationId: string) =>
       initialDemonstrationTypes,
       currentDemonstrationTypes
     );
-    return setDemonstrationTypes({
+    return await setDemonstrationTypes({
       variables: {
         input: demonstrationTypesInput,
       },

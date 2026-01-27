@@ -36,35 +36,28 @@ const MOCK_DEMONSTRATION_TYPE_NAMES: DemonstrationTypeName[] = [
   "Type C",
   "Type D",
 ];
-type DemonstrationTypeResult = DemonstrationType & { __typename: "DemonstrationTypeAssignment" };
-const MOCK_DEMONSTRATION_TYPE_A: DemonstrationTypeResult = {
-  __typename: "DemonstrationTypeAssignment",
+const MOCK_DEMONSTRATION_TYPE_A: DemonstrationType = {
   demonstrationTypeName: "Type A",
   effectiveDate: "2024-01-01",
   expirationDate: "2024-12-31",
 };
-const MOCK_DEMONSTRATION_TYPE_B: DemonstrationTypeResult = {
-  __typename: "DemonstrationTypeAssignment",
+const MOCK_DEMONSTRATION_TYPE_B: DemonstrationType = {
   demonstrationTypeName: "Type B",
   effectiveDate: "2024-02-01",
   expirationDate: "2024-11-30",
 };
-const MOCK_DEMONSTRATION_TYPE_C: DemonstrationTypeResult = {
-  __typename: "DemonstrationTypeAssignment",
+const MOCK_DEMONSTRATION_TYPE_C: DemonstrationType = {
   demonstrationTypeName: "Type C",
   effectiveDate: "2024-03-01",
   expirationDate: "2024-10-31",
 };
-const MOCK_DEMONSTRATION_TYPE_D: DemonstrationTypeResult = {
-  __typename: "DemonstrationTypeAssignment",
+const MOCK_DEMONSTRATION_TYPE_D: DemonstrationType = {
   demonstrationTypeName: "Type D",
   effectiveDate: "2024-01-04",
   expirationDate: "2025-01-04",
 };
 
-type DemonstrationResult = Demonstration & { __typename: "Demonstration" };
-const mockInitialDemonstration: DemonstrationResult = {
-  __typename: "Demonstration",
+const mockInitialDemonstration: Demonstration = {
   id: MOCK_DEMONSTRATION_ID,
   demonstrationTypes: [
     MOCK_DEMONSTRATION_TYPE_A,
@@ -97,7 +90,7 @@ const selectDemonstrationTypeQueryMock: MockedResponse = {
   },
 };
 const applyDemonstrationTypesDialogQueryMock: MockedResponse<{
-  demonstration: DemonstrationResult;
+  demonstration: Demonstration;
 }> = {
   request: {
     query: ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY,
@@ -110,7 +103,7 @@ const applyDemonstrationTypesDialogQueryMock: MockedResponse<{
   },
 };
 const assignDemonstrationTypesDialogMutationMock: MockedResponse<{
-  setDemonstrationTypes: DemonstrationResult;
+  setDemonstrationTypes: Demonstration;
 }> = {
   request: {
     query: ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION,
@@ -136,7 +129,7 @@ const assignDemonstrationTypesDialogMutationMock: MockedResponse<{
   },
 };
 const assignDemonstrationTypesDialogMutationErrorMock: MockedResponse<{
-  setDemonstrationTypes: DemonstrationResult;
+  setDemonstrationTypes: Demonstration;
 }> = {
   request: {
     query: ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION,

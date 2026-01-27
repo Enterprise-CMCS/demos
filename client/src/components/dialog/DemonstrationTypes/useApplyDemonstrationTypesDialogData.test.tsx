@@ -10,21 +10,17 @@ import {
   ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION,
 } from "./useApplyDemonstrationTypesDialogData";
 
-type DemonstrationTypeResult = DemonstrationType & { __typename: "DemonstrationTypeAssignment" };
-const MOCK_DEMONSTRATION_TYPE_A: DemonstrationTypeResult = {
-  __typename: "DemonstrationTypeAssignment",
+const MOCK_DEMONSTRATION_TYPE_A: DemonstrationType = {
   demonstrationTypeName: "Type A",
   effectiveDate: "2024-01-01",
   expirationDate: "2025-01-01",
 };
-const MOCK_DEMONSTRATION_TYPE_B: DemonstrationTypeResult = {
-  __typename: "DemonstrationTypeAssignment",
+const MOCK_DEMONSTRATION_TYPE_B: DemonstrationType = {
   demonstrationTypeName: "Type B",
   effectiveDate: "2024-01-02",
   expirationDate: "2025-01-02",
 };
-const MOCK_DEMONSTRATION_TYPE_C: DemonstrationTypeResult = {
-  __typename: "DemonstrationTypeAssignment",
+const MOCK_DEMONSTRATION_TYPE_C: DemonstrationType = {
   demonstrationTypeName: "Type C",
   effectiveDate: "2024-01-03",
   expirationDate: "2025-01-03",

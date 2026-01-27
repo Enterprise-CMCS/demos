@@ -32,7 +32,6 @@ export type MockDemonstration = Pick<
   Demonstration,
   "id" | "name" | "description" | "sdgDivision" | "signatureLevel" | "currentPhaseName"
 > & {
-  __typename: "Demonstration";
   effectiveDate: Date;
   expirationDate: Date;
   status: ApplicationStatus;
@@ -47,7 +46,6 @@ export type MockDemonstration = Pick<
 
 export const MOCK_DEMONSTRATION_ID = "1";
 export const MOCK_DEMONSTRATION: MockDemonstration = {
-  __typename: "Demonstration",
   id: MOCK_DEMONSTRATION_ID,
   name: "Montana Medicaid Waiver",
   description: "A demonstration project in Montana.",
