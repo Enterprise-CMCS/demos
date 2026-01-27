@@ -8,6 +8,7 @@ import { SdgDivision, SignatureLevel } from "demos-server";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { INPUT_BASE_CLASSES } from "components/input/Input";
 import { SDG_DIVISIONS, SIGNATURE_LEVEL } from "demos-server-constants";
+import { DatePicker } from "components/input/date/DatePicker";
 
 export type ApplicationDetailsFormData = {
   stateId: string;
@@ -56,39 +57,6 @@ const ReadonlyField = ({ label, value, isRequired = false }: { label: string; va
       {!isRequired && label}
     </div>
     <div className={VALUE_CLASSES}>{value || ""}</div>
-  </>
-);
-
-const DateField = ({
-  id,
-  label,
-  value,
-  isReadonly,
-  onChange,
-}: {
-  id: string;
-  label: string;
-  value?: string;
-  isReadonly: boolean;
-  onChange: (value: string) => void;
-}) => (
-  <>
-    <label
-      htmlFor={id}
-      className={value ? LABEL_VALID_CLASSES : LABEL_INVALID_CLASSES}
-    >
-      <RequiredLabel>{label}</RequiredLabel>
-    </label>
-    <input
-      id={id}
-      name={id}
-      type="date"
-      className={INPUT_BASE_CLASSES}
-      required
-      disabled={isReadonly}
-      value={value || ""}
-      onChange={(e) => onChange(e.target.value)}
-    />
   </>
 );
 
@@ -264,14 +232,15 @@ export const ApplicationDetailsSection = ({
               value={sectionFormData.effectiveDate}
             />
           ) : (
-            <DateField
-              id="datepicker-effective-date"
+            <DatePicker
+              name="datepicker-effective-date"
               label="Effective Date"
               value={sectionFormData.effectiveDate}
-              isReadonly={isReadonly}
+              isRequired
               onChange={(effectiveDate) =>
                 setSectionFormData({ ...sectionFormData, effectiveDate })
               }
+              isDisabled={isReadonly}
             />
           )}
         </div>
@@ -283,14 +252,15 @@ export const ApplicationDetailsSection = ({
               value={sectionFormData.expirationDate}
             />
           ) : (
-            <DateField
-              id="datepicker-expiration-date"
+            <DatePicker
+              name="datepicker-expiration-date"
               label="Expiration Date"
               value={sectionFormData.expirationDate}
-              isReadonly={isReadonly}
+              isRequired
               onChange={(expirationDate) =>
                 setSectionFormData({ ...sectionFormData, expirationDate })
               }
+              isDisabled={isReadonly}
             />
           )}
         </div>
