@@ -142,6 +142,8 @@ export const DATE_TYPES = [
   ...REVIEW_PHASE_DATE_TYPES,
   "Application Details Marked Complete Date",
   "Application Demonstration Types Marked Complete Date",
+  "Approval Summary Start Date",
+  "Approval Summary Completion Date",
 ] as const;
 
 export const EXPECTED_TIMESTAMPS = ["Start of Day", "End of Day"] as const;
@@ -188,6 +190,8 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "CMS (OSORA) Clearance End": { expectedTimestamp: "End of Day" },
   "Application Details Marked Complete Date": { expectedTimestamp: "Start of Day" },
   "Application Demonstration Types Marked Complete Date": { expectedTimestamp: "Start of Day" },
+  "Approval Summary Start Date": { expectedTimestamp: "Start of Day" },
+  "Approval Summary Completion Date": { expectedTimestamp: "Start of Day" },
 } as const;
 
 export const STATES_AND_TERRITORIES = [

@@ -12,7 +12,7 @@ export type ValidationChecks = {
 
 export type PhaseCompletionValidationChecksRecord = Record<
   PhaseNameWithTrackedStatus,
-  ValidationChecks | "No Validation" | "Not Implemented"
+  ValidationChecks | "No Validation"
 >;
 
 export type PhaseActions = {
@@ -22,10 +22,7 @@ export type PhaseActions = {
     dateToStart?: DateType;
   };
 };
-export type PhaseActionRecord = Record<
-  PhaseNameWithTrackedStatus,
-  PhaseActions | "Not Implemented" | "Not Permitted"
->;
+export type PhaseActionRecord = Record<PhaseNameWithTrackedStatus, PhaseActions | "Not Permitted">;
 
 export type ApplicationPhaseStatusRecord = Record<PhaseNameWithTrackedStatus, PhaseStatus>;
 
