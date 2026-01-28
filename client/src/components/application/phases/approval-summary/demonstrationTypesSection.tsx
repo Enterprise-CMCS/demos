@@ -6,19 +6,25 @@ import { SecondaryButton } from "components/button";
 import { TypesTable } from "components/table/tables/TypesTable";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { AddNewIcon } from "components/icons";
-
+import { useDialog } from "components/dialog/DialogContext";
 
 type DemonstrationTypesSectionProps = {
-  initialTypes?: DemonstrationDetailDemonstrationType[];
+  demonstrationId: string;
+  initialTypes: DemonstrationDetailDemonstrationType[];
   onMarkComplete: (complete: boolean) => void;
   isComplete?: boolean;
 };
 
-export const DemonstrationTypesSection = ({ initialTypes = [], onMarkComplete, isComplete = false }: DemonstrationTypesSectionProps) => {
+export const DemonstrationTypesSection = ({
+  demonstrationId,
+  initialTypes,
+  onMarkComplete,
+  isComplete = false,
+}: DemonstrationTypesSectionProps) => {
   const [types] = useState<DemonstrationDetailDemonstrationType[]>(initialTypes);
-
+  const { showApplyDemonstrationTypesDialog } = useDialog();
   const applyTypes = () => {
-    console.log("Apply Types clicked");
+    showApplyDemonstrationTypesDialog(demonstrationId);
   };
 
   return (
@@ -27,12 +33,7 @@ export const DemonstrationTypesSection = ({ initialTypes = [], onMarkComplete, i
         <p className="text-sm text-text-placeholder mt-1 mb-2">
           Add or Update Demonstration Types with Effective and Expiration Dates below
         </p>
-        <SecondaryButton
-          size="small"
-          name="apply-types"
-          onClick={applyTypes}
-          disabled={isComplete}
-        >
+        <SecondaryButton size="small" name="apply-types" onClick={applyTypes} disabled={isComplete}>
           Apply Type(s)
           <AddNewIcon />
         </SecondaryButton>
@@ -56,9 +57,7 @@ export const DemonstrationTypesSection = ({ initialTypes = [], onMarkComplete, i
             handleDiameter={24}
             boxShadow="0 2px 8px rgba(0, 0, 0, 0.6)"
             activeBoxShadow="0 0 2px 3px #3bf"
-            disabled={
-              types.length === 0
-            }
+            disabled={types.length === 0}
           />
         </div>
       </div>

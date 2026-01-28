@@ -8,8 +8,9 @@ import { DemonstrationTypesSection } from "./demonstrationTypesSection";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 
 type ApprovalSummaryPhaseProps = {
+  demonstrationId: string;
   initialFormData: ApplicationDetailsFormData;
-  initialTypes?: DemonstrationDetailDemonstrationType[];
+  initialTypes: DemonstrationDetailDemonstrationType[];
 };
 
 export const getApprovalSummaryFormData = (
@@ -49,20 +50,23 @@ export const getApprovalSummaryFormData = (
   };
 };
 
-export const getApprovalSummaryPhase = (
-  demonstration: ApplicationWorkflowDemonstration
-) => {
+export const getApprovalSummaryPhase = (demonstration: ApplicationWorkflowDemonstration) => {
   const approvalSummaryFormData = getApprovalSummaryFormData(demonstration);
 
   return (
     <ApprovalSummaryPhase
+      demonstrationId={demonstration.id}
       initialFormData={approvalSummaryFormData}
       initialTypes={demonstration.demonstrationTypes}
     />
   );
 };
 
-export const ApprovalSummaryPhase = ({ initialFormData, initialTypes }: ApprovalSummaryPhaseProps) => {
+export const ApprovalSummaryPhase = ({
+  initialFormData,
+  initialTypes,
+  demonstrationId,
+}: ApprovalSummaryPhaseProps) => {
   const [approvalSummaryFormData, setApprovalSummaryFormData] =
     useState<ApplicationDetailsFormData>(initialFormData);
 
@@ -71,34 +75,35 @@ export const ApprovalSummaryPhase = ({ initialFormData, initialTypes }: Approval
     useState<string | undefined>(undefined);
   const [isDemonstrationTypesComplete, setIsDemonstrationTypesComplete] = useState(false);
 
-  return <div>
-    <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">Approval Summary</h3>
-    <p className="text-sm text-text-placeholder mb-1">
-      Approval Summary Description
-    </p>
+  return (
+    <div>
+      <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">Approval Summary</h3>
+      <p className="text-sm text-text-placeholder mb-1">Approval Summary Description</p>
 
-    <section className="bg-white pt-2 flex flex-col gap-2">
-      <ApplicationDetailsSection
-        sectionFormData={approvalSummaryFormData}
-        setSectionFormData={setApprovalSummaryFormData}
-        isComplete={isApplicationDetailsComplete}
-        isReadonly={isApplicationDetailsComplete}
-        onMarkComplete={() => {
-          setIsApplicationDetailsComplete(true);
-          setApplicationDetailsCompletionDate(getTodayEst());
-        }}
-        onMarkIncomplete={() => {
-          setIsApplicationDetailsComplete(false);
-          setApplicationDetailsCompletionDate(undefined);
-        }}
-        completionDate={applicationDetailsCompletionDate}
-      />
+      <section className="bg-white pt-2 flex flex-col gap-2">
+        <ApplicationDetailsSection
+          sectionFormData={approvalSummaryFormData}
+          setSectionFormData={setApprovalSummaryFormData}
+          isComplete={isApplicationDetailsComplete}
+          isReadonly={isApplicationDetailsComplete}
+          onMarkComplete={() => {
+            setIsApplicationDetailsComplete(true);
+            setApplicationDetailsCompletionDate(getTodayEst());
+          }}
+          onMarkIncomplete={() => {
+            setIsApplicationDetailsComplete(false);
+            setApplicationDetailsCompletionDate(undefined);
+          }}
+          completionDate={applicationDetailsCompletionDate}
+        />
 
-      <DemonstrationTypesSection
-        initialTypes={initialTypes}
-        isComplete={isDemonstrationTypesComplete}
-        onMarkComplete={(complete: boolean) => setIsDemonstrationTypesComplete(complete)}
-      />
-    </section>
-  </div>;
+        <DemonstrationTypesSection
+          demonstrationId={demonstrationId}
+          initialTypes={initialTypes}
+          isComplete={isDemonstrationTypesComplete}
+          onMarkComplete={(complete: boolean) => setIsDemonstrationTypesComplete(complete)}
+        />
+      </section>
+    </div>
+  );
 };

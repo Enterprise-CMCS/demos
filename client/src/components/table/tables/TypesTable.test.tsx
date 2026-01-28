@@ -8,16 +8,18 @@ import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/
 
 const mockTypes: DemonstrationDetailDemonstrationType[] = [
   {
-    demonstrationType: "Environmental",
+    demonstrationTypeName: "Environmental",
     status: "Active",
     effectiveDate: new Date("2023-01-01"),
     expirationDate: new Date("2024-01-01"),
+    createdAt: new Date("2022-12-01"),
   },
   {
-    demonstrationType: "Economic",
+    demonstrationTypeName: "Economic",
     status: "Inactive",
     effectiveDate: new Date("2024-01-01"),
     expirationDate: new Date("2025-01-01"),
+    createdAt: new Date("2023-06-01"),
   },
 ];
 
@@ -42,9 +44,7 @@ describe("TypesTable", () => {
   it("shows empty message when no types exist", () => {
     render(<TypesTable types={[]} />);
 
-    expect(
-      screen.getByText("You have no assigned Types at this time")
-    ).toBeInTheDocument();
+    expect(screen.getByText("You have no assigned Types at this time")).toBeInTheDocument();
   });
 
   it("supports keyword search filtering", async () => {
@@ -63,16 +63,16 @@ describe("TypesTable", () => {
   it("does not render keyword search when hideSearch is true", () => {
     render(<TypesTable types={mockTypes} hideSearch />);
 
-    expect(
-      screen.queryByLabelText(/input keyword search query/i)
-    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/input keyword search query/i)).not.toBeInTheDocument();
   });
 
-  it("defaults to sorting by Effective Date ascending (oldest first)", () => {
+  it("defaults to sorting by createdAt ascending (oldest first)", () => {
     render(<TypesTable types={mockTypes} />);
     const rows = screen.getAllByRole("row").slice(1);
+    const types = rows.map(
+      (row) => row.querySelectorAll("td")[1]?.textContent
+    );
 
-    const types = rows.map((row) => row.querySelectorAll("td")[1]?.textContent);
     expect(types).toEqual(["Environmental", "Economic"]);
   });
 
@@ -84,9 +84,7 @@ describe("TypesTable", () => {
     await user.click(statusHeader);
 
     const rows = screen.getAllByRole("row").slice(1);
-    const statuses = rows.map(
-      (row) => row.querySelectorAll("td")[2]?.textContent
-    );
+    const statuses = rows.map((row) => row.querySelectorAll("td")[2]?.textContent);
 
     expect(statuses).toEqual(["Active", "Inactive"]);
   });

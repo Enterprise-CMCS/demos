@@ -45,10 +45,11 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
         }
       }
       demonstrationTypes {
-        demonstrationType
+        demonstrationTypeName
         status
         effectiveDate
         expirationDate
+        createdAt
       }
       documents {
         id
@@ -87,15 +88,25 @@ export type ApplicationWorkflowDocument = Pick<
 
 export type ApplicationWorkflowDemonstration = Pick<
   Demonstration,
-  "id" | "status" | "currentPhaseName" | "clearanceLevel" |
-  "name" | "effectiveDate" |  "expirationDate" | "sdgDivision" |
-  "signatureLevel" | "description"
+  | "id"
+  | "status"
+  | "currentPhaseName"
+  | "clearanceLevel"
+  | "name"
+  | "effectiveDate"
+  | "expirationDate"
+  | "sdgDivision"
+  | "signatureLevel"
+  | "description"
 > & {
-  state: Pick<State, "id" | "name">,
-  primaryProjectOfficer: Pick<Person, "id" | "fullName">
+  state: Pick<State, "id" | "name">;
+  primaryProjectOfficer: Pick<Person, "id" | "fullName">;
   phases: SimplePhase[];
   documents: ApplicationWorkflowDocument[];
-  demonstrationTypes: Pick<DemonstrationTypeAssignment, "demonstrationType" | "status" | "effectiveDate" | "expirationDate">[];
+  demonstrationTypes: Pick<
+    DemonstrationTypeAssignment,
+    "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "createdAt"
+  >[];
 };
 
 export const ApplicationWorkflow = ({ demonstrationId }: { demonstrationId: string }) => {

@@ -1,0 +1,32 @@
+import { PrismaTransactionClient } from "../../../prismaClient";
+import { ParsedDemonstrationTypeInput } from "..";
+import { TagType } from "../../../types";
+
+export async function upsertDemonstrationTypeAssignments(
+  demonstrationId: string,
+  demonstartionTypeAssignemnts: ParsedDemonstrationTypeInput[],
+  tx: PrismaTransactionClient
+): Promise<void> {
+  const demonstrationTypeUpdateOperations = demonstartionTypeAssignemnts.map((recordToUpsert) => {
+    return tx.demonstrationTypeTagAssignment.upsert({
+      where: {
+        demonstrationId_tagId: {
+          demonstrationId: demonstrationId,
+          tagId: recordToUpsert.demonstrationTypeName,
+        },
+      },
+      update: {
+        effectiveDate: recordToUpsert.demonstrationTypeDates.effectiveDate,
+        expirationDate: recordToUpsert.demonstrationTypeDates.expirationDate,
+      },
+      create: {
+        demonstrationId: demonstrationId,
+        tagId: recordToUpsert.demonstrationTypeName,
+        tagTypeId: "Demonstration Type" satisfies TagType,
+        effectiveDate: recordToUpsert.demonstrationTypeDates.effectiveDate,
+        expirationDate: recordToUpsert.demonstrationTypeDates.expirationDate,
+      },
+    });
+  });
+  await Promise.all(demonstrationTypeUpdateOperations);
+}

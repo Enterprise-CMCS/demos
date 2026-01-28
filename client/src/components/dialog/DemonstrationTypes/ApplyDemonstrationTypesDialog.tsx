@@ -5,34 +5,10 @@ import { DemonstrationTypesList } from "./DemonstrationTypesList";
 import { AddDemonstrationTypesForm } from "./AddDemonstrationTypesForm";
 import { useToast } from "components/toast";
 import { Button } from "components/button";
-import { gql, TypedDocumentNode, useQuery } from "@apollo/client";
-import { Demonstration as ServerDemonstration, Tag as DemonstrationTypeName } from "demos-server";
-
-// TODO: replace this with server type with updated DemonstrationTypeName field when available
-export type DemonstrationType = {
-  demonstrationTypeName: DemonstrationTypeName;
-  effectiveDate: string;
-  expirationDate: string;
-};
-export type Demonstration = Pick<ServerDemonstration, "id"> & {
-  demonstrationTypes: DemonstrationType[];
-};
-
-export const ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY: TypedDocumentNode<
-  { demonstration: Demonstration },
-  { id: string }
-> = gql`
-  query AssignDemonstrationTypesDialog($id: ID!) {
-    demonstration(id: $id) {
-      id
-      demonstrationTypes {
-        demonstrationTypeName
-        effectiveDate
-        expirationDate
-      }
-    }
-  }
-`;
+import {
+  DemonstrationType,
+  useApplyDemonstrationTypesDialogData,
+} from "./useApplyDemonstrationTypesDialogData";
 
 const hasChanges = (
   initialDemonstrationTypes?: DemonstrationType[],
@@ -55,10 +31,10 @@ const hasChanges = (
 
 export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrationId: string }) => {
   const { closeDialog } = useDialog();
-  const { showSuccess } = useToast();
-  const { data, loading, error } = useQuery(ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY, {
-    variables: { id: demonstrationId },
-  });
+  const { showSuccess, showError } = useToast();
+
+  const { data, loading, loadingError, save, saving } =
+    useApplyDemonstrationTypesDialogData(demonstrationId);
 
   const initialDemonstrationTypes = data?.demonstration.demonstrationTypes;
   const [demonstrationTypes, setDemonstrationTypes] = React.useState(initialDemonstrationTypes);
@@ -69,9 +45,15 @@ export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrati
     }
   }, [initialDemonstrationTypes]);
 
-  const handleSubmit = () => {
-    console.log("Submitting demonstration types", demonstrationTypes);
-    showSuccess("Demonstration types applied successfully.");
+  const handleSubmit = async () => {
+    if (!initialDemonstrationTypes || !demonstrationTypes) return;
+    try {
+      await save(demonstrationId, initialDemonstrationTypes, demonstrationTypes);
+      showSuccess("Demonstration types applied successfully.");
+    } catch (error) {
+      console.error("Error applying demonstration types:", error);
+      showError("Failed to apply demonstration types.");
+    }
     closeDialog();
   };
 
@@ -83,7 +65,7 @@ export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrati
       actionButton={
         <Button
           name={"button-submit-demonstration-dialog"}
-          disabled={!hasChanges(initialDemonstrationTypes, demonstrationTypes)}
+          disabled={loading || saving || !hasChanges(initialDemonstrationTypes, demonstrationTypes)}
           onClick={handleSubmit}
         >
           Apply Type(s)
@@ -92,7 +74,7 @@ export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrati
     >
       <>
         {loading && <p>Loading...</p>}
-        {error && <p>Error loading demonstration data.</p>}
+        {loadingError && <p>Error loading demonstration data.</p>}
         {demonstrationTypes && (
           <div className="flex flex-col gap-2">
             <AddDemonstrationTypesForm

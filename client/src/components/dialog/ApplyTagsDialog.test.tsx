@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 
-import { ApplyTagsDialog } from "./ApplyTagsDialog";
+import { APPLY_TAGS_DIALOG_TITLE, ApplyTagsDialog } from "./ApplyTagsDialog";
 import { DEMONSTRATION_TYPE_TAGS } from "demos-server-constants";
 
 describe("ApplyTagsDialog", () => {
@@ -23,8 +23,8 @@ describe("ApplyTagsDialog", () => {
     const tags = ["Behavioral Health", "Dental", "CHIP"];
     setup(tags);
 
-    expect(screen.getByText("Apply Tags")).toBeInTheDocument();
-    expect(screen.getByText("Selected Tag(s)")).toBeInTheDocument();
+    expect(screen.getByText(APPLY_TAGS_DIALOG_TITLE)).toBeInTheDocument();
+    expect(screen.getByText("Selected Tag(s) (3)")).toBeInTheDocument();
     expect(screen.getByTestId("checkbox-Behavioral Health")).toBeChecked();
     expect(screen.getByTestId("checkbox-Dental")).toBeChecked();
     expect(screen.getByRole("button", { name: "button-confirm-apply-tags" })).toBeInTheDocument();
@@ -33,7 +33,7 @@ describe("ApplyTagsDialog", () => {
   it("renders empty state when no tags provided", () => {
     setup();
 
-    expect(screen.getByText("Apply Tags")).toBeInTheDocument();
+    expect(screen.getByText(APPLY_TAGS_DIALOG_TITLE)).toBeInTheDocument();
     expect(screen.getByText("No tags selected")).toBeInTheDocument();
   });
 
