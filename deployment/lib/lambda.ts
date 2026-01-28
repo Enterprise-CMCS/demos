@@ -27,6 +27,7 @@ interface LambdaProps extends CommonProps {
   nodeModules?: string[];
   depsLockFilePath?: string;
   commandHooks?: ICommandHooks;
+  environmentEncryptionKey?: aws_kms.IKey;
 }
 
 export function create(props: LambdaProps, id: string) {
@@ -128,6 +129,7 @@ export class Lambda extends Construct {
         commandHooks: props.commandHooks,
       },
       environment: props.environment,
+      environmentEncryption: props.environmentEncryptionKey,
       vpc: props.vpc,
       vpcSubnets: props.vpc ? { subnets: props.vpc.privateSubnets } : undefined,
       logGroup: logGroup.logGroup,
