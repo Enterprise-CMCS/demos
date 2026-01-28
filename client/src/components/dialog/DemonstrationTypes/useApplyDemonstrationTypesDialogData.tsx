@@ -1,16 +1,11 @@
 import { gql, TypedDocumentNode, useMutation, useQuery } from "@apollo/client";
-import { Tag as DemonstrationTypeName, Demonstration as ServerDemonstration } from "demos-server";
-
-const ASSIGN_DEMONSTRATION_TYPES_DIALOG_FRAGMENT = gql`
-  fragment AssignDemonstrationTypesDialogFragment on Demonstration {
-    id
-    demonstrationTypes {
-      demonstrationTypeName
-      effectiveDate
-      expirationDate
-    }
-  }
-`;
+import {
+  DemonstrationTypeInput,
+  Tag as DemonstrationTypeName,
+  LocalDate,
+  Demonstration as ServerDemonstration,
+  SetDemonstrationTypesInput,
+} from "demos-server";
 
 export type DemonstrationType = {
   demonstrationTypeName: DemonstrationTypeName;
@@ -20,42 +15,38 @@ export type DemonstrationType = {
 export type Demonstration = Pick<ServerDemonstration, "id"> & {
   demonstrationTypes: DemonstrationType[];
 };
+
 export const ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY: TypedDocumentNode<
   { demonstration: Demonstration },
   { id: string }
 > = gql`
   query AssignDemonstrationTypesDialog($id: ID!) {
     demonstration(id: $id) {
-      ...AssignDemonstrationTypesDialogFragment
+      id
+      demonstrationTypes {
+        demonstrationTypeName
+        effectiveDate
+        expirationDate
+      }
     }
   }
-  ${ASSIGN_DEMONSTRATION_TYPES_DIALOG_FRAGMENT}
 `;
 
-export type DemonstrationTypeInput = {
-  demonstrationTypeName: DemonstrationTypeName;
-  dates: {
-    effectiveDate: string;
-    expirationDate: string;
-  } | null;
-};
-export type SetDemonstrationTypesInput = {
-  demonstrationId: string;
-  demonstrationTypes: DemonstrationTypeInput[];
-};
 export const ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION: TypedDocumentNode<
   { setDemonstrationTypes: Demonstration },
   { input: SetDemonstrationTypesInput }
 > = gql`
   mutation setDemonstrationTypes($input: SetDemonstrationTypesInput!) {
     setDemonstrationTypes(input: $input) {
-      ...AssignDemonstrationTypesDialogFragment
+      id
+      demonstrationTypes {
+        demonstrationTypeName
+      }
     }
   }
-  ${ASSIGN_DEMONSTRATION_TYPES_DIALOG_FRAGMENT}
 `;
 
-export const getSetDemonstrationTypeInput = (
+export const getSetDemonstrationTypesInput = (
   demonstrationId: string,
   initialDemonstrationTypes: DemonstrationType[],
   currentDemonstrationTypes: DemonstrationType[]
@@ -63,9 +54,9 @@ export const getSetDemonstrationTypeInput = (
   const demonstrationTypesToAdd: DemonstrationTypeInput[] = currentDemonstrationTypes.map(
     (demonstrationType) => ({
       demonstrationTypeName: demonstrationType.demonstrationTypeName,
-      dates: {
-        effectiveDate: demonstrationType.effectiveDate,
-        expirationDate: demonstrationType.expirationDate,
+      demonstrationTypeDates: {
+        effectiveDate: demonstrationType.effectiveDate as LocalDate,
+        expirationDate: demonstrationType.expirationDate as LocalDate,
       },
     })
   );
@@ -80,7 +71,7 @@ export const getSetDemonstrationTypeInput = (
     )
     .map((demonstrationType) => ({
       demonstrationTypeName: demonstrationType.demonstrationTypeName,
-      dates: null,
+      demonstrationTypeDates: null,
     }));
 
   return {
@@ -98,7 +89,7 @@ export const useApplyDemonstrationTypesDialogData = (demonstrationId: string) =>
     variables: { id: demonstrationId },
   });
 
-  const [assignDemonstrationTypes, { loading: saving }] = useMutation(
+  const [setDemonstrationTypes, { loading: saving }] = useMutation(
     ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION
   );
 
@@ -107,14 +98,14 @@ export const useApplyDemonstrationTypesDialogData = (demonstrationId: string) =>
     initialDemonstrationTypes: DemonstrationType[],
     currentDemonstrationTypes: DemonstrationType[]
   ) => {
-    const demonstrationTypeInput = getSetDemonstrationTypeInput(
+    const demonstrationTypesInput = getSetDemonstrationTypesInput(
       demonstrationId,
       initialDemonstrationTypes,
       currentDemonstrationTypes
     );
-    return assignDemonstrationTypes({
+    return await setDemonstrationTypes({
       variables: {
-        input: demonstrationTypeInput,
+        input: demonstrationTypesInput,
       },
     });
   };

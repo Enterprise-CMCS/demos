@@ -8,6 +8,12 @@ import { ApprovalSummaryPhase } from "./ApprovalSummaryPhase";
 import { ApplicationDetailsFormData } from "./applicationDetailsSection";
 import { TestProvider } from "test-utils/TestProvider";
 
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({
+    showApplyDemonstrationTypesDialog: vi.fn(),
+  }),
+}));
+
 const buildInitialFormData = (
   overrides?: Partial<ApplicationDetailsFormData>
 ): ApplicationDetailsFormData => ({
@@ -30,7 +36,11 @@ describe("ApprovalSummaryPhase", () => {
   const setup = (formData = buildInitialFormData()) => {
     render(
       <TestProvider>
-        <ApprovalSummaryPhase initialFormData={formData} initialTypes={[]} />
+        <ApprovalSummaryPhase
+          demonstrationId="demo-123"
+          initialFormData={formData}
+          initialTypes={[]}
+        />
       </TestProvider>
     );
   };

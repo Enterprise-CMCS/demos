@@ -1,7 +1,7 @@
 import React from "react";
 import { DeleteIcon } from "components/icons";
 import { formatDate } from "util/formatDate";
-import { Tag as DemonstrationTypeName } from "mock-data/TagMocks";
+import { Tag as DemonstrationTypeName } from "demos-server";
 import { DemonstrationType } from "./useApplyDemonstrationTypesDialogData";
 
 export const DemonstrationTypesList = ({

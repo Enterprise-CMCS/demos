@@ -9,10 +9,9 @@ import {
   ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY,
   ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION,
   Demonstration,
-  DemonstrationTypeInput,
   DemonstrationType,
 } from "./useApplyDemonstrationTypesDialogData";
-import { Tag as DemonstrationTypeName } from "demos-server";
+import { DemonstrationTypeInput, Tag as DemonstrationTypeName, LocalDate } from "demos-server";
 
 const mockShowSuccess = vi.fn();
 const mockShowError = vi.fn();
@@ -30,7 +29,6 @@ vi.mock("../DialogContext", () => ({
   }),
 }));
 
-type DemonstrationResult = Demonstration & { __typename: "Demonstration" };
 const MOCK_DEMONSTRATION_ID: string = "demo-123";
 const MOCK_DEMONSTRATION_TYPE_NAMES: DemonstrationTypeName[] = [
   "Type A",
@@ -59,26 +57,25 @@ const MOCK_DEMONSTRATION_TYPE_D: DemonstrationType = {
   expirationDate: "2025-01-04",
 };
 
-const mockInitialDemonstrationTypes: DemonstrationType[] = [
-  MOCK_DEMONSTRATION_TYPE_A,
-  MOCK_DEMONSTRATION_TYPE_B,
-  MOCK_DEMONSTRATION_TYPE_C,
-];
-
-const mockInitialDemonstration: DemonstrationResult = {
-  __typename: "Demonstration",
+const mockInitialDemonstration: Demonstration = {
   id: MOCK_DEMONSTRATION_ID,
-  demonstrationTypes: mockInitialDemonstrationTypes,
+  demonstrationTypes: [
+    MOCK_DEMONSTRATION_TYPE_A,
+    MOCK_DEMONSTRATION_TYPE_B,
+    MOCK_DEMONSTRATION_TYPE_C,
+  ],
 };
 
 const mockDemonstrationTypesInput: DemonstrationTypeInput[] = [
-  ...mockInitialDemonstrationTypes,
+  MOCK_DEMONSTRATION_TYPE_A,
+  MOCK_DEMONSTRATION_TYPE_B,
+  MOCK_DEMONSTRATION_TYPE_C,
   MOCK_DEMONSTRATION_TYPE_D,
 ].map((demonstrationType) => ({
   demonstrationTypeName: demonstrationType.demonstrationTypeName,
-  dates: {
-    effectiveDate: demonstrationType.effectiveDate,
-    expirationDate: demonstrationType.expirationDate,
+  demonstrationTypeDates: {
+    effectiveDate: demonstrationType.effectiveDate as LocalDate,
+    expirationDate: demonstrationType.expirationDate as LocalDate,
   },
 }));
 
@@ -88,12 +85,12 @@ const selectDemonstrationTypeQueryMock: MockedResponse = {
   },
   result: {
     data: {
-      demonstrationTypes: MOCK_DEMONSTRATION_TYPE_NAMES,
+      demonstrationTypeNames: MOCK_DEMONSTRATION_TYPE_NAMES,
     },
   },
 };
 const applyDemonstrationTypesDialogQueryMock: MockedResponse<{
-  demonstration: DemonstrationResult;
+  demonstration: Demonstration;
 }> = {
   request: {
     query: ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY,
@@ -106,7 +103,7 @@ const applyDemonstrationTypesDialogQueryMock: MockedResponse<{
   },
 };
 const assignDemonstrationTypesDialogMutationMock: MockedResponse<{
-  setDemonstrationTypes: DemonstrationResult;
+  setDemonstrationTypes: Demonstration;
 }> = {
   request: {
     query: ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION,
@@ -121,13 +118,18 @@ const assignDemonstrationTypesDialogMutationMock: MockedResponse<{
     data: {
       setDemonstrationTypes: {
         ...mockInitialDemonstration,
-        demonstrationTypes: [...mockInitialDemonstrationTypes, MOCK_DEMONSTRATION_TYPE_D],
+        demonstrationTypes: [
+          MOCK_DEMONSTRATION_TYPE_A,
+          MOCK_DEMONSTRATION_TYPE_B,
+          MOCK_DEMONSTRATION_TYPE_C,
+          MOCK_DEMONSTRATION_TYPE_D,
+        ],
       },
     },
   },
 };
 const assignDemonstrationTypesDialogMutationErrorMock: MockedResponse<{
-  setDemonstrationTypes: DemonstrationResult;
+  setDemonstrationTypes: Demonstration;
 }> = {
   request: {
     query: ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION,
