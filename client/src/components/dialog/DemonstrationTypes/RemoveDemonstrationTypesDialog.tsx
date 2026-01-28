@@ -1,6 +1,6 @@
 import React from "react";
-import { BaseDialog } from "./BaseDialog";
-import { useDialog } from "./DialogContext";
+import { BaseDialog } from "../BaseDialog";
+import { useDialog } from "../DialogContext";
 import { useToast } from "components/toast";
 import { ErrorButton } from "components/button";
 import {

@@ -9,7 +9,7 @@ import {
   REMOVE_DEMONSTRATION_TYPES_DIALOG_MUTATION,
 } from "./RemoveDemonstrationTypesDialog";
 import { Tag as DemonstrationTypeName } from "demos-server";
-import { DIALOG_CANCEL_BUTTON_NAME } from "./BaseDialog";
+import { DIALOG_CANCEL_BUTTON_NAME } from "../BaseDialog";
 
 const mockShowSuccess = vi.fn();
 const mockShowError = vi.fn();
@@ -21,7 +21,7 @@ vi.mock("components/toast", () => ({
 }));
 
 const mockCloseDialog = vi.fn();
-vi.mock("./DialogContext", () => ({
+vi.mock("../DialogContext", () => ({
   useDialog: () => ({
     closeDialog: mockCloseDialog,
   }),
