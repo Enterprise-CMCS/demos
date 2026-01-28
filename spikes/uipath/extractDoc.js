@@ -1,18 +1,10 @@
-import {
-  duPost,
-  UIPATH_BASE_URL,
-  getExtractorGuid,
-  getExtractorId,
-  getProjectId,
-} from "./uipathClient.js";
+import { duPost } from "./uipathClient.js";
+import { getExtractorUrl } from "./getExtractorUrl.js";
 
 export async function extractDoc(token, docId) {
-  const extractorGuid = getExtractorGuid();
-  const projectId = getProjectId();
-  const extractorId = getExtractorId();
-  const url = `${UIPATH_BASE_URL}:443/${extractorGuid}/du_/api/framework/projects/${projectId}/extractors/${extractorId}/extraction/start`;
+  const asyncUrl = await getExtractorUrl(token);
 
-  const extract = await duPost(url, token, {
+  const extract = await duPost(asyncUrl, token, {
     documentId: docId,
     pageRange: null,
     prompts: activeQuestionBlobs,
