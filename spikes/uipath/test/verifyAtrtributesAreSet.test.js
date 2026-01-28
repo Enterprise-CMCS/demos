@@ -2,10 +2,7 @@ import "dotenv/config";
 import assert from "node:assert/strict";
 import { getToken } from "../getToken.js";
 import { getExtractorUrl } from "../getExtractorUrl.js";
-import {
-  getExtractorGuid,
-  getProjectId,
-} from "../uipathClient.js";
+import { getProjectId } from "../uipathClient.js";
 
 /**
  * This is just a simple test script we can use to debug any issues we have with UIPath API
@@ -23,11 +20,7 @@ if (!token) {
 passOrFailColorLog("Test Passed: OAuth tokens exist.", true);
 
 const asyncUrl = await getExtractorUrl(token);
-const extractorGuid = getExtractorGuid();
 const projectId = getProjectId();
-
-assert.ok(extractorGuid, "extractorGuid should not be null or empty");
-passOrFailColorLog("Test Passed: extractorGuid is present.", true);
 
 assert.ok(projectId, "projectId should not be null or empty");
 passOrFailColorLog("Test Passed: projectId is present.", true);

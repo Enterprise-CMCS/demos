@@ -12,19 +12,14 @@ function getRequiredEnvVar(key, errorMessage) {
   return value;
 }
 
+/**
+ * This qas factored to reduce replication but since they i'd reduced this down to 1.
+ * @returns string
+ */
 export function getProjectId() {
   return getRequiredEnvVar(
     "PROJECT_ID",
     "PROJECT_ID failed to populate in environment."
-  );
-}
-
-// Basically the model it's using, may want different models for differnt files.
-// May need to request to checj the differeent extractors.
-export function getExtractorGuid() {
-  return getRequiredEnvVar(
-    "EXTRACTOR_GUID",
-    "Missing EXTRACTOR_GUID in environment."
   );
 }
 

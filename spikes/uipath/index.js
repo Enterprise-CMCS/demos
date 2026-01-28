@@ -5,10 +5,7 @@ import { uploadDocument } from "./uploadDocument.js";
 import { extractDoc } from "./extractDoc.js";
 import { fetchExtractionResult } from "./fetchExtractResult.js";
 import { createLogFile, log } from "./logFile.js";
-import {
-  getProjectId,
-  getExtractorGuid
-} from "./uipathClient.js";
+import { getProjectId } from "./uipathClient.js";
 
 dotenv.config();
 
@@ -29,8 +26,6 @@ log("Running on file: ", inputFile);
 try {
   // Validate required env early to avoid undefined IDs in URLs
   getProjectId();
-  // thinking this is only useful for default 000-000 extractor.
-  getExtractorGuid();
 
   const token = await getToken();
   if (!token) {
