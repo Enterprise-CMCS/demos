@@ -73,15 +73,10 @@ export const ApplicationDetailsSection = ({
   );
 
   return (
-    <CompletableSection title="Application Details" isComplete={isComplete}>
+    <CompletableSection title="Application Details" isComplete={isComplete} completionDate={completionDate}>
       <p className="text-sm text-text-placeholder mt-1 mb-2">
         Confirm all demonstration information including dates and status are accurate.
       </p>
-      {completionDate && (
-        <p className="text-sm text-text-placeholder mb-2" data-testid="application-details-completion-date">
-          Completion Date: {completionDate}
-        </p>
-      )}
       <div className="grid grid-cols-4 gap-8 text-sm text-text-placeholder">
         <div className="flex flex-col">
           {sectionFormData.readonlyFields.stateId ? (
