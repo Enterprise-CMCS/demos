@@ -8,11 +8,10 @@ import {
 } from "../uipathClient.js";
 
 /**
- * This is just a simple test script we can use to debug any issues we have with UIPath.
+ * This is just a simple test script we can use to debug any issues we have with UIPath API
  *
  * Test: Verify the env exists and that the correct variables are hydrated.
- * Test: Compare the extractor asyncUrl from UIPath api matches constructed URL.
- * Run with: npm run test:extractor-url
+ * Run with: npm run test:vars
  *
  * returns: void
  */
@@ -32,9 +31,6 @@ passOrFailColorLog("Test Passed: extractorGuid is present.", true);
 
 assert.ok(projectId, "projectId should not be null or empty");
 passOrFailColorLog("Test Passed: projectId is present.", true);
-
-// Extract extractorId from asyncUrl
-
 
 assert.ok(asyncUrl, "asyncUrl should not be null or empty");
 passOrFailColorLog("Test Passed: async endpoint exists.", true);
