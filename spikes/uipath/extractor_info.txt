@@ -1,9 +1,0 @@
-ASYNC_URL="
-https://govcloud.uipath.us:443/
-09bb7221-d194-4fad-995d-b445aed6ca66/48e48d41-bfd1-4fd8-9f33-960349fab185 - GUID
-/du_/api/framework/projects/
-e797842e-acc4-f011-8194-001dd8017125 - PROJECT_ID
-/extractors/
-78488ddf-8bfb-f011-8d4c-001dd8013850 - EXTRACTOR_ID
-/extraction/start
-"
