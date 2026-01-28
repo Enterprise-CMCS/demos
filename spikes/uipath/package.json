@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "execute": "node index.js",
-    "test:extractor-url": "node test/compareExtractorUrl.test.js"
+    "test:vars": "node test/verifyAtrtributesAreSet.test.js"
   },
   "type": "module",
   "dependencies": {

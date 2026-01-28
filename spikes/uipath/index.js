@@ -7,7 +7,6 @@ import { fetchExtractionResult } from "./fetchExtractResult.js";
 import { createLogFile, log } from "./logFile.js";
 import {
   getProjectId,
-  getExtractorId,
   getExtractorGuid
 } from "./uipathClient.js";
 
@@ -30,7 +29,7 @@ log("Running on file: ", inputFile);
 try {
   // Validate required env early to avoid undefined IDs in URLs
   getProjectId();
-  getExtractorId();
+  // thinking this is only useful for default 000-000 extractor.
   getExtractorGuid();
 
   const token = await getToken();

@@ -28,10 +28,6 @@ export function getExtractorGuid() {
   );
 }
 
-export function getExtractorId() {
-  return getRequiredEnvVar("EXTRACTOR_ID", "Missing EXTRACTOR_ID in environment.");
-}
-
 // duPost == Document Understanding POST
 export function duPost(url, token, data, options = {}) {
   const { params = {}, headers = {}, ...rest } = options;
