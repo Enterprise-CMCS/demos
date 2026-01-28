@@ -10,6 +10,7 @@ import { Table } from "../Table";
 import { TypesColumns } from "../columns/TypesColumns";
 
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
+import { useDialog } from "components/dialog/DialogContext";
 
 export type TypeTableRow = {
   id: string;
@@ -20,18 +21,20 @@ export type TypeTableRow = {
 };
 
 export type TypesTableProps = {
+  demonstrationId: string;
   types: DemonstrationDetailDemonstrationType[];
   inputDisabled?: boolean;
   hideSearch?: boolean;
 };
 
 export const TypesTable: React.FC<TypesTableProps> = ({
+  demonstrationId,
   types,
   inputDisabled = false,
   hideSearch = false,
 }) => {
   const columns = TypesColumns();
-  // const { showEditTypeDialog, showRemoveTypeDialog } = useDialog();
+  const { showRemoveDemonstrationTypesDialog } = useDialog();
 
   /*
    * Ensure initial sort by createdAt date ascending
@@ -95,10 +98,10 @@ export const TypesTable: React.FC<TypesTableProps> = ({
                   ariaLabel="Remove Type"
                   disabled={removeDisabled || inputDisabled}
                   onClick={() =>
-                    // !removeDisabled && showRemoveTypeDialog(selected.map((t) => t.id))
-                    console.log(
-                      "Remove Type Clicked",
-                      selected.map((t) => t.id)
+                    !removeDisabled &&
+                    showRemoveDemonstrationTypesDialog(
+                      demonstrationId,
+                      selected.map((t) => t.typeLabel)
                     )
                   }
                 >

@@ -7,6 +7,7 @@ import { ExistingContactType } from "./ManageContactsDialog";
 import { DocumentDialogFields } from "./document/DocumentDialog";
 import { DeclareIncompleteForm } from "./DeclareIncompleteDialog";
 import { DIALOG_CANCEL_BUTTON_NAME } from "./BaseDialog";
+import { Tag as DemonstrationTypeName } from "demos-server";
 
 const MockDialog = ({ onClose }: { onClose: () => void }) => (
   <div data-testid="mock-dialog">
@@ -246,6 +247,27 @@ vi.mock("./DemonstrationTypes/ApplyDemonstrationTypesDialog", () => ({
   ),
 }));
 
+vi.mock("./DemonstrationTypes/RemoveDemonstrationTypesDialog", () => ({
+  RemoveDemonstrationTypesDialog: ({
+    demonstrationId,
+    demonstrationTypeNames,
+  }: {
+    demonstrationId: string;
+    demonstrationTypeNames: DemonstrationTypeName[];
+  }) => (
+    <div data-testid="apply-demonstration-types-dialog">
+      Remove Demonstration Types Dialog
+      <span>Demonstration ID: {demonstrationId}</span>
+      <span>Types to Remove:</span>
+      <ul>
+        {demonstrationTypeNames.map((typeName) => {
+          return <li key={typeName}>{typeName}</li>;
+        })}
+      </ul>
+    </div>
+  ),
+}));
+
 const mockRoles: ExistingContactType[] = [
   {
     role: "Project Officer",
@@ -292,6 +314,7 @@ const TestConsumer: React.FC = () => {
     showFederalCommentDocumentUploadDialog,
     showDeclareIncompleteDialog,
     showApplyDemonstrationTypesDialog,
+    showRemoveDemonstrationTypesDialog,
     showApplyTagsDialog,
     closeDialog,
   } = useDialog();
@@ -369,6 +392,12 @@ const TestConsumer: React.FC = () => {
         onClick={() => showApplyDemonstrationTypesDialog("app-1")}
       >
         Open Apply Demonstration Types Dialog
+      </button>
+      <button
+        data-testid="open-remove-demonstration-types-dialog-btn"
+        onClick={() => showRemoveDemonstrationTypesDialog("app-1", ["Type1", "Type2"])}
+      >
+        Open Remove Demonstration Types Dialog
       </button>
       <button
         data-testid="open-apply-tags-btn"
@@ -644,6 +673,19 @@ describe("DialogContext", () => {
     await user.click(screen.getByTestId("open-apply-demonstration-types-dialog-btn"));
     expect(screen.getByText("Apply Demonstration Types Dialog")).toBeInTheDocument();
     expect(screen.getByText("Demonstration ID: app-1")).toBeInTheDocument();
+  });
+  it("shows the RemoveDemonstrationTypesDialog", async () => {
+    render(
+      <DialogProvider>
+        <TestConsumer />
+      </DialogProvider>
+    );
+    const user = userEvent.setup();
+    await user.click(screen.getByTestId("open-remove-demonstration-types-dialog-btn"));
+    expect(screen.getByText("Remove Demonstration Types Dialog")).toBeInTheDocument();
+    expect(screen.getByText("Demonstration ID: app-1")).toBeInTheDocument();
+    expect(screen.getByText("Type1")).toBeInTheDocument();
+    expect(screen.getByText("Type2")).toBeInTheDocument();
   });
   it("shows and hides ApplyTagsDialog via context", async () => {
     render(
