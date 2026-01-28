@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useLayoutEffect } from "react";
 import { ChevronDownIcon, ChevronRightIcon } from "components/icons";
 import { CompletenessBadge } from "components/badge/CompletenessBadge";
 
@@ -13,15 +13,12 @@ export const CompletableSection = ({
   children: React.ReactNode;
   completionDate?: string;
 }) => {
-  const [isExpanded, setIsExpanded] = React.useState<boolean>(true);
+  const [isExpanded, setIsExpanded] = React.useState<boolean>(() => !isComplete);
 
-  const previousIsComplete = useRef(isComplete);
-
-  useEffect(() => {
-    if (previousIsComplete.current === false && isComplete === true) {
+  useLayoutEffect(() => {
+    if (isComplete) {
       setIsExpanded(false);
     }
-    previousIsComplete.current = isComplete;
   }, [isComplete]);
 
   const sectionId = title.replace(/\s+/g, "-").toLowerCase();

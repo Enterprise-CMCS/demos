@@ -130,7 +130,7 @@ describe("ApplicationDetailsSection", () => {
     expect(toggle).toBeEnabled();
   });
 
-  it("keeps Mark Complete toggle enabled when section is complete for marking incomplete", () => {
+  it("keeps Mark Complete toggle enabled when section is complete for marking incomplete", async () => {
     setup(
       {
         stateId: "CA",
@@ -146,6 +146,12 @@ describe("ApplicationDetailsSection", () => {
       true,  // isComplete
       false
     );
+    const user = userEvent.setup();
+
+    const headerButton = screen.getByRole("button", {
+      name: /Application Details, complete, expand section/i,
+    });
+    await user.click(headerButton);
 
     const toggle = screen.getByRole("switch", { name: /mark complete/i });
     expect(toggle).toBeEnabled();

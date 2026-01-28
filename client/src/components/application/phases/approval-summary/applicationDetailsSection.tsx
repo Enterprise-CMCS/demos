@@ -222,7 +222,7 @@ export const ApplicationDetailsSection = ({
         </div>
 
         <div className="flex flex-col col-span-4">
-          {sectionFormData.readonlyFields.description ? (
+          {sectionFormData.readonlyFields.description || isComplete ? (
             <div>
               <div className={LABEL_CLASSES}>
                 Description
@@ -244,7 +244,7 @@ export const ApplicationDetailsSection = ({
         </div>
 
         <div className="flex flex-col">
-          {sectionFormData.readonlyFields.sdgDivision ? (
+          {sectionFormData.readonlyFields.sdgDivision || isComplete ? (
             <div>
               <div className={LABEL_CLASSES}>
                 SDG Division
@@ -255,6 +255,7 @@ export const ApplicationDetailsSection = ({
             </div>
           ) : (
             <SelectSdgDivision
+              key={`sdg-${sectionFormData.sdgDivision || "empty"}`}
               initialValue={sectionFormData.sdgDivision}
               onSelect={(sdgDivision) =>
                 setSectionFormData({ ...sectionFormData, sdgDivision })
@@ -266,7 +267,7 @@ export const ApplicationDetailsSection = ({
         </div>
 
         <div className="flex flex-col">
-          {sectionFormData.readonlyFields.signatureLevel ? (
+          {sectionFormData.readonlyFields.signatureLevel || isComplete ? (
             <div>
               <div className={LABEL_CLASSES}>
                 Signature Level
@@ -277,6 +278,7 @@ export const ApplicationDetailsSection = ({
             </div>
           ) : (
             <SelectSignatureLevel
+              key={`sig-${sectionFormData.signatureLevel || "empty"}`}
               initialValue={sectionFormData.signatureLevel}
               onSelect={(signatureLevel) =>
                 setSectionFormData({ ...sectionFormData, signatureLevel })
@@ -299,11 +301,11 @@ export const ApplicationDetailsSection = ({
             onChange={() => {
               if (isComplete) {
                 onMarkIncomplete();
-              } else if (requiredFieldsFilled) {
+              } else {
                 onMarkComplete();
               }
             }}
-            disabled={!isComplete && !requiredFieldsFilled}
+            disabled={!requiredFieldsFilled && !isComplete}
             onColor="#6B7280"
             offColor="#E5E7EB"
             checkedIcon={false}

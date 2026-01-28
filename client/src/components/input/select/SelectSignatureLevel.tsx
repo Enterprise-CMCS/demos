@@ -31,6 +31,11 @@ export const SelectSignatureLevel = ({
     initialValue
   );
 
+  // Sync internal state when initialValue changes
+  React.useEffect(() => {
+    setSignatureLevel(initialValue);
+  }, [initialValue]);
+
   return (
     <Select
       value={signatureLevel}

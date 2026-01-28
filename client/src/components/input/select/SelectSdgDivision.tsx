@@ -20,6 +20,11 @@ export const SelectSdgDivision = ({
   isRequired?: boolean;
 }) => {
   const [sdgDivision, setSdgDivision] = React.useState<SdgDivision | undefined>(initialValue);
+
+  // Sync internal state when initialValue changes
+  React.useEffect(() => {
+    setSdgDivision(initialValue);
+  }, [initialValue]);
   return (
     <Select
       value={sdgDivision}
