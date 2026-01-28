@@ -12,7 +12,7 @@ export type ValidationChecks = {
 
 export type PhaseCompletionValidationChecksRecord = Record<
   PhaseNameWithTrackedStatus,
-  ValidationChecks | "No Validation" | "Not Implemented"
+  ValidationChecks | "No Validation"
 >;
 
 export type PhaseActions = {

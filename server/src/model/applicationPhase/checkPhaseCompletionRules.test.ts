@@ -426,18 +426,33 @@ describe("checkPhaseCompletionRules", () => {
     });
   });
 
-  describe("Approval Summary", () => {
-    it("should throw since the Approval Summary phase is not implemented", () => {
-      expect(() =>
-        checkPhaseCompletionRules(
-          testApplicationId,
-          "Approval Summary",
-          testApplicationDates,
-          testApplicationDocumentTypes,
-          testApplicationPhases,
-          testApplicationClearanceLevel
-        )
-      ).toThrowError("Validation of the Approval Summary phase via API is not yet implemented.");
+  describe("Approval Summary Phase", () => {
+    it("should run expected checks for the Approval Summary phase", () => {
+      checkPhaseCompletionRules(
+        testApplicationId,
+        "Approval Summary",
+        testApplicationDates,
+        testApplicationDocumentTypes,
+        testApplicationPhases,
+        testApplicationClearanceLevel
+      );
+
+      expect(makeApplicationDateMapFromList).toHaveBeenCalledExactlyOnceWith(testApplicationDates);
+      expect(checkPhaseStartedBeforeCompletion).toHaveBeenCalledExactlyOnceWith(
+        testApplicationId,
+        "Approval Summary",
+        "Started"
+      );
+      expect(checkApplicationDateExistsForCompletion).not.toBeCalled();
+      expect(checkDocumentTypeExistsForCompletion).not.toBeCalled();
+      expect(vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls).toEqual([
+        [testApplicationId, "Approval Summary", "Application Intake", testApplicationPhases],
+        [testApplicationId, "Approval Summary", "Completeness", testApplicationPhases],
+        [testApplicationId, "Approval Summary", "Federal Comment", testApplicationPhases],
+        [testApplicationId, "Approval Summary", "SDG Preparation", testApplicationPhases],
+        [testApplicationId, "Approval Summary", "Review", testApplicationPhases],
+        [testApplicationId, "Approval Summary", "Approval Package", testApplicationPhases],
+      ]);
     });
   });
 });

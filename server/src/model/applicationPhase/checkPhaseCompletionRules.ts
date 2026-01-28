@@ -82,7 +82,18 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
       "Review",
     ],
   },
-  "Approval Summary": "Not Implemented",
+  "Approval Summary": {
+    datesMustExist: [],
+    documentTypesMustExist: [],
+    phasesMustBeComplete: [
+      "Application Intake",
+      "Completeness",
+      "Federal Comment",
+      "SDG Preparation",
+      "Review",
+      "Approval Package",
+    ],
+  },
 };
 
 export function checkPhaseCompletionRules(
@@ -96,8 +107,6 @@ export function checkPhaseCompletionRules(
   const validationChecks = VALIDATION_CHECKS[phaseToValidate];
   if (validationChecks === "No Validation") {
     return;
-  } else if (validationChecks === "Not Implemented") {
-    throw new Error(`Validation of the ${phaseToValidate} phase via API is not yet implemented.`);
   }
 
   let datesToCheck = validationChecks.datesMustExist;
