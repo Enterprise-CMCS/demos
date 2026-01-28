@@ -19,8 +19,6 @@ interface MockSummaryDetailsTableProps {
   demonstrationId: string;
 }
 
-const showUploadDocumentDialog = vi.fn();
-
 vi.mock("components/table/tables/SummaryDetailsTable", () => ({
   SummaryDetailsTable: ({ demonstrationId }: MockSummaryDetailsTableProps) => (
     <div data-testid="summary-details-table">SummaryDetailsTable - ID: {demonstrationId}</div>
@@ -31,11 +29,16 @@ vi.mock("components/table/tables/DocumentTable", () => ({
     <div data-testid="document-table">Document Table ({documents?.length || 0} documents)</div>
   ),
 }));
+
+const showUploadDocumentDialog = vi.fn();
+const showApplyDemonstrationTypesDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
     showUploadDocumentDialog,
+    showApplyDemonstrationTypesDialog,
   }),
 }));
+
 vi.mock("./ContactsTab", () => ({
   ContactsTab: vi.fn(() => <div data-testid="contacts-tab">Contacts Tab</div>),
 }));
@@ -277,6 +280,20 @@ describe("DemonstrationTab", () => {
         await user.click(addDocumentButton);
 
         expect(showUploadDocumentDialog).toHaveBeenCalled();
+      });
+      it("opens apply demonstration types dialog when Apply Type(s) button is clicked", async () => {
+        const user = userEvent.setup();
+        renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
+
+        const typesTab = screen.getByRole("button", { name: "Types (0)" });
+        await user.click(typesTab);
+
+        const applyTypesButton = screen.getByRole("button", {
+          name: "button-apply-demonstration-types",
+        });
+        await user.click(applyTypesButton);
+
+        expect(showApplyDemonstrationTypesDialog).toHaveBeenCalledWith(mockDemonstration.id);
       });
     });
   });
