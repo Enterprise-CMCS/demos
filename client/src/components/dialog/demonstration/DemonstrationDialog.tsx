@@ -140,8 +140,8 @@ export const DemonstrationDialog: React.FC<{
     <BaseDialog
       title={mode === "edit" ? "Edit Demonstration" : "New Demonstration"}
       onClose={onClose}
-      maxWidthClass="max-w-[920px]"
       dialogHasChanges={formHasChanges}
+      maxWidthClass="max-w-[920px]"
       actionButton={
         <SubmitButton
           name={"button-submit-demonstration-dialog"}

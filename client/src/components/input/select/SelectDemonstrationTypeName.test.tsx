@@ -111,7 +111,7 @@ describe("SelectDemonstrationTypes", () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByPlaceholderText("Select")).toBeInTheDocument();
+        expect(screen.getByPlaceholderText("Select an option")).toBeInTheDocument();
       });
 
       return result;

@@ -59,8 +59,7 @@ describe("DemonstrationTypesList", () => {
       />
     );
 
-    expect(screen.getByText(/types to be added \(0\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/no demonstration types added/i)).toBeInTheDocument();
+    expect(screen.queryByText(/types to be added/i)).not.toBeInTheDocument();
   });
 
   it("displays correct count of demonstration types", () => {

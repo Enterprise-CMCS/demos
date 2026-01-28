@@ -12,10 +12,9 @@ export const DemonstrationTypesList = ({
   removeDemonstrationType: (demonstrationTypeName: DemonstrationTypeName) => void;
 }) => {
   return (
-    <div className="flex flex-col gap-2">
-      <p className="font-bold">Types to be added ({demonstrationTypes.length})</p>
-      {demonstrationTypes.length === 0 && <p>No demonstration types added.</p>}
-      {demonstrationTypes.length > 0 && (
+    demonstrationTypes.length > 0 && (
+      <div className="flex flex-col gap-1">
+        <p className="font-bold">Types to be added ({demonstrationTypes.length})</p>
         <ul className="border border-gray-300 border-b-0">
           {demonstrationTypes.map((demonstrationType) => (
             <li
@@ -31,7 +30,7 @@ export const DemonstrationTypesList = ({
               </div>
               <div className="flex items-center">
                 <button
-                  className="p-1"
+                  className="p-1 cursor-pointer"
                   onClick={() => removeDemonstrationType(demonstrationType.demonstrationTypeName)}
                   name="remove-type"
                 >
@@ -46,7 +45,7 @@ export const DemonstrationTypesList = ({
             </li>
           ))}
         </ul>
-      )}
-    </div>
+      </div>
+    )
   );
 };
