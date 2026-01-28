@@ -5,7 +5,7 @@ import { uploadDocument } from "./uploadDocument.js";
 import { extractDoc } from "./extractDoc.js";
 import { fetchExtractionResult } from "./fetchExtractResult.js";
 import { createLogFile, log } from "./logFile.js";
-import { getProjectId, getExtractorGuid } from "./uipathClient.js";
+import { getProjectId } from "./uipathClient.js";
 
 dotenv.config();
 
@@ -14,7 +14,7 @@ function sleep(ms) {
 }
 
 // Positional args: [0]=node, [1]=index.js - `node index.js` to run!
-const inputFile = "ak-behavioral-health-demo-pa.pdf";
+const inputFile = "test_uipath.pdf";
 const logPath = createLogFile("uipath.log");
 
 if (! inputFile) {
@@ -26,7 +26,6 @@ log("Running on file: ", inputFile);
 try {
   // Validate required env early to avoid undefined IDs in URLs
   getProjectId();
-  getExtractorGuid();
 
   const token = await getToken();
   if (!token) {

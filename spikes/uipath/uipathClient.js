@@ -4,22 +4,23 @@ export const UIPATH_BASE_URL = "https://govcloud.uipath.us";
 export const UIPATH_TENANT = "globalalliant/Dev";
 export const UIPATH_API_VERSION = "1.0";
 
-export function getProjectId() {
-  const projectId = process.env.ZERO_PROJECT_ID;
-  if (!projectId) {
-    throw new Error("Missing ZERO_PROJECT_ID in environment.");
+function getRequiredEnvVar(key, errorMessage) {
+  const value = process.env[key];
+  if (!value) {
+    throw new Error(errorMessage);
   }
-  return projectId;
+  return value;
 }
 
-// Basically the model it's using, may want different models for differnt files.
-// May need to request to checj the differeent extractors.
-export function getExtractorGuid() {
-  const extractorGuid = process.env.EXTRACTOR_GUID;
-  if (!extractorGuid) {
-    throw new Error("Missing EXTRACTOR_GUID in environment.");
-  }
-  return extractorGuid;
+/**
+ * This qas factored to reduce replication but since they i'd reduced this down to 1.
+ * @returns string
+ */
+export function getProjectId() {
+  return getRequiredEnvVar(
+    "PROJECT_ID",
+    "PROJECT_ID failed to populate in environment."
+  );
 }
 
 // duPost == Document Understanding POST
