@@ -36,7 +36,7 @@ type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
 
 export type DemonstrationDetailDemonstrationType = Pick<
   DemonstrationTypeAssignment,
-  "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate"
+  "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "createdAt"
 >;
 
 export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "status"> & {
@@ -53,7 +53,7 @@ export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "status">
 export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonstration }> = ({
   demonstration,
 }) => {
-  const { showUploadDocumentDialog } = useDialog();
+  const { showUploadDocumentDialog, showApplyDemonstrationTypesDialog } = useDialog();
   const client = useApolloClient();
 
   const refetchApplicationWorkflow = async () => {
@@ -74,7 +74,16 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           label={`Types (${demonstration.demonstrationTypes?.length ?? 0})`}
           value="demonstrationTypes"
         >
-          <TabHeader title="Types" />
+          <TabHeader title="Types">
+            <IconButton
+              icon={<AddNewIcon />}
+              name="button-apply-demonstration-types"
+              size="small"
+              onClick={() => showApplyDemonstrationTypesDialog(demonstration.id)}
+            >
+              Apply Type(s)
+            </IconButton>
+          </TabHeader>{" "}
           <TypesTable types={demonstration.demonstrationTypes} />
         </Tab>
         <Tab

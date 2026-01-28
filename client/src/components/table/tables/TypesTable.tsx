@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import { compareAsc } from "date-fns";
 import { CircleButton } from "components/button/CircleButton";
 import { DeleteIcon, EditIcon, ExportIcon } from "components/icons";
 import { KeywordSearch } from "../KeywordSearch";
@@ -32,17 +33,21 @@ export const TypesTable: React.FC<TypesTableProps> = ({
   const columns = TypesColumns();
   // const { showEditTypeDialog, showRemoveTypeDialog } = useDialog();
 
-  const typeRows: TypeTableRow[] = types.map((type) => ({
-    id: type.demonstrationTypeName,
-    typeLabel: type.demonstrationTypeName,
-    status: type.status,
-    effectiveDate: new Date(type.effectiveDate),
-    expirationDate: new Date(type.expirationDate),
-  }));
-
-  const initialState = {
-    sorting: [{ id: "effectiveDate", desc: false }],
-  };
+  /*
+   * Ensure initial sort by createdAt date ascending
+   * and map to expected data structure
+   */
+  const typeRows: TypeTableRow[] = React.useMemo(() => {
+    return [...types]
+      .sort((a, b) => compareAsc(a.createdAt, b.createdAt))
+      .map((type) => ({
+        id: type.demonstrationTypeName,
+        typeLabel: type.demonstrationTypeName,
+        status: type.status,
+        effectiveDate: new Date(type.effectiveDate),
+        expirationDate: new Date(type.expirationDate),
+      }));
+  }, [types]);
 
   return (
     <div className="overflow-x-auto w-full mb-2">
@@ -54,7 +59,6 @@ export const TypesTable: React.FC<TypesTableProps> = ({
           pagination={(table) => <PaginationControls table={table} />}
           emptyRowsMessage="You have no assigned Types at this time"
           noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
-          initialState={initialState}
           actionButtons={(table) => {
             const selected = table.getSelectedRowModel().rows.map((r) => r.original);
             const editDisabled = selected.length !== 1;

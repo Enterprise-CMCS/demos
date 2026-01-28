@@ -22,7 +22,7 @@ import { MockDocument, mockDocuments } from "./documentMocks";
 import { MockExtension, mockExtensions } from "./extensionMocks";
 import { mockPeople, MockPerson } from "./personMocks";
 import { MockState, mockStates } from "./stateMocks";
-import { ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY } from "components/dialog/DemonstrationTypes/ApplyDemonstrationTypesDialog";
+import { ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY } from "components/dialog/DemonstrationTypes/useApplyDemonstrationTypesDialogData";
 import {
   MOCK_DEMONSTRATION_TYPE_ASSIGNMENTS,
   MockDemonstrationTypeAssignment,

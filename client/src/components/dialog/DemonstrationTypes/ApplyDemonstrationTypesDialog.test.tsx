@@ -2,87 +2,165 @@ import React from "react";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  ApplyDemonstrationTypesDialog,
-  ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY,
-} from "./ApplyDemonstrationTypesDialog";
-import type { Demonstration } from "./ApplyDemonstrationTypesDialog";
+import { ApplyDemonstrationTypesDialog } from "./ApplyDemonstrationTypesDialog";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectDemonstrationTypeName";
+import {
+  ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY,
+  ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION,
+  Demonstration,
+  DemonstrationType,
+} from "./useApplyDemonstrationTypesDialogData";
+import { DemonstrationTypeInput, Tag as DemonstrationTypeName, LocalDate } from "demos-server";
 
-// Mock dependencies
-const mockCloseDialog = vi.fn();
 const mockShowSuccess = vi.fn();
+const mockShowError = vi.fn();
+vi.mock("components/toast", () => ({
+  useToast: () => ({
+    showSuccess: mockShowSuccess,
+    showError: mockShowError,
+  }),
+}));
 
+const mockCloseDialog = vi.fn();
 vi.mock("../DialogContext", () => ({
   useDialog: () => ({
     closeDialog: mockCloseDialog,
   }),
 }));
 
-vi.mock("components/toast", () => ({
-  useToast: () => ({
-    showSuccess: mockShowSuccess,
-  }),
+const MOCK_DEMONSTRATION_ID: string = "demo-123";
+const MOCK_DEMONSTRATION_TYPE_NAMES: DemonstrationTypeName[] = [
+  "Type A",
+  "Type B",
+  "Type C",
+  "Type D",
+];
+const MOCK_DEMONSTRATION_TYPE_A: DemonstrationType = {
+  demonstrationTypeName: "Type A",
+  effectiveDate: "2024-01-01",
+  expirationDate: "2024-12-31",
+};
+const MOCK_DEMONSTRATION_TYPE_B: DemonstrationType = {
+  demonstrationTypeName: "Type B",
+  effectiveDate: "2024-02-01",
+  expirationDate: "2024-11-30",
+};
+const MOCK_DEMONSTRATION_TYPE_C: DemonstrationType = {
+  demonstrationTypeName: "Type C",
+  effectiveDate: "2024-03-01",
+  expirationDate: "2024-10-31",
+};
+const MOCK_DEMONSTRATION_TYPE_D: DemonstrationType = {
+  demonstrationTypeName: "Type D",
+  effectiveDate: "2024-01-04",
+  expirationDate: "2025-01-04",
+};
+
+const mockInitialDemonstration: Demonstration = {
+  id: MOCK_DEMONSTRATION_ID,
+  demonstrationTypes: [
+    MOCK_DEMONSTRATION_TYPE_A,
+    MOCK_DEMONSTRATION_TYPE_B,
+    MOCK_DEMONSTRATION_TYPE_C,
+  ],
+};
+
+const mockDemonstrationTypesInput: DemonstrationTypeInput[] = [
+  MOCK_DEMONSTRATION_TYPE_A,
+  MOCK_DEMONSTRATION_TYPE_B,
+  MOCK_DEMONSTRATION_TYPE_C,
+  MOCK_DEMONSTRATION_TYPE_D,
+].map((demonstrationType) => ({
+  demonstrationTypeName: demonstrationType.demonstrationTypeName,
+  demonstrationTypeDates: {
+    effectiveDate: demonstrationType.effectiveDate as LocalDate,
+    expirationDate: demonstrationType.expirationDate as LocalDate,
+  },
 }));
 
-const mockDemonstrationTypes = [
-  {
-    demonstrationTypeName: "Type A",
-    effectiveDate: "2024-01-01",
-    expirationDate: "2025-01-01",
-  },
-  {
-    demonstrationTypeName: "Type B",
-    effectiveDate: "2024-01-02",
-    expirationDate: "2025-01-02",
-  },
-  {
-    demonstrationTypeName: "Type C",
-    effectiveDate: "2024-01-03",
-    expirationDate: "2025-01-03",
-  },
-];
-const mockDemonstrationTypeNames = ["Type A", "Type B", "Type C", "Type D"];
-const mockDemonstrationId = "demo-123";
-const mockDemonstration: Demonstration = {
-  id: mockDemonstrationId,
-  demonstrationTypes: mockDemonstrationTypes,
-};
-const mockApplyDemonstrationTypesDialogQuery: MockedResponse = {
-  request: {
-    query: ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY,
-    variables: { id: mockDemonstrationId },
-  },
-  result: {
-    data: {
-      demonstration: mockDemonstration,
-    },
-  },
-};
-
-const mockSelectDemonstrationTypeQuery: MockedResponse = {
+const selectDemonstrationTypeQueryMock: MockedResponse = {
   request: {
     query: SELECT_DEMONSTRATION_TYPE_QUERY,
   },
   result: {
     data: {
-      demonstrationTypes: mockDemonstrationTypeNames,
+      demonstrationTypeNames: MOCK_DEMONSTRATION_TYPE_NAMES,
     },
   },
 };
-
+const applyDemonstrationTypesDialogQueryMock: MockedResponse<{
+  demonstration: Demonstration;
+}> = {
+  request: {
+    query: ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY,
+    variables: { id: MOCK_DEMONSTRATION_ID },
+  },
+  result: {
+    data: {
+      demonstration: mockInitialDemonstration,
+    },
+  },
+};
+const assignDemonstrationTypesDialogMutationMock: MockedResponse<{
+  setDemonstrationTypes: Demonstration;
+}> = {
+  request: {
+    query: ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION,
+    variables: {
+      input: {
+        demonstrationId: MOCK_DEMONSTRATION_ID,
+        demonstrationTypes: mockDemonstrationTypesInput,
+      },
+    },
+  },
+  result: {
+    data: {
+      setDemonstrationTypes: {
+        ...mockInitialDemonstration,
+        demonstrationTypes: [
+          MOCK_DEMONSTRATION_TYPE_A,
+          MOCK_DEMONSTRATION_TYPE_B,
+          MOCK_DEMONSTRATION_TYPE_C,
+          MOCK_DEMONSTRATION_TYPE_D,
+        ],
+      },
+    },
+  },
+};
+const assignDemonstrationTypesDialogMutationErrorMock: MockedResponse<{
+  setDemonstrationTypes: Demonstration;
+}> = {
+  request: {
+    query: ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION,
+    variables: {
+      input: {
+        demonstrationId: MOCK_DEMONSTRATION_ID,
+        demonstrationTypes: mockDemonstrationTypesInput,
+      },
+    },
+  },
+  result: {
+    errors: [new Error("Failed to assign demonstration types.")],
+  },
+};
 describe("ApplyDemonstrationTypesDialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  const renderWithProvider = async () => {
+  const renderWithProvider = async (mockOverrides?: MockedResponse[]) => {
     const result = render(
       <MockedProvider
-        mocks={[mockApplyDemonstrationTypesDialogQuery, mockSelectDemonstrationTypeQuery]}
+        mocks={
+          mockOverrides || [
+            selectDemonstrationTypeQueryMock,
+            applyDemonstrationTypesDialogQueryMock,
+            assignDemonstrationTypesDialogMutationMock,
+          ]
+        }
       >
-        <ApplyDemonstrationTypesDialog demonstrationId={mockDemonstrationId} />
+        <ApplyDemonstrationTypesDialog demonstrationId={MOCK_DEMONSTRATION_ID} />
       </MockedProvider>
     );
 
@@ -194,8 +272,9 @@ describe("ApplyDemonstrationTypesDialog", () => {
     expect(screen.getByText("Type C")).toBeInTheDocument();
   });
 
-  it("calls showSuccess and closeDialog on submit", async () => {
+  it("calls showSuccess and closeDialog on successful submit", async () => {
     const user = userEvent.setup();
+
     await renderWithProvider();
 
     await addDemonstrationTypeD(user);
@@ -203,8 +282,31 @@ describe("ApplyDemonstrationTypesDialog", () => {
     const submitButton = screen.getByTestId("button-submit-demonstration-dialog");
     await user.click(submitButton);
 
-    expect(mockShowSuccess).toHaveBeenCalledWith("Demonstration types applied successfully.");
+    await waitFor(() => {
+      expect(mockShowSuccess).toHaveBeenCalledWith("Demonstration types applied successfully.");
+    });
+
     expect(mockCloseDialog).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls showError on failed submit", async () => {
+    const user = userEvent.setup();
+
+    await renderWithProvider([
+      selectDemonstrationTypeQueryMock,
+      applyDemonstrationTypesDialogQueryMock,
+      assignDemonstrationTypesDialogMutationErrorMock,
+    ]);
+
+    await addDemonstrationTypeD(user);
+
+    const submitButton = screen.getByTestId("button-submit-demonstration-dialog");
+    await user.click(submitButton);
+
+    await waitFor(() => {
+      expect(mockShowError).toHaveBeenCalledWith("Failed to apply demonstration types.");
+    });
+    expect(mockShowSuccess).not.toHaveBeenCalled();
   });
 
   it("detects changes when adding and removing result in same count", async () => {

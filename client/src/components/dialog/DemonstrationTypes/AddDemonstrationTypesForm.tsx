@@ -2,13 +2,14 @@ import React from "react";
 import { DatePicker } from "components/input/date/DatePicker";
 import { SecondaryButton } from "components/button";
 import { SelectDemonstrationTypeName } from "components/input/select/SelectDemonstrationTypeName";
-import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
+import { DemonstrationType } from "./useApplyDemonstrationTypesDialogData";
 
 function isValid(demonstrationType: DemonstrationType): boolean {
   return !!(
     demonstrationType.demonstrationTypeName &&
     demonstrationType.effectiveDate &&
-    demonstrationType.expirationDate
+    demonstrationType.expirationDate &&
+    new Date(demonstrationType.effectiveDate) <= new Date(demonstrationType.expirationDate)
   );
 }
 
@@ -39,6 +40,19 @@ export const AddDemonstrationTypesForm = ({
     return !demonstrationTypes
       .map((demonstrationType) => demonstrationType.demonstrationTypeName)
       .includes(demonstrationTypeName);
+  };
+
+  const validateDatePicker = (effectiveDate: string, expirationDate: string) => {
+    if (
+      !effectiveDate ||
+      !expirationDate ||
+      new Date(demonstrationTypeFormData.effectiveDate) <=
+        new Date(demonstrationTypeFormData.expirationDate)
+    ) {
+      return "";
+    }
+
+    return "Effective date must be on or before expiration date.";
   };
 
   return (
@@ -90,6 +104,12 @@ export const AddDemonstrationTypesForm = ({
               }
               label="Expiration Date"
               name="date-picker-expiration-date"
+              getValidationMessage={() =>
+                validateDatePicker(
+                  demonstrationTypeFormData.effectiveDate,
+                  demonstrationTypeFormData.expirationDate
+                )
+              }
             />
           </div>
         </div>
