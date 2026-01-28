@@ -32,7 +32,7 @@ export const SelectDemonstrationTypeName = (props: SelectDemonstrationTypeNamePr
 
   const placeholderText = useMemo(() => {
     if (loading) return "Loading...";
-    return typeNameOptions.length ? "Select" : "No types available";
+    return typeNameOptions.length ? "Select an option" : "No types available";
   }, [loading, typeNameOptions.length]);
 
   if (error) {
