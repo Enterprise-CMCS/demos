@@ -10,6 +10,7 @@ import {
   validatePhaseCompletion,
   PHASE_ACTIONS,
   updateStatusToUnderReviewIfNeeded,
+  updateApplicationStatus,
 } from ".";
 import { validateAndUpdateDates } from "../applicationDate";
 
@@ -77,6 +78,10 @@ export async function completePhase(
 
       if (phaseActions.nextPhase?.phaseName === "Application Intake" && nextPhaseWasStarted) {
         await updateStatusToUnderReviewIfNeeded(input.applicationId, tx);
+      }
+
+      if (input.phaseName === "Approval Summary") {
+        await updateApplicationStatus(input.applicationId, "Approved", tx);
       }
     });
   } catch (error) {
