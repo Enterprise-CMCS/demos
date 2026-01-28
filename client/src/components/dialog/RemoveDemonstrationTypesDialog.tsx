@@ -16,7 +16,7 @@ type Demonstration = Pick<ServerDemonstration, "id"> & {
   demonstrationTypes: Pick<DemonstrationTypeAssignment, "demonstrationTypeName">[];
 };
 
-export const ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION: TypedDocumentNode<
+export const REMOVE_DEMONSTRATION_TYPES_DIALOG_MUTATION: TypedDocumentNode<
   { setDemonstrationTypes: Demonstration },
   { input: SetDemonstrationTypesInput }
 > = gql`
@@ -41,7 +41,7 @@ export const RemoveDemonstrationTypesDialog = ({
   const { showSuccess, showError } = useToast();
 
   const [removeDemonstrationTypes, { loading: removing }] = useMutation(
-    ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION
+    REMOVE_DEMONSTRATION_TYPES_DIALOG_MUTATION
   );
 
   const onConfirm = async () => {
@@ -68,6 +68,7 @@ export const RemoveDemonstrationTypesDialog = ({
     <BaseDialog
       title="Remove Type(s)"
       onClose={closeDialog}
+      dialogHasChanges={false}
       actionButton={
         <ErrorButton
           name="button-confirm-remove-types"
@@ -82,10 +83,8 @@ export const RemoveDemonstrationTypesDialog = ({
       }
     >
       <div className="mb-2 text-sm text-text-filled">
-        Are you sure you want to remove
-        {demonstrationTypeNames.length > 1
-          ? `${demonstrationTypeNames.length} Types`
-          : "this Type"}{" "}
+        Are you sure you want to remove{" "}
+        {demonstrationTypeNames.length > 1 ? `${demonstrationTypeNames.length} Types` : "this Type"}{" "}
         from the demonstration?
         <br />
         <span className="text-error flex items-center gap-1 mt-1">
