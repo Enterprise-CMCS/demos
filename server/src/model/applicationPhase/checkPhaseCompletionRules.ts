@@ -83,7 +83,10 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
     ],
   },
   "Approval Summary": {
-    datesMustExist: [],
+    datesMustExist: [
+      "Application Details Marked Complete Date",
+      "Application Demonstration Types Marked Complete Date",
+    ],
     documentTypesMustExist: [],
     phasesMustBeComplete: [
       "Application Intake",

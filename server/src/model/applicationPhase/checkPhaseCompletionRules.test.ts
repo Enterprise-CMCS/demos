@@ -443,7 +443,20 @@ describe("checkPhaseCompletionRules", () => {
         "Approval Summary",
         "Started"
       );
-      expect(checkApplicationDateExistsForCompletion).not.toBeCalled();
+      expect(vi.mocked(checkApplicationDateExistsForCompletion).mock.calls).toEqual([
+        [
+          testApplicationId,
+          "Approval Summary",
+          "Application Details Marked Complete Date",
+          testApplicationDateMapReturn,
+        ],
+        [
+          testApplicationId,
+          "Approval Summary",
+          "Application Demonstration Types Marked Complete Date",
+          testApplicationDateMapReturn,
+        ],
+      ]);
       expect(checkDocumentTypeExistsForCompletion).not.toBeCalled();
       expect(vi.mocked(checkPriorPhaseCompleteForCompletion).mock.calls).toEqual([
         [testApplicationId, "Approval Summary", "Application Intake", testApplicationPhases],
