@@ -36,7 +36,7 @@ type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
 
 export type DemonstrationDetailDemonstrationType = Pick<
   DemonstrationTypeAssignment,
-  "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate"
+  "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "createdAt"
 >;
 
 export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "status"> & {
