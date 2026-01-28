@@ -39,7 +39,12 @@ export const DemonstrationTypesSection = ({
         </SecondaryButton>
       </div>
 
-      <TypesTable types={types} inputDisabled={isComplete} hideSearch={true} />
+      <TypesTable
+        demonstrationId={demonstrationId}
+        types={types}
+        inputDisabled={isComplete}
+        hideSearch={true}
+      />
 
       <div className="border-t-1 border-gray-dark mt-2">
         <div className="flex justify-end mt-2 gap-2">

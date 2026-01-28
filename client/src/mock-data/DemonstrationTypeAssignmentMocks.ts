@@ -1,5 +1,5 @@
 import { MockedResponse } from "@apollo/client/testing";
-import { ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION } from "components/dialog/DemonstrationTypes/useApplyDemonstrationTypesDialogData";
+import { ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION } from "components/dialog/ApplyDemonstrationTypes/useApplyDemonstrationTypesDialogData";
 
 import { SetDemonstrationTypesInput, Tag } from "demos-server";
 
