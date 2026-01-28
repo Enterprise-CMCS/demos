@@ -22,10 +22,7 @@ export type PhaseActions = {
     dateToStart?: DateType;
   };
 };
-export type PhaseActionRecord = Record<
-  PhaseNameWithTrackedStatus,
-  PhaseActions | "Not Implemented" | "Not Permitted"
->;
+export type PhaseActionRecord = Record<PhaseNameWithTrackedStatus, PhaseActions | "Not Permitted">;
 
 export type ApplicationPhaseStatusRecord = Record<PhaseNameWithTrackedStatus, PhaseStatus>;
 

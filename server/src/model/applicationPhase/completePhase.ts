@@ -23,8 +23,6 @@ export async function completePhase(
 
   if (phaseActions === "Not Permitted") {
     throw new Error(`Operations against the ${input.phaseName} phase are not permitted via API.`);
-  } else if (phaseActions === "Not Implemented") {
-    throw new Error(`Completion of the ${input.phaseName} phase via API is not yet implemented.`);
   }
 
   try {
