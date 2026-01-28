@@ -74,8 +74,14 @@ describe("DemonstrationTypesSection", () => {
     expect(switchInput).not.toBeChecked();
   });
 
-  it("switch reflects initial complete state", () => {
+  it("switch reflects initial complete state", async () => {
     setup(true);
+    const user = userEvent.setup();
+
+    const headerButton = screen.getByRole("button", {
+      name: /Types, complete, expand section/i,
+    });
+    await user.click(headerButton);
 
     const switchInput = screen.getByTestId("mark-complete-switch");
     expect(switchInput).toBeChecked();
@@ -95,6 +101,11 @@ describe("DemonstrationTypesSection", () => {
   it("calls onMarkComplete when switch is toggled from complete to incomplete", async () => {
     setup(true);
     const user = userEvent.setup();
+
+    const headerButton = screen.getByRole("button", {
+      name: /Types, complete, expand section/i,
+    });
+    await user.click(headerButton);
 
     const switchInput = screen.getByTestId("mark-complete-switch");
     await user.click(switchInput);

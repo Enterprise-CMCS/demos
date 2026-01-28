@@ -20,7 +20,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   isDisabled,
   getValidationMessage,
 }) => {
-  // This is only triggered when the input value is a valid date string
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange?.(e.target.value);
   };
@@ -33,9 +32,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
       value={value || ""}
       onChange={handleChange}
       isRequired={isRequired ?? false}
-      aria-required={isRequired ? "true" : "false"}
       isDisabled={isDisabled ?? false}
-      aria-disabled={isDisabled ? "true" : "false"}
       getValidationMessage={getValidationMessage}
     />
   );
