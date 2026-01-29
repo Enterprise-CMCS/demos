@@ -17,7 +17,7 @@ interface DatePickerProps {
   value?: string;
   isRequired?: boolean;
   isDisabled?: boolean;
-  getValidationMessage?: (value: string) => string | undefined;
+  getValidationMessage?: () => string;
 }
 
 export const DatePicker: React.FC<DatePickerProps> = ({
@@ -31,23 +31,12 @@ export const DatePicker: React.FC<DatePickerProps> = ({
 }) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = e.target.value;
-    if (!onChange || !newDate) {
-      return;
-    }
-
-    const parsedNewDate = new Date(newDate);
-    const minDate = new Date(DEFAULT_MIN_DATE);
-    const maxDate = new Date(DEFAULT_MAX_DATE);
-
-    if (isAfter(parsedNewDate, minDate) && isBefore(parsedNewDate, maxDate)) {
-      onChange(newDate);
+    if (isAfter(newDate, DEFAULT_MIN_DATE) && isBefore(newDate, DEFAULT_MAX_DATE)) {
+      onChange?.(newDate);
     }
   };
 
-  const currentValue = value ?? "";
-  const validationMessage = getValidationMessage
-    ? getValidationMessage(currentValue)
-    : "";
+  const validationMessage = getValidationMessage ? getValidationMessage() : "";
 
   return (
     <div className="flex flex-col gap-xs">
@@ -68,9 +57,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         min={DEFAULT_MIN_DATE}
         max={DEFAULT_MAX_DATE}
       />
-      {validationMessage && (
-        <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>
-      )}
+      {validationMessage && <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>}
     </div>
   );
 };

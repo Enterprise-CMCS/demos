@@ -6,7 +6,7 @@ export const LABEL_CLASSES = tw`text-text-font font-semibold text-field-label fl
 export const INPUT_BASE_CLASSES = tw`border-1 rounded-minimal p-[12px] outline-none focus:ring-2
 bg-surface-white hover:text-text-font
 disabled:bg-surface-secondary disabled:border-border-fields disabled:text-text-placeholder`;
-const VALIDATION_MESSAGE_CLASSES = tw`text-error-dark`;
+export const VALIDATION_MESSAGE_CLASSES = tw`text-error-dark`;
 
 export const getInputColors = (validationMessage: string) => {
   let classes = "";
@@ -23,7 +23,7 @@ export type InputValidationFunction = (value: string) => string;
 
 export interface InputProps {
   name: string;
-  label: string;
+  label: string | React.ReactNode;
   type: string;
   isRequired?: boolean;
   isDisabled?: boolean;
@@ -31,7 +31,9 @@ export interface InputProps {
   defaultValue?: string;
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: () => void;
   getValidationMessage?: (value: string) => string | undefined;
+  labelClasses?: string;
 }
 
 export const Input: React.FC<InputProps> = ({
@@ -43,8 +45,10 @@ export const Input: React.FC<InputProps> = ({
   placeholder,
   value,
   onChange,
+  onBlur,
   defaultValue,
   getValidationMessage,
+  labelClasses,
 }) => {
   const isControlled = value !== undefined;
   const [internalValue, setInternalValue] = useState(defaultValue ?? "");
@@ -60,8 +64,8 @@ export const Input: React.FC<InputProps> = ({
 
   return (
     <div className="flex flex-col gap-xs">
-      <label className={LABEL_CLASSES} htmlFor={name}>
-        {isRequired && <span className="text-text-warn">*</span>}
+      <label className={labelClasses || LABEL_CLASSES} htmlFor={name}>
+        {isRequired && typeof label === "string" && <span className="text-text-warn">*</span>}
         {label}
       </label>
       <input
@@ -75,6 +79,7 @@ export const Input: React.FC<InputProps> = ({
         disabled={isDisabled ?? false}
         value={currentValue}
         onChange={handleChange}
+        onBlur={onBlur}
       />
       {validationMessage && <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>}
     </div>
