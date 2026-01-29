@@ -134,8 +134,11 @@ describe("CompletableSection", () => {
     it("button has descriptive aria-label when complete and collapsed", () => {
       render(<CompletableSection {...defaultProps} isComplete={true} />);
       const button = screen.getByRole("button");
-      fireEvent.click(button);
-      expect(button).toHaveAttribute("aria-label", "Test Section, complete, expand section");
+
+      expect(button).toHaveAttribute(
+        "aria-label",
+        "Test Section, complete, expand section"
+      );
     });
 
     it("sanitizes title with spaces for IDs", () => {
@@ -151,6 +154,28 @@ describe("CompletableSection", () => {
       render(<CompletableSection {...defaultProps} />);
       const button = screen.getByRole("button");
       expect(button).not.toHaveAttribute("tabindex", "-1");
+    });
+
+    it("renders completion date when completionDate prop is provided", () => {
+      render(
+        <CompletableSection
+          {...defaultProps}
+          isComplete={true}
+          completionDate="02/01/2025"
+        />
+      );
+
+      expect(
+        screen.getByText("Completed on 02/01/2025")
+      ).toBeInTheDocument();
+    });
+
+    it("does not render completion date when completionDate prop is not provided", () => {
+      render(<CompletableSection {...defaultProps} isComplete={true} />);
+
+      expect(
+        screen.queryByText(/Completed on/i)
+      ).not.toBeInTheDocument();
     });
   });
 });

@@ -1,25 +1,24 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { ChevronDownIcon, ChevronRightIcon } from "components/icons";
 import { CompletenessBadge } from "components/badge/CompletenessBadge";
 
 export const CompletableSection = ({
   isComplete,
   title,
+  completionDate,
   children,
 }: {
   isComplete: boolean;
   title: string;
+  completionDate?: string;
   children: React.ReactNode;
 }) => {
-  const [isExpanded, setIsExpanded] = React.useState<boolean>(true);
-
-  const previousIsComplete = useRef(isComplete);
+  const [isExpanded, setIsExpanded] = React.useState(() => !isComplete);
 
   useEffect(() => {
-    if (previousIsComplete.current === false && isComplete === true) {
+    if (isComplete) {
       setIsExpanded(false);
     }
-    previousIsComplete.current = isComplete;
   }, [isComplete]);
 
   const sectionId = title.replace(/\s+/g, "-").toLowerCase();
@@ -36,6 +35,7 @@ export const CompletableSection = ({
           {title}
         </h4>
         <div className="flex items-center gap-2 mr-1">
+          {completionDate && <span className="text-sm font-small flex gap-0-5">Completed on {completionDate}</span>}
           <CompletenessBadge isComplete={isComplete} />
           {isExpanded ? (
             <ChevronDownIcon className="h-2 w-2 text-brand" />
