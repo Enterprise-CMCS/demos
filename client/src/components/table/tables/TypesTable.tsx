@@ -8,9 +8,10 @@ import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
 // import { useDialog } from "components/dialog/DialogContext";
 import { TypesColumns } from "../columns/TypesColumns";
-import { ApplicationStatus, Demonstration as ServerDemonstration } from "demos-server";
+import { Demonstration as ServerDemonstration } from "demos-server";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { useDialog } from "components/dialog/DialogContext";
+import { Notice } from "components/notice";
 
 export type TypeTableRow = {
   id: string;
@@ -60,7 +61,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({
     }
     if (
       selected.length === demonstration.demonstrationTypes.length &&
-      demonstration.status === ("Approved" satisfies ApplicationStatus)
+      demonstration.status === "Approved"
     ) {
       return false;
     }
@@ -68,7 +69,10 @@ export const TypesTable: React.FC<TypesTableProps> = ({
   };
 
   return (
-    <div className="overflow-x-auto w-full mb-2">
+    <div className="overflow-x-auto w-full mb-2 flex flex-col gap-1">
+      {demonstration.status === "Approved" && (
+        <Notice title="At least one demonstration type is required for approved demonstrations." />
+      )}
       {columns && (
         <Table<TypeTableRow>
           data={typeRows}
