@@ -37,7 +37,10 @@ export const PHASE_ACTIONS: PhaseActionRecord = {
     dateToComplete: "Approval Package Completion Date",
     nextPhase: {
       phaseName: "Approval Summary",
+      dateToStart: "Approval Summary Start Date",
     },
   },
-  "Approval Summary": "Not Implemented",
+  "Approval Summary": {
+    dateToComplete: "Approval Summary Completion Date",
+  },
 };
