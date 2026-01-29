@@ -23,7 +23,7 @@ export type InputValidationFunction = (value: string) => string;
 
 export interface InputProps {
   name: string;
-  label: string | React.ReactNode;
+  label: string;
   type: string;
   isRequired?: boolean;
   isDisabled?: boolean;
@@ -31,9 +31,7 @@ export interface InputProps {
   defaultValue?: string;
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onBlur?: () => void;
   getValidationMessage?: (value: string) => string | undefined;
-  labelClasses?: string;
 }
 
 export const Input: React.FC<InputProps> = ({
@@ -45,10 +43,8 @@ export const Input: React.FC<InputProps> = ({
   placeholder,
   value,
   onChange,
-  onBlur,
   defaultValue,
   getValidationMessage,
-  labelClasses,
 }) => {
   const isControlled = value !== undefined;
   const [internalValue, setInternalValue] = useState(defaultValue ?? "");
@@ -64,8 +60,8 @@ export const Input: React.FC<InputProps> = ({
 
   return (
     <div className="flex flex-col gap-xs">
-      <label className={labelClasses || LABEL_CLASSES} htmlFor={name}>
-        {isRequired && typeof label === "string" && <span className="text-text-warn">*</span>}
+      <label className={LABEL_CLASSES} htmlFor={name}>
+        {isRequired && <span className="text-text-warn">*</span>}
         {label}
       </label>
       <input
@@ -79,7 +75,6 @@ export const Input: React.FC<InputProps> = ({
         disabled={isDisabled ?? false}
         value={currentValue}
         onChange={handleChange}
-        onBlur={onBlur}
       />
       {validationMessage && <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>}
     </div>
