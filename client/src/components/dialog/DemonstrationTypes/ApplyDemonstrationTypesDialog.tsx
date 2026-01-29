@@ -62,6 +62,7 @@ export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrati
       title="Apply Type(s)"
       onClose={closeDialog}
       dialogHasChanges={hasChanges(initialDemonstrationTypes, demonstrationTypes)}
+      maxWidthClass="max-w-[920px]"
       actionButton={
         <Button
           name={"button-submit-demonstration-dialog"}
@@ -76,7 +77,7 @@ export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrati
         {loading && <p>Loading...</p>}
         {loadingError && <p>Error loading demonstration data.</p>}
         {demonstrationTypes && (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-gray-300">
             <AddDemonstrationTypesForm
               demonstrationTypes={demonstrationTypes}
               addDemonstrationType={(demonstrationType: DemonstrationType) =>

@@ -1,21 +1,18 @@
-import {
-  duPost,
-  UIPATH_BASE_URL,
-  getExtractorGuid,
-  getProjectId,
-} from "./uipathClient.js";
+import { duPost, getProjectId } from "./uipathClient.js";
+import { getExtractorUrl } from "./getExtractorUrl.js";
 
 export async function extractDoc(token, docId) {
-  const extractorGuid = getExtractorGuid(); // NOTE: Zoe might make her own. So we may need to query here to get the right GUID
+  const asyncUrl = await getExtractorUrl(token);
   const projectId = getProjectId();
-  const url = `${UIPATH_BASE_URL}:443/${extractorGuid}/du_/api/framework/projects/${projectId}/extractors/generative_extractor/extraction/start`;
-
-  const extract = await duPost(url, token, {
+  const isDefaultProject = projectId.startsWith("000");
+  const requestBody = {
     documentId: docId,
     pageRange: null,
-    prompts: activeQuestionBlobs,
     configuration: null,
-  });
+    ...(isDefaultProject ? { prompts: activeQuestionBlobs } : {}),
+  };
+
+  const extract = await duPost(asyncUrl, token, requestBody);
   return extract.data.resultUrl;
 }
 
