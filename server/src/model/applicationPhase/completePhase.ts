@@ -10,6 +10,7 @@ import {
   validatePhaseCompletion,
   PHASE_ACTIONS,
   updateStatusToUnderReviewIfNeeded,
+  updateApplicationStatus,
 } from ".";
 import { validateAndUpdateDates } from "../applicationDate";
 
@@ -22,8 +23,6 @@ export async function completePhase(
 
   if (phaseActions === "Not Permitted") {
     throw new Error(`Operations against the ${input.phaseName} phase are not permitted via API.`);
-  } else if (phaseActions === "Not Implemented") {
-    throw new Error(`Completion of the ${input.phaseName} phase via API is not yet implemented.`);
   }
 
   try {
@@ -77,6 +76,10 @@ export async function completePhase(
 
       if (phaseActions.nextPhase?.phaseName === "Application Intake" && nextPhaseWasStarted) {
         await updateStatusToUnderReviewIfNeeded(input.applicationId, tx);
+      }
+
+      if (input.phaseName === "Approval Summary") {
+        await updateApplicationStatus(input.applicationId, "Approved", tx);
       }
     });
   } catch (error) {
