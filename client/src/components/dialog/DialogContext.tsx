@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from "react";
-import { DocumentType } from "demos-server";
+import { DocumentType, Tag as DemonstrationTypeName } from "demos-server";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
 import { CreateExtensionDialog } from "./modification/CreateExtensionDialog";
@@ -19,6 +19,7 @@ import { ApprovalPackageUploadDialog } from "./document/phases/ApprovalPackageUp
 import { DeclareIncompleteDialog, DeclareIncompleteForm } from "./DeclareIncompleteDialog";
 import { ApplyDemonstrationTypesDialog } from "./DemonstrationTypes/ApplyDemonstrationTypesDialog";
 import { ApplyTagsDialog } from "./ApplyTagsDialog";
+import { RemoveDemonstrationTypesDialog } from "./DemonstrationTypes/RemoveDemonstrationTypesDialog";
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -176,6 +177,18 @@ export const useDialog = () => {
     context.showDialog(<ApplyDemonstrationTypesDialog demonstrationId={demonstrationId} />);
   };
 
+  const showRemoveDemonstrationTypesDialog = (
+    demonstrationId: string,
+    demonstrationTypeNames: DemonstrationTypeName[]
+  ) => {
+    context.showDialog(
+      <RemoveDemonstrationTypesDialog
+        demonstrationId={demonstrationId}
+        demonstrationTypeNames={demonstrationTypeNames}
+      />
+    );
+  };
+
   const showApplyTagsDialog = (allTags: string[], selectedTags: string[]) => {
     context.showDialog(
       <ApplyTagsDialog
@@ -204,5 +217,6 @@ export const useDialog = () => {
     showDeclareIncompleteDialog,
     showApplyDemonstrationTypesDialog,
     showApplyTagsDialog,
+    showRemoveDemonstrationTypesDialog,
   };
 };
