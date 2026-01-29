@@ -401,22 +401,20 @@ async function seedDatabase() {
   }
   const demonstrations = (await getManyApplications("Demonstration"))!;
 
-  await Promise.all(
-    demonstrations.map(async (demonstration) => {
-      const randomDates = randomDateRange();
-      const updatePayload: UpdateDemonstrationInput = {
-        effectiveDate: randomDates["start"],
-        expirationDate: randomDates["end"],
-      };
+  for (const demonstration of demonstrations) {
+    const randomDates = randomDateRange();
+    const updatePayload: UpdateDemonstrationInput = {
+      effectiveDate: randomDates["start"],
+      expirationDate: randomDates["end"],
+    };
 
-      const updateInput = {
-        id: demonstration.id,
-        input: updatePayload,
-      };
+    const updateInput = {
+      id: demonstration.id,
+      input: updatePayload,
+    };
 
-      await __updateDemonstration(undefined, updateInput);
-    })
-  );
+    await __updateDemonstration(undefined, updateInput);
+  }
 
   console.log("🌱 Seeding all dates for one demonstration");
   const randomDemonstration = await prisma().demonstration.findRandom({
