@@ -213,6 +213,7 @@ async function clearDatabase() {
     prisma().demonstrationRoleAssignment.deleteMany(),
     prisma().applicationDate.deleteMany(),
     prisma().applicationPhase.deleteMany(),
+    prisma().applicationNote.deleteMany(),
     prisma().document.deleteMany(),
 
     // Note that we must delete from application first

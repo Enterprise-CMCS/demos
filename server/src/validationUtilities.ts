@@ -3,7 +3,7 @@ export function findDuplicates<T>(items: T[]): T[] {
   const duplicates: T[] = [];
 
   for (const item of items) {
-    const currentCount = counts.get(item) || 0;
+    const currentCount = counts.get(item) ?? 0;
     counts.set(item, currentCount + 1);
   }
 

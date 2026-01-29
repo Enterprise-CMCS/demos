@@ -6,6 +6,24 @@ This is the server / back-end portion of the Demonstration Evaluation & Manageme
 
 We use [Prisma](https://www.prisma.io/) as our ORM and [Apollo Server](https://www.apollographql.com/docs/apollo-server) as our GraphQL server.
 
+## Custom Prisma Middleware - Upsert / Update
+
+We use a combination approach of a small amount of custom Prisma middleware and a database trigger to help suppress updates that change no values from being written in the database. While there are downsides to this - namely, that UPDATE statements now have to perform checks every time, increasing load on the database - this is a minimal risk for our project. We accomplish this through two components: a database trigger which discards any updates where the only changed field is `updated_at`, if it is present, and custom middleware for the `update` and `upsert` methods in Prisma which handles errors that arise from this.
+
+The database trigger is straightforward. It runs before update on every row in the relevant tables. When triggered, it creates a record for the old and new values, and then tries to set the old `updated_at` value to the new `updated_at` value. It gracefully handles cases where `updated_at` is not part of the table structure.
+
+> Note that `updated_at` is always sent by Prisma (thanks to the `@updatedAt` configuration object on relevant models) and is not part of the user-defined payload, so we do not have to worry about cases where a table _has_ an `updated_at` column, but it is not included in the payload. This would be an issue if the field was not always included as part of the payload thanks to Prisma, and is something to keep in mind regarding this pattern.
+
+If the old and new records are identical after handling `updated_at`, the trigger returns `NULL`, aborting the update operation; otherwise, it just returns the new record values, allowing it to proceed as expected.
+
+The database function works and is relatively simple; where it becomes an issue is in how Prisma interacts with the database. When Prisma performs an `update` or `upsert` operation (which would necessarily cause `UPDATE` statements to be used on the SQL side), it throws an error that _appears_ to be caused when the database returns a row change count of zero. The error it issues is actually `P2025`, with message "An operation failed because it depends on one or more records that were required but not found."
+
+This message is somewhat misleading in the case of the trigger firing - after all, the record is found, it is just that the UPDATE statement returns no rows changed because the trigger prevents any changes from occurring. It seems that Prisma isn't actually checking for the existence of the row before running the `UPDATE`, and is instead relying on the modified row counts to decide whether to issue a `P2025` or not. In essence, the new database trigger creates "false positives" - `P2025` errors that are not actually errors.
+
+To address this, we have inserted special error handling in the middleware for `upsert` and `update`. This handling catches cases of `P2025` and then uses `findUnique` with the same `where` clause to fetch the record. If the record is fetchable, we know that the `P2025` error is incorrect - the record does exist, and the reason for the error is that our trigger fired. In that case, we return the record (which is the expected behavior of `update` and `upsert` anyway); otherwise, we log the error and allow it to propagate normally.
+
+It would be better if we could have the database raise a warning message that Prisma directly parses to make sure that what is happening is specifically the trigger firing. Unfortunately, support for this type of interaction is not present in Prisma at present. Alternative approaches like having the database throw an error cause issues with transactions being aborted, and pulling data into the server layer to check for whether true changes are occurring is expensive and introduces a larger (though still quite small) chance of concurrency issues. Accordingly, this approach seems to be the best compromise possible within Prisma at present.
+
 # Structure
 
 The server code is found in `server/`, and all paths in this documentation refer to folders / files within that folder, unless otherwise specified. When referring to a path outside of the `server/` folder, the path will be prefixed with a forward slash, which represents the root of the repository.

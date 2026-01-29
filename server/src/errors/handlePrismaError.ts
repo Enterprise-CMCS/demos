@@ -33,7 +33,8 @@ export function handlePrismaError(error: unknown): never {
 
   if (error instanceof Prisma.PrismaClientUnknownRequestError) {
     if (error.message.includes("violates check constraint")) {
-      const constraintMatch = error.message.match(/violates check constraint \\"([^"]+)\\"/);
+      // Regex extracts the name of the check constraint from the message string
+      const constraintMatch = /violates check constraint \\"([^"]+)\\"/.exec(error.message);
       const constraintName = constraintMatch ? constraintMatch[1] : "unknown";
       throw new GraphQLError(`A check constraint was violated in your input: ${constraintName}.`, {
         extensions: {

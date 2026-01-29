@@ -4,7 +4,7 @@ import { tw } from "tags/tw";
 
 const STYLES = {
   tagChip: tw`inline-flex items-center gap-1 rounded-full border border-[#5b616b] bg-surface-white px-1 py-0.75 text-sm text-black`,
-  tagRemove: tw`inline-flex items-center justify-center rounded-full w-[15px] h-[15px] bg-[#5b616b]`,
+  tagRemove: tw`inline-flex items-center justify-center rounded-full w-[15px] h-[15px] bg-[#5b616b] cursor-pointer`,
 };
 
 export const TagChip = ({
