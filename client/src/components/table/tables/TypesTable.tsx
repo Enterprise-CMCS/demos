@@ -8,7 +8,7 @@ import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
 // import { useDialog } from "components/dialog/DialogContext";
 import { TypesColumns } from "../columns/TypesColumns";
-
+import { ApplicationStatus, Demonstration as ServerDemonstration } from "demos-server";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { useDialog } from "components/dialog/DialogContext";
 
@@ -20,16 +20,18 @@ export type TypeTableRow = {
   expirationDate: Date;
 };
 
+export type Demonstration = Pick<ServerDemonstration, "id" | "status"> & {
+  demonstrationTypes: DemonstrationDetailDemonstrationType[];
+};
+
 export type TypesTableProps = {
-  demonstrationId: string;
-  types: DemonstrationDetailDemonstrationType[];
+  demonstration: Demonstration;
   inputDisabled?: boolean;
   hideSearch?: boolean;
 };
 
 export const TypesTable: React.FC<TypesTableProps> = ({
-  demonstrationId,
-  types,
+  demonstration,
   inputDisabled = false,
   hideSearch = false,
 }) => {
@@ -41,7 +43,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({
    * and map to expected data structure
    */
   const typeRows: TypeTableRow[] = React.useMemo(() => {
-    return [...types]
+    return [...demonstration.demonstrationTypes]
       .sort((a, b) => compareAsc(a.createdAt, b.createdAt))
       .map((type) => ({
         id: type.demonstrationTypeName,
@@ -50,7 +52,20 @@ export const TypesTable: React.FC<TypesTableProps> = ({
         effectiveDate: new Date(type.effectiveDate),
         expirationDate: new Date(type.expirationDate),
       }));
-  }, [types]);
+  }, [demonstration.demonstrationTypes]);
+
+  const canRemove = (selected: TypeTableRow[]) => {
+    if (selected.length < 1) {
+      return false;
+    }
+    if (
+      selected.length === demonstration.demonstrationTypes.length &&
+      demonstration.status === ("Approved" satisfies ApplicationStatus)
+    ) {
+      return false;
+    }
+    return true;
+  };
 
   return (
     <div className="overflow-x-auto w-full mb-2">
@@ -65,7 +80,6 @@ export const TypesTable: React.FC<TypesTableProps> = ({
           actionButtons={(table) => {
             const selected = table.getSelectedRowModel().rows.map((r) => r.original);
             const editDisabled = selected.length !== 1;
-            const removeDisabled = selected.length < 1;
 
             return (
               <div className="flex gap-1 ml-4">
@@ -96,11 +110,11 @@ export const TypesTable: React.FC<TypesTableProps> = ({
                 <CircleButton
                   name="remove-type"
                   ariaLabel="Remove Type"
-                  disabled={removeDisabled || inputDisabled}
+                  disabled={!canRemove(selected) || inputDisabled}
                   onClick={() =>
-                    !removeDisabled &&
+                    canRemove(selected) &&
                     showRemoveDemonstrationTypesDialog(
-                      demonstrationId,
+                      demonstration.id,
                       selected.map((t) => t.typeLabel)
                     )
                   }
