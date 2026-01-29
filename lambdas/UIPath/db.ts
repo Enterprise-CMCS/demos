@@ -39,44 +39,17 @@ export async function getDatabaseUrl() {
   return databaseUrlCache;
 }
 
-export interface QuestionPrompt {
-  id: string;
-  question: string;
-  fieldType?: string;
-  multiValued?: boolean;
+export function getDbSchema() {
+  return dbSchema;
 }
 
 export async function getDbPool(): Promise<Pool> {
   if (poolPromise === null) {
     poolPromise = (async () => {
       const connectionString = await getDatabaseUrl();
-      log.info("Connecting to database for UiPath questions");
+      log.info("Connecting to database for UiPath results");
       return new Pool({ connectionString, max: 2 });
     })();
   }
   return poolPromise;
-}
-
-export async function fetchQuestionPrompts(): Promise<QuestionPrompt[]> {
-  const questionQuery =
-    "select question->>'id' as id, question->>'question' as question, " +
-    "question->>'fieldType' as field_type, " +
-    "(question->>'multiValued')::boolean as multi_valued " +
-    "from demos_app.document_understanding_questions";
-
-  const pool = await getDbPool();
-  const client = await pool.connect();
-  try {
-    const result = await client.query(questionQuery);
-    return result.rows
-      .map((row, idx) => ({
-        id: String(row.id ?? row.prompt_id ?? row.question_id ?? idx),
-        question: String(row.question ?? row.prompt ?? row.text ?? ""),
-        fieldType: row.field_type ?? row.type ?? "Text",
-        multiValued: Boolean(row.multi_valued ?? row.multivalued ?? false),
-      }))
-      .filter((q) => q.question);
-  } finally {
-    client.release();
-  }
 }

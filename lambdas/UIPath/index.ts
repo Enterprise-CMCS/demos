@@ -7,12 +7,10 @@ import { SQSEvent } from "aws-lambda";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { log, reqIdChild, als, store } from "./log";
 import { runDocumentUnderstanding } from "./runDocumentUnderstanding";
-import { fetchQuestionPrompts } from "./db";
 
 interface UipathMessage {
   s3Key: string;
   s3Bucket?: string;
-  questions?: unknown;
 }
 
 const s3 = new S3Client({
@@ -50,20 +48,10 @@ export const handler = async (event: SQSEvent) =>
     const inputFile = await downloadFromS3(s3Bucket, s3Key);
     log.info({ s3Bucket, s3Key, localPath: inputFile }, "Downloaded document from S3");
 
-    const prompts = await fetchQuestionPrompts();
-    if (prompts.length === 0) {
-      throw new Error("No document understanding prompts available.");
-    }
-
     const status = await runDocumentUnderstanding(inputFile, {
       pollIntervalMs: 5_000,
       logFullResult: false,
-      prompts: prompts.length ? prompts.map((p) => ({
-        id: p.id,
-        question: p.question,
-        fieldType: p.fieldType ?? "Text",
-        multiValued: p.multiValued ?? false,
-      })) : undefined,
+      requestId: firstRecord?.messageId ?? "n/a",
     });
 
     log.info({ status }, "UiPath extraction completed");

@@ -63,9 +63,6 @@ export class UiPathProcessor extends Construct {
       `demos-${props.hostEnvironment}-rds-demos_upload`
     );
 
-    const uiPathDefaultProjectId =
-      process.env.UIPATH_DEFAULT_PROJECT_ID ?? "00000000-0000-0000-0000-000000000000";
-
     // Stable pathing relative to this file (not process.cwd)
     const uiPathDir = path.resolve(process.cwd(), "..", "lambdas", "UIPath");
     const uiPathLockFile = path.join(uiPathDir, "package-lock.json");
@@ -86,8 +83,6 @@ export class UiPathProcessor extends Construct {
         UIPATH_CLIENT_ID: process.env.UIPATH_CLIENT_ID ?? "",
         DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
         UIPATH_SECRET_ID: clientSecret.secretName,
-        UIPATH_EXTRACTOR_GUID: process.env.UIPATH_EXTRACTOR_GUID ?? "",
-        UIPATH_PROJECT_ID: process.env.UIPATH_PROJECT_ID ?? uiPathDefaultProjectId,
         LOG_LEVEL: process.env.LOG_LEVEL ?? "info",
         UIPATH_DOCUMENTS_BUCKET: props.documentsBucket.bucketName,
         NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",

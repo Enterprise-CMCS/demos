@@ -11,7 +11,7 @@ DB_PASSWORD="postgres" # pragma: allowlist secret
 UIPATH_SECRET_ID="demos-local/uipath"
 UIPATH_CLIENT_ID=${UIPATH_CLIENT_ID:-"local-uipath-client-id"}
 UIPATH_CLIENT_SECRET=${UIPATH_CLIENT_SECRET:-"local-uipath-client-secret"} # pragma: allowlist secret
-UIPATH_EXTRACTOR_GUID=${UIPATH_EXTRACTOR_GUID:-"local-uipath-extractor-guid"}
+UIPATH_PROJECT_ID=${UIPATH_PROJECT_ID:-""} # pragma: allowlist secret
 
 # Delete existing secret
 $AWS_CMD secretsmanager delete-secret \
@@ -42,7 +42,7 @@ $AWS_CMD secretsmanager create-secret \
     --secret-string "{
         \"clientId\": \"$UIPATH_CLIENT_ID\",
         \"clientSecret\": \"$UIPATH_CLIENT_SECRET\",
-        \"extractorGuid\": \"$UIPATH_EXTRACTOR_GUID\"
+        \"projectId\": \"$UIPATH_PROJECT_ID\"
     }" >/dev/null
 
 echo "✅ Secrets Manager ready"

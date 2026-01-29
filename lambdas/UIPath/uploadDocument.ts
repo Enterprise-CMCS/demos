@@ -15,7 +15,7 @@ export interface UploadResponse {
 }
 
 export async function uploadDocument(token: string, fileName: string): Promise<string> {
-  const projectId = getProjectId();
+  const projectId = await getProjectId();
   // As of now, this is a constant. but tenant contains "dev" in the URI, so this could be variable later.
   if (! UIPATH_BASE_URL || ! UIPATH_TENANT) {
     throw new Error("Missing UiPath base URL or tenant configuration.");

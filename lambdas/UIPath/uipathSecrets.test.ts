@@ -28,7 +28,7 @@ describe("getUiPathSecret", () => {
       SecretString: JSON.stringify({
         clientId: "client-1",
         clientSecret: "value-1", // pragma: allowlist secret
-        extractorGuid: "guid-1",
+        projectId: "project-1",
       }),
     });
 
@@ -38,7 +38,7 @@ describe("getUiPathSecret", () => {
     expect(first).toEqual({
       clientId: "client-1",
       clientSecret: "value-1", // pragma: allowlist secret
-      extractorGuid: "guid-1",
+      projectId: "project-1",
     });
     expect(second).toEqual(first);
     expect(mocks.sendMock).toHaveBeenCalledTimes(1);
