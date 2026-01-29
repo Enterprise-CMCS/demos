@@ -126,6 +126,8 @@ describe("validateInputDates", () => {
         "Submit Approval Package to OSORA",
         "Application Details Marked Complete Date",
         "Application Demonstration Types Marked Complete Date",
+        "Approval Summary Start Date",
+        "Approval Summary Completion Date",
       ];
       const expectedCalls = startOfDayDateTypes.map((dateType) => [dateType, testDateValue]);
 

@@ -30,7 +30,7 @@ import {
   resolveApplicationPhases,
   resolveApplicationStatus,
   resolveApplicationTags,
-} from "../application/applicationResolvers.js";
+} from "../application";
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";

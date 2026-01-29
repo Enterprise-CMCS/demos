@@ -4,7 +4,7 @@ import {
 } from "@prisma/client";
 import { SetApplicationPhaseStatusInput } from "../../types.js";
 import { prisma } from "../../prismaClient.js";
-import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
+import { getApplication, PrismaApplication } from "../application";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import {
   PrismaApplicationDateResults,

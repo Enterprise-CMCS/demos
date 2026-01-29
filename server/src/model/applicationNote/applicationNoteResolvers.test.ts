@@ -3,7 +3,7 @@ import { __resolveApplicationNoteType, __setApplicationNotes } from "./applicati
 import { ApplicationNote as PrismaApplicationNote } from "@prisma/client";
 import { prisma } from "../../prismaClient";
 import { handlePrismaError } from "../../errors/handlePrismaError";
-import { getApplication } from "../application/applicationResolvers";
+import { getApplication } from "../application";
 import { parseSetApplicationNotesInput, upsertApplicationNotes, deleteApplicationNotes } from ".";
 import { SetApplicationNotesInput } from "../../types";
 import { validateAllowedNoteChangeByPhase } from "./validateAllowedNoteChangeByPhase";
@@ -19,7 +19,7 @@ vi.mock("../../errors/handlePrismaError", () => ({
   }),
 }));
 
-vi.mock("../application/applicationResolvers", () => ({
+vi.mock("../application", () => ({
   getApplication: vi.fn(),
 }));
 

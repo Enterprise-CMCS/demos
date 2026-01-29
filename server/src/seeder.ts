@@ -30,7 +30,7 @@ import { __createExtension, __updateExtension } from "./model/extension/extensio
 import { __setApplicationDates } from "./model/applicationDate/applicationDateResolvers.js";
 import { logEvent } from "./model/event/eventResolvers.js";
 import { GraphQLContext } from "./auth/auth.util.js";
-import { getManyApplications } from "./model/application/applicationResolvers.js";
+import { getManyApplications } from "./model/application";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 const DOCUMENTS_PER_APPLICATION = 15;

@@ -5,7 +5,7 @@ import { setApplicationTags } from "./applicationTagAssignmentResolvers";
 // Mock imports
 import { prisma } from "../../prismaClient";
 import { handlePrismaError } from "../../errors/handlePrismaError";
-import { getApplication } from "../application/applicationResolvers";
+import { getApplication } from "../application";
 import {
   createApplicationTagsDemonstrationTypesIfNotExists,
   deleteAllApplicationTags,
@@ -23,7 +23,7 @@ vi.mock("../../errors/handlePrismaError", () => ({
   }),
 }));
 
-vi.mock("../application/applicationResolvers", () => ({
+vi.mock("../application", () => ({
   getApplication: vi.fn(),
 }));
 

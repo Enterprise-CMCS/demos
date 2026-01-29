@@ -12,7 +12,7 @@ import { PhaseName, PhaseStatus, SetApplicationPhaseStatusInput } from "../../ty
 // Mock imports
 import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
-import { getApplication } from "../application/applicationResolvers.js";
+import { getApplication } from "../application";
 import { completePhase, declareCompletenessPhaseIncomplete, skipConceptPhase } from ".";
 
 vi.mock("../../prismaClient.js", () => ({
@@ -26,7 +26,7 @@ vi.mock("../../errors/handlePrismaError.js", () => ({
   }),
 }));
 
-vi.mock("../application/applicationResolvers.js", () => ({
+vi.mock("../application", () => ({
   getApplication: vi.fn(),
 }));
 

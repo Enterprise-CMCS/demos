@@ -14,7 +14,7 @@ import type {
 import { getS3Adapter } from "../../adapters";
 import { getEasternNow, parseJSDateToEasternTZDate } from "../../dateUtilities";
 import { addDays } from "date-fns";
-import { getApplication, PrismaApplication } from "../application/applicationResolvers";
+import { getApplication, PrismaApplication } from "../application";
 import { findUserById } from "../user";
 import { validateAndUpdateDates } from "../applicationDate";
 import { startPhaseByDocument } from "../applicationPhase";
@@ -57,36 +57,36 @@ export async function uploadDocument(
     return await prisma().$transaction(async (tx) => {
       const easternNow = getEasternNow();
       const phaseStartDate = await startPhaseByDocument(tx, input.applicationId, input, easternNow);
-      
+
       const datesToUpdate: ApplicationDateInput[] = [];
-      
+
       if (phaseStartDate) {
         datesToUpdate.push(phaseStartDate);
       }
-      
+
       if (input.documentType === "State Application" && input.phaseName === "Application Intake") {
         const currentDate = easternNow["Start of Day"].easternTZDate;
-        
+
         datesToUpdate.push({
           dateType: "State Application Submitted Date",
           dateValue: currentDate,
         });
-        
+
         const dueDatePlus15 = addDays(currentDate, 15);
-        dueDatePlus15.setHours(23, 59, 59, 999); 
+        dueDatePlus15.setHours(23, 59, 59, 999);
         const completenessReviewDueDate = parseJSDateToEasternTZDate(dueDatePlus15);
-        
+
         datesToUpdate.push({
           dateType: "Completeness Review Due Date",
           dateValue: completenessReviewDueDate.easternTZDate,
         });
-        
+
         datesToUpdate.push({
-          dateType: "Completeness Start Date", 
+          dateType: "Completeness Start Date",
           dateValue: currentDate,
         });
       }
-      
+
       if (datesToUpdate.length > 0) {
         await validateAndUpdateDates(
           { applicationId: input.applicationId, applicationDates: datesToUpdate },

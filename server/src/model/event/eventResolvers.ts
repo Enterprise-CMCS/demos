@@ -1,7 +1,7 @@
 import { prisma } from "../../prismaClient.js";
 import { LogEventInput } from "./eventSchema.js";
 import { Event as PrismaEvent } from "@prisma/client";
-import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
+import { getApplication, PrismaApplication } from "../application";
 import { GraphQLContext, getCurrentUserId } from "../../auth/auth.util.js";
 
 export async function logEvent(

@@ -1,7 +1,7 @@
 import { prisma } from "../../prismaClient";
 import { SetApplicationTagsInput } from "../../types";
 import { handlePrismaError } from "../../errors/handlePrismaError";
-import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
+import { getApplication, PrismaApplication } from "../application";
 import {
   createApplicationTagsDemonstrationTypesIfNotExists,
   deleteAllApplicationTags,

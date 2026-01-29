@@ -9,7 +9,7 @@ import {
   checkPhaseCompletionRules,
 } from ".";
 import { getApplicationDates } from "../applicationDate";
-import { getApplication } from "../application/applicationResolvers";
+import { getApplication } from "../application";
 
 vi.mock(".", () => ({
   getApplicationPhaseDocumentTypes: vi.fn(),
@@ -21,7 +21,7 @@ vi.mock("../applicationDate", () => ({
   getApplicationDates: vi.fn(),
 }));
 
-vi.mock("../application/applicationResolvers", () => ({
+vi.mock("../application", () => ({
   getApplication: vi.fn(),
 }));
 
