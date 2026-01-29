@@ -11,11 +11,20 @@ const options: Option[] = SDG_DIVISIONS.map((division) => ({
 export const SelectSdgDivision = ({
   onSelect,
   initialValue,
+  isDisabled = false,
+  isRequired = false,
 }: {
   onSelect: (value: SdgDivision | undefined) => void;
   initialValue?: SdgDivision;
+  isDisabled?: boolean;
+  isRequired?: boolean;
 }) => {
   const [sdgDivision, setSdgDivision] = React.useState<SdgDivision | undefined>(initialValue);
+
+  // Sync internal state when initialValue changes
+  React.useEffect(() => {
+    setSdgDivision(initialValue);
+  }, [initialValue]);
   return (
     <Select
       value={sdgDivision}
@@ -28,6 +37,8 @@ export const SelectSdgDivision = ({
       }}
       id="sdg-division-select"
       label="SDG Division"
+      isDisabled={isDisabled}
+      isRequired={isRequired}
     />
   );
 };
