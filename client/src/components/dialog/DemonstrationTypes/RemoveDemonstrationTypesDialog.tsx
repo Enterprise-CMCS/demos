@@ -20,7 +20,7 @@ export const REMOVE_DEMONSTRATION_TYPES_DIALOG_MUTATION: TypedDocumentNode<
   { setDemonstrationTypes: Demonstration },
   { input: SetDemonstrationTypesInput }
 > = gql`
-  mutation setDemonstrationTypes($input: SetDemonstrationTypesInput!) {
+  mutation removeDemonstrationTypes($input: SetDemonstrationTypesInput!) {
     setDemonstrationTypes(input: $input) {
       id
       demonstrationTypes {
@@ -45,6 +45,7 @@ export const RemoveDemonstrationTypesDialog = ({
   );
 
   const onConfirm = async () => {
+    // remove a demonstration type by setting its demonstrationTypeDates to null
     const setDemonstrationTypeInput = {
       demonstrationId,
       demonstrationTypes: demonstrationTypeNames.map((demonstrationTypeName) => ({
@@ -74,7 +75,7 @@ export const RemoveDemonstrationTypesDialog = ({
           name="button-confirm-remove-types"
           size="small"
           onClick={onConfirm}
-          aria-label="Confirm Remove Document"
+          aria-label="Confirm Remove Demonstration Types"
           disabled={removing}
           aria-disabled={removing}
         >
