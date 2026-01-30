@@ -139,7 +139,7 @@ export const EditDemonstrationTypeDialog = ({
     <BaseDialog
       title="Edit Type"
       onClose={closeDialog}
-      dialogHasChanges={false}
+      dialogHasChanges={hasChanges(initialDemonstrationTypeFormData, demonstrationTypeFormData)}
       actionButton={
         <Button
           name={"button-submit-edit-demonstration-type-dialog"}
