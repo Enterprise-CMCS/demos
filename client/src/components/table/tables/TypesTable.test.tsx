@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 
 import { TypesTable } from "./TypesTable";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
+import { ApplicationStatus } from "demos-server";
 
 const mockShowRemoveDemonstrationTypesDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
@@ -31,10 +32,15 @@ const mockTypes: DemonstrationDetailDemonstrationType[] = [
 ];
 
 const MOCK_DEMONSTRATION_ID = "demo-123";
+const MOCK_DEMONSTRATION = {
+  id: MOCK_DEMONSTRATION_ID,
+  status: "Active" as ApplicationStatus,
+  demonstrationTypes: mockTypes,
+};
 
 describe("TypesTable", () => {
   it("renders required columns", async () => {
-    render(<TypesTable demonstrationId={MOCK_DEMONSTRATION_ID} types={mockTypes} />);
+    render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
     await waitFor(() => screen.getByRole("table"));
 
     expect(screen.getByText("Type")).toBeInTheDocument();
@@ -44,20 +50,25 @@ describe("TypesTable", () => {
   });
 
   it("renders type rows", () => {
-    render(<TypesTable demonstrationId={MOCK_DEMONSTRATION_ID} types={mockTypes} />);
+    render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
 
     expect(screen.getByText("Environmental")).toBeInTheDocument();
     expect(screen.getByText("Economic")).toBeInTheDocument();
   });
 
   it("shows empty message when no types exist", () => {
-    render(<TypesTable demonstrationId={MOCK_DEMONSTRATION_ID} types={[]} />);
+    const demonstrationWithNoTypes = {
+      id: "demo-456",
+      status: "Active" as ApplicationStatus,
+      demonstrationTypes: [],
+    };
+    render(<TypesTable demonstration={demonstrationWithNoTypes} />);
 
     expect(screen.getByText("You have no assigned Types at this time")).toBeInTheDocument();
   });
 
   it("supports keyword search filtering", async () => {
-    render(<TypesTable demonstrationId={MOCK_DEMONSTRATION_ID} types={mockTypes} />);
+    render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
     const user = userEvent.setup();
     const searchInput = screen.getByLabelText(/input keyword search query/i);
 
@@ -70,13 +81,13 @@ describe("TypesTable", () => {
   });
 
   it("does not render keyword search when hideSearch is true", () => {
-    render(<TypesTable demonstrationId={MOCK_DEMONSTRATION_ID} types={mockTypes} hideSearch />);
+    render(<TypesTable demonstration={MOCK_DEMONSTRATION} hideSearch />);
 
     expect(screen.queryByLabelText(/input keyword search query/i)).not.toBeInTheDocument();
   });
 
   it("defaults to sorting by createdAt ascending (oldest first)", () => {
-    render(<TypesTable demonstrationId={MOCK_DEMONSTRATION_ID} types={mockTypes} />);
+    render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
     const rows = screen.getAllByRole("row").slice(1);
     const types = rows.map((row) => row.querySelectorAll("td")[1]?.textContent);
 
@@ -84,7 +95,7 @@ describe("TypesTable", () => {
   });
 
   it("allows sorting by Status column", async () => {
-    render(<TypesTable demonstrationId={MOCK_DEMONSTRATION_ID} types={mockTypes} />);
+    render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
     const user = userEvent.setup();
     const statusHeader = screen.getByRole("columnheader", { name: /status/i });
 
@@ -97,12 +108,12 @@ describe("TypesTable", () => {
   });
 
   it("does not render keyword search when hideSearch is true", () => {
-    render(<TypesTable demonstrationId={MOCK_DEMONSTRATION_ID} types={mockTypes} hideSearch />);
+    render(<TypesTable demonstration={MOCK_DEMONSTRATION} hideSearch />);
     expect(screen.queryByTestId("input-keyword-search")).not.toBeInTheDocument();
   });
 
   it("disables action buttons when inputDisabled is true", () => {
-    render(<TypesTable demonstrationId={MOCK_DEMONSTRATION_ID} types={mockTypes} inputDisabled />);
+    render(<TypesTable demonstration={MOCK_DEMONSTRATION} inputDisabled />);
 
     const addButton = screen.getByTestId("add-type");
     const editButton = screen.getByTestId("edit-type");
@@ -115,10 +126,10 @@ describe("TypesTable", () => {
 
   describe("action buttons", () => {
     it("calls showRemoveDemonstrationTypesDialog when remove button is clicked", async () => {
-      render(<TypesTable demonstrationId={MOCK_DEMONSTRATION_ID} types={mockTypes} />);
+      render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
       const user = userEvent.setup();
-      user.click(screen.getByTestId("select-row-0"));
-      user.click(screen.getByTestId("select-row-1"));
+      await user.click(screen.getByTestId("select-row-0"));
+      await user.click(screen.getByTestId("select-row-1"));
 
       const removeButton = screen.getByTestId("remove-type");
       await user.click(removeButton);
@@ -127,6 +138,34 @@ describe("TypesTable", () => {
         "Environmental",
         "Economic",
       ]);
+    });
+
+    it("does not allow removing all demonstration types when demonstration is approved", async () => {
+      const demonstration = {
+        ...MOCK_DEMONSTRATION,
+        status: "Approved" as ApplicationStatus,
+      };
+      render(<TypesTable demonstration={demonstration} />);
+      const user = userEvent.setup();
+      await user.click(screen.getByTestId("select-row-0"));
+      await user.click(screen.getByTestId("select-row-1"));
+
+      const removeButton = screen.getByTestId("remove-type");
+      expect(removeButton).toBeDisabled();
+    });
+
+    it("allows removing all demonstration types when demonstration is not approved", async () => {
+      const demonstration = {
+        ...MOCK_DEMONSTRATION,
+        status: "Under Review" as ApplicationStatus,
+      };
+      render(<TypesTable demonstration={demonstration} />);
+      const user = userEvent.setup();
+      await user.click(screen.getByTestId("select-row-0"));
+      await user.click(screen.getByTestId("select-row-1"));
+
+      const removeButton = screen.getByTestId("remove-type");
+      expect(removeButton).not.toBeDisabled();
     });
   });
 });

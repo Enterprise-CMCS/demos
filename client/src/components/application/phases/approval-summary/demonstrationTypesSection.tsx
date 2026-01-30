@@ -7,24 +7,29 @@ import { TypesTable } from "components/table/tables/TypesTable";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { AddNewIcon } from "components/icons";
 import { useDialog } from "components/dialog/DialogContext";
+import { Demonstration as ServerDemonstration } from "demos-server";
+
+type Demonstration = Pick<ServerDemonstration, "id" | "status"> & {
+  demonstrationTypes: DemonstrationDetailDemonstrationType[];
+};
 
 type DemonstrationTypesSectionProps = {
-  demonstrationId: string;
-  initialTypes: DemonstrationDetailDemonstrationType[];
+  demonstration: Demonstration;
   onMarkComplete: (complete: boolean) => void;
   isComplete?: boolean;
 };
 
 export const DemonstrationTypesSection = ({
-  demonstrationId,
-  initialTypes,
+  demonstration,
   onMarkComplete,
   isComplete = false,
 }: DemonstrationTypesSectionProps) => {
-  const [types] = useState<DemonstrationDetailDemonstrationType[]>(initialTypes);
+  const [types] = useState<DemonstrationDetailDemonstrationType[]>(
+    demonstration.demonstrationTypes
+  );
   const { showApplyDemonstrationTypesDialog } = useDialog();
   const applyTypes = () => {
-    showApplyDemonstrationTypesDialog(demonstrationId);
+    showApplyDemonstrationTypesDialog(demonstration.id);
   };
 
   return (
@@ -39,12 +44,7 @@ export const DemonstrationTypesSection = ({
         </SecondaryButton>
       </div>
 
-      <TypesTable
-        demonstrationId={demonstrationId}
-        types={types}
-        inputDisabled={isComplete}
-        hideSearch={true}
-      />
+      <TypesTable demonstration={demonstration} inputDisabled={isComplete} hideSearch={true} />
 
       <div className="border-t-1 border-gray-dark mt-2">
         <div className="flex justify-end mt-2 gap-2">
