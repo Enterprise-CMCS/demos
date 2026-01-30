@@ -34,26 +34,6 @@ import { getManyApplications } from "./model/application/applicationResolvers.js
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 const DOCUMENTS_PER_APPLICATION = 15;
-const DOCUMENT_UNDERSTANDING_QUESTIONS = [
-  {
-    id: "11111111-2222-3333-4444-555555555555",
-    payload: {
-      id: "State",
-      question: "What state is this 1115 waver for?",
-      fieldType: "Text",
-      multiValued: false,
-    },
-  },
-  {
-    id: "66666666-7777-8888-9999-000000000000",
-    payload: {
-      id: "Demonstration Name",
-      question: "What demonstration is this 1115 waiver for?",
-      fieldType: "Text",
-      multiValued: false,
-    },
-  },
-];
 
 function getRandomPhaseDocumentTypeCombination(): {
   phaseName: PhaseName;
@@ -145,22 +125,6 @@ async function seedDocuments() {
     }
   }
 }
-// This is going away. So was a quick smiple add. but will eventually be nuked with Zoes model.
-async function seedDocumentUnderstandingQuestions() {
-  console.log("🌱 Seeding document understanding questions...");
-  for (const question of DOCUMENT_UNDERSTANDING_QUESTIONS) {
-    await prisma().documentUnderstandingQuestions.upsert({
-      where: { id: question.id },
-      create: {
-        id: question.id,
-        question: question.payload,
-      },
-      update: {
-        question: question.payload,
-      },
-    });
-  }
-}
 
 function randomDateRange() {
   const randomStart = faker.date.future({ years: 1 });
@@ -237,8 +201,6 @@ async function seedDatabase() {
   checkIfAllowed();
 
   await clearDatabase();
-  await seedDocumentUnderstandingQuestions();
-
   // Setting constants for record generation
   const userCount = 9;
   const demonstrationCount = 20;

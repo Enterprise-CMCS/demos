@@ -7,6 +7,9 @@ vi.mock("./getToken", () => ({
 const uploadDocumentMock = vi.fn();
 const extractDocMock = vi.fn();
 const fetchExtractionResultMock = vi.fn();
+const connectMock = vi.fn();
+const releaseMock = vi.fn();
+const queryMock = vi.fn();
 
 vi.mock("./uploadDocument", () => ({
   uploadDocument: (...args: unknown[]) => uploadDocumentMock(...args),
@@ -18,6 +21,13 @@ vi.mock("./extractDoc", () => ({
 
 vi.mock("./fetchExtractResult", () => ({
   fetchExtractionResult: (...args: unknown[]) => fetchExtractionResultMock(...args),
+}));
+
+vi.mock("./db", () => ({
+  getDbPool: vi.fn().mockResolvedValue({
+    connect: connectMock,
+  }),
+  getDbSchema: () => "demos_app",
 }));
 
 vi.mock("./log", () => ({
@@ -33,6 +43,9 @@ describe("runDocumentUnderstanding", () => {
     uploadDocumentMock.mockReset();
     extractDocMock.mockReset();
     fetchExtractionResultMock.mockReset();
+    connectMock.mockReset().mockResolvedValue({ release: releaseMock, query: queryMock });
+    queryMock.mockReset();
+    releaseMock.mockReset();
   });
 
   afterEach(() => {
@@ -50,14 +63,7 @@ describe("runDocumentUnderstanding", () => {
     const promise = runDocumentUnderstanding("file.pdf", {
       pollIntervalMs: 10,
       logFullResult: false,
-      prompts: [
-        {
-          id: "prompt-1",
-          question: "What is the state?",
-          fieldType: "Text",
-          multiValued: false,
-        },
-      ],
+      requestId: "request-1",
     });
 
     await vi.runAllTimersAsync();
@@ -65,16 +71,11 @@ describe("runDocumentUnderstanding", () => {
 
     expect(getToken).toHaveBeenCalled();
     expect(uploadDocumentMock).toHaveBeenCalledWith("token-123", "file.pdf");
-    expect(extractDocMock).toHaveBeenCalledWith("token-123", "doc-1", [
-      {
-        id: "prompt-1",
-        question: "What is the state?",
-        fieldType: "Text",
-        multiValued: false,
-      },
-    ]);
+    expect(extractDocMock).toHaveBeenCalledWith("token-123", "doc-1");
     expect(fetchExtractionResultMock).toHaveBeenCalledTimes(2);
     expect(result).toMatchObject({ status: "Succeeded" });
+    expect(queryMock).toHaveBeenCalledTimes(1);
+    expect(releaseMock).toHaveBeenCalled();
   });
 
   it("throws if maxAttempts is exceeded", async () => {
@@ -85,14 +86,6 @@ describe("runDocumentUnderstanding", () => {
     const promise = runDocumentUnderstanding("file.pdf", {
       pollIntervalMs: 10,
       maxAttempts: 2,
-      prompts: [
-        {
-          id: "prompt-1",
-          question: "What is the state?",
-          fieldType: "Text",
-          multiValued: false,
-        },
-      ],
     });
 
     const expectation = expect(promise).rejects.toThrow("did not succeed");

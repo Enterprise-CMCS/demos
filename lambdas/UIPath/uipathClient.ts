@@ -5,25 +5,14 @@ export const UIPATH_BASE_URL = "https://govcloud.uipath.us";
 // This could be made dynamic if we need to support multiple tenants/environments
 export const UIPATH_TENANT = "globalalliant/Dev";
 export const UIPATH_API_VERSION = "1.0";
-export const UIPATH_EXTRACTOR_NAME = "generative_extractor";
 
-export function getProjectId(): string {
-  const projectId = process.env.UIPATH_PROJECT_ID;
-  if (!projectId) {
-    throw new Error("Missing UIPATH_PROJECT_ID in environment.");
-  }
-  return projectId;
-}
-
-// Basically the model it's using, may want different models for different files.
-// May need to request to check the different extractors.
-export async function getExtractorGuid(): Promise<string> {
-  const secret = await getUiPathSecret();
-  if (secret.extractorGuid) {
-    return secret.extractorGuid;
+export async function getProjectId(): Promise<string> {
+  const secrets = await getUiPathSecret();
+  if (secrets.projectId) {
+    return secrets.projectId;
   }
 
-  throw new Error("Missing UIPATH_EXTRACTOR_GUID Secrets Manager or .env");
+  throw new Error("Missing UiPath project id in environment or Secrets Manager.");
 }
 
 type documentUnderstandingPostOptions = AxiosRequestConfig & {

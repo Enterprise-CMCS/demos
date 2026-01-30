@@ -6,7 +6,6 @@ set -euo pipefail
 # Usage (uncomment out)
 # UIPATH_CLIENT_ID="<SEE UIPATH ADMIN FOR OAUTH TOKENS!>" \
 # UIPATH_CLIENT_SECRET="<SEE UIPATH ADMIN FOR OAUTH TOKENS!>" \
-# UIPATH_EXTRACTOR_GUID="<SEE EXTRACTOR ENDPOINT FOR LIST OF GUIDs!>" \
 # /workspaces/demos/.devcontainer/localstack/debug/update_uipath_secret.sh
 #
 # Optional env:
@@ -18,12 +17,12 @@ STAGE="local"
 SECRET_ID="demos-$STAGE/uipath"
 CLIENT_ID="${UIPATH_CLIENT_ID:-}"
 CLIENT_SECRET="${UIPATH_CLIENT_SECRET:-}"
-EXTRACTOR_GUID="${UIPATH_EXTRACTOR_GUID:-}"
 AWS_REGION="${AWS_REGION:-us-east-1}"
+UIPATH_PROJECT_ID="${UIPATH_PROJECT_ID:-}"
 LOCALSTACK_ENDPOINT="${LOCALSTACK_ENDPOINT:-http://localstack:4566}"
 
-if [[ -z "$CLIENT_ID" || -z "$CLIENT_SECRET" || -z "$EXTRACTOR_GUID" ]]; then
-  echo "ERROR: UIPATH_CLIENT_ID, UIPATH_CLIENT_SECRET, and UIPATH_EXTRACTOR_GUID must be set in the environment." >&2
+if [[ -z "$CLIENT_ID" || -z "$CLIENT_SECRET" ]]; then
+  echo "ERROR: UIPATH_CLIENT_ID, UIPATH_CLIENT_SECRET must be set in the environment." >&2
   exit 1
 fi
 
@@ -36,11 +35,11 @@ if ! $AWS_CMD secretsmanager describe-secret --secret-id "$SECRET_NAME" >/dev/nu
   $AWS_CMD secretsmanager create-secret \
     --name "$SECRET_NAME" \
     --description "UiPath client credentials for local development" \
-    --secret-string "{\"clientId\":\"$CLIENT_ID\",\"clientSecret\":\"$CLIENT_SECRET\",\"extractorGuid\":\'$EXTRACTOR_GUID\"}" >/dev/null
+    --secret-string "{\"clientId\":\"$CLIENT_ID\",\"clientSecret\":\"$CLIENT_SECRET\"}" >/dev/null
 else
   $AWS_CMD secretsmanager put-secret-value \
     --secret-id "$SECRET_NAME" \
-    --secret-string "{\"clientId\":\"$CLIENT_ID\",\"clientSecret\":\"$CLIENT_SECRET\",\"extractorGuid\":\"$EXTRACTOR_GUID\"}" >/dev/null
+    --secret-string "{\"clientId\":\"$CLIENT_ID\",\"clientSecret\":\"$CLIENT_SECRET\"}" >/dev/null
 fi
 
 echo "✅ Secret updated."
@@ -52,3 +51,4 @@ $AWS_CMD secretsmanager get-secret-value --secret-id "$SECRET_NAME" --query Secr
 echo ""
 echo "📜 To tail UiPath lambda logs after invoking it:"
 echo "aws --endpoint-url=${LOCALSTACK_ENDPOINT} logs tail /aws/lambdas/uipath --since 5m --follow"
+
