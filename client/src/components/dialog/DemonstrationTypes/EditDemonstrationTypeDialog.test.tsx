@@ -1,5 +1,3 @@
-import "@testing-library/jest-dom";
-
 import React from "react";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -30,7 +28,7 @@ vi.mock("../DialogContext", () => ({
   }),
 }));
 
-const SUBMIT_BUTTON_TEST_ID = "button-submit-demonstration-dialog";
+const SUBMIT_BUTTON_TEST_ID = "button-submit-edit-demonstration-type-dialog";
 const MOCK_DEMONSTRATION_ID = "demo-123";
 const MOCK_INITIAL_TYPE: DemonstrationType = {
   demonstrationTypeName: "Behavioral Health",

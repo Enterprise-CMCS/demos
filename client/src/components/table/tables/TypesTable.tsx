@@ -15,7 +15,7 @@ import { Notice } from "components/notice";
 
 export type TypeTableRow = {
   id: string;
-  demonstrationTypeName: string;
+  typeLabel: string;
   status: DemonstrationDetailDemonstrationType["status"];
   effectiveDate: Date;
   expirationDate: Date;
@@ -48,7 +48,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({
       .sort((a, b) => compareAsc(a.createdAt, b.createdAt))
       .map((type) => ({
         id: type.demonstrationTypeName,
-        demonstrationTypeName: type.demonstrationTypeName,
+        typeLabel: type.demonstrationTypeName,
         status: type.status,
         effectiveDate: new Date(type.effectiveDate),
         expirationDate: new Date(type.expirationDate),
@@ -106,7 +106,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({
                   onClick={() =>
                     !editDisabled &&
                     showEditDemonstrationTypeDialog(demonstration.id, {
-                      demonstrationTypeName: selected[0].demonstrationTypeName,
+                      demonstrationTypeName: selected[0].typeLabel,
                       status: selected[0].status,
                       effectiveDate: selected[0].effectiveDate,
                       expirationDate: selected[0].expirationDate,
@@ -124,7 +124,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({
                     canRemove(selected) &&
                     showRemoveDemonstrationTypesDialog(
                       demonstration.id,
-                      selected.map((t) => t.demonstrationTypeName)
+                      selected.map((t) => t.typeLabel)
                     )
                   }
                 >

@@ -73,7 +73,7 @@ const getDemonstrationTypeStatus = (effectiveDate: LocalDate, expirationDate: Lo
   return "Active";
 };
 
-const isValid = (effectiveDate: string, expirationDate: string) => {
+const isValid = (effectiveDate: LocalDate, expirationDate: LocalDate) => {
   return effectiveDate && expirationDate && new Date(effectiveDate) <= new Date(expirationDate);
 };
 
