@@ -8,6 +8,8 @@ import { DocumentDialogFields } from "./document/DocumentDialog";
 import { DeclareIncompleteForm } from "./DeclareIncompleteDialog";
 import { DIALOG_CANCEL_BUTTON_NAME } from "./BaseDialog";
 import { Tag as DemonstrationTypeName } from "demos-server";
+import { DemonstrationType } from "./DemonstrationTypes/EditDemonstrationTypeDialog";
+import { formatDateForServer } from "util/formatDate";
 
 const MockDialog = ({ onClose }: { onClose: () => void }) => (
   <div data-testid="mock-dialog">
@@ -255,7 +257,7 @@ vi.mock("./DemonstrationTypes/RemoveDemonstrationTypesDialog", () => ({
     demonstrationId: string;
     demonstrationTypeNames: DemonstrationTypeName[];
   }) => (
-    <div data-testid="apply-demonstration-types-dialog">
+    <div data-testid="remove-demonstration-types-dialog">
       Remove Demonstration Types Dialog
       <span>Demonstration ID: {demonstrationId}</span>
       <span>Types to Remove:</span>
@@ -263,6 +265,28 @@ vi.mock("./DemonstrationTypes/RemoveDemonstrationTypesDialog", () => ({
         {demonstrationTypeNames.map((typeName) => {
           return <li key={typeName}>{typeName}</li>;
         })}
+      </ul>
+    </div>
+  ),
+}));
+
+vi.mock("./DemonstrationTypes/EditDemonstrationTypeDialog", () => ({
+  EditDemonstrationTypeDialog: ({
+    demonstrationId,
+    initialDemonstrationType,
+  }: {
+    demonstrationId: string;
+    initialDemonstrationType: DemonstrationType;
+  }) => (
+    <div data-testid="edit-demonstration-types-dialog">
+      Edit Demonstration Type Dialog
+      <span>Demonstration ID: {demonstrationId}</span>
+      <span>Initial Demonstration Type:</span>
+      <ul>
+        <li>Demonstration Type Name: {initialDemonstrationType.demonstrationTypeName}</li>
+        <li>Status: {initialDemonstrationType.status}</li>;
+        <li>Effective Date: {formatDateForServer(initialDemonstrationType.effectiveDate)}</li>
+        <li>Expiration Date: {formatDateForServer(initialDemonstrationType.expirationDate)}</li>
       </ul>
     </div>
   ),
@@ -315,6 +339,7 @@ const TestConsumer: React.FC = () => {
     showDeclareIncompleteDialog,
     showApplyDemonstrationTypesDialog,
     showRemoveDemonstrationTypesDialog,
+    showEditDemonstrationTypeDialog,
     showApplyTagsDialog,
     closeDialog,
   } = useDialog();
@@ -396,6 +421,19 @@ const TestConsumer: React.FC = () => {
       <button
         data-testid="open-remove-demonstration-types-dialog-btn"
         onClick={() => showRemoveDemonstrationTypesDialog("app-1", ["Type1", "Type2"])}
+      >
+        Open Remove Demonstration Types Dialog
+      </button>
+      <button
+        data-testid="open-edit-demonstration-type-dialog-btn"
+        onClick={() =>
+          showEditDemonstrationTypeDialog("app-1", {
+            demonstrationTypeName: "Type1",
+            status: "Active",
+            effectiveDate: new Date("2024-01-01"),
+            expirationDate: new Date("2025-01-01"),
+          })
+        }
       >
         Open Remove Demonstration Types Dialog
       </button>
@@ -686,6 +724,22 @@ describe("DialogContext", () => {
     expect(screen.getByText("Demonstration ID: app-1")).toBeInTheDocument();
     expect(screen.getByText("Type1")).toBeInTheDocument();
     expect(screen.getByText("Type2")).toBeInTheDocument();
+  });
+  it("shows the EditDemonstrationTypeDialog", async () => {
+    render(
+      <DialogProvider>
+        <TestConsumer />
+      </DialogProvider>
+    );
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("open-edit-demonstration-type-dialog-btn"));
+    expect(screen.getByText("Edit Demonstration Type Dialog")).toBeInTheDocument();
+    expect(screen.getByText("Demonstration ID: app-1")).toBeInTheDocument();
+    expect(screen.getByText("Demonstration Type Name: Type1")).toBeInTheDocument();
+    expect(screen.getByText("Status: Active")).toBeInTheDocument();
+    expect(screen.getByText("Effective Date: 2024-01-01")).toBeInTheDocument();
+    expect(screen.getByText("Expiration Date: 2025-01-01")).toBeInTheDocument();
   });
   it("shows and hides ApplyTagsDialog via context", async () => {
     render(

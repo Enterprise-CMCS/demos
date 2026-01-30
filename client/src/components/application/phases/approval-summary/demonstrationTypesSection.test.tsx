@@ -26,7 +26,7 @@ const mockTypes: DemonstrationDetailDemonstrationType[] = [
   },
   {
     demonstrationTypeName: "Economic",
-    status: "Inactive",
+    status: "Pending",
     effectiveDate: new Date("2024-01-01"),
     expirationDate: new Date("2025-01-01"),
     createdAt: new Date("2023-06-01"),
