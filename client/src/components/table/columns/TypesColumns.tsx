@@ -10,7 +10,7 @@ export function TypesColumns() {
 
   return [
     createSelectColumnDef(columnHelper),
-    columnHelper.accessor("typeLabel", {
+    columnHelper.accessor("demonstrationTypeName", {
       header: "Type",
       cell: highlightCell,
       enableColumnFilter: false,

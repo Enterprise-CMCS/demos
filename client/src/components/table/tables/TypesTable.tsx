@@ -15,7 +15,7 @@ import { Notice } from "components/notice";
 
 export type TypeTableRow = {
   id: string;
-  typeLabel: string;
+  demonstrationTypeName: string;
   status: DemonstrationDetailDemonstrationType["status"];
   effectiveDate: Date;
   expirationDate: Date;
@@ -37,7 +37,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({
   hideSearch = false,
 }) => {
   const columns = TypesColumns();
-  const { showRemoveDemonstrationTypesDialog } = useDialog();
+  const { showRemoveDemonstrationTypesDialog, showEditDemonstrationTypeDialog } = useDialog();
 
   /*
    * Ensure initial sort by createdAt date ascending
@@ -48,7 +48,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({
       .sort((a, b) => compareAsc(a.createdAt, b.createdAt))
       .map((type) => ({
         id: type.demonstrationTypeName,
-        typeLabel: type.demonstrationTypeName,
+        demonstrationTypeName: type.demonstrationTypeName,
         status: type.status,
         effectiveDate: new Date(type.effectiveDate),
         expirationDate: new Date(type.expirationDate),
@@ -104,8 +104,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({
                   ariaLabel="Edit Type"
                   disabled={editDisabled || inputDisabled}
                   onClick={() =>
-                    // !editDisabled && showEditTypeDialog(selected[0])
-                    console.log("Edit Type Clicked", selected[0])
+                    !editDisabled && showEditDemonstrationTypeDialog(demonstration.id, selected[0])
                   }
                 >
                   <EditIcon />
@@ -119,7 +118,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({
                     canRemove(selected) &&
                     showRemoveDemonstrationTypesDialog(
                       demonstration.id,
-                      selected.map((t) => t.typeLabel)
+                      selected.map((t) => t.demonstrationTypeName)
                     )
                   }
                 >

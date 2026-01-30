@@ -24,7 +24,7 @@ const mockTypes: DemonstrationDetailDemonstrationType[] = [
   },
   {
     demonstrationTypeName: "Economic",
-    status: "Inactive",
+    status: "Pending",
     effectiveDate: new Date("2024-01-01"),
     expirationDate: new Date("2025-01-01"),
     createdAt: new Date("2023-06-01"),
@@ -104,7 +104,7 @@ describe("TypesTable", () => {
     const rows = screen.getAllByRole("row").slice(1);
     const statuses = rows.map((row) => row.querySelectorAll("td")[2]?.textContent);
 
-    expect(statuses).toEqual(["Active", "Inactive"]);
+    expect(statuses).toEqual(["Active", "Pending"]);
   });
 
   it("does not render keyword search when hideSearch is true", () => {
