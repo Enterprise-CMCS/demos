@@ -5,6 +5,7 @@ import { RadioGroupSandbox } from "components/radioGroup";
 import { CheckboxGroupSandbox } from "components/checkboxGroup";
 import { ToastDemo } from "./ToastDemo";
 import React from "react";
+import { Notice } from "components/notice";
 
 export const ComponentLibrary: React.FC = () => {
   return (
@@ -24,6 +25,12 @@ export const ComponentLibrary: React.FC = () => {
       </Collapsible>
       <Collapsible title="Checkbox Group Sandbox (Click to expand)">
         <CheckboxGroupSandbox />
+      </Collapsible>
+      <Collapsible title="notice sandbox">
+        <Notice title="This is an info notice" variant="info" />
+        <Notice title="This is a success notice" variant="success" />
+        <Notice title="This is a warning notice" variant="warning" />
+        <Notice title="This is an error notice" variant="error" />
       </Collapsible>
     </>
   );

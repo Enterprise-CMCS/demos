@@ -84,7 +84,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
               Apply Type(s)
             </IconButton>
           </TabHeader>{" "}
-          <TypesTable demonstrationId={demonstration.id} types={demonstration.demonstrationTypes} />
+          <TypesTable demonstration={demonstration} />
         </Tab>
         <Tab
           icon={<OpenFolderIcon />}
