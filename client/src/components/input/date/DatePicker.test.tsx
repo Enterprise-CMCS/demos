@@ -115,6 +115,13 @@ describe("DatePicker component", () => {
       fireEvent.input(input, { target: { value: "" } });
       expect(mockOnChange).not.toHaveBeenCalled();
     });
+
+    it("calls onChange when existing value is cleared", () => {
+      render(<DatePicker {...requiredProps} value="2024-01-15" />);
+      const input = screen.getByTestId("test-date");
+      fireEvent.input(input, { target: { value: "" } });
+      expect(mockOnChange).toHaveBeenCalledWith("");
+    });
   });
 
   describe("Validation Message", () => {
