@@ -66,7 +66,7 @@ export async function __updateAmendment(
   parent: unknown,
   { id, input }: { id: string; input: UpdateAmendmentInput }
 ): Promise<PrismaAmendment> {
-  const { effectiveDate, expirationDate } = parseAndValidateEffectiveAndExpirationDates(input);
+  const { effectiveDate } = parseAndValidateEffectiveAndExpirationDates(input);
   checkOptionalNotNullFields(["demonstrationId", "name", "status"], input);
   try {
     return await prisma().amendment.update({
@@ -78,7 +78,6 @@ export async function __updateAmendment(
         name: input.name,
         description: input.description,
         effectiveDate: effectiveDate,
-        expirationDate: expirationDate,
         statusId: input.status,
       },
     });

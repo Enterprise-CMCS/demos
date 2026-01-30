@@ -226,7 +226,6 @@ describe("extensionResolvers", () => {
         input: {
           name: testExtensionDescription,
           effectiveDate: null,
-          expirationDate: null,
         },
       };
       const expectedCall = {
@@ -236,7 +235,6 @@ describe("extensionResolvers", () => {
         data: {
           name: testExtensionDescription,
           effectiveDate: null,
-          expirationDate: null,
         },
       };
 
@@ -272,28 +270,6 @@ describe("extensionResolvers", () => {
         testEasternTZDate
       );
       expect(checkInputDateIsEndOfDay).not.toHaveBeenCalled();
-    });
-
-    it("should check expiration date if it is provided", async () => {
-      const testInput: { id: string; input: UpdateExtensionInput } = {
-        id: testExtensionId,
-        input: {
-          expirationDate: testDate,
-        },
-      };
-      vi.mocked(parseDateTimeOrLocalDateToEasternTZDate).mockReturnValueOnce(testEasternTZDate);
-
-      await __updateExtension(undefined, testInput);
-
-      expect(parseDateTimeOrLocalDateToEasternTZDate).toHaveBeenCalledExactlyOnceWith(
-        testEasternTZDate.easternTZDate,
-        "End of Day"
-      );
-      expect(checkInputDateIsStartOfDay).not.toHaveBeenCalled();
-      expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith(
-        "expirationDate",
-        testEasternTZDate
-      );
     });
 
     it("should properly handle an error if it occurs", async () => {

@@ -226,7 +226,6 @@ describe("amendmentResolvers", () => {
         input: {
           name: testAmendmentDescription,
           effectiveDate: null,
-          expirationDate: null,
         },
       };
       const expectedCall = {
@@ -236,7 +235,6 @@ describe("amendmentResolvers", () => {
         data: {
           name: testAmendmentDescription,
           effectiveDate: null,
-          expirationDate: null,
         },
       };
 
@@ -272,28 +270,6 @@ describe("amendmentResolvers", () => {
         testEasternTZDate
       );
       expect(checkInputDateIsEndOfDay).not.toHaveBeenCalled();
-    });
-
-    it("should check expiration date if it is provided", async () => {
-      const testInput: { id: string; input: UpdateAmendmentInput } = {
-        id: testAmendmentId,
-        input: {
-          expirationDate: testDate,
-        },
-      };
-      vi.mocked(parseDateTimeOrLocalDateToEasternTZDate).mockReturnValueOnce(testEasternTZDate);
-
-      await __updateAmendment(undefined, testInput);
-
-      expect(parseDateTimeOrLocalDateToEasternTZDate).toHaveBeenCalledExactlyOnceWith(
-        testEasternTZDate.easternTZDate,
-        "End of Day"
-      );
-      expect(checkInputDateIsStartOfDay).not.toHaveBeenCalled();
-      expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith(
-        "expirationDate",
-        testEasternTZDate
-      );
     });
 
     it("should properly handle an error if it occurs", async () => {
