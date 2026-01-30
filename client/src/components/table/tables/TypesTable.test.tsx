@@ -8,9 +8,11 @@ import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/
 import { ApplicationStatus } from "demos-server";
 
 const mockShowRemoveDemonstrationTypesDialog = vi.fn();
+const mockShowEditDemonstrationTypeDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
     showRemoveDemonstrationTypesDialog: mockShowRemoveDemonstrationTypesDialog,
+    showEditDemonstrationTypeDialog: mockShowEditDemonstrationTypeDialog,
   }),
 }));
 
@@ -24,7 +26,7 @@ const mockTypes: DemonstrationDetailDemonstrationType[] = [
   },
   {
     demonstrationTypeName: "Economic",
-    status: "Inactive",
+    status: "Pending",
     effectiveDate: new Date("2024-01-01"),
     expirationDate: new Date("2025-01-01"),
     createdAt: new Date("2023-06-01"),
@@ -104,7 +106,7 @@ describe("TypesTable", () => {
     const rows = screen.getAllByRole("row").slice(1);
     const statuses = rows.map((row) => row.querySelectorAll("td")[2]?.textContent);
 
-    expect(statuses).toEqual(["Active", "Inactive"]);
+    expect(statuses).toEqual(["Active", "Pending"]);
   });
 
   it("does not render keyword search when hideSearch is true", () => {
@@ -124,7 +126,7 @@ describe("TypesTable", () => {
     expect(removeButton).toBeDisabled();
   });
 
-  describe("action buttons", () => {
+  describe("remove button", () => {
     it("calls showRemoveDemonstrationTypesDialog when remove button is clicked", async () => {
       render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
       const user = userEvent.setup();
@@ -166,6 +168,41 @@ describe("TypesTable", () => {
 
       const removeButton = screen.getByTestId("remove-type");
       expect(removeButton).not.toBeDisabled();
+    });
+  });
+
+  describe("edit button", () => {
+    it("calls showEditDemonstrationTypeDialog when edit button is clicked", async () => {
+      render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
+      const user = userEvent.setup();
+      await user.click(screen.getByTestId("select-row-0"));
+      const editButton = screen.getByTestId("edit-type");
+      await user.click(editButton);
+
+      const expectedDemonstrationType = {
+        demonstrationTypeName: mockTypes[0].demonstrationTypeName,
+        status: mockTypes[0].status,
+        effectiveDate: mockTypes[0].effectiveDate,
+        expirationDate: mockTypes[0].expirationDate,
+      };
+
+      expect(mockShowEditDemonstrationTypeDialog).toHaveBeenCalledWith(
+        MOCK_DEMONSTRATION_ID,
+        expectedDemonstrationType
+      );
+    });
+
+    it("disables edit button when multiple types are selected", async () => {
+      render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
+      const user = userEvent.setup();
+      const editButton = screen.getByTestId("edit-type");
+      expect(editButton).toBeDisabled();
+
+      await user.click(screen.getByTestId("select-row-0"));
+      expect(editButton).toBeEnabled();
+
+      await user.click(screen.getByTestId("select-row-1"));
+      expect(editButton).toBeDisabled();
     });
   });
 });

@@ -37,7 +37,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({
   hideSearch = false,
 }) => {
   const columns = TypesColumns();
-  const { showRemoveDemonstrationTypesDialog } = useDialog();
+  const { showRemoveDemonstrationTypesDialog, showEditDemonstrationTypeDialog } = useDialog();
 
   /*
    * Ensure initial sort by createdAt date ascending
@@ -104,8 +104,13 @@ export const TypesTable: React.FC<TypesTableProps> = ({
                   ariaLabel="Edit Type"
                   disabled={editDisabled || inputDisabled}
                   onClick={() =>
-                    // !editDisabled && showEditTypeDialog(selected[0])
-                    console.log("Edit Type Clicked", selected[0])
+                    !editDisabled &&
+                    showEditDemonstrationTypeDialog(demonstration.id, {
+                      demonstrationTypeName: selected[0].typeLabel,
+                      status: selected[0].status,
+                      effectiveDate: selected[0].effectiveDate,
+                      expirationDate: selected[0].expirationDate,
+                    })
                   }
                 >
                   <EditIcon />

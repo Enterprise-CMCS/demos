@@ -83,7 +83,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
             >
               Apply Type(s)
             </IconButton>
-          </TabHeader>{" "}
+          </TabHeader>
           <TypesTable demonstration={demonstration} />
         </Tab>
         <Tab
