@@ -8,7 +8,7 @@ import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFie
 import { getS3Adapter } from "../../adapters";
 import { EasternNow, getEasternNow } from "../../dateUtilities";
 import { findUserById } from "../user";
-import { getApplication } from "../application/applicationResolvers";
+import { getApplication } from "../application";
 import { validateAndUpdateDates } from "../applicationDate";
 import { startPhaseByDocument } from "../applicationPhase";
 import { getDocumentById, checkDocumentExists, updateDocument, handleDeleteDocument } from ".";
@@ -40,7 +40,7 @@ vi.mock("../../adapters", () => ({
   getS3Adapter: vi.fn(),
 }));
 
-vi.mock("../application/applicationResolvers", () => ({
+vi.mock("../application", () => ({
   getApplication: vi.fn(),
 }));
 

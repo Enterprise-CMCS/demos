@@ -30,7 +30,7 @@ import {
   resolveApplicationPhases,
   resolveApplicationClearanceLevel,
   resolveApplicationTags,
-} from "../application/applicationResolvers.js";
+} from "../application";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import {
@@ -43,7 +43,7 @@ vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
 }));
 
-vi.mock("../application/applicationResolvers.js", () => ({
+vi.mock("../application", () => ({
   getApplication: vi.fn(),
   getManyApplications: vi.fn(),
   deleteApplication: vi.fn(),

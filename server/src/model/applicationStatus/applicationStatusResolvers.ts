@@ -1,7 +1,7 @@
 import { generateCustomSetScalar } from "../../customScalarResolvers.js";
 import { APPLICATION_STATUS } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
+import { getApplication, PrismaApplication } from "../application";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { updateApplicationStatus } from "../applicationPhase/updateApplicationStatus.js";
 import { SetApplicationStatusInput } from "./applicationStatusSchema.js";

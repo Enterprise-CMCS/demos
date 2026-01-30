@@ -27,7 +27,7 @@ vi.mock("../../errors/handlePrismaError.js", () => ({
   }),
 }));
 
-vi.mock("../application/applicationResolvers.js", () => ({
+vi.mock("../application", () => ({
   getApplication: vi.fn(),
 }));
 

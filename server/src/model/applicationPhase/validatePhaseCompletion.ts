@@ -5,7 +5,7 @@ import {
 } from ".";
 import { PrismaTransactionClient } from "../../prismaClient.js";
 import { ClearanceLevel, PhaseNameWithTrackedStatus } from "../../types.js";
-import { getApplication } from "../application/applicationResolvers";
+import { getApplication } from "../application";
 import { getApplicationDates } from "../applicationDate";
 
 export async function validatePhaseCompletion(
