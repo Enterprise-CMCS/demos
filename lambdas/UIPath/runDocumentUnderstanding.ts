@@ -24,7 +24,7 @@ export async function runDocumentUnderstanding(
   const {
     token: providedToken,
     pollIntervalMs = 3000,
-    maxAttempts = 500, // Just to put SOME kinda limit on it. DO not want it just running FOREVER!
+    maxAttempts = 500,
     logFullResult = true,
     requestId = "n/a",
   } = options;
