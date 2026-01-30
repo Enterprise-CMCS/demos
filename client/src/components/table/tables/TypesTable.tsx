@@ -104,7 +104,13 @@ export const TypesTable: React.FC<TypesTableProps> = ({
                   ariaLabel="Edit Type"
                   disabled={editDisabled || inputDisabled}
                   onClick={() =>
-                    !editDisabled && showEditDemonstrationTypeDialog(demonstration.id, selected[0])
+                    !editDisabled &&
+                    showEditDemonstrationTypeDialog(demonstration.id, {
+                      demonstrationTypeName: selected[0].demonstrationTypeName,
+                      status: selected[0].status,
+                      effectiveDate: selected[0].effectiveDate,
+                      expirationDate: selected[0].expirationDate,
+                    })
                   }
                 >
                   <EditIcon />
