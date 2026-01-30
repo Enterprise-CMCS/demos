@@ -7,6 +7,7 @@ import userEvent from "@testing-library/user-event";
 import { ApprovalSummaryPhase } from "./ApprovalSummaryPhase";
 import { ApplicationDetailsFormData } from "./applicationDetailsSection";
 import { TestProvider } from "test-utils/TestProvider";
+import { ApplicationStatus } from "demos-server";
 
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
@@ -32,15 +33,17 @@ const buildInitialFormData = (
   ...overrides,
 });
 
+const demonstration = {
+  id: "demo-123",
+  status: "Active" as ApplicationStatus,
+  demonstrationTypes: [],
+};
+
 describe("ApprovalSummaryPhase", () => {
   const setup = (formData = buildInitialFormData()) => {
     render(
       <TestProvider>
-        <ApprovalSummaryPhase
-          demonstrationId="demo-123"
-          initialFormData={formData}
-          initialTypes={[]}
-        />
+        <ApprovalSummaryPhase demonstration={demonstration} initialFormData={formData} />
       </TestProvider>
     );
   };

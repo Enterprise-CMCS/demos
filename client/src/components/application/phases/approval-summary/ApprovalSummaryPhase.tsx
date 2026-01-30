@@ -5,11 +5,15 @@ import { ApplicationWorkflowDemonstration } from "components/application/Applica
 import { ApplicationDetailsSection, ApplicationDetailsFormData } from "./applicationDetailsSection";
 import { DemonstrationTypesSection } from "./demonstrationTypesSection";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
+import { Demonstration as ServerDemonstration } from "demos-server";
+
+type Demonstration = Pick<ServerDemonstration, "id" | "status"> & {
+  demonstrationTypes: DemonstrationDetailDemonstrationType[];
+};
 
 type ApprovalSummaryPhaseProps = {
-  demonstrationId: string;
+  demonstration: Demonstration;
   initialFormData: ApplicationDetailsFormData;
-  initialTypes: DemonstrationDetailDemonstrationType[];
 };
 
 export const getApprovalSummaryFormData = (
@@ -53,18 +57,13 @@ export const getApprovalSummaryPhase = (demonstration: ApplicationWorkflowDemons
   const approvalSummaryFormData = getApprovalSummaryFormData(demonstration);
 
   return (
-    <ApprovalSummaryPhase
-      demonstrationId={demonstration.id}
-      initialFormData={approvalSummaryFormData}
-      initialTypes={demonstration.demonstrationTypes}
-    />
+    <ApprovalSummaryPhase demonstration={demonstration} initialFormData={approvalSummaryFormData} />
   );
 };
 
 export const ApprovalSummaryPhase = ({
   initialFormData,
-  initialTypes,
-  demonstrationId,
+  demonstration,
 }: ApprovalSummaryPhaseProps) => {
   const [approvalSummaryFormData, setApprovalSummaryFormData] =
     useState<ApplicationDetailsFormData>(initialFormData);
@@ -87,8 +86,7 @@ export const ApprovalSummaryPhase = ({
         />
 
         <DemonstrationTypesSection
-          demonstrationId={demonstrationId}
-          initialTypes={initialTypes}
+          demonstration={demonstration}
           isComplete={isDemonstrationTypesComplete}
           onMarkComplete={(complete: boolean) => setIsDemonstrationTypesComplete(complete)}
         />
