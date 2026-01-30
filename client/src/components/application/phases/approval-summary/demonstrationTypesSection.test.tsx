@@ -50,6 +50,13 @@ describe("DemonstrationTypesSection", () => {
     );
   };
 
+  const expandTypesSection = async () => {
+    const toggle = screen.getByRole("button", {
+      name: /types, complete, expand section/i,
+    });
+    await userEvent.click(toggle);
+  };
+
   beforeEach(() => {
     onMarkComplete = vi.fn<(complete: boolean) => void>();
     vi.clearAllMocks();
@@ -74,9 +81,9 @@ describe("DemonstrationTypesSection", () => {
     expect(switchInput).not.toBeChecked();
   });
 
-  it("switch reflects initial complete state", () => {
+  it("switch reflects initial complete state", async () => {
     setup(true);
-
+    await expandTypesSection();
     const switchInput = screen.getByTestId("mark-complete-switch");
     expect(switchInput).toBeChecked();
   });
@@ -96,6 +103,7 @@ describe("DemonstrationTypesSection", () => {
     setup(true);
     const user = userEvent.setup();
 
+    await expandTypesSection();
     const switchInput = screen.getByTestId("mark-complete-switch");
     await user.click(switchInput);
 

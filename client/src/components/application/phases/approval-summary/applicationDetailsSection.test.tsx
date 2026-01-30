@@ -64,6 +64,13 @@ describe("ApplicationDetailsSection", () => {
     );
   };
 
+  const expandTypesSection = async () => {
+    const toggle = screen.getByRole("button", {
+      name: /details, complete, expand section/i,
+    });
+    await userEvent.click(toggle);
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -116,7 +123,7 @@ describe("ApplicationDetailsSection", () => {
     expect(button).toBeEnabled();
   });
 
-  it("disables Mark Complete button when section is complete", () => {
+  it("disables Mark Complete button when section is complete", async () => {
     setup(
       {
         stateId: "CA",
@@ -132,6 +139,8 @@ describe("ApplicationDetailsSection", () => {
       true,  // isComplete
       false
     );
+
+    await expandTypesSection();
 
     const button = screen.getByTestId("application-details-mark-complete");
     expect(button).toBeDisabled();

@@ -5,11 +5,15 @@ import { ApplicationWorkflowDemonstration } from "components/application/Applica
 import { ApplicationDetailsSection, ApplicationDetailsFormData } from "./applicationDetailsSection";
 import { DemonstrationTypesSection } from "./demonstrationTypesSection";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
+import { formatDate, formatDateForServer } from "util/formatDate";
+import { useSetApplicationDate } from "components/application/date/dateQueries";
+import { DateType } from "demos-server";
 
 type ApprovalSummaryPhaseProps = {
   demonstrationId: string;
   initialFormData: ApplicationDetailsFormData;
   initialTypes: DemonstrationDetailDemonstrationType[];
+  demonstrationTypeCompletionDate?: Date;
 };
 
 export const getApprovalSummaryFormData = (
@@ -50,6 +54,12 @@ export const getApprovalSummaryFormData = (
 };
 
 export const getApprovalSummaryPhase = (demonstration: ApplicationWorkflowDemonstration) => {
+  const approvalSummaryPhase = demonstration.phases.find(
+    (phase) => phase.phaseName === "Approval Summary"
+  );
+  const demonstrationTypeCompletionDate = approvalSummaryPhase?.phaseDates.find(
+    (d) => d.dateType === "Application Demonstration Types Marked Complete Date"
+  )?.dateValue;
   const approvalSummaryFormData = getApprovalSummaryFormData(demonstration);
 
   return (
@@ -57,6 +67,7 @@ export const getApprovalSummaryPhase = (demonstration: ApplicationWorkflowDemons
       demonstrationId={demonstration.id}
       initialFormData={approvalSummaryFormData}
       initialTypes={demonstration.demonstrationTypes}
+      demonstrationTypeCompletionDate={demonstrationTypeCompletionDate}
     />
   );
 };
@@ -65,12 +76,32 @@ export const ApprovalSummaryPhase = ({
   initialFormData,
   initialTypes,
   demonstrationId,
+  demonstrationTypeCompletionDate,
 }: ApprovalSummaryPhaseProps) => {
+  const { setApplicationDate } = useSetApplicationDate();
   const [approvalSummaryFormData, setApprovalSummaryFormData] =
     useState<ApplicationDetailsFormData>(initialFormData);
 
   const [isApplicationDetailsComplete, setIsApplicationDetailsComplete] = useState(false);
-  const [isDemonstrationTypesComplete, setIsDemonstrationTypesComplete] = useState(false);
+  const [isDemonstrationTypesComplete, setIsDemonstrationTypesComplete] = useState(!!demonstrationTypeCompletionDate);
+
+  const markDemonstrationTypesComplete = async (complete: boolean) => {
+    setIsDemonstrationTypesComplete(complete);
+    if (complete) {
+      await setApplicationDate({
+        applicationId: demonstrationId,
+        dateType: "Application Demonstration Types Marked Complete Date" satisfies DateType,
+        dateValue: formatDateForServer(new Date()),
+      });
+    }
+    else {
+      await setApplicationDate({
+        applicationId: demonstrationId,
+        dateType: "Application Demonstration Types Marked Complete Date" satisfies DateType,
+        dateValue: null,
+      });
+    }
+  };
 
   return (
     <div>
@@ -90,7 +121,8 @@ export const ApprovalSummaryPhase = ({
           demonstrationId={demonstrationId}
           initialTypes={initialTypes}
           isComplete={isDemonstrationTypesComplete}
-          onMarkComplete={(complete: boolean) => setIsDemonstrationTypesComplete(complete)}
+          completionDate={demonstrationTypeCompletionDate ? formatDate(demonstrationTypeCompletionDate) : undefined}
+          onMarkComplete={markDemonstrationTypesComplete}
         />
       </section>
     </div>

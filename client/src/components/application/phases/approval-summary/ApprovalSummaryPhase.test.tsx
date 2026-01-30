@@ -33,13 +33,17 @@ const buildInitialFormData = (
 });
 
 describe("ApprovalSummaryPhase", () => {
-  const setup = (formData = buildInitialFormData()) => {
+  const setup = (
+    formData = buildInitialFormData(),
+    demonstrationTypeCompletionDate?: Date
+  ) => {
     render(
       <TestProvider>
         <ApprovalSummaryPhase
           demonstrationId="demo-123"
           initialFormData={formData}
           initialTypes={[]}
+          demonstrationTypeCompletionDate={demonstrationTypeCompletionDate}
         />
       </TestProvider>
     );
@@ -85,5 +89,23 @@ describe("ApprovalSummaryPhase", () => {
     expect(section).toBeInTheDocument();
 
     expect(within(section!).getByText("Incomplete")).toBeInTheDocument();
+  });
+
+  it("renders Demonstration Types section as complete and collapsed when completion date is provided", () => {
+    const completionDate = new Date("2025-02-01");
+
+    setup(buildInitialFormData(), completionDate);
+
+    const section = screen.getByText("Types").closest("section")!;
+
+    expect(within(section).getByText("Complete")).toBeInTheDocument();
+    expect(
+      within(section).getByText("Completed on 02/01/2025")
+    ).toBeInTheDocument();
+    expect(
+      within(section).queryByText(
+        "Add or Update Demonstration Types with Effective and Expiration Dates below"
+      )
+    ).not.toBeInTheDocument();
   });
 });
