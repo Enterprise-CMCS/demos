@@ -593,7 +593,6 @@ async function seedDatabase() {
     const randomDates = randomDateRange();
     const updatePayload: UpdateAmendmentInput = {
       effectiveDate: randomDates["start"],
-      expirationDate: randomDates["end"],
     };
     const updateInput = {
       id: amendment.id,
@@ -616,7 +615,6 @@ async function seedDatabase() {
     const randomDates = randomDateRange();
     const updatePayload: UpdateExtensionInput = {
       effectiveDate: randomDates["start"],
-      expirationDate: randomDates["end"],
     };
     const updateInput = {
       id: extension.id,
