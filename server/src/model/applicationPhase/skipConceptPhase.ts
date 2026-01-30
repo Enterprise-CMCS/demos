@@ -1,6 +1,10 @@
 import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { getApplication, PrismaApplication } from "../application";
+import {
+  getApplication,
+  PrismaApplication,
+  updateApplicationStatusToUnderReviewIfNeeded,
+} from "../application";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getEasternNow } from "../../dateUtilities.js";
 import {
@@ -8,7 +12,6 @@ import {
   getApplicationPhaseStatus,
   setPhaseToStarted,
   updatePhaseStatus,
-  updateStatusToUnderReviewIfNeeded,
 } from ".";
 import { validateAndUpdateDates } from "../applicationDate";
 
@@ -59,7 +62,7 @@ export async function skipConceptPhase(
           tx
         );
 
-        await updateStatusToUnderReviewIfNeeded(applicationId, tx);
+        await updateApplicationStatusToUnderReviewIfNeeded(applicationId, tx);
       }
     });
   } catch (error) {
