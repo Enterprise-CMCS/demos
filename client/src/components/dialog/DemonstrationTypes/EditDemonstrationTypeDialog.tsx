@@ -142,7 +142,7 @@ export const EditDemonstrationTypeDialog = ({
       dialogHasChanges={false}
       actionButton={
         <Button
-          name={"button-submit-demonstration-dialog"}
+          name={"button-submit-edit-demonstration-type-dialog"}
           disabled={
             saving ||
             !isValid ||
@@ -150,7 +150,7 @@ export const EditDemonstrationTypeDialog = ({
           }
           onClick={handleSubmit}
         >
-          Apply Type(s)
+          Save Changes
         </Button>
       }
     >
