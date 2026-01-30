@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { getApplication } from "./getApplication";
-import { ApplicationStatus, ApplicationType, PhaseName } from "../../../types.js";
+import { ApplicationType } from "../../../types.js";
 
 // Mock imports
 import { prisma } from "../../../prismaClient.js";
@@ -15,6 +15,16 @@ describe("getApplication", () => {
       findUnique: vi.fn(),
     },
   };
+  const transactionMocks = {
+    application: {
+      findUnique: vi.fn(),
+    },
+  };
+  const mockTransaction = {
+    application: {
+      findUnique: transactionMocks.application.findUnique,
+    },
+  } as any;
   const mockPrismaClient = {
     application: {
       findUnique: regularMocks.application.findUnique,
@@ -28,7 +38,7 @@ describe("getApplication", () => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
   });
 
-  it("should find the requested application", async () => {
+  it("should find the requested application without a transaction passed in", async () => {
     mockPrismaClient.application.findUnique.mockResolvedValue("Just a non-null response");
     const expectedCall = {
       where: {
@@ -43,6 +53,23 @@ describe("getApplication", () => {
     };
     await getApplication(testApplicationId, testDemonstrationApplicationTypeId);
     expect(regularMocks.application.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCall);
+  });
+
+  it("should find the requested application when a transaction is passed in", async () => {
+    mockTransaction.application.findUnique.mockResolvedValue("Just a non-null response");
+    const expectedCall = {
+      where: {
+        id: testApplicationId,
+        applicationTypeId: testDemonstrationApplicationTypeId,
+      },
+      include: {
+        demonstration: true,
+        amendment: true,
+        extension: true,
+      },
+    };
+    await getApplication(testApplicationId, testDemonstrationApplicationTypeId, mockTransaction);
+    expect(transactionMocks.application.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCall);
   });
 
   it("should throw if nothing is returned", async () => {

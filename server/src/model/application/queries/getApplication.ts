@@ -1,4 +1,4 @@
-import { prisma } from "../../../prismaClient";
+import { prisma, PrismaTransactionClient } from "../../../prismaClient";
 import { GraphQLError } from "graphql";
 import { ApplicationType } from "../../../types";
 import {
@@ -6,30 +6,35 @@ import {
   Amendment as PrismaAmendment,
   Extension as PrismaExtension,
 } from "@prisma/client";
-import { FindApplicationQueryResult, PrismaApplication } from "..";
+import { PrismaApplication } from "..";
 
 export async function getApplication(
   applicationId: string,
-  applicationTypeId: "Demonstration"
+  applicationTypeId: "Demonstration",
+  tx?: PrismaTransactionClient
 ): Promise<PrismaDemonstration>;
 
 export async function getApplication(
   applicationId: string,
-  applicationTypeId: "Amendment"
+  applicationTypeId: "Amendment",
+  tx?: PrismaTransactionClient
 ): Promise<PrismaAmendment>;
 
 export async function getApplication(
   applicationId: string,
-  applicationTypeId: "Extension"
+  applicationTypeId: "Extension",
+  tx?: PrismaTransactionClient
 ): Promise<PrismaExtension>;
 
 export async function getApplication(applicationId: string): Promise<PrismaApplication>;
 
 export async function getApplication(
   applicationId: string,
-  applicationTypeId?: ApplicationType
+  applicationTypeId?: ApplicationType,
+  tx?: PrismaTransactionClient
 ): Promise<PrismaApplication> {
-  const application: FindApplicationQueryResult | null = await prisma().application.findUnique({
+  const prismaClient = tx ?? prisma();
+  const application = await prismaClient.application.findUnique({
     where: {
       id: applicationId,
       applicationTypeId: applicationTypeId,

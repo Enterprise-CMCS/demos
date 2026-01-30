@@ -4,7 +4,7 @@ import {
   __getManyExtensions,
   __createExtension,
   __updateExtension,
-  __deleteExtension,
+  deleteExtension,
   __resolveParentDemonstration,
 } from "./extensionResolvers.js";
 import {
@@ -308,14 +308,18 @@ describe("extensionResolvers", () => {
     });
   });
 
-  describe("__deleteExtension", () => {
+  describe("deleteExtension", () => {
     const testInput = {
       id: testExtensionId,
     };
 
     it("should call the delete function on the correct ID", async () => {
-      await __deleteExtension(undefined, testInput);
-      expect(deleteApplication).toHaveBeenCalledExactlyOnceWith(testExtensionId, "Extension");
+      await deleteExtension(undefined, testInput);
+      expect(deleteApplication).toHaveBeenCalledExactlyOnceWith(
+        testExtensionId,
+        "Extension",
+        mockTransaction
+      );
     });
   });
 

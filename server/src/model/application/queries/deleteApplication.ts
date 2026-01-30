@@ -1,4 +1,4 @@
-import { prisma } from "../../../prismaClient";
+import { PrismaTransactionClient } from "../../../prismaClient";
 import { ApplicationType } from "../../../types";
 import {
   Demonstration as PrismaDemonstration,
@@ -10,52 +10,54 @@ import { PrismaApplication } from "..";
 
 export async function deleteApplication(
   applicationId: string,
-  applicationTypeId: "Demonstration"
+  applicationTypeId: "Demonstration",
+  tx: PrismaTransactionClient
 ): Promise<PrismaDemonstration>;
 
 export async function deleteApplication(
   applicationId: string,
-  applicationTypeId: "Amendment"
+  applicationTypeId: "Amendment",
+  tx: PrismaTransactionClient
 ): Promise<PrismaAmendment>;
 
 export async function deleteApplication(
   applicationId: string,
-  applicationTypeId: "Extension"
+  applicationTypeId: "Extension",
+  tx: PrismaTransactionClient
 ): Promise<PrismaExtension>;
 
 export async function deleteApplication(
   applicationId: string,
-  applicationTypeId: ApplicationType
+  applicationTypeId: ApplicationType,
+  tx: PrismaTransactionClient
 ): Promise<PrismaApplication> {
   try {
-    return await prisma().$transaction(async (tx) => {
-      await tx.application.delete({
-        where: {
-          id: applicationId,
-        },
-      });
-
-      switch (applicationTypeId) {
-        case "Demonstration":
-          return await tx.demonstration.delete({
-            where: {
-              id: applicationId,
-            },
-          });
-        case "Amendment":
-          return await tx.amendment.delete({
-            where: {
-              id: applicationId,
-            },
-          });
-        case "Extension":
-          return await tx.extension.delete({
-            where: {
-              id: applicationId,
-            },
-          });
-      }
+    await tx.application.delete({
+      where: {
+        id: applicationId,
+      },
     });
+
+    switch (applicationTypeId) {
+      case "Demonstration":
+        return await tx.demonstration.delete({
+          where: {
+            id: applicationId,
+          },
+        });
+      case "Amendment":
+        return await tx.amendment.delete({
+          where: {
+            id: applicationId,
+          },
+        });
+      case "Extension":
+        return await tx.extension.delete({
+          where: {
+            id: applicationId,
+          },
+        });
+    }
   } catch (error) {
     handlePrismaError(error);
   }

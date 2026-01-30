@@ -3,12 +3,7 @@ import { ApplicationType } from "../../../types";
 import { deleteApplication } from "./deleteApplication";
 
 // Mock imports
-import { prisma } from "../../../prismaClient";
 import { handlePrismaError } from "../../../errors/handlePrismaError";
-
-vi.mock("../../../prismaClient", () => ({
-  prisma: vi.fn(),
-}));
 
 const testHandlePrismaError = new Error("Test handlePrismaError!");
 vi.mock("../../../errors/handlePrismaError", () => ({
@@ -45,10 +40,7 @@ describe("deleteApplication", () => {
     extension: {
       delete: transactionMocks.extension.delete,
     },
-  };
-  const mockPrismaClient = {
-    $transaction: vi.fn((callback) => callback(mockTransaction)),
-  };
+  } as any;
   const testApplicationId = "8167c039-9c08-4203-b7d2-9e35ec156993";
   const testDemonstrationApplicationTypeId: ApplicationType = "Demonstration";
   const testAmendmentApplicationTypeId: ApplicationType = "Amendment";
@@ -56,9 +48,6 @@ describe("deleteApplication", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
-    // Note: this line is necessary because resetAllMocks() clears the implementation each time
-    mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
   it("should delete the application and then the demonstration in a transaction", async () => {
@@ -67,7 +56,7 @@ describe("deleteApplication", () => {
         id: testApplicationId,
       },
     };
-    await deleteApplication(testApplicationId, testDemonstrationApplicationTypeId);
+    await deleteApplication(testApplicationId, testDemonstrationApplicationTypeId, mockTransaction);
     expect(transactionMocks.application.delete).toHaveBeenCalledExactlyOnceWith(expectedCall);
     expect(transactionMocks.demonstration.delete).toHaveBeenCalledExactlyOnceWith(expectedCall);
     expect(transactionMocks.amendment.delete).not.toHaveBeenCalled();
@@ -81,7 +70,7 @@ describe("deleteApplication", () => {
         id: testApplicationId,
       },
     };
-    await deleteApplication(testApplicationId, testAmendmentApplicationTypeId);
+    await deleteApplication(testApplicationId, testAmendmentApplicationTypeId, mockTransaction);
     expect(transactionMocks.application.delete).toHaveBeenCalledExactlyOnceWith(expectedCall);
     expect(transactionMocks.demonstration.delete).not.toHaveBeenCalled();
     expect(transactionMocks.amendment.delete).toHaveBeenCalledExactlyOnceWith(expectedCall);
@@ -95,7 +84,7 @@ describe("deleteApplication", () => {
         id: testApplicationId,
       },
     };
-    await deleteApplication(testApplicationId, testExtensionApplicationTypeId);
+    await deleteApplication(testApplicationId, testExtensionApplicationTypeId, mockTransaction);
     expect(transactionMocks.application.delete).toHaveBeenCalledExactlyOnceWith(expectedCall);
     expect(transactionMocks.demonstration.delete).not.toHaveBeenCalled();
     expect(transactionMocks.amendment.delete).not.toHaveBeenCalled();
@@ -112,7 +101,7 @@ describe("deleteApplication", () => {
       },
     };
     await expect(
-      deleteApplication(testApplicationId, testDemonstrationApplicationTypeId)
+      deleteApplication(testApplicationId, testDemonstrationApplicationTypeId, mockTransaction)
     ).rejects.toThrowError(testHandlePrismaError);
     expect(transactionMocks.application.delete).toHaveBeenCalledExactlyOnceWith(expectedCall);
     expect(transactionMocks.demonstration.delete).not.toHaveBeenCalled();
