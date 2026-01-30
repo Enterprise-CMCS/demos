@@ -4,7 +4,7 @@ import {
   __getManyAmendments,
   __createAmendment,
   __updateAmendment,
-  __deleteAmendment,
+  deleteAmendment,
   __resolveParentDemonstration,
 } from "./amendmentResolvers.js";
 import {
@@ -308,14 +308,18 @@ describe("amendmentResolvers", () => {
     });
   });
 
-  describe("__deleteAmendment", () => {
+  describe("deleteAmendment", () => {
     const testInput = {
       id: testAmendmentId,
     };
 
     it("should call the delete function on the correct ID", async () => {
-      await __deleteAmendment(undefined, testInput);
-      expect(deleteApplication).toHaveBeenCalledExactlyOnceWith(testAmendmentId, "Amendment");
+      await deleteAmendment(undefined, testInput);
+      expect(deleteApplication).toHaveBeenCalledExactlyOnceWith(
+        testAmendmentId,
+        "Amendment",
+        mockTransaction
+      );
     });
   });
 

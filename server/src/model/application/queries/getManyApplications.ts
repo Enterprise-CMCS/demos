@@ -1,28 +1,33 @@
-import { prisma } from "../../../prismaClient";
+import { prisma, PrismaTransactionClient } from "../../../prismaClient";
 import { ApplicationType } from "../../../types";
 import {
   Demonstration as PrismaDemonstration,
   Amendment as PrismaAmendment,
   Extension as PrismaExtension,
 } from "@prisma/client";
-import { FindApplicationQueryResult, PrismaApplication } from "..";
+import { PrismaApplication } from "..";
 
 export async function getManyApplications(
-  applicationTypeId: "Demonstration"
+  applicationTypeId: "Demonstration",
+  tx?: PrismaTransactionClient
 ): Promise<PrismaDemonstration[]>;
 
 export async function getManyApplications(
-  applicationTypeId: "Amendment"
+  applicationTypeId: "Amendment",
+  tx?: PrismaTransactionClient
 ): Promise<PrismaAmendment[]>;
 
 export async function getManyApplications(
-  applicationTypeId: "Extension"
+  applicationTypeId: "Extension",
+  tx?: PrismaTransactionClient
 ): Promise<PrismaExtension[]>;
 
 export async function getManyApplications(
-  applicationTypeId: ApplicationType
+  applicationTypeId: ApplicationType,
+  tx?: PrismaTransactionClient
 ): Promise<PrismaApplication[]> {
-  const applications: FindApplicationQueryResult[] | null = await prisma().application.findMany({
+  const prismaClient = tx ?? prisma();
+  const applications = await prismaClient.application.findMany({
     where: {
       applicationTypeId: applicationTypeId,
     },
@@ -32,10 +37,6 @@ export async function getManyApplications(
       extension: true,
     },
   });
-
-  if (!applications) {
-    return [];
-  }
 
   const results: PrismaApplication[] = [];
   for (const application of applications) {

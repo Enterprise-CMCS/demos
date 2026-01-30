@@ -188,11 +188,13 @@ export async function __updateDemonstration(
   }
 }
 
-export async function __deleteDemonstration(
+export async function deleteDemonstration(
   parent: unknown,
   { id }: { id: string }
 ): Promise<PrismaDemonstration> {
-  return await deleteApplication(id, "Demonstration");
+  return await prisma().$transaction(async (tx) => {
+    return await deleteApplication(id, "Demonstration", tx);
+  });
 }
 
 export async function __resolveDemonstrationState(
@@ -290,7 +292,7 @@ export const demonstrationResolvers = {
   Mutation: {
     createDemonstration: __createDemonstration,
     updateDemonstration: __updateDemonstration,
-    deleteDemonstration: __deleteDemonstration,
+    deleteDemonstration: deleteDemonstration,
   },
 
   Demonstration: {

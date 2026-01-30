@@ -18,4 +18,4 @@ export { getManyApplications } from "./queries/getManyApplications";
 export { updateApplicationStatus } from "./queries/updateApplicationStatus";
 
 // Types & Constants
-export type { FindApplicationQueryResult, PrismaApplication } from "./applicationTypes";
+export type { PrismaApplication } from "./applicationTypes";
