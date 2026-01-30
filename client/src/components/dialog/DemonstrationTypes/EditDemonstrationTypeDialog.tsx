@@ -139,12 +139,10 @@ export const EditDemonstrationTypeDialog = ({
     if (!expirationDate) {
       return "Expiration Date is required.";
     }
-    if (!effectiveDate) {
+    if (!effectiveDate || isValid(effectiveDate, expirationDate)) {
       return "";
     }
-    return isValid(effectiveDate, expirationDate)
-      ? ""
-      : "Effective date must be on or before expiration date.";
+    return "Effective date must be on or before expiration date.";
   };
 
   return (
