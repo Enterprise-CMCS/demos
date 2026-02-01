@@ -7,14 +7,14 @@
     "lint": "tsc --noEmit --skipLibCheck"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.969.0",
-    "@aws-sdk/client-secrets-manager": "^3.969.0",
-    "pg": "^8.17.1",
-    "pino": "^10.2.0"
+    "@aws-sdk/client-s3": "^3.980.0",
+    "@aws-sdk/client-secrets-manager": "^3.980.0",
+    "pg": "^8.18.0",
+    "pino": "^10.3.0"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.159",
-    "@types/node": "^24.10.8",
+    "@types/aws-lambda": "^8.10.160",
+    "@types/node": "^24.10.9",
     "@vitest/coverage-v8": "^3.2.4",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
