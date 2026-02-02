@@ -76,6 +76,7 @@ export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrati
         <Button
           name={"button-submit-demonstration-dialog"}
           disabled={
+            loading ||
             !hasRequiredTypes(data?.demonstration.status, demonstrationTypes) ||
             saving ||
             !hasChanges(initialDemonstrationTypes, demonstrationTypes)
