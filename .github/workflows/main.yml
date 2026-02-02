@@ -1,0 +1,56 @@
+name: Security Sync
+
+# FOR TESTING - Add this and # the “on:” below to test changes made on branch
+on:
+  push:
+    branches:
+      - securitysync
+# Set branch name to your test branch
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  sync:
+    name: Run sync
+    runs-on: ubuntu-24.04
+    strategy:
+      max-parallel: 1
+      matrix:
+        environment: [“prod”, "non-prod"] # edit necessary env
+      fail-fast: false
+    environment:
+      name: ${{ matrix.environment }}
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{secrets.DEMOS_GITHUB_SERVICE_ACCOUNT_TOKEN}}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_TO_ASSUME }}
+
+      - name: Sync Security Hub and Jira
+        id: sync_step
+        uses: Enterprise-CMCS/mac-fc-security-hub-visibility@v2.2
+        with:
+          jira-token: ${{ secrets.JIRA_ENT_USER_TOKEN }}
+          jira-username: macpro_jira_service_account
+          jira-project-key: DEMOS # Enter Project Key
+          jira-ignore-statuses: Done, Closed, Canceled
+          aws-severities: CRITICAL, HIGH, MEDIUM
+          jira-custom-fields: '{ "customfield_10100": "DEMOS-1417" }' # Enter Jira Epic Code
+#        jira-labels-config: "[{\"labelField\":\"ProductName\",\"labelPrefix\":\"product\",\"labelDelimiter\":\":\"},{\"labelField\":\"severity\"},{\"labelField\":\"accountId\",\"labelDelimiter\":\":\",\"labelPrefix\":\"account\"},{\"labelField\":\"region\"},{\"labelField\":\"accountAlias\"}, {\"labelField\":\"identify\"},{\"labelField\":\"CVE\",\"labelPrefix\":\"\",\"labelDelimiter\":\"\"}]"
+#          jira-assignee: ""
+          include-all-products: 'true'
+          jira-consolidate-tickets: true
+          # jira-duedate-field: customfield_10083
+          # due-date-critical: 3
+          # due-date-high:     6
+          # due-date-moderate:   9
+          # due-date-low:      12
+          skip-products: Default
