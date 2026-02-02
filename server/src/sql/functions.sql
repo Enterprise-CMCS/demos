@@ -754,3 +754,74 @@ CREATE TRIGGER _disable_redundant_updates
 BEFORE UPDATE ON demos_app.users
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+-- check_demonstration_type_exists_for_approved_demos
+CREATE OR REPLACE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    demonstration_status TEXT;
+    demonstration_type_assignment_count INT;
+BEGIN
+    IF TG_TABLE_NAME = 'demonstration_type_tag_assignment' AND TG_OP = 'DELETE' THEN
+        SELECT
+            status_id
+        FROM
+            demos_app.demonstration
+        WHERE
+            id = OLD.demonstration_id
+        INTO
+            demonstration_status;
+
+        IF demonstration_status = 'Approved' THEN
+            -- Remember, this count is before the execution of the delete
+            -- That is why we look for a count of 1
+            SELECT
+                COUNT(*)
+            FROM
+                demos_app.demonstration_type_tag_assignment
+            WHERE
+                demonstration_id = OLD.demonstration_id
+            INTO
+                demonstration_type_assignment_count;
+
+            IF demonstration_type_assignment_count = 1 THEN
+                RAISE EXCEPTION 'Cannot delete the final demonstration type from approved demonstration %', OLD.demonstration_id;
+            END IF;
+        END IF;
+        RETURN OLD;
+
+    ELSIF TG_TABLE_NAME = 'demonstration' AND TG_OP = 'UPDATE' THEN
+        IF (OLD.status_id IS DISTINCT FROM NEW.status_id) AND (NEW.status_id = 'Approved') THEN
+            SELECT
+                COUNT(*)
+            FROM
+                demos_app.demonstration_type_tag_assignment
+            WHERE
+                demonstration_id = NEW.id
+            INTO
+                demonstration_type_assignment_count;
+
+            -- In this case we check for zero because the operation is on the demonstration table
+            IF demonstration_type_assignment_count = 0 THEN
+                RAISE EXCEPTION 'Cannot set demonstration % to Approved without at least one demonstration type', NEW.id;
+            END IF;
+        END IF;
+        RETURN NEW;
+
+    ELSE
+        RAISE EXCEPTION 'This trigger has been assigned to an incorrect table/operation combination';
+    END IF;
+END;
+$$;
+
+CREATE TRIGGER check_demonstration_type_exists_for_approved_demonstrations
+BEFORE DELETE ON demos_app.demonstration_type_tag_assignment
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations();
+
+CREATE TRIGGER check_demonstration_type_exists_for_approved_demonstrations
+BEFORE UPDATE ON demos_app.demonstration
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations();
