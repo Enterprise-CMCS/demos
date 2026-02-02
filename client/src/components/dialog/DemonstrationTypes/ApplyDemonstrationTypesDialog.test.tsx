@@ -59,6 +59,7 @@ const MOCK_DEMONSTRATION_TYPE_D: DemonstrationType = {
 
 const mockInitialDemonstration: Demonstration = {
   id: MOCK_DEMONSTRATION_ID,
+  status: "Pre-Submission",
   demonstrationTypes: [
     MOCK_DEMONSTRATION_TYPE_A,
     MOCK_DEMONSTRATION_TYPE_B,
@@ -326,5 +327,79 @@ describe("ApplyDemonstrationTypesDialog", () => {
 
     expect(submitButton).toBeEnabled();
     expect(screen.getByText("Types to be added (3)")).toBeInTheDocument();
+  });
+
+  describe("validation for approved demonstrations", () => {
+    it("prevents submit when no types exist for approved demonstration", async () => {
+      const user = userEvent.setup();
+      const approvedDemonstration: Demonstration = {
+        ...mockInitialDemonstration,
+        status: "Approved",
+      };
+      const approvedDemonstrationQueryMock: MockedResponse<{
+        demonstration: Demonstration;
+      }> = {
+        request: {
+          query: ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY,
+          variables: { id: MOCK_DEMONSTRATION_ID },
+        },
+        result: {
+          data: {
+            demonstration: approvedDemonstration,
+          },
+        },
+      };
+
+      await renderWithProvider([selectDemonstrationTypeQueryMock, approvedDemonstrationQueryMock]);
+
+      const removeButtons = screen.getAllByRole("button", { name: /delete/i });
+      for (const button of removeButtons) {
+        await user.click(button);
+      }
+      expect(
+        screen.queryByText(
+          /at least one demonstration type is required for approved demonstrations/i
+        )
+      ).toBeInTheDocument();
+
+      const submitButton = screen.getByTestId("button-submit-demonstration-dialog");
+      expect(submitButton).toBeDisabled();
+    });
+
+    it("does not prevent submit when no types exist for not-approved demonstration ", async () => {
+      const user = userEvent.setup();
+
+      const unApprovedDemonstrationQueryMock: MockedResponse<{
+        demonstration: Demonstration;
+      }> = {
+        request: {
+          query: ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY,
+          variables: { id: MOCK_DEMONSTRATION_ID },
+        },
+        result: {
+          data: {
+            demonstration: mockInitialDemonstration,
+          },
+        },
+      };
+
+      await renderWithProvider([
+        selectDemonstrationTypeQueryMock,
+        unApprovedDemonstrationQueryMock,
+      ]);
+
+      const removeButtons = screen.getAllByRole("button", { name: /delete/i });
+      for (const button of removeButtons) {
+        await user.click(button);
+      }
+      expect(
+        screen.queryByText(
+          /at least one demonstration type is required for approved demonstrations/i
+        )
+      ).not.toBeInTheDocument();
+
+      const submitButton = screen.getByTestId("button-submit-demonstration-dialog");
+      expect(submitButton).toBeEnabled();
+    });
   });
 });

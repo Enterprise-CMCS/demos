@@ -9,6 +9,7 @@ import {
   DemonstrationType,
   useApplyDemonstrationTypesDialogData,
 } from "./useApplyDemonstrationTypesDialogData";
+import { ApplicationStatus } from "demos-server";
 
 const hasChanges = (
   initialDemonstrationTypes?: DemonstrationType[],
@@ -57,6 +58,14 @@ export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrati
     closeDialog();
   };
 
+  const hasRequiredTypes = (
+    demonstrationStatus?: ApplicationStatus,
+    demonstrationTypes?: DemonstrationType[]
+  ) => {
+    if (!demonstrationStatus || !demonstrationTypes) return false;
+    return demonstrationStatus !== "Approved" || demonstrationTypes.length > 0;
+  };
+
   return (
     <BaseDialog
       title="Apply Type(s)"
@@ -66,7 +75,11 @@ export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrati
       actionButton={
         <Button
           name={"button-submit-demonstration-dialog"}
-          disabled={loading || saving || !hasChanges(initialDemonstrationTypes, demonstrationTypes)}
+          disabled={
+            !hasRequiredTypes(data?.demonstration.status, demonstrationTypes) ||
+            saving ||
+            !hasChanges(initialDemonstrationTypes, demonstrationTypes)
+          }
           onClick={handleSubmit}
         >
           Apply Type(s)
@@ -76,7 +89,7 @@ export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrati
       <>
         {loading && <p>Loading...</p>}
         {loadingError && <p>Error loading demonstration data.</p>}
-        {demonstrationTypes && (
+        {demonstrationTypes && data && (
           <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-gray-300">
             <AddDemonstrationTypesForm
               demonstrationTypes={demonstrationTypes}
@@ -95,6 +108,11 @@ export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrati
                 )
               }
             />
+            {!hasRequiredTypes(data?.demonstration.status, demonstrationTypes) && (
+              <p className="text-red-600 text-right">
+                At least one demonstration type is required for approved demonstrations.
+              </p>
+            )}
           </div>
         )}
       </>

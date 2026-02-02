@@ -12,7 +12,7 @@ export type DemonstrationType = {
   effectiveDate: string;
   expirationDate: string;
 };
-export type Demonstration = Pick<ServerDemonstration, "id"> & {
+export type Demonstration = Pick<ServerDemonstration, "id" | "status"> & {
   demonstrationTypes: DemonstrationType[];
 };
 
@@ -23,6 +23,7 @@ export const ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY: TypedDocumentNode<
   query AssignDemonstrationTypesDialog($id: ID!) {
     demonstration(id: $id) {
       id
+      status
       demonstrationTypes {
         demonstrationTypeName
         effectiveDate

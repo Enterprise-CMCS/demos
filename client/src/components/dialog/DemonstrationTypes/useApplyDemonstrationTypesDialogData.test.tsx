@@ -174,6 +174,7 @@ describe("useApplyDemonstrationTypesDialogData", () => {
           data: {
             demonstration: {
               id: demonstrationId,
+              status: "Pre-Submission",
               demonstrationTypes: [MOCK_DEMONSTRATION_TYPE_A, MOCK_DEMONSTRATION_TYPE_B],
             },
           },
@@ -198,6 +199,7 @@ describe("useApplyDemonstrationTypesDialogData", () => {
 
     expect(result.current.data?.demonstration).toEqual({
       id: demonstrationId,
+      status: "Pre-Submission",
       demonstrationTypes: [
         {
           demonstrationTypeName: "Type A",
@@ -257,6 +259,7 @@ describe("useApplyDemonstrationTypesDialogData", () => {
           data: {
             demonstration: {
               id: demonstrationId,
+              status: "Pre-Submission",
               demonstrationTypes: initialTypes,
             },
           },
@@ -329,6 +332,7 @@ describe("useApplyDemonstrationTypesDialogData", () => {
           data: {
             demonstration: {
               id: demonstrationId,
+              status: "Pre-Submission",
               demonstrationTypes: initialTypes,
             },
           },
