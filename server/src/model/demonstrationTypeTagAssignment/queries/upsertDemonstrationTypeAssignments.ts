@@ -7,8 +7,8 @@ export async function upsertDemonstrationTypeAssignments(
   demonstartionTypeAssignemnts: ParsedDemonstrationTypeInput[],
   tx: PrismaTransactionClient
 ): Promise<void> {
-  const demonstrationTypeUpdateOperations = demonstartionTypeAssignemnts.map((recordToUpsert) => {
-    return tx.demonstrationTypeTagAssignment.upsert({
+  for (const recordToUpsert of demonstartionTypeAssignemnts) {
+    await tx.demonstrationTypeTagAssignment.upsert({
       where: {
         demonstrationId_tagId: {
           demonstrationId: demonstrationId,
@@ -27,6 +27,5 @@ export async function upsertDemonstrationTypeAssignments(
         expirationDate: recordToUpsert.demonstrationTypeDates.expirationDate,
       },
     });
-  });
-  await Promise.all(demonstrationTypeUpdateOperations);
+  }
 }

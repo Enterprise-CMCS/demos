@@ -6,15 +6,14 @@ import { CompletePhaseInput } from "../../types.js";
 import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { validateAndUpdateDates } from "../applicationDate";
-import {
-  validatePhaseCompletion,
-  updatePhaseStatus,
-  setPhaseToStarted,
-  updateStatusToUnderReviewIfNeeded,
-  updateApplicationStatus,
-} from ".";
+import { validatePhaseCompletion, updatePhaseStatus, setPhaseToStarted } from ".";
 import { EasternTZDate, getEasternNow } from "../../dateUtilities.js";
 import { TZDate } from "@date-fns/tz";
+import {
+  getApplication,
+  updateApplicationStatusToUnderReviewIfNeeded,
+  updateApplicationStatus,
+} from "../application";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -27,8 +26,10 @@ vi.mock("../../errors/handlePrismaError.js", () => ({
   }),
 }));
 
-vi.mock("../application/applicationResolvers.js", () => ({
+vi.mock("../application", () => ({
   getApplication: vi.fn(),
+  updateApplicationStatusToUnderReviewIfNeeded: vi.fn(),
+  updateApplicationStatus: vi.fn(),
 }));
 
 vi.mock("../applicationDate", () => ({
@@ -43,7 +44,7 @@ vi.mock(".", async () => {
     validatePhaseCompletion: vi.fn(),
     updatePhaseStatus: vi.fn(),
     setPhaseToStarted: vi.fn(),
-    updateStatusToUnderReviewIfNeeded: vi.fn(),
+    updateApplicationStatusToUnderReviewIfNeeded: vi.fn(),
     updateApplicationStatus: vi.fn(),
   };
 });
@@ -135,7 +136,7 @@ describe("completePhase", () => {
         validateStartDateCall,
       ]);
       expect(handlePrismaError).not.toHaveBeenCalled();
-      expect(updateStatusToUnderReviewIfNeeded).toHaveBeenCalledExactlyOnceWith(
+      expect(updateApplicationStatusToUnderReviewIfNeeded).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         mockTransaction
       );
@@ -163,7 +164,7 @@ describe("completePhase", () => {
 
       await completePhase(undefined, { input: testInput });
 
-      expect(updateStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
+      expect(updateApplicationStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
     });
   });
 
@@ -222,7 +223,7 @@ describe("completePhase", () => {
         validateStartDateCall,
       ]);
       expect(handlePrismaError).not.toHaveBeenCalled();
-      expect(updateStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
+      expect(updateApplicationStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
       expect(updateApplicationStatus).not.toHaveBeenCalled();
     });
   });
@@ -264,7 +265,7 @@ describe("completePhase", () => {
       expect(setPhaseToStarted).not.toBeCalled();
       expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(validateCompleteDateCall);
       expect(handlePrismaError).not.toHaveBeenCalled();
-      expect(updateStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
+      expect(updateApplicationStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
       expect(updateApplicationStatus).not.toHaveBeenCalled();
     });
   });
@@ -285,7 +286,7 @@ describe("completePhase", () => {
       expect(setPhaseToStarted).not.toBeCalled();
       expect(validateAndUpdateDates).not.toHaveBeenCalled();
       expect(handlePrismaError).not.toHaveBeenCalled();
-      expect(updateStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
+      expect(updateApplicationStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
       expect(updateApplicationStatus).not.toHaveBeenCalled();
     });
   });
@@ -345,7 +346,7 @@ describe("completePhase", () => {
         validateStartDateCall,
       ]);
       expect(handlePrismaError).not.toHaveBeenCalled();
-      expect(updateStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
+      expect(updateApplicationStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
       expect(updateApplicationStatus).not.toHaveBeenCalled();
     });
   });
@@ -405,7 +406,7 @@ describe("completePhase", () => {
         validateStartDateCall,
       ]);
       expect(handlePrismaError).not.toHaveBeenCalled();
-      expect(updateStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
+      expect(updateApplicationStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
       expect(updateApplicationStatus).not.toHaveBeenCalled();
     });
   });
@@ -465,7 +466,7 @@ describe("completePhase", () => {
         validateStartDateCall,
       ]);
       expect(handlePrismaError).not.toHaveBeenCalled();
-      expect(updateStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
+      expect(updateApplicationStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
       expect(updateApplicationStatus).not.toHaveBeenCalled();
     });
   });
@@ -504,7 +505,7 @@ describe("completePhase", () => {
       );
       expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual([validateCompleteDateCall]);
       expect(handlePrismaError).not.toHaveBeenCalled();
-      expect(updateStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
+      expect(updateApplicationStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
       expect(updateApplicationStatus).toHaveBeenCalledExactlyOnceWith(
         testApplicationId,
         "Approved",
@@ -568,7 +569,7 @@ describe("completePhase", () => {
       );
       expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(expectedDateCall);
       expect(handlePrismaError).not.toHaveBeenCalled();
-      expect(updateStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
+      expect(updateApplicationStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
       expect(updateApplicationStatus).not.toHaveBeenCalled();
     });
   });

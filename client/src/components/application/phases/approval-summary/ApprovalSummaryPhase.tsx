@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
 import { formatDate, formatDateForServer, getTodayEst } from "util/formatDate";
-import { UpdateDemonstrationInput } from "demos-server";
+import { ApplicationStatus, UpdateDemonstrationInput } from "demos-server";
 import { ApplicationWorkflowDemonstration } from "components/application/ApplicationWorkflow";
 import { ApplicationDetailsSection, ApplicationDetailsFormData } from "./applicationDetailsSection";
 import { DemonstrationTypesSection } from "./demonstrationTypesSection";
@@ -245,6 +245,12 @@ export const ApprovalSummaryPhase = ({
     }
   };
 
+  const demonstrationForTypes = {
+    id: demonstrationId,
+    status: approvalSummaryFormData.status as ApplicationStatus,
+    demonstrationTypes: initialTypes,
+  };
+
   return (
     <div>
       <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">Approval Summary</h3>
@@ -262,8 +268,7 @@ export const ApprovalSummaryPhase = ({
         />
 
         <DemonstrationTypesSection
-          demonstrationId={demonstrationId}
-          initialTypes={initialTypes}
+          demonstration={demonstrationForTypes}
           isComplete={isDemonstrationTypesComplete}
           onMarkComplete={(complete: boolean) => setIsDemonstrationTypesComplete(complete)}
         />

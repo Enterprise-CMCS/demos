@@ -30,7 +30,7 @@ import { __createExtension, __updateExtension } from "./model/extension/extensio
 import { __setApplicationDates } from "./model/applicationDate/applicationDateResolvers.js";
 import { logEvent } from "./model/event/eventResolvers.js";
 import { GraphQLContext } from "./auth/auth.util.js";
-import { getManyApplications } from "./model/application/applicationResolvers.js";
+import { getManyApplications } from "./model/application";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 const DOCUMENTS_PER_APPLICATION = 15;
@@ -401,22 +401,20 @@ async function seedDatabase() {
   }
   const demonstrations = (await getManyApplications("Demonstration"))!;
 
-  await Promise.all(
-    demonstrations.map(async (demonstration) => {
-      const randomDates = randomDateRange();
-      const updatePayload: UpdateDemonstrationInput = {
-        effectiveDate: randomDates["start"],
-        expirationDate: randomDates["end"],
-      };
+  for (const demonstration of demonstrations) {
+    const randomDates = randomDateRange();
+    const updatePayload: UpdateDemonstrationInput = {
+      effectiveDate: randomDates["start"],
+      expirationDate: randomDates["end"],
+    };
 
-      const updateInput = {
-        id: demonstration.id,
-        input: updatePayload,
-      };
+    const updateInput = {
+      id: demonstration.id,
+      input: updatePayload,
+    };
 
-      await __updateDemonstration(undefined, updateInput);
-    })
-  );
+    await __updateDemonstration(undefined, updateInput);
+  }
 
   console.log("🌱 Seeding all dates for one demonstration");
   const randomDemonstration = await prisma().demonstration.findRandom({
@@ -595,7 +593,6 @@ async function seedDatabase() {
     const randomDates = randomDateRange();
     const updatePayload: UpdateAmendmentInput = {
       effectiveDate: randomDates["start"],
-      expirationDate: randomDates["end"],
     };
     const updateInput = {
       id: amendment.id,
@@ -618,7 +615,6 @@ async function seedDatabase() {
     const randomDates = randomDateRange();
     const updatePayload: UpdateExtensionInput = {
       effectiveDate: randomDates["start"],
-      expirationDate: randomDates["end"],
     };
     const updateInput = {
       id: extension.id,

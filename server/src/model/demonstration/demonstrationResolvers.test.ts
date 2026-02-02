@@ -4,7 +4,7 @@ import {
   __getManyDemonstrations,
   __createDemonstration,
   __updateDemonstration,
-  __deleteDemonstration,
+  deleteDemonstration,
   __resolveDemonstrationState,
   __resolveDemonstrationAmendments,
   __resolveDemonstrationExtensions,
@@ -13,7 +13,7 @@ import {
   __resolveDemonstrationRoleAssignments,
   __resolveDemonstrationPrimaryProjectOfficer,
   resolveDemonstrationTypes,
-} from "./demonstrationResolvers.js";
+} from "./demonstrationResolvers";
 import {
   ApplicationStatus,
   ApplicationType,
@@ -52,7 +52,7 @@ import {
   resolveApplicationStatus,
   resolveApplicationClearanceLevel,
   resolveApplicationTags,
-} from "../application/applicationResolvers.js";
+} from "../application";
 import { parseDateTimeOrLocalDateToEasternTZDate, EasternTZDate } from "../../dateUtilities.js";
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
 
@@ -60,7 +60,7 @@ vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
 }));
 
-vi.mock("../application/applicationResolvers.js", () => ({
+vi.mock("../application", () => ({
   getApplication: vi.fn(),
   getManyApplications: vi.fn(),
   deleteApplication: vi.fn(),
@@ -663,16 +663,17 @@ describe("demonstrationResolvers", () => {
     });
   });
 
-  describe("__deleteDemonstration", () => {
+  describe("deleteDemonstration", () => {
     const testInput = {
       id: testValues.demonstrationId,
     };
 
     it("should call the delete function on the correct ID", async () => {
-      await __deleteDemonstration(undefined, testInput);
+      await deleteDemonstration(undefined, testInput);
       expect(deleteApplication).toHaveBeenCalledExactlyOnceWith(
         testValues.demonstrationId,
-        testValues.applicationTypeId
+        testValues.applicationTypeId,
+        mockTransaction
       );
     });
   });

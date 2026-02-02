@@ -109,11 +109,11 @@ describe("DatePicker component", () => {
       expect(mockOnChange).toHaveBeenCalledWith("2024-02-29");
     });
 
-    it("does not call onChange when input is empty or onChange not provided", () => {
-      render(<DatePicker {...requiredProps} />);
+    it("calls onChange when existing value is cleared", () => {
+      render(<DatePicker {...requiredProps} value="2024-01-15" />);
       const input = screen.getByTestId("test-date");
       fireEvent.input(input, { target: { value: "" } });
-      expect(mockOnChange).not.toHaveBeenCalled();
+      expect(mockOnChange).toHaveBeenCalledWith("");
     });
   });
 

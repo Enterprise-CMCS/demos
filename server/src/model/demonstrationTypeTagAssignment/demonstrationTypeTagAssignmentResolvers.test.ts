@@ -7,7 +7,7 @@ import { setDemonstrationTypes } from "./demonstrationTypeTagAssignmentResolvers
 // Mock imports
 import { prisma } from "../../prismaClient";
 import { handlePrismaError } from "../../errors/handlePrismaError";
-import { getApplication } from "../application/applicationResolvers";
+import { getApplication } from "../application";
 import {
   checkForDuplicateDemonstrationTypes,
   createAndUpsertDemonstrationTypeAssignments,
@@ -26,7 +26,7 @@ vi.mock("../../errors/handlePrismaError", () => ({
   }),
 }));
 
-vi.mock("../application/applicationResolvers", () => ({
+vi.mock("../application", () => ({
   getApplication: vi.fn(),
 }));
 

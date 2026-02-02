@@ -2,15 +2,23 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
 import { ApplicationDateInput, UploadDocumentInput } from "../../types";
 import { EasternNow } from "../../dateUtilities";
-import { createPhaseStartDate } from "../applicationDate";
-import { startPhaseByDocument, setPhaseToStarted } from ".";
+import { startPhaseByDocument } from "./startPhaseByDocument";
 
-vi.mock("./setPhaseToStarted", () => ({
+// Mock imports
+import { setPhaseToStarted } from ".";
+import { createPhaseStartDate } from "../applicationDate";
+import { updateApplicationStatusToUnderReviewIfNeeded } from "../application";
+
+vi.mock(".", () => ({
   setPhaseToStarted: vi.fn(),
 }));
 
 vi.mock("../applicationDate", () => ({
   createPhaseStartDate: vi.fn(),
+}));
+
+vi.mock("../application", () => ({
+  updateApplicationStatusToUnderReviewIfNeeded: vi.fn(),
 }));
 
 describe("startPhaseByDocument", () => {
@@ -111,5 +119,30 @@ describe("startPhaseByDocument", () => {
     expect(setPhaseToStarted).not.toHaveBeenCalled();
     expect(createPhaseStartDate).not.toHaveBeenCalled();
     expect(result).toBeNull();
+  });
+
+  it("should update the application status to under review if the phase is Application Intake", async () => {
+    vi.mocked(setPhaseToStarted).mockResolvedValue(true);
+    vi.mocked(createPhaseStartDate).mockReturnValue(mockPhaseStartDate);
+
+    const mockDocument: Pick<UploadDocumentInput, "phaseName"> = {
+      phaseName: "Application Intake",
+    };
+
+    await startPhaseByDocument(mockTransaction, testApplicationId, mockDocument, mockEasternNow);
+
+    expect(updateApplicationStatusToUnderReviewIfNeeded).toHaveBeenCalledExactlyOnceWith(
+      testApplicationId,
+      mockTransaction
+    );
+  });
+
+  it("should not update the application status to under review if the phase is not Application Intake", async () => {
+    vi.mocked(setPhaseToStarted).mockResolvedValue(true);
+    vi.mocked(createPhaseStartDate).mockReturnValue(mockPhaseStartDate);
+
+    await startPhaseByDocument(mockTransaction, testApplicationId, mockDocument, mockEasternNow);
+
+    expect(updateApplicationStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
   });
 });
