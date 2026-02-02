@@ -8,7 +8,7 @@ export const DOCUMENT_UPLOADED_MESSAGE = "Your document has been added.";
 export const DOCUMENT_FAILED_UPLOAD_MESSAGE =
   "Your document could not be added because of an unknown problem.";
 export const DOCUMENT_FAILED_VIRUS_SCAN_MESSAGE =
-  "Your document was not uploaded because malicious content was detected in the file.";
+  "An Error has occurred - Document appears to be corrupted; upload a new file.";
 export const DOCUMENT_REMOVED_MESSAGE = "Your document has been removed.";
 export const DOCUMENT_REMOVAL_FAILED_MESSAGE =
   "Your document could not be removed because of an unknown problem.";

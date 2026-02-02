@@ -81,27 +81,27 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     fetchPolicy: "network-only",
   });
 
-  const waitForVirusScan = async (
-    documentId: string,
-    setDocumentDialogState: (documentDialogState: DocumentDialogState) => void
-  ): Promise<void> => {
+  const waitForVirusScan = async (documentId: string): Promise<void> => {
     for (let attempt = 0; attempt < VIRUS_SCAN_MAX_ATTEMPTS; attempt++) {
+      // Check if the document exists in the documents table
       const { data } = await checkDocumentExists({
         variables: { documentId },
       });
-
       if (data?.documentExists === true) {
         return;
       }
 
+      // Wait before the next attempt
       await new Promise((resolve) => setTimeout(resolve, DOCUMENT_POLL_INTERVAL_MS));
     }
 
-    setDocumentDialogState("virus-scan-failed");
-    throw new Error("Waiting for virus scan timed out");
+    throw new Error("Virus scan failed");
   };
 
-  const handleDocumentUploadSucceeded = async (): Promise<void> => {
+  const handleDocumentUploadSucceeded = async (
+    setDocumentDialogState: (documentDialogState: DocumentDialogState) => void
+  ): Promise<void> => {
+    setDocumentDialogState("succeeded");
     onDocumentUploadSucceeded?.();
     if (refetchQueries) {
       await client.refetchQueries({ include: refetchQueries });
@@ -125,6 +125,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       phaseName,
     };
 
+    // Get presigned URL from the server
     const uploadDocumentResponse = await uploadDocumentTrigger({
       variables: { input: uploadDocumentInput },
     });
@@ -138,23 +139,30 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       throw new Error("Upload response from the server was empty");
     }
 
-    // Local development mode - skip S3 upload and virus scan
-    if (uploadResult.presignedURL.startsWith(LOCAL_UPLOAD_PREFIX)) {
-      await handleDocumentUploadSucceeded();
-      return;
-    }
-
+    // Guard: Ensure presignedURL is present
     if (!uploadResult.presignedURL) {
       throw new Error("Could not get presigned URL from the server");
     }
 
+    // Short-circuit: Skip S3 upload and virus scan in local development
+    if (uploadResult.presignedURL.startsWith(LOCAL_UPLOAD_PREFIX)) {
+      await handleDocumentUploadSucceeded(setDocumentDialogState);
+      return;
+    }
+
+    // Upload the file to presigned URL
     const response = await tryUploadingFileToS3(uploadResult.presignedURL, dialogFields.file);
     if (!response.success) {
       throw new Error(response.errorMessage);
     }
 
-    await waitForVirusScan(uploadResult.documentId, setDocumentDialogState);
-    await handleDocumentUploadSucceeded();
+    // Wait for virus scan to complete
+    try {
+      await waitForVirusScan(uploadResult.documentId);
+      await handleDocumentUploadSucceeded(setDocumentDialogState);
+    } catch {
+      setDocumentDialogState("virus-scan-failed");
+    }
   };
 
   return (

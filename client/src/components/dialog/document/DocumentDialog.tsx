@@ -16,7 +16,12 @@ import { UploadButton } from "./UploadButton";
 
 type DocumentDialogType = "add" | "edit";
 
-export type DocumentDialogState = "idle" | "uploading" | "unknown-error" | "virus-scan-failed";
+export type DocumentDialogState =
+  | "idle"
+  | "uploading"
+  | "succeeded"
+  | "unknown-error"
+  | "virus-scan-failed";
 
 const STYLES = {
   label: tw`text-text-font font-bold text-field-label flex gap-0-5`,
@@ -283,7 +288,7 @@ export type DocumentDialogProps = {
   onClose?: () => void;
   mode: DocumentDialogType;
   documentTypeSubset?: DocumentType[];
-  onSubmit?: (
+  onSubmit: (
     dialogFields: DocumentDialogFields,
     setDocumentDialogState: (documentDialogState: DocumentDialogState) => void
   ) => Promise<void>;
@@ -367,10 +372,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     setDocumentDialogState("uploading");
 
     try {
-      if (onSubmit) {
-        await onSubmit(activeDocument, setDocumentDialogState);
-      }
-
+      await onSubmit(activeDocument, setDocumentDialogState);
       setDocumentDialogState("idle");
       onClose();
       showSuccess(mode === "edit" ? SUCCESS_MESSAGES.fileUpdated : SUCCESS_MESSAGES.fileUploaded);
