@@ -16,12 +16,8 @@ import { UploadButton } from "./UploadButton";
 
 type DocumentDialogType = "add" | "edit";
 
-export type DocumentDialogState =
-  | "idle"
-  | "uploading"
-  | "succeeded"
-  | "unknown-error"
-  | "virus-scan-failed";
+export type DocumentUploadResult = "succeeded" | "virus-scan-failed" | "unknown-error";
+export type DocumentDialogState = DocumentUploadResult | "idle" | "uploading";
 
 const STYLES = {
   label: tw`text-text-font font-bold text-field-label flex gap-0-5`,
@@ -288,10 +284,7 @@ export type DocumentDialogProps = {
   onClose?: () => void;
   mode: DocumentDialogType;
   documentTypeSubset?: DocumentType[];
-  onSubmit: (
-    dialogFields: DocumentDialogFields,
-    setDocumentDialogState: (documentDialogState: DocumentDialogState) => void
-  ) => Promise<void>;
+  onSubmit: (dialogFields: DocumentDialogFields) => Promise<DocumentUploadResult>;
   initialDocument?: DocumentDialogFields;
   titleOverride?: string;
   cancelButtonIsDisabled?: boolean;
@@ -371,13 +364,12 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   const handleUpload = async () => {
     setDocumentDialogState("uploading");
 
-    try {
-      await onSubmit(activeDocument, setDocumentDialogState);
+    const uploadResult = await onSubmit(activeDocument);
+
+    if (uploadResult === "succeeded") {
       setDocumentDialogState("idle");
       onClose();
       showSuccess(mode === "edit" ? SUCCESS_MESSAGES.fileUpdated : SUCCESS_MESSAGES.fileUploaded);
-    } catch {
-      setDocumentDialogState("unknown-error");
     }
   };
 

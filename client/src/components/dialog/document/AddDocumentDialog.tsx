@@ -5,7 +5,7 @@ import { DocumentType, PhaseName, UploadDocumentInput } from "demos-server";
 import {
   DocumentDialog,
   DocumentDialogFields,
-  DocumentDialogState,
+  DocumentUploadResult,
 } from "components/dialog/document/DocumentDialog";
 import { useToast } from "components/toast/ToastContext";
 
@@ -98,10 +98,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     throw new Error("Virus scan failed");
   };
 
-  const handleDocumentUploadSucceeded = async (
-    setDocumentDialogState: (documentDialogState: DocumentDialogState) => void
-  ): Promise<void> => {
-    setDocumentDialogState("succeeded");
+  const handleDocumentUploadSucceeded = async (): Promise<void> => {
     onDocumentUploadSucceeded?.();
     if (refetchQueries) {
       await client.refetchQueries({ include: refetchQueries });
@@ -109,12 +106,11 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   };
 
   const handleUpload = async (
-    dialogFields: DocumentDialogFields,
-    setDocumentDialogState: (documentDialogState: DocumentDialogState) => void
-  ): Promise<void> => {
+    dialogFields: DocumentDialogFields
+  ): Promise<DocumentUploadResult> => {
     if (!dialogFields.file) {
       showError("Please select a file to upload.");
-      return;
+      return "unknown-error";
     }
 
     const uploadDocumentInput: UploadDocumentInput = {
@@ -146,8 +142,8 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
 
     // Short-circuit: Skip S3 upload and virus scan in local development
     if (uploadResult.presignedURL.startsWith(LOCAL_UPLOAD_PREFIX)) {
-      await handleDocumentUploadSucceeded(setDocumentDialogState);
-      return;
+      await handleDocumentUploadSucceeded();
+      return "succeeded";
     }
 
     // Upload the file to presigned URL
@@ -159,9 +155,10 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     // Wait for virus scan to complete
     try {
       await waitForVirusScan(uploadResult.documentId);
-      await handleDocumentUploadSucceeded(setDocumentDialogState);
+      await handleDocumentUploadSucceeded();
+      return "succeeded";
     } catch {
-      setDocumentDialogState("virus-scan-failed");
+      return "virus-scan-failed";
     }
   };
 
