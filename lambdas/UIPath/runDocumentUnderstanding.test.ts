@@ -4,6 +4,10 @@ vi.mock("./getToken", () => ({
   getToken: vi.fn().mockResolvedValue("token-123"),
 }));
 
+vi.mock("./uipathClient", () => ({
+  getProjectId: vi.fn().mockResolvedValue("project-1"),
+}));
+
 const uploadDocumentMock = vi.fn();
 const extractDocMock = vi.fn();
 const fetchExtractionResultMock = vi.fn();

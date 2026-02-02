@@ -1,7 +1,0 @@
-model UiPathResult {
-  id        String @id @default(uuid()) @db.Uuid
-  requestId String @map("request_id")
-  response  Json
-
-  @@map("uipath_result")
-}
