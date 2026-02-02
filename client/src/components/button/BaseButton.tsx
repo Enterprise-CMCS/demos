@@ -70,8 +70,7 @@ export const BaseButton: React.FC<ButtonProps> = ({
   const sizeClasses = getSizeClasses(isCircle, size);
   const circleClasses = getCircleClasses(isCircle);
 
-  const accessibleLabel =
-    disabled && tooltip ? `${ariaLabel || name} - ${tooltip}` : ariaLabel || name;
+  const accessibleLabel = tooltip ? `${ariaLabel || name} - ${tooltip}` : ariaLabel || name;
 
   return (
     <button

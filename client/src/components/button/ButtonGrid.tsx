@@ -88,7 +88,7 @@ export const ButtonGrid: React.FC = () => {
                 onClick={() => {}}
                 size={size}
                 disabled={allDisabled}
-                tooltip={allDisabled ? "Enable this button to make changes" : undefined}
+                tooltip={allDisabled ? "Enable this button to make changes" : "Save your changes"}
               >
                 Save
               </VariantButton>
