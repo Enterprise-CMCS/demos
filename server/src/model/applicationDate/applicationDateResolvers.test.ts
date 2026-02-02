@@ -9,7 +9,7 @@ import { SetApplicationDateInput, SetApplicationDatesInput } from "../../types";
 import { prisma } from "../../prismaClient";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { getEasternNow } from "../../dateUtilities";
-import { getApplication } from "../application/applicationResolvers";
+import { getApplication } from "../application";
 import { startPhasesByDates } from "../applicationPhase";
 import { validateAndUpdateDates } from ".";
 
@@ -24,7 +24,7 @@ vi.mock("../../errors/handlePrismaError", () => ({
   }),
 }));
 
-vi.mock("../application/applicationResolvers", () => ({
+vi.mock("../application", () => ({
   getApplication: vi.fn(),
 }));
 

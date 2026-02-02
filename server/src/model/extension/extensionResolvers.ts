@@ -20,7 +20,7 @@ import {
   resolveApplicationPhases,
   resolveApplicationStatus,
   resolveApplicationTags,
-} from "../application/applicationResolvers.js";
+} from "../application";
 
 const extensionApplicationType: ApplicationType = "Extension";
 const conceptPhaseName: PhaseName = "Concept";
@@ -66,7 +66,7 @@ export async function __updateExtension(
   parent: unknown,
   { id, input }: { id: string; input: UpdateExtensionInput }
 ): Promise<PrismaExtension> {
-  const { effectiveDate, expirationDate } = parseAndValidateEffectiveAndExpirationDates(input);
+  const { effectiveDate } = parseAndValidateEffectiveAndExpirationDates(input);
   checkOptionalNotNullFields(["demonstrationId", "name", "status"], input);
   try {
     return await prisma().extension.update({
@@ -78,7 +78,6 @@ export async function __updateExtension(
         name: input.name,
         description: input.description,
         effectiveDate: effectiveDate,
-        expirationDate: expirationDate,
         statusId: input.status,
       },
     });
@@ -87,11 +86,13 @@ export async function __updateExtension(
   }
 }
 
-export async function __deleteExtension(
+export async function deleteExtension(
   parent: unknown,
   { id }: { id: string }
 ): Promise<PrismaExtension> {
-  return await deleteApplication(id, "Extension");
+  return await prisma().$transaction(async (tx) => {
+    return await deleteApplication(id, "Extension", tx);
+  });
 }
 
 export async function __resolveParentDemonstration(
@@ -113,7 +114,7 @@ export const extensionResolvers = {
   Mutation: {
     createExtension: __createExtension,
     updateExtension: __updateExtension,
-    deleteExtension: __deleteExtension,
+    deleteExtension: deleteExtension,
   },
 
   Extension: {

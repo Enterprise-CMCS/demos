@@ -7,6 +7,7 @@ import userEvent from "@testing-library/user-event";
 import { DemonstrationTypesSection } from "./demonstrationTypesSection";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { TestProvider } from "test-utils/TestProvider";
+import { ApplicationStatus } from "demos-server";
 
 const showApplyDemonstrationTypesDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
@@ -25,7 +26,7 @@ const mockTypes: DemonstrationDetailDemonstrationType[] = [
   },
   {
     demonstrationTypeName: "Economic",
-    status: "Inactive",
+    status: "Pending",
     effectiveDate: new Date("2024-01-01"),
     expirationDate: new Date("2025-01-01"),
     createdAt: new Date("2023-06-01"),
@@ -38,11 +39,16 @@ describe("DemonstrationTypesSection", () => {
   const setup = (isComplete = false, types = mockTypes) => {
     onMarkComplete = vi.fn();
 
+    const demonstration = {
+      id: "demo-123",
+      status: "Active" as ApplicationStatus,
+      demonstrationTypes: types,
+    };
+
     render(
       <TestProvider>
         <DemonstrationTypesSection
-          demonstrationId="demo-123"
-          initialTypes={types}
+          demonstration={demonstration}
           isComplete={isComplete}
           onMarkComplete={onMarkComplete}
         />

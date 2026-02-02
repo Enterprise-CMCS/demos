@@ -1,7 +1,7 @@
 import { ApplicationNote as PrismaApplicationNote } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import { NoteType, SetApplicationNotesInput } from "../../types.js";
-import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
+import { getApplication, PrismaApplication } from "../application";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { parseSetApplicationNotesInput, upsertApplicationNotes, deleteApplicationNotes } from ".";
 import { validateAllowedNoteChangeByPhase } from "./validateAllowedNoteChangeByPhase.js";
