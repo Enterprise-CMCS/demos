@@ -116,7 +116,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_amendment_trigger
+CREATE OR REPLACE TRIGGER log_changes_amendment
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.amendment
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_amendment();
 
@@ -155,7 +155,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_application_trigger
+CREATE OR REPLACE TRIGGER log_changes_application
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.application
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application();
 
@@ -206,7 +206,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_application_date_trigger
+CREATE OR REPLACE TRIGGER log_changes_application_date
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.application_date
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application_date();
 
@@ -257,7 +257,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_application_note_trigger
+CREATE OR REPLACE TRIGGER log_changes_application_note
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.application_note
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application_note();
 
@@ -308,7 +308,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_application_phase_trigger
+CREATE OR REPLACE TRIGGER log_changes_application_phase
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.application_phase
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application_phase();
 
@@ -351,7 +351,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_application_tag_assignment_trigger
+CREATE OR REPLACE TRIGGER log_changes_application_tag_assignment
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.application_tag_assignment
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application_tag_assignment();
 
@@ -438,7 +438,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_demonstration_trigger
+CREATE OR REPLACE TRIGGER log_changes_demonstration
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.demonstration
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_demonstration();
 
@@ -493,7 +493,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_demonstration_role_assignment_trigger
+CREATE OR REPLACE TRIGGER log_changes_demonstration_role_assignment
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.demonstration_role_assignment
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_demonstration_role_assignment();
 
@@ -552,7 +552,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_demonstration_type_tag_assignment_trigger
+CREATE OR REPLACE TRIGGER log_changes_demonstration_type_tag_assignment
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.demonstration_type_tag_assignment
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_demonstration_type_tag_assignment();
 
@@ -623,7 +623,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_document_trigger
+CREATE OR REPLACE TRIGGER log_changes_document
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.document
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_document();
 
@@ -690,7 +690,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_document_pending_upload_trigger
+CREATE OR REPLACE TRIGGER log_changes_document_pending_upload
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.document_pending_upload
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_document_pending_upload();
 
@@ -769,7 +769,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_document_infected_trigger
+CREATE OR REPLACE TRIGGER log_changes_document_infected
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.document_infected
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_document_infected();
 
@@ -844,7 +844,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_extension_trigger
+CREATE OR REPLACE TRIGGER log_changes_extension
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.extension
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_extension();
 
@@ -903,7 +903,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_person_trigger
+CREATE OR REPLACE TRIGGER log_changes_person
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.person
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_person();
 
@@ -942,7 +942,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_person_state_trigger
+CREATE OR REPLACE TRIGGER log_changes_person_state
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.person_state
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_person_state();
 
@@ -985,7 +985,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_primary_demonstration_role_assignment_trigger
+CREATE OR REPLACE TRIGGER log_changes_primary_demonstration_role_assignment
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.primary_demonstration_role_assignment
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_primary_demonstration_role_assignment();
 
@@ -1028,7 +1028,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_role_permission_trigger
+CREATE OR REPLACE TRIGGER log_changes_role_permission
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.role_permission
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_role_permission();
 
@@ -1075,7 +1075,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_system_role_assignment_trigger
+CREATE OR REPLACE TRIGGER log_changes_system_role_assignment
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.system_role_assignment
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_system_role_assignment();
 
@@ -1118,7 +1118,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_tag_trigger
+CREATE OR REPLACE TRIGGER log_changes_tag
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.tag
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_tag();
 
@@ -1173,7 +1173,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_tag_configuration_trigger
+CREATE OR REPLACE TRIGGER log_changes_tag_configuration
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.tag_configuration
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_tag_configuration();
 
@@ -1228,6 +1228,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_users_trigger
+CREATE OR REPLACE TRIGGER log_changes_users
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.users
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_users();

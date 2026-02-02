@@ -239,13 +239,16 @@ erDiagram
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
     CONSTRAINT_CHECK check_amendment_non_null_effective_date_when_approved "Validate that effective_date exists if amendment is approved."
-    BEFORE_DELETE_TRIGGER check_that_main_record_deleted_from_application_trigger "Before deletion, verify that no corresponding record exists in the application table."
+    TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   application:::dataTable {
     uuid id PK, UK "UK: (id, application_type_id)"
     text application_type_id FK, UK "FK007: application_type_id ∈ application_type.id<br>UK: (id, application_type_id)"
-    CONSTRAINT_TRIGGER_DEFERRABLE check_application_type_record_exists_trigger "On insert or update, verify that a corresponding record exists in the demonstration, amendment, or extension tables."
+    CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_application_type_record_exists "Verify that a corresponding record exists in the demonstration, amendment, or extension tables."
+    TRIGGER_AFTER_INSERT create_phases_and_dates_for_new_application "Create phases and initial dates for new application."
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   application_date:::dataTable {
@@ -254,6 +257,7 @@ erDiagram
     timestamptz date_value
     timestamptz created_at
     timestamptz updated_at
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   application_note:::dataTable {
@@ -262,6 +266,7 @@ erDiagram
     text content
     timestamptz created_at
     timestamptz updated_at
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   application_phase:::dataTable {
@@ -270,6 +275,8 @@ erDiagram
     text phase_status_id FK "FK004: phase_status_id ∈ phase_status.id"
     timestamptz created_at
     timestamptz updated_at
+    TRIGGER_AFTER_UPDATE update_demonstration_current_phase_on_phase_update "Update demonstration current phase when phase status changes."
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   demonstration:::dataTable {
@@ -289,8 +296,9 @@ erDiagram
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
     CONSTRAINT_CHECK check_demonstration_non_null_fields_when_approved "Validate that required fields exist if demonstration is approved."
-    CONSTRAINT_TRIGGER_DEFERRABLE check_demonstration_primary_project_officer_trigger "On insert or update, check that a primary project officer exists for this demonstration."
-    BEFORE_DELETE_TRIGGER check_that_main_record_deleted_from_application_trigger "Before deletion, verify that no corresponding record exists in the application table."
+    CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_demonstration_primary_project_officer "Check that a primary project officer exists for this demonstration."
+    TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   demonstration_type_tag_assignment:::dataTable {
@@ -302,6 +310,7 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   document:::dataTable {
@@ -318,6 +327,7 @@ erDiagram
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK check_non_empty_description "Validate that the description is not empty or only whitespace."
     CONSTRAINT_CHECK check_non_empty_s3_path "Validate that the S3 path is not empty or only whitespace."
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   document_infected:::dataTable {
@@ -333,6 +343,7 @@ erDiagram
     text infection_threats
     timestamptz created_at
     timestamptz updated_at
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   document_pending_upload:::dataTable {
@@ -347,6 +358,7 @@ erDiagram
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK check_non_empty_description "Validate that the description is not empty or only whitespace."
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   event:::dataTable {
@@ -376,7 +388,8 @@ erDiagram
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
     CONSTRAINT_CHECK check_extension_non_null_effective_date_when_approved "Validate that effective_date exists if extension is approved."
-    BEFORE_DELETE_TRIGGER check_that_main_record_deleted_from_application_trigger "Before deletion, verify that no corresponding record exists in the application table."
+    TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   person:::dataTable {
@@ -387,12 +400,15 @@ erDiagram
     text last_name
     timestamptz created_at
     timestamptz updated_at
+    TRIGGER_AFTER_INSERT assign_cms_user_to_all_states "Assign new CMS users to all states."
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   tag:::dataTable {
     text id PK
     timestamptz created_at
     timestamptz updated_at
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   tag_configuration:::dataTable {
@@ -402,6 +418,7 @@ erDiagram
     text status_id FK "FK080: status_id ∈ tag_configuration_status.id"
     timestamptz created_at
     timestamptz updated_at
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   users:::dataTable {
@@ -411,6 +428,7 @@ erDiagram
     text username
     timestamptz created_at
     timestamptz updated_at
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   %% Associative Tables
@@ -418,6 +436,7 @@ erDiagram
     uuid application_id PK, FK "FK088: appliation_id ∈ application.id"
     text tag_id PK, FK "FK082: (tag_id, tag_type_id) ∈ tag_configuration.(tag_id, tag_type_id)"
     text tag_type_id FK "FK082: (tag_id, tag_type_id) ∈ tag_configuration.(tag_id, tag_type_id)<br>FK086: tag_type_id ∈ application_tag_type_limit.id"
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   demonstration_role_assignment:::associativeTable {
@@ -427,11 +446,13 @@ erDiagram
     text state_id FK "FK042: (person_id, state_id) ∈ person_state.(person_id, state_id)<br>FK050: (demonstration_id, state_id) ∈ demonstration.(id, state_id)"
     text person_type_id FK "FK047: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK048: (person_id, person_type_id) ∈ person.(id, person_type_id)"
     text grant_level_id FK "FK046: grant_level_id ∈ demonstration_grant_level_limit.id<br>FK049: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   person_state:::associativeTable {
     uuid person_id PK, FK "FK044: person_id ∈ person.id"
     text state_id PK, FK "FK043: state_id ∈ state.id"
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   system_role_assignment:::associativeTable {
@@ -439,6 +460,7 @@ erDiagram
     text role_id PK, FK "FK038: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK040: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
     text person_type_id FK "FK038: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK039: (person_id, person_type_id) ∈ person.(id, person_type_id)"
     text grant_level_id FK "FK040: (role_id, grant_level_id) ∈ role.(id, grant_level_id)<br>FK041: grant_level_id ∈ system_grant_level_limit.id"
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   phase_date_type:::associativeTable {
@@ -465,13 +487,15 @@ erDiagram
     uuid person_id FK, UK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)<br>UK: (person_id, demonstration_id, role_id)"
     uuid demonstration_id PK, FK, UK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)<br>UK: (person_id, demonstration_id, role_id)"
     text role_id PK, FK, UK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)<br>UK: (person_id, demonstration_id, role_id)"
-    CONSTRAINT_TRIGGER_DEFERRABLE check_demonstration_retains_primary_project_officer_trigger "On update or delete, check that a primary project officer still exists."
+    CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_UPDATE_OR_DELETE check_demonstration_retains_primary_project_officer "Check that a primary project officer still exists."
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   role_permission:::associativeTable {
     text role_id PK, FK "FK033: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
     text grant_level_id PK, FK "FK033: (role_id, grant_level_id) ∈ role.(id, grant_level_id)<br>FK034: (permission_id, grant_level_id) ∈ permission.(id, grant_level_id)"
     text permission_id PK, FK "FK034: (permission_id, grant_level_id) ∈ permission.(id, grant_level_id)"
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   role_person_type:::associativeTable {
