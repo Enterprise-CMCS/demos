@@ -30,6 +30,14 @@ const hasChanges = (
   );
 };
 
+const hasRequiredTypes = (
+  demonstrationStatus?: ApplicationStatus,
+  demonstrationTypes?: DemonstrationType[]
+) => {
+  if (!demonstrationStatus || !demonstrationTypes) return false;
+  return demonstrationStatus !== "Approved" || demonstrationTypes.length > 0;
+};
+
 export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrationId: string }) => {
   const { closeDialog } = useDialog();
   const { showSuccess, showError } = useToast();
@@ -56,14 +64,6 @@ export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrati
       showError("Failed to apply demonstration types.");
     }
     closeDialog();
-  };
-
-  const hasRequiredTypes = (
-    demonstrationStatus?: ApplicationStatus,
-    demonstrationTypes?: DemonstrationType[]
-  ) => {
-    if (!demonstrationStatus || !demonstrationTypes) return false;
-    return demonstrationStatus !== "Approved" || demonstrationTypes.length > 0;
   };
 
   return (
