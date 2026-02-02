@@ -135,6 +135,16 @@ export const EditDemonstrationTypeDialog = ({
     setDemonstrationTypeFormData(demonstrationType);
   };
 
+  const validateExpirationDate = (effectiveDate: LocalDate, expirationDate: LocalDate) => {
+    if (!expirationDate) {
+      return "Expiration Date is required.";
+    }
+    if (!effectiveDate || isValid(effectiveDate, expirationDate)) {
+      return "";
+    }
+    return "Effective date must be on or before expiration date.";
+  };
+
   return (
     <BaseDialog
       title="Edit Type"
@@ -171,6 +181,9 @@ export const EditDemonstrationTypeDialog = ({
           }
           name="input-effective-date"
           label="Effective Date"
+          getValidationMessage={() =>
+            demonstrationTypeFormData.effectiveDate ? "" : "Effective Date is required."
+          }
         />
         <DatePicker
           isRequired
@@ -181,12 +194,10 @@ export const EditDemonstrationTypeDialog = ({
           name="input-expiration-date"
           label="Expiration Date"
           getValidationMessage={() =>
-            isValid(
+            validateExpirationDate(
               demonstrationTypeFormData.effectiveDate,
               demonstrationTypeFormData.expirationDate
             )
-              ? ""
-              : "Effective date must be on or before expiration date."
           }
         />
       </div>

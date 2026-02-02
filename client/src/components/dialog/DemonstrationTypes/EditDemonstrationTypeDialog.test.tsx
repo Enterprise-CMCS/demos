@@ -160,6 +160,49 @@ describe("EditDemonstrationTypeDialog", () => {
       expect(mockCloseDialog).toHaveBeenCalledTimes(1);
     });
 
+    it("displays validation error when expiration date is empty", async () => {
+      const user = userEvent.setup();
+      setup();
+
+      const expirationDateInput = screen.getByLabelText(/Expiration Date/i);
+      await user.clear(expirationDateInput);
+
+      await waitFor(() => {
+        expect(screen.getByText("Expiration Date is required.")).toBeInTheDocument();
+      });
+    });
+
+    it("displays validation error when effective date is empty", async () => {
+      const user = userEvent.setup();
+      setup();
+
+      const effectiveDateInput = screen.getByLabelText(/Effective Date/i);
+      await user.clear(effectiveDateInput);
+
+      await waitFor(() => {
+        expect(screen.getByText("Effective Date is required.")).toBeInTheDocument();
+      });
+    });
+
+    it("shows validation error when expiration date is before effective date", async () => {
+      const user = userEvent.setup();
+      setup();
+
+      const effectiveDateInput = screen.getByLabelText(/Effective Date/i);
+      const expirationDateInput = screen.getByLabelText(/Expiration Date/i);
+
+      await user.clear(effectiveDateInput);
+      await user.type(effectiveDateInput, "2024-12-31");
+      await user.clear(expirationDateInput);
+      await user.type(expirationDateInput, "2024-01-01");
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("Effective date must be on or before expiration date.")
+        ).toBeInTheDocument();
+      });
+    });
+
     describe("status updates based on date changes", () => {
       it("updates status to Pending when today is before both dates", async () => {
         const user = userEvent.setup();
@@ -243,25 +286,6 @@ describe("EditDemonstrationTypeDialog", () => {
         await user.type(expirationDateInput, today);
         await waitFor(() => {
           expect(screen.getByText("Active")).toBeInTheDocument();
-        });
-      });
-
-      it("shows validation error when expiration date is before effective date", async () => {
-        const user = userEvent.setup();
-        setup();
-
-        const effectiveDateInput = screen.getByLabelText(/Effective Date/i);
-        const expirationDateInput = screen.getByLabelText(/Expiration Date/i);
-
-        await user.clear(effectiveDateInput);
-        await user.type(effectiveDateInput, "2024-12-31");
-        await user.clear(expirationDateInput);
-        await user.type(expirationDateInput, "2024-01-01");
-
-        await waitFor(() => {
-          expect(
-            screen.getByText("Effective date must be on or before expiration date.")
-          ).toBeInTheDocument();
         });
       });
     });
