@@ -81,21 +81,22 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     fetchPolicy: "network-only",
   });
 
-  const waitForVirusScan = async (documentId: string): Promise<void> => {
+  const documentPassedVirusScan = async (documentId: string): Promise<boolean> => {
     for (let attempt = 0; attempt < VIRUS_SCAN_MAX_ATTEMPTS; attempt++) {
       // Check if the document exists in the documents table
       const { data } = await checkDocumentExists({
         variables: { documentId },
       });
       if (data?.documentExists === true) {
-        return;
+        return true;
       }
 
       // Wait before the next attempt
       await new Promise((resolve) => setTimeout(resolve, DOCUMENT_POLL_INTERVAL_MS));
     }
 
-    throw new Error("Virus scan failed");
+    // Not appearing in the document for this much time is signal of failing the virus scan
+    return false;
   };
 
   const handleDocumentUploadSucceeded = async (): Promise<void> => {
@@ -140,7 +141,9 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       throw new Error("Could not get presigned URL from the server");
     }
 
-    // Short-circuit: Skip S3 upload and virus scan in local development
+    // Short-circuit: Skip S3 upload attempt and virus scan in local development
+    // Hint: If you want to test an upload scenario locally such as virus scan failure,
+    // simply return that DocumentUploadResult from this function
     if (uploadResult.presignedURL.startsWith(LOCAL_UPLOAD_PREFIX)) {
       await handleDocumentUploadSucceeded();
       return "succeeded";
@@ -152,14 +155,14 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       throw new Error(response.errorMessage);
     }
 
-    // Wait for virus scan to complete
-    try {
-      await waitForVirusScan(uploadResult.documentId);
-      await handleDocumentUploadSucceeded();
-      return "succeeded";
-    } catch {
+    // Check for virus scan results and early return if failed
+    const isDocumentClean = await documentPassedVirusScan(uploadResult.documentId);
+    if (!isDocumentClean) {
       return "virus-scan-failed";
     }
+
+    await handleDocumentUploadSucceeded();
+    return "succeeded";
   };
 
   return (

@@ -345,7 +345,14 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     }
   }, [mode, file, titleManuallyEdited, activeDocument.name]);
 
+  // On file change
   useEffect(() => {
+    // If uploading after a virus scan failure, reset the state
+    if (file && documentDialogState === "virus-scan-failed") {
+      setDocumentDialogState("idle");
+    }
+
+    // Update the active document's file
     setActiveDocument((prev) => ({ ...prev, file }));
   }, [file]);
 
@@ -362,10 +369,17 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   };
 
   const handleUpload = async () => {
+    // Attempt to upload the document
     setDocumentDialogState("uploading");
-
     const uploadResult = await onSubmit(activeDocument);
+    setDocumentDialogState(uploadResult);
 
+    // If virus scan failed, clear the selected file
+    if (uploadResult === "virus-scan-failed") {
+      setFile(null);
+    }
+
+    // If upload is successfull we can reset / dismiss the dialog
     if (uploadResult === "succeeded") {
       setDocumentDialogState("idle");
       onClose();
