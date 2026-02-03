@@ -41,11 +41,11 @@ const getSetDemonstrationTypesInput = (
 ): SetDemonstrationTypesInput => {
   return {
     demonstrationId,
-    demonstrationTypes: demonstrationTypes.map((dt) => ({
-      demonstrationTypeName: dt.demonstrationTypeName,
+    demonstrationTypes: demonstrationTypes.map((demonstrationType) => ({
+      demonstrationTypeName: demonstrationType.demonstrationTypeName,
       demonstrationTypeDates: {
-        effectiveDate: dt.effectiveDate as LocalDate,
-        expirationDate: dt.expirationDate as LocalDate,
+        effectiveDate: demonstrationType.effectiveDate as LocalDate,
+        expirationDate: demonstrationType.expirationDate as LocalDate,
       },
     })),
   };
@@ -99,14 +99,14 @@ export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrati
               (demonstrationType) => demonstrationType.demonstrationTypeName
             )}
             addDemonstrationType={(demonstrationType: DemonstrationType) =>
-              setDemonstrationTypes(() => [...demonstrationTypes, demonstrationType])
+              setDemonstrationTypes((prev) => [...prev, demonstrationType])
             }
           />
           <DemonstrationTypesList
             demonstrationTypes={demonstrationTypes}
             removeDemonstrationType={(demonstrationTypeName: string) =>
-              setDemonstrationTypes(
-                demonstrationTypes.filter(
+              setDemonstrationTypes((prev) =>
+                prev.filter(
                   (demonstrationType) =>
                     demonstrationType.demonstrationTypeName !== demonstrationTypeName
                 )

@@ -9,7 +9,9 @@ import {
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectDemonstrationTypeName";
 
-const mockSelectDemonstrationTypeQuery: MockedResponse = {
+const mockSelectDemonstrationTypeQuery: MockedResponse<{
+  demonstrationTypeNames: string[];
+}> = {
   request: {
     query: SELECT_DEMONSTRATION_TYPE_QUERY,
   },
@@ -20,7 +22,13 @@ const mockSelectDemonstrationTypeQuery: MockedResponse = {
   },
 };
 
-const mockAddDemonstrationTypesFormQuery: MockedResponse = {
+const mockAddDemonstrationTypesFormQuery: MockedResponse<{
+  demonstration: {
+    demonstrationTypes: {
+      demonstrationTypeName: string;
+    }[];
+  };
+}> = {
   request: {
     query: ADD_DEMONSTRATION_TYPES_FORM_QUERY,
     variables: { id: "1" },
@@ -127,5 +135,35 @@ describe("AddDemonstrationTypesForm", () => {
     expect(mockAddDemonstrationType).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("textbox")).toHaveValue("");
     expect(screen.getByTestId("button-add-demonstration-type")).toBeDisabled();
+  });
+
+  it("shows loading state initially", async () => {
+    renderWithProvider();
+    expect(screen.getByText("Loading demonstration...")).toBeInTheDocument();
+  });
+
+  it("displays error if query fails", async () => {
+    const mockAddDemonstrationTypesFormErrorQuery: MockedResponse<never> = {
+      request: {
+        query: ADD_DEMONSTRATION_TYPES_FORM_QUERY,
+        variables: { id: "1" },
+      },
+      result: {
+        errors: [new Error("Failed to load demonstration types.")],
+      },
+    };
+    render(
+      <MockedProvider mocks={[mockAddDemonstrationTypesFormErrorQuery]}>
+        <AddDemonstrationTypesForm
+          demonstrationId="1"
+          demonstrationTypeNames={["Type B"]}
+          addDemonstrationType={mockAddDemonstrationType}
+        />
+      </MockedProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Error loading demonstration.")).toBeInTheDocument();
+    });
   });
 });

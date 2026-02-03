@@ -249,6 +249,25 @@ describe("ApplyDemonstrationTypesDialog", () => {
     expect(mockCloseDialog).toHaveBeenCalledTimes(1);
   });
 
+  it("disables submit button while saving", async () => {
+    const user = userEvent.setup();
+
+    await renderWithProvider();
+
+    await user.click(screen.getByRole("textbox"));
+    await user.click(screen.getByText("Type B"));
+    await user.type(screen.getByLabelText(/effective date/i), "2024-01-02");
+    await user.type(screen.getByLabelText(/expiration date/i), "2025-01-02");
+    await user.click(screen.getByTestId("button-add-demonstration-type"));
+
+    const submitButton = screen.getByTestId("button-submit-demonstration-dialog");
+    user.click(submitButton);
+
+    await waitFor(() => {
+      expect(submitButton).toBeDisabled();
+    });
+  });
+
   it("calls showError and closeDialog on failed submit", async () => {
     const user = userEvent.setup();
 

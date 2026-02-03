@@ -54,7 +54,7 @@ export const AddDemonstrationTypesForm = ({
       expirationDate: "",
     });
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div>Loading demonstration...</div>;
   if (error || !data) return <div>Error loading demonstration.</div>;
   const existingDemonstrationTypeNames = data?.demonstration.demonstrationTypes.map(
     (dt) => dt.demonstrationTypeName
