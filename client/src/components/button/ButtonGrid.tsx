@@ -45,6 +45,7 @@ export const ButtonGrid: React.FC = () => {
             name="test-circle-button-save"
             onClick={() => {}}
             disabled={allDisabled}
+            tooltip={allDisabled ? "Enable this button to make changes" : "Save your changes"}
           >
             <SaveIcon />
           </CircleButton>
@@ -54,6 +55,7 @@ export const ButtonGrid: React.FC = () => {
             name="test-circle-button-trash"
             onClick={() => {}}
             disabled={allDisabled}
+            tooltip={allDisabled ? "Enable this button to make changes" : "Delete item"}
           >
             <DeleteIcon />
           </CircleButton>
@@ -86,6 +88,7 @@ export const ButtonGrid: React.FC = () => {
                 onClick={() => {}}
                 size={size}
                 disabled={allDisabled}
+                tooltip={allDisabled ? "Enable this button to make changes" : "Save your changes"}
               >
                 Save
               </VariantButton>
