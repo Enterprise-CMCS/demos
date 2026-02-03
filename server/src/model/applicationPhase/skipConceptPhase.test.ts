@@ -11,9 +11,9 @@ import {
   getApplicationPhaseStatus,
   setPhaseToStarted,
   updatePhaseStatus,
-  updateStatusToUnderReviewIfNeeded,
 } from ".";
 import { EasternTZDate, getEasternNow } from "../../dateUtilities.js";
+import { getApplication, updateApplicationStatusToUnderReviewIfNeeded } from "../application";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -26,8 +26,9 @@ vi.mock("../../errors/handlePrismaError.js", () => ({
   }),
 }));
 
-vi.mock("../application/applicationResolvers.js", () => ({
+vi.mock("../application", () => ({
   getApplication: vi.fn(),
+  updateApplicationStatusToUnderReviewIfNeeded: vi.fn(),
 }));
 
 vi.mock("../applicationDate", () => ({
@@ -43,7 +44,7 @@ vi.mock(".", async () => {
     getApplicationPhaseStatus: vi.fn(),
     setPhaseToStarted: vi.fn(),
     updatePhaseStatus: vi.fn(),
-    updateStatusToUnderReviewIfNeeded: vi.fn(),
+    updateApplicationStatusToUnderReviewIfNeeded: vi.fn(),
   };
 });
 
@@ -133,7 +134,7 @@ describe("skipConceptPhase", () => {
       validateSkippedDateCall,
       validateStartDateCall,
     ]);
-    expect(updateStatusToUnderReviewIfNeeded).toHaveBeenCalledExactlyOnceWith(
+    expect(updateApplicationStatusToUnderReviewIfNeeded).toHaveBeenCalledExactlyOnceWith(
       testApplicationId,
       mockTransaction
     );
@@ -149,7 +150,7 @@ describe("skipConceptPhase", () => {
       skipConceptPhase(undefined, { applicationId: testApplicationId })
     ).rejects.toThrowError(testHandlePrismaError);
     expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
-    expect(updateStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
+    expect(updateApplicationStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
   });
 
   it("should skip changing the date if the next phase is already started", async () => {
@@ -192,7 +193,7 @@ describe("skipConceptPhase", () => {
       mockTransaction
     );
     expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(expectedDateCall);
-    expect(updateStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
+    expect(updateApplicationStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
     expect(handlePrismaError).not.toHaveBeenCalled();
   });
 });

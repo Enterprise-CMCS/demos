@@ -20,7 +20,7 @@ import {
   resolveApplicationPhases,
   resolveApplicationStatus,
   resolveApplicationTags,
-} from "../application/applicationResolvers.js";
+} from "../application";
 
 const amendmentApplicationType: ApplicationType = "Amendment";
 const conceptPhaseName: PhaseName = "Concept";
@@ -66,7 +66,7 @@ export async function __updateAmendment(
   parent: unknown,
   { id, input }: { id: string; input: UpdateAmendmentInput }
 ): Promise<PrismaAmendment> {
-  const { effectiveDate, expirationDate } = parseAndValidateEffectiveAndExpirationDates(input);
+  const { effectiveDate } = parseAndValidateEffectiveAndExpirationDates(input);
   checkOptionalNotNullFields(["demonstrationId", "name", "status"], input);
   try {
     return await prisma().amendment.update({
@@ -78,7 +78,6 @@ export async function __updateAmendment(
         name: input.name,
         description: input.description,
         effectiveDate: effectiveDate,
-        expirationDate: expirationDate,
         statusId: input.status,
       },
     });
@@ -87,11 +86,13 @@ export async function __updateAmendment(
   }
 }
 
-export async function __deleteAmendment(
+export async function deleteAmendment(
   parent: unknown,
   { id }: { id: string }
 ): Promise<PrismaAmendment> {
-  return await deleteApplication(id, "Amendment");
+  return await prisma().$transaction(async (tx) => {
+    return await deleteApplication(id, "Amendment", tx);
+  });
 }
 
 export async function __resolveParentDemonstration(
@@ -113,7 +114,7 @@ export const amendmentResolvers = {
   Mutation: {
     createAmendment: __createAmendment,
     updateAmendment: __updateAmendment,
-    deleteAmendment: __deleteAmendment,
+    deleteAmendment: deleteAmendment,
   },
 
   Amendment: {

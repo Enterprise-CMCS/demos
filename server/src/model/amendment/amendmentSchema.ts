@@ -19,7 +19,6 @@ export const amendmentSchema = gql`
     name: NonEmptyString!
     description: String
     effectiveDate: DateTime
-    expirationDate: DateTime
     status: ApplicationStatus!
     currentPhaseName: PhaseName!
     phases: [ApplicationPhase!]!
@@ -41,7 +40,6 @@ export const amendmentSchema = gql`
     name: NonEmptyString
     description: String
     effectiveDate: DateTimeOrLocalDate
-    expirationDate: DateTimeOrLocalDate
     status: ApplicationStatus
   }
 
@@ -63,7 +61,6 @@ export interface Amendment {
   name: NonEmptyString;
   description?: string;
   effectiveDate?: Date;
-  expirationDate?: Date;
   status: ApplicationStatus;
   currentPhaseName: PhaseName;
   phases: ApplicationPhase[];
@@ -85,6 +82,5 @@ export interface UpdateAmendmentInput {
   name?: NonEmptyString;
   description?: string | null;
   effectiveDate?: DateTimeOrLocalDate | null;
-  expirationDate?: DateTimeOrLocalDate | null;
   status?: ApplicationStatus;
 }

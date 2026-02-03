@@ -1,16 +1,15 @@
 import { CompletePhaseInput } from "../../types.js";
 import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import { getApplication, PrismaApplication } from "../application/applicationResolvers.js";
+import {
+  getApplication,
+  updateApplicationStatusToUnderReviewIfNeeded,
+  updateApplicationStatus,
+  PrismaApplication,
+} from "../application";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getEasternNow } from "../../dateUtilities.js";
-import {
-  setPhaseToStarted,
-  updatePhaseStatus,
-  validatePhaseCompletion,
-  PHASE_ACTIONS,
-  updateStatusToUnderReviewIfNeeded,
-} from ".";
+import { setPhaseToStarted, updatePhaseStatus, validatePhaseCompletion, PHASE_ACTIONS } from ".";
 import { validateAndUpdateDates } from "../applicationDate";
 
 export async function completePhase(
@@ -22,8 +21,6 @@ export async function completePhase(
 
   if (phaseActions === "Not Permitted") {
     throw new Error(`Operations against the ${input.phaseName} phase are not permitted via API.`);
-  } else if (phaseActions === "Not Implemented") {
-    throw new Error(`Completion of the ${input.phaseName} phase via API is not yet implemented.`);
   }
 
   try {
@@ -76,7 +73,11 @@ export async function completePhase(
       }
 
       if (phaseActions.nextPhase?.phaseName === "Application Intake" && nextPhaseWasStarted) {
-        await updateStatusToUnderReviewIfNeeded(input.applicationId, tx);
+        await updateApplicationStatusToUnderReviewIfNeeded(input.applicationId, tx);
+      }
+
+      if (input.phaseName === "Approval Summary") {
+        await updateApplicationStatus(input.applicationId, "Approved", tx);
       }
     });
   } catch (error) {

@@ -9,7 +9,7 @@ import {
   parseSetDemonstrationTypesInput,
 } from ".";
 import { generateCustomSetScalar } from "../../customScalarResolvers";
-import { getApplication } from "../application/applicationResolvers";
+import { getApplication } from "../application";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { prisma } from "../../prismaClient";
 

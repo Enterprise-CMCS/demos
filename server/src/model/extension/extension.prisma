@@ -5,7 +5,6 @@ model Extension {
   name              String
   description       String?
   effectiveDate     DateTime? @map("effective_date") @db.Timestamptz()
-  expirationDate    DateTime? @map("expiration_date") @db.Timestamptz()
   statusId          String    @map("status_id")
   currentPhaseId    String    @map("current_phase_id")
   clearanceLevelId  String    @default("CMS (OSORA)") @map("clearance_level_id")

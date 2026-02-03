@@ -7,14 +7,14 @@
   },
   "dependencies": {
     "jsonwebtoken": "^9.0.3",
-    "jwks-rsa": "^3.2.0",
-    "pino": "^10.2.0"
+    "jwks-rsa": "^3.2.2",
+    "pino": "^10.3.0"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.159",
-    "@vitest/coverage-v8": "^4.0.17",
+    "@types/aws-lambda": "^8.10.160",
+    "@vitest/coverage-v8": "^4.0.18",
     "esbuild": "^0.27.2",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.17"
+    "vitest": "^4.0.18"
   }
 }

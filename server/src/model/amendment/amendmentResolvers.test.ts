@@ -4,7 +4,7 @@ import {
   __getManyAmendments,
   __createAmendment,
   __updateAmendment,
-  __deleteAmendment,
+  deleteAmendment,
   __resolveParentDemonstration,
 } from "./amendmentResolvers.js";
 import {
@@ -30,7 +30,7 @@ import {
   resolveApplicationPhases,
   resolveApplicationClearanceLevel,
   resolveApplicationTags,
-} from "../application/applicationResolvers.js";
+} from "../application";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import {
@@ -43,7 +43,7 @@ vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
 }));
 
-vi.mock("../application/applicationResolvers.js", () => ({
+vi.mock("../application", () => ({
   getApplication: vi.fn(),
   getManyApplications: vi.fn(),
   deleteApplication: vi.fn(),
@@ -226,7 +226,6 @@ describe("amendmentResolvers", () => {
         input: {
           name: testAmendmentDescription,
           effectiveDate: null,
-          expirationDate: null,
         },
       };
       const expectedCall = {
@@ -236,7 +235,6 @@ describe("amendmentResolvers", () => {
         data: {
           name: testAmendmentDescription,
           effectiveDate: null,
-          expirationDate: null,
         },
       };
 
@@ -274,28 +272,6 @@ describe("amendmentResolvers", () => {
       expect(checkInputDateIsEndOfDay).not.toHaveBeenCalled();
     });
 
-    it("should check expiration date if it is provided", async () => {
-      const testInput: { id: string; input: UpdateAmendmentInput } = {
-        id: testAmendmentId,
-        input: {
-          expirationDate: testDate,
-        },
-      };
-      vi.mocked(parseDateTimeOrLocalDateToEasternTZDate).mockReturnValueOnce(testEasternTZDate);
-
-      await __updateAmendment(undefined, testInput);
-
-      expect(parseDateTimeOrLocalDateToEasternTZDate).toHaveBeenCalledExactlyOnceWith(
-        testEasternTZDate.easternTZDate,
-        "End of Day"
-      );
-      expect(checkInputDateIsStartOfDay).not.toHaveBeenCalled();
-      expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith(
-        "expirationDate",
-        testEasternTZDate
-      );
-    });
-
     it("should properly handle an error if it occurs", async () => {
       const testError = new Error("Database connection failed");
       regularMocks.amendment.update.mockRejectedValueOnce(testError);
@@ -308,14 +284,18 @@ describe("amendmentResolvers", () => {
     });
   });
 
-  describe("__deleteAmendment", () => {
+  describe("deleteAmendment", () => {
     const testInput = {
       id: testAmendmentId,
     };
 
     it("should call the delete function on the correct ID", async () => {
-      await __deleteAmendment(undefined, testInput);
-      expect(deleteApplication).toHaveBeenCalledExactlyOnceWith(testAmendmentId, "Amendment");
+      await deleteAmendment(undefined, testInput);
+      expect(deleteApplication).toHaveBeenCalledExactlyOnceWith(
+        testAmendmentId,
+        "Amendment",
+        mockTransaction
+      );
     });
   });
 

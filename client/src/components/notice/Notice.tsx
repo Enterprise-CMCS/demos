@@ -14,7 +14,7 @@ border-l border-border-rules pl-2 text-text-placeholder cursor-pointer
 `;
 
 const VARIANT_TO_CLASSNAME: Record<NoticeVariant, string> = {
-  info: tw`border-border-brand`,
+  info: tw`border-brand`,
   success: tw`border-border-success`,
   warning: tw`border-border-alert`,
   error: tw`border-border-warn`,

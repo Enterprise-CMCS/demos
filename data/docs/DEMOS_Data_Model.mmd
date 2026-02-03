@@ -238,6 +238,7 @@ erDiagram
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
+    CONSTRAINT_CHECK check_amendment_non_null_effective_date_when_approved "Validate that effective_date exists if amendment is approved."
     BEFORE_DELETE_TRIGGER check_that_main_record_deleted_from_application_trigger "Before deletion, verify that no corresponding record exists in the application table."
   }
 
@@ -287,6 +288,7 @@ erDiagram
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
+    CONSTRAINT_CHECK check_demonstration_non_null_fields_when_approved "Validate that required fields exist if demonstration is approved."
     CONSTRAINT_TRIGGER_DEFERRABLE check_demonstration_primary_project_officer_trigger "On insert or update, check that a primary project officer exists for this demonstration."
     BEFORE_DELETE_TRIGGER check_that_main_record_deleted_from_application_trigger "Before deletion, verify that no corresponding record exists in the application table."
   }
@@ -373,6 +375,7 @@ erDiagram
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
+    CONSTRAINT_CHECK check_extension_non_null_effective_date_when_approved "Validate that effective_date exists if extension is approved."
     BEFORE_DELETE_TRIGGER check_that_main_record_deleted_from_application_trigger "Before deletion, verify that no corresponding record exists in the application table."
   }
 
