@@ -95,7 +95,7 @@ BEGIN
 END;
 $$;
 
-CREATE TRIGGER trigger_assign_cms_user_to_states
+CREATE TRIGGER assign_cms_user_to_all_states
 AFTER INSERT ON demos_app.person
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.assign_cms_user_to_all_states();
@@ -120,7 +120,7 @@ BEGIN
 END;
 $$;
 
-CREATE CONSTRAINT TRIGGER check_demonstration_primary_project_officer_trigger
+CREATE CONSTRAINT TRIGGER check_demonstration_primary_project_officer
 AFTER INSERT OR UPDATE ON demos_app.demonstration
 DEFERRABLE INITIALLY DEFERRED
 FOR EACH ROW
@@ -160,8 +160,8 @@ BEGIN
 END;
 $$;
 
-CREATE CONSTRAINT TRIGGER check_demonstration_retains_primary_project_officer_trigger
-AFTER DELETE OR UPDATE ON demos_app.primary_demonstration_role_assignment
+CREATE CONSTRAINT TRIGGER check_demonstration_retains_primary_project_officer
+AFTER UPDATE OR DELETE ON demos_app.primary_demonstration_role_assignment
 DEFERRABLE INITIALLY DEFERRED
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_demonstration_retains_primary_project_officer();
@@ -221,7 +221,7 @@ BEGIN
 END;
 $$;
 
-CREATE TRIGGER create_phases_and_dates_for_new_application_trigger
+CREATE TRIGGER create_phases_and_dates_for_new_application
 AFTER INSERT ON demos_app.application
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.create_phases_and_dates_for_new_application();
@@ -367,17 +367,17 @@ BEGIN
 END;
 $$;
 
-CREATE TRIGGER check_that_main_record_deleted_from_application_trigger
+CREATE TRIGGER check_that_main_record_deleted_from_application
 BEFORE DELETE ON demos_app.amendment
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_that_main_record_deleted_from_application();
 
-CREATE TRIGGER check_that_main_record_deleted_from_application_trigger
+CREATE TRIGGER check_that_main_record_deleted_from_application
 BEFORE DELETE ON demos_app.demonstration
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_that_main_record_deleted_from_application();
 
-CREATE TRIGGER check_that_main_record_deleted_from_application_trigger
+CREATE TRIGGER check_that_main_record_deleted_from_application
 BEFORE DELETE ON demos_app.extension
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_that_main_record_deleted_from_application();
@@ -405,7 +405,7 @@ BEGIN
 END;
 $$;
 
-CREATE CONSTRAINT TRIGGER check_application_type_record_exists_trigger
+CREATE CONSTRAINT TRIGGER check_application_type_record_exists
 AFTER INSERT OR UPDATE ON demos_app.application
 DEFERRABLE INITIALLY DEFERRED
 FOR EACH ROW
@@ -487,7 +487,7 @@ BEGIN
 END;
 $$;
 
-CREATE TRIGGER update_demonstration_current_phase_on_phase_update_trigger
+CREATE TRIGGER update_demonstration_current_phase_on_phase_update
 AFTER UPDATE ON demos_app.application_phase
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.update_demonstration_current_phase_on_phase_update();
@@ -754,3 +754,74 @@ CREATE TRIGGER _disable_redundant_updates
 BEFORE UPDATE ON demos_app.users
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+-- check_demonstration_type_exists_for_approved_demos
+CREATE OR REPLACE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    demonstration_status TEXT;
+    demonstration_type_assignment_count INT;
+BEGIN
+    IF TG_TABLE_NAME = 'demonstration_type_tag_assignment' AND TG_OP = 'DELETE' THEN
+        SELECT
+            status_id
+        FROM
+            demos_app.demonstration
+        WHERE
+            id = OLD.demonstration_id
+        INTO
+            demonstration_status;
+
+        IF demonstration_status = 'Approved' THEN
+            -- Remember, this count is before the execution of the delete
+            -- That is why we look for a count of 1
+            SELECT
+                COUNT(*)
+            FROM
+                demos_app.demonstration_type_tag_assignment
+            WHERE
+                demonstration_id = OLD.demonstration_id
+            INTO
+                demonstration_type_assignment_count;
+
+            IF demonstration_type_assignment_count = 1 THEN
+                RAISE EXCEPTION 'Cannot delete the final demonstration type from approved demonstration %', OLD.demonstration_id;
+            END IF;
+        END IF;
+        RETURN OLD;
+
+    ELSIF TG_TABLE_NAME = 'demonstration' AND TG_OP = 'UPDATE' THEN
+        IF (OLD.status_id IS DISTINCT FROM NEW.status_id) AND (NEW.status_id = 'Approved') THEN
+            SELECT
+                COUNT(*)
+            FROM
+                demos_app.demonstration_type_tag_assignment
+            WHERE
+                demonstration_id = NEW.id
+            INTO
+                demonstration_type_assignment_count;
+
+            -- In this case we check for zero because the operation is on the demonstration table
+            IF demonstration_type_assignment_count = 0 THEN
+                RAISE EXCEPTION 'Cannot set demonstration % to Approved without at least one demonstration type', NEW.id;
+            END IF;
+        END IF;
+        RETURN NEW;
+
+    ELSE
+        RAISE EXCEPTION 'This trigger has been assigned to an incorrect table/operation combination';
+    END IF;
+END;
+$$;
+
+CREATE TRIGGER check_demonstration_type_exists_for_approved_demonstrations
+BEFORE DELETE ON demos_app.demonstration_type_tag_assignment
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations();
+
+CREATE TRIGGER check_demonstration_type_exists_for_approved_demonstrations
+BEFORE UPDATE ON demos_app.demonstration
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations();
