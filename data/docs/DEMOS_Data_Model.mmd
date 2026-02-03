@@ -299,6 +299,7 @@ erDiagram
     CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_demonstration_primary_project_officer "Check that a primary project officer exists for this demonstration."
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    TRIGGER_BEFORE_UPDATE check_demonstration_type_exists_for_approved_demonstrations "Check that approved demonstrations have at least one demonstration type."
   }
 
   demonstration_type_tag_assignment:::dataTable {
@@ -311,6 +312,7 @@ erDiagram
     timestamptz updated_at
     CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    TRIGGER_BEFORE_DELETE check_demonstration_type_exists_for_approved_demonstrations "Check that approved demonstrations have at least one demonstration type."
   }
 
   document:::dataTable {
