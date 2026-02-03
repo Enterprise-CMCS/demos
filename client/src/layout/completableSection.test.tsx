@@ -134,7 +134,6 @@ describe("CompletableSection", () => {
     it("button has descriptive aria-label when complete and collapsed", () => {
       render(<CompletableSection {...defaultProps} isComplete={true} />);
       const button = screen.getByRole("button");
-      fireEvent.click(button);
       expect(button).toHaveAttribute("aria-label", "Test Section, complete, expand section");
     });
 
