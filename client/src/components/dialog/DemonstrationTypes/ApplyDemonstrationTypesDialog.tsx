@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { BaseDialog } from "../BaseDialog";
 import { useDialog } from "../DialogContext";
 import { DemonstrationTypesList } from "./DemonstrationTypesList";
@@ -58,7 +58,7 @@ export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrati
     ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION
   );
 
-  const [demonstrationTypes, setDemonstrationTypes] = React.useState<DemonstrationType[]>([]);
+  const [demonstrationTypes, setDemonstrationTypes] = useState<DemonstrationType[]>([]);
 
   const handleSubmit = async () => {
     try {

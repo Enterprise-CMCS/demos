@@ -5,10 +5,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DemonstrationTypesList } from "./DemonstrationTypesList";
 import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
 
-vi.mock("util/formatDate", () => ({
-  formatDate: (date: string) => date,
-}));
-
 vi.mock("components/icons", () => ({
   DeleteIcon: ({ className }: { className?: string }) => (
     <span data-testid="delete-icon" className={className}>
@@ -28,17 +24,17 @@ describe("DemonstrationTypesList", () => {
     {
       demonstrationTypeName: "Type A",
       effectiveDate: "2024-01-01",
-      expirationDate: "2024-12-31",
+      expirationDate: "2025-01-01",
     },
     {
       demonstrationTypeName: "Type B",
-      effectiveDate: "2024-02-01",
-      expirationDate: "2024-11-30",
+      effectiveDate: "2024-01-02",
+      expirationDate: "2025-01-02",
     },
     {
       demonstrationTypeName: "Type C",
-      effectiveDate: "2024-03-01",
-      expirationDate: "2024-10-31",
+      effectiveDate: "2024-01-03",
+      expirationDate: "2025-01-03",
     },
   ];
 
@@ -73,18 +69,18 @@ describe("DemonstrationTypesList", () => {
 
     // Check Type A
     expect(screen.getByText("Type A")).toBeInTheDocument();
-    expect(screen.getByText(/effective: 2024-01-01/i)).toBeInTheDocument();
-    expect(screen.getByText(/expires: 2024-12-31/i)).toBeInTheDocument();
+    expect(screen.getByText(/effective: 01\/01\/2024/i)).toBeInTheDocument();
+    expect(screen.getByText(/expires: 01\/01\/2025/i)).toBeInTheDocument();
 
     // Check Type B
     expect(screen.getByText("Type B")).toBeInTheDocument();
-    expect(screen.getByText(/effective: 2024-02-01/i)).toBeInTheDocument();
-    expect(screen.getByText(/expires: 2024-11-30/i)).toBeInTheDocument();
+    expect(screen.getByText(/effective: 01\/02\/2024/i)).toBeInTheDocument();
+    expect(screen.getByText(/expires: 01\/02\/2025/i)).toBeInTheDocument();
 
     // Check Type C
     expect(screen.getByText("Type C")).toBeInTheDocument();
-    expect(screen.getByText(/effective: 2024-03-01/i)).toBeInTheDocument();
-    expect(screen.getByText(/expires: 2024-10-31/i)).toBeInTheDocument();
+    expect(screen.getByText(/effective: 01\/03\/2024/i)).toBeInTheDocument();
+    expect(screen.getByText(/expires: 01\/03\/2025/i)).toBeInTheDocument();
   });
 
   it("renders delete button for each demonstration type", () => {
