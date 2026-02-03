@@ -29,11 +29,28 @@ interface UiPathField {
 }
 
 function getExtractedFields(status: ExtractionStatus): UiPathField[] {
-  const fields = (status as { Fields?: unknown }).Fields;
-  if (!Array.isArray(fields)) {
-    return [];
+  const payload = status as {
+    Fields?: unknown;
+    result?: {
+      extractionResult?: {
+        ResultsDocument?: {
+          Fields?: unknown;
+        };
+      };
+    };
+  };
+
+  const topLevelFields = payload.Fields;
+  if (Array.isArray(topLevelFields)) {
+    return topLevelFields as UiPathField[];
   }
-  return fields as UiPathField[];
+
+  const nestedFields = payload.result?.extractionResult?.ResultsDocument?.Fields;
+  if (Array.isArray(nestedFields)) {
+    return nestedFields as UiPathField[];
+  }
+
+  return [];
 }
 
 export interface RunDocumentUnderstandingOptions {
@@ -77,19 +94,22 @@ export async function runDocumentUnderstanding(
       try {
         const schema = getDbSchema();
         const resultId = randomUUID();
+
         await client.query(
           `insert into ${schema}.uipath_result (id, request_id, project_id, response) values ($1, $2, $3, $4::jsonb)`,
           [resultId, requestId, projectId, JSON.stringify(status)]
         );
 
-        for (const field of getExtractedFields(status)) {
+        const extractedFields = getExtractedFields(status);
+        for (const field of extractedFields) {
           if (field.IsMissing) {
             continue;
           }
           const values = Array.isArray(field.Values) ? field.Values : [];
-          const firstValue = values[0];
-          const valueText = firstValue?.UnformattedValue ?? firstValue?.Value;
-          if (!valueText) {
+          const fieldValues = values[0];
+          const valueText = fieldValues?.UnformattedValue ?? fieldValues?.Value;
+          // Skip if fields are missing.
+          if (!valueText || !field.FieldName || !field.FieldId) {
             continue;
           }
 
@@ -103,12 +123,14 @@ export async function runDocumentUnderstanding(
               field.FieldName ?? field.FieldId ?? "unknown",
               field.FieldType ?? "Text",
               valueText,
-              firstValue?.Confidence ?? 0,
-              JSON.stringify(firstValue),
-              firstValue?.Reference?.TextLength ?? valueText.length,
+              fieldValues?.Confidence ?? 0,
+              JSON.stringify(fieldValues),
+              fieldValues?.Reference?.TextLength ?? valueText.length,
             ]
           );
         }
+
+        log.info({ extractedFieldCount: extractedFields.length }, "Processed UiPath fields");
 
         if (logFullResult) {
           log.info(util.inspect(status, false, null, true));
