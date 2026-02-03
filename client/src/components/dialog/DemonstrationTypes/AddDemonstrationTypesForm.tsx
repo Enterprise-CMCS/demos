@@ -2,7 +2,28 @@ import React from "react";
 import { DatePicker } from "components/input/date/DatePicker";
 import { SecondaryButton } from "components/button";
 import { SelectDemonstrationTypeName } from "components/input/select/SelectDemonstrationTypeName";
-import { DemonstrationType } from "./useApplyDemonstrationTypesDialogData";
+import { gql, TypedDocumentNode, useQuery } from "@apollo/client";
+import { Tag as DemonstrationTypeName } from "demos-server";
+import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
+
+export const ADD_DEMONSTRATION_TYPES_FORM_QUERY: TypedDocumentNode<
+  {
+    demonstration: {
+      demonstrationTypes: {
+        demonstrationTypeName: DemonstrationTypeName;
+      }[];
+    };
+  },
+  { id: string }
+> = gql`
+  query AddDemonstrationTypesForm($id: ID!) {
+    demonstration(id: $id) {
+      demonstrationTypes {
+        demonstrationTypeName
+      }
+    }
+  }
+`;
 
 function isValid(demonstrationType: DemonstrationType): boolean {
   return !!(
@@ -14,18 +35,30 @@ function isValid(demonstrationType: DemonstrationType): boolean {
 }
 
 export const AddDemonstrationTypesForm = ({
-  demonstrationTypes,
+  demonstrationId,
+  demonstrationTypeNames,
   addDemonstrationType,
 }: {
-  demonstrationTypes: DemonstrationType[];
+  demonstrationId: string;
+  demonstrationTypeNames: DemonstrationTypeName[];
   addDemonstrationType: (demonstrationType: DemonstrationType) => void;
 }) => {
+  const { data, loading, error } = useQuery(ADD_DEMONSTRATION_TYPES_FORM_QUERY, {
+    variables: { id: demonstrationId },
+  });
+
   const [demonstrationTypeFormData, setDemonstrationTypeFormData] =
     React.useState<DemonstrationType>({
       demonstrationTypeName: "",
       effectiveDate: "",
       expirationDate: "",
     });
+
+  if (loading) return <div>Loading...</div>;
+  if (error || !data) return <div>Error loading demonstration.</div>;
+  const existingDemonstrationTypeNames = data?.demonstration.demonstrationTypes.map(
+    (dt) => dt.demonstrationTypeName
+  );
 
   const handleAddDemonstrationType = () => {
     if (!isValid(demonstrationTypeFormData)) return;
@@ -37,9 +70,10 @@ export const AddDemonstrationTypesForm = ({
   };
 
   const filterDemonstrationTypes = (demonstrationTypeName: string) => {
-    return !demonstrationTypes
-      .map((demonstrationType) => demonstrationType.demonstrationTypeName)
-      .includes(demonstrationTypeName);
+    return (
+      !demonstrationTypeNames.includes(demonstrationTypeName) &&
+      !existingDemonstrationTypeNames.includes(demonstrationTypeName)
+    );
   };
 
   const validateDatePicker = (effectiveDate: string, expirationDate: string) => {
