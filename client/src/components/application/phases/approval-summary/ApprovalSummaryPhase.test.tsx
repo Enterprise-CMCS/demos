@@ -136,6 +136,7 @@ describe("ApprovalSummaryPhase", () => {
             initialFormData={formData}
             initialTypes={[]}
             approvalSummaryPhase={{ phaseStatus: "Not Started", phaseDates: [] }}
+            allPreviousPhasesDone={true}
           />
         </TestProvider>
       </MockedProvider>
@@ -215,6 +216,7 @@ describe("ApprovalSummaryPhase", () => {
           demonstrationId="demo-123"
           initialFormData={buildInitialFormData()}
           initialTypes={mockTypes}
+          allPreviousPhasesDone={true}
         />
       </TestProvider>
     );
@@ -236,6 +238,7 @@ describe("ApprovalSummaryPhase", () => {
           demonstrationId="demo-123"
           initialFormData={buildInitialFormData()}
           initialTypes={mockTypes}
+          allPreviousPhasesDone={true}
         />
       </TestProvider>
     );

@@ -51,6 +51,7 @@ type ApprovalSummaryPhaseProps = {
     phaseDates: Array<{ dateType: string; dateValue: string | Date }>;
   };
   demonstrationTypeCompletionDate?: Date;
+  allPreviousPhasesDone: boolean;
 };
 
 export const getApprovalSummaryFormData = (
@@ -101,6 +102,13 @@ export const getApprovalSummaryPhase = (demonstration: ApplicationWorkflowDemons
     (d) => d.dateType === "Application Demonstration Types Marked Complete Date"
   )?.dateValue;
 
+  const currentPhaseIndex = demonstration.phases.findIndex(
+    (p) => p.phaseName === "Approval Summary"
+  );
+  const allPreviousPhasesDone = demonstration.phases
+    .slice(0, currentPhaseIndex)
+    .every((phase) => phase.phaseStatus === "Completed" || phase.phaseStatus === "Skipped");
+
   return (
     <ApprovalSummaryPhase
       demonstrationId={demonstration.id}
@@ -108,6 +116,7 @@ export const getApprovalSummaryPhase = (demonstration: ApplicationWorkflowDemons
       initialTypes={demonstration.demonstrationTypes}
       approvalSummaryPhase={approvalSummaryPhase}
       demonstrationTypeCompletionDate={demonstrationTypeCompletionDate}
+      allPreviousPhasesDone={allPreviousPhasesDone}
     />
   );
 };
@@ -118,6 +127,7 @@ export const ApprovalSummaryPhase = ({
   demonstrationId,
   approvalSummaryPhase,
   demonstrationTypeCompletionDate,
+  allPreviousPhasesDone,
 }: ApprovalSummaryPhaseProps) => {
   const [approvalSummaryFormData, setApprovalSummaryFormData] =
     useState<ApplicationDetailsFormData>(initialFormData);
@@ -305,7 +315,8 @@ export const ApprovalSummaryPhase = ({
   const canApproveDemonstration =
     !isDemonstrationApproved &&
     isApplicationDetailsComplete &&
-    isDemonstrationTypesComplete;
+    isDemonstrationTypesComplete &&
+    allPreviousPhasesDone;
 
   const handleApproveDemonstration = async () => {
     if (!canApproveDemonstration) {
@@ -327,13 +338,13 @@ export const ApprovalSummaryPhase = ({
         },
       });
 
+      // Mark the Approval Summary phase as completed
+      await completeApprovalSummaryPhase();
+
       setApprovalSummaryFormData((previousFormData) => ({
         ...previousFormData,
         status: "Approved",
       }));
-
-      // Mark the Approval Summary phase as completed
-      await completeApprovalSummaryPhase();
 
       setApprovalSummaryCompletionDate(formatDate(today));
 
