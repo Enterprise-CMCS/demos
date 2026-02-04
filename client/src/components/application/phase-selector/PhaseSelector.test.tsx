@@ -43,6 +43,7 @@ describe("PhaseSelector", () => {
       phases: [],
       documents: [],
       demonstrationTypes: [],
+      tags: [],
     };
 
     render(
@@ -79,6 +80,7 @@ describe("PhaseSelector", () => {
       phases: [],
       documents: [],
       demonstrationTypes: [],
+      tags: [],
     };
 
     render(
@@ -123,6 +125,7 @@ describe("getDisplayedPhaseStatus", () => {
       ],
       documents: [],
       demonstrationTypes: [],
+      tags: [],
     };
 
     expect(getDisplayedPhaseStatus(demonstration, "Concept")).toBe("Started");
@@ -151,6 +154,7 @@ describe("getDisplayedPhaseStatus", () => {
       ],
       documents: [],
       demonstrationTypes: [],
+      tags: [],
     };
 
     expect(getDisplayedPhaseStatus(demonstration, "Completeness")).toBe("Not Started");
@@ -171,6 +175,7 @@ describe("getDisplayedPhaseStatus", () => {
       phases: [],
       documents: [],
       demonstrationTypes: [],
+      tags: [],
     };
 
     expect(getDisplayedPhaseStatus(demonstration, "Concept")).toBe("Not Started");
@@ -193,6 +198,7 @@ describe("getDisplayedPhaseDate", () => {
       phases: [],
       documents: [],
       demonstrationTypes: [],
+      tags: [],
     };
 
     expect(getDisplayedPhaseDate(demonstration, "Concept")).toBeUndefined();
@@ -220,6 +226,7 @@ describe("getDisplayedPhaseDate", () => {
       ],
       documents: [],
       demonstrationTypes: [],
+      tags: [],
     };
 
     expect(getDisplayedPhaseDate(demonstration, "Concept")).toBeUndefined();
@@ -264,6 +271,7 @@ describe("getDisplayedPhaseDate", () => {
       ],
       documents: [],
       demonstrationTypes: [],
+      tags: [],
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Concept");
@@ -304,6 +312,7 @@ describe("getDisplayedPhaseDate", () => {
       ],
       documents: [],
       demonstrationTypes: [],
+      tags: [],
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Review");
@@ -344,6 +353,7 @@ describe("getDisplayedPhaseDate", () => {
       ],
       documents: [],
       demonstrationTypes: [],
+      tags: [],
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Application Intake");
@@ -379,6 +389,7 @@ describe("getDisplayedPhaseDate", () => {
       ],
       documents: [],
       demonstrationTypes: [],
+      tags: [],
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Federal Comment");
@@ -419,6 +430,7 @@ describe("getDisplayedPhaseDate", () => {
       ],
       documents: [],
       demonstrationTypes: [],
+      tags: [],
     };
 
     const result = getDisplayedPhaseDate(demonstration, "SDG Preparation");
@@ -454,6 +466,7 @@ describe("getDisplayedPhaseDate", () => {
       ],
       documents: [],
       demonstrationTypes: [],
+      tags: [],
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Concept");
@@ -483,6 +496,7 @@ describe("Review phase component", () => {
       phases: [],
       documents: [],
       demonstrationTypes: [],
+      tags: [],
     };
 
     render(

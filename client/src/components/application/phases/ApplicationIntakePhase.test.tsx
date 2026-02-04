@@ -344,6 +344,7 @@ describe("ApplicationIntakePhase", () => {
           },
         ],
         demonstrationTypes: [],
+        tags: [],
       };
 
       const component = getApplicationIntakeComponentFromDemonstration(mockDemonstration);
