@@ -82,8 +82,8 @@ export const getApplicationCompletenessFromDemonstration = (
   const stateDeemedCompleteDate = completenessPhase?.phaseDates.find(
     (date) => date.dateType === "State Application Deemed Complete"
   );
-  const applicationCompletenessDocument = demonstration?.documents.filter(
-    (doc) => doc.documentType === "Application Completeness Letter"
+  const initialDocuments = demonstration.documents.filter(
+    (doc) => doc.phaseName === "Completeness"
   );
 
   return (
@@ -105,7 +105,7 @@ export const getApplicationCompletenessFromDemonstration = (
           ? formatDateForServer(stateDeemedCompleteDate.dateValue)
           : ""
       }
-      applicationCompletenessDocument={applicationCompletenessDocument ?? []}
+      initialDocuments={initialDocuments ?? []}
       hasApplicationIntakeCompletionDate={!!applicationIntakeCompletionDate}
     />
   );
@@ -118,7 +118,7 @@ export interface CompletenessPhaseProps {
   fedCommentEndDate?: string;
   completenessComplete: boolean;
   stateDeemedCompleteDate?: string;
-  applicationCompletenessDocument: ApplicationWorkflowDocument[];
+  initialDocuments: ApplicationWorkflowDocument[];
   hasApplicationIntakeCompletionDate: boolean;
 }
 
@@ -129,7 +129,7 @@ export const CompletenessPhase = ({
   fedCommentEndDate,
   completenessComplete,
   stateDeemedCompleteDate,
-  applicationCompletenessDocument,
+  initialDocuments,
   hasApplicationIntakeCompletionDate,
 }: CompletenessPhaseProps) => {
   const { showCompletenessDocumentUploadDialog, showDeclareIncompleteDialog } = useDialog();
@@ -146,7 +146,7 @@ export const CompletenessPhase = ({
   );
 
   const [completenessDocs] = useState<ApplicationWorkflowDocument[]>(
-    applicationCompletenessDocument
+    initialDocuments
   );
 
   const { setApplicationDate } = useSetApplicationDate();
