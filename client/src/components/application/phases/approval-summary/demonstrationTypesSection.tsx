@@ -16,13 +16,18 @@ type Demonstration = Pick<ServerDemonstration, "id" | "status"> & {
 type DemonstrationTypesSectionProps = {
   demonstration: Demonstration;
   onMarkComplete: (complete: boolean) => void;
+  completionDate?: string;
   isComplete?: boolean;
   isReadonly?: boolean;
 };
 
+const toggleOnColor = "#6B7280";
+const toggleOffColor = "#E5E7EB";
+
 export const DemonstrationTypesSection = ({
   demonstration,
   onMarkComplete,
+  completionDate,
   isComplete = false,
   isReadonly = false,
 }: DemonstrationTypesSectionProps) => {
@@ -35,7 +40,7 @@ export const DemonstrationTypesSection = ({
   };
 
   return (
-    <CompletableSection title="Types" isComplete={isComplete}>
+    <CompletableSection title="Types" isComplete={isComplete} completionDate={completionDate}>
       <div className="flex justify-between items-center mb-2">
         <p className="text-sm text-text-placeholder mt-1 mb-2">
           Add or Update Demonstration Types with Effective and Expiration Dates below
@@ -59,13 +64,15 @@ export const DemonstrationTypesSection = ({
 
       <div className="border-t-1 border-gray-dark mt-2">
         <div className="flex justify-end mt-2 gap-2">
-          <span className="text-sm font-semibold text-text-font">Mark Complete</span>
+          <span className="text-sm font-semibold text-text-font">
+            <span className="text-red-600">*</span>  Mark Complete
+          </span>
           <Switch
             data-testid="mark-complete-switch"
             checked={isComplete}
             onChange={(checked) => onMarkComplete(checked)}
-            onColor="#10B981"
-            offColor="#E5E7EB"
+            onColor={toggleOnColor}
+            offColor={toggleOffColor}
             checkedIcon={false}
             uncheckedIcon={false}
             height={18}

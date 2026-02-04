@@ -9,10 +9,19 @@ import { ApplicationDetailsFormData } from "./applicationDetailsSection";
 import { TestProvider } from "test-utils/TestProvider";
 import { MockedProvider } from "@apollo/client/testing";
 import { UPDATE_DEMONSTRATION_MUTATION } from "components/dialog/demonstration/EditDemonstrationDialog";
+import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
     showApplyDemonstrationTypesDialog: vi.fn(),
+  }),
+}));
+
+const setApplicationDate = vi.fn().mockResolvedValue(undefined);
+
+vi.mock("components/application/date/dateQueries", () => ({
+  useSetApplicationDate: () => ({
+    setApplicationDate,
   }),
 }));
 
@@ -33,6 +42,23 @@ const buildInitialFormData = (
   readonlyFields: {},
   ...overrides,
 });
+
+const mockTypes = [
+  {
+    demonstrationTypeName: "Environmental",
+    status: "Active",
+    effectiveDate: new Date("2023-01-01"),
+    expirationDate: new Date("2024-01-01"),
+    createdAt: new Date("2022-12-01"),
+  } as DemonstrationDetailDemonstrationType,
+  {
+    demonstrationTypeName: "Economic",
+    status: "Pending",
+    effectiveDate: new Date("2024-01-01"),
+    expirationDate: new Date("2025-01-01"),
+    createdAt: new Date("2023-06-01"),
+  } as DemonstrationDetailDemonstrationType,
+];
 
 describe("ApprovalSummaryPhase", () => {
   // Mock Apollo mutation for updateDemonstration
@@ -178,5 +204,50 @@ describe("ApprovalSummaryPhase", () => {
     const approveButton = screen.getByRole("button", { name: "button-approve-demonstration" });
     expect(approveButton).toBeInTheDocument();
     expect(approveButton).toBeDisabled();
+  });
+
+  it("updates Demonstration Types completion UI when toggled", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <TestProvider>
+        <ApprovalSummaryPhase
+          demonstrationId="demo-123"
+          initialFormData={buildInitialFormData()}
+          initialTypes={mockTypes}
+        />
+      </TestProvider>
+    );
+
+    const switchInput = screen.getByTestId("mark-complete-switch");
+
+    await user.click(switchInput);
+
+    expect(switchInput).toBeChecked();
+    expect(screen.getByText("Complete")).toBeInTheDocument();
+  });
+
+  it("persists Demonstration Types completion date when marked complete", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <TestProvider>
+        <ApprovalSummaryPhase
+          demonstrationId="demo-123"
+          initialFormData={buildInitialFormData()}
+          initialTypes={mockTypes}
+        />
+      </TestProvider>
+    );
+
+    await user.click(screen.getByTestId("mark-complete-switch"));
+
+    expect(setApplicationDate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        applicationId: "demo-123",
+        dateType: "Application Demonstration Types Marked Complete Date",
+        dateValue: expect.any(String),
+      })
+    );
   });
 });

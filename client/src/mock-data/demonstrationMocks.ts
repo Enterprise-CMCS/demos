@@ -22,11 +22,11 @@ import { MockDocument, mockDocuments } from "./documentMocks";
 import { MockExtension, mockExtensions } from "./extensionMocks";
 import { mockPeople, MockPerson } from "./personMocks";
 import { MockState, mockStates } from "./stateMocks";
-import { ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY } from "components/dialog/DemonstrationTypes/useApplyDemonstrationTypesDialogData";
 import {
   MOCK_DEMONSTRATION_TYPE_ASSIGNMENTS,
   MockDemonstrationTypeAssignment,
 } from "./DemonstrationTypeAssignmentMocks";
+import { ADD_DEMONSTRATION_TYPES_FORM_QUERY } from "components/dialog/DemonstrationTypes/AddDemonstrationTypesForm";
 
 export type MockDemonstration = Pick<
   Demonstration,
@@ -126,7 +126,7 @@ export const demonstrationMocks: MockedResponse[] = [
   },
   {
     request: {
-      query: ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY,
+      query: ADD_DEMONSTRATION_TYPES_FORM_QUERY,
       variables: { id: "1" },
     },
     result: {

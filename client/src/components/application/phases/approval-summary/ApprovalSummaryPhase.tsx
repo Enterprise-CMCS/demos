@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
 import { formatDate, formatDateForServer, getTodayEst } from "util/formatDate";
-import { ApplicationStatus, UpdateDemonstrationInput } from "demos-server";
+import { ApplicationStatus, DateType, UpdateDemonstrationInput } from "demos-server";
 import { ApplicationWorkflowDemonstration } from "components/application/ApplicationWorkflow";
 import { ApplicationDetailsSection, ApplicationDetailsFormData } from "./applicationDetailsSection";
 import { DemonstrationTypesSection } from "./demonstrationTypesSection";
@@ -50,6 +50,7 @@ type ApprovalSummaryPhaseProps = {
     phaseStatus: string;
     phaseDates: Array<{ dateType: string; dateValue: string | Date }>;
   };
+  demonstrationTypeCompletionDate?: Date;
 };
 
 export const getApprovalSummaryFormData = (
@@ -96,6 +97,9 @@ export const getApprovalSummaryPhase = (demonstration: ApplicationWorkflowDemons
   const approvalSummaryPhase = demonstration.phases?.find(
     (phase) => phase.phaseName === "Approval Summary"
   );
+  const demonstrationTypeCompletionDate = approvalSummaryPhase?.phaseDates.find(
+    (d) => d.dateType === "Application Demonstration Types Marked Complete Date"
+  )?.dateValue;
 
   return (
     <ApprovalSummaryPhase
@@ -103,6 +107,7 @@ export const getApprovalSummaryPhase = (demonstration: ApplicationWorkflowDemons
       initialFormData={approvalSummaryFormData}
       initialTypes={demonstration.demonstrationTypes}
       approvalSummaryPhase={approvalSummaryPhase}
+      demonstrationTypeCompletionDate={demonstrationTypeCompletionDate}
     />
   );
 };
@@ -112,6 +117,7 @@ export const ApprovalSummaryPhase = ({
   initialTypes,
   demonstrationId,
   approvalSummaryPhase,
+  demonstrationTypeCompletionDate,
 }: ApprovalSummaryPhaseProps) => {
   const [approvalSummaryFormData, setApprovalSummaryFormData] =
     useState<ApplicationDetailsFormData>(initialFormData);
@@ -127,6 +133,9 @@ export const ApprovalSummaryPhase = ({
   const [isApplicationDetailsComplete, setIsApplicationDetailsComplete] = useState(
     !!applicationDetailsCompleteDate
   );
+  const [isDemonstrationTypesComplete, setIsDemonstrationTypesComplete] = useState(
+    !!demonstrationTypeCompletionDate
+  );
 
   // Initialize completion date from backend if available
   const [applicationDetailsCompletionDate, setApplicationDetailsCompletionDate] =
@@ -136,7 +145,7 @@ export const ApprovalSummaryPhase = ({
         : undefined
     );
 
-  // Find Approval Summary phase completion date
+  // Find Approval Summary phase completion date (if backend has stored it)
   const approvalSummaryCompletionDateValue = approvalSummaryPhase?.phaseDates?.find(
     (date) => date.dateType === "Approval Summary Completion Date"
   )?.dateValue;
@@ -148,8 +157,6 @@ export const ApprovalSummaryPhase = ({
         : undefined
     );
 
-  const [isDemonstrationTypesComplete, setIsDemonstrationTypesComplete] = useState(false);
-
   const [updateDemonstrationTrigger] = useMutation(UPDATE_DEMONSTRATION_MUTATION);
 
   // Set up date mutation for Application Details completion persistence
@@ -160,6 +167,23 @@ export const ApprovalSummaryPhase = ({
     phaseName: "Approval Summary",
     phaseStatus: "Completed",
   });
+
+  const markDemonstrationTypesComplete = async (complete: boolean) => {
+    setIsDemonstrationTypesComplete(complete);
+    if (complete) {
+      await setApplicationDate({
+        applicationId: demonstrationId,
+        dateType: "Application Demonstration Types Marked Complete Date" satisfies DateType,
+        dateValue: getTodayEst(),
+      });
+    } else {
+      await setApplicationDate({
+        applicationId: demonstrationId,
+        dateType: "Application Demonstration Types Marked Complete Date" satisfies DateType,
+        dateValue: null,
+      });
+    }
+  };
 
   const parseFormDateString = (dateString: string): Date => {
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
@@ -339,8 +363,13 @@ export const ApprovalSummaryPhase = ({
         <DemonstrationTypesSection
           demonstration={demonstrationForTypes}
           isComplete={isDemonstrationTypesComplete}
+          completionDate={
+            demonstrationTypeCompletionDate
+              ? formatDate(demonstrationTypeCompletionDate)
+              : undefined
+          }
           isReadonly={isDemonstrationApproved}
-          onMarkComplete={(complete: boolean) => setIsDemonstrationTypesComplete(complete)}
+          onMarkComplete={markDemonstrationTypesComplete}
         />
       </section>
 
