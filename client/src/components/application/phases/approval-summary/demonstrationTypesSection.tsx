@@ -16,12 +16,14 @@ type Demonstration = Pick<ServerDemonstration, "id" | "status"> & {
 type DemonstrationTypesSectionProps = {
   demonstration: Demonstration;
   onMarkComplete: (complete: boolean) => void;
+  completionDate?: string;
   isComplete?: boolean;
 };
 
 export const DemonstrationTypesSection = ({
   demonstration,
   onMarkComplete,
+  completionDate,
   isComplete = false,
 }: DemonstrationTypesSectionProps) => {
   const [types] = useState<DemonstrationDetailDemonstrationType[]>(
@@ -33,7 +35,7 @@ export const DemonstrationTypesSection = ({
   };
 
   return (
-    <CompletableSection title="Types" isComplete={isComplete}>
+    <CompletableSection title="Types" isComplete={isComplete} completionDate={completionDate}>
       <div className="flex justify-between items-center mb-2">
         <p className="text-sm text-text-placeholder mt-1 mb-2">
           Add or Update Demonstration Types with Effective and Expiration Dates below
@@ -48,12 +50,14 @@ export const DemonstrationTypesSection = ({
 
       <div className="border-t-1 border-gray-dark mt-2">
         <div className="flex justify-end mt-2 gap-2">
-          <span className="text-sm font-semibold text-text-font">Mark Complete</span>
+          <span className="text-sm font-semibold text-text-font">
+            <span className="text-red-600">*</span>  Mark Complete
+          </span>
           <Switch
             data-testid="mark-complete-switch"
             checked={isComplete}
             onChange={(checked) => onMarkComplete(checked)}
-            onColor="#10B981"
+            onColor="#6B7280"
             offColor="#E5E7EB"
             checkedIcon={false}
             uncheckedIcon={false}
