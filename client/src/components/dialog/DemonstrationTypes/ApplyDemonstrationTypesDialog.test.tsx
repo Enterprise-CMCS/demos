@@ -1,17 +1,15 @@
 import React from "react";
 import { render, screen, waitFor, within } from "@testing-library/react";
-import userEvent, { UserEvent } from "@testing-library/user-event";
+import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ApplyDemonstrationTypesDialog } from "./ApplyDemonstrationTypesDialog";
+import {
+  ApplyDemonstrationTypesDialog,
+  ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION,
+} from "./ApplyDemonstrationTypesDialog";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectDemonstrationTypeName";
-import {
-  ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY,
-  ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION,
-  Demonstration,
-  DemonstrationType,
-} from "./useApplyDemonstrationTypesDialogData";
-import { DemonstrationTypeInput, Tag as DemonstrationTypeName, LocalDate } from "demos-server";
+import { Tag as DemonstrationTypeName, LocalDate } from "demos-server";
+import { ADD_DEMONSTRATION_TYPES_FORM_QUERY } from "./AddDemonstrationTypesForm";
 
 const mockShowSuccess = vi.fn();
 const mockShowError = vi.fn();
@@ -30,113 +28,97 @@ vi.mock("../DialogContext", () => ({
 }));
 
 const MOCK_DEMONSTRATION_ID: string = "demo-123";
-const MOCK_DEMONSTRATION_TYPE_NAMES: DemonstrationTypeName[] = [
-  "Type A",
-  "Type B",
-  "Type C",
-  "Type D",
-];
-const MOCK_DEMONSTRATION_TYPE_A: DemonstrationType = {
-  demonstrationTypeName: "Type A",
-  effectiveDate: "2024-01-01",
-  expirationDate: "2024-12-31",
-};
-const MOCK_DEMONSTRATION_TYPE_B: DemonstrationType = {
-  demonstrationTypeName: "Type B",
-  effectiveDate: "2024-02-01",
-  expirationDate: "2024-11-30",
-};
-const MOCK_DEMONSTRATION_TYPE_C: DemonstrationType = {
-  demonstrationTypeName: "Type C",
-  effectiveDate: "2024-03-01",
-  expirationDate: "2024-10-31",
-};
-const MOCK_DEMONSTRATION_TYPE_D: DemonstrationType = {
-  demonstrationTypeName: "Type D",
-  effectiveDate: "2024-01-04",
-  expirationDate: "2025-01-04",
-};
-
-const mockInitialDemonstration: Demonstration = {
-  id: MOCK_DEMONSTRATION_ID,
-  demonstrationTypes: [
-    MOCK_DEMONSTRATION_TYPE_A,
-    MOCK_DEMONSTRATION_TYPE_B,
-    MOCK_DEMONSTRATION_TYPE_C,
-  ],
-};
-
-const mockDemonstrationTypesInput: DemonstrationTypeInput[] = [
-  MOCK_DEMONSTRATION_TYPE_A,
-  MOCK_DEMONSTRATION_TYPE_B,
-  MOCK_DEMONSTRATION_TYPE_C,
-  MOCK_DEMONSTRATION_TYPE_D,
-].map((demonstrationType) => ({
-  demonstrationTypeName: demonstrationType.demonstrationTypeName,
-  demonstrationTypeDates: {
-    effectiveDate: demonstrationType.effectiveDate as LocalDate,
-    expirationDate: demonstrationType.expirationDate as LocalDate,
-  },
-}));
-
-const selectDemonstrationTypeQueryMock: MockedResponse = {
+const selectDemonstrationTypeQueryMock: MockedResponse<{
+  demonstrationTypeNames: DemonstrationTypeName[];
+}> = {
   request: {
     query: SELECT_DEMONSTRATION_TYPE_QUERY,
   },
   result: {
     data: {
-      demonstrationTypeNames: MOCK_DEMONSTRATION_TYPE_NAMES,
+      demonstrationTypeNames: ["Type A", "Type B", "Type C"],
     },
   },
 };
-const applyDemonstrationTypesDialogQueryMock: MockedResponse<{
-  demonstration: Demonstration;
+const addDemonstrationTypesFormQueryMock: MockedResponse<{
+  demonstration: {
+    id: string;
+    demonstrationTypes: {
+      demonstrationTypeName: DemonstrationTypeName;
+    }[];
+  };
 }> = {
   request: {
-    query: ASSIGN_DEMONSTRATION_TYPES_DIALOG_QUERY,
+    query: ADD_DEMONSTRATION_TYPES_FORM_QUERY,
     variables: { id: MOCK_DEMONSTRATION_ID },
   },
   result: {
     data: {
-      demonstration: mockInitialDemonstration,
+      demonstration: {
+        id: MOCK_DEMONSTRATION_ID,
+        demonstrationTypes: [
+          {
+            demonstrationTypeName: "Type A",
+          },
+        ],
+      },
     },
   },
 };
 const assignDemonstrationTypesDialogMutationMock: MockedResponse<{
-  setDemonstrationTypes: Demonstration;
+  setDemonstrationTypes: {
+    id: string;
+    demonstrationTypes: {
+      demonstrationTypeName: DemonstrationTypeName;
+    }[];
+  };
 }> = {
   request: {
     query: ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION,
     variables: {
       input: {
         demonstrationId: MOCK_DEMONSTRATION_ID,
-        demonstrationTypes: mockDemonstrationTypesInput,
+        demonstrationTypes: [
+          {
+            demonstrationTypeName: "Type B",
+            demonstrationTypeDates: {
+              effectiveDate: "2024-01-02" as LocalDate,
+              expirationDate: "2025-01-02" as LocalDate,
+            },
+          },
+        ],
       },
     },
   },
   result: {
     data: {
       setDemonstrationTypes: {
-        ...mockInitialDemonstration,
+        id: MOCK_DEMONSTRATION_ID,
         demonstrationTypes: [
-          MOCK_DEMONSTRATION_TYPE_A,
-          MOCK_DEMONSTRATION_TYPE_B,
-          MOCK_DEMONSTRATION_TYPE_C,
-          MOCK_DEMONSTRATION_TYPE_D,
+          {
+            demonstrationTypeName: "Type B",
+          },
         ],
       },
     },
   },
 };
-const assignDemonstrationTypesDialogMutationErrorMock: MockedResponse<{
-  setDemonstrationTypes: Demonstration;
-}> = {
+
+const assignDemonstrationTypesDialogMutationErrorMock: MockedResponse<never> = {
   request: {
     query: ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION,
     variables: {
       input: {
         demonstrationId: MOCK_DEMONSTRATION_ID,
-        demonstrationTypes: mockDemonstrationTypesInput,
+        demonstrationTypes: [
+          {
+            demonstrationTypeName: "Type B",
+            demonstrationTypeDates: {
+              effectiveDate: "2024-01-02" as LocalDate,
+              expirationDate: "2025-01-02" as LocalDate,
+            },
+          },
+        ],
       },
     },
   },
@@ -144,21 +126,20 @@ const assignDemonstrationTypesDialogMutationErrorMock: MockedResponse<{
     errors: [new Error("Failed to assign demonstration types.")],
   },
 };
+
 describe("ApplyDemonstrationTypesDialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  const renderWithProvider = async (mockOverrides?: MockedResponse[]) => {
+  const renderWithProvider = async () => {
     const result = render(
       <MockedProvider
-        mocks={
-          mockOverrides || [
-            selectDemonstrationTypeQueryMock,
-            applyDemonstrationTypesDialogQueryMock,
-            assignDemonstrationTypesDialogMutationMock,
-          ]
-        }
+        mocks={[
+          selectDemonstrationTypeQueryMock,
+          addDemonstrationTypesFormQueryMock,
+          assignDemonstrationTypesDialogMutationMock,
+        ]}
       >
         <ApplyDemonstrationTypesDialog demonstrationId={MOCK_DEMONSTRATION_ID} />
       </MockedProvider>
@@ -171,105 +152,80 @@ describe("ApplyDemonstrationTypesDialog", () => {
     return result;
   };
 
-  async function addDemonstrationTypeD(user: UserEvent) {
-    const input = screen.getByRole("textbox");
-    await user.click(input);
-    await user.click(screen.getByText("Type D"));
-    await user.type(screen.getByLabelText(/effective date/i), "2024-01-04");
-    await user.type(screen.getByLabelText(/expiration date/i), "2025-01-04");
-    await user.click(screen.getByTestId("button-add-demonstration-type"));
-  }
-
-  async function removeDemonstrationTypeA(user: UserEvent) {
-    const typeAItem = screen.getByText("Type A").closest("li");
-    const removeTypeAButton = within(typeAItem!).getByRole("button", { name: /delete/i });
-    await user.click(removeTypeAButton);
-  }
-
-  it("renders dialog with correct title", () => {
+  it("renders dialog elements with correct titles", () => {
     renderWithProvider();
     expect(screen.getByRole("heading", { name: "Apply Type(s)" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "button-dialog-cancel" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "button-submit-demonstration-dialog" })
+    ).toBeInTheDocument();
   });
 
-  it("initializes with existing demonstration types from data", async () => {
+  it("renders AddDemonstrationTypesForm component", async () => {
     await renderWithProvider();
-
-    expect(screen.getByText("Types to be added (3)")).toBeInTheDocument();
-    expect(screen.getByText("Type A")).toBeInTheDocument();
-    expect(screen.getByText("Type B")).toBeInTheDocument();
-    expect(screen.getByText("Type C")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Select an option")).toBeInTheDocument();
+    expect(screen.getByLabelText(/effective date/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/expiration date/i)).toBeInTheDocument();
+    expect(screen.getByTestId("button-add-demonstration-type")).toBeInTheDocument();
   });
 
-  it("has submit button disabled initially when no changes", () => {
-    renderWithProvider();
-
-    const submitButton = screen.getByTestId("button-submit-demonstration-dialog");
-    expect(submitButton).toBeDisabled();
-  });
-
-  it("enables submit button when a new type is added", async () => {
+  it("enables and disables submit button based on types list", async () => {
     const user = userEvent.setup();
     await renderWithProvider();
 
     const submitButton = screen.getByTestId("button-submit-demonstration-dialog");
     expect(submitButton).toBeDisabled();
 
-    const input = screen.getByRole("textbox");
-    await user.click(input);
-    await user.click(screen.getByText("Type D"));
-    await user.type(screen.getByLabelText(/effective date/i), "2024-01-15");
-    await user.type(screen.getByLabelText(/expiration date/i), "2024-12-31");
+    await user.click(screen.getByRole("textbox"));
+    await user.click(screen.getByText("Type B"));
+    await user.type(screen.getByLabelText(/effective date/i), "2024-01-02");
+    await user.type(screen.getByLabelText(/expiration date/i), "2025-01-02");
+    await user.click(screen.getByTestId("button-add-demonstration-type"));
+    expect(submitButton).toBeEnabled();
+
+    await user.click(screen.getByRole("button", { name: "Delete" }));
+    expect(submitButton).toBeDisabled();
+  });
+
+  it("adds to and removes from the list", async () => {
+    const user = userEvent.setup();
+    await renderWithProvider();
+
+    await user.click(screen.getByRole("textbox"));
+    await user.click(screen.getByText("Type B"));
+    await user.type(screen.getByLabelText(/effective date/i), "2024-01-02");
+    await user.type(screen.getByLabelText(/expiration date/i), "2025-01-02");
     await user.click(screen.getByTestId("button-add-demonstration-type"));
 
-    expect(submitButton).toBeEnabled();
-  });
-
-  it("enables submit button when a type is removed", async () => {
-    const user = userEvent.setup();
-    await renderWithProvider();
-
-    const submitButton = screen.getByTestId("button-submit-demonstration-dialog");
-    expect(submitButton).toBeDisabled();
-
-    await removeDemonstrationTypeA(user);
-    expect(submitButton).toBeEnabled();
-  });
-
-  it("adds new types to the list", async () => {
-    const user = userEvent.setup();
-    await renderWithProvider();
-
-    expect(screen.getByText("Types to be added (3)")).toBeInTheDocument();
-    expect(screen.getByText("Type A")).toBeInTheDocument();
+    expect(screen.getByText("Types to be added (1)")).toBeInTheDocument();
     expect(screen.getByText("Type B")).toBeInTheDocument();
-    expect(screen.getByText("Type C")).toBeInTheDocument();
+    expect(screen.getByText(/effective: 01\/02\/2024/i)).toBeInTheDocument();
+    expect(screen.getByText(/expires: 01\/02\/2025/i)).toBeInTheDocument();
 
-    await addDemonstrationTypeD(user);
-
-    expect(screen.getByText("Types to be added (4)")).toBeInTheDocument();
-    expect(screen.getByText("Type A")).toBeInTheDocument();
-    expect(screen.getByText("Type B")).toBeInTheDocument();
-    expect(screen.getByText("Type C")).toBeInTheDocument();
-    expect(screen.getByText("Type D")).toBeInTheDocument();
-    expect(screen.getByText(/effective: 01\/04\/2024/i)).toBeInTheDocument();
-    expect(screen.getByText(/expires: 01\/04\/2025/i)).toBeInTheDocument();
-  });
-
-  it("removes types from the list", async () => {
-    const user = userEvent.setup();
-    await renderWithProvider();
-
-    expect(screen.getByText("Types to be added (3)")).toBeInTheDocument();
-    expect(screen.getByText("Type A")).toBeInTheDocument();
-    expect(screen.getByText("Type B")).toBeInTheDocument();
-    expect(screen.getByText("Type C")).toBeInTheDocument();
-
-    await removeDemonstrationTypeA(user);
+    await user.click(screen.getByRole("textbox"));
+    await user.click(screen.getByText("Type C"));
+    await user.clear(screen.getByLabelText(/effective date/i));
+    await user.type(screen.getByLabelText(/effective date/i), "2024-01-03");
+    await user.clear(screen.getByLabelText(/expiration date/i));
+    await user.type(screen.getByLabelText(/expiration date/i), "2025-01-03");
+    await user.click(screen.getByTestId("button-add-demonstration-type"));
 
     expect(screen.getByText("Types to be added (2)")).toBeInTheDocument();
-    expect(screen.queryByText("Type A")).not.toBeInTheDocument();
     expect(screen.getByText("Type B")).toBeInTheDocument();
+    expect(screen.getByText(/effective: 01\/02\/2024/i)).toBeInTheDocument();
+    expect(screen.getByText(/expires: 01\/02\/2025/i)).toBeInTheDocument();
     expect(screen.getByText("Type C")).toBeInTheDocument();
+    expect(screen.getByText(/effective: 01\/03\/2024/i)).toBeInTheDocument();
+    expect(screen.getByText(/expires: 01\/03\/2025/i)).toBeInTheDocument();
+
+    const typeBItem = screen.getByText("Type B").closest("li");
+    const removeTypeBButton = within(typeBItem!).getByRole("button", { name: "Delete" });
+    await user.click(removeTypeBButton);
+
+    expect(screen.getByText("Types to be added (1)")).toBeInTheDocument();
+    expect(screen.getByText("Type C")).toBeInTheDocument();
+    expect(screen.getByText(/effective: 01\/03\/2024/i)).toBeInTheDocument();
+    expect(screen.getByText(/expires: 01\/03\/2025/i)).toBeInTheDocument();
   });
 
   it("calls showSuccess and closeDialog on successful submit", async () => {
@@ -277,7 +233,11 @@ describe("ApplyDemonstrationTypesDialog", () => {
 
     await renderWithProvider();
 
-    await addDemonstrationTypeD(user);
+    await user.click(screen.getByRole("textbox"));
+    await user.click(screen.getByText("Type B"));
+    await user.type(screen.getByLabelText(/effective date/i), "2024-01-02");
+    await user.type(screen.getByLabelText(/expiration date/i), "2025-01-02");
+    await user.click(screen.getByTestId("button-add-demonstration-type"));
 
     const submitButton = screen.getByTestId("button-submit-demonstration-dialog");
     await user.click(submitButton);
@@ -285,20 +245,53 @@ describe("ApplyDemonstrationTypesDialog", () => {
     await waitFor(() => {
       expect(mockShowSuccess).toHaveBeenCalledWith("Demonstration types applied successfully.");
     });
-
+    expect(mockShowError).not.toHaveBeenCalled();
     expect(mockCloseDialog).toHaveBeenCalledTimes(1);
   });
 
-  it("calls showError on failed submit", async () => {
+  it("disables submit button while saving", async () => {
     const user = userEvent.setup();
 
-    await renderWithProvider([
-      selectDemonstrationTypeQueryMock,
-      applyDemonstrationTypesDialogQueryMock,
-      assignDemonstrationTypesDialogMutationErrorMock,
-    ]);
+    await renderWithProvider();
 
-    await addDemonstrationTypeD(user);
+    await user.click(screen.getByRole("textbox"));
+    await user.click(screen.getByText("Type B"));
+    await user.type(screen.getByLabelText(/effective date/i), "2024-01-02");
+    await user.type(screen.getByLabelText(/expiration date/i), "2025-01-02");
+    await user.click(screen.getByTestId("button-add-demonstration-type"));
+
+    const submitButton = screen.getByTestId("button-submit-demonstration-dialog");
+    user.click(submitButton);
+
+    await waitFor(() => {
+      expect(submitButton).toBeDisabled();
+    });
+  });
+
+  it("calls showError and closeDialog on failed submit", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <MockedProvider
+        mocks={[
+          selectDemonstrationTypeQueryMock,
+          addDemonstrationTypesFormQueryMock,
+          assignDemonstrationTypesDialogMutationErrorMock,
+        ]}
+      >
+        <ApplyDemonstrationTypesDialog demonstrationId={MOCK_DEMONSTRATION_ID} />
+      </MockedProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Demonstration Type")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("textbox"));
+    await user.click(screen.getByText("Type B"));
+    await user.type(screen.getByLabelText(/effective date/i), "2024-01-02");
+    await user.type(screen.getByLabelText(/expiration date/i), "2025-01-02");
+    await user.click(screen.getByTestId("button-add-demonstration-type"));
 
     const submitButton = screen.getByTestId("button-submit-demonstration-dialog");
     await user.click(submitButton);
@@ -307,24 +300,6 @@ describe("ApplyDemonstrationTypesDialog", () => {
       expect(mockShowError).toHaveBeenCalledWith("Failed to apply demonstration types.");
     });
     expect(mockShowSuccess).not.toHaveBeenCalled();
-  });
-
-  it("detects changes when adding and removing result in same count", async () => {
-    const user = userEvent.setup();
-    await renderWithProvider();
-
-    const submitButton = screen.getByTestId("button-submit-demonstration-dialog");
-    expect(submitButton).toBeDisabled();
-    expect(screen.getByText("Types to be added (3)")).toBeInTheDocument();
-
-    await removeDemonstrationTypeA(user);
-
-    expect(submitButton).toBeEnabled();
-    expect(screen.getByText("Types to be added (2)")).toBeInTheDocument();
-
-    await addDemonstrationTypeD(user);
-
-    expect(submitButton).toBeEnabled();
-    expect(screen.getByText("Types to be added (3)")).toBeInTheDocument();
+    expect(mockCloseDialog).toHaveBeenCalledTimes(1);
   });
 });
