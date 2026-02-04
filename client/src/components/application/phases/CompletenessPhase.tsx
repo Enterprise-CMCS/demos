@@ -134,7 +134,6 @@ export const CompletenessPhase = ({
 }: CompletenessPhaseProps) => {
   const { showCompletenessDocumentUploadDialog, showDeclareIncompleteDialog } = useDialog();
   const { showSuccess, showError } = useToast();
-  const [collapsed, setCollapsed] = useState(false);
 
   const [federalStartDate, setFederalStartDate] = useState<string>(fedCommentStartDate ?? "");
   const [federalEndDate, setFederalEndDate] = useState<string>(fedCommentEndDate ?? "");
@@ -349,39 +348,31 @@ export const CompletenessPhase = ({
             onDismiss={() => setNoticeDismissed(true)}
           />
         )}
-        <button
-          className="flex items-center gap-2 mb-2 text-brand font-bold text-[22px] tracking-wide focus:outline-none"
-          onClick={() => setCollapsed((prev) => !prev)}
-          aria-expanded={!collapsed}
-          aria-controls="completeness-phase-content"
-          data-testid="toggle-completeness"
-        >
+        <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">
           COMPLETENESS
-        </button>
+        </h3>
       </div>
-      {!collapsed && (
-        <div id="completeness-phase-content">
-          <p className="text-sm text-text-placeholder mb-4">
-            Completeness Checklist - Find completeness guidelines online at{" "}
-            <a
-              className="text-blue-700 underline"
-              href="https://www.medicaid.gov"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Medicaid.gov.
-            </a>
-          </p>
+      <div id="completeness-phase-content">
+        <p className="text-sm text-text-placeholder mb-4">
+          Completeness Checklist - Find completeness guidelines online at{" "}
+          <a
+            className="text-blue-700 underline"
+            href="https://www.medicaid.gov"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Medicaid.gov.
+          </a>
+        </p>
 
-          <section className={STYLES.pane}>
-            <div className={STYLES.grid}>
-              <span aria-hidden className={STYLES.divider} />
-              <UploadSection />
-              <VerifyCompleteSection />
-            </div>
-          </section>
-        </div>
-      )}
+        <section className={STYLES.pane}>
+          <div className={STYLES.grid}>
+            <span aria-hidden className={STYLES.divider} />
+            <UploadSection />
+            <VerifyCompleteSection />
+          </div>
+        </section>
+      </div>
     </div>
   );
 };
