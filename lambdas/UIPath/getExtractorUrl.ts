@@ -2,13 +2,14 @@ import axios from "axios";
 import { UIPATH_BASE_URL,
   UIPATH_TENANT,
   UIPATH_API_VERSION,
-  getProjectId
+  getProjectId,
 } from "./uipathClient";
 
 import { log } from "./log";
 
-export async function getExtractorUrl(token: string): Promise<string> {
-  const projectId = await getProjectId();
+export async function getExtractorUrl(token: string, projectIdOverride?: string): Promise<string> {
+  const projectId = await getProjectId(projectIdOverride);
+
   if (!UIPATH_BASE_URL || !UIPATH_TENANT) {
     throw new Error("Missing UiPath base URL or tenant configuration.");
   }

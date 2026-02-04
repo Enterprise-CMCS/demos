@@ -11,7 +11,7 @@ import { runDocumentUnderstanding } from "./runDocumentUnderstanding";
 interface UipathMessage {
   s3FileName: string;
   s3Bucket?: string;
-  modelGuid?: string;
+  projectId?: string;
 }
 
 const s3 = new S3Client({
@@ -42,8 +42,15 @@ export const handler = async (event: SQSEvent) =>
     const parsedBody = firstRecord?.body ? (JSON.parse(firstRecord.body) as Partial<UipathMessage>) : null;
     const s3FileName = parsedBody?.s3FileName;
     const s3Bucket = parsedBody?.s3Bucket ?? UIPATH_DOCUMENT_BUCKET;
+    const projectId = parsedBody?.projectId;
+
+    console.log("projectId:", projectId);
+
     if (!s3FileName) {
       throw new Error("Missing s3FileName in SQS message body.");
+    }
+    if (!projectId) {
+      throw new Error("Missing projectId (aka model guid) in SQS message body.");
     }
 
     const inputFile = await downloadFromS3(s3Bucket, s3FileName);
@@ -53,6 +60,7 @@ export const handler = async (event: SQSEvent) =>
       pollIntervalMs: 5_000,
       logFullResult: false,
       requestId: firstRecord?.messageId ?? "n/a",
+      projectId,
     });
 
     log.info({ status }, "UiPath extraction completed");

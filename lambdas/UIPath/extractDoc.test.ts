@@ -23,7 +23,7 @@ describe("extractDoc", () => {
     getExtractorUrlMock.mockResolvedValue("https://govcloud.uipath.us/globalalliant/Dev/du_/api/framework/projects/project-1/extractors/async");
     documentUnderstandingPostMock.mockResolvedValue({ data: { resultUrl: "result-1" } });
 
-    await expect(extractDoc("token-1", "doc-1")).resolves.toBe("result-1");
+    await expect(extractDoc("token-1", "doc-1", "project-1")).resolves.toBe("result-1");
 
     expect(documentUnderstandingPostMock).toHaveBeenCalledWith(
       "https://govcloud.uipath.us/globalalliant/Dev/du_/api/framework/projects/project-1/extractors/async",
@@ -40,7 +40,7 @@ describe("extractDoc", () => {
     getExtractorUrlMock.mockResolvedValue("https://govcloud.uipath.us/globalalliant/Dev/du_/api/framework/projects/project-1/extractors/async");
     documentUnderstandingPostMock.mockResolvedValue({ data: {} });
 
-    await expect(extractDoc("token-1", "doc-1")).rejects.toThrow(
+    await expect(extractDoc("token-1", "doc-1", "project-1")).rejects.toThrow(
       "UiPath extraction did not return a resultUrl."
     );
   });

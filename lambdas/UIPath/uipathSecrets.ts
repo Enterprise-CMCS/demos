@@ -32,16 +32,14 @@ export async function getUiPathSecret(): Promise<UiPathSecret> {
   }
 
   const parsedSecret = JSON.parse(secretString);
-  // This is correct.
-  const projectId =
-    parsedSecret.projectId ??
-    parsedSecret.project_id ??
-    parsedSecret.UIPATH_PROJECT_ID;
 
   cachedSecret = {
     clientId: parsedSecret.clientId,
     clientSecret: parsedSecret.clientSecret,
-    projectId,
+    projectId:
+      parsedSecret.projectId ??
+      parsedSecret.project_id ??
+      parsedSecret.UIPATH_PROJECT_ID,
   };
 
   return cachedSecret;

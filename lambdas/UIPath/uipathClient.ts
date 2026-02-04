@@ -6,13 +6,19 @@ export const UIPATH_BASE_URL = "https://govcloud.uipath.us";
 export const UIPATH_TENANT = "globalalliant/Dev";
 export const UIPATH_API_VERSION = "1.0";
 
-export async function getProjectId(): Promise<string> {
-  const secrets = await getUiPathSecret();
-  if (secrets.projectId) {
-    return secrets.projectId;
+export async function getProjectId(projectIdOverride?: string): Promise<string> {
+
+  if (projectIdOverride) {
+    return projectIdOverride;
   }
 
-  throw new Error("Missing UiPath project id in environment or Secrets Manager.");
+  const secret = await getUiPathSecret();
+
+  if (secret.projectId) {
+    return secret.projectId;
+  }
+
+  throw new Error("Missing UiPath project id in request or Secrets Manager.");
 }
 
 type documentUnderstandingPostOptions = AxiosRequestConfig & {

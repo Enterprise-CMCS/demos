@@ -53,7 +53,7 @@ describe("handler", () => {
         {
           messageId: "id-1",
           receiptHandle: "",
-          body: JSON.stringify({ s3FileName: "file.pdf" }),
+          body: JSON.stringify({ s3FileName: "file.pdf", projectId: "project-1" }),
           attributes: {
             ApproximateReceiveCount: "1",
             SentTimestamp: "",
@@ -76,6 +76,7 @@ describe("handler", () => {
       expect.objectContaining({
         pollIntervalMs: 5_000,
         logFullResult: false,
+        projectId: "project-1",
       })
     );
     expect(result).toEqual({ status: "Succeeded" });
@@ -118,7 +119,7 @@ describe("handler", () => {
         {
           messageId: "id-1",
           receiptHandle: "",
-          body: JSON.stringify({ s3FileName: "file.pdf" }),
+          body: JSON.stringify({ s3FileName: "file.pdf", projectId: "project-1" }),
           attributes: {
             ApproximateReceiveCount: "1",
             SentTimestamp: "",

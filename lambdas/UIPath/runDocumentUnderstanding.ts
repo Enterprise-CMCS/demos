@@ -103,6 +103,7 @@ export interface RunDocumentUnderstandingOptions {
   pollIntervalMs?: number;
   maxAttempts?: number;
   requestId?: string;
+  projectId?: string;
 }
 
 export async function runDocumentUnderstanding(
@@ -115,16 +116,17 @@ export async function runDocumentUnderstanding(
     maxAttempts = 500,
     logFullResult = true,
     requestId = "n/a",
+    projectId: projectIdOverride,
   } = options;
 
   const token = providedToken ?? (await getToken());
-  const projectId = await getProjectId();
+  const projectId = await getProjectId(projectIdOverride);
   log.info("Got auth token.");
 
-  const docId = await uploadDocument(token, inputFile);
+  const docId = await uploadDocument(token, inputFile, projectId);
   log.info({ docId }, "Uploaded document.");
 
-  const resultUrl = await extractDoc(token, docId);
+  const resultUrl = await extractDoc(token, docId, projectId);
   log.info({ resultUrl }, "Started extraction.");
 
   let attempt = 0;

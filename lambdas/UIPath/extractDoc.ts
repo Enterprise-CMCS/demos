@@ -5,8 +5,8 @@ export interface ExtractionStartResponse {
   resultUrl: string;
 }
 
-export async function extractDoc(token: string, docId: string): Promise<string> {
-  const asyncUrl = await getExtractorUrl(token);
+export async function extractDoc(token: string, docId: string, projectIdOverride?: string): Promise<string> {
+  const asyncUrl = await getExtractorUrl(token, projectIdOverride);
   const extract = await documentUnderstandingPost<ExtractionStartResponse>(asyncUrl, token, {
     documentId: docId,
     pageRange: null,

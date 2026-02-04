@@ -1,0 +1,587 @@
+/**
+  * UIPath OCR Model Fields JSON Schema
+  * This schema defines the structure for storing OCR model fields extracted by UIPath.
+  *
+  * "demo_strt_dt"
+  * "submission_dt"
+  * "demo_end_dt"
+  * "appl_rcvd_dt"
+  * "amend_ext_name"
+  * "demo_tp_perf_pd_to_dt"
+  * "demo_tp_perf_pd_from_dt"
+  * "appl_type"
+  * "exp_demo_end_dt"
+  * "demo_start_dt"
+  * "pop_elig_groups_excl"
+  * "eval_criteria"
+  * "enrlmnt_stats"
+  * "demo_perf_pd_from_dt"
+  * "elig_providers"
+  * "demo_type"
+  * "op_loc"
+  * "fx"
+  * "attr_req_1115_auth"
+  * "enrlmnt_plcy_feats"
+  * "serv_bene_not_cov"
+  * "enrlmnt_prjctns"
+  * "serv_bene_cov"
+  * "rationale"
+  * "pop_elig_groups_incl"
+  * "goals"
+  * "state"
+  * "key_dates"
+  * "demonstration_name"
+  */
+
+
+{
+  "Fields": [
+  {
+    "Values": [],
+    "FieldId": "demo_strt_dt",
+    "FieldName": "demo_strt_dt",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "submission_dt",
+    "FieldName": "submission_dt",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "demo_end_dt",
+    "FieldName": "demo_end_dt",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "appl_rcvd_dt",
+    "FieldName": "appl_rcvd_dt",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "amend_ext_name",
+    "FieldName": "amend_ext_name",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "demo_tp_perf_pd_to_dt",
+    "FieldName": "demo_tp_perf_pd_to_dt",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "demo_tp_perf_pd_from_dt",
+    "FieldName": "demo_tp_perf_pd_from_dt",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "appl_type",
+    "FieldName": "appl_type",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "exp_demo_end_dt",
+    "FieldName": "exp_demo_end_dt",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "demo_start_dt",
+    "FieldName": "exp_demo_start_dt",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "pop_elig_groups_excl",
+    "FieldName": "pop_elig_groups_excl",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "eval_criteria",
+    "FieldName": "eval_criteria",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "enrlmnt_stats",
+    "FieldName": "enrlmnt_stats",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "demo_perf_pd_from_dt",
+    "FieldName": "demo_perf_pd_from_dt",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "elig_providers",
+    "FieldName": "elig_providers",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "demo_type",
+    "FieldName": "demo_type",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "op_loc",
+    "FieldName": "op_loc",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "fx",
+    "FieldName": "fx",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "attr_req_1115_auth",
+    "FieldName": "attr_req_1115_auth",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "enrlmnt_plcy_feats",
+    "FieldName": "enrlmnt_plcy_feats",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "serv_bene_not_cov",
+    "FieldName": "serv_bene_not_cov",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "enrlmnt_prjctns",
+    "FieldName": "enrlmnt_prjctns",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "serv_bene_cov",
+    "FieldName": "serv_bene_cov",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "rationale",
+    "FieldName": "rationale",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "pop_elig_groups_incl",
+    "FieldName": "pop_elig_groups_incl",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "goals",
+    "FieldName": "goals",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "state",
+    "FieldName": "state",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [],
+    "FieldId": "key_dates",
+    "FieldName": "key_dates",
+    "FieldType": "Text",
+    "IsMissing": true,
+    "DataSource": "Automatic",
+    "DataVersion": 0,
+    "ValidatorNotes": "",
+    "OperatorConfirmed": false,
+    "ValidatorNotesInfo": ""
+  },
+  {
+    "Values": [
+    {
+      "Value": "UI Path Value Extraction Demonstration of Dummy Data for Automated Value Retrieval",
+      "TextType": "Text",
+      "Reference": {
+        "Tokens": [
+          {
+            "Page": 0,
+            "Boxes": [
+              [
+                72,
+                275.47,
+                24.53,
+                34.13
+              ]
+            ],
+            "PageWidth": 612,
+            "PageHeight": 792,
+            "TextLength": 2,
+            "TextStartIndex": 18
+          },
+          {
+            "Page": 0,
+            "Boxes": [
+              [
+                72,
+                304.27,
+                49.33,
+                34.13
+              ]
+            ],
+            "PageWidth": 612,
+            "PageHeight": 792,
+            "TextLength": 4,
+            "TextStartIndex": 21
+          },
+          {
+            "Page": 0,
+            "Boxes": [
+              [
+                72,
+                358.13,
+                61.07,
+                34.13
+              ]
+            ],
+            "PageWidth": 612,
+            "PageHeight": 792,
+            "TextLength": 5,
+            "TextStartIndex": 26
+          },
+          {
+            "Page": 0,
+            "Boxes": [
+              [
+                72,
+                423.47,
+                110.13,
+                34.13
+              ]
+            ],
+            "PageWidth": 612,
+            "PageHeight": 792,
+            "TextLength": 10,
+            "TextStartIndex": 32
+          },
+          {
+            "Page": 0,
+            "Boxes": [
+              [
+                110.4,
+                72,
+                99.2,
+                17.07
+              ]
+            ],
+            "PageWidth": 612,
+            "PageHeight": 792,
+            "TextLength": 13,
+            "TextStartIndex": 44
+          },
+          {
+            "Page": 0,
+            "Boxes": [
+              [
+                110.4,
+                175.47,
+                12.8,
+                17.07
+              ]
+            ],
+            "PageWidth": 612,
+            "PageHeight": 792,
+            "TextLength": 2,
+            "TextStartIndex": 58
+          },
+          {
+            "Page": 0,
+            "Boxes": [
+              [
+                110.4,
+                192.53,
+                50.4,
+                17.07
+              ]
+            ],
+            "PageWidth": 612,
+            "PageHeight": 792,
+            "TextLength": 5,
+            "TextStartIndex": 61
+          },
+          {
+            "Page": 0,
+            "Boxes": [
+              [
+                110.4,
+                247.47,
+                30.93,
+                17.07
+              ]
+            ],
+            "PageWidth": 612,
+            "PageHeight": 792,
+            "TextLength": 4,
+            "TextStartIndex": 67
+          },
+          {
+            "Page": 0,
+            "Boxes": [
+              [
+                110.4,
+                282.67,
+                17.86,
+                17.07
+              ]
+            ],
+            "PageWidth": 612,
+            "PageHeight": 792,
+            "TextLength": 3,
+            "TextStartIndex": 72
+          },
+          {
+            "Page": 0,
+            "Boxes": [
+              [
+                110.4,
+                304.8,
+                73.6,
+                17.07
+              ]
+            ],
+            "PageWidth": 612,
+            "PageHeight": 792,
+            "TextLength": 9,
+            "TextStartIndex": 76
+          },
+          {
+            "Page": 0,
+            "Boxes": [
+              [
+                110.4,
+                382.4,
+                36.8,
+                17.07
+              ]
+            ],
+            "PageWidth": 612,
+            "PageHeight": 792,
+            "TextLength": 5,
+            "TextStartIndex": 86
+          },
+          {
+            "Page": 0,
+            "Boxes": [
+              [
+                110.4,
+                423.47,
+                59.2,
+                17.07
+              ]
+            ],
+            "PageWidth": 612,
+            "PageHeight": 792,
+            "TextLength": 9,
+            "TextStartIndex": 92
+          }
+        ],
+        "TextLength": 83,
+        "TextStartIndex": 18
+      },
+      "Components": [],
+      "Confidence": 0.3489924,
+      "DerivedFields": [],
+      "OcrConfidence": 1,
+      "ValidatorNotes": "",
+      "UnformattedValue": "UI Path Value Extraction Demonstration of Dummy Data for Automated Value Retrieval",
+      "OperatorConfirmed": false,
+      "ValidatorNotesInfo": ""
+    }
+  ],
+  "FieldId": "demonstration_name",
+  "FieldName": "demo_name",
+  "FieldType": "Text",
+  "IsMissing": false,
+  "DataSource": "Automatic",
+  "DataVersion": 0,
+  "ValidatorNotes": "",
+  "OperatorConfirmed": false,
+  "ValidatorNotesInfo": ""
+  }
+  ]
+}

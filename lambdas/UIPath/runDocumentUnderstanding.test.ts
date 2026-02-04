@@ -4,10 +4,6 @@ vi.mock("./getToken", () => ({
   getToken: vi.fn().mockResolvedValue("token-123"),
 }));
 
-vi.mock("./uipathClient", () => ({
-  getProjectId: vi.fn().mockResolvedValue("project-1"),
-}));
-
 const uploadDocumentMock = vi.fn();
 const extractDocMock = vi.fn();
 const fetchExtractionResultMock = vi.fn();
@@ -68,14 +64,15 @@ describe("runDocumentUnderstanding", () => {
       pollIntervalMs: 10,
       logFullResult: false,
       requestId: "request-1",
+      projectId: "project-1",
     });
 
     await vi.runAllTimersAsync();
     const result = await promise;
 
     expect(getToken).toHaveBeenCalled();
-    expect(uploadDocumentMock).toHaveBeenCalledWith("token-123", "file.pdf");
-    expect(extractDocMock).toHaveBeenCalledWith("token-123", "doc-1");
+    expect(uploadDocumentMock).toHaveBeenCalledWith("token-123", "file.pdf", "project-1");
+    expect(extractDocMock).toHaveBeenCalledWith("token-123", "doc-1", "project-1");
     expect(fetchExtractionResultMock).toHaveBeenCalledTimes(2);
     expect(result).toMatchObject({ status: "Succeeded" });
     expect(queryMock).toHaveBeenCalledTimes(1);
@@ -90,6 +87,7 @@ describe("runDocumentUnderstanding", () => {
     const promise = runDocumentUnderstanding("file.pdf", {
       pollIntervalMs: 10,
       maxAttempts: 2,
+      projectId: "project-1",
     });
 
     const expectation = expect(promise).rejects.toThrow("did not succeed");
