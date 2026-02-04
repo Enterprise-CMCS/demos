@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 
+import { useMutation } from "@apollo/client";
+
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { addDays, parseISO } from "date-fns";
@@ -18,7 +20,7 @@ import { getPhaseCompletedMessage } from "util/messages";
 import { useToast } from "components/toast";
 import { DatePicker } from "components/input/date/DatePicker";
 import { DemonstrationHealthTypeTags } from "components/tags/DemonstrationHealthTypeTags";
-import { TEMP_SELECTED_TAGS } from "components/dialog/ApplyTagsDialog";
+import { SET_APPLICATION_TAGS_MUTATION } from "components/dialog/ApplyTagsDialog";
 
 /** Business Rules for this Phase:
  * - **Application Intake Start Date** - Can start in one of two ways, whichever comes first:
@@ -73,6 +75,7 @@ export const getApplicationIntakeComponentFromDemonstration = (
       initialStateApplicationSubmittedDate={
         stateApplicationSubmittedDate ? formatDateForServer(stateApplicationSubmittedDate) : ""
       }
+      initialSelectedTags={demonstration.tags}
       setSelectedPhase={setSelectedPhase}
     />
   );
@@ -81,6 +84,7 @@ export interface ApplicationIntakeProps {
   demonstrationId: string;
   initialStateApplicationDocuments: ApplicationWorkflowDocument[];
   initialStateApplicationSubmittedDate: string;
+  initialSelectedTags: string[];
   setSelectedPhase?: (phase: PhaseName) => void;
 }
 
@@ -88,14 +92,17 @@ export const ApplicationIntakePhase = ({
   demonstrationId,
   initialStateApplicationDocuments,
   initialStateApplicationSubmittedDate,
+  initialSelectedTags,
   setSelectedPhase,
 }: ApplicationIntakeProps) => {
-  const { showSuccess } = useToast();
+  const { showSuccess, showError } = useToast();
   const { showApplicationIntakeDocumentUploadDialog } = useDialog();
+  const [setApplicationTagsMutation] = useMutation(SET_APPLICATION_TAGS_MUTATION);
+
   const [stateApplicationSubmittedDate, setStateApplicationSubmittedDate] = useState<string>(
     initialStateApplicationSubmittedDate ?? ""
   );
-  const [selectedTags, setSelectedTags] = useState<string[]>(TEMP_SELECTED_TAGS);
+  const [selectedTags, setSelectedTags] = useState<string[]>(initialSelectedTags);
 
   const { setPhaseStatus: completeApplicationIntake } = useSetPhaseStatus({
     applicationId: demonstrationId,
@@ -148,8 +155,25 @@ export const ApplicationIntakePhase = ({
     }
   };
 
-  const handleRemoveTag = (tag: string) => {
-    setSelectedTags((prev) => prev.filter((item) => item !== tag));
+  const handleRemoveTag = async (tag: string) => {
+    const updatedTags = selectedTags.filter((item) => item !== tag);
+    setSelectedTags(updatedTags);
+    try {
+      await setApplicationTagsMutation({
+        variables: {
+          input: {
+            applicationId: demonstrationId,
+            applicationTags: updatedTags,
+          },
+        },
+      });
+      showSuccess("Application tags updated");
+    } catch (error) {
+      // Roll back on failure
+      setSelectedTags(selectedTags);
+      showError("Failed to update application tags");
+      throw error;
+    }
   };
 
   const UploadSection = () => (
@@ -245,6 +269,7 @@ export const ApplicationIntakePhase = ({
         </div>
         <div className="mt-8">
           <DemonstrationHealthTypeTags
+            demonstrationId={demonstrationId}
             title={"STEP 3 - APPLY TAGS"}
             description={
               "You must tag this application with one or more demonstration types involved in this request before it can be reviewed and approved."

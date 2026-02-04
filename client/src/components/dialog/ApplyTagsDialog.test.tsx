@@ -6,11 +6,29 @@ import { describe, it, expect, vi } from "vitest";
 import { APPLY_TAGS_DIALOG_TITLE, ApplyTagsDialog } from "./ApplyTagsDialog";
 import { DEMONSTRATION_TYPE_TAGS } from "demos-server-constants";
 
+const mockMutate = vi.fn(() => Promise.resolve({ data: {} }));
+
+vi.mock("@apollo/client", async () => {
+  const actual = await vi.importActual("@apollo/client");
+  return {
+    ...actual,
+    useMutation: vi.fn(() => [mockMutate, { loading: false, error: null }]),
+  };
+});
+
+vi.mock("components/toast", () => ({
+  useToast: () => ({
+    showSuccess: vi.fn(),
+    showError: vi.fn(),
+  }),
+}));
+
 describe("ApplyTagsDialog", () => {
   const setup = (selectedTags: string[] = []) => {
     const onClose = vi.fn();
     const result = render(
       <ApplyTagsDialog
+        demonstrationId="demo-123"
         onClose={onClose}
         initiallySelectedTags={selectedTags}
         allTags={DEMONSTRATION_TYPE_TAGS}
@@ -37,12 +55,21 @@ describe("ApplyTagsDialog", () => {
     expect(screen.getByText("No tags selected")).toBeInTheDocument();
   });
 
-  it("calls onClose when apply button is clicked", async () => {
+  it("calls mutation and onClose when apply button is clicked", async () => {
     const user = userEvent.setup();
     const selectedTags = ["Behavioral Health"];
     const { onClose } = setup(selectedTags);
 
     await user.click(screen.getByRole("button", { name: "button-confirm-apply-tags" }));
+
+    expect(mockMutate).toHaveBeenCalledWith({
+      variables: {
+        input: {
+          applicationId: "demo-123",
+          applicationTags: selectedTags,
+        },
+      },
+    });
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });

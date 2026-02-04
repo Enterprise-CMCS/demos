@@ -6,7 +6,6 @@ import { DialogProvider, useDialog } from "./DialogContext";
 import { ExistingContactType } from "./ManageContactsDialog";
 import { DocumentDialogFields } from "./document/DocumentDialog";
 import { DeclareIncompleteForm } from "./DeclareIncompleteDialog";
-import { DIALOG_CANCEL_BUTTON_NAME } from "./BaseDialog";
 import { Tag as DemonstrationTypeName } from "demos-server";
 import { DemonstrationType } from "./DemonstrationTypes/EditDemonstrationTypeDialog";
 import { formatDateForServer } from "util/formatDate";
@@ -292,6 +291,20 @@ vi.mock("./DemonstrationTypes/EditDemonstrationTypeDialog", () => ({
   ),
 }));
 
+vi.mock("./ApplyTagsDialog", () => ({
+  ApplyTagsDialog: ({ onClose }: { onClose: () => void }) => (
+    <div data-testid="apply-tags-dialog">
+      Apply Tags Dialog
+      <button
+        data-testid="close-apply-tags-btn"
+        onClick={onClose}
+      >
+        Close
+      </button>
+    </div>
+  ),
+}));
+
 const mockRoles: ExistingContactType[] = [
   {
     role: "Project Officer",
@@ -439,7 +452,7 @@ const TestConsumer: React.FC = () => {
       </button>
       <button
         data-testid="open-apply-tags-btn"
-        onClick={() => showApplyTagsDialog(["Tag1", "Tag2", "Tag3"], ["Tag1", "Tag2", "Tag3"])}
+        onClick={() => showApplyTagsDialog("app-1", ["Tag1", "Tag2", "Tag3"], ["Tag1", "Tag2", "Tag3"])}
       >
         Open Apply Tags Dialog
       </button>
@@ -754,7 +767,7 @@ describe("DialogContext", () => {
     await user.click(screen.getByTestId("open-apply-tags-btn"));
     expect(screen.getByTestId("apply-tags-dialog")).toBeInTheDocument();
 
-    await user.click(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME));
+    await user.click(screen.getByTestId("close-apply-tags-btn"));
     expect(screen.queryByTestId("apply-tags-dialog")).not.toBeInTheDocument();
   });
 });

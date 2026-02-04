@@ -209,9 +209,10 @@ export const useDialog = () => {
     );
   };
 
-  const showApplyTagsDialog = (allTags: string[], selectedTags: string[]) => {
+  const showApplyTagsDialog = (demonstrationId: string,allTags: string[], selectedTags: string[]) => {
     context.showDialog(
       <ApplyTagsDialog
+        demonstrationId={demonstrationId}
         allTags={allTags}
         initiallySelectedTags={selectedTags}
         onClose={context.hideDialog}
