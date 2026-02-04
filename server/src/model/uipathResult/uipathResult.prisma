@@ -6,5 +6,6 @@ model UiPathResult {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
   fields    UipathResultField[]
 
+  @@unique([requestId])
   @@map("uipath_result")
 }

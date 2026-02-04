@@ -42,7 +42,7 @@ describe("handler", () => {
     vi.clearAllMocks();
   });
 
-  it("invokes runDocumentUnderstanding with s3Key from SQS body", async () => {
+  it("invokes runDocumentUnderstanding with s3FileName from SQS body", async () => {
     process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
     process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
     mocks.runDocumentUnderstandingMock.mockResolvedValue({ status: "Succeeded" });
@@ -53,7 +53,7 @@ describe("handler", () => {
         {
           messageId: "id-1",
           receiptHandle: "",
-          body: JSON.stringify({ s3Key: "file.pdf" }),
+          body: JSON.stringify({ s3FileName: "file.pdf" }),
           attributes: {
             ApproximateReceiveCount: "1",
             SentTimestamp: "",
@@ -81,7 +81,7 @@ describe("handler", () => {
     expect(result).toEqual({ status: "Succeeded" });
   });
 
-  it("throws when s3Key is missing", async () => {
+  it("throws when s3FileName is missing", async () => {
     process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
     process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
     const event: SQSEvent = {
@@ -105,7 +105,7 @@ describe("handler", () => {
       ],
     };
 
-    await expect(handlerRef(event)).rejects.toThrow("Missing s3Key");
+    await expect(handlerRef(event)).rejects.toThrow("Missing s3FileName");
   });
 
   it("throws when S3 body is missing", async () => {
@@ -118,7 +118,7 @@ describe("handler", () => {
         {
           messageId: "id-1",
           receiptHandle: "",
-          body: JSON.stringify({ s3Key: "file.pdf" }),
+          body: JSON.stringify({ s3FileName: "file.pdf" }),
           attributes: {
             ApproximateReceiveCount: "1",
             SentTimestamp: "",

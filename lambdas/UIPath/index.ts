@@ -9,8 +9,9 @@ import { log, reqIdChild, als, store } from "./log";
 import { runDocumentUnderstanding } from "./runDocumentUnderstanding";
 
 interface UipathMessage {
-  s3Key: string;
+  s3FileName: string;
   s3Bucket?: string;
+  modelGuid?: string;
 }
 
 const s3 = new S3Client({
@@ -39,14 +40,14 @@ export const handler = async (event: SQSEvent) =>
     reqIdChild(firstRecord?.messageId ?? "n/a");
 
     const parsedBody = firstRecord?.body ? (JSON.parse(firstRecord.body) as Partial<UipathMessage>) : null;
-    const s3Key = parsedBody?.s3Key;
+    const s3FileName = parsedBody?.s3FileName;
     const s3Bucket = parsedBody?.s3Bucket ?? UIPATH_DOCUMENT_BUCKET;
-    if (!s3Key) {
-      throw new Error("Missing s3Key in SQS message body.");
+    if (!s3FileName) {
+      throw new Error("Missing s3FileName in SQS message body.");
     }
 
-    const inputFile = await downloadFromS3(s3Bucket, s3Key);
-    log.info({ s3Bucket, s3Key, localPath: inputFile }, "Downloaded document from S3");
+    const inputFile = await downloadFromS3(s3Bucket, s3FileName);
+    log.info({ s3Bucket, s3FileName, localPath: inputFile }, "Downloaded document from S3");
 
     const status = await runDocumentUnderstanding(inputFile, {
       pollIntervalMs: 5_000,

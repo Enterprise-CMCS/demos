@@ -45,6 +45,6 @@ node -e "import('./dist/runDocumentUnderstanding.js').then(m => m.runDocumentUnd
 
 ## Lambda usage
 - Handler: `index.handler`
-- Trigger: SQS message body must contain `{ "s3Key": "<path/to/file>" }`
+- Trigger: SQS message body must contain `{ "s3FileName": "<path/to/file>" }`
 - Env: same as above (`UIPATH_CLIENT_ID`, `UIPATH_CLIENT_SECRET`, `UIPATH_PROJECT_ID`, optional `LOG_LEVEL`)
-- CDK wiring: `deployment/stacks/uipath.ts` creates the UiPath Lambda, SQS queue, and DLQ; `deployment/app.ts` registers the stack. Producers send messages to `UiPathQueue` with the `s3Key` in the body.
+- CDK wiring: `deployment/stacks/uipath.ts` creates the UiPath Lambda, SQS queue, and DLQ; `deployment/app.ts` registers the stack. Producers send messages to `UiPathQueue` with the `s3FileName` in the body.

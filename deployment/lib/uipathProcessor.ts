@@ -45,6 +45,7 @@ export class UiPathProcessor extends Construct {
       enforceSSL: true,
       encryption: sqs.QueueEncryption.KMS,
       encryptionMasterKey: props.kmsKey,
+      visibilityTimeout: Duration.minutes(20),
       deadLetterQueue: {
         queue: this.deadLetterQueue,
         maxReceiveCount: 5,

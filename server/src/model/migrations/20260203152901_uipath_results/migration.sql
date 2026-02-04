@@ -20,6 +20,7 @@ CREATE TABLE "uipath_result_field" (
     "confidence" DOUBLE PRECISION NOT NULL,
     "value_json" JSONB NOT NULL,
     "text_length" INTEGER NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "uipath_result_field_pkey" PRIMARY KEY ("id")
 );

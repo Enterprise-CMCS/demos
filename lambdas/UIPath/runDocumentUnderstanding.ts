@@ -53,6 +53,50 @@ function getExtractedFields(status: ExtractionStatus): UiPathField[] {
   return [];
 }
 
+type PersistableField = {
+  FieldId: string;
+  FieldName: string;
+  FieldType: string;
+  valueText: string;
+  fieldValue: UiPathFieldValue;
+};
+
+function coerceValueText(v: UiPathFieldValue): string | null {
+  const text = v.UnformattedValue ?? v.Value;
+  if (typeof text !== "string") return null;
+
+  const trimmed = text.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function toPersistableField(field: UiPathField): PersistableField | null {
+  if (field.IsMissing) return null;
+  if (typeof field.FieldId !== "string" || field.FieldId.trim() === "") return null;
+  if (typeof field.FieldName !== "string" || field.FieldName.trim() === "") return null;
+
+  const values = Array.isArray(field.Values) ? field.Values : null;
+  if (!values || values.length === 0) return null;
+
+  const fieldValue = values[0];
+  if (!fieldValue) return null;
+
+  const valueText = coerceValueText(fieldValue);
+  if (!valueText) return null;
+
+  const fieldType =
+    typeof field.FieldType === "string" && field.FieldType.trim() !== ""
+      ? field.FieldType
+      : "Text";
+
+  return {
+    FieldId: field.FieldId,
+    FieldName: field.FieldName,
+    FieldType: fieldType,
+    valueText,
+    fieldValue,
+  };
+}
+
 export interface RunDocumentUnderstandingOptions {
   token?: string;
   logFullResult?: boolean;
@@ -93,44 +137,68 @@ export async function runDocumentUnderstanding(
       const client = await pool.connect();
       try {
         const schema = getDbSchema();
-        const resultId = randomUUID();
 
-        await client.query(
-          `insert into ${schema}.uipath_result (id, request_id, project_id, response) values ($1, $2, $3, $4::jsonb)`,
-          [resultId, requestId, projectId, JSON.stringify(status)]
+        const upsertedResult = await client.query<{ id: string }>(
+          `insert into ${schema}.uipath_result (id, request_id, project_id, response)
+           values ($1, $2, $3, $4::jsonb)
+           on conflict (request_id)
+           do update set
+             project_id = excluded.project_id,
+             response = excluded.response
+           returning id`,
+          [randomUUID(), requestId, projectId, JSON.stringify(status)]
         );
 
+        const resultId = upsertedResult.rows[0]?.id;
+        if (!resultId) {
+          throw new Error("Failed to persist UiPath result row.");
+        }
+
         const extractedFields = getExtractedFields(status);
+
         for (const field of extractedFields) {
-          if (field.IsMissing) {
-            continue;
-          }
-          const values = Array.isArray(field.Values) ? field.Values : [];
-          const fieldValues = values[0];
-          const valueText = fieldValues?.UnformattedValue ?? fieldValues?.Value;
-          // Skip if fields are missing.
-          if (!valueText || !field.FieldName || !field.FieldId) {
-            continue;
-          }
+          const p = toPersistableField(field);
+          if (!p) continue;
+
+          const confidence =
+            typeof p.fieldValue.Confidence === "number" ? p.fieldValue.Confidence : 0;
+
+          const textLength =
+            typeof p.fieldValue.Reference?.TextLength === "number"
+              ? p.fieldValue.Reference.TextLength
+              : p.valueText.length;
 
           await client.query(
-            `insert into ${schema}.uipath_result_field (id, uipath_result_id, field_id, field_name, field_type, value, confidence, value_json, text_length)
-             values ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9)`,
+            `insert into ${schema}.uipath_result_field
+              (id, uipath_result_id, field_id, field_name, field_type, value, confidence, value_json, text_length)
+             values
+              ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9)
+             on conflict (uipath_result_id, field_id)
+             do update set
+               field_name = excluded.field_name,
+               field_type = excluded.field_type,
+               value = excluded.value,
+               confidence = excluded.confidence,
+               value_json = excluded.value_json,
+               text_length = excluded.text_length`,
             [
               randomUUID(),
               resultId,
-              field.FieldId ?? "unknown",
-              field.FieldName ?? field.FieldId ?? "unknown",
-              field.FieldType ?? "Text",
-              valueText,
-              fieldValues?.Confidence ?? 0,
-              JSON.stringify(fieldValues),
-              fieldValues?.Reference?.TextLength ?? valueText.length,
+              p.FieldId,
+              p.FieldName,
+              p.FieldType,
+              p.valueText,
+              confidence,
+              JSON.stringify(p.fieldValue),
+              textLength,
             ]
           );
         }
 
-        log.info({ extractedFieldCount: extractedFields.length }, "Processed UiPath fields");
+        log.info(
+          { extractedFieldCount: extractedFields.length },
+          "Processed UiPath fields"
+        );
 
         if (logFullResult) {
           log.info(util.inspect(status, false, null, true));
@@ -140,6 +208,7 @@ export async function runDocumentUnderstanding(
       } finally {
         client.release();
       }
+
       return status;
     }
 
