@@ -20,6 +20,9 @@ type DemonstrationTypesSectionProps = {
   isComplete?: boolean;
 };
 
+const toggleOnColor = "#6B7280";
+const toggleOffColor = "#E5E7EB";
+
 export const DemonstrationTypesSection = ({
   demonstration,
   onMarkComplete,
@@ -57,8 +60,8 @@ export const DemonstrationTypesSection = ({
             data-testid="mark-complete-switch"
             checked={isComplete}
             onChange={(checked) => onMarkComplete(checked)}
-            onColor="#6B7280"
-            offColor="#E5E7EB"
+            onColor={toggleOnColor}
+            offColor={toggleOffColor}
             checkedIcon={false}
             uncheckedIcon={false}
             height={18}
