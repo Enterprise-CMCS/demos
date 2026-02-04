@@ -170,6 +170,7 @@ describe("EditDemonstrationTypeDialog", () => {
       await waitFor(() => {
         expect(screen.getByText("Expiration Date is required.")).toBeInTheDocument();
       });
+      expect(screen.getByTestId(SUBMIT_BUTTON_TEST_ID)).toBeDisabled();
     });
 
     it("displays validation error when effective date is empty", async () => {
@@ -182,6 +183,7 @@ describe("EditDemonstrationTypeDialog", () => {
       await waitFor(() => {
         expect(screen.getByText("Effective Date is required.")).toBeInTheDocument();
       });
+      expect(screen.getByTestId(SUBMIT_BUTTON_TEST_ID)).toBeDisabled();
     });
 
     it("shows validation error when expiration date is before effective date", async () => {
@@ -201,6 +203,7 @@ describe("EditDemonstrationTypeDialog", () => {
           screen.getByText("Effective date must be on or before expiration date.")
         ).toBeInTheDocument();
       });
+      expect(screen.getByTestId(SUBMIT_BUTTON_TEST_ID)).toBeDisabled();
     });
 
     describe("status updates based on date changes", () => {
