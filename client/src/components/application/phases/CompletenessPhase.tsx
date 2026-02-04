@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
-import { formatDateForServer } from "util/formatDate";
-import { addDays, parseISO } from "date-fns";
+import { formatDate, formatDateForServer } from "util/formatDate";
+import { addDays, differenceInCalendarDays, parseISO } from "date-fns";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
@@ -14,10 +14,10 @@ import { DocumentList } from "./sections";
 import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
 import { DateType, SetApplicationDateInput } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
-import { DueDateNotice } from "components/application/phases/sections/DueDateNotice";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
+import { Notice, NoticeVariant } from "components/notice/Notice";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -60,17 +60,18 @@ export const getApplicationCompletenessFromDemonstration = (
   const completenessPhase = demonstration.phases.find(
     (phase) => phase.phaseName === "Completeness"
   );
+
+  const completenessComplete = completenessPhase?.phaseStatus === "Completed";
+  const completenessReviewDate = completenessPhase?.phaseDates.find(
+    (date) => date.dateType === "Completeness Review Due Date"
+  );
+
   const fedCommentStartDate = completenessPhase?.phaseDates.find(
     (date) => date.dateType === "Federal Comment Period Start Date"
   );
   const fedCommentEndDate = completenessPhase?.phaseDates.find(
     (date) => date.dateType === "Federal Comment Period End Date"
   );
-
-  const federalCommentPhase = demonstration.phases.find(
-    (phase) => phase.phaseName === "Federal Comment"
-  );
-  const fedCommentComplete = federalCommentPhase?.phaseStatus === "Completed";
 
   const applicationIntakePhase = demonstration.phases.find(
     (phase) => phase.phaseName === "Application Intake"
@@ -88,13 +89,17 @@ export const getApplicationCompletenessFromDemonstration = (
   return (
     <CompletenessPhase
       applicationId={demonstration.id}
+      completenessReviewDate={completenessReviewDate?.dateValue
+        ? formatDateForServer(completenessReviewDate.dateValue)
+        : ""
+      }
       fedCommentStartDate={
         fedCommentStartDate?.dateValue ? formatDateForServer(fedCommentStartDate.dateValue) : ""
       }
       fedCommentEndDate={
         fedCommentEndDate?.dateValue ? formatDateForServer(fedCommentEndDate.dateValue) : ""
       }
-      fedCommentComplete={fedCommentComplete}
+      completenessComplete={completenessComplete}
       stateDeemedCompleteDate={
         stateDeemedCompleteDate?.dateValue
           ? formatDateForServer(stateDeemedCompleteDate.dateValue)
@@ -108,9 +113,10 @@ export const getApplicationCompletenessFromDemonstration = (
 
 export interface CompletenessPhaseProps {
   applicationId: string;
+  completenessReviewDate?: string;
   fedCommentStartDate?: string;
   fedCommentEndDate?: string;
-  fedCommentComplete: boolean;
+  completenessComplete: boolean;
   stateDeemedCompleteDate?: string;
   applicationCompletenessDocument: ApplicationWorkflowDocument[];
   hasApplicationIntakeCompletionDate: boolean;
@@ -118,9 +124,10 @@ export interface CompletenessPhaseProps {
 
 export const CompletenessPhase = ({
   applicationId,
+  completenessReviewDate,
   fedCommentStartDate,
   fedCommentEndDate,
-  fedCommentComplete,
+  completenessComplete,
   stateDeemedCompleteDate,
   applicationCompletenessDocument,
   hasApplicationIntakeCompletionDate,
@@ -131,6 +138,9 @@ export const CompletenessPhase = ({
 
   const [federalStartDate, setFederalStartDate] = useState<string>(fedCommentStartDate ?? "");
   const [federalEndDate, setFederalEndDate] = useState<string>(fedCommentEndDate ?? "");
+  const [isNoticeDismissed, setNoticeDismissed] = useState(
+    !(completenessReviewDate && !completenessComplete)
+  );
   const [stateDeemedComplete, setStateDeemedComplete] = useState<string>(
     stateDeemedCompleteDate ?? ""
   );
@@ -171,6 +181,34 @@ export const CompletenessPhase = ({
     setFederalStartDate(nextStart);
     setFederalEndDate(nextEnd);
   }, [stateDeemedComplete]);
+
+  const getNoticeContent = () => {
+    if (!completenessReviewDate) return null;
+    const noticeDueDateValue = parseISO(completenessReviewDate ?? "");
+    const daysLeft = differenceInCalendarDays(noticeDueDateValue, new Date());
+    if (daysLeft > 1) {
+      return {
+        title: `${daysLeft} days left`,
+        description: `This Demonstration must be declared complete by ${formatDate(noticeDueDateValue)}`,
+        variant: "warning" as NoticeVariant,
+      };
+    }
+    if (daysLeft === 1) {
+      return {
+        title: "1 day left in Completion Period",
+        description: `This Demonstration must be declared complete by ${formatDate(noticeDueDateValue)}`,
+        variant: "error" as NoticeVariant,
+      };
+    }
+    else {
+      return {
+        title:  `${Math.abs(daysLeft)} days past due`,
+        description: `This Demonstration completeness was due on ${formatDate(noticeDueDateValue)}`,
+        variant: "error" as NoticeVariant,
+      };
+    }
+  };
+  const noticeContent = useMemo(() => getNoticeContent(), [completenessReviewDate]);
 
   const finishIsEnabled = () => {
     const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
@@ -227,7 +265,7 @@ export const CompletenessPhase = ({
       <h4 id="completeness-upload-title" className={STYLES.title}>
         STEP 1 - UPLOAD
       </h4>
-      <p className={STYLES.helper}>Upload the Signed Completeness Letter</p>
+      <p className={STYLES.helper}>Upload the officially signed State Completeness Letter/internal checklists</p>
       <SecondaryButton
         onClick={() => {
           showCompletenessDocumentUploadDialog(applicationId);
@@ -303,12 +341,12 @@ export const CompletenessPhase = ({
   return (
     <div>
       <div className="flex flex-col gap-6">
-        {fedCommentEndDate && (
-          <DueDateNotice
-            dueDate={fedCommentEndDate}
-            phaseComplete={fedCommentComplete}
-            shouldPhaseBeAutomaticallyDismissedIfPhaseIsComplete={false}
-            descriptionToAppendDateTo="his Amendment must be declared complete by"
+        {!isNoticeDismissed && noticeContent && (
+          <Notice
+            title={noticeContent.title}
+            description={noticeContent.description}
+            variant={noticeContent.variant}
+            onDismiss={() => setNoticeDismissed(true)}
           />
         )}
         <button

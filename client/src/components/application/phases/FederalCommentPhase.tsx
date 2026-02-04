@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { tw } from "tags/tw";
 import { ApplicationUploadSection } from "components/application/phases/sections";
-import { formatDate, formatDateForServer } from "util/formatDate";
+import { formatDate } from "util/formatDate";
 import { useDialog } from "components/dialog/DialogContext";
 import { ApplicationWorkflowDemonstration, ApplicationWorkflowDocument } from "../ApplicationWorkflow";
-import { DueDateNotice } from "components/application/phases/sections/DueDateNotice";
+import { differenceInCalendarDays, parseISO } from "date-fns";
+import { Notice, NoticeVariant } from "components/notice";
 
 interface FederalCommentPhaseProps {
   demonstrationId: string;
@@ -69,6 +70,37 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
   const [documents] = useState<ApplicationWorkflowDocument[]>(
     initialDocuments
   );
+  const [isNoticeDismissed, setNoticeDismissed] = useState(
+    !(phaseEndDate && !phaseComplete)
+  );
+
+  const getNoticeContent = () => {
+    if (!phaseEndDate) return null;
+    const noticeDueDateValue = parseISO(phaseEndDate ?? "");
+    const daysLeft = differenceInCalendarDays(noticeDueDateValue, new Date());
+    if (daysLeft > 1) {
+      return {
+        title: `${daysLeft} days left in Federal Comment Period`,
+        description: `The Federal Comment Period ends on ${formatDate(noticeDueDateValue)}`,
+        variant: "warning" as NoticeVariant,
+      };
+    }
+    if (daysLeft === 1) {
+      return {
+        title: "1 day left in Federal Comment Period",
+        description: `The Federal Comment Period ends on ${formatDate(noticeDueDateValue)}`,
+        variant: "error" as NoticeVariant,
+      };
+    }
+    else {
+      return {
+        title:  `${Math.abs(daysLeft)} days past due`,
+        description: `The Federal Comment Period ended on ${formatDate(noticeDueDateValue)}`,
+        variant: "error" as NoticeVariant,
+      };
+    }
+  };
+  const noticeContent = useMemo(() => getNoticeContent(), [phaseEndDate]);
 
   const VerifyCompleteSection = () => (
     <div aria-labelledby="concept-verify-title">
@@ -96,12 +128,12 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
   return (
     <div>
       <div className="flex flex-col gap-6">
-        {phaseEndDate && (
-          <DueDateNotice
-            dueDate={formatDateForServer(phaseEndDate)}
-            phaseComplete={phaseComplete}
-            shouldPhaseBeAutomaticallyDismissedIfPhaseIsComplete={true}
-            descriptionToAppendDateTo="The Federal Comment Period ends on"
+        {!isNoticeDismissed && noticeContent && (
+          <Notice
+            title={noticeContent.title}
+            description={noticeContent.description}
+            variant={noticeContent.variant}
+            onDismiss={() => setNoticeDismissed(true)}
           />
         )}
 
