@@ -8,7 +8,7 @@ import { DemonstrationTypesSection } from "./demonstrationTypesSection";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import { Button } from "components/button";
-import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
+import { useCompletePhase } from "components/application/phase-status/phaseStatusQueries";
 import { useToast } from "components/toast";
 import { getPhaseCompletedMessage } from "util/messages";
 
@@ -172,11 +172,7 @@ export const ApprovalSummaryPhase = ({
   // Set up date mutation for Application Details completion persistence
   const { setApplicationDate } = useSetApplicationDate();
 
-  const { setPhaseStatus: completeApprovalSummaryPhase } = useSetPhaseStatus({
-    applicationId: demonstrationId,
-    phaseName: "Approval Summary",
-    phaseStatus: "Completed",
-  });
+  const { completePhase } = useCompletePhase();
 
   const markDemonstrationTypesComplete = async (complete: boolean) => {
     setIsDemonstrationTypesComplete(complete);
@@ -326,20 +322,11 @@ export const ApprovalSummaryPhase = ({
     const today = getTodayEst();
 
     try {
-      // Update demonstration status to Approved
-      const updateInput: UpdateDemonstrationInput = {
-        status: "Approved" as ApplicationStatus,
-      };
-
-      await updateDemonstrationTrigger({
-        variables: {
-          id: demonstrationId,
-          input: updateInput,
-        },
+      // Complete the Approval Summary phase, which also approves the demonstration
+      await completePhase({
+        applicationId: demonstrationId,
+        phaseName: "Approval Summary",
       });
-
-      // Mark the Approval Summary phase as completed
-      await completeApprovalSummaryPhase();
 
       setApprovalSummaryFormData((previousFormData) => ({
         ...previousFormData,

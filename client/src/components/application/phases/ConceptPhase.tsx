@@ -19,6 +19,7 @@ import { getPhaseCompletedMessage } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import { PhaseName } from "../phase-selector/PhaseSelector";
+import type { LocalDate } from "demos-server";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -56,8 +57,10 @@ export const getConceptPhaseComponentFromDemonstration = (
   );
 };
 
-const getLatestDocumentDate = (documents: ApplicationWorkflowDocument[]): string => {
-  if (documents.length === 0) return "";
+const getLatestDocumentDate = (
+  documents: ApplicationWorkflowDocument[]
+): LocalDate | null => {
+  if (documents.length === 0) return null;
 
   const createdAtDates = documents.map((doc) => doc.createdAt);
   const sortedDates = createdAtDates.sort((dateA, dateB) => {
@@ -82,8 +85,8 @@ export const ConceptPhase = ({
   const { showConceptPreSubmissionDocumentUploadDialog } = useDialog();
   const { setApplicationDate } = useSetApplicationDate();
 
-  const [submittedDate, setSubmittedDate] = useState<string>(
-    getLatestDocumentDate(initialPreSubmissionDocuments) || ""
+  const [submittedDate, setSubmittedDate] = useState<LocalDate | null>(
+    getLatestDocumentDate(initialPreSubmissionDocuments)
   );
   const [demonstrationType, setDemonstrationType] = useState<string>("");
   const [isFinishEnabled, setIsFinishEnabled] = useState<boolean>(false);
@@ -95,7 +98,7 @@ export const ConceptPhase = ({
   };
 
   useEffect(() => {
-    const finishShouldBeEnabled = documents.length > 0 && submittedDate.length > 0;
+    const finishShouldBeEnabled = documents.length > 0 && !!submittedDate;
     setIsFinishEnabled(finishShouldBeEnabled);
     setIsSkipEnabled(!finishShouldBeEnabled);
   }, [submittedDate, documents]);
@@ -113,7 +116,8 @@ export const ConceptPhase = ({
   });
 
   const handleDocumentUploadSucceeded = () => {
-    setSubmittedDate(getTodayEst());
+    const todayEst = getTodayEst();
+    setSubmittedDate(todayEst);
   };
 
   const getDateValidationMessage = (): string => {
@@ -126,11 +130,17 @@ export const ConceptPhase = ({
   };
 
   const onFinish = async () => {
+    if (!submittedDate) {
+      console.error("Submitted date is required before finishing Concept phase.");
+      return;
+    }
+
+    const payloadDate: LocalDate = submittedDate;
     try {
       await setApplicationDate({
         applicationId: demonstrationId,
         dateType: "Pre-Submission Submitted Date",
-        dateValue: formatDateForServer(submittedDate),
+        dateValue: payloadDate,
       });
     } catch (error) {
       console.error("Error setting application date:", error);
@@ -202,8 +212,10 @@ export const ConceptPhase = ({
           <DatePicker
             name="datepicker-pre-submission-date"
             label="Pre-Submission Document Submitted Date"
-            value={submittedDate}
-            onChange={(newDate) => setSubmittedDate(newDate)}
+            value={submittedDate ?? ""}
+            onChange={(newDate) => {
+              setSubmittedDate(newDate === "" ? null : (newDate as LocalDate));
+            }}
             isRequired={documents.length > 0}
             getValidationMessage={getDateValidationMessage}
           />
