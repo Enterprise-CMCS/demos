@@ -169,7 +169,6 @@ export const ApprovalSummaryPhase = ({
 
   const [updateDemonstrationTrigger] = useMutation(UPDATE_DEMONSTRATION_MUTATION);
 
-  // Set up date mutation for Application Details completion persistence
   const { setApplicationDate } = useSetApplicationDate();
 
   const { completePhase } = useCompletePhase();
