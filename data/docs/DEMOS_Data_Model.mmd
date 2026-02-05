@@ -16,8 +16,8 @@ erDiagram
 
   tag ||--|{ tag_configuration : "FK077"
   tag_type ||--|{ tag_configuration : "FK078"
-  tag_configuration }|--|| tag_configuration_status : "FK079"
-  tag_configuration }|--|| tag_configuration_source : "FK080"
+  tag_configuration }|--|| tag_configuration_status : "FK080"
+  tag_configuration }|--|| tag_configuration_source : "FK079"
   tag_configuration ||--|{ demonstration_type_tag_assignment : "FK081"
   tag_configuration ||--|{ application_tag_assignment : "FK082"
   tag_type ||--|| demonstration_type_tag_type_limit : "FK083"
@@ -102,6 +102,21 @@ erDiagram
   event }|--|| log_level : "FK066"
   role ||--|{ event : "FK053"
   event }|--|| users : "FK054"
+  demonstration ||--|{ deliverable : "FK089"
+  deliverable_type ||--|{ deliverable : "FK091"
+  deliverable }|--|| deliverable_status : "FK090"
+  document_type ||--|{ deliverable_requirement_configuration : "FK093"
+  deliverable_requirement_configuration ||--|| deliverable_type : "FK092"
+  deliverable_requirement ||--|| deliverable : "FK094"
+  document ||--|{ deliverable_requirement : "FK095"
+  deliverable_requirement_phase_limit ||--|{ deliverable_requirement : "FK096"
+  phase ||--|| deliverable_requirement_phase_limit : "FK097"
+  person_type ||--|| private_comment_person_type_limit : "FK098"
+  deliverable ||--|{ private_comment : "FK099"
+  deliverable ||--|{ public_comment : "FK102"
+  users ||--|{ private_comment : "FK100"
+  private_comment }|--|| private_comment_person_type_limit : "FK101"
+  users ||--|{ public_comment : "FK103"
 
   %% Static Constraints
   application_status:::staticConstraint {
@@ -121,6 +136,14 @@ erDiagram
   }
 
   note_type:::staticConstraint {
+    text id PK
+  }
+
+  deliverable_status:::staticConstraint {
+    text id PK
+  }
+
+  deliverable_type:::staticConstraint {
     text id PK
   }
 
@@ -211,8 +234,16 @@ erDiagram
     text id PK, FK "FK083: id ∈ tag_type.id"
   }
 
+  deliverable_requirement_phase_limit:::typeLimiter {
+    text id PK, FK "FK097: id ∈ phase.id"
+  }
+
   extension_application_type_limit:::typeLimiter {
     text id PK, FK "FK015: id ∈ application_type.id"
+  }
+
+  private_comment_person_type_limit:::typeLimiter {
+    text id PK, FK "FK098: id ∈ person_type.id"
   }
 
   system_grant_level_limit:::typeLimiter {
@@ -271,12 +302,37 @@ erDiagram
 
   application_phase:::dataTable {
     uuid application_id PK, FK "FK005: application_id ∈ application.id"
-    text phase_id PK, FK "FK006: phase_id ∈ application_phase_type_limit.id"
-    text phase_status_id FK "FK004: phase_status_id ∈ phase_status.id"
+    text phase_id PK, FK "FK006: phase_id ∈ application_phase_type_limit.id<br>FK004: (phase_id, phase_status_id) ∈ phase_phase_status.(phase_id, phase_status_id)"
+    text phase_status_id FK "FK004: (phase_id, phase_status_id) ∈ phase_phase_status.(phase_id, phase_status_id)"
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_AFTER_UPDATE update_demonstration_current_phase_on_phase_update "Update demonstration current phase when phase status changes."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+  }
+
+  deliverable:::dataTable {
+    uuid id PK, UK "UK: (id, demonstration_id)"
+    uuid demonstration_id FK, UK "FK089: demonstration_id ∈ demonstration.id<br>UK: (id, demonstration_id)"
+    text deliverable_type_id FK "FK091: deliverable_type_id ∈ deliverable_type.id"
+    text status_id FK "FK090: status_id ∈ deliverable_status.id"
+    timestamptz submission_date "NULLABLE"
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  deliverable_requirement:::dataTable {
+    uuid deliverable_id PK, FK "FK094: (deliverable_id, demonstration_id) ∈ deliverable.(id, demonstration_id)"
+    uuid demonstration_id FK "FK094: (deliverable_id, demonstration_id) ∈ deliverable.(id, demonstration_id)<br>FK095: (document_id, document_type_id, demonstration_id, phase_id) ∈ document.(id, document_type_id, application_id, phase_id)"
+    text document_type_id FK "FK095: (document_id, document_type_id, demonstration_id, phase_id) ∈ document.(id, document_type_id, application_id, phase_id)"
+    text phase_id FK "FK095: (document_id, document_type_id, demonstration_id, phase_id) ∈ document.(id, document_type_id, application_id, phase_id)<br>FK096: phase_id ∈ deliverable_requirement_phase_limit.id"
+    uuid document_id FK "FK095: (document_id, document_type_id, demonstration_id, phase_id) ∈ document.(id, document_type_id, application_id, phase_id)<br>NULLABLE"
+  }
+
+  deliverable_requirement_configuration:::dataTable {
+    text deliverable_type_id PK, FK "FK092: deliverable_type_id ∈ deliverable_type.id"
+    text document_type_id FK "FK093: document_type_id ∈ document_type.id"
+    timestamptz created_at
+    timestamptz updated_at
   }
 
   demonstration:::dataTable {
@@ -316,14 +372,14 @@ erDiagram
   }
 
   document:::dataTable {
-    uuid id PK
+    uuid id PK, UK "UK: (id, document_type_id, application_id, phase_id)"
     text name
     text description
     text s3_path
     uuid owner_user_id FK "FK026: owner_user_id ∈ users.id"
-    text document_type_id FK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
-    uuid application_id FK "FK030: application_id ∈ application.id"
-    text phase_id FK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
+    text document_type_id FK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)<br>UK: (id, document_type_id, application_id, phase_id)"
+    uuid application_id FK, UK "FK030: application_id ∈ application.id<br>UK: (id, document_type_id, application_id, phase_id)"
+    text phase_id FK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)<br>UK: (id, document_type_id, application_id, phase_id)"
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
@@ -406,6 +462,26 @@ erDiagram
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
+  private_comment:::dataTable {
+    uuid id PK
+    uuid deliverable_id FK "FK099: deliverable_id ∈ deliverable.id"
+    uuid author_user_id FK "FK100: (author_user_id, author_person_type_id) ∈ users.(id, person_type_id)"
+    text author_person_type_id FK "FK100: (author_user_id, author_person_type_id) ∈ users.(id, person_type_id)<br>FK101: author_person_type_id ∈ private_comment_person_type_limit.id"
+    text content
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  public_comment:::dataTable {
+    uuid id PK
+    uuid deliverable_id FK "FK102: deliverable_id ∈ deliverable.id"
+    uuid author_user_id FK "FK103: (author_user_id, author_person_type_id) ∈ users.(id, person_type_id)"
+    text author_person_type_id FK "FK103: (author_user_id, author_person_type_id) ∈ users.(id, person_type_id)"
+    text content
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
   tag:::dataTable {
     text id PK
     timestamptz created_at
@@ -435,7 +511,7 @@ erDiagram
 
   %% Associative Tables
   application_tag_assignment:::associativeTable {
-    uuid application_id PK, FK "FK088: appliation_id ∈ application.id"
+    uuid application_id PK, FK "FK088: application_id ∈ application.id"
     text tag_id PK, FK "FK082: (tag_id, tag_type_id) ∈ tag_configuration.(tag_id, tag_type_id)"
     text tag_type_id FK "FK082: (tag_id, tag_type_id) ∈ tag_configuration.(tag_id, tag_type_id)<br>FK086: tag_type_id ∈ application_tag_type_limit.id"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
