@@ -11,7 +11,7 @@ import {
 } from "components/application/ApplicationWorkflow";
 import { PhaseName } from "components/application/phase-selector/PhaseSelector";
 import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
-import { useSetApplicationDate } from "components/application/date/dateQueries";
+import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { useDialog } from "components/dialog/DialogContext";
 import { DocumentList } from "./sections";
 import { getPhaseCompletedMessage } from "util/messages";
@@ -19,6 +19,7 @@ import { useToast } from "components/toast";
 import { DatePicker } from "components/input/date/DatePicker";
 import { DemonstrationHealthTypeTags } from "components/tags/DemonstrationHealthTypeTags";
 import { TEMP_SELECTED_TAGS } from "components/dialog/ApplyTagsDialog";
+import type { DateTimeOrLocalDate } from "demos-server";
 
 /** Business Rules for this Phase:
  * - **Application Intake Start Date** - Can start in one of two ways, whichever comes first:
@@ -49,6 +50,103 @@ export const getCompletenessReviewDueDate = (stateApplicationSubmittedDate: stri
   const date = parseISO(stateApplicationSubmittedDate);
   return addDays(date, 15);
 };
+
+interface UploadSectionProps {
+  demonstrationId: string;
+  documents: ApplicationWorkflowDocument[];
+  onOpenUploadModal: (demonstrationId: string) => void;
+}
+
+const UploadSection = ({ demonstrationId, documents, onOpenUploadModal }: UploadSectionProps) => (
+  <div aria-labelledby="state-application-upload-title">
+    <h4 id="state-application-upload-title" className={STYLES.title}>
+      STEP 1 - UPLOAD
+    </h4>
+    <p className={STYLES.helper}>Upload the State Application file below.</p>
+
+    <SecondaryButton
+      onClick={() => onOpenUploadModal(demonstrationId)}
+      size="small"
+      name="button-open-upload-modal"
+    >
+      Upload
+      <ExportIcon />
+    </SecondaryButton>
+
+    <DocumentList documents={documents} />
+  </div>
+);
+
+interface VerifyCompleteSectionProps {
+  stateApplicationSubmittedDate: string;
+  hasDocuments: boolean;
+  onDateChange: (newDate: string) => void;
+  isFinishButtonEnabled: boolean;
+  onFinish: () => void;
+}
+
+const VerifyCompleteSection = ({
+  stateApplicationSubmittedDate,
+  hasDocuments,
+  onDateChange,
+  isFinishButtonEnabled,
+  onFinish,
+}: VerifyCompleteSectionProps) => (
+  <div aria-labelledby="state-application-verify-title">
+    <div className={STYLES.stepEyebrow}>Step 2 - Verify/Complete</div>
+    <h4 id="state-application-verify-title" className={STYLES.title}>
+      VERIFY/COMPLETE
+    </h4>
+    <p className={STYLES.helper}>
+      Verify that the document is uploaded/accurate and complete all required fields.
+    </p>
+
+    <div className="space-y-4">
+      <div>
+        <DatePicker
+          name="datepicker-state-application-submitted-date"
+          label="State Application Submitted Date"
+          value={stateApplicationSubmittedDate}
+          onChange={onDateChange}
+          isRequired
+          aria-required="true"
+        />
+        {!hasDocuments && stateApplicationSubmittedDate && (
+          <div className="text-xs text-text-warn mt-1">
+            At least one State Application document is required when date is provided
+          </div>
+        )}
+      </div>
+
+      <div>
+        <DatePicker
+          name="datepicker-completeness-review-due-date"
+          label="Completeness Review Due Date"
+          value={
+            stateApplicationSubmittedDate
+              ? formatDateForServer(getCompletenessReviewDueDate(stateApplicationSubmittedDate))
+              : ""
+          }
+          isDisabled={true}
+        />
+        <div id="completeness-review-help" className="text-xs text-text-placeholder mt-1">
+          Automatically calculated as 15 calendar days after State Application Submitted Date
+        </div>
+      </div>
+    </div>
+
+    <div className={STYLES.actions}>
+      <Button
+        name="button-finish-state-application"
+        onClick={onFinish}
+        disabled={!isFinishButtonEnabled}
+        size="small"
+      >
+        Finish
+      </Button>
+    </div>
+  </div>
+);
 
 export const getApplicationIntakeComponentFromDemonstration = (
   demonstration: ApplicationWorkflowDemonstration,
@@ -103,7 +201,7 @@ export const ApplicationIntakePhase = ({
     phaseStatus: "Completed",
   });
 
-  const { setApplicationDate } = useSetApplicationDate();
+  const { setApplicationDates } = useSetApplicationDates();
 
   useEffect(() => {
     const hasDocuments = initialStateApplicationDocuments.length > 0;
@@ -133,17 +231,27 @@ export const ApplicationIntakePhase = ({
     setStateApplicationSubmittedDate(newDate);
 
     if (newDate) {
-      const formattedNewDate = formatDateForServer(newDate);
-      await setApplicationDate({
-        applicationId: demonstrationId,
-        dateType: "State Application Submitted Date",
-        dateValue: formattedNewDate,
-      });
+      const formattedNewDate: DateTimeOrLocalDate = newDate as DateTimeOrLocalDate;
+      const completenessReviewDueDate: DateTimeOrLocalDate = formatDateForServer(
+        getCompletenessReviewDueDate(newDate)
+      ) as DateTimeOrLocalDate;
 
-      await setApplicationDate({
+      await setApplicationDates({
         applicationId: demonstrationId,
-        dateType: "Completeness Start Date",
-        dateValue: formattedNewDate,
+        applicationDates: [
+          {
+            dateType: "State Application Submitted Date",
+            dateValue: formattedNewDate,
+          },
+          {
+            dateType: "Completeness Review Due Date",
+            dateValue: completenessReviewDueDate,
+          },
+          {
+            dateType: "Completeness Start Date",
+            dateValue: formattedNewDate,
+          },
+        ],
       });
     }
   };
@@ -151,83 +259,6 @@ export const ApplicationIntakePhase = ({
   const handleRemoveTag = (tag: string) => {
     setSelectedTags((prev) => prev.filter((item) => item !== tag));
   };
-
-  const UploadSection = () => (
-    <div aria-labelledby="state-application-upload-title">
-      <h4 id="state-application-upload-title" className={STYLES.title}>
-        STEP 1 - UPLOAD
-      </h4>
-      <p className={STYLES.helper}>Upload the State Application file below.</p>
-
-      <SecondaryButton
-        onClick={() => showApplicationIntakeDocumentUploadDialog(demonstrationId, () => {})}
-        size="small"
-        name="button-open-upload-modal"
-      >
-        Upload
-        <ExportIcon />
-      </SecondaryButton>
-
-      <DocumentList documents={initialStateApplicationDocuments} />
-    </div>
-  );
-
-  const VerifyCompleteSection = () => (
-    <div aria-labelledby="state-application-verify-title">
-      <div className={STYLES.stepEyebrow}>Step 2 - Verify/Complete</div>
-      <h4 id="state-application-verify-title" className={STYLES.title}>
-        VERIFY/COMPLETE
-      </h4>
-      <p className={STYLES.helper}>
-        Verify that the document is uploaded/accurate and complete all required fields.
-      </p>
-
-      <div className="space-y-4">
-        <div>
-          <DatePicker
-            name="datepicker-state-application-submitted-date"
-            label="State Application Submitted Date"
-            value={stateApplicationSubmittedDate}
-            onChange={(newDate) => handleDateChange(newDate)}
-            isRequired
-            aria-required="true"
-          />
-          {initialStateApplicationDocuments.length === 0 && stateApplicationSubmittedDate && (
-            <div className="text-xs text-text-warn mt-1">
-              At least one State Application document is required when date is provided
-            </div>
-          )}
-        </div>
-
-        <div>
-          <DatePicker
-            name="datepicker-completeness-review-due-date"
-            label="Completeness Review Due Date"
-            value={
-              stateApplicationSubmittedDate
-                ? formatDateForServer(getCompletenessReviewDueDate(stateApplicationSubmittedDate))
-                : ""
-            }
-            isDisabled={true}
-          />
-          <div id="completeness-review-help" className="text-xs text-text-placeholder mt-1">
-            Automatically calculated as 15 calendar days after State Application Submitted Date
-          </div>
-        </div>
-      </div>
-
-      <div className={STYLES.actions}>
-        <Button
-          name="button-finish-state-application"
-          onClick={onFinishButtonClick}
-          disabled={!isFinishButtonEnabled}
-          size="small"
-        >
-          Finish
-        </Button>
-      </div>
-    </div>
-  );
 
   return (
     <div>
@@ -240,8 +271,20 @@ export const ApplicationIntakePhase = ({
       <section className={STYLES.pane}>
         <div className={STYLES.grid}>
           <span aria-hidden className={STYLES.divider} />
-          <UploadSection />
-          <VerifyCompleteSection />
+          <UploadSection
+            demonstrationId={demonstrationId}
+            documents={initialStateApplicationDocuments}
+            onOpenUploadModal={(id) =>
+              showApplicationIntakeDocumentUploadDialog(id, () => {})
+            }
+          />
+          <VerifyCompleteSection
+            stateApplicationSubmittedDate={stateApplicationSubmittedDate}
+            hasDocuments={hasDocuments}
+            onDateChange={handleDateChange}
+            isFinishButtonEnabled={isFinishButtonEnabled}
+            onFinish={onFinishButtonClick}
+          />
         </div>
         <div className="mt-8">
           <DemonstrationHealthTypeTags
