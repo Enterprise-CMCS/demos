@@ -204,16 +204,8 @@ export const ApplicationIntakePhase = ({
   const { setApplicationDates } = useSetApplicationDates();
 
   useEffect(() => {
-    const hasDocuments = initialStateApplicationDocuments.length > 0;
-    const baseDate = initialStateApplicationSubmittedDate ?? "";
-
-    if (!hasDocuments) {
-      setStateApplicationSubmittedDate("");
-      return;
-    }
-
-    setStateApplicationSubmittedDate(baseDate);
-  }, [initialStateApplicationSubmittedDate, initialStateApplicationDocuments.length]);
+    setStateApplicationSubmittedDate(initialStateApplicationSubmittedDate ?? "");
+  }, [initialStateApplicationSubmittedDate]);
 
   const hasDocuments = initialStateApplicationDocuments.length > 0;
   const hasSubmittedDate = Boolean(stateApplicationSubmittedDate);
@@ -223,7 +215,6 @@ export const ApplicationIntakePhase = ({
     await completeApplicationIntake();
     showSuccess(getPhaseCompletedMessage("Application Intake"));
 
-    // Advance UI to the Completeness phase after successful completion
     setSelectedPhase?.("Completeness");
   };
 

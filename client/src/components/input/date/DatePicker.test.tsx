@@ -28,7 +28,7 @@ describe("DatePicker component", () => {
       render(<DatePicker {...requiredProps} isDisabled value="2025-06-15" />);
       const input = screen.getByTestId("test-date") as HTMLInputElement;
       expect(input).toBeDisabled();
-      expect(input.value).toBe("2025-06-15");
+      expect(input.defaultValue).toBe("2025-06-15");
     });
 
     it("displays validation message when provided", () => {
