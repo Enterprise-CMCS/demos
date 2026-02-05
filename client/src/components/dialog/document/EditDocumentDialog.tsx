@@ -1,5 +1,5 @@
 import { gql, useMutation } from "@apollo/client";
-import { DocumentDialogFields } from "./DocumentDialog";
+import { DocumentDialogFields, DocumentUploadResult } from "./DocumentDialog";
 import React from "react";
 import { Document, UpdateDocumentInput } from "demos-server";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
@@ -22,7 +22,7 @@ export const EditDocumentDialog: React.FC<{
 }> = ({ onClose, initialDocument }) => {
   const [updateDocumentTrigger] = useMutation<{ updateDocument: Document }>(UPDATE_DOCUMENT_QUERY);
 
-  const handleEdit = async (dialogFields: DocumentDialogFields) => {
+  const handleEdit = async (dialogFields: DocumentDialogFields): Promise<DocumentUploadResult> => {
     const updateDocumentInput: UpdateDocumentInput = {
       name: dialogFields.name,
       description: dialogFields.description,
@@ -36,6 +36,8 @@ export const EditDocumentDialog: React.FC<{
       },
       refetchQueries: [DEMONSTRATION_DETAIL_QUERY],
     });
+
+    return "succeeded";
   };
 
   return (

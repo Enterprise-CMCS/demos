@@ -2,7 +2,8 @@ import React from "react";
 import { DeleteIcon } from "components/icons";
 import { formatDate } from "util/formatDate";
 import { Tag as DemonstrationTypeName } from "demos-server";
-import { DemonstrationType } from "./useApplyDemonstrationTypesDialogData";
+import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
+import { parseISO } from "date-fns";
 
 export const DemonstrationTypesList = ({
   demonstrationTypes,
@@ -24,8 +25,8 @@ export const DemonstrationTypesList = ({
               <div>
                 <p className="font-bold text-lg">{demonstrationType.demonstrationTypeName}</p>
                 <span>
-                  Effective: {formatDate(demonstrationType.effectiveDate)} &bull; Expires:{" "}
-                  {formatDate(demonstrationType.expirationDate)}
+                  Effective: {formatDate(parseISO(demonstrationType.effectiveDate))} &bull; Expires:{" "}
+                  {formatDate(parseISO(demonstrationType.expirationDate))}
                 </span>
               </div>
               <div className="flex items-center">

@@ -17,12 +17,25 @@ type SelectUSAStatesProps = {
   onSelect: (state: string) => void;
 };
 
+type SelectUsersProps = {
+  label: string;
+};
+
 vi.mock("components/input/select/SelectUSAStates", () => ({
   SelectUSAStates: ({ label, value, onSelect }: SelectUSAStatesProps) => (
     <div>
       <label>{label}</label>
       <button onClick={() => onSelect("NY")}>Select NY</button>
       <span>{value}</span>
+    </div>
+  ),
+}));
+
+vi.mock("components/input/select/SelectUsers", () => ({
+  SelectUsers: ({ label }: SelectUsersProps) => (
+    <div>
+      <label>{label}</label>
+      <p>Loading...</p>
     </div>
   ),
 }));
@@ -52,13 +65,14 @@ describe("ApplicationDetailsSection", () => {
     isReadonly = false
   ) => {
     render(
-      <MockedProvider mocks={[]} addTypename={false}>
+      <MockedProvider mocks={[]}>
         <ApplicationDetailsSection
           sectionFormData={{ ...baseFormData, ...overrides }}
           setSectionFormData={mockSetSectionFormData}
           isComplete={isComplete}
           isReadonly={isReadonly}
           onMarkComplete={mockOnMarkComplete}
+          onMarkIncomplete={vi.fn()}
         />
       </MockedProvider>
     );
@@ -99,7 +113,7 @@ describe("ApplicationDetailsSection", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("enables Mark Complete button when required fields are filled", () => {
+  it("enables Mark Complete toggle when required fields are filled", () => {
     setup({
       stateId: "CA",
       name: "Demo",
@@ -112,11 +126,11 @@ describe("ApplicationDetailsSection", () => {
       signatureLevel: "OA",
     });
 
-    const button = screen.getByTestId("application-details-mark-complete");
-    expect(button).toBeEnabled();
+    const toggle = screen.getByRole("switch", { name: /mark complete/i });
+    expect(toggle).toBeEnabled();
   });
 
-  it("disables Mark Complete button when section is complete", () => {
+  it("keeps Mark Complete toggle enabled when section is complete for marking incomplete", async () => {
     setup(
       {
         stateId: "CA",
@@ -132,14 +146,18 @@ describe("ApplicationDetailsSection", () => {
       true,  // isComplete
       false
     );
+    const user = userEvent.setup();
 
-    const button = screen.getByTestId("application-details-mark-complete");
-    expect(button).toBeDisabled();
+    const headerButton = screen.getByRole("button", {
+      name: /Application Details, complete, expand section/i,
+    });
+    await user.click(headerButton);
 
-    expect(screen.getByText("Complete")).toBeInTheDocument();
+    const toggle = screen.getByRole("switch", { name: /mark complete/i });
+    expect(toggle).toBeEnabled();
   });
 
-  it("calls onMarkComplete when Mark Complete is clicked", async () => {
+  it("calls onMarkComplete when Mark Complete toggle is turned on", async () => {
     setup({
       stateId: "CA",
       name: "Demo",
@@ -152,8 +170,8 @@ describe("ApplicationDetailsSection", () => {
       signatureLevel: "OA",
     });
 
-    const button = screen.getByTestId("application-details-mark-complete");
-    await userEvent.click(button);
+    const toggle = screen.getByRole("switch", { name: /mark complete/i });
+    await userEvent.click(toggle);
 
     expect(mockOnMarkComplete).toHaveBeenCalledOnce();
   });

@@ -33,6 +33,13 @@ const mockTypes: DemonstrationDetailDemonstrationType[] = [
   },
 ];
 
+const expandTypesSection = async () => {
+  const toggle = screen.getByRole("button", {
+    name: /types, complete, expand section/i,
+  });
+  await userEvent.click(toggle);
+};
+
 describe("DemonstrationTypesSection", () => {
   let onMarkComplete: (complete: boolean) => void;
 
@@ -80,8 +87,9 @@ describe("DemonstrationTypesSection", () => {
     expect(switchInput).not.toBeChecked();
   });
 
-  it("switch reflects initial complete state", () => {
+  it("switch reflects initial complete state", async () => {
     setup(true);
+    await expandTypesSection();
 
     const switchInput = screen.getByTestId("mark-complete-switch");
     expect(switchInput).toBeChecked();
@@ -101,6 +109,8 @@ describe("DemonstrationTypesSection", () => {
   it("calls onMarkComplete when switch is toggled from complete to incomplete", async () => {
     setup(true);
     const user = userEvent.setup();
+
+    await expandTypesSection();
 
     const switchInput = screen.getByTestId("mark-complete-switch");
     await user.click(switchInput);

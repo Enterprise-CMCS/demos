@@ -51,6 +51,7 @@ export interface ButtonProps {
   size?: ButtonSize;
   disabled?: boolean;
   isCircle?: boolean;
+  tooltip?: string;
 }
 
 export const BaseButton: React.FC<ButtonProps> = ({
@@ -64,21 +65,25 @@ export const BaseButton: React.FC<ButtonProps> = ({
   size = "standard",
   disabled = false,
   isCircle = false,
+  tooltip,
 }) => {
   const sizeClasses = getSizeClasses(isCircle, size);
   const circleClasses = getCircleClasses(isCircle);
+
+  const accessibleLabel = tooltip ? `${ariaLabel || name} - ${tooltip}` : ariaLabel || name;
 
   return (
     <button
       name={name}
       data-testid={name}
-      aria-label={ariaLabel || name}
+      aria-label={accessibleLabel}
       type={type}
       onClick={onClick}
       {...(form ? { form } : {})}
       className={`${BASE_BUTTON_STYLES} ${sizeClasses} ${circleClasses} ${className}`}
       disabled={disabled}
       aria-disabled={disabled ? "true" : "false"}
+      {...(tooltip ? { title: tooltip } : {})}
     >
       {children}
     </button>
