@@ -27,7 +27,9 @@ describe("UiPathProcessor construct", () => {
       },
     });
 
-    const stack = new Stack(app, "uiPathProcessorTest");
+    const stack = new Stack(app, "uiPathProcessorTest", {
+      env: { account: "0123456789", region: "us-east-1" },
+    });
 
     new UiPathProcessor(stack, "UiPathProcessor", {
       ...mockProps,

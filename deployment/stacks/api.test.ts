@@ -96,7 +96,9 @@ describe("Api Stack", () => {
 
   test("UiPathProcessor construct synthesizes queue, DLQ, and lambda", () => {
     const app = new App(commongAppArgs);
-    const stack = new Stack(app, "uipathTest");
+    const stack = new Stack(app, "uipathTest", {
+      env: { account: "0123456789", region: "us-east-1" },
+    });
 
     new UiPathProcessor(stack, "UiPathProcessor", {
       ...mockCommonProps,
