@@ -9,7 +9,8 @@ AWS_CMD="aws --endpoint-url=$LOCALSTACK_ENDPOINT --region $AWS_REGION"
 
 DB_PASSWORD="postgres" # pragma: allowlist secret
 UIPATH_SECRET_ID="demos-local/uipath"
-UIPATH_CLIENT_ID=${UIPATH_CLIENT_ID:-"local-uipath-client-id"}
+# There's a check in the code to look for these default values.
+UIPATH_CLIENT_ID=${UIPATH_CLIENT_ID:-"local-uipath-client-id"} # pragma: allowlist secret
 UIPATH_CLIENT_SECRET=${UIPATH_CLIENT_SECRET:-"local-uipath-client-secret"} # pragma: allowlist secret
 UIPATH_PROJECT_ID=${UIPATH_PROJECT_ID:-""} # pragma: allowlist secret
 

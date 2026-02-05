@@ -14,6 +14,22 @@ const TOKEN_URL = "https://govcloud.uipath.us/identity_/connect/token";
 const TOKEN_SCOPE =
   "Du.Digitization.Api Du.Classification.Api Du.Extraction.Api Du.Validation.Api Du.DataDeletion.Api";
 
+/**
+ * This has been an issue with localstack.
+ *
+ * @param credentials
+ */
+function validateCredentialsAreNotDefault(credentials: UiPathCredentials) {
+  if (
+    credentials.clientId === "local-uipath-client-id" || // pragma: allowlist secret
+    credentials.clientSecret === "local-uipath-client-secret" // pragma: allowlist secret
+  ) {
+    throw new Error(
+      "UiPath secret contains default placeholder credentials. Set real UIPATH_CLIENT_ID/UIPATH_CLIENT_SECRET."
+    );
+  }
+}
+
 async function getCredentials(): Promise<UiPathCredentials> {
 
   if (!process.env.UIPATH_SECRET_ID) {
@@ -26,7 +42,9 @@ async function getCredentials(): Promise<UiPathCredentials> {
     const clientSecret = secret.clientSecret ?? undefined;
 
     if (clientId && clientSecret) {
-      return { clientId, clientSecret };
+      const credentials = { clientId, clientSecret };
+      validateCredentialsAreNotDefault(credentials);
+      return credentials;
     }
 
     throw new Error("UiPath secret must contain clientId/clientSecret fields.");

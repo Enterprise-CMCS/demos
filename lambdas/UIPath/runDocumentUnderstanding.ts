@@ -116,11 +116,10 @@ export async function runDocumentUnderstanding(
     maxAttempts = 500,
     logFullResult = true,
     requestId = "n/a",
-    projectId: projectIdOverride,
+    projectId
   } = options;
 
   const token = providedToken ?? (await getToken());
-  const projectId = await getProjectId(projectIdOverride);
   log.info("Got auth token.");
 
   const docId = await uploadDocument(token, inputFile, projectId);

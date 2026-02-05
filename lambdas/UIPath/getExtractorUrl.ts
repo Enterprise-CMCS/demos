@@ -7,8 +7,7 @@ import { UIPATH_BASE_URL,
 
 import { log } from "./log";
 
-export async function getExtractorUrl(token: string, projectIdOverride?: string): Promise<string> {
-  const projectId = await getProjectId(projectIdOverride);
+export async function getExtractorUrl(token: string, projectId: string): Promise<string> {
 
   if (!UIPATH_BASE_URL || !UIPATH_TENANT) {
     throw new Error("Missing UiPath base URL or tenant configuration.");
