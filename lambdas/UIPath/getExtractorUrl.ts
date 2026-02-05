@@ -1,8 +1,7 @@
 import axios from "axios";
 import { UIPATH_BASE_URL,
   UIPATH_TENANT,
-  UIPATH_API_VERSION,
-  getProjectId,
+  UIPATH_API_VERSION
 } from "./uipathClient";
 
 import { log } from "./log";

@@ -6,7 +6,6 @@ import { uploadDocument } from "./uploadDocument";
 import { extractDoc } from "./extractDoc";
 import { fetchExtractionResult, ExtractionStatus } from "./fetchExtractResult";
 import { getDbPool, getDbSchema } from "./db";
-import { getProjectId } from "./uipathClient";
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 

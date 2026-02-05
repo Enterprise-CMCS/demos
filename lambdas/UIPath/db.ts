@@ -10,7 +10,6 @@ const secrets = new SecretsManagerClient({
 });
 
 let poolPromise: Promise<Pool> | null = null;
-
 let databaseUrlCache = "";
 let cacheExpiration = 0;
 
@@ -31,6 +30,7 @@ export async function getDatabaseUrl() {
   if (!response.SecretString) {
     throw new Error(`The SecretString value is undefined for secret: ${secretArn}`);
   }
+
   const secretData = JSON.parse(response.SecretString);
   const sslMode = process.env.DB_SSL_MODE ?? "require";
   databaseUrlCache = `postgresql://${secretData.username}:${secretData.password}@${secretData.host}:${secretData.port}/${secretData.dbname}?schema=${dbSchema}&sslmode=${sslMode}`;
