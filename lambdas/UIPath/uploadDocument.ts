@@ -5,8 +5,7 @@ import { log } from "./log";
 import {
   documentUnderstandingPost,
   UIPATH_TENANT,
-  UIPATH_BASE_URL,
-  getProjectId,
+  UIPATH_BASE_URL
 } from "./uipathClient";
 
 export interface UploadResponse {
