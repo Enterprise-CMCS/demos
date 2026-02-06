@@ -13,6 +13,7 @@ const STYLES = {
 };
 
 export interface DemonstrationHealthTypeTagsProps {
+  demonstrationId: string;
   selectedTags: string[];
   title: string;
   description?: string;
@@ -20,6 +21,7 @@ export interface DemonstrationHealthTypeTagsProps {
 }
 // We could make this name more generic for reuse.
 export const DemonstrationHealthTypeTags = ({
+  demonstrationId,
   selectedTags,
   title,
   description,
@@ -28,7 +30,7 @@ export const DemonstrationHealthTypeTags = ({
   const { showApplyTagsDialog } = useDialog();
 
   const handleApplyClick = () => {
-    showApplyTagsDialog(DEMONSTRATION_TYPE_TAGS, selectedTags);
+    showApplyTagsDialog(demonstrationId, DEMONSTRATION_TYPE_TAGS, selectedTags);
   };
 
   return (
