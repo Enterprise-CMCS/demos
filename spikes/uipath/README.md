@@ -42,7 +42,7 @@ Flow:
 
 `uipathClient.js` exports:
 - `duPost(url, token, data, options)` — injects bearer auth and `api-version` param.
-- Constants: `UIPATH_BASE_URL`, `UIPATH_TENANT`, `UIPATH_PROJECT_ID`, `UIPATH_EXTRACTOR_GUID`, `UIPATH_API_VERSION`.
+- Constants: `UIPATH_BASE_URL`, `UIPATH_TENANT`, `PROJECT_ID`, `EXTRACTOR_GUID`, `UIPATH_API_VERSION`.
 
 ## Create Lambda to recieve documents
 - see where we update datasbase in Connor's file scanner.
@@ -53,8 +53,21 @@ Flow:
 ## Available Extractors
 
 Below is a sample JSON listing all available extractors and their endpoints:
-If you go to UIPath Open API page, and run the "extractors" request, it will give a list of extractors.
-We want the generative_extractor version. (unless we make our own)
+If you go to UI Path gov cloud and enter your Oauth creds and go to the extractors GET endpoint, you can get a listing of the available extractor. What we want is "Generative Extractor"
 
 
-GET ENDPOINT - `/projects/{projectId}/extractors`
+```json
+{
+  "extractors": [
+    {
+      "id": "generative_extractor",
+      "name": "Generative Extractor",
+      "documentTypeId": "",
+      "status": "Available",
+      "detailsUrl": "https://govcloud.uipath.us:443/<EXTRACTOR_GUID>/du_/api/framework/projects/00000000-0000-0000-0000-000000000000/extractors/generative_extractor?api-version=1.0",
+      "syncUrl": "https://govcloud.uipath.us:443/<EXTRACTOR_GUID>/du_/api/framework/projects/00000000-0000-0000-0000-000000000000/extractors/generative_extractor/extraction?api-version=1.0",
+      "asyncUrl": "https://govcloud.uipath.us:443/<EXTRACTOR_GUID>/du_/api/framework/projects/00000000-0000-0000-0000-000000000000/extractors/generative_extractor/extraction/start?api-version=1.0"
+    }
+  ]
+}
+```
