@@ -163,13 +163,6 @@ describe("DemonstrationTab", () => {
     expect(screen.getByRole("button", { name: "Contacts (2)" })).toBeInTheDocument();
   });
 
-  it("shows details tab content by default", () => {
-    renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
-
-    // Details tab should be active/visible by default
-    expect(screen.getByTestId("summary-details-table")).toBeInTheDocument();
-  });
-
   describe("contacts tab", () => {
     it("passes correct props to ContactsTab", async () => {
       const user = userEvent.setup();

@@ -9,6 +9,7 @@ import {
   AddNewIcon,
   CharacteristicIcon,
   DetailsIcon,
+  ListIcon,
   OpenFolderIcon,
   StackIcon,
 } from "components/icons";
@@ -23,7 +24,6 @@ import {
   PhaseName,
 } from "demos-server";
 import { Tab, VerticalTabs } from "layout/Tabs";
-
 import { SummaryDetailsTab } from "./SummaryDetailsTab";
 import { useDialog } from "components/dialog/DialogContext";
 import { ContactsTab } from "./ContactsTab";
@@ -64,8 +64,10 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
 
   return (
     <div className="p-[16px]">
-      <ApplicationWorkflow demonstrationId={demonstration.id} />
-      <VerticalTabs defaultValue="details">
+      <VerticalTabs defaultValue="application">
+        <Tab icon={<ListIcon />} label="Applications" value="application">
+          <ApplicationWorkflow demonstrationId={demonstration.id} />
+        </Tab>
         <Tab icon={<DetailsIcon />} label="Details" value="details">
           <SummaryDetailsTab demonstrationId={demonstration.id} />
         </Tab>

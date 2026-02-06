@@ -1,71 +1,81 @@
-import React, { Children, ReactElement, useState } from "react";
+import React, { ReactElement, useState } from "react";
 
 import { MenuCollapseLeftIcon, MenuCollapseRightIcon } from "components/icons";
+import { TabProps } from "./Tabs";
+import { VerticalTabEntry } from "./VerticalTabEntry";
+import { tw } from "tags/tw";
 
-import { TabProps, TabsProps } from "./Tabs";
+const SelectedTabPanel = ({ children }: { children: React.ReactNode }) => {
+  const styles = tw`bg-white overflow-y-auto p-[16px] border-r-gray-dark border-r-1 border-t-1 border-t-gray-dark border-b-1 border-b-gray-dark flex-1`;
+  return <div className={styles}>{children}</div>;
+};
 
-export const VerticalTabs: React.FC<Omit<TabsProps, "styles">> = ({ children, defaultValue }) => {
-  const tabs = Children.toArray(children) as ReactElement<TabProps>[];
-  const [selectedValue, setSelectedValue] = useState<string>(
-    defaultValue || tabs[0]?.props.value || ""
-  );
-  const [isCollapsed, setIsCollapsed] = useState(false);
+interface CollapseNavButtonProps {
+  isNavCollapsed: boolean;
+  onClick: () => void;
+}
 
+const CollapseNavButton: React.FC<CollapseNavButtonProps> = ({ isNavCollapsed, onClick }) => (
+  <div className={tw`flex items-center justify-end`}>
+    <button
+      onClick={onClick}
+      className={tw`hover:bg-gray-100 cursor-pointer`}
+      aria-label={isNavCollapsed ? "Expand tabs" : "Collapse tabs"}
+    >
+      <span className={tw`flex items-center justify-center w-4 h-4 shrink-0`}>
+        {isNavCollapsed ? <MenuCollapseRightIcon /> : <MenuCollapseLeftIcon />}
+      </span>
+    </button>
+  </div>
+);
+
+interface VerticalTabsProps {
+  children: ReactElement<TabProps>[] | ReactElement<TabProps>;
+  defaultValue: string;
+}
+
+export const VerticalTabs: React.FC<VerticalTabsProps> = ({ children, defaultValue }) => {
+  const [selectedValue, setSelectedValue] = useState<string>(defaultValue);
+  const [isNavCollapsed, setIsNavCollapsed] = useState(false);
+
+  const tabs = children instanceof Array ? children : [children];
   const selectedTab = tabs.find((tab) => tab.props.value === selectedValue);
 
   const handleTabSelect = (value: string) => {
     setSelectedValue(value);
   };
 
+  const navWidth = isNavCollapsed ? "w-12" : "w-42.5";
+
   return (
-    <div className="flex">
-      <div className={`flex flex-col bg-gray-primary-layout ${!isCollapsed ? "w-[170px]" : ""}`}>
-        <div className="flex justify-end border-r border-r-gray-dark">
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hover:bg-gray-100"
-            aria-label={isCollapsed ? "Expand tabs" : "Collapse tabs"}
-          >
-            <span className="flex items-center justify-center w-4 h-4 flex-shrink-0">
-              {isCollapsed ? <MenuCollapseRightIcon /> : <MenuCollapseLeftIcon />}
-            </span>
-          </button>
-        </div>
+    <div className={tw`flex flex-row`}>
+      <div
+        className={`flex flex-col bg-gray-primary-layout border-r border-r-gray-dark ${navWidth}`}
+      >
+        <CollapseNavButton
+          isNavCollapsed={isNavCollapsed}
+          onClick={() => setIsNavCollapsed(!isNavCollapsed)}
+        />
 
         {tabs.map((tab) => {
           const { label, value, icon } = tab.props;
           const isSelected = value === selectedValue;
 
           return (
-            <button
+            <VerticalTabEntry
               key={value}
-              data-testid={`button-${value}`}
-              onClick={() => handleTabSelect(value)}
-              className={`flex items-center font-medium cursor-pointer text-left w-full h-[40px] ${
-                isSelected
-                  ? "border-l-4 border-l-focus border-t border-t-gray-dark border-b border-b-gray-dark bg-white font-semibold"
-                  : "text-gray-600 hover:text-gray-800 border-r border-r-gray-dark"
-              }`}
-              aria-selected={isSelected}
-              title={isCollapsed ? String(label) : undefined}
-            >
-              {icon && (
-                <span
-                  className={`${isSelected ? "text-focus" : ""} flex items-center w-4 h-4 ml-1`}
-                >
-                  {icon}
-                </span>
-              )}
-              {!isCollapsed && <span className="-ml-2">{label}</span>}
-            </button>
+              value={value}
+              label={label}
+              icon={icon}
+              isSelected={isSelected}
+              isNavCollapsed={isNavCollapsed}
+              handleTabSelect={handleTabSelect}
+            />
           );
         })}
-        <div className="flex-1 border-r border-r-gray-dark"></div>
       </div>
 
-      <div className="bg-white overflow-y-auto p-[16px] border-r-gray-dark border-r-1 border-t-1 border-t-gray-dark border-b-1 border-b-gray-dark flex-1">
-        {selectedTab?.props.children}
-      </div>
+      <SelectedTabPanel>{selectedTab?.props.children}</SelectedTabPanel>
     </div>
   );
 };
