@@ -1,7 +1,7 @@
 import React, { ReactNode } from "react";
 import { tw } from "tags/tw";
 
-const BASE_TAB_STYLES = tw`flex items-center gap-1 font-medium px-1 cursor-pointer text-left w-full h-[40px] text-gray-600 hover:text-gray-800`;
+const BASE_TAB_STYLES = tw`flex items-center gap-1 font-medium px-1 cursor-pointer text-left w-full h-[40px] text-text-font`;
 
 const SELECTED_TAB_STYLES = tw`border-l-4 border-l-focus border-t border-t-gray-dark border-b border-b-gray-dark bg-white font-semibold `;
 
