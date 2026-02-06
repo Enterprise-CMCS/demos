@@ -201,7 +201,6 @@ async function seedDatabase() {
   checkIfAllowed();
 
   await clearDatabase();
-
   // Setting constants for record generation
   const userCount = 9;
   const demonstrationCount = 20;
