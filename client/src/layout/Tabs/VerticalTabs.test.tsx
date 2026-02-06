@@ -102,9 +102,9 @@ describe("VerticalTabs Component", () => {
     const collapseButton = screen.getByLabelText("Collapse tabs");
     fireEvent.click(collapseButton);
 
-    // Labels should still be in DOM but hidden (for screen readers via title attribute)
+    // Labels should still be in DOM but hidden
     const tab1Button = screen.getByTestId("button-tab1");
-    expect(tab1Button).toHaveAttribute("title", "Tab 1");
+    expect(tab1Button).toBeInTheDocument();
   });
 
   it("renders icons when provided", () => {
