@@ -94,7 +94,7 @@ describe("AddDocumentDialog", () => {
     fireEvent.focus(typeInput);
     fireEvent.change(typeInput, { target: { value: "General" } });
     const option = await screen.findByText("General File");
-    fireEvent.mouseDown(option);
+    fireEvent.click(option);
 
     // assert using the actual button node
     const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
@@ -117,7 +117,7 @@ describe("AddDocumentDialog", () => {
     fireEvent.change(input, { target: { value: "General" } });
 
     const option = await screen.findByText("General File");
-    fireEvent.mouseDown(option);
+    fireEvent.click(option);
 
     expect(input).toHaveValue("General File");
   });
