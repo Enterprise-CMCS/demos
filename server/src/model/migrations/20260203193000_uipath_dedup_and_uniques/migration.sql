@@ -12,12 +12,13 @@ USING ranked
 WHERE r.id = ranked.id
   AND ranked.rn > 1;
 
--- Keep only one field row per (uipath_result_id, field_id).
+
+-- Keep only one field row per (uipath_result_id, field_id, value).
 WITH ranked AS (
   SELECT id,
     ROW_NUMBER() OVER (
-      PARTITION BY uipath_result_id, field_id
-      ORDER BY id DESC
+      PARTITION BY uipath_result_id, field_id, value
+      ORDER BY created_at DESC, id DESC
     ) AS rn
   FROM "uipath_result_field"
 )
@@ -26,7 +27,12 @@ USING ranked
 WHERE f.id = ranked.id
   AND ranked.rn > 1;
 
--- Enforce idempotency for request-level and field-level saves.
-CREATE UNIQUE INDEX "uipath_result_request_id_key" ON "uipath_result"("request_id");
-CREATE UNIQUE INDEX "uipath_result_field_result_field_key"
-  ON "uipath_result_field"("uipath_result_id", "field_id");
+
+-- Enforce idempotency for request-level saves.
+CREATE UNIQUE INDEX "uipath_result_request_id_key"
+  ON "uipath_result" ("request_id");
+
+
+-- Enforce idempotency for field-level saves (allow multiple rationales with different values).
+CREATE UNIQUE INDEX "uipath_result_field_uipath_result_id_field_id_value_key"
+  ON "uipath_result_field" ("uipath_result_id", "field_id", "value");

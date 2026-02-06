@@ -52,7 +52,7 @@ function getExtractedFields(status: ExtractionStatus): UiPathField[] {
   return [];
 }
 
-type PersistableField = {
+type PersistableFieldValue = {
   FieldId: string;
   FieldName: string;
   FieldType: string;
@@ -60,40 +60,44 @@ type PersistableField = {
   fieldValue: UiPathFieldValue;
 };
 
-function coerceValueText(v: UiPathFieldValue): string | null {
-  const text = v.UnformattedValue ?? v.Value;
-  if (typeof text !== "string") return null;
+function coerceValueText(value: UiPathFieldValue): string | null {
+  const text = value.UnformattedValue ?? value.Value;
+  if (typeof text !== "string") {
+    return null;
+  }
 
   const trimmed = text.trim();
   return trimmed.length > 0 ? trimmed : null;
 }
 
-function toPersistableField(field: UiPathField): PersistableField | null {
-  if (field.IsMissing) return null;
-  if (typeof field.FieldId !== "string" || field.FieldId.trim() === "") return null;
-  if (typeof field.FieldName !== "string" || field.FieldName.trim() === "") return null;
+function toPersistableFieldValues(field: UiPathField): PersistableFieldValue[] {
+  if (field.IsMissing) return [];
+  if (typeof field.FieldId !== "string" || field.FieldId.trim() === "") return [];
+  if (typeof field.FieldName !== "string" || field.FieldName.trim() === "") return [];
 
   const values = Array.isArray(field.Values) ? field.Values : null;
-  if (!values || values.length === 0) return null;
-
-  const fieldValue = values[0];
-  if (!fieldValue) return null;
-
-  const valueText = coerceValueText(fieldValue);
-  if (!valueText) return null;
+  if (!values || values.length === 0) return [];
 
   const fieldType =
     typeof field.FieldType === "string" && field.FieldType.trim() !== ""
       ? field.FieldType
       : "Text";
 
-  return {
-    FieldId: field.FieldId,
-    FieldName: field.FieldName,
-    FieldType: fieldType,
-    valueText,
-    fieldValue,
-  };
+  const persistableValues: PersistableFieldValue[] = [];
+  values.forEach((fieldValue) => {
+    if (!fieldValue) return;
+    const valueText = coerceValueText(fieldValue);
+    if (!valueText) return;
+    persistableValues.push({
+      FieldId: field.FieldId,
+      FieldName: field.FieldName,
+      FieldType: fieldType,
+      valueText,
+      fieldValue,
+    });
+  });
+
+  return persistableValues;
 }
 
 export interface RunDocumentUnderstandingOptions {
@@ -157,42 +161,44 @@ export async function runDocumentUnderstanding(
         const extractedFields = getExtractedFields(status);
 
         for (const field of extractedFields) {
-          const p = toPersistableField(field);
-          if (!p) continue;
+          const persistableValues = toPersistableFieldValues(field);
+          if (!persistableValues.length) continue;
 
-          const confidence =
-            typeof p.fieldValue.Confidence === "number" ? p.fieldValue.Confidence : 0;
+          for (const p of persistableValues) {
+            const confidence =
+              typeof p.fieldValue.Confidence === "number" ? p.fieldValue.Confidence : 0;
 
-          const textLength =
-            typeof p.fieldValue.Reference?.TextLength === "number"
-              ? p.fieldValue.Reference.TextLength
-              : p.valueText.length;
+            const textLength =
+              typeof p.fieldValue.Reference?.TextLength === "number"
+                ? p.fieldValue.Reference.TextLength
+                : p.valueText.length;
 
-          await client.query(
-            `insert into ${schema}.uipath_result_field
-              (id, uipath_result_id, field_id, field_name, field_type, value, confidence, value_json, text_length)
-             values
-              ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9)
-             on conflict (uipath_result_id, field_id)
-             do update set
-               field_name = excluded.field_name,
-               field_type = excluded.field_type,
-               value = excluded.value,
-               confidence = excluded.confidence,
-               value_json = excluded.value_json,
-               text_length = excluded.text_length`,
-            [
-              randomUUID(),
-              resultId,
-              p.FieldId,
-              p.FieldName,
-              p.FieldType,
-              p.valueText,
-              confidence,
-              JSON.stringify(p.fieldValue),
-              textLength,
-            ]
-          );
+            await client.query(
+              `insert into ${schema}.uipath_result_field
+                (id, uipath_result_id, field_id, field_name, field_type, value, confidence, value_json, text_length)
+               values
+                ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9)
+               on conflict (uipath_result_id, field_id, value)
+               do update set
+                 field_name = excluded.field_name,
+                 field_type = excluded.field_type,
+                 value = excluded.value,
+                 confidence = excluded.confidence,
+                 value_json = excluded.value_json,
+                 text_length = excluded.text_length`,
+              [
+                randomUUID(),
+                resultId,
+                p.FieldId,
+                p.FieldName,
+                p.FieldType,
+                p.valueText,
+                confidence,
+                JSON.stringify(p.fieldValue),
+                textLength,
+              ]
+            );
+          }
         }
 
         log.info(

@@ -9,9 +9,9 @@ model UipathResultField {
   value_json       Json    @map("value_json")
   text_length      Int     @map("text_length")
   result           UiPathResult @relation(fields: [uipath_result_id], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz()
 
   @@index([uipath_result_id])
-  @@unique([uipath_result_id, field_id])
+  @@unique([uipath_result_id, field_id, field_value])
   @@map("uipath_result_field")
 }
