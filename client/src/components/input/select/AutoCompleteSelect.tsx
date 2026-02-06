@@ -82,8 +82,8 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
         closeSelect();
       }
     };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
+    document.addEventListener("click", onClick);
+    return () => document.removeEventListener("click", onClick);
   }, []);
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -138,7 +138,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
                 <li
                   key={option.value}
                   className={`${ITEM_CLASSES} ${i === activeIndex ? ITEM_ACTIVE_CLASSES : ""}`}
-                  onMouseDown={() => handleSelectOption(option)}
+                  onClick={() => handleSelectOption(option)}
                   onMouseEnter={() => setActiveIndex(i)}
                 >
                   {option.label}
