@@ -25,8 +25,6 @@ CREATE TABLE "uipath_result_field" (
     CONSTRAINT "uipath_result_field_pkey" PRIMARY KEY ("id")
 );
 
--- CreateIndex
-CREATE INDEX "uipath_result_field_uipath_result_id_idx" ON "uipath_result_field"("uipath_result_id");
 
 -- AddForeignKey
 ALTER TABLE "uipath_result_field" ADD CONSTRAINT "uipath_result_field_uipath_result_id_fkey" FOREIGN KEY ("uipath_result_id") REFERENCES "uipath_result"("id") ON DELETE CASCADE ON UPDATE CASCADE;
