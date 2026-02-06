@@ -9,60 +9,6 @@ import { DemonstrationTab, DemonstrationTabDemonstration } from "./Demonstration
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
 
-vi.mock("layout/Tabs", () => ({
-  VerticalTabs: ({
-    children,
-    defaultValue,
-  }: {
-    children: React.ReactNode;
-    defaultValue?: string;
-  }) => {
-    interface TabProps {
-      label: string;
-      value: string;
-      icon?: React.ReactNode;
-      children: React.ReactNode;
-    }
-    const tabs = React.Children.toArray(children) as React.ReactElement<TabProps>[];
-    const [selectedValue, setSelectedValue] = React.useState(
-      defaultValue || tabs[0]?.props.value || ""
-    );
-    const selectedTab = tabs.find(
-      (tab: React.ReactElement<TabProps>) => tab.props.value === selectedValue
-    );
-
-    return (
-      <div data-testid="vertical-tabs">
-        <div className="tabs-header">
-          {tabs.map((tab: React.ReactElement<TabProps>) => (
-            <button
-              key={tab.props.value}
-              role="button"
-              aria-label={tab.props.label}
-              onClick={() => setSelectedValue(tab.props.value)}
-              data-testid={`tab-button-${tab.props.value}`}
-            >
-              {tab.props.icon}
-              {tab.props.label}
-            </button>
-          ))}
-        </div>
-        <div className="tab-content">{selectedTab?.props.children}</div>
-      </div>
-    );
-  },
-  Tab: ({
-    children,
-  }: {
-    children: React.ReactNode;
-    label: string;
-    value: string;
-    icon?: React.ReactNode;
-  }) => {
-    return <>{children}</>;
-  },
-}));
-
 const mockDemonstration: DemonstrationTabDemonstration = {
   id: "demo-123",
   status: "Pre-Submission" as const,

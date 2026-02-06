@@ -9,7 +9,11 @@ const TabEntryIcon: React.FC<{ icon: React.ReactNode; isSelected: boolean }> = (
   icon,
   isSelected,
 }) => {
-  return <span className={`${isSelected ? "text-focus" : ""}`}>{icon}</span>;
+  return (
+    <span className={`${isSelected ? "text-focus" : ""}`} aria-hidden="true">
+      {icon}
+    </span>
+  );
 };
 
 interface TabEntryProps {
