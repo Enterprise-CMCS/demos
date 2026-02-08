@@ -4,13 +4,13 @@ import { ApplicationUploadSection } from "components/application/phases/sections
 import { formatDate } from "util/formatDate";
 import { useDialog } from "components/dialog/DialogContext";
 import { ApplicationWorkflowDemonstration, ApplicationWorkflowDocument } from "../ApplicationWorkflow";
-import { differenceInCalendarDays, parseISO } from "date-fns";
+import { differenceInCalendarDays } from "date-fns";
 import { Notice, NoticeVariant } from "components/notice";
 
 interface FederalCommentPhaseProps {
   demonstrationId: string;
-  phaseStartDate: string;
-  phaseEndDate: string;
+  phaseStartDate: Date | undefined;
+  phaseEndDate: Date | undefined;
   phaseComplete: boolean;
   initialDocuments?: ApplicationWorkflowDocument[];
 }
@@ -52,8 +52,8 @@ export const getFederalCommentPhaseFromDemonstration = (
     <FederalCommentPhase
       demonstrationId={demonstration.id}
       phaseComplete={phaseComplete}
-      phaseStartDate={phaseStartDate?.dateValue ? formatDate(phaseStartDate.dateValue) : ""}
-      phaseEndDate={phaseEndDate?.dateValue ? formatDate(phaseEndDate.dateValue) : ""}
+      phaseStartDate={phaseStartDate?.dateValue}
+      phaseEndDate={phaseEndDate?.dateValue}
       initialDocuments={initialDocuments}
     />
   );
@@ -76,26 +76,25 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
 
   const getNoticeContent = () => {
     if (!phaseEndDate) return null;
-    const noticeDueDateValue = parseISO(phaseEndDate ?? "");
-    const daysLeft = differenceInCalendarDays(noticeDueDateValue, new Date());
+    const daysLeft = differenceInCalendarDays(phaseEndDate, new Date());
     if (daysLeft > 1) {
       return {
         title: `${daysLeft} days left in Federal Comment Period`,
-        description: `The Federal Comment Period ends on ${formatDate(noticeDueDateValue)}`,
+        description: `The Federal Comment Period ends on ${formatDate(phaseEndDate)}`,
         variant: "warning" as NoticeVariant,
       };
     }
     if (daysLeft === 1) {
       return {
         title: "1 day left in Federal Comment Period",
-        description: `The Federal Comment Period ends on ${formatDate(noticeDueDateValue)}`,
+        description: `The Federal Comment Period ends on ${formatDate(phaseEndDate)}`,
         variant: "error" as NoticeVariant,
       };
     }
     else {
       return {
         title:  `${Math.abs(daysLeft)} days past due`,
-        description: `The Federal Comment Period ended on ${formatDate(noticeDueDateValue)}`,
+        description: `The Federal Comment Period ended on ${formatDate(phaseEndDate)}`,
         variant: "error" as NoticeVariant,
       };
     }
@@ -115,11 +114,11 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
       <div className="flex gap-8 mt-4 text-sm text-text-placeholder">
         <div className="flex flex-col">
           <span className="font-bold">Federal Comment Period Start Date</span>
-          <span>{phaseStartDate}</span>
+          <span>{phaseStartDate ? formatDate(phaseStartDate) : "--/--/----"}</span>
         </div>
         <div className="flex flex-col">
           <span className="font-bold">Federal Comment Period End Date</span>
-          <span>{phaseEndDate}</span>
+          <span>{phaseEndDate ? formatDate(phaseEndDate) : "--/--/----"}</span>
         </div>
       </div>
     </div>
