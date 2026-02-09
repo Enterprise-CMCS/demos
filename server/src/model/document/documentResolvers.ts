@@ -101,12 +101,10 @@ export async function uploadDocument(
   }
 }
 
-export async function resolvePresignedDownloadUrl(parent: Pick<Document, "id">) {
+export async function resolvePresignedDownloadUrl(parent: Pick<PrismaDocument, "s3Path">) {
   const s3Adapter = getS3Adapter();
   try {
-    return prisma().$transaction(async (tx) => {
-      return await s3Adapter.getPresignedDownloadUrl(parent.id);
-    });
+    return await s3Adapter.getPresignedDownloadUrl(parent.s3Path);
   } catch (error) {
     handlePrismaError(error);
   }
