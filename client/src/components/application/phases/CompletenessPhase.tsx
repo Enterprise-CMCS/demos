@@ -140,7 +140,7 @@ export const CompletenessPhase = ({
     );
     if (!applicationCompletenessLetter) return "";
     const createdAt = applicationCompletenessLetter.createdAt;
-    return formatDateForServer(createdAt);
+    return formatDate(createdAt);
   };
   const [stateDeemedComplete, setStateDeemedComplete] = useState<string>(
     getStateDeemedCompleteFromDocuments()
@@ -148,12 +148,12 @@ export const CompletenessPhase = ({
   const [federalStartDate, setFederalStartDate] = useState<string>(() => {
     if(fedCommentStartDate) return fedCommentStartDate;
     const {fedStartDate} = getFederalCommentPeriodDates(stateDeemedComplete);
-    return fedStartDate ? formatDateForServer(fedStartDate) : "";
+    return fedStartDate ? formatDate(fedStartDate) : "";
   });
   const [federalEndDate, setFederalEndDate] = useState<string>(() => {
     if(fedCommentEndDate) return fedCommentEndDate;
     const {fedEndDate} = getFederalCommentPeriodDates(stateDeemedComplete);
-    return fedEndDate ? formatDateForServer(fedEndDate) : "";
+    return fedEndDate ? formatDate(fedEndDate) : "";
   });
   const [isNoticeDismissed, setNoticeDismissed] = useState(
     !(completenessReviewDate && !completenessComplete)
@@ -222,8 +222,8 @@ export const CompletenessPhase = ({
   const setDates = (stateDeemedCompleteString: string) => {
     setStateDeemedComplete(stateDeemedCompleteString);
     const { fedStartDate, fedEndDate } = getFederalCommentPeriodDates(stateDeemedCompleteString);
-    setFederalStartDate(fedStartDate ? formatDateForServer(fedStartDate) : "");
-    setFederalEndDate(fedEndDate ? formatDateForServer(fedEndDate) : "");
+    setFederalStartDate(fedStartDate ? formatDate(fedStartDate) : "");
+    setFederalEndDate(fedEndDate ? formatDate(fedEndDate) : "");
   };
 
   const saveDates = async () => {
