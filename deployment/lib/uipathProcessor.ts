@@ -17,6 +17,7 @@ interface UiPathProcessorProps extends DeploymentConfigProperties {
   removalPolicy?: RemovalPolicy;
   kmsKey: kms.IKey;
   documentsBucket: s3.IBucket;
+  readBuckets?: s3.IBucket[];
   deadLetterQueue?: sqs.IQueue;
   vpc?: ec2.IVpc;
   securityGroup?: ec2.ISecurityGroup | ec2.ISecurityGroup[];
@@ -99,6 +100,9 @@ export class UiPathProcessor extends Construct {
     dbSecret.grantRead(uipathLambda.lambda);
     // ✅ allow access to the actual bucket CDK created
     props.documentsBucket.grantReadWrite(uipathLambda.lambda);
+    for (const bucket of props.readBuckets ?? []) {
+      bucket.grantRead(uipathLambda.lambda);
+    }
 
     // ✅ KMS permissions (use the helper)
     props.kmsKey.grantEncryptDecrypt(uipathLambda.lambda);

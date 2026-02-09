@@ -354,12 +354,13 @@ export class FileUploadStack extends Stack {
     deleteInfectedFileQueue.grantConsumeMessages(deleteInfectedFileLambda.lambda);
 
     // UiPath processor (queue + DLQ + lambda) within FileUpload stack
-    new UiPathProcessor(this, "UiPathProcessor", {
+    const uiPathProcessor = new UiPathProcessor(this, "UiPathProcessor", {
       ...props,
       removalPolicy: props.isDev || props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
       kmsKey,
       deadLetterQueue,
       documentsBucket: uiPathDocumentsBucket,
+      readBuckets: [cleanBucket],
       vpc: props.vpc,
       securityGroup: uiPathLambdaSecurityGroup.securityGroup,
     });
@@ -387,6 +388,16 @@ export class FileUploadStack extends Stack {
     new CfnOutput(this, "uipathDocumentsBucketName", {
       exportName: `${props.stage}UiPathDocumentsBucketName`,
       value: uiPathDocumentsBucket.bucketName,
+    });
+
+    new CfnOutput(this, "uipathQueueUrl", {
+      exportName: `${props.stage}UiPathQueueUrl`,
+      value: uiPathProcessor.queue.queueUrl,
+    });
+
+    new CfnOutput(this, "uipathQueueArn", {
+      exportName: `${props.stage}UiPathQueueArn`,
+      value: uiPathProcessor.queue.queueArn,
     });
   }
 }

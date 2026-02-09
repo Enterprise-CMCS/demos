@@ -154,6 +154,10 @@ export class ApiStack extends Stack {
     const deletedBucketName = Fn.importValue(`${props.stage}DeletedBucketName`);
     const deletedBucket = aws_s3.Bucket.fromBucketName(this, "deletedBucket", deletedBucketName);
 
+    const uipathQueueUrl = Fn.importValue(`${props.stage}UiPathQueueUrl`);
+    const uipathQueueArn = Fn.importValue(`${props.stage}UiPathQueueArn`);
+    const uipathQueue = Queue.fromQueueArn(this, "uipathQueue", uipathQueueArn);
+
     const graphqlLambda = lambda.create(
       {
         ...commonProps,
@@ -174,6 +178,7 @@ export class ApiStack extends Stack {
           UPLOAD_BUCKET: uploadBucket.bucketName,
           CLEAN_BUCKET: cleanBucket.bucketName,
           DELETED_BUCKET: deletedBucket.bucketName,
+          UIPATH_QUEUE_URL: uipathQueueUrl,
         },
       },
       "graphql"
@@ -183,6 +188,7 @@ export class ApiStack extends Stack {
     cleanBucket.grantDelete(graphqlLambda.lambda.role);
     cleanBucket.grantRead(graphqlLambda.lambda.role);
     deletedBucket.grantPut(graphqlLambda.lambda.role);
+    uipathQueue.grantSendMessages(graphqlLambda.lambda.role);
     const emailerTimeout = Duration.minutes(1);
 
     const kmsKey = new aws_kms.Key(this, "emailerQueueKey", {

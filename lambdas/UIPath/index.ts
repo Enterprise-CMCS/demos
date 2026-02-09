@@ -7,9 +7,11 @@ import { SQSEvent } from "aws-lambda";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { log, reqIdChild, als, store } from "./log";
 import { runDocumentUnderstanding } from "./runDocumentUnderstanding";
+import { getUiPathSecret } from "./uipathSecrets";
 
 interface UipathMessage {
-  s3FileName: string;
+  s3FileName?: string;
+  s3Key?: string;
   s3Bucket?: string;
   projectId?: string;
 }
@@ -21,6 +23,35 @@ const s3 = new S3Client({
 });
 
 const UIPATH_DOCUMENT_BUCKET = process.env.UIPATH_DOCUMENT_BUCKET ?? "uipath-documents";
+
+type ParsedInput = {
+  s3Bucket: string;
+  s3Key: string;
+  projectId?: string;
+};
+
+function decodeS3Key(key: string): string {
+  return decodeURIComponent(key.replace(/\+/g, " "));
+}
+
+function parseUiPathMessage(body: string): ParsedInput {
+  const parsed = JSON.parse(body) as Record<string, unknown>;
+  const records = parsed?.Records as Array<any> | undefined;
+
+  if (Array.isArray(records) && records[0]?.s3?.bucket?.name && records[0]?.s3?.object?.key) {
+    const record = records[0];
+    return {
+      s3Bucket: record.s3.bucket.name,
+      s3Key: decodeS3Key(record.s3.object.key),
+    };
+  }
+
+  const s3Key = (parsed?.s3Key as string | undefined) ?? (parsed?.s3FileName as string | undefined);
+  const s3Bucket = (parsed?.s3Bucket as string | undefined) ?? UIPATH_DOCUMENT_BUCKET;
+  const projectId = parsed?.projectId as string | undefined;
+
+  return { s3Bucket, s3Key: s3Key ?? "", projectId };
+}
 
 async function downloadFromS3(bucket: string, key: string): Promise<string> {
   const destination = path.join(os.tmpdir(), path.basename(key) || "uipath-document");
@@ -39,22 +70,26 @@ export const handler = async (event: SQSEvent) =>
     const firstRecord = event.Records[0];
     reqIdChild(firstRecord?.messageId ?? "n/a");
 
-    const parsedBody = firstRecord?.body ? (JSON.parse(firstRecord.body) as Partial<UipathMessage>) : null;
-    const s3FileName = parsedBody?.s3FileName;
+    const parsedBody = firstRecord?.body ? parseUiPathMessage(firstRecord.body) : null;
     const s3Bucket = parsedBody?.s3Bucket ?? UIPATH_DOCUMENT_BUCKET;
-    const projectId = parsedBody?.projectId;
+    const s3Key = parsedBody?.s3Key;
+    let projectId = parsedBody?.projectId;
 
-    console.log("projectId:", projectId);
-
-    if (!s3FileName) {
-      throw new Error("Missing s3FileName in SQS message body.");
+    if (!s3Key) {
+      throw new Error("Missing s3Key/s3FileName in SQS message body.");
     }
+
     if (!projectId) {
-      throw new Error("Missing projectId (aka model guid) in SQS message body.");
+      const secret = await getUiPathSecret();
+      projectId = secret.projectId;
     }
 
-    const inputFile = await downloadFromS3(s3Bucket, s3FileName);
-    log.info({ s3Bucket, s3FileName, localPath: inputFile }, "Downloaded document from S3");
+    if (!projectId) {
+      throw new Error("Missing projectId (aka model guid) in message body or Secrets Manager.");
+    }
+
+    const inputFile = await downloadFromS3(s3Bucket, s3Key);
+    log.info({ s3Bucket, s3Key, localPath: inputFile }, "Downloaded document from S3");
 
     const status = await runDocumentUnderstanding(inputFile, {
       pollIntervalMs: 5_000,

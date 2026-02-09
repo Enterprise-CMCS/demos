@@ -18,6 +18,7 @@ import { getApplication, PrismaApplication } from "../application";
 import { findUserById } from "../user";
 import { validateAndUpdateDates } from "../applicationDate";
 import { startPhaseByDocument } from "../applicationPhase";
+import { enqueueUiPath, parseS3Path } from "../../services/uipathQueue";
 import {
   checkDocumentExists,
   getDocumentById,
@@ -156,6 +157,38 @@ export async function deleteDocuments(_: unknown, { ids }: { ids: string[] }): P
   }
 }
 
+export async function triggerUiPath(
+  _: unknown,
+  { documentId, projectId }: { documentId: string; projectId?: string },
+  context: GraphQLContext
+): Promise<string> {
+  try {
+    if (context.user === null) {
+      throw new Error(
+        "The GraphQL context does not have user information. Are you properly authenticated?"
+      );
+    }
+
+    return await prisma().$transaction(async (tx) => {
+      const document = await getDocumentById(tx, documentId);
+      const cleanBucket = process.env.CLEAN_BUCKET;
+      const { bucket, key } = parseS3Path(document.s3Path, cleanBucket);
+
+      if (cleanBucket && bucket !== cleanBucket) {
+        throw new Error(`Document is not stored in the clean bucket: ${bucket}`);
+      }
+
+      return await enqueueUiPath({
+        s3Bucket: bucket,
+        s3FileName: key,
+        projectId,
+      });
+    });
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
+
 export async function resolveOwner(parent: PrismaDocument): Promise<PrismaUser> {
   try {
     return prisma().$transaction(async (tx) => {
@@ -190,6 +223,7 @@ export const documentResolvers = {
     updateDocument: updateDocument,
     deleteDocument: deleteDocument,
     deleteDocuments: deleteDocuments,
+    triggerUiPath: triggerUiPath,
   },
 
   Document: {
