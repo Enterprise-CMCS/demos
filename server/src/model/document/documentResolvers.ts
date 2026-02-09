@@ -101,12 +101,11 @@ export async function uploadDocument(
   }
 }
 
-export async function downloadDocument(_: unknown, { id }: { id: string }): Promise<string> {
+export async function resolvePresignedDownloadUrl(parent: Pick<Document, "id">) {
   const s3Adapter = getS3Adapter();
   try {
     return prisma().$transaction(async (tx) => {
-      const document = await getDocumentById(tx, id);
-      return await s3Adapter.getPresignedDownloadUrl(document.id);
+      return await s3Adapter.getPresignedDownloadUrl(parent.id);
     });
   } catch (error) {
     handlePrismaError(error);
@@ -186,7 +185,6 @@ export const documentResolvers = {
 
   Mutation: {
     uploadDocument: uploadDocument,
-    downloadDocument: downloadDocument,
     updateDocument: updateDocument,
     deleteDocument: deleteDocument,
     deleteDocuments: deleteDocuments,
@@ -195,6 +193,7 @@ export const documentResolvers = {
   Document: {
     owner: resolveOwner,
     documentType: resolveDocumentType,
+    presignedDownloadUrl: resolvePresignedDownloadUrl,
     application: resolveApplication,
     phaseName: resolvePhaseName,
   },
