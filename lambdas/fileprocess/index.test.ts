@@ -608,40 +608,61 @@ describe("file-process", () => {
   });
 
   describe("updateContentType", () => {
-    it("should fetch file bytes, detect type, and update content type", async () => {
-      const mockSend = vi.fn();
-      const mockBuffer = Buffer.from([0xff, 0xd8, 0xff]); // JPEG magic bytes
+    it.each([
+      [[0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34], "application/pdf", "PDF"], 
+      [[0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10], "image/jpeg", "JPEG"],
+      [
+        [
+          0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44,
+          0x52,
+        ],
+        "image/png",
+        "PNG",
+      ],
+      [[0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x00, 0x01], "image/gif", "GIF"],
+      [[0x50, 0x4b, 0x03, 0x04, 0x14, 0x00], "application/zip", "ZIP"],
+    ])(
+      "should detect %s magic bytes as %s (%s)",
+      async (magicBytes, expectedMimeType, fileTypeName) => {
+        const mockSend = vi.fn();
+        const mockBuffer = Buffer.from(magicBytes);
 
-      mockSend.mockResolvedValueOnce({
-        Body: {
-          transformToByteArray: vi.fn().mockResolvedValue(mockBuffer),
-        },
-      });
+        mockSend.mockResolvedValueOnce({
+          Body: {
+            transformToByteArray: vi.fn().mockResolvedValue(mockBuffer),
+          },
+        });
 
-      mockSend.mockResolvedValueOnce({});
+        mockSend.mockResolvedValueOnce({});
 
-      vi.spyOn(S3Client.prototype, "send").mockImplementation(mockSend);
+        vi.spyOn(S3Client.prototype, "send").mockImplementation(mockSend);
 
-      await updateContentType("test-bucket", "test-key");
+        await updateContentType("test-bucket", "test-key");
 
-      expect(mockSend).toHaveBeenCalledTimes(2);
-      expect(mockSend).toHaveBeenNthCalledWith(1, expect.any(GetObjectCommand));
-      expect(mockSend).toHaveBeenNthCalledWith(2, expect.any(CopyObjectCommand));
+        expect(mockSend).toHaveBeenCalledTimes(2);
+        expect(mockSend).toHaveBeenNthCalledWith(1, expect.any(GetObjectCommand));
+        expect(mockSend).toHaveBeenNthCalledWith(2, expect.any(CopyObjectCommand));
 
-      const getObjectCall = mockSend.mock.calls[0][0];
-      expect(getObjectCall.input).toEqual({
-        Bucket: "test-bucket",
-        Key: "test-key",
-        Range: "bytes=0-4100",
-      });
+        const getObjectCall = mockSend.mock.calls[0][0];
+        expect(getObjectCall.input).toEqual({
+          Bucket: "test-bucket",
+          Key: "test-key",
+          Range: "bytes=0-4100",
+        });
 
-      const copyObjectCall = mockSend.mock.calls[1][0];
-      expect(copyObjectCall.input.Bucket).toBe("test-bucket");
-      expect(copyObjectCall.input.Key).toBe("test-key");
-      expect(copyObjectCall.input.CopySource).toBe("test-bucket/test-key");
-      expect(copyObjectCall.input.ContentType).toBe("image/jpeg");
-      expect(copyObjectCall.input.MetadataDirective).toBe("REPLACE");
-    });
+        const copyObjectCall = mockSend.mock.calls[1][0];
+        expect(copyObjectCall.input.Bucket).toBe("test-bucket");
+        expect(copyObjectCall.input.Key).toBe("test-key");
+        expect(copyObjectCall.input.CopySource).toBe("test-bucket/test-key");
+        expect(copyObjectCall.input.ContentType).toBe(expectedMimeType);
+        expect(copyObjectCall.input.MetadataDirective).toBe("REPLACE");
+
+        expect(logInfoSpy).toHaveBeenCalledWith(
+          { key: "test-key", contentType: expectedMimeType },
+          "Updating content type"
+        );
+      }
+    );
 
     it("should handle case when file body is not returned", async () => {
       const mockSend = vi.fn().mockResolvedValue({
