@@ -210,10 +210,7 @@ export async function updateContentType(bucket: string, key: string) {
       return;
     }
 
-    // Convert stream to buffer
     const buffer = await getResponse.Body.transformToByteArray();
-
-    // Detect file type from content
     const fileTypeResult = await fileTypeFromBuffer(buffer);
 
     if (!fileTypeResult) {
@@ -224,8 +221,6 @@ export async function updateContentType(bucket: string, key: string) {
     const detectedContentType = fileTypeResult.mime;
 
     log.info({ key, contentType: detectedContentType }, "Updating content type");
-
-    // Copy the object to itself with updated metadata
     await s3.send(
       new CopyObjectCommand({
         Bucket: bucket,
@@ -239,7 +234,6 @@ export async function updateContentType(bucket: string, key: string) {
     log.info({ key, contentType: detectedContentType }, "Successfully updated content type");
   } catch (error) {
     log.error({ error: error.message, bucket, key }, "Failed to update content type");
-    // Don't throw - this is a non-critical operation
   }
 }
 

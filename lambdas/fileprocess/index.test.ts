@@ -185,7 +185,6 @@ describe("file-process", () => {
   describe("processGuardDutyResult", () => {
     test("should successfully process the file", async () => {
       const mockSend = vi.fn((command) => {
-        // Mock GetObjectCommand to return a body with transformToByteArray
         if (command instanceof GetObjectCommand) {
           return Promise.resolve({
             Body: {
@@ -339,7 +338,6 @@ describe("file-process", () => {
   describe("handler", () => {
     test("should properly handle clean file", async () => {
       const mockSend = vi.fn((command) => {
-        // Mock GetObjectCommand to return a body with transformToByteArray
         if (command instanceof GetObjectCommand) {
           return Promise.resolve({
             Body: {
@@ -614,14 +612,12 @@ describe("file-process", () => {
       const mockSend = vi.fn();
       const mockBuffer = Buffer.from([0xff, 0xd8, 0xff]); // JPEG magic bytes
 
-      // Mock GetObjectCommand response
       mockSend.mockResolvedValueOnce({
         Body: {
           transformToByteArray: vi.fn().mockResolvedValue(mockBuffer),
         },
       });
 
-      // Mock CopyObjectCommand response
       mockSend.mockResolvedValueOnce({});
 
       vi.spyOn(S3Client.prototype, "send").mockImplementation(mockSend);
@@ -730,11 +726,9 @@ describe("file-process", () => {
 
       await processGuardDutyResult(mockClient, mockEventBase);
 
-      // Verify moveFile was called (2 commands)
       expect(mockSend).toHaveBeenNthCalledWith(1, expect.any(CopyObjectCommand));
       expect(mockSend).toHaveBeenNthCalledWith(2, expect.any(DeleteObjectCommand));
 
-      // Verify updateContentType was called (2 commands)
       expect(mockSend).toHaveBeenNthCalledWith(3, expect.any(GetObjectCommand));
       expect(mockSend).toHaveBeenNthCalledWith(4, expect.any(CopyObjectCommand));
 
@@ -744,7 +738,6 @@ describe("file-process", () => {
     it("should not call updateContentType when document is infected", async () => {
       const mockSend = vi.fn();
 
-      // Mock moveFile operations only
       mockSend.mockResolvedValueOnce({}); // CopyObjectCommand
       mockSend.mockResolvedValueOnce({}); // DeleteObjectCommand
 
@@ -756,7 +749,6 @@ describe("file-process", () => {
 
       await processGuardDutyResult(mockClient, mockEventInfected);
 
-      // Should only have moveFile calls (2 commands), no updateContentType
       expect(mockSend).toHaveBeenCalledTimes(2);
       expect(mockSend).toHaveBeenNthCalledWith(1, expect.any(CopyObjectCommand));
       expect(mockSend).toHaveBeenNthCalledWith(2, expect.any(DeleteObjectCommand));
