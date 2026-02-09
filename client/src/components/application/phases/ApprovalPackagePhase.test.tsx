@@ -225,6 +225,7 @@ describe("getApprovalPackagePhase", () => {
         },
       ],
       demonstrationTypes: [],
+      tags: [],
     };
 
     render(getApprovalPackagePhase(demonstration));
@@ -266,6 +267,7 @@ describe("getApprovalPackagePhase", () => {
         },
       ],
       demonstrationTypes: [],
+      tags: [],
     };
 
     render(getApprovalPackagePhase(demonstration));
@@ -327,6 +329,7 @@ describe("getApprovalPackagePhase", () => {
         },
       ],
       demonstrationTypes: [],
+      tags: [],
     };
 
     render(getApprovalPackagePhase(demo));
@@ -384,6 +387,7 @@ describe("getApprovalPackagePhase", () => {
         },
       ],
       demonstrationTypes: [],
+      tags: [],
     };
 
     render(getApprovalPackagePhase(demo));

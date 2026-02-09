@@ -11,6 +11,7 @@ describe("DemonstrationHealthTypeTags", () => {
     render(
       <DialogProvider>
         <DemonstrationHealthTypeTags
+          demonstrationId="demo-123"
           title="STEP 3 - APPLY TAGS"
           description="You must tag this application with one or more demonstration types involved."
           selectedTags={["Behavioral Health", "Dental"]}
@@ -39,6 +40,7 @@ describe("DemonstrationHealthTypeTags", () => {
     render(
       <DialogProvider>
         <DemonstrationHealthTypeTags
+          demonstrationId="demo-123"
           title="STEP 3 - APPLY TAGS"
           description="You must tag this application with one or more demonstration types involved."
           selectedTags={["Behavioral Health", "Dental"]}
