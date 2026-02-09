@@ -10,7 +10,6 @@ import {
   S3Client,
   CopyObjectCommand,
   DeleteObjectCommand,
-  HeadObjectCommand,
   GetObjectCommand,
 } from "@aws-sdk/client-s3";
 import { fileTypeFromBuffer } from "file-type";
