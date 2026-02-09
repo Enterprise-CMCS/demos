@@ -148,4 +148,88 @@ describe("VerticalTabs Component", () => {
     expect(screen.getByText("Content 2")).toBeInTheDocument();
     expect(screen.getByTestId("button-tab2")).toHaveAttribute("aria-selected", "true");
   });
+
+  describe("shouldRender prop", () => {
+    it("does not render tab when shouldRender is false", () => {
+      const tabsWithHidden = (
+        <VerticalTabs defaultValue="tab1">
+          <Tab label="Tab 1" value="tab1">
+            Content 1
+          </Tab>
+          <Tab label="Tab 2" value="tab2" shouldRender={false}>
+            Content 2
+          </Tab>
+        </VerticalTabs>
+      );
+
+      render(tabsWithHidden);
+
+      expect(screen.getByText("Tab 1")).toBeInTheDocument();
+      expect(screen.queryByText("Tab 2")).not.toBeInTheDocument();
+    });
+
+    it("renders tab when shouldRender is true", () => {
+      const tabsWithVisible = (
+        <VerticalTabs defaultValue="tab1">
+          <Tab label="Tab 1" value="tab1" shouldRender={true}>
+            Content 1
+          </Tab>
+        </VerticalTabs>
+      );
+
+      render(tabsWithVisible);
+
+      expect(screen.getByText("Tab 1")).toBeInTheDocument();
+    });
+
+    it("renders tab when shouldRender is undefined (defaults to true)", () => {
+      const tabsWithoutProp = (
+        <VerticalTabs defaultValue="tab1">
+          <Tab label="Tab 1" value="tab1">
+            Content 1
+          </Tab>
+        </VerticalTabs>
+      );
+
+      render(tabsWithoutProp);
+
+      expect(screen.getByText("Tab 1")).toBeInTheDocument();
+      expect(screen.getByText("Content 1")).toBeInTheDocument();
+    });
+
+    it("does not render hidden tab content", () => {
+      const tabsWithHidden = (
+        <VerticalTabs defaultValue="tab1">
+          <Tab label="Tab 1" value="tab1">
+            Content 1
+          </Tab>
+          <Tab label="Tab 2" value="tab2" shouldRender={false}>
+            Content 2
+          </Tab>
+        </VerticalTabs>
+      );
+
+      render(tabsWithHidden);
+
+      expect(screen.queryByText("Content 2")).not.toBeInTheDocument();
+    });
+
+    it("selects first visible tab when defaultValue tab is hidden", () => {
+      const tabsWithDefaultHidden = (
+        <VerticalTabs defaultValue="tab1">
+          <Tab label="Tab 1" value="tab1" shouldRender={false}>
+            Content 1
+          </Tab>
+          <Tab label="Tab 2" value="tab2">
+            Content 2
+          </Tab>
+        </VerticalTabs>
+      );
+
+      render(tabsWithDefaultHidden);
+
+      expect(screen.queryByText("Tab 1")).not.toBeInTheDocument();
+      expect(screen.getByText("Content 2")).toBeInTheDocument();
+    });
+  });
 });

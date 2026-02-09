@@ -137,4 +137,56 @@ describe("DemonstrationTab", () => {
       screen.getByRole("button", { name: "button-apply-demonstration-types" })
     ).toBeInTheDocument();
   });
+
+  describe("Deliverables tab conditional rendering", () => {
+    it('does not render Deliverables tab when status is not "Approved"', () => {
+      const demonstrationNotApproved: DemonstrationTabDemonstration = {
+        ...mockDemonstration,
+        status: "Pre-Submission",
+      };
+
+      renderWithProvider(<DemonstrationTab demonstration={demonstrationNotApproved} />);
+
+      expect(screen.queryByRole("button", { name: "Deliverables" })).not.toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Applications" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Details" })).toBeInTheDocument();
+    });
+
+    it('renders Deliverables tab when status is "Approved"', () => {
+      const demonstrationApproved: DemonstrationTabDemonstration = {
+        ...mockDemonstration,
+        status: "Approved",
+      };
+
+      renderWithProvider(<DemonstrationTab demonstration={demonstrationApproved} />);
+
+      expect(screen.getByRole("button", { name: "Deliverables" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Applications" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Details" })).toBeInTheDocument();
+    });
+
+    it('defaults to Applications tab when status is not "Approved"', () => {
+      const demonstrationNotApproved: DemonstrationTabDemonstration = {
+        ...mockDemonstration,
+        status: "Pre-Submission",
+      };
+
+      renderWithProvider(<DemonstrationTab demonstration={demonstrationNotApproved} />);
+
+      // Application tab should be selected by default
+      expect(screen.getByTestId("button-application")).toHaveAttribute("aria-selected", "true");
+    });
+
+    it('defaults to Deliverables tab when status is "Approved"', () => {
+      const demonstrationApproved: DemonstrationTabDemonstration = {
+        ...mockDemonstration,
+        status: "Approved",
+      };
+
+      renderWithProvider(<DemonstrationTab demonstration={demonstrationApproved} />);
+
+      // Deliverables tab should be selected by default
+      expect(screen.getByTestId("button-deliverables")).toHaveAttribute("aria-selected", "true");
+    });
+  });
 });

@@ -35,11 +35,17 @@ interface VerticalTabsProps {
 }
 
 export const VerticalTabs: React.FC<VerticalTabsProps> = ({ children, defaultValue }) => {
-  const [selectedValue, setSelectedValue] = useState<string>(defaultValue);
+  const allTabs = children instanceof Array ? children : [children];
+  const visibleTabs = allTabs.filter((tab) => tab.props.shouldRender !== false);
+
+  const defaultTab = visibleTabs.find((tab) => tab.props.value === defaultValue)
+    ? defaultValue
+    : visibleTabs[0]?.props.value || "";
+
+  const [selectedValue, setSelectedValue] = useState<string>(defaultTab);
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
 
-  const tabs = children instanceof Array ? children : [children];
-  const selectedTab = tabs.find((tab) => tab.props.value === selectedValue);
+  const selectedTab = visibleTabs.find((tab) => tab.props.value === selectedValue);
 
   const handleTabSelect = (value: string) => {
     setSelectedValue(value);
@@ -57,7 +63,7 @@ export const VerticalTabs: React.FC<VerticalTabsProps> = ({ children, defaultVal
           onClick={() => setIsNavCollapsed(!isNavCollapsed)}
         />
 
-        {tabs.map((tab) => {
+        {visibleTabs.map((tab) => {
           const { label, value, icon } = tab.props;
           const isSelected = value === selectedValue;
 
