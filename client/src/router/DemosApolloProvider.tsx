@@ -73,15 +73,6 @@ export const DemosApolloProvider: React.FC<{ children: React.ReactNode }> = ({ c
                 },
               },
             },
-            Document: {
-              fields: {
-                presignedDownloadUrl: {
-                  read() {
-                    return undefined;
-                  },
-                },
-              },
-            },
           },
         }),
       }),
