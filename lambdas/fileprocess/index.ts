@@ -6,7 +6,14 @@ import {
 } from "aws-lambda";
 
 import { Client } from "pg";
-import { S3Client, CopyObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  CopyObjectCommand,
+  DeleteObjectCommand,
+  HeadObjectCommand,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
+import { fileTypeFromBuffer } from "file-type";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { als, log, store, reqIdChild } from "./log";
 
@@ -80,7 +87,9 @@ export async function getApplicationId(client: typeof Client, fileKey: string) {
 
     return result.rows[0].application_id;
   } catch (error) {
-    throw new Error(`Failed to get application ID for key ${fileKey}: ${(error as Error).message}.`);
+    throw new Error(
+      `Failed to get application ID for key ${fileKey}: ${(error as Error).message}.`
+    );
   }
 }
 
@@ -172,17 +181,66 @@ export async function processGuardDutyResult(
   const scanResultStatus = scanResultDetails.scanResultStatus;
   const isClean = scanResultStatus === GUARDDUTY_CLEAN_STATUS;
 
-  const destinationBucket = isClean ? cleanBucket : infectedBucket;
   const destinationKey = `${applicationId}/${documentId}`;
 
-  await moveFile(documentId, destinationBucket, destinationKey);
   if (isClean) {
+    await moveFile(documentId, cleanBucket, destinationKey);
+    await updateContentType(cleanBucket, destinationKey);
     await processCleanDatabaseRecord(client, documentId, applicationId);
   } else {
+    await moveFile(documentId, infectedBucket, destinationKey);
     await processInfectedDatabaseRecord(client, documentId, applicationId, scanResultDetails);
   }
 
   return isClean;
+}
+
+export async function updateContentType(bucket: string, key: string) {
+  try {
+    // Download the first 4100 bytes of the file to detect type
+    const getCommand = new GetObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Range: "bytes=0-4100",
+    });
+    const getResponse = await s3.send(getCommand);
+
+    if (!getResponse.Body) {
+      log.warn({ key }, "No file body returned");
+      return;
+    }
+
+    // Convert stream to buffer
+    const buffer = await getResponse.Body.transformToByteArray();
+
+    // Detect file type from content
+    const fileTypeResult = await fileTypeFromBuffer(buffer);
+
+    if (!fileTypeResult) {
+      log.warn({ key }, "Could not determine content type from file content");
+      return;
+    }
+
+    const detectedContentType = fileTypeResult.mime;
+
+    log.info({ key, contentType: detectedContentType }, "Updating content type");
+
+    // Copy the object to itself with updated metadata
+    await s3.send(
+      new CopyObjectCommand({
+        Bucket: bucket,
+        CopySource: `${bucket}/${key}`,
+        Key: key,
+        ContentType: detectedContentType,
+        MetadataDirective: "REPLACE",
+      })
+    );
+
+    log.info({ key, contentType: detectedContentType }, "Successfully updated content type");
+  } catch (error) {
+    log.error({ error: error.message, bucket, key }, "Failed to update content type");
+    // Don't throw - this is a non-critical operation
+  }
 }
 
 export const handler = async (event: SQSEvent, context: Context) =>
