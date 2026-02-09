@@ -140,7 +140,7 @@ export const CompletenessPhase = ({
     );
     if (!applicationCompletenessLetter) return "";
     const createdAt = applicationCompletenessLetter.createdAt;
-    return formatDate(createdAt);
+    return formatDateForServer(createdAt);
   };
   const [stateDeemedComplete, setStateDeemedComplete] = useState<string>(
     getStateDeemedCompleteFromDocuments()
@@ -222,8 +222,8 @@ export const CompletenessPhase = ({
   const setDates = (stateDeemedCompleteString: string) => {
     setStateDeemedComplete(stateDeemedCompleteString);
     const { fedStartDate, fedEndDate } = getFederalCommentPeriodDates(stateDeemedCompleteString);
-    setFederalStartDate(fedStartDate ? formatDate(fedStartDate) : "");
-    setFederalEndDate(fedEndDate ? formatDate(fedEndDate) : "");
+    setFederalStartDate(fedStartDate ? formatDateForServer(fedStartDate) : "");
+    setFederalEndDate(fedEndDate ? formatDateForServer(fedEndDate) : "");
   };
 
   const saveDates = async () => {
