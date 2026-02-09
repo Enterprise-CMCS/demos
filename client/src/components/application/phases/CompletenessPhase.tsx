@@ -133,13 +133,30 @@ export const CompletenessPhase = ({
   const { showCompletenessDocumentUploadDialog, showDeclareIncompleteDialog } = useDialog();
   const { showSuccess, showError } = useToast();
 
-  const [federalStartDate, setFederalStartDate] = useState<string>(fedCommentStartDate ?? "");
-  const [federalEndDate, setFederalEndDate] = useState<string>(fedCommentEndDate ?? "");
+  const getStateDeemedCompleteFromDocuments = (): string => {
+    if (stateDeemedCompleteDate) return stateDeemedCompleteDate;
+    const applicationCompletenessLetter = initialDocuments.find(
+      (doc) => doc.documentType === "Application Completeness Letter"
+    );
+    if (!applicationCompletenessLetter) return "";
+    const createdAt = applicationCompletenessLetter.createdAt;
+    return formatDateForServer(createdAt);
+  };
+  const [stateDeemedComplete, setStateDeemedComplete] = useState<string>(
+    getStateDeemedCompleteFromDocuments()
+  );
+  const [federalStartDate, setFederalStartDate] = useState<string>(() => {
+    if(fedCommentStartDate) return fedCommentStartDate;
+    const {fedStartDate} = getFederalCommentPeriodDates(stateDeemedComplete);
+    return fedStartDate ? formatDateForServer(fedStartDate) : "";
+  });
+  const [federalEndDate, setFederalEndDate] = useState<string>(() => {
+    if(fedCommentEndDate) return fedCommentEndDate;
+    const {fedEndDate} = getFederalCommentPeriodDates(stateDeemedComplete);
+    return fedEndDate ? formatDateForServer(fedEndDate) : "";
+  });
   const [isNoticeDismissed, setNoticeDismissed] = useState(
     !(completenessReviewDate && !completenessComplete)
-  );
-  const [stateDeemedComplete, setStateDeemedComplete] = useState<string>(
-    stateDeemedCompleteDate ?? ""
   );
 
   const [completenessDocs] = useState<ApplicationWorkflowDocument[]>(
@@ -202,16 +219,18 @@ export const CompletenessPhase = ({
       datesAreValid;
   };
 
-  const saveDates = async (stateDeemedCompleteString: string) => {
-    if (!stateDeemedCompleteString) return;
-
-    const stateDeemedCompleteDate = parseISO(stateDeemedCompleteString);
+  const setDates = (stateDeemedCompleteString: string) => {
+    setStateDeemedComplete(stateDeemedCompleteString);
     const { fedStartDate, fedEndDate } = getFederalCommentPeriodDates(stateDeemedCompleteString);
+    setFederalStartDate(fedStartDate ? formatDateForServer(fedStartDate) : "");
+    setFederalEndDate(fedEndDate ? formatDateForServer(fedEndDate) : "");
+  };
 
+  const saveDates = async () => {
     const dates: ApplicationDateInput[] = [
-      { dateType: "State Application Deemed Complete", dateValue: stateDeemedCompleteDate},
-      { dateType: "Federal Comment Period Start Date", dateValue: fedStartDate ? startOfDay(fedStartDate) : null },
-      { dateType: "Federal Comment Period End Date", dateValue: fedEndDate ? endOfDay(fedEndDate) : null },
+      { dateType: "State Application Deemed Complete", dateValue: stateDeemedComplete ? startOfDay(stateDeemedComplete) : null},
+      { dateType: "Federal Comment Period Start Date", dateValue: federalStartDate ? startOfDay(federalStartDate) : null },
+      { dateType: "Federal Comment Period End Date", dateValue: federalEndDate ? endOfDay(federalEndDate) : null },
     ];
 
     await setApplicationDates({
@@ -227,14 +246,14 @@ export const CompletenessPhase = ({
       setFederalEndDate("");
       return;
     }
-    saveDates(dateValue);
+    setDates(dateValue);
   };
 
   const handleDocumentUploadSucceeded = async (uploadedDoc?: UploadDocumentInput) => {
     if (uploadedDoc?.documentType !== "Application Completeness Letter") return;
 
     try {
-      await saveDates(getTodayEst());
+      await setDates(getTodayEst());
       showSuccess("Completeness dates saved successfully");
     } catch {
       showError("Failed to save completeness dates");
@@ -254,10 +273,12 @@ export const CompletenessPhase = ({
 
   const handleFinishCompleteness = async () => {
     try {
+      await saveDates();
       await completeCompletenessPhase();
       showSuccess(getPhaseCompletedMessage("Completeness"));
-    } catch {
-      showError("Failed to complete Completeness phase: ");
+    } catch (e) {
+      console.error(e);
+      showError("Failed to complete Completeness phase");
     }
   };
 
