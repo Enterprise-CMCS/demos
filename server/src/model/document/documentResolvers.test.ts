@@ -76,12 +76,13 @@ describe("documentResolvers", () => {
   const testDocumentId = "doc-123-456";
   const testUserId = "user-123-456";
   const testApplicationId = "app-123-456";
+  const testDocumentS3Path = "s3/path/to/document.pdf";
 
   const mockDocument: PrismaDocument = {
     name: "Test Document",
     id: testDocumentId,
     description: "Test document description",
-    s3Path: "s3/path/to/document.pdf",
+    s3Path: testDocumentS3Path,
     ownerUserId: "user-123",
     documentTypeId: "State Application",
     applicationId: testApplicationId,
@@ -266,10 +267,9 @@ describe("documentResolvers", () => {
       vi.mocked(getDocumentById).mockResolvedValue(mockDocument);
       vi.mocked(mockS3Adapter.getPresignedDownloadUrl).mockResolvedValue(mockPresignedUrl);
 
-      const result = await resolvePresignedDownloadUrl({ id: testDocumentId });
+      const result = await resolvePresignedDownloadUrl({ s3Path: testDocumentS3Path });
 
-      expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
-      expect(mockS3Adapter.getPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith(testDocumentId);
+      expect(mockS3Adapter.getPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith(testDocumentS3Path);
       expect(result).toBe(mockPresignedUrl);
     });
   });
