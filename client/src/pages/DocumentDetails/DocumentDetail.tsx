@@ -31,7 +31,7 @@ type Document = Pick<ServerDocument, "id" | "name" | "createdAt" | "presignedDow
   owner: User;
 };
 
-const DOCUEMENT_DETAIL_QUERY: TypedDocumentNode<{ document: Document }, { id: string }> = gql`
+export const DOCUMENT_DETAIL_QUERY: TypedDocumentNode<{ document: Document }, { id: string }> = gql`
   query DocumentDetail($id: ID!) {
     document(id: $id) {
       id
@@ -102,8 +102,9 @@ export const ApplicationLink = ({
 };
 
 export const DocumentDetail: React.FC<{ documentId: string }> = ({ documentId }) => {
-  const { loading, error, data } = useQuery(DOCUEMENT_DETAIL_QUERY, {
+  const { loading, error, data } = useQuery(DOCUMENT_DETAIL_QUERY, {
     variables: { id: documentId },
+    fetchPolicy: "network-only",
   });
 
   if (loading) return <div>Loading...</div>;
