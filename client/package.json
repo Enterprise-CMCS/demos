@@ -80,6 +80,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@testing-library/user-event": "^14.6.1",
     "date-fns": "^4.1.0",
+    "file-type": "^21.3.0",
     "react-oidc-context": "^3.3.0",
     "react-router-dom": "^7.13.0",
     "react-switch": "^7.1.0"
