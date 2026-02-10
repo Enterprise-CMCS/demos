@@ -69,7 +69,7 @@ pipeline {
                 "pullrequest.key": env.CHANGE_ID ?: null,
                 "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
                 "pullrequest.base": env.CHANGE_TARGET ?: null,
-                "exclusions": "**/*.test.ts,**/*.test.tsx,src/mock-data/**,src/pages/debug/**",
+                "exclusions": "**/*.test.ts,**/*.test.tsx,src/mock-data/**,src/pages/debug/**"
               ]
             )
           }
