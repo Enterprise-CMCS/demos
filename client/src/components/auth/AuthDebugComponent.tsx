@@ -1,7 +1,25 @@
 import { Collapsible } from "components/collapsible/Collapsible";
 import React from "react";
 import { useAuth } from "react-oidc-context";
-import { SigninButton, SignoutButton } from "./AuthButtons";
+import { useAuthActions } from "./AuthActions";
+import { Button } from "components/button";
+
+function SigninButton(): React.ReactElement {
+  const { signIn } = useAuthActions();
+  return (
+    <Button name="sign-in" onClick={signIn}>
+      Sign In
+    </Button>
+  );
+}
+function SignoutButton(): React.ReactElement {
+  const { signOut } = useAuthActions();
+  return (
+    <Button name="sign-out" onClick={signOut}>
+      Sign Out
+    </Button>
+  );
+}
 
 const AuthDebug = () => {
   const auth = useAuth();
@@ -11,9 +29,7 @@ const AuthDebug = () => {
     <>
       <div className="mb-1">
         Authenticated:{" "}
-        <span
-          className={auth.isAuthenticated ? "text-green-600" : "text-red-600"}
-        >
+        <span className={auth.isAuthenticated ? "text-green-600" : "text-red-600"}>
           {auth.isAuthenticated ? "Yes" : "No"}
         </span>
       </div>
@@ -47,9 +63,7 @@ const AuthDebug = () => {
         </pre>
       </Collapsible>
       <Collapsible title="Raw Auth Object (Click to Expand)">
-        <pre className="whitespace-pre-wrap break-all text-xs">
-          {JSON.stringify(auth, null, 2)}
-        </pre>
+        <pre className="whitespace-pre-wrap break-all text-xs">{JSON.stringify(auth, null, 2)}</pre>
       </Collapsible>
     </>
   );
@@ -62,11 +76,7 @@ export const AuthDebugComponent: React.FC = () => {
     return <div>Auth context is not available!</div>;
   }
 
-  const authenticationButton = auth.isAuthenticated ? (
-    <SignoutButton />
-  ) : (
-    <SigninButton />
-  );
+  const authenticationButton = auth.isAuthenticated ? <SignoutButton /> : <SigninButton />;
 
   return (
     <div className="flex flex-col gap-sm">
