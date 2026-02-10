@@ -1,20 +1,10 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
-import {
-  formatDate,
-  formatDateForServer,
-  getTodayEst,
-} from "util/formatDate";
-import {
-  addDays,
-  differenceInCalendarDays,
-  startOfDay,
-  endOfDay,
-  parseISO,
-} from "date-fns";
+import { formatDate, formatDateForServer, getTodayEst } from "util/formatDate";
+import { addDays, differenceInCalendarDays, startOfDay, endOfDay, parseISO } from "date-fns";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
@@ -45,14 +35,54 @@ const STYLES = {
 
 const FEDERAL_COMMENT_PERIOD_DAYS = 30;
 
-const getFederalCommentPeriodDates = (stateDate: string) => {
-  if (!stateDate) return { fedStartDate: null, fedEndDate: null };
-
-  const parsedStateDate = parseISO(stateDate);
+const getFederalCommentPeriodDates = (
+  stateDeemedCompleteDate: string
+): { fedStartDate: string; fedEndDate: string } => {
+  const parsedStateDate = parseISO(stateDeemedCompleteDate);
   const fedStartDate = addDays(parsedStateDate, 1);
   const fedEndDate = addDays(parsedStateDate, 1 + FEDERAL_COMMENT_PERIOD_DAYS);
 
-  return { fedStartDate, fedEndDate };
+  return {
+    fedStartDate: formatDateForServer(fedStartDate),
+    fedEndDate: formatDateForServer(fedEndDate),
+  };
+};
+
+const getNoticeContent = (completenessReviewDate?: string) => {
+  if (!completenessReviewDate) return null;
+  const noticeDueDateValue = parseISO(completenessReviewDate ?? "");
+  const daysLeft = differenceInCalendarDays(noticeDueDateValue, new Date());
+  if (daysLeft > 1) {
+    return {
+      title: `${daysLeft} days left`,
+      description: `This Demonstration must be declared complete by ${formatDate(noticeDueDateValue)}`,
+      variant: "warning" as NoticeVariant,
+    };
+  }
+  if (daysLeft === 1) {
+    return {
+      title: "1 day left in Completion Period",
+      description: `This Demonstration must be declared complete by ${formatDate(noticeDueDateValue)}`,
+      variant: "error" as NoticeVariant,
+    };
+  } else {
+    return {
+      title: `${Math.abs(daysLeft)} days past due`,
+      description: `This Demonstration completeness was due on ${formatDate(noticeDueDateValue)}`,
+      variant: "error" as NoticeVariant,
+    };
+  }
+};
+
+const getStateDeemedCompleteFromDocuments = (
+  initialDocuments: ApplicationWorkflowDocument[]
+): string => {
+  const applicationCompletenessLetter = initialDocuments.find(
+    (doc) => doc.documentType === "Application Completeness Letter"
+  );
+  if (!applicationCompletenessLetter) return "";
+  const createdAt = applicationCompletenessLetter.createdAt;
+  return formatDateForServer(createdAt);
 };
 
 export const getApplicationCompletenessFromDemonstration = (
@@ -88,9 +118,10 @@ export const getApplicationCompletenessFromDemonstration = (
     <CompletenessPhase
       applicationId={demonstration.id}
       applicationIntakeComplete={applicationIntakePhase?.phaseStatus === "Completed"}
-      completenessReviewDate={completenessReviewDate?.dateValue
-        ? formatDateForServer(completenessReviewDate.dateValue)
-        : ""
+      completenessReviewDate={
+        completenessReviewDate?.dateValue
+          ? formatDateForServer(completenessReviewDate.dateValue)
+          : ""
       }
       fedCommentStartDate={
         fedCommentStartDate?.dateValue ? formatDateForServer(fedCommentStartDate.dateValue) : ""
@@ -130,39 +161,9 @@ export const CompletenessPhase = ({
   stateDeemedCompleteDate,
   initialDocuments,
 }: CompletenessPhaseProps) => {
+  // Hooks
   const { showCompletenessDocumentUploadDialog, showDeclareIncompleteDialog } = useDialog();
   const { showSuccess, showError } = useToast();
-
-  const getStateDeemedCompleteFromDocuments = (): string => {
-    if (stateDeemedCompleteDate) return stateDeemedCompleteDate;
-    const applicationCompletenessLetter = initialDocuments.find(
-      (doc) => doc.documentType === "Application Completeness Letter"
-    );
-    if (!applicationCompletenessLetter) return "";
-    const createdAt = applicationCompletenessLetter.createdAt;
-    return formatDateForServer(createdAt);
-  };
-  const [stateDeemedComplete, setStateDeemedComplete] = useState<string>(
-    getStateDeemedCompleteFromDocuments()
-  );
-  const [federalStartDate, setFederalStartDate] = useState<string>(() => {
-    if(fedCommentStartDate) return fedCommentStartDate;
-    const {fedStartDate} = getFederalCommentPeriodDates(stateDeemedComplete);
-    return fedStartDate ? formatDate(fedStartDate) : "";
-  });
-  const [federalEndDate, setFederalEndDate] = useState<string>(() => {
-    if(fedCommentEndDate) return fedCommentEndDate;
-    const {fedEndDate} = getFederalCommentPeriodDates(stateDeemedComplete);
-    return fedEndDate ? formatDate(fedEndDate) : "";
-  });
-  const [isNoticeDismissed, setNoticeDismissed] = useState(
-    !(completenessReviewDate && !completenessComplete)
-  );
-
-  const [completenessDocs] = useState<ApplicationWorkflowDocument[]>(
-    initialDocuments
-  );
-
   const { setApplicationDates } = useSetApplicationDates();
 
   const { setPhaseStatus: completeCompletenessPhase } = useSetPhaseStatus({
@@ -177,33 +178,28 @@ export const CompletenessPhase = ({
     phaseStatus: "Incomplete",
   });
 
-  const getNoticeContent = () => {
-    if (!completenessReviewDate) return null;
-    const noticeDueDateValue = parseISO(completenessReviewDate ?? "");
-    const daysLeft = differenceInCalendarDays(noticeDueDateValue, new Date());
-    if (daysLeft > 1) {
-      return {
-        title: `${daysLeft} days left`,
-        description: `This Demonstration must be declared complete by ${formatDate(noticeDueDateValue)}`,
-        variant: "warning" as NoticeVariant,
-      };
-    }
-    if (daysLeft === 1) {
-      return {
-        title: "1 day left in Completion Period",
-        description: `This Demonstration must be declared complete by ${formatDate(noticeDueDateValue)}`,
-        variant: "error" as NoticeVariant,
-      };
-    }
-    else {
-      return {
-        title:  `${Math.abs(daysLeft)} days past due`,
-        description: `This Demonstration completeness was due on ${formatDate(noticeDueDateValue)}`,
-        variant: "error" as NoticeVariant,
-      };
-    }
-  };
-  const noticeContent = useMemo(() => getNoticeContent(), [completenessReviewDate]);
+  // Calculations
+  const initialStateDeemedComplete =
+    stateDeemedCompleteDate ?? getStateDeemedCompleteFromDocuments(initialDocuments);
+  const { fedStartDate, fedEndDate } = getFederalCommentPeriodDates(initialStateDeemedComplete);
+
+  // Statefulness
+  const [stateDeemedComplete, setStateDeemedComplete] = useState<string>(
+    initialStateDeemedComplete
+  );
+
+  const [federalStartDate, setFederalStartDate] = useState<string>(
+    fedCommentStartDate ?? fedStartDate
+  );
+  const [federalEndDate, setFederalEndDate] = useState<string>(fedCommentEndDate ?? fedEndDate);
+  const [isNoticeDismissed, setNoticeDismissed] = useState(
+    !(completenessReviewDate && !completenessComplete)
+  );
+
+  const [completenessDocs] = useState<ApplicationWorkflowDocument[]>(initialDocuments);
+
+  // Calculations
+  const noticeContent = getNoticeContent(completenessReviewDate);
 
   const finishIsEnabled = () => {
     const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
@@ -212,11 +208,13 @@ export const CompletenessPhase = ({
         ? true
         : new Date(federalStartDate) <= new Date(federalEndDate);
 
-    return applicationIntakeComplete &&
-      completenessDocs.find(doc => doc.documentType === "Application Completeness Letter") &&
-      completenessDocs.find(doc => doc.documentType === "Internal Completeness Review Form") &&
+    return (
+      applicationIntakeComplete &&
+      completenessDocs.find((doc) => doc.documentType === "Application Completeness Letter") &&
+      completenessDocs.find((doc) => doc.documentType === "Internal Completeness Review Form") &&
       datesFilled &&
-      datesAreValid;
+      datesAreValid
+    );
   };
 
   const setDates = (stateDeemedCompleteString: string) => {
@@ -228,9 +226,18 @@ export const CompletenessPhase = ({
 
   const saveDates = async () => {
     const dates: ApplicationDateInput[] = [
-      { dateType: "State Application Deemed Complete", dateValue: stateDeemedComplete ? startOfDay(stateDeemedComplete) : null},
-      { dateType: "Federal Comment Period Start Date", dateValue: federalStartDate ? startOfDay(federalStartDate) : null },
-      { dateType: "Federal Comment Period End Date", dateValue: federalEndDate ? endOfDay(federalEndDate) : null },
+      {
+        dateType: "State Application Deemed Complete",
+        dateValue: stateDeemedComplete ? startOfDay(stateDeemedComplete) : null,
+      },
+      {
+        dateType: "Federal Comment Period Start Date",
+        dateValue: federalStartDate ? startOfDay(federalStartDate) : null,
+      },
+      {
+        dateType: "Federal Comment Period End Date",
+        dateValue: federalEndDate ? endOfDay(federalEndDate) : null,
+      },
     ];
 
     await setApplicationDates({
@@ -253,7 +260,7 @@ export const CompletenessPhase = ({
     if (uploadedDoc?.documentType !== "Application Completeness Letter") return;
 
     try {
-      await setDates(getTodayEst());
+      setDates(getTodayEst());
       showSuccess("Completeness dates saved successfully");
     } catch {
       showError("Failed to save completeness dates");
@@ -287,12 +294,13 @@ export const CompletenessPhase = ({
       <h4 id="completeness-upload-title" className={STYLES.title}>
         STEP 1 - UPLOAD
       </h4>
-      <p className={STYLES.helper}>Upload the officially signed State Completeness Letter/internal checklists</p>
+      <p className={STYLES.helper}>
+        Upload the officially signed State Completeness Letter/internal checklists
+      </p>
       <SecondaryButton
-        onClick={() => showCompletenessDocumentUploadDialog(
-          applicationId,
-          handleDocumentUploadSucceeded
-        )}
+        onClick={() =>
+          showCompletenessDocumentUploadDialog(applicationId, handleDocumentUploadSucceeded)
+        }
         size="small"
         name="open-upload"
       >
@@ -370,9 +378,7 @@ export const CompletenessPhase = ({
             onDismiss={() => setNoticeDismissed(true)}
           />
         )}
-        <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">
-          COMPLETENESS
-        </h3>
+        <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">COMPLETENESS</h3>
       </div>
       <div id="completeness-phase-content">
         <p className="text-sm text-text-placeholder mb-4">
