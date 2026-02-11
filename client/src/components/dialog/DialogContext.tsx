@@ -63,21 +63,11 @@ export const useDialog = () => {
   };
 
   const showCreateAmendmentDialog = (demonstrationId?: string) => {
-    context.showDialog(
-      <CreateAmendmentDialog
-        initialDemonstrationId={demonstrationId}
-        onClose={context.hideDialog}
-      />
-    );
+    context.showDialog(<CreateAmendmentDialog demonstrationId={demonstrationId} />);
   };
 
   const showCreateExtensionDialog = (demonstrationId?: string) => {
-    context.showDialog(
-      <CreateExtensionDialog
-        initialDemonstrationId={demonstrationId}
-        onClose={context.hideDialog}
-      />
-    );
+    context.showDialog(<CreateExtensionDialog demonstrationId={demonstrationId} />);
   };
 
   const showManageContactsDialog = (
@@ -209,7 +199,11 @@ export const useDialog = () => {
     );
   };
 
-  const showApplyTagsDialog = (demonstrationId: string,allTags: string[], selectedTags: string[]) => {
+  const showApplyTagsDialog = (
+    demonstrationId: string,
+    allTags: string[],
+    selectedTags: string[]
+  ) => {
     context.showDialog(
       <ApplyTagsDialog
         demonstrationId={demonstrationId}

@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { MockedProvider } from "@apollo/client/testing";
 import { CreateExtensionDialog, CREATE_EXTENSION_MUTATION } from "./CreateExtensionDialog";
-import { BaseCreateModificationDialog } from "./BaseCreateModificationDialog";
+import { BaseCreateModificationDialog } from "./ModificationForm";
 
 const mockShowSuccess = vi.fn();
 const mockShowError = vi.fn();

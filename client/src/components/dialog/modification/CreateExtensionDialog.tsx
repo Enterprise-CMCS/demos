@@ -1,21 +1,15 @@
-import React from "react";
-import {
-  BaseCreateModificationDialog,
-  CreateModificationFormFields,
-} from "./BaseCreateModificationDialog";
+import React, { useState } from "react";
+import { ModificationForm, ModificationFormData } from "./ModificationForm";
 import { gql, useMutation } from "@apollo/client";
 import { useToast } from "components/toast";
-import { Extension as ServerExtension, Demonstration } from "demos-server";
+import { BaseDialog } from "../BaseDialog";
+import { useDialog } from "../DialogContext";
+import { Button } from "components/button";
+import { SelectDemonstration } from "components/input/select/SelectDemonstration";
 
-type Extension = Pick<ServerExtension, "id"> & {
-  demonstration: Pick<Demonstration, "id"> & {
-    extensions: Pick<ServerExtension, "id">[];
-  };
-};
 export const CREATE_EXTENSION_MUTATION = gql`
   mutation CreateExtension($input: CreateExtensionInput!) {
     createExtension(input: $input) {
-      id
       demonstration {
         id
         extensions {
@@ -27,53 +21,75 @@ export const CREATE_EXTENSION_MUTATION = gql`
 `;
 
 export const CreateExtensionDialog: React.FC<{
-  onClose: () => void;
-  initialDemonstrationId?: string;
-}> = ({ onClose, initialDemonstrationId }) => {
+  demonstrationId?: string;
+}> = ({ demonstrationId }) => {
   const { showSuccess, showError } = useToast();
-  const [triggerCreateExtension] = useMutation<{ createExtension: Extension }>(
-    CREATE_EXTENSION_MUTATION
-  );
+  const { closeDialog } = useDialog();
+  const [save, { loading: saving }] = useMutation(CREATE_EXTENSION_MUTATION);
 
-  const handleError = (error?: unknown) => {
-    showError("Error creating extension.");
-    console.error(error || "Unknown error");
-    onClose();
-  };
+  const [createExtensionFormData, setCreateExtensionFormData] = useState<ModificationFormData>({
+    demonstrationId: demonstrationId,
+  });
 
-  const createExtension = async ({
-    name,
-    description,
-    demonstrationId,
-  }: CreateModificationFormFields) => {
+  
+
+  const handleSubmit = async () => {
     try {
-      const result = await triggerCreateExtension({
+      await save({
         variables: {
           input: {
-            name,
-            description,
-            demonstrationId,
+            demonstrationId: createExtensionFormData.demonstrationId,
+            name: createExtensionFormData.name,
+            description: createExtensionFormData.description,
+            effectiveDate: createExtensionFormData.effectiveDate,
+            signatureLevel: createExtensionFormData.signatureLevel,
           },
         },
       });
-
-      if (!result.data?.createExtension) {
-        handleError();
-      }
-
       showSuccess("Extension created successfully.");
-      onClose();
     } catch (error) {
-      handleError(error);
+      showError("Failed to create extension.");
+      console.error("Error creating extension:", error);
     }
+    closeDialog();
   };
 
   return (
-    <BaseCreateModificationDialog
-      onClose={onClose}
-      initialDemonstrationId={initialDemonstrationId}
-      modificationType="Extension"
-      handleSubmit={createExtension}
-    />
+    <BaseDialog
+      title="Create Extension"
+      onClose={closeDialog}
+      dialogHasChanges={hasChanges()}
+      maxWidthClass="max-w-[920px]"
+      actionButton={
+        <Button
+          name={"button-submit-create-extension-dialog"}
+          disabled={saving || !hasChanges()}
+          onClick={handleSubmit}
+        >
+          Apply Type(s)
+        </Button>
+      }
+    >
+      <>
+        <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-gray-300">
+          <SelectDemonstration
+            isRequired
+            onSelect={(demonstrationId) =>
+              setCreateExtensionFormData((prev) => ({
+                ...prev,
+                demonstrationId: demonstrationId,
+              }))
+            }
+            isDisabled={!!demonstrationId}
+            value={createExtensionFormData.demonstrationId || ""}
+          />
+          <ModificationForm
+            modificationType="Extension"
+            modificationFormData={createExtensionFormData}
+            setModificationFormData={setCreateExtensionFormData}
+          />
+        </div>
+      </>
+    </BaseDialog>
   );
 };

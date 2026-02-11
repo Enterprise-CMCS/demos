@@ -7,7 +7,7 @@ import {
   BaseCreateModificationDialog,
   checkFormHasChanges,
   CREATE_MODIFICATION_DIALOG_QUERY,
-} from "./BaseCreateModificationDialog";
+} from "./ModificationForm";
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 
 // Mock toast hook

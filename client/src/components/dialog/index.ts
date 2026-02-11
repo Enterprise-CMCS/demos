@@ -1,6 +1,6 @@
 export { BaseDialog } from "./BaseDialog";
 export { DeclareIncompleteDialog } from "./DeclareIncompleteDialog";
-export { BaseCreateModificationDialog } from "./modification/BaseCreateModificationDialog";
+export { BaseCreateModificationDialog } from "./modification/ModificationForm";
 export { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
 export { CreateDemonstrationDialog, EditDemonstrationDialog } from "./demonstration";
 export { CreateExtensionDialog } from "./modification/CreateExtensionDialog";
