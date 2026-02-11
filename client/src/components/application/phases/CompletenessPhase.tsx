@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
@@ -38,6 +38,7 @@ const FEDERAL_COMMENT_PERIOD_DAYS = 30;
 const getFederalCommentPeriodDates = (
   stateDeemedCompleteDate: string
 ): { fedStartDate: string; fedEndDate: string } => {
+  if (!stateDeemedCompleteDate) return { fedStartDate: "", fedEndDate: "" };
   const parsedStateDate = parseISO(stateDeemedCompleteDate);
   const fedStartDate = addDays(parsedStateDate, 1);
   const fedEndDate = addDays(parsedStateDate, 1 + FEDERAL_COMMENT_PERIOD_DAYS);
@@ -77,6 +78,7 @@ const getNoticeContent = (completenessReviewDate?: string) => {
 const getStateDeemedCompleteFromDocuments = (
   initialDocuments: ApplicationWorkflowDocument[]
 ): string => {
+  console.log("Getting state deemed complete date from documents:", initialDocuments);
   const applicationCompletenessLetter = initialDocuments.find(
     (doc) => doc.documentType === "Application Completeness Letter"
   );
@@ -178,14 +180,25 @@ export const CompletenessPhase = ({
     phaseStatus: "Incomplete",
   });
 
+  useEffect(() => {
+    console.log("CompletenessPhase mounted with props:", {
+      applicationId,
+      applicationIntakeComplete,
+      completenessReviewDate,
+      fedCommentStartDate,
+      fedCommentEndDate,
+      completenessComplete,
+      stateDeemedCompleteDate,
+      initialDocuments,
+    });
+  }, []);
+
   // Calculations
-  const initialStateDeemedComplete =
-    stateDeemedCompleteDate ?? getStateDeemedCompleteFromDocuments(initialDocuments);
-  const { fedStartDate, fedEndDate } = getFederalCommentPeriodDates(initialStateDeemedComplete);
+  const { fedStartDate, fedEndDate } = getFederalCommentPeriodDates(stateDeemedCompleteDate ?? "");
 
   // Statefulness
   const [stateDeemedComplete, setStateDeemedComplete] = useState<string>(
-    initialStateDeemedComplete
+    stateDeemedCompleteDate ?? ""
   );
 
   const [federalStartDate, setFederalStartDate] = useState<string>(
@@ -218,6 +231,7 @@ export const CompletenessPhase = ({
   };
 
   const setDates = (stateDeemedCompleteString: string) => {
+    console.log("Setting dates based on state deemed complete:", stateDeemedCompleteString);
     setStateDeemedComplete(stateDeemedCompleteString);
     const { fedStartDate, fedEndDate } = getFederalCommentPeriodDates(stateDeemedCompleteString);
     setFederalStartDate(fedStartDate ? formatDateForServer(fedStartDate) : "");
@@ -260,6 +274,7 @@ export const CompletenessPhase = ({
     if (uploadedDoc?.documentType !== "Application Completeness Letter") return;
 
     try {
+      console.log("Document uploaded, setting dates to today");
       setDates(getTodayEst());
       showSuccess("Completeness dates saved successfully");
     } catch {
