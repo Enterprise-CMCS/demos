@@ -10,11 +10,12 @@ QUEUE_NAME="uipath-queue"
 LAMBDA_NAME="uipath"
 UIPATH_SECRET_ID="demos-local/uipath"
 # The defautl project is a perfect default project.
-UIPATH_PROJECT_ID=${UIPATH_PROJECT_ID:-"00000000-0000-0000-0000-000000000000"} # pragma: allowlist secret
+# UIPATH_PROJECT_ID=${UIPATH_PROJECT_ID:-"00000000-0000-0000-0000-000000000000"} # pragma: allowlist secret
 UIPATH_DOCUMENT_BUCKET=${UIPATH_DOCUMENT_BUCKET:-"uipath-documents"}
 DATABASE_SECRET_ARN=${DATABASE_SECRET_ARN:-"database-secret"}
 LOG_LEVEL=${LOG_LEVEL:-"info"}
 DB_SSL_MODE=${DB_SSL_MODE:-"disable"}
+UIPATH_DISABLE_EXTERNAL=${UIPATH_DISABLE_EXTERNAL:-"true"}
 
 # NOTE: Extactor GUID is read from Secrets Manager by the Lambda at runtime.
 
@@ -63,7 +64,8 @@ $AWS_CMD lambda create-function \
         UIPATH_DOCUMENT_BUCKET=$UIPATH_DOCUMENT_BUCKET,
         DATABASE_SECRET_ARN=$DATABASE_SECRET_ARN,
         LOG_LEVEL=$LOG_LEVEL,
-        DB_SSL_MODE=$DB_SSL_MODE
+        DB_SSL_MODE=$DB_SSL_MODE,
+        UIPATH_DISABLE_EXTERNAL=$UIPATH_DISABLE_EXTERNAL
     }" >/dev/null
 
 # Wait for Lambda to be active

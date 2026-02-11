@@ -446,3 +446,15 @@ export const DEMONSTRATION_TYPE_TAGS: string[] = [
   "Value Based Care (VBC)",
   "Vision",
 ] as const;
+
+
+export const UIPATH_PROJECT_IDS = [
+  "e797842e-acc4-f011-8194-001dd8017125",
+  "00000000-0000-0000-0000-000000000000",
+] as const;
+
+
+export const UIPATH_MODEL_IDS = {
+  demosOCR: "e797842e-acc4-f011-8194-001dd8017125",
+  demosOCR2: "e797842e-acc4-f011-8194-001dd8017125",
+}

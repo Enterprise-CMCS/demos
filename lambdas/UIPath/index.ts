@@ -11,9 +11,9 @@ import { getUiPathSecret } from "./uipathSecrets";
 
 interface UipathMessage {
   s3FileName?: string;
-  s3Key?: string;
   s3Bucket?: string;
   projectId?: string;
+  fileNameWithExtension?: string;
 }
 
 const s3 = new S3Client({
@@ -28,6 +28,7 @@ type ParsedInput = {
   s3Bucket: string;
   s3Key: string;
   projectId?: string;
+  fileNameWithExtension?: string;
 };
 
 function decodeS3Key(key: string): string {
@@ -49,8 +50,9 @@ function parseUiPathMessage(body: string): ParsedInput {
   const s3Key = (parsed?.s3Key as string | undefined) ?? (parsed?.s3FileName as string | undefined);
   const s3Bucket = (parsed?.s3Bucket as string | undefined) ?? UIPATH_DOCUMENT_BUCKET;
   const projectId = parsed?.projectId as string | undefined;
+  const fileNameWithExtension = parsed?.fileNameWithExtension as string | undefined;
 
-  return { s3Bucket, s3Key: s3Key ?? "", projectId };
+  return { s3Bucket, s3Key: s3Key ?? "", projectId, fileNameWithExtension };
 }
 
 async function downloadFromS3(bucket: string, key: string): Promise<string> {
@@ -74,6 +76,7 @@ export const handler = async (event: SQSEvent) =>
     const s3Bucket = parsedBody?.s3Bucket ?? UIPATH_DOCUMENT_BUCKET;
     const s3Key = parsedBody?.s3Key;
     let projectId = parsedBody?.projectId;
+    const fileNameWithExtension = parsedBody?.fileNameWithExtension;
 
     if (!s3Key) {
       throw new Error("Missing s3Key/s3FileName in SQS message body.");
@@ -96,6 +99,7 @@ export const handler = async (event: SQSEvent) =>
       logFullResult: false,
       requestId: firstRecord?.messageId ?? "n/a",
       projectId,
+      fileNameWithExtension,
     });
 
     log.info({ status }, "UiPath extraction completed");

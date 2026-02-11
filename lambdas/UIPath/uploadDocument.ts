@@ -16,7 +16,8 @@ export interface UploadResponse {
 export async function uploadDocument(
   token: string,
   fileName: string,
-  projectId: string
+  projectId: string,
+  fileNameWithExtension?: string
 ): Promise<string> {
   // As of now, this is a constant. but tenant contains "dev" in the URI, so this could be variable later.
   if (! UIPATH_BASE_URL || ! UIPATH_TENANT) {
@@ -27,7 +28,11 @@ export async function uploadDocument(
 
   log.info({ url }, "Uploading document to UiPath");
   const formData = new FormData();
-  formData.append("file", fs.createReadStream(fileName), fileName);
+  const uploadName =
+    typeof fileNameWithExtension === "string" && fileNameWithExtension.trim().length > 0
+      ? fileNameWithExtension
+      : fileName;
+  formData.append("file", fs.createReadStream(fileName), uploadName);
 
   try {
     const doc = await documentUnderstandingPost<UploadResponse>(url, token, formData, {

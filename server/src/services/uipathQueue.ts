@@ -1,7 +1,9 @@
 import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
+import { UIPATH_PROJECT_IDS } from "../constants";
 
 const region = process.env.AWS_REGION ?? "us-east-1";
 const endpoint = process.env.AWS_ENDPOINT_URL;
+const uipathModelId = UIPATH_PROJECT_IDS[0];
 
 const sqsClient = new SQSClient(
   endpoint
@@ -15,7 +17,8 @@ const sqsClient = new SQSClient(
 export type UiPathQueueMessage = {
   s3Bucket: string;
   s3FileName: string;
-  projectId?: string;
+  projectId: string;
+  fileNameWithExtension?: string;
 };
 
 type ParsedS3Location = {

@@ -14,11 +14,13 @@ import type {
 import { getS3Adapter } from "../../adapters";
 import { getEasternNow, parseJSDateToEasternTZDate } from "../../dateUtilities";
 import { addDays } from "date-fns";
+import path from "node:path";
 import { getApplication, PrismaApplication } from "../application";
 import { findUserById } from "../user";
 import { validateAndUpdateDates } from "../applicationDate";
 import { startPhaseByDocument } from "../applicationPhase";
 import { enqueueUiPath, parseS3Path } from "../../services/uipathQueue";
+import { UIPATH_PROJECT_IDS } from "../../constants";
 import {
   checkDocumentExists,
   getDocumentById,
@@ -178,10 +180,20 @@ export async function triggerUiPath(
         throw new Error(`Document is not stored in the clean bucket: ${bucket}`);
       }
 
+      const defaultProjectId = UIPATH_PROJECT_IDS[0] ?? "e797842e-acc4-f011-8194-001dd8017125";
+      const resolvedProjectId = projectId ?? defaultProjectId;
+      if (!resolvedProjectId) {
+        throw new Error("Missing UiPath projectId for enqueue.");
+      }
+
+      const hasExtension = path.extname(document.name ?? "") !== "";
+      const fileNameWithExtension = hasExtension ? document.name : `${document.name}.pdf`;
+
       return await enqueueUiPath({
         s3Bucket: bucket,
         s3FileName: key,
-        projectId,
+        projectId: resolvedProjectId,
+        fileNameWithExtension,
       });
     });
   } catch (error) {

@@ -365,6 +365,12 @@ export class FileUploadStack extends Stack {
       securityGroup: uiPathLambdaSecurityGroup.securityGroup,
     });
 
+    fileProcessLambda.lambda.addEnvironment(
+      "UIPATH_QUEUE_URL",
+      uiPathProcessor.queue.queueUrl
+    );
+    uiPathProcessor.queue.grantSendMessages(fileProcessLambda.lambda);
+
     new CfnOutput(this, "cleanBucketName", {
       exportName: `${props.stage}CleanBucketName`,
       value: cleanBucket.bucketName,

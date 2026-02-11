@@ -71,7 +71,12 @@ describe("runDocumentUnderstanding", () => {
     const result = await promise;
 
     expect(getToken).toHaveBeenCalled();
-    expect(uploadDocumentMock).toHaveBeenCalledWith("token-123", "file.pdf", "project-1");
+    expect(uploadDocumentMock).toHaveBeenCalledWith(
+      "token-123",
+      "file.pdf",
+      "project-1",
+      undefined
+    );
     expect(extractDocMock).toHaveBeenCalledWith("token-123", "doc-1", "project-1");
     expect(fetchExtractionResultMock).toHaveBeenCalledTimes(2);
     expect(result).toMatchObject({ status: "Succeeded" });

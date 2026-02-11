@@ -33,7 +33,7 @@ import { GraphQLContext } from "./auth/auth.util.js";
 import { getManyApplications } from "./model/application";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
-const DOCUMENTS_PER_APPLICATION = 15;
+const DOCUMENTS_PER_APPLICATION = 1;
 
 function getRandomPhaseDocumentTypeCombination(): {
   phaseName: PhaseName;
@@ -82,48 +82,48 @@ async function seedDocuments() {
 
   const applications = await prisma().application.findMany();
 
-  for (const application of applications) {
-    for (let i = 0; i < DOCUMENTS_PER_APPLICATION; i++) {
-      try {
-        const { phaseName, documentType } = getRandomPhaseDocumentTypeCombination();
-        const name = faker.lorem.sentence(2);
-        let document = await prisma().document.create({
-          data: {
-            name: name,
-            description: faker.lorem.sentence(5),
-            s3Path: "tmp",
-            ownerUserId: (await prisma().user.findRandom())!.id,
-            documentTypeId: documentType,
-            applicationId: application.id,
-            phaseId: phaseName,
-            createdAt: randomBackdatedDate(),
-          },
-        });
-        const s3Path = `${application.id}/${document.id}`;
-        document = await prisma().document.update({
-          where: { id: document.id },
-          data: {
-            s3Path,
-          },
-        });
-        // temporary bypass for backward compatability with simple upload.
-        // TODO: remove this bypass
-        if (process.env.LOCAL_SIMPLE_UPLOAD === "true") {
-          continue;
-        }
-        const mockFileContent = Buffer.from(`Test file: ${JSON.stringify(document)}`);
-        await s3Client.send(
-          new PutObjectCommand({
-            Bucket: process.env.CLEAN_BUCKET,
-            Key: s3Path,
-            Body: mockFileContent,
-          })
-        );
-      } catch (error) {
-        console.error(`Could not seed document. ${error}`);
-      }
-    }
-  }
+//   for (const application of applications) {
+//     for (let i = 0; i < DOCUMENTS_PER_APPLICATION; i++) {
+//       try {
+//         const { phaseName, documentType } = getRandomPhaseDocumentTypeCombination();
+//         const name = faker.lorem.sentence(2);
+//         let document = await prisma().document.create({
+//           data: {
+//             name: name,
+//             description: faker.lorem.sentence(5),
+//             s3Path: "tmp",
+//             ownerUserId: (await prisma().user.findRandom())!.id,
+//             documentTypeId: documentType,
+//             applicationId: application.id,
+//             phaseId: phaseName,
+//             createdAt: randomBackdatedDate(),
+//           },
+//         });
+//         const s3Path = `${application.id}/${document.id}`;
+//         document = await prisma().document.update({
+//           where: { id: document.id },
+//           data: {
+//             s3Path,
+//           },
+//         });
+//         // temporary bypass for backward compatability with simple upload.
+//         // TODO: remove this bypass
+//         if (process.env.LOCAL_SIMPLE_UPLOAD === "true") {
+//           continue;
+//         }
+//         const mockFileContent = Buffer.from(`Test file: ${JSON.stringify(document)}`);
+//         await s3Client.send(
+//           new PutObjectCommand({
+//             Bucket: process.env.CLEAN_BUCKET,
+//             Key: s3Path,
+//             Body: mockFileContent,
+//           })
+//         );
+//       } catch (error) {
+//         console.error(`Could not seed document. ${error}`);
+//       }
+//     }
+//   }
 }
 
 function randomDateRange() {
@@ -201,6 +201,7 @@ async function seedDatabase() {
   checkIfAllowed();
 
   await clearDatabase();
+
   // Setting constants for record generation
   const userCount = 9;
   const demonstrationCount = 20;
@@ -622,7 +623,7 @@ async function seedDatabase() {
     await __updateExtension(undefined, updateInput);
   }
 
-  await seedDocuments();
+  // await seedDocuments();
 
   await seedNotes();
   console.log("🌱 Seeding events (with and without applicationIds)...");
