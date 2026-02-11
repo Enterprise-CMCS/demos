@@ -60,6 +60,8 @@ BEGIN
             status_id,
             current_phase_id,
             clearance_level_id,
+            sdg_division_id,
+            signature_level_id,
             created_at,
             updated_at
         )
@@ -77,6 +79,8 @@ BEGIN
             NEW.status_id,
             NEW.current_phase_id,
             NEW.clearance_level_id,
+            NEW.sdg_division_id,
+            NEW.signature_level_id,
             NEW.created_at,
             NEW.updated_at
         );
@@ -93,6 +97,8 @@ BEGIN
             status_id,
             current_phase_id,
             clearance_level_id,
+            sdg_division_id,
+            signature_level_id,
             created_at,
             updated_at
         )
@@ -107,6 +113,8 @@ BEGIN
             OLD.status_id,
             OLD.current_phase_id,
             OLD.clearance_level_id,
+            OLD.sdg_division_id,
+            OLD.signature_level_id,
             OLD.created_at,
             OLD.updated_at
         );
@@ -788,6 +796,8 @@ BEGIN
             status_id,
             current_phase_id,
             clearance_level_id,
+            sdg_division_id,
+            signature_level_id,
             created_at,
             updated_at
         )
@@ -805,6 +815,8 @@ BEGIN
             NEW.status_id,
             NEW.current_phase_id,
             NEW.clearance_level_id,
+            NEW.sdg_division_id,
+            NEW.signature_level_id,
             NEW.created_at,
             NEW.updated_at
         );
@@ -821,6 +833,8 @@ BEGIN
             status_id,
             current_phase_id,
             clearance_level_id,
+            sdg_division_id,
+            signature_level_id,
             created_at,
             updated_at
         )
@@ -835,6 +849,8 @@ BEGIN
             OLD.status_id,
             OLD.current_phase_id,
             OLD.clearance_level_id,
+            OLD.sdg_division_id,
+            OLD.signature_level_id,
             OLD.created_at,
             OLD.updated_at
         );

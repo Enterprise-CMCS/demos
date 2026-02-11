@@ -10,6 +10,8 @@ import {
   DateTimeOrLocalDate,
   ClearanceLevel,
   Tag,
+  SdgDivision,
+  SignatureLevel,
 } from "../../types.js";
 
 export const amendmentSchema = gql`
@@ -23,16 +25,20 @@ export const amendmentSchema = gql`
     currentPhaseName: PhaseName!
     phases: [ApplicationPhase!]!
     documents: [Document!]!
-    createdAt: DateTime!
-    updatedAt: DateTime!
     clearanceLevel: ClearanceLevel!
     tags: [Tag!]!
+    sdgDivision: SdgDivision
+    signatureLevel: SignatureLevel
+    createdAt: DateTime!
+    updatedAt: DateTime!
   }
 
   input CreateAmendmentInput {
     demonstrationId: ID!
     name: NonEmptyString!
     description: String
+    sdgDivision: SdgDivision
+    signatureLevel: SignatureLevel
   }
 
   input UpdateAmendmentInput {
@@ -41,6 +47,8 @@ export const amendmentSchema = gql`
     description: String
     effectiveDate: DateTimeOrLocalDate
     status: ApplicationStatus
+    sdgDivision: SdgDivision
+    signatureLevel: SignatureLevel
   }
 
   type Mutation {
@@ -66,15 +74,19 @@ export interface Amendment {
   phases: ApplicationPhase[];
   documents: Document[];
   clearanceLevel: ClearanceLevel;
-  createdAt: Date;
-  updatedAt: Date;
   tags: Tag[];
+  sdgDivision?: SdgDivision;
+  signatureLevel?: SignatureLevel;
+  updatedAt: Date;
+  createdAt: Date;
 }
 
 export interface CreateAmendmentInput {
   demonstrationId: string;
   name: NonEmptyString;
   description: string | null;
+  sdgDivision?: SdgDivision;
+  signatureLevel?: SignatureLevel;
 }
 
 export interface UpdateAmendmentInput {
@@ -83,4 +95,6 @@ export interface UpdateAmendmentInput {
   description?: string | null;
   effectiveDate?: DateTimeOrLocalDate | null;
   status?: ApplicationStatus;
+  sdgDivision?: SdgDivision;
+  signatureLevel?: SignatureLevel;
 }

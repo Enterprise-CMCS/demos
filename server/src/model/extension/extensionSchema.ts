@@ -10,6 +10,8 @@ import {
   DateTimeOrLocalDate,
   ClearanceLevel,
   Tag,
+  SdgDivision,
+  SignatureLevel,
 } from "../../types.js";
 
 export const extensionSchema = gql`
@@ -23,16 +25,20 @@ export const extensionSchema = gql`
     currentPhaseName: PhaseName!
     phases: [ApplicationPhase!]!
     documents: [Document!]!
-    createdAt: DateTime!
-    updatedAt: DateTime!
     clearanceLevel: ClearanceLevel!
     tags: [Tag!]!
+    sdgDivision: SdgDivision
+    signatureLevel: SignatureLevel
+    createdAt: DateTime!
+    updatedAt: DateTime!
   }
 
   input CreateExtensionInput {
     demonstrationId: ID!
     name: NonEmptyString!
     description: String
+    sdgDivision: SdgDivision
+    signatureLevel: SignatureLevel
   }
 
   input UpdateExtensionInput {
@@ -41,6 +47,8 @@ export const extensionSchema = gql`
     description: String
     effectiveDate: DateTimeOrLocalDate
     status: ApplicationStatus
+    sdgDivision: SdgDivision
+    signatureLevel: SignatureLevel
   }
 
   type Mutation {
@@ -66,15 +74,19 @@ export interface Extension {
   phases: ApplicationPhase[];
   documents: Document[];
   clearanceLevel: ClearanceLevel;
+  tags: Tag[];
+  sdgDivision?: SdgDivision;
+  signatureLevel?: SignatureLevel;
   createdAt: Date;
   updatedAt: Date;
-  tags: Tag[];
 }
 
 export interface CreateExtensionInput {
   demonstrationId: string;
   name: NonEmptyString;
   description: string | null;
+  sdgDivision?: SdgDivision;
+  signatureLevel?: SignatureLevel;
 }
 
 export interface UpdateExtensionInput {
@@ -83,4 +95,6 @@ export interface UpdateExtensionInput {
   description?: string | null;
   effectiveDate?: DateTimeOrLocalDate | null;
   status?: ApplicationStatus;
+  sdgDivision?: SdgDivision;
+  signatureLevel?: SignatureLevel;
 }
