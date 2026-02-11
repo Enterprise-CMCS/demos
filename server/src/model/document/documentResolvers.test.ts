@@ -16,7 +16,6 @@ import {
   getDocument,
   documentExists,
   uploadDocument,
-  downloadDocument,
   updateDocument as updateDocumentResolver,
   deleteDocument,
   deleteDocuments,
@@ -25,6 +24,7 @@ import {
   resolveApplication,
   resolvePhaseName,
   documentResolvers,
+  resolvePresignedDownloadUrl,
 } from "./documentResolvers.js";
 
 // Mock dependencies
@@ -76,12 +76,13 @@ describe("documentResolvers", () => {
   const testDocumentId = "doc-123-456";
   const testUserId = "user-123-456";
   const testApplicationId = "app-123-456";
+  const testDocumentS3Path = "s3/path/to/document.pdf";
 
   const mockDocument: PrismaDocument = {
     name: "Test Document",
     id: testDocumentId,
     description: "Test document description",
-    s3Path: "s3/path/to/document.pdf",
+    s3Path: testDocumentS3Path,
     ownerUserId: "user-123",
     documentTypeId: "State Application",
     applicationId: testApplicationId,
@@ -259,18 +260,16 @@ describe("documentResolvers", () => {
     });
   });
 
-  describe("downloadDocument", () => {
+  describe("resolvePresignedDownloadUrl", () => {
     const mockPresignedUrl = "https://s3.amazonaws.com/download-url";
 
     it("should generate presigned download URL", async () => {
       vi.mocked(getDocumentById).mockResolvedValue(mockDocument);
       vi.mocked(mockS3Adapter.getPresignedDownloadUrl).mockResolvedValue(mockPresignedUrl);
 
-      const result = await downloadDocument(undefined, { id: testDocumentId });
+      const result = await resolvePresignedDownloadUrl({ s3Path: testDocumentS3Path });
 
-      expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
-      expect(getDocumentById).toHaveBeenCalledExactlyOnceWith(mockTransaction, testDocumentId);
-      expect(mockS3Adapter.getPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith(testDocumentId);
+      expect(mockS3Adapter.getPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith(testDocumentS3Path);
       expect(result).toBe(mockPresignedUrl);
     });
   });
@@ -392,7 +391,6 @@ describe("documentResolvers", () => {
 
     it("should export Mutation resolvers", () => {
       expect(documentResolvers.Mutation).toHaveProperty("uploadDocument");
-      expect(documentResolvers.Mutation).toHaveProperty("downloadDocument");
       expect(documentResolvers.Mutation).toHaveProperty("updateDocument");
       expect(documentResolvers.Mutation).toHaveProperty("deleteDocument");
       expect(documentResolvers.Mutation).toHaveProperty("deleteDocuments");
@@ -403,6 +401,7 @@ describe("documentResolvers", () => {
       expect(documentResolvers.Document).toHaveProperty("documentType");
       expect(documentResolvers.Document).toHaveProperty("application");
       expect(documentResolvers.Document).toHaveProperty("phaseName");
+      expect(documentResolvers.Document).toHaveProperty("presignedDownloadUrl");
     });
   });
 });

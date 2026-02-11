@@ -5,6 +5,7 @@ export interface TabProps {
   value: string;
   children: React.ReactNode;
   icon?: React.ReactNode;
+  shouldRender?: boolean;
 }
 
 export const Tab: React.FC<TabProps> = ({ children }) => {

@@ -13,6 +13,7 @@ export const documentSchema = gql`
     documentType: DocumentType!
     application: Application!
     phaseName: PhaseName!
+    presignedDownloadUrl: String!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -43,8 +44,6 @@ export const documentSchema = gql`
     updateDocument(id: ID!, input: UpdateDocumentInput!): Document
     deleteDocument(id: ID!): Document!
     deleteDocuments(ids: [ID!]!): Int!
-    downloadDocument(id: ID!): String
-    triggerUiPath(documentId: ID!, projectId: String): String!
   }
 
   type Query {
@@ -64,6 +63,7 @@ export interface Document {
   phaseName: PhaseName;
   createdAt: Date;
   updatedAt: Date;
+  presignedDownloadUrl: string;
 }
 
 export interface UploadDocumentInput {
