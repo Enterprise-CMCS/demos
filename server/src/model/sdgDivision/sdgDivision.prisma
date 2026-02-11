@@ -3,6 +3,8 @@ model SdgDivision {
   id String
 
   demonstrations Demonstration[]
+  amendments     Amendment[]
+  extensions     Extension[]
 
   @@id([id])
   @@map("sdg_division")
