@@ -8,7 +8,7 @@ import { DemonstrationsPage } from "pages/DemonstrationsPage";
 import { ComponentLibrary, DialogSandbox } from "pages/debug";
 import { IconLibrary } from "pages/debug/IconLibrary";
 import { EventSandbox } from "pages/debug/EventSandbox";
-import { AuthDebugComponent } from "components/auth/AuthDebugComponent";
+import { AuthDebugComponent } from "pages/debug/AuthDebugComponent";
 import { isLocalDevelopment } from "config/env";
 import { DemosLayoutProvider } from "./DemosLayoutProvider";
 
