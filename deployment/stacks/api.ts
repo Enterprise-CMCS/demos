@@ -178,9 +178,8 @@ export class ApiStack extends Stack {
           UPLOAD_BUCKET: uploadBucket.bucketName,
           CLEAN_BUCKET: cleanBucket.bucketName,
           DELETED_BUCKET: deletedBucket.bucketName,
-          // None of the other queue use an ENV
+          // None of the other queue use ENV. maybe another way.
           UIPATH_QUEUE_URL: uipathQueueUrl,
-          // TODO: revisit this and maybe there's a better way.
         },
       },
       "graphql"
