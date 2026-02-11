@@ -1,9 +1,8 @@
 import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
-import { UIPATH_PROJECT_IDS } from "../constants";
+import { log } from "../log";
 
 const region = process.env.AWS_REGION ?? "us-east-1";
 const endpoint = process.env.AWS_ENDPOINT_URL;
-const uipathModelId = UIPATH_PROJECT_IDS[0];
 
 const sqsClient = new SQSClient(
   endpoint
@@ -53,6 +52,7 @@ export async function enqueueUiPath(message: UiPathQueueMessage): Promise<string
   if (!queueUrl) {
     throw new Error("UIPATH_QUEUE_URL is not set.");
   }
+  log.info(`Enqueuing message to UiPath queue: ${JSON.stringify(message)}`);
 
   const response = await sqsClient.send(
     new SendMessageCommand({
