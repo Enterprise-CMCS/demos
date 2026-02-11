@@ -25,7 +25,6 @@ import {
   resolveApplicationSdgDivision,
   resolveApplicationSignatureLevel,
 } from "../application/applicationResolvers.js";
-import { sign } from "crypto";
 
 const amendmentApplicationType: ApplicationType = "Amendment";
 const conceptPhaseName: PhaseName = "Concept";
