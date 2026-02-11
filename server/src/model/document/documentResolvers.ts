@@ -158,7 +158,7 @@ export async function deleteDocuments(_: unknown, { ids }: { ids: string[] }): P
 
 export async function triggerUiPath(
   _: unknown,
-  { documentId, projectId }: { documentId: string; projectId?: string },
+  { documentId, projectId }: { documentId: string; projectId: string },
   context: GraphQLContext
 ): Promise<string> {
   try {

@@ -44,6 +44,7 @@ export const documentSchema = gql`
     updateDocument(id: ID!, input: UpdateDocumentInput!): Document
     deleteDocument(id: ID!): Document!
     deleteDocuments(ids: [ID!]!): Int!
+    triggerUiPath(documentId: ID!, projectId: String): String!
   }
 
   type Query {
