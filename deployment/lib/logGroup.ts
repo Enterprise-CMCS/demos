@@ -1,6 +1,6 @@
 import { aws_lambda, RemovalPolicy, Stack } from "aws-cdk-lib";
 import { LogGroup, RetentionDays, SubscriptionFilter, FilterPattern } from "aws-cdk-lib/aws-logs";
-import * as destinations from "aws-cdk-lib/aws-logs-destinations";
+import { LambdaDestination } from "aws-cdk-lib/aws-logs-destinations";
 import { Construct } from "constructs";
 
 interface DemosLogGroupProps {
@@ -33,9 +33,7 @@ export class DemosLogGroup extends Construct {
 
     new SubscriptionFilter(this, "SubscriptionFilter", {
       logGroup: this.logGroup,
-      destination: new destinations.LambdaDestination(DemosLogGroup.getSubscriptionLambda(this), {
-        addPermissions: false,
-      }),
+      destination: new LambdaDestination(DemosLogGroup.getSubscriptionLambda(this), {addPermissions: false}),
       filterPattern: FilterPattern.allEvents(),
       filterName: "logs-to-cms-splunk"
     })

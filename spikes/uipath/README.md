@@ -52,22 +52,4 @@ Flow:
 
 ## Available Extractors
 
-Below is a sample JSON listing all available extractors and their endpoints:
-If you go to UI Path gov cloud and enter your Oauth creds and go to the extractors GET endpoint, you can get a listing of the available extractor. What we want is "Generative Extractor"
-
-
-```json
-{
-  "extractors": [
-    {
-      "id": "generative_extractor",
-      "name": "Generative Extractor",
-      "documentTypeId": "",
-      "status": "Available",
-      "detailsUrl": "https://govcloud.uipath.us:443/<EXTRACTOR_GUID>/du_/api/framework/projects/00000000-0000-0000-0000-000000000000/extractors/generative_extractor?api-version=1.0",
-      "syncUrl": "https://govcloud.uipath.us:443/<EXTRACTOR_GUID>/du_/api/framework/projects/00000000-0000-0000-0000-000000000000/extractors/generative_extractor/extraction?api-version=1.0",
-      "asyncUrl": "https://govcloud.uipath.us:443/<EXTRACTOR_GUID>/du_/api/framework/projects/00000000-0000-0000-0000-000000000000/extractors/generative_extractor/extraction/start?api-version=1.0"
-    }
-  ]
-}
-```
+Extractors are acquired from UIPath now. For each model we place a request and get the extractor url. 

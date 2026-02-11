@@ -91,20 +91,17 @@ export class UiPathProcessor extends Construct {
       },
     });
 
-    // ✅ Only once
     uipathLambda.lambda.addEventSource(new SqsEventSource(this.queue, { batchSize: 1 }));
 
     // Grants
     this.queue.grantConsumeMessages(uipathLambda.lambda);
     clientSecret.grantRead(uipathLambda.lambda);
     dbSecret.grantRead(uipathLambda.lambda);
-    // ✅ allow access to the actual bucket CDK created
     props.documentsBucket.grantReadWrite(uipathLambda.lambda);
     for (const bucket of props.readBuckets ?? []) {
       bucket.grantRead(uipathLambda.lambda);
     }
 
-    // ✅ KMS permissions (use the helper)
     props.kmsKey.grantEncryptDecrypt(uipathLambda.lambda);
   }
 }
