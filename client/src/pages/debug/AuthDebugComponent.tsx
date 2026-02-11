@@ -1,7 +1,7 @@
 import { Collapsible } from "components/collapsible/Collapsible";
 import React from "react";
 import { useAuth } from "react-oidc-context";
-import { useAuthActions } from "./AuthActions";
+import { useAuthActions } from "components/auth/AuthActions";
 import { Button } from "components/button";
 
 function SigninButton(): React.ReactElement {
