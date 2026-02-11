@@ -9,16 +9,15 @@ export const DocumentPreview = ({
   presignedDownloadUrl: string;
   filename: string;
 }) => {
-  const [blob, setBlob] = React.useState<Blob | null>(null);
-  const [fileType, setFileType] = React.useState<string | null>(null);
+  const [blob, setBlob] = React.useState<Blob>();
+  const [fileType, setFileType] = React.useState<string>();
   const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
+  const [error, setError] = React.useState<string>();
 
   React.useEffect(() => {
     const downloadAndAnalyzeFile = async () => {
       try {
         setLoading(true);
-        setError(null);
 
         const response = await fetch(presignedDownloadUrl);
 
@@ -30,7 +29,7 @@ export const DocumentPreview = ({
         setBlob(fileBlob);
 
         const detectedType = await fileTypeFromBlob(fileBlob);
-        setFileType(detectedType?.mime ?? null);
+        setFileType(detectedType?.mime);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to download file");
       } finally {
@@ -45,7 +44,7 @@ export const DocumentPreview = ({
   if (error) return <div>Error loading file: {error}</div>;
   if (!blob) return <div>No file available</div>;
 
-  const file = new File([blob], filename, { type: blob.type });
+  const file = new File([blob], filename, { type: fileType ?? blob.type });
   const blobUrl = URL.createObjectURL(file);
 
   return fileType == "application/pdf" ? (
