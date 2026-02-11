@@ -61,6 +61,8 @@ export async function __createExtension(
         description: input.description,
         statusId: newApplicationStatusId,
         currentPhaseId: conceptPhaseName,
+        sdgDivisionId: input.sdgDivision,
+        signatureLevelId: input.signatureLevel,
       },
     });
   });
@@ -83,6 +85,8 @@ export async function __updateExtension(
         description: input.description,
         effectiveDate: effectiveDate,
         statusId: input.status,
+        sdgDivisionId: input.sdgDivision,
+        signatureLevelId: input.signatureLevel,
       },
     });
   } catch (error) {

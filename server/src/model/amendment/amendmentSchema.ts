@@ -37,6 +37,8 @@ export const amendmentSchema = gql`
     demonstrationId: ID!
     name: NonEmptyString!
     description: String
+    sdgDivision: SdgDivision
+    signatureLevel: SignatureLevel
   }
 
   input UpdateAmendmentInput {
@@ -45,6 +47,8 @@ export const amendmentSchema = gql`
     description: String
     effectiveDate: DateTimeOrLocalDate
     status: ApplicationStatus
+    sdgDivision: SdgDivision
+    signatureLevel: SignatureLevel
   }
 
   type Mutation {
@@ -81,6 +85,8 @@ export interface CreateAmendmentInput {
   demonstrationId: string;
   name: NonEmptyString;
   description: string | null;
+  sdgDivision?: SdgDivision;
+  signatureLevel?: SignatureLevel;
 }
 
 export interface UpdateAmendmentInput {
@@ -89,4 +95,6 @@ export interface UpdateAmendmentInput {
   description?: string | null;
   effectiveDate?: DateTimeOrLocalDate | null;
   status?: ApplicationStatus;
+  sdgDivision?: SdgDivision;
+  signatureLevel?: SignatureLevel;
 }
