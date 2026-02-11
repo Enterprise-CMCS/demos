@@ -10,6 +10,8 @@ import {
   DateTimeOrLocalDate,
   ClearanceLevel,
   Tag,
+  SdgDivision,
+  SignatureLevel,
 } from "../../types.js";
 
 export const extensionSchema = gql`
@@ -23,10 +25,12 @@ export const extensionSchema = gql`
     currentPhaseName: PhaseName!
     phases: [ApplicationPhase!]!
     documents: [Document!]!
-    createdAt: DateTime!
-    updatedAt: DateTime!
     clearanceLevel: ClearanceLevel!
     tags: [Tag!]!
+    sdgDivision: SdgDivision
+    signatureLevel: SignatureLevel
+    createdAt: DateTime!
+    updatedAt: DateTime!
   }
 
   input CreateExtensionInput {
@@ -66,9 +70,11 @@ export interface Extension {
   phases: ApplicationPhase[];
   documents: Document[];
   clearanceLevel: ClearanceLevel;
+  tags: Tag[];
+  sdgDivision?: SdgDivision;
+  signatureLevel?: SignatureLevel;
   createdAt: Date;
   updatedAt: Date;
-  tags: Tag[];
 }
 
 export interface CreateExtensionInput {

@@ -21,6 +21,11 @@ import {
   resolveApplicationStatus,
   resolveApplicationTags,
 } from "../application";
+import {
+  resolveApplicationSdgDivision,
+  resolveApplicationSignatureLevel,
+} from "../application/applicationResolvers.js";
+import { sign } from "crypto";
 
 const amendmentApplicationType: ApplicationType = "Amendment";
 const conceptPhaseName: PhaseName = "Concept";
@@ -125,5 +130,7 @@ export const amendmentResolvers = {
     phases: resolveApplicationPhases,
     clearanceLevel: resolveApplicationClearanceLevel,
     tags: resolveApplicationTags,
+    sdgDivision: resolveApplicationSdgDivision,
+    signatureLevel: resolveApplicationSignatureLevel,
   },
 };

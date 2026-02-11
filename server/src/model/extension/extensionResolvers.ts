@@ -21,6 +21,10 @@ import {
   resolveApplicationStatus,
   resolveApplicationTags,
 } from "../application";
+import {
+  resolveApplicationSdgDivision,
+  resolveApplicationSignatureLevel,
+} from "../application/applicationResolvers.js";
 
 const extensionApplicationType: ApplicationType = "Extension";
 const conceptPhaseName: PhaseName = "Concept";
@@ -125,5 +129,7 @@ export const extensionResolvers = {
     phases: resolveApplicationPhases,
     clearanceLevel: resolveApplicationClearanceLevel,
     tags: resolveApplicationTags,
+    sdgDivision: resolveApplicationSdgDivision,
+    signatureLevel: resolveApplicationSignatureLevel,
   },
 };

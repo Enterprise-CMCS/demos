@@ -10,6 +10,8 @@ import {
   DateTimeOrLocalDate,
   ClearanceLevel,
   Tag,
+  SdgDivision,
+  SignatureLevel,
 } from "../../types.js";
 
 export const amendmentSchema = gql`
@@ -23,10 +25,12 @@ export const amendmentSchema = gql`
     currentPhaseName: PhaseName!
     phases: [ApplicationPhase!]!
     documents: [Document!]!
-    createdAt: DateTime!
-    updatedAt: DateTime!
     clearanceLevel: ClearanceLevel!
     tags: [Tag!]!
+    sdgDivision: SdgDivision
+    signatureLevel: SignatureLevel
+    createdAt: DateTime!
+    updatedAt: DateTime!
   }
 
   input CreateAmendmentInput {
@@ -66,9 +70,11 @@ export interface Amendment {
   phases: ApplicationPhase[];
   documents: Document[];
   clearanceLevel: ClearanceLevel;
-  createdAt: Date;
-  updatedAt: Date;
   tags: Tag[];
+  sdgDivision?: SdgDivision;
+  signatureLevel?: SignatureLevel;
+  updatedAt: Date;
+  createdAt: Date;
 }
 
 export interface CreateAmendmentInput {
