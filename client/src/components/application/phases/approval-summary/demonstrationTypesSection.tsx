@@ -18,6 +18,7 @@ type DemonstrationTypesSectionProps = {
   onMarkComplete: (complete: boolean) => void;
   completionDate?: string;
   isComplete?: boolean;
+  isReadonly?: boolean;
 };
 
 const toggleOnColor = "#6B7280";
@@ -28,6 +29,7 @@ export const DemonstrationTypesSection = ({
   onMarkComplete,
   completionDate,
   isComplete = false,
+  isReadonly = false,
 }: DemonstrationTypesSectionProps) => {
   const [types] = useState<DemonstrationDetailDemonstrationType[]>(
     demonstration.demonstrationTypes
@@ -43,13 +45,22 @@ export const DemonstrationTypesSection = ({
         <p className="text-sm text-text-placeholder mt-1 mb-2">
           Add or Update Demonstration Types with Effective and Expiration Dates below
         </p>
-        <SecondaryButton size="small" name="apply-types" onClick={applyTypes} disabled={isComplete}>
+        <SecondaryButton
+          size="small"
+          name="apply-types"
+          onClick={applyTypes}
+          disabled={isComplete || isReadonly}
+        >
           Apply Type(s)
           <AddNewIcon />
         </SecondaryButton>
       </div>
 
-      <TypesTable demonstration={demonstration} inputDisabled={isComplete} hideSearch={true} />
+      <TypesTable
+        demonstration={demonstration}
+        inputDisabled={isComplete || isReadonly}
+        hideSearch={true}
+      />
 
       <div className="border-t-1 border-gray-dark mt-2">
         <div className="flex justify-end mt-2 gap-2">
@@ -69,7 +80,7 @@ export const DemonstrationTypesSection = ({
             handleDiameter={24}
             boxShadow="0 2px 8px rgba(0, 0, 0, 0.6)"
             activeBoxShadow="0 0 2px 3px #3bf"
-            disabled={types.length === 0}
+            disabled={types.length === 0 || isReadonly}
           />
         </div>
       </div>

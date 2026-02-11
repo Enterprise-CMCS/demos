@@ -1,4 +1,4 @@
-import type { SetApplicationPhaseStatusInput } from "demos-server";
+import type { CompletePhaseInput, SetApplicationPhaseStatusInput } from "demos-server";
 import { gql, useMutation } from "@apollo/client";
 import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "../ApplicationWorkflow";
 
@@ -26,4 +26,22 @@ export const useSetPhaseStatus = (input: SetApplicationPhaseStatusInput) => {
   };
 
   return { setPhaseStatus, data, loading, error };
+};
+
+const COMPLETE_PHASE_MUTATION = gql`
+  mutation CompletePhase($input: CompletePhaseInput!) {
+    completePhase(input: $input) {
+      __typename
+    }
+  }
+`;
+
+export const useCompletePhase = () => {
+  const [mutate, { data, loading, error }] = useMutation(COMPLETE_PHASE_MUTATION);
+
+  const completePhase = async (input: CompletePhaseInput) => {
+    return await mutate({ variables: { input }, refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY] });
+  };
+
+  return { completePhase, data, loading, error };
 };
