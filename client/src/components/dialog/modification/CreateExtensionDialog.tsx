@@ -5,7 +5,6 @@ import { useToast } from "components/toast";
 import { BaseDialog } from "../BaseDialog";
 import { useDialog } from "../DialogContext";
 import { Button } from "components/button";
-import { SelectDemonstration } from "components/input/select/SelectDemonstration";
 
 export const CREATE_EXTENSION_MUTATION = gql`
   mutation CreateExtension($input: CreateExtensionInput!) {
@@ -20,6 +19,20 @@ export const CREATE_EXTENSION_MUTATION = gql`
   }
 `;
 
+const isValid = (createExtensionFormData: ModificationFormData) => {
+  return !!createExtensionFormData.demonstrationId && !!createExtensionFormData.name;
+};
+
+const hasChanges = (createExtensionFormData: ModificationFormData, demonstrationId?: string) => {
+  return !!(
+    createExtensionFormData.demonstrationId != demonstrationId ||
+    createExtensionFormData.name ||
+    createExtensionFormData.description ||
+    createExtensionFormData.effectiveDate ||
+    createExtensionFormData.signatureLevel
+  );
+};
+
 export const CreateExtensionDialog: React.FC<{
   demonstrationId?: string;
 }> = ({ demonstrationId }) => {
@@ -30,8 +43,6 @@ export const CreateExtensionDialog: React.FC<{
   const [createExtensionFormData, setCreateExtensionFormData] = useState<ModificationFormData>({
     demonstrationId: demonstrationId,
   });
-
-  
 
   const handleSubmit = async () => {
     try {
@@ -58,31 +69,24 @@ export const CreateExtensionDialog: React.FC<{
     <BaseDialog
       title="Create Extension"
       onClose={closeDialog}
-      dialogHasChanges={hasChanges()}
+      dialogHasChanges={hasChanges(createExtensionFormData, demonstrationId)}
       maxWidthClass="max-w-[920px]"
       actionButton={
         <Button
           name={"button-submit-create-extension-dialog"}
-          disabled={saving || !hasChanges()}
+          disabled={
+            saving ||
+            !hasChanges(createExtensionFormData, demonstrationId) ||
+            !isValid(createExtensionFormData)
+          }
           onClick={handleSubmit}
         >
-          Apply Type(s)
+          Create Extension
         </Button>
       }
     >
       <>
         <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-gray-300">
-          <SelectDemonstration
-            isRequired
-            onSelect={(demonstrationId) =>
-              setCreateExtensionFormData((prev) => ({
-                ...prev,
-                demonstrationId: demonstrationId,
-              }))
-            }
-            isDisabled={!!demonstrationId}
-            value={createExtensionFormData.demonstrationId || ""}
-          />
           <ModificationForm
             modificationType="Extension"
             modificationFormData={createExtensionFormData}

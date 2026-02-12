@@ -5,7 +5,6 @@ import { useToast } from "components/toast";
 import { BaseDialog } from "../BaseDialog";
 import { useDialog } from "../DialogContext";
 import { Button } from "components/button";
-import { SelectDemonstration } from "components/input/select/SelectDemonstration";
 
 export const CREATE_AMENDMENT_MUTATION = gql`
   mutation CreateAmendment($input: CreateAmendmentInput!) {
@@ -20,6 +19,20 @@ export const CREATE_AMENDMENT_MUTATION = gql`
   }
 `;
 
+const isValid = (createAmendmentFormData: ModificationFormData) => {
+  return !!createAmendmentFormData.demonstrationId && !!createAmendmentFormData.name;
+};
+
+const hasChanges = (createAmendmentFormData: ModificationFormData, demonstrationId?: string) => {
+  return !!(
+    createAmendmentFormData.demonstrationId != demonstrationId ||
+    createAmendmentFormData.name ||
+    createAmendmentFormData.description ||
+    createAmendmentFormData.effectiveDate ||
+    createAmendmentFormData.signatureLevel
+  );
+};
+
 export const CreateAmendmentDialog: React.FC<{
   demonstrationId?: string;
 }> = ({ demonstrationId }) => {
@@ -30,10 +43,6 @@ export const CreateAmendmentDialog: React.FC<{
   const [createAmendmentFormData, setCreateAmendmentFormData] = useState<ModificationFormData>({
     demonstrationId: demonstrationId,
   });
-
-  const hasChanges = () => {
-    return true;
-  };
 
   const handleSubmit = async () => {
     try {
@@ -60,33 +69,25 @@ export const CreateAmendmentDialog: React.FC<{
     <BaseDialog
       title="Create Amendment"
       onClose={closeDialog}
-      dialogHasChanges={hasChanges()}
+      dialogHasChanges={hasChanges(createAmendmentFormData, demonstrationId)}
       maxWidthClass="max-w-[920px]"
       actionButton={
         <Button
           name={"button-submit-create-amendment-dialog"}
-          disabled={saving || !hasChanges()}
+          disabled={
+            saving ||
+            !hasChanges(createAmendmentFormData, demonstrationId) ||
+            !isValid(createAmendmentFormData)
+          }
           onClick={handleSubmit}
         >
-          Apply Type(s)
+          Create Amendment
         </Button>
       }
     >
       <>
         <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-gray-300">
-          <SelectDemonstration
-            isRequired
-            onSelect={(demonstrationId) =>
-              setCreateAmendmentFormData((prev) => ({
-                ...prev,
-                demonstrationId: demonstrationId,
-              }))
-            }
-            isDisabled={!!demonstrationId}
-            value={createAmendmentFormData.demonstrationId || ""}
-          />
           <ModificationForm
-            mode="create"
             modificationType="Amendment"
             modificationFormData={createAmendmentFormData}
             setModificationFormData={setCreateAmendmentFormData}
