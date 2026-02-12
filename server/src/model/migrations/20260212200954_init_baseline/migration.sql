@@ -269,7 +269,7 @@ VALUES
     ('Review', 'OSORA R2 Comments Due'),
     ('Review', 'CMS (OSORA) Clearance End'),
     ('Approval Package', 'Approval Package Start Date'),
-    ('Approval Package', 'Approval Package Completion Date');
+    ('Approval Package', 'Approval Package Completion Date'),
     ('Approval Summary', 'Application Details Marked Complete Date'),
     ('Approval Summary', 'Application Demonstration Types Marked Complete Date'),
     ('Approval Summary', 'Approval Summary Start Date'),

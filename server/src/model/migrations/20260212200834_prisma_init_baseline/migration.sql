@@ -165,6 +165,18 @@ CREATE TABLE "application_tag_assignment" (
 );
 
 -- CreateTable
+CREATE TABLE "application_tag_assignment_history" (
+    "revision_id" SERIAL NOT NULL,
+    "revision_type" "revision_type_enum" NOT NULL,
+    "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "application_id" UUID NOT NULL,
+    "tag_id" TEXT NOT NULL,
+    "tag_type_id" TEXT NOT NULL,
+
+    CONSTRAINT "application_tag_assignment_history_pkey" PRIMARY KEY ("revision_id")
+);
+
+-- CreateTable
 CREATE TABLE "application_tag_type_limit" (
     "id" TEXT NOT NULL,
 
