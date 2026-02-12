@@ -30,12 +30,9 @@ import {
   resolveApplicationPhases,
   resolveApplicationStatus,
   resolveApplicationTags,
+  resolveApplicationSignatureLevel,
 } from "../application";
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
-import {
-  resolveApplicationSdgDivision,
-  resolveApplicationSignatureLevel,
-} from "../application/applicationResolvers.js";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -279,6 +276,10 @@ export async function resolveDemonstrationTypes(
   }));
 }
 
+export function resolveDemonstrationSdgDivision(parent: PrismaDemonstration): string | null {
+  return parent.sdgDivisionId;
+}
+
 export const demonstrationResolvers = {
   Query: {
     demonstration: __getDemonstration,
@@ -296,7 +297,7 @@ export const demonstrationResolvers = {
     documents: resolveApplicationDocuments,
     amendments: __resolveDemonstrationAmendments,
     extensions: __resolveDemonstrationExtensions,
-    sdgDivision: resolveApplicationSdgDivision,
+    sdgDivision: resolveDemonstrationSdgDivision,
     signatureLevel: resolveApplicationSignatureLevel,
     currentPhaseName: resolveApplicationCurrentPhaseName,
     roles: __resolveDemonstrationRoleAssignments,

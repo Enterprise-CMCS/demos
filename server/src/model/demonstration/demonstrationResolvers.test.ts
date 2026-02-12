@@ -8,8 +8,7 @@ import {
   __resolveDemonstrationState,
   __resolveDemonstrationAmendments,
   __resolveDemonstrationExtensions,
-  __resolveDemonstrationSdgDivision,
-  __resolveDemonstrationSignatureLevel,
+  resolveDemonstrationSdgDivision,
   __resolveDemonstrationRoleAssignments,
   __resolveDemonstrationPrimaryProjectOfficer,
   resolveDemonstrationTypes,
@@ -52,6 +51,7 @@ import {
   resolveApplicationStatus,
   resolveApplicationClearanceLevel,
   resolveApplicationTags,
+  resolveApplicationSignatureLevel,
 } from "../application";
 import { parseDateTimeOrLocalDateToEasternTZDate, EasternTZDate } from "../../dateUtilities.js";
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
@@ -70,6 +70,7 @@ vi.mock("../application", () => ({
   resolveApplicationPhases: vi.fn(),
   resolveApplicationClearanceLevel: vi.fn(),
   resolveApplicationTags: vi.fn(),
+  resolveApplicationSignatureLevel: vi.fn(),
 }));
 
 vi.mock("../../errors/checkOptionalNotNullFields.js", () => ({
@@ -723,24 +724,13 @@ describe("demonstrationResolvers", () => {
     });
   });
 
-  describe("__resolveDemonstrationSdgDivision", () => {
+  describe("resolveDemonstrationSdgDivision", () => {
     it("should resolve the relevant SDG Division", () => {
       const input: Partial<PrismaDemonstration> = {
         sdgDivisionId: testValues.sdgDivisionId,
       };
-      expect(__resolveDemonstrationSdgDivision(input as PrismaDemonstration)).toBe(
+      expect(resolveDemonstrationSdgDivision(input as PrismaDemonstration)).toBe(
         testValues.sdgDivisionId
-      );
-    });
-  });
-
-  describe("__resolveDemonstrationSignatureLevel", () => {
-    it("should resolve the relevant signature level", () => {
-      const input: Partial<PrismaDemonstration> = {
-        signatureLevelId: testValues.signatureLevelId,
-      };
-      expect(__resolveDemonstrationSignatureLevel(input as PrismaDemonstration)).toBe(
-        testValues.signatureLevelId
       );
     });
   });

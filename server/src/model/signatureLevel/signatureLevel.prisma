@@ -5,7 +5,7 @@ model SignatureLevel {
   demonstrations Demonstration[]
   amendments     Amendment[]
   extension      Extension[]
-  
+
   @@id([id])
   @@map("signature_level")
 }
