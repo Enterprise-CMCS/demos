@@ -21,10 +21,7 @@ import {
   resolveApplicationStatus,
   resolveApplicationTags,
 } from "../application";
-import {
-  resolveApplicationSdgDivision,
-  resolveApplicationSignatureLevel,
-} from "../application/applicationResolvers.js";
+import { resolveApplicationSignatureLevel } from "../application/applicationResolvers.js";
 
 const amendmentApplicationType: ApplicationType = "Amendment";
 const conceptPhaseName: PhaseName = "Concept";
@@ -61,7 +58,6 @@ export async function __createAmendment(
         description: input.description,
         statusId: newApplicationStatusId,
         currentPhaseId: conceptPhaseName,
-        sdgDivisionId: input.sdgDivision,
         signatureLevelId: input.signatureLevel,
       },
     });
@@ -85,7 +81,6 @@ export async function __updateAmendment(
         description: input.description,
         effectiveDate: effectiveDate,
         statusId: input.status,
-        sdgDivisionId: input.sdgDivision,
         signatureLevelId: input.signatureLevel,
       },
     });
@@ -133,7 +128,6 @@ export const amendmentResolvers = {
     phases: resolveApplicationPhases,
     clearanceLevel: resolveApplicationClearanceLevel,
     tags: resolveApplicationTags,
-    sdgDivision: resolveApplicationSdgDivision,
     signatureLevel: resolveApplicationSignatureLevel,
   },
 };

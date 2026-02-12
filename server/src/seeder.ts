@@ -585,7 +585,6 @@ async function seedDatabase() {
       demonstrationId: (await prisma().demonstration.findRandom())!.id,
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
-      sdgDivision: sampleFromArray([...SDG_DIVISIONS, undefined], 1)[0],
       signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
     };
     await __createAmendment(undefined, { input: createInput });
@@ -609,7 +608,6 @@ async function seedDatabase() {
       demonstrationId: (await prisma().demonstration.findRandom())!.id,
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
-      sdgDivision: sampleFromArray([...SDG_DIVISIONS, undefined], 1)[0],
       signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
     };
     await __createExtension(undefined, { input: createInput });

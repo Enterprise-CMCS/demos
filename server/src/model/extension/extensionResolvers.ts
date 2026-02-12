@@ -22,7 +22,6 @@ import {
   resolveApplicationTags,
 } from "../application";
 import {
-  resolveApplicationSdgDivision,
   resolveApplicationSignatureLevel,
 } from "../application/applicationResolvers.js";
 
@@ -61,7 +60,6 @@ export async function __createExtension(
         description: input.description,
         statusId: newApplicationStatusId,
         currentPhaseId: conceptPhaseName,
-        sdgDivisionId: input.sdgDivision,
         signatureLevelId: input.signatureLevel,
       },
     });
@@ -85,7 +83,6 @@ export async function __updateExtension(
         description: input.description,
         effectiveDate: effectiveDate,
         statusId: input.status,
-        sdgDivisionId: input.sdgDivision,
         signatureLevelId: input.signatureLevel,
       },
     });
@@ -133,7 +130,6 @@ export const extensionResolvers = {
     phases: resolveApplicationPhases,
     clearanceLevel: resolveApplicationClearanceLevel,
     tags: resolveApplicationTags,
-    sdgDivision: resolveApplicationSdgDivision,
     signatureLevel: resolveApplicationSignatureLevel,
   },
 };
