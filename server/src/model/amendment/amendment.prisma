@@ -12,7 +12,6 @@ model Amendment {
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
 
-
   application     Application                   @relation(fields: [id, applicationTypeId], references: [id, applicationTypeId])
   applicationType AmendmentApplicationTypeLimit @relation(fields: [applicationTypeId], references: [id])
   demonstration   Demonstration                 @relation(fields: [demonstrationId], references: [id])
