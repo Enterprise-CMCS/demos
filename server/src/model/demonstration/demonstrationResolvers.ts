@@ -30,9 +30,9 @@ import {
   resolveApplicationPhases,
   resolveApplicationStatus,
   resolveApplicationTags,
+  resolveApplicationSignatureLevel,
 } from "../application";
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
-import { resolveApplicationSignatureLevel } from "../application/applicationResolvers.js";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";

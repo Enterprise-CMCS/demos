@@ -20,10 +20,8 @@ import {
   resolveApplicationPhases,
   resolveApplicationStatus,
   resolveApplicationTags,
-} from "../application";
-import {
   resolveApplicationSignatureLevel,
-} from "../application/applicationResolvers.js";
+} from "../application";
 
 const extensionApplicationType: ApplicationType = "Extension";
 const conceptPhaseName: PhaseName = "Concept";

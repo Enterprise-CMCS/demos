@@ -20,8 +20,8 @@ import {
   resolveApplicationPhases,
   resolveApplicationStatus,
   resolveApplicationTags,
+  resolveApplicationSignatureLevel,
 } from "../application";
-import { resolveApplicationSignatureLevel } from "../application/applicationResolvers.js";
 
 const amendmentApplicationType: ApplicationType = "Amendment";
 const conceptPhaseName: PhaseName = "Concept";
