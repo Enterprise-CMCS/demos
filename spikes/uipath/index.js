@@ -5,7 +5,8 @@ import { uploadDocument } from "./uploadDocument.js";
 import { extractDoc } from "./extractDoc.js";
 import { fetchExtractionResult } from "./fetchExtractResult.js";
 import { createLogFile, log } from "./logFile.js";
-import { getProjectId } from "./uipathClient.js";
+import { setProjectId } from "./uipathClient.js";
+import { getProjectIdByName } from "./getProjectId.js";
 
 dotenv.config();
 
@@ -24,14 +25,17 @@ if (! inputFile) {
 log("Running on file: ", inputFile);
 
 try {
-  // Validate required env early to avoid undefined IDs in URLs
-  getProjectId();
-
   const token = await getToken();
   if (!token) {
     throw new Error("No auth token received.");
   }
   log("Got the auth token.", logPath);
+  // Gets the project ID from the API, and then we set it to cache.
+  // So after we setProjectId() to fetch it we just run getProjectId()
+  const projectId = await getProjectIdByName(token, "demosOCR");
+  setProjectId(projectId);
+
+  log(`Using project ID: ${projectId}`, logPath);
 
   log(`Using input file: ${inputFile}`, logPath);
 
