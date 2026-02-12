@@ -3,6 +3,7 @@ import {
   DocumentType,
   Tag as DemonstrationTypeName,
   DemonstrationTypeAssignment,
+  UploadDocumentInput,
 } from "demos-server";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
@@ -131,9 +132,13 @@ export const useDialog = () => {
     );
   };
 
-  const showCompletenessDocumentUploadDialog = (applicationId: string) => {
+  const showCompletenessDocumentUploadDialog = (
+    applicationId: string,
+    onDocumentUploadSucceeded?: (payload?: UploadDocumentInput) => void
+  ) => {
     context.showDialog(
       <CompletenessDocumentUploadDialog
+        onDocumentUploadSucceeded={onDocumentUploadSucceeded}
         onClose={context.hideDialog}
         applicationId={applicationId}
       />
