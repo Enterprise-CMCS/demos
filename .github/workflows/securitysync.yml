@@ -43,7 +43,7 @@ jobs:
           jira-project-key: DEMOS # Enter Project Key
           jira-ignore-statuses: Done, Closed, Canceled
           aws-severities: CRITICAL, HIGH, MEDIUM
-          jira-custom-fields: '{ "customfield_10100": "DEMOS-1417" }' # Enter Jira Epic Code
+#          jira-custom-fields: '{ "customfield_10100": "DEMOS-1417" }' # Enter Jira Epic Code
 #        jira-labels-config: "[{\"labelField\":\"ProductName\",\"labelPrefix\":\"product\",\"labelDelimiter\":\":\"},{\"labelField\":\"severity\"},{\"labelField\":\"accountId\",\"labelDelimiter\":\":\",\"labelPrefix\":\"account\"},{\"labelField\":\"region\"},{\"labelField\":\"accountAlias\"}, {\"labelField\":\"identify\"},{\"labelField\":\"CVE\",\"labelPrefix\":\"\",\"labelDelimiter\":\"\"}]"
 #          jira-assignee: ""
           include-all-products: 'true'
