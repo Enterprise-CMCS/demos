@@ -1,6 +1,8 @@
 // server.ts
 import { ApolloServer } from "@apollo/server";
+import { ApolloArmor } from '@escape.tech/graphql-armor';
 import { startServerAndCreateLambdaHandler, handlers } from "@as-integrations/aws-lambda";
+import { GraphQLArmorConfig} from "./plugins/graphQLArmorConfig.js";
 import { typeDefs, resolvers } from "./model/graphql.js";
 import { authGatePlugin } from "./auth/auth.plugin.js";
 import {loggingPlugin} from "./plugins/logging.plugin"
@@ -59,10 +61,17 @@ const setDatabaseUrl = async () => {
   return url;
 };
 
+
+
+const armor = new ApolloArmor(GraphQLArmorConfig);
+const protection = armor.protect()
+
 const server = new ApolloServer<GraphQLContext>({
   typeDefs,
   resolvers,
-  plugins: [authGatePlugin, loggingPlugin],
+   ...protection,
+  plugins: [...protection.plugins,authGatePlugin, loggingPlugin],
+  validationRules: [...protection.validationRules],
   formatError: (formattedError, error) => {
     log.debug({ error, type: "graphql.request.error" });
     return formattedError;
