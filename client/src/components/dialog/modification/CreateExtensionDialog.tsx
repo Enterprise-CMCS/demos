@@ -86,11 +86,15 @@ export const CreateExtensionDialog: React.FC<{
       }
     >
       <>
-        <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-gray-300">
+        <div className="flex flex-col gap-2">
           <ModificationForm
+            showDemonstrationSelect={!demonstrationId}
+            mode="create"
             modificationType="Extension"
             modificationFormData={createExtensionFormData}
-            setModificationFormData={setCreateExtensionFormData}
+            setModificationFormDataField={(field: Partial<ModificationFormData>) =>
+              setCreateExtensionFormData((prev) => ({ ...prev, ...field }))
+            }
           />
         </div>
       </>

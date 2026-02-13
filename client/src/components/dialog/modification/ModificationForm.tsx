@@ -1,43 +1,47 @@
 import React from "react";
 import { Textarea, TextInput } from "components/input";
-import { SignatureLevel } from "demos-server";
+import { LocalDate, SignatureLevel } from "demos-server";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
 import { SelectDemonstration } from "components/input/select/SelectDemonstration";
+import { DatePicker } from "components/input/date/DatePicker";
 
 export type ModificationFormData = {
-  demonstrationId?: string;
+  id?: string;
   name?: string;
   description?: string;
-  effectiveDate?: string;
+  effectiveDate?: LocalDate;
   signatureLevel?: SignatureLevel;
+  demonstrationId?: string;
 };
 
 export const ModificationForm: React.FC<{
-  initialDemonstrationId?: string;
+  showDemonstrationSelect?: boolean;
+  mode: "create" | "edit";
   modificationType: "Amendment" | "Extension";
   modificationFormData: ModificationFormData;
-  setModificationFormData: (updater: (prev: ModificationFormData) => ModificationFormData) => void;
+  setModificationFormDataField: (field: Partial<ModificationFormData>) => void;
 }> = ({
-  initialDemonstrationId,
+  showDemonstrationSelect,
+  mode,
   modificationType,
   modificationFormData,
-  setModificationFormData,
+  setModificationFormDataField,
 }) => {
   return (
     <>
-      <SelectDemonstration
-        isRequired
-        onSelect={(demonstrationId) =>
-          setModificationFormData((prev) => ({
-            ...prev,
-            demonstrationId: demonstrationId,
-          }))
-        }
-        isDisabled={!!initialDemonstrationId}
-        value={modificationFormData.demonstrationId || ""}
-      />
+      {showDemonstrationSelect && (
+        <SelectDemonstration
+          isRequired
+          onSelect={(demonstrationId) =>
+            setModificationFormDataField({
+              demonstrationId: demonstrationId,
+            })
+          }
+          value={modificationFormData.demonstrationId || ""}
+        />
+      )}
       <div className="flex gap-4">
-        <div className="flex-[2]">
+        <div className={mode === "edit" ? "flex-[2]" : "flex-[1]"}>
           <TextInput
             name="name"
             label={`${modificationType} Title`}
@@ -45,37 +49,47 @@ export const ModificationForm: React.FC<{
             isRequired
             value={modificationFormData.name}
             onChange={(e) =>
-              setModificationFormData((prev) => ({
-                ...prev,
+              setModificationFormDataField({
                 name: e.target.value,
-              }))
+              })
             }
           />
         </div>
-        <div className="flex-[1]">
-          <SelectSignatureLevel
-            onSelect={(signatureLevel) =>
-              setModificationFormData((prev) => ({
-                ...prev,
-                signatureLevel: signatureLevel,
-              }))
-            }
-            initialValue={modificationFormData.signatureLevel}
-          />
-        </div>
+        {mode === "edit" && (
+          <div className="flex-[1]">
+            <DatePicker
+              name="date-picker-effective-date"
+              label="Effective Date"
+              isRequired
+              value={modificationFormData.effectiveDate || ""}
+              onChange={(date) =>
+                setModificationFormDataField({ effectiveDate: date as LocalDate })
+              }
+            />
+          </div>
+        )}
       </div>
       <Textarea
         name={"description"}
         label={`${modificationType} Description`}
         onChange={(e) =>
-          setModificationFormData((prev) => ({
-            ...prev,
+          setModificationFormDataField({
             description: e.target.value,
-          }))
+          })
         }
         initialValue={modificationFormData.description || ""}
         placeholder={`Enter ${modificationType.toLowerCase()} description`}
       />
+      <div>
+        <SelectSignatureLevel
+          onSelect={(signatureLevel) =>
+            setModificationFormDataField({
+              signatureLevel: signatureLevel,
+            })
+          }
+          initialValue={modificationFormData.signatureLevel}
+        />
+      </div>
     </>
   );
 };

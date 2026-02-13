@@ -22,6 +22,7 @@ export const DialogSandbox: React.FC = () => {
     showDeclareIncompleteDialog,
     showApplyDemonstrationTypesDialog,
     showApplyTagsDialog,
+    showUpdateExtensionDialog,
   } = useDialog();
 
   const ID = "1";
@@ -63,11 +64,23 @@ export const DialogSandbox: React.FC = () => {
         <Button name="edit-demonstration" onClick={() => showEditDemonstrationDialog(ID)}>
           Edit Demonstration
         </Button>
-        <Button name="create-amendment" onClick={() => showCreateAmendmentDialog(ID)}>
+        <Button
+          name="create-amendment"
+          onClick={() => showCreateAmendmentDialog("e0447241-7113-4ffd-abb6-555814d34340")}
+        >
           Create Amendment
         </Button>
-        <Button name="create-extension" onClick={() => showCreateExtensionDialog(ID)}>
+        <Button
+          name="create-extension"
+          onClick={() => showCreateExtensionDialog("e0447241-7113-4ffd-abb6-555814d34340")}
+        >
           Create Extension
+        </Button>
+        <Button
+          name="update-extension"
+          onClick={() => showUpdateExtensionDialog("d751a7a3-f1e1-4eb7-8a40-158a74be5e21")}
+        >
+          Update Extension
         </Button>
       </div>
       <div className="flex flex-wrap gap-2">
