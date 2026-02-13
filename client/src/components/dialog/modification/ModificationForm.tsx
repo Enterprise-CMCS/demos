@@ -36,21 +36,19 @@ export const ModificationForm: React.FC<{
           value={modificationFormData.demonstrationId || ""}
         />
       )}
-      <div className="flex gap-4">
-        <div className="flex-[1]">
-          <TextInput
-            name="name"
-            label={`${modificationType} Title`}
-            placeholder={`Enter ${modificationType.toLowerCase()} title`}
-            isRequired
-            value={modificationFormData.name}
-            onChange={(e) =>
-              setModificationFormDataField({
-                name: e.target.value,
-              })
-            }
-          />
-        </div>
+      <div className="w-1/2">
+        <TextInput
+          name="name"
+          label={`${modificationType} Title`}
+          placeholder={`Enter ${modificationType.toLowerCase()} title`}
+          isRequired
+          value={modificationFormData.name}
+          onChange={(e) =>
+            setModificationFormDataField({
+              name: e.target.value,
+            })
+          }
+        />
       </div>
       <Textarea
         name={"description"}
@@ -63,7 +61,7 @@ export const ModificationForm: React.FC<{
         initialValue={modificationFormData.description || ""}
         placeholder={`Enter ${modificationType.toLowerCase()} description`}
       />
-      <div>
+      <div className="w-1/2">
         <SelectSignatureLevel
           onSelect={(signatureLevel) =>
             setModificationFormDataField({
