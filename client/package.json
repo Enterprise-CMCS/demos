@@ -86,7 +86,6 @@
   },
   "optionalDependencies": {
     "@emnapi/core": "^1.8.1",
-    "@rollup/rollup-linux-x64-musl": "^4.57.1",
-    "lightningcss": "^1.31.1"
+    "@rollup/rollup-linux-x64-musl": "^4.57.1"
   }
 }
