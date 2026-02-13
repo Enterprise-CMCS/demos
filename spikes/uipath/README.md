@@ -42,7 +42,7 @@ Flow:
 
 `uipathClient.js` exports:
 - `duPost(url, token, data, options)` — injects bearer auth and `api-version` param.
-- Constants: `UIPATH_BASE_URL`, `UIPATH_TENANT`, `UIPATH_PROJECT_ID`, `UIPATH_EXTRACTOR_GUID`, `UIPATH_API_VERSION`.
+- Constants: `UIPATH_BASE_URL`, `UIPATH_TENANT`, `PROJECT_ID`, `EXTRACTOR_GUID`, `UIPATH_API_VERSION`.
 
 ## Create Lambda to recieve documents
 - see where we update datasbase in Connor's file scanner.
@@ -52,9 +52,4 @@ Flow:
 
 ## Available Extractors
 
-Below is a sample JSON listing all available extractors and their endpoints:
-If you go to UIPath Open API page, and run the "extractors" request, it will give a list of extractors.
-We want the generative_extractor version. (unless we make our own)
-
-
-GET ENDPOINT - `/projects/{projectId}/extractors`
+Extractors are acquired from UIPath now. For each model we place a request and get the extractor url. 

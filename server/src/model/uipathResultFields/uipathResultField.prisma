@@ -1,0 +1,17 @@
+model UipathResultField {
+  id               String  @id @default(uuid()) @db.Uuid
+  uipath_result_id String  @map("uipath_result_id") @db.Uuid
+  field_id         String  @map("field_id")
+  field_name       String  @map("field_name")
+  field_type       String  @map("field_type")
+  field_value      String  @map("value")
+  confidence       Float   @map("confidence")
+  value_json       Json    @map("value_json")
+  text_length      Int     @map("text_length")
+  result           UiPathResult @relation(fields: [uipath_result_id], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@index([uipath_result_id])
+  @@unique([uipath_result_id, field_id, field_value])
+  @@map("uipath_result_field")
+}

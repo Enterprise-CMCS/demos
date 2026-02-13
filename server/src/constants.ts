@@ -446,3 +446,5 @@ export const DEMONSTRATION_TYPE_TAGS: string[] = [
   "Value Based Care (VBC)",
   "Vision",
 ] as const;
+
+export const UIPATH_PROJECT_NAME = "demosOCR";

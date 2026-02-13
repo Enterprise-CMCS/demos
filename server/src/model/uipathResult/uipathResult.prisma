@@ -1,0 +1,11 @@
+model UiPathResult {
+  id        String   @id @default(uuid()) @db.Uuid
+  requestId String   @map("request_id")
+  response  Json
+  projectId String   @map("project_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  fields    UipathResultField[]
+
+  @@unique([requestId])
+  @@map("uipath_result")
+}

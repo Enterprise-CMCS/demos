@@ -96,5 +96,36 @@ echo "   Queue ARN: $INFECTED_QUEUE_ARN"
 echo "   DLQ ARN: $INFECTED_DLQ_ARN"
 echo "   Note: Messages sent manually via delete-infected-file.sh script"
 
+# ============================================================================
+# UiPath Queue (for document understanding pipeline)
+# ============================================================================
+echo "Creating UiPath queue..."
+
+UIPATH_DLQ_URL=$($AWS_CMD sqs create-queue \
+    --queue-name uipath-dlq \
+    --attributes '{"MessageRetentionPeriod":"1209600"}' \
+    --output text --query 'QueueUrl')
+
+UIPATH_DLQ_ARN=$($AWS_CMD sqs get-queue-attributes \
+    --queue-url $UIPATH_DLQ_URL \
+    --attribute-names QueueArn \
+    --output text --query 'Attributes.QueueArn')
+
+UIPATH_REDRIVE_POLICY="{\"deadLetterTargetArn\":\"$UIPATH_DLQ_ARN\",\"maxReceiveCount\":\"5\"}"
+
+UIPATH_QUEUE_URL=$($AWS_CMD sqs create-queue \
+    --queue-name uipath-queue \
+    --attributes "{\"RedrivePolicy\":\"$(echo $UIPATH_REDRIVE_POLICY | sed 's/"/\\"/g')\",\"MessageRetentionPeriod\":\"1209600\"}" \
+    --output text --query 'QueueUrl')
+
+UIPATH_QUEUE_ARN=$($AWS_CMD sqs get-queue-attributes \
+    --queue-url $UIPATH_QUEUE_URL \
+    --attribute-names QueueArn \
+    --output text --query 'Attributes.QueueArn')
+
+echo "✅ UiPath queue created"
+echo "   Queue ARN: $UIPATH_QUEUE_ARN"
+echo "   DLQ ARN: $UIPATH_DLQ_ARN"
+
 echo ""
 echo "✅ All SQS queues setup complete"
