@@ -7,6 +7,7 @@ import {
   resolveApplicationPhases,
   resolveApplicationClearanceLevel,
   resolveApplicationTags,
+  resolveApplicationSignatureLevel,
 } from "./applicationResolvers";
 import { PrismaApplication } from ".";
 import { ApplicationStatus, ApplicationType, PhaseName, Tag } from "../../types";
@@ -58,6 +59,7 @@ describe("applicationResolvers", () => {
   const testPhaseId: PhaseName = "Application Intake";
   const testApplicationStatusId: ApplicationStatus = "Approved";
   const testApplicationClearanceLevelId = "COMMs";
+  const testApplicationSignatureLevelId = "Level 1";
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -165,6 +167,15 @@ describe("applicationResolvers", () => {
         expectedCall
       );
       expect(result).toStrictEqual(expectedResult);
+    });
+  });
+  describe("resolveApplicationSignatureLevel", () => {
+    it("should resolve the current application signature level", async () => {
+      const input: Partial<PrismaApplication> = {
+        signatureLevelId: testApplicationSignatureLevelId,
+      };
+      const result = resolveApplicationSignatureLevel(input as PrismaApplication);
+      expect(result).toBe(testApplicationSignatureLevelId);
     });
   });
 });

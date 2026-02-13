@@ -20,6 +20,7 @@ import {
   resolveApplicationPhases,
   resolveApplicationStatus,
   resolveApplicationTags,
+  resolveApplicationSignatureLevel,
 } from "../application";
 
 const amendmentApplicationType: ApplicationType = "Amendment";
@@ -57,6 +58,7 @@ export async function __createAmendment(
         description: input.description,
         statusId: newApplicationStatusId,
         currentPhaseId: conceptPhaseName,
+        signatureLevelId: input.signatureLevel,
       },
     });
   });
@@ -79,6 +81,7 @@ export async function __updateAmendment(
         description: input.description,
         effectiveDate: effectiveDate,
         statusId: input.status,
+        signatureLevelId: input.signatureLevel,
       },
     });
   } catch (error) {
@@ -125,5 +128,6 @@ export const amendmentResolvers = {
     phases: resolveApplicationPhases,
     clearanceLevel: resolveApplicationClearanceLevel,
     tags: resolveApplicationTags,
+    signatureLevel: resolveApplicationSignatureLevel,
   },
 };
