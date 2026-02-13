@@ -466,7 +466,7 @@ VALUES
 INSERT INTO
     demos_app.application_tag_type_limit
 VALUES
-    ('Application');    
+    ('Application');
 
 INSERT INTO
     demos_app.demonstration_type_tag_type_limit
