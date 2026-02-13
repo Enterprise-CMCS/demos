@@ -22,6 +22,7 @@ npx esbuild index.ts \
   --external:@aws-sdk/* \
   --external:pg \
   --external:pino \
+  --external:file-type \
   --outfile=index.js
 
 zip -qr fileprocess.zip index.js node_modules/ package.json package-lock.json
