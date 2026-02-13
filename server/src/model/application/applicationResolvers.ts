@@ -25,6 +25,10 @@ export function resolveApplicationStatus(parent: PrismaApplication): string {
   return parent.statusId;
 }
 
+export function resolveApplicationSignatureLevel(parent: PrismaApplication): string | null {
+  return parent.signatureLevelId;
+}
+
 export function resolveApplicationType(parent: PrismaApplication): string {
   return parent.applicationTypeId;
 }

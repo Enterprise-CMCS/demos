@@ -8,6 +8,7 @@ model Extension {
   statusId          String    @map("status_id")
   currentPhaseId    String    @map("current_phase_id")
   clearanceLevelId  String    @default("CMS (OSORA)") @map("clearance_level_id")
+  signatureLevelId  String?   @map("signature_level_id")
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
 
@@ -17,6 +18,7 @@ model Extension {
   status          ApplicationStatus             @relation(fields: [statusId], references: [id])
   currentPhase    Phase                         @relation(fields: [currentPhaseId], references: [id])
   clearanceLevel  ClearanceLevel                @relation(fields: [clearanceLevelId], references: [id], onDelete: Restrict)
+  signatureLevel  SignatureLevel?               @relation(fields: [signatureLevelId], references: [id], onDelete: Restrict)
 
   @@id([id])
   @@unique([id, applicationTypeId]) // Not required by Postgres, but Prisma requires this notation
