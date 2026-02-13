@@ -27,7 +27,7 @@ export const config = defineConfig({
       reporter: ["text", "html"],
       reportsDirectory: "./coverage",
       include: ["src/**/*.{ts,tsx}"],
-      exclude: ["node_modules", "dist", "vite.config.ts"],
+      exclude: ["node_modules", "dist", "vite.config.ts", "src/pages/debug/**"],
     },
   },
 });
