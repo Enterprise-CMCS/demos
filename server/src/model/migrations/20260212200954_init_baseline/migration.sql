@@ -1,3 +1,5 @@
+SET search_path TO demos_app;
+
 -- Populate Constraint Tables
 INSERT INTO
     demos_app.application_status
