@@ -22,8 +22,6 @@ export const DialogSandbox: React.FC = () => {
     showDeclareIncompleteDialog,
     showApplyDemonstrationTypesDialog,
     showApplyTagsDialog,
-    showUpdateExtensionDialog,
-    showUpdateAmendmentDialog,
   } = useDialog();
 
   const ID = "1";
@@ -53,10 +51,6 @@ export const DialogSandbox: React.FC = () => {
     },
   ];
 
-  const demonstrationId = "e0447241-7113-4ffd-abb6-555814d34340";
-  const amendmentId = "b4f7d0d0-a6aa-4fbb-b186-d3966d19c9e5";
-  const extensionId = "60cb0397-c7bc-44ef-a732-1f456c15f194";
-
   return (
     <div className="flex flex-col gap-2 p-2">
       <h2 className="text-xl font-bold">Dialog Sandbox</h2>
@@ -69,29 +63,11 @@ export const DialogSandbox: React.FC = () => {
         <Button name="edit-demonstration" onClick={() => showEditDemonstrationDialog(ID)}>
           Edit Demonstration
         </Button>
-        <Button name="create-amendment-no-demo" onClick={() => showCreateAmendmentDialog()}>
-          Create Amendment (no demo)
+        <Button name="create-amendment" onClick={() => showCreateAmendmentDialog(ID)}>
+          Create Amendment
         </Button>
-        <Button
-          name="create-amendment-demo"
-          onClick={() => showCreateAmendmentDialog(demonstrationId)}
-        >
-          Create Amendment (demo)
-        </Button>
-        <Button name="create-extension-no-demo" onClick={() => showCreateExtensionDialog()}>
-          Create Extension (no demo)
-        </Button>
-        <Button
-          name="create-extension-demo"
-          onClick={() => showCreateExtensionDialog(demonstrationId)}
-        >
-          Create Extension (demo)
-        </Button>
-        <Button name="update-amendment" onClick={() => showUpdateAmendmentDialog(amendmentId)}>
-          Update Amendment
-        </Button>
-        <Button name="update-extension" onClick={() => showUpdateExtensionDialog(extensionId)}>
-          Update Extension
+        <Button name="create-extension" onClick={() => showCreateExtensionDialog(ID)}>
+          Create Extension
         </Button>
       </div>
       <div className="flex flex-wrap gap-2">

@@ -28,7 +28,6 @@ const hasChanges = (createAmendmentFormData: ModificationFormData, demonstration
     createAmendmentFormData.demonstrationId != demonstrationId ||
     createAmendmentFormData.name ||
     createAmendmentFormData.description ||
-    createAmendmentFormData.effectiveDate ||
     createAmendmentFormData.signatureLevel
   );
 };
@@ -52,7 +51,6 @@ export const CreateAmendmentDialog: React.FC<{
             demonstrationId: createAmendmentFormData.demonstrationId,
             name: createAmendmentFormData.name,
             description: createAmendmentFormData.description,
-            effectiveDate: createAmendmentFormData.effectiveDate,
             signatureLevel: createAmendmentFormData.signatureLevel,
           },
         },
@@ -89,7 +87,6 @@ export const CreateAmendmentDialog: React.FC<{
         <div className="flex flex-col gap-2">
           <ModificationForm
             showDemonstrationSelect={!demonstrationId}
-            mode="create"
             modificationType="Amendment"
             modificationFormData={createAmendmentFormData}
             setModificationFormDataField={(field: Partial<ModificationFormData>) =>

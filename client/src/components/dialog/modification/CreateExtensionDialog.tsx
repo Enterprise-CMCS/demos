@@ -28,7 +28,6 @@ const hasChanges = (createExtensionFormData: ModificationFormData, demonstration
     createExtensionFormData.demonstrationId != demonstrationId ||
     createExtensionFormData.name ||
     createExtensionFormData.description ||
-    createExtensionFormData.effectiveDate ||
     createExtensionFormData.signatureLevel
   );
 };
@@ -52,7 +51,6 @@ export const CreateExtensionDialog: React.FC<{
             demonstrationId: createExtensionFormData.demonstrationId,
             name: createExtensionFormData.name,
             description: createExtensionFormData.description,
-            effectiveDate: createExtensionFormData.effectiveDate,
             signatureLevel: createExtensionFormData.signatureLevel,
           },
         },
@@ -89,7 +87,6 @@ export const CreateExtensionDialog: React.FC<{
         <div className="flex flex-col gap-2">
           <ModificationForm
             showDemonstrationSelect={!demonstrationId}
-            mode="create"
             modificationType="Extension"
             modificationFormData={createExtensionFormData}
             setModificationFormDataField={(field: Partial<ModificationFormData>) =>
