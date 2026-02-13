@@ -20,7 +20,6 @@ import { findUserById } from "../user";
 import { validateAndUpdateDates } from "../applicationDate";
 import { startPhaseByDocument } from "../applicationPhase";
 import { enqueueUiPath, parseS3Path } from "../../services/uipathQueue";
-import { UIPATH_PROJECT_IDS } from "../../constants";
 import {
   checkDocumentExists,
   getDocumentById,
@@ -158,38 +157,19 @@ export async function deleteDocuments(_: unknown, { ids }: { ids: string[] }): P
 
 export async function triggerUiPath(
   _: unknown,
-  { documentId, projectId }: { documentId: string; projectId: string },
-  context: GraphQLContext
+  { documentId }: { documentId: string }
 ): Promise<string> {
   try {
-    if (context.user === null) {
-      throw new Error(
-        "The GraphQL context does not have user information. Are you properly authenticated?"
-      );
-    }
-
     return await prisma().$transaction(async (tx) => {
       const document = await getDocumentById(tx, documentId);
-      const cleanBucket = process.env.CLEAN_BUCKET;
-      const { bucket, key } = parseS3Path(document.s3Path, cleanBucket);
+      const { bucket, key } = parseS3Path(document.s3Path);
 
-      if (cleanBucket && bucket !== cleanBucket) {
-        throw new Error(`Document is not stored in the clean bucket: ${bucket}`);
-      }
-
-      const defaultProjectId = UIPATH_PROJECT_IDS[0] ?? "e797842e-acc4-f011-8194-001dd8017125";
-      const resolvedProjectId = projectId ?? defaultProjectId;
-      if (!resolvedProjectId) {
-        throw new Error("Missing UiPath projectId for enqueue.");
-      }
-      // TODO: make this dynamic.
       const hasExtension = path.extname(document.name ?? "") !== "";
       const fileNameWithExtension = hasExtension ? document.name : `${document.name}.pdf`;
 
       return await enqueueUiPath({
         s3Bucket: bucket,
         s3FileName: key,
-        projectId: resolvedProjectId,
         fileNameWithExtension,
       });
     });

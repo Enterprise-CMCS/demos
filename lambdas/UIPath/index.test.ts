@@ -53,7 +53,7 @@ describe("handler", () => {
         {
           messageId: "id-1",
           receiptHandle: "",
-          body: JSON.stringify({ s3FileName: "file.pdf", projectId: "project-1" }),
+          body: JSON.stringify({ s3FileName: "file.pdf" }),
           attributes: {
             ApproximateReceiveCount: "1",
             SentTimestamp: "",
@@ -76,7 +76,6 @@ describe("handler", () => {
       expect.objectContaining({
         pollIntervalMs: 5_000,
         logFullResult: false,
-        projectId: "project-1",
       })
     );
     expect(result).toEqual({ status: "Succeeded" });
@@ -106,7 +105,7 @@ describe("handler", () => {
       ],
     };
 
-    await expect(handlerRef(event)).rejects.toThrow("Missing s3FileName");
+    await expect(handlerRef(event)).rejects.toThrow("Missing s3Key/s3FileName in SQS message body.");
   });
 
   it("throws when S3 body is missing", async () => {
@@ -119,7 +118,7 @@ describe("handler", () => {
         {
           messageId: "id-1",
           receiptHandle: "",
-          body: JSON.stringify({ s3FileName: "file.pdf", projectId: "project-1" }),
+          body: JSON.stringify({ s3FileName: "file.pdf" }),
           attributes: {
             ApproximateReceiveCount: "1",
             SentTimestamp: "",

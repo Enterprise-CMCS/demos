@@ -3,7 +3,7 @@ import FormData from "form-data";
 import { AxiosProgressEvent } from "axios";
 import { log } from "./log";
 import {
-  documentUnderstandingPost,
+  uipathPostRequest,
   UIPATH_TENANT,
   UIPATH_BASE_URL
 } from "./uipathClient";
@@ -35,7 +35,7 @@ export async function uploadDocument(
   formData.append("file", fs.createReadStream(fileName), uploadName);
 
   try {
-    const doc = await documentUnderstandingPost<UploadResponse>(url, token, formData, {
+    const doc = await uipathPostRequest<UploadResponse>(url, token, formData, {
       headers: {
         // form-data requires its own headers so axios can set boundaries
         ...formData.getHeaders(),

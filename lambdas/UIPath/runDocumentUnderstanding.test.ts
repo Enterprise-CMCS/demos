@@ -3,6 +3,9 @@ import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 vi.mock("./getToken", () => ({
   getToken: vi.fn().mockResolvedValue("token-123"),
 }));
+vi.mock("./getProjectId", () => ({
+  getProjectIdByName: vi.fn().mockResolvedValue("project-1"),
+}));
 
 const uploadDocumentMock = vi.fn();
 const extractDocMock = vi.fn();
@@ -64,7 +67,6 @@ describe("runDocumentUnderstanding", () => {
       pollIntervalMs: 10,
       logFullResult: false,
       requestId: "request-1",
-      projectId: "project-1",
     });
 
     await vi.runAllTimersAsync();
@@ -92,7 +94,6 @@ describe("runDocumentUnderstanding", () => {
     const promise = runDocumentUnderstanding("file.pdf", {
       pollIntervalMs: 10,
       maxAttempts: 2,
-      projectId: "project-1",
     });
 
     const expectation = expect(promise).rejects.toThrow("did not succeed");

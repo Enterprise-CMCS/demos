@@ -21,7 +21,7 @@ describe("uipathQueue", () => {
   beforeEach(() => {
     vi.resetModules();
     sendMock.mockReset();
-    process.env = { ...originalEnv, UIPATH_PROJECT_ID: "dummy" };
+    process.env = { ...originalEnv, UIPATH_PROJECT_ID: "dummy", CLEAN_BUCKET: "clean-bucket" };
   });
 
   afterEach(() => {
@@ -37,7 +37,6 @@ describe("uipathQueue", () => {
         enqueueUiPath({
           s3Bucket: "clean-bucket",
           s3FileName: "file.pdf",
-          projectId: "project-1",
         })
       ).rejects.toThrow("UIPATH_QUEUE_URL is not set.");
     });
@@ -50,7 +49,6 @@ describe("uipathQueue", () => {
       const payload = {
         s3Bucket: "clean-bucket",
         s3FileName: "path/to/file.pdf",
-        projectId: "project-1",
         fileNameWithExtension: "file.pdf",
       };
 
@@ -72,26 +70,15 @@ describe("uipathQueue", () => {
         enqueueUiPath({
           s3Bucket: "clean-bucket",
           s3FileName: "file.pdf",
-          projectId: "project-1",
         })
       ).rejects.toThrow("Failed to enqueue UiPath message.");
     });
   });
 
   describe("parseS3Path", () => {
-    it("parses s3:// paths", async () => {
+    it("parses plain keys using the clean bucket", async () => {
       const { parseS3Path } = await loadModule();
-      const result = parseS3Path("s3://bucket/path/to/file.pdf");
-
-      expect(result).toEqual({
-        bucket: "bucket",
-        key: "path/to/file.pdf",
-      });
-    });
-
-    it("parses plain keys with a fallback bucket", async () => {
-      const { parseS3Path } = await loadModule();
-      const result = parseS3Path("path/to/file.pdf", "clean-bucket");
+      const result = parseS3Path("path/to/file.pdf");
 
       expect(result).toEqual({
         bucket: "clean-bucket",
@@ -99,7 +86,8 @@ describe("uipathQueue", () => {
       });
     });
 
-    it("throws when fallback bucket is missing for plain keys", async () => {
+    it("throws when clean bucket is missing", async () => {
+      delete process.env.CLEAN_BUCKET;
       const { parseS3Path } = await loadModule();
       expect(() => parseS3Path("file.pdf")).toThrow("Clean bucket is not configured.");
     });

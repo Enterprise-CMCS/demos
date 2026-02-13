@@ -6,6 +6,7 @@ import { uploadDocument } from "./uploadDocument";
 import { extractDoc } from "./extractDoc";
 import { fetchExtractionResult, ExtractionStatus } from "./fetchExtractResult";
 import { getDbPool, getDbSchema } from "./db";
+import { getProjectIdByName } from "./getProjectId";
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
@@ -106,7 +107,6 @@ export interface RunDocumentUnderstandingOptions {
   pollIntervalMs?: number;
   maxAttempts?: number;
   requestId?: string;
-  projectId?: string;
   fileNameWithExtension?: string;
 }
 
@@ -118,20 +118,20 @@ export async function runDocumentUnderstanding(
     token: providedToken,
     pollIntervalMs = 3000,
     maxAttempts = 500,
-    logFullResult = true,
+    logFullResult = false, // set to true to log full results to cloudwatch.
     requestId = "n/a",
-    projectId,
     fileNameWithExtension,
   } = options;
 
   const token = providedToken ?? (await getToken());
-  log.info("Got auth token.");
-
+  const projectId = await getProjectIdByName(token, process.env.UIPATH_PROJECT_NAME ?? "demosOCR");
   const docId = await uploadDocument(token, inputFile, projectId, fileNameWithExtension);
-  log.info({ docId }, "Uploaded document.");
-
   const resultUrl = await extractDoc(token, docId, projectId);
-  log.info({ resultUrl }, "Started extraction.");
+
+  if (! token || ! projectId || ! docId || ! resultUrl) {
+    log.error("Missing required information to run document understanding");
+    throw new Error("Failed to initiate document understanding due to missing information.");
+  }
 
   let attempt = 0;
   while (attempt < maxAttempts) {
@@ -139,6 +139,7 @@ export async function runDocumentUnderstanding(
     const status = await fetchExtractionResult(token, resultUrl);
 
     if (status.status === "Succeeded") {
+      log.info("Extraction succeeded, processing results");
       const pool = await getDbPool();
       const client = await pool.connect();
       try {

@@ -1,10 +1,18 @@
-import axios from "axios";
-import { UIPATH_BASE_URL,
+import {
+  UIPATH_BASE_URL,
   UIPATH_TENANT,
-  UIPATH_API_VERSION
+  uipathGetRequest,
 } from "./uipathClient";
 
 import { log } from "./log";
+
+type ExtractorInfo = {
+  asyncUrl?: string;
+};
+
+type ExtractorListResponse = {
+  extractors?: ExtractorInfo[];
+};
 
 export async function getExtractorUrl(token: string, projectId: string): Promise<string> {
 
@@ -16,14 +24,7 @@ export async function getExtractorUrl(token: string, projectId: string): Promise
 
   log.info({ url }, "Fetching extractor URL from UiPath");
 
-  const response = await axios.get(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    params: {
-      "api-version": UIPATH_API_VERSION,
-    },
-  });
+  const response = await uipathGetRequest<ExtractorListResponse>(url, token);
 
   const extractors = response.data?.extractors;
   if (!Array.isArray(extractors) || extractors.length === 0) {

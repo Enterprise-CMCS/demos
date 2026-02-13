@@ -1,4 +1,4 @@
-import { documentUnderstandingPost } from "./uipathClient";
+import { uipathPostRequest } from "./uipathClient";
 import { getExtractorUrl } from "./getExtractorUrl";
 
 export interface ExtractionStartResponse {
@@ -7,7 +7,7 @@ export interface ExtractionStartResponse {
 
 export async function extractDoc(token: string, docId: string, projectIdOverride?: string): Promise<string> {
   const asyncUrl = await getExtractorUrl(token, projectIdOverride);
-  const extract = await documentUnderstandingPost<ExtractionStartResponse>(asyncUrl, token, {
+  const extract = await uipathPostRequest<ExtractionStartResponse>(asyncUrl, token, {
     documentId: docId,
     pageRange: null,
     configuration: null,
