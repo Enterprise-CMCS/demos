@@ -7,6 +7,7 @@ pipeline {
 
   options {
     disableConcurrentBuilds()
+    buildDiscarder(retentionPolicy(env.BRANCH_NAME))
   }
 
   environment {
