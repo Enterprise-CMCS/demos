@@ -891,6 +891,9 @@ CREATE UNIQUE INDEX "users_id_person_type_id_key" ON "users"("id", "person_type_
 CREATE UNIQUE INDEX "users_cognito_subject_key" ON "users"("cognito_subject");
 
 -- AddForeignKey
+ALTER TABLE "amendment" ADD CONSTRAINT "amendment_id_application_type_id_fkey" FOREIGN KEY ("id", "application_type_id") REFERENCES "application"("id", "application_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "amendment" ADD CONSTRAINT "amendment_application_type_id_fkey" FOREIGN KEY ("application_type_id") REFERENCES "amendment_application_type_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -949,6 +952,9 @@ ALTER TABLE "application_tag_assignment" ADD CONSTRAINT "application_tag_assignm
 
 -- AddForeignKey
 ALTER TABLE "application_tag_type_limit" ADD CONSTRAINT "application_tag_type_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "tag_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "demonstration" ADD CONSTRAINT "demonstration_id_application_type_id_fkey" FOREIGN KEY ("id", "application_type_id") REFERENCES "application"("id", "application_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "demonstration" ADD CONSTRAINT "demonstration_application_type_id_fkey" FOREIGN KEY ("application_type_id") REFERENCES "demonstration_application_type_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1048,6 +1054,9 @@ ALTER TABLE "event" ADD CONSTRAINT "event_event_type_id_fkey" FOREIGN KEY ("even
 
 -- AddForeignKey
 ALTER TABLE "event" ADD CONSTRAINT "event_log_level_id_fkey" FOREIGN KEY ("log_level_id") REFERENCES "log_level"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "extension" ADD CONSTRAINT "extension_id_application_type_id_fkey" FOREIGN KEY ("id", "application_type_id") REFERENCES "application"("id", "application_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "extension" ADD CONSTRAINT "extension_application_type_id_fkey" FOREIGN KEY ("application_type_id") REFERENCES "extension_application_type_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -704,6 +704,7 @@ ALTER TABLE demos_app.extension ADD CONSTRAINT check_extension_non_null_fields_w
   )
 );
 
+ALTER TABLE "amendment" DROP CONSTRAINT "amendment_id_application_type_id_fkey";
 ALTER TABLE demos_app.amendment
 ADD CONSTRAINT amendment_id_application_type_id_fkey
 FOREIGN KEY (id, application_type_id)
@@ -712,6 +713,8 @@ ON DELETE NO ACTION
 ON UPDATE CASCADE
 DEFERRABLE INITIALLY DEFERRED;
 
+
+ALTER TABLE "demonstration" DROP CONSTRAINT "demonstration_id_application_type_id_fkey";
 ALTER TABLE demos_app.demonstration
 ADD CONSTRAINT demonstration_id_application_type_id_fkey
 FOREIGN KEY (id, application_type_id)
@@ -720,6 +723,7 @@ ON DELETE NO ACTION
 ON UPDATE CASCADE
 DEFERRABLE INITIALLY DEFERRED;
 
+ALTER TABLE "extension" DROP CONSTRAINT "extension_id_application_type_id_fkey";
 ALTER TABLE demos_app.extension
 ADD CONSTRAINT extension_id_application_type_id_fkey
 FOREIGN KEY (id, application_type_id)
