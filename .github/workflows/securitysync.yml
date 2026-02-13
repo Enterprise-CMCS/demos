@@ -32,13 +32,13 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
-          role-to-assume: ${{ secrets.DEMOS_JIRA_SERVICE_ACCOUNT_TOKEN }}
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_TO_ASSUME }}
 
       - name: Sync Security Hub and Jira
         id: sync_step
         uses: Enterprise-CMCS/mac-fc-security-hub-visibility@v2.2
         with:
-          jira-token: ${{ secrets.JIRA_ENT_USER_TOKEN }}
+          jira-token: ${{ secrets.DEMOS_JIRA_SERVICE_ACCOUNT_TOKEN }}
           jira-username: macpro_jira_service_account
           jira-project-key: DEMOS # Enter Project Key
           jira-ignore-statuses: Done, Closed, Canceled
