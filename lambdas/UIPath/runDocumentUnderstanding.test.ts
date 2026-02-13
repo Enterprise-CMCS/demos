@@ -1,5 +1,14 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
+const mocks = vi.hoisted(() => ({
+  uploadDocumentMock: vi.fn(),
+  extractDocMock: vi.fn(),
+  fetchExtractionResultMock: vi.fn(),
+  connectMock: vi.fn(),
+  releaseMock: vi.fn(),
+  queryMock: vi.fn(),
+}));
+
 vi.mock("./getToken", () => ({
   getToken: vi.fn().mockResolvedValue("token-123"),
 }));
@@ -7,28 +16,21 @@ vi.mock("./getProjectId", () => ({
   getProjectIdByName: vi.fn().mockResolvedValue("project-1"),
 }));
 
-const uploadDocumentMock = vi.fn();
-const extractDocMock = vi.fn();
-const fetchExtractionResultMock = vi.fn();
-const connectMock = vi.fn();
-const releaseMock = vi.fn();
-const queryMock = vi.fn();
-
 vi.mock("./uploadDocument", () => ({
-  uploadDocument: (...args: unknown[]) => uploadDocumentMock(...args),
+  uploadDocument: (...args: unknown[]) => mocks.uploadDocumentMock(...args),
 }));
 
 vi.mock("./extractDoc", () => ({
-  extractDoc: (...args: unknown[]) => extractDocMock(...args),
+  extractDoc: (...args: unknown[]) => mocks.extractDocMock(...args),
 }));
 
 vi.mock("./fetchExtractResult", () => ({
-  fetchExtractionResult: (...args: unknown[]) => fetchExtractionResultMock(...args),
+  fetchExtractionResult: (...args: unknown[]) => mocks.fetchExtractionResultMock(...args),
 }));
 
 vi.mock("./db", () => ({
   getDbPool: vi.fn().mockResolvedValue({
-    connect: connectMock,
+    connect: mocks.connectMock,
   }),
   getDbSchema: () => "demos_app",
 }));
@@ -43,12 +45,14 @@ import { getToken } from "./getToken";
 describe("runDocumentUnderstanding", () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    uploadDocumentMock.mockReset();
-    extractDocMock.mockReset();
-    fetchExtractionResultMock.mockReset();
-    connectMock.mockReset().mockResolvedValue({ release: releaseMock, query: queryMock });
-    queryMock.mockReset();
-    releaseMock.mockReset();
+    mocks.uploadDocumentMock.mockReset();
+    mocks.extractDocMock.mockReset();
+    mocks.fetchExtractionResultMock.mockReset();
+    mocks.connectMock
+      .mockReset()
+      .mockResolvedValue({ release: mocks.releaseMock, query: mocks.queryMock });
+    mocks.queryMock.mockReset();
+    mocks.releaseMock.mockReset();
   });
 
   afterEach(() => {
@@ -57,9 +61,10 @@ describe("runDocumentUnderstanding", () => {
   });
 
   it("runs the DU flow and returns succeeded status", async () => {
-    uploadDocumentMock.mockResolvedValue("doc-1");
-    extractDocMock.mockResolvedValue("result-url");
-    fetchExtractionResultMock
+    mocks.uploadDocumentMock.mockResolvedValue("doc-1");
+    mocks.extractDocMock.mockResolvedValue("result-url");
+    mocks.queryMock.mockResolvedValue({ rows: [{ id: "result-1" }] });
+    mocks.fetchExtractionResultMock
       .mockResolvedValueOnce({ status: "Running" })
       .mockResolvedValueOnce({ status: "Succeeded", data: { ok: true } });
 
@@ -73,23 +78,23 @@ describe("runDocumentUnderstanding", () => {
     const result = await promise;
 
     expect(getToken).toHaveBeenCalled();
-    expect(uploadDocumentMock).toHaveBeenCalledWith(
+    expect(mocks.uploadDocumentMock).toHaveBeenCalledWith(
       "token-123",
       "file.pdf",
       "project-1",
       undefined
     );
-    expect(extractDocMock).toHaveBeenCalledWith("token-123", "doc-1", "project-1");
-    expect(fetchExtractionResultMock).toHaveBeenCalledTimes(2);
+    expect(mocks.extractDocMock).toHaveBeenCalledWith("token-123", "doc-1", "project-1");
+    expect(mocks.fetchExtractionResultMock).toHaveBeenCalledTimes(2);
     expect(result).toMatchObject({ status: "Succeeded" });
-    expect(queryMock).toHaveBeenCalledTimes(1);
-    expect(releaseMock).toHaveBeenCalled();
+    expect(mocks.queryMock).toHaveBeenCalledTimes(1);
+    expect(mocks.releaseMock).toHaveBeenCalled();
   });
 
   it("throws if maxAttempts is exceeded", async () => {
-    uploadDocumentMock.mockResolvedValue("doc-1");
-    extractDocMock.mockResolvedValue("result-url");
-    fetchExtractionResultMock.mockResolvedValue({ status: "Pending" });
+    mocks.uploadDocumentMock.mockResolvedValue("doc-1");
+    mocks.extractDocMock.mockResolvedValue("result-url");
+    mocks.fetchExtractionResultMock.mockResolvedValue({ status: "Pending" });
 
     const promise = runDocumentUnderstanding("file.pdf", {
       pollIntervalMs: 10,
