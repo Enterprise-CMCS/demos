@@ -11,7 +11,7 @@ import { UploadDocumentInput } from "../../types";
 import { createDocumentPendingUpload } from "../../model/documentPendingUpload";
 import { S3Adapter } from "../";
 
-const EXPIRATION_TIME_SECONDS = 60 * 60;
+const EXPIRATION_TIME_SECONDS = 10;
 
 const createS3Client = () => {
   const endpoint = process.env.S3_ENDPOINT_LOCAL;
