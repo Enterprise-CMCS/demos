@@ -32,7 +32,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
-          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_TO_ASSUME }}
+          role-to-assume: ${{ secrets.DEMOS_JIRA_SERVICE_ACCOUNT_TOKEN }}
 
       - name: Sync Security Hub and Jira
         id: sync_step
