@@ -35,7 +35,7 @@ export const UPDATE_EXTENSION_DIALOG_QUERY: TypedDocumentNode<
   { extension: Extension },
   { id: string }
 > = gql`
-  query UpdateExtensionDialogQuery($id: ID!) {
+  query UpdateExtensionDialog($id: ID!) {
     extension(id: $id) {
       id
       name

@@ -35,7 +35,7 @@ export const UPDATE_AMENDMENT_DIALOG_QUERY: TypedDocumentNode<
   { amendment: Amendment },
   { id: string }
 > = gql`
-  query UpdateAmendmentDialogQuery($id: ID!) {
+  query UpdateAmendmentDialog($id: ID!) {
     amendment(id: $id) {
       id
       name
