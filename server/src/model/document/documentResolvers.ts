@@ -18,12 +18,7 @@ import { getApplication, PrismaApplication } from "../application";
 import { findUserById } from "../user";
 import { validateAndUpdateDates } from "../applicationDate";
 import { startPhaseByDocument } from "../applicationPhase";
-import {
-  checkDocumentExists,
-  getDocumentById,
-  updateDocument as updateDocumentQuery,
-  handleDeleteDocument,
-} from ".";
+import { getDocumentById, updateDocument as updateDocumentQuery, handleDeleteDocument } from ".";
 
 export async function getDocument(
   parent: unknown,
@@ -31,12 +26,6 @@ export async function getDocument(
 ): Promise<PrismaDocument> {
   return await prisma().$transaction(async (tx) => {
     return await getDocumentById(tx, id);
-  });
-}
-
-export async function documentExists(_: unknown, { documentId }: { documentId: string }) {
-  return await prisma().$transaction(async (tx) => {
-    return checkDocumentExists(tx, documentId);
   });
 }
 
@@ -178,7 +167,6 @@ export function resolvePhaseName(parent: PrismaDocument): PhaseName {
 export const documentResolvers = {
   Query: {
     document: getDocument,
-    documentExists: documentExists,
   },
 
   Mutation: {
