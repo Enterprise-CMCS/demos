@@ -16,8 +16,8 @@ erDiagram
 
   tag ||--|{ tag_configuration : "FK077"
   tag_type ||--|{ tag_configuration : "FK078"
-  tag_configuration }|--|| tag_configuration_status : "FK079"
-  tag_configuration }|--|| tag_configuration_source : "FK080"
+  tag_configuration }|--|| tag_configuration_status : "FK080"
+  tag_configuration }|--|| tag_configuration_source : "FK079"
   tag_configuration ||--|{ demonstration_type_tag_assignment : "FK081"
   tag_configuration ||--|{ application_tag_assignment : "FK082"
   tag_type ||--|| demonstration_type_tag_type_limit : "FK083"
@@ -271,8 +271,8 @@ erDiagram
 
   application_phase:::dataTable {
     uuid application_id PK, FK "FK005: application_id ∈ application.id"
-    text phase_id PK, FK "FK006: phase_id ∈ application_phase_type_limit.id"
-    text phase_status_id FK "FK004: phase_status_id ∈ phase_status.id"
+    text phase_id PK, FK "FK006: phase_id ∈ application_phase_type_limit.id<br>FK004: (phase_id, phase_status_id) ∈ phase_phase_status.(phase_id, phase_status_id)"
+    text phase_status_id FK "FK004: (phase_id, phase_status_id) ∈ phase_phase_status.(phase_id, phase_status_id)"
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_AFTER_UPDATE update_demonstration_current_phase_on_phase_update "Update demonstration current phase when phase status changes."
@@ -318,7 +318,7 @@ erDiagram
   document:::dataTable {
     uuid id PK
     text name
-    text description
+    text description "NULLABLE"
     text s3_path
     uuid owner_user_id FK "FK026: owner_user_id ∈ users.id"
     text document_type_id FK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
@@ -335,7 +335,7 @@ erDiagram
   document_infected:::dataTable {
     uuid id PK
     text name
-    text description
+    text description "NULLABLE"
     text s3_path
     uuid owner_user_id FK "FK068: owner_user_id ∈ users.id"
     text document_type_id FK "FK069: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
@@ -351,7 +351,7 @@ erDiagram
   document_pending_upload:::dataTable {
     uuid id PK
     text name
-    text description
+    text description "NULLABLE"
     uuid owner_user_id FK "FK019: owner_user_id ∈ users.id"
     text document_type_id FK "FK055: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
     uuid application_id FK "FK056: application_id ∈ application.id"
@@ -435,7 +435,7 @@ erDiagram
 
   %% Associative Tables
   application_tag_assignment:::associativeTable {
-    uuid application_id PK, FK "FK088: appliation_id ∈ application.id"
+    uuid application_id PK, FK "FK088: application_id ∈ application.id"
     text tag_id PK, FK "FK082: (tag_id, tag_type_id) ∈ tag_configuration.(tag_id, tag_type_id)"
     text tag_type_id FK "FK082: (tag_id, tag_type_id) ∈ tag_configuration.(tag_id, tag_type_id)<br>FK086: tag_type_id ∈ application_tag_type_limit.id"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
