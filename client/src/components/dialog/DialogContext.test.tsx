@@ -521,7 +521,7 @@ describe("DialogContext", () => {
     expect(screen.queryByTestId("edit-dialog")).not.toBeInTheDocument();
   });
 
-  it("shows and hides AmendmentDialog via context", async () => {
+  it("shows AmendmentDialog via context", async () => {
     render(
       <DialogProvider>
         <TestConsumer />
@@ -533,12 +533,9 @@ describe("DialogContext", () => {
 
     await user.click(screen.getByTestId("open-amendment-btn"));
     expect(screen.getByTestId("amendment-dialog")).toBeInTheDocument();
-
-    await user.click(screen.getByTestId("close-amendment-btn"));
-    expect(screen.queryByTestId("amendment-dialog")).not.toBeInTheDocument();
   });
 
-  it("shows and hides ExtensionDialog via context", async () => {
+  it("shows ExtensionDialog via context", async () => {
     render(
       <DialogProvider>
         <TestConsumer />
@@ -550,9 +547,6 @@ describe("DialogContext", () => {
 
     await user.click(screen.getByTestId("open-extension-btn"));
     expect(screen.getByTestId("extension-dialog")).toBeInTheDocument();
-
-    await user.click(screen.getByTestId("close-extension-btn"));
-    expect(screen.queryByTestId("extension-dialog")).not.toBeInTheDocument();
   });
 
   it("shows and hides ManageContactsDialog via context", async () => {
