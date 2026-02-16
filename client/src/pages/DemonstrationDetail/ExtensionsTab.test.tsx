@@ -77,7 +77,7 @@ describe("ExtensionsTab", () => {
 
     const addButton = screen.getByRole("button", { name: /add-new-extension/i });
     expect(addButton).toBeInTheDocument();
-    expect(addButton).toHaveTextContent("Add New");
+    expect(addButton).toHaveTextContent("Add Extension");
   });
 
   it("opens Add New Extension modal", async () => {

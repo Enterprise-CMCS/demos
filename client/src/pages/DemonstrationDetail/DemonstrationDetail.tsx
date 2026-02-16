@@ -131,6 +131,9 @@ export const DemonstrationDetail: React.FC = () => {
     return <div>Failed to load demonstration.</div>;
   }
 
+  const hasAmendments = demonstration.amendments && demonstration.amendments.length > 0;
+  const hasExtensions = demonstration.extensions && demonstration.extensions.length > 0;
+
   return (
     <div>
       {
@@ -142,14 +145,22 @@ export const DemonstrationDetail: React.FC = () => {
               <DemonstrationTab demonstration={demonstration} />
             </Tab>
 
-            <Tab label={`Amendments (${demonstration.amendments?.length ?? 0})`} value="amendments">
+            <Tab
+              label={`Amendments (${demonstration.amendments?.length ?? 0})`}
+              value="amendments"
+              shouldRender={hasAmendments}
+            >
               <AmendmentsTab
                 demonstrationId={demonstration.id}
                 initiallyExpandedId={amendmentParam ?? undefined}
               />
             </Tab>
 
-            <Tab label={`Extensions (${demonstration.extensions?.length ?? 0})`} value="extensions">
+            <Tab
+              label={`Extensions (${demonstration.extensions?.length ?? 0})`}
+              value="extensions"
+              shouldRender={hasExtensions}
+            >
               <ExtensionsTab
                 demonstrationId={demonstration.id}
                 initiallyExpandedId={extensionParam ?? undefined}

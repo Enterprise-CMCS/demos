@@ -77,7 +77,7 @@ describe("AmendmentsTab", () => {
 
     const addButton = screen.getByRole("button", { name: /add-new-amendment/i });
     expect(addButton).toBeInTheDocument();
-    expect(addButton).toHaveTextContent("Add New");
+    expect(addButton).toHaveTextContent("Add Amendment");
   });
 
   it("opens Add New Amendment modal", async () => {

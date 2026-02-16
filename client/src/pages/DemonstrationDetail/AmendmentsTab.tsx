@@ -19,13 +19,10 @@ export const AmendmentsTab: React.FC<{
           size="small"
           onClick={() => showCreateAmendmentDialog(demonstrationId)}
         >
-          Add New
+          Add Amendment
         </IconButton>
       </div>
-      <AmendmentTable
-        demonstrationId={demonstrationId}
-        initiallyExpandedId={initiallyExpandedId}
-      />
+      <AmendmentTable demonstrationId={demonstrationId} initiallyExpandedId={initiallyExpandedId} />
     </div>
   );
 };

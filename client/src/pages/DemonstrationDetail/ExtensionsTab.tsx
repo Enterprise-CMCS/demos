@@ -19,7 +19,7 @@ export const ExtensionsTab: React.FC<{
           size="small"
           onClick={() => showCreateExtensionDialog(demonstrationId)}
         >
-          Add New
+          Add Extension
         </IconButton>
       </div>
       <ExtensionTable demonstrationId={demonstrationId} initiallyExpandedId={initiallyExpandedId} />
