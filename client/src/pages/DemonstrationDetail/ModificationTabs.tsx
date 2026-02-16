@@ -35,6 +35,7 @@ export const ModificationTabs: React.FC<ModificationTabsProps> = ({ items, onSel
             data-testid={`modification-tab-${item.id}`}
             onClick={() => handleTabSelect(item)}
             aria-selected={item.id === selectedId}
+            className="cursor-pointer border border-red-500"
           >
             {item.name}
           </button>
@@ -42,7 +43,7 @@ export const ModificationTabs: React.FC<ModificationTabsProps> = ({ items, onSel
       </div>
 
       {selectedItem && (
-        <div>
+        <div className="border border-blue-500">
           <div>{selectedItem.name}</div>
           {selectedItem.description && <div>{selectedItem.description}</div>}
           {selectedItem.status && <div>Status: {selectedItem.status}</div>}
