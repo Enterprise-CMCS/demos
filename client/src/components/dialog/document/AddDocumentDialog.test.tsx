@@ -204,7 +204,7 @@ describe("virus scan polling", () => {
     });
 
     mockLazyQueryFn.mockResolvedValue({
-      data: { document: { id: "test-doc-id" } },
+      data: { document: { id: "test-document-id" } },
     });
 
     vi.mocked(globalThis.fetch).mockResolvedValue({ ok: true } as Response);
@@ -393,6 +393,106 @@ describe("virus scan polling", () => {
     expect(onDocumentUploadSucceeded).toHaveBeenCalled();
     // Should not poll for virus scan in localhost mode
     expect(mockLazyQueryFn).not.toHaveBeenCalled();
+  });
+
+  it("refetches queries after successful upload when refetchQueries is provided", async () => {
+    mockMutationFn.mockResolvedValue({
+      data: {
+        uploadDocument: {
+          presignedURL: "https://s3.amazonaws.com/test-bucket/test-file",
+          documentId: "test-doc-id",
+        },
+      },
+    });
+
+    mockLazyQueryFn.mockResolvedValue({
+      data: { document: { id: "test-document-id" } },
+    });
+
+    vi.mocked(globalThis.fetch).mockResolvedValue({ ok: true } as Response);
+
+    const onDocumentUploadSucceeded = vi.fn();
+    const refetchQueries = ["GetDocuments", "GetApplicationDocuments"];
+
+    render(
+      <ToastProvider>
+        <AddDocumentDialog
+          onClose={vi.fn()}
+          applicationId="test-app-id"
+          onDocumentUploadSucceeded={onDocumentUploadSucceeded}
+          documentTypeSubset={["General File"]}
+          refetchQueries={refetchQueries}
+        />
+      </ToastProvider>
+    );
+
+    const file = new File(["content"], "test.pdf", { type: "application/pdf" });
+    fireEvent.change(screen.getByTestId(FILE_INPUT_TEST_ID), {
+      target: { files: [file] },
+    });
+
+    const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
+    await waitFor(() => expect(uploadBtn).toBeEnabled());
+
+    const clickPromise = new Promise<void>((resolve) => {
+      fireEvent.click(uploadBtn);
+      setTimeout(() => resolve(), 0);
+    });
+
+    await clickPromise;
+    await vi.advanceTimersByTimeAsync(DOCUMENT_POLL_INTERVAL_MS);
+
+    expect(onDocumentUploadSucceeded).toHaveBeenCalled();
+    expect(mockRefetchQueries).toHaveBeenCalledWith({ include: refetchQueries });
+  });
+
+  it("does not call refetchQueries when not provided", async () => {
+    mockMutationFn.mockResolvedValue({
+      data: {
+        uploadDocument: {
+          presignedURL: "https://s3.amazonaws.com/test-bucket/test-file",
+          documentId: "test-doc-id",
+        },
+      },
+    });
+
+    mockLazyQueryFn.mockResolvedValue({
+      data: { document: { id: "test-document-id" } },
+    });
+
+    vi.mocked(globalThis.fetch).mockResolvedValue({ ok: true } as Response);
+
+    const onDocumentUploadSucceeded = vi.fn();
+
+    render(
+      <ToastProvider>
+        <AddDocumentDialog
+          onClose={vi.fn()}
+          applicationId="test-app-id"
+          onDocumentUploadSucceeded={onDocumentUploadSucceeded}
+          documentTypeSubset={["General File"]}
+        />
+      </ToastProvider>
+    );
+
+    const file = new File(["content"], "test.pdf", { type: "application/pdf" });
+    fireEvent.change(screen.getByTestId(FILE_INPUT_TEST_ID), {
+      target: { files: [file] },
+    });
+
+    const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
+    await waitFor(() => expect(uploadBtn).toBeEnabled());
+
+    const clickPromise = new Promise<void>((resolve) => {
+      fireEvent.click(uploadBtn);
+      setTimeout(() => resolve(), 0);
+    });
+
+    await clickPromise;
+    await vi.advanceTimersByTimeAsync(DOCUMENT_POLL_INTERVAL_MS);
+
+    expect(onDocumentUploadSucceeded).toHaveBeenCalled();
+    expect(mockRefetchQueries).not.toHaveBeenCalled();
   });
 });
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { gql, useLazyQuery, useMutation } from "@apollo/client";
+import { gql, useLazyQuery, useMutation, useApolloClient } from "@apollo/client";
 
 import { DocumentType, PhaseName, UploadDocumentInput } from "demos-server";
 import {
@@ -80,6 +80,7 @@ interface AddDocumentDialogProps {
   applicationId: string;
   documentTypeSubset?: DocumentType[];
   titleOverride?: string;
+  refetchQueries?: string[];
   phaseName?: PhaseName;
   onDocumentUploadSucceeded?: (payload?: UploadDocumentInput) => void;
 }
@@ -89,21 +90,23 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   applicationId,
   documentTypeSubset,
   titleOverride,
+  refetchQueries,
   phaseName = "None",
   onDocumentUploadSucceeded,
 }) => {
   const { showError } = useToast();
+  const client = useApolloClient();
   const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY);
 
   const [checkDocumentExists] = useLazyQuery(DOCUMENT_EXISTS_QUERY, {
     fetchPolicy: "network-only",
   });
 
-  const documentPassedVirusScan = async (id: string): Promise<boolean> => {
+  const documentPassedVirusScan = async (documentId: string): Promise<boolean> => {
     for (let attempt = 0; attempt < VIRUS_SCAN_MAX_ATTEMPTS; attempt++) {
       // Check if the document exists in the documents table
       const { data } = await checkDocumentExists({
-        variables: { id },
+        variables: { id: documentId },
       });
       if (data?.document) {
         return true;
@@ -119,6 +122,9 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
 
   const handleDocumentUploadSucceeded = async (payload: UploadDocumentInput): Promise<void> => {
     onDocumentUploadSucceeded?.(payload);
+    if (refetchQueries) {
+      await client.refetchQueries({ include: refetchQueries });
+    }
   };
 
   const handleUpload = async (
