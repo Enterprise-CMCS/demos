@@ -4,8 +4,8 @@ import { PrismaTransactionClient } from "../../../prismaClient";
 export async function getDocumentById(
   tx: PrismaTransactionClient,
   documentId: string
-): Promise<PrismaDocument> {
-  return await tx.document.findUniqueOrThrow({
+): Promise<PrismaDocument | null> {
+  return await tx.document.findUnique({
     where: { id: documentId },
   });
 }

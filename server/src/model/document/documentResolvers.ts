@@ -23,7 +23,7 @@ import { getDocumentById, updateDocument as updateDocumentQuery, handleDeleteDoc
 export async function getDocument(
   parent: unknown,
   { id }: { id: string }
-): Promise<PrismaDocument> {
+): Promise<PrismaDocument | null> {
   return await prisma().$transaction(async (tx) => {
     return await getDocumentById(tx, id);
   });

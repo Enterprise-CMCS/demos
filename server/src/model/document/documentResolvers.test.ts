@@ -11,10 +11,9 @@ import { findUserById } from "../user";
 import { getApplication } from "../application";
 import { validateAndUpdateDates } from "../applicationDate";
 import { startPhaseByDocument } from "../applicationPhase";
-import { getDocumentById, checkDocumentExists, updateDocument, handleDeleteDocument } from ".";
+import { getDocumentById, updateDocument, handleDeleteDocument } from ".";
 import {
   getDocument,
-  documentExists,
   uploadDocument,
   updateDocument as updateDocumentResolver,
   deleteDocument,
@@ -62,7 +61,6 @@ vi.mock("../user", () => ({
 
 vi.mock(".", () => ({
   getDocumentById: vi.fn(),
-  checkDocumentExists: vi.fn(),
   updateDocument: vi.fn(),
   handleDeleteDocument: vi.fn(),
 }));
@@ -126,26 +124,6 @@ describe("documentResolvers", () => {
       expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
       expect(getDocumentById).toHaveBeenCalledExactlyOnceWith(mockTransaction, testDocumentId);
       expect(result).toEqual(mockDocument);
-    });
-  });
-
-  describe("documentExists", () => {
-    it("should check if document exists", async () => {
-      vi.mocked(checkDocumentExists).mockResolvedValue(true);
-
-      const result = await documentExists(undefined, { documentId: testDocumentId });
-
-      expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
-      expect(checkDocumentExists).toHaveBeenCalledExactlyOnceWith(mockTransaction, testDocumentId);
-      expect(result).toBe(true);
-    });
-
-    it("should return false when document does not exist", async () => {
-      vi.mocked(checkDocumentExists).mockResolvedValue(false);
-
-      const result = await documentExists(undefined, { documentId: testDocumentId });
-
-      expect(result).toBe(false);
     });
   });
 
