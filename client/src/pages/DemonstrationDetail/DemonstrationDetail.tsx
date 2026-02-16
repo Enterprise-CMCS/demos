@@ -150,10 +150,7 @@ export const DemonstrationDetail: React.FC = () => {
               value="amendments"
               shouldRender={hasAmendments}
             >
-              <AmendmentsTab
-                demonstrationId={demonstration.id}
-                initiallyExpandedId={amendmentParam ?? undefined}
-              />
+              <AmendmentsTab demonstrationId={demonstration.id} />
             </Tab>
 
             <Tab
@@ -161,10 +158,7 @@ export const DemonstrationDetail: React.FC = () => {
               value="extensions"
               shouldRender={hasExtensions}
             >
-              <ExtensionsTab
-                demonstrationId={demonstration.id}
-                initiallyExpandedId={extensionParam ?? undefined}
-              />
+              <ExtensionsTab demonstrationId={demonstration.id} />
             </Tab>
           </Tabs>
         </>

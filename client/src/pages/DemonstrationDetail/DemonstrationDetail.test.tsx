@@ -113,7 +113,6 @@ describe("DemonstrationDetail", () => {
     expect(AmendmentsTab).toHaveBeenCalledWith(
       expect.objectContaining({
         demonstrationId: "1",
-        initiallyExpandedId: "amendment-1",
       }),
       undefined
     );
@@ -131,7 +130,6 @@ describe("DemonstrationDetail", () => {
     expect(ExtensionsTab).toHaveBeenCalledWith(
       expect.objectContaining({
         demonstrationId: "1",
-        initiallyExpandedId: "extension-1",
       }),
       undefined
     );
@@ -158,7 +156,6 @@ describe("DemonstrationDetail", () => {
     expect(AmendmentsTab).toHaveBeenCalledWith(
       expect.objectContaining({
         demonstrationId: "1",
-        initiallyExpandedId: undefined,
       }),
       undefined
     );
@@ -174,7 +171,6 @@ describe("DemonstrationDetail", () => {
     expect(ExtensionsTab).toHaveBeenCalledWith(
       expect.objectContaining({
         demonstrationId: "1",
-        initiallyExpandedId: undefined,
       }),
       undefined
     );

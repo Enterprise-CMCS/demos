@@ -2,12 +2,10 @@ import React from "react";
 import { IconButton } from "components/button";
 import { AddNewIcon } from "components/icons";
 import { useDialog } from "components/dialog/DialogContext";
-import { ExtensionTable } from "components/table/tables/ExtensionTable";
 
 export const ExtensionsTab: React.FC<{
   demonstrationId: string;
-  initiallyExpandedId?: string;
-}> = ({ demonstrationId, initiallyExpandedId }) => {
+}> = ({ demonstrationId }) => {
   const { showCreateExtensionDialog } = useDialog();
   return (
     <div className="p-2">
@@ -22,7 +20,6 @@ export const ExtensionsTab: React.FC<{
           Add Extension
         </IconButton>
       </div>
-      <ExtensionTable demonstrationId={demonstrationId} initiallyExpandedId={initiallyExpandedId} />
     </div>
   );
 };

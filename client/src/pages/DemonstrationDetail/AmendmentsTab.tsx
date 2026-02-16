@@ -2,12 +2,10 @@ import React from "react";
 import { IconButton } from "components/button";
 import { AddNewIcon } from "components/icons";
 import { useDialog } from "components/dialog/DialogContext";
-import { AmendmentTable } from "components/table/tables/AmendmentTable";
 
 export const AmendmentsTab: React.FC<{
   demonstrationId: string;
-  initiallyExpandedId?: string;
-}> = ({ demonstrationId, initiallyExpandedId }) => {
+}> = ({ demonstrationId }) => {
   const { showCreateAmendmentDialog } = useDialog();
   return (
     <div className="p-2">
@@ -22,7 +20,6 @@ export const AmendmentsTab: React.FC<{
           Add Amendment
         </IconButton>
       </div>
-      <AmendmentTable demonstrationId={demonstrationId} initiallyExpandedId={initiallyExpandedId} />
     </div>
   );
 };
