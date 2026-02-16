@@ -1,21 +1,14 @@
-import React from "react";
-import {
-  BaseCreateModificationDialog,
-  CreateModificationFormFields,
-} from "./BaseCreateModificationDialog";
+import React, { useState } from "react";
+import { ModificationForm, ModificationFormData } from "./ModificationForm";
 import { gql, useMutation } from "@apollo/client";
 import { useToast } from "components/toast";
-import { Amendment as ServerAmendment, Demonstration } from "demos-server";
+import { BaseDialog } from "../BaseDialog";
+import { useDialog } from "../DialogContext";
+import { Button } from "components/button";
 
-type Amendment = Pick<ServerAmendment, "id"> & {
-  demonstration: Pick<Demonstration, "id"> & {
-    amendments: Pick<ServerAmendment, "id">[];
-  };
-};
 export const CREATE_AMENDMENT_MUTATION = gql`
   mutation CreateAmendment($input: CreateAmendmentInput!) {
     createAmendment(input: $input) {
-      id
       demonstration {
         id
         amendments {
@@ -26,54 +19,82 @@ export const CREATE_AMENDMENT_MUTATION = gql`
   }
 `;
 
-export const CreateAmendmentDialog: React.FC<{
-  onClose: () => void;
-  initialDemonstrationId?: string;
-}> = ({ onClose, initialDemonstrationId }) => {
-  const { showSuccess, showError } = useToast();
-  const [triggerCreateAmendment] = useMutation<{ createAmendment: Amendment }>(
-    CREATE_AMENDMENT_MUTATION
+const isValid = (createAmendmentFormData: ModificationFormData) => {
+  return !!createAmendmentFormData.demonstrationId && !!createAmendmentFormData.name;
+};
+
+const hasChanges = (createAmendmentFormData: ModificationFormData, demonstrationId?: string) => {
+  return !!(
+    createAmendmentFormData.demonstrationId != demonstrationId ||
+    createAmendmentFormData.name ||
+    createAmendmentFormData.description ||
+    createAmendmentFormData.signatureLevel
   );
+};
 
-  const handleError = (error?: unknown) => {
-    showError("Error creating amendment.");
-    console.error(error || "Unknown error");
-    onClose();
-  };
+export const CreateAmendmentDialog: React.FC<{
+  demonstrationId?: string;
+}> = ({ demonstrationId }) => {
+  const { showSuccess, showError } = useToast();
+  const { closeDialog } = useDialog();
+  const [save, { loading: saving }] = useMutation(CREATE_AMENDMENT_MUTATION);
 
-  const createAmendment = async ({
-    name,
-    description,
-    demonstrationId,
-  }: CreateModificationFormFields) => {
+  const [createAmendmentFormData, setCreateAmendmentFormData] = useState<ModificationFormData>({
+    demonstrationId: demonstrationId,
+  });
+
+  const handleSubmit = async () => {
     try {
-      const result = await triggerCreateAmendment({
+      await save({
         variables: {
           input: {
-            name: name,
-            description: description,
-            demonstrationId: demonstrationId,
+            demonstrationId: createAmendmentFormData.demonstrationId,
+            name: createAmendmentFormData.name,
+            description: createAmendmentFormData.description,
+            signatureLevel: createAmendmentFormData.signatureLevel,
           },
         },
       });
-
-      if (!result.data?.createAmendment) {
-        handleError();
-      }
-
       showSuccess("Amendment created successfully.");
-      onClose();
     } catch (error) {
-      handleError(error);
+      showError("Failed to create amendment.");
+      console.error("Error creating amendment:", error);
     }
+    closeDialog();
   };
 
   return (
-    <BaseCreateModificationDialog
-      onClose={onClose}
-      initialDemonstrationId={initialDemonstrationId}
-      modificationType="Amendment"
-      handleSubmit={createAmendment}
-    />
+    <BaseDialog
+      title="Add Amendment"
+      onClose={closeDialog}
+      dialogHasChanges={hasChanges(createAmendmentFormData, demonstrationId)}
+      maxWidthClass="max-w-[920px]"
+      actionButton={
+        <Button
+          name={"button-submit-create-amendment-dialog"}
+          disabled={
+            saving ||
+            !hasChanges(createAmendmentFormData, demonstrationId) ||
+            !isValid(createAmendmentFormData)
+          }
+          onClick={handleSubmit}
+        >
+          Create Amendment
+        </Button>
+      }
+    >
+      <>
+        <div className="flex flex-col gap-2">
+          <ModificationForm
+            showDemonstrationSelect={!demonstrationId}
+            modificationType="Amendment"
+            modificationFormData={createAmendmentFormData}
+            setModificationFormDataField={(field: Partial<ModificationFormData>) =>
+              setCreateAmendmentFormData((prev) => ({ ...prev, ...field }))
+            }
+          />
+        </div>
+      </>
+    </BaseDialog>
   );
 };
