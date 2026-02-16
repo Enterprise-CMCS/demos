@@ -102,6 +102,11 @@ erDiagram
   event }|--|| log_level : "FK066"
   role ||--|{ event : "FK053"
   event }|--|| users : "FK054"
+  demonstration }|--|| clearance_level : "FK089"
+  amendment }|--|| clearance_level : "FK090"
+  extension }|--|| clearance_level : "FK091"
+  amendment }|--|| signature_level : "FK092"
+  extension }|--|| signature_level : "FK093"
 
   %% Static Constraints
   application_status:::staticConstraint {
@@ -109,6 +114,10 @@ erDiagram
   }
 
   application_type:::staticConstraint {
+    text id PK
+  }
+
+  clearance_level:::staticConstraint {
     text id PK
   }
 
@@ -149,7 +158,7 @@ erDiagram
 
   phase:::staticConstraint {
     text id PK
-    integer phase_number UK
+    integer phase_number UK "UK: phase_number"
   }
 
   phase_status:::staticConstraint {
@@ -226,18 +235,18 @@ erDiagram
   %% Data Tables
   amendment:::dataTable {
     uuid id PK, FK, UK "FK058: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)"
-    text application_type_id FK "FK058: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)<br>FK061: application_type_id ∈ amendment_application_type_limit.id"
+    text application_type_id FK, UK "FK058: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)<br>FK061: application_type_id ∈ amendment_application_type_limit.id"
     uuid demonstration_id FK "FK059: demonstration_id ∈ demonstration.id"
     text name
     text description "NULLABLE"
     timestamptz effective_date "NULLABLE"
-    timestamptz expiration_date "NULLABLE"
     text status_id FK "FK018: status_id ∈ application_status.id"
     text current_phase_id FK "FK020: current_phase_id ∈ phase.id"
+    text signature_level_id FK "FK092: signature_level_id ∈ signature_level.id<br>NULLABLE"
+    text clearance_level_id FK "FK090: clearance_level_id ∈ clearance_level.id"
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
-    CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
     CONSTRAINT_CHECK check_amendment_non_null_fields_when_approved  "Validate that required fields exist if amendment is approved."
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
@@ -281,7 +290,7 @@ erDiagram
 
   demonstration:::dataTable {
     uuid id PK, FK, UK "FK008: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)<br>UK: (id, state_id)"
-    text application_type_id FK "FK008: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)<br>FK014: application_type_id ∈ demonstration_application_type_limit.id"
+    text application_type_id FK, UK "FK008: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)<br>FK014: application_type_id ∈ demonstration_application_type_limit.id"
     text name
     text description "NULLABLE"
     timestamptz effective_date "NULLABLE"
@@ -291,6 +300,7 @@ erDiagram
     text status_id FK "FK064: status_id ∈ application_status.id"
     text current_phase_id FK "FK065: current_phase_id ∈ phase.id"
     text state_id FK, UK "FK021: state_id ∈ state.id<br>UK: (id, state_id)"
+    text clearance_level_id FK "FK089: clearance_level_id ∈ clearance_level.id"
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
@@ -327,7 +337,6 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
-    CONSTRAINT_CHECK check_non_empty_description "Validate that the description is not empty or only whitespace."
     CONSTRAINT_CHECK check_non_empty_s3_path "Validate that the S3 path is not empty or only whitespace."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
@@ -359,7 +368,6 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
-    CONSTRAINT_CHECK check_non_empty_description "Validate that the description is not empty or only whitespace."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
@@ -376,19 +384,19 @@ erDiagram
   }
 
   extension:::dataTable {
-    uuid id PK, FK "FK009: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)"
-    text application_type_id FK "FK009: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)<br>FK016: application_type_id ∈ extension_application_type_limit.id"
+    uuid id PK, FK, UK "FK009: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)"
+    text application_type_id FK, UK "FK009: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)<br>FK016: application_type_id ∈ extension_application_type_limit.id"
     uuid demonstration_id FK "FK012: demonstration_id ∈ demonstration.id"
     text name
     text description "NULLABLE"
     timestamptz effective_date "NULLABLE"
-    timestamptz expiration_date "NULLABLE"
     text status_id FK "FK062: status_id ∈ application_status.id"
     text current_phase_id FK "FK063: current_phase_id ∈ phase.id"
+    text signature_level_id FK "FK093: signature_level_id ∈ signature_level.id<br>NULLABLE"
+    text clearance_level_id FK "FK091: clearance_level_id ∈ clearance_level.id"
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
-    CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
     CONSTRAINT_CHECK check_extension_non_null_fields_when_approved  "Validate that required fields exist if extension is approved."
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
@@ -396,7 +404,7 @@ erDiagram
 
   person:::dataTable {
     uuid id PK, UK "UK: (id, person_type_id)"
-    text person_type_id FK "FK022: person_type_id ∈ person_type.id<br>UK: (id, person_type_id)"
+    text person_type_id FK, UK "FK022: person_type_id ∈ person_type.id<br>UK: (id, person_type_id)"
     text email
     text first_name
     text last_name
@@ -425,7 +433,7 @@ erDiagram
 
   users:::dataTable {
     uuid id PK, FK, UK "FK023: (id, person_type_id) ∈ person.(id, person_type_id)<br>UK: (id, person_type_id)"
-    text person_type_id FK "FK023: (id, person_type_id) ∈ person.(id, person_type_id)<br>FK025: person_type_id ∈ user_person_type_limit.id<br>UK: (id, person_type_id)"
+    text person_type_id FK, UK "FK023: (id, person_type_id) ∈ person.(id, person_type_id)<br>FK025: person_type_id ∈ user_person_type_limit.id<br>UK: (id, person_type_id)"
     uuid cognito_subject UK "UK: cognito_subject"
     text username
     timestamptz created_at
