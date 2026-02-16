@@ -86,6 +86,7 @@ export const CreateAmendmentDialog: React.FC<{
       <>
         <div className="flex flex-col gap-2">
           <ModificationForm
+            mode="create"
             showDemonstrationSelect={!demonstrationId}
             modificationType="Amendment"
             modificationFormData={createAmendmentFormData}

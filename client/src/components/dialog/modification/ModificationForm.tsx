@@ -1,8 +1,9 @@
 import React from "react";
 import { Textarea, TextInput } from "components/input";
-import { SignatureLevel } from "demos-server";
+import { LocalDate, SignatureLevel } from "demos-server";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
 import { SelectDemonstration } from "components/input/select/SelectDemonstration";
+import { DatePicker } from "components/input/date/DatePicker";
 
 export type ModificationFormData = {
   id?: string;
@@ -10,15 +11,18 @@ export type ModificationFormData = {
   description?: string;
   signatureLevel?: SignatureLevel;
   demonstrationId?: string;
+  effectiveDate?: LocalDate;
 };
 
 export const ModificationForm: React.FC<{
   showDemonstrationSelect?: boolean;
+  mode: "create" | "edit";
   modificationType: "Amendment" | "Extension";
   modificationFormData: ModificationFormData;
   setModificationFormDataField: (field: Partial<ModificationFormData>) => void;
 }> = ({
   showDemonstrationSelect,
+  mode,
   modificationType,
   modificationFormData,
   setModificationFormDataField,
@@ -36,19 +40,35 @@ export const ModificationForm: React.FC<{
           value={modificationFormData.demonstrationId || ""}
         />
       )}
-      <div className="w-1/2">
-        <TextInput
-          name="name"
-          label={`${modificationType} Title`}
-          placeholder={`Enter ${modificationType.toLowerCase()} title`}
-          isRequired
-          value={modificationFormData.name}
-          onChange={(e) =>
-            setModificationFormDataField({
-              name: e.target.value,
-            })
-          }
-        />
+      <div className="flex gap-2">
+        <div className={mode === "edit" ? "flex-[2]" : "w-1/2"}>
+          <TextInput
+            name="name"
+            label={`${modificationType} Title`}
+            placeholder={`Enter ${modificationType.toLowerCase()} title`}
+            isRequired
+            value={modificationFormData.name}
+            onChange={(e) =>
+              setModificationFormDataField({
+                name: e.target.value,
+              })
+            }
+          />
+        </div>
+        {mode === "edit" && (
+          <div className="flex-1">
+            <DatePicker
+              name="effectiveDate"
+              label="Effective Date"
+              value={modificationFormData.effectiveDate}
+              onChange={(date) =>
+                setModificationFormDataField({
+                  effectiveDate: date as LocalDate,
+                })
+              }
+            />
+          </div>
+        )}
       </div>
       <Textarea
         name={"description"}
