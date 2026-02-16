@@ -65,9 +65,9 @@ const isValid = (editExtensionFormData: ModificationFormData) => {
 
 const getFormDataFromExtension = (extension: Extension) => ({
   name: extension.name,
-  description: extension.description || undefined,
+  description: extension.description ?? undefined,
   effectiveDate: extension.effectiveDate ? formatDateForServer(extension.effectiveDate) : undefined,
-  signatureLevel: extension.signatureLevel || undefined,
+  signatureLevel: extension.signatureLevel ?? undefined,
 });
 
 export const UpdateExtensionDialog: React.FC<{

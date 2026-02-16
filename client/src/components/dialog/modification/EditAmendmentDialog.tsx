@@ -65,9 +65,9 @@ const isValid = (editAmendmentFormData: ModificationFormData) => {
 
 const getFormDataFromAmendment = (amendment: Amendment) => ({
   name: amendment.name,
-  description: amendment.description || undefined,
+  description: amendment.description ?? undefined,
   effectiveDate: amendment.effectiveDate ? formatDateForServer(amendment.effectiveDate) : undefined,
-  signatureLevel: amendment.signatureLevel || undefined,
+  signatureLevel: amendment.signatureLevel ?? undefined,
 });
 
 export const UpdateAmendmentDialog: React.FC<{
