@@ -219,4 +219,34 @@ describe("CreateExtensionDialog", () => {
 
     expect(mockShowSuccess).not.toHaveBeenCalled();
   });
+
+  it("closes dialog directly when cancel is clicked without form changes", async () => {
+    const user = userEvent.setup();
+
+    renderDialog({ demonstrationId: "demo-123" });
+
+    const cancelButton = screen.getByRole("button", { name: /cancel/i });
+    await user.click(cancelButton);
+
+    expect(mockCloseDialog).toHaveBeenCalled();
+    expect(screen.queryByText("Are you sure?")).not.toBeInTheDocument();
+  });
+
+  it("shows confirmation dialog when cancel is clicked with form changes", async () => {
+    const user = userEvent.setup();
+
+    renderDialog({ demonstrationId: "demo-123" });
+
+    await user.type(screen.getByLabelText(/Extension Title/), "Test Extension");
+
+    const cancelButton = screen.getByRole("button", { name: /cancel/i });
+    await user.click(cancelButton);
+
+    await waitFor(() => {
+      expect(screen.getByText("Are you sure?")).toBeInTheDocument();
+      expect(screen.getByText(/You will lose any unsaved changes/i)).toBeInTheDocument();
+    });
+
+    expect(mockCloseDialog).not.toHaveBeenCalled();
+  });
 });
