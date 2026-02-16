@@ -260,7 +260,7 @@ describe("virus scan polling", () => {
     mockLazyQueryFn.mockImplementation(async () => {
       callCount++;
       if (callCount < 3) {
-        return { data: null };
+        return { data: { document: null } };
       }
       return { data: { document: { id: "test-document" } } };
     });
@@ -314,7 +314,7 @@ describe("virus scan polling", () => {
     });
 
     mockLazyQueryFn.mockResolvedValue({
-      data: { documentExists: false },
+      data: { document: null },
     });
 
     vi.mocked(globalThis.fetch).mockResolvedValue({ ok: true } as Response);

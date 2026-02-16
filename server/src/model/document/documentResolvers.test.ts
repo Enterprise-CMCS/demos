@@ -364,7 +364,6 @@ describe("documentResolvers", () => {
   describe("resolver exports", () => {
     it("should export Query resolvers", () => {
       expect(documentResolvers.Query).toHaveProperty("document");
-      expect(documentResolvers.Query).toHaveProperty("documentExists");
     });
 
     it("should export Mutation resolvers", () => {
