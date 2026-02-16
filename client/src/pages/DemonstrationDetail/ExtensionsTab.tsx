@@ -2,10 +2,13 @@ import React from "react";
 import { IconButton } from "components/button";
 import { AddNewIcon } from "components/icons";
 import { useDialog } from "components/dialog/DialogContext";
+import { DemonstrationDetailExtension } from "./DemonstrationDetail";
+import { ModificationTabs } from "./ModificationTabs";
 
 export const ExtensionsTab: React.FC<{
   demonstrationId: string;
-}> = ({ demonstrationId }) => {
+  extensions: DemonstrationDetailExtension[];
+}> = ({ demonstrationId, extensions }) => {
   const { showCreateExtensionDialog } = useDialog();
   return (
     <div className="p-2">
@@ -20,6 +23,7 @@ export const ExtensionsTab: React.FC<{
           Add Extension
         </IconButton>
       </div>
+      <ModificationTabs items={extensions} />
     </div>
   );
 };

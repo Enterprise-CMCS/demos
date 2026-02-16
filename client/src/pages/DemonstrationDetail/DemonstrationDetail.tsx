@@ -45,10 +45,18 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       status
       currentPhaseName
       amendments {
+        name
         id
+        description
+        status
+        createdAt
       }
       extensions {
         id
+        name
+        description
+        status
+        createdAt
       }
       demonstrationTypes {
         demonstrationTypeName
@@ -84,9 +92,19 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
   }
 `;
 
+export type DemonstrationDetailAmendment = Pick<
+  Amendment,
+  "id" | "name" | "description" | "status" | "createdAt"
+>;
+
+export type DemonstrationDetailExtension = Pick<
+  Extension,
+  "id" | "name" | "description" | "status" | "createdAt"
+>;
+
 export type DemonstrationDetail = Pick<Demonstration, "id" | "status" | "currentPhaseName"> & {
-  amendments: Pick<Amendment, "id">[];
-  extensions: Pick<Extension, "id">[];
+  amendments: DemonstrationDetailAmendment[];
+  extensions: DemonstrationDetailExtension[];
   demonstrationTypes: Pick<
     DemonstrationTypeAssignment,
     "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "createdAt"
@@ -150,7 +168,10 @@ export const DemonstrationDetail: React.FC = () => {
               value="amendments"
               shouldRender={hasAmendments}
             >
-              <AmendmentsTab demonstrationId={demonstration.id} />
+              <AmendmentsTab
+                demonstrationId={demonstration.id}
+                amendments={demonstration.amendments}
+              />
             </Tab>
 
             <Tab
@@ -158,7 +179,10 @@ export const DemonstrationDetail: React.FC = () => {
               value="extensions"
               shouldRender={hasExtensions}
             >
-              <ExtensionsTab demonstrationId={demonstration.id} />
+              <ExtensionsTab
+                demonstrationId={demonstration.id}
+                extensions={demonstration.extensions}
+              />
             </Tab>
           </Tabs>
         </>

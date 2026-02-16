@@ -3,10 +3,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { ExtensionsTab } from "./ExtensionsTab";
 
-vi.mock("components/table/tables/ExtensionTable", () => ({
-  ExtensionTable: vi.fn(() => <div data-testid="extension-table">ExtensionTable</div>),
-}));
-
 const showCreateExtensionDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
@@ -20,7 +16,7 @@ describe("ExtensionsTab", () => {
   });
 
   const renderExtensionsTab = () => {
-    return render(<ExtensionsTab demonstrationId="mock-demonstration-id" />);
+    return render(<ExtensionsTab demonstrationId="mock-demonstration-id" extensions={[]} />);
   };
 
   it("shows extensions tab title", async () => {

@@ -16,7 +16,7 @@ describe("AmendmentsTab", () => {
   });
 
   const renderAmendmentsTab = () => {
-    return render(<AmendmentsTab demonstrationId="mock-demonstration-id" />);
+    return render(<AmendmentsTab demonstrationId="mock-demonstration-id" amendments={[]} />);
   };
 
   it("shows amendments tab title", async () => {

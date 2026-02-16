@@ -2,10 +2,13 @@ import React from "react";
 import { IconButton } from "components/button";
 import { AddNewIcon } from "components/icons";
 import { useDialog } from "components/dialog/DialogContext";
+import { DemonstrationDetailAmendment } from "./DemonstrationDetail";
+import { ModificationTabs } from "./ModificationTabs";
 
 export const AmendmentsTab: React.FC<{
   demonstrationId: string;
-}> = ({ demonstrationId }) => {
+  amendments: DemonstrationDetailAmendment[];
+}> = ({ demonstrationId, amendments }) => {
   const { showCreateAmendmentDialog } = useDialog();
   return (
     <div className="p-2">
@@ -20,6 +23,7 @@ export const AmendmentsTab: React.FC<{
           Add Amendment
         </IconButton>
       </div>
+      <ModificationTabs items={amendments} />
     </div>
   );
 };
