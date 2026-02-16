@@ -38,8 +38,6 @@ erDiagram
   note_type ||--|{ application_note  : "FK074"
   application_date }|--|| application : "FK002"
   application_note }|--|| application : "FK073"
-  application_phase }|--|| application_phase_type_limit : "FK006"
-  application_phase_type_limit ||--|| phase : "FK067"
   application }|--|| application_type : "FK007"
   application ||--|| demonstration : "FK008"
   application ||--|| extension : "FK009"
@@ -108,6 +106,19 @@ erDiagram
   amendment }|--|| signature_level : "FK092"
   extension }|--|| signature_level : "FK093"
 
+  demonstration ||--|{ deliverable : "FK006"
+  deliverable }|--|| deliverable_type : "FK067"
+  deliverable }|--|| deliverable_status : "FK094"
+  deliverable }|--|| deliverable_due_date_type : "FK095"
+  document_type ||--|{ deliverable_type_document_type : "FK097"
+  deliverable_type_document_type }|--|| deliverable_type : "FK096"
+  document }|--|| deliverable : "FK098"
+  document_infected }|--|| deliverable : "FK099"
+  document_pending_upload }|--|| deliverable : "FK100"
+  document }|--|| deliverable_type_document_type : "FK101"
+  document_infected }|--|| deliverable_type_document_type : "FK102"
+  document_pending_upload }|--|| deliverable_type_document_type : "FK103"
+
   %% Static Constraints
   application_status:::staticConstraint {
     text id PK
@@ -122,6 +133,18 @@ erDiagram
   }
 
   date_type:::staticConstraint {
+    text id PK
+  }
+
+  deliverable_status:::staticConstraint {
+    text id PK
+  }
+
+  deliverable_type:::staticConstraint {
+    text id PK
+  }
+
+  deliverable_due_date_type:::staticConstraint {
     text id PK
   }
 
@@ -200,10 +223,6 @@ erDiagram
     text id PK, FK "FK060: id ∈ application_type.id"
   }
 
-  application_phase_type_limit:::typeLimiter {
-    text id PK, FK "FK067: id ∈ phase.id"
-  }
-
   application_tag_type_limit:::typeLimiter {
     text id PK, FK "FK084: id ∈ tag_type.id"
   }
@@ -280,12 +299,24 @@ erDiagram
 
   application_phase:::dataTable {
     uuid application_id PK, FK "FK005: application_id ∈ application.id"
-    text phase_id PK, FK "FK006: phase_id ∈ application_phase_type_limit.id<br>FK004: (phase_id, phase_status_id) ∈ phase_phase_status.(phase_id, phase_status_id)"
+    text phase_id PK, FK "FK004: (phase_id, phase_status_id) ∈ phase_phase_status.(phase_id, phase_status_id)"
     text phase_status_id FK "FK004: (phase_id, phase_status_id) ∈ phase_phase_status.(phase_id, phase_status_id)"
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_AFTER_UPDATE update_demonstration_current_phase_on_phase_update "Update demonstration current phase when phase status changes."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+  }
+
+  deliverable:::dataTable {
+    uuid id PK, UK "UK: (id, demonstration_id, deliverable_type_id)"
+    uuid demonstration_id FK, UK "FK006: demonstration_id ∈ demonstration.id<br>UK: (id, demonstration_id, deliverable_type_id)"
+    text deliverable_type_id FK, UK "FK067: deliverable_type_id ∈ deliverable_type.id<br>UK: (id, demonstration_id, deliverable_type_id)"
+    text status_id FK "FK094: status_id ∈ deliverable_status.id"
+    text due_date_type_id FK "FK095: due_date_type_id ∈ deliverable_due_date_type.id"
+    timestamptz due_date
+    bool expected_to_be_submitted
+    timestamptz created_at
+    timestamptz updated_at
   }
 
   demonstration:::dataTable {
@@ -331,13 +362,19 @@ erDiagram
     text description "NULLABLE"
     text s3_path
     uuid owner_user_id FK "FK026: owner_user_id ∈ users.id"
-    text document_type_id FK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
-    uuid application_id FK "FK030: application_id ∈ application.id"
-    text phase_id FK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
+    text document_type_id FK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)<br>FK101: (deliverable_type_id, document_type_id) ∈ deliverable_type_document_type.(deliverable_type_id, document_type_id)"
+    uuid application_id FK "FK030: application_id ∈ application.id<br>FK098: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)"
+    text phase_id FK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)<br>NULLABLE"
+    uuid deliverable_id FK "FK098: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)<br>NULLABLE"
+    text deliverable_type_id FK "FK098: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)<br>FK101: (deliverable_type_id, document_type_id) ∈ deliverable_type_document_type.(deliverable_type_id, document_type_id)<br>NULLABLE"
+    timestamptz deliverable_submission_timestamp "NULLABLE"
+    timestamptz deliverable_due_date_at_submission "NULLABLE"
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK check_non_empty_s3_path "Validate that the S3 path is not empty or only whitespace."
+    CONSTRAINT_CHECK check_phase_id_deliverable_id_null "Validate that at least one of phase_id and deliverable_id are NULL"
+    CONSTRAINT_CHECK check_deliverable_null_states "Validate that the deliverable-related fields are NULL or NOT NULL appropriately<br>If deliverable_id is NULL, all other deliverable fields must be NULL<br>If deliverable_id is NOT NULL, deliverable_type_id must be NOT NULL<br>If deliverable_id is NOT NULL, both dates must be either NULL or NOT NULL"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
@@ -347,13 +384,19 @@ erDiagram
     text description "NULLABLE"
     text s3_path
     uuid owner_user_id FK "FK068: owner_user_id ∈ users.id"
-    text document_type_id FK "FK069: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
-    uuid application_id FK "FK070: application_id ∈ application.id"
-    text phase_id FK "FK069: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
+    text document_type_id FK "FK069: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)<br>FK102: (deliverable_type_id, document_type_id) ∈ deliverable_type_document_type.(deliverable_type_id, document_type_id)"
+    uuid application_id FK "FK070: application_id ∈ application.id<br>FK099: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)"
+    text phase_id FK "FK069: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)<br>NULLABLE"
+    uuid deliverable_id FK "FK099: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)<br>NULLABLE"
+    text deliverable_type_id FK "FK099: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)<br>FK102: (deliverable_type_id, document_type_id) ∈ deliverable_type_document_type.(deliverable_type_id, document_type_id)<br>NULLABLE"
     text infection_status
     text infection_threats
     timestamptz created_at
     timestamptz updated_at
+    CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
+    CONSTRAINT_CHECK check_non_empty_s3_path "Validate that the S3 path is not empty or only whitespace."
+    CONSTRAINT_CHECK check_phase_id_deliverable_id_null "Validate that at least one of phase_id and deliverable_id are NULL"
+    CONSTRAINT_CHECK check_deliverable_type_id_null "If deliverable_id is NULL, deliverable_type_id must be NULL<br>If deliverable_id is NOT NULL, deliverable_type_id must be NOT NULL"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
@@ -362,12 +405,16 @@ erDiagram
     text name
     text description "NULLABLE"
     uuid owner_user_id FK "FK019: owner_user_id ∈ users.id"
-    text document_type_id FK "FK055: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
-    uuid application_id FK "FK056: application_id ∈ application.id"
-    text phase_id FK "FK055: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
+    text document_type_id FK "FK055: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)<br>FK103: (deliverable_type_id, document_type_id) ∈ deliverable_type_document_type.(deliverable_type_id, document_type_id)"
+    uuid application_id FK "FK056: application_id ∈ application.id<br>FK100: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)"
+    text phase_id FK "FK055: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)<br>NULLABLE"
+    uuid deliverable_id FK "FK100: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)<br>NULLABLE"
+    text deliverable_type_id FK "FK100: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)<br>FK103: (deliverable_type_id, document_type_id) ∈ deliverable_type_document_type.(deliverable_type_id, document_type_id)<br>NULLABLE"
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
+    CONSTRAINT_CHECK check_phase_id_deliverable_id_null "Validate that at least one of phase_id and deliverable_id are NULL"
+    CONSTRAINT_CHECK check_deliverable_type_id_null "If deliverable_id is NULL, deliverable_type_id must be NULL<br>If deliverable_id is NOT NULL, deliverable_type_id must be NOT NULL"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
@@ -447,6 +494,11 @@ erDiagram
     text tag_id PK, FK "FK082: (tag_id, tag_type_id) ∈ tag_configuration.(tag_id, tag_type_id)"
     text tag_type_id FK "FK082: (tag_id, tag_type_id) ∈ tag_configuration.(tag_id, tag_type_id)<br>FK086: tag_type_id ∈ application_tag_type_limit.id"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+  }
+
+  deliverable_type_document_type:::associativeTable {
+    text deliverable_type_id PK, FK "FK096: deliverable_type_id ∈ deliverable_type.id"
+    text document_type_id PK, FK "FK097: document_type_id ∈ document_type.id"
   }
 
   demonstration_role_assignment:::associativeTable {
