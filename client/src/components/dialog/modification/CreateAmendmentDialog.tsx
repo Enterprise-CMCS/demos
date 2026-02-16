@@ -65,7 +65,7 @@ export const CreateAmendmentDialog: React.FC<{
 
   return (
     <BaseDialog
-      title="Create Amendment"
+      title="Add Amendment"
       onClose={closeDialog}
       dialogHasChanges={hasChanges(createAmendmentFormData, demonstrationId)}
       maxWidthClass="max-w-[920px]"

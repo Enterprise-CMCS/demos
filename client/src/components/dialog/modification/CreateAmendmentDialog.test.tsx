@@ -105,7 +105,7 @@ describe("CreateAmendmentDialog", () => {
   it("renders dialog with correct title", () => {
     renderDialog();
 
-    expect(screen.getByRole("heading", { name: "Create Amendment" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Add Amendment" })).toBeInTheDocument();
   });
 
   it("renders form with Amendment fields", () => {
@@ -248,5 +248,16 @@ describe("CreateAmendmentDialog", () => {
     });
 
     expect(mockCloseDialog).not.toHaveBeenCalled();
+  });
+
+  it("closes dialog when close button (X) is clicked", async () => {
+    const user = userEvent.setup();
+
+    renderDialog({ demonstrationId: "demo-123" });
+
+    const closeButton = screen.getByLabelText("Close dialog");
+    await user.click(closeButton);
+
+    expect(mockCloseDialog).toHaveBeenCalled();
   });
 });

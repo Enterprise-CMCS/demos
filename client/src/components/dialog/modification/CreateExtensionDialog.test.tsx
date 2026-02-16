@@ -105,7 +105,7 @@ describe("CreateExtensionDialog", () => {
   it("renders dialog with correct title", () => {
     renderDialog();
 
-    expect(screen.getByRole("heading", { name: "Create Extension" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Add Extension" })).toBeInTheDocument();
   });
 
   it("renders form with Extension fields", () => {
@@ -248,5 +248,16 @@ describe("CreateExtensionDialog", () => {
     });
 
     expect(mockCloseDialog).not.toHaveBeenCalled();
+  });
+
+  it("closes dialog when close button (X) is clicked", async () => {
+    const user = userEvent.setup();
+
+    renderDialog({ demonstrationId: "demo-123" });
+
+    const closeButton = screen.getByLabelText("Close dialog");
+    await user.click(closeButton);
+
+    expect(mockCloseDialog).toHaveBeenCalled();
   });
 });

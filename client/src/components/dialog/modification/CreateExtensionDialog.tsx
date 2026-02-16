@@ -65,7 +65,7 @@ export const CreateExtensionDialog: React.FC<{
 
   return (
     <BaseDialog
-      title="Create Extension"
+      title="Add Extension"
       onClose={closeDialog}
       dialogHasChanges={hasChanges(createExtensionFormData, demonstrationId)}
       maxWidthClass="max-w-[920px]"
