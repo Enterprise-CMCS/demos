@@ -1,18 +1,8 @@
-import React, { useEffect, useState } from "react";
-import {
-  ModificationForm,
-  getFormDataFromModification,
-  hasChanges,
-  isValid,
-  Modification,
-  ModificationFormData,
-} from "./ModificationForm";
+import React from "react";
+import { Modification, ModificationFormData } from "./ModificationForm";
 import { gql, TypedDocumentNode, useMutation, useQuery } from "@apollo/client";
-import { useToast } from "components/toast";
-import { BaseDialog } from "../BaseDialog";
-import { useDialog } from "../DialogContext";
-import { Button } from "components/button";
 import { UpdateExtensionInput } from "demos-server";
+import { BaseEditModificationDialog } from "./BaseEditModificationDialog";
 
 export const UPDATE_EXTENSION_MUTATION: TypedDocumentNode<
   { updateExtension: Modification },
@@ -25,9 +15,6 @@ export const UPDATE_EXTENSION_MUTATION: TypedDocumentNode<
       description
       effectiveDate
       signatureLevel
-      demonstration {
-        id
-      }
     }
   }
 `;
@@ -50,86 +37,34 @@ export const UPDATE_EXTENSION_DIALOG_QUERY: TypedDocumentNode<
   }
 `;
 
-export const UpdateExtensionDialog: React.FC<{
-  extensionId: string;
-}> = ({ extensionId }) => {
-  const { showSuccess, showError } = useToast();
-  const { closeDialog } = useDialog();
-  const [save, { loading: saving }] = useMutation(UPDATE_EXTENSION_MUTATION);
+export const useUpdateExtension = (extensionId: string) => {
   const { data, error } = useQuery(UPDATE_EXTENSION_DIALOG_QUERY, {
     variables: { id: extensionId },
   });
-  const [updateExtensionFormData, setUpdateExtensionFormData] = useState<
-    ModificationFormData | undefined
-  >(data && getFormDataFromModification(data.extension));
+  const [updateExtension, { loading }] = useMutation(UPDATE_EXTENSION_MUTATION);
 
-  useEffect(() => {
-    if (data?.extension) {
-      setUpdateExtensionFormData(getFormDataFromModification(data.extension));
-    }
-  }, [data]);
-
-  const handleSubmit = async () => {
-    if (!updateExtensionFormData) {
-      showError("Form data is not loaded yet.");
-      return;
-    }
-    try {
-      await save({
-        variables: {
-          id: extensionId,
-          input: updateExtensionFormData,
-        },
-      });
-      showSuccess("Extension updated successfully.");
-    } catch (error) {
-      showError("Failed to update extension.");
-      console.error("Error creating extension:", error);
-    }
-    closeDialog();
+  const save = async (input: ModificationFormData) => {
+    await updateExtension({
+      variables: {
+        id: extensionId,
+        input,
+      },
+    });
   };
 
-  return (
-    <BaseDialog
-      title="Edit Details"
-      onClose={closeDialog}
-      dialogHasChanges={
-        data && updateExtensionFormData && hasChanges(updateExtensionFormData, data.extension)
-      }
-      maxWidthClass="max-w-[920px]"
-      actionButton={
-        <Button
-          name={"button-submit-update-extension-dialog"}
-          disabled={
-            !updateExtensionFormData ||
-            !data ||
-            saving ||
-            !hasChanges(updateExtensionFormData, data.extension) ||
-            !isValid(updateExtensionFormData)
-          }
-          onClick={handleSubmit}
-        >
-          Save Changes
-        </Button>
-      }
-    >
-      <>
-        {error && <p>Error loading Extension</p>}
-        {!updateExtensionFormData ? (
-          <p>Loading...</p>
-        ) : (
-          <div className="flex flex-col gap-2">
-            <ModificationForm
-              mode="edit"
-              modificationType="Extension"
-              modificationFormData={updateExtensionFormData}
-              setModificationFormDataField={(field: Partial<ModificationFormData>) =>
-                setUpdateExtensionFormData((prev) => ({ ...prev, ...field }))
-              }
-            />
-          </div>
-        )}
-      </>
-    </BaseDialog>
-  );
+  return {
+    modification: data?.extension,
+    error,
+    save,
+    saving: loading,
+  };
 };
+
+export const UpdateExtensionDialog: React.FC<{
+  extensionId: string;
+}> = ({ extensionId }) => (
+  <BaseEditModificationDialog
+    modificationType="Extension"
+    useModification={() => useUpdateExtension(extensionId)}
+  />
+);
