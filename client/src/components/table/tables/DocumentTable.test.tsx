@@ -131,9 +131,9 @@ describe("DocumentTable", () => {
     const otherOption = screen.getByText("Q&A").closest("li");
     expect(otherOption).toBeInTheDocument();
 
-    // Find the button inside the "Q&A" option and click it
-    const button = within(otherOption!).getByRole("button");
-    await user.click(button);
+    // Find the checkbox inside the "Q&A" option and click it
+    const checkbox = within(otherOption!).getByRole("checkbox");
+    await user.click(checkbox);
 
     const table = screen.getByRole("table");
 

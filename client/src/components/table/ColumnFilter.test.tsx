@@ -377,9 +377,9 @@ describe("ColumnFilter Component", () => {
         const alphaDropdownOption = alphaOptions.find(
           (el) => el.tagName === "LI" || el.closest("li")
         );
-        // Check that the checkmark span doesn't contain the ✓ symbol
-        const checkmarkSpan = alphaDropdownOption?.querySelector('span[aria-hidden="true"]');
-        expect(checkmarkSpan?.textContent).not.toContain("✓");
+        // Check that the checkbox is not checked
+        const alphaCheckbox = alphaDropdownOption?.querySelector('input[type="checkbox"]');
+        expect(alphaCheckbox).toHaveProperty("checked", false);
       });
     });
   });

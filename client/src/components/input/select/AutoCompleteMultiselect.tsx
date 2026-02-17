@@ -129,44 +129,40 @@ export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = (
         </div>
 
         {isOpen && (
-          <ul className={LIST_CLASSES}>
+          <ul className={LIST_CLASSES} role="listbox" aria-multiselectable="true">
             {filtered.length > 0 ? (
               filtered.map((opt, i) => {
                 const isActive = i === activeIndex;
                 return (
-                  <li
-                    key={opt.value}
-                    className={`${isActive ? ITEM_ACTIVE_CLASSES : ""} flex items-center`}
-                  >
-                    <button
-                      type="button"
-                      className={`${ITEM_CLASSES} px-1 py-1 text-sm w-full text-left flex items-center`}
-                      disabled={isDisabled}
+                  <li key={opt.value} role="presentation">
+                    <label
+                      className={`${ITEM_CLASSES} ${isActive ? ITEM_ACTIVE_CLASSES : ""} flex items-center cursor-pointer`}
                       style={{ cursor: isDisabled ? "not-allowed" : "pointer" }}
                       onMouseEnter={() => setActiveIndex(i)}
-                      onClick={() => {
-                        if (selected.includes(opt.value)) {
-                          handleRemove(opt.value);
-                        } else {
-                          handleSelect(opt.value);
-                        }
-                      }}
                     >
-                      <span
-                        className="m-1 w-2 h-2 flex-shrink-0 border border-gray-400 rounded-sm flex items-center justify-center"
-                        aria-hidden="true"
-                      >
-                        {selected.includes(opt.value) && <span className="text-xs">✓</span>}
-                      </span>
+                      <input
+                        type="checkbox"
+                        disabled={isDisabled}
+                        checked={selected.includes(opt.value)}
+                        onChange={() => {
+                          if (!isDisabled) {
+                            if (selected.includes(opt.value)) {
+                              handleRemove(opt.value);
+                            } else {
+                              handleSelect(opt.value);
+                            }
+                          }
+                        }}
+                        className="m-1 w-2 h-2 flex-shrink-0"
+                        tabIndex={-1}
+                      />
                       {opt.label}
-                    </button>
+                    </label>
                   </li>
                 );
               })
             ) : (
-              <li>
-                <div className={EMPTY_CLASSES}>No matches found</div>
-              </li>
+              <li className={EMPTY_CLASSES}>No matches found</li>
             )}
           </ul>
         )}

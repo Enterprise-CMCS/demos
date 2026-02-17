@@ -137,13 +137,10 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
               filterOptions(options, filterValue).map((option, i) => {
                 const isActive = i === activeIndex;
                 return (
-                  <li
-                    key={option.value}
-                    className={isActive ? ITEM_ACTIVE_CLASSES : ""}
-                  >
+                  <li key={option.value}>
                     <button
                       type="button"
-                      className={`${ITEM_CLASSES} w-full text-left`}
+                      className={`${ITEM_CLASSES} ${isActive ? ITEM_ACTIVE_CLASSES : ""} w-full text-left`}
                       onClick={() => handleSelectOption(option)}
                       onMouseEnter={() => setActiveIndex(i)}
                     >
@@ -153,9 +150,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
                 );
               })
             ) : (
-              <li>
-                <div className={EMPTY_CLASSES}>No matches found</div>
-              </li>
+              <li className={EMPTY_CLASSES}>No matches found</li>
             )}
           </ul>
         )}
