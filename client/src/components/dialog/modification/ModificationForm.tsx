@@ -1,8 +1,20 @@
 import React from "react";
 import { Textarea, TextInput } from "components/input";
-import { SignatureLevel } from "demos-server";
+import { LocalDate, SignatureLevel } from "demos-server";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
 import { SelectDemonstration } from "components/input/select/SelectDemonstration";
+import { formatDateForServer } from "util/formatDate";
+
+export type Modification = {
+  id: string;
+  name: string;
+  demonstration: {
+    id: string;
+  };
+  description: string | null;
+  effectiveDate: string | null;
+  signatureLevel: SignatureLevel | null;
+};
 
 export type ModificationFormData = {
   id?: string;
@@ -10,7 +22,40 @@ export type ModificationFormData = {
   description?: string;
   signatureLevel?: SignatureLevel;
   demonstrationId?: string;
+  effectiveDate?: LocalDate;
 };
+
+export const isValid = (createModificationFormData: ModificationFormData): boolean => {
+  return !!createModificationFormData.demonstrationId && !!createModificationFormData.name;
+};
+
+export const hasChanges = (
+  createModificationFormData: ModificationFormData,
+  initialModification: Partial<Modification>
+): boolean => {
+  const initialEffectiveDate = initialModification.effectiveDate
+    ? formatDateForServer(initialModification.effectiveDate)
+    : undefined;
+
+  return !!(
+    createModificationFormData.name != initialModification.name ||
+    createModificationFormData.description != initialModification.description ||
+    createModificationFormData.signatureLevel != initialModification.signatureLevel ||
+    createModificationFormData.effectiveDate != initialEffectiveDate
+  );
+};
+
+export const getFormDataFromModification = (
+  modification: Partial<Modification>
+): ModificationFormData => ({
+  name: modification.name,
+  description: modification.description ?? undefined,
+  effectiveDate: modification.effectiveDate
+    ? formatDateForServer(modification.effectiveDate)
+    : undefined,
+  signatureLevel: modification.signatureLevel ?? undefined,
+  demonstrationId: modification.demonstration?.id,
+});
 
 export const ModificationForm: React.FC<{
   showDemonstrationSelect?: boolean;
@@ -36,19 +81,21 @@ export const ModificationForm: React.FC<{
           value={modificationFormData.demonstrationId || ""}
         />
       )}
-      <div className="w-1/2">
-        <TextInput
-          name="name"
-          label={`${modificationType} Title`}
-          placeholder={`Enter ${modificationType.toLowerCase()} title`}
-          isRequired
-          value={modificationFormData.name}
-          onChange={(e) =>
-            setModificationFormDataField({
-              name: e.target.value,
-            })
-          }
-        />
+      <div className="flex gap-2">
+        <div className="w-1/2">
+          <TextInput
+            name="name"
+            label={`${modificationType} Title`}
+            placeholder={`Enter ${modificationType.toLowerCase()} title`}
+            isRequired
+            value={modificationFormData.name}
+            onChange={(e) =>
+              setModificationFormDataField({
+                name: e.target.value,
+              })
+            }
+          />
+        </div>
       </div>
       <Textarea
         name={"description"}
