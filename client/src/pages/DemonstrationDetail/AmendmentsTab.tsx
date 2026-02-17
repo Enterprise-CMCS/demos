@@ -11,8 +11,8 @@ export const AmendmentsTab: React.FC<{
 }> = ({ demonstrationId, amendments }) => {
   const { showCreateAmendmentDialog } = useDialog();
   return (
-    <div className="p-2">
-      <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
+    <div className="flex flex-col p-2 gap-1">
+      <div className="flex justify-between items-center pb-1 border-b border-brand">
         <h1 className="text-xl font-bold text-brand uppercase">Amendments</h1>
         <IconButton
           icon={<AddNewIcon />}
