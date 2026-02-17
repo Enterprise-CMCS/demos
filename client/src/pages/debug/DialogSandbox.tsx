@@ -138,7 +138,7 @@ export const DialogSandbox: React.FC = () => {
           </Button>
           <Button
             name="apply-tags"
-            onClick={() => showApplyTagsDialog(["One", "Two", "Three"], ["One"])}
+            onClick={() => showApplyTagsDialog("demo-123", ["One", "Two", "Three"], ["One"])}
           >
             Apply Tags
           </Button>

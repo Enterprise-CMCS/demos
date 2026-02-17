@@ -305,7 +305,7 @@ export const ApplicationDetailsSection = ({
                 onMarkComplete();
               }
             }}
-            disabled={!requiredFieldsFilled && !isComplete}
+            disabled={isReadonly || (!requiredFieldsFilled && !isComplete)}
             onColor="#6B7280"
             offColor="#E5E7EB"
             checkedIcon={false}

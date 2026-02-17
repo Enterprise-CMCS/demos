@@ -29,8 +29,8 @@ vi.mock("components/dialog/DialogContext", () => ({
 }));
 
 describe("FederalCommentPhase", () => {
-  const defaultStart = "2025-01-01";
-  const defaultEnd = formatDate(new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)); // 3 days ahead
+  const defaultStart = new Date("2025-01-01");
+  const defaultEnd = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days ahead
 
   const mockDoc: ApplicationWorkflowDocument = {
     id: "doc-1",
@@ -125,6 +125,88 @@ describe("FederalCommentPhase", () => {
       setup();
       expect(screen.getByText(/Federal Comment Period Start Date/i)).toBeInTheDocument();
       expect(screen.getByText(/Federal Comment Period End Date/i)).toBeInTheDocument();
+    });
+  });
+
+  describe("FederalCommentPhase Notice Banner", () => {
+    const today = new Date("2026-02-08T00:00:00Z");
+    vi.setSystemTime(today);
+
+    it("renders warning banner with correct days left and dismisses", async () => {
+      const futureEnd = addDays(new Date(today), 5);
+
+      render(
+        <TestProvider>
+          <FederalCommentPhase
+            demonstrationId="demo-123"
+            phaseStartDate={today}
+            phaseEndDate={futureEnd}
+            phaseComplete={false}
+          />
+        </TestProvider>
+      );
+
+      const title = screen.getByText(/5 days left in Federal Comment Period/i);
+      const description = screen.getByText(/The Federal Comment Period ends on/i);
+
+      expect(title).toBeInTheDocument();
+      expect(description).toBeInTheDocument();
+
+      // Dismiss the banner
+      const dismissButton = screen.getByRole("button", { name: /dismiss/i });
+      await userEvent.click(dismissButton);
+
+      expect(screen.queryByText(/5 days left/i)).not.toBeInTheDocument();
+    });
+
+    it("renders past-due banner correctly", () => {
+      const pastEnd = addDays(new Date(today), -3);
+
+      render(
+        <TestProvider>
+          <FederalCommentPhase
+            demonstrationId="demo-123"
+            phaseStartDate={new Date("2026-01-01")}
+            phaseEndDate={pastEnd}
+            phaseComplete={false}
+          />
+        </TestProvider>
+      );
+
+      expect(screen.getByText(/3 days past due/i)).toBeInTheDocument();
+      expect(screen.getByText(/The Federal Comment Period ended on/i)).toBeInTheDocument();
+    });
+
+    it("does not render banner if phase is complete", () => {
+      const futureEnd = addDays(new Date(today), 5);
+
+      render(
+        <TestProvider>
+          <FederalCommentPhase
+            demonstrationId="demo-123"
+            phaseStartDate={today}
+            phaseEndDate={futureEnd}
+            phaseComplete={true}
+          />
+        </TestProvider>
+      );
+
+      expect(screen.queryByText(/days left/i)).not.toBeInTheDocument();
+    });
+
+    it("does not render banner if phaseEndDate is missing", () => {
+      render(
+        <TestProvider>
+          <FederalCommentPhase
+            demonstrationId="demo-123"
+            phaseStartDate={today}
+            phaseEndDate={undefined}
+            phaseComplete={false}
+          />
+        </TestProvider>
+      );
+
+      expect(screen.queryByText(/days left/i)).not.toBeInTheDocument();
     });
   });
 });

@@ -44,6 +44,7 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
           content
         }
       }
+      tags
       demonstrationTypes {
         demonstrationTypeName
         status
@@ -98,6 +99,7 @@ export type ApplicationWorkflowDemonstration = Pick<
   | "sdgDivision"
   | "signatureLevel"
   | "description"
+  | "tags"
 > & {
   state: Pick<State, "id" | "name">;
   primaryProjectOfficer: Pick<Person, "id" | "fullName">;

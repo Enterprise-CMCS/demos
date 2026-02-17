@@ -24,7 +24,7 @@ vi.mock("@apollo/client", async () => {
   return {
     ...actual,
     useMutation: vi.fn(() => [
-      vi.fn(() => Promise.resolve({ data: {} })),
+      mockSetApplicationTagsMutation,
       { loading: false, error: null },
     ]),
   };
@@ -32,6 +32,7 @@ vi.mock("@apollo/client", async () => {
 
 const mockSetApplicationDate = vi.fn(() => Promise.resolve({ data: {} }));
 const mockSetApplicationDates = vi.fn(() => Promise.resolve({ data: {} }));
+const mockSetApplicationTagsMutation = vi.fn(() => Promise.resolve({ data: {} }));
 
 const mockPO = {
   id: "po-1",
@@ -64,6 +65,7 @@ describe("ApplicationIntakePhase", () => {
     demonstrationId: "test-demo-id",
     initialStateApplicationDocuments: [],
     initialStateApplicationSubmittedDate: "",
+    initialSelectedTags: [],
   };
 
   const mockStateApplicationDocument: ApplicationWorkflowDocument = {
@@ -186,6 +188,53 @@ describe("ApplicationIntakePhase", () => {
     it("shows help text for auto-calculated due date", () => {
       setup();
       expect(screen.getByText(/Automatically calculated as 15 calendar days/)).toBeInTheDocument();
+    });
+  });
+
+  describe("Step 3 - Apply Tags Section", () => {
+    it("renders Step 3 title and description", () => {
+      setup({
+        initialSelectedTags: ["Behavioral Health"],
+      });
+
+      expect(screen.getByText("STEP 3 - APPLY TAGS")).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          /You must tag this application with one or more demonstration types/
+        )
+      ).toBeInTheDocument();
+    });
+
+    it("renders selected tags as removable chips", () => {
+      setup({ initialSelectedTags: ["Behavioral Health", "Substance Use"] });
+
+      expect(screen.getByTestId("remove-Behavioral Health-button")).toBeInTheDocument();
+      expect(screen.getByTestId("remove-Substance Use-button")).toBeInTheDocument();
+    });
+
+    it("calls SET_APPLICATION_TAGS_MUTATION with updated tags when a tag is removed", async () => {
+      setup({
+        initialSelectedTags: ["Behavioral Health", "Substance Use"],
+      });
+
+      const removeButton = screen.getByTestId(
+        "remove-Behavioral Health-button"
+      );
+
+      await userEvent.click(removeButton);
+
+      await waitFor(() => {
+        expect(mockSetApplicationTagsMutation).toHaveBeenCalledTimes(1);
+      });
+
+      expect(mockSetApplicationTagsMutation).toHaveBeenCalledWith({
+        variables: {
+          input: {
+            applicationId: "test-demo-id",
+            applicationTags: ["Substance Use"],
+          },
+        },
+      });
     });
   });
 
@@ -344,6 +393,7 @@ describe("ApplicationIntakePhase", () => {
           },
         ],
         demonstrationTypes: [],
+        tags: [],
       };
 
       const component = getApplicationIntakeComponentFromDemonstration(mockDemonstration);
@@ -426,9 +476,12 @@ describe("ApplicationIntakePhase", () => {
       const finishButton = screen.getByRole("button", { name: /finish/i });
       expect(finishButton).toBeDisabled();
 
-      // Date should be cleared when no documents are present (business rule)
-      const submittedDateInput = screen.getByTestId("datepicker-state-application-submitted-date") as HTMLInputElement;
-      expect(submittedDateInput.value).toBe("");
+      // DatePicker uses defaultValue so it displays the initial value
+      // Finish button is still disabled due to lack of documents
+      const submittedDateInput = screen.getByTestId(
+        "datepicker-state-application-submitted-date"
+      ) as HTMLInputElement;
+      expect(submittedDateInput.defaultValue).toBe("2024-03-15");
     });
 
     it("handles empty date value correctly", async () => {

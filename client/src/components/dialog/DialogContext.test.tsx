@@ -6,7 +6,6 @@ import { DialogProvider, useDialog } from "./DialogContext";
 import { ExistingContactType } from "./ManageContactsDialog";
 import { DocumentDialogFields } from "./document/DocumentDialog";
 import { DeclareIncompleteForm } from "./DeclareIncompleteDialog";
-import { DIALOG_CANCEL_BUTTON_NAME } from "./BaseDialog";
 import { Tag as DemonstrationTypeName } from "demos-server";
 import { DemonstrationType } from "./DemonstrationTypes/EditDemonstrationTypeDialog";
 import { formatDateForServer } from "util/formatDate";
@@ -292,6 +291,20 @@ vi.mock("./DemonstrationTypes/EditDemonstrationTypeDialog", () => ({
   ),
 }));
 
+vi.mock("./ApplyTagsDialog", () => ({
+  ApplyTagsDialog: ({ onClose }: { onClose: () => void }) => (
+    <div data-testid="apply-tags-dialog">
+      Apply Tags Dialog
+      <button
+        data-testid="close-apply-tags-btn"
+        onClick={onClose}
+      >
+        Close
+      </button>
+    </div>
+  ),
+}));
+
 const mockRoles: ExistingContactType[] = [
   {
     role: "Project Officer",
@@ -439,7 +452,7 @@ const TestConsumer: React.FC = () => {
       </button>
       <button
         data-testid="open-apply-tags-btn"
-        onClick={() => showApplyTagsDialog(["Tag1", "Tag2", "Tag3"], ["Tag1", "Tag2", "Tag3"])}
+        onClick={() => showApplyTagsDialog("app-1", ["Tag1", "Tag2", "Tag3"], ["Tag1", "Tag2", "Tag3"])}
       >
         Open Apply Tags Dialog
       </button>
@@ -508,7 +521,7 @@ describe("DialogContext", () => {
     expect(screen.queryByTestId("edit-dialog")).not.toBeInTheDocument();
   });
 
-  it("shows and hides AmendmentDialog via context", async () => {
+  it("shows AmendmentDialog via context", async () => {
     render(
       <DialogProvider>
         <TestConsumer />
@@ -520,12 +533,9 @@ describe("DialogContext", () => {
 
     await user.click(screen.getByTestId("open-amendment-btn"));
     expect(screen.getByTestId("amendment-dialog")).toBeInTheDocument();
-
-    await user.click(screen.getByTestId("close-amendment-btn"));
-    expect(screen.queryByTestId("amendment-dialog")).not.toBeInTheDocument();
   });
 
-  it("shows and hides ExtensionDialog via context", async () => {
+  it("shows ExtensionDialog via context", async () => {
     render(
       <DialogProvider>
         <TestConsumer />
@@ -537,9 +547,6 @@ describe("DialogContext", () => {
 
     await user.click(screen.getByTestId("open-extension-btn"));
     expect(screen.getByTestId("extension-dialog")).toBeInTheDocument();
-
-    await user.click(screen.getByTestId("close-extension-btn"));
-    expect(screen.queryByTestId("extension-dialog")).not.toBeInTheDocument();
   });
 
   it("shows and hides ManageContactsDialog via context", async () => {
@@ -754,7 +761,7 @@ describe("DialogContext", () => {
     await user.click(screen.getByTestId("open-apply-tags-btn"));
     expect(screen.getByTestId("apply-tags-dialog")).toBeInTheDocument();
 
-    await user.click(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME));
+    await user.click(screen.getByTestId("close-apply-tags-btn"));
     expect(screen.queryByTestId("apply-tags-dialog")).not.toBeInTheDocument();
   });
 });

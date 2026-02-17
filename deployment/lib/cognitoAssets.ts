@@ -1,4 +1,4 @@
-import { readFileSync } from "fs";
+import { readFileSync } from "node:fs";
 
 const formLogo = readFileSync("images/formLogo.png");
 const pageFooterLogo = readFileSync("images/pageFooterLogo.png");
@@ -81,7 +81,7 @@ export const cognitoHostedUiSettings = {
         backgroundColor: "ffffffff",
         borderColor: "c6c6cdff",
       },
-      borderRadius: 2.0,
+      borderRadius: 2,
       backgroundImage: {
         enabled: false,
       },
@@ -103,7 +103,7 @@ export const cognitoHostedUiSettings = {
           borderColor: "d91515ff",
         },
       },
-      borderRadius: 12.0,
+      borderRadius: 12,
       darkMode: {
         error: {
           backgroundColor: "1a0000ff",
@@ -276,7 +276,7 @@ export const cognitoHostedUiSettings = {
           itemTextColor: "0972d3ff",
         },
       },
-      borderRadius: 8.0,
+      borderRadius: 8,
       darkMode: {
         hover: {
           itemBackgroundColor: "081120ff",
@@ -300,7 +300,7 @@ export const cognitoHostedUiSettings = {
         },
         placeholderColor: "5f6b7aff",
       },
-      borderRadius: 2.0,
+      borderRadius: 2,
       darkMode: {
         defaults: {
           backgroundColor: "0f1b2aff",
@@ -318,7 +318,7 @@ export const cognitoHostedUiSettings = {
       },
     },
     buttons: {
-      borderRadius: 2.0,
+      borderRadius: 2,
     },
     optionControls: {
       lightMode: {

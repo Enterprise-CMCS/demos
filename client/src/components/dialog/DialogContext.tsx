@@ -3,6 +3,7 @@ import {
   DocumentType,
   Tag as DemonstrationTypeName,
   DemonstrationTypeAssignment,
+  UploadDocumentInput,
 } from "demos-server";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
@@ -63,21 +64,11 @@ export const useDialog = () => {
   };
 
   const showCreateAmendmentDialog = (demonstrationId?: string) => {
-    context.showDialog(
-      <CreateAmendmentDialog
-        initialDemonstrationId={demonstrationId}
-        onClose={context.hideDialog}
-      />
-    );
+    context.showDialog(<CreateAmendmentDialog demonstrationId={demonstrationId} />);
   };
 
   const showCreateExtensionDialog = (demonstrationId?: string) => {
-    context.showDialog(
-      <CreateExtensionDialog
-        initialDemonstrationId={demonstrationId}
-        onClose={context.hideDialog}
-      />
-    );
+    context.showDialog(<CreateExtensionDialog demonstrationId={demonstrationId} />);
   };
 
   const showManageContactsDialog = (
@@ -131,9 +122,13 @@ export const useDialog = () => {
     );
   };
 
-  const showCompletenessDocumentUploadDialog = (applicationId: string) => {
+  const showCompletenessDocumentUploadDialog = (
+    applicationId: string,
+    onDocumentUploadSucceeded?: (payload?: UploadDocumentInput) => void
+  ) => {
     context.showDialog(
       <CompletenessDocumentUploadDialog
+        onDocumentUploadSucceeded={onDocumentUploadSucceeded}
         onClose={context.hideDialog}
         applicationId={applicationId}
       />
@@ -209,9 +204,14 @@ export const useDialog = () => {
     );
   };
 
-  const showApplyTagsDialog = (allTags: string[], selectedTags: string[]) => {
+  const showApplyTagsDialog = (
+    demonstrationId: string,
+    allTags: string[],
+    selectedTags: string[]
+  ) => {
     context.showDialog(
       <ApplyTagsDialog
+        demonstrationId={demonstrationId}
         allTags={allTags}
         initiallySelectedTags={selectedTags}
         onClose={context.hideDialog}

@@ -1,10 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
-import { formatDateForServer } from "util/formatDate";
-import { addDays, parseISO } from "date-fns";
+import {
+  formatDate,
+  formatDateForServer,
+  getTodayEst,
+} from "util/formatDate";
+import {
+  addDays,
+  differenceInCalendarDays,
+  startOfDay,
+  endOfDay,
+  parseISO,
+} from "date-fns";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
@@ -12,12 +22,12 @@ import {
 import { useToast } from "components/toast";
 import { DocumentList } from "./sections";
 import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
-import { DateType, SetApplicationDateInput } from "demos-server";
+import { ApplicationDateInput, UploadDocumentInput } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
-import { DueDateNotice } from "components/application/phases/sections/DueDateNotice";
-import { useSetApplicationDate } from "components/application/date/dateQueries";
+import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
+import { Notice, NoticeVariant } from "components/notice/Notice";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -35,23 +45,14 @@ const STYLES = {
 
 const FEDERAL_COMMENT_PERIOD_DAYS = 30;
 
-type CompletenessPhaseDateType = Extract<
-  DateType,
-  | "State Application Deemed Complete"
-  | "Federal Comment Period Start Date"
-  | "Federal Comment Period End Date"
-  | "Completeness Completion Date"
->;
+const getFederalCommentPeriodDates = (stateDate: string) => {
+  if (!stateDate) return { fedStartDate: null, fedEndDate: null };
 
-export const getInputsForCompletenessPhase = (
-  applicationId: string,
-  dateValues: Partial<Record<CompletenessPhaseDateType, string>>
-): SetApplicationDateInput[] => {
-  return Object.entries(dateValues).map(([dateType, dateValue]) => ({
-    applicationId,
-    dateType: dateType,
-    dateValue: dateValue,
-  })) as SetApplicationDateInput[];
+  const parsedStateDate = parseISO(stateDate);
+  const fedStartDate = addDays(parsedStateDate, 1);
+  const fedEndDate = addDays(parsedStateDate, 1 + FEDERAL_COMMENT_PERIOD_DAYS);
+
+  return { fedStartDate, fedEndDate };
 };
 
 export const getApplicationCompletenessFromDemonstration = (
@@ -60,6 +61,15 @@ export const getApplicationCompletenessFromDemonstration = (
   const completenessPhase = demonstration.phases.find(
     (phase) => phase.phaseName === "Completeness"
   );
+  const applicationIntakePhase = demonstration.phases.find(
+    (phase) => phase.phaseName === "Application Intake"
+  );
+
+  const completenessComplete = completenessPhase?.phaseStatus === "Completed";
+  const completenessReviewDate = completenessPhase?.phaseDates.find(
+    (date) => date.dateType === "Completeness Review Due Date"
+  );
+
   const fedCommentStartDate = completenessPhase?.phaseDates.find(
     (date) => date.dateType === "Federal Comment Period Start Date"
   );
@@ -67,79 +77,93 @@ export const getApplicationCompletenessFromDemonstration = (
     (date) => date.dateType === "Federal Comment Period End Date"
   );
 
-  const federalCommentPhase = demonstration.phases.find(
-    (phase) => phase.phaseName === "Federal Comment"
-  );
-  const fedCommentComplete = federalCommentPhase?.phaseStatus === "Completed";
-
-  const applicationIntakePhase = demonstration.phases.find(
-    (phase) => phase.phaseName === "Application Intake"
-  );
-  const applicationIntakeCompletionDate = applicationIntakePhase?.phaseDates.find(
-    (date) => date.dateType === "Application Intake Completion Date"
-  );
   const stateDeemedCompleteDate = completenessPhase?.phaseDates.find(
     (date) => date.dateType === "State Application Deemed Complete"
   );
-  const applicationCompletenessDocument = demonstration?.documents.filter(
-    (doc) => doc.documentType === "Application Completeness Letter"
+  const initialDocuments = demonstration.documents.filter(
+    (doc) => doc.phaseName === "Completeness"
   );
 
   return (
     <CompletenessPhase
       applicationId={demonstration.id}
+      applicationIntakeComplete={applicationIntakePhase?.phaseStatus === "Completed"}
+      completenessReviewDate={completenessReviewDate?.dateValue
+        ? formatDateForServer(completenessReviewDate.dateValue)
+        : ""
+      }
       fedCommentStartDate={
         fedCommentStartDate?.dateValue ? formatDateForServer(fedCommentStartDate.dateValue) : ""
       }
       fedCommentEndDate={
         fedCommentEndDate?.dateValue ? formatDateForServer(fedCommentEndDate.dateValue) : ""
       }
-      fedCommentComplete={fedCommentComplete}
+      completenessComplete={completenessComplete}
       stateDeemedCompleteDate={
         stateDeemedCompleteDate?.dateValue
           ? formatDateForServer(stateDeemedCompleteDate.dateValue)
           : ""
       }
-      applicationCompletenessDocument={applicationCompletenessDocument ?? []}
-      hasApplicationIntakeCompletionDate={!!applicationIntakeCompletionDate}
+      initialDocuments={initialDocuments ?? []}
     />
   );
 };
 
 export interface CompletenessPhaseProps {
   applicationId: string;
+  applicationIntakeComplete: boolean;
+  completenessReviewDate?: string;
   fedCommentStartDate?: string;
   fedCommentEndDate?: string;
-  fedCommentComplete: boolean;
+  completenessComplete: boolean;
   stateDeemedCompleteDate?: string;
-  applicationCompletenessDocument: ApplicationWorkflowDocument[];
-  hasApplicationIntakeCompletionDate: boolean;
+  initialDocuments: ApplicationWorkflowDocument[];
 }
 
 export const CompletenessPhase = ({
   applicationId,
+  applicationIntakeComplete,
+  completenessReviewDate,
   fedCommentStartDate,
   fedCommentEndDate,
-  fedCommentComplete,
+  completenessComplete,
   stateDeemedCompleteDate,
-  applicationCompletenessDocument,
-  hasApplicationIntakeCompletionDate,
+  initialDocuments,
 }: CompletenessPhaseProps) => {
   const { showCompletenessDocumentUploadDialog, showDeclareIncompleteDialog } = useDialog();
   const { showSuccess, showError } = useToast();
-  const [collapsed, setCollapsed] = useState(false);
 
-  const [federalStartDate, setFederalStartDate] = useState<string>(fedCommentStartDate ?? "");
-  const [federalEndDate, setFederalEndDate] = useState<string>(fedCommentEndDate ?? "");
+  const getStateDeemedCompleteFromDocuments = (): string => {
+    if (stateDeemedCompleteDate) return stateDeemedCompleteDate;
+    const applicationCompletenessLetter = initialDocuments.find(
+      (doc) => doc.documentType === "Application Completeness Letter"
+    );
+    if (!applicationCompletenessLetter) return "";
+    const createdAt = applicationCompletenessLetter.createdAt;
+    return formatDateForServer(createdAt);
+  };
   const [stateDeemedComplete, setStateDeemedComplete] = useState<string>(
-    stateDeemedCompleteDate ?? ""
+    getStateDeemedCompleteFromDocuments()
+  );
+  const [federalStartDate, setFederalStartDate] = useState<string>(() => {
+    if(fedCommentStartDate) return fedCommentStartDate;
+    const {fedStartDate} = getFederalCommentPeriodDates(stateDeemedComplete);
+    return fedStartDate ? formatDate(fedStartDate) : "";
+  });
+  const [federalEndDate, setFederalEndDate] = useState<string>(() => {
+    if(fedCommentEndDate) return fedCommentEndDate;
+    const {fedEndDate} = getFederalCommentPeriodDates(stateDeemedComplete);
+    return fedEndDate ? formatDate(fedEndDate) : "";
+  });
+  const [isNoticeDismissed, setNoticeDismissed] = useState(
+    !(completenessReviewDate && !completenessComplete)
   );
 
   const [completenessDocs] = useState<ApplicationWorkflowDocument[]>(
-    applicationCompletenessDocument
+    initialDocuments
   );
 
-  const { setApplicationDate } = useSetApplicationDate();
+  const { setApplicationDates } = useSetApplicationDates();
 
   const { setPhaseStatus: completeCompletenessPhase } = useSetPhaseStatus({
     applicationId: applicationId,
@@ -153,24 +177,33 @@ export const CompletenessPhase = ({
     phaseStatus: "Incomplete",
   });
 
-  // Automatically set federal comment period dates based on state deemed complete date
-  useEffect(() => {
-    if (!stateDeemedComplete) {
-      setFederalStartDate("");
-      setFederalEndDate("");
-      return;
+  const getNoticeContent = () => {
+    if (!completenessReviewDate) return null;
+    const noticeDueDateValue = parseISO(completenessReviewDate ?? "");
+    const daysLeft = differenceInCalendarDays(noticeDueDateValue, new Date());
+    if (daysLeft > 1) {
+      return {
+        title: `${daysLeft} days left`,
+        description: `This Demonstration must be declared complete by ${formatDate(noticeDueDateValue)}`,
+        variant: "warning" as NoticeVariant,
+      };
     }
-
-    const parsedStateDate = parseISO(stateDeemedComplete);
-    const computedStartDate = addDays(parsedStateDate, 1);
-    const computedEndDate = addDays(computedStartDate, FEDERAL_COMMENT_PERIOD_DAYS);
-
-    const nextStart = formatDateForServer(computedStartDate);
-    const nextEnd = formatDateForServer(computedEndDate);
-
-    setFederalStartDate(nextStart);
-    setFederalEndDate(nextEnd);
-  }, [stateDeemedComplete]);
+    if (daysLeft === 1) {
+      return {
+        title: "1 day left in Completion Period",
+        description: `This Demonstration must be declared complete by ${formatDate(noticeDueDateValue)}`,
+        variant: "error" as NoticeVariant,
+      };
+    }
+    else {
+      return {
+        title:  `${Math.abs(daysLeft)} days past due`,
+        description: `This Demonstration completeness was due on ${formatDate(noticeDueDateValue)}`,
+        variant: "error" as NoticeVariant,
+      };
+    }
+  };
+  const noticeContent = useMemo(() => getNoticeContent(), [completenessReviewDate]);
 
   const finishIsEnabled = () => {
     const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
@@ -179,29 +212,51 @@ export const CompletenessPhase = ({
         ? true
         : new Date(federalStartDate) <= new Date(federalEndDate);
 
-    return completenessDocs.length > 0 && datesFilled && datesAreValid;
+    return applicationIntakeComplete &&
+      completenessDocs.find(doc => doc.documentType === "Application Completeness Letter") &&
+      completenessDocs.find(doc => doc.documentType === "Internal Completeness Review Form") &&
+      datesFilled &&
+      datesAreValid;
   };
 
-  const getDateValues = (): Partial<Record<CompletenessPhaseDateType, string>> => {
-    return {
-      ...(stateDeemedComplete && { "State Application Deemed Complete": stateDeemedComplete }),
-      ...(federalStartDate && { "Federal Comment Period Start Date": federalStartDate }),
-      ...(federalEndDate && { "Federal Comment Period End Date": federalEndDate }),
-      ...(hasApplicationIntakeCompletionDate &&
-        stateDeemedComplete && { "Completeness Completion Date": stateDeemedComplete }),
-    };
+  const setDates = (stateDeemedCompleteString: string) => {
+    setStateDeemedComplete(stateDeemedCompleteString);
+    const { fedStartDate, fedEndDate } = getFederalCommentPeriodDates(stateDeemedCompleteString);
+    setFederalStartDate(fedStartDate ? formatDateForServer(fedStartDate) : "");
+    setFederalEndDate(fedEndDate ? formatDateForServer(fedEndDate) : "");
   };
 
   const saveDates = async () => {
-    const inputs = getInputsForCompletenessPhase(applicationId, getDateValues());
+    const dates: ApplicationDateInput[] = [
+      { dateType: "State Application Deemed Complete", dateValue: stateDeemedComplete ? startOfDay(stateDeemedComplete) : null},
+      { dateType: "Federal Comment Period Start Date", dateValue: federalStartDate ? startOfDay(federalStartDate) : null },
+      { dateType: "Federal Comment Period End Date", dateValue: federalEndDate ? endOfDay(federalEndDate) : null },
+    ];
+
+    await setApplicationDates({
+      applicationId,
+      applicationDates: dates,
+    });
+  };
+
+  const handleStateDeemedCompleteChange = (dateValue: string) => {
+    if (!dateValue) {
+      setStateDeemedComplete("");
+      setFederalStartDate("");
+      setFederalEndDate("");
+      return;
+    }
+    setDates(dateValue);
+  };
+
+  const handleDocumentUploadSucceeded = async (uploadedDoc?: UploadDocumentInput) => {
+    if (uploadedDoc?.documentType !== "Application Completeness Letter") return;
 
     try {
-      for (const input of inputs) {
-        await setApplicationDate(input);
-      }
-    } catch (error) {
-      showError(error instanceof Error ? error.message : String(error));
-      console.error("Error saving Phase: ", error);
+      await setDates(getTodayEst());
+      showSuccess("Completeness dates saved successfully");
+    } catch {
+      showError("Failed to save completeness dates");
     }
   };
 
@@ -217,9 +272,14 @@ export const CompletenessPhase = ({
   };
 
   const handleFinishCompleteness = async () => {
-    await saveDates();
-    await completeCompletenessPhase();
-    showSuccess(getPhaseCompletedMessage("Completeness"));
+    try {
+      await saveDates();
+      await completeCompletenessPhase();
+      showSuccess(getPhaseCompletedMessage("Completeness"));
+    } catch (e) {
+      console.error(e);
+      showError("Failed to complete Completeness phase");
+    }
   };
 
   const UploadSection = () => (
@@ -227,11 +287,12 @@ export const CompletenessPhase = ({
       <h4 id="completeness-upload-title" className={STYLES.title}>
         STEP 1 - UPLOAD
       </h4>
-      <p className={STYLES.helper}>Upload the Signed Completeness Letter</p>
+      <p className={STYLES.helper}>Upload the officially signed State Completeness Letter/internal checklists</p>
       <SecondaryButton
-        onClick={() => {
-          showCompletenessDocumentUploadDialog(applicationId);
-        }}
+        onClick={() => showCompletenessDocumentUploadDialog(
+          applicationId,
+          handleDocumentUploadSucceeded
+        )}
         size="small"
         name="open-upload"
       >
@@ -257,9 +318,7 @@ export const CompletenessPhase = ({
             name="datepicker-state-application-deemed-complete"
             label="State Application Deemed Complete"
             value={stateDeemedComplete}
-            onChange={(newDate) => {
-              setStateDeemedComplete(newDate);
-            }}
+            onChange={handleStateDeemedCompleteChange}
           />
         </div>
 
@@ -303,47 +362,39 @@ export const CompletenessPhase = ({
   return (
     <div>
       <div className="flex flex-col gap-6">
-        {fedCommentEndDate && (
-          <DueDateNotice
-            dueDate={fedCommentEndDate}
-            phaseComplete={fedCommentComplete}
-            shouldPhaseBeAutomaticallyDismissedIfPhaseIsComplete={false}
-            descriptionToAppendDateTo="his Amendment must be declared complete by"
+        {!isNoticeDismissed && noticeContent && (
+          <Notice
+            title={noticeContent.title}
+            description={noticeContent.description}
+            variant={noticeContent.variant}
+            onDismiss={() => setNoticeDismissed(true)}
           />
         )}
-        <button
-          className="flex items-center gap-2 mb-2 text-brand font-bold text-[22px] tracking-wide focus:outline-none"
-          onClick={() => setCollapsed((prev) => !prev)}
-          aria-expanded={!collapsed}
-          aria-controls="completeness-phase-content"
-          data-testid="toggle-completeness"
-        >
+        <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">
           COMPLETENESS
-        </button>
+        </h3>
       </div>
-      {!collapsed && (
-        <div id="completeness-phase-content">
-          <p className="text-sm text-text-placeholder mb-4">
-            Completeness Checklist - Find completeness guidelines online at{" "}
-            <a
-              className="text-blue-700 underline"
-              href="https://www.medicaid.gov"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Medicaid.gov.
-            </a>
-          </p>
+      <div id="completeness-phase-content">
+        <p className="text-sm text-text-placeholder mb-4">
+          Completeness Checklist - Find completeness guidelines online at{" "}
+          <a
+            className="text-blue-700 underline"
+            href="https://www.medicaid.gov"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Medicaid.gov.
+          </a>
+        </p>
 
-          <section className={STYLES.pane}>
-            <div className={STYLES.grid}>
-              <span aria-hidden className={STYLES.divider} />
-              <UploadSection />
-              <VerifyCompleteSection />
-            </div>
-          </section>
-        </div>
-      )}
+        <section className={STYLES.pane}>
+          <div className={STYLES.grid}>
+            <span aria-hidden className={STYLES.divider} />
+            <UploadSection />
+            <VerifyCompleteSection />
+          </div>
+        </section>
+      </div>
     </div>
   );
 };
