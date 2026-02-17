@@ -371,14 +371,15 @@ describe("ColumnFilter Component", () => {
         await user.click(alphaDropdownOption!);
       });
 
-      // Assert checkbox is unchecked
+      // Assert item is unselected (no checkmark visible)
       await waitFor(() => {
         const alphaOptions = screen.getAllByText("Option Alpha");
         const alphaDropdownOption = alphaOptions.find(
           (el) => el.tagName === "LI" || el.closest("li")
         );
-        const alphaCheckbox = alphaDropdownOption?.querySelector('input[type="checkbox"]');
-        expect(alphaCheckbox).toHaveProperty("checked", false);
+        // Check that the checkmark span doesn't contain the ✓ symbol
+        const checkmarkSpan = alphaDropdownOption?.querySelector('span[aria-hidden="true"]');
+        expect(checkmarkSpan?.textContent).not.toContain("✓");
       });
     });
   });

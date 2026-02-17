@@ -127,13 +127,13 @@ describe("DocumentTable", () => {
     const input = screen.getByPlaceholderText("Select Document Type");
     await user.type(input, "Q&A");
 
-    // Find the list item containing "Other"
+    // Find the list item containing "Q&A"
     const otherOption = screen.getByText("Q&A").closest("li");
     expect(otherOption).toBeInTheDocument();
 
-    // Find the checkbox inside the "Other" option and click it
-    const checkbox = within(otherOption!).getByRole("checkbox");
-    await user.click(checkbox);
+    // Find the button inside the "Q&A" option and click it
+    const button = within(otherOption!).getByRole("button");
+    await user.click(button);
 
     const table = screen.getByRole("table");
 
