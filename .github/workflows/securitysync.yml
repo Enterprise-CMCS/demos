@@ -37,7 +37,7 @@ jobs:
         uses: Enterprise-CMCS/mac-fc-security-hub-visibility@v2.2
         with:
           jira-token: ${{ secrets.DEMOS_JIRA_SERVICE_ACCOUNT_TOKEN }}
-          jira-username: macpro_jira_service_account
+          jira-username: demos_git_service_account
           jira-project-key: DEMOS
           jira-ignore-statuses: Done, Closed, Canceled
           aws-severities: CRITICAL, HIGH, MEDIUM
