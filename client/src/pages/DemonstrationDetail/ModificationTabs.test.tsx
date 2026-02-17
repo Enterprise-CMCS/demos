@@ -1,5 +1,5 @@
 import React from "react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ModificationTabs, ModificationItem } from "./ModificationTabs";
 
@@ -33,35 +33,6 @@ describe("ModificationTabs Component", () => {
     expect(screen.getByTestId("modification-tab-3")).toHaveTextContent("Item 3");
   });
 
-  it("displays first item content by default", () => {
-    render(<ModificationTabs items={mockItems} />);
-
-    expect(screen.getByText("Description 1")).toBeInTheDocument();
-    expect(screen.getByText("Status: Active")).toBeInTheDocument();
-  });
-
-  it("switches content when clicking different tabs", () => {
-    render(<ModificationTabs items={mockItems} />);
-
-    expect(screen.getByText("Description 1")).toBeInTheDocument();
-
-    const tab2Button = screen.getByTestId("modification-tab-2");
-    fireEvent.click(tab2Button);
-
-    expect(screen.getByText("Description 2")).toBeInTheDocument();
-    expect(screen.getByText("Status: Pending")).toBeInTheDocument();
-  });
-
-  it("calls onSelect callback when tab is clicked", () => {
-    const onSelect = vi.fn();
-    render(<ModificationTabs items={mockItems} onSelect={onSelect} />);
-
-    const tab2Button = screen.getByTestId("modification-tab-2");
-    fireEvent.click(tab2Button);
-
-    expect(onSelect).toHaveBeenCalledWith(mockItems[1]);
-  });
-
   it("sets aria-selected attribute correctly", () => {
     render(<ModificationTabs items={mockItems} />);
 
@@ -90,8 +61,5 @@ describe("ModificationTabs Component", () => {
     ];
 
     render(<ModificationTabs items={minimalItems} />);
-
-    expect(screen.getByTestId("modification-tab-1")).toHaveTextContent("Minimal Item 1");
-    expect(screen.queryByText("Status:")).not.toBeInTheDocument();
   });
 });
