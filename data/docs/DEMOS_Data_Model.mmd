@@ -128,8 +128,10 @@ erDiagram
   users ||--|{ private_comment : "FK111"
   users ||--|{ public_comment : "FK112"
   private_comment }|--|| cms_user_person_type_limit : "FK113"
-
-
+  deliverable ||--|{ deliverable_action : "FK114"
+  deliverable_status ||--|{ deliverable_action : "FK115"
+  deliverable_action }|--|| deliverable_action_type : "FK116"
+  users ||--|{ deliverable_action : "FK117"
 
   %% Static Constraints
   application_status:::staticConstraint {
@@ -145,6 +147,10 @@ erDiagram
   }
 
   date_type:::staticConstraint {
+    text id PK
+  }
+
+  deliverable_action_type:::staticConstraint {
     text id PK
   }
 
@@ -340,6 +346,17 @@ erDiagram
     bool expected_to_be_submitted
     timestamptz created_at
     timestamptz updated_at
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+  }
+
+  deliverable_action:::dataTable {
+    int change_id PK "AUTOINCREMENTING"
+    timestamptz change_timestamp
+    uuid deliverable_id FK "FK114: deliverable_id ∈ deliverable.id"
+    text status_id FK "FK115: status_id ∈ deliverable_status.id"
+    timestamptz due_date
+    text action_type_id FK "FK116: action_type_id ∈ deliverable_action_type.id"
+    uuid user_id FK "FK117: user_id ∈ users.id<br>NULLABLE"
   }
 
   demonstration:::dataTable {
@@ -492,6 +509,7 @@ erDiagram
     text content
     timestamptz created_at
     timestamptz updated_at
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   public_comment:::dataTable {
@@ -501,6 +519,7 @@ erDiagram
     text content
     timestamptz created_at
     timestamptz updated_at
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   tag:::dataTable {
