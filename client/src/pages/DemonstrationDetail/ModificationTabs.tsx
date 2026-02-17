@@ -1,5 +1,11 @@
 import React, { useState } from "react";
 
+const STYLES = {
+  tabList: "flex flex-row gap-1 border-b border-border-rules",
+  tab: "cursor-pointer p-0.5 font-normal",
+  selectedTab: "border-b-4 font-semibold border-border-selected",
+};
+
 export interface ModificationItem {
   id: string;
   name: string;
@@ -17,15 +23,13 @@ const ModificationTab = ({
   handleTabSelect: (item: ModificationItem) => void;
   isSelected: boolean;
 }) => {
-  const selectedStyles = isSelected ? "border-b-4 font-semibold border-border-selected" : "";
-
   return (
     <button
       key={modificationItem.id}
       data-testid={`modification-tab-${modificationItem.id}`}
       onClick={() => handleTabSelect(modificationItem)}
       aria-selected={isSelected}
-      className={`cursor-pointer p-0.5 font-normal ${selectedStyles}`}
+      className={`${STYLES.tab} ${isSelected ? STYLES.selectedTab : ""}`}
     >
       {modificationItem.name}
     </button>
@@ -44,7 +48,7 @@ export const ModificationTabs = ({ items }: { items: ModificationItem[] }) => {
   };
 
   return (
-    <div className="flex flex-row gap-1">
+    <div className={STYLES.tabList}>
       {items.map((item) => (
         <ModificationTab
           key={item.id}
