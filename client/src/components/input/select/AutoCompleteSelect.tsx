@@ -134,18 +134,28 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
         {isOpen && (
           <ul className={LIST_CLASSES}>
             {filterOptions(options, filterValue).length > 0 ? (
-              filterOptions(options, filterValue).map((option, i) => (
-                <li
-                  key={option.value}
-                  className={`${ITEM_CLASSES} ${i === activeIndex ? ITEM_ACTIVE_CLASSES : ""}`}
-                  onClick={() => handleSelectOption(option)}
-                  onMouseEnter={() => setActiveIndex(i)}
-                >
-                  {option.label}
-                </li>
-              ))
+              filterOptions(options, filterValue).map((option, i) => {
+                const isActive = i === activeIndex;
+                return (
+                  <li
+                    key={option.value}
+                    className={isActive ? ITEM_ACTIVE_CLASSES : ""}
+                  >
+                    <button
+                      type="button"
+                      className={`${ITEM_CLASSES} w-full text-left`}
+                      onClick={() => handleSelectOption(option)}
+                      onMouseEnter={() => setActiveIndex(i)}
+                    >
+                      {option.label}
+                    </button>
+                  </li>
+                );
+              })
             ) : (
-              <li className={EMPTY_CLASSES}>No matches found</li>
+              <li>
+                <div className={EMPTY_CLASSES}>No matches found</div>
+              </li>
             )}
           </ul>
         )}

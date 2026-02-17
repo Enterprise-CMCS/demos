@@ -131,33 +131,42 @@ export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = (
         {isOpen && (
           <ul className={LIST_CLASSES}>
             {filtered.length > 0 ? (
-              filtered.map((opt, i) => (
-                <li
-                  key={opt.value}
-                  className={`${ITEM_CLASSES} ${i === activeIndex ? ITEM_ACTIVE_CLASSES : ""} flex items-center`}
-                  onMouseEnter={() => setActiveIndex(i)}
-                  onClick={() => {
-                    if (selected.includes(opt.value)) {
-                      handleRemove(opt.value);
-                    } else {
-                      handleSelect(opt.value);
-                    }
-                  }}
-                  style={{ cursor: isDisabled ? "not-allowed" : "pointer" }}
-                >
-                  <input
-                    type="checkbox"
-                    disabled={isDisabled}
-                    checked={selected.includes(opt.value)}
-                    readOnly
-                    className="m-1 w-2 h-2 flex-shrink-0"
-                    tabIndex={-1}
-                  />
-                  {opt.label}
-                </li>
-              ))
+              filtered.map((opt, i) => {
+                const isActive = i === activeIndex;
+                return (
+                  <li
+                    key={opt.value}
+                    className={`${isActive ? ITEM_ACTIVE_CLASSES : ""} flex items-center`}
+                  >
+                    <button
+                      type="button"
+                      className={`${ITEM_CLASSES} px-1 py-1 text-sm w-full text-left flex items-center`}
+                      disabled={isDisabled}
+                      style={{ cursor: isDisabled ? "not-allowed" : "pointer" }}
+                      onMouseEnter={() => setActiveIndex(i)}
+                      onClick={() => {
+                        if (selected.includes(opt.value)) {
+                          handleRemove(opt.value);
+                        } else {
+                          handleSelect(opt.value);
+                        }
+                      }}
+                    >
+                      <span
+                        className="m-1 w-2 h-2 flex-shrink-0 border border-gray-400 rounded-sm flex items-center justify-center"
+                        aria-hidden="true"
+                      >
+                        {selected.includes(opt.value) && <span className="text-xs">✓</span>}
+                      </span>
+                      {opt.label}
+                    </button>
+                  </li>
+                );
+              })
             ) : (
-              <li className={EMPTY_CLASSES}>No matches found</li>
+              <li>
+                <div className={EMPTY_CLASSES}>No matches found</div>
+              </li>
             )}
           </ul>
         )}
