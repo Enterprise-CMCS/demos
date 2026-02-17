@@ -371,13 +371,12 @@ describe("ColumnFilter Component", () => {
         await user.click(alphaDropdownOption!);
       });
 
-      // Assert item is unselected (no checkmark visible)
+      // Assert checkbox is unchecked
       await waitFor(() => {
         const alphaOptions = screen.getAllByText("Option Alpha");
         const alphaDropdownOption = alphaOptions.find(
           (el) => el.tagName === "LI" || el.closest("li")
         );
-        // Check that the checkbox is not checked
         const alphaCheckbox = alphaDropdownOption?.querySelector('input[type="checkbox"]');
         expect(alphaCheckbox).toHaveProperty("checked", false);
       });
