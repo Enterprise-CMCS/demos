@@ -12,9 +12,7 @@ import {
   ApplicationWorkflowDocument,
 } from "components/application/ApplicationWorkflow";
 import { PhaseName } from "components/application/phase-selector/PhaseSelector";
-import {
-  useCompletePhase,
-} from "components/application/phase-status/phaseStatusQueries";
+import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { useDialog } from "components/dialog/DialogContext";
 import { DocumentList } from "./sections";

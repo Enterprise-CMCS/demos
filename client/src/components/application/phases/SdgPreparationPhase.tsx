@@ -13,7 +13,7 @@ import {
   SAVE_FOR_LATER_MESSAGE,
 } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
-import { useCompletePhase } from "../phase-status/phaseStatusQueries";
+import { useCompletePhase } from "../phase-status/phaseCompletionQueries";
 
 const STYLES = {
   pane: tw`bg-white p-8`,

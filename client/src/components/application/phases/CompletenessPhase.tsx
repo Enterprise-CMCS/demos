@@ -20,7 +20,7 @@ import { Notice, NoticeVariant } from "components/notice/Notice";
 import {
   useCompletePhase,
   useDeclareCompletenessPhaseIncomplete,
-} from "../phase-status/phaseStatusQueries";
+} from "../phase-status/phaseCompletionQueries";
 
 const STYLES = {
   pane: tw`bg-white`,

@@ -19,7 +19,7 @@ import { DatePicker } from "components/input/date/DatePicker";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import { PhaseName } from "../phase-selector/PhaseSelector";
 import type { LocalDate } from "demos-server";
-import { useCompletePhase, useSkipConceptPhase } from "../phase-status/phaseStatusQueries";
+import { useCompletePhase, useSkipConceptPhase } from "../phase-status/phaseCompletionQueries";
 
 const STYLES = {
   pane: tw`bg-white p-8`,

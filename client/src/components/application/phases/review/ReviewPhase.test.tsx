@@ -35,7 +35,7 @@ vi.mock("components/application/note/noteQueries", () => ({
   }),
 }));
 
-vi.mock("../../phase-status/phaseStatusQueries", () => ({
+vi.mock("../../phase-status/phaseCompletionQueries", () => ({
   useCompletePhase: () => ({
     completePhase: mockCompletePhase,
   }),

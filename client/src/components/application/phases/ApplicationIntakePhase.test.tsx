@@ -61,7 +61,7 @@ vi.mock("components/dialog/DialogContext", () => ({
 }));
 
 const mockCompletePhase = vi.fn();
-vi.mock("../phase-status/phaseStatusQueries", () => ({
+vi.mock("../phase-status/phaseCompletionQueries", () => ({
   useCompletePhase: () => ({
     completePhase: mockCompletePhase,
   }),
