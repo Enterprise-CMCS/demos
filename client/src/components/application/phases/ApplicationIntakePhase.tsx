@@ -12,7 +12,9 @@ import {
   ApplicationWorkflowDocument,
 } from "components/application/ApplicationWorkflow";
 import { PhaseName } from "components/application/phase-selector/PhaseSelector";
-import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
+import {
+  useCompletePhase,
+} from "components/application/phase-status/phaseStatusQueries";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { useDialog } from "components/dialog/DialogContext";
 import { DocumentList } from "./sections";
@@ -202,11 +204,7 @@ export const ApplicationIntakePhase = ({
   );
   const [selectedTags, setSelectedTags] = useState<string[]>(initialSelectedTags);
 
-  const { setPhaseStatus: completeApplicationIntake } = useSetPhaseStatus({
-    applicationId: demonstrationId,
-    phaseName: "Application Intake",
-    phaseStatus: "Completed",
-  });
+  const { completePhase } = useCompletePhase();
 
   const { setApplicationDates } = useSetApplicationDates();
 
@@ -219,7 +217,10 @@ export const ApplicationIntakePhase = ({
   const isFinishButtonEnabled = hasDocuments && hasSubmittedDate;
 
   const onFinishButtonClick = async () => {
-    await completeApplicationIntake();
+    await completePhase({
+      applicationId: demonstrationId,
+      phaseName: "Application Intake",
+    });
     showSuccess(getPhaseCompletedMessage("Application Intake"));
 
     setSelectedPhase?.("Completeness");
@@ -289,9 +290,7 @@ export const ApplicationIntakePhase = ({
           <UploadSection
             demonstrationId={demonstrationId}
             documents={initialStateApplicationDocuments}
-            onOpenUploadModal={(id) =>
-              showApplicationIntakeDocumentUploadDialog(id, () => {})
-            }
+            onOpenUploadModal={(id) => showApplicationIntakeDocumentUploadDialog(id, () => {})}
           />
           <VerifyCompleteSection
             stateApplicationSubmittedDate={stateApplicationSubmittedDate}

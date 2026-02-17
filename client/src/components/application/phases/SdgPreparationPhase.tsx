@@ -7,13 +7,13 @@ import { SimplePhase } from "../ApplicationWorkflow";
 import { formatDateForServer } from "util/formatDate";
 import { DateType } from "demos-server";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
-import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
 import {
   FAILED_TO_SAVE_MESSAGE,
   getPhaseCompletedMessage,
   SAVE_FOR_LATER_MESSAGE,
 } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
+import { useCompletePhase } from "../phase-status/phaseStatusQueries";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -58,11 +58,7 @@ export const SdgPreparationPhase = ({
   const [sdgPreparationPhaseFormData, setSdgPreparationPhaseFormData] =
     useState<SdgPreparationPhaseFormData>(getFormDataFromPhase(sdgPreparationPhase));
   const { setApplicationDate } = useSetApplicationDate();
-  const { setPhaseStatus: completeSdgPreparationPhase } = useSetPhaseStatus({
-    applicationId: demonstrationId,
-    phaseName: "Completeness",
-    phaseStatus: "Completed",
-  });
+  const { completePhase } = useCompletePhase();
   const { showSuccess, showError } = useToast();
 
   const isFormComplete =
@@ -118,7 +114,10 @@ export const SdgPreparationPhase = ({
   const handleFinish = async () => {
     try {
       await handleSave();
-      await completeSdgPreparationPhase();
+      await completePhase({
+        applicationId: demonstrationId,
+        phaseName: "SDG Preparation",
+      });
     } catch {
       showError(FAILED_TO_SAVE_MESSAGE);
       return;

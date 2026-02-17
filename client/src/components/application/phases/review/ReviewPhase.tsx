@@ -4,7 +4,6 @@ import { useToast } from "components/toast";
 import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { useSetApplicationNotes } from "components/application/note/noteQueries";
-import { useSetPhaseStatus } from "../../phase-status/phaseStatusQueries";
 import { ClearanceLevel, ReviewPhaseDateTypes, ReviewPhaseNoteTypes } from "demos-server";
 import { PoAndOgdSection } from "./poAndOgdSection";
 import { OgcAndOmbSection } from "./ogcAndOmbSection";
@@ -14,6 +13,7 @@ import { RadioGroup } from "components/radioGroup";
 import { formatDataForSave, hasFormChanges } from "./reviewPhaseData";
 import { gql, useMutation } from "@apollo/client";
 import { CMS_OSORA_CLEARANCE_DATE_TYPES, COMMS_CLEARANCE_DATE_TYPES } from "demos-server-constants";
+import { useCompletePhase } from "components/application/phase-status/phaseStatusQueries";
 
 const SET_APPLICATION_CLEARANCE_LEVEL = gql`
   mutation SetApplicationClearanceLevel($input: SetApplicationClearanceLevelInput!) {
@@ -97,11 +97,7 @@ export const ReviewPhase = ({
   const { setApplicationDates } = useSetApplicationDates();
   const { setApplicationNotes } = useSetApplicationNotes();
   const [setApplicationClearanceLevel] = useMutation(SET_APPLICATION_CLEARANCE_LEVEL);
-  const { setPhaseStatus: completeReviewPhase } = useSetPhaseStatus({
-    applicationId: demonstrationId,
-    phaseName: "Review",
-    phaseStatus: "Completed",
-  });
+  const { completePhase } = useCompletePhase();
 
   const [reviewPhaseFormData, setReviewPhaseFormData] =
     useState<ReviewPhaseFormData>(initialFormData);
@@ -147,7 +143,10 @@ export const ReviewPhase = ({
   const handleFinish = async () => {
     try {
       await saveFormData();
-      await completeReviewPhase();
+      await completePhase({
+        applicationId: demonstrationId,
+        phaseName: "Review",
+      });
       showSuccess(getPhaseCompletedMessage("Review"));
       onFinish();
     } catch (error) {

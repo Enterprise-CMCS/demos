@@ -30,8 +30,8 @@ vi.mock("util/formatDate", () => ({
 }));
 
 vi.mock("components/application/phase-status/phaseStatusQueries", () => ({
-  useSetPhaseStatus: () => ({
-    setPhaseStatus: vi.fn().mockResolvedValue(undefined),
+  useCompletePhase: () => ({
+    completePhase: vi.fn().mockResolvedValue(undefined),
   }),
 }));
 

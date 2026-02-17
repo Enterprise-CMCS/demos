@@ -5,10 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { TestProvider } from "test-utils/TestProvider";
 
-import {
-  CompletenessPhase,
-  CompletenessPhaseProps,
-} from "./CompletenessPhase";
+import { CompletenessPhase, CompletenessPhaseProps } from "./CompletenessPhase";
 
 import { ApplicationWorkflowDocument } from "../ApplicationWorkflow";
 
@@ -29,8 +26,11 @@ vi.mock("components/application/date/dateQueries", () => ({
 }));
 
 vi.mock("../phase-status/phaseStatusQueries", () => ({
-  useSetPhaseStatus: vi.fn(() => ({
-    setPhaseStatus: vi.fn(() => Promise.resolve()),
+  useCompletePhase: vi.fn(() => ({
+    completePhase: vi.fn(() => Promise.resolve()),
+  })),
+  useDeclareCompletenessPhaseIncomplete: vi.fn(() => ({
+    declareCompletenessPhaseIncomplete: vi.fn(() => Promise.resolve()),
   })),
 }));
 
@@ -173,9 +173,7 @@ describe("CompletenessPhase", () => {
 
       // banner shows 2 days left
       const title = screen.getByText("2 days left");
-      const description = screen.getByText(
-        /This Demonstration must be declared complete by/
-      );
+      const description = screen.getByText(/This Demonstration must be declared complete by/);
       expect(title).toBeInTheDocument();
       expect(description).toBeInTheDocument();
 
