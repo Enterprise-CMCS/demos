@@ -34,6 +34,17 @@ vi.mock("components/dialog/DialogContext", () => ({
   }),
 }));
 
+const mockCompletePhase = vi.fn();
+const mockSkipConceptPhase = vi.fn();
+vi.mock("../phase-status/phaseStatusQueries", () => ({
+  useCompletePhase: () => ({
+    completePhase: mockCompletePhase,
+  }),
+  useSkipConceptPhase: () => ({
+    skipConceptPhase: mockSkipConceptPhase,
+  }),
+}));
+
 const mockPO = {
   id: "po-1",
   fullName: "Jane Doe",
@@ -159,6 +170,25 @@ describe("ConceptPhase", () => {
       setup({ initialPreSubmissionDocuments: [mockPreSubmissionDocument] });
       const skipButton = screen.getByRole("button", { name: /skip/i });
       expect(skipButton).toBeDisabled();
+    });
+
+    it("calls skipConceptPhase mutation on click of skip button", async () => {
+      const user = userEvent.setup();
+      setup();
+      const skipButton = screen.getByRole("button", { name: /skip/i });
+      await user.click(skipButton);
+      expect(mockSkipConceptPhase).toHaveBeenCalledWith("test-demo-id");
+    });
+
+    it("calls completePhase mutation on click of finish button", async () => {
+      const user = userEvent.setup();
+      setup({ initialPreSubmissionDocuments: [mockPreSubmissionDocument] });
+      const finishButton = screen.getByRole("button", { name: /finish/i });
+      await user.click(finishButton);
+      expect(mockCompletePhase).toHaveBeenCalledWith({
+        applicationId: "test-demo-id",
+        phaseName: "Concept",
+      });
     });
   });
 

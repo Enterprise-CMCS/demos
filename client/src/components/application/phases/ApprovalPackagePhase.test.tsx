@@ -11,6 +11,7 @@ import {
 } from "components/application/ApplicationWorkflow";
 import { DocumentType } from "demos-server";
 import { ApprovalPackageTableRow } from "components/table/tables/ApprovalPackageTable";
+import userEvent from "@testing-library/user-event";
 
 vi.mock("components/table/tables/ApprovalPackageTable", () => ({
   ApprovalPackageTable: ({ rows }: { rows: ApprovalPackageTableRow[] }) => (
@@ -29,9 +30,10 @@ vi.mock("util/formatDate", () => ({
   formatDate: (date: string | Date) => "FormattedDate",
 }));
 
+const mockCompletePhase = vi.fn();
 vi.mock("components/application/phase-status/phaseStatusQueries", () => ({
   useCompletePhase: () => ({
-    completePhase: vi.fn().mockResolvedValue(undefined),
+    completePhase: mockCompletePhase,
   }),
 }));
 
@@ -190,6 +192,35 @@ describe("ApprovalPackagePhase", () => {
 
     const finishButton = screen.getByRole("button", { name: /finish/i });
     expect(finishButton).toBeDisabled();
+  });
+
+  it("calls completePhase mutation on click of finish button", async () => {
+    const user = userEvent.setup();
+    const completeDocs = [
+      doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
+      doc({ documentType: "Q&A" }),
+      doc({ documentType: "Special Terms & Conditions" }),
+      doc({ documentType: "Formal OMB Policy Concurrence Email" }),
+      doc({ documentType: "Approval Letter" }),
+      doc({ documentType: "Signed Decision Memo" }),
+    ];
+
+    render(
+      <ApprovalPackagePhase
+        demonstrationId="demo-1"
+        documents={completeDocs}
+        allPreviousPhasesDone={true}
+      />
+    );
+
+    const finishButton = screen.getByRole("button", { name: /finish/i });
+    expect(finishButton).toBeEnabled();
+
+    await user.click(finishButton);
+    expect(mockCompletePhase).toHaveBeenCalledWith({
+      applicationId: "demo-1",
+      phaseName: "Approval Package",
+    });
   });
 });
 
