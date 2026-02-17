@@ -82,8 +82,8 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
         closeSelect();
       }
     };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
+    document.addEventListener("click", onClick);
+    return () => document.removeEventListener("click", onClick);
   }, []);
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -134,16 +134,21 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
         {isOpen && (
           <ul className={LIST_CLASSES}>
             {filterOptions(options, filterValue).length > 0 ? (
-              filterOptions(options, filterValue).map((option, i) => (
-                <li
-                  key={option.value}
-                  className={`${ITEM_CLASSES} ${i === activeIndex ? ITEM_ACTIVE_CLASSES : ""}`}
-                  onMouseDown={() => handleSelectOption(option)}
-                  onMouseEnter={() => setActiveIndex(i)}
-                >
-                  {option.label}
-                </li>
-              ))
+              filterOptions(options, filterValue).map((option, i) => {
+                const isActive = i === activeIndex;
+                return (
+                  <li key={option.value}>
+                    <button
+                      type="button"
+                      className={`${ITEM_CLASSES} ${isActive ? ITEM_ACTIVE_CLASSES : ""} w-full text-left`}
+                      onClick={() => handleSelectOption(option)}
+                      onMouseEnter={() => setActiveIndex(i)}
+                    >
+                      {option.label}
+                    </button>
+                  </li>
+                );
+              })
             ) : (
               <li className={EMPTY_CLASSES}>No matches found</li>
             )}
