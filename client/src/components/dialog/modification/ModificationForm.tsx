@@ -4,6 +4,18 @@ import { LocalDate, SignatureLevel } from "demos-server";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
 import { SelectDemonstration } from "components/input/select/SelectDemonstration";
 import { DatePicker } from "components/input/date/DatePicker";
+import { formatDateForServer } from "util/formatDate";
+
+export type Modification = {
+  id: string;
+  name: string;
+  demonstration: {
+    id: string;
+  };
+  description: string | null;
+  effectiveDate: string | null;
+  signatureLevel: SignatureLevel | null;
+};
 
 export type ModificationFormData = {
   id?: string;
@@ -13,6 +25,38 @@ export type ModificationFormData = {
   demonstrationId?: string;
   effectiveDate?: LocalDate;
 };
+
+export const isValid = (createModificationFormData: ModificationFormData): boolean => {
+  return !!createModificationFormData.demonstrationId && !!createModificationFormData.name;
+};
+
+export const hasChanges = (
+  createModificationFormData: ModificationFormData,
+  initialModification: Partial<Modification>
+): boolean => {
+  const initialEffectiveDate = initialModification.effectiveDate
+    ? formatDateForServer(initialModification.effectiveDate)
+    : undefined;
+
+  return !!(
+    createModificationFormData.name != initialModification.name ||
+    createModificationFormData.description != initialModification.description ||
+    createModificationFormData.signatureLevel != initialModification.signatureLevel ||
+    createModificationFormData.effectiveDate != initialEffectiveDate
+  );
+};
+
+export const getFormDataFromModification = (
+  modification: Partial<Modification>
+): ModificationFormData => ({
+  name: modification.name,
+  description: modification.description ?? undefined,
+  effectiveDate: modification.effectiveDate
+    ? formatDateForServer(modification.effectiveDate)
+    : undefined,
+  signatureLevel: modification.signatureLevel ?? undefined,
+  demonstrationId: modification.demonstration?.id,
+});
 
 export const ModificationForm: React.FC<{
   showDemonstrationSelect?: boolean;

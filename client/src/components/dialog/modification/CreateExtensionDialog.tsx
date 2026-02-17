@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ModificationForm, ModificationFormData } from "./ModificationForm";
+import { ModificationForm, hasChanges, isValid, ModificationFormData } from "./ModificationForm";
 import { gql, useMutation } from "@apollo/client";
 import { useToast } from "components/toast";
 import { BaseDialog } from "../BaseDialog";
@@ -19,28 +19,16 @@ export const CREATE_EXTENSION_MUTATION = gql`
   }
 `;
 
-const isValid = (createExtensionFormData: ModificationFormData) => {
-  return !!createExtensionFormData.demonstrationId && !!createExtensionFormData.name;
-};
-
-const hasChanges = (createExtensionFormData: ModificationFormData, demonstrationId?: string) => {
-  return !!(
-    createExtensionFormData.demonstrationId != demonstrationId ||
-    createExtensionFormData.name ||
-    createExtensionFormData.description ||
-    createExtensionFormData.signatureLevel
-  );
-};
-
 export const CreateExtensionDialog: React.FC<{
   demonstrationId?: string;
 }> = ({ demonstrationId }) => {
+  const initialModification = demonstrationId ? { demonstration: { id: demonstrationId } } : {};
   const { showSuccess, showError } = useToast();
   const { closeDialog } = useDialog();
   const [save, { loading: saving }] = useMutation(CREATE_EXTENSION_MUTATION);
 
   const [createExtensionFormData, setCreateExtensionFormData] = useState<ModificationFormData>({
-    demonstrationId: demonstrationId,
+    id: demonstrationId,
   });
 
   const handleSubmit = async () => {
@@ -67,14 +55,14 @@ export const CreateExtensionDialog: React.FC<{
     <BaseDialog
       title="Add Extension"
       onClose={closeDialog}
-      dialogHasChanges={hasChanges(createExtensionFormData, demonstrationId)}
+      dialogHasChanges={hasChanges(createExtensionFormData, initialModification)}
       maxWidthClass="max-w-[920px]"
       actionButton={
         <Button
           name={"button-submit-create-extension-dialog"}
           disabled={
             saving ||
-            !hasChanges(createExtensionFormData, demonstrationId) ||
+            !hasChanges(createExtensionFormData, initialModification) ||
             !isValid(createExtensionFormData)
           }
           onClick={handleSubmit}

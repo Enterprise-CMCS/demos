@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ModificationForm, ModificationFormData } from "./ModificationForm";
+import { ModificationForm, hasChanges, isValid, ModificationFormData } from "./ModificationForm";
 import { gql, useMutation } from "@apollo/client";
 import { useToast } from "components/toast";
 import { BaseDialog } from "../BaseDialog";
@@ -19,28 +19,17 @@ export const CREATE_AMENDMENT_MUTATION = gql`
   }
 `;
 
-const isValid = (createAmendmentFormData: ModificationFormData) => {
-  return !!createAmendmentFormData.demonstrationId && !!createAmendmentFormData.name;
-};
-
-const hasChanges = (createAmendmentFormData: ModificationFormData, demonstrationId?: string) => {
-  return !!(
-    createAmendmentFormData.demonstrationId != demonstrationId ||
-    createAmendmentFormData.name ||
-    createAmendmentFormData.description ||
-    createAmendmentFormData.signatureLevel
-  );
-};
-
 export const CreateAmendmentDialog: React.FC<{
   demonstrationId?: string;
 }> = ({ demonstrationId }) => {
+  const initialModification = demonstrationId ? { demonstration: { id: demonstrationId } } : {};
+
   const { showSuccess, showError } = useToast();
   const { closeDialog } = useDialog();
   const [save, { loading: saving }] = useMutation(CREATE_AMENDMENT_MUTATION);
 
   const [createAmendmentFormData, setCreateAmendmentFormData] = useState<ModificationFormData>({
-    demonstrationId: demonstrationId,
+    demonstrationId,
   });
 
   const handleSubmit = async () => {
@@ -67,14 +56,14 @@ export const CreateAmendmentDialog: React.FC<{
     <BaseDialog
       title="Add Amendment"
       onClose={closeDialog}
-      dialogHasChanges={hasChanges(createAmendmentFormData, demonstrationId)}
+      dialogHasChanges={hasChanges(createAmendmentFormData, initialModification)}
       maxWidthClass="max-w-[920px]"
       actionButton={
         <Button
           name={"button-submit-create-amendment-dialog"}
           disabled={
             saving ||
-            !hasChanges(createAmendmentFormData, demonstrationId) ||
+            !hasChanges(createAmendmentFormData, initialModification) ||
             !isValid(createAmendmentFormData)
           }
           onClick={handleSubmit}

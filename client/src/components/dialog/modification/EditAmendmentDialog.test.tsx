@@ -41,6 +41,9 @@ const amendmentQueryMock: MockedResponse = {
         description: "Original description",
         effectiveDate: "2024-01-15",
         signatureLevel: "OA",
+        demonstration: {
+          id: "demo-1",
+        },
       },
     },
   },
@@ -64,6 +67,7 @@ const updateAmendmentSuccessMock: MockedResponse = {
         description: "Updated description",
         effectiveDate: "2024-02-20",
         signatureLevel: "OCD",
+        demonstrationId: "demo-1",
       },
     },
   },

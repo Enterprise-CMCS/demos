@@ -1,23 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { ModificationForm, ModificationFormData } from "./ModificationForm";
+import {
+  ModificationForm,
+  getFormDataFromModification,
+  hasChanges,
+  isValid,
+  Modification,
+  ModificationFormData,
+} from "./ModificationForm";
 import { gql, TypedDocumentNode, useMutation, useQuery } from "@apollo/client";
 import { useToast } from "components/toast";
 import { BaseDialog } from "../BaseDialog";
 import { useDialog } from "../DialogContext";
 import { Button } from "components/button";
-import { formatDateForServer } from "util/formatDate";
-import { SignatureLevel, UpdateAmendmentInput } from "demos-server";
-
-type Amendment = {
-  id: string;
-  name: string;
-  description: string | null;
-  effectiveDate: string | null;
-  signatureLevel: SignatureLevel | null;
-};
+import { UpdateAmendmentInput } from "demos-server";
 
 export const UPDATE_AMENDMENT_MUTATION: TypedDocumentNode<
-  { updateAmendment: Amendment },
+  { updateAmendment: Modification },
   { id: string; input: UpdateAmendmentInput }
 > = gql`
   mutation UpdateAmendment($id: ID!, $input: UpdateAmendmentInput!) {
@@ -32,43 +30,22 @@ export const UPDATE_AMENDMENT_MUTATION: TypedDocumentNode<
 `;
 
 export const UPDATE_AMENDMENT_DIALOG_QUERY: TypedDocumentNode<
-  { amendment: Amendment },
+  { amendment: Modification },
   { id: string }
 > = gql`
   query UpdateAmendmentDialog($id: ID!) {
     amendment(id: $id) {
       id
       name
-      effectiveDate
       description
+      effectiveDate
       signatureLevel
+      demonstration {
+        id
+      }
     }
   }
 `;
-
-const hasChanges = (initialAmendment: Amendment, editAmendmentFormData: ModificationFormData) => {
-  const initialEffectiveDate = initialAmendment.effectiveDate
-    ? formatDateForServer(initialAmendment.effectiveDate)
-    : undefined;
-
-  if (initialAmendment.name !== editAmendmentFormData.name) return true;
-  if (initialAmendment.description !== editAmendmentFormData.description) return true;
-  if (initialEffectiveDate !== editAmendmentFormData.effectiveDate) return true;
-  if (initialAmendment.signatureLevel !== editAmendmentFormData.signatureLevel) return true;
-
-  return false;
-};
-
-const isValid = (editAmendmentFormData: ModificationFormData) => {
-  return !!editAmendmentFormData.name;
-};
-
-const getFormDataFromAmendment = (amendment: Amendment) => ({
-  name: amendment.name,
-  description: amendment.description ?? undefined,
-  effectiveDate: amendment.effectiveDate ? formatDateForServer(amendment.effectiveDate) : undefined,
-  signatureLevel: amendment.signatureLevel ?? undefined,
-});
 
 export const UpdateAmendmentDialog: React.FC<{
   amendmentId: string;
@@ -81,11 +58,11 @@ export const UpdateAmendmentDialog: React.FC<{
   });
   const [updateAmendmentFormData, setUpdateAmendmentFormData] = useState<
     ModificationFormData | undefined
-  >(data && getFormDataFromAmendment(data.amendment));
+  >(data && getFormDataFromModification(data.amendment));
 
   useEffect(() => {
     if (data?.amendment) {
-      setUpdateAmendmentFormData(getFormDataFromAmendment(data.amendment));
+      setUpdateAmendmentFormData(getFormDataFromModification(data.amendment));
     }
   }, [data]);
 
@@ -114,7 +91,7 @@ export const UpdateAmendmentDialog: React.FC<{
       title="Edit Details"
       onClose={closeDialog}
       dialogHasChanges={
-        data && updateAmendmentFormData && hasChanges(data.amendment, updateAmendmentFormData)
+        data && updateAmendmentFormData && hasChanges(updateAmendmentFormData, data.amendment)
       }
       maxWidthClass="max-w-[920px]"
       actionButton={
@@ -124,7 +101,7 @@ export const UpdateAmendmentDialog: React.FC<{
             !updateAmendmentFormData ||
             !data ||
             saving ||
-            !hasChanges(data.amendment, updateAmendmentFormData) ||
+            !hasChanges(updateAmendmentFormData, data.amendment) ||
             !isValid(updateAmendmentFormData)
           }
           onClick={handleSubmit}

@@ -1,23 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { ModificationForm, ModificationFormData } from "./ModificationForm";
+import {
+  ModificationForm,
+  getFormDataFromModification,
+  hasChanges,
+  isValid,
+  Modification,
+  ModificationFormData,
+} from "./ModificationForm";
 import { gql, TypedDocumentNode, useMutation, useQuery } from "@apollo/client";
 import { useToast } from "components/toast";
 import { BaseDialog } from "../BaseDialog";
 import { useDialog } from "../DialogContext";
 import { Button } from "components/button";
-import { formatDateForServer } from "util/formatDate";
-import { SignatureLevel, UpdateExtensionInput } from "demos-server";
-
-type Extension = {
-  id: string;
-  name: string;
-  description: string | null;
-  effectiveDate: string | null;
-  signatureLevel: SignatureLevel | null;
-};
+import { UpdateExtensionInput } from "demos-server";
 
 export const UPDATE_EXTENSION_MUTATION: TypedDocumentNode<
-  { updateExtension: Extension },
+  { updateExtension: Modification },
   { id: string; input: UpdateExtensionInput }
 > = gql`
   mutation UpdateExtension($id: ID!, $input: UpdateExtensionInput!) {
@@ -27,48 +25,30 @@ export const UPDATE_EXTENSION_MUTATION: TypedDocumentNode<
       description
       effectiveDate
       signatureLevel
+      demonstration {
+        id
+      }
     }
   }
 `;
 
 export const UPDATE_EXTENSION_DIALOG_QUERY: TypedDocumentNode<
-  { extension: Extension },
+  { extension: Modification },
   { id: string }
 > = gql`
   query UpdateExtensionDialog($id: ID!) {
     extension(id: $id) {
       id
       name
-      effectiveDate
       description
+      effectiveDate
       signatureLevel
+      demonstration {
+        id
+      }
     }
   }
 `;
-
-const hasChanges = (initialExtension: Extension, editExtensionFormData: ModificationFormData) => {
-  const initialEffectiveDate = initialExtension.effectiveDate
-    ? formatDateForServer(initialExtension.effectiveDate)
-    : undefined;
-
-  if (initialExtension.name !== editExtensionFormData.name) return true;
-  if (initialExtension.description !== editExtensionFormData.description) return true;
-  if (initialEffectiveDate !== editExtensionFormData.effectiveDate) return true;
-  if (initialExtension.signatureLevel !== editExtensionFormData.signatureLevel) return true;
-
-  return false;
-};
-
-const isValid = (editExtensionFormData: ModificationFormData) => {
-  return !!editExtensionFormData.name;
-};
-
-const getFormDataFromExtension = (extension: Extension) => ({
-  name: extension.name,
-  description: extension.description ?? undefined,
-  effectiveDate: extension.effectiveDate ? formatDateForServer(extension.effectiveDate) : undefined,
-  signatureLevel: extension.signatureLevel ?? undefined,
-});
 
 export const UpdateExtensionDialog: React.FC<{
   extensionId: string;
@@ -81,11 +61,11 @@ export const UpdateExtensionDialog: React.FC<{
   });
   const [updateExtensionFormData, setUpdateExtensionFormData] = useState<
     ModificationFormData | undefined
-  >(data && getFormDataFromExtension(data.extension));
+  >(data && getFormDataFromModification(data.extension));
 
   useEffect(() => {
     if (data?.extension) {
-      setUpdateExtensionFormData(getFormDataFromExtension(data.extension));
+      setUpdateExtensionFormData(getFormDataFromModification(data.extension));
     }
   }, [data]);
 
@@ -114,7 +94,7 @@ export const UpdateExtensionDialog: React.FC<{
       title="Edit Details"
       onClose={closeDialog}
       dialogHasChanges={
-        data && updateExtensionFormData && hasChanges(data.extension, updateExtensionFormData)
+        data && updateExtensionFormData && hasChanges(updateExtensionFormData, data.extension)
       }
       maxWidthClass="max-w-[920px]"
       actionButton={
@@ -124,7 +104,7 @@ export const UpdateExtensionDialog: React.FC<{
             !updateExtensionFormData ||
             !data ||
             saving ||
-            !hasChanges(data.extension, updateExtensionFormData) ||
+            !hasChanges(updateExtensionFormData, data.extension) ||
             !isValid(updateExtensionFormData)
           }
           onClick={handleSubmit}
