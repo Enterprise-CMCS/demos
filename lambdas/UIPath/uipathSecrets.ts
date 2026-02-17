@@ -3,7 +3,6 @@ import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-sec
 export interface UiPathSecret {
   clientId?: string;
   clientSecret?: string;
-  projectId?: string;
 }
 
 const secretsManagerRegion = process.env.AWS_REGION || "us-east-1";
@@ -36,10 +35,6 @@ export async function getUiPathSecret(): Promise<UiPathSecret> {
   cachedSecret = {
     clientId: parsedSecret.clientId,
     clientSecret: parsedSecret.clientSecret,
-    projectId:
-      parsedSecret.projectId ??
-      parsedSecret.project_id ??
-      parsedSecret.UIPATH_PROJECT_ID,
   };
 
   return cachedSecret;

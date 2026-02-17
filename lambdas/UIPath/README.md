@@ -5,7 +5,7 @@ TypeScript Lambda that uploads a document to UiPath DU, starts extraction, and p
 ## Env vars (required)
 ```
 UIPATH_CLIENT_ID=...
-UIPATH_SECRET_ID=<optional: Secrets Manager secret name/ARN containing clientId/clientSecret/projectId>
+UIPATH_SECRET_ID=<optional: Secrets Manager secret name/ARN containing clientId/clientSecret>
 # optional
 LOG_LEVEL=info
 INPUT_FILE=ak-behavioral-health-demo-pa.pdf
@@ -15,15 +15,14 @@ INPUT_FILE=ak-behavioral-health-demo-pa.pdf
 AWS_PROFILE=<AWS_ENV_NAME> \
 aws secretsmanager put-secret-value \
   --secret-id <UIPATH_SECRET_ID> \
-  --secret-string '{"clientId":"...","clientSecret":"...","projectId":"..."}'
+  --secret-string '{"clientId":"...","clientSecret":"..."}'
 ```
 
 # Your vars that need to be stored in your secret manager:
 * clientId
 * clientSecret
-* projectId (optional fallback if not provided in SQS message)
 
-If `UIPATH_SECRET_ID` is set, the Lambda will resolve the client id/secret (and optional project id fallback) from Secrets Manager.
+If `UIPATH_SECRET_ID` is set, the Lambda will resolve client id/secret from Secrets Manager.
 
 ## Local usage
 ```bash
@@ -44,6 +43,6 @@ node -e "import('./dist/runDocumentUnderstanding.js').then(m => m.runDocumentUnd
 
 ## Lambda usage
 - Handler: `index.handler`
-- Trigger: SQS message body must contain `{ "s3FileName": "<path/to/file>" }`; optional `projectId` overrides secret fallback.
+- Trigger: SQS message body must contain `{ "s3FileName": "<path/to/file>" }`.
 - Env: same as above (`UIPATH_CLIENT_ID`, `UIPATH_CLIENT_SECRET`, optional `LOG_LEVEL`)
 - CDK wiring: `deployment/stacks/uipath.ts` creates the UiPath Lambda, SQS queue, and DLQ; `deployment/app.ts` registers the stack. Producers send messages to `UiPathQueue` with the `s3FileName` in the body.

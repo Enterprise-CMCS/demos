@@ -73,4 +73,41 @@ describe("getToken", () => {
 
     consoleErrorSpy.mockRestore();
   });
+
+  it("throws when UIPATH_SECRET_ID is missing", async () => {
+    delete process.env.UIPATH_SECRET_ID;
+
+    await expect(getToken()).rejects.toThrow(
+      "Missing UIPATH_SECRET_ID or UIPATH_CLIENT_ID/UIPATH_CLIENT_SECRET."
+    );
+    expect(mocks.getUiPathSecretMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects placeholder credentials from secret", async () => {
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    mocks.getUiPathSecretMock.mockResolvedValue({
+      clientId: "local-uipath-client-id", // pragma: allowlist secret
+      clientSecret: "local-uipath-client-secret", // pragma: allowlist secret
+    });
+
+    await expect(getToken()).rejects.toThrow(
+      "Failed to retrieve UiPath credentials from Secrets Manager: UiPath secret contains default placeholder credentials. Set real UIPATH_CLIENT_ID/UIPATH_CLIENT_SECRET."
+    );
+
+    expect(mocks.postMock).not.toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
+  });
+
+  it("throws when secret does not include both client fields", async () => {
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    mocks.getUiPathSecretMock.mockResolvedValue({
+      clientId: "clientId-1",
+    });
+
+    await expect(getToken()).rejects.toThrow(
+      "Failed to retrieve UiPath credentials from Secrets Manager: UiPath secret must contain clientId/clientSecret fields."
+    );
+    expect(mocks.postMock).not.toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
+  });
 });

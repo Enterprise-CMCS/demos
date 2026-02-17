@@ -10,7 +10,7 @@ for i in {1..15}; do
         echo "✅ LocalStack is ready!"
         break
     fi
-    if [ $i -eq 30 ]; then
+    if [ $i -eq 15 ]; then
         echo "❌ LocalStack failed to start within 30 seconds"
         exit 1
     fi

@@ -14,11 +14,10 @@ set -euo pipefail
 #   LOCALSTACK_ENDPOINT - LocalStack endpoint (default: http://localstack:4566)
 # ------------------------------------------------------------------------------ #
 STAGE="local"
-SECRET_ID="demos-$STAGE/uipath"
+SECRET_ID="${UIPATH_SECRET_ID:-demos-$STAGE/uipath}"
 CLIENT_ID="${UIPATH_CLIENT_ID:-}"
 CLIENT_SECRET="${UIPATH_CLIENT_SECRET:-}"
 AWS_REGION="${AWS_REGION:-us-east-1}"
-UIPATH_PROJECT_ID="${UIPATH_PROJECT_ID:-}"
 LOCALSTACK_ENDPOINT="${LOCALSTACK_ENDPOINT:-http://localstack:4566}"
 
 if [[ -z "$CLIENT_ID" || -z "$CLIENT_SECRET" ]]; then
@@ -28,27 +27,28 @@ fi
 
 AWS_CMD="aws --endpoint-url=${LOCALSTACK_ENDPOINT} --region ${AWS_REGION}"
 
-echo "🔐 Updating secret '$SECRET_NAME' in LocalStack..."
+echo "🔐 Updating secret '$SECRET_ID' in LocalStack..."
+
+SECRET_STRING="{\"clientId\":\"$CLIENT_ID\",\"clientSecret\":\"$CLIENT_SECRET\"}"
 
 # Create secret if it doesn't exist; otherwise put a new value
-if ! $AWS_CMD secretsmanager describe-secret --secret-id "$SECRET_NAME" >/dev/null 2>&1; then
+if ! $AWS_CMD secretsmanager describe-secret --secret-id "$SECRET_ID" >/dev/null 2>&1; then
   $AWS_CMD secretsmanager create-secret \
-    --name "$SECRET_NAME" \
+    --name "$SECRET_ID" \
     --description "UiPath client credentials for local development" \
-    --secret-string "{\"clientId\":\"$CLIENT_ID\",\"clientSecret\":\"$CLIENT_SECRET\"}" >/dev/null
+    --secret-string "$SECRET_STRING" >/dev/null
 else
   $AWS_CMD secretsmanager put-secret-value \
-    --secret-id "$SECRET_NAME" \
-    --secret-string "{\"clientId\":\"$CLIENT_ID\",\"clientSecret\":\"$CLIENT_SECRET\"}" >/dev/null
+    --secret-id "$SECRET_ID" \
+    --secret-string "$SECRET_STRING" >/dev/null
 fi
 
 echo "✅ Secret updated."
 
 echo ""
 echo "🔎 Current value:"
-$AWS_CMD secretsmanager get-secret-value --secret-id "$SECRET_NAME" --query SecretString --output text
+$AWS_CMD secretsmanager get-secret-value --secret-id "$SECRET_ID" --query SecretString --output text
 
 echo ""
 echo "📜 To tail UiPath lambda logs after invoking it:"
 echo "aws --endpoint-url=${LOCALSTACK_ENDPOINT} logs tail /aws/lambdas/uipath --since 5m --follow"
-

@@ -14,6 +14,10 @@ vi.mock("axios", () => ({
 
 import { uipathGetRequest, uipathPostRequest } from "./uipathClient";
 
+const loadModule = async () => {
+  return await import("./uipathClient");
+};
+
 describe("uipathClient", () => {
   beforeEach(() => {
     mocks.getMock.mockReset();
@@ -93,6 +97,28 @@ describe("uipathClient", () => {
         mode: "fast",
       },
       timeout: 2000,
+    });
+  });
+
+  describe("project id cache", () => {
+    beforeEach(() => {
+      vi.resetModules();
+    });
+
+    it("throws when project id is not set", async () => {
+      const { getProjectId } = await loadModule();
+      expect(() => getProjectId()).toThrow("UiPath project id is not set.");
+    });
+
+    it("trims and stores project id", async () => {
+      const { setProjectId, getProjectId } = await loadModule();
+      setProjectId("  project-1  ");
+      expect(getProjectId()).toBe("project-1");
+    });
+
+    it("rejects empty project id", async () => {
+      const { setProjectId } = await loadModule();
+      expect(() => setProjectId("   ")).toThrow("UiPath project id cannot be empty.");
     });
   });
 });

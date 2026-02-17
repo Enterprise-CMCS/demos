@@ -8,6 +8,7 @@ vi.mock("@aws-sdk/client-sqs", () => {
       send: sendMock,
     })),
     SendMessageCommand: vi.fn().mockImplementation((input) => ({ input })),
+    GetQueueUrlCommand: vi.fn().mockImplementation((input) => ({ input })),
   };
 });
 
@@ -21,7 +22,7 @@ describe("uipathQueue", () => {
   beforeEach(() => {
     vi.resetModules();
     sendMock.mockReset();
-    process.env = { ...originalEnv, UIPATH_PROJECT_ID: "dummy", CLEAN_BUCKET: "clean-bucket" };
+    process.env = { ...originalEnv, CLEAN_BUCKET: "clean-bucket" };
   });
 
   afterEach(() => {
@@ -29,8 +30,31 @@ describe("uipathQueue", () => {
   });
 
   describe("enqueueUiPath", () => {
-    it("throws when UIPATH_QUEUE_URL is missing", async () => {
+    it("resolves queue URL when UIPATH_QUEUE_URL is missing", async () => {
       delete process.env.UIPATH_QUEUE_URL;
+      sendMock
+        .mockResolvedValueOnce({ QueueUrl: "http://example.com/queue" })
+        .mockResolvedValueOnce({ MessageId: "msg-123" });
+      const { enqueueUiPath } = await loadModule();
+
+      const result = await enqueueUiPath({
+        s3Bucket: "clean-bucket",
+        s3FileName: "file.pdf",
+      });
+
+      expect(result).toBe("msg-123");
+      expect(sendMock).toHaveBeenCalledTimes(2);
+      expect(sendMock.mock.calls[0][0]).toMatchObject({
+        input: { QueueName: "uipath-queue" },
+      });
+      expect(sendMock.mock.calls[1][0]).toMatchObject({
+        input: { QueueUrl: "http://example.com/queue" },
+      });
+    });
+
+    it("throws when queue URL cannot be resolved", async () => {
+      delete process.env.UIPATH_QUEUE_URL;
+      sendMock.mockResolvedValueOnce({});
       const { enqueueUiPath } = await loadModule();
 
       await expect(
@@ -38,7 +62,7 @@ describe("uipathQueue", () => {
           s3Bucket: "clean-bucket",
           s3FileName: "file.pdf",
         })
-      ).rejects.toThrow("UIPATH_QUEUE_URL is not set.");
+      ).rejects.toThrow("Failed to resolve UiPath queue URL for queue: uipath-queue");
     });
 
     it("sends a message and returns the message id", async () => {
@@ -76,6 +100,17 @@ describe("uipathQueue", () => {
   });
 
   describe("parseS3Path", () => {
+    it("parses s3 URIs directly", async () => {
+      delete process.env.CLEAN_BUCKET;
+      const { parseS3Path } = await loadModule();
+      const result = parseS3Path("s3://clean-bucket/path/to/file.pdf");
+
+      expect(result).toEqual({
+        bucket: "clean-bucket",
+        key: "path/to/file.pdf",
+      });
+    });
+
     it("parses plain keys using the clean bucket", async () => {
       const { parseS3Path } = await loadModule();
       const result = parseS3Path("path/to/file.pdf");

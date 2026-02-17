@@ -9,8 +9,8 @@ AWS_CMD="aws --endpoint-url=$LOCALSTACK_ENDPOINT --region $AWS_REGION"
 QUEUE_NAME="uipath-queue"
 LAMBDA_NAME="uipath"
 UIPATH_SECRET_ID="demos-local/uipath"
-# The defautl project is a perfect default project.
-# UIPATH_PROJECT_ID=${UIPATH_PROJECT_ID:-"00000000-0000-0000-0000-000000000000"} # pragma: allowlist secret
+UIPATH_PROJECT_NAME=${UIPATH_PROJECT_NAME:-"demosOCR"}
+UIPATH_LOCAL_MOCK=${UIPATH_LOCAL_MOCK:-"true"}
 UIPATH_DOCUMENT_BUCKET=${UIPATH_DOCUMENT_BUCKET:-"uipath-documents"}
 DATABASE_SECRET_ARN=${DATABASE_SECRET_ARN:-"database-secret"}
 LOG_LEVEL=${LOG_LEVEL:-"info"}
@@ -59,11 +59,12 @@ $AWS_CMD lambda create-function \
         AWS_REGION=$AWS_REGION,
         AWS_ENDPOINT_URL=$LOCALSTACK_ENDPOINT,
         UIPATH_SECRET_ID=$UIPATH_SECRET_ID,
-        UIPATH_PROJECT_ID=$UIPATH_PROJECT_ID,
+        UIPATH_PROJECT_NAME=$UIPATH_PROJECT_NAME,
         UIPATH_DOCUMENT_BUCKET=$UIPATH_DOCUMENT_BUCKET,
+        UIPATH_LOCAL_MOCK=$UIPATH_LOCAL_MOCK,
         DATABASE_SECRET_ARN=$DATABASE_SECRET_ARN,
         LOG_LEVEL=$LOG_LEVEL,
-        DB_SSL_MODE=$DB_SSL_MODE,
+        DB_SSL_MODE=$DB_SSL_MODE
     }" >/dev/null
 
 # Wait for Lambda to be active
@@ -115,3 +116,4 @@ $AWS_CMD lambda create-event-source-mapping \
 
 echo "✅ UiPath Lambda connected to UiPath SQS queue"
 echo "   Queue ARN: $QUEUE_ARN"
+echo "   Local mock mode: $UIPATH_LOCAL_MOCK"

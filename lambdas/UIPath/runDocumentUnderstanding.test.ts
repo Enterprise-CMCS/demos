@@ -45,6 +45,7 @@ import { getToken } from "./getToken";
 describe("runDocumentUnderstanding", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    delete process.env.UIPATH_LOCAL_MOCK;
     mocks.uploadDocumentMock.mockReset();
     mocks.extractDocMock.mockReset();
     mocks.fetchExtractionResultMock.mockReset();
@@ -91,6 +92,30 @@ describe("runDocumentUnderstanding", () => {
     expect(mocks.releaseMock).toHaveBeenCalled();
   });
 
+  it("uses local mock mode when UIPATH_LOCAL_MOCK is enabled", async () => {
+    process.env.UIPATH_LOCAL_MOCK = "true";
+    mocks.queryMock.mockResolvedValue({ rows: [{ id: "result-1" }] });
+
+    const result = await runDocumentUnderstanding("file.pdf", {
+      requestId: "request-local",
+      fileNameWithExtension: "file.pdf",
+    });
+
+    expect(getToken).not.toHaveBeenCalled();
+    expect(mocks.uploadDocumentMock).not.toHaveBeenCalled();
+    expect(mocks.extractDocMock).not.toHaveBeenCalled();
+    expect(mocks.fetchExtractionResultMock).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ status: "Succeeded", mode: "local-mock" });
+    expect(mocks.queryMock).toHaveBeenCalled();
+    expect(mocks.queryMock.mock.calls[0]?.[1]).toEqual([
+      expect.any(String),
+      "request-local",
+      "local-devcontainer-project",
+      expect.any(String),
+    ]);
+    expect(mocks.releaseMock).toHaveBeenCalled();
+  });
+
   it("throws if maxAttempts is exceeded", async () => {
     mocks.uploadDocumentMock.mockResolvedValue("doc-1");
     mocks.extractDocMock.mockResolvedValue("result-url");
@@ -104,5 +129,94 @@ describe("runDocumentUnderstanding", () => {
     const expectation = expect(promise).rejects.toThrow("did not succeed");
     await vi.runAllTimersAsync();
     await expectation;
+  });
+
+  it("persists top-level fields and skips non-string field values", async () => {
+    mocks.uploadDocumentMock.mockResolvedValue("doc-1");
+    mocks.extractDocMock.mockResolvedValue("result-url");
+    mocks.queryMock.mockResolvedValue({ rows: [{ id: "result-1" }] });
+    mocks.fetchExtractionResultMock.mockResolvedValue({
+      status: "Succeeded",
+      Fields: [
+        {
+          FieldId: "field-1",
+          FieldName: "Field One",
+          Values: [{ Value: 123 }, { Value: "abc", Reference: { TextLength: 3 } }],
+        },
+      ],
+    });
+
+    const promise = runDocumentUnderstanding("file.pdf", {
+      pollIntervalMs: 10,
+      requestId: "request-fields",
+    });
+
+    await vi.runAllTimersAsync();
+    const result = await promise;
+
+    expect(result).toMatchObject({ status: "Succeeded" });
+    expect(mocks.queryMock).toHaveBeenCalledTimes(2);
+    expect(mocks.queryMock.mock.calls[1]?.[1]).toEqual([
+      expect.any(String),
+      "result-1",
+      "field-1",
+      "Field One",
+      "Text",
+      "abc",
+      0,
+      expect.any(String),
+      3,
+    ]);
+  });
+
+  it("throws when result row id is not returned", async () => {
+    mocks.uploadDocumentMock.mockResolvedValue("doc-1");
+    mocks.extractDocMock.mockResolvedValue("result-url");
+    mocks.queryMock.mockResolvedValue({ rows: [] });
+    mocks.fetchExtractionResultMock.mockResolvedValue({ status: "Succeeded", Fields: [] });
+
+    const promise = runDocumentUnderstanding("file.pdf", {
+      pollIntervalMs: 10,
+      requestId: "request-no-id",
+    });
+
+    const expectation = expect(promise).rejects.toThrow("Failed to persist UiPath result row.");
+    await vi.runAllTimersAsync();
+    await expectation;
+  });
+
+  it("supports logFullResult branch", async () => {
+    mocks.uploadDocumentMock.mockResolvedValue("doc-1");
+    mocks.extractDocMock.mockResolvedValue("result-url");
+    mocks.queryMock.mockResolvedValue({ rows: [{ id: "result-1" }] });
+    mocks.fetchExtractionResultMock.mockResolvedValue({
+      status: "Succeeded",
+      result: {
+        extractionResult: {
+          ResultsDocument: {
+            Fields: [],
+          },
+        },
+      },
+    });
+
+    const promise = runDocumentUnderstanding("file.pdf", {
+      pollIntervalMs: 10,
+      logFullResult: true,
+      requestId: "request-log-full",
+    });
+
+    await vi.runAllTimersAsync();
+    await expect(promise).resolves.toMatchObject({ status: "Succeeded" });
+  });
+
+  it("throws when extraction startup data is incomplete", async () => {
+    mocks.uploadDocumentMock.mockResolvedValue("doc-1");
+    mocks.extractDocMock.mockResolvedValue("");
+
+    await expect(runDocumentUnderstanding("file.pdf")).rejects.toThrow(
+      "Failed to initiate document understanding due to missing information."
+    );
+    expect(mocks.fetchExtractionResultMock).not.toHaveBeenCalled();
   });
 });

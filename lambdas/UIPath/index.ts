@@ -4,7 +4,7 @@ import { createWriteStream } from "node:fs";
 import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
 import { SQSEvent } from "aws-lambda";
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, S3Client, type GetObjectCommandOutput } from "@aws-sdk/client-s3";
 import { log, reqIdChild, als, store } from "./log";
 import { runDocumentUnderstanding } from "./runDocumentUnderstanding";
 
@@ -20,6 +20,23 @@ type UipathMessage = {
   s3Bucket: string;
   s3Key: string;
   fileNameWithExtension?: string;
+};
+
+type DownloadedObject = {
+  localPath: string;
+  contentType?: string;
+  contentDisposition?: string;
+  metadata?: Record<string, string>;
+};
+
+const CONTENT_TYPE_TO_EXTENSION: Readonly<Record<string, string>> = {
+  "application/pdf": ".pdf",
+  "application/msword": ".doc",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+  "application/vnd.ms-excel": ".xls",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+  "text/plain": ".txt",
+  "application/rtf": ".rtf",
 };
 
 function decodeS3Key(key: string): string {
@@ -45,15 +62,82 @@ function parseUiPathMessage(body: string): UipathMessage {
   return { s3Bucket, s3Key: s3Key ?? "", fileNameWithExtension };
 }
 
-async function downloadFromS3(bucket: string, key: string): Promise<string> {
+function extensionFromFileName(fileName?: string): string | null {
+  if (!fileName) return null;
+  const ext = path.extname(fileName).trim();
+  return ext ? ext : null;
+}
+
+function extensionFromContentType(contentType?: string): string | null {
+  if (!contentType) return null;
+  const normalized = contentType.toLowerCase().split(";")[0].trim();
+  return CONTENT_TYPE_TO_EXTENSION[normalized] ?? null;
+}
+
+function extractFileNameFromContentDisposition(contentDisposition?: string): string | null {
+  if (!contentDisposition) return null;
+
+  const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+  if (utf8Match?.[1]) {
+    try {
+      return decodeURIComponent(utf8Match[1]);
+    } catch {
+      return utf8Match[1];
+    }
+  }
+
+  const simpleMatch = contentDisposition.match(/filename="?([^";]+)"?/i);
+  return simpleMatch?.[1] ?? null;
+}
+
+function resolveUploadFileNameWithExtension(
+  s3Key: string,
+  downloadedObject: DownloadedObject,
+  providedFileNameWithExtension?: string
+): string | undefined {
+  if (providedFileNameWithExtension?.trim()) {
+    return providedFileNameWithExtension.trim();
+  }
+
+  const keyBaseName = path.basename(s3Key) || "uipath-document";
+  if (extensionFromFileName(keyBaseName)) {
+    return keyBaseName;
+  }
+
+  const metadata = downloadedObject.metadata ?? {};
+  const metadataFileName =
+    metadata.filename ??
+    metadata["file-name"] ??
+    metadata.originalfilename ??
+    metadata["original-file-name"];
+
+  const inferredExtension =
+    extensionFromFileName(metadataFileName) ??
+    extensionFromFileName(
+      extractFileNameFromContentDisposition(downloadedObject.contentDisposition)
+    ) ??
+    extensionFromContentType(downloadedObject.contentType);
+
+  return inferredExtension ? `${keyBaseName}${inferredExtension}` : undefined;
+}
+
+async function downloadFromS3(bucket: string, key: string): Promise<DownloadedObject> {
   const destination = path.join(os.tmpdir(), path.basename(key) || "uipath-document");
-  const { Body } = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+  const response: GetObjectCommandOutput = await s3.send(
+    new GetObjectCommand({ Bucket: bucket, Key: key })
+  );
+  const { Body } = response;
   if (!Body) {
     throw new Error(`No body returned when fetching s3://${bucket}/${key}`);
   }
 
   await pipeline(Body as Readable, createWriteStream(destination));
-  return destination;
+  return {
+    localPath: destination,
+    contentType: response.ContentType,
+    contentDisposition: response.ContentDisposition,
+    metadata: response.Metadata,
+  };
 }
 
 export const handler = async (event: SQSEvent) =>
@@ -71,14 +155,23 @@ export const handler = async (event: SQSEvent) =>
       throw new Error("Missing s3Key/s3FileName in SQS message body.");
     }
 
-    const inputFile = await downloadFromS3(s3Bucket, s3Key);
-    log.info({ s3Bucket, s3Key, localPath: inputFile }, "Downloaded document from S3");
+    const downloadedObject = await downloadFromS3(s3Bucket, s3Key);
+    const { localPath } = downloadedObject;
+    const uploadFileNameWithExtension = resolveUploadFileNameWithExtension(
+      s3Key,
+      downloadedObject,
+      fileNameWithExtension
+    );
+    log.info(
+      { s3Bucket, s3Key, localPath, uploadFileNameWithExtension },
+      "Downloaded document from S3"
+    );
 
-    const status = await runDocumentUnderstanding(inputFile, {
+    const status = await runDocumentUnderstanding(localPath, {
       pollIntervalMs: 5_000,
       logFullResult: false,
       requestId: firstRecord?.messageId ?? "n/a",
-      fileNameWithExtension,
+      fileNameWithExtension: uploadFileNameWithExtension,
     });
 
     log.info({ status }, "UiPath extraction completed");

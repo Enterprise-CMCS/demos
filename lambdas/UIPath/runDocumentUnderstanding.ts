@@ -1,5 +1,6 @@
 import util from "node:util";
 import { randomUUID } from "node:crypto";
+import path from "node:path";
 import { log } from "./log";
 import { getToken } from "./getToken";
 import { uploadDocument } from "./uploadDocument";
@@ -9,6 +10,7 @@ import { getDbPool, getDbSchema } from "./db";
 import { getProjectIdByName } from "./getProjectId";
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
+const DEFAULT_LOCAL_MOCK_PROJECT_ID = "local-devcontainer-project";
 
 interface UiPathFieldValue {
   Value?: string;
@@ -101,6 +103,124 @@ function toPersistableFieldValues(field: UiPathField): PersistableFieldValue[] {
   return persistableValues;
 }
 
+function isLocalMockEnabled(): boolean {
+  return (process.env.UIPATH_LOCAL_MOCK ?? "").toLowerCase() === "true";
+}
+
+function buildLocalMockStatus(requestId: string, fileNameWithExtension: string): ExtractionStatus {
+  const value = fileNameWithExtension.trim();
+
+  return {
+    status: "Succeeded",
+    mode: "local-mock",
+    requestId,
+    result: {
+      extractionResult: {
+        ResultsDocument: {
+          Fields: [
+            {
+              FieldId: "local.fileName",
+              FieldName: "File Name",
+              FieldType: "Text",
+              IsMissing: false,
+              Values: [
+                {
+                  Value: value,
+                  UnformattedValue: value,
+                  Confidence: 1,
+                  Reference: { TextLength: value.length },
+                },
+              ],
+            },
+          ],
+        },
+      },
+    },
+  };
+}
+
+async function persistExtractionStatus(
+  status: ExtractionStatus,
+  requestId: string,
+  projectId: string,
+  logFullResult: boolean
+): Promise<void> {
+  log.info("Extraction succeeded, processing results");
+  const pool = await getDbPool();
+  const client = await pool.connect();
+
+  try {
+    const schema = getDbSchema();
+    const upsertedResult = await client.query<{ id: string }>(
+      `insert into ${schema}.uipath_result (id, request_id, project_id, response)
+       values ($1, $2, $3, $4::jsonb)
+       on conflict (request_id)
+       do update set
+         project_id = excluded.project_id,
+         response = excluded.response
+       returning id`,
+      [randomUUID(), requestId, projectId, JSON.stringify(status)]
+    );
+
+    const resultId = upsertedResult.rows[0]?.id;
+    if (!resultId) {
+      throw new Error("Failed to persist UiPath result row.");
+    }
+
+    const extractedFields = getExtractedFields(status);
+    for (const field of extractedFields) {
+      const persistableValues = toPersistableFieldValues(field);
+      if (!persistableValues.length) continue;
+
+      for (const p of persistableValues) {
+        const confidence = typeof p.fieldValue.Confidence === "number" ? p.fieldValue.Confidence : 0;
+        const textLength =
+          typeof p.fieldValue.Reference?.TextLength === "number"
+            ? p.fieldValue.Reference.TextLength
+            : p.valueText.length;
+
+        await client.query(
+          `insert into ${schema}.uipath_result_field
+            (id, uipath_result_id, field_id, field_name, field_type, value, confidence, value_json, text_length)
+           values
+            ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9)
+           on conflict (uipath_result_id, field_id, value)
+           do update set
+             field_name = excluded.field_name,
+             field_type = excluded.field_type,
+             value = excluded.value,
+             confidence = excluded.confidence,
+             value_json = excluded.value_json,
+             text_length = excluded.text_length`,
+          [
+            randomUUID(),
+            resultId,
+            p.FieldId,
+            p.FieldName,
+            p.FieldType,
+            p.valueText,
+            confidence,
+            JSON.stringify(p.fieldValue),
+            textLength,
+          ]
+        );
+      }
+    }
+
+    log.info(
+      { extractedFieldCount: extractedFields.length },
+      "Processed UiPath fields"
+    );
+    if (logFullResult) {
+      log.info(util.inspect(status, false, null, true));
+    } else {
+      log.info({ status }, "UiPath extraction succeeded");
+    }
+  } finally {
+    client.release();
+  }
+}
+
 export interface RunDocumentUnderstandingOptions {
   token?: string;
   logFullResult?: boolean;
@@ -123,6 +243,15 @@ export async function runDocumentUnderstanding(
     fileNameWithExtension,
   } = options;
 
+  if (isLocalMockEnabled()) {
+    const resolvedFileNameWithExtension =
+      fileNameWithExtension?.trim() || path.basename(inputFile) || "uipath-document.pdf";
+    const projectId = DEFAULT_LOCAL_MOCK_PROJECT_ID;
+    const status = buildLocalMockStatus(requestId, resolvedFileNameWithExtension);
+    await persistExtractionStatus(status, requestId, projectId, logFullResult);
+    return status;
+  }
+
   const token = providedToken ?? (await getToken());
   const projectId = await getProjectIdByName(token, process.env.UIPATH_PROJECT_NAME ?? "demosOCR");
   const docId = await uploadDocument(token, inputFile, projectId, fileNameWithExtension);
@@ -139,85 +268,7 @@ export async function runDocumentUnderstanding(
     const status = await fetchExtractionResult(token, resultUrl);
 
     if (status.status === "Succeeded") {
-      log.info("Extraction succeeded, processing results");
-      const pool = await getDbPool();
-      const client = await pool.connect();
-      try {
-        const schema = getDbSchema();
-
-        const upsertedResult = await client.query<{ id: string }>(
-          `insert into ${schema}.uipath_result (id, request_id, project_id, response)
-           values ($1, $2, $3, $4::jsonb)
-           on conflict (request_id)
-           do update set
-             project_id = excluded.project_id,
-             response = excluded.response
-           returning id`,
-          [randomUUID(), requestId, projectId, JSON.stringify(status)]
-        );
-
-        const resultId = upsertedResult.rows[0]?.id;
-        if (!resultId) {
-          throw new Error("Failed to persist UiPath result row.");
-        }
-
-        const extractedFields = getExtractedFields(status);
-
-        for (const field of extractedFields) {
-          const persistableValues = toPersistableFieldValues(field);
-          if (!persistableValues.length) continue;
-
-          for (const p of persistableValues) {
-            const confidence =
-              typeof p.fieldValue.Confidence === "number" ? p.fieldValue.Confidence : 0;
-
-            const textLength =
-              typeof p.fieldValue.Reference?.TextLength === "number"
-                ? p.fieldValue.Reference.TextLength
-                : p.valueText.length;
-
-            await client.query(
-              `insert into ${schema}.uipath_result_field
-                (id, uipath_result_id, field_id, field_name, field_type, value, confidence, value_json, text_length)
-               values
-                ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9)
-               on conflict (uipath_result_id, field_id, value)
-               do update set
-                 field_name = excluded.field_name,
-                 field_type = excluded.field_type,
-                 value = excluded.value,
-                 confidence = excluded.confidence,
-                 value_json = excluded.value_json,
-                 text_length = excluded.text_length`,
-              [
-                randomUUID(),
-                resultId,
-                p.FieldId,
-                p.FieldName,
-                p.FieldType,
-                p.valueText,
-                confidence,
-                JSON.stringify(p.fieldValue),
-                textLength,
-              ]
-            );
-          }
-        }
-
-        log.info(
-          { extractedFieldCount: extractedFields.length },
-          "Processed UiPath fields"
-        );
-
-        if (logFullResult) {
-          log.info(util.inspect(status, false, null, true));
-        } else {
-          log.info({ status }, "UiPath extraction succeeded");
-        }
-      } finally {
-        client.release();
-      }
-
+      await persistExtractionStatus(status, requestId, projectId, logFullResult);
       return status;
     }
 
