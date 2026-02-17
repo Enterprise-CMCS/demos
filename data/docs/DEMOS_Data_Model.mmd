@@ -238,7 +238,7 @@ erDiagram
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
-    CONSTRAINT_CHECK check_amendment_non_null_effective_date_when_approved "Validate that effective_date exists if amendment is approved."
+    CONSTRAINT_CHECK check_amendment_non_null_fields_when_approved  "Validate that required fields exist if amendment is approved."
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
@@ -389,7 +389,7 @@ erDiagram
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
-    CONSTRAINT_CHECK check_extension_non_null_effective_date_when_approved "Validate that effective_date exists if extension is approved."
+    CONSTRAINT_CHECK check_extension_non_null_fields_when_approved  "Validate that required fields exist if extension is approved."
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }

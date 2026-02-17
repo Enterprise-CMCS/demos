@@ -83,7 +83,7 @@ export function DocumentColumns() {
       cell: ({ row }) => {
         const docId = row.original.id;
         const handleClick = () => {
-          window.open(`/documents/${docId}`, "_blank");
+          window.open(`/document/${docId}`, "_blank");
         };
         return (
           <SecondaryButton onClick={handleClick} name="view-document">

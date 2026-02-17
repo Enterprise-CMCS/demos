@@ -45,10 +45,18 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       status
       currentPhaseName
       amendments {
+        name
         id
+        description
+        status
+        createdAt
       }
       extensions {
         id
+        name
+        description
+        status
+        createdAt
       }
       demonstrationTypes {
         demonstrationTypeName
@@ -84,9 +92,19 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
   }
 `;
 
+export type DemonstrationDetailAmendment = Pick<
+  Amendment,
+  "id" | "name" | "description" | "status" | "createdAt"
+>;
+
+export type DemonstrationDetailExtension = Pick<
+  Extension,
+  "id" | "name" | "description" | "status" | "createdAt"
+>;
+
 export type DemonstrationDetail = Pick<Demonstration, "id" | "status" | "currentPhaseName"> & {
-  amendments: Pick<Amendment, "id">[];
-  extensions: Pick<Extension, "id">[];
+  amendments: DemonstrationDetailAmendment[];
+  extensions: DemonstrationDetailExtension[];
   demonstrationTypes: Pick<
     DemonstrationTypeAssignment,
     "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "createdAt"
@@ -131,6 +149,9 @@ export const DemonstrationDetail: React.FC = () => {
     return <div>Failed to load demonstration.</div>;
   }
 
+  const hasAmendments = demonstration.amendments && demonstration.amendments.length > 0;
+  const hasExtensions = demonstration.extensions && demonstration.extensions.length > 0;
+
   return (
     <div>
       {
@@ -142,17 +163,25 @@ export const DemonstrationDetail: React.FC = () => {
               <DemonstrationTab demonstration={demonstration} />
             </Tab>
 
-            <Tab label={`Amendments (${demonstration.amendments?.length ?? 0})`} value="amendments">
+            <Tab
+              label={`Amendments (${demonstration.amendments?.length ?? 0})`}
+              value="amendments"
+              shouldRender={hasAmendments}
+            >
               <AmendmentsTab
                 demonstrationId={demonstration.id}
-                initiallyExpandedId={amendmentParam ?? undefined}
+                amendments={demonstration.amendments}
               />
             </Tab>
 
-            <Tab label={`Extensions (${demonstration.extensions?.length ?? 0})`} value="extensions">
+            <Tab
+              label={`Extensions (${demonstration.extensions?.length ?? 0})`}
+              value="extensions"
+              shouldRender={hasExtensions}
+            >
               <ExtensionsTab
                 demonstrationId={demonstration.id}
-                initiallyExpandedId={extensionParam ?? undefined}
+                extensions={demonstration.extensions}
               />
             </Tab>
           </Tabs>

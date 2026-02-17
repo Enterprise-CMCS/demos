@@ -26,6 +26,8 @@ import { ApplyDemonstrationTypesDialog } from "./DemonstrationTypes/ApplyDemonst
 import { ApplyTagsDialog } from "./ApplyTagsDialog";
 import { RemoveDemonstrationTypesDialog } from "./DemonstrationTypes/RemoveDemonstrationTypesDialog";
 import { EditDemonstrationTypeDialog } from "./DemonstrationTypes/EditDemonstrationTypeDialog";
+import { UpdateExtensionDialog } from "./modification/EditExtensionDialog";
+import { UpdateAmendmentDialog } from "./modification/EditAmendmentDialog";
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -64,21 +66,19 @@ export const useDialog = () => {
   };
 
   const showCreateAmendmentDialog = (demonstrationId?: string) => {
-    context.showDialog(
-      <CreateAmendmentDialog
-        initialDemonstrationId={demonstrationId}
-        onClose={context.hideDialog}
-      />
-    );
+    context.showDialog(<CreateAmendmentDialog demonstrationId={demonstrationId} />);
   };
 
   const showCreateExtensionDialog = (demonstrationId?: string) => {
-    context.showDialog(
-      <CreateExtensionDialog
-        initialDemonstrationId={demonstrationId}
-        onClose={context.hideDialog}
-      />
-    );
+    context.showDialog(<CreateExtensionDialog demonstrationId={demonstrationId} />);
+  };
+
+  const showUpdateExtensionDialog = (extensionId: string) => {
+    context.showDialog(<UpdateExtensionDialog extensionId={extensionId} />);
+  };
+
+  const showUpdateAmendmentDialog = (amendmentId: string) => {
+    context.showDialog(<UpdateAmendmentDialog amendmentId={amendmentId} />);
   };
 
   const showManageContactsDialog = (
@@ -214,7 +214,11 @@ export const useDialog = () => {
     );
   };
 
-  const showApplyTagsDialog = (demonstrationId: string,allTags: string[], selectedTags: string[]) => {
+  const showApplyTagsDialog = (
+    demonstrationId: string,
+    allTags: string[],
+    selectedTags: string[]
+  ) => {
     context.showDialog(
       <ApplyTagsDialog
         demonstrationId={demonstrationId}
@@ -245,5 +249,7 @@ export const useDialog = () => {
     showApplyTagsDialog,
     showRemoveDemonstrationTypesDialog,
     showEditDemonstrationTypeDialog,
+    showUpdateExtensionDialog,
+    showUpdateAmendmentDialog,
   };
 };
