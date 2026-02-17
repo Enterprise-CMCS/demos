@@ -128,33 +128,6 @@ describe("CreateAmendmentDialog", () => {
     expect(screen.queryByTestId("select-demonstration")).not.toBeInTheDocument();
   });
 
-  it("disables submit button when form is invalid", () => {
-    renderDialog();
-
-    const submitButton = screen.getByRole("button", {
-      name: /button-submit-create-amendment-dialog/i,
-    });
-    expect(submitButton).toBeDisabled();
-  });
-
-  it("enables submit button when form is valid", async () => {
-    const user = userEvent.setup();
-
-    renderDialog();
-
-    const submitButton = screen.getByRole("button", {
-      name: /button-submit-create-amendment-dialog/i,
-    });
-    expect(submitButton).toBeDisabled();
-
-    await user.selectOptions(screen.getByTestId("select-demonstration"), "demo-1");
-    await user.type(screen.getByLabelText(/Amendment Title/), "Test Amendment");
-
-    await waitFor(() => {
-      expect(submitButton).not.toBeDisabled();
-    });
-  });
-
   it("calls mutation with correct variables on submit", async () => {
     const user = userEvent.setup();
 

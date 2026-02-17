@@ -160,61 +160,6 @@ describe("UpdateAmendmentDialog", () => {
     });
   });
 
-  it("disables submit button when form has no changes", async () => {
-    renderDialog(undefined, [amendmentQueryMock]);
-
-    await waitFor(() => {
-      expect(screen.getByLabelText(/Amendment Title/)).toBeInTheDocument();
-    });
-
-    const submitButton = screen.getByRole("button", {
-      name: /button-submit-update-amendment-dialog/i,
-    });
-    expect(submitButton).toBeDisabled();
-  });
-
-  it("enables submit button when form has valid changes", async () => {
-    const user = userEvent.setup();
-
-    renderDialog(undefined, [amendmentQueryMock]);
-
-    await waitFor(() => {
-      expect(screen.getByLabelText(/Amendment Title/)).toBeInTheDocument();
-    });
-
-    const submitButton = screen.getByRole("button", {
-      name: /button-submit-update-amendment-dialog/i,
-    });
-    expect(submitButton).toBeDisabled();
-
-    await user.clear(screen.getByLabelText(/Amendment Title/));
-    await user.type(screen.getByLabelText(/Amendment Title/), "Updated Amendment");
-
-    await waitFor(() => {
-      expect(submitButton).not.toBeDisabled();
-    });
-  });
-
-  it("disables submit button when name is missing", async () => {
-    const user = userEvent.setup();
-
-    renderDialog(undefined, [amendmentQueryMock]);
-
-    await waitFor(() => {
-      expect(screen.getByLabelText(/Amendment Title/)).toBeInTheDocument();
-    });
-
-    await user.clear(screen.getByLabelText(/Amendment Title/));
-
-    const submitButton = screen.getByRole("button", {
-      name: /button-submit-update-amendment-dialog/i,
-    });
-
-    await waitFor(() => {
-      expect(submitButton).toBeDisabled();
-    });
-  });
-
   it("calls mutation with correct variables on submit", async () => {
     const user = userEvent.setup();
 

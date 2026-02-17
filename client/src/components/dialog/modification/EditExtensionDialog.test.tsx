@@ -160,61 +160,6 @@ describe("UpdateExtensionDialog", () => {
     });
   });
 
-  it("disables submit button when form has no changes", async () => {
-    renderDialog(undefined, [extensionQueryMock]);
-
-    await waitFor(() => {
-      expect(screen.getByLabelText(/Extension Title/)).toBeInTheDocument();
-    });
-
-    const submitButton = screen.getByRole("button", {
-      name: /button-submit-update-extension-dialog/i,
-    });
-    expect(submitButton).toBeDisabled();
-  });
-
-  it("enables submit button when form has valid changes", async () => {
-    const user = userEvent.setup();
-
-    renderDialog(undefined, [extensionQueryMock]);
-
-    await waitFor(() => {
-      expect(screen.getByLabelText(/Extension Title/)).toBeInTheDocument();
-    });
-
-    const submitButton = screen.getByRole("button", {
-      name: /button-submit-update-extension-dialog/i,
-    });
-    expect(submitButton).toBeDisabled();
-
-    await user.clear(screen.getByLabelText(/Extension Title/));
-    await user.type(screen.getByLabelText(/Extension Title/), "Updated Extension");
-
-    await waitFor(() => {
-      expect(submitButton).not.toBeDisabled();
-    });
-  });
-
-  it("disables submit button when name is missing", async () => {
-    const user = userEvent.setup();
-
-    renderDialog(undefined, [extensionQueryMock]);
-
-    await waitFor(() => {
-      expect(screen.getByLabelText(/Extension Title/)).toBeInTheDocument();
-    });
-
-    await user.clear(screen.getByLabelText(/Extension Title/));
-
-    const submitButton = screen.getByRole("button", {
-      name: /button-submit-update-extension-dialog/i,
-    });
-
-    await waitFor(() => {
-      expect(submitButton).toBeDisabled();
-    });
-  });
-
   it("calls mutation with correct variables on submit", async () => {
     const user = userEvent.setup();
 
