@@ -52,6 +52,26 @@ describe("resolveFileNameWithExtension", () => {
     });
   });
 
+  it.each([
+    { metadata: { "file-name": "source.docx" }, label: "file-name" },
+    { metadata: { originalfilename: "source.docx" }, label: "originalfilename" },
+    { metadata: { "original-file-name": "source.docx" }, label: "original-file-name" },
+  ])("uses metadata $label extension aliases when available", async ({ metadata }) => {
+    const mockS3 = createMockS3HeadClient({
+      Metadata: metadata,
+      $metadata: { httpStatusCode: 200 },
+    });
+
+    const result = await resolveFileNameWithExtension({
+      bucket: "clean-bucket",
+      key: "123/doc",
+      documentName: "doc",
+      s3Client: mockS3,
+    });
+
+    expect(result).toBe("doc.docx");
+  });
+
   it("uses content-disposition filename extension when metadata filename is unavailable", async () => {
     const mockS3 = createMockS3HeadClient({
       ContentDisposition: 'attachment; filename="source.txt"',
@@ -66,6 +86,38 @@ describe("resolveFileNameWithExtension", () => {
     });
 
     expect(result).toBe("doc.txt");
+  });
+
+  it("uses UTF-8 content-disposition filename extension when present", async () => {
+    const mockS3 = createMockS3HeadClient({
+      ContentDisposition: "attachment; filename*=UTF-8''source%20name.xlsx",
+      $metadata: { httpStatusCode: 200 },
+    });
+
+    const result = await resolveFileNameWithExtension({
+      bucket: "clean-bucket",
+      key: "123/doc",
+      documentName: "doc",
+      s3Client: mockS3,
+    });
+
+    expect(result).toBe("doc.xlsx");
+  });
+
+  it("falls back to undecoded UTF-8 filename when URI decoding fails", async () => {
+    const mockS3 = createMockS3HeadClient({
+      ContentDisposition: "attachment; filename*=UTF-8''source%ZZ.docx",
+      $metadata: { httpStatusCode: 200 },
+    });
+
+    const result = await resolveFileNameWithExtension({
+      bucket: "clean-bucket",
+      key: "123/doc",
+      documentName: "doc",
+      s3Client: mockS3,
+    });
+
+    expect(result).toBe("doc.docx");
   });
 
   it("uses content-type extension as a fallback", async () => {
@@ -86,6 +138,24 @@ describe("resolveFileNameWithExtension", () => {
 
   it("throws when no extension can be inferred", async () => {
     const mockS3 = createMockS3HeadClient({ $metadata: { httpStatusCode: 200 } });
+
+    await expect(
+      resolveFileNameWithExtension({
+        bucket: "clean-bucket",
+        key: "123/doc",
+        documentName: "doc",
+        s3Client: mockS3,
+      })
+    ).rejects.toThrow(
+      "Unable to infer file extension for s3://clean-bucket/123/doc. Set object metadata filename/originalfilename or ContentType."
+    );
+  });
+
+  it("throws when content-type is present but not recognized", async () => {
+    const mockS3 = createMockS3HeadClient({
+      ContentType: "application/x-custom",
+      $metadata: { httpStatusCode: 200 },
+    });
 
     await expect(
       resolveFileNameWithExtension({

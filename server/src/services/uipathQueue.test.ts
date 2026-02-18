@@ -85,6 +85,53 @@ describe("uipathQueue", () => {
       expect(JSON.parse(call.input.MessageBody)).toEqual(payload);
     });
 
+    it("uses cached queue URL after first resolution", async () => {
+      delete process.env.UIPATH_QUEUE_URL;
+      sendMock
+        .mockResolvedValueOnce({ QueueUrl: "http://example.com/queue" })
+        .mockResolvedValueOnce({ MessageId: "msg-1" })
+        .mockResolvedValueOnce({ MessageId: "msg-2" });
+      const { enqueueUiPath } = await loadModule();
+
+      await enqueueUiPath({
+        s3Bucket: "clean-bucket",
+        s3FileName: "first.pdf",
+      });
+      await enqueueUiPath({
+        s3Bucket: "clean-bucket",
+        s3FileName: "second.pdf",
+      });
+
+      expect(sendMock).toHaveBeenCalledTimes(3);
+      expect(sendMock.mock.calls[0][0]).toMatchObject({
+        input: { QueueName: "uipath-queue" },
+      });
+      expect(sendMock.mock.calls[1][0]).toMatchObject({
+        input: { QueueUrl: "http://example.com/queue" },
+      });
+      expect(sendMock.mock.calls[2][0]).toMatchObject({
+        input: { QueueUrl: "http://example.com/queue" },
+      });
+    });
+
+    it("uses UIPATH_QUEUE_NAME when resolving queue URL", async () => {
+      delete process.env.UIPATH_QUEUE_URL;
+      process.env.UIPATH_QUEUE_NAME = "custom-uipath-queue";
+      sendMock
+        .mockResolvedValueOnce({ QueueUrl: "http://example.com/custom-queue" })
+        .mockResolvedValueOnce({ MessageId: "msg-123" });
+      const { enqueueUiPath } = await loadModule();
+
+      await enqueueUiPath({
+        s3Bucket: "clean-bucket",
+        s3FileName: "file.pdf",
+      });
+
+      expect(sendMock.mock.calls[0][0]).toMatchObject({
+        input: { QueueName: "custom-uipath-queue" },
+      });
+    });
+
     it("throws when SQS does not return a MessageId", async () => {
       process.env.UIPATH_QUEUE_URL = "http://example.com/queue";
       sendMock.mockResolvedValue({});
@@ -121,10 +168,33 @@ describe("uipathQueue", () => {
       });
     });
 
+    it("normalizes leading slashes in plain keys", async () => {
+      const { parseS3Path } = await loadModule();
+      const result = parseS3Path("///path/to/file.pdf");
+
+      expect(result).toEqual({
+        bucket: "clean-bucket",
+        key: "path/to/file.pdf",
+      });
+    });
+
     it("throws when clean bucket is missing", async () => {
       delete process.env.CLEAN_BUCKET;
       const { parseS3Path } = await loadModule();
       expect(() => parseS3Path("file.pdf")).toThrow("Clean bucket is not configured.");
+    });
+
+    it("throws for malformed s3 URI values", async () => {
+      const { parseS3Path } = await loadModule();
+      expect(() => parseS3Path("s3://clean-bucket")).toThrow(
+        "Document s3Path is not a valid S3 URI: s3://clean-bucket"
+      );
+    });
+
+    it("throws for empty paths", async () => {
+      const { parseS3Path } = await loadModule();
+      expect(() => parseS3Path("   ")).toThrow("Document s3Path is empty.");
+      expect(() => parseS3Path("/")).toThrow("Document s3Path is empty.");
     });
   });
 });
