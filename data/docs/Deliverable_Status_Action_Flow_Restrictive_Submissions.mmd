@@ -1,0 +1,85 @@
+---
+title: Deliverable Status Action Flow (Restrictive Submissions)
+config:
+  theme: default
+  layout: elk
+  elk:
+    nodePlacementStrategy: BRANDES_KOEPF
+---
+
+stateDiagram-v2
+  classDef actionNode stroke:red,fill:pink
+  classDef stateNode stroke:navy,fill:lightskyblue
+
+  %% Actions
+  [*] --> upcoming
+  upcoming --> actionDeliverableSubmitted
+  upcoming --> actionPassesDueDate
+  upcoming --> actionExtensionRequestSubmitted
+  pastDue --> actionDeliverableSubmitted
+  pastDue --> actionExtensionRequestSubmitted
+  submitted --> actionReviewStarted
+  extensionRequested --> actionExtensionRequestApproved
+  extensionRequested --> actionExtensionRequestDenied
+  underReview --> actionResubmissionRequested
+  underReview --> actionDeliverableAccepted
+  underReview --> actionDeliverableApproved
+  underReview --> actionDeliverableFiled
+  accepted --> [*]
+  approved --> [*]
+  filed --> [*]
+
+  %% Action results
+  actionPassesDueDate --> pastDue
+  actionDeliverableSubmitted --> submitted
+  actionReviewStarted --> underReview
+  actionResubmissionRequested --> upcoming
+  actionExtensionRequestSubmitted --> extensionRequested
+  actionExtensionRequestApproved --> upcoming
+  actionExtensionRequestDenied --> upcoming
+  actionExtensionRequestDenied --> pastDue
+  actionDeliverableApproved --> approved
+  actionDeliverableAccepted --> accepted
+  actionDeliverableFiled --> filed
+
+  %% State Nodes
+  state "Upcoming" as upcoming
+  state "Past Due" as pastDue
+  state "Submitted" as submitted
+  state "Under Review" as underReview
+  state "Approved" as approved
+  state "Accepted" as accepted
+  state "Filed" as filed
+  state "Extension Requested" as extensionRequested
+
+  class upcoming stateNode
+  class pastDue stateNode
+  class submitted stateNode
+  class underReview stateNode
+  class approved stateNode
+  class accepted stateNode
+  class filed stateNode
+  class extensionRequested stateNode
+
+  %% Action Nodes
+  state "Passes Due Date" as actionPassesDueDate
+  state "Deliverable Submitted" as actionDeliverableSubmitted
+  state "Review Started" as actionReviewStarted
+  state "Resubmission Requested" as actionResubmissionRequested
+  state "Extension Request Submitted" as actionExtensionRequestSubmitted
+  state "Extension Request Approved" as actionExtensionRequestApproved
+  state "Extension Request Denied" as actionExtensionRequestDenied
+  state "Deliverable Approved" as actionDeliverableApproved
+  state "Deliverable Accepted" as actionDeliverableAccepted
+  state "Deliverable Filed" as actionDeliverableFiled
+
+  class actionPassesDueDate actionNode
+  class actionDeliverableSubmitted actionNode
+  class actionReviewStarted actionNode
+  class actionResubmissionRequested actionNode
+  class actionExtensionRequestSubmitted actionNode
+  class actionExtensionRequestApproved actionNode
+  class actionExtensionRequestDenied actionNode
+  class actionDeliverableApproved actionNode
+  class actionDeliverableAccepted actionNode
+  class actionDeliverableFiled actionNode
