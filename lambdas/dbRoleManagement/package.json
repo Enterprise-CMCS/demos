@@ -8,7 +8,7 @@
     "lint": "tsc --noEmit --skipLibCheck"
   },
   "overrides": {
-    "@aws-sdk/client-lambda": {
+    "@aws-sdk/client-ssm": {
       "fast-xml-parser": "^5.3.6"
     }
   },
