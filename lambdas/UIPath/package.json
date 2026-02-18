@@ -4,6 +4,11 @@
   "description": "",
   "type": "module",
   "main": "index.ts",
+  "overrides": {
+    "@aws-sdk/client-s3": {
+      "fast-xml-parser": "^5.3.6"
+    }
+  },
   "scripts": {
     "test": "ROLLUP_USE_BUNDLED=1 vitest run --coverage",
     "lint": "tsc --noEmit --skipLibCheck",
