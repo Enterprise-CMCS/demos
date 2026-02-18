@@ -34,6 +34,17 @@ vi.mock("components/dialog/DialogContext", () => ({
   }),
 }));
 
+const mockCompletePhase = vi.fn();
+const mockSkipConceptPhase = vi.fn();
+vi.mock("../phase-status/phaseCompletionQueries", () => ({
+  useCompletePhase: () => ({
+    completePhase: mockCompletePhase,
+  }),
+  useSkipConceptPhase: () => ({
+    skipConceptPhase: mockSkipConceptPhase,
+  }),
+}));
+
 const mockPO = {
   id: "po-1",
   fullName: "Jane Doe",
@@ -143,10 +154,29 @@ describe("ConceptPhase", () => {
       expect(finishButton).toBeDisabled();
     });
 
-    it("Finish button is enabled when documents are uploaded and date is populated", () => {
+    it("Finish button is enabled when a presubmission document is uploaded and date is populated", () => {
       setup({ initialPreSubmissionDocuments: [mockPreSubmissionDocument] });
       const finishButton = screen.getByRole("button", { name: /finish/i });
       expect(finishButton).toBeEnabled();
+    });
+
+    it("Finish button remains disabled when a general document is uploaded even when date is filled", () => {
+      const generalDocument: ApplicationWorkflowDocument = {
+        id: "2",
+        name: "General Document 1",
+        description: "Test general document",
+        documentType: "General File",
+        phaseName: "Concept",
+        owner: { person: { fullName: "John Doe" } },
+        createdAt: new Date("2024-01-20"),
+      };
+      setup({ initialPreSubmissionDocuments: [generalDocument] });
+
+      const dateInput = screen.getByLabelText(/Pre-Submission Document Submitted Date/);
+      userEvent.type(dateInput, "2024-02-20");
+
+      const finishButton = screen.getByRole("button", { name: /finish/i });
+      expect(finishButton).toBeDisabled();
     });
 
     it("Skip button is enabled initially when no activity", () => {
@@ -159,6 +189,25 @@ describe("ConceptPhase", () => {
       setup({ initialPreSubmissionDocuments: [mockPreSubmissionDocument] });
       const skipButton = screen.getByRole("button", { name: /skip/i });
       expect(skipButton).toBeDisabled();
+    });
+
+    it("calls skipConceptPhase mutation on click of skip button", async () => {
+      const user = userEvent.setup();
+      setup();
+      const skipButton = screen.getByRole("button", { name: /skip/i });
+      await user.click(skipButton);
+      expect(mockSkipConceptPhase).toHaveBeenCalledWith("test-demo-id");
+    });
+
+    it("calls completePhase mutation on click of finish button", async () => {
+      const user = userEvent.setup();
+      setup({ initialPreSubmissionDocuments: [mockPreSubmissionDocument] });
+      const finishButton = screen.getByRole("button", { name: /finish/i });
+      await user.click(finishButton);
+      expect(mockCompletePhase).toHaveBeenCalledWith({
+        applicationId: "test-demo-id",
+        phaseName: "Concept",
+      });
     });
   });
 
@@ -195,12 +244,29 @@ describe("ConceptPhase", () => {
   });
 
   describe("Date Field Behavior", () => {
-    it("populates date when a document with createdAt is provided", () => {
+    it("populates date when a presubmission document with createdAt is provided", () => {
       setup({ initialPreSubmissionDocuments: [mockPreSubmissionDocument] });
       const dateInput = screen.getByLabelText(
         /Pre-Submission Document Submitted Date/
       ) as HTMLInputElement;
       expect(dateInput.value).toBe("2024-01-15");
+    });
+
+    it("does not populate date when a general document with createdAt is provided", () => {
+      const generalDocument: ApplicationWorkflowDocument = {
+        id: "2",
+        name: "General Document 1",
+        description: "Test general document",
+        documentType: "General File",
+        phaseName: "Concept",
+        owner: { person: { fullName: "John Doe" } },
+        createdAt: new Date("2024-01-20"),
+      };
+      setup({ initialPreSubmissionDocuments: [generalDocument] });
+      const dateInput = screen.getByLabelText(
+        /Pre-Submission Document Submitted Date/
+      ) as HTMLInputElement;
+      expect(dateInput.value).toBe("");
     });
 
     it("allows user to change date manually", async () => {

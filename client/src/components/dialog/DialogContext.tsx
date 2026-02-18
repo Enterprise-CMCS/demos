@@ -26,6 +26,8 @@ import { ApplyDemonstrationTypesDialog } from "./DemonstrationTypes/ApplyDemonst
 import { ApplyTagsDialog } from "./ApplyTagsDialog";
 import { RemoveDemonstrationTypesDialog } from "./DemonstrationTypes/RemoveDemonstrationTypesDialog";
 import { EditDemonstrationTypeDialog } from "./DemonstrationTypes/EditDemonstrationTypeDialog";
+import { UpdateExtensionDialog } from "./modification/EditExtensionDialog";
+import { UpdateAmendmentDialog } from "./modification/EditAmendmentDialog";
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -69,6 +71,14 @@ export const useDialog = () => {
 
   const showCreateExtensionDialog = (demonstrationId?: string) => {
     context.showDialog(<CreateExtensionDialog demonstrationId={demonstrationId} />);
+  };
+
+  const showUpdateExtensionDialog = (extensionId: string) => {
+    context.showDialog(<UpdateExtensionDialog extensionId={extensionId} />);
+  };
+
+  const showUpdateAmendmentDialog = (amendmentId: string) => {
+    context.showDialog(<UpdateAmendmentDialog amendmentId={amendmentId} />);
   };
 
   const showManageContactsDialog = (
@@ -137,7 +147,7 @@ export const useDialog = () => {
 
   const showConceptPreSubmissionDocumentUploadDialog = (
     applicationId: string,
-    onDocumentUploadSucceeded: () => void
+    onDocumentUploadSucceeded: (payload?: UploadDocumentInput) => void
   ) => {
     context.showDialog(
       <ConceptPreSubmissionUploadDialog
@@ -239,5 +249,7 @@ export const useDialog = () => {
     showApplyTagsDialog,
     showRemoveDemonstrationTypesDialog,
     showEditDemonstrationTypeDialog,
+    showUpdateExtensionDialog,
+    showUpdateAmendmentDialog,
   };
 };

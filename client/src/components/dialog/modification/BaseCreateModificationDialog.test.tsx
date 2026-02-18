@@ -3,9 +3,8 @@ import { vi, describe, it, expect, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
-import { CreateExtensionDialog, CREATE_EXTENSION_MUTATION } from "./CreateExtensionDialog";
+import { BaseCreateModificationDialog } from "./BaseCreateModificationDialog";
 
-// Mock dependencies
 const mockShowSuccess = vi.fn();
 const mockShowError = vi.fn();
 const mockCloseDialog = vi.fn();
@@ -46,155 +45,109 @@ vi.mock("components/input/select/SelectDemonstration", () => ({
   ),
 }));
 
-// Mock data
-const createExtensionSuccessMock: MockedResponse = {
-  request: {
-    query: CREATE_EXTENSION_MUTATION,
-    variables: {
-      input: {
-        demonstrationId: "demo-1",
-        name: "Test Extension",
-        description: "Test description",
-        signatureLevel: "OCD",
-      },
-    },
-  },
-  result: {
-    data: {
-      createExtension: {
-        demonstration: {
-          id: "demo-1",
-          extensions: [{ id: "ext-1" }],
-        },
-      },
-    },
-  },
-};
+const mockSave = vi.fn();
+const mockUseModification = vi.fn(() => ({
+  save: mockSave,
+  saving: false,
+}));
 
-const createExtensionErrorMock: MockedResponse = {
-  request: {
-    query: CREATE_EXTENSION_MUTATION,
-    variables: {
-      input: {
-        demonstrationId: "demo-1",
-        name: "Test Extension",
-        description: undefined,
-        signatureLevel: undefined,
-      },
-    },
-  },
-  error: new Error("Failed to create extension"),
-};
-
-describe("CreateExtensionDialog", () => {
+describe("BaseCreateModificationDialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSave.mockClear();
+    mockUseModification.mockReturnValue({
+      save: mockSave,
+      saving: false,
+    });
   });
 
   const renderDialog = (
-    props?: React.ComponentProps<typeof CreateExtensionDialog>,
+    modificationType: "Amendment" | "Extension" = "Amendment",
+    demonstrationId?: string,
     mocks: MockedResponse[] = []
   ) => {
     return render(
       <MockedProvider mocks={mocks}>
-        <CreateExtensionDialog {...props} />
+        <BaseCreateModificationDialog
+          modificationType={modificationType}
+          useModification={mockUseModification}
+          demonstrationId={demonstrationId}
+        />
       </MockedProvider>
     );
   };
 
-  it("renders dialog with correct title", () => {
-    renderDialog();
+  it("renders dialog with correct title for Amendment", () => {
+    renderDialog("Amendment");
+
+    expect(screen.getByRole("heading", { name: "Add Amendment" })).toBeInTheDocument();
+  });
+
+  it("renders dialog with correct title for Extension", () => {
+    renderDialog("Extension");
 
     expect(screen.getByRole("heading", { name: "Add Extension" })).toBeInTheDocument();
   });
 
-  it("renders form with Extension fields", () => {
-    renderDialog();
+  it("renders form with modification type fields", () => {
+    renderDialog("Amendment");
 
-    expect(screen.getByLabelText(/Extension Title/)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Extension Description/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Amendment Title/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Amendment Description/)).toBeInTheDocument();
     expect(screen.getByLabelText(/Signature Level/)).toBeInTheDocument();
   });
 
   it("shows demonstration select when demonstrationId is not provided", () => {
-    renderDialog();
+    renderDialog("Amendment");
 
     expect(screen.getByTestId("select-demonstration")).toBeInTheDocument();
   });
 
   it("hides demonstration select when demonstrationId is provided", () => {
-    renderDialog({ demonstrationId: "demo-123" });
+    renderDialog("Amendment", "demo-123");
 
     expect(screen.queryByTestId("select-demonstration")).not.toBeInTheDocument();
   });
 
-  it("disables submit button when form is invalid", () => {
-    renderDialog();
-
-    const submitButton = screen.getByRole("button", {
-      name: /button-submit-create-extension-dialog/i,
-    });
-    expect(submitButton).toBeDisabled();
-  });
-
-  it("enables submit button when form is valid", async () => {
+  it("calls save hook with correct data on submit", async () => {
     const user = userEvent.setup();
+    mockSave.mockResolvedValue(undefined);
 
-    renderDialog();
-
-    const submitButton = screen.getByRole("button", {
-      name: /button-submit-create-extension-dialog/i,
-    });
-    expect(submitButton).toBeDisabled();
+    renderDialog("Amendment");
 
     await user.selectOptions(screen.getByTestId("select-demonstration"), "demo-1");
-    await user.type(screen.getByLabelText(/Extension Title/), "Test Extension");
-
-    await waitFor(() => {
-      expect(submitButton).not.toBeDisabled();
-    });
-  });
-
-  it("calls mutation with correct variables on submit", async () => {
-    const user = userEvent.setup();
-
-    renderDialog(undefined, [createExtensionSuccessMock]);
-
-    await user.selectOptions(screen.getByTestId("select-demonstration"), "demo-1");
-    await user.type(screen.getByLabelText(/Extension Title/), "Test Extension");
-    await user.type(screen.getByLabelText(/Extension Description/), "Test description");
+    await user.type(screen.getByLabelText(/Amendment Title/), "Test Amendment");
+    await user.type(screen.getByLabelText(/Amendment Description/), "Test description");
     await user.selectOptions(screen.getByTestId("signature-level-select"), "OCD");
 
     const submitButton = screen.getByRole("button", {
-      name: /button-submit-create-extension-dialog/i,
+      name: /button-submit-create-amendment-dialog/i,
     });
     await waitFor(() => {
       expect(submitButton).not.toBeDisabled();
     });
 
-    user.click(submitButton);
+    await user.click(submitButton);
 
     await waitFor(() => {
-      expect(submitButton).toBeDisabled();
+      expect(mockSave).toHaveBeenCalledWith({
+        demonstrationId: "demo-1",
+        name: "Test Amendment",
+        description: "Test description",
+        signatureLevel: "OCD",
+      });
+      expect(mockShowSuccess).toHaveBeenCalledWith("Amendment created successfully.");
+      expect(mockCloseDialog).toHaveBeenCalled();
     });
 
-    await waitFor(() => {
-      expect(mockShowSuccess).toHaveBeenCalled();
-      expect(submitButton).toBeEnabled();
-    });
-
-    await waitFor(() => {
-      expect(mockShowSuccess).toHaveBeenCalledWith("Extension created successfully.");
-    });
-
-    expect(mockCloseDialog).toHaveBeenCalled();
     expect(mockShowError).not.toHaveBeenCalled();
   });
 
-  it("handles mutation error and shows error message", async () => {
+  it("handles save error and shows error message", async () => {
     const user = userEvent.setup();
+    mockSave.mockRejectedValue(new Error("Failed to save"));
 
-    renderDialog(undefined, [createExtensionErrorMock]);
+    renderDialog("Extension");
 
     await user.selectOptions(screen.getByTestId("select-demonstration"), "demo-1");
     await user.type(screen.getByLabelText(/Extension Title/), "Test Extension");
@@ -206,11 +159,7 @@ describe("CreateExtensionDialog", () => {
       expect(submitButton).not.toBeDisabled();
     });
 
-    user.click(submitButton);
-
-    await waitFor(() => {
-      expect(submitButton).toBeDisabled();
-    });
+    await user.click(submitButton);
 
     await waitFor(() => {
       expect(mockShowError).toHaveBeenCalledWith("Failed to create extension.");
@@ -223,7 +172,7 @@ describe("CreateExtensionDialog", () => {
   it("closes dialog directly when cancel is clicked without form changes", async () => {
     const user = userEvent.setup();
 
-    renderDialog({ demonstrationId: "demo-123" });
+    renderDialog("Amendment", "demo-123");
 
     const cancelButton = screen.getByRole("button", { name: /cancel/i });
     await user.click(cancelButton);
@@ -235,9 +184,9 @@ describe("CreateExtensionDialog", () => {
   it("shows confirmation dialog when cancel is clicked with form changes", async () => {
     const user = userEvent.setup();
 
-    renderDialog({ demonstrationId: "demo-123" });
+    renderDialog("Amendment", "demo-123");
 
-    await user.type(screen.getByLabelText(/Extension Title/), "Test Extension");
+    await user.type(screen.getByLabelText(/Amendment Title/), "Test Amendment");
 
     const cancelButton = screen.getByRole("button", { name: /cancel/i });
     await user.click(cancelButton);
@@ -253,7 +202,7 @@ describe("CreateExtensionDialog", () => {
   it("closes dialog when close button (X) is clicked", async () => {
     const user = userEvent.setup();
 
-    renderDialog({ demonstrationId: "demo-123" });
+    renderDialog("Amendment", "demo-123");
 
     const closeButton = screen.getByLabelText("Close dialog");
     await user.click(closeButton);

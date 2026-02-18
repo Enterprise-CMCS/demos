@@ -1,8 +1,16 @@
 import React from "react";
-import { vi } from "vitest";
+import { vi, describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { ModificationForm, ModificationFormData } from "./ModificationForm";
+import {
+  ModificationForm,
+  ModificationFormData,
+  hasChanges,
+  isValid,
+  getFormDataFromModification,
+  Modification,
+} from "./ModificationForm";
 import userEvent from "@testing-library/user-event";
+import { LocalDate } from "demos-server";
 
 vi.mock("components/input/select/SelectDemonstration", () => ({
   SelectDemonstration: ({
@@ -44,6 +52,7 @@ describe("ModificationForm", () => {
   it("renders form with correct modification name for Amendment", async () => {
     render(
       <ModificationForm
+        mode="create"
         modificationFormData={mockModificationFormData}
         setModificationFormDataField={mockSetModificationFormDataField}
         modificationType="Amendment"
@@ -58,6 +67,7 @@ describe("ModificationForm", () => {
   it("renders form with correct modification name for Extension", async () => {
     render(
       <ModificationForm
+        mode="create"
         modificationFormData={mockModificationFormData}
         setModificationFormDataField={mockSetModificationFormDataField}
         modificationType="Extension"
@@ -72,6 +82,7 @@ describe("ModificationForm", () => {
   it("includes demonstration select when showDemonstrationSelect is true", async () => {
     render(
       <ModificationForm
+        mode="create"
         modificationFormData={mockModificationFormData}
         setModificationFormDataField={mockSetModificationFormDataField}
         showDemonstrationSelect={true}
@@ -85,6 +96,7 @@ describe("ModificationForm", () => {
   it("omits demonstration select when showDemonstrationSelect is false", async () => {
     render(
       <ModificationForm
+        mode="create"
         modificationFormData={mockModificationFormData}
         setModificationFormDataField={mockSetModificationFormDataField}
         showDemonstrationSelect={false}
@@ -104,6 +116,7 @@ describe("ModificationForm", () => {
     };
     render(
       <ModificationForm
+        mode="create"
         modificationFormData={populatedFormData}
         setModificationFormDataField={mockSetModificationFormDataField}
         showDemonstrationSelect={true}
@@ -128,6 +141,7 @@ describe("ModificationForm", () => {
 
     render(
       <ModificationForm
+        mode="create"
         modificationFormData={emptyFormData}
         setModificationFormDataField={mockSetModificationFormDataField}
         showDemonstrationSelect={true}
@@ -163,6 +177,7 @@ describe("ModificationForm", () => {
   it("marks required fields with isRequired prop", async () => {
     render(
       <ModificationForm
+        mode="create"
         modificationFormData={mockModificationFormData}
         setModificationFormDataField={mockSetModificationFormDataField}
         showDemonstrationSelect={true}
@@ -172,5 +187,247 @@ describe("ModificationForm", () => {
 
     expect(screen.getByLabelText(/Amendment Title/)).toBeRequired();
     expect(screen.getByTestId("select-demonstration")).toBeRequired();
+  });
+
+  describe("Edit Mode", () => {
+    it("shows effective date field in edit mode", () => {
+      render(
+        <ModificationForm
+          mode="edit"
+          modificationFormData={mockModificationFormData}
+          setModificationFormDataField={mockSetModificationFormDataField}
+          modificationType="Amendment"
+        />
+      );
+
+      expect(screen.getByLabelText(/Effective Date/)).toBeInTheDocument();
+    });
+
+    it("hides effective date field in create mode", () => {
+      render(
+        <ModificationForm
+          mode="create"
+          modificationFormData={mockModificationFormData}
+          setModificationFormDataField={mockSetModificationFormDataField}
+          modificationType="Amendment"
+        />
+      );
+
+      expect(screen.queryByLabelText(/Effective Date/)).not.toBeInTheDocument();
+    });
+
+    it("renders with initial effective date value in edit mode", () => {
+      const populatedFormData: ModificationFormData = {
+        demonstrationId: "demo-1",
+        name: "Initial Name",
+        description: "Initial Description",
+        signatureLevel: "OA",
+        effectiveDate: "2024-01-15" as LocalDate,
+      };
+
+      render(
+        <ModificationForm
+          mode="edit"
+          modificationFormData={populatedFormData}
+          setModificationFormDataField={mockSetModificationFormDataField}
+          modificationType="Extension"
+        />
+      );
+
+      expect(screen.getByLabelText(/Effective Date/)).toHaveValue("2024-01-15");
+    });
+
+    it("calls setModificationFormDataField when effective date changes", async () => {
+      const user = userEvent.setup();
+      const formData: ModificationFormData = {
+        demonstrationId: "demo-1",
+        name: "Test",
+        description: "",
+        signatureLevel: undefined,
+      };
+
+      render(
+        <ModificationForm
+          mode="edit"
+          modificationFormData={formData}
+          setModificationFormDataField={mockSetModificationFormDataField}
+          modificationType="Amendment"
+        />
+      );
+
+      const effectiveDateInput = screen.getByLabelText(/Effective Date/);
+      await user.clear(effectiveDateInput);
+      await user.type(effectiveDateInput, "2024-02-20");
+
+      expect(mockSetModificationFormDataField).toHaveBeenCalledWith(
+        expect.objectContaining({ effectiveDate: expect.any(String) })
+      );
+    });
+  });
+
+  describe("Helper Functions", () => {
+    describe("isValid", () => {
+      it("returns false when demonstrationId is missing", () => {
+        const formData: ModificationFormData = {
+          demonstrationId: undefined,
+          name: "Test",
+          description: "",
+          signatureLevel: undefined,
+        };
+        expect(isValid(formData)).toBe(false);
+      });
+
+      it("returns false when name is missing", () => {
+        const formData: ModificationFormData = {
+          demonstrationId: "demo-1",
+          name: undefined,
+          description: "",
+          signatureLevel: undefined,
+        };
+        expect(isValid(formData)).toBe(false);
+      });
+
+      it("returns true when demonstrationId and name are present", () => {
+        const formData: ModificationFormData = {
+          demonstrationId: "demo-1",
+          name: "Test",
+          description: "",
+          signatureLevel: undefined,
+        };
+        expect(isValid(formData)).toBe(true);
+      });
+    });
+
+    describe("hasChanges", () => {
+      it("returns false when no fields have changed", () => {
+        const formData: ModificationFormData = {
+          demonstrationId: "demo-1",
+          name: "Test",
+          description: "Description",
+          signatureLevel: "OA",
+        };
+        const original: Partial<Modification> = {
+          demonstration: { id: "demo-1" },
+          name: "Test",
+          description: "Description",
+          signatureLevel: "OA",
+        };
+        expect(hasChanges(formData, original)).toBe(false);
+      });
+
+      it("returns true when name has changed", () => {
+        const formData: ModificationFormData = {
+          demonstrationId: "demo-1",
+          name: "Updated",
+          description: "Description",
+          signatureLevel: "OA",
+        };
+        const original: Partial<Modification> = {
+          demonstration: { id: "demo-1" },
+          name: "Test",
+          description: "Description",
+          signatureLevel: "OA",
+        };
+        expect(hasChanges(formData, original)).toBe(true);
+      });
+
+      it("returns true when description has changed", () => {
+        const formData: ModificationFormData = {
+          demonstrationId: "demo-1",
+          name: "Test",
+          description: "Updated Description",
+          signatureLevel: "OA",
+        };
+        const original: Partial<Modification> = {
+          demonstration: { id: "demo-1" },
+          name: "Test",
+          description: "Description",
+          signatureLevel: "OA",
+        };
+        expect(hasChanges(formData, original)).toBe(true);
+      });
+
+      it("returns true when signatureLevel has changed", () => {
+        const formData: ModificationFormData = {
+          demonstrationId: "demo-1",
+          name: "Test",
+          description: "Description",
+          signatureLevel: "OCD",
+        };
+        const original: Partial<Modification> = {
+          demonstration: { id: "demo-1" },
+          name: "Test",
+          description: "Description",
+          signatureLevel: "OA",
+        };
+        expect(hasChanges(formData, original)).toBe(true);
+      });
+
+      it("returns true when effectiveDate has changed", () => {
+        const formData: ModificationFormData = {
+          demonstrationId: "demo-1",
+          name: "Test",
+          description: "Description",
+          signatureLevel: "OA",
+          effectiveDate: "2024-02-01" as LocalDate,
+        };
+        const original: Partial<Modification> = {
+          demonstration: { id: "demo-1" },
+          name: "Test",
+          description: "Description",
+          signatureLevel: "OA",
+          effectiveDate: "2024-01-01" as LocalDate,
+        };
+        expect(hasChanges(formData, original)).toBe(true);
+      });
+    });
+
+    describe("getFormDataFromModification", () => {
+      it("extracts form data from modification object", () => {
+        const modification: Modification = {
+          id: "mod-1",
+          name: "Test Mod",
+          description: "Test Description",
+          signatureLevel: "OCD",
+          effectiveDate: "2024-01-15" as LocalDate,
+          demonstration: {
+            id: "demo-1",
+          },
+        };
+
+        const result = getFormDataFromModification(modification);
+
+        expect(result).toEqual({
+          demonstrationId: "demo-1",
+          name: "Test Mod",
+          description: "Test Description",
+          signatureLevel: "OCD",
+          effectiveDate: "2024-01-15",
+        });
+      });
+
+      it("handles missing optional fields", () => {
+        const modification: Modification = {
+          id: "mod-1",
+          name: "Test Mod",
+          description: null,
+          signatureLevel: null,
+          effectiveDate: null,
+          demonstration: {
+            id: "demo-1",
+          },
+        };
+
+        const result = getFormDataFromModification(modification);
+
+        expect(result).toEqual({
+          demonstrationId: "demo-1",
+          name: "Test Mod",
+          description: undefined,
+          signatureLevel: undefined,
+          effectiveDate: undefined,
+        });
+      });
+    });
   });
 });

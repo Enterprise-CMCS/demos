@@ -3,31 +3,24 @@ import React, { useMemo, useState } from "react";
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
-import {
-  formatDate,
-  formatDateForServer,
-  getTodayEst,
-} from "util/formatDate";
-import {
-  addDays,
-  differenceInCalendarDays,
-  startOfDay,
-  endOfDay,
-  parseISO,
-} from "date-fns";
+import { formatDate, formatDateForServer, getTodayEst } from "util/formatDate";
+import { addDays, differenceInCalendarDays, startOfDay, endOfDay, parseISO } from "date-fns";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
 } from "../ApplicationWorkflow";
 import { useToast } from "components/toast";
 import { DocumentList } from "./sections";
-import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
 import { ApplicationDateInput, UploadDocumentInput } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
 import { Notice, NoticeVariant } from "components/notice/Notice";
+import {
+  useCompletePhase,
+  useDeclareCompletenessPhaseIncomplete,
+} from "../phase-status/phaseCompletionQueries";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -88,9 +81,10 @@ export const getApplicationCompletenessFromDemonstration = (
     <CompletenessPhase
       applicationId={demonstration.id}
       applicationIntakeComplete={applicationIntakePhase?.phaseStatus === "Completed"}
-      completenessReviewDate={completenessReviewDate?.dateValue
-        ? formatDateForServer(completenessReviewDate.dateValue)
-        : ""
+      completenessReviewDate={
+        completenessReviewDate?.dateValue
+          ? formatDateForServer(completenessReviewDate.dateValue)
+          : ""
       }
       fedCommentStartDate={
         fedCommentStartDate?.dateValue ? formatDateForServer(fedCommentStartDate.dateValue) : ""
@@ -148,34 +142,24 @@ export const CompletenessPhase = ({
   const [federalStartDate, setFederalStartDate] = useState<string>(() => {
     if(fedCommentStartDate) return fedCommentStartDate;
     const {fedStartDate} = getFederalCommentPeriodDates(stateDeemedComplete);
-    return fedStartDate ? formatDate(fedStartDate) : "";
+    return fedStartDate ? formatDateForServer(fedStartDate) : "";
   });
   const [federalEndDate, setFederalEndDate] = useState<string>(() => {
     if(fedCommentEndDate) return fedCommentEndDate;
     const {fedEndDate} = getFederalCommentPeriodDates(stateDeemedComplete);
-    return fedEndDate ? formatDate(fedEndDate) : "";
+    return fedEndDate ? formatDateForServer(fedEndDate) : "";
   });
   const [isNoticeDismissed, setNoticeDismissed] = useState(
     !(completenessReviewDate && !completenessComplete)
   );
 
-  const [completenessDocs] = useState<ApplicationWorkflowDocument[]>(
-    initialDocuments
-  );
+  const [completenessDocs] = useState<ApplicationWorkflowDocument[]>(initialDocuments);
 
   const { setApplicationDates } = useSetApplicationDates();
 
-  const { setPhaseStatus: completeCompletenessPhase } = useSetPhaseStatus({
-    applicationId: applicationId,
-    phaseName: "Completeness",
-    phaseStatus: "Completed",
-  });
+  const { completePhase } = useCompletePhase();
 
-  const { setPhaseStatus: setCompletenessIncompleted } = useSetPhaseStatus({
-    applicationId: applicationId,
-    phaseName: "Completeness",
-    phaseStatus: "Incomplete",
-  });
+  const { declareCompletenessPhaseIncomplete } = useDeclareCompletenessPhaseIncomplete();
 
   const getNoticeContent = () => {
     if (!completenessReviewDate) return null;
@@ -194,10 +178,9 @@ export const CompletenessPhase = ({
         description: `This Demonstration must be declared complete by ${formatDate(noticeDueDateValue)}`,
         variant: "error" as NoticeVariant,
       };
-    }
-    else {
+    } else {
       return {
-        title:  `${Math.abs(daysLeft)} days past due`,
+        title: `${Math.abs(daysLeft)} days past due`,
         description: `This Demonstration completeness was due on ${formatDate(noticeDueDateValue)}`,
         variant: "error" as NoticeVariant,
       };
@@ -212,11 +195,13 @@ export const CompletenessPhase = ({
         ? true
         : new Date(federalStartDate) <= new Date(federalEndDate);
 
-    return applicationIntakeComplete &&
-      completenessDocs.find(doc => doc.documentType === "Application Completeness Letter") &&
-      completenessDocs.find(doc => doc.documentType === "Internal Completeness Review Form") &&
+    return (
+      applicationIntakeComplete &&
+      completenessDocs.find((doc) => doc.documentType === "Application Completeness Letter") &&
+      completenessDocs.find((doc) => doc.documentType === "Internal Completeness Review Form") &&
       datesFilled &&
-      datesAreValid;
+      datesAreValid
+    );
   };
 
   const setDates = (stateDeemedCompleteString: string) => {
@@ -228,9 +213,18 @@ export const CompletenessPhase = ({
 
   const saveDates = async () => {
     const dates: ApplicationDateInput[] = [
-      { dateType: "State Application Deemed Complete", dateValue: stateDeemedComplete ? startOfDay(stateDeemedComplete) : null},
-      { dateType: "Federal Comment Period Start Date", dateValue: federalStartDate ? startOfDay(federalStartDate) : null },
-      { dateType: "Federal Comment Period End Date", dateValue: federalEndDate ? endOfDay(federalEndDate) : null },
+      {
+        dateType: "State Application Deemed Complete",
+        dateValue: stateDeemedComplete ? startOfDay(stateDeemedComplete) : null,
+      },
+      {
+        dateType: "Federal Comment Period Start Date",
+        dateValue: federalStartDate ? startOfDay(federalStartDate) : null,
+      },
+      {
+        dateType: "Federal Comment Period End Date",
+        dateValue: federalEndDate ? endOfDay(federalEndDate) : null,
+      },
     ];
 
     await setApplicationDates({
@@ -263,7 +257,7 @@ export const CompletenessPhase = ({
   const handleDeclareIncomplete = async () => {
     showDeclareIncompleteDialog(async () => {
       try {
-        await setCompletenessIncompleted();
+        await declareCompletenessPhaseIncomplete(applicationId);
         showSuccess(SAVE_FOR_LATER_MESSAGE);
       } catch (error) {
         showError(error instanceof Error ? error.message : String(error));
@@ -274,7 +268,10 @@ export const CompletenessPhase = ({
   const handleFinishCompleteness = async () => {
     try {
       await saveDates();
-      await completeCompletenessPhase();
+      await completePhase({
+        applicationId: applicationId,
+        phaseName: "Completeness",
+      });
       showSuccess(getPhaseCompletedMessage("Completeness"));
     } catch (e) {
       console.error(e);
@@ -287,12 +284,13 @@ export const CompletenessPhase = ({
       <h4 id="completeness-upload-title" className={STYLES.title}>
         STEP 1 - UPLOAD
       </h4>
-      <p className={STYLES.helper}>Upload the officially signed State Completeness Letter/internal checklists</p>
+      <p className={STYLES.helper}>
+        Upload the officially signed State Completeness Letter/internal checklists
+      </p>
       <SecondaryButton
-        onClick={() => showCompletenessDocumentUploadDialog(
-          applicationId,
-          handleDocumentUploadSucceeded
-        )}
+        onClick={() =>
+          showCompletenessDocumentUploadDialog(applicationId, handleDocumentUploadSucceeded)
+        }
         size="small"
         name="open-upload"
       >
@@ -370,9 +368,7 @@ export const CompletenessPhase = ({
             onDismiss={() => setNoticeDismissed(true)}
           />
         )}
-        <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">
-          COMPLETENESS
-        </h3>
+        <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">COMPLETENESS</h3>
       </div>
       <div id="completeness-phase-content">
         <p className="text-sm text-text-placeholder mb-4">

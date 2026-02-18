@@ -71,7 +71,6 @@ export type { SetApplicationClearanceLevelInput } from "./model/application/appl
 export type {
   ApplicationPhase,
   CompletePhaseInput,
-  SetApplicationPhaseStatusInput,
 } from "./model/applicationPhase/applicationPhaseSchema.js";
 export type { Application } from "./model/application/applicationSchema.js";
 export type {
