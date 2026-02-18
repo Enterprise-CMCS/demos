@@ -10,6 +10,7 @@ import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
 import { Document, Person } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
+import { canRunDocumentAction, getDocumentActionTooltip } from "./documentActionTooltips";
 
 export type DocumentTableDocument = Pick<
   Document,
@@ -44,8 +45,11 @@ export const DocumentTable: React.FC<DocumentsTableProps> = ({ applicationId, do
           initialState={initialState}
           actionButtons={(table) => {
             const selectedDocs = table.getSelectedRowModel().rows.map((row) => row.original);
-            const editDisabled = selectedDocs.length !== 1;
-            const removeDisabled = selectedDocs.length < 1;
+            const selectedCount = selectedDocs.length;
+
+            const editEnabled = canRunDocumentAction("edit", selectedCount);
+            const deleteEnabled = canRunDocumentAction("delete", selectedCount);
+
             return (
               <div className="flex gap-1 ml-4">
                 <CircleButton
@@ -55,11 +59,14 @@ export const DocumentTable: React.FC<DocumentsTableProps> = ({ applicationId, do
                 >
                   <ImportIcon />
                 </CircleButton>
+
                 <CircleButton
                   name="edit-document"
                   ariaLabel="Edit Document"
+                  tooltip={getDocumentActionTooltip("edit", selectedCount)}
+                  disabled={!editEnabled}
+                  focusableWhenDisabled
                   onClick={() =>
-                    !editDisabled &&
                     showEditDocumentDialog({
                       id: selectedDocs[0].id,
                       name: selectedDocs[0].name,
@@ -68,17 +75,17 @@ export const DocumentTable: React.FC<DocumentsTableProps> = ({ applicationId, do
                       file: null,
                     })
                   }
-                  disabled={editDisabled}
                 >
                   <EditIcon />
                 </CircleButton>
+
                 <CircleButton
                   name="remove-document"
                   ariaLabel="Remove Document"
-                  onClick={() =>
-                    !removeDisabled && showRemoveDocumentDialog(selectedDocs.map((doc) => doc.id))
-                  }
-                  disabled={removeDisabled}
+                  tooltip={getDocumentActionTooltip("delete", selectedCount)}
+                  disabled={!deleteEnabled}
+                  focusableWhenDisabled
+                  onClick={() => showRemoveDocumentDialog(selectedDocs.map((doc) => doc.id))}
                 >
                   <DeleteIcon />
                 </CircleButton>

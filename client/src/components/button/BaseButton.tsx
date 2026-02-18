@@ -1,5 +1,6 @@
 import React from "react";
 import { tw } from "tags/tw";
+import { Tooltip } from "components/tooltip/Tooltip";
 
 export type ButtonSize = "small" | "standard" | "large";
 export type ButtonType = "button" | "submit" | "reset";
@@ -52,6 +53,7 @@ export interface ButtonProps {
   disabled?: boolean;
   isCircle?: boolean;
   tooltip?: string;
+  focusableWhenDisabled?: boolean;
 }
 
 export const BaseButton: React.FC<ButtonProps> = ({
@@ -66,26 +68,43 @@ export const BaseButton: React.FC<ButtonProps> = ({
   disabled = false,
   isCircle = false,
   tooltip,
+  focusableWhenDisabled = false,
 }) => {
   const sizeClasses = getSizeClasses(isCircle, size);
   const circleClasses = getCircleClasses(isCircle);
 
-  const accessibleLabel = tooltip ? `${ariaLabel || name} - ${tooltip}` : ariaLabel || name;
+  const isActuallyDisabled = disabled && !focusableWhenDisabled;
 
-  return (
+  const handleClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+    if (disabled) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    onClick?.(e);
+  };
+
+  const btn = (
     <button
       name={name}
       data-testid={name}
-      aria-label={accessibleLabel}
+      aria-label={ariaLabel || name}
       type={type}
-      onClick={onClick}
+      onClick={handleClick}
       {...(form ? { form } : {})}
-      className={`${BASE_BUTTON_STYLES} ${sizeClasses} ${circleClasses} ${className}`}
-      disabled={disabled}
+      className={[
+        BASE_BUTTON_STYLES,
+        sizeClasses,
+        circleClasses,
+        className,
+        disabled && focusableWhenDisabled ? "bg-surface-disabled text-text-placeholder cursor-not-allowed" : "",
+      ].join(" ")}
+      disabled={isActuallyDisabled}
       aria-disabled={disabled ? "true" : "false"}
-      {...(tooltip ? { title: tooltip } : {})}
     >
       {children}
     </button>
   );
+
+  return tooltip ? <Tooltip content={tooltip}>{btn}</Tooltip> : btn;
 };
