@@ -96,7 +96,11 @@ export const BaseButton: React.FC<ButtonProps> = ({
   if (!tooltip) return btn;
 
   const wrapperProps = disabled
-    ? { tabIndex: 0, role: "button", "aria-disabled": true, "aria-label": accessibleLabel }
+    ? {
+      tabIndex: 0,
+      "aria-disabled": true,
+      "aria-label": accessibleLabel,
+    }
     : {};
 
   return (
