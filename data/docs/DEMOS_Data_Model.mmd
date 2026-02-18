@@ -363,7 +363,9 @@ erDiagram
     timestamptz due_date
     text action_type_id FK "FK116: action_type_id ∈ deliverable_action_type.id"
     uuid user_id FK "FK117: user_id ∈ users.id<br>NULLABLE"
+    text note "NULLABLE"
     CHECK_CONSTRAINT require_user_id_for_user_actions "If the action type is not a system action, require a user ID to be present."
+    CHECK_CONSTRAINT require_note_for_request_actions "If the action is a resubmission request, an extension request, or an extension decision, the note field must be NOT NULL<br>Otherwise, must be NULL"
     HAS_HISTORY true
   }
 
@@ -417,6 +419,7 @@ erDiagram
     text phase_id FK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)<br>NULLABLE"
     uuid deliverable_id FK "FK098: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)<br>NULLABLE"
     text deliverable_type_id FK "FK098: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)<br>FK101: (deliverable_type_id, document_type_id) ∈ deliverable_type_document_type.(deliverable_type_id, document_type_id)<br>NULLABLE"
+    bool deliverable_is_cms_attached_file "NULLABLE"
     timestamptz deliverable_submission_timestamp "NULLABLE"
     timestamptz deliverable_due_date_at_submission "NULLABLE"
     timestamptz created_at
@@ -424,7 +427,7 @@ erDiagram
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK check_non_empty_s3_path "Validate that the S3 path is not empty or only whitespace."
     CONSTRAINT_CHECK check_phase_id_deliverable_id_null "Validate that at least one of phase_id and deliverable_id are NULL"
-    CONSTRAINT_CHECK check_deliverable_null_states "Validate that the deliverable-related fields are NULL or NOT NULL appropriately<br>If deliverable_id is NULL, all other deliverable fields must be NULL<br>If deliverable_id is NOT NULL, deliverable_type_id must be NOT NULL<br>If deliverable_id is NOT NULL, both dates must be either NULL or NOT NULL"
+    CONSTRAINT_CHECK check_deliverable_null_states "Validate that the deliverable-related fields are NULL or NOT NULL appropriately<br>If deliverable_id is NULL, all other deliverable fields must be NULL<br>If deliverable_id is NOT NULL, deliverable_type_id and deliverable_is_cms_attached_file must be NOT NULL<br>If deliverable_id is NOT NULL, both dates must be either NULL or NOT NULL"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }
@@ -440,6 +443,7 @@ erDiagram
     text phase_id FK "FK069: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)<br>NULLABLE"
     uuid deliverable_id FK "FK099: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)<br>NULLABLE"
     text deliverable_type_id FK "FK099: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)<br>FK102: (deliverable_type_id, document_type_id) ∈ deliverable_type_document_type.(deliverable_type_id, document_type_id)<br>NULLABLE"
+    bool deliverable_is_cms_attached_file "NULLABLE"
     text infection_status
     text infection_threats
     timestamptz created_at
@@ -447,7 +451,7 @@ erDiagram
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK check_non_empty_s3_path "Validate that the S3 path is not empty or only whitespace."
     CONSTRAINT_CHECK check_phase_id_deliverable_id_null "Validate that at least one of phase_id and deliverable_id are NULL"
-    CONSTRAINT_CHECK check_deliverable_type_id_null "If deliverable_id is NULL, deliverable_type_id must be NULL<br>If deliverable_id is NOT NULL, deliverable_type_id must be NOT NULL"
+    CONSTRAINT_CHECK check_deliverable_null_states "If deliverable_id is NULL, deliverable_type_id and deliverable_is_cms_attached_file must be NULL<br>If deliverable_id is NOT NULL, deliverable_type_id and deliverable_is_cms_attached_file must be NOT NULL"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }
@@ -462,11 +466,12 @@ erDiagram
     text phase_id FK "FK055: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)<br>NULLABLE"
     uuid deliverable_id FK "FK100: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)<br>NULLABLE"
     text deliverable_type_id FK "FK100: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)<br>FK103: (deliverable_type_id, document_type_id) ∈ deliverable_type_document_type.(deliverable_type_id, document_type_id)<br>NULLABLE"
+    bool deliverable_is_cms_attached_file "NULLABLE"
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK check_phase_id_deliverable_id_null "Validate that at least one of phase_id and deliverable_id are NULL"
-    CONSTRAINT_CHECK check_deliverable_type_id_null "If deliverable_id is NULL, deliverable_type_id must be NULL<br>If deliverable_id is NOT NULL, deliverable_type_id must be NOT NULL"
+    CONSTRAINT_CHECK check_deliverable_null_states "If deliverable_id is NULL, deliverable_type_id and deliverable_is_cms_attached_file must be NULL<br>If deliverable_id is NOT NULL, deliverable_type_id and deliverable_is_cms_attached_file must be NOT NULL"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }
