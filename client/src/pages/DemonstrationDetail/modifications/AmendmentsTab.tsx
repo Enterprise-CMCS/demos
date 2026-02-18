@@ -2,28 +2,28 @@ import React from "react";
 import { IconButton } from "components/button";
 import { AddNewIcon } from "components/icons";
 import { useDialog } from "components/dialog/DialogContext";
-import { DemonstrationDetailExtension } from "./DemonstrationDetail";
+import { DemonstrationDetailAmendment } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { ModificationTabs } from "./ModificationTabs";
 
-export const ExtensionsTab: React.FC<{
+export const AmendmentsTab: React.FC<{
   demonstrationId: string;
-  extensions: DemonstrationDetailExtension[];
-}> = ({ demonstrationId, extensions }) => {
-  const { showCreateExtensionDialog } = useDialog();
+  amendments: DemonstrationDetailAmendment[];
+}> = ({ demonstrationId, amendments }) => {
+  const { showCreateAmendmentDialog } = useDialog();
   return (
     <div className="flex flex-col p-2 gap-2">
       <div className="flex justify-between items-center pb-1 border-b border-border-rules">
-        <h1 className="text-xl font-bold text-brand uppercase">Extensions</h1>
+        <h1 className="text-xl font-bold text-brand uppercase">Amendments</h1>
         <IconButton
           icon={<AddNewIcon />}
-          name="add-new-extension"
+          name="add-new-amendment"
           size="small"
-          onClick={() => showCreateExtensionDialog(demonstrationId)}
+          onClick={() => showCreateAmendmentDialog(demonstrationId)}
         >
-          Add Extension
+          Add Amendment
         </IconButton>
       </div>
-      <ModificationTabs items={extensions} />
+      <ModificationTabs items={amendments} />
     </div>
   );
 };
