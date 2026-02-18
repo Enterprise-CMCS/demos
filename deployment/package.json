@@ -5,6 +5,9 @@
   "bin": {
     "demosctl": "demosctl/index.ts"
   },
+  "overrides": {
+    "fast-xml-parser": "^5.3.6"
+  },
   "scripts": {
     "diff:core": "cdk diff --context stage=dev demos-dev-core",
     "deploy:core": "cdk deploy --context stage=dev demos-dev-core",
