@@ -49,13 +49,17 @@ export const DocumentTable: React.FC<DocumentsTableProps> = ({ applicationId, do
 
             const editEnabled = canRunDocumentAction("edit", selectedCount);
             const deleteEnabled = canRunDocumentAction("delete", selectedCount);
+            const downloadEnabled = selectedCount > 0;
 
             return (
               <div className="flex gap-1 ml-4">
                 <CircleButton
-                  name="add-document"
-                  ariaLabel="Add Document"
-                  onClick={() => showUploadDocumentDialog(applicationId)}
+                  name="download-document"
+                  ariaLabel="Download Document"
+                  tooltip={selectedCount === 0 ? "Select a Document to Download." : "Download"}
+                  disabled={!downloadEnabled}
+                  focusableWhenDisabled
+                  onClick={() => downloadEnabled && showUploadDocumentDialog(applicationId)}
                 >
                   <ImportIcon />
                 </CircleButton>

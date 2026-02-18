@@ -75,6 +75,11 @@ export const BaseButton: React.FC<ButtonProps> = ({
 
   const isActuallyDisabled = disabled && !focusableWhenDisabled;
 
+  const focusableDisabledClasses =
+    disabled && focusableWhenDisabled
+      ? "!bg-surface-disabled !text-text-placeholder !cursor-not-allowed border !border-transparent hover:!bg-surface-disabled focus:!ring-0"
+      : "";
+
   const handleClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
     if (disabled) {
       e.preventDefault();
@@ -97,7 +102,7 @@ export const BaseButton: React.FC<ButtonProps> = ({
         sizeClasses,
         circleClasses,
         className,
-        disabled && focusableWhenDisabled ? "bg-surface-disabled text-text-placeholder cursor-not-allowed" : "",
+        focusableDisabledClasses,
       ].join(" ")}
       disabled={isActuallyDisabled}
       aria-disabled={disabled ? "true" : "false"}
