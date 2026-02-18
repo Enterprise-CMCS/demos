@@ -52,14 +52,14 @@ describe("DocumentTable", () => {
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
-    const editBtn = screen.getByLabelText(/Edit Document/i);
-    expect(editBtn).toHaveAttribute("aria-disabled", "true");
+    const editBtn = screen.getByTestId("edit-document");
+    expect(editBtn).toBeDisabled();
     // Select one row
     await user.click(screen.getByTestId("select-row-0"));
-    expect(editBtn).toHaveAttribute("aria-disabled", "false");
+    expect(editBtn).not.toBeDisabled();
     // Select another row (should switch selection)
     await user.click(screen.getByTestId("select-row-1"));
-    expect(editBtn).toHaveAttribute("aria-disabled", "true");
+    expect(editBtn).toBeDisabled();
   });
 
   it("opens EditDocumentModal with correct documentId when edit button is clicked", async () => {

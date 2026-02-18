@@ -4,7 +4,7 @@ export function getDocumentActionTooltip(action: DocumentAction, selectedCount: 
   if (action === "edit") {
     if (selectedCount === 0) return "Select a Document to Edit.";
     if (selectedCount === 1) return "Edit";
-    return "Select a Document to Edit"; // More than 1 selected
+    return "Select a Document to Edit."; // More than 1 selected
   }
 
   // delete

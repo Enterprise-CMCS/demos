@@ -1,6 +1,5 @@
 import React from "react";
 import { tw } from "tags/tw";
-import { Tooltip } from "components/tooltip/Tooltip";
 
 export type ButtonSize = "small" | "standard" | "large";
 export type ButtonType = "button" | "submit" | "reset";
@@ -53,7 +52,6 @@ export interface ButtonProps {
   disabled?: boolean;
   isCircle?: boolean;
   tooltip?: string;
-  focusableWhenDisabled?: boolean;
 }
 
 export const BaseButton: React.FC<ButtonProps> = ({
@@ -68,48 +66,42 @@ export const BaseButton: React.FC<ButtonProps> = ({
   disabled = false,
   isCircle = false,
   tooltip,
-  focusableWhenDisabled = false,
 }) => {
   const sizeClasses = getSizeClasses(isCircle, size);
   const circleClasses = getCircleClasses(isCircle);
 
-  const isActuallyDisabled = disabled && !focusableWhenDisabled;
-
-  const focusableDisabledClasses =
-    disabled && focusableWhenDisabled
-      ? "!bg-surface-disabled !text-text-placeholder !cursor-not-allowed border !border-transparent hover:!bg-surface-disabled focus:!ring-0"
-      : "";
-
-  const handleClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
-    if (disabled) {
-      e.preventDefault();
-      e.stopPropagation();
-      return;
-    }
-    onClick?.(e);
-  };
+  const accessibleLabel =
+    tooltip ? `${ariaLabel || name} - ${tooltip}` : ariaLabel || name;
 
   const btn = (
     <button
       name={name}
       data-testid={name}
-      aria-label={ariaLabel || name}
+      aria-label={disabled && tooltip ? undefined : accessibleLabel}
       type={type}
-      onClick={handleClick}
+      onClick={onClick}
       {...(form ? { form } : {})}
       className={[
         BASE_BUTTON_STYLES,
         sizeClasses,
         circleClasses,
         className,
-        focusableDisabledClasses,
       ].join(" ")}
-      disabled={isActuallyDisabled}
-      aria-disabled={disabled ? "true" : "false"}
+      disabled={disabled}
     >
       {children}
     </button>
   );
 
-  return tooltip ? <Tooltip content={tooltip}>{btn}</Tooltip> : btn;
+  if (!tooltip) return btn;
+
+  const wrapperProps = disabled
+    ? { tabIndex: 0, role: "button", "aria-disabled": true, "aria-label": accessibleLabel }
+    : {};
+
+  return (
+    <span title={tooltip} className="inline-flex" {...wrapperProps}>
+      {btn}
+    </span>
+  );
 };
