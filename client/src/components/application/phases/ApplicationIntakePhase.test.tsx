@@ -60,6 +60,13 @@ vi.mock("components/dialog/DialogContext", () => ({
   }),
 }));
 
+const mockCompletePhase = vi.fn();
+vi.mock("../phase-status/phaseCompletionQueries", () => ({
+  useCompletePhase: () => ({
+    completePhase: mockCompletePhase,
+  }),
+}));
+
 describe("ApplicationIntakePhase", () => {
   const defaultProps: ApplicationIntakeProps = {
     demonstrationId: "test-demo-id",
@@ -273,6 +280,10 @@ describe("ApplicationIntakePhase", () => {
         const finishButton = screen.getByRole("button", { name: /finish/i });
         await userEvent.click(finishButton);
 
+        expect(mockCompletePhase).toHaveBeenCalledWith({
+          applicationId: "test-demo-id",
+          phaseName: "Application Intake",
+        });
         expect(setSelectedPhase).toHaveBeenCalledWith("Completeness");
       });
     });

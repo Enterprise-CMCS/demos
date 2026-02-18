@@ -21,7 +21,7 @@ vi.mock("util/formatDate", () => ({
 const mockSetApplicationDates = vi.fn();
 const mockSetApplicationNotes = vi.fn();
 const mockSetApplicationClearanceLevel = vi.fn();
-const mockSetPhaseStatus = vi.fn();
+const mockCompletePhase = vi.fn();
 
 vi.mock("components/application/date/dateQueries", () => ({
   useSetApplicationDates: () => ({
@@ -35,9 +35,9 @@ vi.mock("components/application/note/noteQueries", () => ({
   }),
 }));
 
-vi.mock("../../phase-status/phaseStatusQueries", () => ({
-  useSetPhaseStatus: () => ({
-    setPhaseStatus: mockSetPhaseStatus,
+vi.mock("../../phase-status/phaseCompletionQueries", () => ({
+  useCompletePhase: () => ({
+    completePhase: mockCompletePhase,
   }),
 }));
 
@@ -98,7 +98,7 @@ describe("ReviewPhase Component", () => {
     mockSetApplicationDates.mockClear();
     mockSetApplicationNotes.mockClear();
     mockSetApplicationClearanceLevel.mockClear();
-    mockSetPhaseStatus.mockClear();
+    mockCompletePhase.mockClear();
   });
 
   describe("Header and description", () => {
@@ -730,7 +730,7 @@ describe("ReviewPhase Component", () => {
             },
           },
         });
-        expect(mockSetPhaseStatus).toHaveBeenCalled();
+        expect(mockCompletePhase).toHaveBeenCalled();
         expect(mockOnFinish).toHaveBeenCalledOnce();
       });
     });
