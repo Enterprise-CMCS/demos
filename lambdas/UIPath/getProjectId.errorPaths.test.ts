@@ -1,66 +1,58 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-type SetupOptions = {
-  baseUrl?: string;
-  tenant?: string;
-  responseData?: unknown;
-};
+const mocks = vi.hoisted(() => ({
+  uipathGetRequestMock: vi.fn(),
+  getProjectIdMock: vi.fn(),
+  setProjectIdMock: vi.fn(),
+  logInfoMock: vi.fn(),
+  baseUrl: "https://govcloud.uipath.us",
+  tenant: "globalalliant/Dev",
+}));
 
-async function setup(options: SetupOptions = {}) {
-  const {
-    baseUrl = "https://govcloud.uipath.us",
-    tenant = "globalalliant/Dev",
-    responseData = {},
-  } = options;
+vi.mock("./uipathClient", () => ({
+  get UIPATH_BASE_URL() {
+    return mocks.baseUrl;
+  },
+  get UIPATH_TENANT() {
+    return mocks.tenant;
+  },
+  uipathGetRequest: mocks.uipathGetRequestMock,
+  getProjectId: mocks.getProjectIdMock,
+  setProjectId: mocks.setProjectIdMock,
+}));
 
-  const uipathGetRequestMock = vi.fn().mockResolvedValue({ data: responseData });
-  const getProjectIdMock = vi.fn(() => {
-    throw new Error("cache miss");
-  });
-  const setProjectIdMock = vi.fn();
-  const logInfoMock = vi.fn();
+vi.mock("./log", () => ({
+  log: {
+    info: mocks.logInfoMock,
+  },
+}));
 
-  vi.resetModules();
-  vi.doMock("./uipathClient", () => ({
-    UIPATH_BASE_URL: baseUrl,
-    UIPATH_TENANT: tenant,
-    uipathGetRequest: uipathGetRequestMock,
-    getProjectId: getProjectIdMock,
-    setProjectId: setProjectIdMock,
-  }));
-  vi.doMock("./log", () => ({
-    log: {
-      info: logInfoMock,
-    },
-  }));
-
-  const { getProjectIdByName } = await import("./getProjectId");
-
-  return {
-    getProjectIdByName,
-    uipathGetRequestMock,
-    getProjectIdMock,
-    setProjectIdMock,
-    logInfoMock,
-  };
-}
+import { getProjectIdByName } from "./getProjectId";
 
 describe("getProjectIdByName error paths", () => {
-  it("throws when UiPath configuration is missing", async () => {
-    const { getProjectIdByName, uipathGetRequestMock } = await setup({
-      baseUrl: "",
+  beforeEach(() => {
+    mocks.baseUrl = "https://govcloud.uipath.us";
+    mocks.tenant = "globalalliant/Dev";
+    mocks.uipathGetRequestMock.mockReset();
+    mocks.getProjectIdMock.mockReset();
+    mocks.setProjectIdMock.mockReset();
+    mocks.logInfoMock.mockReset();
+    mocks.getProjectIdMock.mockImplementation(() => {
+      throw new Error("cache miss");
     });
+  });
+
+  it("throws when UiPath configuration is missing", async () => {
+    mocks.baseUrl = "";
 
     await expect(getProjectIdByName("token-123", "demosOCR")).rejects.toThrow(
       "Missing UiPath base URL or tenant configuration."
     );
-    expect(uipathGetRequestMock).not.toHaveBeenCalled();
+    expect(mocks.uipathGetRequestMock).not.toHaveBeenCalled();
   });
 
   it("throws when no projects are returned", async () => {
-    const { getProjectIdByName } = await setup({
-      responseData: {},
-    });
+    mocks.uipathGetRequestMock.mockResolvedValue({ data: {} });
 
     await expect(getProjectIdByName("token-123", "demosOCR")).rejects.toThrow(
       "No projects returned."
@@ -68,8 +60,8 @@ describe("getProjectIdByName error paths", () => {
   });
 
   it("throws when matching project is missing an id", async () => {
-    const { getProjectIdByName } = await setup({
-      responseData: {
+    mocks.uipathGetRequestMock.mockResolvedValue({
+      data: {
         projects: [{ name: "demosOCR" }],
       },
     });

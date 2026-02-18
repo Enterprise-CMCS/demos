@@ -15,21 +15,17 @@ vi.mock("@aws-sdk/client-secrets-manager", () => {
 
   return { SecretsManagerClient, GetSecretValueCommand };
 });
-
-const loadModule = async () => {
-  return await import("./uipathSecrets");
-};
+import { __resetUiPathSecretCacheForTests, getUiPathSecret } from "./uipathSecrets";
 
 describe("getUiPathSecret", () => {
   beforeEach(() => {
-    vi.resetModules();
+    __resetUiPathSecretCacheForTests();
     mocks.sendMock.mockReset();
     delete process.env.UIPATH_SECRET_ID;
   });
 
   it("returns parsed secrets and caches the result", async () => {
     process.env.UIPATH_SECRET_ID = "uipath-ref";
-    const { getUiPathSecret } = await loadModule();
     mocks.sendMock.mockResolvedValue({
       SecretString: JSON.stringify({
         clientId: "client-1",
@@ -49,7 +45,6 @@ describe("getUiPathSecret", () => {
   });
 
   it("throws when UIPATH_SECRET_ID is not set", async () => {
-    const { getUiPathSecret } = await loadModule();
     await expect(getUiPathSecret()).rejects.toThrow(
       "UIPATH_SECRET_ID must be set to the UiPath credential secret name/ARN."
     );
@@ -58,7 +53,6 @@ describe("getUiPathSecret", () => {
 
   it("throws when secret value is missing SecretString", async () => {
     process.env.UIPATH_SECRET_ID = "uipath-ref";
-    const { getUiPathSecret } = await loadModule();
     mocks.sendMock.mockResolvedValue({});
 
     await expect(getUiPathSecret()).rejects.toThrow(

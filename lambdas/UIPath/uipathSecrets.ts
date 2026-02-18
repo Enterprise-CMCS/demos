@@ -13,6 +13,11 @@ const secretsManager = new SecretsManagerClient(secretsManagerConfig);
 
 let cachedSecret: UiPathSecret | null = null;
 
+// Test helper to avoid dynamic module re-import in strict tsconfig module settings.
+export function __resetUiPathSecretCacheForTests(): void {
+  cachedSecret = null;
+}
+
 export async function getUiPathSecret(): Promise<UiPathSecret> {
   if (cachedSecret) {
     return cachedSecret;
