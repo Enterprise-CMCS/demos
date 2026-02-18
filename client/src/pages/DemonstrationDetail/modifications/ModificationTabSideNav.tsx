@@ -1,6 +1,7 @@
 import { Tab, VerticalTabs } from "layout/Tabs";
 import React from "react";
 import { ModificationItem } from "./ModificationTabs";
+import { DetailsIcon, ListIcon, OpenFolderIcon } from "components/icons";
 
 const TABS = {
   APPLICATION: "application",
@@ -13,17 +14,16 @@ export const ModificationTabSideNav = ({
 }: {
   modificationItem: ModificationItem;
 }) => {
-  console.log(modificationItem);
   return (
     <VerticalTabs defaultValue={TABS.APPLICATION}>
-      <Tab value={TABS.APPLICATION} label={TABS.APPLICATION}>
-        Application
+      <Tab icon={<ListIcon />} value={TABS.APPLICATION} label="Application">
+        Application Tab for {modificationItem.name}
       </Tab>
-      <Tab value={TABS.DETAILS} label={TABS.DETAILS}>
-        Details
+      <Tab icon={<DetailsIcon />} value={TABS.DETAILS} label="Details">
+        Details Tab for {modificationItem.name}
       </Tab>
-      <Tab value={TABS.DOCUMENTS} label={TABS.DOCUMENTS}>
-        Documents
+      <Tab icon={<OpenFolderIcon />} value={TABS.DOCUMENTS} label="Documents">
+        Documents Tab for {modificationItem.name}
       </Tab>
     </VerticalTabs>
   );
