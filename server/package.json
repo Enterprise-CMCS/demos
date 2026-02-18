@@ -2,6 +2,9 @@
   "name": "demos-server",
   "version": "0.1.0",
   "type": "module",
+  "overrides": {
+    "fast-xml-parser": "^5.3.6"
+  },
   "dependencies": {
     "@apollo/server": "^5.4.0",
     "@as-integrations/aws-lambda": "^4.0.1",
