@@ -18,19 +18,12 @@ export const applicationPhaseSchema = gql`
     documents: [Document!]!
   }
 
-  input SetApplicationPhaseStatusInput {
-    applicationId: ID!
-    phaseName: PhaseNameWithTrackedStatus!
-    phaseStatus: PhaseStatus!
-  }
-
   input CompletePhaseInput {
     applicationId: ID!
     phaseName: PhaseNameWithTrackedStatus!
   }
 
   type Mutation {
-    setApplicationPhaseStatus(input: SetApplicationPhaseStatusInput!): Application!
     completePhase(input: CompletePhaseInput!): Application!
     skipConceptPhase(applicationId: ID!): Application!
     declareCompletenessPhaseIncomplete(applicationId: ID!): Application!
@@ -45,12 +38,6 @@ export interface ApplicationPhase {
   createdAt: Date;
   updatedAt: Date;
   documents: Document[];
-}
-
-export interface SetApplicationPhaseStatusInput {
-  applicationId: string;
-  phaseName: PhaseNameWithTrackedStatus;
-  phaseStatus: PhaseStatus;
 }
 
 export interface CompletePhaseInput {
