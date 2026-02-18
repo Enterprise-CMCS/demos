@@ -11,8 +11,8 @@ export const ExtensionsTab: React.FC<{
 }> = ({ demonstrationId, extensions }) => {
   const { showCreateExtensionDialog } = useDialog();
   return (
-    <div className="p-2">
-      <div className="flex justify-between items-center pb-1 mb-4 border-b border-brand">
+    <div className="flex flex-col p-2 gap-2">
+      <div className="flex justify-between items-center pb-1 border-b border-border-rules">
         <h1 className="text-xl font-bold text-brand uppercase">Extensions</h1>
         <IconButton
           icon={<AddNewIcon />}

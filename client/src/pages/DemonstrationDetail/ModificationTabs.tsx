@@ -1,5 +1,11 @@
 import React, { useState } from "react";
 
+const STYLES = {
+  tabList: "flex flex-row gap-1 border-b border-border-rules",
+  tab: "cursor-pointer p-0.5 font-normal",
+  selectedTab: "border-b-4 font-semibold border-border-selected",
+};
+
 export interface ModificationItem {
   id: string;
   name: string;
@@ -8,47 +14,49 @@ export interface ModificationItem {
   createdAt?: Date | string;
 }
 
-export interface ModificationTabsProps {
-  items: ModificationItem[];
-  onSelect?: (item: ModificationItem) => void;
-}
+const ModificationTab = ({
+  modificationItem,
+  handleTabSelect,
+  isSelected,
+}: {
+  modificationItem: ModificationItem;
+  handleTabSelect: (item: ModificationItem) => void;
+  isSelected: boolean;
+}) => {
+  return (
+    <button
+      key={modificationItem.id}
+      data-testid={`modification-tab-${modificationItem.id}`}
+      onClick={() => handleTabSelect(modificationItem)}
+      aria-selected={isSelected}
+      className={`${STYLES.tab} ${isSelected ? STYLES.selectedTab : ""}`}
+    >
+      {modificationItem.name}
+    </button>
+  );
+};
 
-export const ModificationTabs: React.FC<ModificationTabsProps> = ({ items, onSelect }) => {
+export const ModificationTabs = ({ items }: { items: ModificationItem[] }) => {
   if (items.length === 0) {
     return null;
   }
 
   const [selectedId, setSelectedId] = useState<string>(items[0]?.id ?? "");
-  const selectedItem = items.find((item) => item.id === selectedId);
 
   const handleTabSelect = (item: ModificationItem) => {
     setSelectedId(item.id);
-    onSelect?.(item);
   };
 
   return (
-    <div>
-      <div>
-        {items.map((item) => (
-          <button
-            key={item.id}
-            data-testid={`modification-tab-${item.id}`}
-            onClick={() => handleTabSelect(item)}
-            aria-selected={item.id === selectedId}
-            className="cursor-pointer border border-red-500"
-          >
-            {item.name}
-          </button>
-        ))}
-      </div>
-
-      {selectedItem && (
-        <div className="border border-blue-500">
-          <div>{selectedItem.name}</div>
-          {selectedItem.description && <div>{selectedItem.description}</div>}
-          {selectedItem.status && <div>Status: {selectedItem.status}</div>}
-        </div>
-      )}
+    <div className={STYLES.tabList}>
+      {items.map((item) => (
+        <ModificationTab
+          key={item.id}
+          modificationItem={item}
+          handleTabSelect={handleTabSelect}
+          isSelected={item.id === selectedId}
+        />
+      ))}
     </div>
   );
 };
