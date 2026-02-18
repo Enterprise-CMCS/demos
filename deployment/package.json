@@ -5,6 +5,11 @@
   "bin": {
     "demosctl": "demosctl/index.ts"
   },
+  "overrides": {
+    "@aws-sdk/client-s3": {
+      "fast-xml-parser": "^5.3.6"
+    }
+  },
   "scripts": {
     "diff:core": "cdk diff --context stage=dev demos-dev-core",
     "deploy:core": "cdk deploy --context stage=dev demos-dev-core",
