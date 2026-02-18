@@ -7,7 +7,7 @@ echo "Make sure you add a legitimate file and pass in a legit key!";
 # but you can either run this like a bash script or copy pasta.
 
 # reset this to empty to trigger actual AWS
-local QUEUE_URL
+# local QUEUE_URL
 LOCALSTACK_ENDPOINT="http://localstack:4566" # pragma: allowlist secret
 AWS_ACCESS_KEY_ID="test" # pragma: allowlist secret
 AWS_SECRET_ACCESS_KEY="test" # pragma: allowlist secret
@@ -31,19 +31,18 @@ aws --endpoint-url=$LOCALSTACK_ENDPOINT \
   }' # pragma: allowlist secret
 
 
-uipath_local() {
+# this code ^^ is based on this function from my ~/.zshrc, so i thought i would just include it
+# uipath_local() {
+#   QUEUE_URL=$(aws --endpoint-url=http://localstack:4566 \
+#     --region us-east-1 \
+#     sqs get-queue-url \
+#     --queue-name uipath-queue \
+#     --query QueueUrl \
+#     --output text)
 
-
-  QUEUE_URL=$(aws --endpoint-url=http://localstack:4566 \
-    --region us-east-1 \
-    sqs get-queue-url \
-    --queue-name uipath-queue \
-    --query QueueUrl \
-    --output text)
-
-  aws --endpoint-url=http://localstack:4566 \
-    --region us-east-1 \
-    sqs send-message \
-    --queue-url "$QUEUE_URL" \
-    --message-body '{"s3FileName": "alaska_doc.pdf","s3Bucket":"uipath-documents"}' # pragma: allowlist secret
-}
+#   aws --endpoint-url=http://localstack:4566 \
+#     --region us-east-1 \
+#     sqs send-message \
+#     --queue-url "$QUEUE_URL" \
+#     --message-body '{"s3FileName": "alaska_doc.pdf","s3Bucket":"uipath-documents"}' # pragma: allowlist secret
+# }

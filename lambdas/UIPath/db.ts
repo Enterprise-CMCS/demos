@@ -44,12 +44,11 @@ export function getDbSchema() {
 }
 
 export async function getDbPool(): Promise<Pool> {
-  if (poolPromise === null) {
-    poolPromise = (async () => {
-      const connectionString = await getDatabaseUrl();
-      log.info("Connecting to database for UiPath results");
-      return new Pool({ connectionString, max: 2 });
-    })();
-  }
+  poolPromise ??= (async () => {
+    const connectionString = await getDatabaseUrl();
+    log.info("Connecting to database for UiPath results");
+    return new Pool({ connectionString, max: 2 });
+  })();
+
   return poolPromise;
 }

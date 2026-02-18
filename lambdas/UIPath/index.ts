@@ -29,6 +29,7 @@ type DownloadedObject = {
   metadata?: Record<string, string>;
 };
 
+// Exact same one as in constants, not sure if i have access to that file.
 const CONTENT_TYPE_TO_EXTENSION: Readonly<Record<string, string>> = {
   "application/pdf": ".pdf",
   "application/msword": ".doc",
@@ -40,7 +41,7 @@ const CONTENT_TYPE_TO_EXTENSION: Readonly<Record<string, string>> = {
 };
 
 function decodeS3Key(key: string): string {
-  return decodeURIComponent(key.replace(/\+/g, " "));
+  return decodeURIComponent(key.replaceAll("+", " "));
 }
 
 function parseUiPathMessage(body: string): UipathMessage {
@@ -62,10 +63,16 @@ function parseUiPathMessage(body: string): UipathMessage {
   return { s3Bucket, s3Key: s3Key ?? "", fileNameWithExtension };
 }
 
+/**
+ * Extracts the file extension from a given file name.
+ * But in our code we do not store the file name with an extension, but JIC this changes. we got it covered.
+ * @param fileName
+ * @returns
+ */
 function extensionFromFileName(fileName?: string): string | null {
   if (!fileName) return null;
   const ext = path.extname(fileName).trim();
-  return ext ? ext : null;
+  return ext ?? null;
 }
 
 function extensionFromContentType(contentType?: string): string | null {
@@ -77,7 +84,7 @@ function extensionFromContentType(contentType?: string): string | null {
 function extractFileNameFromContentDisposition(contentDisposition?: string): string | null {
   if (!contentDisposition) return null;
 
-  const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+  const utf8Match = /filename\*=UTF-8''([^;]+)/i.exec(contentDisposition);
   if (utf8Match?.[1]) {
     try {
       return decodeURIComponent(utf8Match[1]);
@@ -86,7 +93,7 @@ function extractFileNameFromContentDisposition(contentDisposition?: string): str
     }
   }
 
-  const simpleMatch = contentDisposition.match(/filename="?([^";]+)"?/i);
+  const simpleMatch = /filename="?([^";]+)"?/i.exec(contentDisposition);
   return simpleMatch?.[1] ?? null;
 }
 

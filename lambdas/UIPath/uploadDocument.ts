@@ -1,4 +1,4 @@
-import * as fs from "fs";
+import fs from "node:fs";
 import FormData from "form-data";
 import { AxiosProgressEvent } from "axios";
 import { log } from "./log";

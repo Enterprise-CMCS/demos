@@ -62,12 +62,13 @@ export async function getToken(): Promise<string> {
   const params = new URLSearchParams();
   params.append("grant_type", "client_credentials");
   params.append("scope", TOKEN_SCOPE);
+  const encodedCredentials = Buffer.from(clientId + ":" + clientSecret).toString("base64");
 
   try {
     const tokenResponse = await axios.post<TokenResponse>(TOKEN_URL, params.toString(), {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
+        Authorization: "Basic " + encodedCredentials,
       },
     });
 
