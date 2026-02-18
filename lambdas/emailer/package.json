@@ -1,6 +1,11 @@
 {
   "name": "emailer",
   "version": "1.0.0",
+  "overrides": {
+    "@aws-sdk/client-ssm": {
+      "fast-xml-parser": "^5.3.6"
+    }
+  },
   "scripts": {
     "test": "vitest run --coverage",
     "lint": "tsc --noEmit --skipLibCheck"

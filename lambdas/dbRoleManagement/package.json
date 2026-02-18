@@ -7,6 +7,11 @@
     "test": "jest --coverage",
     "lint": "tsc --noEmit --skipLibCheck"
   },
+  "overrides": {
+    "@aws-sdk/client-ssm": {
+      "fast-xml-parser": "^5.3.6"
+    }
+  },
   "author": "",
   "license": "ISC",
   "devDependencies": {
