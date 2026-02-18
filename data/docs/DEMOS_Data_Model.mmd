@@ -364,8 +364,8 @@ erDiagram
     text action_type_id FK "FK116: action_type_id ∈ deliverable_action_type.id"
     uuid user_id FK "FK117: user_id ∈ users.id<br>NULLABLE"
     text note "NULLABLE"
-    CHECK_CONSTRAINT require_user_id_for_user_actions "If the action type is not a system action, require a user ID to be present."
-    CHECK_CONSTRAINT require_note_for_request_actions "If the action is a resubmission request, an extension request, or an extension decision, the note field must be NOT NULL<br>Otherwise, must be NULL"
+    CONSTRAINT_CHECK require_user_id_for_user_actions "If the action type is not a system action, require a user ID to be present."
+    CONSTRAINT_CHECK require_note_for_request_actions "If the action is a resubmission request, an extension request, or an extension decision, the note field must be NOT NULL<br>Otherwise, must be NULL"
     HAS_HISTORY true
   }
 
