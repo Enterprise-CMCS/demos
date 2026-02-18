@@ -122,7 +122,7 @@ export function ContactColumns({
           <div className="text-center">
             <CircleButton
               name="delete-contact"
-              ariaLabel="Delete"
+              ariaLabel="Delete Contact"
               tooltip={deleteTooltip}
               size="small"
               onClick={() => onRemoveContact(contact.personId)}

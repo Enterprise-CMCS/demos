@@ -70,14 +70,13 @@ export const BaseButton: React.FC<ButtonProps> = ({
   const sizeClasses = getSizeClasses(isCircle, size);
   const circleClasses = getCircleClasses(isCircle);
 
-  const accessibleLabel =
-    tooltip ? `${ariaLabel || name} - ${tooltip}` : ariaLabel || name;
+  const accessibleLabel = ariaLabel || name;
 
   const btn = (
     <button
       name={name}
       data-testid={name}
-      aria-label={disabled && tooltip ? undefined : accessibleLabel}
+      aria-label={accessibleLabel}
       type={type}
       onClick={onClick}
       {...(form ? { form } : {})}
@@ -99,7 +98,6 @@ export const BaseButton: React.FC<ButtonProps> = ({
     ? {
       tabIndex: 0,
       "aria-disabled": true,
-      "aria-label": accessibleLabel,
     }
     : {};
 
