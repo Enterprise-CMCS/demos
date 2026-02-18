@@ -135,6 +135,8 @@ describe("ApprovalSummaryPhase", () => {
             demonstrationId="demo-123"
             initialFormData={formData}
             initialTypes={[]}
+            approvalSummaryPhase={{ phaseStatus: "Not Started", phaseDates: [] }}
+            allPreviousPhasesDone={true}
           />
         </TestProvider>
       </MockedProvider>
@@ -197,6 +199,14 @@ describe("ApprovalSummaryPhase", () => {
     expect(within(section!).getByText("Incomplete")).toBeInTheDocument();
   });
 
+  it("renders Approve Demonstration button disabled when sections are not complete", () => {
+    setup();
+
+    const approveButton = screen.getByRole("button", { name: "button-approve-demonstration" });
+    expect(approveButton).toBeInTheDocument();
+    expect(approveButton).toBeDisabled();
+  });
+
   it("updates Demonstration Types completion UI when toggled", async () => {
     const user = userEvent.setup();
 
@@ -206,6 +216,7 @@ describe("ApprovalSummaryPhase", () => {
           demonstrationId="demo-123"
           initialFormData={buildInitialFormData()}
           initialTypes={mockTypes}
+          allPreviousPhasesDone={true}
         />
       </TestProvider>
     );
@@ -227,6 +238,7 @@ describe("ApprovalSummaryPhase", () => {
           demonstrationId="demo-123"
           initialFormData={buildInitialFormData()}
           initialTypes={mockTypes}
+          allPreviousPhasesDone={true}
         />
       </TestProvider>
     );

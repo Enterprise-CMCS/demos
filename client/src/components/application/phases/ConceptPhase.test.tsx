@@ -266,6 +266,7 @@ describe("ConceptPhase", () => {
           },
         ],
         demonstrationTypes: [],
+        tags: [],
       };
 
       const component = getConceptPhaseComponentFromDemonstration(mockDemonstration);

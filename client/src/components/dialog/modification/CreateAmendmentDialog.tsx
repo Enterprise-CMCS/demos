@@ -1,21 +1,11 @@
 import React from "react";
-import {
-  BaseCreateModificationDialog,
-  CreateModificationFormFields,
-} from "./BaseCreateModificationDialog";
 import { gql, useMutation } from "@apollo/client";
-import { useToast } from "components/toast";
-import { Amendment as ServerAmendment, Demonstration } from "demos-server";
+import { BaseCreateModificationDialog } from "./BaseCreateModificationDialog";
+import { ModificationFormData } from "./ModificationForm";
 
-type Amendment = Pick<ServerAmendment, "id"> & {
-  demonstration: Pick<Demonstration, "id"> & {
-    amendments: Pick<ServerAmendment, "id">[];
-  };
-};
 export const CREATE_AMENDMENT_MUTATION = gql`
   mutation CreateAmendment($input: CreateAmendmentInput!) {
     createAmendment(input: $input) {
-      id
       demonstration {
         id
         amendments {
@@ -26,54 +16,34 @@ export const CREATE_AMENDMENT_MUTATION = gql`
   }
 `;
 
-export const CreateAmendmentDialog: React.FC<{
-  onClose: () => void;
-  initialDemonstrationId?: string;
-}> = ({ onClose, initialDemonstrationId }) => {
-  const { showSuccess, showError } = useToast();
-  const [triggerCreateAmendment] = useMutation<{ createAmendment: Amendment }>(
-    CREATE_AMENDMENT_MUTATION
-  );
+export const useCreateAmendment = () => {
+  const [createAmendment, { loading }] = useMutation(CREATE_AMENDMENT_MUTATION);
 
-  const handleError = (error?: unknown) => {
-    showError("Error creating amendment.");
-    console.error(error || "Unknown error");
-    onClose();
-  };
-
-  const createAmendment = async ({
-    name,
-    description,
-    demonstrationId,
-  }: CreateModificationFormFields) => {
-    try {
-      const result = await triggerCreateAmendment({
-        variables: {
-          input: {
-            name: name,
-            description: description,
-            demonstrationId: demonstrationId,
-          },
+  const save = async (input: ModificationFormData) => {
+    await createAmendment({
+      variables: {
+        input: {
+          demonstrationId: input.demonstrationId,
+          name: input.name,
+          description: input.description,
+          signatureLevel: input.signatureLevel,
         },
-      });
-
-      if (!result.data?.createAmendment) {
-        handleError();
-      }
-
-      showSuccess("Amendment created successfully.");
-      onClose();
-    } catch (error) {
-      handleError(error);
-    }
+      },
+    });
   };
 
-  return (
-    <BaseCreateModificationDialog
-      onClose={onClose}
-      initialDemonstrationId={initialDemonstrationId}
-      modificationType="Amendment"
-      handleSubmit={createAmendment}
-    />
-  );
+  return {
+    save,
+    saving: loading,
+  };
 };
+
+export const CreateAmendmentDialog: React.FC<{
+  demonstrationId?: string;
+}> = ({ demonstrationId }) => (
+  <BaseCreateModificationDialog
+    modificationType="Amendment"
+    useModification={useCreateAmendment}
+    demonstrationId={demonstrationId}
+  />
+);

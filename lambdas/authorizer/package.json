@@ -8,12 +8,12 @@
   "dependencies": {
     "jsonwebtoken": "^9.0.3",
     "jwks-rsa": "^3.2.2",
-    "pino": "^10.3.0"
+    "pino": "^10.3.1"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.160",
     "@vitest/coverage-v8": "^4.0.18",
-    "esbuild": "^0.27.2",
+    "esbuild": "^0.27.3",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   }

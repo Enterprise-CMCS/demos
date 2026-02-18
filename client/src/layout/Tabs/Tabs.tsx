@@ -5,6 +5,7 @@ export interface TabProps {
   value: string;
   children: React.ReactNode;
   icon?: React.ReactNode;
+  shouldRender?: boolean;
 }
 
 export const Tab: React.FC<TabProps> = ({ children }) => {
@@ -41,12 +42,15 @@ export const Tabs: React.FC<TabsProps> = ({
   styles = defaultStyles,
   onSelect,
 }) => {
-  const tabs = Children.toArray(children) as ReactElement<TabProps>[];
-  const [selectedValue, setSelectedValue] = useState<string>(
-    defaultValue || tabs[0]?.props.value || ""
-  );
+  const allTabs = Children.toArray(children) as ReactElement<TabProps>[];
+  const visibleTabs = allTabs.filter((tab) => tab.props.shouldRender !== false);
 
-  const selectedTab = tabs.find((tab) => tab.props.value === selectedValue);
+  const defaultTab = visibleTabs.find((tab) => tab.props.value === defaultValue)
+    ? defaultValue
+    : visibleTabs[0]?.props.value;
+
+  const [selectedValue, setSelectedValue] = useState<string>(defaultTab ?? "");
+  const selectedTab = allTabs.find((tab) => tab.props.value === selectedValue);
 
   const handleTabSelect = (value: string) => {
     setSelectedValue(value);
@@ -56,7 +60,7 @@ export const Tabs: React.FC<TabsProps> = ({
   return (
     <div className="block">
       <div className="flex">
-        {tabs.map((tab) => {
+        {visibleTabs.map((tab) => {
           const { label, value } = tab.props;
           const isSelected = value === selectedValue;
 

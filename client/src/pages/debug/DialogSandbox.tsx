@@ -22,6 +22,8 @@ export const DialogSandbox: React.FC = () => {
     showDeclareIncompleteDialog,
     showApplyDemonstrationTypesDialog,
     showApplyTagsDialog,
+    showUpdateExtensionDialog,
+    showUpdateAmendmentDialog,
   } = useDialog();
 
   const ID = "1";
@@ -51,6 +53,10 @@ export const DialogSandbox: React.FC = () => {
     },
   ];
 
+  const demonstrationId = "7d1cb7f6-bdbc-41d0-9fc4-0df36375b929";
+  const amendmentId = "20a8d8a0-235b-4433-aea7-f1dc0ca30b08";
+  const extensionId = "75cae749-c286-4b90-ac54-3dfb92f25d08";
+
   return (
     <div className="flex flex-col gap-2 p-2">
       <h2 className="text-xl font-bold">Dialog Sandbox</h2>
@@ -63,11 +69,29 @@ export const DialogSandbox: React.FC = () => {
         <Button name="edit-demonstration" onClick={() => showEditDemonstrationDialog(ID)}>
           Edit Demonstration
         </Button>
-        <Button name="create-amendment" onClick={() => showCreateAmendmentDialog(ID)}>
-          Create Amendment
+        <Button name="create-amendment-no-demo" onClick={() => showCreateAmendmentDialog()}>
+          Create Amendment (no demo)
         </Button>
-        <Button name="create-extension" onClick={() => showCreateExtensionDialog(ID)}>
-          Create Extension
+        <Button
+          name="create-amendment-demo"
+          onClick={() => showCreateAmendmentDialog(demonstrationId)}
+        >
+          Create Amendment (demo)
+        </Button>
+        <Button name="create-extension-no-demo" onClick={() => showCreateExtensionDialog()}>
+          Create Extension (no demo)
+        </Button>
+        <Button
+          name="create-extension-demo"
+          onClick={() => showCreateExtensionDialog(demonstrationId)}
+        >
+          Create Extension (demo)
+        </Button>
+        <Button name="update-amendment" onClick={() => showUpdateAmendmentDialog(amendmentId)}>
+          Update Amendment
+        </Button>
+        <Button name="update-extension" onClick={() => showUpdateExtensionDialog(extensionId)}>
+          Update Extension
         </Button>
       </div>
       <div className="flex flex-wrap gap-2">
@@ -138,7 +162,7 @@ export const DialogSandbox: React.FC = () => {
           </Button>
           <Button
             name="apply-tags"
-            onClick={() => showApplyTagsDialog(["One", "Two", "Three"], ["One"])}
+            onClick={() => showApplyTagsDialog("demo-123", ["One", "Two", "Three"], ["One"])}
           >
             Apply Tags
           </Button>

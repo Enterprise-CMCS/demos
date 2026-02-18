@@ -155,7 +155,10 @@ export const EditDemonstrationTypeDialog = ({
           name={"button-submit-edit-demonstration-type-dialog"}
           disabled={
             saving ||
-            !isValid ||
+            !isValid(
+              demonstrationTypeFormData.effectiveDate,
+              demonstrationTypeFormData.expirationDate
+            ) ||
             !hasChanges(initialDemonstrationTypeFormData, demonstrationTypeFormData)
           }
           onClick={handleSubmit}
