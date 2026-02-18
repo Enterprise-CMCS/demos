@@ -148,12 +148,12 @@ export const CompletenessPhase = ({
   const [federalStartDate, setFederalStartDate] = useState<string>(() => {
     if(fedCommentStartDate) return fedCommentStartDate;
     const {fedStartDate} = getFederalCommentPeriodDates(stateDeemedComplete);
-    return fedStartDate ? formatDate(fedStartDate) : "";
+    return fedStartDate ? formatDateForServer(fedStartDate) : "";
   });
   const [federalEndDate, setFederalEndDate] = useState<string>(() => {
     if(fedCommentEndDate) return fedCommentEndDate;
     const {fedEndDate} = getFederalCommentPeriodDates(stateDeemedComplete);
-    return fedEndDate ? formatDate(fedEndDate) : "";
+    return fedEndDate ? formatDateForServer(fedEndDate) : "";
   });
   const [isNoticeDismissed, setNoticeDismissed] = useState(
     !(completenessReviewDate && !completenessComplete)
