@@ -77,6 +77,7 @@ export const BaseButton: React.FC<ButtonProps> = ({
       name={name}
       data-testid={name}
       aria-label={accessibleLabel}
+      title={!disabled ? tooltip : undefined}
       type={type}
       onClick={onClick}
       {...(form ? { form } : {})}
@@ -94,16 +95,19 @@ export const BaseButton: React.FC<ButtonProps> = ({
 
   if (!tooltip) return btn;
 
-  const wrapperProps = disabled
-    ? {
-      tabIndex: 0,
-      "aria-disabled": true,
-    }
-    : {};
+  // Only wrap disabled buttons in span to enable tooltip on hover
+  if (disabled) {
+    return (
+      <span
+        title={tooltip}
+        className="inline-flex"
+        tabIndex={0}
+        aria-disabled={true}
+      >
+        {btn}
+      </span>
+    );
+  }
 
-  return (
-    <span title={tooltip} className="inline-flex" {...wrapperProps}>
-      {btn}
-    </span>
-  );
+  return btn;
 };
