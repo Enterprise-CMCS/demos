@@ -295,6 +295,7 @@ erDiagram
     CONSTRAINT_CHECK check_amendment_non_null_fields_when_approved  "Validate that required fields exist if amendment is approved."
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   application:::dataTable {
@@ -303,6 +304,7 @@ erDiagram
     CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_application_type_record_exists "Verify that a corresponding record exists in the demonstration, amendment, or extension tables."
     TRIGGER_AFTER_INSERT create_phases_and_dates_for_new_application "Create phases and initial dates for new application."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   application_date:::dataTable {
@@ -312,6 +314,7 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   application_note:::dataTable {
@@ -321,6 +324,7 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   application_phase:::dataTable {
@@ -331,6 +335,7 @@ erDiagram
     timestamptz updated_at
     TRIGGER_AFTER_UPDATE update_demonstration_current_phase_on_phase_update "Update demonstration current phase when phase status changes."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   deliverable:::dataTable {
@@ -347,6 +352,7 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   deliverable_action:::dataTable {
@@ -357,6 +363,8 @@ erDiagram
     timestamptz due_date
     text action_type_id FK "FK116: action_type_id ∈ deliverable_action_type.id"
     uuid user_id FK "FK117: user_id ∈ users.id<br>NULLABLE"
+    CHECK_CONSTRAINT require_user_id_for_user_actions "If the action type is not a system action, require a user ID to be present."
+    HAS_HISTORY true
   }
 
   demonstration:::dataTable {
@@ -381,6 +389,7 @@ erDiagram
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     TRIGGER_BEFORE_UPDATE check_demonstration_type_exists_for_approved_demonstrations "Check that approved demonstrations have at least one demonstration type."
+    HAS_HISTORY true
   }
 
   demonstration_type_tag_assignment:::dataTable {
@@ -394,6 +403,7 @@ erDiagram
     CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     TRIGGER_BEFORE_DELETE check_demonstration_type_exists_for_approved_demonstrations "Check that approved demonstrations have at least one demonstration type."
+    HAS_HISTORY true
   }
 
   document:::dataTable {
@@ -416,6 +426,7 @@ erDiagram
     CONSTRAINT_CHECK check_phase_id_deliverable_id_null "Validate that at least one of phase_id and deliverable_id are NULL"
     CONSTRAINT_CHECK check_deliverable_null_states "Validate that the deliverable-related fields are NULL or NOT NULL appropriately<br>If deliverable_id is NULL, all other deliverable fields must be NULL<br>If deliverable_id is NOT NULL, deliverable_type_id must be NOT NULL<br>If deliverable_id is NOT NULL, both dates must be either NULL or NOT NULL"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   document_infected:::dataTable {
@@ -438,6 +449,7 @@ erDiagram
     CONSTRAINT_CHECK check_phase_id_deliverable_id_null "Validate that at least one of phase_id and deliverable_id are NULL"
     CONSTRAINT_CHECK check_deliverable_type_id_null "If deliverable_id is NULL, deliverable_type_id must be NULL<br>If deliverable_id is NOT NULL, deliverable_type_id must be NOT NULL"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   document_pending_upload:::dataTable {
@@ -456,6 +468,7 @@ erDiagram
     CONSTRAINT_CHECK check_phase_id_deliverable_id_null "Validate that at least one of phase_id and deliverable_id are NULL"
     CONSTRAINT_CHECK check_deliverable_type_id_null "If deliverable_id is NULL, deliverable_type_id must be NULL<br>If deliverable_id is NOT NULL, deliverable_type_id must be NOT NULL"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   event:::dataTable {
@@ -487,6 +500,7 @@ erDiagram
     CONSTRAINT_CHECK check_extension_non_null_fields_when_approved  "Validate that required fields exist if extension is approved."
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   person:::dataTable {
@@ -499,6 +513,7 @@ erDiagram
     timestamptz updated_at
     TRIGGER_AFTER_INSERT assign_cms_user_to_all_states "Assign new CMS users to all states."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   private_comment:::dataTable {
@@ -510,6 +525,7 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   public_comment:::dataTable {
@@ -520,6 +536,7 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   tag:::dataTable {
@@ -527,6 +544,7 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   tag_configuration:::dataTable {
@@ -537,6 +555,7 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   users:::dataTable {
@@ -547,6 +566,7 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   %% Associative Tables
@@ -555,6 +575,7 @@ erDiagram
     text tag_id PK, FK "FK082: (tag_id, tag_type_id) ∈ tag_configuration.(tag_id, tag_type_id)"
     text tag_type_id FK "FK082: (tag_id, tag_type_id) ∈ tag_configuration.(tag_id, tag_type_id)<br>FK086: tag_type_id ∈ application_tag_type_limit.id"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   deliverable_type_document_type:::associativeTable {
@@ -570,12 +591,14 @@ erDiagram
     text person_type_id FK "FK047: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK048: (person_id, person_type_id) ∈ person.(id, person_type_id)"
     text grant_level_id FK "FK046: grant_level_id ∈ demonstration_grant_level_limit.id<br>FK049: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   person_state:::associativeTable {
     uuid person_id PK, FK "FK044: person_id ∈ person.id"
     text state_id PK, FK "FK043: state_id ∈ state.id"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   system_role_assignment:::associativeTable {
@@ -584,6 +607,7 @@ erDiagram
     text person_type_id FK "FK038: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK039: (person_id, person_type_id) ∈ person.(id, person_type_id)"
     text grant_level_id FK "FK040: (role_id, grant_level_id) ∈ role.(id, grant_level_id)<br>FK041: grant_level_id ∈ system_grant_level_limit.id"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   phase_date_type:::associativeTable {
@@ -612,6 +636,7 @@ erDiagram
     text role_id PK, FK, UK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)<br>UK: (person_id, demonstration_id, role_id)"
     CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_UPDATE_OR_DELETE check_demonstration_retains_primary_project_officer "Check that a primary project officer still exists."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   role_permission:::associativeTable {
@@ -619,6 +644,7 @@ erDiagram
     text grant_level_id PK, FK "FK033: (role_id, grant_level_id) ∈ role.(id, grant_level_id)<br>FK034: (permission_id, grant_level_id) ∈ permission.(id, grant_level_id)"
     text permission_id PK, FK "FK034: (permission_id, grant_level_id) ∈ permission.(id, grant_level_id)"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   role_person_type:::associativeTable {
@@ -632,5 +658,6 @@ erDiagram
     text TypeLimiter "Blue"
     text AssociativeTable "Purple"
     text DataTable "Green"
-    text NOTE "All relationships show multiplicity only; mandatory/optional semantics are ignored"
+    text NOTE "An asterisk * after the table name indicates that a _history table is also created"
+    text NOTE "HAS_HISTORY true indicates that a table has a _history table as well"
   }
