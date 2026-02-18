@@ -12,29 +12,44 @@ describe("ModificationTabSideNav", () => {
     status: "Active",
   };
 
+  const expectedTabs = [
+    { label: "Application", value: "application" },
+    { label: "Details", value: "details" },
+    { label: "Documents", value: "documents" },
+  ];
+
   it("renders without crashing", () => {
     render(<ModificationTabSideNav modificationItem={mockModificationItem} />);
     expect(screen.getByText("Application")).toBeInTheDocument();
   });
 
-  it("renders all tabs", () => {
+  it("renders all tabs with correct labels and count", () => {
     render(<ModificationTabSideNav modificationItem={mockModificationItem} />);
 
-    expect(screen.getByText("Application")).toBeInTheDocument();
-    expect(screen.getByText("Details")).toBeInTheDocument();
-    expect(screen.getByText("Documents")).toBeInTheDocument();
+    // Verify exact tab count to catch any added/removed tabs
+    expectedTabs.forEach((tab) => {
+      const tabElement = screen.getByTestId(`button-${tab.value}`);
+      expect(tabElement).toBeInTheDocument();
+      expect(tabElement).toHaveTextContent(tab.label);
+    });
+
+    // Verify no extra tabs exist
+    const allTabButtons = screen
+      .getAllByRole("button")
+      .filter((button) => button.getAttribute("data-testid")?.startsWith("button-"));
+    expect(allTabButtons).toHaveLength(expectedTabs.length);
   });
 
   it("has Application tab selected by default", () => {
     render(<ModificationTabSideNav modificationItem={mockModificationItem} />);
 
-    const applicationTab = screen.getByTestId("button-application");
-    const detailsTab = screen.getByTestId("button-details");
-    const documentsTab = screen.getByTestId("button-documents");
-
-    expect(applicationTab).toHaveAttribute("aria-selected", "true");
-    expect(detailsTab).toHaveAttribute("aria-selected", "false");
-    expect(documentsTab).toHaveAttribute("aria-selected", "false");
+    expectedTabs.forEach((tab) => {
+      const tabElement = screen.getByTestId(`button-${tab.value}`);
+      expect(tabElement).toHaveAttribute(
+        "aria-selected",
+        tab.value === "application" ? "true" : "false"
+      );
+    });
   });
 
   it("switches tabs when clicked", () => {
