@@ -18,7 +18,7 @@ import { getPhaseCompletedMessage } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import { PhaseName } from "../phase-selector/PhaseSelector";
-import type { LocalDate } from "demos-server";
+import type { LocalDate, UploadDocumentInput } from "demos-server";
 import { useCompletePhase, useSkipConceptPhase } from "../phase-status/phaseCompletionQueries";
 
 const STYLES = {
@@ -57,10 +57,16 @@ export const getConceptPhaseComponentFromDemonstration = (
   );
 };
 
-const getLatestDocumentDate = (documents: ApplicationWorkflowDocument[]): LocalDate | null => {
-  if (documents.length === 0) return null;
+const getLatestPresubmissionDocumentDate = (
+  documents: ApplicationWorkflowDocument[]
+): LocalDate | null => {
+  const presubmissionDocuments = documents.filter(
+    (document) => document.documentType === "Pre-Submission"
+  );
 
-  const createdAtDates = documents.map((doc) => doc.createdAt);
+  if (presubmissionDocuments.length === 0) return null;
+
+  const createdAtDates = presubmissionDocuments.map((doc) => doc.createdAt);
   const sortedDates = createdAtDates.sort((dateA, dateB) => {
     return new Date(dateB).getTime() - new Date(dateA).getTime();
   });
@@ -84,7 +90,7 @@ export const ConceptPhase = ({
   const { setApplicationDate } = useSetApplicationDate();
 
   const [submittedDate, setSubmittedDate] = useState<LocalDate | null>(
-    getLatestDocumentDate(initialPreSubmissionDocuments)
+    getLatestPresubmissionDocumentDate(initialPreSubmissionDocuments)
   );
   const [demonstrationType, setDemonstrationType] = useState<string>("");
   const [isFinishEnabled, setIsFinishEnabled] = useState<boolean>(false);
@@ -96,7 +102,9 @@ export const ConceptPhase = ({
   };
 
   useEffect(() => {
-    const finishShouldBeEnabled = documents.length > 0 && !!submittedDate;
+    const finishShouldBeEnabled =
+      documents.filter((document) => document.documentType === "Pre-Submission").length > 0 &&
+      !!submittedDate;
     setIsFinishEnabled(finishShouldBeEnabled);
     setIsSkipEnabled(!finishShouldBeEnabled);
   }, [submittedDate, documents]);
@@ -104,13 +112,18 @@ export const ConceptPhase = ({
   const { completePhase } = useCompletePhase();
   const { skipConceptPhase } = useSkipConceptPhase();
 
-  const handleDocumentUploadSucceeded = () => {
-    const todayEst = getTodayEst();
-    setSubmittedDate(todayEst);
+  const handleDocumentUploadSucceeded = (payload?: UploadDocumentInput) => {
+    if (payload?.documentType === "Pre-Submission") {
+      const todayEst = getTodayEst();
+      setSubmittedDate(todayEst);
+    }
   };
 
   const getDateValidationMessage = (): string => {
-    if (documents.length > 0 && !submittedDate) {
+    if (
+      documents.filter((document) => document.documentType === "Pre-Submission").length > 0 &&
+      !submittedDate
+    ) {
       return "Date is required when documents are uploaded";
     } else if (documents.length === 0 && submittedDate) {
       return "At least one Pre-Submission document is required when date is provided";
