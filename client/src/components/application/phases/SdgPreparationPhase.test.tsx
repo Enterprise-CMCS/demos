@@ -21,7 +21,7 @@ vi.mock("components/toast", () => ({
 }));
 
 const mockSetApplicationDate = vi.fn();
-const mockSetPhaseStatus = vi.fn();
+const mockCompletePhase = vi.fn();
 
 vi.mock("components/application/date/dateQueries", () => ({
   useSetApplicationDate: () => ({
@@ -32,9 +32,9 @@ vi.mock("components/application/date/dateQueries", () => ({
   }),
 }));
 
-vi.mock("../phase-status/phaseStatusQueries", () => ({
-  useSetPhaseStatus: () => ({
-    setPhaseStatus: mockSetPhaseStatus,
+vi.mock("../phase-status/phaseCompletionQueries", () => ({
+  useCompletePhase: () => ({
+    completePhase: mockCompletePhase,
     data: null,
     loading: false,
     error: null,
@@ -248,7 +248,9 @@ describe("SdgPreparationPhase", () => {
   describe("SdgPreparationPhase - Phase Status Mutation", () => {
     it("shows success toast when Finish succeeds", async () => {
       mockSetApplicationDate.mockResolvedValue({ data: { setApplicationDate: { id: "1" } } });
-      mockSetPhaseStatus.mockResolvedValue({ data: { setPhaseStatus: { id: "1" } } });
+      mockCompletePhase.mockResolvedValue({
+        data: { completePhase: { __typename: "ApplicationPhase" } },
+      });
       setup(mockCompleteDemonstration);
 
       const finishButton = await screen.findByRole("button", { name: /finish/i });
@@ -258,14 +260,14 @@ describe("SdgPreparationPhase", () => {
 
       await waitFor(() => {
         expect(mockSetApplicationDate).toHaveBeenCalledTimes(4);
-        expect(mockSetPhaseStatus).toHaveBeenCalled();
+        expect(mockCompletePhase).toHaveBeenCalled();
         expect(showSuccess).toHaveBeenCalledWith(getPhaseCompletedMessage("SDG Preparation"));
       });
     });
 
     it("shows error toast when Finish fails", async () => {
       mockSetApplicationDate.mockResolvedValue({ data: { setApplicationDate: { id: "1" } } });
-      mockSetPhaseStatus.mockRejectedValue(new Error("Mutation failed"));
+      mockCompletePhase.mockRejectedValue(new Error("Mutation failed"));
       setup(mockCompleteDemonstration);
 
       const finishButton = await screen.findByRole("button", { name: /finish/i });

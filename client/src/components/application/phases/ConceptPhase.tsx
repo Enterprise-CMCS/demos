@@ -11,7 +11,6 @@ import {
   ApplicationWorkflowDocument,
 } from "../ApplicationWorkflow";
 import { formatDateForServer, getTodayEst } from "util/formatDate";
-import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
 import { DocumentList } from "./sections";
 import { useDialog } from "components/dialog/DialogContext";
 import { useToast } from "components/toast";
@@ -20,6 +19,7 @@ import { DatePicker } from "components/input/date/DatePicker";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import { PhaseName } from "../phase-selector/PhaseSelector";
 import type { LocalDate } from "demos-server";
+import { useCompletePhase, useSkipConceptPhase } from "../phase-status/phaseCompletionQueries";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -57,9 +57,7 @@ export const getConceptPhaseComponentFromDemonstration = (
   );
 };
 
-const getLatestDocumentDate = (
-  documents: ApplicationWorkflowDocument[]
-): LocalDate | null => {
+const getLatestDocumentDate = (documents: ApplicationWorkflowDocument[]): LocalDate | null => {
   if (documents.length === 0) return null;
 
   const createdAtDates = documents.map((doc) => doc.createdAt);
@@ -103,17 +101,8 @@ export const ConceptPhase = ({
     setIsSkipEnabled(!finishShouldBeEnabled);
   }, [submittedDate, documents]);
 
-  const { setPhaseStatus: completeConceptPhase } = useSetPhaseStatus({
-    applicationId: demonstrationId,
-    phaseName: "Concept",
-    phaseStatus: "Completed",
-  });
-
-  const { setPhaseStatus: skipConceptPhase } = useSetPhaseStatus({
-    applicationId: demonstrationId,
-    phaseName: "Concept",
-    phaseStatus: "Skipped",
-  });
+  const { completePhase } = useCompletePhase();
+  const { skipConceptPhase } = useSkipConceptPhase();
 
   const handleDocumentUploadSucceeded = () => {
     const todayEst = getTodayEst();
@@ -148,7 +137,10 @@ export const ConceptPhase = ({
     }
 
     try {
-      await completeConceptPhase();
+      await completePhase({
+        applicationId: demonstrationId,
+        phaseName: "Concept",
+      });
     } catch (error) {
       console.error("Error completing concept phase:", error);
       return;
@@ -160,7 +152,7 @@ export const ConceptPhase = ({
 
   const onSkip = async () => {
     try {
-      await skipConceptPhase();
+      await skipConceptPhase(demonstrationId);
     } catch (error) {
       console.error("Error skipping concept phase:", error);
       return;

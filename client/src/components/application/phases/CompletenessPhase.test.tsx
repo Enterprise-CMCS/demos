@@ -5,15 +5,14 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { TestProvider } from "test-utils/TestProvider";
 
-import {
-  CompletenessPhase,
-  CompletenessPhaseProps,
-} from "./CompletenessPhase";
+import { CompletenessPhase, CompletenessPhaseProps } from "./CompletenessPhase";
 
 import { ApplicationWorkflowDocument } from "../ApplicationWorkflow";
 
 const showCompletenessDocumentUploadDialog = vi.fn();
-const showDeclareIncompleteDialog = vi.fn();
+const showDeclareIncompleteDialog = vi.fn((callback) => {
+  callback();
+});
 
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
@@ -28,9 +27,14 @@ vi.mock("components/application/date/dateQueries", () => ({
   }),
 }));
 
-vi.mock("../phase-status/phaseStatusQueries", () => ({
-  useSetPhaseStatus: vi.fn(() => ({
-    setPhaseStatus: vi.fn(() => Promise.resolve()),
+const mockCompletePhase = vi.fn();
+const mockDeclareCompletenessPhaseIncomplete = vi.fn();
+vi.mock("../phase-status/phaseCompletionQueries", () => ({
+  useCompletePhase: vi.fn(() => ({
+    completePhase: mockCompletePhase,
+  })),
+  useDeclareCompletenessPhaseIncomplete: vi.fn(() => ({
+    declareCompletenessPhaseIncomplete: mockDeclareCompletenessPhaseIncomplete,
   })),
 }));
 
@@ -133,6 +137,37 @@ describe("CompletenessPhase", () => {
       const finishButton = screen.getByRole("button", { name: /finish/i });
       expect(finishButton).toBeEnabled();
     });
+
+    it("calls completePhase when finish button is clicked", async () => {
+      const user = userEvent.setup();
+      setup({
+        initialDocuments: [mockCompletenessDoc, mockInternalDoc],
+        stateDeemedCompleteDate: "2026-02-05",
+        fedCommentStartDate: "2026-02-06",
+        fedCommentEndDate: "2026-03-07",
+      });
+      const finishButton = screen.getByRole("button", { name: /finish/i });
+      await user.click(finishButton);
+      expect(mockCompletePhase).toHaveBeenCalledWith({
+        applicationId: "app-123",
+        phaseName: "Completeness",
+      });
+    });
+
+    it("passes declareCompletenessPhaseIncomplete to dialog when button is clicked", async () => {
+      const user = userEvent.setup();
+      setup({
+        initialDocuments: [mockCompletenessDoc, mockInternalDoc],
+        stateDeemedCompleteDate: "2026-02-05",
+        fedCommentStartDate: "2026-02-06",
+        fedCommentEndDate: "2026-03-07",
+      });
+
+      const declareIncompleteButton = screen.getByRole("button", { name: /declare-incomplete/i });
+      await user.click(declareIncompleteButton);
+
+      expect(mockDeclareCompletenessPhaseIncomplete).toHaveBeenCalledWith("app-123");
+    });
   });
 
   describe("Upload Modal", () => {
@@ -173,9 +208,7 @@ describe("CompletenessPhase", () => {
 
       // banner shows 2 days left
       const title = screen.getByText("2 days left");
-      const description = screen.getByText(
-        /This Demonstration must be declared complete by/
-      );
+      const description = screen.getByText(/This Demonstration must be declared complete by/);
       expect(title).toBeInTheDocument();
       expect(description).toBeInTheDocument();
 
