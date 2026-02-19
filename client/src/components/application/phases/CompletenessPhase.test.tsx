@@ -60,6 +60,7 @@ const mockInternalDoc: ApplicationWorkflowDocument = {
 };
 
 describe("CompletenessPhase", () => {
+  const mockSetSelectedPhase = vi.fn();
   const defaultProps: CompletenessPhaseProps = {
     applicationId: "app-123",
     applicationIntakeComplete: true,
@@ -69,6 +70,7 @@ describe("CompletenessPhase", () => {
     fedCommentEndDate: "",
     stateDeemedCompleteDate: "",
     initialDocuments: [],
+    setSelectedPhase: mockSetSelectedPhase,
   };
 
   const setup = (props: Partial<CompletenessPhaseProps> = {}) => {
@@ -139,7 +141,7 @@ describe("CompletenessPhase", () => {
       expect(finishButton).toBeEnabled();
     });
 
-    it("calls completePhase when finish button is clicked", async () => {
+    it("calls completePhase and selects next phase when finish button is clicked", async () => {
       const user = userEvent.setup();
       setup({
         initialDocuments: [mockCompletenessDoc, mockInternalDoc],
@@ -153,6 +155,7 @@ describe("CompletenessPhase", () => {
         applicationId: "app-123",
         phaseName: "Completeness",
       });
+      expect(mockSetSelectedPhase).toHaveBeenCalledWith("Federal Comment");
     });
 
     it("saves exact date values without timezone shift when finish button is clicked", async () => {
@@ -235,6 +238,7 @@ describe("CompletenessPhase", () => {
             completenessComplete={false}
             stateDeemedCompleteDate=""
             initialDocuments={[]}
+            setSelectedPhase={mockSetSelectedPhase}
           />
         </TestProvider>
       );
@@ -264,6 +268,7 @@ describe("CompletenessPhase", () => {
             completenessComplete={true}
             stateDeemedCompleteDate=""
             initialDocuments={[]}
+            setSelectedPhase={mockSetSelectedPhase}
           />
         </TestProvider>
       );
