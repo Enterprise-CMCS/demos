@@ -42,13 +42,23 @@ const ModificationTabContent = ({ modificationItem }: { modificationItem: Modifi
   return <ModificationTabSideNav modificationItem={modificationItem} />;
 };
 
+// Sorts ModificationItems by createdAt (newest first)
+const sortModificationItemsByCreatedAt = (items: ModificationItem[]): ModificationItem[] => {
+  return [...items].sort((a, b) => {
+    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return dateB - dateA;
+  });
+};
+
 export const ModificationTabs = ({ items }: { items: ModificationItem[] }) => {
   if (items.length === 0) {
     return null;
   }
 
-  const [selectedId, setSelectedId] = useState<string>(items[0]?.id ?? "");
-  const [selectedItem, setSelectedItem] = useState<ModificationItem>(items[0]);
+  const sortedItems = sortModificationItemsByCreatedAt(items);
+  const [selectedId, setSelectedId] = useState<string>(sortedItems[0]?.id ?? "");
+  const [selectedItem, setSelectedItem] = useState<ModificationItem>(sortedItems[0]);
 
   const handleTabSelect = (item: ModificationItem) => {
     setSelectedId(item.id);
@@ -58,7 +68,7 @@ export const ModificationTabs = ({ items }: { items: ModificationItem[] }) => {
   return (
     <div className={STYLES.modificationContainer}>
       <div className={STYLES.tabList}>
-        {items.map((item) => (
+        {sortedItems.map((item) => (
           <ModificationTab
             key={item.id}
             modificationItem={item}
