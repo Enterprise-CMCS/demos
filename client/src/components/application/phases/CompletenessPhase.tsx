@@ -4,14 +4,14 @@ import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
 import { formatDate, formatDateForServer, getTodayEst } from "util/formatDate";
-import { addDays, differenceInCalendarDays, startOfDay, endOfDay, parseISO } from "date-fns";
+import { addDays, differenceInCalendarDays, parseISO } from "date-fns";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
 } from "../ApplicationWorkflow";
 import { useToast } from "components/toast";
 import { DocumentList } from "./sections";
-import { ApplicationDateInput, UploadDocumentInput } from "demos-server";
+import { ApplicationDateInput, LocalDate, UploadDocumentInput } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
@@ -140,13 +140,13 @@ export const CompletenessPhase = ({
     getStateDeemedCompleteFromDocuments()
   );
   const [federalStartDate, setFederalStartDate] = useState<string>(() => {
-    if(fedCommentStartDate) return fedCommentStartDate;
-    const {fedStartDate} = getFederalCommentPeriodDates(stateDeemedComplete);
+    if (fedCommentStartDate) return fedCommentStartDate;
+    const { fedStartDate } = getFederalCommentPeriodDates(stateDeemedComplete);
     return fedStartDate ? formatDateForServer(fedStartDate) : "";
   });
   const [federalEndDate, setFederalEndDate] = useState<string>(() => {
-    if(fedCommentEndDate) return fedCommentEndDate;
-    const {fedEndDate} = getFederalCommentPeriodDates(stateDeemedComplete);
+    if (fedCommentEndDate) return fedCommentEndDate;
+    const { fedEndDate } = getFederalCommentPeriodDates(stateDeemedComplete);
     return fedEndDate ? formatDateForServer(fedEndDate) : "";
   });
   const [isNoticeDismissed, setNoticeDismissed] = useState(
@@ -215,15 +215,15 @@ export const CompletenessPhase = ({
     const dates: ApplicationDateInput[] = [
       {
         dateType: "State Application Deemed Complete",
-        dateValue: stateDeemedComplete ? startOfDay(stateDeemedComplete) : null,
+        dateValue: (stateDeemedComplete as LocalDate) || null,
       },
       {
         dateType: "Federal Comment Period Start Date",
-        dateValue: federalStartDate ? startOfDay(federalStartDate) : null,
+        dateValue: (federalStartDate as LocalDate) || null,
       },
       {
         dateType: "Federal Comment Period End Date",
-        dateValue: federalEndDate ? endOfDay(federalEndDate) : null,
+        dateValue: (federalEndDate as LocalDate) || null,
       },
     ];
 
