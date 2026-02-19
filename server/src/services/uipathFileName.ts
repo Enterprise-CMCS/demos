@@ -37,15 +37,10 @@ const s3MetadataClient = new S3Client(
         }
 );
 
-function extensionFromFileName(fileName?: string | null): string | null {
-  if (!fileName) return null;
-  const ext = path.extname(fileName).trim();
-  return ext ? ext : null;
-}
-
 function extensionFromContentType(contentType?: string): string | null {
   if (!contentType) return null;
   const normalized = contentType.toLowerCase().split(";")[0].trim();
+  console.log("extensionFromContentType Normalized content type:", normalized);
   return CONTENT_TYPE_TO_EXTENSION[normalized] ?? null;
 }
 
@@ -53,6 +48,7 @@ function extractFileNameFromContentDisposition(contentDisposition?: string): str
   if (!contentDisposition) return null;
 
   const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+  console.log("extractFileNameFromContentDisposition contentDisposition:", utf8Match);
   if (utf8Match?.[1]) {
     try {
       return decodeURIComponent(utf8Match[1]);
@@ -62,6 +58,7 @@ function extractFileNameFromContentDisposition(contentDisposition?: string): str
   }
 
   const simpleMatch = contentDisposition.match(/filename="?([^";]+)"?/i);
+  console.log("extractFileNameFromContentDisposition simpleMatch:", simpleMatch?.[1]);
   return simpleMatch?.[1] ?? null;
 }
 
@@ -85,6 +82,8 @@ async function extensionFromFileContent(
 
     const bytes = await objectResponse.Body.transformToByteArray();
     const fileType = await fileTypeFromBuffer(bytes);
+    console.log("fileType", fileType);
+
     return fileType ? `.${fileType.ext}` : null;
   } catch {
     return null;
@@ -104,10 +103,6 @@ export async function resolveFileNameWithExtension({
   documentName,
   s3Client = s3MetadataClient,
 }: ResolveFileNameWithExtensionInput): Promise<string> {
-  const existingExtension = extensionFromFileName(documentName);
-  if (existingExtension) {
-    return documentName;
-  }
 
   const head = (await s3Client.send(
     new HeadObjectCommand({
@@ -123,9 +118,15 @@ export async function resolveFileNameWithExtension({
     metadata.originalfilename ??
     metadata["original-file-name"];
 
+  const metadataExtension = metadataFileName ? path.extname(metadataFileName).trim() || null : null;
+  const contentDispositionFileName = extractFileNameFromContentDisposition(head.ContentDisposition);
+  const contentDispositionExtension = contentDispositionFileName
+    ? path.extname(contentDispositionFileName).trim() || null
+    : null;
+
   const inferredExtension =
-    extensionFromFileName(metadataFileName) ??
-    extensionFromFileName(extractFileNameFromContentDisposition(head.ContentDisposition)) ??
+      metadataExtension ??
+    contentDispositionExtension ??
     extensionFromContentType(head.ContentType) ??
     (await extensionFromFileContent(s3Client, bucket, key));
 

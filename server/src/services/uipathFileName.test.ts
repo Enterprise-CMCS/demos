@@ -31,20 +31,6 @@ function createMockS3Client(
 }
 
 describe("resolveFileNameWithExtension", () => {
-  it("returns original document name when it already has an extension", async () => {
-    const mockS3 = createMockS3Client({ $metadata: { httpStatusCode: 200 } });
-
-    const result = await resolveFileNameWithExtension({
-      bucket: "clean-bucket",
-      key: "123/doc",
-      documentName: "doc.pdf",
-      s3Client: mockS3,
-    });
-
-    expect(result).toBe("doc.pdf");
-    expect(mockS3.send).not.toHaveBeenCalled();
-  });
-
   it("uses metadata filename extension when available", async () => {
     const mockS3 = createMockS3Client({
       Metadata: {
