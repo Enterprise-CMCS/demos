@@ -10,6 +10,7 @@ import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
 import { Document, Person } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
+import { selectionTooltip } from "./actionTooltips";
 
 export type DocumentTableDocument = Pick<
   Document,
@@ -44,22 +45,42 @@ export const DocumentTable: React.FC<DocumentsTableProps> = ({ applicationId, do
           initialState={initialState}
           actionButtons={(table) => {
             const selectedDocs = table.getSelectedRowModel().rows.map((row) => row.original);
-            const editDisabled = selectedDocs.length !== 1;
-            const removeDisabled = selectedDocs.length < 1;
+            const selectedCount = selectedDocs.length;
+
+            const editEnabled = selectedCount === 1;
+            const deleteEnabled = selectedCount >= 1;
+
+            const editTooltip = selectionTooltip({
+              action: "Edit",
+              nounSingular: "Document",
+              selectedCount,
+              rule: { kind: "exactly", count: 1 },
+            });
+
+            const deleteTooltip = selectionTooltip({
+              action: "Delete",
+              nounSingular: "Document",
+              selectedCount,
+              rule: { kind: "atLeast", count: 1 },
+            });
+
             return (
               <div className="flex gap-1 ml-4">
                 <CircleButton
                   name="add-document"
                   ariaLabel="Add Document"
+                  tooltip="Add Document"
                   onClick={() => showUploadDocumentDialog(applicationId)}
                 >
                   <ImportIcon />
                 </CircleButton>
+
                 <CircleButton
                   name="edit-document"
                   ariaLabel="Edit Document"
+                  tooltip={editTooltip}
+                  disabled={!editEnabled}
                   onClick={() =>
-                    !editDisabled &&
                     showEditDocumentDialog({
                       id: selectedDocs[0].id,
                       name: selectedDocs[0].name,
@@ -68,17 +89,16 @@ export const DocumentTable: React.FC<DocumentsTableProps> = ({ applicationId, do
                       file: null,
                     })
                   }
-                  disabled={editDisabled}
                 >
                   <EditIcon />
                 </CircleButton>
+
                 <CircleButton
                   name="remove-document"
                   ariaLabel="Remove Document"
-                  onClick={() =>
-                    !removeDisabled && showRemoveDocumentDialog(selectedDocs.map((doc) => doc.id))
-                  }
-                  disabled={removeDisabled}
+                  tooltip={deleteTooltip}
+                  disabled={!deleteEnabled}
+                  onClick={() => showRemoveDocumentDialog(selectedDocs.map((doc) => doc.id))}
                 >
                   <DeleteIcon />
                 </CircleButton>
