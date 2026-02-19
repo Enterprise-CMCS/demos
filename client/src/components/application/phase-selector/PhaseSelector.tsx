@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import type { PhaseName as ServerPhase, PhaseStatus as ServerPhaseStatus } from "demos-server";
+import type { DateType, PhaseName as ServerPhase, PhaseStatus as ServerPhaseStatus } from "demos-server";
 
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import {
@@ -20,6 +20,56 @@ import { PhaseBox } from "./PhaseBox";
 export type PhaseStatus = ServerPhaseStatus | "past-due";
 export type PhaseName = Exclude<ServerPhase, "None">;
 const PHASE_NAMES: PhaseName[] = PHASE_NAME.filter((phase): phase is PhaseName => phase !== "None");
+
+type PhaseDateDisplayMap = {
+  [P in PhaseName]?: {
+    [S in PhaseStatus]?: DateType;
+  };
+};
+
+const PHASE_DISPLAY_DATES: PhaseDateDisplayMap = {
+  Concept: {
+    "Started": "Concept Start Date",
+    "Completed": "Concept Completion Date",
+    "Not Started": "Concept Start Date",
+    "Skipped": "Concept Skipped Date",
+  },
+  "Application Intake": {
+    "Started": "Application Intake Start Date",
+    "Completed": "Application Intake Completion Date",
+    "Not Started": "Application Intake Start Date",
+  },
+  Completeness: {
+    "Started": "Completeness Start Date",
+    "Completed": "Completeness Completion Date",
+    "Not Started": "Completeness Start Date",
+  },
+  "Federal Comment": {
+    "Started": "Federal Comment Period Start Date",
+    "Completed": "Federal Comment Period End Date",
+    "Not Started": "Federal Comment Period Start Date",
+  },
+  "SDG Preparation": {
+    "Started": "SDG Preparation Start Date",
+    "Completed": "SDG Preparation Completion Date",
+    "Not Started": "SDG Preparation Start Date",
+  },
+  Review: {
+    "Started": "Review Start Date",
+    "Completed": "Review Completion Date",
+    "Not Started": "Review Start Date",
+  },
+  "Approval Package": {
+    "Started": "Approval Package Start Date",
+    "Completed": "Approval Package Completion Date",
+    "Not Started": "Approval Package Start Date",
+  },
+  "Approval Summary": {
+    "Started": "Approval Summary Start Date",
+    "Completed": "Approval Summary Completion Date",
+    "Not Started": "Approval Summary Start Date",
+  },
+};
 
 const PhaseGroups = () => {
   const leftBorderStyles = "border-l-1 border-surface-placeholder pl-2 -ml-sm";
@@ -51,15 +101,8 @@ export const getDisplayedPhaseDate = (
   const phase = demonstration.phases.find((p) => p.phaseName === phaseName);
   if (!phase) return undefined;
 
-  // Find the most relevant date for display
-  // Prioritize completion dates, then submitted dates, then start dates
-  const relevantDate =
-    phase.phaseDates.find(
-      (date) => date.dateType.includes("Completion Date") || date.dateType.includes("Complete")
-    ) ||
-    phase.phaseDates.find((date) => date.dateType.includes("Submitted")) ||
-    phase.phaseDates.find((date) => date.dateType.includes("Start Date")) ||
-    phase.phaseDates[0];
+  const relevantDateName = PHASE_DISPLAY_DATES[phaseName]?.[phase.phaseStatus];
+  const relevantDate = phase.phaseDates.find((date) => date.dateType === relevantDateName);
 
   return relevantDate?.dateValue ? new Date(relevantDate.dateValue) : undefined;
 };
