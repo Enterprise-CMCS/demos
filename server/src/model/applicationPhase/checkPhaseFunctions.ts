@@ -95,18 +95,18 @@ export function checkDocumentTypeExistsForCompletion(
   }
 }
 
-export function checkPriorPhaseCompleteForCompletion(
+export function checkPriorPhaseCompleteOrSkippedForCompletion(
   applicationId: string,
   phaseToValidate: PhaseNameWithTrackedStatus,
-  phaseToCheckComplete: PhaseNameWithTrackedStatus,
+  phaseToCheckCompleteOrSkipped: PhaseNameWithTrackedStatus,
   applicationPhases: ApplicationPhaseStatusRecord
 ): void {
-  const actualPhaseStatus = applicationPhases[phaseToCheckComplete];
-  const check = actualPhaseStatus === "Completed";
+  const actualPhaseStatus = applicationPhases[phaseToCheckCompleteOrSkipped];
+  const check = actualPhaseStatus === "Completed" || actualPhaseStatus === "Skipped";
   if (!check) {
     throw new Error(
-      `${phaseToValidate} phase for application ${applicationId} requires the phase ${phaseToCheckComplete} ` +
-        `to be status Completed, but it is ${actualPhaseStatus}.`
+      `${phaseToValidate} phase for application ${applicationId} requires the phase ${phaseToCheckCompleteOrSkipped} ` +
+        `to be status Completed or status Skipped, but it is ${actualPhaseStatus}.`
     );
   }
 }

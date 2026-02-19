@@ -6,7 +6,7 @@ import {
   checkDocumentTypeExistsForCompletion,
   checkPhaseStartedBeforeCompletion,
   checkPhaseStatus,
-  checkPriorPhaseCompleteForCompletion,
+  checkPriorPhaseCompleteOrSkippedForCompletion,
 } from "./checkPhaseFunctions.js";
 import { ApplicationDateMap } from "../applicationDate/applicationDateTypes.js";
 import {
@@ -186,15 +186,15 @@ describe("checkPhaseFunctions", () => {
   });
 
   describe("checkPriorPhaseCompleteForCompletion", () => {
-    it("should throw if trying to complete a phase if the required previous phase is not Completed", () => {
+    it("should throw if trying to complete a phase if the required previous phase is not Completed or Skipped", () => {
       const testApplicationPhases: Partial<ApplicationPhaseStatusRecord> = {
         "Application Intake": "Started",
       };
       const expectedError =
         `${testPhaseName} phase for application ${testApplicationId} requires the phase ` +
-        `${testPhaseToCheckComplete} to be status Completed, but it is Started.`;
+        `${testPhaseToCheckComplete} to be status Completed or status Skipped, but it is Started.`;
       expect(() =>
-        checkPriorPhaseCompleteForCompletion(
+        checkPriorPhaseCompleteOrSkippedForCompletion(
           testApplicationId,
           testPhaseName,
           testPhaseToCheckComplete,
@@ -208,7 +208,21 @@ describe("checkPhaseFunctions", () => {
         "Application Intake": "Completed",
       };
       expect(() =>
-        checkPriorPhaseCompleteForCompletion(
+        checkPriorPhaseCompleteOrSkippedForCompletion(
+          testApplicationId,
+          testPhaseName,
+          testPhaseToCheckComplete,
+          testApplicationPhases as ApplicationPhaseStatusRecord
+        )
+      ).not.toThrow();
+    });
+
+    it("should not throw if trying to complete a phase where the required previous phase is Skipped", () => {
+      const testApplicationPhases: Partial<ApplicationPhaseStatusRecord> = {
+        "Application Intake": "Skipped",
+      };
+      expect(() =>
+        checkPriorPhaseCompleteOrSkippedForCompletion(
           testApplicationId,
           testPhaseName,
           testPhaseToCheckComplete,

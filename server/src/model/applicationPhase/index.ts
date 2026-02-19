@@ -6,7 +6,7 @@ export {
   checkConceptPhaseStartedBeforeSkipping,
   checkDocumentTypeExistsForCompletion,
   checkPhaseStartedBeforeCompletion,
-  checkPriorPhaseCompleteForCompletion,
+  checkPriorPhaseCompleteOrSkippedForCompletion,
 } from "./checkPhaseFunctions.js";
 export { checkPhaseCompletionRules } from "./checkPhaseCompletionRules.js";
 export { validatePhaseCompletion } from "./validatePhaseCompletion.js";

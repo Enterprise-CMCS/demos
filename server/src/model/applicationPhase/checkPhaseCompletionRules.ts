@@ -6,7 +6,7 @@ import {
   PhaseCompletionValidationChecksRecord,
   checkApplicationDateExistsForCompletion,
   checkDocumentTypeExistsForCompletion,
-  checkPriorPhaseCompleteForCompletion,
+  checkPriorPhaseCompleteOrSkippedForCompletion,
   checkPhaseStartedBeforeCompletion,
 } from ".";
 import { CMS_OSORA_CLEARANCE_DATE_TYPES, COMMS_CLEARANCE_DATE_TYPES } from "../../constants.js";
@@ -15,12 +15,12 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
   Concept: {
     datesMustExist: ["Pre-Submission Submitted Date"],
     documentTypesMustExist: ["Pre-Submission"],
-    phasesMustBeComplete: [],
+    phasesMustBeCompleteOrSkipped: [],
   },
   "Application Intake": {
     datesMustExist: ["State Application Submitted Date", "Completeness Review Due Date"],
     documentTypesMustExist: ["State Application"],
-    phasesMustBeComplete: [],
+    phasesMustBeCompleteOrSkipped: ["Concept"],
   },
   Completeness: {
     datesMustExist: [
@@ -32,7 +32,7 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
       "Application Completeness Letter",
       "Internal Completeness Review Form",
     ],
-    phasesMustBeComplete: ["Application Intake"],
+    phasesMustBeCompleteOrSkipped: ["Application Intake"],
   },
   "Federal Comment": "No Validation",
   "SDG Preparation": {
@@ -43,7 +43,7 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
       "BNPMT Initial Meeting Date",
     ],
     documentTypesMustExist: [],
-    phasesMustBeComplete: ["Application Intake", "Completeness", "Federal Comment"],
+    phasesMustBeCompleteOrSkipped: ["Application Intake", "Completeness", "Federal Comment"],
   },
   Review: {
     datesMustExist: [
@@ -57,7 +57,7 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
       "Receive OGC Legal Clearance",
     ],
     documentTypesMustExist: [],
-    phasesMustBeComplete: [
+    phasesMustBeCompleteOrSkipped: [
       "Application Intake",
       "Completeness",
       "Federal Comment",
@@ -74,7 +74,7 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
       "Approval Letter",
       "Signed Decision Memo",
     ],
-    phasesMustBeComplete: [
+    phasesMustBeCompleteOrSkipped: [
       "Application Intake",
       "Completeness",
       "Federal Comment",
@@ -88,7 +88,7 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
       "Application Demonstration Types Marked Complete Date",
     ],
     documentTypesMustExist: [],
-    phasesMustBeComplete: [
+    phasesMustBeCompleteOrSkipped: [
       "Application Intake",
       "Completeness",
       "Federal Comment",
@@ -129,7 +129,7 @@ export function checkPhaseCompletionRules(
 
   const applicationDateMap = makeApplicationDateMapFromList(applicationDates);
   const documentTypesToCheck = validationChecks.documentTypesMustExist;
-  const phasesToCheckComplete = validationChecks.phasesMustBeComplete;
+  const phasesToCheckCompleteOrSkipped = validationChecks.phasesMustBeCompleteOrSkipped;
 
   if (datesToCheck.length !== 0) {
     for (const dateToCheck of datesToCheck) {
@@ -153,12 +153,12 @@ export function checkPhaseCompletionRules(
     }
   }
 
-  if (phasesToCheckComplete.length !== 0) {
-    for (const phaseToCheckComplete of phasesToCheckComplete) {
-      checkPriorPhaseCompleteForCompletion(
+  if (phasesToCheckCompleteOrSkipped.length !== 0) {
+    for (const phaseToCheckCompleteOrSkipped of phasesToCheckCompleteOrSkipped) {
+      checkPriorPhaseCompleteOrSkippedForCompletion(
         applicationId,
         phaseToValidate,
-        phaseToCheckComplete,
+        phaseToCheckCompleteOrSkipped,
         applicationPhases
       );
     }

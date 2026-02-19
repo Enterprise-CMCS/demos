@@ -7,7 +7,7 @@ import { DateType, DocumentType, PhaseNameWithTrackedStatus, PhaseStatus } from 
 export type ValidationChecks = {
   datesMustExist: DateType[];
   documentTypesMustExist: DocumentType[];
-  phasesMustBeComplete: PhaseNameWithTrackedStatus[];
+  phasesMustBeCompleteOrSkipped: PhaseNameWithTrackedStatus[];
 };
 
 export type PhaseCompletionValidationChecksRecord = Record<
