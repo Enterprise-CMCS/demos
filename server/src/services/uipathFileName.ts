@@ -1,13 +1,18 @@
 import path from "node:path";
 import {
+  GetObjectCommand,
+  type GetObjectCommandOutput,
   HeadObjectCommand,
   type HeadObjectCommandOutput,
   S3Client,
 } from "@aws-sdk/client-s3";
 import { CONTENT_TYPE_TO_EXTENSION } from "../constants.js";
+import { fileTypeFromBuffer } from "file-type";
 
 type S3HeadClient = {
-  send(command: HeadObjectCommand): Promise<HeadObjectCommandOutput>;
+  send(
+    command: HeadObjectCommand | GetObjectCommand
+  ): Promise<HeadObjectCommandOutput | GetObjectCommandOutput>;
 };
 
 const s3MetadataClient = new S3Client(
@@ -60,6 +65,32 @@ function extractFileNameFromContentDisposition(contentDisposition?: string): str
   return simpleMatch?.[1] ?? null;
 }
 
+async function extensionFromFileContent(
+  s3Client: S3HeadClient,
+  bucket: string,
+  key: string
+): Promise<string | null> {
+  try {
+    const objectResponse = (await s3Client.send(
+      new GetObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Range: "bytes=0-4095",
+      })
+    )) as GetObjectCommandOutput;
+
+    if (!objectResponse.Body || !("transformToByteArray" in objectResponse.Body)) {
+      return null;
+    }
+
+    const bytes = await objectResponse.Body.transformToByteArray();
+    const fileType = await fileTypeFromBuffer(bytes);
+    return fileType ? `.${fileType.ext}` : null;
+  } catch {
+    return null;
+  }
+}
+
 type ResolveFileNameWithExtensionInput = {
   bucket: string;
   key: string;
@@ -78,12 +109,12 @@ export async function resolveFileNameWithExtension({
     return documentName;
   }
 
-  const head = await s3Client.send(
+  const head = (await s3Client.send(
     new HeadObjectCommand({
       Bucket: bucket,
       Key: key,
     })
-  );
+  )) as HeadObjectCommandOutput;
 
   const metadata = head.Metadata ?? {};
   const metadataFileName =
@@ -95,7 +126,8 @@ export async function resolveFileNameWithExtension({
   const inferredExtension =
     extensionFromFileName(metadataFileName) ??
     extensionFromFileName(extractFileNameFromContentDisposition(head.ContentDisposition)) ??
-    extensionFromContentType(head.ContentType);
+    extensionFromContentType(head.ContentType) ??
+    (await extensionFromFileContent(s3Client, bucket, key));
 
   if (!inferredExtension) {
     throw new Error(

@@ -27,7 +27,6 @@ interface LambdaProps extends CommonProps {
   nodeModules?: string[];
   depsLockFilePath?: string;
   commandHooks?: ICommandHooks;
-  environmentEncryptionKey?: aws_kms.IKey;
 }
 
 export function create(props: LambdaProps, id: string) {

@@ -14,12 +14,12 @@ import type {
 import { getS3Adapter } from "../../adapters";
 import { getEasternNow, parseJSDateToEasternTZDate } from "../../dateUtilities";
 import { addDays } from "date-fns";
-import path from "node:path";
 import { getApplication, PrismaApplication } from "../application";
 import { findUserById } from "../user";
 import { validateAndUpdateDates } from "../applicationDate";
 import { startPhaseByDocument } from "../applicationPhase";
 import { enqueueUiPath, parseS3Path } from "../../services/uipathQueue";
+import { resolveFileNameWithExtension } from "../../services/uipathFileName";
 import {
   checkDocumentExists,
   getDocumentById,
@@ -163,9 +163,11 @@ export async function triggerUiPath(
     return await prisma().$transaction(async (tx) => {
       const document = await getDocumentById(tx, documentId);
       const { bucket, key } = parseS3Path(document.s3Path);
-
-      const hasExtension = path.extname(document.name ?? "") !== "";
-      const fileNameWithExtension = hasExtension ? document.name : `${document.name}.pdf`;
+      const fileNameWithExtension = await resolveFileNameWithExtension({
+        bucket,
+        key,
+        documentName: document.name,
+      });
 
       return await enqueueUiPath({
         s3Bucket: bucket,

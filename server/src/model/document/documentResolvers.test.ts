@@ -12,6 +12,7 @@ import { getApplication } from "../application";
 import { validateAndUpdateDates } from "../applicationDate";
 import { startPhaseByDocument } from "../applicationPhase";
 import { enqueueUiPath, parseS3Path } from "../../services/uipathQueue";
+import { resolveFileNameWithExtension } from "../../services/uipathFileName";
 import { getDocumentById, checkDocumentExists, updateDocument, handleDeleteDocument } from ".";
 import {
   getDocument,
@@ -61,6 +62,10 @@ vi.mock("../applicationDate", () => ({
 vi.mock("../../services/uipathQueue", () => ({
   enqueueUiPath: vi.fn(),
   parseS3Path: vi.fn(),
+}));
+
+vi.mock("../../services/uipathFileName", () => ({
+  resolveFileNameWithExtension: vi.fn(),
 }));
 
 vi.mock("../user", () => ({
@@ -282,7 +287,7 @@ describe("documentResolvers", () => {
   });
 
   describe("triggerUiPath", () => {
-    it("enqueues UiPath with inferred pdf extension when document name has no extension", async () => {
+    it("enqueues UiPath using resolved file extension", async () => {
       const s3Path = "s3://clean-bucket/path/to/alaska_doc";
       vi.mocked(getDocumentById).mockResolvedValue({
         ...mockDocument,
@@ -293,12 +298,18 @@ describe("documentResolvers", () => {
         bucket: "clean-bucket",
         key: "path/to/alaska_doc",
       });
+      vi.mocked(resolveFileNameWithExtension).mockResolvedValue("alaska_doc.pdf");
       vi.mocked(enqueueUiPath).mockResolvedValue("msg-123");
 
       const result = await triggerUiPath(undefined, { documentId: testDocumentId });
 
       expect(getDocumentById).toHaveBeenCalledExactlyOnceWith(mockTransaction, testDocumentId);
       expect(parseS3Path).toHaveBeenCalledExactlyOnceWith(s3Path);
+      expect(resolveFileNameWithExtension).toHaveBeenCalledExactlyOnceWith({
+        bucket: "clean-bucket",
+        key: "path/to/alaska_doc",
+        documentName: "alaska_doc",
+      });
       expect(enqueueUiPath).toHaveBeenCalledExactlyOnceWith({
         s3Bucket: "clean-bucket",
         s3FileName: "path/to/alaska_doc",
@@ -307,7 +318,7 @@ describe("documentResolvers", () => {
       expect(result).toBe("msg-123");
     });
 
-    it("enqueues UiPath with existing extension when present on document name", async () => {
+    it("passes through resolved filename when document already has extension", async () => {
       const s3Path = "s3://clean-bucket/path/to/alaska_doc.docx";
       vi.mocked(getDocumentById).mockResolvedValue({
         ...mockDocument,
@@ -318,6 +329,7 @@ describe("documentResolvers", () => {
         bucket: "clean-bucket",
         key: "path/to/alaska_doc.docx",
       });
+      vi.mocked(resolveFileNameWithExtension).mockResolvedValue("alaska_doc.docx");
       vi.mocked(enqueueUiPath).mockResolvedValue("msg-456");
 
       const result = await triggerUiPath(undefined, { documentId: testDocumentId });
@@ -342,6 +354,7 @@ describe("documentResolvers", () => {
       await expect(triggerUiPath(undefined, { documentId: testDocumentId })).rejects.toThrow(
         "Document s3Path is not a valid S3 URI: s3://broken"
       );
+      expect(resolveFileNameWithExtension).not.toHaveBeenCalled();
       expect(enqueueUiPath).not.toHaveBeenCalled();
     });
   });
