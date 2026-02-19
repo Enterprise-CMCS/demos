@@ -147,7 +147,7 @@ export const useDialog = () => {
 
   const showConceptPreSubmissionDocumentUploadDialog = (
     applicationId: string,
-    onDocumentUploadSucceeded: () => void
+    onDocumentUploadSucceeded: (payload?: UploadDocumentInput) => void
   ) => {
     context.showDialog(
       <ConceptPreSubmissionUploadDialog

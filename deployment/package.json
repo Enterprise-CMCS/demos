@@ -5,6 +5,11 @@
   "bin": {
     "demosctl": "demosctl/index.ts"
   },
+  "overrides": {
+    "@aws-sdk/client-s3": {
+      "fast-xml-parser": "^5.3.6"
+    }
+  },
   "scripts": {
     "diff:core": "cdk diff --context stage=dev demos-dev-core",
     "deploy:core": "cdk deploy --context stage=dev demos-dev-core",
@@ -24,7 +29,7 @@
     "@types/node": "^24.10.13",
     "@types/pg": "^8.16.0",
     "aws-cdk-local": "^3.0.1",
-    "eslint": "^9.39.2",
+    "eslint": "^10.0.0",
     "jest": "^30.2.0",
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",

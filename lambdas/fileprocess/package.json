@@ -2,6 +2,11 @@
   "name": "fileprocess-lambda",
   "version": "1.0.0",
   "type": "module",
+  "overrides": {
+    "@aws-sdk/client-s3": {
+      "fast-xml-parser": "^5.3.6"
+    }
+  },
   "scripts": {
     "test": "vitest run --coverage",
     "lint": "tsc --noEmit --skipLibCheck"

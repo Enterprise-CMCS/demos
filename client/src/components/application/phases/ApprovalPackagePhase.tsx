@@ -10,12 +10,9 @@ import {
 import { DocumentType } from "demos-server";
 import { formatDate } from "util/formatDate";
 import { Button } from "components/button";
-import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
+import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 import { useToast } from "components/toast";
-import {
-  FAILED_TO_SAVE_MESSAGE,
-  getPhaseCompletedMessage,
-} from "util/messages";
+import { FAILED_TO_SAVE_MESSAGE, getPhaseCompletedMessage } from "util/messages";
 
 export interface ApprovalPackagePhaseProps {
   demonstrationId: string;
@@ -79,11 +76,7 @@ export const ApprovalPackagePhase = ({
   allPreviousPhasesDone,
 }: ApprovalPackagePhaseProps) => {
   const { showSuccess, showError } = useToast();
-  const { setPhaseStatus: completeApprovalPackagePhase } = useSetPhaseStatus({
-    applicationId: demonstrationId,
-    phaseName: "Approval Package",
-    phaseStatus: "Completed",
-  });
+  const { completePhase } = useCompletePhase();
 
   const tableRows: ApprovalPackageTableRow[] = REQUIRED_TYPES.map((type) => {
     const doc = documents.find((doc) => doc?.documentType === type);
@@ -115,7 +108,10 @@ export const ApprovalPackagePhase = ({
 
   const handleFinishApprovalPackagePhase = async () => {
     try {
-      await completeApprovalPackagePhase();
+      await completePhase({
+        applicationId: demonstrationId,
+        phaseName: "Approval Package",
+      });
     } catch {
       showError(FAILED_TO_SAVE_MESSAGE);
       return;

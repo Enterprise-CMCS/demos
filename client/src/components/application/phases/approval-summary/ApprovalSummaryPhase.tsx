@@ -8,7 +8,7 @@ import { DemonstrationTypesSection } from "./demonstrationTypesSection";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import { Button } from "components/button";
-import { useCompletePhase } from "components/application/phase-status/phaseStatusQueries";
+import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 import { useToast } from "components/toast";
 import { getPhaseCompletedMessage } from "util/messages";
 
@@ -148,24 +148,20 @@ export const ApprovalSummaryPhase = ({
   );
 
   // Initialize completion date from backend if available
-  const [applicationDetailsCompletionDate, setApplicationDetailsCompletionDate] =
-    useState<string | undefined>(
-      applicationDetailsCompleteDate
-        ? formatDate(applicationDetailsCompleteDate)
-        : undefined
-    );
+  const [applicationDetailsCompletionDate, setApplicationDetailsCompletionDate] = useState<
+    string | undefined
+  >(applicationDetailsCompleteDate ? formatDate(applicationDetailsCompleteDate) : undefined);
 
   // Find Approval Summary phase completion date (if backend has stored it)
   const approvalSummaryCompletionDateValue = approvalSummaryPhase?.phaseDates?.find(
     (date) => date.dateType === "Approval Summary Completion Date"
   )?.dateValue;
 
-  const [approvalSummaryCompletionDate, setApprovalSummaryCompletionDate] =
-    useState<string | undefined>(
-      approvalSummaryCompletionDateValue
-        ? formatDate(approvalSummaryCompletionDateValue)
-        : undefined
-    );
+  const [approvalSummaryCompletionDate, setApprovalSummaryCompletionDate] = useState<
+    string | undefined
+  >(
+    approvalSummaryCompletionDateValue ? formatDate(approvalSummaryCompletionDateValue) : undefined
+  );
 
   const [updateDemonstrationTrigger] = useMutation(UPDATE_DEMONSTRATION_MUTATION);
 
@@ -233,9 +229,7 @@ export const ApprovalSummaryPhase = ({
 
   const setApplicationDetailsUIState = (complete: boolean) => {
     setIsApplicationDetailsComplete(complete);
-    setApplicationDetailsCompletionDate(
-      complete ? formatDate(getTodayEst()) : undefined
-    );
+    setApplicationDetailsCompletionDate(complete ? formatDate(getTodayEst()) : undefined);
   };
 
   const handleMarkComplete = async () => {

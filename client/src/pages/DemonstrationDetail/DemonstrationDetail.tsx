@@ -11,9 +11,9 @@ import {
 } from "demos-server";
 import { useLocation, useParams } from "react-router-dom";
 import { gql, useQuery } from "@apollo/client";
-import { AmendmentsTab } from "./AmendmentsTab";
+import { AmendmentsTab } from "./modifications/AmendmentsTab";
 import { DemonstrationTab } from "./DemonstrationTab";
-import { ExtensionsTab } from "./ExtensionsTab";
+import { ExtensionsTab } from "./modifications/ExtensionsTab";
 import { Tab, Tabs } from "layout/Tabs";
 
 export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
