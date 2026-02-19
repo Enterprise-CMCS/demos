@@ -12,9 +12,9 @@ const STYLES = {
 export interface ModificationItem {
   id: string;
   name: string;
-  description?: string | null;
-  status?: string | null;
-  createdAt?: Date | string;
+  description?: string;
+  status: string;
+  createdAt: Date;
 }
 
 const ModificationTab = ({
@@ -46,9 +46,7 @@ const ModificationTabContent = ({ modificationItem }: { modificationItem: Modifi
 // Sorts ModificationItems by createdAt (newest first)
 const sortModificationItemsByCreatedAt = (items: ModificationItem[]): ModificationItem[] => {
   return [...items].sort((a, b) => {
-    const dateA = a.createdAt ?? new Date(0);
-    const dateB = b.createdAt ?? new Date(0);
-    return compareAsc(dateB, dateA);
+    return compareAsc(b.createdAt, a.createdAt);
   });
 };
 
