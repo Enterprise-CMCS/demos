@@ -215,15 +215,15 @@ export const CompletenessPhase = ({
     const dates: ApplicationDateInput[] = [
       {
         dateType: "State Application Deemed Complete",
-        dateValue: (stateDeemedComplete as LocalDate) || null,
+        dateValue: stateDeemedComplete as LocalDate,
       },
       {
         dateType: "Federal Comment Period Start Date",
-        dateValue: (federalStartDate as LocalDate) || null,
+        dateValue: federalStartDate as LocalDate,
       },
       {
         dateType: "Federal Comment Period End Date",
-        dateValue: (federalEndDate as LocalDate) || null,
+        dateValue: federalEndDate as LocalDate,
       },
     ];
 
