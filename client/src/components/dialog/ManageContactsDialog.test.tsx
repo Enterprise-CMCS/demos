@@ -406,7 +406,7 @@ describe("ManageContactsDialog", () => {
       expect(screen.getByText("John Doe")).toBeInTheDocument();
     });
 
-    const deleteButton = screen.getByRole("button", { name: "Delete Contact" });
+    const deleteButton = screen.getByRole("button", { name: "Delete Contact - Delete" });
     await user.click(deleteButton);
 
     // Wait for confirmation dialog and confirm deletion
@@ -447,7 +447,7 @@ describe("ManageContactsDialog", () => {
       expect(screen.getByText("John Doe")).toBeInTheDocument();
     });
 
-    const deleteButton = screen.getByRole("button", { name: "Delete Contact" });
+    const deleteButton = screen.getByRole("button", { name: "Delete Contact - Assign another Primary Project Officer to Delete" });
     expect(deleteButton).toBeDisabled();
   });
 
@@ -501,17 +501,17 @@ describe("ManageContactsDialog", () => {
 
     // Primary Project Officer should be disabled
     const johnRow = screen.getByText("John Doe").closest("tr");
-    const johnDeleteButton = within(johnRow!).getByRole("button", { name: "Delete Contact" });
+    const johnDeleteButton = within(johnRow!).getByRole("button", { name: "Delete Contact - Assign another Primary Project Officer to Delete" });
     expect(johnDeleteButton).toBeDisabled();
 
     // Primary State Point of Contact should be enabled (not a Project Officer)
     const janeRow = screen.getByText("Jane Smith").closest("tr");
-    const janeDeleteButton = within(janeRow!).getByRole("button", { name: "Delete Contact" });
+    const janeDeleteButton = within(janeRow!).getByRole("button", { name: "Delete Contact - Delete" });
     expect(janeDeleteButton).not.toBeDisabled();
 
     // Non-primary State Point of Contact should be enabled
     const bobRow = screen.getByText("Bob Wilson").closest("tr");
-    const bobDeleteButton = within(bobRow!).getByRole("button", { name: "Delete Contact" });
+    const bobDeleteButton = within(bobRow!).getByRole("button", { name: "Delete Contact - Delete" });
     expect(bobDeleteButton).not.toBeDisabled();
   });
 
@@ -768,7 +768,7 @@ describe("ManageContactsDialog", () => {
         expect(screen.getByText("John Doe")).toBeInTheDocument();
       });
 
-      const deleteButton = screen.getByRole("button", { name: "Delete Contact" });
+      const deleteButton = screen.getByRole("button", { name: "Delete Contact - Delete" });
       await user.click(deleteButton);
 
       await waitFor(() => {
@@ -801,7 +801,7 @@ describe("ManageContactsDialog", () => {
 
       renderWithProviders(propsWithContacts);
 
-      const deleteButton = screen.getByRole("button", { name: "Delete Contact" });
+      const deleteButton = screen.getByRole("button", { name: "Delete Contact - Delete" });
       await user.click(deleteButton);
 
       const cancelButton = screen.getByRole("button", { name: "confirmation-cancel" });
@@ -841,7 +841,7 @@ describe("ManageContactsDialog", () => {
         expect(screen.getByText("John Doe")).toBeInTheDocument();
       });
 
-      const deleteButton = screen.getByRole("button", { name: "Delete Contact" });
+      const deleteButton = screen.getByRole("button", { name: "Delete Contact - Delete" });
       await user.click(deleteButton);
 
       await waitFor(() => {
@@ -877,7 +877,7 @@ describe("ManageContactsDialog", () => {
 
       renderWithProviders(propsWithContacts);
 
-      const deleteButton = screen.getByRole("button", { name: "Delete Contact" });
+      const deleteButton = screen.getByRole("button", { name: "Delete Contact - Assign another Primary Project Officer to Delete" });
       expect(deleteButton).toBeDisabled();
     });
 
@@ -919,14 +919,14 @@ describe("ManageContactsDialog", () => {
 
       // Find the delete button for the primary Project Officer (John Doe)
       const johnRow = screen.getByText("John Doe (Primary)").closest("tr");
-      const johnDeleteButton = within(johnRow!).getByRole("button", { name: "Delete Contact" });
+      const johnDeleteButton = within(johnRow!).getByRole("button", { name: "Delete Contact - Assign another Primary Project Officer to Delete" });
 
       // Primary Project Officer delete button should ALWAYS be disabled
       expect(johnDeleteButton).toBeDisabled();
 
       // Find the delete button for the non-primary Project Officer (Jane Smith)
       const janeRow = screen.getByText("Jane Smith").closest("tr");
-      const janeDeleteButton = within(janeRow!).getByRole("button", { name: "Delete Contact" });
+      const janeDeleteButton = within(janeRow!).getByRole("button", { name: "Delete Contact - Delete" });
 
       // Non-primary Project Officer delete button should be enabled when there are multiple POs
       expect(janeDeleteButton).not.toBeDisabled();
@@ -971,7 +971,7 @@ describe("ManageContactsDialog", () => {
 
       // Find the delete button for the non-primary Project Officer (Jane Smith)
       const janeRow = screen.getByText("Jane Smith").closest("tr");
-      const deleteButton = within(janeRow!).getByRole("button", { name: "Delete Contact" });
+      const deleteButton = within(janeRow!).getByRole("button", { name: "Delete Contact - Delete" });
 
       // Non-primary Project Officer should be deletable
       expect(deleteButton).not.toBeDisabled();

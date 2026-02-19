@@ -4,14 +4,19 @@ import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
 import { formatDate, formatDateForServer, getTodayEst } from "util/formatDate";
-import { addDays, differenceInCalendarDays, startOfDay, endOfDay, parseISO } from "date-fns";
+import { addDays, differenceInCalendarDays, parseISO } from "date-fns";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
 } from "../ApplicationWorkflow";
 import { useToast } from "components/toast";
 import { DocumentList } from "./sections";
-import { ApplicationDateInput, UploadDocumentInput } from "demos-server";
+import {
+  ApplicationDateInput,
+  LocalDate,
+  PhaseNameWithTrackedStatus,
+  UploadDocumentInput,
+} from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
@@ -49,7 +54,8 @@ const getFederalCommentPeriodDates = (stateDate: string) => {
 };
 
 export const getApplicationCompletenessFromDemonstration = (
-  demonstration: ApplicationWorkflowDemonstration
+  demonstration: ApplicationWorkflowDemonstration,
+  setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void
 ) => {
   const completenessPhase = demonstration.phases.find(
     (phase) => phase.phaseName === "Completeness"
@@ -99,6 +105,7 @@ export const getApplicationCompletenessFromDemonstration = (
           : ""
       }
       initialDocuments={initialDocuments ?? []}
+      setSelectedPhase={setSelectedPhase}
     />
   );
 };
@@ -112,6 +119,7 @@ export interface CompletenessPhaseProps {
   completenessComplete: boolean;
   stateDeemedCompleteDate?: string;
   initialDocuments: ApplicationWorkflowDocument[];
+  setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void;
 }
 
 export const CompletenessPhase = ({
@@ -123,6 +131,7 @@ export const CompletenessPhase = ({
   completenessComplete,
   stateDeemedCompleteDate,
   initialDocuments,
+  setSelectedPhase,
 }: CompletenessPhaseProps) => {
   const { showCompletenessDocumentUploadDialog, showDeclareIncompleteDialog } = useDialog();
   const { showSuccess, showError } = useToast();
@@ -140,13 +149,13 @@ export const CompletenessPhase = ({
     getStateDeemedCompleteFromDocuments()
   );
   const [federalStartDate, setFederalStartDate] = useState<string>(() => {
-    if(fedCommentStartDate) return fedCommentStartDate;
-    const {fedStartDate} = getFederalCommentPeriodDates(stateDeemedComplete);
+    if (fedCommentStartDate) return fedCommentStartDate;
+    const { fedStartDate } = getFederalCommentPeriodDates(stateDeemedComplete);
     return fedStartDate ? formatDateForServer(fedStartDate) : "";
   });
   const [federalEndDate, setFederalEndDate] = useState<string>(() => {
-    if(fedCommentEndDate) return fedCommentEndDate;
-    const {fedEndDate} = getFederalCommentPeriodDates(stateDeemedComplete);
+    if (fedCommentEndDate) return fedCommentEndDate;
+    const { fedEndDate } = getFederalCommentPeriodDates(stateDeemedComplete);
     return fedEndDate ? formatDateForServer(fedEndDate) : "";
   });
   const [isNoticeDismissed, setNoticeDismissed] = useState(
@@ -215,15 +224,15 @@ export const CompletenessPhase = ({
     const dates: ApplicationDateInput[] = [
       {
         dateType: "State Application Deemed Complete",
-        dateValue: stateDeemedComplete ? startOfDay(stateDeemedComplete) : null,
+        dateValue: stateDeemedComplete as LocalDate,
       },
       {
         dateType: "Federal Comment Period Start Date",
-        dateValue: federalStartDate ? startOfDay(federalStartDate) : null,
+        dateValue: federalStartDate as LocalDate,
       },
       {
         dateType: "Federal Comment Period End Date",
-        dateValue: federalEndDate ? endOfDay(federalEndDate) : null,
+        dateValue: federalEndDate as LocalDate,
       },
     ];
 
@@ -273,6 +282,7 @@ export const CompletenessPhase = ({
         phaseName: "Completeness",
       });
       showSuccess(getPhaseCompletedMessage("Completeness"));
+      setSelectedPhase("Federal Comment");
     } catch (e) {
       console.error(e);
       showError("Failed to complete Completeness phase");
