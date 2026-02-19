@@ -56,7 +56,6 @@ vi.mock("react-oidc-context", () => {
 });
 
 vi.mock("./DemosApolloProvider", async () => {
-  const React = (await import("react")).default;
   const { MockedProvider } = await import("@apollo/client/testing");
   const { userMocks } = await import("mock-data/userMocks");
   const DemosApolloProvider = ({ children }: { children: React.ReactNode }) => (
