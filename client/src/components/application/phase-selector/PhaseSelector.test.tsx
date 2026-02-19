@@ -8,7 +8,10 @@ import userEvent from "@testing-library/user-event";
 
 import { PhaseSelector, getDisplayedPhaseStatus, getDisplayedPhaseDate } from "./PhaseSelector";
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
-import { getReviewPhaseComponentFromDemonstration } from "../phases";
+import {
+  getReviewPhaseComponentFromDemonstration,
+  getApplicationCompletenessFromDemonstration,
+} from "../phases";
 
 const mockPO = {
   id: "po-1",
@@ -24,6 +27,7 @@ vi.mock("../phases", async () => {
   return {
     ...actual,
     getReviewPhaseComponentFromDemonstration: vi.fn(),
+    getApplicationCompletenessFromDemonstration: vi.fn(),
   };
 });
 
@@ -472,6 +476,42 @@ describe("getDisplayedPhaseDate", () => {
     const result = getDisplayedPhaseDate(demonstration, "Concept");
     expect(result).toBeInstanceOf(Date);
     expect(result).toEqual(dateValue);
+  });
+});
+
+describe("completeness phase component", () => {
+  it("calls getApplicationCompletenessFromDemonstration with correct props when Completeness is selected", async () => {
+    vi.mocked(getApplicationCompletenessFromDemonstration).mockReturnValue(
+      <div>Review Phase Mock</div>
+    );
+
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "test-id",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+      },
+      primaryProjectOfficer: mockPO,
+      status: "Under Review",
+      currentPhaseName: "Completeness",
+      clearanceLevel: "CMS (OSORA)",
+      phases: [],
+      documents: [],
+      demonstrationTypes: [],
+      tags: [],
+    };
+
+    render(
+      <TestProvider>
+        <PhaseSelector demonstration={demonstration} />
+      </TestProvider>
+    );
+
+    expect(getApplicationCompletenessFromDemonstration).toHaveBeenCalledWith(
+      demonstration,
+      expect.any(Function)
+    );
   });
 });
 
