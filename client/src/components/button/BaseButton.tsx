@@ -77,17 +77,12 @@ export const BaseButton: React.FC<ButtonProps> = ({
       name={name}
       data-testid={name}
       aria-label={accessibleLabel}
-      title={tooltip}
       type={type}
       onClick={onClick}
       {...(form ? { form } : {})}
-      className={[
-        BASE_BUTTON_STYLES,
-        sizeClasses,
-        circleClasses,
-        className,
-      ].join(" ")}
+      className={`${BASE_BUTTON_STYLES} ${sizeClasses} ${circleClasses} ${className}`}
       disabled={disabled}
+      {...(tooltip ? { title: tooltip } : {})}
     >
       {children}
     </button>
