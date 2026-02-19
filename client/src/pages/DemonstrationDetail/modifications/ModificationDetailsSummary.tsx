@@ -1,5 +1,6 @@
 import React from "react";
 import { ModificationItem } from "./ModificationTabs";
+import { formatDate } from "util/formatDate";
 
 const Field = ({ label, value }: { label: string; value: string }) => {
   return (
@@ -15,11 +16,14 @@ const ModificationDetailsFields = ({
 }: {
   modificationItem: ModificationItem;
 }) => {
+  const effectiveDateValue = modificationItem.effectiveDate
+    ? formatDate(modificationItem.effectiveDate)
+    : "--/--/----";
   return (
     <div className="flex flex-col p-1">
       <div className="flex justify-between w-full">
         <Field label="Name" value={modificationItem.name} />
-        <Field label="Effective Date" value="TODO" />
+        <Field label="Effective Date" value={effectiveDateValue} />
         <Field label="Status" value={modificationItem.status ?? ""} />
       </div>
       {modificationItem.description && (
@@ -27,9 +31,11 @@ const ModificationDetailsFields = ({
           <Field label="Description" value={modificationItem.description} />
         </div>
       )}
-      <div className="w-full">
-        <Field label="Signature Level" value="TODO" />
-      </div>
+      {modificationItem.signatureLevel && (
+        <div className="w-full">
+          <Field label="Signature Level" value={modificationItem.signatureLevel} />
+        </div>
+      )}
     </div>
   );
 };

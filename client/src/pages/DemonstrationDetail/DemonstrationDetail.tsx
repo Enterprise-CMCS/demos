@@ -50,6 +50,8 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         description
         status
         createdAt
+        effectiveDate
+        signatureLevel
       }
       extensions {
         id
@@ -57,6 +59,8 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         description
         status
         createdAt
+        effectiveDate
+        signatureLevel
       }
       demonstrationTypes {
         demonstrationTypeName
@@ -94,12 +98,12 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
 
 export type DemonstrationDetailAmendment = Pick<
   Amendment,
-  "id" | "name" | "description" | "status" | "createdAt"
+  "id" | "name" | "description" | "status" | "createdAt" | "effectiveDate" | "signatureLevel"
 >;
 
 export type DemonstrationDetailExtension = Pick<
   Extension,
-  "id" | "name" | "description" | "status" | "createdAt"
+  "id" | "name" | "description" | "status" | "createdAt" | "effectiveDate" | "signatureLevel"
 >;
 
 export type DemonstrationDetail = Pick<Demonstration, "id" | "status" | "currentPhaseName"> & {

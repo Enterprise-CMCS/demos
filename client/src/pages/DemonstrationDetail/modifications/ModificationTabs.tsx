@@ -15,6 +15,8 @@ export interface ModificationItem {
   description?: string;
   status: string;
   createdAt: Date;
+  effectiveDate?: Date;
+  signatureLevel?: string;
 }
 
 const ModificationTab = ({
