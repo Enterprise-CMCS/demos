@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { compareAsc } from "date-fns";
 import { ModificationTabSideNav } from "./ModificationTabSideNav";
 
 const STYLES = {
@@ -45,9 +46,9 @@ const ModificationTabContent = ({ modificationItem }: { modificationItem: Modifi
 // Sorts ModificationItems by createdAt (newest first)
 const sortModificationItemsByCreatedAt = (items: ModificationItem[]): ModificationItem[] => {
   return [...items].sort((a, b) => {
-    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-    return dateB - dateA;
+    const dateA = a.createdAt ?? new Date(0);
+    const dateB = b.createdAt ?? new Date(0);
+    return compareAsc(dateB, dateA);
   });
 };
 
