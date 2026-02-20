@@ -174,6 +174,7 @@ export async function triggerUiPath(
         s3Bucket: bucket,
         s3FileName: key,
         fileNameWithExtension,
+        documentId: document.id,
       });
     });
   } catch (error) {

@@ -105,6 +105,7 @@ async function persistExtractionStatus(
   status: ExtractionStatus,
   requestId: string,
   projectId: string,
+  documentId: string | undefined,
   logFullResult: boolean
 ): Promise<void> {
   log.info("Extraction succeeded, processing results");
@@ -114,14 +115,15 @@ async function persistExtractionStatus(
   try {
     const schema = getDbSchema();
     const upsertedResult = await client.query<{ id: string }>(
-      `insert into ${schema}.uipath_result (id, request_id, project_id, response)
-       values ($1, $2, $3, $4::jsonb)
+      `insert into ${schema}.uipath_result (id, request_id, project_id, response, document_id)
+       values ($1, $2, $3, $4::jsonb, $5)
        on conflict (request_id)
        do update set
+         document_id = coalesce(excluded.document_id, uipath_result.document_id),
          project_id = excluded.project_id,
          response = excluded.response
        returning id`,
-      [randomUUID(), requestId, projectId, JSON.stringify(status)]
+      [randomUUID(), requestId, projectId, JSON.stringify(status), documentId]
     );
 
     const resultId = upsertedResult.rows[0]?.id;
@@ -190,6 +192,7 @@ export interface RunDocumentUnderstandingOptions {
   maxAttempts?: number;
   requestId?: string;
   fileNameWithExtension?: string;
+  documentId?: string;
 }
 
 export async function runDocumentUnderstanding(
@@ -203,6 +206,7 @@ export async function runDocumentUnderstanding(
     logFullResult = false, // set to true to log full results to cloudwatch.
     requestId = "n/a",
     fileNameWithExtension,
+    documentId,
   } = options;
 
   const token = providedToken ?? (await getToken());
@@ -221,7 +225,7 @@ export async function runDocumentUnderstanding(
     const status = await fetchExtractionResult(token, resultUrl);
 
     if (status.status === "Succeeded") {
-      await persistExtractionStatus(status, requestId, projectId, logFullResult);
+      await persistExtractionStatus(status, requestId, projectId, documentId, logFullResult);
       return status;
     }
 

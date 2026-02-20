@@ -117,6 +117,35 @@ describe("runDocumentUnderstanding", () => {
     );
   });
 
+  it("persists documentId when provided", async () => {
+    mocks.uploadDocumentMock.mockResolvedValue("doc-1");
+    mocks.extractDocMock.mockResolvedValue("result-url");
+    mocks.queryMock.mockResolvedValue({ rows: [{ id: "result-1" }] });
+    mocks.fetchExtractionResultMock.mockResolvedValue({
+      status: "Succeeded",
+      Fields: [],
+    });
+
+    const promise = runDocumentUnderstanding("file.pdf", {
+      pollIntervalMs: 10,
+      requestId: "request-doc-id",
+      documentId: "4cdfe542-90aa-489f-93d5-e786aaff49a2",
+    });
+
+    await vi.runAllTimersAsync();
+    await promise;
+
+    expect(mocks.queryMock).toHaveBeenCalledTimes(1);
+    expect(mocks.queryMock.mock.calls[0]?.[0]).toContain("document_id");
+    expect(mocks.queryMock.mock.calls[0]?.[1]).toEqual([
+      expect.any(String),
+      "request-doc-id",
+      "project-1",
+      expect.any(String),
+      "4cdfe542-90aa-489f-93d5-e786aaff49a2",
+    ]);
+  });
+
   it("throws if maxAttempts is exceeded", async () => {
     mocks.uploadDocumentMock.mockResolvedValue("doc-1");
     mocks.extractDocMock.mockResolvedValue("result-url");

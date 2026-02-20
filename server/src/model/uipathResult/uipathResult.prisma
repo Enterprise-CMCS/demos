@@ -3,9 +3,11 @@ model UiPathResult {
   requestId String   @map("request_id")
   response  Json
   projectId String   @map("project_id")
+  documentId String? @map("document_id") @db.Uuid
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
   fields    UipathResultField[]
 
   @@unique([requestId])
+  @@index([documentId])
   @@map("uipath_result")
 }

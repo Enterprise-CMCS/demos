@@ -20,6 +20,7 @@ type UipathMessage = {
   s3Bucket: string;
   s3Key: string;
   fileNameWithExtension?: string;
+  documentId?: string;
 };
 
 type DownloadedObject = {
@@ -59,8 +60,9 @@ function parseUiPathMessage(body: string): UipathMessage {
   const s3Key = (parsed?.s3Key as string | undefined) ?? (parsed?.s3FileName as string | undefined);
   const s3Bucket = (parsed?.s3Bucket as string | undefined) ?? UIPATH_DOCUMENT_BUCKET;
   const fileNameWithExtension = parsed?.fileNameWithExtension as string | undefined;
+  const documentId = parsed?.documentId as string | undefined;
 
-  return { s3Bucket, s3Key: s3Key ?? "", fileNameWithExtension };
+  return { s3Bucket, s3Key: s3Key ?? "", fileNameWithExtension, documentId };
 }
 
 /**
@@ -157,6 +159,7 @@ export const handler = async (event: SQSEvent) =>
     const s3Bucket = parsedBody?.s3Bucket ?? UIPATH_DOCUMENT_BUCKET;
     const s3Key = parsedBody?.s3Key;
     const fileNameWithExtension = parsedBody?.fileNameWithExtension;
+    const documentId = parsedBody?.documentId;
 
     if (!s3Key) {
       throw new Error("Missing s3Key/s3FileName in SQS message body.");
@@ -179,6 +182,7 @@ export const handler = async (event: SQSEvent) =>
       logFullResult: false,
       requestId: firstRecord?.messageId ?? "n/a",
       fileNameWithExtension: uploadFileNameWithExtension,
+      documentId,
     });
 
     log.info({ status }, "UiPath extraction completed");

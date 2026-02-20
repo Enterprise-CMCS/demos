@@ -306,6 +306,7 @@ describe("documentResolvers", () => {
         s3Bucket: "clean-bucket",
         s3FileName: `${testApplicationId}/${testDocumentId}`,
         fileNameWithExtension: "alaska_doc.pdf",
+        documentId: testDocumentId,
       });
       expect(result).toBe("msg-123");
     });
@@ -324,6 +325,7 @@ describe("documentResolvers", () => {
         s3Bucket: "clean-bucket",
         s3FileName: `${testApplicationId}/${testDocumentId}`,
         fileNameWithExtension: "alaska_doc.docx",
+        documentId: testDocumentId,
       });
       expect(result).toBe("msg-456");
     });

@@ -42,7 +42,7 @@ describe("handler", () => {
     vi.clearAllMocks();
   });
 
-  it("invokes runDocumentUnderstanding with s3FileName from SQS body", async () => {
+  it("invokes runDocumentUnderstanding with s3FileName and documentId from SQS body", async () => {
     process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
     process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
     mocks.runDocumentUnderstandingMock.mockResolvedValue({ status: "Succeeded" });
@@ -53,7 +53,7 @@ describe("handler", () => {
         {
           messageId: "id-1",
           receiptHandle: "",
-          body: JSON.stringify({ s3FileName: "file.pdf" }),
+          body: JSON.stringify({ s3FileName: "file.pdf", documentId: "doc-1" }),
           attributes: {
             ApproximateReceiveCount: "1",
             SentTimestamp: "",
@@ -77,6 +77,7 @@ describe("handler", () => {
         pollIntervalMs: 5_000,
         logFullResult: false,
         fileNameWithExtension: "file.pdf",
+        documentId: "doc-1",
       })
     );
     expect(result).toEqual({ status: "Succeeded" });

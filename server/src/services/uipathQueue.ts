@@ -21,6 +21,7 @@ export type UiPathQueueMessage = {
   s3Bucket: string;
   s3FileName: string;
   fileNameWithExtension?: string;
+  documentId?: string;
 };
 
 async function resolveUiPathQueueUrl(): Promise<string> {
