@@ -10,6 +10,12 @@ export const AmendmentsTab: React.FC<{
   amendments: DemonstrationDetailAmendment[];
 }> = ({ demonstrationId, amendments }) => {
   const { showCreateAmendmentDialog } = useDialog();
+
+  const amendmentsWithType = amendments.map((amendment) => ({
+    ...amendment,
+    modificationType: "amendment" as const,
+  }));
+
   return (
     <div className="flex flex-col p-2 gap-2">
       <div className="flex justify-between items-center pb-1 border-b border-border-rules">
@@ -23,7 +29,7 @@ export const AmendmentsTab: React.FC<{
           Add Amendment
         </IconButton>
       </div>
-      <ModificationTabs items={amendments} />
+      <ModificationTabs items={amendmentsWithType} />
     </div>
   );
 };

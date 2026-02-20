@@ -9,6 +9,11 @@ export const ExtensionsTab: React.FC<{
   demonstrationId: string;
   extensions: DemonstrationDetailExtension[];
 }> = ({ demonstrationId, extensions }) => {
+  const extensionsWithType = extensions.map((extension) => ({
+    ...extension,
+    modificationType: "extension" as const,
+  }));
+
   const { showCreateExtensionDialog } = useDialog();
   return (
     <div className="flex flex-col p-2 gap-2">
@@ -23,7 +28,7 @@ export const ExtensionsTab: React.FC<{
           Add Extension
         </IconButton>
       </div>
-      <ModificationTabs items={extensions} />
+      <ModificationTabs items={extensionsWithType} />
     </div>
   );
 };
