@@ -1,3 +1,5 @@
+@Library('demos-lib@DEMOS-1576-pipelines-karpenter') _
+
 pipeline {
   agent {
     kubernetes { 
