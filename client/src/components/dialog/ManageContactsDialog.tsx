@@ -80,7 +80,7 @@ type PersonSearchResult = {
 };
 
 export type ExistingContactType = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
-  id?: string;
+  id: string;
   person: Pick<Person, "id" | "fullName" | "email" | "personType">;
 };
 
@@ -205,6 +205,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
       return [
         ...prev,
         {
+          id: person.id,
           personId: person.id,
           name: `${person.firstName} ${person.lastName}`,
           email: person.email,

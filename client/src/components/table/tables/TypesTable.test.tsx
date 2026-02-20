@@ -130,8 +130,8 @@ describe("TypesTable", () => {
     it("calls showRemoveDemonstrationTypesDialog when remove button is clicked", async () => {
       render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
       const user = userEvent.setup();
-      await user.click(screen.getByTestId("select-row-0"));
-      await user.click(screen.getByTestId("select-row-1"));
+      await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));
+      await user.click(screen.getByTestId(`select-row-${mockTypes[1].demonstrationTypeName}`));
 
       const removeButton = screen.getByTestId("remove-type");
       await user.click(removeButton);
@@ -149,8 +149,8 @@ describe("TypesTable", () => {
       };
       render(<TypesTable demonstration={demonstration} />);
       const user = userEvent.setup();
-      await user.click(screen.getByTestId("select-row-0"));
-      await user.click(screen.getByTestId("select-row-1"));
+      await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));
+      await user.click(screen.getByTestId(`select-row-${mockTypes[1].demonstrationTypeName}`));
 
       const removeButton = screen.getByTestId("remove-type");
       expect(removeButton).toBeDisabled();
@@ -163,8 +163,8 @@ describe("TypesTable", () => {
       };
       render(<TypesTable demonstration={demonstration} />);
       const user = userEvent.setup();
-      await user.click(screen.getByTestId("select-row-0"));
-      await user.click(screen.getByTestId("select-row-1"));
+      await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));
+      await user.click(screen.getByTestId(`select-row-${mockTypes[1].demonstrationTypeName}`));
 
       const removeButton = screen.getByTestId("remove-type");
       expect(removeButton).not.toBeDisabled();
@@ -175,7 +175,7 @@ describe("TypesTable", () => {
     it("calls showEditDemonstrationTypeDialog when edit button is clicked", async () => {
       render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
       const user = userEvent.setup();
-      await user.click(screen.getByTestId("select-row-0"));
+      await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));
       const editButton = screen.getByTestId("edit-type");
       await user.click(editButton);
 
@@ -198,10 +198,10 @@ describe("TypesTable", () => {
       const editButton = screen.getByTestId("edit-type");
       expect(editButton).toBeDisabled();
 
-      await user.click(screen.getByTestId("select-row-0"));
+      await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));
       expect(editButton).toBeEnabled();
 
-      await user.click(screen.getByTestId("select-row-1"));
+      await user.click(screen.getByTestId(`select-row-${mockTypes[1].demonstrationTypeName}`));
       expect(editButton).toBeDisabled();
     });
   });

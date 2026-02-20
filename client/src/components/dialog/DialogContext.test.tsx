@@ -338,6 +338,7 @@ vi.mock("./ApplyTagsDialog", () => ({
 
 const mockRoles: ExistingContactType[] = [
   {
+    id: "person-1",
     role: "Project Officer",
     isPrimary: true,
     person: {
@@ -348,6 +349,7 @@ const mockRoles: ExistingContactType[] = [
     },
   },
   {
+    id: "person-2",
     role: "DDME Analyst",
     isPrimary: false,
     person: {

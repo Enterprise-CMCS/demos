@@ -44,7 +44,7 @@ describe("ApprovalPackageTable", () => {
   const rows = [
     {
       documentType: "Approval Letter" as DocumentType,
-      id: undefined,
+      id: "Approval Letter-id",
       name: "-",
       description: "-",
       uploadedBy: "-",
@@ -53,7 +53,7 @@ describe("ApprovalPackageTable", () => {
     },
     {
       documentType: "Signed Decision Memo" as DocumentType,
-      id: "doc-22",
+      id: "Signed Decision Memo-id",
       name: "Decision Memo",
       description: "Memo desc",
       uploadedBy: "Alice",
