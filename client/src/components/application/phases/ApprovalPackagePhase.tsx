@@ -35,20 +35,27 @@ export const getApprovalPackagePhase = (
   setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void
 ) => {
   const formulationWorkbookDocument = demonstration?.documents.find(
-    (doc) => doc.documentType === "Final Budget Neutrality Formulation Workbook"
+    (doc) =>
+      doc.documentType === "Final Budget Neutrality Formulation Workbook" &&
+      doc.phaseName === "Approval Package"
   );
-  const qaDocument = demonstration?.documents.find((doc) => doc.documentType === "Q&A");
+  const qaDocument = demonstration?.documents.find(
+    (doc) => doc.documentType === "Q&A" && doc.phaseName === "Approval Package"
+  );
   const termsAndConditionsDocument = demonstration?.documents.find(
-    (doc) => doc.documentType === "Special Terms & Conditions"
+    (doc) =>
+      doc.documentType === "Special Terms & Conditions" && doc.phaseName === "Approval Package"
   );
   const ombPolicyDocument = demonstration?.documents.find(
-    (doc) => doc.documentType === "Formal OMB Policy Concurrence Email"
+    (doc) =>
+      doc.documentType === "Formal OMB Policy Concurrence Email" &&
+      doc.phaseName === "Approval Package"
   );
   const approvalLetterDocument = demonstration?.documents.find(
-    (doc) => doc.documentType === "Approval Letter"
+    (doc) => doc.documentType === "Approval Letter" && doc.phaseName === "Approval Package"
   );
   const decisionMemoDocument = demonstration?.documents.find(
-    (doc) => doc.documentType === "Signed Decision Memo"
+    (doc) => doc.documentType === "Signed Decision Memo" && doc.phaseName === "Approval Package"
   );
 
   const allPreviousPhasesDone = demonstration.phases

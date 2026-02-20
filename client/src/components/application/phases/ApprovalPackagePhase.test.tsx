@@ -183,6 +183,53 @@ describe("ApprovalPackagePhase", () => {
     expect(finishButton).toBeDisabled();
   });
 
+  it("disables Finish when not all documents belong to the Approval Package phase", () => {
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "demo-1",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+      },
+      primaryProjectOfficer: mockPO,
+      status: "Under Review",
+      currentPhaseName: "Approval Package",
+      clearanceLevel: "CMS (OSORA)",
+      documents: [
+        doc({
+          documentType: "Final Budget Neutrality Formulation Workbook",
+          phaseName: "Approval Package",
+        }),
+        doc({ documentType: "Q&A", phaseName: "Approval Package" }),
+        doc({ documentType: "Special Terms & Conditions", phaseName: "Approval Package" }),
+        doc({ documentType: "Formal OMB Policy Concurrence Email", phaseName: "Approval Package" }),
+        doc({ documentType: "Approval Letter", phaseName: "None" }), // Document exists but belongs to wrong phase
+        doc({ documentType: "Signed Decision Memo", phaseName: "Approval Package" }),
+      ],
+      phases: [
+        {
+          phaseName: "Completeness",
+          phaseStatus: "Completed",
+          phaseDates: [],
+          phaseNotes: [],
+        },
+        {
+          phaseName: "Approval Package",
+          phaseStatus: "Started",
+          phaseDates: [],
+          phaseNotes: [],
+        },
+      ],
+      demonstrationTypes: [],
+      tags: [],
+    };
+
+    render(getApprovalPackagePhase(demonstration, mockSetSelectedPhase));
+
+    const finishButton = screen.getByRole("button", { name: /finish/i });
+    expect(finishButton).toBeDisabled();
+  });
+
   it("enables Finish ONLY when all previous phases are done AND all required documents uploaded", () => {
     const completeDocs = [
       doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
@@ -266,8 +313,17 @@ describe("getApprovalPackagePhase", () => {
       currentPhaseName: "Approval Package",
       clearanceLevel: "CMS (OSORA)",
       documents: [
-        doc({ documentType: "Q&A", name: "Q&A Doc" }),
-        doc({ documentType: "Approval Letter", name: "Approval Doc" }),
+        doc({ documentType: "Q&A", name: "Q&A Doc", phaseName: "Approval Package" }),
+        doc({
+          documentType: "Approval Letter",
+          name: "Approval Doc 1",
+          phaseName: "Approval Package",
+        }),
+        doc({
+          documentType: "Special Terms & Conditions",
+          name: "Special STCs",
+          phaseName: "None",
+        }),
       ],
       phases: [
         {
@@ -295,7 +351,8 @@ describe("getApprovalPackagePhase", () => {
     const text = rows.map((r) => r.textContent);
 
     expect(text.some((t) => t?.includes("Q&A Doc"))).toBe(true);
-    expect(text.some((t) => t?.includes("Approval Doc"))).toBe(true);
+    expect(text.some((t) => t?.includes("Approval Doc 1"))).toBe(true);
+    expect(text.some((t) => t?.includes("Special STCs"))).toBe(false); // document belongs to the None phase and should not appear
   });
 
   it("handles missing documents gracefully", () => {
