@@ -78,18 +78,25 @@ export class FileUploadStack extends Stack {
     const accessLogBucketCfn = accessLogs.node.defaultChild as aws_s3.CfnBucket;
     accessLogBucketCfn.cfnOptions.metadata = {
       checkov: {
-        skip: [{
-          id: "CKV_AWS_18",
-          reason: "the access log bucket itself does not need access logs"
-        },{
-          id: "CKV_AWS_21",
-          reason: "versioning on the access log bucket itself is intentionally disabled"
-        }]
-      }
-    }
+        skip: [
+          {
+            id: "CKV_AWS_18",
+            reason: "the access log bucket itself does not need access logs",
+          },
+          {
+            id: "CKV_AWS_21",
+            reason: "versioning on the access log bucket itself is intentionally disabled",
+          },
+        ],
+      },
+    };
 
-    const s3AccessLogBucketArn = Fn.importValue(`${props.stage}AccessLogBucketArn`)
-    const s3AccessLogBucket = Bucket.fromBucketArn(this, "coreAccessLogBucket", s3AccessLogBucketArn)
+    const s3AccessLogBucketArn = Fn.importValue(`${props.stage}AccessLogBucketArn`);
+    const s3AccessLogBucket = Bucket.fromBucketArn(
+      this,
+      "coreAccessLogBucket",
+      s3AccessLogBucketArn
+    );
 
     const uploadBucket = new Bucket(this, "FileUploadBucket", {
       versioned: false,
@@ -113,12 +120,15 @@ export class FileUploadStack extends Stack {
     const uploadBucketCfn = uploadBucket.node.defaultChild as aws_s3.CfnBucket;
     uploadBucketCfn.cfnOptions.metadata = {
       checkov: {
-        skip: [{
-          id: "CKV_AWS_21",
-          reason: "versioning on the upload bucket is intentionally disabled. Files are only here for a short time and moved to other buckets based on virus scan status where versioning is enabled"
-        }]
-      }
-    }
+        skip: [
+          {
+            id: "CKV_AWS_21",
+            reason:
+              "versioning on the upload bucket is intentionally disabled. Files are only here for a short time and moved to other buckets based on virus scan status where versioning is enabled",
+          },
+        ],
+      },
+    };
 
     new GuardDutyS3(this, "uploadBucketScan", {
       bucket: uploadBucket,
@@ -137,6 +147,13 @@ export class FileUploadStack extends Stack {
       serverAccessLogsPrefix: "clean/",
       enforceSSL: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
+      cors: [
+        {
+          allowedMethods: [HttpMethods.GET, HttpMethods.HEAD],
+          allowedOrigins: [`https://${props.cloudfrontHost}`],
+          allowedHeaders: ["*"],
+        },
+      ],
     });
 
     if (!props.isEphemeral) {
