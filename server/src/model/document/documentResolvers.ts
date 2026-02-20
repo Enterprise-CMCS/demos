@@ -18,7 +18,7 @@ import { getApplication, PrismaApplication } from "../application";
 import { findUserById } from "../user";
 import { validateAndUpdateDates } from "../applicationDate";
 import { startPhaseByDocument } from "../applicationPhase";
-import { enqueueUiPath, parseS3Path } from "../../services/uipathQueue";
+import { enqueueUiPath } from "../../services/uipathQueue";
 import { resolveFileNameWithExtension } from "../../services/uipathFileName";
 import {
   checkDocumentExists,
@@ -162,7 +162,8 @@ export async function triggerUiPath(
   try {
     return await prisma().$transaction(async (tx) => {
       const document = await getDocumentById(tx, documentId);
-      const { bucket, key } = parseS3Path(document.s3Path);
+      const bucket = "clean-bucket";
+      const key = `${document.applicationId}/${document.id}`;
       const fileNameWithExtension = await resolveFileNameWithExtension({
         bucket,
         key,

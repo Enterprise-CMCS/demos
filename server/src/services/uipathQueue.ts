@@ -23,39 +23,6 @@ export type UiPathQueueMessage = {
   fileNameWithExtension?: string;
 };
 
-type ParsedS3Location = {
-  bucket: string;
-  key: string;
-};
-
-export function parseS3Path(path: string): ParsedS3Location {
-  const trimmedPath = path.trim();
-  if (!trimmedPath) {
-    throw new Error("Document s3Path is empty.");
-  }
-
-  const s3UriMatch = trimmedPath.match(/^s3:\/\/([^/]+)\/(.+)$/);
-  if (s3UriMatch?.[1] && s3UriMatch?.[2]) {
-    return { bucket: s3UriMatch[1], key: s3UriMatch[2] };
-  }
-
-  if (trimmedPath.startsWith("s3://")) {
-    throw new Error(`Document s3Path is not a valid S3 URI: ${path}`);
-  }
-
-  const cleanBucket = process.env.CLEAN_BUCKET;
-  if (! cleanBucket) {
-    throw new Error("Clean bucket is not configured.");
-  }
-
-  const key = trimmedPath.replace(/^\/+/, "");
-  if (! key) {
-    throw new Error("Document s3Path is empty.");
-  }
-
-  return { bucket: cleanBucket, key };
-}
-
 async function resolveUiPathQueueUrl(): Promise<string> {
   const configuredQueueUrl = process.env.UIPATH_QUEUE_URL?.trim();
   if (configuredQueueUrl) {
