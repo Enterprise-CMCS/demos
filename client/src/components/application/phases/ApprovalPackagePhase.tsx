@@ -7,7 +7,7 @@ import {
   ApprovalPackageTable,
   ApprovalPackageTableRow,
 } from "components/table/tables/ApprovalPackageTable";
-import { DocumentType } from "demos-server";
+import { DocumentType, PhaseNameWithTrackedStatus } from "demos-server";
 import { formatDate } from "util/formatDate";
 import { Button } from "components/button";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
@@ -18,6 +18,7 @@ export interface ApprovalPackagePhaseProps {
   demonstrationId: string;
   documents: (ApplicationWorkflowDocument | undefined)[];
   allPreviousPhasesDone: boolean;
+  setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void;
 }
 
 const REQUIRED_TYPES: DocumentType[] = [
@@ -29,7 +30,10 @@ const REQUIRED_TYPES: DocumentType[] = [
   "Signed Decision Memo",
 ] as const;
 
-export const getApprovalPackagePhase = (demonstration: ApplicationWorkflowDemonstration) => {
+export const getApprovalPackagePhase = (
+  demonstration: ApplicationWorkflowDemonstration,
+  setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void
+) => {
   const formulationWorkbookDocument = demonstration?.documents.find(
     (doc) => doc.documentType === "Final Budget Neutrality Formulation Workbook"
   );
@@ -47,11 +51,13 @@ export const getApprovalPackagePhase = (demonstration: ApplicationWorkflowDemons
     (doc) => doc.documentType === "Signed Decision Memo"
   );
 
-  const currentPhaseIndex = demonstration.phases.findIndex(
-    (p) => p.phaseName === "Approval Package"
-  );
   const allPreviousPhasesDone = demonstration.phases
-    .slice(0, currentPhaseIndex) // all phases before the current one
+    .filter(
+      (p) =>
+        p.phaseName !== "Concept" &&
+        p.phaseName !== "Approval Package" &&
+        p.phaseName !== "Approval Summary"
+    )
     .every((phase) => phase.phaseStatus === "Completed" || phase.phaseStatus === "Skipped");
 
   return (
@@ -66,6 +72,7 @@ export const getApprovalPackagePhase = (demonstration: ApplicationWorkflowDemons
         decisionMemoDocument,
       ]}
       allPreviousPhasesDone={allPreviousPhasesDone}
+      setSelectedPhase={setSelectedPhase}
     />
   );
 };
@@ -74,6 +81,7 @@ export const ApprovalPackagePhase = ({
   demonstrationId,
   documents,
   allPreviousPhasesDone,
+  setSelectedPhase,
 }: ApprovalPackagePhaseProps) => {
   const { showSuccess, showError } = useToast();
   const { completePhase } = useCompletePhase();
@@ -112,6 +120,7 @@ export const ApprovalPackagePhase = ({
         applicationId: demonstrationId,
         phaseName: "Approval Package",
       });
+      setSelectedPhase("Approval Summary");
     } catch {
       showError(FAILED_TO_SAVE_MESSAGE);
       return;
