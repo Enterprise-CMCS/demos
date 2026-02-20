@@ -52,7 +52,7 @@ describe("DocumentTable", () => {
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
-    const editBtn = screen.getByLabelText(/Edit Document/i);
+    const editBtn = screen.getByTestId("edit-document");
     expect(editBtn).toBeDisabled();
     // Select one row
     await user.click(screen.getByTestId("select-row-0"));

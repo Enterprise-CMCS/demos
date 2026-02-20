@@ -62,4 +62,30 @@ describe("ModificationTabs Component", () => {
 
     render(<ModificationTabs items={minimalItems} />);
   });
+
+  it("renders tabs in newest-to-oldest order by createdAt", () => {
+    const items: ModificationItem[] = [
+      { id: "1", name: "First", createdAt: "2023-01-01T12:00:00Z" },
+      { id: "2", name: "Second", createdAt: "2024-01-01T12:00:00Z" },
+      { id: "3", name: "Third", createdAt: "2022-01-01T12:00:00Z" },
+    ];
+    render(<ModificationTabs items={items} />);
+    const tabButtons = screen.getAllByRole("button");
+    // Should be sorted: Second (2024), First (2023), Third (2022)
+    expect(tabButtons[0]).toHaveTextContent("Second");
+    expect(tabButtons[1]).toHaveTextContent("First");
+    expect(tabButtons[2]).toHaveTextContent("Third");
+  });
+
+  it("handles missing or invalid createdAt and still sorts valid ones first", () => {
+    const items: ModificationItem[] = [
+      { id: "1", name: "No Date" },
+      { id: "2", name: "Newest", createdAt: "2024-01-01T12:00:00Z" },
+      { id: "3", name: "Null Date", createdAt: undefined },
+    ];
+    render(<ModificationTabs items={items} />);
+    const tabButtons = screen.getAllByRole("button");
+    // Newest should be first
+    expect(tabButtons[0]).toHaveTextContent("Newest");
+  });
 });
