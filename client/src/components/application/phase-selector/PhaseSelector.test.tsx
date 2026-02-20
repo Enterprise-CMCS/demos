@@ -238,94 +238,7 @@ describe("getDisplayedPhaseDate", () => {
     expect(getDisplayedPhaseDate(demonstration, "Concept")).toBeUndefined();
   });
 
-  it("prioritizes completion dates", () => {
-    const completionDate = new Date("2025-03-15");
-    const startDate = new Date("2025-01-10");
-    const submittedDate = new Date("2025-02-20");
-
-    const demonstration: ApplicationWorkflowDemonstration = {
-      id: "test-id",
-      name: "Test Demo",
-      state: {
-        id: "CA",
-        name: "California",
-      },
-      primaryProjectOfficer: mockPO,
-      status: "Under Review",
-      currentPhaseName: "Concept",
-      clearanceLevel: "CMS (OSORA)",
-      phases: [
-        {
-          phaseName: "Concept",
-          phaseStatus: "Completed",
-          phaseDates: [
-            {
-              dateType: "Concept Start Date",
-              dateValue: startDate,
-            },
-            {
-              dateType: "Pre-Submission Submitted Date",
-              dateValue: submittedDate,
-            },
-            {
-              dateType: "Concept Completion Date",
-              dateValue: completionDate,
-            },
-          ],
-          phaseNotes: [],
-        },
-      ],
-      documents: [],
-      demonstrationTypes: [],
-      tags: [],
-    };
-
-    const result = getDisplayedPhaseDate(demonstration, "Concept");
-    expect(result).toEqual(completionDate);
-  });
-
-  it("prioritizes dates with 'Complete' in the name", () => {
-    const completeDate = new Date("2025-04-01");
-    const startDate = new Date("2025-01-10");
-
-    const demonstration: ApplicationWorkflowDemonstration = {
-      id: "test-id",
-      name: "Test Demo",
-      state: {
-        id: "CA",
-        name: "California",
-      },
-      primaryProjectOfficer: mockPO,
-      status: "Under Review",
-      currentPhaseName: "Review",
-      clearanceLevel: "CMS (OSORA)",
-      phases: [
-        {
-          phaseName: "Review",
-          phaseStatus: "Completed",
-          phaseDates: [
-            {
-              dateType: "Review Start Date",
-              dateValue: startDate,
-            },
-            {
-              dateType: "Review Completion Date",
-              dateValue: completeDate,
-            },
-          ],
-          phaseNotes: [],
-        },
-      ],
-      documents: [],
-      demonstrationTypes: [],
-      tags: [],
-    };
-
-    const result = getDisplayedPhaseDate(demonstration, "Review");
-    expect(result).toEqual(completeDate);
-  });
-
-  it("falls back to submitted dates when no completion date exists", () => {
+  it("returns undefined when phase has no relevant dates based on status and phase name", () => {
     const submittedDate = new Date("2025-02-20");
     const startDate = new Date("2025-01-10");
 
@@ -343,7 +256,7 @@ describe("getDisplayedPhaseDate", () => {
       phases: [
         {
           phaseName: "Application Intake",
-          phaseStatus: "Started",
+          phaseStatus: "Completed",
           phaseDates: [
             {
               dateType: "Application Intake Start Date",
@@ -363,10 +276,87 @@ describe("getDisplayedPhaseDate", () => {
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Application Intake");
-    expect(result).toEqual(submittedDate);
+    expect(result).toEqual(undefined);
   });
 
-  it("falls back to start dates when no completion or submitted date exists", () => {
+  it("does not match 'Completeness Start Date' as a completion date", () => {
+    const completionDate = new Date("2025-03-15");
+    const completenessStartDate = new Date("2025-01-01");
+
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "test-id",
+      name: "Test Demo",
+      state: { id: "CA", name: "California" },
+      primaryProjectOfficer: mockPO,
+      status: "Under Review",
+      currentPhaseName: "Completeness",
+      clearanceLevel: "CMS (OSORA)",
+      phases: [
+        {
+          phaseName: "Completeness",
+          phaseStatus: "Completed",
+          phaseDates: [
+            {
+              dateType: "Completeness Start Date",
+              dateValue: completenessStartDate,
+            },
+            {
+              dateType: "Completeness Completion Date",
+              dateValue: completionDate,
+            },
+          ],
+          phaseNotes: [],
+        },
+      ],
+      documents: [],
+      demonstrationTypes: [],
+      tags: [],
+    };
+
+    const result = getDisplayedPhaseDate(demonstration, "Completeness");
+    expect(result).toEqual(completionDate);
+  });
+
+  it("uses start date when phase is Started even if completion date exists", () => {
+    const startDate = new Date("2025-01-01");
+    const completionDate = new Date("2025-03-15");
+
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "test-id",
+      name: "Test Demo",
+      state: { id: "CA", name: "California" },
+      primaryProjectOfficer: mockPO,
+      status: "Under Review",
+      currentPhaseName: "Concept",
+      clearanceLevel: "CMS (OSORA)",
+      phases: [
+        {
+          phaseName: "Concept",
+          phaseStatus: "Started",
+          phaseDates: [
+            {
+              dateType: "Concept Start Date",
+              dateValue: startDate,
+            },
+            {
+              dateType: "Concept Completion Date",
+              dateValue: completionDate,
+            },
+          ],
+          phaseNotes: [],
+        },
+      ],
+      documents: [],
+      demonstrationTypes: [],
+      tags: [],
+    };
+
+    const result = getDisplayedPhaseDate(demonstration, "Concept");
+
+    expect(result).toEqual(startDate);
+  });
+
+  it("selects start date based on phase status", () => {
     const startDate = new Date("2025-01-10");
 
     const demonstration: ApplicationWorkflowDemonstration = {
@@ -400,47 +390,6 @@ describe("getDisplayedPhaseDate", () => {
 
     const result = getDisplayedPhaseDate(demonstration, "Federal Comment");
     expect(result).toEqual(startDate);
-  });
-
-  it("falls back to the first date when no priority dates exist", () => {
-    const firstDate = new Date("2025-05-01");
-    const secondDate = new Date("2025-06-01");
-
-    const demonstration: ApplicationWorkflowDemonstration = {
-      id: "test-id",
-      name: "Test Demo",
-      state: {
-        id: "CA",
-        name: "California",
-      },
-      primaryProjectOfficer: mockPO,
-      status: "Under Review",
-      currentPhaseName: "SDG Preparation",
-      clearanceLevel: "CMS (OSORA)",
-      phases: [
-        {
-          phaseName: "SDG Preparation",
-          phaseStatus: "Started",
-          phaseDates: [
-            {
-              dateType: "Expected Approval Date",
-              dateValue: firstDate,
-            },
-            {
-              dateType: "SME Review Date",
-              dateValue: secondDate,
-            },
-          ],
-          phaseNotes: [],
-        },
-      ],
-      documents: [],
-      demonstrationTypes: [],
-      tags: [],
-    };
-
-    const result = getDisplayedPhaseDate(demonstration, "SDG Preparation");
-    expect(result).toEqual(firstDate);
   });
 
   it("converts date value to Date object", () => {
