@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { compareAsc } from "date-fns";
 import { ModificationTabSideNav } from "./ModificationTabSideNav";
 import { DemonstrationDetailModification } from "../DemonstrationDetail";
@@ -53,9 +53,15 @@ export const ModificationTabs = ({ items }: { items: ModificationItem[] }) => {
   const [selectedId, setSelectedId] = useState<string>(sortedItems[0]?.id ?? "");
   const [selectedItem, setSelectedItem] = useState<ModificationItem>(sortedItems[0]);
 
+  useEffect(() => {
+    const updatedItem = sortedItems.find((item) => item.id === selectedId);
+    if (updatedItem) {
+      setSelectedItem(updatedItem);
+    }
+  }, [selectedId, sortedItems]);
+
   const handleTabSelect = (item: ModificationItem) => {
     setSelectedId(item.id);
-    setSelectedItem(item);
   };
 
   return (
