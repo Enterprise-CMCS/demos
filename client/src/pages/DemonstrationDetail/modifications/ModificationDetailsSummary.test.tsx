@@ -1,10 +1,24 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import { ModificationDetailsSummary } from "./ModificationDetailsSummary";
 import { ModificationItem } from "./ModificationTabs";
 
+const showUpdateAmendmentDialog = vi.fn();
+const showUpdateExtensionDialog = vi.fn();
+
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({
+    showUpdateAmendmentDialog,
+    showUpdateExtensionDialog,
+  }),
+}));
+
 describe("ModificationDetailsSummary", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   const mockAmendment: ModificationItem = {
     modificationType: "amendment",
     id: "mod-123",
@@ -130,6 +144,44 @@ describe("ModificationDetailsSummary", () => {
       expect(screen.getByText("On-hold")).toBeInTheDocument();
       expect(screen.queryByText("Description")).not.toBeInTheDocument();
       expect(screen.queryByText("Signature Level")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("Edit Details Button", () => {
+    it("renders the Edit Details button", () => {
+      render(<ModificationDetailsSummary modificationItem={mockAmendment} />);
+      const editButton = screen.getByRole("button", { name: /button-edit-details/i });
+      expect(editButton).toBeInTheDocument();
+      expect(editButton).toHaveTextContent("Edit Details");
+    });
+
+    it("calls showUpdateAmendmentDialog with correct ID when clicked for amendment", () => {
+      render(<ModificationDetailsSummary modificationItem={mockAmendment} />);
+      const editButton = screen.getByRole("button", { name: /button-edit-details/i });
+
+      fireEvent.click(editButton);
+
+      expect(showUpdateAmendmentDialog).toHaveBeenCalledWith("mod-123");
+      expect(showUpdateAmendmentDialog).toHaveBeenCalledTimes(1);
+      expect(showUpdateExtensionDialog).not.toHaveBeenCalled();
+    });
+
+    it("calls showUpdateExtensionDialog with correct ID when clicked for extension", () => {
+      const mockExtension: ModificationItem = {
+        modificationType: "extension",
+        id: "ext-456",
+        name: "Test Extension",
+        status: "Pre-Submission",
+        createdAt: new Date("2024-01-01"),
+      };
+      render(<ModificationDetailsSummary modificationItem={mockExtension} />);
+      const editButton = screen.getByRole("button", { name: /button-edit-details/i });
+
+      fireEvent.click(editButton);
+
+      expect(showUpdateExtensionDialog).toHaveBeenCalledWith("ext-456");
+      expect(showUpdateExtensionDialog).toHaveBeenCalledTimes(1);
+      expect(showUpdateAmendmentDialog).not.toHaveBeenCalled();
     });
   });
 });

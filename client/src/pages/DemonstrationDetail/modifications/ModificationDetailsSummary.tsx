@@ -1,6 +1,9 @@
 import React from "react";
 import { ModificationItem } from "./ModificationTabs";
 import { formatDate } from "util/formatDate";
+import { IconButton } from "components/button";
+import { EditIcon } from "components/icons";
+import { useDialog } from "components/dialog/DialogContext";
 
 const Field = ({ label, value }: { label: string; value: string }) => {
   return (
@@ -48,11 +51,31 @@ export const ModificationDetailsSummary = ({
 }: {
   modificationItem: ModificationItem;
 }) => {
+  const { showUpdateAmendmentDialog, showUpdateExtensionDialog } = useDialog();
+
+  const handleEditClick = () => {
+    if (modificationItem.modificationType === "amendment") {
+      showUpdateAmendmentDialog(modificationItem.id);
+    } else if (modificationItem.modificationType === "extension") {
+      showUpdateExtensionDialog(modificationItem.id);
+    } else {
+      console.error("Unknown modification type");
+    }
+  };
+
   return (
     <div>
-      <h2 className="text-xl font-bold text-brand pb-1 border-b border-border-rules">
-        SUMMARY DETAILS
-      </h2>
+      <div className="flex justify-between items-center pb-1 border-b border-border-rules">
+        <h2 className="text-xl font-bold text-brand">SUMMARY DETAILS</h2>
+        <IconButton
+          icon={<EditIcon />}
+          name="button-edit-details"
+          size="small"
+          onClick={handleEditClick}
+        >
+          Edit Details
+        </IconButton>
+      </div>
       <ModificationDetailsFields modificationItem={modificationItem} />
     </div>
   );
