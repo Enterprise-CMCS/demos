@@ -5,7 +5,7 @@ import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
 import { SimplePhase } from "../ApplicationWorkflow";
 import { formatDateForServer } from "util/formatDate";
-import { DateType } from "demos-server";
+import { DateType, PhaseNameWithTrackedStatus } from "demos-server";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import {
   FAILED_TO_SAVE_MESSAGE,
@@ -51,9 +51,11 @@ interface SdgPreparationPhaseFormData {
 export const SdgPreparationPhase = ({
   demonstrationId,
   sdgPreparationPhase,
+  setSelectedPhase,
 }: {
   demonstrationId: string;
   sdgPreparationPhase: SimplePhase;
+  setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void;
 }) => {
   const [sdgPreparationPhaseFormData, setSdgPreparationPhaseFormData] =
     useState<SdgPreparationPhaseFormData>(getFormDataFromPhase(sdgPreparationPhase));
@@ -118,6 +120,7 @@ export const SdgPreparationPhase = ({
         applicationId: demonstrationId,
         phaseName: "SDG Preparation",
       });
+      setSelectedPhase("Review");
     } catch {
       showError(FAILED_TO_SAVE_MESSAGE);
       return;

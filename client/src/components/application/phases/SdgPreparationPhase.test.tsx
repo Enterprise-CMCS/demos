@@ -118,11 +118,14 @@ describe("SdgPreparationPhase", () => {
     vi.clearAllMocks();
   });
 
+  const mockSetSelectedPhase = vi.fn();
+
   const setup = (demonstration = mockDemonstration): void => {
     render(
       <SdgPreparationPhase
         demonstrationId={demonstration.id}
         sdgPreparationPhase={demonstration.phases[0]}
+        setSelectedPhase={mockSetSelectedPhase}
       />
     );
   };
@@ -246,7 +249,7 @@ describe("SdgPreparationPhase", () => {
   });
 
   describe("SdgPreparationPhase - Phase Status Mutation", () => {
-    it("shows success toast when Finish succeeds", async () => {
+    it("shows success toast when Finish succeess and calls setSelectedPhase", async () => {
       mockSetApplicationDate.mockResolvedValue({ data: { setApplicationDate: { id: "1" } } });
       mockCompletePhase.mockResolvedValue({
         data: { completePhase: { __typename: "ApplicationPhase" } },
@@ -262,6 +265,7 @@ describe("SdgPreparationPhase", () => {
         expect(mockSetApplicationDate).toHaveBeenCalledTimes(4);
         expect(mockCompletePhase).toHaveBeenCalled();
         expect(showSuccess).toHaveBeenCalledWith(getPhaseCompletedMessage("SDG Preparation"));
+        expect(mockSetSelectedPhase).toHaveBeenCalledWith("Review");
       });
     });
 
