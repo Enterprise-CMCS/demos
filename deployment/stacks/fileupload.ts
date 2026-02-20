@@ -128,7 +128,7 @@ export class FileUploadStack extends Stack {
       uploadQueue,
     });
 
-const cleanBucket = new Bucket(this, "FileCleanBucket", {
+    const cleanBucket = new Bucket(this, "FileCleanBucket", {
       versioned: true,
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
