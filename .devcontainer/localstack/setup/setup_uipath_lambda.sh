@@ -10,7 +10,6 @@ QUEUE_NAME="uipath-queue"
 LAMBDA_NAME="uipath"
 UIPATH_SECRET_ID="demos-local/uipath"
 UIPATH_PROJECT_NAME=${UIPATH_PROJECT_NAME:-"demosOCR"}
-UIPATH_LOCAL_MOCK=${UIPATH_LOCAL_MOCK:-"true"}
 UIPATH_DOCUMENT_BUCKET=${UIPATH_DOCUMENT_BUCKET:-"uipath-documents"}
 DATABASE_SECRET_ARN=${DATABASE_SECRET_ARN:-"database-secret"}
 LOG_LEVEL=${LOG_LEVEL:-"info"}
@@ -61,7 +60,6 @@ $AWS_CMD lambda create-function \
         UIPATH_SECRET_ID=$UIPATH_SECRET_ID,
         UIPATH_PROJECT_NAME=$UIPATH_PROJECT_NAME,
         UIPATH_DOCUMENT_BUCKET=$UIPATH_DOCUMENT_BUCKET,
-        UIPATH_LOCAL_MOCK=$UIPATH_LOCAL_MOCK,
         DATABASE_SECRET_ARN=$DATABASE_SECRET_ARN,
         LOG_LEVEL=$LOG_LEVEL,
         DB_SSL_MODE=$DB_SSL_MODE
@@ -116,4 +114,3 @@ $AWS_CMD lambda create-event-source-mapping \
 
 echo "✅ UiPath Lambda connected to UiPath SQS queue"
 echo "   Queue ARN: $QUEUE_ARN"
-echo "   Local mock mode: $UIPATH_LOCAL_MOCK"

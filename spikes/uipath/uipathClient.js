@@ -6,15 +6,6 @@ export const UIPATH_API_VERSION = "1.0";
 
 let cachedProjectId;
 
-// Utility for check env vars.
-export function getRequiredEnvVar(key, errorMessage) {
-  const value = process.env[key];
-  if (!value) {
-    throw new Error(errorMessage);
-  }
-  return value;
-}
-
 export function setProjectId(projectId) {
   cachedProjectId = projectId;
 }
