@@ -128,7 +128,7 @@ export class FileUploadStack extends Stack {
       uploadQueue,
     });
 
-const cleanBucket = new Bucket(this, "FileCleanBucket", {
+    const cleanBucket = new Bucket(this, "FileCleanBucket", {
       versioned: true,
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
@@ -137,13 +137,6 @@ const cleanBucket = new Bucket(this, "FileCleanBucket", {
       serverAccessLogsPrefix: "clean/",
       enforceSSL: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
-      cors: [
-        {
-          allowedMethods: [HttpMethods.GET, HttpMethods.HEAD],
-          allowedOrigins: [`https://${props.cloudfrontHost}`],
-          allowedHeaders: ["*"],
-        },
-      ],
     });
 
     if (!props.isEphemeral) {
