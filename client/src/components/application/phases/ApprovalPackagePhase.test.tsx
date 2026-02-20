@@ -364,7 +364,7 @@ describe("getApprovalPackagePhase", () => {
       phases: [
         {
           phaseName: "Concept",
-          phaseStatus: "Started",
+          phaseStatus: "Started", // disposition of concept phase shouldnt matter
           phaseDates: [],
           phaseNotes: [],
         },
