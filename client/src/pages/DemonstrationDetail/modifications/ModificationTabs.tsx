@@ -10,6 +10,7 @@ const STYLES = {
 };
 
 export interface ModificationItem {
+  modificationType: "amendment" | "extension";
   id: string;
   name: string;
   description?: string;
