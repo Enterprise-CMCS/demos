@@ -35,10 +35,17 @@ INPUT_FILE=ak-behavioral-health-demo-pa.pdf
 ```
 ## Set your secret using this: (<AWS_ENV_NAME> is dev btw)
 ```bash
-AWS_PROFILE=<AWS_ENV_NAME> \
-aws secretsmanager put-secret-value \
-  --secret-id <UIPATH_SECRET_ID> \
-  --secret-string '{"clientId":"...","clientSecret":"..."}'
+# NOTE: these values are not even used via env vars.
+# this is where i store the OAUTH keys so i can set the secrets in localstack
+# remove the pragma comments first.
+
+awslocal secretsmanager update-secret \
+  --secret-id demos-local/uipath \
+  --secret-string '{ # pragma: allowlist secret
+    "clientId": "STRING",
+    "clientSecret": "STRING" # pragma: allowlist secret
+  }'
+
 ```
 
 # Your vars that need to be stored in your secret manager:
