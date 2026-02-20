@@ -87,11 +87,13 @@ export const ReviewPhase = ({
   demonstrationId,
   isReadonly,
   onFinish,
+  allPreviousPhasesDone,
 }: {
   initialFormData: ReviewPhaseFormData;
   demonstrationId: string;
   isReadonly: boolean;
   onFinish: () => void;
+  allPreviousPhasesDone: boolean;
 }) => {
   const { showSuccess } = useToast();
   const { setApplicationDates } = useSetApplicationDates();
@@ -252,6 +254,7 @@ export const ReviewPhase = ({
             size="large"
             name="review-finish"
             disabled={
+              !allPreviousPhasesDone ||
               !reviewPhaseSectionsComplete["PO and OGD"] ||
               !reviewPhaseSectionsComplete["OGC and OMB"] ||
               !(
