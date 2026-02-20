@@ -3,6 +3,7 @@ import { describe, it, expect } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ModificationTabSideNav } from "./ModificationTabSideNav";
 import { ModificationItem } from "./ModificationTabs";
+import { DialogProvider } from "components/dialog/DialogContext";
 
 describe("ModificationTabSideNav", () => {
   const mockModificationItem: ModificationItem = {
@@ -20,13 +21,21 @@ describe("ModificationTabSideNav", () => {
     { label: "Documents", value: "documents" },
   ];
 
+  const setup = (modificationItem: ModificationItem) => {
+    render(
+      <DialogProvider>
+        <ModificationTabSideNav modificationItem={modificationItem} />
+      </DialogProvider>
+    );
+  };
+
   it("renders without crashing", () => {
-    render(<ModificationTabSideNav modificationItem={mockModificationItem} />);
+    setup(mockModificationItem);
     expect(screen.getByText("Application")).toBeInTheDocument();
   });
 
   it("renders all tabs with correct labels and count", () => {
-    render(<ModificationTabSideNav modificationItem={mockModificationItem} />);
+    setup(mockModificationItem);
 
     // Verify exact tab count to catch any added/removed tabs
     expectedTabs.forEach((tab) => {
@@ -43,7 +52,7 @@ describe("ModificationTabSideNav", () => {
   });
 
   it("has Application tab selected by default", () => {
-    render(<ModificationTabSideNav modificationItem={mockModificationItem} />);
+    setup(mockModificationItem);
 
     expectedTabs.forEach((tab) => {
       const tabElement = screen.getByTestId(`button-${tab.value}`);
@@ -55,7 +64,7 @@ describe("ModificationTabSideNav", () => {
   });
 
   it("switches tabs when clicked", () => {
-    render(<ModificationTabSideNav modificationItem={mockModificationItem} />);
+    setup(mockModificationItem);
 
     const detailsTab = screen.getByTestId("button-details");
     fireEvent.click(detailsTab);

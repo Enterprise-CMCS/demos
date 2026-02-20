@@ -3,6 +3,8 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { ModificationDetailsSummary } from "./ModificationDetailsSummary";
 import { ModificationItem } from "./ModificationTabs";
+import { TestProvider } from "test-utils/TestProvider";
+import { DEMONSTRATION_DETAIL_QUERY } from "../DemonstrationDetail";
 
 const showUpdateAmendmentDialog = vi.fn();
 const showUpdateExtensionDialog = vi.fn();
@@ -148,20 +150,30 @@ describe("ModificationDetailsSummary", () => {
   });
 
   describe("Edit Details Button", () => {
+    const setup = (modificationItem: ModificationItem) => {
+      render(
+        <TestProvider>
+          <ModificationDetailsSummary modificationItem={modificationItem} />
+        </TestProvider>
+      );
+    };
+
     it("renders the Edit Details button", () => {
-      render(<ModificationDetailsSummary modificationItem={mockAmendment} />);
+      setup(mockAmendment);
       const editButton = screen.getByRole("button", { name: /button-edit-details/i });
       expect(editButton).toBeInTheDocument();
       expect(editButton).toHaveTextContent("Edit Details");
     });
 
     it("calls showUpdateAmendmentDialog with correct ID when clicked for amendment", () => {
-      render(<ModificationDetailsSummary modificationItem={mockAmendment} />);
+      setup(mockAmendment);
       const editButton = screen.getByRole("button", { name: /button-edit-details/i });
 
       fireEvent.click(editButton);
 
-      expect(showUpdateAmendmentDialog).toHaveBeenCalledWith("mod-123");
+      expect(showUpdateAmendmentDialog).toHaveBeenCalledWith("mod-123", [
+        DEMONSTRATION_DETAIL_QUERY,
+      ]);
       expect(showUpdateAmendmentDialog).toHaveBeenCalledTimes(1);
       expect(showUpdateExtensionDialog).not.toHaveBeenCalled();
     });
@@ -174,12 +186,12 @@ describe("ModificationDetailsSummary", () => {
         status: "Pre-Submission",
         createdAt: new Date("2024-01-01"),
       };
-      render(<ModificationDetailsSummary modificationItem={mockExtension} />);
+      setup(mockExtension);
       const editButton = screen.getByRole("button", { name: /button-edit-details/i });
 
       fireEvent.click(editButton);
 
-      expect(showUpdateExtensionDialog).toHaveBeenCalledWith("ext-456");
+      expect(showUpdateExtensionDialog).toHaveBeenCalled("ext-456", [DEMONSTRATION_DETAIL_QUERY]);
       expect(showUpdateExtensionDialog).toHaveBeenCalledTimes(1);
       expect(showUpdateAmendmentDialog).not.toHaveBeenCalled();
     });
