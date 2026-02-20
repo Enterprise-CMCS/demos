@@ -11,6 +11,7 @@ import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import {
   getReviewPhaseComponentFromDemonstration,
   getApplicationCompletenessFromDemonstration,
+  getApprovalPackagePhase,
 } from "../phases";
 
 const mockPO = {
@@ -28,6 +29,7 @@ vi.mock("../phases", async () => {
     ...actual,
     getReviewPhaseComponentFromDemonstration: vi.fn(),
     getApplicationCompletenessFromDemonstration: vi.fn(),
+    getApprovalPackagePhase: vi.fn(),
   };
 });
 
@@ -575,5 +577,36 @@ describe("Review phase component", () => {
     await waitFor(() => {
       expect(reviewPhaseBox.closest("div")).not.toHaveClass("scale-110");
     });
+  });
+});
+
+describe("completeness phase component", () => {
+  it("calls getApprovalPackagePhase with correct props when Approval Package is selected", async () => {
+    vi.mocked(getApprovalPackagePhase).mockReturnValue(<div>Approval Package Phase Mock</div>);
+
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "test-id",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+      },
+      primaryProjectOfficer: mockPO,
+      status: "Under Review",
+      currentPhaseName: "Approval Package",
+      clearanceLevel: "CMS (OSORA)",
+      phases: [],
+      documents: [],
+      demonstrationTypes: [],
+      tags: [],
+    };
+
+    render(
+      <TestProvider>
+        <PhaseSelector demonstration={demonstration} />
+      </TestProvider>
+    );
+
+    expect(getApprovalPackagePhase).toHaveBeenCalledWith(demonstration, expect.any(Function));
   });
 });
