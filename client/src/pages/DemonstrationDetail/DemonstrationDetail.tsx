@@ -6,7 +6,6 @@ import {
   DemonstrationRoleAssignment,
   DemonstrationTypeAssignment,
   Document,
-  Extension,
   Person,
 } from "demos-server";
 import { useLocation, useParams } from "react-router-dom";
