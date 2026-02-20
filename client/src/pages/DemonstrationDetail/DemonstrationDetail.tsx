@@ -96,19 +96,14 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
   }
 `;
 
-export type DemonstrationDetailAmendment = Pick<
+export type DemonstrationDetailModification = Pick<
   Amendment,
   "id" | "name" | "description" | "status" | "createdAt" | "effectiveDate" | "signatureLevel"
 >;
 
-export type DemonstrationDetailExtension = Pick<
-  Extension,
-  "id" | "name" | "description" | "status" | "createdAt" | "effectiveDate" | "signatureLevel"
->;
-
 export type DemonstrationDetail = Pick<Demonstration, "id" | "status" | "currentPhaseName"> & {
-  amendments: DemonstrationDetailAmendment[];
-  extensions: DemonstrationDetailExtension[];
+  amendments: DemonstrationDetailModification[];
+  extensions: DemonstrationDetailModification[];
   demonstrationTypes: Pick<
     DemonstrationTypeAssignment,
     "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "createdAt"

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { compareAsc } from "date-fns";
 import { ModificationTabSideNav } from "./ModificationTabSideNav";
+import { DemonstrationDetailModification } from "../DemonstrationDetail";
 
 const STYLES = {
   modificationContainer: "flex flex-col gap-2",
@@ -9,16 +10,9 @@ const STYLES = {
   selectedTab: "border-b-4 font-semibold border-border-selected",
 };
 
-export interface ModificationItem {
+export type ModificationItem = DemonstrationDetailModification & {
   modificationType: "amendment" | "extension";
-  id: string;
-  name: string;
-  description?: string;
-  status: string;
-  createdAt: Date;
-  effectiveDate?: Date;
-  signatureLevel?: string;
-}
+};
 
 const ModificationTab = ({
   modificationItem,
@@ -29,10 +23,12 @@ const ModificationTab = ({
   handleTabSelect: (item: ModificationItem) => void;
   isSelected: boolean;
 }) => {
+  const key = `modification-tab-${modificationItem.id}`;
+
   return (
     <button
-      key={modificationItem.id}
-      data-testid={`modification-tab-${modificationItem.id}`}
+      key={key}
+      data-testid={key}
       onClick={() => handleTabSelect(modificationItem)}
       aria-selected={isSelected}
       className={`${STYLES.tab} ${isSelected ? STYLES.selectedTab : ""}`}
@@ -42,12 +38,7 @@ const ModificationTab = ({
   );
 };
 
-const ModificationTabContent = ({ modificationItem }: { modificationItem: ModificationItem }) => {
-  return <ModificationTabSideNav modificationItem={modificationItem} />;
-};
-
-// Sorts ModificationItems by createdAt (newest first)
-const sortModificationItemsByCreatedAt = (items: ModificationItem[]): ModificationItem[] => {
+const sortTabsNewestFirst = (items: ModificationItem[]): ModificationItem[] => {
   return [...items].sort((a, b) => {
     return compareAsc(b.createdAt, a.createdAt);
   });
@@ -58,7 +49,7 @@ export const ModificationTabs = ({ items }: { items: ModificationItem[] }) => {
     return null;
   }
 
-  const sortedItems = sortModificationItemsByCreatedAt(items);
+  const sortedItems = sortTabsNewestFirst(items);
   const [selectedId, setSelectedId] = useState<string>(sortedItems[0]?.id ?? "");
   const [selectedItem, setSelectedItem] = useState<ModificationItem>(sortedItems[0]);
 
@@ -79,7 +70,7 @@ export const ModificationTabs = ({ items }: { items: ModificationItem[] }) => {
           />
         ))}
       </div>
-      <ModificationTabContent modificationItem={selectedItem} />
+      <ModificationTabSideNav modificationItem={selectedItem} />
     </div>
   );
 };

@@ -7,9 +7,11 @@ import { ModificationItem } from "./ModificationTabs";
 describe("ModificationTabSideNav", () => {
   const mockModificationItem: ModificationItem = {
     id: "1",
+    modificationType: "amendment",
     name: "Test Modification",
     description: "Test Description",
-    status: "Active",
+    status: "Pre-Submission",
+    createdAt: new Date(0),
   };
 
   const expectedTabs = [

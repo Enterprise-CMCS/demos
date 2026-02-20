@@ -10,10 +10,10 @@ describe("ModificationDetailsSummary", () => {
     id: "mod-123",
     name: "Test Modification",
     description: "This is a test modification description",
-    status: "Active",
+    status: "Pre-Submission",
     createdAt: new Date("2024-01-01"),
     effectiveDate: new Date("2024-01-15"),
-    signatureLevel: "Level 3",
+    signatureLevel: "OA",
   };
 
   describe("Component Rendering", () => {
@@ -24,7 +24,7 @@ describe("ModificationDetailsSummary", () => {
 
     it("renders the modification name", () => {
       render(<ModificationDetailsSummary modificationItem={mockAmendment} />);
-      expect(screen.getByText("Name")).toBeInTheDocument();
+      expect(screen.getByText("Amendment Title")).toBeInTheDocument();
       expect(screen.getByText("Test Modification")).toBeInTheDocument();
     });
 
@@ -37,19 +37,19 @@ describe("ModificationDetailsSummary", () => {
     it("renders the status", () => {
       render(<ModificationDetailsSummary modificationItem={mockAmendment} />);
       expect(screen.getByText("Status")).toBeInTheDocument();
-      expect(screen.getByText("Active")).toBeInTheDocument();
+      expect(screen.getByText("Pre-Submission")).toBeInTheDocument();
     });
 
     it("renders the description when present", () => {
       render(<ModificationDetailsSummary modificationItem={mockAmendment} />);
-      expect(screen.getByText("Description")).toBeInTheDocument();
+      expect(screen.getByText("Amendment Description")).toBeInTheDocument();
       expect(screen.getByText("This is a test modification description")).toBeInTheDocument();
     });
 
     it("renders the signature level when present", () => {
       render(<ModificationDetailsSummary modificationItem={mockAmendment} />);
       expect(screen.getByText("Signature Level")).toBeInTheDocument();
-      expect(screen.getByText("Level 3")).toBeInTheDocument();
+      expect(screen.getByText("OA")).toBeInTheDocument();
     });
   });
 
@@ -89,18 +89,6 @@ describe("ModificationDetailsSummary", () => {
       render(<ModificationDetailsSummary modificationItem={itemWithoutEffectiveDate} />);
       expect(screen.getByText("--/--/----")).toBeInTheDocument();
     });
-
-    it("displays empty string when status is null", () => {
-      const itemWithNullStatus: ModificationItem = {
-        ...mockAmendment,
-        status: null as unknown as string,
-      };
-      render(<ModificationDetailsSummary modificationItem={itemWithNullStatus} />);
-      expect(screen.getByText("Status")).toBeInTheDocument();
-      // The status value should be an empty string, but we just check that it renders correctly
-      const statusElements = screen.getAllByText("Status");
-      expect(statusElements.length).toBeGreaterThan(0);
-    });
   });
 
   describe("Complete Data Scenarios", () => {
@@ -109,9 +97,9 @@ describe("ModificationDetailsSummary", () => {
       expect(screen.getByText("SUMMARY DETAILS")).toBeInTheDocument();
       expect(screen.getByText("Test Modification")).toBeInTheDocument();
       expect(screen.getByText("01/15/2024")).toBeInTheDocument();
-      expect(screen.getByText("Active")).toBeInTheDocument();
+      expect(screen.getByText("Pre-Submission")).toBeInTheDocument();
       expect(screen.getByText("This is a test modification description")).toBeInTheDocument();
-      expect(screen.getByText("Level 3")).toBeInTheDocument();
+      expect(screen.getByText("OA")).toBeInTheDocument();
     });
 
     it("renders correctly with minimal required fields only", () => {
@@ -119,14 +107,14 @@ describe("ModificationDetailsSummary", () => {
         modificationType: "extension",
         id: "mod-minimal",
         name: "Minimal Modification",
-        status: "Pending",
+        status: "On-hold",
         createdAt: new Date("2024-01-01"),
       };
       render(<ModificationDetailsSummary modificationItem={extension} />);
       expect(screen.getByText("SUMMARY DETAILS")).toBeInTheDocument();
       expect(screen.getByText("Minimal Modification")).toBeInTheDocument();
       expect(screen.getByText("--/--/----")).toBeInTheDocument();
-      expect(screen.getByText("Pending")).toBeInTheDocument();
+      expect(screen.getByText("On-hold")).toBeInTheDocument();
       expect(screen.queryByText("Description")).not.toBeInTheDocument();
       expect(screen.queryByText("Signature Level")).not.toBeInTheDocument();
     });
