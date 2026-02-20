@@ -60,10 +60,17 @@ const mockPO = {
   fullName: "Jane Doe",
 };
 
+const mockSetSelectedPhase = vi.fn();
+
 describe("ApprovalPackagePhase", () => {
   it("renders the section headers", () => {
     render(
-      <ApprovalPackagePhase demonstrationId="demo-1" documents={[]} allPreviousPhasesDone={true} />
+      <ApprovalPackagePhase
+        setSelectedPhase={mockSetSelectedPhase}
+        demonstrationId="demo-1"
+        documents={[]}
+        allPreviousPhasesDone={true}
+      />
     );
 
     expect(screen.getByText("APPROVAL")).toBeInTheDocument();
@@ -76,7 +83,12 @@ describe("ApprovalPackagePhase", () => {
 
   it("renders the table with all required types, even if documents missing", () => {
     render(
-      <ApprovalPackagePhase demonstrationId="demo-1" documents={[]} allPreviousPhasesDone={true} />
+      <ApprovalPackagePhase
+        setSelectedPhase={mockSetSelectedPhase}
+        demonstrationId="demo-1"
+        documents={[]}
+        allPreviousPhasesDone={true}
+      />
     );
 
     const rows = screen.getAllByTestId("table-row");
@@ -105,6 +117,7 @@ describe("ApprovalPackagePhase", () => {
 
     render(
       <ApprovalPackagePhase
+        setSelectedPhase={mockSetSelectedPhase}
         demonstrationId="demo-1"
         documents={[d1]}
         allPreviousPhasesDone={true}
@@ -120,7 +133,12 @@ describe("ApprovalPackagePhase", () => {
 
   it("sets missing fields to '-' when no document", () => {
     render(
-      <ApprovalPackagePhase demonstrationId="demo-1" documents={[]} allPreviousPhasesDone={true} />
+      <ApprovalPackagePhase
+        setSelectedPhase={mockSetSelectedPhase}
+        demonstrationId="demo-1"
+        documents={[]}
+        allPreviousPhasesDone={true}
+      />
     );
 
     const rows = screen.getAllByTestId("table-row");
@@ -137,6 +155,7 @@ describe("ApprovalPackagePhase", () => {
 
     render(
       <ApprovalPackagePhase
+        setSelectedPhase={mockSetSelectedPhase}
         demonstrationId="demo-1"
         documents={[d1, d2]}
         allPreviousPhasesDone={false}
@@ -153,6 +172,7 @@ describe("ApprovalPackagePhase", () => {
 
     render(
       <ApprovalPackagePhase
+        setSelectedPhase={mockSetSelectedPhase}
         demonstrationId="demo-1"
         documents={[d1]}
         allPreviousPhasesDone={true}
@@ -175,6 +195,7 @@ describe("ApprovalPackagePhase", () => {
 
     render(
       <ApprovalPackagePhase
+        setSelectedPhase={mockSetSelectedPhase}
         demonstrationId="demo-1"
         documents={completeDocs}
         allPreviousPhasesDone={true}
@@ -187,7 +208,12 @@ describe("ApprovalPackagePhase", () => {
 
   it("handles empty documents list by disabling Finish", () => {
     render(
-      <ApprovalPackagePhase demonstrationId="demo-1" documents={[]} allPreviousPhasesDone={true} />
+      <ApprovalPackagePhase
+        setSelectedPhase={mockSetSelectedPhase}
+        demonstrationId="demo-1"
+        documents={[]}
+        allPreviousPhasesDone={true}
+      />
     );
 
     const finishButton = screen.getByRole("button", { name: /finish/i });
@@ -207,6 +233,7 @@ describe("ApprovalPackagePhase", () => {
 
     render(
       <ApprovalPackagePhase
+        setSelectedPhase={mockSetSelectedPhase}
         demonstrationId="demo-1"
         documents={completeDocs}
         allPreviousPhasesDone={true}
@@ -221,6 +248,7 @@ describe("ApprovalPackagePhase", () => {
       applicationId: "demo-1",
       phaseName: "Approval Package",
     });
+    expect(mockSetSelectedPhase).toHaveBeenCalledWith("Approval Summary");
   });
 });
 
@@ -259,7 +287,7 @@ describe("getApprovalPackagePhase", () => {
       tags: [],
     };
 
-    render(getApprovalPackagePhase(demonstration));
+    render(getApprovalPackagePhase(demonstration, mockSetSelectedPhase));
 
     const rows = screen.getAllByTestId("table-row");
     expect(rows).toHaveLength(6);
@@ -301,7 +329,7 @@ describe("getApprovalPackagePhase", () => {
       tags: [],
     };
 
-    render(getApprovalPackagePhase(demonstration));
+    render(getApprovalPackagePhase(demonstration, mockSetSelectedPhase));
 
     const rows = screen.getAllByTestId("table-row");
     expect(rows).toHaveLength(6);
@@ -311,7 +339,7 @@ describe("getApprovalPackagePhase", () => {
     });
   });
 
-  it("correctly computes allPreviousPhasesDone when all previous phases are completed", () => {
+  it("correctly computes allPreviousPhasesDone when all required previous phases are completed", () => {
     const completeDocs = [
       doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
       doc({ documentType: "Q&A" }),
@@ -336,7 +364,7 @@ describe("getApprovalPackagePhase", () => {
       phases: [
         {
           phaseName: "Concept",
-          phaseStatus: "Completed",
+          phaseStatus: "Started",
           phaseDates: [],
           phaseNotes: [],
         },
@@ -363,7 +391,7 @@ describe("getApprovalPackagePhase", () => {
       tags: [],
     };
 
-    render(getApprovalPackagePhase(demo));
+    render(getApprovalPackagePhase(demo, mockSetSelectedPhase));
 
     const finishButton = screen.getByRole("button", { name: /finish/i });
     expect(finishButton).toBeEnabled();
@@ -421,7 +449,7 @@ describe("getApprovalPackagePhase", () => {
       tags: [],
     };
 
-    render(getApprovalPackagePhase(demo));
+    render(getApprovalPackagePhase(demo, mockSetSelectedPhase));
 
     const finishButton = screen.getByRole("button", { name: /finish/i });
     expect(finishButton).toBeDisabled();

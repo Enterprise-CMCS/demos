@@ -75,7 +75,8 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
     Concept: () => getConceptPhaseComponentFromDemonstration(demonstration, setSelectedPhase),
     "Application Intake": () =>
       getApplicationIntakeComponentFromDemonstration(demonstration, setSelectedPhase),
-    Completeness: () => getApplicationCompletenessFromDemonstration(demonstration, setSelectedPhase),
+    Completeness: () =>
+      getApplicationCompletenessFromDemonstration(demonstration, setSelectedPhase),
     "Federal Comment": () => getFederalCommentPhaseFromDemonstration(demonstration),
     "SDG Preparation": () => {
       const sdgPreparationPhase = demonstration.phases.find(
@@ -93,7 +94,7 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
       getReviewPhaseComponentFromDemonstration(demonstration, () =>
         setSelectedPhase("Approval Package")
       ),
-    "Approval Package": () => getApprovalPackagePhase(demonstration),
+    "Approval Package": () => getApprovalPackagePhase(demonstration, setSelectedPhase),
     "Approval Summary": () => getApprovalSummaryPhase(demonstration),
   };
 
