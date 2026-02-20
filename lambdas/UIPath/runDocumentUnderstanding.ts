@@ -1,6 +1,5 @@
 import util from "node:util";
 import { randomUUID } from "node:crypto";
-import path from "node:path";
 import { log } from "./log";
 import { getToken } from "./getToken";
 import { uploadDocument } from "./uploadDocument";
@@ -10,7 +9,6 @@ import { getDbPool, getDbSchema } from "./db";
 import { getProjectIdByName } from "./getProjectId";
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
-const DEFAULT_LOCAL_MOCK_PROJECT_ID = "local-devcontainer-project";
 
 interface UiPathFieldValue {
   Value?: string;
@@ -101,42 +99,6 @@ function toPersistableFieldValues(field: UiPathField): PersistableFieldValue[] {
   });
 
   return persistableValues;
-}
-
-function isLocalMockEnabled(): boolean {
-  return (process.env.UIPATH_LOCAL_MOCK ?? "").toLowerCase() === "true";
-}
-
-function buildLocalMockStatus(requestId: string, fileNameWithExtension: string): ExtractionStatus {
-  const value = fileNameWithExtension.trim();
-
-  return {
-    status: "Succeeded",
-    mode: "local-mock",
-    requestId,
-    result: {
-      extractionResult: {
-        ResultsDocument: {
-          Fields: [
-            {
-              FieldId: "local.fileName",
-              FieldName: "File Name",
-              FieldType: "Text",
-              IsMissing: false,
-              Values: [
-                {
-                  Value: value,
-                  UnformattedValue: value,
-                  Confidence: 1,
-                  Reference: { TextLength: value.length },
-                },
-              ],
-            },
-          ],
-        },
-      },
-    },
-  };
 }
 
 async function persistExtractionStatus(
@@ -242,15 +204,6 @@ export async function runDocumentUnderstanding(
     requestId = "n/a",
     fileNameWithExtension,
   } = options;
-
-  if (isLocalMockEnabled()) {
-    const resolvedFileNameWithExtension =
-      fileNameWithExtension?.trim() || path.basename(inputFile) || "uipath-document.pdf";
-    const projectId = DEFAULT_LOCAL_MOCK_PROJECT_ID;
-    const status = buildLocalMockStatus(requestId, resolvedFileNameWithExtension);
-    await persistExtractionStatus(status, requestId, projectId, logFullResult);
-    return status;
-  }
 
   const token = providedToken ?? (await getToken());
   const projectId = await getProjectIdByName(token, process.env.UIPATH_PROJECT_NAME ?? "demosOCR");

@@ -45,7 +45,6 @@ import { getToken } from "./getToken";
 describe("runDocumentUnderstanding", () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    delete process.env.UIPATH_LOCAL_MOCK;
     mocks.uploadDocumentMock.mockReset();
     mocks.extractDocMock.mockReset();
     mocks.fetchExtractionResultMock.mockReset();
@@ -92,28 +91,30 @@ describe("runDocumentUnderstanding", () => {
     expect(mocks.releaseMock).toHaveBeenCalled();
   });
 
-  it("uses local mock mode when UIPATH_LOCAL_MOCK is enabled", async () => {
-    process.env.UIPATH_LOCAL_MOCK = "true";
+  it("passes fileNameWithExtension through uploadDocument", async () => {
+    mocks.uploadDocumentMock.mockResolvedValue("doc-1");
+    mocks.extractDocMock.mockResolvedValue("result-url");
     mocks.queryMock.mockResolvedValue({ rows: [{ id: "result-1" }] });
-
-    const result = await runDocumentUnderstanding("file.pdf", {
-      requestId: "request-local",
-      fileNameWithExtension: "file.pdf",
+    mocks.fetchExtractionResultMock.mockResolvedValue({
+      status: "Succeeded",
+      Fields: [],
     });
 
-    expect(getToken).not.toHaveBeenCalled();
-    expect(mocks.uploadDocumentMock).not.toHaveBeenCalled();
-    expect(mocks.extractDocMock).not.toHaveBeenCalled();
-    expect(mocks.fetchExtractionResultMock).not.toHaveBeenCalled();
-    expect(result).toMatchObject({ status: "Succeeded", mode: "local-mock" });
-    expect(mocks.queryMock).toHaveBeenCalled();
-    expect(mocks.queryMock.mock.calls[0]?.[1]).toEqual([
-      expect.any(String),
-      "request-local",
-      "local-devcontainer-project",
-      expect.any(String),
-    ]);
-    expect(mocks.releaseMock).toHaveBeenCalled();
+    const promise = runDocumentUnderstanding("file.pdf", {
+      pollIntervalMs: 10,
+      requestId: "request-file-name",
+      fileNameWithExtension: "my_file.docx",
+    });
+
+    await vi.runAllTimersAsync();
+    await promise;
+
+    expect(mocks.uploadDocumentMock).toHaveBeenCalledWith(
+      "token-123",
+      "file.pdf",
+      "project-1",
+      "my_file.docx"
+    );
   });
 
   it("throws if maxAttempts is exceeded", async () => {
