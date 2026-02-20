@@ -264,7 +264,7 @@ export class UiStack extends Stack {
             override: true,
           },
           contentSecurityPolicy: {
-            contentSecurityPolicy: `default-src 'self'; form-action 'self'; img-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self' https://cognito-idp.${Aws.REGION}.amazonaws.com ${cognitoDomain} https://${uploadBucketName}.s3.us-east-1.amazonaws.com https://${cleanBucketName}.s3.us-east-1.amazonaws.com; frame-ancestors 'none'; object-src 'none'; frame-src 'self' ${cognitoDomain}`,
+            contentSecurityPolicy: `default-src 'self'; form-action 'self'; img-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self' https://cognito-idp.${Aws.REGION}.amazonaws.com ${cognitoDomain} https://${uploadBucketName}.s3.us-east-1.amazonaws.com https://${cleanBucketName}.s3.us-east-1.amazonaws.com; frame-ancestors 'none'; object-src 'self' blob:; frame-src 'self' blob: ${cognitoDomain}`,
             override: true,
           },
         },
