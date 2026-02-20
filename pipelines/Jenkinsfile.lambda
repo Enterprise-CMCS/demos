@@ -1,0 +1,168 @@
+pipeline {
+  agent {
+    kubernetes {
+      yaml kubeBlock(containerNames:["node", "scanner","snyk"], opts: [
+        NODE_IMAGE: "artifactory.cloud.cms.gov/docker/node:24-alpine"
+      ])
+    }
+  }
+
+  options {
+    disableConcurrentBuilds(abortPrevious: true)
+    buildDiscarder(retentionPolicy(env.BRANCH_NAME))
+  }
+
+  stages {
+    stage('Lambdas - Snyk - All') {
+      steps {
+        script {
+          if (hasChange("lambdas")) {
+            snykScan('lambdas/authorizer')
+            snykScan('lambdas/dbRoleManagement')
+            snykScan('lambdas/fileprocess')
+            snykScan('lambdas/emailer')
+            snykScan('lambdas/deleteinfectedfile')
+            snykScan('lambdas/UIPath')
+          }
+        }
+      }
+    }
+
+    stage('Lambdas - Test - All') {
+      failFast true
+      parallel {
+        stage('Unit Test - Authorizer') {
+          steps {
+            script {
+              if (hasChange("lambdas")) {
+                dirCon('lambdas/authorizer', 'node') {
+                  sh '''
+                  npm ci
+                  npm run lint
+                  npm run test
+                  '''
+                }
+              }
+            }
+          }
+        }
+        stage('Unit Test - DB Role Management') {
+          steps {
+            script {
+              if (hasChange("lambdas")) {
+                dirCon('lambdas/dbRoleManagement', 'node') {
+                  sh '''
+                  npm ci
+                  npm run lint
+                  npm run test
+                  '''
+                }
+              }
+            }
+          }
+        }
+        stage('Unit Test - File Process') {
+          steps {
+            script {
+              if (hasChange("lambdas")) {
+                dirCon('lambdas/fileprocess', 'node') {
+                  sh '''
+                  npm ci
+                  npm run lint
+                  npm run test
+                  '''
+                }
+              }
+            }
+          }
+        }
+        stage('Unit Test - UI Path') {
+          steps {
+            script {
+              if (hasChange("lambdas")) {
+                dirCon('lambdas/UIPath', 'node') {
+                  sh '''
+                  npm ci
+                  npm run lint
+                  npm run test
+                  '''
+                }
+              }
+            }
+          }
+        }
+        stage('Unit Test - Delete Infected File') {
+          steps {
+            script {
+              if (hasChange("lambdas")) {
+                dirCon('lambdas/deleteinfectedfile', 'node') {
+                  sh '''
+                  npm ci
+                  npm run lint
+                  npm run test
+                  '''
+                }
+              }
+            }
+          }
+        }
+        stage('Unit Test - Emailer') {
+          steps {
+            script {
+              if (hasChange("lambdas")) {
+                dirCon('lambdas/emailer', 'node') {
+                  sh '''
+                  npm ci
+                  npm run lint
+                  npm run test
+                  '''
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    stage('Lambdas - Sonar Scan') {
+      steps {
+        script {
+          if (hasChange("lambdas")) {
+            dirCon('lambdas', 'node') {
+              sh """
+                npx -y lcov-result-merger  '*/coverage/lcov.info' lcov-lambdas.info --prepend-source-files --prepend-path-fix
+              """
+            }
+            script {
+              sonarQubeScan(
+                projectKey: 'demos-lambdas',
+                credentialsId: 'sonarqube-demos-all',
+                projectBaseDir: 'lambdas',
+                sonarqubeFlags: [
+                  "javascript.lcov.reportPaths": "lcov-lambdas.info",
+                  "pullrequest.key": env.CHANGE_ID ?: null,
+                  "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
+                  "pullrequest.base": env.CHANGE_TARGET ?: null,
+                  "exclusions": "**/*.test.ts,**/*.test.tsx,**/coverage/**,**/jest.config.cjs,**/vite.config.ts",
+                  "cpd.exclusions": "**/log.ts,**/index.ts",
+                  "coverage.exclusions": "**/log.ts",
+                  "sources": "./",
+                  "tests": "./",
+                ]
+              )
+            }
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    failure {
+      slackPipelineFail("Lambdas")
+    }
+    always {
+      cleanWs(deleteDirs: true)
+    }
+  }
+}
