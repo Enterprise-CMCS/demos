@@ -11,6 +11,7 @@ import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import {
   getReviewPhaseComponentFromDemonstration,
   getApplicationCompletenessFromDemonstration,
+  SdgPreparationPhase,
 } from "../phases";
 
 const mockPO = {
@@ -28,6 +29,7 @@ vi.mock("../phases", async () => {
     ...actual,
     getReviewPhaseComponentFromDemonstration: vi.fn(),
     getApplicationCompletenessFromDemonstration: vi.fn(),
+    SdgPreparationPhase: vi.fn(() => <div>SDG Preparation Phase Mock</div>),
   };
 });
 
@@ -511,6 +513,49 @@ describe("completeness phase component", () => {
     expect(getApplicationCompletenessFromDemonstration).toHaveBeenCalledWith(
       demonstration,
       expect.any(Function)
+    );
+  });
+});
+
+describe("sdg preparation phase component", () => {
+  it("renders sdg preparation phase with correct props when sdg preparation is selected", async () => {
+    const sdgPhase = {
+      phaseName: "SDG Preparation" as const,
+      phaseStatus: "Started" as const,
+      phaseDates: [],
+      phaseNotes: [],
+    };
+
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "test-id",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+      },
+      primaryProjectOfficer: mockPO,
+      status: "Under Review",
+      currentPhaseName: "SDG Preparation",
+      clearanceLevel: "CMS (OSORA)",
+      phases: [sdgPhase],
+      documents: [],
+      demonstrationTypes: [],
+      tags: [],
+    };
+
+    render(
+      <TestProvider>
+        <PhaseSelector demonstration={demonstration} />
+      </TestProvider>
+    );
+
+    expect(SdgPreparationPhase).toHaveBeenCalledWith(
+      {
+        demonstrationId: "test-id",
+        sdgPreparationPhase: sdgPhase,
+        setSelectedPhase: expect.any(Function),
+      },
+      undefined
     );
   });
 });
