@@ -11,7 +11,7 @@ import { findUserById } from "../user";
 import { getApplication } from "../application";
 import { validateAndUpdateDates } from "../applicationDate";
 import { startPhaseByDocument } from "../applicationPhase";
-import { enqueueUiPath, parseS3Path } from "../../services/uipathQueue";
+import { enqueueUiPath } from "../../services/uipathQueue";
 import { resolveFileNameWithExtension } from "../../services/uipathFileName";
 import { getDocumentById, checkDocumentExists, updateDocument, handleDeleteDocument } from ".";
 import {
@@ -60,8 +60,7 @@ vi.mock("../applicationDate", () => ({
 }));
 
 vi.mock("../../services/uipathQueue", () => ({
-  enqueueUiPath: vi.fn(),
-  parseS3Path: vi.fn(),
+  enqueueUiPath: vi.fn()
 }));
 
 vi.mock("../../services/uipathFileName", () => ({
@@ -288,15 +287,9 @@ describe("documentResolvers", () => {
 
   describe("triggerUiPath", () => {
     it("enqueues UiPath using resolved file extension", async () => {
-      const s3Path = "s3://clean-bucket/path/to/alaska_doc";
       vi.mocked(getDocumentById).mockResolvedValue({
         ...mockDocument,
         name: "alaska_doc",
-        s3Path,
-      });
-      vi.mocked(parseS3Path).mockReturnValue({
-        bucket: "clean-bucket",
-        key: "path/to/alaska_doc",
       });
       vi.mocked(resolveFileNameWithExtension).mockResolvedValue("alaska_doc.pdf");
       vi.mocked(enqueueUiPath).mockResolvedValue("msg-123");
@@ -304,30 +297,23 @@ describe("documentResolvers", () => {
       const result = await triggerUiPath(undefined, { documentId: testDocumentId });
 
       expect(getDocumentById).toHaveBeenCalledExactlyOnceWith(mockTransaction, testDocumentId);
-      expect(parseS3Path).toHaveBeenCalledExactlyOnceWith(s3Path);
       expect(resolveFileNameWithExtension).toHaveBeenCalledExactlyOnceWith({
         bucket: "clean-bucket",
-        key: "path/to/alaska_doc",
+        key: `${testApplicationId}/${testDocumentId}`,
         documentName: "alaska_doc",
       });
       expect(enqueueUiPath).toHaveBeenCalledExactlyOnceWith({
         s3Bucket: "clean-bucket",
-        s3FileName: "path/to/alaska_doc",
+        s3FileName: `${testApplicationId}/${testDocumentId}`,
         fileNameWithExtension: "alaska_doc.pdf",
       });
       expect(result).toBe("msg-123");
     });
 
     it("passes through resolved filename when document already has extension", async () => {
-      const s3Path = "s3://clean-bucket/path/to/alaska_doc.docx";
       vi.mocked(getDocumentById).mockResolvedValue({
         ...mockDocument,
         name: "alaska_doc.docx",
-        s3Path,
-      });
-      vi.mocked(parseS3Path).mockReturnValue({
-        bucket: "clean-bucket",
-        key: "path/to/alaska_doc.docx",
       });
       vi.mocked(resolveFileNameWithExtension).mockResolvedValue("alaska_doc.docx");
       vi.mocked(enqueueUiPath).mockResolvedValue("msg-456");
@@ -336,25 +322,21 @@ describe("documentResolvers", () => {
 
       expect(enqueueUiPath).toHaveBeenCalledExactlyOnceWith({
         s3Bucket: "clean-bucket",
-        s3FileName: "path/to/alaska_doc.docx",
+        s3FileName: `${testApplicationId}/${testDocumentId}`,
         fileNameWithExtension: "alaska_doc.docx",
       });
       expect(result).toBe("msg-456");
     });
 
-    it("throws when parsing the document s3Path fails", async () => {
+    it("throws when resolving the file extension fails", async () => {
       vi.mocked(getDocumentById).mockResolvedValue({
         ...mockDocument,
-        s3Path: "s3://broken",
       });
-      vi.mocked(parseS3Path).mockImplementation(() => {
-        throw new Error("Document s3Path is not a valid S3 URI: s3://broken");
-      });
+      vi.mocked(resolveFileNameWithExtension).mockRejectedValue(new Error("Unable to infer extension"));
 
       await expect(triggerUiPath(undefined, { documentId: testDocumentId })).rejects.toThrow(
-        "Document s3Path is not a valid S3 URI: s3://broken"
+        "Unable to infer extension"
       );
-      expect(resolveFileNameWithExtension).not.toHaveBeenCalled();
       expect(enqueueUiPath).not.toHaveBeenCalled();
     });
   });

@@ -7,6 +7,13 @@ import {
 import { describe, expect, it, vi } from "vitest";
 import { resolveFileNameWithExtension } from "./uipathFileName";
 
+vi.mock("file-type", () => ({
+  fileTypeFromBuffer: vi.fn(async (bytes: Uint8Array) => {
+    const asString = Buffer.from(bytes).toString("utf8");
+    return asString.startsWith("%PDF") ? { ext: "pdf", mime: "application/pdf" } : undefined;
+  }),
+}));
+
 type MockS3Client = {
   send: ReturnType<typeof vi.fn>;
 };

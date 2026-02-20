@@ -1,8 +1,8 @@
-import { describe, it, vi, expect, beforeEach } from "vitest";
+import { describe, it, vi, expect, beforeAll, beforeEach } from "vitest";
 import type { APIGatewayProxyEvent } from "aws-lambda";
-
-import { extractAuthorizerClaims, withAuthorizerHeader } from "./server";
-import { buildLambdaContext } from "./auth/auth.util.ts";
+let extractAuthorizerClaims!: typeof import("./server").extractAuthorizerClaims;
+let withAuthorizerHeader!: typeof import("./server").withAuthorizerHeader;
+let buildLambdaContext!: typeof import("./auth/auth.util.ts").buildLambdaContext;
 
 // Shared spies
 const userFindUnique = vi.fn();
@@ -47,6 +47,7 @@ vi.mock("./auth/auth.config.js", () => ({
     jwksUri: "https://issuer.example/.well-known/jwks.json",
   }),
 }));
+vi.mock("./model/graphql.js", () => ({ typeDefs: "type Query { _empty: String }", resolvers: {} }));
 
 // JWT libs (defensive)
 vi.mock("jwks-rsa", () => ({ default: vi.fn(() => ({})) }));
@@ -54,6 +55,12 @@ vi.mock("jsonwebtoken", () => ({ default: {}, verify: vi.fn() }));
 
 // (Optional) smoke signal to confirm which mock path gets hit
 console.log("[TEST] prisma mock wired");
+
+beforeAll(async () => {
+  ({ extractAuthorizerClaims, withAuthorizerHeader } = await import("./server"));
+  ({ buildLambdaContext } = await import("./auth/auth.util.ts"));
+});
+
 // Minimal APIGatewayProxyEvent with authorizer claims that match your screenshot
 function makeEvent(): APIGatewayProxyEvent {
   const identitiesString = JSON.stringify([
