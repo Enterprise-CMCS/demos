@@ -28,6 +28,19 @@ describe("ModificationDetailsSummary", () => {
       expect(screen.getByText("Test Modification")).toBeInTheDocument();
     });
 
+    it("renders the correct title label ", () => {
+      const mockExtension: ModificationItem = {
+        modificationType: "extension",
+        id: "mod-456",
+        name: "Test Extension",
+        status: "Pre-Submission",
+        createdAt: new Date("2024-01-01"),
+      };
+      render(<ModificationDetailsSummary modificationItem={mockExtension} />);
+      expect(screen.getByText("Extension Title")).toBeInTheDocument();
+      expect(screen.getByText("Test Extension")).toBeInTheDocument();
+    });
+
     it("renders the effective date when present", () => {
       render(<ModificationDetailsSummary modificationItem={mockAmendment} />);
       expect(screen.getByText("Effective Date")).toBeInTheDocument();

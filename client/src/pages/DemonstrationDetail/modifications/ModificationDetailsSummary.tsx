@@ -23,7 +23,7 @@ const ModificationDetailsFields = ({
   const labelPrefix = modificationItem.modificationType === "amendment" ? "Amendment" : "Extension";
 
   return (
-    <div className="flex flex-col p-1">
+    <div className="flex flex-col p-1 gap-2">
       <div className="flex justify-between w-full">
         <Field label={`${labelPrefix} Title`} value={modificationItem.name} />
         <Field label="Effective Date" value={effectiveDateValue} />
