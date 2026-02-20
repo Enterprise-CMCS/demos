@@ -21,11 +21,7 @@ export type PhaseStatus = ServerPhaseStatus | "past-due";
 export type PhaseName = Exclude<ServerPhase, "None">;
 const PHASE_NAMES: PhaseName[] = PHASE_NAME.filter((phase): phase is PhaseName => phase !== "None");
 
-type PhaseDateDisplayMap = {
-  [P in PhaseName]?: {
-    [S in PhaseStatus]?: DateType;
-  };
-};
+type PhaseDateDisplayMap = Record<PhaseName, Partial<Record<PhaseStatus, DateType>>>;
 
 const PHASE_DISPLAY_DATES: PhaseDateDisplayMap = {
   Concept: {
@@ -69,7 +65,7 @@ const PHASE_DISPLAY_DATES: PhaseDateDisplayMap = {
     "Completed": "Approval Summary Completion Date",
     "Not Started": "Approval Summary Start Date",
   },
-};
+} as const;
 
 const PhaseGroups = () => {
   const leftBorderStyles = "border-l-1 border-surface-placeholder pl-2 -ml-sm";
