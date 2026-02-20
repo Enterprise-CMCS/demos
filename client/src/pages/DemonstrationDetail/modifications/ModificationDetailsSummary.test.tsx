@@ -191,7 +191,9 @@ describe("ModificationDetailsSummary", () => {
 
       fireEvent.click(editButton);
 
-      expect(showUpdateExtensionDialog).toHaveBeenCalled("ext-456", [DEMONSTRATION_DETAIL_QUERY]);
+      expect(showUpdateExtensionDialog).toHaveBeenCalledWith("ext-456", [
+        DEMONSTRATION_DETAIL_QUERY,
+      ]);
       expect(showUpdateExtensionDialog).toHaveBeenCalledTimes(1);
       expect(showUpdateAmendmentDialog).not.toHaveBeenCalled();
     });
