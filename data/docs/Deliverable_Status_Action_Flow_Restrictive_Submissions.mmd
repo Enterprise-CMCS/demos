@@ -19,15 +19,18 @@ stateDiagram-v2
   pastDue --> actionDeliverableSubmitted
   pastDue --> actionExtensionRequestSubmitted
   submitted --> actionReviewStarted
+  submitted --> actionDeliverableSubmitted
+  submitted --> actionResubmissionRequested
   extensionRequested --> actionExtensionRequestApproved
   extensionRequested --> actionExtensionRequestDenied
+  underReview --> actionDeliverableSubmitted
   underReview --> actionResubmissionRequested
   underReview --> actionDeliverableAccepted
   underReview --> actionDeliverableApproved
   underReview --> actionDeliverableFiled
-  accepted --> [*]
-  approved --> [*]
-  filed --> [*]
+  accepted --> actionResubmissionRequested
+  approved --> actionResubmissionRequested
+  filed --> actionResubmissionRequested
 
   %% Action results
   actionPassesDueDate --> pastDue
