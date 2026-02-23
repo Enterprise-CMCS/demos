@@ -11,8 +11,8 @@ import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import {
   getReviewPhaseComponentFromDemonstration,
   getApplicationCompletenessFromDemonstration,
-  SdgPreparationPhase,
   getApprovalPackagePhase,
+  getSdgPreparationPhaseFromDemonstration,
 } from "../phases";
 
 const mockPO = {
@@ -30,7 +30,7 @@ vi.mock("../phases", async () => {
     ...actual,
     getReviewPhaseComponentFromDemonstration: vi.fn(),
     getApplicationCompletenessFromDemonstration: vi.fn(),
-    SdgPreparationPhase: vi.fn(() => <div>SDG Preparation Phase Mock</div>),
+    getSdgPreparationPhaseFromDemonstration: vi.fn(),
     getApprovalPackagePhase: vi.fn(),
   };
 });
@@ -500,13 +500,9 @@ describe("sdg preparation phase component", () => {
       </TestProvider>
     );
 
-    expect(SdgPreparationPhase).toHaveBeenCalledWith(
-      {
-        demonstrationId: "test-id",
-        sdgPreparationPhase: sdgPhase,
-        setSelectedPhase: expect.any(Function),
-      },
-      undefined
+    expect(getSdgPreparationPhaseFromDemonstration).toHaveBeenCalledWith(
+      demonstration,
+      expect.any(Function)
     );
   });
 });

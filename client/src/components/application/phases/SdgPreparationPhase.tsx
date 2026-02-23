@@ -3,7 +3,7 @@ import { tw } from "tags/tw";
 
 import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
-import { SimplePhase } from "../ApplicationWorkflow";
+import { ApplicationWorkflowDemonstration, SimplePhase } from "../ApplicationWorkflow";
 import { formatDateForServer } from "util/formatDate";
 import { DateType, PhaseNameWithTrackedStatus } from "demos-server";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
@@ -60,14 +60,46 @@ export const hasChanges = (
   );
 };
 
+export const getSdgPreparationPhaseFromDemonstration = (
+  demonstration: ApplicationWorkflowDemonstration,
+  setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void
+) => {
+  const sdgPreparationPhase = demonstration.phases.find(
+    (phase) => phase.phaseName === "SDG Preparation"
+  );
+  if (!sdgPreparationPhase) return <div>Error: SDG Preparation Phase not found.</div>;
+
+  const allPreviousPhasesDone = demonstration.phases
+    .filter(
+      (p) =>
+        p.phaseName !== "Concept" &&
+        p.phaseName !== "Approval Package" &&
+        p.phaseName !== "Approval Summary" &&
+        p.phaseName !== "SDG Preparation" &&
+        p.phaseName !== "Review"
+    )
+    .every((phase) => phase.phaseStatus === "Completed" || phase.phaseStatus === "Skipped");
+
+  return (
+    <SdgPreparationPhase
+      demonstrationId={demonstration.id}
+      sdgPreparationPhase={sdgPreparationPhase}
+      setSelectedPhase={setSelectedPhase}
+      allPreviousPhasesDone={allPreviousPhasesDone}
+    />
+  );
+};
+
 export const SdgPreparationPhase = ({
   demonstrationId,
   sdgPreparationPhase,
   setSelectedPhase,
+  allPreviousPhasesDone,
 }: {
   demonstrationId: string;
   sdgPreparationPhase: SimplePhase;
   setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void;
+  allPreviousPhasesDone: boolean;
 }) => {
   const [sdgPreparationPhaseFormData, setSdgPreparationPhaseFormData] =
     useState<SdgPreparationPhaseFormData>(getFormDataFromPhase(sdgPreparationPhase));
@@ -241,7 +273,11 @@ export const SdgPreparationPhase = ({
                 onClick={handleFinish}
                 size="large"
                 name="sdg-finish"
-                disabled={!isFormComplete || sdgPreparationPhase.phaseStatus === "Completed"}
+                disabled={
+                  !allPreviousPhasesDone ||
+                  !isFormComplete ||
+                  sdgPreparationPhase.phaseStatus === "Completed"
+                }
               >
                 Finish
               </Button>
