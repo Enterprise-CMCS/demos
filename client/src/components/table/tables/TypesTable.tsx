@@ -98,10 +98,10 @@ export const TypesTable: React.FC<TypesTableProps> = ({
             // Determine removeTooltip based on why it's disabled
             let removeTooltip: string;
             if (!removeDisabled) {
-              removeTooltip = "Remove";
+              removeTooltip = "Delete";
             } else if (selectedCount < 1) {
               removeTooltip = selectionTooltip({
-                action: "Remove",
+                action: "Delete",
                 nounSingular: "Type",
                 selectedCount,
                 rule: { kind: "atLeast", count: 1 },
@@ -110,9 +110,9 @@ export const TypesTable: React.FC<TypesTableProps> = ({
               demonstration.status === "Approved" &&
               selectedCount === demonstration.demonstrationTypes.length
             ) {
-              removeTooltip = "At least one Type is required for approved demonstrations.";
+              removeTooltip = "1 Type is Required";
             } else {
-              removeTooltip = "Remove";
+              removeTooltip = "Delete";
             }
 
             return (
@@ -148,8 +148,8 @@ export const TypesTable: React.FC<TypesTableProps> = ({
                 </CircleButton>
 
                 <CircleButton
-                  name="remove-type"
-                  ariaLabel="Remove Type"
+                  name="delete-type"
+                  ariaLabel="Delete Type"
                   tooltip={removeTooltip}
                   disabled={removeDisabled}
                   onClick={() =>
