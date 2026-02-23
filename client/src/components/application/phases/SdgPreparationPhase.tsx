@@ -5,7 +5,7 @@ import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
 import { ApplicationWorkflowDemonstration, SimplePhase } from "../ApplicationWorkflow";
 import { formatDateForServer } from "util/formatDate";
-import { DateType, PhaseNameWithTrackedStatus } from "demos-server";
+import { DateType, LocalDate, PhaseNameWithTrackedStatus } from "demos-server";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import {
   FAILED_TO_SAVE_MESSAGE,
@@ -118,7 +118,7 @@ export const SdgPreparationPhase = ({
       await setApplicationDate({
         applicationId: demonstrationId,
         dateType: "Expected Approval Date" satisfies DateType,
-        dateValue: formatDateForServer(sdgPreparationPhaseFormData.expectedApprovalDate),
+        dateValue: sdgPreparationPhaseFormData.expectedApprovalDate as LocalDate,
       });
     }
 
@@ -126,7 +126,7 @@ export const SdgPreparationPhase = ({
       await setApplicationDate({
         applicationId: demonstrationId,
         dateType: "SME Review Date" satisfies DateType,
-        dateValue: formatDateForServer(sdgPreparationPhaseFormData.smeInitialReviewDate),
+        dateValue: sdgPreparationPhaseFormData.smeInitialReviewDate as LocalDate,
       });
     }
 
@@ -134,7 +134,7 @@ export const SdgPreparationPhase = ({
       await setApplicationDate({
         applicationId: demonstrationId,
         dateType: "FRT Initial Meeting Date" satisfies DateType,
-        dateValue: formatDateForServer(sdgPreparationPhaseFormData.frtInitialMeetingDate),
+        dateValue: sdgPreparationPhaseFormData.frtInitialMeetingDate as LocalDate,
       });
     }
 
@@ -142,7 +142,7 @@ export const SdgPreparationPhase = ({
       await setApplicationDate({
         applicationId: demonstrationId,
         dateType: "BNPMT Initial Meeting Date" satisfies DateType,
-        dateValue: formatDateForServer(sdgPreparationPhaseFormData.bnpmtInitialMeetingDate),
+        dateValue: sdgPreparationPhaseFormData.bnpmtInitialMeetingDate as LocalDate,
       });
     }
   };
