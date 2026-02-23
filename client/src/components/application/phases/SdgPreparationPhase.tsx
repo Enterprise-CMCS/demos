@@ -48,6 +48,18 @@ interface SdgPreparationPhaseFormData {
   bnpmtInitialMeetingDate?: string;
 }
 
+export const hasChanges = (
+  initialFormData: SdgPreparationPhaseFormData,
+  currentFormData: SdgPreparationPhaseFormData
+) => {
+  return (
+    initialFormData.expectedApprovalDate !== currentFormData.expectedApprovalDate ||
+    initialFormData.smeInitialReviewDate !== currentFormData.smeInitialReviewDate ||
+    initialFormData.frtInitialMeetingDate !== currentFormData.frtInitialMeetingDate ||
+    initialFormData.bnpmtInitialMeetingDate !== currentFormData.bnpmtInitialMeetingDate
+  );
+};
+
 export const SdgPreparationPhase = ({
   demonstrationId,
   sdgPreparationPhase,
@@ -218,14 +230,24 @@ export const SdgPreparationPhase = ({
             </div>
 
             <div className={STYLES.actions}>
-              <SecondaryButton onClick={handleSaveForLater} size="large" name="sdg-save-for-later">
+              <SecondaryButton
+                disabled={
+                  !hasChanges(
+                    getFormDataFromPhase(sdgPreparationPhase),
+                    sdgPreparationPhaseFormData
+                  )
+                }
+                onClick={handleSaveForLater}
+                size="large"
+                name="sdg-save-for-later"
+              >
                 Save For Later
               </SecondaryButton>
               <Button
                 onClick={handleFinish}
                 size="large"
                 name="sdg-finish"
-                disabled={!isFormComplete}
+                disabled={!isFormComplete || sdgPreparationPhase.phaseStatus === "Completed"}
               >
                 Finish
               </Button>
