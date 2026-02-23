@@ -172,6 +172,7 @@ export const SdgPreparationPhase = ({
                     expectedApprovalDate: newDate,
                   });
                 }}
+                isRequired
               />
             </div>
           </div>{" "}
@@ -183,9 +184,6 @@ export const SdgPreparationPhase = ({
               <p className={STYLES.helper}>Record the occurrence of the key review meetings</p>
             </div>
             <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
-              <label className="block text-sm font-bold mb-1">
-                <span className="text-text-warn mr-1">*</span>
-              </label>
               <DatePicker
                 name="datepicker-sme-initial-review-date"
                 label="SME Initial Review Date"
@@ -198,10 +196,6 @@ export const SdgPreparationPhase = ({
                   });
                 }}
               />
-              <label className="block text-sm font-bold mb-1">
-                <span className="text-text-warn mr-1">*</span>
-                FRT Initial Meeting Date
-              </label>
               <DatePicker
                 name="datepicker-frt-initial-meeting-date"
                 data-testid="datepicker-frt-initial-meeting-date"

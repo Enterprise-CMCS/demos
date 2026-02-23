@@ -160,7 +160,7 @@ describe("SdgPreparationPhase", () => {
       expect(datePicker).toBeInTheDocument();
 
       expect(screen.getByText("Expected Approval Date")).toBeInTheDocument();
-      expect(screen.getByLabelText("Expected Approval Date")).toBeInTheDocument();
+      expect(screen.getByLabelText(/Expected Approval Date/)).toBeInTheDocument();
     });
   });
 
