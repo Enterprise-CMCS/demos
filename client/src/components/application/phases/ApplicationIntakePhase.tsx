@@ -244,10 +244,6 @@ export const ApplicationIntakePhase = ({
             dateType: "Completeness Review Due Date",
             dateValue: completenessReviewDueDate,
           },
-          {
-            dateType: "Completeness Start Date",
-            dateValue: formattedNewDate,
-          },
         ],
       });
     }
