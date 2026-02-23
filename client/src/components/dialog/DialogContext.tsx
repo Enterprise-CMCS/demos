@@ -73,12 +73,16 @@ export const useDialog = () => {
     context.showDialog(<CreateExtensionDialog demonstrationId={demonstrationId} />);
   };
 
-  const showUpdateExtensionDialog = (extensionId: string) => {
-    context.showDialog(<UpdateExtensionDialog extensionId={extensionId} />);
+  const showUpdateExtensionDialog = (extensionId: string, refetchQueries: string[] = []) => {
+    context.showDialog(
+      <UpdateExtensionDialog extensionId={extensionId} refetchQueries={refetchQueries} />
+    );
   };
 
-  const showUpdateAmendmentDialog = (amendmentId: string) => {
-    context.showDialog(<UpdateAmendmentDialog amendmentId={amendmentId} />);
+  const showUpdateAmendmentDialog = (amendmentId: string, refetchQueries: string[] = []) => {
+    context.showDialog(
+      <UpdateAmendmentDialog amendmentId={amendmentId} refetchQueries={refetchQueries} />
+    );
   };
 
   const showManageContactsDialog = (
