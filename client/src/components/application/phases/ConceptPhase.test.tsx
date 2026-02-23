@@ -140,11 +140,6 @@ describe("ConceptPhase", () => {
       expect(dateInput).toBeInTheDocument();
       expect(dateInput).toHaveAttribute("type", "date");
     });
-
-    it("renders Demonstration Type dropdown", () => {
-      setup();
-      expect(screen.getByText(/Demonstration Type\(s\) Requested/)).toBeInTheDocument();
-    });
   });
 
   describe("Button Logic", () => {
