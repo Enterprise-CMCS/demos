@@ -169,7 +169,6 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
                 data-testid="delete-button"
                 size="small"
                 onClick={() => {}}
-                tooltip="Delete"
               >
                 <DeleteIcon />
               </CircleButton>
