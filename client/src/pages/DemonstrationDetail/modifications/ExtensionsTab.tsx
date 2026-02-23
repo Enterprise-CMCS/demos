@@ -2,13 +2,18 @@ import React from "react";
 import { IconButton } from "components/button";
 import { AddNewIcon } from "components/icons";
 import { useDialog } from "components/dialog/DialogContext";
-import { DemonstrationDetailExtension } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { DemonstrationDetailModification } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { ModificationTabs } from "./ModificationTabs";
 
 export const ExtensionsTab: React.FC<{
   demonstrationId: string;
-  extensions: DemonstrationDetailExtension[];
+  extensions: DemonstrationDetailModification[];
 }> = ({ demonstrationId, extensions }) => {
+  const extensionsWithType = extensions.map((extension) => ({
+    ...extension,
+    modificationType: "extension" as const,
+  }));
+
   const { showCreateExtensionDialog } = useDialog();
   return (
     <div className="flex flex-col p-2 gap-2">
@@ -23,7 +28,7 @@ export const ExtensionsTab: React.FC<{
           Add Extension
         </IconButton>
       </div>
-      <ModificationTabs items={extensions} />
+      <ModificationTabs items={extensionsWithType} />
     </div>
   );
 };
