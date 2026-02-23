@@ -6,7 +6,7 @@ import { UpdateDocumentInput, UploadDocumentInput, ApplicationDateInput } from "
 import { prisma } from "../../prismaClient.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { getS3Adapter } from "../../adapters";
-import { EasternNow, getEasternNow, parseJSDateToEasternTZDate } from "../../dateUtilities";
+import { EasternNow, getEasternNow } from "../../dateUtilities";
 import { findUserById } from "../user";
 import { getApplication } from "../application";
 import { validateAndUpdateDates } from "../applicationDate";
@@ -44,10 +44,13 @@ vi.mock("../application", () => ({
   getApplication: vi.fn(),
 }));
 
-vi.mock("../../dateUtilities", () => ({
-  getEasternNow: vi.fn(),
-  parseJSDateToEasternTZDate: vi.fn(),
-}));
+vi.mock("../../dateUtilities", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../dateUtilities")>();
+  return {
+    ...actual,
+    getEasternNow: vi.fn(),
+  };
+});
 
 vi.mock("../applicationPhase", () => ({
   startPhaseByDocument: vi.fn(),
@@ -269,14 +272,8 @@ describe("documentResolvers", () => {
         phaseName: "Application Intake",
       };
 
-      const mockCompletenessReviewDueDate = new TZDate("2025-01-30T23:59:59.999Z");
-
       vi.mocked(mockS3Adapter.uploadDocument).mockResolvedValue(mockUploadResponse);
       vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);
-      vi.mocked(parseJSDateToEasternTZDate).mockReturnValue({
-        easternTZDate: mockCompletenessReviewDueDate,
-        isEasternTZDate: true,
-      });
       vi.mocked(startPhaseByDocument).mockResolvedValue(null);
       vi.mocked(validateAndUpdateDates).mockResolvedValue(undefined);
 
@@ -285,14 +282,16 @@ describe("documentResolvers", () => {
       expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
         {
           applicationId: testApplicationId,
-          applicationDates: expect.arrayContaining([
-            expect.objectContaining({
+          applicationDates: [
+            {
               dateType: "State Application Submitted Date",
-            }),
-            expect.objectContaining({
+              dateValue: new TZDate("2025-01-15T00:00:00.000Z"),
+            },
+            {
               dateType: "Completeness Review Due Date",
-            }),
-          ]),
+              dateValue: new TZDate("2025-01-30T23:59:59.999Z"),
+            },
+          ],
         },
         mockTransaction
       );
