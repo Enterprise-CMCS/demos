@@ -180,6 +180,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
                   setShowDropdown(false);
                   showEditDemonstrationDialog(demonstrationId);
                 }}
+                tooltip="Edit"
               >
                 <EditIcon />
               </CircleButton>
@@ -188,6 +189,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
                 data-testid="create-new-button"
                 size="small"
                 onClick={() => setShowDropdown((prev) => !prev)}
+                tooltip="Create New"
               >
                 <AddNewIcon />
               </CircleButton>
