@@ -19,7 +19,6 @@ import { findUserById } from "../user";
 import { validateAndUpdateDates } from "../applicationDate";
 import { startPhaseByDocument } from "../applicationPhase";
 import { enqueueUiPath } from "../../services/uipathQueue";
-import { resolveFileNameWithExtension } from "../../services/uipathFileName";
 import {
   checkDocumentExists,
   getDocumentById,
@@ -164,16 +163,10 @@ export async function triggerUiPath(
       const document = await getDocumentById(tx, documentId);
       const bucket = "clean-bucket";
       const key = `${document.applicationId}/${document.id}`;
-      const fileNameWithExtension = await resolveFileNameWithExtension({
-        bucket,
-        key,
-        documentName: document.name,
-      });
 
       return await enqueueUiPath({
         s3Bucket: bucket,
         s3FileName: key,
-        fileNameWithExtension,
         documentId: document.id,
       });
     });

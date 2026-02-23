@@ -4,6 +4,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { UploadDocumentInput } from "../../model/document/documentSchema";
 import { createAWSS3Adapter } from "./AwsS3Adapter";
 import { createDocumentPendingUpload } from "../../model/documentPendingUpload";
+import { PRIMARY_AWS_REGION } from "../../constants";
 
 vi.mock("@aws-sdk/client-s3", () => ({
   S3Client: vi.fn(() => ({
@@ -142,6 +143,32 @@ describe("AwsS3Adapter", () => {
     });
   });
 
+  describe("object read helpers", () => {
+    it("should return object bytes for requested range", async () => {
+      const bytes = Uint8Array.from([1, 2, 3]);
+      const mockS3Client = {
+        send: vi.fn().mockResolvedValue({
+          Body: {
+            transformToByteArray: vi.fn().mockResolvedValue(bytes),
+          },
+        }),
+      };
+      vi.mocked(S3Client).mockReturnValue(mockS3Client as any);
+
+      const adapter = createAWSS3Adapter();
+      const result = await adapter.getObjectBytes("some-bucket", "doc-key");
+
+      expect(result).toEqual(bytes);
+      expect(mockS3Client.send).toHaveBeenCalledOnce();
+      expect(mockS3Client.send.mock.calls[0]?.[0]).toHaveProperty("params");
+      expect(mockS3Client.send.mock.calls[0]?.[0].params).toEqual({
+        Bucket: "some-bucket",
+        Key: "doc-key",
+        Range: "bytes=0-4095",
+      });
+    });
+  });
+
   describe("uploadDocument", () => {
     const mockUploadInput: UploadDocumentInput = {
       name: "test.pdf",
@@ -202,7 +229,7 @@ describe("AwsS3Adapter", () => {
 
       expect(S3Client).toHaveBeenCalledWith(
         expect.objectContaining({
-          region: "us-east-1",
+          region: PRIMARY_AWS_REGION,
           endpoint: "http://custom-endpoint:4566",
         })
       );

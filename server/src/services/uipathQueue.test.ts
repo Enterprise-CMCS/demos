@@ -73,7 +73,6 @@ describe("uipathQueue", () => {
       const payload = {
         s3Bucket: "clean-bucket",
         s3FileName: "path/to/file.pdf",
-        fileNameWithExtension: "file.pdf",
         documentId: "4cdfe542-90aa-489f-93d5-e786aaff49a2",
       };
 

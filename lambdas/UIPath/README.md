@@ -68,7 +68,7 @@ npm run execute                    # uses INPUT_FILE or default PDF
 npm run build
 
 # Call the runner directly from the bundle
-node -e "import('./dist/runDocumentUnderstanding.js').then(m => m.runDocumentUnderstanding('ak-behavioral-health-demo-pa.pdf', { initialDelayMs: 1000, maxDelayMs: 8000, logFullResult: true })).then(console.log).catch(console.error)"
+node -e "import('./dist/runDocumentUnderstanding.js').then(m => m.runDocumentUnderstanding('ak-behavioral-health-demo-pa.pdf', { initialDelayMs: 1000, maxDelayMs: 8000 })).then(console.log).catch(console.error)"
 ```
 
 ## Lambda usage

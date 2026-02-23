@@ -32,6 +32,10 @@ export function createLocalS3Adapter(): S3Adapter {
       uploadedFiles.delete(key);
     },
 
+    async getObjectBytes(): Promise<Uint8Array | null> {
+      return null;
+    },
+
     async uploadDocument(
       tx: PrismaTransactionClient,
       input: UploadDocumentInput,

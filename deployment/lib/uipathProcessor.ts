@@ -82,6 +82,7 @@ export class UiPathProcessor extends Construct {
       vpc: props.vpc,
       securityGroup: props.securityGroup,
       environment: {
+        DB_SSL_MODE: "verify-full",
         UIPATH_CLIENT_ID: process.env.UIPATH_CLIENT_ID ?? "",
         DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
         UIPATH_SECRET_ID: clientSecret.secretName,

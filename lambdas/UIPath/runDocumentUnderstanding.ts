@@ -106,7 +106,6 @@ async function persistExtractionStatus(
   requestId: string,
   projectId: string,
   documentId: string | undefined,
-  logFullResult: boolean
 ): Promise<void> {
   log.info("Extraction succeeded, processing results");
   const pool = await getDbPool();
@@ -175,11 +174,7 @@ async function persistExtractionStatus(
       { extractedFieldCount: extractedFields.length },
       "Processed UiPath fields"
     );
-    if (logFullResult) {
-      log.info(util.inspect(status, false, null, true));
-    } else {
-      log.info({ status }, "UiPath extraction succeeded");
-    }
+    log.info("UiPath extraction succeeded");
   } finally {
     client.release();
   }
@@ -187,7 +182,6 @@ async function persistExtractionStatus(
 
 export interface RunDocumentUnderstandingOptions {
   token?: string;
-  logFullResult?: boolean;
   pollIntervalMs?: number;
   maxAttempts?: number;
   requestId?: string;
@@ -203,7 +197,6 @@ export async function runDocumentUnderstanding(
     token: providedToken,
     pollIntervalMs = 3000,
     maxAttempts = 500,
-    logFullResult = false, // set to true to log full results to cloudwatch.
     requestId = "n/a",
     fileNameWithExtension,
     documentId,
@@ -224,7 +217,7 @@ export async function runDocumentUnderstanding(
     const status = await fetchExtractionResult(token, resultUrl);
 
     if (status.status === "Succeeded") {
-      await persistExtractionStatus(status, requestId, projectId, documentId, logFullResult);
+      await persistExtractionStatus(status, requestId, projectId, documentId);
       return status;
     }
 

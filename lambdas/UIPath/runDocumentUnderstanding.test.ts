@@ -70,7 +70,6 @@ describe("runDocumentUnderstanding", () => {
 
     const promise = runDocumentUnderstanding("file.pdf", {
       pollIntervalMs: 10,
-      logFullResult: false,
       requestId: "request-1",
     });
 
@@ -213,31 +212,6 @@ describe("runDocumentUnderstanding", () => {
     const expectation = expect(promise).rejects.toThrow("Failed to persist UiPath result row.");
     await vi.runAllTimersAsync();
     await expectation;
-  });
-
-  it("supports logFullResult branch", async () => {
-    mocks.uploadDocumentMock.mockResolvedValue("doc-1");
-    mocks.extractDocMock.mockResolvedValue("result-url");
-    mocks.queryMock.mockResolvedValue({ rows: [{ id: "result-1" }] });
-    mocks.fetchExtractionResultMock.mockResolvedValue({
-      status: "Succeeded",
-      result: {
-        extractionResult: {
-          ResultsDocument: {
-            Fields: [],
-          },
-        },
-      },
-    });
-
-    const promise = runDocumentUnderstanding("file.pdf", {
-      pollIntervalMs: 10,
-      logFullResult: true,
-      requestId: "request-log-full",
-    });
-
-    await vi.runAllTimersAsync();
-    await expect(promise).resolves.toMatchObject({ status: "Succeeded" });
   });
 
   it("throws when extraction startup data is incomplete", async () => {

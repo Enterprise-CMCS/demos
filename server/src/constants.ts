@@ -446,15 +446,5 @@ export const DEMONSTRATION_TYPE_TAGS: string[] = [
   "Value Based Care (VBC)",
   "Vision",
 ] as const;
-
-export const UIPATH_PROJECT_NAME = "demosOCR";
-
-export const CONTENT_TYPE_TO_EXTENSION: Readonly<Record<string, string>> = {
-  "application/pdf": ".pdf",
-  "application/msword": ".doc",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
-  "application/vnd.ms-excel": ".xls",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
-  "text/plain": ".txt",
-  "application/rtf": ".rtf",
-};
+// This seemed like a no brainer.
+export const PRIMARY_AWS_REGION = "us-east-1";
