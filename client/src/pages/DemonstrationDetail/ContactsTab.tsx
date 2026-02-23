@@ -25,6 +25,7 @@ export const ContactsTab: React.FC<{ demonstration: Demonstration }> = ({ demons
   const { showManageContactsDialog } = useDialog();
 
   const rolesForDialog: ExistingContactType[] = (demonstration.roles || []).map((c) => ({
+    id: `${c.role}-${c.person.id}`,
     person: {
       id: c.person.id,
       fullName: c.person.fullName,

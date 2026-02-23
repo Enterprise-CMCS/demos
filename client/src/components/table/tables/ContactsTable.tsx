@@ -12,6 +12,7 @@ export type DemonstrationRoleAssignment = Pick<
   ServerDemonstrationRoleAssignment,
   "role" | "isPrimary"
 > & {
+  id: string;
   person: Pick<Person, "id" | "fullName" | "email">;
 };
 export const CONTACTS_TABLE_QUERY = gql`

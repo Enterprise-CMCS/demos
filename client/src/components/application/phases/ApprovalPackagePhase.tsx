@@ -99,7 +99,7 @@ export const ApprovalPackagePhase = ({
     if (!doc) {
       return {
         documentType: type,
-        id: undefined,
+        id: `${type}-id`,
         name: "-",
         description: "-",
         uploadedBy: "-",
@@ -110,7 +110,7 @@ export const ApprovalPackagePhase = ({
 
     return {
       documentType: type,
-      id: doc.id,
+      id: `${type}-id`,
       name: doc.name || "-",
       description: doc.description || "-",
       uploadedBy: doc.owner?.person?.fullName || "-",
