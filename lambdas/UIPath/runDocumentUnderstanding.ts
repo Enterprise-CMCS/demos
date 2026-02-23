@@ -148,7 +148,7 @@ async function persistExtractionStatus(
             (id, uipath_result_id, field_id, field_name, field_type, value, confidence, value_json, text_length)
            values
             ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9)
-           on conflict (uipath_result_id, field_id, value)
+           on conflict (uipath_result_id, field_id)
            do update set
              field_name = excluded.field_name,
              field_type = excluded.field_type,
@@ -208,7 +208,6 @@ export async function runDocumentUnderstanding(
     fileNameWithExtension,
     documentId,
   } = options;
-
   const token = providedToken ?? (await getToken());
   const projectId = await getProjectIdByName(token, process.env.UIPATH_PROJECT_NAME ?? "demosOCR");
   const docId = await uploadDocument(token, inputFile, projectId, fileNameWithExtension);

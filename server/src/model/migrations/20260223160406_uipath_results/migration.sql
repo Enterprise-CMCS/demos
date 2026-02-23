@@ -4,6 +4,7 @@ CREATE TABLE "uipath_result" (
     "request_id" TEXT NOT NULL,
     "response" JSONB NOT NULL,
     "project_id" TEXT NOT NULL,
+    "document_id" UUID,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "uipath_result_pkey" PRIMARY KEY ("id")
@@ -25,6 +26,20 @@ CREATE TABLE "uipath_result_field" (
     CONSTRAINT "uipath_result_field_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateIndex
+CREATE INDEX "uipath_result_document_id_idx" ON "uipath_result"("document_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "uipath_result_request_id_key" ON "uipath_result"("request_id");
+
+-- CreateIndex
+CREATE INDEX "uipath_result_field_uipath_result_id_idx" ON "uipath_result_field"("uipath_result_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "uipath_result_field_uipath_result_id_field_id_key" ON "uipath_result_field"("uipath_result_id", "field_id");
+
+-- AddForeignKey
+ALTER TABLE "uipath_result" ADD CONSTRAINT "uipath_result_document_id_fkey" FOREIGN KEY ("document_id") REFERENCES "document"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "uipath_result_field" ADD CONSTRAINT "uipath_result_field_uipath_result_id_fkey" FOREIGN KEY ("uipath_result_id") REFERENCES "uipath_result"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -13,6 +13,7 @@ model Document {
   owner             User              @relation(fields: [ownerUserId], references: [id])
   application       Application       @relation(fields: [applicationId], references: [id])
   phaseDocumentType PhaseDocumentType @relation(fields: [phaseId, documentTypeId], references: [phaseId, documentTypeId])
+  uipathResults     UiPathResult[]
 
   @@map("document")
 }
