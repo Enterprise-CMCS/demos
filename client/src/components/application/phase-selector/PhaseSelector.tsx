@@ -1,17 +1,21 @@
 import React, { useState } from "react";
 
-import type { DateType, PhaseName as ServerPhase, PhaseStatus as ServerPhaseStatus } from "demos-server";
+import type {
+  DateType,
+  PhaseName as ServerPhase,
+  PhaseStatus as ServerPhaseStatus,
+} from "demos-server";
 
 import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import {
   getApplicationCompletenessFromDemonstration,
   getConceptPhaseComponentFromDemonstration,
-  SdgPreparationPhase,
   getApplicationIntakeComponentFromDemonstration,
   getFederalCommentPhaseFromDemonstration,
   getApprovalPackagePhase,
   getReviewPhaseComponentFromDemonstration,
   getApprovalSummaryPhase,
+  getSdgPreparationPhaseFromDemonstration,
 } from "../phases";
 import { PHASE_NAME } from "demos-server-constants";
 import { PhaseBox } from "./PhaseBox";
@@ -25,44 +29,44 @@ type PhaseDateDisplayMap = Record<PhaseName, Partial<Record<PhaseStatus, DateTyp
 
 const PHASE_DISPLAY_DATES: PhaseDateDisplayMap = {
   Concept: {
-    "Started": "Concept Start Date",
-    "Completed": "Concept Completion Date",
+    Started: "Concept Start Date",
+    Completed: "Concept Completion Date",
     "Not Started": "Concept Start Date",
-    "Skipped": "Concept Skipped Date",
+    Skipped: "Concept Skipped Date",
   },
   "Application Intake": {
-    "Started": "Application Intake Start Date",
-    "Completed": "Application Intake Completion Date",
+    Started: "Application Intake Start Date",
+    Completed: "Application Intake Completion Date",
     "Not Started": "Application Intake Start Date",
   },
   Completeness: {
-    "Started": "Completeness Start Date",
-    "Completed": "Completeness Completion Date",
+    Started: "Completeness Start Date",
+    Completed: "Completeness Completion Date",
     "Not Started": "Completeness Start Date",
   },
   "Federal Comment": {
-    "Started": "Federal Comment Period Start Date",
-    "Completed": "Federal Comment Period End Date",
+    Started: "Federal Comment Period Start Date",
+    Completed: "Federal Comment Period End Date",
     "Not Started": "Federal Comment Period Start Date",
   },
   "SDG Preparation": {
-    "Started": "SDG Preparation Start Date",
-    "Completed": "SDG Preparation Completion Date",
+    Started: "SDG Preparation Start Date",
+    Completed: "SDG Preparation Completion Date",
     "Not Started": "SDG Preparation Start Date",
   },
   Review: {
-    "Started": "Review Start Date",
-    "Completed": "Review Completion Date",
+    Started: "Review Start Date",
+    Completed: "Review Completion Date",
     "Not Started": "Review Start Date",
   },
   "Approval Package": {
-    "Started": "Approval Package Start Date",
-    "Completed": "Approval Package Completion Date",
+    Started: "Approval Package Start Date",
+    Completed: "Approval Package Completion Date",
     "Not Started": "Approval Package Start Date",
   },
   "Approval Summary": {
-    "Started": "Approval Summary Start Date",
-    "Completed": "Approval Summary Completion Date",
+    Started: "Approval Summary Start Date",
+    Completed: "Approval Summary Completion Date",
     "Not Started": "Approval Summary Start Date",
   },
 } as const;
@@ -117,19 +121,8 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
     Completeness: () =>
       getApplicationCompletenessFromDemonstration(demonstration, setSelectedPhase),
     "Federal Comment": () => getFederalCommentPhaseFromDemonstration(demonstration),
-    "SDG Preparation": () => {
-      const sdgPreparationPhase = demonstration.phases.find(
-        (phase) => phase.phaseName === "SDG Preparation"
-      );
-      if (!sdgPreparationPhase) return <div>Error: SDG Preparation Phase not found.</div>;
-      return (
-        <SdgPreparationPhase
-          demonstrationId={demonstration.id}
-          sdgPreparationPhase={sdgPreparationPhase}
-          setSelectedPhase={setSelectedPhase}
-        />
-      );
-    },
+    "SDG Preparation": () =>
+      getSdgPreparationPhaseFromDemonstration(demonstration, setSelectedPhase),
     Review: () =>
       getReviewPhaseComponentFromDemonstration(demonstration, () =>
         setSelectedPhase("Approval Package")

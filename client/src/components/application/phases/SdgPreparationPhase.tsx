@@ -3,9 +3,9 @@ import { tw } from "tags/tw";
 
 import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
-import { SimplePhase } from "../ApplicationWorkflow";
+import { ApplicationWorkflowDemonstration, SimplePhase } from "../ApplicationWorkflow";
 import { formatDateForServer } from "util/formatDate";
-import { DateType, PhaseNameWithTrackedStatus } from "demos-server";
+import { DateType, LocalDate, PhaseNameWithTrackedStatus } from "demos-server";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import {
   FAILED_TO_SAVE_MESSAGE,
@@ -48,14 +48,58 @@ interface SdgPreparationPhaseFormData {
   bnpmtInitialMeetingDate?: string;
 }
 
+export const hasChanges = (
+  initialFormData: SdgPreparationPhaseFormData,
+  currentFormData: SdgPreparationPhaseFormData
+) => {
+  return (
+    initialFormData.expectedApprovalDate !== currentFormData.expectedApprovalDate ||
+    initialFormData.smeInitialReviewDate !== currentFormData.smeInitialReviewDate ||
+    initialFormData.frtInitialMeetingDate !== currentFormData.frtInitialMeetingDate ||
+    initialFormData.bnpmtInitialMeetingDate !== currentFormData.bnpmtInitialMeetingDate
+  );
+};
+
+export const getSdgPreparationPhaseFromDemonstration = (
+  demonstration: ApplicationWorkflowDemonstration,
+  setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void
+) => {
+  const sdgPreparationPhase = demonstration.phases.find(
+    (phase) => phase.phaseName === "SDG Preparation"
+  );
+  if (!sdgPreparationPhase) return <div>Error: SDG Preparation Phase not found.</div>;
+
+  const allPreviousPhasesDone = demonstration.phases
+    .filter(
+      (p) =>
+        p.phaseName !== "Concept" &&
+        p.phaseName !== "Approval Package" &&
+        p.phaseName !== "Approval Summary" &&
+        p.phaseName !== "SDG Preparation" &&
+        p.phaseName !== "Review"
+    )
+    .every((phase) => phase.phaseStatus === "Completed" || phase.phaseStatus === "Skipped");
+
+  return (
+    <SdgPreparationPhase
+      demonstrationId={demonstration.id}
+      sdgPreparationPhase={sdgPreparationPhase}
+      setSelectedPhase={setSelectedPhase}
+      allPreviousPhasesDone={allPreviousPhasesDone}
+    />
+  );
+};
+
 export const SdgPreparationPhase = ({
   demonstrationId,
   sdgPreparationPhase,
   setSelectedPhase,
+  allPreviousPhasesDone,
 }: {
   demonstrationId: string;
   sdgPreparationPhase: SimplePhase;
   setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void;
+  allPreviousPhasesDone: boolean;
 }) => {
   const [sdgPreparationPhaseFormData, setSdgPreparationPhaseFormData] =
     useState<SdgPreparationPhaseFormData>(getFormDataFromPhase(sdgPreparationPhase));
@@ -74,7 +118,7 @@ export const SdgPreparationPhase = ({
       await setApplicationDate({
         applicationId: demonstrationId,
         dateType: "Expected Approval Date" satisfies DateType,
-        dateValue: formatDateForServer(sdgPreparationPhaseFormData.expectedApprovalDate),
+        dateValue: sdgPreparationPhaseFormData.expectedApprovalDate as LocalDate,
       });
     }
 
@@ -82,7 +126,7 @@ export const SdgPreparationPhase = ({
       await setApplicationDate({
         applicationId: demonstrationId,
         dateType: "SME Review Date" satisfies DateType,
-        dateValue: formatDateForServer(sdgPreparationPhaseFormData.smeInitialReviewDate),
+        dateValue: sdgPreparationPhaseFormData.smeInitialReviewDate as LocalDate,
       });
     }
 
@@ -90,7 +134,7 @@ export const SdgPreparationPhase = ({
       await setApplicationDate({
         applicationId: demonstrationId,
         dateType: "FRT Initial Meeting Date" satisfies DateType,
-        dateValue: formatDateForServer(sdgPreparationPhaseFormData.frtInitialMeetingDate),
+        dateValue: sdgPreparationPhaseFormData.frtInitialMeetingDate as LocalDate,
       });
     }
 
@@ -98,7 +142,7 @@ export const SdgPreparationPhase = ({
       await setApplicationDate({
         applicationId: demonstrationId,
         dateType: "BNPMT Initial Meeting Date" satisfies DateType,
-        dateValue: formatDateForServer(sdgPreparationPhaseFormData.bnpmtInitialMeetingDate),
+        dateValue: sdgPreparationPhaseFormData.bnpmtInitialMeetingDate as LocalDate,
       });
     }
   };
@@ -212,14 +256,28 @@ export const SdgPreparationPhase = ({
             </div>
 
             <div className={STYLES.actions}>
-              <SecondaryButton onClick={handleSaveForLater} size="large" name="sdg-save-for-later">
+              <SecondaryButton
+                disabled={
+                  !hasChanges(
+                    getFormDataFromPhase(sdgPreparationPhase),
+                    sdgPreparationPhaseFormData
+                  )
+                }
+                onClick={handleSaveForLater}
+                size="large"
+                name="sdg-save-for-later"
+              >
                 Save For Later
               </SecondaryButton>
               <Button
                 onClick={handleFinish}
                 size="large"
                 name="sdg-finish"
-                disabled={!isFormComplete}
+                disabled={
+                  !allPreviousPhasesDone ||
+                  !isFormComplete ||
+                  sdgPreparationPhase.phaseStatus === "Completed"
+                }
               >
                 Finish
               </Button>
