@@ -6,7 +6,7 @@ import { UpdateDocumentInput, UploadDocumentInput, ApplicationDateInput } from "
 import { prisma } from "../../prismaClient.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { getS3Adapter } from "../../adapters";
-import { EasternNow, getEasternNow } from "../../dateUtilities";
+import { EasternNow, getEasternNow, parseJSDateToEasternTZDate } from "../../dateUtilities";
 import { findUserById } from "../user";
 import { getApplication } from "../application";
 import { validateAndUpdateDates } from "../applicationDate";
@@ -46,6 +46,7 @@ vi.mock("../application", () => ({
 
 vi.mock("../../dateUtilities", () => ({
   getEasternNow: vi.fn(),
+  parseJSDateToEasternTZDate: vi.fn(),
 }));
 
 vi.mock("../applicationPhase", () => ({
@@ -258,6 +259,44 @@ describe("documentResolvers", () => {
 
       expect(validateAndUpdateDates).not.toHaveBeenCalled();
     });
+
+    it("should call validateAndUpdateDates with State Application Submitted Date and Completeness Review Due Date when uploading State Application to Application Intake phase", async () => {
+      const stateApplicationInput: UploadDocumentInput = {
+        name: "state-application.pdf",
+        description: "State Application",
+        documentType: "State Application",
+        applicationId: testApplicationId,
+        phaseName: "Application Intake",
+      };
+
+      const mockCompletenessReviewDueDate = new TZDate("2025-01-30T23:59:59.999Z");
+
+      vi.mocked(mockS3Adapter.uploadDocument).mockResolvedValue(mockUploadResponse);
+      vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);
+      vi.mocked(parseJSDateToEasternTZDate).mockReturnValue({
+        easternTZDate: mockCompletenessReviewDueDate,
+        isEasternTZDate: true,
+      });
+      vi.mocked(startPhaseByDocument).mockResolvedValue(null);
+      vi.mocked(validateAndUpdateDates).mockResolvedValue(undefined);
+
+      await uploadDocument(undefined, { input: stateApplicationInput }, mockContext);
+
+      expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
+        {
+          applicationId: testApplicationId,
+          applicationDates: expect.arrayContaining([
+            expect.objectContaining({
+              dateType: "State Application Submitted Date",
+            }),
+            expect.objectContaining({
+              dateType: "Completeness Review Due Date",
+            }),
+          ]),
+        },
+        mockTransaction
+      );
+    });
   });
 
   describe("resolvePresignedDownloadUrl", () => {
@@ -269,7 +308,9 @@ describe("documentResolvers", () => {
 
       const result = await resolvePresignedDownloadUrl({ s3Path: testDocumentS3Path });
 
-      expect(mockS3Adapter.getPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith(testDocumentS3Path);
+      expect(mockS3Adapter.getPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith(
+        testDocumentS3Path
+      );
       expect(result).toBe(mockPresignedUrl);
     });
   });
