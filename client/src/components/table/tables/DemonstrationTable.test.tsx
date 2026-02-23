@@ -380,8 +380,8 @@ describe("Demonstrations", () => {
 
       // Table should show rows for both Montana and Florida
       await waitFor(() => {
-        expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
-        expect(screen.getByText("Florida Health Innovation")).toBeInTheDocument();
+        expect(screen.getAllByText("Montana Medicaid Waiver")[0]).toBeInTheDocument();
+        expect(screen.getAllByText("Florida Health Innovation")[0]).toBeInTheDocument();
         expect(screen.queryByText("Texas Reform Initiative")).not.toBeInTheDocument();
       });
     });
