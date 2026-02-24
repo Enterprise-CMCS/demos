@@ -66,8 +66,7 @@ function coerceValueText(value: UiPathFieldValue): string | null {
     return null;
   }
 
-  const trimmed = text.trim();
-  return trimmed.length > 0 ? trimmed : null;
+  return text.trim();
 }
 
 function toPersistableFieldValues(field: UiPathField): PersistableFieldValue[] {
