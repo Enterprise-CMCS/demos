@@ -389,7 +389,7 @@ export const CompletenessPhase = ({
             target="_blank"
             rel="noreferrer"
           >
-            Medicaid.gov.
+            Medicaid.gov
           </a>
         </p>
 
