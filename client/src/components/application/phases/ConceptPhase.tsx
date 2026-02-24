@@ -40,10 +40,23 @@ export const getConceptPhaseComponentFromDemonstration = (
     (document) => document.phaseName === "Concept"
   );
 
+  const conceptPhase = demonstration.phases.find((phase) => phase.phaseName === "Concept");
+  if (!conceptPhase) {
+    console.error("Concept phase data is missing for demonstration:", demonstration.id);
+    return null;
+  }
+
+  const presubmissionSubmittedDate = conceptPhase.phaseDates.find(
+    (date) => date.dateType === "Pre-Submission Submitted Date"
+  )?.dateValue;
+
   return (
     <ConceptPhase
       demonstrationId={demonstration.id}
       initialPreSubmissionDocuments={preSubmissionDocuments}
+      presubmissionSubmittedDate={
+        presubmissionSubmittedDate ? formatDateForServer(presubmissionSubmittedDate) : undefined
+      }
       setSelectedPhase={setSelectedPhase}
     />
   );
@@ -70,19 +83,21 @@ export interface ConceptProps {
   demonstrationId: string;
   initialPreSubmissionDocuments: ApplicationWorkflowDocument[];
   setSelectedPhase?: (phase: PhaseName) => void;
+  presubmissionSubmittedDate?: LocalDate;
 }
 
 export const ConceptPhase = ({
   demonstrationId,
   initialPreSubmissionDocuments,
   setSelectedPhase,
+  presubmissionSubmittedDate,
 }: ConceptProps) => {
   const { showSuccess } = useToast();
   const { showConceptPreSubmissionDocumentUploadDialog } = useDialog();
   const { setApplicationDate } = useSetApplicationDate();
 
   const [submittedDate, setSubmittedDate] = useState<LocalDate | null>(
-    getLatestPresubmissionDocumentDate(initialPreSubmissionDocuments)
+    presubmissionSubmittedDate || getLatestPresubmissionDocumentDate(initialPreSubmissionDocuments)
   );
   const [isFinishEnabled, setIsFinishEnabled] = useState<boolean>(false);
   const [isSkipEnabled, setIsSkipEnabled] = useState<boolean>(true);
