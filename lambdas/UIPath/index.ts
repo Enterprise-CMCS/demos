@@ -110,7 +110,7 @@ export const handler = async (event: SQSEvent) =>
     );
 
     const status = await runDocumentUnderstanding(localPath, {
-      pollIntervalMs: 5_000,
+      pollIntervalMs: 5000,
       requestId: firstRecord?.messageId ?? "n/a",
       fileNameWithExtension: uploadFileNameWithExtension,
       documentId,

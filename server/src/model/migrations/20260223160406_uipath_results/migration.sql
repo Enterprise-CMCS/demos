@@ -39,4 +39,4 @@ CREATE UNIQUE INDEX "uipath_result_field_uipath_result_id_field_id_key" ON "uipa
 ALTER TABLE "uipath_result" ADD CONSTRAINT "uipath_result_document_id_fkey" FOREIGN KEY ("document_id") REFERENCES "document"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "uipath_result_field" ADD CONSTRAINT "uipath_result_field_uipath_result_id_fkey" FOREIGN KEY ("uipath_result_id") REFERENCES "uipath_result"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "uipath_result_field" ADD CONSTRAINT "uipath_result_field_uipath_result_id_fkey" FOREIGN KEY ("uipath_result_id") REFERENCES "uipath_result"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
