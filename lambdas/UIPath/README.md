@@ -65,9 +65,19 @@ awslocal secretsmanager update-secret \
 
 # Then trigger local run
 ```
+# SDK keys not required, they are injected by AWS.
+AWS_ACCESS_KEY_ID="test" # pragma: allowlist secret
+AWS_SECRET_ACCESS_KEY="test" # pragma: allowlist secret
+QUEUE_URL=$(aws --endpoint-url=http://localstack:4566 \
+  --region us-east-1 \
+  sqs get-queue-url \
+  --queue-name uipath-queue \
+  --query QueueUrl \
+  --output text)
 
-## Lambda usage
-- Handler: `index.handler`
-- Trigger: SQS message body must contain `{ "s3FileName": "<path/to/file>" }`.
-- Env: same as above (`UIPATH_CLIENT_ID`, `UIPATH_CLIENT_SECRET`, optional `LOG_LEVEL`)
-- CDK wiring: `deployment/stacks/uipath.ts` creates the UiPath Lambda, SQS queue, and DLQ; `deployment/app.ts` registers the stack. Producers send messages to `UiPathQueue` with the `s3FileName` in the body.
+aws --endpoint-url=http://localstack:4566 \
+  --region us-east-1 \
+  sqs send-message \
+  --queue-url "$QUEUE_URL" \
+  --message-body '{"s3FileName": "alaska_doc.pdf","s3Bucket":"uipath-documents"}'
+```
