@@ -90,6 +90,18 @@ describe("CompletenessPhase", () => {
       expect(header).toBeInTheDocument();
       expect(header).toHaveClass("text-brand");
     });
+
+    it("renders description with link to Medicaid.gov", () => {
+      setup();
+      expect(
+        screen.getByText(/Completeness Checklist - Find completeness guidelines online at/i)
+      ).toBeInTheDocument();
+      const link = screen.getByRole("link", { name: "Medicaid.gov" });
+      expect(link).toBeInTheDocument();
+      expect(link).toHaveAttribute("href", "https://www.medicaid.gov");
+      expect(link).toHaveAttribute("target", "_blank");
+      expect(link).toHaveAttribute("rel", "noreferrer");
+    });
   });
 
   describe("Step 1 - Upload Section", () => {

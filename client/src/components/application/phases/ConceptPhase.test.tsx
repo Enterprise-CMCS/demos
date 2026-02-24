@@ -15,6 +15,7 @@ import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
 } from "../ApplicationWorkflow";
+import { LocalDate } from "demos-server";
 
 vi.mock("@apollo/client", async () => {
   const actual = await vi.importActual("@apollo/client");
@@ -332,9 +333,60 @@ describe("ConceptPhase", () => {
 
       const component = getConceptPhaseComponentFromDemonstration(mockDemonstration);
       expect(component).toBeDefined();
-      expect(component.type).toBe(ConceptPhase);
-      expect(component.props.demonstrationId).toBe("demo-111");
-      expect(component.props.initialPreSubmissionDocuments).toHaveLength(2);
+      if (component) {
+        expect(component.type).toBe(ConceptPhase);
+        expect(component.props.demonstrationId).toBe("demo-111");
+        expect(component.props.initialPreSubmissionDocuments).toHaveLength(2);
+      }
+    });
+
+    it("should extract the presubmissionDocumentSubmittedDate if it exists on the phase", () => {
+      const mockDemonstration: ApplicationWorkflowDemonstration = {
+        id: "demo-222",
+        name: "Test Demo 2",
+        state: {
+          id: "NY",
+          name: "New York",
+        },
+        primaryProjectOfficer: mockPO,
+        status: "Pre-Submission",
+        currentPhaseName: "Concept",
+        clearanceLevel: "CMS (OSORA)",
+        phases: [
+          {
+            phaseName: "Concept",
+            phaseStatus: "Started",
+            phaseDates: [
+              {
+                dateType: "Pre-Submission Submitted Date",
+                dateValue: new Date("2024-03-15"),
+              },
+            ],
+            phaseNotes: [],
+          },
+        ],
+        documents: [],
+        demonstrationTypes: [],
+        tags: [],
+      };
+
+      const component = getConceptPhaseComponentFromDemonstration(mockDemonstration);
+      expect(component).toBeDefined();
+      if (component) {
+        expect(component.type).toBe(ConceptPhase);
+        expect(component.props.presubmissionSubmittedDate).toBe("2024-03-15");
+      }
+    });
+
+    it("overrides createdAt date on document with Presubmission Document Submitted Date when both provided", () => {
+      setup({
+        initialPreSubmissionDocuments: [mockPreSubmissionDocument],
+        presubmissionSubmittedDate: "2024-01-10" as LocalDate,
+      });
+      const dateInput = screen.getByLabelText(
+        /Pre-Submission Document Submitted Date/
+      ) as HTMLInputElement;
+      expect(dateInput.value).toBe("2024-01-10");
     });
   });
 });

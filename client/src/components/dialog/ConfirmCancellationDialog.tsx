@@ -36,18 +36,10 @@ export const ConfirmCancellationDialog: React.FC<ConfirmCancellationDialogProps>
     }
   }, [isOpen]);
 
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
-    const dialog = confirmDialogRef.current;
-    if (dialog && e.target === dialog) {
-      onClose();
-    }
-  };
-
   return (
     <dialog
       ref={confirmDialogRef}
       className={STYLES.CONFIRMATION_DIALOG}
-      onClick={handleBackdropClick}
     >
       <div className="flex flex-col">
         <h2 className={STYLES.TITLE}>Are you sure?</h2>
