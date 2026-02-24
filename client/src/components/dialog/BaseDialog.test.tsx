@@ -119,7 +119,7 @@ describe("BaseDialog", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it("closes confirmation dialog when clicking on backdrop", () => {
+  it("does not close confirmation dialog when clicking on backdrop", () => {
     const onClose = vi.fn();
     render(<BaseDialog {...defaultProps} onClose={onClose} />);
     const closeBtn = screen.getByLabelText("Close dialog");
@@ -128,7 +128,7 @@ describe("BaseDialog", () => {
     fireEvent.click(confirmDialog);
     expect(
       screen.queryByText("You will lose any unsaved changes in this view.")
-    ).not.toBeInTheDocument();
+    ).toBeInTheDocument();
   });
 
   it("prevents default behavior and keeps dialog open on close event", () => {
