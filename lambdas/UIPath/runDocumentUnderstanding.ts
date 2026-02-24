@@ -172,7 +172,7 @@ async function persistExtractionStatus(
       { extractedFieldCount: extractedFields.length },
       "Processed UiPath fields"
     );
-    log.info("UiPath extraction succeeded");``
+    log.info("UiPath extraction succeeded");
   } finally {
     client.release();
   }
