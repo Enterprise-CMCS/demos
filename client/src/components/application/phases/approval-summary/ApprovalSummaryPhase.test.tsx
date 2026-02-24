@@ -11,9 +11,12 @@ import { MockedProvider } from "@apollo/client/testing";
 import { UPDATE_DEMONSTRATION_MUTATION } from "components/dialog/demonstration/EditDemonstrationDialog";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 
+const mockShowConfirmApproveDialog = vi.fn();
+
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
     showApplyDemonstrationTypesDialog: vi.fn(),
+    showConfirmApproveDialog: mockShowConfirmApproveDialog,
   }),
 }));
 
