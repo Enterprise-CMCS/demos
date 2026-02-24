@@ -1,4 +1,3 @@
-import util from "node:util";
 import { randomUUID } from "node:crypto";
 import { log } from "./log";
 import { getToken } from "./getToken";
@@ -174,7 +173,7 @@ async function persistExtractionStatus(
       { extractedFieldCount: extractedFields.length },
       "Processed UiPath fields"
     );
-    log.info("UiPath extraction succeeded");
+    log.info("UiPath extraction succeeded");``
   } finally {
     client.release();
   }
