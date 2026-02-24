@@ -70,7 +70,7 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
       "Final Budget Neutrality Formulation Workbook",
       "Q&A",
       "Special Terms & Conditions",
-      "Formal OMB Policy Concurrence Email",
+      "Formal OMB Policy Concurrence",
       "Approval Letter",
       "Signed Decision Memo",
     ],

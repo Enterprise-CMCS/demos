@@ -405,7 +405,7 @@ describe("checkPhaseCompletionRules", () => {
         [
           testApplicationId,
           "Approval Package",
-          "Formal OMB Policy Concurrence Email",
+          "Formal OMB Policy Concurrence",
           testApplicationDocumentTypes,
         ],
         [testApplicationId, "Approval Package", "Approval Letter", testApplicationDocumentTypes],
