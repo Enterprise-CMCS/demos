@@ -140,6 +140,13 @@ export class FileUploadStack extends Stack {
       serverAccessLogsPrefix: "clean/",
       enforceSSL: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
+      cors: [
+        {
+          allowedMethods: [HttpMethods.GET, HttpMethods.HEAD],
+          allowedOrigins: [`https://${props.cloudfrontHost}`],
+          allowedHeaders: ["*"],
+        },
+      ],
     });
 
     if (!props.isEphemeral) {

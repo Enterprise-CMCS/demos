@@ -14,7 +14,7 @@ export { CONTACT_TYPES } from "demos-server-constants";
 export type ContactType = Role;
 
 export type ContactRow = {
-  id?: string;
+  id: string;
   personId: string;
   name: string;
   email: string;

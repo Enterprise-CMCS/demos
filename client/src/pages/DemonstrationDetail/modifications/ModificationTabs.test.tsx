@@ -3,26 +3,32 @@ import { describe, it, expect } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ModificationTabs, ModificationItem } from "./ModificationTabs";
 
+const createModificationItem = (overrides?: Partial<ModificationItem>): ModificationItem => {
+  return {
+    id: "default-id",
+    modificationType: "amendment",
+    name: "Default Item",
+    description: undefined,
+    status: "Pre-Submission",
+    createdAt: new Date(0),
+    ...overrides,
+  };
+};
+
 describe("ModificationTabs Component", () => {
   const mockItems: ModificationItem[] = [
-    {
+    createModificationItem({
       id: "1",
       name: "Item 1",
-      description: "Description 1",
-      status: "Active",
-    },
-    {
+    }),
+    createModificationItem({
       id: "2",
       name: "Item 2",
-      description: "Description 2",
-      status: "Pending",
-    },
-    {
+    }),
+    createModificationItem({
       id: "3",
       name: "Item 3",
-      description: "Description 3",
-      status: "Completed",
-    },
+    }),
   ];
 
   it("renders all item names as tabs", () => {
@@ -56,8 +62,8 @@ describe("ModificationTabs Component", () => {
 
   it("handles items without optional fields", () => {
     const minimalItems: ModificationItem[] = [
-      { id: "1", name: "Minimal Item 1" },
-      { id: "2", name: "Minimal Item 2" },
+      createModificationItem({ id: "1", name: "Minimal Item 1" }),
+      createModificationItem({ id: "2", name: "Minimal Item 2" }),
     ];
 
     render(<ModificationTabs items={minimalItems} />);
@@ -65,9 +71,21 @@ describe("ModificationTabs Component", () => {
 
   it("renders tabs in newest-to-oldest order by createdAt", () => {
     const items: ModificationItem[] = [
-      { id: "1", name: "First", createdAt: "2023-01-01T12:00:00Z" },
-      { id: "2", name: "Second", createdAt: "2024-01-01T12:00:00Z" },
-      { id: "3", name: "Third", createdAt: "2022-01-01T12:00:00Z" },
+      createModificationItem({
+        id: "1",
+        name: "First",
+        createdAt: new Date("2023-01-01T12:00:00Z"),
+      }),
+      createModificationItem({
+        id: "2",
+        name: "Second",
+        createdAt: new Date("2024-01-01T12:00:00Z"),
+      }),
+      createModificationItem({
+        id: "3",
+        name: "Third",
+        createdAt: new Date("2022-01-01T12:00:00Z"),
+      }),
     ];
     render(<ModificationTabs items={items} />);
     const tabButtons = screen.getAllByRole("button");
@@ -79,9 +97,13 @@ describe("ModificationTabs Component", () => {
 
   it("handles missing or invalid createdAt and still sorts valid ones first", () => {
     const items: ModificationItem[] = [
-      { id: "1", name: "No Date" },
-      { id: "2", name: "Newest", createdAt: "2024-01-01T12:00:00Z" },
-      { id: "3", name: "Null Date", createdAt: undefined },
+      createModificationItem({ id: "1", name: "No Date" }),
+      createModificationItem({
+        id: "2",
+        name: "Newest",
+        createdAt: new Date("2024-01-01T12:00:00Z"),
+      }),
+      createModificationItem({ id: "3", name: "Null Date", createdAt: undefined }),
     ];
     render(<ModificationTabs items={items} />);
     const tabButtons = screen.getAllByRole("button");

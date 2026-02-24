@@ -81,11 +81,6 @@ export async function uploadDocument(
           dateType: "Completeness Review Due Date",
           dateValue: completenessReviewDueDate.easternTZDate,
         });
-
-        datesToUpdate.push({
-          dateType: "Completeness Start Date",
-          dateValue: currentDate,
-        });
       }
 
       if (datesToUpdate.length > 0) {

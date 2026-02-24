@@ -3,8 +3,6 @@ import React, { useEffect, useState } from "react";
 import { tw } from "tags/tw";
 import { Button, SecondaryButton } from "components/button";
 import { ChevronRightIcon, ExportIcon } from "components/icons";
-import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
-import { Option } from "components/input/select/Select";
 
 import {
   ApplicationWorkflowDemonstration,
@@ -33,12 +31,6 @@ const STYLES = {
   fileMeta: tw`text-xs text-text-placeholder mt-0.5`,
   actions: tw`mt-8 flex justify-end gap-3`,
 };
-
-const DEMONSTRATION_TYPE_OPTIONS: Option[] = [
-  { label: "Section 1115", value: "1115" },
-  { label: "Section 1915(b)", value: "1915b" },
-  { label: "Section 1915(c)", value: "1915c" },
-];
 
 export const getConceptPhaseComponentFromDemonstration = (
   demonstration: ApplicationWorkflowDemonstration,
@@ -92,7 +84,6 @@ export const ConceptPhase = ({
   const [submittedDate, setSubmittedDate] = useState<LocalDate | null>(
     getLatestPresubmissionDocumentDate(initialPreSubmissionDocuments)
   );
-  const [demonstrationType, setDemonstrationType] = useState<string>("");
   const [isFinishEnabled, setIsFinishEnabled] = useState<boolean>(false);
   const [isSkipEnabled, setIsSkipEnabled] = useState<boolean>(true);
   const [documents] = useState<ApplicationWorkflowDocument[]>(initialPreSubmissionDocuments);
@@ -225,14 +216,6 @@ export const ConceptPhase = ({
             getValidationMessage={getDateValidationMessage}
           />
         </div>
-
-        <AutoCompleteSelect
-          id="demo-type"
-          label="Demonstration Type(s) Requested"
-          options={DEMONSTRATION_TYPE_OPTIONS}
-          value={demonstrationType}
-          onSelect={(v) => setDemonstrationType(String(v))}
-        />
       </div>
 
       <div className={STYLES.actions}>

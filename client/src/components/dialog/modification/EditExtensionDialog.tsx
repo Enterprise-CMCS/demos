@@ -37,11 +37,13 @@ export const UPDATE_EXTENSION_DIALOG_QUERY: TypedDocumentNode<
   }
 `;
 
-export const useUpdateExtension = (extensionId: string) => {
+export const useUpdateExtension = (extensionId: string, refetchQueries: string[] = []) => {
   const { data, error } = useQuery(UPDATE_EXTENSION_DIALOG_QUERY, {
     variables: { id: extensionId },
   });
-  const [updateExtension, { loading }] = useMutation(UPDATE_EXTENSION_MUTATION);
+  const [updateExtension, { loading }] = useMutation(UPDATE_EXTENSION_MUTATION, {
+    refetchQueries,
+  });
 
   const save = async (input: ModificationFormData) => {
     await updateExtension({
@@ -62,9 +64,10 @@ export const useUpdateExtension = (extensionId: string) => {
 
 export const UpdateExtensionDialog: React.FC<{
   extensionId: string;
-}> = ({ extensionId }) => (
+  refetchQueries: string[];
+}> = ({ extensionId, refetchQueries }) => (
   <BaseEditModificationDialog
     modificationType="Extension"
-    useModification={() => useUpdateExtension(extensionId)}
+    useModification={() => useUpdateExtension(extensionId, refetchQueries)}
   />
 );

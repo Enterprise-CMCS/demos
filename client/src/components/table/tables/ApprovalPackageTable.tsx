@@ -5,7 +5,7 @@ import { ApplicationWorkflowDocument } from "components/application/ApplicationW
 
 export interface ApprovalPackageTableRow {
   documentType: string;
-  id?: string;
+  id: string;
   name: string;
   description: string;
   uploadedBy: string;

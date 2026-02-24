@@ -37,11 +37,13 @@ export const UPDATE_AMENDMENT_DIALOG_QUERY: TypedDocumentNode<
   }
 `;
 
-export const useUpdateAmendment = (amendmentId: string) => {
+export const useUpdateAmendment = (amendmentId: string, refetchQueries: string[]) => {
   const { data, error } = useQuery(UPDATE_AMENDMENT_DIALOG_QUERY, {
     variables: { id: amendmentId },
   });
-  const [updateAmendment, { loading }] = useMutation(UPDATE_AMENDMENT_MUTATION);
+  const [updateAmendment, { loading }] = useMutation(UPDATE_AMENDMENT_MUTATION, {
+    refetchQueries,
+  });
 
   const save = async (input: ModificationFormData) => {
     await updateAmendment({
@@ -62,9 +64,10 @@ export const useUpdateAmendment = (amendmentId: string) => {
 
 export const UpdateAmendmentDialog: React.FC<{
   amendmentId: string;
-}> = ({ amendmentId }) => (
+  refetchQueries: string[];
+}> = ({ amendmentId, refetchQueries }) => (
   <BaseEditModificationDialog
     modificationType="Amendment"
-    useModification={() => useUpdateAmendment(amendmentId)}
+    useModification={() => useUpdateAmendment(amendmentId, refetchQueries)}
   />
 );

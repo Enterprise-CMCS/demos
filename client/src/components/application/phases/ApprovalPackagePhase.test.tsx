@@ -60,10 +60,17 @@ const mockPO = {
   fullName: "Jane Doe",
 };
 
+const mockSetSelectedPhase = vi.fn();
+
 describe("ApprovalPackagePhase", () => {
   it("renders the section headers", () => {
     render(
-      <ApprovalPackagePhase demonstrationId="demo-1" documents={[]} allPreviousPhasesDone={true} />
+      <ApprovalPackagePhase
+        setSelectedPhase={mockSetSelectedPhase}
+        demonstrationId="demo-1"
+        documents={[]}
+        allPreviousPhasesDone={true}
+      />
     );
 
     expect(screen.getByText("APPROVAL")).toBeInTheDocument();
@@ -76,7 +83,12 @@ describe("ApprovalPackagePhase", () => {
 
   it("renders the table with all required types, even if documents missing", () => {
     render(
-      <ApprovalPackagePhase demonstrationId="demo-1" documents={[]} allPreviousPhasesDone={true} />
+      <ApprovalPackagePhase
+        setSelectedPhase={mockSetSelectedPhase}
+        demonstrationId="demo-1"
+        documents={[]}
+        allPreviousPhasesDone={true}
+      />
     );
 
     const rows = screen.getAllByTestId("table-row");
@@ -105,6 +117,7 @@ describe("ApprovalPackagePhase", () => {
 
     render(
       <ApprovalPackagePhase
+        setSelectedPhase={mockSetSelectedPhase}
         demonstrationId="demo-1"
         documents={[d1]}
         allPreviousPhasesDone={true}
@@ -120,7 +133,12 @@ describe("ApprovalPackagePhase", () => {
 
   it("sets missing fields to '-' when no document", () => {
     render(
-      <ApprovalPackagePhase demonstrationId="demo-1" documents={[]} allPreviousPhasesDone={true} />
+      <ApprovalPackagePhase
+        setSelectedPhase={mockSetSelectedPhase}
+        demonstrationId="demo-1"
+        documents={[]}
+        allPreviousPhasesDone={true}
+      />
     );
 
     const rows = screen.getAllByTestId("table-row");
@@ -137,6 +155,7 @@ describe("ApprovalPackagePhase", () => {
 
     render(
       <ApprovalPackagePhase
+        setSelectedPhase={mockSetSelectedPhase}
         demonstrationId="demo-1"
         documents={[d1, d2]}
         allPreviousPhasesDone={false}
@@ -153,6 +172,7 @@ describe("ApprovalPackagePhase", () => {
 
     render(
       <ApprovalPackagePhase
+        setSelectedPhase={mockSetSelectedPhase}
         demonstrationId="demo-1"
         documents={[d1]}
         allPreviousPhasesDone={true}
@@ -163,83 +183,28 @@ describe("ApprovalPackagePhase", () => {
     expect(finishButton).toBeDisabled();
   });
 
-  it("enables Finish ONLY when all previous phases are done AND all required documents uploaded", () => {
-    const completeDocs = [
-      doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
-      doc({ documentType: "Q&A" }),
-      doc({ documentType: "Special Terms & Conditions" }),
-      doc({ documentType: "Formal OMB Policy Concurrence Email" }),
-      doc({ documentType: "Approval Letter" }),
-      doc({ documentType: "Signed Decision Memo" }),
-    ];
-
-    render(
-      <ApprovalPackagePhase
-        demonstrationId="demo-1"
-        documents={completeDocs}
-        allPreviousPhasesDone={true}
-      />
-    );
-
-    const finishButton = screen.getByRole("button", { name: /finish/i });
-    expect(finishButton).toBeEnabled();
-  });
-
-  it("handles empty documents list by disabling Finish", () => {
-    render(
-      <ApprovalPackagePhase demonstrationId="demo-1" documents={[]} allPreviousPhasesDone={true} />
-    );
-
-    const finishButton = screen.getByRole("button", { name: /finish/i });
-    expect(finishButton).toBeDisabled();
-  });
-
-  it("calls completePhase mutation on click of finish button", async () => {
-    const user = userEvent.setup();
-    const completeDocs = [
-      doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
-      doc({ documentType: "Q&A" }),
-      doc({ documentType: "Special Terms & Conditions" }),
-      doc({ documentType: "Formal OMB Policy Concurrence Email" }),
-      doc({ documentType: "Approval Letter" }),
-      doc({ documentType: "Signed Decision Memo" }),
-    ];
-
-    render(
-      <ApprovalPackagePhase
-        demonstrationId="demo-1"
-        documents={completeDocs}
-        allPreviousPhasesDone={true}
-      />
-    );
-
-    const finishButton = screen.getByRole("button", { name: /finish/i });
-    expect(finishButton).toBeEnabled();
-
-    await user.click(finishButton);
-    expect(mockCompletePhase).toHaveBeenCalledWith({
-      applicationId: "demo-1",
-      phaseName: "Approval Package",
-    });
-  });
-});
-
-describe("getApprovalPackagePhase", () => {
-  it("extracts documents from demonstration and renders phase", () => {
+  it("disables Finish when not all documents belong to the Approval Package phase", () => {
     const demonstration: ApplicationWorkflowDemonstration = {
-      id: "demo-3",
+      id: "demo-1",
       name: "Test Demo",
       state: {
         id: "CA",
         name: "California",
       },
       primaryProjectOfficer: mockPO,
-      status: "Pre-Submission",
+      status: "Under Review",
       currentPhaseName: "Approval Package",
       clearanceLevel: "CMS (OSORA)",
       documents: [
-        doc({ documentType: "Q&A", name: "Q&A Doc" }),
-        doc({ documentType: "Approval Letter", name: "Approval Doc" }),
+        doc({
+          documentType: "Final Budget Neutrality Formulation Workbook",
+          phaseName: "Approval Package",
+        }),
+        doc({ documentType: "Q&A", phaseName: "Approval Package" }),
+        doc({ documentType: "Special Terms & Conditions", phaseName: "Approval Package" }),
+        doc({ documentType: "Formal OMB Policy Concurrence Email", phaseName: "Approval Package" }),
+        doc({ documentType: "Approval Letter", phaseName: "None" }), // Document exists but belongs to wrong phase
+        doc({ documentType: "Signed Decision Memo", phaseName: "Approval Package" }),
       ],
       phases: [
         {
@@ -259,7 +224,126 @@ describe("getApprovalPackagePhase", () => {
       tags: [],
     };
 
-    render(getApprovalPackagePhase(demonstration));
+    render(getApprovalPackagePhase(demonstration, mockSetSelectedPhase));
+
+    const finishButton = screen.getByRole("button", { name: /finish/i });
+    expect(finishButton).toBeDisabled();
+  });
+
+  it("enables Finish ONLY when all previous phases are done AND all required documents uploaded", () => {
+    const completeDocs = [
+      doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
+      doc({ documentType: "Q&A" }),
+      doc({ documentType: "Special Terms & Conditions" }),
+      doc({ documentType: "Formal OMB Policy Concurrence Email" }),
+      doc({ documentType: "Approval Letter" }),
+      doc({ documentType: "Signed Decision Memo" }),
+    ];
+
+    render(
+      <ApprovalPackagePhase
+        setSelectedPhase={mockSetSelectedPhase}
+        demonstrationId="demo-1"
+        documents={completeDocs}
+        allPreviousPhasesDone={true}
+      />
+    );
+
+    const finishButton = screen.getByRole("button", { name: /finish/i });
+    expect(finishButton).toBeEnabled();
+  });
+
+  it("handles empty documents list by disabling Finish", () => {
+    render(
+      <ApprovalPackagePhase
+        setSelectedPhase={mockSetSelectedPhase}
+        demonstrationId="demo-1"
+        documents={[]}
+        allPreviousPhasesDone={true}
+      />
+    );
+
+    const finishButton = screen.getByRole("button", { name: /finish/i });
+    expect(finishButton).toBeDisabled();
+  });
+
+  it("calls completePhase mutation on click of finish button", async () => {
+    const user = userEvent.setup();
+    const completeDocs = [
+      doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
+      doc({ documentType: "Q&A" }),
+      doc({ documentType: "Special Terms & Conditions" }),
+      doc({ documentType: "Formal OMB Policy Concurrence Email" }),
+      doc({ documentType: "Approval Letter" }),
+      doc({ documentType: "Signed Decision Memo" }),
+    ];
+
+    render(
+      <ApprovalPackagePhase
+        setSelectedPhase={mockSetSelectedPhase}
+        demonstrationId="demo-1"
+        documents={completeDocs}
+        allPreviousPhasesDone={true}
+      />
+    );
+
+    const finishButton = screen.getByRole("button", { name: /finish/i });
+    expect(finishButton).toBeEnabled();
+
+    await user.click(finishButton);
+    expect(mockCompletePhase).toHaveBeenCalledWith({
+      applicationId: "demo-1",
+      phaseName: "Approval Package",
+    });
+    expect(mockSetSelectedPhase).toHaveBeenCalledWith("Approval Summary");
+  });
+});
+
+describe("getApprovalPackagePhase", () => {
+  it("extracts documents from demonstration and renders phase", () => {
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "demo-3",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+      },
+      primaryProjectOfficer: mockPO,
+      status: "Pre-Submission",
+      currentPhaseName: "Approval Package",
+      clearanceLevel: "CMS (OSORA)",
+      documents: [
+        doc({ documentType: "Q&A", name: "Q&A Doc", phaseName: "Approval Package" }),
+        doc({
+          documentType: "Approval Letter",
+          name: "Approval Doc 1",
+          phaseName: "Approval Package",
+        }),
+        doc({
+          documentType: "Special Terms & Conditions",
+          name: "Special STCs",
+          phaseName: "None",
+        }),
+      ],
+      phases: [
+        {
+          phaseName: "Completeness",
+          phaseStatus: "Completed",
+          phaseDates: [],
+          phaseNotes: [],
+        },
+        {
+          phaseName: "Approval Package",
+          phaseStatus: "Started",
+          phaseDates: [],
+          phaseNotes: [],
+        },
+      ],
+      demonstrationTypes: [],
+      tags: [],
+    };
+
+    render(getApprovalPackagePhase(demonstration, mockSetSelectedPhase));
 
     const rows = screen.getAllByTestId("table-row");
     expect(rows).toHaveLength(6);
@@ -267,7 +351,8 @@ describe("getApprovalPackagePhase", () => {
     const text = rows.map((r) => r.textContent);
 
     expect(text.some((t) => t?.includes("Q&A Doc"))).toBe(true);
-    expect(text.some((t) => t?.includes("Approval Doc"))).toBe(true);
+    expect(text.some((t) => t?.includes("Approval Doc 1"))).toBe(true);
+    expect(text.some((t) => t?.includes("Special STCs"))).toBe(false); // document belongs to the None phase and should not appear
   });
 
   it("handles missing documents gracefully", () => {
@@ -301,7 +386,7 @@ describe("getApprovalPackagePhase", () => {
       tags: [],
     };
 
-    render(getApprovalPackagePhase(demonstration));
+    render(getApprovalPackagePhase(demonstration, mockSetSelectedPhase));
 
     const rows = screen.getAllByTestId("table-row");
     expect(rows).toHaveLength(6);
@@ -311,7 +396,7 @@ describe("getApprovalPackagePhase", () => {
     });
   });
 
-  it("correctly computes allPreviousPhasesDone when all previous phases are completed", () => {
+  it("correctly computes allPreviousPhasesDone when all required previous phases are completed", () => {
     const completeDocs = [
       doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
       doc({ documentType: "Q&A" }),
@@ -336,7 +421,7 @@ describe("getApprovalPackagePhase", () => {
       phases: [
         {
           phaseName: "Concept",
-          phaseStatus: "Completed",
+          phaseStatus: "Started", // disposition of concept phase shouldnt matter
           phaseDates: [],
           phaseNotes: [],
         },
@@ -363,7 +448,7 @@ describe("getApprovalPackagePhase", () => {
       tags: [],
     };
 
-    render(getApprovalPackagePhase(demo));
+    render(getApprovalPackagePhase(demo, mockSetSelectedPhase));
 
     const finishButton = screen.getByRole("button", { name: /finish/i });
     expect(finishButton).toBeEnabled();
@@ -421,7 +506,7 @@ describe("getApprovalPackagePhase", () => {
       tags: [],
     };
 
-    render(getApprovalPackagePhase(demo));
+    render(getApprovalPackagePhase(demo, mockSetSelectedPhase));
 
     const finishButton = screen.getByRole("button", { name: /finish/i });
     expect(finishButton).toBeDisabled();
