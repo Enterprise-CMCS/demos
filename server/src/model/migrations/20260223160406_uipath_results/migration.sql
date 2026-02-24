@@ -33,9 +33,6 @@ CREATE INDEX "uipath_result_document_id_idx" ON "uipath_result"("document_id");
 CREATE UNIQUE INDEX "uipath_result_request_id_key" ON "uipath_result"("request_id");
 
 -- CreateIndex
-CREATE INDEX "uipath_result_field_uipath_result_id_idx" ON "uipath_result_field"("uipath_result_id");
-
--- CreateIndex
 CREATE UNIQUE INDEX "uipath_result_field_uipath_result_id_field_id_key" ON "uipath_result_field"("uipath_result_id", "field_id");
 
 -- AddForeignKey

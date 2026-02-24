@@ -12,6 +12,5 @@ model UipathResultField {
   createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz()
 
   @@unique([uipath_result_id, field_id])
-  @@index([uipath_result_id])
   @@map("uipath_result_field")
 }
