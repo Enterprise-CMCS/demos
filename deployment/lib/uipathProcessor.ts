@@ -78,7 +78,7 @@ export class UiPathProcessor extends Construct {
       timeout: Duration.minutes(15),
       asCode: false,
       externalModules: ["@aws-sdk", "@aws-sdk/client-secrets-manager", "@aws-sdk/client-s3"],
-      nodeModules: ["axios", "axios-oauth-client", "dotenv", "form-data", "pino", "pino-pretty", "pg"],
+      nodeModules: ["axios", "axios-oauth-client", "dotenv", "form-data", "pino", "pino-pretty", "pg", "file-type"],
       vpc: props.vpc,
       securityGroup: props.securityGroup,
       environment: {

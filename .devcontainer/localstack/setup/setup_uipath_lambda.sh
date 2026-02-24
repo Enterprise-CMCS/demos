@@ -33,6 +33,7 @@ npx esbuild index.ts \
   --external:axios \
   --external:form-data \
   --external:axios-oauth-client \
+  --external:file-type \
   --external:dotenv \
   --outfile=index.js
 
