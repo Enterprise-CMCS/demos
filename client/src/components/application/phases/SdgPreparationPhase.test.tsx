@@ -141,7 +141,7 @@ describe("SdgPreparationPhase", () => {
 
       expect(screen.getByText("SDG PREPARATION")).toBeInTheDocument();
       expect(
-        screen.getByText("Plan and conduct internal and preparation tasks")
+        screen.getByText("Plan and conduct internal preparation tasks")
       ).toBeInTheDocument();
     });
   });
