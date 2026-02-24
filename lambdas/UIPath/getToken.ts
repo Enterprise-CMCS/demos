@@ -11,9 +11,6 @@ interface UiPathCredentials {
 }
 
 const TOKEN_URL = "https://govcloud.uipath.us/identity_/connect/token";
-const TOKEN_SCOPE =
-  "Du.Digitization.Api Du.Classification.Api Du.Extraction.Api Du.Validation.Api Du.DataDeletion.Api";
-
 /**
  * This has been an issue with localstack.
  *
@@ -61,7 +58,6 @@ export async function getToken(): Promise<string> {
 
   const params = new URLSearchParams();
   params.append("grant_type", "client_credentials");
-  params.append("scope", TOKEN_SCOPE);
   const encodedCredentials = Buffer.from(clientId + ":" + clientSecret).toString("base64");
 
   try {

@@ -25,15 +25,13 @@ This means the document understanding digitizes your document, then uploads it t
 
 ## Dev Details
 
-## Env vars (required)
+## Env vars (NOT required)
 ```
-UIPATH_CLIENT_ID=...
-UIPATH_SECRET_ID=<optional: Secrets Manager secret name/ARN containing clientId/clientSecret>
-# optional
-LOG_LEVEL=info
-INPUT_FILE=ak-behavioral-health-demo-pa.pdf
+# You can store secret and client ids in env for setting the secrets manager.
+UIPATH_CLIENT_ID="GUID STRING"
+UIPATH_CLIENT_SECRET="GUID STRING" # pragma: allowlist secret
 ```
-## Set your secret using this: (<AWS_ENV_NAME> is dev btw)
+Other than that, env not used. All set up uipathprocessor
 ```bash
 # NOTE: these values are not even used via env vars.
 # this is where i store the OAUTH keys so i can set the secrets in localstack
@@ -58,17 +56,14 @@ If `UIPATH_SECRET_ID` is set, the Lambda will resolve client id/secret from Secr
 ```bash
 cd lambdas/UIPath
 npm install
+awslocal secretsmanager update-secret \
+  --secret-id demos-local/uipath \
+  --secret-string '{ # pragma: allowlist secret
+    "clientId": "STRING",
+    "clientSecret": "STRING" # pragma: allowlist secret
+  }'
 
-# Fast local run (tsx, no bundle)
-npm run execute                    # uses INPUT_FILE or default PDF
-# Override file
-# INPUT_FILE=/path/to/file.pdf npm run execute
-
-# Bundled run (CommonJS bundle)
-npm run build
-
-# Call the runner directly from the bundle
-node -e "import('./dist/runDocumentUnderstanding.js').then(m => m.runDocumentUnderstanding('ak-behavioral-health-demo-pa.pdf', { initialDelayMs: 1000, maxDelayMs: 8000 })).then(console.log).catch(console.error)"
+# Then trigger local run
 ```
 
 ## Lambda usage
