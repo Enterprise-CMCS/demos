@@ -40,7 +40,7 @@ async function resolveS3InputFromMessage(body: string): Promise<ResolvedS3Input>
   }
 
   const documentLookup = await parseDocumentFromId(documentId);
-  if (!documentLookup || !documentLookup.key) {
+  if (!documentLookup?.key) {
     throw new Error("Missing s3Key and documentId in SQS message body.");
   }
 
