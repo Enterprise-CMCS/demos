@@ -7,7 +7,6 @@ vi.mock("./AwsS3Adapter", () => ({
     getPresignedUploadUrl: vi.fn(),
     getPresignedDownloadUrl: vi.fn(),
     moveDocumentFromCleanToDeleted: vi.fn(),
-    getObjectBytes: vi.fn(),
     uploadDocument: vi.fn(),
   })),
 }));
@@ -18,7 +17,6 @@ vi.mock("./LocalS3Adapter", () => ({
     getPresignedUploadUrl: vi.fn(),
     getPresignedDownloadUrl: vi.fn(),
     moveDocumentFromCleanToDeleted: vi.fn(),
-    getObjectBytes: vi.fn(),
     uploadDocument: vi.fn(),
   })),
 }));

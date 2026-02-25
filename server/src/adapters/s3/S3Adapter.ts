@@ -7,7 +7,6 @@ export interface S3Adapter {
   getPresignedUploadUrl(key: string): Promise<string>;
   getPresignedDownloadUrl(key: string): Promise<string>;
   moveDocumentFromCleanToDeleted(key: string): Promise<void>;
-  getObjectBytes(bucket: string, key: string, range?: string): Promise<Uint8Array | null>;
   uploadDocument(
     tx: PrismaTransactionClient,
     input: UploadDocumentInput,
