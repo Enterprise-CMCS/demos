@@ -5,7 +5,7 @@ import { log } from "./log";
 const dbSchema = "demos_app";
 
 const secrets = new SecretsManagerClient({
-  region: process.env.AWS_REGION ?? "us-east-1",
+  region: "us-east-1",
   endpoint: process.env.AWS_ENDPOINT_URL ?? undefined,
 });
 

@@ -11,7 +11,7 @@ import { runDocumentUnderstanding } from "./runDocumentUnderstanding";
 import { parseDocumentFromId, parseUiPathMessage } from "./parseDocumentFromId";
 
 const s3 = new S3Client({
-  region: process.env.AWS_REGION ?? "us-east-1",
+  region: "us-east-1",
   endpoint: process.env.AWS_ENDPOINT_URL,
   forcePathStyle: true,
 });

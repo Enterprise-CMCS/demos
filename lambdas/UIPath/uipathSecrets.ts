@@ -5,7 +5,7 @@ export interface UiPathSecret {
   clientSecret?: string;
 }
 
-const secretsManagerRegion = process.env.AWS_REGION || "us-east-1";
+const secretsManagerRegion = "us-east-1"; // pragma: allowlist secret
 const secretsManagerConfig = process.env.AWS_ENDPOINT_URL
   ? { region: secretsManagerRegion, endpoint: process.env.AWS_ENDPOINT_URL }
   : { region: secretsManagerRegion };
