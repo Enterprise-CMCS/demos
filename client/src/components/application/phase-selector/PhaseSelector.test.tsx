@@ -599,4 +599,68 @@ describe("completeness phase component", () => {
 
     expect(getApprovalPackagePhase).toHaveBeenCalledWith(demonstration, expect.any(Function));
   });
+
+  it("preserves phase component internal state across re-renders", async () => {
+    const user = userEvent.setup();
+
+    // Mock phase component with internal state
+    const PhaseWithState = () => {
+      const [value, setValue] = React.useState("A");
+      return (
+        <div>
+          <span>Current value: {value}</span>
+          <select
+            data-testid="test-select"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+          >
+            <option value="A">Option A</option>
+            <option value="B">Option B</option>
+          </select>
+        </div>
+      );
+    };
+
+    vi.mocked(getApprovalPackagePhase).mockReturnValue(<PhaseWithState />);
+
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "test-id",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+      },
+      primaryProjectOfficer: mockPO,
+      status: "Under Review",
+      currentPhaseName: "Approval Package",
+      clearanceLevel: "CMS (OSORA)",
+      phases: [],
+      documents: [],
+      demonstrationTypes: [],
+      tags: [],
+    };
+
+    const { rerender } = render(
+      <TestProvider>
+        <PhaseSelector demonstration={demonstration} />
+      </TestProvider>
+    );
+
+    const select = screen.getByTestId("test-select");
+    expect(select).toHaveValue("A");
+    expect(screen.getByText("Current value: A")).toBeInTheDocument();
+
+    await user.selectOptions(select, "B");
+    expect(select).toHaveValue("B");
+    expect(screen.getByText("Current value: B")).toBeInTheDocument();
+
+    rerender(
+      <TestProvider>
+        <PhaseSelector demonstration={demonstration} />
+      </TestProvider>
+    );
+
+    expect(select).toHaveValue("B");
+    expect(screen.getByText("Current value: B")).toBeInTheDocument();
+  });
 });
