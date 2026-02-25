@@ -179,12 +179,10 @@ describe("S3Adapter", () => {
       expect(adapter).toHaveProperty("getPresignedUploadUrl");
       expect(adapter).toHaveProperty("getPresignedDownloadUrl");
       expect(adapter).toHaveProperty("moveDocumentFromCleanToDeleted");
-      expect(adapter).toHaveProperty("getObjectBytes");
       expect(adapter).toHaveProperty("uploadDocument");
       expect(typeof adapter.getPresignedUploadUrl).toBe("function");
       expect(typeof adapter.getPresignedDownloadUrl).toBe("function");
       expect(typeof adapter.moveDocumentFromCleanToDeleted).toBe("function");
-      expect(typeof adapter.getObjectBytes).toBe("function");
       expect(typeof adapter.uploadDocument).toBe("function");
     });
   });

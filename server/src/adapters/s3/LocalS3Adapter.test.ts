@@ -92,15 +92,6 @@ describe("LocalS3Adapter", () => {
     });
   });
 
-  describe("object read helpers", () => {
-    it("should return null for object bytes", async () => {
-      const adapter = createLocalS3Adapter();
-      const result = await adapter.getObjectBytes("some-bucket", "some-key");
-
-      expect(result).toBeNull();
-    });
-  });
-
   describe("uploadDocument", () => {
     const mockUploadInput: UploadDocumentInput = {
       name: "test.pdf",

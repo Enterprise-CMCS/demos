@@ -143,32 +143,6 @@ describe("AwsS3Adapter", () => {
     });
   });
 
-  describe("object read helpers", () => {
-    it("should return object bytes for requested range", async () => {
-      const bytes = Uint8Array.from([1, 2, 3]);
-      const mockS3Client = {
-        send: vi.fn().mockResolvedValue({
-          Body: {
-            transformToByteArray: vi.fn().mockResolvedValue(bytes),
-          },
-        }),
-      };
-      vi.mocked(S3Client).mockReturnValue(mockS3Client as any);
-
-      const adapter = createAWSS3Adapter();
-      const result = await adapter.getObjectBytes("some-bucket", "doc-key");
-
-      expect(result).toEqual(bytes);
-      expect(mockS3Client.send).toHaveBeenCalledOnce();
-      expect(mockS3Client.send.mock.calls[0]?.[0]).toHaveProperty("params");
-      expect(mockS3Client.send.mock.calls[0]?.[0].params).toEqual({
-        Bucket: "some-bucket",
-        Key: "doc-key",
-        Range: "bytes=0-4095",
-      });
-    });
-  });
-
   describe("uploadDocument", () => {
     const mockUploadInput: UploadDocumentInput = {
       name: "test.pdf",
