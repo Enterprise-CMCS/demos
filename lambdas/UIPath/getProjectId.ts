@@ -2,20 +2,12 @@ import {
   UIPATH_BASE_URL,
   UIPATH_TENANT,
   uipathGetRequest,
+  type ProjectListResponse,
   getProjectId,
   setProjectId,
 } from "./uipathClient";
 
 import { log } from "./log";
-
-type UiPathProject = {
-  id?: string;
-  name?: string;
-};
-
-type ProjectListResponse = {
-  projects?: UiPathProject[];
-};
 
 export async function getProjectIdByName(token: string, projectName = "demosOCR"): Promise<string> {
   try {

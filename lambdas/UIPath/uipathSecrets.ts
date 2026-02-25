@@ -1,26 +1,26 @@
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
+import { region } from "./uipathClient";
 
 export interface UiPathSecret {
   clientId?: string;
   clientSecret?: string;
 }
 
-const secretsManagerRegion = "us-east-1"; // pragma: allowlist secret
 const secretsManagerConfig = process.env.AWS_ENDPOINT_URL
-  ? { region: secretsManagerRegion, endpoint: process.env.AWS_ENDPOINT_URL }
-  : { region: secretsManagerRegion };
+  ? { region, endpoint: process.env.AWS_ENDPOINT_URL }
+  : { region };
 const secretsManager = new SecretsManagerClient(secretsManagerConfig);
 
-let cachedSecret: UiPathSecret | null = null;
+let cachedUiPathSecret: UiPathSecret | null = null;
 
 // Test helper to avoid dynamic module re-import in strict tsconfig module settings.
 export function __resetUiPathSecretCacheForTests(): void {
-  cachedSecret = null;
+  cachedUiPathSecret = null;
 }
 
 export async function getUiPathSecret(): Promise<UiPathSecret> {
-  if (cachedSecret) {
-    return cachedSecret;
+  if (cachedUiPathSecret) {
+    return cachedUiPathSecret;
   }
 
   const secretId = process.env.UIPATH_SECRET_ID;
@@ -37,10 +37,10 @@ export async function getUiPathSecret(): Promise<UiPathSecret> {
 
   const parsedSecret = JSON.parse(secretString);
 
-  cachedSecret = {
+  cachedUiPathSecret = {
     clientId: parsedSecret.clientId,
     clientSecret: parsedSecret.clientSecret,
   };
 
-  return cachedSecret;
+  return cachedUiPathSecret;
 }

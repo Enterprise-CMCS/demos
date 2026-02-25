@@ -1,11 +1,12 @@
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { Pool } from "pg";
 import { log } from "./log";
+import { region } from "./uipathClient";
 
 const dbSchema = "demos_app";
 
-const secrets = new SecretsManagerClient({
-  region: "us-east-1",
+const secretsManagerClient = new SecretsManagerClient({
+  region,
   endpoint: process.env.AWS_ENDPOINT_URL ?? undefined,
 });
 
@@ -19,21 +20,21 @@ export async function getDatabaseUrl() {
     return databaseUrlCache;
   }
 
-  const secretArn = process.env.DATABASE_SECRET_ARN;
-  if (!secretArn) {
+  const databaseSecretArn = process.env.DATABASE_SECRET_ARN;
+  if (!databaseSecretArn) {
     throw new Error("DATABASE_SECRET_ARN is required to fetch the database connection string.");
   }
 
-  const command = new GetSecretValueCommand({ SecretId: secretArn });
-  const response = await secrets.send(command);
+  const getDbSecretValueCommand = new GetSecretValueCommand({ SecretId: databaseSecretArn });
+  const response = await secretsManagerClient.send(getDbSecretValueCommand);
 
   if (!response.SecretString) {
-    throw new Error(`The SecretString value is undefined for secret: ${secretArn}`);
+    throw new Error(`The SecretString value is undefined for secret: ${databaseSecretArn}`);
   }
 
-  const secretData = JSON.parse(response.SecretString);
-  const sslMode = process.env.DB_SSL_MODE ?? "require";
-  databaseUrlCache = `postgresql://${secretData.username}:${secretData.password}@${secretData.host}:${secretData.port}/${secretData.dbname}?schema=${dbSchema}&sslmode=${sslMode}`;
+  const dbCredentials = JSON.parse(response.SecretString);
+  const sslMode = process.env.DB_SSL_MODE ?? "require"; // can be overwritten, but works locally.
+  databaseUrlCache = `postgresql://${dbCredentials.username}:${dbCredentials.password}@${dbCredentials.host}:${dbCredentials.port}/${dbCredentials.dbname}?schema=${dbSchema}&sslmode=${sslMode}`;
   cacheExpiration = now + 60 * 60 * 1000;
 
   return databaseUrlCache;

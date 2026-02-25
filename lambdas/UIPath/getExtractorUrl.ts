@@ -2,17 +2,10 @@ import {
   UIPATH_BASE_URL,
   UIPATH_TENANT,
   uipathGetRequest,
+  type ExtractorListResponse,
 } from "./uipathClient";
 
 import { log } from "./log";
-
-type ExtractorInfo = {
-  asyncUrl?: string;
-};
-
-type ExtractorListResponse = {
-  extractors?: ExtractorInfo[];
-};
 
 export async function getExtractorUrl(token: string, projectId: string): Promise<string> {
 

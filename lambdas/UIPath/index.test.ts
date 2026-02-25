@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { SQSEvent } from "aws-lambda";
 import { Readable } from "node:stream";
+import { region } from "./uipathClient";
 
 vi.mock("./log", () => ({
   log: { info: vi.fn(), error: vi.fn() },
@@ -63,7 +64,7 @@ function createEvent(body: Record<string, unknown>, messageId = "id-1"): SQSEven
         md5OfBody: "",
         eventSource: "",
         eventSourceARN: "",
-        awsRegion: "us-east-1",
+        awsRegion: region,
       },
     ],
   };

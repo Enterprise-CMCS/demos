@@ -9,9 +9,10 @@ import { fileTypeFromFile } from "file-type";
 import { log, reqIdChild, als, store } from "./log";
 import { runDocumentUnderstanding } from "./runDocumentUnderstanding";
 import { parseDocumentFromId, parseUiPathMessage } from "./parseDocumentFromId";
+import { region } from "./uipathClient";
 
 const s3 = new S3Client({
-  region: "us-east-1",
+  region,
   endpoint: process.env.AWS_ENDPOINT_URL,
   forcePathStyle: true,
 });

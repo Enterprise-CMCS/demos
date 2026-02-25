@@ -4,7 +4,34 @@ export const UIPATH_BASE_URL = "https://govcloud.uipath.us";
 // This could be made dynamic if we need to support multiple tenants/environments
 export const UIPATH_TENANT = "globalalliant/Dev";
 export const UIPATH_API_VERSION = "1.0";
+export const region = "us-east-1";
+
 let cachedProjectId: string | undefined;
+
+export interface UiPathProject {
+  id?: string;
+  name?: string;
+}
+
+export interface ProjectListResponse {
+  projects?: UiPathProject[];
+}
+
+export interface ExtractorInfo {
+  asyncUrl?: string;
+}
+
+export interface ExtractorListResponse {
+  extractors?: ExtractorInfo[];
+}
+
+export type UiPathGetResponse = ProjectListResponse | ExtractorListResponse;
+export type UiPathPostResponse =
+  | {
+      documentId?: string;
+      resultUrl?: string;
+    }
+  | string;
 
 export function setProjectId(projectId: string): void {
   const normalized = projectId.trim();
@@ -28,7 +55,7 @@ type UipathRequestOptions = AxiosRequestConfig & {
   params?: Record<string, string | number | undefined>;
 };
 
-export function uipathGetRequest<T = unknown>(
+export function uipathGetRequest<T extends UiPathGetResponse = UiPathGetResponse>(
   url: string,
   token: string,
   options: UipathRequestOptions = {}
@@ -48,7 +75,7 @@ export function uipathGetRequest<T = unknown>(
   });
 }
 
-export function uipathPostRequest<T = unknown>(
+export function uipathPostRequest<T extends UiPathPostResponse = UiPathPostResponse>(
   url: string,
   token: string,
   data: unknown,

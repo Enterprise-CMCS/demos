@@ -34,9 +34,9 @@ async function getCredentials(): Promise<UiPathCredentials> {
   }
 
   try {
-    const secret = await getUiPathSecret();
-    const clientId = secret.clientId ?? undefined;
-    const clientSecret = secret.clientSecret ?? undefined;
+    const secretCredentials = await getUiPathSecret();
+    const clientId = secretCredentials.clientId ?? undefined;
+    const clientSecret = secretCredentials.clientSecret ?? undefined;
 
     if (clientId && clientSecret) {
       const credentials = { clientId, clientSecret };
