@@ -86,7 +86,9 @@ describe("runDocumentUnderstanding", () => {
     expect(mocks.extractDocMock).toHaveBeenCalledWith("token-123", "doc-1", "project-1");
     expect(mocks.fetchExtractionResultMock).toHaveBeenCalledTimes(2);
     expect(result).toMatchObject({ status: "Succeeded" });
-    expect(mocks.queryMock).toHaveBeenCalledTimes(1);
+    expect(mocks.queryMock).toHaveBeenCalledTimes(3);
+    expect(mocks.queryMock.mock.calls[0]?.[0]).toBe("BEGIN");
+    expect(mocks.queryMock.mock.calls[2]?.[0]).toBe("COMMIT");
     expect(mocks.releaseMock).toHaveBeenCalled();
   });
 
@@ -134,9 +136,9 @@ describe("runDocumentUnderstanding", () => {
     await vi.runAllTimersAsync();
     await promise;
 
-    expect(mocks.queryMock).toHaveBeenCalledTimes(1);
-    expect(mocks.queryMock.mock.calls[0]?.[0]).toContain("document_id");
-    expect(mocks.queryMock.mock.calls[0]?.[1]).toEqual([
+    expect(mocks.queryMock).toHaveBeenCalledTimes(3);
+    expect(mocks.queryMock.mock.calls[1]?.[0]).toContain("document_id");
+    expect(mocks.queryMock.mock.calls[1]?.[1]).toEqual([
       expect.any(String),
       "request-doc-id",
       "project-1",
@@ -158,6 +160,7 @@ describe("runDocumentUnderstanding", () => {
     const expectation = expect(promise).rejects.toThrow("did not succeed");
     await vi.runAllTimersAsync();
     await expectation;
+    expect(mocks.queryMock).not.toHaveBeenCalled();
   });
 
   it("persists top-level fields and skips non-string field values", async () => {
@@ -184,8 +187,8 @@ describe("runDocumentUnderstanding", () => {
     const result = await promise;
 
     expect(result).toMatchObject({ status: "Succeeded" });
-    expect(mocks.queryMock).toHaveBeenCalledTimes(2);
-    expect(mocks.queryMock.mock.calls[1]?.[1]).toEqual([
+    expect(mocks.queryMock).toHaveBeenCalledTimes(4);
+    expect(mocks.queryMock.mock.calls[2]?.[1]).toEqual([
       expect.any(String),
       "result-1",
       "field-1",
@@ -212,6 +215,7 @@ describe("runDocumentUnderstanding", () => {
     const expectation = expect(promise).rejects.toThrow("Failed to persist UiPath result row.");
     await vi.runAllTimersAsync();
     await expectation;
+    expect(mocks.queryMock.mock.calls.map((call) => call[0])).toContain("ROLLBACK");
   });
 
   it("throws when extraction startup data is incomplete", async () => {

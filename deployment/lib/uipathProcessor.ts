@@ -87,7 +87,6 @@ export class UiPathProcessor extends Construct {
         DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
         UIPATH_SECRET_ID: clientSecret.secretName,
         LOG_LEVEL: process.env.LOG_LEVEL ?? "info",
-        UIPATH_DOCUMENTS_BUCKET: props.documentsBucket.bucketName,
         NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
       },
     });

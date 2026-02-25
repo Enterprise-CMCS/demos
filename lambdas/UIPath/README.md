@@ -79,5 +79,5 @@ aws --endpoint-url=http://localstack:4566 \
   --region us-east-1 \
   sqs send-message \
   --queue-url "$QUEUE_URL" \
-  --message-body '{"s3FileName": "alaska_doc.pdf","s3Bucket":"uipath-documents"}'
+  --message-body '{"documentId":"00000000-0000-0000-0000-000000000000"}'
 ```

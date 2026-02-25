@@ -8,6 +8,7 @@ import { GetObjectCommand, S3Client, type GetObjectCommandOutput } from "@aws-sd
 import { fileTypeFromFile } from "file-type";
 import { log, reqIdChild, als, store } from "./log";
 import { runDocumentUnderstanding } from "./runDocumentUnderstanding";
+import { parseDocumentFromId, parseUiPathMessage } from "./parseDocumentFromId";
 
 const s3 = new S3Client({
   region: process.env.AWS_REGION ?? "us-east-1",
@@ -15,39 +16,37 @@ const s3 = new S3Client({
   forcePathStyle: true,
 });
 
-const UIPATH_DOCUMENT_BUCKET = process.env.UIPATH_DOCUMENT_BUCKET ?? "uipath-documents";
-
-type UipathMessage = {
-  s3Bucket: string;
-  s3Key: string;
-  documentId?: string;
-};
+const DOCUMENT_BUCKET = "clean-bucket";
 
 type DownloadedObject = {
   localPath: string;
 };
 
-function decodeS3Key(key: string): string {
-  return decodeURIComponent(key.replaceAll("+", " "));
-}
+type ResolvedS3Input = {
+  s3Key: string;
+  documentId?: string;
+};
 
-function parseUiPathMessage(body: string): UipathMessage {
-  const parsed = JSON.parse(body) as Record<string, unknown>;
-  const records = parsed?.Records as Array<any> | undefined;
+async function resolveS3InputFromMessage(body: string): Promise<ResolvedS3Input> {
+  const parsedBody = parseUiPathMessage(body);
+  const { s3Key: messageKey, documentId } = parsedBody;
 
-  if (Array.isArray(records) && records[0]?.s3?.bucket?.name && records[0]?.s3?.object?.key) {
-    const record = records[0];
+  if (messageKey) {
     return {
-      s3Bucket: record.s3.bucket.name,
-      s3Key: decodeS3Key(record.s3.object.key),
+      s3Key: messageKey,
+      documentId,
     };
   }
 
-  const s3Key = (parsed?.s3Key as string | undefined) ?? (parsed?.s3FileName as string | undefined);
-  const s3Bucket = (parsed?.s3Bucket as string | undefined) ?? UIPATH_DOCUMENT_BUCKET;
-  const documentId = parsed?.documentId as string | undefined;
+  const documentLookup = await parseDocumentFromId(documentId);
+  if (!documentLookup || !documentLookup.key) {
+    throw new Error("Missing s3Key and documentId in SQS message body.");
+  }
 
-  return { s3Bucket, s3Key: s3Key ?? "", documentId };
+  return {
+    s3Key: documentLookup.key,
+    documentId,
+  };
 }
 
 async function resolveUploadFileNameWithExtension(
@@ -55,8 +54,8 @@ async function resolveUploadFileNameWithExtension(
   s3Key: string,
   downloadedObject: DownloadedObject
 ): Promise<string> {
-  const keyBaseName = path.basename(s3Key) || "uipath-document";
-  const keyNameWithoutExtension = path.parse(keyBaseName).name || "uipath-document";
+  const keyBaseName = path.basename(s3Key);
+  const keyNameWithoutExtension = path.parse(keyBaseName).name;
   const detectedType = await fileTypeFromFile(downloadedObject.localPath);
 
   if (!detectedType) {
@@ -67,7 +66,7 @@ async function resolveUploadFileNameWithExtension(
 }
 
 async function downloadFromS3(bucket: string, key: string): Promise<DownloadedObject> {
-  const destination = path.join(os.tmpdir(), path.basename(key) || "uipath-document");
+  const destination = path.join(os.tmpdir(), path.basename(key));
   const response: GetObjectCommandOutput = await s3.send(
     new GetObjectCommand({ Bucket: bucket, Key: key })
   );
@@ -86,37 +85,33 @@ export const handler = async (event: SQSEvent) =>
   als.run(store, async () => {
     log.info({ recordCount: event.Records.length }, "UiPath lambda invoked");
     const firstRecord = event.Records[0];
-    reqIdChild(firstRecord?.messageId ?? "n/a");
-
-    const parsedBody = firstRecord?.body ? parseUiPathMessage(firstRecord.body) : null;
-    const s3Bucket = parsedBody?.s3Bucket ?? UIPATH_DOCUMENT_BUCKET;
-    const s3Key = parsedBody?.s3Key;
-    const documentId = parsedBody?.documentId;
-
-    if (!s3Key) {
-      throw new Error("Missing s3Key/s3FileName in SQS message body.");
+    if (!firstRecord) {
+      throw new Error("No SQS records provided.");
     }
+    reqIdChild(firstRecord.messageId);
 
-    const downloadedObject = await downloadFromS3(s3Bucket, s3Key);
+    const { s3Key, documentId } = await resolveS3InputFromMessage(firstRecord.body);
+
+    const downloadedObject = await downloadFromS3(DOCUMENT_BUCKET, s3Key);
     const { localPath } = downloadedObject;
     const uploadFileNameWithExtension = await resolveUploadFileNameWithExtension(
-      s3Bucket,
+      DOCUMENT_BUCKET,
       s3Key,
       downloadedObject
     );
     log.info(
-      { s3Bucket, s3Key, localPath, uploadFileNameWithExtension },
+      { s3Bucket: DOCUMENT_BUCKET, s3Key, localPath, uploadFileNameWithExtension },
       "Downloaded document from S3"
     );
 
     const status = await runDocumentUnderstanding(localPath, {
       pollIntervalMs: 5000,
-      requestId: firstRecord?.messageId ?? "n/a",
+      requestId: firstRecord.messageId,
       fileNameWithExtension: uploadFileNameWithExtension,
       documentId,
     });
 
-    log.info({ status }, "UiPath extraction completed");
+    log.info("UiPath extraction completed successfully");
     return status;
   }
 );

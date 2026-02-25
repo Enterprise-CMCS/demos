@@ -1,5 +1,8 @@
 import { faker } from "@faker-js/faker";
 import { TZDate } from "@date-fns/tz";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   SDG_DIVISIONS,
   PERSON_TYPES,
@@ -34,6 +37,12 @@ import { getManyApplications } from "./model/application";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 const DOCUMENTS_PER_APPLICATION = 15;
+const UIPATH_SEED_DOCUMENT_ID = "00000000-0000-0000-0000-000000000000";
+const SEEDER_DIR = path.dirname(fileURLToPath(import.meta.url));
+const UIPATH_SEED_PDF_PATH = path.resolve(
+  SEEDER_DIR,
+  "../../.devcontainer/localstack/debug/test_uipath.pdf"
+);
 
 function getRandomPhaseDocumentTypeCombination(): {
   phaseName: PhaseName;
@@ -81,6 +90,13 @@ async function seedDocuments() {
   );
 
   const applications = await prisma().application.findMany();
+  const owner = await prisma().user.findFirst({
+    select: { id: true },
+  });
+
+  if (!owner) {
+    throw new Error("Could not seed documents: no owner user found.");
+  }
 
   for (const application of applications) {
     for (let i = 0; i < DOCUMENTS_PER_APPLICATION; i++) {
@@ -119,6 +135,53 @@ async function seedDocuments() {
       }
     }
   }
+
+  const seededApplication = applications[0];
+  if (!seededApplication) {
+    throw new Error("Could not seed UiPath static document: no applications found.");
+  }
+
+  const seededDocumentType: DocumentType = "General File";
+  const seededPhase: PhaseName = "Application Intake";
+  const seededS3Path = `${seededApplication.id}/${UIPATH_SEED_DOCUMENT_ID}`;
+  const seededPdf = await readFile(UIPATH_SEED_PDF_PATH);
+
+  await prisma().document.upsert({
+    where: { id: UIPATH_SEED_DOCUMENT_ID },
+    update: {
+      name: "UiPath Seed Document",
+      description: "Static seeded document for UiPath queue testing.",
+      s3Path: seededS3Path,
+      ownerUserId: owner.id,
+      documentTypeId: seededDocumentType,
+      applicationId: seededApplication.id,
+      phaseId: seededPhase,
+    },
+    create: {
+      id: UIPATH_SEED_DOCUMENT_ID,
+      name: "UiPath Seed Document",
+      description: "Static seeded document for UiPath queue testing.",
+      s3Path: seededS3Path,
+      ownerUserId: owner.id,
+      documentTypeId: seededDocumentType,
+      applicationId: seededApplication.id,
+      phaseId: seededPhase,
+      createdAt: randomBackdatedDate(),
+    },
+  });
+
+  await s3Client.send(
+    new PutObjectCommand({
+      Bucket: process.env.CLEAN_BUCKET,
+      Key: seededS3Path,
+      Body: seededPdf,
+      ContentType: "application/pdf",
+    })
+  );
+
+  console.log(
+    `🌱 Seeded UiPath test document: ${UIPATH_SEED_DOCUMENT_ID} (${seededS3Path}) using ${UIPATH_SEED_PDF_PATH}`
+  );
 }
 
 function randomDateRange() {
