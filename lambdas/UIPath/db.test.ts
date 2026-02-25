@@ -40,13 +40,11 @@ vi.mock("./log", () => ({
 
 const prevEnv = { ...process.env };
 
-async function loadDbModule() {
-  vi.resetModules();
-  return import("./db");
-}
+import { __resetDbStateForTests, getDatabaseUrl, getDbPool, getDbSchema } from "./db";
 
 describe("db", () => {
   beforeEach(() => {
+    __resetDbStateForTests();
     process.env = { ...prevEnv };
     delete process.env.DATABASE_SECRET_ARN;
     delete process.env.DB_SSL_MODE;
@@ -73,8 +71,6 @@ describe("db", () => {
       }),
     });
 
-    const { getDatabaseUrl } = await loadDbModule();
-
     const first = await getDatabaseUrl();
     const second = await getDatabaseUrl();
 
@@ -92,8 +88,6 @@ describe("db", () => {
   });
 
   it("throws when DATABASE_SECRET_ARN is missing", async () => {
-    const { getDatabaseUrl } = await loadDbModule();
-
     await expect(getDatabaseUrl()).rejects.toThrow(
       "DATABASE_SECRET_ARN is required to fetch the database connection string."
     );
@@ -103,14 +97,11 @@ describe("db", () => {
   it("throws when secret response has no SecretString", async () => {
     process.env.DATABASE_SECRET_ARN = "db-credentials-arn"; // pragma: allowlist secret
     mocks.sendMock.mockResolvedValue({});
-    const { getDatabaseUrl } = await loadDbModule();
 
     await expect(getDatabaseUrl()).rejects.toThrow("The SecretString value is undefined");
   });
 
   it("returns db schema constant", async () => {
-    const { getDbSchema } = await loadDbModule();
-
     expect(getDbSchema()).toBe("demos_app");
   });
 
@@ -125,8 +116,6 @@ describe("db", () => {
         dbname: "demo",
       }),
     });
-    const { getDbPool } = await loadDbModule();
-
     const firstPool = await getDbPool();
     const secondPool = await getDbPool();
 

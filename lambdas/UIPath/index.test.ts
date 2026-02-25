@@ -1,6 +1,8 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { SQSEvent } from "aws-lambda";
 import { Readable } from "node:stream";
+import path from "node:path";
+import os from "node:os";
 import { region } from "./uipathClient";
 
 vi.mock("./log", () => ({
@@ -17,6 +19,10 @@ const mocks = vi.hoisted(() => ({
   parseDocumentFromIdMock: vi.fn(),
 }));
 const SEEDED_DOCUMENT_ID = "00000000-0000-0000-0000-000000000000";
+
+function tmpFile(name: string): string {
+  return path.join(os.tmpdir(), name);
+}
 
 vi.mock("./runDocumentUnderstanding", () => ({
   runDocumentUnderstanding: (...args: unknown[]) => mocks.runDocumentUnderstandingMock(...args),
@@ -97,9 +103,9 @@ describe("handler", () => {
 
     const result = await handlerRef(event);
 
-    expect(mocks.fileTypeFromFileMock).toHaveBeenCalledExactlyOnceWith(`/tmp/${SEEDED_DOCUMENT_ID}`);
+    expect(mocks.fileTypeFromFileMock).toHaveBeenCalledExactlyOnceWith(tmpFile(SEEDED_DOCUMENT_ID));
     expect(mocks.runDocumentUnderstandingMock).toHaveBeenCalledWith(
-      `/tmp/${SEEDED_DOCUMENT_ID}`,
+      tmpFile(SEEDED_DOCUMENT_ID),
       expect.objectContaining({
         pollIntervalMs: 5_000,
         fileNameWithExtension: `${SEEDED_DOCUMENT_ID}.pdf`,
@@ -122,7 +128,7 @@ describe("handler", () => {
     const result = await handlerRef(event);
 
     expect(mocks.runDocumentUnderstandingMock).toHaveBeenCalledWith(
-      "/tmp/document-1",
+      tmpFile("document-1"),
       expect.objectContaining({
         fileNameWithExtension: "document-1.pdf",
       })
@@ -144,7 +150,7 @@ describe("handler", () => {
 
     expect(mocks.parseDocumentFromIdMock).toHaveBeenCalledExactlyOnceWith(SEEDED_DOCUMENT_ID);
     expect(mocks.runDocumentUnderstandingMock).toHaveBeenCalledWith(
-      "/tmp/document-3",
+      tmpFile("document-3"),
       expect.objectContaining({
         fileNameWithExtension: "document-3.pdf",
         documentId: SEEDED_DOCUMENT_ID,
@@ -178,7 +184,7 @@ describe("handler", () => {
     await handlerRef(event);
 
     expect(mocks.runDocumentUnderstandingMock).toHaveBeenCalledWith(
-      "/tmp/test doc",
+      tmpFile("test doc"),
       expect.objectContaining({
         fileNameWithExtension: "test doc.pdf",
       })
