@@ -19,9 +19,7 @@ const sqsClient = new SQSClient(
 );
 
 export type UiPathQueueMessage = {
-  s3Bucket: string;
-  s3FileName: string;
-  documentId?: string;
+  documentId: string;
 };
 
 async function resolveUiPathQueueUrl(): Promise<string> {

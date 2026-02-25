@@ -38,8 +38,7 @@ describe("uipathQueue", () => {
       const { enqueueUiPath } = await loadModule();
 
       const result = await enqueueUiPath({
-        s3Bucket: "clean-bucket",
-        s3FileName: "file.pdf",
+        documentId: "doc-1",
       });
 
       expect(result).toBe("msg-123");
@@ -59,8 +58,7 @@ describe("uipathQueue", () => {
 
       await expect(
         enqueueUiPath({
-          s3Bucket: "clean-bucket",
-          s3FileName: "file.pdf",
+          documentId: "doc-1",
         })
       ).rejects.toThrow("Failed to resolve UiPath queue URL for queue: uipath-queue");
     });
@@ -71,8 +69,6 @@ describe("uipathQueue", () => {
       const { enqueueUiPath } = await loadModule();
 
       const payload = {
-        s3Bucket: "clean-bucket",
-        s3FileName: "path/to/file.pdf",
         documentId: "4cdfe542-90aa-489f-93d5-e786aaff49a2",
       };
 
@@ -94,12 +90,10 @@ describe("uipathQueue", () => {
       const { enqueueUiPath } = await loadModule();
 
       await enqueueUiPath({
-        s3Bucket: "clean-bucket",
-        s3FileName: "first.pdf",
+        documentId: "doc-1",
       });
       await enqueueUiPath({
-        s3Bucket: "clean-bucket",
-        s3FileName: "second.pdf",
+        documentId: "doc-2",
       });
 
       expect(sendMock).toHaveBeenCalledTimes(3);
@@ -123,8 +117,7 @@ describe("uipathQueue", () => {
       const { enqueueUiPath } = await loadModule();
 
       await enqueueUiPath({
-        s3Bucket: "clean-bucket",
-        s3FileName: "file.pdf",
+        documentId: "doc-1",
       });
 
       expect(sendMock.mock.calls[0][0]).toMatchObject({
@@ -139,8 +132,7 @@ describe("uipathQueue", () => {
 
       await expect(
         enqueueUiPath({
-          s3Bucket: "clean-bucket",
-          s3FileName: "file.pdf",
+          documentId: "doc-1",
         })
       ).rejects.toThrow("Failed to enqueue UiPath message.");
     });

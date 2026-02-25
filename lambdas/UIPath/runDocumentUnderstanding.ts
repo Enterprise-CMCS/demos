@@ -108,9 +108,15 @@ async function persistExtractionStatus(
   log.info("Extraction succeeded, processing results");
   const pool = await getDbPool();
   const client = await pool.connect();
+  const schema = getDbSchema();
+
+  if (! schema) {
+    throw new Error("Database schema is not defined.");
+  }
 
   try {
-    const schema = getDbSchema();
+    await client.query("BEGIN");
+
     const upsertedResult = await client.query<{ id: string }>(
       `insert into ${schema}.uipath_result (id, request_id, project_id, response, document_id)
        values ($1, $2, $3, $4::jsonb, $5)
@@ -168,11 +174,16 @@ async function persistExtractionStatus(
       }
     }
 
+    await client.query("COMMIT");
+
     log.info(
       { extractedFieldCount: extractedFields.length },
       "Processed UiPath fields"
     );
     log.info("UiPath extraction succeeded");
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
   } finally {
     client.release();
   }
@@ -194,7 +205,7 @@ export async function runDocumentUnderstanding(
   const {
     token: providedToken,
     pollIntervalMs = 3000,
-    maxAttempts = 500,
+    maxAttempts = 50,
     requestId = "n/a",
     fileNameWithExtension,
     documentId,

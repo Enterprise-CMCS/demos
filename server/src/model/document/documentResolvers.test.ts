@@ -321,45 +321,29 @@ describe("documentResolvers", () => {
   });
 
   describe("triggerUiPath", () => {
-    it("enqueues UiPath using clean-bucket and application/document key", async () => {
-      vi.mocked(getDocumentById).mockResolvedValue({
-        ...mockDocument,
-        name: "alaska_doc",
-      });
+    it("enqueues UiPath using only documentId", async () => {
       vi.mocked(enqueueUiPath).mockResolvedValue("msg-123");
 
       const result = await triggerUiPath(undefined, { documentId: testDocumentId });
 
-      expect(getDocumentById).toHaveBeenCalledExactlyOnceWith(mockTransaction, testDocumentId);
       expect(enqueueUiPath).toHaveBeenCalledExactlyOnceWith({
-        s3Bucket: "clean-bucket",
-        s3FileName: `${testApplicationId}/${testDocumentId}`,
         documentId: testDocumentId,
       });
       expect(result).toBe("msg-123");
     });
 
-    it("enqueues UiPath message regardless of document name extension", async () => {
-      vi.mocked(getDocumentById).mockResolvedValue({
-        ...mockDocument,
-        name: "alaska_doc.docx",
-      });
+    it("passes the provided documentId through to the queue", async () => {
       vi.mocked(enqueueUiPath).mockResolvedValue("msg-456");
 
       const result = await triggerUiPath(undefined, { documentId: testDocumentId });
 
       expect(enqueueUiPath).toHaveBeenCalledExactlyOnceWith({
-        s3Bucket: "clean-bucket",
-        s3FileName: `${testApplicationId}/${testDocumentId}`,
         documentId: testDocumentId,
       });
       expect(result).toBe("msg-456");
     });
 
     it("throws when enqueuing fails", async () => {
-      vi.mocked(getDocumentById).mockResolvedValue({
-        ...mockDocument,
-      });
       vi.mocked(enqueueUiPath).mockRejectedValue(new Error("Queue send failed"));
 
       await expect(triggerUiPath(undefined, { documentId: testDocumentId })).rejects.toThrow(

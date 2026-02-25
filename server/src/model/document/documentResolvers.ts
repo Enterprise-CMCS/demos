@@ -149,21 +149,19 @@ export async function deleteDocuments(_: unknown, { ids }: { ids: string[] }): P
   }
 }
 
+/**
+ * This will fail if doc does not exist or docId is null or empty
+ * @param _ refetch
+ * @param documentId the document to run through UiPath
+ * @returns MessageId
+ */
 export async function triggerUiPath(
   _: unknown,
   { documentId }: { documentId: string }
 ): Promise<string> {
   try {
-    return await prisma().$transaction(async (tx) => {
-      const document = await getDocumentById(tx, documentId);
-      const bucket = "clean-bucket";
-      const key = `${document.applicationId}/${document.id}`;
-
-      return await enqueueUiPath({
-        s3Bucket: bucket,
-        s3FileName: key,
-        documentId: document.id,
-      });
+    return await enqueueUiPath({
+      documentId,
     });
   } catch (error) {
     handlePrismaError(error);
