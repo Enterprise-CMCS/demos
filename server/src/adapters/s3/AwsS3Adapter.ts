@@ -10,7 +10,6 @@ import { PrismaTransactionClient } from "../../prismaClient";
 import { UploadDocumentInput } from "../../types";
 import { createDocumentPendingUpload } from "../../model/documentPendingUpload";
 import { S3Adapter } from "../";
-import { PRIMARY_AWS_REGION } from "../../constants";
 
 const EXPIRATION_TIME_SECONDS = 10;
 
@@ -18,7 +17,7 @@ const createS3Client = () => {
   const endpoint = process.env.S3_ENDPOINT_LOCAL;
   const s3ClientConfig = endpoint
     ? {
-        region: PRIMARY_AWS_REGION,
+        region: "us-east-1",
         endpoint,
         forcePathStyle: true,
         credentials: {
@@ -103,26 +102,6 @@ export function createAWSS3Adapter(): S3Adapter {
       } catch (error) {
         throw new Error(`Failed to delete document from clean bucket: ${error}`);
       }
-    },
-
-    async getObjectBytes(
-      bucket: string,
-      key: string,
-      range = "bytes=0-4095"
-    ): Promise<Uint8Array | null> {
-      const response = await s3Client.send(
-        new GetObjectCommand({
-          Bucket: bucket,
-          Key: key,
-          Range: range,
-        })
-      );
-
-      if (!response.Body || !("transformToByteArray" in response.Body)) {
-        return null;
-      }
-
-      return await response.Body.transformToByteArray();
     },
 
     async uploadDocument(
