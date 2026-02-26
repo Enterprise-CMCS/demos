@@ -17,4 +17,9 @@ ignore:
         reason: Transitive dependency via aws-cdk-lib; temporarily ignored pending upstream resolution.
         expires: 2026-03-31T00:00:00.000Z
         created: 2026-02-26T00:00:00.000Z
+  SNYK-JS-MINIMATCH-15353389:
+    - '*':
+        reason: Transitive dependency via aws-cdk-lib; temporarily ignored pending upstream resolution.
+        expires: 2026-03-31T00:00:00.000Z
+        created: 2026-02-26T00:00:00.000Z
 patch: {}
