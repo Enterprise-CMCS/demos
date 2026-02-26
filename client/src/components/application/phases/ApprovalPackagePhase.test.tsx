@@ -100,7 +100,7 @@ describe("ApprovalPackagePhase", () => {
       "Final Budget Neutrality Formulation Workbook",
       "Q&A",
       "Special Terms & Conditions",
-      "Formal OMB Policy Concurrence",
+      "Formal OMB Policy Concurrence Email",
       "Approval Letter",
       "Signed Decision Memo",
     ]);
@@ -202,7 +202,7 @@ describe("ApprovalPackagePhase", () => {
         }),
         doc({ documentType: "Q&A", phaseName: "Approval Package" }),
         doc({ documentType: "Special Terms & Conditions", phaseName: "Approval Package" }),
-        doc({ documentType: "Formal OMB Policy Concurrence", phaseName: "Approval Package" }),
+        doc({ documentType: "Formal OMB Policy Concurrence Email", phaseName: "Approval Package" }),
         doc({ documentType: "Approval Letter", phaseName: "None" }), // Document exists but belongs to wrong phase
         doc({ documentType: "Signed Decision Memo", phaseName: "Approval Package" }),
       ],
@@ -235,7 +235,7 @@ describe("ApprovalPackagePhase", () => {
       doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
       doc({ documentType: "Q&A" }),
       doc({ documentType: "Special Terms & Conditions" }),
-      doc({ documentType: "Formal OMB Policy Concurrence" }),
+      doc({ documentType: "Formal OMB Policy Concurrence Email" }),
       doc({ documentType: "Approval Letter" }),
       doc({ documentType: "Signed Decision Memo" }),
     ];
@@ -273,7 +273,7 @@ describe("ApprovalPackagePhase", () => {
       doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
       doc({ documentType: "Q&A" }),
       doc({ documentType: "Special Terms & Conditions" }),
-      doc({ documentType: "Formal OMB Policy Concurrence" }),
+      doc({ documentType: "Formal OMB Policy Concurrence Email" }),
       doc({ documentType: "Approval Letter" }),
       doc({ documentType: "Signed Decision Memo" }),
     ];
@@ -401,7 +401,7 @@ describe("getApprovalPackagePhase", () => {
       doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
       doc({ documentType: "Q&A" }),
       doc({ documentType: "Special Terms & Conditions" }),
-      doc({ documentType: "Formal OMB Policy Concurrence" }),
+      doc({ documentType: "Formal OMB Policy Concurrence Email" }),
       doc({ documentType: "Approval Letter" }),
       doc({ documentType: "Signed Decision Memo" }),
     ];
@@ -459,7 +459,7 @@ describe("getApprovalPackagePhase", () => {
       doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
       doc({ documentType: "Q&A" }),
       doc({ documentType: "Special Terms & Conditions" }),
-      doc({ documentType: "Formal OMB Policy Concurrence" }),
+      doc({ documentType: "Formal OMB Policy Concurrence Email" }),
       doc({ documentType: "Approval Letter" }),
       doc({ documentType: "Signed Decision Memo" }),
     ];

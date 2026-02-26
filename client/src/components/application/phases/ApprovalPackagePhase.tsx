@@ -25,7 +25,7 @@ const REQUIRED_TYPES: DocumentType[] = [
   "Final Budget Neutrality Formulation Workbook",
   "Q&A",
   "Special Terms & Conditions",
-  "Formal OMB Policy Concurrence",
+  "Formal OMB Policy Concurrence Email",
   "Approval Letter",
   "Signed Decision Memo",
 ] as const;
@@ -48,7 +48,8 @@ export const getApprovalPackagePhase = (
   );
   const ombPolicyDocument = demonstration?.documents.find(
     (doc) =>
-      doc.documentType === "Formal OMB Policy Concurrence" && doc.phaseName === "Approval Package"
+      doc.documentType === "Formal OMB Policy Concurrence Email" &&
+      doc.phaseName === "Approval Package"
   );
   const approvalLetterDocument = demonstration?.documents.find(
     (doc) => doc.documentType === "Approval Letter" && doc.phaseName === "Approval Package"

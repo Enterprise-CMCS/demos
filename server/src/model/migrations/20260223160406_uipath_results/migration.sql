@@ -1,3 +1,5 @@
+SET search_path TO demos_app;
+
 -- CreateTable
 CREATE TABLE "uipath_result" (
     "id" UUID NOT NULL,
