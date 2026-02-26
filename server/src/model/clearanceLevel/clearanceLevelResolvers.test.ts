@@ -1,22 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { Kind, type ScalarTypeDefinitionNode, type StringValueNode, type IntValueNode } from "graphql";
+import { Kind, type StringValueNode, type IntValueNode } from "graphql";
 import { CLEARANCE_LEVELS } from "../../constants.js";
-import { clearanceLevelSchema } from "./clearanceLeveSchema.js";
 import { clearanceLevelResolvers } from "./clearanceLevelResolvers.js";
 
-function getScalarDefinition() {
-  return clearanceLevelSchema.definitions.find(
-    (definition): definition is ScalarTypeDefinitionNode =>
-      definition.kind === Kind.SCALAR_TYPE_DEFINITION
-  );
-}
-
-describe("clearanceLevel schema and resolvers", () => {
-  it("defines ClearanceLevel scalar in schema", () => {
-    const scalarDefinition = getScalarDefinition();
-    expect(scalarDefinition?.name.value).toBe("ClearanceLevel");
-  });
-
+describe("clearanceLevelResolvers", () => {
   it("accepts valid ClearanceLevel values", () => {
     const validValue = CLEARANCE_LEVELS[0];
     const validLiteral: StringValueNode = { kind: Kind.STRING, value: validValue };

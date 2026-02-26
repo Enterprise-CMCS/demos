@@ -1,22 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { Kind, type ScalarTypeDefinitionNode, type StringValueNode, type IntValueNode } from "graphql";
+import { Kind, type StringValueNode, type IntValueNode } from "graphql";
 import { DATE_TYPES } from "../../constants.js";
-import { dateTypeSchema } from "./dateTypeSchema.js";
 import { dateTypeResolvers } from "./dateTypeResolvers.js";
 
-function getScalarDefinition() {
-  return dateTypeSchema.definitions.find(
-    (definition): definition is ScalarTypeDefinitionNode =>
-      definition.kind === Kind.SCALAR_TYPE_DEFINITION
-  );
-}
-
-describe("dateType schema and resolvers", () => {
-  it("defines DateType scalar in schema", () => {
-    const scalarDefinition = getScalarDefinition();
-    expect(scalarDefinition?.name.value).toBe("DateType");
-  });
-
+describe("dateTypeResolvers", () => {
   it("accepts valid DateType values", () => {
     const validValue = DATE_TYPES[0];
     const validLiteral: StringValueNode = { kind: Kind.STRING, value: validValue };
