@@ -230,10 +230,9 @@ describe("demonstrationResolvers", () => {
         id: testValues.demonstrationId,
       };
       await __getDemonstration(undefined, testInput);
-      expect(getApplication).toHaveBeenCalledExactlyOnceWith(
-        testValues.demonstrationId,
-        "Demonstration"
-      );
+      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testValues.demonstrationId, {
+        applicationTypeId: "Demonstration",
+      });
     });
   });
 
@@ -322,10 +321,9 @@ describe("demonstrationResolvers", () => {
       expect(
         transactionMocks.primaryDemonstrationRoleAssignment.create
       ).toHaveBeenCalledExactlyOnceWith(expectedCalls[4]);
-      expect(getApplication).toHaveBeenCalledExactlyOnceWith(
-        testValues.demonstrationId,
-        testValues.applicationTypeId
-      );
+      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testValues.demonstrationId, {
+        applicationTypeId: testValues.applicationTypeId,
+      });
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
 

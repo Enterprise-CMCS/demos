@@ -10,29 +10,30 @@ import { PrismaApplication } from "..";
 
 export async function getApplication(
   applicationId: string,
-  applicationTypeId: "Demonstration",
-  tx?: PrismaTransactionClient
+  options: { applicationTypeId: "Demonstration"; tx?: PrismaTransactionClient }
 ): Promise<PrismaDemonstration>;
 
 export async function getApplication(
   applicationId: string,
-  applicationTypeId: "Amendment",
-  tx?: PrismaTransactionClient
+  options: { applicationTypeId: "Amendment"; tx?: PrismaTransactionClient }
 ): Promise<PrismaAmendment>;
 
 export async function getApplication(
   applicationId: string,
-  applicationTypeId: "Extension",
-  tx?: PrismaTransactionClient
+  options: { applicationTypeId: "Extension"; tx?: PrismaTransactionClient }
 ): Promise<PrismaExtension>;
-
-export async function getApplication(applicationId: string): Promise<PrismaApplication>;
 
 export async function getApplication(
   applicationId: string,
-  applicationTypeId?: ApplicationType,
-  tx?: PrismaTransactionClient
+  options?: { tx?: PrismaTransactionClient }
+): Promise<PrismaApplication>;
+
+export async function getApplication(
+  applicationId: string,
+  options?: { applicationTypeId?: ApplicationType; tx?: PrismaTransactionClient }
 ): Promise<PrismaApplication> {
+  const tx = options?.tx;
+  const applicationTypeId = options?.applicationTypeId;
   const prismaClient = tx ?? prisma();
   const application = await prismaClient.application.findUnique({
     where: {
@@ -48,7 +49,9 @@ export async function getApplication(
 
   if (!application) {
     throw new GraphQLError(
-      `Application of type ${applicationTypeId} with ID ${applicationId} not found`,
+      applicationTypeId
+        ? `Application of type ${applicationTypeId} with ID ${applicationId} not found`
+        : `Application with ID ${applicationId} not found`,
       {
         extensions: {
           code: "APPLICATION_ID_NOT_FOUND",

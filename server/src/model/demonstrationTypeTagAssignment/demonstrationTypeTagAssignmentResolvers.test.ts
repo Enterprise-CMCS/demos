@@ -119,7 +119,9 @@ describe("demonstrationTypeTagAssignmentResolvers", () => {
       };
 
       await setDemonstrationTypes(undefined, { input: testInput });
-      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testDemonstrationId, "Demonstration");
+      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testDemonstrationId, {
+        applicationTypeId: "Demonstration",
+      });
       expect(checkForDuplicateDemonstrationTypes).not.toHaveBeenCalled();
       expect(parseSetDemonstrationTypesInput).not.toHaveBeenCalled();
       expect(prisma).not.toHaveBeenCalled();
@@ -130,7 +132,9 @@ describe("demonstrationTypeTagAssignmentResolvers", () => {
 
     it("should validate, parse, and then operate on the request", async () => {
       await setDemonstrationTypes(undefined, { input: testInput });
-      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testDemonstrationId, "Demonstration");
+      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testDemonstrationId, {
+        applicationTypeId: "Demonstration",
+      });
       expect(checkForDuplicateDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(testInput);
       expect(parseSetDemonstrationTypesInput).toHaveBeenCalledExactlyOnceWith(testInput);
       expect(prisma).toHaveBeenCalled();
