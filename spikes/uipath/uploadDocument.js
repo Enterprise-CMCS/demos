@@ -1,7 +1,12 @@
 import fs from "fs";
 import FormData from "form-data";
 import { log } from "./logFile.js";
-import { duPost, UIPATH_BASE_URL, UIPATH_TENANT, getProjectId } from "./uipathClient.js";
+import {
+  duPost,
+  UIPATH_BASE_URL,
+  UIPATH_TENANT,
+  getProjectId
+} from "./uipathClient.js";
 
 export async function uploadDocument(token, fileName) {
   const projectId = getProjectId();

@@ -11,11 +11,13 @@ import { findUserById } from "../user";
 import { getApplication } from "../application";
 import { validateAndUpdateDates } from "../applicationDate";
 import { startPhaseByDocument } from "../applicationPhase";
+import { enqueueUiPath } from "../../services/uipathQueue";
 import { getDocumentById, checkDocumentExists, updateDocument, handleDeleteDocument } from ".";
 import {
   getDocument,
   documentExists,
   uploadDocument,
+  triggerUiPath,
   updateDocument as updateDocumentResolver,
   deleteDocument,
   deleteDocuments,
@@ -58,6 +60,10 @@ vi.mock("../applicationPhase", () => ({
 
 vi.mock("../applicationDate", () => ({
   validateAndUpdateDates: vi.fn(),
+}));
+
+vi.mock("../../services/uipathQueue", () => ({
+  enqueueUiPath: vi.fn()
 }));
 
 vi.mock("../user", () => ({
@@ -314,6 +320,38 @@ describe("documentResolvers", () => {
     });
   });
 
+  describe("triggerUiPath", () => {
+    it("enqueues UiPath using only documentId", async () => {
+      vi.mocked(enqueueUiPath).mockResolvedValue("msg-123");
+
+      const result = await triggerUiPath(undefined, { documentId: testDocumentId });
+
+      expect(enqueueUiPath).toHaveBeenCalledExactlyOnceWith({
+        documentId: testDocumentId,
+      });
+      expect(result).toBe("msg-123");
+    });
+
+    it("passes the provided documentId through to the queue", async () => {
+      vi.mocked(enqueueUiPath).mockResolvedValue("msg-456");
+
+      const result = await triggerUiPath(undefined, { documentId: testDocumentId });
+
+      expect(enqueueUiPath).toHaveBeenCalledExactlyOnceWith({
+        documentId: testDocumentId,
+      });
+      expect(result).toBe("msg-456");
+    });
+
+    it("throws when enqueuing fails", async () => {
+      vi.mocked(enqueueUiPath).mockRejectedValue(new Error("Queue send failed"));
+
+      await expect(triggerUiPath(undefined, { documentId: testDocumentId })).rejects.toThrow(
+        "Queue send failed"
+      );
+    });
+  });
+
   describe("updateDocument", () => {
     const mockUpdateInput: UpdateDocumentInput = {
       name: "Updated Document",
@@ -434,6 +472,7 @@ describe("documentResolvers", () => {
       expect(documentResolvers.Mutation).toHaveProperty("updateDocument");
       expect(documentResolvers.Mutation).toHaveProperty("deleteDocument");
       expect(documentResolvers.Mutation).toHaveProperty("deleteDocuments");
+      expect(documentResolvers.Mutation).toHaveProperty("triggerUiPath");
     });
 
     it("should export Document field resolvers", () => {

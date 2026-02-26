@@ -3,3 +3,5 @@ node_modules/
 .venv/
 uipath.log
 *.pdf
+*.xlsx
+uipath.log
