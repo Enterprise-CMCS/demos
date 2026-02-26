@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
 import { formatDate, formatDateForServer, getTodayEst } from "util/formatDate";
 import { ApplicationStatus, DateType, UpdateDemonstrationInput } from "demos-server";
-import { ApplicationWorkflowDemonstration } from "components/application/demonstration/DemonstrationWorkflow";
+import { ApplicationWorkflowDemonstration } from "components/application";
 import { ApplicationDetailsSection, ApplicationDetailsFormData } from "./applicationDetailsSection";
 import { DemonstrationTypesSection } from "./demonstrationTypesSection";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
