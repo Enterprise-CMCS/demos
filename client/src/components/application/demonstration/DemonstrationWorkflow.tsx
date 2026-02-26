@@ -6,8 +6,10 @@ import { gql, useQuery } from "@apollo/client";
 import { Loading } from "components/loading/Loading";
 import { ApplicationWorkflowDocument, SimplePhase } from "components/application";
 
+const DEMONSTRATION_WORKFLOW_QUERY_NAME = "GetWorkflowDemonstration";
+
 export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
-  query GetApplicationWorkflow($id: ID!) {
+  query ${DEMONSTRATION_WORKFLOW_QUERY_NAME}($id: ID!) {
     demonstration(id: $id) {
       id
       name
