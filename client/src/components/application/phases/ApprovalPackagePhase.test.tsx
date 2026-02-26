@@ -8,7 +8,7 @@ import { ApprovalPackagePhase, getApprovalPackagePhase } from "./ApprovalPackage
 import {
   ApplicationWorkflowDocument,
   ApplicationWorkflowDemonstration,
-} from "components/application/ApplicationWorkflow";
+} from "components/application";
 import { DocumentType } from "demos-server";
 import { ApprovalPackageTableRow } from "components/table/tables/ApprovalPackageTable";
 import userEvent from "@testing-library/user-event";

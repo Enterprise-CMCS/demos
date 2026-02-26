@@ -16,7 +16,7 @@ import {
 import {
   ApplicationWorkflowDocument,
   ApplicationWorkflowDemonstration,
-} from "../ApplicationWorkflow";
+} from "components/application";
 import { formatDateForServer, getTodayEst } from "util/formatDate";
 
 vi.mock("@apollo/client", async () => {

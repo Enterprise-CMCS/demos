@@ -1,6 +1,6 @@
 import type { SetApplicationDateInput, SetApplicationDatesInput } from "demos-server";
 import { gql, useMutation } from "@apollo/client";
-import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "../ApplicationWorkflow";
+import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "../demonstration/DemonstrationWorkflow";
 
 const SET_APPLICATION_DATE_MUTATION = gql`
   mutation SetApplicationDate($input: SetApplicationDateInput!) {

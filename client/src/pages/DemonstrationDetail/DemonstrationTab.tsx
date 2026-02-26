@@ -1,9 +1,9 @@
 import React from "react";
 
 import {
-  ApplicationWorkflow,
+  DemonstrationWorkflow,
   GET_WORKFLOW_DEMONSTRATION_QUERY,
-} from "components/application/ApplicationWorkflow";
+} from "components/application/demonstration/DemonstrationWorkflow";
 import { DEMONSTRATION_DETAIL_QUERY } from "./DemonstrationDetail";
 import { IconButton } from "components/button";
 import {
@@ -88,7 +88,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           <div></div>
         </Tab>
         <Tab icon={<ListIcon />} label="Applications" value={TAB.APPLICATION}>
-          <ApplicationWorkflow demonstrationId={demonstration.id} />
+          <DemonstrationWorkflow demonstrationId={demonstration.id} />
         </Tab>
         <Tab icon={<DetailsIcon />} label="Details" value={TAB.DETAILS}>
           <SummaryDetailsTab demonstrationId={demonstration.id} />

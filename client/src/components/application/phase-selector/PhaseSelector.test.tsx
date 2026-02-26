@@ -7,7 +7,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { PhaseSelector, getDisplayedPhaseStatus, getDisplayedPhaseDate } from "./PhaseSelector";
-import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
+import { ApplicationWorkflowDemonstration } from "../demonstration/DemonstrationWorkflow";
 import {
   getReviewPhaseComponentFromDemonstration,
   getApplicationCompletenessFromDemonstration,

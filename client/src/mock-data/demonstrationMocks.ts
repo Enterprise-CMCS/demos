@@ -4,7 +4,7 @@ import {
   UPDATE_DEMONSTRATION_MUTATION,
 } from "components/dialog/demonstration/EditDemonstrationDialog";
 import { GET_DEMONSTRATION_BY_ID_QUERY as HOOK_GET_DEMONSTRATION_BY_ID_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
-import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application/ApplicationWorkflow";
+import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application/demonstration/DemonstrationWorkflow";
 
 import type { ApplicationStatus } from "demos-server";
 import { CreateDemonstrationInput, Demonstration } from "demos-server";

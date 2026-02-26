@@ -6,7 +6,7 @@ import type {
   PhaseStatus as ServerPhaseStatus,
 } from "demos-server";
 
-import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
+import { ApplicationWorkflowDemonstration } from "../demonstration/DemonstrationWorkflow";
 import {
   getApplicationCompletenessFromDemonstration,
   getConceptPhaseComponentFromDemonstration,

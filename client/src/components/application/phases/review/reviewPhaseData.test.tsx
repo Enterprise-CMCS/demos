@@ -7,7 +7,7 @@ import {
   getPhaseData,
 } from "./reviewPhaseData";
 import { ReviewPhaseFormData } from "./ReviewPhase";
-import { SimplePhase } from "components/application/ApplicationWorkflow";
+import { SimplePhase } from "components/application";
 import { PhaseNameWithTrackedStatus, PhaseStatus } from "demos-server";
 
 describe("reviewPhaseData", () => {
