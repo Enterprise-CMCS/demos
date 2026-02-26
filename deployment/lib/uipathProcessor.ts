@@ -68,6 +68,7 @@ export class UiPathProcessor extends Construct {
     // Stable pathing relative to this file (not process.cwd)
     const uiPathDir = path.resolve(process.cwd(), "..", "lambdas", "UIPath");
     const uiPathLockFile = path.join(uiPathDir, "package-lock.json");
+    const cleanReadBucket = props.readBuckets?.[0];
 
     const uipathLambda = new demosLambda.Lambda(this, "uipath", {
       ...props,
@@ -87,6 +88,7 @@ export class UiPathProcessor extends Construct {
         DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
         UIPATH_SECRET_ID: clientSecret.secretName,
         LOG_LEVEL: process.env.LOG_LEVEL ?? "info",
+        CLEAN_BUCKET: cleanReadBucket?.bucketName ?? "clean-bucket",
         NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
       },
     });
