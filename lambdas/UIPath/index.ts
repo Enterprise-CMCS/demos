@@ -5,7 +5,6 @@ import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
 import { SQSEvent } from "aws-lambda";
 import { GetObjectCommand, S3Client, type GetObjectCommandOutput } from "@aws-sdk/client-s3";
-import { fileTypeFromFile } from "file-type";
 import { log, reqIdChild, als, store } from "./log";
 import { runDocumentUnderstanding } from "./runDocumentUnderstanding";
 import { parseDocumentFromId, parseUiPathMessage } from "./parseDocumentFromId";
@@ -28,6 +27,7 @@ type ResolvedS3Input = {
 
 function getDocumentBucket(): string {
   const cleanBucket = process.env.CLEAN_BUCKET ?? "clean-bucket";
+  log.info(`Using clean bucket: ${cleanBucket}`);
   if (!cleanBucket) {
     throw new Error("CLEAN_BUCKET environment variable is required.");
   }
@@ -63,6 +63,7 @@ async function resolveUploadFileNameWithExtension(
 ): Promise<string> {
   const keyBaseName = path.basename(s3Key);
   const keyNameWithoutExtension = path.parse(keyBaseName).name;
+  const { fileTypeFromFile } = await import("file-type");
   const detectedType = await fileTypeFromFile(downloadedObject.localPath);
 
   if (!detectedType) {
