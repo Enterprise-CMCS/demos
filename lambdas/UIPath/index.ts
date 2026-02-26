@@ -27,7 +27,7 @@ type ResolvedS3Input = {
 };
 
 function getDocumentBucket(): string {
-  const cleanBucket = process.env.DOCUMENTS_BUCKET;
+  const cleanBucket = process.env.CLEAN_BUCKET ?? "clean-bucket";
   if (!cleanBucket) {
     throw new Error("CLEAN_BUCKET environment variable is required.");
   }
