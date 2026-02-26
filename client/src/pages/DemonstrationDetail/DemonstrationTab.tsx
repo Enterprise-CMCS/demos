@@ -1,9 +1,6 @@
 import React from "react";
 
-import {
-  DemonstrationWorkflow,
-  GET_WORKFLOW_DEMONSTRATION_QUERY,
-} from "components/application/demonstration/DemonstrationWorkflow";
+import { DemonstrationWorkflow, GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application";
 import { DEMONSTRATION_DETAIL_QUERY } from "./DemonstrationDetail";
 import { IconButton } from "components/button";
 import {
