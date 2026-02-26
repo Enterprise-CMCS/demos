@@ -167,6 +167,8 @@ export class ApiStack extends Stack {
     const uipathQueueUrl = Fn.importValue(`${props.stage}UiPathQueueUrl`);
     const uipathQueueArn = Fn.importValue(`${props.stage}UiPathQueueArn`);
     const uipathQueue = Queue.fromQueueArn(this, "uipathQueue", uipathQueueArn);
+    const corruptedBucketName = Fn.importValue(`${props.stage}CorruptedBucketName`);
+    const corruptedBucket = aws_s3.Bucket.fromBucketName(this, "corruptedBucket", corruptedBucketName);
 
     const graphqlLambda = lambda.create(
       {
@@ -190,6 +192,7 @@ export class ApiStack extends Stack {
           DELETED_BUCKET: deletedBucket.bucketName,
           // None of the other queue use ENV. maybe another way.
           UIPATH_QUEUE_URL: uipathQueueUrl,
+          CORRUPTED_BUCKET: corruptedBucket.bucketName,
         },
       },
       "graphql"
@@ -208,6 +211,7 @@ export class ApiStack extends Stack {
     fileUploadKms.grantEncrypt(graphqlLambda.lambda.role)
 
 
+    corruptedBucket.grantPut(graphqlLambda.lambda.role);
     const emailerTimeout = Duration.minutes(1);
 
     const kmsKey = new aws_kms.Key(this, "emailerQueueKey", {

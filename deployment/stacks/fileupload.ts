@@ -170,7 +170,19 @@ export class FileUploadStack extends Stack {
       autoDeleteObjects: true,
       publicReadAccess: false,
       serverAccessLogsBucket: accessLogs,
-      serverAccessLogsPrefix: "uipath-documents",
+      serverAccessLogsPrefix: "uipath-documents/",
+      enforceSSL: true,
+      blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
+    });
+
+    // Separate bucket for files that are corrupted (failed processing)
+    const corruptedBucket = new Bucket(this, "FileCorruptedBucket", {
+      versioned: true,
+      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      publicReadAccess: false,
+      serverAccessLogsBucket: s3AccessLogBucket,
+      serverAccessLogsPrefix: "corrupted/",
       enforceSSL: true,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
     });
@@ -391,6 +403,11 @@ export class FileUploadStack extends Stack {
     new CfnOutput(this, "deletedBucketName", {
       exportName: `${props.stage}DeletedBucketName`,
       value: deletedBucket.bucketName,
+    });
+
+    new CfnOutput(this, "corruptedBucketName", {
+      exportName: `${props.stage}CorruptedBucketName`,
+      value: corruptedBucket.bucketName,
     });
 
     new CfnOutput(this, "infectedBucketName", {
