@@ -237,7 +237,6 @@ export const useDialog = () => {
   const showConfirmApproveDialog = (onConfirm: () => void) => {
     context.showDialog(
       <ConfirmApproveDialog
-        isOpen={true}
         onClose={context.hideDialog}
         onConfirm={onConfirm}
       />

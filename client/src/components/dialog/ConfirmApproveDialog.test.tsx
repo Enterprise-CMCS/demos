@@ -11,13 +11,12 @@ beforeAll(() => {
 });
 
 describe("ConfirmApproveDialog", () => {
-  const setup = (isOpen = true) => {
+  const setup = () => {
     const onClose = vi.fn();
     const onConfirm = vi.fn();
 
     render(
       <ConfirmApproveDialog
-        isOpen={isOpen}
         onClose={onClose}
         onConfirm={onConfirm}
       />
@@ -27,7 +26,7 @@ describe("ConfirmApproveDialog", () => {
   };
 
   it("renders dialog content", () => {
-    setup(true);
+    setup();
 
     expect(screen.getByText("ARE YOU SURE?")).toBeInTheDocument();
     expect(
@@ -43,7 +42,7 @@ describe("ConfirmApproveDialog", () => {
 
   it("calls onClose when close (×) button is clicked", async () => {
     const user = userEvent.setup();
-    const { onClose } = setup(true);
+    const { onClose } = setup();
 
     await user.click(screen.getByTestId("button-ca-dialog-close"));
 
@@ -52,7 +51,7 @@ describe("ConfirmApproveDialog", () => {
 
   it("calls onClose when cancel button is clicked", async () => {
     const user = userEvent.setup();
-    const { onClose } = setup(true);
+    const { onClose } = setup();
 
     await user.click(screen.getByTestId("button-ca-dialog-cancel"));
 
@@ -61,20 +60,10 @@ describe("ConfirmApproveDialog", () => {
 
   it("calls onConfirm when submit button is clicked", async () => {
     const user = userEvent.setup();
-    const { onConfirm } = setup(true);
+    const { onConfirm } = setup();
 
     await user.click(screen.getByTestId("button-ca-dialog-approve"));
 
     expect(onConfirm).toHaveBeenCalledTimes(1);
-  });
-
-  it("calls showModal when isOpen is true", () => {
-    setup(true);
-    expect(HTMLDialogElement.prototype.showModal).toHaveBeenCalled();
-  });
-
-  it("calls close when isOpen is false", () => {
-    setup(false);
-    expect(HTMLDialogElement.prototype.close).toHaveBeenCalled();
   });
 });
