@@ -356,11 +356,17 @@ describe("documentResolvers", () => {
       );
     });
 
-    it("throws when document id is not a valid uuid", async () => {
-      await expect(triggerUiPath(undefined, { documentId: "12345678910" })).rejects.toThrow(
-        "documentId must be a valid UUID."
+    it("throws when the provided document id does not exist", async () => {
+      const invalidDocumentId = "12345678910";
+      vi.mocked(checkDocumentExists).mockResolvedValue(false);
+
+      await expect(triggerUiPath(undefined, { documentId: invalidDocumentId })).rejects.toThrow(
+        `Document with ID ${invalidDocumentId} does not exist.`
       );
-      expect(checkDocumentExists).not.toHaveBeenCalled();
+      expect(checkDocumentExists).toHaveBeenCalledExactlyOnceWith(
+        mockTransaction,
+        invalidDocumentId
+      );
       expect(enqueueUiPath).not.toHaveBeenCalled();
     });
 
@@ -368,7 +374,7 @@ describe("documentResolvers", () => {
       vi.mocked(checkDocumentExists).mockResolvedValue(false);
 
       await expect(triggerUiPath(undefined, { documentId: testDocumentId })).rejects.toThrow(
-        `No document found for id ${testDocumentId}.`
+        `Document with ID ${testDocumentId} does not exist.`
       );
       expect(enqueueUiPath).not.toHaveBeenCalled();
     });
