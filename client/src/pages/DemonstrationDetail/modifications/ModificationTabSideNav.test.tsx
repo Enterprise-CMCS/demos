@@ -1,9 +1,14 @@
 import React from "react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ModificationTabSideNav } from "./ModificationTabSideNav";
 import { ModificationItem } from "./ModificationTabs";
 import { DialogProvider } from "components/dialog/DialogContext";
+
+vi.mock("components/application", () => ({
+  AmendmentWorkflow: () => <div data-testid="amendment-workflow">Amendment Workflow</div>,
+  ExtensionWorkflow: () => <div data-testid="extension-workflow">Extension Workflow</div>,
+}));
 
 describe("ModificationTabSideNav", () => {
   const mockModificationItem: ModificationItem = {
@@ -71,5 +76,29 @@ describe("ModificationTabSideNav", () => {
 
     expect(detailsTab).toHaveAttribute("aria-selected", "true");
     expect(screen.getByTestId("button-application")).toHaveAttribute("aria-selected", "false");
+  });
+
+  describe("Application tab", () => {
+    it("renders AmendmentWorkflow when modification type is amendment", () => {
+      const amendmentModification: ModificationItem = {
+        ...mockModificationItem,
+        modificationType: "amendment",
+      };
+      setup(amendmentModification);
+
+      expect(screen.getByTestId("amendment-workflow")).toBeInTheDocument();
+      expect(screen.queryByTestId("extension-workflow")).not.toBeInTheDocument();
+    });
+
+    it("renders ExtensionWorkflow when modification type is extension", () => {
+      const extensionModification: ModificationItem = {
+        ...mockModificationItem,
+        modificationType: "extension",
+      };
+      setup(extensionModification);
+
+      expect(screen.getByTestId("extension-workflow")).toBeInTheDocument();
+      expect(screen.queryByTestId("amendment-workflow")).not.toBeInTheDocument();
+    });
   });
 });
