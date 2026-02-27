@@ -9,6 +9,7 @@ import { log, reqIdChild, als, store } from "./log";
 import { runDocumentUnderstanding } from "./runDocumentUnderstanding";
 import { parseDocumentFromId, parseUiPathMessage } from "./parseDocumentFromId";
 import { region } from "./uipathClient";
+import { fileTypeFromFile } from "file-type";
 
 const s3 = new S3Client({
   region,
@@ -63,7 +64,6 @@ async function resolveUploadFileNameWithExtension(
 ): Promise<string> {
   const keyBaseName = path.basename(s3Key);
   const keyNameWithoutExtension = path.parse(keyBaseName).name;
-  const { fileTypeFromFile } = await import("file-type");
   const detectedType = await fileTypeFromFile(downloadedObject.localPath);
 
   if (!detectedType) {
