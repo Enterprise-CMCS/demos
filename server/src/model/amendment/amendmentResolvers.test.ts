@@ -132,7 +132,9 @@ describe("amendmentResolvers", () => {
         id: testAmendmentId,
       };
       await __getAmendment(undefined, testInput);
-      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testAmendmentId, "Amendment");
+      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testAmendmentId, {
+        applicationTypeId: "Amendment",
+      });
     });
   });
 

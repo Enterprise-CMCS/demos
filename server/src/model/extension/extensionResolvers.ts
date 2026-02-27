@@ -31,7 +31,7 @@ export async function __getExtension(
   parent: unknown,
   { id }: { id: string }
 ): Promise<PrismaExtension> {
-  return await getApplication(id, "Extension");
+  return await getApplication(id, { applicationTypeId: "Extension" });
 }
 
 export async function __getManyExtensions(): Promise<PrismaExtension[]> {

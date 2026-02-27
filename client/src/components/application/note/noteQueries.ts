@@ -1,5 +1,5 @@
 import { gql, useMutation } from "@apollo/client";
-import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "../ApplicationWorkflow";
+import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "../demonstration/DemonstrationWorkflow";
 import { SetApplicationNotesInput } from "demos-server";
 
 const SET_APPLICATION_NOTES_MUTATION = gql`

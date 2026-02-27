@@ -3,7 +3,10 @@ import { tw } from "tags/tw";
 import { ApplicationUploadSection } from "components/application/phases/sections";
 import { formatDate } from "util/formatDate";
 import { useDialog } from "components/dialog/DialogContext";
-import { ApplicationWorkflowDemonstration, ApplicationWorkflowDocument } from "../ApplicationWorkflow";
+import {
+  ApplicationWorkflowDemonstration,
+  ApplicationWorkflowDocument,
+} from "components/application";
 import { differenceInCalendarDays } from "date-fns";
 import { Notice, NoticeVariant } from "components/notice";
 
@@ -67,12 +70,8 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
   initialDocuments = [],
 }) => {
   const { showFederalCommentDocumentUploadDialog } = useDialog();
-  const [documents] = useState<ApplicationWorkflowDocument[]>(
-    initialDocuments
-  );
-  const [isNoticeDismissed, setNoticeDismissed] = useState(
-    !(phaseEndDate && !phaseComplete)
-  );
+  const [documents] = useState<ApplicationWorkflowDocument[]>(initialDocuments);
+  const [isNoticeDismissed, setNoticeDismissed] = useState(!(phaseEndDate && !phaseComplete));
 
   const getNoticeContent = () => {
     if (!phaseEndDate) return null;
@@ -90,10 +89,9 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
         description: `The Federal Comment Period ends on ${formatDate(phaseEndDate)}`,
         variant: "error" as NoticeVariant,
       };
-    }
-    else {
+    } else {
       return {
-        title:  `${Math.abs(daysLeft)} days past due`,
+        title: `${Math.abs(daysLeft)} days past due`,
         description: `The Federal Comment Period ended on ${formatDate(phaseEndDate)}`,
         variant: "error" as NoticeVariant,
       };

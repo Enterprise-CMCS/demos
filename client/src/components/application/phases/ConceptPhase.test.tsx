@@ -14,7 +14,7 @@ import {
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
-} from "../ApplicationWorkflow";
+} from "components/application";
 import { LocalDate } from "demos-server";
 
 vi.mock("@apollo/client", async () => {

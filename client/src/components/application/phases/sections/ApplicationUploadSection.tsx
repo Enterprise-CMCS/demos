@@ -3,7 +3,7 @@ import { SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
 import { DocumentList } from "./DocumentList";
-import { ApplicationWorkflowDocument } from "components/application/ApplicationWorkflow";
+import { ApplicationWorkflowDocument } from "components/application";
 
 const STYLES = {
   title: tw`text-xl font-semibold mb-2`,

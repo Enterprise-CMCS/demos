@@ -5,7 +5,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { ApprovalPackageTable } from "./ApprovalPackageTable";
-import { ApplicationWorkflowDocument } from "components/application/ApplicationWorkflow";
+import { ApplicationWorkflowDocument } from "components/application";
 import { DocumentType } from "demos-server";
 
 // Mock dialog context
@@ -34,7 +34,6 @@ const mockDocument = (
   owner: { person: { fullName: "John Doe" } },
   ...overrides,
 });
-
 
 describe("ApprovalPackageTable", () => {
   beforeEach(() => {
@@ -79,9 +78,7 @@ describe("ApprovalPackageTable", () => {
   it("renders upload button for rows without a document", async () => {
     setup();
     await waitFor(() => {
-      expect(
-        screen.getByRole("button", { name: /Upload Approval Letter/i })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Upload Approval Letter/i })).toBeInTheDocument();
     });
   });
 

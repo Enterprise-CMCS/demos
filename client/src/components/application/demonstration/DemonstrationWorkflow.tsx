@@ -1,22 +1,15 @@
 import React from "react";
-import { PhaseSelector } from "./phase-selector/PhaseSelector";
-import { DemonstrationStatusBadge } from "../badge/DemonstrationStatusBadge";
-import type {
-  Demonstration,
-  PhaseName,
-  ApplicationDate,
-  PhaseStatus,
-  Document,
-  Person,
-  ApplicationNote,
-  State,
-  DemonstrationTypeAssignment,
-} from "demos-server";
+import { PhaseSelector } from "components/application/phase-selector/PhaseSelector";
+import { ApplicationStatusBadge } from "components/badge/ApplicationStatusBadge";
+import type { Demonstration, Person, State, DemonstrationTypeAssignment } from "demos-server";
 import { gql, useQuery } from "@apollo/client";
 import { Loading } from "components/loading/Loading";
+import { ApplicationWorkflowDocument, SimplePhase } from "components/application";
+
+const DEMONSTRATION_WORKFLOW_QUERY_NAME = "GetWorkflowDemonstration";
 
 export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
-  query GetApplicationWorkflow($id: ID!) {
+  query ${DEMONSTRATION_WORKFLOW_QUERY_NAME}($id: ID!) {
     demonstration(id: $id) {
       id
       name
@@ -73,20 +66,6 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
   }
 `;
 
-export type SimplePhase = {
-  phaseName: PhaseName;
-  phaseStatus: PhaseStatus;
-  phaseDates: Pick<ApplicationDate, "dateType" | "dateValue">[];
-  phaseNotes: Pick<ApplicationNote, "noteType" | "content">[];
-};
-
-export type ApplicationWorkflowDocument = Pick<
-  Document,
-  "id" | "name" | "description" | "documentType" | "phaseName" | "createdAt"
-> & {
-  owner: { person: Pick<Person, "fullName"> };
-};
-
 export type ApplicationWorkflowDemonstration = Pick<
   Demonstration,
   | "id"
@@ -111,7 +90,7 @@ export type ApplicationWorkflowDemonstration = Pick<
   >[];
 };
 
-export const ApplicationWorkflow = ({ demonstrationId }: { demonstrationId: string }) => {
+export const DemonstrationWorkflow = ({ demonstrationId }: { demonstrationId: string }) => {
   const { data, loading, error } = useQuery<{ demonstration: ApplicationWorkflowDemonstration }>(
     GET_WORKFLOW_DEMONSTRATION_QUERY,
     {
@@ -120,13 +99,13 @@ export const ApplicationWorkflow = ({ demonstrationId }: { demonstrationId: stri
   );
 
   if (loading) return <Loading />;
-  if (error) return <p>Error Loading Application Workflow: {error.message}</p>;
+  if (error) return <p>Error Loading Demonstration Workflow: {error.message}</p>;
   if (data) {
     return (
       <div className="flex flex-col gap-sm p-sm">
         <div className="flex w-full">
           <h3 className="text-brand text-2xl font-bold">APPLICATION</h3>
-          <DemonstrationStatusBadge demonstrationStatus={data.demonstration.status} />
+          <ApplicationStatusBadge applicationStatus={data.demonstration.status} />
         </div>
         <hr className="text-border-rules" />
         <PhaseSelector demonstration={data.demonstration} />

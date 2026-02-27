@@ -8,7 +8,7 @@ import { addDays, differenceInCalendarDays, parseISO } from "date-fns";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
-} from "../ApplicationWorkflow";
+} from "components/application";
 import { useToast } from "components/toast";
 import { DocumentList } from "./sections";
 import {

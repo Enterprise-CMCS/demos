@@ -7,7 +7,7 @@ import { TestProvider } from "test-utils/TestProvider";
 
 import { CompletenessPhase, CompletenessPhaseProps } from "./CompletenessPhase";
 
-import { ApplicationWorkflowDocument } from "../ApplicationWorkflow";
+import { ApplicationWorkflowDocument } from "components/application";
 
 const showCompletenessDocumentUploadDialog = vi.fn();
 const showDeclareIncompleteDialog = vi.fn((callback) => {

@@ -7,7 +7,7 @@ import { ChevronRightIcon, ExportIcon } from "components/icons";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
-} from "../ApplicationWorkflow";
+} from "components/application";
 import { formatDateForServer, getTodayEst } from "util/formatDate";
 import { DocumentList } from "./sections";
 import { useDialog } from "components/dialog/DialogContext";

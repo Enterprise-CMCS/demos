@@ -2,7 +2,7 @@ import React from "react";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
-} from "components/application/ApplicationWorkflow";
+} from "components/application";
 import {
   ApprovalPackageTable,
   ApprovalPackageTableRow,
