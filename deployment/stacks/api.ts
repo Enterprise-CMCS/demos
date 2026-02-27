@@ -100,11 +100,21 @@ export class ApiStack extends Stack {
       prefixListName: `com.amazonaws.${this.region}.s3`,
     });
 
+    const sqsVpceSgId = Fn.importValue(`${commonProps.stage}SecretsManagerVpceSg`);
+
     graphqlLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
       aws_ec2.Port.HTTPS,
       "Allow traffic to S3"
     );
+
+    graphqlLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(sqsVpceSgId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to SQS"
+    );
+
+    
 
     const cognitoAuthority = Fn.importValue(`${commonProps.hostEnvironment}CognitoAuthority`);
     const apigateway_outputs = apigateway.create({

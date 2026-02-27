@@ -77,8 +77,10 @@ export class CoreStack extends Stack {
     this.cognitoClientIdParamName = cid.name;
 
     const secretsManagerSecurityGroupName = `${commonProps.project}-${commonProps.hostEnvironment}-secrets-manager-vpce`;
+    const sqsSecurityGroupName = `${commonProps.project}-${commonProps.hostEnvironment}-sqs-vpce`;
 
     let secretsManagerEndpointSG: aws_ec2.ISecurityGroup;
+    let sqsEndpointSg: aws_ec2.ISecurityGroup;
 
     if (!commonProps.isEphemeral) {
       secretsManagerEndpointSG = securityGroup.create({
@@ -97,6 +99,20 @@ export class CoreStack extends Stack {
 
       vpc.addGatewayEndpoint("s3GatewayEndpoint", {
         service: aws_ec2.GatewayVpcEndpointAwsService.S3,
+      });
+      
+      sqsEndpointSg = securityGroup.create({
+        ...commonProps,
+        vpc,
+        name: sqsSecurityGroupName,
+      }).securityGroup;
+
+      vpc.addInterfaceEndpoint("sqsEndpoint", {
+        service: aws_ec2.InterfaceVpcEndpointAwsService.SQS,
+        subnets: {
+          subnets: vpc.privateSubnets,
+        },
+        securityGroups: [sqsEndpointSg],
       });
 
       const ssmEndpointSecurityGroupName = `${commonProps.project}-${commonProps.hostEnvironment}-ssm-vpce`;
@@ -120,6 +136,13 @@ export class CoreStack extends Stack {
         commonProps.scope,
         "hostEnvSecretsManagerSG",
         `${commonProps.project}-${commonProps.hostEnvironment}-${secretsManagerSecurityGroupName}`,
+        vpc
+      );
+
+      sqsEndpointSg = aws_ec2.SecurityGroup.fromLookupByName(
+        commonProps.scope,
+        "hostEnvSqsSG",
+        `${commonProps.project}-${commonProps.hostEnvironment}-${sqsSecurityGroupName}`,
         vpc
       );
     }
@@ -165,6 +188,11 @@ export class CoreStack extends Stack {
       value: secretsManagerEndpointSG.securityGroupId,
       exportName: `${commonProps.stage}SecretsManagerVpceSg`,
     });
+
+    new CfnOutput(commonProps.scope, "sqsVpceSg", {
+      value: sqsEndpointSg.securityGroupId,
+      exportName: `${commonProps.stage}SqsVpceSg`
+    })
 
     new CfnOutput(this, "cognitoAuthority", {
       value: cognito_outputs.authority,
