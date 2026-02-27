@@ -6,12 +6,12 @@ import { DeleteIcon, EditIcon, ExportIcon } from "components/icons";
 import { KeywordSearch } from "../KeywordSearch";
 import { PaginationControls } from "../PaginationControls";
 import { Table } from "../Table";
-// import { useDialog } from "components/dialog/DialogContext";
 import { TypesColumns } from "../columns/TypesColumns";
 import { Demonstration as ServerDemonstration } from "demos-server";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 import { useDialog } from "components/dialog/DialogContext";
 import { Notice } from "components/notice";
+import { selectionTooltip } from "./actionTooltips";
 
 export type TypeTableRow = {
   id: string;
@@ -83,7 +83,37 @@ export const TypesTable: React.FC<TypesTableProps> = ({
           noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
           actionButtons={(table) => {
             const selected = table.getSelectedRowModel().rows.map((r) => r.original);
-            const editDisabled = selected.length !== 1;
+            const selectedCount = selected.length;
+            const editDisabled = selectedCount !== 1;
+            const removeDisabled = !canRemove(selected) || inputDisabled;
+
+            // Tooltips
+            const editTooltip = selectionTooltip({
+              action: "Edit",
+              nounSingular: "Type",
+              selectedCount,
+              rule: { kind: "exactly", count: 1 },
+            });
+
+            // Determine removeTooltip based on why it's disabled
+            let removeTooltip: string;
+            if (!removeDisabled) {
+              removeTooltip = "Delete";
+            } else if (selectedCount < 1) {
+              removeTooltip = selectionTooltip({
+                action: "Delete",
+                nounSingular: "Type",
+                selectedCount,
+                rule: { kind: "atLeast", count: 1 },
+              });
+            } else if (
+              demonstration.status === "Approved" &&
+              selectedCount === demonstration.demonstrationTypes.length
+            ) {
+              removeTooltip = "1 Type is Required";
+            } else {
+              removeTooltip = "Delete";
+            }
 
             return (
               <div className="flex gap-1 ml-4">
@@ -102,6 +132,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({
                 <CircleButton
                   name="edit-type"
                   ariaLabel="Edit Type"
+                  tooltip={editTooltip}
                   disabled={editDisabled || inputDisabled}
                   onClick={() =>
                     !editDisabled &&
@@ -117,9 +148,10 @@ export const TypesTable: React.FC<TypesTableProps> = ({
                 </CircleButton>
 
                 <CircleButton
-                  name="remove-type"
-                  ariaLabel="Remove Type"
-                  disabled={!canRemove(selected) || inputDisabled}
+                  name="delete-type"
+                  ariaLabel="Delete Type"
+                  tooltip={removeTooltip}
+                  disabled={removeDisabled}
                   onClick={() =>
                     canRemove(selected) &&
                     showRemoveDemonstrationTypesDialog(

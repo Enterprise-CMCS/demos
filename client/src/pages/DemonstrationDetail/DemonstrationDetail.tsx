@@ -6,7 +6,6 @@ import {
   DemonstrationRoleAssignment,
   DemonstrationTypeAssignment,
   Document,
-  Extension,
   Person,
 } from "demos-server";
 import { useLocation, useParams } from "react-router-dom";
@@ -50,6 +49,8 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         description
         status
         createdAt
+        effectiveDate
+        signatureLevel
       }
       extensions {
         id
@@ -57,6 +58,8 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         description
         status
         createdAt
+        effectiveDate
+        signatureLevel
       }
       demonstrationTypes {
         demonstrationTypeName
@@ -92,19 +95,14 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
   }
 `;
 
-export type DemonstrationDetailAmendment = Pick<
+export type DemonstrationDetailModification = Pick<
   Amendment,
-  "id" | "name" | "description" | "status" | "createdAt"
->;
-
-export type DemonstrationDetailExtension = Pick<
-  Extension,
-  "id" | "name" | "description" | "status" | "createdAt"
+  "id" | "name" | "description" | "status" | "createdAt" | "effectiveDate" | "signatureLevel"
 >;
 
 export type DemonstrationDetail = Pick<Demonstration, "id" | "status" | "currentPhaseName"> & {
-  amendments: DemonstrationDetailAmendment[];
-  extensions: DemonstrationDetailExtension[];
+  amendments: DemonstrationDetailModification[];
+  extensions: DemonstrationDetailModification[];
   demonstrationTypes: Pick<
     DemonstrationTypeAssignment,
     "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "createdAt"

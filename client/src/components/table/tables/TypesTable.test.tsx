@@ -119,22 +119,22 @@ describe("TypesTable", () => {
 
     const addButton = screen.getByTestId("add-type");
     const editButton = screen.getByTestId("edit-type");
-    const removeButton = screen.getByTestId("remove-type");
+    const deleteButton = screen.getByTestId("delete-type");
 
     expect(addButton).toBeDisabled();
     expect(editButton).toBeDisabled();
-    expect(removeButton).toBeDisabled();
+    expect(deleteButton).toBeDisabled();
   });
 
-  describe("remove button", () => {
-    it("calls showRemoveDemonstrationTypesDialog when remove button is clicked", async () => {
+  describe("delete button", () => {
+    it("calls showRemoveDemonstrationTypesDialog when delete button is clicked", async () => {
       render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
       const user = userEvent.setup();
-      await user.click(screen.getByTestId("select-row-0"));
-      await user.click(screen.getByTestId("select-row-1"));
+      await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));
+      await user.click(screen.getByTestId(`select-row-${mockTypes[1].demonstrationTypeName}`));
 
-      const removeButton = screen.getByTestId("remove-type");
-      await user.click(removeButton);
+      const deleteButton = screen.getByTestId("delete-type");
+      await user.click(deleteButton);
 
       expect(mockShowRemoveDemonstrationTypesDialog).toHaveBeenCalledWith(MOCK_DEMONSTRATION_ID, [
         "Environmental",
@@ -142,32 +142,32 @@ describe("TypesTable", () => {
       ]);
     });
 
-    it("does not allow removing all demonstration types when demonstration is approved", async () => {
+    it("does not allow deleting all demonstration types when demonstration is approved", async () => {
       const demonstration = {
         ...MOCK_DEMONSTRATION,
         status: "Approved" as ApplicationStatus,
       };
       render(<TypesTable demonstration={demonstration} />);
       const user = userEvent.setup();
-      await user.click(screen.getByTestId("select-row-0"));
-      await user.click(screen.getByTestId("select-row-1"));
+      await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));
+      await user.click(screen.getByTestId(`select-row-${mockTypes[1].demonstrationTypeName}`));
 
-      const removeButton = screen.getByTestId("remove-type");
-      expect(removeButton).toBeDisabled();
+      const deleteButton = screen.getByTestId("delete-type");
+      expect(deleteButton).toBeDisabled();
     });
 
-    it("allows removing all demonstration types when demonstration is not approved", async () => {
+    it("allows deleting all demonstration types when demonstration is not approved", async () => {
       const demonstration = {
         ...MOCK_DEMONSTRATION,
         status: "Under Review" as ApplicationStatus,
       };
       render(<TypesTable demonstration={demonstration} />);
       const user = userEvent.setup();
-      await user.click(screen.getByTestId("select-row-0"));
-      await user.click(screen.getByTestId("select-row-1"));
+      await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));
+      await user.click(screen.getByTestId(`select-row-${mockTypes[1].demonstrationTypeName}`));
 
-      const removeButton = screen.getByTestId("remove-type");
-      expect(removeButton).not.toBeDisabled();
+      const deleteButton = screen.getByTestId("delete-type");
+      expect(deleteButton).not.toBeDisabled();
     });
   });
 
@@ -175,7 +175,7 @@ describe("TypesTable", () => {
     it("calls showEditDemonstrationTypeDialog when edit button is clicked", async () => {
       render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
       const user = userEvent.setup();
-      await user.click(screen.getByTestId("select-row-0"));
+      await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));
       const editButton = screen.getByTestId("edit-type");
       await user.click(editButton);
 
@@ -198,10 +198,10 @@ describe("TypesTable", () => {
       const editButton = screen.getByTestId("edit-type");
       expect(editButton).toBeDisabled();
 
-      await user.click(screen.getByTestId("select-row-0"));
+      await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));
       expect(editButton).toBeEnabled();
 
-      await user.click(screen.getByTestId("select-row-1"));
+      await user.click(screen.getByTestId(`select-row-${mockTypes[1].demonstrationTypeName}`));
       expect(editButton).toBeDisabled();
     });
   });

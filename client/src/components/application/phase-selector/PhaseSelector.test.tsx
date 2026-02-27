@@ -7,8 +7,13 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { PhaseSelector, getDisplayedPhaseStatus, getDisplayedPhaseDate } from "./PhaseSelector";
-import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
-import { getReviewPhaseComponentFromDemonstration } from "../phases";
+import { ApplicationWorkflowDemonstration } from "../demonstration/DemonstrationWorkflow";
+import {
+  getReviewPhaseComponentFromDemonstration,
+  getApplicationCompletenessFromDemonstration,
+  getApprovalPackagePhase,
+  getSdgPreparationPhaseFromDemonstration,
+} from "../phases";
 
 const mockPO = {
   id: "po-1",
@@ -24,6 +29,9 @@ vi.mock("../phases", async () => {
   return {
     ...actual,
     getReviewPhaseComponentFromDemonstration: vi.fn(),
+    getApplicationCompletenessFromDemonstration: vi.fn(),
+    getSdgPreparationPhaseFromDemonstration: vi.fn(),
+    getApprovalPackagePhase: vi.fn(),
   };
 });
 
@@ -232,94 +240,7 @@ describe("getDisplayedPhaseDate", () => {
     expect(getDisplayedPhaseDate(demonstration, "Concept")).toBeUndefined();
   });
 
-  it("prioritizes completion dates", () => {
-    const completionDate = new Date("2025-03-15");
-    const startDate = new Date("2025-01-10");
-    const submittedDate = new Date("2025-02-20");
-
-    const demonstration: ApplicationWorkflowDemonstration = {
-      id: "test-id",
-      name: "Test Demo",
-      state: {
-        id: "CA",
-        name: "California",
-      },
-      primaryProjectOfficer: mockPO,
-      status: "Under Review",
-      currentPhaseName: "Concept",
-      clearanceLevel: "CMS (OSORA)",
-      phases: [
-        {
-          phaseName: "Concept",
-          phaseStatus: "Completed",
-          phaseDates: [
-            {
-              dateType: "Concept Start Date",
-              dateValue: startDate,
-            },
-            {
-              dateType: "Pre-Submission Submitted Date",
-              dateValue: submittedDate,
-            },
-            {
-              dateType: "Concept Completion Date",
-              dateValue: completionDate,
-            },
-          ],
-          phaseNotes: [],
-        },
-      ],
-      documents: [],
-      demonstrationTypes: [],
-      tags: [],
-    };
-
-    const result = getDisplayedPhaseDate(demonstration, "Concept");
-    expect(result).toEqual(completionDate);
-  });
-
-  it("prioritizes dates with 'Complete' in the name", () => {
-    const completeDate = new Date("2025-04-01");
-    const startDate = new Date("2025-01-10");
-
-    const demonstration: ApplicationWorkflowDemonstration = {
-      id: "test-id",
-      name: "Test Demo",
-      state: {
-        id: "CA",
-        name: "California",
-      },
-      primaryProjectOfficer: mockPO,
-      status: "Under Review",
-      currentPhaseName: "Review",
-      clearanceLevel: "CMS (OSORA)",
-      phases: [
-        {
-          phaseName: "Review",
-          phaseStatus: "Completed",
-          phaseDates: [
-            {
-              dateType: "Review Start Date",
-              dateValue: startDate,
-            },
-            {
-              dateType: "Review Completion Date",
-              dateValue: completeDate,
-            },
-          ],
-          phaseNotes: [],
-        },
-      ],
-      documents: [],
-      demonstrationTypes: [],
-      tags: [],
-    };
-
-    const result = getDisplayedPhaseDate(demonstration, "Review");
-    expect(result).toEqual(completeDate);
-  });
-
-  it("falls back to submitted dates when no completion date exists", () => {
+  it("returns undefined when phase has no relevant dates based on status and phase name", () => {
     const submittedDate = new Date("2025-02-20");
     const startDate = new Date("2025-01-10");
 
@@ -337,7 +258,7 @@ describe("getDisplayedPhaseDate", () => {
       phases: [
         {
           phaseName: "Application Intake",
-          phaseStatus: "Started",
+          phaseStatus: "Completed",
           phaseDates: [
             {
               dateType: "Application Intake Start Date",
@@ -357,10 +278,87 @@ describe("getDisplayedPhaseDate", () => {
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Application Intake");
-    expect(result).toEqual(submittedDate);
+    expect(result).toEqual(undefined);
   });
 
-  it("falls back to start dates when no completion or submitted date exists", () => {
+  it("does not match 'Completeness Start Date' as a completion date", () => {
+    const completionDate = new Date("2025-03-15");
+    const completenessStartDate = new Date("2025-01-01");
+
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "test-id",
+      name: "Test Demo",
+      state: { id: "CA", name: "California" },
+      primaryProjectOfficer: mockPO,
+      status: "Under Review",
+      currentPhaseName: "Completeness",
+      clearanceLevel: "CMS (OSORA)",
+      phases: [
+        {
+          phaseName: "Completeness",
+          phaseStatus: "Completed",
+          phaseDates: [
+            {
+              dateType: "Completeness Start Date",
+              dateValue: completenessStartDate,
+            },
+            {
+              dateType: "Completeness Completion Date",
+              dateValue: completionDate,
+            },
+          ],
+          phaseNotes: [],
+        },
+      ],
+      documents: [],
+      demonstrationTypes: [],
+      tags: [],
+    };
+
+    const result = getDisplayedPhaseDate(demonstration, "Completeness");
+    expect(result).toEqual(completionDate);
+  });
+
+  it("uses start date when phase is Started even if completion date exists", () => {
+    const startDate = new Date("2025-01-01");
+    const completionDate = new Date("2025-03-15");
+
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "test-id",
+      name: "Test Demo",
+      state: { id: "CA", name: "California" },
+      primaryProjectOfficer: mockPO,
+      status: "Under Review",
+      currentPhaseName: "Concept",
+      clearanceLevel: "CMS (OSORA)",
+      phases: [
+        {
+          phaseName: "Concept",
+          phaseStatus: "Started",
+          phaseDates: [
+            {
+              dateType: "Concept Start Date",
+              dateValue: startDate,
+            },
+            {
+              dateType: "Concept Completion Date",
+              dateValue: completionDate,
+            },
+          ],
+          phaseNotes: [],
+        },
+      ],
+      documents: [],
+      demonstrationTypes: [],
+      tags: [],
+    };
+
+    const result = getDisplayedPhaseDate(demonstration, "Concept");
+
+    expect(result).toEqual(startDate);
+  });
+
+  it("selects start date based on phase status", () => {
     const startDate = new Date("2025-01-10");
 
     const demonstration: ApplicationWorkflowDemonstration = {
@@ -394,47 +392,6 @@ describe("getDisplayedPhaseDate", () => {
 
     const result = getDisplayedPhaseDate(demonstration, "Federal Comment");
     expect(result).toEqual(startDate);
-  });
-
-  it("falls back to the first date when no priority dates exist", () => {
-    const firstDate = new Date("2025-05-01");
-    const secondDate = new Date("2025-06-01");
-
-    const demonstration: ApplicationWorkflowDemonstration = {
-      id: "test-id",
-      name: "Test Demo",
-      state: {
-        id: "CA",
-        name: "California",
-      },
-      primaryProjectOfficer: mockPO,
-      status: "Under Review",
-      currentPhaseName: "SDG Preparation",
-      clearanceLevel: "CMS (OSORA)",
-      phases: [
-        {
-          phaseName: "SDG Preparation",
-          phaseStatus: "Started",
-          phaseDates: [
-            {
-              dateType: "Expected Approval Date",
-              dateValue: firstDate,
-            },
-            {
-              dateType: "SME Review Date",
-              dateValue: secondDate,
-            },
-          ],
-          phaseNotes: [],
-        },
-      ],
-      documents: [],
-      demonstrationTypes: [],
-      tags: [],
-    };
-
-    const result = getDisplayedPhaseDate(demonstration, "SDG Preparation");
-    expect(result).toEqual(firstDate);
   });
 
   it("converts date value to Date object", () => {
@@ -472,6 +429,81 @@ describe("getDisplayedPhaseDate", () => {
     const result = getDisplayedPhaseDate(demonstration, "Concept");
     expect(result).toBeInstanceOf(Date);
     expect(result).toEqual(dateValue);
+  });
+});
+
+describe("completeness phase component", () => {
+  it("calls getApplicationCompletenessFromDemonstration with correct props when Completeness is selected", async () => {
+    vi.mocked(getApplicationCompletenessFromDemonstration).mockReturnValue(
+      <div>Review Phase Mock</div>
+    );
+
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "test-id",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+      },
+      primaryProjectOfficer: mockPO,
+      status: "Under Review",
+      currentPhaseName: "Completeness",
+      clearanceLevel: "CMS (OSORA)",
+      phases: [],
+      documents: [],
+      demonstrationTypes: [],
+      tags: [],
+    };
+
+    render(
+      <TestProvider>
+        <PhaseSelector demonstration={demonstration} />
+      </TestProvider>
+    );
+
+    expect(getApplicationCompletenessFromDemonstration).toHaveBeenCalledWith(
+      demonstration,
+      expect.any(Function)
+    );
+  });
+});
+
+describe("sdg preparation phase component", () => {
+  it("renders sdg preparation phase with correct props when sdg preparation is selected", async () => {
+    const sdgPhase = {
+      phaseName: "SDG Preparation" as const,
+      phaseStatus: "Started" as const,
+      phaseDates: [],
+      phaseNotes: [],
+    };
+
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "test-id",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+      },
+      primaryProjectOfficer: mockPO,
+      status: "Under Review",
+      currentPhaseName: "SDG Preparation",
+      clearanceLevel: "CMS (OSORA)",
+      phases: [sdgPhase],
+      documents: [],
+      demonstrationTypes: [],
+      tags: [],
+    };
+
+    render(
+      <TestProvider>
+        <PhaseSelector demonstration={demonstration} />
+      </TestProvider>
+    );
+
+    expect(getSdgPreparationPhaseFromDemonstration).toHaveBeenCalledWith(
+      demonstration,
+      expect.any(Function)
+    );
   });
 });
 
@@ -535,5 +567,100 @@ describe("Review phase component", () => {
     await waitFor(() => {
       expect(reviewPhaseBox.closest("div")).not.toHaveClass("scale-110");
     });
+  });
+});
+
+describe("completeness phase component", () => {
+  it("calls getApprovalPackagePhase with correct props when Approval Package is selected", async () => {
+    vi.mocked(getApprovalPackagePhase).mockReturnValue(<div>Approval Package Phase Mock</div>);
+
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "test-id",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+      },
+      primaryProjectOfficer: mockPO,
+      status: "Under Review",
+      currentPhaseName: "Approval Package",
+      clearanceLevel: "CMS (OSORA)",
+      phases: [],
+      documents: [],
+      demonstrationTypes: [],
+      tags: [],
+    };
+
+    render(
+      <TestProvider>
+        <PhaseSelector demonstration={demonstration} />
+      </TestProvider>
+    );
+
+    expect(getApprovalPackagePhase).toHaveBeenCalledWith(demonstration, expect.any(Function));
+  });
+
+  it("preserves phase component internal state across re-renders", async () => {
+    const user = userEvent.setup();
+
+    // Mock phase component with internal state
+    const PhaseWithState = () => {
+      const [value, setValue] = React.useState("A");
+      return (
+        <div>
+          <span>Current value: {value}</span>
+          <select
+            data-testid="test-select"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+          >
+            <option value="A">Option A</option>
+            <option value="B">Option B</option>
+          </select>
+        </div>
+      );
+    };
+
+    vi.mocked(getApprovalPackagePhase).mockReturnValue(<PhaseWithState />);
+
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "test-id",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+      },
+      primaryProjectOfficer: mockPO,
+      status: "Under Review",
+      currentPhaseName: "Approval Package",
+      clearanceLevel: "CMS (OSORA)",
+      phases: [],
+      documents: [],
+      demonstrationTypes: [],
+      tags: [],
+    };
+
+    const { rerender } = render(
+      <TestProvider>
+        <PhaseSelector demonstration={demonstration} />
+      </TestProvider>
+    );
+
+    const select = screen.getByTestId("test-select");
+    expect(select).toHaveValue("A");
+    expect(screen.getByText("Current value: A")).toBeInTheDocument();
+
+    await user.selectOptions(select, "B");
+    expect(select).toHaveValue("B");
+    expect(screen.getByText("Current value: B")).toBeInTheDocument();
+
+    rerender(
+      <TestProvider>
+        <PhaseSelector demonstration={demonstration} />
+      </TestProvider>
+    );
+
+    expect(select).toHaveValue("B");
+    expect(screen.getByText("Current value: B")).toBeInTheDocument();
   });
 });

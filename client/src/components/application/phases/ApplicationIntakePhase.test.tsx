@@ -16,21 +16,17 @@ import {
 import {
   ApplicationWorkflowDocument,
   ApplicationWorkflowDemonstration,
-} from "../ApplicationWorkflow";
+} from "components/application";
 import { formatDateForServer, getTodayEst } from "util/formatDate";
 
 vi.mock("@apollo/client", async () => {
   const actual = await vi.importActual("@apollo/client");
   return {
     ...actual,
-    useMutation: vi.fn(() => [
-      mockSetApplicationTagsMutation,
-      { loading: false, error: null },
-    ]),
+    useMutation: vi.fn(() => [mockSetApplicationTagsMutation, { loading: false, error: null }]),
   };
 });
 
-const mockSetApplicationDate = vi.fn(() => Promise.resolve({ data: {} }));
 const mockSetApplicationDates = vi.fn(() => Promise.resolve({ data: {} }));
 const mockSetApplicationTagsMutation = vi.fn(() => Promise.resolve({ data: {} }));
 
@@ -40,11 +36,6 @@ const mockPO = {
 };
 
 vi.mock("components/application/date/dateQueries", () => ({
-  useSetApplicationDate: vi.fn(() => ({
-    setApplicationDate: mockSetApplicationDate,
-    loading: false,
-    error: null,
-  })),
   useSetApplicationDates: vi.fn(() => ({
     setApplicationDates: mockSetApplicationDates,
     loading: false,
@@ -206,9 +197,7 @@ describe("ApplicationIntakePhase", () => {
 
       expect(screen.getByText("STEP 3 - APPLY TAGS")).toBeInTheDocument();
       expect(
-        screen.getByText(
-          /You must tag this application with one or more demonstration types/
-        )
+        screen.getByText(/You must tag this application with one or more demonstration types/)
       ).toBeInTheDocument();
     });
 
@@ -224,9 +213,7 @@ describe("ApplicationIntakePhase", () => {
         initialSelectedTags: ["Behavioral Health", "Substance Use"],
       });
 
-      const removeButton = screen.getByTestId(
-        "remove-Behavioral Health-button"
-      );
+      const removeButton = screen.getByTestId("remove-Behavioral Health-button");
 
       await userEvent.click(removeButton);
 
@@ -431,6 +418,39 @@ describe("ApplicationIntakePhase", () => {
       fireEvent.change(submittedDateInput, { target: { value: "2024-03-15" } });
 
       expect(submittedDateInput.value).toBe("2024-03-15");
+    });
+
+    it("calls setApplicationDates with only State Application Submitted Date and Completeness Review Due Date", async () => {
+      vi.clearAllMocks();
+
+      setup({
+        initialStateApplicationDocuments: [mockStateApplicationDocument],
+      });
+
+      const dateInputs = screen.getAllByDisplayValue("");
+      const submittedDateInput = dateInputs.find(
+        (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
+      ) as HTMLInputElement;
+
+      fireEvent.change(submittedDateInput, { target: { value: "2024-03-15" } });
+
+      await waitFor(() => {
+        expect(mockSetApplicationDates).toHaveBeenCalledTimes(1);
+      });
+
+      expect(mockSetApplicationDates).toHaveBeenCalledWith({
+        applicationId: "test-demo-id",
+        applicationDates: [
+          {
+            dateType: "State Application Submitted Date",
+            dateValue: "2024-03-15",
+          },
+          {
+            dateType: "Completeness Review Due Date",
+            dateValue: "2024-03-30",
+          },
+        ],
+      });
     });
 
     it("updates completeness review due date when state application date changes", async () => {

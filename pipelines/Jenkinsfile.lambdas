@@ -1,6 +1,6 @@
 pipeline {
   agent {
-    kubernetes { 
+    kubernetes {
       yaml kubeBlock(containerNames:["node", "scanner","snyk"], opts: [
         NODE_IMAGE: "artifactory.cloud.cms.gov/docker/node:24-alpine"
       ])
@@ -16,12 +16,13 @@ pipeline {
     stage('Lambdas - Snyk - All') {
       steps {
         script {
-          if (hasChange("lambdas")) { 
-            snykScan('lambdas/authorizer') 
+          if (hasChange("lambdas")) {
+            snykScan('lambdas/authorizer')
             snykScan('lambdas/dbRoleManagement')
             snykScan('lambdas/fileprocess')
             snykScan('lambdas/emailer')
             snykScan('lambdas/deleteinfectedfile')
+            snykScan('lambdas/UIPath')
           }
         }
       }
@@ -65,6 +66,21 @@ pipeline {
             script {
               if (hasChange("lambdas")) {
                 dirCon('lambdas/fileprocess', 'node') {
+                  sh '''
+                  npm ci
+                  npm run lint
+                  npm run test
+                  '''
+                }
+              }
+            }
+          }
+        }
+        stage('Unit Test - UI Path') {
+          steps {
+            script {
+              if (hasChange("lambdas")) {
+                dirCon('lambdas/UIPath', 'node') {
                   sh '''
                   npm ci
                   npm run lint

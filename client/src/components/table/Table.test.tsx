@@ -8,12 +8,14 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { Table } from "./Table";
 import { highlightCell, KeywordSearch } from "./KeywordSearch";
 import { ColumnFilter } from "./ColumnFilter";
+import { createSelectColumnDef } from "./columns/selectColumn";
 
 type TestOptionType = {
   name: string;
 };
 
 export type TestType = {
+  id: string;
   name: string;
   description: string;
   option: TestOptionType;
@@ -23,6 +25,7 @@ export type TestType = {
 const columnHelper = createColumnHelper<TestType>();
 
 export const testColumns = [
+  createSelectColumnDef(columnHelper),
   columnHelper.accessor("name", {
     header: "Name",
     cell: highlightCell,
@@ -61,6 +64,7 @@ export const testColumns = [
 
 export const testTableData: TestType[] = [
   {
+    id: "1",
     name: "Item One",
     description: "This is the first item with unique content",
     option: {
@@ -69,6 +73,7 @@ export const testTableData: TestType[] = [
     date: new Date(2023, 0, 1),
   },
   {
+    id: "2",
     name: "Item Two",
     description: "This is the second item with different content",
     option: {
@@ -77,6 +82,7 @@ export const testTableData: TestType[] = [
     date: new Date(2023, 1, 1),
   },
   {
+    id: "3",
     name: "Item Three",
     description: "This is the third item with special keywords",
     option: {
@@ -85,6 +91,7 @@ export const testTableData: TestType[] = [
     date: new Date(2023, 2, 1),
   },
   {
+    id: "4",
     name: "Item Four",
     description: "This is the fourth item with Alpha reference",
     option: {
@@ -93,6 +100,7 @@ export const testTableData: TestType[] = [
     date: new Date(2023, 3, 1),
   },
   {
+    id: "5",
     name: "Item Five",
     description: "This is the fifth item with common words",
     option: {
@@ -437,7 +445,7 @@ describe.sequential("Table Component Interactions", () => {
         const visibleNames = dataRows
           .map((row) => {
             const cells = within(row).getAllByRole("cell");
-            return cells[0]?.textContent || ""; // First cell is the Name column
+            return cells[1]?.textContent || ""; // First cell is the Name column
           })
           .filter((name) => name.length > 0);
 
@@ -494,6 +502,7 @@ describe.sequential("Table Component Interactions", () => {
     it("handles long continuous strings without breaking table layout", () => {
       const longTextData: TestType[] = [
         {
+          id: "long1",
           name: "OneContinuousLongString.LastName@email.com",
           description: "Normal description",
           option: { name: "Option Alpha" },
@@ -511,6 +520,40 @@ describe.sequential("Table Component Interactions", () => {
       const containerRect = table.parentElement!.getBoundingClientRect();
 
       expect(tableRect.width).toBeLessThanOrEqual(containerRect.width);
+    });
+  });
+
+  describe("Row Identity Stability", () => {
+    it("does not shift selection when rows are removed", async () => {
+      const user = userEvent.setup();
+
+      function Wrapper() {
+        const [data, setData] = React.useState(testTableData);
+
+        return (
+          <>
+            <button onClick={() => setData((prev) => prev.slice(1))}>
+              Remove First
+            </button>
+            <Table columns={testColumns} data={data} />
+          </>
+        );
+      }
+
+      render(<Wrapper />);
+
+      // Select first row checkbox
+      const firstCheckbox = screen.getByTestId(`select-row-${testTableData[0].id}`);
+      await user.click(firstCheckbox);
+
+      expect(firstCheckbox).toBeChecked();
+
+      // Remove first row
+      await user.click(screen.getByText("Remove First"));
+
+      // The new first row checkbox should NOT be checked
+      const newFirstCheckbox = screen.getByTestId(`select-row-${testTableData[1].id}`);
+      expect(newFirstCheckbox).not.toBeChecked();
     });
   });
 });

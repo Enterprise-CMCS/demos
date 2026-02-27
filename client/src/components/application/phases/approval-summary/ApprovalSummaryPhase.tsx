@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
 import { formatDate, formatDateForServer, getTodayEst } from "util/formatDate";
 import { ApplicationStatus, DateType, UpdateDemonstrationInput } from "demos-server";
-import { ApplicationWorkflowDemonstration } from "components/application/ApplicationWorkflow";
+import { ApplicationWorkflowDemonstration } from "components/application";
 import { ApplicationDetailsSection, ApplicationDetailsFormData } from "./applicationDetailsSection";
 import { DemonstrationTypesSection } from "./demonstrationTypesSection";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
@@ -11,6 +11,7 @@ import { Button } from "components/button";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 import { useToast } from "components/toast";
 import { getPhaseCompletedMessage } from "util/messages";
+import { useDialog } from "components/dialog/DialogContext";
 
 const UPDATE_DEMONSTRATION_MUTATION = gql`
   mutation UpdateDemonstration($id: ID!, $input: UpdateDemonstrationInput!) {
@@ -132,6 +133,7 @@ export const ApprovalSummaryPhase = ({
   const [approvalSummaryFormData, setApprovalSummaryFormData] =
     useState<ApplicationDetailsFormData>(initialFormData);
 
+  const { showConfirmApproveDialog } = useDialog();
   const { showSuccess, showError } = useToast();
 
   // Find Application Details completion date from phase dates
@@ -372,7 +374,7 @@ export const ApprovalSummaryPhase = ({
           name="button-approve-demonstration"
           size="small"
           disabled={!canApproveDemonstration}
-          onClick={handleApproveDemonstration}
+          onClick={() => showConfirmApproveDialog(handleApproveDemonstration)}
         >
           Approve Demonstration
         </Button>

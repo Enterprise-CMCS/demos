@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DocumentList } from "./DocumentList";
-import { ApplicationWorkflowDocument } from "components/application/ApplicationWorkflow";
+import { ApplicationWorkflowDocument } from "components/application";
 import { TestProvider } from "test-utils/TestProvider";
 
 const mockShowRemoveDocumentDialog = vi.fn();

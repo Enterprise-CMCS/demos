@@ -79,7 +79,8 @@ describe("ReviewPhase Component", () => {
     initialFormData = buildInitialFormData(),
     demonstrationId = "test-demo-id",
     isReadonly = false,
-    onFinish = vi.fn()
+    onFinish = vi.fn(),
+    allPreviousPhasesDone = true
   ) => {
     render(
       <TestProvider>
@@ -88,6 +89,7 @@ describe("ReviewPhase Component", () => {
           initialFormData={initialFormData}
           demonstrationId={demonstrationId}
           onFinish={onFinish}
+          allPreviousPhasesDone={allPreviousPhasesDone}
         />
       </TestProvider>
     );
@@ -354,6 +356,12 @@ describe("ReviewPhase Component", () => {
       });
       setup(incompleteData);
 
+      const finishButton = screen.getByTestId("review-finish");
+      expect(finishButton).toBeDisabled();
+    });
+
+    it("disables Finish button when previous phases are not complete", () => {
+      setup(buildInitialFormData(), "test-demo-id", false, vi.fn(), false);
       const finishButton = screen.getByTestId("review-finish");
       expect(finishButton).toBeDisabled();
     });

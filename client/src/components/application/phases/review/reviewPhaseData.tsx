@@ -1,7 +1,4 @@
-import {
-  ApplicationWorkflowDemonstration,
-  SimplePhase,
-} from "components/application/ApplicationWorkflow";
+import { ApplicationWorkflowDemonstration, SimplePhase } from "components/application";
 import React from "react";
 import { ReviewPhase, ReviewPhaseFormData } from "./ReviewPhase";
 import { format } from "date-fns";
@@ -43,12 +40,24 @@ export const getReviewPhaseComponentFromDemonstration = (
     ...getPhaseData(reviewPhase),
     clearanceLevel: demonstration.clearanceLevel,
   };
+
+  const allPreviousPhasesDone = demonstration.phases
+    .filter(
+      (p) =>
+        p.phaseName !== "Concept" &&
+        p.phaseName !== "Review" &&
+        p.phaseName !== "Approval Package" &&
+        p.phaseName !== "Approval Summary"
+    )
+    .every((phase) => phase.phaseStatus === "Completed" || phase.phaseStatus === "Skipped");
+
   return (
     <ReviewPhase
       isReadonly={reviewPhase.phaseStatus === "Completed"}
       initialFormData={reviewPhaseFormData}
       demonstrationId={demonstration.id}
       onFinish={onFinish}
+      allPreviousPhasesDone={allPreviousPhasesDone}
     />
   );
 };

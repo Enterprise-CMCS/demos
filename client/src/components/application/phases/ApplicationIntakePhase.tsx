@@ -10,7 +10,7 @@ import { formatDateForServer } from "util/formatDate";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
-} from "components/application/ApplicationWorkflow";
+} from "components/application";
 import { PhaseName } from "components/application/phase-selector/PhaseSelector";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
@@ -243,10 +243,6 @@ export const ApplicationIntakePhase = ({
           {
             dateType: "Completeness Review Due Date",
             dateValue: completenessReviewDueDate,
-          },
-          {
-            dateType: "Completeness Start Date",
-            dateValue: formattedNewDate,
           },
         ],
       });

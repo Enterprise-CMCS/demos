@@ -7,7 +7,7 @@ import { TestProvider } from "test-utils/TestProvider";
 
 import { CompletenessPhase, CompletenessPhaseProps } from "./CompletenessPhase";
 
-import { ApplicationWorkflowDocument } from "../ApplicationWorkflow";
+import { ApplicationWorkflowDocument } from "components/application";
 
 const showCompletenessDocumentUploadDialog = vi.fn();
 const showDeclareIncompleteDialog = vi.fn((callback) => {
@@ -21,9 +21,10 @@ vi.mock("components/dialog/DialogContext", () => ({
   }),
 }));
 
+const mockSetApplicationDates = vi.fn(() => Promise.resolve());
 vi.mock("components/application/date/dateQueries", () => ({
   useSetApplicationDates: () => ({
-    setApplicationDates: vi.fn(() => Promise.resolve()),
+    setApplicationDates: mockSetApplicationDates,
   }),
 }));
 
@@ -59,6 +60,7 @@ const mockInternalDoc: ApplicationWorkflowDocument = {
 };
 
 describe("CompletenessPhase", () => {
+  const mockSetSelectedPhase = vi.fn();
   const defaultProps: CompletenessPhaseProps = {
     applicationId: "app-123",
     applicationIntakeComplete: true,
@@ -68,6 +70,7 @@ describe("CompletenessPhase", () => {
     fedCommentEndDate: "",
     stateDeemedCompleteDate: "",
     initialDocuments: [],
+    setSelectedPhase: mockSetSelectedPhase,
   };
 
   const setup = (props: Partial<CompletenessPhaseProps> = {}) => {
@@ -86,6 +89,18 @@ describe("CompletenessPhase", () => {
       const header = screen.getByText("COMPLETENESS");
       expect(header).toBeInTheDocument();
       expect(header).toHaveClass("text-brand");
+    });
+
+    it("renders description with link to Medicaid.gov", () => {
+      setup();
+      expect(
+        screen.getByText(/Completeness Checklist - Find completeness guidelines online at/i)
+      ).toBeInTheDocument();
+      const link = screen.getByRole("link", { name: "Medicaid.gov" });
+      expect(link).toBeInTheDocument();
+      expect(link).toHaveAttribute("href", "https://www.medicaid.gov");
+      expect(link).toHaveAttribute("target", "_blank");
+      expect(link).toHaveAttribute("rel", "noreferrer");
     });
   });
 
@@ -138,7 +153,7 @@ describe("CompletenessPhase", () => {
       expect(finishButton).toBeEnabled();
     });
 
-    it("calls completePhase when finish button is clicked", async () => {
+    it("calls completePhase and selects next phase when finish button is clicked", async () => {
       const user = userEvent.setup();
       setup({
         initialDocuments: [mockCompletenessDoc, mockInternalDoc],
@@ -151,6 +166,39 @@ describe("CompletenessPhase", () => {
       expect(mockCompletePhase).toHaveBeenCalledWith({
         applicationId: "app-123",
         phaseName: "Completeness",
+      });
+      expect(mockSetSelectedPhase).toHaveBeenCalledWith("Federal Comment");
+    });
+
+    it("saves exact date values without timezone shift when finish button is clicked", async () => {
+      mockSetApplicationDates.mockClear();
+      const user = userEvent.setup();
+      setup({
+        initialDocuments: [mockCompletenessDoc, mockInternalDoc],
+        stateDeemedCompleteDate: "2026-02-05",
+        fedCommentStartDate: "2026-02-06",
+        fedCommentEndDate: "2026-03-07",
+      });
+
+      const finishButton = screen.getByRole("button", { name: /finish/i });
+      await user.click(finishButton);
+
+      expect(mockSetApplicationDates).toHaveBeenCalledWith({
+        applicationId: "app-123",
+        applicationDates: [
+          {
+            dateType: "State Application Deemed Complete",
+            dateValue: "2026-02-05",
+          },
+          {
+            dateType: "Federal Comment Period Start Date",
+            dateValue: "2026-02-06",
+          },
+          {
+            dateType: "Federal Comment Period End Date",
+            dateValue: "2026-03-07",
+          },
+        ],
       });
     });
 
@@ -202,6 +250,7 @@ describe("CompletenessPhase", () => {
             completenessComplete={false}
             stateDeemedCompleteDate=""
             initialDocuments={[]}
+            setSelectedPhase={mockSetSelectedPhase}
           />
         </TestProvider>
       );
@@ -231,6 +280,7 @@ describe("CompletenessPhase", () => {
             completenessComplete={true}
             stateDeemedCompleteDate=""
             initialDocuments={[]}
+            setSelectedPhase={mockSetSelectedPhase}
           />
         </TestProvider>
       );

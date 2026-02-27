@@ -1,17 +1,21 @@
 import React, { useState } from "react";
 
-import type { PhaseName as ServerPhase, PhaseStatus as ServerPhaseStatus } from "demos-server";
+import type {
+  DateType,
+  PhaseName as ServerPhase,
+  PhaseStatus as ServerPhaseStatus,
+} from "demos-server";
 
-import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
+import { ApplicationWorkflowDemonstration } from "components/application";
 import {
   getApplicationCompletenessFromDemonstration,
   getConceptPhaseComponentFromDemonstration,
-  SdgPreparationPhase,
   getApplicationIntakeComponentFromDemonstration,
   getFederalCommentPhaseFromDemonstration,
   getApprovalPackagePhase,
   getReviewPhaseComponentFromDemonstration,
   getApprovalSummaryPhase,
+  getSdgPreparationPhaseFromDemonstration,
 } from "../phases";
 import { PHASE_NAME } from "demos-server-constants";
 import { PhaseBox } from "./PhaseBox";
@@ -20,6 +24,52 @@ import { PhaseBox } from "./PhaseBox";
 export type PhaseStatus = ServerPhaseStatus | "past-due";
 export type PhaseName = Exclude<ServerPhase, "None">;
 const PHASE_NAMES: PhaseName[] = PHASE_NAME.filter((phase): phase is PhaseName => phase !== "None");
+
+type PhaseDateDisplayMap = Record<PhaseName, Partial<Record<PhaseStatus, DateType>>>;
+
+const PHASE_DISPLAY_DATES: PhaseDateDisplayMap = {
+  Concept: {
+    Started: "Concept Start Date",
+    Completed: "Concept Completion Date",
+    "Not Started": "Concept Start Date",
+    Skipped: "Concept Skipped Date",
+  },
+  "Application Intake": {
+    Started: "Application Intake Start Date",
+    Completed: "Application Intake Completion Date",
+    "Not Started": "Application Intake Start Date",
+  },
+  Completeness: {
+    Started: "Completeness Start Date",
+    Completed: "Completeness Completion Date",
+    "Not Started": "Completeness Start Date",
+  },
+  "Federal Comment": {
+    Started: "Federal Comment Period Start Date",
+    Completed: "Federal Comment Period End Date",
+    "Not Started": "Federal Comment Period Start Date",
+  },
+  "SDG Preparation": {
+    Started: "SDG Preparation Start Date",
+    Completed: "SDG Preparation Completion Date",
+    "Not Started": "SDG Preparation Start Date",
+  },
+  Review: {
+    Started: "Review Start Date",
+    Completed: "Review Completion Date",
+    "Not Started": "Review Start Date",
+  },
+  "Approval Package": {
+    Started: "Approval Package Start Date",
+    Completed: "Approval Package Completion Date",
+    "Not Started": "Approval Package Start Date",
+  },
+  "Approval Summary": {
+    Started: "Approval Summary Start Date",
+    Completed: "Approval Summary Completion Date",
+    "Not Started": "Approval Summary Start Date",
+  },
+} as const;
 
 const PhaseGroups = () => {
   const leftBorderStyles = "border-l-1 border-surface-placeholder pl-2 -ml-sm";
@@ -51,15 +101,8 @@ export const getDisplayedPhaseDate = (
   const phase = demonstration.phases.find((p) => p.phaseName === phaseName);
   if (!phase) return undefined;
 
-  // Find the most relevant date for display
-  // Prioritize completion dates, then submitted dates, then start dates
-  const relevantDate =
-    phase.phaseDates.find(
-      (date) => date.dateType.includes("Completion Date") || date.dateType.includes("Complete")
-    ) ||
-    phase.phaseDates.find((date) => date.dateType.includes("Submitted")) ||
-    phase.phaseDates.find((date) => date.dateType.includes("Start Date")) ||
-    phase.phaseDates[0];
+  const relevantDateName = PHASE_DISPLAY_DATES[phaseName]?.[phase.phaseStatus];
+  const relevantDate = phase.phaseDates.find((date) => date.dateType === relevantDateName);
 
   return relevantDate?.dateValue ? new Date(relevantDate.dateValue) : undefined;
 };
@@ -71,40 +114,27 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
       : "Concept";
   const [selectedPhase, setSelectedPhase] = useState<PhaseName>(initialPhase);
 
-  const phaseComponentsLookup: Record<PhaseName, React.FC> = {
-    Concept: () => getConceptPhaseComponentFromDemonstration(demonstration, setSelectedPhase),
-    "Application Intake": () =>
-      getApplicationIntakeComponentFromDemonstration(demonstration, setSelectedPhase),
-    Completeness: () => getApplicationCompletenessFromDemonstration(demonstration),
-    "Federal Comment": () => getFederalCommentPhaseFromDemonstration(demonstration),
-    "SDG Preparation": () => {
-      const sdgPreparationPhase = demonstration.phases.find(
-        (phase) => phase.phaseName === "SDG Preparation"
-      );
-      if (!sdgPreparationPhase) return <div>Error: SDG Preparation Phase not found.</div>;
-      return (
-        <SdgPreparationPhase
-          demonstrationId={demonstration.id}
-          sdgPreparationPhase={sdgPreparationPhase}
-        />
-      );
-    },
-    Review: () =>
-      getReviewPhaseComponentFromDemonstration(demonstration, () =>
-        setSelectedPhase("Approval Package")
-      ),
-    "Approval Package": () => getApprovalPackagePhase(demonstration),
-    "Approval Summary": () => getApprovalSummaryPhase(demonstration),
-  };
-
-  const DisplayPhase = ({ selectedPhase }: { selectedPhase: PhaseName }) => {
-    const PhaseComponent = phaseComponentsLookup[selectedPhase];
-
-    return (
-      <div className="w-full h-full min-h-64">
-        <PhaseComponent />
-      </div>
-    );
+  const renderPhase = (phaseName: PhaseName) => {
+    switch (phaseName) {
+      case "Concept":
+        return getConceptPhaseComponentFromDemonstration(demonstration, setSelectedPhase);
+      case "Application Intake":
+        return getApplicationIntakeComponentFromDemonstration(demonstration, setSelectedPhase);
+      case "Completeness":
+        return getApplicationCompletenessFromDemonstration(demonstration, setSelectedPhase);
+      case "Federal Comment":
+        return getFederalCommentPhaseFromDemonstration(demonstration);
+      case "SDG Preparation":
+        return getSdgPreparationPhaseFromDemonstration(demonstration, setSelectedPhase);
+      case "Review":
+        return getReviewPhaseComponentFromDemonstration(demonstration, () =>
+          setSelectedPhase("Approval Package")
+        );
+      case "Approval Package":
+        return getApprovalPackagePhase(demonstration, setSelectedPhase);
+      case "Approval Summary":
+        return getApprovalSummaryPhase(demonstration);
+    }
   };
 
   return (
@@ -128,7 +158,7 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
           );
         })}
       </div>
-      <DisplayPhase selectedPhase={selectedPhase} />
+      <div className="w-full h-full min-h-64">{renderPhase(selectedPhase)}</div>
     </>
   );
 };

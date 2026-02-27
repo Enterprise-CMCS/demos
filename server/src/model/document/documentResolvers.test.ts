@@ -11,11 +11,13 @@ import { findUserById } from "../user";
 import { getApplication } from "../application";
 import { validateAndUpdateDates } from "../applicationDate";
 import { startPhaseByDocument } from "../applicationPhase";
+import { enqueueUiPath } from "../../services/uipathQueue";
 import { getDocumentById, checkDocumentExists, updateDocument, handleDeleteDocument } from ".";
 import {
   getDocument,
   documentExists,
   uploadDocument,
+  triggerUiPath,
   updateDocument as updateDocumentResolver,
   deleteDocument,
   deleteDocuments,
@@ -44,9 +46,13 @@ vi.mock("../application", () => ({
   getApplication: vi.fn(),
 }));
 
-vi.mock("../../dateUtilities", () => ({
-  getEasternNow: vi.fn(),
-}));
+vi.mock("../../dateUtilities", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../dateUtilities")>();
+  return {
+    ...actual,
+    getEasternNow: vi.fn(),
+  };
+});
 
 vi.mock("../applicationPhase", () => ({
   startPhaseByDocument: vi.fn(),
@@ -54,6 +60,10 @@ vi.mock("../applicationPhase", () => ({
 
 vi.mock("../applicationDate", () => ({
   validateAndUpdateDates: vi.fn(),
+}));
+
+vi.mock("../../services/uipathQueue", () => ({
+  enqueueUiPath: vi.fn()
 }));
 
 vi.mock("../user", () => ({
@@ -258,6 +268,40 @@ describe("documentResolvers", () => {
 
       expect(validateAndUpdateDates).not.toHaveBeenCalled();
     });
+
+    it("should call validateAndUpdateDates with State Application Submitted Date and Completeness Review Due Date when uploading State Application to Application Intake phase", async () => {
+      const stateApplicationInput: UploadDocumentInput = {
+        name: "state-application.pdf",
+        description: "State Application",
+        documentType: "State Application",
+        applicationId: testApplicationId,
+        phaseName: "Application Intake",
+      };
+
+      vi.mocked(mockS3Adapter.uploadDocument).mockResolvedValue(mockUploadResponse);
+      vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);
+      vi.mocked(startPhaseByDocument).mockResolvedValue(null);
+      vi.mocked(validateAndUpdateDates).mockResolvedValue(undefined);
+
+      await uploadDocument(undefined, { input: stateApplicationInput }, mockContext);
+
+      expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
+        {
+          applicationId: testApplicationId,
+          applicationDates: [
+            {
+              dateType: "State Application Submitted Date",
+              dateValue: new TZDate("2025-01-15T00:00:00.000Z"),
+            },
+            {
+              dateType: "Completeness Review Due Date",
+              dateValue: new TZDate("2025-01-30T23:59:59.999Z"),
+            },
+          ],
+        },
+        mockTransaction
+      );
+    });
   });
 
   describe("resolvePresignedDownloadUrl", () => {
@@ -269,8 +313,70 @@ describe("documentResolvers", () => {
 
       const result = await resolvePresignedDownloadUrl({ s3Path: testDocumentS3Path });
 
-      expect(mockS3Adapter.getPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith(testDocumentS3Path);
+      expect(mockS3Adapter.getPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith(
+        testDocumentS3Path
+      );
       expect(result).toBe(mockPresignedUrl);
+    });
+  });
+
+  describe("triggerUiPath", () => {
+    it("enqueues UiPath using only documentId", async () => {
+      vi.mocked(checkDocumentExists).mockResolvedValue(true);
+      vi.mocked(enqueueUiPath).mockResolvedValue("msg-123");
+
+      const result = await triggerUiPath(undefined, { documentId: testDocumentId });
+
+      expect(checkDocumentExists).toHaveBeenCalledExactlyOnceWith(mockTransaction, testDocumentId);
+      expect(enqueueUiPath).toHaveBeenCalledExactlyOnceWith({
+        documentId: testDocumentId,
+      });
+      expect(result).toBe("msg-123");
+    });
+
+    it("passes the provided documentId through to the queue", async () => {
+      vi.mocked(checkDocumentExists).mockResolvedValue(true);
+      vi.mocked(enqueueUiPath).mockResolvedValue("msg-456");
+
+      const result = await triggerUiPath(undefined, { documentId: testDocumentId });
+
+      expect(checkDocumentExists).toHaveBeenCalledExactlyOnceWith(mockTransaction, testDocumentId);
+      expect(enqueueUiPath).toHaveBeenCalledExactlyOnceWith({
+        documentId: testDocumentId,
+      });
+      expect(result).toBe("msg-456");
+    });
+
+    it("throws when enqueuing fails", async () => {
+      vi.mocked(checkDocumentExists).mockResolvedValue(true);
+      vi.mocked(enqueueUiPath).mockRejectedValue(new Error("Queue send failed"));
+
+      await expect(triggerUiPath(undefined, { documentId: testDocumentId })).rejects.toThrow(
+        "Queue send failed"
+      );
+    });
+
+    it("throws when the provided document id does not exist", async () => {
+      const invalidDocumentId = "12345678910";
+      vi.mocked(checkDocumentExists).mockResolvedValue(false);
+
+      await expect(triggerUiPath(undefined, { documentId: invalidDocumentId })).rejects.toThrow(
+        `Document with ID ${invalidDocumentId} does not exist.`
+      );
+      expect(checkDocumentExists).toHaveBeenCalledExactlyOnceWith(
+        mockTransaction,
+        invalidDocumentId
+      );
+      expect(enqueueUiPath).not.toHaveBeenCalled();
+    });
+
+    it("throws when document does not exist", async () => {
+      vi.mocked(checkDocumentExists).mockResolvedValue(false);
+
+      await expect(triggerUiPath(undefined, { documentId: testDocumentId })).rejects.toThrow(
+        `Document with ID ${testDocumentId} does not exist.`
+      );
+      expect(enqueueUiPath).not.toHaveBeenCalled();
     });
   });
 
@@ -394,6 +500,7 @@ describe("documentResolvers", () => {
       expect(documentResolvers.Mutation).toHaveProperty("updateDocument");
       expect(documentResolvers.Mutation).toHaveProperty("deleteDocument");
       expect(documentResolvers.Mutation).toHaveProperty("deleteDocuments");
+      expect(documentResolvers.Mutation).toHaveProperty("triggerUiPath");
     });
 
     it("should export Document field resolvers", () => {

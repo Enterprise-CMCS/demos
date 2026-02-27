@@ -7,4 +7,19 @@ ignore:
         reason: No patch available for eslint 9
         expires: 2026-02-28T00:00:00.000Z
         created: 2026-02-13T14:21:50.514Z
+  SNYK-JS-MINIMATCH-15309438:
+    - '*':
+        reason: No patch available for aws-cdx-lib
+        expires: 2026-03-05T00:00:00.000Z
+        created: 2026-02-19T14:39:52.817Z
+  SNYK-JS-MINIMATCH-15353387:
+    - '*':
+        reason: Transitive dependency via aws-cdk-lib; temporarily ignored pending upstream resolution.
+        expires: 2026-03-31T00:00:00.000Z
+        created: 2026-02-26T00:00:00.000Z
+  SNYK-JS-MINIMATCH-15353389:
+    - '*':
+        reason: Transitive dependency via aws-cdk-lib; temporarily ignored pending upstream resolution.
+        expires: 2026-03-31T00:00:00.000Z
+        created: 2026-02-26T00:00:00.000Z
 patch: {}

@@ -1,15 +1,23 @@
 import React from "react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ModificationTabSideNav } from "./ModificationTabSideNav";
 import { ModificationItem } from "./ModificationTabs";
+import { DialogProvider } from "components/dialog/DialogContext";
+
+vi.mock("components/application", () => ({
+  AmendmentWorkflow: () => <div data-testid="amendment-workflow">Amendment Workflow</div>,
+  ExtensionWorkflow: () => <div data-testid="extension-workflow">Extension Workflow</div>,
+}));
 
 describe("ModificationTabSideNav", () => {
   const mockModificationItem: ModificationItem = {
     id: "1",
+    modificationType: "amendment",
     name: "Test Modification",
     description: "Test Description",
-    status: "Active",
+    status: "Pre-Submission",
+    createdAt: new Date(0),
   };
 
   const expectedTabs = [
@@ -18,13 +26,21 @@ describe("ModificationTabSideNav", () => {
     { label: "Documents", value: "documents" },
   ];
 
+  const setup = (modificationItem: ModificationItem) => {
+    render(
+      <DialogProvider>
+        <ModificationTabSideNav modificationItem={modificationItem} />
+      </DialogProvider>
+    );
+  };
+
   it("renders without crashing", () => {
-    render(<ModificationTabSideNav modificationItem={mockModificationItem} />);
+    setup(mockModificationItem);
     expect(screen.getByText("Application")).toBeInTheDocument();
   });
 
   it("renders all tabs with correct labels and count", () => {
-    render(<ModificationTabSideNav modificationItem={mockModificationItem} />);
+    setup(mockModificationItem);
 
     // Verify exact tab count to catch any added/removed tabs
     expectedTabs.forEach((tab) => {
@@ -41,7 +57,7 @@ describe("ModificationTabSideNav", () => {
   });
 
   it("has Application tab selected by default", () => {
-    render(<ModificationTabSideNav modificationItem={mockModificationItem} />);
+    setup(mockModificationItem);
 
     expectedTabs.forEach((tab) => {
       const tabElement = screen.getByTestId(`button-${tab.value}`);
@@ -53,12 +69,36 @@ describe("ModificationTabSideNav", () => {
   });
 
   it("switches tabs when clicked", () => {
-    render(<ModificationTabSideNav modificationItem={mockModificationItem} />);
+    setup(mockModificationItem);
 
     const detailsTab = screen.getByTestId("button-details");
     fireEvent.click(detailsTab);
 
     expect(detailsTab).toHaveAttribute("aria-selected", "true");
     expect(screen.getByTestId("button-application")).toHaveAttribute("aria-selected", "false");
+  });
+
+  describe("Application tab", () => {
+    it("renders AmendmentWorkflow when modification type is amendment", () => {
+      const amendmentModification: ModificationItem = {
+        ...mockModificationItem,
+        modificationType: "amendment",
+      };
+      setup(amendmentModification);
+
+      expect(screen.getByTestId("amendment-workflow")).toBeInTheDocument();
+      expect(screen.queryByTestId("extension-workflow")).not.toBeInTheDocument();
+    });
+
+    it("renders ExtensionWorkflow when modification type is extension", () => {
+      const extensionModification: ModificationItem = {
+        ...mockModificationItem,
+        modificationType: "extension",
+      };
+      setup(extensionModification);
+
+      expect(screen.getByTestId("extension-workflow")).toBeInTheDocument();
+      expect(screen.queryByTestId("amendment-workflow")).not.toBeInTheDocument();
+    });
   });
 });

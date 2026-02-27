@@ -7,7 +7,8 @@ import {
   getPhaseData,
 } from "./reviewPhaseData";
 import { ReviewPhaseFormData } from "./ReviewPhase";
-import { SimplePhase } from "components/application/ApplicationWorkflow";
+import { SimplePhase } from "components/application";
+import { PhaseNameWithTrackedStatus, PhaseStatus } from "demos-server";
 
 describe("reviewPhaseData", () => {
   const mockOnFinish = vi.fn();
@@ -67,18 +68,20 @@ describe("reviewPhaseData", () => {
   });
 
   describe("getReviewPhaseComponentFromDemonstration", () => {
+    const buildPhase = (phaseName: PhaseNameWithTrackedStatus, phaseStatus: PhaseStatus) => {
+      return {
+        phaseName,
+        phaseDates: [],
+        phaseNotes: [],
+        phaseStatus,
+      };
+    };
+
     it("should return error div when review phase is not found", () => {
       const demonstration: ReviewPhaseDemonstration = {
         id: "demo-123",
         clearanceLevel: "CMS (OSORA)",
-        phases: [
-          {
-            phaseName: "Concept",
-            phaseDates: [],
-            phaseNotes: [],
-            phaseStatus: "Started",
-          },
-        ],
+        phases: [buildPhase("Concept", "Started")],
       };
 
       const result = getReviewPhaseComponentFromDemonstration(demonstration, mockOnFinish);
@@ -180,6 +183,46 @@ describe("reviewPhaseData", () => {
       const result = getReviewPhaseComponentFromDemonstration(demonstration, mockOnFinish);
 
       expect(result.props.isReadonly).toBe(true);
+    });
+
+    it("should forward allPreviousPhasesDone as true when all required phases are done", () => {
+      const demonstration: ReviewPhaseDemonstration = {
+        id: "demo-101",
+        clearanceLevel: "CMS (OSORA)",
+        phases: [
+          buildPhase("Concept", "Started"),
+          buildPhase("Application Intake", "Completed"),
+          buildPhase("Completeness", "Completed"),
+          buildPhase("Federal Comment", "Completed"),
+          buildPhase("SDG Preparation", "Completed"),
+          buildPhase("Review", "Started"),
+          buildPhase("Approval Package", "Not Started"),
+          buildPhase("Approval Summary", "Not Started"),
+        ],
+      };
+
+      const result = getReviewPhaseComponentFromDemonstration(demonstration, mockOnFinish);
+      expect(result.props.allPreviousPhasesDone).toBe(true);
+    });
+
+    it("should forward allPreviousPhasesDone as false when at least one required phases is incomplete", () => {
+      const demonstration: ReviewPhaseDemonstration = {
+        id: "demo-101",
+        clearanceLevel: "CMS (OSORA)",
+        phases: [
+          buildPhase("Concept", "Started"),
+          buildPhase("Application Intake", "Completed"),
+          buildPhase("Completeness", "Started"), // Incomplete phase
+          buildPhase("Federal Comment", "Completed"),
+          buildPhase("SDG Preparation", "Completed"),
+          buildPhase("Review", "Started"),
+          buildPhase("Approval Package", "Not Started"),
+          buildPhase("Approval Summary", "Not Started"),
+        ],
+      };
+
+      const result = getReviewPhaseComponentFromDemonstration(demonstration, mockOnFinish);
+      expect(result.props.allPreviousPhasesDone).toBe(false);
     });
   });
 

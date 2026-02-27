@@ -31,7 +31,7 @@ export async function __getAmendment(
   parent: unknown,
   { id }: { id: string }
 ): Promise<PrismaAmendment> {
-  return await getApplication(id, "Amendment");
+  return await getApplication(id, { applicationTypeId: "Amendment" });
 }
 
 export async function __getManyAmendments(): Promise<PrismaAmendment[]> {

@@ -44,7 +44,7 @@ export async function __getDemonstration(
   parent: unknown,
   { id }: { id: string }
 ): Promise<PrismaDemonstration> {
-  return await getApplication(id, "Demonstration");
+  return await getApplication(id, { applicationTypeId: "Demonstration" });
 }
 
 export async function __getManyDemonstrations(): Promise<PrismaDemonstration[]> {
@@ -111,7 +111,7 @@ export async function __createDemonstration(
   } catch (error) {
     handlePrismaError(error);
   }
-  return await getApplication(newApplicationId, "Demonstration");
+  return await getApplication(newApplicationId, { applicationTypeId: "Demonstration" });
 }
 
 export async function __updateDemonstration(

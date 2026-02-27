@@ -80,7 +80,7 @@ type PersonSearchResult = {
 };
 
 export type ExistingContactType = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
-  id?: string;
+  id: string;
   person: Pick<Person, "id" | "fullName" | "email" | "personType">;
 };
 
@@ -205,6 +205,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
       return [
         ...prev,
         {
+          id: person.id,
           personId: person.id,
           name: `${person.firstName} ${person.lastName}`,
           email: person.email,
@@ -498,20 +499,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     }
   };
 
-  const isContactDeleteDisabled = useCallback(
-    (contact: ContactRow) => {
-      if (!contact.contactType) return false;
-
-      if (contact.contactType === "Project Officer") {
-        const projectOfficers = selectedContacts.filter((c) => c.contactType === "Project Officer");
-        if (contact.isPrimary) return true;
-        return projectOfficers.length <= 1;
-      }
-
-      return false;
-    },
-    [selectedContacts]
-  );
 
   const contactColumns = useMemo(
     () =>
@@ -520,14 +507,12 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
         onContactTypeChange: handleContactTypeChange,
         onPrimaryToggle: handlePrimaryToggle,
         onRemoveContact: handleRemoveContact,
-        isDeleteDisabled: isContactDeleteDisabled,
       }),
     [
       getFilteredContactTypeOptions,
       handleContactTypeChange,
       handlePrimaryToggle,
       handleRemoveContact,
-      isContactDeleteDisabled,
     ]
   );
 
