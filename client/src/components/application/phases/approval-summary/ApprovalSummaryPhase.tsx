@@ -11,6 +11,7 @@ import { Button } from "components/button";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 import { useToast } from "components/toast";
 import { getPhaseCompletedMessage } from "util/messages";
+import { useDialog } from "components/dialog/DialogContext";
 
 const UPDATE_DEMONSTRATION_MUTATION = gql`
   mutation UpdateDemonstration($id: ID!, $input: UpdateDemonstrationInput!) {
@@ -132,6 +133,7 @@ export const ApprovalSummaryPhase = ({
   const [approvalSummaryFormData, setApprovalSummaryFormData] =
     useState<ApplicationDetailsFormData>(initialFormData);
 
+  const { showConfirmApproveDialog } = useDialog();
   const { showSuccess, showError } = useToast();
 
   // Find Application Details completion date from phase dates
@@ -372,7 +374,7 @@ export const ApprovalSummaryPhase = ({
           name="button-approve-demonstration"
           size="small"
           disabled={!canApproveDemonstration}
-          onClick={handleApproveDemonstration}
+          onClick={() => showConfirmApproveDialog(handleApproveDemonstration)}
         >
           Approve Demonstration
         </Button>

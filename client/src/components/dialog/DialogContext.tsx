@@ -28,6 +28,7 @@ import { RemoveDemonstrationTypesDialog } from "./DemonstrationTypes/RemoveDemon
 import { EditDemonstrationTypeDialog } from "./DemonstrationTypes/EditDemonstrationTypeDialog";
 import { UpdateExtensionDialog } from "./modification/EditExtensionDialog";
 import { UpdateAmendmentDialog } from "./modification/EditAmendmentDialog";
+import { ConfirmApproveDialog } from "./ConfirmApproveDialog";
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -233,6 +234,15 @@ export const useDialog = () => {
     );
   };
 
+  const showConfirmApproveDialog = (onConfirm: () => void) => {
+    context.showDialog(
+      <ConfirmApproveDialog
+        onClose={context.hideDialog}
+        onConfirm={onConfirm}
+      />
+    );
+  };
+
   return {
     closeDialog: context.hideDialog,
     showCreateDemonstrationDialog,
@@ -255,5 +265,6 @@ export const useDialog = () => {
     showEditDemonstrationTypeDialog,
     showUpdateExtensionDialog,
     showUpdateAmendmentDialog,
+    showConfirmApproveDialog,
   };
 };
