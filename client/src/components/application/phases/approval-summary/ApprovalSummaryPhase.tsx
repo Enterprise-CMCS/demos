@@ -373,12 +373,12 @@ export const ApprovalSummaryPhase = ({
         <Button
           name="button-approve-demonstration"
           size="small"
-          disabled={!canApproveDemonstration}
+          disabled={!true}
           onClick={() => showConfirmApproveDialog(handleApproveDemonstration)}
         >
           Approve Demonstration
         </Button>
-      </div>x
+      </div>
     </div>
   );
 };

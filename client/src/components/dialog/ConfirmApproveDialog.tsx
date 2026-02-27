@@ -4,7 +4,6 @@ import { Button, SecondaryButton } from "components/button";
 import { tw } from "tags/tw";
 
 interface ConfirmApproveDialogProps {
-  isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
 }
@@ -18,22 +17,14 @@ const STYLES = {
 };
 
 export const ConfirmApproveDialog: React.FC<ConfirmApproveDialogProps> = ({
-  isOpen,
   onClose,
   onConfirm,
 }) => {
   const confirmDialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
-    const confirmDialog = confirmDialogRef.current;
-    if (!confirmDialog) return;
-
-    if (isOpen) {
-      confirmDialog.showModal();
-    } else {
-      confirmDialog.close();
-    }
-  }, [isOpen]);
+    confirmDialogRef.current?.showModal();
+  }, []);
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDialogElement>) => {
     const dialog = confirmDialogRef.current;
