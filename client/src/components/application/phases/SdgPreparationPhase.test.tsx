@@ -9,7 +9,7 @@ import {
   hasChanges,
   getSdgPreparationPhaseFromDemonstration,
 } from "./SdgPreparationPhase";
-import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
+import { ApplicationWorkflowDemonstration } from "../demonstration/DemonstrationWorkflow";
 import { parseISO } from "date-fns";
 import {
   FAILED_TO_SAVE_MESSAGE,

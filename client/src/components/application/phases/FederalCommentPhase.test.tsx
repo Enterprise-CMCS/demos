@@ -9,7 +9,7 @@ import userEvent from "@testing-library/user-event";
 import { FederalCommentPhase } from "./FederalCommentPhase";
 import { addDays } from "date-fns";
 import { formatDate } from "util/formatDate";
-import { ApplicationWorkflowDocument } from "../ApplicationWorkflow";
+import { ApplicationWorkflowDocument } from "components/application";
 
 // Mock icons to avoid SVG rendering complexity
 vi.mock("components/icons", async (importOriginal) => {

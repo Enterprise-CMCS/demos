@@ -1,7 +1,4 @@
-import {
-  ApplicationWorkflowDemonstration,
-  SimplePhase,
-} from "components/application/ApplicationWorkflow";
+import { ApplicationWorkflowDemonstration, SimplePhase } from "components/application";
 import React from "react";
 import { ReviewPhase, ReviewPhaseFormData } from "./ReviewPhase";
 import { format } from "date-fns";
