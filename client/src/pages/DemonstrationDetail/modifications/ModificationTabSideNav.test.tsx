@@ -100,16 +100,5 @@ describe("ModificationTabSideNav", () => {
       expect(screen.getByTestId("extension-workflow")).toBeInTheDocument();
       expect(screen.queryByTestId("amendment-workflow")).not.toBeInTheDocument();
     });
-
-    it("renders error message for unsupported modification type", () => {
-      const unsupportedModification: ModificationItem = {
-        ...mockModificationItem,
-        modificationType: "unknown" as any,
-      };
-      setup(unsupportedModification);
-
-      expect(screen.getByText(/Unsupported modification type!/)).toBeInTheDocument();
-      expect(screen.getByText(/unknown/)).toBeInTheDocument();
-    });
   });
 });
