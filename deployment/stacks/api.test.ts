@@ -105,6 +105,7 @@ describe("Api Stack", () => {
       removalPolicy: RemovalPolicy.DESTROY,
       env: { account: "0123456789", region: "us-east-1" },
       documentsBucket: new Bucket(stack, "UiPathDocumentsBucket"),
+      cleanBucket: new Bucket(stack, "UiPathCleanBucket"),
       kmsKey: new Key(stack, "UiPathKmsKey"),
     });
 

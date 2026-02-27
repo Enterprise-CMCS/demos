@@ -5,19 +5,17 @@ import { pipeline } from "node:stream/promises";
 import { Readable } from "node:stream";
 import { SQSEvent } from "aws-lambda";
 import { GetObjectCommand, S3Client, type GetObjectCommandOutput } from "@aws-sdk/client-s3";
-import { fileTypeFromFile } from "file-type";
 import { log, reqIdChild, als, store } from "./log";
 import { runDocumentUnderstanding } from "./runDocumentUnderstanding";
 import { parseDocumentFromId, parseUiPathMessage } from "./parseDocumentFromId";
 import { region } from "./uipathClient";
+import { fileTypeFromFile } from "file-type";
 
 const s3 = new S3Client({
   region,
   endpoint: process.env.AWS_ENDPOINT_URL,
   forcePathStyle: true,
 });
-
-const DOCUMENT_BUCKET = "clean-bucket";
 
 type DownloadedObject = {
   localPath: string;
@@ -27,6 +25,15 @@ type ResolvedS3Input = {
   s3Key: string;
   documentId?: string;
 };
+
+function getDocumentBucket(): string {
+  const cleanBucket = process.env.CLEAN_BUCKET ?? "clean-bucket";
+  log.info(`Using clean bucket: ${cleanBucket}`);
+  if (!cleanBucket) {
+    throw new Error("CLEAN_BUCKET environment variable is required.");
+  }
+  return cleanBucket;
+}
 
 async function resolveS3InputFromMessage(body: string): Promise<ResolvedS3Input> {
   const parsedBody = parseUiPathMessage(body);
@@ -85,6 +92,7 @@ async function downloadFromS3(bucket: string, key: string): Promise<DownloadedOb
 export const handler = async (event: SQSEvent) =>
   als.run(store, async () => {
     log.info({ recordCount: event.Records.length }, "UiPath lambda invoked");
+    const documentBucket = getDocumentBucket();
     const firstRecord = event.Records[0];
     if (!firstRecord) {
       throw new Error("No SQS records provided.");
@@ -93,15 +101,15 @@ export const handler = async (event: SQSEvent) =>
 
     const { s3Key, documentId } = await resolveS3InputFromMessage(firstRecord.body);
 
-    const downloadedObject = await downloadFromS3(DOCUMENT_BUCKET, s3Key);
+    const downloadedObject = await downloadFromS3(documentBucket, s3Key);
     const { localPath } = downloadedObject;
     const uploadFileNameWithExtension = await resolveUploadFileNameWithExtension(
-      DOCUMENT_BUCKET,
+      documentBucket,
       s3Key,
       downloadedObject
     );
     log.info(
-      { s3Bucket: DOCUMENT_BUCKET, s3Key, localPath, uploadFileNameWithExtension },
+      { s3Bucket: documentBucket, s3Key, localPath, uploadFileNameWithExtension },
       "Downloaded document from S3"
     );
 

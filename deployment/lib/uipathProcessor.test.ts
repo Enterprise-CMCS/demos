@@ -35,6 +35,7 @@ describe("UiPathProcessor construct", () => {
       ...mockProps,
       removalPolicy: RemovalPolicy.DESTROY,
       documentsBucket: new Bucket(stack, "UiPathDocumentsBucket"),
+      cleanBucket: new Bucket(stack, "UiPathCleanBucket"),
       kmsKey: new Key(stack, "UiPathKmsKey"),
     });
 

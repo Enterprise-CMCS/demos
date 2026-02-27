@@ -160,6 +160,13 @@ export async function triggerUiPath(
   { documentId }: { documentId: string }
 ): Promise<string> {
   try {
+    const exists = await prisma().$transaction(async (tx) => {
+      return checkDocumentExists(tx, documentId);
+    });
+
+    if (!exists) {
+      throw new Error(`Document with ID ${documentId} does not exist.`);
+    }
     return await enqueueUiPath({
       documentId,
     });

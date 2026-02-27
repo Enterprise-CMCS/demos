@@ -80,6 +80,7 @@ describe("handler", () => {
   const prevEnv = { ...process.env };
 
   beforeEach(() => {
+    process.env = { ...prevEnv, CLEAN_BUCKET: "clean-bucket" };
     mocks.sendMock.mockReset();
     mocks.runDocumentUnderstandingMock.mockReset();
     mocks.fileTypeFromFileMock.mockReset();
