@@ -6,7 +6,7 @@ import type {
   PhaseStatus as ServerPhaseStatus,
 } from "demos-server";
 
-import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
+import { ApplicationWorkflowDemonstration } from "components/application";
 import {
   getApplicationCompletenessFromDemonstration,
   getConceptPhaseComponentFromDemonstration,
@@ -114,31 +114,27 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
       : "Concept";
   const [selectedPhase, setSelectedPhase] = useState<PhaseName>(initialPhase);
 
-  const phaseComponentsLookup: Record<PhaseName, React.FC> = {
-    Concept: () => getConceptPhaseComponentFromDemonstration(demonstration, setSelectedPhase),
-    "Application Intake": () =>
-      getApplicationIntakeComponentFromDemonstration(demonstration, setSelectedPhase),
-    Completeness: () =>
-      getApplicationCompletenessFromDemonstration(demonstration, setSelectedPhase),
-    "Federal Comment": () => getFederalCommentPhaseFromDemonstration(demonstration),
-    "SDG Preparation": () =>
-      getSdgPreparationPhaseFromDemonstration(demonstration, setSelectedPhase),
-    Review: () =>
-      getReviewPhaseComponentFromDemonstration(demonstration, () =>
-        setSelectedPhase("Approval Package")
-      ),
-    "Approval Package": () => getApprovalPackagePhase(demonstration, setSelectedPhase),
-    "Approval Summary": () => getApprovalSummaryPhase(demonstration),
-  };
-
-  const DisplayPhase = ({ selectedPhase }: { selectedPhase: PhaseName }) => {
-    const PhaseComponent = phaseComponentsLookup[selectedPhase];
-
-    return (
-      <div className="w-full h-full min-h-64">
-        <PhaseComponent />
-      </div>
-    );
+  const renderPhase = (phaseName: PhaseName) => {
+    switch (phaseName) {
+      case "Concept":
+        return getConceptPhaseComponentFromDemonstration(demonstration, setSelectedPhase);
+      case "Application Intake":
+        return getApplicationIntakeComponentFromDemonstration(demonstration, setSelectedPhase);
+      case "Completeness":
+        return getApplicationCompletenessFromDemonstration(demonstration, setSelectedPhase);
+      case "Federal Comment":
+        return getFederalCommentPhaseFromDemonstration(demonstration);
+      case "SDG Preparation":
+        return getSdgPreparationPhaseFromDemonstration(demonstration, setSelectedPhase);
+      case "Review":
+        return getReviewPhaseComponentFromDemonstration(demonstration, () =>
+          setSelectedPhase("Approval Package")
+        );
+      case "Approval Package":
+        return getApprovalPackagePhase(demonstration, setSelectedPhase);
+      case "Approval Summary":
+        return getApprovalSummaryPhase(demonstration);
+    }
   };
 
   return (
@@ -162,7 +158,7 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
           );
         })}
       </div>
-      <DisplayPhase selectedPhase={selectedPhase} />
+      <div className="w-full h-full min-h-64">{renderPhase(selectedPhase)}</div>
     </>
   );
 };

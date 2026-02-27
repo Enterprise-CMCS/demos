@@ -1,6 +1,6 @@
 import type { CompletePhaseInput } from "demos-server";
 import { gql, useMutation } from "@apollo/client";
-import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "../ApplicationWorkflow";
+import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "../demonstration/DemonstrationWorkflow";
 
 const COMPLETE_PHASE_MUTATION = gql`
   mutation CompletePhase($input: CompletePhaseInput!) {

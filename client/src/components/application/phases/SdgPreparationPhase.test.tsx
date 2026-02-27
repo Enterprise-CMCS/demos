@@ -9,7 +9,7 @@ import {
   hasChanges,
   getSdgPreparationPhaseFromDemonstration,
 } from "./SdgPreparationPhase";
-import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
+import { ApplicationWorkflowDemonstration } from "../demonstration/DemonstrationWorkflow";
 import { parseISO } from "date-fns";
 import {
   FAILED_TO_SAVE_MESSAGE,
@@ -140,9 +140,7 @@ describe("SdgPreparationPhase", () => {
       setup();
 
       expect(screen.getByText("SDG PREPARATION")).toBeInTheDocument();
-      expect(
-        screen.getByText("Plan and conduct internal and preparation tasks")
-      ).toBeInTheDocument();
+      expect(screen.getByText("Plan and conduct internal preparation tasks")).toBeInTheDocument();
     });
   });
 
@@ -182,9 +180,15 @@ describe("SdgPreparationPhase", () => {
     it("renders all three DatePickers", () => {
       setup();
 
-      expect(screen.getByTestId("datepicker-sme-initial-review-date")).toBeInTheDocument();
-      expect(screen.getByTestId("datepicker-frt-initial-meeting-date")).toBeInTheDocument();
-      expect(screen.getByTestId("datepicker-bnpmt-initial-meeting-date")).toBeInTheDocument();
+      expect(screen.getByTestId("datepicker-sme-initial-review-date")).toHaveAccessibleName(
+        /SME Review Date/
+      );
+      expect(screen.getByTestId("datepicker-frt-initial-meeting-date")).toHaveAccessibleName(
+        /FRT Initial Meeting Date/
+      );
+      expect(screen.getByTestId("datepicker-bnpmt-initial-meeting-date")).toHaveAccessibleName(
+        /BNPMT Initial Meeting Date/
+      );
     });
 
     it("renders Save For Later and Finish buttons", () => {

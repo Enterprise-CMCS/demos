@@ -132,7 +132,9 @@ describe("extensionResolvers", () => {
         id: testExtensionId,
       };
       await __getExtension(undefined, testInput);
-      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testExtensionId, "Extension");
+      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testExtensionId, {
+        applicationTypeId: "Extension",
+      });
     });
   });
 

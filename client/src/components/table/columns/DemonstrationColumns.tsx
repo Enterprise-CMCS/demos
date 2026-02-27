@@ -7,7 +7,7 @@ import { GenericDemonstrationTableRow } from "../tables/DemonstrationTable";
 import { Person } from "demos-server";
 import { createSelectColumnDef } from "./selectColumn";
 import { APPLICATION_STATUS, STATES_AND_TERRITORIES } from "demos-server-constants";
-import { DemonstrationStatusBadge } from "components/badge/DemonstrationStatusBadge";
+import { ApplicationStatusBadge } from "components/badge/ApplicationStatusBadge";
 import type { ApplicationStatus } from "demos-server";
 
 // TODO: currently this is acting like a hook, but its not intended to be used generically like one. Perhaps
@@ -59,8 +59,8 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
       id: "status",
       header: "Status",
       cell: (info) => (
-        <DemonstrationStatusBadge
-          demonstrationStatus={info.getValue<ApplicationStatus>()}
+        <ApplicationStatusBadge
+          applicationStatus={info.getValue<ApplicationStatus>()}
           size="small"
         />
       ),

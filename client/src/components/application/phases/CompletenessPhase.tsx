@@ -8,7 +8,7 @@ import { addDays, differenceInCalendarDays, parseISO } from "date-fns";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
-} from "../ApplicationWorkflow";
+} from "components/application";
 import { useToast } from "components/toast";
 import { DocumentList } from "./sections";
 import {
@@ -389,7 +389,7 @@ export const CompletenessPhase = ({
             target="_blank"
             rel="noreferrer"
           >
-            Medicaid.gov.
+            Medicaid.gov
           </a>
         </p>
 

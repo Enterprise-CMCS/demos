@@ -14,8 +14,18 @@ pipeline {
     STAGE = "test"
   }
 
+  parameters {
+    booleanParam(name: 'VALIDATE_STATE', defaultValue: true, description: 'Validate that the main branch is in a successful state before deploying')
+  }
+
   stages {
     stage('Validate branch state') {
+      when {
+        expression {
+          return params.VALIDATE_STATE
+        }
+      }
+
       steps {
         script {
           // The GIT_COMMIT env set by Jenkins isn't accurate for this type of

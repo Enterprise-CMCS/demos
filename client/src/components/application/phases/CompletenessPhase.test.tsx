@@ -7,7 +7,7 @@ import { TestProvider } from "test-utils/TestProvider";
 
 import { CompletenessPhase, CompletenessPhaseProps } from "./CompletenessPhase";
 
-import { ApplicationWorkflowDocument } from "../ApplicationWorkflow";
+import { ApplicationWorkflowDocument } from "components/application";
 
 const showCompletenessDocumentUploadDialog = vi.fn();
 const showDeclareIncompleteDialog = vi.fn((callback) => {
@@ -89,6 +89,18 @@ describe("CompletenessPhase", () => {
       const header = screen.getByText("COMPLETENESS");
       expect(header).toBeInTheDocument();
       expect(header).toHaveClass("text-brand");
+    });
+
+    it("renders description with link to Medicaid.gov", () => {
+      setup();
+      expect(
+        screen.getByText(/Completeness Checklist - Find completeness guidelines online at/i)
+      ).toBeInTheDocument();
+      const link = screen.getByRole("link", { name: "Medicaid.gov" });
+      expect(link).toBeInTheDocument();
+      expect(link).toHaveAttribute("href", "https://www.medicaid.gov");
+      expect(link).toHaveAttribute("target", "_blank");
+      expect(link).toHaveAttribute("rel", "noreferrer");
     });
   });
 

@@ -8,7 +8,7 @@ import { ApprovalPackagePhase, getApprovalPackagePhase } from "./ApprovalPackage
 import {
   ApplicationWorkflowDocument,
   ApplicationWorkflowDemonstration,
-} from "components/application/ApplicationWorkflow";
+} from "components/application";
 import { DocumentType } from "demos-server";
 import { ApprovalPackageTableRow } from "components/table/tables/ApprovalPackageTable";
 import userEvent from "@testing-library/user-event";
@@ -78,7 +78,7 @@ describe("ApprovalPackagePhase", () => {
       screen.getByText("List of all required documents/reviews needed for approval.")
     ).toBeInTheDocument();
     expect(screen.getByText("APPROVAL PACKAGE")).toBeInTheDocument();
-    expect(screen.getByText("Each File Type Is Required Prior To Approval")).toBeInTheDocument();
+    expect(screen.getByText("Each file type is required prior to approval")).toBeInTheDocument();
   });
 
   it("renders the table with all required types, even if documents missing", () => {

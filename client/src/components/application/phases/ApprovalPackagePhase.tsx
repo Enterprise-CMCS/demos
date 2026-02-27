@@ -2,7 +2,7 @@ import React from "react";
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
-} from "components/application/ApplicationWorkflow";
+} from "components/application";
 import {
   ApprovalPackageTable,
   ApprovalPackageTableRow,
@@ -144,7 +144,7 @@ export const ApprovalPackagePhase = ({
       </p>
 
       <h4 className="text-[18px] font-bold tracking-wide mb-1">APPROVAL PACKAGE</h4>
-      <p className="text-sm text-text-placeholder">Each File Type Is Required Prior To Approval</p>
+      <p className="text-sm text-text-placeholder">Each file type is required prior to approval</p>
 
       <ApprovalPackageTable demonstrationId={demonstrationId} rows={tableRows} />
 

@@ -3,7 +3,7 @@ import { tw } from "tags/tw";
 
 import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
-import { ApplicationWorkflowDemonstration, SimplePhase } from "../ApplicationWorkflow";
+import { ApplicationWorkflowDemonstration, SimplePhase } from "components/application";
 import { formatDateForServer } from "util/formatDate";
 import { DateType, LocalDate, PhaseNameWithTrackedStatus } from "demos-server";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
@@ -177,7 +177,7 @@ export const SdgPreparationPhase = ({
     <div>
       <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">SDG PREPARATION</h3>
       <p className="text-sm text-text-placeholder mb-4">
-        Plan and conduct internal and preparation tasks
+        Plan and conduct internal preparation tasks
       </p>
 
       <section className={STYLES.pane}>
@@ -218,7 +218,7 @@ export const SdgPreparationPhase = ({
             <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
               <DatePicker
                 name="datepicker-sme-initial-review-date"
-                label="SME Initial Review Date"
+                label="SME Review Date"
                 isRequired={true}
                 value={sdgPreparationPhaseFormData.smeInitialReviewDate}
                 onChange={(newDate) => {
