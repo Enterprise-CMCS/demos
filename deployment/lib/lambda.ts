@@ -5,6 +5,7 @@ import { Aws, Duration, aws_apigateway, aws_codedeploy, aws_ec2, aws_kms, aws_la
 import { Role, PolicyDocument, PolicyStatement, Effect, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { DemosLogGroup } from "./logGroup";
+import { OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
 
 interface LambdaProps extends CommonProps {
   additionalPolicies?: PolicyStatement[];
@@ -27,6 +28,7 @@ interface LambdaProps extends CommonProps {
   nodeModules?: string[];
   depsLockFilePath?: string;
   commandHooks?: ICommandHooks;
+  format?: OutputFormat;
 }
 
 export function create(props: LambdaProps, id: string) {
@@ -126,6 +128,7 @@ export class Lambda extends Construct {
         nodeModules: props.nodeModules,
         logLevel: LogLevel.VERBOSE,
         commandHooks: props.commandHooks,
+        format: props.format
       },
       environment: props.environment,
       vpc: props.vpc,
