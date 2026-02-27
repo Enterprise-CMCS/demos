@@ -18,12 +18,13 @@ describe("ModificationTabSideNav", () => {
     description: "Test Description",
     status: "Pre-Submission",
     createdAt: new Date(0),
+    documents: [],
   };
 
   const expectedTabs = [
     { label: "Application", value: "application" },
     { label: "Details", value: "details" },
-    { label: "Documents", value: "documents" },
+    { label: "Documents (0)", value: "documents" },
   ];
 
   const setup = (modificationItem: ModificationItem) => {
@@ -99,6 +100,46 @@ describe("ModificationTabSideNav", () => {
 
       expect(screen.getByTestId("extension-workflow")).toBeInTheDocument();
       expect(screen.queryByTestId("amendment-workflow")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("Documents tab", () => {
+    it("displays correct document count in tab label", () => {
+      const modificationWithDocs: ModificationItem = {
+        ...mockModificationItem,
+        documents: [{
+          id: "doc1",
+          name: "Document 1",
+          documentType: "General File",
+          description: "Test Document",
+          createdAt: new Date(),
+          owner: { person: { fullName: "Test User" } },
+        }],
+      };
+      setup(modificationWithDocs);
+
+      const documentsTab = screen.getByTestId("button-documents");
+      expect(documentsTab).toHaveTextContent("Documents (1)");
+    });
+
+    it("render DocumentTable with correct props when Documents tab is selected", () => {
+      const modificationWithDocs: ModificationItem = {
+        ...mockModificationItem,
+        documents: [{
+          id: "doc1",
+          name: "Document 1",
+          documentType: "General File",
+          description: "Test Document",
+          createdAt: new Date(),
+          owner: { person: { fullName: "Test User" } },
+        }],
+      };
+      setup(modificationWithDocs);
+
+      const documentsTab = screen.getByTestId("button-documents");
+      fireEvent.click(documentsTab);
+
+      expect(screen.getByText("Document 1")).toBeInTheDocument();
     });
   });
 });
