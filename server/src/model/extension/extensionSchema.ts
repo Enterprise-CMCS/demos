@@ -14,7 +14,7 @@ import {
 } from "../../types.js";
 
 export const extensionSchema = gql`
-  type Extension {
+  type Extension @cmsOnly {
     id: ID!
     demonstration: Demonstration!
     name: NonEmptyString!

@@ -8,7 +8,7 @@ export type PrismaTransactionClient = Parameters<
 
 // really annoying typescript hackiness to get the types to play well with the $extends method
 // the prisma random extension will be eventually removed.
-const createExtendedClient = () => {
+const createExtendedClient =() => {
   const baseClient = new PrismaClient({
     log: [
       { level: "warn", emit: "event" },

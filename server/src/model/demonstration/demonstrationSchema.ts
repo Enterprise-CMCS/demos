@@ -23,13 +23,13 @@ export const demonstrationSchema = gql`
     id: ID!
     name: NonEmptyString!
     description: String
-    effectiveDate: DateTime
+    effectiveDate: DateTime @cmsOnly
     expirationDate: DateTime
     sdgDivision: SdgDivision
     signatureLevel: SignatureLevel
     status: ApplicationStatus!
     state: State!
-    currentPhaseName: PhaseName!
+    currentPhaseName: PhaseName! 
     phases: [ApplicationPhase!]!
     documents: [Document!]!
     amendments: [Amendment!]!

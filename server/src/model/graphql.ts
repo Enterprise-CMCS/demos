@@ -101,6 +101,9 @@ import {
 import { customScalarResolvers } from "../customScalarResolvers.js";
 import { clearanceLevelSchema } from "./clearanceLevel/clearanceLeveSchema.js";
 import { clearanceLevelResolvers } from "./clearanceLevel/clearanceLevelResolvers.js";
+import { directiveSchema } from "./directives/directiveSchema.js";
+import { makeExecutableSchema } from "graphql-tools";
+import { directiveTransformer } from "./directives/directiveTransformer.js";
 
 const scalarTypes = [
   JSONObjectDefinition,
@@ -143,6 +146,7 @@ export const typeDefs = [
   tagSchema,
   tagTypeSchema,
   userSchema,
+  directiveSchema,
   ...scalarTypes,
 ];
 
@@ -181,3 +185,8 @@ export const resolvers = [
   tagTypeResolvers,
   userResolvers,
 ];
+
+let schema = makeExecutableSchema({ typeDefs, resolvers });
+schema = directiveTransformer(schema);
+
+export { schema };
