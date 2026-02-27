@@ -12,6 +12,7 @@ import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import * as demosLambda from "./lambda";
 import path from "node:path";
 import { DeploymentConfigProperties } from "../config";
+import { OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
 
 interface UiPathProcessorProps extends DeploymentConfigProperties {
   removalPolicy?: RemovalPolicy;
@@ -81,6 +82,7 @@ export class UiPathProcessor extends Construct {
       nodeModules: ["axios", "axios-oauth-client", "dotenv", "form-data", "pino", "pino-pretty", "pg", "file-type"],
       vpc: props.vpc,
       securityGroup: props.securityGroup,
+      format: OutputFormat.ESM,
       environment: {
         DB_SSL_MODE: "verify-full",
         UIPATH_CLIENT_ID: process.env.UIPATH_CLIENT_ID ?? "",
