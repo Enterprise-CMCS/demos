@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { validateAllowedDateChangeByPhase } from "./validateAllowedDateChangeByPhase";
 import { LocalDate, SetApplicationDatesInput } from "../../types";
-import { PrismaTransactionClient } from "../../prismaClient";
 import { getFinishedApplicationPhaseIds } from "../applicationPhase";
 import { getPhaseDateTypesByIds } from "../phaseDateType";
 
@@ -297,6 +296,50 @@ describe("validateAllowedDateChangeByPhase", () => {
 
       await expect(validateAllowedDateChangeByPhase(mockTransaction, input)).rejects.toThrow(
         "Database query failed"
+      );
+    });
+
+    it("should allow the Expected Approval Date to change after SDG Preparation is completed", async () => {
+      const input: SetApplicationDatesInput = {
+        applicationId: testApplicationId,
+        applicationDates: [
+          {
+            dateType: "Expected Approval Date",
+            dateValue: "2026-01-01" as LocalDate,
+          },
+        ],
+      };
+      vi.mocked(getFinishedApplicationPhaseIds).mockResolvedValue(["SDG Preparation"]);
+      vi.mocked(getPhaseDateTypesByIds).mockResolvedValue([
+        {
+          phaseId: "SDG Preparation",
+          dateTypeId: "Expected Approval Date",
+        },
+      ]);
+
+      await expect(validateAllowedDateChangeByPhase(mockTransaction, input)).resolves.not.toThrow();
+    });
+
+    it("should not allow the Expected Approval Date to be deleted after SDG Preparation is completed", async () => {
+      const input: SetApplicationDatesInput = {
+        applicationId: testApplicationId,
+        applicationDates: [
+          {
+            dateType: "Expected Approval Date",
+            dateValue: null,
+          },
+        ],
+      };
+      vi.mocked(getFinishedApplicationPhaseIds).mockResolvedValue(["SDG Preparation"]);
+      vi.mocked(getPhaseDateTypesByIds).mockResolvedValue([
+        {
+          phaseId: "SDG Preparation",
+          dateTypeId: "Expected Approval Date",
+        },
+      ]);
+
+      await expect(validateAllowedDateChangeByPhase(mockTransaction, input)).rejects.toThrow(
+        "You cannot delete the Expected Approval Date after the SDG Preparation phase is completed."
       );
     });
   });
