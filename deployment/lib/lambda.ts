@@ -1,11 +1,10 @@
-import { ICommandHooks, LogLevel, NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import { ICommandHooks, LogLevel, NodejsFunction, OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Construct } from "constructs";
 import { CommonProps } from "../types/props";
 import { Aws, Duration, aws_apigateway, aws_codedeploy, aws_ec2, aws_kms, aws_lambda } from "aws-cdk-lib";
 import { Role, PolicyDocument, PolicyStatement, Effect, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { Runtime } from "aws-cdk-lib/aws-lambda";
 import { DemosLogGroup } from "./logGroup";
-import { OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
 
 interface LambdaProps extends CommonProps {
   additionalPolicies?: PolicyStatement[];
