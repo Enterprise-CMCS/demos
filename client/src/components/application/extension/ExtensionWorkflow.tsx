@@ -1,5 +1,16 @@
 import React from "react";
 import { ApplicationStatusBadge } from "components/badge/ApplicationStatusBadge";
+import { PhaseSelector, WorkflowApplication } from "components/application";
+
+// Removing next PR, just for compiliation
+const mockApplicationWorkflow: WorkflowApplication = {
+  id: "1",
+  currentPhaseName: "Concept",
+  phases: [],
+  documents: [],
+  tags: [],
+  clearanceLevel: "COMMs",
+};
 
 export const ExtensionWorkflow = () => {
   return (
@@ -9,6 +20,7 @@ export const ExtensionWorkflow = () => {
         <ApplicationStatusBadge applicationStatus={"Approved"} />
       </div>
       <hr className="text-border-rules" />
+      <PhaseSelector application={mockApplicationWorkflow} />
     </div>
   );
 };

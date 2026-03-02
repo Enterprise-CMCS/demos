@@ -3,10 +3,7 @@ import { tw } from "tags/tw";
 import { ApplicationUploadSection } from "components/application/phases/sections";
 import { formatDate } from "util/formatDate";
 import { useDialog } from "components/dialog/DialogContext";
-import {
-  ApplicationWorkflowDemonstration,
-  ApplicationWorkflowDocument,
-} from "components/application";
+import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { differenceInCalendarDays } from "date-fns";
 import { Notice, NoticeVariant } from "components/notice";
 
@@ -31,9 +28,7 @@ const STYLES = {
   actions: tw`mt-8 flex justify-end gap-3`,
 };
 
-export const getFederalCommentPhaseFromApplication = (
-  application: ApplicationWorkflowDemonstration
-) => {
+export const getFederalCommentPhaseFromApplication = (application: WorkflowApplication) => {
   const federalCommentPhase = application.phases.find(
     (phase) => phase.phaseName === "Federal Comment"
   );
