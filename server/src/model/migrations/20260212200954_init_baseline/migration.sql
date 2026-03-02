@@ -178,7 +178,6 @@ VALUES
     ('Approval Package', 'Approval Letter'),
     ('Approval Package', 'Final Budget Neutrality Formulation Workbook'),
     ('Approval Package', 'Formal OMB Policy Concurrence Email'),
-    ('Approval Package', 'Payment Ratio Analysis'),
     ('Approval Package', 'Q&A'),
     ('Approval Package', 'Signed Decision Memo'),
     ('Approval Package', 'Special Terms & Conditions');

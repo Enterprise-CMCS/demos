@@ -334,7 +334,7 @@ export const APPROVAL_PACKAGE_PHASE_DOCUMENTS: DocumentType[] = [
   "Approval Letter",
   "Final Budget Neutrality Formulation Workbook",
   "Formal OMB Policy Concurrence Email",
-  "Payment Ratio Analysis",
+  "Special Terms & Conditions",
   "Q&A",
   "Signed Decision Memo",
 ] as const;
