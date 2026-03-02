@@ -10,6 +10,7 @@ import {
   getSdgPreparationPhaseFromDemonstration,
 } from "./SdgPreparationPhase";
 import { ApplicationWorkflowDemonstration } from "../demonstration/DemonstrationWorkflow";
+import type { ApplicationStatus } from "demos-server";
 import { parseISO } from "date-fns";
 import {
   FAILED_TO_SAVE_MESSAGE,
@@ -126,12 +127,7 @@ describe("SdgPreparationPhase", () => {
 
   const setup = (
     demonstration = mockDemonstration,
-    demonstrationStatus:
-      | "Pre-Submission"
-      | "Under Review"
-      | "Approved"
-      | "Denied"
-      | "Withdrawn" = "Pre-Submission"
+    demonstrationStatus: ApplicationStatus = "Pre-Submission"
   ): void => {
     render(
       <SdgPreparationPhase
