@@ -1,5 +1,7 @@
 import React from "react";
 import { ApplicationStatusBadge } from "components/badge/ApplicationStatusBadge";
+import { PhaseSelector } from "components/application";
+import { mockWorkflowApplication } from "mock-data";
 
 export const ExtensionWorkflow = () => {
   return (
@@ -9,6 +11,7 @@ export const ExtensionWorkflow = () => {
         <ApplicationStatusBadge applicationStatus={"Approved"} />
       </div>
       <hr className="text-border-rules" />
+      <PhaseSelector application={mockWorkflowApplication} />
     </div>
   );
 };
