@@ -2,6 +2,7 @@ import React from "react";
 import { ApplicationStatusBadge } from "components/badge/ApplicationStatusBadge";
 import { PhaseSelector, WorkflowApplication } from "components/application";
 
+// Removing next PR, just for compilation
 const mockApplication: WorkflowApplication = {
   id: "1",
   currentPhaseName: "Concept",
@@ -10,6 +11,7 @@ const mockApplication: WorkflowApplication = {
   tags: [],
   clearanceLevel: "COMMs",
 };
+
 export const AmendmentWorkflow = () => {
   return (
     <div className="flex flex-col gap-sm p-sm">

@@ -2,6 +2,7 @@ import React from "react";
 import { ApplicationStatusBadge } from "components/badge/ApplicationStatusBadge";
 import { PhaseSelector, WorkflowApplication } from "components/application";
 
+// Removing next PR, just for compiliation
 const mockApplicationWorkflow: WorkflowApplication = {
   id: "1",
   currentPhaseName: "Concept",
