@@ -35,7 +35,7 @@ export const ModificationTabSideNav = ({
       <Tab icon={<DetailsIcon />} value={TABS.DETAILS} label="Details">
         <ModificationDetailsSummary modificationItem={modificationItem} />
       </Tab>
-      <Tab icon={<OpenFolderIcon />} value={TABS.DOCUMENTS} label={`Documents (${modificationItem.documents?.length ?? 0})`}>
+      <Tab icon={<OpenFolderIcon />} value={TABS.DOCUMENTS} label={`Documents (${modificationItem.documents.length ?? 0})`}>
         <DocumentTable applicationId={modificationItem.id} documents={modificationItem.documents} />
       </Tab>
     </VerticalTabs>
