@@ -150,11 +150,11 @@ const VerifyCompleteSection = ({
   </div>
 );
 
-export const getApplicationIntakeComponentFromDemonstration = (
-  demonstration: ApplicationWorkflowDemonstration,
+export const getApplicationIntakeComponentFromApplication = (
+  application: ApplicationWorkflowDemonstration,
   setSelectedPhase?: (phase: PhaseName) => void
 ) => {
-  const applicationIntakePhase = demonstration.phases.find(
+  const applicationIntakePhase = application.phases.find(
     (phase) => phase.phaseName === "Application Intake"
   );
 
@@ -162,18 +162,18 @@ export const getApplicationIntakeComponentFromDemonstration = (
     (date) => date.dateType === "State Application Submitted Date"
   )?.dateValue;
 
-  const stateApplicationDocuments = demonstration.documents.filter(
+  const stateApplicationDocuments = application.documents.filter(
     (doc) => doc.phaseName === "Application Intake"
   );
 
   return (
     <ApplicationIntakePhase
-      demonstrationId={demonstration.id}
+      demonstrationId={application.id}
       initialStateApplicationDocuments={stateApplicationDocuments}
       initialStateApplicationSubmittedDate={
         stateApplicationSubmittedDate ? formatDateForServer(stateApplicationSubmittedDate) : ""
       }
-      initialSelectedTags={demonstration.tags}
+      initialSelectedTags={application.tags}
       setSelectedPhase={setSelectedPhase}
     />
   );

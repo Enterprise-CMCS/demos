@@ -1,2 +1,2 @@
 export { ApprovalSummaryPhase } from "./ApprovalSummaryPhase";
-export { getApprovalSummaryPhase } from "./ApprovalSummaryPhase";
+export { getApprovalSummaryPhaseFromApplication } from "./ApprovalSummaryPhase";

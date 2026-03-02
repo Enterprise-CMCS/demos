@@ -53,14 +53,12 @@ const getFederalCommentPeriodDates = (stateDate: string) => {
   return { fedStartDate, fedEndDate };
 };
 
-export const getApplicationCompletenessFromDemonstration = (
-  demonstration: ApplicationWorkflowDemonstration,
+export const getApplicationCompletenessFromApplication = (
+  application: ApplicationWorkflowDemonstration,
   setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void
 ) => {
-  const completenessPhase = demonstration.phases.find(
-    (phase) => phase.phaseName === "Completeness"
-  );
-  const applicationIntakePhase = demonstration.phases.find(
+  const completenessPhase = application.phases.find((phase) => phase.phaseName === "Completeness");
+  const applicationIntakePhase = application.phases.find(
     (phase) => phase.phaseName === "Application Intake"
   );
 
@@ -79,13 +77,11 @@ export const getApplicationCompletenessFromDemonstration = (
   const stateDeemedCompleteDate = completenessPhase?.phaseDates.find(
     (date) => date.dateType === "State Application Deemed Complete"
   );
-  const initialDocuments = demonstration.documents.filter(
-    (doc) => doc.phaseName === "Completeness"
-  );
+  const initialDocuments = application.documents.filter((doc) => doc.phaseName === "Completeness");
 
   return (
     <CompletenessPhase
-      applicationId={demonstration.id}
+      applicationId={application.id}
       applicationIntakeComplete={applicationIntakePhase?.phaseStatus === "Completed"}
       completenessReviewDate={
         completenessReviewDate?.dateValue

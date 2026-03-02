@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
-  getReviewPhaseComponentFromDemonstration,
+  getReviewPhaseComponentFromApplication,
   formatDataForSave,
   hasFormChanges,
   ReviewPhaseDemonstration,
@@ -67,7 +67,7 @@ describe("reviewPhaseData", () => {
     });
   });
 
-  describe("getReviewPhaseComponentFromDemonstration", () => {
+  describe("getReviewPhaseComponentFromApplication", () => {
     const buildPhase = (phaseName: PhaseNameWithTrackedStatus, phaseStatus: PhaseStatus) => {
       return {
         phaseName,
@@ -84,7 +84,7 @@ describe("reviewPhaseData", () => {
         phases: [buildPhase("Concept", "Started")],
       };
 
-      const result = getReviewPhaseComponentFromDemonstration(demonstration, mockOnFinish);
+      const result = getReviewPhaseComponentFromApplication(demonstration, mockOnFinish);
 
       expect(result.type).toBe("div");
       expect(result.props.children).toBe("Error: Review Phase not found.");
@@ -106,7 +106,7 @@ describe("reviewPhaseData", () => {
         ],
       };
 
-      const result = getReviewPhaseComponentFromDemonstration(demonstration, mockOnFinish);
+      const result = getReviewPhaseComponentFromApplication(demonstration, mockOnFinish);
 
       expect(result.type.name).toBe("ReviewPhase");
       expect(result.props.demonstrationId).toBe("demo-456");
@@ -142,7 +142,7 @@ describe("reviewPhaseData", () => {
         ],
       };
 
-      const result = getReviewPhaseComponentFromDemonstration(demonstration, mockOnFinish);
+      const result = getReviewPhaseComponentFromApplication(demonstration, mockOnFinish);
 
       expect(result.props.initialFormData.dates["Draft Approval Package Shared"]).toBe(
         "2025-06-15"
@@ -180,7 +180,7 @@ describe("reviewPhaseData", () => {
         ],
       };
 
-      const result = getReviewPhaseComponentFromDemonstration(demonstration, mockOnFinish);
+      const result = getReviewPhaseComponentFromApplication(demonstration, mockOnFinish);
 
       expect(result.props.isReadonly).toBe(true);
     });
@@ -201,7 +201,7 @@ describe("reviewPhaseData", () => {
         ],
       };
 
-      const result = getReviewPhaseComponentFromDemonstration(demonstration, mockOnFinish);
+      const result = getReviewPhaseComponentFromApplication(demonstration, mockOnFinish);
       expect(result.props.allPreviousPhasesDone).toBe(true);
     });
 
@@ -221,7 +221,7 @@ describe("reviewPhaseData", () => {
         ],
       };
 
-      const result = getReviewPhaseComponentFromDemonstration(demonstration, mockOnFinish);
+      const result = getReviewPhaseComponentFromApplication(demonstration, mockOnFinish);
       expect(result.props.allPreviousPhasesDone).toBe(false);
     });
   });
