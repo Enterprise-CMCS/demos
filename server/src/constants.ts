@@ -56,6 +56,7 @@ export const SDG_DIVISIONS = [
 export const DOCUMENT_TYPES = [
   "Application Completeness Letter",
   "Approval Letter",
+  "Federal Comment Internal Analysis Document",
   "Final BN Worksheet",
   "Final Budget Neutrality Formulation Workbook",
   "Formal OMB Policy Concurrence Email",
@@ -319,7 +320,10 @@ export const COMPLETENESS_PHASE_DOCUMENTS: DocumentType[] = [
   "Internal Completeness Review Form",
   "Application Completeness Letter",
 ] as const;
-export const FEDERAL_COMMENT_PHASE_DOCUMENTS: DocumentType[] = ["General File"] as const;
+export const FEDERAL_COMMENT_PHASE_DOCUMENTS: DocumentType[] = [
+  "General File",
+  "Federal Comment Internal Analysis Document",
+] as const;
 
 export const SDG_PREPARATION_PHASE_DOCUMENTS: DocumentType[] = ["General File"] as const;
 
