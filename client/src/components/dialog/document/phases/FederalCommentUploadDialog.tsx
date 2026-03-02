@@ -3,7 +3,10 @@ import React from "react";
 import { AddDocumentDialog } from "components/dialog/document";
 import { DocumentType } from "demos-server";
 
-const DOCUMENT_TYPE_SUBSET: DocumentType[] = ["General File"];
+const DOCUMENT_TYPE_SUBSET: DocumentType[] = [
+  "General File",
+  "Federal Comment Internal Analysis Document",
+];
 
 const REFETCH_QUERIES = ["GetConceptDocuments", "GetDemonstrationDocuments"];
 
@@ -18,7 +21,7 @@ export const FederalCommentUploadDialog: React.FC<Props> = ({ onClose, applicati
       onClose={onClose}
       documentTypeSubset={DOCUMENT_TYPE_SUBSET}
       applicationId={applicationId}
-      titleOverride="Internal Analysis Document"
+      titleOverride="Add Federal Comment Document"
       refetchQueries={REFETCH_QUERIES}
       phaseName="Federal Comment"
     />
