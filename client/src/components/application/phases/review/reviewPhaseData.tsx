@@ -29,19 +29,19 @@ export function getPhaseData(
   return formData;
 }
 
-export const getReviewPhaseComponentFromDemonstration = (
-  demonstration: ReviewPhaseDemonstration,
+export const getReviewPhaseComponentFromApplication = (
+  application: ReviewPhaseDemonstration,
   onFinish: () => void
 ) => {
-  const reviewPhase = demonstration.phases.find((phase) => phase.phaseName === "Review");
+  const reviewPhase = application.phases.find((phase) => phase.phaseName === "Review");
   if (!reviewPhase) return <div>Error: Review Phase not found.</div>;
 
   const reviewPhaseFormData: ReviewPhaseFormData = {
     ...getPhaseData(reviewPhase),
-    clearanceLevel: demonstration.clearanceLevel,
+    clearanceLevel: application.clearanceLevel,
   };
 
-  const allPreviousPhasesDone = demonstration.phases
+  const allPreviousPhasesDone = application.phases
     .filter(
       (p) =>
         p.phaseName !== "Concept" &&
@@ -55,7 +55,7 @@ export const getReviewPhaseComponentFromDemonstration = (
     <ReviewPhase
       isReadonly={reviewPhase.phaseStatus === "Completed"}
       initialFormData={reviewPhaseFormData}
-      demonstrationId={demonstration.id}
+      demonstrationId={application.id}
       onFinish={onFinish}
       allPreviousPhasesDone={allPreviousPhasesDone}
     />
