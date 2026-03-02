@@ -160,14 +160,13 @@ VALUES
     ('None', 'State Application'),
     ('None', 'General File'),
 
-    -- General File is allowed for all phases
+    -- General File is allowed for almost all phases
     ('Concept', 'General File'),
     ('Application Intake', 'General File'),
     ('Completeness', 'General File'),
     ('Federal Comment', 'General File'),
     ('SDG Preparation', 'General File'),
     ('Review', 'General File'),
-    ('Approval Package', 'General File'),
     ('Approval Summary', 'General File'),
 
     -- Now, add phase-specific documents
