@@ -104,7 +104,14 @@ describe("ModificationTabSideNav", () => {
   });
 
   describe("Documents tab", () => {
-    it("displays correct document count in tab label", () => {
+    it("displays correct document count in tab label with 0 documents", () => {
+      setup(mockModificationItem);
+
+      const documentsTab = screen.getByTestId("button-documents");
+      expect(documentsTab).toHaveTextContent("Documents (0)");
+    });
+
+    it("displays correct document count in tab label with non-zero documents", () => {
       const modificationWithDocs: ModificationItem = {
         ...mockModificationItem,
         documents: [{
