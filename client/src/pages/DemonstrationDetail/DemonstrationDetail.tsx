@@ -123,7 +123,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
 
 export type DemonstrationDetailModification = Pick<
   Amendment,
-  "id" | "name" | "description" | "status" | "createdAt" | "effectiveDate" | "signatureLevel" & {}
+  "id" | "name" | "description" | "status" | "createdAt" | "effectiveDate" | "signatureLevel"
 > & {
   documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
     owner: { person: Pick<Person, "fullName"> };
