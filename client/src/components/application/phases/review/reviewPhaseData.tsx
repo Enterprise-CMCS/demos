@@ -1,14 +1,10 @@
-import { ApplicationWorkflowDemonstration, SimplePhase } from "components/application";
+import { WorkflowApplication, SimplePhase } from "components/application";
 import React from "react";
 import { ReviewPhase, ReviewPhaseFormData } from "./ReviewPhase";
 import { format } from "date-fns";
 import { REVIEW_PHASE_DATE_TYPES, REVIEW_PHASE_NOTE_TYPES } from "demos-server-constants";
 import { ApplicationDateInput, ApplicationNoteInput, LocalDate } from "demos-server";
 
-export type ReviewPhaseDemonstration = Pick<
-  ApplicationWorkflowDemonstration,
-  "id" | "clearanceLevel" | "phases"
->;
 export function getPhaseData(
   reviewPhase: SimplePhase
 ): Omit<ReviewPhaseFormData, "clearanceLevel"> {
@@ -30,7 +26,7 @@ export function getPhaseData(
 }
 
 export const getReviewPhaseComponentFromApplication = (
-  application: ReviewPhaseDemonstration,
+  application: WorkflowApplication,
   onFinish: () => void
 ) => {
   const reviewPhase = application.phases.find((phase) => phase.phaseName === "Review");

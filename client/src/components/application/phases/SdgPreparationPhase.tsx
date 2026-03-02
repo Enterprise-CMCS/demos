@@ -3,7 +3,7 @@ import { tw } from "tags/tw";
 
 import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
-import { ApplicationWorkflowDemonstration, SimplePhase } from "components/application";
+import { WorkflowApplication, SimplePhase } from "components/application";
 import { formatDateForServer } from "util/formatDate";
 import { DateType, LocalDate, PhaseNameWithTrackedStatus } from "demos-server";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
@@ -61,7 +61,7 @@ export const hasChanges = (
 };
 
 export const getSdgPreparationPhaseFromApplication = (
-  application: ApplicationWorkflowDemonstration,
+  application: WorkflowApplication,
   setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void
 ) => {
   const sdgPreparationPhase = application.phases.find(

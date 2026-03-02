@@ -5,6 +5,8 @@ import {
   PhaseStatus,
   ApplicationDate,
   ApplicationNote,
+  Tag,
+  ClearanceLevel,
 } from "demos-server";
 
 export type ApplicationWorkflowDocument = Pick<
@@ -19,4 +21,13 @@ export type SimplePhase = {
   phaseStatus: PhaseStatus;
   phaseDates: Pick<ApplicationDate, "dateType" | "dateValue">[];
   phaseNotes: Pick<ApplicationNote, "noteType" | "content">[];
+};
+
+export type WorkflowApplication = {
+  id: string;
+  currentPhaseName: PhaseName;
+  phases: SimplePhase[];
+  documents: ApplicationWorkflowDocument[];
+  tags: Tag[];
+  clearanceLevel: ClearanceLevel;
 };

@@ -5,10 +5,7 @@ import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
 import { formatDate, formatDateForServer, getTodayEst } from "util/formatDate";
 import { addDays, differenceInCalendarDays, parseISO } from "date-fns";
-import {
-  ApplicationWorkflowDemonstration,
-  ApplicationWorkflowDocument,
-} from "components/application";
+import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { useToast } from "components/toast";
 import { DocumentList } from "./sections";
 import {
@@ -54,7 +51,7 @@ const getFederalCommentPeriodDates = (stateDate: string) => {
 };
 
 export const getApplicationCompletenessFromApplication = (
-  application: ApplicationWorkflowDemonstration,
+  application: WorkflowApplication,
   setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void
 ) => {
   const completenessPhase = application.phases.find((phase) => phase.phaseName === "Completeness");
