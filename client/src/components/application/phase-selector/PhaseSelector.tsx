@@ -130,7 +130,8 @@ export const PhaseSelector = ({ application }: { application: WorkflowApplicatio
         return getApprovalPackagePhaseFromApplication(application, setSelectedPhase);
       case "Approval Summary":
         // Approval Summary requires demonstration-specific fields
-        // Type assertion is safe here because PhaseSelector is currently only used by DemonstrationWorkflow
+        // For now we will do type-assertion but to be revisted as we get further
+        // down the line on developing these phases.
         return getApprovalSummaryPhaseFromApplication(
           application as ApplicationWorkflowDemonstration
         );
