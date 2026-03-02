@@ -100,7 +100,7 @@ export class ApiStack extends Stack {
       prefixListName: `com.amazonaws.${this.region}.s3`,
     });
 
-    const sqsVpceSgId = Fn.importValue(`${commonProps.stage}SecretsManagerVpceSg`);
+    const sqsVpceSgId = Fn.importValue(`${commonProps.stage}SqsVpceSg`);
 
     graphqlLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
