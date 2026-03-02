@@ -19,17 +19,17 @@ import {
 } from "../../types.js";
 
 export const demonstrationSchema = gql`
-  type Demonstration {
+  type Demonstration @cmsOnly @belongsToDemonstration{
     id: ID!
     name: NonEmptyString!
     description: String
-    effectiveDate: DateTime @cmsOnly
+    effectiveDate: DateTime
     expirationDate: DateTime
     sdgDivision: SdgDivision
     signatureLevel: SignatureLevel
     status: ApplicationStatus!
     state: State!
-    currentPhaseName: PhaseName! 
+    currentPhaseName: PhaseName!
     phases: [ApplicationPhase!]!
     documents: [Document!]!
     amendments: [Amendment!]!
@@ -71,8 +71,8 @@ export const demonstrationSchema = gql`
   }
 
   type Query {
-    demonstrations: [Demonstration!]!
-    demonstration(id: ID!): Demonstration
+    demonstrations: [Demonstration!]! @cmsOnly @belongsToDemonstration
+    demonstration(id: ID!): Demonstration @cmsOnly @belongsToDemonstration
   }
 `;
 

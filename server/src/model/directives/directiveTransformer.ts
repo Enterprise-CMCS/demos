@@ -1,51 +1,69 @@
-import {
-  mapSchema,
-  MapperKind,
-  getDirectives,
-  DirectiveAnnotation,
-  FieldMapper,
-} from "@graphql-tools/utils";
+import { mapSchema, MapperKind, getDirectives, DirectiveAnnotation } from "@graphql-tools/utils";
 import { defaultFieldResolver, GraphQLSchema } from "graphql";
 import { cmsOnlyDirective } from "./cmsOnlyDirective";
+import { belongsToDemonstrationDirective } from "./belongsToDemonstrationDirective";
 
-export type FieldResolver = Parameters<FieldMapper>[0]["resolve"];
+type validator = (
+  source,
+  args,
+  context,
+  info,
+  directiveArgs: DirectiveAnnotation["args"]
+) => boolean;
 
-export type DirectiveHandler = (
-  resolve: NonNullable<FieldResolver>,
-  directive?: DirectiveAnnotation
-) => FieldResolver;
+interface DirectiveConfig {
+  validate: validator;
+}
 
-const DIRECTIVE_MAP: Record<string, DirectiveHandler> = {
-  [cmsOnlyDirective.name]: cmsOnlyDirective.handler,
+const DIRECTIVE_MAP: Record<string, DirectiveConfig> = {
+  [cmsOnlyDirective.name]: cmsOnlyDirective,
+  [belongsToDemonstrationDirective.name]: belongsToDemonstrationDirective,
 };
 
 export function directiveTransformer(schema: GraphQLSchema) {
   return mapSchema(schema, {
-    [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
-      const directives = getDirectives(schema, fieldConfig);
-      for (const directive of directives) {
-        const interceptor = DIRECTIVE_MAP[directive.name];
-        if (interceptor) {
-          fieldConfig.resolve = interceptor(fieldConfig.resolve || defaultFieldResolver, directive);
+    [MapperKind.OBJECT_FIELD]: (fieldConfig, _fieldName, typeName) => {
+      const { resolve = defaultFieldResolver } = fieldConfig;
+      fieldConfig.resolve = async function (source, args, context, info) {
+        const typeConfig = schema.getType(typeName);
+        if (!typeConfig) {
+          throw new Error(`Type ${typeName} not found in schema`);
         }
-      }
-      return fieldConfig;
-    },
-    [MapperKind.OBJECT_TYPE]: (typeConfig) => {
-      const directives = getDirectives(schema, typeConfig);
-      for (const directive of directives) {
-        const fields = typeConfig.getFields();
-        for (const fieldConfig of Object.values(fields)) {
-          const interceptor = DIRECTIVE_MAP[directive.name];
-          if (interceptor) {
-            fieldConfig.resolve = interceptor(
-              fieldConfig.resolve || defaultFieldResolver,
-              directive
-            );
+
+        const result = await resolve(source, args, context, info);
+
+        const permissionDirectives = [
+          ...getDirectives(schema, fieldConfig),
+          ...getDirectives(schema, typeConfig),
+        ].filter((directive) => directive.name in DIRECTIVE_MAP);
+
+        if (Array.isArray(result)) {
+          return result.filter((item) => {
+            for (const directive of permissionDirectives) {
+              const config = DIRECTIVE_MAP[directive.name];
+              const isAuthorized = config.validate(item, args, context, info, directive.args);
+              if (isAuthorized) {
+                return true;
+              }
+            }
+            return false;
+          });
+        }
+
+        for (const directive of permissionDirectives) {
+          const config = DIRECTIVE_MAP[directive.name];
+          const isAuthorized = config.validate(source, args, context, info, directive.args);
+
+          if (isAuthorized) {
+            return result;
           }
         }
-        return typeConfig;
-      }
+
+        throw new Error(
+          `You do not have permission to access ${info.parentType.name}.${info.fieldName}`
+        );
+      };
+      return fieldConfig;
     },
   });
 }
