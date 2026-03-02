@@ -1,0 +1,9 @@
+// Flags: TYPE_LIMITER
+model BudgetNeutralityWorkbookDocumentTypeLimit {
+  id String @id
+
+  documentType              DocumentType               @relation(fields: [id], references: [id])
+  budgetNeutralityWorkbooks BudgetNeutralityWorkbook[]
+
+  @@map("budget_neutrality_workbook_document_type_limit")
+}
