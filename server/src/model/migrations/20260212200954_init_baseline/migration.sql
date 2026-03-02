@@ -176,7 +176,6 @@ VALUES
     ('Completeness', 'Internal Completeness Review Form'),
     ('Completeness', 'Application Completeness Letter'),
     ('Approval Package', 'Approval Letter'),
-    ('Approval Package', 'Final BN Worksheet'),
     ('Approval Package', 'Final Budget Neutrality Formulation Workbook'),
     ('Approval Package', 'Formal OMB Policy Concurrence Email'),
     ('Approval Package', 'Payment Ratio Analysis'),

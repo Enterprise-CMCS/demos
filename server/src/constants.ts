@@ -332,7 +332,6 @@ export const REVIEW_PHASE_DOCUMENTS: DocumentType[] = ["General File"] as const;
 export const APPROVAL_PACKAGE_PHASE_DOCUMENTS: DocumentType[] = [
   "General File",
   "Approval Letter",
-  "Final BN Worksheet",
   "Final Budget Neutrality Formulation Workbook",
   "Formal OMB Policy Concurrence Email",
   "Payment Ratio Analysis",
