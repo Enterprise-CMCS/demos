@@ -51,6 +51,19 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         createdAt
         effectiveDate
         signatureLevel
+        documents {
+          id
+          name
+          description
+          documentType
+          phaseName
+          createdAt
+          owner {
+            person {
+              fullName
+            }
+          }
+        }
       }
       extensions {
         id
@@ -60,6 +73,19 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
         createdAt
         effectiveDate
         signatureLevel
+        documents {
+          id
+          name
+          description
+          documentType
+          phaseName
+          createdAt
+          owner {
+            person {
+              fullName
+            }
+          }
+        }
       }
       demonstrationTypes {
         demonstrationTypeName
@@ -98,8 +124,11 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
 export type DemonstrationDetailModification = Pick<
   Amendment,
   "id" | "name" | "description" | "status" | "createdAt" | "effectiveDate" | "signatureLevel"
->;
-
+> & {
+  documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
+    owner: { person: Pick<Person, "fullName"> };
+  })[];
+};
 export type DemonstrationDetail = Pick<Demonstration, "id" | "status" | "currentPhaseName"> & {
   amendments: DemonstrationDetailModification[];
   extensions: DemonstrationDetailModification[];

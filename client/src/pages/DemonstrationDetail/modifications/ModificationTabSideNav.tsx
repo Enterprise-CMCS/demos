@@ -4,6 +4,7 @@ import { ModificationItem } from "./ModificationTabs";
 import { DetailsIcon, ListIcon, OpenFolderIcon } from "components/icons";
 import { ModificationDetailsSummary } from "./ModificationDetailsSummary";
 import { AmendmentWorkflow, ExtensionWorkflow } from "components/application";
+import { DocumentTable } from "components/table/tables/DocumentTable";
 
 const TABS = {
   APPLICATION: "application",
@@ -34,8 +35,8 @@ export const ModificationTabSideNav = ({
       <Tab icon={<DetailsIcon />} value={TABS.DETAILS} label="Details">
         <ModificationDetailsSummary modificationItem={modificationItem} />
       </Tab>
-      <Tab icon={<OpenFolderIcon />} value={TABS.DOCUMENTS} label="Documents">
-        Documents Tab for {modificationItem.name}
+      <Tab icon={<OpenFolderIcon />} value={TABS.DOCUMENTS} label={`Documents (${modificationItem.documents.length})`}>
+        <DocumentTable applicationId={modificationItem.id} documents={modificationItem.documents} />
       </Tab>
     </VerticalTabs>
   );

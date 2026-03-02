@@ -30,6 +30,7 @@ describe("ModificationDetailsSummary", () => {
     createdAt: new Date("2024-01-01"),
     effectiveDate: new Date("2024-01-15"),
     signatureLevel: "OA",
+    documents: [],
   };
 
   describe("Component Rendering", () => {
@@ -50,6 +51,7 @@ describe("ModificationDetailsSummary", () => {
         id: "mod-456",
         name: "Test Extension",
         status: "Pre-Submission",
+        documents: [],
         createdAt: new Date("2024-01-01"),
       };
       render(<ModificationDetailsSummary modificationItem={mockExtension} />);
@@ -137,6 +139,7 @@ describe("ModificationDetailsSummary", () => {
         id: "mod-minimal",
         name: "Minimal Modification",
         status: "On-hold",
+        documents: [],
         createdAt: new Date("2024-01-01"),
       };
       render(<ModificationDetailsSummary modificationItem={extension} />);
@@ -184,6 +187,7 @@ describe("ModificationDetailsSummary", () => {
         id: "ext-456",
         name: "Test Extension",
         status: "Pre-Submission",
+        documents: [],
         createdAt: new Date("2024-01-01"),
       };
       setup(mockExtension);
