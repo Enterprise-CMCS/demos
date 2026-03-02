@@ -2,8 +2,8 @@
 model DocumentType {
   id String
 
-  phaseDocumentTypes                         PhaseDocumentType[]
-  budgetNeutralityWorkbookDocumentTypeLimits BudgetNeutralityWorkbookDocumentTypeLimit[]
+  phaseDocumentTypes                        PhaseDocumentType[]
+  budgetNeutralityWorkbookDocumentTypeLimit BudgetNeutralityWorkbookDocumentTypeLimit[]
 
   @@id([id])
   @@map("document_type")
