@@ -124,13 +124,22 @@ describe("SdgPreparationPhase", () => {
     vi.clearAllMocks();
   });
 
-  const setup = (demonstration = mockDemonstration): void => {
+  const setup = (
+    demonstration = mockDemonstration,
+    demonstrationStatus:
+      | "Pre-Submission"
+      | "Under Review"
+      | "Approved"
+      | "Denied"
+      | "Withdrawn" = "Pre-Submission"
+  ): void => {
     render(
       <SdgPreparationPhase
         demonstrationId={demonstration.id}
         sdgPreparationPhase={demonstration.phases[0]}
         setSelectedPhase={mockSetSelectedPhase}
         allPreviousPhasesDone={true}
+        demonstrationStatus={demonstrationStatus}
       />
     );
   };
@@ -151,7 +160,7 @@ describe("SdgPreparationPhase", () => {
       expect(screen.getByText("SDG WORKPLAN")).toBeInTheDocument();
       expect(
         screen.getByText(
-          /Ensure the expected approval date is reasonable based on required reviews/i
+          /Ensure the expected approval date is reasonable based on required reviews and the complexity of the application\. This date may be revised at a later time, if necessary\./i
         )
       ).toBeInTheDocument();
     });
@@ -372,44 +381,139 @@ describe("hasChanges", () => {
 });
 
 describe("Completed Phase Behavior", () => {
-  it("disables Finish button when phase status is Completed", () => {
-    const completedDemonstration: ApplicationWorkflowDemonstration = {
-      ...mockCompleteDemonstration,
-      phases: [
-        {
-          phaseName: "SDG Preparation",
-          phaseStatus: "Completed",
-          phaseDates: [
-            {
-              dateType: "Expected Approval Date",
-              dateValue: parseISO("2025-01-01T05:00:00.000Z"),
-            },
-            { dateType: "SME Review Date", dateValue: parseISO("2025-01-01T05:00:00.000Z") },
-            {
-              dateType: "FRT Initial Meeting Date",
-              dateValue: parseISO("2025-01-01T05:00:00.000Z"),
-            },
-            {
-              dateType: "BNPMT Initial Meeting Date",
-              dateValue: parseISO("2025-01-01T05:00:00.000Z"),
-            },
-          ],
-          phaseNotes: [],
-        },
-      ],
-    };
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
+  const completedPhase = {
+    phaseName: "SDG Preparation" as const,
+    phaseStatus: "Completed" as const,
+    phaseDates: [
+      {
+        dateType: "Expected Approval Date" as const,
+        dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+      },
+      { dateType: "SME Review Date" as const, dateValue: parseISO("2025-01-01T05:00:00.000Z") },
+      {
+        dateType: "FRT Initial Meeting Date" as const,
+        dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+      },
+      {
+        dateType: "BNPMT Initial Meeting Date" as const,
+        dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+      },
+    ],
+    phaseNotes: [],
+  };
+
+  const renderCompleted = () =>
     render(
       <SdgPreparationPhase
-        demonstrationId={completedDemonstration.id}
-        sdgPreparationPhase={completedDemonstration.phases[0]}
+        demonstrationId={mockCompleteDemonstration.id}
+        sdgPreparationPhase={completedPhase}
         setSelectedPhase={mockSetSelectedPhase}
         allPreviousPhasesDone={true}
+        demonstrationStatus="Pre-Submission"
       />
     );
 
-    const finishButton = screen.getByTestId("sdg-finish");
-    expect(finishButton).toBeDisabled();
+  it("disables Finish button when phase status is Completed", () => {
+    renderCompleted();
+    expect(screen.getByTestId("sdg-finish")).toBeDisabled();
+  });
+
+  it("keeps Expected Approval Date editable when phase is Completed", () => {
+    renderCompleted();
+    expect(screen.getByTestId("datepicker-expected-approval-date")).not.toBeDisabled();
+  });
+
+  it("disables SME, FRT, and BNPMT date pickers when phase is Completed", () => {
+    renderCompleted();
+    expect(screen.getByTestId("datepicker-sme-initial-review-date")).toBeDisabled();
+    expect(screen.getByTestId("datepicker-frt-initial-meeting-date")).toBeDisabled();
+    expect(screen.getByTestId("datepicker-bnpmt-initial-meeting-date")).toBeDisabled();
+  });
+
+  it("enables Save For Later when Expected Approval Date is changed after phase Completed", async () => {
+    renderCompleted();
+
+    const saveButton = screen.getByTestId("sdg-save-for-later");
+    expect(saveButton).toBeDisabled();
+
+    const dateInput = screen.getByTestId("datepicker-expected-approval-date");
+    await userEvent.clear(dateInput);
+    await userEvent.type(dateInput, "2025-06-01");
+
+    expect(saveButton).toBeEnabled();
+  });
+
+  it("only saves Expected Approval Date when phase is Completed", async () => {
+    mockSetApplicationDate.mockResolvedValue({ data: { setApplicationDate: { id: "1" } } });
+    renderCompleted();
+
+    const dateInput = screen.getByTestId("datepicker-expected-approval-date");
+    await userEvent.clear(dateInput);
+    await userEvent.type(dateInput, "2025-06-01");
+
+    await userEvent.click(screen.getByTestId("sdg-save-for-later"));
+
+    await waitFor(() => {
+      expect(mockSetApplicationDate).toHaveBeenCalledTimes(1);
+      expect(mockSetApplicationDate).toHaveBeenCalledWith({
+        applicationId: "1",
+        dateType: "Expected Approval Date",
+        dateValue: "2025-06-01",
+      });
+      expect(showSuccess).toHaveBeenCalledWith(SAVE_FOR_LATER_MESSAGE);
+    });
+  });
+});
+
+describe("Approved Demonstration Behavior", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const allDates = [
+    {
+      dateType: "Expected Approval Date" as const,
+      dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+    },
+    { dateType: "SME Review Date" as const, dateValue: parseISO("2025-01-01T05:00:00.000Z") },
+    {
+      dateType: "FRT Initial Meeting Date" as const,
+      dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+    },
+    {
+      dateType: "BNPMT Initial Meeting Date" as const,
+      dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+    },
+  ];
+
+  const renderApproved = () =>
+    render(
+      <SdgPreparationPhase
+        demonstrationId="1"
+        sdgPreparationPhase={{
+          phaseName: "SDG Preparation",
+          phaseStatus: "Completed",
+          phaseDates: allDates,
+          phaseNotes: [],
+        }}
+        setSelectedPhase={mockSetSelectedPhase}
+        allPreviousPhasesDone={true}
+        demonstrationStatus="Approved"
+      />
+    );
+
+  it("disables Expected Approval Date when demonstration is Approved", () => {
+    renderApproved();
+    expect(screen.getByTestId("datepicker-expected-approval-date")).toBeDisabled();
+  });
+
+  it("keeps Save For Later disabled when demonstration is Approved (no editable fields)", () => {
+    renderApproved();
+    expect(screen.getByTestId("sdg-save-for-later")).toBeDisabled();
   });
 });
 
