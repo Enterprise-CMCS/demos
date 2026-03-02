@@ -106,8 +106,15 @@ erDiagram
   amendment }|--|| signature_level : "FK092"
   extension }|--|| signature_level : "FK093"
 
+  document }|--|| deliverable_action : "FK121"
+  document }|--|| deliverable_submission_action_type_limit : "FK122"
+  deliverable_status ||--|{ deliverable_action_configuration : "FK115, FK118"
+  deliverable_action_type ||--|{ deliverable_action_configuration : "FK116"
+  deliverable_action_configuration ||--|{ deliverable_action : "FK119"
+  deliverable_submission_action_type_limit ||--|| deliverable_action_type : "FK120"
+
   demonstration ||--|{ deliverable : "FK006"
-  deliverable }|--|| deliverable_type : "FK067"
+  deliverable_type ||--|{ deliverable : "FK067"
   deliverable }|--|| deliverable_status : "FK094"
   deliverable }|--|| deliverable_due_date_type : "FK095"
   document_type ||--|{ deliverable_type_document_type : "FK097"
@@ -120,17 +127,15 @@ erDiagram
   document_pending_upload }|--|| deliverable_type_document_type : "FK103"
   deliverable_demonstration_status_limit ||--|| application_status : "FK104"
   deliverable }|--|| deliverable_demonstration_status_limit : "FK105"
-  deliverable }|--|| cms_user_person_type_limit : "FK106"
+  cms_user_person_type_limit ||--|{ deliverable : "FK106"
   person_type ||--|| cms_user_person_type_limit : "FK107"
   users ||--|{ deliverable : "FK108"
   deliverable ||--|{ private_comment : "FK109"
   deliverable ||--|{ public_comment : "FK110"
   users ||--|{ private_comment : "FK111"
   users ||--|{ public_comment : "FK112"
-  private_comment }|--|| cms_user_person_type_limit : "FK113"
+  cms_user_person_type_limit ||--|{ private_comment : "FK113"
   deliverable ||--|{ deliverable_action : "FK114"
-  deliverable_status ||--|{ deliverable_action : "FK115"
-  deliverable_action }|--|| deliverable_action_type : "FK116"
   users ||--|{ deliverable_action : "FK117"
 
   %% Static Constraints
@@ -249,6 +254,10 @@ erDiagram
     text id PK, FK "FK104: id ∈ application_status.id"
   }
 
+  deliverable_submission_action_type_limit:::typeLimiter {
+    text id PK, FK "FK120: id ∈ deliverable_action_type.id"
+  }
+
   cms_user_person_type_limit:::typeLimiter {
     text id PK, FK "FK107: id ∈ person_type.id"
   }
@@ -356,12 +365,14 @@ erDiagram
   }
 
   deliverable_action:::dataTable {
-    int change_id PK "AUTOINCREMENTING"
-    timestamptz change_timestamp
+    uuid id PK, UK "UK: (id, action_type_id)"
+    timestamptz action_timestamp
     uuid deliverable_id FK "FK114: deliverable_id ∈ deliverable.id"
-    text status_id FK "FK115: status_id ∈ deliverable_status.id"
-    timestamptz due_date
-    text action_type_id FK "FK116: action_type_id ∈ deliverable_action_type.id"
+    text action_type_id FK "FK119: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)<br>UK: (id, action_type_id)"
+    text old_status_id FK "FK119: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)"
+    text new_status_id FK "FK119: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)"
+    timestamptz old_due_date
+    timestamptz new_due_date
     uuid user_id FK "FK117: user_id ∈ users.id<br>NULLABLE"
     text note "NULLABLE"
     CONSTRAINT_CHECK require_user_id_for_user_actions "If the action type is not a system action, require a user ID to be present."
@@ -420,14 +431,14 @@ erDiagram
     uuid deliverable_id FK "FK098: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)<br>NULLABLE"
     text deliverable_type_id FK "FK098: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)<br>FK101: (deliverable_type_id, document_type_id) ∈ deliverable_type_document_type.(deliverable_type_id, document_type_id)<br>NULLABLE"
     bool deliverable_is_cms_attached_file "NULLABLE"
-    timestamptz deliverable_submission_timestamp "NULLABLE"
-    timestamptz deliverable_due_date_at_submission "NULLABLE"
+    uuid deliverable_submission_action_id FK "FK121: (deliverable_submission_action_id, deliverable_submission_action_type_id) ∈ deliverable_action.(id, action_type_id)<br>NULLABLE"
+    text deliverable_submission_action_type_id FK "FK121: (deliverable_submission_action_id, deliverable_submission_action_type_id) ∈ deliverable_action.(id, action_type_id)<br>FK122: deliverable_submission_action_type_id ∈ deliverable_submission_action_type_limit.id<br>NULLABLE"
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK check_non_empty_s3_path "Validate that the S3 path is not empty or only whitespace."
     CONSTRAINT_CHECK check_phase_id_deliverable_id_null "Validate that at least one of phase_id and deliverable_id are NULL"
-    CONSTRAINT_CHECK check_deliverable_null_states "Validate that the deliverable-related fields are NULL or NOT NULL appropriately<br>If deliverable_id is NULL, all other deliverable fields must be NULL<br>If deliverable_id is NOT NULL, deliverable_type_id and deliverable_is_cms_attached_file must be NOT NULL<br>If deliverable_id is NOT NULL, both dates must be either NULL or NOT NULL"
+    CONSTRAINT_CHECK check_deliverable_null_states "Validate that the deliverable-related fields are NULL or NOT NULL appropriately<br>If deliverable_id is NULL, all other deliverable fields must be NULL<br>If deliverable_id is NOT NULL, deliverable_type_id and deliverable_is_cms_attached_file must be NOT NULL"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }
@@ -583,6 +594,12 @@ erDiagram
     HAS_HISTORY true
   }
 
+  deliverable_action_configuration:::associativeTable {
+    text action_type_id PK, FK "FK116: action_type_id ∈ deliverable_action_type.id"
+    text old_status_id PK, FK "FK115: old_status_id ∈ deliverable_status.id"
+    text new_status_id PK, FK "FK118: new_status_id ∈ deliverable_status.id"
+  }
+
   deliverable_type_document_type:::associativeTable {
     text deliverable_type_id PK, FK "FK096: deliverable_type_id ∈ deliverable_type.id"
     text document_type_id PK, FK "FK097: document_type_id ∈ document_type.id"
@@ -663,6 +680,5 @@ erDiagram
     text TypeLimiter "Blue"
     text AssociativeTable "Purple"
     text DataTable "Green"
-    text NOTE "An asterisk * after the table name indicates that a _history table is also created"
     text NOTE "HAS_HISTORY true indicates that a table has a _history table as well"
   }
