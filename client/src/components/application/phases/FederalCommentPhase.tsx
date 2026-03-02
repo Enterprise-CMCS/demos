@@ -31,10 +31,10 @@ const STYLES = {
   actions: tw`mt-8 flex justify-end gap-3`,
 };
 
-export const getFederalCommentPhaseFromDemonstration = (
-  demonstration: ApplicationWorkflowDemonstration
+export const getFederalCommentPhaseFromApplication = (
+  application: ApplicationWorkflowDemonstration
 ) => {
-  const federalCommentPhase = demonstration.phases.find(
+  const federalCommentPhase = application.phases.find(
     (phase) => phase.phaseName === "Federal Comment"
   );
 
@@ -47,13 +47,13 @@ export const getFederalCommentPhaseFromDemonstration = (
     (date) => date.dateType === "Federal Comment Period End Date"
   );
 
-  const initialDocuments = demonstration.documents.filter(
+  const initialDocuments = application.documents.filter(
     (doc) => doc.phaseName === "Federal Comment"
   );
 
   return (
     <FederalCommentPhase
-      demonstrationId={demonstration.id}
+      demonstrationId={application.id}
       phaseComplete={phaseComplete}
       phaseStartDate={phaseStartDate?.dateValue}
       phaseEndDate={phaseEndDate?.dateValue}

@@ -8,14 +8,14 @@ import type {
 
 import { ApplicationWorkflowDemonstration } from "components/application";
 import {
-  getApplicationCompletenessFromDemonstration,
-  getConceptPhaseComponentFromDemonstration,
-  getApplicationIntakeComponentFromDemonstration,
-  getFederalCommentPhaseFromDemonstration,
-  getApprovalPackagePhase,
-  getReviewPhaseComponentFromDemonstration,
-  getApprovalSummaryPhase,
-  getSdgPreparationPhaseFromDemonstration,
+  getApplicationCompletenessFromApplication,
+  getConceptPhaseComponentFromApplication,
+  getApplicationIntakeComponentFromApplication,
+  getFederalCommentPhaseFromApplication,
+  getApprovalPackagePhaseFromApplication,
+  getReviewPhaseComponentFromApplication,
+  getApprovalSummaryPhaseFromApplication,
+  getSdgPreparationPhaseFromApplication,
 } from "../phases";
 import { PHASE_NAME } from "demos-server-constants";
 import { PhaseBox } from "./PhaseBox";
@@ -82,23 +82,19 @@ const PhaseGroups = () => {
   );
 };
 
-interface PhaseSelectorProps {
-  demonstration: ApplicationWorkflowDemonstration;
-}
-
 export const getDisplayedPhaseStatus = (
-  demonstration: ApplicationWorkflowDemonstration,
+  application: ApplicationWorkflowDemonstration,
   phaseName: PhaseName
 ): PhaseStatus => {
-  const phase = demonstration.phases.find((p) => p.phaseName === phaseName);
+  const phase = application.phases.find((p) => p.phaseName === phaseName);
   return phase?.phaseStatus ?? "Not Started";
 };
 
 export const getDisplayedPhaseDate = (
-  demonstration: ApplicationWorkflowDemonstration,
+  application: ApplicationWorkflowDemonstration,
   phaseName: PhaseName
 ): Date | undefined => {
-  const phase = demonstration.phases.find((p) => p.phaseName === phaseName);
+  const phase = application.phases.find((p) => p.phaseName === phaseName);
   if (!phase) return undefined;
 
   const relevantDateName = PHASE_DISPLAY_DATES[phaseName]?.[phase.phaseStatus];
@@ -107,33 +103,37 @@ export const getDisplayedPhaseDate = (
   return relevantDate?.dateValue ? new Date(relevantDate.dateValue) : undefined;
 };
 
-export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
+export const PhaseSelector = ({
+  application,
+}: {
+  application: ApplicationWorkflowDemonstration;
+}) => {
   const initialPhase: PhaseName =
-    demonstration.currentPhaseName && demonstration.currentPhaseName !== "None"
-      ? (demonstration.currentPhaseName as PhaseName)
+    application.currentPhaseName && application.currentPhaseName !== "None"
+      ? (application.currentPhaseName as PhaseName)
       : "Concept";
   const [selectedPhase, setSelectedPhase] = useState<PhaseName>(initialPhase);
 
   const renderPhase = (phaseName: PhaseName) => {
     switch (phaseName) {
       case "Concept":
-        return getConceptPhaseComponentFromDemonstration(demonstration, setSelectedPhase);
+        return getConceptPhaseComponentFromApplication(application, setSelectedPhase);
       case "Application Intake":
-        return getApplicationIntakeComponentFromDemonstration(demonstration, setSelectedPhase);
+        return getApplicationIntakeComponentFromApplication(application, setSelectedPhase);
       case "Completeness":
-        return getApplicationCompletenessFromDemonstration(demonstration, setSelectedPhase);
+        return getApplicationCompletenessFromApplication(application, setSelectedPhase);
       case "Federal Comment":
-        return getFederalCommentPhaseFromDemonstration(demonstration);
+        return getFederalCommentPhaseFromApplication(application);
       case "SDG Preparation":
-        return getSdgPreparationPhaseFromDemonstration(demonstration, setSelectedPhase);
+        return getSdgPreparationPhaseFromApplication(application, setSelectedPhase);
       case "Review":
-        return getReviewPhaseComponentFromDemonstration(demonstration, () =>
+        return getReviewPhaseComponentFromApplication(application, () =>
           setSelectedPhase("Approval Package")
         );
       case "Approval Package":
-        return getApprovalPackagePhase(demonstration, setSelectedPhase);
+        return getApprovalPackagePhaseFromApplication(application, setSelectedPhase);
       case "Approval Summary":
-        return getApprovalSummaryPhase(demonstration);
+        return getApprovalSummaryPhaseFromApplication(application);
     }
   };
 
@@ -142,8 +142,8 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
       <div className="grid grid-cols-8 gap-md mb-2">
         <PhaseGroups />
         {PHASE_NAMES.map((phaseName, index) => {
-          const displayDate = getDisplayedPhaseDate(demonstration, phaseName);
-          const phaseStatus = getDisplayedPhaseStatus(demonstration, phaseName);
+          const displayDate = getDisplayedPhaseDate(application, phaseName);
+          const phaseStatus = getDisplayedPhaseStatus(application, phaseName);
 
           return (
             <PhaseBox
