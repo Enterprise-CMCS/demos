@@ -1,8 +1,5 @@
 import React from "react";
-import {
-  ApplicationWorkflowDemonstration,
-  ApplicationWorkflowDocument,
-} from "components/application";
+import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import {
   ApprovalPackageTable,
   ApprovalPackageTableRow,
@@ -31,7 +28,7 @@ const REQUIRED_TYPES: DocumentType[] = [
 ] as const;
 
 export const getApprovalPackagePhaseFromApplication = (
-  application: ApplicationWorkflowDemonstration,
+  application: WorkflowApplication,
   setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void
 ) => {
   const formulationWorkbookDocument = application?.documents.find(

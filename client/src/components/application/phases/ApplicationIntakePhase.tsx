@@ -7,10 +7,7 @@ import { ExportIcon } from "components/icons";
 import { addDays, parseISO } from "date-fns";
 import { tw } from "tags/tw";
 import { formatDateForServer } from "util/formatDate";
-import {
-  ApplicationWorkflowDemonstration,
-  ApplicationWorkflowDocument,
-} from "components/application";
+import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { PhaseName } from "components/application/phase-selector/PhaseSelector";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
@@ -151,7 +148,7 @@ const VerifyCompleteSection = ({
 );
 
 export const getApplicationIntakeComponentFromApplication = (
-  application: ApplicationWorkflowDemonstration,
+  application: WorkflowApplication,
   setSelectedPhase?: (phase: PhaseName) => void
 ) => {
   const applicationIntakePhase = application.phases.find(

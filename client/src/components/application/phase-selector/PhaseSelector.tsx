@@ -6,7 +6,7 @@ import type {
   PhaseStatus as ServerPhaseStatus,
 } from "demos-server";
 
-import { ApplicationWorkflowDemonstration } from "components/application";
+import { WorkflowApplication, ApplicationWorkflowDemonstration } from "components/application";
 import {
   getApplicationCompletenessFromApplication,
   getConceptPhaseComponentFromApplication,
@@ -83,7 +83,7 @@ const PhaseGroups = () => {
 };
 
 export const getDisplayedPhaseStatus = (
-  application: ApplicationWorkflowDemonstration,
+  application: WorkflowApplication,
   phaseName: PhaseName
 ): PhaseStatus => {
   const phase = application.phases.find((p) => p.phaseName === phaseName);
@@ -91,7 +91,7 @@ export const getDisplayedPhaseStatus = (
 };
 
 export const getDisplayedPhaseDate = (
-  application: ApplicationWorkflowDemonstration,
+  application: WorkflowApplication,
   phaseName: PhaseName
 ): Date | undefined => {
   const phase = application.phases.find((p) => p.phaseName === phaseName);
@@ -103,11 +103,7 @@ export const getDisplayedPhaseDate = (
   return relevantDate?.dateValue ? new Date(relevantDate.dateValue) : undefined;
 };
 
-export const PhaseSelector = ({
-  application,
-}: {
-  application: ApplicationWorkflowDemonstration;
-}) => {
+export const PhaseSelector = ({ application }: { application: WorkflowApplication }) => {
   const initialPhase: PhaseName =
     application.currentPhaseName && application.currentPhaseName !== "None"
       ? (application.currentPhaseName as PhaseName)
@@ -133,7 +129,12 @@ export const PhaseSelector = ({
       case "Approval Package":
         return getApprovalPackagePhaseFromApplication(application, setSelectedPhase);
       case "Approval Summary":
-        return getApprovalSummaryPhaseFromApplication(application);
+        // Approval Summary requires demonstration-specific fields
+        // For now we will do type-assertion but to be revisted as we get further
+        // down the line on developing these phases.
+        return getApprovalSummaryPhaseFromApplication(
+          application as ApplicationWorkflowDemonstration
+        );
     }
   };
 

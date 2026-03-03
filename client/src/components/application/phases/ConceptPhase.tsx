@@ -4,10 +4,7 @@ import { tw } from "tags/tw";
 import { Button, SecondaryButton } from "components/button";
 import { ChevronRightIcon, ExportIcon } from "components/icons";
 
-import {
-  ApplicationWorkflowDemonstration,
-  ApplicationWorkflowDocument,
-} from "components/application";
+import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { formatDateForServer, getTodayEst } from "util/formatDate";
 import { DocumentList } from "./sections";
 import { useDialog } from "components/dialog/DialogContext";
@@ -33,7 +30,7 @@ const STYLES = {
 };
 
 export const getConceptPhaseComponentFromApplication = (
-  application: ApplicationWorkflowDemonstration,
+  application: WorkflowApplication,
   setSelectedPhase?: (phase: PhaseName) => void
 ) => {
   const preSubmissionDocuments = application.documents.filter(
