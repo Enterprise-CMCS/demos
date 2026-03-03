@@ -448,5 +448,13 @@ export const DEMONSTRATION_TYPE_TAGS: string[] = [
   "Value Based Care (VBC)",
   "Vision",
 ] as const;
+
 // This seemed like a no brainer.
 export const PRIMARY_AWS_REGION = "us-east-1";
+
+export const BUDGET_NEUTRALITY_VALIDATION_STATUSES = [
+  "Succeeded",
+  "Failed",
+  "Pending",
+  "In Progress",
+];

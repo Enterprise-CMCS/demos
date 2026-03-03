@@ -1,0 +1,9 @@
+// Flags: STATIC_CONSTRAINT
+model BudgetNeutralityValidationStatus {
+  id String
+
+  budgetNeutralityWorkbooks BudgetNeutralityWorkbook[]
+
+  @@id([id])
+  @@map("budget_neutrality_validation_status")
+}

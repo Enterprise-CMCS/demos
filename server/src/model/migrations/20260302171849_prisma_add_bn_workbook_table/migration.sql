@@ -8,6 +8,13 @@
 SET search_path TO demos_app;
 
 -- CreateTable
+CREATE TABLE "budget_neutrality_validation_status" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "budget_neutrality_validation_status_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "budget_neutrality_workbook" (
     "id" UUID NOT NULL,
     "document_type_id" TEXT NOT NULL,
@@ -49,6 +56,9 @@ ALTER TABLE "budget_neutrality_workbook" ADD CONSTRAINT "budget_neutrality_workb
 
 -- AddForeignKey
 ALTER TABLE "budget_neutrality_workbook" ADD CONSTRAINT "budget_neutrality_workbook_document_type_id_fkey" FOREIGN KEY ("document_type_id") REFERENCES "budget_neutrality_workbook_document_type_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "budget_neutrality_workbook" ADD CONSTRAINT "budget_neutrality_workbook_validation_status_id_fkey" FOREIGN KEY ("validation_status_id") REFERENCES "budget_neutrality_validation_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "budget_neutrality_workbook_document_type_limit" ADD CONSTRAINT "budget_neutrality_workbook_document_type_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "document_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
