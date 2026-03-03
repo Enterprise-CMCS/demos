@@ -230,7 +230,7 @@ EXECUTE FUNCTION demos_app.create_phases_and_dates_for_new_application();
 CREATE PROCEDURE demos_app.move_document_from_pending_to_clean(
     p_id UUID,
     p_s3_path TEXT,
-    OUT p_document_type_id TEXT DEFAULT NULL
+    OUT p_document_type_id TEXT
 )
 LANGUAGE plpgsql
 AS $$
