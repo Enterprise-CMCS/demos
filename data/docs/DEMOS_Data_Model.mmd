@@ -105,14 +105,16 @@ erDiagram
   extension }|--|| clearance_level : "FK091"
   amendment }|--|| signature_level : "FK092"
   extension }|--|| signature_level : "FK093"
-
+  document_type ||--|| budget_neutrality_workbook_document_type_limit : "FK123"
+  document ||--|| budget_neutrality_workbook : "FK124"
+  budget_neutrality_workbook_document_type_limit ||--|{ budget_neutrality_workbook : "FK125"
+  budget_neutrality_workbook }|--|| budget_neutrality_validation_status : "FK126"
   document }|--|| deliverable_action : "FK121"
   document }|--|| deliverable_submission_action_type_limit : "FK122"
   deliverable_status ||--|{ deliverable_action_configuration : "FK115, FK118"
   deliverable_action_type ||--|{ deliverable_action_configuration : "FK116"
   deliverable_action_configuration ||--|{ deliverable_action : "FK119"
   deliverable_submission_action_type_limit ||--|| deliverable_action_type : "FK120"
-
   demonstration ||--|{ deliverable : "FK006"
   deliverable_type ||--|{ deliverable : "FK067"
   deliverable }|--|| deliverable_status : "FK094"
@@ -144,6 +146,10 @@ erDiagram
   }
 
   application_type:::staticConstraint {
+    text id PK
+  }
+
+  budget_neutrality_validation_status:::staticConstraint {
     text id PK
   }
 
@@ -250,6 +256,10 @@ erDiagram
     text id PK, FK "FK084: id ∈ tag_type.id"
   }
 
+  budget_neutrality_workbook_document_type_limit:::typeLimiter {
+    text id PK, FK "FK123: id ∈ document_type.id"
+  }
+
   deliverable_demonstration_status_limit:::typeLimiter {
     text id PK, FK "FK104: id ∈ application_status.id"
   }
@@ -347,6 +357,16 @@ erDiagram
     HAS_HISTORY true
   }
 
+  budget_neutrality_workbook:::dataTable {
+    uuid id PK, FK "FK124: (id, document_type_id) ∈ document.(id, document_type_id)"
+    text document_type_id FK "FK124: (id, document_type_id) ∈ document.(id, document_type_id)<br>FK125: document_type_id ∈ budget_neutrality_workbook_document_type_limit.id"
+    text validation_status_id FK "FK126: validation_status_id ∈ budget_neutrality_validation_status.id"
+    json validation_data
+    HAS_HISTORY true
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
   deliverable:::dataTable {
     uuid id PK, UK "UK: (id, demonstration_id, deliverable_type_id)"
     uuid demonstration_id FK, UK "FK006: (demonstration_id, demonstration_status_id) ∈ demonstration.(id, status_id)<br>UK: (id, demonstration_id, deliverable_type_id)"
@@ -420,12 +440,12 @@ erDiagram
   }
 
   document:::dataTable {
-    uuid id PK
+    uuid id PK, UK "UK: (id, document_type_id)"
     text name
     text description "NULLABLE"
     text s3_path
     uuid owner_user_id FK "FK026: owner_user_id ∈ users.id"
-    text document_type_id FK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)<br>FK101: (deliverable_type_id, document_type_id) ∈ deliverable_type_document_type.(deliverable_type_id, document_type_id)"
+    text document_type_id FK, UK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)<br>FK101: (deliverable_type_id, document_type_id) ∈ deliverable_type_document_type.(deliverable_type_id, document_type_id)<br>UK: (id, document_type_id)"
     uuid application_id FK "FK030: application_id ∈ application.id<br>FK098: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)"
     text phase_id FK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)<br>NULLABLE"
     uuid deliverable_id FK "FK098: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)<br>NULLABLE"
