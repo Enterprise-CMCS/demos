@@ -5,7 +5,7 @@ import { AmendmentWorkflow } from "./AmendmentWorkflow";
 
 describe("AmendmentWorkflow", () => {
   it("renders APPLICATION heading", () => {
-    render(<AmendmentWorkflow />);
+    render(<AmendmentWorkflow amendmentId="test-amendment-id" />);
     expect(screen.getByText("APPLICATION")).toBeInTheDocument();
   });
 });

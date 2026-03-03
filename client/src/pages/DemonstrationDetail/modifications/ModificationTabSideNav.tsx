@@ -14,9 +14,9 @@ const TABS = {
 
 const ModificationWorkflow = ({ modificationItem }: { modificationItem: ModificationItem }) => {
   if (modificationItem.modificationType === "amendment") {
-    return <AmendmentWorkflow />;
+    return <AmendmentWorkflow amendmentId={modificationItem.id} />;
   } else if (modificationItem.modificationType === "extension") {
-    return <ExtensionWorkflow />;
+    return <ExtensionWorkflow extensionId={modificationItem.id} />;
   } else {
     return <div>Unsupported modification type! {modificationItem.modificationType}</div>;
   }

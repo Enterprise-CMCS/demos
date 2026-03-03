@@ -5,7 +5,7 @@ import { ExtensionWorkflow } from "./ExtensionWorkflow";
 
 describe("ExtensionWorkflow", () => {
   it("renders APPLICATION heading", () => {
-    render(<ExtensionWorkflow />);
+    render(<ExtensionWorkflow extensionId="test-extension-id" />);
     expect(screen.getByText("APPLICATION")).toBeInTheDocument();
   });
 });
