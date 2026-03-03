@@ -3,7 +3,10 @@ import React from "react";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-import { ApprovalPackagePhase, getApprovalPackagePhase } from "./ApprovalPackagePhase";
+import {
+  ApprovalPackagePhase,
+  getApprovalPackagePhaseFromApplication,
+} from "./ApprovalPackagePhase";
 
 import {
   ApplicationWorkflowDocument,
@@ -224,7 +227,7 @@ describe("ApprovalPackagePhase", () => {
       tags: [],
     };
 
-    render(getApprovalPackagePhase(demonstration, mockSetSelectedPhase));
+    render(getApprovalPackagePhaseFromApplication(demonstration, mockSetSelectedPhase));
 
     const finishButton = screen.getByRole("button", { name: /finish/i });
     expect(finishButton).toBeDisabled();
@@ -299,7 +302,7 @@ describe("ApprovalPackagePhase", () => {
   });
 });
 
-describe("getApprovalPackagePhase", () => {
+describe("getApprovalPackagePhaseFromApplication", () => {
   it("extracts documents from demonstration and renders phase", () => {
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "demo-3",
@@ -343,7 +346,7 @@ describe("getApprovalPackagePhase", () => {
       tags: [],
     };
 
-    render(getApprovalPackagePhase(demonstration, mockSetSelectedPhase));
+    render(getApprovalPackagePhaseFromApplication(demonstration, mockSetSelectedPhase));
 
     const rows = screen.getAllByTestId("table-row");
     expect(rows).toHaveLength(6);
@@ -386,7 +389,7 @@ describe("getApprovalPackagePhase", () => {
       tags: [],
     };
 
-    render(getApprovalPackagePhase(demonstration, mockSetSelectedPhase));
+    render(getApprovalPackagePhaseFromApplication(demonstration, mockSetSelectedPhase));
 
     const rows = screen.getAllByTestId("table-row");
     expect(rows).toHaveLength(6);
@@ -448,7 +451,7 @@ describe("getApprovalPackagePhase", () => {
       tags: [],
     };
 
-    render(getApprovalPackagePhase(demo, mockSetSelectedPhase));
+    render(getApprovalPackagePhaseFromApplication(demo, mockSetSelectedPhase));
 
     const finishButton = screen.getByRole("button", { name: /finish/i });
     expect(finishButton).toBeEnabled();
@@ -506,7 +509,7 @@ describe("getApprovalPackagePhase", () => {
       tags: [],
     };
 
-    render(getApprovalPackagePhase(demo, mockSetSelectedPhase));
+    render(getApprovalPackagePhaseFromApplication(demo, mockSetSelectedPhase));
 
     const finishButton = screen.getByRole("button", { name: /finish/i });
     expect(finishButton).toBeDisabled();

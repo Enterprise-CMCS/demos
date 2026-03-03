@@ -11,6 +11,7 @@ const createModificationItem = (overrides?: Partial<ModificationItem>): Modifica
     description: undefined,
     status: "Pre-Submission",
     createdAt: new Date(0),
+    documents: [],
     ...overrides,
   };
 };
