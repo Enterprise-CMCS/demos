@@ -225,8 +225,8 @@ describe("file-process", () => {
       );
 
       expect(mockClient.query).toHaveBeenCalledWith(
-        "CALL demos_app.move_document_from_pending_to_clean($1::UUID, $2::TEXT, $3::TEXT);",
-        ["test-doc-id", "test-app-id/test-doc-id", null]
+        "CALL demos_app.move_document_from_pending_to_clean($1::UUID, $2::TEXT);",
+        ["test-doc-id", "test-app-id/test-doc-id"]
       );
       expect(documentTypeId).toBe("State Application");
       expect(logInfoSpy).toHaveBeenCalledWith(
@@ -412,8 +412,8 @@ describe("file-process", () => {
       );
       expect(mockQuery).toHaveBeenNthCalledWith(
         3,
-        "CALL demos_app.move_document_from_pending_to_clean($1::UUID, $2::TEXT, $3::TEXT);",
-        ["test-key", "1/test-key", null]
+        "CALL demos_app.move_document_from_pending_to_clean($1::UUID, $2::TEXT);",
+        ["test-key", "1/test-key"]
       );
       expect(mockEnd).toHaveBeenCalledTimes(1);
     });

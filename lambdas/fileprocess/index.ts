@@ -112,9 +112,10 @@ export async function processCleanDatabaseRecord(
   documentId: string,
   applicationId: string
 ) {
-  const processDocumentQuery = `CALL ${dbSchema}.${PROCESS_PENDING_DOCUMENT_CLEAN}($1::UUID, $2::TEXT, $3::TEXT);`;
+  const processDocumentQuery = `CALL ${dbSchema}.${PROCESS_PENDING_DOCUMENT_CLEAN}($1::UUID, $2::TEXT);`;
   const result = await client.query(processDocumentQuery, [
-    documentId, `${applicationId}/${documentId}`, null
+    documentId,
+    `${applicationId}/${documentId}`,
   ]);
 
   const documentTypeId = result.rows[0]?.p_document_type_id;
