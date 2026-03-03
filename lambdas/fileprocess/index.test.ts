@@ -185,7 +185,7 @@ describe("file-process", () => {
         query: vi
           .fn()
           .mockResolvedValueOnce({ rows: [{ application_id: "1" }] })
-          .mockResolvedValueOnce({ rows: [{ p_document_type_id: "State Application" }] }),
+          .mockResolvedValueOnce({ rows: [{ document_type_id: "State Application" }] }),
       };
       console.log("mockEventBase", mockEventBase);
       await processGuardDutyResult(mockClient, mockEventBase);
@@ -206,7 +206,7 @@ describe("file-process", () => {
       expect(mockSend).toHaveBeenCalledTimes(2);
       expect(mockClient.query).toHaveBeenCalledTimes(2);
       expect(mockClient.query).toHaveBeenLastCalledWith(
-        expect.stringContaining("CALL demos_app.move_document_from_pending_to_clean"),
+        expect.stringContaining("SELECT demos_app.move_document_from_pending_to_clean"),
         expect.arrayContaining([expect.anything()])
       );
     });
@@ -215,7 +215,7 @@ describe("file-process", () => {
   describe("processCleanDatabaseRecord", () => {
     it("should call the database with correct parameters and return the document type", async () => {
       const mockClient = {
-        query: vi.fn().mockResolvedValue({ rows: [{ p_document_type_id: "State Application" }] }),
+        query: vi.fn().mockResolvedValue({ rows: [{ document_type_id: "State Application" }] }),
       };
 
       const documentTypeId = await processCleanDatabaseRecord(
@@ -225,7 +225,7 @@ describe("file-process", () => {
       );
 
       expect(mockClient.query).toHaveBeenCalledWith(
-        "CALL demos_app.move_document_from_pending_to_clean($1::UUID, $2::TEXT);",
+        "SELECT demos_app.move_document_from_pending_to_clean($1::UUID, $2::TEXT) AS document_type_id;",
         ["test-doc-id", "test-app-id/test-doc-id"]
       );
       expect(documentTypeId).toBe("State Application");
@@ -245,7 +245,7 @@ describe("file-process", () => {
       ).rejects.toThrow("database error");
     });
 
-    it("should throw if the procedure does not return a document type", async () => {
+    it("should throw if the function does not return a document type", async () => {
       const mockClient = {
         query: vi.fn().mockResolvedValue({ rows: [{}] }),
       };
@@ -345,7 +345,7 @@ describe("file-process", () => {
       mockQuery
         .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [{ application_id: "1" }] })
-        .mockResolvedValueOnce({ rows: [{ p_document_type_id: "State Application" }] });
+        .mockResolvedValueOnce({ rows: [{ document_type_id: "State Application" }] });
 
       await handler(
         {
@@ -412,7 +412,7 @@ describe("file-process", () => {
       );
       expect(mockQuery).toHaveBeenNthCalledWith(
         3,
-        "CALL demos_app.move_document_from_pending_to_clean($1::UUID, $2::TEXT);",
+        "SELECT demos_app.move_document_from_pending_to_clean($1::UUID, $2::TEXT) AS document_type_id;",
         ["test-key", "1/test-key"]
       );
       expect(mockEnd).toHaveBeenCalledTimes(1);
