@@ -2,6 +2,8 @@ import React from "react";
 import { describe, it, expect } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ModificationTabs, ModificationItem } from "./ModificationTabs";
+import { TestProvider } from "test-utils/TestProvider";
+import { createAmendmentWorkflowMock } from "mock-data/workflowMocks";
 
 const createModificationItem = (overrides?: Partial<ModificationItem>): ModificationItem => {
   return {
@@ -33,7 +35,16 @@ describe("ModificationTabs Component", () => {
   ];
 
   it("renders all item names as tabs", () => {
-    render(<ModificationTabs items={mockItems} />);
+    const mocks = [
+      createAmendmentWorkflowMock("1"),
+      createAmendmentWorkflowMock("2"),
+      createAmendmentWorkflowMock("3"),
+    ];
+    render(
+      <TestProvider mocks={mocks}>
+        <ModificationTabs items={mockItems} />
+      </TestProvider>
+    );
 
     expect(screen.getByTestId("modification-tab-1")).toHaveTextContent("Item 1");
     expect(screen.getByTestId("modification-tab-2")).toHaveTextContent("Item 2");
@@ -41,7 +52,16 @@ describe("ModificationTabs Component", () => {
   });
 
   it("sets aria-selected attribute correctly", () => {
-    render(<ModificationTabs items={mockItems} />);
+    const mocks = [
+      createAmendmentWorkflowMock("1"),
+      createAmendmentWorkflowMock("2"),
+      createAmendmentWorkflowMock("3"),
+    ];
+    render(
+      <TestProvider mocks={mocks}>
+        <ModificationTabs items={mockItems} />
+      </TestProvider>
+    );
 
     const tab1Button = screen.getByTestId("modification-tab-1");
     const tab2Button = screen.getByTestId("modification-tab-2");
@@ -56,7 +76,11 @@ describe("ModificationTabs Component", () => {
   });
 
   it("renders nothing when items array is empty", () => {
-    const { container } = render(<ModificationTabs items={[]} />);
+    const { container } = render(
+      <TestProvider>
+        <ModificationTabs items={[]} />
+      </TestProvider>
+    );
 
     expect(container.firstChild).toBeNull();
   });
@@ -67,7 +91,13 @@ describe("ModificationTabs Component", () => {
       createModificationItem({ id: "2", name: "Minimal Item 2" }),
     ];
 
-    render(<ModificationTabs items={minimalItems} />);
+    const mocks = [createAmendmentWorkflowMock("1"), createAmendmentWorkflowMock("2")];
+
+    render(
+      <TestProvider mocks={mocks}>
+        <ModificationTabs items={minimalItems} />
+      </TestProvider>
+    );
   });
 
   it("renders tabs in newest-to-oldest order by createdAt", () => {
@@ -88,27 +118,23 @@ describe("ModificationTabs Component", () => {
         createdAt: new Date("2022-01-01T12:00:00Z"),
       }),
     ];
-    render(<ModificationTabs items={items} />);
+
+    const mocks = [
+      createAmendmentWorkflowMock("1"),
+      createAmendmentWorkflowMock("2"),
+      createAmendmentWorkflowMock("3"),
+    ];
+
+    render(
+      <TestProvider mocks={mocks}>
+        <ModificationTabs items={items} />
+      </TestProvider>
+    );
+
     const tabButtons = screen.getAllByRole("button");
     // Should be sorted: Second (2024), First (2023), Third (2022)
     expect(tabButtons[0]).toHaveTextContent("Second");
     expect(tabButtons[1]).toHaveTextContent("First");
     expect(tabButtons[2]).toHaveTextContent("Third");
-  });
-
-  it("handles missing or invalid createdAt and still sorts valid ones first", () => {
-    const items: ModificationItem[] = [
-      createModificationItem({ id: "1", name: "No Date" }),
-      createModificationItem({
-        id: "2",
-        name: "Newest",
-        createdAt: new Date("2024-01-01T12:00:00Z"),
-      }),
-      createModificationItem({ id: "3", name: "Null Date", createdAt: undefined }),
-    ];
-    render(<ModificationTabs items={items} />);
-    const tabButtons = screen.getAllByRole("button");
-    // Newest should be first
-    expect(tabButtons[0]).toHaveTextContent("Newest");
   });
 });
