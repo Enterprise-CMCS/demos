@@ -6,7 +6,7 @@ import { Option } from "./Select";
 const LABEL_CLASSES = tw`text-text-font font-semibold text-field-label flex gap-0-5`;
 const INPUT_CLASSES = tw`w-full border border-border-fields rounded px-1 py-1
   text-text-font bg-surface-white disabled:bg-surface-disabled
-  disabled:text-text-placeholder placeholder-text-placeholder focus:outline-none 
+  disabled:text-text-placeholder placeholder-text-placeholder focus:outline-none
   focus:border-border-focus focus:ring-1 focus:ring-border-focus appearance-none text-sm`;
 const ICON_CLASSES = tw`text-text-placeholder w-2 h-1`;
 const LIST_CLASSES = tw`absolute z-10 w-full bg-surface-white border border-border-fields rounded mt-0.5 max-h-56 overflow-auto shadow-sm`;
@@ -43,6 +43,11 @@ export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = (
   const [activeIndex, setActiveIndex] = useState(-1);
   const [selected, setSelected] = useState<string[]>(defaultValues);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const displayValue =
+    !isOpen && selected.length > 0
+      ? selected.map((v) => options.find((o) => o.value === v)?.label ?? v).join(", ")
+      : inputValue;
 
   // Sync external controlled values
   useEffect(() => {
@@ -116,8 +121,13 @@ export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = (
           id={id}
           type="text"
           placeholder={placeholder}
-          value={inputValue}
-          onFocus={() => !isDisabled && setIsOpen(true)}
+          value={displayValue}
+          onFocus={() => {
+            if (!isDisabled) {
+              setInputValue("");
+              setIsOpen(true);
+            }
+          }}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={onKeyDown}
           required={isRequired && selected.length === 0}
