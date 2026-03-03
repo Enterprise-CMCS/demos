@@ -182,7 +182,10 @@ describe("file-process", () => {
       vi.spyOn(S3Client.prototype, "send").mockImplementation(mockSend);
 
       const mockClient = {
-        query: vi.fn().mockResolvedValue({ rows: [{ application_id: "1" }] }),
+        query: vi
+          .fn()
+          .mockResolvedValueOnce({ rows: [{ application_id: "1" }] })
+          .mockResolvedValueOnce({ rows: [{ p_document_type_id: "State Application" }] }),
       };
       console.log("mockEventBase", mockEventBase);
       await processGuardDutyResult(mockClient, mockEventBase);
@@ -197,7 +200,8 @@ describe("file-process", () => {
       );
       expect(logInfoSpy).toHaveBeenNthCalledWith(
         3,
-        expect.stringContaining("successfully processed clean file in database.")
+        { documentTypeId: "State Application" },
+        "successfully processed clean file in database."
       );
       expect(mockSend).toHaveBeenCalledTimes(2);
       expect(mockClient.query).toHaveBeenCalledTimes(2);
@@ -209,18 +213,26 @@ describe("file-process", () => {
   });
 
   describe("processCleanDatabaseRecord", () => {
-    it("should call the database with correct parameters", async () => {
+    it("should call the database with correct parameters and return the document type", async () => {
       const mockClient = {
-        query: vi.fn().mockResolvedValue({ rows: [] }),
+        query: vi.fn().mockResolvedValue({ rows: [{ p_document_type_id: "State Application" }] }),
       };
 
-      await processCleanDatabaseRecord(mockClient, "test-doc-id", "test-app-id");
+      const documentTypeId = await processCleanDatabaseRecord(
+        mockClient,
+        "test-doc-id",
+        "test-app-id"
+      );
 
       expect(mockClient.query).toHaveBeenCalledWith(
         "CALL demos_app.move_document_from_pending_to_clean($1::UUID, $2::TEXT);",
         ["test-doc-id", "test-app-id/test-doc-id"]
       );
-      expect(logInfoSpy).toHaveBeenCalledWith("successfully processed clean file in database.");
+      expect(documentTypeId).toBe("State Application");
+      expect(logInfoSpy).toHaveBeenCalledWith(
+        { documentTypeId: "State Application" },
+        "successfully processed clean file in database."
+      );
     });
 
     it("should throw error if database query fails", async () => {
@@ -231,6 +243,16 @@ describe("file-process", () => {
       await expect(
         processCleanDatabaseRecord(mockClient, "test-doc-id", "test-app-id")
       ).rejects.toThrow("database error");
+    });
+
+    it("should throw if the procedure does not return a document type", async () => {
+      const mockClient = {
+        query: vi.fn().mockResolvedValue({ rows: [{}] }),
+      };
+
+      await expect(
+        processCleanDatabaseRecord(mockClient, "test-doc-id", "test-app-id")
+      ).rejects.toThrow("No document type returned for document test-doc-id.");
     });
   });
 
@@ -320,7 +342,10 @@ describe("file-process", () => {
         }),
       }));
 
-      mockQuery.mockResolvedValue({ rows: [{ application_id: "1" }] });
+      mockQuery
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [{ application_id: "1" }] })
+        .mockResolvedValueOnce({ rows: [{ p_document_type_id: "State Application" }] });
 
       await handler(
         {
@@ -357,7 +382,8 @@ describe("file-process", () => {
       );
       expect(logInfoSpy).toHaveBeenNthCalledWith(
         3,
-        expect.stringContaining("successfully processed clean file in database.")
+        { documentTypeId: "State Application" },
+        "successfully processed clean file in database."
       );
       expect(logInfoSpy).toHaveBeenNthCalledWith(
         4,
