@@ -15,3 +15,5 @@ export const ALL_MOCKS = [
   ...demonstrationTypeAssignmentMocks,
   ...workflowMocks,
 ];
+
+export { createAmendmentWorkflowMock, createExtensionWorkflowMock } from "./workflowMocks";

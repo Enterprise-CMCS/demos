@@ -3,7 +3,6 @@ import { describe, it, expect } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ModificationTabs, ModificationItem } from "./ModificationTabs";
 import { TestProvider } from "test-utils/TestProvider";
-import { createAmendmentWorkflowMock } from "mock-data/workflowMocks";
 
 const createModificationItem = (overrides?: Partial<ModificationItem>): ModificationItem => {
   return {
@@ -35,13 +34,8 @@ describe("ModificationTabs Component", () => {
   ];
 
   it("renders all item names as tabs", () => {
-    const mocks = [
-      createAmendmentWorkflowMock("1"),
-      createAmendmentWorkflowMock("2"),
-      createAmendmentWorkflowMock("3"),
-    ];
     render(
-      <TestProvider mocks={mocks}>
+      <TestProvider>
         <ModificationTabs items={mockItems} />
       </TestProvider>
     );
@@ -52,13 +46,8 @@ describe("ModificationTabs Component", () => {
   });
 
   it("sets aria-selected attribute correctly", () => {
-    const mocks = [
-      createAmendmentWorkflowMock("1"),
-      createAmendmentWorkflowMock("2"),
-      createAmendmentWorkflowMock("3"),
-    ];
     render(
-      <TestProvider mocks={mocks}>
+      <TestProvider>
         <ModificationTabs items={mockItems} />
       </TestProvider>
     );
@@ -91,10 +80,8 @@ describe("ModificationTabs Component", () => {
       createModificationItem({ id: "2", name: "Minimal Item 2" }),
     ];
 
-    const mocks = [createAmendmentWorkflowMock("1"), createAmendmentWorkflowMock("2")];
-
     render(
-      <TestProvider mocks={mocks}>
+      <TestProvider>
         <ModificationTabs items={minimalItems} />
       </TestProvider>
     );
@@ -119,14 +106,8 @@ describe("ModificationTabs Component", () => {
       }),
     ];
 
-    const mocks = [
-      createAmendmentWorkflowMock("1"),
-      createAmendmentWorkflowMock("2"),
-      createAmendmentWorkflowMock("3"),
-    ];
-
     render(
-      <TestProvider mocks={mocks}>
+      <TestProvider>
         <ModificationTabs items={items} />
       </TestProvider>
     );
