@@ -8,15 +8,15 @@ type DateFilterValue = {
 };
 
 export function createDateColumnDef<
-  T,
-  K extends keyof T & string
+  RowData,
+  FieldName extends keyof RowData & string
 >(
-  columnHelper: ColumnHelper<T>,
-  fieldName: K,
+  columnHelper: ColumnHelper<RowData>,
+  fieldName: FieldName,
   header: string
 ) {
   return columnHelper.accessor(
-    (row: T) => row[fieldName],
+    (row: RowData) => row[fieldName],
     {
       id: fieldName,
       header,
