@@ -1,7 +1,7 @@
 import React from "react";
 import { ApplicationStatusBadge } from "components/badge/ApplicationStatusBadge";
 import { PhaseSelector, WorkflowApplication } from "components/application";
-import type { Amendment, Demonstration, Person } from "demos-server";
+import type { Amendment } from "demos-server";
 import { gql, useQuery } from "@apollo/client";
 import { Loading } from "components/loading/Loading";
 import { WORKFLOW_PHASE_FIELDS, WORKFLOW_DOCUMENT_FIELDS } from "fragments";

@@ -70,7 +70,6 @@ export const useSkipConceptPhase = () => {
   const [mutate, { data, loading, error }] = useMutation(SKIP_CONCEPT_PHASE_MUTATION);
 
   const skipConceptPhase = async (applicationId: string) => {
-    console.log("skipConceptPhase called with applicationId:", applicationId);
     return await mutate({
       variables: { applicationId },
       refetchQueries: [
