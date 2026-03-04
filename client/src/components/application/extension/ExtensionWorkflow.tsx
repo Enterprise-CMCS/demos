@@ -4,6 +4,7 @@ import { PhaseSelector, WorkflowApplication } from "components/application";
 import type { Extension, Demonstration, Person } from "demos-server";
 import { gql, useQuery } from "@apollo/client";
 import { Loading } from "components/loading/Loading";
+import { WORKFLOW_PHASE_FIELDS, WORKFLOW_DOCUMENT_FIELDS } from "fragments";
 
 const EXTENSION_WORKFLOW_QUERY_NAME = "GetExtensionWorkflow";
 
@@ -27,33 +28,16 @@ export const GET_EXTENSION_WORKFLOW_QUERY = gql`
         }
       }
       phases {
-        phaseName
-        phaseStatus
-        phaseDates {
-          dateType
-          dateValue
-        }
-        phaseNotes {
-          noteType
-          content
-        }
+        ...WORKFLOW_PHASE_FIELDS
       }
       tags
       documents {
-        id
-        name
-        description
-        documentType
-        phaseName
-        createdAt
-        owner {
-          person {
-            fullName
-          }
-        }
+        ...WORKFLOW_DOCUMENT_FIELDS
       }
     }
   }
+  ${WORKFLOW_PHASE_FIELDS}
+  ${WORKFLOW_DOCUMENT_FIELDS}
 `;
 
 export type ApplicationWorkflowExtension = WorkflowApplication &

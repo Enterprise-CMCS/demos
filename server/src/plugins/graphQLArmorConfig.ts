@@ -12,6 +12,7 @@ export const GraphQLArmorConfig = {
     onReject: [logRejection],
   },
   maxDepth: {
+    n: 8,
     onReject: [logRejection],
   },
   maxDirectives: {
