@@ -4,6 +4,7 @@ import { eventMocks } from "./eventMocks";
 import { personMocks } from "./personMocks";
 import { tagMocks } from "./TagMocks";
 import { userMocks } from "./userMocks";
+import { workflowMocks } from "./workflowMocks";
 
 export const ALL_MOCKS = [
   ...userMocks,
@@ -12,4 +13,5 @@ export const ALL_MOCKS = [
   ...personMocks,
   ...tagMocks,
   ...demonstrationTypeAssignmentMocks,
+  ...workflowMocks,
 ];
