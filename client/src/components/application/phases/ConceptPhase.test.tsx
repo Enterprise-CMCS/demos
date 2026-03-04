@@ -54,11 +54,6 @@ const mockPO = {
 const TEST_APPLICATION_ID = "test-app-id";
 
 describe("ConceptPhase", () => {
-  const defaultProps: ConceptProps = {
-    applicationId: TEST_APPLICATION_ID,
-    initialPreSubmissionDocuments: [],
-  };
-
   const mockPreSubmissionDocument: ApplicationWorkflowDocument = {
     id: "1",
     name: "Pre-Submission Document 1",
@@ -67,6 +62,11 @@ describe("ConceptPhase", () => {
     phaseName: "Concept",
     owner: { person: { fullName: "John Doe" } },
     createdAt: new Date("2024-01-15"),
+  };
+
+  const defaultProps: ConceptProps = {
+    applicationId: TEST_APPLICATION_ID,
+    documents: [mockPreSubmissionDocument],
   };
 
   const setup = (props: Partial<ConceptProps> = {}) => {
@@ -111,17 +111,17 @@ describe("ConceptPhase", () => {
     });
 
     it("shows 'No documents yet' when no documents", () => {
-      setup();
+      setup({ documents: [] });
       expect(screen.getByText("No documents yet.")).toBeInTheDocument();
     });
 
     it("displays Pre-Submission documents when provided", () => {
-      setup({ initialPreSubmissionDocuments: [mockPreSubmissionDocument] });
+      setup();
       expect(screen.getByText("Pre-Submission Document 1")).toBeInTheDocument();
     });
 
     it("renders delete button for each document", () => {
-      setup({ initialPreSubmissionDocuments: [mockPreSubmissionDocument] });
+      setup();
       const deleteButton = screen.getByLabelText("Delete Pre-Submission Document 1");
       expect(deleteButton).toBeInTheDocument();
     });
@@ -147,13 +147,13 @@ describe("ConceptPhase", () => {
 
   describe("Button Logic", () => {
     it("Finish button is disabled initially", () => {
-      setup();
+      setup({ documents: [] });
       const finishButton = screen.getByRole("button", { name: /finish/i });
       expect(finishButton).toBeDisabled();
     });
 
     it("Finish button is enabled when a presubmission document is uploaded and date is populated", () => {
-      setup({ initialPreSubmissionDocuments: [mockPreSubmissionDocument] });
+      setup();
       const finishButton = screen.getByRole("button", { name: /finish/i });
       expect(finishButton).toBeEnabled();
     });
@@ -168,7 +168,7 @@ describe("ConceptPhase", () => {
         owner: { person: { fullName: "John Doe" } },
         createdAt: new Date("2024-01-20"),
       };
-      setup({ initialPreSubmissionDocuments: [generalDocument] });
+      setup({ documents: [generalDocument] });
 
       const dateInput = screen.getByLabelText(/Pre-Submission Document Submitted Date/);
       userEvent.type(dateInput, "2024-02-20");
@@ -178,13 +178,13 @@ describe("ConceptPhase", () => {
     });
 
     it("Skip button is enabled initially when no activity", () => {
-      setup();
+      setup({ documents: [] });
       const skipButton = screen.getByRole("button", { name: /skip/i });
       expect(skipButton).toBeEnabled();
     });
 
     it("Skip button is disabled when documents exist", () => {
-      setup({ initialPreSubmissionDocuments: [mockPreSubmissionDocument] });
+      setup();
       const skipButton = screen.getByRole("button", { name: /skip/i });
       expect(skipButton).toBeDisabled();
     });
@@ -199,7 +199,7 @@ describe("ConceptPhase", () => {
 
     it("calls completePhase mutation on click of finish button", async () => {
       const user = userEvent.setup();
-      setup({ initialPreSubmissionDocuments: [mockPreSubmissionDocument] });
+      setup();
       const finishButton = screen.getByRole("button", { name: /finish/i });
       await user.click(finishButton);
       expect(mockCompletePhase).toHaveBeenCalledWith({
@@ -225,7 +225,7 @@ describe("ConceptPhase", () => {
 
   describe("Validation Logic", () => {
     it("shows required asterisk when documents are uploaded", () => {
-      setup({ initialPreSubmissionDocuments: [mockPreSubmissionDocument] });
+      setup();
 
       const dateLabel = screen.getByText(/Pre-Submission Document Submitted Date/);
       const asterisk = dateLabel.parentElement?.querySelector(".text-text-warn");
@@ -233,7 +233,7 @@ describe("ConceptPhase", () => {
     });
 
     it("does not show required asterisk when no documents", () => {
-      setup();
+      setup({ documents: [] });
 
       const dateLabel = screen.getByText(/Pre-Submission Document Submitted Date/);
       const asterisk = dateLabel.parentElement?.querySelector(".text-text-warn");
@@ -243,7 +243,7 @@ describe("ConceptPhase", () => {
 
   describe("Date Field Behavior", () => {
     it("populates date when a presubmission document with createdAt is provided", () => {
-      setup({ initialPreSubmissionDocuments: [mockPreSubmissionDocument] });
+      setup();
       const dateInput = screen.getByLabelText(
         /Pre-Submission Document Submitted Date/
       ) as HTMLInputElement;
@@ -260,7 +260,7 @@ describe("ConceptPhase", () => {
         owner: { person: { fullName: "John Doe" } },
         createdAt: new Date("2024-01-20"),
       };
-      setup({ initialPreSubmissionDocuments: [generalDocument] });
+      setup({ documents: [generalDocument] });
       const dateInput = screen.getByLabelText(
         /Pre-Submission Document Submitted Date/
       ) as HTMLInputElement;
@@ -382,7 +382,7 @@ describe("ConceptPhase", () => {
 
     it("overrides createdAt date on document with Presubmission Document Submitted Date when both provided", () => {
       setup({
-        initialPreSubmissionDocuments: [mockPreSubmissionDocument],
+        documents: [mockPreSubmissionDocument],
         presubmissionSubmittedDate: "2024-01-10" as LocalDate,
       });
       const dateInput = screen.getByLabelText(

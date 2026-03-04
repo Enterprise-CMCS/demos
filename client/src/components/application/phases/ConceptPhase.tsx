@@ -50,7 +50,7 @@ export const getConceptPhaseComponentFromApplication = (
   return (
     <ConceptPhase
       applicationId={application.id}
-      initialPreSubmissionDocuments={preSubmissionDocuments}
+      documents={preSubmissionDocuments}
       presubmissionSubmittedDate={
         presubmissionSubmittedDate ? formatDateForServer(presubmissionSubmittedDate) : undefined
       }
@@ -78,14 +78,14 @@ const getLatestPresubmissionDocumentDate = (
 
 export interface ConceptProps {
   applicationId: string;
-  initialPreSubmissionDocuments: ApplicationWorkflowDocument[];
+  documents: ApplicationWorkflowDocument[];
   setSelectedPhase?: (phase: PhaseName) => void;
   presubmissionSubmittedDate?: LocalDate;
 }
 
 export const ConceptPhase = ({
   applicationId,
-  initialPreSubmissionDocuments,
+  documents,
   setSelectedPhase,
   presubmissionSubmittedDate,
 }: ConceptProps) => {
@@ -94,11 +94,10 @@ export const ConceptPhase = ({
   const { setApplicationDate } = useSetApplicationDate();
 
   const [submittedDate, setSubmittedDate] = useState<LocalDate | null>(
-    presubmissionSubmittedDate || getLatestPresubmissionDocumentDate(initialPreSubmissionDocuments)
+    presubmissionSubmittedDate || getLatestPresubmissionDocumentDate(documents)
   );
   const [isFinishEnabled, setIsFinishEnabled] = useState<boolean>(false);
   const [isSkipEnabled, setIsSkipEnabled] = useState<boolean>(true);
-  const [documents] = useState<ApplicationWorkflowDocument[]>(initialPreSubmissionDocuments);
 
   const advanceToNextPhase = () => {
     setSelectedPhase?.("Application Intake");
