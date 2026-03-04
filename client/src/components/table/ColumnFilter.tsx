@@ -87,6 +87,7 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
       case "select":
         return (
           <AutoCompleteMultiselect
+            key={selectedColumn}
             label={`${columnDisplayName}`}
             options={filterConfig?.options || []}
             placeholder={`Select ${columnDisplayName}`}

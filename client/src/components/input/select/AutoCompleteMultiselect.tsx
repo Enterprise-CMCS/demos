@@ -44,10 +44,10 @@ export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = (
   const [selected, setSelected] = useState<string[]>(defaultValues);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const displayValue =
-    !isOpen && selected.length > 0
-      ? selected.map((v) => options.find((o) => o.value === v)?.label ?? v).join(", ")
-      : inputValue;
+  const selectedLabels = selected
+    .map((value) => options.find((option) => option.value === value)?.label ?? value)
+    .join(", ");
+  const displayValue = isOpen ? inputValue : selectedLabels;
 
   // Sync external controlled values
   useEffect(() => {
