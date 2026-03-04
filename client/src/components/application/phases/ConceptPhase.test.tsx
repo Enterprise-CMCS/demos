@@ -191,7 +191,7 @@ describe("ConceptPhase", () => {
 
     it("calls skipConceptPhase mutation on click of skip button", async () => {
       const user = userEvent.setup();
-      setup();
+      setup({ documents: [] });
       const skipButton = screen.getByRole("button", { name: /skip/i });
       await user.click(skipButton);
       expect(mockSkipConceptPhase).toHaveBeenCalledWith(TEST_APPLICATION_ID);
@@ -268,7 +268,7 @@ describe("ConceptPhase", () => {
     });
 
     it("allows user to change date manually", async () => {
-      setup();
+      setup({ documents: [] });
       const dateInput = screen.getByLabelText(
         /Pre-Submission Document Submitted Date/
       ) as HTMLInputElement;
