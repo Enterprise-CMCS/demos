@@ -51,9 +51,11 @@ const mockPO = {
   fullName: "Jane Doe",
 };
 
+const TEST_APPLICATION_ID = "test-app-id";
+
 describe("ConceptPhase", () => {
   const defaultProps: ConceptProps = {
-    demonstrationId: "test-demo-id",
+    applicationId: TEST_APPLICATION_ID,
     initialPreSubmissionDocuments: [],
   };
 
@@ -192,7 +194,7 @@ describe("ConceptPhase", () => {
       setup();
       const skipButton = screen.getByRole("button", { name: /skip/i });
       await user.click(skipButton);
-      expect(mockSkipConceptPhase).toHaveBeenCalledWith("test-demo-id");
+      expect(mockSkipConceptPhase).toHaveBeenCalledWith(TEST_APPLICATION_ID);
     });
 
     it("calls completePhase mutation on click of finish button", async () => {
@@ -201,7 +203,7 @@ describe("ConceptPhase", () => {
       const finishButton = screen.getByRole("button", { name: /finish/i });
       await user.click(finishButton);
       expect(mockCompletePhase).toHaveBeenCalledWith({
-        applicationId: "test-demo-id",
+        applicationId: TEST_APPLICATION_ID,
         phaseName: "Concept",
       });
     });
@@ -215,7 +217,7 @@ describe("ConceptPhase", () => {
       await userEvent.click(uploadButton);
 
       expect(showConceptPreSubmissionDocumentUploadDialog).toHaveBeenCalledWith(
-        "test-demo-id",
+        TEST_APPLICATION_ID,
         expect.any(Function)
       );
     });
