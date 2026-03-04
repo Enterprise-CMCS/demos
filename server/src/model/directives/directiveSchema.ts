@@ -1,6 +1,8 @@
 import { gql } from "graphql-tag";
 
 export const directiveSchema = gql`
-  directive @cmsOnly on FIELD_DEFINITION | OBJECT
+  directive @public on FIELD_DEFINITION | OBJECT
+  directive @viewApplication on FIELD_DEFINITION | OBJECT
+  directive @viewDemonstration on FIELD_DEFINITION | OBJECT
   directive @belongsToDemonstration on FIELD_DEFINITION | OBJECT
 `;

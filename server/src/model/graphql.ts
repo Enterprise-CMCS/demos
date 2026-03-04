@@ -103,7 +103,7 @@ import { clearanceLevelSchema } from "./clearanceLevel/clearanceLeveSchema.js";
 import { clearanceLevelResolvers } from "./clearanceLevel/clearanceLevelResolvers.js";
 import { directiveSchema } from "./directives/directiveSchema.js";
 import { makeExecutableSchema } from "graphql-tools";
-import { directiveTransformer } from "./directives/directiveTransformer.js";
+import { authenticationDirectiveTransformer } from "./directives/authenticationDirectiveTransformer.js";
 
 const scalarTypes = [
   JSONObjectDefinition,
@@ -187,6 +187,6 @@ export const resolvers = [
 ];
 
 let schema = makeExecutableSchema({ typeDefs, resolvers });
-schema = directiveTransformer(schema);
+schema = authenticationDirectiveTransformer(schema);
 
 export { schema };

@@ -1,0 +1,9 @@
+DIRECTIVES
+
+Directives are decorators that can be placed in various places on a graphql schema, such as fields, Types, generic Objects, etc. These can be used to supply additional metadata or behaviors onto those elements.  The GraphQL standard comes with a small handful of built-in directives (like @skip and @deprecated) but crucially also supports custom directives.  These custom directives can be leveraged to handle all sorts of behaviors, but in this implementation I have leveraged them for authorization.
+
+
+How it works:
+"Apollo Server does not provide built-in support for custom directives that transform a schema.", unfortunately. However, by utilizing graphql-tools, a library we are already utilizing, we can easily make this work.  Essentially, we can build out schema, pass it through a transformer function which will analyize our directives and add additional behavior wherever they are found. In graphql.ts I build out the schema, pass it through a directiveTransformer function, and pass the result to our apollo-server. 
+
+In the directiveTransformer, we essentially wrap each of our resolvers in a new function. That function will first call the original resolver and hold the result. Then it will pull the list of directives on the field or type and for each directive pass the result and relevent contexts to a validation function mapped to each resolver

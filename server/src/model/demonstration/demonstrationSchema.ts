@@ -19,16 +19,16 @@ import {
 } from "../../types.js";
 
 export const demonstrationSchema = gql`
-  type Demonstration @cmsOnly @belongsToDemonstration{
-    id: ID!
-    name: NonEmptyString!
-    description: String
-    effectiveDate: DateTime
-    expirationDate: DateTime
+  type Demonstration @viewApplication {
+    id: ID! @viewDemonstration
+    name: NonEmptyString! @viewDemonstration
+    description: String @viewDemonstration
+    effectiveDate: DateTime @viewDemonstration
+    expirationDate: DateTime @viewDemonstration
     sdgDivision: SdgDivision
     signatureLevel: SignatureLevel
     status: ApplicationStatus!
-    state: State!
+    state: State! @viewDemonstration
     currentPhaseName: PhaseName!
     phases: [ApplicationPhase!]!
     documents: [Document!]!
@@ -37,10 +37,10 @@ export const demonstrationSchema = gql`
     createdAt: DateTime!
     updatedAt: DateTime!
     roles: [DemonstrationRoleAssignment!]!
-    primaryProjectOfficer: Person!
+    primaryProjectOfficer: Person! @viewDemonstration
     clearanceLevel: ClearanceLevel!
-    tags: [Tag!]!
-    demonstrationTypes: [DemonstrationTypeAssignment!]!
+    tags: [Tag!]! @viewDemonstration
+    demonstrationTypes: [DemonstrationTypeAssignment!]! @viewDemonstration
   }
 
   input CreateDemonstrationInput {
@@ -71,8 +71,8 @@ export const demonstrationSchema = gql`
   }
 
   type Query {
-    demonstrations: [Demonstration!]! @cmsOnly @belongsToDemonstration
-    demonstration(id: ID!): Demonstration @cmsOnly @belongsToDemonstration
+    demonstrations: [Demonstration!]! @public
+    demonstration(id: ID!): Demonstration @public
   }
 `;
 

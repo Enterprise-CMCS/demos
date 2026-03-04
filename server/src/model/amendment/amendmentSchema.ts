@@ -54,8 +54,8 @@ export const amendmentSchema = gql`
   }
 
   type Query {
-    amendments: [Amendment!]!
-    amendment(id: ID!): Amendment
+    amendments: [Amendment!]! @viewApplication
+    amendment(id: ID!): Amendment @viewApplication
   }
 `;
 

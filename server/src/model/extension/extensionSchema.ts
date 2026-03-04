@@ -14,9 +14,9 @@ import {
 } from "../../types.js";
 
 export const extensionSchema = gql`
-  type Extension @cmsOnly {
+  type Extension {
     id: ID!
-    demonstration: Demonstration!
+    demonstration: Demonstration! @belongsToDemonstration
     name: NonEmptyString!
     description: String
     effectiveDate: DateTime
