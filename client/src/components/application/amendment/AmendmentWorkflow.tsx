@@ -12,17 +12,13 @@ export const GET_AMENDMENT_WORKFLOW_QUERY = gql`
   query ${AMENDMENT_WORKFLOW_QUERY_NAME}($id: ID!) {
     amendment(id: $id) {
       id
-      name
-      description
-      status
       currentPhaseName
-      effectiveDate
-      signatureLevel
       clearanceLevel
+      status
+      tags
       phases {
         ...WORKFLOW_PHASE_FIELDS
       }
-      tags
       documents {
         ...WORKFLOW_DOCUMENT_FIELDS
       }
@@ -32,12 +28,7 @@ export const GET_AMENDMENT_WORKFLOW_QUERY = gql`
   ${WORKFLOW_DOCUMENT_FIELDS}
 `;
 
-export type ApplicationWorkflowAmendment = WorkflowApplication &
-  Pick<Amendment, "status" | "name" | "effectiveDate" | "signatureLevel" | "description"> & {
-    demonstration: Pick<Demonstration, "id" | "name"> & {
-      primaryProjectOfficer: Pick<Person, "id" | "fullName">;
-    };
-  };
+export type ApplicationWorkflowAmendment = WorkflowApplication & Pick<Amendment, "status">;
 
 export const AmendmentWorkflow = ({ amendmentId }: { amendmentId: string }) => {
   const { data, loading, error } = useQuery<{ amendment: ApplicationWorkflowAmendment }>(
