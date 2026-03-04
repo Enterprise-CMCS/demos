@@ -98,7 +98,7 @@ export const ConceptPhase = ({
   );
   const [isFinishEnabled, setIsFinishEnabled] = useState<boolean>(false);
   const [isSkipEnabled, setIsSkipEnabled] = useState<boolean>(true);
-  const [documents] = useState<ApplicationWorkflowDocument[]>(initialPreSubmissionDocuments);
+  const documents = initialPreSubmissionDocuments;
 
   const advanceToNextPhase = () => {
     setSelectedPhase?.("Application Intake");
