@@ -99,6 +99,12 @@ describe("DemosRouter", () => {
     waitFor(() => expect(screen.getByText("DemonstrationsPage")).toBeInTheDocument());
   });
 
+  it("renders the Deliverables page at /deliverables", () => {
+    window.history.pushState({}, "Deliverables", "/deliverables");
+    render(<DemosRouter />);
+    waitFor(() => expect(screen.getByText("DeliverablesPage")).toBeInTheDocument());
+  });
+
   it("renders debug routes in development mode", () => {
     (envMod.isLocalDevelopment as unknown as Mock).mockReturnValue(true);
 
