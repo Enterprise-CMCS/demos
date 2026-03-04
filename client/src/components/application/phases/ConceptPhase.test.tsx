@@ -100,7 +100,7 @@ describe("ConceptPhase", () => {
       setup();
       expect(screen.getByText("STEP 1 - UPLOAD")).toBeInTheDocument();
       expect(
-        screen.getByText(/Upload the Pre-Submission Document describing your demonstration/)
+        screen.getByText(/Upload the Pre-Submission Document describing your application/)
       ).toBeInTheDocument();
     });
 
