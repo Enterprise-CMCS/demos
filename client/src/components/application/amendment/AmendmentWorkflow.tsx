@@ -19,14 +19,6 @@ export const GET_AMENDMENT_WORKFLOW_QUERY = gql`
       effectiveDate
       signatureLevel
       clearanceLevel
-      demonstration {
-        id
-        name
-        primaryProjectOfficer {
-          id
-          fullName
-        }
-      }
       phases {
         ...WORKFLOW_PHASE_FIELDS
       }

@@ -1,6 +1,10 @@
 import type { CompletePhaseInput } from "demos-server";
 import { gql, useMutation } from "@apollo/client";
-import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "../demonstration/DemonstrationWorkflow";
+import {
+  GET_AMENDMENT_WORKFLOW_QUERY,
+  GET_EXTENSION_WORKFLOW_QUERY,
+  GET_WORKFLOW_DEMONSTRATION_QUERY,
+} from "components/application";
 
 const COMPLETE_PHASE_MUTATION = gql`
   mutation CompletePhase($input: CompletePhaseInput!) {
@@ -16,7 +20,11 @@ export const useCompletePhase = () => {
   const completePhase = async (input: CompletePhaseInput) => {
     return await mutate({
       variables: { input },
-      refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+      refetchQueries: [
+        GET_WORKFLOW_DEMONSTRATION_QUERY,
+        GET_AMENDMENT_WORKFLOW_QUERY,
+        GET_EXTENSION_WORKFLOW_QUERY,
+      ],
     });
   };
 
@@ -39,7 +47,11 @@ export const useDeclareCompletenessPhaseIncomplete = () => {
   const declareCompletenessPhaseIncomplete = async (applicationId: string) => {
     return await mutate({
       variables: { applicationId },
-      refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+      refetchQueries: [
+        GET_WORKFLOW_DEMONSTRATION_QUERY,
+        GET_AMENDMENT_WORKFLOW_QUERY,
+        GET_EXTENSION_WORKFLOW_QUERY,
+      ],
     });
   };
 
@@ -58,9 +70,14 @@ export const useSkipConceptPhase = () => {
   const [mutate, { data, loading, error }] = useMutation(SKIP_CONCEPT_PHASE_MUTATION);
 
   const skipConceptPhase = async (applicationId: string) => {
+    console.log("skipConceptPhase called with applicationId:", applicationId);
     return await mutate({
       variables: { applicationId },
-      refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+      refetchQueries: [
+        GET_WORKFLOW_DEMONSTRATION_QUERY,
+        GET_AMENDMENT_WORKFLOW_QUERY,
+        GET_EXTENSION_WORKFLOW_QUERY,
+      ],
     });
   };
 
