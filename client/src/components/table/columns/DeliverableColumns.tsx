@@ -2,10 +2,8 @@
 import * as React from "react";
 
 import { createColumnHelper } from "@tanstack/react-table";
-
-import { isAfter, isBefore, isSameDay } from "date-fns";
-import { formatDate } from "util/formatDate";
 import { createSelectColumnDef } from "./selectColumn";
+import { createDateColumnDef } from "./dateColumn";
 import { STATES_AND_TERRITORIES } from "demos-server-constants";
 
 import { SecondaryButton } from "../../button/SecondaryButton";
@@ -41,37 +39,7 @@ export function DeliverableColumns() {
       header: "Deliverable Type",
       cell: highlightCell,
     }),
-    columnHelper.accessor("dueDate", {
-      header: "Due Date",
-      cell: ({ getValue }) => {
-        const dateValue = getValue();
-        return formatDate(dateValue);
-      },
-      filterFn: (row, columnId, filterValue) => {
-        const dateValue = row.getValue(columnId) as string;
-        const date: Date = new Date(dateValue);
-        const { start, end } = filterValue || {};
-        if (start && end) {
-          return (
-            isSameDay(date, start) ||
-            isSameDay(date, end) ||
-            (isAfter(date, start) && isBefore(date, end))
-          );
-        }
-        if (start) {
-          return isSameDay(date, start) || isAfter(date, start);
-        }
-        if (end) {
-          return isSameDay(date, end) || isBefore(date, end);
-        }
-        return true;
-      },
-      meta: {
-        filterConfig: {
-          filterType: "date",
-        },
-      },
-    }),
+    createDateColumnDef(columnHelper, "dueDate", "Due Date"),
     columnHelper.accessor("name", {
       header: "Deliverable Name",
       cell: highlightCell,
