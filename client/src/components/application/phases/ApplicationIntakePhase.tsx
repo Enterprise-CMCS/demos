@@ -17,7 +17,7 @@ import { getPhaseCompletedMessage } from "util/messages";
 import { useToast } from "components/toast";
 import { DatePicker } from "components/input/date/DatePicker";
 import { DemonstrationHealthTypeTags } from "components/tags/DemonstrationHealthTypeTags";
-import type { DateTimeOrLocalDate } from "demos-server";
+import type { DateTimeOrLocalDate, PhaseStatus } from "demos-server";
 import { SET_APPLICATION_TAGS_MUTATION } from "components/dialog/ApplyTagsDialog";
 
 /** Business Rules for this Phase:
@@ -82,6 +82,7 @@ interface VerifyCompleteSectionProps {
   onDateChange: (newDate: string) => void;
   isFinishButtonEnabled: boolean;
   onFinish: () => void;
+  isPhaseFinalized: boolean;
 }
 
 const VerifyCompleteSection = ({
@@ -90,6 +91,7 @@ const VerifyCompleteSection = ({
   onDateChange,
   isFinishButtonEnabled,
   onFinish,
+  isPhaseFinalized,
 }: VerifyCompleteSectionProps) => (
   <div aria-labelledby="state-application-verify-title">
     <div className={STYLES.stepEyebrow}>Step 2 - Verify/Complete</div>
@@ -109,6 +111,7 @@ const VerifyCompleteSection = ({
           onChange={onDateChange}
           isRequired
           aria-required="true"
+          isDisabled={isPhaseFinalized}
         />
         {!hasDocuments && stateApplicationSubmittedDate && (
           <div className="text-xs text-text-warn mt-1">
@@ -172,6 +175,7 @@ export const getApplicationIntakeComponentFromApplication = (
       }
       initialSelectedTags={application.tags}
       setSelectedPhase={setSelectedPhase}
+      phaseStatus={applicationIntakePhase?.phaseStatus ?? "Not Started"}
     />
   );
 };
@@ -181,6 +185,7 @@ export interface ApplicationIntakeProps {
   initialStateApplicationSubmittedDate: string;
   initialSelectedTags: string[];
   setSelectedPhase?: (phase: PhaseName) => void;
+  phaseStatus: PhaseStatus;
 }
 
 export const ApplicationIntakePhase = ({
@@ -189,6 +194,7 @@ export const ApplicationIntakePhase = ({
   initialStateApplicationSubmittedDate,
   initialSelectedTags,
   setSelectedPhase,
+  phaseStatus,
 }: ApplicationIntakeProps) => {
   const { showSuccess, showError } = useToast();
   const { showApplicationIntakeDocumentUploadDialog } = useDialog();
@@ -198,6 +204,8 @@ export const ApplicationIntakePhase = ({
     initialStateApplicationSubmittedDate ?? ""
   );
   const [selectedTags, setSelectedTags] = useState<string[]>(initialSelectedTags);
+
+  const isPhaseFinalized = phaseStatus === "Completed";
 
   const { completePhase } = useCompletePhase();
 
@@ -209,7 +217,7 @@ export const ApplicationIntakePhase = ({
 
   const hasDocuments = initialStateApplicationDocuments.length > 0;
   const hasSubmittedDate = Boolean(stateApplicationSubmittedDate);
-  const isFinishButtonEnabled = hasDocuments && hasSubmittedDate;
+  const isFinishButtonEnabled = hasDocuments && hasSubmittedDate && !isPhaseFinalized;
 
   const onFinishButtonClick = async () => {
     await completePhase({
@@ -289,6 +297,7 @@ export const ApplicationIntakePhase = ({
             onDateChange={handleDateChange}
             isFinishButtonEnabled={isFinishButtonEnabled}
             onFinish={onFinishButtonClick}
+            isPhaseFinalized={isPhaseFinalized}
           />
         </div>
         <div className="mt-8">

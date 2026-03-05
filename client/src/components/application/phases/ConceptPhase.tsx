@@ -13,7 +13,7 @@ import { getPhaseCompletedMessage } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import { PhaseName } from "../phase-selector/PhaseSelector";
-import type { LocalDate, UploadDocumentInput } from "demos-server";
+import type { LocalDate, PhaseStatus, UploadDocumentInput } from "demos-server";
 import { useCompletePhase, useSkipConceptPhase } from "../phase-status/phaseCompletionQueries";
 
 const STYLES = {
@@ -55,6 +55,7 @@ export const getConceptPhaseComponentFromApplication = (
         presubmissionSubmittedDate ? formatDateForServer(presubmissionSubmittedDate) : undefined
       }
       setSelectedPhase={setSelectedPhase}
+      phaseStatus={conceptPhase.phaseStatus}
     />
   );
 };
@@ -81,6 +82,7 @@ export interface ConceptProps {
   documents: ApplicationWorkflowDocument[];
   setSelectedPhase?: (phase: PhaseName) => void;
   presubmissionSubmittedDate?: LocalDate;
+  phaseStatus: PhaseStatus;
 }
 
 export const ConceptPhase = ({
@@ -88,6 +90,7 @@ export const ConceptPhase = ({
   documents,
   setSelectedPhase,
   presubmissionSubmittedDate,
+  phaseStatus,
 }: ConceptProps) => {
   const { showSuccess } = useToast();
   const { showConceptPreSubmissionDocumentUploadDialog } = useDialog();
@@ -99,17 +102,20 @@ export const ConceptPhase = ({
   const [isFinishEnabled, setIsFinishEnabled] = useState<boolean>(false);
   const [isSkipEnabled, setIsSkipEnabled] = useState<boolean>(true);
 
+  const isPhaseFinalized = phaseStatus === "Completed" || phaseStatus === "Skipped";
+
   const advanceToNextPhase = () => {
     setSelectedPhase?.("Application Intake");
   };
 
   useEffect(() => {
     const finishShouldBeEnabled =
+      !isPhaseFinalized &&
       documents.filter((document) => document.documentType === "Pre-Submission").length > 0 &&
       !!submittedDate;
     setIsFinishEnabled(finishShouldBeEnabled);
-    setIsSkipEnabled(!finishShouldBeEnabled);
-  }, [submittedDate, documents]);
+    setIsSkipEnabled(!finishShouldBeEnabled && !isPhaseFinalized);
+  }, [submittedDate, documents, isPhaseFinalized]);
 
   const { completePhase } = useCompletePhase();
   const { skipConceptPhase } = useSkipConceptPhase();
@@ -222,6 +228,7 @@ export const ConceptPhase = ({
             }}
             isRequired={documents.length > 0}
             getValidationMessage={getDateValidationMessage}
+            isDisabled={isPhaseFinalized}
           />
         </div>
       </div>
