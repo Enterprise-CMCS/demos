@@ -105,9 +105,12 @@ export const getApprovalSummaryPhaseFromApplication = (
     (d) => d.dateType === "Application Demonstration Types Marked Complete Date"
   )?.dateValue;
 
-  const currentPhaseIndex = application.phases.findIndex((p) => p.phaseName === "Approval Summary");
   const allPreviousPhasesDone = application.phases
-    .slice(0, currentPhaseIndex)
+    .filter(
+      (p) =>
+        p.phaseName !== "Concept" &&
+        p.phaseName !== "Approval Summary"
+    )
     .every((phase) => phase.phaseStatus === "Completed" || phase.phaseStatus === "Skipped");
 
   return (

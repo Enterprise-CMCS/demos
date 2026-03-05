@@ -160,14 +160,13 @@ VALUES
     ('None', 'State Application'),
     ('None', 'General File'),
 
-    -- General File is allowed for all phases
+    -- General File is allowed for almost all phases
     ('Concept', 'General File'),
     ('Application Intake', 'General File'),
     ('Completeness', 'General File'),
     ('Federal Comment', 'General File'),
     ('SDG Preparation', 'General File'),
     ('Review', 'General File'),
-    ('Approval Package', 'General File'),
     ('Approval Summary', 'General File'),
 
     -- Now, add phase-specific documents
@@ -176,10 +175,8 @@ VALUES
     ('Completeness', 'Internal Completeness Review Form'),
     ('Completeness', 'Application Completeness Letter'),
     ('Approval Package', 'Approval Letter'),
-    ('Approval Package', 'Final BN Worksheet'),
     ('Approval Package', 'Final Budget Neutrality Formulation Workbook'),
     ('Approval Package', 'Formal OMB Policy Concurrence Email'),
-    ('Approval Package', 'Payment Ratio Analysis'),
     ('Approval Package', 'Q&A'),
     ('Approval Package', 'Signed Decision Memo'),
     ('Approval Package', 'Special Terms & Conditions');

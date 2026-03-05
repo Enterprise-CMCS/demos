@@ -389,17 +389,11 @@ describe("checkPhaseCompletionRules", () => {
       );
       expect(checkApplicationDateExistsForCompletion).not.toBeCalled();
       expect(vi.mocked(checkDocumentTypeExistsForCompletion).mock.calls).toEqual([
+        [testApplicationId, "Approval Package", "Approval Letter", testApplicationDocumentTypes],
         [
           testApplicationId,
           "Approval Package",
           "Final Budget Neutrality Formulation Workbook",
-          testApplicationDocumentTypes,
-        ],
-        [testApplicationId, "Approval Package", "Q&A", testApplicationDocumentTypes],
-        [
-          testApplicationId,
-          "Approval Package",
-          "Special Terms & Conditions",
           testApplicationDocumentTypes,
         ],
         [
@@ -408,7 +402,13 @@ describe("checkPhaseCompletionRules", () => {
           "Formal OMB Policy Concurrence Email",
           testApplicationDocumentTypes,
         ],
-        [testApplicationId, "Approval Package", "Approval Letter", testApplicationDocumentTypes],
+        [
+          testApplicationId,
+          "Approval Package",
+          "Special Terms & Conditions",
+          testApplicationDocumentTypes,
+        ],
+        [testApplicationId, "Approval Package", "Q&A", testApplicationDocumentTypes],
         [
           testApplicationId,
           "Approval Package",

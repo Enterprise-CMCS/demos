@@ -1,0 +1,15 @@
+model BudgetNeutralityWorkbook {
+  id                 String   @db.Uuid
+  documentTypeId     String   @map("document_type_id")
+  validationStatusId String   @map("validation_status_id")
+  validationData     Json     @map("validation_data") @db.Json
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  document         Document                                  @relation(fields: [id, documentTypeId], references: [id, documentTypeId])
+  documentType     BudgetNeutralityWorkbookDocumentTypeLimit @relation(fields: [documentTypeId], references: [id])
+  validationStatus BudgetNeutralityValidationStatus          @relation(fields: [validationStatusId], references: [id])
+
+  @@id([id])
+  @@map("budget_neutrality_workbook")
+}
