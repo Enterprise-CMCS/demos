@@ -23,7 +23,7 @@
   "disclaimerURL": "",
   "disclaimerText": "",
   "vcs": "git",
-  "laborHours": 14472,
+  "laborHours": 14984,
   "reuseFrequency": {
     "forks": 0,
     "clones": 0
@@ -42,9 +42,9 @@
   "languages": [
     "TypeScript",
     "PLpgSQL",
+    "Shell",
     "JavaScript",
     "Python",
-    "Shell",
     "Mermaid",
     "Groovy",
     "CSS",
@@ -62,8 +62,8 @@
   "partners": [],
   "date": {
     "created": "2025-05-08T12:52:27Z",
-    "lastModified": "2026-01-30T21:42:16Z",
-    "metadataLastUpdated": "2026-02-01T00:01:51.772Z"
+    "lastModified": "2026-02-27T20:42:06Z",
+    "metadataLastUpdated": "2026-03-01T00:02:00.688Z"
   },
   "tags": [
     "PMDA",

@@ -9,7 +9,11 @@ import {
   checkPriorPhaseCompleteForCompletion,
   checkPhaseStartedBeforeCompletion,
 } from ".";
-import { CMS_OSORA_CLEARANCE_DATE_TYPES, COMMS_CLEARANCE_DATE_TYPES } from "../../constants.js";
+import {
+  APPROVAL_PACKAGE_PHASE_DOCUMENTS,
+  CMS_OSORA_CLEARANCE_DATE_TYPES,
+  COMMS_CLEARANCE_DATE_TYPES,
+} from "../../constants.js";
 
 const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
   Concept: {
@@ -66,14 +70,7 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
   },
   "Approval Package": {
     datesMustExist: [],
-    documentTypesMustExist: [
-      "Final Budget Neutrality Formulation Workbook",
-      "Q&A",
-      "Special Terms & Conditions",
-      "Formal OMB Policy Concurrence",
-      "Approval Letter",
-      "Signed Decision Memo",
-    ],
+    documentTypesMustExist: APPROVAL_PACKAGE_PHASE_DOCUMENTS,
     phasesMustBeComplete: [
       "Application Intake",
       "Completeness",

@@ -5,10 +5,7 @@ import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
 import { formatDate, formatDateForServer, getTodayEst } from "util/formatDate";
 import { addDays, differenceInCalendarDays, parseISO } from "date-fns";
-import {
-  ApplicationWorkflowDemonstration,
-  ApplicationWorkflowDocument,
-} from "../ApplicationWorkflow";
+import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { useToast } from "components/toast";
 import { DocumentList } from "./sections";
 import {
@@ -53,14 +50,12 @@ const getFederalCommentPeriodDates = (stateDate: string) => {
   return { fedStartDate, fedEndDate };
 };
 
-export const getApplicationCompletenessFromDemonstration = (
-  demonstration: ApplicationWorkflowDemonstration,
+export const getApplicationCompletenessFromApplication = (
+  application: WorkflowApplication,
   setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void
 ) => {
-  const completenessPhase = demonstration.phases.find(
-    (phase) => phase.phaseName === "Completeness"
-  );
-  const applicationIntakePhase = demonstration.phases.find(
+  const completenessPhase = application.phases.find((phase) => phase.phaseName === "Completeness");
+  const applicationIntakePhase = application.phases.find(
     (phase) => phase.phaseName === "Application Intake"
   );
 
@@ -79,13 +74,11 @@ export const getApplicationCompletenessFromDemonstration = (
   const stateDeemedCompleteDate = completenessPhase?.phaseDates.find(
     (date) => date.dateType === "State Application Deemed Complete"
   );
-  const initialDocuments = demonstration.documents.filter(
-    (doc) => doc.phaseName === "Completeness"
-  );
+  const initialDocuments = application.documents.filter((doc) => doc.phaseName === "Completeness");
 
   return (
     <CompletenessPhase
-      applicationId={demonstration.id}
+      applicationId={application.id}
       applicationIntakeComplete={applicationIntakePhase?.phaseStatus === "Completed"}
       completenessReviewDate={
         completenessReviewDate?.dateValue

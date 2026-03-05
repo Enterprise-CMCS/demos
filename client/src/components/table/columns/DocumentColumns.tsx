@@ -5,12 +5,10 @@ import { createColumnHelper } from "@tanstack/react-table";
 
 import { SecondaryButton } from "../../button/SecondaryButton";
 import { highlightCell } from "../KeywordSearch";
-import { isAfter, isBefore, isSameDay } from "date-fns";
-import { formatDate } from "util/formatDate";
 import { createSelectColumnDef } from "./selectColumn";
+import { createDateColumnDef } from "./dateColumn";
 import { DOCUMENT_TYPES } from "demos-server-constants";
 import { DocumentTableDocument } from "../tables/DocumentTable";
-
 export function DocumentColumns() {
   const columnHelper = createColumnHelper<DocumentTableDocument>();
 
@@ -46,37 +44,7 @@ export function DocumentColumns() {
       cell: highlightCell,
       enableColumnFilter: false,
     }),
-    columnHelper.accessor("createdAt", {
-      header: "Date Uploaded",
-      cell: ({ getValue }) => {
-        const dateValue = getValue();
-        return formatDate(dateValue);
-      },
-      filterFn: (row, columnId, filterValue) => {
-        const dateValue = row.getValue(columnId) as string;
-        const date: Date = new Date(dateValue);
-        const { start, end } = filterValue || {};
-        if (start && end) {
-          return (
-            isSameDay(date, start) ||
-            isSameDay(date, end) ||
-            (isAfter(date, start) && isBefore(date, end))
-          );
-        }
-        if (start) {
-          return isSameDay(date, start) || isAfter(date, start);
-        }
-        if (end) {
-          return isSameDay(date, end) || isBefore(date, end);
-        }
-        return true;
-      },
-      meta: {
-        filterConfig: {
-          filterType: "date",
-        },
-      },
-    }),
+    createDateColumnDef(columnHelper, "createdAt", "Date Uploaded"),
     columnHelper.display({
       id: "view",
       header: "View",

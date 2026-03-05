@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import { render, screen, waitFor } from "@testing-library/react";
 
-import { ApplicationWorkflow } from "./ApplicationWorkflow";
+import { DemonstrationWorkflow } from "./DemonstrationWorkflow";
 
 const MOCK_DEMONSTRATION_ID = "mockDemonstrationId";
 
@@ -13,7 +13,7 @@ describe("ApplicationWorkflow", () => {
   it("renders APPLICATION heading", () => {
     render(
       <TestProvider>
-        <ApplicationWorkflow demonstrationId={MOCK_DEMONSTRATION_ID} />
+        <DemonstrationWorkflow demonstrationId={MOCK_DEMONSTRATION_ID} />
       </TestProvider>
     );
     waitFor(() => {

@@ -1,9 +1,14 @@
 import React from "react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ModificationTabSideNav } from "./ModificationTabSideNav";
 import { ModificationItem } from "./ModificationTabs";
 import { DialogProvider } from "components/dialog/DialogContext";
+
+vi.mock("components/application", () => ({
+  AmendmentWorkflow: () => <div data-testid="amendment-workflow">Amendment Workflow</div>,
+  ExtensionWorkflow: () => <div data-testid="extension-workflow">Extension Workflow</div>,
+}));
 
 describe("ModificationTabSideNav", () => {
   const mockModificationItem: ModificationItem = {
@@ -13,12 +18,13 @@ describe("ModificationTabSideNav", () => {
     description: "Test Description",
     status: "Pre-Submission",
     createdAt: new Date(0),
+    documents: [],
   };
 
   const expectedTabs = [
     { label: "Application", value: "application" },
     { label: "Details", value: "details" },
-    { label: "Documents", value: "documents" },
+    { label: "Documents (0)", value: "documents" },
   ];
 
   const setup = (modificationItem: ModificationItem) => {
@@ -71,5 +77,76 @@ describe("ModificationTabSideNav", () => {
 
     expect(detailsTab).toHaveAttribute("aria-selected", "true");
     expect(screen.getByTestId("button-application")).toHaveAttribute("aria-selected", "false");
+  });
+
+  describe("Application tab", () => {
+    it("renders AmendmentWorkflow when modification type is amendment", () => {
+      const amendmentModification: ModificationItem = {
+        ...mockModificationItem,
+        modificationType: "amendment",
+      };
+      setup(amendmentModification);
+
+      expect(screen.getByTestId("amendment-workflow")).toBeInTheDocument();
+      expect(screen.queryByTestId("extension-workflow")).not.toBeInTheDocument();
+    });
+
+    it("renders ExtensionWorkflow when modification type is extension", () => {
+      const extensionModification: ModificationItem = {
+        ...mockModificationItem,
+        modificationType: "extension",
+      };
+      setup(extensionModification);
+
+      expect(screen.getByTestId("extension-workflow")).toBeInTheDocument();
+      expect(screen.queryByTestId("amendment-workflow")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("Documents tab", () => {
+    it("displays correct document count in tab label with 0 documents", () => {
+      setup(mockModificationItem);
+
+      const documentsTab = screen.getByTestId("button-documents");
+      expect(documentsTab).toHaveTextContent("Documents (0)");
+    });
+
+    it("displays correct document count in tab label with non-zero documents", () => {
+      const modificationWithDocs: ModificationItem = {
+        ...mockModificationItem,
+        documents: [{
+          id: "doc1",
+          name: "Document 1",
+          documentType: "General File",
+          description: "Test Document",
+          createdAt: new Date(),
+          owner: { person: { fullName: "Test User" } },
+        }],
+      };
+      setup(modificationWithDocs);
+
+      const documentsTab = screen.getByTestId("button-documents");
+      expect(documentsTab).toHaveTextContent("Documents (1)");
+    });
+
+    it("render DocumentTable with correct props when Documents tab is selected", () => {
+      const modificationWithDocs: ModificationItem = {
+        ...mockModificationItem,
+        documents: [{
+          id: "doc1",
+          name: "Document 1",
+          documentType: "General File",
+          description: "Test Document",
+          createdAt: new Date(),
+          owner: { person: { fullName: "Test User" } },
+        }],
+      };
+      setup(modificationWithDocs);
+
+      const documentsTab = screen.getByTestId("button-documents");
+      fireEvent.click(documentsTab);
+
+      expect(screen.getByText("Document 1")).toBeInTheDocument();
+    });
   });
 });

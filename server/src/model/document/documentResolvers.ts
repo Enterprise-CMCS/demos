@@ -18,6 +18,7 @@ import { getApplication, PrismaApplication } from "../application";
 import { findUserById } from "../user";
 import { validateAndUpdateDates } from "../applicationDate";
 import { startPhaseByDocument } from "../applicationPhase";
+import { enqueueUiPath } from "../../services/uipathQueue";
 import {
   checkDocumentExists,
   getDocumentById,
@@ -148,6 +149,32 @@ export async function deleteDocuments(_: unknown, { ids }: { ids: string[] }): P
   }
 }
 
+/**
+ * This will fail if doc does not exist or docId is null or empty
+ * @param _ refetch
+ * @param documentId the document to run through UiPath
+ * @returns MessageId
+ */
+export async function triggerUiPath(
+  _: unknown,
+  { documentId }: { documentId: string }
+): Promise<string> {
+  try {
+    const exists = await prisma().$transaction(async (tx) => {
+      return checkDocumentExists(tx, documentId);
+    });
+
+    if (!exists) {
+      throw new Error(`Document with ID ${documentId} does not exist.`);
+    }
+    return await enqueueUiPath({
+      documentId,
+    });
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
+
 export async function resolveOwner(parent: PrismaDocument): Promise<PrismaUser> {
   try {
     return prisma().$transaction(async (tx) => {
@@ -181,6 +208,7 @@ export const documentResolvers = {
     updateDocument: updateDocument,
     deleteDocument: deleteDocument,
     deleteDocuments: deleteDocuments,
+    triggerUiPath: triggerUiPath,
   },
 
   Document: {

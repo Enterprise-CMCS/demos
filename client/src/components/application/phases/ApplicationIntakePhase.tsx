@@ -7,10 +7,7 @@ import { ExportIcon } from "components/icons";
 import { addDays, parseISO } from "date-fns";
 import { tw } from "tags/tw";
 import { formatDateForServer } from "util/formatDate";
-import {
-  ApplicationWorkflowDemonstration,
-  ApplicationWorkflowDocument,
-} from "components/application/ApplicationWorkflow";
+import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { PhaseName } from "components/application/phase-selector/PhaseSelector";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
@@ -150,11 +147,11 @@ const VerifyCompleteSection = ({
   </div>
 );
 
-export const getApplicationIntakeComponentFromDemonstration = (
-  demonstration: ApplicationWorkflowDemonstration,
+export const getApplicationIntakeComponentFromApplication = (
+  application: WorkflowApplication,
   setSelectedPhase?: (phase: PhaseName) => void
 ) => {
-  const applicationIntakePhase = demonstration.phases.find(
+  const applicationIntakePhase = application.phases.find(
     (phase) => phase.phaseName === "Application Intake"
   );
 
@@ -162,18 +159,18 @@ export const getApplicationIntakeComponentFromDemonstration = (
     (date) => date.dateType === "State Application Submitted Date"
   )?.dateValue;
 
-  const stateApplicationDocuments = demonstration.documents.filter(
+  const stateApplicationDocuments = application.documents.filter(
     (doc) => doc.phaseName === "Application Intake"
   );
 
   return (
     <ApplicationIntakePhase
-      demonstrationId={demonstration.id}
+      demonstrationId={application.id}
       initialStateApplicationDocuments={stateApplicationDocuments}
       initialStateApplicationSubmittedDate={
         stateApplicationSubmittedDate ? formatDateForServer(stateApplicationSubmittedDate) : ""
       }
-      initialSelectedTags={demonstration.tags}
+      initialSelectedTags={application.tags}
       setSelectedPhase={setSelectedPhase}
     />
   );

@@ -3,7 +3,7 @@ import { tw } from "tags/tw";
 
 import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
-import { ApplicationWorkflowDemonstration, SimplePhase } from "../ApplicationWorkflow";
+import { WorkflowApplication, SimplePhase } from "components/application";
 import { formatDateForServer } from "util/formatDate";
 import { DateType, LocalDate, PhaseNameWithTrackedStatus } from "demos-server";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
@@ -60,16 +60,16 @@ export const hasChanges = (
   );
 };
 
-export const getSdgPreparationPhaseFromDemonstration = (
-  demonstration: ApplicationWorkflowDemonstration,
+export const getSdgPreparationPhaseFromApplication = (
+  application: WorkflowApplication,
   setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void
 ) => {
-  const sdgPreparationPhase = demonstration.phases.find(
+  const sdgPreparationPhase = application.phases.find(
     (phase) => phase.phaseName === "SDG Preparation"
   );
   if (!sdgPreparationPhase) return <div>Error: SDG Preparation Phase not found.</div>;
 
-  const allPreviousPhasesDone = demonstration.phases
+  const allPreviousPhasesDone = application.phases
     .filter(
       (p) =>
         p.phaseName !== "Concept" &&
@@ -82,7 +82,7 @@ export const getSdgPreparationPhaseFromDemonstration = (
 
   return (
     <SdgPreparationPhase
-      demonstrationId={demonstration.id}
+      demonstrationId={application.id}
       sdgPreparationPhase={sdgPreparationPhase}
       setSelectedPhase={setSelectedPhase}
       allPreviousPhasesDone={allPreviousPhasesDone}

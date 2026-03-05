@@ -3,12 +3,15 @@ import React from "react";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-import { ApprovalPackagePhase, getApprovalPackagePhase } from "./ApprovalPackagePhase";
+import {
+  ApprovalPackagePhase,
+  getApprovalPackagePhaseFromApplication,
+} from "./ApprovalPackagePhase";
 
 import {
   ApplicationWorkflowDocument,
   ApplicationWorkflowDemonstration,
-} from "components/application/ApplicationWorkflow";
+} from "components/application";
 import { DocumentType } from "demos-server";
 import { ApprovalPackageTableRow } from "components/table/tables/ApprovalPackageTable";
 import userEvent from "@testing-library/user-event";
@@ -100,7 +103,7 @@ describe("ApprovalPackagePhase", () => {
       "Final Budget Neutrality Formulation Workbook",
       "Q&A",
       "Special Terms & Conditions",
-      "Formal OMB Policy Concurrence",
+      "Formal OMB Policy Concurrence Email",
       "Approval Letter",
       "Signed Decision Memo",
     ]);
@@ -202,7 +205,7 @@ describe("ApprovalPackagePhase", () => {
         }),
         doc({ documentType: "Q&A", phaseName: "Approval Package" }),
         doc({ documentType: "Special Terms & Conditions", phaseName: "Approval Package" }),
-        doc({ documentType: "Formal OMB Policy Concurrence", phaseName: "Approval Package" }),
+        doc({ documentType: "Formal OMB Policy Concurrence Email", phaseName: "Approval Package" }),
         doc({ documentType: "Approval Letter", phaseName: "None" }), // Document exists but belongs to wrong phase
         doc({ documentType: "Signed Decision Memo", phaseName: "Approval Package" }),
       ],
@@ -224,7 +227,7 @@ describe("ApprovalPackagePhase", () => {
       tags: [],
     };
 
-    render(getApprovalPackagePhase(demonstration, mockSetSelectedPhase));
+    render(getApprovalPackagePhaseFromApplication(demonstration, mockSetSelectedPhase));
 
     const finishButton = screen.getByRole("button", { name: /finish/i });
     expect(finishButton).toBeDisabled();
@@ -235,7 +238,7 @@ describe("ApprovalPackagePhase", () => {
       doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
       doc({ documentType: "Q&A" }),
       doc({ documentType: "Special Terms & Conditions" }),
-      doc({ documentType: "Formal OMB Policy Concurrence" }),
+      doc({ documentType: "Formal OMB Policy Concurrence Email" }),
       doc({ documentType: "Approval Letter" }),
       doc({ documentType: "Signed Decision Memo" }),
     ];
@@ -273,7 +276,7 @@ describe("ApprovalPackagePhase", () => {
       doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
       doc({ documentType: "Q&A" }),
       doc({ documentType: "Special Terms & Conditions" }),
-      doc({ documentType: "Formal OMB Policy Concurrence" }),
+      doc({ documentType: "Formal OMB Policy Concurrence Email" }),
       doc({ documentType: "Approval Letter" }),
       doc({ documentType: "Signed Decision Memo" }),
     ];
@@ -299,7 +302,7 @@ describe("ApprovalPackagePhase", () => {
   });
 });
 
-describe("getApprovalPackagePhase", () => {
+describe("getApprovalPackagePhaseFromApplication", () => {
   it("extracts documents from demonstration and renders phase", () => {
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "demo-3",
@@ -343,7 +346,7 @@ describe("getApprovalPackagePhase", () => {
       tags: [],
     };
 
-    render(getApprovalPackagePhase(demonstration, mockSetSelectedPhase));
+    render(getApprovalPackagePhaseFromApplication(demonstration, mockSetSelectedPhase));
 
     const rows = screen.getAllByTestId("table-row");
     expect(rows).toHaveLength(6);
@@ -386,7 +389,7 @@ describe("getApprovalPackagePhase", () => {
       tags: [],
     };
 
-    render(getApprovalPackagePhase(demonstration, mockSetSelectedPhase));
+    render(getApprovalPackagePhaseFromApplication(demonstration, mockSetSelectedPhase));
 
     const rows = screen.getAllByTestId("table-row");
     expect(rows).toHaveLength(6);
@@ -401,7 +404,7 @@ describe("getApprovalPackagePhase", () => {
       doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
       doc({ documentType: "Q&A" }),
       doc({ documentType: "Special Terms & Conditions" }),
-      doc({ documentType: "Formal OMB Policy Concurrence" }),
+      doc({ documentType: "Formal OMB Policy Concurrence Email" }),
       doc({ documentType: "Approval Letter" }),
       doc({ documentType: "Signed Decision Memo" }),
     ];
@@ -448,7 +451,7 @@ describe("getApprovalPackagePhase", () => {
       tags: [],
     };
 
-    render(getApprovalPackagePhase(demo, mockSetSelectedPhase));
+    render(getApprovalPackagePhaseFromApplication(demo, mockSetSelectedPhase));
 
     const finishButton = screen.getByRole("button", { name: /finish/i });
     expect(finishButton).toBeEnabled();
@@ -459,7 +462,7 @@ describe("getApprovalPackagePhase", () => {
       doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
       doc({ documentType: "Q&A" }),
       doc({ documentType: "Special Terms & Conditions" }),
-      doc({ documentType: "Formal OMB Policy Concurrence" }),
+      doc({ documentType: "Formal OMB Policy Concurrence Email" }),
       doc({ documentType: "Approval Letter" }),
       doc({ documentType: "Signed Decision Memo" }),
     ];
@@ -506,7 +509,7 @@ describe("getApprovalPackagePhase", () => {
       tags: [],
     };
 
-    render(getApprovalPackagePhase(demo, mockSetSelectedPhase));
+    render(getApprovalPackagePhaseFromApplication(demo, mockSetSelectedPhase));
 
     const finishButton = screen.getByRole("button", { name: /finish/i });
     expect(finishButton).toBeDisabled();

@@ -8,6 +8,7 @@ import {
   CompareIcon,
   DateIcon,
   FavoriteIcon,
+  FileIcon,
   FolderIcon,
   ListIcon,
   MenuCollapseLeftIcon,
@@ -28,6 +29,7 @@ const SIDE_NAV_STYLES = "h-full bg-white transition-all duration-300 flex flex-c
 
 const navLinks: NavLink[] = [
   { label: "Demonstrations", href: "/demonstrations", icon: <CompareIcon /> },
+  { label: "Deliverables", href: "/deliverables", icon: <FileIcon />},
   { label: "Tasks", href: "#2", icon: <ListIcon /> },
   { label: "Dashboards", href: "#3", icon: <AnalyticsIcon /> },
   { label: "Reports", href: "#4", icon: <FolderIcon /> },

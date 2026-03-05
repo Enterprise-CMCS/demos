@@ -8,13 +8,13 @@ import { TestProvider } from "test-utils/TestProvider";
 import {
   ConceptPhase,
   ConceptProps,
-  getConceptPhaseComponentFromDemonstration,
+  getConceptPhaseComponentFromApplication,
 } from "./ConceptPhase";
 
 import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
-} from "../ApplicationWorkflow";
+} from "components/application";
 import { LocalDate } from "demos-server";
 
 vi.mock("@apollo/client", async () => {
@@ -275,7 +275,7 @@ describe("ConceptPhase", () => {
     });
   });
 
-  describe("getConceptPhaseComponentFromDemonstration", () => {
+  describe("getConceptPhaseComponentFromApplication", () => {
     it("should return ConceptPhase component with extracted pre-submission docs", () => {
       const mockDemonstration: ApplicationWorkflowDemonstration = {
         id: "demo-111",
@@ -331,7 +331,7 @@ describe("ConceptPhase", () => {
         tags: [],
       };
 
-      const component = getConceptPhaseComponentFromDemonstration(mockDemonstration);
+      const component = getConceptPhaseComponentFromApplication(mockDemonstration);
       expect(component).toBeDefined();
       if (component) {
         expect(component.type).toBe(ConceptPhase);
@@ -370,7 +370,7 @@ describe("ConceptPhase", () => {
         tags: [],
       };
 
-      const component = getConceptPhaseComponentFromDemonstration(mockDemonstration);
+      const component = getConceptPhaseComponentFromApplication(mockDemonstration);
       expect(component).toBeDefined();
       if (component) {
         expect(component.type).toBe(ConceptPhase);

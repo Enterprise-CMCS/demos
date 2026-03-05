@@ -4,10 +4,7 @@ import { tw } from "tags/tw";
 import { Button, SecondaryButton } from "components/button";
 import { ChevronRightIcon, ExportIcon } from "components/icons";
 
-import {
-  ApplicationWorkflowDemonstration,
-  ApplicationWorkflowDocument,
-} from "../ApplicationWorkflow";
+import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { formatDateForServer, getTodayEst } from "util/formatDate";
 import { DocumentList } from "./sections";
 import { useDialog } from "components/dialog/DialogContext";
@@ -32,17 +29,17 @@ const STYLES = {
   actions: tw`mt-8 flex justify-end gap-3`,
 };
 
-export const getConceptPhaseComponentFromDemonstration = (
-  demonstration: ApplicationWorkflowDemonstration,
+export const getConceptPhaseComponentFromApplication = (
+  application: WorkflowApplication,
   setSelectedPhase?: (phase: PhaseName) => void
 ) => {
-  const preSubmissionDocuments = demonstration.documents.filter(
+  const preSubmissionDocuments = application.documents.filter(
     (document) => document.phaseName === "Concept"
   );
 
-  const conceptPhase = demonstration.phases.find((phase) => phase.phaseName === "Concept");
+  const conceptPhase = application.phases.find((phase) => phase.phaseName === "Concept");
   if (!conceptPhase) {
-    console.error("Concept phase data is missing for demonstration:", demonstration.id);
+    console.error("Concept phase data is missing for demonstration:", application.id);
     return null;
   }
 
@@ -52,7 +49,7 @@ export const getConceptPhaseComponentFromDemonstration = (
 
   return (
     <ConceptPhase
-      demonstrationId={demonstration.id}
+      demonstrationId={application.id}
       initialPreSubmissionDocuments={preSubmissionDocuments}
       presubmissionSubmittedDate={
         presubmissionSubmittedDate ? formatDateForServer(presubmissionSubmittedDate) : undefined

@@ -11,12 +11,12 @@ import {
   ApplicationIntakePhase,
   ApplicationIntakeProps,
   getCompletenessReviewDueDate,
-  getApplicationIntakeComponentFromDemonstration,
+  getApplicationIntakeComponentFromApplication,
 } from "./ApplicationIntakePhase";
 import {
   ApplicationWorkflowDocument,
   ApplicationWorkflowDemonstration,
-} from "../ApplicationWorkflow";
+} from "components/application";
 import { formatDateForServer, getTodayEst } from "util/formatDate";
 
 vi.mock("@apollo/client", async () => {
@@ -353,7 +353,7 @@ describe("ApplicationIntakePhase", () => {
     });
   });
 
-  describe("getApplicationIntakeComponentFromDemonstration", () => {
+  describe("getApplicationIntakeComponentFromApplication", () => {
     it("should extract demonstration data and return ApplicationIntakePhase component", () => {
       const mockDemonstration: ApplicationWorkflowDemonstration = {
         id: "demo-123",
@@ -394,7 +394,7 @@ describe("ApplicationIntakePhase", () => {
         tags: [],
       };
 
-      const component = getApplicationIntakeComponentFromDemonstration(mockDemonstration);
+      const component = getApplicationIntakeComponentFromApplication(mockDemonstration);
 
       expect(component).toBeDefined();
       expect(component.type).toBe(ApplicationIntakePhase);

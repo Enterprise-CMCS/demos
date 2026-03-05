@@ -1,8 +1,5 @@
 import React from "react";
-import {
-  ApplicationWorkflowDemonstration,
-  ApplicationWorkflowDocument,
-} from "components/application/ApplicationWorkflow";
+import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import {
   ApprovalPackageTable,
   ApprovalPackageTableRow,
@@ -25,39 +22,40 @@ const REQUIRED_TYPES: DocumentType[] = [
   "Final Budget Neutrality Formulation Workbook",
   "Q&A",
   "Special Terms & Conditions",
-  "Formal OMB Policy Concurrence",
+  "Formal OMB Policy Concurrence Email",
   "Approval Letter",
   "Signed Decision Memo",
 ] as const;
 
-export const getApprovalPackagePhase = (
-  demonstration: ApplicationWorkflowDemonstration,
+export const getApprovalPackagePhaseFromApplication = (
+  application: WorkflowApplication,
   setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void
 ) => {
-  const formulationWorkbookDocument = demonstration?.documents.find(
+  const formulationWorkbookDocument = application?.documents.find(
     (doc) =>
       doc.documentType === "Final Budget Neutrality Formulation Workbook" &&
       doc.phaseName === "Approval Package"
   );
-  const qaDocument = demonstration?.documents.find(
+  const qaDocument = application?.documents.find(
     (doc) => doc.documentType === "Q&A" && doc.phaseName === "Approval Package"
   );
-  const termsAndConditionsDocument = demonstration?.documents.find(
+  const termsAndConditionsDocument = application?.documents.find(
     (doc) =>
       doc.documentType === "Special Terms & Conditions" && doc.phaseName === "Approval Package"
   );
-  const ombPolicyDocument = demonstration?.documents.find(
+  const ombPolicyDocument = application?.documents.find(
     (doc) =>
-      doc.documentType === "Formal OMB Policy Concurrence" && doc.phaseName === "Approval Package"
+      doc.documentType === "Formal OMB Policy Concurrence Email" &&
+      doc.phaseName === "Approval Package"
   );
-  const approvalLetterDocument = demonstration?.documents.find(
+  const approvalLetterDocument = application?.documents.find(
     (doc) => doc.documentType === "Approval Letter" && doc.phaseName === "Approval Package"
   );
-  const decisionMemoDocument = demonstration?.documents.find(
+  const decisionMemoDocument = application?.documents.find(
     (doc) => doc.documentType === "Signed Decision Memo" && doc.phaseName === "Approval Package"
   );
 
-  const allPreviousPhasesDone = demonstration.phases
+  const allPreviousPhasesDone = application.phases
     .filter(
       (p) =>
         p.phaseName !== "Concept" &&
@@ -68,7 +66,7 @@ export const getApprovalPackagePhase = (
 
   return (
     <ApprovalPackagePhase
-      demonstrationId={demonstration.id}
+      demonstrationId={application.id}
       documents={[
         formulationWorkbookDocument,
         qaDocument,

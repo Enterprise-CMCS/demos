@@ -51,7 +51,9 @@ describe("getApplication", () => {
         extension: true,
       },
     };
-    await getApplication(testApplicationId, testDemonstrationApplicationTypeId);
+    await getApplication(testApplicationId, {
+      applicationTypeId: testDemonstrationApplicationTypeId,
+    });
     expect(regularMocks.application.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCall);
   });
 
@@ -68,11 +70,14 @@ describe("getApplication", () => {
         extension: true,
       },
     };
-    await getApplication(testApplicationId, testDemonstrationApplicationTypeId, mockTransaction);
+    await getApplication(testApplicationId, {
+      applicationTypeId: testDemonstrationApplicationTypeId,
+      tx: mockTransaction,
+    });
     expect(transactionMocks.application.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCall);
   });
 
-  it("should throw if nothing is returned", async () => {
+  it("should throw if nothing is returned, and specify the type if available", async () => {
     mockPrismaClient.application.findUnique.mockResolvedValue(null);
     const expectedCall = {
       where: {
@@ -86,9 +91,28 @@ describe("getApplication", () => {
       },
     };
     await expect(
-      getApplication(testApplicationId, testDemonstrationApplicationTypeId)
+      getApplication(testApplicationId, { applicationTypeId: testDemonstrationApplicationTypeId })
     ).rejects.toThrowError(
       `Application of type ${testDemonstrationApplicationTypeId} with ID ${testApplicationId} not found`
+    );
+    expect(regularMocks.application.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCall);
+  });
+
+  it("should throw if nothing is returned with a simple message if the type is not available", async () => {
+    mockPrismaClient.application.findUnique.mockResolvedValue(null);
+    const expectedCall = {
+      where: {
+        id: testApplicationId,
+        applicationTypeId: undefined,
+      },
+      include: {
+        demonstration: true,
+        amendment: true,
+        extension: true,
+      },
+    };
+    await expect(getApplication(testApplicationId)).rejects.toThrowError(
+      `Application with ID ${testApplicationId} not found`
     );
     expect(regularMocks.application.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCall);
   });

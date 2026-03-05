@@ -1,7 +1,7 @@
 import React from "react";
 import { Table } from "../Table";
 import { ApprovalPackageColumns } from "../columns/ApprovalPackageColumns";
-import { ApplicationWorkflowDocument } from "components/application/ApplicationWorkflow";
+import { ApplicationWorkflowDocument } from "components/application";
 
 export interface ApprovalPackageTableRow {
   documentType: string;
@@ -16,19 +16,13 @@ export interface ApprovalPackageTableRow {
 export const ApprovalPackageTable: React.FC<{
   demonstrationId: string;
   rows: ApprovalPackageTableRow[];
-}> = ({
-  demonstrationId,
-  rows,
-}) => {
+}> = ({ demonstrationId, rows }) => {
   const approvalPackageColumns = ApprovalPackageColumns(demonstrationId);
 
   return (
     <div className="flex flex-col gap-[24px]">
       {approvalPackageColumns && (
-        <Table<ApprovalPackageTableRow>
-          data={rows}
-          columns={approvalPackageColumns}
-        />
+        <Table<ApprovalPackageTableRow> data={rows} columns={approvalPackageColumns} />
       )}
     </div>
   );

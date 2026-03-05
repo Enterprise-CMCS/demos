@@ -3,6 +3,7 @@ import React from "react";
 import { TestProvider } from "test-utils/TestProvider";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 import { FederalCommentUploadDialog } from "./FederalCommentUploadDialog";
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
@@ -39,7 +40,7 @@ describe("FederalCommentUploadDialog", () => {
   describe("Basic Rendering", () => {
     it("renders dialog content when open", () => {
       setup();
-      expect(screen.getByText("Internal Analysis Document")).toBeInTheDocument();
+      expect(screen.getByText("Add Federal Comment Document")).toBeInTheDocument();
     });
 
     it("renders upload interface elements", () => {
@@ -111,9 +112,32 @@ describe("FederalCommentUploadDialog", () => {
       expect(screen.getByDisplayValue("General File")).toBeInTheDocument();
     });
 
-    it("shows internal analysis specific title", () => {
+    it("shows Federal Comment specific dialog title", () => {
       setup();
-      expect(screen.getByText("Internal Analysis Document")).toBeInTheDocument();
+      expect(screen.getByText("Add Federal Comment Document")).toBeInTheDocument();
+    });
+
+    it("includes 'General File' as a selectable option", async () => {
+      const user = userEvent.setup();
+      setup();
+      await user.click(screen.getByTestId("input-autocomplete-select"));
+      expect(screen.getByText("General File")).toBeInTheDocument();
+    });
+
+    it("includes 'Federal Comment Internal Analysis Document' as a selectable option", async () => {
+      const user = userEvent.setup();
+      setup();
+      await user.click(screen.getByTestId("input-autocomplete-select"));
+      expect(screen.getByText("Federal Comment Internal Analysis Document")).toBeInTheDocument();
+    });
+
+    it("does not include document types outside the Federal Comment subset", async () => {
+      const user = userEvent.setup();
+      setup();
+      await user.click(screen.getByTestId("input-autocomplete-select"));
+      expect(screen.queryByText("Approval Letter")).not.toBeInTheDocument();
+      expect(screen.queryByText("Pre-Submission")).not.toBeInTheDocument();
+      expect(screen.queryByText("State Application")).not.toBeInTheDocument();
     });
   });
 });

@@ -1,0 +1,17 @@
+model UipathResultField {
+  id             String   @id @default(uuid()) @db.Uuid
+  uipathResultId String   @map("uipath_result_id") @db.Uuid
+  fieldId        String   @map("field_id")
+  fieldName      String   @map("field_name")
+  fieldType      String   @map("field_type")
+  fieldValue     String   @map("value")
+  confidence     Float    @map("confidence")
+  valueJson      Json     @map("value_json")
+  textLength     Int      @map("text_length")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  result UiPathResult @relation(fields: [uipathResultId], references: [id])
+
+  @@unique([uipathResultId, fieldId])
+  @@map("uipath_result_field")
+}

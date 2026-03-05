@@ -3,7 +3,7 @@ import { tw } from "tags/tw";
 import { ApplicationUploadSection } from "components/application/phases/sections";
 import { formatDate } from "util/formatDate";
 import { useDialog } from "components/dialog/DialogContext";
-import { ApplicationWorkflowDemonstration, ApplicationWorkflowDocument } from "../ApplicationWorkflow";
+import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { differenceInCalendarDays } from "date-fns";
 import { Notice, NoticeVariant } from "components/notice";
 
@@ -28,10 +28,8 @@ const STYLES = {
   actions: tw`mt-8 flex justify-end gap-3`,
 };
 
-export const getFederalCommentPhaseFromDemonstration = (
-  demonstration: ApplicationWorkflowDemonstration
-) => {
-  const federalCommentPhase = demonstration.phases.find(
+export const getFederalCommentPhaseFromApplication = (application: WorkflowApplication) => {
+  const federalCommentPhase = application.phases.find(
     (phase) => phase.phaseName === "Federal Comment"
   );
 
@@ -44,13 +42,13 @@ export const getFederalCommentPhaseFromDemonstration = (
     (date) => date.dateType === "Federal Comment Period End Date"
   );
 
-  const initialDocuments = demonstration.documents.filter(
+  const initialDocuments = application.documents.filter(
     (doc) => doc.phaseName === "Federal Comment"
   );
 
   return (
     <FederalCommentPhase
-      demonstrationId={demonstration.id}
+      demonstrationId={application.id}
       phaseComplete={phaseComplete}
       phaseStartDate={phaseStartDate?.dateValue}
       phaseEndDate={phaseEndDate?.dateValue}
@@ -67,12 +65,8 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
   initialDocuments = [],
 }) => {
   const { showFederalCommentDocumentUploadDialog } = useDialog();
-  const [documents] = useState<ApplicationWorkflowDocument[]>(
-    initialDocuments
-  );
-  const [isNoticeDismissed, setNoticeDismissed] = useState(
-    !(phaseEndDate && !phaseComplete)
-  );
+  const [documents] = useState<ApplicationWorkflowDocument[]>(initialDocuments);
+  const [isNoticeDismissed, setNoticeDismissed] = useState(!(phaseEndDate && !phaseComplete));
 
   const getNoticeContent = () => {
     if (!phaseEndDate) return null;
@@ -90,10 +84,9 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
         description: `The Federal Comment Period ends on ${formatDate(phaseEndDate)}`,
         variant: "error" as NoticeVariant,
       };
-    }
-    else {
+    } else {
       return {
-        title:  `${Math.abs(daysLeft)} days past due`,
+        title: `${Math.abs(daysLeft)} days past due`,
         description: `The Federal Comment Period ended on ${formatDate(phaseEndDate)}`,
         variant: "error" as NoticeVariant,
       };

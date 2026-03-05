@@ -4,6 +4,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { UploadDocumentInput } from "../../model/document/documentSchema";
 import { createAWSS3Adapter } from "./AwsS3Adapter";
 import { createDocumentPendingUpload } from "../../model/documentPendingUpload";
+import { PRIMARY_AWS_REGION } from "../../constants";
 
 vi.mock("@aws-sdk/client-s3", () => ({
   S3Client: vi.fn(() => ({
@@ -202,7 +203,7 @@ describe("AwsS3Adapter", () => {
 
       expect(S3Client).toHaveBeenCalledWith(
         expect.objectContaining({
-          region: "us-east-1",
+          region: PRIMARY_AWS_REGION,
           endpoint: "http://custom-endpoint:4566",
         })
       );

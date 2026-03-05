@@ -1,5 +1,12 @@
 import React from "react";
-import { EmptyIcon, OnHoldIcon, PreSubmissionIcon, ReviewIcon, SuccessInvertedIcon, WithdrawnIcon } from "icons";
+import {
+  EmptyIcon,
+  OnHoldIcon,
+  PreSubmissionIcon,
+  ReviewIcon,
+  SuccessInvertedIcon,
+  WithdrawnIcon,
+} from "icons";
 import { tw } from "tags/tw";
 import type { ApplicationStatus } from "demos-server";
 
@@ -18,16 +25,16 @@ const SIZE_CLASSES: Record<DemonstrationStatusBadgeSize, { container: string; ic
   },
 };
 
-export const DemonstrationStatusBadge = ({
-  demonstrationStatus,
+export const ApplicationStatusBadge = ({
+  applicationStatus,
   size = "default",
 }: {
-  demonstrationStatus: ApplicationStatus;
+  applicationStatus: ApplicationStatus;
   size?: DemonstrationStatusBadgeSize;
 }) => {
   const sizeClasses = SIZE_CLASSES[size];
   let statusNode;
-  switch (demonstrationStatus) {
+  switch (applicationStatus) {
     case "Pre-Submission":
       statusNode = (
         <>
