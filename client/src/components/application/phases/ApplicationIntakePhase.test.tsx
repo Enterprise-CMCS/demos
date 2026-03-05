@@ -64,6 +64,7 @@ describe("ApplicationIntakePhase", () => {
     initialStateApplicationDocuments: [],
     initialStateApplicationSubmittedDate: "",
     initialSelectedTags: [],
+    phaseStatus: "Started",
   };
 
   const mockStateApplicationDocument: ApplicationWorkflowDocument = {

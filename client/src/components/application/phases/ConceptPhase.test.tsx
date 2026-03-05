@@ -67,6 +67,7 @@ describe("ConceptPhase", () => {
   const defaultProps: ConceptProps = {
     applicationId: TEST_APPLICATION_ID,
     documents: [mockPreSubmissionDocument],
+    phaseStatus: "Started",
   };
 
   const setup = (props: Partial<ConceptProps> = {}) => {
