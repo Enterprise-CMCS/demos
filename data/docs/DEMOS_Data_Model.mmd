@@ -102,6 +102,8 @@ erDiagram
   event }|--|| log_level : "FK066"
   role ||--|{ event : "FK053"
   event }|--|| users : "FK054"
+  document ||--|| uipath_result : "FKA01"
+  uipath_result ||--|{ uipath_result_field : "FKA02"
 
   %% Static Constraints
   application_status:::staticConstraint {
@@ -421,6 +423,28 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+  }
+
+  uipath_result:::dataTable {
+    uuid id PK
+    text request_id UK "UK: request_id"
+    json response
+    text project_id
+    uuid document_id FK, UK "FKA01: document_id ∈ document.id<br>UK: document_id"
+    timestamptz created_at
+  }
+
+  uipath_result_field:::dataTable {
+    uuid id PK
+    uuid uipath_result_id FK, UK "FKA02: uipath_result_id ∈ uipath_result.id<br>UK: (uipath_result_id, field_id)"
+    text field_id UK "UK: (uipath_result_id, field_id)"
+    text field_name
+    text field_type
+    text value
+    double confidence
+    json value_json
+    int text_length
+    timestamptz created_at
   }
 
   users:::dataTable {
