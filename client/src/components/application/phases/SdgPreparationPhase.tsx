@@ -215,7 +215,7 @@ export const SdgPreparationPhase = ({
                   });
                 }}
                 isRequired
-                isDisabled={isApproved || isPhaseCompleted}
+                isDisabled={isApproved}
               />
             </div>
           </div>{" "}
