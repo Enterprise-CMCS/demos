@@ -45,6 +45,7 @@ export const documentSchema = gql`
     deleteDocument(id: ID!): Document!
     deleteDocuments(ids: [ID!]!): Int!
     triggerUiPath(documentId: ID!): String!
+    processBudgetNeutralityNotebookValidation(documentId: ID!): Boolean!
   }
 
   type Query {

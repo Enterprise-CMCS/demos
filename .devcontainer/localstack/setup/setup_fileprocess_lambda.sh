@@ -60,7 +60,7 @@ for i in {1..15}; do
         --function-name fileprocess \
         --query 'Configuration.State' \
         --output text 2>/dev/null || echo "Pending")
-    
+
     if [ "$STATUS" = "Active" ]; then
         echo "✅ FileProcess Lambda function created"
         break

@@ -37,11 +37,28 @@ const ALLOWED_MIME_TYPES = [
   "application/msword",
   "application/vnd.ms-excel",
   "application/vnd.ms-excel.sheet.macroEnabled.12",
+  "application/vnd.ms-excel.sheet.binary.macroEnabled.12",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.template",
+  "application/vnd.ms-excel.template.macroEnabled.12",
+  "application/vnd.ms-excel.addin.macroEnabled.12",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   "application/zip",
 ];
 
-const ACCEPTED_EXTENSIONS = ".pdf,.doc,.docx,.xls,.xlsx,.zip";
+const ALLOWED_FILE_EXTENSIONS = [
+  ".pdf",
+  ".doc",
+  ".docx",
+  ".xls",
+  ".xlsx",
+  ".xlsm",
+  ".xlsb",
+  ".xltx",
+  ".xltm",
+  ".xlam",
+  ".zip",
+];
+const ACCEPTED_EXTENSIONS = ALLOWED_FILE_EXTENSIONS.join(",");
 const MAX_FILE_SIZE_MB = 600;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 const MAX_FILENAME_DISPLAY_LENGTH = 60;
@@ -334,6 +351,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
 
   const { file, uploadProgress, uploadStatus, handleFileChange, setFile } = useFileUpload({
     allowedMimeTypes: ALLOWED_MIME_TYPES,
+    allowedFileExtensions: ALLOWED_FILE_EXTENSIONS,
     maxFileSizeBytes: MAX_FILE_SIZE_BYTES,
     onErrorCallback: (msg: ErrorMessage) => showError(msg),
   });

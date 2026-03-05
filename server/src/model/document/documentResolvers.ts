@@ -175,6 +175,22 @@ export async function triggerUiPath(
   }
 }
 
+/**
+ * Placeholder resolver for BN Notebook processing. Returns true when the document exists.
+ */
+export async function processBudgetNeutralityNotebookValidation(
+  _: unknown,
+  { documentId }: { documentId: string }
+): Promise<boolean> {
+  try {
+    return await prisma().$transaction(async (tx) => {
+      return checkDocumentExists(tx, documentId);
+    });
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
+
 export async function resolveOwner(parent: PrismaDocument): Promise<PrismaUser> {
   try {
     return prisma().$transaction(async (tx) => {
@@ -209,6 +225,7 @@ export const documentResolvers = {
     deleteDocument: deleteDocument,
     deleteDocuments: deleteDocuments,
     triggerUiPath: triggerUiPath,
+    processBudgetNeutralityNotebookValidation: processBudgetNeutralityNotebookValidation,
   },
 
   Document: {

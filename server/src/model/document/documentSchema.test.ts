@@ -96,6 +96,7 @@ describe("documentSchema", () => {
         "deleteDocument",
         "deleteDocuments",
         "triggerUiPath",
+        "processBudgetNeutralityNotebookValidation",
       ])
     );
     expect(queryFields).toEqual(expect.arrayContaining(["document", "documentExists"]));

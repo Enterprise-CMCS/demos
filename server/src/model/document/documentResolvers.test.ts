@@ -18,6 +18,7 @@ import {
   documentExists,
   uploadDocument,
   triggerUiPath,
+  processBudgetNeutralityNotebookValidation,
   updateDocument as updateDocumentResolver,
   deleteDocument,
   deleteDocuments,
@@ -380,6 +381,30 @@ describe("documentResolvers", () => {
     });
   });
 
+  describe("processBudgetNeutralityNotebookValidation", () => {
+    it("returns true when document exists", async () => {
+      vi.mocked(checkDocumentExists).mockResolvedValue(true);
+
+      const result = await processBudgetNeutralityNotebookValidation(undefined, {
+        documentId: testDocumentId,
+      });
+
+      expect(checkDocumentExists).toHaveBeenCalledExactlyOnceWith(mockTransaction, testDocumentId);
+      expect(result).toBe(true);
+    });
+
+    it("returns false when document does not exist", async () => {
+      vi.mocked(checkDocumentExists).mockResolvedValue(false);
+
+      const result = await processBudgetNeutralityNotebookValidation(undefined, {
+        documentId: testDocumentId,
+      });
+
+      expect(checkDocumentExists).toHaveBeenCalledExactlyOnceWith(mockTransaction, testDocumentId);
+      expect(result).toBe(false);
+    });
+  });
+
   describe("updateDocument", () => {
     const mockUpdateInput: UpdateDocumentInput = {
       name: "Updated Document",
@@ -501,6 +526,7 @@ describe("documentResolvers", () => {
       expect(documentResolvers.Mutation).toHaveProperty("deleteDocument");
       expect(documentResolvers.Mutation).toHaveProperty("deleteDocuments");
       expect(documentResolvers.Mutation).toHaveProperty("triggerUiPath");
+      expect(documentResolvers.Mutation).toHaveProperty("processBudgetNeutralityNotebookValidation");
     });
 
     it("should export Document field resolvers", () => {

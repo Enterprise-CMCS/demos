@@ -238,6 +238,29 @@ export function applyFileUploadSuppressions(fileUpload: Stack, stage: string) {
 
   NagSuppressions.addResourceSuppressionsByPath(
     fileUpload,
+    `/demos-${stage}-file-upload/bnNotebookValidation/bnNotebookValidationLambdaExecutionRole/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason:
+          "Permissions given are required for the lambda execution role. Some wildcards are unavoidable",
+      },
+    ]
+  );
+
+  NagSuppressions.addResourceSuppressionsByPath(
+    fileUpload,
+    `/demos-${stage}-file-upload/bnNotebookValidation/bnNotebookValidationLambdaExecutionRole/DefaultPolicy/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions are scoped to the BN validation queue",
+      },
+    ]
+  );
+
+  NagSuppressions.addResourceSuppressionsByPath(
+    fileUpload,
     `/demos-${stage}-file-upload/uploadBucketScan/GuardDutyMalwareProtectionRolePolicy/Resource`,
     [
       {

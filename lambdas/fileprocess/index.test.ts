@@ -5,14 +5,17 @@ import {
 } from "aws-lambda";
 import {
   moveFile,
+  enqueueBudgetNeutralityNotebookValidation,
   getApplicationId,
   handler,
   processGuardDutyResult,
+  processBudgetNeutralityNotebookValidation,
   processInfectedDatabaseRecord,
   processCleanDatabaseRecord,
 } from ".";
 
 import { CopyObjectCommand, DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { SendMessageCommand } from "@aws-sdk/client-sqs";
 import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 
 import { log } from "./log";
@@ -20,6 +23,25 @@ import { log } from "./log";
 const mockConnect = vi.fn();
 const mockQuery = vi.fn();
 const mockEnd = vi.fn();
+const mockFetch = vi.fn();
+const sqsSendMock = vi.fn().mockResolvedValue({ MessageId: "message-1" });
+
+vi.mock("@aws-sdk/client-sqs", () => {
+  class SendMessageCommand {
+    input: unknown;
+    constructor(input: unknown) {
+      this.input = input;
+    }
+  }
+  class SQSClient {
+    send = sqsSendMock;
+  }
+  return {
+    SQSClient,
+    SendMessageCommand,
+  };
+});
+
 vi.mock("pg", () => {
   const mockClient = {
     connect: () => mockConnect(),
@@ -40,10 +62,13 @@ const mockContext = { awsRequestId: "00000000-aaaa-bbbb-cccc-000000000000" } as 
 describe("file-process", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal("fetch", mockFetch);
 
     logDebugSpy = vi.spyOn(log, "debug");
     logInfoSpy = vi.spyOn(log, "info");
     logWarnSpy = vi.spyOn(log, "warn");
+    sqsSendMock.mockReset();
+    sqsSendMock.mockResolvedValue({ MessageId: "message-1" });
 
     mockEventBase = {
       source: "aws.guardduty",
@@ -209,6 +234,41 @@ describe("file-process", () => {
         expect.stringContaining("SELECT demos_app.move_document_from_pending_to_clean"),
         expect.arrayContaining([expect.anything()])
       );
+      expect(mockFetch).not.toHaveBeenCalled();
+      expect(sqsSendMock).not.toHaveBeenCalled();
+    });
+
+    test("should trigger BN Notebook validation for Final BN Worksheet", async () => {
+      const mockSend = vi.fn();
+      vi.spyOn(S3Client.prototype, "send").mockImplementation(mockSend);
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          data: {
+            processBudgetNeutralityNotebookValidation: true,
+          },
+        }),
+      });
+
+      const mockClient = {
+        query: vi
+          .fn()
+          .mockResolvedValueOnce({ rows: [{ application_id: "1" }] })
+          .mockResolvedValueOnce({ rows: [{ document_type_id: "Final BN Worksheet" }] }),
+      };
+
+      await processGuardDutyResult(mockClient, mockEventBase);
+
+      expect(mockFetch).toHaveBeenCalledOnce();
+      expect(mockFetch).toHaveBeenCalledWith(
+        "http://mock-graphql-endpoint/graphql",
+        expect.objectContaining({
+          method: "POST",
+        })
+      );
+      expect(sqsSendMock).toHaveBeenCalledOnce();
+      expect(sqsSendMock).toHaveBeenCalledWith(expect.any(SendMessageCommand));
     });
   });
 
@@ -253,6 +313,56 @@ describe("file-process", () => {
       await expect(
         processCleanDatabaseRecord(mockClient, "test-doc-id", "test-app-id")
       ).rejects.toThrow("No document type returned for document test-doc-id.");
+    });
+  });
+
+  describe("processBudgetNeutralityNotebookValidation", () => {
+    it("calls graphql mutation with document id", async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          data: {
+            processBudgetNeutralityNotebookValidation: true,
+          },
+        }),
+      });
+
+      await processBudgetNeutralityNotebookValidation("test-doc-id");
+
+      expect(mockFetch).toHaveBeenCalledOnce();
+      expect(mockFetch).toHaveBeenCalledWith(
+        "http://mock-graphql-endpoint/graphql",
+        expect.objectContaining({
+          method: "POST",
+          body: expect.stringContaining("processBudgetNeutralityNotebookValidation"),
+        })
+      );
+    });
+
+    it("throws if graphql mutation returns false", async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          data: {
+            processBudgetNeutralityNotebookValidation: false,
+          },
+        }),
+      });
+
+      await expect(processBudgetNeutralityNotebookValidation("test-doc-id")).rejects.toThrow(
+        "BN Notebook validation mutation returned false for document test-doc-id."
+      );
+    });
+  });
+
+  describe("enqueueBudgetNeutralityNotebookValidation", () => {
+    it("queues a BN notebook validation message", async () => {
+      await enqueueBudgetNeutralityNotebookValidation("test-doc-id");
+
+      expect(sqsSendMock).toHaveBeenCalledOnce();
+      expect(sqsSendMock).toHaveBeenCalledWith(expect.any(SendMessageCommand));
     });
   });
 

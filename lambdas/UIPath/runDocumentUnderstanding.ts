@@ -115,6 +115,7 @@ async function persistExtractionStatus(
   }
 
   try {
+    // Change this to inserts first, then start polling
     await client.query("BEGIN");
 
     const upsertedResult = await client.query<{ id: string }>(
@@ -128,6 +129,7 @@ async function persistExtractionStatus(
        returning id`,
       [randomUUID(), requestId, projectId, JSON.stringify(status), documentId]
     );
+    // Add start finihsed to uipath_result
 
     const resultId = upsertedResult.rows[0]?.id;
     if (!resultId) {
@@ -139,12 +141,12 @@ async function persistExtractionStatus(
       const persistableValues = toPersistableFieldValues(field);
       if (!persistableValues.length) continue;
 
-      for (const p of persistableValues) {
-        const confidence = typeof p.fieldValue.Confidence === "number" ? p.fieldValue.Confidence : 0;
+      for (const value of persistableValues) {
+        const confidence = typeof value.fieldValue.Confidence === "number" ? value.fieldValue.Confidence : 0;
         const textLength =
-          typeof p.fieldValue.Reference?.TextLength === "number"
-            ? p.fieldValue.Reference.TextLength
-            : p.valueText.length;
+          typeof value.fieldValue.Reference?.TextLength === "number"
+            ? value.fieldValue.Reference.TextLength
+            : value.valueText.length;
 
         await client.query(
           `insert into ${schema}.uipath_result_field
@@ -162,15 +164,16 @@ async function persistExtractionStatus(
           [
             randomUUID(),
             resultId,
-            p.FieldId,
-            p.FieldName,
-            p.FieldType,
-            p.valueText,
+            value.FieldId,
+            value.FieldName,
+            value.FieldType,
+            value.valueText,
             confidence,
-            JSON.stringify(p.fieldValue),
+            JSON.stringify(value.fieldValue),
             textLength,
           ]
         );
+        // Once this guy is done then we change isFinished or true/false to give poll results.
       }
     }
 

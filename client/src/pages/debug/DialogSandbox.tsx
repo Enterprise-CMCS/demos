@@ -118,6 +118,14 @@ export const DialogSandbox: React.FC = () => {
           Remove Document
         </Button>
         <Button
+          name="upload-bn-workbook"
+          onClick={() =>
+            showApprovalPackageDocumentUploadDialog(ID, "Final BN Worksheet" as DocumentType)
+          }
+        >
+          Upload BN Workbook
+        </Button>
+        <Button
           name="application-intake"
           onClick={() => showApplicationIntakeDocumentUploadDialog(ID, () => {})}
         >

@@ -7,10 +7,17 @@ import {
 
 import { Client } from "pg";
 import { S3Client, CopyObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { als, log, store, reqIdChild } from "./log";
 
 const GUARDDUTY_CLEAN_STATUS = "NO_THREATS_FOUND";
+const FINAL_BN_WORKSHEET_DOCUMENT_TYPE = "Final BN Worksheet";
+const PROCESS_BN_NOTEBOOK_VALIDATION_MUTATION = `
+  mutation ProcessBudgetNeutralityNotebookValidation($documentId: ID!) {
+    processBudgetNeutralityNotebookValidation(documentId: $documentId)
+  }
+`;
 const PROCESS_PENDING_DOCUMENT_CLEAN = "move_document_from_pending_to_clean";
 const PROCESS_PENDING_DOCUMENT_INFECTED = "move_document_from_pending_to_infected";
 
@@ -20,6 +27,9 @@ let cacheExpiration = 0;
 const uploadBucket = process.env.UPLOAD_BUCKET;
 const cleanBucket = process.env.CLEAN_BUCKET;
 const infectedBucket = process.env.INFECTED_BUCKET;
+const bnNotebookValidationQueueUrl = process.env.BN_NOTEBOOK_VALIDATION_QUEUE_URL;
+const graphqlEndpoint = process.env.GRAPHQL_ENDPOINT;
+const graphqlAuthToken = process.env.GRAPHQL_AUTH_TOKEN;
 const dbSchema = process.env.DB_SCHEMA || "demos_app";
 const bypassSSL = process.env.BYPASS_SSL;
 const s3Config = process.env.AWS_ENDPOINT_URL
@@ -33,6 +43,15 @@ const s3Config = process.env.AWS_ENDPOINT_URL
     };
 
 const s3 = new S3Client(s3Config);
+const sqsConfig = process.env.AWS_ENDPOINT_URL
+  ? {
+      region: process.env.AWS_REGION,
+      endpoint: process.env.AWS_ENDPOINT_URL,
+    }
+  : {
+      region: process.env.AWS_REGION,
+    };
+const sqs = new SQSClient(sqsConfig);
 const secretsManagerConfig = process.env.AWS_ENDPOINT_URL
   ? {
       region: process.env.AWS_REGION,
@@ -147,6 +166,63 @@ export async function processInfectedDatabaseRecord(
   log.info("successfully processed infected file in database.");
 }
 
+export async function processBudgetNeutralityNotebookValidation(documentId: string) {
+  if (!graphqlEndpoint) {
+    throw new Error("GRAPHQL_ENDPOINT environment variable is required for BN Notebook validation.");
+  }
+
+  const response = await fetch(graphqlEndpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(graphqlAuthToken ? { Authorization: `Bearer ${graphqlAuthToken}` } : {}),
+    },
+    body: JSON.stringify({
+      query: PROCESS_BN_NOTEBOOK_VALIDATION_MUTATION,
+      variables: {
+        documentId,
+      },
+    }),
+  });
+
+  const payload = await response.json();
+
+  if (!response.ok) {
+    throw new Error(`BN Notebook validation request failed with status ${response.status}.`);
+  }
+
+  if (payload.errors?.length > 0) {
+    throw new Error(`BN Notebook validation mutation failed: ${payload.errors[0].message}`);
+  }
+
+  if (!payload.data?.processBudgetNeutralityNotebookValidation) {
+    throw new Error(`BN Notebook validation mutation returned false for document ${documentId}.`);
+  }
+
+  log.info({ documentId }, "successfully triggered BN Notebook validation.");
+}
+
+export async function enqueueBudgetNeutralityNotebookValidation(documentId: string) {
+  if (!bnNotebookValidationQueueUrl) {
+    throw new Error(
+      "BN_NOTEBOOK_VALIDATION_QUEUE_URL environment variable is required for BN Notebook validation queue."
+    );
+  }
+
+  const response = await sqs.send(
+    new SendMessageCommand({
+      QueueUrl: bnNotebookValidationQueueUrl,
+      MessageBody: JSON.stringify({ documentId }),
+    })
+  );
+
+  if (!response.MessageId) {
+    throw new Error(`Failed to enqueue BN Notebook validation message for document ${documentId}.`);
+  }
+
+  log.info({ documentId, messageId: response.MessageId }, "queued BN Notebook validation request.");
+}
+
 export async function processGuardDutyResult(
   client: typeof Client,
   guardDutyEvent: GuardDutyScanResultNotificationEvent
@@ -188,7 +264,13 @@ export async function processGuardDutyResult(
 
   await moveFile(documentId, destinationBucket, destinationKey);
   if (isClean) {
-    await processCleanDatabaseRecord(client, documentId, applicationId);
+    const documentTypeId = await processCleanDatabaseRecord(client, documentId, applicationId);
+    if (documentTypeId === FINAL_BN_WORKSHEET_DOCUMENT_TYPE) {
+      await Promise.all([
+        processBudgetNeutralityNotebookValidation(documentId),
+        enqueueBudgetNeutralityNotebookValidation(documentId),
+      ]);
+    }
   } else {
     await processInfectedDatabaseRecord(client, documentId, applicationId, scanResultDetails);
   }

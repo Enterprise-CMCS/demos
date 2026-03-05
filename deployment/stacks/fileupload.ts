@@ -69,6 +69,17 @@ export class FileUploadStack extends Stack {
       },
     });
 
+    const bnNotebookValidationQueue = new Queue(this, "BnNotebookValidationQueue", {
+      removalPolicy: RemovalPolicy.DESTROY,
+      enforceSSL: true,
+      encryption: QueueEncryption.KMS,
+      encryptionMasterKey: kmsKey,
+      deadLetterQueue: {
+        maxReceiveCount: 5,
+        queue: deadLetterQueue,
+      },
+    });
+
     const accessLogs = new Bucket(this, "fileUploadAccessLogBucket", {
       encryption: aws_s3.BucketEncryption.S3_MANAGED,
       removalPolicy:
@@ -238,6 +249,12 @@ export class FileUploadStack extends Stack {
       aws_ec2.Port.HTTPS,
       "Allow traffic to secrets manager VPCE"
     );
+    const sqsVpceSgId = Fn.importValue(`${props.stage}SqsVpceSg`);
+    fileProcessLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(sqsVpceSgId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to SQS"
+    );
 
     const s3PrefixList = aws_ec2.PrefixList.fromLookup(this, "s3PrefixList", {
       prefixListName: `com.amazonaws.${this.region}.s3`,
@@ -246,6 +263,11 @@ export class FileUploadStack extends Stack {
       aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
       aws_ec2.Port.HTTPS,
       "Allow traffic to S3"
+    );
+    fileProcessLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.anyIpv4(),
+      aws_ec2.Port.HTTPS,
+      "Allow outbound HTTPS for temporary BN validation direct call"
     );
 
     const uiPathLambdaSecurityGroup = securityGroup.create({
@@ -308,6 +330,8 @@ export class FileUploadStack extends Stack {
         UPLOAD_BUCKET: uploadBucket.bucketName,
         CLEAN_BUCKET: cleanBucket.bucketName,
         INFECTED_BUCKET: infectedBucket.bucketName,
+        BN_NOTEBOOK_VALIDATION_QUEUE_URL: bnNotebookValidationQueue.queueUrl,
+        GRAPHQL_ENDPOINT: `https://${props.cloudfrontHost}/api/graphql`,
         DATABASE_SECRET_ARN: dbSecretFileProcess.secretName, // pragma: allowlist secret
         NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
       },
@@ -326,6 +350,7 @@ export class FileUploadStack extends Stack {
     infectedBucket.grantWrite(fileProcessLambda.lambda);
     uploadQueue.grantConsumeMessages(fileProcessLambda.lambda);
     dbSecretFileProcess.grantRead(fileProcessLambda.lambda);
+    bnNotebookValidationQueue.grantSendMessages(fileProcessLambda.lambda);
 
     const dbSecretDeleteInfectedFile = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
@@ -359,6 +384,25 @@ export class FileUploadStack extends Stack {
 
     dbSecretDeleteInfectedFile.grantRead(deleteInfectedFileLambda.lambda);
     deleteInfectedFileQueue.grantConsumeMessages(deleteInfectedFileLambda.lambda);
+
+    const bnNotebookValidationLambda = new lambda.Lambda(this, "bnNotebookValidation", {
+      ...props,
+      scope: this,
+      entry: "../lambdas/bnnotebookvalidation/index.ts",
+      handler: "index.handler",
+      asCode: false,
+      timeout: Duration.seconds(30),
+      environment: {
+        GRAPHQL_ENDPOINT: `https://${props.cloudfrontHost}/api/graphql`,
+      },
+    });
+
+    bnNotebookValidationLambda.lambda.addEventSource(
+      new SqsEventSource(bnNotebookValidationQueue, {
+        batchSize: 1,
+      })
+    );
+    bnNotebookValidationQueue.grantConsumeMessages(bnNotebookValidationLambda.lambda);
 
     // UiPath processor (queue + DLQ + lambda) within FileUpload stack
     const uiPathProcessor = new UiPathProcessor(this, "UiPathProcessor", {
@@ -411,6 +455,16 @@ export class FileUploadStack extends Stack {
     new CfnOutput(this, "uipathQueueArn", {
       exportName: `${props.stage}UiPathQueueArn`,
       value: uiPathProcessor.queue.queueArn,
+    });
+
+    new CfnOutput(this, "bnNotebookValidationQueueUrl", {
+      exportName: `${props.stage}BnNotebookValidationQueueUrl`,
+      value: bnNotebookValidationQueue.queueUrl,
+    });
+
+    new CfnOutput(this, "bnNotebookValidationQueueArn", {
+      exportName: `${props.stage}BnNotebookValidationQueueArn`,
+      value: bnNotebookValidationQueue.queueArn,
     });
   }
 }
