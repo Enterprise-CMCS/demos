@@ -1,14 +1,12 @@
 import { prisma } from "../../../prismaClient";
-import { ResolverProps } from "../authenticationDirectiveTransformer";
+import { AuthorizationCheckFunction, ResolverProps } from "../authenticationDirectiveTransformer";
 
-export const getCheckAuthorization = (permissionName: string) => {
-  return async (resolverContext: ResolverProps) => {
-    const { context } = resolverContext;
-
+export const getCheckAuthorization = (permissionName: string): AuthorizationCheckFunction => {
+  return async (resolverProps: Pick<ResolverProps, "context">) => {
     const userRoles = (
       await prisma().systemRoleAssignment.findMany({
         where: {
-          personId: context.user?.id,
+          personId: resolverProps.context.user?.id,
         },
       })
     ).map((roleAssignment) => roleAssignment.roleId);

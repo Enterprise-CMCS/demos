@@ -16,7 +16,7 @@ import {
 export const extensionSchema = gql`
   type Extension {
     id: ID!
-    demonstration: Demonstration! @belongsToDemonstration
+    demonstration: Demonstration! @viewDemonstration
     name: NonEmptyString!
     description: String
     effectiveDate: DateTime

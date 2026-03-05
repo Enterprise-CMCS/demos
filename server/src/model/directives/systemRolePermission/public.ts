@@ -1,7 +1,12 @@
+import {
+  AuthorizationCheckFunction,
+  DirectiveConfiguration,
+} from "../authenticationDirectiveTransformer";
+
 const name = "public";
 
-const checkAuthorization = async () => {
+const checkAuthorization: AuthorizationCheckFunction = async () => {
   return true;
 };
 
-export const publicDirective = { name, checkAuthorization } as const;
+export const publicDirective: DirectiveConfiguration = { name, checkAuthorization };

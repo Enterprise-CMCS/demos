@@ -1,9 +1,21 @@
-import { mapSchema, MapperKind, getDirectives, DirectiveAnnotation } from "@graphql-tools/utils";
-import { defaultFieldResolver, GraphQLSchema, GraphQLResolveInfo, isListType } from "graphql";
+import {
+  mapSchema,
+  MapperKind,
+  getDirectives,
+  DirectiveAnnotation,
+  FieldMapper,
+} from "@graphql-tools/utils";
+import { defaultFieldResolver, GraphQLSchema, GraphQLResolveInfo, GraphQLNamedType } from "graphql";
 import { GraphQLContext } from "../../auth/auth.util";
 import { viewApplicationDirective } from "./systemRolePermission/viewApplication";
 import { viewDemonstrationDirective } from "./systemRolePermission/viewDemonstration";
 import { publicDirective } from "./systemRolePermission/public";
+
+const PERMISSION_DIRECTIVES: DirectiveConfiguration[] = [
+  viewApplicationDirective,
+  viewDemonstrationDirective,
+  publicDirective,
+];
 
 export type ResolverProps = {
   source: unknown;
@@ -12,42 +24,46 @@ export type ResolverProps = {
   info: GraphQLResolveInfo;
 };
 
-type validator = (
-  resolverContext: ResolverProps,
-  directiveArgs: DirectiveAnnotation["args"]
+export type AuthorizationCheckFunction = (
+  resolverProps: ResolverProps,
+  directive: DirectiveAnnotation
 ) => Promise<boolean>;
 
-interface DirectiveConfig {
-  name?: string;
-  checkAuthorization: validator;
-}
+export type AuthorizationClosure = (resolverProps: ResolverProps) => Promise<boolean>;
 
-interface PermissionDirective {
+export type DirectiveConfiguration = {
   name: string;
-  args?: DirectiveAnnotation["args"];
-}
+  checkAuthorization: AuthorizationCheckFunction;
+};
 
-const PERMISSION_DIRECTIVES: DirectiveConfig[] = [
-  viewApplicationDirective,
-  viewDemonstrationDirective,
-  publicDirective,
-];
-
-// Check if ANY directive authorizes access
 async function checkAuthorization(
-  permissionDirectives: PermissionDirective[],
-  resolverContext: ResolverProps
+  directiveFunctions: AuthorizationClosure[],
+  resolverProps: ResolverProps
 ): Promise<boolean> {
-  for (const directive of permissionDirectives) {
-    const config = PERMISSION_DIRECTIVES.find((d) => d.name === directive.name);
-    if (!config) continue;
-    const isAuthorized = await config.checkAuthorization(resolverContext, directive.args);
+  for (const directive of directiveFunctions) {
+    const isAuthorized = await directive(resolverProps);
     if (isAuthorized) {
       return true;
     }
   }
   return false;
 }
+
+const getDirectiveFunctions = (
+  schema: GraphQLSchema,
+  fieldConfig: Parameters<FieldMapper>[0],
+  typeConfig: GraphQLNamedType
+): AuthorizationClosure[] => {
+  return [...getDirectives(schema, fieldConfig), ...getDirectives(schema, typeConfig)]
+    .map((fieldDirective) => {
+      const permissionDirective = PERMISSION_DIRECTIVES.find((d) => d.name === fieldDirective.name);
+      if (permissionDirective) {
+        return (resolverProps: ResolverProps) =>
+          permissionDirective.checkAuthorization(resolverProps, fieldDirective);
+      }
+    })
+    .filter((directiveFunction) => directiveFunction !== undefined);
+};
 
 export function authenticationDirectiveTransformer(schema: GraphQLSchema) {
   return mapSchema(schema, {
@@ -59,27 +75,18 @@ export function authenticationDirectiveTransformer(schema: GraphQLSchema) {
           throw new Error(`Type ${typeName} for field ${fieldName} not found in schema`);
         }
 
-        const permissionDirectives = [
-          ...getDirectives(schema, fieldConfig),
-          ...getDirectives(schema, typeConfig),
-        ].filter((directive) => PERMISSION_DIRECTIVES.some((d) => d.name === directive.name));
-
-        const resolverContext: ResolverProps = { source, args, context, info };
-
-        if (!isListType(fieldConfig.type)) {
-          if (!(await checkAuthorization(permissionDirectives, resolverContext))) {
-            throw new Error(
-              `You do not have permission to access ${resolverContext.info.parentType.name}.${resolverContext.info.fieldName}`
-            );
-          }
-        }
-
         const result = await resolve(source, args, context, info);
+
+        const directiveFunctions = getDirectiveFunctions(schema, fieldConfig, typeConfig);
         if (Array.isArray(result)) {
           const filteredResults = [];
           for (const item of result) {
-            const itemContext = { ...resolverContext, source: item };
-            const isAuthorized = await checkAuthorization(permissionDirectives, itemContext);
+            const isAuthorized = await checkAuthorization(directiveFunctions, {
+              source: item,
+              args,
+              context,
+              info,
+            });
             if (isAuthorized) {
               filteredResults.push(item);
             }
@@ -87,9 +94,11 @@ export function authenticationDirectiveTransformer(schema: GraphQLSchema) {
           return filteredResults;
         }
 
-        if (!(await checkAuthorization(permissionDirectives, resolverContext))) {
+        if (
+          !(await checkAuthorization(directiveFunctions, { source: result, args, context, info }))
+        ) {
           throw new Error(
-            `You do not have permission to access ${resolverContext.info.parentType.name}.${resolverContext.info.fieldName}`
+            `You do not have permission to access ${info.parentType.name}.${info.fieldName}`
           );
         }
 
@@ -105,16 +114,11 @@ export function authenticationDirectiveTransformer(schema: GraphQLSchema) {
           throw new Error(`Type ${typeName} for field ${fieldName} not found in schema`);
         }
 
-        const permissionDirectives = [
-          ...getDirectives(schema, fieldConfig),
-          ...getDirectives(schema, typeConfig),
-        ].filter((directive) => PERMISSION_DIRECTIVES.some((d) => d.name === directive.name));
+        const directiveFunctions = getDirectiveFunctions(schema, fieldConfig, typeConfig);
 
-        const resolverContext: ResolverProps = { source, args, context, info };
-
-        if (!(await checkAuthorization(permissionDirectives, resolverContext))) {
+        if (!(await checkAuthorization(directiveFunctions, { source, args, context, info }))) {
           throw new Error(
-            `You do not have permission to access ${resolverContext.info.parentType.name}.${resolverContext.info.fieldName}`
+            `You do not have permission to access ${info.parentType.name}.${info.fieldName}`
           );
         }
         return await resolve(source, args, context, info);

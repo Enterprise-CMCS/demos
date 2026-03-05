@@ -4,5 +4,4 @@ export const directiveSchema = gql`
   directive @public on FIELD_DEFINITION | OBJECT
   directive @viewApplication on FIELD_DEFINITION | OBJECT
   directive @viewDemonstration on FIELD_DEFINITION | OBJECT
-  directive @belongsToDemonstration on FIELD_DEFINITION | OBJECT
 `;
