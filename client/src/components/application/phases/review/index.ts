@@ -1,2 +1,2 @@
 export { ReviewPhase } from "./ReviewPhase";
-export { getReviewPhaseComponentFromDemonstration } from "./reviewPhaseData";
+export { getReviewPhaseComponentFromApplication } from "./reviewPhaseData";

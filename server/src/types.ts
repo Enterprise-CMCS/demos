@@ -2,6 +2,7 @@ import {
   ADMIN_DEMONSTRATION_ROLES,
   APPLICATION_STATUS,
   APPLICATION_TYPES,
+  BUDGET_NEUTRALITY_VALIDATION_STATUSES,
   CLEARANCE_LEVELS,
   CMS_USER_DEMONSTRATION_ROLES,
   DATE_TYPES,
@@ -128,3 +129,5 @@ export type ReviewPhaseNoteTypes = (typeof REVIEW_PHASE_NOTE_TYPES)[number];
 export type TagConfigurationStatus = (typeof TAG_CONFIGURATION_STATUSES)[number];
 export type TagConfigurationSource = (typeof TAG_CONFIGURATION_SOURCES)[number];
 export type TagType = (typeof TAG_TYPES)[number];
+export type BudgetNeutralityValidationStatus =
+  (typeof BUDGET_NEUTRALITY_VALIDATION_STATUSES)[number];

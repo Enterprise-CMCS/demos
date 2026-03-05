@@ -4,7 +4,8 @@ import { ApplicationStatusBadge } from "components/badge/ApplicationStatusBadge"
 import type { Demonstration, Person, State, DemonstrationTypeAssignment } from "demos-server";
 import { gql, useQuery } from "@apollo/client";
 import { Loading } from "components/loading/Loading";
-import { ApplicationWorkflowDocument, SimplePhase } from "components/application";
+import { WorkflowApplication } from "components/application";
+import { WORKFLOW_PHASE_FIELDS, WORKFLOW_DOCUMENT_FIELDS } from "fragments";
 
 const DEMONSTRATION_WORKFLOW_QUERY_NAME = "GetWorkflowDemonstration";
 
@@ -26,16 +27,7 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
         name
       }
       phases {
-        phaseName
-        phaseStatus
-        phaseDates {
-          dateType
-          dateValue
-        }
-        phaseNotes {
-          noteType
-          content
-        }
+        ...WORKFLOW_PHASE_FIELDS
       }
       tags
       demonstrationTypes {
@@ -46,17 +38,7 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
         createdAt
       }
       documents {
-        id
-        name
-        description
-        documentType
-        phaseName
-        createdAt
-        owner {
-          person {
-            fullName
-          }
-        }
+        ...WORKFLOW_DOCUMENT_FIELDS
       }
       primaryProjectOfficer {
         id
@@ -64,31 +46,28 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
       }
     }
   }
+  ${WORKFLOW_PHASE_FIELDS}
+  ${WORKFLOW_DOCUMENT_FIELDS}
 `;
 
-export type ApplicationWorkflowDemonstration = Pick<
-  Demonstration,
-  | "id"
-  | "status"
-  | "currentPhaseName"
-  | "clearanceLevel"
-  | "name"
-  | "effectiveDate"
-  | "expirationDate"
-  | "sdgDivision"
-  | "signatureLevel"
-  | "description"
-  | "tags"
-> & {
-  state: Pick<State, "id" | "name">;
-  primaryProjectOfficer: Pick<Person, "id" | "fullName">;
-  phases: SimplePhase[];
-  documents: ApplicationWorkflowDocument[];
-  demonstrationTypes: Pick<
-    DemonstrationTypeAssignment,
-    "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "createdAt"
-  >[];
-};
+export type ApplicationWorkflowDemonstration = WorkflowApplication &
+  Pick<
+    Demonstration,
+    | "status"
+    | "name"
+    | "effectiveDate"
+    | "expirationDate"
+    | "sdgDivision"
+    | "signatureLevel"
+    | "description"
+  > & {
+    state: Pick<State, "id" | "name">;
+    primaryProjectOfficer: Pick<Person, "id" | "fullName">;
+    demonstrationTypes: Pick<
+      DemonstrationTypeAssignment,
+      "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "createdAt"
+    >[];
+  };
 
 export const DemonstrationWorkflow = ({ demonstrationId }: { demonstrationId: string }) => {
   const { data, loading, error } = useQuery<{ demonstration: ApplicationWorkflowDemonstration }>(
@@ -108,7 +87,7 @@ export const DemonstrationWorkflow = ({ demonstrationId }: { demonstrationId: st
           <ApplicationStatusBadge applicationStatus={data.demonstration.status} />
         </div>
         <hr className="text-border-rules" />
-        <PhaseSelector demonstration={data.demonstration} />
+        <PhaseSelector application={data.demonstration} />
       </div>
     );
   }

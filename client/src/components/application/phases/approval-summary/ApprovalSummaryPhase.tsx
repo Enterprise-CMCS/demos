@@ -92,29 +92,32 @@ export const getApprovalSummaryFormData = (
   };
 };
 
-export const getApprovalSummaryPhase = (demonstration: ApplicationWorkflowDemonstration) => {
-  const approvalSummaryFormData = getApprovalSummaryFormData(demonstration);
+export const getApprovalSummaryPhaseFromApplication = (
+  application: ApplicationWorkflowDemonstration
+) => {
+  const approvalSummaryFormData = getApprovalSummaryFormData(application);
 
   // Find the Approval Summary phase data if it exists
-  const approvalSummaryPhase = demonstration.phases?.find(
+  const approvalSummaryPhase = application.phases?.find(
     (phase) => phase.phaseName === "Approval Summary"
   );
   const demonstrationTypeCompletionDate = approvalSummaryPhase?.phaseDates.find(
     (d) => d.dateType === "Application Demonstration Types Marked Complete Date"
   )?.dateValue;
 
-  const currentPhaseIndex = demonstration.phases.findIndex(
-    (p) => p.phaseName === "Approval Summary"
-  );
-  const allPreviousPhasesDone = demonstration.phases
-    .slice(0, currentPhaseIndex)
+  const allPreviousPhasesDone = application.phases
+    .filter(
+      (p) =>
+        p.phaseName !== "Concept" &&
+        p.phaseName !== "Approval Summary"
+    )
     .every((phase) => phase.phaseStatus === "Completed" || phase.phaseStatus === "Skipped");
 
   return (
     <ApprovalSummaryPhase
-      demonstrationId={demonstration.id}
+      demonstrationId={application.id}
       initialFormData={approvalSummaryFormData}
-      initialTypes={demonstration.demonstrationTypes}
+      initialTypes={application.demonstrationTypes}
       approvalSummaryPhase={approvalSummaryPhase}
       demonstrationTypeCompletionDate={demonstrationTypeCompletionDate}
       allPreviousPhasesDone={allPreviousPhasesDone}

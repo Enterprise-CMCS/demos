@@ -9,10 +9,10 @@ import userEvent from "@testing-library/user-event";
 import { PhaseSelector, getDisplayedPhaseStatus, getDisplayedPhaseDate } from "./PhaseSelector";
 import { ApplicationWorkflowDemonstration } from "../demonstration/DemonstrationWorkflow";
 import {
-  getReviewPhaseComponentFromDemonstration,
-  getApplicationCompletenessFromDemonstration,
-  getApprovalPackagePhase,
-  getSdgPreparationPhaseFromDemonstration,
+  getReviewPhaseComponentFromApplication,
+  getApplicationCompletenessFromApplication,
+  getApprovalPackagePhaseFromApplication,
+  getSdgPreparationPhaseFromApplication,
 } from "../phases";
 
 const mockPO = {
@@ -28,10 +28,10 @@ vi.mock("../phases", async () => {
   const actual = await vi.importActual("../phases");
   return {
     ...actual,
-    getReviewPhaseComponentFromDemonstration: vi.fn(),
-    getApplicationCompletenessFromDemonstration: vi.fn(),
-    getSdgPreparationPhaseFromDemonstration: vi.fn(),
-    getApprovalPackagePhase: vi.fn(),
+    getReviewPhaseComponentFromApplication: vi.fn(),
+    getApplicationCompletenessFromApplication: vi.fn(),
+    getSdgPreparationPhaseFromApplication: vi.fn(),
+    getApprovalPackagePhaseFromApplication: vi.fn(),
   };
 });
 
@@ -56,7 +56,7 @@ describe("PhaseSelector", () => {
 
     render(
       <TestProvider>
-        <PhaseSelector demonstration={demonstration} />
+        <PhaseSelector application={demonstration} />
       </TestProvider>
     );
     [
@@ -93,7 +93,7 @@ describe("PhaseSelector", () => {
 
     render(
       <TestProvider>
-        <PhaseSelector demonstration={demonstration} />
+        <PhaseSelector application={demonstration} />
       </TestProvider>
     );
 
@@ -433,8 +433,8 @@ describe("getDisplayedPhaseDate", () => {
 });
 
 describe("completeness phase component", () => {
-  it("calls getApplicationCompletenessFromDemonstration with correct props when Completeness is selected", async () => {
-    vi.mocked(getApplicationCompletenessFromDemonstration).mockReturnValue(
+  it("calls getApplicationCompletenessFromApplication with correct props when Completeness is selected", async () => {
+    vi.mocked(getApplicationCompletenessFromApplication).mockReturnValue(
       <div>Review Phase Mock</div>
     );
 
@@ -457,11 +457,11 @@ describe("completeness phase component", () => {
 
     render(
       <TestProvider>
-        <PhaseSelector demonstration={demonstration} />
+        <PhaseSelector application={demonstration} />
       </TestProvider>
     );
 
-    expect(getApplicationCompletenessFromDemonstration).toHaveBeenCalledWith(
+    expect(getApplicationCompletenessFromApplication).toHaveBeenCalledWith(
       demonstration,
       expect.any(Function)
     );
@@ -496,11 +496,11 @@ describe("sdg preparation phase component", () => {
 
     render(
       <TestProvider>
-        <PhaseSelector demonstration={demonstration} />
+        <PhaseSelector application={demonstration} />
       </TestProvider>
     );
 
-    expect(getSdgPreparationPhaseFromDemonstration).toHaveBeenCalledWith(
+    expect(getSdgPreparationPhaseFromApplication).toHaveBeenCalledWith(
       demonstration,
       expect.any(Function)
     );
@@ -508,11 +508,9 @@ describe("sdg preparation phase component", () => {
 });
 
 describe("Review phase component", () => {
-  it("calls getReviewPhaseComponentFromDemonstration with correct props when Review is selected", async () => {
+  it("calls getReviewPhaseComponentFromApplication with correct props when Review is selected", async () => {
     const user = userEvent.setup();
-    vi.mocked(getReviewPhaseComponentFromDemonstration).mockReturnValue(
-      <div>Review Phase Mock</div>
-    );
+    vi.mocked(getReviewPhaseComponentFromApplication).mockReturnValue(<div>Review Phase Mock</div>);
 
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "test-id",
@@ -533,7 +531,7 @@ describe("Review phase component", () => {
 
     render(
       <TestProvider>
-        <PhaseSelector demonstration={demonstration} />
+        <PhaseSelector application={demonstration} />
       </TestProvider>
     );
 
@@ -546,15 +544,15 @@ describe("Review phase component", () => {
       expect(reviewPhaseBox.closest("div")).toHaveClass("scale-110");
     });
 
-    // Verify getReviewPhaseComponentFromDemonstration was called
-    expect(getReviewPhaseComponentFromDemonstration).toHaveBeenCalledTimes(1);
-    expect(getReviewPhaseComponentFromDemonstration).toHaveBeenCalledWith(
+    // Verify getReviewPhaseComponentFromApplication was called
+    expect(getReviewPhaseComponentFromApplication).toHaveBeenCalledTimes(1);
+    expect(getReviewPhaseComponentFromApplication).toHaveBeenCalledWith(
       demonstration,
       expect.any(Function)
     );
 
     // Extract and invoke the callback to verify it transitions to Approval Package
-    const callback = vi.mocked(getReviewPhaseComponentFromDemonstration).mock.calls[0][1];
+    const callback = vi.mocked(getReviewPhaseComponentFromApplication).mock.calls[0][1];
     callback();
 
     // Wait for state update and verify Approval Package phase becomes selected
@@ -571,8 +569,10 @@ describe("Review phase component", () => {
 });
 
 describe("completeness phase component", () => {
-  it("calls getApprovalPackagePhase with correct props when Approval Package is selected", async () => {
-    vi.mocked(getApprovalPackagePhase).mockReturnValue(<div>Approval Package Phase Mock</div>);
+  it("calls getApprovalPackagePhaseFromApplication with correct props when Approval Package is selected", async () => {
+    vi.mocked(getApprovalPackagePhaseFromApplication).mockReturnValue(
+      <div>Approval Package Phase Mock</div>
+    );
 
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "test-id",
@@ -593,11 +593,14 @@ describe("completeness phase component", () => {
 
     render(
       <TestProvider>
-        <PhaseSelector demonstration={demonstration} />
+        <PhaseSelector application={demonstration} />
       </TestProvider>
     );
 
-    expect(getApprovalPackagePhase).toHaveBeenCalledWith(demonstration, expect.any(Function));
+    expect(getApprovalPackagePhaseFromApplication).toHaveBeenCalledWith(
+      demonstration,
+      expect.any(Function)
+    );
   });
 
   it("preserves phase component internal state across re-renders", async () => {
@@ -621,7 +624,7 @@ describe("completeness phase component", () => {
       );
     };
 
-    vi.mocked(getApprovalPackagePhase).mockReturnValue(<PhaseWithState />);
+    vi.mocked(getApprovalPackagePhaseFromApplication).mockReturnValue(<PhaseWithState />);
 
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "test-id",
@@ -642,7 +645,7 @@ describe("completeness phase component", () => {
 
     const { rerender } = render(
       <TestProvider>
-        <PhaseSelector demonstration={demonstration} />
+        <PhaseSelector application={demonstration} />
       </TestProvider>
     );
 
@@ -656,7 +659,7 @@ describe("completeness phase component", () => {
 
     rerender(
       <TestProvider>
-        <PhaseSelector demonstration={demonstration} />
+        <PhaseSelector application={demonstration} />
       </TestProvider>
     );
 

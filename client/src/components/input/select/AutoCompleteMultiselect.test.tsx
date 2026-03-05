@@ -125,4 +125,69 @@ describe("AutoCompleteMultiselect", () => {
     await userEvent.click(screen.getByText("outside"));
     expect(screen.queryByText("Apple")).not.toBeInTheDocument();
   });
+
+  describe("Selected value display", () => {
+    it("shows selected labels in the input when dropdown is closed", async () => {
+      render(
+        <AutoCompleteMultiselect options={options} onSelect={onSelect} placeholder="Pick fruit" />
+      );
+      const input = screen.getByRole("textbox");
+
+      // Open and select Apple
+      await userEvent.click(input);
+      await userEvent.click(screen.getByText("Apple"));
+
+      // Close by clicking outside
+      await userEvent.click(document.body);
+
+      // Input should display the selected label
+      expect(input).toHaveValue("Apple");
+    });
+
+    it("shows comma-separated labels for multiple selections when closed", async () => {
+      render(
+        <AutoCompleteMultiselect options={options} onSelect={onSelect} placeholder="Pick fruit" />
+      );
+      const input = screen.getByRole("textbox");
+
+      // Open and select Apple then Banana
+      await userEvent.click(input);
+      await userEvent.click(screen.getByText("Apple"));
+      await userEvent.click(screen.getByText("Banana"));
+
+      // Close by clicking outside
+      await userEvent.click(document.body);
+
+      expect(input).toHaveValue("Apple, Banana");
+    });
+
+    it("shows placeholder when no items are selected and dropdown is closed", async () => {
+      render(
+        <AutoCompleteMultiselect options={options} onSelect={onSelect} placeholder="Pick fruit" />
+      );
+      const input = screen.getByRole("textbox");
+      expect(input).toHaveValue("");
+      expect(input).toHaveAttribute("placeholder", "Pick fruit");
+    });
+
+    it("clears the input for search when the dropdown opens", async () => {
+      render(
+        <AutoCompleteMultiselect options={options} onSelect={onSelect} placeholder="Pick fruit" />
+      );
+      const input = screen.getByRole("textbox");
+
+      // Select Apple then close
+      await userEvent.click(input);
+      await userEvent.click(screen.getByText("Apple"));
+      await userEvent.click(document.body);
+      expect(input).toHaveValue("Apple");
+
+      // Reopen - input should clear so the user can search
+      await userEvent.click(input);
+      expect(input).toHaveValue("");
+      // All options should be visible (no filtering)
+      expect(screen.getByText("Banana")).toBeInTheDocument();
+      expect(screen.getByText("Cherry")).toBeInTheDocument();
+    });
+  });
 });

@@ -100,7 +100,7 @@ export class ApiStack extends Stack {
       prefixListName: `com.amazonaws.${this.region}.s3`,
     });
 
-    const sqsVpceSgId = Fn.importValue(`${commonProps.stage}SecretsManagerVpceSg`);
+    const sqsVpceSgId = Fn.importValue(`${commonProps.stage}SqsVpceSg`);
 
     graphqlLambdaSecurityGroup.securityGroup.addEgressRule(
       aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
@@ -200,6 +200,14 @@ export class ApiStack extends Stack {
     cleanBucket.grantRead(graphqlLambda.lambda.role);
     deletedBucket.grantPut(graphqlLambda.lambda.role);
     uipathQueue.grantSendMessages(graphqlLambda.lambda.role);
+
+    const fileUploadKms = aws_kms.Key.fromLookup(this, "fileUploadKms", {
+      aliasName: `alias/demos-${commonProps.stage}-file-upload-sqs`,
+    });
+
+    fileUploadKms.grantEncrypt(graphqlLambda.lambda.role)
+
+
     const emailerTimeout = Duration.minutes(1);
 
     const kmsKey = new aws_kms.Key(this, "emailerQueueKey", {

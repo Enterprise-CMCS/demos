@@ -1,13 +1,12 @@
 import { describe, it, expect } from "vitest";
 import {
-  getReviewPhaseComponentFromDemonstration,
+  getReviewPhaseComponentFromApplication,
   formatDataForSave,
   hasFormChanges,
-  ReviewPhaseDemonstration,
   getPhaseData,
 } from "./reviewPhaseData";
 import { ReviewPhaseFormData } from "./ReviewPhase";
-import { SimplePhase } from "components/application";
+import { SimplePhase, WorkflowApplication } from "components/application";
 import { PhaseNameWithTrackedStatus, PhaseStatus } from "demos-server";
 
 describe("reviewPhaseData", () => {
@@ -67,7 +66,7 @@ describe("reviewPhaseData", () => {
     });
   });
 
-  describe("getReviewPhaseComponentFromDemonstration", () => {
+  describe("getReviewPhaseComponentFromApplication", () => {
     const buildPhase = (phaseName: PhaseNameWithTrackedStatus, phaseStatus: PhaseStatus) => {
       return {
         phaseName,
@@ -78,22 +77,26 @@ describe("reviewPhaseData", () => {
     };
 
     it("should return error div when review phase is not found", () => {
-      const demonstration: ReviewPhaseDemonstration = {
+      const demonstration: WorkflowApplication = {
         id: "demo-123",
         clearanceLevel: "CMS (OSORA)",
+        currentPhaseName: "Concept",
         phases: [buildPhase("Concept", "Started")],
+        documents: [],
+        tags: [],
       };
 
-      const result = getReviewPhaseComponentFromDemonstration(demonstration, mockOnFinish);
+      const result = getReviewPhaseComponentFromApplication(demonstration, mockOnFinish);
 
       expect(result.type).toBe("div");
       expect(result.props.children).toBe("Error: Review Phase not found.");
     });
 
     it("should return ReviewPhase component when review phase exists", () => {
-      const demonstration: ReviewPhaseDemonstration = {
+      const demonstration: WorkflowApplication = {
         id: "demo-456",
         clearanceLevel: "CMS (OSORA)",
+        currentPhaseName: "Review",
         phases: [
           {
             phaseName: "Review",
@@ -104,9 +107,11 @@ describe("reviewPhaseData", () => {
             phaseStatus: "Started",
           },
         ],
+        documents: [],
+        tags: [],
       };
 
-      const result = getReviewPhaseComponentFromDemonstration(demonstration, mockOnFinish);
+      const result = getReviewPhaseComponentFromApplication(demonstration, mockOnFinish);
 
       expect(result.type.name).toBe("ReviewPhase");
       expect(result.props.demonstrationId).toBe("demo-456");
@@ -120,9 +125,10 @@ describe("reviewPhaseData", () => {
     });
 
     it("should pass through converted form data to ReviewPhase component", () => {
-      const demonstration: ReviewPhaseDemonstration = {
+      const demonstration: WorkflowApplication = {
         id: "demo-789",
         clearanceLevel: "CMS (OSORA)",
+        currentPhaseName: "Review",
         phases: [
           {
             phaseName: "Review",
@@ -140,9 +146,11 @@ describe("reviewPhaseData", () => {
             phaseStatus: "Started",
           },
         ],
+        documents: [],
+        tags: [],
       };
 
-      const result = getReviewPhaseComponentFromDemonstration(demonstration, mockOnFinish);
+      const result = getReviewPhaseComponentFromApplication(demonstration, mockOnFinish);
 
       expect(result.props.initialFormData.dates["Draft Approval Package Shared"]).toBe(
         "2025-06-15"
@@ -158,9 +166,10 @@ describe("reviewPhaseData", () => {
     });
 
     it("should pass isReadonly as true if the phase is completed", () => {
-      const demonstration: ReviewPhaseDemonstration = {
+      const demonstration: WorkflowApplication = {
         id: "demo-789",
         clearanceLevel: "CMS (OSORA)",
+        currentPhaseName: "Review",
         phases: [
           {
             phaseName: "Review",
@@ -178,17 +187,20 @@ describe("reviewPhaseData", () => {
             phaseStatus: "Completed",
           },
         ],
+        documents: [],
+        tags: [],
       };
 
-      const result = getReviewPhaseComponentFromDemonstration(demonstration, mockOnFinish);
+      const result = getReviewPhaseComponentFromApplication(demonstration, mockOnFinish);
 
       expect(result.props.isReadonly).toBe(true);
     });
 
     it("should forward allPreviousPhasesDone as true when all required phases are done", () => {
-      const demonstration: ReviewPhaseDemonstration = {
+      const demonstration: WorkflowApplication = {
         id: "demo-101",
         clearanceLevel: "CMS (OSORA)",
+        currentPhaseName: "Review",
         phases: [
           buildPhase("Concept", "Started"),
           buildPhase("Application Intake", "Completed"),
@@ -199,16 +211,19 @@ describe("reviewPhaseData", () => {
           buildPhase("Approval Package", "Not Started"),
           buildPhase("Approval Summary", "Not Started"),
         ],
+        documents: [],
+        tags: [],
       };
 
-      const result = getReviewPhaseComponentFromDemonstration(demonstration, mockOnFinish);
+      const result = getReviewPhaseComponentFromApplication(demonstration, mockOnFinish);
       expect(result.props.allPreviousPhasesDone).toBe(true);
     });
 
     it("should forward allPreviousPhasesDone as false when at least one required phases is incomplete", () => {
-      const demonstration: ReviewPhaseDemonstration = {
+      const demonstration: WorkflowApplication = {
         id: "demo-101",
         clearanceLevel: "CMS (OSORA)",
+        currentPhaseName: "Review",
         phases: [
           buildPhase("Concept", "Started"),
           buildPhase("Application Intake", "Completed"),
@@ -219,9 +234,11 @@ describe("reviewPhaseData", () => {
           buildPhase("Approval Package", "Not Started"),
           buildPhase("Approval Summary", "Not Started"),
         ],
+        documents: [],
+        tags: [],
       };
 
-      const result = getReviewPhaseComponentFromDemonstration(demonstration, mockOnFinish);
+      const result = getReviewPhaseComponentFromApplication(demonstration, mockOnFinish);
       expect(result.props.allPreviousPhasesDone).toBe(false);
     });
   });

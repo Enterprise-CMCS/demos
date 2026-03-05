@@ -381,6 +381,59 @@ describe("ColumnFilter Component", () => {
         expect(alphaCheckbox).toHaveProperty("checked", false);
       });
     });
+
+    it("restores all rows when all multiselect options are deselected", async () => {
+      const user = userEvent.setup();
+      const columnSelect = screen.getByTestId("filter-by-column");
+
+      await user.selectOptions(columnSelect, "Option");
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(/Select Option/i)).toBeInTheDocument();
+      });
+
+      const optionFilterInput = screen.getByPlaceholderText(/Select Option/i);
+      await user.click(optionFilterInput);
+
+      // Select "Option Alpha" (matches Item One and Item Five)
+      await user.type(optionFilterInput, "Option Alpha");
+      await waitFor(async () => {
+        const alphaOptions = screen.getAllByText("Option Alpha");
+        const alphaDropdownOption = alphaOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(alphaDropdownOption).toBeInTheDocument();
+        await user.click(alphaDropdownOption!);
+      });
+
+      // Confirm filter is active — only Item One and Item Five visible
+      await waitFor(() => {
+        expect(screen.getByText("Item One")).toBeInTheDocument();
+        expect(screen.getByText("Item Five")).toBeInTheDocument();
+        expect(screen.queryByText("Item Two")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Three")).not.toBeInTheDocument();
+        expect(screen.queryByText("Item Four")).not.toBeInTheDocument();
+      });
+
+      // Deselect "Option Alpha" — no selections remain
+      await waitFor(async () => {
+        const alphaOptions = screen.getAllByText("Option Alpha");
+        const alphaDropdownOption = alphaOptions.find(
+          (el) => el.tagName === "LI" || el.closest("li")
+        );
+        expect(alphaDropdownOption).toBeInTheDocument();
+        await user.click(alphaDropdownOption!);
+      });
+
+      // All rows should be visible again
+      await waitFor(() => {
+        expect(screen.getByText("Item One")).toBeInTheDocument();
+        expect(screen.getByText("Item Two")).toBeInTheDocument();
+        expect(screen.getByText("Item Three")).toBeInTheDocument();
+        expect(screen.getByText("Item Four")).toBeInTheDocument();
+        expect(screen.getByText("Item Five")).toBeInTheDocument();
+      });
+    });
   });
 
   describe("Date Filter Type", () => {

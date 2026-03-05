@@ -52,7 +52,8 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
   // Update the filter: if `val` is nonempty and there's a column selected, apply that filter
   const onValueChange = (val: string | string[] | null) => {
     setFilterValue(val);
-    if (val && selectedColumn) {
+    const hasValue = Array.isArray(val) ? val.length > 0 : Boolean(val);
+    if (hasValue && selectedColumn) {
       table.setColumnFilters([{ id: selectedColumn, value: val }]);
     } else {
       table.setColumnFilters([]);
@@ -86,6 +87,7 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
       case "select":
         return (
           <AutoCompleteMultiselect
+            key={selectedColumn}
             label={`${columnDisplayName}`}
             options={filterConfig?.options || []}
             placeholder={`Select ${columnDisplayName}`}

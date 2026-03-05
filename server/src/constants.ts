@@ -56,6 +56,7 @@ export const SDG_DIVISIONS = [
 export const DOCUMENT_TYPES = [
   "Application Completeness Letter",
   "Approval Letter",
+  "Federal Comment Internal Analysis Document",
   "Final BN Worksheet",
   "Final Budget Neutrality Formulation Workbook",
   "Formal OMB Policy Concurrence Email",
@@ -319,19 +320,20 @@ export const COMPLETENESS_PHASE_DOCUMENTS: DocumentType[] = [
   "Internal Completeness Review Form",
   "Application Completeness Letter",
 ] as const;
-export const FEDERAL_COMMENT_PHASE_DOCUMENTS: DocumentType[] = ["General File"] as const;
+export const FEDERAL_COMMENT_PHASE_DOCUMENTS: DocumentType[] = [
+  "General File",
+  "Federal Comment Internal Analysis Document",
+] as const;
 
 export const SDG_PREPARATION_PHASE_DOCUMENTS: DocumentType[] = ["General File"] as const;
 
 export const REVIEW_PHASE_DOCUMENTS: DocumentType[] = ["General File"] as const;
 
 export const APPROVAL_PACKAGE_PHASE_DOCUMENTS: DocumentType[] = [
-  "General File",
   "Approval Letter",
-  "Final BN Worksheet",
   "Final Budget Neutrality Formulation Workbook",
   "Formal OMB Policy Concurrence Email",
-  "Payment Ratio Analysis",
+  "Special Terms & Conditions",
   "Q&A",
   "Signed Decision Memo",
 ] as const;
@@ -446,5 +448,13 @@ export const DEMONSTRATION_TYPE_TAGS: string[] = [
   "Value Based Care (VBC)",
   "Vision",
 ] as const;
+
 // This seemed like a no brainer.
 export const PRIMARY_AWS_REGION = "us-east-1";
+
+export const BUDGET_NEUTRALITY_VALIDATION_STATUSES = [
+  "Succeeded",
+  "Failed",
+  "Pending",
+  "In Progress",
+];

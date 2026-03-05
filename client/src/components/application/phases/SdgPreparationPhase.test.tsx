@@ -7,7 +7,7 @@ import userEvent from "@testing-library/user-event";
 import {
   SdgPreparationPhase,
   hasChanges,
-  getSdgPreparationPhaseFromDemonstration,
+  getSdgPreparationPhaseFromApplication,
 } from "./SdgPreparationPhase";
 import { ApplicationWorkflowDemonstration } from "../demonstration/DemonstrationWorkflow";
 import type { ApplicationStatus } from "demos-server";
@@ -513,7 +513,7 @@ describe("Approved Demonstration Behavior", () => {
   });
 });
 
-describe("getSdgPreparationPhaseFromDemonstration", () => {
+describe("getSdgPreparationPhaseFromApplication", () => {
   const mockSetSelectedPhase = vi.fn();
 
   it("renders the SDG Preparation Phase component when phase is found", () => {
@@ -546,7 +546,7 @@ describe("getSdgPreparationPhaseFromDemonstration", () => {
       tags: [],
     };
 
-    render(getSdgPreparationPhaseFromDemonstration(demonstration, mockSetSelectedPhase));
+    render(getSdgPreparationPhaseFromApplication(demonstration, mockSetSelectedPhase));
 
     expect(screen.getByText("SDG PREPARATION")).toBeInTheDocument();
     expect(screen.getByTestId("sdg-finish")).toBeInTheDocument();
@@ -577,7 +577,7 @@ describe("getSdgPreparationPhaseFromDemonstration", () => {
       tags: [],
     };
 
-    render(getSdgPreparationPhaseFromDemonstration(demonstration, mockSetSelectedPhase));
+    render(getSdgPreparationPhaseFromApplication(demonstration, mockSetSelectedPhase));
 
     expect(screen.getByText("Error: SDG Preparation Phase not found.")).toBeInTheDocument();
   });
@@ -627,7 +627,7 @@ describe("getSdgPreparationPhaseFromDemonstration", () => {
       tags: [],
     };
 
-    render(getSdgPreparationPhaseFromDemonstration(demonstration, mockSetSelectedPhase));
+    render(getSdgPreparationPhaseFromApplication(demonstration, mockSetSelectedPhase));
 
     const finishButton = screen.getByTestId("sdg-finish");
     expect(finishButton).toBeDisabled();
@@ -690,7 +690,7 @@ describe("getSdgPreparationPhaseFromDemonstration", () => {
       tags: [],
     };
 
-    render(getSdgPreparationPhaseFromDemonstration(demonstration, mockSetSelectedPhase));
+    render(getSdgPreparationPhaseFromApplication(demonstration, mockSetSelectedPhase));
 
     const finishButton = screen.getByTestId("sdg-finish");
     expect(finishButton).toBeEnabled();

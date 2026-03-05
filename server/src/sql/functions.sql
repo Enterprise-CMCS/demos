@@ -227,12 +227,15 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.create_phases_and_dates_for_new_application();
 
 -- move_document_from_pending_to_clean
-CREATE PROCEDURE demos_app.move_document_from_pending_to_clean(
+CREATE FUNCTION demos_app.move_document_from_pending_to_clean(
     p_id UUID,
     p_s3_path TEXT
 )
+RETURNS TEXT
 LANGUAGE plpgsql
 AS $$
+DECLARE
+    v_document_type_id TEXT;
 BEGIN
 
     IF NOT EXISTS (SELECT id FROM demos_app.document_pending_upload WHERE id = p_id) THEN
@@ -264,12 +267,18 @@ BEGIN
         updated_at
     FROM
         demos_app.document_pending_upload
-    WHERE id = p_id;
+    WHERE id = p_id
+    RETURNING
+        document_type_id
+    INTO
+        v_document_type_id;
 
     DELETE FROM
         demos_app.document_pending_upload
     WHERE
         id = p_id;
+
+    RETURN v_document_type_id;
 
     EXCEPTION WHEN OTHERS THEN
         RAISE EXCEPTION 'Failed to move document from pending to clean. Details: %', SQLERRM;

@@ -1,0 +1,151 @@
+import React from "react";
+import { beforeEach, describe, expect, it } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+
+import { DeliverableTable } from "./DeliverableTable";
+import { MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
+
+describe("DeliverableTable", () => {
+  beforeEach(async () => {
+    render(<DeliverableTable deliverables={MOCK_DELIVERABLES} />);
+    await waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+  });
+
+  it("renders all deliverable names initially", () => {
+    MOCK_DELIVERABLES.forEach((deliverable) => {
+      expect(
+        screen.getByText(deliverable.name)
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("shows empty state when no deliverables provided", async () => {
+    render(<DeliverableTable deliverables={[]} />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("No deliverables available.")
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("renders action buttons (add/edit/remove)", () => {
+    expect(screen.getByLabelText(/Add Deliverable/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Edit Deliverable/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Remove Deliverable/i)).toBeInTheDocument();
+  });
+
+  it("disables Edit and Remove when nothing selected", () => {
+    const editBtn = screen.getByTestId("edit-deliverable");
+    const removeBtn = screen.getByTestId("remove-deliverable");
+
+    expect(editBtn).toBeDisabled();
+    expect(removeBtn).toBeDisabled();
+  });
+
+  it("enables Edit for exactly one selected row", async () => {
+    const user = userEvent.setup();
+
+    await user.click(
+      screen.getByTestId(`select-row-${MOCK_DELIVERABLES[0].id}`)
+    );
+
+    const editBtn = screen.getByTestId("edit-deliverable");
+    expect(editBtn).not.toBeDisabled();
+  });
+
+  it("disables Edit when multiple rows selected", async () => {
+    const user = userEvent.setup();
+
+    await user.click(
+      screen.getByTestId(`select-row-${MOCK_DELIVERABLES[0].id}`)
+    );
+    await user.click(
+      screen.getByTestId(`select-row-${MOCK_DELIVERABLES[1].id}`)
+    );
+
+    const editBtn = screen.getByTestId("edit-deliverable");
+    expect(editBtn).toBeDisabled();
+  });
+
+  it("enables Remove when at least one row selected", async () => {
+    const user = userEvent.setup();
+
+    await user.click(
+      screen.getByTestId(`select-row-${MOCK_DELIVERABLES[0].id}`)
+    );
+
+    const removeBtn = screen.getByTestId("remove-deliverable");
+    expect(removeBtn).not.toBeDisabled();
+  });
+
+  describe("Keyword Search functionality", () => {
+    it("renders search input", () => {
+      const searchInput = screen.getByLabelText(/search:/i);
+      expect(searchInput).toBeInTheDocument();
+    });
+
+    it("filters deliverables by keyword", async () => {
+      const user = userEvent.setup();
+      const searchInput = screen.getByLabelText(/search:/i);
+
+      await user.type(searchInput, MOCK_DELIVERABLES[0].name);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(MOCK_DELIVERABLES[0].name)
+        ).toBeInTheDocument();
+      });
+    });
+
+    it("shows no results message if nothing matches", async () => {
+      const user = userEvent.setup();
+      const searchInput = screen.getByLabelText(/search:/i);
+
+      await user.type(searchInput, "notarealkeyword");
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            /No results were returned. Adjust your search and filter criteria./i
+          )
+        ).toBeInTheDocument();
+      });
+    });
+
+    it("clears search and restores rows", async () => {
+      const user = userEvent.setup();
+      const searchInput = screen.getByLabelText(/search:/i);
+
+      await user.type(searchInput, MOCK_DELIVERABLES[0].name);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(MOCK_DELIVERABLES[0].name)
+        ).toBeInTheDocument();
+      });
+
+      const clearBtn = screen.getByRole("button", { name: /clear search/i });
+      await user.click(clearBtn);
+
+      expect(searchInput).toHaveValue("");
+
+      MOCK_DELIVERABLES.forEach((deliverable) => {
+        expect(
+          screen.getByText(deliverable.name)
+        ).toBeInTheDocument();
+      });
+    });
+  });
+
+  it("renders column filter dropdown", () => {
+    expect(screen.getByTestId("filter-by-column")).toBeInTheDocument();
+  });
+
+  it("renders pagination controls", () => {
+    expect(screen.getByText(/Items per page/i)).toBeInTheDocument();
+  });
+});
