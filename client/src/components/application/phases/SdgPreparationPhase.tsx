@@ -3,7 +3,8 @@ import { tw } from "tags/tw";
 
 import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
-import { WorkflowApplication, SimplePhase } from "components/application";
+import { SimplePhase } from "components/application";
+import { ApplicationWorkflowDemonstration } from "components/application/demonstration/DemonstrationWorkflow";
 import { formatDateForServer } from "util/formatDate";
 import { ApplicationStatus, DateType, LocalDate, PhaseNameWithTrackedStatus } from "demos-server";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
@@ -61,7 +62,7 @@ export const hasChanges = (
 };
 
 export const getSdgPreparationPhaseFromApplication = (
-  application: WorkflowApplication,
+  application: ApplicationWorkflowDemonstration,
   setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void
 ) => {
   const sdgPreparationPhase = application.phases.find(
@@ -86,7 +87,7 @@ export const getSdgPreparationPhaseFromApplication = (
       sdgPreparationPhase={sdgPreparationPhase}
       setSelectedPhase={setSelectedPhase}
       allPreviousPhasesDone={allPreviousPhasesDone}
-      demonstrationStatus={demonstration.status}
+      demonstrationStatus={application.status}
     />
   );
 };
