@@ -49,13 +49,17 @@ echo "6️⃣ Setting up deleteinfectedfile Lambda..."
 bash /workspaces/demos/.devcontainer/localstack/setup/setup_deleteinfectedfile_lambda.sh
 
 echo ""
+echo "7️⃣ Setting up BudgetNeutralityValidation Lambda..."
+bash /workspaces/demos/.devcontainer/localstack/setup/setup_budgetneutralityvalidation_lambda.sh
+
+echo ""
 echo "✅ LocalStack setup complete!"
 echo ""
 echo "📋 Resources created:"
 echo "   - Secrets Manager: database credentials, UiPath credentials"
-echo "   - SQS Queues: fileupload-queue, fileprocess-queue, infected-file-expiration-queue, uipath-queue (+ DLQs)"
+echo "   - SQS Queues: fileupload-queue, fileprocess-queue, infected-file-expiration-queue, uipath-queue, bn-notebook-validation-queue (+ DLQs)"
 echo "   - S3 Buckets: upload-bucket, clean-bucket, infected-bucket, deleted-bucket"
-echo "   - Lambda Functions: fileprocess, uipath, deleteinfectedfile"
+echo "   - Lambda Functions: fileprocess, uipath, deleteinfectedfile, budgetneutralityvalidation"
 echo "   - EventBridge Rules: s3-upload-to-guardduty"
 echo ""
 echo "🧪 Test the setup:"

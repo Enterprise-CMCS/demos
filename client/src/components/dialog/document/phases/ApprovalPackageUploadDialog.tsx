@@ -14,13 +14,15 @@ export const ApprovalPackageUploadDialog: React.FC<Props> = ({
   applicationId,
   documentType,
 }) => {
+  const phaseName = documentType === "Final BN Worksheet" ? "None" : "Approval Package";
+
   return (
     <AddDocumentDialog
       applicationId={applicationId}
       onClose={onClose}
       documentTypeSubset={[documentType]}
       titleOverride="Add Approval Package Document(s)"
-      phaseName="Approval Package"
+      phaseName={phaseName}
       refetchQueries={[GET_WORKFLOW_DEMONSTRATION_QUERY]}
     />
   );

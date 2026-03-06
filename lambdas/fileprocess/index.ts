@@ -11,6 +11,7 @@ import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-sec
 import { als, log, store, reqIdChild } from "./log";
 
 const GUARDDUTY_CLEAN_STATUS = "NO_THREATS_FOUND";
+const FINAL_BN_WORKSHEET_DOCUMENT_TYPE = "Final BN Worksheet";
 const PROCESS_PENDING_DOCUMENT_CLEAN = "move_document_from_pending_to_clean";
 const PROCESS_PENDING_DOCUMENT_INFECTED = "move_document_from_pending_to_infected";
 
@@ -20,6 +21,7 @@ let cacheExpiration = 0;
 const uploadBucket = process.env.UPLOAD_BUCKET;
 const cleanBucket = process.env.CLEAN_BUCKET;
 const infectedBucket = process.env.INFECTED_BUCKET;
+const budgetNeutralityValidationQueueUrl = process.env.BUDGET_NEUTRALITY_VALIDATION_QUEUE_URL;
 const dbSchema = process.env.DB_SCHEMA || "demos_app";
 const bypassSSL = process.env.BYPASS_SSL;
 const s3Config = process.env.AWS_ENDPOINT_URL
@@ -33,6 +35,19 @@ const s3Config = process.env.AWS_ENDPOINT_URL
     };
 
 const s3 = new S3Client(s3Config);
+const sqsConfig = process.env.AWS_ENDPOINT_URL
+  ? {
+      region: process.env.AWS_REGION,
+      endpoint: process.env.AWS_ENDPOINT_URL,
+    }
+  : {
+      region: process.env.AWS_REGION,
+    };
+const sqsModuleName = ["@aws-sdk", "client-sqs"].join("/");
+let sqsClientPromise: Promise<{
+  client: { send: (command: unknown) => Promise<{ MessageId?: string }> };
+  SendMessageCommand: new (input: unknown) => { input?: unknown };
+}> | null = null;
 const secretsManagerConfig = process.env.AWS_ENDPOINT_URL
   ? {
       region: process.env.AWS_REGION,
@@ -147,6 +162,47 @@ export async function processInfectedDatabaseRecord(
   log.info("successfully processed infected file in database.");
 }
 
+export async function enqueueBudgetNeutralityValidation(
+  documentId: string,
+  documentTypeId: string
+) {
+  if (!budgetNeutralityValidationQueueUrl) {
+    throw new Error(
+      "BUDGET_NEUTRALITY_VALIDATION_QUEUE_URL environment variable is required."
+    );
+  }
+
+  sqsClientPromise ??= (async () => {
+    const sqsModule = await import(sqsModuleName);
+    return {
+      client: new sqsModule.SQSClient(sqsConfig),
+      SendMessageCommand: sqsModule.SendMessageCommand,
+    };
+  })();
+
+  const { client, SendMessageCommand } = await sqsClientPromise;
+  const response = await client.send(
+    new SendMessageCommand({
+      QueueUrl: budgetNeutralityValidationQueueUrl,
+      MessageBody: JSON.stringify({
+        documentId,
+        documentTypeId,
+      }),
+    })
+  );
+
+  if (!response.MessageId) {
+    throw new Error(
+      `Failed to enqueue Budget Neutrality validation message for document ${documentId}.`
+    );
+  }
+
+  log.info(
+    { documentId, documentTypeId, messageId: response.MessageId },
+    "queued Budget Neutrality validation request."
+  );
+}
+
 export async function processGuardDutyResult(
   client: typeof Client,
   guardDutyEvent: GuardDutyScanResultNotificationEvent
@@ -187,10 +243,14 @@ export async function processGuardDutyResult(
   const destinationKey = `${applicationId}/${documentId}`;
 
   await moveFile(documentId, destinationBucket, destinationKey);
-  if (isClean) {
-    await processCleanDatabaseRecord(client, documentId, applicationId);
-  } else {
+
+  if (!isClean) {
     await processInfectedDatabaseRecord(client, documentId, applicationId, scanResultDetails);
+  } else {
+    const fileTypeId = await processCleanDatabaseRecord(client, documentId, applicationId);
+    if (fileTypeId === FINAL_BN_WORKSHEET_DOCUMENT_TYPE) {
+      await enqueueBudgetNeutralityValidation(documentId, fileTypeId);
+    }
   }
 
   return isClean;
