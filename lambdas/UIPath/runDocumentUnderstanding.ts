@@ -6,8 +6,12 @@ import { extractDoc } from "./extractDoc";
 import { fetchExtractionResult, ExtractionStatus } from "./fetchExtractResult";
 import { getDbPool, getDbSchema } from "./db";
 import { getProjectIdByName } from "./getProjectId";
+import type { PoolClient } from "pg";
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+type UiPathStatus = "Pending" | "Finished" | "Failed";
+const DEMO_TYPE_FIELD_ID = "demo_type";
 
 interface UiPathFieldValue {
   Value?: string;
@@ -60,6 +64,10 @@ type PersistableFieldValue = {
   fieldValue: UiPathFieldValue;
 };
 
+function getConfidence(value: UiPathFieldValue): number {
+  return typeof value.Confidence === "number" ? value.Confidence : 0;
+}
+
 function coerceValueText(value: UiPathFieldValue): string | null {
   const text = value.UnformattedValue ?? value.Value;
   if (typeof text !== "string") {
@@ -96,6 +104,45 @@ function toPersistableFieldValues(field: UiPathField): PersistableFieldValue[] {
     });
   });
 
+  if (field.FieldId === DEMO_TYPE_FIELD_ID) {
+    if (persistableValues.length === 0) return [];
+
+    const bestByValue = new Map<string, PersistableFieldValue>();
+    for (const persistableValue of persistableValues) {
+      const key = persistableValue.valueText.toUpperCase();
+      const existing = bestByValue.get(key);
+      if (!existing || getConfidence(persistableValue.fieldValue) > getConfidence(existing.fieldValue)) {
+        bestByValue.set(key, persistableValue);
+      }
+    }
+
+    const uniqueValues = Array.from(bestByValue.values());
+    if (uniqueValues.length === 1) {
+      return uniqueValues;
+    }
+
+    uniqueValues.sort((a, b) => getConfidence(b.fieldValue) - getConfidence(a.fieldValue));
+    const combinedValueText = uniqueValues.map((value) => value.valueText).join(", ");
+    const maxConfidence = Math.max(...uniqueValues.map((value) => getConfidence(value.fieldValue)));
+    const sample = uniqueValues[0];
+    if (!sample) return [];
+
+    return [
+      {
+        FieldId: sample.FieldId,
+        FieldName: sample.FieldName,
+        FieldType: sample.FieldType,
+        valueText: combinedValueText,
+        fieldValue: {
+          Value: combinedValueText,
+          Confidence: maxConfidence,
+          SelectedValues: uniqueValues.map((value) => value.valueText),
+          RawValues: uniqueValues.map((value) => value.fieldValue),
+        },
+      },
+    ];
+  }
+
   return persistableValues;
 }
 
@@ -110,29 +157,21 @@ async function persistExtractionStatus(
   const client = await pool.connect();
   const schema = getDbSchema();
 
-  if (! schema) {
+  if (!schema) {
     throw new Error("Database schema is not defined.");
   }
 
   try {
     await client.query("BEGIN");
 
-    const upsertedResult = await client.query<{ id: string }>(
-      `insert into ${schema}.uipath_result (id, request_id, project_id, response, document_id)
-       values ($1, $2, $3, $4::jsonb, $5)
-       on conflict (request_id)
-       do update set
-         document_id = coalesce(excluded.document_id, uipath_result.document_id),
-         project_id = excluded.project_id,
-         response = excluded.response
-       returning id`,
-      [randomUUID(), requestId, projectId, JSON.stringify(status), documentId]
+    const resultId = await upsertResult(
+      client,
+      requestId,
+      projectId,
+      documentId,
+      "Finished",
+      status,
     );
-
-    const resultId = upsertedResult.rows[0]?.id;
-    if (!resultId) {
-      throw new Error("Failed to persist UiPath result row.");
-    }
 
     const extractedFields = getExtractedFields(status);
     for (const field of extractedFields) {
@@ -189,6 +228,68 @@ async function persistExtractionStatus(
   }
 }
 
+async function upsertResult(
+  client: PoolClient,
+  requestId: string,
+  projectId: string,
+  documentId: string | undefined,
+  status: UiPathStatus,
+  response: unknown,
+): Promise<string> {
+  const schema = getDbSchema();
+  if (!schema) {
+    throw new Error("Database schema is not defined.");
+  }
+
+  const upsertedResult = await client.query<{ id: string }>(
+    `insert into ${schema}.uipath_result (id, request_id, project_id, response, document_id, status_id)
+     values ($1, $2, $3, $4::jsonb, $5, $6)
+     on conflict (request_id)
+     do update set
+       document_id = coalesce(excluded.document_id, uipath_result.document_id),
+       project_id = excluded.project_id,
+       response = excluded.response,
+       status_id = excluded.status_id
+     returning id`,
+    [randomUUID(), requestId, projectId, JSON.stringify(response), documentId, status]
+  );
+
+  const resultId = upsertedResult.rows[0]?.id;
+  if (!resultId) {
+    throw new Error("Failed to persist UiPath result row.");
+  }
+
+  return resultId;
+}
+
+async function persistResultStatus(
+  requestId: string,
+  projectId: string,
+  documentId: string | undefined,
+  status: UiPathStatus,
+  response: unknown,
+): Promise<void> {
+  const pool = await getDbPool();
+  const client = await pool.connect();
+
+  try {
+    await upsertResult(client, requestId, projectId, documentId, status, response);
+  } finally {
+    client.release();
+  }
+}
+
+function buildFailureResponse(error: unknown, lastPolledStatus: ExtractionStatus | null): Record<string, unknown> {
+  const message = error instanceof Error ? error.message : String(error);
+  const response: Record<string, unknown> = { error: message };
+
+  if (lastPolledStatus) {
+    response.lastPolledStatus = lastPolledStatus;
+  }
+
+  return response;
+}
+
 export interface RunDocumentUnderstandingOptions {
   token?: string;
   pollIntervalMs?: number;
@@ -220,19 +321,50 @@ export async function runDocumentUnderstanding(
     throw new Error("Failed to initiate document understanding due to missing information.");
   }
 
-  let attempt = 0;
-  while (attempt < maxAttempts) {
-    await sleep(pollIntervalMs);
-    const status = await fetchExtractionResult(token, resultUrl);
+  let lastPolledStatus: ExtractionStatus | null = null;
 
-    if (status.status === "Succeeded") {
-      await persistExtractionStatus(status, requestId, projectId, documentId);
-      return status;
+  try {
+    await persistResultStatus(
+      requestId,
+      projectId,
+      documentId,
+      "Pending",
+      { status: "Pending" },
+    );
+
+    let attempt = 0;
+    while (attempt < maxAttempts) {
+      await sleep(pollIntervalMs);
+      const status = await fetchExtractionResult(token, resultUrl);
+      lastPolledStatus = status;
+
+      if (status.status === "Succeeded") {
+        await persistExtractionStatus(status, requestId, projectId, documentId);
+        return status;
+      }
+
+      if (status.status === "Failed") {
+        throw new Error("UiPath extraction returned Failed status.");
+      }
+
+      log.info({ status, attempt, pollIntervalMs }, "Extraction still running");
+      attempt += 1;
     }
 
-    log.info({ status, attempt, pollIntervalMs }, "Extraction still running");
-    attempt += 1;
-  }
+    throw new Error("UiPath extraction did not succeed within the configured attempts.");
+  } catch (error) {
+    try {
+      await persistResultStatus(
+        requestId,
+        projectId,
+        documentId,
+        "Failed",
+        buildFailureResponse(error, lastPolledStatus),
+      );
+    } catch (persistError) {
+      log.error({ error: persistError }, "Failed to persist UiPath failure status");
+    }
 
-  throw new Error("UiPath extraction did not succeed within the configured attempts.");
+    throw error;
+  }
 }
