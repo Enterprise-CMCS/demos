@@ -3,6 +3,7 @@ import { describe, it, expect } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ModificationTabs, ModificationItem } from "./ModificationTabs";
 import { TestProvider } from "test-utils/TestProvider";
+import { DialogProvider } from "components/dialog/DialogContext";
 
 const createModificationItem = (overrides?: Partial<ModificationItem>): ModificationItem => {
   return {
@@ -35,9 +36,11 @@ describe("ModificationTabs Component", () => {
 
   it("renders all item names as tabs", () => {
     render(
-      <TestProvider>
-        <ModificationTabs items={mockItems} />
-      </TestProvider>
+      <DialogProvider>
+        <TestProvider>
+          <ModificationTabs items={mockItems} />
+        </TestProvider>
+      </DialogProvider>
     );
 
     expect(screen.getByTestId("modification-tab-1")).toHaveTextContent("Item 1");
@@ -47,9 +50,11 @@ describe("ModificationTabs Component", () => {
 
   it("sets aria-selected attribute correctly", () => {
     render(
-      <TestProvider>
-        <ModificationTabs items={mockItems} />
-      </TestProvider>
+      <DialogProvider>
+        <TestProvider>
+          <ModificationTabs items={mockItems} />
+        </TestProvider>
+      </DialogProvider>
     );
 
     const tab1Button = screen.getByTestId("modification-tab-1");
@@ -66,9 +71,11 @@ describe("ModificationTabs Component", () => {
 
   it("renders nothing when items array is empty", () => {
     const { container } = render(
-      <TestProvider>
-        <ModificationTabs items={[]} />
-      </TestProvider>
+      <DialogProvider>
+        <TestProvider>
+          <ModificationTabs items={[]} />
+        </TestProvider>
+      </DialogProvider>
     );
 
     expect(container.firstChild).toBeNull();
@@ -81,9 +88,11 @@ describe("ModificationTabs Component", () => {
     ];
 
     render(
-      <TestProvider>
-        <ModificationTabs items={minimalItems} />
-      </TestProvider>
+      <DialogProvider>
+        <TestProvider>
+          <ModificationTabs items={minimalItems} />
+        </TestProvider>
+      </DialogProvider>
     );
   });
 
@@ -107,9 +116,11 @@ describe("ModificationTabs Component", () => {
     ];
 
     render(
-      <TestProvider>
-        <ModificationTabs items={items} />
-      </TestProvider>
+      <DialogProvider>
+        <TestProvider>
+          <ModificationTabs items={items} />
+        </TestProvider>
+      </DialogProvider>
     );
 
     const tabButtons = screen.getAllByRole("button");
