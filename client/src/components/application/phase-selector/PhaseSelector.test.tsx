@@ -56,7 +56,7 @@ describe("PhaseSelector", () => {
 
     render(
       <TestProvider>
-        <PhaseSelector application={demonstration} />
+        <PhaseSelector application={demonstration} workflowApplicationType="demonstration" />
       </TestProvider>
     );
     [
@@ -93,7 +93,7 @@ describe("PhaseSelector", () => {
 
     render(
       <TestProvider>
-        <PhaseSelector application={demonstration} />
+        <PhaseSelector application={demonstration} workflowApplicationType="demonstration" />
       </TestProvider>
     );
 
@@ -457,7 +457,7 @@ describe("completeness phase component", () => {
 
     render(
       <TestProvider>
-        <PhaseSelector application={demonstration} />
+        <PhaseSelector application={demonstration} workflowApplicationType="demonstration" />
       </TestProvider>
     );
 
@@ -496,7 +496,7 @@ describe("sdg preparation phase component", () => {
 
     render(
       <TestProvider>
-        <PhaseSelector application={demonstration} />
+        <PhaseSelector application={demonstration} workflowApplicationType="demonstration" />
       </TestProvider>
     );
 
@@ -531,7 +531,7 @@ describe("Review phase component", () => {
 
     render(
       <TestProvider>
-        <PhaseSelector application={demonstration} />
+        <PhaseSelector application={demonstration} workflowApplicationType="demonstration" />
       </TestProvider>
     );
 
@@ -593,7 +593,7 @@ describe("completeness phase component", () => {
 
     render(
       <TestProvider>
-        <PhaseSelector application={demonstration} />
+        <PhaseSelector application={demonstration} workflowApplicationType="demonstration" />
       </TestProvider>
     );
 
@@ -645,7 +645,7 @@ describe("completeness phase component", () => {
 
     const { rerender } = render(
       <TestProvider>
-        <PhaseSelector application={demonstration} />
+        <PhaseSelector application={demonstration} workflowApplicationType="demonstration" />
       </TestProvider>
     );
 
@@ -659,7 +659,7 @@ describe("completeness phase component", () => {
 
     rerender(
       <TestProvider>
-        <PhaseSelector application={demonstration} />
+        <PhaseSelector application={demonstration} workflowApplicationType="demonstration" />
       </TestProvider>
     );
 
