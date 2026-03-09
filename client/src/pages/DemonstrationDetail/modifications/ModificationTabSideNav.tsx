@@ -32,7 +32,7 @@ export const ModificationTabSideNav = ({
 }: {
   modificationItem: ModificationItem;
 }) => {
-  const { showUploadDocumentDialog } = useDialog();;
+  const { showUploadDocumentDialog } = useDialog();
   const client = useApolloClient();
   const refetchApplicationWorkflow = async () => {
     await client.refetchQueries({

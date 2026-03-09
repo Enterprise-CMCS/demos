@@ -6,6 +6,18 @@ import { ModificationItem } from "./ModificationTabs";
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
 
+const showUploadDocumentDialogMock = vi.fn();
+
+vi.mock("components/dialog/DialogContext", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("components/dialog/DialogContext")>();
+  return {
+    ...actual,
+    useDialog: () => ({
+      showUploadDocumentDialog: showUploadDocumentDialogMock,
+    }),
+  };
+});
+
 vi.mock("components/application", async (importOriginal) => {
   const actual = await importOriginal<typeof import("components/application")>();
 
@@ -160,6 +172,18 @@ describe("ModificationTabSideNav", () => {
       fireEvent.click(documentsTab);
 
       expect(screen.getByText("Document 1")).toBeInTheDocument();
+    });
+
+    it("calls showUploadDocumentDialog when Add Document button is clicked", async () => {
+      setup(mockModificationItem);
+
+      const documentsTab = screen.getByTestId("button-documents");
+      fireEvent.click(documentsTab);
+
+      const addDocumentButton = screen.getByTestId("add-new-document");
+      fireEvent.click(addDocumentButton);
+
+      expect(showUploadDocumentDialogMock).toHaveBeenCalledTimes(1);
     });
   });
 });
