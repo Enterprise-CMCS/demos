@@ -498,7 +498,9 @@ describe("ApplicationIntakePhase", () => {
       expect(finishButton).toBeDisabled();
     });
 
-    it("finish button remains disabled when no documents even with date", () => {
+    it("finish button remains disabled when no documents even with date, and date is cleared (DEMOS-1675)", async () => {
+      vi.clearAllMocks();
+
       setup({
         initialStateApplicationDocuments: [],
         initialStateApplicationSubmittedDate: "2024-03-15",
@@ -507,12 +509,22 @@ describe("ApplicationIntakePhase", () => {
       const finishButton = screen.getByRole("button", { name: /finish/i });
       expect(finishButton).toBeDisabled();
 
-      // DatePicker uses defaultValue so it displays the initial value
-      // Finish button is still disabled due to lack of documents
-      const submittedDateInput = screen.getByTestId(
-        "datepicker-state-application-submitted-date"
-      ) as HTMLInputElement;
-      expect(submittedDateInput.defaultValue).toBe("2024-03-15");
+      // When there are no documents, the date should be auto-cleared (DEMOS-1675)
+      await waitFor(() => {
+        const submittedDateInput = screen.getByTestId(
+          "datepicker-state-application-submitted-date"
+        ) as HTMLInputElement;
+        expect(submittedDateInput.defaultValue).toBe("");
+      });
+
+      // Verify dates were cleared on the server
+      expect(mockSetApplicationDates).toHaveBeenCalledWith({
+        applicationId: "test-demo-id",
+        applicationDates: [
+          { dateType: "State Application Submitted Date", dateValue: null },
+          { dateType: "Completeness Review Due Date", dateValue: null },
+        ],
+      });
     });
 
     it("handles empty date value correctly", async () => {

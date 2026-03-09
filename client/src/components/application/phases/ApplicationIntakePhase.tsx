@@ -103,6 +103,7 @@ const VerifyCompleteSection = ({
     <div className="space-y-4">
       <div>
         <DatePicker
+          key={stateApplicationSubmittedDate}
           name="datepicker-state-application-submitted-date"
           label="State Application Submitted Date"
           value={stateApplicationSubmittedDate}
@@ -208,6 +209,20 @@ export const ApplicationIntakePhase = ({
   }, [initialStateApplicationSubmittedDate]);
 
   const hasDocuments = initialStateApplicationDocuments.length > 0;
+
+  useEffect(() => {
+    if (!hasDocuments && stateApplicationSubmittedDate) {
+      setStateApplicationSubmittedDate("");
+      setApplicationDates({
+        applicationId: demonstrationId,
+        applicationDates: [
+          { dateType: "State Application Submitted Date", dateValue: null },
+          { dateType: "Completeness Review Due Date", dateValue: null },
+        ],
+      });
+    }
+  }, [hasDocuments, stateApplicationSubmittedDate, demonstrationId, setApplicationDates]);
+
   const hasSubmittedDate = Boolean(stateApplicationSubmittedDate);
   const isFinishButtonEnabled = hasDocuments && hasSubmittedDate;
 
@@ -241,6 +256,14 @@ export const ApplicationIntakePhase = ({
             dateType: "Completeness Review Due Date",
             dateValue: completenessReviewDueDate,
           },
+        ],
+      });
+    } else {
+      await setApplicationDates({
+        applicationId: demonstrationId,
+        applicationDates: [
+          { dateType: "State Application Submitted Date", dateValue: null },
+          { dateType: "Completeness Review Due Date", dateValue: null },
         ],
       });
     }
