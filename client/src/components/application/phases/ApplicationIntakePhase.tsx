@@ -103,7 +103,6 @@ const VerifyCompleteSection = ({
     <div className="space-y-4">
       <div>
         <DatePicker
-          key={stateApplicationSubmittedDate}
           name="datepicker-state-application-submitted-date"
           label="State Application Submitted Date"
           value={stateApplicationSubmittedDate}

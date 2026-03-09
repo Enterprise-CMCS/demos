@@ -514,7 +514,7 @@ describe("ApplicationIntakePhase", () => {
         const submittedDateInput = screen.getByTestId(
           "datepicker-state-application-submitted-date"
         ) as HTMLInputElement;
-        expect(submittedDateInput.defaultValue).toBe("");
+        expect(submittedDateInput.value).toBe("");
       });
 
       // Verify dates were cleared on the server
