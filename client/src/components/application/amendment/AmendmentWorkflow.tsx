@@ -48,7 +48,7 @@ export const AmendmentWorkflow = ({ amendmentId }: { amendmentId: string }) => {
           <ApplicationStatusBadge applicationStatus={data.amendment.status} />
         </div>
         <hr className="text-border-rules" />
-        <PhaseSelector application={data.amendment} />
+        <PhaseSelector application={data.amendment} workflowApplicationType="amendment" />
       </div>
     );
   }

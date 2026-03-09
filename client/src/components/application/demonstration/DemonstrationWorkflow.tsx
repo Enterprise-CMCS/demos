@@ -87,7 +87,7 @@ export const DemonstrationWorkflow = ({ demonstrationId }: { demonstrationId: st
           <ApplicationStatusBadge applicationStatus={data.demonstration.status} />
         </div>
         <hr className="text-border-rules" />
-        <PhaseSelector application={data.demonstration} />
+        <PhaseSelector application={data.demonstration} workflowApplicationType="demonstration" />
       </div>
     );
   }

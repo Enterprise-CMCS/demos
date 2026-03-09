@@ -48,7 +48,7 @@ export const ExtensionWorkflow = ({ extensionId }: { extensionId: string }) => {
           <ApplicationStatusBadge applicationStatus={data.extension.status} />
         </div>
         <hr className="text-border-rules" />
-        <PhaseSelector application={data.extension} />
+        <PhaseSelector application={data.extension} workflowApplicationType="extension" />
       </div>
     );
   }
