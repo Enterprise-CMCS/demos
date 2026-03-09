@@ -68,6 +68,7 @@ describe("ConceptPhase", () => {
     applicationId: TEST_APPLICATION_ID,
     workflowApplicationType: "demonstration",
     documents: [mockPreSubmissionDocument],
+    phaseStatus: "Started",
   };
 
   const setup = (props: Partial<ConceptPhaseProps> = {}) => {
@@ -300,6 +301,78 @@ describe("ConceptPhase", () => {
     });
   });
 
+  describe("Document Reactivity", () => {
+    it("reflects updated documents when props change (no refresh needed)", () => {
+      const { rerender } = render(
+        <TestProvider>
+          <ConceptPhase {...defaultProps} documents={[]} />
+        </TestProvider>
+      );
+
+      expect(screen.getByText("No documents yet.")).toBeInTheDocument();
+
+      rerender(
+        <TestProvider>
+          <ConceptPhase
+            {...defaultProps}
+            documents={[mockPreSubmissionDocument]}
+          />
+        </TestProvider>
+      );
+
+      expect(screen.queryByText("No documents yet.")).not.toBeInTheDocument();
+      expect(screen.getByText("Pre-Submission Document 1")).toBeInTheDocument();
+    });
+
+    it("reflects document removal when props change (no refresh needed)", () => {
+      const { rerender } = render(
+        <TestProvider>
+          <ConceptPhase
+            {...defaultProps}
+            documents={[mockPreSubmissionDocument]}
+          />
+        </TestProvider>
+      );
+
+      expect(screen.getByText("Pre-Submission Document 1")).toBeInTheDocument();
+
+      rerender(
+        <TestProvider>
+          <ConceptPhase {...defaultProps} documents={[]} />
+        </TestProvider>
+      );
+
+      expect(screen.queryByText("Pre-Submission Document 1")).not.toBeInTheDocument();
+      expect(screen.getByText("No documents yet.")).toBeInTheDocument();
+    });
+
+    it("updates Finish button state when documents are added via props", () => {
+      const { rerender } = render(
+        <TestProvider>
+          <ConceptPhase
+            {...defaultProps}
+            documents={[]}
+            presubmissionSubmittedDate={"2024-01-15" as LocalDate}
+          />
+        </TestProvider>
+      );
+
+      expect(screen.getByRole("button", { name: /finish/i })).toBeDisabled();
+
+      rerender(
+        <TestProvider>
+          <ConceptPhase
+            {...defaultProps}
+            documents={[mockPreSubmissionDocument]}
+            presubmissionSubmittedDate={"2024-01-15" as LocalDate}
+          />
+        </TestProvider>
+      );
+
+      expect(screen.getByRole("button", { name: /finish/i })).toBeEnabled();
+    });
+  });
+
   describe("getConceptPhaseComponentFromApplication", () => {
     it("should return ConceptPhase component with extracted pre-submission docs", () => {
       const mockDemonstration: ApplicationWorkflowDemonstration = {
@@ -365,7 +438,7 @@ describe("ConceptPhase", () => {
       if (component) {
         expect(component.type).toBe(ConceptPhase);
         expect(component.props.demonstrationId).toBe("demo-111");
-        expect(component.props.initialPreSubmissionDocuments).toHaveLength(2);
+        expect(component.props.documents).toHaveLength(2);
       }
     });
 

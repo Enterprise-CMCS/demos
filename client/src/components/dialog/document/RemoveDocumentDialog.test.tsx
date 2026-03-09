@@ -9,6 +9,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 
 import { RemoveDocumentDialog } from "./RemoveDocumentDialog";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application/demonstration/DemonstrationWorkflow";
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 
 const mockQuery = vi.fn();
@@ -76,7 +77,7 @@ describe("RemoveDocumentDialog", () => {
     await waitFor(() => {
       expect(mockQuery).toHaveBeenCalledWith({
         variables: { ids: ["test-document-id"] },
-        refetchQueries: [DEMONSTRATION_DETAIL_QUERY],
+        refetchQueries: [DEMONSTRATION_DETAIL_QUERY, GET_WORKFLOW_DEMONSTRATION_QUERY],
       });
     });
   });

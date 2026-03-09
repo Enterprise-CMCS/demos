@@ -73,6 +73,7 @@ describe("ApprovalPackagePhase", () => {
         demonstrationId="demo-1"
         documents={[]}
         allPreviousPhasesDone={true}
+        phaseStatus="Started"
       />
     );
 
@@ -91,6 +92,7 @@ describe("ApprovalPackagePhase", () => {
         demonstrationId="demo-1"
         documents={[]}
         allPreviousPhasesDone={true}
+        phaseStatus="Started"
       />
     );
 
@@ -124,6 +126,7 @@ describe("ApprovalPackagePhase", () => {
         demonstrationId="demo-1"
         documents={[d1]}
         allPreviousPhasesDone={true}
+        phaseStatus="Started"
       />
     );
 
@@ -141,6 +144,7 @@ describe("ApprovalPackagePhase", () => {
         demonstrationId="demo-1"
         documents={[]}
         allPreviousPhasesDone={true}
+        phaseStatus="Started"
       />
     );
 
@@ -162,6 +166,7 @@ describe("ApprovalPackagePhase", () => {
         demonstrationId="demo-1"
         documents={[d1, d2]}
         allPreviousPhasesDone={false}
+        phaseStatus="Started"
       />
     );
 
@@ -179,6 +184,7 @@ describe("ApprovalPackagePhase", () => {
         demonstrationId="demo-1"
         documents={[d1]}
         allPreviousPhasesDone={true}
+        phaseStatus="Started"
       />
     );
 
@@ -249,6 +255,7 @@ describe("ApprovalPackagePhase", () => {
         demonstrationId="demo-1"
         documents={completeDocs}
         allPreviousPhasesDone={true}
+        phaseStatus="Started"
       />
     );
 
@@ -263,6 +270,7 @@ describe("ApprovalPackagePhase", () => {
         demonstrationId="demo-1"
         documents={[]}
         allPreviousPhasesDone={true}
+        phaseStatus="Started"
       />
     );
 
@@ -287,6 +295,7 @@ describe("ApprovalPackagePhase", () => {
         demonstrationId="demo-1"
         documents={completeDocs}
         allPreviousPhasesDone={true}
+        phaseStatus="Started"
       />
     );
 
