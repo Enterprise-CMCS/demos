@@ -75,45 +75,6 @@ export function authenticationDirectiveTransformer(schema: GraphQLSchema) {
           throw new Error(`Type ${typeName} for field ${fieldName} not found in schema`);
         }
 
-        const result = await resolve(source, args, context, info);
-
-        const directiveFunctions = getDirectiveFunctions(schema, fieldConfig, typeConfig);
-        if (Array.isArray(result)) {
-          const filteredResults = [];
-          for (const item of result) {
-            const isAuthorized = await checkAuthorization(directiveFunctions, {
-              source: item,
-              args,
-              context,
-              info,
-            });
-            if (isAuthorized) {
-              filteredResults.push(item);
-            }
-          }
-          return filteredResults;
-        }
-
-        if (
-          !(await checkAuthorization(directiveFunctions, { source: result, args, context, info }))
-        ) {
-          throw new Error(
-            `You do not have permission to access ${info.parentType.name}.${info.fieldName}`
-          );
-        }
-
-        return result;
-      };
-      return fieldConfig;
-    },
-    [MapperKind.MUTATION_ROOT_FIELD]: (fieldConfig, fieldName, typeName) => {
-      const { resolve = defaultFieldResolver } = fieldConfig;
-      fieldConfig.resolve = async function (source, args, context, info) {
-        const typeConfig = schema.getType(typeName);
-        if (!typeConfig) {
-          throw new Error(`Type ${typeName} for field ${fieldName} not found in schema`);
-        }
-
         const directiveFunctions = getDirectiveFunctions(schema, fieldConfig, typeConfig);
 
         if (!(await checkAuthorization(directiveFunctions, { source, args, context, info }))) {
