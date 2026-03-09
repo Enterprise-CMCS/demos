@@ -126,6 +126,28 @@ describe("ConceptPhase", () => {
       const deleteButton = screen.getByLabelText("Delete Pre-Submission Document 1");
       expect(deleteButton).toBeInTheDocument();
     });
+
+    describe("WorkflowApplicationType text rendering", () => {
+      it("renders helper text with 'demonstration' when workflowApplicationType is demonstration", () => {
+        setup({ workflowApplicationType: "demonstration" });
+        expect(
+          screen.getByText(/Upload the Pre-Submission Document describing your demonstration/)
+        ).toBeInTheDocument();
+      });
+      it("renders helper text with 'extension' when workflowApplicationType is extension", () => {
+        setup({ workflowApplicationType: "extension" });
+        expect(
+          screen.getByText(/Upload the Pre-Submission Document describing your extension/)
+        ).toBeInTheDocument();
+      });
+
+      it("renders helper text with 'amendment' when workflowApplicationType is amendment", () => {
+        setup({ workflowApplicationType: "amendment" });
+        expect(
+          screen.getByText(/Upload the Pre-Submission Document describing your amendment/)
+        ).toBeInTheDocument();
+      });
+    });
   });
 
   describe("Step 2 - Verify/Complete Section", () => {
