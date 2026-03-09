@@ -4,7 +4,7 @@ import {
   ApprovalPackageTable,
   ApprovalPackageTableRow,
 } from "components/table/tables/ApprovalPackageTable";
-import { DocumentType, PhaseNameWithTrackedStatus } from "demos-server";
+import { DocumentType, PhaseNameWithTrackedStatus, PhaseStatus } from "demos-server";
 import { formatDate } from "util/formatDate";
 import { Button } from "components/button";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
@@ -16,7 +16,7 @@ export interface ApprovalPackagePhaseProps {
   documents: (ApplicationWorkflowDocument | undefined)[];
   allPreviousPhasesDone: boolean;
   setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void;
-  phaseStatus: string;
+  phaseStatus: PhaseStatus;
 }
 
 const REQUIRED_TYPES: DocumentType[] = [
@@ -69,6 +69,11 @@ export const getApprovalPackagePhaseFromApplication = (
     (phase) => phase.phaseName === "Approval Package"
   );
 
+  if (!approvalPackagePhase) {
+    console.error("Cannot find approval package phase on application: ", application.id);
+    return null;
+  }
+
   return (
     <ApprovalPackagePhase
       demonstrationId={application.id}
@@ -82,7 +87,7 @@ export const getApprovalPackagePhaseFromApplication = (
       ]}
       allPreviousPhasesDone={allPreviousPhasesDone}
       setSelectedPhase={setSelectedPhase}
-      phaseStatus={approvalPackagePhase?.phaseStatus ?? "Not Started"}
+      phaseStatus={approvalPackagePhase.phaseStatus ?? "Not Started"}
     />
   );
 };
