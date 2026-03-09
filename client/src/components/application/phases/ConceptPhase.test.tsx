@@ -281,7 +281,7 @@ describe("ConceptPhase", () => {
     it("reflects updated documents when props change (no refresh needed)", () => {
       const { rerender } = render(
         <TestProvider>
-          <ConceptPhase {...defaultProps} initialPreSubmissionDocuments={[]} />
+          <ConceptPhase {...defaultProps} documents={[]} />
         </TestProvider>
       );
 
@@ -291,7 +291,7 @@ describe("ConceptPhase", () => {
         <TestProvider>
           <ConceptPhase
             {...defaultProps}
-            initialPreSubmissionDocuments={[mockPreSubmissionDocument]}
+            documents={[mockPreSubmissionDocument]}
           />
         </TestProvider>
       );
@@ -305,7 +305,7 @@ describe("ConceptPhase", () => {
         <TestProvider>
           <ConceptPhase
             {...defaultProps}
-            initialPreSubmissionDocuments={[mockPreSubmissionDocument]}
+            documents={[mockPreSubmissionDocument]}
           />
         </TestProvider>
       );
@@ -314,7 +314,7 @@ describe("ConceptPhase", () => {
 
       rerender(
         <TestProvider>
-          <ConceptPhase {...defaultProps} initialPreSubmissionDocuments={[]} />
+          <ConceptPhase {...defaultProps} documents={[]} />
         </TestProvider>
       );
 
@@ -327,7 +327,7 @@ describe("ConceptPhase", () => {
         <TestProvider>
           <ConceptPhase
             {...defaultProps}
-            initialPreSubmissionDocuments={[]}
+            documents={[]}
             presubmissionSubmittedDate={"2024-01-15" as LocalDate}
           />
         </TestProvider>
@@ -339,7 +339,7 @@ describe("ConceptPhase", () => {
         <TestProvider>
           <ConceptPhase
             {...defaultProps}
-            initialPreSubmissionDocuments={[mockPreSubmissionDocument]}
+            documents={[mockPreSubmissionDocument]}
             presubmissionSubmittedDate={"2024-01-15" as LocalDate}
           />
         </TestProvider>
@@ -410,7 +410,7 @@ describe("ConceptPhase", () => {
       if (component) {
         expect(component.type).toBe(ConceptPhase);
         expect(component.props.demonstrationId).toBe("demo-111");
-        expect(component.props.initialPreSubmissionDocuments).toHaveLength(2);
+        expect(component.props.documents).toHaveLength(2);
       }
     });
 
