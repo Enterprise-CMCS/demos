@@ -16,6 +16,7 @@ export interface ApprovalPackagePhaseProps {
   documents: (ApplicationWorkflowDocument | undefined)[];
   allPreviousPhasesDone: boolean;
   setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void;
+  phaseStatus: string;
 }
 
 const REQUIRED_TYPES: DocumentType[] = [
@@ -64,6 +65,10 @@ export const getApprovalPackagePhaseFromApplication = (
     )
     .every((phase) => phase.phaseStatus === "Completed" || phase.phaseStatus === "Skipped");
 
+  const approvalPackagePhase = application.phases.find(
+    (phase) => phase.phaseName === "Approval Package"
+  );
+
   return (
     <ApprovalPackagePhase
       demonstrationId={application.id}
@@ -77,6 +82,7 @@ export const getApprovalPackagePhaseFromApplication = (
       ]}
       allPreviousPhasesDone={allPreviousPhasesDone}
       setSelectedPhase={setSelectedPhase}
+      phaseStatus={approvalPackagePhase?.phaseStatus ?? "Not Started"}
     />
   );
 };
@@ -86,9 +92,12 @@ export const ApprovalPackagePhase = ({
   documents,
   allPreviousPhasesDone,
   setSelectedPhase,
+  phaseStatus,
 }: ApprovalPackagePhaseProps) => {
   const { showSuccess, showError } = useToast();
   const { completePhase } = useCompletePhase();
+
+  const isPhaseFinalized = phaseStatus === "Completed";
 
   const tableRows: ApprovalPackageTableRow[] = REQUIRED_TYPES.map((type) => {
     const doc = documents.find((doc) => doc?.documentType === type);
@@ -116,7 +125,8 @@ export const ApprovalPackagePhase = ({
     };
   });
 
-  const finishEnabled = allPreviousPhasesDone && tableRows.every((row) => row.document); // all req documents have been provided
+  const finishEnabled =
+    !isPhaseFinalized && allPreviousPhasesDone && tableRows.every((row) => row.document); // all req documents have been provided
 
   const handleFinishApprovalPackagePhase = async () => {
     try {
