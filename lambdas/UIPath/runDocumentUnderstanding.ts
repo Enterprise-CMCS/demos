@@ -11,6 +11,7 @@ import type { PoolClient } from "pg";
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 type UiPathStatus = "Pending" | "Finished" | "Failed";
+// Right now, we only check for multiple demo_type values in 1 row
 const DEMO_TYPE_FIELD_ID = "demo_type";
 
 interface UiPathFieldValue {
@@ -178,12 +179,12 @@ async function persistExtractionStatus(
       const persistableValues = toPersistableFieldValues(field);
       if (!persistableValues.length) continue;
 
-      for (const p of persistableValues) {
-        const confidence = typeof p.fieldValue.Confidence === "number" ? p.fieldValue.Confidence : 0;
+      for (const row of persistableValues) {
+        const confidence = typeof row.fieldValue.Confidence === "number" ? row.fieldValue.Confidence : 0;
         const textLength =
-          typeof p.fieldValue.Reference?.TextLength === "number"
-            ? p.fieldValue.Reference.TextLength
-            : p.valueText.length;
+          typeof row.fieldValue.Reference?.TextLength === "number"
+            ? row.fieldValue.Reference.TextLength
+            : row.valueText.length;
 
         await client.query(
           `insert into ${schema}.uipath_result_field
@@ -201,12 +202,12 @@ async function persistExtractionStatus(
           [
             randomUUID(),
             resultId,
-            p.FieldId,
-            p.FieldName,
-            p.FieldType,
-            p.valueText,
+            row.FieldId,
+            row.FieldName,
+            row.FieldType,
+            row.valueText,
             confidence,
-            JSON.stringify(p.fieldValue),
+            JSON.stringify(row.fieldValue),
             textLength,
           ]
         );
