@@ -1,7 +1,7 @@
 import React from "react";
 import { ApplicationStatusBadge } from "components/badge/ApplicationStatusBadge";
 import { PhaseSelector, WorkflowApplication } from "components/application";
-import type { Extension, Demonstration, Person } from "demos-server";
+import type { Extension } from "demos-server";
 import { gql, useQuery } from "@apollo/client";
 import { Loading } from "components/loading/Loading";
 import { WORKFLOW_PHASE_FIELDS, WORKFLOW_DOCUMENT_FIELDS } from "fragments";
@@ -12,25 +12,13 @@ export const GET_EXTENSION_WORKFLOW_QUERY = gql`
   query ${EXTENSION_WORKFLOW_QUERY_NAME}($id: ID!) {
     extension(id: $id) {
       id
-      name
-      description
-      status
       currentPhaseName
-      effectiveDate
-      signatureLevel
       clearanceLevel
-      demonstration {
-        id
-        name
-        primaryProjectOfficer {
-          id
-          fullName
-        }
-      }
+      status
+      tags
       phases {
         ...WORKFLOW_PHASE_FIELDS
       }
-      tags
       documents {
         ...WORKFLOW_DOCUMENT_FIELDS
       }
@@ -40,12 +28,7 @@ export const GET_EXTENSION_WORKFLOW_QUERY = gql`
   ${WORKFLOW_DOCUMENT_FIELDS}
 `;
 
-export type ApplicationWorkflowExtension = WorkflowApplication &
-  Pick<Extension, "status" | "name" | "effectiveDate" | "signatureLevel" | "description"> & {
-    demonstration: Pick<Demonstration, "id" | "name"> & {
-      primaryProjectOfficer: Pick<Person, "id" | "fullName">;
-    };
-  };
+export type ApplicationWorkflowExtension = WorkflowApplication & Pick<Extension, "status">;
 
 export const ExtensionWorkflow = ({ extensionId }: { extensionId: string }) => {
   const { data, loading, error } = useQuery<{ extension: ApplicationWorkflowExtension }>(
