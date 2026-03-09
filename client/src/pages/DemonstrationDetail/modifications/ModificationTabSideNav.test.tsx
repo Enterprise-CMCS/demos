@@ -3,12 +3,23 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ModificationTabSideNav } from "./ModificationTabSideNav";
 import { ModificationItem } from "./ModificationTabs";
+import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
 
-vi.mock("components/application", () => ({
-  AmendmentWorkflow: () => <div data-testid="amendment-workflow">Amendment Workflow</div>,
-  ExtensionWorkflow: () => <div data-testid="extension-workflow">Extension Workflow</div>,
-}));
+vi.mock("components/application", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("components/application")>();
+
+  return {
+    ...actual,
+    AmendmentWorkflow: () => (
+      <div data-testid="amendment-workflow">Amendment Workflow</div>
+    ),
+    ExtensionWorkflow: () => (
+      <div data-testid="extension-workflow">Extension Workflow</div>
+    ),
+  };
+});
+
 
 describe("ModificationTabSideNav", () => {
   const mockModificationItem: ModificationItem = {
@@ -30,7 +41,9 @@ describe("ModificationTabSideNav", () => {
   const setup = (modificationItem: ModificationItem) => {
     render(
       <DialogProvider>
-        <ModificationTabSideNav modificationItem={modificationItem} />
+        <TestProvider>
+          <ModificationTabSideNav modificationItem={modificationItem} />
+        </TestProvider>
       </DialogProvider>
     );
   };
