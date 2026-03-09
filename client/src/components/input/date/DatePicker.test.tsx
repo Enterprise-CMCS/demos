@@ -117,6 +117,26 @@ describe("DatePicker component", () => {
     });
   });
 
+  describe("Controlled Input Behavior", () => {
+    it("reflects updated value prop in the DOM", () => {
+      const { rerender } = render(<DatePicker {...requiredProps} value="2024-01-15" />);
+      const input = screen.getByTestId("test-date") as HTMLInputElement;
+      expect(input.value).toBe("2024-01-15");
+
+      rerender(<DatePicker {...requiredProps} value="2024-06-01" />);
+      expect(input.value).toBe("2024-06-01");
+    });
+
+    it("clears displayed value when value prop is set to empty string", () => {
+      const { rerender } = render(<DatePicker {...requiredProps} value="2024-01-15" />);
+      const input = screen.getByTestId("test-date") as HTMLInputElement;
+      expect(input.value).toBe("2024-01-15");
+
+      rerender(<DatePicker {...requiredProps} value="" />);
+      expect(input.value).toBe("");
+    });
+  });
+
   describe("Validation Message", () => {
     it("applies error styling when validation message is present", () => {
       const getValidationMessage = vi.fn(() => "Invalid date");

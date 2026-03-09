@@ -209,18 +209,21 @@ export const ApplicationIntakePhase = ({
 
   const hasDocuments = initialStateApplicationDocuments.length > 0;
 
+  const clearDates = () => {
+    setStateApplicationSubmittedDate("");
+    setApplicationDates({
+      applicationId: demonstrationId,
+      applicationDates: [
+        { dateType: "State Application Submitted Date", dateValue: null },
+        { dateType: "Completeness Review Due Date", dateValue: null },
+      ],
+    });
+  };
   useEffect(() => {
     if (!hasDocuments && stateApplicationSubmittedDate) {
-      setStateApplicationSubmittedDate("");
-      setApplicationDates({
-        applicationId: demonstrationId,
-        applicationDates: [
-          { dateType: "State Application Submitted Date", dateValue: null },
-          { dateType: "Completeness Review Due Date", dateValue: null },
-        ],
-      });
+      clearDates();
     }
-  }, [hasDocuments, stateApplicationSubmittedDate, demonstrationId, setApplicationDates]);
+  }, [hasDocuments, stateApplicationSubmittedDate]);
 
   const hasSubmittedDate = Boolean(stateApplicationSubmittedDate);
   const isFinishButtonEnabled = hasDocuments && hasSubmittedDate;
@@ -258,13 +261,7 @@ export const ApplicationIntakePhase = ({
         ],
       });
     } else {
-      await setApplicationDates({
-        applicationId: demonstrationId,
-        applicationDates: [
-          { dateType: "State Application Submitted Date", dateValue: null },
-          { dateType: "Completeness Review Due Date", dateValue: null },
-        ],
-      });
+      clearDates();
     }
   };
 

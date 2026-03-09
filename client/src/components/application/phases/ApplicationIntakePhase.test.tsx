@@ -542,6 +542,33 @@ describe("ApplicationIntakePhase", () => {
 
       expect(submittedDateInput.value).toBe("");
     });
+
+    it("clears dates on the server when user manually clears the date field (DEMOS-1675)", async () => {
+      vi.clearAllMocks();
+
+      setup({
+        initialStateApplicationDocuments: [mockStateApplicationDocument],
+        initialStateApplicationSubmittedDate: "2024-03-15",
+      });
+
+      const submittedDateInput = screen
+        .getAllByDisplayValue("2024-03-15")
+        .find(
+          (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
+        ) as HTMLInputElement;
+
+      fireEvent.change(submittedDateInput, { target: { value: "" } });
+
+      await waitFor(() => {
+        expect(mockSetApplicationDates).toHaveBeenCalledWith({
+          applicationId: "test-demo-id",
+          applicationDates: [
+            { dateType: "State Application Submitted Date", dateValue: null },
+            { dateType: "Completeness Review Due Date", dateValue: null },
+          ],
+        });
+      });
+    });
   });
 
   describe("handleDocumentUploadSucceeded", () => {
