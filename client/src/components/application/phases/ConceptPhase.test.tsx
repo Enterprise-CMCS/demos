@@ -7,7 +7,7 @@ import { TestProvider } from "test-utils/TestProvider";
 
 import {
   ConceptPhase,
-  ConceptProps,
+  ConceptPhaseProps,
   getConceptPhaseComponentFromApplication,
 } from "./ConceptPhase";
 
@@ -64,13 +64,14 @@ describe("ConceptPhase", () => {
     createdAt: new Date("2024-01-15"),
   };
 
-  const defaultProps: ConceptProps = {
+  const defaultProps: ConceptPhaseProps = {
     applicationId: TEST_APPLICATION_ID,
+    workflowApplicationType: "demonstration",
     documents: [mockPreSubmissionDocument],
     phaseStatus: "Started",
   };
 
-  const setup = (props: Partial<ConceptProps> = {}) => {
+  const setup = (props: Partial<ConceptPhaseProps> = {}) => {
     const finalProps = { ...defaultProps, ...props };
     render(
       <TestProvider>
@@ -101,7 +102,7 @@ describe("ConceptPhase", () => {
       setup();
       expect(screen.getByText("STEP 1 - UPLOAD")).toBeInTheDocument();
       expect(
-        screen.getByText(/Upload the Pre-Submission Document describing your application/)
+        screen.getByText(/Upload the Pre-Submission Document describing your demonstration/)
       ).toBeInTheDocument();
     });
 
@@ -125,6 +126,28 @@ describe("ConceptPhase", () => {
       setup();
       const deleteButton = screen.getByLabelText("Delete Pre-Submission Document 1");
       expect(deleteButton).toBeInTheDocument();
+    });
+
+    describe("WorkflowApplicationType text rendering", () => {
+      it("renders helper text with 'demonstration' when workflowApplicationType is demonstration", () => {
+        setup({ workflowApplicationType: "demonstration" });
+        expect(
+          screen.getByText(/Upload the Pre-Submission Document describing your demonstration/)
+        ).toBeInTheDocument();
+      });
+      it("renders helper text with 'extension' when workflowApplicationType is extension", () => {
+        setup({ workflowApplicationType: "extension" });
+        expect(
+          screen.getByText(/Upload the Pre-Submission Document describing your extension/)
+        ).toBeInTheDocument();
+      });
+
+      it("renders helper text with 'amendment' when workflowApplicationType is amendment", () => {
+        setup({ workflowApplicationType: "amendment" });
+        expect(
+          screen.getByText(/Upload the Pre-Submission Document describing your amendment/)
+        ).toBeInTheDocument();
+      });
     });
   });
 
@@ -406,7 +429,11 @@ describe("ConceptPhase", () => {
         tags: [],
       };
 
-      const component = getConceptPhaseComponentFromApplication(mockDemonstration);
+      const component = getConceptPhaseComponentFromApplication(
+        mockDemonstration,
+        "demonstration",
+        () => {}
+      );
       expect(component).toBeDefined();
       if (component) {
         expect(component.type).toBe(ConceptPhase);
@@ -445,7 +472,11 @@ describe("ConceptPhase", () => {
         tags: [],
       };
 
-      const component = getConceptPhaseComponentFromApplication(mockDemonstration);
+      const component = getConceptPhaseComponentFromApplication(
+        mockDemonstration,
+        "demonstration",
+        () => {}
+      );
       expect(component).toBeDefined();
       if (component) {
         expect(component.type).toBe(ConceptPhase);
