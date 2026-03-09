@@ -102,11 +102,24 @@ erDiagram
   event }|--|| log_level : "FK066"
   role ||--|{ event : "FK053"
   event }|--|| users : "FK054"
+
   document ||--|| uipath_result : "FKA01"
-  uipath_result ||--|{ uipath_result_field : "FKA02"
+  uipath_result ||--|{ uipath_field_value : "FKA02"
+  uipath_field_value ||--|{ uipath_field_value_extract : "FKA03"
+  uipath_result }|--|| uipath_result_status : "FKA04"
+  application_tag_suggestion }|--|| application_tag_suggestion_status : "FKA05"
+  document ||--|{ application_tag_suggestion : "FKA06"
+  uipath_result ||--|{ application_tag_suggestion : "FKA07"
+  uipath_field_value ||--|| application_tag_suggestion : "FKA08"
+  application_tag_suggestion_field_limit ||--|{ application_tag_suggestion : "FKA09"
+
 
   %% Static Constraints
   application_status:::staticConstraint {
+    text id PK
+  }
+
+  application_tag_suggestion_status:::staticConstraint {
     text id PK
   }
 
@@ -188,6 +201,10 @@ erDiagram
     text id PK
   }
 
+  uipath_result_status:::staticConstraint {
+    text id PK
+  }
+
   %% Type Limiters
   amendment_application_type_limit:::typeLimiter {
     text id PK, FK "FK060: id ∈ application_type.id"
@@ -195,6 +212,10 @@ erDiagram
 
   application_phase_type_limit:::typeLimiter {
     text id PK, FK "FK067: id ∈ phase.id"
+  }
+
+  application_tag_suggestion_field_limit:::typeLimiter {
+    text id PK
   }
 
   application_tag_type_limit:::typeLimiter {
@@ -318,13 +339,13 @@ erDiagram
   }
 
   document:::dataTable {
-    uuid id PK
+    uuid id PK, UK "UK: (id, application_id)"
     text name
     text description
     text s3_path
     uuid owner_user_id FK "FK026: owner_user_id ∈ users.id"
     text document_type_id FK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
-    uuid application_id FK "FK030: application_id ∈ application.id"
+    uuid application_id FK "FK030: application_id ∈ application.id<br>UK: (id, application_id)"
     text phase_id FK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
     timestamptz created_at
     timestamptz updated_at
@@ -425,26 +446,56 @@ erDiagram
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
-  uipath_result:::dataTable {
+  application_tag_suggestion:::dataTable {
     uuid id PK
+    uuid application_id FK "FKA06: (document_id, application_id) ∈ document(id, application_id)"
+    uuid document_id FK "FKA06: (document_id, application_id) ∈ document(id, application_id)<br>FKA07: (uipath_result_id, document_id) ∈ uipath_result.(id, document_id)"
+    uuid uipath_result_id FK "FKA07: (uipath_result_id, document_id) ∈ uipath_result.(id, document_id)<br>FKA08: (uipath_result_id, field_id, value) ∈ uipath_field_value.(uipath_result_id, field_id, value)"
+    text field_id FK "FKA08: (uipath_result_id, field_id, value) ∈ uipath_field_value.(uipath_result_id, field_id, value)<br>FKA09: field_id ∈ application_tag_suggestion_field_limit.id"
+    text value FK "FKA08: (uipath_result_id, field_id, value) ∈ uipath_field_value.(uipath_result_id, field_id, value)"
+    text status_id FK "FKA05: status_id ∈ application_tag_suggestion_status.id"
+    timestamptz created_at
+    timestamptz updated_at
+    HAS_HISTORY true
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+  }
+
+  uipath_result:::dataTable {
+    uuid id PK, UK "UK: (id, document_id)"
     text request_id UK "UK: request_id"
     json response
     text project_id
-    uuid document_id FK, UK "FKA01: document_id ∈ document.id<br>UK: document_id"
+    uuid document_id FK, UK "FKA01: document_id ∈ document.id<br>UK: (id, document_id)<br>UK: document_id"
+    text status_id FK "FKA04: status_id ∈ uipath_result_status.id"
     timestamptz created_at
+    HAS_HISTORY true
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
-  uipath_result_field:::dataTable {
-    uuid id PK
-    uuid uipath_result_id FK, UK "FKA02: uipath_result_id ∈ uipath_result.id<br>UK: (uipath_result_id, field_id)"
-    text field_id UK "UK: (uipath_result_id, field_id)"
+  uipath_field_value:::dataTable {
+    uuid uipath_result_id PK, FK "FKA02: uipath_result_id ∈ uipath_result.id"
+    text field_id PK
+    text value PK
     text field_name
     text field_type
-    text value
-    double confidence
-    json value_json
-    int text_length
     timestamptz created_at
+    HAS_HISTORY true
+    CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_extract_record_exists "Verify that at least one extracted example exists in uipath_field_value_extract table."
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+  }
+
+  uipath_field_value_extract:::dataTable {
+    uuid uipath_field_value_extract_id PK
+    uuid uipath_result_id FK "FKA03: (uipath_result_id, field_id, value) ∈ uipath_field_value.(uipath_result_id, field_id, value) DEFERRED"
+    text field_id FK "FKA03: (uipath_result_id, field_id, value) ∈ uipath_field_value.(uipath_result_id, field_id, value) DEFERRED"
+    text value FK "FKA03: (uipath_result_id, field_id, value) ∈ uipath_field_value.(uipath_result_id, field_id, value) DEFERRED"
+    double confidence
+    json token_list
+    int text_length
+    text extracted_image_s3_path
+    timestamptz created_at
+    HAS_HISTORY true
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   users:::dataTable {
