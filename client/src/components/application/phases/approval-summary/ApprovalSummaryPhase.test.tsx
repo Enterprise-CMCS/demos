@@ -190,7 +190,7 @@ describe("ApprovalSummaryPhase", () => {
 
     // Since the toggle might not work due to form validation,
     // we test the format by checking if the date format utility is correctly imported
-    expect(screen.getByText("Approval Summary")).toBeInTheDocument();
+    expect(screen.getByText("APPROVAL SUMMARY")).toBeInTheDocument();
   });
 
   it("renders Demonstration Types section", () => {
