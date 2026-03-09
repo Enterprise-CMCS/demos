@@ -547,4 +547,34 @@ describe("getApprovalPackagePhaseFromApplication", () => {
     const finishButton = screen.getByRole("button", { name: /finish/i });
     expect(finishButton).toBeDisabled();
   });
+
+  it("returns null when Approval Package phase is not found on application", () => {
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "demo-no-phase",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+      },
+      primaryProjectOfficer: mockPO,
+      status: "Pre-Submission",
+      currentPhaseName: "Completeness",
+      clearanceLevel: "CMS (OSORA)",
+      documents: [],
+      phases: [
+        {
+          phaseName: "Completeness",
+          phaseStatus: "Completed",
+          phaseDates: [],
+          phaseNotes: [],
+        },
+        // Note: No "Approval Package" phase in the list
+      ],
+      demonstrationTypes: [],
+      tags: [],
+    };
+
+    const result = getApprovalPackagePhaseFromApplication(demonstration, mockSetSelectedPhase);
+    expect(result).toBeNull();
+  });
 });
