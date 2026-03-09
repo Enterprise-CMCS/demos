@@ -458,3 +458,35 @@ export const BUDGET_NEUTRALITY_VALIDATION_STATUSES = [
   "Pending",
   "In Progress",
 ];
+
+export const SYSTEM_PERMISSIONS = [
+  "View Current User",
+  "List People",
+  "List Demonstrations",
+  "Manage Demonstrations",
+  "List Applications",
+  "Manage Applications",
+  "View Demonstration Details",
+  "Manage Demonstration Details",
+  "View Application Details",
+  "Manage Application Details",
+  "View Demonstration Types",
+  "Manage Demonstration Types",
+  "View Demonstration Contacts",
+  "Manage Demonstration Contacts",
+  "View Application Workflow",
+  "Manage Application Workflow",
+  "View Demonstration Documents",
+  "Manage Demonstration Documents",
+  "View Application Documents",
+  "Manage Application Documents",
+  "Download Document",
+] as const;
+
+export const SYSTEM_ROLES = [
+  "All Users",
+  "Admin User",
+  "CMS User",
+  "Read-Only CMS User",
+  "State User",
+] as const;

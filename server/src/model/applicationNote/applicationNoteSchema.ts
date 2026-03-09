@@ -4,7 +4,9 @@ import { NoteType } from "../../types";
 export const applicationNoteSchema = gql`
   type ApplicationNote {
     noteType: NoteType!
+      @auth(permissions: ["View Application Workflow", "Manage Application Workflow"])
     content: String!
+      @auth(permissions: ["View Application Workflow", "Manage Application Workflow"])
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -21,6 +23,7 @@ export const applicationNoteSchema = gql`
 
   type Mutation {
     setApplicationNotes(input: SetApplicationNotesInput): Application
+      @auth(permissions: ["Manage Application Workflow"])
   }
 `;
 

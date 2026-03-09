@@ -7,15 +7,9 @@ import {
 } from "@graphql-tools/utils";
 import { defaultFieldResolver, GraphQLSchema, GraphQLResolveInfo, GraphQLNamedType } from "graphql";
 import { GraphQLContext } from "../../auth/auth.util";
-import { viewApplicationDirective } from "./systemRolePermission/viewApplication";
-import { viewDemonstrationDirective } from "./systemRolePermission/viewDemonstration";
-import { publicDirective } from "./systemRolePermission/public";
+import { authDirective } from "./authDirective";
 
-const PERMISSION_DIRECTIVES: DirectiveConfiguration[] = [
-  viewApplicationDirective,
-  viewDemonstrationDirective,
-  publicDirective,
-];
+const PERMISSION_DIRECTIVES: DirectiveConfiguration[] = [authDirective];
 
 export type ResolverProps = {
   source: unknown;

@@ -11,6 +11,7 @@ export const applicationSchema = gql`
 
   type Mutation {
     setApplicationClearanceLevel(input: SetApplicationClearanceLevelInput!): Application!
+      @auth(permissions: ["Manage Application Workflow"])
   }
 `;
 

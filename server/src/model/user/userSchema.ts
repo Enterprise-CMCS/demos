@@ -4,9 +4,33 @@ import { Document, PersonType, Event, Person } from "../../types.js";
 export const userSchema = gql`
   type User {
     id: ID!
+      @auth(
+        permissions: [
+          "View Current User"
+          "View Application Workflow"
+          "Manage Application Workflow"
+          "View Demonstration Documents"
+          "Manage Demonstration Documents"
+          "View Application Documents"
+          "Manage Application Documents"
+          "Download Document"
+        ]
+      )
     cognitoSubject: String!
-    username: String!
+    username: String! @auth(permissions: ["View Current User"])
     person: Person!
+      @auth(
+        permissions: [
+          "View Current User"
+          "View Application Workflow"
+          "Manage Application Workflow"
+          "View Demonstration Documents"
+          "Manage Demonstration Documents"
+          "View Application Documents"
+          "Manage Application Documents"
+          "Download Document"
+        ]
+      )
     events: [Event!]!
     ownedDocuments: [Document!]!
     createdAt: DateTime!
@@ -14,7 +38,7 @@ export const userSchema = gql`
   }
 
   type Query {
-    currentUser: User
+    currentUser: User @auth(permissions: ["View Current User"])
   }
 `;
 

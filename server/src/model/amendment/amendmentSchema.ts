@@ -16,18 +16,68 @@ import {
 export const amendmentSchema = gql`
   type Amendment {
     id: ID!
+      @auth(
+        permissions: [
+          "List Applications"
+          "Manage Applications"
+          "View Application Details"
+          "Manage Application Details"
+          "View Application Workflow"
+          "Manage Application Workflow"
+          "View Application Workflow"
+          "Manage Application Workflow"
+          "View Application Documents"
+          "Manage Application Documents"
+        ]
+      )
     demonstration: Demonstration!
+      @auth(
+        permissions: ["View Application Details", "Manage Application Details", "Download Document"]
+      )
     name: NonEmptyString!
+      @auth(
+        permissions: [
+          "List Applications"
+          "Manage Applications"
+          "View Application Details"
+          "Manage Application Details"
+          "Download Document"
+        ]
+      )
     description: String
+      @auth(permissions: ["View Application Details", "Manage Application Details"])
     effectiveDate: DateTime
+      @auth(permissions: ["View Application Details", "Manage Application Details"])
     status: ApplicationStatus!
+      @auth(
+        permissions: [
+          "List Applications"
+          "Manage Applications"
+          "View Application Details"
+          "Manage Application Details"
+          "View Application Workflow"
+          "Manage Application Workflow"
+        ]
+      )
     currentPhaseName: PhaseName!
+      @auth(permissions: ["View Application Workflow", "Manage Application Workflow"])
     phases: [ApplicationPhase!]!
+      @auth(permissions: ["View Application Workflow", "Manage Application Workflow"])
     documents: [Document!]!
+      @auth(
+        permissions: [
+          "View Application Workflow"
+          "Manage Application Workflow"
+          "View Application Documents"
+          "Manage Application Documents"
+        ]
+      )
     clearanceLevel: ClearanceLevel!
-    tags: [Tag!]!
+      @auth(permissions: ["View Application Workflow", "Manage Application Workflow"])
+    tags: [Tag!]! @auth(permissions: ["View Application Workflow", "Manage Application Workflow"])
     signatureLevel: SignatureLevel
-    createdAt: DateTime!
+      @auth(permissions: ["View Application Details", "Manage Application Details"])
+    createdAt: DateTime! @auth(permissions: ["View Application Details", "Manage Application Details"])
     updatedAt: DateTime!
   }
 
@@ -49,13 +99,27 @@ export const amendmentSchema = gql`
 
   type Mutation {
     createAmendment(input: CreateAmendmentInput!): Amendment
+      @auth(permissions: ["Manage Applications"])
     updateAmendment(id: ID!, input: UpdateAmendmentInput!): Amendment
-    deleteAmendment(id: ID!): Amendment
+      @auth(permissions: ["Manage Applications", "Manage Application Details"])
+    deleteAmendment(id: ID!): Amendment @auth(permissions: ["Manage Applications"])
   }
 
   type Query {
-    amendments: [Amendment!]! @viewApplication
-    amendment(id: ID!): Amendment @viewApplication
+    amendments: [Amendment!]! @auth(permissions: ["List Applications", "Manage Applications"])
+    amendment(id: ID!): Amendment
+      @auth(
+        permissions: [
+          "View Applications"
+          "Manage Applications"
+          "View Application Details"
+          "Manage Application Details"
+          "View Application Workflow"
+          "Manage Application Workflow"
+          "View Application Documents"
+          "Manage Application Documents"
+        ]
+      )
   }
 `;
 

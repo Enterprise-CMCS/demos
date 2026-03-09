@@ -6,15 +6,80 @@ import { DocumentType, Application, PhaseName, NonEmptyString } from "../../type
 export const documentSchema = gql`
   type Document {
     id: ID!
+      @auth(
+        permissions: [
+          "View Application Workflow"
+          "Manage Application Workflow"
+          "View Demonstration Documents"
+          "Manage Demonstration Documents"
+          "View Application Documents"
+          "Manage Application Documents"
+          "Download Document"
+        ]
+      )
     name: NonEmptyString!
+      @auth(
+        permissions: [
+          "View Application Workflow"
+          "Manage Application Workflow"
+          "View Demonstration Documents"
+          "Manage Demonstration Documents"
+          "View Application Documents"
+          "Manage Application Documents"
+          "Download Document"
+        ]
+      )
     description: String
+      @auth(
+        permissions: [
+          "View Application Workflow"
+          "Manage Application Workflow"
+          "View Demonstration Documents"
+          "Manage Demonstration Documents"
+          "View Application Documents"
+          "Manage Application Documents"
+        ]
+      )
     s3Path: String!
     owner: User!
+      @auth(
+        permissions: [
+          "View Application Workflow"
+          "Manage Application Workflow"
+          "View Demonstration Documents"
+          "Manage Demonstration Documents"
+          "View Application Documents"
+          "Manage Application Documents"
+          "Download Document"
+        ]
+      )
     documentType: DocumentType!
-    application: Application!
+      @auth(
+        permissions: [
+          "View Application Workflow"
+          "Manage Application Workflow"
+          "View Demonstration Documents"
+          "Manage Demonstration Documents"
+          "View Application Documents"
+          "Manage Application Documents"
+        ]
+      )
+    application: Application! @auth(permissions: ["Download Document"])
     phaseName: PhaseName!
-    presignedDownloadUrl: String!
+      @auth(permissions: ["View Application Workflow", "Manage Application Workflow"])
+    presignedDownloadUrl: String! @auth(permissions: ["Download Document"])
     createdAt: DateTime!
+      @auth(
+        permissions: [
+          "View Application Workflow"
+          "Manage Application Workflow"
+          "View Demonstration Documents"
+          "Manage Demonstration Documents"
+          "View Application Documents"
+          "Manage Application Documents"
+          "Download Document"
+        ]
+      )
     updatedAt: DateTime!
   }
 
@@ -36,20 +101,51 @@ export const documentSchema = gql`
 
   type UploadDocumentResponse {
     presignedURL: String!
+      @auth(permissions: ["Manage Demonstration Documents", "Manage Application Documents"])
     documentId: ID!
+      @auth(permissions: ["Manage Demonstration Documents", "Manage Application Documents"])
   }
 
   type Mutation {
     uploadDocument(input: UploadDocumentInput!): UploadDocumentResponse!
+      @auth(
+        permissions: [
+          "Manage Application Workflow"
+          "Manage Demonstration Documents"
+          "Manage Application Documents"
+        ]
+      )
     updateDocument(id: ID!, input: UpdateDocumentInput!): Document
+      @auth(
+        permissions: [
+          "Manage Application Workflow"
+          "Manage Demonstration Documents"
+          "Manage Application Documents"
+        ]
+      )
     deleteDocument(id: ID!): Document!
+      @auth(
+        permissions: [
+          "Manage Application Workflow"
+          "Manage Demonstration Documents"
+          "Manage Application Documents"
+        ]
+      )
     deleteDocuments(ids: [ID!]!): Int!
+      @auth(
+        permissions: [
+          "Manage Application Workflow"
+          "Manage Demonstration Documents"
+          "Manage Application Documents"
+        ]
+      )
     triggerUiPath(documentId: ID!): String!
   }
 
   type Query {
-    document(id: ID!): Document
+    document(id: ID!): Document @auth(permissions: ["Download Document"])
     documentExists(documentId: ID!): Boolean!
+      @auth(permissions: ["Manage Demonstration Documents", "Manage Application Documents"])
   }
 `;
 

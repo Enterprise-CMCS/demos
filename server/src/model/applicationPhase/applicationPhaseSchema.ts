@@ -10,9 +10,13 @@ import { gql } from "graphql-tag";
 export const applicationPhaseSchema = gql`
   type ApplicationPhase {
     phaseName: PhaseNameWithTrackedStatus!
+      @auth(permissions: ["View Application Workflow", "Manage Application Workflow"])
     phaseStatus: PhaseStatus!
+      @auth(permissions: ["View Application Workflow", "Manage Application Workflow"])
     phaseDates: [ApplicationDate!]!
+      @auth(permissions: ["View Application Workflow", "Manage Application Workflow"])
     phaseNotes: [ApplicationNote!]!
+      @auth(permissions: ["View Application Workflow", "Manage Application Workflow"])
     createdAt: DateTime!
     updatedAt: DateTime!
     documents: [Document!]!
@@ -25,8 +29,11 @@ export const applicationPhaseSchema = gql`
 
   type Mutation {
     completePhase(input: CompletePhaseInput!): Application!
+      @auth(permissions: ["Manage Application Workflow"])
     skipConceptPhase(applicationId: ID!): Application!
+      @auth(permissions: ["Manage Application Workflow"])
     declareCompletenessPhaseIncomplete(applicationId: ID!): Application!
+      @auth(permissions: ["Manage Application Workflow"])
   }
 `;
 

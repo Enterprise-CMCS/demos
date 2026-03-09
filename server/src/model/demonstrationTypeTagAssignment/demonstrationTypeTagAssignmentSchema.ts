@@ -21,15 +21,56 @@ export const demonstrationTypeTagAssignmentSchema = gql`
 
   type DemonstrationTypeAssignment {
     demonstrationTypeName: Tag!
+      @auth(
+        permissions: [
+          "View Demonstration Types"
+          "Manage Demonstration Types"
+          "View Application Workflow"
+          "Manage Application Workflow"
+        ]
+      )
     effectiveDate: DateTime!
+      @auth(
+        permissions: [
+          "View Demonstration Types"
+          "Manage Demonstration Types"
+          "View Application Workflow"
+          "Manage Application Workflow"
+        ]
+      )
     expirationDate: DateTime!
+      @auth(
+        permissions: [
+          "View Demonstration Types"
+          "Manage Demonstration Types"
+          "View Application Workflow"
+          "Manage Application Workflow"
+        ]
+      )
     status: DemonstrationTypeStatus!
+      @auth(
+        permissions: [
+          "View Demonstration Types"
+          "Manage Demonstration Types"
+          "View Application Workflow"
+          "Manage Application Workflow"
+        ]
+      )
     createdAt: DateTime!
+      @auth(
+        permissions: [
+          "View Demonstration Types"
+          "Manage Demonstration Types"
+          "View Application Workflow"
+          "Manage Application Workflow"
+        ]
+      )
     updatedAt: DateTime!
   }
 
   type Mutation {
     setDemonstrationTypes(input: SetDemonstrationTypesInput): Demonstration
+      @auth(permissions: ["Manage Demonstration Types", "Manage Application Workflow"])
   }
 `;
 

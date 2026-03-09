@@ -9,6 +9,7 @@ export const applicationTagAssignmentSchema = gql`
 
   type Mutation {
     setApplicationTags(input: SetApplicationTagsInput): Application
+      @auth(permissions: ["Manage Application Workflow"])
   }
 `;
 

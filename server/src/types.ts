@@ -23,6 +23,8 @@ import {
   SDG_DIVISIONS,
   SIGNATURE_LEVEL,
   STATE_USER_DEMONSTRATION_ROLES,
+  SYSTEM_PERMISSIONS,
+  SYSTEM_ROLES,
   TAG_CONFIGURATION_SOURCES,
   TAG_CONFIGURATION_STATUSES,
   TAG_TYPES,
@@ -131,3 +133,5 @@ export type TagConfigurationSource = (typeof TAG_CONFIGURATION_SOURCES)[number];
 export type TagType = (typeof TAG_TYPES)[number];
 export type BudgetNeutralityValidationStatus =
   (typeof BUDGET_NEUTRALITY_VALIDATION_STATUSES)[number];
+export type SystemRole = (typeof SYSTEM_ROLES)[number];
+export type SystemPermission = (typeof SYSTEM_PERMISSIONS)[number];
