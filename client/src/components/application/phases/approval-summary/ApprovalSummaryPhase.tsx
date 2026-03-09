@@ -342,7 +342,7 @@ export const ApprovalSummaryPhase = ({
 
   return (
     <div>
-      <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">Approval Summary</h3>
+      <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">APPROVAL SUMMARY</h3>
       <p className="text-sm text-text-placeholder mb-1">Review and verify Demonstration Details and Performance Periods for Demonstration Types before approving this application.</p>
 
       <section className="bg-white pt-2 flex flex-col gap-2">
