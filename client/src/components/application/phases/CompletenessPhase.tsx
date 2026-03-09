@@ -155,7 +155,7 @@ export const CompletenessPhase = ({
     !(completenessReviewDate && !completenessComplete)
   );
 
-  const [completenessDocs] = useState<ApplicationWorkflowDocument[]>(initialDocuments);
+  const completenessDocs = initialDocuments;
 
   const { setApplicationDates } = useSetApplicationDates();
 
