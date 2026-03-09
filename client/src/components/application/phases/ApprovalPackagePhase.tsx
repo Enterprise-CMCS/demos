@@ -69,6 +69,11 @@ export const getApprovalPackagePhaseFromApplication = (
     (phase) => phase.phaseName === "Approval Package"
   );
 
+  if (!approvalPackagePhase) {
+    console.error("Cannot find approval package phase on application: ", application.id);
+    return null;
+  }
+
   return (
     <ApprovalPackagePhase
       demonstrationId={application.id}
@@ -82,7 +87,7 @@ export const getApprovalPackagePhaseFromApplication = (
       ]}
       allPreviousPhasesDone={allPreviousPhasesDone}
       setSelectedPhase={setSelectedPhase}
-      phaseStatus={approvalPackagePhase?.phaseStatus ?? "Not Started"}
+      phaseStatus={approvalPackagePhase.phaseStatus ?? "Not Started"}
     />
   );
 };

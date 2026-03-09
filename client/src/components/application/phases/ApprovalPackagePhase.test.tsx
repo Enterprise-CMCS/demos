@@ -309,6 +309,30 @@ describe("ApprovalPackagePhase", () => {
     });
     expect(mockSetSelectedPhase).toHaveBeenCalledWith("Approval Summary");
   });
+
+  it("disables Finish button when phase is completed (finalized)", () => {
+    const completeDocs = [
+      doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
+      doc({ documentType: "Q&A" }),
+      doc({ documentType: "Special Terms & Conditions" }),
+      doc({ documentType: "Formal OMB Policy Concurrence Email" }),
+      doc({ documentType: "Approval Letter" }),
+      doc({ documentType: "Signed Decision Memo" }),
+    ];
+
+    render(
+      <ApprovalPackagePhase
+        setSelectedPhase={mockSetSelectedPhase}
+        demonstrationId="demo-1"
+        documents={completeDocs}
+        allPreviousPhasesDone={true}
+        phaseStatus="Completed"
+      />
+    );
+
+    const finishButton = screen.getByRole("button", { name: /finish/i });
+    expect(finishButton).toBeDisabled();
+  });
 });
 
 describe("getApprovalPackagePhaseFromApplication", () => {
@@ -522,5 +546,35 @@ describe("getApprovalPackagePhaseFromApplication", () => {
 
     const finishButton = screen.getByRole("button", { name: /finish/i });
     expect(finishButton).toBeDisabled();
+  });
+
+  it("returns null when Approval Package phase is not found on application", () => {
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "demo-no-phase",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+      },
+      primaryProjectOfficer: mockPO,
+      status: "Pre-Submission",
+      currentPhaseName: "Completeness",
+      clearanceLevel: "CMS (OSORA)",
+      documents: [],
+      phases: [
+        {
+          phaseName: "Completeness",
+          phaseStatus: "Completed",
+          phaseDates: [],
+          phaseNotes: [],
+        },
+        // Note: No "Approval Package" phase in the list
+      ],
+      demonstrationTypes: [],
+      tags: [],
+    };
+
+    const result = getApprovalPackagePhaseFromApplication(demonstration, mockSetSelectedPhase);
+    expect(result).toBeNull();
   });
 });
