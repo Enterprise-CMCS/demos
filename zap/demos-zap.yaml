@@ -114,11 +114,11 @@ jobs:
     statistic: spiderAjax.urls.added
     operator: '>='
     value: 20
-- type: graphql
-  parameters: 
-    endpoint: https://${ZAP_HOSTNAME}/api/graphql
-    schemaUrl: https://${ZAP_HOSTNAME}/api/graphql
-    schemaFile: ""
+# - type: graphql
+#   parameters: 
+#     endpoint: https://${ZAP_HOSTNAME}/api/graphql
+#     schemaUrl: https://${ZAP_HOSTNAME}/api/graphql
+#     schemaFile: ""
 - type: report
   parameters:
     template: modern
