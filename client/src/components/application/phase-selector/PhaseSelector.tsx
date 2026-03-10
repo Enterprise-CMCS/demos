@@ -6,7 +6,11 @@ import type {
   PhaseStatus as ServerPhaseStatus,
 } from "demos-server";
 
-import { WorkflowApplication, ApplicationWorkflowDemonstration } from "components/application";
+import {
+  WorkflowApplication,
+  ApplicationWorkflowDemonstration,
+  WorkflowApplicationType,
+} from "components/application";
 import {
   getApplicationCompletenessFromApplication,
   getConceptPhaseComponentFromApplication,
@@ -103,7 +107,13 @@ export const getDisplayedPhaseDate = (
   return relevantDate?.dateValue ? new Date(relevantDate.dateValue) : undefined;
 };
 
-export const PhaseSelector = ({ application }: { application: WorkflowApplication }) => {
+export const PhaseSelector = ({
+  application,
+  workflowApplicationType,
+}: {
+  application: WorkflowApplication;
+  workflowApplicationType: WorkflowApplicationType;
+}) => {
   const initialPhase: PhaseName =
     application.currentPhaseName && application.currentPhaseName !== "None"
       ? (application.currentPhaseName as PhaseName)
@@ -113,7 +123,11 @@ export const PhaseSelector = ({ application }: { application: WorkflowApplicatio
   const renderPhase = (phaseName: PhaseName) => {
     switch (phaseName) {
       case "Concept":
-        return getConceptPhaseComponentFromApplication(application, setSelectedPhase);
+        return getConceptPhaseComponentFromApplication(
+          application,
+          workflowApplicationType,
+          setSelectedPhase
+        );
       case "Application Intake":
         return getApplicationIntakeComponentFromApplication(application, setSelectedPhase);
       case "Completeness":
@@ -121,7 +135,10 @@ export const PhaseSelector = ({ application }: { application: WorkflowApplicatio
       case "Federal Comment":
         return getFederalCommentPhaseFromApplication(application);
       case "SDG Preparation":
-        return getSdgPreparationPhaseFromApplication(application, setSelectedPhase);
+        return getSdgPreparationPhaseFromApplication(
+          application as ApplicationWorkflowDemonstration,
+          setSelectedPhase
+        );
       case "Review":
         return getReviewPhaseComponentFromApplication(application, () =>
           setSelectedPhase("Approval Package")

@@ -1,7 +1,7 @@
 import React from "react";
 import { ApplicationStatusBadge } from "components/badge/ApplicationStatusBadge";
 import { PhaseSelector, WorkflowApplication } from "components/application";
-import type { Amendment, Demonstration, Person } from "demos-server";
+import type { Amendment } from "demos-server";
 import { gql, useQuery } from "@apollo/client";
 import { Loading } from "components/loading/Loading";
 import { WORKFLOW_PHASE_FIELDS, WORKFLOW_DOCUMENT_FIELDS } from "fragments";
@@ -12,25 +12,13 @@ export const GET_AMENDMENT_WORKFLOW_QUERY = gql`
   query ${AMENDMENT_WORKFLOW_QUERY_NAME}($id: ID!) {
     amendment(id: $id) {
       id
-      name
-      description
-      status
       currentPhaseName
-      effectiveDate
-      signatureLevel
       clearanceLevel
-      demonstration {
-        id
-        name
-        primaryProjectOfficer {
-          id
-          fullName
-        }
-      }
+      status
+      tags
       phases {
         ...WORKFLOW_PHASE_FIELDS
       }
-      tags
       documents {
         ...WORKFLOW_DOCUMENT_FIELDS
       }
@@ -40,12 +28,7 @@ export const GET_AMENDMENT_WORKFLOW_QUERY = gql`
   ${WORKFLOW_DOCUMENT_FIELDS}
 `;
 
-export type ApplicationWorkflowAmendment = WorkflowApplication &
-  Pick<Amendment, "status" | "name" | "effectiveDate" | "signatureLevel" | "description"> & {
-    demonstration: Pick<Demonstration, "id" | "name"> & {
-      primaryProjectOfficer: Pick<Person, "id" | "fullName">;
-    };
-  };
+export type ApplicationWorkflowAmendment = WorkflowApplication & Pick<Amendment, "status">;
 
 export const AmendmentWorkflow = ({ amendmentId }: { amendmentId: string }) => {
   const { data, loading, error } = useQuery<{ amendment: ApplicationWorkflowAmendment }>(
@@ -65,7 +48,7 @@ export const AmendmentWorkflow = ({ amendmentId }: { amendmentId: string }) => {
           <ApplicationStatusBadge applicationStatus={data.amendment.status} />
         </div>
         <hr className="text-border-rules" />
-        <PhaseSelector application={data.amendment} />
+        <PhaseSelector application={data.amendment} workflowApplicationType="amendment" />
       </div>
     );
   }

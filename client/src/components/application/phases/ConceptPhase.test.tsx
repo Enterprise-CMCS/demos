@@ -7,7 +7,7 @@ import { TestProvider } from "test-utils/TestProvider";
 
 import {
   ConceptPhase,
-  ConceptProps,
+  ConceptPhaseProps,
   getConceptPhaseComponentFromApplication,
 } from "./ConceptPhase";
 
@@ -51,12 +51,9 @@ const mockPO = {
   fullName: "Jane Doe",
 };
 
-describe("ConceptPhase", () => {
-  const defaultProps: ConceptProps = {
-    demonstrationId: "test-demo-id",
-    initialPreSubmissionDocuments: [],
-  };
+const TEST_APPLICATION_ID = "test-app-id";
 
+describe("ConceptPhase", () => {
   const mockPreSubmissionDocument: ApplicationWorkflowDocument = {
     id: "1",
     name: "Pre-Submission Document 1",
@@ -67,7 +64,14 @@ describe("ConceptPhase", () => {
     createdAt: new Date("2024-01-15"),
   };
 
-  const setup = (props: Partial<ConceptProps> = {}) => {
+  const defaultProps: ConceptPhaseProps = {
+    applicationId: TEST_APPLICATION_ID,
+    workflowApplicationType: "demonstration",
+    documents: [mockPreSubmissionDocument],
+    phaseStatus: "Started",
+  };
+
+  const setup = (props: Partial<ConceptPhaseProps> = {}) => {
     const finalProps = { ...defaultProps, ...props };
     render(
       <TestProvider>
@@ -109,19 +113,41 @@ describe("ConceptPhase", () => {
     });
 
     it("shows 'No documents yet' when no documents", () => {
-      setup();
+      setup({ documents: [] });
       expect(screen.getByText("No documents yet.")).toBeInTheDocument();
     });
 
     it("displays Pre-Submission documents when provided", () => {
-      setup({ initialPreSubmissionDocuments: [mockPreSubmissionDocument] });
+      setup();
       expect(screen.getByText("Pre-Submission Document 1")).toBeInTheDocument();
     });
 
     it("renders delete button for each document", () => {
-      setup({ initialPreSubmissionDocuments: [mockPreSubmissionDocument] });
+      setup();
       const deleteButton = screen.getByLabelText("Delete Pre-Submission Document 1");
       expect(deleteButton).toBeInTheDocument();
+    });
+
+    describe("WorkflowApplicationType text rendering", () => {
+      it("renders helper text with 'demonstration' when workflowApplicationType is demonstration", () => {
+        setup({ workflowApplicationType: "demonstration" });
+        expect(
+          screen.getByText(/Upload the Pre-Submission Document describing your demonstration/)
+        ).toBeInTheDocument();
+      });
+      it("renders helper text with 'extension' when workflowApplicationType is extension", () => {
+        setup({ workflowApplicationType: "extension" });
+        expect(
+          screen.getByText(/Upload the Pre-Submission Document describing your extension/)
+        ).toBeInTheDocument();
+      });
+
+      it("renders helper text with 'amendment' when workflowApplicationType is amendment", () => {
+        setup({ workflowApplicationType: "amendment" });
+        expect(
+          screen.getByText(/Upload the Pre-Submission Document describing your amendment/)
+        ).toBeInTheDocument();
+      });
     });
   });
 
@@ -145,13 +171,13 @@ describe("ConceptPhase", () => {
 
   describe("Button Logic", () => {
     it("Finish button is disabled initially", () => {
-      setup();
+      setup({ documents: [] });
       const finishButton = screen.getByRole("button", { name: /finish/i });
       expect(finishButton).toBeDisabled();
     });
 
     it("Finish button is enabled when a presubmission document is uploaded and date is populated", () => {
-      setup({ initialPreSubmissionDocuments: [mockPreSubmissionDocument] });
+      setup();
       const finishButton = screen.getByRole("button", { name: /finish/i });
       expect(finishButton).toBeEnabled();
     });
@@ -166,7 +192,7 @@ describe("ConceptPhase", () => {
         owner: { person: { fullName: "John Doe" } },
         createdAt: new Date("2024-01-20"),
       };
-      setup({ initialPreSubmissionDocuments: [generalDocument] });
+      setup({ documents: [generalDocument] });
 
       const dateInput = screen.getByLabelText(/Pre-Submission Document Submitted Date/);
       userEvent.type(dateInput, "2024-02-20");
@@ -176,32 +202,32 @@ describe("ConceptPhase", () => {
     });
 
     it("Skip button is enabled initially when no activity", () => {
-      setup();
+      setup({ documents: [] });
       const skipButton = screen.getByRole("button", { name: /skip/i });
       expect(skipButton).toBeEnabled();
     });
 
     it("Skip button is disabled when documents exist", () => {
-      setup({ initialPreSubmissionDocuments: [mockPreSubmissionDocument] });
+      setup();
       const skipButton = screen.getByRole("button", { name: /skip/i });
       expect(skipButton).toBeDisabled();
     });
 
     it("calls skipConceptPhase mutation on click of skip button", async () => {
       const user = userEvent.setup();
-      setup();
+      setup({ documents: [] });
       const skipButton = screen.getByRole("button", { name: /skip/i });
       await user.click(skipButton);
-      expect(mockSkipConceptPhase).toHaveBeenCalledWith("test-demo-id");
+      expect(mockSkipConceptPhase).toHaveBeenCalledWith(TEST_APPLICATION_ID);
     });
 
     it("calls completePhase mutation on click of finish button", async () => {
       const user = userEvent.setup();
-      setup({ initialPreSubmissionDocuments: [mockPreSubmissionDocument] });
+      setup();
       const finishButton = screen.getByRole("button", { name: /finish/i });
       await user.click(finishButton);
       expect(mockCompletePhase).toHaveBeenCalledWith({
-        applicationId: "test-demo-id",
+        applicationId: TEST_APPLICATION_ID,
         phaseName: "Concept",
       });
     });
@@ -215,7 +241,7 @@ describe("ConceptPhase", () => {
       await userEvent.click(uploadButton);
 
       expect(showConceptPreSubmissionDocumentUploadDialog).toHaveBeenCalledWith(
-        "test-demo-id",
+        TEST_APPLICATION_ID,
         expect.any(Function)
       );
     });
@@ -223,7 +249,7 @@ describe("ConceptPhase", () => {
 
   describe("Validation Logic", () => {
     it("shows required asterisk when documents are uploaded", () => {
-      setup({ initialPreSubmissionDocuments: [mockPreSubmissionDocument] });
+      setup();
 
       const dateLabel = screen.getByText(/Pre-Submission Document Submitted Date/);
       const asterisk = dateLabel.parentElement?.querySelector(".text-text-warn");
@@ -231,7 +257,7 @@ describe("ConceptPhase", () => {
     });
 
     it("does not show required asterisk when no documents", () => {
-      setup();
+      setup({ documents: [] });
 
       const dateLabel = screen.getByText(/Pre-Submission Document Submitted Date/);
       const asterisk = dateLabel.parentElement?.querySelector(".text-text-warn");
@@ -241,7 +267,7 @@ describe("ConceptPhase", () => {
 
   describe("Date Field Behavior", () => {
     it("populates date when a presubmission document with createdAt is provided", () => {
-      setup({ initialPreSubmissionDocuments: [mockPreSubmissionDocument] });
+      setup();
       const dateInput = screen.getByLabelText(
         /Pre-Submission Document Submitted Date/
       ) as HTMLInputElement;
@@ -258,7 +284,7 @@ describe("ConceptPhase", () => {
         owner: { person: { fullName: "John Doe" } },
         createdAt: new Date("2024-01-20"),
       };
-      setup({ initialPreSubmissionDocuments: [generalDocument] });
+      setup({ documents: [generalDocument] });
       const dateInput = screen.getByLabelText(
         /Pre-Submission Document Submitted Date/
       ) as HTMLInputElement;
@@ -266,12 +292,84 @@ describe("ConceptPhase", () => {
     });
 
     it("allows user to change date manually", async () => {
-      setup();
+      setup({ documents: [] });
       const dateInput = screen.getByLabelText(
         /Pre-Submission Document Submitted Date/
       ) as HTMLInputElement;
       await userEvent.type(dateInput, "2024-02-20");
       expect(dateInput.value).toBe("2024-02-20");
+    });
+  });
+
+  describe("Document Reactivity", () => {
+    it("reflects updated documents when props change (no refresh needed)", () => {
+      const { rerender } = render(
+        <TestProvider>
+          <ConceptPhase {...defaultProps} documents={[]} />
+        </TestProvider>
+      );
+
+      expect(screen.getByText("No documents yet.")).toBeInTheDocument();
+
+      rerender(
+        <TestProvider>
+          <ConceptPhase
+            {...defaultProps}
+            documents={[mockPreSubmissionDocument]}
+          />
+        </TestProvider>
+      );
+
+      expect(screen.queryByText("No documents yet.")).not.toBeInTheDocument();
+      expect(screen.getByText("Pre-Submission Document 1")).toBeInTheDocument();
+    });
+
+    it("reflects document removal when props change (no refresh needed)", () => {
+      const { rerender } = render(
+        <TestProvider>
+          <ConceptPhase
+            {...defaultProps}
+            documents={[mockPreSubmissionDocument]}
+          />
+        </TestProvider>
+      );
+
+      expect(screen.getByText("Pre-Submission Document 1")).toBeInTheDocument();
+
+      rerender(
+        <TestProvider>
+          <ConceptPhase {...defaultProps} documents={[]} />
+        </TestProvider>
+      );
+
+      expect(screen.queryByText("Pre-Submission Document 1")).not.toBeInTheDocument();
+      expect(screen.getByText("No documents yet.")).toBeInTheDocument();
+    });
+
+    it("updates Finish button state when documents are added via props", () => {
+      const { rerender } = render(
+        <TestProvider>
+          <ConceptPhase
+            {...defaultProps}
+            documents={[]}
+            presubmissionSubmittedDate={"2024-01-15" as LocalDate}
+          />
+        </TestProvider>
+      );
+
+      expect(screen.getByRole("button", { name: /finish/i })).toBeDisabled();
+
+      rerender(
+        <TestProvider>
+          <ConceptPhase
+            {...defaultProps}
+            documents={[mockPreSubmissionDocument]}
+            presubmissionSubmittedDate={"2024-01-15" as LocalDate}
+          />
+        </TestProvider>
+      );
+
+      expect(screen.getByRole("button", { name: /finish/i })).toBeEnabled();
     });
   });
 
@@ -331,12 +429,16 @@ describe("ConceptPhase", () => {
         tags: [],
       };
 
-      const component = getConceptPhaseComponentFromApplication(mockDemonstration);
+      const component = getConceptPhaseComponentFromApplication(
+        mockDemonstration,
+        "demonstration",
+        () => {}
+      );
       expect(component).toBeDefined();
       if (component) {
         expect(component.type).toBe(ConceptPhase);
         expect(component.props.demonstrationId).toBe("demo-111");
-        expect(component.props.initialPreSubmissionDocuments).toHaveLength(2);
+        expect(component.props.documents).toHaveLength(2);
       }
     });
 
@@ -370,7 +472,11 @@ describe("ConceptPhase", () => {
         tags: [],
       };
 
-      const component = getConceptPhaseComponentFromApplication(mockDemonstration);
+      const component = getConceptPhaseComponentFromApplication(
+        mockDemonstration,
+        "demonstration",
+        () => {}
+      );
       expect(component).toBeDefined();
       if (component) {
         expect(component.type).toBe(ConceptPhase);
@@ -380,7 +486,7 @@ describe("ConceptPhase", () => {
 
     it("overrides createdAt date on document with Presubmission Document Submitted Date when both provided", () => {
       setup({
-        initialPreSubmissionDocuments: [mockPreSubmissionDocument],
+        documents: [mockPreSubmissionDocument],
         presubmissionSubmittedDate: "2024-01-10" as LocalDate,
       });
       const dateInput = screen.getByLabelText(

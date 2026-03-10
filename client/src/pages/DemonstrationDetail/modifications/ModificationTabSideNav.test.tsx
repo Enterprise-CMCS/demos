@@ -3,12 +3,35 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ModificationTabSideNav } from "./ModificationTabSideNav";
 import { ModificationItem } from "./ModificationTabs";
+import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
 
-vi.mock("components/application", () => ({
-  AmendmentWorkflow: () => <div data-testid="amendment-workflow">Amendment Workflow</div>,
-  ExtensionWorkflow: () => <div data-testid="extension-workflow">Extension Workflow</div>,
-}));
+const showUploadDocumentDialogMock = vi.fn();
+
+vi.mock("components/dialog/DialogContext", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("components/dialog/DialogContext")>();
+  return {
+    ...actual,
+    useDialog: () => ({
+      showUploadDocumentDialog: showUploadDocumentDialogMock,
+    }),
+  };
+});
+
+vi.mock("components/application", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("components/application")>();
+
+  return {
+    ...actual,
+    AmendmentWorkflow: () => (
+      <div data-testid="amendment-workflow">Amendment Workflow</div>
+    ),
+    ExtensionWorkflow: () => (
+      <div data-testid="extension-workflow">Extension Workflow</div>
+    ),
+  };
+});
+
 
 describe("ModificationTabSideNav", () => {
   const mockModificationItem: ModificationItem = {
@@ -30,7 +53,9 @@ describe("ModificationTabSideNav", () => {
   const setup = (modificationItem: ModificationItem) => {
     render(
       <DialogProvider>
-        <ModificationTabSideNav modificationItem={modificationItem} />
+        <TestProvider>
+          <ModificationTabSideNav modificationItem={modificationItem} />
+        </TestProvider>
       </DialogProvider>
     );
   };
@@ -147,6 +172,18 @@ describe("ModificationTabSideNav", () => {
       fireEvent.click(documentsTab);
 
       expect(screen.getByText("Document 1")).toBeInTheDocument();
+    });
+
+    it("calls showUploadDocumentDialog when Add Document button is clicked", async () => {
+      setup(mockModificationItem);
+
+      const documentsTab = screen.getByTestId("button-documents");
+      fireEvent.click(documentsTab);
+
+      const addDocumentButton = screen.getByTestId("add-new-document");
+      fireEvent.click(addDocumentButton);
+
+      expect(showUploadDocumentDialogMock).toHaveBeenCalledTimes(1);
     });
   });
 });

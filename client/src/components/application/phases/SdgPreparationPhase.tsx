@@ -3,9 +3,10 @@ import { tw } from "tags/tw";
 
 import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
-import { WorkflowApplication, SimplePhase } from "components/application";
+import { SimplePhase } from "components/application";
+import { ApplicationWorkflowDemonstration } from "components/application/demonstration/DemonstrationWorkflow";
 import { formatDateForServer } from "util/formatDate";
-import { DateType, LocalDate, PhaseNameWithTrackedStatus } from "demos-server";
+import { ApplicationStatus, DateType, LocalDate, PhaseNameWithTrackedStatus } from "demos-server";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import {
   FAILED_TO_SAVE_MESSAGE,
@@ -61,7 +62,7 @@ export const hasChanges = (
 };
 
 export const getSdgPreparationPhaseFromApplication = (
-  application: WorkflowApplication,
+  application: ApplicationWorkflowDemonstration,
   setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void
 ) => {
   const sdgPreparationPhase = application.phases.find(
@@ -86,6 +87,7 @@ export const getSdgPreparationPhaseFromApplication = (
       sdgPreparationPhase={sdgPreparationPhase}
       setSelectedPhase={setSelectedPhase}
       allPreviousPhasesDone={allPreviousPhasesDone}
+      demonstrationStatus={application.status}
     />
   );
 };
@@ -95,17 +97,22 @@ export const SdgPreparationPhase = ({
   sdgPreparationPhase,
   setSelectedPhase,
   allPreviousPhasesDone,
+  demonstrationStatus,
 }: {
   demonstrationId: string;
   sdgPreparationPhase: SimplePhase;
   setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void;
   allPreviousPhasesDone: boolean;
+  demonstrationStatus: ApplicationStatus;
 }) => {
   const [sdgPreparationPhaseFormData, setSdgPreparationPhaseFormData] =
     useState<SdgPreparationPhaseFormData>(getFormDataFromPhase(sdgPreparationPhase));
   const { setApplicationDate } = useSetApplicationDate();
   const { completePhase } = useCompletePhase();
   const { showSuccess, showError } = useToast();
+
+  const isPhaseCompleted = sdgPreparationPhase.phaseStatus === "Completed";
+  const isApproved = demonstrationStatus === "Approved";
 
   const isFormComplete =
     sdgPreparationPhaseFormData.expectedApprovalDate &&
@@ -122,28 +129,30 @@ export const SdgPreparationPhase = ({
       });
     }
 
-    if (sdgPreparationPhaseFormData.smeInitialReviewDate) {
-      await setApplicationDate({
-        applicationId: demonstrationId,
-        dateType: "SME Review Date" satisfies DateType,
-        dateValue: sdgPreparationPhaseFormData.smeInitialReviewDate as LocalDate,
-      });
-    }
+    if (!isPhaseCompleted) {
+      if (sdgPreparationPhaseFormData.smeInitialReviewDate) {
+        await setApplicationDate({
+          applicationId: demonstrationId,
+          dateType: "SME Review Date" satisfies DateType,
+          dateValue: sdgPreparationPhaseFormData.smeInitialReviewDate as LocalDate,
+        });
+      }
 
-    if (sdgPreparationPhaseFormData.frtInitialMeetingDate) {
-      await setApplicationDate({
-        applicationId: demonstrationId,
-        dateType: "FRT Initial Meeting Date" satisfies DateType,
-        dateValue: sdgPreparationPhaseFormData.frtInitialMeetingDate as LocalDate,
-      });
-    }
+      if (sdgPreparationPhaseFormData.frtInitialMeetingDate) {
+        await setApplicationDate({
+          applicationId: demonstrationId,
+          dateType: "FRT Initial Meeting Date" satisfies DateType,
+          dateValue: sdgPreparationPhaseFormData.frtInitialMeetingDate as LocalDate,
+        });
+      }
 
-    if (sdgPreparationPhaseFormData.bnpmtInitialMeetingDate) {
-      await setApplicationDate({
-        applicationId: demonstrationId,
-        dateType: "BNPMT Initial Meeting Date" satisfies DateType,
-        dateValue: sdgPreparationPhaseFormData.bnpmtInitialMeetingDate as LocalDate,
-      });
+      if (sdgPreparationPhaseFormData.bnpmtInitialMeetingDate) {
+        await setApplicationDate({
+          applicationId: demonstrationId,
+          dateType: "BNPMT Initial Meeting Date" satisfies DateType,
+          dateValue: sdgPreparationPhaseFormData.bnpmtInitialMeetingDate as LocalDate,
+        });
+      }
     }
   };
 
@@ -190,7 +199,8 @@ export const SdgPreparationPhase = ({
               </h4>
               <p className={STYLES.helper}>
                 Ensure the expected approval date is reasonable based on required reviews and the
-                complexity of the application
+                complexity of the application. This date may be revised at a later time, if
+                necessary.
               </p>
             </div>
             <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
@@ -205,6 +215,7 @@ export const SdgPreparationPhase = ({
                   });
                 }}
                 isRequired
+                isDisabled={isApproved}
               />
             </div>
           </div>{" "}
@@ -227,6 +238,7 @@ export const SdgPreparationPhase = ({
                     smeInitialReviewDate: newDate,
                   });
                 }}
+                isDisabled={isPhaseCompleted}
               />
               <DatePicker
                 name="datepicker-frt-initial-meeting-date"
@@ -240,6 +252,7 @@ export const SdgPreparationPhase = ({
                     frtInitialMeetingDate: newDate,
                   });
                 }}
+                isDisabled={isPhaseCompleted}
               />
               <DatePicker
                 name="datepicker-bnpmt-initial-meeting-date"
@@ -252,6 +265,7 @@ export const SdgPreparationPhase = ({
                   });
                 }}
                 isRequired={true}
+                isDisabled={isPhaseCompleted}
               />
             </div>
 
@@ -273,11 +287,7 @@ export const SdgPreparationPhase = ({
                 onClick={handleFinish}
                 size="large"
                 name="sdg-finish"
-                disabled={
-                  !allPreviousPhasesDone ||
-                  !isFormComplete ||
-                  sdgPreparationPhase.phaseStatus === "Completed"
-                }
+                disabled={!allPreviousPhasesDone || !isFormComplete || isPhaseCompleted}
               >
                 Finish
               </Button>

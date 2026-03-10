@@ -86,9 +86,11 @@ describe("runDocumentUnderstanding", () => {
     expect(mocks.extractDocMock).toHaveBeenCalledWith("token-123", "doc-1", "project-1");
     expect(mocks.fetchExtractionResultMock).toHaveBeenCalledTimes(2);
     expect(result).toMatchObject({ status: "Succeeded" });
-    expect(mocks.queryMock).toHaveBeenCalledTimes(3);
-    expect(mocks.queryMock.mock.calls[0]?.[0]).toBe("BEGIN");
-    expect(mocks.queryMock.mock.calls[2]?.[0]).toBe("COMMIT");
+    expect(mocks.queryMock).toHaveBeenCalledTimes(4);
+    expect(mocks.queryMock.mock.calls[1]?.[0]).toBe("BEGIN");
+    expect(mocks.queryMock.mock.calls[3]?.[0]).toBe("COMMIT");
+    expect(mocks.queryMock.mock.calls[0]?.[1]?.[5]).toBe("Pending");
+    expect(mocks.queryMock.mock.calls[2]?.[1]?.[5]).toBe("Finished");
     expect(mocks.releaseMock).toHaveBeenCalled();
   });
 
@@ -136,20 +138,30 @@ describe("runDocumentUnderstanding", () => {
     await vi.runAllTimersAsync();
     await promise;
 
-    expect(mocks.queryMock).toHaveBeenCalledTimes(3);
-    expect(mocks.queryMock.mock.calls[1]?.[0]).toContain("document_id");
-    expect(mocks.queryMock.mock.calls[1]?.[1]).toEqual([
+    expect(mocks.queryMock).toHaveBeenCalledTimes(4);
+    expect(mocks.queryMock.mock.calls[0]?.[0]).toContain("document_id");
+    expect(mocks.queryMock.mock.calls[0]?.[1]).toEqual([
       expect.any(String),
       "request-doc-id",
       "project-1",
       expect.any(String),
       "4cdfe542-90aa-489f-93d5-e786aaff49a2",
+      "Pending",
+    ]);
+    expect(mocks.queryMock.mock.calls[2]?.[1]).toEqual([
+      expect.any(String),
+      "request-doc-id",
+      "project-1",
+      expect.any(String),
+      "4cdfe542-90aa-489f-93d5-e786aaff49a2",
+      "Finished",
     ]);
   });
 
   it("throws if maxAttempts is exceeded", async () => {
     mocks.uploadDocumentMock.mockResolvedValue("doc-1");
     mocks.extractDocMock.mockResolvedValue("result-url");
+    mocks.queryMock.mockResolvedValue({ rows: [{ id: "result-1" }] });
     mocks.fetchExtractionResultMock.mockResolvedValue({ status: "Pending" });
 
     const promise = runDocumentUnderstanding("file.pdf", {
@@ -160,7 +172,9 @@ describe("runDocumentUnderstanding", () => {
     const expectation = expect(promise).rejects.toThrow("did not succeed");
     await vi.runAllTimersAsync();
     await expectation;
-    expect(mocks.queryMock).not.toHaveBeenCalled();
+    expect(mocks.queryMock).toHaveBeenCalledTimes(2);
+    expect(mocks.queryMock.mock.calls[0]?.[1]?.[5]).toBe("Pending");
+    expect(mocks.queryMock.mock.calls[1]?.[1]?.[5]).toBe("Failed");
   });
 
   it("persists top-level fields and skips non-string field values", async () => {
@@ -187,8 +201,8 @@ describe("runDocumentUnderstanding", () => {
     const result = await promise;
 
     expect(result).toMatchObject({ status: "Succeeded" });
-    expect(mocks.queryMock).toHaveBeenCalledTimes(4);
-    expect(mocks.queryMock.mock.calls[2]?.[1]).toEqual([
+    expect(mocks.queryMock).toHaveBeenCalledTimes(5);
+    expect(mocks.queryMock.mock.calls[3]?.[1]).toEqual([
       expect.any(String),
       "result-1",
       "field-1",
@@ -204,7 +218,12 @@ describe("runDocumentUnderstanding", () => {
   it("throws when result row id is not returned", async () => {
     mocks.uploadDocumentMock.mockResolvedValue("doc-1");
     mocks.extractDocMock.mockResolvedValue("result-url");
-    mocks.queryMock.mockResolvedValue({ rows: [] });
+    mocks.queryMock
+      .mockResolvedValueOnce({ rows: [{ id: "result-1" }] }) // pending upsert
+      .mockResolvedValueOnce({}) // BEGIN
+      .mockResolvedValueOnce({ rows: [] }) // finished upsert
+      .mockResolvedValueOnce({}) // ROLLBACK
+      .mockResolvedValueOnce({ rows: [{ id: "failed-result-1" }] }); // failed upsert
     mocks.fetchExtractionResultMock.mockResolvedValue({ status: "Succeeded", Fields: [] });
 
     const promise = runDocumentUnderstanding("file.pdf", {
@@ -216,6 +235,74 @@ describe("runDocumentUnderstanding", () => {
     await vi.runAllTimersAsync();
     await expectation;
     expect(mocks.queryMock.mock.calls.map((call) => call[0])).toContain("ROLLBACK");
+  });
+
+  it("deduplicates multi-value demo_type and persists combined value", async () => {
+    mocks.uploadDocumentMock.mockResolvedValue("doc-1");
+    mocks.extractDocMock.mockResolvedValue("result-url");
+    mocks.queryMock.mockResolvedValue({ rows: [{ id: "result-1" }] });
+    mocks.fetchExtractionResultMock.mockResolvedValue({
+      status: "Succeeded",
+      Fields: [
+        {
+          FieldId: "demo_type",
+          FieldName: "demo_type",
+          FieldType: "Text",
+          Values: [
+            { Value: "SUD", Confidence: 0.5224329 },
+            { Value: "BHP", Confidence: 0.3818529 },
+            { Value: "SUD", Confidence: 0.1225322 },
+          ],
+        },
+      ],
+    });
+
+    const promise = runDocumentUnderstanding("file.pdf", {
+      pollIntervalMs: 10,
+      requestId: "request-demo-type",
+    });
+
+    await vi.runAllTimersAsync();
+    await promise;
+
+    expect(mocks.queryMock).toHaveBeenCalledTimes(5);
+    const fieldInsertArgs = mocks.queryMock.mock.calls[3]?.[1];
+    expect(fieldInsertArgs).toEqual([
+      expect.any(String),
+      "result-1",
+      "demo_type",
+      "demo_type",
+      "Text",
+      "SUD, BHP",
+      0.5224329,
+      expect.any(String),
+      8,
+    ]);
+
+    const valueJson = JSON.parse(fieldInsertArgs?.[7] as string) as {
+      SelectedValues?: string[];
+    };
+    expect(valueJson.SelectedValues).toEqual(["SUD", "BHP"]);
+  });
+
+  it("marks result as failed when UiPath returns failed status", async () => {
+    mocks.uploadDocumentMock.mockResolvedValue("doc-1");
+    mocks.extractDocMock.mockResolvedValue("result-url");
+    mocks.queryMock.mockResolvedValue({ rows: [{ id: "result-1" }] });
+    mocks.fetchExtractionResultMock.mockResolvedValue({ status: "Failed" });
+
+    const promise = runDocumentUnderstanding("file.pdf", {
+      pollIntervalMs: 10,
+      requestId: "request-failed-status",
+    });
+
+    const expectation = expect(promise).rejects.toThrow("UiPath extraction returned Failed status.");
+    await vi.runAllTimersAsync();
+    await expectation;
+
+    expect(mocks.queryMock).toHaveBeenCalledTimes(2);
+    expect(mocks.queryMock.mock.calls[0]?.[1]?.[5]).toBe("Pending");
+    expect(mocks.queryMock.mock.calls[1]?.[1]?.[5]).toBe("Failed");
   });
 
   it("throws when extraction startup data is incomplete", async () => {

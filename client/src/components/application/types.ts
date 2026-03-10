@@ -31,3 +31,5 @@ export type WorkflowApplication = {
   tags: Tag[];
   clearanceLevel: ClearanceLevel;
 };
+
+export type WorkflowApplicationType = "demonstration" | "amendment" | "extension";
