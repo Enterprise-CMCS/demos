@@ -46,7 +46,7 @@ pipeline {
 
         container("zap") {
           withCredentials([usernamePassword(credentialsId: 'zap-credentials', usernameVariable: 'ZAP_EMAIL', passwordVariable: 'ZAP_PASSWORD')]) { // pragma: allowlist secret
-            sh "/zap/zap.sh -cmd -autorun \$(pwd)/zap/demos-zap.yaml"
+            sh "/zap/zap.sh -cmd -autorun \$(pwd)/zap/demos-zap.yaml -loglevel debug"
           }
         }
 
