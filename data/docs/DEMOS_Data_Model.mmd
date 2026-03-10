@@ -475,6 +475,7 @@ erDiagram
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     TRIGGER_BEFORE_UPDATE check_demonstration_type_exists_for_approved_demonstrations "Check that approved demonstrations have at least one demonstration type."
+    TRIGGER_AFTER_UPDATE change_open_ended_due_dates_to_expiration_date "If the deliverable is approved, when the expiration date changes, change all the open-ended due dates for associated deliverables."
     HAS_HISTORY true
   }
 
