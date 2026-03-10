@@ -10,11 +10,15 @@ import {
   resolveApplicationSignatureLevel,
 } from "./applicationResolvers";
 import { PrismaApplication } from ".";
-import { ApplicationStatus, ApplicationType, PhaseName, Tag } from "../../types";
-import { ApplicationTagAssignment as PrismaApplicationTagAssignment } from "@prisma/client";
+import { ApplicationStatus, ApplicationType, PhaseName } from "../../types";
+import {
+  ApplicationTagAssignment as PrismaApplicationTagAssignment,
+  TagConfiguration as PrismaTagConfiguration,
+} from "@prisma/client";
 
 // Mock imports
 import { prisma } from "../../prismaClient.js";
+import { TagConfiguration } from "../tagConfiguration/tagConfigurationSchema.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -139,12 +143,20 @@ describe("applicationResolvers", () => {
   describe("resolveApplicationTags", () => {
     it("should resolve the tags on an application", async () => {
       // This is present just to test the map in the function
-      const resolvedValue: Pick<PrismaApplicationTagAssignment, "tagId">[] = [
+      const resolvedValue: (Pick<PrismaApplicationTagAssignment, "tagId"> & {
+        tagConfiguration: Pick<PrismaTagConfiguration, "statusId">;
+      })[] = [
         {
           tagId: "Test Tag Value A",
+          tagConfiguration: {
+            statusId: "Unapproved",
+          },
         },
         {
           tagId: "Test Tag Value B",
+          tagConfiguration: {
+            statusId: "Approved",
+          },
         },
       ];
       regularMocks.applicationTagAssignment.findMany.mockResolvedValueOnce(resolvedValue);
@@ -153,11 +165,20 @@ describe("applicationResolvers", () => {
         where: {
           applicationId: testApplicationId,
         },
-        select: {
-          tagId: true,
+        include: {
+          tagConfiguration: true,
         },
       };
-      const expectedResult: Tag[] = ["Test Tag Value A", "Test Tag Value B"];
+      const expectedResult: TagConfiguration[] = [
+        {
+          approvalStatus: "Unapproved",
+          tagId: "Test Tag Value A",
+        },
+        {
+          approvalStatus: "Approved",
+          tagId: "Test Tag Value B",
+        },
+      ];
       const input: Partial<PrismaApplication> = {
         id: testApplicationId,
       };

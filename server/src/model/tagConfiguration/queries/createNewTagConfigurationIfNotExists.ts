@@ -7,7 +7,7 @@ export async function createNewTagConfigurationIfNotExists(
   tx: PrismaTransactionClient
 ): Promise<void> {
   const tagSource: TagConfigurationSource = "User";
-  const tagStatus: TagConfigurationStatus = "Unreviewed";
+  const tagStatus: TagConfigurationStatus = "Unapproved";
   await tx.tagConfiguration.upsert({
     where: {
       tagId_tagTypeId: {

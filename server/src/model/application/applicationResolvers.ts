@@ -1,11 +1,11 @@
 import { prisma } from "../../prismaClient.js";
-import { ClearanceLevel, Tag } from "../../types.js";
+import { ClearanceLevel, TagConfigurationStatus } from "../../types.js";
 import {
   Document as PrismaDocument,
   ApplicationPhase as PrismaApplicationPhase,
-  ApplicationTagAssignment as PrismaApplicationTagAssignment,
 } from "@prisma/client";
 import { setApplicationClearanceLevel, PrismaApplication } from ".";
+import { TagConfiguration } from "../tagConfiguration/tagConfigurationSchema.js";
 
 export async function resolveApplicationDocuments(
   parent: PrismaApplication
@@ -50,17 +50,21 @@ export function resolveApplicationClearanceLevel(parent: PrismaApplication): Cle
   return parent.clearanceLevelId as ClearanceLevel;
 }
 
-export async function resolveApplicationTags(parent: PrismaApplication): Promise<Tag[]> {
-  const applicationTags: Pick<PrismaApplicationTagAssignment, "tagId">[] =
-    await prisma().applicationTagAssignment.findMany({
-      where: {
-        applicationId: parent.id,
-      },
-      select: {
-        tagId: true,
-      },
-    });
-  return applicationTags.map((tag) => tag.tagId);
+export async function resolveApplicationTags(
+  parent: PrismaApplication
+): Promise<TagConfiguration[]> {
+  const applicationTags = await prisma().applicationTagAssignment.findMany({
+    where: {
+      applicationId: parent.id,
+    },
+    include: {
+      tagConfiguration: true,
+    },
+  });
+  return applicationTags.map((tag) => ({
+    tagId: tag.tagId,
+    approvalStatus: tag.tagConfiguration.statusId as TagConfigurationStatus,
+  }));
 }
 
 export const applicationResolvers = {
