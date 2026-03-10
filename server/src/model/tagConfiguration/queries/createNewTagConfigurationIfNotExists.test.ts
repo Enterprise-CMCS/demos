@@ -31,7 +31,7 @@ describe("createNewTagConfigurationIfNotExists", () => {
         tagId: "New Tag Value",
         tagTypeId: "Application" satisfies TagType,
         sourceId: "User" satisfies TagConfigurationSource,
-        statusId: "Unreviewed" satisfies TagConfigurationStatus,
+        statusId: "Unapproved" satisfies TagConfigurationStatus,
       },
     };
 
