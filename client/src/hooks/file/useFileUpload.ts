@@ -11,11 +11,13 @@ export type ErrorMessage = string;
 
 export const useFileUpload = ({
   allowedMimeTypes,
+  allowedFileExtensions = [],
   maxFileSizeBytes,
   onSuccessCallback,
   onErrorCallback,
 }: {
   allowedMimeTypes: string[];
+  allowedFileExtensions?: string[];
   maxFileSizeBytes: number;
   onSuccessCallback?: (file: File) => void;
   onErrorCallback?: (errorMessage: ErrorMessage) => void;
@@ -28,7 +30,13 @@ export const useFileUpload = ({
     const selected = e.target.files?.[0] || null;
     if (!selected) return;
 
-    if (!allowedMimeTypes.includes(selected.type)) {
+    const fileExtension = selected.name.includes(".")
+      ? `.${selected.name.split(".").pop()?.toLowerCase()}`
+      : "";
+    const hasAllowedMimeType = allowedMimeTypes.includes(selected.type);
+    const hasAllowedFileExtension = allowedFileExtensions.includes(fileExtension);
+
+    if (!hasAllowedMimeType && !hasAllowedFileExtension) {
       setFile(null);
       onErrorCallback?.(ERROR_MESSAGES.FILE_TYPE_NOT_ALLOWED);
       return;

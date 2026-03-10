@@ -26,7 +26,7 @@ export const DialogSandbox: React.FC = () => {
     showUpdateAmendmentDialog,
   } = useDialog();
 
-  const ID = "1";
+  const ID = "d0c10a73-446d-432a-9cb6-9d2546d9bb8f";
 
   const EXISTING_CONTACTS: ExistingContactType[] = [
     {
@@ -118,6 +118,17 @@ export const DialogSandbox: React.FC = () => {
           Remove Document
         </Button>
         <Button
+          name="upload-bn-workbook"
+          onClick={() =>
+            showApprovalPackageDocumentUploadDialog(
+              ID,
+              "Final Budget Neutrality Formulation Workbook" as DocumentType
+            )
+          }
+        >
+          Upload BN Workbook
+        </Button>
+        <Button
           name="application-intake"
           onClick={() => showApplicationIntakeDocumentUploadDialog(ID, () => {})}
         >
@@ -137,9 +148,7 @@ export const DialogSandbox: React.FC = () => {
         </Button>
         <Button
           name="approval-package"
-          onClick={() =>
-            showApprovalPackageDocumentUploadDialog(ID, "Permit Application" as DocumentType)
-          }
+          onClick={() => showApprovalPackageDocumentUploadDialog(ID, "Approval Letter" as DocumentType)}
         >
           Approval Package
         </Button>
