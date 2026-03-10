@@ -10,6 +10,7 @@ model UiPathResult {
   document   Document?    @relation(fields: [documentId], references: [id], onDelete: SetNull)
   fields UipathResultField[]
   status     UiPathStatus @relation(fields: [statusId], references: [id])
+
   @@unique([requestId])
   @@map("uipath_result")
 }
