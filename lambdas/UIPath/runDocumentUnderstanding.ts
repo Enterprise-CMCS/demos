@@ -13,7 +13,9 @@ const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 type UiPathStatus = "Pending" | "Finished" | "Failed";
 // Right now, we only check for multiple demo_type values in 1 row
 const DEMO_TYPE_FIELD_ID = "demo_type";
-const UPSERT_RESULT_SQL = `insert into ${DEMO_TYPE_FIELD_ID}.uipath_result (id, request_id, project_id, response, document_id, status_id)
+const DEMOS_SCHEMA = "demos_app";
+
+const UPSERT_RESULT_SQL = `insert into ${DEMOS_SCHEMA}.uipath_result (id, request_id, project_id, response, document_id, status_id)
  values ($1, $2, $3, $4::jsonb, $5, $6)
  on conflict (request_id)
  do update set
@@ -22,7 +24,7 @@ const UPSERT_RESULT_SQL = `insert into ${DEMO_TYPE_FIELD_ID}.uipath_result (id, 
    response = excluded.response,
    status_id = excluded.status_id
  returning id`;
-const UPSERT_FIELD_SQL = `insert into ${DEMO_TYPE_FIELD_ID}.uipath_result_field
+const UPSERT_FIELD_SQL = `insert into ${DEMOS_SCHEMA}.uipath_result_field
   (id, uipath_result_id, field_id, field_name, field_type, value, confidence, value_json, text_length)
  values
   ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9)
