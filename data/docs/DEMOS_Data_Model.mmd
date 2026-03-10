@@ -413,9 +413,9 @@ erDiagram
     text document_type_id FK "FK124: (id, document_type_id) ∈ document.(id, document_type_id)<br>FK125: document_type_id ∈ budget_neutrality_workbook_document_type_limit.id"
     text validation_status_id FK "FK126: validation_status_id ∈ budget_neutrality_validation_status.id"
     json validation_data
-    HAS_HISTORY true
     timestamptz created_at
     timestamptz updated_at
+    HAS_HISTORY true
   }
 
   deliverable:::dataTable {
@@ -697,8 +697,8 @@ erDiagram
     uuid document_id FK, UK "FKA01: document_id ∈ document.id<br>UK: (id, document_id)<br>UK: document_id"
     text status_id FK "FKA04: status_id ∈ uipath_result_status.id"
     timestamptz created_at
-    HAS_HISTORY true
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   uipath_field_value:::dataTable {
@@ -708,9 +708,9 @@ erDiagram
     text field_name
     text field_type
     timestamptz created_at
-    HAS_HISTORY true
     CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_extract_record_exists "Verify that at least one extracted example exists in uipath_field_value_extract table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   uipath_field_value_extract:::dataTable {
@@ -723,8 +723,8 @@ erDiagram
     int text_length
     text extracted_image_s3_path
     timestamptz created_at
-    HAS_HISTORY true
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   users:::dataTable {
