@@ -23,6 +23,12 @@ pipeline {
             env.ZAP_HEADER_VALUE = sh(script:'''
             aws secretsmanager get-secret-value --secret-id $ZAP_CONFIG_SECRET_ID --query 'SecretString' --output text | grep -o '"zapHeaderValue":"[^"]*"' | sed 's/"zapHeaderValue":"\\(.*\\)"/\\1/'
             ''', returnStdout: true).trim()
+            withCredentials([usernamePassword(credentialsId: 'zap-credentials', usernameVariable: 'ZAP_EMAIL', passwordVariable: 'ZAP_PASSWORD')]) { // pragma: allowlist secret
+              def token = sh(script:'''
+              aws cognito-idp admin-initiate-auth --user-pool-id us-east-1_E0EpTKk9Z --client-id 5hqp5ph01m92o0mkegrirdusdo --auth-flow ADMIN_NO_SRP_AUTH --auth-parameters USERNAME=$ZAP_EMAIL,PASSWORD=$ZAP_PASSWORD --output json --query 'AuthenticationResult.IdToken'
+              ''', returnStdout: true).trim()
+              env.ZAP_AUTH_HEADER_VALUE = "Bearer ${token}"
+            }
           }
         }
       }
@@ -54,7 +60,7 @@ pipeline {
           script {
             def fileName = sh(script: "ls zap/output/*.html", returnStdout: true).trim()
             def fileNamePDF = sh(script: "ls zap/output/*.pdf", returnStdout: true).trim()
-            slackSend(color: "good", message: "ZAP Scan Complete\n\n<${env.HUDSON_URL}job/ZapScan/${env.BUILD_NUMBER}/artifact/${fileName}|View Results>\n\n<${env.HUDSON_URL}job/ZapScan/${env.BUILD_NUMBER}/artifact/${fileNamePDF}|PDF Version>")
+            // slackSend(color: "good", message: "ZAP Scan Complete\n\n<${env.HUDSON_URL}job/ZapScan/${env.BUILD_NUMBER}/artifact/${fileName}|View Results>\n\n<${env.HUDSON_URL}job/ZapScan/${env.BUILD_NUMBER}/artifact/${fileNamePDF}|PDF Version>")
           }
         }
       }
