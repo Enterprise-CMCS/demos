@@ -148,16 +148,19 @@ erDiagram
   deliverable ||--|{ deliverable_action : "FK114"
   users ||--|{ deliverable_action : "FK117"
 
-  document ||--|| uipath_result : "FKA01"
-  uipath_result ||--|{ uipath_field_value : "FKA02"
-  uipath_field_value ||--|{ uipath_field_value_extract : "FKA03"
-  uipath_result }|--|| uipath_result_status : "FKA04"
-  application_tag_suggestion }|--|| application_tag_suggestion_status : "FKA05"
-  document ||--|{ application_tag_suggestion : "FKA06"
-  uipath_result ||--|{ application_tag_suggestion : "FKA07"
-  uipath_field_value ||--|| application_tag_suggestion : "FKA08"
-  application_tag_suggestion_field_limit ||--|{ application_tag_suggestion : "FKA09"
-
+  document ||--|| uipath_result : "FK136"
+  uipath_result ||--|{ uipath_result_field_value : "FK137"
+  uipath_result_field_value ||--|{ uipath_result_field_value_instance : "FK138"
+  uipath_result }|--|| uipath_result_status : "FK139"
+  application_tag_suggestion }|--|| application_tag_suggestion_status : "FK140"
+  document ||--|{ uipath_result_field_value : "FK141"
+  uipath_field_value ||--|{ uipath_application_field_value : "FK142"
+  application ||--|{ uipath_application_field_value : "FK146"
+  uipath_application_field_value ||--|{ application_tag_suggestion : "FK143"
+  uipath_application_field_value ||--|{ uipath_result_field_value : "FK145"
+  application_tag_suggestion }|--|| application_tag_suggestion_field_limit : "FK144"
+  application_tag_suggestion ||--|{ application_tag_suggestion_extract : "FK147"
+  application_tag_suggestion_extract ||--|| uipath_result_field_value_instance : "FK148"
 
   %% Static Constraints
   application_status:::staticConstraint {
@@ -291,10 +294,6 @@ erDiagram
     text id PK, FK "FK060: id ∈ application_type.id"
   }
 
-  application_phase_type_limit:::typeLimiter {
-    text id PK, FK "FK067: id ∈ phase.id"
-  }
-
   application_tag_suggestion_field_limit:::typeLimiter {
     text id PK
   }
@@ -409,8 +408,8 @@ erDiagram
   }
 
   budget_neutrality_workbook:::dataTable {
-    uuid id PK, FK "FK124: (id, document_type_id) ∈ document.(id, document_type_id)"
-    text document_type_id FK "FK124: (id, document_type_id) ∈ document.(id, document_type_id)<br>FK125: document_type_id ∈ budget_neutrality_workbook_document_type_limit.id"
+    uuid id PK, FK "FK124: (id, document_type_id) ∈ document.(id, document_type_id) DEFERRED"
+    text document_type_id FK "FK124: (id, document_type_id) ∈ document.(id, document_type_id) DEFERRED<br>FK125: document_type_id ∈ budget_neutrality_workbook_document_type_limit.id"
     text validation_status_id FK "FK126: validation_status_id ∈ budget_neutrality_validation_status.id"
     json validation_data
     timestamptz created_at
@@ -540,6 +539,7 @@ erDiagram
     CONSTRAINT_CHECK check_non_empty_s3_path "Validate that the S3 path is not empty or only whitespace."
     CONSTRAINT_CHECK check_phase_id_deliverable_id_null "Validate that at least one of phase_id and deliverable_id are NULL."
     CONSTRAINT_CHECK check_deliverable_null_states "Validate that the deliverable-related fields are NULL or NOT NULL appropriately.<br>If deliverable_id is NULL, all other deliverable fields must be NULL.<br>If deliverable_id is NOT NULL, deliverable_type_id and deliverable_is_cms_attached_file must be NOT NULL."
+    CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_budget_neutrality_validation_record_exists "Verify that a corresponding record exists in the budget_neutrality_workbook table for budget neutrality records."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }
@@ -676,17 +676,22 @@ erDiagram
   }
 
   application_tag_suggestion:::dataTable {
-    uuid id PK
-    uuid application_id FK "FKA06: (document_id, application_id) ∈ document(id, application_id)"
-    uuid document_id FK "FKA06: (document_id, application_id) ∈ document(id, application_id)<br>FKA07: (uipath_result_id, document_id) ∈ uipath_result.(id, document_id)"
-    uuid uipath_result_id FK "FKA07: (uipath_result_id, document_id) ∈ uipath_result.(id, document_id)<br>FKA08: (uipath_result_id, field_id, value) ∈ uipath_field_value.(uipath_result_id, field_id, value)"
-    text field_id FK "FKA08: (uipath_result_id, field_id, value) ∈ uipath_field_value.(uipath_result_id, field_id, value)<br>FKA09: field_id ∈ application_tag_suggestion_field_limit.id"
-    text value FK "FKA08: (uipath_result_id, field_id, value) ∈ uipath_field_value.(uipath_result_id, field_id, value)"
-    text status_id FK "FKA05: status_id ∈ application_tag_suggestion_status.id"
+    uuid id PK, UK "UK: (id, field_id)"
+    uuid application_id FK "FK143: (application_id, field_id, value) ∈ uipath_application_field_value.(application_id, field_id, value)"
+    text field_id FK "FK143: (application_id, field_id, value) ∈ uipath_application_field_value.(application_id, field_id, value)<br>FK144: field_id ∈ application_tag_suggestion_field_limit.id<br>UK: (id, field_id)"
+    text value FK "FK143: (application_id, field_id, value) ∈ uipath_application_field_value.(application_id, field_id, value)"
+    text status_id FK "FK140: status_id ∈ application_tag_suggestion_status.id"
     timestamptz created_at
     timestamptz updated_at
-    HAS_HISTORY true
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
+  }
+
+  application_tag_suggestion_extract:::dataTable {
+    uuid suggestion_id PK, FK "FK147: (suggestion_id, field_id) ∈ application_tag_suggestion.(id, field_id)"
+    uuid uipath_result_field_value_instance_id PK, FK, UK "FK148: (uipath_result_field_value_instance_id, field_id) ∈ uipath_result_field_value_instance.(id, field_id)<br>UK: uipath_result_field_value_instance_id"
+    text field_id FK "FK147: (suggestion_id, field_id) ∈ application_tag_suggestion.(id, field_id)<br>FK148: (uipath_result_field_value_instance_id, field_id) ∈ uipath_result_field_value_instance.(id, field_id)"
+    text extracted_image_s3_path
   }
 
   uipath_result:::dataTable {
@@ -694,35 +699,56 @@ erDiagram
     text request_id UK "UK: request_id"
     json response
     text project_id
-    uuid document_id FK, UK "FKA01: document_id ∈ document.id<br>UK: (id, document_id)<br>UK: document_id"
-    text status_id FK "FKA04: status_id ∈ uipath_result_status.id"
+    uuid document_id FK, UK "FK136: document_id ∈ document.id<br>UK: (id, document_id)<br>UK: document_id"
+    text status_id FK "FK139: status_id ∈ uipath_result_status.id"
     timestamptz created_at
+    timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }
 
   uipath_field_value:::dataTable {
-    uuid uipath_result_id PK, FK "FKA02: uipath_result_id ∈ uipath_result.id"
     text field_id PK
     text value PK
     text field_name
     text field_type
     timestamptz created_at
-    CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_extract_record_exists "Verify that at least one extracted example exists in uipath_field_value_extract table."
+    timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }
 
-  uipath_field_value_extract:::dataTable {
-    uuid uipath_field_value_extract_id PK
-    uuid uipath_result_id FK "FKA03: (uipath_result_id, field_id, value) ∈ uipath_field_value.(uipath_result_id, field_id, value) DEFERRED"
-    text field_id FK "FKA03: (uipath_result_id, field_id, value) ∈ uipath_field_value.(uipath_result_id, field_id, value) DEFERRED"
-    text value FK "FKA03: (uipath_result_id, field_id, value) ∈ uipath_field_value.(uipath_result_id, field_id, value) DEFERRED"
+  uipath_application_field_value:::associativeTable {
+    uuid application_id PK, FK "FK146: application_id ∈ application.id"
+    text field_id PK, FK "FK142: (field_id, value) ∈ uipath_field_value.(field_id, value)"
+    text value PK, FK "FK142: (field_id, value) ∈ uipath_field_value.(field_id, value)"
+    TRIGGER_AFTER_DELETE delete_from_field_value_table "If the deleted field and value do not exist anymore in this table, delete from uipath_field_value."
+  }
+
+  uipath_result_field_value:::dataTable {
+    uuid uipath_result_id PK, FK "FK137: (uipath_result_id, document_id) ∈ uipath_result.(id, document_id)"
+    text field_id PK, FK "FK145: (application_id, field_id, value) ∈ uipath_application_field_value.(application_id, field_id, value)"
+    text value PK, FK "FK145: (application_id, field_id, value) ∈ uipath_application_field_value.(application_id, field_id, value)"
+    uuid document_id FK "FK137: (uipath_result_id, document_id) ∈ uipath_result.(id, document_id)<br>FK141: (document_id, application_id) ∈ document.(id, application_id)"
+    uuid application_id FK "FK141: (document_id, application_id) ∈ document.(id, application_id)<br>FK145: (application_id, field_id, value) ∈ uipath_application_field_value.(application_id, field_id, value)"
+    timestamptz created_at
+    timestamptz updated_at
+    CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_instance_record_exists "Verify that at least one instance exists in uipath_result_field_value_instance table."
+    TRIGGER_AFTER_DELETE delete_from_application_field_value_table "If the deleted application, field, and value do not exist anymore in this table, delete from uipath_application_field_value."
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
+  }
+
+  uipath_result_field_value_instance:::dataTable {
+    uuid id PK, UK "UK: (id, field_id)"
+    uuid uipath_result_id FK "FK138: (uipath_result_id, field_id, value) ∈ uipath_result_field_value.(uipath_result_id, field_id, value) DEFERRED"
+    text field_id FK "FK138: (uipath_result_id, field_id, value) ∈ uipath_result_field_value.(uipath_result_id, field_id, value) DEFERRED<br>UK: (id, field_id)"
+    text value FK "FK138: (uipath_result_id, field_id, value) ∈ uipath_result_field_value.(uipath_result_id, field_id, value) DEFERRED"
     double confidence
     json token_list
     int text_length
-    text extracted_image_s3_path
     timestamptz created_at
+    timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }
