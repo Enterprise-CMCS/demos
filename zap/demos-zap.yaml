@@ -83,41 +83,41 @@ jobs:
     - GET
   parameters: {}
   enabled: true
-# - type: spider
-#   parameters: {}
-#   tests:
-#   - name: At least 20 URLs found
-#     type: stats
-#     onFail: INFO
-#     statistic: automation.spider.urls.added
-#     operator: '>='
-#     value: 20
-# - type: spiderAjax
-#   parameters:
-#     context: demos-dev
-#     user: test-user
-#     url: https://${ZAP_HOSTNAME}
-#     maxDuration: 5
-#     maxCrawlDepth: 2
-#     browserId: firefox-headless
-#     maxCrawlStates: 5
-#     clickDefaultElems: false
-#     randomInputs: false
-#     elements:
-#     - a
-#     - button
-#     logoutAvoidance: true
-#   tests:
-#   - name: At least 20 URLs found
-#     type: stats
-#     onFail: INFO
-#     statistic: spiderAjax.urls.added
-#     operator: '>='
-#     value: 20
-- type: graphql
-  parameters: 
-    endpoint: https://${ZAP_HOSTNAME}/api/graphql
-    maxQueryDepth: 2
+- type: spider
+  parameters: {}
+  tests:
+  - name: At least 20 URLs found
+    type: stats
+    onFail: INFO
+    statistic: automation.spider.urls.added
+    operator: '>='
+    value: 20
+- type: spiderAjax
+  parameters:
+    context: demos-dev
+    user: test-user
+    url: https://${ZAP_HOSTNAME}
+    maxDuration: 5
+    maxCrawlDepth: 2
+    browserId: firefox-headless
+    maxCrawlStates: 5
+    clickDefaultElems: false
+    randomInputs: false
+    elements:
+    - a
+    - button
+    logoutAvoidance: true
+  tests:
+  - name: At least 20 URLs found
+    type: stats
+    onFail: INFO
+    statistic: spiderAjax.urls.added
+    operator: '>='
+    value: 20
+# - type: graphql
+#   parameters: 
+#     endpoint: https://${ZAP_HOSTNAME}/api/graphql
+#     maxQueryDepth: 2
 - type: report
   parameters:
     template: modern
