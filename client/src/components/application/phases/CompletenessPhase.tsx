@@ -155,7 +155,7 @@ export const CompletenessPhase = ({
     !(completenessReviewDate && !completenessComplete)
   );
 
-  const [completenessDocs] = useState<ApplicationWorkflowDocument[]>(initialDocuments);
+  const completenessDocs = initialDocuments;
 
   const { setApplicationDates } = useSetApplicationDates();
 
@@ -198,6 +198,7 @@ export const CompletenessPhase = ({
         : new Date(federalStartDate) <= new Date(federalEndDate);
 
     return (
+      !completenessComplete &&
       applicationIntakeComplete &&
       completenessDocs.find((doc) => doc.documentType === "Application Completeness Letter") &&
       completenessDocs.find((doc) => doc.documentType === "Internal Completeness Review Form") &&
@@ -320,6 +321,7 @@ export const CompletenessPhase = ({
             label="State Application Deemed Complete"
             value={stateDeemedComplete}
             onChange={handleStateDeemedCompleteChange}
+            isDisabled={completenessComplete}
           />
         </div>
 

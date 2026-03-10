@@ -28,7 +28,7 @@ describe("DatePicker component", () => {
       render(<DatePicker {...requiredProps} isDisabled value="2025-06-15" />);
       const input = screen.getByTestId("test-date") as HTMLInputElement;
       expect(input).toBeDisabled();
-      expect(input.defaultValue).toBe("2025-06-15");
+      expect(input.value).toBe("2025-06-15");
     });
 
     it("displays validation message when provided", () => {
@@ -114,6 +114,26 @@ describe("DatePicker component", () => {
       const input = screen.getByTestId("test-date");
       fireEvent.input(input, { target: { value: "" } });
       expect(mockOnChange).toHaveBeenCalledWith("");
+    });
+  });
+
+  describe("Controlled Input Behavior", () => {
+    it("reflects updated value prop in the DOM", () => {
+      const { rerender } = render(<DatePicker {...requiredProps} value="2024-01-15" />);
+      const input = screen.getByTestId("test-date") as HTMLInputElement;
+      expect(input.value).toBe("2024-01-15");
+
+      rerender(<DatePicker {...requiredProps} value="2024-06-01" />);
+      expect(input.value).toBe("2024-06-01");
+    });
+
+    it("clears displayed value when value prop is set to empty string", () => {
+      const { rerender } = render(<DatePicker {...requiredProps} value="2024-01-15" />);
+      const input = screen.getByTestId("test-date") as HTMLInputElement;
+      expect(input.value).toBe("2024-01-15");
+
+      rerender(<DatePicker {...requiredProps} value="" />);
+      expect(input.value).toBe("");
     });
   });
 

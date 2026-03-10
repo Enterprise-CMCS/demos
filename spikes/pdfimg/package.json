@@ -1,0 +1,16 @@
+{
+  "name": "pdfimg",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "pdfjs-dist": "^5.5.207",
+    "unpdf": "^1.4.0"
+  }
+}

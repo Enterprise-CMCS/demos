@@ -1,6 +1,7 @@
 import { gql, useMutation } from "@apollo/client";
 import { useToast } from "components/toast";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application/demonstration/DemonstrationWorkflow";
 import React, { useState } from "react";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { ErrorButton } from "components/button";
@@ -28,7 +29,7 @@ export const RemoveDocumentDialog: React.FC<{
       setIsDeleting(true);
       await deleteDocumentsTrigger({
         variables: { ids: documentIdList },
-        refetchQueries: [DEMONSTRATION_DETAIL_QUERY],
+        refetchQueries: [DEMONSTRATION_DETAIL_QUERY, GET_WORKFLOW_DEMONSTRATION_QUERY],
       });
 
       const isMultipleDocuments = documentIdList.length > 1;
