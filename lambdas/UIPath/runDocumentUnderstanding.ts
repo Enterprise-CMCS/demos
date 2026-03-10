@@ -13,7 +13,7 @@ const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 type UiPathStatus = "Pending" | "Finished" | "Failed";
 // Right now, we only check for multiple demo_type values in 1 row
 const DEMO_TYPE_FIELD_ID = "demo_type";
-const DEMOS_SCHEMA = "demo_app";
+const DEMOS_SCHEMA = "demos_app";
 
 const UPSERT_RESULT_SQL = `insert into ${DEMOS_SCHEMA}.uipath_result (id, request_id, project_id, response, document_id, status_id)
  values ($1, $2, $3, $4::jsonb, $5, $6)
