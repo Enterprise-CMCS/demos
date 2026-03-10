@@ -1,14 +1,16 @@
 model UiPathResult {
-  id         String              @id @default(uuid()) @db.Uuid
-  requestId  String              @map("request_id")
+  id         String       @id @default(uuid()) @db.Uuid
+  requestId  String       @map("request_id")
+  statusId   String       @default("Pending") @map("status_id")
   response   Json
-  projectId  String              @map("project_id")
-  documentId String?             @map("document_id") @db.Uuid
-  document   Document?           @relation(fields: [documentId], references: [id], onDelete: SetNull)
-  createdAt  DateTime            @default(now()) @map("created_at") @db.Timestamptz()
-  fields     UipathResultField[]
+  projectId  String       @map("project_id")
+  documentId String?      @map("document_id") @db.Uuid
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz()
+
+  document   Document?    @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  fields UipathResultField[]
+  status     UiPathStatus @relation(fields: [statusId], references: [id])
 
   @@unique([requestId])
-  @@index([documentId])
   @@map("uipath_result")
 }
