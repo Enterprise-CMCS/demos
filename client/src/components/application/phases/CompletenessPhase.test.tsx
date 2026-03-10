@@ -232,6 +232,77 @@ describe("CompletenessPhase", () => {
     });
   });
 
+  describe("Document Reactivity", () => {
+    it("reflects updated documents when props change (no refresh needed)", () => {
+      const { rerender } = render(
+        <TestProvider>
+          <CompletenessPhase {...defaultProps} initialDocuments={[]} />
+        </TestProvider>
+      );
+
+      expect(screen.queryByText("Completeness Letter")).not.toBeInTheDocument();
+
+      rerender(
+        <TestProvider>
+          <CompletenessPhase {...defaultProps} initialDocuments={[mockCompletenessDoc]} />
+        </TestProvider>
+      );
+
+      expect(screen.getByText("Completeness Letter")).toBeInTheDocument();
+    });
+
+    it("reflects document removal when props change (no refresh needed)", () => {
+      const { rerender } = render(
+        <TestProvider>
+          <CompletenessPhase
+            {...defaultProps}
+            initialDocuments={[mockCompletenessDoc, mockInternalDoc]}
+          />
+        </TestProvider>
+      );
+
+      expect(screen.getByText("Completeness Letter")).toBeInTheDocument();
+      expect(screen.getByText("Internal Form")).toBeInTheDocument();
+
+      rerender(
+        <TestProvider>
+          <CompletenessPhase {...defaultProps} initialDocuments={[]} />
+        </TestProvider>
+      );
+
+      expect(screen.queryByText("Completeness Letter")).not.toBeInTheDocument();
+      expect(screen.queryByText("Internal Form")).not.toBeInTheDocument();
+    });
+
+    it("updates Finish button when required documents are added via props", () => {
+      const propsWithDates = {
+        ...defaultProps,
+        stateDeemedCompleteDate: "2026-02-05",
+        fedCommentStartDate: "2026-02-06",
+        fedCommentEndDate: "2026-03-07",
+      };
+
+      const { rerender } = render(
+        <TestProvider>
+          <CompletenessPhase {...propsWithDates} initialDocuments={[]} />
+        </TestProvider>
+      );
+
+      expect(screen.getByRole("button", { name: /finish/i })).toBeDisabled();
+
+      rerender(
+        <TestProvider>
+          <CompletenessPhase
+            {...propsWithDates}
+            initialDocuments={[mockCompletenessDoc, mockInternalDoc]}
+          />
+        </TestProvider>
+      );
+
+      expect(screen.getByRole("button", { name: /finish/i })).toBeEnabled();
+    });
+  });
+
   describe("Completeness Notice Banner", () => {
     it("renders the banner with correct content and dismisses on click", async () => {
       const today = new Date("2026-02-08T00:00:00Z");

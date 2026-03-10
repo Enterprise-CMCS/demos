@@ -254,6 +254,7 @@ export const ReviewPhase = ({
             size="large"
             name="review-finish"
             disabled={
+              isReadonly ||
               !allPreviousPhasesDone ||
               !reviewPhaseSectionsComplete["PO and OGD"] ||
               !reviewPhaseSectionsComplete["OGC and OMB"] ||

@@ -4,7 +4,11 @@ import { tw } from "tags/tw";
 import { Button, SecondaryButton } from "components/button";
 import { ChevronRightIcon, ExportIcon } from "components/icons";
 
-import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
+import {
+  WorkflowApplication,
+  ApplicationWorkflowDocument,
+  WorkflowApplicationType,
+} from "components/application";
 import { formatDateForServer, getTodayEst } from "util/formatDate";
 import { DocumentList } from "./sections";
 import { useDialog } from "components/dialog/DialogContext";
@@ -13,7 +17,7 @@ import { getPhaseCompletedMessage } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import { PhaseName } from "../phase-selector/PhaseSelector";
-import type { LocalDate, UploadDocumentInput } from "demos-server";
+import type { LocalDate, PhaseStatus, UploadDocumentInput } from "demos-server";
 import { useCompletePhase, useSkipConceptPhase } from "../phase-status/phaseCompletionQueries";
 
 const STYLES = {
@@ -31,7 +35,8 @@ const STYLES = {
 
 export const getConceptPhaseComponentFromApplication = (
   application: WorkflowApplication,
-  setSelectedPhase?: (phase: PhaseName) => void
+  workflowApplicationType: WorkflowApplicationType,
+  setSelectedPhase: (phase: PhaseName) => void
 ) => {
   const preSubmissionDocuments = application.documents.filter(
     (document) => document.phaseName === "Concept"
@@ -55,6 +60,8 @@ export const getConceptPhaseComponentFromApplication = (
         presubmissionSubmittedDate ? formatDateForServer(presubmissionSubmittedDate) : undefined
       }
       setSelectedPhase={setSelectedPhase}
+      workflowApplicationType={workflowApplicationType}
+      phaseStatus={conceptPhase.phaseStatus}
     />
   );
 };
@@ -76,11 +83,13 @@ const getLatestPresubmissionDocumentDate = (
   return formatDateForServer(sortedDates[0]);
 };
 
-export interface ConceptProps {
+export interface ConceptPhaseProps {
   applicationId: string;
   documents: ApplicationWorkflowDocument[];
   setSelectedPhase?: (phase: PhaseName) => void;
   presubmissionSubmittedDate?: LocalDate;
+  workflowApplicationType: WorkflowApplicationType;
+  phaseStatus: PhaseStatus;
 }
 
 export const ConceptPhase = ({
@@ -88,7 +97,9 @@ export const ConceptPhase = ({
   documents,
   setSelectedPhase,
   presubmissionSubmittedDate,
-}: ConceptProps) => {
+  workflowApplicationType,
+  phaseStatus,
+}: ConceptPhaseProps) => {
   const { showSuccess } = useToast();
   const { showConceptPreSubmissionDocumentUploadDialog } = useDialog();
   const { setApplicationDate } = useSetApplicationDate();
@@ -99,17 +110,20 @@ export const ConceptPhase = ({
   const [isFinishEnabled, setIsFinishEnabled] = useState<boolean>(false);
   const [isSkipEnabled, setIsSkipEnabled] = useState<boolean>(true);
 
+  const isPhaseFinalized = phaseStatus === "Completed" || phaseStatus === "Skipped";
+
   const advanceToNextPhase = () => {
     setSelectedPhase?.("Application Intake");
   };
 
   useEffect(() => {
     const finishShouldBeEnabled =
+      !isPhaseFinalized &&
       documents.filter((document) => document.documentType === "Pre-Submission").length > 0 &&
       !!submittedDate;
     setIsFinishEnabled(finishShouldBeEnabled);
-    setIsSkipEnabled(!finishShouldBeEnabled);
-  }, [submittedDate, documents]);
+    setIsSkipEnabled(!finishShouldBeEnabled && !isPhaseFinalized);
+  }, [submittedDate, documents, isPhaseFinalized]);
 
   const { completePhase } = useCompletePhase();
   const { skipConceptPhase } = useSkipConceptPhase();
@@ -177,13 +191,17 @@ export const ConceptPhase = ({
     advanceToNextPhase();
   };
 
-  const UploadSection = () => (
+  const UploadSection = ({
+    workflowApplicationType,
+  }: {
+    workflowApplicationType: WorkflowApplicationType;
+  }) => (
     <div aria-labelledby="state-application-upload-title">
       <h4 id="state-application-upload-title" className={STYLES.title}>
         STEP 1 - UPLOAD
       </h4>
       <p className={STYLES.helper}>
-        Upload the Pre-Submission Document describing your application.
+        Upload the Pre-Submission Document describing your {workflowApplicationType}.
       </p>
 
       <SecondaryButton
@@ -222,6 +240,7 @@ export const ConceptPhase = ({
             }}
             isRequired={documents.length > 0}
             getValidationMessage={getDateValidationMessage}
+            isDisabled={isPhaseFinalized}
           />
         </div>
       </div>
@@ -249,7 +268,7 @@ export const ConceptPhase = ({
       <section className={STYLES.pane}>
         <div className={STYLES.grid}>
           <span aria-hidden className={STYLES.divider} />
-          <UploadSection />
+          <UploadSection workflowApplicationType={workflowApplicationType} />
           <VerifyCompleteSection />
         </div>
       </section>
