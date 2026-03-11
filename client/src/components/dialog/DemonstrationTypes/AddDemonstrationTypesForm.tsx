@@ -1,7 +1,7 @@
 import React from "react";
 import { DatePicker } from "components/input/date/DatePicker";
 import { SecondaryButton } from "components/button";
-import { SelectDemonstrationTypeName } from "components/input/select/SelectDemonstrationTypeName";
+import { SelectDemonstrationTypeName } from "components/input/select/SelectDemonstrationType";
 import { gql, TypedDocumentNode, useQuery } from "@apollo/client";
 import { Tag as DemonstrationTypeName } from "demos-server";
 import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";

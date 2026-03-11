@@ -7,7 +7,7 @@ import {
   ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION,
 } from "./ApplyDemonstrationTypesDialog";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
-import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectDemonstrationTypeName";
+import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectDemonstrationType";
 import { Tag as DemonstrationTypeName, LocalDate, TagConfiguration } from "demos-server";
 import { ADD_DEMONSTRATION_TYPES_FORM_QUERY } from "./AddDemonstrationTypesForm";
 
