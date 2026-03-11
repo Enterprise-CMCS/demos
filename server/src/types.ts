@@ -100,6 +100,8 @@ export type {
   SetDemonstrationTypesInput,
 } from "./model/demonstrationTypeTagAssignment/demonstrationTypeTagAssignmentSchema.js";
 
+export type { TagConfiguration } from "./model/tagConfiguration";
+
 export type DemonstrationTypeStatus = (typeof DEMONSTRATION_TYPE_STATUSES)[number];
 export type ClearanceLevel = (typeof CLEARANCE_LEVELS)[number];
 export type LocalDate = string & { readonly __brand: "LocalDate" };
