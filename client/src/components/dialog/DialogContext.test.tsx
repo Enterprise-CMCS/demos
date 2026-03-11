@@ -502,6 +502,7 @@ const TestConsumer: React.FC = () => {
           showEditDemonstrationTypeDialog("app-1", {
             demonstrationTypeName: "Type1",
             status: "Active",
+            approvalStatus: "Approved",
             effectiveDate: new Date("2024-01-01"),
             expirationDate: new Date("2025-01-01"),
           })

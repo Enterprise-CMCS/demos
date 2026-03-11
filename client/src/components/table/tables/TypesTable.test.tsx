@@ -20,6 +20,7 @@ const mockTypes: DemonstrationDetailDemonstrationType[] = [
   {
     demonstrationTypeName: "Environmental",
     status: "Active",
+    approvalStatus: "Approved",
     effectiveDate: new Date("2023-01-01"),
     expirationDate: new Date("2024-01-01"),
     createdAt: new Date("2022-12-01"),
@@ -27,6 +28,7 @@ const mockTypes: DemonstrationDetailDemonstrationType[] = [
   {
     demonstrationTypeName: "Economic",
     status: "Pending",
+    approvalStatus: "Unapproved",
     effectiveDate: new Date("2024-01-01"),
     expirationDate: new Date("2025-01-01"),
     createdAt: new Date("2023-06-01"),
@@ -55,7 +57,7 @@ describe("TypesTable", () => {
     render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
 
     expect(screen.getByText("Environmental")).toBeInTheDocument();
-    expect(screen.getByText("Economic")).toBeInTheDocument();
+    expect(screen.getByText("Economic (Unapproved)")).toBeInTheDocument();
   });
 
   it("shows empty message when no types exist", () => {
@@ -93,7 +95,7 @@ describe("TypesTable", () => {
     const rows = screen.getAllByRole("row").slice(1);
     const types = rows.map((row) => row.querySelectorAll("td")[1]?.textContent);
 
-    expect(types).toEqual(["Environmental", "Economic"]);
+    expect(types).toEqual(["Environmental", "Economic (Unapproved)"]);
   });
 
   it("allows sorting by Status column", async () => {
@@ -184,6 +186,7 @@ describe("TypesTable", () => {
         status: mockTypes[0].status,
         effectiveDate: mockTypes[0].effectiveDate,
         expirationDate: mockTypes[0].expirationDate,
+        approvalStatus: mockTypes[0].approvalStatus,
       };
 
       expect(mockShowEditDemonstrationTypeDialog).toHaveBeenCalledWith(

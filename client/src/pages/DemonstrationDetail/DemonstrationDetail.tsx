@@ -90,6 +90,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       demonstrationTypes {
         demonstrationTypeName
         status
+        approvalStatus
         effectiveDate
         expirationDate
         createdAt
@@ -134,7 +135,12 @@ export type DemonstrationDetail = Pick<Demonstration, "id" | "status" | "current
   extensions: DemonstrationDetailModification[];
   demonstrationTypes: Pick<
     DemonstrationTypeAssignment,
-    "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "createdAt"
+    | "demonstrationTypeName"
+    | "status"
+    | "effectiveDate"
+    | "expirationDate"
+    | "createdAt"
+    | "approvalStatus"
   >[];
   documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
     owner: { person: Pick<Person, "fullName"> };

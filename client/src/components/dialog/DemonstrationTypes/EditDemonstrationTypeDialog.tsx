@@ -19,7 +19,7 @@ type Demonstration = Pick<ServerDemonstration, "id"> & {
 
 export type DemonstrationType = Pick<
   DemonstrationTypeAssignment,
-  "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate"
+  "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "approvalStatus"
 >;
 
 type DemonstrationTypeFormData = Pick<
@@ -170,7 +170,10 @@ export const EditDemonstrationTypeDialog = ({
       <div className="grid grid-cols-2 gap-2">
         <div className="flex flex-col gap-1">
           <p className="text-text-font font-semibold text-field-label">Type</p>
-          <p className="text-text-filled">{demonstrationTypeFormData.demonstrationTypeName}</p>
+          <p className="text-text-filled">
+            {initialDemonstrationType.demonstrationTypeName}
+            {initialDemonstrationType.approvalStatus === "Approved" ? "" : " (Unapproved)"}
+          </p>
         </div>
         <div className="flex flex-col gap-1">
           <p className="text-text-font font-semibold text-field-label">Status</p>

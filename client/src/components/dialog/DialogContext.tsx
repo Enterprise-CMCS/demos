@@ -208,7 +208,7 @@ export const useDialog = () => {
     demonstrationId: string,
     demonstrationType: Pick<
       DemonstrationTypeAssignment,
-      "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate"
+      "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "approvalStatus"
     >
   ) => {
     context.showDialog(
@@ -235,12 +235,7 @@ export const useDialog = () => {
   };
 
   const showConfirmApproveDialog = (onConfirm: () => void) => {
-    context.showDialog(
-      <ConfirmApproveDialog
-        onClose={context.hideDialog}
-        onConfirm={onConfirm}
-      />
-    );
+    context.showDialog(<ConfirmApproveDialog onClose={context.hideDialog} onConfirm={onConfirm} />);
   };
 
   return {
