@@ -7,7 +7,7 @@ export function isCDKRoleArray(arr: any[]): arr is CDKRole[] {
     item !== null &&
     typeof item.name === 'string' &&
     Array.isArray(item.memberships) &&
-    (typeof item.systemRole === 'string' || typeof item.systemRole === 'undefined'))
+    (typeof item.systemRole === 'string' || item.systemRole === undefined))
 }
 
 export function isRoleArray(arr: any[]): arr is Role[] {
@@ -16,7 +16,7 @@ export function isRoleArray(arr: any[]): arr is Role[] {
     item !== null &&
     typeof item.name === 'string' &&
     Array.isArray(item.memberships) &&
-    (typeof item.systemRole === 'boolean' || typeof item.systemRole === 'undefined'))
+    (typeof item.systemRole === 'boolean' || item.systemRole === undefined))
 }
 
 export function convertRoles(roles: any[]): Role[] {
