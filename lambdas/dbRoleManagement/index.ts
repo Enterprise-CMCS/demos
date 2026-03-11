@@ -2,6 +2,7 @@ import { CdkCustomResourceResponse, CloudFormationCustomResourceEvent, Context }
 import { applyRoleChanges, deleteAllRoles } from "./services/roles";
 import { getStage, loadEnvs } from "./util/env";
 import {log} from "./log"
+import { convertRoles } from "./util/convertRoles";
 
 // Not adding the logger AsyncLocalStorage configuration since calls to this
 // lambda are so infrequent. The code is still in the log.ts file for any future
@@ -23,18 +24,20 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
     PhysicalResourceId: physicalResourceId,
   };
 
+  const submittedRoles = convertRoles(event.ResourceProperties.roles)
+
   const requestType = event.RequestType;
   try {
     log.debug({requestType});
     switch (requestType) {
       case "Create":
-        await applyRoleChanges(event.ResourceProperties.roles);
+        await applyRoleChanges(submittedRoles);
         break;
       case "Update":
-        await applyRoleChanges(event.ResourceProperties.roles, event.OldResourceProperties.roles);
+        await applyRoleChanges(submittedRoles, convertRoles(event.OldResourceProperties.roles));
         break;
       case "Delete":
-        await deleteAllRoles(event.ResourceProperties.roles);
+        await deleteAllRoles(submittedRoles);
         break;
 
       default:
