@@ -25,16 +25,19 @@ describe("DemonstrationTypesList", () => {
       demonstrationTypeName: "Type A",
       effectiveDate: "2024-01-01",
       expirationDate: "2025-01-01",
+      approvalStatus: "Approved",
     },
     {
       demonstrationTypeName: "Type B",
       effectiveDate: "2024-01-02",
       expirationDate: "2025-01-02",
+      approvalStatus: "Unapproved",
     },
     {
       demonstrationTypeName: "Type C",
       effectiveDate: "2024-01-03",
       expirationDate: "2025-01-03",
+      approvalStatus: "Approved",
     },
   ];
 
@@ -73,7 +76,7 @@ describe("DemonstrationTypesList", () => {
     expect(screen.getByText(/expires: 01\/01\/2025/i)).toBeInTheDocument();
 
     // Check Type B
-    expect(screen.getByText("Type B")).toBeInTheDocument();
+    expect(screen.getByText("Type B (Unapproved)")).toBeInTheDocument();
     expect(screen.getByText(/effective: 01\/02\/2024/i)).toBeInTheDocument();
     expect(screen.getByText(/expires: 01\/02\/2025/i)).toBeInTheDocument();
 

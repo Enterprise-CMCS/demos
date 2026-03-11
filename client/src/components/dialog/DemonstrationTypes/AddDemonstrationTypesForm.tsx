@@ -50,6 +50,7 @@ export const AddDemonstrationTypesForm = ({
   const [demonstrationTypeFormData, setDemonstrationTypeFormData] =
     React.useState<DemonstrationType>({
       demonstrationTypeName: "",
+      approvalStatus: "Approved",
       effectiveDate: "",
       expirationDate: "",
     });
@@ -66,6 +67,7 @@ export const AddDemonstrationTypesForm = ({
     setDemonstrationTypeFormData({
       ...demonstrationTypeFormData,
       demonstrationTypeName: "",
+      approvalStatus: "Approved",
     });
   };
 
@@ -97,11 +99,12 @@ export const AddDemonstrationTypesForm = ({
             filter={filterDemonstrationTypes}
             isRequired
             value={demonstrationTypeFormData.demonstrationTypeName}
-            onSelect={(demonstrationTypeName) =>
+            onSelect={(demonstrationTypeOption) =>
               setDemonstrationTypeFormData(
                 (demonstrationType): DemonstrationType => ({
                   ...demonstrationType,
-                  demonstrationTypeName,
+                  demonstrationTypeName: demonstrationTypeOption.tagId,
+                  approvalStatus: demonstrationTypeOption.approvalStatus,
                 })
               )
             }

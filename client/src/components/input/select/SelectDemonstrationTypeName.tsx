@@ -1,52 +1,68 @@
 import React, { useMemo } from "react";
 import { gql, TypedDocumentNode, useQuery } from "@apollo/client";
-import { Tag as DemonstrationTypeName } from "demos-server";
+import { Tag as DemonstrationTypeName, TagConfigurationStatus } from "demos-server";
 import { AutoCompleteSelect } from "./AutoCompleteSelect";
 
+export type DemonstrationType = {
+  tagId: DemonstrationTypeName;
+  approvalStatus: TagConfigurationStatus;
+};
+
 export const SELECT_DEMONSTRATION_TYPE_QUERY: TypedDocumentNode<
-  { demonstrationTypeNames: DemonstrationTypeName[] },
+  { demonstrationTypes: DemonstrationType[] },
   Record<string, never>
 > = gql`
   query SelectDemonstrationTypeQuery {
-    demonstrationTypeNames
+    demonstrationTypes {
+      tagId
+      approvalStatus
+    }
   }
 `;
 
 export type SelectDemonstrationTypeNameProps = {
   value: DemonstrationTypeName;
-  onSelect: (tag: DemonstrationTypeName) => void;
+  onSelect: (demonstrationTypeOption: DemonstrationType) => void;
   isRequired?: boolean;
   filter?: (tag: DemonstrationTypeName) => boolean;
 };
 export const SelectDemonstrationTypeName = (props: SelectDemonstrationTypeNameProps) => {
-  const { filter } = props;
+  const { filter, onSelect, ...rest } = props;
 
   const { loading, error, data } = useQuery(SELECT_DEMONSTRATION_TYPE_QUERY);
 
-  const typeNameOptions = (data?.demonstrationTypeNames || [])
-    .filter((typeNames) => (filter ? filter(typeNames) : true))
-    .map((typeName) => ({
-      label: typeName,
-      value: typeName,
+  const demonstrationTypeOptions = (data?.demonstrationTypes || [])
+    .filter((typeOption) => (filter ? filter(typeOption.tagId) : true))
+    .map((typeOption) => ({
+      label: `${typeOption.tagId} ${typeOption.approvalStatus === "Approved" ? "" : "(Unapproved)"}`,
+      value: typeOption.tagId,
     }));
 
   const placeholderText = useMemo(() => {
     if (loading) return "Loading...";
-    return typeNameOptions.length ? "Select an option" : "No types available";
-  }, [loading, typeNameOptions.length]);
+    return demonstrationTypeOptions.length ? "Select an option" : "No types available";
+  }, [loading, demonstrationTypeOptions.length]);
 
   if (error) {
     return <p className="text-red-500">Error loading demonstration type names.</p>;
   }
 
+  const handleSelect = (value: string) => {
+    const demonstrationTypeOption = data?.demonstrationTypes.find((opt) => opt.tagId === value);
+    if (demonstrationTypeOption) {
+      onSelect(demonstrationTypeOption);
+    }
+  };
+
   return (
     <AutoCompleteSelect
       label="Demonstration Type"
       dataTestId="select-demonstration-type-name"
-      options={typeNameOptions}
-      isDisabled={typeNameOptions.length === 0}
+      options={demonstrationTypeOptions}
+      isDisabled={demonstrationTypeOptions.length === 0}
       placeholder={placeholderText}
-      {...props}
+      onSelect={handleSelect}
+      {...rest}
     />
   );
 };

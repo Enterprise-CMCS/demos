@@ -23,7 +23,10 @@ export const DemonstrationTypesList = ({
               className="p-1 border-b border-gray-300 flex justify-between"
             >
               <div>
-                <p className="font-bold text-lg">{demonstrationType.demonstrationTypeName}</p>
+                <p className="font-bold text-lg">
+                  {demonstrationType.demonstrationTypeName}
+                  {demonstrationType.approvalStatus === "Unapproved" && " (Unapproved)"}
+                </p>
                 <span>
                   Effective: {formatDate(parseISO(demonstrationType.effectiveDate))} &bull; Expires:{" "}
                   {formatDate(parseISO(demonstrationType.expirationDate))}
