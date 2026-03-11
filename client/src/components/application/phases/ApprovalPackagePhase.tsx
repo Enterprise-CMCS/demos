@@ -21,7 +21,6 @@ export interface ApprovalPackagePhaseProps {
 
 const REQUIRED_TYPES: DocumentType[] = [
   "Final Budget Neutrality Formulation Workbook",
-  "Final BN Worksheet",
   "Q&A",
   "Special Terms & Conditions",
   "Formal OMB Policy Concurrence Email",
@@ -37,9 +36,6 @@ export const getApprovalPackagePhaseFromApplication = (
     (doc) =>
       doc.documentType === "Final Budget Neutrality Formulation Workbook" &&
       doc.phaseName === "Approval Package"
-  );
-  const finalBNWorksheetDocument = application?.documents.find(
-    (doc) => doc.documentType === "Final BN Worksheet" && doc.phaseName === "Approval Package"
   );
   const qaDocument = application?.documents.find(
     (doc) => doc.documentType === "Q&A" && doc.phaseName === "Approval Package"
@@ -83,7 +79,6 @@ export const getApprovalPackagePhaseFromApplication = (
       demonstrationId={application.id}
       documents={[
         formulationWorkbookDocument,
-        finalBNWorksheetDocument,
         qaDocument,
         termsAndConditionsDocument,
         ombPolicyDocument,

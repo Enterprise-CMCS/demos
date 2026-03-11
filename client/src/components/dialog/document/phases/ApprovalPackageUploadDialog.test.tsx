@@ -77,11 +77,6 @@ describe("ApprovalPackageUploadDialog", () => {
       expect(screen.getByTestId("phase-name")).toHaveTextContent("Approval Package");
     });
 
-    it("uses Approval Package phase for Final BN Worksheet", () => {
-      setup({ documentType: "Final BN Worksheet" as DocumentType });
-      expect(screen.getByTestId("phase-name")).toHaveTextContent("Approval Package");
-    });
-
     it("renders action buttons", () => {
       setup();
       expect(screen.getByTestId("button-confirm-upload-document")).toBeInTheDocument();
