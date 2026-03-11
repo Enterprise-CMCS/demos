@@ -39,9 +39,9 @@ erDiagram
   application_date }|--|| application : "FK002"
   application_note }|--|| application : "FK073"
   application }|--|| application_type : "FK007"
-  application ||--|| demonstration : "FK008"
-  application ||--|| extension : "FK009"
-  application ||--|| amendment : "FK058"
+  application ||--|| demonstration : "FK008 (DEFERRED)"
+  application ||--|| extension : "FK009 (DEFERRED)"
+  application ||--|| amendment : "FK058 (DEFERRED)"
   demonstration }|--|| sdg_division : "FK010"
   demonstration }|--|| signature_level : "FK011"
   demonstration ||--|{ extension : "FK012"
@@ -106,7 +106,7 @@ erDiagram
   amendment }|--|| signature_level : "FK092"
   extension }|--|| signature_level : "FK093"
   document_type ||--|| budget_neutrality_workbook_document_type_limit : "FK123"
-  document ||--|| budget_neutrality_workbook : "FK124"
+  document ||--|| budget_neutrality_workbook : "FK124 (DEFERRED)"
   budget_neutrality_workbook_document_type_limit ||--|{ budget_neutrality_workbook : "FK125"
   budget_neutrality_workbook }|--|| budget_neutrality_validation_status : "FK126"
   document }|--|| deliverable_action : "FK121"
@@ -147,20 +147,13 @@ erDiagram
   cms_user_person_type_limit ||--|{ private_comment : "FK113"
   deliverable ||--|{ deliverable_action : "FK114"
   users ||--|{ deliverable_action : "FK117"
-
   document ||--|| uipath_result : "FK136"
-  uipath_result ||--|{ uipath_result_field_value : "FK137"
-  uipath_result_field_value ||--|{ uipath_result_field_value_instance : "FK138"
-  uipath_result }|--|| uipath_result_status : "FK139"
-  application_tag_suggestion }|--|| application_tag_suggestion_status : "FK140"
-  document ||--|{ uipath_result_field_value : "FK141"
-  uipath_field_value ||--|{ uipath_application_field_value : "FK142"
-  application ||--|{ uipath_application_field_value : "FK146"
-  uipath_application_field_value ||--|{ application_tag_suggestion : "FK143"
-  uipath_application_field_value ||--|{ uipath_result_field_value : "FK145"
-  application_tag_suggestion }|--|| application_tag_suggestion_field_limit : "FK144"
-  application_tag_suggestion ||--|{ application_tag_suggestion_extract : "FK147"
-  application_tag_suggestion_extract ||--|| uipath_result_field_value_instance : "FK148"
+  uipath_result ||--|{ uipath_value : "FK137"
+  uipath_result }|--|| uipath_result_status : "FK138"
+  uipath_value ||--|| application_tag_suggestion_extract : "FK139"
+  application_tag_suggestion_extract }|--|| application_tag_suggestion : "FK140 (DEFERRED)"
+  application_tag_suggestion_extract_field_limit ||--|{ application_tag_suggestion_extract : "FK141"
+  application_tag_suggestion_status ||--|{ application_tag_suggestion : "FK142"
 
   %% Static Constraints
   application_status:::staticConstraint {
@@ -294,7 +287,7 @@ erDiagram
     text id PK, FK "FK060: id ∈ application_type.id"
   }
 
-  application_tag_suggestion_field_limit:::typeLimiter {
+  application_tag_suggestion_extract_field_limit:::typeLimiter {
     text id PK
   }
 
@@ -407,30 +400,6 @@ erDiagram
     HAS_HISTORY true
   }
 
-  application_tag_suggestion:::dataTable {
-    uuid id PK, UK "UK: (id, field_id)"
-    uuid application_id FK "FK143: (application_id, field_id, value) ∈ uipath_application_field_value.(application_id, field_id, value)"
-    text field_id FK "FK143: (application_id, field_id, value) ∈ uipath_application_field_value.(application_id, field_id, value)<br>FK144: field_id ∈ application_tag_suggestion_field_limit.id<br>UK: (id, field_id)"
-    text value FK "FK143: (application_id, field_id, value) ∈ uipath_application_field_value.(application_id, field_id, value)"
-    text status_id FK "FK140: status_id ∈ application_tag_suggestion_status.id"
-    timestamptz created_at
-    timestamptz updated_at
-    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
-    HAS_HISTORY true
-  }
-
-  application_tag_suggestion_extract:::dataTable {
-    uuid suggestion_id PK, FK "FK147: (suggestion_id, field_id) ∈ application_tag_suggestion.(id, field_id)"
-    uuid uipath_result_field_value_instance_id PK, FK, UK "FK148: (uipath_result_field_value_instance_id, field_id) ∈ uipath_result_field_value_instance.(id, field_id)<br>UK: uipath_result_field_value_instance_id"
-    text field_id FK "FK147: (suggestion_id, field_id) ∈ application_tag_suggestion.(id, field_id)<br>FK148: (uipath_result_field_value_instance_id, field_id) ∈ uipath_result_field_value_instance.(id, field_id)"
-    text extracted_image_s3_path
-    timestamptz created_at
-    timestamptz updated_at
-    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
-    TRIGGER_AFTER_INSERT reset_suggestion_status_on_insert "When a new extract is added, set the suggestion back to Pending."
-    HAS_HISTORY true
-  }
-
   budget_neutrality_workbook:::dataTable {
     uuid id PK, FK "FK124: (id, document_type_id) ∈ document.(id, document_type_id) DEFERRED"
     text document_type_id FK "FK124: (id, document_type_id) ∈ document.(id, document_type_id) DEFERRED<br>FK125: document_type_id ∈ budget_neutrality_workbook_document_type_limit.id"
@@ -438,6 +407,8 @@ erDiagram
     json validation_data
     timestamptz created_at
     timestamptz updated_at
+    TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_document "Verify that no corresponding record exists in the document table."
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }
 
@@ -491,7 +462,7 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK require_cms_fields_for_finished_requests "If the status is completed, require a reason code and a final date granted value."
-    TRIGGER_BEFORE_UPDATE create_or_update_active_record_for_request "If a request is inserted, add it to the deliverable_active_extension table.<br>If a request is edited to move out of the active status, remove from deliverable_active_extension.<br>If a request is edited to move into the active status, add to deliverable_active_extension."
+    TRIGGER_AFTER_INSERT_OR_UPDATE create_or_update_active_record_for_request "If a request is inserted, add it to the deliverable_active_extension table.<br>If a request is edited to move out of the active status, remove from deliverable_active_extension.<br>If a request is edited to move into the active status, add to deliverable_active_extension."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }
@@ -525,7 +496,7 @@ erDiagram
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     TRIGGER_BEFORE_UPDATE check_demonstration_type_exists_for_approved_demonstrations "Check that approved demonstrations have at least one demonstration type."
-    TRIGGER_AFTER_UPDATE change_open_ended_due_dates_to_expiration_date "If the deliverable is approved, when the expiration date changes, change all the open-ended due dates for associated deliverables."
+    TRIGGER_AFTER_UPDATE change_open_ended_due_dates_to_expiration_date "If the demonstration is approved, when the expiration date changes, change all the open-ended due dates for associated deliverables."
     HAS_HISTORY true
   }
 
@@ -699,49 +670,54 @@ erDiagram
     HAS_HISTORY true
   }
 
-  uipath_field_value:::dataTable {
-    text field_id PK
-    text value PK
-    text field_name
-    text field_type
+  application_tag_suggestion:::dataTable {
+    uuid id PK, UK "UK: (id, application_id, value)"
+    uuid application_id UK "UK: (id, application_id, value)"
+    text value UK "UK: (id, application_id, value)"
+    text status_id "FK142: status_id ∈ application_tag_suggestion_status.id"
     timestamptz created_at
     timestamptz updated_at
+    CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_suggestion_has_extract "Verify that at least one extract record exists for this suggestion."
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
+  }
+
+  application_tag_suggestion_extract:::dataTable {
+    uuid suggestion_id PK, FK "FK140: (suggestion_id, application_id, value) ∈ application_tag_suggestion.(id, application_id, value) DEFERRED"
+    uuid uipath_value_id PK, FK "FK139: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)"
+    uuid application_id FK "FK139: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK140: (suggestion_id, application_id, value) ∈ application_tag_suggestion.(id, application_id, value) DEFERRED"
+    text field_id FK "FK139: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK141: field_id ∈ application_tag_suggestion_extract_field_limit.id"
+    text value FK "FK139: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK140: (suggestion_id, application_id, value) ∈ application_tag_suggestion.(id, application_id, value) DEFERRED"
+    text extracted_image_s3_path
+    timestamptz created_at
+    timestamptz updated_at
+    TRIGGER_BEFORE_DELETE check_suggestion_deleted_if_last_extract "If this is the last extract of a suggestion, verify that the corresponding suggestion is deleted."
+    TRIGGER_AFTER_INSERT upsert_suggestion_record "When a new extract is added take the following steps.<br>If no suggestion exists, insert one into application_tag_suggestion.<br>If a suggestion exists, and the status is removed, set it back to pending.<br>Otherwise do nothing."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }
 
   uipath_result:::dataTable {
-    uuid id PK, UK "UK: (id, document_id)"
+    uuid id PK, UK "UK: (id, document_id, application_id)"
     text request_id UK "UK: request_id"
     json response
     text project_id
-    uuid document_id FK, UK "FK136: document_id ∈ document.id<br>UK: (id, document_id)<br>UK: document_id"
-    text status_id FK "FK139: status_id ∈ uipath_result_status.id"
+    uuid document_id FK, UK "FK136: (document_id, application_id) ∈ document.(id, application_id)<br>UK: (id, document_id, application_id)<br>UK: document_id"
+    uuid application_id FK "FK136: (document_id, application_id) ∈ document.(id, application_id)<br>UK: (id, document_id, application_id)"
+    text status_id FK "FK138: status_id ∈ uipath_result_status.id"
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }
 
-  uipath_result_field_value:::dataTable {
-    uuid uipath_result_id PK, FK "FK137: (uipath_result_id, document_id) ∈ uipath_result.(id, document_id)"
-    text field_id PK, FK "FK145: (application_id, field_id, value) ∈ uipath_application_field_value.(application_id, field_id, value)"
-    text value PK, FK "FK145: (application_id, field_id, value) ∈ uipath_application_field_value.(application_id, field_id, value)"
-    uuid document_id FK "FK137: (uipath_result_id, document_id) ∈ uipath_result.(id, document_id)<br>FK141: (document_id, application_id) ∈ document.(id, application_id)"
-    uuid application_id FK "FK141: (document_id, application_id) ∈ document.(id, application_id)<br>FK145: (application_id, field_id, value) ∈ uipath_application_field_value.(application_id, field_id, value)"
-    timestamptz created_at
-    timestamptz updated_at
-    CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_instance_record_exists "Verify that at least one instance exists in uipath_result_field_value_instance table."
-    TRIGGER_AFTER_DELETE delete_from_application_field_value_table "If the deleted application, field, and value do not exist anymore in this table, delete from uipath_application_field_value."
-    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
-    HAS_HISTORY true
-  }
-
-  uipath_result_field_value_instance:::dataTable {
-    uuid id PK, UK "UK: (id, field_id)"
-    uuid uipath_result_id FK "FK138: (uipath_result_id, field_id, value) ∈ uipath_result_field_value.(uipath_result_id, field_id, value) DEFERRED"
-    text field_id FK "FK138: (uipath_result_id, field_id, value) ∈ uipath_result_field_value.(uipath_result_id, field_id, value) DEFERRED<br>UK: (id, field_id)"
-    text value FK "FK138: (uipath_result_id, field_id, value) ∈ uipath_result_field_value.(uipath_result_id, field_id, value) DEFERRED"
+  uipath_value:::dataTable {
+    uuid id PK, UK "UK: (id, application_id, field_id, value)"
+    uuid uipath_result_id FK "FK137: (uipath_result_id, document_id, application_id) ∈ uipath_result.(id, document_id, application_id)"
+    uuid document_id FK "FK137: (uipath_result_id, document_id, application_id) ∈ uipath_result.(id, document_id, application_id)"
+    uuid application_id FK, UK "FK137: (uipath_result_id, document_id, application_id) ∈ uipath_result.(id, document_id, application_id)<br>UK: (id, application_id, field_id, value)"
+    text field_id UK "UK: (id, application_id, field_id, value)"
+    text value UK "UK: (id, application_id, field_id, value)"
     double confidence
     json token_list
     int text_length
@@ -849,13 +825,6 @@ erDiagram
   role_person_type:::associativeTable {
     text role_id PK, FK "FK032: role_id ∈ role.id"
     text person_type_id PK, FK "FK031: person_type_id ∈ person_type.id"
-  }
-
-  uipath_application_field_value:::associativeTable {
-    uuid application_id PK, FK "FK146: application_id ∈ application.id"
-    text field_id PK, FK "FK142: (field_id, value) ∈ uipath_field_value.(field_id, value)"
-    text value PK, FK "FK142: (field_id, value) ∈ uipath_field_value.(field_id, value)"
-    TRIGGER_AFTER_DELETE delete_from_field_value_table "If the deleted field and value do not exist anymore in this table, delete from uipath_field_value."
   }
 
   %% Legend
