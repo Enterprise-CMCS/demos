@@ -7,7 +7,7 @@ import {
   SELECT_DEMONSTRATION_TYPE_QUERY,
   SelectDemonstrationTypeName,
   SelectDemonstrationTypeNameProps,
-} from "./SelectDemonstrationTypeName";
+} from "./SelectDemonstrationType";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 import { Tag as DemonstrationTypeName } from "demos-server";
 
