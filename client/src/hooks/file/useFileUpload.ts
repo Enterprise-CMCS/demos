@@ -29,13 +29,13 @@ export const useFileUpload = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0] || null;
     if (!selected) return;
-
+    // kinda long winded.
     const fileExtension = selected.name.includes(".")
       ? `.${selected.name.split(".").pop()?.toLowerCase()}`
       : "";
     const hasAllowedMimeType = allowedMimeTypes.includes(selected.type);
     const hasAllowedFileExtension = allowedFileExtensions.includes(fileExtension);
-
+    // extra layer of validation in case MIME type is not provided or is incorrect
     if (!hasAllowedMimeType && !hasAllowedFileExtension) {
       setFile(null);
       onErrorCallback?.(ERROR_MESSAGES.FILE_TYPE_NOT_ALLOWED);
