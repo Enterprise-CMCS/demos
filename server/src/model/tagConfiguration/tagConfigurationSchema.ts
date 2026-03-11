@@ -9,7 +9,7 @@ export const tagConfigurationSchema = gql`
   }
 
   type Query {
-    demonstrationTypeNames: [TagConfiguration!]!
+    demonstrationTypes: [TagConfiguration!]!
     applicationTags: [TagConfiguration!]!
   }
 `;
