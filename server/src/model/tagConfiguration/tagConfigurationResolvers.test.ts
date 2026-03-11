@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getDemonstrationTypeNames, getApplicationTags } from "./tagConfigurationResolvers";
+import { getDemonstrationTypes, getApplicationTags } from "./tagConfigurationResolvers";
 
 // Mock imports
 import { getTagListByTagType } from ".";
@@ -13,9 +13,9 @@ describe("tagConfigurationResolvers", () => {
     vi.resetAllMocks();
   });
 
-  describe("getDemonstrationTypeNames", () => {
+  describe("getDemonstrationTypes", () => {
     it("should query the demonstration type tags", async () => {
-      const result = await getDemonstrationTypeNames();
+      const result = await getDemonstrationTypes();
       expect(getTagListByTagType).toHaveBeenCalledExactlyOnceWith("Demonstration Type");
     });
   });

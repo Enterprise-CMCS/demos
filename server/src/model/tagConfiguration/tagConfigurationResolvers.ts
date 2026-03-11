@@ -1,6 +1,6 @@
 import { getTagListByTagType, TagConfiguration } from ".";
 
-export async function getDemonstrationTypeNames(): Promise<TagConfiguration[]> {
+export async function getDemonstrationTypes(): Promise<TagConfiguration[]> {
   return await getTagListByTagType("Demonstration Type");
 }
 
@@ -10,7 +10,7 @@ export async function getApplicationTags(): Promise<TagConfiguration[]> {
 
 export const tagConfigurationResolvers = {
   Query: {
-    demonstrationTypeNames: getDemonstrationTypeNames,
+    demonstrationTypes: getDemonstrationTypes,
     applicationTags: getApplicationTags,
   },
 };
