@@ -24,6 +24,11 @@ export const dev: Role[] = [
     memberships: ["demos_read", "demos_write", "demos_delete"],
     systemRole: true,
   },
+  {
+    name: "pgurban",
+    memberships: ["demos_read", "demos_write", "demos_delete"],
+    systemRole: false,
+  },
 ];
 
 export const test: Role[] = [
@@ -42,6 +47,11 @@ export const test: Role[] = [
     memberships: ["demos_read", "demos_write", "demos_delete"],
     systemRole: true,
   },
+  {
+    name: "pgurban",
+    memberships: ["demos_read", "demos_write", "demos_delete"],
+    systemRole: false,
+  },
 ];
 
 export const impl: Role[] = [
@@ -59,6 +69,11 @@ export const impl: Role[] = [
     name: "demos_delete_infected_file",
     memberships: ["demos_read", "demos_write", "demos_delete"],
     systemRole: true,
+  },
+  {
+    name: "pgurban",
+    memberships: ["demos_read", "demos_write", "demos_delete"],
+    systemRole: false,
   },
 ];
 
