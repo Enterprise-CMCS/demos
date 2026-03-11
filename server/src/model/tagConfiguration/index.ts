@@ -6,3 +6,4 @@ export { createNewTagConfigurationIfNotExists } from "./queries/createNewTagConf
 export { getTagConfigurationByTagType } from "./queries/getTagConfigurationByTagType";
 
 // Types
+export type { TagConfiguration } from "./tagConfigurationSchema";

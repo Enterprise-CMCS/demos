@@ -9,6 +9,7 @@ import {
   resolveApplicationTags,
   resolveApplicationSignatureLevel,
 } from "./applicationResolvers";
+import { TagConfiguration } from "../tagConfiguration";
 import { PrismaApplication } from ".";
 import { ApplicationStatus, ApplicationType, PhaseName } from "../../types";
 import {
@@ -18,7 +19,6 @@ import {
 
 // Mock imports
 import { prisma } from "../../prismaClient.js";
-import { TagConfiguration } from "../tagConfiguration/tagConfigurationSchema.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),

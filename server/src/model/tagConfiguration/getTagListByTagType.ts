@@ -1,6 +1,5 @@
 import { TagConfigurationStatus, TagType } from "../../types";
-import { getTagConfigurationByTagType } from ".";
-import { TagConfiguration } from "./tagConfigurationSchema";
+import { getTagConfigurationByTagType, TagConfiguration } from ".";
 
 export async function getTagListByTagType(tagTypeId: TagType): Promise<TagConfiguration[]> {
   const result = await getTagConfigurationByTagType(tagTypeId);
