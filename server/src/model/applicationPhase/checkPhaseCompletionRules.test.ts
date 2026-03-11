@@ -393,7 +393,7 @@ describe("checkPhaseCompletionRules", () => {
         [
           testApplicationId,
           "Approval Package",
-          "Final Budget Neutrality Formulation Workbook",
+          "Final BN Worksheet",
           testApplicationDocumentTypes,
         ],
         [

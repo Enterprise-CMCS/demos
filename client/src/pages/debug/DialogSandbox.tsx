@@ -1,8 +1,23 @@
 import React from "react";
+import { gql, useQuery } from "@apollo/client";
 import { useDialog } from "components/dialog/DialogContext";
 import { Button } from "components/button";
 import { DocumentType } from "demos-server";
 import { ExistingContactType } from "components/dialog/ManageContactsDialog";
+
+const DIALOG_SANDBOX_ID_QUERY = gql`
+  query DialogSandboxIdQuery {
+    demonstrations {
+      id
+    }
+  }
+`;
+
+type DialogSandboxIdQueryResult = {
+  demonstrations: {
+    id: string;
+  }[];
+};
 
 export const DialogSandbox: React.FC = () => {
   const {
@@ -26,7 +41,9 @@ export const DialogSandbox: React.FC = () => {
     showUpdateAmendmentDialog,
   } = useDialog();
 
-  const ID = "d0c10a73-446d-432a-9cb6-9d2546d9bb8f";
+  const ID = "1";
+  const { data } = useQuery<DialogSandboxIdQueryResult>(DIALOG_SANDBOX_ID_QUERY);
+  const demoId = data?.demonstrations?.[0]?.id;
 
   const EXISTING_CONTACTS: ExistingContactType[] = [
     {
@@ -117,17 +134,19 @@ export const DialogSandbox: React.FC = () => {
         <Button name="remove-document" onClick={() => showRemoveDocumentDialog([ID])}>
           Remove Document
         </Button>
-        <Button
-          name="upload-bn-workbook"
-          onClick={() =>
-            showApprovalPackageDocumentUploadDialog(
-              ID,
-              "Final Budget Neutrality Formulation Workbook" as DocumentType
-            )
-          }
-        >
-          Upload BN Workbook
-        </Button>
+        {demoId ? (
+          <Button
+            name="upload-bn-workbook"
+            onClick={() =>
+              showApprovalPackageDocumentUploadDialog(
+                demoId,
+                "Final BN Worksheet" as DocumentType
+              )
+            }
+          >
+            Upload BN Workbook
+          </Button>
+        ) : null}
         <Button
           name="application-intake"
           onClick={() => showApplicationIntakeDocumentUploadDialog(ID, () => {})}
@@ -157,16 +176,10 @@ export const DialogSandbox: React.FC = () => {
           <Button name="declare-incomplete" onClick={() => showDeclareIncompleteDialog(() => {})}>
             Declare Incomplete
           </Button>
-          <Button
-            name="manage-contacts"
-            onClick={() => showManageContactsDialog(ID, EXISTING_CONTACTS)}
-          >
+          <Button name="manage-contacts" onClick={() => showManageContactsDialog(ID, EXISTING_CONTACTS)}>
             Manage Contacts
           </Button>
-          <Button
-            name="apply-demonstration-types"
-            onClick={() => showApplyDemonstrationTypesDialog(ID)}
-          >
+          <Button name="apply-demonstration-types" onClick={() => showApplyDemonstrationTypesDialog(ID)}>
             Apply Demonstration Types
           </Button>
           <Button
