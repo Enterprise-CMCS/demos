@@ -399,6 +399,12 @@ describe("checkPhaseCompletionRules", () => {
         [
           testApplicationId,
           "Approval Package",
+          "Final Budget Neutrality Formulation Workbook",
+          testApplicationDocumentTypes,
+        ],
+        [
+          testApplicationId,
+          "Approval Package",
           "Formal OMB Policy Concurrence Email",
           testApplicationDocumentTypes,
         ],

@@ -35,8 +35,11 @@ export const getApprovalPackagePhaseFromApplication = (
 ) => {
   const formulationWorkbookDocument = application?.documents.find(
     (doc) =>
-      (doc.documentType === "Final BN Worksheet" || doc.documentType === "Final Budget Neutrality Formulation Workbook") &&
+      doc.documentType === "Final Budget Neutrality Formulation Workbook" &&
       doc.phaseName === "Approval Package"
+  );
+  const finalBNWorksheetDocument = application?.documents.find(
+    (doc) => doc.documentType === "Final BN Worksheet" && doc.phaseName === "Approval Package"
   );
   const qaDocument = application?.documents.find(
     (doc) => doc.documentType === "Q&A" && doc.phaseName === "Approval Package"
@@ -80,6 +83,7 @@ export const getApprovalPackagePhaseFromApplication = (
       demonstrationId={application.id}
       documents={[
         formulationWorkbookDocument,
+        finalBNWorksheetDocument,
         qaDocument,
         termsAndConditionsDocument,
         ombPolicyDocument,

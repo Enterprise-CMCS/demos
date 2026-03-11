@@ -97,11 +97,12 @@ describe("ApprovalPackagePhase", () => {
     );
 
     const rows = screen.getAllByTestId("table-row");
-    expect(rows).toHaveLength(6);
+    expect(rows).toHaveLength(7);
 
     const types = rows.map((r) => r.textContent?.split("|")[0].trim());
 
     expect(types).toEqual([
+      "Final Budget Neutrality Formulation Workbook",
       "Final BN Worksheet",
       "Q&A",
       "Special Terms & Conditions",
@@ -150,7 +151,7 @@ describe("ApprovalPackagePhase", () => {
 
     const rows = screen.getAllByTestId("table-row");
     const workbookRow = rows.find((r) =>
-      r.textContent?.includes("Final BN Worksheet")
+      r.textContent?.includes("Final Budget Neutrality Formulation Workbook")
     );
 
     expect(workbookRow!.textContent).toContain("-");
@@ -206,9 +207,10 @@ describe("ApprovalPackagePhase", () => {
       clearanceLevel: "CMS (OSORA)",
       documents: [
         doc({
-          documentType: "Final BN Worksheet",
+          documentType: "Final Budget Neutrality Formulation Workbook",
           phaseName: "Approval Package",
         }),
+        doc({ documentType: "Final BN Worksheet", phaseName: "Approval Package" }),
         doc({ documentType: "Q&A", phaseName: "Approval Package" }),
         doc({ documentType: "Special Terms & Conditions", phaseName: "Approval Package" }),
         doc({ documentType: "Formal OMB Policy Concurrence Email", phaseName: "Approval Package" }),
@@ -241,6 +243,7 @@ describe("ApprovalPackagePhase", () => {
 
   it("enables Finish ONLY when all previous phases are done AND all required documents uploaded", () => {
     const completeDocs = [
+      doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
       doc({ documentType: "Final BN Worksheet" }),
       doc({ documentType: "Q&A" }),
       doc({ documentType: "Special Terms & Conditions" }),
@@ -281,6 +284,7 @@ describe("ApprovalPackagePhase", () => {
   it("calls completePhase mutation on click of finish button", async () => {
     const user = userEvent.setup();
     const completeDocs = [
+      doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
       doc({ documentType: "Final BN Worksheet" }),
       doc({ documentType: "Q&A" }),
       doc({ documentType: "Special Terms & Conditions" }),
@@ -312,6 +316,7 @@ describe("ApprovalPackagePhase", () => {
 
   it("disables Finish button when phase is completed (finalized)", () => {
     const completeDocs = [
+      doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
       doc({ documentType: "Final BN Worksheet" }),
       doc({ documentType: "Q&A" }),
       doc({ documentType: "Special Terms & Conditions" }),
@@ -382,7 +387,7 @@ describe("getApprovalPackagePhaseFromApplication", () => {
     render(getApprovalPackagePhaseFromApplication(demonstration, mockSetSelectedPhase));
 
     const rows = screen.getAllByTestId("table-row");
-    expect(rows).toHaveLength(6);
+    expect(rows).toHaveLength(7);
 
     const text = rows.map((r) => r.textContent);
 
@@ -425,7 +430,7 @@ describe("getApprovalPackagePhaseFromApplication", () => {
     render(getApprovalPackagePhaseFromApplication(demonstration, mockSetSelectedPhase));
 
     const rows = screen.getAllByTestId("table-row");
-    expect(rows).toHaveLength(6);
+    expect(rows).toHaveLength(7);
 
     rows.forEach((row) => {
       expect(row.textContent).toContain("-");
@@ -434,6 +439,7 @@ describe("getApprovalPackagePhaseFromApplication", () => {
 
   it("correctly computes allPreviousPhasesDone when all required previous phases are completed", () => {
     const completeDocs = [
+      doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
       doc({ documentType: "Final BN Worksheet" }),
       doc({ documentType: "Q&A" }),
       doc({ documentType: "Special Terms & Conditions" }),
@@ -492,6 +498,7 @@ describe("getApprovalPackagePhaseFromApplication", () => {
 
   it("correctly computes allPreviousPhasesDone when some previous phases are NOT completed", () => {
     const completeDocs = [
+      doc({ documentType: "Final Budget Neutrality Formulation Workbook" }),
       doc({ documentType: "Final BN Worksheet" }),
       doc({ documentType: "Q&A" }),
       doc({ documentType: "Special Terms & Conditions" }),
