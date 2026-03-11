@@ -10,7 +10,7 @@ pipeline {
   }
 
   parameters {
-    choice(name: 'ENVIRONMENT', choices: ['dev', 'test'], description: 'Select the environment')
+    choice(name: 'ENVIRONMENT', choices: ['dev', 'test', 'impl'], description: 'Select the environment')
   }
 
   stages {
