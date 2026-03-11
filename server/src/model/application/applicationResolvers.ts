@@ -5,7 +5,7 @@ import {
   ApplicationPhase as PrismaApplicationPhase,
 } from "@prisma/client";
 import { setApplicationClearanceLevel, PrismaApplication } from ".";
-import { TagConfiguration } from "../tagConfiguration/tagConfigurationSchema.js";
+import { TagConfiguration } from "../tagConfiguration";
 
 export async function resolveApplicationDocuments(
   parent: PrismaApplication
