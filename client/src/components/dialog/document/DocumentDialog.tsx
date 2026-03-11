@@ -40,8 +40,16 @@ const ALLOWED_MIME_TYPES = [
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 ];
 
-const ACCEPTED_MIME_TYPES = ALLOWED_MIME_TYPES.join(",");
-const ALLOWED_FILE_TYPES_LABEL = ".pdf, .doc, .docx, .xls, .xlsx, .xlsm";
+const ALLOWED_FILE_EXTENSIONS = [
+  ".pdf",
+  ".doc",
+  ".docx",
+  ".xls",
+  ".xlsx",
+  ".xlsm",
+];
+
+const ACCEPTED_EXTENSIONS = ALLOWED_FILE_EXTENSIONS.join(",");
 const MAX_FILE_SIZE_MB = 600;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 const MAX_FILENAME_DISPLAY_LENGTH = 60;
@@ -165,7 +173,7 @@ const DropTarget: React.FC<{
           type="file"
           ref={fileInputRef}
           className="hidden"
-          accept={ACCEPTED_MIME_TYPES}
+          accept={ACCEPTED_EXTENSIONS}
           onChange={handleFileChange}
           data-testid="input-file"
         />
@@ -184,7 +192,7 @@ const DropTarget: React.FC<{
         <p className={STYLES.fileNote}>
           (Note: Files must be less than {MAX_FILE_SIZE_MB}MB)
           <br />
-          Allowed file types: {ALLOWED_FILE_TYPES_LABEL}
+          Allowed file types: {ACCEPTED_EXTENSIONS.split(",").join(", ")}
         </p>
       </div>
 
@@ -334,6 +342,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
 
   const { file, uploadProgress, uploadStatus, handleFileChange, setFile } = useFileUpload({
     allowedMimeTypes: ALLOWED_MIME_TYPES,
+    allowedFileExtensions: ALLOWED_FILE_EXTENSIONS,
     maxFileSizeBytes: MAX_FILE_SIZE_BYTES,
     onErrorCallback: (msg: ErrorMessage) => showError(msg),
   });
