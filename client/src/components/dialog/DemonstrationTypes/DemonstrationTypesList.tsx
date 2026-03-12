@@ -1,7 +1,7 @@
 import React from "react";
 import { DeleteIcon } from "components/icons";
 import { formatDate } from "util/formatDate";
-import { Tag as DemonstrationTypeName } from "demos-server";
+import { TagName } from "demos-server";
 import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
 import { parseISO } from "date-fns";
 
@@ -10,7 +10,7 @@ export const DemonstrationTypesList = ({
   removeDemonstrationType,
 }: {
   demonstrationTypes: DemonstrationType[];
-  removeDemonstrationType: (demonstrationTypeName: DemonstrationTypeName) => void;
+  removeDemonstrationType: (demonstrationTypeName: TagName) => void;
 }) => {
   return (
     demonstrationTypes.length > 0 && (
@@ -23,7 +23,10 @@ export const DemonstrationTypesList = ({
               className="p-1 border-b border-gray-300 flex justify-between"
             >
               <div>
-                <p className="font-bold text-lg">{demonstrationType.demonstrationTypeName}</p>
+                <p className="font-bold text-lg">
+                  {demonstrationType.demonstrationTypeName}
+                  {demonstrationType.approvalStatus === "Unapproved" && " (Unapproved)"}
+                </p>
                 <span>
                   Effective: {formatDate(parseISO(demonstrationType.effectiveDate))} &bull; Expires:{" "}
                   {formatDate(parseISO(demonstrationType.expirationDate))}

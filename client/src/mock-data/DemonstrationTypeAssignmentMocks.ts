@@ -1,14 +1,13 @@
 import { MockedResponse } from "@apollo/client/testing";
 import { ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION } from "components/dialog/DemonstrationTypes/ApplyDemonstrationTypesDialog";
 
-import { SetDemonstrationTypesInput, Tag } from "demos-server";
+import { DemonstrationTypeAssignment, SetDemonstrationTypesInput } from "demos-server";
 
 // TODO: replace this with server type with updated DemonstrationTypeName field when available
-export type MockDemonstrationTypeAssignment = {
-  demonstrationTypeName: Tag;
-  effectiveDate: Date;
-  expirationDate: Date;
-};
+export type MockDemonstrationTypeAssignment = Pick<
+  DemonstrationTypeAssignment,
+  "demonstrationTypeName" | "effectiveDate" | "expirationDate"
+>;
 
 export const MOCK_DEMONSTRATION_TYPE_ASSIGNMENTS: MockDemonstrationTypeAssignment[] = [
   {

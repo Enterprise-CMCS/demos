@@ -11,13 +11,11 @@ export type ErrorMessage = string;
 
 export const useFileUpload = ({
   allowedMimeTypes,
-  allowedFileExtensions = [],
   maxFileSizeBytes,
   onSuccessCallback,
   onErrorCallback,
 }: {
   allowedMimeTypes: string[];
-  allowedFileExtensions?: string[];
   maxFileSizeBytes: number;
   onSuccessCallback?: (file: File) => void;
   onErrorCallback?: (errorMessage: ErrorMessage) => void;
@@ -29,14 +27,8 @@ export const useFileUpload = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0] || null;
     if (!selected) return;
-    // kinda long winded.
-    const fileExtension = selected.name.includes(".")
-      ? `.${selected.name.split(".").pop()?.toLowerCase()}`
-      : "";
-    const hasAllowedMimeType = allowedMimeTypes.includes(selected.type);
-    const hasAllowedFileExtension = allowedFileExtensions.includes(fileExtension);
-    // extra layer of validation in case MIME type is not provided or is incorrect
-    if (!hasAllowedMimeType && !hasAllowedFileExtension) {
+
+    if (!allowedMimeTypes.includes(selected.type)) {
       setFile(null);
       onErrorCallback?.(ERROR_MESSAGES.FILE_TYPE_NOT_ALLOWED);
       return;
