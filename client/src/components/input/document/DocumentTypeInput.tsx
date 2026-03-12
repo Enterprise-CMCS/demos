@@ -23,7 +23,7 @@ export const DocumentTypeInput: React.FC<{
       isRequired
       options={documentTypeOptions}
       value={value}
-      onSelect={(selectedValue) => onSelect(selectedValue)}
+      onSelect={(selectedValue) => canEditDocumentType && onSelect(selectedValue)}
       isDisabled={!canEditDocumentType}
     />
   );
