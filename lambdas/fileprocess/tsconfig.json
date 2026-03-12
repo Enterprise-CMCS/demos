@@ -3,6 +3,7 @@
     "types": ["node", "vitest/globals"],
     "esModuleInterop": true,
     "target": "es2023",
+    "module": "esnext",
     "moduleResolution":"bundler"
   },
 }
