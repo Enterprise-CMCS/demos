@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { compareDesc } from "date-fns";
 
 import { tw } from "tags/tw";
 import { Button, SecondaryButton } from "components/button";
@@ -66,20 +67,17 @@ export const getConceptPhaseComponentFromApplication = (
   );
 };
 
-const getLatestPresubmissionDocumentDate = (
-  documents: ApplicationWorkflowDocument[]
-): LocalDate | null => {
+const getLatestPresubmissionDocumentDate = (documents: ApplicationWorkflowDocument[]): string => {
   const presubmissionDocuments = documents.filter(
     (document) => document.documentType === "Pre-Submission"
   );
 
-  if (presubmissionDocuments.length === 0) return null;
+  // Guard: No presubmission documents means no date to return
+  if (presubmissionDocuments.length === 0) return "";
 
+  // Get latest createdAt date from presubmission documents
   const createdAtDates = presubmissionDocuments.map((doc) => doc.createdAt);
-  const sortedDates = createdAtDates.sort((dateA, dateB) => {
-    return new Date(dateB).getTime() - new Date(dateA).getTime();
-  });
-
+  const sortedDates = createdAtDates.sort(compareDesc);
   return formatDateForServer(sortedDates[0]);
 };
 
@@ -87,7 +85,7 @@ export interface ConceptPhaseProps {
   applicationId: string;
   documents: ApplicationWorkflowDocument[];
   setSelectedPhase?: (phase: PhaseName) => void;
-  presubmissionSubmittedDate?: LocalDate;
+  presubmissionSubmittedDate?: string;
   workflowApplicationType: WorkflowApplicationType;
   phaseStatus: PhaseStatus;
 }
@@ -103,8 +101,10 @@ export const ConceptPhase = ({
   const { showSuccess } = useToast();
   const { showConceptPreSubmissionDocumentUploadDialog } = useDialog();
   const { setApplicationDate } = useSetApplicationDate();
+  const { completePhase } = useCompletePhase();
+  const { skipConceptPhase } = useSkipConceptPhase();
 
-  const [submittedDate, setSubmittedDate] = useState<LocalDate | null>(
+  const [submittedDate, setSubmittedDate] = useState<string>(
     presubmissionSubmittedDate || getLatestPresubmissionDocumentDate(documents)
   );
   const [isFinishEnabled, setIsFinishEnabled] = useState<boolean>(false);
@@ -124,9 +124,6 @@ export const ConceptPhase = ({
     setIsFinishEnabled(finishShouldBeEnabled);
     setIsSkipEnabled(!finishShouldBeEnabled && !isPhaseFinalized);
   }, [submittedDate, documents, isPhaseFinalized]);
-
-  const { completePhase } = useCompletePhase();
-  const { skipConceptPhase } = useSkipConceptPhase();
 
   const handleDocumentUploadSucceeded = (payload?: UploadDocumentInput) => {
     if (payload?.documentType === "Pre-Submission") {
@@ -153,12 +150,11 @@ export const ConceptPhase = ({
       return;
     }
 
-    const payloadDate: LocalDate = submittedDate;
     try {
       await setApplicationDate({
         applicationId: applicationId,
         dateType: "Pre-Submission Submitted Date",
-        dateValue: payloadDate,
+        dateValue: submittedDate as LocalDate,
       });
     } catch (error) {
       console.error("Error setting application date:", error);
@@ -234,9 +230,9 @@ export const ConceptPhase = ({
           <DatePicker
             name="datepicker-pre-submission-date"
             label="Pre-Submission Document Submitted Date"
-            value={submittedDate ?? ""}
+            value={submittedDate}
             onChange={(newDate) => {
-              setSubmittedDate(newDate === "" ? null : (newDate as LocalDate));
+              setSubmittedDate(newDate);
             }}
             isRequired={documents.length > 0}
             getValidationMessage={getDateValidationMessage}
