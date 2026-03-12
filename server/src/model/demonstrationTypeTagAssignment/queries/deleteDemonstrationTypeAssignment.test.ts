@@ -24,7 +24,7 @@ describe("deleteDemonstrationTypeAssignments", () => {
     const expectedCall = {
       where: {
         demonstrationId: testDemonstrationId,
-        tagId: {
+        tagNameId: {
           in: ["Type One", "Type 3"],
         },
       },

@@ -1,9 +1,19 @@
-import gql from "graphql-tag";
+import { gql } from "graphql-tag";
+import { TagStatus, TagName } from "../../types";
 
-// Note that tags are dynamic, so we cannot make this a static constant like we've used elsewhere
 export const tagSchema = gql`
-  scalar Tag
+  type Tag {
+    tagName: TagName!
+    approvalStatus: TagStatus!
+  }
+
+  type Query {
+    demonstrationTypeOptions: [Tag!]!
+    applicationTagOptions: [Tag!]!
+  }
 `;
 
-// This type alias exists to maintain consistency between GraphQL schema and TypeScript types.
-export type Tag = string; // NOSONAR: typescript:S6564
+export type Tag = {
+  tagName: TagName;
+  approvalStatus: TagStatus;
+};

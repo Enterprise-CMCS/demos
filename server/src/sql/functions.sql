@@ -751,12 +751,12 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
 CREATE TRIGGER _disable_redundant_updates
-BEFORE UPDATE ON demos_app.tag
+BEFORE UPDATE ON demos_app.tag_name
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
 CREATE TRIGGER _disable_redundant_updates
-BEFORE UPDATE ON demos_app.tag_configuration
+BEFORE UPDATE ON demos_app.tag
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
