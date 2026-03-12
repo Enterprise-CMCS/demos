@@ -3,10 +3,9 @@ import { tw } from "tags/tw";
 
 import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
-import { SimplePhase } from "components/application";
-import { ApplicationWorkflowDemonstration } from "components/application/demonstration/DemonstrationWorkflow";
+import { SimplePhase, WorkflowApplication } from "components/application";
 import { formatDateForServer } from "util/formatDate";
-import { ApplicationStatus, DateType, LocalDate, PhaseNameWithTrackedStatus } from "demos-server";
+import { DateType, LocalDate, PhaseNameWithTrackedStatus } from "demos-server";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import {
   FAILED_TO_SAVE_MESSAGE,
@@ -62,24 +61,26 @@ export const hasChanges = (
 };
 
 export const getSdgPreparationPhaseFromApplication = (
-  application: ApplicationWorkflowDemonstration,
+  application: WorkflowApplication,
   setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void
 ) => {
   const sdgPreparationPhase = application.phases.find(
-    (phase) => phase.phaseName === "SDG Preparation"
+    (phase: SimplePhase) => phase.phaseName === "SDG Preparation"
   );
   if (!sdgPreparationPhase) return <div>Error: SDG Preparation Phase not found.</div>;
 
   const allPreviousPhasesDone = application.phases
     .filter(
-      (p) =>
+      (p: SimplePhase) =>
         p.phaseName !== "Concept" &&
         p.phaseName !== "Approval Package" &&
         p.phaseName !== "Approval Summary" &&
         p.phaseName !== "SDG Preparation" &&
         p.phaseName !== "Review"
     )
-    .every((phase) => phase.phaseStatus === "Completed" || phase.phaseStatus === "Skipped");
+    .every(
+      (phase: SimplePhase) => phase.phaseStatus === "Completed" || phase.phaseStatus === "Skipped"
+    );
 
   return (
     <SdgPreparationPhase
@@ -103,7 +104,7 @@ export const SdgPreparationPhase = ({
   sdgPreparationPhase: SimplePhase;
   setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void;
   allPreviousPhasesDone: boolean;
-  demonstrationStatus: ApplicationStatus;
+  demonstrationStatus: WorkflowApplication["status"];
 }) => {
   const [sdgPreparationPhaseFormData, setSdgPreparationPhaseFormData] =
     useState<SdgPreparationPhaseFormData>(getFormDataFromPhase(sdgPreparationPhase));
@@ -160,7 +161,7 @@ export const SdgPreparationPhase = ({
     try {
       await handleSave();
     } catch {
-      showError("Failed to save updates.");
+      showError(FAILED_TO_SAVE_MESSAGE);
       return;
     }
     showSuccess(SAVE_FOR_LATER_MESSAGE);
@@ -224,7 +225,9 @@ export const SdgPreparationPhase = ({
               <h4 id="sdg-reviews-title" className={STYLES.title}>
                 INTERNAL REVIEWS
               </h4>
-              <p className={STYLES.helper}>Record the occurrence of the key review meetings</p>
+              <p className={STYLES.helper}>
+                Record the Date that each key review meeting occurred below
+              </p>
             </div>
             <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
               <DatePicker
