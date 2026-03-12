@@ -62,7 +62,7 @@ describe("runMigration", () => {
     );
   });
 
-  test("should prevent any env except dev, test, and impl", async () => {
+  test("should prevent any env except dev and test", async () => {
     const mockStageNames = ["dev", "test", "impl", "prod", "fake", "unit-test"];
 
     const gs = getSecret as jest.Mock;
@@ -78,7 +78,7 @@ describe("runMigration", () => {
       responses.push(await dbReset(stage));
     }
     expect(responses.length).toEqual(mockStageNames.length);
-    expect(responses).toEqual([null, null, null, 1, 1, 1]);
+    expect(responses).toEqual([null, null, 1, 1, 1, 1]);
   });
 
   test("should exit with status 1 if failing to get secret", async () => {

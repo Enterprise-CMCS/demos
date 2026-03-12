@@ -67,7 +67,7 @@ export class DatabaseStack extends Stack {
     });
 
     const engine = aws_rds.DatabaseInstanceEngine.postgres({
-          version: aws_rds.PostgresEngineVersion.VER_17_8,
+          version: aws_rds.PostgresEngineVersion.VER_17_4,
         })
 
     const parameterGroup = new aws_rds.ParameterGroup(commonProps.scope, "rdsParameterGroup", {

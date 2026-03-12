@@ -17,19 +17,6 @@ const mockRoles = [
   {
     name: "demos_test",
     memberships: ["demos_write"],
-    systemRole: "true",
-  },
-];
-
-const mockRolesConverted = [
-  {
-    name: "unit_test",
-    memberships: ["demos_read"],
-    systemRole: false
-  },
-  {
-    name: "demos_test",
-    memberships: ["demos_write"],
     systemRole: true,
   },
 ];
@@ -54,7 +41,7 @@ describe("handler", () => {
     );
 
     expect(applyRoleChanges).toHaveBeenCalledTimes(1);
-    expect(applyRoleChanges).toHaveBeenCalledWith(mockRolesConverted);
+    expect(applyRoleChanges).toHaveBeenCalledWith(mockRoles);
 
     jest.clearAllMocks();
 
@@ -81,7 +68,7 @@ describe("handler", () => {
     );
 
     expect(applyRoleChanges).toHaveBeenCalledTimes(1);
-    expect(applyRoleChanges).toHaveBeenCalledWith(mockRolesConverted, mockRolesConverted);
+    expect(applyRoleChanges).toHaveBeenCalledWith(mockRoles, mockRoles);
 
     jest.clearAllMocks();
 
@@ -104,7 +91,7 @@ describe("handler", () => {
     );
 
     expect(deleteAllRoles).toHaveBeenCalledTimes(1);
-    expect(deleteAllRoles).toHaveBeenCalledWith(mockRolesConverted);
+    expect(deleteAllRoles).toHaveBeenCalledWith(mockRoles);
   });
 
   test("should throw error if roles are not defined", async () => {

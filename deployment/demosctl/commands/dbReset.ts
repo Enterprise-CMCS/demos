@@ -17,8 +17,8 @@ export async function dbReset(environment: string, absPath: string = "") {
   console.log(environment);
   const dbname = "demos";
 
-  if (!["dev", "test", "impl"].includes(environment)) {
-    console.error("db resets can only be run against the dev, test, or impl database");
+  if (!["dev", "test"].includes(environment)) {
+    console.error("db resets can only be run against the dev or test database");
     return 1;
   }
 
