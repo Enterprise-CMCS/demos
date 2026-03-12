@@ -14,12 +14,12 @@ erDiagram
   classDef associativeTable stroke:darkmagenta,fill:plum
   classDef legend stroke:black,fill:#ddd
 
-  tag ||--|{ tag_configuration : "FK077"
-  tag_type ||--|{ tag_configuration : "FK078"
-  tag_configuration }|--|| tag_configuration_status : "FK080"
-  tag_configuration }|--|| tag_configuration_source : "FK079"
-  tag_configuration ||--|{ demonstration_type_tag_assignment : "FK081"
-  tag_configuration ||--|{ application_tag_assignment : "FK082"
+  tag_name ||--|{ tag : "FK077"
+  tag_type ||--|{ tag : "FK078"
+  tag }|--|| tag_status : "FK080"
+  tag }|--|| tag_source : "FK079"
+  tag ||--|{ demonstration_type_tag_assignment : "FK081"
+  tag ||--|{ application_tag_assignment : "FK082"
   tag_type ||--|| demonstration_type_tag_type_limit : "FK083"
   tag_type ||--|| application_tag_type_limit : "FK084"
   demonstration_type_tag_type_limit ||--|{ demonstration_type_tag_assignment : "FK085"
@@ -255,11 +255,11 @@ erDiagram
     text name
   }
 
-  tag_configuration_status:::staticConstraint {
+  tag_status:::staticConstraint {
     text id PK
   }
 
-  tag_configuration_source:::staticConstraint {
+  tag_source:::staticConstraint {
     text id PK
   }
 
@@ -481,8 +481,8 @@ erDiagram
 
   demonstration_type_tag_assignment:::dataTable {
     uuid demonstration_id PK, FK "FK087: demonstration_id ∈ demonstration.id"
-    text tag_id PK, FK "FK081: (tag_id, tag_type_id) ∈ tag_configuration.(tag_id, tag_type_id)"
-    text tag_type_id FK "FK081: (tag_id, tag_type_id) ∈ tag_configuration.(tag_id, tag_type_id)<br>FK085: tag_type_id ∈ demonstration_type_tag_type_limit.id"
+    text tag_name_id PK, FK "FK081: (tag_name_id, tag_type_id) ∈ tag.(tag_name_id, tag_type_id)"
+    text tag_type_id FK "FK081: (tag_name_id, tag_type_id) ∈ tag.(tag_name_id, tag_type_id)<br>FK085: tag_type_id ∈ demonstration_type_tag_type_limit.id"
     timestamptz effective_date
     timestamptz expiration_date
     timestamptz created_at
@@ -629,7 +629,7 @@ erDiagram
     HAS_HISTORY true
   }
 
-  tag:::dataTable {
+  tag_name:::dataTable {
     text id PK
     timestamptz created_at
     timestamptz updated_at
@@ -637,11 +637,11 @@ erDiagram
     HAS_HISTORY true
   }
 
-  tag_configuration:::dataTable {
-    text tag_id PK, FK "FK077: tag_id ∈ tag.id"
+  tag:::dataTable {
+    text tag_name_id PK, FK "FK077: tag_name_id ∈ tag_name.id"
     text tag_type_id PK, FK "FK078: tag_type_id ∈ tag_type.id"
-    text source_id FK "FK079: source_id ∈ tag_configuration_source.id"
-    text status_id FK "FK080: status_id ∈ tag_configuration_status.id"
+    text source_id FK "FK079: source_id ∈ tag_source.id"
+    text status_id FK "FK080: status_id ∈ tag_status.id"
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
@@ -662,8 +662,8 @@ erDiagram
   %% Associative Tables
   application_tag_assignment:::associativeTable {
     uuid application_id PK, FK "FK088: application_id ∈ application.id"
-    text tag_id PK, FK "FK082: (tag_id, tag_type_id) ∈ tag_configuration.(tag_id, tag_type_id)"
-    text tag_type_id FK "FK082: (tag_id, tag_type_id) ∈ tag_configuration.(tag_id, tag_type_id)<br>FK086: tag_type_id ∈ application_tag_type_limit.id"
+    text tag_name_id PK, FK "FK082: (tag_name_id, tag_type_id) ∈ tag.(tag_name_id, tag_type_id)"
+    text tag_type_id FK "FK082: (tag_name_id, tag_type_id) ∈ tag.(tag_name_id, tag_type_id)<br>FK086: tag_type_id ∈ application_tag_type_limit.id"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }

@@ -4,7 +4,7 @@ import { TagStatus } from "../../types";
 
 export const tagSchema = gql`
   type Tag {
-    tagName: Tag!
+    tagName: TagName!
     approvalStatus: TagStatus!
   }
 
