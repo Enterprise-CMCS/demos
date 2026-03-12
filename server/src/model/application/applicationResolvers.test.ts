@@ -8,9 +8,9 @@ import {
   resolveApplicationClearanceLevel,
   resolveApplicationTags,
   resolveApplicationSignatureLevel,
-} from "./applicationResolvers";
-import { Tag } from "../tag/index.js";
-import { PrismaApplication } from ".";
+  PrismaApplication,
+} from ".";
+import { Tag } from "../tag";
 import { ApplicationStatus, ApplicationType, PhaseName } from "../../types";
 import {
   ApplicationTagAssignment as PrismaApplicationTagAssignment,

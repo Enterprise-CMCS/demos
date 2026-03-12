@@ -1,6 +1,5 @@
 import { gql } from "graphql-tag";
-import { TagName } from "../tagName/tagNameSchema";
-import { TagStatus } from "../../types";
+import { TagStatus, TagName } from "../../types";
 
 export const tagSchema = gql`
   type Tag {

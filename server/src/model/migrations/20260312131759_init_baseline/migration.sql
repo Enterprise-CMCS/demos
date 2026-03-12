@@ -184,8 +184,6 @@ VALUES
     ('Approval Package', 'Signed Decision Memo'),
     ('Approval Package', 'Special Terms & Conditions');
 
-    
-
 INSERT INTO
     demos_app.date_type
 VALUES
@@ -733,9 +731,6 @@ REFERENCES demos_app.application(id, application_type_id)
 ON DELETE NO ACTION
 ON UPDATE CASCADE
 DEFERRABLE INITIALLY DEFERRED;
-
-
--- NEW CHANGES
 
 INSERT INTO
     demos_app.budget_neutrality_workbook_document_type_limit

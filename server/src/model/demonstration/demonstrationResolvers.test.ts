@@ -29,7 +29,7 @@ import {
 import {
   Demonstration as PrismaDemonstration,
   DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
-  Tag,
+  Tag as PrismaTag,
 } from "@prisma/client";
 import { TZDate } from "@date-fns/tz";
 
@@ -787,7 +787,7 @@ describe("demonstrationResolvers", () => {
     it("should look up the demonstration types for the demonstration", async () => {
       // This is present just to test the map in the function
       const resolvedValue: (PrismaDemonstrationTypeTagAssignment & {
-        tag: Pick<Tag, "statusId">;
+        tag: Pick<PrismaTag, "statusId">;
       })[] = [
         {
           demonstrationId: testValues.demonstrationId,
