@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { getTagConfigurationByTagType } from "./getTagConfigurationByTagType";
+import { getTagsByTagType } from "./getTagsByTagType.js";
 
 // Mock imports
 import { prisma } from "../../../prismaClient.js";
@@ -8,17 +8,17 @@ vi.mock("../../../prismaClient.js", () => ({
   prisma: vi.fn(),
 }));
 
-describe("getTagConfigurationByTagType", () => {
+describe("getTagsByTagType", () => {
   const mockPrismaClient = {
-    tagConfiguration: {
+    tag: {
       findMany: vi.fn(),
     },
   };
 
   it("should make the expected request to the database", async () => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
-    await getTagConfigurationByTagType("Application");
-    expect(mockPrismaClient.tagConfiguration.findMany).toHaveBeenCalledExactlyOnceWith({
+    await getTagsByTagType("Application");
+    expect(mockPrismaClient.tag.findMany).toHaveBeenCalledExactlyOnceWith({
       where: { tagTypeId: "Application" },
     });
   });

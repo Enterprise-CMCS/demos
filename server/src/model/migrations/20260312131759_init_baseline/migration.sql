@@ -119,7 +119,8 @@ VALUES
     ('Q&A'),
     ('Signed Decision Memo'),
     ('State Application'),
-    ('Special Terms & Conditions');
+    ('Special Terms & Conditions'),
+    ('Federal Comment Internal Analysis Document');
 
 INSERT INTO
     demos_app.phase
@@ -159,6 +160,7 @@ VALUES
     ('None', 'Signed Decision Memo'),
     ('None', 'State Application'),
     ('None', 'General File'),
+    ('None', 'Federal Comment Internal Analysis Document'),
 
     -- General File is allowed for almost all phases
     ('Concept', 'General File'),
@@ -174,6 +176,7 @@ VALUES
     ('Application Intake', 'State Application'),
     ('Completeness', 'Internal Completeness Review Form'),
     ('Completeness', 'Application Completeness Letter'),
+    ('Federal Comment', 'Federal Comment Internal Analysis Document'),
     ('Approval Package', 'Approval Letter'),
     ('Approval Package', 'Final Budget Neutrality Formulation Workbook'),
     ('Approval Package', 'Formal OMB Policy Concurrence Email'),
@@ -443,13 +446,13 @@ VALUES
     ('CMS (OSORA)');
 
 INSERT INTO
-    demos_app.tag_configuration_status
+    demos_app.tag_status
 VALUES
-    ('Unreviewed'),
+    ('Unapproved'),
     ('Approved');
 
 INSERT INTO
-    demos_app.tag_configuration_source
+    demos_app.tag_source
 VALUES
     ('User'),
     ('System');
@@ -471,7 +474,7 @@ VALUES
     ('Demonstration Type');
 
 INSERT INTO
-    demos_app.tag
+    demos_app.tag_name
 VALUES
     ('Aggregate Cap', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
     ('Annual Limits', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
@@ -536,7 +539,7 @@ VALUES
     ('Vision', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 INSERT INTO
-    demos_app.tag_configuration
+    demos_app.tag
 VALUES
     ('Aggregate Cap', 'Application', 'System', 'Approved', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
     ('Annual Limits', 'Application', 'System', 'Approved', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
@@ -728,3 +731,22 @@ REFERENCES demos_app.application(id, application_type_id)
 ON DELETE NO ACTION
 ON UPDATE CASCADE
 DEFERRABLE INITIALLY DEFERRED;
+
+INSERT INTO
+    demos_app.budget_neutrality_workbook_document_type_limit
+VALUES
+    ('Final BN Worksheet');
+
+INSERT INTO
+    demos_app.budget_neutrality_validation_status
+VALUES
+    ('Succeeded'),
+    ('Failed'),
+    ('Pending'),
+    ('In Progress');
+
+INSERT INTO demos_app.uipath_result_status ("id")
+VALUES
+  ('Pending'),
+  ('Finished'),
+  ('Failed');

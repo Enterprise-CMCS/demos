@@ -1,14 +1,14 @@
 import { PrismaTransactionClient } from "../../../prismaClient";
-import { Tag } from "../../../types";
+import { TagName } from "../../../types";
 
 export async function insertApplicationTags(
   applicationId: string,
-  tags: Tag[],
+  tags: TagName[],
   tx: PrismaTransactionClient
 ): Promise<void> {
   const payload = tags.map((tag) => ({
     applicationId: applicationId,
-    tagId: tag,
+    tagNameId: tag,
     tagTypeId: "Application",
   }));
   await tx.applicationTagAssignment.createMany({

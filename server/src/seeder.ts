@@ -9,6 +9,7 @@ import {
   SIGNATURE_LEVEL,
   PHASE_DOCUMENT_TYPE_MAP,
   NOTE_TYPES,
+  TAG_TYPES,
 } from "./constants.js";
 import {
   CreateDemonstrationInput,
@@ -43,6 +44,8 @@ const UIPATH_SEED_PDF_PATH = path.resolve(
   SEEDER_DIR,
   "../../.devcontainer/localstack/debug/test_uipath.pdf"
 );
+const NEW_TAG_COUNT = 20;
+const TAG_ASSIGNMENT_MAX = 5;
 
 function getRandomPhaseDocumentTypeCombination(): {
   phaseName: PhaseName;
@@ -56,6 +59,80 @@ function getRandomPhaseDocumentTypeCombination(): {
     phaseName: randomPhase,
     documentType: randomDocumentType,
   };
+}
+
+async function seedTagsAndStatuses() {
+  console.log("🌱 Seeding tags and tag statuses...");
+  // add some random tags for unapproved tags
+  for (let i = 0; i < NEW_TAG_COUNT; i++) {
+    const tagName = faker.lorem.words(2);
+    await prisma().tagName.create({
+      data: {
+        id: tagName,
+      },
+    });
+    await prisma().tag.create({
+      data: {
+        tagNameId: tagName,
+        tagTypeId: faker.helpers.arrayElement(TAG_TYPES),
+        sourceId: "User",
+        statusId: "Unapproved",
+      },
+    });
+  }
+
+  // assign random tags to applications
+  const applications = await prisma().application.findMany();
+  for (const application of applications) {
+    const applicationTags = await prisma().tag.findMany({
+      where: {
+        tagTypeId: "Application",
+      },
+    });
+
+    const maxApplicationTags = Math.min(TAG_ASSIGNMENT_MAX, applicationTags.length);
+    const tagsToAssign = sampleFromArray(
+      applicationTags,
+      Math.floor(Math.random() * (maxApplicationTags + 1)) // NOSONAR
+    );
+
+    for (const tag of tagsToAssign) {
+      await prisma().applicationTagAssignment.create({
+        data: {
+          applicationId: application.id,
+          tagNameId: tag.tagNameId,
+          tagTypeId: tag.tagTypeId,
+        },
+      });
+    }
+  }
+
+  const demonstrations = await prisma().demonstration.findMany();
+  for (const demonstration of demonstrations) {
+    const demonstrationTypes = await prisma().tag.findMany({
+      where: {
+        tagTypeId: "Demonstration Type",
+      },
+    });
+
+    const maxDemonstrationTypes = Math.min(TAG_ASSIGNMENT_MAX, demonstrationTypes.length);
+    const demonstrationTypesToAssign = sampleFromArray(
+      demonstrationTypes,
+      Math.floor(Math.random() * (maxDemonstrationTypes + 1)) // NOSONAR
+    );
+
+    for (const demonstrationType of demonstrationTypesToAssign) {
+      await prisma().demonstrationTypeTagAssignment.create({
+        data: {
+          demonstrationId: demonstration.id,
+          tagNameId: demonstrationType.tagNameId,
+          tagTypeId: demonstrationType.tagTypeId,
+          effectiveDate: faker.date.past(),
+          expirationDate: faker.date.future(),
+        },
+      });
+    }
+  }
 }
 
 async function seedNotes() {
@@ -682,6 +759,8 @@ async function seedDatabase() {
     };
     await __updateExtension(undefined, updateInput);
   }
+
+  await seedTagsAndStatuses();
 
   await seedDocuments();
 
