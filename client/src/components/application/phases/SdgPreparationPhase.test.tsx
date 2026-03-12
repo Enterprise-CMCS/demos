@@ -146,7 +146,7 @@ describe("SdgPreparationPhase", () => {
       setup();
 
       expect(screen.getByText("SDG PREPARATION")).toBeInTheDocument();
-      expect(screen.getByText("Plan and conduct internal preparation tasks")).toBeInTheDocument();
+      expect(screen.getByText("Plan and conduct internal and preparation tasks")).toBeInTheDocument();
     });
   });
 
@@ -747,7 +747,7 @@ describe("Amendment and Extension SDG Preparation", () => {
     render(getSdgPreparationPhaseFromApplication(amendment, mockSetSelectedPhase));
 
     expect(screen.getByText("SDG PREPARATION")).toBeInTheDocument();
-    expect(screen.getByText("Plan and conduct internal preparation tasks")).toBeInTheDocument();
+    expect(screen.getByText("Plan and conduct internal and preparation tasks")).toBeInTheDocument();
     expect(screen.getByText("SDG WORKPLAN")).toBeInTheDocument();
     expect(screen.getByText("INTERNAL REVIEWS")).toBeInTheDocument();
     expect(
