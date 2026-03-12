@@ -1,5 +1,3 @@
-SET search_path TO demos_app;
-
 -- CreateEnum
 CREATE TYPE "revision_type_enum" AS ENUM ('I', 'U', 'D');
 
@@ -160,10 +158,10 @@ CREATE TABLE "application_status" (
 -- CreateTable
 CREATE TABLE "application_tag_assignment" (
     "application_id" UUID NOT NULL,
-    "tag_id" TEXT NOT NULL,
+    "tag_name_id" TEXT NOT NULL,
     "tag_type_id" TEXT NOT NULL,
 
-    CONSTRAINT "application_tag_assignment_pkey" PRIMARY KEY ("application_id","tag_id")
+    CONSTRAINT "application_tag_assignment_pkey" PRIMARY KEY ("application_id","tag_name_id")
 );
 
 -- CreateTable
@@ -172,7 +170,7 @@ CREATE TABLE "application_tag_assignment_history" (
     "revision_type" "revision_type_enum" NOT NULL,
     "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "application_id" UUID NOT NULL,
-    "tag_id" TEXT NOT NULL,
+    "tag_name_id" TEXT NOT NULL,
     "tag_type_id" TEXT NOT NULL,
 
     CONSTRAINT "application_tag_assignment_history_pkey" PRIMARY KEY ("revision_id")
@@ -190,6 +188,47 @@ CREATE TABLE "application_type" (
     "id" TEXT NOT NULL,
 
     CONSTRAINT "application_type_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "budget_neutrality_validation_status" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "budget_neutrality_validation_status_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "budget_neutrality_workbook" (
+    "id" UUID NOT NULL,
+    "document_type_id" TEXT NOT NULL,
+    "validation_status_id" TEXT NOT NULL,
+    "validation_data" JSON NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "budget_neutrality_workbook_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "budget_neutrality_workbook_history" (
+    "revision_id" SERIAL NOT NULL,
+    "revision_type" "revision_type_enum" NOT NULL,
+    "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "id" UUID NOT NULL,
+    "document_type_id" TEXT NOT NULL,
+    "validation_status_id" TEXT NOT NULL,
+    "validation_data" JSON NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "budget_neutrality_workbook_history_pkey" PRIMARY KEY ("revision_id")
+);
+
+-- CreateTable
+CREATE TABLE "budget_neutrality_workbook_document_type_limit" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "budget_neutrality_workbook_document_type_limit_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -293,14 +332,14 @@ CREATE TABLE "demonstration_role_assignment_history" (
 -- CreateTable
 CREATE TABLE "demonstration_type_tag_assignment" (
     "demonstration_id" UUID NOT NULL,
-    "tag_id" TEXT NOT NULL,
+    "tag_name_id" TEXT NOT NULL,
     "tag_type_id" TEXT NOT NULL,
     "effective_date" TIMESTAMPTZ NOT NULL,
     "expiration_date" TIMESTAMPTZ NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
-    CONSTRAINT "demonstration_type_tag_assignment_pkey" PRIMARY KEY ("demonstration_id","tag_id")
+    CONSTRAINT "demonstration_type_tag_assignment_pkey" PRIMARY KEY ("demonstration_id","tag_name_id")
 );
 
 -- CreateTable
@@ -309,7 +348,7 @@ CREATE TABLE "demonstration_type_tag_assignment_history" (
     "revision_type" "revision_type_enum" NOT NULL,
     "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "demonstration_id" UUID NOT NULL,
-    "tag_id" TEXT NOT NULL,
+    "tag_name_id" TEXT NOT NULL,
     "tag_type_id" TEXT NOT NULL,
     "effective_date" TIMESTAMPTZ NOT NULL,
     "expiration_date" TIMESTAMPTZ NOT NULL,
@@ -753,11 +792,14 @@ CREATE TABLE "system_role_assignment_history" (
 
 -- CreateTable
 CREATE TABLE "tag" (
-    "id" TEXT NOT NULL,
+    "tag_name_id" TEXT NOT NULL,
+    "tag_type_id" TEXT NOT NULL,
+    "source_id" TEXT NOT NULL,
+    "status_id" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
-    CONSTRAINT "tag_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "tag_pkey" PRIMARY KEY ("tag_name_id","tag_type_id")
 );
 
 -- CreateTable
@@ -765,7 +807,10 @@ CREATE TABLE "tag_history" (
     "revision_id" SERIAL NOT NULL,
     "revision_type" "revision_type_enum" NOT NULL,
     "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "id" TEXT NOT NULL,
+    "tag_name_id" TEXT NOT NULL,
+    "tag_type_id" TEXT NOT NULL,
+    "source_id" TEXT NOT NULL,
+    "status_id" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
@@ -773,44 +818,38 @@ CREATE TABLE "tag_history" (
 );
 
 -- CreateTable
-CREATE TABLE "tag_configuration" (
-    "tag_id" TEXT NOT NULL,
-    "tag_type_id" TEXT NOT NULL,
-    "source_id" TEXT NOT NULL,
-    "status_id" TEXT NOT NULL,
+CREATE TABLE "tag_name" (
+    "id" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
-    CONSTRAINT "tag_configuration_pkey" PRIMARY KEY ("tag_id","tag_type_id")
+    CONSTRAINT "tag_name_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "tag_configuration_history" (
+CREATE TABLE "tag_name_history" (
     "revision_id" SERIAL NOT NULL,
     "revision_type" "revision_type_enum" NOT NULL,
     "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "tag_id" TEXT NOT NULL,
-    "tag_type_id" TEXT NOT NULL,
-    "source_id" TEXT NOT NULL,
-    "status_id" TEXT NOT NULL,
+    "id" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
-    CONSTRAINT "tag_configuration_history_pkey" PRIMARY KEY ("revision_id")
+    CONSTRAINT "tag_name_history_pkey" PRIMARY KEY ("revision_id")
 );
 
 -- CreateTable
-CREATE TABLE "tag_configuration_source" (
+CREATE TABLE "tag_source" (
     "id" TEXT NOT NULL,
 
-    CONSTRAINT "tag_configuration_source_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "tag_source_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "tag_configuration_status" (
+CREATE TABLE "tag_status" (
     "id" TEXT NOT NULL,
 
-    CONSTRAINT "tag_configuration_status_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "tag_status_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -818,6 +857,42 @@ CREATE TABLE "tag_type" (
     "id" TEXT NOT NULL,
 
     CONSTRAINT "tag_type_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "uipath_result" (
+    "id" UUID NOT NULL,
+    "request_id" TEXT NOT NULL,
+    "status_id" TEXT NOT NULL DEFAULT 'Pending',
+    "response" JSONB NOT NULL,
+    "project_id" TEXT NOT NULL,
+    "document_id" UUID,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "uipath_result_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "uipath_result_field" (
+    "id" UUID NOT NULL,
+    "uipath_result_id" UUID NOT NULL,
+    "field_id" TEXT NOT NULL,
+    "field_name" TEXT NOT NULL,
+    "field_type" TEXT NOT NULL,
+    "value" TEXT NOT NULL,
+    "confidence" DOUBLE PRECISION NOT NULL,
+    "value_json" JSONB NOT NULL,
+    "text_length" INTEGER NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "uipath_result_field_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "uipath_result_status" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "uipath_result_status_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -867,6 +942,9 @@ CREATE UNIQUE INDEX "demonstration_id_state_id_key" ON "demonstration"("id", "st
 CREATE UNIQUE INDEX "demonstration_id_application_type_id_key" ON "demonstration"("id", "application_type_id");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "document_id_document_type_id_key" ON "document"("id", "document_type_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "extension_id_application_type_id_key" ON "extension"("id", "application_type_id");
 
 -- CreateIndex
@@ -883,6 +961,12 @@ CREATE UNIQUE INDEX "primary_demonstration_role_assignment_person_id_demonstrati
 
 -- CreateIndex
 CREATE UNIQUE INDEX "role_id_grant_level_id_key" ON "role"("id", "grant_level_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "uipath_result_request_id_key" ON "uipath_result"("request_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "uipath_result_field_uipath_result_id_field_id_key" ON "uipath_result_field"("uipath_result_id", "field_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_id_person_type_id_key" ON "users"("id", "person_type_id");
@@ -945,13 +1029,25 @@ ALTER TABLE "application_phase_type_limit" ADD CONSTRAINT "application_phase_typ
 ALTER TABLE "application_tag_assignment" ADD CONSTRAINT "application_tag_assignment_application_id_fkey" FOREIGN KEY ("application_id") REFERENCES "application"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "application_tag_assignment" ADD CONSTRAINT "application_tag_assignment_tag_id_tag_type_id_fkey" FOREIGN KEY ("tag_id", "tag_type_id") REFERENCES "tag_configuration"("tag_id", "tag_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "application_tag_assignment" ADD CONSTRAINT "application_tag_assignment_tag_name_id_tag_type_id_fkey" FOREIGN KEY ("tag_name_id", "tag_type_id") REFERENCES "tag"("tag_name_id", "tag_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "application_tag_assignment" ADD CONSTRAINT "application_tag_assignment_tag_type_id_fkey" FOREIGN KEY ("tag_type_id") REFERENCES "application_tag_type_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "application_tag_type_limit" ADD CONSTRAINT "application_tag_type_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "tag_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "budget_neutrality_workbook" ADD CONSTRAINT "budget_neutrality_workbook_id_document_type_id_fkey" FOREIGN KEY ("id", "document_type_id") REFERENCES "document"("id", "document_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "budget_neutrality_workbook" ADD CONSTRAINT "budget_neutrality_workbook_document_type_id_fkey" FOREIGN KEY ("document_type_id") REFERENCES "budget_neutrality_workbook_document_type_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "budget_neutrality_workbook" ADD CONSTRAINT "budget_neutrality_workbook_validation_status_id_fkey" FOREIGN KEY ("validation_status_id") REFERENCES "budget_neutrality_validation_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "budget_neutrality_workbook_document_type_limit" ADD CONSTRAINT "budget_neutrality_workbook_document_type_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "document_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "demonstration" ADD CONSTRAINT "demonstration_id_application_type_id_fkey" FOREIGN KEY ("id", "application_type_id") REFERENCES "application"("id", "application_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1005,7 +1101,7 @@ ALTER TABLE "demonstration_role_assignment" ADD CONSTRAINT "demonstration_role_a
 ALTER TABLE "demonstration_type_tag_assignment" ADD CONSTRAINT "demonstration_type_tag_assignment_demonstration_id_fkey" FOREIGN KEY ("demonstration_id") REFERENCES "demonstration"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "demonstration_type_tag_assignment" ADD CONSTRAINT "demonstration_type_tag_assignment_tag_id_tag_type_id_fkey" FOREIGN KEY ("tag_id", "tag_type_id") REFERENCES "tag_configuration"("tag_id", "tag_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "demonstration_type_tag_assignment" ADD CONSTRAINT "demonstration_type_tag_assignment_tag_name_id_tag_type_id_fkey" FOREIGN KEY ("tag_name_id", "tag_type_id") REFERENCES "tag"("tag_name_id", "tag_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "demonstration_type_tag_assignment" ADD CONSTRAINT "demonstration_type_tag_assignment_tag_type_id_fkey" FOREIGN KEY ("tag_type_id") REFERENCES "demonstration_type_tag_type_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1149,16 +1245,25 @@ ALTER TABLE "system_role_assignment" ADD CONSTRAINT "system_role_assignment_role
 ALTER TABLE "system_role_assignment" ADD CONSTRAINT "system_role_assignment_grant_level_id_fkey" FOREIGN KEY ("grant_level_id") REFERENCES "system_grant_level_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "tag_configuration" ADD CONSTRAINT "tag_configuration_tag_id_fkey" FOREIGN KEY ("tag_id") REFERENCES "tag"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "tag" ADD CONSTRAINT "tag_tag_name_id_fkey" FOREIGN KEY ("tag_name_id") REFERENCES "tag_name"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "tag_configuration" ADD CONSTRAINT "tag_configuration_tag_type_id_fkey" FOREIGN KEY ("tag_type_id") REFERENCES "tag_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "tag" ADD CONSTRAINT "tag_tag_type_id_fkey" FOREIGN KEY ("tag_type_id") REFERENCES "tag_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "tag_configuration" ADD CONSTRAINT "tag_configuration_source_id_fkey" FOREIGN KEY ("source_id") REFERENCES "tag_configuration_source"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "tag" ADD CONSTRAINT "tag_source_id_fkey" FOREIGN KEY ("source_id") REFERENCES "tag_source"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "tag_configuration" ADD CONSTRAINT "tag_configuration_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "tag_configuration_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "tag" ADD CONSTRAINT "tag_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "tag_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "uipath_result" ADD CONSTRAINT "uipath_result_document_id_fkey" FOREIGN KEY ("document_id") REFERENCES "document"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "uipath_result" ADD CONSTRAINT "uipath_result_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "uipath_result_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "uipath_result_field" ADD CONSTRAINT "uipath_result_field_uipath_result_id_fkey" FOREIGN KEY ("uipath_result_id") REFERENCES "uipath_result"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "users" ADD CONSTRAINT "users_id_person_type_id_fkey" FOREIGN KEY ("id", "person_type_id") REFERENCES "person"("id", "person_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
