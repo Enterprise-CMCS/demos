@@ -1,9 +1,7 @@
 import React from "react";
 
-import {
-  ApplicationWorkflow,
-  GET_WORKFLOW_DEMONSTRATION_QUERY,
-} from "components/application/ApplicationWorkflow";
+import { DemonstrationWorkflow, GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application";
+import { DEMONSTRATION_DETAIL_QUERY } from "./DemonstrationDetail";
 import { IconButton } from "components/button";
 import {
   AddNewIcon,
@@ -68,7 +66,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
 
   const refetchApplicationWorkflow = async () => {
     await client.refetchQueries({
-      include: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+      include: [DEMONSTRATION_DETAIL_QUERY, GET_WORKFLOW_DEMONSTRATION_QUERY],
     });
   };
 
@@ -87,7 +85,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           <div></div>
         </Tab>
         <Tab icon={<ListIcon />} label="Applications" value={TAB.APPLICATION}>
-          <ApplicationWorkflow demonstrationId={demonstration.id} />
+          <DemonstrationWorkflow demonstrationId={demonstration.id} />
         </Tab>
         <Tab icon={<DetailsIcon />} label="Details" value={TAB.DETAILS}>
           <SummaryDetailsTab demonstrationId={demonstration.id} />

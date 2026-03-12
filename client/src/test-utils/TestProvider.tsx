@@ -4,6 +4,7 @@ import { ToastProvider } from "components/toast/ToastContext";
 
 import { MockedProvider, MockedProviderProps } from "@apollo/client/testing";
 import { MemoryRouter, MemoryRouterProps } from "react-router-dom";
+import { ALL_MOCKS } from "mock-data";
 
 interface TestProviderProps {
   children: ReactNode;
@@ -32,7 +33,7 @@ interface TestProviderProps {
  */
 export const TestProvider: React.FC<TestProviderProps> = ({
   children,
-  mocks = [],
+  mocks = ALL_MOCKS,
   addTypename = false,
   routerEntries = ["/"],
 }) => {

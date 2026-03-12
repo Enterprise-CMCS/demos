@@ -2,19 +2,24 @@
   "name": "deleteinfectedfile-lambda",
   "version": "1.0.0",
   "type": "module",
+  "overrides": {
+    "@aws-sdk/client-s3": {
+      "fast-xml-parser": "^5.3.6"
+    }
+  },
   "scripts": {
     "test": "vitest run --coverage",
     "lint": "tsc --noEmit --skipLibCheck"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.982.0",
-    "@aws-sdk/client-secrets-manager": "^3.982.0",
-    "pg": "^8.18.0",
-    "pino": "^10.3.0"
+    "@aws-sdk/client-s3": "^3.1000.0",
+    "@aws-sdk/client-secrets-manager": "^3.1000.0",
+    "pg": "^8.19.0",
+    "pino": "^10.3.1"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.160",
-    "@types/node": "^24.10.10",
+    "@types/aws-lambda": "^8.10.161",
+    "@types/node": "^24.11.0",
     "@vitest/coverage-v8": "^3.2.4",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"

@@ -1,17 +1,10 @@
-import {
-  ApplicationWorkflowDemonstration,
-  SimplePhase,
-} from "components/application/ApplicationWorkflow";
+import { WorkflowApplication, SimplePhase } from "components/application";
 import React from "react";
 import { ReviewPhase, ReviewPhaseFormData } from "./ReviewPhase";
 import { format } from "date-fns";
 import { REVIEW_PHASE_DATE_TYPES, REVIEW_PHASE_NOTE_TYPES } from "demos-server-constants";
 import { ApplicationDateInput, ApplicationNoteInput, LocalDate } from "demos-server";
 
-export type ReviewPhaseDemonstration = Pick<
-  ApplicationWorkflowDemonstration,
-  "id" | "clearanceLevel" | "phases"
->;
 export function getPhaseData(
   reviewPhase: SimplePhase
 ): Omit<ReviewPhaseFormData, "clearanceLevel"> {
@@ -32,23 +25,35 @@ export function getPhaseData(
   return formData;
 }
 
-export const getReviewPhaseComponentFromDemonstration = (
-  demonstration: ReviewPhaseDemonstration,
+export const getReviewPhaseComponentFromApplication = (
+  application: WorkflowApplication,
   onFinish: () => void
 ) => {
-  const reviewPhase = demonstration.phases.find((phase) => phase.phaseName === "Review");
+  const reviewPhase = application.phases.find((phase) => phase.phaseName === "Review");
   if (!reviewPhase) return <div>Error: Review Phase not found.</div>;
 
   const reviewPhaseFormData: ReviewPhaseFormData = {
     ...getPhaseData(reviewPhase),
-    clearanceLevel: demonstration.clearanceLevel,
+    clearanceLevel: application.clearanceLevel,
   };
+
+  const allPreviousPhasesDone = application.phases
+    .filter(
+      (p) =>
+        p.phaseName !== "Concept" &&
+        p.phaseName !== "Review" &&
+        p.phaseName !== "Approval Package" &&
+        p.phaseName !== "Approval Summary"
+    )
+    .every((phase) => phase.phaseStatus === "Completed" || phase.phaseStatus === "Skipped");
+
   return (
     <ReviewPhase
       isReadonly={reviewPhase.phaseStatus === "Completed"}
       initialFormData={reviewPhaseFormData}
-      demonstrationId={demonstration.id}
+      demonstrationId={application.id}
       onFinish={onFinish}
+      allPreviousPhasesDone={allPreviousPhasesDone}
     />
   );
 };

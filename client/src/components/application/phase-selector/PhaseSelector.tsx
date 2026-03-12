@@ -1,17 +1,25 @@
 import React, { useState } from "react";
 
-import type { PhaseName as ServerPhase, PhaseStatus as ServerPhaseStatus } from "demos-server";
+import type {
+  DateType,
+  PhaseName as ServerPhase,
+  PhaseStatus as ServerPhaseStatus,
+} from "demos-server";
 
-import { ApplicationWorkflowDemonstration } from "../ApplicationWorkflow";
 import {
-  getApplicationCompletenessFromDemonstration,
-  getConceptPhaseComponentFromDemonstration,
-  SdgPreparationPhase,
-  getApplicationIntakeComponentFromDemonstration,
-  getFederalCommentPhaseFromDemonstration,
-  getApprovalPackagePhase,
-  getReviewPhaseComponentFromDemonstration,
-  getApprovalSummaryPhase,
+  WorkflowApplication,
+  ApplicationWorkflowDemonstration,
+  WorkflowApplicationType,
+} from "components/application";
+import {
+  getApplicationCompletenessFromApplication,
+  getConceptPhaseComponentFromApplication,
+  getApplicationIntakeComponentFromApplication,
+  getFederalCommentPhaseFromApplication,
+  getApprovalPackagePhaseFromApplication,
+  getReviewPhaseComponentFromApplication,
+  getApprovalSummaryPhaseFromApplication,
+  getSdgPreparationPhaseFromApplication,
 } from "../phases";
 import { PHASE_NAME } from "demos-server-constants";
 import { PhaseBox } from "./PhaseBox";
@@ -20,6 +28,52 @@ import { PhaseBox } from "./PhaseBox";
 export type PhaseStatus = ServerPhaseStatus | "past-due";
 export type PhaseName = Exclude<ServerPhase, "None">;
 const PHASE_NAMES: PhaseName[] = PHASE_NAME.filter((phase): phase is PhaseName => phase !== "None");
+
+type PhaseDateDisplayMap = Record<PhaseName, Partial<Record<PhaseStatus, DateType>>>;
+
+const PHASE_DISPLAY_DATES: PhaseDateDisplayMap = {
+  Concept: {
+    Started: "Concept Start Date",
+    Completed: "Concept Completion Date",
+    "Not Started": "Concept Start Date",
+    Skipped: "Concept Skipped Date",
+  },
+  "Application Intake": {
+    Started: "Application Intake Start Date",
+    Completed: "Application Intake Completion Date",
+    "Not Started": "Application Intake Start Date",
+  },
+  Completeness: {
+    Started: "Completeness Start Date",
+    Completed: "Completeness Completion Date",
+    "Not Started": "Completeness Start Date",
+  },
+  "Federal Comment": {
+    Started: "Federal Comment Period Start Date",
+    Completed: "Federal Comment Period End Date",
+    "Not Started": "Federal Comment Period Start Date",
+  },
+  "SDG Preparation": {
+    Started: "SDG Preparation Start Date",
+    Completed: "SDG Preparation Completion Date",
+    "Not Started": "SDG Preparation Start Date",
+  },
+  Review: {
+    Started: "Review Start Date",
+    Completed: "Review Completion Date",
+    "Not Started": "Review Start Date",
+  },
+  "Approval Package": {
+    Started: "Approval Package Start Date",
+    Completed: "Approval Package Completion Date",
+    "Not Started": "Approval Package Start Date",
+  },
+  "Approval Summary": {
+    Started: "Approval Summary Start Date",
+    Completed: "Approval Summary Completion Date",
+    "Not Started": "Approval Summary Start Date",
+  },
+} as const;
 
 const PhaseGroups = () => {
   const leftBorderStyles = "border-l-1 border-surface-placeholder pl-2 -ml-sm";
@@ -32,79 +86,73 @@ const PhaseGroups = () => {
   );
 };
 
-interface PhaseSelectorProps {
-  demonstration: ApplicationWorkflowDemonstration;
-}
-
 export const getDisplayedPhaseStatus = (
-  demonstration: ApplicationWorkflowDemonstration,
+  application: WorkflowApplication,
   phaseName: PhaseName
 ): PhaseStatus => {
-  const phase = demonstration.phases.find((p) => p.phaseName === phaseName);
+  const phase = application.phases.find((p) => p.phaseName === phaseName);
   return phase?.phaseStatus ?? "Not Started";
 };
 
 export const getDisplayedPhaseDate = (
-  demonstration: ApplicationWorkflowDemonstration,
+  application: WorkflowApplication,
   phaseName: PhaseName
 ): Date | undefined => {
-  const phase = demonstration.phases.find((p) => p.phaseName === phaseName);
+  const phase = application.phases.find((p) => p.phaseName === phaseName);
   if (!phase) return undefined;
 
-  // Find the most relevant date for display
-  // Prioritize completion dates, then submitted dates, then start dates
-  const relevantDate =
-    phase.phaseDates.find(
-      (date) => date.dateType.includes("Completion Date") || date.dateType.includes("Complete")
-    ) ||
-    phase.phaseDates.find((date) => date.dateType.includes("Submitted")) ||
-    phase.phaseDates.find((date) => date.dateType.includes("Start Date")) ||
-    phase.phaseDates[0];
+  const relevantDateName = PHASE_DISPLAY_DATES[phaseName]?.[phase.phaseStatus];
+  const relevantDate = phase.phaseDates.find((date) => date.dateType === relevantDateName);
 
   return relevantDate?.dateValue ? new Date(relevantDate.dateValue) : undefined;
 };
 
-export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
+export const PhaseSelector = ({
+  application,
+  workflowApplicationType,
+}: {
+  application: WorkflowApplication;
+  workflowApplicationType: WorkflowApplicationType;
+}) => {
   const initialPhase: PhaseName =
-    demonstration.currentPhaseName && demonstration.currentPhaseName !== "None"
-      ? (demonstration.currentPhaseName as PhaseName)
+    application.currentPhaseName && application.currentPhaseName !== "None"
+      ? (application.currentPhaseName as PhaseName)
       : "Concept";
   const [selectedPhase, setSelectedPhase] = useState<PhaseName>(initialPhase);
 
-  const phaseComponentsLookup: Record<PhaseName, React.FC> = {
-    Concept: () => getConceptPhaseComponentFromDemonstration(demonstration, setSelectedPhase),
-    "Application Intake": () =>
-      getApplicationIntakeComponentFromDemonstration(demonstration, setSelectedPhase),
-    Completeness: () => getApplicationCompletenessFromDemonstration(demonstration),
-    "Federal Comment": () => getFederalCommentPhaseFromDemonstration(demonstration),
-    "SDG Preparation": () => {
-      const sdgPreparationPhase = demonstration.phases.find(
-        (phase) => phase.phaseName === "SDG Preparation"
-      );
-      if (!sdgPreparationPhase) return <div>Error: SDG Preparation Phase not found.</div>;
-      return (
-        <SdgPreparationPhase
-          demonstrationId={demonstration.id}
-          sdgPreparationPhase={sdgPreparationPhase}
-        />
-      );
-    },
-    Review: () =>
-      getReviewPhaseComponentFromDemonstration(demonstration, () =>
-        setSelectedPhase("Approval Package")
-      ),
-    "Approval Package": () => getApprovalPackagePhase(demonstration),
-    "Approval Summary": () => getApprovalSummaryPhase(demonstration),
-  };
-
-  const DisplayPhase = ({ selectedPhase }: { selectedPhase: PhaseName }) => {
-    const PhaseComponent = phaseComponentsLookup[selectedPhase];
-
-    return (
-      <div className="w-full h-full min-h-64">
-        <PhaseComponent />
-      </div>
-    );
+  const renderPhase = (phaseName: PhaseName) => {
+    switch (phaseName) {
+      case "Concept":
+        return getConceptPhaseComponentFromApplication(
+          application,
+          workflowApplicationType,
+          setSelectedPhase
+        );
+      case "Application Intake":
+        return getApplicationIntakeComponentFromApplication(application, setSelectedPhase);
+      case "Completeness":
+        return getApplicationCompletenessFromApplication(application, setSelectedPhase);
+      case "Federal Comment":
+        return getFederalCommentPhaseFromApplication(application);
+      case "SDG Preparation":
+        return getSdgPreparationPhaseFromApplication(
+          application as ApplicationWorkflowDemonstration,
+          setSelectedPhase
+        );
+      case "Review":
+        return getReviewPhaseComponentFromApplication(application, () =>
+          setSelectedPhase("Approval Package")
+        );
+      case "Approval Package":
+        return getApprovalPackagePhaseFromApplication(application, setSelectedPhase);
+      case "Approval Summary":
+        // Approval Summary requires demonstration-specific fields
+        // For now we will do type-assertion but to be revisted as we get further
+        // down the line on developing these phases.
+        return getApprovalSummaryPhaseFromApplication(
+          application as ApplicationWorkflowDemonstration
+        );
+    }
   };
 
   return (
@@ -112,8 +160,8 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
       <div className="grid grid-cols-8 gap-md mb-2">
         <PhaseGroups />
         {PHASE_NAMES.map((phaseName, index) => {
-          const displayDate = getDisplayedPhaseDate(demonstration, phaseName);
-          const phaseStatus = getDisplayedPhaseStatus(demonstration, phaseName);
+          const displayDate = getDisplayedPhaseDate(application, phaseName);
+          const phaseStatus = getDisplayedPhaseStatus(application, phaseName);
 
           return (
             <PhaseBox
@@ -128,7 +176,7 @@ export const PhaseSelector = ({ demonstration }: PhaseSelectorProps) => {
           );
         })}
       </div>
-      <DisplayPhase selectedPhase={selectedPhase} />
+      <div className="w-full h-full min-h-64">{renderPhase(selectedPhase)}</div>
     </>
   );
 };

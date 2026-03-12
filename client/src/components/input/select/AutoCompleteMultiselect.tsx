@@ -6,7 +6,7 @@ import { Option } from "./Select";
 const LABEL_CLASSES = tw`text-text-font font-semibold text-field-label flex gap-0-5`;
 const INPUT_CLASSES = tw`w-full border border-border-fields rounded px-1 py-1
   text-text-font bg-surface-white disabled:bg-surface-disabled
-  disabled:text-text-placeholder placeholder-text-placeholder focus:outline-none 
+  disabled:text-text-placeholder placeholder-text-placeholder focus:outline-none
   focus:border-border-focus focus:ring-1 focus:ring-border-focus appearance-none text-sm`;
 const ICON_CLASSES = tw`text-text-placeholder w-2 h-1`;
 const LIST_CLASSES = tw`absolute z-10 w-full bg-surface-white border border-border-fields rounded mt-0.5 max-h-56 overflow-auto shadow-sm`;
@@ -43,6 +43,11 @@ export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = (
   const [activeIndex, setActiveIndex] = useState(-1);
   const [selected, setSelected] = useState<string[]>(defaultValues);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const selectedLabels = selected
+    .map((value) => options.find((option) => option.value === value)?.label ?? value)
+    .join(", ");
+  const displayValue = isOpen ? inputValue : selectedLabels;
 
   // Sync external controlled values
   useEffect(() => {
@@ -116,8 +121,13 @@ export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = (
           id={id}
           type="text"
           placeholder={placeholder}
-          value={inputValue}
-          onFocus={() => !isDisabled && setIsOpen(true)}
+          value={displayValue}
+          onFocus={() => {
+            if (!isDisabled) {
+              setInputValue("");
+              setIsOpen(true);
+            }
+          }}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={onKeyDown}
           required={isRequired && selected.length === 0}
@@ -129,33 +139,38 @@ export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = (
         </div>
 
         {isOpen && (
-          <ul className={LIST_CLASSES}>
+          <ul className={LIST_CLASSES} role="listbox" aria-multiselectable="true">
             {filtered.length > 0 ? (
-              filtered.map((opt, i) => (
-                <li
-                  key={opt.value}
-                  className={`${ITEM_CLASSES} ${i === activeIndex ? ITEM_ACTIVE_CLASSES : ""} flex items-center`}
-                  onMouseEnter={() => setActiveIndex(i)}
-                  onClick={() => {
-                    if (selected.includes(opt.value)) {
-                      handleRemove(opt.value);
-                    } else {
-                      handleSelect(opt.value);
-                    }
-                  }}
-                  style={{ cursor: isDisabled ? "not-allowed" : "pointer" }}
-                >
-                  <input
-                    type="checkbox"
-                    disabled={isDisabled}
-                    checked={selected.includes(opt.value)}
-                    readOnly
-                    className="m-1 w-2 h-2 flex-shrink-0"
-                    tabIndex={-1}
-                  />
-                  {opt.label}
-                </li>
-              ))
+              filtered.map((opt, i) => {
+                const isActive = i === activeIndex;
+                return (
+                  <li key={opt.value} role="presentation">
+                    <label
+                      className={`${ITEM_CLASSES} ${isActive ? ITEM_ACTIVE_CLASSES : ""} flex items-center cursor-pointer`}
+                      style={{ cursor: isDisabled ? "not-allowed" : "pointer" }}
+                      onMouseEnter={() => setActiveIndex(i)}
+                    >
+                      <input
+                        type="checkbox"
+                        disabled={isDisabled}
+                        checked={selected.includes(opt.value)}
+                        onChange={() => {
+                          if (!isDisabled) {
+                            if (selected.includes(opt.value)) {
+                              handleRemove(opt.value);
+                            } else {
+                              handleSelect(opt.value);
+                            }
+                          }
+                        }}
+                        className="m-1 w-2 h-2 flex-shrink-0"
+                        tabIndex={-1}
+                      />
+                      {opt.label}
+                    </label>
+                  </li>
+                );
+              })
             ) : (
               <li className={EMPTY_CLASSES}>No matches found</li>
             )}

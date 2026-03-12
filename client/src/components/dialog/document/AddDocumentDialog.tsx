@@ -61,7 +61,7 @@ interface AddDocumentDialogProps {
   titleOverride?: string;
   refetchQueries?: string[];
   phaseName?: PhaseName;
-  onDocumentUploadSucceeded?: () => void;
+  onDocumentUploadSucceeded?: (payload?: UploadDocumentInput) => void;
 }
 
 export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
@@ -99,8 +99,8 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     return false;
   };
 
-  const handleDocumentUploadSucceeded = async (): Promise<void> => {
-    onDocumentUploadSucceeded?.();
+  const handleDocumentUploadSucceeded = async (payload: UploadDocumentInput): Promise<void> => {
+    onDocumentUploadSucceeded?.(payload);
     if (refetchQueries) {
       await client.refetchQueries({ include: refetchQueries });
     }
@@ -145,7 +145,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
     // Hint: If you want to test an upload scenario locally such as virus scan failure,
     // simply return that DocumentUploadResult from this function
     if (uploadResult.presignedURL.startsWith(LOCAL_UPLOAD_PREFIX)) {
-      await handleDocumentUploadSucceeded();
+      await handleDocumentUploadSucceeded(uploadDocumentInput);
       return "succeeded";
     }
 
@@ -161,7 +161,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       return "virus-scan-failed";
     }
 
-    await handleDocumentUploadSucceeded();
+    await handleDocumentUploadSucceeded(uploadDocumentInput);
     return "succeeded";
   };
 

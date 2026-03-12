@@ -1,171 +1,65 @@
-import React, { useEffect, useState } from "react";
-import { gql, useQuery } from "@apollo/client";
-import { BaseDialog } from "../BaseDialog";
-import { Button } from "components/button";
-import { SelectDemonstration } from "components/input/select/SelectDemonstration";
-import { Textarea, TextInput } from "components/input";
-import { SelectUSAStates } from "components/input/select/SelectUSAStates";
+import React, { useState } from "react";
+import { ModificationForm, hasChanges, isValid, ModificationFormData } from "./ModificationForm";
 import { useToast } from "components/toast";
-import { Demonstration as ServerDemonstration, State } from "demos-server";
+import { BaseDialog } from "../BaseDialog";
+import { useDialog } from "../DialogContext";
+import { Button } from "components/button";
 
-type Demonstration = Pick<ServerDemonstration, "id"> & {
-  state: Pick<State, "id">;
-};
-export const CREATE_MODIFICATION_DIALOG_QUERY = gql`
-  query CreateModificationDialog($id: ID!) {
-    demonstration(id: $id) {
-      id
-      state {
-        id
-      }
-    }
-  }
-`;
-
-export type CreateModificationFormFields = {
-  demonstrationId?: string;
-  name?: string;
-  description?: string;
-  stateId?: string;
-};
-
-// Form has changes if name or description is filled out (stateId and demonstrationId are non-mutable)
-export const checkFormHasChanges = (formFields: CreateModificationFormFields): boolean => {
-  return !!formFields.name || !!formFields.description;
-};
-
-interface BaseCreateModificationDialogProps {
-  onClose: () => void;
-  initialDemonstrationId?: string;
+export const BaseCreateModificationDialog: React.FC<{
   modificationType: "Amendment" | "Extension";
-  handleSubmit: (formFields: CreateModificationFormFields) => Promise<void>;
-}
-export const BaseCreateModificationDialog: React.FC<BaseCreateModificationDialogProps> = ({
-  onClose,
-  initialDemonstrationId,
-  modificationType,
-  handleSubmit,
-}) => {
-  const [loading, setLoading] = useState(false);
-  const [createModificationFormFields, setCreateModificationFormFields] =
-    useState<CreateModificationFormFields>({ demonstrationId: initialDemonstrationId });
-  const [formHasChanges, setFormHasChanges] = useState(false);
-  const { showError } = useToast();
+  useModification: () => {
+    save: (input: ModificationFormData) => Promise<void>;
+    saving: boolean;
+  };
+  demonstrationId?: string;
+}> = ({ modificationType, useModification, demonstrationId }) => {
+  const initialModification = demonstrationId ? { demonstration: { id: demonstrationId } } : {};
+  const { showSuccess, showError } = useToast();
+  const { closeDialog } = useDialog();
+  const { save, saving } = useModification();
 
-  useEffect(() => {
-    setFormHasChanges(checkFormHasChanges(createModificationFormFields));
-  }, [createModificationFormFields]);
-
-  useQuery<{ demonstration: Demonstration }>(CREATE_MODIFICATION_DIALOG_QUERY, {
-    variables: { id: createModificationFormFields.demonstrationId },
-    skip: !createModificationFormFields.demonstrationId,
-    onCompleted: (data) => {
-      setCreateModificationFormFields((fields) => ({
-        ...fields,
-        stateId: data.demonstration.state.id,
-      }));
-    },
-    onError: (error) => {
-      showError("Error loading demonstration data.");
-      console.error(error);
-      onClose();
-    },
+  const [formData, setFormData] = useState<ModificationFormData>({
+    demonstrationId,
   });
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleSubmit = async () => {
     try {
-      await handleSubmit(createModificationFormFields);
+      await save(formData);
+      showSuccess(`${modificationType} created successfully.`);
     } catch (error) {
-      console.error("Error during mutation:", error);
-    } finally {
-      setLoading(false);
+      showError(`Failed to create ${modificationType.toLowerCase()}.`);
+      console.error(`Error creating ${modificationType.toLowerCase()}:`, error);
     }
+    closeDialog();
   };
 
   return (
     <BaseDialog
-      title={`New ${modificationType}`}
-      onClose={onClose}
-      maxWidthClass="max-w-[720px]"
-      dialogHasChanges={formHasChanges}
+      title={`Add ${modificationType}`}
+      onClose={closeDialog}
+      dialogHasChanges={hasChanges(formData, initialModification)}
+      maxWidthClass="max-w-[920px]"
       actionButton={
         <Button
-          name={`button-submit-create-${modificationType.toLowerCase()}`}
-          size="small"
-          type="submit"
-          form={`create-${modificationType.toLowerCase()}`}
-          disabled={
-            !(createModificationFormFields.demonstrationId && createModificationFormFields.name) ||
-            loading
-          }
+          name={`button-submit-create-${modificationType.toLowerCase()}-dialog`}
+          disabled={saving || !hasChanges(formData, initialModification) || !isValid(formData)}
+          onClick={handleSubmit}
         >
-          {loading ? "Saving..." : "Submit"}
+          Create {modificationType}
         </Button>
       }
     >
-      <form
-        id={`create-${modificationType.toLowerCase()}`}
-        className="space-y-4"
-        onSubmit={onSubmit}
-      >
-        <div>
-          <SelectDemonstration
-            isRequired
-            isDisabled={!!initialDemonstrationId}
-            onSelect={(value) => {
-              setCreateModificationFormFields({
-                ...createModificationFormFields,
-                demonstrationId: value,
-              });
-            }}
-            value={createModificationFormFields.demonstrationId || ""}
-          />
-        </div>
-
-        <div className="grid grid-cols-3 gap-3">
-          <div className="col-span-2">
-            <TextInput
-              name="title"
-              label={`${modificationType} Title`}
-              placeholder={`Enter ${modificationType.toLowerCase()} title`}
-              isRequired
-              value={createModificationFormFields.name}
-              onChange={(e) =>
-                setCreateModificationFormFields({
-                  ...createModificationFormFields,
-                  name: e.target.value,
-                })
-              }
-            />
-          </div>
-          <div>
-            <SelectUSAStates
-              label="State/Territory"
-              isRequired
-              isDisabled
-              value={createModificationFormFields.stateId || ""}
-              onSelect={() => {}}
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-sm">
-          <Textarea
-            name={"description"}
-            label={`${modificationType} Description`}
-            onChange={(e) =>
-              setCreateModificationFormFields({
-                ...createModificationFormFields,
-                description: e.target.value,
-              })
-            }
-            initialValue={createModificationFormFields.description || ""}
-            placeholder={`Enter ${modificationType.toLowerCase()} description`}
-          />
-        </div>
-      </form>
+      <div className="flex flex-col gap-2">
+        <ModificationForm
+          mode="create"
+          showDemonstrationSelect={!demonstrationId}
+          modificationType={modificationType}
+          modificationFormData={formData}
+          setModificationFormDataField={(field: Partial<ModificationFormData>) =>
+            setFormData((prev) => ({ ...prev, ...field }))
+          }
+        />
+      </div>
     </BaseDialog>
   );
 };

@@ -30,6 +30,7 @@ import {
   resolveApplicationPhases,
   resolveApplicationStatus,
   resolveApplicationTags,
+  resolveApplicationSignatureLevel,
 } from "../application";
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
 
@@ -43,7 +44,7 @@ export async function __getDemonstration(
   parent: unknown,
   { id }: { id: string }
 ): Promise<PrismaDemonstration> {
-  return await getApplication(id, "Demonstration");
+  return await getApplication(id, { applicationTypeId: "Demonstration" });
 }
 
 export async function __getManyDemonstrations(): Promise<PrismaDemonstration[]> {
@@ -110,7 +111,7 @@ export async function __createDemonstration(
   } catch (error) {
     handlePrismaError(error);
   }
-  return await getApplication(newApplicationId, "Demonstration");
+  return await getApplication(newApplicationId, { applicationTypeId: "Demonstration" });
 }
 
 export async function __updateDemonstration(
@@ -227,14 +228,6 @@ export async function __resolveDemonstrationExtensions(
   });
 }
 
-export function __resolveDemonstrationSdgDivision(parent: PrismaDemonstration): string | null {
-  return parent.sdgDivisionId;
-}
-
-export function __resolveDemonstrationSignatureLevel(parent: PrismaDemonstration): string | null {
-  return parent.signatureLevelId;
-}
-
 export async function __resolveDemonstrationRoleAssignments(
   parent: PrismaDemonstration
 ): Promise<PrismaDemonstrationRoleAssignment[]> {
@@ -283,6 +276,10 @@ export async function resolveDemonstrationTypes(
   }));
 }
 
+export function resolveDemonstrationSdgDivision(parent: PrismaDemonstration): string | null {
+  return parent.sdgDivisionId;
+}
+
 export const demonstrationResolvers = {
   Query: {
     demonstration: __getDemonstration,
@@ -300,8 +297,8 @@ export const demonstrationResolvers = {
     documents: resolveApplicationDocuments,
     amendments: __resolveDemonstrationAmendments,
     extensions: __resolveDemonstrationExtensions,
-    sdgDivision: __resolveDemonstrationSdgDivision,
-    signatureLevel: __resolveDemonstrationSignatureLevel,
+    sdgDivision: resolveDemonstrationSdgDivision,
+    signatureLevel: resolveApplicationSignatureLevel,
     currentPhaseName: resolveApplicationCurrentPhaseName,
     roles: __resolveDemonstrationRoleAssignments,
     status: resolveApplicationStatus,

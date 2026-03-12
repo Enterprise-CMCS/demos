@@ -60,6 +60,7 @@ BEGIN
             status_id,
             current_phase_id,
             clearance_level_id,
+            signature_level_id,
             created_at,
             updated_at
         )
@@ -77,6 +78,7 @@ BEGIN
             NEW.status_id,
             NEW.current_phase_id,
             NEW.clearance_level_id,
+            NEW.signature_level_id,
             NEW.created_at,
             NEW.updated_at
         );
@@ -93,6 +95,7 @@ BEGIN
             status_id,
             current_phase_id,
             clearance_level_id,
+            signature_level_id,
             created_at,
             updated_at
         )
@@ -107,6 +110,7 @@ BEGIN
             OLD.status_id,
             OLD.current_phase_id,
             OLD.clearance_level_id,
+            OLD.signature_level_id,
             OLD.created_at,
             OLD.updated_at
         );
@@ -354,6 +358,61 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE TRIGGER log_changes_application_tag_assignment
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.application_tag_assignment
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application_tag_assignment();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_budget_neutrality_workbook()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.budget_neutrality_workbook_history (
+            revision_type,
+            id,
+            document_type_id,
+            validation_status_id,
+            validation_data,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.document_type_id,
+            NEW.validation_status_id,
+            NEW.validation_data,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.budget_neutrality_workbook_history (
+            revision_type,
+            id,
+            document_type_id,
+            validation_status_id,
+            validation_data,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.document_type_id,
+            OLD.validation_status_id,
+            OLD.validation_data,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_budget_neutrality_workbook
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.budget_neutrality_workbook
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_budget_neutrality_workbook();
 
 CREATE OR REPLACE FUNCTION demos_app.log_changes_demonstration()
 RETURNS TRIGGER AS $$
@@ -788,6 +847,7 @@ BEGIN
             status_id,
             current_phase_id,
             clearance_level_id,
+            signature_level_id,
             created_at,
             updated_at
         )
@@ -805,6 +865,7 @@ BEGIN
             NEW.status_id,
             NEW.current_phase_id,
             NEW.clearance_level_id,
+            NEW.signature_level_id,
             NEW.created_at,
             NEW.updated_at
         );
@@ -821,6 +882,7 @@ BEGIN
             status_id,
             current_phase_id,
             clearance_level_id,
+            signature_level_id,
             created_at,
             updated_at
         )
@@ -835,6 +897,7 @@ BEGIN
             OLD.status_id,
             OLD.current_phase_id,
             OLD.clearance_level_id,
+            OLD.signature_level_id,
             OLD.created_at,
             OLD.updated_at
         );

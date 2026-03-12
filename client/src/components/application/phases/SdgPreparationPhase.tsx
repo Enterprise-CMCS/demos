@@ -3,17 +3,18 @@ import { tw } from "tags/tw";
 
 import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
-import { SimplePhase } from "../ApplicationWorkflow";
+import { SimplePhase } from "components/application";
+import { ApplicationWorkflowDemonstration } from "components/application/demonstration/DemonstrationWorkflow";
 import { formatDateForServer } from "util/formatDate";
-import { DateType } from "demos-server";
+import { ApplicationStatus, DateType, LocalDate, PhaseNameWithTrackedStatus } from "demos-server";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
-import { useSetPhaseStatus } from "../phase-status/phaseStatusQueries";
 import {
   FAILED_TO_SAVE_MESSAGE,
   getPhaseCompletedMessage,
   SAVE_FOR_LATER_MESSAGE,
 } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
+import { useCompletePhase } from "../phase-status/phaseCompletionQueries";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -48,22 +49,70 @@ interface SdgPreparationPhaseFormData {
   bnpmtInitialMeetingDate?: string;
 }
 
+export const hasChanges = (
+  initialFormData: SdgPreparationPhaseFormData,
+  currentFormData: SdgPreparationPhaseFormData
+) => {
+  return (
+    initialFormData.expectedApprovalDate !== currentFormData.expectedApprovalDate ||
+    initialFormData.smeInitialReviewDate !== currentFormData.smeInitialReviewDate ||
+    initialFormData.frtInitialMeetingDate !== currentFormData.frtInitialMeetingDate ||
+    initialFormData.bnpmtInitialMeetingDate !== currentFormData.bnpmtInitialMeetingDate
+  );
+};
+
+export const getSdgPreparationPhaseFromApplication = (
+  application: ApplicationWorkflowDemonstration,
+  setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void
+) => {
+  const sdgPreparationPhase = application.phases.find(
+    (phase) => phase.phaseName === "SDG Preparation"
+  );
+  if (!sdgPreparationPhase) return <div>Error: SDG Preparation Phase not found.</div>;
+
+  const allPreviousPhasesDone = application.phases
+    .filter(
+      (p) =>
+        p.phaseName !== "Concept" &&
+        p.phaseName !== "Approval Package" &&
+        p.phaseName !== "Approval Summary" &&
+        p.phaseName !== "SDG Preparation" &&
+        p.phaseName !== "Review"
+    )
+    .every((phase) => phase.phaseStatus === "Completed" || phase.phaseStatus === "Skipped");
+
+  return (
+    <SdgPreparationPhase
+      demonstrationId={application.id}
+      sdgPreparationPhase={sdgPreparationPhase}
+      setSelectedPhase={setSelectedPhase}
+      allPreviousPhasesDone={allPreviousPhasesDone}
+      demonstrationStatus={application.status}
+    />
+  );
+};
+
 export const SdgPreparationPhase = ({
   demonstrationId,
   sdgPreparationPhase,
+  setSelectedPhase,
+  allPreviousPhasesDone,
+  demonstrationStatus,
 }: {
   demonstrationId: string;
   sdgPreparationPhase: SimplePhase;
+  setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void;
+  allPreviousPhasesDone: boolean;
+  demonstrationStatus: ApplicationStatus;
 }) => {
   const [sdgPreparationPhaseFormData, setSdgPreparationPhaseFormData] =
     useState<SdgPreparationPhaseFormData>(getFormDataFromPhase(sdgPreparationPhase));
   const { setApplicationDate } = useSetApplicationDate();
-  const { setPhaseStatus: completeSdgPreparationPhase } = useSetPhaseStatus({
-    applicationId: demonstrationId,
-    phaseName: "Completeness",
-    phaseStatus: "Completed",
-  });
+  const { completePhase } = useCompletePhase();
   const { showSuccess, showError } = useToast();
+
+  const isPhaseCompleted = sdgPreparationPhase.phaseStatus === "Completed";
+  const isApproved = demonstrationStatus === "Approved";
 
   const isFormComplete =
     sdgPreparationPhaseFormData.expectedApprovalDate &&
@@ -76,32 +125,34 @@ export const SdgPreparationPhase = ({
       await setApplicationDate({
         applicationId: demonstrationId,
         dateType: "Expected Approval Date" satisfies DateType,
-        dateValue: formatDateForServer(sdgPreparationPhaseFormData.expectedApprovalDate),
+        dateValue: sdgPreparationPhaseFormData.expectedApprovalDate as LocalDate,
       });
     }
 
-    if (sdgPreparationPhaseFormData.smeInitialReviewDate) {
-      await setApplicationDate({
-        applicationId: demonstrationId,
-        dateType: "SME Review Date" satisfies DateType,
-        dateValue: formatDateForServer(sdgPreparationPhaseFormData.smeInitialReviewDate),
-      });
-    }
+    if (!isPhaseCompleted) {
+      if (sdgPreparationPhaseFormData.smeInitialReviewDate) {
+        await setApplicationDate({
+          applicationId: demonstrationId,
+          dateType: "SME Review Date" satisfies DateType,
+          dateValue: sdgPreparationPhaseFormData.smeInitialReviewDate as LocalDate,
+        });
+      }
 
-    if (sdgPreparationPhaseFormData.frtInitialMeetingDate) {
-      await setApplicationDate({
-        applicationId: demonstrationId,
-        dateType: "FRT Initial Meeting Date" satisfies DateType,
-        dateValue: formatDateForServer(sdgPreparationPhaseFormData.frtInitialMeetingDate),
-      });
-    }
+      if (sdgPreparationPhaseFormData.frtInitialMeetingDate) {
+        await setApplicationDate({
+          applicationId: demonstrationId,
+          dateType: "FRT Initial Meeting Date" satisfies DateType,
+          dateValue: sdgPreparationPhaseFormData.frtInitialMeetingDate as LocalDate,
+        });
+      }
 
-    if (sdgPreparationPhaseFormData.bnpmtInitialMeetingDate) {
-      await setApplicationDate({
-        applicationId: demonstrationId,
-        dateType: "BNPMT Initial Meeting Date" satisfies DateType,
-        dateValue: formatDateForServer(sdgPreparationPhaseFormData.bnpmtInitialMeetingDate),
-      });
+      if (sdgPreparationPhaseFormData.bnpmtInitialMeetingDate) {
+        await setApplicationDate({
+          applicationId: demonstrationId,
+          dateType: "BNPMT Initial Meeting Date" satisfies DateType,
+          dateValue: sdgPreparationPhaseFormData.bnpmtInitialMeetingDate as LocalDate,
+        });
+      }
     }
   };
 
@@ -118,7 +169,11 @@ export const SdgPreparationPhase = ({
   const handleFinish = async () => {
     try {
       await handleSave();
-      await completeSdgPreparationPhase();
+      await completePhase({
+        applicationId: demonstrationId,
+        phaseName: "SDG Preparation",
+      });
+      setSelectedPhase("Review");
     } catch {
       showError(FAILED_TO_SAVE_MESSAGE);
       return;
@@ -131,7 +186,7 @@ export const SdgPreparationPhase = ({
     <div>
       <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">SDG PREPARATION</h3>
       <p className="text-sm text-text-placeholder mb-4">
-        Plan and conduct internal and preparation tasks
+        Plan and conduct internal preparation tasks
       </p>
 
       <section className={STYLES.pane}>
@@ -144,7 +199,8 @@ export const SdgPreparationPhase = ({
               </h4>
               <p className={STYLES.helper}>
                 Ensure the expected approval date is reasonable based on required reviews and the
-                complexity of the application
+                complexity of the application. This date may be revised at a later time, if
+                necessary.
               </p>
             </div>
             <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
@@ -158,6 +214,8 @@ export const SdgPreparationPhase = ({
                     expectedApprovalDate: newDate,
                   });
                 }}
+                isRequired
+                isDisabled={isApproved}
               />
             </div>
           </div>{" "}
@@ -169,12 +227,9 @@ export const SdgPreparationPhase = ({
               <p className={STYLES.helper}>Record the occurrence of the key review meetings</p>
             </div>
             <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
-              <label className="block text-sm font-bold mb-1">
-                <span className="text-text-warn mr-1">*</span>
-              </label>
               <DatePicker
                 name="datepicker-sme-initial-review-date"
-                label="SME Initial Review Date"
+                label="SME Review Date"
                 isRequired={true}
                 value={sdgPreparationPhaseFormData.smeInitialReviewDate}
                 onChange={(newDate) => {
@@ -183,11 +238,8 @@ export const SdgPreparationPhase = ({
                     smeInitialReviewDate: newDate,
                   });
                 }}
+                isDisabled={isPhaseCompleted}
               />
-              <label className="block text-sm font-bold mb-1">
-                <span className="text-text-warn mr-1">*</span>
-                FRT Initial Meeting Date
-              </label>
               <DatePicker
                 name="datepicker-frt-initial-meeting-date"
                 data-testid="datepicker-frt-initial-meeting-date"
@@ -200,6 +252,7 @@ export const SdgPreparationPhase = ({
                     frtInitialMeetingDate: newDate,
                   });
                 }}
+                isDisabled={isPhaseCompleted}
               />
               <DatePicker
                 name="datepicker-bnpmt-initial-meeting-date"
@@ -212,18 +265,29 @@ export const SdgPreparationPhase = ({
                   });
                 }}
                 isRequired={true}
+                isDisabled={isPhaseCompleted}
               />
             </div>
 
             <div className={STYLES.actions}>
-              <SecondaryButton onClick={handleSaveForLater} size="large" name="sdg-save-for-later">
+              <SecondaryButton
+                disabled={
+                  !hasChanges(
+                    getFormDataFromPhase(sdgPreparationPhase),
+                    sdgPreparationPhaseFormData
+                  )
+                }
+                onClick={handleSaveForLater}
+                size="large"
+                name="sdg-save-for-later"
+              >
                 Save For Later
               </SecondaryButton>
               <Button
                 onClick={handleFinish}
                 size="large"
                 name="sdg-finish"
-                disabled={!isFormComplete}
+                disabled={!allPreviousPhasesDone || !isFormComplete || isPhaseCompleted}
               >
                 Finish
               </Button>

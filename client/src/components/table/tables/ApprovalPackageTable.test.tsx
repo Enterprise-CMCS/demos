@@ -5,7 +5,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { ApprovalPackageTable } from "./ApprovalPackageTable";
-import { ApplicationWorkflowDocument } from "components/application/ApplicationWorkflow";
+import { ApplicationWorkflowDocument } from "components/application";
 import { DocumentType } from "demos-server";
 
 // Mock dialog context
@@ -35,7 +35,6 @@ const mockDocument = (
   ...overrides,
 });
 
-
 describe("ApprovalPackageTable", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -44,7 +43,7 @@ describe("ApprovalPackageTable", () => {
   const rows = [
     {
       documentType: "Approval Letter" as DocumentType,
-      id: undefined,
+      id: "Approval Letter-id",
       name: "-",
       description: "-",
       uploadedBy: "-",
@@ -53,7 +52,7 @@ describe("ApprovalPackageTable", () => {
     },
     {
       documentType: "Signed Decision Memo" as DocumentType,
-      id: "doc-22",
+      id: "Signed Decision Memo-id",
       name: "Decision Memo",
       description: "Memo desc",
       uploadedBy: "Alice",
@@ -79,9 +78,7 @@ describe("ApprovalPackageTable", () => {
   it("renders upload button for rows without a document", async () => {
     setup();
     await waitFor(() => {
-      expect(
-        screen.getByRole("button", { name: /Upload Approval Letter/i })
-      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Upload Approval Letter/i })).toBeInTheDocument();
     });
   });
 

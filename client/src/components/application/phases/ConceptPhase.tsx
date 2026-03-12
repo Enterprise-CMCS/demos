@@ -3,15 +3,13 @@ import React, { useEffect, useState } from "react";
 import { tw } from "tags/tw";
 import { Button, SecondaryButton } from "components/button";
 import { ChevronRightIcon, ExportIcon } from "components/icons";
-import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
-import { Option } from "components/input/select/Select";
 
 import {
-  ApplicationWorkflowDemonstration,
+  WorkflowApplication,
   ApplicationWorkflowDocument,
-} from "../ApplicationWorkflow";
+  WorkflowApplicationType,
+} from "components/application";
 import { formatDateForServer, getTodayEst } from "util/formatDate";
-import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
 import { DocumentList } from "./sections";
 import { useDialog } from "components/dialog/DialogContext";
 import { useToast } from "components/toast";
@@ -19,7 +17,8 @@ import { getPhaseCompletedMessage } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import { PhaseName } from "../phase-selector/PhaseSelector";
-import type { LocalDate } from "demos-server";
+import type { LocalDate, PhaseStatus, UploadDocumentInput } from "demos-server";
+import { useCompletePhase, useSkipConceptPhase } from "../phase-status/phaseCompletionQueries";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -34,35 +33,49 @@ const STYLES = {
   actions: tw`mt-8 flex justify-end gap-3`,
 };
 
-const DEMONSTRATION_TYPE_OPTIONS: Option[] = [
-  { label: "Section 1115", value: "1115" },
-  { label: "Section 1915(b)", value: "1915b" },
-  { label: "Section 1915(c)", value: "1915c" },
-];
-
-export const getConceptPhaseComponentFromDemonstration = (
-  demonstration: ApplicationWorkflowDemonstration,
-  setSelectedPhase?: (phase: PhaseName) => void
+export const getConceptPhaseComponentFromApplication = (
+  application: WorkflowApplication,
+  workflowApplicationType: WorkflowApplicationType,
+  setSelectedPhase: (phase: PhaseName) => void
 ) => {
-  const preSubmissionDocuments = demonstration.documents.filter(
+  const preSubmissionDocuments = application.documents.filter(
     (document) => document.phaseName === "Concept"
   );
 
+  const conceptPhase = application.phases.find((phase) => phase.phaseName === "Concept");
+  if (!conceptPhase) {
+    console.error("Concept phase data is missing for application:", application.id);
+    return null;
+  }
+
+  const presubmissionSubmittedDate = conceptPhase.phaseDates.find(
+    (date) => date.dateType === "Pre-Submission Submitted Date"
+  )?.dateValue;
+
   return (
     <ConceptPhase
-      demonstrationId={demonstration.id}
-      initialPreSubmissionDocuments={preSubmissionDocuments}
+      applicationId={application.id}
+      documents={preSubmissionDocuments}
+      presubmissionSubmittedDate={
+        presubmissionSubmittedDate ? formatDateForServer(presubmissionSubmittedDate) : undefined
+      }
       setSelectedPhase={setSelectedPhase}
+      workflowApplicationType={workflowApplicationType}
+      phaseStatus={conceptPhase.phaseStatus}
     />
   );
 };
 
-const getLatestDocumentDate = (
+const getLatestPresubmissionDocumentDate = (
   documents: ApplicationWorkflowDocument[]
 ): LocalDate | null => {
-  if (documents.length === 0) return null;
+  const presubmissionDocuments = documents.filter(
+    (document) => document.documentType === "Pre-Submission"
+  );
 
-  const createdAtDates = documents.map((doc) => doc.createdAt);
+  if (presubmissionDocuments.length === 0) return null;
+
+  const createdAtDates = presubmissionDocuments.map((doc) => doc.createdAt);
   const sortedDates = createdAtDates.sort((dateA, dateB) => {
     return new Date(dateB).getTime() - new Date(dateA).getTime();
   });
@@ -70,58 +83,63 @@ const getLatestDocumentDate = (
   return formatDateForServer(sortedDates[0]);
 };
 
-export interface ConceptProps {
-  demonstrationId: string;
-  initialPreSubmissionDocuments: ApplicationWorkflowDocument[];
+export interface ConceptPhaseProps {
+  applicationId: string;
+  documents: ApplicationWorkflowDocument[];
   setSelectedPhase?: (phase: PhaseName) => void;
+  presubmissionSubmittedDate?: LocalDate;
+  workflowApplicationType: WorkflowApplicationType;
+  phaseStatus: PhaseStatus;
 }
 
 export const ConceptPhase = ({
-  demonstrationId,
-  initialPreSubmissionDocuments,
+  applicationId,
+  documents,
   setSelectedPhase,
-}: ConceptProps) => {
+  presubmissionSubmittedDate,
+  workflowApplicationType,
+  phaseStatus,
+}: ConceptPhaseProps) => {
   const { showSuccess } = useToast();
   const { showConceptPreSubmissionDocumentUploadDialog } = useDialog();
   const { setApplicationDate } = useSetApplicationDate();
 
   const [submittedDate, setSubmittedDate] = useState<LocalDate | null>(
-    getLatestDocumentDate(initialPreSubmissionDocuments)
+    presubmissionSubmittedDate || getLatestPresubmissionDocumentDate(documents)
   );
-  const [demonstrationType, setDemonstrationType] = useState<string>("");
   const [isFinishEnabled, setIsFinishEnabled] = useState<boolean>(false);
   const [isSkipEnabled, setIsSkipEnabled] = useState<boolean>(true);
-  const [documents] = useState<ApplicationWorkflowDocument[]>(initialPreSubmissionDocuments);
+
+  const isPhaseFinalized = phaseStatus === "Completed" || phaseStatus === "Skipped";
 
   const advanceToNextPhase = () => {
     setSelectedPhase?.("Application Intake");
   };
 
   useEffect(() => {
-    const finishShouldBeEnabled = documents.length > 0 && !!submittedDate;
+    const finishShouldBeEnabled =
+      !isPhaseFinalized &&
+      documents.filter((document) => document.documentType === "Pre-Submission").length > 0 &&
+      !!submittedDate;
     setIsFinishEnabled(finishShouldBeEnabled);
-    setIsSkipEnabled(!finishShouldBeEnabled);
-  }, [submittedDate, documents]);
+    setIsSkipEnabled(!finishShouldBeEnabled && !isPhaseFinalized);
+  }, [submittedDate, documents, isPhaseFinalized]);
 
-  const { setPhaseStatus: completeConceptPhase } = useSetPhaseStatus({
-    applicationId: demonstrationId,
-    phaseName: "Concept",
-    phaseStatus: "Completed",
-  });
+  const { completePhase } = useCompletePhase();
+  const { skipConceptPhase } = useSkipConceptPhase();
 
-  const { setPhaseStatus: skipConceptPhase } = useSetPhaseStatus({
-    applicationId: demonstrationId,
-    phaseName: "Concept",
-    phaseStatus: "Skipped",
-  });
-
-  const handleDocumentUploadSucceeded = () => {
-    const todayEst = getTodayEst();
-    setSubmittedDate(todayEst);
+  const handleDocumentUploadSucceeded = (payload?: UploadDocumentInput) => {
+    if (payload?.documentType === "Pre-Submission") {
+      const todayEst = getTodayEst();
+      setSubmittedDate(todayEst);
+    }
   };
 
   const getDateValidationMessage = (): string => {
-    if (documents.length > 0 && !submittedDate) {
+    if (
+      documents.filter((document) => document.documentType === "Pre-Submission").length > 0 &&
+      !submittedDate
+    ) {
       return "Date is required when documents are uploaded";
     } else if (documents.length === 0 && submittedDate) {
       return "At least one Pre-Submission document is required when date is provided";
@@ -138,7 +156,7 @@ export const ConceptPhase = ({
     const payloadDate: LocalDate = submittedDate;
     try {
       await setApplicationDate({
-        applicationId: demonstrationId,
+        applicationId: applicationId,
         dateType: "Pre-Submission Submitted Date",
         dateValue: payloadDate,
       });
@@ -148,7 +166,10 @@ export const ConceptPhase = ({
     }
 
     try {
-      await completeConceptPhase();
+      await completePhase({
+        applicationId: applicationId,
+        phaseName: "Concept",
+      });
     } catch (error) {
       console.error("Error completing concept phase:", error);
       return;
@@ -160,7 +181,7 @@ export const ConceptPhase = ({
 
   const onSkip = async () => {
     try {
-      await skipConceptPhase();
+      await skipConceptPhase(applicationId);
     } catch (error) {
       console.error("Error skipping concept phase:", error);
       return;
@@ -170,21 +191,22 @@ export const ConceptPhase = ({
     advanceToNextPhase();
   };
 
-  const UploadSection = () => (
+  const UploadSection = ({
+    workflowApplicationType,
+  }: {
+    workflowApplicationType: WorkflowApplicationType;
+  }) => (
     <div aria-labelledby="state-application-upload-title">
       <h4 id="state-application-upload-title" className={STYLES.title}>
         STEP 1 - UPLOAD
       </h4>
       <p className={STYLES.helper}>
-        Upload the Pre-Submission Document describing your demonstration.
+        Upload the Pre-Submission Document describing your {workflowApplicationType}.
       </p>
 
       <SecondaryButton
         onClick={() =>
-          showConceptPreSubmissionDocumentUploadDialog(
-            demonstrationId,
-            handleDocumentUploadSucceeded
-          )
+          showConceptPreSubmissionDocumentUploadDialog(applicationId, handleDocumentUploadSucceeded)
         }
         size="small"
         name="button-open-upload-modal"
@@ -218,16 +240,9 @@ export const ConceptPhase = ({
             }}
             isRequired={documents.length > 0}
             getValidationMessage={getDateValidationMessage}
+            isDisabled={isPhaseFinalized}
           />
         </div>
-
-        <AutoCompleteSelect
-          id="demo-type"
-          label="Demonstration Type(s) Requested"
-          options={DEMONSTRATION_TYPE_OPTIONS}
-          value={demonstrationType}
-          onSelect={(v) => setDemonstrationType(String(v))}
-        />
       </div>
 
       <div className={STYLES.actions}>
@@ -253,7 +268,7 @@ export const ConceptPhase = ({
       <section className={STYLES.pane}>
         <div className={STYLES.grid}>
           <span aria-hidden className={STYLES.divider} />
-          <UploadSection />
+          <UploadSection workflowApplicationType={workflowApplicationType} />
           <VerifyCompleteSection />
         </div>
       </section>

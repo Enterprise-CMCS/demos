@@ -7,12 +7,9 @@ import { ExportIcon } from "components/icons";
 import { addDays, parseISO } from "date-fns";
 import { tw } from "tags/tw";
 import { formatDateForServer } from "util/formatDate";
-import {
-  ApplicationWorkflowDemonstration,
-  ApplicationWorkflowDocument,
-} from "components/application/ApplicationWorkflow";
+import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { PhaseName } from "components/application/phase-selector/PhaseSelector";
-import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
+import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { useDialog } from "components/dialog/DialogContext";
 import { DocumentList } from "./sections";
@@ -20,7 +17,7 @@ import { getPhaseCompletedMessage } from "util/messages";
 import { useToast } from "components/toast";
 import { DatePicker } from "components/input/date/DatePicker";
 import { DemonstrationHealthTypeTags } from "components/tags/DemonstrationHealthTypeTags";
-import type { DateTimeOrLocalDate } from "demos-server";
+import type { DateTimeOrLocalDate, PhaseStatus } from "demos-server";
 import { SET_APPLICATION_TAGS_MUTATION } from "components/dialog/ApplyTagsDialog";
 
 /** Business Rules for this Phase:
@@ -85,6 +82,7 @@ interface VerifyCompleteSectionProps {
   onDateChange: (newDate: string) => void;
   isFinishButtonEnabled: boolean;
   onFinish: () => void;
+  isPhaseFinalized: boolean;
 }
 
 const VerifyCompleteSection = ({
@@ -93,6 +91,7 @@ const VerifyCompleteSection = ({
   onDateChange,
   isFinishButtonEnabled,
   onFinish,
+  isPhaseFinalized,
 }: VerifyCompleteSectionProps) => (
   <div aria-labelledby="state-application-verify-title">
     <div className={STYLES.stepEyebrow}>Step 2 - Verify/Complete</div>
@@ -112,6 +111,7 @@ const VerifyCompleteSection = ({
           onChange={onDateChange}
           isRequired
           aria-required="true"
+          isDisabled={isPhaseFinalized}
         />
         {!hasDocuments && stateApplicationSubmittedDate && (
           <div className="text-xs text-text-warn mt-1">
@@ -150,11 +150,11 @@ const VerifyCompleteSection = ({
   </div>
 );
 
-export const getApplicationIntakeComponentFromDemonstration = (
-  demonstration: ApplicationWorkflowDemonstration,
+export const getApplicationIntakeComponentFromApplication = (
+  application: WorkflowApplication,
   setSelectedPhase?: (phase: PhaseName) => void
 ) => {
-  const applicationIntakePhase = demonstration.phases.find(
+  const applicationIntakePhase = application.phases.find(
     (phase) => phase.phaseName === "Application Intake"
   );
 
@@ -162,19 +162,20 @@ export const getApplicationIntakeComponentFromDemonstration = (
     (date) => date.dateType === "State Application Submitted Date"
   )?.dateValue;
 
-  const stateApplicationDocuments = demonstration.documents.filter(
+  const stateApplicationDocuments = application.documents.filter(
     (doc) => doc.phaseName === "Application Intake"
   );
 
   return (
     <ApplicationIntakePhase
-      demonstrationId={demonstration.id}
+      demonstrationId={application.id}
       initialStateApplicationDocuments={stateApplicationDocuments}
       initialStateApplicationSubmittedDate={
         stateApplicationSubmittedDate ? formatDateForServer(stateApplicationSubmittedDate) : ""
       }
-      initialSelectedTags={demonstration.tags}
+      initialSelectedTags={application.tags}
       setSelectedPhase={setSelectedPhase}
+      phaseStatus={applicationIntakePhase?.phaseStatus ?? "Not Started"}
     />
   );
 };
@@ -184,6 +185,7 @@ export interface ApplicationIntakeProps {
   initialStateApplicationSubmittedDate: string;
   initialSelectedTags: string[];
   setSelectedPhase?: (phase: PhaseName) => void;
+  phaseStatus: PhaseStatus;
 }
 
 export const ApplicationIntakePhase = ({
@@ -192,6 +194,7 @@ export const ApplicationIntakePhase = ({
   initialStateApplicationSubmittedDate,
   initialSelectedTags,
   setSelectedPhase,
+  phaseStatus,
 }: ApplicationIntakeProps) => {
   const { showSuccess, showError } = useToast();
   const { showApplicationIntakeDocumentUploadDialog } = useDialog();
@@ -202,11 +205,9 @@ export const ApplicationIntakePhase = ({
   );
   const [selectedTags, setSelectedTags] = useState<string[]>(initialSelectedTags);
 
-  const { setPhaseStatus: completeApplicationIntake } = useSetPhaseStatus({
-    applicationId: demonstrationId,
-    phaseName: "Application Intake",
-    phaseStatus: "Completed",
-  });
+  const isPhaseFinalized = phaseStatus === "Completed";
+
+  const { completePhase } = useCompletePhase();
 
   const { setApplicationDates } = useSetApplicationDates();
 
@@ -215,11 +216,31 @@ export const ApplicationIntakePhase = ({
   }, [initialStateApplicationSubmittedDate]);
 
   const hasDocuments = initialStateApplicationDocuments.length > 0;
+
+  const clearDates = () => {
+    setStateApplicationSubmittedDate("");
+    setApplicationDates({
+      applicationId: demonstrationId,
+      applicationDates: [
+        { dateType: "State Application Submitted Date", dateValue: null },
+        { dateType: "Completeness Review Due Date", dateValue: null },
+      ],
+    });
+  };
+  useEffect(() => {
+    if (!hasDocuments && stateApplicationSubmittedDate) {
+      clearDates();
+    }
+  }, [hasDocuments, stateApplicationSubmittedDate]);
+
   const hasSubmittedDate = Boolean(stateApplicationSubmittedDate);
-  const isFinishButtonEnabled = hasDocuments && hasSubmittedDate;
+  const isFinishButtonEnabled = hasDocuments && hasSubmittedDate && !isPhaseFinalized;
 
   const onFinishButtonClick = async () => {
-    await completeApplicationIntake();
+    await completePhase({
+      applicationId: demonstrationId,
+      phaseName: "Application Intake",
+    });
     showSuccess(getPhaseCompletedMessage("Application Intake"));
 
     setSelectedPhase?.("Completeness");
@@ -245,12 +266,10 @@ export const ApplicationIntakePhase = ({
             dateType: "Completeness Review Due Date",
             dateValue: completenessReviewDueDate,
           },
-          {
-            dateType: "Completeness Start Date",
-            dateValue: formattedNewDate,
-          },
         ],
       });
+    } else {
+      clearDates();
     }
   };
 
@@ -289,9 +308,7 @@ export const ApplicationIntakePhase = ({
           <UploadSection
             demonstrationId={demonstrationId}
             documents={initialStateApplicationDocuments}
-            onOpenUploadModal={(id) =>
-              showApplicationIntakeDocumentUploadDialog(id, () => {})
-            }
+            onOpenUploadModal={(id) => showApplicationIntakeDocumentUploadDialog(id, () => {})}
           />
           <VerifyCompleteSection
             stateApplicationSubmittedDate={stateApplicationSubmittedDate}
@@ -299,6 +316,7 @@ export const ApplicationIntakePhase = ({
             onDateChange={handleDateChange}
             isFinishButtonEnabled={isFinishButtonEnabled}
             onFinish={onFinishButtonClick}
+            isPhaseFinalized={isPhaseFinalized}
           />
         </div>
         <div className="mt-8">

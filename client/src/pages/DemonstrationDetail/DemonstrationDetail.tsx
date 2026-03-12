@@ -6,14 +6,13 @@ import {
   DemonstrationRoleAssignment,
   DemonstrationTypeAssignment,
   Document,
-  Extension,
   Person,
 } from "demos-server";
 import { useLocation, useParams } from "react-router-dom";
 import { gql, useQuery } from "@apollo/client";
-import { AmendmentsTab } from "./AmendmentsTab";
+import { AmendmentsTab } from "./modifications/AmendmentsTab";
 import { DemonstrationTab } from "./DemonstrationTab";
-import { ExtensionsTab } from "./ExtensionsTab";
+import { ExtensionsTab } from "./modifications/ExtensionsTab";
 import { Tab, Tabs } from "layout/Tabs";
 
 export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
@@ -45,10 +44,48 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       status
       currentPhaseName
       amendments {
+        name
         id
+        description
+        status
+        createdAt
+        effectiveDate
+        signatureLevel
+        documents {
+          id
+          name
+          description
+          documentType
+          phaseName
+          createdAt
+          owner {
+            person {
+              fullName
+            }
+          }
+        }
       }
       extensions {
         id
+        name
+        description
+        status
+        createdAt
+        effectiveDate
+        signatureLevel
+        documents {
+          id
+          name
+          description
+          documentType
+          phaseName
+          createdAt
+          owner {
+            person {
+              fullName
+            }
+          }
+        }
       }
       demonstrationTypes {
         demonstrationTypeName
@@ -84,9 +121,17 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
   }
 `;
 
+export type DemonstrationDetailModification = Pick<
+  Amendment,
+  "id" | "name" | "description" | "status" | "createdAt" | "effectiveDate" | "signatureLevel"
+> & {
+  documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
+    owner: { person: Pick<Person, "fullName"> };
+  })[];
+};
 export type DemonstrationDetail = Pick<Demonstration, "id" | "status" | "currentPhaseName"> & {
-  amendments: Pick<Amendment, "id">[];
-  extensions: Pick<Extension, "id">[];
+  amendments: DemonstrationDetailModification[];
+  extensions: DemonstrationDetailModification[];
   demonstrationTypes: Pick<
     DemonstrationTypeAssignment,
     "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "createdAt"
@@ -131,6 +176,9 @@ export const DemonstrationDetail: React.FC = () => {
     return <div>Failed to load demonstration.</div>;
   }
 
+  const hasAmendments = demonstration.amendments && demonstration.amendments.length > 0;
+  const hasExtensions = demonstration.extensions && demonstration.extensions.length > 0;
+
   return (
     <div>
       {
@@ -142,17 +190,25 @@ export const DemonstrationDetail: React.FC = () => {
               <DemonstrationTab demonstration={demonstration} />
             </Tab>
 
-            <Tab label={`Amendments (${demonstration.amendments?.length ?? 0})`} value="amendments">
+            <Tab
+              label={`Amendments (${demonstration.amendments?.length ?? 0})`}
+              value="amendments"
+              shouldRender={hasAmendments}
+            >
               <AmendmentsTab
                 demonstrationId={demonstration.id}
-                initiallyExpandedId={amendmentParam ?? undefined}
+                amendments={demonstration.amendments}
               />
             </Tab>
 
-            <Tab label={`Extensions (${demonstration.extensions?.length ?? 0})`} value="extensions">
+            <Tab
+              label={`Extensions (${demonstration.extensions?.length ?? 0})`}
+              value="extensions"
+              shouldRender={hasExtensions}
+            >
               <ExtensionsTab
                 demonstrationId={demonstration.id}
-                initiallyExpandedId={extensionParam ?? undefined}
+                extensions={demonstration.extensions}
               />
             </Tab>
           </Tabs>

@@ -129,6 +129,7 @@ describe("DemonstrationTab", () => {
       await user.click(manageContactsButton);
 
       const roles = mockDemonstration.roles.map((role) => ({
+        id: `${role.role}-${role.person.id}`,
         person: {
           id: role.person.id,
           fullName: role.person.fullName,

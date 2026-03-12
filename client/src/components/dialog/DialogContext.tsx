@@ -3,6 +3,7 @@ import {
   DocumentType,
   Tag as DemonstrationTypeName,
   DemonstrationTypeAssignment,
+  UploadDocumentInput,
 } from "demos-server";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
@@ -25,6 +26,9 @@ import { ApplyDemonstrationTypesDialog } from "./DemonstrationTypes/ApplyDemonst
 import { ApplyTagsDialog } from "./ApplyTagsDialog";
 import { RemoveDemonstrationTypesDialog } from "./DemonstrationTypes/RemoveDemonstrationTypesDialog";
 import { EditDemonstrationTypeDialog } from "./DemonstrationTypes/EditDemonstrationTypeDialog";
+import { UpdateExtensionDialog } from "./modification/EditExtensionDialog";
+import { UpdateAmendmentDialog } from "./modification/EditAmendmentDialog";
+import { ConfirmApproveDialog } from "./ConfirmApproveDialog";
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -63,20 +67,22 @@ export const useDialog = () => {
   };
 
   const showCreateAmendmentDialog = (demonstrationId?: string) => {
-    context.showDialog(
-      <CreateAmendmentDialog
-        initialDemonstrationId={demonstrationId}
-        onClose={context.hideDialog}
-      />
-    );
+    context.showDialog(<CreateAmendmentDialog demonstrationId={demonstrationId} />);
   };
 
   const showCreateExtensionDialog = (demonstrationId?: string) => {
+    context.showDialog(<CreateExtensionDialog demonstrationId={demonstrationId} />);
+  };
+
+  const showUpdateExtensionDialog = (extensionId: string, refetchQueries: string[] = []) => {
     context.showDialog(
-      <CreateExtensionDialog
-        initialDemonstrationId={demonstrationId}
-        onClose={context.hideDialog}
-      />
+      <UpdateExtensionDialog extensionId={extensionId} refetchQueries={refetchQueries} />
+    );
+  };
+
+  const showUpdateAmendmentDialog = (amendmentId: string, refetchQueries: string[] = []) => {
+    context.showDialog(
+      <UpdateAmendmentDialog amendmentId={amendmentId} refetchQueries={refetchQueries} />
     );
   };
 
@@ -131,9 +137,13 @@ export const useDialog = () => {
     );
   };
 
-  const showCompletenessDocumentUploadDialog = (applicationId: string) => {
+  const showCompletenessDocumentUploadDialog = (
+    applicationId: string,
+    onDocumentUploadSucceeded?: (payload?: UploadDocumentInput) => void
+  ) => {
     context.showDialog(
       <CompletenessDocumentUploadDialog
+        onDocumentUploadSucceeded={onDocumentUploadSucceeded}
         onClose={context.hideDialog}
         applicationId={applicationId}
       />
@@ -142,7 +152,7 @@ export const useDialog = () => {
 
   const showConceptPreSubmissionDocumentUploadDialog = (
     applicationId: string,
-    onDocumentUploadSucceeded: () => void
+    onDocumentUploadSucceeded: (payload?: UploadDocumentInput) => void
   ) => {
     context.showDialog(
       <ConceptPreSubmissionUploadDialog
@@ -209,13 +219,26 @@ export const useDialog = () => {
     );
   };
 
-  const showApplyTagsDialog = (demonstrationId: string,allTags: string[], selectedTags: string[]) => {
+  const showApplyTagsDialog = (
+    demonstrationId: string,
+    allTags: string[],
+    selectedTags: string[]
+  ) => {
     context.showDialog(
       <ApplyTagsDialog
         demonstrationId={demonstrationId}
         allTags={allTags}
         initiallySelectedTags={selectedTags}
         onClose={context.hideDialog}
+      />
+    );
+  };
+
+  const showConfirmApproveDialog = (onConfirm: () => void) => {
+    context.showDialog(
+      <ConfirmApproveDialog
+        onClose={context.hideDialog}
+        onConfirm={onConfirm}
       />
     );
   };
@@ -240,5 +263,8 @@ export const useDialog = () => {
     showApplyTagsDialog,
     showRemoveDemonstrationTypesDialog,
     showEditDemonstrationTypeDialog,
+    showUpdateExtensionDialog,
+    showUpdateAmendmentDialog,
+    showConfirmApproveDialog,
   };
 };

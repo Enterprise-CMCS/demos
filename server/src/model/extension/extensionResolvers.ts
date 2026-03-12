@@ -20,6 +20,7 @@ import {
   resolveApplicationPhases,
   resolveApplicationStatus,
   resolveApplicationTags,
+  resolveApplicationSignatureLevel,
 } from "../application";
 
 const extensionApplicationType: ApplicationType = "Extension";
@@ -30,7 +31,7 @@ export async function __getExtension(
   parent: unknown,
   { id }: { id: string }
 ): Promise<PrismaExtension> {
-  return await getApplication(id, "Extension");
+  return await getApplication(id, { applicationTypeId: "Extension" });
 }
 
 export async function __getManyExtensions(): Promise<PrismaExtension[]> {
@@ -57,6 +58,7 @@ export async function __createExtension(
         description: input.description,
         statusId: newApplicationStatusId,
         currentPhaseId: conceptPhaseName,
+        signatureLevelId: input.signatureLevel,
       },
     });
   });
@@ -79,6 +81,7 @@ export async function __updateExtension(
         description: input.description,
         effectiveDate: effectiveDate,
         statusId: input.status,
+        signatureLevelId: input.signatureLevel,
       },
     });
   } catch (error) {
@@ -125,5 +128,6 @@ export const extensionResolvers = {
     phases: resolveApplicationPhases,
     clearanceLevel: resolveApplicationClearanceLevel,
     tags: resolveApplicationTags,
+    signatureLevel: resolveApplicationSignatureLevel,
   },
 };

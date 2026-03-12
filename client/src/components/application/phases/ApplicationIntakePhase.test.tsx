@@ -11,26 +11,22 @@ import {
   ApplicationIntakePhase,
   ApplicationIntakeProps,
   getCompletenessReviewDueDate,
-  getApplicationIntakeComponentFromDemonstration,
+  getApplicationIntakeComponentFromApplication,
 } from "./ApplicationIntakePhase";
 import {
   ApplicationWorkflowDocument,
   ApplicationWorkflowDemonstration,
-} from "../ApplicationWorkflow";
+} from "components/application";
 import { formatDateForServer, getTodayEst } from "util/formatDate";
 
 vi.mock("@apollo/client", async () => {
   const actual = await vi.importActual("@apollo/client");
   return {
     ...actual,
-    useMutation: vi.fn(() => [
-      mockSetApplicationTagsMutation,
-      { loading: false, error: null },
-    ]),
+    useMutation: vi.fn(() => [mockSetApplicationTagsMutation, { loading: false, error: null }]),
   };
 });
 
-const mockSetApplicationDate = vi.fn(() => Promise.resolve({ data: {} }));
 const mockSetApplicationDates = vi.fn(() => Promise.resolve({ data: {} }));
 const mockSetApplicationTagsMutation = vi.fn(() => Promise.resolve({ data: {} }));
 
@@ -40,11 +36,6 @@ const mockPO = {
 };
 
 vi.mock("components/application/date/dateQueries", () => ({
-  useSetApplicationDate: vi.fn(() => ({
-    setApplicationDate: mockSetApplicationDate,
-    loading: false,
-    error: null,
-  })),
   useSetApplicationDates: vi.fn(() => ({
     setApplicationDates: mockSetApplicationDates,
     loading: false,
@@ -60,12 +51,20 @@ vi.mock("components/dialog/DialogContext", () => ({
   }),
 }));
 
+const mockCompletePhase = vi.fn();
+vi.mock("../phase-status/phaseCompletionQueries", () => ({
+  useCompletePhase: () => ({
+    completePhase: mockCompletePhase,
+  }),
+}));
+
 describe("ApplicationIntakePhase", () => {
   const defaultProps: ApplicationIntakeProps = {
     demonstrationId: "test-demo-id",
     initialStateApplicationDocuments: [],
     initialStateApplicationSubmittedDate: "",
     initialSelectedTags: [],
+    phaseStatus: "Started",
   };
 
   const mockStateApplicationDocument: ApplicationWorkflowDocument = {
@@ -199,9 +198,7 @@ describe("ApplicationIntakePhase", () => {
 
       expect(screen.getByText("STEP 3 - APPLY TAGS")).toBeInTheDocument();
       expect(
-        screen.getByText(
-          /You must tag this application with one or more demonstration types/
-        )
+        screen.getByText(/You must tag this application with one or more demonstration types/)
       ).toBeInTheDocument();
     });
 
@@ -217,9 +214,7 @@ describe("ApplicationIntakePhase", () => {
         initialSelectedTags: ["Behavioral Health", "Substance Use"],
       });
 
-      const removeButton = screen.getByTestId(
-        "remove-Behavioral Health-button"
-      );
+      const removeButton = screen.getByTestId("remove-Behavioral Health-button");
 
       await userEvent.click(removeButton);
 
@@ -273,6 +268,10 @@ describe("ApplicationIntakePhase", () => {
         const finishButton = screen.getByRole("button", { name: /finish/i });
         await userEvent.click(finishButton);
 
+        expect(mockCompletePhase).toHaveBeenCalledWith({
+          applicationId: "test-demo-id",
+          phaseName: "Application Intake",
+        });
         expect(setSelectedPhase).toHaveBeenCalledWith("Completeness");
       });
     });
@@ -355,7 +354,7 @@ describe("ApplicationIntakePhase", () => {
     });
   });
 
-  describe("getApplicationIntakeComponentFromDemonstration", () => {
+  describe("getApplicationIntakeComponentFromApplication", () => {
     it("should extract demonstration data and return ApplicationIntakePhase component", () => {
       const mockDemonstration: ApplicationWorkflowDemonstration = {
         id: "demo-123",
@@ -396,7 +395,7 @@ describe("ApplicationIntakePhase", () => {
         tags: [],
       };
 
-      const component = getApplicationIntakeComponentFromDemonstration(mockDemonstration);
+      const component = getApplicationIntakeComponentFromApplication(mockDemonstration);
 
       expect(component).toBeDefined();
       expect(component.type).toBe(ApplicationIntakePhase);
@@ -420,6 +419,39 @@ describe("ApplicationIntakePhase", () => {
       fireEvent.change(submittedDateInput, { target: { value: "2024-03-15" } });
 
       expect(submittedDateInput.value).toBe("2024-03-15");
+    });
+
+    it("calls setApplicationDates with only State Application Submitted Date and Completeness Review Due Date", async () => {
+      vi.clearAllMocks();
+
+      setup({
+        initialStateApplicationDocuments: [mockStateApplicationDocument],
+      });
+
+      const dateInputs = screen.getAllByDisplayValue("");
+      const submittedDateInput = dateInputs.find(
+        (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
+      ) as HTMLInputElement;
+
+      fireEvent.change(submittedDateInput, { target: { value: "2024-03-15" } });
+
+      await waitFor(() => {
+        expect(mockSetApplicationDates).toHaveBeenCalledTimes(1);
+      });
+
+      expect(mockSetApplicationDates).toHaveBeenCalledWith({
+        applicationId: "test-demo-id",
+        applicationDates: [
+          {
+            dateType: "State Application Submitted Date",
+            dateValue: "2024-03-15",
+          },
+          {
+            dateType: "Completeness Review Due Date",
+            dateValue: "2024-03-30",
+          },
+        ],
+      });
     });
 
     it("updates completeness review due date when state application date changes", async () => {
@@ -467,7 +499,9 @@ describe("ApplicationIntakePhase", () => {
       expect(finishButton).toBeDisabled();
     });
 
-    it("finish button remains disabled when no documents even with date", () => {
+    it("finish button remains disabled when no documents even with date, and date is cleared (DEMOS-1675)", async () => {
+      vi.clearAllMocks();
+
       setup({
         initialStateApplicationDocuments: [],
         initialStateApplicationSubmittedDate: "2024-03-15",
@@ -476,12 +510,22 @@ describe("ApplicationIntakePhase", () => {
       const finishButton = screen.getByRole("button", { name: /finish/i });
       expect(finishButton).toBeDisabled();
 
-      // DatePicker uses defaultValue so it displays the initial value
-      // Finish button is still disabled due to lack of documents
-      const submittedDateInput = screen.getByTestId(
-        "datepicker-state-application-submitted-date"
-      ) as HTMLInputElement;
-      expect(submittedDateInput.defaultValue).toBe("2024-03-15");
+      // When there are no documents, the date should be auto-cleared (DEMOS-1675)
+      await waitFor(() => {
+        const submittedDateInput = screen.getByTestId(
+          "datepicker-state-application-submitted-date"
+        ) as HTMLInputElement;
+        expect(submittedDateInput.value).toBe("");
+      });
+
+      // Verify dates were cleared on the server
+      expect(mockSetApplicationDates).toHaveBeenCalledWith({
+        applicationId: "test-demo-id",
+        applicationDates: [
+          { dateType: "State Application Submitted Date", dateValue: null },
+          { dateType: "Completeness Review Due Date", dateValue: null },
+        ],
+      });
     });
 
     it("handles empty date value correctly", async () => {
@@ -498,6 +542,33 @@ describe("ApplicationIntakePhase", () => {
       await userEvent.clear(submittedDateInput);
 
       expect(submittedDateInput.value).toBe("");
+    });
+
+    it("clears dates on the server when user manually clears the date field (DEMOS-1675)", async () => {
+      vi.clearAllMocks();
+
+      setup({
+        initialStateApplicationDocuments: [mockStateApplicationDocument],
+        initialStateApplicationSubmittedDate: "2024-03-15",
+      });
+
+      const submittedDateInput = screen
+        .getAllByDisplayValue("2024-03-15")
+        .find(
+          (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
+        ) as HTMLInputElement;
+
+      fireEvent.change(submittedDateInput, { target: { value: "" } });
+
+      await waitFor(() => {
+        expect(mockSetApplicationDates).toHaveBeenCalledWith({
+          applicationId: "test-demo-id",
+          applicationDates: [
+            { dateType: "State Application Submitted Date", dateValue: null },
+            { dateType: "Completeness Review Due Date", dateValue: null },
+          ],
+        });
+      });
     });
   });
 

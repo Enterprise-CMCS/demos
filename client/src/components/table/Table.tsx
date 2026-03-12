@@ -147,7 +147,7 @@ export interface TableProps<T> {
   hideSearchAndActions?: boolean;
 }
 
-export function Table<T>({
+export function Table<T extends { id: string }>({
   data,
   columns,
   emptyRowsMessage,
@@ -167,6 +167,7 @@ export function Table<T>({
   const table = useReactTable<T>({
     data,
     columns,
+    getRowId: (row) => row.id,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -206,6 +207,19 @@ export function Table<T>({
     table.getState().columnFilters,
     table.getState().globalFilter,
   ]);
+
+  // On data update, remove rows from selection if they no longer exist in the table
+  React.useEffect(() => {
+    setRowSelection((prev) => {
+      const validRowIds = new Set(table.getRowModel().rows.map((r) => r.id));
+
+      const filtered = Object.fromEntries(
+        Object.entries(prev).filter(([key]) => validRowIds.has(key))
+      );
+
+      return filtered;
+    });
+  }, [data]);
 
   return (
     <>

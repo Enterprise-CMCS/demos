@@ -1,8 +1,23 @@
 import React from "react";
+import { gql, useQuery } from "@apollo/client";
 import { useDialog } from "components/dialog/DialogContext";
 import { Button } from "components/button";
 import { DocumentType } from "demos-server";
 import { ExistingContactType } from "components/dialog/ManageContactsDialog";
+
+const DIALOG_SANDBOX_ID_QUERY = gql`
+  query DialogSandboxIdQuery {
+    demonstrations {
+      id
+    }
+  }
+`;
+
+type DialogSandboxIdQueryResult = {
+  demonstrations: {
+    id: string;
+  }[];
+};
 
 export const DialogSandbox: React.FC = () => {
   const {
@@ -22,9 +37,13 @@ export const DialogSandbox: React.FC = () => {
     showDeclareIncompleteDialog,
     showApplyDemonstrationTypesDialog,
     showApplyTagsDialog,
+    showUpdateExtensionDialog,
+    showUpdateAmendmentDialog,
   } = useDialog();
 
   const ID = "1";
+  const { data } = useQuery<DialogSandboxIdQueryResult>(DIALOG_SANDBOX_ID_QUERY);
+  const demoId = data?.demonstrations?.[0]?.id;
 
   const EXISTING_CONTACTS: ExistingContactType[] = [
     {
@@ -51,6 +70,10 @@ export const DialogSandbox: React.FC = () => {
     },
   ];
 
+  const demonstrationId = "7d1cb7f6-bdbc-41d0-9fc4-0df36375b929";
+  const amendmentId = "20a8d8a0-235b-4433-aea7-f1dc0ca30b08";
+  const extensionId = "75cae749-c286-4b90-ac54-3dfb92f25d08";
+
   return (
     <div className="flex flex-col gap-2 p-2">
       <h2 className="text-xl font-bold">Dialog Sandbox</h2>
@@ -63,11 +86,29 @@ export const DialogSandbox: React.FC = () => {
         <Button name="edit-demonstration" onClick={() => showEditDemonstrationDialog(ID)}>
           Edit Demonstration
         </Button>
-        <Button name="create-amendment" onClick={() => showCreateAmendmentDialog(ID)}>
-          Create Amendment
+        <Button name="create-amendment-no-demo" onClick={() => showCreateAmendmentDialog()}>
+          Create Amendment (no demo)
         </Button>
-        <Button name="create-extension" onClick={() => showCreateExtensionDialog(ID)}>
-          Create Extension
+        <Button
+          name="create-amendment-demo"
+          onClick={() => showCreateAmendmentDialog(demonstrationId)}
+        >
+          Create Amendment (demo)
+        </Button>
+        <Button name="create-extension-no-demo" onClick={() => showCreateExtensionDialog()}>
+          Create Extension (no demo)
+        </Button>
+        <Button
+          name="create-extension-demo"
+          onClick={() => showCreateExtensionDialog(demonstrationId)}
+        >
+          Create Extension (demo)
+        </Button>
+        <Button name="update-amendment" onClick={() => showUpdateAmendmentDialog(amendmentId)}>
+          Update Amendment
+        </Button>
+        <Button name="update-extension" onClick={() => showUpdateExtensionDialog(extensionId)}>
+          Update Extension
         </Button>
       </div>
       <div className="flex flex-wrap gap-2">
@@ -93,6 +134,14 @@ export const DialogSandbox: React.FC = () => {
         <Button name="remove-document" onClick={() => showRemoveDocumentDialog([ID])}>
           Remove Document
         </Button>
+        {demoId ? (
+          <Button
+            name="upload-bn-workbook"
+            onClick={() => showUploadDocumentDialog(demoId)}
+          >
+            Upload Document By a Real Applicaiton ID
+          </Button>
+        ) : null}
         <Button
           name="application-intake"
           onClick={() => showApplicationIntakeDocumentUploadDialog(ID, () => {})}
@@ -113,9 +162,7 @@ export const DialogSandbox: React.FC = () => {
         </Button>
         <Button
           name="approval-package"
-          onClick={() =>
-            showApprovalPackageDocumentUploadDialog(ID, "Permit Application" as DocumentType)
-          }
+          onClick={() => showApprovalPackageDocumentUploadDialog(ID, "Approval Letter" as DocumentType)}
         >
           Approval Package
         </Button>
@@ -124,16 +171,10 @@ export const DialogSandbox: React.FC = () => {
           <Button name="declare-incomplete" onClick={() => showDeclareIncompleteDialog(() => {})}>
             Declare Incomplete
           </Button>
-          <Button
-            name="manage-contacts"
-            onClick={() => showManageContactsDialog(ID, EXISTING_CONTACTS)}
-          >
+          <Button name="manage-contacts" onClick={() => showManageContactsDialog(ID, EXISTING_CONTACTS)}>
             Manage Contacts
           </Button>
-          <Button
-            name="apply-demonstration-types"
-            onClick={() => showApplyDemonstrationTypesDialog(ID)}
-          >
+          <Button name="apply-demonstration-types" onClick={() => showApplyDemonstrationTypesDialog(ID)}>
             Apply Demonstration Types
           </Button>
           <Button

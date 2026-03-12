@@ -1,5 +1,5 @@
-import path from "path";
-import fs from "fs";
+import path from "node:path";
+import fs from "node:fs";
 
 import { getSecret } from "../lib/getSecret";
 import { runShell } from "../lib/runCommand";
@@ -17,8 +17,8 @@ export async function dbReset(environment: string, absPath: string = "") {
   console.log(environment);
   const dbname = "demos";
 
-  if (!["dev", "test"].includes(environment)) {
-    console.error("db resets can only be run against the dev or test database");
+  if (!["dev", "test", "impl"].includes(environment)) {
+    console.error("db resets can only be run against the dev, test, or impl database");
     return 1;
   }
 

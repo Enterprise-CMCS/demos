@@ -16,8 +16,8 @@ erDiagram
 
   tag ||--|{ tag_configuration : "FK077"
   tag_type ||--|{ tag_configuration : "FK078"
-  tag_configuration }|--|| tag_configuration_status : "FK079"
-  tag_configuration }|--|| tag_configuration_source : "FK080"
+  tag_configuration }|--|| tag_configuration_status : "FK080"
+  tag_configuration }|--|| tag_configuration_source : "FK079"
   tag_configuration ||--|{ demonstration_type_tag_assignment : "FK081"
   tag_configuration ||--|{ application_tag_assignment : "FK082"
   tag_type ||--|| demonstration_type_tag_type_limit : "FK083"
@@ -38,8 +38,6 @@ erDiagram
   note_type ||--|{ application_note  : "FK074"
   application_date }|--|| application : "FK002"
   application_note }|--|| application : "FK073"
-  application_phase }|--|| application_phase_type_limit : "FK006"
-  application_phase_type_limit ||--|| phase : "FK067"
   application }|--|| application_type : "FK007"
   application ||--|| demonstration : "FK008"
   application ||--|| extension : "FK009"
@@ -102,6 +100,53 @@ erDiagram
   event }|--|| log_level : "FK066"
   role ||--|{ event : "FK053"
   event }|--|| users : "FK054"
+  demonstration }|--|| clearance_level : "FK089"
+  amendment }|--|| clearance_level : "FK090"
+  extension }|--|| clearance_level : "FK091"
+  amendment }|--|| signature_level : "FK092"
+  extension }|--|| signature_level : "FK093"
+  document_type ||--|| budget_neutrality_workbook_document_type_limit : "FK123"
+  document ||--|| budget_neutrality_workbook : "FK124"
+  budget_neutrality_workbook_document_type_limit ||--|{ budget_neutrality_workbook : "FK125"
+  budget_neutrality_workbook }|--|| budget_neutrality_validation_status : "FK126"
+  document }|--|| deliverable_action : "FK121"
+  document }|--|| deliverable_submission_action_type_limit : "FK122"
+  deliverable_status ||--|{ deliverable_action_configuration : "FK115, FK118"
+  deliverable_action_type ||--|{ deliverable_action_configuration : "FK116"
+  deliverable_action_configuration ||--|{ deliverable_action : "FK119"
+  deliverable_submission_action_type_limit ||--|| deliverable_action_type : "FK120"
+  demonstration ||--|{ deliverable : "FK006"
+  deliverable_type ||--|{ deliverable : "FK067"
+  deliverable }|--|| deliverable_status : "FK094"
+  deliverable }|--|| deliverable_due_date_type : "FK095"
+  document_type ||--|{ deliverable_type_document_type : "FK097"
+  deliverable_type_document_type }|--|| deliverable_type : "FK096"
+  document }|--|| deliverable : "FK098"
+  document_infected }|--|| deliverable : "FK099"
+  document_pending_upload }|--|| deliverable : "FK100"
+  document }|--|| deliverable_type_document_type : "FK101"
+  document_infected }|--|| deliverable_type_document_type : "FK102"
+  document_pending_upload }|--|| deliverable_type_document_type : "FK103"
+  deliverable_demonstration_status_limit ||--|| application_status : "FK104"
+  deliverable }|--|| deliverable_demonstration_status_limit : "FK105"
+  cms_user_person_type_limit ||--|{ deliverable : "FK106"
+  person_type ||--|| cms_user_person_type_limit : "FK107"
+  users ||--|{ deliverable : "FK108"
+  deliverable_action }|--|| deliverable_action_reason_code : "FK134"
+  deliverable ||--|{ deliverable_extension : "FK127"
+  deliverable_extension }|--|| deliverable_extension_reason_code : "FK129, FK130"
+  deliverable_extension }|--|| deliverable_extension_status : "FK128"
+  deliverable_extension_status ||--|| deliverable_active_extension_status_limit : "FK132"
+  deliverable_active_extension_status_limit ||--|{ deliverable_active_extension : "FK133"
+  deliverable_extension ||--|| deliverable_active_extension : "FK131"
+  deliverable_extension ||--|{ deliverable_action : "FK135"
+  deliverable ||--|{ private_comment : "FK109"
+  deliverable ||--|{ public_comment : "FK110"
+  users ||--|{ private_comment : "FK111"
+  users ||--|{ public_comment : "FK112"
+  cms_user_person_type_limit ||--|{ private_comment : "FK113"
+  deliverable ||--|{ deliverable_action : "FK114"
+  users ||--|{ deliverable_action : "FK117"
 
   %% Static Constraints
   application_status:::staticConstraint {
@@ -112,7 +157,43 @@ erDiagram
     text id PK
   }
 
+  budget_neutrality_validation_status:::staticConstraint {
+    text id PK
+  }
+
+  clearance_level:::staticConstraint {
+    text id PK
+  }
+
   date_type:::staticConstraint {
+    text id PK
+  }
+
+  deliverable_action_type:::staticConstraint {
+    text id PK
+  }
+
+  deliverable_action_reason_code:::staticConstraint {
+    text id PK
+  }
+
+  deliverable_extension_reason_code:::staticConstraint {
+    text id PK
+  }
+
+  deliverable_extension_status:::staticConstraint {
+    text id PK
+  }
+
+  deliverable_status:::staticConstraint {
+    text id PK
+  }
+
+  deliverable_type:::staticConstraint {
+    text id PK
+  }
+
+  deliverable_due_date_type:::staticConstraint {
     text id PK
   }
 
@@ -135,7 +216,7 @@ erDiagram
   log_level:::staticConstraint {
     text id PK
     text severity
-    int level
+    integer level
   }
 
   person_type:::staticConstraint {
@@ -149,7 +230,7 @@ erDiagram
 
   phase:::staticConstraint {
     text id PK
-    integer phase_number UK
+    integer phase_number UK "UK: phase_number"
   }
 
   phase_status:::staticConstraint {
@@ -191,12 +272,28 @@ erDiagram
     text id PK, FK "FK060: id ∈ application_type.id"
   }
 
-  application_phase_type_limit:::typeLimiter {
-    text id PK, FK "FK067: id ∈ phase.id"
-  }
-
   application_tag_type_limit:::typeLimiter {
     text id PK, FK "FK084: id ∈ tag_type.id"
+  }
+
+  budget_neutrality_workbook_document_type_limit:::typeLimiter {
+    text id PK, FK "FK123: id ∈ document_type.id"
+  }
+
+  deliverable_active_extension_status_limit:::typeLimiter {
+    text id PK, FK "FK132: id ∈ deliverable_extension_status.id"
+  }
+
+  deliverable_demonstration_status_limit:::typeLimiter {
+    text id PK, FK "FK104: id ∈ application_status.id"
+  }
+
+  deliverable_submission_action_type_limit:::typeLimiter {
+    text id PK, FK "FK120: id ∈ deliverable_action_type.id"
+  }
+
+  cms_user_person_type_limit:::typeLimiter {
+    text id PK, FK "FK107: id ∈ person_type.id"
   }
 
   demonstration_application_type_limit:::typeLimiter {
@@ -226,21 +323,22 @@ erDiagram
   %% Data Tables
   amendment:::dataTable {
     uuid id PK, FK, UK "FK058: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)"
-    text application_type_id FK "FK058: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)<br>FK061: application_type_id ∈ amendment_application_type_limit.id"
+    text application_type_id FK, UK "FK058: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)<br>FK061: application_type_id ∈ amendment_application_type_limit.id"
     uuid demonstration_id FK "FK059: demonstration_id ∈ demonstration.id"
     text name
     text description "NULLABLE"
     timestamptz effective_date "NULLABLE"
-    timestamptz expiration_date "NULLABLE"
     text status_id FK "FK018: status_id ∈ application_status.id"
     text current_phase_id FK "FK020: current_phase_id ∈ phase.id"
+    text signature_level_id FK "FK092: signature_level_id ∈ signature_level.id<br>NULLABLE"
+    text clearance_level_id FK "FK090: clearance_level_id ∈ clearance_level.id"
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
-    CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
-    CONSTRAINT_CHECK check_amendment_non_null_effective_date_when_approved "Validate that effective_date exists if amendment is approved."
+    CONSTRAINT_CHECK check_amendment_non_null_fields_when_approved  "Validate that required fields exist if amendment is approved."
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   application:::dataTable {
@@ -249,6 +347,7 @@ erDiagram
     CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_application_type_record_exists "Verify that a corresponding record exists in the demonstration, amendment, or extension tables."
     TRIGGER_AFTER_INSERT create_phases_and_dates_for_new_application "Create phases and initial dates for new application."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   application_date:::dataTable {
@@ -258,6 +357,7 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   application_note:::dataTable {
@@ -267,30 +367,105 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   application_phase:::dataTable {
     uuid application_id PK, FK "FK005: application_id ∈ application.id"
-    text phase_id PK, FK "FK006: phase_id ∈ application_phase_type_limit.id"
-    text phase_status_id FK "FK004: phase_status_id ∈ phase_status.id"
+    text phase_id PK, FK "FK004: (phase_id, phase_status_id) ∈ phase_phase_status.(phase_id, phase_status_id)"
+    text phase_status_id FK "FK004: (phase_id, phase_status_id) ∈ phase_phase_status.(phase_id, phase_status_id)"
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_AFTER_UPDATE update_demonstration_current_phase_on_phase_update "Update demonstration current phase when phase status changes."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
+  }
+
+  budget_neutrality_workbook:::dataTable {
+    uuid id PK, FK "FK124: (id, document_type_id) ∈ document.(id, document_type_id)"
+    text document_type_id FK "FK124: (id, document_type_id) ∈ document.(id, document_type_id)<br>FK125: document_type_id ∈ budget_neutrality_workbook_document_type_limit.id"
+    text validation_status_id FK "FK126: validation_status_id ∈ budget_neutrality_validation_status.id"
+    json validation_data
+    HAS_HISTORY true
+    timestamptz created_at
+    timestamptz updated_at
+  }
+
+  deliverable:::dataTable {
+    uuid id PK, UK "UK: (id, demonstration_id, deliverable_type_id)"
+    uuid demonstration_id FK, UK "FK006: (demonstration_id, demonstration_status_id) ∈ demonstration.(id, status_id)<br>UK: (id, demonstration_id, deliverable_type_id)"
+    text demonstration_status_id FK "FK006: (demonstration_id, demonstration_status_id) ∈ demonstration.(id, status_id)<br>FK105: demonstration_status_id ∈ deliverable_demonstration_status_limit.id"
+    text deliverable_type_id FK, UK "FK067: deliverable_type_id ∈ deliverable_type.id<br>UK: (id, demonstration_id, deliverable_type_id)"
+    text status_id FK "FK094: status_id ∈ deliverable_status.id"
+    text due_date_type_id FK "FK095: due_date_type_id ∈ deliverable_due_date_type.id"
+    uuid cms_owner_user_id FK "FK108: (cms_owner_user_id, cms_owner_person_type_id) ∈ users.(id, person_type_id)"
+    text cms_owner_person_type_id FK "FK108: (cms_owner_user_id, cms_owner_person_type_id) ∈ users.(id, person_type_id)<br>FK106: cms_owner_person_type_id ∈ cms_user_person_type_limit.id"
+    timestamptz due_date
+    bool expected_to_be_submitted
+    timestamptz created_at
+    timestamptz updated_at
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
+  }
+
+  deliverable_action:::dataTable {
+    uuid id PK, UK "UK: (id, action_type_id)"
+    timestamptz action_timestamp
+    uuid deliverable_id FK "FK114: deliverable_id ∈ deliverable.id<br>FK135: (active_extension_id, deliverable_id) ∈ deliverable_extension.(id, deliverable_id)"
+    text action_type_id FK "FK119: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)<br>UK: (id, action_type_id)"
+    text old_status_id FK "FK119: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)"
+    text new_status_id FK "FK119: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)"
+    text reason_code_id "FK134: reason_code_id ∈ deliverable_action_reason_code.id<br>NULLABLE"
+    text note "NULLABLE"
+    uuid active_extension_id FK "FK135: (active_extension_id, deliverable_id) ∈ deliverable_extension.(id, deliverable_id)<br>NULLABLE"
+    timestamptz old_due_date
+    timestamptz new_due_date 
+    uuid user_id FK "FK117: user_id ∈ users.id<br>NULLABLE"
+    CONSTRAINT_CHECK require_reason_codes_or_notes_for_user_actions "If the action is a user action and requires a reason code or note, ensure it is not null or empty string."
+    CONSTRAINT_CHECK require_user_id_for_user_actions "If the action type is not a system action, require a user ID to be present."
+    TRIGGER_BEFORE_INSERT capture_active_extension_request_id_for_action "Before insert, look in deliverable_active_extension and if there is an active extension for this deliverable, add the ID here."
+    TRIGGER_AFTER_INSERT update_documents_in_submission "After insert, if it is a submission, go to the documents table and associate the action with any documents not belonging to a submission."
+    HAS_HISTORY true
+  }
+
+  deliverable_extension:::dataTable {
+    uuid id PK, UK "UK: (id, deliverable_id, status_id)<br>UK: (id, deliverable_id)"
+    uuid deliverable_id FK "FK127: deliverable_id ∈ deliverable.id<br>UK: (id, deliverable_id, status_id)<br>UK: (id, deliverable_id)"
+    text status_id FK "FK128: status_id ∈ deliverable_extension_status.id<br>UK: (id, deliverable_id, status_id)"
+    text state_reason_code_id FK "FK129: state_reason_code_id ∈ deliverable_extension_reason_code.id"
+    text state_note "NULLABLE"
+    text cms_reason_code_id FK "FK130: cms_reason_code_id ∈ deliverable_extension_reason_code.id<br>NULLABLE"
+    text cms_note "NULLABLE"
+    timestamptz original_date_requested
+    timestamptz final_date_granted "NULLABLE"
+    timestamptz created_at
+    timestamptz updated_at
+    CONSTRAINT_CHECK require_cms_fields_for_finished_requests "If the status is completed, require a reason code and a final date granted value."
+    TRIGGER_BEFORE_UPDATE create_or_update_active_record_for_request "If a request is inserted, add it to the deliverable_active_extension table.<br>If a request is edited to move out of the active status, remove from deliverable_active_extension.<br>If a request is edited to move into the active status, add to deliverable_active_extension."
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
+  }
+
+  deliverable_active_extension:::dataTable {
+    uuid id PK, FK "FK131: id, deliverable_id, status_id ∈ deliverable_extension.(id, deliverable_id, status_id) ON DELETE RESTRICT ON UPDATE NO ACTION"
+    uuid deliverable_id FK, UK "FK131: id, deliverable_id, status_id ∈ deliverable_extension.(id, deliverable_id, status_id) ON DELETE RESTRICT ON UPDATE NO ACTION<br>UK: deliverable_id"
+    text status_id FK "FK131: id, deliverable_id, status_id ∈ deliverable_extension.(id, deliverable_id, status_id) ON DELETE RESTRICT ON UPDATE NO ACTION<br>FK133: status_id ∈ deliverable_active_extension_status_limit.id"
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   demonstration:::dataTable {
-    uuid id PK, FK, UK "FK008: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)<br>UK: (id, state_id)"
-    text application_type_id FK "FK008: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)<br>FK014: application_type_id ∈ demonstration_application_type_limit.id"
+    uuid id PK, FK, UK "FK008: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)<br>UK: (id, state_id)<br>UK: (id, status_id)"
+    text application_type_id FK, UK "FK008: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>FK014: application_type_id ∈ demonstration_application_type_limit.id<br>UK: (id, application_type_id)"
     text name
     text description "NULLABLE"
     timestamptz effective_date "NULLABLE"
     timestamptz expiration_date "NULLABLE"
     text sdg_division_id FK "FK010: sdg_division_id ∈ sdg_division.id<br>NULLABLE"
     text signature_level_id FK "FK011: signature_level_id ∈ signature_level.id<br>NULLABLE"
-    text status_id FK "FK064: status_id ∈ application_status.id"
+    text status_id FK, UK "FK064: status_id ∈ application_status.id<br>UK: (id, status_id)"
     text current_phase_id FK "FK065: current_phase_id ∈ phase.id"
     text state_id FK, UK "FK021: state_id ∈ state.id<br>UK: (id, state_id)"
+    text clearance_level_id FK "FK089: clearance_level_id ∈ clearance_level.id"
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
@@ -300,6 +475,8 @@ erDiagram
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     TRIGGER_BEFORE_UPDATE check_demonstration_type_exists_for_approved_demonstrations "Check that approved demonstrations have at least one demonstration type."
+    TRIGGER_AFTER_UPDATE change_open_ended_due_dates_to_expiration_date "If the deliverable is approved, when the expiration date changes, change all the open-ended due dates for associated deliverables."
+    HAS_HISTORY true
   }
 
   demonstration_type_tag_assignment:::dataTable {
@@ -313,54 +490,75 @@ erDiagram
     CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     TRIGGER_BEFORE_DELETE check_demonstration_type_exists_for_approved_demonstrations "Check that approved demonstrations have at least one demonstration type."
+    HAS_HISTORY true
   }
 
   document:::dataTable {
-    uuid id PK
+    uuid id PK, UK "UK: (id, document_type_id)"
     text name
-    text description
+    text description "NULLABLE"
     text s3_path
     uuid owner_user_id FK "FK026: owner_user_id ∈ users.id"
-    text document_type_id FK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
-    uuid application_id FK "FK030: application_id ∈ application.id"
-    text phase_id FK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
+    text document_type_id FK, UK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)<br>FK101: (deliverable_type_id, document_type_id) ∈ deliverable_type_document_type.(deliverable_type_id, document_type_id)<br>UK: (id, document_type_id)"
+    uuid application_id FK "FK030: application_id ∈ application.id<br>FK098: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)"
+    text phase_id FK "FK029: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)<br>NULLABLE"
+    uuid deliverable_id FK "FK098: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)<br>NULLABLE"
+    text deliverable_type_id FK "FK098: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)<br>FK101: (deliverable_type_id, document_type_id) ∈ deliverable_type_document_type.(deliverable_type_id, document_type_id)<br>NULLABLE"
+    bool deliverable_is_cms_attached_file "NULLABLE"
+    uuid deliverable_submission_action_id FK "FK121: (deliverable_submission_action_id, deliverable_submission_action_type_id) ∈ deliverable_action.(id, action_type_id)<br>NULLABLE"
+    text deliverable_submission_action_type_id FK "FK121: (deliverable_submission_action_id, deliverable_submission_action_type_id) ∈ deliverable_action.(id, action_type_id)<br>FK122: deliverable_submission_action_type_id ∈ deliverable_submission_action_type_limit.id<br>NULLABLE"
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
-    CONSTRAINT_CHECK check_non_empty_description "Validate that the description is not empty or only whitespace."
     CONSTRAINT_CHECK check_non_empty_s3_path "Validate that the S3 path is not empty or only whitespace."
+    CONSTRAINT_CHECK check_phase_id_deliverable_id_null "Validate that at least one of phase_id and deliverable_id are NULL."
+    CONSTRAINT_CHECK check_deliverable_null_states "Validate that the deliverable-related fields are NULL or NOT NULL appropriately.<br>If deliverable_id is NULL, all other deliverable fields must be NULL.<br>If deliverable_id is NOT NULL, deliverable_type_id and deliverable_is_cms_attached_file must be NOT NULL."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   document_infected:::dataTable {
     uuid id PK
     text name
-    text description
+    text description "NULLABLE"
     text s3_path
     uuid owner_user_id FK "FK068: owner_user_id ∈ users.id"
-    text document_type_id FK "FK069: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
-    uuid application_id FK "FK070: application_id ∈ application.id"
-    text phase_id FK "FK069: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
+    text document_type_id FK "FK069: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)<br>FK102: (deliverable_type_id, document_type_id) ∈ deliverable_type_document_type.(deliverable_type_id, document_type_id)"
+    uuid application_id FK "FK070: application_id ∈ application.id<br>FK099: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)"
+    text phase_id FK "FK069: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)<br>NULLABLE"
+    uuid deliverable_id FK "FK099: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)<br>NULLABLE"
+    text deliverable_type_id FK "FK099: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)<br>FK102: (deliverable_type_id, document_type_id) ∈ deliverable_type_document_type.(deliverable_type_id, document_type_id)<br>NULLABLE"
+    bool deliverable_is_cms_attached_file "NULLABLE"
     text infection_status
     text infection_threats
     timestamptz created_at
     timestamptz updated_at
+    CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
+    CONSTRAINT_CHECK check_non_empty_s3_path "Validate that the S3 path is not empty or only whitespace."
+    CONSTRAINT_CHECK check_phase_id_deliverable_id_null "Validate that at least one of phase_id and deliverable_id are NULL."
+    CONSTRAINT_CHECK check_deliverable_null_states "If deliverable_id is NULL, deliverable_type_id and deliverable_is_cms_attached_file must be NULL.<br>If deliverable_id is NOT NULL, deliverable_type_id and deliverable_is_cms_attached_file must be NOT NULL."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   document_pending_upload:::dataTable {
     uuid id PK
     text name
-    text description
+    text description "NULLABLE"
     uuid owner_user_id FK "FK019: owner_user_id ∈ users.id"
-    text document_type_id FK "FK055: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
-    uuid application_id FK "FK056: application_id ∈ application.id"
-    text phase_id FK "FK055: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)"
+    text document_type_id FK "FK055: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)<br>FK103: (deliverable_type_id, document_type_id) ∈ deliverable_type_document_type.(deliverable_type_id, document_type_id)"
+    uuid application_id FK "FK056: application_id ∈ application.id<br>FK100: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)"
+    text phase_id FK "FK055: (phase_id, document_type_id) ∈ phase_document_type.(phase_id, document_type_id)<br>NULLABLE"
+    uuid deliverable_id FK "FK100: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)<br>NULLABLE"
+    text deliverable_type_id FK "FK100: (deliverable_id, application_id, deliverable_type_id) ∈ deliverable.(id, demonstration_id, deliverable_type_id)<br>FK103: (deliverable_type_id, document_type_id) ∈ deliverable_type_document_type.(deliverable_type_id, document_type_id)<br>NULLABLE"
+    bool deliverable_is_cms_attached_file "NULLABLE"
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
-    CONSTRAINT_CHECK check_non_empty_description "Validate that the description is not empty or only whitespace."
+    CONSTRAINT_CHECK check_phase_id_deliverable_id_null "Validate that at least one of phase_id and deliverable_id are NULL."
+    CONSTRAINT_CHECK check_deliverable_null_states "If deliverable_id is NULL, deliverable_type_id and deliverable_is_cms_attached_file must be NULL.<br>If deliverable_id is NOT NULL, deliverable_type_id and deliverable_is_cms_attached_file must be NOT NULL."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   event:::dataTable {
@@ -376,27 +574,28 @@ erDiagram
   }
 
   extension:::dataTable {
-    uuid id PK, FK "FK009: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)"
-    text application_type_id FK "FK009: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)<br>FK016: application_type_id ∈ extension_application_type_limit.id"
+    uuid id PK, FK, UK "FK009: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)"
+    text application_type_id FK, UK "FK009: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)<br>FK016: application_type_id ∈ extension_application_type_limit.id"
     uuid demonstration_id FK "FK012: demonstration_id ∈ demonstration.id"
     text name
     text description "NULLABLE"
     timestamptz effective_date "NULLABLE"
-    timestamptz expiration_date "NULLABLE"
     text status_id FK "FK062: status_id ∈ application_status.id"
     text current_phase_id FK "FK063: current_phase_id ∈ phase.id"
+    text signature_level_id FK "FK093: signature_level_id ∈ signature_level.id<br>NULLABLE"
+    text clearance_level_id FK "FK091: clearance_level_id ∈ clearance_level.id"
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
-    CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
-    CONSTRAINT_CHECK check_extension_non_null_effective_date_when_approved "Validate that effective_date exists if extension is approved."
+    CONSTRAINT_CHECK check_extension_non_null_fields_when_approved  "Validate that required fields exist if extension is approved."
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   person:::dataTable {
     uuid id PK, UK "UK: (id, person_type_id)"
-    text person_type_id FK "FK022: person_type_id ∈ person_type.id<br>UK: (id, person_type_id)"
+    text person_type_id FK, UK "FK022: person_type_id ∈ person_type.id<br>UK: (id, person_type_id)"
     text email
     text first_name
     text last_name
@@ -404,6 +603,30 @@ erDiagram
     timestamptz updated_at
     TRIGGER_AFTER_INSERT assign_cms_user_to_all_states "Assign new CMS users to all states."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
+  }
+
+  private_comment:::dataTable {
+    uuid id PK
+    uuid deliverable_id FK "FK109: deliverable_id ∈ deliverable.id"
+    uuid author_user_id FK "FK111: (author_user_id, author_person_type_id) ∈ users.(id, person_type_id)"
+    text author_person_type_id FK "FK111: (author_user_id, author_person_type_id) ∈ users.(id, person_type_id)<br>FK113: author_person_type_id ∈ cms_user_person_type_limit.id"
+    text content
+    timestamptz created_at
+    timestamptz updated_at
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
+  }
+
+  public_comment:::dataTable {
+    uuid id PK
+    uuid deliverable_id FK "FK110: deliverable_id ∈ deliverable.id"
+    uuid author_user_id FK "FK112: author_user_id ∈ users.id"
+    text content
+    timestamptz created_at
+    timestamptz updated_at
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   tag:::dataTable {
@@ -411,6 +634,7 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   tag_configuration:::dataTable {
@@ -421,24 +645,38 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   users:::dataTable {
     uuid id PK, FK, UK "FK023: (id, person_type_id) ∈ person.(id, person_type_id)<br>UK: (id, person_type_id)"
-    text person_type_id FK "FK023: (id, person_type_id) ∈ person.(id, person_type_id)<br>FK025: person_type_id ∈ user_person_type_limit.id<br>UK: (id, person_type_id)"
+    text person_type_id FK, UK "FK023: (id, person_type_id) ∈ person.(id, person_type_id)<br>FK025: person_type_id ∈ user_person_type_limit.id<br>UK: (id, person_type_id)"
     uuid cognito_subject UK "UK: cognito_subject"
     text username
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   %% Associative Tables
   application_tag_assignment:::associativeTable {
-    uuid application_id PK, FK "FK088: appliation_id ∈ application.id"
+    uuid application_id PK, FK "FK088: application_id ∈ application.id"
     text tag_id PK, FK "FK082: (tag_id, tag_type_id) ∈ tag_configuration.(tag_id, tag_type_id)"
     text tag_type_id FK "FK082: (tag_id, tag_type_id) ∈ tag_configuration.(tag_id, tag_type_id)<br>FK086: tag_type_id ∈ application_tag_type_limit.id"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
+  }
+
+  deliverable_action_configuration:::associativeTable {
+    text action_type_id PK, FK "FK116: action_type_id ∈ deliverable_action_type.id"
+    text old_status_id PK, FK "FK115: old_status_id ∈ deliverable_status.id"
+    text new_status_id PK, FK "FK118: new_status_id ∈ deliverable_status.id"
+  }
+
+  deliverable_type_document_type:::associativeTable {
+    text deliverable_type_id PK, FK "FK096: deliverable_type_id ∈ deliverable_type.id"
+    text document_type_id PK, FK "FK097: document_type_id ∈ document_type.id"
   }
 
   demonstration_role_assignment:::associativeTable {
@@ -449,12 +687,14 @@ erDiagram
     text person_type_id FK "FK047: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK048: (person_id, person_type_id) ∈ person.(id, person_type_id)"
     text grant_level_id FK "FK046: grant_level_id ∈ demonstration_grant_level_limit.id<br>FK049: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   person_state:::associativeTable {
     uuid person_id PK, FK "FK044: person_id ∈ person.id"
     text state_id PK, FK "FK043: state_id ∈ state.id"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   system_role_assignment:::associativeTable {
@@ -463,6 +703,7 @@ erDiagram
     text person_type_id FK "FK038: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK039: (person_id, person_type_id) ∈ person.(id, person_type_id)"
     text grant_level_id FK "FK040: (role_id, grant_level_id) ∈ role.(id, grant_level_id)<br>FK041: grant_level_id ∈ system_grant_level_limit.id"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   phase_date_type:::associativeTable {
@@ -491,6 +732,7 @@ erDiagram
     text role_id PK, FK, UK "FK051: (person_id, demonstration_id, role_id) ∈ demonstration_role_assignment.(person_id, demonstration_id, role_id)<br>UK: (person_id, demonstration_id, role_id)"
     CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_UPDATE_OR_DELETE check_demonstration_retains_primary_project_officer "Check that a primary project officer still exists."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   role_permission:::associativeTable {
@@ -498,6 +740,7 @@ erDiagram
     text grant_level_id PK, FK "FK033: (role_id, grant_level_id) ∈ role.(id, grant_level_id)<br>FK034: (permission_id, grant_level_id) ∈ permission.(id, grant_level_id)"
     text permission_id PK, FK "FK034: (permission_id, grant_level_id) ∈ permission.(id, grant_level_id)"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   role_person_type:::associativeTable {
@@ -511,4 +754,5 @@ erDiagram
     text TypeLimiter "Blue"
     text AssociativeTable "Purple"
     text DataTable "Green"
+    text NOTE "HAS_HISTORY true indicates that a table has a _history table as well."
   }

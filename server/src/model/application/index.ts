@@ -8,6 +8,7 @@ export {
   resolveApplicationPhases,
   resolveApplicationClearanceLevel,
   resolveApplicationTags,
+  resolveApplicationSignatureLevel,
 } from "./applicationResolvers";
 export { updateApplicationStatusToUnderReviewIfNeeded } from "./updateApplicationStatusToUnderReviewIfNeeded";
 

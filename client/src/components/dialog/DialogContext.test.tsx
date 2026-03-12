@@ -43,14 +43,14 @@ vi.mock("./demonstration", () => ({
 }));
 vi.mock("./modification/CreateAmendmentDialog", () => ({
   CreateAmendmentDialog: ({
-    initialDemonstrationId,
+    demonstrationId,
     onClose,
   }: {
-    initialDemonstrationId?: string;
+    demonstrationId?: string;
     onClose: () => void;
   }) => (
     <div data-testid="amendment-dialog">
-      Amendment Dialog {initialDemonstrationId} create
+      Amendment Dialog {demonstrationId} create
       <button data-testid="close-amendment-btn" onClick={onClose}>
         Close
       </button>
@@ -60,14 +60,48 @@ vi.mock("./modification/CreateAmendmentDialog", () => ({
 
 vi.mock("./modification/CreateExtensionDialog", () => ({
   CreateExtensionDialog: ({
-    initialDemonstrationId,
+    demonstrationId,
     onClose,
   }: {
-    initialDemonstrationId?: string;
+    demonstrationId?: string;
     onClose: () => void;
   }) => (
     <div data-testid="extension-dialog">
-      Extension Dialog {initialDemonstrationId} create
+      Extension Dialog {demonstrationId} create
+      <button data-testid="close-extension-btn" onClick={onClose}>
+        Close
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock("./modification/EditAmendmentDialog", () => ({
+  UpdateAmendmentDialog: ({
+    amendmentId,
+    onClose,
+  }: {
+    amendmentId?: string;
+    onClose: () => void;
+  }) => (
+    <div data-testid="edit-amendment-dialog">
+      Edit Amendment Dialog {amendmentId}
+      <button data-testid="close-amendment-btn" onClick={onClose}>
+        Close
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock("./modification/EditExtensionDialog", () => ({
+  UpdateExtensionDialog: ({
+    extensionId,
+    onClose,
+  }: {
+    extensionId?: string;
+    onClose: () => void;
+  }) => (
+    <div data-testid="edit-extension-dialog">
+      Edit Extension Dialog {extensionId}
       <button data-testid="close-extension-btn" onClick={onClose}>
         Close
       </button>
@@ -295,10 +329,18 @@ vi.mock("./ApplyTagsDialog", () => ({
   ApplyTagsDialog: ({ onClose }: { onClose: () => void }) => (
     <div data-testid="apply-tags-dialog">
       Apply Tags Dialog
-      <button
-        data-testid="close-apply-tags-btn"
-        onClick={onClose}
-      >
+      <button data-testid="close-apply-tags-btn" onClick={onClose}>
+        Close
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock("./ConfirmApproveDialog", () => ({
+  ConfirmApproveDialog: ({ onClose }: { onClose: () => void }) => (
+    <div data-testid="confirm-approve-dialog">
+      Confirm Approve Dialog
+      <button data-testid="close-confirm-approve-btn" onClick={onClose}>
         Close
       </button>
     </div>
@@ -307,6 +349,7 @@ vi.mock("./ApplyTagsDialog", () => ({
 
 const mockRoles: ExistingContactType[] = [
   {
+    id: "person-1",
     role: "Project Officer",
     isPrimary: true,
     person: {
@@ -317,6 +360,7 @@ const mockRoles: ExistingContactType[] = [
     },
   },
   {
+    id: "person-2",
     role: "DDME Analyst",
     isPrimary: false,
     person: {
@@ -341,6 +385,8 @@ const TestConsumer: React.FC = () => {
     showEditDemonstrationDialog,
     showCreateAmendmentDialog,
     showCreateExtensionDialog,
+    showUpdateAmendmentDialog,
+    showUpdateExtensionDialog,
     showManageContactsDialog,
     showUploadDocumentDialog,
     showEditDocumentDialog,
@@ -354,6 +400,7 @@ const TestConsumer: React.FC = () => {
     showRemoveDemonstrationTypesDialog,
     showEditDemonstrationTypeDialog,
     showApplyTagsDialog,
+    showConfirmApproveDialog,
     closeDialog,
   } = useDialog();
 
@@ -373,6 +420,18 @@ const TestConsumer: React.FC = () => {
       </button>
       <button data-testid="open-extension-btn" onClick={() => showCreateExtensionDialog("demo-id")}>
         Open Extension Dialog
+      </button>
+      <button
+        data-testid="open-edit-extension-btn"
+        onClick={() => showUpdateExtensionDialog("extension-id")}
+      >
+        Open Edit Extension Dialog
+      </button>
+      <button
+        data-testid="open-edit-amendment-btn"
+        onClick={() => showUpdateAmendmentDialog("amendment-id")}
+      >
+        Open Edit Amendment Dialog
       </button>
       <button
         data-testid="open-contacts-btn"
@@ -452,9 +511,17 @@ const TestConsumer: React.FC = () => {
       </button>
       <button
         data-testid="open-apply-tags-btn"
-        onClick={() => showApplyTagsDialog("app-1", ["Tag1", "Tag2", "Tag3"], ["Tag1", "Tag2", "Tag3"])}
+        onClick={() =>
+          showApplyTagsDialog("app-1", ["Tag1", "Tag2", "Tag3"], ["Tag1", "Tag2", "Tag3"])
+        }
       >
         Open Apply Tags Dialog
+      </button>
+      <button
+        data-testid="open-confirm-approve-btn"
+        onClick={() => showConfirmApproveDialog(vi.fn())}
+      >
+        Open Confirm Approve Dialog
       </button>
     </div>
   );
@@ -521,7 +588,7 @@ describe("DialogContext", () => {
     expect(screen.queryByTestId("edit-dialog")).not.toBeInTheDocument();
   });
 
-  it("shows and hides AmendmentDialog via context", async () => {
+  it("shows AmendmentDialog via context", async () => {
     render(
       <DialogProvider>
         <TestConsumer />
@@ -533,12 +600,9 @@ describe("DialogContext", () => {
 
     await user.click(screen.getByTestId("open-amendment-btn"));
     expect(screen.getByTestId("amendment-dialog")).toBeInTheDocument();
-
-    await user.click(screen.getByTestId("close-amendment-btn"));
-    expect(screen.queryByTestId("amendment-dialog")).not.toBeInTheDocument();
   });
 
-  it("shows and hides ExtensionDialog via context", async () => {
+  it("shows ExtensionDialog via context", async () => {
     render(
       <DialogProvider>
         <TestConsumer />
@@ -550,9 +614,34 @@ describe("DialogContext", () => {
 
     await user.click(screen.getByTestId("open-extension-btn"));
     expect(screen.getByTestId("extension-dialog")).toBeInTheDocument();
+  });
 
-    await user.click(screen.getByTestId("close-extension-btn"));
-    expect(screen.queryByTestId("extension-dialog")).not.toBeInTheDocument();
+  it("shows EditExtensionDialog via context", async () => {
+    render(
+      <DialogProvider>
+        <TestConsumer />
+      </DialogProvider>
+    );
+    const user = userEvent.setup();
+
+    expect(screen.queryByTestId("exit-extension-dialog")).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("open-edit-extension-btn"));
+    expect(screen.getByTestId("edit-extension-dialog")).toBeInTheDocument();
+  });
+
+  it("shows EditAmendmentDialog via context", async () => {
+    render(
+      <DialogProvider>
+        <TestConsumer />
+      </DialogProvider>
+    );
+    const user = userEvent.setup();
+
+    expect(screen.queryByTestId("exit-amendment-dialog")).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("open-edit-amendment-btn"));
+    expect(screen.getByTestId("edit-amendment-dialog")).toBeInTheDocument();
   });
 
   it("shows and hides ManageContactsDialog via context", async () => {
@@ -769,5 +858,22 @@ describe("DialogContext", () => {
 
     await user.click(screen.getByTestId("close-apply-tags-btn"));
     expect(screen.queryByTestId("apply-tags-dialog")).not.toBeInTheDocument();
+  });
+  it("shows and hides ConfirmApproveDialog via context", async () => {
+    render(
+      <DialogProvider>
+        <TestConsumer />
+      </DialogProvider>
+    );
+
+    const user = userEvent.setup();
+
+    expect(screen.queryByTestId("confirm-approve-dialog")).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("open-confirm-approve-btn"));
+    expect(screen.getByTestId("confirm-approve-dialog")).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("close-confirm-approve-btn"));
+    expect(screen.queryByTestId("confirm-approve-dialog")).not.toBeInTheDocument();
   });
 });

@@ -30,6 +30,7 @@ import {
   resolveApplicationPhases,
   resolveApplicationClearanceLevel,
   resolveApplicationTags,
+  resolveApplicationSignatureLevel,
 } from "../application";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
@@ -53,6 +54,7 @@ vi.mock("../application", () => ({
   resolveApplicationPhases: vi.fn(),
   resolveApplicationClearanceLevel: vi.fn(),
   resolveApplicationTags: vi.fn(),
+  resolveApplicationSignatureLevel: vi.fn(),
 }));
 
 vi.mock("../../errors/checkOptionalNotNullFields.js", () => ({
@@ -130,7 +132,9 @@ describe("amendmentResolvers", () => {
         id: testAmendmentId,
       };
       await __getAmendment(undefined, testInput);
-      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testAmendmentId, "Amendment");
+      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testAmendmentId, {
+        applicationTypeId: "Amendment",
+      });
     });
   });
 

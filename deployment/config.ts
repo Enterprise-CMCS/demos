@@ -2,7 +2,7 @@ import { Aws } from "aws-cdk-lib";
 import { getSecret } from "./util/getSecret";
 import { getZScalerIps } from "./util/zscalerIps";
 import { getUserPoolIdByName } from "./util/getUserPoolId";
-import * as fs from "fs";
+import * as fs from "node:fs";
 import { getParameter } from "./util/getParameter";
 import { configuredDistributionExists } from "./util/checkCloudfront";
 
@@ -44,7 +44,7 @@ export const determineDeploymentConfig = async (
   };
 
   const isEphemeral = !["dev", "test", "impl", "prod"].includes(stage);
-  const hostEnvironment = !isEphemeral ? stage : hostEnv ?? "dev";
+  const hostEnvironment = isEphemeral ? hostEnv ?? "dev" : stage;
   const hostUserPoolId = isEphemeral ? await getUserPoolIdByName(`${project}-${hostEnvironment}-user-pool`) : undefined;
 
   const secretConfig =

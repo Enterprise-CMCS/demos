@@ -1,26 +1,22 @@
 import React from "react";
-import {
-  ApplicationWorkflowDemonstration,
-  ApplicationWorkflowDocument,
-} from "components/application/ApplicationWorkflow";
+import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import {
   ApprovalPackageTable,
   ApprovalPackageTableRow,
 } from "components/table/tables/ApprovalPackageTable";
-import { DocumentType } from "demos-server";
+import { DocumentType, PhaseNameWithTrackedStatus, PhaseStatus } from "demos-server";
 import { formatDate } from "util/formatDate";
 import { Button } from "components/button";
-import { useSetPhaseStatus } from "components/application/phase-status/phaseStatusQueries";
+import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 import { useToast } from "components/toast";
-import {
-  FAILED_TO_SAVE_MESSAGE,
-  getPhaseCompletedMessage,
-} from "util/messages";
+import { FAILED_TO_SAVE_MESSAGE, getPhaseCompletedMessage } from "util/messages";
 
 export interface ApprovalPackagePhaseProps {
   demonstrationId: string;
   documents: (ApplicationWorkflowDocument | undefined)[];
   allPreviousPhasesDone: boolean;
+  setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void;
+  phaseStatus: PhaseStatus;
 }
 
 const REQUIRED_TYPES: DocumentType[] = [
@@ -32,34 +28,55 @@ const REQUIRED_TYPES: DocumentType[] = [
   "Signed Decision Memo",
 ] as const;
 
-export const getApprovalPackagePhase = (demonstration: ApplicationWorkflowDemonstration) => {
-  const formulationWorkbookDocument = demonstration?.documents.find(
-    (doc) => doc.documentType === "Final Budget Neutrality Formulation Workbook"
+export const getApprovalPackagePhaseFromApplication = (
+  application: WorkflowApplication,
+  setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void
+) => {
+  const formulationWorkbookDocument = application?.documents.find(
+    (doc) =>
+      doc.documentType === "Final Budget Neutrality Formulation Workbook" &&
+      doc.phaseName === "Approval Package"
   );
-  const qaDocument = demonstration?.documents.find((doc) => doc.documentType === "Q&A");
-  const termsAndConditionsDocument = demonstration?.documents.find(
-    (doc) => doc.documentType === "Special Terms & Conditions"
+  const qaDocument = application?.documents.find(
+    (doc) => doc.documentType === "Q&A" && doc.phaseName === "Approval Package"
   );
-  const ombPolicyDocument = demonstration?.documents.find(
-    (doc) => doc.documentType === "Formal OMB Policy Concurrence Email"
+  const termsAndConditionsDocument = application?.documents.find(
+    (doc) =>
+      doc.documentType === "Special Terms & Conditions" && doc.phaseName === "Approval Package"
   );
-  const approvalLetterDocument = demonstration?.documents.find(
-    (doc) => doc.documentType === "Approval Letter"
+  const ombPolicyDocument = application?.documents.find(
+    (doc) =>
+      doc.documentType === "Formal OMB Policy Concurrence Email" &&
+      doc.phaseName === "Approval Package"
   );
-  const decisionMemoDocument = demonstration?.documents.find(
-    (doc) => doc.documentType === "Signed Decision Memo"
+  const approvalLetterDocument = application?.documents.find(
+    (doc) => doc.documentType === "Approval Letter" && doc.phaseName === "Approval Package"
+  );
+  const decisionMemoDocument = application?.documents.find(
+    (doc) => doc.documentType === "Signed Decision Memo" && doc.phaseName === "Approval Package"
   );
 
-  const currentPhaseIndex = demonstration.phases.findIndex(
-    (p) => p.phaseName === "Approval Package"
-  );
-  const allPreviousPhasesDone = demonstration.phases
-    .slice(0, currentPhaseIndex) // all phases before the current one
+  const allPreviousPhasesDone = application.phases
+    .filter(
+      (p) =>
+        p.phaseName !== "Concept" &&
+        p.phaseName !== "Approval Package" &&
+        p.phaseName !== "Approval Summary"
+    )
     .every((phase) => phase.phaseStatus === "Completed" || phase.phaseStatus === "Skipped");
+
+  const approvalPackagePhase = application.phases.find(
+    (phase) => phase.phaseName === "Approval Package"
+  );
+
+  if (!approvalPackagePhase) {
+    console.error("Cannot find approval package phase on application: ", application.id);
+    return null;
+  }
 
   return (
     <ApprovalPackagePhase
-      demonstrationId={demonstration.id}
+      demonstrationId={application.id}
       documents={[
         formulationWorkbookDocument,
         qaDocument,
@@ -69,6 +86,8 @@ export const getApprovalPackagePhase = (demonstration: ApplicationWorkflowDemons
         decisionMemoDocument,
       ]}
       allPreviousPhasesDone={allPreviousPhasesDone}
+      setSelectedPhase={setSelectedPhase}
+      phaseStatus={approvalPackagePhase.phaseStatus ?? "Not Started"}
     />
   );
 };
@@ -77,13 +96,13 @@ export const ApprovalPackagePhase = ({
   demonstrationId,
   documents,
   allPreviousPhasesDone,
+  setSelectedPhase,
+  phaseStatus,
 }: ApprovalPackagePhaseProps) => {
   const { showSuccess, showError } = useToast();
-  const { setPhaseStatus: completeApprovalPackagePhase } = useSetPhaseStatus({
-    applicationId: demonstrationId,
-    phaseName: "Approval Package",
-    phaseStatus: "Completed",
-  });
+  const { completePhase } = useCompletePhase();
+
+  const isPhaseFinalized = phaseStatus === "Completed";
 
   const tableRows: ApprovalPackageTableRow[] = REQUIRED_TYPES.map((type) => {
     const doc = documents.find((doc) => doc?.documentType === type);
@@ -91,7 +110,7 @@ export const ApprovalPackagePhase = ({
     if (!doc) {
       return {
         documentType: type,
-        id: undefined,
+        id: `${type}-id`,
         name: "-",
         description: "-",
         uploadedBy: "-",
@@ -102,7 +121,7 @@ export const ApprovalPackagePhase = ({
 
     return {
       documentType: type,
-      id: doc.id,
+      id: `${type}-id`,
       name: doc.name || "-",
       description: doc.description || "-",
       uploadedBy: doc.owner?.person?.fullName || "-",
@@ -111,11 +130,16 @@ export const ApprovalPackagePhase = ({
     };
   });
 
-  const finishEnabled = allPreviousPhasesDone && tableRows.every((row) => row.document); // all req documents have been provided
+  const finishEnabled =
+    !isPhaseFinalized && allPreviousPhasesDone && tableRows.every((row) => row.document); // all req documents have been provided
 
   const handleFinishApprovalPackagePhase = async () => {
     try {
-      await completeApprovalPackagePhase();
+      await completePhase({
+        applicationId: demonstrationId,
+        phaseName: "Approval Package",
+      });
+      setSelectedPhase("Approval Summary");
     } catch {
       showError(FAILED_TO_SAVE_MESSAGE);
       return;
@@ -132,7 +156,7 @@ export const ApprovalPackagePhase = ({
       </p>
 
       <h4 className="text-[18px] font-bold tracking-wide mb-1">APPROVAL PACKAGE</h4>
-      <p className="text-sm text-text-placeholder">Each File Type Is Required Prior To Approval</p>
+      <p className="text-sm text-text-placeholder">Each file type is required prior to approval</p>
 
       <ApprovalPackageTable demonstrationId={demonstrationId} rows={tableRows} />
 

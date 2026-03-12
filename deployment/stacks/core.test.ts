@@ -30,7 +30,7 @@ describe("Core Stack", () => {
 
     template.resourceCountIs("AWS::Cognito::UserPool", 1);
     template.resourceCountIs("AWS::Cognito::UserPoolClient", 1);
-    template.resourceCountIs("AWS::EC2::VPCEndpoint", 3);
+    template.resourceCountIs("AWS::EC2::VPCEndpoint", 4);
   });
 
   test("should create proper resources when ephemeral", () => {

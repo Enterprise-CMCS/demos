@@ -11,9 +11,12 @@ import { MockedProvider } from "@apollo/client/testing";
 import { UPDATE_DEMONSTRATION_MUTATION } from "components/dialog/demonstration/EditDemonstrationDialog";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
 
+const mockShowConfirmApproveDialog = vi.fn();
+
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
     showApplyDemonstrationTypesDialog: vi.fn(),
+    showConfirmApproveDialog: mockShowConfirmApproveDialog,
   }),
 }));
 
@@ -150,8 +153,8 @@ describe("ApprovalSummaryPhase", () => {
   it("renders header and description", () => {
     setup();
 
-    expect(screen.getByText("Approval Summary")).toBeInTheDocument();
-    expect(screen.getByText("Approval Summary Description")).toBeInTheDocument();
+    expect(screen.getByText("APPROVAL SUMMARY")).toBeInTheDocument();
+    expect(screen.getByText("Review and verify Demonstration Details and Performance Periods for Demonstration Types before approving this application.")).toBeInTheDocument();
   });
 
   it("renders Application Details section", () => {
@@ -187,7 +190,7 @@ describe("ApprovalSummaryPhase", () => {
 
     // Since the toggle might not work due to form validation,
     // we test the format by checking if the date format utility is correctly imported
-    expect(screen.getByText("Approval Summary")).toBeInTheDocument();
+    expect(screen.getByText("APPROVAL SUMMARY")).toBeInTheDocument();
   });
 
   it("renders Demonstration Types section", () => {

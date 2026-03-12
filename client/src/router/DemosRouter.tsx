@@ -11,6 +11,8 @@ import { EventSandbox } from "pages/debug/EventSandbox";
 import { AuthDebugComponent } from "pages/debug/AuthDebugComponent";
 import { isLocalDevelopment } from "config/env";
 import { DemosLayoutProvider } from "./DemosLayoutProvider";
+import { DocumentDetailPage } from "pages/DocumentDetails/DocumentDetail";
+import { DeliverablesPage } from "pages/DeliverablesPage";
 
 export const DemosRouter: React.FC = () => {
   return (
@@ -19,12 +21,13 @@ export const DemosRouter: React.FC = () => {
         <UserProvider>
           <BrowserRouter>
             <Routes>
+              <Route path="document/:id" element={<DocumentDetailPage />} />
               <Route element={<DemosLayoutProvider />}>
                 <Route path="*" element={<div>404: Page Not Found</div>} />
                 <Route path="/" element={<DemonstrationsPage />} />
                 <Route path="demonstrations" element={<DemonstrationsPage />} />
                 <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
-
+                <Route path="deliverables" element={<DeliverablesPage />} />
                 {isLocalDevelopment() && (
                   <>
                     <Route path="components" element={<ComponentLibrary />} />

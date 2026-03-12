@@ -13,7 +13,7 @@ model DemonstrationHistory {
   statusId            String       @map("status_id")
   currentPhaseId      String       @map("current_phase_id")
   stateId             String       @map("state_id")
-  clearanceLevelId    String?      @map("clearance_level_id")
+  clearanceLevelId    String       @map("clearance_level_id")
   createdAt           DateTime     @map("created_at") @db.Timestamptz()
   updatedAt           DateTime     @map("updated_at") @db.Timestamptz()
 

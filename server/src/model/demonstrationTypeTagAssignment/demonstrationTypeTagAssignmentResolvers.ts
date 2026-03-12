@@ -18,7 +18,7 @@ export async function setDemonstrationTypes(
   { input }: { input: SetDemonstrationTypesInput }
 ): Promise<PrismaDemonstration> {
   if (input.demonstrationTypes.length === 0) {
-    return await getApplication(input.demonstrationId, "Demonstration");
+    return await getApplication(input.demonstrationId, { applicationTypeId: "Demonstration" });
   }
   try {
     checkForDuplicateDemonstrationTypes(input);
@@ -30,7 +30,7 @@ export async function setDemonstrationTypes(
   } catch (error) {
     handlePrismaError(error);
   }
-  return await getApplication(input.demonstrationId, "Demonstration");
+  return await getApplication(input.demonstrationId, { applicationTypeId: "Demonstration" });
 }
 
 // This lives here because there is no database model corresponding to it

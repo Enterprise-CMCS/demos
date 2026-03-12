@@ -52,13 +52,13 @@ describe("DocumentTable", () => {
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
-    const editBtn = screen.getByLabelText(/Edit Document/i);
+    const editBtn = screen.getByTestId("edit-document");
     expect(editBtn).toBeDisabled();
     // Select one row
-    await user.click(screen.getByTestId("select-row-0"));
+    await user.click(screen.getByTestId(`select-row-${mockDocuments[0].id}`));
     expect(editBtn).not.toBeDisabled();
     // Select another row (should switch selection)
-    await user.click(screen.getByTestId("select-row-1"));
+    await user.click(screen.getByTestId(`select-row-${mockDocuments[1].id}`));
     expect(editBtn).toBeDisabled();
   });
 
@@ -68,7 +68,7 @@ describe("DocumentTable", () => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
     // Select a row
-    await user.click(screen.getByTestId("select-row-1"));
+    await user.click(screen.getByTestId(`select-row-${mockDocuments[0].id}`));
     const editBtn = screen.getByLabelText(/Edit Document/i);
     await user.click(editBtn);
     // Modal should open, assuming it renders 'edit document' text

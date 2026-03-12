@@ -9,6 +9,7 @@ pipeline {
 
   options {
     disableConcurrentBuilds(abortPrevious: true)
+    buildDiscarder(retentionPolicy(env.BRANCH_NAME))
   }
 
   stages {

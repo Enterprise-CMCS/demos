@@ -14,18 +14,18 @@ vi.mock("pages/DemonstrationDetail/DemonstrationTab.tsx", () => ({
   DemonstrationTab: vi.fn(() => <div data-testid="demonstration-tab">Demonstration Tab</div>),
 }));
 
-vi.mock("pages/DemonstrationDetail/AmendmentsTab.tsx", () => ({
+vi.mock("pages/DemonstrationDetail/modifications/AmendmentsTab.tsx", () => ({
   AmendmentsTab: vi.fn(() => <div data-testid="amendments-tab">Amendments Tab</div>),
 }));
 
-vi.mock("pages/DemonstrationDetail/ExtensionsTab.tsx", () => ({
+vi.mock("pages/DemonstrationDetail/modifications/ExtensionsTab.tsx", () => ({
   ExtensionsTab: vi.fn(() => <div data-testid="extensions-tab">Extensions Tab</div>),
 }));
 
 // Import mocked components to use in assertions
 import { DemonstrationTab } from "./DemonstrationTab";
-import { AmendmentsTab } from "./AmendmentsTab";
-import { ExtensionsTab } from "./ExtensionsTab";
+import { AmendmentsTab } from "./modifications/AmendmentsTab";
+import { ExtensionsTab } from "./modifications/ExtensionsTab";
 
 const DemonstrationDetailMock = {
   request: {
@@ -113,7 +113,6 @@ describe("DemonstrationDetail", () => {
     expect(AmendmentsTab).toHaveBeenCalledWith(
       expect.objectContaining({
         demonstrationId: "1",
-        initiallyExpandedId: "amendment-1",
       }),
       undefined
     );
@@ -131,7 +130,6 @@ describe("DemonstrationDetail", () => {
     expect(ExtensionsTab).toHaveBeenCalledWith(
       expect.objectContaining({
         demonstrationId: "1",
-        initiallyExpandedId: "extension-1",
       }),
       undefined
     );
@@ -158,7 +156,6 @@ describe("DemonstrationDetail", () => {
     expect(AmendmentsTab).toHaveBeenCalledWith(
       expect.objectContaining({
         demonstrationId: "1",
-        initiallyExpandedId: undefined,
       }),
       undefined
     );
@@ -174,7 +171,6 @@ describe("DemonstrationDetail", () => {
     expect(ExtensionsTab).toHaveBeenCalledWith(
       expect.objectContaining({
         demonstrationId: "1",
-        initiallyExpandedId: undefined,
       }),
       undefined
     );
