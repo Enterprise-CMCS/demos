@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom";
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { TestProvider } from "test-utils/TestProvider";
@@ -22,12 +22,20 @@ import { DialogProvider } from "components/dialog/DialogContext";
 
 const mockCompletePhase = vi.fn();
 const mockSkipConceptPhase = vi.fn();
+const mockSetApplicationDate = vi.fn().mockResolvedValue(undefined);
+
 vi.mock("../phase-status/phaseCompletionQueries", () => ({
   useCompletePhase: () => ({
     completePhase: mockCompletePhase,
   }),
   useSkipConceptPhase: () => ({
     skipConceptPhase: mockSkipConceptPhase,
+  }),
+}));
+
+vi.mock("components/application/date/dateQueries", () => ({
+  useSetApplicationDate: () => ({
+    setApplicationDate: mockSetApplicationDate,
   }),
 }));
 
@@ -61,11 +69,11 @@ describe("ConceptPhase", () => {
     const renderComponent = (newProps: Partial<ConceptPhaseProps>) => {
       const finalProps = { ...DEFAULT_PROPS, ...newProps };
       return (
-        <DialogProvider>
-          <TestProvider>
+        <TestProvider>
+          <DialogProvider>
             <ConceptPhase {...finalProps} />
-          </TestProvider>
-        </DialogProvider>
+          </DialogProvider>
+        </TestProvider>
       );
     };
 
@@ -219,8 +227,8 @@ describe("ConceptPhase", () => {
     });
 
     it("calls completePhase mutation on click of finish button", async () => {
-      setup();
       const user = userEvent.setup();
+      setup();
       const finishButton = screen.getByTestId(FINISH_BUTTON_NAME);
       await user.click(finishButton);
       expect(mockCompletePhase).toHaveBeenCalledWith({
@@ -232,10 +240,11 @@ describe("ConceptPhase", () => {
 
   describe("Upload Modal", () => {
     it("opens upload modal when upload button clicked", async () => {
+      const user = userEvent.setup();
       setup();
 
       const uploadButton = screen.getByTestId(UPLOAD_BUTTON_NAME);
-      await userEvent.click(uploadButton);
+      await user.click(uploadButton);
 
       // expect(showConceptPreSubmissionDocumentUploadDialog).toHaveBeenCalledWith(
       //   TEST_APPLICATION_ID,
@@ -321,20 +330,27 @@ describe("ConceptPhase", () => {
       expect(screen.getByText("No documents yet.")).toBeInTheDocument();
     });
 
-    it("updates Finish button state when documents are added via props", () => {
+    it("updates Finish button state when documents are removed via props", async () => {
+      // Start with documents and date - button should be enabled
       const { rerender } = setup({
-        documents: [],
-        initialPresubmissionSubmittedDate: "2024-01-15",
-      });
-
-      expect(screen.getByTestId(FINISH_BUTTON_NAME)).toBeDisabled();
-
-      rerender({
         documents: [MOCK_DOCUMENT],
         initialPresubmissionSubmittedDate: "2024-01-15",
       });
 
-      expect(screen.getByTestId(FINISH_BUTTON_NAME)).toBeEnabled();
+      // Button should be enabled initially
+      await waitFor(() => {
+        expect(screen.getByTestId(FINISH_BUTTON_NAME)).toBeEnabled();
+      });
+
+      // Remove documents - button should become disabled
+      rerender({
+        documents: [],
+        initialPresubmissionSubmittedDate: "2024-01-15",
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId(FINISH_BUTTON_NAME)).toBeDisabled();
+      });
     });
   });
 
@@ -445,7 +461,7 @@ describe("ConceptPhase", () => {
       expect(component).toBeDefined();
       if (component) {
         expect(component.type).toBe(ConceptPhase);
-        expect(component.props.initial).toBe("2024-03-15");
+        expect(component.props.initialPresubmissionSubmittedDate).toBe("2024-03-15");
       }
     });
 
