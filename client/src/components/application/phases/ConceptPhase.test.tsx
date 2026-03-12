@@ -246,8 +246,13 @@ describe("ConceptPhase", () => {
       const uploadButton = screen.getByTestId(UPLOAD_BUTTON_NAME);
       await user.click(uploadButton);
 
-      // Dialog should appear in the DOM
-      expect(screen.getByText("Pre-Submission Document")).toBeInTheDocument();
+      // Dialog should appear in a <dialog> element
+      const dialog = screen.getByRole("dialog");
+      expect(dialog).toBeInTheDocument();
+      expect(dialog.tagName).toBe("DIALOG");
+
+      // Verify the dialog contains the pre-submission document title
+      expect(dialog).toHaveTextContent("Pre-Submission Document");
     });
   });
 
