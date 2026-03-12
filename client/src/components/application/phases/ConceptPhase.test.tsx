@@ -58,15 +58,24 @@ const DEFAULT_PROPS: ConceptPhaseProps = {
 
 describe("ConceptPhase", () => {
   const setup = (props: Partial<ConceptPhaseProps> = {}) => {
-    const finalProps = { ...DEFAULT_PROPS, ...props };
-    render(
-      <DialogProvider>
-        <TestProvider>
-          <ConceptPhase {...finalProps} />
-        </TestProvider>
-      </DialogProvider>
-    );
-    return finalProps;
+    const renderComponent = (newProps: Partial<ConceptPhaseProps>) => {
+      const finalProps = { ...DEFAULT_PROPS, ...newProps };
+      return (
+        <DialogProvider>
+          <TestProvider>
+            <ConceptPhase {...finalProps} />
+          </TestProvider>
+        </DialogProvider>
+      );
+    };
+
+    const renderResult = render(renderComponent(props));
+
+    const customRerender = (newProps: Partial<ConceptPhaseProps>) => {
+      return renderResult.rerender(renderComponent(newProps));
+    };
+
+    return { ...renderResult, rerender: customRerender };
   };
 
   describe("Phase Header", () => {
@@ -210,8 +219,8 @@ describe("ConceptPhase", () => {
     });
 
     it("calls completePhase mutation on click of finish button", async () => {
-      const user = userEvent.setup();
       setup();
+      const user = userEvent.setup();
       const finishButton = screen.getByTestId(FINISH_BUTTON_NAME);
       await user.click(finishButton);
       expect(mockCompletePhase).toHaveBeenCalledWith({
@@ -291,65 +300,39 @@ describe("ConceptPhase", () => {
 
   describe("Document Reactivity", () => {
     it("reflects updated documents when props change (no refresh needed)", () => {
-      const { rerender } = render(
-        <TestProvider>
-          <ConceptPhase {...DEFAULT_PROPS} documents={[]} />
-        </TestProvider>
-      );
+      const { rerender } = setup({ documents: [] });
 
       expect(screen.getByText("No documents yet.")).toBeInTheDocument();
 
-      rerender(
-        <TestProvider>
-          <ConceptPhase {...DEFAULT_PROPS} documents={[MOCK_DOCUMENT]} />
-        </TestProvider>
-      );
+      rerender({ documents: [MOCK_DOCUMENT] });
 
       expect(screen.queryByText("No documents yet.")).not.toBeInTheDocument();
       expect(screen.getByText("Pre-Submission Document 1")).toBeInTheDocument();
     });
 
     it("reflects document removal when props change (no refresh needed)", () => {
-      const { rerender } = render(
-        <TestProvider>
-          <ConceptPhase {...DEFAULT_PROPS} documents={[MOCK_DOCUMENT]} />
-        </TestProvider>
-      );
+      const { rerender } = setup({ documents: [MOCK_DOCUMENT] });
 
       expect(screen.getByText("Pre-Submission Document 1")).toBeInTheDocument();
 
-      rerender(
-        <TestProvider>
-          <ConceptPhase {...DEFAULT_PROPS} documents={[]} />
-        </TestProvider>
-      );
+      rerender({ documents: [] });
 
       expect(screen.queryByText("Pre-Submission Document 1")).not.toBeInTheDocument();
       expect(screen.getByText("No documents yet.")).toBeInTheDocument();
     });
 
     it("updates Finish button state when documents are added via props", () => {
-      const { rerender } = render(
-        <TestProvider>
-          <ConceptPhase
-            {...DEFAULT_PROPS}
-            documents={[]}
-            initialPresubmissionSubmittedDate={"2024-01-15"}
-          />
-        </TestProvider>
-      );
+      const { rerender } = setup({
+        documents: [],
+        initialPresubmissionSubmittedDate: "2024-01-15",
+      });
 
       expect(screen.getByTestId(FINISH_BUTTON_NAME)).toBeDisabled();
 
-      rerender(
-        <TestProvider>
-          <ConceptPhase
-            {...DEFAULT_PROPS}
-            documents={[mockPreSubmissionDocument]}
-            initialPresubmissionSubmittedDate={"2024-01-15"}
-          />
-        </TestProvider>
-      );
+      rerender({
+        documents: [MOCK_DOCUMENT],
+        initialPresubmissionSubmittedDate: "2024-01-15",
+      });
 
       expect(screen.getByTestId(FINISH_BUTTON_NAME)).toBeEnabled();
     });
@@ -462,7 +445,7 @@ describe("ConceptPhase", () => {
       expect(component).toBeDefined();
       if (component) {
         expect(component.type).toBe(ConceptPhase);
-        expect(component.props.presubmissionSubmittedDate).toBe("2024-03-15");
+        expect(component.props.initial).toBe("2024-03-15");
       }
     });
 
