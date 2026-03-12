@@ -40,6 +40,10 @@ const STYLES = {
 const CONCEPT_PHASE_NAME: PhaseName = "Concept";
 const NEXT_PHASE_NAME: PhaseName = "Application Intake";
 
+export const UPLOAD_BUTTON_NAME = "button-open-upload-modal";
+export const FINISH_BUTTON_NAME = "button-finish-concept";
+export const SKIP_BUTTON_NAME = "button-skip-concept";
+
 export const getConceptPhaseComponentFromApplication = (
   application: WorkflowApplication,
   workflowApplicationType: WorkflowApplicationType,
@@ -221,7 +225,7 @@ export const ConceptPhase = ({
           showConceptPreSubmissionDocumentUploadDialog(applicationId, handleDocumentUploadSucceeded)
         }
         size="small"
-        name="button-open-upload-modal"
+        name={UPLOAD_BUTTON_NAME}
       >
         Upload
         <ExportIcon />
@@ -258,11 +262,11 @@ export const ConceptPhase = ({
       </div>
 
       <div className={STYLES.actions}>
-        <SecondaryButton name="button-skip-concept" onClick={onSkip} disabled={!isSkipEnabled}>
+        <SecondaryButton name={SKIP_BUTTON_NAME} onClick={onSkip} disabled={!isSkipEnabled}>
           Skip
           <ChevronRightIcon />
         </SecondaryButton>
-        <Button name="button-finish-concept" onClick={onFinish} disabled={!isFinishEnabled}>
+        <Button name={FINISH_BUTTON_NAME} onClick={onFinish} disabled={!isFinishEnabled}>
           Finish
         </Button>
       </div>
