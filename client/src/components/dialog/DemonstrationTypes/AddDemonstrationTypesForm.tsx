@@ -1,9 +1,9 @@
 import React from "react";
 import { DatePicker } from "components/input/date/DatePicker";
 import { SecondaryButton } from "components/button";
-import { SelectDemonstrationTypeName } from "components/input/select/SelectDemonstrationTypeName";
+import { SelectDemonstrationTypeName } from "components/input/select/SelectDemonstrationType";
 import { gql, TypedDocumentNode, useQuery } from "@apollo/client";
-import { Tag as DemonstrationTypeName } from "demos-server";
+import { TagName as DemonstrationTypeName } from "demos-server";
 import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
 
 export const ADD_DEMONSTRATION_TYPES_FORM_QUERY: TypedDocumentNode<
@@ -50,6 +50,7 @@ export const AddDemonstrationTypesForm = ({
   const [demonstrationTypeFormData, setDemonstrationTypeFormData] =
     React.useState<DemonstrationType>({
       demonstrationTypeName: "",
+      approvalStatus: "Approved",
       effectiveDate: "",
       expirationDate: "",
     });
@@ -66,6 +67,7 @@ export const AddDemonstrationTypesForm = ({
     setDemonstrationTypeFormData({
       ...demonstrationTypeFormData,
       demonstrationTypeName: "",
+      approvalStatus: "Approved",
     });
   };
 
@@ -97,11 +99,12 @@ export const AddDemonstrationTypesForm = ({
             filter={filterDemonstrationTypes}
             isRequired
             value={demonstrationTypeFormData.demonstrationTypeName}
-            onSelect={(demonstrationTypeName) =>
+            onSelect={(demonstrationTypeOption) =>
               setDemonstrationTypeFormData(
                 (demonstrationType): DemonstrationType => ({
                   ...demonstrationType,
-                  demonstrationTypeName,
+                  demonstrationTypeName: demonstrationTypeOption.tagName,
+                  approvalStatus: demonstrationTypeOption.approvalStatus,
                 })
               )
             }

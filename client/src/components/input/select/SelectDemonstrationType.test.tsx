@@ -6,19 +6,24 @@ import {
   SELECT_DEMONSTRATION_TYPE_QUERY,
   SelectDemonstrationTypeName,
   SelectDemonstrationTypeNameProps,
-} from "./SelectDemonstrationTypeName";
+} from "./SelectDemonstrationType";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
-import { Tag as DemonstrationTypeName } from "demos-server";
+import { Tag as DemonstrationTypeName, Tag } from "demos-server";
 
 const mockSelectDemonstrationTypeQuery: MockedResponse<{
-  demonstrationTypeNames: DemonstrationTypeName[];
+  demonstrationTypes: Tag[];
 }> = {
   request: {
     query: SELECT_DEMONSTRATION_TYPE_QUERY,
   },
   result: {
     data: {
-      demonstrationTypeNames: ["Type A", "Type B", "Type C", "Type D"],
+      demonstrationTypes: [
+        { tagName: "Type A", approvalStatus: "Approved" },
+        { tagName: "Type B", approvalStatus: "Approved" },
+        { tagName: "Type C", approvalStatus: "Unapproved" },
+        { tagName: "Type D", approvalStatus: "Unapproved" },
+      ],
     },
   },
 };
@@ -122,7 +127,7 @@ describe("SelectDemonstrationTypes", () => {
       expect(screen.getByText("Demonstration Type")).toBeInTheDocument();
     });
 
-    it("loads and displays demonstration types", async () => {
+    it("loads and displays demonstration types with approval status", async () => {
       await renderWithProvider();
 
       const input = screen.getByRole("textbox");
@@ -130,8 +135,8 @@ describe("SelectDemonstrationTypes", () => {
 
       expect(screen.getByText("Type A")).toBeInTheDocument();
       expect(screen.getByText("Type B")).toBeInTheDocument();
-      expect(screen.getByText("Type C")).toBeInTheDocument();
-      expect(screen.getByText("Type D")).toBeInTheDocument();
+      expect(screen.getByText("Type C (Unapproved)")).toBeInTheDocument();
+      expect(screen.getByText("Type D (Unapproved)")).toBeInTheDocument();
     });
 
     it("calls onSelect when option is clicked", async () => {
@@ -139,9 +144,12 @@ describe("SelectDemonstrationTypes", () => {
 
       const input = screen.getByRole("textbox");
       await userEvent.click(input);
-      await userEvent.click(screen.getByText("Type C"));
+      await userEvent.click(screen.getByText("Type C (Unapproved)"));
 
-      expect(mockOnSelect).toHaveBeenCalledWith("Type C");
+      expect(mockOnSelect).toHaveBeenCalledWith({
+        tagName: "Type C",
+        approvalStatus: "Unapproved",
+      });
     });
 
     it("filters demonstration types when filter prop is provided", async () => {
@@ -153,8 +161,8 @@ describe("SelectDemonstrationTypes", () => {
 
       expect(screen.getByText("Type A")).toBeInTheDocument();
       expect(screen.queryByText("Type B")).not.toBeInTheDocument();
-      expect(screen.getByText("Type C")).toBeInTheDocument();
-      expect(screen.getByText("Type D")).toBeInTheDocument();
+      expect(screen.getByText("Type C (Unapproved)")).toBeInTheDocument();
+      expect(screen.getByText("Type D (Unapproved)")).toBeInTheDocument();
     });
 
     it("passes isRequired prop to AutoCompleteSelect", async () => {
