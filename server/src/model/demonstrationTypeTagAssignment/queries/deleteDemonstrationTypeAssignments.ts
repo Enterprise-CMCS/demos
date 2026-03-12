@@ -8,7 +8,7 @@ export async function deleteDemonstrationTypeAssignments(
   await tx.demonstrationTypeTagAssignment.deleteMany({
     where: {
       demonstrationId: input.demonstrationId,
-      tagId: {
+      tagNameId: {
         in: input.demonstrationTypesToDelete,
       },
     },

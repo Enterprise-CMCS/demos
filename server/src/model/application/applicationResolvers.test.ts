@@ -9,12 +9,12 @@ import {
   resolveApplicationTags,
   resolveApplicationSignatureLevel,
 } from "./applicationResolvers";
-import { TagConfiguration } from "../tagConfiguration";
+import { Tag } from "../tag/index.js";
 import { PrismaApplication } from ".";
 import { ApplicationStatus, ApplicationType, PhaseName } from "../../types";
 import {
   ApplicationTagAssignment as PrismaApplicationTagAssignment,
-  TagConfiguration as PrismaTagConfiguration,
+  Tag as PrismaTag,
 } from "@prisma/client";
 
 // Mock imports
@@ -143,18 +143,18 @@ describe("applicationResolvers", () => {
   describe("resolveApplicationTags", () => {
     it("should resolve the tags on an application", async () => {
       // This is present just to test the map in the function
-      const resolvedValue: (Pick<PrismaApplicationTagAssignment, "tagId"> & {
-        tagConfiguration: Pick<PrismaTagConfiguration, "statusId">;
+      const resolvedValue: (Pick<PrismaApplicationTagAssignment, "tagNameId"> & {
+        tag: Pick<PrismaTag, "statusId">;
       })[] = [
         {
-          tagId: "Test Tag Value A",
-          tagConfiguration: {
+          tagNameId: "Test Tag Value A",
+          tag: {
             statusId: "Unapproved",
           },
         },
         {
-          tagId: "Test Tag Value B",
-          tagConfiguration: {
+          tagNameId: "Test Tag Value B",
+          tag: {
             statusId: "Approved",
           },
         },
@@ -166,17 +166,17 @@ describe("applicationResolvers", () => {
           applicationId: testApplicationId,
         },
         include: {
-          tagConfiguration: true,
+          tag: true,
         },
       };
-      const expectedResult: TagConfiguration[] = [
+      const expectedResult: Tag[] = [
         {
           approvalStatus: "Unapproved",
-          tagId: "Test Tag Value A",
+          tagName: "Test Tag Value A",
         },
         {
           approvalStatus: "Approved",
-          tagId: "Test Tag Value B",
+          tagName: "Test Tag Value B",
         },
       ];
       const input: Partial<PrismaApplication> = {

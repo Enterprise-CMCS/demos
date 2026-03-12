@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getDemonstrationTypes, getApplicationTags } from "./tagConfigurationResolvers";
+import { getDemonstrationTypes, getApplicationTags } from "./tagResolvers";
 
 // Mock imports
 import { getTagListByTagType } from ".";
@@ -8,7 +8,7 @@ vi.mock(".", () => ({
   getTagListByTagType: vi.fn(),
 }));
 
-describe("tagConfigurationResolvers", () => {
+describe("tagResolvers", () => {
   beforeEach(() => {
     vi.resetAllMocks();
   });

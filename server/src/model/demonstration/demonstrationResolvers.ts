@@ -15,7 +15,7 @@ import {
   GrantLevel,
   PhaseName,
   Role,
-  TagConfigurationStatus,
+  TagStatus,
   UpdateDemonstrationInput,
 } from "../../types.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
@@ -267,16 +267,16 @@ export async function resolveDemonstrationTypes(
       demonstrationId: parent.id,
     },
     include: {
-      tagConfiguration: true,
+      tag: true,
     },
   });
   return assignments.map((assignment) => ({
-    demonstrationTypeName: assignment.tagId,
+    demonstrationTypeName: assignment.tagNameId,
     effectiveDate: assignment.effectiveDate,
     expirationDate: assignment.expirationDate,
     status: determineDemonstrationTypeStatus(assignment.effectiveDate, assignment.expirationDate),
     // casting enforced by database constraints
-    approvalStatus: assignment.tagConfiguration.statusId as TagConfigurationStatus,
+    approvalStatus: assignment.tag.statusId as TagStatus,
     createdAt: assignment.createdAt,
     updatedAt: assignment.updatedAt,
   }));

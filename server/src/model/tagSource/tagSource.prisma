@@ -1,0 +1,9 @@
+// Flags: STATIC_CONSTRAINT
+model TagSource {
+  id String
+
+  tags Tag[]
+
+  @@id([id])
+  @@map("tag_source")
+}

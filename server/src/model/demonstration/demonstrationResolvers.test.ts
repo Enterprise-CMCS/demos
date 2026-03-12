@@ -29,7 +29,7 @@ import {
 import {
   Demonstration as PrismaDemonstration,
   DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
-  TagConfiguration,
+  Tag,
 } from "@prisma/client";
 import { TZDate } from "@date-fns/tz";
 
@@ -787,29 +787,29 @@ describe("demonstrationResolvers", () => {
     it("should look up the demonstration types for the demonstration", async () => {
       // This is present just to test the map in the function
       const resolvedValue: (PrismaDemonstrationTypeTagAssignment & {
-        tagConfiguration: Pick<TagConfiguration, "statusId">;
+        tag: Pick<Tag, "statusId">;
       })[] = [
         {
           demonstrationId: testValues.demonstrationId,
-          tagId: "Test Demonstration Type A",
+          tagNameId: "Test Demonstration Type A",
           tagTypeId: "Demonstration Type",
           effectiveDate: testValues.dateValue,
           expirationDate: testValues.dateValue,
           createdAt: testValues.dateValue,
           updatedAt: testValues.dateValue,
-          tagConfiguration: {
+          tag: {
             statusId: "Approved",
           },
         },
         {
           demonstrationId: testValues.demonstrationId,
-          tagId: "Test Demonstration Type B",
+          tagNameId: "Test Demonstration Type B",
           tagTypeId: "Demonstration Type",
           effectiveDate: testValues.dateValue,
           expirationDate: testValues.dateValue,
           createdAt: testValues.dateValue,
           updatedAt: testValues.dateValue,
-          tagConfiguration: {
+          tag: {
             statusId: "Unapproved",
           },
         },
@@ -827,7 +827,7 @@ describe("demonstrationResolvers", () => {
 
       const expectedCall = {
         include: {
-          tagConfiguration: true,
+          tag: true,
         },
         where: {
           demonstrationId: testValues.demonstrationId,

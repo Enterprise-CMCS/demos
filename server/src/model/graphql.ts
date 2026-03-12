@@ -76,16 +76,16 @@ import { signatureLevelResolvers } from "./signatureLevel/signatureLevelResolver
 import { stateSchema } from "./state/stateSchema.js";
 import { stateResolvers } from "./state/stateResolvers.js";
 
-import { tagConfigurationSchema } from "./tagConfiguration/tagConfigurationSchema.js";
-import { tagConfigurationResolvers } from "./tagConfiguration/tagConfigurationResolvers.js";
-
-import { tagConfigurationSourceSchema } from "./tagConfigurationSource/tagConfigurationSourceSchema.js";
-import { tagConfigurationSourceResolvers } from "./tagConfigurationSource/tagConfigurationSourceResolvers.js";
-
-import { tagConfigurationStatusSchema } from "./tagConfigurationStatus/tagConfigurationStatusSchema.js";
-import { tagConfigurationStatusResolvers } from "./tagConfigurationStatus/tagConfigurationStatusResolvers.js";
-
 import { tagSchema } from "./tag/tagSchema.js";
+import { tagResolvers } from "./tag/tagResolvers.js";
+
+import { tagSourceSchema } from "./tagSource/tagSourceSchema.js";
+import { tagSourceResolvers } from "./tagSource/tagSourceResolvers.js";
+
+import { tagStatusSchema } from "./tagStatus/tagStatusSchema.js";
+import { tagStatusResolvers } from "./tagStatus/tagStatusResolvers.js";
+
+import { tagNameSchema } from "./tagName/tagNameSchema.js";
 
 import { tagTypeSchema } from "./tagType/tagTypeSchema.js";
 import { tagTypeResolvers } from "./tagType/tagTypeResolvers.js";
@@ -137,9 +137,9 @@ export const typeDefs = [
   sdgDivisionSchema,
   signatureLevelSchema,
   stateSchema,
-  tagConfigurationSchema,
-  tagConfigurationSourceSchema,
-  tagConfigurationStatusSchema,
+  tagNameSchema,
+  tagSourceSchema,
+  tagStatusSchema,
   tagSchema,
   tagTypeSchema,
   userSchema,
@@ -175,9 +175,9 @@ export const resolvers = [
   sdgDivisionResolvers,
   signatureLevelResolvers,
   stateResolvers,
-  tagConfigurationResolvers,
-  tagConfigurationSourceResolvers,
-  tagConfigurationStatusResolvers,
+  tagResolvers,
+  tagSourceResolvers,
+  tagStatusResolvers,
   tagTypeResolvers,
   userResolvers,
 ];

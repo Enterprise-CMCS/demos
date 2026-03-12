@@ -2,16 +2,16 @@ import { describe, it, expect, vi } from "vitest";
 import { getTagListByTagType } from "./getTagListByTagType";
 
 // Mock imports
-import { getTagConfigurationByTagType } from ".";
+import { getTagByTagType } from ".";
 
 vi.mock(".", () => ({
-  getTagConfigurationByTagType: vi.fn(),
+  getTagByTagType: vi.fn(),
 }));
 
 describe("getTagListByTagType", () => {
-  vi.mocked(getTagConfigurationByTagType).mockResolvedValue([
+  vi.mocked(getTagByTagType).mockResolvedValue([
     {
-      tagId: "Tag One",
+      tagNameId: "Tag One",
       tagTypeId: "Application",
       sourceId: "User",
       statusId: "Unapproved",
@@ -19,7 +19,7 @@ describe("getTagListByTagType", () => {
       updatedAt: new Date(),
     },
     {
-      tagId: "Tag Two",
+      tagNameId: "Tag Two",
       tagTypeId: "Application",
       sourceId: "System",
       statusId: "Approved",
@@ -27,7 +27,7 @@ describe("getTagListByTagType", () => {
       updatedAt: new Date(),
     },
     {
-      tagId: "Tag Three",
+      tagNameId: "Tag Three",
       tagTypeId: "Application",
       sourceId: "User",
       statusId: "Approved",
@@ -39,14 +39,14 @@ describe("getTagListByTagType", () => {
   it("should return objects containing the tag ids and approval status after retrieving them", async () => {
     const result = await getTagListByTagType("Application");
 
-    expect(getTagConfigurationByTagType).toHaveBeenCalledExactlyOnceWith("Application");
+    expect(getTagByTagType).toHaveBeenCalledExactlyOnceWith("Application");
     expect(result).toEqual([
       {
-        tagId: "Tag One",
+        tagName: "Tag One",
         approvalStatus: "Unapproved",
       },
-      { tagId: "Tag Two", approvalStatus: "Approved" },
-      { tagId: "Tag Three", approvalStatus: "Approved" },
+      { tagName: "Tag Two", approvalStatus: "Approved" },
+      { tagName: "Tag Three", approvalStatus: "Approved" },
     ]);
   });
 });
