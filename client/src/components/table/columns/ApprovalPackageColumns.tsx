@@ -61,7 +61,7 @@ export function ApprovalPackageColumns(demonstrationId: string) {
                   )
                 }
               >
-                Upload <ExportIcon/>
+                Upload <ExportIcon />
               </SecondaryButton>
             ) : (
               <>
@@ -69,13 +69,16 @@ export function ApprovalPackageColumns(demonstrationId: string) {
                   name={`edit-${doc.documentType}`}
                   ariaLabel={`Edit ${doc.documentType}`}
                   onClick={() =>
-                    showEditDocumentDialog({
-                      id: doc.id!,
-                      name: doc.name,
-                      description: doc.description,
-                      file: null,
-                      documentType: doc.documentType as DocumentType,
-                    })
+                    showEditDocumentDialog(
+                      {
+                        id: doc.id!,
+                        name: doc.name,
+                        description: doc.description,
+                        file: null,
+                        documentType: doc.documentType as DocumentType,
+                      },
+                      false
+                    )
                   }
                 >
                   <EditIcon />
