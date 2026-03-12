@@ -15,7 +15,6 @@ import {
   ApplicationWorkflowDemonstration,
   ApplicationWorkflowDocument,
 } from "components/application";
-import { LocalDate } from "demos-server";
 
 vi.mock("@apollo/client", async () => {
   const actual = await vi.importActual("@apollo/client");
@@ -68,6 +67,7 @@ describe("ConceptPhase", () => {
     applicationId: TEST_APPLICATION_ID,
     workflowApplicationType: "demonstration",
     documents: [mockPreSubmissionDocument],
+    setSelectedPhase: () => {},
     phaseStatus: "Started",
   };
 
@@ -313,10 +313,7 @@ describe("ConceptPhase", () => {
 
       rerender(
         <TestProvider>
-          <ConceptPhase
-            {...defaultProps}
-            documents={[mockPreSubmissionDocument]}
-          />
+          <ConceptPhase {...defaultProps} documents={[mockPreSubmissionDocument]} />
         </TestProvider>
       );
 
@@ -327,10 +324,7 @@ describe("ConceptPhase", () => {
     it("reflects document removal when props change (no refresh needed)", () => {
       const { rerender } = render(
         <TestProvider>
-          <ConceptPhase
-            {...defaultProps}
-            documents={[mockPreSubmissionDocument]}
-          />
+          <ConceptPhase {...defaultProps} documents={[mockPreSubmissionDocument]} />
         </TestProvider>
       );
 
@@ -352,7 +346,7 @@ describe("ConceptPhase", () => {
           <ConceptPhase
             {...defaultProps}
             documents={[]}
-            presubmissionSubmittedDate={"2024-01-15" as LocalDate}
+            initialPresubmissionSubmittedDate={"2024-01-15"}
           />
         </TestProvider>
       );
@@ -364,7 +358,7 @@ describe("ConceptPhase", () => {
           <ConceptPhase
             {...defaultProps}
             documents={[mockPreSubmissionDocument]}
-            presubmissionSubmittedDate={"2024-01-15" as LocalDate}
+            initialPresubmissionSubmittedDate={"2024-01-15"}
           />
         </TestProvider>
       );
@@ -487,7 +481,7 @@ describe("ConceptPhase", () => {
     it("overrides createdAt date on document with Presubmission Document Submitted Date when both provided", () => {
       setup({
         documents: [mockPreSubmissionDocument],
-        presubmissionSubmittedDate: "2024-01-10" as LocalDate,
+        initialPresubmissionSubmittedDate: "2024-01-10",
       });
       const dateInput = screen.getByLabelText(
         /Pre-Submission Document Submitted Date/

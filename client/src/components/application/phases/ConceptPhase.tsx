@@ -17,9 +17,12 @@ import { useToast } from "components/toast";
 import { getPhaseCompletedMessage } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
-import { PhaseName } from "../phase-selector/PhaseSelector";
+import { PhaseName } from "components/application/phase-selector/PhaseSelector";
 import type { LocalDate, PhaseStatus, UploadDocumentInput } from "demos-server";
-import { useCompletePhase, useSkipConceptPhase } from "../phase-status/phaseCompletionQueries";
+import {
+  useCompletePhase,
+  useSkipConceptPhase,
+} from "components/application/phase-status/phaseCompletionQueries";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -34,16 +37,19 @@ const STYLES = {
   actions: tw`mt-8 flex justify-end gap-3`,
 };
 
+const CONCEPT_PHASE_NAME: PhaseName = "Concept";
+const NEXT_PHASE_NAME: PhaseName = "Application Intake";
+
 export const getConceptPhaseComponentFromApplication = (
   application: WorkflowApplication,
   workflowApplicationType: WorkflowApplicationType,
   setSelectedPhase: (phase: PhaseName) => void
 ) => {
   const preSubmissionDocuments = application.documents.filter(
-    (document) => document.phaseName === "Concept"
+    (document) => document.phaseName === CONCEPT_PHASE_NAME
   );
 
-  const conceptPhase = application.phases.find((phase) => phase.phaseName === "Concept");
+  const conceptPhase = application.phases.find((phase) => phase.phaseName === CONCEPT_PHASE_NAME);
   if (!conceptPhase) {
     console.error("Concept phase data is missing for application:", application.id);
     return null;
@@ -57,7 +63,7 @@ export const getConceptPhaseComponentFromApplication = (
     <ConceptPhase
       applicationId={application.id}
       documents={preSubmissionDocuments}
-      presubmissionSubmittedDate={
+      initialPresubmissionSubmittedDate={
         presubmissionSubmittedDate ? formatDateForServer(presubmissionSubmittedDate) : undefined
       }
       setSelectedPhase={setSelectedPhase}
@@ -67,7 +73,13 @@ export const getConceptPhaseComponentFromApplication = (
   );
 };
 
-const getLatestPresubmissionDocumentDate = (documents: ApplicationWorkflowDocument[]): string => {
+const getDefaultPresubmissionDate = (
+  presubmissionDate: string,
+  documents: ApplicationWorkflowDocument[]
+): string => {
+  // if a presubmission date is provided, return this
+  if (presubmissionDate) return presubmissionDate;
+
   const presubmissionDocuments = documents.filter(
     (document) => document.documentType === "Pre-Submission"
   );
@@ -84,8 +96,8 @@ const getLatestPresubmissionDocumentDate = (documents: ApplicationWorkflowDocume
 export interface ConceptPhaseProps {
   applicationId: string;
   documents: ApplicationWorkflowDocument[];
-  setSelectedPhase?: (phase: PhaseName) => void;
-  presubmissionSubmittedDate?: string;
+  setSelectedPhase: (phase: PhaseName) => void;
+  initialPresubmissionSubmittedDate?: string;
   workflowApplicationType: WorkflowApplicationType;
   phaseStatus: PhaseStatus;
 }
@@ -94,7 +106,7 @@ export const ConceptPhase = ({
   applicationId,
   documents,
   setSelectedPhase,
-  presubmissionSubmittedDate,
+  initialPresubmissionSubmittedDate,
   workflowApplicationType,
   phaseStatus,
 }: ConceptPhaseProps) => {
@@ -104,17 +116,13 @@ export const ConceptPhase = ({
   const { completePhase } = useCompletePhase();
   const { skipConceptPhase } = useSkipConceptPhase();
 
+  const isPhaseFinalized = phaseStatus === "Completed" || phaseStatus === "Skipped";
+
   const [submittedDate, setSubmittedDate] = useState<string>(
-    presubmissionSubmittedDate || getLatestPresubmissionDocumentDate(documents)
+    getDefaultPresubmissionDate(initialPresubmissionSubmittedDate ?? "", documents)
   );
   const [isFinishEnabled, setIsFinishEnabled] = useState<boolean>(false);
   const [isSkipEnabled, setIsSkipEnabled] = useState<boolean>(true);
-
-  const isPhaseFinalized = phaseStatus === "Completed" || phaseStatus === "Skipped";
-
-  const advanceToNextPhase = () => {
-    setSelectedPhase?.("Application Intake");
-  };
 
   useEffect(() => {
     const finishShouldBeEnabled =
@@ -123,6 +131,14 @@ export const ConceptPhase = ({
       !!submittedDate;
     setIsFinishEnabled(finishShouldBeEnabled);
     setIsSkipEnabled(!finishShouldBeEnabled && !isPhaseFinalized);
+
+    // Clear submitted date on removal of the last pre-submission document
+    const presubmissionDocuments = documents.filter(
+      (document) => document.documentType === "Pre-Submission"
+    );
+    if (presubmissionDocuments.length === 0) {
+      setSubmittedDate("");
+    }
   }, [submittedDate, documents, isPhaseFinalized]);
 
   const handleDocumentUploadSucceeded = (payload?: UploadDocumentInput) => {
@@ -164,15 +180,15 @@ export const ConceptPhase = ({
     try {
       await completePhase({
         applicationId: applicationId,
-        phaseName: "Concept",
+        phaseName: CONCEPT_PHASE_NAME,
       });
     } catch (error) {
       console.error("Error completing concept phase:", error);
       return;
     }
 
-    showSuccess(getPhaseCompletedMessage("Concept"));
-    advanceToNextPhase();
+    showSuccess(getPhaseCompletedMessage(CONCEPT_PHASE_NAME));
+    setSelectedPhase(NEXT_PHASE_NAME);
   };
 
   const onSkip = async () => {
@@ -184,7 +200,7 @@ export const ConceptPhase = ({
     }
 
     showSuccess("Concept phase skipped");
-    advanceToNextPhase();
+    setSelectedPhase(NEXT_PHASE_NAME);
   };
 
   const UploadSection = ({
