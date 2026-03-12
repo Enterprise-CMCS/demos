@@ -137,14 +137,9 @@ export const DialogSandbox: React.FC = () => {
         {demoId ? (
           <Button
             name="upload-bn-workbook"
-            onClick={() =>
-              showApprovalPackageDocumentUploadDialog(
-                demoId,
-                "Final BN Worksheet" as DocumentType
-              )
-            }
+            onClick={() => showUploadDocumentDialog(demoId)}
           >
-            Upload BN Workbook
+            Upload Document By a Real Applicaiton ID
           </Button>
         ) : null}
         <Button
