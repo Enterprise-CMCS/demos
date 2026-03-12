@@ -5,7 +5,7 @@ import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
 import { SimplePhase, WorkflowApplication } from "components/application";
 import { formatDateForServer } from "util/formatDate";
-import { DateType, LocalDate, PhaseNameWithTrackedStatus } from "demos-server";
+import { ApplicationStatus, DateType, LocalDate, PhaseNameWithTrackedStatus } from "demos-server";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import {
   FAILED_TO_SAVE_MESSAGE,
@@ -84,27 +84,27 @@ export const getSdgPreparationPhaseFromApplication = (
 
   return (
     <SdgPreparationPhase
-      demonstrationId={application.id}
+      applicationId={application.id}
       sdgPreparationPhase={sdgPreparationPhase}
       setSelectedPhase={setSelectedPhase}
       allPreviousPhasesDone={allPreviousPhasesDone}
-      demonstrationStatus={application.status}
+      applicationStatus={application.status}
     />
   );
 };
 
 export const SdgPreparationPhase = ({
-  demonstrationId,
+  applicationId,
   sdgPreparationPhase,
   setSelectedPhase,
   allPreviousPhasesDone,
-  demonstrationStatus,
+  applicationStatus,
 }: {
-  demonstrationId: string;
+  applicationId: string;
   sdgPreparationPhase: SimplePhase;
   setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void;
   allPreviousPhasesDone: boolean;
-  demonstrationStatus: WorkflowApplication["status"];
+  applicationStatus: ApplicationStatus;
 }) => {
   const [sdgPreparationPhaseFormData, setSdgPreparationPhaseFormData] =
     useState<SdgPreparationPhaseFormData>(getFormDataFromPhase(sdgPreparationPhase));
@@ -113,7 +113,7 @@ export const SdgPreparationPhase = ({
   const { showSuccess, showError } = useToast();
 
   const isPhaseCompleted = sdgPreparationPhase.phaseStatus === "Completed";
-  const isApproved = demonstrationStatus === "Approved";
+  const isApproved = applicationStatus === "Approved";
 
   const isFormComplete =
     sdgPreparationPhaseFormData.expectedApprovalDate &&
@@ -124,7 +124,7 @@ export const SdgPreparationPhase = ({
   const handleSave = async () => {
     if (sdgPreparationPhaseFormData.expectedApprovalDate) {
       await setApplicationDate({
-        applicationId: demonstrationId,
+        applicationId: applicationId,
         dateType: "Expected Approval Date" satisfies DateType,
         dateValue: sdgPreparationPhaseFormData.expectedApprovalDate as LocalDate,
       });
@@ -133,7 +133,7 @@ export const SdgPreparationPhase = ({
     if (!isPhaseCompleted) {
       if (sdgPreparationPhaseFormData.smeInitialReviewDate) {
         await setApplicationDate({
-          applicationId: demonstrationId,
+          applicationId: applicationId,
           dateType: "SME Review Date" satisfies DateType,
           dateValue: sdgPreparationPhaseFormData.smeInitialReviewDate as LocalDate,
         });
@@ -141,7 +141,7 @@ export const SdgPreparationPhase = ({
 
       if (sdgPreparationPhaseFormData.frtInitialMeetingDate) {
         await setApplicationDate({
-          applicationId: demonstrationId,
+          applicationId: applicationId,
           dateType: "FRT Initial Meeting Date" satisfies DateType,
           dateValue: sdgPreparationPhaseFormData.frtInitialMeetingDate as LocalDate,
         });
@@ -149,7 +149,7 @@ export const SdgPreparationPhase = ({
 
       if (sdgPreparationPhaseFormData.bnpmtInitialMeetingDate) {
         await setApplicationDate({
-          applicationId: demonstrationId,
+          applicationId: applicationId,
           dateType: "BNPMT Initial Meeting Date" satisfies DateType,
           dateValue: sdgPreparationPhaseFormData.bnpmtInitialMeetingDate as LocalDate,
         });
@@ -171,7 +171,7 @@ export const SdgPreparationPhase = ({
     try {
       await handleSave();
       await completePhase({
-        applicationId: demonstrationId,
+        applicationId: applicationId,
         phaseName: "SDG Preparation",
       });
       setSelectedPhase("Review");

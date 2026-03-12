@@ -52,7 +52,7 @@ const mockPO = {
   fullName: "Jane Doe",
 };
 
-const mockDemonstration: ApplicationWorkflowDemonstration = {
+const mockApplication: ApplicationWorkflowDemonstration = {
   id: "1",
   name: "Test Demo",
   state: {
@@ -81,7 +81,7 @@ const mockDemonstration: ApplicationWorkflowDemonstration = {
   tags: [],
 };
 
-const mockCompleteDemonstration: ApplicationWorkflowDemonstration = {
+const mockCompleteApplication: ApplicationWorkflowDemonstration = {
   id: "1",
   name: "Test Demo",
   state: {
@@ -127,16 +127,16 @@ describe("SdgPreparationPhase", () => {
   });
 
   const setup = (
-    demonstration = mockDemonstration,
-    demonstrationStatus: ApplicationStatus = "Pre-Submission"
+    application = mockApplication,
+    applicationStatus: ApplicationStatus = "Pre-Submission"
   ): void => {
     render(
       <SdgPreparationPhase
-        demonstrationId={demonstration.id}
-        sdgPreparationPhase={demonstration.phases[0]}
+        applicationId={application.id}
+        sdgPreparationPhase={application.phases[0]}
         setSelectedPhase={mockSetSelectedPhase}
         allPreviousPhasesDone={true}
-        demonstrationStatus={demonstrationStatus}
+        applicationStatus={applicationStatus}
       />
     );
   };
@@ -146,7 +146,9 @@ describe("SdgPreparationPhase", () => {
       setup();
 
       expect(screen.getByText("SDG PREPARATION")).toBeInTheDocument();
-      expect(screen.getByText("Plan and conduct internal and preparation tasks")).toBeInTheDocument();
+      expect(
+        screen.getByText("Plan and conduct internal and preparation tasks")
+      ).toBeInTheDocument();
     });
   });
 
@@ -289,7 +291,7 @@ describe("SdgPreparationPhase", () => {
       mockCompletePhase.mockResolvedValue({
         data: { completePhase: { __typename: "ApplicationPhase" } },
       });
-      setup(mockCompleteDemonstration);
+      setup(mockCompleteApplication);
 
       const finishButton = await screen.findByRole("button", { name: /finish/i });
       expect(finishButton).toBeEnabled();
@@ -307,7 +309,7 @@ describe("SdgPreparationPhase", () => {
     it("shows error toast when Finish fails", async () => {
       mockSetApplicationDate.mockResolvedValue({ data: { setApplicationDate: { id: "1" } } });
       mockCompletePhase.mockRejectedValue(new Error("Mutation failed"));
-      setup(mockCompleteDemonstration);
+      setup(mockCompleteApplication);
 
       const finishButton = await screen.findByRole("button", { name: /finish/i });
       expect(finishButton).toBeEnabled();
@@ -406,11 +408,11 @@ describe("Completed Phase Behavior", () => {
   const renderCompleted = () =>
     render(
       <SdgPreparationPhase
-        demonstrationId={mockCompleteDemonstration.id}
+        applicationId={mockCompleteApplication.id}
         sdgPreparationPhase={completedPhase}
         setSelectedPhase={mockSetSelectedPhase}
         allPreviousPhasesDone={true}
-        demonstrationStatus="Pre-Submission"
+        applicationStatus="Pre-Submission"
       />
     );
 
@@ -466,7 +468,7 @@ describe("Completed Phase Behavior", () => {
   });
 });
 
-describe("Approved Demonstration Behavior", () => {
+describe("Approved Application Behavior", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -490,7 +492,7 @@ describe("Approved Demonstration Behavior", () => {
   const renderApproved = () =>
     render(
       <SdgPreparationPhase
-        demonstrationId="1"
+        applicationId="1"
         sdgPreparationPhase={{
           phaseName: "SDG Preparation",
           phaseStatus: "Completed",
@@ -499,16 +501,16 @@ describe("Approved Demonstration Behavior", () => {
         }}
         setSelectedPhase={mockSetSelectedPhase}
         allPreviousPhasesDone={true}
-        demonstrationStatus="Approved"
+        applicationStatus="Approved"
       />
     );
 
-  it("disables Expected Approval Date when demonstration is Approved", () => {
+  it("disables Expected Approval Date when application is Approved", () => {
     renderApproved();
     expect(screen.getByTestId("datepicker-expected-approval-date")).toBeDisabled();
   });
 
-  it("keeps Save For Later disabled when demonstration is Approved (no editable fields)", () => {
+  it("keeps Save For Later disabled when application is Approved (no editable fields)", () => {
     renderApproved();
     expect(screen.getByTestId("sdg-save-for-later")).toBeDisabled();
   });
@@ -518,7 +520,7 @@ describe("getSdgPreparationPhaseFromApplication", () => {
   const mockSetSelectedPhase = vi.fn();
 
   it("renders the SDG Preparation Phase component when phase is found", () => {
-    const demonstration: ApplicationWorkflowDemonstration = {
+    const application: ApplicationWorkflowDemonstration = {
       id: "demo-1",
       name: "Test Demo",
       state: {
@@ -547,14 +549,14 @@ describe("getSdgPreparationPhaseFromApplication", () => {
       tags: [],
     };
 
-    render(getSdgPreparationPhaseFromApplication(demonstration, mockSetSelectedPhase));
+    render(getSdgPreparationPhaseFromApplication(application, mockSetSelectedPhase));
 
     expect(screen.getByText("SDG PREPARATION")).toBeInTheDocument();
     expect(screen.getByTestId("sdg-finish")).toBeInTheDocument();
   });
 
   it("renders error message when SDG Preparation phase is not found", () => {
-    const demonstration: ApplicationWorkflowDemonstration = {
+    const application: ApplicationWorkflowDemonstration = {
       id: "demo-1",
       name: "Test Demo",
       state: {
@@ -578,13 +580,13 @@ describe("getSdgPreparationPhaseFromApplication", () => {
       tags: [],
     };
 
-    render(getSdgPreparationPhaseFromApplication(demonstration, mockSetSelectedPhase));
+    render(getSdgPreparationPhaseFromApplication(application, mockSetSelectedPhase));
 
     expect(screen.getByText("Error: SDG Preparation Phase not found.")).toBeInTheDocument();
   });
 
   it("disables Finish button when previous phases are not completed", () => {
-    const demonstration: ApplicationWorkflowDemonstration = {
+    const application: ApplicationWorkflowDemonstration = {
       id: "demo-1",
       name: "Test Demo",
       state: {
@@ -628,14 +630,14 @@ describe("getSdgPreparationPhaseFromApplication", () => {
       tags: [],
     };
 
-    render(getSdgPreparationPhaseFromApplication(demonstration, mockSetSelectedPhase));
+    render(getSdgPreparationPhaseFromApplication(application, mockSetSelectedPhase));
 
     const finishButton = screen.getByTestId("sdg-finish");
     expect(finishButton).toBeDisabled();
   });
 
   it("enables Finish button when all previous phases are completed or skipped", () => {
-    const demonstration: ApplicationWorkflowDemonstration = {
+    const application: ApplicationWorkflowDemonstration = {
       id: "demo-1",
       name: "Test Demo",
       state: {
@@ -691,7 +693,7 @@ describe("getSdgPreparationPhaseFromApplication", () => {
       tags: [],
     };
 
-    render(getSdgPreparationPhaseFromApplication(demonstration, mockSetSelectedPhase));
+    render(getSdgPreparationPhaseFromApplication(application, mockSetSelectedPhase));
 
     const finishButton = screen.getByTestId("sdg-finish");
     expect(finishButton).toBeEnabled();
