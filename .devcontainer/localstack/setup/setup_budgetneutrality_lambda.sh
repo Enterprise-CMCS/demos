@@ -7,7 +7,7 @@ LOCALSTACK_ENDPOINT="http://localstack:4566"
 AWS_REGION="us-east-1"
 AWS_CMD="aws --endpoint-url=$LOCALSTACK_ENDPOINT --region $AWS_REGION"
 
-QUEUE_NAME="bn-notebook-validation-queue"
+QUEUE_NAME="budget-neutrality-queue"
 LAMBDA_NAME="budgetneutrality"
 
 # Build Lambda package
