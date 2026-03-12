@@ -246,10 +246,8 @@ describe("ConceptPhase", () => {
       const uploadButton = screen.getByTestId(UPLOAD_BUTTON_NAME);
       await user.click(uploadButton);
 
-      // expect(showConceptPreSubmissionDocumentUploadDialog).toHaveBeenCalledWith(
-      //   TEST_APPLICATION_ID,
-      //   expect.any(Function)
-      // );
+      // Dialog should appear in the DOM
+      expect(screen.getByText("Pre-Submission Document")).toBeInTheDocument();
     });
   });
 
