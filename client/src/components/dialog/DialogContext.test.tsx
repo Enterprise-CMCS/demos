@@ -6,7 +6,7 @@ import { DialogProvider, useDialog } from "./DialogContext";
 import { ExistingContactType } from "./ManageContactsDialog";
 import { DocumentDialogFields } from "./document/DocumentDialog";
 import { DeclareIncompleteForm } from "./DeclareIncompleteDialog";
-import { Tag as DemonstrationTypeName } from "demos-server";
+import { TagName } from "demos-server";
 import { DemonstrationType } from "./DemonstrationTypes/EditDemonstrationTypeDialog";
 import { formatDateForServer } from "util/formatDate";
 
@@ -288,7 +288,7 @@ vi.mock("./DemonstrationTypes/RemoveDemonstrationTypesDialog", () => ({
     demonstrationTypeNames,
   }: {
     demonstrationId: string;
-    demonstrationTypeNames: DemonstrationTypeName[];
+    demonstrationTypeNames: TagName[];
   }) => (
     <div data-testid="remove-demonstration-types-dialog">
       Remove Demonstration Types Dialog
@@ -502,6 +502,7 @@ const TestConsumer: React.FC = () => {
           showEditDemonstrationTypeDialog("app-1", {
             demonstrationTypeName: "Type1",
             status: "Active",
+            approvalStatus: "Approved",
             effectiveDate: new Date("2024-01-01"),
             expirationDate: new Date("2025-01-01"),
           })
