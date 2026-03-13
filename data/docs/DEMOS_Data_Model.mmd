@@ -400,6 +400,34 @@ erDiagram
     HAS_HISTORY true
   }
 
+  application_tag_suggestion:::dataTable {
+    uuid id PK, UK "UK: (id, application_id, value)"
+    uuid application_id UK "UK: (id, application_id, value)"
+    text value UK "UK: (id, application_id, value)"
+    text status_id "FK142: status_id ∈ application_tag_suggestion_status.id"
+    timestamptz created_at
+    timestamptz updated_at
+    CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_suggestion_has_extract "Verify that at least one extract record exists for this suggestion."
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
+  }
+
+  application_tag_suggestion_extract:::dataTable {
+    uuid suggestion_id PK, FK "FK140: (suggestion_id, application_id, value) ∈ application_tag_suggestion.(id, application_id, value) DEFERRED"
+    uuid uipath_value_id PK, FK "FK139: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)"
+    uuid application_id FK "FK139: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK140: (suggestion_id, application_id, value) ∈ application_tag_suggestion.(id, application_id, value) DEFERRED"
+    text field_id FK "FK139: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK141: field_id ∈ application_tag_suggestion_extract_field_limit.id"
+    text value FK "FK139: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK140: (suggestion_id, application_id, value) ∈ application_tag_suggestion.(id, application_id, value) DEFERRED"
+    int start_page_no
+    int end_page_no
+    timestamptz created_at
+    timestamptz updated_at
+    TRIGGER_BEFORE_DELETE check_suggestion_deleted_if_last_extract "If this is the last extract of a suggestion, verify that the corresponding suggestion is deleted."
+    TRIGGER_AFTER_INSERT upsert_suggestion_record "When a new extract is added take the following steps.<br>If no suggestion exists, insert one into application_tag_suggestion.<br>If a suggestion exists, and the status is removed, set it back to pending.<br>Otherwise do nothing."
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
+  }
+
   budget_neutrality_workbook:::dataTable {
     uuid id PK, FK "FK124: (id, document_type_id) ∈ document.(id, document_type_id) DEFERRED"
     text document_type_id FK "FK124: (id, document_type_id) ∈ document.(id, document_type_id) DEFERRED<br>FK125: document_type_id ∈ budget_neutrality_workbook_document_type_limit.id"
@@ -670,33 +698,6 @@ erDiagram
     HAS_HISTORY true
   }
 
-  application_tag_suggestion:::dataTable {
-    uuid id PK, UK "UK: (id, application_id, value)"
-    uuid application_id UK "UK: (id, application_id, value)"
-    text value UK "UK: (id, application_id, value)"
-    text status_id "FK142: status_id ∈ application_tag_suggestion_status.id"
-    timestamptz created_at
-    timestamptz updated_at
-    CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_suggestion_has_extract "Verify that at least one extract record exists for this suggestion."
-    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
-    HAS_HISTORY true
-  }
-
-  application_tag_suggestion_extract:::dataTable {
-    uuid suggestion_id PK, FK "FK140: (suggestion_id, application_id, value) ∈ application_tag_suggestion.(id, application_id, value) DEFERRED"
-    uuid uipath_value_id PK, FK "FK139: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)"
-    uuid application_id FK "FK139: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK140: (suggestion_id, application_id, value) ∈ application_tag_suggestion.(id, application_id, value) DEFERRED"
-    text field_id FK "FK139: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK141: field_id ∈ application_tag_suggestion_extract_field_limit.id"
-    text value FK "FK139: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK140: (suggestion_id, application_id, value) ∈ application_tag_suggestion.(id, application_id, value) DEFERRED"
-    text extracted_image_s3_path
-    timestamptz created_at
-    timestamptz updated_at
-    TRIGGER_BEFORE_DELETE check_suggestion_deleted_if_last_extract "If this is the last extract of a suggestion, verify that the corresponding suggestion is deleted."
-    TRIGGER_AFTER_INSERT upsert_suggestion_record "When a new extract is added take the following steps.<br>If no suggestion exists, insert one into application_tag_suggestion.<br>If a suggestion exists, and the status is removed, set it back to pending.<br>Otherwise do nothing."
-    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
-    HAS_HISTORY true
-  }
-
   uipath_result:::dataTable {
     uuid id PK, UK "UK: (id, document_id, application_id)"
     text request_id UK "UK: request_id"
@@ -718,9 +719,10 @@ erDiagram
     uuid application_id FK, UK "FK137: (uipath_result_id, document_id, application_id) ∈ uipath_result.(id, document_id, application_id)<br>UK: (id, application_id, field_id, value)"
     text field_id UK "UK: (id, application_id, field_id, value)"
     text value UK "UK: (id, application_id, field_id, value)"
+    int text_length
+    int text_start_index
     double confidence
     json token_list
-    int text_length
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
