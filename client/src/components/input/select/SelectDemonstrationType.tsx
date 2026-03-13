@@ -4,11 +4,11 @@ import { TagName, Tag } from "demos-server";
 import { AutoCompleteSelect } from "./AutoCompleteSelect";
 
 export const SELECT_DEMONSTRATION_TYPE_QUERY: TypedDocumentNode<
-  { demonstrationTypes: Tag[] },
+  { demonstrationTypeOptions: Tag[] },
   Record<string, never>
 > = gql`
   query SelectDemonstrationTypeQuery {
-    demonstrationTypes {
+    demonstrationTypeOptions {
       tagName
       approvalStatus
     }
@@ -26,7 +26,7 @@ export const SelectDemonstrationTypeName = (props: SelectDemonstrationTypeNamePr
 
   const { loading, error, data } = useQuery(SELECT_DEMONSTRATION_TYPE_QUERY);
 
-  const demonstrationTypeOptions = (data?.demonstrationTypes || [])
+  const demonstrationTypeOptions = (data?.demonstrationTypeOptions || [])
     .filter((typeOption) => (filter ? filter(typeOption.tagName) : true))
     .map((typeOption) => ({
       label: `${typeOption.tagName} ${typeOption.approvalStatus === "Approved" ? "" : "(Unapproved)"}`,
@@ -43,7 +43,7 @@ export const SelectDemonstrationTypeName = (props: SelectDemonstrationTypeNamePr
   }
 
   const handleSelect = (value: TagName) => {
-    const demonstrationTypeOption = data?.demonstrationTypes.find((opt) => opt.tagName === value);
+    const demonstrationTypeOption = data?.demonstrationTypeOptions.find((opt) => opt.tagName === value);
     if (demonstrationTypeOption) {
       onSelect(demonstrationTypeOption);
     }
