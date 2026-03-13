@@ -28,6 +28,24 @@ const mockSelectDemonstrationTypeQuery: MockedResponse<{
   },
 };
 
+const mockSelectDemonstrationTypeQueryUnsorted: MockedResponse<{
+  demonstrationTypeOptions: Tag[];
+}> = {
+  request: {
+    query: SELECT_DEMONSTRATION_TYPE_QUERY,
+  },
+  result: {
+    data: {
+      demonstrationTypeOptions: [
+        { tagName: "Type D", approvalStatus: "Unapproved" },
+        { tagName: "Type B", approvalStatus: "Approved" },
+        { tagName: "Type A", approvalStatus: "Approved" },
+        { tagName: "Type C", approvalStatus: "Unapproved" },
+      ],
+    },
+  },
+};
+
 const mockSelectDemonstrationTypeQueryError: MockedResponse<{
   demonstrationTypeNames: TagName[];
 }> = {
@@ -171,6 +189,24 @@ describe("SelectDemonstrationTypes", () => {
       const label = screen.getByText("Demonstration Type");
       const container = label.closest("label");
       expect(container?.querySelector(".text-text-warn")).toBeInTheDocument();
+    });
+
+    it("sorts options alphabetically by tagName", async () => {
+      await renderWithProvider({}, mockSelectDemonstrationTypeQueryUnsorted);
+
+      const input = screen.getByRole("textbox");
+      await userEvent.click(input);
+
+      const optionLabels = screen
+        .getAllByRole("button")
+        .map((button) => button.textContent?.trim());
+
+      expect(optionLabels).toEqual([
+        "Type A",
+        "Type B",
+        "Type C (Unapproved)",
+        "Type D (Unapproved)",
+      ]);
     });
   });
 });

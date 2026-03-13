@@ -50,7 +50,11 @@ export const DemonstrationHealthTypeTags = ({
   if (error || !data) return <div>Error loading tags.</div>;
 
   const handleApplyClick = () => {
-    showApplyTagsDialog(demonstrationId, data.applicationTagOptions, selectedTags);
+    showApplyTagsDialog(
+      demonstrationId,
+      [...data.applicationTagOptions].sort((a, b) => a.tagName.localeCompare(b.tagName)),
+      selectedTags
+    );
   };
 
   return (
