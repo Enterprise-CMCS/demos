@@ -20,8 +20,7 @@
     "lint:fix": "eslint ./ --fix",
     "synth:dev": "cdk synth --context stage=dev --all",
     "test": "vitest --mode test",
-    "test:ci": "jest --coverage --ci --no-color --verbose=false --silent --runInBand",
-    "coverage:ci": "vitest run --no-color --coverage --coverage.reporter=lcov --reporter=default --reporter=vitest-sonar-reporter --outputFile=coverage/test-results.xml",
+    "test:ci": "vitest run --no-color --coverage --coverage.reporter=lcov --reporter=default --reporter=vitest-sonar-reporter --outputFile=coverage/test-results.xml",
     "tsc": "tsc --noEmit --skipLibCheck",
     "tsc:ci": "tsc --noEmit --skipLibCheck"
   },
