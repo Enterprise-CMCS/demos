@@ -4,9 +4,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { TestProvider } from "test-utils/TestProvider";
-
 import { CompletenessPhase, CompletenessPhaseProps } from "./CompletenessPhase";
-
 import { ApplicationWorkflowDocument } from "components/application";
 
 const showCompletenessDocumentUploadDialog = vi.fn();
@@ -215,6 +213,19 @@ describe("CompletenessPhase", () => {
       await user.click(declareIncompleteButton);
 
       expect(mockDeclareCompletenessPhaseIncomplete).toHaveBeenCalledWith("app-123");
+    });
+
+    it("disables Declare Incomplete button when completeness is complete", () => {
+      setup({
+        completenessComplete: true,
+        initialDocuments: [mockCompletenessDoc, mockInternalDoc],
+        stateDeemedCompleteDate: "2026-02-05",
+        fedCommentStartDate: "2026-02-06",
+        fedCommentEndDate: "2026-03-07",
+      });
+
+      const declareIncompleteButton = screen.getByRole("button", { name: /declare-incomplete/i });
+      expect(declareIncompleteButton).toBeDisabled();
     });
   });
 

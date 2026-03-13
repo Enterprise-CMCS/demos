@@ -135,10 +135,7 @@ export const PhaseSelector = ({
       case "Federal Comment":
         return getFederalCommentPhaseFromApplication(application);
       case "SDG Preparation":
-        return getSdgPreparationPhaseFromApplication(
-          application as ApplicationWorkflowDemonstration,
-          setSelectedPhase
-        );
+        return getSdgPreparationPhaseFromApplication(application, setSelectedPhase);
       case "Review":
         return getReviewPhaseComponentFromApplication(application, () =>
           setSelectedPhase("Approval Package")

@@ -345,7 +345,12 @@ export const CompletenessPhase = ({
       </div>
 
       <div className={STYLES.actions}>
-        <SecondaryButton name="declare-incomplete" size="small" onClick={handleDeclareIncomplete}>
+        <SecondaryButton
+          name="declare-incomplete"
+          size="small"
+          onClick={handleDeclareIncomplete}
+          disabled={completenessComplete}
+        >
           Declare Incomplete
         </SecondaryButton>
         <div className={STYLES.actionsEnd}>
