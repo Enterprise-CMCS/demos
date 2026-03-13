@@ -10,7 +10,6 @@ import { TagChip } from "components/tags/TagChip";
 import { Checkbox } from "components/input";
 import { Input } from "components/input/Input";
 import { tw } from "tags/tw";
-import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application";
 
 export const APPLY_TAGS_DIALOG_TITLE = "APPLY TAGS";
 const STYLES = {
@@ -138,9 +137,7 @@ export const ApplyTagsDialog: React.FC<ApplyTagsDialogProps> = ({
   initiallySelectedTags,
   allTags,
 }) => {
-  const [setApplicationTagsMutation] = useMutation(SET_APPLICATION_TAGS_MUTATION, {
-    refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
-  });
+  const [setApplicationTagsMutation] = useMutation(SET_APPLICATION_TAGS_MUTATION);
   const { showSuccess, showError } = useToast();
 
   const [selectedTags, setSelectedTags] = useState<Tag[]>([...initiallySelectedTags]);
