@@ -8,7 +8,7 @@ import {
   SelectDemonstrationTypeNameProps,
 } from "./SelectDemonstrationType";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
-import { Tag as DemonstrationTypeName, Tag } from "demos-server";
+import { TagName, Tag } from "demos-server";
 
 const mockSelectDemonstrationTypeQuery: MockedResponse<{
   demonstrationTypes: Tag[];
@@ -29,7 +29,7 @@ const mockSelectDemonstrationTypeQuery: MockedResponse<{
 };
 
 const mockSelectDemonstrationTypeQueryError: MockedResponse<{
-  demonstrationTypeNames: DemonstrationTypeName[];
+  demonstrationTypeNames: TagName[];
 }> = {
   request: {
     query: SELECT_DEMONSTRATION_TYPE_QUERY,
@@ -38,7 +38,7 @@ const mockSelectDemonstrationTypeQueryError: MockedResponse<{
 };
 
 const mockSelectDemonstrationTypeQueryEmpty: MockedResponse<{
-  demonstrationTypeNames: DemonstrationTypeName[];
+  demonstrationTypeNames: TagName[];
 }> = {
   request: {
     query: SELECT_DEMONSTRATION_TYPE_QUERY,
@@ -65,7 +65,7 @@ describe("SelectDemonstrationTypes", () => {
       </MockedProvider>
     );
     await waitFor(() => {
-      expect(screen.getByText("Error loading demonstration type names.")).toBeInTheDocument();
+      expect(screen.getByText("Error loading demonstration type options.")).toBeInTheDocument();
     });
   });
 

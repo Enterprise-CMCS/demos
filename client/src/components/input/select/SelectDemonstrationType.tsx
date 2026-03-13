@@ -39,7 +39,7 @@ export const SelectDemonstrationTypeName = (props: SelectDemonstrationTypeNamePr
   }, [loading, demonstrationTypeOptions.length]);
 
   if (error) {
-    return <p className="text-red-500">Error loading demonstration type names.</p>;
+    return <p className="text-red-500">Error loading demonstration type options.</p>;
   }
 
   const handleSelect = (value: TagName) => {
@@ -52,7 +52,7 @@ export const SelectDemonstrationTypeName = (props: SelectDemonstrationTypeNamePr
   return (
     <AutoCompleteSelect
       label="Demonstration Type"
-      dataTestId="select-demonstration-type-name"
+      dataTestId="select-demonstration-type"
       options={demonstrationTypeOptions}
       isDisabled={demonstrationTypeOptions.length === 0}
       placeholder={placeholderText}

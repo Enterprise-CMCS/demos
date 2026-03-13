@@ -3,14 +3,14 @@ import { DatePicker } from "components/input/date/DatePicker";
 import { SecondaryButton } from "components/button";
 import { SelectDemonstrationTypeName } from "components/input/select/SelectDemonstrationType";
 import { gql, TypedDocumentNode, useQuery } from "@apollo/client";
-import { TagName as DemonstrationTypeName } from "demos-server";
+import { TagName } from "demos-server";
 import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
 
 export const ADD_DEMONSTRATION_TYPES_FORM_QUERY: TypedDocumentNode<
   {
     demonstration: {
       demonstrationTypes: {
-        demonstrationTypeName: DemonstrationTypeName;
+        demonstrationTypeName: TagName;
       }[];
     };
   },
@@ -40,7 +40,7 @@ export const AddDemonstrationTypesForm = ({
   addDemonstrationType,
 }: {
   demonstrationId: string;
-  demonstrationTypeNames: DemonstrationTypeName[];
+  demonstrationTypeNames: TagName[];
   addDemonstrationType: (demonstrationType: DemonstrationType) => void;
 }) => {
   const { data, loading, error } = useQuery(ADD_DEMONSTRATION_TYPES_FORM_QUERY, {

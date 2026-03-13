@@ -3,7 +3,6 @@ import { ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION } from "components/dialog/De
 
 import { DemonstrationTypeAssignment, SetDemonstrationTypesInput } from "demos-server";
 
-// TODO: replace this with server type with updated DemonstrationTypeName field when available
 export type MockDemonstrationTypeAssignment = Pick<
   DemonstrationTypeAssignment,
   "demonstrationTypeName" | "effectiveDate" | "expirationDate"

@@ -81,7 +81,7 @@ describe("AddDemonstrationTypesForm", () => {
   it("renders all form fields", async () => {
     await renderWithProvider();
 
-    expect(screen.getByTestId("select-demonstration-type-name")).toBeInTheDocument();
+    expect(screen.getByTestId("select-demonstration-type")).toBeInTheDocument();
     expect(screen.getByLabelText(/effective date/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/expiration date/i)).toBeInTheDocument();
     expect(screen.getByTestId("button-add-demonstration-type")).toBeInTheDocument();
