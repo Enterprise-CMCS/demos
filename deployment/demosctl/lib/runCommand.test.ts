@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { reserveRandomColor, runCommand, runShell } from "./runCommand";
 import { spawn } from "child_process";
+import {type Mock} from "vitest"
 
 vi.mock("child_process");
 vi.mock(import("chalk"), async (importOriginal) => {
@@ -37,7 +38,7 @@ describe("runCommand", () => {
     vi.spyOn(process, "exit").mockImplementation(() => "exit");
     vi.spyOn(console, "log").mockImplementation(() => true);
     vi.spyOn(console, "error").mockImplementation(() => true);
-    (spawn as vi.Mock).mockReturnValue(mockChild);
+    (spawn as Mock).mockReturnValue(mockChild);
   });
 
   afterEach(() => {
@@ -101,7 +102,7 @@ describe("runShell", () => {
       stderr: { on: vi.fn() },
       on: vi.fn(),
     };
-    (spawn as vi.Mock).mockReturnValue(mockChild);
+    (spawn as Mock).mockReturnValue(mockChild);
   });
 
   afterEach(() => {

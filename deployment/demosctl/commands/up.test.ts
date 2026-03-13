@@ -4,6 +4,7 @@ import { buildClient } from "./buildClient";
 import { buildServer } from "./buildServer";
 import { fullDeploy } from "./fullDeploy";
 import { getCoreOutputs } from "./getCoreOutputs";
+import { Mock } from "vitest";
 
 vi.mock("./buildServer");
 vi.mock("./buildClient");
@@ -16,14 +17,14 @@ describe("up", () => {
   });
 
   afterEach(() => {
-    (console.error as vi.Mock).mockRestore();
+    (console.error as Mock).mockRestore();
   });
 
   test("should run commands to build ephemeral env", async () => {
     const mockStageName = "unit-test";
 
-    const bc = (buildClient as vi.Mock).mockResolvedValue(0);
-    const bs = (buildServer as vi.Mock).mockResolvedValue(0);
+    const bc = (buildClient as Mock).mockResolvedValue(0);
+    const bs = (buildServer as Mock).mockResolvedValue(0);
 
     await up(mockStageName);
 
@@ -49,7 +50,7 @@ describe("up", () => {
   test("should log if the deploy fails", async () => {
     const mockStageName = "unit-test";
 
-    (buildServer as vi.Mock).mockRejectedValue(1);
+    (buildServer as Mock).mockRejectedValue(1);
 
     const exitCode = await up(mockStageName);
 

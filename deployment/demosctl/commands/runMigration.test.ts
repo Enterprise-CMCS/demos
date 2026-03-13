@@ -2,6 +2,7 @@ import { runMigration } from "./runMigration";
 
 import { runShell } from "../lib/runCommand";
 import { getSecret } from "../lib/getSecret";
+import {Mock} from "vitest"
 
 vi.mock("../lib/runCommand");
 vi.mock("../lib/getSecret");
@@ -38,7 +39,7 @@ describe("runMigration", () => {
 
     const targetDB = "unit_test";
 
-    const gs = getSecret as vi.Mock;
+    const gs = getSecret as Mock;
     const mockDataString = JSON.stringify(mockDBData);
     gs.mockResolvedValueOnce(mockDataString);
 
@@ -61,7 +62,7 @@ describe("runMigration", () => {
 
     const targetDB = "unit_test";
 
-    const gs = getSecret as vi.Mock;
+    const gs = getSecret as Mock;
     gs.mockResolvedValueOnce(null);
 
     vi.spyOn(console, "error");
@@ -74,7 +75,7 @@ describe("runMigration", () => {
   test("should exit if secretData is empty", async () => {
     const mockStageName = "unit-test";
 
-    const gs = getSecret as vi.Mock;
+    const gs = getSecret as Mock;
     gs.mockResolvedValueOnce("{}");
 
     vi.spyOn(console, "error");

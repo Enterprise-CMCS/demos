@@ -1,11 +1,12 @@
 // confirm.test.ts
+import { Mock } from "vitest";
 import { confirm } from "./confirm";
 import readline from "readline";
 
 vi.mock("readline");
 
 describe("confirm", () => {
-  let questionMock: vi.Mock;
+  let questionMock: Mock;
 
   beforeEach(() => {
     questionMock = vi.fn();

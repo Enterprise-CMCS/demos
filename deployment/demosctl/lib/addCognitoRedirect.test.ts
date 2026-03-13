@@ -1,9 +1,10 @@
 import { CognitoIdentityProviderClient } from "@aws-sdk/client-cognito-identity-provider";
 import { addCognitoRedirect } from "./addCognitoRedirect";
+import { Mock } from "vitest";
 
 describe("addCognitoRedirect", () => {
   test("should properly add a redirect", async () => {
-    const spy = vi.spyOn(CognitoIdentityProviderClient.prototype, "send") as vi.Mock;
+    const spy = vi.spyOn(CognitoIdentityProviderClient.prototype, "send") as Mock;
 
     spy.mockResolvedValue({ UserPoolClient: { CallbackURLs: ["existing"] } });
     await addCognitoRedirect("user-pool-id", "client-id", "additional-redirect");

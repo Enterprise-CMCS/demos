@@ -1,9 +1,10 @@
 import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 import { getSecret } from "./getSecret";
+import { Mock } from "vitest";
 
 describe("getSecret", () => {
   test("requests secret with proper parameters", async () => {
-    const spy = vi.spyOn(SecretsManagerClient.prototype, "send") as vi.Mock;
+    const spy = vi.spyOn(SecretsManagerClient.prototype, "send") as Mock;
 
     spy.mockResolvedValueOnce({ SecretString: "secret" }); // pragma: allowlist secret
 

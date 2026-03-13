@@ -5,6 +5,7 @@ import { runMigration } from "./runMigration";
 
 import https from "https";
 import { Client } from "pg";
+import {Mock} from "vitest"
 
 vi.mock("https");
 vi.mock("../lib/getSecret");
@@ -44,15 +45,15 @@ describe("testMigration", () => {
 
   afterEach(() => {
     // @ts-expect-error ignore invalid mock
-    (process.exit as vi.Mock).mockRestore();
-    (console.error as vi.Mock).mockRestore();
+    (process.exit as Mock).mockRestore();
+    (console.error as Mock).mockRestore();
   });
 
   test("should properly run a test migration with cleanup", async () => {
     const mockStageName = "unit-test";
     const targetDB = "unit_test";
 
-    (https.get as vi.Mock).mockImplementation((url, callback) => {
+    (https.get as Mock).mockImplementation((url, callback) => {
       callback({
         statusCode: 200,
         on: vi.fn((e, h) => {
@@ -64,8 +65,8 @@ describe("testMigration", () => {
       return { on: vi.fn() };
     });
 
-    (getSecret as vi.Mock).mockResolvedValue(JSON.stringify(mockDBData));
-    (runMigration as vi.Mock).mockResolvedValue(0);
+    (getSecret as Mock).mockResolvedValue(JSON.stringify(mockDBData));
+    (runMigration as Mock).mockResolvedValue(0);
 
     await testMigration(mockStageName, targetDB);
 
@@ -114,7 +115,7 @@ describe("testMigration", () => {
     const mockStageName = "unit-test";
     const targetDB = "unit_test";
 
-    (https.get as vi.Mock).mockImplementation((url, callback) => {
+    (https.get as Mock).mockImplementation((url, callback) => {
       callback({
         statusCode: 200,
         on: vi.fn((e, h) => {
@@ -126,7 +127,7 @@ describe("testMigration", () => {
       return { on: vi.fn() };
     });
 
-    (getSecret as vi.Mock).mockResolvedValue(null);
+    (getSecret as Mock).mockResolvedValue(null);
 
     const exitCode = await testMigration(mockStageName, targetDB);
 
@@ -138,7 +139,7 @@ describe("testMigration", () => {
     const mockStageName = "unit-test";
     const targetDB = "unit_test";
 
-    (https.get as vi.Mock).mockImplementation((url, callback) => {
+    (https.get as Mock).mockImplementation((url, callback) => {
       callback({
         statusCode: 200,
         on: vi.fn((e, h) => {
@@ -150,8 +151,8 @@ describe("testMigration", () => {
       return { on: vi.fn() };
     });
 
-    (getSecret as vi.Mock).mockResolvedValue(JSON.stringify(mockDBData));
-    (runMigration as vi.Mock).mockRejectedValue("something went wrong");
+    (getSecret as Mock).mockResolvedValue(JSON.stringify(mockDBData));
+    (runMigration as Mock).mockRejectedValue("something went wrong");
 
     const exitCode = await testMigration(mockStageName, targetDB);
 
@@ -163,7 +164,7 @@ describe("testMigration", () => {
     const mockStageName = "unit-test";
     const targetDB = "unit_test";
 
-    (https.get as vi.Mock).mockImplementation((url, callback) => {
+    (https.get as Mock).mockImplementation((url, callback) => {
       callback({
         statusCode: 200,
         on: vi.fn((e, h) => {
@@ -175,10 +176,9 @@ describe("testMigration", () => {
       return { on: vi.fn() };
     });
 
-    (getSecret as vi.Mock).mockResolvedValue(JSON.stringify(mockDBData));
-    (runMigration as vi.Mock).mockResolvedValue(1);
+    (getSecret as Mock).mockResolvedValue(JSON.stringify(mockDBData));
+    (runMigration as Mock).mockResolvedValue(1);
 
-    // @ts-expect-error ignore invalid mock
     mockQuery.mockRejectedValueOnce(1);
 
     const exitCode = await testMigration(mockStageName, targetDB);

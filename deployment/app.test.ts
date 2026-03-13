@@ -3,19 +3,22 @@ import { main } from "./app";
 
 import { getSecret } from "./util/getSecret";
 import {getParameter} from "./util/getParameter";
+// import { CognitoIdentityProviderClient } from "@aws-sdk/client-cognito-identity-provider";
 
 vi.mock(import("@aws-sdk/client-cognito-identity-provider"), async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    CognitoIdentityProviderClient: vi.fn(function () {return {
+    CognitoIdentityProviderClient: vi.fn().mockImplementation(function () {return{
+      ...actual.CognitoIdentityProviderClient.prototype,
       send: vi.fn(async (command) => {
         if (command instanceof actual.ListUserPoolsCommand) {
           return { UserPools: [{ Name: "demos-dev-user-pool", Id: "abc123" }] };
         }
         return {};
       }),
-    }}),
+    }})
+
   };
 });
 
@@ -23,7 +26,7 @@ vi.mock(import("@aws-sdk/client-ec2"), async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    EC2Client: vi.fn(function () {return{
+    EC2Client: vi.fn().mockImplementation(function () {return{
       send: vi.fn(async (command) => {
         if (
           command instanceof actual.DescribeManagedPrefixListsCommand ||
@@ -39,7 +42,7 @@ vi.mock(import("@aws-sdk/client-ec2"), async (importOriginal) => {
 vi.mock("./util/getSecret");
 vi.mock("./util/getParameter");
 
-(getSecret as vi.Mock).mockImplementation(() =>
+vi.mocked(getSecret).mockImplementation(async () =>
   JSON.stringify({
     cloudfrontCertificateArn: "arn:aws:acm:us-east-1:0123456789:certificate/fake",
     idmMetadataEndpoint: "test",
@@ -49,7 +52,7 @@ vi.mock("./util/getParameter");
 
 describe("app", () => {
   beforeEach(() => {
-    (getParameter as vi.Mock).mockImplementation(() => {
+    vi.mocked(getParameter).mockImplementation(async () => {
       return "SRR has been configured: unit testing"
     })
   })
@@ -141,7 +144,7 @@ describe("app", () => {
 
     const mockStageName = "dev";
 
-    (getParameter as vi.Mock).mockImplementation(() => {
+    vi.mocked(getParameter).mockImplementation(async () => {
       return "Pending"
     })
 

@@ -3,6 +3,8 @@ import { fullDeploy } from "./fullDeploy";
 import { runCommand } from "../lib/runCommand";
 import { readOutputs } from "../lib/readOutputs";
 
+import {Mock} from "vitest"
+
 vi.mock("../lib/runCommand");
 vi.mock("../lib/readOutputs");
 vi.mock("../lib/addCognitoRedirect");
@@ -11,7 +13,7 @@ describe("fullDeploy", () => {
   test("should successfully run a full deploy", async () => {
     const mockStageName = "unit-test";
 
-    const ro = readOutputs as vi.Mock;
+    const ro = readOutputs as Mock;
     ro.mockReturnValue({
       [`demos-${mockStageName}-core`]: {
         cognitoAuthority: "authority",
@@ -22,7 +24,7 @@ describe("fullDeploy", () => {
       },
     });
 
-    const rc = runCommand as vi.Mock;
+    const rc = runCommand as Mock;
     rc.mockResolvedValue(0);
 
     vi.spyOn(console, "log");
@@ -40,7 +42,7 @@ describe("fullDeploy", () => {
   test("should exit on error", async () => {
     const mockStageName = "unit-test";
 
-    const rc = runCommand as vi.Mock;
+    const rc = runCommand as Mock;
     rc.mockResolvedValue(1);
 
     vi.spyOn(console, "error");

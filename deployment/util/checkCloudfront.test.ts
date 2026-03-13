@@ -4,7 +4,7 @@ vi.mock(import ("@aws-sdk/client-cloudfront"), async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    CloudFrontClient: vi.fn(function () {return {
+    CloudFrontClient: vi.fn().mockImplementation(function () {return {
       send: vi.fn(async (command) => {
         if (
           command instanceof actual.ListDistributionsCommand

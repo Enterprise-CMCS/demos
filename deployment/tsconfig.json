@@ -6,7 +6,7 @@
     "esModuleInterop": true,
     "baseUrl": "src",
     "strict": true,
-    "types": ["node", "jest", "vitest/globals"]
+    "types": ["node", "vitest/globals"]
   },
   "include": ["./"],
   "exclude": ["node_modules"]

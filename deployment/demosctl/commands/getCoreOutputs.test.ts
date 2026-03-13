@@ -1,6 +1,7 @@
 import { getCoreOutputs } from "./getCoreOutputs";
 
 import { runCommand } from "../lib/runCommand";
+import {Mock} from "vitest";
 
 vi.mock("../lib/runCommand");
 vi.mock("../lib/addCognitoRedirect");
@@ -9,7 +10,7 @@ describe("getCoreOutputs", () => {
   test("should successfully run a deploy on core only", async () => {
     const mockStageName = "unit-test";
 
-    const rc = runCommand as vi.Mock;
+    const rc = runCommand as Mock;
     rc.mockResolvedValue(0);
 
     vi.spyOn(console, "log");
@@ -27,7 +28,7 @@ describe("getCoreOutputs", () => {
   test("should exit on error", async () => {
     const mockStageName = "unit-test";
 
-    const rc = runCommand as vi.Mock;
+    const rc = runCommand as Mock;
     rc.mockResolvedValue(1);
 
     vi.spyOn(console, "error");

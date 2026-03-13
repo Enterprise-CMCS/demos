@@ -4,6 +4,8 @@ import { runShell, runCommand } from "../lib/runCommand";
 import { readOutputs } from "../lib/readOutputs";
 import { getOutputValue } from "../lib/getOutputValue";
 
+import {Mock} from "vitest"
+
 vi.mock("../lib/runCommand");
 vi.mock("../lib/readOutputs");
 vi.mock("../lib/getOutputValue");
@@ -11,15 +13,15 @@ vi.mock("../lib/getOutputValue");
 describe("buildClient", () => {
   test("should properly set vite envs", async () => {
     const mockStageName = "unit-test";
-    const ro = readOutputs as vi.Mock;
+    const ro = readOutputs as Mock;
     ro.mockReturnValue({});
 
-    const gov = getOutputValue as vi.Mock;
+    const gov = getOutputValue as Mock;
     gov.mockImplementation((_, __, name) => {
       return name;
     });
 
-    const rs = runShell as vi.Mock;
+    const rs = runShell as Mock;
 
     await buildClient(mockStageName);
 
@@ -39,16 +41,16 @@ describe("buildClient", () => {
 
   test("should properly run core stack if requested", async () => {
     const mockStageName = "unit-test";
-    const ro = readOutputs as vi.Mock;
+    const ro = readOutputs as Mock;
     ro.mockReturnValue({});
 
-    const gov = getOutputValue as vi.Mock;
+    const gov = getOutputValue as Mock;
     gov.mockImplementation((_, __, name) => {
       return name;
     });
 
-    const rs = runShell as vi.Mock;
-    const rc = runCommand as vi.Mock;
+    const rs = runShell as Mock;
+    const rc = runCommand as Mock;
     rc.mockResolvedValue(0);
 
     await buildClient(mockStageName, true);
@@ -75,15 +77,15 @@ describe("buildClient", () => {
 
   test("should exit if core deploy fails", async () => {
     const mockStageName = "unit-test";
-    const ro = readOutputs as vi.Mock;
+    const ro = readOutputs as Mock;
     ro.mockReturnValue({});
 
-    const gov = getOutputValue as vi.Mock;
+    const gov = getOutputValue as Mock;
     gov.mockImplementation((_, __, name) => {
       return name;
     });
 
-    const rc = runCommand as vi.Mock;
+    const rc = runCommand as Mock;
     rc.mockResolvedValue(1);
 
     const exitCode = await buildClient(mockStageName, true);

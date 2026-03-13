@@ -6,6 +6,8 @@ import { getSecret } from "../lib/getSecret";
 import path from "path";
 import fs from "fs";
 
+import {Mock} from "vitest"
+
 vi.mock("../lib/runCommand");
 vi.mock("../lib/getSecret");
 
@@ -23,7 +25,7 @@ vi.mock(import("@aws-sdk/client-s3"), async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    S3Client: vi.fn(function () {return{
+    S3Client: vi.fn().mockImplementation(function () {return{
       send: mockS3Send,
     }}),
   };
@@ -42,7 +44,7 @@ describe("runMigration", () => {
     const mockStageName = "dev";
     const targetDB = "demos";
 
-    const gs = getSecret as vi.Mock;
+    const gs = getSecret as Mock;
     const mockDataString = JSON.stringify(mockDBData);
     gs.mockResolvedValueOnce(mockDataString);
 
@@ -65,11 +67,11 @@ describe("runMigration", () => {
   test("should prevent any env except dev, test, and impl", async () => {
     const mockStageNames = ["dev", "test", "impl", "prod", "fake", "unit-test"];
 
-    const gs = getSecret as vi.Mock;
+    const gs = getSecret as Mock;
     const mockDataString = JSON.stringify(mockDBData);
     gs.mockResolvedValue(mockDataString);
 
-    const rs = runShell as vi.Mock;
+    const rs = runShell as Mock;
     rs.mockResolvedValue(null);
 
     const responses = [];
@@ -82,7 +84,7 @@ describe("runMigration", () => {
   });
 
   test("should exit with status 1 if failing to get secret", async () => {
-    const gs = getSecret as vi.Mock;
+    const gs = getSecret as Mock;
     gs.mockResolvedValue(null);
 
     const exitCode = await dbReset("dev");
@@ -92,7 +94,7 @@ describe("runMigration", () => {
   });
 
   test("should exit with status 1 if secret is invalid", async () => {
-    const gs = getSecret as vi.Mock;
+    const gs = getSecret as Mock;
     gs.mockResolvedValue("{}");
 
     const exitCode = await dbReset("dev");
@@ -102,7 +104,7 @@ describe("runMigration", () => {
   });
 
   test("should use proper path if absPath is defined", async () => {
-    const gs = getSecret as vi.Mock;
+    const gs = getSecret as Mock;
     const mockDataString = JSON.stringify(mockDBData);
     gs.mockResolvedValue(mockDataString);
 
@@ -121,7 +123,7 @@ describe("runMigration", () => {
   });
 
   test("should exit with status 1 if the absPath doesn't exist", async () => {
-    const gs = getSecret as vi.Mock;
+    const gs = getSecret as Mock;
     const mockDataString = JSON.stringify(mockDBData);
     gs.mockResolvedValue(mockDataString);
 
@@ -137,7 +139,7 @@ describe("runMigration", () => {
   test("should exit with status 1 if the clean bucket response comes back invalid", async () => {
     const mockStageName = "dev";
 
-    const gs = getSecret as vi.Mock;
+    const gs = getSecret as Mock;
     const mockDataString = JSON.stringify(mockDBData);
     gs.mockResolvedValueOnce(mockDataString);
 

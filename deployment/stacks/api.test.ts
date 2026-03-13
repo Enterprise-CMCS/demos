@@ -22,6 +22,7 @@ const mockCommonProps: DeploymentConfigProperties = {
   zScalerIps: ["0.1.2.3"],
   hostEnvironment: "unitTestHost" as "dev",
   cloudfrontHost: "unittest.demos.com",
+  srrConfigured: true
 };
 
 describe("Api Stack", () => {
@@ -103,9 +104,7 @@ describe("Api Stack", () => {
     new UiPathProcessor(stack, "UiPathProcessor", {
       ...mockCommonProps,
       removalPolicy: RemovalPolicy.DESTROY,
-      env: { account: "0123456789", region: "us-east-1" },
       documentsBucket: new Bucket(stack, "UiPathDocumentsBucket"),
-      cleanBucket: new Bucket(stack, "UiPathCleanBucket"),
       kmsKey: new Key(stack, "UiPathKmsKey"),
     });
 
