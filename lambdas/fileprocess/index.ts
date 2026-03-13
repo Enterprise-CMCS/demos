@@ -14,6 +14,7 @@ const GUARDDUTY_CLEAN_STATUS = "NO_THREATS_FOUND";
 const FINAL_BN_WORKSHEET_DOCUMENT_TYPE = "Final BN Worksheet";
 const PROCESS_PENDING_DOCUMENT_CLEAN = "move_document_from_pending_to_clean";
 const PROCESS_PENDING_DOCUMENT_INFECTED = "move_document_from_pending_to_infected";
+const AWS_REGION = "us-east-1";
 
 let databaseUrlCache = "";
 let cacheExpiration = 0;
@@ -24,38 +25,20 @@ const infectedBucket = process.env.INFECTED_BUCKET;
 const budgetNeutralityQueueUrl = process.env.BUDGET_NEUTRALITY_QUEUE_URL;
 const dbSchema = process.env.DB_SCHEMA || "demos_app";
 const bypassSSL = process.env.BYPASS_SSL;
-const s3Config = process.env.AWS_ENDPOINT_URL
-  ? {
-      region: process.env.AWS_REGION,
-      endpoint: process.env.AWS_ENDPOINT_URL,
-      forcePathStyle: true,
-    }
-  : {
-      region: process.env.AWS_REGION,
-    };
+const awsEndpointUrl = process.env.AWS_ENDPOINT_URL;
+const awsClientConfig = {region: AWS_REGION, endpoint: awsEndpointUrl};
 
-const s3 = new S3Client(s3Config);
-const sqsConfig = process.env.AWS_ENDPOINT_URL
-  ? {
-      region: process.env.AWS_REGION,
-      endpoint: process.env.AWS_ENDPOINT_URL,
-    }
-  : {
-      region: process.env.AWS_REGION,
-    };
-const sqsModuleName = ["@aws-sdk", "client-sqs"].join("/");
+const s3 = new S3Client({
+  ...awsClientConfig,
+  forcePathStyle: true,
+});
+
+const sqsModuleName = "@aws-sdk/client-sqs";
 let sqsClientPromise: Promise<{
   client: { send: (command: unknown) => Promise<{ MessageId?: string }> };
   SendMessageCommand: new (input: unknown) => { input?: unknown };
 }> | null = null;
-const secretsManagerConfig = process.env.AWS_ENDPOINT_URL
-  ? {
-      region: process.env.AWS_REGION,
-      endpoint: process.env.AWS_ENDPOINT_URL,
-    }
-  : { region: process.env.AWS_REGION };
-
-const secretsManager = new SecretsManagerClient(secretsManagerConfig);
+const secretsManager = new SecretsManagerClient(awsClientConfig);
 
 interface Results {
   processedRecords: number;
@@ -111,7 +94,7 @@ export async function moveFile(
       Key: destinationKey,
     })
   );
-  log.info(`successfully copied file to ${destinationBucket}.`);
+  log.info(`Successfully copied file to ${destinationBucket}.`);
 
   await s3.send(
     new DeleteObjectCommand({
@@ -119,7 +102,7 @@ export async function moveFile(
       Key: documentId,
     })
   );
-  log.info(`successfully deleted file from ${uploadBucket}.`);
+  log.info(`Successfully deleted file from ${uploadBucket}.`);
 }
 
 export async function processCleanDatabaseRecord(
@@ -139,7 +122,7 @@ export async function processCleanDatabaseRecord(
     throw new Error(`No document type returned for document ${documentId}.`);
   }
 
-  log.info({ documentTypeId }, "successfully processed clean file in database.");
+  log.info({ documentTypeId }, "Successfully processed clean file in database.");
 
   return documentTypeId;
 }
@@ -160,7 +143,7 @@ export async function processInfectedDatabaseRecord(
     scanResultDetails.scanResultStatus ?? "",
     threatsString,
   ]);
-  log.info("successfully processed infected file in database.");
+  log.info("Successfully processed infected file in database.");
 }
 
 export async function enqueueBudgetNeutrality(
@@ -178,7 +161,7 @@ export async function enqueueBudgetNeutrality(
   sqsClientPromise ??= (async () => {
     const sqsModule = await import(sqsModuleName);
     return {
-      client: new sqsModule.SQSClient(sqsConfig),
+      client: new sqsModule.SQSClient(awsClientConfig),
       SendMessageCommand: sqsModule.SendMessageCommand,
     };
   })();
@@ -264,8 +247,8 @@ export const handler = async (event: SQSEvent, context: Context) =>
     reqIdChild(context.awsRequestId);
     log.debug(
       {
-        AWS_REGION: process.env.AWS_REGION,
-        AWS_ENDPOINT_URL: process.env.AWS_ENDPOINT_URL,
+        AWS_REGION,
+        AWS_ENDPOINT_URL: awsEndpointUrl,
         UPLOAD_BUCKET: uploadBucket,
         CLEAN_BUCKET: cleanBucket,
         DB_SCHEMA: dbSchema,
