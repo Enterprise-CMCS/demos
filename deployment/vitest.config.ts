@@ -7,10 +7,10 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "html", "lcov"],
-      exclude: ["**/build/**", "**/eslint-rules/**", "**/node_modules/**"],      
-    },    
+      exclude: ["**/build/**", "**/eslint-rules/**", "**/node_modules/**"],
+    },
     include: ["./**/*.test.ts"],
-    watch: false,    
+    watch: false,
     silent: false,
     clearMocks: true,
   },

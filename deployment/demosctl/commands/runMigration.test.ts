@@ -2,7 +2,7 @@ import { runMigration } from "./runMigration";
 
 import { runShell } from "../lib/runCommand";
 import { getSecret } from "../lib/getSecret";
-import {Mock} from "vitest"
+import { Mock } from "vitest";
 
 vi.mock("../lib/runCommand");
 vi.mock("../lib/getSecret");
@@ -30,7 +30,7 @@ describe("runMigration", () => {
         env: expect.objectContaining({
           DATABASE_URL: `postgresql://${mockDBData.username}:${mockDBData.password}@${mockDBData.host}:${mockDBData.port}/${targetDB}?schema=demos_app`,
         }),
-      })
+      }),
     );
   });
 
@@ -53,7 +53,7 @@ describe("runMigration", () => {
         env: expect.objectContaining({
           DATABASE_URL: `postgresql://${mockDBData.username}:${mockDBData.password}@${mockDBData.host}:${mockDBData.port}/${targetDB}?schema=demos_app`,
         }),
-      })
+      }),
     );
   });
 

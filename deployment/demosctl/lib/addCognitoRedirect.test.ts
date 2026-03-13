@@ -12,13 +12,13 @@ describe("addCognitoRedirect", () => {
     expect(spy).toHaveBeenCalledWith(
       expect.objectContaining({
         input: { ClientId: "client-id", UserPoolId: "user-pool-id" },
-      })
+      }),
     );
 
     expect(spy).toHaveBeenCalledWith(
       expect.objectContaining({
         input: { CallbackURLs: ["existing", "additional-redirect"] },
-      })
+      }),
     );
   });
   test("should throw if user pool client doesn't exist", async () => {
@@ -27,7 +27,7 @@ describe("addCognitoRedirect", () => {
     //@ts-expect-error prevent error related to conflict of types
     spy.mockResolvedValue({});
     await expect(addCognitoRedirect("user-pool-id", "client-id", "additional-redirect")).rejects.toThrow(
-      "Could not find user pool client"
+      "Could not find user pool client",
     );
   });
 });

@@ -4,7 +4,7 @@ import { runShell, runCommand } from "../lib/runCommand";
 import { readOutputs } from "../lib/readOutputs";
 import { getOutputValue } from "../lib/getOutputValue";
 
-import {Mock} from "vitest"
+import { Mock } from "vitest";
 
 vi.mock("../lib/runCommand");
 vi.mock("../lib/readOutputs");
@@ -35,7 +35,7 @@ describe("buildClient", () => {
           VITE_COGNITO_CLIENT_ID: "cognitoClientId",
           VITE_API_URL_PREFIX: "/api/graphql",
         }),
-      })
+      }),
     );
   });
 
@@ -58,7 +58,7 @@ describe("buildClient", () => {
     expect(rc).toHaveBeenCalledWith(
       "deploy-core-no-execute",
       "npx",
-      expect.arrayContaining([`stage=${mockStageName}`, `demos-${mockStageName}-core`])
+      expect.arrayContaining([`stage=${mockStageName}`, `demos-${mockStageName}-core`]),
     );
 
     expect(rs).toHaveBeenCalledWith(
@@ -71,7 +71,7 @@ describe("buildClient", () => {
           VITE_COGNITO_CLIENT_ID: "cognitoClientId",
           VITE_API_URL_PREFIX: "/api/graphql",
         }),
-      })
+      }),
     );
   });
 
@@ -93,7 +93,7 @@ describe("buildClient", () => {
     expect(rc).toHaveBeenCalledWith(
       "deploy-core-no-execute",
       "npx",
-      expect.arrayContaining([`stage=${mockStageName}`, `demos-${mockStageName}-core`])
+      expect.arrayContaining([`stage=${mockStageName}`, `demos-${mockStageName}-core`]),
     );
 
     expect(exitCode).toBe(1);

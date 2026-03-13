@@ -22,7 +22,6 @@ vi.mock("./commands/down");
 vi.mock("./commands/runMigration");
 vi.mock("./commands/testMigration");
 
-
 const expectFunc = (command: string, func: Function, stage: string, additional: any[] = [], empty: boolean = false) => {
   process.argv = ["", "", command, stage, ...additional];
   main();
@@ -75,6 +74,6 @@ describe("demosctl root", () => {
     const resp = await main();
 
     expect(console.error).toHaveBeenCalledWith(expect.stringContaining("Unknown command"));
-    expect(resp).toEqual(1)
+    expect(resp).toEqual(1);
   });
 });

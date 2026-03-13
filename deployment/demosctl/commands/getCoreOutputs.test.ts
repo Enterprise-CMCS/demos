@@ -1,7 +1,7 @@
 import { getCoreOutputs } from "./getCoreOutputs";
 
 import { runCommand } from "../lib/runCommand";
-import {Mock} from "vitest";
+import { Mock } from "vitest";
 
 vi.mock("../lib/runCommand");
 vi.mock("../lib/addCognitoRedirect");
@@ -20,7 +20,7 @@ describe("getCoreOutputs", () => {
     expect(rc).toHaveBeenCalledWith(
       "core-deploy",
       "npx",
-      expect.arrayContaining(["deploy", `demos-${mockStageName}-core`, `stage=${mockStageName}`])
+      expect.arrayContaining(["deploy", `demos-${mockStageName}-core`, `stage=${mockStageName}`]),
     );
 
     expect(exitCode).toBe(0);
@@ -38,7 +38,7 @@ describe("getCoreOutputs", () => {
     expect(rc).toHaveBeenCalledWith(
       "core-deploy",
       "npx",
-      expect.arrayContaining(["deploy", `stage=${mockStageName}`, `stage=${mockStageName}`])
+      expect.arrayContaining(["deploy", `stage=${mockStageName}`, `stage=${mockStageName}`]),
     );
 
     expect(console.error).toHaveBeenCalledWith("core output command failed with code 1");

@@ -2,7 +2,7 @@ import { runCommand } from "../lib/runCommand";
 import { down } from "./down";
 import { confirm } from "../lib/confirm";
 
-import {Mock} from "vitest"
+import { Mock } from "vitest";
 
 vi.mock("../lib/runCommand");
 vi.mock("../lib/confirm");

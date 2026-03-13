@@ -5,7 +5,7 @@ import { runMigration } from "./runMigration";
 
 import https from "https";
 import { Client } from "pg";
-import {Mock} from "vitest"
+import { Mock } from "vitest";
 
 vi.mock("https");
 vi.mock("../lib/getSecret");
@@ -24,7 +24,11 @@ vi.mock("pg", () => {
     end: vi.fn(),
   };
 
-  return { Client: vi.fn().mockImplementation(function () {return mockClient}) };
+  return {
+    Client: vi.fn().mockImplementation(function () {
+      return mockClient;
+    }),
+  };
 });
 
 const mockDBData = {
@@ -76,7 +80,7 @@ describe("testMigration", () => {
       expect.objectContaining({
         connectionString: `postgresql://${mockDBData.username}:${mockDBData.password}@${mockDBData.host}:${mockDBData.port}/demos`,
         ssl: { ca: "CERTDATA", rejectUnauthorized: true },
-      })
+      }),
     );
 
     expect(mockConnect).toHaveBeenCalled();
@@ -101,7 +105,7 @@ describe("testMigration", () => {
     expect(exitCode2).toBe(1);
     expect(console.error).toHaveBeenCalledWith("testMigration cannot be run against specified db");
   });
-  
+
   test("should exit if db is invalid", async () => {
     const mockStageName = "unit-test";
     const targetDB = "invalid-db-name";
@@ -186,7 +190,7 @@ describe("testMigration", () => {
     expect(console.error).toHaveBeenCalledTimes(2);
     expect(console.error).toHaveBeenCalledWith("failed to drop database:", 1);
     expect(console.error).toHaveBeenCalledWith(
-      expect.stringContaining("`prisma migration deploy` exited with a non-zero exit code")
+      expect.stringContaining("`prisma migration deploy` exited with a non-zero exit code"),
     );
 
     expect(exitCode).toBe(1);

@@ -6,7 +6,7 @@ import { getSecret } from "../lib/getSecret";
 import path from "path";
 import fs from "fs";
 
-import {Mock} from "vitest"
+import { Mock } from "vitest";
 
 vi.mock("../lib/runCommand");
 vi.mock("../lib/getSecret");
@@ -19,15 +19,17 @@ const mockDBData = {
   dbname: "hostDB",
 };
 
-const mockS3Send =vi.fn().mockImplementation(() => ({Buckets: [{Name: "cleanBucket"}]}))
+const mockS3Send = vi.fn().mockImplementation(() => ({ Buckets: [{ Name: "cleanBucket" }] }));
 
 vi.mock(import("@aws-sdk/client-s3"), async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
-    S3Client: vi.fn().mockImplementation(function () {return{
-      send: mockS3Send,
-    }}),
+    S3Client: vi.fn().mockImplementation(function () {
+      return {
+        send: mockS3Send,
+      };
+    }),
   };
 });
 
@@ -58,9 +60,9 @@ describe("runMigration", () => {
         env: expect.objectContaining({
           DATABASE_URL: `postgresql://${mockDBData.username}:${mockDBData.password}@${mockDBData.host}:${mockDBData.port}/${targetDB}?schema=demos_app`,
           ALLOW_SEED: "true",
-          CLEAN_BUCKET: "cleanBucket"
+          CLEAN_BUCKET: "cleanBucket",
         }),
-      })
+      }),
     );
   });
 
@@ -143,15 +145,14 @@ describe("runMigration", () => {
     const mockDataString = JSON.stringify(mockDBData);
     gs.mockResolvedValueOnce(mockDataString);
 
-    mockS3Send.mockImplementationOnce(() => ({}))
+    mockS3Send.mockImplementationOnce(() => ({}));
     const exitCode = await dbReset(mockStageName);
     expect(exitCode).toEqual(1);
     expect(runShell).not.toHaveBeenCalled();
-    
-    mockS3Send.mockImplementationOnce(() => ({Buckets: [{Name: "bucket1"}, {Name: "bucketTwo"}]}))
+
+    mockS3Send.mockImplementationOnce(() => ({ Buckets: [{ Name: "bucket1" }, { Name: "bucketTwo" }] }));
     const exitCode2 = await dbReset(mockStageName);
     expect(exitCode2).toEqual(1);
     expect(runShell).not.toHaveBeenCalled();
-    
-  })
+  });
 });

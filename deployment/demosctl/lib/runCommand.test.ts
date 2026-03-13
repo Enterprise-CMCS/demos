@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { reserveRandomColor, runCommand, runShell } from "./runCommand";
 import { spawn } from "child_process";
-import {type Mock} from "vitest"
+import { type Mock } from "vitest";
 
 vi.mock("child_process");
 vi.mock(import("chalk"), async (importOriginal) => {
-  const actual = await importOriginal()
+  const actual = await importOriginal();
   return {
     ...actual,
     bgBlue: vi.fn(),
@@ -23,8 +23,8 @@ vi.mock(import("chalk"), async (importOriginal) => {
     magenta: vi.fn(),
     cyan: vi.fn(),
     white: vi.fn(),
-}
-})
+  };
+});
 
 describe("runCommand", () => {
   const mockChild = {

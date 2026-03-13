@@ -9,7 +9,7 @@ describe("readOutputs", () => {
   "testing": "something",
   "number": 1
 }
-`
+`,
     );
 
     const data = readOutputs("fileName.json");

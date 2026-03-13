@@ -12,7 +12,7 @@ const mockCommonProps: DeploymentConfigProperties = {
   zScalerIps: ["0.1.2.3"],
   hostEnvironment: "dev",
   cloudfrontHost: "unittest.demos.com",
-  srrConfigured: true
+  srrConfigured: true,
 };
 
 describe("Core Stack", () => {

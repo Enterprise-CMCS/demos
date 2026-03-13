@@ -3,7 +3,7 @@ import { fullDeploy } from "./fullDeploy";
 import { runCommand } from "../lib/runCommand";
 import { readOutputs } from "../lib/readOutputs";
 
-import {Mock} from "vitest"
+import { Mock } from "vitest";
 
 vi.mock("../lib/runCommand");
 vi.mock("../lib/readOutputs");
@@ -34,7 +34,7 @@ describe("fullDeploy", () => {
     expect(rc).toHaveBeenCalledWith(
       "deploy-all",
       "npx",
-      expect.arrayContaining(["deploy", "--all", `stage=${mockStageName}`])
+      expect.arrayContaining(["deploy", "--all", `stage=${mockStageName}`]),
     );
 
     expect(console.log).toHaveBeenCalledWith(expect.stringContaining("complete deploy command succeeded"));
@@ -52,7 +52,7 @@ describe("fullDeploy", () => {
     expect(rc).toHaveBeenCalledWith(
       "deploy-all",
       "npx",
-      expect.arrayContaining(["deploy", "--all", `stage=${mockStageName}`])
+      expect.arrayContaining(["deploy", "--all", `stage=${mockStageName}`]),
     );
 
     expect(console.error).toHaveBeenCalledWith("complete deploy command failed with code 1");

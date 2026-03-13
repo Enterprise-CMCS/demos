@@ -17,7 +17,7 @@ describe("buildServer", () => {
       "npm ci && npm run build:ci",
       expect.objectContaining({
         cwd: "../server",
-      })
+      }),
     );
   });
 });

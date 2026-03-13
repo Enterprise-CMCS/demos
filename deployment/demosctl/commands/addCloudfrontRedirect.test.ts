@@ -5,7 +5,7 @@ import { runCommand } from "../lib/runCommand";
 import { readOutputs } from "../lib/readOutputs";
 import { addCognitoRedirect } from "../lib/addCognitoRedirect";
 
-import {Mock} from "vitest"
+import { Mock } from "vitest";
 
 vi.mock("../lib/runCommand");
 vi.mock("../lib/addCognitoRedirect");
@@ -46,7 +46,7 @@ describe("addCloudfrontRedirect", () => {
     expect(rc).toHaveBeenCalledWith(
       "deploy-no-execute",
       "npx",
-      expect.arrayContaining([`stage=${mockStageName}`, "--execute=false", "--outputs-file=all-outputs.json"])
+      expect.arrayContaining([`stage=${mockStageName}`, "--execute=false", "--outputs-file=all-outputs.json"]),
     );
 
     expect(acr).toHaveBeenCalledWith("value", "123", "https://demos.com");
