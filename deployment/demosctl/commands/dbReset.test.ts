@@ -6,8 +6,10 @@ import { getSecret } from "../lib/getSecret";
 import path from "path";
 import fs from "fs";
 
-jest.mock("../lib/runCommand");
-jest.mock("../lib/getSecret");
+import { Mock } from "vitest";
+
+vi.mock("../lib/runCommand");
+vi.mock("../lib/getSecret");
 
 const mockDBData = {
   username: "test",
@@ -17,32 +19,34 @@ const mockDBData = {
   dbname: "hostDB",
 };
 
-const mockS3Send =jest.fn().mockImplementation(() => ({Buckets: [{Name: "cleanBucket"}]}))
+const mockS3Send = vi.fn().mockImplementation(() => ({ Buckets: [{ Name: "cleanBucket" }] }));
 
-jest.mock("@aws-sdk/client-s3", () => {
-  const actual = jest.requireActual("@aws-sdk/client-s3");
+vi.mock(import("@aws-sdk/client-s3"), async (importOriginal) => {
+  const actual = await importOriginal();
   return {
     ...actual,
-    S3Client: jest.fn(() => ({
-      send: mockS3Send,
-    })),
+    S3Client: vi.fn().mockImplementation(function () {
+      return {
+        send: mockS3Send,
+      };
+    }),
   };
 });
 
 describe("runMigration", () => {
   beforeEach(() => {
-    jest.spyOn(console, "error");
+    vi.spyOn(console, "error");
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test("should successfully make call to reset the database", async () => {
     const mockStageName = "dev";
     const targetDB = "demos";
 
-    const gs = getSecret as jest.Mock;
+    const gs = getSecret as Mock;
     const mockDataString = JSON.stringify(mockDBData);
     gs.mockResolvedValueOnce(mockDataString);
 
@@ -56,20 +60,20 @@ describe("runMigration", () => {
         env: expect.objectContaining({
           DATABASE_URL: `postgresql://${mockDBData.username}:${mockDBData.password}@${mockDBData.host}:${mockDBData.port}/${targetDB}?schema=demos_app`,
           ALLOW_SEED: "true",
-          CLEAN_BUCKET: "cleanBucket"
+          CLEAN_BUCKET: "cleanBucket",
         }),
-      })
+      }),
     );
   });
 
   test("should prevent any env except dev, test, and impl", async () => {
     const mockStageNames = ["dev", "test", "impl", "prod", "fake", "unit-test"];
 
-    const gs = getSecret as jest.Mock;
+    const gs = getSecret as Mock;
     const mockDataString = JSON.stringify(mockDBData);
     gs.mockResolvedValue(mockDataString);
 
-    const rs = runShell as jest.Mock;
+    const rs = runShell as Mock;
     rs.mockResolvedValue(null);
 
     const responses = [];
@@ -82,7 +86,7 @@ describe("runMigration", () => {
   });
 
   test("should exit with status 1 if failing to get secret", async () => {
-    const gs = getSecret as jest.Mock;
+    const gs = getSecret as Mock;
     gs.mockResolvedValue(null);
 
     const exitCode = await dbReset("dev");
@@ -92,7 +96,7 @@ describe("runMigration", () => {
   });
 
   test("should exit with status 1 if secret is invalid", async () => {
-    const gs = getSecret as jest.Mock;
+    const gs = getSecret as Mock;
     gs.mockResolvedValue("{}");
 
     const exitCode = await dbReset("dev");
@@ -102,14 +106,14 @@ describe("runMigration", () => {
   });
 
   test("should use proper path if absPath is defined", async () => {
-    const gs = getSecret as jest.Mock;
+    const gs = getSecret as Mock;
     const mockDataString = JSON.stringify(mockDBData);
     gs.mockResolvedValue(mockDataString);
 
     const mockPath = "/mock/absolute/path";
-    const spyPathResolve = jest.spyOn(path, "resolve").mockImplementation((path) => path);
-    const spyPathJoin = jest.spyOn(path, "join");
-    jest.spyOn(fs, "existsSync").mockReturnValueOnce(true);
+    const spyPathResolve = vi.spyOn(path, "resolve").mockImplementation((path) => path);
+    const spyPathJoin = vi.spyOn(path, "join");
+    vi.spyOn(fs, "existsSync").mockReturnValueOnce(true);
 
     const exitCode = await dbReset("dev", mockPath);
 
@@ -121,12 +125,12 @@ describe("runMigration", () => {
   });
 
   test("should exit with status 1 if the absPath doesn't exist", async () => {
-    const gs = getSecret as jest.Mock;
+    const gs = getSecret as Mock;
     const mockDataString = JSON.stringify(mockDBData);
     gs.mockResolvedValue(mockDataString);
 
     const mockPath = "/mock/absolute/path";
-    jest.spyOn(fs, "existsSync").mockReturnValueOnce(false);
+    vi.spyOn(fs, "existsSync").mockReturnValueOnce(false);
 
     const exitCode = await dbReset("dev", mockPath);
 
@@ -137,19 +141,18 @@ describe("runMigration", () => {
   test("should exit with status 1 if the clean bucket response comes back invalid", async () => {
     const mockStageName = "dev";
 
-    const gs = getSecret as jest.Mock;
+    const gs = getSecret as Mock;
     const mockDataString = JSON.stringify(mockDBData);
     gs.mockResolvedValueOnce(mockDataString);
 
-    mockS3Send.mockImplementationOnce(() => ({}))
+    mockS3Send.mockImplementationOnce(() => ({}));
     const exitCode = await dbReset(mockStageName);
     expect(exitCode).toEqual(1);
     expect(runShell).not.toHaveBeenCalled();
-    
-    mockS3Send.mockImplementationOnce(() => ({Buckets: [{Name: "bucket1"}, {Name: "bucketTwo"}]}))
+
+    mockS3Send.mockImplementationOnce(() => ({ Buckets: [{ Name: "bucket1" }, { Name: "bucketTwo" }] }));
     const exitCode2 = await dbReset(mockStageName);
     expect(exitCode2).toEqual(1);
     expect(runShell).not.toHaveBeenCalled();
-    
-  })
+  });
 });

@@ -12,6 +12,7 @@ const mockCommonProps: DeploymentConfigProperties = {
   zScalerIps: ["0.1.2.3"],
   hostEnvironment: "dev",
   cloudfrontHost: "unittest.demos.com",
+  srrConfigured: true,
 };
 
 describe("Database Stack", () => {
@@ -31,7 +32,7 @@ describe("Database Stack", () => {
     const mockSecurityGroup = aws_ec2.SecurityGroup.fromSecurityGroupId(
       mockCoreStack,
       "mockSecurityGroup",
-      mockSecurityGroupId
+      mockSecurityGroupId,
     );
 
     const databaseStack = new DatabaseStack(app, "mockDatabase", {
@@ -89,7 +90,7 @@ describe("Database Stack", () => {
     const mockSecurityGroup = aws_ec2.SecurityGroup.fromSecurityGroupId(
       mockCoreStack,
       "mockSecurityGroup",
-      mockSecurityGroupId
+      mockSecurityGroupId,
     );
 
     const databaseStack = new DatabaseStack(app, "mockDatabase", {

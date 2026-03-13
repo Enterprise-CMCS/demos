@@ -1,43 +1,48 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { reserveRandomColor, runCommand, runShell } from "./runCommand";
 import { spawn } from "child_process";
+import { type Mock } from "vitest";
 
-jest.mock("child_process");
-jest.mock("chalk", () => ({
-  bgBlue: jest.fn(),
-  bgGreen: jest.fn(),
-  bgYellow: jest.fn(),
-  bgRed: jest.fn(),
-  bgMagenta: jest.fn(),
-  bgCyan: jest.fn(),
-  bgWhite: jest.fn(),
-  black: jest.fn(),
-  red: jest.fn(),
-  green: jest.fn(),
-  yellow: jest.fn(),
-  blue: jest.fn(),
-  magenta: jest.fn(),
-  cyan: jest.fn(),
-  white: jest.fn(),
-}));
+vi.mock("child_process");
+vi.mock(import("chalk"), async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    bgBlue: vi.fn(),
+    bgGreen: vi.fn(),
+    bgYellow: vi.fn(),
+    bgRed: vi.fn(),
+    bgMagenta: vi.fn(),
+    bgCyan: vi.fn(),
+    bgWhite: vi.fn(),
+    black: vi.fn(),
+    red: vi.fn(),
+    green: vi.fn(),
+    yellow: vi.fn(),
+    blue: vi.fn(),
+    magenta: vi.fn(),
+    cyan: vi.fn(),
+    white: vi.fn(),
+  };
+});
 
 describe("runCommand", () => {
   const mockChild = {
-    stdout: { on: jest.fn() },
-    stderr: { on: jest.fn() },
-    on: jest.fn(),
+    stdout: { on: vi.fn() },
+    stderr: { on: vi.fn() },
+    on: vi.fn(),
   };
 
   beforeEach(() => {
     // @ts-expect-error prevent invalid process.exit mock
-    jest.spyOn(process, "exit").mockImplementation(() => "exit");
-    jest.spyOn(console, "log").mockImplementation(() => true);
-    jest.spyOn(console, "error").mockImplementation(() => true);
-    (spawn as jest.Mock).mockReturnValue(mockChild);
+    vi.spyOn(process, "exit").mockImplementation(() => "exit");
+    vi.spyOn(console, "log").mockImplementation(() => true);
+    vi.spyOn(console, "error").mockImplementation(() => true);
+    (spawn as Mock).mockReturnValue(mockChild);
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   test("resolves with code when child closes successfully", async () => {
@@ -64,7 +69,7 @@ describe("runCommand", () => {
   });
 
   test("writes stdout and stderr", async () => {
-    const writeSpy = jest.spyOn(console, "log").mockImplementation(() => true);
+    const writeSpy = vi.spyOn(console, "log").mockImplementation(() => true);
 
     mockChild.stdout.on.mockImplementation((event: string, cb: any) => {
       if (event === "data") cb("stdout message");
@@ -93,15 +98,15 @@ describe("runShell", () => {
 
   beforeEach(() => {
     mockChild = {
-      stdout: { on: jest.fn() },
-      stderr: { on: jest.fn() },
-      on: jest.fn(),
+      stdout: { on: vi.fn() },
+      stderr: { on: vi.fn() },
+      on: vi.fn(),
     };
-    (spawn as jest.Mock).mockReturnValue(mockChild);
+    (spawn as Mock).mockReturnValue(mockChild);
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   test("resolves with code when shell closes", async () => {
