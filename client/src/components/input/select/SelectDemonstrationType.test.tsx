@@ -4,27 +4,32 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import {
   SELECT_DEMONSTRATION_TYPE_QUERY,
-  SelectDemonstrationTypeName,
-  SelectDemonstrationTypeNameProps,
-} from "./SelectDemonstrationTypeName";
+  SelectDemonstrationType,
+  SelectDemonstrationTypeProps,
+} from "./SelectDemonstrationType";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
-import { Tag as DemonstrationTypeName } from "demos-server";
+import { TagName, Tag } from "demos-server";
 
 const mockSelectDemonstrationTypeQuery: MockedResponse<{
-  demonstrationTypeNames: DemonstrationTypeName[];
+  demonstrationTypeOptions: Tag[];
 }> = {
   request: {
     query: SELECT_DEMONSTRATION_TYPE_QUERY,
   },
   result: {
     data: {
-      demonstrationTypeNames: ["Type A", "Type B", "Type C", "Type D"],
+      demonstrationTypeOptions: [
+        { tagName: "Type A", approvalStatus: "Approved" },
+        { tagName: "Type B", approvalStatus: "Approved" },
+        { tagName: "Type C", approvalStatus: "Unapproved" },
+        { tagName: "Type D", approvalStatus: "Unapproved" },
+      ],
     },
   },
 };
 
 const mockSelectDemonstrationTypeQueryError: MockedResponse<{
-  demonstrationTypeNames: DemonstrationTypeName[];
+  demonstrationTypeNames: TagName[];
 }> = {
   request: {
     query: SELECT_DEMONSTRATION_TYPE_QUERY,
@@ -33,7 +38,7 @@ const mockSelectDemonstrationTypeQueryError: MockedResponse<{
 };
 
 const mockSelectDemonstrationTypeQueryEmpty: MockedResponse<{
-  demonstrationTypeNames: DemonstrationTypeName[];
+  demonstrationTypeNames: TagName[];
 }> = {
   request: {
     query: SELECT_DEMONSTRATION_TYPE_QUERY,
@@ -48,7 +53,7 @@ const mockSelectDemonstrationTypeQueryEmpty: MockedResponse<{
 describe("SelectDemonstrationTypes", () => {
   const mockOnSelect = vi.fn();
 
-  const DEFAULT_PROPS: SelectDemonstrationTypeNameProps = {
+  const DEFAULT_PROPS: SelectDemonstrationTypeProps = {
     value: "",
     onSelect: mockOnSelect,
   };
@@ -56,18 +61,18 @@ describe("SelectDemonstrationTypes", () => {
   it("displays error message when query fails", async () => {
     render(
       <MockedProvider mocks={[mockSelectDemonstrationTypeQueryError]}>
-        <SelectDemonstrationTypeName {...DEFAULT_PROPS} />
+        <SelectDemonstrationType {...DEFAULT_PROPS} />
       </MockedProvider>
     );
     await waitFor(() => {
-      expect(screen.getByText("Error loading demonstration type names.")).toBeInTheDocument();
+      expect(screen.getByText("Error loading demonstration type options.")).toBeInTheDocument();
     });
   });
 
   it("shows loading state initially", async () => {
     render(
       <MockedProvider mocks={[mockSelectDemonstrationTypeQuery]}>
-        <SelectDemonstrationTypeName {...DEFAULT_PROPS} />
+        <SelectDemonstrationType {...DEFAULT_PROPS} />
       </MockedProvider>
     );
 
@@ -77,7 +82,7 @@ describe("SelectDemonstrationTypes", () => {
   it("shows 'No types available' when no demonstration types exist", async () => {
     render(
       <MockedProvider mocks={[mockSelectDemonstrationTypeQueryEmpty]}>
-        <SelectDemonstrationTypeName {...DEFAULT_PROPS} />
+        <SelectDemonstrationType {...DEFAULT_PROPS} />
       </MockedProvider>
     );
 
@@ -90,7 +95,7 @@ describe("SelectDemonstrationTypes", () => {
     const filterFn = () => false;
     render(
       <MockedProvider mocks={[mockSelectDemonstrationTypeQuery]}>
-        <SelectDemonstrationTypeName {...DEFAULT_PROPS} filter={filterFn} />
+        <SelectDemonstrationType {...DEFAULT_PROPS} filter={filterFn} />
       </MockedProvider>
     );
     const input = screen.getByRole("textbox");
@@ -101,12 +106,12 @@ describe("SelectDemonstrationTypes", () => {
 
   describe("loaded states", () => {
     const renderWithProvider = async (
-      propOverrides?: Partial<SelectDemonstrationTypeNameProps>,
+      propOverrides?: Partial<SelectDemonstrationTypeProps>,
       mock: MockedResponse = mockSelectDemonstrationTypeQuery
     ) => {
       const result = render(
         <MockedProvider mocks={[mock]}>
-          <SelectDemonstrationTypeName {...DEFAULT_PROPS} {...propOverrides} />
+          <SelectDemonstrationType {...DEFAULT_PROPS} {...propOverrides} />
         </MockedProvider>
       );
 
@@ -122,7 +127,7 @@ describe("SelectDemonstrationTypes", () => {
       expect(screen.getByText("Demonstration Type")).toBeInTheDocument();
     });
 
-    it("loads and displays demonstration types", async () => {
+    it("loads and displays demonstration types with approval status", async () => {
       await renderWithProvider();
 
       const input = screen.getByRole("textbox");
@@ -130,8 +135,8 @@ describe("SelectDemonstrationTypes", () => {
 
       expect(screen.getByText("Type A")).toBeInTheDocument();
       expect(screen.getByText("Type B")).toBeInTheDocument();
-      expect(screen.getByText("Type C")).toBeInTheDocument();
-      expect(screen.getByText("Type D")).toBeInTheDocument();
+      expect(screen.getByText("Type C (Unapproved)")).toBeInTheDocument();
+      expect(screen.getByText("Type D (Unapproved)")).toBeInTheDocument();
     });
 
     it("calls onSelect when option is clicked", async () => {
@@ -139,9 +144,12 @@ describe("SelectDemonstrationTypes", () => {
 
       const input = screen.getByRole("textbox");
       await userEvent.click(input);
-      await userEvent.click(screen.getByText("Type C"));
+      await userEvent.click(screen.getByText("Type C (Unapproved)"));
 
-      expect(mockOnSelect).toHaveBeenCalledWith("Type C");
+      expect(mockOnSelect).toHaveBeenCalledWith({
+        tagName: "Type C",
+        approvalStatus: "Unapproved",
+      });
     });
 
     it("filters demonstration types when filter prop is provided", async () => {
@@ -153,8 +161,8 @@ describe("SelectDemonstrationTypes", () => {
 
       expect(screen.getByText("Type A")).toBeInTheDocument();
       expect(screen.queryByText("Type B")).not.toBeInTheDocument();
-      expect(screen.getByText("Type C")).toBeInTheDocument();
-      expect(screen.getByText("Type D")).toBeInTheDocument();
+      expect(screen.getByText("Type C (Unapproved)")).toBeInTheDocument();
+      expect(screen.getByText("Type D (Unapproved)")).toBeInTheDocument();
     });
 
     it("passes isRequired prop to AutoCompleteSelect", async () => {
