@@ -38,10 +38,11 @@ const ALLOWED_MIME_TYPES = [
   "application/vnd.ms-excel",
   "application/vnd.ms-excel.sheet.macroEnabled.12",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "application/zip",
 ];
 
-const ACCEPTED_EXTENSIONS = ".pdf,.doc,.docx,.xls,.xlsx,.zip";
+const ALLOWED_FILE_EXTENSIONS = [".pdf", ".doc", ".docx", ".xls", ".xlsx", ".xlsm"];
+
+const ACCEPTED_EXTENSIONS = ALLOWED_FILE_EXTENSIONS.join(",");
 const MAX_FILE_SIZE_MB = 600;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 const MAX_FILENAME_DISPLAY_LENGTH = 60;
@@ -288,6 +289,7 @@ export type DocumentDialogProps = {
   initialDocument?: DocumentDialogFields;
   titleOverride?: string;
   cancelButtonIsDisabled?: boolean;
+  canEditDocumentType?: boolean;
 };
 
 // Sets the default document type if a subset is provided
@@ -309,6 +311,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   onSubmit,
   initialDocument,
   titleOverride,
+  canEditDocumentType = true,
 }) => {
   const { showSuccess, showError } = useToast();
   const hydratedInitialDocument = setDefaultDocumentType(
@@ -334,6 +337,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
 
   const { file, uploadProgress, uploadStatus, handleFileChange, setFile } = useFileUpload({
     allowedMimeTypes: ALLOWED_MIME_TYPES,
+    allowedFileExtensions: ALLOWED_FILE_EXTENSIONS,
     maxFileSizeBytes: MAX_FILE_SIZE_BYTES,
     onErrorCallback: (msg: ErrorMessage) => showError(msg),
   });
@@ -442,6 +446,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
           setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }))
         }
         documentTypeSubset={documentTypeSubset}
+        canEditDocumentType={canEditDocumentType}
       />
     </BaseDialog>
   );

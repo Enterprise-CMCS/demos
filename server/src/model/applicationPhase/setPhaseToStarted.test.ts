@@ -52,6 +52,14 @@ describe("setPhaseToStarted", () => {
     expect(updatePhaseStatus).not.toBeCalled();
   });
 
+  it("should skip all processing for the Federal Comment phase", async () => {
+    const result = await setPhaseToStarted(testApplicationId, "Federal Comment", mockTransaction);
+
+    expect(result).toEqual(false);
+    expect(getApplicationPhaseStatus).not.toHaveBeenCalled();
+    expect(updatePhaseStatus).not.toBeCalled();
+  });
+
   it("should start Completeness phase when status is Incomplete", async () => {
     const completenessPhase: PhaseNameWithTrackedStatus = "Completeness";
     vi.mocked(getApplicationPhaseStatus).mockResolvedValue("Incomplete");
