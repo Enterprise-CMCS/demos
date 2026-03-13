@@ -58,6 +58,7 @@ describe("budgetNeutrality index", () => {
   it("processes records and returns 200", async () => {
     mocks.queryMock
       .mockResolvedValueOnce({ rows: [{ exists: true }] })
+      .mockResolvedValueOnce({})
       .mockResolvedValueOnce({ rows: [{ exists: false }] });
 
     const pool = { query: mocks.queryMock } as unknown as Pool;
