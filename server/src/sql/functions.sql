@@ -432,6 +432,11 @@ DECLARE
     v_concept_phase_status TEXT;
     v_application_type_id TEXT;
 BEGIN
+    -- Bypass trigger if not making change to status
+    IF NEW.phase_status_id = OLD.phase_status_id THEN
+        RETURN NEW;
+    END IF;
+
     -- Get the maximum phase number
     SELECT MAX(p.phase_number) INTO v_max_phase_number
     FROM demos_app.phase AS p
@@ -459,11 +464,10 @@ BEGIN
         END IF;
     ELSE
         -- No completed phase found, check the Concept phase
-        SELECT ap.phase_status_id INTO v_concept_phase_status
-        FROM demos_app.application_phase AS ap
-        INNER JOIN demos_app.phase AS p ON ap.phase_id = p.id
-        WHERE ap.application_id = NEW.application_id
-        AND p.id = 'Concept';
+        SELECT phase_status_id INTO v_concept_phase_status
+        FROM demos_app.application_phase
+        WHERE application_id = NEW.application_id
+        AND phase_id = 'Concept';
 
         -- If Concept is Started, it's the current phase
         IF v_concept_phase_status = 'Started' THEN
