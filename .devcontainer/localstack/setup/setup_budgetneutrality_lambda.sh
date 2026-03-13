@@ -17,7 +17,7 @@ npm ci --silent
 npx esbuild index.ts \
   --bundle \
   --platform=node \
-  --target=node18 \
+  --target=node22 \
   --format=esm \
   --sourcemap \
   --external:@aws-sdk/* \
@@ -38,7 +38,7 @@ $AWS_CMD lambda delete-function --function-name $LAMBDA_NAME 2>/dev/null || true
 # Create Lambda function
 $AWS_CMD lambda create-function \
     --function-name $LAMBDA_NAME \
-    --runtime nodejs18.x \
+    --runtime nodejs22.x \
     --role arn:aws:iam::000000000000:role/lambda-execution-role \
     --handler index.handler \
     --zip-file fileb:///workspaces/demos/lambdas/budgetNeutrality/budgetneutrality.zip \
