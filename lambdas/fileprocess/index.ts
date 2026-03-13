@@ -140,6 +140,7 @@ export async function processCleanDatabaseRecord(
   }
 
   log.info({ documentTypeId }, "successfully processed clean file in database.");
+
   return documentTypeId;
 }
 
@@ -166,6 +167,9 @@ export async function enqueueBudgetNeutrality(
   documentId: string,
   documentTypeId: string
 ) {
+
+  log.info({ documentId, documentTypeId }, "BudgetNeutrality Queue Started");
+
   if (!budgetNeutralityQueueUrl) {
     throw new Error(
       "BUDGET_NEUTRALITY_QUEUE_URL environment variable is required."

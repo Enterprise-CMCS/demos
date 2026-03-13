@@ -79,12 +79,47 @@ describe("budgetNeutrality index", () => {
       body: "Processed 2 records.",
     });
     expect(mocks.getDbPoolMock).toHaveBeenCalledTimes(1);
-    expect(mocks.queryMock).toHaveBeenCalledTimes(2);
+    expect(mocks.queryMock).toHaveBeenCalledTimes(3);
+    expect(mocks.queryMock.mock.calls[1]?.[0]).toContain("budget_neutrality_workbook");
+    expect(mocks.queryMock.mock.calls[1]?.[1]).toEqual([
+      "doc-1",
+      "Final BN Worksheet",
+      "Succeeded",
+      "{\"source\":\"budgetNeutrality\"}",
+    ]);
     expect(mocks.logInfoMock).toHaveBeenCalledWith(
-      { results: { processedRecords: 2, existingDocuments: 1, missingDocuments: 1 } },
+      {
+        results: {
+          processedRecords: 2,
+          existingDocuments: 1,
+          missingDocuments: 1,
+          upsertedWorkbooks: 1,
+        },
+      },
       "Budget Neutrality validation placeholder completed."
     );
     expect(mocks.logWarnMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("uses Final BN Worksheet when message omits documentTypeId", async () => {
+    mocks.queryMock.mockResolvedValueOnce({ rows: [{ exists: true }] }).mockResolvedValueOnce({});
+    const pool = { query: mocks.queryMock } as unknown as Pool;
+    mocks.getDbPoolMock.mockResolvedValue(pool);
+
+    const event = {
+      Records: [{ body: JSON.stringify({ documentId: "c9e2fe09-8f9d-4d6f-a03d-e502afaf3124" }) }],
+    } as unknown as SQSEvent;
+
+    const context = { awsRequestId: "test-request-id" } as Context;
+    await handler(event, context);
+
+    expect(mocks.queryMock).toHaveBeenCalledTimes(2);
+    expect(mocks.queryMock.mock.calls[1]?.[1]).toEqual([
+      "c9e2fe09-8f9d-4d6f-a03d-e502afaf3124",
+      "Final BN Worksheet",
+      "Succeeded",
+      "{\"source\":\"budgetNeutrality\"}",
+    ]);
   });
 
   it("throws when message is invalid", async () => {
