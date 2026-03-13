@@ -15,13 +15,13 @@ export const SELECT_DEMONSTRATION_TYPE_QUERY: TypedDocumentNode<
   }
 `;
 
-export type SelectDemonstrationTypeNameProps = {
+export type SelectDemonstrationTypeProps = {
   value: TagName;
   onSelect: (demonstrationTypeOption: Tag) => void;
   isRequired?: boolean;
   filter?: (tag: TagName) => boolean;
 };
-export const SelectDemonstrationTypeName = (props: SelectDemonstrationTypeNameProps) => {
+export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => {
   const { filter, onSelect, ...rest } = props;
 
   const { loading, error, data } = useQuery(SELECT_DEMONSTRATION_TYPE_QUERY);
@@ -43,7 +43,9 @@ export const SelectDemonstrationTypeName = (props: SelectDemonstrationTypeNamePr
   }
 
   const handleSelect = (value: TagName) => {
-    const demonstrationTypeOption = data?.demonstrationTypeOptions.find((opt) => opt.tagName === value);
+    const demonstrationTypeOption = data?.demonstrationTypeOptions.find(
+      (opt) => opt.tagName === value
+    );
     if (demonstrationTypeOption) {
       onSelect(demonstrationTypeOption);
     }

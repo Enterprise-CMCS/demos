@@ -29,14 +29,14 @@ vi.mock("../DialogContext", () => ({
 
 const MOCK_DEMONSTRATION_ID: string = "demo-123";
 const selectDemonstrationTypeQueryMock: MockedResponse<{
-  demonstrationTypes: Tag[];
+  demonstrationTypeOptions: Tag[];
 }> = {
   request: {
     query: SELECT_DEMONSTRATION_TYPE_QUERY,
   },
   result: {
     data: {
-      demonstrationTypes: [
+      demonstrationTypeOptions: [
         { tagName: "Type A", approvalStatus: "Approved" },
         { tagName: "Type B", approvalStatus: "Unapproved" },
         { tagName: "Type C", approvalStatus: "Approved" },

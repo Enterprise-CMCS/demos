@@ -11,14 +11,14 @@ import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectD
 import { Tag } from "demos-server";
 
 const mockSelectDemonstrationTypeQuery: MockedResponse<{
-  demonstrationTypes: Tag[];
+  demonstrationTypeOptions: Tag[];
 }> = {
   request: {
     query: SELECT_DEMONSTRATION_TYPE_QUERY,
   },
   result: {
     data: {
-      demonstrationTypes: [
+      demonstrationTypeOptions: [
         { tagName: "Type A", approvalStatus: "Approved" },
         { tagName: "Type B", approvalStatus: "Approved" },
         { tagName: "Type C", approvalStatus: "Unapproved" },

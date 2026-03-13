@@ -1,7 +1,7 @@
 import React from "react";
 import { DatePicker } from "components/input/date/DatePicker";
 import { SecondaryButton } from "components/button";
-import { SelectDemonstrationTypeName } from "components/input/select/SelectDemonstrationType";
+import { SelectDemonstrationType } from "components/input/select/SelectDemonstrationType";
 import { gql, TypedDocumentNode, useQuery } from "@apollo/client";
 import { TagName } from "demos-server";
 import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
@@ -95,7 +95,7 @@ export const AddDemonstrationTypesForm = ({
     <div className="flex flex-col gap-2">
       <div className="flex gap-2">
         <div className="flex-1">
-          <SelectDemonstrationTypeName
+          <SelectDemonstrationType
             filter={filterDemonstrationTypes}
             isRequired
             value={demonstrationTypeFormData.demonstrationTypeName}
