@@ -3,8 +3,8 @@ import { runMigration } from "./runMigration";
 import { runShell } from "../lib/runCommand";
 import { getSecret } from "../lib/getSecret";
 
-jest.mock("../lib/runCommand");
-jest.mock("../lib/getSecret");
+vi.mock("../lib/runCommand");
+vi.mock("../lib/getSecret");
 
 const mockDBData = {
   username: "test",
@@ -38,7 +38,7 @@ describe("runMigration", () => {
 
     const targetDB = "unit_test";
 
-    const gs = getSecret as jest.Mock;
+    const gs = getSecret as vi.Mock;
     const mockDataString = JSON.stringify(mockDBData);
     gs.mockResolvedValueOnce(mockDataString);
 
@@ -61,10 +61,10 @@ describe("runMigration", () => {
 
     const targetDB = "unit_test";
 
-    const gs = getSecret as jest.Mock;
+    const gs = getSecret as vi.Mock;
     gs.mockResolvedValueOnce(null);
 
-    jest.spyOn(console, "error");
+    vi.spyOn(console, "error");
 
     const exitCode = await runMigration(mockStageName, targetDB);
 
@@ -74,10 +74,10 @@ describe("runMigration", () => {
   test("should exit if secretData is empty", async () => {
     const mockStageName = "unit-test";
 
-    const gs = getSecret as jest.Mock;
+    const gs = getSecret as vi.Mock;
     gs.mockResolvedValueOnce("{}");
 
-    jest.spyOn(console, "error");
+    vi.spyOn(console, "error");
 
     const exitCode = await runMigration(mockStageName);
 

@@ -2,22 +2,22 @@
 import { confirm } from "./confirm";
 import readline from "readline";
 
-jest.mock("readline");
+vi.mock("readline");
 
 describe("confirm", () => {
-  let questionMock: jest.Mock;
+  let questionMock: vi.Mock;
 
   beforeEach(() => {
-    questionMock = jest.fn();
+    questionMock = vi.fn();
     // @ts-expect-error ignore invalid mock
     readline.createInterface.mockReturnValue({
       question: questionMock,
-      close: jest.fn(),
+      close: vi.fn(),
     });
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test("returns true for matching string (non-strict, case-insensitive)", async () => {

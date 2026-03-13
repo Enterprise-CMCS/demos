@@ -4,27 +4,27 @@ import { main } from "./app";
 import { getSecret } from "./util/getSecret";
 import {getParameter} from "./util/getParameter";
 
-jest.mock("@aws-sdk/client-cognito-identity-provider", () => {
-  const actual = jest.requireActual("@aws-sdk/client-cognito-identity-provider");
+vi.mock(import("@aws-sdk/client-cognito-identity-provider"), async (importOriginal) => {
+  const actual = await importOriginal();
   return {
     ...actual,
-    CognitoIdentityProviderClient: jest.fn(() => ({
-      send: jest.fn(async (command) => {
+    CognitoIdentityProviderClient: vi.fn(function () {return {
+      send: vi.fn(async (command) => {
         if (command instanceof actual.ListUserPoolsCommand) {
           return { UserPools: [{ Name: "demos-dev-user-pool", Id: "abc123" }] };
         }
         return {};
       }),
-    })),
+    }}),
   };
 });
 
-jest.mock("@aws-sdk/client-ec2", () => {
-  const actual = jest.requireActual("@aws-sdk/client-ec2");
+vi.mock(import("@aws-sdk/client-ec2"), async (importOriginal) => {
+  const actual = await importOriginal();
   return {
     ...actual,
-    EC2Client: jest.fn(() => ({
-      send: jest.fn(async (command) => {
+    EC2Client: vi.fn(function () {return{
+      send: vi.fn(async (command) => {
         if (
           command instanceof actual.DescribeManagedPrefixListsCommand ||
           command instanceof actual.GetManagedPrefixListEntriesCommand
@@ -33,13 +33,13 @@ jest.mock("@aws-sdk/client-ec2", () => {
         }
         return {};
       }),
-    })),
+    }}),
   };
 });
-jest.mock("./util/getSecret");
-jest.mock("./util/getParameter");
+vi.mock("./util/getSecret");
+vi.mock("./util/getParameter");
 
-(getSecret as jest.Mock).mockImplementation(() =>
+(getSecret as vi.Mock).mockImplementation(() =>
   JSON.stringify({
     cloudfrontCertificateArn: "arn:aws:acm:us-east-1:0123456789:certificate/fake",
     idmMetadataEndpoint: "test",
@@ -49,7 +49,7 @@ jest.mock("./util/getParameter");
 
 describe("app", () => {
   beforeEach(() => {
-    (getParameter as jest.Mock).mockImplementation(() => {
+    (getParameter as vi.Mock).mockImplementation(() => {
       return "SRR has been configured: unit testing"
     })
   })
@@ -141,7 +141,7 @@ describe("app", () => {
 
     const mockStageName = "dev";
 
-    (getParameter as jest.Mock).mockImplementation(() => {
+    (getParameter as vi.Mock).mockImplementation(() => {
       return "Pending"
     })
 

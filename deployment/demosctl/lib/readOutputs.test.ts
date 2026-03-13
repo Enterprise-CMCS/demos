@@ -3,7 +3,7 @@ import { readOutputs } from "./readOutputs";
 
 describe("readOutputs", () => {
   test("should return proper json object", () => {
-    const spy = jest.spyOn(fs, "readFileSync").mockImplementation(
+    const spy = vi.spyOn(fs, "readFileSync").mockImplementation(
       () => `
 {
   "testing": "something",

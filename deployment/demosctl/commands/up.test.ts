@@ -5,25 +5,25 @@ import { buildServer } from "./buildServer";
 import { fullDeploy } from "./fullDeploy";
 import { getCoreOutputs } from "./getCoreOutputs";
 
-jest.mock("./buildServer");
-jest.mock("./buildClient");
-jest.mock("./fullDeploy");
-jest.mock("./getCoreOutputs");
+vi.mock("./buildServer");
+vi.mock("./buildClient");
+vi.mock("./fullDeploy");
+vi.mock("./getCoreOutputs");
 
 describe("up", () => {
   beforeEach(() => {
-    jest.spyOn(console, "error");
+    vi.spyOn(console, "error");
   });
 
   afterEach(() => {
-    (console.error as jest.Mock).mockRestore();
+    (console.error as vi.Mock).mockRestore();
   });
 
   test("should run commands to build ephemeral env", async () => {
     const mockStageName = "unit-test";
 
-    const bc = (buildClient as jest.Mock).mockResolvedValue(0);
-    const bs = (buildServer as jest.Mock).mockResolvedValue(0);
+    const bc = (buildClient as vi.Mock).mockResolvedValue(0);
+    const bs = (buildServer as vi.Mock).mockResolvedValue(0);
 
     await up(mockStageName);
 
@@ -49,7 +49,7 @@ describe("up", () => {
   test("should log if the deploy fails", async () => {
     const mockStageName = "unit-test";
 
-    (buildServer as jest.Mock).mockRejectedValue(1);
+    (buildServer as vi.Mock).mockRejectedValue(1);
 
     const exitCode = await up(mockStageName);
 

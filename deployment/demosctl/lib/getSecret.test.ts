@@ -3,7 +3,7 @@ import { getSecret } from "./getSecret";
 
 describe("getSecret", () => {
   test("requests secret with proper parameters", async () => {
-    const spy = jest.spyOn(SecretsManagerClient.prototype, "send") as jest.Mock;
+    const spy = vi.spyOn(SecretsManagerClient.prototype, "send") as vi.Mock;
 
     spy.mockResolvedValueOnce({ SecretString: "secret" }); // pragma: allowlist secret
 

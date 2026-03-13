@@ -12,15 +12,16 @@ import { runMigration } from "./commands/runMigration";
 import { testMigration } from "./commands/testMigration";
 import { main } from "./demosctl";
 
-jest.mock("./commands/buildClient");
-jest.mock("./commands/buildServer");
-jest.mock("./commands/getCoreOutputs");
-jest.mock("./commands/fullDeploy");
-jest.mock("./commands/addCloudfrontRedirect");
-jest.mock("./commands/up");
-jest.mock("./commands/down");
-jest.mock("./commands/runMigration");
-jest.mock("./commands/testMigration");
+vi.mock("./commands/buildClient");
+vi.mock("./commands/buildServer");
+vi.mock("./commands/getCoreOutputs");
+vi.mock("./commands/fullDeploy");
+vi.mock("./commands/addCloudfrontRedirect");
+vi.mock("./commands/up");
+vi.mock("./commands/down");
+vi.mock("./commands/runMigration");
+vi.mock("./commands/testMigration");
+
 
 const expectFunc = (command: string, func: Function, stage: string, additional: any[] = [], empty: boolean = false) => {
   process.argv = ["", "", command, stage, ...additional];
@@ -59,7 +60,7 @@ describe("demosctl root", () => {
 
   test("should require a stage name", async () => {
     // @ts-expect-error prevent error on invalid mock exit
-    jest.spyOn(process, "exit").mockImplementation(() => "exit");
+    vi.spyOn(process, "exit").mockImplementation(() => "exit");
 
     process.argv = ["", "", "build:client"];
     main();
@@ -67,15 +68,13 @@ describe("demosctl root", () => {
     expect(process.exit).toHaveBeenCalled();
   });
 
-  test("should require a stage name", async () => {
-    // @ts-expect-error prevent error on invalid mock exit
-    jest.spyOn(process, "exit").mockImplementation(() => "exit");
-    jest.spyOn(console, "error");
+  test("should properly handle an unknown command", async () => {
+    vi.spyOn(console, "error");
 
     process.argv = ["", "", "fake-command", "unit-test"];
-    main();
+    const resp = await main();
 
     expect(console.error).toHaveBeenCalledWith(expect.stringContaining("Unknown command"));
-    expect(process.exit).toHaveBeenCalled();
+    expect(resp).toEqual(1)
   });
 });

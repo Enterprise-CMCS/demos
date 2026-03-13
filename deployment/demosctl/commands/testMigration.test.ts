@@ -6,24 +6,24 @@ import { runMigration } from "./runMigration";
 import https from "https";
 import { Client } from "pg";
 
-jest.mock("https");
-jest.mock("../lib/getSecret");
-jest.mock("./runMigration");
+vi.mock("https");
+vi.mock("../lib/getSecret");
+vi.mock("./runMigration");
 
-const mockConnect = jest.fn();
-const mockQuery = jest.fn(() => ({
+const mockConnect = vi.fn();
+const mockQuery = vi.fn(() => ({
   command: "test",
 }));
 
-jest.mock("pg", () => {
+vi.mock("pg", () => {
   const mockClient = {
     connect: () => mockConnect(),
     // @ts-expect-error ignore invalid mock
     query: (...a) => mockQuery(...a),
-    end: jest.fn(),
+    end: vi.fn(),
   };
 
-  return { Client: jest.fn().mockImplementation(() => mockClient) };
+  return { Client: vi.fn().mockImplementation(function () {return mockClient}) };
 });
 
 const mockDBData = {
@@ -36,36 +36,36 @@ const mockDBData = {
 
 describe("testMigration", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.spyOn(console, "error");
+    vi.clearAllMocks();
+    vi.spyOn(console, "error");
     // @ts-expect-error ignore invalid mock
-    jest.spyOn(process, "exit").mockImplementation(() => "exit");
+    vi.spyOn(process, "exit").mockImplementation(() => "exit");
   });
 
   afterEach(() => {
     // @ts-expect-error ignore invalid mock
-    (process.exit as jest.Mock).mockRestore();
-    (console.error as jest.Mock).mockRestore();
+    (process.exit as vi.Mock).mockRestore();
+    (console.error as vi.Mock).mockRestore();
   });
 
   test("should properly run a test migration with cleanup", async () => {
     const mockStageName = "unit-test";
     const targetDB = "unit_test";
 
-    (https.get as jest.Mock).mockImplementation((url, callback) => {
+    (https.get as vi.Mock).mockImplementation((url, callback) => {
       callback({
         statusCode: 200,
-        on: jest.fn((e, h) => {
+        on: vi.fn((e, h) => {
           if (e === "data") h("CERTDATA");
           if (e === "end") h();
           return {};
         }),
       });
-      return { on: jest.fn() };
+      return { on: vi.fn() };
     });
 
-    (getSecret as jest.Mock).mockResolvedValue(JSON.stringify(mockDBData));
-    (runMigration as jest.Mock).mockResolvedValue(0);
+    (getSecret as vi.Mock).mockResolvedValue(JSON.stringify(mockDBData));
+    (runMigration as vi.Mock).mockResolvedValue(0);
 
     await testMigration(mockStageName, targetDB);
 
@@ -114,19 +114,19 @@ describe("testMigration", () => {
     const mockStageName = "unit-test";
     const targetDB = "unit_test";
 
-    (https.get as jest.Mock).mockImplementation((url, callback) => {
+    (https.get as vi.Mock).mockImplementation((url, callback) => {
       callback({
         statusCode: 200,
-        on: jest.fn((e, h) => {
+        on: vi.fn((e, h) => {
           if (e === "data") h("CERTDATA");
           if (e === "end") h();
           return {};
         }),
       });
-      return { on: jest.fn() };
+      return { on: vi.fn() };
     });
 
-    (getSecret as jest.Mock).mockResolvedValue(null);
+    (getSecret as vi.Mock).mockResolvedValue(null);
 
     const exitCode = await testMigration(mockStageName, targetDB);
 
@@ -138,20 +138,20 @@ describe("testMigration", () => {
     const mockStageName = "unit-test";
     const targetDB = "unit_test";
 
-    (https.get as jest.Mock).mockImplementation((url, callback) => {
+    (https.get as vi.Mock).mockImplementation((url, callback) => {
       callback({
         statusCode: 200,
-        on: jest.fn((e, h) => {
+        on: vi.fn((e, h) => {
           if (e === "data") h("CERTDATA");
           if (e === "end") h();
           return {};
         }),
       });
-      return { on: jest.fn() };
+      return { on: vi.fn() };
     });
 
-    (getSecret as jest.Mock).mockResolvedValue(JSON.stringify(mockDBData));
-    (runMigration as jest.Mock).mockRejectedValue("something went wrong");
+    (getSecret as vi.Mock).mockResolvedValue(JSON.stringify(mockDBData));
+    (runMigration as vi.Mock).mockRejectedValue("something went wrong");
 
     const exitCode = await testMigration(mockStageName, targetDB);
 
@@ -163,20 +163,20 @@ describe("testMigration", () => {
     const mockStageName = "unit-test";
     const targetDB = "unit_test";
 
-    (https.get as jest.Mock).mockImplementation((url, callback) => {
+    (https.get as vi.Mock).mockImplementation((url, callback) => {
       callback({
         statusCode: 200,
-        on: jest.fn((e, h) => {
+        on: vi.fn((e, h) => {
           if (e === "data") h("CERTDATA");
           if (e === "end") h();
           return {};
         }),
       });
-      return { on: jest.fn() };
+      return { on: vi.fn() };
     });
 
-    (getSecret as jest.Mock).mockResolvedValue(JSON.stringify(mockDBData));
-    (runMigration as jest.Mock).mockResolvedValue(1);
+    (getSecret as vi.Mock).mockResolvedValue(JSON.stringify(mockDBData));
+    (runMigration as vi.Mock).mockResolvedValue(1);
 
     // @ts-expect-error ignore invalid mock
     mockQuery.mockRejectedValueOnce(1);

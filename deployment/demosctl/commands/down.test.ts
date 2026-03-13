@@ -2,17 +2,17 @@ import { runCommand } from "../lib/runCommand";
 import { down } from "./down";
 import { confirm } from "../lib/confirm";
 
-jest.mock("../lib/runCommand");
-jest.mock("../lib/confirm");
+vi.mock("../lib/runCommand");
+vi.mock("../lib/confirm");
 
 describe("down", () => {
   test("should run the cdk destroy command on the proper env", async () => {
     const mockStageName = "unit-test";
 
-    const c = confirm as jest.Mock;
+    const c = confirm as vi.Mock;
     c.mockResolvedValue(true);
 
-    const rc = runCommand as jest.Mock;
+    const rc = runCommand as vi.Mock;
 
     await down(mockStageName);
 
@@ -32,7 +32,7 @@ describe("down", () => {
   test("should exit if user doesn't confirm with 'yes'", async () => {
     const mockStageName = "unit-test";
 
-    const c = confirm as jest.Mock;
+    const c = confirm as vi.Mock;
     c.mockResolvedValue(false);
 
     const exitCode = await down(mockStageName);
@@ -43,13 +43,13 @@ describe("down", () => {
   test("should show error when destroy fails", async () => {
     const mockStageName = "unit-test";
 
-    const c = confirm as jest.Mock;
+    const c = confirm as vi.Mock;
     c.mockResolvedValue(true);
 
-    const rc = runCommand as jest.Mock;
+    const rc = runCommand as vi.Mock;
     rc.mockRejectedValue("there was an error");
 
-    jest.spyOn(console, "error");
+    vi.spyOn(console, "error");
 
     await down(mockStageName);
 

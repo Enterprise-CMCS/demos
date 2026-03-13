@@ -106,7 +106,7 @@ describe("DemosLogGroup", () => {
     const app = new App();
     const stack = new Stack(app, "TestStack")
 
-    const spy = jest.spyOn(aws_lambda.Function, "fromFunctionName")
+    const spy = vi.spyOn(aws_lambda.Function, "fromFunctionName")
 
     new DemosLogGroup(stack, "TestLogGroup", {
       name: "test",

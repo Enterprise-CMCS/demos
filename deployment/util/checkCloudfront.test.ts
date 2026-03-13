@@ -1,11 +1,11 @@
 import { configuredDistributionExists } from "./checkCloudfront";
 
-jest.mock("@aws-sdk/client-cloudfront", () => {
-  const actual = jest.requireActual("@aws-sdk/client-cloudfront");
+vi.mock(import ("@aws-sdk/client-cloudfront"), async (importOriginal) => {
+  const actual = await importOriginal();
   return {
     ...actual,
-    CloudFrontClient: jest.fn(() => ({
-      send: jest.fn(async (command) => {
+    CloudFrontClient: vi.fn(function () {return {
+      send: vi.fn(async (command) => {
         if (
           command instanceof actual.ListDistributionsCommand
         ) {
@@ -13,7 +13,7 @@ jest.mock("@aws-sdk/client-cloudfront", () => {
         }
         return {};
       }),
-    })),
+    }}),
   };
 });
 

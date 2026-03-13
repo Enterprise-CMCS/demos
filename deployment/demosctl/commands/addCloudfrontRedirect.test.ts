@@ -1,35 +1,35 @@
-jest.useFakeTimers();
+vi.useFakeTimers();
 
 import { addCloudfrontRedirect } from "./addCloudfrontRedirect";
 import { runCommand } from "../lib/runCommand";
 import { readOutputs } from "../lib/readOutputs";
 import { addCognitoRedirect } from "../lib/addCognitoRedirect";
 
-jest.mock("../lib/runCommand");
-jest.mock("../lib/addCognitoRedirect");
-jest.mock("../lib/readOutputs");
+vi.mock("../lib/runCommand");
+vi.mock("../lib/addCognitoRedirect");
+vi.mock("../lib/readOutputs");
 
 describe("addCloudfrontRedirect", () => {
   beforeEach(() => {
-    jest.spyOn(console, "log").mockImplementation(() => true);
-    jest.spyOn(console, "error").mockImplementation(() => true);
+    vi.spyOn(console, "log").mockImplementation(() => true);
+    vi.spyOn(console, "error").mockImplementation(() => true);
   });
 
   afterEach(() => {
-    (console.log as jest.Mock).mockRestore();
-    (console.error as jest.Mock).mockRestore();
+    (console.log as vi.Mock).mockRestore();
+    (console.error as vi.Mock).mockRestore();
   });
 
   test("should properly request core outputs and pass values to cognito redirect", async () => {
-    const rc = runCommand as jest.Mock;
+    const rc = runCommand as vi.Mock;
     rc.mockResolvedValue(0);
 
-    const acr = addCognitoRedirect as jest.Mock;
+    const acr = addCognitoRedirect as vi.Mock;
     acr.mockResolvedValue(0);
 
     const mockStageName = "unit-test";
 
-    const ro = readOutputs as jest.Mock;
+    const ro = readOutputs as vi.Mock;
     ro.mockReturnValue({
       [`demos-${mockStageName}-core`]: {
         cognitoAuthority: "test/value",
@@ -52,7 +52,7 @@ describe("addCloudfrontRedirect", () => {
   });
 
   test("should exit if runCommand returns non-zero exit", async () => {
-    const rc = runCommand as jest.Mock;
+    const rc = runCommand as vi.Mock;
     rc.mockResolvedValue(1);
     const mockStageName = "unit-test";
     let exitCode;

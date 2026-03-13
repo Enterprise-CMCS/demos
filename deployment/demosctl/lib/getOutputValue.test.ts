@@ -8,7 +8,7 @@ describe("getOutputValue", () => {
   });
   test("should exit the script if the value is missing", () => {
     // @ts-expect-error prevent error on invalid mock exit
-    jest.spyOn(process, "exit").mockImplementation(() => "exit");
+    vi.spyOn(process, "exit").mockImplementation(() => "exit");
 
     const outputData = { parent: { child: "someValue", other: "other" } };
     const output = getOutputValue(outputData, "parent", "missing");
