@@ -1,5 +1,5 @@
 import pino from "pino";
-import { AsyncLocalStorage } from "async_hooks";
+import { AsyncLocalStorage } from "node:async_hooks";
 
 export const als = new AsyncLocalStorage<Map<string, string>>();
 export const store = new Map<string, string>();

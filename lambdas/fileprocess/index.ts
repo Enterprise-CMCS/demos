@@ -167,7 +167,6 @@ export async function enqueueBudgetNeutrality(
   documentId: string,
   documentTypeId: string
 ) {
-
   log.info({ documentId, documentTypeId }, "BudgetNeutrality Queue Started");
 
   if (!budgetNeutralityQueueUrl) {
@@ -248,13 +247,13 @@ export async function processGuardDutyResult(
 
   await moveFile(documentId, destinationBucket, destinationKey);
 
-  if (!isClean) {
-    await processInfectedDatabaseRecord(client, documentId, applicationId, scanResultDetails);
-  } else {
+  if (isClean) {
     const fileTypeId = await processCleanDatabaseRecord(client, documentId, applicationId);
     if (fileTypeId === FINAL_BN_WORKSHEET_DOCUMENT_TYPE) {
       await enqueueBudgetNeutrality(documentId, fileTypeId);
     }
+  } else {
+    await processInfectedDatabaseRecord(client, documentId, applicationId, scanResultDetails);
   }
 
   return isClean;
