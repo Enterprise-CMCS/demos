@@ -65,7 +65,12 @@ export type ApplicationWorkflowDemonstration = WorkflowApplication &
     primaryProjectOfficer: Pick<Person, "id" | "fullName">;
     demonstrationTypes: Pick<
       DemonstrationTypeAssignment,
-      "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "createdAt"
+      | "demonstrationTypeName"
+      | "status"
+      | "effectiveDate"
+      | "expirationDate"
+      | "createdAt"
+      | "approvalStatus"
     >[];
   };
 

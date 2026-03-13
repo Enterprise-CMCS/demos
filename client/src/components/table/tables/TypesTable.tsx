@@ -17,6 +17,7 @@ export type TypeTableRow = {
   id: string;
   typeLabel: string;
   status: DemonstrationDetailDemonstrationType["status"];
+  approvalStatus: DemonstrationDetailDemonstrationType["approvalStatus"];
   effectiveDate: Date;
   expirationDate: Date;
 };
@@ -50,6 +51,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({
         id: type.demonstrationTypeName,
         typeLabel: type.demonstrationTypeName,
         status: type.status,
+        approvalStatus: type.approvalStatus,
         effectiveDate: new Date(type.effectiveDate),
         expirationDate: new Date(type.expirationDate),
       }));
@@ -139,6 +141,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({
                     showEditDemonstrationTypeDialog(demonstration.id, {
                       demonstrationTypeName: selected[0].typeLabel,
                       status: selected[0].status,
+                      approvalStatus: selected[0].approvalStatus,
                       effectiveDate: selected[0].effectiveDate,
                       expirationDate: selected[0].expirationDate,
                     })

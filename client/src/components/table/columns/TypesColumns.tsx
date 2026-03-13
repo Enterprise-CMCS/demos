@@ -1,3 +1,4 @@
+import React from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 
 import { highlightCell } from "../KeywordSearch";
@@ -12,7 +13,14 @@ export function TypesColumns() {
     createSelectColumnDef(columnHelper),
     columnHelper.accessor("typeLabel", {
       header: "Type",
-      cell: highlightCell,
+      cell: (context) => {
+        return (
+          <>
+            {highlightCell(context)}
+            {context.row.original.approvalStatus === "Unapproved" && " (Unapproved)"}
+          </>
+        );
+      },
       enableColumnFilter: false,
     }),
     columnHelper.accessor("status", {

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState } from "react";
 import {
   DocumentType,
-  Tag as DemonstrationTypeName,
+  TagName,
   DemonstrationTypeAssignment,
   UploadDocumentInput,
 } from "demos-server";
@@ -201,7 +201,7 @@ export const useDialog = () => {
 
   const showRemoveDemonstrationTypesDialog = (
     demonstrationId: string,
-    demonstrationTypeNames: DemonstrationTypeName[]
+    demonstrationTypeNames: TagName[]
   ) => {
     context.showDialog(
       <RemoveDemonstrationTypesDialog
@@ -215,7 +215,7 @@ export const useDialog = () => {
     demonstrationId: string,
     demonstrationType: Pick<
       DemonstrationTypeAssignment,
-      "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate"
+      "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "approvalStatus"
     >
   ) => {
     context.showDialog(
