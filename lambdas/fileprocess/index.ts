@@ -28,11 +28,14 @@ const bypassSSL = process.env.BYPASS_SSL;
 const awsEndpointUrl = process.env.AWS_ENDPOINT_URL;
 const awsClientConfig = {region: AWS_REGION, endpoint: awsEndpointUrl};
 
-const s3 = new S3Client({
-  ...awsClientConfig,
-  forcePathStyle: true,
-});
-
+const s3 = new S3Client(
+  awsEndpointUrl
+    ? {
+        ...awsClientConfig,
+        forcePathStyle: true,
+      }
+    : awsClientConfig
+);
 const sqsModuleName = "@aws-sdk/client-sqs";
 let sqsClientPromise: Promise<{
   client: { send: (command: unknown) => Promise<{ MessageId?: string }> };
@@ -94,7 +97,7 @@ export async function moveFile(
       Key: destinationKey,
     })
   );
-  log.info(`Successfully copied file to ${destinationBucket}.`);
+  log.info(`successfully copied file to ${destinationBucket}.`);
 
   await s3.send(
     new DeleteObjectCommand({
@@ -102,7 +105,7 @@ export async function moveFile(
       Key: documentId,
     })
   );
-  log.info(`Successfully deleted file from ${uploadBucket}.`);
+  log.info(`successfully deleted file from ${uploadBucket}.`);
 }
 
 export async function processCleanDatabaseRecord(
@@ -122,7 +125,7 @@ export async function processCleanDatabaseRecord(
     throw new Error(`No document type returned for document ${documentId}.`);
   }
 
-  log.info({ documentTypeId }, "Successfully processed clean file in database.");
+  log.info({ documentTypeId }, "successfully processed clean file in database.");
 
   return documentTypeId;
 }
@@ -143,7 +146,7 @@ export async function processInfectedDatabaseRecord(
     scanResultDetails.scanResultStatus ?? "",
     threatsString,
   ]);
-  log.info("Successfully processed infected file in database.");
+  log.info("successfully processed infected file in database.");
 }
 
 export async function enqueueBudgetNeutrality(
@@ -245,16 +248,6 @@ export async function processGuardDutyResult(
 export const handler = async (event: SQSEvent, context: Context) =>
   als.run(store, async () => {
     reqIdChild(context.awsRequestId);
-    log.debug(
-      {
-        AWS_REGION,
-        AWS_ENDPOINT_URL: awsEndpointUrl,
-        UPLOAD_BUCKET: uploadBucket,
-        CLEAN_BUCKET: cleanBucket,
-        DB_SCHEMA: dbSchema,
-      },
-      "environment variables"
-    );
 
     let client;
 
@@ -274,6 +267,7 @@ export const handler = async (event: SQSEvent, context: Context) =>
             },
       });
       await client.connect();
+
       const setSearchPathQuery = `SET search_path TO ${dbSchema}, public;`;
       await client.query(setSearchPathQuery);
 
