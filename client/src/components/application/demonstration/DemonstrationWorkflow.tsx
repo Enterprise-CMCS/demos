@@ -37,6 +37,7 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
         demonstrationTypeName
         status
         effectiveDate
+        approvalStatus
         expirationDate
         createdAt
       }
