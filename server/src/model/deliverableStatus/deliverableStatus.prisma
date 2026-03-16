@@ -1,0 +1,9 @@
+// Flags: STATIC_CONSTRAINT
+model DeliverableStatus {
+  id String
+
+  deliverables Deliverable[]
+
+  @@id([id])
+  @@map("deliverable_status")
+}

@@ -443,14 +443,14 @@ erDiagram
 
   deliverable:::dataTable {
     uuid id PK, UK "UK: (id, demonstration_id, deliverable_type_id)"
+    text deliverable_type_id FK, UK "FK067: deliverable_type_id ∈ deliverable_type.id<br>UK: (id, demonstration_id, deliverable_type_id)"
     uuid demonstration_id FK, UK "FK006: (demonstration_id, demonstration_status_id) ∈ demonstration.(id, status_id)<br>UK: (id, demonstration_id, deliverable_type_id)"
     text demonstration_status_id FK "FK006: (demonstration_id, demonstration_status_id) ∈ demonstration.(id, status_id)<br>FK105: demonstration_status_id ∈ deliverable_demonstration_status_limit.id"
-    text deliverable_type_id FK, UK "FK067: deliverable_type_id ∈ deliverable_type.id<br>UK: (id, demonstration_id, deliverable_type_id)"
     text status_id FK "FK094: status_id ∈ deliverable_status.id"
-    text due_date_type_id FK "FK095: due_date_type_id ∈ deliverable_due_date_type.id"
     uuid cms_owner_user_id FK "FK108: (cms_owner_user_id, cms_owner_person_type_id) ∈ users.(id, person_type_id)"
     text cms_owner_person_type_id FK "FK108: (cms_owner_user_id, cms_owner_person_type_id) ∈ users.(id, person_type_id)<br>FK106: cms_owner_person_type_id ∈ cms_user_person_type_limit.id"
     timestamptz due_date
+    text due_date_type_id FK "FK095: due_date_type_id ∈ deliverable_due_date_type.id"
     bool expected_to_be_submitted
     timestamptz created_at
     timestamptz updated_at

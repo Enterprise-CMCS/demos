@@ -414,6 +414,85 @@ CREATE OR REPLACE TRIGGER log_changes_budget_neutrality_workbook
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.budget_neutrality_workbook
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_budget_neutrality_workbook();
 
+CREATE OR REPLACE FUNCTION demos_app.log_changes_deliverable()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.deliverable_history (
+            revision_type,
+            id,
+            deliverable_type_id,
+            demonstration_id,
+            demonstration_status_id,
+            status_id,
+            cms_owner_user_id,
+            cms_owner_person_type_id,
+            due_date,
+            due_date_type_id,
+            expected_to_be_submitted,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.deliverable_type_id,
+            NEW.demonstration_id,
+            NEW.demonstration_status_id,
+            NEW.status_id,
+            NEW.cms_owner_user_id,
+            NEW.cms_owner_person_type_id,
+            NEW.due_date,
+            NEW.due_date_type_id,
+            NEW.expected_to_be_submitted,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.deliverable_history (
+            revision_type,
+            id,
+            deliverable_type_id,
+            demonstration_id,
+            demonstration_status_id,
+            status_id,
+            cms_owner_user_id,
+            cms_owner_person_type_id,
+            due_date,
+            due_date_type_id,
+            expected_to_be_submitted,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.deliverable_type_id,
+            OLD.demonstration_id,
+            OLD.demonstration_status_id,
+            OLD.status_id,
+            OLD.cms_owner_user_id,
+            OLD.cms_owner_person_type_id,
+            OLD.due_date,
+            OLD.due_date_type_id,
+            OLD.expected_to_be_submitted,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_deliverable
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.deliverable
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_deliverable();
+
 CREATE OR REPLACE FUNCTION demos_app.log_changes_demonstration()
 RETURNS TRIGGER AS $$
 BEGIN

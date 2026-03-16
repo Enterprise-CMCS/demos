@@ -1,0 +1,10 @@
+// Flags: TYPE_LIMITER
+model CmsUserPersonTypeLimit {
+  id String
+
+  personType   PersonType    @relation(fields: [id], references: [id])
+  deliverables Deliverable[]
+
+  @@id([id])
+  @@map("cms_user_person_type_limit")
+}

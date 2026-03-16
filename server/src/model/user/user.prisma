@@ -6,9 +6,9 @@ model User {
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
-  person     Person              @relation(fields: [id, personTypeId], references: [id, personTypeId])
-  personType UserPersonTypeLimit @relation(fields: [personTypeId], references: [id])
-
+  person                 Person                  @relation(fields: [id, personTypeId], references: [id, personTypeId])
+  personType             UserPersonTypeLimit     @relation(fields: [personTypeId], references: [id])
+  deliverables           Deliverable[]
   documents              Document[]
   documentsPendingUpload DocumentPendingUpload[]
   documentsInfected      DocumentInfected[]

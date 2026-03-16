@@ -1,9 +1,10 @@
 model PersonType {
   id String
 
-  people              Person[]
-  userPersonTypeLimit UserPersonTypeLimit?
-  rolePersonTypes     RolePersonType[]
+  people                 Person[]
+  rolePersonTypes        RolePersonType[]
+  userPersonTypeLimit    UserPersonTypeLimit[]
+  cmsUserPersonTypeLimit CmsUserPersonTypeLimit[]
 
   @@id([id])
   @@map("person_type")

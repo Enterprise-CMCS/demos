@@ -12,6 +12,7 @@ TBL_FOLDERS = [
     "applicationPhase",
     "applicationTagAssignment",
     "budgetNeutralityWorkbook",
+    "deliverable",
     "demonstration",
     "demonstrationRoleAssignment",
     "demonstrationTypeTagAssignment",
