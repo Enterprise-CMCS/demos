@@ -3,7 +3,6 @@ import { PhaseNameWithTrackedStatus, ApplicationDateInput } from "../../types";
 import { EasternNow } from "../../dateUtilities";
 import { createPhaseStartDate } from "../applicationDate";
 import { getOrderedPhaseDateTypes } from "../phaseDateType";
-import { updateApplicationStatusToUnderReviewIfNeeded } from "../application";
 import { setPhaseToStarted } from ".";
 
 export async function startPhasesByDates(
@@ -36,11 +35,6 @@ export async function startPhasesByDates(
     const phaseId = phase.phaseId as PhaseNameWithTrackedStatus;
     const phaseStarted = await setPhaseToStarted(applicationId, phaseId, tx);
     if (phaseStarted) {
-      // Update application status to "Under Review" if starting Application Intake phase
-      if (phaseId === "Application Intake") {
-        await updateApplicationStatusToUnderReviewIfNeeded(applicationId, tx);
-      }
-
       const startDateForPhase = createPhaseStartDate(phaseId, easternNow);
 
       // add the start date if it's not already included in the input dates

@@ -396,6 +396,7 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_AFTER_UPDATE update_application_current_phase_on_phase_update "Update application current phase when phase status changes."
+    TRIGGER_AFTER_UPDATE update_application_status_on_phase_update "Update the application status field when a phase changes status."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }
