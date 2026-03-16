@@ -15,7 +15,10 @@ export const GET_AMENDMENT_WORKFLOW_QUERY = gql`
       currentPhaseName
       clearanceLevel
       status
-      tags
+      tags {
+        tagName
+        approvalStatus
+      }
       phases {
         ...WORKFLOW_PHASE_FIELDS
       }
