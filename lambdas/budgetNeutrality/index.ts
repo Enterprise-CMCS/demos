@@ -76,7 +76,7 @@ export const handler = async (event: SQSEvent, context: Context) =>
 
     try {
       const pool = await getDbPool();
-
+      // There should be only 1. but we could do multiples if needed.
       if (event.Records.length !== 1) {
         throw new Error(`Expected exactly 1 record, received ${event.Records.length}.`);
       }
