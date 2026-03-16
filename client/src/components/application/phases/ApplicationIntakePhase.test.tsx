@@ -89,11 +89,11 @@ describe("ApplicationIntakePhase", () => {
     };
 
     render(
-      <DialogProvider>
-        <TestProvider mocks={[applicationTagOptionsMock]}>
+      <TestProvider mocks={[applicationTagOptionsMock]}>
+        <DialogProvider>
           <ApplicationIntakePhase {...finalProps} />
-        </TestProvider>
-      </DialogProvider>
+        </DialogProvider>
+      </TestProvider>
     );
 
     return finalProps;
@@ -130,6 +130,14 @@ describe("ApplicationIntakePhase", () => {
       setup();
       const uploadButton = screen.getByTestId(UPLOAD_BUTTON_NAME);
       expect(uploadButton).toBeInTheDocument();
+    });
+
+    it("opens the upload dialog when upload button is clicked", async () => {
+      setup();
+      await userEvent.click(screen.getByTestId(UPLOAD_BUTTON_NAME));
+
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Add State Application" })).toBeInTheDocument();
     });
 
     it("shows 'No documents yet' when no documents", () => {
