@@ -19,7 +19,8 @@ export const UPDATE_DOCUMENT_QUERY = gql`
 export const EditDocumentDialog: React.FC<{
   onClose: () => void;
   initialDocument: DocumentDialogFields;
-}> = ({ onClose, initialDocument }) => {
+  canEditDocumentType?: boolean;
+}> = ({ onClose, initialDocument, canEditDocumentType = true }) => {
   const [updateDocumentTrigger] = useMutation<{ updateDocument: Document }>(UPDATE_DOCUMENT_QUERY);
 
   const handleEdit = async (dialogFields: DocumentDialogFields): Promise<DocumentUploadResult> => {
@@ -46,6 +47,7 @@ export const EditDocumentDialog: React.FC<{
       initialDocument={initialDocument}
       onClose={onClose}
       onSubmit={handleEdit}
+      canEditDocumentType={canEditDocumentType}
     />
   );
 };

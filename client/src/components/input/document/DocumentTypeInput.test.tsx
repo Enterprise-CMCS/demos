@@ -2,7 +2,7 @@ import React from "react";
 
 import { DocumentType } from "demos-server";
 import { DOCUMENT_TYPES } from "demos-server-constants";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -84,5 +84,29 @@ describe("DocumentTypeInput", () => {
     // Should show no options when subset is empty
     expect(screen.queryByText("General File")).not.toBeInTheDocument();
     expect(screen.queryByText("Approval Letter")).not.toBeInTheDocument();
+  });
+
+  it("disables the field and prevents onSelect callback when canEditDocumentType is false", async () => {
+    const user = userEvent.setup();
+    render(<DocumentTypeInput {...defaultProps} canEditDocumentType={false} />);
+
+    const input = screen.getByTestId("input-autocomplete-select");
+
+    // 1. The field should be disabled
+    expect(input).toBeDisabled();
+
+    // Remove the disabled attribute to simulate bypassing the disabled state
+    input.removeAttribute("disabled");
+
+    // Try to open the dropdown and select an option
+    await user.click(input);
+
+    const option = screen.queryByText("Approval Letter");
+    if (option) {
+      await user.click(option);
+    }
+
+    // 2. The callback should still not be called even if disabled attribute is removed
+    expect(mockOnSelect).not.toHaveBeenCalled();
   });
 });

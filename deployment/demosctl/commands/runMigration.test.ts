@@ -2,9 +2,10 @@ import { runMigration } from "./runMigration";
 
 import { runShell } from "../lib/runCommand";
 import { getSecret } from "../lib/getSecret";
+import { Mock } from "vitest";
 
-jest.mock("../lib/runCommand");
-jest.mock("../lib/getSecret");
+vi.mock("../lib/runCommand");
+vi.mock("../lib/getSecret");
 
 const mockDBData = {
   username: "test",
@@ -29,7 +30,7 @@ describe("runMigration", () => {
         env: expect.objectContaining({
           DATABASE_URL: `postgresql://${mockDBData.username}:${mockDBData.password}@${mockDBData.host}:${mockDBData.port}/${targetDB}?schema=demos_app`,
         }),
-      })
+      }),
     );
   });
 
@@ -38,7 +39,7 @@ describe("runMigration", () => {
 
     const targetDB = "unit_test";
 
-    const gs = getSecret as jest.Mock;
+    const gs = getSecret as Mock;
     const mockDataString = JSON.stringify(mockDBData);
     gs.mockResolvedValueOnce(mockDataString);
 
@@ -52,7 +53,7 @@ describe("runMigration", () => {
         env: expect.objectContaining({
           DATABASE_URL: `postgresql://${mockDBData.username}:${mockDBData.password}@${mockDBData.host}:${mockDBData.port}/${targetDB}?schema=demos_app`,
         }),
-      })
+      }),
     );
   });
 
@@ -61,10 +62,10 @@ describe("runMigration", () => {
 
     const targetDB = "unit_test";
 
-    const gs = getSecret as jest.Mock;
+    const gs = getSecret as Mock;
     gs.mockResolvedValueOnce(null);
 
-    jest.spyOn(console, "error");
+    vi.spyOn(console, "error");
 
     const exitCode = await runMigration(mockStageName, targetDB);
 
@@ -74,10 +75,10 @@ describe("runMigration", () => {
   test("should exit if secretData is empty", async () => {
     const mockStageName = "unit-test";
 
-    const gs = getSecret as jest.Mock;
+    const gs = getSecret as Mock;
     gs.mockResolvedValueOnce("{}");
 
-    jest.spyOn(console, "error");
+    vi.spyOn(console, "error");
 
     const exitCode = await runMigration(mockStageName);
 

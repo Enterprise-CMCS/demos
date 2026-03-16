@@ -420,7 +420,8 @@ DEFERRABLE INITIALLY DEFERRED
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_application_type_record_exists();
 
-CREATE OR REPLACE FUNCTION demos_app.update_demonstration_current_phase_on_phase_update()
+-- update_application_current_phase_on_phase_update
+CREATE OR REPLACE FUNCTION demos_app.update_application_current_phase_on_phase_update()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
@@ -496,10 +497,10 @@ BEGIN
 END;
 $$;
 
-CREATE TRIGGER update_demonstration_current_phase_on_phase_update
+CREATE TRIGGER update_application_current_phase_on_phase_update
 AFTER UPDATE ON demos_app.application_phase
 FOR EACH ROW
-EXECUTE FUNCTION demos_app.update_demonstration_current_phase_on_phase_update();
+EXECUTE FUNCTION demos_app.update_application_current_phase_on_phase_update();
 
 -- update_federal_comment_phase_status
 CREATE PROCEDURE demos_app.update_federal_comment_phase_status()

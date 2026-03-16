@@ -112,9 +112,16 @@ export const useDialog = () => {
     );
   };
 
-  const showEditDocumentDialog = (initialDocument: DocumentDialogFields) => {
+  const showEditDocumentDialog = (
+    initialDocument: DocumentDialogFields,
+    canEditDocumentType?: boolean
+  ) => {
     context.showDialog(
-      <EditDocumentDialog initialDocument={initialDocument} onClose={context.hideDialog} />
+      <EditDocumentDialog
+        initialDocument={initialDocument}
+        onClose={context.hideDialog}
+        canEditDocumentType={canEditDocumentType}
+      />
     );
   };
 
@@ -235,12 +242,7 @@ export const useDialog = () => {
   };
 
   const showConfirmApproveDialog = (onConfirm: () => void) => {
-    context.showDialog(
-      <ConfirmApproveDialog
-        onClose={context.hideDialog}
-        onConfirm={onConfirm}
-      />
-    );
+    context.showDialog(<ConfirmApproveDialog onClose={context.hideDialog} onConfirm={onConfirm} />);
   };
 
   return {
