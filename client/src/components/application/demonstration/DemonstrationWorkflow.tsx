@@ -29,7 +29,10 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
       phases {
         ...WORKFLOW_PHASE_FIELDS
       }
-      tags
+      tags {
+        tagName
+        approvalStatus
+      }
       demonstrationTypes {
         demonstrationTypeName
         status
