@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("./db", () => ({
   getDbPool: (...args: unknown[]) => mocks.getDbPoolMock(...args),
-  getDbSchema: () => "demos_app",
+  dbSchema: "demos_app",
 }));
 
 vi.mock("./log", () => ({
@@ -29,7 +29,8 @@ vi.mock("./log", () => ({
   },
 }));
 
-import { documentExists, handler } from "./index";
+import { handler } from "./index";
+import { documentExists } from "./budgetNeutralityValidation";
 
 describe("budgetNeutrality index", () => {
   beforeEach(() => {
@@ -114,8 +115,7 @@ describe("budgetNeutrality index", () => {
     );
   });
 
-  it("uses Final BN Worksheet when message omits documentTypeId", async () => {
-    mocks.queryMock.mockResolvedValueOnce({ rows: [{ exists: true }] }).mockResolvedValueOnce({});
+  it("throws when message omits documentTypeId", async () => {
     const pool = { query: mocks.queryMock } as unknown as Pool;
     mocks.getDbPoolMock.mockResolvedValue(pool);
 
@@ -124,15 +124,26 @@ describe("budgetNeutrality index", () => {
     } as unknown as SQSEvent;
 
     const context = { awsRequestId: "test-request-id" } as Context;
-    await handler(event, context);
+    await expect(handler(event, context)).rejects.toThrow(
+      "Lambda failed: Invalid message: documentTypeId is required."
+    );
+    expect(mocks.queryMock).not.toHaveBeenCalled();
+  });
 
-    expect(mocks.queryMock).toHaveBeenCalledTimes(2);
-    expect(mocks.queryMock.mock.calls[1]?.[1]).toEqual([
-      "c9e2fe09-8f9d-4d6f-a03d-e502afaf3124",
-      "Final BN Worksheet",
-      "Succeeded",
-      "{\"source\":\"budgetNeutrality\"}",
-    ]);
+  it("throws when documentTypeId is not Final BN Worksheet", async () => {
+    const pool = { query: mocks.queryMock } as unknown as Pool;
+    mocks.getDbPoolMock.mockResolvedValue(pool);
+
+    const event = {
+      Records: [{ body: JSON.stringify({ documentId: "doc-1", documentTypeId: "State Application" }) }],
+    } as unknown as SQSEvent;
+
+    const context = { awsRequestId: "test-request-id" } as Context;
+
+    await expect(handler(event, context)).rejects.toThrow(
+      'Lambda failed: Invalid message: documentTypeId must be "Final BN Worksheet". Received "State Application".'
+    );
+    expect(mocks.queryMock).not.toHaveBeenCalled();
   });
 
   it("throws when message is invalid", async () => {

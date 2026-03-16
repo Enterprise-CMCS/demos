@@ -2,7 +2,7 @@ import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-sec
 import { Pool } from "pg";
 import { log } from "./log";
 
-const dbSchema = "demos_app";
+export const dbSchema = "demos_app";
 
 const secretsManagerClient = new SecretsManagerClient({
   region: process.env.AWS_REGION,

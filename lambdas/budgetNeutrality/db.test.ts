@@ -36,7 +36,7 @@ vi.mock("./log", () => ({
 
 const prevEnv = { ...process.env };
 
-import { __resetDbStateForTests, getDatabaseUrl, getDbPool, getDbSchema } from "./db";
+import { __resetDbStateForTests, getDatabaseUrl, getDbPool } from "./db";
 
 describe("budgetNeutrality db", () => {
   beforeEach(() => {
@@ -99,10 +99,6 @@ describe("budgetNeutrality db", () => {
       "DATABASE_SECRET_ARN is required to fetch the database connection string."
     );
     expect(mocks.sendMock).not.toHaveBeenCalled();
-  });
-
-  it("returns db schema", () => {
-    expect(getDbSchema()).toBe("demos_app");
   });
 
   it("creates pool once and reuses it", async () => {
