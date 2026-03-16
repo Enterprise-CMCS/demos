@@ -37,10 +37,6 @@ const s3 = new S3Client(
     : awsClientConfig
 );
 const sqsModuleName = "@aws-sdk/client-sqs";
-let sqsClientPromise: Promise<{
-  client: { send: (command: unknown) => Promise<{ MessageId?: string }> };
-  SendMessageCommand: new (input: unknown) => { input?: unknown };
-}> | null = null;
 const secretsManager = new SecretsManagerClient(awsClientConfig);
 
 interface Results {
@@ -161,17 +157,10 @@ export async function enqueueBudgetNeutrality(
     );
   }
 
-  sqsClientPromise ??= (async () => {
-    const sqsModule = await import(sqsModuleName);
-    return {
-      client: new sqsModule.SQSClient(awsClientConfig),
-      SendMessageCommand: sqsModule.SendMessageCommand,
-    };
-  })();
-
-  const { client, SendMessageCommand } = await sqsClientPromise;
-  const response = await client.send(
-    new SendMessageCommand({
+  const sqsModule = await import(sqsModuleName);
+  const sqsClient = new sqsModule.SQSClient(awsClientConfig);
+  const response = await sqsClient.send(
+    new sqsModule.SendMessageCommand({
       QueueUrl: budgetNeutralityQueueUrl,
       MessageBody: JSON.stringify({
         documentId,
