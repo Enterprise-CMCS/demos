@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { compareDesc } from "date-fns";
 
 import { tw } from "tags/tw";
@@ -128,22 +128,33 @@ export const ConceptPhase = ({
   const [isFinishEnabled, setIsFinishEnabled] = useState<boolean>(false);
   const [isSkipEnabled, setIsSkipEnabled] = useState<boolean>(true);
 
+  const prevPresubmissionCountRef = useRef<number>(
+    documents.filter((doc) => doc.documentType === "Pre-Submission").length
+  );
+
   useEffect(() => {
     const finishShouldBeEnabled =
       !isPhaseFinalized &&
       documents.filter((document) => document.documentType === "Pre-Submission").length > 0 &&
       !!submittedDate;
+
     setIsFinishEnabled(finishShouldBeEnabled);
     setIsSkipEnabled(!finishShouldBeEnabled && !isPhaseFinalized);
+  }, [submittedDate, documents, isPhaseFinalized]);
 
-    // Clear submitted date on removal of the last pre-submission document
-    const presubmissionDocuments = documents.filter(
+  // Clear submitted date when the last pre-submission document is removed
+  useEffect(() => {
+    const presubmissionCount = documents.filter(
       (document) => document.documentType === "Pre-Submission"
-    );
-    if (presubmissionDocuments.length === 0) {
+    ).length;
+
+    // Only clear if we transitioned from having documents to having none
+    if (prevPresubmissionCountRef.current > 0 && presubmissionCount === 0) {
       setSubmittedDate("");
     }
-  }, [submittedDate, documents, isPhaseFinalized]);
+
+    prevPresubmissionCountRef.current = presubmissionCount;
+  }, [documents]);
 
   const handleDocumentUploadSucceeded = (payload?: UploadDocumentInput) => {
     if (payload?.documentType === "Pre-Submission" && !submittedDate) {
