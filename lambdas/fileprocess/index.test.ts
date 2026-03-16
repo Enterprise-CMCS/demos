@@ -244,6 +244,18 @@ describe("file-process", () => {
         "Failed to enqueue Budget Neutrality validation message for document test-doc-id."
       );
     });
+
+    it("should initialize a new sqs client for each call", async () => {
+      sqsMocks.sendMock
+        .mockResolvedValueOnce({ MessageId: "msg-1" })
+        .mockResolvedValueOnce({ MessageId: "msg-2" });
+
+      await enqueueBudgetNeutrality("test-doc-id-1", "Final BN Worksheet");
+      await enqueueBudgetNeutrality("test-doc-id-2", "Final BN Worksheet");
+
+      expect(sqsMocks.SQSClientMock).toHaveBeenCalledTimes(2);
+      expect(sqsMocks.sendMock).toHaveBeenCalledTimes(2);
+    });
   });
   describe("processGuardDutyResult", () => {
     test("should successfully process the file", async () => {
@@ -256,7 +268,6 @@ describe("file-process", () => {
           .mockResolvedValueOnce({ rows: [{ application_id: "1" }] })
           .mockResolvedValueOnce({ rows: [{ document_type_id: "State Application" }] }),
       };
-      console.log("mockEventBase", mockEventBase);
       await processGuardDutyResult(mockClient, mockEventBase);
       expect(logInfoSpy).toHaveBeenCalledTimes(3);
       expect(logInfoSpy).toHaveBeenNthCalledWith(
@@ -273,6 +284,7 @@ describe("file-process", () => {
         "successfully processed clean file in database."
       );
       expect(mockSend).toHaveBeenCalledTimes(2);
+      expect(sqsMocks.sendMock).not.toHaveBeenCalled();
       expect(mockClient.query).toHaveBeenCalledTimes(2);
       expect(mockClient.query).toHaveBeenLastCalledWith(
         expect.stringContaining("SELECT demos_app.move_document_from_pending_to_clean"),
