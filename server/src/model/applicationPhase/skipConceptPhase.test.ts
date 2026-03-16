@@ -13,7 +13,7 @@ import {
   updatePhaseStatus,
 } from ".";
 import { EasternTZDate, getEasternNow } from "../../dateUtilities.js";
-import { getApplication, updateApplicationStatusToUnderReviewIfNeeded } from "../application";
+import { getApplication } from "../application";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -28,7 +28,6 @@ vi.mock("../../errors/handlePrismaError.js", () => ({
 
 vi.mock("../application", () => ({
   getApplication: vi.fn(),
-  updateApplicationStatusToUnderReviewIfNeeded: vi.fn(),
 }));
 
 vi.mock("../applicationDate", () => ({
@@ -44,7 +43,6 @@ vi.mock(".", async () => {
     getApplicationPhaseStatus: vi.fn(),
     setPhaseToStarted: vi.fn(),
     updatePhaseStatus: vi.fn(),
-    updateApplicationStatusToUnderReviewIfNeeded: vi.fn(),
   };
 });
 
@@ -134,10 +132,6 @@ describe("skipConceptPhase", () => {
       validateSkippedDateCall,
       validateStartDateCall,
     ]);
-    expect(updateApplicationStatusToUnderReviewIfNeeded).toHaveBeenCalledExactlyOnceWith(
-      testApplicationId,
-      mockTransaction
-    );
     expect(handlePrismaError).not.toHaveBeenCalled();
   });
 
@@ -150,7 +144,6 @@ describe("skipConceptPhase", () => {
       skipConceptPhase(undefined, { applicationId: testApplicationId })
     ).rejects.toThrowError(testHandlePrismaError);
     expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
-    expect(updateApplicationStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
   });
 
   it("should skip changing the date if the next phase is already started", async () => {
@@ -193,7 +186,6 @@ describe("skipConceptPhase", () => {
       mockTransaction
     );
     expect(vi.mocked(validateAndUpdateDates).mock.calls).toEqual(expectedDateCall);
-    expect(updateApplicationStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
     expect(handlePrismaError).not.toHaveBeenCalled();
   });
 });
