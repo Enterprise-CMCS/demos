@@ -135,10 +135,7 @@ export const DialogSandbox: React.FC = () => {
           Remove Document
         </Button>
         {demoId ? (
-          <Button
-            name="upload-bn-workbook"
-            onClick={() => showUploadDocumentDialog(demoId)}
-          >
+          <Button name="upload-bn-workbook" onClick={() => showUploadDocumentDialog(demoId)}>
             Upload Document By a Real Applicaiton ID
           </Button>
         ) : null}
@@ -153,7 +150,7 @@ export const DialogSandbox: React.FC = () => {
         </Button>
         <Button
           name="concept-presubmission"
-          onClick={() => showConceptPreSubmissionDocumentUploadDialog(ID, () => {})}
+          onClick={() => showConceptPreSubmissionDocumentUploadDialog(ID)}
         >
           Concept Pre-Submission
         </Button>
@@ -162,7 +159,9 @@ export const DialogSandbox: React.FC = () => {
         </Button>
         <Button
           name="approval-package"
-          onClick={() => showApprovalPackageDocumentUploadDialog(ID, "Approval Letter" as DocumentType)}
+          onClick={() =>
+            showApprovalPackageDocumentUploadDialog(ID, "Approval Letter" as DocumentType)
+          }
         >
           Approval Package
         </Button>
@@ -171,10 +170,16 @@ export const DialogSandbox: React.FC = () => {
           <Button name="declare-incomplete" onClick={() => showDeclareIncompleteDialog(() => {})}>
             Declare Incomplete
           </Button>
-          <Button name="manage-contacts" onClick={() => showManageContactsDialog(ID, EXISTING_CONTACTS)}>
+          <Button
+            name="manage-contacts"
+            onClick={() => showManageContactsDialog(ID, EXISTING_CONTACTS)}
+          >
             Manage Contacts
           </Button>
-          <Button name="apply-demonstration-types" onClick={() => showApplyDemonstrationTypesDialog(ID)}>
+          <Button
+            name="apply-demonstration-types"
+            onClick={() => showApplyDemonstrationTypesDialog(ID)}
+          >
             Apply Demonstration Types
           </Button>
           <Button

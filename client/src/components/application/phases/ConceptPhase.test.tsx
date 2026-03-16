@@ -3,6 +3,7 @@ import React from "react";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
+import { TZDate } from "@date-fns/tz";
 import { TestProvider } from "test-utils/TestProvider";
 
 import {
@@ -48,6 +49,8 @@ const mockPO = {
 
 const TEST_APPLICATION_ID = "test-app-id";
 
+const TIMEZONE_EST = "America/New_York";
+
 const MOCK_DOCUMENT: ApplicationWorkflowDocument = {
   id: "1",
   name: "Pre-Submission Document 1",
@@ -55,7 +58,7 @@ const MOCK_DOCUMENT: ApplicationWorkflowDocument = {
   documentType: "Pre-Submission",
   phaseName: "Concept",
   owner: { person: { fullName: "John Doe" } },
-  createdAt: new Date("2024-01-15"),
+  createdAt: new TZDate(2024, 0, 15, TIMEZONE_EST),
 };
 
 const DEFAULT_PROPS: ConceptPhaseProps = {
@@ -197,7 +200,7 @@ describe("ConceptPhase", () => {
         documentType: "General File",
         phaseName: "Concept",
         owner: { person: { fullName: "John Doe" } },
-        createdAt: new Date("2024-01-20"),
+        createdAt: new TZDate(2024, 0, 20, TIMEZONE_EST),
       };
       setup({ documents: [generalDocument] });
 
@@ -291,7 +294,7 @@ describe("ConceptPhase", () => {
         documentType: "General File",
         phaseName: "Concept",
         owner: { person: { fullName: "John Doe" } },
-        createdAt: new Date("2024-01-20"),
+        createdAt: new TZDate(2024, 0, 20, TIMEZONE_EST),
       };
       setup({ documents: [generalDocument] });
       const dateInput = screen.getByTestId(DATE_PICKER_NAME) as HTMLInputElement;
@@ -313,7 +316,7 @@ describe("ConceptPhase", () => {
         documentType: "Pre-Submission",
         phaseName: "Concept",
         owner: { person: { fullName: "John Doe" } },
-        createdAt: new Date("2024-01-10"),
+        createdAt: new TZDate(2024, 0, 10, TIMEZONE_EST),
       };
       const newerDocument: ApplicationWorkflowDocument = {
         id: "newer",
@@ -322,7 +325,7 @@ describe("ConceptPhase", () => {
         documentType: "Pre-Submission",
         phaseName: "Concept",
         owner: { person: { fullName: "Jane Doe" } },
-        createdAt: new Date("2024-01-20"),
+        createdAt: new TZDate(2024, 0, 20, TIMEZONE_EST),
       };
 
       setup({ documents: [olderDocument, newerDocument] });
@@ -343,7 +346,7 @@ describe("ConceptPhase", () => {
           documentType: "Pre-Submission",
           phaseName: "Concept",
           owner: { person: { fullName: "John Doe" } },
-          createdAt: new Date("2024-01-20"),
+          createdAt: new TZDate(2024, 0, 20, TIMEZONE_EST),
         },
       ];
 
@@ -365,7 +368,7 @@ describe("ConceptPhase", () => {
           documentType: "State Application",
           phaseName: "Application Intake",
           owner: { person: { fullName: "John Doe" } },
-          createdAt: new Date("2024-01-20"),
+          createdAt: new TZDate(2024, 0, 20, TIMEZONE_EST),
         },
       ];
 
@@ -382,7 +385,7 @@ describe("ConceptPhase", () => {
           documentType: "Pre-Submission",
           phaseName: "Concept",
           owner: { person: { fullName: "John Doe" } },
-          createdAt: new Date("2024-01-10"),
+          createdAt: new TZDate(2024, 0, 10, TIMEZONE_EST),
         },
         {
           id: "doc2",
@@ -391,7 +394,7 @@ describe("ConceptPhase", () => {
           documentType: "Pre-Submission",
           phaseName: "Concept",
           owner: { person: { fullName: "Jane Doe" } },
-          createdAt: new Date("2024-01-20"),
+          createdAt: new TZDate(2024, 0, 20, TIMEZONE_EST),
         },
       ];
 
@@ -408,7 +411,7 @@ describe("ConceptPhase", () => {
           documentType: "Pre-Submission",
           phaseName: "Concept",
           owner: { person: { fullName: "John Doe" } },
-          createdAt: new Date("2024-03-05"),
+          createdAt: new TZDate(2024, 2, 5, TIMEZONE_EST),
         },
       ];
 
@@ -425,7 +428,7 @@ describe("ConceptPhase", () => {
           documentType: "Pre-Submission",
           phaseName: "Concept",
           owner: { person: { fullName: "John Doe" } },
-          createdAt: new Date("2024-01-10"),
+          createdAt: new TZDate(2024, 0, 10, TIMEZONE_EST),
         },
         {
           id: "doc2",
@@ -434,7 +437,7 @@ describe("ConceptPhase", () => {
           documentType: "State Application",
           phaseName: "Application Intake",
           owner: { person: { fullName: "Jane Doe" } },
-          createdAt: new Date("2024-02-15"),
+          createdAt: new TZDate(2024, 1, 15, TIMEZONE_EST),
         },
       ];
 
@@ -544,7 +547,7 @@ describe("ConceptPhase", () => {
         documentType: "Pre-Submission",
         phaseName: "Concept",
         owner: { person: { fullName: "John Doe" } },
-        createdAt: new Date("2024-01-10"),
+        createdAt: new TZDate(2024, 0, 10, TIMEZONE_EST),
       };
       const doc2: ApplicationWorkflowDocument = {
         id: "doc2",
@@ -553,7 +556,7 @@ describe("ConceptPhase", () => {
         documentType: "Pre-Submission",
         phaseName: "Concept",
         owner: { person: { fullName: "Jane Doe" } },
-        createdAt: new Date("2024-01-15"),
+        createdAt: new TZDate(2024, 0, 15, TIMEZONE_EST),
       };
 
       const { rerender } = setup({
@@ -646,7 +649,7 @@ describe("ConceptPhase", () => {
             documentType: "Pre-Submission",
             phaseName: "Concept",
             owner: { person: { fullName: "John Doe" } },
-            createdAt: new Date("2024-04-01"),
+            createdAt: new TZDate(2024, 3, 1, TIMEZONE_EST),
           },
           {
             id: "d2",
@@ -655,7 +658,7 @@ describe("ConceptPhase", () => {
             documentType: "General File",
             phaseName: "Concept",
             owner: { person: { fullName: "John Doe" } },
-            createdAt: new Date("2024-04-02"),
+            createdAt: new TZDate(2024, 3, 2, TIMEZONE_EST),
           },
           {
             id: "d3",
@@ -664,7 +667,7 @@ describe("ConceptPhase", () => {
             documentType: "Final Budget Neutrality Formulation Workbook",
             phaseName: "Approval Package",
             owner: { person: { fullName: "John Doe" } },
-            createdAt: new Date("2024-04-02"),
+            createdAt: new TZDate(2024, 3, 2, TIMEZONE_EST),
           },
           {
             id: "d3",
@@ -673,7 +676,7 @@ describe("ConceptPhase", () => {
             documentType: "Final Budget Neutrality Formulation Workbook",
             phaseName: "Approval Package",
             owner: { person: { fullName: "John Doe" } },
-            createdAt: new Date("2024-04-02"),
+            createdAt: new TZDate(2024, 3, 2, TIMEZONE_EST),
           },
         ],
         demonstrationTypes: [],

@@ -23,6 +23,7 @@ import {
   useCompletePhase,
   useSkipConceptPhase,
 } from "components/application/phase-status/phaseCompletionQueries";
+import { TZDate } from "@date-fns/tz/date";
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -92,10 +93,11 @@ export const calculatePresubmissionDate = (
   // Guard: No presubmission documents means no date to return
   if (presubmissionDocuments.length === 0) return "";
 
-  // Get latest createdAt date from presubmission documents
+  // Get latest createdAt date in EST from presubmission documents
   const createdAtDates = presubmissionDocuments.map((doc) => doc.createdAt);
   const sortedDates = createdAtDates.sort(compareDesc);
-  return formatDateForServer(sortedDates[0]);
+  const latestCreatedAtDateEST = new TZDate(sortedDates[0], "America/New_York");
+  return formatDateForServer(latestCreatedAtDateEST);
 };
 
 export interface ConceptPhaseProps {

@@ -468,7 +468,7 @@ const TestConsumer: React.FC = () => {
       </button>
       <button
         data-testid="open-concept-pre-upload-btn"
-        onClick={() => showConceptPreSubmissionDocumentUploadDialog("app-4", vi.fn())}
+        onClick={() => showConceptPreSubmissionDocumentUploadDialog("app-4")}
       >
         Open Concept Pre-Submission Upload Dialog
       </button>
