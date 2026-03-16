@@ -3,7 +3,7 @@ model DemonstrationTypeTagAssignmentHistory {
   revisionType    RevisionType @map("revision_type")
   modifiedAt      DateTime     @default(now()) @map("modified_at") @db.Timestamptz()
   demonstrationId String       @map("demonstration_id") @db.Uuid
-  tagId           String       @map("tag_id")
+  tagNameId       String       @map("tag_name_id")
   tagTypeId       String       @map("tag_type_id")
   effectiveDate   DateTime     @map("effective_date") @db.Timestamptz()
   expirationDate  DateTime     @map("expiration_date") @db.Timestamptz()

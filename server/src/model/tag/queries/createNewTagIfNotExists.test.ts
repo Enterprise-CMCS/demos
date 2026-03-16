@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createNewTagIfNotExists } from "./createNewTagIfNotExists";
+import { TagSource, TagStatus, TagType } from "../../../types";
 
 describe("createNewTagIfNotExists", () => {
   const transactionMocks = {
@@ -20,15 +21,21 @@ describe("createNewTagIfNotExists", () => {
   it("should make the expected request to the database", async () => {
     const expectedCall = {
       where: {
-        id: "New Tag Value",
+        tagNameId_tagTypeId: {
+          tagNameId: "New Tag Value",
+          tagTypeId: "Application" satisfies TagType,
+        },
       },
       update: {},
       create: {
-        id: "New Tag Value",
+        tagNameId: "New Tag Value",
+        tagTypeId: "Application" satisfies TagType,
+        sourceId: "User" satisfies TagSource,
+        statusId: "Unapproved" satisfies TagStatus,
       },
     };
 
-    await createNewTagIfNotExists("New Tag Value", mockTransaction);
+    await createNewTagIfNotExists("New Tag Value", "Application", mockTransaction);
     expect(transactionMocks.tag.upsert).toHaveBeenCalledExactlyOnceWith(expectedCall);
   });
 });

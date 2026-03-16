@@ -17,7 +17,7 @@ import { getPhaseCompletedMessage } from "util/messages";
 import { useToast } from "components/toast";
 import { DatePicker } from "components/input/date/DatePicker";
 import { DemonstrationHealthTypeTags } from "components/tags/DemonstrationHealthTypeTags";
-import type { DateTimeOrLocalDate, PhaseStatus } from "demos-server";
+import type { DateTimeOrLocalDate, PhaseStatus, Tag, TagName } from "demos-server";
 import { SET_APPLICATION_TAGS_MUTATION } from "components/dialog/ApplyTagsDialog";
 
 /** Business Rules for this Phase:
@@ -173,7 +173,7 @@ export const getApplicationIntakeComponentFromApplication = (
       initialStateApplicationSubmittedDate={
         stateApplicationSubmittedDate ? formatDateForServer(stateApplicationSubmittedDate) : ""
       }
-      initialSelectedTags={application.tags}
+      tags={application.tags}
       setSelectedPhase={setSelectedPhase}
       phaseStatus={applicationIntakePhase?.phaseStatus ?? "Not Started"}
     />
@@ -183,7 +183,7 @@ export interface ApplicationIntakeProps {
   demonstrationId: string;
   initialStateApplicationDocuments: ApplicationWorkflowDocument[];
   initialStateApplicationSubmittedDate: string;
-  initialSelectedTags: string[];
+  tags: Tag[];
   setSelectedPhase?: (phase: PhaseName) => void;
   phaseStatus: PhaseStatus;
 }
@@ -192,7 +192,7 @@ export const ApplicationIntakePhase = ({
   demonstrationId,
   initialStateApplicationDocuments,
   initialStateApplicationSubmittedDate,
-  initialSelectedTags,
+  tags,
   setSelectedPhase,
   phaseStatus,
 }: ApplicationIntakeProps) => {
@@ -203,7 +203,6 @@ export const ApplicationIntakePhase = ({
   const [stateApplicationSubmittedDate, setStateApplicationSubmittedDate] = useState<string>(
     initialStateApplicationSubmittedDate ?? ""
   );
-  const [selectedTags, setSelectedTags] = useState<string[]>(initialSelectedTags);
 
   const isPhaseFinalized = phaseStatus === "Completed";
 
@@ -273,22 +272,20 @@ export const ApplicationIntakePhase = ({
     }
   };
 
-  const handleRemoveTag = async (tag: string) => {
-    const updatedTags = selectedTags.filter((item) => item !== tag);
-    setSelectedTags(updatedTags);
+  const handleRemoveTag = async (tagName: TagName) => {
+    const updatedTags = tags.filter((item) => item.tagName !== tagName);
     try {
       await setApplicationTagsMutation({
         variables: {
           input: {
             applicationId: demonstrationId,
-            applicationTags: updatedTags,
+            applicationTags: updatedTags.map((tag) => tag.tagName),
           },
         },
       });
       showSuccess("Application tags updated");
     } catch (error) {
       // Roll back on failure
-      setSelectedTags(selectedTags);
       showError("Failed to update application tags");
       throw error;
     }
@@ -326,7 +323,7 @@ export const ApplicationIntakePhase = ({
             description={
               "You must tag this application with one or more demonstration types involved in this request before it can be reviewed and approved."
             }
-            selectedTags={selectedTags}
+            selectedTags={tags}
             onRemoveTag={handleRemoveTag}
           />
         </div>

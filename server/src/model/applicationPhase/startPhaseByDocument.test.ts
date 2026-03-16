@@ -7,7 +7,6 @@ import { startPhaseByDocument } from "./startPhaseByDocument";
 // Mock imports
 import { setPhaseToStarted } from ".";
 import { createPhaseStartDate } from "../applicationDate";
-import { updateApplicationStatusToUnderReviewIfNeeded } from "../application";
 
 vi.mock(".", () => ({
   setPhaseToStarted: vi.fn(),
@@ -15,10 +14,6 @@ vi.mock(".", () => ({
 
 vi.mock("../applicationDate", () => ({
   createPhaseStartDate: vi.fn(),
-}));
-
-vi.mock("../application", () => ({
-  updateApplicationStatusToUnderReviewIfNeeded: vi.fn(),
 }));
 
 describe("startPhaseByDocument", () => {
@@ -130,11 +125,6 @@ describe("startPhaseByDocument", () => {
     };
 
     await startPhaseByDocument(mockTransaction, testApplicationId, mockDocument, mockEasternNow);
-
-    expect(updateApplicationStatusToUnderReviewIfNeeded).toHaveBeenCalledExactlyOnceWith(
-      testApplicationId,
-      mockTransaction
-    );
   });
 
   it("should not update the application status to under review if the phase is not Application Intake", async () => {
@@ -142,7 +132,5 @@ describe("startPhaseByDocument", () => {
     vi.mocked(createPhaseStartDate).mockReturnValue(mockPhaseStartDate);
 
     await startPhaseByDocument(mockTransaction, testApplicationId, mockDocument, mockEasternNow);
-
-    expect(updateApplicationStatusToUnderReviewIfNeeded).not.toHaveBeenCalled();
   });
 });

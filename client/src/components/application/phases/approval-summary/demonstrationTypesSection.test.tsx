@@ -20,6 +20,7 @@ const mockTypes: DemonstrationDetailDemonstrationType[] = [
   {
     demonstrationTypeName: "Environmental",
     status: "Active",
+    approvalStatus: "Approved",
     effectiveDate: new Date("2023-01-01"),
     expirationDate: new Date("2024-01-01"),
     createdAt: new Date("2022-12-01"),
@@ -27,6 +28,7 @@ const mockTypes: DemonstrationDetailDemonstrationType[] = [
   {
     demonstrationTypeName: "Economic",
     status: "Pending",
+    approvalStatus: "Unapproved",
     effectiveDate: new Date("2024-01-01"),
     expirationDate: new Date("2025-01-01"),
     createdAt: new Date("2023-06-01"),

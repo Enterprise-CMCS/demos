@@ -33,6 +33,7 @@ const MOCK_DEMONSTRATION_ID = "demo-123";
 const MOCK_INITIAL_TYPE: DemonstrationType = {
   demonstrationTypeName: "Behavioral Health",
   status: "Active",
+  approvalStatus: "Approved",
   effectiveDate: new Date("2024-01-01"),
   expirationDate: new Date("2024-12-31"),
 };

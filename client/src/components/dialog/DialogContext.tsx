@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState } from "react";
 import {
   DocumentType,
-  Tag as DemonstrationTypeName,
+  TagName,
   DemonstrationTypeAssignment,
   UploadDocumentInput,
+  Tag,
 } from "demos-server";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
@@ -197,7 +198,7 @@ export const useDialog = () => {
 
   const showRemoveDemonstrationTypesDialog = (
     demonstrationId: string,
-    demonstrationTypeNames: DemonstrationTypeName[]
+    demonstrationTypeNames: TagName[]
   ) => {
     context.showDialog(
       <RemoveDemonstrationTypesDialog
@@ -211,7 +212,7 @@ export const useDialog = () => {
     demonstrationId: string,
     demonstrationType: Pick<
       DemonstrationTypeAssignment,
-      "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate"
+      "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "approvalStatus"
     >
   ) => {
     context.showDialog(
@@ -224,8 +225,8 @@ export const useDialog = () => {
 
   const showApplyTagsDialog = (
     demonstrationId: string,
-    allTags: string[],
-    selectedTags: string[]
+    allTags: Tag[],
+    selectedTags: Tag[]
   ) => {
     context.showDialog(
       <ApplyTagsDialog
