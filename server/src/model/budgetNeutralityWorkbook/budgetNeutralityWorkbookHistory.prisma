@@ -5,7 +5,7 @@ model BudgetNeutralityWorkbookHistory {
   id                 String       @db.Uuid
   documentTypeId     String       @map("document_type_id")
   validationStatusId String       @map("validation_status_id")
-  validationData     Json         @map("validation_data") @db.Json
+  validationData     Json         @map("validation_data")
   createdAt          DateTime     @map("created_at") @db.Timestamptz()
   updatedAt          DateTime     @map("updated_at") @db.Timestamptz()
 
