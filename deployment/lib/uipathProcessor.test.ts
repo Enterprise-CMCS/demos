@@ -35,7 +35,6 @@ describe("UiPathProcessor construct", () => {
       ...mockProps,
       removalPolicy: RemovalPolicy.DESTROY,
       documentsBucket: new Bucket(stack, "UiPathDocumentsBucket"),
-      cleanBucket: new Bucket(stack, "UiPathCleanBucket"),
       kmsKey: new Key(stack, "UiPathKmsKey"),
     });
 
@@ -43,9 +42,6 @@ describe("UiPathProcessor construct", () => {
 
     template.resourceCountIs("AWS::SQS::Queue", 2);
     template.resourceCountIs("AWS::Lambda::Function", 1);
-    template.hasResourceProperties(
-      "AWS::Lambda::Function",
-      Match.objectLike({})
-    );
+    template.hasResourceProperties("AWS::Lambda::Function", Match.objectLike({}));
   });
 });

@@ -29,6 +29,13 @@ def call(Map params = [:]) {
   - sleep 
   - 99999
   tty: true
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 400m
+      memory: 512Mi
 """,
       'scanner': """
 - name: scanner
@@ -50,6 +57,13 @@ def call(Map params = [:]) {
   command:
   - cat
   tty: true
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
 """,
       'zap': """
 - name: zap
@@ -90,7 +104,15 @@ def call(Map params = [:]) {
     env.AVAILABLE_CONTAINERS = containerNames.join(',')
 
     def output = """
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: demos-jenkins-agent
+      labels:
+        jenkins: "agent"
     spec:
+      nodeSelector:
+        node-pool: "agent"
       serviceAccountName: jenkins-role
       containers:
 ${selectedContainersYaml}
