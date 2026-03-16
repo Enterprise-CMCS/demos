@@ -1,10 +1,10 @@
 model Deliverable {
   id                    String   @db.Uuid
   deliverableTypeId     String   @map("deliverable_type_id")
-  demonstrationId       String   @map("demonstration_id")
+  demonstrationId       String   @map("demonstration_id") @db.Uuid
   demonstrationStatusId String   @map("demonstration_status_id")
   statusId              String   @map("status_id")
-  cmsOwnerUserId        String   @map("cms_owner_user_id")
+  cmsOwnerUserId        String   @map("cms_owner_user_id") @db.Uuid
   cmsOwnerPersonTypeId  String   @map("cms_owner_person_type_id")
   dueDate               DateTime @map("due_date") @db.Timestamptz()
   dueDateTypeId         String   @map("due_date_type_id")

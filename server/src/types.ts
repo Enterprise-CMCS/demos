@@ -6,6 +6,9 @@ import {
   CLEARANCE_LEVELS,
   CMS_USER_DEMONSTRATION_ROLES,
   DATE_TYPES,
+  DELIVERABLE_DUE_DATE_TYPES,
+  DELIVERABLE_STATUSES,
+  DELIVERABLE_TYPES,
   DEMONSTRATION_TYPE_STATUSES,
   DOCUMENT_TYPES,
   EVENT_TYPES,
@@ -133,3 +136,6 @@ export type TagSource = (typeof TAG_SOURCES)[number];
 export type TagType = (typeof TAG_TYPES)[number];
 export type BudgetNeutralityValidationStatus =
   (typeof BUDGET_NEUTRALITY_VALIDATION_STATUSES)[number];
+export type DeliverableType = (typeof DELIVERABLE_TYPES)[number];
+export type DeliverableStatus = (typeof DELIVERABLE_STATUSES)[number];
+export type DeliverableDueDateType = (typeof DELIVERABLE_DUE_DATE_TYPES)[number];

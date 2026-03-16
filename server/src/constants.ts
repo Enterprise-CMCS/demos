@@ -11,6 +11,38 @@ export const APPLICATION_STATUS = [
   "On-hold",
 ] as const;
 
+export const DELIVERABLE_TYPES = [
+  "Annual Budget Neutrality Report",
+  "Close Out Report",
+  "Demonstration-specific Deliverable",
+  "Evaluation Design",
+  "HCBS Actual and Estimated Enrollment Number Report (1915(i)-like)",
+  "HCBS Deficiency, Remediation and A/N/E Incident Report (1915(c)-like)",
+  "HCBS Evidentiary Report",
+  "HCBS Performance Measures Report",
+  "HCBS Quality Improvement Strategy Report",
+  "Implementation Plan",
+  "Interim Evaluation Report",
+  "Mid-point Assessment",
+  "Monitoring Protocol",
+  "Monitoring Report",
+  "Quarterly Budget Neutrality Report",
+  "Summative Evaluation Report ",
+  "Transition Plan",
+] as const;
+
+export const DELIVERABLE_DUE_DATE_TYPES = ["Normal", "Open Ended"] as const;
+
+export const DELIVERABLE_STATUSES = [
+  "Upcoming",
+  "Past Due",
+  "Submitted",
+  "Under Review",
+  "Accepted",
+  "Approved",
+  "Filed",
+] as const;
+
 export const DEMONSTRATION_TYPE_STATUSES = ["Expired", "Pending", "Active"] as const;
 
 export const ROLES = [
