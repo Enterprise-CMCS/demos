@@ -49,7 +49,7 @@ export const getConceptPhaseComponentFromApplication = (
   workflowApplicationType: WorkflowApplicationType,
   setSelectedPhase: (phase: PhaseName) => void
 ) => {
-  const preSubmissionDocuments = application.documents.filter(
+  const conceptPhaseDocuments = application.documents.filter(
     (document) => document.phaseName === CONCEPT_PHASE_NAME
   );
 
@@ -66,7 +66,7 @@ export const getConceptPhaseComponentFromApplication = (
   return (
     <ConceptPhase
       applicationId={application.id}
-      documents={preSubmissionDocuments}
+      documents={conceptPhaseDocuments}
       initialPresubmissionSubmittedDate={
         presubmissionSubmittedDate ? formatDateForServer(presubmissionSubmittedDate) : undefined
       }

@@ -22,9 +22,9 @@ import { DialogProvider } from "components/dialog/DialogContext";
 
 const mockCompletePhase = vi.fn();
 const mockSkipConceptPhase = vi.fn();
-const mockSetApplicationDate = vi.fn().mockResolvedValue(undefined);
+const mockSetApplicationDate = vi.fn();
 
-vi.mock("../phase-status/phaseCompletionQueries", () => ({
+vi.mock("components/application/phase-status/phaseCompletionQueries", () => ({
   useCompletePhase: () => ({
     completePhase: mockCompletePhase,
   }),
