@@ -1,7 +1,7 @@
 import { Context, SQSEvent } from "aws-lambda";
 import { Pool } from "pg";
 import { als, log, reqIdChild, store } from "./log";
-import { getDbPool, getDbSchema } from "./db";
+import { getDbPool } from "./db";
 
 const DEFAULT_DOCUMENT_TYPE_ID = "Final BN Worksheet";
 const INITIAL_VALIDATION_STATUS_ID = "Succeeded";

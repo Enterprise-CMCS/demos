@@ -48,10 +48,6 @@ export async function getDatabaseUrl() {
   return databaseUrlCache;
 }
 
-export function getDbSchema() {
-  return dbSchema;
-}
-
 export async function getDbPool(): Promise<Pool> {
   poolPromise ??= (async () => {
     const connectionString = await getDatabaseUrl();
