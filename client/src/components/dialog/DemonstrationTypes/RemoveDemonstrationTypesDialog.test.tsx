@@ -8,7 +8,7 @@ import {
   RemoveDemonstrationTypesDialog,
   REMOVE_DEMONSTRATION_TYPES_DIALOG_MUTATION,
 } from "./RemoveDemonstrationTypesDialog";
-import { Tag as DemonstrationTypeName } from "demos-server";
+import { TagName } from "demos-server";
 import { DIALOG_CANCEL_BUTTON_NAME } from "../BaseDialog";
 
 const mockShowSuccess = vi.fn();
@@ -39,7 +39,7 @@ describe("RemoveDemonstrationTypesDialog", () => {
     vi.resetAllMocks();
   });
 
-  const createSuccessMock = (demonstrationTypeNames: DemonstrationTypeName[]): MockedResponse => ({
+  const createSuccessMock = (demonstrationTypeNames: TagName[]): MockedResponse => ({
     request: {
       query: REMOVE_DEMONSTRATION_TYPES_DIALOG_MUTATION,
       variables: {
@@ -64,7 +64,7 @@ describe("RemoveDemonstrationTypesDialog", () => {
 
   describe("successful removal", () => {
     const setup = (
-      demonstrationTypeNames: DemonstrationTypeName[] = ["Behavioral Health"],
+      demonstrationTypeNames: TagName[] = ["Behavioral Health"],
       mocks: MockedResponse[] = []
     ) => {
       return render(
@@ -78,7 +78,7 @@ describe("RemoveDemonstrationTypesDialog", () => {
     };
 
     it("renders with single demonstration type", () => {
-      const typeNames: DemonstrationTypeName[] = ["Behavioral Health"];
+      const typeNames: TagName[] = ["Behavioral Health"];
       setup(typeNames, [createSuccessMock(typeNames)]);
 
       expect(screen.getByText("Remove Type(s)")).toBeInTheDocument();
@@ -89,7 +89,7 @@ describe("RemoveDemonstrationTypesDialog", () => {
     });
 
     it("renders with multiple demonstration types", () => {
-      const typeNames: DemonstrationTypeName[] = ["Behavioral Health", "Dental", "CHIP"];
+      const typeNames: TagName[] = ["Behavioral Health", "Dental", "CHIP"];
       setup(typeNames, [createSuccessMock(typeNames)]);
 
       expect(screen.getByText("Remove Type(s)")).toBeInTheDocument();
@@ -97,7 +97,7 @@ describe("RemoveDemonstrationTypesDialog", () => {
     });
 
     it("displays error icon and warning message", () => {
-      const typeNames: DemonstrationTypeName[] = ["Behavioral Health"];
+      const typeNames: TagName[] = ["Behavioral Health"];
       setup(typeNames, [createSuccessMock(typeNames)]);
 
       expect(screen.getByText(/This action cannot be undone/)).toBeInTheDocument();
@@ -107,7 +107,7 @@ describe("RemoveDemonstrationTypesDialog", () => {
 
     it("calls closeDialog when Cancel button is clicked", async () => {
       const user = userEvent.setup();
-      const typeNames: DemonstrationTypeName[] = ["Behavioral Health"];
+      const typeNames: TagName[] = ["Behavioral Health"];
       setup(typeNames, [createSuccessMock(typeNames)]);
 
       await user.click(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME));
@@ -117,7 +117,7 @@ describe("RemoveDemonstrationTypesDialog", () => {
 
     it("removes demonstration types and shows success message", async () => {
       const user = userEvent.setup();
-      const typeNames: DemonstrationTypeName[] = ["Behavioral Health", "Dental"];
+      const typeNames: TagName[] = ["Behavioral Health", "Dental"];
       setup(typeNames, [createSuccessMock(typeNames)]);
 
       await user.click(screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID));
@@ -129,7 +129,7 @@ describe("RemoveDemonstrationTypesDialog", () => {
     });
 
     it("disables Remove button while mutation is in progress", async () => {
-      const typeNames: DemonstrationTypeName[] = ["Behavioral Health"];
+      const typeNames: TagName[] = ["Behavioral Health"];
       setup(typeNames, [createSuccessMock(typeNames)]);
 
       const removeButton = screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID);
@@ -143,7 +143,7 @@ describe("RemoveDemonstrationTypesDialog", () => {
 
     it("calls mutation with correct variables", async () => {
       const user = userEvent.setup();
-      const typeNames: DemonstrationTypeName[] = ["Behavioral Health", "CHIP", "Dental"];
+      const typeNames: TagName[] = ["Behavioral Health", "CHIP", "Dental"];
       setup(typeNames, [createSuccessMock(typeNames)]);
 
       await user.click(screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID));

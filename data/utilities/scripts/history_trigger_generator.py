@@ -24,8 +24,8 @@ TBL_FOLDERS = [
     "primaryDemonstrationRoleAssignment",
     "rolePermission",
     "systemRoleAssignment",
+    "tagName",
     "tag",
-    "tagConfiguration",
     "user",
 ]
 APP_SCHEMA = "demos_app"

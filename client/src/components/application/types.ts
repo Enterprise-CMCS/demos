@@ -6,8 +6,8 @@ import {
   ApplicationDate,
   ApplicationNote,
   ApplicationStatus,
-  Tag,
   ClearanceLevel,
+  Tag,
 } from "demos-server";
 
 export type ApplicationWorkflowDocument = Pick<

@@ -21,17 +21,17 @@ describe("insertApplicationTags", () => {
       data: [
         {
           applicationId: testApplicationId,
-          tagId: "Test Tag 1",
+          tagNameId: "Test Tag 1",
           tagTypeId: "Application",
         },
         {
           applicationId: testApplicationId,
-          tagId: "Another Test Tag",
+          tagNameId: "Another Test Tag",
           tagTypeId: "Application",
         },
         {
           applicationId: testApplicationId,
-          tagId: "This One For Health",
+          tagNameId: "This One For Health",
           tagTypeId: "Application",
         },
       ],

@@ -4,7 +4,8 @@ import { SecondaryButton } from "components/button";
 import { useDialog } from "components/dialog/DialogContext";
 import { tw } from "tags/tw";
 import { TagChip } from "./TagChip";
-import { DEMONSTRATION_TYPE_TAGS } from "demos-server-constants";
+import { Tag } from "demos-server";
+import { gql, TypedDocumentNode, useQuery } from "@apollo/client";
 
 const STYLES = {
   stepThree: tw`font-bold uppercase tracking-wide text-[#242424] mb-2`,
@@ -12,9 +13,23 @@ const STYLES = {
   tagList: tw`flex flex-wrap items-center gap-1 mt-2`,
 };
 
+export const GET_APPLICATION_TAG_OPTIONS: TypedDocumentNode<
+  {
+    applicationTagOptions: Tag[];
+  },
+  Record<string, never>
+> = gql`
+  query GetApplicationTagOptions {
+    applicationTagOptions {
+      tagName
+      approvalStatus
+    }
+  }
+`;
+
 export interface DemonstrationHealthTypeTagsProps {
   demonstrationId: string;
-  selectedTags: string[];
+  selectedTags: Tag[];
   title: string;
   description?: string;
   onRemoveTag: (tag: string) => void;
@@ -29,8 +44,17 @@ export const DemonstrationHealthTypeTags = ({
 }: DemonstrationHealthTypeTagsProps) => {
   const { showApplyTagsDialog } = useDialog();
 
+  const { data, loading, error } = useQuery(GET_APPLICATION_TAG_OPTIONS);
+
+  if (loading) return <div>Loading tags...</div>;
+  if (error || !data) return <div>Error loading tags.</div>;
+
   const handleApplyClick = () => {
-    showApplyTagsDialog(demonstrationId, DEMONSTRATION_TYPE_TAGS, selectedTags);
+    showApplyTagsDialog(
+      demonstrationId,
+      [...data.applicationTagOptions].sort((a, b) => a.tagName.localeCompare(b.tagName)),
+      selectedTags
+    );
   };
 
   return (
@@ -41,7 +65,7 @@ export const DemonstrationHealthTypeTags = ({
       {description && description.trim() !== "" && <p className={STYLES.helper}>{description}</p>}
       <div className={STYLES.tagList}>
         {selectedTags.map((tag) => (
-          <TagChip key={tag} tag={tag} onRemoveTag={onRemoveTag} />
+          <TagChip key={tag.tagName} tag={tag} onRemoveTag={onRemoveTag} />
         ))}
         <SecondaryButton
           size="small"

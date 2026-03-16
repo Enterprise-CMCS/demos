@@ -7,17 +7,22 @@ import {
   AddDemonstrationTypesForm,
 } from "./AddDemonstrationTypesForm";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
-import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectDemonstrationTypeName";
+import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectDemonstrationType";
+import { Tag } from "demos-server";
 
 const mockSelectDemonstrationTypeQuery: MockedResponse<{
-  demonstrationTypeNames: string[];
+  demonstrationTypeOptions: Tag[];
 }> = {
   request: {
     query: SELECT_DEMONSTRATION_TYPE_QUERY,
   },
   result: {
     data: {
-      demonstrationTypeNames: ["Type A", "Type B", "Type C"],
+      demonstrationTypeOptions: [
+        { tagName: "Type A", approvalStatus: "Approved" },
+        { tagName: "Type B", approvalStatus: "Approved" },
+        { tagName: "Type C", approvalStatus: "Unapproved" },
+      ],
     },
   },
 };
@@ -76,7 +81,7 @@ describe("AddDemonstrationTypesForm", () => {
   it("renders all form fields", async () => {
     await renderWithProvider();
 
-    expect(screen.getByTestId("select-demonstration-type-name")).toBeInTheDocument();
+    expect(screen.getByTestId("select-demonstration-type")).toBeInTheDocument();
     expect(screen.getByLabelText(/effective date/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/expiration date/i)).toBeInTheDocument();
     expect(screen.getByTestId("button-add-demonstration-type")).toBeInTheDocument();
@@ -99,7 +104,7 @@ describe("AddDemonstrationTypesForm", () => {
     expect(screen.queryByText("Type A")).not.toBeInTheDocument();
     // type B comes from props
     expect(screen.queryByText("Type B")).not.toBeInTheDocument();
-    expect(screen.getByText("Type C")).toBeInTheDocument();
+    expect(screen.getByText("Type C (Unapproved)")).toBeInTheDocument();
   });
 
   it("enables add button when all fields are filled", async () => {
@@ -110,7 +115,7 @@ describe("AddDemonstrationTypesForm", () => {
     expect(addButton).toBeDisabled();
 
     await user.click(screen.getByRole("textbox"));
-    await user.click(screen.getByText("Type C"));
+    await user.click(screen.getByText("Type C (Unapproved)"));
     await user.type(screen.getByLabelText(/effective date/i), "2024-01-03");
     await user.type(screen.getByLabelText(/expiration date/i), "2025-01-03");
 
@@ -122,7 +127,7 @@ describe("AddDemonstrationTypesForm", () => {
     await renderWithProvider();
 
     await user.click(screen.getByRole("textbox"));
-    await user.click(screen.getByText("Type C"));
+    await user.click(screen.getByText("Type C (Unapproved)"));
     await user.type(screen.getByLabelText(/effective date/i), "2024-01-03");
     await user.type(screen.getByLabelText(/expiration date/i), "2025-01-03");
     await user.click(screen.getByTestId("button-add-demonstration-type"));
@@ -131,6 +136,7 @@ describe("AddDemonstrationTypesForm", () => {
       demonstrationTypeName: "Type C",
       effectiveDate: "2024-01-03",
       expirationDate: "2025-01-03",
+      approvalStatus: "Unapproved",
     });
     expect(mockAddDemonstrationType).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("textbox")).toHaveValue("");
