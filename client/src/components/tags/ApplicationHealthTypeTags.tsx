@@ -27,21 +27,21 @@ export const GET_APPLICATION_TAG_OPTIONS: TypedDocumentNode<
   }
 `;
 
-export interface DemonstrationHealthTypeTagsProps {
+export interface ApplicationHealthTypeTagsProps {
   applicationId: string;
   selectedTags: Tag[];
   title: string;
   description?: string;
   onRemoveTag: (tag: string) => void;
 }
-// We could make this name more generic for reuse.
-export const DemonstrationHealthTypeTags = ({
+
+export const ApplicationHealthTypeTags = ({
   applicationId,
   selectedTags,
   title,
   description,
   onRemoveTag,
-}: DemonstrationHealthTypeTagsProps) => {
+}: ApplicationHealthTypeTagsProps) => {
   const { showApplyTagsDialog } = useDialog();
 
   const { data, loading, error } = useQuery(GET_APPLICATION_TAG_OPTIONS);

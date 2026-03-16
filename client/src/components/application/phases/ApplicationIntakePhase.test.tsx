@@ -16,7 +16,7 @@ import {
 } from "components/application";
 import { formatDateForServer, getTodayEst } from "util/formatDate";
 import { MockedResponse } from "@apollo/client/testing";
-import { GET_APPLICATION_TAG_OPTIONS } from "components/tags/DemonstrationHealthTypeTags";
+import { GET_APPLICATION_TAG_OPTIONS } from "components/tags/ApplicationHealthTypeTags";
 import { DialogProvider } from "components/dialog/DialogContext";
 
 vi.mock("@apollo/client", async () => {

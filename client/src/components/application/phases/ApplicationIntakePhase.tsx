@@ -16,7 +16,7 @@ import { DocumentList } from "./sections";
 import { getPhaseCompletedMessage } from "util/messages";
 import { useToast } from "components/toast";
 import { DatePicker } from "components/input/date/DatePicker";
-import { DemonstrationHealthTypeTags } from "components/tags/DemonstrationHealthTypeTags";
+import { ApplicationHealthTypeTags } from "components/tags/ApplicationHealthTypeTags";
 import type { DateTimeOrLocalDate, PhaseStatus, Tag, TagName } from "demos-server";
 import { SET_APPLICATION_TAGS_MUTATION } from "components/dialog/ApplyTagsDialog";
 
@@ -327,7 +327,7 @@ export const ApplicationIntakePhase = ({
           />
         </div>
         <div className="mt-8">
-          <DemonstrationHealthTypeTags
+          <ApplicationHealthTypeTags
             applicationId={applicationId}
             title={"STEP 3 - APPLY TAGS"}
             description={

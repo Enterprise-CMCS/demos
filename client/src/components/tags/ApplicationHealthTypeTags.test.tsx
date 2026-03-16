@@ -4,9 +4,9 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import {
-  DemonstrationHealthTypeTags,
+  ApplicationHealthTypeTags,
   GET_APPLICATION_TAG_OPTIONS,
-} from "./DemonstrationHealthTypeTags";
+} from "./ApplicationHealthTypeTags";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { MockedResponse } from "@apollo/client/testing";
 import { TestProvider } from "test-utils/TestProvider";
@@ -52,8 +52,8 @@ describe("DemonstrationHealthTypeTags", () => {
     render(
       <TestProvider mocks={[applicationTagOptionsMock]}>
         <DialogProvider>
-          <DemonstrationHealthTypeTags
-            demonstrationId="demo-123"
+          <ApplicationHealthTypeTags
+            applicationId="demo-123"
             title="STEP 3 - APPLY TAGS"
             description="You must tag this application with one or more demonstration types involved."
             selectedTags={[
@@ -103,8 +103,8 @@ describe("DemonstrationHealthTypeTags", () => {
     render(
       <TestProvider mocks={[applicationTagOptionsMock]}>
         <DialogProvider>
-          <DemonstrationHealthTypeTags
-            demonstrationId="demo-123"
+          <ApplicationHealthTypeTags
+            applicationId="demo-123"
             title="STEP 3 - APPLY TAGS"
             description="You must tag this application with one or more demonstration types involved."
             selectedTags={[
