@@ -28,6 +28,7 @@ export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => 
 
   const demonstrationTypeOptions = (data?.demonstrationTypeOptions || [])
     .filter((typeOption) => (filter ? filter(typeOption.tagName) : true))
+    .sort((a, b) => a.tagName.localeCompare(b.tagName))
     .map((typeOption) => ({
       label: `${typeOption.tagName} ${typeOption.approvalStatus === "Approved" ? "" : "(Unapproved)"}`,
       value: typeOption.tagName,

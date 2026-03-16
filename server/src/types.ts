@@ -100,7 +100,7 @@ export type {
   SetDemonstrationTypesInput,
 } from "./model/demonstrationTypeTagAssignment/demonstrationTypeTagAssignmentSchema.js";
 
-export type { Tag } from "./model/tag/index.js";
+export type { Tag } from "./model/tag/tagSchema.js";
 
 export type DemonstrationTypeStatus = (typeof DEMONSTRATION_TYPE_STATUSES)[number];
 export type ClearanceLevel = (typeof CLEARANCE_LEVELS)[number];
