@@ -7,17 +7,14 @@ import userEvent from "@testing-library/user-event";
 import {
   ApplicationIntakePhase,
   ApplicationIntakeProps,
-  FINISH_BUTTON_NAME,
-  UPLOAD_BUTTON_NAME,
+  APPLICATION_INTAKE_FINISH_BUTTON_NAME,
+  APPLICATION_INTAKE_UPLOAD_BUTTON_NAME,
   APPLICATION_SUBMITTED_DATEPICKER_NAME,
   COMPLETENESS_REVIEW_DATEPICKER_NAME,
   getCompletenessReviewDueDate,
   getApplicationIntakeComponentFromApplication,
 } from "./ApplicationIntakePhase";
-import {
-  ApplicationWorkflowDocument,
-  ApplicationWorkflowDemonstration,
-} from "components/application";
+import { ApplicationWorkflowDocument, WorkflowApplication } from "components/application";
 import { formatDateForServer, getTodayEst } from "util/formatDate";
 import { MockedResponse } from "@apollo/client/testing";
 import { GET_APPLICATION_TAG_OPTIONS } from "components/tags/ApplicationHealthTypeTags";
@@ -128,13 +125,13 @@ describe("ApplicationIntakePhase", () => {
 
     it("renders upload button", () => {
       setup();
-      const uploadButton = screen.getByTestId(UPLOAD_BUTTON_NAME);
+      const uploadButton = screen.getByTestId(APPLICATION_INTAKE_UPLOAD_BUTTON_NAME);
       expect(uploadButton).toBeInTheDocument();
     });
 
     it("opens the upload dialog when upload button is clicked", async () => {
       setup();
-      await userEvent.click(screen.getByTestId(UPLOAD_BUTTON_NAME));
+      await userEvent.click(screen.getByTestId(APPLICATION_INTAKE_UPLOAD_BUTTON_NAME));
 
       expect(screen.getByRole("dialog")).toBeInTheDocument();
       expect(screen.getByRole("heading", { name: "Add State Application" })).toBeInTheDocument();
@@ -282,7 +279,7 @@ describe("ApplicationIntakePhase", () => {
     describe("Finish Button", () => {
       it("is disabled initially", () => {
         setup();
-        const finishButton = screen.getByTestId(FINISH_BUTTON_NAME);
+        const finishButton = screen.getByTestId(APPLICATION_INTAKE_FINISH_BUTTON_NAME);
         expect(finishButton).toBeDisabled();
       });
 
@@ -291,7 +288,7 @@ describe("ApplicationIntakePhase", () => {
           initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
           initialStateApplicationSubmittedDate: "2020-10-10",
         });
-        const finishButton = screen.getByTestId(FINISH_BUTTON_NAME);
+        const finishButton = screen.getByTestId(APPLICATION_INTAKE_FINISH_BUTTON_NAME);
         expect(finishButton).toBeEnabled();
       });
 
@@ -310,7 +307,7 @@ describe("ApplicationIntakePhase", () => {
           setSelectedPhase,
         });
 
-        const finishButton = screen.getByTestId(FINISH_BUTTON_NAME);
+        const finishButton = screen.getByTestId(APPLICATION_INTAKE_FINISH_BUTTON_NAME);
         await userEvent.click(finishButton);
 
         expect(mockCompletePhase).toHaveBeenCalledWith({
@@ -386,18 +383,9 @@ describe("ApplicationIntakePhase", () => {
   });
 
   describe("getApplicationIntakeComponentFromApplication", () => {
-    it("should extract demonstration data and return ApplicationIntakePhase component", () => {
-      const mockDemonstration: ApplicationWorkflowDemonstration = {
-        id: "demo-123",
-        name: "Test Demo",
-        state: {
-          id: "CA",
-          name: "California",
-        },
-        primaryProjectOfficer: {
-          id: "po-1",
-          fullName: "Jane Doe",
-        },
+    it("should extract application data and return ApplicationIntakePhase component", () => {
+      const mockApplication: WorkflowApplication = {
+        id: "app-123",
         status: "Under Review",
         currentPhaseName: "Application Intake",
         clearanceLevel: "CMS (OSORA)",
@@ -425,15 +413,14 @@ describe("ApplicationIntakePhase", () => {
             createdAt: new Date(2024, 10, 10),
           },
         ],
-        demonstrationTypes: [],
         tags: [],
       };
 
-      const component = getApplicationIntakeComponentFromApplication(mockDemonstration);
+      const component = getApplicationIntakeComponentFromApplication(mockApplication);
 
       expect(component).toBeDefined();
       expect(component.type).toBe(ApplicationIntakePhase);
-      expect(component.props.applicationId).toBe("demo-123");
+      expect(component.props.applicationId).toBe("app-123");
       expect(component.props.initialStateApplicationDocuments).toHaveLength(1);
       expect(component.props.initialStateApplicationSubmittedDate).toBe("2024-10-13");
     });
@@ -515,7 +502,7 @@ describe("ApplicationIntakePhase", () => {
         initialStateApplicationSubmittedDate: "2024-03-15",
       });
 
-      const finishButton = screen.getByTestId(FINISH_BUTTON_NAME);
+      const finishButton = screen.getByTestId(APPLICATION_INTAKE_FINISH_BUTTON_NAME);
       expect(finishButton).toBeEnabled();
     });
 
@@ -525,7 +512,7 @@ describe("ApplicationIntakePhase", () => {
         initialStateApplicationSubmittedDate: "",
       });
 
-      const finishButton = screen.getByTestId(FINISH_BUTTON_NAME);
+      const finishButton = screen.getByTestId(APPLICATION_INTAKE_FINISH_BUTTON_NAME);
       expect(finishButton).toBeDisabled();
     });
 
@@ -537,7 +524,7 @@ describe("ApplicationIntakePhase", () => {
         initialStateApplicationSubmittedDate: "2024-03-15",
       });
 
-      const finishButton = screen.getByTestId(FINISH_BUTTON_NAME);
+      const finishButton = screen.getByTestId(APPLICATION_INTAKE_FINISH_BUTTON_NAME);
       expect(finishButton).toBeDisabled();
 
       // When there are no documents, the date should be auto-cleared (DEMOS-1675)

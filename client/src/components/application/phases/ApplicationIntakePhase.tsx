@@ -47,8 +47,8 @@ const STYLES = {
 const THIS_PHASE_NAME: PhaseName = "Application Intake";
 const NEXT_PHASE_NAME: PhaseName = "Completeness";
 
-export const FINISH_BUTTON_NAME = "button-finish-state-application";
-export const UPLOAD_BUTTON_NAME = "button-open-upload-modal";
+export const APPLICATION_INTAKE_FINISH_BUTTON_NAME = "button-finish-state-application";
+export const APPLICATION_INTAKE_UPLOAD_BUTTON_NAME = "button-open-upload-modal";
 export const APPLICATION_SUBMITTED_DATEPICKER_NAME = "datepicker-state-application-submitted-date";
 export const COMPLETENESS_REVIEW_DATEPICKER_NAME = "datepicker-completeness-review-due-date";
 
@@ -71,7 +71,7 @@ const UploadSection = ({
       <SecondaryButton
         onClick={() => showApplicationIntakeDocumentUploadDialog(applicationId)}
         size="small"
-        name={UPLOAD_BUTTON_NAME}
+        name={APPLICATION_INTAKE_UPLOAD_BUTTON_NAME}
       >
         Upload
         <ExportIcon />
@@ -151,7 +151,7 @@ const VerifyCompleteSection = ({
 
     <div className={STYLES.actions}>
       <Button
-        name={FINISH_BUTTON_NAME}
+        name={APPLICATION_INTAKE_FINISH_BUTTON_NAME}
         onClick={onFinish}
         disabled={!isFinishButtonEnabled}
         size="small"
