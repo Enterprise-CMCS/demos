@@ -267,6 +267,28 @@ export function applyFileUploadSuppressions(fileUpload: Stack, stage: string) {
       },
     ]
   );
+
+  NagSuppressions.addResourceSuppressionsByPath(
+    fileUpload,
+    `/demos-${stage}-file-upload/BudgetNeutralityProcessor/budgetNeutrality/budgetNeutralityLambdaExecutionRole/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role. Some wildcards are unavoidable (VPC networking).",
+      },
+    ]
+  );
+
+  NagSuppressions.addResourceSuppressionsByPath(
+    fileUpload,
+    `/demos-${stage}-file-upload/BudgetNeutralityProcessor/budgetNeutrality/budgetNeutralityLambdaExecutionRole/DefaultPolicy/Resource`,
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions are scoped to specific KMS key and database secret; queue access requires wildcard object suffixes.",
+      },
+    ]
+  );
 }
 
 export function applyDbRoleSuppressions(dbRole: Stack, stage: string) {

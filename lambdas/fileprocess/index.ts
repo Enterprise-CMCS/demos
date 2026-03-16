@@ -8,11 +8,14 @@ import {
 import { Client } from "pg";
 import { S3Client, CopyObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
+import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 import { als, log, store, reqIdChild } from "./log";
 
 const GUARDDUTY_CLEAN_STATUS = "NO_THREATS_FOUND";
+const FINAL_BN_WORKSHEET_DOCUMENT_TYPE = "Final BN Worksheet";
 const PROCESS_PENDING_DOCUMENT_CLEAN = "move_document_from_pending_to_clean";
 const PROCESS_PENDING_DOCUMENT_INFECTED = "move_document_from_pending_to_infected";
+const AWS_REGION = process.env.AWS_REGION;
 
 let databaseUrlCache = "";
 let cacheExpiration = 0;
@@ -20,27 +23,21 @@ let cacheExpiration = 0;
 const uploadBucket = process.env.UPLOAD_BUCKET;
 const cleanBucket = process.env.CLEAN_BUCKET;
 const infectedBucket = process.env.INFECTED_BUCKET;
+const budgetNeutralityQueueUrl = process.env.BUDGET_NEUTRALITY_QUEUE_URL;
 const dbSchema = process.env.DB_SCHEMA || "demos_app";
 const bypassSSL = process.env.BYPASS_SSL;
-const s3Config = process.env.AWS_ENDPOINT_URL
-  ? {
-      region: process.env.AWS_REGION,
-      endpoint: process.env.AWS_ENDPOINT_URL,
-      forcePathStyle: true,
-    }
-  : {
-      region: process.env.AWS_REGION,
-    };
+const awsEndpointUrl = process.env.AWS_ENDPOINT_URL;
+const awsClientConfig = {region: AWS_REGION, endpoint: awsEndpointUrl};
 
-const s3 = new S3Client(s3Config);
-const secretsManagerConfig = process.env.AWS_ENDPOINT_URL
-  ? {
-      region: process.env.AWS_REGION,
-      endpoint: process.env.AWS_ENDPOINT_URL,
-    }
-  : { region: process.env.AWS_REGION };
-
-const secretsManager = new SecretsManagerClient(secretsManagerConfig);
+const s3 = new S3Client(
+  awsEndpointUrl
+    ? {
+        ...awsClientConfig,
+        forcePathStyle: true,
+      }
+    : awsClientConfig
+);
+const secretsManager = new SecretsManagerClient(awsClientConfig);
 
 interface Results {
   processedRecords: number;
@@ -125,6 +122,7 @@ export async function processCleanDatabaseRecord(
   }
 
   log.info({ documentTypeId }, "successfully processed clean file in database.");
+
   return documentTypeId;
 }
 
@@ -145,6 +143,41 @@ export async function processInfectedDatabaseRecord(
     threatsString,
   ]);
   log.info("successfully processed infected file in database.");
+}
+
+export async function enqueueBudgetNeutrality(
+  documentId: string,
+  documentTypeId: string
+) {
+  log.info({ documentId, documentTypeId }, "BudgetNeutrality Queue Started");
+
+  if (!budgetNeutralityQueueUrl) {
+    throw new Error(
+      "BUDGET_NEUTRALITY_QUEUE_URL environment variable is required."
+    );
+  }
+
+  const sqsClient = new SQSClient(awsClientConfig);
+  const response = await sqsClient.send(
+    new SendMessageCommand({
+      QueueUrl: budgetNeutralityQueueUrl,
+      MessageBody: JSON.stringify({
+        documentId,
+        documentTypeId,
+      }),
+    })
+  );
+
+  if (!response.MessageId) {
+    throw new Error(
+      `Failed to enqueue Budget Neutrality validation message for document ${documentId}.`
+    );
+  }
+
+  log.info(
+    { documentId, documentTypeId, messageId: response.MessageId },
+    "queued Budget Neutrality validation request."
+  );
 }
 
 export async function processGuardDutyResult(
@@ -187,8 +220,12 @@ export async function processGuardDutyResult(
   const destinationKey = `${applicationId}/${documentId}`;
 
   await moveFile(documentId, destinationBucket, destinationKey);
+
   if (isClean) {
-    await processCleanDatabaseRecord(client, documentId, applicationId);
+    const fileTypeId = await processCleanDatabaseRecord(client, documentId, applicationId);
+    if (fileTypeId === FINAL_BN_WORKSHEET_DOCUMENT_TYPE) {
+      await enqueueBudgetNeutrality(documentId, fileTypeId);
+    }
   } else {
     await processInfectedDatabaseRecord(client, documentId, applicationId, scanResultDetails);
   }
@@ -199,16 +236,6 @@ export async function processGuardDutyResult(
 export const handler = async (event: SQSEvent, context: Context) =>
   als.run(store, async () => {
     reqIdChild(context.awsRequestId);
-    log.debug(
-      {
-        AWS_REGION: process.env.AWS_REGION,
-        AWS_ENDPOINT_URL: process.env.AWS_ENDPOINT_URL,
-        UPLOAD_BUCKET: uploadBucket,
-        CLEAN_BUCKET: cleanBucket,
-        DB_SCHEMA: dbSchema,
-      },
-      "environment variables"
-    );
 
     let client;
 
@@ -228,6 +255,7 @@ export const handler = async (event: SQSEvent, context: Context) =>
             },
       });
       await client.connect();
+
       const setSearchPathQuery = `SET search_path TO ${dbSchema}, public;`;
       await client.query(setSearchPathQuery);
 
