@@ -18,6 +18,8 @@ import {
   ApplicationWorkflowDemonstration,
 } from "components/application";
 import { formatDateForServer, getTodayEst } from "util/formatDate";
+import { MockedResponse } from "@apollo/client/testing";
+import { GET_APPLICATION_TAG_OPTIONS } from "components/tags/DemonstrationHealthTypeTags";
 
 vi.mock("@apollo/client", async () => {
   const actual = await vi.importActual("@apollo/client");
@@ -63,7 +65,7 @@ describe("ApplicationIntakePhase", () => {
     demonstrationId: "test-demo-id",
     initialStateApplicationDocuments: [],
     initialStateApplicationSubmittedDate: "",
-    initialSelectedTags: [],
+    tags: [],
     phaseStatus: "Started",
   };
 
@@ -80,8 +82,22 @@ describe("ApplicationIntakePhase", () => {
   const setup = (props: Partial<ApplicationIntakeProps> = {}) => {
     const finalProps = { ...defaultProps, ...props } as ApplicationIntakeProps;
 
+    const applicationTagOptionsMock: MockedResponse = {
+      request: {
+        query: GET_APPLICATION_TAG_OPTIONS,
+      },
+      result: {
+        data: {
+          applicationTagOptions: [
+            { tagName: "Behavioral Health", approvalStatus: "Approved" },
+            { tagName: "Dental", approvalStatus: "Unapproved" },
+          ],
+        },
+      },
+    };
+
     render(
-      <TestProvider>
+      <TestProvider mocks={[applicationTagOptionsMock]}>
         <ApplicationIntakePhase {...finalProps} />
       </TestProvider>
     );
@@ -191,19 +207,40 @@ describe("ApplicationIntakePhase", () => {
   });
 
   describe("Step 3 - Apply Tags Section", () => {
-    it("renders Step 3 title and description", () => {
+    it("renders Step 3 title and description", async () => {
       setup({
-        initialSelectedTags: ["Behavioral Health"],
+        tags: [
+          {
+            tagName: "Behavioral Health",
+            approvalStatus: "Approved",
+          },
+        ],
       });
 
-      expect(screen.getByText("STEP 3 - APPLY TAGS")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("APPLICATION INTAKE")).toBeInTheDocument();
+      });
       expect(
         screen.getByText(/You must tag this application with one or more demonstration types/)
       ).toBeInTheDocument();
     });
 
-    it("renders selected tags as removable chips", () => {
-      setup({ initialSelectedTags: ["Behavioral Health", "Substance Use"] });
+    it("renders selected tags as removable chips", async () => {
+      setup({
+        tags: [
+          {
+            tagName: "Behavioral Health",
+            approvalStatus: "Approved",
+          },
+          {
+            tagName: "Substance Use",
+            approvalStatus: "Unapproved",
+          },
+        ],
+      });
+      await waitFor(() => {
+        expect(screen.getByText("APPLICATION INTAKE")).toBeInTheDocument();
+      });
 
       expect(screen.getByTestId("remove-Behavioral Health-button")).toBeInTheDocument();
       expect(screen.getByTestId("remove-Substance Use-button")).toBeInTheDocument();
@@ -211,7 +248,19 @@ describe("ApplicationIntakePhase", () => {
 
     it("calls SET_APPLICATION_TAGS_MUTATION with updated tags when a tag is removed", async () => {
       setup({
-        initialSelectedTags: ["Behavioral Health", "Substance Use"],
+        tags: [
+          {
+            tagName: "Behavioral Health",
+            approvalStatus: "Approved",
+          },
+          {
+            tagName: "Substance Use",
+            approvalStatus: "Unapproved",
+          },
+        ],
+      });
+      await waitFor(() => {
+        expect(screen.getByText("APPLICATION INTAKE")).toBeInTheDocument();
       });
 
       const removeButton = screen.getByTestId("remove-Behavioral Health-button");

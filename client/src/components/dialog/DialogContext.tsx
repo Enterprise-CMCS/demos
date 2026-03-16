@@ -4,6 +4,7 @@ import {
   TagName,
   DemonstrationTypeAssignment,
   UploadDocumentInput,
+  Tag,
 } from "demos-server";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
@@ -228,8 +229,8 @@ export const useDialog = () => {
 
   const showApplyTagsDialog = (
     demonstrationId: string,
-    allTags: string[],
-    selectedTags: string[]
+    allTags: Tag[],
+    selectedTags: Tag[]
   ) => {
     context.showDialog(
       <ApplyTagsDialog
