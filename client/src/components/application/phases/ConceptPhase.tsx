@@ -77,12 +77,12 @@ export const getConceptPhaseComponentFromApplication = (
   );
 };
 
-const getDefaultPresubmissionDate = (
-  presubmissionDate: string,
+export const getPresubmissionDate = (
+  initialPresubmissionDate: string,
   documents: ApplicationWorkflowDocument[]
 ): string => {
   // if a presubmission date is provided, return this
-  if (presubmissionDate) return presubmissionDate;
+  if (initialPresubmissionDate) return initialPresubmissionDate;
 
   const presubmissionDocuments = documents.filter(
     (document) => document.documentType === "Pre-Submission"
@@ -120,17 +120,21 @@ export const ConceptPhase = ({
   const { completePhase } = useCompletePhase();
   const { skipConceptPhase } = useSkipConceptPhase();
 
-  const [submittedDate, setSubmittedDate] = useState<string>(
-    getDefaultPresubmissionDate(initialPresubmissionSubmittedDate ?? "", documents)
-  );
+  // User can override the calculated date via the datepicker
+  const [userSubmittedDateOverride, setUserSubmittedDateOverride] = useState<string>("");
   const [isFinishEnabled, setIsFinishEnabled] = useState<boolean>(false);
   const [isSkipEnabled, setIsSkipEnabled] = useState<boolean>(true);
 
   const isPhaseFinalized = phaseStatus === "Completed" || phaseStatus === "Skipped";
 
-  const prevPresubmissionCountRef = useRef<number>(
-    documents.filter((doc) => doc.documentType === "Pre-Submission").length
+  // Calculate the submitted date based on documents
+  const calculatedSubmittedDate = getPresubmissionDate(
+    initialPresubmissionSubmittedDate ?? "",
+    documents
   );
+
+  // Use override if it exists, otherwise use calculated date
+  const submittedDate = userSubmittedDateOverride || calculatedSubmittedDate;
 
   useEffect(() => {
     const finishShouldBeEnabled =
@@ -141,20 +145,6 @@ export const ConceptPhase = ({
     setIsFinishEnabled(finishShouldBeEnabled);
     setIsSkipEnabled(!finishShouldBeEnabled && !isPhaseFinalized);
   }, [submittedDate, documents, isPhaseFinalized]);
-
-  // Clear submitted date when the last pre-submission document is removed
-  useEffect(() => {
-    const presubmissionCount = documents.filter(
-      (document) => document.documentType === "Pre-Submission"
-    ).length;
-
-    // Only clear if we transitioned from having documents to having none
-    if (prevPresubmissionCountRef.current > 0 && presubmissionCount === 0) {
-      setSubmittedDate("");
-    }
-
-    prevPresubmissionCountRef.current = presubmissionCount;
-  }, [documents]);
 
   const getDateValidationMessage = (): string => {
     if (
@@ -254,7 +244,7 @@ export const ConceptPhase = ({
             label="Pre-Submission Document Submitted Date"
             value={submittedDate}
             onChange={(newDate) => {
-              setSubmittedDate(newDate);
+              setUserSubmittedDateOverride(newDate);
             }}
             isRequired={documents.length > 0}
             getValidationMessage={getDateValidationMessage}
