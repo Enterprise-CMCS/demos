@@ -432,6 +432,11 @@ DECLARE
     v_concept_phase_status TEXT;
     v_application_type_id TEXT;
 BEGIN
+    -- Bypass trigger if not making change to status
+    IF NEW.phase_status_id = OLD.phase_status_id THEN
+        RETURN NEW;
+    END IF;
+
     -- Get the maximum phase number
     SELECT MAX(p.phase_number) INTO v_max_phase_number
     FROM demos_app.phase AS p
@@ -459,11 +464,10 @@ BEGIN
         END IF;
     ELSE
         -- No completed phase found, check the Concept phase
-        SELECT ap.phase_status_id INTO v_concept_phase_status
-        FROM demos_app.application_phase AS ap
-        INNER JOIN demos_app.phase AS p ON ap.phase_id = p.id
-        WHERE ap.application_id = NEW.application_id
-        AND p.id = 'Concept';
+        SELECT phase_status_id INTO v_concept_phase_status
+        FROM demos_app.application_phase
+        WHERE application_id = NEW.application_id
+        AND phase_id = 'Concept';
 
         -- If Concept is Started, it's the current phase
         IF v_concept_phase_status = 'Started' THEN
@@ -501,6 +505,109 @@ CREATE TRIGGER update_application_current_phase_on_phase_update
 AFTER UPDATE ON demos_app.application_phase
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.update_application_current_phase_on_phase_update();
+
+-- update_application_status_on_phase_update
+CREATE OR REPLACE FUNCTION demos_app.update_application_status_on_phase_update()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_application_type TEXT;
+    v_current_application_status TEXT;
+    v_new_application_status TEXT;
+BEGIN
+    -- Bypass trigger code if there are no changes worth tracking
+    IF OLD.phase_id = NEW.phase_id AND OLD.phase_status_id = NEW.phase_status_id THEN
+        RETURN NEW;
+    END IF;
+
+    -- Get application type to use correct tables
+    SELECT
+        application_type_id INTO v_application_type
+    FROM
+        demos_app.application
+    WHERE
+        id = NEW.application_id;
+
+    -- Get current application status for logic
+    IF v_application_type = 'Demonstration' THEN
+        SELECT
+            status_id INTO v_current_application_status
+        FROM
+            demos_app.demonstration
+        WHERE
+            id = NEW.application_id;
+    ELSIF v_application_type = 'Amendment' THEN
+        SELECT
+            status_id INTO v_current_application_status
+        FROM
+            demos_app.amendment
+        WHERE
+            id = NEW.application_id;
+    ELSIF v_application_type = 'Extension' THEN
+        SELECT
+            status_id INTO v_current_application_status
+        FROM
+            demos_app.extension
+        WHERE
+            id = NEW.application_id;
+    END IF;
+
+    -- Start by assuming no changes to the status
+    v_new_application_status := v_current_application_status;
+
+    -- Implement conditional logic
+    IF v_current_application_status = 'Pre-Submission' THEN
+        IF NEW.phase_id = 'Concept' AND NEW.phase_status_id IN ('Completed', 'Skipped') THEN
+            v_new_application_status := 'Under Review';
+        ELSIF NEW.phase_id = 'Application Intake' AND NEW.phase_status_id = 'Completed' THEN
+            v_new_application_status := 'Under Review';
+        END IF;
+    ELSIF v_current_application_status = 'Under Review' THEN
+        IF NEW.phase_id = 'Completeness' AND NEW.phase_status_id = 'Incomplete' THEN
+            v_new_application_status := 'On-hold';
+        ELSIF NEW.phase_id = 'Approval Summary' AND NEW.phase_status_id = 'Completed' THEN
+            v_new_application_status := 'Approved';
+        END IF;
+    ELSIF v_current_application_status = 'On-hold' THEN
+        IF NEW.phase_id = 'Application Intake' AND NEW.phase_status_id = 'Completed' THEN
+            v_new_application_status := 'Under Review';
+        END IF;
+    END IF;
+
+    IF v_new_application_status != v_current_application_status THEN
+        IF v_application_type = 'Demonstration' THEN
+            UPDATE
+                demos_app.demonstration
+            SET
+                status_id = v_new_application_status
+            WHERE
+                id = NEW.application_id;
+        ELSIF v_application_type = 'Amendment' THEN
+            UPDATE
+                demos_app.amendment
+            SET
+                status_id = v_new_application_status
+            WHERE
+                id = NEW.application_id;
+        ELSIF v_application_type = 'Extension' THEN
+            UPDATE
+                demos_app.extension
+            SET
+                status_id = v_new_application_status
+            WHERE
+                id = NEW.application_id;
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER update_application_status_on_phase_update
+AFTER UPDATE ON demos_app.application_phase
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.update_application_status_on_phase_update();
 
 -- update_federal_comment_phase_status
 CREATE PROCEDURE demos_app.update_federal_comment_phase_status()
