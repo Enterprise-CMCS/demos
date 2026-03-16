@@ -7,6 +7,10 @@ import userEvent from "@testing-library/user-event";
 import {
   ApplicationIntakePhase,
   ApplicationIntakeProps,
+  FINISH_BUTTON_NAME,
+  UPLOAD_BUTTON_NAME,
+  APPLICATION_SUBMITTED_DATEPICKER_NAME,
+  COMPLETENESS_REVIEW_DATEPICKER_NAME,
   getCompletenessReviewDueDate,
   getApplicationIntakeComponentFromApplication,
 } from "./ApplicationIntakePhase";
@@ -124,7 +128,7 @@ describe("ApplicationIntakePhase", () => {
 
     it("renders upload button", () => {
       setup();
-      const uploadButton = screen.getByRole("button", { name: /upload/i });
+      const uploadButton = screen.getByTestId(UPLOAD_BUTTON_NAME);
       expect(uploadButton).toBeInTheDocument();
     });
 
@@ -167,10 +171,7 @@ describe("ApplicationIntakePhase", () => {
       const labelElement = labels.find((el) => el.tagName === "LABEL");
       expect(labelElement).toBeInTheDocument();
 
-      const dateInputs = screen.getAllByDisplayValue("");
-      const submittedDateInput = dateInputs.find(
-        (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
-      );
+      const submittedDateInput = screen.getByTestId(APPLICATION_SUBMITTED_DATEPICKER_NAME);
       expect(submittedDateInput).toBeInTheDocument();
       expect(submittedDateInput).toHaveAttribute("type", "date");
       expect(submittedDateInput).toHaveAttribute("required");
@@ -181,10 +182,7 @@ describe("ApplicationIntakePhase", () => {
       const label = screen.getByText(/Completeness Review Due Date/);
       expect(label).toBeInTheDocument();
 
-      const dateInputs = screen.getAllByDisplayValue("");
-      const dueDateInput = dateInputs.find(
-        (input) => input.getAttribute("type") === "date" && input.hasAttribute("disabled")
-      );
+      const dueDateInput = screen.getByTestId(COMPLETENESS_REVIEW_DATEPICKER_NAME);
       expect(dueDateInput).toBeInTheDocument();
       expect(dueDateInput).toHaveAttribute("type", "date");
       expect(dueDateInput).toBeDisabled();
@@ -276,7 +274,7 @@ describe("ApplicationIntakePhase", () => {
     describe("Finish Button", () => {
       it("is disabled initially", () => {
         setup();
-        const finishButton = screen.getByRole("button", { name: /finish/i });
+        const finishButton = screen.getByTestId(FINISH_BUTTON_NAME);
         expect(finishButton).toBeDisabled();
       });
 
@@ -285,7 +283,7 @@ describe("ApplicationIntakePhase", () => {
           initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
           initialStateApplicationSubmittedDate: "2020-10-10",
         });
-        const finishButton = screen.getByRole("button", { name: /finish/i });
+        const finishButton = screen.getByTestId(FINISH_BUTTON_NAME);
         expect(finishButton).toBeEnabled();
       });
 
@@ -304,7 +302,7 @@ describe("ApplicationIntakePhase", () => {
           setSelectedPhase,
         });
 
-        const finishButton = screen.getByRole("button", { name: /finish/i });
+        const finishButton = screen.getByTestId(FINISH_BUTTON_NAME);
         await userEvent.click(finishButton);
 
         expect(mockCompletePhase).toHaveBeenCalledWith({
@@ -439,9 +437,8 @@ describe("ApplicationIntakePhase", () => {
         initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
       });
 
-      const dateInputs = screen.getAllByDisplayValue("");
-      const submittedDateInput = dateInputs.find(
-        (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
+      const submittedDateInput = screen.getByTestId(
+        APPLICATION_SUBMITTED_DATEPICKER_NAME
       ) as HTMLInputElement;
 
       fireEvent.change(submittedDateInput, { target: { value: "2024-03-15" } });
@@ -456,9 +453,8 @@ describe("ApplicationIntakePhase", () => {
         initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
       });
 
-      const dateInputs = screen.getAllByDisplayValue("");
-      const submittedDateInput = dateInputs.find(
-        (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
+      const submittedDateInput = screen.getByTestId(
+        APPLICATION_SUBMITTED_DATEPICKER_NAME
       ) as HTMLInputElement;
 
       fireEvent.change(submittedDateInput, { target: { value: "2024-03-15" } });
@@ -487,18 +483,16 @@ describe("ApplicationIntakePhase", () => {
         initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
       });
 
-      const dateInputs = screen.getAllByDisplayValue("");
-      const submittedDateInput = dateInputs.find(
-        (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
+      const submittedDateInput = screen.getByTestId(
+        APPLICATION_SUBMITTED_DATEPICKER_NAME
       ) as HTMLInputElement;
 
       fireEvent.change(submittedDateInput, { target: { value: "2024-03-15" } });
 
       // Completeness review due date should be 15 days later: 2024-03-30
       await waitFor(() => {
-        const dueDateInputs = screen.getAllByDisplayValue("2024-03-30");
-        const dueDateInput = dueDateInputs.find((input) =>
-          input.hasAttribute("disabled")
+        const dueDateInput = screen.getByTestId(
+          COMPLETENESS_REVIEW_DATEPICKER_NAME
         ) as HTMLInputElement;
 
         expect(dueDateInput).toBeInTheDocument();
@@ -513,7 +507,7 @@ describe("ApplicationIntakePhase", () => {
         initialStateApplicationSubmittedDate: "2024-03-15",
       });
 
-      const finishButton = screen.getByRole("button", { name: /finish/i });
+      const finishButton = screen.getByTestId(FINISH_BUTTON_NAME);
       expect(finishButton).toBeEnabled();
     });
 
@@ -523,7 +517,7 @@ describe("ApplicationIntakePhase", () => {
         initialStateApplicationSubmittedDate: "",
       });
 
-      const finishButton = screen.getByRole("button", { name: /finish/i });
+      const finishButton = screen.getByTestId(FINISH_BUTTON_NAME);
       expect(finishButton).toBeDisabled();
     });
 
@@ -535,13 +529,13 @@ describe("ApplicationIntakePhase", () => {
         initialStateApplicationSubmittedDate: "2024-03-15",
       });
 
-      const finishButton = screen.getByRole("button", { name: /finish/i });
+      const finishButton = screen.getByTestId(FINISH_BUTTON_NAME);
       expect(finishButton).toBeDisabled();
 
       // When there are no documents, the date should be auto-cleared (DEMOS-1675)
       await waitFor(() => {
         const submittedDateInput = screen.getByTestId(
-          "datepicker-state-application-submitted-date"
+          APPLICATION_SUBMITTED_DATEPICKER_NAME
         ) as HTMLInputElement;
         expect(submittedDateInput.value).toBe("");
       });
@@ -562,9 +556,8 @@ describe("ApplicationIntakePhase", () => {
         initialStateApplicationSubmittedDate: "2024-03-15",
       });
 
-      const dateInputs = screen.getAllByDisplayValue("2024-03-15");
-      const submittedDateInput = dateInputs.find(
-        (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
+      const submittedDateInput = screen.getByTestId(
+        APPLICATION_SUBMITTED_DATEPICKER_NAME
       ) as HTMLInputElement;
 
       await userEvent.clear(submittedDateInput);
@@ -580,11 +573,9 @@ describe("ApplicationIntakePhase", () => {
         initialStateApplicationSubmittedDate: "2024-03-15",
       });
 
-      const submittedDateInput = screen
-        .getAllByDisplayValue("2024-03-15")
-        .find(
-          (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
-        ) as HTMLInputElement;
+      const submittedDateInput = screen.getByTestId(
+        APPLICATION_SUBMITTED_DATEPICKER_NAME
+      ) as HTMLInputElement;
 
       fireEvent.change(submittedDateInput, { target: { value: "" } });
 
@@ -609,9 +600,8 @@ describe("ApplicationIntakePhase", () => {
         initialStateApplicationSubmittedDate: todayString,
       });
 
-      const dateInputs = screen.getAllByDisplayValue(todayString);
-      const submittedDateInput = dateInputs.find(
-        (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
+      const submittedDateInput = screen.getByTestId(
+        APPLICATION_SUBMITTED_DATEPICKER_NAME
       ) as HTMLInputElement;
 
       expect(submittedDateInput?.value).toBe(todayString);
