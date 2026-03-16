@@ -43,6 +43,7 @@ const NEXT_PHASE_NAME: PhaseName = "Application Intake";
 export const UPLOAD_BUTTON_NAME = "button-open-upload-modal";
 export const FINISH_BUTTON_NAME = "button-finish-concept";
 export const SKIP_BUTTON_NAME = "button-skip-concept";
+export const DATE_PICKER_NAME = "datepicker-pre-submission-date";
 
 export const getConceptPhaseComponentFromApplication = (
   application: WorkflowApplication,
@@ -240,7 +241,7 @@ export const ConceptPhase = ({
       <div className="space-y-4">
         <div>
           <DatePicker
-            name="datepicker-pre-submission-date"
+            name={DATE_PICKER_NAME}
             label="Pre-Submission Document Submitted Date"
             value={submittedDate}
             onChange={(newDate) => {

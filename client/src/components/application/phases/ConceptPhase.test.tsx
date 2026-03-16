@@ -13,6 +13,7 @@ import {
   UPLOAD_BUTTON_NAME,
   FINISH_BUTTON_NAME,
   SKIP_BUTTON_NAME,
+  DATE_PICKER_NAME,
 } from "./ConceptPhase";
 
 import {
@@ -20,7 +21,6 @@ import {
   ApplicationWorkflowDocument,
 } from "components/application";
 import { DialogProvider } from "components/dialog/DialogContext";
-import { getTodayEst } from "util/formatDate";
 
 const mockCompletePhase = vi.fn();
 const mockSkipConceptPhase = vi.fn();
@@ -170,7 +170,7 @@ describe("ConceptPhase", () => {
 
     it("renders date input field", () => {
       setup();
-      const dateInput = screen.getByLabelText(/Pre-Submission Document Submitted Date/);
+      const dateInput = screen.getByTestId(DATE_PICKER_NAME);
       expect(dateInput).toBeInTheDocument();
       expect(dateInput).toHaveAttribute("type", "date");
     });
@@ -201,7 +201,7 @@ describe("ConceptPhase", () => {
       };
       setup({ documents: [generalDocument] });
 
-      const dateInput = screen.getByLabelText(/Pre-Submission Document Submitted Date/);
+      const dateInput = screen.getByTestId(DATE_PICKER_NAME);
       userEvent.type(dateInput, "2024-02-20");
 
       const finishButton = screen.getByTestId(FINISH_BUTTON_NAME);
@@ -279,9 +279,7 @@ describe("ConceptPhase", () => {
   describe("Date Field Behavior", () => {
     it("populates date when a presubmission document with createdAt is provided", () => {
       setup();
-      const dateInput = screen.getByLabelText(
-        /Pre-Submission Document Submitted Date/
-      ) as HTMLInputElement;
+      const dateInput = screen.getByTestId(DATE_PICKER_NAME) as HTMLInputElement;
       expect(dateInput.value).toBe("2024-01-15");
     });
 
@@ -296,17 +294,13 @@ describe("ConceptPhase", () => {
         createdAt: new Date("2024-01-20"),
       };
       setup({ documents: [generalDocument] });
-      const dateInput = screen.getByLabelText(
-        /Pre-Submission Document Submitted Date/
-      ) as HTMLInputElement;
+      const dateInput = screen.getByTestId(DATE_PICKER_NAME) as HTMLInputElement;
       expect(dateInput.value).toBe("");
     });
 
     it("allows user to change date manually", async () => {
       setup({ documents: [] });
-      const dateInput = screen.getByLabelText(
-        /Pre-Submission Document Submitted Date/
-      ) as HTMLInputElement;
+      const dateInput = screen.getByTestId(DATE_PICKER_NAME) as HTMLInputElement;
       await userEvent.type(dateInput, "2024-02-20");
       expect(dateInput.value).toBe("2024-02-20");
     });
@@ -333,9 +327,7 @@ describe("ConceptPhase", () => {
 
       setup({ documents: [olderDocument, newerDocument] });
 
-      const dateInput = screen.getByLabelText(
-        /Pre-Submission Document Submitted Date/
-      ) as HTMLInputElement;
+      const dateInput = screen.getByTestId(DATE_PICKER_NAME) as HTMLInputElement;
       expect(dateInput.value).toBe("2024-01-20");
     });
   });
@@ -468,9 +460,7 @@ describe("ConceptPhase", () => {
 
       setup({ documents: [newDocument] });
 
-      const dateInput = screen.getByLabelText(
-        /Pre-Submission Document Submitted Date/
-      ) as HTMLInputElement;
+      const dateInput = screen.getByTestId(DATE_PICKER_NAME) as HTMLInputElement;
 
       // Date should be calculated from document's createdAt
       expect(dateInput.value).toBe("2026-03-10");
@@ -483,9 +473,7 @@ describe("ConceptPhase", () => {
         initialPresubmissionSubmittedDate: existingDate,
       });
 
-      const dateInput = screen.getByLabelText(
-        /Pre-Submission Document Submitted Date/
-      ) as HTMLInputElement;
+      const dateInput = screen.getByTestId(DATE_PICKER_NAME) as HTMLInputElement;
       expect(dateInput.value).toBe(existingDate);
 
       // Simulate document upload
@@ -513,9 +501,7 @@ describe("ConceptPhase", () => {
     it("displays empty date when no documents and no initial date", () => {
       setup({ documents: [] });
 
-      const dateInput = screen.getByLabelText(
-        /Pre-Submission Document Submitted Date/
-      ) as HTMLInputElement;
+      const dateInput = screen.getByTestId(DATE_PICKER_NAME) as HTMLInputElement;
 
       expect(dateInput.value).toBe("");
     });
@@ -529,9 +515,7 @@ describe("ConceptPhase", () => {
         initialPresubmissionSubmittedDate: initialDate,
       });
 
-      const dateInput = screen.getByLabelText(
-        /Pre-Submission Document Submitted Date/
-      ) as HTMLInputElement;
+      const dateInput = screen.getByTestId(DATE_PICKER_NAME) as HTMLInputElement;
 
       expect(dateInput.value).toBe(initialDate);
     });
@@ -539,9 +523,7 @@ describe("ConceptPhase", () => {
     it("allows user to override calculated date via datepicker", async () => {
       setup({ documents: [MOCK_DOCUMENT] });
 
-      const dateInput = screen.getByLabelText(
-        /Pre-Submission Document Submitted Date/
-      ) as HTMLInputElement;
+      const dateInput = screen.getByTestId(DATE_PICKER_NAME) as HTMLInputElement;
 
       // Initially shows calculated date from document
       expect(dateInput.value).toBe("2024-01-15");
@@ -579,9 +561,7 @@ describe("ConceptPhase", () => {
         initialPresubmissionSubmittedDate: "2024-01-15",
       });
 
-      const dateInput = screen.getByLabelText(
-        /Pre-Submission Document Submitted Date/
-      ) as HTMLInputElement;
+      const dateInput = screen.getByTestId(DATE_PICKER_NAME) as HTMLInputElement;
       expect(dateInput.value).toBe("2024-01-15");
 
       // Remove one document but keep the other
@@ -760,9 +740,7 @@ describe("ConceptPhase", () => {
         documents: [MOCK_DOCUMENT],
         initialPresubmissionSubmittedDate: "2024-01-10",
       });
-      const dateInput = screen.getByLabelText(
-        /Pre-Submission Document Submitted Date/
-      ) as HTMLInputElement;
+      const dateInput = screen.getByTestId(DATE_PICKER_NAME) as HTMLInputElement;
       expect(dateInput.value).toBe("2024-01-10");
     });
   });
