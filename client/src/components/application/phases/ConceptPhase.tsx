@@ -10,7 +10,7 @@ import {
   ApplicationWorkflowDocument,
   WorkflowApplicationType,
 } from "components/application";
-import { formatDateForServer, getTodayEst } from "util/formatDate";
+import { formatDateForServer } from "util/formatDate";
 import { DocumentList } from "./sections";
 import { useDialog } from "components/dialog/DialogContext";
 import { useToast } from "components/toast";
@@ -18,7 +18,7 @@ import { getPhaseCompletedMessage } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import { PhaseName } from "components/application/phase-selector/PhaseSelector";
-import type { LocalDate, PhaseStatus, UploadDocumentInput } from "demos-server";
+import type { LocalDate, PhaseStatus } from "demos-server";
 import {
   useCompletePhase,
   useSkipConceptPhase,
