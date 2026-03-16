@@ -1,12 +1,7 @@
 import { CompletePhaseInput } from "../../types.js";
 import { DATE_TYPES_WITH_EXPECTED_TIMESTAMPS } from "../../constants.js";
 import { prisma } from "../../prismaClient.js";
-import {
-  getApplication,
-  updateApplicationStatusToUnderReviewIfNeeded,
-  updateApplicationStatus,
-  PrismaApplication,
-} from "../application";
+import { getApplication, PrismaApplication } from "../application";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getEasternNow } from "../../dateUtilities.js";
 import { setPhaseToStarted, updatePhaseStatus, validatePhaseCompletion, PHASE_ACTIONS } from ".";
@@ -70,14 +65,6 @@ export async function completePhase(
             tx
           );
         }
-      }
-
-      if (phaseActions.nextPhase?.phaseName === "Application Intake" && nextPhaseWasStarted) {
-        await updateApplicationStatusToUnderReviewIfNeeded(input.applicationId, tx);
-      }
-
-      if (input.phaseName === "Approval Summary") {
-        await updateApplicationStatus(input.applicationId, "Approved", tx);
       }
     });
   } catch (error) {
