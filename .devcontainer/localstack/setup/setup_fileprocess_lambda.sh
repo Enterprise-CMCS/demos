@@ -44,7 +44,17 @@ $AWS_CMD lambda create-function \
     --handler index.handler \
     --zip-file fileb:///workspaces/demos/lambdas/fileprocess/fileprocess.zip \
     --timeout 30 \
-    --environment "Variables={AWS_REGION=$AWS_REGION,AWS_ENDPOINT_URL=$LOCALSTACK_ENDPOINT,DATABASE_SECRET_ARN=database-secret,DB_SCHEMA=demos_app,BYPASS_SSL=true,UPLOAD_BUCKET=upload-bucket,CLEAN_BUCKET=clean-bucket,INFECTED_BUCKET=infected-bucket,BUDGET_NEUTRALITY_QUEUE_URL=$BN_QUEUE_URL}" >/dev/null
+    --environment "Variables={
+      AWS_REGION=$AWS_REGION,
+      AWS_ENDPOINT_URL=$LOCALSTACK_ENDPOINT,
+      DATABASE_SECRET_ARN=database-secret,
+      DB_SCHEMA=demos_app,
+      BYPASS_SSL=true,
+      UPLOAD_BUCKET=upload-bucket,
+      CLEAN_BUCKET=clean-bucket,
+      INFECTED_BUCKET=infected-bucket,
+      BUDGET_NEUTRALITY_QUEUE_URL=$BN_QUEUE_URL
+    }" >/dev/null
 
 # Wait for Lambda to be active
 echo "⏳ Waiting for FileProcess Lambda to be active..."
@@ -53,7 +63,6 @@ for i in {1..15}; do
         --function-name fileprocess \
         --query 'Configuration.State' \
         --output text 2>/dev/null || echo "Pending")
-
     if [ "$STATUS" = "Active" ]; then
         echo "✅ FileProcess Lambda function created"
         break

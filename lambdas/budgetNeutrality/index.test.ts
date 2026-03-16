@@ -55,20 +55,14 @@ describe("budgetNeutrality index", () => {
     );
   });
 
-  it("processes records and returns 200", async () => {
-    mocks.queryMock
-      .mockResolvedValueOnce({ rows: [{ exists: true }] })
-      .mockResolvedValueOnce({})
-      .mockResolvedValueOnce({ rows: [{ exists: false }] });
+  it("processes a single record and returns 200", async () => {
+    mocks.queryMock.mockResolvedValueOnce({ rows: [{ exists: true }] }).mockResolvedValueOnce({});
 
     const pool = { query: mocks.queryMock } as unknown as Pool;
     mocks.getDbPoolMock.mockResolvedValue(pool);
 
     const event = {
-      Records: [
-        { body: JSON.stringify({ documentId: "doc-1", documentTypeId: "Final BN Worksheet" }) },
-        { body: JSON.stringify({ documentId: "doc-2" }) },
-      ],
+      Records: [{ body: JSON.stringify({ documentId: "doc-1", documentTypeId: "Final BN Worksheet" }) }],
     } as unknown as SQSEvent;
 
     const context = { awsRequestId: "test-request-id" } as Context;
@@ -77,10 +71,10 @@ describe("budgetNeutrality index", () => {
 
     expect(response).toEqual({
       statusCode: 200,
-      body: "Processed 2 records.",
+      body: "Processed 1 records.",
     });
     expect(mocks.getDbPoolMock).toHaveBeenCalledTimes(1);
-    expect(mocks.queryMock).toHaveBeenCalledTimes(3);
+    expect(mocks.queryMock).toHaveBeenCalledTimes(2);
     expect(mocks.queryMock.mock.calls[1]?.[0]).toContain("budget_neutrality_workbook");
     expect(mocks.queryMock.mock.calls[1]?.[1]).toEqual([
       "doc-1",
@@ -91,15 +85,33 @@ describe("budgetNeutrality index", () => {
     expect(mocks.logInfoMock).toHaveBeenCalledWith(
       {
         results: {
-          processedRecords: 2,
+          processedRecords: 1,
           existingDocuments: 1,
-          missingDocuments: 1,
-          upsertedWorkbooks: 1,
+          missingDocuments: 0,
+          insertedWorkbooks: 1,
         },
       },
       "Budget Neutrality validation placeholder completed."
     );
-    expect(mocks.logWarnMock).toHaveBeenCalledTimes(1);
+    expect(mocks.logWarnMock).not.toHaveBeenCalled();
+  });
+
+  it("throws when event includes more than one record", async () => {
+    const pool = { query: mocks.queryMock } as unknown as Pool;
+    mocks.getDbPoolMock.mockResolvedValue(pool);
+
+    const event = {
+      Records: [
+        { body: JSON.stringify({ documentId: "doc-1", documentTypeId: "Final BN Worksheet" }) },
+        { body: JSON.stringify({ documentId: "doc-2", documentTypeId: "Final BN Worksheet" }) },
+      ],
+    } as unknown as SQSEvent;
+
+    const context = { awsRequestId: "test-request-id" } as Context;
+
+    await expect(handler(event, context)).rejects.toThrow(
+      "Lambda failed: Expected exactly 1 record, received 2."
+    );
   });
 
   it("uses Final BN Worksheet when message omits documentTypeId", async () => {

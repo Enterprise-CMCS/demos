@@ -5,6 +5,7 @@ import { getDbPool, getDbSchema } from "./db";
 
 const DEFAULT_DOCUMENT_TYPE_ID = "Final BN Worksheet";
 const INITIAL_VALIDATION_STATUS_ID = "Succeeded";
+const DB_SCHEMA = "demos_app";
 const INITIAL_VALIDATION_DATA = {
   source: "budgetNeutrality",
 };
@@ -18,11 +19,11 @@ interface Results {
   processedRecords: number;
   existingDocuments: number;
   missingDocuments: number;
-  upsertedWorkbooks: number;
+  insertedWorkbooks: number;
 }
 
 export async function documentExists(pool: Pool, documentId: string): Promise<boolean> {
-  const query = `SELECT EXISTS(SELECT 1 FROM ${getDbSchema()}.document WHERE id = $1::UUID) AS exists;`;
+  const query = `SELECT EXISTS(SELECT 1 FROM ${DB_SCHEMA}.document WHERE id = $1::UUID) AS exists;`;
   const result = await pool.query(query, [documentId]);
   return Boolean(result.rows[0]?.exists);
 }
@@ -41,24 +42,18 @@ function parseMessage(recordBody: string): BudgetNeutralityMessage {
   };
 }
 
-export async function upsertBudgetNeutralityWorkbook(
+export async function insertBudgetNeutralityWorkbook(
   pool: Pool,
   message: BudgetNeutralityMessage
 ): Promise<void> {
-  const query = `INSERT INTO ${getDbSchema()}.budget_neutrality_workbook (
+  const query = `INSERT INTO ${DB_SCHEMA}.budget_neutrality_workbook (
       id,
       document_type_id,
       validation_status_id,
       validation_data,
       updated_at
     )
-    VALUES ($1::UUID, $2::TEXT, $3::TEXT, $4::JSON, CURRENT_TIMESTAMP)
-    ON CONFLICT (id)
-    DO UPDATE SET
-      document_type_id = EXCLUDED.document_type_id,
-      validation_status_id = EXCLUDED.validation_status_id,
-      validation_data = EXCLUDED.validation_data,
-      updated_at = CURRENT_TIMESTAMP;`;
+    VALUES ($1::UUID, $2::TEXT, $3::TEXT, $4::JSON, CURRENT_TIMESTAMP);`;
 
   await pool.query(query, [
     message.documentId,
@@ -76,39 +71,43 @@ export const handler = async (event: SQSEvent, context: Context) =>
       processedRecords: 0,
       existingDocuments: 0,
       missingDocuments: 0,
-      upsertedWorkbooks: 0,
+      insertedWorkbooks: 0,
     };
 
     try {
       const pool = await getDbPool();
 
-      for (const record of event.Records) {
-        const message = parseMessage(record.body);
-        const exists = await documentExists(pool, message.documentId);
+      if (event.Records.length !== 1) {
+        throw new Error(`Expected exactly 1 record, received ${event.Records.length}.`);
+      }
 
-        results.processedRecords++;
+      const record = event.Records[0];
+      const message = parseMessage(record.body);
+      const exists = await documentExists(pool, message.documentId);
 
-        if (exists) {
-          results.existingDocuments++;
-          await upsertBudgetNeutralityWorkbook(pool, message);
-          results.upsertedWorkbooks++;
-          log.info(
-            {
-              documentId: message.documentId,
-              documentTypeId: message.documentTypeId,
-            },
-            "Budget Neutrality workbook row upserted."
-          );
-        } else {
-          results.missingDocuments++;
-          log.warn(
-            {
-              documentId: message.documentId,
-              documentTypeId: message.documentTypeId,
-            },
-            "Budget Neutrality validation placeholder did not find document in database."
-          );
-        }
+      results.processedRecords = 1;
+      if (exists) {
+        // BN VALIDATION GOES ROUGHLY HERE! (coming soon)
+        results.existingDocuments = 1;
+        await insertBudgetNeutralityWorkbook(pool, message);
+        results.insertedWorkbooks = 1;
+        log.info(
+          {
+            documentId: message.documentId,
+            documentTypeId: message.documentTypeId,
+          },
+          "Budget Neutrality workbook row inserted."
+        );
+      } else {
+        // BN VALIDATION GOES ROUGHLY HERE! (coming soon)
+        results.missingDocuments = 1;
+        log.warn(
+          {
+            documentId: message.documentId,
+            documentTypeId: message.documentTypeId,
+          },
+          "Budget Neutrality validation placeholder did not find document in database."
+        );
       }
 
       log.info({ results }, "Budget Neutrality validation placeholder completed.");

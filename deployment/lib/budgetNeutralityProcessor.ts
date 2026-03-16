@@ -86,6 +86,7 @@ export class BudgetNeutralityProcessor extends Construct {
         format: OutputFormat.ESM,
         environment: {
           DB_SSL_MODE: "verify-full",
+          AWS_REGION: "us-east-1",
           DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
           LOG_LEVEL: process.env.LOG_LEVEL ?? "info",
           NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",

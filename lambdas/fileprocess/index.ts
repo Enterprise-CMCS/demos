@@ -14,7 +14,7 @@ const GUARDDUTY_CLEAN_STATUS = "NO_THREATS_FOUND";
 const FINAL_BN_WORKSHEET_DOCUMENT_TYPE = "Final BN Worksheet";
 const PROCESS_PENDING_DOCUMENT_CLEAN = "move_document_from_pending_to_clean";
 const PROCESS_PENDING_DOCUMENT_INFECTED = "move_document_from_pending_to_infected";
-const AWS_REGION = "us-east-1";
+const AWS_REGION = process.env.AWS_REGION;
 
 let databaseUrlCache = "";
 let cacheExpiration = 0;
