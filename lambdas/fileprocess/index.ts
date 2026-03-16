@@ -8,6 +8,7 @@ import {
 import { Client } from "pg";
 import { S3Client, CopyObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
+import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 import { als, log, store, reqIdChild } from "./log";
 
 const GUARDDUTY_CLEAN_STATUS = "NO_THREATS_FOUND";
@@ -36,7 +37,6 @@ const s3 = new S3Client(
       }
     : awsClientConfig
 );
-const sqsModuleName = "@aws-sdk/client-sqs";
 const secretsManager = new SecretsManagerClient(awsClientConfig);
 
 interface Results {
@@ -157,10 +157,9 @@ export async function enqueueBudgetNeutrality(
     );
   }
 
-  const sqsModule = await import(sqsModuleName);
-  const sqsClient = new sqsModule.SQSClient(awsClientConfig);
+  const sqsClient = new SQSClient(awsClientConfig);
   const response = await sqsClient.send(
-    new sqsModule.SendMessageCommand({
+    new SendMessageCommand({
       QueueUrl: budgetNeutralityQueueUrl,
       MessageBody: JSON.stringify({
         documentId,
