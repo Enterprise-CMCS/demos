@@ -146,7 +146,7 @@ export const ConceptPhase = ({
   }, [submittedDate, documents, isPhaseFinalized]);
 
   const handleDocumentUploadSucceeded = (payload?: UploadDocumentInput) => {
-    if (payload?.documentType === "Pre-Submission") {
+    if (payload?.documentType === "Pre-Submission" && !submittedDate) {
       const todayEst = getTodayEst();
       setSubmittedDate(todayEst);
     }
