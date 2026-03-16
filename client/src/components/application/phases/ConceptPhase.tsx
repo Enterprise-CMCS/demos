@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { compareDesc } from "date-fns";
 
 import { tw } from "tags/tw";
@@ -77,7 +77,7 @@ export const getConceptPhaseComponentFromApplication = (
   );
 };
 
-export const getPresubmissionDate = (
+export const calculatePresubmissionDate = (
   initialPresubmissionDate: string,
   documents: ApplicationWorkflowDocument[]
 ): string => {
@@ -128,7 +128,7 @@ export const ConceptPhase = ({
   const isPhaseFinalized = phaseStatus === "Completed" || phaseStatus === "Skipped";
 
   // Calculate the submitted date based on documents
-  const calculatedSubmittedDate = getPresubmissionDate(
+  const calculatedSubmittedDate = calculatePresubmissionDate(
     initialPresubmissionSubmittedDate ?? "",
     documents
   );

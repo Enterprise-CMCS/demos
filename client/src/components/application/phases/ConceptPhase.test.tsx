@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom";
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { TestProvider } from "test-utils/TestProvider";
@@ -9,6 +9,7 @@ import {
   ConceptPhase,
   ConceptPhaseProps,
   getConceptPhaseComponentFromApplication,
+  calculatePresubmissionDate,
   UPLOAD_BUTTON_NAME,
   FINISH_BUTTON_NAME,
   SKIP_BUTTON_NAME,
@@ -339,16 +340,122 @@ describe("ConceptPhase", () => {
     });
   });
 
+  describe("calculatePresubmissionDate", () => {
+    it("returns initial date if provided, regardless of documents", () => {
+      const initialDate = "2024-01-15";
+      const documents: ApplicationWorkflowDocument[] = [
+        {
+          id: "doc1",
+          name: "Pre-Submission",
+          description: "Test",
+          documentType: "Pre-Submission",
+          phaseName: "Concept",
+          owner: { person: { fullName: "John Doe" } },
+          createdAt: new Date("2024-01-20"),
+        },
+      ];
+
+      const result = calculatePresubmissionDate(initialDate, documents);
+      expect(result).toBe(initialDate);
+    });
+
+    it("returns empty string when no initial date and no documents", () => {
+      const result = calculatePresubmissionDate("", []);
+      expect(result).toBe("");
+    });
+
+    it("returns empty string when no initial date and no pre-submission documents", () => {
+      const otherDocuments: ApplicationWorkflowDocument[] = [
+        {
+          id: "doc1",
+          name: "Other Document",
+          description: "Test",
+          documentType: "State Application",
+          phaseName: "Application Intake",
+          owner: { person: { fullName: "John Doe" } },
+          createdAt: new Date("2024-01-20"),
+        },
+      ];
+
+      const result = calculatePresubmissionDate("", otherDocuments);
+      expect(result).toBe("");
+    });
+
+    it("returns formatted date from latest pre-submission document createdAt", () => {
+      const documents: ApplicationWorkflowDocument[] = [
+        {
+          id: "doc1",
+          name: "Older Pre-Submission",
+          description: "Test",
+          documentType: "Pre-Submission",
+          phaseName: "Concept",
+          owner: { person: { fullName: "John Doe" } },
+          createdAt: new Date("2024-01-10"),
+        },
+        {
+          id: "doc2",
+          name: "Newer Pre-Submission",
+          description: "Test",
+          documentType: "Pre-Submission",
+          phaseName: "Concept",
+          owner: { person: { fullName: "Jane Doe" } },
+          createdAt: new Date("2024-01-20"),
+        },
+      ];
+
+      const result = calculatePresubmissionDate("", documents);
+      expect(result).toBe("2024-01-20");
+    });
+
+    it("returns formatted date in YYYY-MM-DD format", () => {
+      const documents: ApplicationWorkflowDocument[] = [
+        {
+          id: "doc1",
+          name: "Pre-Submission",
+          description: "Test",
+          documentType: "Pre-Submission",
+          phaseName: "Concept",
+          owner: { person: { fullName: "John Doe" } },
+          createdAt: new Date("2024-03-05"),
+        },
+      ];
+
+      const result = calculatePresubmissionDate("", documents);
+      expect(result).toBe("2024-03-05");
+    });
+
+    it("filters out non-pre-submission documents when calculating date", () => {
+      const documents: ApplicationWorkflowDocument[] = [
+        {
+          id: "doc1",
+          name: "Pre-Submission",
+          description: "Test",
+          documentType: "Pre-Submission",
+          phaseName: "Concept",
+          owner: { person: { fullName: "John Doe" } },
+          createdAt: new Date("2024-01-10"),
+        },
+        {
+          id: "doc2",
+          name: "State Application",
+          description: "Test",
+          documentType: "State Application",
+          phaseName: "Application Intake",
+          owner: { person: { fullName: "Jane Doe" } },
+          createdAt: new Date("2024-02-15"),
+        },
+      ];
+
+      const result = calculatePresubmissionDate("", documents);
+      // Should use pre-submission date, not state application date
+      expect(result).toBe("2024-01-10");
+    });
+  });
+
   describe("Date Auto-Population on Document Upload/Removal", () => {
-    it("sets date to today when a pre-submission document is uploaded and no date exists", async () => {
-      const { rerender } = setup({ documents: [] });
-
-      const dateInput = screen.getByLabelText(
-        /Pre-Submission Document Submitted Date/
-      ) as HTMLInputElement;
-      expect(dateInput.value).toBe("");
-
-      // Simulate document upload by updating props
+    it("displays calculated date from document creation date when documents exist", () => {
+      // Document with specific creation date
+      const documentCreatedAt = new Date("2026-03-10T10:00:00");
       const newDocument: ApplicationWorkflowDocument = {
         id: "new-doc",
         name: "New Pre-Submission",
@@ -356,15 +463,17 @@ describe("ConceptPhase", () => {
         documentType: "Pre-Submission",
         phaseName: "Concept",
         owner: { person: { fullName: "John Doe" } },
-        createdAt: new Date(),
+        createdAt: documentCreatedAt,
       };
 
-      rerender({ documents: [newDocument] });
+      setup({ documents: [newDocument] });
 
-      await waitFor(() => {
-        const todayDate = getTodayEst();
-        expect(dateInput.value).toBe(todayDate);
-      });
+      const dateInput = screen.getByLabelText(
+        /Pre-Submission Document Submitted Date/
+      ) as HTMLInputElement;
+
+      // Date should be calculated from document's createdAt
+      expect(dateInput.value).toBe("2026-03-10");
     });
 
     it("does not change date when a pre-submission document is uploaded but date already exists", async () => {
@@ -401,22 +510,47 @@ describe("ConceptPhase", () => {
       });
     });
 
-    it("clears date when the last pre-submission document is removed", async () => {
-      const { rerender } = setup({
+    it("displays empty date when no documents and no initial date", () => {
+      setup({ documents: [] });
+
+      const dateInput = screen.getByLabelText(
+        /Pre-Submission Document Submitted Date/
+      ) as HTMLInputElement;
+
+      expect(dateInput.value).toBe("");
+    });
+
+    it("keeps initial date when provided, regardless of documents", () => {
+      const initialDate = "2024-01-15";
+
+      // With documents but initial date takes precedence
+      setup({
         documents: [MOCK_DOCUMENT],
-        initialPresubmissionSubmittedDate: "2024-01-15",
+        initialPresubmissionSubmittedDate: initialDate,
       });
 
       const dateInput = screen.getByLabelText(
         /Pre-Submission Document Submitted Date/
       ) as HTMLInputElement;
+
+      expect(dateInput.value).toBe(initialDate);
+    });
+
+    it("allows user to override calculated date via datepicker", async () => {
+      setup({ documents: [MOCK_DOCUMENT] });
+
+      const dateInput = screen.getByLabelText(
+        /Pre-Submission Document Submitted Date/
+      ) as HTMLInputElement;
+
+      // Initially shows calculated date from document
       expect(dateInput.value).toBe("2024-01-15");
 
-      // Remove all pre-submission documents
-      rerender({ documents: [] });
-
+      // User manually changes the date using fireEvent (date inputs require this)
+      fireEvent.input(dateInput, { target: { value: "2024-02-20" } });
+      // Date should now show the user's override
       await waitFor(() => {
-        expect(dateInput.value).toBe("");
+        expect(dateInput.value).toBe("2024-02-20");
       });
     });
 
