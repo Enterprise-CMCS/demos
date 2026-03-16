@@ -19,6 +19,7 @@ import {
   ApplicationWorkflowDocument,
 } from "components/application";
 import { DialogProvider } from "components/dialog/DialogContext";
+import { getTodayEst } from "util/formatDate";
 
 const mockCompletePhase = vi.fn();
 const mockSkipConceptPhase = vi.fn();
@@ -307,6 +308,158 @@ describe("ConceptPhase", () => {
       ) as HTMLInputElement;
       await userEvent.type(dateInput, "2024-02-20");
       expect(dateInput.value).toBe("2024-02-20");
+    });
+
+    it("sets date to latest pre-submission document createdAt when multiple documents exist", () => {
+      const olderDocument: ApplicationWorkflowDocument = {
+        id: "older",
+        name: "Older Pre-Submission",
+        description: "Older doc",
+        documentType: "Pre-Submission",
+        phaseName: "Concept",
+        owner: { person: { fullName: "John Doe" } },
+        createdAt: new Date("2024-01-10"),
+      };
+      const newerDocument: ApplicationWorkflowDocument = {
+        id: "newer",
+        name: "Newer Pre-Submission",
+        description: "Newer doc",
+        documentType: "Pre-Submission",
+        phaseName: "Concept",
+        owner: { person: { fullName: "Jane Doe" } },
+        createdAt: new Date("2024-01-20"),
+      };
+
+      setup({ documents: [olderDocument, newerDocument] });
+
+      const dateInput = screen.getByLabelText(
+        /Pre-Submission Document Submitted Date/
+      ) as HTMLInputElement;
+      expect(dateInput.value).toBe("2024-01-20");
+    });
+  });
+
+  describe("Date Auto-Population on Document Upload/Removal", () => {
+    it("sets date to today when a pre-submission document is uploaded and no date exists", async () => {
+      const { rerender } = setup({ documents: [] });
+
+      const dateInput = screen.getByLabelText(
+        /Pre-Submission Document Submitted Date/
+      ) as HTMLInputElement;
+      expect(dateInput.value).toBe("");
+
+      // Simulate document upload by updating props
+      const newDocument: ApplicationWorkflowDocument = {
+        id: "new-doc",
+        name: "New Pre-Submission",
+        description: "Newly uploaded",
+        documentType: "Pre-Submission",
+        phaseName: "Concept",
+        owner: { person: { fullName: "John Doe" } },
+        createdAt: new Date(),
+      };
+
+      rerender({ documents: [newDocument] });
+
+      await waitFor(() => {
+        const todayDate = getTodayEst();
+        expect(dateInput.value).toBe(todayDate);
+      });
+    });
+
+    it("does not change date when a pre-submission document is uploaded but date already exists", async () => {
+      const existingDate = "2024-01-10";
+      const { rerender } = setup({
+        documents: [],
+        initialPresubmissionSubmittedDate: existingDate,
+      });
+
+      const dateInput = screen.getByLabelText(
+        /Pre-Submission Document Submitted Date/
+      ) as HTMLInputElement;
+      expect(dateInput.value).toBe(existingDate);
+
+      // Simulate document upload
+      const newDocument: ApplicationWorkflowDocument = {
+        id: "new-doc",
+        name: "New Pre-Submission",
+        description: "Newly uploaded",
+        documentType: "Pre-Submission",
+        phaseName: "Concept",
+        owner: { person: { fullName: "John Doe" } },
+        createdAt: new Date(),
+      };
+
+      rerender({
+        documents: [newDocument],
+        initialPresubmissionSubmittedDate: existingDate,
+      });
+
+      await waitFor(() => {
+        // Date should remain unchanged
+        expect(dateInput.value).toBe(existingDate);
+      });
+    });
+
+    it("clears date when the last pre-submission document is removed", async () => {
+      const { rerender } = setup({
+        documents: [MOCK_DOCUMENT],
+        initialPresubmissionSubmittedDate: "2024-01-15",
+      });
+
+      const dateInput = screen.getByLabelText(
+        /Pre-Submission Document Submitted Date/
+      ) as HTMLInputElement;
+      expect(dateInput.value).toBe("2024-01-15");
+
+      // Remove all pre-submission documents
+      rerender({ documents: [] });
+
+      await waitFor(() => {
+        expect(dateInput.value).toBe("");
+      });
+    });
+
+    it("does not clear date when removing a document but other pre-submission documents remain", async () => {
+      const doc1: ApplicationWorkflowDocument = {
+        id: "doc1",
+        name: "Pre-Submission 1",
+        description: "First doc",
+        documentType: "Pre-Submission",
+        phaseName: "Concept",
+        owner: { person: { fullName: "John Doe" } },
+        createdAt: new Date("2024-01-10"),
+      };
+      const doc2: ApplicationWorkflowDocument = {
+        id: "doc2",
+        name: "Pre-Submission 2",
+        description: "Second doc",
+        documentType: "Pre-Submission",
+        phaseName: "Concept",
+        owner: { person: { fullName: "Jane Doe" } },
+        createdAt: new Date("2024-01-15"),
+      };
+
+      const { rerender } = setup({
+        documents: [doc1, doc2],
+        initialPresubmissionSubmittedDate: "2024-01-15",
+      });
+
+      const dateInput = screen.getByLabelText(
+        /Pre-Submission Document Submitted Date/
+      ) as HTMLInputElement;
+      expect(dateInput.value).toBe("2024-01-15");
+
+      // Remove one document but keep the other
+      rerender({
+        documents: [doc2],
+        initialPresubmissionSubmittedDate: "2024-01-15",
+      });
+
+      await waitFor(() => {
+        // Date should remain
+        expect(dateInput.value).toBe("2024-01-15");
+      });
     });
   });
 

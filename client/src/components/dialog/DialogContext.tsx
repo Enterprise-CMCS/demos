@@ -157,15 +157,11 @@ export const useDialog = () => {
     );
   };
 
-  const showConceptPreSubmissionDocumentUploadDialog = (
-    applicationId: string,
-    onDocumentUploadSucceeded: (payload?: UploadDocumentInput) => void
-  ) => {
+  const showConceptPreSubmissionDocumentUploadDialog = (applicationId: string) => {
     context.showDialog(
       <ConceptPreSubmissionUploadDialog
-        onDocumentUploadSucceeded={onDocumentUploadSucceeded}
-        onClose={context.hideDialog}
         applicationId={applicationId}
+        onClose={context.hideDialog}
       />
     );
   };

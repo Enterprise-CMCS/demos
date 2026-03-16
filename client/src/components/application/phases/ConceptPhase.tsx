@@ -52,8 +52,8 @@ export const getConceptPhaseComponentFromApplication = (
   const conceptPhaseDocuments = application.documents.filter(
     (document) => document.phaseName === CONCEPT_PHASE_NAME
   );
-
   const conceptPhase = application.phases.find((phase) => phase.phaseName === CONCEPT_PHASE_NAME);
+
   if (!conceptPhase) {
     console.error("Concept phase data is missing for application:", application.id);
     return null;
@@ -120,13 +120,13 @@ export const ConceptPhase = ({
   const { completePhase } = useCompletePhase();
   const { skipConceptPhase } = useSkipConceptPhase();
 
-  const isPhaseFinalized = phaseStatus === "Completed" || phaseStatus === "Skipped";
-
   const [submittedDate, setSubmittedDate] = useState<string>(
     getDefaultPresubmissionDate(initialPresubmissionSubmittedDate ?? "", documents)
   );
   const [isFinishEnabled, setIsFinishEnabled] = useState<boolean>(false);
   const [isSkipEnabled, setIsSkipEnabled] = useState<boolean>(true);
+
+  const isPhaseFinalized = phaseStatus === "Completed" || phaseStatus === "Skipped";
 
   const prevPresubmissionCountRef = useRef<number>(
     documents.filter((doc) => doc.documentType === "Pre-Submission").length
@@ -155,13 +155,6 @@ export const ConceptPhase = ({
 
     prevPresubmissionCountRef.current = presubmissionCount;
   }, [documents]);
-
-  const handleDocumentUploadSucceeded = (payload?: UploadDocumentInput) => {
-    if (payload?.documentType === "Pre-Submission" && !submittedDate) {
-      const todayEst = getTodayEst();
-      setSubmittedDate(todayEst);
-    }
-  };
 
   const getDateValidationMessage = (): string => {
     if (
@@ -232,9 +225,7 @@ export const ConceptPhase = ({
       </p>
 
       <SecondaryButton
-        onClick={() =>
-          showConceptPreSubmissionDocumentUploadDialog(applicationId, handleDocumentUploadSucceeded)
-        }
+        onClick={() => showConceptPreSubmissionDocumentUploadDialog(applicationId)}
         size="small"
         name={UPLOAD_BUTTON_NAME}
       >
