@@ -28,7 +28,7 @@ export const GET_APPLICATION_TAG_OPTIONS: TypedDocumentNode<
 `;
 
 export interface DemonstrationHealthTypeTagsProps {
-  demonstrationId: string;
+  applicationId: string;
   selectedTags: Tag[];
   title: string;
   description?: string;
@@ -36,7 +36,7 @@ export interface DemonstrationHealthTypeTagsProps {
 }
 // We could make this name more generic for reuse.
 export const DemonstrationHealthTypeTags = ({
-  demonstrationId,
+  applicationId,
   selectedTags,
   title,
   description,
@@ -51,7 +51,7 @@ export const DemonstrationHealthTypeTags = ({
 
   const handleApplyClick = () => {
     showApplyTagsDialog(
-      demonstrationId,
+      applicationId,
       [...data.applicationTagOptions].sort((a, b) => a.tagName.localeCompare(b.tagName)),
       selectedTags
     );
