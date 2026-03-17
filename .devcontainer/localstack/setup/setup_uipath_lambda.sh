@@ -22,26 +22,20 @@ DB_SSL_MODE=${DB_SSL_MODE:-"disable"}
 cd /workspaces/demos/lambdas/UIPath
 
 npm ci --silent
-npx esbuild index.ts \
+npx tsc --outDir build
+npx esbuild build/index.js \
   --bundle \
   --platform=node \
-  --target=node18 \
-  --format=esm \
+  --target=node24 \
   --sourcemap \
-  --external:@aws-sdk/* \
-  --external:pg \
-  --external:pino \
-  --external:axios \
-  --external:form-data \
-  --external:axios-oauth-client \
-  --external:file-type \
-  --external:dotenv \
-  --outfile=index.js
-
-zip -qr uipath.zip index.js node_modules/ package.json package-lock.json ak-behavioral-health-demo-pa.pdf
+  --outfile=dist/index.cjs
+rm -f uipath.zip
+mv dist/index.cjs index.cjs
+zip -qr uipath.zip index.cjs
 
 # Clean up build artifacts
-rm index.js index.js.map
+rm -rf dist/ build/
+rm -f index.cjs
 
 cd - > /dev/null
 
