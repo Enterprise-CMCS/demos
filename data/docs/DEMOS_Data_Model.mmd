@@ -419,8 +419,8 @@ erDiagram
     uuid application_id FK "FK139: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK140: (suggestion_id, application_id, value) ∈ application_tag_suggestion.(id, application_id, value) DEFERRED"
     text field_id FK "FK139: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK141: field_id ∈ application_tag_suggestion_extract_field_limit.id"
     text value FK "FK139: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK140: (suggestion_id, application_id, value) ∈ application_tag_suggestion.(id, application_id, value) DEFERRED"
-    int start_page_no
-    int end_page_no
+    integer start_page_no
+    integer end_page_no
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_DELETE check_suggestion_deleted_if_last_extract "If this is the last extract of a suggestion, verify that the corresponding suggestion is deleted."
@@ -433,7 +433,7 @@ erDiagram
     uuid id PK, FK "FK124: (id, document_type_id) ∈ document.(id, document_type_id) DEFERRED"
     text document_type_id FK "FK124: (id, document_type_id) ∈ document.(id, document_type_id) DEFERRED<br>FK125: document_type_id ∈ budget_neutrality_workbook_document_type_limit.id"
     text validation_status_id FK "FK126: validation_status_id ∈ budget_neutrality_validation_status.id"
-    json validation_data
+    jsonb validation_data
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_document "Verify that no corresponding record exists in the document table."
@@ -443,14 +443,14 @@ erDiagram
 
   deliverable:::dataTable {
     uuid id PK, UK "UK: (id, demonstration_id, deliverable_type_id)"
+    text deliverable_type_id FK, UK "FK067: deliverable_type_id ∈ deliverable_type.id<br>UK: (id, demonstration_id, deliverable_type_id)"
     uuid demonstration_id FK, UK "FK006: (demonstration_id, demonstration_status_id) ∈ demonstration.(id, status_id)<br>UK: (id, demonstration_id, deliverable_type_id)"
     text demonstration_status_id FK "FK006: (demonstration_id, demonstration_status_id) ∈ demonstration.(id, status_id)<br>FK105: demonstration_status_id ∈ deliverable_demonstration_status_limit.id"
-    text deliverable_type_id FK, UK "FK067: deliverable_type_id ∈ deliverable_type.id<br>UK: (id, demonstration_id, deliverable_type_id)"
     text status_id FK "FK094: status_id ∈ deliverable_status.id"
-    text due_date_type_id FK "FK095: due_date_type_id ∈ deliverable_due_date_type.id"
     uuid cms_owner_user_id FK "FK108: (cms_owner_user_id, cms_owner_person_type_id) ∈ users.(id, person_type_id)"
     text cms_owner_person_type_id FK "FK108: (cms_owner_user_id, cms_owner_person_type_id) ∈ users.(id, person_type_id)<br>FK106: cms_owner_person_type_id ∈ cms_user_person_type_limit.id"
     timestamptz due_date
+    text due_date_type_id FK "FK095: due_date_type_id ∈ deliverable_due_date_type.id"
     bool expected_to_be_submitted
     timestamptz created_at
     timestamptz updated_at
@@ -621,7 +621,7 @@ erDiagram
     text log_level_id FK "FK066: log_level_id ∈ log_level.id"
     text route
     timestamptz created_at
-    json event_data
+    jsonb event_data
   }
 
   extension:::dataTable {
@@ -702,7 +702,7 @@ erDiagram
   uipath_result:::dataTable {
     uuid id PK, UK "UK: (id, document_id, application_id)"
     text request_id UK "UK: request_id"
-    json response
+    jsonb response
     text project_id
     uuid document_id FK, UK "FK136: (document_id, application_id) ∈ document.(id, application_id)<br>UK: (id, document_id, application_id)<br>UK: document_id"
     uuid application_id FK "FK136: (document_id, application_id) ∈ document.(id, application_id)<br>UK: (id, document_id, application_id)"
@@ -720,10 +720,10 @@ erDiagram
     uuid application_id FK, UK "FK137: (uipath_result_id, document_id, application_id) ∈ uipath_result.(id, document_id, application_id)<br>UK: (id, application_id, field_id, value)"
     text field_id UK "UK: (id, application_id, field_id, value)"
     text value UK "UK: (id, application_id, field_id, value)"
-    int text_length
-    int text_start_index
+    integer text_length
+    integer text_start_index
     double confidence
-    json token_list
+    jsonb token_list
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."

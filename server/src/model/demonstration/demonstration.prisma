@@ -26,9 +26,11 @@ model Demonstration {
   demonstrationRoleAssignments    DemonstrationRoleAssignment[]
   clearanceLevel                  ClearanceLevel                    @relation(fields: [clearanceLevelId], references: [id], onDelete: Restrict)
   demonstrationTypeTagAssignments DemonstrationTypeTagAssignment[]
+  deliverables                    Deliverable[]
 
   @@id([id])
   @@unique([id, stateId])
+  @@unique([id, statusId])
   @@unique([id, applicationTypeId]) // Not required by Postgres, but Prisma requires this notation
   @@map("demonstration")
 }

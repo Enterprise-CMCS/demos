@@ -204,7 +204,7 @@ CREATE TABLE "budget_neutrality_workbook" (
     "id" UUID NOT NULL,
     "document_type_id" TEXT NOT NULL,
     "validation_status_id" TEXT NOT NULL,
-    "validation_data" JSON NOT NULL,
+    "validation_data" JSONB NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
@@ -219,7 +219,7 @@ CREATE TABLE "budget_neutrality_workbook_history" (
     "id" UUID NOT NULL,
     "document_type_id" TEXT NOT NULL,
     "validation_status_id" TEXT NOT NULL,
-    "validation_data" JSON NOT NULL,
+    "validation_data" JSONB NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
@@ -491,7 +491,7 @@ CREATE TABLE "event" (
     "log_level_id" TEXT NOT NULL,
     "route" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "event_data" JSON NOT NULL,
+    "event_data" JSONB NOT NULL,
 
     CONSTRAINT "event_pkey" PRIMARY KEY ("id")
 );

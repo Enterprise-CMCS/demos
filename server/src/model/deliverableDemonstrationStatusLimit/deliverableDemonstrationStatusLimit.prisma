@@ -1,0 +1,10 @@
+// Flags: TYPE_LIMITER
+model DeliverableDemonstrationStatusLimit {
+  id String
+
+  demonstrationStatus ApplicationStatus @relation(fields: [id], references: [id])
+  deliverables        Deliverable[]
+
+  @@id([id])
+  @@map("deliverable_demonstration_status_limit")
+}
