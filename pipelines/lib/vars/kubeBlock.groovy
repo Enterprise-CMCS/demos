@@ -18,9 +18,11 @@ def call(Map params = [:]) {
     requests:
       cpu: 750m
       memory: 2Gi
+      ephemeral-storage: "1Gi"
     limits:
       cpu: 1500m
       memory: 4Gi
+      ephemeral-storage: "5Gi"
 """,
       'aws-cli': """
 - name: aws-cli
@@ -33,9 +35,11 @@ def call(Map params = [:]) {
     requests:
       cpu: 200m
       memory: 256Mi
+      ephemeral-storage: "1Gi"
     limits:
       cpu: 400m
       memory: 512Mi
+      ephemeral-storage: "5Gi"
 """,
       'scanner': """
 - name: scanner
@@ -47,9 +51,11 @@ def call(Map params = [:]) {
     requests:
       cpu: 1500m
       memory: 2Gi
+      ephemeral-storage: "1Gi"
     limits:
       cpu: 3000m
       memory: 4Gi
+      ephemeral-storage: "5Gi"
 """,
       'snyk': """
 - name: snyk
@@ -61,9 +67,11 @@ def call(Map params = [:]) {
     requests:
       cpu: 500m
       memory: 1Gi
+      ephemeral-storage: "1Gi"
     limits:
       cpu: 2000m
       memory: 2Gi
+      ephemeral-storage: "5Gi"
 """,
       'zap': """
 - name: zap
@@ -75,9 +83,11 @@ def call(Map params = [:]) {
     requests:
       cpu: 1500m
       memory: 2Gi
+      ephemeral-storage: "1Gi"
     limits:
       cpu: 3000m
       memory: 4Gi
+      ephemeral-storage: "5Gi"
 """,
       'checkov': """
 - name: checkov
@@ -89,9 +99,11 @@ def call(Map params = [:]) {
     requests:
       cpu: 500m
       memory: 256Mi
+      ephemeral-storage: "1Gi"
     limits:
       cpu: 2000m
       memory: 2Gi
+      ephemeral-storage: "5Gi"
 """
     ]
 
