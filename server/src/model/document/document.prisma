@@ -15,7 +15,9 @@ model Document {
   phaseDocumentType         PhaseDocumentType          @relation(fields: [phaseId, documentTypeId], references: [phaseId, documentTypeId])
   uipathResults             UiPathResult[]
   budgetNeutralityWorkbooks BudgetNeutralityWorkbook[]
+  uipathValues              UipathValue[]
 
+  @@unique([id, applicationId])
   @@unique([id, documentTypeId])
   @@map("document")
 }
