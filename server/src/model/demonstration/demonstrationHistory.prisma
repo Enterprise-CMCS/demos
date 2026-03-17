@@ -1,21 +1,21 @@
 model DemonstrationHistory {
   revisionId          Int          @id @default(autoincrement()) @map("revision_id")
   revisionType        RevisionType @map("revision_type")
-  modifiedAt          DateTime     @default(now()) @map("modified_at") @db.Timestamptz()
+  modifiedAt          DateTime     @default(now()) @map("modified_at") @db.Timestamptz
   id                  String       @db.Uuid
   application_type_id String
   name                String
   description         String?
-  effectiveDate       DateTime?    @map("effective_date") @db.Timestamptz()
-  expirationDate      DateTime?    @map("expiration_date") @db.Timestamptz()
+  effectiveDate       DateTime?    @map("effective_date") @db.Timestamptz
+  expirationDate      DateTime?    @map("expiration_date") @db.Timestamptz
   sdgDivisionId       String?      @map("sdg_division_id")
   signatureLevelId    String?      @map("signature_level_id")
   statusId            String       @map("status_id")
   currentPhaseId      String       @map("current_phase_id")
   stateId             String       @map("state_id")
   clearanceLevelId    String       @map("clearance_level_id")
-  createdAt           DateTime     @map("created_at") @db.Timestamptz()
-  updatedAt           DateTime     @map("updated_at") @db.Timestamptz()
+  createdAt           DateTime     @map("created_at") @db.Timestamptz
+  updatedAt           DateTime     @map("updated_at") @db.Timestamptz
 
   @@map("demonstration_history")
 }

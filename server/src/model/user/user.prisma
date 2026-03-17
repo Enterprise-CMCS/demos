@@ -3,8 +3,8 @@ model User {
   personTypeId   String   @map("person_type_id")
   cognitoSubject String   @map("cognito_subject") @db.Uuid
   username       String
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   person                 Person                  @relation(fields: [id, personTypeId], references: [id, personTypeId])
   personType             UserPersonTypeLimit     @relation(fields: [personTypeId], references: [id])

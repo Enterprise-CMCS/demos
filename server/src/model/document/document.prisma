@@ -7,8 +7,8 @@ model Document {
   documentTypeId String   @map("document_type_id")
   applicationId  String   @map("application_id") @db.Uuid
   phaseId        String   @map("phase_id")
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   owner                     User                       @relation(fields: [ownerUserId], references: [id])
   application               Application                @relation(fields: [applicationId], references: [id])

@@ -6,11 +6,11 @@ model Deliverable {
   statusId              String   @map("status_id")
   cmsOwnerUserId        String   @map("cms_owner_user_id") @db.Uuid
   cmsOwnerPersonTypeId  String   @map("cms_owner_person_type_id")
-  dueDate               DateTime @map("due_date") @db.Timestamptz()
+  dueDate               DateTime @map("due_date") @db.Timestamptz
   dueDateTypeId         String   @map("due_date_type_id")
   expectedToBeSubmitted Boolean  @map("expected_to_be_submitted")
-  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt             DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   deliverableType     DeliverableType                     @relation(fields: [deliverableTypeId], references: [id])
   status              DeliverableStatus                   @relation(fields: [statusId], references: [id])

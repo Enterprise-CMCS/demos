@@ -8,7 +8,7 @@ model UipathResultField {
   confidence     Float    @map("confidence")
   valueJson      Json     @map("value_json")
   textLength     Int      @map("text_length")
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   result UiPathResult @relation(fields: [uipathResultId], references: [id])
 

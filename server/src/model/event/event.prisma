@@ -8,7 +8,7 @@ model Event {
   eventTypeId   String   @map("event_type_id")
   logLevelId    String   @map("log_level_id")
   route         String
-  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
   eventData     Json     @map("event_data")
 
   role        Role?        @relation(fields: [roleId], references: [id], onDelete: SetNull)

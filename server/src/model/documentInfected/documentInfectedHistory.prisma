@@ -1,7 +1,7 @@
 model DocumentInfectedHistory {
   revisionId       Int          @id @default(autoincrement()) @map("revision_id")
   revisionType     RevisionType @map("revision_type")
-  modifiedAt       DateTime     @default(now()) @map("modified_at") @db.Timestamptz()
+  modifiedAt       DateTime     @default(now()) @map("modified_at") @db.Timestamptz
   id               String       @db.Uuid
   name             String
   description      String?
@@ -12,8 +12,8 @@ model DocumentInfectedHistory {
   phaseId          String       @map("phase_id")
   infectionStatus  String       @map("infection_status")
   infectionThreats String       @map("infection_threats")
-  createdAt        DateTime     @map("created_at") @db.Timestamptz()
-  updatedAt        DateTime     @map("updated_at") @db.Timestamptz()
+  createdAt        DateTime     @map("created_at") @db.Timestamptz
+  updatedAt        DateTime     @map("updated_at") @db.Timestamptz
 
   @@map("document_infected_history")
 }
