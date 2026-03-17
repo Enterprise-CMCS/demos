@@ -5,8 +5,9 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { parseISO, format } from "date-fns";
 
-import { ReviewPhase } from "./ReviewPhase";
-import { ReviewPhaseFormData } from "./ReviewPhase";
+import { ReviewPhase, ReviewPhaseFormData } from "./ReviewPhase";
+import { getReviewPhaseComponentFromApplication } from "./reviewPhaseData";
+import { WorkflowApplication } from "components/application";
 import { TestProvider } from "test-utils/TestProvider";
 
 // Mock formatDateForServer so date output is predictable and uses date-fns (no toISOString slicing)
@@ -742,5 +743,355 @@ describe("ReviewPhase Component", () => {
         expect(mockOnFinish).toHaveBeenCalledOnce();
       });
     });
+  });
+});
+
+describe("Amendment and Extension Review Phase", () => {
+  const mockOnFinish = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const buildWorkflowApplication = (
+    overrides: Partial<WorkflowApplication> = {}
+  ): WorkflowApplication => ({
+    id: "amendment-1",
+    currentPhaseName: "Review",
+    status: "Under Review",
+    clearanceLevel: "COMMs",
+    documents: [],
+    tags: [],
+    phases: [
+      {
+        phaseName: "Application Intake",
+        phaseStatus: "Completed",
+        phaseDates: [],
+        phaseNotes: [],
+      },
+      {
+        phaseName: "Completeness",
+        phaseStatus: "Completed",
+        phaseDates: [],
+        phaseNotes: [],
+      },
+      {
+        phaseName: "Federal Comment",
+        phaseStatus: "Completed",
+        phaseDates: [],
+        phaseNotes: [],
+      },
+      {
+        phaseName: "SDG Preparation",
+        phaseStatus: "Completed",
+        phaseDates: [],
+        phaseNotes: [],
+      },
+      {
+        phaseName: "Review",
+        phaseStatus: "Started",
+        phaseDates: [],
+        phaseNotes: [],
+      },
+    ],
+    ...overrides,
+  });
+
+  it("renders Review phase for an amendment workflow", () => {
+    const amendment = buildWorkflowApplication({ id: "amendment-1" });
+
+    render(
+      <TestProvider>{getReviewPhaseComponentFromApplication(amendment, mockOnFinish)}</TestProvider>
+    );
+
+    expect(screen.getByText("REVIEW")).toBeInTheDocument();
+    expect(screen.getByText(/Gather input and address comments from the HHS/i)).toBeInTheDocument();
+    expect(screen.getByText("PO & OGD")).toBeInTheDocument();
+    expect(screen.getByText("OGC & OMB")).toBeInTheDocument();
+    expect(screen.getByText("COMMs Clearance Required")).toBeInTheDocument();
+    expect(screen.getByText("CMS (OSORA) Clearance Required")).toBeInTheDocument();
+  });
+
+  it("renders Review phase for an extension workflow", () => {
+    const extension = buildWorkflowApplication({ id: "extension-1" });
+
+    render(
+      <TestProvider>{getReviewPhaseComponentFromApplication(extension, mockOnFinish)}</TestProvider>
+    );
+
+    expect(screen.getByText("REVIEW")).toBeInTheDocument();
+    expect(screen.getByTestId("review-save-for-later")).toBeInTheDocument();
+    expect(screen.getByTestId("review-finish")).toBeInTheDocument();
+  });
+
+  it("renders COMMs Clearance section when COMMs clearance level is set", () => {
+    const application = buildWorkflowApplication({ clearanceLevel: "COMMs" });
+
+    render(
+      <TestProvider>
+        {getReviewPhaseComponentFromApplication(application, mockOnFinish)}
+      </TestProvider>
+    );
+
+    expect(screen.getByText("Comms Clearance")).toBeInTheDocument();
+    expect(screen.queryByText("CMS (OSORA) Clearance")).not.toBeInTheDocument();
+  });
+
+  it("renders CMS (OSORA) Clearance section when CMS (OSORA) clearance level is set", () => {
+    const application = buildWorkflowApplication({ clearanceLevel: "CMS (OSORA)" });
+
+    render(
+      <TestProvider>
+        {getReviewPhaseComponentFromApplication(application, mockOnFinish)}
+      </TestProvider>
+    );
+
+    expect(screen.getByText("CMS (OSORA) Clearance")).toBeInTheDocument();
+    expect(screen.queryByText("Comms Clearance")).not.toBeInTheDocument();
+  });
+
+  it("enables Finish button when all sections are complete and previous phases are done", () => {
+    const application = buildWorkflowApplication({
+      clearanceLevel: "COMMs",
+      phases: [
+        {
+          phaseName: "Application Intake",
+          phaseStatus: "Completed",
+          phaseDates: [],
+          phaseNotes: [],
+        },
+        {
+          phaseName: "Completeness",
+          phaseStatus: "Completed",
+          phaseDates: [],
+          phaseNotes: [],
+        },
+        {
+          phaseName: "Federal Comment",
+          phaseStatus: "Completed",
+          phaseDates: [],
+          phaseNotes: [],
+        },
+        {
+          phaseName: "SDG Preparation",
+          phaseStatus: "Completed",
+          phaseDates: [],
+          phaseNotes: [],
+        },
+        {
+          phaseName: "Review",
+          phaseStatus: "Started",
+          phaseDates: [
+            { dateType: "OGD Approval to Share with SMEs", dateValue: new Date("2025-01-01") },
+            { dateType: "Draft Approval Package to Prep", dateValue: new Date("2025-01-02") },
+            { dateType: "DDME Approval Received", dateValue: new Date("2025-01-03") },
+            { dateType: "State Concurrence", dateValue: new Date("2025-01-04") },
+            { dateType: "BN PMT Approval to Send to OMB", dateValue: new Date("2025-01-05") },
+            { dateType: "Draft Approval Package Shared", dateValue: new Date("2025-01-06") },
+            { dateType: "Receive OMB Concurrence", dateValue: new Date("2025-01-07") },
+            { dateType: "Receive OGC Legal Clearance", dateValue: new Date("2025-01-08") },
+            {
+              dateType: "Package Sent for COMMs Clearance",
+              dateValue: new Date("2025-01-09"),
+            },
+            { dateType: "COMMs Clearance Received", dateValue: new Date("2025-01-10") },
+          ],
+          phaseNotes: [],
+        },
+      ],
+    });
+
+    render(
+      <TestProvider>
+        {getReviewPhaseComponentFromApplication(application, mockOnFinish)}
+      </TestProvider>
+    );
+
+    expect(screen.getByTestId("review-finish")).toBeEnabled();
+  });
+
+  it("disables Finish button when previous phases are not completed", () => {
+    const application = buildWorkflowApplication({
+      phases: [
+        {
+          phaseName: "Completeness",
+          phaseStatus: "Started",
+          phaseDates: [],
+          phaseNotes: [],
+        },
+        {
+          phaseName: "Review",
+          phaseStatus: "Started",
+          phaseDates: [
+            { dateType: "OGD Approval to Share with SMEs", dateValue: new Date("2025-01-01") },
+            { dateType: "Draft Approval Package to Prep", dateValue: new Date("2025-01-02") },
+            { dateType: "DDME Approval Received", dateValue: new Date("2025-01-03") },
+            { dateType: "State Concurrence", dateValue: new Date("2025-01-04") },
+            { dateType: "BN PMT Approval to Send to OMB", dateValue: new Date("2025-01-05") },
+            { dateType: "Draft Approval Package Shared", dateValue: new Date("2025-01-06") },
+            { dateType: "Receive OMB Concurrence", dateValue: new Date("2025-01-07") },
+            { dateType: "Receive OGC Legal Clearance", dateValue: new Date("2025-01-08") },
+            {
+              dateType: "Package Sent for COMMs Clearance",
+              dateValue: new Date("2025-01-09"),
+            },
+            { dateType: "COMMs Clearance Received", dateValue: new Date("2025-01-10") },
+          ],
+          phaseNotes: [],
+        },
+      ],
+    });
+
+    render(
+      <TestProvider>
+        {getReviewPhaseComponentFromApplication(application, mockOnFinish)}
+      </TestProvider>
+    );
+
+    expect(screen.getByTestId("review-finish")).toBeDisabled();
+  });
+
+  it("calls completePhase and onFinish when Finish is clicked", async () => {
+    const application = buildWorkflowApplication({
+      clearanceLevel: "COMMs",
+      phases: [
+        {
+          phaseName: "Application Intake",
+          phaseStatus: "Completed",
+          phaseDates: [],
+          phaseNotes: [],
+        },
+        {
+          phaseName: "Completeness",
+          phaseStatus: "Completed",
+          phaseDates: [],
+          phaseNotes: [],
+        },
+        {
+          phaseName: "Federal Comment",
+          phaseStatus: "Completed",
+          phaseDates: [],
+          phaseNotes: [],
+        },
+        {
+          phaseName: "SDG Preparation",
+          phaseStatus: "Completed",
+          phaseDates: [],
+          phaseNotes: [],
+        },
+        {
+          phaseName: "Review",
+          phaseStatus: "Started",
+          phaseDates: [
+            { dateType: "OGD Approval to Share with SMEs", dateValue: new Date("2025-01-01") },
+            { dateType: "Draft Approval Package to Prep", dateValue: new Date("2025-01-02") },
+            { dateType: "DDME Approval Received", dateValue: new Date("2025-01-03") },
+            { dateType: "State Concurrence", dateValue: new Date("2025-01-04") },
+            { dateType: "BN PMT Approval to Send to OMB", dateValue: new Date("2025-01-05") },
+            { dateType: "Draft Approval Package Shared", dateValue: new Date("2025-01-06") },
+            { dateType: "Receive OMB Concurrence", dateValue: new Date("2025-01-07") },
+            { dateType: "Receive OGC Legal Clearance", dateValue: new Date("2025-01-08") },
+            {
+              dateType: "Package Sent for COMMs Clearance",
+              dateValue: new Date("2025-01-09"),
+            },
+            { dateType: "COMMs Clearance Received", dateValue: new Date("2025-01-10") },
+          ],
+          phaseNotes: [
+            { noteType: "PO and OGD", content: "Amendment PO notes" },
+            { noteType: "OGC and OMB", content: "Amendment OGC notes" },
+            { noteType: "COMMs Clearance", content: "Amendment COMMs notes" },
+          ],
+        },
+      ],
+    });
+
+    render(
+      <TestProvider>
+        {getReviewPhaseComponentFromApplication(application, mockOnFinish)}
+      </TestProvider>
+    );
+
+    const finishButton = screen.getByTestId("review-finish");
+    await userEvent.click(finishButton);
+
+    await waitFor(() => {
+      expect(mockSetApplicationDates).toHaveBeenCalledWith({
+        applicationId: "amendment-1",
+        applicationDates: expect.arrayContaining([
+          { dateType: "OGD Approval to Share with SMEs", dateValue: "2025-01-01" },
+          { dateType: "Package Sent for COMMs Clearance", dateValue: "2025-01-09" },
+        ]),
+      });
+      expect(mockSetApplicationNotes).toHaveBeenCalledWith({
+        applicationId: "amendment-1",
+        applicationNotes: expect.arrayContaining([
+          { noteType: "PO and OGD", content: "Amendment PO notes" },
+          { noteType: "OGC and OMB", content: "Amendment OGC notes" },
+          { noteType: "COMMs Clearance", content: "Amendment COMMs notes" },
+        ]),
+      });
+      expect(mockCompletePhase).toHaveBeenCalledWith({
+        applicationId: "amendment-1",
+        phaseName: "Review",
+      });
+      expect(mockOnFinish).toHaveBeenCalledOnce();
+    });
+  });
+
+  it("saves dates via Save For Later for amendment/extension workflows", async () => {
+    const application = buildWorkflowApplication({
+      phases: [
+        {
+          phaseName: "Review",
+          phaseStatus: "Started",
+          phaseDates: [],
+          phaseNotes: [],
+        },
+      ],
+    });
+
+    render(
+      <TestProvider>
+        {getReviewPhaseComponentFromApplication(application, mockOnFinish)}
+      </TestProvider>
+    );
+
+    const dateInput = screen.getByTestId("datepicker-ogc-approval-to-share-date");
+    await userEvent.type(dateInput, "2025-07-01");
+
+    const saveButton = screen.getByTestId("review-save-for-later");
+    await userEvent.click(saveButton);
+
+    await waitFor(() => {
+      expect(mockSetApplicationDates).toHaveBeenCalledWith({
+        applicationId: "amendment-1",
+        applicationDates: expect.arrayContaining([
+          { dateType: "OGD Approval to Share with SMEs", dateValue: "2025-07-01" },
+        ]),
+      });
+    });
+  });
+
+  it("sets phase to readonly when phase status is Completed", () => {
+    const application = buildWorkflowApplication({
+      phases: [
+        {
+          phaseName: "Review",
+          phaseStatus: "Completed",
+          phaseDates: [],
+          phaseNotes: [],
+        },
+      ],
+    });
+
+    render(
+      <TestProvider>
+        {getReviewPhaseComponentFromApplication(application, mockOnFinish)}
+      </TestProvider>
+    );
+
+    expect(screen.getByTestId("review-finish")).toBeDisabled();
+    expect(screen.getByTestId("datepicker-ogc-approval-to-share-date")).toBeDisabled();
   });
 });
