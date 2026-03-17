@@ -52,10 +52,11 @@ describe("ApplicationIntakePhase", () => {
 
   const DEFAULT_APPLICATION_INTAKE_PROPS: ApplicationIntakeProps = {
     applicationId: TEST_APP_ID,
-    initialStateApplicationDocuments: [],
+    applicationIntakeDocuments: [],
     initialStateApplicationSubmittedDate: "",
     tags: [],
     phaseStatus: "Started",
+    setSelectedPhase: vi.fn(),
   };
 
   const MOCK_STATE_APPLICATION_DOCUMENT: ApplicationWorkflowDocument = {
@@ -144,14 +145,14 @@ describe("ApplicationIntakePhase", () => {
 
     it("displays Application Intake phase documents only", () => {
       setup({
-        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
       });
 
       expect(screen.getByText("State Application Document 1")).toBeInTheDocument();
     });
 
     it("renders delete button for each document", () => {
-      setup({ initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT] });
+      setup({ applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT] });
 
       const deleteButton = screen.getByLabelText("Delete State Application Document 1");
       expect(deleteButton).toBeInTheDocument();
@@ -285,7 +286,7 @@ describe("ApplicationIntakePhase", () => {
 
       it("is enabled when documents are uploaded & state application date is filled", () => {
         setup({
-          initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+          applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
           initialStateApplicationSubmittedDate: "2020-10-10",
         });
         const finishButton = screen.getByTestId(APPLICATION_INTAKE_FINISH_BUTTON_NAME);
@@ -302,7 +303,7 @@ describe("ApplicationIntakePhase", () => {
         const setSelectedPhase = vi.fn();
 
         setup({
-          initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+          applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
           initialStateApplicationSubmittedDate: "2020-10-10",
           setSelectedPhase,
         });
@@ -416,7 +417,7 @@ describe("ApplicationIntakePhase", () => {
         tags: [],
       };
 
-      const component = getApplicationIntakeComponentFromApplication(mockApplication);
+      const component = getApplicationIntakeComponentFromApplication(mockApplication, () => {});
 
       expect(component).toBeDefined();
       expect(component.type).toBe(ApplicationIntakePhase);
@@ -429,7 +430,7 @@ describe("ApplicationIntakePhase", () => {
   describe("handleDateChange", () => {
     it("updates the state application submitted date when user changes date input", async () => {
       setup({
-        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
       });
 
       const submittedDateInput = screen.getByTestId(
@@ -445,7 +446,7 @@ describe("ApplicationIntakePhase", () => {
       vi.clearAllMocks();
 
       setup({
-        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
       });
 
       const submittedDateInput = screen.getByTestId(
@@ -475,7 +476,7 @@ describe("ApplicationIntakePhase", () => {
 
     it("updates completeness review due date when state application date changes", async () => {
       setup({
-        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
       });
 
       const submittedDateInput = screen.getByTestId(
@@ -498,7 +499,7 @@ describe("ApplicationIntakePhase", () => {
     it("finish button is enabled when both date and documents are provided via props", () => {
       // Test the effect logic by providing both requirements via initial props
       setup({
-        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
         initialStateApplicationSubmittedDate: "2024-03-15",
       });
 
@@ -508,7 +509,7 @@ describe("ApplicationIntakePhase", () => {
 
     it("finish button remains disabled when date is empty even with documents", () => {
       setup({
-        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
         initialStateApplicationSubmittedDate: "",
       });
 
@@ -520,7 +521,7 @@ describe("ApplicationIntakePhase", () => {
       vi.clearAllMocks();
 
       setup({
-        initialStateApplicationDocuments: [],
+        applicationIntakeDocuments: [],
         initialStateApplicationSubmittedDate: "2024-03-15",
       });
 
@@ -547,7 +548,7 @@ describe("ApplicationIntakePhase", () => {
 
     it("handles empty date value correctly", async () => {
       setup({
-        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
         initialStateApplicationSubmittedDate: "2024-03-15",
       });
 
@@ -564,7 +565,7 @@ describe("ApplicationIntakePhase", () => {
       vi.clearAllMocks();
 
       setup({
-        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
         initialStateApplicationSubmittedDate: "2024-03-15",
       });
 
@@ -591,7 +592,7 @@ describe("ApplicationIntakePhase", () => {
       const todayString = getTodayEst();
 
       setup({
-        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
         initialStateApplicationSubmittedDate: todayString,
       });
 
