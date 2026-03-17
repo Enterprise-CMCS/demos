@@ -141,7 +141,7 @@ export const DialogSandbox: React.FC = () => {
         ) : null}
         <Button
           name="application-intake"
-          onClick={() => showApplicationIntakeDocumentUploadDialog(ID, () => {})}
+          onClick={() => showApplicationIntakeDocumentUploadDialog(ID)}
         >
           Application Intake
         </Button>

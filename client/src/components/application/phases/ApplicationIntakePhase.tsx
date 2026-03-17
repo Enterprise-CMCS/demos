@@ -16,7 +16,7 @@ import { DocumentList } from "./sections";
 import { getPhaseCompletedMessage } from "util/messages";
 import { useToast } from "components/toast";
 import { DatePicker } from "components/input/date/DatePicker";
-import { DemonstrationHealthTypeTags } from "components/tags/DemonstrationHealthTypeTags";
+import { ApplicationHealthTypeTags } from "components/tags/ApplicationHealthTypeTags";
 import type { DateTimeOrLocalDate, PhaseStatus, Tag, TagName } from "demos-server";
 import { SET_APPLICATION_TAGS_MUTATION } from "components/dialog/ApplyTagsDialog";
 
@@ -44,37 +44,49 @@ const STYLES = {
   actions: tw`mt-8 flex justify-end gap-3`,
 };
 
+const THIS_PHASE_NAME: PhaseName = "Application Intake";
+const NEXT_PHASE_NAME: PhaseName = "Completeness";
+
+export const APPLICATION_INTAKE_FINISH_BUTTON_NAME = "button-finish-state-application";
+export const APPLICATION_INTAKE_UPLOAD_BUTTON_NAME = "button-open-upload-modal";
+export const APPLICATION_SUBMITTED_DATEPICKER_NAME = "datepicker-state-application-submitted-date";
+export const COMPLETENESS_REVIEW_DATEPICKER_NAME = "datepicker-completeness-review-due-date";
+
+const UploadSection = ({
+  applicationId,
+  documents,
+}: {
+  applicationId: string;
+  documents: ApplicationWorkflowDocument[];
+}) => {
+  const { showApplicationIntakeDocumentUploadDialog } = useDialog();
+
+  return (
+    <div aria-labelledby="state-application-upload-title">
+      <h4 id="state-application-upload-title" className={STYLES.title}>
+        STEP 1 - UPLOAD
+      </h4>
+      <p className={STYLES.helper}>Upload the State Application file below.</p>
+
+      <SecondaryButton
+        onClick={() => showApplicationIntakeDocumentUploadDialog(applicationId)}
+        size="small"
+        name={APPLICATION_INTAKE_UPLOAD_BUTTON_NAME}
+      >
+        Upload
+        <ExportIcon />
+      </SecondaryButton>
+
+      <DocumentList documents={documents} />
+    </div>
+  );
+};
+
 // Calculate completeness review due date (submitted date + 15 calendar days)
 export const getCompletenessReviewDueDate = (stateApplicationSubmittedDate: string): Date => {
   const date = parseISO(stateApplicationSubmittedDate);
   return addDays(date, 15);
 };
-
-interface UploadSectionProps {
-  demonstrationId: string;
-  documents: ApplicationWorkflowDocument[];
-  onOpenUploadModal: (demonstrationId: string) => void;
-}
-
-const UploadSection = ({ demonstrationId, documents, onOpenUploadModal }: UploadSectionProps) => (
-  <div aria-labelledby="state-application-upload-title">
-    <h4 id="state-application-upload-title" className={STYLES.title}>
-      STEP 1 - UPLOAD
-    </h4>
-    <p className={STYLES.helper}>Upload the State Application file below.</p>
-
-    <SecondaryButton
-      onClick={() => onOpenUploadModal(demonstrationId)}
-      size="small"
-      name="button-open-upload-modal"
-    >
-      Upload
-      <ExportIcon />
-    </SecondaryButton>
-
-    <DocumentList documents={documents} />
-  </div>
-);
 
 interface VerifyCompleteSectionProps {
   stateApplicationSubmittedDate: string;
@@ -105,7 +117,7 @@ const VerifyCompleteSection = ({
     <div className="space-y-4">
       <div>
         <DatePicker
-          name="datepicker-state-application-submitted-date"
+          name={APPLICATION_SUBMITTED_DATEPICKER_NAME}
           label="State Application Submitted Date"
           value={stateApplicationSubmittedDate}
           onChange={onDateChange}
@@ -122,7 +134,7 @@ const VerifyCompleteSection = ({
 
       <div>
         <DatePicker
-          name="datepicker-completeness-review-due-date"
+          name={COMPLETENESS_REVIEW_DATEPICKER_NAME}
           label="Completeness Review Due Date"
           value={
             stateApplicationSubmittedDate
@@ -139,7 +151,7 @@ const VerifyCompleteSection = ({
 
     <div className={STYLES.actions}>
       <Button
-        name="button-finish-state-application"
+        name={APPLICATION_INTAKE_FINISH_BUTTON_NAME}
         onClick={onFinish}
         disabled={!isFinishButtonEnabled}
         size="small"
@@ -155,7 +167,7 @@ export const getApplicationIntakeComponentFromApplication = (
   setSelectedPhase?: (phase: PhaseName) => void
 ) => {
   const applicationIntakePhase = application.phases.find(
-    (phase) => phase.phaseName === "Application Intake"
+    (phase) => phase.phaseName === THIS_PHASE_NAME
   );
 
   const stateApplicationSubmittedDate = applicationIntakePhase?.phaseDates.find(
@@ -163,12 +175,12 @@ export const getApplicationIntakeComponentFromApplication = (
   )?.dateValue;
 
   const stateApplicationDocuments = application.documents.filter(
-    (doc) => doc.phaseName === "Application Intake"
+    (doc) => doc.phaseName === THIS_PHASE_NAME
   );
 
   return (
     <ApplicationIntakePhase
-      demonstrationId={application.id}
+      applicationId={application.id}
       initialStateApplicationDocuments={stateApplicationDocuments}
       initialStateApplicationSubmittedDate={
         stateApplicationSubmittedDate ? formatDateForServer(stateApplicationSubmittedDate) : ""
@@ -180,7 +192,7 @@ export const getApplicationIntakeComponentFromApplication = (
   );
 };
 export interface ApplicationIntakeProps {
-  demonstrationId: string;
+  applicationId: string;
   initialStateApplicationDocuments: ApplicationWorkflowDocument[];
   initialStateApplicationSubmittedDate: string;
   tags: Tag[];
@@ -189,7 +201,7 @@ export interface ApplicationIntakeProps {
 }
 
 export const ApplicationIntakePhase = ({
-  demonstrationId,
+  applicationId,
   initialStateApplicationDocuments,
   initialStateApplicationSubmittedDate,
   tags,
@@ -197,7 +209,6 @@ export const ApplicationIntakePhase = ({
   phaseStatus,
 }: ApplicationIntakeProps) => {
   const { showSuccess, showError } = useToast();
-  const { showApplicationIntakeDocumentUploadDialog } = useDialog();
   const [setApplicationTagsMutation] = useMutation(SET_APPLICATION_TAGS_MUTATION);
 
   const [stateApplicationSubmittedDate, setStateApplicationSubmittedDate] = useState<string>(
@@ -219,7 +230,7 @@ export const ApplicationIntakePhase = ({
   const clearDates = () => {
     setStateApplicationSubmittedDate("");
     setApplicationDates({
-      applicationId: demonstrationId,
+      applicationId: applicationId,
       applicationDates: [
         { dateType: "State Application Submitted Date", dateValue: null },
         { dateType: "Completeness Review Due Date", dateValue: null },
@@ -237,12 +248,12 @@ export const ApplicationIntakePhase = ({
 
   const onFinishButtonClick = async () => {
     await completePhase({
-      applicationId: demonstrationId,
-      phaseName: "Application Intake",
+      applicationId: applicationId,
+      phaseName: THIS_PHASE_NAME,
     });
-    showSuccess(getPhaseCompletedMessage("Application Intake"));
+    showSuccess(getPhaseCompletedMessage(THIS_PHASE_NAME));
 
-    setSelectedPhase?.("Completeness");
+    setSelectedPhase?.(NEXT_PHASE_NAME);
   };
 
   const handleDateChange = async (newDate: string) => {
@@ -255,7 +266,7 @@ export const ApplicationIntakePhase = ({
       ) as DateTimeOrLocalDate;
 
       await setApplicationDates({
-        applicationId: demonstrationId,
+        applicationId: applicationId,
         applicationDates: [
           {
             dateType: "State Application Submitted Date",
@@ -278,7 +289,7 @@ export const ApplicationIntakePhase = ({
       await setApplicationTagsMutation({
         variables: {
           input: {
-            applicationId: demonstrationId,
+            applicationId: applicationId,
             applicationTags: updatedTags.map((tag) => tag.tagName),
           },
         },
@@ -303,9 +314,8 @@ export const ApplicationIntakePhase = ({
         <div className={STYLES.grid}>
           <span aria-hidden className={STYLES.divider} />
           <UploadSection
-            demonstrationId={demonstrationId}
+            applicationId={applicationId}
             documents={initialStateApplicationDocuments}
-            onOpenUploadModal={(id) => showApplicationIntakeDocumentUploadDialog(id, () => {})}
           />
           <VerifyCompleteSection
             stateApplicationSubmittedDate={stateApplicationSubmittedDate}
@@ -317,8 +327,8 @@ export const ApplicationIntakePhase = ({
           />
         </div>
         <div className="mt-8">
-          <DemonstrationHealthTypeTags
-            demonstrationId={demonstrationId}
+          <ApplicationHealthTypeTags
+            applicationId={applicationId}
             title={"STEP 3 - APPLY TAGS"}
             description={
               "You must tag this application with one or more demonstration types involved in this request before it can be reviewed and approved."

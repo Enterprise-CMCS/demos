@@ -456,7 +456,7 @@ const TestConsumer: React.FC = () => {
       </button>
       <button
         data-testid="open-application-intake-upload-btn"
-        onClick={() => showApplicationIntakeDocumentUploadDialog("app-2", vi.fn())}
+        onClick={() => showApplicationIntakeDocumentUploadDialog("app-2")}
       >
         Open Application Intake Upload Dialog
       </button>
