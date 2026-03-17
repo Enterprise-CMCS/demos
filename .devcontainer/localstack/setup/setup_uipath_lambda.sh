@@ -8,6 +8,7 @@ AWS_REGION="us-east-1"
 AWS_CMD="aws --endpoint-url=$LOCALSTACK_ENDPOINT --region $AWS_REGION"
 QUEUE_NAME="uipath-queue"
 LAMBDA_NAME="uipath"
+MAX_ZIPPED_SIZE_BYTES=52428800
 UIPATH_SECRET_ID="demos-local/uipath"
 UIPATH_PROJECT_NAME=${UIPATH_PROJECT_NAME:-"demosOCR"}
 UIPATH_DOCUMENT_BUCKET=${UIPATH_DOCUMENT_BUCKET:-"uipath-documents"}
@@ -38,7 +39,17 @@ npx esbuild index.ts \
   --external:dotenv \
   --outfile=index.js
 
-zip -qr uipath.zip index.js node_modules/ package.json package-lock.json ak-behavioral-health-demo-pa.pdf
+# Remove dev dependencies before zipping to stay below Lambda's 50MB zipped limit.
+npm prune --omit=dev --silent
+
+rm -f uipath.zip
+zip -qr uipath.zip index.js node_modules/ package.json
+
+ZIP_SIZE_BYTES=$(wc -c < uipath.zip | tr -d ' ')
+if [ "$ZIP_SIZE_BYTES" -ge "$MAX_ZIPPED_SIZE_BYTES" ]; then
+  echo "❌ uipath.zip is $ZIP_SIZE_BYTES bytes. Lambda requires zipped size < $MAX_ZIPPED_SIZE_BYTES bytes."
+  exit 1
+fi
 
 # Clean up build artifacts
 rm index.js index.js.map
