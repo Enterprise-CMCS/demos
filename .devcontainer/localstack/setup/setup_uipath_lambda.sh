@@ -42,8 +42,7 @@ npx esbuild index.ts \
 # Remove dev dependencies before zipping to stay below Lambda's 50MB zipped limit.
 npm prune --omit=dev --silent
 
-rm -f uipath.zip
-zip -qr uipath.zip index.js node_modules/ package.json
+zip -qr uipath.zip
 
 ZIP_SIZE_BYTES=$(wc -c < uipath.zip | tr -d ' ')
 if [ "$ZIP_SIZE_BYTES" -ge "$MAX_ZIPPED_SIZE_BYTES" ]; then
