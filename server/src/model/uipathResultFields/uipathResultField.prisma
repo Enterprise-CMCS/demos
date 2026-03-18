@@ -15,3 +15,8 @@ model UipathResultField {
   @@unique([uipathResultId, fieldId])
   @@map("uipath_result_field")
 }
+
+// TO BE NUKED - This model is being replaced by UipathResultField. this will be removed and retro fitted
+// application_tag_suggestion_extract Foreign Key (suggestion_id, application_id, value) must be in application_tag_suggestion This key is deferrable and should be created like the deferrable keys on the application-specific tables
+// application_tag_suggestion_extract Foreign Key (uipath_value_id, application_id, field_value) must be in uipath_value
+// application_tag_suggestion_extract Foreign Key field_id must be in application_tag_suggestion_extract_field_limit

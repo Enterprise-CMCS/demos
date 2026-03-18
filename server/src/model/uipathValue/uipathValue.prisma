@@ -12,10 +12,12 @@ model UipathValue {
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
-  result      UiPathResult @relation(fields: [uipathResultId], references: [id])
-  application Application  @relation(fields: [applicationId], references: [id])
-  document    Document     @relation(fields: [documentId], references: [id])
+  result      UiPathResult                      @relation(fields: [uipathResultId], references: [id])
+  application Application                       @relation(fields: [applicationId], references: [id])
+  document    Document                          @relation(fields: [documentId], references: [id])
+  extracts    ApplicationTagSuggestionExtract[]
 
+  @@unique([id, applicationId, value])
   @@unique([id, applicationId, fieldId, value])
   @@index([uipathResultId, documentId, applicationId])
   @@map("uipath_value")
