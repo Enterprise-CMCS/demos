@@ -48,7 +48,7 @@ export const determineDeploymentConfig = async (
   const hostUserPoolId = isEphemeral ? await getUserPoolIdByName(`${project}-${hostEnvironment}-user-pool`) : undefined;
 
   const secretConfig =
-    stage != "bootstrap" ? JSON.parse((await getSecret(`${project}-${hostEnvironment}/config`))!) : {};
+    stage == "bootstrap" ? {} : JSON.parse((await getSecret(`${project}-${hostEnvironment}/config`))!);
 
   const zScalerIps = await getZScalerIps();
 

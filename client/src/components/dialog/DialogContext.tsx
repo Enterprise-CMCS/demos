@@ -132,16 +132,9 @@ export const useDialog = () => {
     );
   };
 
-  const showApplicationIntakeDocumentUploadDialog = (
-    applicationId: string,
-    onDocumentUploadSucceeded: () => void
-  ) => {
+  const showApplicationIntakeDocumentUploadDialog = (applicationId: string) => {
     context.showDialog(
-      <ApplicationIntakeUploadDialog
-        onDocumentUploadSucceeded={onDocumentUploadSucceeded}
-        onClose={context.hideDialog}
-        applicationId={applicationId}
-      />
+      <ApplicationIntakeUploadDialog onClose={context.hideDialog} applicationId={applicationId} />
     );
   };
 
@@ -223,11 +216,7 @@ export const useDialog = () => {
     );
   };
 
-  const showApplyTagsDialog = (
-    demonstrationId: string,
-    allTags: Tag[],
-    selectedTags: Tag[]
-  ) => {
+  const showApplyTagsDialog = (demonstrationId: string, allTags: Tag[], selectedTags: Tag[]) => {
     context.showDialog(
       <ApplyTagsDialog
         demonstrationId={demonstrationId}
