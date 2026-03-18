@@ -475,7 +475,7 @@ describe("ApplicationIntakePhase", () => {
       expect(finishButton).toBeEnabled();
     });
 
-    it("finish button remains disabled when no documents even with date, and date is cleared (DEMOS-1675)", async () => {
+    it("finish button is disabled when the phase has a date but no documents", async () => {
       vi.clearAllMocks();
 
       setup({
