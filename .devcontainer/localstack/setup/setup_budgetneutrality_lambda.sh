@@ -1,24 +1,23 @@
 #!/usr/bin/bash
 set -e
 
-echo "🚀 Deploying FileProcess Lambda function..."
+echo "🚀 Deploying budgetNeutrality Lambda function..."
 
 LOCALSTACK_ENDPOINT="http://localstack:4566"
 AWS_REGION="us-east-1"
 AWS_CMD="aws --endpoint-url=$LOCALSTACK_ENDPOINT --region $AWS_REGION"
 
-QUEUE_NAME="fileprocess-queue"
-BN_QUEUE_NAME="budget-neutrality-queue"
-BN_QUEUE_URL=$($AWS_CMD sqs get-queue-url --queue-name $BN_QUEUE_NAME --output text --query 'QueueUrl')
+QUEUE_NAME="budget-neutrality-queue"
+LAMBDA_NAME="budgetneutrality"
 
 # Build Lambda package
-cd /workspaces/demos/lambdas/fileprocess
+cd /workspaces/demos/lambdas/budgetNeutrality
 
 npm ci --silent
 npx esbuild index.ts \
   --bundle \
   --platform=node \
-  --target=node18 \
+  --target=node22 \
   --format=esm \
   --sourcemap \
   --external:@aws-sdk/* \
@@ -26,7 +25,7 @@ npx esbuild index.ts \
   --external:pino \
   --outfile=index.js
 
-zip -qr fileprocess.zip index.js node_modules/ package.json package-lock.json
+zip -qr budgetneutrality.zip index.js node_modules/ package.json package-lock.json
 
 # Clean up build artifacts
 rm index.js index.js.map
@@ -34,40 +33,31 @@ rm index.js index.js.map
 cd - > /dev/null
 
 # Delete existing Lambda if exists
-$AWS_CMD lambda delete-function --function-name fileprocess 2>/dev/null || true
+$AWS_CMD lambda delete-function --function-name $LAMBDA_NAME 2>/dev/null || true
 
 # Create Lambda function
 $AWS_CMD lambda create-function \
-    --function-name fileprocess \
-    --runtime nodejs18.x \
+    --function-name $LAMBDA_NAME \
+    --runtime nodejs22.x \
     --role arn:aws:iam::000000000000:role/lambda-execution-role \
     --handler index.handler \
-    --zip-file fileb:///workspaces/demos/lambdas/fileprocess/fileprocess.zip \
-    --timeout 30 \
-    --environment "Variables={
-      AWS_REGION=$AWS_REGION,
-      AWS_ENDPOINT_URL=$LOCALSTACK_ENDPOINT,
-      DATABASE_SECRET_ARN=database-secret,
-      DB_SCHEMA=demos_app,
-      BYPASS_SSL=true,
-      UPLOAD_BUCKET=upload-bucket,
-      CLEAN_BUCKET=clean-bucket,
-      INFECTED_BUCKET=infected-bucket,
-      BUDGET_NEUTRALITY_QUEUE_URL=$BN_QUEUE_URL
-    }" >/dev/null
+    --zip-file fileb:///workspaces/demos/lambdas/budgetNeutrality/budgetneutrality.zip \
+    --timeout 60 \
+    --environment "Variables={AWS_REGION=$AWS_REGION,AWS_ENDPOINT_URL=$LOCALSTACK_ENDPOINT,DATABASE_SECRET_ARN=database-secret,DB_SCHEMA=demos_app,DB_SSL_MODE=disable}" >/dev/null
 
 # Wait for Lambda to be active
-echo "⏳ Waiting for FileProcess Lambda to be active..."
+echo "⏳ Waiting for budgetNeutrality Lambda to be active..."
 for i in {1..15}; do
     STATUS=$($AWS_CMD lambda get-function \
-        --function-name fileprocess \
+        --function-name $LAMBDA_NAME \
         --query 'Configuration.State' \
         --output text 2>/dev/null || echo "Pending")
+
     if [ "$STATUS" = "Active" ]; then
-        echo "✅ FileProcess Lambda function created"
+        echo "✅ budgetNeutrality Lambda function created"
         break
     elif [ "$STATUS" = "Failed" ]; then
-        echo "❌ FileProcess Lambda function failed to initialize in 30 seconds"
+        echo "❌ budgetNeutrality Lambda function failed to initialize in 30 seconds"
         exit 1
     fi
     sleep 2
@@ -80,11 +70,11 @@ QUEUE_ARN=$($AWS_CMD sqs get-queue-attributes \
     --attribute-names QueueArn \
     --output text --query 'Attributes.QueueArn')
 
-echo "📬 Connecting FileProcess Lambda to FileProcess SQS queue..."
+echo "📬 Connecting budgetNeutrality Lambda to BN validation SQS queue..."
 
 # Delete existing event source mappings
 EXISTING_MAPPINGS=$($AWS_CMD lambda list-event-source-mappings \
-    --function-name fileprocess \
+    --function-name $LAMBDA_NAME \
     --query 'EventSourceMappings[].UUID' \
     --output text 2>/dev/null || echo "")
 
@@ -96,13 +86,11 @@ fi
 
 # Create event source mapping (SQS -> Lambda)
 $AWS_CMD lambda create-event-source-mapping \
-    --function-name fileprocess \
+    --function-name $LAMBDA_NAME \
     --event-source-arn $QUEUE_ARN \
     --batch-size 1 \
     --enabled \
     > /dev/null
 
-echo "✅ FileProcess Lambda connected to Fileprocess SQS queue"
+echo "✅ budgetNeutrality Lambda connected to BN validation SQS queue"
 echo "   Queue ARN: $QUEUE_ARN"
-echo ""
-echo "Flow: S3 upload → EventBridge (emulating GuardDuty) → SQS (with 5s delay) → Lambda"

@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 
 import { runShell, runCommand } from "../lib/runCommand";
 import { getOutputValue } from "../lib/getOutputValue";

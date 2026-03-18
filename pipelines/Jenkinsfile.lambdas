@@ -23,6 +23,7 @@ pipeline {
             snykScan('lambdas/emailer')
             snykScan('lambdas/deleteinfectedfile')
             snykScan('lambdas/UIPath')
+            snykScan('lambdas/budgetNeutrality')
           }
         }
       }
@@ -111,6 +112,21 @@ pipeline {
             script {
               if (hasChange("lambdas")) {
                 dirCon('lambdas/emailer', 'node') {
+                  sh '''
+                  npm ci
+                  npm run lint
+                  npm run test
+                  '''
+                }
+              }
+            }
+          }
+        }
+        stage('Unit Test - budgetNeutrality') {
+          steps {
+            script {
+              if (hasChange("lambdas")) {
+                dirCon('lambdas/budgetNeutrality', 'node') {
                   sh '''
                   npm ci
                   npm run lint

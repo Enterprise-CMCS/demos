@@ -1,4 +1,4 @@
-import readline from "readline";
+import readline from "node:readline";
 
 export async function confirm(message: string, confirmStrings: string[], strict: boolean = false) {
   const rl = readline.createInterface({
@@ -12,11 +12,11 @@ export async function confirm(message: string, confirmStrings: string[], strict:
 
       let match: string[];
 
-      if (!strict) {
+      if (strict) {
+        match = confirmStrings
+      } else {
         ans = ans.toLowerCase().trim()
         match = confirmStrings.map(v => v.toLowerCase())
-      } else {
-        match = confirmStrings
       }
       
       res(match.includes(ans));

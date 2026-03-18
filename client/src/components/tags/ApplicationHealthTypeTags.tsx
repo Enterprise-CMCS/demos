@@ -27,21 +27,21 @@ export const GET_APPLICATION_TAG_OPTIONS: TypedDocumentNode<
   }
 `;
 
-export interface DemonstrationHealthTypeTagsProps {
-  demonstrationId: string;
+export interface ApplicationHealthTypeTagsProps {
+  applicationId: string;
   selectedTags: Tag[];
   title: string;
   description?: string;
   onRemoveTag: (tag: string) => void;
 }
-// We could make this name more generic for reuse.
-export const DemonstrationHealthTypeTags = ({
-  demonstrationId,
+
+export const ApplicationHealthTypeTags = ({
+  applicationId,
   selectedTags,
   title,
   description,
   onRemoveTag,
-}: DemonstrationHealthTypeTagsProps) => {
+}: ApplicationHealthTypeTagsProps) => {
   const { showApplyTagsDialog } = useDialog();
 
   const { data, loading, error } = useQuery(GET_APPLICATION_TAG_OPTIONS);
@@ -51,7 +51,7 @@ export const DemonstrationHealthTypeTags = ({
 
   const handleApplyClick = () => {
     showApplyTagsDialog(
-      demonstrationId,
+      applicationId,
       [...data.applicationTagOptions].sort((a, b) => a.tagName.localeCompare(b.tagName)),
       selectedTags
     );

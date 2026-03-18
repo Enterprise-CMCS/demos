@@ -1,4 +1,4 @@
-import { spawn, SpawnOptionsWithoutStdio } from "child_process";
+import { spawn, SpawnOptionsWithoutStdio } from "node:child_process";
 import chalk from "chalk";
 
 type chalkColors =
