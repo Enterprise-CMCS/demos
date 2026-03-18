@@ -141,7 +141,7 @@ export const DialogSandbox: React.FC = () => {
         ) : null}
         <Button
           name="application-intake"
-          onClick={() => showApplicationIntakeDocumentUploadDialog(ID, () => {})}
+          onClick={() => showApplicationIntakeDocumentUploadDialog(ID)}
         >
           Application Intake
         </Button>
@@ -150,7 +150,7 @@ export const DialogSandbox: React.FC = () => {
         </Button>
         <Button
           name="concept-presubmission"
-          onClick={() => showConceptPreSubmissionDocumentUploadDialog(ID, () => {})}
+          onClick={() => showConceptPreSubmissionDocumentUploadDialog(ID)}
         >
           Concept Pre-Submission
         </Button>

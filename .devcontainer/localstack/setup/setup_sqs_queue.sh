@@ -127,5 +127,36 @@ echo "✅ UiPath queue created"
 echo "   Queue ARN: $UIPATH_QUEUE_ARN"
 echo "   DLQ ARN: $UIPATH_DLQ_ARN"
 
+# ============================================================================
+# Budget Neutrality Queue
+# ============================================================================
+echo "Creating Budget Neutrality queue..."
+
+BN_DLQ_URL=$($AWS_CMD sqs create-queue \
+    --queue-name budget-neutrality-dlq \
+    --attributes '{"MessageRetentionPeriod":"1209600"}' \
+    --output text --query 'QueueUrl')
+
+BN_DLQ_ARN=$($AWS_CMD sqs get-queue-attributes \
+    --queue-url $BN_DLQ_URL \
+    --attribute-names QueueArn \
+    --output text --query 'Attributes.QueueArn')
+
+BN_REDRIVE_POLICY="{\"deadLetterTargetArn\":\"$BN_DLQ_ARN\",\"maxReceiveCount\":\"5\"}"
+
+BN_QUEUE_URL=$($AWS_CMD sqs create-queue \
+    --queue-name budget-neutrality-queue \
+    --attributes "{\"RedrivePolicy\":\"$(echo $BN_REDRIVE_POLICY | sed 's/"/\\"/g')\",\"MessageRetentionPeriod\":\"1209600\"}" \
+    --output text --query 'QueueUrl')
+
+BN_QUEUE_ARN=$($AWS_CMD sqs get-queue-attributes \
+    --queue-url $BN_QUEUE_URL \
+    --attribute-names QueueArn \
+    --output text --query 'Attributes.QueueArn')
+
+echo "✅ Budget Neutrality queue created"
+echo "   Queue ARN: $BN_QUEUE_ARN"
+echo "   DLQ ARN: $BN_DLQ_ARN"
+
 echo ""
 echo "✅ All SQS queues setup complete"

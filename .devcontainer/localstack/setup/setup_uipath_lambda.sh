@@ -8,6 +8,7 @@ AWS_REGION="us-east-1"
 AWS_CMD="aws --endpoint-url=$LOCALSTACK_ENDPOINT --region $AWS_REGION"
 QUEUE_NAME="uipath-queue"
 LAMBDA_NAME="uipath"
+MAX_ZIPPED_SIZE_BYTES=52428800
 UIPATH_SECRET_ID="demos-local/uipath"
 UIPATH_PROJECT_NAME=${UIPATH_PROJECT_NAME:-"demosOCR"}
 UIPATH_DOCUMENT_BUCKET=${UIPATH_DOCUMENT_BUCKET:-"uipath-documents"}
@@ -26,7 +27,7 @@ npx tsc --outDir build
 npx esbuild build/index.js \
   --bundle \
   --platform=node \
-  --target=node24 \
+  --target=node22 \
   --sourcemap \
   --outfile=dist/index.cjs
 rm -f uipath.zip
@@ -45,7 +46,7 @@ $AWS_CMD lambda delete-function --function-name $LAMBDA_NAME 2>/dev/null || true
 # Create Lambda function
 $AWS_CMD lambda create-function \
     --function-name $LAMBDA_NAME \
-    --runtime nodejs18.x \
+    --runtime nodejs22.x \
     --role arn:aws:iam::000000000000:role/lambda-execution-role \
     --handler index.handler \
     --zip-file fileb:///workspaces/demos/lambdas/UIPath/uipath.zip \

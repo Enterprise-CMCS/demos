@@ -25,6 +25,7 @@ import { GuardDutyS3 } from "../lib/guardDutyS3";
 import importNumberValue from "../util/importNumberValue";
 import { backupTags } from "../util/backup";
 import { UiPathProcessor } from "../lib/uipathProcessor";
+import { BudgetNeutralityProcessor } from "../lib/budgetNeutralityProcessor";
 
 interface FileUploadStackProps extends StackProps, DeploymentConfigProperties {
   vpc: IVpc;
@@ -239,6 +240,14 @@ export class FileUploadStack extends Stack {
       "Allow traffic to secrets manager VPCE"
     );
 
+    const sqsVpceSgId = Fn.importValue(`${props.stage}SqsVpceSg`);
+
+    fileProcessLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(sqsVpceSgId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to SQS"
+    );
+
     const s3PrefixList = aws_ec2.PrefixList.fromLookup(this, "s3PrefixList", {
       prefixListName: `com.amazonaws.${this.region}.s3`,
     });
@@ -285,6 +294,35 @@ export class FileUploadStack extends Stack {
       aws_ec2.Peer.anyIpv4(),
       aws_ec2.Port.HTTPS,
       "Allow outbound HTTPS to UiPath"
+    );
+
+    const budgetNeutralityLambdaSecurityGroup = securityGroup.create({
+      ...props,
+      name: "budgetNeutralitySecurityGroup",
+      vpc: props.vpc,
+      scope: this,
+    });
+
+    rdsSg.addIngressRule(
+      aws_ec2.Peer.securityGroupId(
+        budgetNeutralityLambdaSecurityGroup.securityGroup.securityGroupId
+      ),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow ingress from Budget Neutrality Security Group",
+      true
+    );
+
+    budgetNeutralityLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(rdsSecurityGroupId),
+      aws_ec2.Port.tcp(rdsPort),
+      "Allow egress to RDS",
+      true
+    );
+
+    budgetNeutralityLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.securityGroupId(secretsManagerVpceSgId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to secrets manager VPCE"
     );
 
     const dbSecretFileProcess = aws_secretsmanager.Secret.fromSecretNameV2(
@@ -378,6 +416,25 @@ export class FileUploadStack extends Stack {
     );
     uiPathProcessor.queue.grantSendMessages(fileProcessLambda.lambda);
 
+    const budgetNeutralityProcessor = new BudgetNeutralityProcessor(
+      this,
+      "BudgetNeutralityProcessor",
+      {
+        ...props,
+        removalPolicy: props.isDev || props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
+        kmsKey,
+        deadLetterQueue,
+        vpc: props.vpc,
+        securityGroup: budgetNeutralityLambdaSecurityGroup.securityGroup,
+      }
+    );
+
+    fileProcessLambda.lambda.addEnvironment(
+      "BUDGET_NEUTRALITY_QUEUE_URL",
+      budgetNeutralityProcessor.queue.queueUrl
+    );
+    budgetNeutralityProcessor.queue.grantSendMessages(fileProcessLambda.lambda);
+
     new CfnOutput(this, "cleanBucketName", {
       exportName: `${props.stage}CleanBucketName`,
       value: cleanBucket.bucketName,
@@ -411,6 +468,16 @@ export class FileUploadStack extends Stack {
     new CfnOutput(this, "uipathQueueArn", {
       exportName: `${props.stage}UiPathQueueArn`,
       value: uiPathProcessor.queue.queueArn,
+    });
+
+    new CfnOutput(this, "budgetNeutralityQueueUrl", {
+      exportName: `${props.stage}BudgetNeutralityQueueUrl`,
+      value: budgetNeutralityProcessor.queue.queueUrl,
+    });
+
+    new CfnOutput(this, "budgetNeutralityQueueArn", {
+      exportName: `${props.stage}BudgetNeutralityQueueArn`,
+      value: budgetNeutralityProcessor.queue.queueArn,
     });
   }
 }

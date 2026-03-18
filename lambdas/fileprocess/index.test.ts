@@ -3,6 +3,25 @@ import {
   GuardDutyScanResultNotificationEvent,
   GuardDutyScanResultNotificationEventDetail,
 } from "aws-lambda";
+const sqsMocks = vi.hoisted(() => ({
+  sendMock: vi.fn(),
+  SQSClientMock: vi.fn(),
+  SendMessageCommandMock: vi.fn(function (this: { input?: unknown }, input: unknown) {
+    this.input = input;
+  }),
+}));
+
+vi.mock("@aws-sdk/client-sqs", () => {
+  sqsMocks.SQSClientMock.mockImplementation(() => ({
+    send: sqsMocks.sendMock,
+  }));
+
+  return {
+    SQSClient: sqsMocks.SQSClientMock,
+    SendMessageCommand: sqsMocks.SendMessageCommandMock,
+  };
+});
+
 import {
   moveFile,
   getApplicationId,
@@ -10,6 +29,7 @@ import {
   processGuardDutyResult,
   processInfectedDatabaseRecord,
   processCleanDatabaseRecord,
+  enqueueBudgetNeutrality,
 } from ".";
 
 import { CopyObjectCommand, DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
@@ -40,6 +60,9 @@ const mockContext = { awsRequestId: "00000000-aaaa-bbbb-cccc-000000000000" } as 
 describe("file-process", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    sqsMocks.sendMock.mockReset();
+    sqsMocks.SQSClientMock.mockClear();
+    sqsMocks.SendMessageCommandMock.mockClear();
 
     logDebugSpy = vi.spyOn(log, "debug");
     logInfoSpy = vi.spyOn(log, "info");
@@ -176,6 +199,64 @@ describe("file-process", () => {
       });
     });
   });
+  describe("enqueueBudgetNeutrality", () => {
+    it("should enqueue a budget neutrality message", async () => {
+      sqsMocks.sendMock.mockResolvedValueOnce({ MessageId: "msg-123" });
+
+      await enqueueBudgetNeutrality("test-doc-id", "Final BN Worksheet");
+
+      expect(sqsMocks.SQSClientMock).toHaveBeenCalledWith({
+        region: "us-east-1",
+        endpoint: process.env.AWS_ENDPOINT_URL,
+      });
+      expect(sqsMocks.sendMock).toHaveBeenCalledTimes(1);
+      expect(
+        (sqsMocks.sendMock.mock.calls[0][0] as { input: Record<string, unknown> }).input
+      ).toEqual({
+        QueueUrl: process.env.BUDGET_NEUTRALITY_QUEUE_URL,
+        MessageBody: JSON.stringify({
+          documentId: "test-doc-id",
+          documentTypeId: "Final BN Worksheet",
+        }),
+      });
+      expect(logInfoSpy).toHaveBeenNthCalledWith(
+        1,
+        { documentId: "test-doc-id", documentTypeId: "Final BN Worksheet" },
+        "BudgetNeutrality Queue Started"
+      );
+      expect(logInfoSpy).toHaveBeenNthCalledWith(
+        2,
+        {
+          documentId: "test-doc-id",
+          documentTypeId: "Final BN Worksheet",
+          messageId: "msg-123",
+        },
+        "queued Budget Neutrality validation request."
+      );
+    });
+
+    it("should throw when sqs does not return a message id", async () => {
+      sqsMocks.sendMock.mockResolvedValueOnce({});
+
+      await expect(
+        enqueueBudgetNeutrality("test-doc-id", "Final BN Worksheet")
+      ).rejects.toThrow(
+        "Failed to enqueue Budget Neutrality validation message for document test-doc-id."
+      );
+    });
+
+    it("should initialize a new sqs client for each call", async () => {
+      sqsMocks.sendMock
+        .mockResolvedValueOnce({ MessageId: "msg-1" })
+        .mockResolvedValueOnce({ MessageId: "msg-2" });
+
+      await enqueueBudgetNeutrality("test-doc-id-1", "Final BN Worksheet");
+      await enqueueBudgetNeutrality("test-doc-id-2", "Final BN Worksheet");
+
+      expect(sqsMocks.SQSClientMock).toHaveBeenCalledTimes(2);
+      expect(sqsMocks.sendMock).toHaveBeenCalledTimes(2);
+    });
+  });
   describe("processGuardDutyResult", () => {
     test("should successfully process the file", async () => {
       const mockSend = vi.fn();
@@ -187,7 +268,6 @@ describe("file-process", () => {
           .mockResolvedValueOnce({ rows: [{ application_id: "1" }] })
           .mockResolvedValueOnce({ rows: [{ document_type_id: "State Application" }] }),
       };
-      console.log("mockEventBase", mockEventBase);
       await processGuardDutyResult(mockClient, mockEventBase);
       expect(logInfoSpy).toHaveBeenCalledTimes(3);
       expect(logInfoSpy).toHaveBeenNthCalledWith(
@@ -204,11 +284,39 @@ describe("file-process", () => {
         "successfully processed clean file in database."
       );
       expect(mockSend).toHaveBeenCalledTimes(2);
+      expect(sqsMocks.sendMock).not.toHaveBeenCalled();
       expect(mockClient.query).toHaveBeenCalledTimes(2);
       expect(mockClient.query).toHaveBeenLastCalledWith(
         expect.stringContaining("SELECT demos_app.move_document_from_pending_to_clean"),
         expect.arrayContaining([expect.anything()])
       );
+    });
+
+    test("should enqueue budget neutrality for Final BN Worksheet", async () => {
+      const mockSend = vi.fn();
+      vi.spyOn(S3Client.prototype, "send").mockImplementation(mockSend);
+      sqsMocks.sendMock.mockResolvedValueOnce({ MessageId: "msg-final-bn" });
+
+      const mockClient = {
+        query: vi
+          .fn()
+          .mockResolvedValueOnce({ rows: [{ application_id: "1" }] })
+          .mockResolvedValueOnce({ rows: [{ document_type_id: "Final BN Worksheet" }] }),
+      };
+
+      const isClean = await processGuardDutyResult(mockClient, mockEventBase);
+
+      expect(isClean).toBe(true);
+      expect(sqsMocks.sendMock).toHaveBeenCalledTimes(1);
+      expect(
+        (sqsMocks.sendMock.mock.calls[0][0] as { input: Record<string, unknown> }).input
+      ).toEqual({
+        QueueUrl: process.env.BUDGET_NEUTRALITY_QUEUE_URL,
+        MessageBody: JSON.stringify({
+          documentId: "test-key",
+          documentTypeId: "Final BN Worksheet",
+        }),
+      });
     });
   });
 

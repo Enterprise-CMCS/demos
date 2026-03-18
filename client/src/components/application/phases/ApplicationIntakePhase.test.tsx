@@ -1,7 +1,4 @@
-import "@testing-library/jest-dom";
-
 import React from "react";
-
 import { TestProvider } from "test-utils/TestProvider";
 import { describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
@@ -10,16 +7,18 @@ import userEvent from "@testing-library/user-event";
 import {
   ApplicationIntakePhase,
   ApplicationIntakeProps,
+  APPLICATION_INTAKE_FINISH_BUTTON_NAME,
+  APPLICATION_INTAKE_UPLOAD_BUTTON_NAME,
+  APPLICATION_SUBMITTED_DATEPICKER_NAME,
+  COMPLETENESS_REVIEW_DATEPICKER_NAME,
   getCompletenessReviewDueDate,
   getApplicationIntakeComponentFromApplication,
 } from "./ApplicationIntakePhase";
-import {
-  ApplicationWorkflowDocument,
-  ApplicationWorkflowDemonstration,
-} from "components/application";
+import { ApplicationWorkflowDocument, WorkflowApplication } from "components/application";
 import { formatDateForServer, getTodayEst } from "util/formatDate";
 import { MockedResponse } from "@apollo/client/testing";
-import { GET_APPLICATION_TAG_OPTIONS } from "components/tags/DemonstrationHealthTypeTags";
+import { GET_APPLICATION_TAG_OPTIONS } from "components/tags/ApplicationHealthTypeTags";
+import { DialogProvider } from "components/dialog/DialogContext";
 
 vi.mock("@apollo/client", async () => {
   const actual = await vi.importActual("@apollo/client");
@@ -32,11 +31,6 @@ vi.mock("@apollo/client", async () => {
 const mockSetApplicationDates = vi.fn(() => Promise.resolve({ data: {} }));
 const mockSetApplicationTagsMutation = vi.fn(() => Promise.resolve({ data: {} }));
 
-const mockPO = {
-  id: "po-1",
-  fullName: "Jane Doe",
-};
-
 vi.mock("components/application/date/dateQueries", () => ({
   useSetApplicationDates: vi.fn(() => ({
     setApplicationDates: mockSetApplicationDates,
@@ -44,13 +38,6 @@ vi.mock("components/application/date/dateQueries", () => ({
     error: null,
     data: null,
   })),
-}));
-
-const showApplicationIntakeDocumentUploadDialog = vi.fn();
-vi.mock("components/dialog/DialogContext", () => ({
-  useDialog: () => ({
-    showApplicationIntakeDocumentUploadDialog,
-  }),
 }));
 
 const mockCompletePhase = vi.fn();
@@ -61,15 +48,17 @@ vi.mock("../phase-status/phaseCompletionQueries", () => ({
 }));
 
 describe("ApplicationIntakePhase", () => {
-  const defaultProps: ApplicationIntakeProps = {
-    demonstrationId: "test-demo-id",
+  const TEST_APP_ID = "test-app-id";
+
+  const DEFAULT_APPLICATION_INTAKE_PROPS: ApplicationIntakeProps = {
+    applicationId: TEST_APP_ID,
     initialStateApplicationDocuments: [],
     initialStateApplicationSubmittedDate: "",
     tags: [],
     phaseStatus: "Started",
   };
 
-  const mockStateApplicationDocument: ApplicationWorkflowDocument = {
+  const MOCK_STATE_APPLICATION_DOCUMENT: ApplicationWorkflowDocument = {
     id: "1",
     name: "State Application Document 1",
     description: "Test state application document",
@@ -80,7 +69,7 @@ describe("ApplicationIntakePhase", () => {
   };
 
   const setup = (props: Partial<ApplicationIntakeProps> = {}) => {
-    const finalProps = { ...defaultProps, ...props } as ApplicationIntakeProps;
+    const finalProps = { ...DEFAULT_APPLICATION_INTAKE_PROPS, ...props } as ApplicationIntakeProps;
 
     const applicationTagOptionsMock: MockedResponse = {
       request: {
@@ -98,7 +87,9 @@ describe("ApplicationIntakePhase", () => {
 
     render(
       <TestProvider mocks={[applicationTagOptionsMock]}>
-        <ApplicationIntakePhase {...finalProps} />
+        <DialogProvider>
+          <ApplicationIntakePhase {...finalProps} />
+        </DialogProvider>
       </TestProvider>
     );
 
@@ -134,8 +125,16 @@ describe("ApplicationIntakePhase", () => {
 
     it("renders upload button", () => {
       setup();
-      const uploadButton = screen.getByRole("button", { name: /upload/i });
+      const uploadButton = screen.getByTestId(APPLICATION_INTAKE_UPLOAD_BUTTON_NAME);
       expect(uploadButton).toBeInTheDocument();
+    });
+
+    it("opens the upload dialog when upload button is clicked", async () => {
+      setup();
+      await userEvent.click(screen.getByTestId(APPLICATION_INTAKE_UPLOAD_BUTTON_NAME));
+
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: "Add State Application" })).toBeInTheDocument();
     });
 
     it("shows 'No documents yet' when no documents", () => {
@@ -145,14 +144,14 @@ describe("ApplicationIntakePhase", () => {
 
     it("displays Application Intake phase documents only", () => {
       setup({
-        initialStateApplicationDocuments: [mockStateApplicationDocument],
+        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
       });
 
       expect(screen.getByText("State Application Document 1")).toBeInTheDocument();
     });
 
     it("renders delete button for each document", () => {
-      setup({ initialStateApplicationDocuments: [mockStateApplicationDocument] });
+      setup({ initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT] });
 
       const deleteButton = screen.getByLabelText("Delete State Application Document 1");
       expect(deleteButton).toBeInTheDocument();
@@ -177,10 +176,7 @@ describe("ApplicationIntakePhase", () => {
       const labelElement = labels.find((el) => el.tagName === "LABEL");
       expect(labelElement).toBeInTheDocument();
 
-      const dateInputs = screen.getAllByDisplayValue("");
-      const submittedDateInput = dateInputs.find(
-        (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
-      );
+      const submittedDateInput = screen.getByTestId(APPLICATION_SUBMITTED_DATEPICKER_NAME);
       expect(submittedDateInput).toBeInTheDocument();
       expect(submittedDateInput).toHaveAttribute("type", "date");
       expect(submittedDateInput).toHaveAttribute("required");
@@ -191,10 +187,7 @@ describe("ApplicationIntakePhase", () => {
       const label = screen.getByText(/Completeness Review Due Date/);
       expect(label).toBeInTheDocument();
 
-      const dateInputs = screen.getAllByDisplayValue("");
-      const dueDateInput = dateInputs.find(
-        (input) => input.getAttribute("type") === "date" && input.hasAttribute("disabled")
-      );
+      const dueDateInput = screen.getByTestId(COMPLETENESS_REVIEW_DATEPICKER_NAME);
       expect(dueDateInput).toBeInTheDocument();
       expect(dueDateInput).toHaveAttribute("type", "date");
       expect(dueDateInput).toBeDisabled();
@@ -274,7 +267,7 @@ describe("ApplicationIntakePhase", () => {
       expect(mockSetApplicationTagsMutation).toHaveBeenCalledWith({
         variables: {
           input: {
-            applicationId: "test-demo-id",
+            applicationId: TEST_APP_ID,
             applicationTags: ["Substance Use"],
           },
         },
@@ -286,16 +279,16 @@ describe("ApplicationIntakePhase", () => {
     describe("Finish Button", () => {
       it("is disabled initially", () => {
         setup();
-        const finishButton = screen.getByRole("button", { name: /finish/i });
+        const finishButton = screen.getByTestId(APPLICATION_INTAKE_FINISH_BUTTON_NAME);
         expect(finishButton).toBeDisabled();
       });
 
       it("is enabled when documents are uploaded & state application date is filled", () => {
         setup({
-          initialStateApplicationDocuments: [mockStateApplicationDocument],
+          initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
           initialStateApplicationSubmittedDate: "2020-10-10",
         });
-        const finishButton = screen.getByRole("button", { name: /finish/i });
+        const finishButton = screen.getByTestId(APPLICATION_INTAKE_FINISH_BUTTON_NAME);
         expect(finishButton).toBeEnabled();
       });
 
@@ -309,34 +302,20 @@ describe("ApplicationIntakePhase", () => {
         const setSelectedPhase = vi.fn();
 
         setup({
-          initialStateApplicationDocuments: [mockStateApplicationDocument],
+          initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
           initialStateApplicationSubmittedDate: "2020-10-10",
           setSelectedPhase,
         });
 
-        const finishButton = screen.getByRole("button", { name: /finish/i });
+        const finishButton = screen.getByTestId(APPLICATION_INTAKE_FINISH_BUTTON_NAME);
         await userEvent.click(finishButton);
 
         expect(mockCompletePhase).toHaveBeenCalledWith({
-          applicationId: "test-demo-id",
+          applicationId: TEST_APP_ID,
           phaseName: "Application Intake",
         });
         expect(setSelectedPhase).toHaveBeenCalledWith("Completeness");
       });
-    });
-  });
-
-  describe("Upload Modal", () => {
-    it("opens upload modal when upload button clicked", async () => {
-      setup();
-
-      const uploadButton = screen.getByRole("button", { name: /upload/i });
-      await userEvent.click(uploadButton);
-
-      expect(showApplicationIntakeDocumentUploadDialog).toHaveBeenCalledWith(
-        "test-demo-id",
-        expect.any(Function)
-      );
     });
   });
 
@@ -404,15 +383,9 @@ describe("ApplicationIntakePhase", () => {
   });
 
   describe("getApplicationIntakeComponentFromApplication", () => {
-    it("should extract demonstration data and return ApplicationIntakePhase component", () => {
-      const mockDemonstration: ApplicationWorkflowDemonstration = {
-        id: "demo-123",
-        name: "Test Demo",
-        state: {
-          id: "CA",
-          name: "California",
-        },
-        primaryProjectOfficer: mockPO,
+    it("should extract application data and return ApplicationIntakePhase component", () => {
+      const mockApplication: WorkflowApplication = {
+        id: "app-123",
         status: "Under Review",
         currentPhaseName: "Application Intake",
         clearanceLevel: "CMS (OSORA)",
@@ -440,15 +413,14 @@ describe("ApplicationIntakePhase", () => {
             createdAt: new Date(2024, 10, 10),
           },
         ],
-        demonstrationTypes: [],
         tags: [],
       };
 
-      const component = getApplicationIntakeComponentFromApplication(mockDemonstration);
+      const component = getApplicationIntakeComponentFromApplication(mockApplication);
 
       expect(component).toBeDefined();
       expect(component.type).toBe(ApplicationIntakePhase);
-      expect(component.props.demonstrationId).toBe("demo-123");
+      expect(component.props.applicationId).toBe("app-123");
       expect(component.props.initialStateApplicationDocuments).toHaveLength(1);
       expect(component.props.initialStateApplicationSubmittedDate).toBe("2024-10-13");
     });
@@ -457,12 +429,11 @@ describe("ApplicationIntakePhase", () => {
   describe("handleDateChange", () => {
     it("updates the state application submitted date when user changes date input", async () => {
       setup({
-        initialStateApplicationDocuments: [mockStateApplicationDocument],
+        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
       });
 
-      const dateInputs = screen.getAllByDisplayValue("");
-      const submittedDateInput = dateInputs.find(
-        (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
+      const submittedDateInput = screen.getByTestId(
+        APPLICATION_SUBMITTED_DATEPICKER_NAME
       ) as HTMLInputElement;
 
       fireEvent.change(submittedDateInput, { target: { value: "2024-03-15" } });
@@ -474,12 +445,11 @@ describe("ApplicationIntakePhase", () => {
       vi.clearAllMocks();
 
       setup({
-        initialStateApplicationDocuments: [mockStateApplicationDocument],
+        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
       });
 
-      const dateInputs = screen.getAllByDisplayValue("");
-      const submittedDateInput = dateInputs.find(
-        (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
+      const submittedDateInput = screen.getByTestId(
+        APPLICATION_SUBMITTED_DATEPICKER_NAME
       ) as HTMLInputElement;
 
       fireEvent.change(submittedDateInput, { target: { value: "2024-03-15" } });
@@ -489,7 +459,7 @@ describe("ApplicationIntakePhase", () => {
       });
 
       expect(mockSetApplicationDates).toHaveBeenCalledWith({
-        applicationId: "test-demo-id",
+        applicationId: TEST_APP_ID,
         applicationDates: [
           {
             dateType: "State Application Submitted Date",
@@ -505,21 +475,19 @@ describe("ApplicationIntakePhase", () => {
 
     it("updates completeness review due date when state application date changes", async () => {
       setup({
-        initialStateApplicationDocuments: [mockStateApplicationDocument],
+        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
       });
 
-      const dateInputs = screen.getAllByDisplayValue("");
-      const submittedDateInput = dateInputs.find(
-        (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
+      const submittedDateInput = screen.getByTestId(
+        APPLICATION_SUBMITTED_DATEPICKER_NAME
       ) as HTMLInputElement;
 
       fireEvent.change(submittedDateInput, { target: { value: "2024-03-15" } });
 
       // Completeness review due date should be 15 days later: 2024-03-30
       await waitFor(() => {
-        const dueDateInputs = screen.getAllByDisplayValue("2024-03-30");
-        const dueDateInput = dueDateInputs.find((input) =>
-          input.hasAttribute("disabled")
+        const dueDateInput = screen.getByTestId(
+          COMPLETENESS_REVIEW_DATEPICKER_NAME
         ) as HTMLInputElement;
 
         expect(dueDateInput).toBeInTheDocument();
@@ -530,21 +498,21 @@ describe("ApplicationIntakePhase", () => {
     it("finish button is enabled when both date and documents are provided via props", () => {
       // Test the effect logic by providing both requirements via initial props
       setup({
-        initialStateApplicationDocuments: [mockStateApplicationDocument],
+        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
         initialStateApplicationSubmittedDate: "2024-03-15",
       });
 
-      const finishButton = screen.getByRole("button", { name: /finish/i });
+      const finishButton = screen.getByTestId(APPLICATION_INTAKE_FINISH_BUTTON_NAME);
       expect(finishButton).toBeEnabled();
     });
 
     it("finish button remains disabled when date is empty even with documents", () => {
       setup({
-        initialStateApplicationDocuments: [mockStateApplicationDocument],
+        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
         initialStateApplicationSubmittedDate: "",
       });
 
-      const finishButton = screen.getByRole("button", { name: /finish/i });
+      const finishButton = screen.getByTestId(APPLICATION_INTAKE_FINISH_BUTTON_NAME);
       expect(finishButton).toBeDisabled();
     });
 
@@ -556,20 +524,20 @@ describe("ApplicationIntakePhase", () => {
         initialStateApplicationSubmittedDate: "2024-03-15",
       });
 
-      const finishButton = screen.getByRole("button", { name: /finish/i });
+      const finishButton = screen.getByTestId(APPLICATION_INTAKE_FINISH_BUTTON_NAME);
       expect(finishButton).toBeDisabled();
 
       // When there are no documents, the date should be auto-cleared (DEMOS-1675)
       await waitFor(() => {
         const submittedDateInput = screen.getByTestId(
-          "datepicker-state-application-submitted-date"
+          APPLICATION_SUBMITTED_DATEPICKER_NAME
         ) as HTMLInputElement;
         expect(submittedDateInput.value).toBe("");
       });
 
       // Verify dates were cleared on the server
       expect(mockSetApplicationDates).toHaveBeenCalledWith({
-        applicationId: "test-demo-id",
+        applicationId: TEST_APP_ID,
         applicationDates: [
           { dateType: "State Application Submitted Date", dateValue: null },
           { dateType: "Completeness Review Due Date", dateValue: null },
@@ -579,13 +547,12 @@ describe("ApplicationIntakePhase", () => {
 
     it("handles empty date value correctly", async () => {
       setup({
-        initialStateApplicationDocuments: [mockStateApplicationDocument],
+        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
         initialStateApplicationSubmittedDate: "2024-03-15",
       });
 
-      const dateInputs = screen.getAllByDisplayValue("2024-03-15");
-      const submittedDateInput = dateInputs.find(
-        (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
+      const submittedDateInput = screen.getByTestId(
+        APPLICATION_SUBMITTED_DATEPICKER_NAME
       ) as HTMLInputElement;
 
       await userEvent.clear(submittedDateInput);
@@ -597,21 +564,19 @@ describe("ApplicationIntakePhase", () => {
       vi.clearAllMocks();
 
       setup({
-        initialStateApplicationDocuments: [mockStateApplicationDocument],
+        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
         initialStateApplicationSubmittedDate: "2024-03-15",
       });
 
-      const submittedDateInput = screen
-        .getAllByDisplayValue("2024-03-15")
-        .find(
-          (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
-        ) as HTMLInputElement;
+      const submittedDateInput = screen.getByTestId(
+        APPLICATION_SUBMITTED_DATEPICKER_NAME
+      ) as HTMLInputElement;
 
       fireEvent.change(submittedDateInput, { target: { value: "" } });
 
       await waitFor(() => {
         expect(mockSetApplicationDates).toHaveBeenCalledWith({
-          applicationId: "test-demo-id",
+          applicationId: TEST_APP_ID,
           applicationDates: [
             { dateType: "State Application Submitted Date", dateValue: null },
             { dateType: "Completeness Review Due Date", dateValue: null },
@@ -626,13 +591,12 @@ describe("ApplicationIntakePhase", () => {
       const todayString = getTodayEst();
 
       setup({
-        initialStateApplicationDocuments: [mockStateApplicationDocument],
+        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
         initialStateApplicationSubmittedDate: todayString,
       });
 
-      const dateInputs = screen.getAllByDisplayValue(todayString);
-      const submittedDateInput = dateInputs.find(
-        (input) => input.getAttribute("type") === "date" && !input.hasAttribute("disabled")
+      const submittedDateInput = screen.getByTestId(
+        APPLICATION_SUBMITTED_DATEPICKER_NAME
       ) as HTMLInputElement;
 
       expect(submittedDateInput?.value).toBe(todayString);
