@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS "application_tag_suggestion_extract_field_limit" (
 );
 
 -- Seed default values
-INSERT INTO "application_tag_suggestion_extract_field_limit" ("id")
+INSERT INTO
+    "application_tag_suggestion_extract_field_limit"
 VALUES
   ('demo_type')
-ON CONFLICT ("id") DO NOTHING;
