@@ -303,7 +303,6 @@ export const ApplicationIntakePhase = ({
       });
       showSuccess("Application tags updated");
     } catch (error) {
-      // Roll back on failure
       showError("Failed to update application tags");
       throw error;
     }
