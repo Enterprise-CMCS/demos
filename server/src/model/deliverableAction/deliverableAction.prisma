@@ -1,0 +1,26 @@
+// Flags: NO_CREATED_TS, NO_UPDATED_TS
+// Time is captured by the action timestamp; table is intended to be append-only
+model DeliverableAction {
+  id                   String   @db.Uuid
+  actionTimestamp      DateTime @map("action_timestamp") @db.Timestamptz
+  deliverableId        String   @map("deliverable_id") @db.Uuid
+  actionTypeId         String   @map("action_type_id")
+  oldStatusId          String   @map("old_status_id")
+  newStatusId          String   @map("new_status_id")
+  note                 String?
+  activeExtensionId    String?  @map("active_extension_id") @db.Uuid
+  dueDateChangeAllowed Boolean  @map("due_date_change_allowed")
+  oldDueDate           DateTime @map("old_due_date") @db.Timestamptz
+  newDueDate           DateTime @map("new_due_date") @db.Timestamptz
+  userId               String?  @map("user_id") @db.Uuid
+
+  deliverable         Deliverable                    @relation(fields: [deliverableId], references: [id])
+  activeExtension     DeliverableExtension?          @relation(fields: [activeExtensionId, deliverableId], references: [id, deliverableId])
+  user                User?                          @relation(fields: [userId], references: [id])
+  actionType          DeliverableActionType          @relation(fields: [actionTypeId, dueDateChangeAllowed], references: [id, dueDateChangeAllowed])
+  actionConfiguration DeliverableActionConfiguration @relation(fields: [actionTypeId, oldStatusId, newStatusId], references: [actionTypeId, oldStatusId, newStatusId])
+
+  @@id([id])
+  @@unique([id, actionTypeId])
+  @@map("deliverable_action")
+}

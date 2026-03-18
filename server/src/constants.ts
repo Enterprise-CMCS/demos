@@ -11,6 +11,22 @@ export const APPLICATION_STATUS = [
   "On-hold",
 ] as const;
 
+export const DELIVERABLE_ACTION_TYPES = [
+  "Created Deliverable Slot",
+  "Marked as Past Due",
+  "Requested Extension",
+  "Approved Extension Request",
+  "Denied Extension Request",
+  "Withdrew Extension Request",
+  "Manually Changed Due Date",
+  "Requested Resubmission",
+  "Submitted Deliverable",
+  "Started Review",
+  "Accepted Deliverable",
+  "Approved Deliverable",
+  "Received and Filed Deliverable",
+] as const;
+
 export const DELIVERABLE_TYPES = [
   "Annual Budget Neutrality Report",
   "Close Out Report",
@@ -33,14 +49,27 @@ export const DELIVERABLE_TYPES = [
 
 export const DELIVERABLE_DUE_DATE_TYPES = ["Normal", "Open Ended"] as const;
 
+export const DELIVERABLE_EXTENSION_REASON_CODES = [
+  "COVID-19",
+  "Technical Difficulties",
+  "Other",
+] as const;
+
+export const DELIVERABLE_EXTENSION_STATUSES = [
+  "Requested",
+  "Approved",
+  "Denied",
+  "Withdrawn",
+] as const;
+
 export const DELIVERABLE_STATUSES = [
   "Upcoming",
   "Past Due",
   "Submitted",
-  "Under Review",
+  "Under CMS Review",
   "Accepted",
   "Approved",
-  "Filed",
+  "Received and Filed",
 ] as const;
 
 export const DEMONSTRATION_TYPE_STATUSES = ["Expired", "Pending", "Active"] as const;

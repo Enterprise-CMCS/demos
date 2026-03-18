@@ -493,6 +493,152 @@ CREATE OR REPLACE TRIGGER log_changes_deliverable
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.deliverable
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_deliverable();
 
+CREATE OR REPLACE FUNCTION demos_app.log_changes_deliverable_action()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.deliverable_action_history (
+            revision_type,
+            id,
+            action_timestamp,
+            deliverable_id,
+            action_type_id,
+            old_status_id,
+            new_status_id,
+            note,
+            active_extension_id,
+            due_date_change_allowed,
+            old_due_date,
+            new_due_date,
+            user_id
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.action_timestamp,
+            NEW.deliverable_id,
+            NEW.action_type_id,
+            NEW.old_status_id,
+            NEW.new_status_id,
+            NEW.note,
+            NEW.active_extension_id,
+            NEW.due_date_change_allowed,
+            NEW.old_due_date,
+            NEW.new_due_date,
+            NEW.user_id
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.deliverable_action_history (
+            revision_type,
+            id,
+            action_timestamp,
+            deliverable_id,
+            action_type_id,
+            old_status_id,
+            new_status_id,
+            note,
+            active_extension_id,
+            due_date_change_allowed,
+            old_due_date,
+            new_due_date,
+            user_id
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.action_timestamp,
+            OLD.deliverable_id,
+            OLD.action_type_id,
+            OLD.old_status_id,
+            OLD.new_status_id,
+            OLD.note,
+            OLD.active_extension_id,
+            OLD.due_date_change_allowed,
+            OLD.old_due_date,
+            OLD.new_due_date,
+            OLD.user_id
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_deliverable_action
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.deliverable_action
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_deliverable_action();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_deliverable_extension()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.deliverable_extension_history (
+            revision_type,
+            id,
+            deliverable_id,
+            status_id,
+            reason_code_id,
+            note,
+            original_date_requested,
+            final_date_granted,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.deliverable_id,
+            NEW.status_id,
+            NEW.reason_code_id,
+            NEW.note,
+            NEW.original_date_requested,
+            NEW.final_date_granted,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.deliverable_extension_history (
+            revision_type,
+            id,
+            deliverable_id,
+            status_id,
+            reason_code_id,
+            note,
+            original_date_requested,
+            final_date_granted,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.deliverable_id,
+            OLD.status_id,
+            OLD.reason_code_id,
+            OLD.note,
+            OLD.original_date_requested,
+            OLD.final_date_granted,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_deliverable_extension
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.deliverable_extension
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_deliverable_extension();
+
 CREATE OR REPLACE FUNCTION demos_app.log_changes_demonstration()
 RETURNS TRIGGER AS $$
 BEGIN

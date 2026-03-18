@@ -9,6 +9,7 @@ model User {
   person                 Person                  @relation(fields: [id, personTypeId], references: [id, personTypeId])
   personType             UserPersonTypeLimit     @relation(fields: [personTypeId], references: [id])
   deliverables           Deliverable[]
+  deliverableActions     DeliverableAction[]
   documents              Document[]
   documentsPendingUpload DocumentPendingUpload[]
   documentsInfected      DocumentInfected[]

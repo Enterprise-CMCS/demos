@@ -12,13 +12,15 @@ model Deliverable {
   createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  deliverableType     DeliverableType                     @relation(fields: [deliverableTypeId], references: [id])
-  status              DeliverableStatus                   @relation(fields: [statusId], references: [id])
-  demonstration       Demonstration                       @relation(fields: [demonstrationId, demonstrationStatusId], references: [id, statusId])
-  demonstrationStatus DeliverableDemonstrationStatusLimit @relation(fields: [demonstrationStatusId], references: [id])
-  cmsOwner            User                                @relation(fields: [cmsOwnerUserId, cmsOwnerPersonTypeId], references: [id, personTypeId])
-  personType          CmsUserPersonTypeLimit              @relation(fields: [cmsOwnerPersonTypeId], references: [id])
-  dueDateType         DeliverableDueDateType              @relation(fields: [dueDateTypeId], references: [id])
+  deliverableType       DeliverableType                     @relation(fields: [deliverableTypeId], references: [id])
+  status                DeliverableStatus                   @relation(fields: [statusId], references: [id])
+  demonstration         Demonstration                       @relation(fields: [demonstrationId, demonstrationStatusId], references: [id, statusId])
+  demonstrationStatus   DeliverableDemonstrationStatusLimit @relation(fields: [demonstrationStatusId], references: [id])
+  cmsOwner              User                                @relation(fields: [cmsOwnerUserId, cmsOwnerPersonTypeId], references: [id, personTypeId])
+  personType            CmsUserPersonTypeLimit              @relation(fields: [cmsOwnerPersonTypeId], references: [id])
+  dueDateType           DeliverableDueDateType              @relation(fields: [dueDateTypeId], references: [id])
+  deliverableActions    DeliverableAction[]
+  deliverableExtensions DeliverableExtension[]
 
   @@id([id])
   @@unique([id, demonstrationId, deliverableTypeId])

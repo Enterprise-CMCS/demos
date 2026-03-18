@@ -1,0 +1,19 @@
+model DeliverableActionHistory {
+  revisionId           Int          @id @default(autoincrement()) @map("revision_id")
+  revisionType         RevisionType @map("revision_type")
+  modifiedAt           DateTime     @default(now()) @map("modified_at") @db.Timestamptz
+  id                   String       @db.Uuid
+  actionTimestamp      DateTime     @map("action_timestamp") @db.Timestamptz
+  deliverableId        String       @map("deliverable_id") @db.Uuid
+  actionTypeId         String       @map("action_type_id")
+  oldStatusId          String       @map("old_status_id")
+  newStatusId          String       @map("new_status_id")
+  note                 String?
+  activeExtensionId    String?      @map("active_extension_id") @db.Uuid
+  dueDateChangeAllowed Boolean      @map("due_date_change_allowed")
+  oldDueDate           DateTime     @map("old_due_date") @db.Timestamptz
+  newDueDate           DateTime     @map("new_due_date") @db.Timestamptz
+  userId               String?      @map("user_id") @db.Uuid
+
+  @@map("deliverable_action_history")
+}

@@ -1,0 +1,12 @@
+// Flags: STATIC_CONSTRAINT
+model DeliverableActionType {
+  id                   String
+  dueDateChangeAllowed Boolean @map("due_date_change_allowed")
+
+  deliverableActions              DeliverableAction[]
+  deliverableActionConfigurations DeliverableActionConfiguration[]
+
+  @@id([id])
+  @@unique([id, dueDateChangeAllowed])
+  @@map("deliverable_action_type")
+}
