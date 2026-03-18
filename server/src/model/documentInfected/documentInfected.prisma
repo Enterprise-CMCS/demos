@@ -9,8 +9,8 @@ model DocumentInfected {
   phaseId          String   @map("phase_id")
   infectionStatus  String   @map("infection_status")
   infectionThreats String   @map("infection_threats")
-  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   owner             User              @relation(fields: [ownerUserId], references: [id])
   application       Application       @relation(fields: [applicationId], references: [id])

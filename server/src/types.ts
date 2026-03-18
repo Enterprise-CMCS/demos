@@ -6,7 +6,10 @@ import {
   CLEARANCE_LEVELS,
   CMS_USER_DEMONSTRATION_ROLES,
   DATE_TYPES,
+  DELIVERABLE_ACTION_TYPES,
   DELIVERABLE_DUE_DATE_TYPES,
+  DELIVERABLE_EXTENSION_REASON_CODES,
+  DELIVERABLE_EXTENSION_STATUSES,
   DELIVERABLE_STATUSES,
   DELIVERABLE_TYPES,
   DEMONSTRATION_TYPE_STATUSES,
@@ -139,3 +142,6 @@ export type BudgetNeutralityValidationStatus =
 export type DeliverableType = (typeof DELIVERABLE_TYPES)[number];
 export type DeliverableStatus = (typeof DELIVERABLE_STATUSES)[number];
 export type DeliverableDueDateType = (typeof DELIVERABLE_DUE_DATE_TYPES)[number];
+export type DeliverableActionType = (typeof DELIVERABLE_ACTION_TYPES)[number];
+export type DeliverableExtensionReasonCode = (typeof DELIVERABLE_EXTENSION_REASON_CODES)[number];
+export type DeliverableExtensionStatus = (typeof DELIVERABLE_EXTENSION_STATUSES)[number];

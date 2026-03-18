@@ -3,8 +3,8 @@ model BudgetNeutralityWorkbook {
   documentTypeId     String   @map("document_type_id")
   validationStatusId String   @map("validation_status_id")
   validationData     Json     @map("validation_data")
-  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   document         Document                                  @relation(fields: [id, documentTypeId], references: [id, documentTypeId])
   documentType     BudgetNeutralityWorkbookDocumentTypeLimit @relation(fields: [documentTypeId], references: [id])

@@ -5,7 +5,7 @@ model UiPathResult {
   response   Json
   projectId  String   @map("project_id")
   documentId String?  @map("document_id") @db.Uuid
-  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   document Document?           @relation(fields: [documentId], references: [id], onDelete: SetNull)
   fields   UipathResultField[]

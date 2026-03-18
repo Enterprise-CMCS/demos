@@ -23,35 +23,20 @@ DB_SSL_MODE=${DB_SSL_MODE:-"disable"}
 cd /workspaces/demos/lambdas/UIPath
 
 npm ci --silent
-npx esbuild index.ts \
+npx tsc --outDir build
+npx esbuild build/index.js \
   --bundle \
   --platform=node \
   --target=node22 \
-  --format=esm \
   --sourcemap \
-  --external:@aws-sdk/* \
-  --external:pg \
-  --external:pino \
-  --external:axios \
-  --external:form-data \
-  --external:axios-oauth-client \
-  --external:file-type \
-  --external:dotenv \
-  --outfile=index.js
-
-# Remove dev dependencies before zipping to stay below Lambda's 50MB zipped limit.
-npm prune --omit=dev --silent
-
+  --outfile=dist/index.cjs
 rm -f uipath.zip
-zip -qr uipath.zip index.js node_modules/ package.json
-
-ZIP_SIZE_BYTES=$(wc -c < uipath.zip | tr -d ' ')
-if [ "$ZIP_SIZE_BYTES" -ge "$MAX_ZIPPED_SIZE_BYTES" ]; then
-  echo "❌ uipath.zip is $ZIP_SIZE_BYTES bytes. Lambda requires zipped size < $MAX_ZIPPED_SIZE_BYTES bytes, building anyway!"
-fi
+mv dist/index.cjs index.cjs
+zip -qr uipath.zip index.cjs
 
 # Clean up build artifacts
-rm index.js index.js.map
+rm -rf dist/ build/
+rm -f index.cjs
 
 cd - > /dev/null
 

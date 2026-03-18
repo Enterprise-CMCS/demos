@@ -1,0 +1,21 @@
+model DeliverableExtension {
+  id                    String    @db.Uuid
+  deliverableId         String    @map("deliverable_id") @db.Uuid
+  statusId              String    @map("status_id")
+  reasonCodeId          String    @map("reason_code_id")
+  note                  String?   @map("note")
+  originalDateRequested DateTime  @map("original_date_requested") @db.Timestamptz
+  finalDateGranted      DateTime? @map("final_date_granted") @db.Timestamptz
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  deliverable        Deliverable                    @relation(fields: [deliverableId], references: [id])
+  status             DeliverableExtensionStatus     @relation(fields: [statusId], references: [id])
+  reasonCode         DeliverableExtensionReasonCode @relation(fields: [reasonCodeId], references: [id])
+  deliverableActions DeliverableAction[]
+
+  @@id([id])
+  @@unique([id, deliverableId, statusId])
+  @@unique([id, deliverableId])
+  @@map("deliverable_extension")
+}
