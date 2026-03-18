@@ -1,5 +1,6 @@
 import {
   ADMIN_DEMONSTRATION_ROLES,
+  APPLICATION_TAG_SUGGESTION_STATUSES,
   APPLICATION_STATUS,
   APPLICATION_TYPES,
   BUDGET_NEUTRALITY_VALIDATION_STATUSES,
@@ -128,6 +129,8 @@ export type CmsUserDemonstrationRole = (typeof CMS_USER_DEMONSTRATION_ROLES)[num
 export type StateUserDemonstrationRole = (typeof STATE_USER_DEMONSTRATION_ROLES)[number];
 export type ReviewPhaseDateTypes = (typeof REVIEW_PHASE_DATE_TYPES)[number];
 export type ReviewPhaseNoteTypes = (typeof REVIEW_PHASE_NOTE_TYPES)[number];
+export type ApplicationTagSuggestionStatus =
+  (typeof APPLICATION_TAG_SUGGESTION_STATUSES)[number];
 export type TagStatus = (typeof TAG_STATUSES)[number];
 export type TagSource = (typeof TAG_SOURCES)[number];
 export type TagType = (typeof TAG_TYPES)[number];
