@@ -17,7 +17,7 @@ import { getPhaseCompletedMessage } from "util/messages";
 import { useToast } from "components/toast";
 import { DatePicker } from "components/input/date/DatePicker";
 import { ApplicationHealthTypeTags } from "components/tags/ApplicationHealthTypeTags";
-import type { PhaseStatus, Tag, TagName } from "demos-server";
+import type { LocalDate, PhaseStatus, Tag, TagName } from "demos-server";
 import { SET_APPLICATION_TAGS_MUTATION } from "components/dialog/ApplyTagsDialog";
 
 /** Business Rules for this Phase:
@@ -87,7 +87,7 @@ export const getCompletenessReviewDueDate = (stateApplicationSubmittedDate: stri
   if (!stateApplicationSubmittedDate) return "";
 
   const date = parseISO(stateApplicationSubmittedDate);
-  return getDateEst(addDays(date, 15));
+  return formatDateForServer(addDays(date, 15));
 };
 
 export const calculateStateApplicationSubmittedDate = (
@@ -202,7 +202,10 @@ export const getApplicationIntakeComponentFromApplication = (
     (date) => date.dateType === "State Application Submitted Date"
   )?.dateValue;
 
-  console.log(stateApplicationSubmittedDate, "stateApplicationSubmittedDate");
+  // This date value comes back in UTC, we want to display it in EST
+  const estStateApplicationSubmittedDate = stateApplicationSubmittedDate
+    ? getDateEst(stateApplicationSubmittedDate)
+    : "";
 
   const applicationIntakeDocuments = application.documents.filter(
     (doc) => doc.phaseName === THIS_PHASE_NAME
@@ -212,9 +215,7 @@ export const getApplicationIntakeComponentFromApplication = (
     <ApplicationIntakePhase
       applicationId={application.id}
       applicationIntakeDocuments={applicationIntakeDocuments}
-      initialStateApplicationSubmittedDate={
-        stateApplicationSubmittedDate ? getDateEst(stateApplicationSubmittedDate) : ""
-      }
+      initialStateApplicationSubmittedDate={estStateApplicationSubmittedDate}
       tags={application.tags}
       setSelectedPhase={setSelectedPhase}
       phaseStatus={applicationIntakePhase.phaseStatus ?? "Not Started"}
@@ -243,14 +244,14 @@ export const ApplicationIntakePhase = ({
   const { setApplicationDates } = useSetApplicationDates();
   const [setApplicationTagsMutation] = useMutation(SET_APPLICATION_TAGS_MUTATION);
 
-  const [stateApplicationSubmittedDateOverride, setStateApplicationSubmittedDateOverride] =
-    useState<string>("");
+  const [submittedDateOverride, setSubmittedDateOverride] = useState<string>("");
 
-  // Calculate the state application submitted date based on the following precedence:
-  // 1. If the user has manually entered a date (stateApplicationSubmittedDateOverride), use this
-  // 2. If no manual date, calculate based on the latest createdAt date of State Application documents
-  const stateApplicationSubmittedDate = stateApplicationSubmittedDateOverride
-    ? stateApplicationSubmittedDateOverride
+  // Calculate the dates to display based on the following rules:
+  // 1. If a date was passed to this component (most likely finalized), use this
+  // 2. If the user has manually entered a date (submittedDateOverride), use this
+  // 3. If no manual date, calculate based on the latest createdAt date of State Application documents
+  const stateApplicationSubmittedDate = submittedDateOverride
+    ? submittedDateOverride
     : calculateStateApplicationSubmittedDate(
         initialStateApplicationSubmittedDate,
         applicationIntakeDocuments
@@ -268,11 +269,11 @@ export const ApplicationIntakePhase = ({
       applicationDates: [
         {
           dateType: "State Application Submitted Date",
-          dateValue: formatDateForServer(stateApplicationSubmittedDate),
+          dateValue: stateApplicationSubmittedDate as LocalDate,
         },
         {
           dateType: "Completeness Review Due Date",
-          dateValue: formatDateForServer(completenessReviewDueDate),
+          dateValue: completenessReviewDueDate as LocalDate,
         },
       ],
     });
@@ -322,7 +323,7 @@ export const ApplicationIntakePhase = ({
           <VerifyCompleteSection
             stateApplicationSubmittedDate={stateApplicationSubmittedDate}
             hasDocuments={hasDocuments}
-            onDateChange={setStateApplicationSubmittedDateOverride}
+            onDateChange={setSubmittedDateOverride}
             isFinishButtonEnabled={isFinishButtonEnabled}
             onFinish={onFinishButtonClick}
             isPhaseFinalized={isPhaseFinalized}

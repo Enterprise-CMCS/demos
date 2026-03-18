@@ -16,7 +16,8 @@ import {
   getApplicationIntakeComponentFromApplication,
 } from "./ApplicationIntakePhase";
 import { ApplicationWorkflowDocument, WorkflowApplication } from "components/application";
-import { formatDateForServer, getTodayEst } from "util/formatDate";
+import { TZDate } from "@date-fns/tz";
+import { formatDateForServer, getTodayEst, EST_TIMEZONE } from "util/formatDate";
 import { MockedResponse } from "@apollo/client/testing";
 import { GET_APPLICATION_TAG_OPTIONS } from "components/tags/ApplicationHealthTypeTags";
 import { DialogProvider } from "components/dialog/DialogContext";
@@ -68,7 +69,7 @@ describe("ApplicationIntakePhase", () => {
     documentType: "State Application",
     phaseName: "Application Intake",
     owner: { person: { fullName: "John Doe" } },
-    createdAt: new Date("2024-01-12"),
+    createdAt: new TZDate("2024-01-12", EST_TIMEZONE),
   };
 
   const setup = (props: Partial<ApplicationIntakeProps> = {}) => {
@@ -367,14 +368,6 @@ describe("ApplicationIntakePhase", () => {
       expect(formatDateForServer(result)).toBe("2025-01-04");
     });
 
-    it("returns a valid Date object", () => {
-      const submittedDate = "2024-10-13";
-      const result = getCompletenessReviewDueDate(submittedDate);
-
-      expect(result).toBeInstanceOf(Date);
-      expect(result.toString()).not.toBe("Invalid Date");
-    });
-
     it("calculates correctly for the test case: Oct 13 to Oct 28", () => {
       const submittedDate = "2025-10-13"; // October 13, 2025
       const result = getCompletenessReviewDueDate(submittedDate);
@@ -397,7 +390,7 @@ describe("ApplicationIntakePhase", () => {
             phaseDates: [
               {
                 dateType: "State Application Submitted Date",
-                dateValue: new Date(2024, 9, 13),
+                dateValue: new TZDate(2024, 9, 13, EST_TIMEZONE),
               },
             ],
             phaseNotes: [],
@@ -411,7 +404,7 @@ describe("ApplicationIntakePhase", () => {
             documentType: "State Application",
             phaseName: "Application Intake",
             owner: { person: { fullName: "John Doe" } },
-            createdAt: new Date(2024, 10, 10),
+            createdAt: new TZDate(2024, 10, 10, EST_TIMEZONE),
           },
         ],
         tags: [],
@@ -528,20 +521,20 @@ describe("calculateStateApplicationSubmittedDate", () => {
   });
 
   it("returns empty string when no State Application documents exist", () => {
-    const doc = makeDoc("General File", new Date("2024-01-12T17:00:00Z"));
+    const doc = makeDoc("General File", new TZDate("2024-01-12T17:00:00Z", EST_TIMEZONE));
     const result = calculateStateApplicationSubmittedDate("", [doc]);
     expect(result).toBe("");
   });
 
   it("returns the formatted EST date of a single State Application document", () => {
-    const doc = makeDoc("State Application", new Date("2024-01-12T17:00:00Z"));
+    const doc = makeDoc("State Application", new TZDate("2024-01-12T17:00:00Z", EST_TIMEZONE));
     const result = calculateStateApplicationSubmittedDate("", [doc]);
     expect(result).toBe("2024-01-12");
   });
 
   it("returns the most recent date when multiple State Application documents exist", () => {
-    const earlier = makeDoc("State Application", new Date("2024-01-10T17:00:00Z"));
-    const later = makeDoc("State Application", new Date("2024-03-20T17:00:00Z"));
+    const earlier = makeDoc("State Application", new TZDate("2024-01-10T17:00:00Z", EST_TIMEZONE));
+    const later = makeDoc("State Application", new TZDate("2024-03-20T17:00:00Z", EST_TIMEZONE));
     const result = calculateStateApplicationSubmittedDate("", [earlier, later]);
     expect(result).toBe("2024-03-20");
   });

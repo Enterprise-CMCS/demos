@@ -6,7 +6,7 @@ type DateArgument = Date | string | number;
 
 const ISO_DATE_FORMAT = "yyyy-MM-dd";
 const US_DATE_FORMAT = "MM/dd/yyyy";
-const EST_TIMEZONE = "America/New_York";
+export const EST_TIMEZONE = "America/New_York";
 
 /**
  * Formats a date to MM/DD/YYYY
