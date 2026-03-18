@@ -111,7 +111,7 @@ export class Lambda extends Construct {
 
     this.lambda = new NodejsFunction(this, id, {
       functionName: `${props.project}-${props.stage}-${id}`,
-      entry: !asCode ? props.entry : undefined,
+      entry: asCode ? undefined : props.entry,
       code: asCode ? aws_lambda.Code.fromAsset(props.entry) : undefined,
       depsLockFilePath: props.depsLockFilePath,
       handler: `${props.handler}`,

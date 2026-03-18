@@ -15,9 +15,9 @@ export class BootstrapStack extends Stack {
       ...props,
       scope: this,
       iamPermissionsBoundary:
-        props.iamPermissionsBoundaryArn != null
-          ? aws_iam.ManagedPolicy.fromManagedPolicyArn(this, "iamPermissionsBoundary", props.iamPermissionsBoundaryArn)
-          : undefined,
+        props.iamPermissionsBoundaryArn == null
+          ? undefined : 
+          aws_iam.ManagedPolicy.fromManagedPolicyArn(this, "iamPermissionsBoundary", props.iamPermissionsBoundaryArn),
     };
 
     const apiGwCloudWatchRole = new aws_iam.Role(commonProps.scope, "ApiGatewayCloudWatchRole", {
