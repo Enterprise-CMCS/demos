@@ -27,9 +27,9 @@ export class CoreStack extends Stack {
       ...props,
       scope: this,
       iamPermissionsBoundary:
-        props.iamPermissionsBoundaryArn != null
-          ? aws_iam.ManagedPolicy.fromManagedPolicyArn(this, "iamPermissionsBoundary", props.iamPermissionsBoundaryArn)
-          : undefined,
+        props.iamPermissionsBoundaryArn == null
+          ? undefined : aws_iam.ManagedPolicy.fromManagedPolicyArn(this, "iamPermissionsBoundary", props.iamPermissionsBoundaryArn)
+          
     };
 
     let cognito_outputs: cognito.CognitoOutputs;
@@ -51,7 +51,7 @@ export class CoreStack extends Stack {
       ? aws_ec2.Vpc.fromLookup(this, "lsVpc", { tags: { Name: `demos-local` } })
       : aws_ec2.Vpc.fromLookup(this, "vpc", {
           tags: {
-            Name: `demos-east-${!commonProps.isEphemeral ? commonProps.stage : commonProps.hostEnvironment}`,
+            Name: `demos-east-${commonProps.isEphemeral ? commonProps.hostEnvironment : commonProps.stage}`,
           },
         });
 
@@ -82,7 +82,22 @@ export class CoreStack extends Stack {
     let secretsManagerEndpointSG: aws_ec2.ISecurityGroup;
     let sqsEndpointSg: aws_ec2.ISecurityGroup;
 
-    if (!commonProps.isEphemeral) {
+    if (commonProps.isEphemeral) {
+      // Ephemeral Environments
+      secretsManagerEndpointSG = aws_ec2.SecurityGroup.fromLookupByName(
+        commonProps.scope,
+        "hostEnvSecretsManagerSG",
+        `${commonProps.project}-${commonProps.hostEnvironment}-${secretsManagerSecurityGroupName}`,
+        vpc
+      );
+
+      sqsEndpointSg = aws_ec2.SecurityGroup.fromLookupByName(
+        commonProps.scope,
+        "hostEnvSqsSG",
+        `${commonProps.project}-${commonProps.hostEnvironment}-${sqsSecurityGroupName}`,
+        vpc
+      );
+    } else {
       secretsManagerEndpointSG = securityGroup.create({
         ...commonProps,
         vpc,
@@ -130,21 +145,6 @@ export class CoreStack extends Stack {
         },
         securityGroups: [ssmEndpoint],
       });
-    } else {
-      // Ephemeral Environments
-      secretsManagerEndpointSG = aws_ec2.SecurityGroup.fromLookupByName(
-        commonProps.scope,
-        "hostEnvSecretsManagerSG",
-        `${commonProps.project}-${commonProps.hostEnvironment}-${secretsManagerSecurityGroupName}`,
-        vpc
-      );
-
-      sqsEndpointSg = aws_ec2.SecurityGroup.fromLookupByName(
-        commonProps.scope,
-        "hostEnvSqsSG",
-        `${commonProps.project}-${commonProps.hostEnvironment}-${sqsSecurityGroupName}`,
-        vpc
-      );
     }
 
     this.secretsManagerVpceSg = secretsManagerEndpointSG;
