@@ -6,6 +6,7 @@ type DateArgument = Date | string | number;
 
 const ISO_DATE_FORMAT = "yyyy-MM-dd";
 const US_DATE_FORMAT = "MM/dd/yyyy";
+const EST_TIMEZONE = "America/New_York";
 
 /**
  * Formats a date to MM/DD/YYYY
@@ -25,6 +26,12 @@ export const formatDateForServer = (date: DateArgument): LocalDate => {
  * Gets today's date in Eastern Time in YYYY-MM-DD format
  */
 export const getTodayEst = (): LocalDate => {
-  const nowInET = new TZDate(Date.now(), "America/New_York");
+  const nowInET = new TZDate(Date.now(), EST_TIMEZONE);
   return formatDateForServer(nowInET);
+};
+
+/** Gets the provided date in Eastern Time in YYYY-MM-DD format */
+export const getDateEst = (date: Date): LocalDate => {
+  const dateInET = new TZDate(date, EST_TIMEZONE);
+  return formatDateForServer(dateInET);
 };

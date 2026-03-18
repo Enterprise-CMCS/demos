@@ -6,7 +6,7 @@ import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { addDays, compareDesc, parseISO } from "date-fns";
 import { tw } from "tags/tw";
-import { formatDateForServer } from "util/formatDate";
+import { formatDateForServer, getDateEst } from "util/formatDate";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { PhaseName } from "components/application/phase-selector/PhaseSelector";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
@@ -19,7 +19,6 @@ import { DatePicker } from "components/input/date/DatePicker";
 import { ApplicationHealthTypeTags } from "components/tags/ApplicationHealthTypeTags";
 import type { PhaseStatus, Tag, TagName } from "demos-server";
 import { SET_APPLICATION_TAGS_MUTATION } from "components/dialog/ApplyTagsDialog";
-import { TZDate } from "@date-fns/tz/date";
 
 /** Business Rules for this Phase:
  * - **Application Intake Start Date** - Can start in one of two ways, whichever comes first:
@@ -106,8 +105,7 @@ export const calculateStateApplicationSubmittedDate = (
   // Get latest createdAt date in EST from state application documents
   const createdAtDates = stateApplicationDocuments.map((doc) => doc.createdAt);
   const sortedDates = createdAtDates.sort(compareDesc);
-  const latestCreatedAtDateEST = new TZDate(sortedDates[0], "America/New_York");
-  return formatDateForServer(latestCreatedAtDateEST);
+  return getDateEst(sortedDates[0]);
 };
 
 interface VerifyCompleteSectionProps {
@@ -211,7 +209,7 @@ export const getApplicationIntakeComponentFromApplication = (
       applicationId={application.id}
       applicationIntakeDocuments={applicationIntakeDocuments}
       initialStateApplicationSubmittedDate={
-        stateApplicationSubmittedDate ? formatDateForServer(stateApplicationSubmittedDate) : ""
+        stateApplicationSubmittedDate ? getDateEst(stateApplicationSubmittedDate) : ""
       }
       tags={application.tags}
       setSelectedPhase={setSelectedPhase}
