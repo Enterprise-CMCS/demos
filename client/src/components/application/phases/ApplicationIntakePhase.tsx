@@ -250,12 +250,13 @@ export const ApplicationIntakePhase = ({
   // 1. If a date was passed to this component (most likely finalized), use this
   // 2. If the user has manually entered a date (submittedDateOverride), use this
   // 3. If no manual date, calculate based on the latest createdAt date of State Application documents
+  const calculatedStateApplicationSubmittedDate = calculateStateApplicationSubmittedDate(
+    initialStateApplicationSubmittedDate,
+    applicationIntakeDocuments
+  );
   const stateApplicationSubmittedDate = submittedDateOverride
     ? submittedDateOverride
-    : calculateStateApplicationSubmittedDate(
-        initialStateApplicationSubmittedDate,
-        applicationIntakeDocuments
-      );
+    : calculatedStateApplicationSubmittedDate;
   const completenessReviewDueDate = getCompletenessReviewDueDate(stateApplicationSubmittedDate);
 
   const isPhaseFinalized = phaseStatus === "Completed";
