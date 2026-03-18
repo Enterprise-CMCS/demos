@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import { useMutation } from "@apollo/client";
 
@@ -83,9 +83,11 @@ const UploadSection = ({
 };
 
 // Calculate completeness review due date (submitted date + 15 calendar days)
-export const getCompletenessReviewDueDate = (stateApplicationSubmittedDate: string): Date => {
+export const getCompletenessReviewDueDate = (stateApplicationSubmittedDate: string): string => {
+  if (!stateApplicationSubmittedDate) return "";
+
   const date = parseISO(stateApplicationSubmittedDate);
-  return addDays(date, 15);
+  return getDateEst(addDays(date, 15));
 };
 
 export const calculateStateApplicationSubmittedDate = (
@@ -105,7 +107,7 @@ export const calculateStateApplicationSubmittedDate = (
   // Get latest createdAt date in EST from state application documents
   const createdAtDates = stateApplicationDocuments.map((doc) => doc.createdAt);
   const sortedDates = createdAtDates.sort(compareDesc);
-  return getDateEst(sortedDates[0]);
+  return formatDateForServer(sortedDates[0]);
 };
 
 interface VerifyCompleteSectionProps {
@@ -126,7 +128,7 @@ const VerifyCompleteSection = ({
   isPhaseFinalized,
 }: VerifyCompleteSectionProps) => {
   const completenessReviewDueDate = stateApplicationSubmittedDate
-    ? formatDateForServer(getCompletenessReviewDueDate(stateApplicationSubmittedDate))
+    ? getCompletenessReviewDueDate(stateApplicationSubmittedDate)
     : "";
 
   return (
@@ -200,6 +202,8 @@ export const getApplicationIntakeComponentFromApplication = (
     (date) => date.dateType === "State Application Submitted Date"
   )?.dateValue;
 
+  console.log(stateApplicationSubmittedDate, "stateApplicationSubmittedDate");
+
   const applicationIntakeDocuments = application.documents.filter(
     (doc) => doc.phaseName === THIS_PHASE_NAME
   );
@@ -251,15 +255,14 @@ export const ApplicationIntakePhase = ({
         initialStateApplicationSubmittedDate,
         applicationIntakeDocuments
       );
+  const completenessReviewDueDate = getCompletenessReviewDueDate(stateApplicationSubmittedDate);
 
   const isPhaseFinalized = phaseStatus === "Completed";
   const hasDocuments = applicationIntakeDocuments.length > 0;
   const isFinishButtonEnabled =
     hasDocuments && Boolean(stateApplicationSubmittedDate) && !isPhaseFinalized;
 
-  const sendDatesToServer = async (stateApplicationSubmittedDate: string) => {
-    const completenessReviewDueDate = getCompletenessReviewDueDate(stateApplicationSubmittedDate);
-
+  const sendDatesToServer = async () => {
     await setApplicationDates({
       applicationId: applicationId,
       applicationDates: [
@@ -276,7 +279,7 @@ export const ApplicationIntakePhase = ({
   };
 
   const onFinishButtonClick = async () => {
-    await sendDatesToServer(stateApplicationSubmittedDate);
+    await sendDatesToServer();
     await completePhase({
       applicationId: applicationId,
       phaseName: THIS_PHASE_NAME,
