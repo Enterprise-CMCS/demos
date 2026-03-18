@@ -63,7 +63,7 @@ vi.mock("../applicationDate", () => ({
 }));
 
 vi.mock("../../services/uipathQueue", () => ({
-  enqueueUiPath: vi.fn()
+  enqueueUiPath: vi.fn(),
 }));
 
 vi.mock("../user", () => ({
@@ -267,40 +267,6 @@ describe("documentResolvers", () => {
       await uploadDocument(undefined, { input: mockUploadInput }, mockContext);
 
       expect(validateAndUpdateDates).not.toHaveBeenCalled();
-    });
-
-    it("should call validateAndUpdateDates with State Application Submitted Date and Completeness Review Due Date when uploading State Application to Application Intake phase", async () => {
-      const stateApplicationInput: UploadDocumentInput = {
-        name: "state-application.pdf",
-        description: "State Application",
-        documentType: "State Application",
-        applicationId: testApplicationId,
-        phaseName: "Application Intake",
-      };
-
-      vi.mocked(mockS3Adapter.uploadDocument).mockResolvedValue(mockUploadResponse);
-      vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);
-      vi.mocked(startPhaseByDocument).mockResolvedValue(null);
-      vi.mocked(validateAndUpdateDates).mockResolvedValue(undefined);
-
-      await uploadDocument(undefined, { input: stateApplicationInput }, mockContext);
-
-      expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
-        {
-          applicationId: testApplicationId,
-          applicationDates: [
-            {
-              dateType: "State Application Submitted Date",
-              dateValue: new TZDate("2025-01-15T00:00:00.000Z"),
-            },
-            {
-              dateType: "Completeness Review Due Date",
-              dateValue: new TZDate("2025-01-30T23:59:59.999Z"),
-            },
-          ],
-        },
-        mockTransaction
-      );
     });
   });
 

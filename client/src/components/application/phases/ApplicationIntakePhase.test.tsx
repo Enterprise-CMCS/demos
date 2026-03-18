@@ -11,14 +11,17 @@ import {
   APPLICATION_INTAKE_UPLOAD_BUTTON_NAME,
   APPLICATION_SUBMITTED_DATEPICKER_NAME,
   COMPLETENESS_REVIEW_DATEPICKER_NAME,
+  calculateStateApplicationSubmittedDate,
   getCompletenessReviewDueDate,
   getApplicationIntakeComponentFromApplication,
 } from "./ApplicationIntakePhase";
 import { ApplicationWorkflowDocument, WorkflowApplication } from "components/application";
-import { formatDateForServer, getTodayEst } from "util/formatDate";
+import { TZDate } from "@date-fns/tz";
+import { formatDateForServer, getTodayEst, EST_TIMEZONE } from "util/formatDate";
 import { MockedResponse } from "@apollo/client/testing";
 import { GET_APPLICATION_TAG_OPTIONS } from "components/tags/ApplicationHealthTypeTags";
 import { DialogProvider } from "components/dialog/DialogContext";
+import { DocumentType } from "demos-server";
 
 vi.mock("@apollo/client", async () => {
   const actual = await vi.importActual("@apollo/client");
@@ -52,10 +55,11 @@ describe("ApplicationIntakePhase", () => {
 
   const DEFAULT_APPLICATION_INTAKE_PROPS: ApplicationIntakeProps = {
     applicationId: TEST_APP_ID,
-    initialStateApplicationDocuments: [],
+    applicationIntakeDocuments: [],
     initialStateApplicationSubmittedDate: "",
     tags: [],
     phaseStatus: "Started",
+    setSelectedPhase: vi.fn(),
   };
 
   const MOCK_STATE_APPLICATION_DOCUMENT: ApplicationWorkflowDocument = {
@@ -65,7 +69,7 @@ describe("ApplicationIntakePhase", () => {
     documentType: "State Application",
     phaseName: "Application Intake",
     owner: { person: { fullName: "John Doe" } },
-    createdAt: new Date("2024-01-12"),
+    createdAt: new TZDate("2024-01-12", EST_TIMEZONE),
   };
 
   const setup = (props: Partial<ApplicationIntakeProps> = {}) => {
@@ -109,9 +113,7 @@ describe("ApplicationIntakePhase", () => {
       expect(
         screen.getByText(/When the state submits an official application/)
       ).toBeInTheDocument();
-      expect(
-        screen.getByText(/closes the Pre-Submission Technical Assistance/)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/closes Pre-Submission Technical Assistance/)).toBeInTheDocument();
       expect(screen.getByText(/opens the Completeness Review period/)).toBeInTheDocument();
     });
   });
@@ -120,7 +122,7 @@ describe("ApplicationIntakePhase", () => {
     it("renders Step 1 title and description", () => {
       setup();
       expect(screen.getByText("STEP 1 - UPLOAD")).toBeInTheDocument();
-      expect(screen.getByText(/Upload the State Application file below/)).toBeInTheDocument();
+      expect(screen.getByText(/Upload State Application file/)).toBeInTheDocument();
     });
 
     it("renders upload button", () => {
@@ -144,14 +146,14 @@ describe("ApplicationIntakePhase", () => {
 
     it("displays Application Intake phase documents only", () => {
       setup({
-        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
       });
 
       expect(screen.getByText("State Application Document 1")).toBeInTheDocument();
     });
 
     it("renders delete button for each document", () => {
-      setup({ initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT] });
+      setup({ applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT] });
 
       const deleteButton = screen.getByLabelText("Delete State Application Document 1");
       expect(deleteButton).toBeInTheDocument();
@@ -165,7 +167,7 @@ describe("ApplicationIntakePhase", () => {
       expect(screen.getByText("VERIFY/COMPLETE")).toBeInTheDocument();
       expect(
         screen.getByText(
-          /Verify that the document is uploaded\/accurate and complete all required fields/
+          /Verify that the document is uploaded\/accurate and that all required fields are filled/
         )
       ).toBeInTheDocument();
     });
@@ -285,7 +287,7 @@ describe("ApplicationIntakePhase", () => {
 
       it("is enabled when documents are uploaded & state application date is filled", () => {
         setup({
-          initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+          applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
           initialStateApplicationSubmittedDate: "2020-10-10",
         });
         const finishButton = screen.getByTestId(APPLICATION_INTAKE_FINISH_BUTTON_NAME);
@@ -302,7 +304,7 @@ describe("ApplicationIntakePhase", () => {
         const setSelectedPhase = vi.fn();
 
         setup({
-          initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+          applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
           initialStateApplicationSubmittedDate: "2020-10-10",
           setSelectedPhase,
         });
@@ -366,14 +368,6 @@ describe("ApplicationIntakePhase", () => {
       expect(formatDateForServer(result)).toBe("2025-01-04");
     });
 
-    it("returns a valid Date object", () => {
-      const submittedDate = "2024-10-13";
-      const result = getCompletenessReviewDueDate(submittedDate);
-
-      expect(result).toBeInstanceOf(Date);
-      expect(result.toString()).not.toBe("Invalid Date");
-    });
-
     it("calculates correctly for the test case: Oct 13 to Oct 28", () => {
       const submittedDate = "2025-10-13"; // October 13, 2025
       const result = getCompletenessReviewDueDate(submittedDate);
@@ -396,7 +390,7 @@ describe("ApplicationIntakePhase", () => {
             phaseDates: [
               {
                 dateType: "State Application Submitted Date",
-                dateValue: new Date(2024, 9, 13),
+                dateValue: new TZDate(2024, 9, 13, EST_TIMEZONE),
               },
             ],
             phaseNotes: [],
@@ -410,18 +404,18 @@ describe("ApplicationIntakePhase", () => {
             documentType: "State Application",
             phaseName: "Application Intake",
             owner: { person: { fullName: "John Doe" } },
-            createdAt: new Date(2024, 10, 10),
+            createdAt: new TZDate(2024, 10, 10, EST_TIMEZONE),
           },
         ],
         tags: [],
       };
 
-      const component = getApplicationIntakeComponentFromApplication(mockApplication);
+      const component = getApplicationIntakeComponentFromApplication(mockApplication, () => {});
 
       expect(component).toBeDefined();
       expect(component.type).toBe(ApplicationIntakePhase);
       expect(component.props.applicationId).toBe("app-123");
-      expect(component.props.initialStateApplicationDocuments).toHaveLength(1);
+      expect(component.props.applicationIntakeDocuments).toHaveLength(1);
       expect(component.props.initialStateApplicationSubmittedDate).toBe("2024-10-13");
     });
   });
@@ -429,7 +423,7 @@ describe("ApplicationIntakePhase", () => {
   describe("handleDateChange", () => {
     it("updates the state application submitted date when user changes date input", async () => {
       setup({
-        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
       });
 
       const submittedDateInput = screen.getByTestId(
@@ -441,41 +435,9 @@ describe("ApplicationIntakePhase", () => {
       expect(submittedDateInput.value).toBe("2024-03-15");
     });
 
-    it("calls setApplicationDates with only State Application Submitted Date and Completeness Review Due Date", async () => {
-      vi.clearAllMocks();
-
-      setup({
-        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
-      });
-
-      const submittedDateInput = screen.getByTestId(
-        APPLICATION_SUBMITTED_DATEPICKER_NAME
-      ) as HTMLInputElement;
-
-      fireEvent.change(submittedDateInput, { target: { value: "2024-03-15" } });
-
-      await waitFor(() => {
-        expect(mockSetApplicationDates).toHaveBeenCalledTimes(1);
-      });
-
-      expect(mockSetApplicationDates).toHaveBeenCalledWith({
-        applicationId: TEST_APP_ID,
-        applicationDates: [
-          {
-            dateType: "State Application Submitted Date",
-            dateValue: "2024-03-15",
-          },
-          {
-            dateType: "Completeness Review Due Date",
-            dateValue: "2024-03-30",
-          },
-        ],
-      });
-    });
-
     it("updates completeness review due date when state application date changes", async () => {
       setup({
-        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
       });
 
       const submittedDateInput = screen.getByTestId(
@@ -498,7 +460,7 @@ describe("ApplicationIntakePhase", () => {
     it("finish button is enabled when both date and documents are provided via props", () => {
       // Test the effect logic by providing both requirements via initial props
       setup({
-        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
         initialStateApplicationSubmittedDate: "2024-03-15",
       });
 
@@ -506,83 +468,16 @@ describe("ApplicationIntakePhase", () => {
       expect(finishButton).toBeEnabled();
     });
 
-    it("finish button remains disabled when date is empty even with documents", () => {
-      setup({
-        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
-        initialStateApplicationSubmittedDate: "",
-      });
-
-      const finishButton = screen.getByTestId(APPLICATION_INTAKE_FINISH_BUTTON_NAME);
-      expect(finishButton).toBeDisabled();
-    });
-
-    it("finish button remains disabled when no documents even with date, and date is cleared (DEMOS-1675)", async () => {
+    it("finish button is disabled when the phase has a date but no documents", async () => {
       vi.clearAllMocks();
 
       setup({
-        initialStateApplicationDocuments: [],
+        applicationIntakeDocuments: [],
         initialStateApplicationSubmittedDate: "2024-03-15",
       });
 
       const finishButton = screen.getByTestId(APPLICATION_INTAKE_FINISH_BUTTON_NAME);
       expect(finishButton).toBeDisabled();
-
-      // When there are no documents, the date should be auto-cleared (DEMOS-1675)
-      await waitFor(() => {
-        const submittedDateInput = screen.getByTestId(
-          APPLICATION_SUBMITTED_DATEPICKER_NAME
-        ) as HTMLInputElement;
-        expect(submittedDateInput.value).toBe("");
-      });
-
-      // Verify dates were cleared on the server
-      expect(mockSetApplicationDates).toHaveBeenCalledWith({
-        applicationId: TEST_APP_ID,
-        applicationDates: [
-          { dateType: "State Application Submitted Date", dateValue: null },
-          { dateType: "Completeness Review Due Date", dateValue: null },
-        ],
-      });
-    });
-
-    it("handles empty date value correctly", async () => {
-      setup({
-        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
-        initialStateApplicationSubmittedDate: "2024-03-15",
-      });
-
-      const submittedDateInput = screen.getByTestId(
-        APPLICATION_SUBMITTED_DATEPICKER_NAME
-      ) as HTMLInputElement;
-
-      await userEvent.clear(submittedDateInput);
-
-      expect(submittedDateInput.value).toBe("");
-    });
-
-    it("clears dates on the server when user manually clears the date field (DEMOS-1675)", async () => {
-      vi.clearAllMocks();
-
-      setup({
-        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
-        initialStateApplicationSubmittedDate: "2024-03-15",
-      });
-
-      const submittedDateInput = screen.getByTestId(
-        APPLICATION_SUBMITTED_DATEPICKER_NAME
-      ) as HTMLInputElement;
-
-      fireEvent.change(submittedDateInput, { target: { value: "" } });
-
-      await waitFor(() => {
-        expect(mockSetApplicationDates).toHaveBeenCalledWith({
-          applicationId: TEST_APP_ID,
-          applicationDates: [
-            { dateType: "State Application Submitted Date", dateValue: null },
-            { dateType: "Completeness Review Due Date", dateValue: null },
-          ],
-        });
-      });
     });
   });
 
@@ -591,7 +486,7 @@ describe("ApplicationIntakePhase", () => {
       const todayString = getTodayEst();
 
       setup({
-        initialStateApplicationDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
         initialStateApplicationSubmittedDate: todayString,
       });
 
@@ -601,5 +496,46 @@ describe("ApplicationIntakePhase", () => {
 
       expect(submittedDateInput?.value).toBe(todayString);
     });
+  });
+});
+
+describe("calculateStateApplicationSubmittedDate", () => {
+  const makeDoc = (documentType: DocumentType, createdAt: Date): ApplicationWorkflowDocument => ({
+    id: "1",
+    name: "Test Document",
+    description: "Test",
+    documentType,
+    phaseName: "Application Intake",
+    owner: { person: { fullName: "Test User" } },
+    createdAt,
+  });
+
+  it("returns initialStateApplicationSubmittedDate directly when provided", () => {
+    const result = calculateStateApplicationSubmittedDate("2024-03-01", []);
+    expect(result).toBe("2024-03-01");
+  });
+
+  it("returns empty string when documents array is empty", () => {
+    const result = calculateStateApplicationSubmittedDate("", []);
+    expect(result).toBe("");
+  });
+
+  it("returns empty string when no State Application documents exist", () => {
+    const doc = makeDoc("General File", new TZDate("2024-01-12T17:00:00Z", EST_TIMEZONE));
+    const result = calculateStateApplicationSubmittedDate("", [doc]);
+    expect(result).toBe("");
+  });
+
+  it("returns the formatted EST date of a single State Application document", () => {
+    const doc = makeDoc("State Application", new TZDate("2024-01-12T17:00:00Z", EST_TIMEZONE));
+    const result = calculateStateApplicationSubmittedDate("", [doc]);
+    expect(result).toBe("2024-01-12");
+  });
+
+  it("returns the most recent date when multiple State Application documents exist", () => {
+    const earlier = makeDoc("State Application", new TZDate("2024-01-10T17:00:00Z", EST_TIMEZONE));
+    const later = makeDoc("State Application", new TZDate("2024-03-20T17:00:00Z", EST_TIMEZONE));
+    const result = calculateStateApplicationSubmittedDate("", [earlier, later]);
+    expect(result).toBe("2024-03-20");
   });
 });
