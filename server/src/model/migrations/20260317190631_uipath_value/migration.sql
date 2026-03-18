@@ -1,11 +1,4 @@
--- DropForeignKey
-ALTER TABLE "amendment" DROP CONSTRAINT "amendment_id_application_type_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "demonstration" DROP CONSTRAINT "demonstration_id_application_type_id_fkey";
-
--- DropForeignKey
-ALTER TABLE "extension" DROP CONSTRAINT "extension_id_application_type_id_fkey";
+SET search_path TO demos_app;
 
 -- CreateTable
 CREATE TABLE "uipath_value" (
@@ -30,15 +23,6 @@ CREATE INDEX "uipath_value_uipath_result_id_document_id_application_id_idx" ON "
 
 -- CreateIndex
 CREATE UNIQUE INDEX "uipath_value_id_application_id_field_id_value_key" ON "uipath_value"("id", "application_id", "field_id", "value");
-
--- AddForeignKey
-ALTER TABLE "amendment" ADD CONSTRAINT "amendment_id_application_type_id_fkey" FOREIGN KEY ("id", "application_type_id") REFERENCES "application"("id", "application_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "demonstration" ADD CONSTRAINT "demonstration_id_application_type_id_fkey" FOREIGN KEY ("id", "application_type_id") REFERENCES "application"("id", "application_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "extension" ADD CONSTRAINT "extension_id_application_type_id_fkey" FOREIGN KEY ("id", "application_type_id") REFERENCES "application"("id", "application_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "uipath_value" ADD CONSTRAINT "uipath_value_uipath_result_id_fkey" FOREIGN KEY ("uipath_result_id") REFERENCES "uipath_result"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
