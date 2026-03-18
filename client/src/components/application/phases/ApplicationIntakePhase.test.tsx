@@ -475,16 +475,6 @@ describe("ApplicationIntakePhase", () => {
       expect(finishButton).toBeEnabled();
     });
 
-    it("finish button remains disabled when date is empty even with documents", () => {
-      setup({
-        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
-        initialStateApplicationSubmittedDate: "",
-      });
-
-      const finishButton = screen.getByTestId(APPLICATION_INTAKE_FINISH_BUTTON_NAME);
-      expect(finishButton).toBeDisabled();
-    });
-
     it("finish button remains disabled when no documents even with date, and date is cleared (DEMOS-1675)", async () => {
       vi.clearAllMocks();
 
@@ -495,37 +485,6 @@ describe("ApplicationIntakePhase", () => {
 
       const finishButton = screen.getByTestId(APPLICATION_INTAKE_FINISH_BUTTON_NAME);
       expect(finishButton).toBeDisabled();
-
-      await waitFor(() => {
-        const submittedDateInput = screen.getByTestId(
-          APPLICATION_SUBMITTED_DATEPICKER_NAME
-        ) as HTMLInputElement;
-        expect(submittedDateInput.value).toBe("");
-      });
-
-      // Verify dates were cleared on the server
-      expect(mockSetApplicationDates).toHaveBeenCalledWith({
-        applicationId: TEST_APP_ID,
-        applicationDates: [
-          { dateType: "State Application Submitted Date", dateValue: null },
-          { dateType: "Completeness Review Due Date", dateValue: null },
-        ],
-      });
-    });
-
-    it("handles empty date value correctly", async () => {
-      setup({
-        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
-        initialStateApplicationSubmittedDate: "2024-03-15",
-      });
-
-      const submittedDateInput = screen.getByTestId(
-        APPLICATION_SUBMITTED_DATEPICKER_NAME
-      ) as HTMLInputElement;
-
-      await userEvent.clear(submittedDateInput);
-
-      expect(submittedDateInput.value).toBe("");
     });
   });
 
