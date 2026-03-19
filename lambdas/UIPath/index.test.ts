@@ -98,7 +98,11 @@ describe("handler", () => {
     mocks.runDocumentUnderstandingMock.mockResolvedValue({ status: "Succeeded" });
     mocks.sendMock.mockResolvedValue({ Body: Readable.from(["test"]) });
     mocks.fileTypeFromFileMock.mockResolvedValue({ ext: "pdf", mime: "application/pdf" });
-    mocks.parseDocumentFromIdMock.mockResolvedValue({ key: `app-1/${SEEDED_DOCUMENT_ID}` });
+    mocks.parseDocumentFromIdMock.mockResolvedValue({
+      key: `app-1/${SEEDED_DOCUMENT_ID}`,
+      documentId: SEEDED_DOCUMENT_ID,
+      applicationId: "app-1",
+    });
 
     const event = createEvent({ documentId: SEEDED_DOCUMENT_ID });
 
@@ -111,6 +115,7 @@ describe("handler", () => {
         pollIntervalMs: 5_000,
         fileNameWithExtension: `${SEEDED_DOCUMENT_ID}.pdf`,
         documentId: SEEDED_DOCUMENT_ID,
+        applicationId: "app-1",
       })
     );
     expect(result).toEqual({ status: "Succeeded" });
@@ -122,7 +127,11 @@ describe("handler", () => {
     mocks.runDocumentUnderstandingMock.mockResolvedValue({ status: "Succeeded" });
     mocks.sendMock.mockResolvedValue({ Body: Readable.from(["test"]) });
     mocks.fileTypeFromFileMock.mockResolvedValue({ ext: "pdf", mime: "application/pdf" });
-    mocks.parseDocumentFromIdMock.mockResolvedValue({ key: "app-1/document-1" });
+    mocks.parseDocumentFromIdMock.mockResolvedValue({
+      key: "app-1/document-1",
+      documentId: "document-1",
+      applicationId: "app-1",
+    });
 
     const event = createEvent({ documentId: SEEDED_DOCUMENT_ID }, "id-2");
 
@@ -132,6 +141,8 @@ describe("handler", () => {
       tmpFile("document-1"),
       expect.objectContaining({
         fileNameWithExtension: "document-1.pdf",
+        documentId: "document-1",
+        applicationId: "app-1",
       })
     );
     expect(result).toEqual({ status: "Succeeded" });
@@ -141,7 +152,11 @@ describe("handler", () => {
     process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
     process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
     mocks.runDocumentUnderstandingMock.mockResolvedValue({ status: "Succeeded" });
-    mocks.parseDocumentFromIdMock.mockResolvedValue({ key: "app-1/document-3" });
+    mocks.parseDocumentFromIdMock.mockResolvedValue({
+      key: "app-1/document-3",
+      documentId: "document-3",
+      applicationId: "app-1",
+    });
     mocks.sendMock.mockResolvedValue({ Body: Readable.from(["test"]) });
     mocks.fileTypeFromFileMock.mockResolvedValue({ ext: "pdf", mime: "application/pdf" });
 
@@ -149,62 +164,35 @@ describe("handler", () => {
 
     const result = await handlerRef(event);
 
-    expect(mocks.parseDocumentFromIdMock).toHaveBeenCalledExactlyOnceWith(SEEDED_DOCUMENT_ID);
+    expect(mocks.parseDocumentFromIdMock).toHaveBeenCalledExactlyOnceWith(SEEDED_DOCUMENT_ID, undefined);
     expect(mocks.runDocumentUnderstandingMock).toHaveBeenCalledWith(
       tmpFile("document-3"),
       expect.objectContaining({
         fileNameWithExtension: "document-3.pdf",
-        documentId: SEEDED_DOCUMENT_ID,
+        documentId: "document-3",
+        applicationId: "app-1",
       })
     );
     expect(result).toEqual({ status: "Succeeded" });
   });
 
-  it("parses S3 event payload and decodes + and % escapes in key", async () => {
-    process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
-    process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
-    mocks.runDocumentUnderstandingMock.mockResolvedValue({ status: "Succeeded" });
-    mocks.sendMock.mockResolvedValue({ Body: Readable.from(["test"]) });
-    mocks.fileTypeFromFileMock.mockResolvedValue({ ext: "pdf", mime: "application/pdf" });
-    mocks.parseDocumentFromIdMock.mockResolvedValue(null);
-
-    const event = createEvent(
-      {
-        Records: [
-          {
-            s3: {
-              bucket: { name: "clean-bucket" },
-              object: { key: "folder%2Ftest+doc" },
-            },
-          },
-        ],
-      },
-      "id-3"
-    );
-
-    await handlerRef(event);
-
-    expect(mocks.runDocumentUnderstandingMock).toHaveBeenCalledWith(
-      tmpFile("test doc"),
-      expect.objectContaining({
-        fileNameWithExtension: "test doc.pdf",
-      })
-    );
-  });
-
-  it("throws when s3 key and documentId are both missing", async () => {
+  it("throws when documentId is missing", async () => {
     process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
     process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
     const event = createEvent({ bad: "payload" });
 
-    await expect(handlerRef(event)).rejects.toThrow("Missing s3Key and documentId in SQS message body.");
+    await expect(handlerRef(event)).rejects.toThrow("Missing documentId in SQS message body.");
   });
 
   it("throws when S3 body is missing", async () => {
     process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
     process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
     mocks.sendMock.mockResolvedValue({ Body: undefined });
-    mocks.parseDocumentFromIdMock.mockResolvedValue({ key: `app-1/${SEEDED_DOCUMENT_ID}` });
+    mocks.parseDocumentFromIdMock.mockResolvedValue({
+      key: `app-1/${SEEDED_DOCUMENT_ID}`,
+      documentId: SEEDED_DOCUMENT_ID,
+      applicationId: "app-1",
+    });
 
     const event = createEvent({ documentId: SEEDED_DOCUMENT_ID });
 
@@ -216,7 +204,11 @@ describe("handler", () => {
     process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
     mocks.sendMock.mockResolvedValue({ Body: Readable.from(["test"]) });
     mocks.fileTypeFromFileMock.mockResolvedValue(undefined);
-    mocks.parseDocumentFromIdMock.mockResolvedValue({ key: `app-1/${SEEDED_DOCUMENT_ID}` });
+    mocks.parseDocumentFromIdMock.mockResolvedValue({
+      key: `app-1/${SEEDED_DOCUMENT_ID}`,
+      documentId: SEEDED_DOCUMENT_ID,
+      applicationId: "app-1",
+    });
 
     const event = createEvent({ documentId: SEEDED_DOCUMENT_ID }, "id-4");
 

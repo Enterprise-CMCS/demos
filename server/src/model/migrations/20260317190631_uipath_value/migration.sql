@@ -1,5 +1,7 @@
 SET search_path TO demos_app;
 
+DROP TABLE IF EXISTS "uipath_result_field";
+
 -- CreateTable
 CREATE TABLE "uipath_value" (
     "id" UUID NOT NULL,
