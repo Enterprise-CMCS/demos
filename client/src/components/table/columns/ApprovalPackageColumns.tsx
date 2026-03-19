@@ -24,7 +24,7 @@ export function ApprovalPackageColumns(demonstrationId: string) {
       cell: highlightCell,
     }),
     columnHelper.accessor("name", {
-      header: "Title",
+      header: "File Name",
       cell: highlightCell,
       enableColumnFilter: false,
     }),
