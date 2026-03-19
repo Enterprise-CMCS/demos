@@ -35,3 +35,14 @@ ALTER TABLE "application_tag_suggestion_extract" RENAME CONSTRAINT "application_
 
 -- AddForeignKey
 ALTER TABLE "uipath_result" ADD CONSTRAINT "uipath_result_document_id_application_id_fkey" FOREIGN KEY ("document_id", "application_id") REFERENCES "document"("id", "application_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- DropForeignKey
+ALTER TABLE "uipath_value" DROP CONSTRAINT "uipath_value_uipath_result_id_fkey";
+
+-- AddForeignKey
+ALTER TABLE "uipath_value"
+ADD CONSTRAINT "uipath_value_uipath_result_id_document_id_application_id_fkey"
+FOREIGN KEY ("uipath_result_id", "document_id", "application_id")
+REFERENCES "uipath_result"("id", "document_id", "application_id")
+ON DELETE RESTRICT
+ON UPDATE CASCADE;

@@ -9,9 +9,8 @@ model UiPathResult {
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
-  document     Document            @relation(fields: [documentId, applicationId], references: [id, applicationId])
-  fields       UipathResultField[]
-  status       UiPathStatus        @relation(fields: [statusId], references: [id])
+  document     Document      @relation(fields: [documentId, applicationId], references: [id, applicationId])
+  status       UiPathStatus  @relation(fields: [statusId], references: [id])
   uipathValues UipathValue[]
 
   @@unique([id, documentId, applicationId])

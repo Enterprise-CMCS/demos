@@ -388,6 +388,8 @@ export const APPLICATION_TAG_SUGGESTION_STATUSES = [
   "Removed",
 ] as const;
 
+export const UIPATH_RESULT_STATUSES = ["Pending", "Finished", "Failed"] as const;
+
 export const TAG_SOURCES = ["User", "System"] as const;
 
 export const TAG_TYPES = ["Application", "Demonstration Type"] as const;
