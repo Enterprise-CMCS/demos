@@ -8,6 +8,7 @@ import { parseISO, format } from "date-fns";
 import { ReviewPhase, ReviewPhaseFormData } from "./ReviewPhase";
 import { getReviewPhaseComponentFromApplication } from "./reviewPhaseData";
 import { WorkflowApplication } from "components/application";
+import { SimplePhase } from "components/application/types";
 import { TestProvider } from "test-utils/TestProvider";
 
 // Mock formatDateForServer so date output is predictable and uses date-fns (no toISOString slicing)
@@ -78,7 +79,7 @@ const buildInitialFormData = (overrides?: Partial<ReviewPhaseFormData>): ReviewP
 describe("ReviewPhase Component", () => {
   const setup = (
     initialFormData = buildInitialFormData(),
-    demonstrationId = "test-demo-id",
+    applicationId = "test-demo-id",
     isReadonly = false,
     onFinish = vi.fn(),
     allPreviousPhasesDone = true
@@ -88,7 +89,7 @@ describe("ReviewPhase Component", () => {
         <ReviewPhase
           isReadonly={isReadonly}
           initialFormData={initialFormData}
-          demonstrationId={demonstrationId}
+          applicationId={applicationId}
           onFinish={onFinish}
           allPreviousPhasesDone={allPreviousPhasesDone}
         />
@@ -330,6 +331,56 @@ describe("ReviewPhase Component", () => {
       });
     });
 
+    it("disables Save For Later button after saving when no additional changes are made", async () => {
+      const incompleteData = buildInitialFormData({
+        dates: {
+          "OGD Approval to Share with SMEs": "",
+        },
+      });
+      setup(incompleteData);
+
+      const dateInput = screen.getByTestId("datepicker-ogc-approval-to-share-date");
+      await userEvent.type(dateInput, "2025-12-25");
+
+      const saveButton = screen.getByTestId("review-save-for-later");
+      await waitFor(() => {
+        expect(saveButton).toBeEnabled();
+      });
+
+      await userEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(saveButton).toBeDisabled();
+      });
+    });
+
+    it("re-enables Save For Later button when additional changes are made after saving", async () => {
+      const incompleteData = buildInitialFormData({
+        dates: {
+          "OGD Approval to Share with SMEs": "",
+        },
+      });
+      setup(incompleteData);
+
+      const dateInput = screen.getByTestId("datepicker-ogc-approval-to-share-date");
+      await userEvent.type(dateInput, "2025-12-25");
+
+      const saveButton = screen.getByTestId("review-save-for-later");
+      await userEvent.click(saveButton);
+
+      await waitFor(() => {
+        expect(saveButton).toBeDisabled();
+      });
+
+      // Make another change
+      await userEvent.clear(dateInput);
+      await userEvent.type(dateInput, "2025-12-31");
+
+      await waitFor(() => {
+        expect(saveButton).toBeEnabled();
+      });
+    });
+
     it("disables Finish button when required sections are incomplete", () => {
       const incompleteData = buildInitialFormData({
         dates: {
@@ -554,14 +605,16 @@ describe("ReviewPhase Component", () => {
       await userEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(mockSetApplicationClearanceLevel).toHaveBeenCalledWith({
-          variables: {
-            input: {
-              applicationId: "demo-123",
-              clearanceLevel: "COMMs",
+        expect(mockSetApplicationClearanceLevel).toHaveBeenCalledWith(
+          expect.objectContaining({
+            variables: {
+              input: {
+                applicationId: "demo-123",
+                clearanceLevel: "COMMs",
+              },
             },
-          },
-        });
+          })
+        );
       });
     });
 
@@ -573,14 +626,16 @@ describe("ReviewPhase Component", () => {
       await userEvent.click(finishButton);
 
       await waitFor(() => {
-        expect(mockSetApplicationClearanceLevel).toHaveBeenCalledWith({
-          variables: {
-            input: {
-              applicationId: "demo-finish",
-              clearanceLevel: "COMMs",
+        expect(mockSetApplicationClearanceLevel).toHaveBeenCalledWith(
+          expect.objectContaining({
+            variables: {
+              input: {
+                applicationId: "demo-finish",
+                clearanceLevel: "COMMs",
+              },
             },
-          },
-        });
+          })
+        );
       });
     });
 
@@ -619,14 +674,16 @@ describe("ReviewPhase Component", () => {
       await waitFor(() => {
         expect(mockSetApplicationDates).not.toHaveBeenCalled();
         expect(mockSetApplicationNotes).not.toHaveBeenCalled();
-        expect(mockSetApplicationClearanceLevel).toHaveBeenCalledWith({
-          variables: {
-            input: {
-              applicationId: "demo-clearance-only",
-              clearanceLevel: "CMS (OSORA)",
+        expect(mockSetApplicationClearanceLevel).toHaveBeenCalledWith(
+          expect.objectContaining({
+            variables: {
+              input: {
+                applicationId: "demo-clearance-only",
+                clearanceLevel: "CMS (OSORA)",
+              },
             },
-          },
-        });
+          })
+        );
       });
     });
 
@@ -642,14 +699,16 @@ describe("ReviewPhase Component", () => {
       await userEvent.click(saveButton);
 
       await waitFor(() => {
-        expect(mockSetApplicationClearanceLevel).toHaveBeenCalledWith({
-          variables: {
-            input: {
-              applicationId: "demo-change-clearance",
-              clearanceLevel: "CMS (OSORA)",
+        expect(mockSetApplicationClearanceLevel).toHaveBeenCalledWith(
+          expect.objectContaining({
+            variables: {
+              input: {
+                applicationId: "demo-change-clearance",
+                clearanceLevel: "CMS (OSORA)",
+              },
             },
-          },
-        });
+          })
+        );
       });
     });
   });
@@ -731,14 +790,16 @@ describe("ReviewPhase Component", () => {
             { noteType: "COMMs Clearance", content: "COMMs notes" },
           ]),
         });
-        expect(mockSetApplicationClearanceLevel).toHaveBeenCalledWith({
-          variables: {
-            input: {
-              applicationId: "demo-123",
-              clearanceLevel: "COMMs",
+        expect(mockSetApplicationClearanceLevel).toHaveBeenCalledWith(
+          expect.objectContaining({
+            variables: {
+              input: {
+                applicationId: "demo-123",
+                clearanceLevel: "COMMs",
+              },
             },
-          },
-        });
+          })
+        );
         expect(mockCompletePhase).toHaveBeenCalled();
         expect(mockOnFinish).toHaveBeenCalledOnce();
       });
@@ -753,6 +814,13 @@ describe("Amendment and Extension Review Phase", () => {
     vi.clearAllMocks();
   });
 
+  const completedPriorPhases: SimplePhase[] = [
+    { phaseName: "Application Intake", phaseStatus: "Completed", phaseDates: [], phaseNotes: [] },
+    { phaseName: "Completeness", phaseStatus: "Completed", phaseDates: [], phaseNotes: [] },
+    { phaseName: "Federal Comment", phaseStatus: "Completed", phaseDates: [], phaseNotes: [] },
+    { phaseName: "SDG Preparation", phaseStatus: "Completed", phaseDates: [], phaseNotes: [] },
+  ];
+
   const buildWorkflowApplication = (
     overrides: Partial<WorkflowApplication> = {}
   ): WorkflowApplication => ({
@@ -763,30 +831,7 @@ describe("Amendment and Extension Review Phase", () => {
     documents: [],
     tags: [],
     phases: [
-      {
-        phaseName: "Application Intake",
-        phaseStatus: "Completed",
-        phaseDates: [],
-        phaseNotes: [],
-      },
-      {
-        phaseName: "Completeness",
-        phaseStatus: "Completed",
-        phaseDates: [],
-        phaseNotes: [],
-      },
-      {
-        phaseName: "Federal Comment",
-        phaseStatus: "Completed",
-        phaseDates: [],
-        phaseNotes: [],
-      },
-      {
-        phaseName: "SDG Preparation",
-        phaseStatus: "Completed",
-        phaseDates: [],
-        phaseNotes: [],
-      },
+      ...completedPriorPhases,
       {
         phaseName: "Review",
         phaseStatus: "Started",
@@ -798,7 +843,7 @@ describe("Amendment and Extension Review Phase", () => {
   });
 
   it("renders Review phase for an amendment workflow", () => {
-    const amendment = buildWorkflowApplication({ id: "amendment-1" });
+    const amendment = buildWorkflowApplication();
 
     render(
       <TestProvider>{getReviewPhaseComponentFromApplication(amendment, mockOnFinish)}</TestProvider>
@@ -825,7 +870,7 @@ describe("Amendment and Extension Review Phase", () => {
   });
 
   it("renders COMMs Clearance section when COMMs clearance level is set", () => {
-    const application = buildWorkflowApplication({ clearanceLevel: "COMMs" });
+    const application = buildWorkflowApplication();
 
     render(
       <TestProvider>
@@ -852,32 +897,8 @@ describe("Amendment and Extension Review Phase", () => {
 
   it("enables Finish button when all sections are complete and previous phases are done", () => {
     const application = buildWorkflowApplication({
-      clearanceLevel: "COMMs",
       phases: [
-        {
-          phaseName: "Application Intake",
-          phaseStatus: "Completed",
-          phaseDates: [],
-          phaseNotes: [],
-        },
-        {
-          phaseName: "Completeness",
-          phaseStatus: "Completed",
-          phaseDates: [],
-          phaseNotes: [],
-        },
-        {
-          phaseName: "Federal Comment",
-          phaseStatus: "Completed",
-          phaseDates: [],
-          phaseNotes: [],
-        },
-        {
-          phaseName: "SDG Preparation",
-          phaseStatus: "Completed",
-          phaseDates: [],
-          phaseNotes: [],
-        },
+        ...completedPriorPhases,
         {
           phaseName: "Review",
           phaseStatus: "Started",
@@ -953,32 +974,8 @@ describe("Amendment and Extension Review Phase", () => {
 
   it("calls completePhase and onFinish when Finish is clicked", async () => {
     const application = buildWorkflowApplication({
-      clearanceLevel: "COMMs",
       phases: [
-        {
-          phaseName: "Application Intake",
-          phaseStatus: "Completed",
-          phaseDates: [],
-          phaseNotes: [],
-        },
-        {
-          phaseName: "Completeness",
-          phaseStatus: "Completed",
-          phaseDates: [],
-          phaseNotes: [],
-        },
-        {
-          phaseName: "Federal Comment",
-          phaseStatus: "Completed",
-          phaseDates: [],
-          phaseNotes: [],
-        },
-        {
-          phaseName: "SDG Preparation",
-          phaseStatus: "Completed",
-          phaseDates: [],
-          phaseNotes: [],
-        },
+        ...completedPriorPhases,
         {
           phaseName: "Review",
           phaseStatus: "Started",

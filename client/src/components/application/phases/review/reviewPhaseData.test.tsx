@@ -116,7 +116,7 @@ describe("reviewPhaseData", () => {
       const result = getReviewPhaseComponentFromApplication(demonstration, mockOnFinish);
 
       expect(result.type.name).toBe("ReviewPhase");
-      expect(result.props.demonstrationId).toBe("demo-456");
+      expect(result.props.applicationId).toBe("demo-456");
       expect(result.props.initialFormData).toBeDefined();
       expect(result.props.initialFormData.dates["OGD Approval to Share with SMEs"]).toBe(
         "2025-01-10"

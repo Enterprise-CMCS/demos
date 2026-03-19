@@ -14,6 +14,11 @@ import { formatDataForSave, hasFormChanges } from "./reviewPhaseData";
 import { gql, useMutation } from "@apollo/client";
 import { CMS_OSORA_CLEARANCE_DATE_TYPES, COMMS_CLEARANCE_DATE_TYPES } from "demos-server-constants";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
+import {
+  GET_AMENDMENT_WORKFLOW_QUERY,
+  GET_EXTENSION_WORKFLOW_QUERY,
+  GET_WORKFLOW_DEMONSTRATION_QUERY,
+} from "components/application";
 
 const SET_APPLICATION_CLEARANCE_LEVEL = gql`
   mutation SetApplicationClearanceLevel($input: SetApplicationClearanceLevelInput!) {
@@ -84,13 +89,13 @@ const getPhaseStateInitialization = () => {
 
 export const ReviewPhase = ({
   initialFormData,
-  demonstrationId,
+  applicationId,
   isReadonly,
   onFinish,
   allPreviousPhasesDone,
 }: {
   initialFormData: ReviewPhaseFormData;
-  demonstrationId: string;
+  applicationId: string;
   isReadonly: boolean;
   onFinish: () => void;
   allPreviousPhasesDone: boolean;
@@ -103,6 +108,8 @@ export const ReviewPhase = ({
 
   const [reviewPhaseFormData, setReviewPhaseFormData] =
     useState<ReviewPhaseFormData>(initialFormData);
+  const [lastSavedFormData, setLastSavedFormData] =
+    useState<ReviewPhaseFormData>(initialFormData);
   const [reviewPhaseSectionsComplete, setReviewPhaseSectionsComplete] =
     useState<ReviewPhaseSectionsComplete>(getPhaseStateInitialization());
 
@@ -111,14 +118,14 @@ export const ReviewPhase = ({
 
     if (dates.length > 0) {
       await setApplicationDates({
-        applicationId: demonstrationId,
+        applicationId,
         applicationDates: dates,
       });
     }
 
     if (notes.length > 0) {
       await setApplicationNotes({
-        applicationId: demonstrationId,
+        applicationId,
         applicationNotes: notes,
       });
     }
@@ -126,16 +133,22 @@ export const ReviewPhase = ({
     await setApplicationClearanceLevel({
       variables: {
         input: {
-          applicationId: demonstrationId,
+          applicationId,
           clearanceLevel: reviewPhaseFormData.clearanceLevel,
         },
       },
+      refetchQueries: [
+        GET_WORKFLOW_DEMONSTRATION_QUERY,
+        GET_AMENDMENT_WORKFLOW_QUERY,
+        GET_EXTENSION_WORKFLOW_QUERY,
+      ],
     });
   };
 
   const handleSaveForLater = async () => {
     try {
       await saveFormData();
+      setLastSavedFormData(reviewPhaseFormData);
       showSuccess(SAVE_FOR_LATER_MESSAGE);
     } catch (error) {
       console.error("Error saving form data:", error);
@@ -146,7 +159,7 @@ export const ReviewPhase = ({
     try {
       await saveFormData();
       await completePhase({
-        applicationId: demonstrationId,
+        applicationId,
         phaseName: "Review",
       });
       showSuccess(getPhaseCompletedMessage("Review"));
@@ -177,7 +190,7 @@ export const ReviewPhase = ({
     <div>
       <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">REVIEW</h3>
       <p className="text-sm text-text-placeholder mb-1">
-        Gather input and address comments from the HHS - (OGC) Office of General Council and the
+        Gather input and address comments from the HHS - (OGC) Office of General Counsel and the
         White House - (OMB) Office of Management and Budget
       </p>
 
@@ -245,7 +258,7 @@ export const ReviewPhase = ({
             onClick={handleSaveForLater}
             size="large"
             name="review-save-for-later"
-            disabled={!hasFormChanges(initialFormData, reviewPhaseFormData)}
+            disabled={!hasFormChanges(lastSavedFormData, reviewPhaseFormData)}
           >
             Save For Later
           </SecondaryButton>
