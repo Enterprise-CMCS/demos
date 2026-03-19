@@ -34,7 +34,7 @@ describe("CmsOsoraClearanceSection", () => {
 
   it("displays the description text", () => {
     render(<CmsOsoraClearanceSection {...defaultProps} />);
-    expect(screen.getByText(/Demonstrations with the highest Scruteny/i)).toBeInTheDocument();
+    expect(screen.getByText(/Demonstrations with the highest Scrutiny/i)).toBeInTheDocument();
   });
 
   it("renders all four date pickers", () => {
