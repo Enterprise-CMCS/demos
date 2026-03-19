@@ -13,7 +13,6 @@ import {
   LocalDate,
   PhaseName,
   PhaseNameWithTrackedStatus,
-  UploadDocumentInput,
 } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
@@ -41,6 +40,13 @@ const STYLES = {
 
 const THIS_PHASE_NAME: PhaseName = "Completeness";
 const NEXT_PHASE_NAME: PhaseName = "Federal Comment";
+
+export const COMPLETENESS_UPLOAD_BUTTON_NAME = "button-open-completeness-upload";
+export const COMPLETENESS_FINISH_BUTTON_NAME = "button-finish-completeness";
+export const COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME = "button-declare-incomplete";
+export const STATE_DEEMED_COMPLETE_DATEPICKER_NAME = "datepicker-state-application-deemed-complete";
+export const FEDERAL_COMMENT_START_DATEPICKER_NAME = "datepicker-federal-comment-period-start";
+export const FEDERAL_COMMENT_END_DATEPICKER_NAME = "datepicker-federal-comment-period-end";
 
 const FEDERAL_COMMENT_PERIOD_DAYS = 30;
 
@@ -287,7 +293,7 @@ export const CompletenessPhase = ({
       <SecondaryButton
         onClick={() => showCompletenessDocumentUploadDialog(applicationId)}
         size="small"
-        name="open-upload"
+        name={COMPLETENESS_UPLOAD_BUTTON_NAME}
       >
         Upload
         <ExportIcon />
@@ -308,7 +314,7 @@ export const CompletenessPhase = ({
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2">
           <DatePicker
-            name="datepicker-state-application-deemed-complete"
+            name={STATE_DEEMED_COMPLETE_DATEPICKER_NAME}
             label="State Application Deemed Complete"
             value={stateDeemedComplete}
             onChange={handleStateDeemedCompleteChange}
@@ -318,7 +324,7 @@ export const CompletenessPhase = ({
 
         <div>
           <DatePicker
-            name="datepicker-federal-comment-period-start"
+            name={FEDERAL_COMMENT_START_DATEPICKER_NAME}
             label="Federal Comment Period Start Date"
             value={federalStartDate}
             isDisabled
@@ -327,7 +333,7 @@ export const CompletenessPhase = ({
 
         <div>
           <DatePicker
-            name="datepicker-federal-comment-period-end"
+            name={FEDERAL_COMMENT_END_DATEPICKER_NAME}
             label="Federal Comment Period End Date"
             value={federalEndDate}
             isDisabled
@@ -337,7 +343,7 @@ export const CompletenessPhase = ({
 
       <div className={STYLES.actions}>
         <SecondaryButton
-          name="declare-incomplete"
+          name={COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME}
           size="small"
           onClick={handleDeclareIncomplete}
           disabled={completenessComplete}
@@ -346,7 +352,7 @@ export const CompletenessPhase = ({
         </SecondaryButton>
         <div className={STYLES.actionsEnd}>
           <Button
-            name="finish-completeness"
+            name={COMPLETENESS_FINISH_BUTTON_NAME}
             size="small"
             disabled={!finishIsEnabled()}
             onClick={handleFinishCompleteness}

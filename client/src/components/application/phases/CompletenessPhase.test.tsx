@@ -4,7 +4,16 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { TestProvider } from "test-utils/TestProvider";
-import { CompletenessPhase, CompletenessPhaseProps } from "./CompletenessPhase";
+import {
+  CompletenessPhase,
+  CompletenessPhaseProps,
+  COMPLETENESS_UPLOAD_BUTTON_NAME,
+  COMPLETENESS_FINISH_BUTTON_NAME,
+  COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME,
+  STATE_DEEMED_COMPLETE_DATEPICKER_NAME,
+  FEDERAL_COMMENT_START_DATEPICKER_NAME,
+  FEDERAL_COMMENT_END_DATEPICKER_NAME,
+} from "./CompletenessPhase";
 import { ApplicationWorkflowDocument } from "components/application";
 
 const showCompletenessDocumentUploadDialog = vi.fn();
@@ -106,7 +115,7 @@ describe("CompletenessPhase", () => {
     it("renders upload button and helper text", () => {
       setup();
       expect(screen.getByText("STEP 1 - UPLOAD")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /upload/i })).toBeInTheDocument();
+      expect(screen.getByTestId(COMPLETENESS_UPLOAD_BUTTON_NAME)).toBeInTheDocument();
     });
 
     it("renders uploaded documents", () => {
@@ -119,15 +128,15 @@ describe("CompletenessPhase", () => {
   describe("Step 2 - Verify/Complete Section", () => {
     it("renders date picker for State Application Deemed Complete", () => {
       setup();
-      const dateInput = screen.getByLabelText(/State Application Deemed Complete/);
+      const dateInput = screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME);
       expect(dateInput).toBeInTheDocument();
       expect(dateInput).toHaveAttribute("type", "date");
     });
 
     it("renders disabled date pickers for Federal Comment Period", () => {
       setup();
-      const startInput = screen.getByLabelText(/Federal Comment Period Start Date/);
-      const endInput = screen.getByLabelText(/Federal Comment Period End Date/);
+      const startInput = screen.getByTestId(FEDERAL_COMMENT_START_DATEPICKER_NAME);
+      const endInput = screen.getByTestId(FEDERAL_COMMENT_END_DATEPICKER_NAME);
       expect(startInput).toBeDisabled();
       expect(endInput).toBeDisabled();
     });
@@ -136,7 +145,7 @@ describe("CompletenessPhase", () => {
   describe("Button Logic", () => {
     it("Finish button is disabled if required docs are missing", () => {
       setup({ completenessDocuments: [] });
-      const finishButton = screen.getByRole("button", { name: /finish/i });
+      const finishButton = screen.getByTestId(COMPLETENESS_FINISH_BUTTON_NAME);
       expect(finishButton).toBeDisabled();
     });
 
@@ -147,7 +156,7 @@ describe("CompletenessPhase", () => {
         fedCommentStartDate: "2026-02-06",
         fedCommentEndDate: "2026-03-07",
       });
-      const finishButton = screen.getByRole("button", { name: /finish/i });
+      const finishButton = screen.getByTestId(COMPLETENESS_FINISH_BUTTON_NAME);
       expect(finishButton).toBeEnabled();
     });
 
@@ -159,7 +168,7 @@ describe("CompletenessPhase", () => {
         fedCommentStartDate: "2026-02-06",
         fedCommentEndDate: "2026-03-07",
       });
-      const finishButton = screen.getByRole("button", { name: /finish/i });
+      const finishButton = screen.getByTestId(COMPLETENESS_FINISH_BUTTON_NAME);
       await user.click(finishButton);
       expect(mockCompletePhase).toHaveBeenCalledWith({
         applicationId: "app-123",
@@ -178,7 +187,7 @@ describe("CompletenessPhase", () => {
         fedCommentEndDate: "2026-03-07",
       });
 
-      const finishButton = screen.getByRole("button", { name: /finish/i });
+      const finishButton = screen.getByTestId(COMPLETENESS_FINISH_BUTTON_NAME);
       await user.click(finishButton);
 
       expect(mockSetApplicationDates).toHaveBeenCalledWith({
@@ -209,7 +218,9 @@ describe("CompletenessPhase", () => {
         fedCommentEndDate: "2026-03-07",
       });
 
-      const declareIncompleteButton = screen.getByRole("button", { name: /declare-incomplete/i });
+      const declareIncompleteButton = screen.getByTestId(
+        COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME
+      );
       await user.click(declareIncompleteButton);
 
       expect(mockDeclareCompletenessPhaseIncomplete).toHaveBeenCalledWith("app-123");
@@ -224,7 +235,9 @@ describe("CompletenessPhase", () => {
         fedCommentEndDate: "2026-03-07",
       });
 
-      const declareIncompleteButton = screen.getByRole("button", { name: /declare-incomplete/i });
+      const declareIncompleteButton = screen.getByTestId(
+        COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME
+      );
       expect(declareIncompleteButton).toBeDisabled();
     });
   });
@@ -233,13 +246,10 @@ describe("CompletenessPhase", () => {
     it("calls dialog function when upload clicked", async () => {
       setup();
 
-      const uploadButton = screen.getByRole("button", { name: /upload/i });
+      const uploadButton = screen.getByTestId(COMPLETENESS_UPLOAD_BUTTON_NAME);
       await userEvent.click(uploadButton);
 
-      expect(showCompletenessDocumentUploadDialog).toHaveBeenCalledWith(
-        "app-123",
-        expect.any(Function)
-      );
+      expect(showCompletenessDocumentUploadDialog).toHaveBeenCalledWith("app-123");
     });
   });
 
@@ -299,7 +309,7 @@ describe("CompletenessPhase", () => {
         </TestProvider>
       );
 
-      expect(screen.getByRole("button", { name: /finish/i })).toBeDisabled();
+      expect(screen.getByTestId(COMPLETENESS_FINISH_BUTTON_NAME)).toBeDisabled();
 
       rerender(
         <TestProvider>
@@ -310,7 +320,7 @@ describe("CompletenessPhase", () => {
         </TestProvider>
       );
 
-      expect(screen.getByRole("button", { name: /finish/i })).toBeEnabled();
+      expect(screen.getByTestId(COMPLETENESS_FINISH_BUTTON_NAME)).toBeEnabled();
     });
   });
 
