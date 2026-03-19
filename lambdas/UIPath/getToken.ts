@@ -12,7 +12,7 @@ interface UiPathCredentials {
 
 const TOKEN_URL = "https://govcloud.uipath.us/identity_/connect/token";
 /**
- * Verify the correct secrets have been set ot actual values
+ * Verify the correct secrets have been set to actual values, and not default placeholders
  *
  * @param credentials
  */
