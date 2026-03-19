@@ -1,11 +1,5 @@
 import React, { createContext, useContext, useState } from "react";
-import {
-  DocumentType,
-  TagName,
-  DemonstrationTypeAssignment,
-  UploadDocumentInput,
-  Tag,
-} from "demos-server";
+import { DocumentType, TagName, DemonstrationTypeAssignment, Tag } from "demos-server";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
 import { CreateExtensionDialog } from "./modification/CreateExtensionDialog";

@@ -3,7 +3,7 @@ import React, { useMemo, useState } from "react";
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
-import { formatDate, formatDateForServer, getTodayEst } from "util/formatDate";
+import { formatDate, formatDateForServer } from "util/formatDate";
 import { addDays, differenceInCalendarDays, parseISO } from "date-fns";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { useToast } from "components/toast";
