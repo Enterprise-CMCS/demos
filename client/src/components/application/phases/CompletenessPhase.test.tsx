@@ -67,7 +67,7 @@ describe("CompletenessPhase", () => {
     fedCommentStartDate: "",
     fedCommentEndDate: "",
     stateDeemedCompleteDate: "",
-    initialDocuments: [],
+    completenessDocuments: [],
     setSelectedPhase: mockSetSelectedPhase,
   };
 
@@ -110,7 +110,7 @@ describe("CompletenessPhase", () => {
     });
 
     it("renders uploaded documents", () => {
-      setup({ initialDocuments: [mockCompletenessDoc, mockInternalDoc] });
+      setup({ completenessDocuments: [mockCompletenessDoc, mockInternalDoc] });
       expect(screen.getByText("Completeness Letter")).toBeInTheDocument();
       expect(screen.getByText("Internal Form")).toBeInTheDocument();
     });
@@ -135,14 +135,14 @@ describe("CompletenessPhase", () => {
 
   describe("Button Logic", () => {
     it("Finish button is disabled if required docs are missing", () => {
-      setup({ initialDocuments: [] });
+      setup({ completenessDocuments: [] });
       const finishButton = screen.getByRole("button", { name: /finish/i });
       expect(finishButton).toBeDisabled();
     });
 
     it("Finish button is enabled when required docs and dates exist", () => {
       setup({
-        initialDocuments: [mockCompletenessDoc, mockInternalDoc],
+        completenessDocuments: [mockCompletenessDoc, mockInternalDoc],
         stateDeemedCompleteDate: "2026-02-05",
         fedCommentStartDate: "2026-02-06",
         fedCommentEndDate: "2026-03-07",
@@ -154,7 +154,7 @@ describe("CompletenessPhase", () => {
     it("calls completePhase and selects next phase when finish button is clicked", async () => {
       const user = userEvent.setup();
       setup({
-        initialDocuments: [mockCompletenessDoc, mockInternalDoc],
+        completenessDocuments: [mockCompletenessDoc, mockInternalDoc],
         stateDeemedCompleteDate: "2026-02-05",
         fedCommentStartDate: "2026-02-06",
         fedCommentEndDate: "2026-03-07",
@@ -172,7 +172,7 @@ describe("CompletenessPhase", () => {
       mockSetApplicationDates.mockClear();
       const user = userEvent.setup();
       setup({
-        initialDocuments: [mockCompletenessDoc, mockInternalDoc],
+        completenessDocuments: [mockCompletenessDoc, mockInternalDoc],
         stateDeemedCompleteDate: "2026-02-05",
         fedCommentStartDate: "2026-02-06",
         fedCommentEndDate: "2026-03-07",
@@ -203,7 +203,7 @@ describe("CompletenessPhase", () => {
     it("passes declareCompletenessPhaseIncomplete to dialog when button is clicked", async () => {
       const user = userEvent.setup();
       setup({
-        initialDocuments: [mockCompletenessDoc, mockInternalDoc],
+        completenessDocuments: [mockCompletenessDoc, mockInternalDoc],
         stateDeemedCompleteDate: "2026-02-05",
         fedCommentStartDate: "2026-02-06",
         fedCommentEndDate: "2026-03-07",
@@ -218,7 +218,7 @@ describe("CompletenessPhase", () => {
     it("disables Declare Incomplete button when completeness is complete", () => {
       setup({
         completenessComplete: true,
-        initialDocuments: [mockCompletenessDoc, mockInternalDoc],
+        completenessDocuments: [mockCompletenessDoc, mockInternalDoc],
         stateDeemedCompleteDate: "2026-02-05",
         fedCommentStartDate: "2026-02-06",
         fedCommentEndDate: "2026-03-07",
@@ -247,7 +247,7 @@ describe("CompletenessPhase", () => {
     it("reflects updated documents when props change (no refresh needed)", () => {
       const { rerender } = render(
         <TestProvider>
-          <CompletenessPhase {...defaultProps} initialDocuments={[]} />
+          <CompletenessPhase {...defaultProps} completenessDocuments={[]} />
         </TestProvider>
       );
 
@@ -255,7 +255,7 @@ describe("CompletenessPhase", () => {
 
       rerender(
         <TestProvider>
-          <CompletenessPhase {...defaultProps} initialDocuments={[mockCompletenessDoc]} />
+          <CompletenessPhase {...defaultProps} completenessDocuments={[mockCompletenessDoc]} />
         </TestProvider>
       );
 
@@ -267,7 +267,7 @@ describe("CompletenessPhase", () => {
         <TestProvider>
           <CompletenessPhase
             {...defaultProps}
-            initialDocuments={[mockCompletenessDoc, mockInternalDoc]}
+            completenessDocuments={[mockCompletenessDoc, mockInternalDoc]}
           />
         </TestProvider>
       );
@@ -277,7 +277,7 @@ describe("CompletenessPhase", () => {
 
       rerender(
         <TestProvider>
-          <CompletenessPhase {...defaultProps} initialDocuments={[]} />
+          <CompletenessPhase {...defaultProps} completenessDocuments={[]} />
         </TestProvider>
       );
 
@@ -295,7 +295,7 @@ describe("CompletenessPhase", () => {
 
       const { rerender } = render(
         <TestProvider>
-          <CompletenessPhase {...propsWithDates} initialDocuments={[]} />
+          <CompletenessPhase {...propsWithDates} completenessDocuments={[]} />
         </TestProvider>
       );
 
@@ -305,7 +305,7 @@ describe("CompletenessPhase", () => {
         <TestProvider>
           <CompletenessPhase
             {...propsWithDates}
-            initialDocuments={[mockCompletenessDoc, mockInternalDoc]}
+            completenessDocuments={[mockCompletenessDoc, mockInternalDoc]}
           />
         </TestProvider>
       );
@@ -331,7 +331,7 @@ describe("CompletenessPhase", () => {
             fedCommentEndDate=""
             completenessComplete={false}
             stateDeemedCompleteDate=""
-            initialDocuments={[]}
+            completenessDocuments={[]}
             setSelectedPhase={mockSetSelectedPhase}
           />
         </TestProvider>
@@ -361,7 +361,7 @@ describe("CompletenessPhase", () => {
             fedCommentEndDate=""
             completenessComplete={true}
             stateDeemedCompleteDate=""
-            initialDocuments={[]}
+            completenessDocuments={[]}
             setSelectedPhase={mockSetSelectedPhase}
           />
         </TestProvider>

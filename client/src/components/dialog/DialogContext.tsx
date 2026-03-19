@@ -138,15 +138,11 @@ export const useDialog = () => {
     );
   };
 
-  const showCompletenessDocumentUploadDialog = (
-    applicationId: string,
-    onDocumentUploadSucceeded?: (payload?: UploadDocumentInput) => void
-  ) => {
+  const showCompletenessDocumentUploadDialog = (applicationId: string) => {
     context.showDialog(
       <CompletenessDocumentUploadDialog
-        onDocumentUploadSucceeded={onDocumentUploadSucceeded}
-        onClose={context.hideDialog}
         applicationId={applicationId}
+        onClose={context.hideDialog}
       />
     );
   };

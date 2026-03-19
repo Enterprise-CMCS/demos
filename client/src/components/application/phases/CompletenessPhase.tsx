@@ -11,6 +11,7 @@ import { DocumentList } from "./sections";
 import {
   ApplicationDateInput,
   LocalDate,
+  PhaseName,
   PhaseNameWithTrackedStatus,
   UploadDocumentInput,
 } from "demos-server";
@@ -22,7 +23,7 @@ import { Notice, NoticeVariant } from "components/notice/Notice";
 import {
   useCompletePhase,
   useDeclareCompletenessPhaseIncomplete,
-} from "../phase-status/phaseCompletionQueries";
+} from "components/application/phase-status/phaseCompletionQueries";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -37,6 +38,9 @@ const STYLES = {
   actions: tw`mt-8 flex items-center gap-3`,
   actionsEnd: tw`ml-auto flex gap-3`,
 };
+
+const THIS_PHASE_NAME: PhaseName = "Completeness";
+const NEXT_PHASE_NAME: PhaseName = "Federal Comment";
 
 const FEDERAL_COMMENT_PERIOD_DAYS = 30;
 
@@ -54,7 +58,7 @@ export const getApplicationCompletenessFromApplication = (
   application: WorkflowApplication,
   setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void
 ) => {
-  const completenessPhase = application.phases.find((phase) => phase.phaseName === "Completeness");
+  const completenessPhase = application.phases.find((phase) => phase.phaseName === THIS_PHASE_NAME);
   const applicationIntakePhase = application.phases.find(
     (phase) => phase.phaseName === "Application Intake"
   );
@@ -74,7 +78,9 @@ export const getApplicationCompletenessFromApplication = (
   const stateDeemedCompleteDate = completenessPhase?.phaseDates.find(
     (date) => date.dateType === "State Application Deemed Complete"
   );
-  const initialDocuments = application.documents.filter((doc) => doc.phaseName === "Completeness");
+  const completenessDocuments = application.documents.filter(
+    (doc) => doc.phaseName === THIS_PHASE_NAME
+  );
 
   return (
     <CompletenessPhase
@@ -97,7 +103,7 @@ export const getApplicationCompletenessFromApplication = (
           ? formatDateForServer(stateDeemedCompleteDate.dateValue)
           : ""
       }
-      initialDocuments={initialDocuments ?? []}
+      completenessDocuments={completenessDocuments ?? []}
       setSelectedPhase={setSelectedPhase}
     />
   );
@@ -111,7 +117,7 @@ export interface CompletenessPhaseProps {
   fedCommentEndDate?: string;
   completenessComplete: boolean;
   stateDeemedCompleteDate?: string;
-  initialDocuments: ApplicationWorkflowDocument[];
+  completenessDocuments: ApplicationWorkflowDocument[];
   setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void;
 }
 
@@ -123,21 +129,25 @@ export const CompletenessPhase = ({
   fedCommentEndDate,
   completenessComplete,
   stateDeemedCompleteDate,
-  initialDocuments,
+  completenessDocuments,
   setSelectedPhase,
 }: CompletenessPhaseProps) => {
   const { showCompletenessDocumentUploadDialog, showDeclareIncompleteDialog } = useDialog();
   const { showSuccess, showError } = useToast();
+  const { setApplicationDates } = useSetApplicationDates();
+  const { completePhase } = useCompletePhase();
+  const { declareCompletenessPhaseIncomplete } = useDeclareCompletenessPhaseIncomplete();
 
   const getStateDeemedCompleteFromDocuments = (): string => {
     if (stateDeemedCompleteDate) return stateDeemedCompleteDate;
-    const applicationCompletenessLetter = initialDocuments.find(
+    const applicationCompletenessLetter = completenessDocuments.find(
       (doc) => doc.documentType === "Application Completeness Letter"
     );
     if (!applicationCompletenessLetter) return "";
     const createdAt = applicationCompletenessLetter.createdAt;
     return formatDateForServer(createdAt);
   };
+
   const [stateDeemedComplete, setStateDeemedComplete] = useState<string>(
     getStateDeemedCompleteFromDocuments()
   );
@@ -154,14 +164,6 @@ export const CompletenessPhase = ({
   const [isNoticeDismissed, setNoticeDismissed] = useState(
     !(completenessReviewDate && !completenessComplete)
   );
-
-  const completenessDocs = initialDocuments;
-
-  const { setApplicationDates } = useSetApplicationDates();
-
-  const { completePhase } = useCompletePhase();
-
-  const { declareCompletenessPhaseIncomplete } = useDeclareCompletenessPhaseIncomplete();
 
   const getNoticeContent = () => {
     if (!completenessReviewDate) return null;
@@ -200,8 +202,10 @@ export const CompletenessPhase = ({
     return (
       !completenessComplete &&
       applicationIntakeComplete &&
-      completenessDocs.find((doc) => doc.documentType === "Application Completeness Letter") &&
-      completenessDocs.find((doc) => doc.documentType === "Internal Completeness Review Form") &&
+      completenessDocuments.find((doc) => doc.documentType === "Application Completeness Letter") &&
+      completenessDocuments.find(
+        (doc) => doc.documentType === "Internal Completeness Review Form"
+      ) &&
       datesFilled &&
       datesAreValid
     );
@@ -246,17 +250,6 @@ export const CompletenessPhase = ({
     setDates(dateValue);
   };
 
-  const handleDocumentUploadSucceeded = async (uploadedDoc?: UploadDocumentInput) => {
-    if (uploadedDoc?.documentType !== "Application Completeness Letter") return;
-
-    try {
-      await setDates(getTodayEst());
-      showSuccess("Completeness dates saved successfully");
-    } catch {
-      showError("Failed to save completeness dates");
-    }
-  };
-
   const handleDeclareIncomplete = async () => {
     showDeclareIncompleteDialog(async () => {
       try {
@@ -273,13 +266,13 @@ export const CompletenessPhase = ({
       await saveDates();
       await completePhase({
         applicationId: applicationId,
-        phaseName: "Completeness",
+        phaseName: THIS_PHASE_NAME,
       });
-      showSuccess(getPhaseCompletedMessage("Completeness"));
-      setSelectedPhase("Federal Comment");
+      showSuccess(getPhaseCompletedMessage(THIS_PHASE_NAME));
+      setSelectedPhase(NEXT_PHASE_NAME);
     } catch (e) {
       console.error(e);
-      showError("Failed to complete Completeness phase");
+      showError(`Failed to complete ${THIS_PHASE_NAME} phase`);
     }
   };
 
@@ -292,16 +285,14 @@ export const CompletenessPhase = ({
         Upload the officially signed State Completeness Letter/internal checklists
       </p>
       <SecondaryButton
-        onClick={() =>
-          showCompletenessDocumentUploadDialog(applicationId, handleDocumentUploadSucceeded)
-        }
+        onClick={() => showCompletenessDocumentUploadDialog(applicationId)}
         size="small"
         name="open-upload"
       >
         Upload
         <ExportIcon />
       </SecondaryButton>
-      <DocumentList documents={completenessDocs} />
+      <DocumentList documents={completenessDocuments} />
     </div>
   );
 
@@ -378,7 +369,7 @@ export const CompletenessPhase = ({
             onDismiss={() => setNoticeDismissed(true)}
           />
         )}
-        <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">COMPLETENESS</h3>
+        <h3 className="text-brand text-[22px] font-bold">COMPLETENESS</h3>
       </div>
       <div id="completeness-phase-content">
         <p className="text-sm text-text-placeholder mb-4">
