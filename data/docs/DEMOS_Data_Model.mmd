@@ -415,10 +415,10 @@ erDiagram
 
   application_tag_suggestion_extract:::dataTable {
     uuid suggestion_id PK, FK "FK140: (suggestion_id, application_id, value) ∈ application_tag_suggestion.(id, application_id, value) DEFERRED"
-    uuid uipath_value_id PK, FK "FK139: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)"
-    uuid application_id FK "FK139: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK140: (suggestion_id, application_id, value) ∈ application_tag_suggestion.(id, application_id, value) DEFERRED"
-    text field_id FK "FK139: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK141: field_id ∈ application_tag_suggestion_extract_field_limit.id"
-    text value FK "FK139: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK140: (suggestion_id, application_id, value) ∈ application_tag_suggestion.(id, application_id, value) DEFERRED"
+    uuid uipath_value_id PK, FK "FK139: (uipath_value_id, application_id, value) ∈ uipath_value.(id, application_id, value)"
+    uuid application_id FK "FK139: (uipath_value_id, application_id, value) ∈ uipath_value.(id, application_id, value)<br>FK140: (suggestion_id, application_id, value) ∈ application_tag_suggestion.(id, application_id, value) DEFERRED"
+    text field_id FK "FK141: field_id ∈ application_tag_suggestion_extract_field_limit.id"
+    text value FK "FK139: (uipath_value_id, application_id, value) ∈ uipath_value.(id, application_id, value)<br>FK140: (suggestion_id, application_id, value) ∈ application_tag_suggestion.(id, application_id, value) DEFERRED"
     int start_page_no
     int end_page_no
     timestamptz created_at
@@ -714,12 +714,12 @@ erDiagram
   }
 
   uipath_value:::dataTable {
-    uuid id PK, UK "UK: (id, application_id, field_id, value)"
+    uuid id PK, UK "UK: (id, application_id, value)<br>UK: (id, application_id, field_id, value)"
     uuid uipath_result_id FK "FK137: (uipath_result_id, document_id, application_id) ∈ uipath_result.(id, document_id, application_id)"
     uuid document_id FK "FK137: (uipath_result_id, document_id, application_id) ∈ uipath_result.(id, document_id, application_id)"
-    uuid application_id FK, UK "FK137: (uipath_result_id, document_id, application_id) ∈ uipath_result.(id, document_id, application_id)<br>UK: (id, application_id, field_id, value)"
+    uuid application_id FK, UK "FK137: (uipath_result_id, document_id, application_id) ∈ uipath_result.(id, document_id, application_id)<br>UK: (id, application_id, value)<br>UK: (id, application_id, field_id, value)"
     text field_id UK "UK: (id, application_id, field_id, value)"
-    text value UK "UK: (id, application_id, field_id, value)"
+    text value UK "UK: (id, application_id, value)<br>UK: (id, application_id, field_id, value)"
     int text_length
     int text_start_index
     double confidence
