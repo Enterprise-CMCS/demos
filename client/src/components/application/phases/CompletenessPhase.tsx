@@ -3,7 +3,7 @@ import React, { useMemo, useState } from "react";
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
-import { formatDate, formatDateForServer } from "util/formatDate";
+import { formatDate, formatDateForServer, getDateEst } from "util/formatDate";
 import { addDays, differenceInCalendarDays, parseISO } from "date-fns";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { useToast } from "components/toast";
@@ -50,14 +50,19 @@ export const FEDERAL_COMMENT_END_DATEPICKER_NAME = "datepicker-federal-comment-p
 
 const FEDERAL_COMMENT_PERIOD_DAYS = 30;
 
-const getFederalCommentPeriodDates = (stateDate: string) => {
-  if (!stateDate) return { fedStartDate: null, fedEndDate: null };
+const calculateFederalCommentPeriodDates = (
+  stateDeemedCompleteDate: string
+): { fedStartDate: string; fedEndDate: string } => {
+  if (!stateDeemedCompleteDate) return { fedStartDate: "", fedEndDate: "" };
 
-  const parsedStateDate = parseISO(stateDate);
+  const parsedStateDate = parseISO(stateDeemedCompleteDate);
   const fedStartDate = addDays(parsedStateDate, 1);
   const fedEndDate = addDays(parsedStateDate, 1 + FEDERAL_COMMENT_PERIOD_DAYS);
 
-  return { fedStartDate, fedEndDate };
+  return {
+    fedStartDate: formatDateForServer(fedStartDate),
+    fedEndDate: formatDateForServer(fedEndDate),
+  };
 };
 
 export const getApplicationCompletenessFromApplication = (
@@ -69,21 +74,13 @@ export const getApplicationCompletenessFromApplication = (
     (phase) => phase.phaseName === "Application Intake"
   );
 
-  const completenessComplete = completenessPhase?.phaseStatus === "Completed";
-  const completenessReviewDate = completenessPhase?.phaseDates.find(
-    (date) => date.dateType === "Completeness Review Due Date"
-  );
+  const findDate = (dateType: string): string => {
+    const dateValue = completenessPhase?.phaseDates.find(
+      (date) => date.dateType === dateType
+    )?.dateValue;
+    return dateValue ? getDateEst(dateValue) : "";
+  };
 
-  const fedCommentStartDate = completenessPhase?.phaseDates.find(
-    (date) => date.dateType === "Federal Comment Period Start Date"
-  );
-  const fedCommentEndDate = completenessPhase?.phaseDates.find(
-    (date) => date.dateType === "Federal Comment Period End Date"
-  );
-
-  const stateDeemedCompleteDate = completenessPhase?.phaseDates.find(
-    (date) => date.dateType === "State Application Deemed Complete"
-  );
   const completenessDocuments = application.documents.filter(
     (doc) => doc.phaseName === THIS_PHASE_NAME
   );
@@ -92,24 +89,12 @@ export const getApplicationCompletenessFromApplication = (
     <CompletenessPhase
       applicationId={application.id}
       applicationIntakeComplete={applicationIntakePhase?.phaseStatus === "Completed"}
-      completenessReviewDate={
-        completenessReviewDate?.dateValue
-          ? formatDateForServer(completenessReviewDate.dateValue)
-          : ""
-      }
-      fedCommentStartDate={
-        fedCommentStartDate?.dateValue ? formatDateForServer(fedCommentStartDate.dateValue) : ""
-      }
-      fedCommentEndDate={
-        fedCommentEndDate?.dateValue ? formatDateForServer(fedCommentEndDate.dateValue) : ""
-      }
-      completenessComplete={completenessComplete}
-      stateDeemedCompleteDate={
-        stateDeemedCompleteDate?.dateValue
-          ? formatDateForServer(stateDeemedCompleteDate.dateValue)
-          : ""
-      }
-      completenessDocuments={completenessDocuments ?? []}
+      completenessReviewDate={findDate("Completeness Review Due Date")}
+      fedCommentStartDate={findDate("Federal Comment Period Start Date")}
+      fedCommentEndDate={findDate("Federal Comment Period End Date")}
+      completenessComplete={completenessPhase?.phaseStatus === "Completed"}
+      stateDeemedCompleteDate={findDate("State Application Deemed Complete")}
+      completenessDocuments={completenessDocuments}
       setSelectedPhase={setSelectedPhase}
     />
   );
@@ -150,8 +135,7 @@ export const CompletenessPhase = ({
       (doc) => doc.documentType === "Application Completeness Letter"
     );
     if (!applicationCompletenessLetter) return "";
-    const createdAt = applicationCompletenessLetter.createdAt;
-    return formatDateForServer(createdAt);
+    return getDateEst(applicationCompletenessLetter.createdAt);
   };
 
   const [stateDeemedComplete, setStateDeemedComplete] = useState<string>(
@@ -159,12 +143,12 @@ export const CompletenessPhase = ({
   );
   const [federalStartDate, setFederalStartDate] = useState<string>(() => {
     if (fedCommentStartDate) return fedCommentStartDate;
-    const { fedStartDate } = getFederalCommentPeriodDates(stateDeemedComplete);
+    const { fedStartDate } = calculateFederalCommentPeriodDates(stateDeemedComplete);
     return fedStartDate ? formatDateForServer(fedStartDate) : "";
   });
   const [federalEndDate, setFederalEndDate] = useState<string>(() => {
     if (fedCommentEndDate) return fedCommentEndDate;
-    const { fedEndDate } = getFederalCommentPeriodDates(stateDeemedComplete);
+    const { fedEndDate } = calculateFederalCommentPeriodDates(stateDeemedComplete);
     return fedEndDate ? formatDateForServer(fedEndDate) : "";
   });
   const [isNoticeDismissed, setNoticeDismissed] = useState(
@@ -219,7 +203,8 @@ export const CompletenessPhase = ({
 
   const setDates = (stateDeemedCompleteString: string) => {
     setStateDeemedComplete(stateDeemedCompleteString);
-    const { fedStartDate, fedEndDate } = getFederalCommentPeriodDates(stateDeemedCompleteString);
+    const { fedStartDate, fedEndDate } =
+      calculateFederalCommentPeriodDates(stateDeemedCompleteString);
     setFederalStartDate(fedStartDate ? formatDateForServer(fedStartDate) : "");
     setFederalEndDate(fedEndDate ? formatDateForServer(fedEndDate) : "");
   };

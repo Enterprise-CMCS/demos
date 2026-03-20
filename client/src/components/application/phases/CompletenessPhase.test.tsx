@@ -13,8 +13,11 @@ import {
   STATE_DEEMED_COMPLETE_DATEPICKER_NAME,
   FEDERAL_COMMENT_START_DATEPICKER_NAME,
   FEDERAL_COMMENT_END_DATEPICKER_NAME,
+  getApplicationCompletenessFromApplication,
 } from "./CompletenessPhase";
-import { ApplicationWorkflowDocument } from "components/application";
+import { ApplicationWorkflowDocument, WorkflowApplication } from "components/application";
+import { TZDate } from "@date-fns/tz";
+import { EST_TIMEZONE } from "util/formatDate";
 
 const showCompletenessDocumentUploadDialog = vi.fn();
 const showDeclareIncompleteDialog = vi.fn((callback) => {
@@ -46,6 +49,20 @@ vi.mock("../phase-status/phaseCompletionQueries", () => ({
   })),
 }));
 
+const makeApplication = (overrides: Partial<WorkflowApplication> = {}): WorkflowApplication => ({
+  id: "app-456",
+  currentPhaseName: "Completeness",
+  status: "Under Review",
+  tags: [],
+  clearanceLevel: "CMS (OSORA)",
+  phases: [
+    { phaseName: "Application Intake", phaseStatus: "Completed", phaseDates: [], phaseNotes: [] },
+    { phaseName: "Completeness", phaseStatus: "Started", phaseDates: [], phaseNotes: [] },
+  ],
+  documents: [],
+  ...overrides,
+});
+
 const mockCompletenessDoc: ApplicationWorkflowDocument = {
   id: "doc-1",
   name: "Completeness Letter",
@@ -53,7 +70,7 @@ const mockCompletenessDoc: ApplicationWorkflowDocument = {
   documentType: "Application Completeness Letter",
   phaseName: "Completeness",
   owner: { person: { fullName: "Jane Doe" } },
-  createdAt: new Date("2026-02-01"),
+  createdAt: new TZDate("2026-02-01", EST_TIMEZONE),
 };
 
 const mockInternalDoc: ApplicationWorkflowDocument = {
@@ -63,7 +80,7 @@ const mockInternalDoc: ApplicationWorkflowDocument = {
   documentType: "Internal Completeness Review Form",
   phaseName: "Completeness",
   owner: { person: { fullName: "John Smith" } },
-  createdAt: new Date("2026-02-02"),
+  createdAt: new TZDate("2026-02-02", EST_TIMEZONE),
 };
 
 describe("CompletenessPhase", () => {
@@ -326,7 +343,7 @@ describe("CompletenessPhase", () => {
 
   describe("Completeness Notice Banner", () => {
     it("renders the banner with correct content and dismisses on click", async () => {
-      const today = new Date("2026-02-08T00:00:00Z");
+      const today = new TZDate("2026-02-08T00:00:00Z", EST_TIMEZONE);
       vi.setSystemTime(today);
 
       const reviewDate = "2026-02-10"; // 2 days from today
@@ -379,5 +396,66 @@ describe("CompletenessPhase", () => {
 
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     });
+  });
+});
+
+describe("getApplicationCompletenessFromApplication", () => {
+  const mockSetSelectedPhase = vi.fn();
+
+  const setup = (overrides: Partial<WorkflowApplication> = {}) => {
+    const application = makeApplication(overrides);
+    render(
+      <TestProvider>
+        {getApplicationCompletenessFromApplication(application, mockSetSelectedPhase)}
+      </TestProvider>
+    );
+  };
+
+  it("renders the completeness phase component", () => {
+    setup();
+    expect(screen.getByText("COMPLETENESS")).toBeInTheDocument();
+  });
+
+  it("populates date pickers from phaseDates", () => {
+    setup({
+      phases: [
+        {
+          phaseName: "Application Intake",
+          phaseStatus: "Completed",
+          phaseDates: [],
+          phaseNotes: [],
+        },
+        {
+          phaseName: "Completeness",
+          phaseStatus: "Started",
+          phaseDates: [
+            {
+              dateType: "State Application Deemed Complete",
+              dateValue: new TZDate("2026-03-01", EST_TIMEZONE),
+            },
+            {
+              dateType: "Federal Comment Period Start Date",
+              dateValue: new TZDate("2026-03-02", EST_TIMEZONE),
+            },
+            {
+              dateType: "Federal Comment Period End Date",
+              dateValue: new TZDate("2026-04-01", EST_TIMEZONE),
+            },
+          ],
+          phaseNotes: [],
+        },
+      ],
+    });
+    expect(screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME)).toHaveValue("2026-03-01");
+    expect(screen.getByTestId(FEDERAL_COMMENT_START_DATEPICKER_NAME)).toHaveValue("2026-03-02");
+    expect(screen.getByTestId(FEDERAL_COMMENT_END_DATEPICKER_NAME)).toHaveValue("2026-04-01");
+  });
+
+  it("filters documents to only those in the Completeness phase", () => {
+    setup({
+      documents: [mockCompletenessDoc, { ...mockInternalDoc, phaseName: "Federal Comment" }],
+    });
+    expect(screen.getByText("Completeness Letter")).toBeInTheDocument();
+    expect(screen.queryByText("Internal Form")).not.toBeInTheDocument();
   });
 });
