@@ -1,0 +1,14 @@
+// Flags: NO_CREATED_TS, NO_UPDATED_TS, NO_HISTORY
+// Table stores current active deliverable extension requests for constraint purposes
+model DeliverableActiveExtension {
+  deliverableExtensionId String @map("deliverable_extension_id") @db.Uuid
+  deliverableId          String @map("deliverable_id") @db.Uuid
+  statusId               String @map("status_id")
+
+  deliverableExtension DeliverableExtension                  @relation(fields: [deliverableExtensionId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  status               DeliverableActiveExtensionStatusLimit @relation(fields: [statusId], references: [id])
+
+  @@id([deliverableExtensionId])
+  @@unique([deliverableId])
+  @@map("deliverable_active_extension")
+}
