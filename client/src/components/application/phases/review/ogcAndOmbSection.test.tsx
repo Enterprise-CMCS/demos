@@ -34,7 +34,7 @@ describe("OgcAndOmbSection", () => {
 
   it("displays the description text", () => {
     render(<OgcAndOmbSection {...defaultProps} />);
-    expect(screen.getByText(/Record the OGC & OMB Review Process/i)).toBeInTheDocument();
+    expect(screen.getByText(/Record the Sign-Off for the edits End Date/i)).toBeInTheDocument();
   });
 
   it("renders all four date pickers", () => {

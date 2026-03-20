@@ -51,7 +51,7 @@ export const getReviewPhaseComponentFromApplication = (
     <ReviewPhase
       isReadonly={reviewPhase.phaseStatus === "Completed"}
       initialFormData={reviewPhaseFormData}
-      demonstrationId={application.id}
+      applicationId={application.id}
       onFinish={onFinish}
       allPreviousPhasesDone={allPreviousPhasesDone}
     />
