@@ -5,7 +5,7 @@ CREATE TABLE "uipath_result_history" (
     "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "id" UUID NOT NULL,
     "request_id" TEXT NOT NULL,
-    "response" JSONB NOT NULL,
+    "response" JSON NOT NULL,
     "project_id" TEXT NOT NULL,
     "document_id" UUID NOT NULL,
     "application_id" UUID NOT NULL,
@@ -30,7 +30,7 @@ CREATE TABLE "uipath_value_history" (
     "text_length" INTEGER NOT NULL,
     "text_start_index" INTEGER NOT NULL,
     "confidence" DOUBLE PRECISION NOT NULL,
-    "token_list" JSONB NOT NULL,
+    "token_list" JSON NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
 

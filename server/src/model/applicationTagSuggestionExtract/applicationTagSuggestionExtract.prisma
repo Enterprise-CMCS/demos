@@ -12,7 +12,7 @@ model ApplicationTagSuggestionExtract {
   // Prisma tracks relation keys, but DEFERRABLE behavior is handled in SQL migration.
   suggestion  ApplicationTagSuggestion                  @relation(fields: [suggestionId, applicationId, value], references: [id, applicationId, value])
   uipathValue UipathValue                               @relation(fields: [uipathValueId, applicationId, value], references: [id, applicationId, value])
-  fieldLimit  ApplicationTagSuggestionExtractFieldLimit @relation(fields: [fieldId], references: [id])
+  field       ApplicationTagSuggestionExtractFieldLimit @relation(fields: [fieldId], references: [id])
 
   @@id([suggestionId, uipathValueId])
   @@map("application_tag_suggestion_extract")

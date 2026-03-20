@@ -12,4 +12,4 @@ VALUES
   ('Accepted'),
   ('Replaced'),
   ('Removed')
-ON CONFLICT ("id") DO NOTHING;
+;

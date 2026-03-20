@@ -9,8 +9,8 @@ model UipathValue {
   textStartIndex Int      @map("text_start_index")
   confidence     Float    @map("confidence")
   tokenList      Json     @map("token_list") @db.JsonB
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   result      UiPathResult                      @relation(fields: [uipathResultId, documentId, applicationId], references: [id, documentId, applicationId])
   application Application                       @relation(fields: [applicationId], references: [id])

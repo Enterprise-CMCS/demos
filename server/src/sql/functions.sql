@@ -793,6 +793,16 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
 CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.application_tag_suggestion
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.application_tag_suggestion_extract
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
 BEFORE UPDATE ON demos_app.application_tag_assignment
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
@@ -882,16 +892,6 @@ BEFORE UPDATE ON demos_app.uipath_value
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
-CREATE TRIGGER _disable_redundant_updates
-BEFORE UPDATE ON demos_app.application_tag_suggestion
-FOR EACH ROW
-EXECUTE FUNCTION demos_app.disable_redundant_updates();
-
-CREATE TRIGGER _disable_redundant_updates
-BEFORE UPDATE ON demos_app.application_tag_suggestion_extract
-FOR EACH ROW
-EXECUTE FUNCTION demos_app.disable_redundant_updates();
-
 -- check_suggestion_deleted_if_last_extract
 CREATE FUNCTION demos_app.check_suggestion_deleted_if_last_extract()
 RETURNS TRIGGER
@@ -956,8 +956,6 @@ BEGIN
         status_id = 'Pending',
         updated_at = CURRENT_TIMESTAMP
     WHERE
-        demos_app.application_tag_suggestion.application_id = EXCLUDED.application_id AND
-        demos_app.application_tag_suggestion.value = EXCLUDED.value AND
         demos_app.application_tag_suggestion.status_id = 'Removed';
 
     RETURN NEW;

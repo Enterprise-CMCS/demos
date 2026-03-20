@@ -13,7 +13,7 @@ CREATE TABLE "uipath_value" (
     "text_length" INTEGER NOT NULL,
     "text_start_index" INTEGER NOT NULL,
     "confidence" DOUBLE PRECISION NOT NULL,
-    "token_list" JSONB NOT NULL,
+    "token_list" JSON NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
