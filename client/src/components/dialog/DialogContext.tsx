@@ -1,11 +1,5 @@
 import React, { createContext, useContext, useState } from "react";
-import {
-  DocumentType,
-  TagName,
-  DemonstrationTypeAssignment,
-  UploadDocumentInput,
-  Tag,
-} from "demos-server";
+import { DocumentType, TagName, DemonstrationTypeAssignment, Tag } from "demos-server";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
 import { CreateExtensionDialog } from "./modification/CreateExtensionDialog";
@@ -138,15 +132,11 @@ export const useDialog = () => {
     );
   };
 
-  const showCompletenessDocumentUploadDialog = (
-    applicationId: string,
-    onDocumentUploadSucceeded?: (payload?: UploadDocumentInput) => void
-  ) => {
+  const showCompletenessDocumentUploadDialog = (applicationId: string) => {
     context.showDialog(
       <CompletenessDocumentUploadDialog
-        onDocumentUploadSucceeded={onDocumentUploadSucceeded}
-        onClose={context.hideDialog}
         applicationId={applicationId}
+        onClose={context.hideDialog}
       />
     );
   };
