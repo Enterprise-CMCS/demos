@@ -1,0 +1,9 @@
+// Flags: STATIC_CONSTRAINT
+model ApplicationTagSuggestionExtractFieldLimit {
+  id String
+
+  extracts ApplicationTagSuggestionExtract[]
+
+  @@id([id])
+  @@map("application_tag_suggestion_extract_field_limit")
+}

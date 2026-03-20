@@ -866,7 +866,7 @@ CREATE TABLE "uipath_result" (
     "id" UUID NOT NULL,
     "request_id" TEXT NOT NULL,
     "status_id" TEXT NOT NULL DEFAULT 'Pending',
-    "response" JSONB NOT NULL,
+    "response" JSON NOT NULL,
     "project_id" TEXT NOT NULL,
     "document_id" UUID,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -883,7 +883,7 @@ CREATE TABLE "uipath_result_field" (
     "field_type" TEXT NOT NULL,
     "value" TEXT NOT NULL,
     "confidence" DOUBLE PRECISION NOT NULL,
-    "value_json" JSONB NOT NULL,
+    "value_json" JSON NOT NULL,
     "text_length" INTEGER NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

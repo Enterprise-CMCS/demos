@@ -1,0 +1,24 @@
+model UipathValue {
+  id             String   @id @default(uuid()) @db.Uuid
+  uipathResultId String   @map("uipath_result_id") @db.Uuid
+  documentId     String   @map("document_id") @db.Uuid
+  applicationId  String   @map("application_id") @db.Uuid
+  fieldId        String   @map("field_id")
+  value          String   @map("value")
+  textLength     Int      @map("text_length")
+  textStartIndex Int      @map("text_start_index")
+  confidence     Float    @map("confidence")
+  tokenList      Json     @map("token_list") @db.JsonB
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  result      UiPathResult                      @relation(fields: [uipathResultId, documentId, applicationId], references: [id, documentId, applicationId])
+  application Application                       @relation(fields: [applicationId], references: [id])
+  document    Document                          @relation(fields: [documentId], references: [id])
+  extracts    ApplicationTagSuggestionExtract[]
+
+  @@unique([id, applicationId, value])
+  @@unique([id, applicationId, fieldId, value])
+  @@index([uipathResultId, documentId, applicationId])
+  @@map("uipath_value")
+}

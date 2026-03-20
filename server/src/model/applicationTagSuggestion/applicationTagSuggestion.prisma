@@ -1,0 +1,14 @@
+model ApplicationTagSuggestion {
+  id            String   @id @default(uuid()) @db.Uuid
+  applicationId String   @map("application_id") @db.Uuid
+  value         String   @map("value")
+  statusId      String   @map("status_id")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  extracts ApplicationTagSuggestionExtract[]
+  status   ApplicationTagSuggestionStatus    @relation(fields: [statusId], references: [id])
+
+  @@unique([id, applicationId, value])
+  @@map("application_tag_suggestion")
+}

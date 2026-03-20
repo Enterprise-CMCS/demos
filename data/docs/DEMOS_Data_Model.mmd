@@ -469,7 +469,7 @@ erDiagram
     text note "NULLABLE"
     uuid active_extension_id FK "FK135: (active_extension_id, deliverable_id) ∈ deliverable_extension.(id, deliverable_id)<br>NULLABLE"
     timestamptz old_due_date
-    timestamptz new_due_date 
+    timestamptz new_due_date
     uuid user_id FK "FK117: user_id ∈ users.id<br>NULLABLE"
     CONSTRAINT_CHECK require_reason_codes_or_notes_for_user_actions "If the action is a user action and requires a reason code or note, ensure it is not null or empty string."
     CONSTRAINT_CHECK require_user_id_for_user_actions "If the action type is not a system action, require a user ID to be present."

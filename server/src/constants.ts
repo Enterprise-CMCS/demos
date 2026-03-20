@@ -381,6 +381,15 @@ export const PHASE_START_END_DATES: PhaseStartEndDateRecord = {
 
 export const TAG_STATUSES = ["Unapproved", "Approved"] as const;
 
+export const APPLICATION_TAG_SUGGESTION_STATUSES = [
+  "Pending",
+  "Accepted",
+  "Replaced",
+  "Removed",
+] as const;
+
+export const UIPATH_RESULT_STATUSES = ["Pending", "Finished", "Failed"] as const;
+
 export const TAG_SOURCES = ["User", "System"] as const;
 
 export const TAG_TYPES = ["Application", "Demonstration Type"] as const;
