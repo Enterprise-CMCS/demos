@@ -24,7 +24,7 @@ export const CmsOsoraClearanceSection = ({
   return (
     <CompletableSection title="CMS (OSORA) Clearance" isComplete={isComplete}>
       <p className="text-sm text-text-placeholder mt-1 mb-2">
-        Demonstrations with the highest Scruteny require a signature from the Office of the
+        Demonstrations with the highest Scrutiny require a signature from the Office of the
         Administrator for full federal clearance through OSORA.
       </p>
       <div className="grid grid-cols-4 gap-8 text-sm text-text-placeholder">
