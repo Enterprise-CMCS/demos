@@ -494,9 +494,9 @@ erDiagram
   }
 
   deliverable_active_extension:::dataTable {
-    uuid id PK, FK "FK130: id, deliverable_id, status_id ∈ deliverable_extension.(id, deliverable_id, status_id) ON DELETE RESTRICT ON UPDATE NO ACTION"
-    uuid deliverable_id FK, UK "FK130: id, deliverable_id, status_id ∈ deliverable_extension.(id, deliverable_id, status_id) ON DELETE RESTRICT ON UPDATE NO ACTION<br>UK: deliverable_id"
-    text status_id FK "FK130: id, deliverable_id, status_id ∈ deliverable_extension.(id, deliverable_id, status_id) ON DELETE RESTRICT ON UPDATE NO ACTION<br>FK132: status_id ∈ deliverable_active_extension_status_limit.id"
+    uuid deliverable_extension_id PK, FK "FK130: deliverable_extension_id, deliverable_id, status_id ∈ deliverable_extension.(id, deliverable_id, status_id) ON DELETE RESTRICT ON UPDATE NO ACTION"
+    uuid deliverable_id FK, UK "FK130: deliverable_extension_id, deliverable_id, status_id ∈ deliverable_extension.(id, deliverable_id, status_id) ON DELETE RESTRICT ON UPDATE NO ACTION<br>UK: deliverable_id"
+    text status_id FK "FK130: deliverable_extension_id, deliverable_id, status_id ∈ deliverable_extension.(id, deliverable_id, status_id) ON DELETE RESTRICT ON UPDATE NO ACTION<br>FK132: status_id ∈ deliverable_active_extension_status_limit.id"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 

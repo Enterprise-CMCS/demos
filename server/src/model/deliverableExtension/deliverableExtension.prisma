@@ -9,10 +9,11 @@ model DeliverableExtension {
   createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
-  deliverable        Deliverable                    @relation(fields: [deliverableId], references: [id])
-  status             DeliverableExtensionStatus     @relation(fields: [statusId], references: [id])
-  reasonCode         DeliverableExtensionReasonCode @relation(fields: [reasonCodeId], references: [id])
-  deliverableActions DeliverableAction[]
+  deliverable                 Deliverable                    @relation(fields: [deliverableId], references: [id])
+  status                      DeliverableExtensionStatus     @relation(fields: [statusId], references: [id])
+  reasonCode                  DeliverableExtensionReasonCode @relation(fields: [reasonCodeId], references: [id])
+  deliverableActions          DeliverableAction[]
+  deliverableActiveExtensions DeliverableActiveExtension[]
 
   @@id([id])
   @@unique([id, deliverableId, statusId])
