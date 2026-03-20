@@ -1,6 +1,10 @@
 import type { SetApplicationDateInput, SetApplicationDatesInput } from "demos-server";
 import { gql, useMutation } from "@apollo/client";
-import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "../demonstration/DemonstrationWorkflow";
+import {
+  GET_AMENDMENT_WORKFLOW_QUERY,
+  GET_EXTENSION_WORKFLOW_QUERY,
+  GET_WORKFLOW_DEMONSTRATION_QUERY,
+} from "components/application";
 
 const SET_APPLICATION_DATE_MUTATION = gql`
   mutation SetApplicationDate($input: SetApplicationDateInput!) {
@@ -36,7 +40,11 @@ export const useSetApplicationDate = () => {
   const setApplicationDate = async (input: SetApplicationDateInput) => {
     return await mutate({
       variables: { input },
-      refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+      refetchQueries: [
+        GET_WORKFLOW_DEMONSTRATION_QUERY,
+        GET_AMENDMENT_WORKFLOW_QUERY,
+        GET_EXTENSION_WORKFLOW_QUERY,
+      ],
     });
   };
 
@@ -64,7 +72,11 @@ export const useSetApplicationDates = () => {
   const setApplicationDates = async (input: SetApplicationDatesInput) => {
     return await mutate({
       variables: { input },
-      refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+      refetchQueries: [
+        GET_WORKFLOW_DEMONSTRATION_QUERY,
+        GET_AMENDMENT_WORKFLOW_QUERY,
+        GET_EXTENSION_WORKFLOW_QUERY,
+      ],
     });
   };
 

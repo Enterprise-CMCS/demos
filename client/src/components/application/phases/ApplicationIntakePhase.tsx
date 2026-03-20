@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import { useMutation } from "@apollo/client";
 
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
-import { addDays, parseISO } from "date-fns";
+import { addDays, compareDesc, parseISO } from "date-fns";
 import { tw } from "tags/tw";
-import { formatDateForServer } from "util/formatDate";
+import { formatDateForServer, getDateEst } from "util/formatDate";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { PhaseName } from "components/application/phase-selector/PhaseSelector";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
@@ -17,7 +17,7 @@ import { getPhaseCompletedMessage } from "util/messages";
 import { useToast } from "components/toast";
 import { DatePicker } from "components/input/date/DatePicker";
 import { ApplicationHealthTypeTags } from "components/tags/ApplicationHealthTypeTags";
-import type { DateTimeOrLocalDate, PhaseStatus, Tag, TagName } from "demos-server";
+import type { LocalDate, PhaseStatus, Tag, TagName } from "demos-server";
 import { SET_APPLICATION_TAGS_MUTATION } from "components/dialog/ApplyTagsDialog";
 
 /** Business Rules for this Phase:
@@ -66,7 +66,7 @@ const UploadSection = ({
       <h4 id="state-application-upload-title" className={STYLES.title}>
         STEP 1 - UPLOAD
       </h4>
-      <p className={STYLES.helper}>Upload the State Application file below.</p>
+      <p className={STYLES.helper}>Upload State Application file</p>
 
       <SecondaryButton
         onClick={() => showApplicationIntakeDocumentUploadDialog(applicationId)}
@@ -83,9 +83,31 @@ const UploadSection = ({
 };
 
 // Calculate completeness review due date (submitted date + 15 calendar days)
-export const getCompletenessReviewDueDate = (stateApplicationSubmittedDate: string): Date => {
+export const getCompletenessReviewDueDate = (stateApplicationSubmittedDate: string): string => {
+  if (!stateApplicationSubmittedDate) return "";
+
   const date = parseISO(stateApplicationSubmittedDate);
-  return addDays(date, 15);
+  return formatDateForServer(addDays(date, 15));
+};
+
+export const calculateStateApplicationSubmittedDate = (
+  initialStateApplicationSubmittedDate: string,
+  documents: ApplicationWorkflowDocument[]
+): string => {
+  // if a state application submitted date is provided, return this
+  if (initialStateApplicationSubmittedDate) return initialStateApplicationSubmittedDate;
+
+  const stateApplicationDocuments = documents.filter(
+    (document) => document.documentType === "State Application"
+  );
+
+  // Guard: No state application documents means no date to return
+  if (stateApplicationDocuments.length === 0) return "";
+
+  // Get latest createdAt date in EST from state application documents
+  const createdAtDates = stateApplicationDocuments.map((doc) => doc.createdAt);
+  const sortedDates = createdAtDates.sort(compareDesc);
+  return formatDateForServer(sortedDates[0]);
 };
 
 interface VerifyCompleteSectionProps {
@@ -104,183 +126,168 @@ const VerifyCompleteSection = ({
   isFinishButtonEnabled,
   onFinish,
   isPhaseFinalized,
-}: VerifyCompleteSectionProps) => (
-  <div aria-labelledby="state-application-verify-title">
-    <div className={STYLES.stepEyebrow}>Step 2 - Verify/Complete</div>
-    <h4 id="state-application-verify-title" className={STYLES.title}>
-      VERIFY/COMPLETE
-    </h4>
-    <p className={STYLES.helper}>
-      Verify that the document is uploaded/accurate and complete all required fields.
-    </p>
+}: VerifyCompleteSectionProps) => {
+  const completenessReviewDueDate = stateApplicationSubmittedDate
+    ? getCompletenessReviewDueDate(stateApplicationSubmittedDate)
+    : "";
 
-    <div className="space-y-4">
-      <div>
-        <DatePicker
-          name={APPLICATION_SUBMITTED_DATEPICKER_NAME}
-          label="State Application Submitted Date"
-          value={stateApplicationSubmittedDate}
-          onChange={onDateChange}
-          isRequired
-          aria-required="true"
-          isDisabled={isPhaseFinalized}
-        />
-        {!hasDocuments && stateApplicationSubmittedDate && (
-          <div className="text-xs text-text-warn mt-1">
-            At least one State Application document is required when date is provided
+  return (
+    <div aria-labelledby="state-application-verify-title">
+      <div className={STYLES.stepEyebrow}>Step 2 - Verify/Complete</div>
+      <h4 id="state-application-verify-title" className={STYLES.title}>
+        VERIFY/COMPLETE
+      </h4>
+      <p className={STYLES.helper}>
+        Verify that the document is uploaded/accurate and that all required fields are filled.
+      </p>
+
+      <div className="space-y-4">
+        <div>
+          <DatePicker
+            name={APPLICATION_SUBMITTED_DATEPICKER_NAME}
+            label="State Application Submitted Date"
+            value={stateApplicationSubmittedDate}
+            onChange={onDateChange}
+            isRequired
+            aria-required="true"
+            isDisabled={isPhaseFinalized}
+          />
+          {!hasDocuments && stateApplicationSubmittedDate && (
+            <div className="text-xs text-text-warn mt-1">
+              At least one State Application document is required when date is provided
+            </div>
+          )}
+        </div>
+
+        <div>
+          <DatePicker
+            name={COMPLETENESS_REVIEW_DATEPICKER_NAME}
+            label="Completeness Review Due Date"
+            value={completenessReviewDueDate}
+            isDisabled={true}
+          />
+          <div id="completeness-review-help" className="text-xs text-text-placeholder mt-1">
+            Automatically calculated as 15 calendar days after State Application Submitted Date
           </div>
-        )}
-      </div>
-
-      <div>
-        <DatePicker
-          name={COMPLETENESS_REVIEW_DATEPICKER_NAME}
-          label="Completeness Review Due Date"
-          value={
-            stateApplicationSubmittedDate
-              ? formatDateForServer(getCompletenessReviewDueDate(stateApplicationSubmittedDate))
-              : ""
-          }
-          isDisabled={true}
-        />
-        <div id="completeness-review-help" className="text-xs text-text-placeholder mt-1">
-          Automatically calculated as 15 calendar days after State Application Submitted Date
         </div>
       </div>
-    </div>
 
-    <div className={STYLES.actions}>
-      <Button
-        name={APPLICATION_INTAKE_FINISH_BUTTON_NAME}
-        onClick={onFinish}
-        disabled={!isFinishButtonEnabled}
-        size="small"
-      >
-        Finish
-      </Button>
+      <div className={STYLES.actions}>
+        <Button
+          name={APPLICATION_INTAKE_FINISH_BUTTON_NAME}
+          onClick={onFinish}
+          disabled={!isFinishButtonEnabled}
+          size="small"
+        >
+          Finish
+        </Button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export const getApplicationIntakeComponentFromApplication = (
   application: WorkflowApplication,
-  setSelectedPhase?: (phase: PhaseName) => void
+  setSelectedPhase: (phase: PhaseName) => void
 ) => {
   const applicationIntakePhase = application.phases.find(
     (phase) => phase.phaseName === THIS_PHASE_NAME
   );
 
-  const stateApplicationSubmittedDate = applicationIntakePhase?.phaseDates.find(
+  if (!applicationIntakePhase) {
+    throw new Error(`Application is missing expected phase: ${THIS_PHASE_NAME}`);
+  }
+
+  const stateApplicationSubmittedDate = applicationIntakePhase.phaseDates.find(
     (date) => date.dateType === "State Application Submitted Date"
   )?.dateValue;
 
-  const stateApplicationDocuments = application.documents.filter(
+  // This date value comes back in UTC, we want to display it in EST
+  const estStateApplicationSubmittedDate = stateApplicationSubmittedDate
+    ? getDateEst(stateApplicationSubmittedDate)
+    : "";
+
+  const applicationIntakeDocuments = application.documents.filter(
     (doc) => doc.phaseName === THIS_PHASE_NAME
   );
 
   return (
     <ApplicationIntakePhase
       applicationId={application.id}
-      initialStateApplicationDocuments={stateApplicationDocuments}
-      initialStateApplicationSubmittedDate={
-        stateApplicationSubmittedDate ? formatDateForServer(stateApplicationSubmittedDate) : ""
-      }
+      applicationIntakeDocuments={applicationIntakeDocuments}
+      initialStateApplicationSubmittedDate={estStateApplicationSubmittedDate}
       tags={application.tags}
       setSelectedPhase={setSelectedPhase}
-      phaseStatus={applicationIntakePhase?.phaseStatus ?? "Not Started"}
+      phaseStatus={applicationIntakePhase.phaseStatus ?? "Not Started"}
     />
   );
 };
 export interface ApplicationIntakeProps {
   applicationId: string;
-  initialStateApplicationDocuments: ApplicationWorkflowDocument[];
+  applicationIntakeDocuments: ApplicationWorkflowDocument[];
   initialStateApplicationSubmittedDate: string;
   tags: Tag[];
-  setSelectedPhase?: (phase: PhaseName) => void;
+  setSelectedPhase: (phase: PhaseName) => void;
   phaseStatus: PhaseStatus;
 }
 
 export const ApplicationIntakePhase = ({
   applicationId,
-  initialStateApplicationDocuments,
+  applicationIntakeDocuments,
   initialStateApplicationSubmittedDate,
   tags,
   setSelectedPhase,
   phaseStatus,
 }: ApplicationIntakeProps) => {
   const { showSuccess, showError } = useToast();
+  const { completePhase } = useCompletePhase();
+  const { setApplicationDates } = useSetApplicationDates();
   const [setApplicationTagsMutation] = useMutation(SET_APPLICATION_TAGS_MUTATION);
 
-  const [stateApplicationSubmittedDate, setStateApplicationSubmittedDate] = useState<string>(
-    initialStateApplicationSubmittedDate ?? ""
+  const [submittedDateOverride, setSubmittedDateOverride] = useState<string>("");
+
+  // Calculate the dates to display based on the following rules:
+  // 1. If a date was passed to this component (most likely finalized), use this
+  // 2. If the user has manually entered a date (submittedDateOverride), use this
+  // 3. If no manual date, calculate based on the latest createdAt date of State Application documents
+  const calculatedStateApplicationSubmittedDate = calculateStateApplicationSubmittedDate(
+    initialStateApplicationSubmittedDate,
+    applicationIntakeDocuments
   );
+  const stateApplicationSubmittedDate = submittedDateOverride
+    ? submittedDateOverride
+    : calculatedStateApplicationSubmittedDate;
+  const completenessReviewDueDate = getCompletenessReviewDueDate(stateApplicationSubmittedDate);
 
   const isPhaseFinalized = phaseStatus === "Completed";
+  const hasDocuments = applicationIntakeDocuments.length > 0;
+  const isFinishButtonEnabled =
+    hasDocuments && Boolean(stateApplicationSubmittedDate) && !isPhaseFinalized;
 
-  const { completePhase } = useCompletePhase();
-
-  const { setApplicationDates } = useSetApplicationDates();
-
-  useEffect(() => {
-    setStateApplicationSubmittedDate(initialStateApplicationSubmittedDate ?? "");
-  }, [initialStateApplicationSubmittedDate]);
-
-  const hasDocuments = initialStateApplicationDocuments.length > 0;
-
-  const clearDates = () => {
-    setStateApplicationSubmittedDate("");
-    setApplicationDates({
+  const sendDatesToServer = async () => {
+    await setApplicationDates({
       applicationId: applicationId,
       applicationDates: [
-        { dateType: "State Application Submitted Date", dateValue: null },
-        { dateType: "Completeness Review Due Date", dateValue: null },
+        {
+          dateType: "State Application Submitted Date",
+          dateValue: stateApplicationSubmittedDate as LocalDate,
+        },
+        {
+          dateType: "Completeness Review Due Date",
+          dateValue: completenessReviewDueDate as LocalDate,
+        },
       ],
     });
   };
-  useEffect(() => {
-    if (!hasDocuments && stateApplicationSubmittedDate) {
-      clearDates();
-    }
-  }, [hasDocuments, stateApplicationSubmittedDate]);
-
-  const hasSubmittedDate = Boolean(stateApplicationSubmittedDate);
-  const isFinishButtonEnabled = hasDocuments && hasSubmittedDate && !isPhaseFinalized;
 
   const onFinishButtonClick = async () => {
+    await sendDatesToServer();
     await completePhase({
       applicationId: applicationId,
       phaseName: THIS_PHASE_NAME,
     });
     showSuccess(getPhaseCompletedMessage(THIS_PHASE_NAME));
-
     setSelectedPhase?.(NEXT_PHASE_NAME);
-  };
-
-  const handleDateChange = async (newDate: string) => {
-    setStateApplicationSubmittedDate(newDate);
-
-    if (newDate) {
-      const formattedNewDate: DateTimeOrLocalDate = newDate as DateTimeOrLocalDate;
-      const completenessReviewDueDate: DateTimeOrLocalDate = formatDateForServer(
-        getCompletenessReviewDueDate(newDate)
-      ) as DateTimeOrLocalDate;
-
-      await setApplicationDates({
-        applicationId: applicationId,
-        applicationDates: [
-          {
-            dateType: "State Application Submitted Date",
-            dateValue: formattedNewDate,
-          },
-          {
-            dateType: "Completeness Review Due Date",
-            dateValue: completenessReviewDueDate,
-          },
-        ],
-      });
-    } else {
-      clearDates();
-    }
   };
 
   const handleRemoveTag = async (tagName: TagName) => {
@@ -296,7 +303,6 @@ export const ApplicationIntakePhase = ({
       });
       showSuccess("Application tags updated");
     } catch (error) {
-      // Roll back on failure
       showError("Failed to update application tags");
       throw error;
     }
@@ -304,23 +310,20 @@ export const ApplicationIntakePhase = ({
 
   return (
     <div>
-      <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">APPLICATION INTAKE</h3>
+      <h3 className="text-brand text-[22px] font-bold">APPLICATION INTAKE</h3>
       <p className="text-sm text-text-placeholder mb-4">
-        When the state submits an official application, completing this form closes the
-        Pre-Submission Technical Assistance and opens the Completeness Review period
+        When the state submits an official application, completing this form closes Pre-Submission
+        Technical Assistance and opens the Completeness Review period
       </p>
 
       <section className={STYLES.pane}>
         <div className={STYLES.grid}>
           <span aria-hidden className={STYLES.divider} />
-          <UploadSection
-            applicationId={applicationId}
-            documents={initialStateApplicationDocuments}
-          />
+          <UploadSection applicationId={applicationId} documents={applicationIntakeDocuments} />
           <VerifyCompleteSection
             stateApplicationSubmittedDate={stateApplicationSubmittedDate}
             hasDocuments={hasDocuments}
-            onDateChange={handleDateChange}
+            onDateChange={setSubmittedDateOverride}
             isFinishButtonEnabled={isFinishButtonEnabled}
             onFinish={onFinishButtonClick}
             isPhaseFinalized={isPhaseFinalized}
