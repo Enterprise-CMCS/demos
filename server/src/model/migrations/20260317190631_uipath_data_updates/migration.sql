@@ -42,15 +42,6 @@ CREATE TABLE IF NOT EXISTS "application_tag_suggestion_status" (
     CONSTRAINT "application_tag_suggestion_status_pkey" PRIMARY KEY ("id")
 );
 
--- Seed default values
-INSERT INTO "application_tag_suggestion_status" ("id")
-VALUES
-  ('Pending'),
-  ('Accepted'),
-  ('Replaced'),
-  ('Removed')
-;
-
 -- application_tag_suggestion_extract_field_limit
 
 -- CreateTable
@@ -59,12 +50,6 @@ CREATE TABLE IF NOT EXISTS "application_tag_suggestion_extract_field_limit" (
 
     CONSTRAINT "application_tag_suggestion_extract_field_limit_pkey" PRIMARY KEY ("id")
 );
-
--- Seed default values
-INSERT INTO
-    "application_tag_suggestion_extract_field_limit"
-VALUES
-  ('demo_type');
 
 -- CreateTable
 CREATE TABLE "uipath_result_history" (
