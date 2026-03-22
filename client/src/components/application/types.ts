@@ -8,6 +8,7 @@ import {
   ApplicationStatus,
   ClearanceLevel,
   Tag,
+  DemonstrationTypeAssignment,
 } from "demos-server";
 
 export type ApplicationWorkflowDocument = Pick<
@@ -32,6 +33,15 @@ export type WorkflowApplication = {
   documents: ApplicationWorkflowDocument[];
   tags: Tag[];
   clearanceLevel: ClearanceLevel;
+  demonstrationTypes: Pick<
+    DemonstrationTypeAssignment,
+    | "demonstrationTypeName"
+    | "status"
+    | "effectiveDate"
+    | "expirationDate"
+    | "createdAt"
+    | "approvalStatus"
+  >[];
 };
 
 export type WorkflowApplicationType = "demonstration" | "amendment" | "extension";

@@ -8,7 +8,6 @@ import type {
 
 import {
   WorkflowApplication,
-  ApplicationWorkflowDemonstration,
   WorkflowApplicationType,
 } from "components/application";
 import {
@@ -147,7 +146,8 @@ export const PhaseSelector = ({
         // For now we will do type-assertion but to be revisted as we get further
         // down the line on developing these phases.
         return getApprovalSummaryPhaseFromApplication(
-          application as ApplicationWorkflowDemonstration
+          application,
+          workflowApplicationType
         );
     }
   };

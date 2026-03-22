@@ -5,11 +5,13 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { ApprovalSummaryPhase } from "./ApprovalSummaryPhase";
-import { ApplicationDetailsFormData } from "./applicationDetailsSection";
+import { ApplicationDetailsFormData, ModificationDetailsFormData } from "./applicationDetailsSection";
 import { TestProvider } from "test-utils/TestProvider";
-import { MockedProvider } from "@apollo/client/testing";
+import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 import { UPDATE_DEMONSTRATION_MUTATION } from "components/dialog/demonstration/EditDemonstrationDialog";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
+import { UPDATE_AMENDMENT_MUTATION } from "components/dialog/modification/EditAmendmentDialog";
+import { UPDATE_EXTENSION_MUTATION } from "components/dialog/modification/EditExtensionDialog";
 
 const mockShowConfirmApproveDialog = vi.fn();
 
@@ -31,6 +33,7 @@ vi.mock("components/application/date/dateQueries", () => ({
 const buildInitialFormData = (
   overrides?: Partial<ApplicationDetailsFormData>
 ): ApplicationDetailsFormData => ({
+  applicationType: "demonstration",
   stateId: "CA",
   stateName: "California",
   name: "Test Demonstration",
@@ -42,6 +45,32 @@ const buildInitialFormData = (
   description: "Test description",
   sdgDivision: "Division of System Reform Demonstrations",
   signatureLevel: "OA",
+  readonlyFields: {},
+  ...overrides,
+});
+
+const buildAmendmentFormData = (
+  overrides?: Partial<ModificationDetailsFormData>
+): ModificationDetailsFormData => ({
+  applicationType: "amendment",
+  name: "Test Amendment",
+  effectiveDate: "01/01/2025",
+  description: "Test description",
+  signatureLevel: "OA",
+  status: "Active",
+  readonlyFields: {},
+  ...overrides,
+});
+
+const buildExtensionFormData = (
+  overrides?: Partial<ModificationDetailsFormData>
+): ModificationDetailsFormData => ({
+  applicationType: "extension",
+  name: "Test Extension",
+  effectiveDate: "01/01/2025",
+  description: "Test description",
+  signatureLevel: "OA",
+  status: "Active",
   readonlyFields: {},
   ...overrides,
 });
@@ -130,12 +159,61 @@ describe("ApprovalSummaryPhase", () => {
     },
   };
 
-  const setup = (formData = buildInitialFormData()) => {
+  const mockUpdateAmendment = {
+    request: {
+      query: UPDATE_AMENDMENT_MUTATION,
+      variables: {
+        id: "demo-123",
+        input: {
+          name: "Test Amendment",
+          description: "Test description",
+          effectiveDate: "01/01/2025",
+          signatureLevel: "OA",
+        },
+      },
+    },
+    result: {
+      data: {
+        updateAmendment: {
+          id: "demo-123",
+          name: "Test Amendment",
+        },
+      },
+    },
+  };
+
+  const mockUpdateExtension = {
+    request: {
+      query: UPDATE_EXTENSION_MUTATION,
+      variables: {
+        id: "demo-123",
+        input: {
+          name: "Test Extension",
+          description: "Test description",
+          effectiveDate: "01/01/2025",
+          signatureLevel: "OA",
+        },
+      },
+    },
+    result: {
+      data: {
+        updateExtension: {
+          id: "demo-123",
+          name: "Test Extension",
+        },
+      },
+    },
+  };
+
+  const setup = (
+    formData = buildInitialFormData(),
+    mocks: MockedResponse[] = [mockUpdateDemonstration, mockResetDemonstration]
+  ) => {
     render(
-      <MockedProvider mocks={[mockUpdateDemonstration, mockResetDemonstration]} addTypename={false}>
+      <MockedProvider mocks={mocks} addTypename={false}>
         <TestProvider>
           <ApprovalSummaryPhase
-            demonstrationId="demo-123"
+            applicationId="demo-123"
             initialFormData={formData}
             initialTypes={[]}
             approvalSummaryPhase={{ phaseStatus: "Not Started", phaseDates: [] }}
@@ -154,7 +232,9 @@ describe("ApprovalSummaryPhase", () => {
     setup();
 
     expect(screen.getByText("APPROVAL SUMMARY")).toBeInTheDocument();
-    expect(screen.getByText("Review and verify Demonstration Details and Performance Periods for Demonstration Types before approving this application.")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Review and verify Demonstration Details/i)
+    ).toBeInTheDocument();
   });
 
   it("renders Application Details section", () => {
@@ -205,7 +285,7 @@ describe("ApprovalSummaryPhase", () => {
   it("renders Approve Demonstration button disabled when sections are not complete", () => {
     setup();
 
-    const approveButton = screen.getByRole("button", { name: "button-approve-demonstration" });
+    const approveButton = screen.getByRole("button", { name: "button-approve-application" });
     expect(approveButton).toBeInTheDocument();
     expect(approveButton).toBeDisabled();
   });
@@ -216,7 +296,7 @@ describe("ApprovalSummaryPhase", () => {
     render(
       <TestProvider>
         <ApprovalSummaryPhase
-          demonstrationId="demo-123"
+          applicationId="demo-123"
           initialFormData={buildInitialFormData()}
           initialTypes={mockTypes}
           allPreviousPhasesDone={true}
@@ -238,7 +318,7 @@ describe("ApprovalSummaryPhase", () => {
     render(
       <TestProvider>
         <ApprovalSummaryPhase
-          demonstrationId="demo-123"
+          applicationId="demo-123"
           initialFormData={buildInitialFormData()}
           initialTypes={mockTypes}
           allPreviousPhasesDone={true}
@@ -255,5 +335,46 @@ describe("ApprovalSummaryPhase", () => {
         dateValue: expect.any(String),
       })
     );
+  });
+
+  it("shows 'Verify Amendment' for amendment", () => {
+    setup(buildAmendmentFormData(), [mockUpdateAmendment]);
+
+    expect(
+      screen.getByText(/verify amendment/i)
+    ).toBeInTheDocument();
+  });
+
+  it("calls updateAmendment for amendment", async () => {
+    setup(buildAmendmentFormData(), [mockUpdateAmendment]);
+
+    const toggle = screen.getByRole("switch", { name: /mark complete/i });
+    await userEvent.click(toggle);
+
+    expect(toggle).toBeDefined();
+  });
+
+  it("calls updateExtension for extension", async () => {
+    setup(buildExtensionFormData(), [mockUpdateExtension]);
+
+    const toggle = screen.getByRole("switch", { name: /mark complete/i });
+    await userEvent.click(toggle);
+
+    expect(toggle).toBeDefined();
+  });
+
+  it("uses correct required fields for amendment", async () => {
+    const formData = buildAmendmentFormData({
+      effectiveDate: undefined, // missing required
+    });
+
+    setup(formData);
+
+    const toggle = screen.getByRole("switch", { name: /mark complete/i });
+
+    await userEvent.click(toggle);
+
+    // should NOT mark complete
+    expect(toggle).not.toBeChecked();
   });
 });

@@ -12,6 +12,10 @@ export const GET_EXTENSION_WORKFLOW_QUERY = gql`
   query ${EXTENSION_WORKFLOW_QUERY_NAME}($id: ID!) {
     extension(id: $id) {
       id
+      name
+      description
+      signatureLevel
+      effectiveDate
       currentPhaseName
       clearanceLevel
       status
@@ -31,7 +35,16 @@ export const GET_EXTENSION_WORKFLOW_QUERY = gql`
   ${WORKFLOW_DOCUMENT_FIELDS}
 `;
 
-export type ApplicationWorkflowExtension = WorkflowApplication & Pick<Extension, "status">;
+export type ApplicationWorkflowExtension =
+  WorkflowApplication &
+  Pick<
+    Extension,
+    "name" |
+    "description" |
+    "effectiveDate" |
+    "signatureLevel" |
+    "status"
+  >;
 
 export const ExtensionWorkflow = ({ extensionId }: { extensionId: string }) => {
   const { data, loading, error } = useQuery<{ extension: ApplicationWorkflowExtension }>(
