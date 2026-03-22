@@ -60,6 +60,7 @@ const makeApplication = (overrides: Partial<WorkflowApplication> = {}): Workflow
     { phaseName: "Completeness", phaseStatus: "Started", phaseDates: [], phaseNotes: [] },
   ],
   documents: [],
+  demonstrationTypes: [],
   ...overrides,
 });
 
