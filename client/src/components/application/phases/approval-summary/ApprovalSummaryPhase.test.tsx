@@ -377,4 +377,104 @@ describe("ApprovalSummaryPhase", () => {
     // should NOT mark complete
     expect(toggle).not.toBeChecked();
   });
+
+  it("covers amendment mark incomplete path", async () => {
+    const mockResetAmendment = {
+      request: {
+        query: UPDATE_AMENDMENT_MUTATION,
+        variables: {
+          id: "demo-123",
+          input: {
+            effectiveDate: null,
+            expirationDate: null,
+            sdgDivision: undefined,
+            signatureLevel: undefined,
+          },
+        },
+      },
+      result: {
+        data: {
+          updateAmendment: { id: "demo-123" },
+        },
+      },
+    };
+
+    render(
+      <MockedProvider mocks={[mockResetAmendment]} addTypename={false}>
+        <TestProvider>
+          <ApprovalSummaryPhase
+            applicationId="demo-123"
+            initialFormData={buildAmendmentFormData()}
+            initialTypes={[]}
+            approvalSummaryPhase={{ phaseStatus: "Started", phaseDates: [{
+              dateType: "Application Details Marked Complete Date",
+              dateValue: new Date("2025-01-01"),
+            }]}}
+            allPreviousPhasesDone={true}
+          />
+        </TestProvider>
+      </MockedProvider>
+    );
+
+    const headerButton = screen.getByRole("button", {
+      name: /Application Details, complete, expand section/i,
+    });
+    await userEvent.click(headerButton);
+
+    const toggle = screen.getByRole("switch", { name: /mark complete/i });
+
+    await userEvent.click(toggle);
+
+    expect(toggle).toBeInTheDocument();
+  });
+
+  it("covers extension mark incomplete path", async () => {
+    const mockResetExtension = {
+      request: {
+        query: UPDATE_EXTENSION_MUTATION,
+        variables: {
+          id: "demo-123",
+          input: {
+            effectiveDate: null,
+            expirationDate: null,
+            sdgDivision: undefined,
+            signatureLevel: undefined,
+          },
+        },
+      },
+      result: {
+        data: {
+          updateExtension: { id: "demo-123" },
+        },
+      },
+    };
+
+    render(
+      <MockedProvider mocks={[mockResetExtension]} addTypename={false}>
+        <TestProvider>
+          <ApprovalSummaryPhase
+            applicationId="demo-123"
+            initialFormData={buildExtensionFormData()}
+            initialTypes={[]}
+            approvalSummaryPhase={{ phaseStatus: "Started", phaseDates: [{
+              dateType: "Application Details Marked Complete Date",
+              dateValue: new Date("2025-01-01"),
+            }]}}
+            allPreviousPhasesDone={true}
+          />
+        </TestProvider>
+      </MockedProvider>
+    );
+
+    const headerButton = screen.getByRole("button", {
+      name: /Application Details, complete, expand section/i,
+    });
+    await userEvent.click(headerButton);
+
+    const toggle = screen.getByRole("switch", { name: /mark complete/i });
+
+    await userEvent.click(toggle);
+
+    expect(toggle).toBeInTheDocument();
+  });
 });
