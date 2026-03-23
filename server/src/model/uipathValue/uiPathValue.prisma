@@ -8,14 +8,13 @@ model UiPathValue {
   textLength     Int      @map("text_length")
   textStartIndex Int      @map("text_start_index")
   confidence     Float    @map("confidence")
-  tokenList      Json     @map("token_list") @db.JsonB
+  tokenList      Json     @map("token_list")
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   result   UiPathResult                      @relation(fields: [uiPathResultId, documentId, applicationId], references: [id, documentId, applicationId])
   extracts ApplicationTagSuggestionExtract[]
 
-  @@unique([id, applicationId, value])
   @@unique([id, applicationId, fieldId, value])
   @@index([uiPathResultId, documentId, applicationId])
   @@map("uipath_value")

@@ -956,6 +956,8 @@ BEGIN
         status_id = 'Pending',
         updated_at = CURRENT_TIMESTAMP
     WHERE
+        demos_app.application_tag_suggestion.application_id = EXCLUDED.application_id AND
+        demos_app.application_tag_suggestion.value = EXCLUDED.value AND
         demos_app.application_tag_suggestion.status_id = 'Removed';
 
     RETURN NEW;
@@ -979,9 +981,7 @@ BEGIN
         FROM
             demos_app.application_tag_suggestion_extract
         WHERE
-            suggestion_id = NEW.id AND
-            application_id = NEW.application_id AND
-            value = NEW.value
+          suggestion_id = NEW.id
     ) THEN
         RAISE EXCEPTION 'Suggestion % must have at least one extract', NEW.id;
     END IF;

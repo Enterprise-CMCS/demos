@@ -11,7 +11,7 @@ model UipathValueHistory {
   textLength     Int          @map("text_length")
   textStartIndex Int          @map("text_start_index")
   confidence     Float        @map("confidence")
-  tokenList      Json         @map("token_list") @db.JsonB
+  tokenList      Json         @map("token_list")
   createdAt      DateTime     @map("created_at") @db.Timestamptz
   updatedAt      DateTime     @map("updated_at") @db.Timestamptz
 
