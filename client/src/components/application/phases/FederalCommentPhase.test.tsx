@@ -37,7 +37,7 @@ const setup = (props = {}) =>
           phaseStartDate={DEFAULT_START_DATE}
           phaseEndDate={DEFAULT_END_DATE}
           phaseComplete={false}
-          initialDocuments={[]}
+          documents={[]}
           {...props}
         />
       </DialogProvider>
@@ -89,7 +89,7 @@ describe("FederalCommentPhase", () => {
     });
 
     it("renders document row when provided", () => {
-      setup({ initialDocuments: [DEFAULT_MOCK_DOCUMENT] });
+      setup({ documents: [DEFAULT_MOCK_DOCUMENT] });
       expect(screen.getByText("Test Document")).toBeInTheDocument();
     });
 
