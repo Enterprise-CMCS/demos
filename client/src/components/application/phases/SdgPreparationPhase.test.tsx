@@ -714,7 +714,6 @@ describe("Amendment and Extension SDG Preparation", () => {
     clearanceLevel: "CMS (OSORA)",
     documents: [],
     tags: [],
-    demonstrationTypes: [],
     phases: [
       {
         phaseName: "Application Intake",

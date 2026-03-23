@@ -85,7 +85,6 @@ describe("reviewPhaseData", () => {
         phases: [buildPhase("Concept", "Started")],
         documents: [],
         tags: [],
-        demonstrationTypes: [],
       };
 
       const result = getReviewPhaseComponentFromApplication(demonstration, mockOnFinish);
@@ -112,7 +111,6 @@ describe("reviewPhaseData", () => {
         ],
         documents: [],
         tags: [],
-        demonstrationTypes: [],
       };
 
       const result = getReviewPhaseComponentFromApplication(demonstration, mockOnFinish);
@@ -153,7 +151,6 @@ describe("reviewPhaseData", () => {
         ],
         documents: [],
         tags: [],
-        demonstrationTypes: [],
       };
 
       const result = getReviewPhaseComponentFromApplication(demonstration, mockOnFinish);
@@ -196,7 +193,6 @@ describe("reviewPhaseData", () => {
         ],
         documents: [],
         tags: [],
-        demonstrationTypes: [],
       };
 
       const result = getReviewPhaseComponentFromApplication(demonstration, mockOnFinish);
@@ -222,7 +218,6 @@ describe("reviewPhaseData", () => {
         ],
         documents: [],
         tags: [],
-        demonstrationTypes: [],
       };
 
       const result = getReviewPhaseComponentFromApplication(demonstration, mockOnFinish);
@@ -247,7 +242,6 @@ describe("reviewPhaseData", () => {
         ],
         documents: [],
         tags: [],
-        demonstrationTypes: [],
       };
 
       const result = getReviewPhaseComponentFromApplication(demonstration, mockOnFinish);

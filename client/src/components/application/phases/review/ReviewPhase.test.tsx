@@ -830,7 +830,6 @@ describe("Amendment and Extension Review Phase", () => {
     clearanceLevel: "COMMs",
     documents: [],
     tags: [],
-    demonstrationTypes: [],
     phases: [
       ...completedPriorPhases,
       {

@@ -407,7 +407,6 @@ describe("ApplicationIntakePhase", () => {
             createdAt: new TZDate(2024, 10, 10, EST_TIMEZONE),
           },
         ],
-        demonstrationTypes: [],
         tags: [],
       };
 
