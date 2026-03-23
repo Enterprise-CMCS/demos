@@ -4,9 +4,11 @@ model DeliverableTypeDocumentType {
   deliverableTypeId String @map("deliverable_type_id")
   documentTypeId    String @map("document_type_id")
 
-  deliverableType DeliverableType @relation(fields: [deliverableTypeId], references: [id])
-  documentType    DocumentType    @relation(fields: [documentTypeId], references: [id])
-  documents       Document[]
+  deliverableType        DeliverableType         @relation(fields: [deliverableTypeId], references: [id])
+  documentType           DocumentType            @relation(fields: [documentTypeId], references: [id])
+  documents              Document[]
+  documentsPendingUpload DocumentPendingUpload[]
+  documentsInfected      DocumentInfected[]
 
   @@id([deliverableTypeId, documentTypeId])
   @@map("deliverable_type_document_type")

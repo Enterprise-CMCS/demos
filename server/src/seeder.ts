@@ -762,7 +762,7 @@ async function seedDatabase() {
 
   await seedTagsAndStatuses();
 
-  await seedDocuments();
+  // await seedDocuments();
 
   await seedNotes();
   console.log("🌱 Seeding events (with and without applicationIds)...");
