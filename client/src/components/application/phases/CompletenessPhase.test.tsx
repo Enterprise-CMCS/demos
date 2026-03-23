@@ -193,7 +193,7 @@ describe("CompletenessPhase", () => {
       const user = userEvent.setup();
       setup({
         completenessDocuments: [mockCompletenessDoc, mockInternalDoc],
-        stateDeemedCompleteDate: "2026-02-05",
+        stateDeemedCompleteDate: "2026-03-05",
       });
 
       const finishButton = screen.getByTestId(COMPLETENESS_FINISH_BUTTON_NAME);
@@ -204,15 +204,15 @@ describe("CompletenessPhase", () => {
         applicationDates: [
           {
             dateType: "State Application Deemed Complete",
-            dateValue: "2026-02-05",
+            dateValue: "2026-03-05",
           },
           {
             dateType: "Federal Comment Period Start Date",
-            dateValue: "2026-02-06",
+            dateValue: "2026-03-06",
           },
           {
             dateType: "Federal Comment Period End Date",
-            dateValue: "2026-03-07",
+            dateValue: "2026-04-05",
           },
         ],
       });

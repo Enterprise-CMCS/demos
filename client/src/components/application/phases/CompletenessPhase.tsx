@@ -38,6 +38,55 @@ const STYLES = {
   actionsEnd: tw`ml-auto flex gap-3`,
 };
 
+const CompletenessNotice = ({
+  completenessReviewDate,
+  completenessComplete,
+}: {
+  completenessReviewDate?: string;
+  completenessComplete: boolean;
+}) => {
+  const [isNoticeDismissed, setNoticeDismissed] = useState(
+    !(completenessReviewDate && !completenessComplete)
+  );
+
+  const noticeContent = useMemo(() => {
+    if (!completenessReviewDate) return null;
+    const noticeDueDateValue = parseISO(completenessReviewDate ?? "");
+    const daysLeft = differenceInCalendarDays(noticeDueDateValue, new Date());
+    if (daysLeft > 1) {
+      return {
+        title: `${daysLeft} days left`,
+        description: `This Demonstration must be declared complete by ${formatDate(noticeDueDateValue)}`,
+        variant: "warning" as NoticeVariant,
+      };
+    }
+    if (daysLeft === 1) {
+      return {
+        title: "1 day left in Completion Period",
+        description: `This Demonstration must be declared complete by ${formatDate(noticeDueDateValue)}`,
+        variant: "error" as NoticeVariant,
+      };
+    } else {
+      return {
+        title: `${Math.abs(daysLeft)} days past due`,
+        description: `This Demonstration completeness was due on ${formatDate(noticeDueDateValue)}`,
+        variant: "error" as NoticeVariant,
+      };
+    }
+  }, [completenessReviewDate]);
+
+  if (isNoticeDismissed || !noticeContent) return null;
+
+  return (
+    <Notice
+      title={noticeContent.title}
+      description={noticeContent.description}
+      variant={noticeContent.variant}
+      onDismiss={() => setNoticeDismissed(true)}
+    />
+  );
+};
+
 const THIS_PHASE_NAME: PhaseName = "Completeness";
 const NEXT_PHASE_NAME: PhaseName = "Federal Comment";
 
@@ -141,37 +190,6 @@ export const CompletenessPhase = ({
   );
   const { federalStartDate, federalEndDate } =
     calculateFederalCommentPeriodDates(stateDeemedComplete);
-
-  const [isNoticeDismissed, setNoticeDismissed] = useState(
-    !(completenessReviewDate && !completenessComplete)
-  );
-
-  const getNoticeContent = () => {
-    if (!completenessReviewDate) return null;
-    const noticeDueDateValue = parseISO(completenessReviewDate ?? "");
-    const daysLeft = differenceInCalendarDays(noticeDueDateValue, new Date());
-    if (daysLeft > 1) {
-      return {
-        title: `${daysLeft} days left`,
-        description: `This Demonstration must be declared complete by ${formatDate(noticeDueDateValue)}`,
-        variant: "warning" as NoticeVariant,
-      };
-    }
-    if (daysLeft === 1) {
-      return {
-        title: "1 day left in Completion Period",
-        description: `This Demonstration must be declared complete by ${formatDate(noticeDueDateValue)}`,
-        variant: "error" as NoticeVariant,
-      };
-    } else {
-      return {
-        title: `${Math.abs(daysLeft)} days past due`,
-        description: `This Demonstration completeness was due on ${formatDate(noticeDueDateValue)}`,
-        variant: "error" as NoticeVariant,
-      };
-    }
-  };
-  const noticeContent = useMemo(() => getNoticeContent(), [completenessReviewDate]);
 
   const finishIsEnabled = () => {
     const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
@@ -327,14 +345,10 @@ export const CompletenessPhase = ({
   return (
     <div>
       <div className="flex flex-col gap-6">
-        {!isNoticeDismissed && noticeContent && (
-          <Notice
-            title={noticeContent.title}
-            description={noticeContent.description}
-            variant={noticeContent.variant}
-            onDismiss={() => setNoticeDismissed(true)}
-          />
-        )}
+        <CompletenessNotice
+          completenessReviewDate={completenessReviewDate}
+          completenessComplete={completenessComplete}
+        />
         <h3 className="text-brand text-[22px] font-bold">COMPLETENESS</h3>
       </div>
       <div id="completeness-phase-content">
