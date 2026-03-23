@@ -1,0 +1,10 @@
+// Flags: TYPE_LIMITER
+model DeliverableSubmissionActionTypeLimit {
+  id String
+
+  deliverableActionType          DeliverableActionType @relation(fields: [id], references: [id])
+  deliverableDocumentSubmissions Document[]
+
+  @@id([id])
+  @@map("deliverable_submission_action_type_limit")
+}

@@ -203,7 +203,7 @@ describe("file-process", () => {
     it("should enqueue a budget neutrality message", async () => {
       sqsMocks.sendMock.mockResolvedValueOnce({ MessageId: "msg-123" });
 
-      await enqueueBudgetNeutrality("test-doc-id", "Final BN Worksheet");
+      await enqueueBudgetNeutrality("test-doc-id", "BN Workbook");
 
       expect(sqsMocks.SQSClientMock).toHaveBeenCalledWith({
         region: "us-east-1",
@@ -216,19 +216,19 @@ describe("file-process", () => {
         QueueUrl: process.env.BUDGET_NEUTRALITY_QUEUE_URL,
         MessageBody: JSON.stringify({
           documentId: "test-doc-id",
-          documentTypeId: "Final BN Worksheet",
+          documentTypeId: "BN Workbook",
         }),
       });
       expect(logInfoSpy).toHaveBeenNthCalledWith(
         1,
-        { documentId: "test-doc-id", documentTypeId: "Final BN Worksheet" },
+        { documentId: "test-doc-id", documentTypeId: "BN Workbook" },
         "BudgetNeutrality Queue Started"
       );
       expect(logInfoSpy).toHaveBeenNthCalledWith(
         2,
         {
           documentId: "test-doc-id",
-          documentTypeId: "Final BN Worksheet",
+          documentTypeId: "BN Workbook",
           messageId: "msg-123",
         },
         "queued Budget Neutrality validation request."
@@ -238,9 +238,7 @@ describe("file-process", () => {
     it("should throw when sqs does not return a message id", async () => {
       sqsMocks.sendMock.mockResolvedValueOnce({});
 
-      await expect(
-        enqueueBudgetNeutrality("test-doc-id", "Final BN Worksheet")
-      ).rejects.toThrow(
+      await expect(enqueueBudgetNeutrality("test-doc-id", "BN Workbook")).rejects.toThrow(
         "Failed to enqueue Budget Neutrality validation message for document test-doc-id."
       );
     });
@@ -250,8 +248,8 @@ describe("file-process", () => {
         .mockResolvedValueOnce({ MessageId: "msg-1" })
         .mockResolvedValueOnce({ MessageId: "msg-2" });
 
-      await enqueueBudgetNeutrality("test-doc-id-1", "Final BN Worksheet");
-      await enqueueBudgetNeutrality("test-doc-id-2", "Final BN Worksheet");
+      await enqueueBudgetNeutrality("test-doc-id-1", "BN Workbook");
+      await enqueueBudgetNeutrality("test-doc-id-2", "BN Workbook");
 
       expect(sqsMocks.SQSClientMock).toHaveBeenCalledTimes(2);
       expect(sqsMocks.sendMock).toHaveBeenCalledTimes(2);
@@ -292,7 +290,7 @@ describe("file-process", () => {
       );
     });
 
-    test("should enqueue budget neutrality for Final BN Worksheet", async () => {
+    test("should enqueue budget neutrality for BN Workbook", async () => {
       const mockSend = vi.fn();
       vi.spyOn(S3Client.prototype, "send").mockImplementation(mockSend);
       sqsMocks.sendMock.mockResolvedValueOnce({ MessageId: "msg-final-bn" });
@@ -301,7 +299,7 @@ describe("file-process", () => {
         query: vi
           .fn()
           .mockResolvedValueOnce({ rows: [{ application_id: "1" }] })
-          .mockResolvedValueOnce({ rows: [{ document_type_id: "Final BN Worksheet" }] }),
+          .mockResolvedValueOnce({ rows: [{ document_type_id: "BN Workbook" }] }),
       };
 
       const isClean = await processGuardDutyResult(mockClient, mockEventBase);
@@ -314,7 +312,7 @@ describe("file-process", () => {
         QueueUrl: process.env.BUDGET_NEUTRALITY_QUEUE_URL,
         MessageBody: JSON.stringify({
           documentId: "test-key",
-          documentTypeId: "Final BN Worksheet",
+          documentTypeId: "BN Workbook",
         }),
       });
     });

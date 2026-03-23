@@ -19,6 +19,7 @@ model DeliverableAction {
   user                User?                          @relation(fields: [userId], references: [id])
   actionType          DeliverableActionType          @relation(fields: [actionTypeId, dueDateChangeAllowed], references: [id, dueDateChangeAllowed])
   actionConfiguration DeliverableActionConfiguration @relation(fields: [actionTypeId, oldStatusId, newStatusId], references: [actionTypeId, oldStatusId, newStatusId])
+  documents           Document[]
 
   @@id([id])
   @@unique([id, actionTypeId])

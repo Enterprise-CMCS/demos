@@ -2,7 +2,8 @@
 model DeliverableType {
   id String
 
-  deliverables Deliverable[]
+  deliverables                 Deliverable[]
+  deliverableTypeDocumentTypes DeliverableTypeDocumentType[]
 
   @@id([id])
   @@map("deliverable_type")

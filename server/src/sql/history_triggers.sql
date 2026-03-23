@@ -854,6 +854,11 @@ BEGIN
             document_type_id,
             application_id,
             phase_id,
+            deliverable_id,
+            deliverable_type_id,
+            deliverable_is_cms_attached_file,
+            deliverable_submission_action_id,
+            deliverable_submission_action_type_id,
             created_at,
             updated_at
         )
@@ -870,6 +875,11 @@ BEGIN
             NEW.document_type_id,
             NEW.application_id,
             NEW.phase_id,
+            NEW.deliverable_id,
+            NEW.deliverable_type_id,
+            NEW.deliverable_is_cms_attached_file,
+            NEW.deliverable_submission_action_id,
+            NEW.deliverable_submission_action_type_id,
             NEW.created_at,
             NEW.updated_at
         );
@@ -885,6 +895,11 @@ BEGIN
             document_type_id,
             application_id,
             phase_id,
+            deliverable_id,
+            deliverable_type_id,
+            deliverable_is_cms_attached_file,
+            deliverable_submission_action_id,
+            deliverable_submission_action_type_id,
             created_at,
             updated_at
         )
@@ -898,6 +913,11 @@ BEGIN
             OLD.document_type_id,
             OLD.application_id,
             OLD.phase_id,
+            OLD.deliverable_id,
+            OLD.deliverable_type_id,
+            OLD.deliverable_is_cms_attached_file,
+            OLD.deliverable_submission_action_id,
+            OLD.deliverable_submission_action_type_id,
             OLD.created_at,
             OLD.updated_at
         );

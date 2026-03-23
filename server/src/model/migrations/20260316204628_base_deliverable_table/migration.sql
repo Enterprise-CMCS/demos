@@ -44,5 +44,5 @@ VALUES
     ('Monitoring Protocol'),
     ('Monitoring Report'),
     ('Quarterly Budget Neutrality Report'),
-    ('Summative Evaluation Report '),
+    ('Summative Evaluation Report'),
     ('Transition Plan');
