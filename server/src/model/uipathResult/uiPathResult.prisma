@@ -14,5 +14,7 @@ model UiPathResult {
   document     Document      @relation(fields: [documentId], references: [id])
 
   @@unique([id, documentId, applicationId])
+  @@unique([requestId])
+  @@unique([documentId])
   @@map("uipath_result")
 }
