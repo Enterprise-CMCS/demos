@@ -956,8 +956,6 @@ BEGIN
         status_id = 'Pending',
         updated_at = CURRENT_TIMESTAMP
     WHERE
-        demos_app.application_tag_suggestion.application_id = EXCLUDED.application_id AND
-        demos_app.application_tag_suggestion.value = EXCLUDED.value AND
         demos_app.application_tag_suggestion.status_id = 'Removed';
 
     RETURN NEW;
