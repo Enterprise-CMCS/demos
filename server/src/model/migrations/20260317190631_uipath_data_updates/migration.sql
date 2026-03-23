@@ -193,3 +193,38 @@ ALTER TABLE "application_tag_suggestion_extract" RENAME CONSTRAINT "application_
 
 -- AddForeignKey
 ALTER TABLE "uipath_result" ADD CONSTRAINT "uipath_result_document_id_application_id_fkey" FOREIGN KEY ("document_id", "application_id") REFERENCES "document"("id", "application_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- 20260323201027_uipath_clean_up (merged)
+
+-- DropForeignKey
+ALTER TABLE "application_tag_suggestion_extract" DROP CONSTRAINT "application_tag_suggestion_extract_uipath_value_id_applica_fkey";
+
+-- DropForeignKey
+ALTER TABLE "uipath_result" DROP CONSTRAINT "uipath_result_document_id_application_id_fkey";
+
+-- DropForeignKey
+ALTER TABLE "uipath_value" DROP CONSTRAINT "uipath_value_application_id_fkey";
+
+-- DropForeignKey
+ALTER TABLE "uipath_value" DROP CONSTRAINT "uipath_value_document_id_fkey";
+
+-- DropForeignKey
+ALTER TABLE "uipath_value" DROP CONSTRAINT "uipath_value_uipath_result_id_fkey";
+
+-- AlterTable
+ALTER TABLE "uipath_result_history" ALTER COLUMN "response" SET DATA TYPE JSON;
+
+-- AlterTable
+ALTER TABLE "uipath_value" ALTER COLUMN "token_list" SET DATA TYPE JSON;
+
+-- AlterTable
+ALTER TABLE "uipath_value_history" ALTER COLUMN "token_list" SET DATA TYPE JSON;
+
+-- AddForeignKey
+ALTER TABLE "application_tag_suggestion_extract" ADD CONSTRAINT "application_tag_suggestion_extract_uipath_value_id_applica_fkey" FOREIGN KEY ("uipath_value_id", "application_id", "field_id", "value") REFERENCES "uipath_value"("id", "application_id", "field_id", "value") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "uipath_result" ADD CONSTRAINT "uipath_result_document_id_fkey" FOREIGN KEY ("document_id") REFERENCES "document"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "uipath_value" ADD CONSTRAINT "uipath_value_uipath_result_id_document_id_application_id_fkey" FOREIGN KEY ("uipath_result_id", "document_id", "application_id") REFERENCES "uipath_result"("id", "document_id", "application_id") ON DELETE RESTRICT ON UPDATE CASCADE;
