@@ -20,7 +20,7 @@ CREATE TABLE "deliverable_active_extension_status_limit" (
 CREATE UNIQUE INDEX "deliverable_active_extension_deliverable_id_key" ON "deliverable_active_extension"("deliverable_id");
 
 -- AddForeignKey
-ALTER TABLE "deliverable_active_extension" ADD CONSTRAINT "deliverable_active_extension_deliverable_extension_id_fkey" FOREIGN KEY ("deliverable_extension_id") REFERENCES "deliverable_extension"("id") ON DELETE RESTRICT ON UPDATE NO ACTION;
+ALTER TABLE "deliverable_active_extension" ADD CONSTRAINT "deliverable_active_extension_deliverable_extension_id_deli_fkey" FOREIGN KEY ("deliverable_extension_id", "deliverable_id", "status_id") REFERENCES "deliverable_extension"("id", "deliverable_id", "status_id") ON DELETE RESTRICT ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "deliverable_active_extension" ADD CONSTRAINT "deliverable_active_extension_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "deliverable_active_extension_status_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
