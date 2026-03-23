@@ -28,8 +28,8 @@ TBL_FOLDERS = [
     "systemRoleAssignment",
     "tagName",
     "tag",
-    "uipathResult",
-    "uipathValue",
+    "uiPathResult",
+    "uiPathValue",
     "user",
 ]
 APP_SCHEMA = "demos_app"

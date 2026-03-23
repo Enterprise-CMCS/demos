@@ -2,7 +2,7 @@
 model UiPathStatus {
   id String
 
-  uipathResults UiPathResult[]
+  uiPathResults UiPathResult[]
 
   @@id([id])
   @@map("uipath_result_status")

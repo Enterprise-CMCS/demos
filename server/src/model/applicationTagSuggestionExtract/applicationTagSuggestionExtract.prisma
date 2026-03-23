@@ -1,6 +1,6 @@
 model ApplicationTagSuggestionExtract {
   suggestionId  String   @map("suggestion_id") @db.Uuid
-  uipathValueId String   @map("uipath_value_id") @db.Uuid
+  uiPathValueId String   @map("uipath_value_id") @db.Uuid
   applicationId String   @map("application_id") @db.Uuid
   fieldId       String   @map("field_id")
   value         String
@@ -10,9 +10,9 @@ model ApplicationTagSuggestionExtract {
   updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
   suggestion  ApplicationTagSuggestion                  @relation(fields: [suggestionId, applicationId, value], references: [id, applicationId, value])
-  uipathValue UipathValue                               @relation(fields: [uipathValueId, applicationId, fieldId, value], references: [id, applicationId, fieldId, value])
+  uiPathValue UiPathValue                               @relation(fields: [uiPathValueId, applicationId, fieldId, value], references: [id, applicationId, fieldId, value])
   field       ApplicationTagSuggestionExtractFieldLimit @relation(fields: [fieldId], references: [id])
 
-  @@id([suggestionId, uipathValueId])
+  @@id([suggestionId, uiPathValueId])
   @@map("application_tag_suggestion_extract")
 }
