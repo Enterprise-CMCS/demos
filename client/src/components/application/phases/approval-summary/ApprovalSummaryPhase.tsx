@@ -526,7 +526,7 @@ export const ApprovalSummaryPhase = ({
           name="button-approve-application"
           size="small"
           disabled={!canApproveApplication}
-          onClick={() => showConfirmApproveDialog(handleApproveApplication)}
+          onClick={() => showConfirmApproveDialog(handleApproveApplication, initialFormData.applicationType)}
         >
           Approve { capitalizedType }
         </Button>
