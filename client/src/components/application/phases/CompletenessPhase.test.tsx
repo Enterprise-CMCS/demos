@@ -90,8 +90,6 @@ describe("CompletenessPhase", () => {
     applicationIntakeComplete: true,
     completenessComplete: false,
     completenessReviewDate: "2026-02-28",
-    fedCommentStartDate: "",
-    fedCommentEndDate: "",
     stateDeemedCompleteDate: "",
     completenessDocuments: [],
     setSelectedPhase: mockSetSelectedPhase,
@@ -170,8 +168,6 @@ describe("CompletenessPhase", () => {
       setup({
         completenessDocuments: [mockCompletenessDoc, mockInternalDoc],
         stateDeemedCompleteDate: "2026-02-05",
-        fedCommentStartDate: "2026-02-06",
-        fedCommentEndDate: "2026-03-07",
       });
       const finishButton = screen.getByTestId(COMPLETENESS_FINISH_BUTTON_NAME);
       expect(finishButton).toBeEnabled();
@@ -182,8 +178,6 @@ describe("CompletenessPhase", () => {
       setup({
         completenessDocuments: [mockCompletenessDoc, mockInternalDoc],
         stateDeemedCompleteDate: "2026-02-05",
-        fedCommentStartDate: "2026-02-06",
-        fedCommentEndDate: "2026-03-07",
       });
       const finishButton = screen.getByTestId(COMPLETENESS_FINISH_BUTTON_NAME);
       await user.click(finishButton);
@@ -200,8 +194,6 @@ describe("CompletenessPhase", () => {
       setup({
         completenessDocuments: [mockCompletenessDoc, mockInternalDoc],
         stateDeemedCompleteDate: "2026-02-05",
-        fedCommentStartDate: "2026-02-06",
-        fedCommentEndDate: "2026-03-07",
       });
 
       const finishButton = screen.getByTestId(COMPLETENESS_FINISH_BUTTON_NAME);
@@ -231,8 +223,6 @@ describe("CompletenessPhase", () => {
       setup({
         completenessDocuments: [mockCompletenessDoc, mockInternalDoc],
         stateDeemedCompleteDate: "2026-02-05",
-        fedCommentStartDate: "2026-02-06",
-        fedCommentEndDate: "2026-03-07",
       });
 
       const declareIncompleteButton = screen.getByTestId(
@@ -248,8 +238,6 @@ describe("CompletenessPhase", () => {
         completenessComplete: true,
         completenessDocuments: [mockCompletenessDoc, mockInternalDoc],
         stateDeemedCompleteDate: "2026-02-05",
-        fedCommentStartDate: "2026-02-06",
-        fedCommentEndDate: "2026-03-07",
       });
 
       const declareIncompleteButton = screen.getByTestId(
@@ -354,8 +342,6 @@ describe("CompletenessPhase", () => {
             applicationId="app-123"
             applicationIntakeComplete={true}
             completenessReviewDate={reviewDate}
-            fedCommentStartDate=""
-            fedCommentEndDate=""
             completenessComplete={false}
             stateDeemedCompleteDate=""
             completenessDocuments={[]}
@@ -384,8 +370,6 @@ describe("CompletenessPhase", () => {
             applicationId="app-123"
             applicationIntakeComplete={true}
             completenessReviewDate={undefined}
-            fedCommentStartDate=""
-            fedCommentEndDate=""
             completenessComplete={true}
             stateDeemedCompleteDate=""
             completenessDocuments={[]}
