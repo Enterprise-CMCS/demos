@@ -16,7 +16,6 @@ model Application {
   documentsInfected         DocumentInfected[]
   events                    Event[]
   applicationTagAssignments ApplicationTagAssignment[]
-  UIPathValues              UipathValue[]
 
   @@unique([id, applicationTypeId])
   @@map("application")
