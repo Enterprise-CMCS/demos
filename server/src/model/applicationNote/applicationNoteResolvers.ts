@@ -1,10 +1,45 @@
-import { ApplicationNote as PrismaApplicationNote } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import { NoteType, SetApplicationNotesInput } from "../../types.js";
 import { getApplication, PrismaApplication } from "../application";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { parseSetApplicationNotesInput, upsertApplicationNotes, deleteApplicationNotes } from ".";
 import { validateAllowedNoteChangeByPhase } from "./validateAllowedNoteChangeByPhase.js";
+import { ApplicationNote, ApplicationPhase, Prisma } from "@prisma/client";
+import { GraphQLContext } from "../../auth/auth.util.js";
+import { GraphQLResolveInfo } from "graphql";
+
+export async function getApplicationNotes(
+  parent: ApplicationPhase,
+  args: never,
+  context: GraphQLContext,
+  info: GraphQLResolveInfo
+): Promise<ApplicationNote[]> {
+  const parentType = info.parentType.name;
+  let filter: Prisma.ApplicationNoteWhereInput;
+
+  switch (parentType) {
+    case Prisma.ModelName.ApplicationPhase:
+      filter = {
+        applicationId: parent.applicationId,
+        noteType: {
+          phaseNoteTypes: {
+            some: { phaseId: (parent as Extract<typeof parent, ApplicationPhase>).phaseId },
+          },
+        },
+      };
+      break;
+    default:
+      throw new Error(`Unsupported parent type: ${parentType}`);
+  }
+
+  try {
+    return await prisma().applicationNote.findMany({
+      where: { ...filter },
+    });
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
 
 export function checkForDuplicateNoteTypes(input: SetApplicationNotesInput): void {
   const inputNoteTypes = input.applicationNotes.map((applicationNote) => applicationNote.noteType);
@@ -47,15 +82,11 @@ export async function __setApplicationNotes(
   return await getApplication(input.applicationId);
 }
 
-export function __resolveApplicationNoteType(parent: PrismaApplicationNote): string {
-  return parent.noteTypeId;
-}
-
 export const applicationNoteResolvers = {
   Mutation: {
     setApplicationNotes: __setApplicationNotes,
   },
   ApplicationNote: {
-    noteType: __resolveApplicationNoteType,
+    noteType: (parent: ApplicationNote) => parent.noteTypeId,
   },
 };

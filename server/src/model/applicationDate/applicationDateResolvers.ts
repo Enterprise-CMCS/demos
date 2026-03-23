@@ -1,4 +1,3 @@
-import { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import { DateType, SetApplicationDateInput, SetApplicationDatesInput } from "../../types.js";
 import { getApplication, PrismaApplication } from "../application";
@@ -6,6 +5,42 @@ import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { getEasternNow } from "../../dateUtilities";
 import { startPhasesByDates } from "../applicationPhase";
 import { validateAndUpdateDates } from ".";
+import { ApplicationDate, ApplicationPhase, Prisma } from "@prisma/client";
+import { GraphQLContext } from "../../auth/auth.util.js";
+import { GraphQLResolveInfo } from "graphql";
+
+export async function getApplicationDates(
+  parent: ApplicationPhase,
+  args: never,
+  context: GraphQLContext,
+  info: GraphQLResolveInfo
+): Promise<ApplicationDate[]> {
+  const parentType = info.parentType.name;
+  let filter: Prisma.ApplicationDateWhereInput;
+
+  switch (parentType) {
+    case Prisma.ModelName.ApplicationPhase:
+      filter = {
+        applicationId: parent.applicationId,
+        dateType: {
+          phaseDateTypes: {
+            some: { phaseId: (parent as Extract<typeof parent, ApplicationPhase>).phaseId },
+          },
+        },
+      };
+      break;
+    default:
+      throw new Error(`Unsupported parent type: ${parentType}`);
+  }
+
+  try {
+    return await prisma().applicationDate.findMany({
+      where: { ...filter },
+    });
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
 
 export function checkForDuplicateDateTypes(input: SetApplicationDatesInput): void {
   const inputDateTypes = input.applicationDates.map((applicationDate) => applicationDate.dateType);
@@ -70,16 +105,12 @@ export async function __setApplicationDates(
   return await getApplication(input.applicationId);
 }
 
-export function __resolveApplicationDateType(parent: PrismaApplicationDate): string {
-  return parent.dateTypeId;
-}
-
 export const applicationDateResolvers = {
   Mutation: {
     setApplicationDate: __setApplicationDate,
     setApplicationDates: __setApplicationDates,
   },
   ApplicationDate: {
-    dateType: __resolveApplicationDateType,
+    dateType: (parent: ApplicationDate) => parent.dateTypeId,
   },
 };

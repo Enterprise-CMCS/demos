@@ -1,6 +1,43 @@
-import { Person as PrismaPerson } from "@prisma/client";
+import {
+  DemonstrationRoleAssignment,
+  Person,
+  Prisma,
+  Person as PrismaPerson,
+} from "@prisma/client";
 
 import { prisma } from "../../prismaClient";
+import { GraphQLContext } from "../../auth/auth.util";
+import { GraphQLResolveInfo } from "graphql";
+import { handlePrismaError } from "../../errors/handlePrismaError";
+
+export async function getPerson(
+  parent: DemonstrationRoleAssignment,
+  args: never,
+  context: GraphQLContext,
+  info: GraphQLResolveInfo
+): Promise<Person | null> {
+  const parentType = info.parentType.name;
+  let filter: Prisma.PersonWhereUniqueInput;
+
+  switch (parentType) {
+    case Prisma.ModelName.DemonstrationRoleAssignment:
+      filter = {
+        id: (parent as Extract<typeof parent, DemonstrationRoleAssignment>).personId,
+      };
+      break;
+
+    default:
+      throw new Error(`Unsupported parent type: ${parentType}`);
+  }
+
+  try {
+    return await prisma().person.findUnique({
+      where: { ...filter },
+    });
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
 
 export const personResolvers = {
   Query: {

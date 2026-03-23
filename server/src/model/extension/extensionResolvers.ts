@@ -1,4 +1,9 @@
-import { Extension as PrismaExtension, Demonstration as PrismaDemonstration } from "@prisma/client";
+import {
+  Extension as PrismaExtension,
+  Demonstration as PrismaDemonstration,
+  Demonstration,
+  Prisma,
+} from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import {
   ApplicationStatus,
@@ -15,17 +20,50 @@ import {
   getApplication,
   getManyApplications,
   resolveApplicationClearanceLevel,
-  resolveApplicationCurrentPhaseName,
-  resolveApplicationDocuments,
-  resolveApplicationPhases,
-  resolveApplicationStatus,
-  resolveApplicationTags,
   resolveApplicationSignatureLevel,
 } from "../application";
+import { getDocuments } from "../document/documentResolvers.js";
+import { getApplicationPhases } from "../applicationPhase/applicationPhaseResolvers.js";
+import { GraphQLContext } from "../../auth/auth.util.js";
+import { GraphQLResolveInfo } from "graphql";
+import { getCurrentPhaseName } from "../phase/phaseSchema.js";
+import { getApplicationStatus } from "../applicationStatus/applicationStatusResolvers.js";
+import { getApplicationTags } from "../tag/tagResolvers.js";
+import { getClearanceLevel } from "../clearanceLevel/clearanceLevelResolvers.js";
+import { getSignatureLevel } from "../signatureLevel/signatureLevelResolvers.js";
+import { ExtensionResolvers } from "./extensionSchema.js";
+import { getDemonstration } from "../demonstration/demonstrationResolvers.js";
 
 const extensionApplicationType: ApplicationType = "Extension";
 const conceptPhaseName: PhaseName = "Concept";
 const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
+
+export async function getExtensions(
+  parent: Demonstration,
+  args: unknown,
+  context: GraphQLContext,
+  info: GraphQLResolveInfo
+): Promise<PrismaExtension[]> {
+  const parentType = info.parentType.name;
+  let filter: Prisma.ExtensionWhereInput;
+  switch (parentType) {
+    case Prisma.ModelName.Demonstration:
+      filter = {
+        demonstrationId: (parent as Extract<typeof parent, Demonstration>).id,
+      };
+      break;
+    default:
+      throw new Error(`Unsupported parent type: ${parentType}`);
+  }
+
+  try {
+    return await prisma().extension.findMany({
+      where: { ...filter },
+    });
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
 
 export async function __getExtension(
   parent: unknown,
@@ -108,7 +146,7 @@ export async function __resolveParentDemonstration(
   return result!;
 }
 
-export const extensionResolvers = {
+export const extensionResolvers: ExtensionResolvers = {
   Query: {
     extension: __getExtension,
     extensions: __getManyExtensions,
@@ -121,13 +159,13 @@ export const extensionResolvers = {
   },
 
   Extension: {
-    demonstration: __resolveParentDemonstration,
-    documents: resolveApplicationDocuments,
-    currentPhaseName: resolveApplicationCurrentPhaseName,
-    status: resolveApplicationStatus,
-    phases: resolveApplicationPhases,
-    clearanceLevel: resolveApplicationClearanceLevel,
-    tags: resolveApplicationTags,
-    signatureLevel: resolveApplicationSignatureLevel,
+    demonstration: getDemonstration,
+    documents: getDocuments,
+    currentPhaseName: getCurrentPhaseName,
+    status: getApplicationStatus,
+    phases: getApplicationPhases,
+    clearanceLevel: getClearanceLevel,
+    tags: getApplicationTags,
+    signatureLevel: getSignatureLevel,
   },
 };

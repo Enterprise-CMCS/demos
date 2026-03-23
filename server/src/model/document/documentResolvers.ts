@@ -1,4 +1,13 @@
-import { Document as PrismaDocument, User as PrismaUser } from "@prisma/client";
+import {
+  Amendment,
+  ApplicationPhase,
+  Demonstration,
+  Extension,
+  Prisma,
+  Document as PrismaDocument,
+  User as PrismaUser,
+  User,
+} from "@prisma/client";
 import { GraphQLContext } from "../../auth/auth.util";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { handlePrismaError } from "../../errors/handlePrismaError";
@@ -24,6 +33,48 @@ import {
   updateDocument as updateDocumentQuery,
   handleDeleteDocument,
 } from ".";
+import { GraphQLResolveInfo } from "graphql";
+
+export async function getDocuments(
+  parent: Amendment | ApplicationPhase | Demonstration | Extension | User,
+  args: never,
+  context: GraphQLContext,
+  info: GraphQLResolveInfo
+): Promise<PrismaDocument[]> {
+  const parentType = info.parentType.name;
+  let filter: Prisma.DocumentWhereInput;
+
+  switch (parentType) {
+    case Prisma.ModelName.Amendment:
+      filter = { applicationId: (parent as Extract<typeof parent, Amendment>).id };
+      break;
+    case Prisma.ModelName.ApplicationPhase:
+      filter = {
+        applicationId: (parent as Extract<typeof parent, ApplicationPhase>).applicationId,
+        phaseId: (parent as ApplicationPhase).phaseId,
+      };
+      break;
+    case Prisma.ModelName.Demonstration:
+      filter = { applicationId: (parent as Extract<typeof parent, Demonstration>).id };
+      break;
+    case Prisma.ModelName.Extension:
+      filter = { applicationId: (parent as Extract<typeof parent, Extension>).id };
+      break;
+    case Prisma.ModelName.User:
+      filter = { ownerUserId: (parent as Extract<typeof parent, User>).id };
+      break;
+    default:
+      throw new Error(`Unsupported parent type: ${parentType}`);
+  }
+
+  try {
+    return await prisma().document.findMany({
+      where: { ...filter },
+    });
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
 
 export async function getDocument(
   parent: unknown,

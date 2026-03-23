@@ -1,86 +1,59 @@
 import {
+  Amendment,
+  Demonstration,
+  Extension,
+  Prisma,
   ApplicationPhase as PrismaApplicationPhase,
-  Document as PrismaDocument,
 } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
-import {
-  PrismaApplicationDateResults,
-  completePhase,
-  declareCompletenessPhaseIncomplete,
-  skipConceptPhase,
-} from ".";
-import { PrismaApplicationNoteResults } from "./applicationPhaseTypes.js";
+import { completePhase, declareCompletenessPhaseIncomplete, skipConceptPhase } from ".";
+import { getDocuments } from "../document/documentResolvers.js";
+import { GraphQLContext } from "../../auth/auth.util.js";
+import { GraphQLResolveInfo } from "graphql";
+import { handlePrismaError } from "../../errors/handlePrismaError.js";
+import { getApplicationDates } from "../applicationDate/applicationDateResolvers.js";
+import { getApplicationNotes } from "../applicationNote/applicationNoteResolvers.js";
 
-export async function __resolveApplicationPhaseDates(
-  parent: PrismaApplicationPhase
-): Promise<PrismaApplicationDateResults[] | null> {
-  const rows = await prisma().applicationDate.findMany({
-    select: {
-      dateTypeId: true,
-      dateValue: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-    where: {
-      applicationId: parent.applicationId,
-      dateType: {
-        phaseDateTypes: {
-          some: { phaseId: parent.phaseId },
-        },
+export async function getApplicationPhases(
+  parent: Amendment | Demonstration | Extension,
+  args: never,
+  context: GraphQLContext,
+  info: GraphQLResolveInfo
+): Promise<PrismaApplicationPhase[]> {
+  const parentType = info.parentType.name;
+
+  let filter: Prisma.ApplicationPhaseWhereInput;
+  switch (parentType) {
+    case Prisma.ModelName.Amendment:
+      filter = { applicationId: (parent as Extract<typeof parent, Amendment>).id };
+      break;
+    case Prisma.ModelName.Demonstration:
+      filter = { applicationId: (parent as Extract<typeof parent, Demonstration>).id };
+      break;
+    case Prisma.ModelName.Extension:
+      filter = { applicationId: (parent as Extract<typeof parent, Extension>).id };
+      break;
+    default:
+      throw new Error(`Unsupported parent type: ${parentType}`);
+  }
+  try {
+    return await prisma().applicationPhase.findMany({
+      where: {
+        ...filter,
       },
-    },
-  });
-  return rows;
-}
-
-export async function __resolveApplicationPhaseNotes(
-  parent: PrismaApplicationPhase
-): Promise<PrismaApplicationNoteResults[] | null> {
-  const rows = await prisma().applicationNote.findMany({
-    select: {
-      noteTypeId: true,
-      content: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-    where: {
-      applicationId: parent.applicationId,
-      noteType: {
-        phaseNoteTypes: {
-          some: { phaseId: parent.phaseId },
-        },
-      },
-    },
-  });
-  return rows;
-}
-
-export async function __resolveApplicationPhaseDocuments(
-  parent: PrismaApplicationPhase
-): Promise<PrismaDocument[]> {
-  return await prisma().document.findMany({
-    where: {
-      applicationId: parent.applicationId,
-      phaseId: parent.phaseId,
-    },
-  });
-}
-
-export function __resolveApplicationPhaseName(parent: PrismaApplicationPhase): string {
-  return parent.phaseId;
-}
-
-export function __resolveApplicationPhaseStatus(parent: PrismaApplicationPhase): string {
-  return parent.phaseStatusId;
+    });
+  } catch (error) {
+    handlePrismaError(error);
+  }
 }
 
 export const applicationPhaseResolvers = {
   ApplicationPhase: {
-    phaseName: __resolveApplicationPhaseName,
-    phaseStatus: __resolveApplicationPhaseStatus,
-    phaseDates: __resolveApplicationPhaseDates,
-    phaseNotes: __resolveApplicationPhaseNotes,
-    documents: __resolveApplicationPhaseDocuments,
+    phaseName: (parent: PrismaApplicationPhase) => parent.phaseId,
+    phaseStatus: (parent: PrismaApplicationPhase) => parent.phaseStatusId,
+    phaseDates: getApplicationDates,
+    phaseNotes: getApplicationNotes,
+    documents: getDocuments,
   },
 
   Mutation: {

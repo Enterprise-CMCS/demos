@@ -2,6 +2,7 @@ import { prisma } from "../../prismaClient.js";
 import type { GraphQLContext } from "../../auth/auth.util.js";
 import { User as PrismaUser } from "@prisma/client";
 import { log } from "../../log.js";
+import { getDocuments } from "../document/documentResolvers.js";
 
 export const userResolvers = {
   Query: {
@@ -16,7 +17,7 @@ export const userResolvers = {
           where: { id: ctx.user.id },
         });
       } catch (err) {
-        log.error({err},"[currentUser] resolver error");
+        log.error({ err }, "[currentUser] resolver error");
         throw err;
       }
     },
@@ -37,12 +38,6 @@ export const userResolvers = {
         },
       });
     },
-    ownedDocuments: async (parent: PrismaUser) => {
-      return await prisma().document.findMany({
-        where: {
-          ownerUserId: parent.id,
-        },
-      });
-    },
+    ownedDocuments: getDocuments,
   },
 };

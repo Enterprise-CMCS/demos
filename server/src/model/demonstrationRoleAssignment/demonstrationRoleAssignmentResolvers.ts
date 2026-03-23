@@ -1,10 +1,93 @@
-import { DemonstrationRoleAssignment as PrismaDemonstrationRoleAssignment } from "@prisma/client";
+import {
+  Demonstration,
+  DemonstrationRoleAssignment,
+  Person,
+  Prisma,
+  DemonstrationRoleAssignment as PrismaDemonstrationRoleAssignment,
+} from "@prisma/client";
 
 import { prisma } from "../../prismaClient.js";
 import {
   SetDemonstrationRoleInput,
   UnsetDemonstrationRoleInput,
 } from "./demonstrationRoleAssignmentSchema.js";
+import { GraphQLContext } from "../../auth/auth.util.js";
+import { GraphQLResolveInfo } from "graphql";
+import { handlePrismaError } from "../../errors/handlePrismaError.js";
+import { getDemonstration } from "../demonstration/demonstrationResolvers.js";
+import { getPerson } from "../person/personResolvers.js";
+
+export async function getDemonstrationPrimaryProjectOfficer(
+  parent: Demonstration,
+  args: never,
+  context: GraphQLContext,
+  info: GraphQLResolveInfo
+): Promise<Person> {
+  const parentType = info.parentType.name;
+  let demonstrationId: string;
+
+  switch (parentType) {
+    case Prisma.ModelName.Demonstration:
+      demonstrationId = (parent as Extract<typeof parent, Demonstration>).id;
+      break;
+    default:
+      throw new Error(`Unsupported parent type: ${parentType}`);
+  }
+
+  try {
+    const primaryRoleAssignment = await prisma().primaryDemonstrationRoleAssignment.findUnique({
+      where: {
+        demonstrationId_roleId: {
+          demonstrationId,
+          roleId: "Project Officer",
+        },
+      },
+      include: {
+        demonstrationRoleAssignment: {
+          include: { person: true },
+        },
+      },
+    });
+    if (!primaryRoleAssignment) {
+      throw new Error(
+        `Primary project officer not found for demonstration with id ${demonstrationId}`
+      );
+    }
+    return primaryRoleAssignment.demonstrationRoleAssignment.person;
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
+
+export async function getDemonstrationRoleAssignments(
+  parent: Demonstration,
+  args: never,
+  context: GraphQLContext,
+  info: GraphQLResolveInfo
+): Promise<(DemonstrationRoleAssignment & { isPrimary: boolean })[]> {
+  const parentType = info.parentType.name;
+  let filter: Prisma.DemonstrationRoleAssignmentWhereInput;
+
+  switch (parentType) {
+    case Prisma.ModelName.Demonstration:
+      filter = { demonstrationId: (parent as Extract<typeof parent, Demonstration>).id };
+      break;
+
+    default:
+      throw new Error(`Unsupported parent type: ${parentType}`);
+  }
+
+  try {
+    return await prisma().demonstrationRoleAssignment.findMany({
+      where: { ...filter },
+      include: {
+        primaryDemonstrationRoleAssignment: true,
+      },
+    });
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
 
 const DEMONSTRATION_GRANT_LEVEL = "Demonstration";
 
@@ -222,19 +305,9 @@ export const demonstrationRoleAssigmentResolvers = {
   },
 
   DemonstrationRoleAssignment: {
-    person: async (parent: PrismaDemonstrationRoleAssignment) => {
-      return await prisma().person.findUnique({
-        where: { id: parent.personId },
-      });
-    },
-    role: async (parent: PrismaDemonstrationRoleAssignment) => {
-      return parent.roleId;
-    },
-    demonstration: async (parent: PrismaDemonstrationRoleAssignment) => {
-      return await prisma().demonstration.findUnique({
-        where: { id: parent.demonstrationId },
-      });
-    },
+    person: getPerson,
+    role: async (parent: PrismaDemonstrationRoleAssignment) => parent.roleId,
+    demonstration: getDemonstration,
     isPrimary: async (parent: PrismaDemonstrationRoleAssignment) => {
       return !!(await prisma().primaryDemonstrationRoleAssignment.findUnique({
         where: {
