@@ -1,10 +1,11 @@
 import React from "react";
 import { ApplicationStatusBadge } from "components/badge/ApplicationStatusBadge";
 import { PhaseSelector, WorkflowApplication } from "components/application";
-import type { Amendment } from "demos-server";
+import type { Amendment, DemonstrationTypeAssignment } from "demos-server";
 import { gql, useQuery } from "@apollo/client";
 import { Loading } from "components/loading/Loading";
 import { WORKFLOW_PHASE_FIELDS, WORKFLOW_DOCUMENT_FIELDS } from "fragments";
+import { Demonstration } from "pages/DemonstrationsPage";
 
 const AMENDMENT_WORKFLOW_QUERY_NAME = "GetAmendmentWorkflow";
 
@@ -12,9 +13,25 @@ export const GET_AMENDMENT_WORKFLOW_QUERY = gql`
   query ${AMENDMENT_WORKFLOW_QUERY_NAME}($id: ID!) {
     amendment(id: $id) {
       id
+      name
+      description
+      signatureLevel
+      effectiveDate
       currentPhaseName
       clearanceLevel
       status
+      demonstration {
+        id
+        status
+        demonstrationTypes {
+          demonstrationTypeName
+          status
+          effectiveDate
+          approvalStatus
+          expirationDate
+          createdAt
+        }
+      }
       tags {
         tagName
         approvalStatus
@@ -31,7 +48,32 @@ export const GET_AMENDMENT_WORKFLOW_QUERY = gql`
   ${WORKFLOW_DOCUMENT_FIELDS}
 `;
 
-export type ApplicationWorkflowAmendment = WorkflowApplication & Pick<Amendment, "status">;
+export type ApplicationWorkflowAmendment =
+  WorkflowApplication &
+  Pick<
+    Amendment,
+    "name" |
+    "description" |
+    "effectiveDate" |
+    "signatureLevel" |
+    "status"
+  > & {
+    demonstration: Pick<
+        Demonstration,
+        | "id"
+        | "status"
+      > & {
+      demonstrationTypes: Pick<
+        DemonstrationTypeAssignment,
+        | "demonstrationTypeName"
+        | "status"
+        | "effectiveDate"
+        | "expirationDate"
+        | "createdAt"
+        | "approvalStatus"
+      >[];
+    };
+  };
 
 export const AmendmentWorkflow = ({ amendmentId }: { amendmentId: string }) => {
   const { data, loading, error } = useQuery<{ amendment: ApplicationWorkflowAmendment }>(
