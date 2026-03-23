@@ -3,8 +3,9 @@ model DeliverableActionType {
   id                   String
   dueDateChangeAllowed Boolean @map("due_date_change_allowed")
 
-  deliverableActions              DeliverableAction[]
-  deliverableActionConfigurations DeliverableActionConfiguration[]
+  deliverableActions                   DeliverableAction[]
+  deliverableActionConfigurations      DeliverableActionConfiguration[]
+  deliverableSubmissionActionTypeLimit DeliverableSubmissionActionTypeLimit[]
 
   @@id([id])
   @@unique([id, dueDateChangeAllowed])

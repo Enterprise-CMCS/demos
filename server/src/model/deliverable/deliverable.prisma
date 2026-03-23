@@ -19,6 +19,7 @@ model Deliverable {
   cmsOwner              User                                @relation(fields: [cmsOwnerUserId, cmsOwnerPersonTypeId], references: [id, personTypeId])
   personType            CmsUserPersonTypeLimit              @relation(fields: [cmsOwnerPersonTypeId], references: [id])
   dueDateType           DeliverableDueDateType              @relation(fields: [dueDateTypeId], references: [id])
+  documents             Document[]
   deliverableActions    DeliverableAction[]
   deliverableExtensions DeliverableExtension[]
 

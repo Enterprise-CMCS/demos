@@ -1,21 +1,32 @@
 model Document {
-  id             String   @id @default(uuid()) @db.Uuid
-  name           String
-  description    String?
-  s3Path         String   @map("s3_path")
-  ownerUserId    String   @map("owner_user_id") @db.Uuid
-  documentTypeId String   @map("document_type_id")
-  applicationId  String   @map("application_id") @db.Uuid
-  phaseId        String   @map("phase_id")
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  id                                String   @default(uuid()) @db.Uuid
+  name                              String
+  description                       String?
+  s3Path                            String   @map("s3_path")
+  ownerUserId                       String   @map("owner_user_id") @db.Uuid
+  documentTypeId                    String   @map("document_type_id")
+  applicationId                     String   @map("application_id") @db.Uuid
+  phaseId                           String?  @map("phase_id")
+  deliverableId                     String?  @map("deliverable_id") @db.Uuid
+  deliverableTypeId                 String?  @map("deliverable_type_id")
+  deliverableIsCmsAttachedFile      Boolean? @map("deliverable_is_cms_attached_file")
+  deliverableSubmissionActionId     String?  @map("deliverable_submission_action_id") @db.Uuid
+  deliverableSubmissionActionTypeId String?  @map("deliverable_submission_action_type_id")
+  createdAt                         DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                         DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  owner                     User                       @relation(fields: [ownerUserId], references: [id])
-  application               Application                @relation(fields: [applicationId], references: [id])
-  phaseDocumentType         PhaseDocumentType          @relation(fields: [phaseId, documentTypeId], references: [phaseId, documentTypeId])
-  uipathResults             UiPathResult[]
-  budgetNeutralityWorkbooks BudgetNeutralityWorkbook[]
+  owner                           User                                  @relation(fields: [ownerUserId], references: [id])
+  application                     Application                           @relation(fields: [applicationId], references: [id])
+  phaseDocumentType               PhaseDocumentType?                    @relation(fields: [phaseId, documentTypeId], references: [phaseId, documentTypeId])
+  deliverable                     Deliverable?                          @relation(fields: [deliverableId, applicationId, deliverableTypeId], references: [id, demonstrationId, deliverableTypeId])
+  deliverableTypeDocumentType     DeliverableTypeDocumentType?          @relation(fields: [deliverableTypeId, documentTypeId], references: [deliverableTypeId, documentTypeId])
+  deliverableSubmission           DeliverableAction?                    @relation(fields: [deliverableSubmissionActionId, deliverableSubmissionActionTypeId], references: [id, actionTypeId])
+  deliverableSubmissionActionType DeliverableSubmissionActionTypeLimit? @relation(fields: [deliverableSubmissionActionTypeId], references: [id])
+  uipathResults                   UiPathResult[]
+  budgetNeutralityWorkbooks       BudgetNeutralityWorkbook[]
 
+  @@id([id])
   @@unique([id, documentTypeId])
+  @@unique([id, applicationId])
   @@map("document")
 }
