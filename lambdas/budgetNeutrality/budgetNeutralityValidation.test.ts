@@ -11,38 +11,32 @@ describe("budgetNeutralityValidation", () => {
     });
 
     it("throws when zero records are provided", () => {
-      expect(() => validateSingleRecordCount(0)).toThrow(
-        "Expected exactly 1 record, received 0."
-      );
+      expect(() => validateSingleRecordCount(0)).toThrow("Expected exactly 1 record, received 0.");
     });
 
     it("throws when more than one record is provided", () => {
-      expect(() => validateSingleRecordCount(2)).toThrow(
-        "Expected exactly 1 record, received 2."
-      );
+      expect(() => validateSingleRecordCount(2)).toThrow("Expected exactly 1 record, received 2.");
     });
   });
 
   describe("parseAndValidateBudgetNeutralityMessage", () => {
-    it("returns parsed message for a valid Final BN Worksheet payload", () => {
+    it("returns parsed message for a valid BN Workbook payload", () => {
       const message = parseAndValidateBudgetNeutralityMessage(
         JSON.stringify({
           documentId: "0d3f4a68-195d-49ef-8d36-0cc0eaa31935",
-          documentTypeId: "Final BN Worksheet",
+          documentTypeId: "BN Workbook",
         })
       );
 
       expect(message).toEqual({
         documentId: "0d3f4a68-195d-49ef-8d36-0cc0eaa31935",
-        documentTypeId: "Final BN Worksheet",
+        documentTypeId: "BN Workbook",
       });
     });
 
     it("throws when documentId is missing", () => {
       expect(() =>
-        parseAndValidateBudgetNeutralityMessage(
-          JSON.stringify({ documentTypeId: "Final BN Worksheet" })
-        )
+        parseAndValidateBudgetNeutralityMessage(JSON.stringify({ documentTypeId: "BN Workbook" }))
       ).toThrow("Invalid message: documentId is required.");
     });
 
@@ -54,7 +48,7 @@ describe("budgetNeutralityValidation", () => {
       ).toThrow("Invalid message: documentTypeId is required.");
     });
 
-    it("throws when documentTypeId is not Final BN Worksheet", () => {
+    it("throws when documentTypeId is not BN Workbook", () => {
       expect(() =>
         parseAndValidateBudgetNeutralityMessage(
           JSON.stringify({
@@ -63,7 +57,7 @@ describe("budgetNeutralityValidation", () => {
           })
         )
       ).toThrow(
-        'Invalid message: documentTypeId must be "Final BN Worksheet". Received "State Application".'
+        'Invalid message: documentTypeId must be "BN Workbook". Received "State Application".'
       );
     });
   });

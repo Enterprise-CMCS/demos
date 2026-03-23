@@ -43,7 +43,7 @@ export const DELIVERABLE_TYPES = [
   "Monitoring Protocol",
   "Monitoring Report",
   "Quarterly Budget Neutrality Report",
-  "Summative Evaluation Report ",
+  "Summative Evaluation Report",
   "Transition Plan",
 ] as const;
 
@@ -142,7 +142,7 @@ export const DOCUMENT_TYPES = [
   "Signed Decision Memo",
   "Special Terms & Conditions",
   "State Application",
-  "Summative Evaluation Report ",
+  "Summative Evaluation Report",
   "Transition Plan",
 ] as const;
 
@@ -363,7 +363,7 @@ export const EVENT_TYPES = [
 export const NONE_PHASE_DOCUMENTS: DocumentType[] = [
   "Application Completeness Letter",
   "Approval Letter",
-  "Final BN Worksheet",
+  "BN Workbook",
   "Final Budget Neutrality Formulation Workbook",
   "Formal OMB Policy Concurrence Email",
   "Internal Completeness Review Form",

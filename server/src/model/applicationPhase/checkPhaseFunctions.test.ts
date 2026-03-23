@@ -21,7 +21,7 @@ describe("checkPhaseFunctions", () => {
   const testApplicationId = "5a947103-3ad5-4237-96cd-3eaeb0c88541";
   const testPhaseName: PhaseNameWithTrackedStatus = "Completeness";
   const testDateTypeToCheck: DateType = "Expected Approval Date";
-  const testDocumentTypetoCheck: DocumentType = "Final BN Worksheet";
+  const testDocumentTypetoCheck: DocumentType = "BN Workbook";
   const testPhaseToCheckComplete: PhaseNameWithTrackedStatus = "Application Intake";
 
   describe("checkPhaseStatus", () => {

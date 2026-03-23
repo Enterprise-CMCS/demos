@@ -34,7 +34,7 @@ VALUES
     ('Mid-point Assessment'),
     ('Monitoring Protocol'),
     ('Monitoring Report'),
-    ('Summative Evaluation Report '),
+    ('Summative Evaluation Report'),
     ('Transition Plan');
 
 INSERT INTO
@@ -56,7 +56,7 @@ VALUES
     ('Monitoring Protocol', 'General File'),
     ('Monitoring Report', 'General File'),
     ('Quarterly Budget Neutrality Report', 'General File'),
-    ('Summative Evaluation Report ', 'General File'),
+    ('Summative Evaluation Report', 'General File'),
     ('Transition Plan', 'General File'),
 
     -- Most deliverable types take their own document type
@@ -73,7 +73,7 @@ VALUES
     ('Mid-point Assessment', 'Mid-point Assessment'),
     ('Monitoring Protocol', 'Monitoring Protocol'),
     ('Monitoring Report', 'Monitoring Report'),
-    ('Summative Evaluation Report ', 'Summative Evaluation Report '),
+    ('Summative Evaluation Report', 'Summative Evaluation Report'),
     ('Transition Plan', 'Transition Plan'),
 
     -- Budget neutrality deliverables take budget neutrality documents
