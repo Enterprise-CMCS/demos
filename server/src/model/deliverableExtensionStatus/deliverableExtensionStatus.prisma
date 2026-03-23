@@ -2,7 +2,8 @@
 model DeliverableExtensionStatus {
   id String
 
-  deliverableExtensions DeliverableExtension[]
+  deliverableExtensions                 DeliverableExtension[]
+  deliverableActiveExtensionStatusLimit DeliverableActiveExtensionStatusLimit[]
 
   @@id([id])
   @@map("deliverable_extension_status")

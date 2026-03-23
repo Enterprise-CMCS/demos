@@ -64,28 +64,40 @@ VALUES
     ('Requested Extension', 'Past Due', 'Past Due'),
 
     -- Approved Extension Request
-    ('Approved Extension Request', 'Past Due', 'Upcoming'),
     ('Approved Extension Request', 'Upcoming', 'Upcoming'),
+    ('Approved Extension Request', 'Past Due', 'Upcoming'),
     ('Approved Extension Request', 'Submitted', 'Submitted'),
     ('Approved Extension Request', 'Under CMS Review', 'Under CMS Review'),
+    ('Approved Extension Request', 'Accepted', 'Accepted'),
+    ('Approved Extension Request', 'Approved', 'Approved'),
+    ('Approved Extension Request', 'Received and Filed', 'Received and Filed'),
 
     -- Denied Extension Request
-    ('Denied Extension Request', 'Past Due', 'Past Due'),
     ('Denied Extension Request', 'Upcoming', 'Upcoming'),
+    ('Denied Extension Request', 'Past Due', 'Past Due'),
     ('Denied Extension Request', 'Submitted', 'Submitted'),
     ('Denied Extension Request', 'Under CMS Review', 'Under CMS Review'),
+    ('Denied Extension Request', 'Accepted', 'Accepted'),
+    ('Denied Extension Request', 'Approved', 'Approved'),
+    ('Denied Extension Request', 'Received and Filed', 'Received and Filed'),
 
     -- Denied Extension Request
-    ('Withdrew Extension Request', 'Past Due', 'Past Due'),
     ('Withdrew Extension Request', 'Upcoming', 'Upcoming'),
+    ('Withdrew Extension Request', 'Past Due', 'Past Due'),
     ('Withdrew Extension Request', 'Submitted', 'Submitted'),
     ('Withdrew Extension Request', 'Under CMS Review', 'Under CMS Review'),
+    ('Withdrew Extension Request', 'Accepted', 'Accepted'),
+    ('Withdrew Extension Request', 'Approved', 'Approved'),
+    ('Withdrew Extension Request', 'Received and Filed', 'Received and Filed'),
 
     -- Manually Changed Due Date
-    ('Manually Changed Due Date', 'Past Due', 'Past Due'),
     ('Manually Changed Due Date', 'Upcoming', 'Upcoming'),
+    ('Manually Changed Due Date', 'Past Due', 'Upcoming'),
     ('Manually Changed Due Date', 'Submitted', 'Submitted'),
     ('Manually Changed Due Date', 'Under CMS Review', 'Under CMS Review'),
+    ('Manually Changed Due Date', 'Accepted', 'Accepted'),
+    ('Manually Changed Due Date', 'Approved', 'Approved'),
+    ('Manually Changed Due Date', 'Received and Filed', 'Received and Filed'),
 
     -- Requested Resubmission
     ('Requested Resubmission', 'Submitted', 'Upcoming'),
