@@ -82,6 +82,7 @@ const RESET_MODIFICATION_INPUT = {
 
 type ApprovalSummaryPhaseProps = {
   applicationId: string;
+  demonstrationId: string;
   initialFormData: ApplicationDetailsFormData;
   initialTypes: DemonstrationDetailDemonstrationType[];
   approvalSummaryPhase?: {
@@ -90,6 +91,7 @@ type ApprovalSummaryPhaseProps = {
   };
   demonstrationTypeCompletionDate?: Date;
   allPreviousPhasesDone: boolean;
+  demonstrationStatus: ApplicationStatus;
 };
 
 export const getDemonstrationApprovalSummaryFormData = (
@@ -190,14 +192,28 @@ export const getApprovalSummaryPhaseFromApplication = (
     )
     .every((phase) => phase.phaseStatus === "Completed" || phase.phaseStatus === "Skipped");
 
+  const demonstrationId = workflowApplicationType === "demonstration" ?
+    application.id :
+    (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration.id;
+
+  const demonstrationTypes = workflowApplicationType === "demonstration" ?
+    (application as ApplicationWorkflowDemonstration).demonstrationTypes :
+    (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration.demonstrationTypes;
+
+  const demonstrationStatus = workflowApplicationType === "demonstration" ?
+    (application as ApplicationWorkflowDemonstration).status :
+    (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration.status;
+
   return (
     <ApprovalSummaryPhase
       applicationId={application.id}
+      demonstrationId={demonstrationId}
       initialFormData={approvalSummaryFormData}
-      initialTypes={application.demonstrationTypes ?? []} // TODO: Figure out how demonstrationTypes are meant to be handled for amendments/extensions
+      initialTypes={demonstrationTypes}
       approvalSummaryPhase={approvalSummaryPhase}
       demonstrationTypeCompletionDate={demonstrationTypeCompletionDate}
       allPreviousPhasesDone={allPreviousPhasesDone}
+      demonstrationStatus={demonstrationStatus}
     />
   );
 };
@@ -206,9 +222,11 @@ export const ApprovalSummaryPhase = ({
   initialFormData,
   initialTypes,
   applicationId,
+  demonstrationId,
   approvalSummaryPhase,
   demonstrationTypeCompletionDate,
   allPreviousPhasesDone,
+  demonstrationStatus,
 }: ApprovalSummaryPhaseProps) => {
   const capitalizedType = initialFormData.applicationType.charAt(0).toUpperCase() + initialFormData.applicationType.slice(1);
   const [approvalSummaryFormData, setApprovalSummaryFormData] =
@@ -429,8 +447,8 @@ export const ApprovalSummaryPhase = ({
   };
 
   const demonstrationForTypes = {
-    id: applicationId,
-    status: approvalSummaryFormData.status as ApplicationStatus,
+    id: demonstrationId, // Use demonstrationId, which is the same for demonstrations, but for amendments/extensions it comes from the nested demonstration object
+    status: demonstrationStatus, // Similarly, get status from the correct place based on application type
     demonstrationTypes: initialTypes,
   };
 

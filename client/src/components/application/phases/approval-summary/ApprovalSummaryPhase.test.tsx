@@ -207,15 +207,18 @@ describe("ApprovalSummaryPhase", () => {
 
   const setup = (
     formData = buildInitialFormData(),
-    mocks: MockedResponse[] = [mockUpdateDemonstration, mockResetDemonstration]
+    mocks: MockedResponse[] = [mockUpdateDemonstration, mockResetDemonstration],
+    initialTypes: DemonstrationDetailDemonstrationType[] = []
   ) => {
     render(
       <MockedProvider mocks={mocks} addTypename={false}>
         <TestProvider>
           <ApprovalSummaryPhase
             applicationId="demo-123"
+            demonstrationId="demo-123"
+            demonstrationStatus="Under Review"
             initialFormData={formData}
-            initialTypes={[]}
+            initialTypes={initialTypes}
             approvalSummaryPhase={{ phaseStatus: "Not Started", phaseDates: [] }}
             allPreviousPhasesDone={true}
           />
@@ -300,6 +303,8 @@ describe("ApprovalSummaryPhase", () => {
           initialFormData={buildInitialFormData()}
           initialTypes={mockTypes}
           allPreviousPhasesDone={true}
+          demonstrationId="demo-123"
+          demonstrationStatus="Under Review"
         />
       </TestProvider>
     );
@@ -322,6 +327,8 @@ describe("ApprovalSummaryPhase", () => {
           initialFormData={buildInitialFormData()}
           initialTypes={mockTypes}
           allPreviousPhasesDone={true}
+          demonstrationId="demo-123"
+          demonstrationStatus="Under Review"
         />
       </TestProvider>
     );
@@ -411,6 +418,8 @@ describe("ApprovalSummaryPhase", () => {
               dateValue: new Date("2025-01-01"),
             }]}}
             allPreviousPhasesDone={true}
+            demonstrationId="demo-123"
+            demonstrationStatus="Approved"
           />
         </TestProvider>
       </MockedProvider>
@@ -461,6 +470,8 @@ describe("ApprovalSummaryPhase", () => {
               dateValue: new Date("2025-01-01"),
             }]}}
             allPreviousPhasesDone={true}
+            demonstrationId="demo-123"
+            demonstrationStatus="Approved"
           />
         </TestProvider>
       </MockedProvider>
@@ -476,5 +487,12 @@ describe("ApprovalSummaryPhase", () => {
     await userEvent.click(toggle);
 
     expect(toggle).toBeInTheDocument();
+  });
+
+  it("renders demonstration types from associated demonstration for amendment", () => {
+    setup(buildAmendmentFormData(), [mockUpdateAmendment], mockTypes);
+
+    expect(screen.getByText("Environmental")).toBeInTheDocument();
+    expect(screen.getByText("Economic")).toBeInTheDocument();
   });
 });
