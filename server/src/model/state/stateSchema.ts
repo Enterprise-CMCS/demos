@@ -3,14 +3,14 @@ import { Demonstration } from "../demonstration/demonstrationSchema.js";
 
 export const stateSchema = gql`
   type State {
-    id: String!
-    name: String!
-    demonstrations: [Demonstration!]!
+    id: String! @auth(requires: "Resolve State")
+    name: String! @auth(requires: "Resolve State")
+    demonstrations: [Demonstration!]! @auth(requires: "Resolve State Demonstrations")
   }
 
   type Query {
-    states: [State!]!
-    state(id: String!): State
+    states: [State!]! @auth(requires: "Query States")
+    state(id: String!): State @auth(requires: "Query States")
   }
 `;
 

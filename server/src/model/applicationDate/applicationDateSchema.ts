@@ -3,10 +3,10 @@ import { DateTimeOrLocalDate, DateType } from "../../types.js";
 
 export const applicationDateSchema = gql`
   type ApplicationDate {
-    dateType: DateType!
-    dateValue: DateTime!
-    createdAt: DateTime!
-    updatedAt: DateTime!
+    dateType: DateType! @auth(requires: "Resolve ApplicationDate")
+    dateValue: DateTime! @auth(requires: "Resolve ApplicationDate")
+    createdAt: DateTime! @auth(requires: "Resolve ApplicationDate")
+    updatedAt: DateTime! @auth(requires: "Resolve ApplicationDate")
   }
 
   input ApplicationDateInput {
@@ -27,7 +27,9 @@ export const applicationDateSchema = gql`
 
   type Mutation {
     setApplicationDate(input: SetApplicationDateInput): Application
+      @auth(requires: "Mutate Application Workflow")
     setApplicationDates(input: SetApplicationDatesInput): Application
+      @auth(requires: "Mutate Application Workflow")
   }
 `;
 

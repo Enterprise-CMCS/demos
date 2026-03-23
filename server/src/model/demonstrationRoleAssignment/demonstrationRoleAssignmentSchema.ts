@@ -5,10 +5,10 @@ import { Person } from "../person/personSchema";
 
 export const demonstrationRoleAssignmentSchema = gql`
   type DemonstrationRoleAssignment {
-    demonstration: Demonstration!
-    person: Person!
-    role: Role!
-    isPrimary: Boolean!
+    demonstration: Demonstration! @auth(requires: "Resolve DemonstrationRoleAssignmentDocument")
+    person: Person! @auth(requires: "Resolve DemonstrationRoleAssignment")
+    role: Role! @auth(requires: "Resolve DemonstrationRoleAssignment")
+    isPrimary: Boolean! @auth(requires: "Resolve DemonstrationRoleAssignment")
   }
 
   input SetDemonstrationRoleInput {
@@ -26,8 +26,12 @@ export const demonstrationRoleAssignmentSchema = gql`
 
   type Mutation {
     setDemonstrationRole(input: SetDemonstrationRoleInput!): DemonstrationRoleAssignment!
+      @auth(requires: "Mutate Demonstration Contacts")
     setDemonstrationRoles(input: [SetDemonstrationRoleInput!]!): [DemonstrationRoleAssignment!]!
-    unsetDemonstrationRoles(input: [UnsetDemonstrationRoleInput!]!): [DemonstrationRoleAssignment!]!
+      @auth(requires: "Mutate Demonstration Contacts")
+    unsetDemonstrationRoles(
+      input: [UnsetDemonstrationRoleInput!]!
+    ): [DemonstrationRoleAssignment!]! @auth(requires: "Mutate Demonstration Contacts")
   }
 `;
 

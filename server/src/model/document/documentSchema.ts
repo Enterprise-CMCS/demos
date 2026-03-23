@@ -5,17 +5,17 @@ import { DocumentType, Application, PhaseName, NonEmptyString } from "../../type
 
 export const documentSchema = gql`
   type Document {
-    id: ID!
-    name: NonEmptyString!
-    description: String
-    s3Path: String!
-    owner: User!
-    documentType: DocumentType!
-    application: Application!
-    phaseName: PhaseName!
-    presignedDownloadUrl: String!
-    createdAt: DateTime!
-    updatedAt: DateTime!
+    id: ID! @auth(requires: "Resolve Document")
+    name: NonEmptyString! @auth(requires: "Resolve Document")
+    description: String @auth(requires: "Resolve Document")
+    s3Path: String! @auth(requires: "Download Document")
+    owner: User! @auth(requires: "Resolve Document Owner")
+    documentType: DocumentType! @auth(requires: "Resolve Document")
+    application: Application! @auth(requires: "Resolve Document Application")
+    phaseName: PhaseName! @auth(requires: "Resolve Document Application Workflow")
+    presignedDownloadUrl: String! @auth(requires: "Download Document")
+    createdAt: DateTime! @auth(requires: "Resolve Document")
+    updatedAt: DateTime! @auth(requires: "Resolve Document")
   }
 
   input UploadDocumentInput {
@@ -41,15 +41,17 @@ export const documentSchema = gql`
 
   type Mutation {
     uploadDocument(input: UploadDocumentInput!): UploadDocumentResponse!
+      @auth(requires: "Mutate Documents")
     updateDocument(id: ID!, input: UpdateDocumentInput!): Document
-    deleteDocument(id: ID!): Document!
-    deleteDocuments(ids: [ID!]!): Int!
-    triggerUiPath(documentId: ID!): String!
+      @auth(requires: "Mutate Documents")
+    deleteDocument(id: ID!): Document! @auth(requires: "Mutate Documents")
+    deleteDocuments(ids: [ID!]!): Int! @auth(requires: "Mutate Documents")
+    triggerUiPath(documentId: ID!): String! @auth(requires: "Trigger UIPath")
   }
 
   type Query {
-    document(id: ID!): Document
-    documentExists(documentId: ID!): Boolean!
+    document(id: ID!): Document @auth(requires: "Query Documents")
+    documentExists(documentId: ID!): Boolean! @auth(requires: "Query Documents")
   }
 `;
 

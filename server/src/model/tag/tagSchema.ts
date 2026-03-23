@@ -8,8 +8,8 @@ export const tagSchema = gql`
   }
 
   type Query {
-    demonstrationTypeOptions: [Tag!]!
-    applicationTagOptions: [Tag!]!
+    demonstrationTypeOptions: [Tag!]! @auth(requires: "Query Tag Options")
+    applicationTagOptions: [Tag!]! @auth(requires: "Query Tag Options")
   }
 `;
 

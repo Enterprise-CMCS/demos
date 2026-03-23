@@ -20,17 +20,18 @@ export const demonstrationTypeTagAssignmentSchema = gql`
   }
 
   type DemonstrationTypeAssignment {
-    demonstrationTypeName: TagName!
-    effectiveDate: DateTime!
-    expirationDate: DateTime!
-    status: DemonstrationTypeStatus!
-    approvalStatus: TagStatus!
-    createdAt: DateTime!
-    updatedAt: DateTime!
+    demonstrationTypeName: TagName! @auth(requires: "Resolve DemonstrationTypeAssignment")
+    effectiveDate: DateTime! @auth(requires: "Resolve DemonstrationTypeAssignment")
+    expirationDate: DateTime! @auth(requires: "Resolve DemonstrationTypeAssignment")
+    status: DemonstrationTypeStatus! @auth(requires: "Resolve DemonstrationTypeAssignment")
+    approvalStatus: TagStatus! @auth(requires: "Resolve DemonstrationTypeAssignment")
+    createdAt: DateTime! @auth(requires: "Resolve DemonstrationTypeAssignment")
+    updatedAt: DateTime! @auth(requires: "Resolve DemonstrationTypeAssignment")
   }
 
   type Mutation {
     setDemonstrationTypes(input: SetDemonstrationTypesInput): Demonstration
+      @auth(requires: "Mutate Demonstration Types")
   }
 `;
 

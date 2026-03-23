@@ -3,10 +3,10 @@ import { NoteType } from "../../types";
 
 export const applicationNoteSchema = gql`
   type ApplicationNote {
-    noteType: NoteType!
-    content: String!
-    createdAt: DateTime!
-    updatedAt: DateTime!
+    noteType: NoteType! @auth(requires: "Resolve ApplicationNote")
+    content: String! @auth(requires: "Resolve ApplicationNote")
+    createdAt: DateTime! @auth(requires: "Resolve ApplicationNote")
+    updatedAt: DateTime! @auth(requires: "Resolve ApplicationNote")
   }
 
   input ApplicationNoteInput {
@@ -21,6 +21,7 @@ export const applicationNoteSchema = gql`
 
   type Mutation {
     setApplicationNotes(input: SetApplicationNotesInput): Application
+      @auth(requires: "Mutate Application Workflow")
   }
 `;
 

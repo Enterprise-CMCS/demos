@@ -19,28 +19,31 @@ import {
 } from "../../types.js";
 
 export const demonstrationSchema = gql`
+  directive @auth(requires: String!) on FIELD_DEFINITION | OBJECT
+
   type Demonstration {
-    id: ID!
-    name: NonEmptyString!
-    description: String
-    effectiveDate: DateTime
-    expirationDate: DateTime
-    sdgDivision: SdgDivision
-    signatureLevel: SignatureLevel
-    status: ApplicationStatus!
-    state: State!
-    currentPhaseName: PhaseName!
-    phases: [ApplicationPhase!]!
-    documents: [Document!]!
-    amendments: [Amendment!]!
-    extensions: [Extension!]!
-    createdAt: DateTime!
-    updatedAt: DateTime!
-    roles: [DemonstrationRoleAssignment!]!
-    primaryProjectOfficer: Person!
-    clearanceLevel: ClearanceLevel!
-    tags: [Tag!]!
+    id: ID! @auth(requires: "Resolve Demonstration")
+    name: NonEmptyString! @auth(requires: "Resolve Demonstration")
+    description: String @auth(requires: "Resolve Demonstration")
+    effectiveDate: DateTime @auth(requires: "Resolve Demonstration")
+    expirationDate: DateTime @auth(requires: "Resolve Demonstration")
+    sdgDivision: SdgDivision @auth(requires: "Resolve Demonstration")
+    signatureLevel: SignatureLevel @auth(requires: "Resolve Demonstration")
+    status: ApplicationStatus! @auth(requires: "Resolve Demonstration Application Workflow")
+    state: State! @auth(requires: "Resolve Demonstration")
+    currentPhaseName: PhaseName! @auth(requires: "Resolve Demonstration Application Workflow")
+    phases: [ApplicationPhase!]! @auth(requires: "Resolve Demonstration Application Workflow")
+    documents: [Document!]! @auth(requires: "Resolve Demonstration Documents")
+    amendments: [Amendment!]! @auth(requires: "Resolve Demonstration Modifications")
+    extensions: [Extension!]! @auth(requires: "Resolve Demonstration Modifications")
+    createdAt: DateTime! @auth(requires: "Resolve Demonstration")
+    updatedAt: DateTime! @auth(requires: "Resolve Demonstration")
+    roles: [DemonstrationRoleAssignment!]! @auth(requires: "Resolve Demonstration Contacts")
+    primaryProjectOfficer: Person! @auth(requires: "Resolve Demonstration")
+    clearanceLevel: ClearanceLevel! @auth(requires: "Resolve Demonstration Application Workflow")
+    tags: [Tag!]! @auth(requires: "Resolve Demonstration Application Workflow")
     demonstrationTypes: [DemonstrationTypeAssignment!]!
+      @auth(requires: "Resolve Demonstration Application Workflow")
   }
 
   input CreateDemonstrationInput {
@@ -66,13 +69,15 @@ export const demonstrationSchema = gql`
 
   type Mutation {
     createDemonstration(input: CreateDemonstrationInput!): Demonstration
+      @auth(requires: "Mutate Demonstrations")
     updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration
-    deleteDemonstration(id: ID!): Demonstration
+      @auth(requires: "Mutate Demonstrations")
+    deleteDemonstration(id: ID!): Demonstration @auth(requires: "Mutate Demonstrations")
   }
 
   type Query {
-    demonstrations: [Demonstration!]!
-    demonstration(id: ID!): Demonstration
+    demonstrations: [Demonstration!]! @auth(requires: "Query Demonstrations")
+    demonstration(id: ID!): Demonstration @auth(requires: "Query Demonstrations")
   }
 `;
 

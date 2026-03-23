@@ -3,18 +3,18 @@ import { Document, PersonType, Event, Person } from "../../types.js";
 
 export const userSchema = gql`
   type User {
-    id: ID!
-    cognitoSubject: String!
-    username: String!
-    person: Person!
+    id: ID! @auth(requires: "Resolve User")
+    cognitoSubject: String! @auth(requires: "Resolve User")
+    username: String! @auth(requires: "Resolve User")
+    person: Person! @auth(requires: "Resolve User Person")
     events: [Event!]!
-    ownedDocuments: [Document!]!
-    createdAt: DateTime!
-    updatedAt: DateTime!
+    ownedDocuments: [Document!]! @auth(requires: "Resolve User Documents")
+    createdAt: DateTime! @auth(requires: "Resolve User")
+    updatedAt: DateTime! @auth(requires: "Resolve User")
   }
 
   type Query {
-    currentUser: User
+    currentUser: User @auth(requires: "Get Current User")
   }
 `;
 

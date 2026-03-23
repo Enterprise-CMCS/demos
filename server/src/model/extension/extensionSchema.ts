@@ -14,21 +14,21 @@ import {
 } from "../../types.js";
 
 export const extensionSchema = gql`
-  type Extension {
-    id: ID!
-    demonstration: Demonstration!
-    name: NonEmptyString!
-    description: String
-    effectiveDate: DateTime
-    status: ApplicationStatus!
-    currentPhaseName: PhaseName!
-    phases: [ApplicationPhase!]!
-    documents: [Document!]!
-    clearanceLevel: ClearanceLevel!
-    tags: [Tag!]!
-    signatureLevel: SignatureLevel
-    createdAt: DateTime!
-    updatedAt: DateTime!
+  type Amendment {
+    id: ID! @auth(requires: "Resolve Modification")
+    demonstration: Demonstration! @auth(requires: "Resolve Modification Demonstration")
+    name: NonEmptyString! @auth(requires: "Resolve Modification")
+    description: String @auth(requires: "Resolve Modification")
+    effectiveDate: DateTime @auth(requires: "Resolve Modification")
+    status: ApplicationStatus! @auth(requires: "Resolve Modification Application Workflow")
+    currentPhaseName: PhaseName! @auth(requires: "Resolve Modification Application Workflow")
+    phases: [ApplicationPhase!]! @auth(requires: "Resolve Modification Application Workflow")
+    documents: [Document!]! @auth(requires: "Resolve Modification Documents")
+    clearanceLevel: ClearanceLevel! @auth(requires: "Resolve Modification Application Workflow")
+    tags: [Tag!]! @auth(requires: "Resolve Modification Application Workflow")
+    signatureLevel: SignatureLevel @auth(requires: "Resolve Modification Application Workflow")
+    createdAt: DateTime! @auth(requires: "Resolve Modification")
+    updatedAt: DateTime! @auth(requires: "Resolve Modification")
   }
 
   input CreateExtensionInput {
@@ -48,14 +48,15 @@ export const extensionSchema = gql`
   }
 
   type Mutation {
-    createExtension(input: CreateExtensionInput!): Extension
+    createExtension(input: CreateExtensionInput!): Extension @auth(requires: "Mutate Modifications")
     updateExtension(id: ID!, input: UpdateExtensionInput!): Extension
-    deleteExtension(id: ID!): Extension
+      @auth(requires: "Mutate Modifications")
+    deleteExtension(id: ID!): Extension @auth(requires: "Mutate Modifications")
   }
 
   type Query {
-    extensions: [Extension!]!
-    extension(id: ID!): Extension
+    extensions: [Extension!]! @auth(requires: "Query Modifications")
+    extension(id: ID!): Extension @auth(requires: "Query Modifications")
   }
 `;
 
