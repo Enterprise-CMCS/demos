@@ -184,10 +184,15 @@ export const CompletenessPhase = ({
   const { completePhase } = useCompletePhase();
   const { declareCompletenessPhaseIncomplete } = useDeclareCompletenessPhaseIncomplete();
 
-  const stateDeemedComplete = calculateStateDeemedCompleteDate(
+  const [userSelectedStateDeemedCompleteDate, setUserSelectedStateDeemedCompleteDate] =
+    useState("");
+
+  const calculatedStateDeemedCompleteDate = calculateStateDeemedCompleteDate(
     stateDeemedCompleteDate,
     completenessDocuments
   );
+  const stateDeemedComplete =
+    userSelectedStateDeemedCompleteDate || calculatedStateDeemedCompleteDate;
   const { federalStartDate, federalEndDate } =
     calculateFederalCommentPeriodDates(stateDeemedComplete);
 
@@ -293,8 +298,8 @@ export const CompletenessPhase = ({
             name={STATE_DEEMED_COMPLETE_DATEPICKER_NAME}
             label="State Application Deemed Complete"
             value={stateDeemedComplete}
-            onChange={() => {
-              console.log("IMPLEMENT ME");
+            onChange={(date) => {
+              setUserSelectedStateDeemedCompleteDate(date);
             }}
             isDisabled={completenessComplete}
           />
