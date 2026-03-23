@@ -11,6 +11,7 @@ import {
   ApplicationWorkflowDemonstration,
   WorkflowApplicationType,
 } from "components/application";
+import { ApplicationWorkflowSubApplication } from "fragments";
 import {
   getApplicationCompletenessFromApplication,
   getConceptPhaseComponentFromApplication,
@@ -143,9 +144,23 @@ export const PhaseSelector = ({
       case "Approval Package":
         return getApprovalPackagePhaseFromApplication(application, setSelectedPhase);
       case "Approval Summary":
-        // Approval Summary requires demonstration-specific fields
-        // For now we will do type-assertion but to be revisted as we get further
-        // down the line on developing these phases.
+        if (workflowApplicationType === "amendment" || workflowApplicationType === "extension") {
+          const app = application as ApplicationWorkflowSubApplication;
+          const mapped: ApplicationWorkflowDemonstration = {
+            ...application,
+            name: app.name,
+            description: app.description,
+            effectiveDate: app.effectiveDate,
+            expirationDate: app.demonstration.expirationDate,
+            sdgDivision: app.demonstration.sdgDivision,
+            signatureLevel: app.signatureLevel,
+            status: app.status,
+            state: app.demonstration.state,
+            primaryProjectOfficer: app.demonstration.primaryProjectOfficer,
+            demonstrationTypes: app.demonstration.demonstrationTypes,
+          };
+          return getApprovalSummaryPhaseFromApplication(mapped);
+        }
         return getApprovalSummaryPhaseFromApplication(
           application as ApplicationWorkflowDemonstration
         );
