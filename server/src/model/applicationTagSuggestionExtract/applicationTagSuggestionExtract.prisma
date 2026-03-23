@@ -10,7 +10,7 @@ model ApplicationTagSuggestionExtract {
   updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
   suggestion  ApplicationTagSuggestion                  @relation(fields: [suggestionId, applicationId, value], references: [id, applicationId, value])
-  uipathValue UipathValue @relation(fields: [uipathValueId, applicationId, fieldId, value], references: [id, applicationId, fieldId, value])
+  uipathValue UipathValue                               @relation(fields: [uipathValueId, applicationId, fieldId, value], references: [id, applicationId, fieldId, value])
   field       ApplicationTagSuggestionExtractFieldLimit @relation(fields: [fieldId], references: [id])
 
   @@id([suggestionId, uipathValueId])
