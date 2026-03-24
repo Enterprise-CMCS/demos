@@ -1,11 +1,3 @@
-/*
-  Warnings:
-  - A unique constraint covering the columns `[document_id]` on the table `uipath_result` will be added. If there are existing duplicate values, this will fail.
-  - Added the required column `application_id` to the `uipath_result` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `updated_at` to the `uipath_result` table without a default value. This is not possible if the table is not empty.
-  - Made the column `document_id` on table `uipath_result` required. This step will fail if there are existing NULL values in that column.
-*/
-
 -- DropForeignKey
 ALTER TABLE "uipath_result" DROP CONSTRAINT "uipath_result_document_id_fkey";
 
