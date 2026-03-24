@@ -21,5 +21,5 @@ DROP CONSTRAINT "application_tag_suggestion_extract_suggestion_id_applicati_fkey
 ALTER TABLE "application_tag_suggestion_extract"
 ADD CONSTRAINT "application_tag_suggestion_extract_suggestion_id_applicati_fkey"
 FOREIGN KEY ("suggestion_id", "application_id", "value") REFERENCES "application_tag_suggestion"("id", "application_id", "value")
-ON DELETE RESTRICT ON UPDATE CASCADE
+ON DELETE NO ACTION ON UPDATE CASCADE
 DEFERRABLE INITIALLY DEFERRED;
