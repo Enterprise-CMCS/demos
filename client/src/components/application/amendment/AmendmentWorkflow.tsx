@@ -16,13 +16,16 @@ export const GET_AMENDMENT_WORKFLOW_QUERY = gql`
   query ${AMENDMENT_WORKFLOW_QUERY_NAME}($id: ID!) {
     amendment(id: $id) {
       id
+      name
+      description
+      signatureLevel
+      effectiveDate
       currentPhaseName
       clearanceLevel
       status
-      name
-      description
-      effectiveDate
-      signatureLevel
+      demonstration {
+        ...PARENT_DEMONSTRATION_FIELDS
+      }
       tags {
         tagName
         approvalStatus
@@ -32,9 +35,6 @@ export const GET_AMENDMENT_WORKFLOW_QUERY = gql`
       }
       documents {
         ...WORKFLOW_DOCUMENT_FIELDS
-      }
-      demonstration {
-        ...PARENT_DEMONSTRATION_FIELDS
       }
     }
   }

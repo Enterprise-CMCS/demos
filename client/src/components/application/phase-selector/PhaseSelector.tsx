@@ -8,7 +8,6 @@ import type {
 
 import {
   WorkflowApplication,
-  ApplicationWorkflowDemonstration,
   WorkflowApplicationType,
 } from "components/application";
 import { ApplicationWorkflowSubApplication } from "fragments";
@@ -162,7 +161,8 @@ export const PhaseSelector = ({
           return getApprovalSummaryPhaseFromApplication(mapped);
         }
         return getApprovalSummaryPhaseFromApplication(
-          application as ApplicationWorkflowDemonstration
+          application,
+          workflowApplicationType
         );
     }
   };
