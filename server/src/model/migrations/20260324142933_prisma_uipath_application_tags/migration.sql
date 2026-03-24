@@ -1,3 +1,5 @@
+SET search_path TO demos_app;
+
 -- DropForeignKey
 ALTER TABLE "uipath_result" DROP CONSTRAINT "uipath_result_document_id_fkey";
 
