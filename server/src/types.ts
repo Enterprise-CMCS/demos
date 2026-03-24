@@ -13,6 +13,7 @@ import {
   GRANT_LEVELS,
   LOG_LEVELS,
   NOTE_TYPES,
+  PERMISSIONS,
   PERSON_TYPES,
   PHASE_NAME,
   PHASE_NAMES_WITH_TRACKED_STATUS,
@@ -131,5 +132,6 @@ export type ReviewPhaseNoteTypes = (typeof REVIEW_PHASE_NOTE_TYPES)[number];
 export type TagStatus = (typeof TAG_STATUSES)[number];
 export type TagSource = (typeof TAG_SOURCES)[number];
 export type TagType = (typeof TAG_TYPES)[number];
+export type Permission = (typeof PERMISSIONS)[number];
 export type BudgetNeutralityValidationStatus =
   (typeof BUDGET_NEUTRALITY_VALIDATION_STATUSES)[number];

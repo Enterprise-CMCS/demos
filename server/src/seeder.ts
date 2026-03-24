@@ -409,21 +409,23 @@ async function seedDatabase() {
   }
 
   console.log("🌱 Seeding system role assignments...");
-  // for each user, assign a random set of roles from the system roles
-  const systemRoles = await prisma().role.findMany({
-    where: { grantLevelId: "System" },
-  });
-
   const people = await prisma().person.findMany();
   for (const person of people) {
+    const applicableRoles = await prisma().rolePersonType.findMany({
+      where: { personTypeId: person.personTypeId, role: { grantLevelId: "System" } },
+    });
+
     // NOSONAR - this is an appropriate use of Math.random() for seeding a random number of roles
-    const roles = sampleFromArray(systemRoles, 1 + Math.floor(Math.random() * systemRoles.length)); // NOSONAR
+    const roles = sampleFromArray(
+      applicableRoles,
+      1 + Math.floor(Math.random() * applicableRoles.length)
+    ); // NOSONAR
     for (const role of roles) {
       await prisma().systemRoleAssignment.create({
         data: {
           personId: person.id,
           personTypeId: person.personTypeId,
-          roleId: role.id,
+          roleId: role.roleId,
           grantLevelId: "System",
         },
       });

@@ -19,8 +19,6 @@ import {
 } from "../../types.js";
 
 export const demonstrationSchema = gql`
-  directive @auth(requires: String!) on FIELD_DEFINITION | OBJECT
-
   type Demonstration {
     id: ID! @auth(requires: "Resolve Demonstration")
     name: NonEmptyString! @auth(requires: "Resolve Demonstration")

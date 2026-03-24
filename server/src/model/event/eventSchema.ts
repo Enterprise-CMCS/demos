@@ -3,24 +3,24 @@ import { User, Application, Role, EventType, LogLevel } from "../../types.js";
 
 export const eventSchema = gql`
   type Event {
-    id: ID!
-    user: User
-    role: Role
-    application: Application
-    eventType: EventType!
-    logLevel: LogLevel!
-    route: String!
-    createdAt: DateTime!
-    eventData: JSONObject!
+    id: ID! @auth(requires: "Resolve Event")
+    user: User @auth(requires: "Resolve Event")
+    role: Role @auth(requires: "Resolve Event")
+    application: Application @auth(requires: "Resolve Event")
+    eventType: EventType! @auth(requires: "Resolve Event")
+    logLevel: LogLevel! @auth(requires: "Resolve Event")
+    route: String! @auth(requires: "Resolve Event")
+    createdAt: DateTime! @auth(requires: "Resolve Event")
+    eventData: JSONObject! @auth(requires: "Resolve Event")
   }
 
   type Query {
-    events: [Event!]!
-    eventsByApplication(applicationId: String!): [Event!]!
+    events: [Event!]! @auth(requires: "Query Events")
+    eventsByApplication(applicationId: String!): [Event!]! @auth(requires: "Query Events")
   }
 
   type Mutation {
-    logEvent(input: LogEventInput!): Event!
+    logEvent(input: LogEventInput!): Event! @auth(requires: "Log Events")
   }
 
   input LogEventInput {

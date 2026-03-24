@@ -35,8 +35,8 @@ export const documentSchema = gql`
   }
 
   type UploadDocumentResponse {
-    presignedURL: String!
-    documentId: ID!
+    presignedURL: String! @auth(requires: "Resolve Upload Document Response")
+    documentId: ID! @auth(requires: "Resolve Upload Document Response")
   }
 
   type Mutation {

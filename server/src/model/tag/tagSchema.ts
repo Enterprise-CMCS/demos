@@ -3,8 +3,8 @@ import { TagStatus, TagName } from "../../types";
 
 export const tagSchema = gql`
   type Tag {
-    tagName: TagName!
-    approvalStatus: TagStatus!
+    tagName: TagName! @auth(requires: "Resolve Tag")
+    approvalStatus: TagStatus! @auth(requires: "Resolve Tag")
   }
 
   type Query {

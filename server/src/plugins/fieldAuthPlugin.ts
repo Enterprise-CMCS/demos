@@ -12,29 +12,18 @@ import { getDirective } from "@graphql-tools/utils";
 
 import type { GraphQLContext } from "../auth/auth.util";
 import { prisma } from "../prismaClient";
+import { Permission } from "../types";
 
 const getApplicablePermissions = (
   schema: GraphQLSchema,
   fieldDef: GraphQLField<unknown, unknown>
-): string[] => {
+): Permission => {
   const authDirectives = getDirective(schema, fieldDef, "auth");
-
-  if (!authDirectives || authDirectives.length === 0) {
-    throw new Error(`Unauthorized: Field "${fieldDef.name}" is missing @auth directive`);
-  }
-
-  const permissions = authDirectives[0]?.["permissions"];
-
-  if (!Array.isArray(permissions)) {
-    throw new Error(
-      `Unauthorized: Field "${fieldDef.name}" has invalid @auth directive configuration`
-    );
-  }
-
-  return permissions;
+  // Schema validation ensures this exists and has a valid "requires" value
+  return authDirectives![0]["requires"];
 };
 
-const getUserPermissions = async (userId: string): Promise<string[]> => {
+const getUserPermissions = async (userId: string): Promise<Permission[]> => {
   const userRoles = (
     await prisma().systemRoleAssignment.findMany({
       where: { personId: userId },
@@ -48,7 +37,8 @@ const getUserPermissions = async (userId: string): Promise<string[]> => {
     })
   ).map((rolePermission) => rolePermission.permissionId);
 
-  return userPermissions;
+  // casting enforced by database constraints
+  return userPermissions as Permission[];
 };
 export const fieldAuthPlugin = {
   async requestDidStart() {
@@ -66,7 +56,7 @@ export const fieldAuthPlugin = {
         const document = requestContext.document;
         const schema = requestContext.schema;
 
-        const userPermissions = await getUserPermissions(user.id);
+        const userPermissions: Permission[] = await getUserPermissions(user.id);
 
         const typeInfo = new TypeInfo(schema);
         visit(
@@ -74,23 +64,19 @@ export const fieldAuthPlugin = {
           visitWithTypeInfo(typeInfo, {
             Field() {
               const fieldDef = typeInfo.getFieldDef();
-              if (!fieldDef) {
-                throw new Error("Unexpected error: No field definition found");
-              }
-
               const parentType = typeInfo.getParentType();
-              if (!parentType) {
-                throw new Error("Unexpected error: No parent type found for field");
-              }
 
-              if (isIntrospectionType(parentType)) {
+              if (
+                !fieldDef ||
+                !parentType ||
+                fieldDef.name.startsWith("__") ||
+                isIntrospectionType(parentType)
+              ) {
                 return;
               }
 
-              const applicablePermissions = getApplicablePermissions(schema, fieldDef);
-              const hasPermission = applicablePermissions.some((permission) =>
-                userPermissions.includes(permission)
-              );
+              const permission: Permission = getApplicablePermissions(schema, fieldDef);
+              const hasPermission = userPermissions.includes(permission);
 
               if (!hasPermission) {
                 throw new Error(

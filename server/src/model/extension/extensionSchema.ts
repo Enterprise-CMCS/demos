@@ -14,7 +14,7 @@ import {
 } from "../../types.js";
 
 export const extensionSchema = gql`
-  type Amendment {
+  type Extension {
     id: ID! @auth(requires: "Resolve Modification")
     demonstration: Demonstration! @auth(requires: "Resolve Modification Demonstration")
     name: NonEmptyString! @auth(requires: "Resolve Modification")

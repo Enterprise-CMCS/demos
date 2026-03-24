@@ -7,14 +7,14 @@ export const userSchema = gql`
     cognitoSubject: String! @auth(requires: "Resolve User")
     username: String! @auth(requires: "Resolve User")
     person: Person! @auth(requires: "Resolve User Person")
-    events: [Event!]!
+    events: [Event!]! @auth(requires: "Resolve User Events")
     ownedDocuments: [Document!]! @auth(requires: "Resolve User Documents")
     createdAt: DateTime! @auth(requires: "Resolve User")
     updatedAt: DateTime! @auth(requires: "Resolve User")
   }
 
   type Query {
-    currentUser: User @auth(requires: "Get Current User")
+    currentUser: User @auth(requires: "Query Current User")
   }
 `;
 
