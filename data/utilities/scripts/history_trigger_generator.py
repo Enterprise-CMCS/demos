@@ -26,6 +26,8 @@ TBL_FOLDERS = [
     "person",
     "personState",
     "primaryDemonstrationRoleAssignment",
+    "privateComment",
+    "publicComment",
     "rolePermission",
     "systemRoleAssignment",
     "tag",

@@ -187,6 +187,10 @@ erDiagram
     bool due_date_change_allowed UK "UK: (id, due_date_change_allowed)"
   }
 
+  deliverable_due_date_type:::staticConstraint {
+    text id PK
+  }
+
   deliverable_extension_reason_code:::staticConstraint {
     text id PK
   }
@@ -203,19 +207,11 @@ erDiagram
     text id PK
   }
 
-  deliverable_due_date_type:::staticConstraint {
+  document_type:::staticConstraint {
     text id PK
   }
 
   event_type:::staticConstraint {
-    text id PK
-  }
-
-  note_type:::staticConstraint {
-    text id PK
-  }
-
-  document_type:::staticConstraint {
     text id PK
   }
 
@@ -229,13 +225,17 @@ erDiagram
     integer level
   }
 
-  person_type:::staticConstraint {
+  note_type:::staticConstraint {
     text id PK
   }
 
   permission:::staticConstraint {
     text id PK, UK "UK: (id, grant_level_id)"
     text grant_level_id FK, UK "FK036: grant_level_id ∈ grant_level.id<br>UK: (id, grant_level_id)"
+  }
+
+  person_type:::staticConstraint {
+    text id PK
   }
 
   phase:::staticConstraint {
@@ -265,11 +265,11 @@ erDiagram
     text name
   }
 
-  tag_status:::staticConstraint {
+  tag_source:::staticConstraint {
     text id PK
   }
 
-  tag_source:::staticConstraint {
+  tag_status:::staticConstraint {
     text id PK
   }
 
@@ -298,6 +298,10 @@ erDiagram
     text id PK, FK "FK123: id ∈ document_type.id"
   }
 
+  cms_user_person_type_limit:::typeLimiter {
+    text id PK, FK "FK107: id ∈ person_type.id"
+  }
+
   deliverable_active_extension_status_limit:::typeLimiter {
     text id PK, FK "FK131: id ∈ deliverable_extension_status.id"
   }
@@ -308,10 +312,6 @@ erDiagram
 
   deliverable_submission_action_type_limit:::typeLimiter {
     text id PK, FK "FK120: id ∈ deliverable_action_type.id"
-  }
-
-  cms_user_person_type_limit:::typeLimiter {
-    text id PK, FK "FK107: id ∈ person_type.id"
   }
 
   demonstration_application_type_limit:::typeLimiter {
@@ -480,6 +480,13 @@ erDiagram
     HAS_HISTORY true
   }
 
+  deliverable_active_extension:::dataTable {
+    uuid deliverable_extension_id PK, FK "FK130: deliverable_extension_id, deliverable_id, status_id ∈ deliverable_extension.(id, deliverable_id, status_id) ON DELETE RESTRICT ON UPDATE NO ACTION"
+    uuid deliverable_id FK, UK "FK130: deliverable_extension_id, deliverable_id, status_id ∈ deliverable_extension.(id, deliverable_id, status_id) ON DELETE RESTRICT ON UPDATE NO ACTION<br>UK: deliverable_id"
+    text status_id FK "FK130: deliverable_extension_id, deliverable_id, status_id ∈ deliverable_extension.(id, deliverable_id, status_id) ON DELETE RESTRICT ON UPDATE NO ACTION<br>FK132: status_id ∈ deliverable_active_extension_status_limit.id"
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+  }
+
   deliverable_extension:::dataTable {
     uuid id PK, UK "UK: (id, deliverable_id, status_id)<br>UK: (id, deliverable_id)"
     uuid deliverable_id FK "FK127: deliverable_id ∈ deliverable.id<br>UK: (id, deliverable_id, status_id)<br>UK: (id, deliverable_id)"
@@ -494,13 +501,6 @@ erDiagram
     TRIGGER_AFTER_INSERT_OR_UPDATE create_or_update_active_record_for_request "If a request is inserted, add it to the deliverable_active_extension table.<br>If a request is edited to move out of the active status, remove from deliverable_active_extension.<br>If a request is edited to move into the active status, add to deliverable_active_extension."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
-  }
-
-  deliverable_active_extension:::dataTable {
-    uuid deliverable_extension_id PK, FK "FK130: deliverable_extension_id, deliverable_id, status_id ∈ deliverable_extension.(id, deliverable_id, status_id) ON DELETE RESTRICT ON UPDATE NO ACTION"
-    uuid deliverable_id FK, UK "FK130: deliverable_extension_id, deliverable_id, status_id ∈ deliverable_extension.(id, deliverable_id, status_id) ON DELETE RESTRICT ON UPDATE NO ACTION<br>UK: deliverable_id"
-    text status_id FK "FK130: deliverable_extension_id, deliverable_id, status_id ∈ deliverable_extension.(id, deliverable_id, status_id) ON DELETE RESTRICT ON UPDATE NO ACTION<br>FK132: status_id ∈ deliverable_active_extension_status_limit.id"
-    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
   demonstration:::dataTable {
@@ -680,19 +680,19 @@ erDiagram
     HAS_HISTORY true
   }
 
-  tag_name:::dataTable {
-    text id PK
+  tag:::dataTable {
+    text tag_name_id PK, FK "FK077: tag_name_id ∈ tag_name.id"
+    text tag_type_id PK, FK "FK078: tag_type_id ∈ tag_type.id"
+    text source_id FK "FK079: source_id ∈ tag_source.id"
+    text status_id FK "FK080: status_id ∈ tag_status.id"
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }
 
-  tag:::dataTable {
-    text tag_name_id PK, FK "FK077: tag_name_id ∈ tag_name.id"
-    text tag_type_id PK, FK "FK078: tag_type_id ∈ tag_type.id"
-    text source_id FK "FK079: source_id ∈ tag_source.id"
-    text status_id FK "FK080: status_id ∈ tag_status.id"
+  tag_name:::dataTable {
+    text id PK
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
@@ -787,28 +787,19 @@ erDiagram
     HAS_HISTORY true
   }
 
-  system_role_assignment:::associativeTable {
-    uuid person_id PK, FK "FK039: (person_id, person_type_id) ∈ person.(id, person_type_id)"
-    text role_id PK, FK "FK038: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK040: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
-    text person_type_id FK "FK038: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK039: (person_id, person_type_id) ∈ person.(id, person_type_id)"
-    text grant_level_id FK "FK040: (role_id, grant_level_id) ∈ role.(id, grant_level_id)<br>FK041: grant_level_id ∈ system_grant_level_limit.id"
-    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
-    HAS_HISTORY true
-  }
-
   phase_date_type:::associativeTable {
     text phase_id PK, FK "FK003: phase_id ∈ phase.id"
     text date_type_id PK, FK "FK017: date_type_id ∈ date_type.id"
   }
 
-  phase_note_type:::associativeTable {
-    text phase_id PK, FK "FK075: phase_id ∈ phase.id"
-    text note_type_id PK, FK "FK076: note_type_id ∈ note_type.id"
-  }
-
   phase_document_type:::associativeTable {
     text phase_id PK, FK "FK027: phase_id ∈ phase.id"
     text document_type_id PK, FK "FK028: document_type_id ∈ document_type.id"
+  }
+
+  phase_note_type:::associativeTable {
+    text phase_id PK, FK "FK075: phase_id ∈ phase.id"
+    text note_type_id PK, FK "FK076: note_type_id ∈ note_type.id"
   }
 
   phase_phase_status:::associativeTable {
@@ -836,6 +827,15 @@ erDiagram
   role_person_type:::associativeTable {
     text role_id PK, FK "FK032: role_id ∈ role.id"
     text person_type_id PK, FK "FK031: person_type_id ∈ person_type.id"
+  }
+
+  system_role_assignment:::associativeTable {
+    uuid person_id PK, FK "FK039: (person_id, person_type_id) ∈ person.(id, person_type_id)"
+    text role_id PK, FK "FK038: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK040: (role_id, grant_level_id) ∈ role.(id, grant_level_id)"
+    text person_type_id FK "FK038: (role_id, person_type_id) ∈ role_person_type.(role_id, person_type_id)<br>FK039: (person_id, person_type_id) ∈ person.(id, person_type_id)"
+    text grant_level_id FK "FK040: (role_id, grant_level_id) ∈ role.(id, grant_level_id)<br>FK041: grant_level_id ∈ system_grant_level_limit.id"
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   %% Legend

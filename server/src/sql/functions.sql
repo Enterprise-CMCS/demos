@@ -798,7 +798,27 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
 CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.budget_neutrality_workbook
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
 BEFORE UPDATE ON demos_app.deliverable
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.deliverable_active_extension
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.deliverable_demonstration_type
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.deliverable_extension
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
@@ -823,12 +843,12 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
 CREATE TRIGGER _disable_redundant_updates
-BEFORE UPDATE ON demos_app.document_pending_upload
+BEFORE UPDATE ON demos_app.document_infected
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
 CREATE TRIGGER _disable_redundant_updates
-BEFORE UPDATE ON demos_app.document_infected
+BEFORE UPDATE ON demos_app.document_pending_upload
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
@@ -853,6 +873,16 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
 CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.private_comment
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.public_comment
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
 BEFORE UPDATE ON demos_app.role_permission
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
@@ -863,12 +893,12 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
 CREATE TRIGGER _disable_redundant_updates
-BEFORE UPDATE ON demos_app.tag_name
+BEFORE UPDATE ON demos_app.tag
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
 CREATE TRIGGER _disable_redundant_updates
-BEFORE UPDATE ON demos_app.tag
+BEFORE UPDATE ON demos_app.tag_name
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 

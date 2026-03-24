@@ -20,8 +20,8 @@ model Document {
   phaseDocumentType               PhaseDocumentType?                    @relation(fields: [phaseId, documentTypeId], references: [phaseId, documentTypeId])
   deliverable                     Deliverable?                          @relation(fields: [deliverableId, applicationId, deliverableTypeId], references: [id, demonstrationId, deliverableTypeId])
   deliverableTypeDocumentType     DeliverableTypeDocumentType?          @relation(fields: [deliverableTypeId, documentTypeId], references: [deliverableTypeId, documentTypeId])
-  deliverableSubmission           DeliverableAction?                    @relation(fields: [deliverableSubmissionActionId, deliverableSubmissionActionTypeId], references: [id, actionTypeId])
-  deliverableSubmissionActionType DeliverableSubmissionActionTypeLimit? @relation(fields: [deliverableSubmissionActionTypeId], references: [id])
+  deliverableSubmission           DeliverableAction?                    @relation(fields: [deliverableSubmissionActionId, deliverableSubmissionActionTypeId], references: [id, actionTypeId], onDelete: Restrict)
+  deliverableSubmissionActionType DeliverableSubmissionActionTypeLimit? @relation(fields: [deliverableSubmissionActionTypeId], references: [id], onDelete: Restrict)
   uipathResults                   UiPathResult[]
   budgetNeutralityWorkbooks       BudgetNeutralityWorkbook[]
 

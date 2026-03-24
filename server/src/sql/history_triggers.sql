@@ -1364,6 +1364,120 @@ CREATE OR REPLACE TRIGGER log_changes_primary_demonstration_role_assignment
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.primary_demonstration_role_assignment
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_primary_demonstration_role_assignment();
 
+CREATE OR REPLACE FUNCTION demos_app.log_changes_private_comment()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.private_comment_history (
+            revision_type,
+            id,
+            deliverable_id,
+            author_user_id,
+            author_person_type_id,
+            content,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.deliverable_id,
+            NEW.author_user_id,
+            NEW.author_person_type_id,
+            NEW.content,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.private_comment_history (
+            revision_type,
+            id,
+            deliverable_id,
+            author_user_id,
+            author_person_type_id,
+            content,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.deliverable_id,
+            OLD.author_user_id,
+            OLD.author_person_type_id,
+            OLD.content,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_private_comment
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.private_comment
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_private_comment();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_public_comment()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.public_comment_history (
+            revision_type,
+            id,
+            deliverable_id,
+            author_user_id,
+            content,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.deliverable_id,
+            NEW.author_user_id,
+            NEW.content,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.public_comment_history (
+            revision_type,
+            id,
+            deliverable_id,
+            author_user_id,
+            content,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.deliverable_id,
+            OLD.author_user_id,
+            OLD.content,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_public_comment
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.public_comment
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_public_comment();
+
 CREATE OR REPLACE FUNCTION demos_app.log_changes_role_permission()
 RETURNS TRIGGER AS $$
 BEGIN

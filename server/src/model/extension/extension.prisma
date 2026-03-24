@@ -17,7 +17,7 @@ model Extension {
   demonstration   Demonstration                 @relation(fields: [demonstrationId], references: [id])
   status          ApplicationStatus             @relation(fields: [statusId], references: [id])
   currentPhase    Phase                         @relation(fields: [currentPhaseId], references: [id])
-  clearanceLevel  ClearanceLevel                @relation(fields: [clearanceLevelId], references: [id], onDelete: Restrict)
+  clearanceLevel  ClearanceLevel                @relation(fields: [clearanceLevelId], references: [id])
   signatureLevel  SignatureLevel?               @relation(fields: [signatureLevelId], references: [id], onDelete: Restrict)
 
   @@id([id])
