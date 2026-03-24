@@ -24,7 +24,7 @@ model Demonstration {
   amendments                      Amendment[]
   extensions                      Extension[]
   demonstrationRoleAssignments    DemonstrationRoleAssignment[]
-  clearanceLevel                  ClearanceLevel                    @relation(fields: [clearanceLevelId], references: [id], onDelete: Restrict)
+  clearanceLevel                  ClearanceLevel                    @relation(fields: [clearanceLevelId], references: [id])
   demonstrationTypeTagAssignments DemonstrationTypeTagAssignment[]
   deliverables                    Deliverable[]
 

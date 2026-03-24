@@ -16,7 +16,7 @@ model DeliverableAction {
 
   deliverable         Deliverable                    @relation(fields: [deliverableId], references: [id])
   activeExtension     DeliverableExtension?          @relation(fields: [activeExtensionId, deliverableId], references: [id, deliverableId])
-  user                User?                          @relation(fields: [userId], references: [id])
+  user                User?                          @relation(fields: [userId], references: [id], onDelete: Restrict)
   actionType          DeliverableActionType          @relation(fields: [actionTypeId, dueDateChangeAllowed], references: [id, dueDateChangeAllowed])
   actionConfiguration DeliverableActionConfiguration @relation(fields: [actionTypeId, oldStatusId, newStatusId], references: [actionTypeId, oldStatusId, newStatusId])
   documents           Document[]

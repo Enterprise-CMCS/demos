@@ -2,8 +2,9 @@
 model CmsUserPersonTypeLimit {
   id String
 
-  personType   PersonType    @relation(fields: [id], references: [id])
-  deliverables Deliverable[]
+  personType      PersonType       @relation(fields: [id], references: [id])
+  deliverables    Deliverable[]
+  privateComments PrivateComment[]
 
   @@id([id])
   @@map("cms_user_person_type_limit")

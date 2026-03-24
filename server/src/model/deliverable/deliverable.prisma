@@ -25,6 +25,8 @@ model Deliverable {
   deliverableActions            DeliverableAction[]
   deliverableExtensions         DeliverableExtension[]
   deliverableDemonstrationTypes DeliverableDemonstrationType[]
+  privateComments               PrivateComment[]
+  publicComments                PublicComment[]
 
   @@id([id])
   @@unique([id, demonstrationId])
