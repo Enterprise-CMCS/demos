@@ -40,6 +40,47 @@ const getUserPermissions = async (userId: string): Promise<Permission[]> => {
   // casting enforced by database constraints
   return userPermissions as Permission[];
 };
+
+/**
+ * Validates that all fields in a GraphQL document are accessible with the given permissions.
+ * Exported for testing purposes.
+ * @throws Error if any field is not accessible
+ */
+export const validateDocumentPermissions = (
+  document: DocumentNode,
+  schema: GraphQLSchema,
+  userPermissions: Permission[]
+): void => {
+  const typeInfo = new TypeInfo(schema);
+  visit(
+    document,
+    visitWithTypeInfo(typeInfo, {
+      Field() {
+        const fieldDef = typeInfo.getFieldDef();
+        const parentType = typeInfo.getParentType();
+
+        if (
+          !fieldDef ||
+          !parentType ||
+          fieldDef.name.startsWith("__") ||
+          isIntrospectionType(parentType)
+        ) {
+          return;
+        }
+
+        const permission: Permission = getApplicablePermissions(schema, fieldDef);
+        const hasPermission = userPermissions.includes(permission);
+
+        if (!hasPermission) {
+          throw new Error(
+            `Unauthorized: You do not have permission to access field "${fieldDef.name}" of type "${parentType.name}"`
+          );
+        }
+      },
+    })
+  );
+};
+
 export const fieldAuthPlugin = {
   async requestDidStart() {
     return {
@@ -53,38 +94,11 @@ export const fieldAuthPlugin = {
           throw new Error("Unauthorized: No user in context");
         }
 
-        const document = requestContext.document;
-        const schema = requestContext.schema;
-
         const userPermissions: Permission[] = await getUserPermissions(user.id);
-
-        const typeInfo = new TypeInfo(schema);
-        visit(
-          document,
-          visitWithTypeInfo(typeInfo, {
-            Field() {
-              const fieldDef = typeInfo.getFieldDef();
-              const parentType = typeInfo.getParentType();
-
-              if (
-                !fieldDef ||
-                !parentType ||
-                fieldDef.name.startsWith("__") ||
-                isIntrospectionType(parentType)
-              ) {
-                return;
-              }
-
-              const permission: Permission = getApplicablePermissions(schema, fieldDef);
-              const hasPermission = userPermissions.includes(permission);
-
-              if (!hasPermission) {
-                throw new Error(
-                  `Unauthorized: You do not have permission to access field "${fieldDef.name}" of type "${parentType.name}"`
-                );
-              }
-            },
-          })
+        validateDocumentPermissions(
+          requestContext.document,
+          requestContext.schema,
+          userPermissions
         );
       },
     };
