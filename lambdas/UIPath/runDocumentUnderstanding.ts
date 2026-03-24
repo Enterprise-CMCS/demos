@@ -15,27 +15,22 @@ type UiPathStatus = "Pending" | "Finished" | "Failed";
 const DEMO_TYPE_FIELD_ID = "demo_type";
 const DEMOS_SCHEMA = "demos_app";
 
-const UPSERT_RESULT_SQL = `insert into ${DEMOS_SCHEMA}.uipath_result (id, request_id, project_id, response, document_id, status_id)
- values ($1, $2, $3, $4::jsonb, $5, $6)
+const UPSERT_RESULT_BY_REQUEST_SQL = `insert into ${DEMOS_SCHEMA}.uipath_result
+ (id, request_id, project_id, response, document_id, application_id, status_id, updated_at)
+ values ($1, $2, $3, $4::jsonb, $5, $6, $7, now())
  on conflict (request_id)
  do update set
-   document_id = coalesce(excluded.document_id, uipath_result.document_id),
+   document_id = excluded.document_id,
+   application_id = excluded.application_id,
    project_id = excluded.project_id,
    response = excluded.response,
-   status_id = excluded.status_id
+   status_id = excluded.status_id,
+   updated_at = now()
  returning id`;
-const UPSERT_FIELD_SQL = `insert into ${DEMOS_SCHEMA}.uipath_result_field
-  (id, uipath_result_id, field_id, field_name, field_type, value, confidence, value_json, text_length)
+const INSERT_VALUE_SQL = `insert into ${DEMOS_SCHEMA}.uipath_value
+  (id, uipath_result_id, document_id, application_id, field_id, value, text_length, text_start_index, confidence, token_list, updated_at)
  values
-  ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9)
- on conflict (uipath_result_id, field_id)
- do update set
-   field_name = excluded.field_name,
-   field_type = excluded.field_type,
-   value = excluded.value,
-   confidence = excluded.confidence,
-   value_json = excluded.value_json,
-   text_length = excluded.text_length`;
+  ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, now())`;
 
 interface UiPathFieldValue {
   Value?: string;
@@ -43,7 +38,12 @@ interface UiPathFieldValue {
   Confidence?: number;
   Reference?: {
     TextLength?: number;
+    TextStartIndex?: number;
+    TokenList?: unknown;
+    Tokens?: unknown;
   };
+  TokenList?: unknown;
+  Tokens?: unknown;
   [key: string]: unknown;
 }
 
@@ -90,6 +90,17 @@ type PersistableFieldValue = {
 
 function getConfidence(value: UiPathFieldValue): number {
   return typeof value.Confidence === "number" ? value.Confidence : 0;
+}
+
+function getTextStartIndex(value: UiPathFieldValue): number {
+  const startIndex = value.Reference?.TextStartIndex;
+  return typeof startIndex === "number" ? startIndex : 0;
+}
+
+function getTokenList(value: UiPathFieldValue): unknown[] {
+  const tokenList =
+    value.Reference?.TokenList ?? value.Reference?.Tokens ?? value.TokenList ?? value.Tokens;
+  return Array.isArray(tokenList) ? tokenList : [];
 }
 
 function coerceValueText(value: UiPathFieldValue): string | null {
@@ -175,7 +186,8 @@ async function persistExtractionStatus(
   status: ExtractionStatus,
   requestId: string,
   projectId: string,
-  documentId: string | undefined,
+  documentId: string,
+  applicationId: string,
 ): Promise<void> {
   log.info("Extraction succeeded, processing results");
   const pool = await getDbPool();
@@ -189,6 +201,7 @@ async function persistExtractionStatus(
       requestId,
       projectId,
       documentId,
+      applicationId,
       "Finished",
       status,
     );
@@ -204,17 +217,20 @@ async function persistExtractionStatus(
           typeof row.fieldValue.Reference?.TextLength === "number"
             ? row.fieldValue.Reference.TextLength
             : row.valueText.length;
+        const textStartIndex = getTextStartIndex(row.fieldValue);
+        const tokenList = getTokenList(row.fieldValue);
 
-        await client.query(UPSERT_FIELD_SQL, [
+        await client.query(INSERT_VALUE_SQL, [
           randomUUID(),
           resultId,
+          documentId,
+          applicationId,
           row.FieldId,
-          row.FieldName,
-          row.FieldType,
           row.valueText,
-          confidence,
-          JSON.stringify(row.fieldValue),
           textLength,
+          textStartIndex,
+          confidence,
+          JSON.stringify(tokenList),
         ]);
       }
     }
@@ -238,20 +254,22 @@ async function upsertResult(
   client: PoolClient,
   requestId: string,
   projectId: string,
-  documentId: string | undefined,
+  documentId: string,
+  applicationId: string,
   status: UiPathStatus,
   response: unknown,
 ): Promise<string> {
-  const upsertedResult = await client.query<{ id: string }>(UPSERT_RESULT_SQL, [
+  const upsertedResult = await client.query<{ id: string }>(UPSERT_RESULT_BY_REQUEST_SQL, [
     randomUUID(),
     requestId,
     projectId,
     JSON.stringify(response),
     documentId,
+    applicationId,
     status,
   ]);
-
   const resultId = upsertedResult.rows[0]?.id;
+
   if (!resultId) {
     throw new Error("Failed to persist UiPath result row.");
   }
@@ -262,7 +280,8 @@ async function upsertResult(
 async function persistResultStatus(
   requestId: string,
   projectId: string,
-  documentId: string | undefined,
+  documentId: string,
+  applicationId: string,
   status: UiPathStatus,
   response: unknown,
 ): Promise<void> {
@@ -270,7 +289,7 @@ async function persistResultStatus(
   const client = await pool.connect();
 
   try {
-    await upsertResult(client, requestId, projectId, documentId, status, response);
+    await upsertResult(client, requestId, projectId, documentId, applicationId, status, response);
   } finally {
     client.release();
   }
@@ -294,6 +313,7 @@ export interface RunDocumentUnderstandingOptions {
   requestId?: string;
   fileNameWithExtension?: string;
   documentId?: string;
+  applicationId?: string;
 }
 
 export async function runDocumentUnderstanding(
@@ -307,7 +327,13 @@ export async function runDocumentUnderstanding(
     requestId = "n/a",
     fileNameWithExtension,
     documentId,
+    applicationId,
   } = options;
+
+  if (!documentId || !applicationId) {
+    throw new Error("documentId and applicationId are required to persist UiPath results.");
+  }
+
   const token = providedToken ?? (await getToken());
   const projectId = await getProjectIdByName(token, process.env.UIPATH_PROJECT_NAME ?? "demosOCR");
   const docId = await uploadDocument(token, inputFile, projectId, fileNameWithExtension);
@@ -325,6 +351,7 @@ export async function runDocumentUnderstanding(
       requestId,
       projectId,
       documentId,
+      applicationId,
       "Pending",
       { status: "Pending" },
     );
@@ -336,7 +363,7 @@ export async function runDocumentUnderstanding(
       lastPolledStatus = status;
 
       if (status.status === "Succeeded") {
-        await persistExtractionStatus(status, requestId, projectId, documentId);
+        await persistExtractionStatus(status, requestId, projectId, documentId, applicationId);
         return status;
       }
 
@@ -355,6 +382,7 @@ export async function runDocumentUnderstanding(
         requestId,
         projectId,
         documentId,
+        applicationId,
         "Failed",
         buildFailureResponse(error, lastPolledStatus),
       );
