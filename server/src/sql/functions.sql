@@ -798,16 +798,6 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
 CREATE TRIGGER _disable_redundant_updates
-BEFORE UPDATE ON demos_app.application_tag_suggestion
-FOR EACH ROW
-EXECUTE FUNCTION demos_app.disable_redundant_updates();
-
-CREATE TRIGGER _disable_redundant_updates
-BEFORE UPDATE ON demos_app.application_tag_suggestion_extract
-FOR EACH ROW
-EXECUTE FUNCTION demos_app.disable_redundant_updates();
-
-CREATE TRIGGER _disable_redundant_updates
 BEFORE UPDATE ON demos_app.budget_neutrality_workbook
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
@@ -909,16 +899,6 @@ EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
 CREATE TRIGGER _disable_redundant_updates
 BEFORE UPDATE ON demos_app.tag_name
-FOR EACH ROW
-EXECUTE FUNCTION demos_app.disable_redundant_updates();
-
-CREATE TRIGGER _disable_redundant_updates
-BEFORE UPDATE ON demos_app.uipath_result
-FOR EACH ROW
-EXECUTE FUNCTION demos_app.disable_redundant_updates();
-
-CREATE TRIGGER _disable_redundant_updates
-BEFORE UPDATE ON demos_app.uipath_value
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
