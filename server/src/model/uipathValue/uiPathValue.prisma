@@ -16,6 +16,5 @@ model UiPathValue {
   extracts ApplicationTagSuggestionExtract[]
 
   @@unique([id, applicationId, fieldId, value])
-  @@index([uiPathResultId, documentId, applicationId])
   @@map("uipath_value")
 }

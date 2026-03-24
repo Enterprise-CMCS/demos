@@ -6,11 +6,9 @@ VALUES
   ('Pending'),
   ('Accepted'),
   ('Replaced'),
-  ('Removed')
-ON CONFLICT ("id") DO NOTHING;
+  ('Removed');
 
 -- Seed default values
 INSERT INTO "application_tag_suggestion_extract_field_limit" ("id")
 VALUES
-  ('demo_type')
-ON CONFLICT ("id") DO NOTHING;
+  ('demo_type');

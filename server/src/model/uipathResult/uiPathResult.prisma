@@ -9,9 +9,9 @@ model UiPathResult {
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  status       UiPathStatus  @relation(fields: [statusId], references: [id])
+  status       UiPathResultStatus @relation(fields: [statusId], references: [id])
   uiPathValues UiPathValue[]
-  document     Document      @relation(fields: [documentId], references: [id])
+  document     Document           @relation(fields: [documentId, applicationId], references: [id, applicationId])
 
   @@unique([id, documentId, applicationId])
   @@unique([requestId])
