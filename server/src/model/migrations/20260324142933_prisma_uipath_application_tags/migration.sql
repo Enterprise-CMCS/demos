@@ -166,11 +166,6 @@ CREATE UNIQUE INDEX "uipath_result_document_id_key"
 ON "uipath_result"("document_id");
 
 -- AddForeignKey
-ALTER TABLE "amendment" ADD CONSTRAINT "amendment_id_application_type_id_fkey"
-FOREIGN KEY ("id", "application_type_id") REFERENCES "application"("id", "application_type_id")
-ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "application_tag_suggestion" ADD CONSTRAINT "application_tag_suggestion_status_id_fkey"
 FOREIGN KEY ("status_id") REFERENCES "application_tag_suggestion_status"("id")
 ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -188,16 +183,6 @@ ON DELETE RESTRICT ON UPDATE CASCADE;
 -- AddForeignKey
 ALTER TABLE "application_tag_suggestion_extract" ADD CONSTRAINT "application_tag_suggestion_extract_field_id_fkey"
 FOREIGN KEY ("field_id") REFERENCES "application_tag_suggestion_extract_field_limit"("id")
-ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "demonstration" ADD CONSTRAINT "demonstration_id_application_type_id_fkey"
-FOREIGN KEY ("id", "application_type_id") REFERENCES "application"("id", "application_type_id")
-ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "extension" ADD CONSTRAINT "extension_id_application_type_id_fkey"
-FOREIGN KEY ("id", "application_type_id") REFERENCES "application"("id", "application_type_id")
 ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
