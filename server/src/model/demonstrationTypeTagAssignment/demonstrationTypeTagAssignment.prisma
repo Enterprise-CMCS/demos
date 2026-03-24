@@ -7,9 +7,10 @@ model DemonstrationTypeTagAssignment {
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  demonstration Demonstration                 @relation(fields: [demonstrationId], references: [id])
-  tag           Tag                           @relation(fields: [tagNameId, tagTypeId], references: [tagNameId, tagTypeId])
-  tagType       DemonstrationTypeTagTypeLimit @relation(fields: [tagTypeId], references: [id])
+  demonstration                 Demonstration                  @relation(fields: [demonstrationId], references: [id])
+  tag                           Tag                            @relation(fields: [tagNameId, tagTypeId], references: [tagNameId, tagTypeId])
+  tagType                       DemonstrationTypeTagTypeLimit  @relation(fields: [tagTypeId], references: [id])
+  deliverableDemonstrationTypes DeliverableDemonstrationType[]
 
   @@id([demonstrationId, tagNameId])
   @@map("demonstration_type_tag_assignment")

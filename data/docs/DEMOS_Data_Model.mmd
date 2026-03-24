@@ -136,6 +136,8 @@ erDiagram
   deliverable ||--|{ deliverable_action : "FK114"
   deliverable_action }|--|| deliverable_extension : "FK133"
   deliverable ||--|{ deliverable_extension : "FK127"
+  deliverable ||--|{ deliverable_demonstration_type : "FK142"
+  demonstration_type_tag_assignment ||--|{ deliverable_demonstration_type : "FK143"
   deliverable_extension }|--|| deliverable_extension_reason_code : "FK129"
   deliverable_extension }|--|| deliverable_extension_status : "FK128"
   deliverable_extension_status ||--|| deliverable_active_extension_status_limit : "FK131"
@@ -438,10 +440,11 @@ erDiagram
     HAS_HISTORY true
   }
 
+  %% NOTE: That empty line with <br>&nbsp; is a layout hack for Mermaid
   deliverable:::dataTable {
-    uuid id PK, UK "UK: (id, demonstration_id, deliverable_type_id)"
+    uuid id PK, UK "UK: (id, demonstration_id, deliverable_type_id)<br>UK: (id, demonstration_id)<br>&nbsp;"
     text deliverable_type_id FK, UK "FK067: deliverable_type_id ∈ deliverable_type.id<br>UK: (id, demonstration_id, deliverable_type_id)"
-    uuid demonstration_id FK, UK "FK006: (demonstration_id, demonstration_status_id) ∈ demonstration.(id, status_id)<br>UK: (id, demonstration_id, deliverable_type_id)"
+    uuid demonstration_id FK, UK "FK006: (demonstration_id, demonstration_status_id) ∈ demonstration.(id, status_id)<br>UK: (id, demonstration_id, deliverable_type_id)<br>UK: (id, demonstration_id)"
     text demonstration_status_id FK "FK006: (demonstration_id, demonstration_status_id) ∈ demonstration.(id, status_id)<br>FK105: demonstration_status_id ∈ deliverable_demonstration_status_limit.id"
     text status_id FK "FK094: status_id ∈ deliverable_status.id"
     uuid cms_owner_user_id FK "FK108: (cms_owner_user_id, cms_owner_person_type_id) ∈ users.(id, person_type_id)"
@@ -751,6 +754,14 @@ erDiagram
     text action_type_id PK, FK "FK116: action_type_id ∈ deliverable_action_type.id"
     text old_status_id PK, FK "FK115: old_status_id ∈ deliverable_status.id"
     text new_status_id PK, FK "FK118: new_status_id ∈ deliverable_status.id"
+  }
+
+  deliverable_demonstration_type:::associativeTable {
+    uuid deliverable_id PK, FK "FK142: (deliverable_id, demonstration_id) ∈ deliverable.(id, demonstration_id)"
+    uuid demonstration_id PK, FK "FK142: (deliverable_id, demonstration_id) ∈ deliverable.(id, demonstration_id)<br>FK143: (demonstration_id, demonstration_type_tag_name_id) ∈ demonstration_type_tag_assignment.(demonstration_id, tag_name_id)"
+    text demonstration_type_tag_name_id PK, FK "FK143: (demonstration_id, demonstration_type_tag_name_id) ∈ demonstration_type_tag_assignment.(demonstration_id, tag_name_id)"
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
   }
 
   deliverable_type_document_type:::associativeTable {
