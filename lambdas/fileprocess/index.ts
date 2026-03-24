@@ -13,6 +13,7 @@ import { als, log, store, reqIdChild } from "./log";
 
 const GUARDDUTY_CLEAN_STATUS = "NO_THREATS_FOUND";
 const FINAL_BN_WORKSHEET_DOCUMENT_TYPE = "Final BN Worksheet";
+const STATE_APPLICATION_DOCUMENT_TYPE = "State Application";
 const PROCESS_PENDING_DOCUMENT_CLEAN = "move_document_from_pending_to_clean";
 const PROCESS_PENDING_DOCUMENT_INFECTED = "move_document_from_pending_to_infected";
 const AWS_REGION = process.env.AWS_REGION;
@@ -24,6 +25,7 @@ const uploadBucket = process.env.UPLOAD_BUCKET;
 const cleanBucket = process.env.CLEAN_BUCKET;
 const infectedBucket = process.env.INFECTED_BUCKET;
 const budgetNeutralityQueueUrl = process.env.BUDGET_NEUTRALITY_QUEUE_URL;
+const uiPathQueueUrl = process.env.UIPATH_QUEUE_URL;
 const dbSchema = process.env.DB_SCHEMA || "demos_app";
 const bypassSSL = process.env.BYPASS_SSL;
 const awsEndpointUrl = process.env.AWS_ENDPOINT_URL;
@@ -180,6 +182,33 @@ export async function enqueueBudgetNeutrality(
   );
 }
 
+export async function enqueueUiPath(documentId: string) {
+  log.info({ documentId }, "UiPath Queue Started");
+
+  if (!uiPathQueueUrl) {
+    throw new Error("UIPATH_QUEUE_URL environment variable is required.");
+  }
+
+  const sqsClient = new SQSClient(awsClientConfig);
+  const response = await sqsClient.send(
+    new SendMessageCommand({
+      QueueUrl: uiPathQueueUrl,
+      MessageBody: JSON.stringify({
+        documentId,
+      }),
+    })
+  );
+
+  if (!response.MessageId) {
+    throw new Error(`Failed to enqueue UiPath message for document ${documentId}.`);
+  }
+
+  log.info(
+    { documentId, messageId: response.MessageId },
+    "queued UiPath extraction request."
+  );
+}
+
 export async function processGuardDutyResult(
   client: typeof Client,
   guardDutyEvent: GuardDutyScanResultNotificationEvent
@@ -223,6 +252,9 @@ export async function processGuardDutyResult(
 
   if (isClean) {
     const fileTypeId = await processCleanDatabaseRecord(client, documentId, applicationId);
+    if (fileTypeId === STATE_APPLICATION_DOCUMENT_TYPE) {
+      await enqueueUiPath(documentId);
+    }
     if (fileTypeId === FINAL_BN_WORKSHEET_DOCUMENT_TYPE) {
       await enqueueBudgetNeutrality(documentId, fileTypeId);
     }

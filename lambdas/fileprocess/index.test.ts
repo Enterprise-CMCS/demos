@@ -30,6 +30,7 @@ import {
   processInfectedDatabaseRecord,
   processCleanDatabaseRecord,
   enqueueBudgetNeutrality,
+  enqueueUiPath,
 } from ".";
 
 import { CopyObjectCommand, DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
@@ -257,6 +258,47 @@ describe("file-process", () => {
       expect(sqsMocks.sendMock).toHaveBeenCalledTimes(2);
     });
   });
+
+  describe("enqueueUiPath", () => {
+    it("should enqueue a UiPath message", async () => {
+      sqsMocks.sendMock.mockResolvedValueOnce({ MessageId: "msg-uipath-123" });
+
+      await enqueueUiPath("test-doc-id");
+
+      expect(sqsMocks.SQSClientMock).toHaveBeenCalledWith({
+        region: "us-east-1",
+        endpoint: process.env.AWS_ENDPOINT_URL,
+      });
+      expect(sqsMocks.sendMock).toHaveBeenCalledTimes(1);
+      expect(
+        (sqsMocks.sendMock.mock.calls[0][0] as { input: Record<string, unknown> }).input
+      ).toEqual({
+        QueueUrl: process.env.UIPATH_QUEUE_URL,
+        MessageBody: JSON.stringify({
+          documentId: "test-doc-id",
+        }),
+      });
+      expect(logInfoSpy).toHaveBeenNthCalledWith(
+        1,
+        { documentId: "test-doc-id" },
+        "UiPath Queue Started"
+      );
+      expect(logInfoSpy).toHaveBeenNthCalledWith(
+        2,
+        { documentId: "test-doc-id", messageId: "msg-uipath-123" },
+        "queued UiPath extraction request."
+      );
+    });
+
+    it("should throw when sqs does not return a message id", async () => {
+      sqsMocks.sendMock.mockResolvedValueOnce({});
+
+      await expect(enqueueUiPath("test-doc-id")).rejects.toThrow(
+        "Failed to enqueue UiPath message for document test-doc-id."
+      );
+    });
+  });
+
   describe("processGuardDutyResult", () => {
     test("should successfully process the file", async () => {
       const mockSend = vi.fn();
@@ -266,7 +308,7 @@ describe("file-process", () => {
         query: vi
           .fn()
           .mockResolvedValueOnce({ rows: [{ application_id: "1" }] })
-          .mockResolvedValueOnce({ rows: [{ document_type_id: "State Application" }] }),
+          .mockResolvedValueOnce({ rows: [{ document_type_id: "General File" }] }),
       };
       await processGuardDutyResult(mockClient, mockEventBase);
       expect(logInfoSpy).toHaveBeenCalledTimes(3);
@@ -280,7 +322,7 @@ describe("file-process", () => {
       );
       expect(logInfoSpy).toHaveBeenNthCalledWith(
         3,
-        { documentTypeId: "State Application" },
+        { documentTypeId: "General File" },
         "successfully processed clean file in database."
       );
       expect(mockSend).toHaveBeenCalledTimes(2);
@@ -315,6 +357,32 @@ describe("file-process", () => {
         MessageBody: JSON.stringify({
           documentId: "test-key",
           documentTypeId: "Final BN Worksheet",
+        }),
+      });
+    });
+
+    test("should enqueue UiPath for State Application", async () => {
+      const mockSend = vi.fn();
+      vi.spyOn(S3Client.prototype, "send").mockImplementation(mockSend);
+      sqsMocks.sendMock.mockResolvedValueOnce({ MessageId: "msg-uipath-state-app" });
+
+      const mockClient = {
+        query: vi
+          .fn()
+          .mockResolvedValueOnce({ rows: [{ application_id: "1" }] })
+          .mockResolvedValueOnce({ rows: [{ document_type_id: "State Application" }] }),
+      };
+
+      const isClean = await processGuardDutyResult(mockClient, mockEventBase);
+
+      expect(isClean).toBe(true);
+      expect(sqsMocks.sendMock).toHaveBeenCalledTimes(1);
+      expect(
+        (sqsMocks.sendMock.mock.calls[0][0] as { input: Record<string, unknown> }).input
+      ).toEqual({
+        QueueUrl: process.env.UIPATH_QUEUE_URL,
+        MessageBody: JSON.stringify({
+          documentId: "test-key",
         }),
       });
     });
@@ -453,7 +521,7 @@ describe("file-process", () => {
       mockQuery
         .mockResolvedValueOnce({ rows: [] })
         .mockResolvedValueOnce({ rows: [{ application_id: "1" }] })
-        .mockResolvedValueOnce({ rows: [{ document_type_id: "State Application" }] });
+        .mockResolvedValueOnce({ rows: [{ document_type_id: "General File" }] });
 
       await handler(
         {
@@ -490,7 +558,7 @@ describe("file-process", () => {
       );
       expect(logInfoSpy).toHaveBeenNthCalledWith(
         3,
-        { documentTypeId: "State Application" },
+        { documentTypeId: "General File" },
         "successfully processed clean file in database."
       );
       expect(logInfoSpy).toHaveBeenNthCalledWith(
@@ -523,6 +591,62 @@ describe("file-process", () => {
         "SELECT demos_app.move_document_from_pending_to_clean($1::UUID, $2::TEXT) AS document_type_id;",
         ["test-key", "1/test-key"]
       );
+      expect(sqsMocks.sendMock).not.toHaveBeenCalled();
+      expect(mockEnd).toHaveBeenCalledTimes(1);
+    });
+
+    test("should enqueue UiPath for State Application clean file", async () => {
+      const mockSend = vi.fn();
+      vi.spyOn(S3Client.prototype, "send").mockImplementation(mockSend);
+      vi.spyOn(SecretsManagerClient.prototype, "send").mockImplementation(() => ({
+        SecretString: JSON.stringify({
+          username: "something",
+          password: "fake", // pragma: allowlist secret
+          host: "fakehost",
+          port: 1234,
+          dbname: "test",
+        }),
+      }));
+      sqsMocks.sendMock.mockResolvedValueOnce({ MessageId: "msg-uipath-handler" });
+
+      mockQuery
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [{ application_id: "1" }] })
+        .mockResolvedValueOnce({ rows: [{ document_type_id: "State Application" }] });
+
+      await handler(
+        {
+          Records: [
+            {
+              messageId: "123",
+              receiptHandle: "",
+              messageAttributes: {},
+              md5OfBody: "",
+              eventSource: "",
+              eventSourceARN: "",
+              awsRegion: "us-east-1",
+              attributes: {
+                ApproximateReceiveCount: "1",
+                SentTimestamp: "mock timestamp",
+                SenderId: "1",
+                ApproximateFirstReceiveTimestamp: "",
+              },
+              body: JSON.stringify(mockEventBase),
+            },
+          ],
+        },
+        mockContext
+      );
+
+      expect(sqsMocks.sendMock).toHaveBeenCalledTimes(1);
+      expect(
+        (sqsMocks.sendMock.mock.calls[0][0] as { input: Record<string, unknown> }).input
+      ).toEqual({
+        QueueUrl: process.env.UIPATH_QUEUE_URL,
+        MessageBody: JSON.stringify({
+          documentId: "test-key",
+        }),
+      });
       expect(mockEnd).toHaveBeenCalledTimes(1);
     });
 
