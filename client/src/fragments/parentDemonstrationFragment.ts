@@ -1,33 +1,23 @@
 import { gql } from "@apollo/client";
-import type { Demonstration, Person, State, DemonstrationTypeAssignment } from "demos-server";
+import type { Demonstration, DemonstrationTypeAssignment } from "demos-server";
 import { WorkflowApplication } from "components/application";
 
 export const PARENT_DEMONSTRATION_FIELDS = gql`
   fragment PARENT_DEMONSTRATION_FIELDS on Demonstration {
-    state {
-      id
-      name
-    }
-    primaryProjectOfficer {
-      id
-      fullName
-    }
-    expirationDate
-    sdgDivision
+    id
+    status
     demonstrationTypes {
       demonstrationTypeName
       status
       effectiveDate
+      approvalStatus
       expirationDate
       createdAt
-      approvalStatus
     }
   }
 `;
 
-export type ParentDemonstrationFields = Pick<Demonstration, "expirationDate" | "sdgDivision"> & {
-  state: Pick<State, "id" | "name">;
-  primaryProjectOfficer: Pick<Person, "id" | "fullName">;
+export type ParentDemonstrationFields = Pick<Demonstration, "id" | "status"> & {
   demonstrationTypes: Pick<
     DemonstrationTypeAssignment,
     | "demonstrationTypeName"
