@@ -12,7 +12,7 @@ interface UiPathCredentials {
 
 const TOKEN_URL = "https://govcloud.uipath.us/identity_/connect/token";
 /**
- * This has been an issue with localstack.
+ * Verify the correct secrets have been set to actual values, and not default placeholders
  *
  * @param credentials
  */

@@ -42,6 +42,9 @@ vi.mock("./log", () => ({
 import { runDocumentUnderstanding } from "./runDocumentUnderstanding";
 import { getToken } from "./getToken";
 
+const TEST_DOCUMENT_ID = "4cdfe542-90aa-489f-93d5-e786aaff49a2";
+const TEST_APPLICATION_ID = "app-1";
+
 describe("runDocumentUnderstanding", () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -71,6 +74,8 @@ describe("runDocumentUnderstanding", () => {
     const promise = runDocumentUnderstanding("file.pdf", {
       pollIntervalMs: 10,
       requestId: "request-1",
+      documentId: TEST_DOCUMENT_ID,
+      applicationId: TEST_APPLICATION_ID,
     });
 
     await vi.runAllTimersAsync();
@@ -89,8 +94,8 @@ describe("runDocumentUnderstanding", () => {
     expect(mocks.queryMock).toHaveBeenCalledTimes(4);
     expect(mocks.queryMock.mock.calls[1]?.[0]).toBe("BEGIN");
     expect(mocks.queryMock.mock.calls[3]?.[0]).toBe("COMMIT");
-    expect(mocks.queryMock.mock.calls[0]?.[1]?.[5]).toBe("Pending");
-    expect(mocks.queryMock.mock.calls[2]?.[1]?.[5]).toBe("Finished");
+    expect(mocks.queryMock.mock.calls[0]?.[1]?.[6]).toBe("Pending");
+    expect(mocks.queryMock.mock.calls[2]?.[1]?.[6]).toBe("Finished");
     expect(mocks.releaseMock).toHaveBeenCalled();
   });
 
@@ -107,6 +112,8 @@ describe("runDocumentUnderstanding", () => {
       pollIntervalMs: 10,
       requestId: "request-file-name",
       fileNameWithExtension: "my_file.docx",
+      documentId: TEST_DOCUMENT_ID,
+      applicationId: TEST_APPLICATION_ID,
     });
 
     await vi.runAllTimersAsync();
@@ -132,7 +139,8 @@ describe("runDocumentUnderstanding", () => {
     const promise = runDocumentUnderstanding("file.pdf", {
       pollIntervalMs: 10,
       requestId: "request-doc-id",
-      documentId: "4cdfe542-90aa-489f-93d5-e786aaff49a2",
+      documentId: TEST_DOCUMENT_ID,
+      applicationId: TEST_APPLICATION_ID,
     });
 
     await vi.runAllTimersAsync();
@@ -145,7 +153,8 @@ describe("runDocumentUnderstanding", () => {
       "request-doc-id",
       "project-1",
       expect.any(String),
-      "4cdfe542-90aa-489f-93d5-e786aaff49a2",
+      TEST_DOCUMENT_ID,
+      TEST_APPLICATION_ID,
       "Pending",
     ]);
     expect(mocks.queryMock.mock.calls[2]?.[1]).toEqual([
@@ -153,7 +162,8 @@ describe("runDocumentUnderstanding", () => {
       "request-doc-id",
       "project-1",
       expect.any(String),
-      "4cdfe542-90aa-489f-93d5-e786aaff49a2",
+      TEST_DOCUMENT_ID,
+      TEST_APPLICATION_ID,
       "Finished",
     ]);
   });
@@ -167,14 +177,16 @@ describe("runDocumentUnderstanding", () => {
     const promise = runDocumentUnderstanding("file.pdf", {
       pollIntervalMs: 10,
       maxAttempts: 2,
+      documentId: TEST_DOCUMENT_ID,
+      applicationId: TEST_APPLICATION_ID,
     });
 
     const expectation = expect(promise).rejects.toThrow("did not succeed");
     await vi.runAllTimersAsync();
     await expectation;
     expect(mocks.queryMock).toHaveBeenCalledTimes(2);
-    expect(mocks.queryMock.mock.calls[0]?.[1]?.[5]).toBe("Pending");
-    expect(mocks.queryMock.mock.calls[1]?.[1]?.[5]).toBe("Failed");
+    expect(mocks.queryMock.mock.calls[0]?.[1]?.[6]).toBe("Pending");
+    expect(mocks.queryMock.mock.calls[1]?.[1]?.[6]).toBe("Failed");
   });
 
   it("persists top-level fields and skips non-string field values", async () => {
@@ -195,6 +207,8 @@ describe("runDocumentUnderstanding", () => {
     const promise = runDocumentUnderstanding("file.pdf", {
       pollIntervalMs: 10,
       requestId: "request-fields",
+      documentId: TEST_DOCUMENT_ID,
+      applicationId: TEST_APPLICATION_ID,
     });
 
     await vi.runAllTimersAsync();
@@ -205,13 +219,14 @@ describe("runDocumentUnderstanding", () => {
     expect(mocks.queryMock.mock.calls[3]?.[1]).toEqual([
       expect.any(String),
       "result-1",
+      TEST_DOCUMENT_ID,
+      TEST_APPLICATION_ID,
       "field-1",
-      "Field One",
-      "Text",
       "abc",
-      0,
-      expect.any(String),
       3,
+      0,
+      0,
+      "[]",
     ]);
   });
 
@@ -229,6 +244,8 @@ describe("runDocumentUnderstanding", () => {
     const promise = runDocumentUnderstanding("file.pdf", {
       pollIntervalMs: 10,
       requestId: "request-no-id",
+      documentId: TEST_DOCUMENT_ID,
+      applicationId: TEST_APPLICATION_ID,
     });
 
     const expectation = expect(promise).rejects.toThrow("Failed to persist UiPath result row.");
@@ -260,6 +277,8 @@ describe("runDocumentUnderstanding", () => {
     const promise = runDocumentUnderstanding("file.pdf", {
       pollIntervalMs: 10,
       requestId: "request-demo-type",
+      documentId: TEST_DOCUMENT_ID,
+      applicationId: TEST_APPLICATION_ID,
     });
 
     await vi.runAllTimersAsync();
@@ -270,19 +289,15 @@ describe("runDocumentUnderstanding", () => {
     expect(fieldInsertArgs).toEqual([
       expect.any(String),
       "result-1",
+      TEST_DOCUMENT_ID,
+      TEST_APPLICATION_ID,
       "demo_type",
-      "demo_type",
-      "Text",
       "SUD, BHP",
-      0.5224329,
-      expect.any(String),
       8,
+      0,
+      0.5224329,
+      "[]",
     ]);
-
-    const valueJson = JSON.parse(fieldInsertArgs?.[7] as string) as {
-      SelectedValues?: string[];
-    };
-    expect(valueJson.SelectedValues).toEqual(["SUD", "BHP"]);
   });
 
   it("marks result as failed when UiPath returns failed status", async () => {
@@ -294,6 +309,8 @@ describe("runDocumentUnderstanding", () => {
     const promise = runDocumentUnderstanding("file.pdf", {
       pollIntervalMs: 10,
       requestId: "request-failed-status",
+      documentId: TEST_DOCUMENT_ID,
+      applicationId: TEST_APPLICATION_ID,
     });
 
     const expectation = expect(promise).rejects.toThrow("UiPath extraction returned Failed status.");
@@ -301,17 +318,27 @@ describe("runDocumentUnderstanding", () => {
     await expectation;
 
     expect(mocks.queryMock).toHaveBeenCalledTimes(2);
-    expect(mocks.queryMock.mock.calls[0]?.[1]?.[5]).toBe("Pending");
-    expect(mocks.queryMock.mock.calls[1]?.[1]?.[5]).toBe("Failed");
+    expect(mocks.queryMock.mock.calls[0]?.[1]?.[6]).toBe("Pending");
+    expect(mocks.queryMock.mock.calls[1]?.[1]?.[6]).toBe("Failed");
+  });
+
+  it("throws when document context is missing", async () => {
+    await expect(runDocumentUnderstanding("file.pdf", { documentId: TEST_DOCUMENT_ID })).rejects.toThrow(
+      "documentId and applicationId are required to persist UiPath results."
+    );
+    expect(mocks.fetchExtractionResultMock).not.toHaveBeenCalled();
   });
 
   it("throws when extraction startup data is incomplete", async () => {
     mocks.uploadDocumentMock.mockResolvedValue("doc-1");
     mocks.extractDocMock.mockResolvedValue("");
 
-    await expect(runDocumentUnderstanding("file.pdf")).rejects.toThrow(
-      "Failed to initiate document understanding due to missing information."
-    );
+    await expect(
+      runDocumentUnderstanding("file.pdf", {
+        documentId: TEST_DOCUMENT_ID,
+        applicationId: TEST_APPLICATION_ID,
+      })
+    ).rejects.toThrow("Failed to initiate document understanding due to missing information.");
     expect(mocks.fetchExtractionResultMock).not.toHaveBeenCalled();
   });
 });
