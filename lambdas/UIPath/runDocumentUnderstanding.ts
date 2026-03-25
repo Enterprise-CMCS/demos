@@ -15,7 +15,7 @@ type UiPathStatus = "Pending" | "Finished" | "Failed";
 const DEMO_TYPE_FIELD_ID = "demo_type";
 const DEMOS_SCHEMA = "demos_app";
 
-const UPSERT_RESULT_BY_REQUEST_SQL = `insert into ${DEMOS_SCHEMA}.uipath_result
+const INSERT_RESULT_BY_REQUEST_SQL = `insert into ${DEMOS_SCHEMA}.uipath_result
  (id, request_id, project_id, response, document_id, application_id, status_id, updated_at)
  values ($1, $2, $3, $4::jsonb, $5, $6, $7, now())
  on conflict (request_id)
@@ -196,7 +196,7 @@ async function persistExtractionStatus(
   try {
     await client.query("BEGIN");
 
-    const resultId = await upsertResult(
+    const resultId = await insertUiPathResult(
       client,
       requestId,
       projectId,
@@ -250,7 +250,7 @@ async function persistExtractionStatus(
   }
 }
 
-async function upsertResult(
+async function insertUiPathResult(
   client: PoolClient,
   requestId: string,
   projectId: string,
@@ -259,7 +259,7 @@ async function upsertResult(
   status: UiPathStatus,
   response: unknown,
 ): Promise<string> {
-  const upsertedResult = await client.query<{ id: string }>(UPSERT_RESULT_BY_REQUEST_SQL, [
+  const upsertedResult = await client.query<{ id: string }>(INSERT_RESULT_BY_REQUEST_SQL, [
     randomUUID(),
     requestId,
     projectId,
@@ -289,7 +289,15 @@ async function persistResultStatus(
   const client = await pool.connect();
 
   try {
-    await upsertResult(client, requestId, projectId, documentId, applicationId, status, response);
+    await insertUiPathResult(
+      client,
+      requestId,
+      projectId,
+      documentId,
+      applicationId,
+      status,
+      response,
+    );
   } finally {
     client.release();
   }
@@ -387,7 +395,7 @@ export async function runDocumentUnderstanding(
         buildFailureResponse(error, lastPolledStatus),
       );
     } catch (persistError) {
-      log.error({ error: persistError }, "Failed to persist UiPath failure status");
+      log.error({ error: persistError }, "Failed to Fail UiPath status");
     }
 
     throw error;
