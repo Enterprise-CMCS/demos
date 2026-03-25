@@ -1,7 +1,7 @@
 import { UTCDate } from "@date-fns/utc";
 import { TZDate } from "@date-fns/tz";
 
-import { formatDate, formatDateForServer, getTodayEst } from "./formatDate";
+import { formatDate, formatDateForServer, getTodayEst, getDateEst } from "./formatDate";
 
 const TEST_DATE_ISO = "2023-04-15T13:45:30.000Z";
 const LEAP_YEAR_DATE_ISO = "2024-02-29T23:59:59.000Z";
@@ -66,6 +66,20 @@ describe("formatDate utilities", () => {
       // Calling it again immediately should return the same date
       const result2 = getTodayEst();
       expect(result1).toBe(result2);
+    });
+  });
+
+  describe("getDateEst", () => {
+    it("returns the date in Eastern Time in yyyy-MM-dd format", () => {
+      // 2024-03-15T05:00:00Z is midnight EST (UTC-5), so EST date is 2024-03-15
+      const date = new Date("2024-03-15T05:00:00.000Z");
+      expect(getDateEst(date)).toBe("2024-03-15");
+    });
+
+    it("adjusts to the previous day when UTC time is past midnight but EST is still the prior day", () => {
+      // 2024-03-15T02:00:00Z is 10pm EST the prior day (UTC-4 during EDT, so 2024-03-14T22:00)
+      const date = new Date("2024-03-15T02:00:00.000Z");
+      expect(getDateEst(date)).toBe("2024-03-14");
     });
   });
 });

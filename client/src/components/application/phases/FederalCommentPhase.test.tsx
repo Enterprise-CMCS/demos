@@ -7,67 +7,56 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { FederalCommentPhase } from "./FederalCommentPhase";
-import { addDays } from "date-fns";
-import { formatDate } from "util/formatDate";
+import { TZDate } from "@date-fns/tz";
 import { ApplicationWorkflowDocument } from "components/application";
+import { DialogProvider } from "components/dialog/DialogContext";
+import { EST_TIMEZONE } from "util/formatDate";
+import { addDays } from "date-fns";
 
-// Mock icons to avoid SVG rendering complexity
-vi.mock("components/icons", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("components/icons")>();
-  return {
-    ...actual,
-    WarningIcon: () => <div data-testid="warning-icon" />,
-    ExitIcon: () => <div data-testid="exit-icon" />,
-  };
-});
+const FAKE_TODAY = new TZDate("2026-02-08", EST_TIMEZONE);
 
-const showFederalCommentDocumentUploadDialog = vi.fn();
-vi.mock("components/dialog/DialogContext", () => ({
-  useDialog: () => ({
-    showFederalCommentDocumentUploadDialog,
-  }),
-}));
+const DEFAULT_MOCK_DOCUMENT: ApplicationWorkflowDocument = {
+  id: "doc-1",
+  name: "Test Document",
+  description: "Some test doc",
+  documentType: "General File",
+  phaseName: "Federal Comment",
+  createdAt: new TZDate("2025-01-02", EST_TIMEZONE),
+  owner: { person: { fullName: "Test User" } },
+};
 
-describe("FederalCommentPhase", () => {
-  const defaultStart = new Date("2025-01-01");
-  const defaultEnd = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days ahead
+const DEFAULT_START_DATE = new TZDate("2025-01-01", EST_TIMEZONE);
+const DEFAULT_END_DATE = addDays(FAKE_TODAY, 3);
 
-  const mockDoc: ApplicationWorkflowDocument = {
-    id: "doc-1",
-    name: "Test Document",
-    description: "Some test doc",
-    documentType: "General File",
-    phaseName: "Federal Comment",
-    createdAt: new Date("2025-01-02"),
-    owner: { person: { fullName: "Test User" } },
-  };
-
-  const setup = (props = {}) =>
-    render(
-      <TestProvider>
+const setup = (props = {}) =>
+  render(
+    <TestProvider>
+      <DialogProvider>
         <FederalCommentPhase
           demonstrationId="demo-123"
-          phaseStartDate={defaultStart}
-          phaseEndDate={defaultEnd}
+          phaseStartDate={DEFAULT_START_DATE}
+          phaseEndDate={DEFAULT_END_DATE}
           phaseComplete={false}
-          initialDocuments={[]}
+          documents={[]}
           {...props}
         />
-      </TestProvider>
-    );
+      </DialogProvider>
+    </TestProvider>
+  );
+
+describe("FederalCommentPhase", () => {
+  vi.setSystemTime(FAKE_TODAY);
 
   describe("Warning Banner", () => {
     it("renders warning with days left", () => {
       setup();
-      expect(screen.getByTestId("warning-icon")).toBeInTheDocument();
+      expect(screen.getByLabelText("Warning")).toBeInTheDocument();
       expect(screen.getByText(/days left/i, { exact: false })).toBeInTheDocument();
       expect(screen.getByText(/The Federal Comment Period ends on/i)).toBeInTheDocument();
     });
 
     it("uses correct singular/plural for day left", () => {
-      const oneDayEnd = formatDate(addDays(new Date(), 1));
-
-      setup({ phaseEndDate: oneDayEnd });
+      setup({ phaseEndDate: new TZDate("2026-02-09", EST_TIMEZONE) });
       expect(screen.getByText(/1 day left/i)).toBeInTheDocument();
     });
   });
@@ -100,7 +89,7 @@ describe("FederalCommentPhase", () => {
     });
 
     it("renders document row when provided", () => {
-      setup({ initialDocuments: [mockDoc] });
+      setup({ documents: [DEFAULT_MOCK_DOCUMENT] });
       expect(screen.getByText("Test Document")).toBeInTheDocument();
     });
 
@@ -108,7 +97,13 @@ describe("FederalCommentPhase", () => {
       setup();
       const uploadButton = screen.getByRole("button", { name: /upload/i });
       await userEvent.click(uploadButton);
-      expect(showFederalCommentDocumentUploadDialog).toHaveBeenCalledWith("demo-123");
+
+      // Dialog should appear in a <dialog> element
+      const dialog = screen.getByRole("dialog");
+      expect(dialog).toBeInTheDocument();
+      expect(dialog.tagName).toBe("DIALOG");
+
+      expect(dialog).toHaveTextContent("Add Federal Comment Document");
     });
   });
 
@@ -129,22 +124,11 @@ describe("FederalCommentPhase", () => {
   });
 
   describe("FederalCommentPhase Notice Banner", () => {
-    const today = new Date("2026-02-08T00:00:00Z");
-    vi.setSystemTime(today);
-
     it("renders warning banner with correct days left and dismisses", async () => {
-      const futureEnd = addDays(new Date(today), 5);
-
-      render(
-        <TestProvider>
-          <FederalCommentPhase
-            demonstrationId="demo-123"
-            phaseStartDate={today}
-            phaseEndDate={futureEnd}
-            phaseComplete={false}
-          />
-        </TestProvider>
-      );
+      setup({
+        phaseStartDate: FAKE_TODAY,
+        phaseEndDate: new TZDate("2026-02-13", EST_TIMEZONE), // 5 days after TODAY
+      });
 
       const title = screen.getByText(/5 days left in Federal Comment Period/i);
       const description = screen.getByText(/The Federal Comment Period ends on/i);
@@ -160,51 +144,30 @@ describe("FederalCommentPhase", () => {
     });
 
     it("renders past-due banner correctly", () => {
-      const pastEnd = addDays(new Date(today), -3);
-
-      render(
-        <TestProvider>
-          <FederalCommentPhase
-            demonstrationId="demo-123"
-            phaseStartDate={new Date("2026-01-01")}
-            phaseEndDate={pastEnd}
-            phaseComplete={false}
-          />
-        </TestProvider>
-      );
+      setup({
+        phaseStartDate: new TZDate("2026-01-01", EST_TIMEZONE),
+        phaseEndDate: new TZDate("2026-02-05", EST_TIMEZONE), // 3 days before TODAY
+      });
 
       expect(screen.getByText(/3 days past due/i)).toBeInTheDocument();
       expect(screen.getByText(/The Federal Comment Period ended on/i)).toBeInTheDocument();
     });
 
     it("does not render banner if phase is complete", () => {
-      const futureEnd = addDays(new Date(today), 5);
-
-      render(
-        <TestProvider>
-          <FederalCommentPhase
-            demonstrationId="demo-123"
-            phaseStartDate={today}
-            phaseEndDate={futureEnd}
-            phaseComplete={true}
-          />
-        </TestProvider>
-      );
+      setup({
+        phaseStartDate: FAKE_TODAY,
+        phaseEndDate: new TZDate("2026-02-13", EST_TIMEZONE), // 5 days after TODAY
+        phaseComplete: true,
+      });
 
       expect(screen.queryByText(/days left/i)).not.toBeInTheDocument();
     });
 
     it("does not render banner if phaseEndDate is missing", () => {
-      render(
-        <TestProvider>
-          <FederalCommentPhase
-            demonstrationId="demo-123"
-            phaseStartDate={today}
-            phaseEndDate={undefined}
-            phaseComplete={false}
-          />
-        </TestProvider>
-      );
+      setup({
+        phaseStartDate: FAKE_TODAY,
+        phaseEndDate: undefined,
+      });
 
       expect(screen.queryByText(/days left/i)).not.toBeInTheDocument();
     });

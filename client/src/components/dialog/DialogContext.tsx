@@ -1,11 +1,5 @@
 import React, { createContext, useContext, useState } from "react";
-import {
-  DocumentType,
-  TagName,
-  DemonstrationTypeAssignment,
-  UploadDocumentInput,
-  Tag,
-} from "demos-server";
+import { DocumentType, TagName, DemonstrationTypeAssignment, Tag } from "demos-server";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
 import { CreateExtensionDialog } from "./modification/CreateExtensionDialog";
@@ -30,6 +24,7 @@ import { EditDemonstrationTypeDialog } from "./DemonstrationTypes/EditDemonstrat
 import { UpdateExtensionDialog } from "./modification/EditExtensionDialog";
 import { UpdateAmendmentDialog } from "./modification/EditAmendmentDialog";
 import { ConfirmApproveDialog } from "./ConfirmApproveDialog";
+import { WorkflowApplicationType } from "components/application";
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -138,15 +133,11 @@ export const useDialog = () => {
     );
   };
 
-  const showCompletenessDocumentUploadDialog = (
-    applicationId: string,
-    onDocumentUploadSucceeded?: (payload?: UploadDocumentInput) => void
-  ) => {
+  const showCompletenessDocumentUploadDialog = (applicationId: string) => {
     context.showDialog(
       <CompletenessDocumentUploadDialog
-        onDocumentUploadSucceeded={onDocumentUploadSucceeded}
-        onClose={context.hideDialog}
         applicationId={applicationId}
+        onClose={context.hideDialog}
       />
     );
   };
@@ -227,8 +218,8 @@ export const useDialog = () => {
     );
   };
 
-  const showConfirmApproveDialog = (onConfirm: () => void) => {
-    context.showDialog(<ConfirmApproveDialog onClose={context.hideDialog} onConfirm={onConfirm} />);
+  const showConfirmApproveDialog = (onConfirm: () => void, applicationType: WorkflowApplicationType) => {
+    context.showDialog(<ConfirmApproveDialog onClose={context.hideDialog} onConfirm={onConfirm} applicationType={applicationType} />);
   };
 
   return {
