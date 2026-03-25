@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { tw } from "tags/tw";
 import { ApplicationUploadSection } from "components/application/phases/sections";
 import { formatDate } from "util/formatDate";
@@ -6,14 +6,6 @@ import { useDialog } from "components/dialog/DialogContext";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { differenceInCalendarDays } from "date-fns";
 import { Notice, NoticeVariant } from "components/notice";
-
-interface FederalCommentPhaseProps {
-  demonstrationId: string;
-  phaseStartDate: Date | undefined;
-  phaseEndDate: Date | undefined;
-  phaseComplete: boolean;
-  initialDocuments?: ApplicationWorkflowDocument[];
-}
 
 const STYLES = {
   pane: tw`bg-white p-8`,
@@ -52,21 +44,16 @@ export const getFederalCommentPhaseFromApplication = (application: WorkflowAppli
       phaseComplete={phaseComplete}
       phaseStartDate={phaseStartDate?.dateValue}
       phaseEndDate={phaseEndDate?.dateValue}
-      initialDocuments={initialDocuments}
+      documents={initialDocuments}
     />
   );
 };
 
-export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
-  demonstrationId = "default-demo-id",
-  phaseStartDate,
+const FederalCommentNotice: React.FC<{ phaseEndDate?: Date; phaseComplete: boolean }> = ({
   phaseEndDate,
   phaseComplete,
-  initialDocuments = [],
 }) => {
-  const { showFederalCommentDocumentUploadDialog } = useDialog();
-  const [documents] = useState<ApplicationWorkflowDocument[]>(initialDocuments);
-  const [isNoticeDismissed, setNoticeDismissed] = useState(!(phaseEndDate && !phaseComplete));
+  const [isDismissed, setDismissed] = useState(!(phaseEndDate && !phaseComplete));
 
   const getNoticeContent = () => {
     if (!phaseEndDate) return null;
@@ -84,15 +71,44 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
         description: `The Federal Comment Period ends on ${formatDate(phaseEndDate)}`,
         variant: "error" as NoticeVariant,
       };
-    } else {
-      return {
-        title: `${Math.abs(daysLeft)} days past due`,
-        description: `The Federal Comment Period ended on ${formatDate(phaseEndDate)}`,
-        variant: "error" as NoticeVariant,
-      };
     }
+    return {
+      title: `${Math.abs(daysLeft)} days past due`,
+      description: `The Federal Comment Period ended on ${formatDate(phaseEndDate)}`,
+      variant: "error" as NoticeVariant,
+    };
   };
-  const noticeContent = useMemo(() => getNoticeContent(), [phaseEndDate]);
+
+  const noticeContent = getNoticeContent();
+
+  if (isDismissed || !noticeContent) return null;
+
+  return (
+    <Notice
+      title={noticeContent.title}
+      description={noticeContent.description}
+      variant={noticeContent.variant}
+      onDismiss={() => setDismissed(true)}
+    />
+  );
+};
+
+interface FederalCommentPhaseProps {
+  demonstrationId: string;
+  phaseStartDate?: Date;
+  phaseEndDate?: Date;
+  phaseComplete: boolean;
+  documents: ApplicationWorkflowDocument[];
+}
+
+export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
+  demonstrationId,
+  phaseStartDate,
+  phaseEndDate,
+  phaseComplete,
+  documents,
+}) => {
+  const { showFederalCommentDocumentUploadDialog } = useDialog();
 
   const VerifyCompleteSection = () => (
     <div aria-labelledby="concept-verify-title">
@@ -120,14 +136,7 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
   return (
     <div>
       <div className="flex flex-col gap-6">
-        {!isNoticeDismissed && noticeContent && (
-          <Notice
-            title={noticeContent.title}
-            description={noticeContent.description}
-            variant={noticeContent.variant}
-            onDismiss={() => setNoticeDismissed(true)}
-          />
-        )}
+        <FederalCommentNotice phaseEndDate={phaseEndDate} phaseComplete={phaseComplete} />
 
         <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">
           FEDERAL COMMENT PERIOD

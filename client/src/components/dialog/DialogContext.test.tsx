@@ -532,7 +532,7 @@ const TestConsumer: React.FC = () => {
       </button>
       <button
         data-testid="open-confirm-approve-btn"
-        onClick={() => showConfirmApproveDialog(vi.fn())}
+        onClick={() => showConfirmApproveDialog(vi.fn(), "demonstration")}
       >
         Open Confirm Approve Dialog
       </button>

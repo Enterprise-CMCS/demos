@@ -11,6 +11,14 @@ VALUES
     ('On-hold');
 
 INSERT INTO
+    demos_app.application_tag_suggestion_status
+VALUES
+    ('Pending'),
+    ('Accepted'),
+    ('Replaced'),
+    ('Removed');
+
+INSERT INTO
     demos_app.application_type
 VALUES
     ('Demonstration'),
@@ -818,6 +826,11 @@ VALUES
     ('Amendment');
 
 INSERT INTO
+    demos_app.application_tag_suggestion_extract_field_limit
+VALUES
+    ('demo_type');
+
+INSERT INTO
     demos_app.application_tag_type_limit
 VALUES
     ('Application');
@@ -997,6 +1010,15 @@ ALTER TABLE demos_app.amendment
 ADD CONSTRAINT amendment_id_application_type_id_fkey
 FOREIGN KEY (id, application_type_id)
 REFERENCES demos_app.application(id, application_type_id)
+ON DELETE NO ACTION
+ON UPDATE CASCADE
+DEFERRABLE INITIALLY DEFERRED;
+
+ALTER TABLE demos_app.application_tag_suggestion_extract DROP CONSTRAINT application_tag_suggestion_extract_suggestion_id_applicati_fkey;
+ALTER TABLE demos_app.application_tag_suggestion_extract
+ADD CONSTRAINT application_tag_suggestion_extract_suggestion_id_applicati_fkey
+FOREIGN KEY (suggestion_id, application_id, value)
+REFERENCES demos_app.application_tag_suggestion(id, application_id, value)
 ON DELETE NO ACTION
 ON UPDATE CASCADE
 DEFERRABLE INITIALLY DEFERRED;
