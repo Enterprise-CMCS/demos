@@ -1,14 +1,10 @@
 import React from "react";
 import { ApplicationStatusBadge } from "components/badge/ApplicationStatusBadge";
-import { PhaseSelector } from "components/application";
+import { PhaseSelector, WorkflowApplication } from "components/application";
+import type { Demonstration, DemonstrationTypeAssignment, Extension } from "demos-server";
 import { gql, useQuery } from "@apollo/client";
 import { Loading } from "components/loading/Loading";
-import {
-  WORKFLOW_PHASE_FIELDS,
-  WORKFLOW_DOCUMENT_FIELDS,
-  PARENT_DEMONSTRATION_FIELDS,
-  ApplicationWorkflowSubApplication,
-} from "fragments";
+import { WORKFLOW_PHASE_FIELDS, WORKFLOW_DOCUMENT_FIELDS } from "fragments";
 
 const EXTENSION_WORKFLOW_QUERY_NAME = "GetExtensionWorkflow";
 
@@ -24,7 +20,16 @@ export const GET_EXTENSION_WORKFLOW_QUERY = gql`
       clearanceLevel
       status
       demonstration {
-        ...PARENT_DEMONSTRATION_FIELDS
+        id
+        status
+        demonstrationTypes {
+          demonstrationTypeName
+          status
+          effectiveDate
+          approvalStatus
+          expirationDate
+          createdAt
+        }
       }
       tags {
         tagName
@@ -40,10 +45,34 @@ export const GET_EXTENSION_WORKFLOW_QUERY = gql`
   }
   ${WORKFLOW_PHASE_FIELDS}
   ${WORKFLOW_DOCUMENT_FIELDS}
-  ${PARENT_DEMONSTRATION_FIELDS}
 `;
 
-export type ApplicationWorkflowExtension = ApplicationWorkflowSubApplication;
+export type ApplicationWorkflowExtension =
+  WorkflowApplication &
+  Pick<
+    Extension,
+    "name" |
+    "description" |
+    "effectiveDate" |
+    "signatureLevel" |
+    "status"
+  > & {
+    demonstration: Pick<
+        Demonstration,
+        | "id"
+        | "status"
+      > & {
+      demonstrationTypes: Pick<
+        DemonstrationTypeAssignment,
+        | "demonstrationTypeName"
+        | "status"
+        | "effectiveDate"
+        | "expirationDate"
+        | "createdAt"
+        | "approvalStatus"
+      >[];
+    };
+  };
 
 export const ExtensionWorkflow = ({ extensionId }: { extensionId: string }) => {
   const { data, loading, error } = useQuery<{ extension: ApplicationWorkflowExtension }>(

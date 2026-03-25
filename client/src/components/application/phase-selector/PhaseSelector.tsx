@@ -6,7 +6,10 @@ import type {
   PhaseStatus as ServerPhaseStatus,
 } from "demos-server";
 
-import { WorkflowApplication, WorkflowApplicationType } from "components/application";
+import {
+  WorkflowApplication,
+  WorkflowApplicationType,
+} from "components/application";
 import {
   getApplicationCompletenessFromApplication,
   getConceptPhaseComponentFromApplication,
@@ -139,7 +142,10 @@ export const PhaseSelector = ({
       case "Approval Package":
         return getApprovalPackagePhaseFromApplication(application, setSelectedPhase);
       case "Approval Summary":
-        return getApprovalSummaryPhaseFromApplication(application, workflowApplicationType);
+        return getApprovalSummaryPhaseFromApplication(
+          application,
+          workflowApplicationType
+        );
     }
   };
 
