@@ -109,18 +109,34 @@ INSERT INTO
 VALUES
     ('Application Completeness Letter'),
     ('Approval Letter'),
+    ('BN Template'),
     ('BN Workbook'),
+    ('Close Out Report'),
+    ('Demonstration-Specific Deliverable'),
+    ('Evaluation Design'),
+    ('Federal Comment Internal Analysis Document'),
     ('Final Budget Neutrality Formulation Workbook'),
     ('Formal OMB Policy Concurrence Email'),
     ('General File'),
+    ('HCBS Actual and Estimated Enrollment Number Report (1915(i)-like)'),
+    ('HCBS Deficiency, Remediation and A/N/E Incident Report (1915(c)-like)'),
+    ('HCBS Evidentiary Report'),
+    ('HCBS Performance Measures Report'),
+    ('HCBS Quality Improvement Strategy Report'),
+    ('Implementation Plan'),
+    ('Interim Evaluation Report'),
     ('Internal Completeness Review Form'),
+    ('Mid-point Assessment'),
+    ('Monitoring Protocol'),
+    ('Monitoring Report'),
     ('Payment Ratio Analysis'),
     ('Pre-Submission'),
     ('Q&A'),
     ('Signed Decision Memo'),
-    ('State Application'),
     ('Special Terms & Conditions'),
-    ('Federal Comment Internal Analysis Document');
+    ('State Application'),
+    ('Summative Evaluation Report'),
+    ('Transition Plan');
 
 INSERT INTO
     demos_app.phase
@@ -814,26 +830,6 @@ INSERT INTO
     demos_app.deliverable_submission_action_type_limit
 VALUES
     ('Submitted Deliverable');
-
-INSERT INTO
-    demos_app.document_type
-VALUES
-    ('BN Template'),
-    ('Close Out Report'),
-    ('Demonstration-Specific Deliverable'),
-    ('Evaluation Design'),
-    ('HCBS Actual and Estimated Enrollment Number Report (1915(i)-like)'),
-    ('HCBS Deficiency, Remediation and A/N/E Incident Report (1915(c)-like)'),
-    ('HCBS Evidentiary Report'),
-    ('HCBS Performance Measures Report'),
-    ('HCBS Quality Improvement Strategy Report'),
-    ('Implementation Plan'),
-    ('Interim Evaluation Report'),
-    ('Mid-point Assessment'),
-    ('Monitoring Protocol'),
-    ('Monitoring Report'),
-    ('Summative Evaluation Report'),
-    ('Transition Plan');
 
 INSERT INTO
     demos_app.deliverable_type_document_type
