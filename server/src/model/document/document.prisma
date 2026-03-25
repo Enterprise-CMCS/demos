@@ -22,7 +22,7 @@ model Document {
   deliverableTypeDocumentType     DeliverableTypeDocumentType?          @relation(fields: [deliverableTypeId, documentTypeId], references: [deliverableTypeId, documentTypeId])
   deliverableSubmission           DeliverableAction?                    @relation(fields: [deliverableSubmissionActionId, deliverableSubmissionActionTypeId], references: [id, actionTypeId], onDelete: Restrict)
   deliverableSubmissionActionType DeliverableSubmissionActionTypeLimit? @relation(fields: [deliverableSubmissionActionTypeId], references: [id], onDelete: Restrict)
-  uipathResults                   UiPathResult[]
+  uiPathResults                   UiPathResult[]
   budgetNeutralityWorkbooks       BudgetNeutralityWorkbook[]
 
   @@id([id])

@@ -1,0 +1,16 @@
+model ApplicationTagSuggestionExtractHistory {
+  revisionId    Int          @id @default(autoincrement()) @map("revision_id")
+  revisionType  RevisionType @map("revision_type")
+  modifiedAt    DateTime     @default(now()) @map("modified_at") @db.Timestamptz()
+  suggestionId  String       @map("suggestion_id") @db.Uuid
+  uiPathValueId String       @map("uipath_value_id") @db.Uuid
+  applicationId String       @map("application_id") @db.Uuid
+  fieldId       String       @map("field_id")
+  value         String       @map("value")
+  startPageNo   Int          @map("start_page_no")
+  endPageNo     Int          @map("end_page_no")
+  createdAt     DateTime     @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime     @map("updated_at") @db.Timestamptz()
+
+  @@map("application_tag_suggestion_extract_history")
+}

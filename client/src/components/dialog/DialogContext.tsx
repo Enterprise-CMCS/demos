@@ -24,6 +24,7 @@ import { EditDemonstrationTypeDialog } from "./DemonstrationTypes/EditDemonstrat
 import { UpdateExtensionDialog } from "./modification/EditExtensionDialog";
 import { UpdateAmendmentDialog } from "./modification/EditAmendmentDialog";
 import { ConfirmApproveDialog } from "./ConfirmApproveDialog";
+import { WorkflowApplicationType } from "components/application";
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -217,8 +218,8 @@ export const useDialog = () => {
     );
   };
 
-  const showConfirmApproveDialog = (onConfirm: () => void) => {
-    context.showDialog(<ConfirmApproveDialog onClose={context.hideDialog} onConfirm={onConfirm} />);
+  const showConfirmApproveDialog = (onConfirm: () => void, applicationType: WorkflowApplicationType) => {
+    context.showDialog(<ConfirmApproveDialog onClose={context.hideDialog} onConfirm={onConfirm} applicationType={applicationType} />);
   };
 
   return {
