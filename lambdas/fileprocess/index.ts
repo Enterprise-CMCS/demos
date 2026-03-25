@@ -13,7 +13,8 @@ import { als, log, store, reqIdChild } from "./log";
 
 const GUARDDUTY_CLEAN_STATUS = "NO_THREATS_FOUND";
 const FINAL_BN_WORKSHEET_DOCUMENT_TYPE = "Final BN Worksheet";
-const STATE_APPLICATION_DOCUMENT_TYPE = "State Application";
+// IF we want to add other file type to run in UIPATH. Add below!
+const UIPATH_AUTOMATED_QUEUE_DOCUMENT_TYPES = ["State Application"];
 const PROCESS_PENDING_DOCUMENT_CLEAN = "move_document_from_pending_to_clean";
 const PROCESS_PENDING_DOCUMENT_INFECTED = "move_document_from_pending_to_infected";
 const AWS_REGION = process.env.AWS_REGION;
@@ -252,7 +253,7 @@ export async function processGuardDutyResult(
 
   if (isClean) {
     const fileTypeId = await processCleanDatabaseRecord(client, documentId, applicationId);
-    if (fileTypeId === STATE_APPLICATION_DOCUMENT_TYPE) {
+    if (UIPATH_AUTOMATED_QUEUE_DOCUMENT_TYPES.includes(fileTypeId)) {
       await enqueueUiPath(documentId);
     }
     if (fileTypeId === FINAL_BN_WORKSHEET_DOCUMENT_TYPE) {
