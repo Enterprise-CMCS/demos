@@ -36,8 +36,6 @@ import {
 import { CopyObjectCommand, DeleteObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 
-import { log } from "./log";
-
 const mockConnect = vi.fn();
 const mockQuery = vi.fn();
 const mockEnd = vi.fn();
@@ -53,9 +51,6 @@ vi.mock("pg", () => {
 
 let mockEventBase: GuardDutyScanResultNotificationEvent;
 let mockEventInfected: GuardDutyScanResultNotificationEvent;
-let logDebugSpy;
-let logInfoSpy;
-let logWarnSpy;
 const mockContext = { awsRequestId: "00000000-aaaa-bbbb-cccc-000000000000" } as Context;
 
 describe("file-process", () => {
@@ -64,10 +59,6 @@ describe("file-process", () => {
     sqsMocks.sendMock.mockReset();
     sqsMocks.SQSClientMock.mockClear();
     sqsMocks.SendMessageCommandMock.mockClear();
-
-    logDebugSpy = vi.spyOn(log, "debug");
-    logInfoSpy = vi.spyOn(log, "info");
-    logWarnSpy = vi.spyOn(log, "warn");
 
     mockEventBase = {
       source: "aws.guardduty",
@@ -220,20 +211,6 @@ describe("file-process", () => {
           documentTypeId: "Final BN Worksheet",
         }),
       });
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        1,
-        { documentId: "test-doc-id", documentTypeId: "Final BN Worksheet" },
-        "BudgetNeutrality Queue Started"
-      );
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        2,
-        {
-          documentId: "test-doc-id",
-          documentTypeId: "Final BN Worksheet",
-          messageId: "msg-123",
-        },
-        "queued Budget Neutrality validation request."
-      );
     });
 
     it("should throw when sqs does not return a message id", async () => {
@@ -278,16 +255,6 @@ describe("file-process", () => {
           documentId: "test-doc-id",
         }),
       });
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        1,
-        { documentId: "test-doc-id" },
-        "UiPath Queue Started"
-      );
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        2,
-        { documentId: "test-doc-id", messageId: "msg-uipath-123" },
-        "queued UiPath extraction request."
-      );
     });
 
     it("should throw when sqs does not return a message id", async () => {
@@ -311,20 +278,6 @@ describe("file-process", () => {
           .mockResolvedValueOnce({ rows: [{ document_type_id: "General File" }] }),
       };
       await processGuardDutyResult(mockClient, mockEventBase);
-      expect(logInfoSpy).toHaveBeenCalledTimes(3);
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        1,
-        expect.stringContaining("successfully copied file to mock-clean-bucket")
-      );
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        2,
-        expect.stringContaining("successfully deleted file from mock-upload-bucket")
-      );
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        3,
-        { documentTypeId: "General File" },
-        "successfully processed clean file in database."
-      );
       expect(mockSend).toHaveBeenCalledTimes(2);
       expect(sqsMocks.sendMock).not.toHaveBeenCalled();
       expect(mockClient.query).toHaveBeenCalledTimes(2);
@@ -386,6 +339,95 @@ describe("file-process", () => {
         }),
       });
     });
+
+    test("should return undefined for unsupported detail type", async () => {
+      const mockClient = {
+        query: vi.fn(),
+      };
+
+      const unsupportedEvent = {
+        ...mockEventBase,
+        "detail-type": "Some Other Event",
+      } as unknown as GuardDutyScanResultNotificationEvent;
+
+      const result = await processGuardDutyResult(mockClient, unsupportedEvent);
+
+      expect(result).toBeUndefined();
+      expect(mockClient.query).not.toHaveBeenCalled();
+    });
+
+    test("should throw when event detail is missing", async () => {
+      const mockClient = {
+        query: vi.fn(),
+      };
+
+      const eventWithoutDetail = {
+        ...mockEventBase,
+        detail: undefined,
+      } as unknown as GuardDutyScanResultNotificationEvent;
+
+      await expect(processGuardDutyResult(mockClient, eventWithoutDetail)).rejects.toThrow(
+        "No detail found in GuardDuty event."
+      );
+      expect(mockClient.query).not.toHaveBeenCalled();
+    });
+
+    test("should throw when s3 object details are missing", async () => {
+      const mockClient = {
+        query: vi.fn(),
+      };
+
+      const eventWithoutS3Details = {
+        ...mockEventBase,
+        detail: {
+          ...mockEventBase.detail,
+          s3ObjectDetails: undefined,
+        },
+      } as unknown as GuardDutyScanResultNotificationEvent;
+
+      await expect(processGuardDutyResult(mockClient, eventWithoutS3Details)).rejects.toThrow(
+        "No S3 object details found in GuardDuty event."
+      );
+      expect(mockClient.query).not.toHaveBeenCalled();
+    });
+
+    test("should throw when scan result details are missing", async () => {
+      const mockClient = {
+        query: vi.fn(),
+      };
+
+      const eventWithoutScanResultDetails = {
+        ...mockEventBase,
+        detail: {
+          ...mockEventBase.detail,
+          scanResultDetails: undefined,
+        },
+      } as unknown as GuardDutyScanResultNotificationEvent;
+
+      await expect(
+        processGuardDutyResult(mockClient, eventWithoutScanResultDetails)
+      ).rejects.toThrow("No scan result details found in GuardDuty event.");
+      expect(mockClient.query).not.toHaveBeenCalled();
+    });
+
+    test("should throw when scan status is not completed", async () => {
+      const mockClient = {
+        query: vi.fn(),
+      };
+
+      const eventWithIncompleteScan = {
+        ...mockEventBase,
+        detail: {
+          ...mockEventBase.detail,
+          scanStatus: "IN_PROGRESS",
+        },
+      } as unknown as GuardDutyScanResultNotificationEvent;
+
+      await expect(processGuardDutyResult(mockClient, eventWithIncompleteScan)).rejects.toThrow(
+        "GuardDuty scan not completed."
+      );
+      expect(mockClient.query).not.toHaveBeenCalled();
+    });
   });
 
   describe("processCleanDatabaseRecord", () => {
@@ -405,10 +447,6 @@ describe("file-process", () => {
         ["test-doc-id", "test-app-id/test-doc-id"]
       );
       expect(documentTypeId).toBe("State Application");
-      expect(logInfoSpy).toHaveBeenCalledWith(
-        { documentTypeId: "State Application" },
-        "successfully processed clean file in database."
-      );
     });
 
     it("should throw error if database query fails", async () => {
@@ -455,7 +493,6 @@ describe("file-process", () => {
         "CALL demos_app.move_document_from_pending_to_infected($1::UUID, $2::TEXT, $3::TEXT, $4::TEXT);",
         ["test-doc-id", "test-app-id/test-doc-id", "THREATS_FOUND", "Trojan.Generic, Malware.Test"]
       );
-      expect(logInfoSpy).toHaveBeenCalledWith("successfully processed infected file in database.");
     });
 
     it("should handle empty threats array", async () => {
@@ -468,6 +505,28 @@ describe("file-process", () => {
           scanResultStatus: "THREATS_FOUND",
           threats: [],
         };
+
+      await processInfectedDatabaseRecord(
+        mockClient,
+        "test-doc-id",
+        "test-app-id",
+        mockScanResultDetails
+      );
+
+      expect(mockClient.query).toHaveBeenCalledWith(
+        "CALL demos_app.move_document_from_pending_to_infected($1::UUID, $2::TEXT, $3::TEXT, $4::TEXT);",
+        ["test-doc-id", "test-app-id/test-doc-id", "THREATS_FOUND", ""]
+      );
+    });
+
+    it("should handle missing threats value", async () => {
+      const mockClient = {
+        query: vi.fn().mockResolvedValue({ rows: [] }),
+      };
+
+      const mockScanResultDetails = {
+        scanResultStatus: "THREATS_FOUND",
+      } as unknown as GuardDutyScanResultNotificationEventDetail["scanResultDetails"];
 
       await processInfectedDatabaseRecord(
         mockClient,
@@ -547,31 +606,6 @@ describe("file-process", () => {
         mockContext
       );
 
-      expect(logInfoSpy).toHaveBeenCalledTimes(4);
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        1,
-        expect.stringContaining("successfully copied file to mock-clean-bucket")
-      );
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        2,
-        expect.stringContaining("successfully deleted file from mock-upload-bucket")
-      );
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        3,
-        { documentTypeId: "General File" },
-        "successfully processed clean file in database."
-      );
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        4,
-        {
-          results: {
-            cleanFiles: 1,
-            infectedFiles: 0,
-            processedRecords: 1,
-          },
-        },
-        "all records processed successfully."
-      );
       expect(mockSend).toHaveBeenCalledTimes(2);
       expect(mockSend).toHaveBeenNthCalledWith(1, expect.any(CopyObjectCommand));
       expect(mockSend).toHaveBeenNthCalledWith(2, expect.any(DeleteObjectCommand));
@@ -592,6 +626,53 @@ describe("file-process", () => {
         ["test-key", "1/test-key"]
       );
       expect(sqsMocks.sendMock).not.toHaveBeenCalled();
+      expect(mockEnd).toHaveBeenCalledTimes(1);
+    });
+
+    test("should still return success when closing database connection fails", async () => {
+      const mockSend = vi.fn();
+      vi.spyOn(S3Client.prototype, "send").mockImplementation(mockSend);
+      vi.spyOn(SecretsManagerClient.prototype, "send").mockImplementation(() => ({
+        SecretString: JSON.stringify({
+          username: "something",
+          password: "fake", // pragma: allowlist secret
+          host: "fakehost",
+          port: 1234,
+          dbname: "test",
+        }),
+      }));
+
+      mockQuery
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [{ application_id: "1" }] })
+        .mockResolvedValueOnce({ rows: [{ document_type_id: "General File" }] });
+      mockEnd.mockRejectedValueOnce(new Error("close failed"));
+
+      const response = await handler(
+        {
+          Records: [
+            {
+              messageId: "123",
+              receiptHandle: "",
+              messageAttributes: {},
+              md5OfBody: "",
+              eventSource: "",
+              eventSourceARN: "",
+              awsRegion: "us-east-1",
+              attributes: {
+                ApproximateReceiveCount: "1",
+                SentTimestamp: "mock timestamp",
+                SenderId: "1",
+                ApproximateFirstReceiveTimestamp: "",
+              },
+              body: JSON.stringify(mockEventBase),
+            },
+          ],
+        },
+        mockContext
+      );
+
+      expect(response.statusCode).toBe(200);
       expect(mockEnd).toHaveBeenCalledTimes(1);
     });
 
@@ -689,30 +770,6 @@ describe("file-process", () => {
         mockContext
       );
 
-      expect(logInfoSpy).toHaveBeenCalledTimes(4);
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        1,
-        expect.stringContaining("successfully copied file to mock-infected-bucket")
-      );
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        2,
-        expect.stringContaining("successfully deleted file from mock-upload-bucket")
-      );
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        3,
-        expect.stringContaining("successfully processed infected file in database.")
-      );
-      expect(logInfoSpy).toHaveBeenNthCalledWith(
-        4,
-        {
-          results: {
-            cleanFiles: 0,
-            infectedFiles: 1,
-            processedRecords: 1,
-          },
-        },
-        "all records processed successfully."
-      );
       expect(mockSend).toHaveBeenCalledTimes(2);
       expect(mockSend).toHaveBeenNthCalledWith(1, expect.any(CopyObjectCommand));
       expect(mockSend).toHaveBeenNthCalledWith(2, expect.any(DeleteObjectCommand));

@@ -123,7 +123,7 @@ export async function processCleanDatabaseRecord(
     throw new Error(`No document type returned for document ${documentId}.`);
   }
 
-  log.info({ documentTypeId }, "successfully processed clean file in database.");
+  log.info({ documentTypeId }, "Successfully processed clean file in database.");
 
   return documentTypeId;
 }
@@ -144,7 +144,7 @@ export async function processInfectedDatabaseRecord(
     scanResultDetails.scanResultStatus ?? "",
     threatsString,
   ]);
-  log.info("successfully processed infected file in database.");
+  log.info("Successfully processed infected file in database.");
 }
 
 export async function enqueueBudgetNeutrality(
