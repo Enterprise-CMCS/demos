@@ -14,7 +14,7 @@ import { als, log, store, reqIdChild } from "./log";
 const GUARDDUTY_CLEAN_STATUS = "NO_THREATS_FOUND";
 const FINAL_BN_WORKSHEET_DOCUMENT_TYPE = "Final BN Worksheet";
 // IF we want to add other file type to run in UIPATH. Add below!
-const UIPATH_AUTOMATED_QUEUE_DOCUMENT_TYPES = ["State Application"];
+const UIPATH_AUTOMATED_QUEUE_DOCUMENT_TYPES = new Set(["State Application"]);
 const PROCESS_PENDING_DOCUMENT_CLEAN = "move_document_from_pending_to_clean";
 const PROCESS_PENDING_DOCUMENT_INFECTED = "move_document_from_pending_to_infected";
 const AWS_REGION = process.env.AWS_REGION;
@@ -187,7 +187,8 @@ export async function enqueueUiPath(documentId: string) {
   log.info({ documentId }, "UiPath Queue Started");
 
   if (!uiPathQueueUrl) {
-    throw new Error("UIPATH_QUEUE_URL environment variable is required.");
+    log.warn({ documentId }, "UIPATH_QUEUE_URL is not configured; skipping UiPath enqueue.");
+    return;
   }
 
   const sqsClient = new SQSClient(awsClientConfig);
@@ -253,7 +254,7 @@ export async function processGuardDutyResult(
 
   if (isClean) {
     const fileTypeId = await processCleanDatabaseRecord(client, documentId, applicationId);
-    if (UIPATH_AUTOMATED_QUEUE_DOCUMENT_TYPES.includes(fileTypeId)) {
+    if (UIPATH_AUTOMATED_QUEUE_DOCUMENT_TYPES.has(fileTypeId)) {
       await enqueueUiPath(documentId);
     }
     if (fileTypeId === FINAL_BN_WORKSHEET_DOCUMENT_TYPE) {

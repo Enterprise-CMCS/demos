@@ -278,14 +278,12 @@ describe("file-process", () => {
       );
     });
 
-    it("should throw when UIPATH_QUEUE_URL is missing", async () => {
+    it("should skip enqueue when UIPATH_QUEUE_URL is missing", async () => {
       vi.resetModules();
       vi.stubEnv("UIPATH_QUEUE_URL", "");
       const fileprocess = await import(".");
 
-      await expect(fileprocess.enqueueUiPath("test-doc-id")).rejects.toThrow(
-        "UIPATH_QUEUE_URL environment variable is required."
-      );
+      await expect(fileprocess.enqueueUiPath("test-doc-id")).resolves.toBeUndefined();
 
       expect(sqsMocks.sendMock).not.toHaveBeenCalled();
     });
@@ -363,6 +361,28 @@ describe("file-process", () => {
           documentId: "test-key",
         }),
       });
+    });
+
+    test("should continue processing State Application when UIPATH_QUEUE_URL is missing", async () => {
+      vi.resetModules();
+      vi.stubEnv("UIPATH_QUEUE_URL", "");
+      const fileprocess = await import(".");
+
+      const mockSend = vi.fn();
+      vi.spyOn(S3Client.prototype, "send").mockImplementation(mockSend);
+
+      const mockClient = {
+        query: vi
+          .fn()
+          .mockResolvedValueOnce({ rows: [{ application_id: "1" }] })
+          .mockResolvedValueOnce({ rows: [{ document_type_id: "State Application" }] }),
+      };
+
+      const isClean = await fileprocess.processGuardDutyResult(mockClient, mockEventBase);
+
+      expect(isClean).toBe(true);
+      expect(mockSend).toHaveBeenCalledTimes(2);
+      expect(sqsMocks.sendMock).not.toHaveBeenCalled();
     });
 
     test("should return undefined for unsupported detail type", async () => {
