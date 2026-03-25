@@ -56,6 +56,7 @@ const mockContext = { awsRequestId: "00000000-aaaa-bbbb-cccc-000000000000" } as 
 describe("file-process", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllEnvs();
     sqsMocks.sendMock.mockReset();
     sqsMocks.SQSClientMock.mockClear();
     sqsMocks.SendMessageCommandMock.mockClear();
@@ -234,6 +235,18 @@ describe("file-process", () => {
       expect(sqsMocks.SQSClientMock).toHaveBeenCalledTimes(2);
       expect(sqsMocks.sendMock).toHaveBeenCalledTimes(2);
     });
+
+    it("should throw when BUDGET_NEUTRALITY_QUEUE_URL is missing", async () => {
+      vi.resetModules();
+      vi.stubEnv("BUDGET_NEUTRALITY_QUEUE_URL", "");
+      const fileprocess = await import(".");
+
+      await expect(
+        fileprocess.enqueueBudgetNeutrality("test-doc-id", "Final BN Worksheet")
+      ).rejects.toThrow("BUDGET_NEUTRALITY_QUEUE_URL environment variable is required.");
+
+      expect(sqsMocks.sendMock).not.toHaveBeenCalled();
+    });
   });
 
   describe("enqueueUiPath", () => {
@@ -263,6 +276,18 @@ describe("file-process", () => {
       await expect(enqueueUiPath("test-doc-id")).rejects.toThrow(
         "Failed to enqueue UiPath message for document test-doc-id."
       );
+    });
+
+    it("should throw when UIPATH_QUEUE_URL is missing", async () => {
+      vi.resetModules();
+      vi.stubEnv("UIPATH_QUEUE_URL", "");
+      const fileprocess = await import(".");
+
+      await expect(fileprocess.enqueueUiPath("test-doc-id")).rejects.toThrow(
+        "UIPATH_QUEUE_URL environment variable is required."
+      );
+
+      expect(sqsMocks.sendMock).not.toHaveBeenCalled();
     });
   });
 
