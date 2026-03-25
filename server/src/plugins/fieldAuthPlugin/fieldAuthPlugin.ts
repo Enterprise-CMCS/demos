@@ -10,9 +10,9 @@ import {
 
 import { getDirective } from "@graphql-tools/utils";
 
-import type { GraphQLContext } from "../auth/auth.util";
-import { prisma } from "../prismaClient";
-import { Permission } from "../types";
+import type { GraphQLContext } from "../../auth/auth.util";
+import { prisma } from "../../prismaClient";
+import { Permission } from "../../types";
 
 const getApplicablePermissions = (
   schema: GraphQLSchema,

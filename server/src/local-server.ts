@@ -9,7 +9,7 @@ import { gatedLandingPagePlugin } from "./plugins/gatedLandingPage.plugin.js";
 import { als, log, reqIdChild, store } from "./log.js";
 import { loggingPlugin } from "./plugins/logging.plugin";
 import { GraphQLArmorConfig } from "./plugins/graphQLArmorConfig.js";
-import { fieldAuthPlugin } from "./plugins/fieldAuthPlugin.js";
+import { fieldAuthPlugin } from "./plugins/fieldAuthPlugin/fieldAuthPlugin.js";
 import { schemaAuthValidationPlugin } from "./plugins/schemaAuthValidationPlugin.js";
 
 log.debug("Starting server...");
