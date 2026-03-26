@@ -5,7 +5,9 @@ import {
   DocumentNode,
   GraphQLSchema,
   isIntrospectionType,
+  GraphQLError,
   GraphQLField,
+  GraphQLCompositeType,
 } from "graphql";
 
 import { getDirective } from "@graphql-tools/utils";
@@ -13,15 +15,6 @@ import { getDirective } from "@graphql-tools/utils";
 import type { GraphQLContext } from "../../auth/auth.util";
 import { prisma } from "../../prismaClient";
 import { Permission } from "../../types";
-
-const getApplicablePermissions = (
-  schema: GraphQLSchema,
-  fieldDef: GraphQLField<unknown, unknown>
-): Permission => {
-  const authDirectives = getDirective(schema, fieldDef, "auth");
-  // Schema validation ensures this exists and has a valid "requires" value
-  return authDirectives![0]["requires"];
-};
 
 const getUserPermissions = async (userId: string): Promise<Permission[]> => {
   const userRoles = (
@@ -42,16 +35,47 @@ const getUserPermissions = async (userId: string): Promise<Permission[]> => {
 };
 
 /**
- * Validates that all fields in a GraphQL document are accessible with the given permissions.
+ * Checks if a field is authorized for the given permissions.
  * Exported for testing purposes.
- * @throws Error if any field is not accessible
+ * @returns error message if unauthorized, false if authorized or should be skipped
+ */
+export const checkFieldAuthorization = (
+  schema: GraphQLSchema,
+  fieldDef: GraphQLField<unknown, unknown>,
+  parentType: GraphQLCompositeType,
+  userPermissions: Permission[]
+): string | false => {
+  if (fieldDef.name.startsWith("__") || isIntrospectionType(parentType)) {
+    return false;
+  }
+
+  const authDirectives = getDirective(schema, fieldDef, "auth");
+  if (!authDirectives || authDirectives.length === 0) {
+    return false;
+  }
+
+  const requiredPermission: Permission = authDirectives[0]["requires"];
+  if (userPermissions.includes(requiredPermission)) {
+    return false;
+  }
+
+  return `Unauthorized: You do not have permission to access ${parentType.name}.${fieldDef.name}.`;
+};
+
+/**
+ * Validates that all fields in a GraphQL document are accessible with the given permissions.
+ * Collects all authorization violations and reports them together.
+ * Exported for testing purposes.
+ * @throws Error with all authorization violations if any fields are not accessible
  */
 export const validateDocumentPermissions = (
   document: DocumentNode,
   schema: GraphQLSchema,
   userPermissions: Permission[]
 ): void => {
+  const violations: string[] = [];
   const typeInfo = new TypeInfo(schema);
+
   visit(
     document,
     visitWithTypeInfo(typeInfo, {
@@ -59,26 +83,34 @@ export const validateDocumentPermissions = (
         const fieldDef = typeInfo.getFieldDef();
         const parentType = typeInfo.getParentType();
 
-        if (
-          !fieldDef ||
-          !parentType ||
-          fieldDef.name.startsWith("__") ||
-          isIntrospectionType(parentType)
-        ) {
-          return;
+        if (!fieldDef || !parentType) {
+          return false;
         }
 
-        const permission: Permission = getApplicablePermissions(schema, fieldDef);
-        const hasPermission = userPermissions.includes(permission);
+        const authorizationError = checkFieldAuthorization(
+          schema,
+          fieldDef,
+          parentType,
+          userPermissions
+        );
 
-        if (!hasPermission) {
-          throw new Error(
-            `Unauthorized: You do not have permission to access field "${fieldDef.name}" of type "${parentType.name}"`
-          );
+        if (authorizationError) {
+          violations.push(authorizationError);
         }
       },
     })
   );
+
+  if (violations.length > 0) {
+    throw new GraphQLError(`Authorization failed with ${violations.length} violation(s)`, {
+      extensions: {
+        code: "FORBIDDEN",
+        violations: violations.map((message) => ({
+          message,
+        })),
+      },
+    });
+  }
 };
 
 export const fieldAuthPlugin = {

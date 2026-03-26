@@ -26,7 +26,7 @@ export const extensionSchema = gql`
     documents: [Document!]! @auth(requires: "Resolve Modification Documents")
     clearanceLevel: ClearanceLevel! @auth(requires: "Resolve Modification Application Workflow")
     tags: [Tag!]! @auth(requires: "Resolve Modification Application Workflow")
-    signatureLevel: SignatureLevel @auth(requires: "Resolve Modification Application Workflow")
+    signatureLevel: SignatureLevel @auth(requires: "Resolve Modification")
     createdAt: DateTime! @auth(requires: "Resolve Modification")
     updatedAt: DateTime! @auth(requires: "Resolve Modification")
   }

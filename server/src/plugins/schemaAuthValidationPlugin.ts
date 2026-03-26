@@ -2,7 +2,12 @@ import { GraphQLSchema, isObjectType, isInterfaceType, isIntrospectionType } fro
 import { getDirective } from "@graphql-tools/utils";
 import { PERMISSIONS } from "../constants.js";
 
-const validateAuthDirectives = (schema: GraphQLSchema): void => {
+/**
+ * Validates that all fields have @auth directives with valid permissions.
+ * Exported for testing purposes.
+ * @throws Error if validation fails with all errors listed
+ */
+export const validateAuthDirectives = (schema: GraphQLSchema): void => {
   const errors: string[] = [];
 
   const typeMap = schema.getTypeMap();
