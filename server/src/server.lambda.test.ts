@@ -1,39 +1,48 @@
 import { describe, it, vi, expect, beforeAll, beforeEach } from "vitest";
 import type { APIGatewayProxyEvent } from "aws-lambda";
-let extractAuthorizerClaims!: typeof import("./server").extractAuthorizerClaims;
-let withAuthorizerHeader!: typeof import("./server").withAuthorizerHeader;
+let extractAuthorizerClaims!: typeof import("./auth/lambda-utils").extractAuthorizerClaims;
+let withAuthorizerHeader!: typeof import("./auth/lambda-utils").withAuthorizerHeader;
 let buildLambdaContext!: typeof import("./auth/auth.util.ts").buildLambdaContext;
 
 // Shared spies
 const userFindUnique = vi.fn();
-const userCreate     = vi.fn();
-const personCreate   = vi.fn();
+const userCreate = vi.fn();
+const personCreate = vi.fn();
+const systemRoleAssignmentCreate = vi.fn();
 
 // Prisma: mock BOTH specifiers that your code might use
 vi.mock("./prismaClient.js", () => ({
   prisma: () => ({
-    user:   { findUnique: userFindUnique, create: userCreate },
+    user: { findUnique: userFindUnique, create: userCreate },
     person: { create: personCreate },
+    systemRoleAssignment: { create: systemRoleAssignmentCreate },
   }),
 }));
 vi.mock("../prismaClient.js", () => ({
   prisma: () => ({
-    user:   { findUnique: userFindUnique, create: userCreate },
+    user: { findUnique: userFindUnique, create: userCreate },
     person: { create: personCreate },
+    systemRoleAssignment: { create: systemRoleAssignmentCreate },
   }),
 }));
 
 // Logger: mock BOTH specifiers
 vi.mock("./logger.js", () => ({
   log: {
-    debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
   },
   setRequestContext: vi.fn(),
   addToRequestContext: vi.fn(),
 }));
 vi.mock("../logger.js", () => ({
   log: {
-    debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
   },
   setRequestContext: vi.fn(),
   addToRequestContext: vi.fn(),
@@ -57,7 +66,7 @@ vi.mock("jsonwebtoken", () => ({ default: {}, verify: vi.fn() }));
 console.log("[TEST] prisma mock wired");
 
 beforeAll(async () => {
-  ({ extractAuthorizerClaims, withAuthorizerHeader } = await import("./server"));
+  ({ extractAuthorizerClaims, withAuthorizerHeader } = await import("./auth/lambda-utils"));
   ({ buildLambdaContext } = await import("./auth/auth.util.ts"));
 });
 
@@ -181,7 +190,7 @@ describe("Lambda entrypoint claims plumbing", () => {
     const event = makeEvent();
 
     (event.requestContext.authorizer as any).identities = JSON.stringify([
-      { providerType: "SAML", issuer: "http://idp.example" }
+      { providerType: "SAML", issuer: "http://idp.example" },
     ]);
 
     const claims = extractAuthorizerClaims(event);
@@ -206,7 +215,7 @@ describe("Lambda entrypoint claims plumbing", () => {
     expect(userCreate.mock.calls[0][0]).toMatchObject({
       data: {
         username: "ABCD",
-        cognitoSubject: expect.stringMatching(/^74a8/)
+        cognitoSubject: expect.stringMatching(/^74a8/),
       },
     });
     expect(ctx.user?.id).toBe("new-user-123");
