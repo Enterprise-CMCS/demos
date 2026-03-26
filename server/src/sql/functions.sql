@@ -1099,3 +1099,86 @@ CREATE TRIGGER check_demonstration_type_exists_for_approved_demonstrations
 BEFORE UPDATE ON demos_app.demonstration
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations();
+
+-- block_final_states_if_extension_request_active
+CREATE FUNCTION demos_app.block_final_states_if_extension_request_active()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+
+
+    IF NEW.new_status_id in (
+        'Accepted Deliverable',
+        'Approved Deliverable',
+        'Received and Filed Deliverable'
+    ) THEN
+        IF EXISTS (
+            SELECT 1
+            FROM demos_app.deliverable_active_extension
+            WHERE deliverable_active_extension.deliverable_id = NEW.deliverable_id
+        )
+        THEN
+            RAISE EXCEPTION 'Cannot finalize deliverable % when it has an active extension', NEW.deliverable_id;
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+CREATE CONSTRAINT TRIGGER block_final_states_if_extension_request_active
+BEFORE INSERT ON demos_app.deliverable_action
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.block_final_states_if_extension_request_active();
+
+-- capture_active_extension_request_id_for_action
+CREATE FUNCTION demos_app.capture_active_extension_request_id_for_action()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_active_extension_id UUID;
+BEGIN
+    SELECT deliverable_extension_id
+    INTO v_active_extension_id
+    FROM demos_app.deliverable_active_extension
+    WHERE deliverable_id = NEW.deliverable_id;
+
+    IF FOUND THEN
+        NEW.active_extension_id := v_active_extension_id;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE CONSTRAINT TRIGGER capture_active_extension_request_id_for_action
+BEFORE INSERT ON demos_app.deliverable_action
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.capture_active_extension_request_id_for_action();
+
+-- update_documents_in_submission
+CREATE FUNCTION demos_app.update_documents_in_submission()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM demos_app.deliverable_submission_action_type_limit
+        WHERE id = NEW.action_type_id
+    ) THEN
+        UPDATE demos_app.document
+        SET deliverable_submission_action_id = NEW.id
+        WHERE deliverable_id = NEW.deliverable_id
+        AND deliverable_submission_action_id IS NULL;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER update_documents_in_submission
+AFTER INSERT ON demos_app.deliverable_action
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.update_documents_in_submission();

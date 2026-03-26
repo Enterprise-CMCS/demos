@@ -918,6 +918,17 @@ CHECK (
 );
 
 ALTER TABLE
+    demos_app.deliverable_action
+ADD CONSTRAINT
+    block_unpermitted_due_date_changes
+CHECK (
+    NOT (
+        due_date_change_allowed = FALSE
+        AND old_due_date != new_due_date
+    )
+);
+
+ALTER TABLE
     demos_app.demonstration
 ADD CONSTRAINT
     check_demonstration_non_null_fields_when_approved
