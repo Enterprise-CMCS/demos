@@ -2,10 +2,12 @@ import React, { useEffect, useRef } from "react";
 
 import { Button, SecondaryButton } from "components/button";
 import { tw } from "tags/tw";
+import { WorkflowApplicationType } from "components/application";
 
 interface ConfirmApproveDialogProps {
   onClose: () => void;
   onConfirm: () => void;
+  applicationType: WorkflowApplicationType;
 }
 
 const STYLES = {
@@ -19,6 +21,7 @@ const STYLES = {
 export const ConfirmApproveDialog: React.FC<ConfirmApproveDialogProps> = ({
   onClose,
   onConfirm,
+  applicationType,
 }) => {
   const confirmDialogRef = useRef<HTMLDialogElement>(null);
 
@@ -45,7 +48,7 @@ export const ConfirmApproveDialog: React.FC<ConfirmApproveDialogProps> = ({
         </button>
         <h2 className={STYLES.TITLE}>ARE YOU SURE?</h2>
         <div className={STYLES.MESSAGE}>
-          <span>Are you sure? By hitting accept you will be making the final submission of this approved demonstration. This will finalize the approval process and move the demonstration to the deliverables phase.</span>
+          <span>Are you sure? By hitting accept you will be making the final submission of this approved {applicationType}. This will finalize the approval process and move the demonstration to the deliverables phase.</span>
         </div>
         <div className={STYLES.BUTTONS}>
           <SecondaryButton name="button-ca-dialog-cancel" onClick={onClose}>

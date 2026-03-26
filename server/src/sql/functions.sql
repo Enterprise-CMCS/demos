@@ -793,6 +793,16 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
 CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.application_tag_suggestion
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.application_tag_suggestion_extract
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
 BEFORE UPDATE ON demos_app.application_tag_assignment
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
@@ -871,6 +881,118 @@ CREATE TRIGGER _disable_redundant_updates
 BEFORE UPDATE ON demos_app.users
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.uipath_result
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.uipath_value
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+-- check_suggestion_deleted_if_last_extract
+CREATE FUNCTION demos_app.check_suggestion_deleted_if_last_extract()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    suggestion_extract_count INT;
+BEGIN
+    SELECT
+        COUNT(*)
+    FROM
+        demos_app.application_tag_suggestion_extract
+    WHERE
+        suggestion_id = OLD.suggestion_id
+    INTO
+        suggestion_extract_count;
+
+    IF suggestion_extract_count = 1 AND EXISTS (
+        SELECT
+            1
+        FROM
+            demos_app.application_tag_suggestion
+        WHERE
+            id = OLD.suggestion_id
+    ) THEN
+        RAISE EXCEPTION 'Cannot delete the final extract for suggestion % without deleting the suggestion in the same transaction', OLD.suggestion_id;
+    END IF;
+
+    RETURN OLD;
+END;
+$$;
+
+CREATE TRIGGER check_suggestion_deleted_if_last_extract
+BEFORE DELETE ON demos_app.application_tag_suggestion_extract
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.check_suggestion_deleted_if_last_extract();
+
+-- upsert_suggestion_record
+CREATE FUNCTION demos_app.upsert_suggestion_record()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO demos_app.application_tag_suggestion (
+        id,
+        application_id,
+        value,
+        status_id,
+        created_at,
+        updated_at
+    )
+    VALUES (
+        NEW.suggestion_id,
+        NEW.application_id,
+        NEW.value,
+        'Pending',
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP
+    )
+    ON CONFLICT (id) DO UPDATE
+    SET
+        status_id = 'Pending',
+        updated_at = CURRENT_TIMESTAMP
+    WHERE
+        demos_app.application_tag_suggestion.status_id = 'Removed';
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER upsert_suggestion_record
+AFTER INSERT ON demos_app.application_tag_suggestion_extract
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.upsert_suggestion_record();
+
+-- check_suggestion_has_extract
+CREATE FUNCTION demos_app.check_suggestion_has_extract()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT
+            1
+        FROM
+            demos_app.application_tag_suggestion_extract
+        WHERE
+          suggestion_id = NEW.id
+    ) THEN
+        RAISE EXCEPTION 'Suggestion % must have at least one extract', NEW.id;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE CONSTRAINT TRIGGER check_suggestion_has_extract
+AFTER INSERT OR UPDATE ON demos_app.application_tag_suggestion
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.check_suggestion_has_extract();
 
 -- check_demonstration_type_exists_for_approved_demos
 CREATE OR REPLACE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations()

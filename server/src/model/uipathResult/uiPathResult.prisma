@@ -1,0 +1,20 @@
+model UiPathResult {
+  id            String   @id @default(uuid()) @db.Uuid
+  requestId     String   @map("request_id")
+  response      Json
+  projectId     String   @map("project_id")
+  documentId    String   @map("document_id") @db.Uuid
+  applicationId String   @map("application_id") @db.Uuid
+  statusId      String   @default("Pending") @map("status_id")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  status       UiPathResultStatus @relation(fields: [statusId], references: [id])
+  uiPathValues UiPathValue[]
+  document     Document           @relation(fields: [documentId, applicationId], references: [id, applicationId])
+
+  @@unique([id, documentId, applicationId])
+  @@unique([requestId])
+  @@unique([documentId])
+  @@map("uipath_result")
+}
