@@ -13,9 +13,6 @@ import { extractAuthorizerClaims, withAuthorizerHeader } from "./auth/lambda-uti
 
 log.info({ type: "graphql.startup.loaded" });
 
-// Re-export for backward compatibility
-export { extractAuthorizerClaims, withAuthorizerHeader };
-
 const setDatabaseUrl = async () => {
   const url = await getDatabaseUrl();
   log.debug({ type: "graphql.db.creds_retrieved" });

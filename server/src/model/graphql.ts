@@ -63,9 +63,6 @@ import { personResolvers } from "./person/personResolvers.js";
 import { personTypeSchema } from "./personType/personTypeSchema.js";
 import { personTypeResolvers } from "./personType/personTypeResolvers.js";
 
-import { permissionSchema } from "./permission/permissionSchema.js";
-import { permissionResolvers } from "./permission/permissionResolvers.js";
-
 import { phaseSchema } from "./phase/phaseSchema.js";
 import { phaseResolvers } from "./phase/phaseResolvers.js";
 
@@ -137,7 +134,6 @@ export const typeDefs = [
   noteTypeSchema,
   personSchema,
   personTypeSchema,
-  permissionSchema,
   phaseSchema,
   phaseStatusSchema,
   roleSchema,
@@ -176,7 +172,6 @@ export const resolvers = [
   noteTypeResolvers,
   personResolvers,
   personTypeResolvers,
-  permissionResolvers,
   phaseResolvers,
   phaseStatusResolvers,
   roleResolvers,

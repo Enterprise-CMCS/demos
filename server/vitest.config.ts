@@ -6,18 +6,10 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "html", "lcov"],
-      exclude: [
-        "**/build/**",
-        "**/eslint-rules/**",
-        "**/node_modules/**",
-        "**/dist/**",
-        "**/*.config.?s",
-        "**/seeder.ts",
-        "**/plugins/**",
-      ],
-    },
+      exclude: ["**/build/**", "**/eslint-rules/**", "**/node_modules/**", "**/dist/**", "**/*.config.?s", "**/seeder.ts", "**/plugins/**"],      
+    },    
     include: ["src/**/*.test.ts"],
-    watch: false,
+    watch: false,    
     silent: false,
     clearMocks: true,
     deps: {

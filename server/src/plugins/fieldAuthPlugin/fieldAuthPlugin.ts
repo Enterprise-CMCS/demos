@@ -34,11 +34,6 @@ const getUserPermissions = async (userId: string): Promise<Permission[]> => {
   return userPermissions as Permission[];
 };
 
-/**
- * Checks if a field is authorized for the given permissions.
- * Exported for testing purposes.
- * @returns error message if unauthorized, false if authorized or should be skipped
- */
 export const checkFieldAuthorization = (
   schema: GraphQLSchema,
   fieldDef: GraphQLField<unknown, unknown>,
@@ -62,12 +57,6 @@ export const checkFieldAuthorization = (
   return `Unauthorized: You do not have permission to access ${parentType.name}.${fieldDef.name}.`;
 };
 
-/**
- * Validates that all fields in a GraphQL document are accessible with the given permissions.
- * Collects all authorization violations and reports them together.
- * Exported for testing purposes.
- * @throws Error with all authorization violations if any fields are not accessible
- */
 export const validateDocumentPermissions = (
   document: DocumentNode,
   schema: GraphQLSchema,
