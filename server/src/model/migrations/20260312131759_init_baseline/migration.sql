@@ -929,6 +929,17 @@ CHECK (
 );
 
 ALTER TABLE
+    demos_app.deliverable_extension
+ADD CONSTRAINT
+    require_final_date_for_finished_requests
+CHECK (
+    NOT (
+        status_id = 'Approved'
+        AND final_date_granted IS NULL
+    )
+);
+
+ALTER TABLE
     demos_app.demonstration
 ADD CONSTRAINT
     check_demonstration_non_null_fields_when_approved

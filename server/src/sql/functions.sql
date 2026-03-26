@@ -1182,3 +1182,71 @@ CREATE TRIGGER update_documents_in_submission
 AFTER INSERT ON demos_app.deliverable_action
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.update_documents_in_submission();
+
+-- create_or_update_active_record_for_request
+CREATE FUNCTION demos_app.create_or_update_active_record_for_request()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF (TG_OP = 'INSERT') THEN
+        -- If inserting with an active status, add to deliverable_active_extension
+        IF EXISTS (
+            SELECT 1 
+            FROM demos_app.deliverable_active_extension_status_limit 
+            WHERE id = NEW.status_id
+        ) THEN
+            INSERT INTO demos_app.deliverable_active_extension (
+                deliverable_extension_id,
+                deliverable_id,
+                status_id
+            ) VALUES (
+                NEW.id,
+                NEW.deliverable_id,
+                NEW.status_id
+            );
+        END IF;
+        RETURN NEW;
+        
+    ELSIF (TG_OP = 'UPDATE') THEN
+        -- Check if status changed
+        IF OLD.status_id IS DISTINCT FROM NEW.status_id THEN
+            -- Check if OLD status was active
+            IF EXISTS (
+                SELECT 1 
+                FROM demos_app.deliverable_active_extension_status_limit 
+                WHERE id = OLD.status_id
+            ) THEN
+                -- Moving out of active status - remove from active table
+                DELETE FROM demos_app.deliverable_active_extension
+                WHERE deliverable_extension_id = OLD.id;
+            END IF;
+            
+            -- Check if NEW status is active
+            IF EXISTS (
+                SELECT 1 
+                FROM demos_app.deliverable_active_extension_status_limit 
+                WHERE id = NEW.status_id
+            ) THEN
+                -- Moving into active status - add to active table
+                INSERT INTO demos_app.deliverable_active_extension (
+                    deliverable_extension_id,
+                    deliverable_id,
+                    status_id
+                ) VALUES (
+                    NEW.id,
+                    NEW.deliverable_id,
+                    NEW.status_id
+                );
+            END IF;
+        END IF;
+        RETURN NEW;
+    END IF;
+END;
+$$;
+
+CREATE TRIGGER create_or_update_active_record_for_request
+AFTER INSERT OR UPDATE ON demos_app.deliverable_extension
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.create_or_update_active_record_for_request();
+
