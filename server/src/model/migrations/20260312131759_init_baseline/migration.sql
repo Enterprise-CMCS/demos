@@ -929,6 +929,25 @@ CHECK (
 );
 
 ALTER TABLE
+    demos_app.deliverable_action
+ADD CONSTRAINT
+    require_notes_for_user_actions
+CHECK (
+    action_type_id NOT IN ('Requested Resubmission')
+    OR (note IS NOT NULL AND trim(note) != '')
+);
+
+ALTER TABLE
+    demos_app.deliverable_action
+ADD CONSTRAINT
+    require_user_id_for_user_actions
+CHECK (
+    (action_type_id IN ('Marked as Past Due') AND user_id IS NULL)
+    OR
+    (action_type_id NOT IN ('Marked as Past Due') AND user_id IS NOT NULL)
+);
+
+ALTER TABLE
     demos_app.deliverable_extension
 ADD CONSTRAINT
     require_final_date_for_finished_requests
@@ -982,6 +1001,22 @@ CHECK (
 ALTER TABLE
     demos_app.document
 ADD CONSTRAINT
+    check_deliverable_null_states
+CHECK (
+    (deliverable_id IS NULL 
+        AND deliverable_type_id IS NULL 
+        AND deliverable_is_cms_attached_file IS NULL
+        AND deliverable_submission_action_id IS NULL
+        AND deliverable_submission_action_type_id IS NULL)
+    OR
+    (deliverable_id IS NOT NULL 
+        AND deliverable_type_id IS NOT NULL 
+        AND deliverable_is_cms_attached_file IS NOT NULL)
+);
+
+ALTER TABLE
+    demos_app.document
+ADD CONSTRAINT
     check_non_empty_name
 CHECK (
     trim(name) != ''
@@ -994,6 +1029,69 @@ ADD CONSTRAINT
 CHECK (
     trim(s3_path) != ''
 );
+
+
+ALTER TABLE
+    demos_app.document
+ADD CONSTRAINT
+    check_phase_id_deliverable_id_null
+CHECK (
+    phase_id IS NULL OR deliverable_id IS NULL
+);
+
+ALTER TABLE
+    demos_app.document_infected
+ADD CONSTRAINT
+    check_deliverable_null_states
+CHECK (
+    (deliverable_id IS NULL AND deliverable_type_id IS NULL AND deliverable_is_cms_attached_file IS NULL)
+    OR
+    (deliverable_id IS NOT NULL AND deliverable_type_id IS NOT NULL AND deliverable_is_cms_attached_file IS NOT NULL)
+);
+
+ALTER TABLE
+    demos_app.document_infected
+ADD CONSTRAINT
+    check_non_empty_name
+CHECK (
+    trim(name) != ''
+);
+
+ALTER TABLE
+    demos_app.document_infected
+ADD CONSTRAINT
+    check_non_empty_s3_path
+CHECK (
+    trim(s3_path) != ''
+);
+
+ALTER TABLE
+    demos_app.document_infected
+ADD CONSTRAINT
+    check_phase_id_deliverable_id_null
+CHECK (
+    phase_id IS NULL OR deliverable_id IS NULL
+);
+
+ALTER TABLE
+    demos_app.document_pending_upload
+ADD CONSTRAINT
+    check_deliverable_null_states
+CHECK (
+    (deliverable_id IS NULL AND deliverable_type_id IS NULL AND deliverable_is_cms_attached_file IS NULL)
+    OR
+    (deliverable_id IS NOT NULL AND deliverable_type_id IS NOT NULL AND deliverable_is_cms_attached_file IS NOT NULL)
+);
+
+ALTER TABLE
+    demos_app.document_pending_upload
+ADD CONSTRAINT
+    check_phase_id_deliverable_id_null
+CHECK (
+    phase_id IS NULL OR deliverable_id IS NULL
+);
+
+
 
 ALTER TABLE
     demos_app.document_pending_upload
