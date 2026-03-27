@@ -146,7 +146,7 @@ export async function processInfectedDatabaseRecord(
     scanResultDetails.scanResultStatus ?? "",
     threatsString,
   ]);
-  log.info("Successfully processed infected file in database.");
+  log.info("Successfully processed infected file.");
 }
 
 export async function enqueueBudgetNeutrality(
