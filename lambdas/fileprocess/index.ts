@@ -13,6 +13,8 @@ import { als, log, store, reqIdChild } from "./log";
 
 const GUARDDUTY_CLEAN_STATUS = "NO_THREATS_FOUND";
 const FINAL_BN_WORKSHEET_DOCUMENT_TYPE = "Final BN Worksheet";
+// IF we want to add other file type to run in UIPATH. Add below!
+const UIPATH_AUTOMATED_QUEUE_DOCUMENT_TYPES = new Set(["State Application"]);
 const PROCESS_PENDING_DOCUMENT_CLEAN = "move_document_from_pending_to_clean";
 const PROCESS_PENDING_DOCUMENT_INFECTED = "move_document_from_pending_to_infected";
 const AWS_REGION = process.env.AWS_REGION;
@@ -23,7 +25,9 @@ let cacheExpiration = 0;
 const uploadBucket = process.env.UPLOAD_BUCKET;
 const cleanBucket = process.env.CLEAN_BUCKET;
 const infectedBucket = process.env.INFECTED_BUCKET;
-const budgetNeutralityQueueUrl = process.env.BUDGET_NEUTRALITY_QUEUE_URL;
+
+const budgetNeutralityQueueUrl = process.env.BUDGET_NEUTRALITY_QUEUE_URL ?? undefined;
+const uiPathQueueUrl = process.env.UIPATH_QUEUE_URL ?? undefined;
 const dbSchema = process.env.DB_SCHEMA || "demos_app";
 const bypassSSL = process.env.BYPASS_SSL;
 const awsEndpointUrl = process.env.AWS_ENDPOINT_URL;
@@ -121,7 +125,7 @@ export async function processCleanDatabaseRecord(
     throw new Error(`No document type returned for document ${documentId}.`);
   }
 
-  log.info({ documentTypeId }, "successfully processed clean file in database.");
+  log.info({ documentTypeId }, "Successfully processed clean file in database.");
 
   return documentTypeId;
 }
@@ -142,7 +146,7 @@ export async function processInfectedDatabaseRecord(
     scanResultDetails.scanResultStatus ?? "",
     threatsString,
   ]);
-  log.info("successfully processed infected file in database.");
+  log.info("Successfully processed infected file.");
 }
 
 export async function enqueueBudgetNeutrality(
@@ -177,6 +181,34 @@ export async function enqueueBudgetNeutrality(
   log.info(
     { documentId, documentTypeId, messageId: response.MessageId },
     "queued Budget Neutrality validation request."
+  );
+}
+
+export async function enqueueUiPath(documentId: string) {
+  log.info({ documentId }, "UiPath Queue Started");
+
+  if (!uiPathQueueUrl) {
+    log.warn({ documentId }, "UIPATH_QUEUE_URL is not configured; skipping UiPath enqueue.");
+    return;
+  }
+
+  const sqsClient = new SQSClient(awsClientConfig);
+  const response = await sqsClient.send(
+    new SendMessageCommand({
+      QueueUrl: uiPathQueueUrl,
+      MessageBody: JSON.stringify({
+        documentId,
+      }),
+    })
+  );
+
+  if (!response.MessageId) {
+    throw new Error(`Failed to enqueue UiPath message for document ${documentId}.`);
+  }
+
+  log.info(
+    { documentId, messageId: response.MessageId },
+    "queued UiPath extraction request."
   );
 }
 
@@ -223,7 +255,18 @@ export async function processGuardDutyResult(
 
   if (isClean) {
     const fileTypeId = await processCleanDatabaseRecord(client, documentId, applicationId);
-    if (fileTypeId === FINAL_BN_WORKSHEET_DOCUMENT_TYPE) {
+    if (uiPathQueueUrl && UIPATH_AUTOMATED_QUEUE_DOCUMENT_TYPES.has(fileTypeId)) {
+      await enqueueUiPath(documentId);
+    }
+    // UiPath is incorrectly configured.
+    if (!uiPathQueueUrl && UIPATH_AUTOMATED_QUEUE_DOCUMENT_TYPES.has(fileTypeId)) {
+      log.warn(
+        { documentId, fileTypeId },
+        "File Type is correct, but UIPATH_QUEUE_URL is not configured; skipping UiPath enqueue."
+      );
+    }
+
+    if (budgetNeutralityQueueUrl && fileTypeId === FINAL_BN_WORKSHEET_DOCUMENT_TYPE) {
       await enqueueBudgetNeutrality(documentId, fileTypeId);
     }
   } else {
