@@ -25,8 +25,9 @@ let cacheExpiration = 0;
 const uploadBucket = process.env.UPLOAD_BUCKET;
 const cleanBucket = process.env.CLEAN_BUCKET;
 const infectedBucket = process.env.INFECTED_BUCKET;
-const budgetNeutralityQueueUrl = process.env.BUDGET_NEUTRALITY_QUEUE_URL;
-const uiPathQueueUrl = process.env.UIPATH_QUEUE_URL;
+
+const budgetNeutralityQueueUrl = process.env.BUDGET_NEUTRALITY_QUEUE_URL ?? undefined;
+const uiPathQueueUrl = process.env.UIPATH_QUEUE_URL ?? undefined;
 const dbSchema = process.env.DB_SCHEMA || "demos_app";
 const bypassSSL = process.env.BYPASS_SSL;
 const awsEndpointUrl = process.env.AWS_ENDPOINT_URL;
@@ -254,11 +255,21 @@ export async function processGuardDutyResult(
 
   if (isClean) {
     const fileTypeId = await processCleanDatabaseRecord(client, documentId, applicationId);
-    if (UIPATH_AUTOMATED_QUEUE_DOCUMENT_TYPES.has(fileTypeId)) {
+    if (uiPathQueueUrl && UIPATH_AUTOMATED_QUEUE_DOCUMENT_TYPES.has(fileTypeId)) {
       await enqueueUiPath(documentId);
     }
-    if (fileTypeId === FINAL_BN_WORKSHEET_DOCUMENT_TYPE) {
+    // UiPath is incorrectly configured.
+    if (!uiPathQueueUrl && UIPATH_AUTOMATED_QUEUE_DOCUMENT_TYPES.has(fileTypeId)) {
+      log.warn(
+        { documentId, fileTypeId },
+        "File Type is correct, but UIPATH_QUEUE_URL is not configured; skipping UiPath enqueue."
+      );
+    }
+
+    if (budgetNeutralityQueueUrl && fileTypeId === FINAL_BN_WORKSHEET_DOCUMENT_TYPE) {
       await enqueueBudgetNeutrality(documentId, fileTypeId);
+    } else {
+      log.info("Not a budget neutrality file");
     }
   } else {
     await processInfectedDatabaseRecord(client, documentId, applicationId, scanResultDetails);

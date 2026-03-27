@@ -278,15 +278,18 @@ describe("file-process", () => {
       );
     });
 
-    it("should skip enqueue when UIPATH_QUEUE_URL is missing", async () => {
-      vi.resetModules();
-      vi.stubEnv("UIPATH_QUEUE_URL", "");
-      const fileprocess = await import(".");
+    it.each([undefined])(
+      "should skip enqueue when UIPATH_QUEUE_URL is not configured (%s)",
+      async (uipathQueueUrl) => {
+        vi.resetModules();
+        vi.stubEnv("UIPATH_QUEUE_URL", uipathQueueUrl);
+        const fileprocess = await import(".");
 
-      await expect(fileprocess.enqueueUiPath("test-doc-id")).resolves.toBeUndefined();
+        await expect(fileprocess.enqueueUiPath("test-doc-id")).resolves.toBeUndefined();
 
-      expect(sqsMocks.sendMock).not.toHaveBeenCalled();
-    });
+        expect(sqsMocks.sendMock).not.toHaveBeenCalled();
+      }
+    );
   });
 
   describe("processGuardDutyResult", () => {
@@ -363,9 +366,31 @@ describe("file-process", () => {
       });
     });
 
-    test("should continue processing State Application when UIPATH_QUEUE_URL is missing", async () => {
+    test("should continue processing State Application when UIPATH_QUEUE_URL is blank", async () => {
       vi.resetModules();
-      vi.stubEnv("UIPATH_QUEUE_URL", "");
+      vi.stubEnv("UIPATH_QUEUE_URL", undefined);
+      const fileprocess = await import(".");
+
+      const mockSend = vi.fn();
+      vi.spyOn(S3Client.prototype, "send").mockImplementation(mockSend);
+
+      const mockClient = {
+        query: vi
+          .fn()
+          .mockResolvedValueOnce({ rows: [{ application_id: "1" }] })
+          .mockResolvedValueOnce({ rows: [{ document_type_id: "State Application" }] }),
+      };
+
+      const isClean = await fileprocess.processGuardDutyResult(mockClient, mockEventBase);
+
+      expect(isClean).toBe(true);
+      expect(mockSend).toHaveBeenCalledTimes(2);
+      expect(sqsMocks.sendMock).not.toHaveBeenCalled();
+    });
+
+    test("should continue processing State Application when UIPATH_QUEUE_URL is quoted empty", async () => {
+      vi.resetModules();
+      vi.stubEnv("UIPATH_QUEUE_URL", undefined);
       const fileprocess = await import(".");
 
       const mockSend = vi.fn();
