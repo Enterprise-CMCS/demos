@@ -83,7 +83,8 @@
     "file-type": "^21.3.2",
     "react-oidc-context": "^3.3.1",
     "react-router-dom": "^7.13.1",
-    "react-switch": "^7.1.0"
+    "react-switch": "^7.1.0",
+    "demos-shared-library": "file:../shared_library"
   },
   "optionalDependencies": {
     "@emnapi/core": "^1.9.0",

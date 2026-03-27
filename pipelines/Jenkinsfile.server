@@ -13,6 +13,20 @@ pipeline {
   }
 
   stages {
+    stage('Build Shared Library') {
+      steps {
+        script {
+          if (fileExists('shared_library')) {
+            dirCon('shared_library', 'node') {
+              sh '''
+              npm ci
+              npm run build || true
+              '''
+            }
+          }
+        }
+      }
+    }
     stage('Server - Snyk') {
       steps {
         script {
@@ -29,6 +43,14 @@ pipeline {
           if (hasChange("server")) {
             dirCon('server', 'node') {
               sh '''
+              # Ensure shared_library is installed and built before installing server deps
+              if [ -d ../shared_library ]; then
+                cd ../shared_library
+                npm ci
+                npm run build || true
+                cd -
+              fi
+
               npm ci
               npm run lint
               npx tsc --noEmit --skipLibCheck
@@ -97,9 +119,17 @@ pipeline {
             script {
               dirCon('deployment', 'node') {
                 sh """
-                npm ci
-                export IS_TEST_MIGRATION="true"
-                npx tsx demosctl/index test-migration dev "temp_${env.CHANGE_ID}_${currentBuild.startTimeInMillis}"
+                  # Build shared_library first so the linked package is ready for migration tests
+                  if [ -d ../shared_library ]; then
+                    cd ../shared_library
+                    npm ci
+                    npm run build || true
+                    cd -
+                  fi
+
+                  npm ci
+                  export IS_TEST_MIGRATION="true"
+                  npx tsx demosctl/index test-migration dev "temp_${env.CHANGE_ID}_${currentBuild.startTimeInMillis}"
                 """
               }
             }
