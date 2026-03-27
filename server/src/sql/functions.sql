@@ -420,7 +420,8 @@ DEFERRABLE INITIALLY DEFERRED
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_application_type_record_exists();
 
-CREATE OR REPLACE FUNCTION demos_app.update_demonstration_current_phase_on_phase_update()
+-- update_application_current_phase_on_phase_update
+CREATE OR REPLACE FUNCTION demos_app.update_application_current_phase_on_phase_update()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
@@ -431,6 +432,11 @@ DECLARE
     v_concept_phase_status TEXT;
     v_application_type_id TEXT;
 BEGIN
+    -- Bypass trigger if not making change to status
+    IF NEW.phase_status_id = OLD.phase_status_id THEN
+        RETURN NEW;
+    END IF;
+
     -- Get the maximum phase number
     SELECT MAX(p.phase_number) INTO v_max_phase_number
     FROM demos_app.phase AS p
@@ -458,11 +464,10 @@ BEGIN
         END IF;
     ELSE
         -- No completed phase found, check the Concept phase
-        SELECT ap.phase_status_id INTO v_concept_phase_status
-        FROM demos_app.application_phase AS ap
-        INNER JOIN demos_app.phase AS p ON ap.phase_id = p.id
-        WHERE ap.application_id = NEW.application_id
-        AND p.id = 'Concept';
+        SELECT phase_status_id INTO v_concept_phase_status
+        FROM demos_app.application_phase
+        WHERE application_id = NEW.application_id
+        AND phase_id = 'Concept';
 
         -- If Concept is Started, it's the current phase
         IF v_concept_phase_status = 'Started' THEN
@@ -496,10 +501,113 @@ BEGIN
 END;
 $$;
 
-CREATE TRIGGER update_demonstration_current_phase_on_phase_update
+CREATE TRIGGER update_application_current_phase_on_phase_update
 AFTER UPDATE ON demos_app.application_phase
 FOR EACH ROW
-EXECUTE FUNCTION demos_app.update_demonstration_current_phase_on_phase_update();
+EXECUTE FUNCTION demos_app.update_application_current_phase_on_phase_update();
+
+-- update_application_status_on_phase_update
+CREATE OR REPLACE FUNCTION demos_app.update_application_status_on_phase_update()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_application_type TEXT;
+    v_current_application_status TEXT;
+    v_new_application_status TEXT;
+BEGIN
+    -- Bypass trigger code if there are no changes worth tracking
+    IF OLD.phase_id = NEW.phase_id AND OLD.phase_status_id = NEW.phase_status_id THEN
+        RETURN NEW;
+    END IF;
+
+    -- Get application type to use correct tables
+    SELECT
+        application_type_id INTO v_application_type
+    FROM
+        demos_app.application
+    WHERE
+        id = NEW.application_id;
+
+    -- Get current application status for logic
+    IF v_application_type = 'Demonstration' THEN
+        SELECT
+            status_id INTO v_current_application_status
+        FROM
+            demos_app.demonstration
+        WHERE
+            id = NEW.application_id;
+    ELSIF v_application_type = 'Amendment' THEN
+        SELECT
+            status_id INTO v_current_application_status
+        FROM
+            demos_app.amendment
+        WHERE
+            id = NEW.application_id;
+    ELSIF v_application_type = 'Extension' THEN
+        SELECT
+            status_id INTO v_current_application_status
+        FROM
+            demos_app.extension
+        WHERE
+            id = NEW.application_id;
+    END IF;
+
+    -- Start by assuming no changes to the status
+    v_new_application_status := v_current_application_status;
+
+    -- Implement conditional logic
+    IF v_current_application_status = 'Pre-Submission' THEN
+        IF NEW.phase_id = 'Concept' AND NEW.phase_status_id IN ('Completed', 'Skipped') THEN
+            v_new_application_status := 'Under Review';
+        ELSIF NEW.phase_id = 'Application Intake' AND NEW.phase_status_id = 'Completed' THEN
+            v_new_application_status := 'Under Review';
+        END IF;
+    ELSIF v_current_application_status = 'Under Review' THEN
+        IF NEW.phase_id = 'Completeness' AND NEW.phase_status_id = 'Incomplete' THEN
+            v_new_application_status := 'On-hold';
+        ELSIF NEW.phase_id = 'Approval Summary' AND NEW.phase_status_id = 'Completed' THEN
+            v_new_application_status := 'Approved';
+        END IF;
+    ELSIF v_current_application_status = 'On-hold' THEN
+        IF NEW.phase_id = 'Application Intake' AND NEW.phase_status_id = 'Completed' THEN
+            v_new_application_status := 'Under Review';
+        END IF;
+    END IF;
+
+    IF v_new_application_status != v_current_application_status THEN
+        IF v_application_type = 'Demonstration' THEN
+            UPDATE
+                demos_app.demonstration
+            SET
+                status_id = v_new_application_status
+            WHERE
+                id = NEW.application_id;
+        ELSIF v_application_type = 'Amendment' THEN
+            UPDATE
+                demos_app.amendment
+            SET
+                status_id = v_new_application_status
+            WHERE
+                id = NEW.application_id;
+        ELSIF v_application_type = 'Extension' THEN
+            UPDATE
+                demos_app.extension
+            SET
+                status_id = v_new_application_status
+            WHERE
+                id = NEW.application_id;
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER update_application_status_on_phase_update
+AFTER UPDATE ON demos_app.application_phase
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.update_application_status_on_phase_update();
 
 -- update_federal_comment_phase_status
 CREATE PROCEDURE demos_app.update_federal_comment_phase_status()
@@ -685,6 +793,16 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
 CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.application_tag_suggestion
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.application_tag_suggestion_extract
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
 BEFORE UPDATE ON demos_app.application_tag_assignment
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
@@ -750,12 +868,12 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
 CREATE TRIGGER _disable_redundant_updates
-BEFORE UPDATE ON demos_app.tag
+BEFORE UPDATE ON demos_app.tag_name
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
 CREATE TRIGGER _disable_redundant_updates
-BEFORE UPDATE ON demos_app.tag_configuration
+BEFORE UPDATE ON demos_app.tag
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
@@ -763,6 +881,118 @@ CREATE TRIGGER _disable_redundant_updates
 BEFORE UPDATE ON demos_app.users
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.uipath_result
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.uipath_value
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+-- check_suggestion_deleted_if_last_extract
+CREATE FUNCTION demos_app.check_suggestion_deleted_if_last_extract()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    suggestion_extract_count INT;
+BEGIN
+    SELECT
+        COUNT(*)
+    FROM
+        demos_app.application_tag_suggestion_extract
+    WHERE
+        suggestion_id = OLD.suggestion_id
+    INTO
+        suggestion_extract_count;
+
+    IF suggestion_extract_count = 1 AND EXISTS (
+        SELECT
+            1
+        FROM
+            demos_app.application_tag_suggestion
+        WHERE
+            id = OLD.suggestion_id
+    ) THEN
+        RAISE EXCEPTION 'Cannot delete the final extract for suggestion % without deleting the suggestion in the same transaction', OLD.suggestion_id;
+    END IF;
+
+    RETURN OLD;
+END;
+$$;
+
+CREATE TRIGGER check_suggestion_deleted_if_last_extract
+BEFORE DELETE ON demos_app.application_tag_suggestion_extract
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.check_suggestion_deleted_if_last_extract();
+
+-- upsert_suggestion_record
+CREATE FUNCTION demos_app.upsert_suggestion_record()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO demos_app.application_tag_suggestion (
+        id,
+        application_id,
+        value,
+        status_id,
+        created_at,
+        updated_at
+    )
+    VALUES (
+        NEW.suggestion_id,
+        NEW.application_id,
+        NEW.value,
+        'Pending',
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP
+    )
+    ON CONFLICT (id) DO UPDATE
+    SET
+        status_id = 'Pending',
+        updated_at = CURRENT_TIMESTAMP
+    WHERE
+        demos_app.application_tag_suggestion.status_id = 'Removed';
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER upsert_suggestion_record
+AFTER INSERT ON demos_app.application_tag_suggestion_extract
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.upsert_suggestion_record();
+
+-- check_suggestion_has_extract
+CREATE FUNCTION demos_app.check_suggestion_has_extract()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT
+            1
+        FROM
+            demos_app.application_tag_suggestion_extract
+        WHERE
+          suggestion_id = NEW.id
+    ) THEN
+        RAISE EXCEPTION 'Suggestion % must have at least one extract', NEW.id;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE CONSTRAINT TRIGGER check_suggestion_has_extract
+AFTER INSERT OR UPDATE ON demos_app.application_tag_suggestion
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.check_suggestion_has_extract();
 
 -- check_demonstration_type_exists_for_approved_demos
 CREATE OR REPLACE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations()

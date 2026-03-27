@@ -4,10 +4,20 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { TestProvider } from "test-utils/TestProvider";
-
-import { CompletenessPhase, CompletenessPhaseProps } from "./CompletenessPhase";
-
-import { ApplicationWorkflowDocument } from "components/application";
+import {
+  CompletenessPhase,
+  CompletenessPhaseProps,
+  COMPLETENESS_UPLOAD_BUTTON_NAME,
+  COMPLETENESS_FINISH_BUTTON_NAME,
+  COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME,
+  STATE_DEEMED_COMPLETE_DATEPICKER_NAME,
+  FEDERAL_COMMENT_START_DATEPICKER_NAME,
+  FEDERAL_COMMENT_END_DATEPICKER_NAME,
+  getApplicationCompletenessFromApplication,
+} from "./CompletenessPhase";
+import { ApplicationWorkflowDocument, WorkflowApplication } from "components/application";
+import { TZDate } from "@date-fns/tz";
+import { EST_TIMEZONE } from "util/formatDate";
 
 const showCompletenessDocumentUploadDialog = vi.fn();
 const showDeclareIncompleteDialog = vi.fn((callback) => {
@@ -39,6 +49,20 @@ vi.mock("../phase-status/phaseCompletionQueries", () => ({
   })),
 }));
 
+const makeApplication = (overrides: Partial<WorkflowApplication> = {}): WorkflowApplication => ({
+  id: "app-456",
+  currentPhaseName: "Completeness",
+  status: "Under Review",
+  tags: [],
+  clearanceLevel: "CMS (OSORA)",
+  phases: [
+    { phaseName: "Application Intake", phaseStatus: "Completed", phaseDates: [], phaseNotes: [] },
+    { phaseName: "Completeness", phaseStatus: "Started", phaseDates: [], phaseNotes: [] },
+  ],
+  documents: [],
+  ...overrides,
+});
+
 const mockCompletenessDoc: ApplicationWorkflowDocument = {
   id: "doc-1",
   name: "Completeness Letter",
@@ -46,7 +70,7 @@ const mockCompletenessDoc: ApplicationWorkflowDocument = {
   documentType: "Application Completeness Letter",
   phaseName: "Completeness",
   owner: { person: { fullName: "Jane Doe" } },
-  createdAt: new Date("2026-02-01"),
+  createdAt: new TZDate("2026-02-01", EST_TIMEZONE),
 };
 
 const mockInternalDoc: ApplicationWorkflowDocument = {
@@ -56,7 +80,7 @@ const mockInternalDoc: ApplicationWorkflowDocument = {
   documentType: "Internal Completeness Review Form",
   phaseName: "Completeness",
   owner: { person: { fullName: "John Smith" } },
-  createdAt: new Date("2026-02-02"),
+  createdAt: new TZDate("2026-02-02", EST_TIMEZONE),
 };
 
 describe("CompletenessPhase", () => {
@@ -66,10 +90,8 @@ describe("CompletenessPhase", () => {
     applicationIntakeComplete: true,
     completenessComplete: false,
     completenessReviewDate: "2026-02-28",
-    fedCommentStartDate: "",
-    fedCommentEndDate: "",
     stateDeemedCompleteDate: "",
-    initialDocuments: [],
+    completenessDocuments: [],
     setSelectedPhase: mockSetSelectedPhase,
   };
 
@@ -108,11 +130,11 @@ describe("CompletenessPhase", () => {
     it("renders upload button and helper text", () => {
       setup();
       expect(screen.getByText("STEP 1 - UPLOAD")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /upload/i })).toBeInTheDocument();
+      expect(screen.getByTestId(COMPLETENESS_UPLOAD_BUTTON_NAME)).toBeInTheDocument();
     });
 
     it("renders uploaded documents", () => {
-      setup({ initialDocuments: [mockCompletenessDoc, mockInternalDoc] });
+      setup({ completenessDocuments: [mockCompletenessDoc, mockInternalDoc] });
       expect(screen.getByText("Completeness Letter")).toBeInTheDocument();
       expect(screen.getByText("Internal Form")).toBeInTheDocument();
     });
@@ -121,15 +143,15 @@ describe("CompletenessPhase", () => {
   describe("Step 2 - Verify/Complete Section", () => {
     it("renders date picker for State Application Deemed Complete", () => {
       setup();
-      const dateInput = screen.getByLabelText(/State Application Deemed Complete/);
+      const dateInput = screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME);
       expect(dateInput).toBeInTheDocument();
       expect(dateInput).toHaveAttribute("type", "date");
     });
 
     it("renders disabled date pickers for Federal Comment Period", () => {
       setup();
-      const startInput = screen.getByLabelText(/Federal Comment Period Start Date/);
-      const endInput = screen.getByLabelText(/Federal Comment Period End Date/);
+      const startInput = screen.getByTestId(FEDERAL_COMMENT_START_DATEPICKER_NAME);
+      const endInput = screen.getByTestId(FEDERAL_COMMENT_END_DATEPICKER_NAME);
       expect(startInput).toBeDisabled();
       expect(endInput).toBeDisabled();
     });
@@ -137,31 +159,27 @@ describe("CompletenessPhase", () => {
 
   describe("Button Logic", () => {
     it("Finish button is disabled if required docs are missing", () => {
-      setup({ initialDocuments: [] });
-      const finishButton = screen.getByRole("button", { name: /finish/i });
+      setup({ completenessDocuments: [] });
+      const finishButton = screen.getByTestId(COMPLETENESS_FINISH_BUTTON_NAME);
       expect(finishButton).toBeDisabled();
     });
 
     it("Finish button is enabled when required docs and dates exist", () => {
       setup({
-        initialDocuments: [mockCompletenessDoc, mockInternalDoc],
+        completenessDocuments: [mockCompletenessDoc, mockInternalDoc],
         stateDeemedCompleteDate: "2026-02-05",
-        fedCommentStartDate: "2026-02-06",
-        fedCommentEndDate: "2026-03-07",
       });
-      const finishButton = screen.getByRole("button", { name: /finish/i });
+      const finishButton = screen.getByTestId(COMPLETENESS_FINISH_BUTTON_NAME);
       expect(finishButton).toBeEnabled();
     });
 
     it("calls completePhase and selects next phase when finish button is clicked", async () => {
       const user = userEvent.setup();
       setup({
-        initialDocuments: [mockCompletenessDoc, mockInternalDoc],
+        completenessDocuments: [mockCompletenessDoc, mockInternalDoc],
         stateDeemedCompleteDate: "2026-02-05",
-        fedCommentStartDate: "2026-02-06",
-        fedCommentEndDate: "2026-03-07",
       });
-      const finishButton = screen.getByRole("button", { name: /finish/i });
+      const finishButton = screen.getByTestId(COMPLETENESS_FINISH_BUTTON_NAME);
       await user.click(finishButton);
       expect(mockCompletePhase).toHaveBeenCalledWith({
         applicationId: "app-123",
@@ -174,13 +192,11 @@ describe("CompletenessPhase", () => {
       mockSetApplicationDates.mockClear();
       const user = userEvent.setup();
       setup({
-        initialDocuments: [mockCompletenessDoc, mockInternalDoc],
-        stateDeemedCompleteDate: "2026-02-05",
-        fedCommentStartDate: "2026-02-06",
-        fedCommentEndDate: "2026-03-07",
+        completenessDocuments: [mockCompletenessDoc, mockInternalDoc],
+        stateDeemedCompleteDate: "2026-03-05",
       });
 
-      const finishButton = screen.getByRole("button", { name: /finish/i });
+      const finishButton = screen.getByTestId(COMPLETENESS_FINISH_BUTTON_NAME);
       await user.click(finishButton);
 
       expect(mockSetApplicationDates).toHaveBeenCalledWith({
@@ -188,15 +204,15 @@ describe("CompletenessPhase", () => {
         applicationDates: [
           {
             dateType: "State Application Deemed Complete",
-            dateValue: "2026-02-05",
+            dateValue: "2026-03-05",
           },
           {
             dateType: "Federal Comment Period Start Date",
-            dateValue: "2026-02-06",
+            dateValue: "2026-03-06",
           },
           {
             dateType: "Federal Comment Period End Date",
-            dateValue: "2026-03-07",
+            dateValue: "2026-04-05",
           },
         ],
       });
@@ -205,16 +221,29 @@ describe("CompletenessPhase", () => {
     it("passes declareCompletenessPhaseIncomplete to dialog when button is clicked", async () => {
       const user = userEvent.setup();
       setup({
-        initialDocuments: [mockCompletenessDoc, mockInternalDoc],
+        completenessDocuments: [mockCompletenessDoc, mockInternalDoc],
         stateDeemedCompleteDate: "2026-02-05",
-        fedCommentStartDate: "2026-02-06",
-        fedCommentEndDate: "2026-03-07",
       });
 
-      const declareIncompleteButton = screen.getByRole("button", { name: /declare-incomplete/i });
+      const declareIncompleteButton = screen.getByTestId(
+        COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME
+      );
       await user.click(declareIncompleteButton);
 
       expect(mockDeclareCompletenessPhaseIncomplete).toHaveBeenCalledWith("app-123");
+    });
+
+    it("disables Declare Incomplete button when completeness is complete", () => {
+      setup({
+        completenessComplete: true,
+        completenessDocuments: [mockCompletenessDoc, mockInternalDoc],
+        stateDeemedCompleteDate: "2026-02-05",
+      });
+
+      const declareIncompleteButton = screen.getByTestId(
+        COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME
+      );
+      expect(declareIncompleteButton).toBeDisabled();
     });
   });
 
@@ -222,13 +251,10 @@ describe("CompletenessPhase", () => {
     it("calls dialog function when upload clicked", async () => {
       setup();
 
-      const uploadButton = screen.getByRole("button", { name: /upload/i });
+      const uploadButton = screen.getByTestId(COMPLETENESS_UPLOAD_BUTTON_NAME);
       await userEvent.click(uploadButton);
 
-      expect(showCompletenessDocumentUploadDialog).toHaveBeenCalledWith(
-        "app-123",
-        expect.any(Function)
-      );
+      expect(showCompletenessDocumentUploadDialog).toHaveBeenCalledWith("app-123");
     });
   });
 
@@ -236,7 +262,7 @@ describe("CompletenessPhase", () => {
     it("reflects updated documents when props change (no refresh needed)", () => {
       const { rerender } = render(
         <TestProvider>
-          <CompletenessPhase {...defaultProps} initialDocuments={[]} />
+          <CompletenessPhase {...defaultProps} completenessDocuments={[]} />
         </TestProvider>
       );
 
@@ -244,7 +270,7 @@ describe("CompletenessPhase", () => {
 
       rerender(
         <TestProvider>
-          <CompletenessPhase {...defaultProps} initialDocuments={[mockCompletenessDoc]} />
+          <CompletenessPhase {...defaultProps} completenessDocuments={[mockCompletenessDoc]} />
         </TestProvider>
       );
 
@@ -256,7 +282,7 @@ describe("CompletenessPhase", () => {
         <TestProvider>
           <CompletenessPhase
             {...defaultProps}
-            initialDocuments={[mockCompletenessDoc, mockInternalDoc]}
+            completenessDocuments={[mockCompletenessDoc, mockInternalDoc]}
           />
         </TestProvider>
       );
@@ -266,7 +292,7 @@ describe("CompletenessPhase", () => {
 
       rerender(
         <TestProvider>
-          <CompletenessPhase {...defaultProps} initialDocuments={[]} />
+          <CompletenessPhase {...defaultProps} completenessDocuments={[]} />
         </TestProvider>
       );
 
@@ -284,28 +310,28 @@ describe("CompletenessPhase", () => {
 
       const { rerender } = render(
         <TestProvider>
-          <CompletenessPhase {...propsWithDates} initialDocuments={[]} />
+          <CompletenessPhase {...propsWithDates} completenessDocuments={[]} />
         </TestProvider>
       );
 
-      expect(screen.getByRole("button", { name: /finish/i })).toBeDisabled();
+      expect(screen.getByTestId(COMPLETENESS_FINISH_BUTTON_NAME)).toBeDisabled();
 
       rerender(
         <TestProvider>
           <CompletenessPhase
             {...propsWithDates}
-            initialDocuments={[mockCompletenessDoc, mockInternalDoc]}
+            completenessDocuments={[mockCompletenessDoc, mockInternalDoc]}
           />
         </TestProvider>
       );
 
-      expect(screen.getByRole("button", { name: /finish/i })).toBeEnabled();
+      expect(screen.getByTestId(COMPLETENESS_FINISH_BUTTON_NAME)).toBeEnabled();
     });
   });
 
   describe("Completeness Notice Banner", () => {
     it("renders the banner with correct content and dismisses on click", async () => {
-      const today = new Date("2026-02-08T00:00:00Z");
+      const today = new TZDate("2026-02-08T00:00:00Z", EST_TIMEZONE);
       vi.setSystemTime(today);
 
       const reviewDate = "2026-02-10"; // 2 days from today
@@ -316,11 +342,9 @@ describe("CompletenessPhase", () => {
             applicationId="app-123"
             applicationIntakeComplete={true}
             completenessReviewDate={reviewDate}
-            fedCommentStartDate=""
-            fedCommentEndDate=""
             completenessComplete={false}
             stateDeemedCompleteDate=""
-            initialDocuments={[]}
+            completenessDocuments={[]}
             setSelectedPhase={mockSetSelectedPhase}
           />
         </TestProvider>
@@ -346,11 +370,9 @@ describe("CompletenessPhase", () => {
             applicationId="app-123"
             applicationIntakeComplete={true}
             completenessReviewDate={undefined}
-            fedCommentStartDate=""
-            fedCommentEndDate=""
             completenessComplete={true}
             stateDeemedCompleteDate=""
-            initialDocuments={[]}
+            completenessDocuments={[]}
             setSelectedPhase={mockSetSelectedPhase}
           />
         </TestProvider>
@@ -358,5 +380,66 @@ describe("CompletenessPhase", () => {
 
       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     });
+  });
+});
+
+describe("getApplicationCompletenessFromApplication", () => {
+  const mockSetSelectedPhase = vi.fn();
+
+  const setup = (overrides: Partial<WorkflowApplication> = {}) => {
+    const application = makeApplication(overrides);
+    render(
+      <TestProvider>
+        {getApplicationCompletenessFromApplication(application, mockSetSelectedPhase)}
+      </TestProvider>
+    );
+  };
+
+  it("renders the completeness phase component", () => {
+    setup();
+    expect(screen.getByText("COMPLETENESS")).toBeInTheDocument();
+  });
+
+  it("populates date pickers from phaseDates", () => {
+    setup({
+      phases: [
+        {
+          phaseName: "Application Intake",
+          phaseStatus: "Completed",
+          phaseDates: [],
+          phaseNotes: [],
+        },
+        {
+          phaseName: "Completeness",
+          phaseStatus: "Started",
+          phaseDates: [
+            {
+              dateType: "State Application Deemed Complete",
+              dateValue: new TZDate("2026-03-01", EST_TIMEZONE),
+            },
+            {
+              dateType: "Federal Comment Period Start Date",
+              dateValue: new TZDate("2026-03-02", EST_TIMEZONE),
+            },
+            {
+              dateType: "Federal Comment Period End Date",
+              dateValue: new TZDate("2026-04-01", EST_TIMEZONE),
+            },
+          ],
+          phaseNotes: [],
+        },
+      ],
+    });
+    expect(screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME)).toHaveValue("2026-03-01");
+    expect(screen.getByTestId(FEDERAL_COMMENT_START_DATEPICKER_NAME)).toHaveValue("2026-03-02");
+    expect(screen.getByTestId(FEDERAL_COMMENT_END_DATEPICKER_NAME)).toHaveValue("2026-04-01");
+  });
+
+  it("filters documents to only those in the Completeness phase", () => {
+    setup({
+      documents: [mockCompletenessDoc, { ...mockInternalDoc, phaseName: "Federal Comment" }],
+    });
+    expect(screen.getByText("Completeness Letter")).toBeInTheDocument();
+    expect(screen.queryByText("Internal Form")).not.toBeInTheDocument();
   });
 });

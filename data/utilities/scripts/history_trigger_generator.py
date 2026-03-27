@@ -11,6 +11,8 @@ TBL_FOLDERS = [
     "applicationNote",
     "applicationPhase",
     "applicationTagAssignment",
+    "applicationTagSuggestion",
+    "applicationTagSuggestionExtract",
     "budgetNeutralityWorkbook",
     "demonstration",
     "demonstrationRoleAssignment",
@@ -24,8 +26,10 @@ TBL_FOLDERS = [
     "primaryDemonstrationRoleAssignment",
     "rolePermission",
     "systemRoleAssignment",
+    "tagName",
     "tag",
-    "tagConfiguration",
+    "uiPathResult",
+    "uiPathValue",
     "user",
 ]
 APP_SCHEMA = "demos_app"

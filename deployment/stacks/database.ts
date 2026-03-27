@@ -38,9 +38,8 @@ export class DatabaseStack extends Stack {
       ...props,
       scope: this,
       iamPermissionsBoundary:
-        props.iamPermissionsBoundaryArn != null
-          ? aws_iam.ManagedPolicy.fromManagedPolicyArn(this, "iamPermissionsBoundary", props.iamPermissionsBoundaryArn)
-          : undefined,
+        props.iamPermissionsBoundaryArn == null
+          ? undefined: aws_iam.ManagedPolicy.fromManagedPolicyArn(this, "iamPermissionsBoundary", props.iamPermissionsBoundaryArn),
     };
 
     const rdsSecurityGroup = securityGroup.create({

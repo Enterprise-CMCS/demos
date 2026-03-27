@@ -8,6 +8,8 @@ AWS_REGION="us-east-1"
 AWS_CMD="aws --endpoint-url=$LOCALSTACK_ENDPOINT --region $AWS_REGION"
 
 QUEUE_NAME="fileprocess-queue"
+BN_QUEUE_NAME="budget-neutrality-queue"
+BN_QUEUE_URL=$($AWS_CMD sqs get-queue-url --queue-name $BN_QUEUE_NAME --output text --query 'QueueUrl')
 
 # Build Lambda package
 cd /workspaces/demos/lambdas/fileprocess
@@ -43,14 +45,15 @@ $AWS_CMD lambda create-function \
     --zip-file fileb:///workspaces/demos/lambdas/fileprocess/fileprocess.zip \
     --timeout 30 \
     --environment "Variables={
-        AWS_REGION=$AWS_REGION,
-        AWS_ENDPOINT_URL=$LOCALSTACK_ENDPOINT,
-        DATABASE_SECRET_ARN=database-secret,
-        DB_SCHEMA=demos_app,
-        BYPASS_SSL=true,
-        UPLOAD_BUCKET=upload-bucket,
-        CLEAN_BUCKET=clean-bucket,
-        INFECTED_BUCKET=infected-bucket
+      AWS_REGION=$AWS_REGION,
+      AWS_ENDPOINT_URL=$LOCALSTACK_ENDPOINT,
+      DATABASE_SECRET_ARN=database-secret,
+      DB_SCHEMA=demos_app,
+      BYPASS_SSL=true,
+      UPLOAD_BUCKET=upload-bucket,
+      CLEAN_BUCKET=clean-bucket,
+      INFECTED_BUCKET=infected-bucket,
+      BUDGET_NEUTRALITY_QUEUE_URL=$BN_QUEUE_URL
     }" >/dev/null
 
 # Wait for Lambda to be active
@@ -60,7 +63,6 @@ for i in {1..15}; do
         --function-name fileprocess \
         --query 'Configuration.State' \
         --output text 2>/dev/null || echo "Pending")
-    
     if [ "$STATUS" = "Active" ]; then
         echo "✅ FileProcess Lambda function created"
         break

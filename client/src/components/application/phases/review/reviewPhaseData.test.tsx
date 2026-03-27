@@ -80,6 +80,7 @@ describe("reviewPhaseData", () => {
       const demonstration: WorkflowApplication = {
         id: "demo-123",
         clearanceLevel: "CMS (OSORA)",
+        status: "Under Review",
         currentPhaseName: "Concept",
         phases: [buildPhase("Concept", "Started")],
         documents: [],
@@ -96,6 +97,7 @@ describe("reviewPhaseData", () => {
       const demonstration: WorkflowApplication = {
         id: "demo-456",
         clearanceLevel: "CMS (OSORA)",
+        status: "Under Review",
         currentPhaseName: "Review",
         phases: [
           {
@@ -114,7 +116,7 @@ describe("reviewPhaseData", () => {
       const result = getReviewPhaseComponentFromApplication(demonstration, mockOnFinish);
 
       expect(result.type.name).toBe("ReviewPhase");
-      expect(result.props.demonstrationId).toBe("demo-456");
+      expect(result.props.applicationId).toBe("demo-456");
       expect(result.props.initialFormData).toBeDefined();
       expect(result.props.initialFormData.dates["OGD Approval to Share with SMEs"]).toBe(
         "2025-01-10"
@@ -128,6 +130,7 @@ describe("reviewPhaseData", () => {
       const demonstration: WorkflowApplication = {
         id: "demo-789",
         clearanceLevel: "CMS (OSORA)",
+        status: "Under Review",
         currentPhaseName: "Review",
         phases: [
           {
@@ -169,6 +172,7 @@ describe("reviewPhaseData", () => {
       const demonstration: WorkflowApplication = {
         id: "demo-789",
         clearanceLevel: "CMS (OSORA)",
+        status: "Under Review",
         currentPhaseName: "Review",
         phases: [
           {
@@ -200,6 +204,7 @@ describe("reviewPhaseData", () => {
       const demonstration: WorkflowApplication = {
         id: "demo-101",
         clearanceLevel: "CMS (OSORA)",
+        status: "Under Review",
         currentPhaseName: "Review",
         phases: [
           buildPhase("Concept", "Started"),
@@ -223,6 +228,7 @@ describe("reviewPhaseData", () => {
       const demonstration: WorkflowApplication = {
         id: "demo-101",
         clearanceLevel: "CMS (OSORA)",
+        status: "Under Review",
         currentPhaseName: "Review",
         phases: [
           buildPhase("Concept", "Started"),

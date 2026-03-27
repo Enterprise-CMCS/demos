@@ -1,7 +1,7 @@
 import React from "react";
 import { ApplicationStatusBadge } from "components/badge/ApplicationStatusBadge";
 import { PhaseSelector, WorkflowApplication } from "components/application";
-import type { Extension } from "demos-server";
+import type { Demonstration, DemonstrationTypeAssignment, Extension } from "demos-server";
 import { gql, useQuery } from "@apollo/client";
 import { Loading } from "components/loading/Loading";
 import { WORKFLOW_PHASE_FIELDS, WORKFLOW_DOCUMENT_FIELDS } from "fragments";
@@ -12,10 +12,29 @@ export const GET_EXTENSION_WORKFLOW_QUERY = gql`
   query ${EXTENSION_WORKFLOW_QUERY_NAME}($id: ID!) {
     extension(id: $id) {
       id
+      name
+      description
+      signatureLevel
+      effectiveDate
       currentPhaseName
       clearanceLevel
       status
-      tags
+      demonstration {
+        id
+        status
+        demonstrationTypes {
+          demonstrationTypeName
+          status
+          effectiveDate
+          approvalStatus
+          expirationDate
+          createdAt
+        }
+      }
+      tags {
+        tagName
+        approvalStatus
+      }
       phases {
         ...WORKFLOW_PHASE_FIELDS
       }
@@ -28,7 +47,32 @@ export const GET_EXTENSION_WORKFLOW_QUERY = gql`
   ${WORKFLOW_DOCUMENT_FIELDS}
 `;
 
-export type ApplicationWorkflowExtension = WorkflowApplication & Pick<Extension, "status">;
+export type ApplicationWorkflowExtension =
+  WorkflowApplication &
+  Pick<
+    Extension,
+    "name" |
+    "description" |
+    "effectiveDate" |
+    "signatureLevel" |
+    "status"
+  > & {
+    demonstration: Pick<
+        Demonstration,
+        | "id"
+        | "status"
+      > & {
+      demonstrationTypes: Pick<
+        DemonstrationTypeAssignment,
+        | "demonstrationTypeName"
+        | "status"
+        | "effectiveDate"
+        | "expirationDate"
+        | "createdAt"
+        | "approvalStatus"
+      >[];
+    };
+  };
 
 export const ExtensionWorkflow = ({ extensionId }: { extensionId: string }) => {
   const { data, loading, error } = useQuery<{ extension: ApplicationWorkflowExtension }>(

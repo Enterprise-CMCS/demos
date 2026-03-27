@@ -1,10 +1,5 @@
 import React, { createContext, useContext, useState } from "react";
-import {
-  DocumentType,
-  Tag as DemonstrationTypeName,
-  DemonstrationTypeAssignment,
-  UploadDocumentInput,
-} from "demos-server";
+import { DocumentType, TagName, DemonstrationTypeAssignment, Tag } from "demos-server";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
 import { CreateExtensionDialog } from "./modification/CreateExtensionDialog";
@@ -29,6 +24,7 @@ import { EditDemonstrationTypeDialog } from "./DemonstrationTypes/EditDemonstrat
 import { UpdateExtensionDialog } from "./modification/EditExtensionDialog";
 import { UpdateAmendmentDialog } from "./modification/EditAmendmentDialog";
 import { ConfirmApproveDialog } from "./ConfirmApproveDialog";
+import { WorkflowApplicationType } from "components/application";
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -112,9 +108,16 @@ export const useDialog = () => {
     );
   };
 
-  const showEditDocumentDialog = (initialDocument: DocumentDialogFields) => {
+  const showEditDocumentDialog = (
+    initialDocument: DocumentDialogFields,
+    canEditDocumentType?: boolean
+  ) => {
     context.showDialog(
-      <EditDocumentDialog initialDocument={initialDocument} onClose={context.hideDialog} />
+      <EditDocumentDialog
+        initialDocument={initialDocument}
+        onClose={context.hideDialog}
+        canEditDocumentType={canEditDocumentType}
+      />
     );
   };
 
@@ -124,41 +127,26 @@ export const useDialog = () => {
     );
   };
 
-  const showApplicationIntakeDocumentUploadDialog = (
-    applicationId: string,
-    onDocumentUploadSucceeded: () => void
-  ) => {
+  const showApplicationIntakeDocumentUploadDialog = (applicationId: string) => {
     context.showDialog(
-      <ApplicationIntakeUploadDialog
-        onDocumentUploadSucceeded={onDocumentUploadSucceeded}
-        onClose={context.hideDialog}
-        applicationId={applicationId}
-      />
+      <ApplicationIntakeUploadDialog onClose={context.hideDialog} applicationId={applicationId} />
     );
   };
 
-  const showCompletenessDocumentUploadDialog = (
-    applicationId: string,
-    onDocumentUploadSucceeded?: (payload?: UploadDocumentInput) => void
-  ) => {
+  const showCompletenessDocumentUploadDialog = (applicationId: string) => {
     context.showDialog(
       <CompletenessDocumentUploadDialog
-        onDocumentUploadSucceeded={onDocumentUploadSucceeded}
-        onClose={context.hideDialog}
         applicationId={applicationId}
+        onClose={context.hideDialog}
       />
     );
   };
 
-  const showConceptPreSubmissionDocumentUploadDialog = (
-    applicationId: string,
-    onDocumentUploadSucceeded: (payload?: UploadDocumentInput) => void
-  ) => {
+  const showConceptPreSubmissionDocumentUploadDialog = (applicationId: string) => {
     context.showDialog(
       <ConceptPreSubmissionUploadDialog
-        onDocumentUploadSucceeded={onDocumentUploadSucceeded}
-        onClose={context.hideDialog}
         applicationId={applicationId}
+        onClose={context.hideDialog}
       />
     );
   };
@@ -194,7 +182,7 @@ export const useDialog = () => {
 
   const showRemoveDemonstrationTypesDialog = (
     demonstrationId: string,
-    demonstrationTypeNames: DemonstrationTypeName[]
+    demonstrationTypeNames: TagName[]
   ) => {
     context.showDialog(
       <RemoveDemonstrationTypesDialog
@@ -208,7 +196,7 @@ export const useDialog = () => {
     demonstrationId: string,
     demonstrationType: Pick<
       DemonstrationTypeAssignment,
-      "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate"
+      "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "approvalStatus"
     >
   ) => {
     context.showDialog(
@@ -219,11 +207,7 @@ export const useDialog = () => {
     );
   };
 
-  const showApplyTagsDialog = (
-    demonstrationId: string,
-    allTags: string[],
-    selectedTags: string[]
-  ) => {
+  const showApplyTagsDialog = (demonstrationId: string, allTags: Tag[], selectedTags: Tag[]) => {
     context.showDialog(
       <ApplyTagsDialog
         demonstrationId={demonstrationId}
@@ -234,13 +218,8 @@ export const useDialog = () => {
     );
   };
 
-  const showConfirmApproveDialog = (onConfirm: () => void) => {
-    context.showDialog(
-      <ConfirmApproveDialog
-        onClose={context.hideDialog}
-        onConfirm={onConfirm}
-      />
-    );
+  const showConfirmApproveDialog = (onConfirm: () => void, applicationType: WorkflowApplicationType) => {
+    context.showDialog(<ConfirmApproveDialog onClose={context.hideDialog} onConfirm={onConfirm} applicationType={applicationType} />);
   };
 
   return {

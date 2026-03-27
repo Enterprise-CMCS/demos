@@ -40,14 +40,7 @@ const ALLOWED_MIME_TYPES = [
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 ];
 
-const ALLOWED_FILE_EXTENSIONS = [
-  ".pdf",
-  ".doc",
-  ".docx",
-  ".xls",
-  ".xlsx",
-  ".xlsm",
-];
+const ALLOWED_FILE_EXTENSIONS = [".pdf", ".doc", ".docx", ".xls", ".xlsx", ".xlsm"];
 
 const ACCEPTED_EXTENSIONS = ALLOWED_FILE_EXTENSIONS.join(",");
 const MAX_FILE_SIZE_MB = 600;
@@ -296,6 +289,7 @@ export type DocumentDialogProps = {
   initialDocument?: DocumentDialogFields;
   titleOverride?: string;
   cancelButtonIsDisabled?: boolean;
+  canEditDocumentType?: boolean;
 };
 
 // Sets the default document type if a subset is provided
@@ -317,6 +311,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   onSubmit,
   initialDocument,
   titleOverride,
+  canEditDocumentType = true,
 }) => {
   const { showSuccess, showError } = useToast();
   const hydratedInitialDocument = setDefaultDocumentType(
@@ -451,6 +446,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
           setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }))
         }
         documentTypeSubset={documentTypeSubset}
+        canEditDocumentType={canEditDocumentType}
       />
     </BaseDialog>
   );

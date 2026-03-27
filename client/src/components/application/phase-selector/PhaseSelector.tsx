@@ -8,7 +8,6 @@ import type {
 
 import {
   WorkflowApplication,
-  ApplicationWorkflowDemonstration,
   WorkflowApplicationType,
 } from "components/application";
 import {
@@ -135,10 +134,7 @@ export const PhaseSelector = ({
       case "Federal Comment":
         return getFederalCommentPhaseFromApplication(application);
       case "SDG Preparation":
-        return getSdgPreparationPhaseFromApplication(
-          application as ApplicationWorkflowDemonstration,
-          setSelectedPhase
-        );
+        return getSdgPreparationPhaseFromApplication(application, setSelectedPhase);
       case "Review":
         return getReviewPhaseComponentFromApplication(application, () =>
           setSelectedPhase("Approval Package")
@@ -150,7 +146,8 @@ export const PhaseSelector = ({
         // For now we will do type-assertion but to be revisted as we get further
         // down the line on developing these phases.
         return getApprovalSummaryPhaseFromApplication(
-          application as ApplicationWorkflowDemonstration
+          application,
+          workflowApplicationType
         );
     }
   };

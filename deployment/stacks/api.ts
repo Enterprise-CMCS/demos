@@ -22,7 +22,7 @@ import * as lambda from "../lib/lambda";
 import * as securityGroup from "../lib/security-group";
 import { IVpc } from "aws-cdk-lib/aws-ec2";
 import importNumberValue from "../util/importNumberValue";
-import path from "path";
+import path from "node:path";
 import { Queue, QueueEncryption } from "aws-cdk-lib/aws-sqs";
 import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 
@@ -45,13 +45,13 @@ export class ApiStack extends Stack {
       ...props,
       scope: this,
       iamPermissionsBoundary:
-        props.iamPermissionsBoundaryArn != null
-          ? aws_iam.ManagedPolicy.fromManagedPolicyArn(
+        props.iamPermissionsBoundaryArn == null
+          ? undefined : aws_iam.ManagedPolicy.fromManagedPolicyArn(
               this,
               "iamPermissionsBoundary",
               props.iamPermissionsBoundaryArn
             )
-          : undefined,
+          ,
     };
 
     const graphqlLambdaSecurityGroup = securityGroup.create({

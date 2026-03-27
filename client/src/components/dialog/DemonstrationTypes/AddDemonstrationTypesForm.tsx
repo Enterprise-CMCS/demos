@@ -1,16 +1,16 @@
 import React from "react";
 import { DatePicker } from "components/input/date/DatePicker";
 import { SecondaryButton } from "components/button";
-import { SelectDemonstrationTypeName } from "components/input/select/SelectDemonstrationTypeName";
+import { SelectDemonstrationType } from "components/input/select/SelectDemonstrationType";
 import { gql, TypedDocumentNode, useQuery } from "@apollo/client";
-import { Tag as DemonstrationTypeName } from "demos-server";
+import { TagName } from "demos-server";
 import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
 
 export const ADD_DEMONSTRATION_TYPES_FORM_QUERY: TypedDocumentNode<
   {
     demonstration: {
       demonstrationTypes: {
-        demonstrationTypeName: DemonstrationTypeName;
+        demonstrationTypeName: TagName;
       }[];
     };
   },
@@ -40,7 +40,7 @@ export const AddDemonstrationTypesForm = ({
   addDemonstrationType,
 }: {
   demonstrationId: string;
-  demonstrationTypeNames: DemonstrationTypeName[];
+  demonstrationTypeNames: TagName[];
   addDemonstrationType: (demonstrationType: DemonstrationType) => void;
 }) => {
   const { data, loading, error } = useQuery(ADD_DEMONSTRATION_TYPES_FORM_QUERY, {
@@ -50,6 +50,7 @@ export const AddDemonstrationTypesForm = ({
   const [demonstrationTypeFormData, setDemonstrationTypeFormData] =
     React.useState<DemonstrationType>({
       demonstrationTypeName: "",
+      approvalStatus: "Approved",
       effectiveDate: "",
       expirationDate: "",
     });
@@ -66,6 +67,7 @@ export const AddDemonstrationTypesForm = ({
     setDemonstrationTypeFormData({
       ...demonstrationTypeFormData,
       demonstrationTypeName: "",
+      approvalStatus: "Approved",
     });
   };
 
@@ -93,15 +95,16 @@ export const AddDemonstrationTypesForm = ({
     <div className="flex flex-col gap-2">
       <div className="flex gap-2">
         <div className="flex-1">
-          <SelectDemonstrationTypeName
+          <SelectDemonstrationType
             filter={filterDemonstrationTypes}
             isRequired
             value={demonstrationTypeFormData.demonstrationTypeName}
-            onSelect={(demonstrationTypeName) =>
+            onSelect={(demonstrationTypeOption) =>
               setDemonstrationTypeFormData(
                 (demonstrationType): DemonstrationType => ({
                   ...demonstrationType,
-                  demonstrationTypeName,
+                  demonstrationTypeName: demonstrationTypeOption.tagName,
+                  approvalStatus: demonstrationTypeOption.approvalStatus,
                 })
               )
             }

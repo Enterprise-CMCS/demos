@@ -323,7 +323,7 @@ BEGIN
         INSERT INTO demos_app.application_tag_assignment_history (
             revision_type,
             application_id,
-            tag_id,
+            tag_name_id,
             tag_type_id
         )
         VALUES (
@@ -332,7 +332,7 @@ BEGIN
                 WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
             END,
             NEW.application_id,
-            NEW.tag_id,
+            NEW.tag_name_id,
             NEW.tag_type_id
         );
         RETURN NEW;
@@ -340,13 +340,13 @@ BEGIN
         INSERT INTO demos_app.application_tag_assignment_history (
             revision_type,
             application_id,
-            tag_id,
+            tag_name_id,
             tag_type_id
         )
         VALUES (
             'D'::demos_app.revision_type_enum,
             OLD.application_id,
-            OLD.tag_id,
+            OLD.tag_name_id,
             OLD.tag_type_id
         );
         RETURN OLD;
@@ -358,6 +358,128 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE TRIGGER log_changes_application_tag_assignment
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.application_tag_assignment
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application_tag_assignment();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_application_tag_suggestion()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.application_tag_suggestion_history (
+            revision_type,
+            id,
+            application_id,
+            value,
+            status_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.application_id,
+            NEW.value,
+            NEW.status_id,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.application_tag_suggestion_history (
+            revision_type,
+            id,
+            application_id,
+            value,
+            status_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.application_id,
+            OLD.value,
+            OLD.status_id,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_application_tag_suggestion
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.application_tag_suggestion
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application_tag_suggestion();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_application_tag_suggestion_extract()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.application_tag_suggestion_extract_history (
+            revision_type,
+            suggestion_id,
+            uipath_value_id,
+            application_id,
+            field_id,
+            value,
+            start_page_no,
+            end_page_no,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.suggestion_id,
+            NEW.uipath_value_id,
+            NEW.application_id,
+            NEW.field_id,
+            NEW.value,
+            NEW.start_page_no,
+            NEW.end_page_no,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.application_tag_suggestion_extract_history (
+            revision_type,
+            suggestion_id,
+            uipath_value_id,
+            application_id,
+            field_id,
+            value,
+            start_page_no,
+            end_page_no,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.suggestion_id,
+            OLD.uipath_value_id,
+            OLD.application_id,
+            OLD.field_id,
+            OLD.value,
+            OLD.start_page_no,
+            OLD.end_page_no,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_application_tag_suggestion_extract
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.application_tag_suggestion_extract
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application_tag_suggestion_extract();
 
 CREATE OR REPLACE FUNCTION demos_app.log_changes_budget_neutrality_workbook()
 RETURNS TRIGGER AS $$
@@ -563,7 +685,7 @@ BEGIN
         INSERT INTO demos_app.demonstration_type_tag_assignment_history (
             revision_type,
             demonstration_id,
-            tag_id,
+            tag_name_id,
             tag_type_id,
             effective_date,
             expiration_date,
@@ -576,7 +698,7 @@ BEGIN
                 WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
             END,
             NEW.demonstration_id,
-            NEW.tag_id,
+            NEW.tag_name_id,
             NEW.tag_type_id,
             NEW.effective_date,
             NEW.expiration_date,
@@ -588,7 +710,7 @@ BEGIN
         INSERT INTO demos_app.demonstration_type_tag_assignment_history (
             revision_type,
             demonstration_id,
-            tag_id,
+            tag_name_id,
             tag_type_id,
             effective_date,
             expiration_date,
@@ -598,7 +720,7 @@ BEGIN
         VALUES (
             'D'::demos_app.revision_type_enum,
             OLD.demonstration_id,
-            OLD.tag_id,
+            OLD.tag_name_id,
             OLD.tag_type_id,
             OLD.effective_date,
             OLD.expiration_date,
@@ -1142,11 +1264,11 @@ CREATE OR REPLACE TRIGGER log_changes_system_role_assignment
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.system_role_assignment
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_system_role_assignment();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_tag()
+CREATE OR REPLACE FUNCTION demos_app.log_changes_tag_name()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
-        INSERT INTO demos_app.tag_history (
+        INSERT INTO demos_app.tag_name_history (
             revision_type,
             id,
             created_at,
@@ -1163,7 +1285,7 @@ BEGIN
         );
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO demos_app.tag_history (
+        INSERT INTO demos_app.tag_name_history (
             revision_type,
             id,
             created_at,
@@ -1181,17 +1303,17 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_tag
-AFTER INSERT OR UPDATE OR DELETE ON demos_app.tag
-FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_tag();
+CREATE OR REPLACE TRIGGER log_changes_tag_name
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.tag_name
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_tag_name();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_tag_configuration()
+CREATE OR REPLACE FUNCTION demos_app.log_changes_tag()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
-        INSERT INTO demos_app.tag_configuration_history (
+        INSERT INTO demos_app.tag_history (
             revision_type,
-            tag_id,
+            tag_name_id,
             tag_type_id,
             source_id,
             status_id,
@@ -1203,7 +1325,7 @@ BEGIN
                 WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
                 WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
             END,
-            NEW.tag_id,
+            NEW.tag_name_id,
             NEW.tag_type_id,
             NEW.source_id,
             NEW.status_id,
@@ -1212,9 +1334,9 @@ BEGIN
         );
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
-        INSERT INTO demos_app.tag_configuration_history (
+        INSERT INTO demos_app.tag_history (
             revision_type,
-            tag_id,
+            tag_name_id,
             tag_type_id,
             source_id,
             status_id,
@@ -1223,7 +1345,7 @@ BEGIN
         )
         VALUES (
             'D'::demos_app.revision_type_enum,
-            OLD.tag_id,
+            OLD.tag_name_id,
             OLD.tag_type_id,
             OLD.source_id,
             OLD.status_id,
@@ -1236,9 +1358,155 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_tag_configuration
-AFTER INSERT OR UPDATE OR DELETE ON demos_app.tag_configuration
-FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_tag_configuration();
+CREATE OR REPLACE TRIGGER log_changes_tag
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.tag
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_tag();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_uipath_result()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.uipath_result_history (
+            revision_type,
+            id,
+            request_id,
+            response,
+            project_id,
+            document_id,
+            application_id,
+            status_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.request_id,
+            NEW.response,
+            NEW.project_id,
+            NEW.document_id,
+            NEW.application_id,
+            NEW.status_id,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.uipath_result_history (
+            revision_type,
+            id,
+            request_id,
+            response,
+            project_id,
+            document_id,
+            application_id,
+            status_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.request_id,
+            OLD.response,
+            OLD.project_id,
+            OLD.document_id,
+            OLD.application_id,
+            OLD.status_id,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_uipath_result
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.uipath_result
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_uipath_result();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_uipath_value()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.uipath_value_history (
+            revision_type,
+            id,
+            uipath_result_id,
+            document_id,
+            application_id,
+            field_id,
+            value,
+            text_length,
+            text_start_index,
+            confidence,
+            token_list,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.uipath_result_id,
+            NEW.document_id,
+            NEW.application_id,
+            NEW.field_id,
+            NEW.value,
+            NEW.text_length,
+            NEW.text_start_index,
+            NEW.confidence,
+            NEW.token_list,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.uipath_value_history (
+            revision_type,
+            id,
+            uipath_result_id,
+            document_id,
+            application_id,
+            field_id,
+            value,
+            text_length,
+            text_start_index,
+            confidence,
+            token_list,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.uipath_result_id,
+            OLD.document_id,
+            OLD.application_id,
+            OLD.field_id,
+            OLD.value,
+            OLD.text_length,
+            OLD.text_start_index,
+            OLD.confidence,
+            OLD.token_list,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_uipath_value
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.uipath_value
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_uipath_value();
 
 CREATE OR REPLACE FUNCTION demos_app.log_changes_users()
 RETURNS TRIGGER AS $$

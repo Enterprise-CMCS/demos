@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 
 import { APPLY_TAGS_DIALOG_TITLE, ApplyTagsDialog } from "./ApplyTagsDialog";
-import { DEMONSTRATION_TYPE_TAGS } from "demos-server-constants";
+import { Tag } from "demos-server";
 
 const mockMutate = vi.fn(() => Promise.resolve({ data: {} }));
 
@@ -23,22 +23,44 @@ vi.mock("components/toast", () => ({
   }),
 }));
 
+const tagOptions: Tag[] = [
+  { tagName: "Behavioral Health", approvalStatus: "Approved" },
+  { tagName: "Dental", approvalStatus: "Unapproved" },
+  { tagName: "CHIP", approvalStatus: "Approved" },
+  { tagName: "Medicaid", approvalStatus: "Approved" },
+  { tagName: "Medicare", approvalStatus: "Unapproved" },
+  { tagName: "Substance Use", approvalStatus: "Approved" },
+];
+
 describe("ApplyTagsDialog", () => {
-  const setup = (selectedTags: string[] = []) => {
+  const setup = (selectedTags: Tag[] = []) => {
     const onClose = vi.fn();
     const result = render(
       <ApplyTagsDialog
         demonstrationId="demo-123"
         onClose={onClose}
         initiallySelectedTags={selectedTags}
-        allTags={DEMONSTRATION_TYPE_TAGS}
+        allTags={tagOptions}
       />
     );
     return { ...result, onClose };
   };
 
   it("renders with initial tags", () => {
-    const tags = ["Behavioral Health", "Dental", "CHIP"];
+    const tags: Tag[] = [
+      {
+        tagName: "Behavioral Health",
+        approvalStatus: "Approved",
+      },
+      {
+        tagName: "Dental",
+        approvalStatus: "Unapproved",
+      },
+      {
+        tagName: "CHIP",
+        approvalStatus: "Approved",
+      },
+    ];
     setup(tags);
 
     expect(screen.getByText(APPLY_TAGS_DIALOG_TITLE)).toBeInTheDocument();
@@ -57,7 +79,12 @@ describe("ApplyTagsDialog", () => {
 
   it("calls mutation and onClose when apply button is clicked", async () => {
     const user = userEvent.setup();
-    const selectedTags = ["Behavioral Health"];
+    const selectedTags: Tag[] = [
+      {
+        tagName: "Behavioral Health",
+        approvalStatus: "Approved",
+      },
+    ];
     const { onClose } = setup(selectedTags);
 
     await user.click(screen.getByRole("button", { name: "button-confirm-apply-tags" }));
@@ -66,7 +93,7 @@ describe("ApplyTagsDialog", () => {
       variables: {
         input: {
           applicationId: "demo-123",
-          applicationTags: selectedTags,
+          applicationTags: selectedTags.map((tag) => tag.tagName),
         },
       },
     });
@@ -76,7 +103,12 @@ describe("ApplyTagsDialog", () => {
 
   it("calls onClose when dialog is closed via BaseDialog", async () => {
     const user = userEvent.setup();
-    const { onClose } = setup(["Tag1"]);
+    const { onClose } = setup([
+      {
+        tagName: "Tag1",
+        approvalStatus: "Approved",
+      },
+    ]);
 
     const closeButton = screen.getByRole("button", { name: /close/i });
     await user.click(closeButton);
@@ -85,12 +117,12 @@ describe("ApplyTagsDialog", () => {
   });
 
   it("displays multiple tags correctly", () => {
-    const selectedTags = DEMONSTRATION_TYPE_TAGS.slice(3, 6);
+    const selectedTags: Tag[] = tagOptions.slice(3, 6);
     setup(selectedTags);
 
     // Check that the selected tags are rendered as chips
     selectedTags.forEach((tag) => {
-      expect(screen.getByTestId(`checkbox-${tag}`)).toBeChecked();
+      expect(screen.getByTestId(`checkbox-${tag.tagName}`)).toBeChecked();
     });
   });
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 
 import Switch from "react-switch";
 import { CompletableSection } from "layout/completableSection";
@@ -31,9 +31,6 @@ export const DemonstrationTypesSection = ({
   isComplete = false,
   isReadonly = false,
 }: DemonstrationTypesSectionProps) => {
-  const [types] = useState<DemonstrationDetailDemonstrationType[]>(
-    demonstration.demonstrationTypes
-  );
   const { showApplyDemonstrationTypesDialog } = useDialog();
   const applyTypes = () => {
     showApplyDemonstrationTypesDialog(demonstration.id);
@@ -65,7 +62,7 @@ export const DemonstrationTypesSection = ({
       <div className="border-t-1 border-gray-dark mt-2">
         <div className="flex justify-end mt-2 gap-2">
           <span className="text-sm font-semibold text-text-font">
-            <span className="text-red-600">*</span>  Mark Complete
+            <span className="text-red-600">*</span> Mark Complete
           </span>
           <Switch
             data-testid="mark-complete-switch"
@@ -80,7 +77,7 @@ export const DemonstrationTypesSection = ({
             handleDiameter={24}
             boxShadow="0 2px 8px rgba(0, 0, 0, 0.6)"
             activeBoxShadow="0 0 2px 3px #3bf"
-            disabled={types.length === 0 || isReadonly}
+            disabled={demonstration.demonstrationTypes.length === 0 || isReadonly}
           />
         </div>
       </div>

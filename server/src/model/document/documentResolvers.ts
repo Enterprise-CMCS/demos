@@ -12,8 +12,7 @@ import type {
   ApplicationDateInput,
 } from "../../types";
 import { getS3Adapter } from "../../adapters";
-import { getEasternNow, parseJSDateToEasternTZDate } from "../../dateUtilities";
-import { addDays } from "date-fns";
+import { getEasternNow } from "../../dateUtilities";
 import { getApplication, PrismaApplication } from "../application";
 import { findUserById } from "../user";
 import { validateAndUpdateDates } from "../applicationDate";
@@ -63,24 +62,6 @@ export async function uploadDocument(
 
       if (phaseStartDate) {
         datesToUpdate.push(phaseStartDate);
-      }
-
-      if (input.documentType === "State Application" && input.phaseName === "Application Intake") {
-        const currentDate = easternNow["Start of Day"].easternTZDate;
-
-        datesToUpdate.push({
-          dateType: "State Application Submitted Date",
-          dateValue: currentDate,
-        });
-
-        const dueDatePlus15 = addDays(currentDate, 15);
-        dueDatePlus15.setHours(23, 59, 59, 999);
-        const completenessReviewDueDate = parseJSDateToEasternTZDate(dueDatePlus15);
-
-        datesToUpdate.push({
-          dateType: "Completeness Review Due Date",
-          dateValue: completenessReviewDueDate.easternTZDate,
-        });
       }
 
       if (datesToUpdate.length > 0) {
