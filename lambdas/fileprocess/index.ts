@@ -268,8 +268,6 @@ export async function processGuardDutyResult(
 
     if (budgetNeutralityQueueUrl && fileTypeId === FINAL_BN_WORKSHEET_DOCUMENT_TYPE) {
       await enqueueBudgetNeutrality(documentId, fileTypeId);
-    } else {
-      log.info("Not a budget neutrality file");
     }
   } else {
     await processInfectedDatabaseRecord(client, documentId, applicationId, scanResultDetails);
