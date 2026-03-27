@@ -24,7 +24,8 @@
     "jwks-rsa": "^3.2.2",
     "pino": "^10.3.1",
     "prisma-extension-random": "^0.2.2",
-    "react": "^19.2.4"
+    "react": "^19.2.4",
+    "demos-shared-library": "file:../shared_library"
   },
   "scripts": {
     "clean": "rm -rf dist; npm ci",
