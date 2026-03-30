@@ -5,6 +5,7 @@ import { BaseDialog } from "components/dialog/BaseDialog";
 import { CMSOwnerField } from "./fields/CMSOwnerField";
 import { DeliverableNameField } from "./fields/DeliverableNameField";
 import { DeliverableTypeField } from "./fields/DeliverableTypeField";
+import { DemonstrationTypeField } from "./fields/DemonstrationTypeField";
 import { ScheduleTypeField } from "./fields/ScheduleTypeField";
 
 export const ADD_DELIVERABLE_SLOT_DIALOG_TITLE = "Add New Deliverable Slot(s)";
@@ -60,22 +61,28 @@ export const AddDeliverableSlotDialog = ({ onClose }: { onClose: () => void }) =
       }
     >
       <div className="flex flex-col gap-md">
+        <div className="flex gap-sm w-full">
+          <DeliverableTypeField
+            value={formData.deliverableType}
+            onSelect={(deliverableType) => setFormData((prev) => ({ ...prev, deliverableType }))}
+          />
+
+          <ScheduleTypeField
+            value={formData.scheduleType}
+            onSelect={(scheduleType) => setFormData((prev) => ({ ...prev, scheduleType }))}
+          />
+        </div>
         <DeliverableNameField
           value={formData.deliverableName}
           onChange={(deliverableName) => setFormData((prev) => ({ ...prev, deliverableName }))}
         />
-        <CMSOwnerField
-          value={formData.cmsOwnerId}
-          onSelect={(cmsOwnerId) => setFormData((prev) => ({ ...prev, cmsOwnerId }))}
-        />
-        <DeliverableTypeField
-          value={formData.deliverableType}
-          onSelect={(deliverableType) => setFormData((prev) => ({ ...prev, deliverableType }))}
-        />
-        <ScheduleTypeField
-          value={formData.scheduleType}
-          onSelect={(scheduleType) => setFormData((prev) => ({ ...prev, scheduleType }))}
-        />
+        <div className="flex gap-sm w-full">
+          <CMSOwnerField
+            value={formData.cmsOwnerId}
+            onSelect={(cmsOwnerId) => setFormData((prev) => ({ ...prev, cmsOwnerId }))}
+          />
+          <DemonstrationTypeField />
+        </div>
       </div>
     </BaseDialog>
   );

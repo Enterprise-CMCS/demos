@@ -5,14 +5,17 @@ import { describe, expect, it } from "vitest";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { ADD_DELIVERABLE_SLOT_DIALOG_TITLE } from "components/dialog/deliverable";
 import { DeliverablesTab } from "./DeliverablesTab";
+import { TestProvider } from "test-utils/TestProvider";
 
 describe("DeliverablesTab", () => {
   it("opens the add deliverable slot dialog when the button is clicked", async () => {
     const user = userEvent.setup();
     render(
-      <DialogProvider>
-        <DeliverablesTab />
-      </DialogProvider>
+      <TestProvider>
+        <DialogProvider>
+          <DeliverablesTab />
+        </DialogProvider>
+      </TestProvider>
     );
 
     await user.click(screen.getByTestId("button-add-deliverable-slot"));
