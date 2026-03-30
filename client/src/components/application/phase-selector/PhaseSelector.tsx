@@ -1,10 +1,6 @@
 import React, { useState } from "react";
 
-import type {
-  DateType,
-  PhaseName,
-  PhaseStatus as ServerPhaseStatus,
-} from "demos-server";
+import type { DateType, PhaseName, PhaseStatus as ServerPhaseStatus } from "demos-server";
 
 import { WorkflowApplication, WorkflowApplicationType } from "components/application";
 import {
@@ -108,9 +104,7 @@ export const PhaseSelector = ({
   application: WorkflowApplication;
   workflowApplicationType: WorkflowApplicationType;
 }) => {
-  const initialPhase: PhaseName = application.currentPhaseName
-    ? (application.currentPhaseName as PhaseName)
-    : "Concept";
+  const initialPhase: PhaseName = application.currentPhaseName ?? "Concept";
   const [selectedPhase, setSelectedPhase] = useState<PhaseName>(initialPhase);
 
   const renderPhase = (phaseName: PhaseName) => {
