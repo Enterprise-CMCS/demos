@@ -6,6 +6,18 @@ import { gql, TypedDocumentNode, useQuery } from "@apollo/client";
 import { TagName, Tag } from "demos-server";
 import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
 import { WarningIcon, LabelIcon } from "components/icons";
+import { tw } from "tags/tw";
+
+const CREATE_TYPE_BUTTON_CLASSES = tw`
+  inline-flex items-center justify-center gap-xs
+  font-semibold text-[14px] px-[16px] py-[12px]
+  rounded-md border border-action text-action bg-white
+  hover:bg-action hover:text-white
+  focus:outline-none focus:ring-2 focus:ring-action-focus
+  transition-all cursor-pointer whitespace-nowrap
+  disabled:bg-gray-200 disabled:border-border-rules
+  disabled:text-text-placeholder disabled:cursor-not-allowed
+`;
 
 export const ADD_DEMONSTRATION_TYPES_FORM_QUERY: TypedDocumentNode<
   {
@@ -145,7 +157,7 @@ export const AddDemonstrationTypesForm = ({
           type="button"
           disabled={!canCreateType}
           onClick={handleCreateType}
-          className="inline-flex items-center justify-center gap-xs font-semibold text-[14px] px-[16px] py-[12px] rounded-md border border-action text-action bg-white hover:bg-action hover:text-white focus:outline-none focus:ring-2 focus:ring-action-focus transition-all cursor-pointer disabled:bg-gray-200 disabled:border-border-rules disabled:text-text-placeholder disabled:cursor-not-allowed whitespace-nowrap"
+          className={CREATE_TYPE_BUTTON_CLASSES}
         >
           Create Type
           <LabelIcon />

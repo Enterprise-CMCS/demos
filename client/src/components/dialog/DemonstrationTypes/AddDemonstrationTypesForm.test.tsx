@@ -229,11 +229,19 @@ describe("AddDemonstrationTypesForm", () => {
     await renderWithProvider();
 
     await user.click(screen.getByRole("textbox"));
-    await user.click(screen.getByText("Type C (Unapproved)"));
+    await user.click(screen.getByText("Type A"));
 
+    expect(screen.queryByTestId("unapproved-warning-banner")).not.toBeInTheDocument();
+  });
+
+  it("clears warning banner after adding an unapproved type to the list", async () => {
+    const user = userEvent.setup();
+    await renderWithProvider();
+
+    await user.click(screen.getByRole("textbox"));
+    await user.click(screen.getByText("Type C (Unapproved)"));
     expect(screen.getByTestId("unapproved-warning-banner")).toBeInTheDocument();
 
-    // Reset and select nothing - warning should go away after add
     await user.type(screen.getByLabelText(/effective date/i), "2024-01-03");
     await user.type(screen.getByLabelText(/expiration date/i), "2025-01-03");
     await user.click(screen.getByTestId("button-add-demonstration-type"));

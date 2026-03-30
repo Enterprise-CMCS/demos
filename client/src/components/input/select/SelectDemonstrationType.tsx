@@ -39,10 +39,16 @@ export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => 
 
   const { loading, error, data } = useQuery(SELECT_DEMONSTRATION_TYPE_QUERY);
 
-  const allOptions = [...(data?.demonstrationTypeOptions || []), ...createdOptions];
-  const uniqueOptions = allOptions.filter(
-    (opt, i, arr) => arr.findIndex((o) => o.tagName === opt.tagName) === i
-  );
+  const fetchedOptions = data?.demonstrationTypeOptions || [];
+  const allOptions = [...fetchedOptions, ...createdOptions];
+
+  const seen = new Set<string>();
+  const uniqueOptions = allOptions.filter((opt) => {
+    const key = opt.tagName.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 
   const demonstrationTypeOptions = uniqueOptions
     .filter((typeOption) => (filter ? filter(typeOption.tagName) : true))
