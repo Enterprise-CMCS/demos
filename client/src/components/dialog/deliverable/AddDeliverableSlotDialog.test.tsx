@@ -2,17 +2,23 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
+import { MockedProvider } from "@apollo/client/testing";
 
 import {
   ADD_DELIVERABLE_SLOT_DIALOG_TITLE,
   AddDeliverableSlotDialog,
 } from "components/dialog/deliverable";
+import { personMocks } from "mock-data/personMocks";
 
 describe("AddDeliverableSlotDialog", () => {
   const setup = () => {
     const onClose = vi.fn();
 
-    render(<AddDeliverableSlotDialog onClose={onClose} />);
+    render(
+      <MockedProvider mocks={personMocks}>
+        <AddDeliverableSlotDialog onClose={onClose} />
+      </MockedProvider>
+    );
 
     return { onClose };
   };
