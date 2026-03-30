@@ -1,16 +1,15 @@
 import { describe, it, expect } from "vitest";
-import { Prisma } from "@prisma/client";
 import { handlePrismaError } from "./handlePrismaError";
 import { GraphQLError } from "graphql";
 
 describe("handlePrismaError", () => {
   describe("PrismaClientKnownRequestError", () => {
     it("throws friendly message for P2003 (foreign key constraint)", () => {
-      const err = new Prisma.PrismaClientKnownRequestError("fk", {
+      const err = {
+        message: "fk",
         code: "P2003",
-        clientVersion: "x",
         meta: { constraint: "fk_constraint" },
-      });
+      };
       try {
         handlePrismaError(err);
       } catch (error) {
@@ -24,10 +23,10 @@ describe("handlePrismaError", () => {
     });
 
     it("throws friendly message for P2025 (no record to update)", () => {
-      const err = new Prisma.PrismaClientKnownRequestError("no-record-found", {
+      const err = {
+        message: "no-record-found",
         code: "P2025",
-        clientVersion: "x",
-      });
+      };
       try {
         handlePrismaError(err);
       } catch (error) {
@@ -40,10 +39,10 @@ describe("handlePrismaError", () => {
     });
 
     it("throws generic message for other known request errors", () => {
-      const err = new Prisma.PrismaClientKnownRequestError("other", {
+      const err = {
+        message: "other",
         code: "P1000",
-        clientVersion: "x",
-      });
+      };
       try {
         handlePrismaError(err);
       } catch (error) {
@@ -58,14 +57,12 @@ describe("handlePrismaError", () => {
 
   describe("PrismaClientUnknownRequestError", () => {
     it("throws friendly-ish message for check constraint", () => {
-      const err = new Prisma.PrismaClientUnknownRequestError(
+      const err = {
         // Pulled example test message, this is just a portion of it
-        '\"new row for relation \\\"demonstration\\\" violates check constraint \\\"' +
+        message:
+          '\"new row for relation \\\"demonstration\\\" violates check constraint \\\"' +
           'effective_date_check\\\"\", severity: \"ERROR\",',
-        {
-          clientVersion: "x",
-        }
-      );
+      };
       try {
         handlePrismaError(err);
       } catch (error) {
@@ -79,12 +76,9 @@ describe("handlePrismaError", () => {
     });
 
     it("throws fails gracefully if unable to extract the name of the constraint", () => {
-      const err = new Prisma.PrismaClientUnknownRequestError(
-        '\"new row for relation \\\"demonstration\\\" violates check constraint \\\"',
-        {
-          clientVersion: "x",
-        }
-      );
+      const err = {
+        message: '\"new row for relation \\\"demonstration\\\" violates check constraint \\\"',
+      };
       try {
         handlePrismaError(err);
       } catch (error) {
