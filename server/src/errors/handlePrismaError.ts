@@ -1,6 +1,6 @@
 import { GraphQLError } from "graphql";
 
-function isKnownRequestError(error: unknown): error is {
+export function isKnownRequestError(error: unknown): error is {
   code: string;
   message: string;
   meta?: { constraint?: string };
@@ -13,7 +13,7 @@ function isKnownRequestError(error: unknown): error is {
   return typeof candidate.code === "string" && typeof candidate.message === "string";
 }
 
-function isUnknownRequestError(error: unknown): error is { message: string } {
+export function isUnknownRequestError(error: unknown): error is { message: string } {
   if (!error || typeof error !== "object") {
     return false;
   }

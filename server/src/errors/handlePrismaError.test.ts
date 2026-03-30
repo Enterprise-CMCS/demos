@@ -1,8 +1,43 @@
 import { describe, it, expect } from "vitest";
-import { handlePrismaError } from "./handlePrismaError";
+import { handlePrismaError, isKnownRequestError, isUnknownRequestError } from "./handlePrismaError";
 import { GraphQLError } from "graphql";
 
 describe("handlePrismaError", () => {
+  describe("isKnownRequestError", () => {
+    it("returns true for objects with string code and message", () => {
+      expect(isKnownRequestError({ code: "P2003", message: "fk" })).toBe(true);
+    });
+
+    it("returns false for non-objects", () => {
+      expect(isKnownRequestError(null)).toBe(false);
+      expect(isKnownRequestError("oops")).toBe(false);
+      expect(isKnownRequestError(123)).toBe(false);
+    });
+
+    it("returns false when code or message are not strings", () => {
+      expect(isKnownRequestError({ code: 123, message: "ok" })).toBe(false);
+      expect(isKnownRequestError({ code: "P2003", message: 123 })).toBe(false);
+      expect(isKnownRequestError({})).toBe(false);
+    });
+  });
+
+  describe("isUnknownRequestError", () => {
+    it("returns true for objects with string message", () => {
+      expect(isUnknownRequestError({ message: "boom" })).toBe(true);
+    });
+
+    it("returns false for non-objects", () => {
+      expect(isUnknownRequestError(null)).toBe(false);
+      expect(isUnknownRequestError("boom")).toBe(false);
+      expect(isUnknownRequestError(42)).toBe(false);
+    });
+
+    it("returns false when message is not a string", () => {
+      expect(isUnknownRequestError({ message: 42 })).toBe(false);
+      expect(isUnknownRequestError({})).toBe(false);
+    });
+  });
+
   describe("PrismaClientKnownRequestError", () => {
     it("throws friendly message for P2003 (foreign key constraint)", () => {
       const err = {
