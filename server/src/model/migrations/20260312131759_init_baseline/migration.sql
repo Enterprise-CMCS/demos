@@ -918,6 +918,47 @@ CHECK (
 );
 
 ALTER TABLE
+    demos_app.deliverable_action
+ADD CONSTRAINT
+    block_unpermitted_due_date_changes
+CHECK (
+    NOT (
+        due_date_change_allowed = FALSE
+        AND old_due_date != new_due_date
+    )
+);
+
+ALTER TABLE
+    demos_app.deliverable_action
+ADD CONSTRAINT
+    require_notes_for_user_actions
+CHECK (
+    action_type_id NOT IN ('Requested Resubmission')
+    OR (note IS NOT NULL AND trim(note) != '')
+);
+
+ALTER TABLE
+    demos_app.deliverable_action
+ADD CONSTRAINT
+    require_user_id_for_user_actions
+CHECK (
+    (action_type_id IN ('Marked as Past Due') AND user_id IS NULL)
+    OR
+    (action_type_id NOT IN ('Marked as Past Due') AND user_id IS NOT NULL)
+);
+
+ALTER TABLE
+    demos_app.deliverable_extension
+ADD CONSTRAINT
+    require_final_date_for_finished_requests
+CHECK (
+    NOT (
+        status_id = 'Approved'
+        AND final_date_granted IS NULL
+    )
+);
+
+ALTER TABLE
     demos_app.demonstration
 ADD CONSTRAINT
     check_demonstration_non_null_fields_when_approved
@@ -960,6 +1001,22 @@ CHECK (
 ALTER TABLE
     demos_app.document
 ADD CONSTRAINT
+    check_deliverable_null_states
+CHECK (
+    (deliverable_id IS NULL 
+        AND deliverable_type_id IS NULL 
+        AND deliverable_is_cms_attached_file IS NULL
+        AND deliverable_submission_action_id IS NULL
+        AND deliverable_submission_action_type_id IS NULL)
+    OR
+    (deliverable_id IS NOT NULL 
+        AND deliverable_type_id IS NOT NULL 
+        AND deliverable_is_cms_attached_file IS NOT NULL)
+);
+
+ALTER TABLE
+    demos_app.document
+ADD CONSTRAINT
     check_non_empty_name
 CHECK (
     trim(name) != ''
@@ -972,6 +1029,69 @@ ADD CONSTRAINT
 CHECK (
     trim(s3_path) != ''
 );
+
+
+ALTER TABLE
+    demos_app.document
+ADD CONSTRAINT
+    check_phase_id_deliverable_id_null
+CHECK (
+    phase_id IS NULL OR deliverable_id IS NULL
+);
+
+ALTER TABLE
+    demos_app.document_infected
+ADD CONSTRAINT
+    check_deliverable_null_states
+CHECK (
+    (deliverable_id IS NULL AND deliverable_type_id IS NULL AND deliverable_is_cms_attached_file IS NULL)
+    OR
+    (deliverable_id IS NOT NULL AND deliverable_type_id IS NOT NULL AND deliverable_is_cms_attached_file IS NOT NULL)
+);
+
+ALTER TABLE
+    demos_app.document_infected
+ADD CONSTRAINT
+    check_non_empty_name
+CHECK (
+    trim(name) != ''
+);
+
+ALTER TABLE
+    demos_app.document_infected
+ADD CONSTRAINT
+    check_non_empty_s3_path
+CHECK (
+    trim(s3_path) != ''
+);
+
+ALTER TABLE
+    demos_app.document_infected
+ADD CONSTRAINT
+    check_phase_id_deliverable_id_null
+CHECK (
+    phase_id IS NULL OR deliverable_id IS NULL
+);
+
+ALTER TABLE
+    demos_app.document_pending_upload
+ADD CONSTRAINT
+    check_deliverable_null_states
+CHECK (
+    (deliverable_id IS NULL AND deliverable_type_id IS NULL AND deliverable_is_cms_attached_file IS NULL)
+    OR
+    (deliverable_id IS NOT NULL AND deliverable_type_id IS NOT NULL AND deliverable_is_cms_attached_file IS NOT NULL)
+);
+
+ALTER TABLE
+    demos_app.document_pending_upload
+ADD CONSTRAINT
+    check_phase_id_deliverable_id_null
+CHECK (
+    phase_id IS NULL OR deliverable_id IS NULL
+);
+
+
 
 ALTER TABLE
     demos_app.document_pending_upload
@@ -1048,4 +1168,13 @@ FOREIGN KEY (id, application_type_id)
 REFERENCES demos_app.application(id, application_type_id)
 ON DELETE NO ACTION
 ON UPDATE CASCADE
+DEFERRABLE INITIALLY DEFERRED;
+
+ALTER TABLE demos_app.deliverable_active_extension DROP CONSTRAINT deliverable_active_extension_deliverable_extension_id_deli_fkey;
+ALTER TABLE demos_app.deliverable_active_extension
+ADD CONSTRAINT deliverable_active_extension_deliverable_extension_id_deli_fkey
+FOREIGN KEY (deliverable_extension_id, deliverable_id, status_id)
+REFERENCES demos_app.deliverable_extension(id, deliverable_id, status_id)
+ON DELETE RESTRICT
+ON UPDATE NO ACTION
 DEFERRABLE INITIALLY DEFERRED;

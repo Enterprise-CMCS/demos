@@ -142,7 +142,7 @@ erDiagram
   deliverable_extension }|--|| deliverable_extension_status : "FK128"
   deliverable_extension_status ||--|| deliverable_active_extension_status_limit : "FK131"
   deliverable_active_extension_status_limit ||--|{ deliverable_active_extension : "FK132"
-  deliverable_extension ||--|| deliverable_active_extension : "FK130"
+  deliverable_extension ||--|| deliverable_active_extension : "FK130 (DEFERRED)"
   deliverable ||--|{ private_comment : "FK109"
   deliverable ||--|{ public_comment : "FK110"
   users ||--|{ private_comment : "FK111"
@@ -481,9 +481,9 @@ erDiagram
   }
 
   deliverable_active_extension:::dataTable {
-    uuid deliverable_extension_id PK, FK "FK130: deliverable_extension_id, deliverable_id, status_id ∈ deliverable_extension.(id, deliverable_id, status_id) ON DELETE RESTRICT ON UPDATE NO ACTION"
-    uuid deliverable_id FK, UK "FK130: deliverable_extension_id, deliverable_id, status_id ∈ deliverable_extension.(id, deliverable_id, status_id) ON DELETE RESTRICT ON UPDATE NO ACTION<br>UK: deliverable_id"
-    text status_id FK "FK130: deliverable_extension_id, deliverable_id, status_id ∈ deliverable_extension.(id, deliverable_id, status_id) ON DELETE RESTRICT ON UPDATE NO ACTION<br>FK132: status_id ∈ deliverable_active_extension_status_limit.id"
+    uuid deliverable_extension_id PK, FK "FK130: deliverable_extension_id, deliverable_id, status_id ∈ deliverable_extension.(id, deliverable_id, status_id) ON DELETE RESTRICT ON UPDATE NO ACTION DEFERRED"
+    uuid deliverable_id FK, UK "FK130: deliverable_extension_id, deliverable_id, status_id ∈ deliverable_extension.(id, deliverable_id, status_id) ON DELETE RESTRICT ON UPDATE NO ACTION DEFERRED<br>UK: deliverable_id"
+    text status_id FK "FK130: deliverable_extension_id, deliverable_id, status_id ∈ deliverable_extension.(id, deliverable_id, status_id) ON DELETE RESTRICT ON UPDATE NO ACTION DEFERRED<br>FK132: status_id ∈ deliverable_active_extension_status_limit.id"
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
   }
 
