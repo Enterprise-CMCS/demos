@@ -5,6 +5,7 @@ import { BaseDialog } from "components/dialog/BaseDialog";
 import { CMSOwnerField } from "./fields/CMSOwnerField";
 import { DeliverableNameField } from "./fields/DeliverableNameField";
 import { DeliverableTypeField } from "./fields/DeliverableTypeField";
+import { ScheduleTypeField } from "./fields/ScheduleTypeField";
 
 export const ADD_DELIVERABLE_SLOT_DIALOG_TITLE = "Add New Deliverable Slot(s)";
 export const ADD_DELIVERABLE_SLOT_DIALOG_NAME = "add-deliverable-slot-dialog";
@@ -14,23 +15,27 @@ interface AddDeliverableSlotFormData {
   deliverableName: string;
   cmsOwnerId: string;
   deliverableType: string;
+  scheduleType: string;
 }
 
 const INITIAL_FORM_DATA: AddDeliverableSlotFormData = {
   deliverableName: "",
   cmsOwnerId: "",
   deliverableType: "",
+  scheduleType: "",
 };
 
 const checkFormIsValid = (data: AddDeliverableSlotFormData): boolean =>
   data.deliverableName.trim().length > 0 &&
   data.cmsOwnerId.length > 0 &&
-  data.deliverableType.length > 0;
+  data.deliverableType.length > 0 &&
+  data.scheduleType.length > 0;
 
 const checkFormHasChanges = (data: AddDeliverableSlotFormData): boolean =>
   data.deliverableName !== INITIAL_FORM_DATA.deliverableName ||
   data.cmsOwnerId !== INITIAL_FORM_DATA.cmsOwnerId ||
-  data.deliverableType !== INITIAL_FORM_DATA.deliverableType;
+  data.deliverableType !== INITIAL_FORM_DATA.deliverableType ||
+  data.scheduleType !== INITIAL_FORM_DATA.scheduleType;
 
 export const AddDeliverableSlotDialog = ({ onClose }: { onClose: () => void }) => {
   const [formData, setFormData] = useState<AddDeliverableSlotFormData>(INITIAL_FORM_DATA);
@@ -66,6 +71,10 @@ export const AddDeliverableSlotDialog = ({ onClose }: { onClose: () => void }) =
         <DeliverableTypeField
           value={formData.deliverableType}
           onSelect={(deliverableType) => setFormData((prev) => ({ ...prev, deliverableType }))}
+        />
+        <ScheduleTypeField
+          value={formData.scheduleType}
+          onSelect={(scheduleType) => setFormData((prev) => ({ ...prev, scheduleType }))}
         />
       </div>
     </BaseDialog>
