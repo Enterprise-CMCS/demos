@@ -150,13 +150,8 @@ async function seedNotes() {
   }
 }
 
-async function seedDocuments(actuallyRun: boolean = true) {
+async function seedDocuments() {
   console.log("🌱 Seeding documents...");
-
-  if (!actuallyRun) {
-    console.log("⚠️ Warning: document seeding was bypassed!");
-    return 0;
-  }
 
   const s3Client = new S3Client(
     process.env.S3_ENDPOINT_LOCAL
@@ -768,7 +763,7 @@ async function seedDatabase() {
 
   await seedTagsAndStatuses();
 
-  await seedDocuments(false);
+  await seedDocuments();
 
   await seedNotes();
   console.log("🌱 Seeding events (with and without applicationIds)...");

@@ -251,6 +251,7 @@ BEGIN
         document_type_id,
         application_id,
         phase_id,
+        deliverable_id,
         created_at,
         updated_at
     )
@@ -263,6 +264,7 @@ BEGIN
         document_type_id,
         application_id,
         phase_id,
+        deliverable_id,
         created_at,
         updated_at
     FROM

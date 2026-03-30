@@ -1,6 +1,6 @@
 import { ApplicationPhaseStatusRecord } from "..";
 import { PrismaTransactionClient } from "../../../prismaClient.js";
-import { PhaseNameWithTrackedStatus, PhaseStatus } from "../../../types.js";
+import { PhaseName, PhaseStatus } from "../../../types.js";
 
 export async function getApplicationPhaseStatuses(
   applicationId: string,
@@ -18,7 +18,7 @@ export async function getApplicationPhaseStatuses(
   // Types below are guaranteed by the DB
   return Object.fromEntries(
     results.map((phaseStatus) => [
-      phaseStatus.phaseId as PhaseNameWithTrackedStatus,
+      phaseStatus.phaseId as PhaseName,
       phaseStatus.phaseStatusId as PhaseStatus,
     ])
   ) as ApplicationPhaseStatusRecord;

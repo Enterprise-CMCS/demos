@@ -1,10 +1,10 @@
 import { PrismaTransactionClient } from "../../prismaClient";
-import { PhaseNameWithTrackedStatus } from "../../types.js";
+import { PhaseName } from "../../types.js";
 import { getApplicationPhaseStatus, updatePhaseStatus } from ".";
 
 export async function setPhaseToStarted(
   applicationId: string,
-  phaseName: PhaseNameWithTrackedStatus,
+  phaseName: PhaseName,
   tx: PrismaTransactionClient
 ): Promise<boolean> {
   // The federal comment period is only started or finished based on the date

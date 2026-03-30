@@ -38,9 +38,6 @@ describe("getApplicationPhaseDocumentTypes", () => {
       distinct: ["phaseId", "documentTypeId"],
       where: {
         applicationId: testApplicationId,
-        NOT: {
-          phaseId: "None",
-        },
       },
     };
 

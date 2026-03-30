@@ -8,7 +8,6 @@ import { addDays, compareDesc, parseISO } from "date-fns";
 import { tw } from "tags/tw";
 import { formatDateForServer, getDateEst } from "util/formatDate";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
-import { PhaseName } from "components/application/phase-selector/PhaseSelector";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { useDialog } from "components/dialog/DialogContext";
@@ -17,7 +16,7 @@ import { getPhaseCompletedMessage } from "util/messages";
 import { useToast } from "components/toast";
 import { DatePicker } from "components/input/date/DatePicker";
 import { ApplicationHealthTypeTags } from "components/tags/ApplicationHealthTypeTags";
-import type { LocalDate, PhaseStatus, Tag, TagName } from "demos-server";
+import type { LocalDate, PhaseName, PhaseStatus, Tag, TagName } from "demos-server";
 import { SET_APPLICATION_TAGS_MUTATION } from "components/dialog/ApplyTagsDialog";
 
 /** Business Rules for this Phase:

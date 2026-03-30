@@ -10,7 +10,7 @@ export async function startPhaseByDocument(
   document: Pick<UploadDocumentInput, "phaseName">,
   easternNow: EasternNow
 ): Promise<ApplicationDateInput | null> {
-  if (document.phaseName === "None") {
+  if (!document.phaseName) {
     return null;
   }
   const phaseStarted = await setPhaseToStarted(applicationId, document.phaseName, tx);

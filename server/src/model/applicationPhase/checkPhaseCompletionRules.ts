@@ -1,4 +1,4 @@
-import { ClearanceLevel, PhaseNameWithTrackedStatus } from "../../types.js";
+import { ClearanceLevel, PhaseName } from "../../types.js";
 import { ParsedApplicationDateInput, makeApplicationDateMapFromList } from "../applicationDate";
 import {
   ApplicationPhaseDocumentTypeRecord,
@@ -98,7 +98,7 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
 
 export function checkPhaseCompletionRules(
   applicationId: string,
-  phaseToValidate: PhaseNameWithTrackedStatus,
+  phaseToValidate: PhaseName,
   applicationDates: ParsedApplicationDateInput[],
   applicationDocumentTypes: ApplicationPhaseDocumentTypeRecord,
   applicationPhases: ApplicationPhaseStatusRecord,

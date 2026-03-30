@@ -178,6 +178,13 @@ export function resolvePhaseName(parent: PrismaDocument): PhaseName {
   return parent.phaseId as PhaseName;
 }
 
+export async function resolveDeliverable(parent: PrismaDocument) {
+  if (!parent.deliverableId) {
+    return null;
+  }
+  return await prisma().deliverable.findUnique({ where: { id: parent.deliverableId } });
+}
+
 export const documentResolvers = {
   Query: {
     document: getDocument,
@@ -197,6 +204,7 @@ export const documentResolvers = {
     documentType: resolveDocumentType,
     presignedDownloadUrl: resolvePresignedDownloadUrl,
     application: resolveApplication,
+    deliverable: resolveDeliverable,
     phaseName: resolvePhaseName,
   },
 };

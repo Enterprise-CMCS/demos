@@ -212,7 +212,7 @@ describe("ApprovalPackagePhase", () => {
         doc({ documentType: "Q&A", phaseName: "Approval Package" }),
         doc({ documentType: "Special Terms & Conditions", phaseName: "Approval Package" }),
         doc({ documentType: "Formal OMB Policy Concurrence Email", phaseName: "Approval Package" }),
-        doc({ documentType: "Approval Letter", phaseName: "None" }), // Document exists but belongs to wrong phase
+        doc({ documentType: "Approval Letter", phaseName: "Concept" }), // Document exists but belongs to wrong phase
         doc({ documentType: "Signed Decision Memo", phaseName: "Approval Package" }),
       ],
       phases: [
@@ -358,7 +358,7 @@ describe("getApprovalPackagePhaseFromApplication", () => {
         doc({
           documentType: "Special Terms & Conditions",
           name: "Special STCs",
-          phaseName: "None",
+          phaseName: "Concept",
         }),
       ],
       phases: [
@@ -388,7 +388,7 @@ describe("getApprovalPackagePhaseFromApplication", () => {
 
     expect(text.some((t) => t?.includes("Q&A Doc"))).toBe(true);
     expect(text.some((t) => t?.includes("Approval Doc 1"))).toBe(true);
-    expect(text.some((t) => t?.includes("Special STCs"))).toBe(false); // document belongs to the None phase and should not appear
+    expect(text.some((t) => t?.includes("Special STCs"))).toBe(false); // document belongs to the Concept phase and should not appear
   });
 
   it("handles missing documents gracefully", () => {

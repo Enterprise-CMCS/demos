@@ -1,9 +1,9 @@
 import { PrismaTransactionClient } from "../../../prismaClient";
-import { DateType, PhaseNameWithTrackedStatus } from "../../../types";
+import { DateType, PhaseName } from "../../../types";
 
 export type OrderedPhaseDateTypes = {
   dateTypeId: DateType;
-  phaseId: PhaseNameWithTrackedStatus;
+  phaseId: PhaseName;
 }[];
 export async function getOrderedPhaseDateTypes(
   tx: PrismaTransactionClient

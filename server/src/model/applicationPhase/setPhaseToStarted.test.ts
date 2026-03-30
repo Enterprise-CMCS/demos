@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { setPhaseToStarted } from "./setPhaseToStarted";
-import { PhaseNameWithTrackedStatus } from "../../types";
+import { PhaseName } from "../../types";
 
 // Mock imports
 import { getApplicationPhaseStatus, updatePhaseStatus } from "./index.js";
@@ -12,7 +12,7 @@ vi.mock(".", () => ({
 
 describe("setPhaseToStarted", () => {
   const testApplicationId: string = "3ed9d466-0563-4634-959f-b9f86f659905";
-  const testPhaseName: PhaseNameWithTrackedStatus = "Review";
+  const testPhaseName: PhaseName = "Review";
   const mockTransaction: any = "A mock transaction";
 
   beforeEach(() => {
@@ -61,7 +61,7 @@ describe("setPhaseToStarted", () => {
   });
 
   it("should start Completeness phase when status is Incomplete", async () => {
-    const completenessPhase: PhaseNameWithTrackedStatus = "Completeness";
+    const completenessPhase: PhaseName = "Completeness";
     vi.mocked(getApplicationPhaseStatus).mockResolvedValue("Incomplete");
 
     const result = await setPhaseToStarted(testApplicationId, completenessPhase, mockTransaction);
@@ -81,7 +81,7 @@ describe("setPhaseToStarted", () => {
   });
 
   it("should not start non-Completeness phase when status is Incomplete", async () => {
-    const nonCompletenessPhase: PhaseNameWithTrackedStatus = "Application Intake";
+    const nonCompletenessPhase: PhaseName = "Application Intake";
     vi.mocked(getApplicationPhaseStatus).mockResolvedValue("Incomplete");
 
     const result = await setPhaseToStarted(

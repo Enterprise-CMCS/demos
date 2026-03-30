@@ -2,14 +2,11 @@ import React, { useState } from "react";
 
 import type {
   DateType,
-  PhaseName as ServerPhase,
+  PhaseName,
   PhaseStatus as ServerPhaseStatus,
 } from "demos-server";
 
-import {
-  WorkflowApplication,
-  WorkflowApplicationType,
-} from "components/application";
+import { WorkflowApplication, WorkflowApplicationType } from "components/application";
 import {
   getApplicationCompletenessFromApplication,
   getConceptPhaseComponentFromApplication,
@@ -20,13 +17,11 @@ import {
   getApprovalSummaryPhaseFromApplication,
   getSdgPreparationPhaseFromApplication,
 } from "../phases";
-import { PHASE_NAME } from "demos-server-constants";
+import { PHASE_NAMES } from "demos-server-constants";
 import { PhaseBox } from "./PhaseBox";
 
 // TODO: get past-due added to the shared enum
 export type PhaseStatus = ServerPhaseStatus | "past-due";
-export type PhaseName = Exclude<ServerPhase, "None">;
-const PHASE_NAMES: PhaseName[] = PHASE_NAME.filter((phase): phase is PhaseName => phase !== "None");
 
 type PhaseDateDisplayMap = Record<PhaseName, Partial<Record<PhaseStatus, DateType>>>;
 
@@ -113,10 +108,9 @@ export const PhaseSelector = ({
   application: WorkflowApplication;
   workflowApplicationType: WorkflowApplicationType;
 }) => {
-  const initialPhase: PhaseName =
-    application.currentPhaseName && application.currentPhaseName !== "None"
-      ? (application.currentPhaseName as PhaseName)
-      : "Concept";
+  const initialPhase: PhaseName = application.currentPhaseName
+    ? (application.currentPhaseName as PhaseName)
+    : "Concept";
   const [selectedPhase, setSelectedPhase] = useState<PhaseName>(initialPhase);
 
   const renderPhase = (phaseName: PhaseName) => {
@@ -145,10 +139,7 @@ export const PhaseSelector = ({
         // Approval Summary requires demonstration-specific fields
         // For now we will do type-assertion but to be revisted as we get further
         // down the line on developing these phases.
-        return getApprovalSummaryPhaseFromApplication(
-          application,
-          workflowApplicationType
-        );
+        return getApprovalSummaryPhaseFromApplication(application, workflowApplicationType);
     }
   };
 
