@@ -1106,12 +1106,10 @@ RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
-
-
     IF NEW.new_status_id in (
-        'Accepted Deliverable',
-        'Approved Deliverable',
-        'Received and Filed Deliverable'
+        'Accepted',
+        'Approved',
+        'Received and Filed'
     ) THEN
         IF EXISTS (
             SELECT 1
@@ -1169,7 +1167,8 @@ BEGIN
         WHERE id = NEW.action_type_id
     ) THEN
         UPDATE demos_app.document
-        SET deliverable_submission_action_id = NEW.id
+        SET deliverable_submission_action_id = NEW.id,
+            deliverable_submission_action_type_id = NEW.action_type_id
         WHERE deliverable_id = NEW.deliverable_id
         AND deliverable_submission_action_id IS NULL;
     END IF;

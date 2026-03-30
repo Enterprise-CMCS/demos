@@ -1169,3 +1169,12 @@ REFERENCES demos_app.application(id, application_type_id)
 ON DELETE NO ACTION
 ON UPDATE CASCADE
 DEFERRABLE INITIALLY DEFERRED;
+
+ALTER TABLE demos_app.deliverable_active_extension DROP CONSTRAINT deliverable_active_extension_deliverable_extension_id_deli_fkey;
+ALTER TABLE demos_app.deliverable_active_extension
+ADD CONSTRAINT deliverable_active_extension_deliverable_extension_id_deli_fkey
+FOREIGN KEY (deliverable_extension_id, deliverable_id, status_id)
+REFERENCES demos_app.deliverable_extension(id, deliverable_id, status_id)
+ON DELETE RESTRICT
+ON UPDATE NO ACTION
+DEFERRABLE INITIALLY DEFERRED;
