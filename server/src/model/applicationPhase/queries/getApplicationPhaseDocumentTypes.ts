@@ -24,6 +24,9 @@ export async function getApplicationPhaseDocumentTypes(
   }
   for (const result of results) {
     const phaseName = result.phaseId as PhaseName;
+    if (!phaseName) {
+      continue;
+    }
     const documentType = result.documentTypeId as DocumentType;
     phaseDocumentTypes[phaseName].push(documentType);
   }

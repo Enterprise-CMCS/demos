@@ -53,6 +53,11 @@ export async function uploadDocument(
         "The GraphQL context does not have user information. Are you properly authenticated?"
       );
     }
+
+    if (input.phaseName && input.deliverableId) {
+      throw new Error("A document cannot be associated with both a phase and a deliverable.");
+    }
+
     const userId = context.user.id;
     return await prisma().$transaction(async (tx) => {
       const easternNow = getEasternNow();
