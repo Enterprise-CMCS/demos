@@ -60,8 +60,8 @@ export const AddDeliverableSlotDialog = ({ onClose }: { onClose: () => void }) =
         </Button>
       }
     >
-      <div className="flex flex-col gap-md">
-        <div className="flex gap-sm w-full">
+      <div className="flex flex-col gap-sm">
+        <div className="grid grid-cols-2 gap-sm">
           <DeliverableTypeField
             value={formData.deliverableType}
             onSelect={(deliverableType) => setFormData((prev) => ({ ...prev, deliverableType }))}
@@ -76,7 +76,7 @@ export const AddDeliverableSlotDialog = ({ onClose }: { onClose: () => void }) =
           value={formData.deliverableName}
           onChange={(deliverableName) => setFormData((prev) => ({ ...prev, deliverableName }))}
         />
-        <div className="flex gap-sm w-full">
+        <div className="grid grid-cols-2 gap-sm">
           <CMSOwnerField
             value={formData.cmsOwnerId}
             onSelect={(cmsOwnerId) => setFormData((prev) => ({ ...prev, cmsOwnerId }))}
