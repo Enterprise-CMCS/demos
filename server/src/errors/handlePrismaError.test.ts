@@ -57,6 +57,22 @@ describe("handlePrismaError", () => {
       }
     });
 
+    it("uses unknown constraint name when P2003 metadata is missing", () => {
+      const err = {
+        message: "fk",
+        code: "P2003",
+      };
+      try {
+        handlePrismaError(err);
+      } catch (error) {
+        expect(error).toBeInstanceOf(GraphQLError);
+        if (error instanceof GraphQLError) {
+          expect(error.message).toContain("A foreign key constraint unknown was violated");
+          expect(error.extensions.code).toBe("VIOLATED_FOREIGN_KEY");
+        }
+      }
+    });
+
     it("throws friendly message for P2025 (no record to update)", () => {
       const err = {
         message: "no-record-found",
