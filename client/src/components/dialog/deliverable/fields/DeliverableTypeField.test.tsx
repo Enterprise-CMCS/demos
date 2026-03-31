@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 
-import { DeliverableTypeField } from "./DeliverableTypeField";
+import { DeliverableTypeField, DELIVERABLE_TYPE_SELECT_NAME } from "./DeliverableTypeField";
 
 describe("DeliverableTypeField", () => {
   const setup = (value = "", onSelect = vi.fn()) => {
@@ -27,7 +27,7 @@ describe("DeliverableTypeField", () => {
     const user = userEvent.setup();
     setup();
 
-    await user.click(screen.getByTestId("select-deliverable-type"));
+    await user.click(screen.getByTestId(DELIVERABLE_TYPE_SELECT_NAME));
 
     expect(screen.getByText("Annual Budget Neutrality Report")).toBeInTheDocument();
     expect(screen.getByText("Transition Plan")).toBeInTheDocument();
@@ -37,7 +37,7 @@ describe("DeliverableTypeField", () => {
     const user = userEvent.setup();
     const { onSelect } = setup();
 
-    await user.click(screen.getByTestId("select-deliverable-type"));
+    await user.click(screen.getByTestId(DELIVERABLE_TYPE_SELECT_NAME));
     await user.click(screen.getByText("Monitoring Report"));
 
     expect(onSelect).toHaveBeenCalledWith("Monitoring Report");
@@ -46,6 +46,6 @@ describe("DeliverableTypeField", () => {
   it("is disabled when isDisabled is true", () => {
     render(<DeliverableTypeField value="" onSelect={vi.fn()} isDisabled />);
 
-    expect(screen.getByTestId("select-deliverable-type")).toBeDisabled();
+    expect(screen.getByTestId(DELIVERABLE_TYPE_SELECT_NAME)).toBeDisabled();
   });
 });
