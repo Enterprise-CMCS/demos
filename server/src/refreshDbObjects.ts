@@ -4,7 +4,7 @@ function executeSqlFile(filePath: string): void {
   console.log(`Executing SQL file: ${filePath}`);
   const result = spawnSync(
     "npx",
-    ["prisma", "db", "execute", "--schema", "./src/model/schema.prisma", "--file", filePath],
+    ["prisma", "db", "execute", "--file", filePath],
     { stdio: "inherit" }
   );
 
