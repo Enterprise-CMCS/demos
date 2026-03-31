@@ -42,11 +42,12 @@ export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => 
   const fetchedOptions = data?.demonstrationTypeOptions || [];
   const allOptions = [...fetchedOptions, ...createdOptions];
 
+  // Dedupe by tagName (case-sensitive, matching database behavior).
+  // Needed because createdOptions may overlap with fetchedOptions after a refetch.
   const seen = new Set<string>();
   const uniqueOptions = allOptions.filter((opt) => {
-    const key = opt.tagName.toLowerCase();
-    if (seen.has(key)) return false;
-    seen.add(key);
+    if (seen.has(opt.tagName)) return false;
+    seen.add(opt.tagName);
     return true;
   });
 

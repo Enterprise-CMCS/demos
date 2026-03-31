@@ -3,7 +3,7 @@ import { DatePicker } from "components/input/date/DatePicker";
 import { SecondaryButton } from "components/button";
 import { SelectDemonstrationType } from "components/input/select/SelectDemonstrationType";
 import { gql, TypedDocumentNode, useQuery } from "@apollo/client";
-import { TagName, Tag } from "demos-server";
+import { TagName, Tag, TagStatus } from "demos-server";
 import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
 import { WarningIcon, LabelIcon } from "components/icons";
 import { tw } from "tags/tw";
@@ -114,13 +114,14 @@ export const AddDemonstrationTypesForm = ({
 
   const handleCreateType = () => {
     const newTypeName = filterValue.trim();
-    const newTag = { tagName: newTypeName, approvalStatus: "Unapproved" as const };
+    const unapproved: TagStatus = "Unapproved";
+    const newTag = { tagName: newTypeName, approvalStatus: unapproved };
     setCreatedTypes((prev) => [...prev, newTag]);
     setDemonstrationTypeFormData(
       (prev): DemonstrationType => ({
         ...prev,
         demonstrationTypeName: newTypeName,
-        approvalStatus: "Unapproved",
+        approvalStatus: unapproved,
       })
     );
     setFilterValue("");
