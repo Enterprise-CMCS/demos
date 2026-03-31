@@ -33,6 +33,7 @@ TBL_FOLDERS = [
     "rolePermission",
     "systemRoleAssignment",
     "tag",
+    "tagName",
     "uiPathResult",
     "uiPathValue",
     "user",

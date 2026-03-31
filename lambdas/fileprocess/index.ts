@@ -208,10 +208,7 @@ export async function enqueueUiPath(documentId: string) {
     throw new Error(`Failed to enqueue UiPath message for document ${documentId}.`);
   }
 
-  log.info(
-    { documentId, messageId: response.MessageId },
-    "queued UiPath extraction request."
-  );
+  log.info({ documentId, messageId: response.MessageId }, "queued UiPath extraction request.");
 }
 
 export async function processGuardDutyResult(

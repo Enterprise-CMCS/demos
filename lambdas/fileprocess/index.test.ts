@@ -217,7 +217,9 @@ describe("file-process", () => {
     it("should throw when sqs does not return a message id", async () => {
       sqsMocks.sendMock.mockResolvedValueOnce({});
 
-      await expect(enqueueBudgetNeutrality("test-doc-id", "BN Workbook")).rejects.toThrow(
+      await expect(
+        enqueueBudgetNeutrality("test-doc-id", "BN Workbook")
+      ).rejects.toThrow(
         "Failed to enqueue Budget Neutrality validation message for document test-doc-id."
       );
     });
@@ -240,7 +242,7 @@ describe("file-process", () => {
       const fileprocess = await import(".");
 
       await expect(
-        fileprocess.enqueueBudgetNeutrality("test-doc-id", "Final BN Worksheet")
+        fileprocess.enqueueBudgetNeutrality("test-doc-id", "BN Workbook")
       ).rejects.toThrow("BUDGET_NEUTRALITY_QUEUE_URL environment variable is required.");
 
       expect(sqsMocks.sendMock).not.toHaveBeenCalled();
