@@ -35,6 +35,7 @@ const createExtendedClient = () => {
 
   const adapter = new PrismaPg({
     connectionString,
+    ssl: { rejectUnauthorized: false },
   }, {
     schema,
   });
