@@ -88,7 +88,11 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           value={TAB.DELIVERABLES}
           shouldRender={isDemonstrationApproved}
         >
-          <DeliverablesTab />
+          <DeliverablesTab
+            demonstrationTypes={demonstration.demonstrationTypes.map(
+              (t) => t.demonstrationTypeName
+            )}
+          />
         </Tab>
         <Tab icon={<ListIcon />} label="Applications" value={TAB.APPLICATION}>
           <DemonstrationWorkflow demonstrationId={demonstration.id} />

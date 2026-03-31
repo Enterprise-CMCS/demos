@@ -232,8 +232,13 @@ export const useDialog = () => {
     );
   };
 
-  const showAddDeliverableSlotDialog = () => {
-    context.showDialog(<AddDeliverableSlotDialog onClose={context.hideDialog} />);
+  const showAddDeliverableSlotDialog = (demonstrationTypes: string[] = []) => {
+    context.showDialog(
+      <AddDeliverableSlotDialog
+        onClose={context.hideDialog}
+        demonstrationTypes={demonstrationTypes}
+      />
+    );
   };
 
   return {
