@@ -101,12 +101,12 @@ describe("startPhaseByDocument", () => {
     expect(result).toBeNull();
   });
 
-  it("should return null immediately when phaseName is 'None'", async () => {
+  it("should return null immediately when phaseName is undefined", async () => {
     const result = await startPhaseByDocument(
       mockTransaction,
       testApplicationId,
       {
-        phaseName: "None",
+        phaseName: undefined,
       },
       mockEasternNow
     );

@@ -1,4 +1,4 @@
-import { DateType, DocumentType, ExpectedTimestamp, PhaseNameWithTrackedStatus } from "./types.js";
+import { DateType, DocumentType, ExpectedTimestamp, PhaseName } from "./types.js";
 
 export const CLEARANCE_LEVELS = ["COMMs", "CMS (OSORA)"] as const;
 
@@ -146,7 +146,7 @@ export const DOCUMENT_TYPES = [
   "Transition Plan",
 ] as const;
 
-export const PHASE_NAMES_WITH_TRACKED_STATUS = [
+export const PHASE_NAMES = [
   "Concept",
   "Application Intake",
   "Completeness",
@@ -156,8 +156,6 @@ export const PHASE_NAMES_WITH_TRACKED_STATUS = [
   "Approval Package",
   "Approval Summary",
 ] as const;
-
-export const PHASE_NAME = ["None", ...PHASE_NAMES_WITH_TRACKED_STATUS] as const;
 
 export const PHASE_STATUS = [
   "Not Started",
@@ -360,21 +358,6 @@ export const EVENT_TYPES = [
   "Delete Document Failed",
 ] as const;
 
-export const NONE_PHASE_DOCUMENTS: DocumentType[] = [
-  "Application Completeness Letter",
-  "Approval Letter",
-  "BN Workbook",
-  "Final Budget Neutrality Formulation Workbook",
-  "Formal OMB Policy Concurrence Email",
-  "Internal Completeness Review Form",
-  "Payment Ratio Analysis",
-  "Pre-Submission",
-  "Q&A",
-  "Signed Decision Memo",
-  "State Application",
-  "General File",
-] as const;
-
 export const CONCEPT_PHASE_DOCUMENTS: DocumentType[] = ["General File", "Pre-Submission"] as const;
 
 export const APPLICATION_INTAKE_PHASE_DOCUMENTS: DocumentType[] = [
@@ -417,7 +400,6 @@ export const APPROVAL_PACKAGE_PHASE_DOCUMENTS: DocumentType[] = [
 export const APPROVAL_SUMMARY_PHASE_DOCUMENTS: DocumentType[] = ["General File"] as const;
 
 export const PHASE_DOCUMENT_TYPE_MAP = {
-  None: NONE_PHASE_DOCUMENTS,
   Concept: CONCEPT_PHASE_DOCUMENTS,
   "Application Intake": APPLICATION_INTAKE_PHASE_DOCUMENTS,
   Completeness: COMPLETENESS_PHASE_DOCUMENTS,
@@ -428,10 +410,7 @@ export const PHASE_DOCUMENT_TYPE_MAP = {
   "Approval Summary": APPROVAL_SUMMARY_PHASE_DOCUMENTS,
 };
 
-type PhaseStartEndDateRecord = Record<
-  PhaseNameWithTrackedStatus,
-  { startDate?: DateType; endDate?: DateType }
->;
+type PhaseStartEndDateRecord = Record<PhaseName, { startDate?: DateType; endDate?: DateType }>;
 export const PHASE_START_END_DATES: PhaseStartEndDateRecord = {
   Concept: { startDate: "Concept Start Date", endDate: "Concept Completion Date" },
   "Application Intake": {

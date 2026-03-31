@@ -1,7 +1,7 @@
 import { PrismaTransactionClient } from "../../../prismaClient.js";
 import { ApplicationPhaseDocumentTypeRecord } from "../index.js";
-import { PHASE_NAMES_WITH_TRACKED_STATUS } from "../../../constants.js";
-import { DocumentType, PhaseNameWithTrackedStatus } from "../../../types.js";
+import { PHASE_NAMES } from "../../../constants.js";
+import { DocumentType, PhaseName } from "../../../types.js";
 
 export async function getApplicationPhaseDocumentTypes(
   applicationId: string,
@@ -15,18 +15,19 @@ export async function getApplicationPhaseDocumentTypes(
     distinct: ["phaseId", "documentTypeId"],
     where: {
       applicationId: applicationId,
-      NOT: {
-        phaseId: "None",
-      },
     },
   });
   // Types below are guaranteed by the DB
   const phaseDocumentTypes = {} as ApplicationPhaseDocumentTypeRecord;
-  for (const phase of PHASE_NAMES_WITH_TRACKED_STATUS) {
+  for (const phase of PHASE_NAMES) {
     phaseDocumentTypes[phase] = [];
   }
   for (const result of results) {
-    const phaseName = result.phaseId as PhaseNameWithTrackedStatus;
+    const phaseName = result.phaseId as PhaseName;
+    // if no phaseName, this is a document on the application so irrelevant for phase validation
+    if (!phaseName) {
+      continue;
+    }
     const documentType = result.documentTypeId as DocumentType;
     phaseDocumentTypes[phaseName].push(documentType);
   }

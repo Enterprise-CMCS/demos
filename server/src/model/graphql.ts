@@ -25,6 +25,8 @@ import { sdgDivisionResolvers } from "./sdgDivision/sdgDivisionResolvers.js";
 import { dateTypeSchema } from "./dateType/dateTypeSchema.js";
 import { dateTypeResolvers } from "./dateType/dateTypeResolvers.js";
 
+import { deliverableSchema } from "./deliverable/deliverableSchema.js";
+
 import { demonstrationRoleAssignmentSchema } from "./demonstrationRoleAssignment/demonstrationRoleAssignmentSchema.js";
 import { demonstrationRoleAssigmentResolvers } from "./demonstrationRoleAssignment/demonstrationRoleAssignmentResolvers.js";
 
@@ -119,6 +121,7 @@ export const typeDefs = [
   applicationTagAssignmentSchema,
   clearanceLevelSchema,
   dateTypeSchema,
+  deliverableSchema,
   demonstrationRoleAssignmentSchema,
   demonstrationSchema,
   demonstrationTypeTagAssignmentSchema,

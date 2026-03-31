@@ -21,8 +21,7 @@ import {
   LOG_LEVELS,
   NOTE_TYPES,
   PERSON_TYPES,
-  PHASE_NAME,
-  PHASE_NAMES_WITH_TRACKED_STATUS,
+  PHASE_NAMES,
   PHASE_STATUS,
   REVIEW_PHASE_DATE_TYPES,
   REVIEW_PHASE_NOTE_TYPES,
@@ -120,8 +119,7 @@ export type ApplicationType = (typeof APPLICATION_TYPES)[number];
 export type SdgDivision = (typeof SDG_DIVISIONS)[number];
 export type SignatureLevel = (typeof SIGNATURE_LEVEL)[number];
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
-export type PhaseName = (typeof PHASE_NAME)[number];
-export type PhaseNameWithTrackedStatus = (typeof PHASE_NAMES_WITH_TRACKED_STATUS)[number];
+export type PhaseName = (typeof PHASE_NAMES)[number];
 export type PhaseStatus = (typeof PHASE_STATUS)[number];
 export type PersonType = (typeof PERSON_TYPES)[number];
 export type GrantLevel = (typeof GRANT_LEVELS)[number];

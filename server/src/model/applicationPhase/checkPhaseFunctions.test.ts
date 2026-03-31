@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { DateType, DocumentType, PhaseNameWithTrackedStatus } from "../../types.js";
+import { DateType, DocumentType, PhaseName } from "../../types.js";
 import {
   checkApplicationDateExistsForCompletion,
   checkConceptPhaseStartedBeforeSkipping,
@@ -19,10 +19,10 @@ import { TZDate } from "@date-fns/tz";
 
 describe("checkPhaseFunctions", () => {
   const testApplicationId = "5a947103-3ad5-4237-96cd-3eaeb0c88541";
-  const testPhaseName: PhaseNameWithTrackedStatus = "Completeness";
+  const testPhaseName: PhaseName = "Completeness";
   const testDateTypeToCheck: DateType = "Expected Approval Date";
   const testDocumentTypetoCheck: DocumentType = "BN Workbook";
-  const testPhaseToCheckComplete: PhaseNameWithTrackedStatus = "Application Intake";
+  const testPhaseToCheckComplete: PhaseName = "Application Intake";
 
   describe("checkPhaseStatus", () => {
     it("should throw the passed error message if the expected doesn't match", () => {

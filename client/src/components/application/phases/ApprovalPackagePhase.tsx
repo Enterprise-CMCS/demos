@@ -4,7 +4,7 @@ import {
   ApprovalPackageTable,
   ApprovalPackageTableRow,
 } from "components/table/tables/ApprovalPackageTable";
-import { DocumentType, PhaseNameWithTrackedStatus, PhaseStatus } from "demos-server";
+import { DocumentType, PhaseName, PhaseStatus } from "demos-server";
 import { formatDate } from "util/formatDate";
 import { Button } from "components/button";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
@@ -15,7 +15,7 @@ export interface ApprovalPackagePhaseProps {
   demonstrationId: string;
   documents: (ApplicationWorkflowDocument | undefined)[];
   allPreviousPhasesDone: boolean;
-  setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void;
+  setSelectedPhase: (phase: PhaseName) => void;
   phaseStatus: PhaseStatus;
 }
 
@@ -30,7 +30,7 @@ const REQUIRED_TYPES: DocumentType[] = [
 
 export const getApprovalPackagePhaseFromApplication = (
   application: WorkflowApplication,
-  setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void
+  setSelectedPhase: (phase: PhaseName) => void
 ) => {
   const formulationWorkbookDocument = application?.documents.find(
     (doc) =>
