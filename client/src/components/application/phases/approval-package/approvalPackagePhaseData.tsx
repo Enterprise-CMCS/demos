@@ -1,6 +1,6 @@
 import React from "react";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
-import { DocumentType, PhaseNameWithTrackedStatus } from "demos-server";
+import { DocumentType, PhaseName } from "demos-server";
 import { ApprovalPackagePhase } from "./ApprovalPackagePhase";
 
 export const REQUIRED_DOCUMENT_TYPES: DocumentType[] = [
@@ -24,7 +24,7 @@ export const getDocumentsForPhase = (
 
 export const getApprovalPackagePhaseFromApplication = (
   application: WorkflowApplication,
-  setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void
+  setSelectedPhase: (phase: PhaseName) => void
 ) => {
   const approvalPackagePhase = application.phases.find(
     (phase) => phase.phaseName === "Approval Package"
