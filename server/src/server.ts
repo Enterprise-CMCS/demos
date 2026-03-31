@@ -6,7 +6,7 @@ import { GraphQLArmorConfig} from "./plugins/graphQLArmorConfig.js";
 import { typeDefs, resolvers } from "./model/graphql.js";
 import { authGatePlugin } from "./auth/auth.plugin.js";
 import {loggingPlugin} from "./plugins/logging.plugin"
-import { GraphQLContext, buildLambdaContext, getDatabaseUrl } from "./auth/auth.util.js";
+import { GraphQLContext, buildLambdaContext } from "./auth/auth.util.js";
 import { log, reqIdChild, als, store } from "./log.js";
 
 import type { APIGatewayProxyEvent, APIGatewayProxyEventHeaders } from "aws-lambda";
@@ -55,9 +55,9 @@ export function withAuthorizerHeader(
 }
 
 const setDatabaseUrl = async () => {
-  const url = await getDatabaseUrl()
-  log.debug({type: "graphql.db.creds_retrieved"});
+  const url = "postgresql://localhost:5432/demos?schema=demos_app";
   process.env.DATABASE_URL = url;
+  log.debug({type: "graphql.db.creds_retrieved"});
   return url;
 };
 

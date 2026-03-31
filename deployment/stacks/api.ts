@@ -114,7 +114,7 @@ export class ApiStack extends Stack {
       "Allow traffic to SQS"
     );
 
-    
+
 
     const cognitoAuthority = Fn.importValue(`${commonProps.hostEnvironment}CognitoAuthority`);
     const apigateway_outputs = apigateway.create({
@@ -183,7 +183,7 @@ export class ApiStack extends Stack {
         asCode: true,
         environment: {
           BYPASS_AUTH: "false",
-          DATABASE_URL: "postgres://placeholder",
+          DATABASE_URL: "postgresql://postgres:postgres@db:5432/demos?schema=demos_app",
           DATABASE_SECRET_ARN: dbSecret.secretName, // This needs to be the name rather than the arn, otherwise the request from the lambda fails since no secret suffix is available
           UPLOAD_BUCKET: uploadBucket.bucketName,
           CLEAN_BUCKET: cleanBucket.bucketName,

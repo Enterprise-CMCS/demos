@@ -20,10 +20,7 @@ export type PrismaTransactionClient = Parameters<
 // really annoying typescript hackiness to get the types to play well with the $extends method
 // the prisma random extension will be eventually removed.
 const createExtendedClient = () => {
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
-    throw new Error("DATABASE_URL must be set to initialize Prisma client");
-  }
+  const connectionString = "postgresql://localhost:5432/demos?schema=demos_app";
 
   let schema: string | undefined;
   try {
@@ -41,6 +38,7 @@ const createExtendedClient = () => {
 
   const baseClient = new PrismaClient({
     adapter,
+    errorFormat: "minimal",
     log: [
       { level: "warn", emit: "event" },
       { level: "error", emit: "event" },

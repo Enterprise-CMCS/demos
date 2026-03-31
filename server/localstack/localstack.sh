@@ -82,7 +82,7 @@ aws lambda create-function \
   --handler server.graphqlHandler \
   --runtime nodejs22.x \
   --role arn:aws:iam::000000000000:role/${PACKAGE_NAME}-localstack-lambda \
-  --environment "Variables={BYPASS_AUTH=true, DATABASE_SECRET_ARN=${SECRET_ARN}, DATABASE_URL=postgres://placeholder}"
+  --environment "Variables={BYPASS_AUTH=true, AWS_REGION=us-east-1, AWS_ENDPOINT_URL=http://localstack:4566, DATABASE_SECRET_ARN=${SECRET_ARN}, DATABASE_URL=postgresql://postgres:postgres@db:5432/demos?schema=demos_app}"
 
 # Add Lambda permission for API Gateway
 aws lambda add-permission \

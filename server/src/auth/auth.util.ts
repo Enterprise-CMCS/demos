@@ -336,8 +336,30 @@ export const getCurrentUserId = async (context: GraphQLContext): Promise<string>
   return context.user.id;
 };
 
+type DatabaseSecret = {
+  username: string;
+  password: string;
+  host: string;
+  port: number | string;
+  dbname: string;
+};
+
+function buildDatabaseUrl(secret: DatabaseSecret): string {
+  const url = new URL("postgresql://localhost");
+  url.username = String(secret.username);
+  url.password = String(secret.password);
+  url.hostname = String(secret.host);
+  url.port = String(secret.port);
+  url.pathname = `/${secret.dbname}`;
+  url.searchParams.set("schema", "demos_app");
+  return "postgresql://localhost:5432/demos?schema=demos_app";
+}
+
 /* SecretsManager helpers */
-const secretsManager = new SecretsManagerClient({ region: process.env.AWS_REGION });
+const secretsManager = new SecretsManagerClient({
+  region: process.env.AWS_REGION,
+  endpoint: process.env.AWS_ENDPOINT_URL,
+});
 let databaseUrlCache = "";
 let cacheExpiration = 0;
 
@@ -350,8 +372,8 @@ export async function getDatabaseUrl(): Promise<string> {
   const response = await secretsManager.send(new GetSecretValueCommand({ SecretId: secretArn }));
 
   if (!response.SecretString) throw new Error("The SecretString value is undefined!");
-  const s = JSON.parse(response.SecretString);
-  databaseUrlCache = `postgresql://${s.username}:${s.password}@${s.host}:${s.port}/${s.dbname}?schema=demos_app`;
+  const secret = JSON.parse(response.SecretString) as DatabaseSecret;
+  databaseUrlCache = buildDatabaseUrl(secret);
   cacheExpiration = now + CACHE_MAX_AGE;
   return databaseUrlCache;
 }

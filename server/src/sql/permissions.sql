@@ -38,6 +38,18 @@ SELECT revoke_all_on_schema('demos_app', 'demos_write');
 SELECT revoke_all_on_schema('public', 'demos_delete');
 SELECT revoke_all_on_schema('demos_app', 'demos_delete');
 
+-- Ensure application role memberships can connect to the active database.
+-- This avoids Prisma P1010 errors when PUBLIC connect access is restricted.
+DO $$
+DECLARE
+    active_db TEXT := current_database();
+BEGIN
+    EXECUTE format('GRANT CONNECT ON DATABASE %I TO demos_read', active_db);
+    EXECUTE format('GRANT CONNECT ON DATABASE %I TO demos_write', active_db);
+    EXECUTE format('GRANT CONNECT ON DATABASE %I TO demos_delete', active_db);
+END;
+$$;
+
 -- Grant usage on schemas
 GRANT USAGE ON SCHEMA public TO PUBLIC;
 GRANT USAGE ON SCHEMA demos_app TO demos_read;
