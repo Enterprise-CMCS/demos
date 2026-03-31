@@ -34,7 +34,7 @@
     "build:ci": "prisma generate && tsc && esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify --external:@yaacovcr/transform",
     "depcheck": "depcheck",
     "server": "node ./dist/server.js",
-    "dev": "tsx watch --inspect=9229 --clear-screen=false src/local-server.ts",
+    "dev": "prisma generate && tsx watch --inspect=9229 --clear-screen=false src/local-server.ts",
     "watch": "concurrently \"tsx watch --inspect=9229 --clear-screen=false src/local-server.ts\" \"prisma generate --watch\"",
     "prisma": "prisma generate --watch",
     "lint": "eslint src/",

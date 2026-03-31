@@ -351,7 +351,11 @@ export async function getDatabaseUrl(): Promise<string> {
 
   if (!response.SecretString) throw new Error("The SecretString value is undefined!");
   const s = JSON.parse(response.SecretString);
-  databaseUrlCache = `postgresql://${s.username}:${s.password}@${s.host}:${s.port}/${s.dbname}?schema=demos_app`;
+  const encodedUsername = encodeURIComponent(String(s.username));
+  const encodedPassword = encodeURIComponent(String(s.password));
+  const encodedDbName = encodeURIComponent(String(s.dbname));
+  databaseUrlCache =
+    `postgresql://${encodedUsername}:${encodedPassword}@${s.host}:${s.port}/${encodedDbName}?schema=demos_app`;
   cacheExpiration = now + CACHE_MAX_AGE;
   return databaseUrlCache;
 }

@@ -13,6 +13,24 @@ function isKnownRequestError(error: unknown): error is { code: string; message: 
   return typeof candidate.code === "string" && typeof candidate.message === "string";
 }
 
+function shouldEnableSsl(connectionString: string): boolean {
+  try {
+    const url = new URL(connectionString);
+    const sslMode = url.searchParams.get("sslmode")?.toLowerCase();
+    if (sslMode === "disable") {
+      return false;
+    }
+    if (sslMode) {
+      return true;
+    }
+
+    const localHosts = new Set(["localhost", "127.0.0.1", "::1", "db"]);
+    return !localHosts.has(url.hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
 export type PrismaTransactionClient = Parameters<
   Parameters<ReturnType<typeof prisma>["$transaction"]>[0]
 >[0];
@@ -33,10 +51,14 @@ const createExtendedClient = () => {
     // Ignore URL parsing errors and let adapter fallback to driver defaults.
   }
 
-  const adapter = new PrismaPg({
+  const adapterConfig: ConstructorParameters<typeof PrismaPg>[0] = {
     connectionString,
-    ssl: { rejectUnauthorized: false },
-  }, {
+  };
+  if (shouldEnableSsl(connectionString)) {
+    adapterConfig.ssl = { rejectUnauthorized: false };
+  }
+
+  const adapter = new PrismaPg(adapterConfig, {
     schema,
   });
 

@@ -85,6 +85,20 @@ describe("prismaClient", () => {
     expect(prismaPgCtorMock).toHaveBeenCalledWith(
       {
         connectionString: process.env.DATABASE_URL,
+      },
+      { schema: "demos_app" }
+    );
+  });
+
+  it("enables SSL for non-local hosts", async () => {
+    process.env.DATABASE_URL = "postgresql://db.example.com:5432/demos?schema=demos_app";
+
+    const mod = await import("./prismaClient.ts");
+    mod.prisma();
+
+    expect(prismaPgCtorMock).toHaveBeenCalledWith(
+      {
+        connectionString: process.env.DATABASE_URL,
         ssl: { rejectUnauthorized: false },
       },
       { schema: "demos_app" }
@@ -100,7 +114,6 @@ describe("prismaClient", () => {
     expect(prismaPgCtorMock).toHaveBeenCalledWith(
       {
         connectionString: "not-a-url",
-        ssl: { rejectUnauthorized: false },
       },
       { schema: undefined }
     );
