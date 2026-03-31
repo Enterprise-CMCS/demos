@@ -1,16 +1,50 @@
 import { describe, it, expect } from "vitest";
-import { Prisma } from "@prisma/client";
-import { handlePrismaError } from "./handlePrismaError";
+import { handlePrismaError, isKnownRequestError, isUnknownRequestError } from "./handlePrismaError";
 import { GraphQLError } from "graphql";
 
 describe("handlePrismaError", () => {
+  describe("isKnownRequestError", () => {
+    it("returns true for objects with string code and message", () => {
+      expect(isKnownRequestError({ code: "P2003", message: "fk" })).toBe(true);
+    });
+
+    it("returns false for non-objects", () => {
+      expect(isKnownRequestError(null)).toBe(false);
+      expect(isKnownRequestError("oops")).toBe(false);
+      expect(isKnownRequestError(123)).toBe(false);
+    });
+
+    it("returns false when code or message are not strings", () => {
+      expect(isKnownRequestError({ code: 123, message: "ok" })).toBe(false);
+      expect(isKnownRequestError({ code: "P2003", message: 123 })).toBe(false);
+      expect(isKnownRequestError({})).toBe(false);
+    });
+  });
+
+  describe("isUnknownRequestError", () => {
+    it("returns true for objects with string message", () => {
+      expect(isUnknownRequestError({ message: "boom" })).toBe(true);
+    });
+
+    it("returns false for non-objects", () => {
+      expect(isUnknownRequestError(null)).toBe(false);
+      expect(isUnknownRequestError("boom")).toBe(false);
+      expect(isUnknownRequestError(42)).toBe(false);
+    });
+
+    it("returns false when message is not a string", () => {
+      expect(isUnknownRequestError({ message: 42 })).toBe(false);
+      expect(isUnknownRequestError({})).toBe(false);
+    });
+  });
+
   describe("PrismaClientKnownRequestError", () => {
     it("throws friendly message for P2003 (foreign key constraint)", () => {
-      const err = new Prisma.PrismaClientKnownRequestError("fk", {
+      const err = {
+        message: "fk",
         code: "P2003",
-        clientVersion: "x",
         meta: { constraint: "fk_constraint" },
-      });
+      };
       try {
         handlePrismaError(err);
       } catch (error) {
@@ -23,11 +57,27 @@ describe("handlePrismaError", () => {
       }
     });
 
+    it("uses unknown constraint name when P2003 metadata is missing", () => {
+      const err = {
+        message: "fk",
+        code: "P2003",
+      };
+      try {
+        handlePrismaError(err);
+      } catch (error) {
+        expect(error).toBeInstanceOf(GraphQLError);
+        if (error instanceof GraphQLError) {
+          expect(error.message).toContain("A foreign key constraint unknown was violated");
+          expect(error.extensions.code).toBe("VIOLATED_FOREIGN_KEY");
+        }
+      }
+    });
+
     it("throws friendly message for P2025 (no record to update)", () => {
-      const err = new Prisma.PrismaClientKnownRequestError("no-record-found", {
+      const err = {
+        message: "no-record-found",
         code: "P2025",
-        clientVersion: "x",
-      });
+      };
       try {
         handlePrismaError(err);
       } catch (error) {
@@ -40,10 +90,10 @@ describe("handlePrismaError", () => {
     });
 
     it("throws generic message for other known request errors", () => {
-      const err = new Prisma.PrismaClientKnownRequestError("other", {
+      const err = {
+        message: "other",
         code: "P1000",
-        clientVersion: "x",
-      });
+      };
       try {
         handlePrismaError(err);
       } catch (error) {
@@ -58,14 +108,12 @@ describe("handlePrismaError", () => {
 
   describe("PrismaClientUnknownRequestError", () => {
     it("throws friendly-ish message for check constraint", () => {
-      const err = new Prisma.PrismaClientUnknownRequestError(
+      const err = {
         // Pulled example test message, this is just a portion of it
-        '\"new row for relation \\\"demonstration\\\" violates check constraint \\\"' +
+        message:
+          '\"new row for relation \\\"demonstration\\\" violates check constraint \\\"' +
           'effective_date_check\\\"\", severity: \"ERROR\",',
-        {
-          clientVersion: "x",
-        }
-      );
+      };
       try {
         handlePrismaError(err);
       } catch (error) {
@@ -79,12 +127,9 @@ describe("handlePrismaError", () => {
     });
 
     it("throws fails gracefully if unable to extract the name of the constraint", () => {
-      const err = new Prisma.PrismaClientUnknownRequestError(
-        '\"new row for relation \\\"demonstration\\\" violates check constraint \\\"',
-        {
-          clientVersion: "x",
-        }
-      );
+      const err = {
+        message: '\"new row for relation \\\"demonstration\\\" violates check constraint \\\"',
+      };
       try {
         handlePrismaError(err);
       } catch (error) {
