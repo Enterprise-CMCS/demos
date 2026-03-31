@@ -7,7 +7,7 @@ import { useDialog } from "components/dialog/DialogContext";
 
 const ADD_DELIVERABLE_SLOT_BUTTON_NAME = "button-add-deliverable-slot";
 
-export const DeliverablesTab: React.FC = () => {
+export const DeliverablesTab = ({ demonstrationTypes }: { demonstrationTypes: string[] }) => {
   const { showAddDeliverableSlotDialog } = useDialog();
 
   return (
@@ -17,7 +17,7 @@ export const DeliverablesTab: React.FC = () => {
           icon={<AddNewIcon />}
           name={ADD_DELIVERABLE_SLOT_BUTTON_NAME}
           size="small"
-          onClick={showAddDeliverableSlotDialog}
+          onClick={() => showAddDeliverableSlotDialog(demonstrationTypes)}
         >
           Add Deliverable Slot(s)
         </IconButton>

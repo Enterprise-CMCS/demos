@@ -83,7 +83,10 @@ describe("prismaClient", () => {
     mod.prisma();
 
     expect(prismaPgCtorMock).toHaveBeenCalledWith(
-      { connectionString: process.env.DATABASE_URL },
+      {
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false },
+      },
       { schema: "demos_app" }
     );
   });
@@ -95,7 +98,10 @@ describe("prismaClient", () => {
     mod.prisma();
 
     expect(prismaPgCtorMock).toHaveBeenCalledWith(
-      { connectionString: "not-a-url" },
+      {
+        connectionString: "not-a-url",
+        ssl: { rejectUnauthorized: false },
+      },
       { schema: undefined }
     );
   });
