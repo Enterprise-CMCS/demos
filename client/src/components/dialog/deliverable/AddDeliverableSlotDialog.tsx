@@ -12,10 +12,9 @@ export const ADD_DELIVERABLE_SLOT_DIALOG_TITLE = "Add New Deliverable Slot(s)";
 export const ADD_DELIVERABLE_SLOT_DIALOG_NAME = "add-deliverable-slot-dialog";
 export const ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME = "button-add-deliverable-slot-confirm";
 
-const DELIVERABLE_TYPES_REQUIRING_DEMONSTRATION_TYPE = ["Implementation Plan", "Monitoring Protocol"] as const;
-
+// If the deliverable type is Implementation Plan or Monitoring Protocol, then at least one demonstration type must be selected
 const requiresDemonstrationTypes = (deliverableType: string): boolean =>
-  (DELIVERABLE_TYPES_REQUIRING_DEMONSTRATION_TYPE as readonly string[]).includes(deliverableType);
+  (["Implementation Plan", "Monitoring Protocol"] as readonly string[]).includes(deliverableType);
 
 interface AddDeliverableSlotFormData {
   deliverableName: string;
