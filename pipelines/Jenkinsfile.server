@@ -30,6 +30,7 @@ pipeline {
             dirCon('server', 'node') {
               sh '''
               npm ci
+              npx prisma generate
               npm run lint
               npx tsc --noEmit --skipLibCheck
               npm run build:ci

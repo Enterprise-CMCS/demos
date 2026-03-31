@@ -15,17 +15,19 @@ type UiPathStatus = "Pending" | "Finished" | "Failed";
 const DEMO_TYPE_FIELD_ID = "demo_type";
 const DEMOS_SCHEMA = "demos_app";
 
-const UPSERT_RESULT_BY_REQUEST_SQL = `insert into ${DEMOS_SCHEMA}.uipath_result
+const INSERT_RESULT_BY_REQUEST_SQL = `insert into ${DEMOS_SCHEMA}.uipath_result
  (id, request_id, project_id, response, document_id, application_id, status_id, updated_at)
  values ($1, $2, $3, $4::jsonb, $5, $6, $7, now())
- on conflict (request_id)
- do update set
-   document_id = excluded.document_id,
-   application_id = excluded.application_id,
-   project_id = excluded.project_id,
-   response = excluded.response,
-   status_id = excluded.status_id,
+ returning id`;
+const UPDATE_RESULT_BY_REQUEST_SQL = `update ${DEMOS_SCHEMA}.uipath_result
+ set
+   document_id = $4,
+   application_id = $5,
+   project_id = $2,
+   response = $3::jsonb,
+   status_id = $6,
    updated_at = now()
+ where request_id = $1
  returning id`;
 const INSERT_VALUE_SQL = `insert into ${DEMOS_SCHEMA}.uipath_value
   (id, uipath_result_id, document_id, application_id, field_id, value, text_length, text_start_index, confidence, token_list, updated_at)
@@ -196,7 +198,7 @@ async function persistExtractionStatus(
   try {
     await client.query("BEGIN");
 
-    const resultId = await upsertResult(
+    const resultId = await updateUiPathResultByRequest(
       client,
       requestId,
       projectId,
@@ -250,7 +252,7 @@ async function persistExtractionStatus(
   }
 }
 
-async function upsertResult(
+async function insertUiPathResult(
   client: PoolClient,
   requestId: string,
   projectId: string,
@@ -259,7 +261,7 @@ async function upsertResult(
   status: UiPathStatus,
   response: unknown,
 ): Promise<string> {
-  const upsertedResult = await client.query<{ id: string }>(UPSERT_RESULT_BY_REQUEST_SQL, [
+  const insertedResult = await client.query<{ id: string }>(INSERT_RESULT_BY_REQUEST_SQL, [
     randomUUID(),
     requestId,
     projectId,
@@ -268,10 +270,36 @@ async function upsertResult(
     applicationId,
     status,
   ]);
-  const resultId = upsertedResult.rows[0]?.id;
+  const resultId = insertedResult.rows[0]?.id;
 
   if (!resultId) {
     throw new Error("Failed to persist UiPath result row.");
+  }
+
+  return resultId;
+}
+
+async function updateUiPathResultByRequest(
+  client: PoolClient,
+  requestId: string,
+  projectId: string,
+  documentId: string,
+  applicationId: string,
+  status: UiPathStatus,
+  response: unknown,
+): Promise<string> {
+  const updatedResult = await client.query<{ id: string }>(UPDATE_RESULT_BY_REQUEST_SQL, [
+    requestId,
+    projectId,
+    JSON.stringify(response),
+    documentId,
+    applicationId,
+    status,
+  ]);
+
+  const resultId = updatedResult.rows[0]?.id;
+  if (!resultId) {
+    throw new Error(`No existing UiPath result row found for request ${requestId}.`);
   }
 
   return resultId;
@@ -289,7 +317,28 @@ async function persistResultStatus(
   const client = await pool.connect();
 
   try {
-    await upsertResult(client, requestId, projectId, documentId, applicationId, status, response);
+    if (status === "Pending") {
+      await insertUiPathResult(
+        client,
+        requestId,
+        projectId,
+        documentId,
+        applicationId,
+        status,
+        response,
+      );
+      return;
+    }
+
+    await updateUiPathResultByRequest(
+      client,
+      requestId,
+      projectId,
+      documentId,
+      applicationId,
+      status,
+      response,
+    );
   } finally {
     client.release();
   }
@@ -387,7 +436,7 @@ export async function runDocumentUnderstanding(
         buildFailureResponse(error, lastPolledStatus),
       );
     } catch (persistError) {
-      log.error({ error: persistError }, "Failed to persist UiPath failure status");
+      log.error({ error: persistError }, "Failed to Fail UiPath status");
     }
 
     throw error;

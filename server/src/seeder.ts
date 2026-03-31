@@ -168,12 +168,18 @@ async function seedDocuments() {
   );
 
   const applications = await prisma().application.findMany();
+  const users = await prisma().user.findMany({
+    select: { id: true },
+  });
   const owner = await prisma().user.findFirst({
     select: { id: true },
   });
 
   if (!owner) {
     throw new Error("Could not seed documents: no owner user found.");
+  }
+  if (!users.length) {
+    throw new Error("Could not seed documents: no users found.");
   }
 
   for (const application of applications) {
@@ -186,7 +192,7 @@ async function seedDocuments() {
             name: name,
             description: faker.lorem.sentence(5),
             s3Path: "tmp",
-            ownerUserId: (await prisma().user.findRandom())!.id,
+            ownerUserId: faker.helpers.arrayElement(users).id,
             documentTypeId: documentType,
             applicationId: application.id,
             phaseId: phaseName,
@@ -392,15 +398,16 @@ async function seedDatabase() {
 
   console.log("🌱 Seeding person states...");
   const allPeople = await prisma().person.findMany();
+  const states = await prisma().state.findMany();
+  if (!states.length) {
+    throw new Error("No states found to assign to person");
+  }
   for (const person of allPeople) {
     // demos-cms-users already belong to every state, so this applies only to state users
     if (person.personTypeId !== "demos-state-user") continue;
 
     // for now, just adding one state to each person
-    const state = await prisma().state.findRandom();
-    if (!state) {
-      throw new Error("No states found to assign to person");
-    }
+    const state = faker.helpers.arrayElement(states);
     await prisma().personState.create({
       data: {
         personId: person.id,
@@ -495,25 +502,25 @@ async function seedDatabase() {
     "Vision",
   ];
   const demonstrationTypes = ["Section 1115", "Section 1915(b)", "Section 1915(c)"];
+  const cmsUsers = await prisma().person.findMany({
+    where: { personTypeId: "demos-cms-user" },
+    include: {
+      personStates: {
+        include: { state: true },
+      },
+    },
+  });
+  if (!cmsUsers.length) {
+    throw new Error("No cms users found to assign as project officers");
+  }
 
   for (let i = 0; i < demonstrationCount; i++) {
     // get a random cms-user
-    const person = await prisma().person.findRandom({
-      where: { personTypeId: "demos-cms-user" },
-      include: {
-        personStates: {
-          include: { state: true },
-        },
-      },
-    });
-
-    if (!person) {
-      throw new Error("No cms users found to assign as project officers");
-    }
+    const person = faker.helpers.arrayElement(cmsUsers);
 
     let stateSelection = sampleFromArray(person.personStates, 1)[0];
     if (!stateSelection) {
-      const fallbackState = await prisma().state.findRandom();
+      const fallbackState = faker.helpers.arrayElement(states);
       if (!fallbackState) {
         throw new Error("No states available to assign to demonstration");
       }
@@ -553,11 +560,11 @@ async function seedDatabase() {
   }
 
   console.log("🌱 Seeding all dates for one demonstration");
-  const randomDemonstration = await prisma().demonstration.findRandom({
+  const randomDemonstration = faker.helpers.arrayElement(await prisma().demonstration.findMany({
     select: {
       id: true,
     },
-  });
+  }));
   const dateInput: SetApplicationDatesInput = {
     applicationId: randomDemonstration!.id,
     applicationDates: [
@@ -716,9 +723,15 @@ async function seedDatabase() {
   });
 
   console.log("🌱 Seeding amendments...");
+  const demonstrationIds = await prisma().demonstration.findMany({
+    select: { id: true },
+  });
+  if (!demonstrationIds.length) {
+    throw new Error("No demonstrations found for amendment/extension seeding");
+  }
   for (let i = 0; i < amendmentCount; i++) {
     const createInput: CreateAmendmentInput = {
-      demonstrationId: (await prisma().demonstration.findRandom())!.id,
+      demonstrationId: faker.helpers.arrayElement(demonstrationIds).id,
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
       signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
@@ -741,7 +754,7 @@ async function seedDatabase() {
   console.log("🌱 Seeding extensions...");
   for (let i = 0; i < extensionCount; i++) {
     const createInput: CreateExtensionInput = {
-      demonstrationId: (await prisma().demonstration.findRandom())!.id,
+      demonstrationId: faker.helpers.arrayElement(demonstrationIds).id,
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
       signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],

@@ -1,7 +1,7 @@
 import {
+  Context,
   SQSEvent,
   GuardDutyScanResultNotificationEvent,
-  Context,
   GuardDutyScanResultNotificationEventDetail,
 } from "aws-lambda";
 
@@ -13,31 +13,14 @@ import { als, log, store, reqIdChild } from "./log";
 
 const GUARDDUTY_CLEAN_STATUS = "NO_THREATS_FOUND";
 const FINAL_BN_WORKSHEET_DOCUMENT_TYPE = "BN Workbook";
+// IF we want to add other file type to run in UIPATH. Add below!
+const UIPATH_AUTOMATED_QUEUE_DOCUMENT_TYPES = new Set(["State Application"]);
 const PROCESS_PENDING_DOCUMENT_CLEAN = "move_document_from_pending_to_clean";
 const PROCESS_PENDING_DOCUMENT_INFECTED = "move_document_from_pending_to_infected";
-const AWS_REGION = process.env.AWS_REGION;
+const AWS_REGION = process.env.AWS_REGION || "us-east-1";
 
 let databaseUrlCache = "";
 let cacheExpiration = 0;
-
-const uploadBucket = process.env.UPLOAD_BUCKET;
-const cleanBucket = process.env.CLEAN_BUCKET;
-const infectedBucket = process.env.INFECTED_BUCKET;
-const budgetNeutralityQueueUrl = process.env.BUDGET_NEUTRALITY_QUEUE_URL;
-const dbSchema = process.env.DB_SCHEMA || "demos_app";
-const bypassSSL = process.env.BYPASS_SSL;
-const awsEndpointUrl = process.env.AWS_ENDPOINT_URL;
-const awsClientConfig = { region: AWS_REGION, endpoint: awsEndpointUrl };
-
-const s3 = new S3Client(
-  awsEndpointUrl
-    ? {
-        ...awsClientConfig,
-        forcePathStyle: true,
-      }
-    : awsClientConfig
-);
-const secretsManager = new SecretsManagerClient(awsClientConfig);
 
 interface Results {
   processedRecords: number;
@@ -52,6 +35,10 @@ export async function getDatabaseUrl() {
   }
 
   const secretArn = process.env.DATABASE_SECRET_ARN;
+  const secretsManager = new SecretsManagerClient({
+    region: AWS_REGION,
+    endpoint: process.env.AWS_ENDPOINT_URL,
+  });
   const command = new GetSecretValueCommand({ SecretId: secretArn });
   const response = await secretsManager.send(command);
 
@@ -59,14 +46,14 @@ export async function getDatabaseUrl() {
     throw new Error("The SecretString value is undefined!");
   }
   const secretData = JSON.parse(response.SecretString);
-  databaseUrlCache = `postgresql://${secretData.username}:${secretData.password}@${secretData.host}:${secretData.port}/${secretData.dbname}?schema=${dbSchema}`;
+  databaseUrlCache = `postgresql://${secretData.username}:${secretData.password}@${secretData.host}:${secretData.port}/${secretData.dbname}?schema=${process.env.DB_SCHEMA || "demos_app"}`;
   cacheExpiration = now + 60 * 60 * 1000;
 
   return databaseUrlCache;
 }
 
 export async function getApplicationId(client: typeof Client, fileKey: string) {
-  const getApplicationIdQuery = `SELECT application_id FROM ${dbSchema}.document_pending_upload WHERE id = $1;`;
+  const getApplicationIdQuery = `SELECT application_id FROM ${process.env.DB_SCHEMA || "demos_app"}.document_pending_upload WHERE id = $1;`;
 
   try {
     const result = await client.query(getApplicationIdQuery, [fileKey]);
@@ -88,6 +75,20 @@ export async function moveFile(
   destinationBucket: string,
   destinationKey: string
 ) {
+  const awsClientConfig = {
+    region: AWS_REGION,
+    endpoint: process.env.AWS_ENDPOINT_URL,
+  };
+  const s3 = new S3Client(
+    process.env.AWS_ENDPOINT_URL
+      ? {
+          ...awsClientConfig,
+          forcePathStyle: true,
+        }
+      : awsClientConfig
+  );
+  const uploadBucket = process.env.UPLOAD_BUCKET;
+
   await s3.send(
     new CopyObjectCommand({
       Bucket: destinationBucket,
@@ -111,7 +112,7 @@ export async function processCleanDatabaseRecord(
   documentId: string,
   applicationId: string
 ) {
-  const processDocumentQuery = `SELECT ${dbSchema}.${PROCESS_PENDING_DOCUMENT_CLEAN}($1::UUID, $2::TEXT) AS document_type_id;`;
+  const processDocumentQuery = `SELECT ${process.env.DB_SCHEMA || "demos_app"}.${PROCESS_PENDING_DOCUMENT_CLEAN}($1::UUID, $2::TEXT) AS document_type_id;`;
   const result = await client.query(processDocumentQuery, [
     documentId,
     `${applicationId}/${documentId}`,
@@ -123,7 +124,7 @@ export async function processCleanDatabaseRecord(
     throw new Error(`No document type returned for document ${documentId}.`);
   }
 
-  log.info({ documentTypeId }, "successfully processed clean file in database.");
+  log.info({ documentTypeId }, "Successfully processed clean file in database.");
 
   return documentTypeId;
 }
@@ -137,24 +138,28 @@ export async function processInfectedDatabaseRecord(
   const threatsString = scanResultDetails.threats
     ? scanResultDetails.threats.map((threat) => threat.name).join(", ")
     : "";
-  const processDocumentQuery = `CALL ${dbSchema}.${PROCESS_PENDING_DOCUMENT_INFECTED}($1::UUID, $2::TEXT, $3::TEXT, $4::TEXT);`;
+  const processDocumentQuery = `CALL ${process.env.DB_SCHEMA || "demos_app"}.${PROCESS_PENDING_DOCUMENT_INFECTED}($1::UUID, $2::TEXT, $3::TEXT, $4::TEXT);`;
   await client.query(processDocumentQuery, [
     documentId,
     `${applicationId}/${documentId}`,
     scanResultDetails.scanResultStatus ?? "",
     threatsString,
   ]);
-  log.info("successfully processed infected file in database.");
+  log.info("Successfully processed infected file.");
 }
 
 export async function enqueueBudgetNeutrality(documentId: string, documentTypeId: string) {
   log.info({ documentId, documentTypeId }, "BudgetNeutrality Queue Started");
+  const budgetNeutralityQueueUrl = process.env.BUDGET_NEUTRALITY_QUEUE_URL;
 
   if (!budgetNeutralityQueueUrl) {
     throw new Error("BUDGET_NEUTRALITY_QUEUE_URL environment variable is required.");
   }
 
-  const sqsClient = new SQSClient(awsClientConfig);
+  const sqsClient = new SQSClient({
+    region: process.env.AWS_REGION,
+    endpoint: process.env.AWS_ENDPOINT_URL,
+  });
   const response = await sqsClient.send(
     new SendMessageCommand({
       QueueUrl: budgetNeutralityQueueUrl,
@@ -175,6 +180,35 @@ export async function enqueueBudgetNeutrality(documentId: string, documentTypeId
     { documentId, documentTypeId, messageId: response.MessageId },
     "queued Budget Neutrality validation request."
   );
+}
+
+export async function enqueueUiPath(documentId: string) {
+  log.info({ documentId }, "UiPath Queue Started");
+  const uiPathQueueUrl = process.env.UIPATH_QUEUE_URL;
+
+  if (!uiPathQueueUrl) {
+    log.warn({ documentId }, "UIPATH_QUEUE_URL is not configured; skipping UiPath enqueue.");
+    return;
+  }
+
+  const sqsClient = new SQSClient({
+    region: process.env.AWS_REGION,
+    endpoint: process.env.AWS_ENDPOINT_URL,
+  });
+  const response = await sqsClient.send(
+    new SendMessageCommand({
+      QueueUrl: uiPathQueueUrl,
+      MessageBody: JSON.stringify({
+        documentId,
+      }),
+    })
+  );
+
+  if (!response.MessageId) {
+    throw new Error(`Failed to enqueue UiPath message for document ${documentId}.`);
+  }
+
+  log.info({ documentId, messageId: response.MessageId }, "queued UiPath extraction request.");
 }
 
 export async function processGuardDutyResult(
@@ -212,15 +246,28 @@ export async function processGuardDutyResult(
 
   const scanResultStatus = scanResultDetails.scanResultStatus;
   const isClean = scanResultStatus === GUARDDUTY_CLEAN_STATUS;
-
-  const destinationBucket = isClean ? cleanBucket : infectedBucket;
+  const destinationBucket = isClean ? process.env.CLEAN_BUCKET : process.env.INFECTED_BUCKET;
   const destinationKey = `${applicationId}/${documentId}`;
 
   await moveFile(documentId, destinationBucket, destinationKey);
 
   if (isClean) {
     const fileTypeId = await processCleanDatabaseRecord(client, documentId, applicationId);
-    if (fileTypeId === FINAL_BN_WORKSHEET_DOCUMENT_TYPE) {
+    const shouldRunUiPath = UIPATH_AUTOMATED_QUEUE_DOCUMENT_TYPES.has(fileTypeId);
+
+    const uiPathQueueUrl = process.env.UIPATH_QUEUE_URL;
+
+    if (shouldRunUiPath && uiPathQueueUrl) {
+      await enqueueUiPath(documentId);
+    } else if (shouldRunUiPath) {
+      log.warn(
+        { documentId, fileTypeId },
+        "File Type is correct, but UIPATH_QUEUE_URL is not configured; skipping UiPath enqueue."
+      );
+    }
+
+    const budgetNeutralityQueueUrl = process.env.BUDGET_NEUTRALITY_QUEUE_URL;
+    if (budgetNeutralityQueueUrl && fileTypeId === FINAL_BN_WORKSHEET_DOCUMENT_TYPE) {
       await enqueueBudgetNeutrality(documentId, fileTypeId);
     }
   } else {
@@ -243,6 +290,8 @@ export const handler = async (event: SQSEvent, context: Context) =>
     };
 
     try {
+      const bypassSSL = process.env.BYPASS_SSL;
+      const dbSchema = process.env.DB_SCHEMA || "demos_app";
       client = new Client({
         connectionString: await getDatabaseUrl(),
         ssl: bypassSSL
