@@ -24,6 +24,7 @@ export async function getApplicationPhaseDocumentTypes(
   }
   for (const result of results) {
     const phaseName = result.phaseId as PhaseName;
+    // if no phaseName, this is a document on the application so irrelevant for phase validation
     if (!phaseName) {
       continue;
     }
