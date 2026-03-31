@@ -4,5 +4,5 @@ export * from "./CompletenessPhase";
 export * from "./FederalCommentPhase";
 export * from "./SdgPreparationPhase";
 export * from "./review/";
-export * from "./ApprovalPackagePhase";
+export * from "./approval-package/";
 export * from "./approval-summary/";

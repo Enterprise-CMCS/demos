@@ -130,9 +130,6 @@ export const PhaseSelector = ({
       case "Approval Package":
         return getApprovalPackagePhaseFromApplication(application, setSelectedPhase);
       case "Approval Summary":
-        // Approval Summary requires demonstration-specific fields
-        // For now we will do type-assertion but to be revisted as we get further
-        // down the line on developing these phases.
         return getApprovalSummaryPhaseFromApplication(application, workflowApplicationType);
     }
   };
