@@ -11,6 +11,8 @@ model DeliverableActionHistory {
   note                 String?
   activeExtensionId    String?      @map("active_extension_id") @db.Uuid
   dueDateChangeAllowed Boolean      @map("due_date_change_allowed")
+  shouldHaveNote       Boolean      @map("should_have_note")
+  shouldHaveUserId     Boolean      @map("should_have_user_id")
   oldDueDate           DateTime     @map("old_due_date") @db.Timestamptz
   newDueDate           DateTime     @map("new_due_date") @db.Timestamptz
   userId               String?      @map("user_id") @db.Uuid
