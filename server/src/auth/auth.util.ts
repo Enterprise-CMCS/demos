@@ -350,12 +350,17 @@ export async function getDatabaseUrl(): Promise<string> {
   const response = await secretsManager.send(new GetSecretValueCommand({ SecretId: secretArn }));
 
   if (!response.SecretString) throw new Error("The SecretString value is undefined!");
-  const s = JSON.parse(response.SecretString);
-  const encodedUsername = encodeURIComponent(String(s.username));
-  const encodedPassword = encodeURIComponent(String(s.password));
-  const encodedDbName = encodeURIComponent(String(s.dbname));
+  const secrets = JSON.parse(response.SecretString);
+  const encodedUsername = encodeURIComponent(String(secrets.username));
+  const encodedPassword = encodeURIComponent(String(secrets.password));
+  const encodedDbName = encodeURIComponent(String(secrets.dbname));
   databaseUrlCache =
-    `postgresql://${encodedUsername}:${encodedPassword}@${s.host}:${s.port}/${encodedDbName}?schema=demos_app`;
+    `postgresql:// \
+    ${encodedUsername}: \
+    ${encodedPassword}@ \
+    ${secrets.host}: \
+    ${secrets.port}/ \
+    ${encodedDbName}?schema=demos_app`;
   cacheExpiration = now + CACHE_MAX_AGE;
   return databaseUrlCache;
 }
