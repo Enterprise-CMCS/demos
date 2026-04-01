@@ -3,7 +3,12 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 
-import { APPLY_TAGS_DIALOG_TITLE, ApplyTagsDialog } from "./ApplyTagsDialog";
+import {
+  APPLY_TAGS_DIALOG_TITLE,
+  ApplyTagsDialog,
+  NO_MATCH_MESSAGE,
+  UNAPPROVED_WARNING_MESSAGE,
+} from "./ApplyTagsDialog";
 import { Tag } from "demos-server";
 
 const mockMutate = vi.fn(() => Promise.resolve({ data: {} }));
@@ -148,5 +153,140 @@ describe("ApplyTagsDialog", () => {
     await user.type(searchInput, "nonexistenttag123");
 
     expect(screen.getByText("No tags found")).toBeInTheDocument();
+  });
+
+  it("renders the Create Tag button", () => {
+    setup();
+
+    const createTagButton = screen.getByTestId("button-create-tag");
+    expect(createTagButton).toBeInTheDocument();
+    expect(createTagButton).toBeDisabled();
+  });
+
+  it("enables Create Tag button when search has no matches", async () => {
+    const user = userEvent.setup();
+    setup([]);
+
+    const searchInput = screen.getByPlaceholderText("Search");
+    await user.type(searchInput, "Healthy Food");
+
+    const createTagButton = screen.getByTestId("button-create-tag");
+    expect(createTagButton).not.toBeDisabled();
+  });
+
+  it("shows no-match message when search has no results", async () => {
+    const user = userEvent.setup();
+    setup([]);
+
+    const searchInput = screen.getByPlaceholderText("Search");
+    await user.type(searchInput, "Healthy Food");
+
+    expect(screen.getByTestId("no-match-message")).toBeInTheDocument();
+    expect(screen.getByText(NO_MATCH_MESSAGE)).toBeInTheDocument();
+  });
+
+  it("creates a new unapproved tag and auto-selects it", async () => {
+    const user = userEvent.setup();
+    setup([]);
+
+    const searchInput = screen.getByPlaceholderText("Search");
+    await user.type(searchInput, "Healthy Food");
+
+    const createTagButton = screen.getByTestId("button-create-tag");
+    await user.click(createTagButton);
+
+    // New tag should appear in selected tags
+    expect(screen.getByText("Selected Tag(s) (1)")).toBeInTheDocument();
+
+    // New tag should appear in the tag list as checked
+    expect(screen.getByTestId("checkbox-Healthy Food")).toBeChecked();
+
+    // Should show "(Unapproved)" label in both the list and selected chips
+    const unapprovedElements = screen.getAllByText(/Healthy Food.*Unapproved/);
+    expect(unapprovedElements.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("shows unapproved warning banner when unapproved tag is selected", async () => {
+    const user = userEvent.setup();
+    setup([]);
+
+    const searchInput = screen.getByPlaceholderText("Search");
+    await user.type(searchInput, "Healthy Food");
+
+    const createTagButton = screen.getByTestId("button-create-tag");
+    await user.click(createTagButton);
+
+    expect(screen.getByTestId("unapproved-warning-banner")).toBeInTheDocument();
+    expect(screen.getByText(UNAPPROVED_WARNING_MESSAGE)).toBeInTheDocument();
+  });
+
+  it("does not show unapproved warning when only approved tags are selected", () => {
+    const approvedTags: Tag[] = [{ tagName: "CHIP", approvalStatus: "Approved" }];
+    setup(approvedTags);
+
+    expect(screen.queryByTestId("unapproved-warning-banner")).not.toBeInTheDocument();
+  });
+
+  it("allows creating multiple new tags", async () => {
+    const user = userEvent.setup();
+    setup([]);
+
+    const searchInput = screen.getByPlaceholderText("Search");
+
+    // Create first tag
+    await user.type(searchInput, "Healthy Food");
+    await user.click(screen.getByTestId("button-create-tag"));
+
+    // Create second tag
+    await user.type(searchInput, "Very Healthy");
+    await user.click(screen.getByTestId("button-create-tag"));
+
+    expect(screen.getByText("Selected Tag(s) (2)")).toBeInTheDocument();
+  });
+
+  it("de-selecting a created tag before apply excludes it from mutation", async () => {
+    const user = userEvent.setup();
+    setup([]);
+
+    const searchInput = screen.getByPlaceholderText("Search");
+    await user.type(searchInput, "Healthy Food");
+    await user.click(screen.getByTestId("button-create-tag"));
+
+    // De-select the created tag via checkbox
+    const checkbox = screen.getByTestId("checkbox-Healthy Food");
+    await user.click(checkbox);
+
+    expect(screen.getByText("Selected Tag(s) (0)")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "button-confirm-apply-tags" }));
+
+    expect(mockMutate).toHaveBeenCalledWith({
+      variables: {
+        input: {
+          applicationId: "demo-123",
+          applicationTags: [],
+        },
+      },
+    });
+  });
+
+  it("clears search field after creating a tag", async () => {
+    const user = userEvent.setup();
+    setup([]);
+
+    const searchInput = screen.getByPlaceholderText("Search");
+    await user.type(searchInput, "Healthy Food");
+    await user.click(screen.getByTestId("button-create-tag"));
+
+    // Search field should be cleared, showing all tags again
+    expect(searchInput).toHaveValue("");
+  });
+
+  it("renders Apply Tag(s) as action button text", () => {
+    setup();
+
+    expect(screen.getByRole("button", { name: "button-confirm-apply-tags" })).toHaveTextContent(
+      "Apply Tag(s)"
+    );
   });
 });
