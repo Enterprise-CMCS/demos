@@ -114,6 +114,7 @@ describe("prismaClient", () => {
     expect(prismaPgCtorMock).toHaveBeenCalledWith(
       {
         connectionString: "not-a-url",
+        ssl: { rejectUnauthorized: false },
       },
       { schema: undefined }
     );
