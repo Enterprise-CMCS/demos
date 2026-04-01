@@ -290,7 +290,15 @@ export async function buildLambdaContext(
 
   try {
     const { sub, email, role, givenName, familyName, name, externalUserId } = await decodeToken(token);
-    return buildContextFromClaims({ sub, email, role, givenName, familyName, name, externalUserId });
+    return await buildContextFromClaims({
+      sub,
+      email,
+      role,
+      givenName,
+      familyName,
+      name,
+      externalUserId,
+    });
   } catch (err) {
     log.error({ errorName: (err as Error).name, message: (err as Error).message, type: "auth.lambda_context.error" });
     return { user: null };
@@ -305,7 +313,15 @@ export async function buildHttpContext(req: IncomingMessage): Promise<GraphQLCon
   try {
     const decodedToken = await decodeToken(token);
     const { sub, email, role, givenName, familyName, name, externalUserId } = decodedToken;
-    return buildContextFromClaims({ sub, email, role, givenName, familyName, name, externalUserId });
+    return await buildContextFromClaims({
+      sub,
+      email,
+      role,
+      givenName,
+      familyName,
+      name,
+      externalUserId,
+    });
   } catch (err) {
     log.error({ errorName: (err as Error).name, message: (err as Error).message, type: "auth.http_context.error" });
     return { user: null };
@@ -350,17 +366,12 @@ export async function getDatabaseUrl(): Promise<string> {
   const response = await secretsManager.send(new GetSecretValueCommand({ SecretId: secretArn }));
 
   if (!response.SecretString) throw new Error("The SecretString value is undefined!");
-  const secrets = JSON.parse(response.SecretString);
-  const encodedUsername = encodeURIComponent(String(secrets.username));
-  const encodedPassword = encodeURIComponent(String(secrets.password));
-  const encodedDbName = encodeURIComponent(String(secrets.dbname));
+  const s = JSON.parse(response.SecretString);
+  const encodedUsername = encodeURIComponent(String(s.username));
+  const encodedPassword = encodeURIComponent(String(s.password));
+  const encodedDbName = encodeURIComponent(String(s.dbname));
   databaseUrlCache =
-    `postgresql:// \
-    ${encodedUsername}: \
-    ${encodedPassword}@ \
-    ${secrets.host}: \
-    ${secrets.port}/ \
-    ${encodedDbName}?schema=demos_app`;
+    `postgresql://${encodedUsername}:${encodedPassword}@${s.host}:${s.port}/${encodedDbName}?schema=demos_app`;
   cacheExpiration = now + CACHE_MAX_AGE;
   return databaseUrlCache;
 }
