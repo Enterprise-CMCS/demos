@@ -136,13 +136,13 @@ const TagSelector = ({
     }
   };
 
-  // Merge created tags with all tags, deduplicating by tagName
-  const mergedTags = [...createdTags, ...allTags].reduce<Tag[]>((acc, tag) => {
-    if (!acc.some((t) => t.tagName === tag.tagName)) {
-      acc.push(tag);
-    }
-    return acc;
-  }, []);
+  // Dedupe by tagName — createdTags spread first so new tags appear at the top.
+  const seen = new Set<string>();
+  const mergedTags = [...createdTags, ...allTags].filter((tag) => {
+    if (seen.has(tag.tagName)) return false;
+    seen.add(tag.tagName);
+    return true;
+  });
 
   const filteredTags = mergedTags.filter((tag) =>
     tag.tagName.toLowerCase().includes(searchQuery.toLowerCase())
