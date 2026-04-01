@@ -17,7 +17,7 @@ describe("DeliverableTable", () => {
   it("renders all deliverable names initially", () => {
     MOCK_DELIVERABLES.forEach((deliverable) => {
       expect(
-        screen.getByText(deliverable.name)
+        screen.getByText(deliverable.deliverableName)
       ).toBeInTheDocument();
     });
   });
@@ -27,7 +27,7 @@ describe("DeliverableTable", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText("No deliverables available.")
+        screen.getByText("There are no assigned Deliverables at this time")
       ).toBeInTheDocument();
     });
   });
@@ -92,11 +92,11 @@ describe("DeliverableTable", () => {
       const user = userEvent.setup();
       const searchInput = screen.getByLabelText(/search:/i);
 
-      await user.type(searchInput, MOCK_DELIVERABLES[0].name);
+      await user.type(searchInput, MOCK_DELIVERABLES[0].deliverableName);
 
       await waitFor(() => {
         expect(
-          screen.getByText(MOCK_DELIVERABLES[0].name)
+          screen.getByText(MOCK_DELIVERABLES[0].deliverableName)
         ).toBeInTheDocument();
       });
     });
@@ -120,11 +120,11 @@ describe("DeliverableTable", () => {
       const user = userEvent.setup();
       const searchInput = screen.getByLabelText(/search:/i);
 
-      await user.type(searchInput, MOCK_DELIVERABLES[0].name);
+      await user.type(searchInput, MOCK_DELIVERABLES[0].deliverableName);
 
       await waitFor(() => {
         expect(
-          screen.getByText(MOCK_DELIVERABLES[0].name)
+          screen.getByText(MOCK_DELIVERABLES[0].deliverableName)
         ).toBeInTheDocument();
       });
 
@@ -135,10 +135,16 @@ describe("DeliverableTable", () => {
 
       MOCK_DELIVERABLES.forEach((deliverable) => {
         expect(
-          screen.getByText(deliverable.name)
+          screen.getByText(deliverable.deliverableName)
         ).toBeInTheDocument();
       });
     });
+  });
+
+  it("renders combined status values for upcoming deliverables", () => {
+    expect(screen.getByText("Upcoming")).toBeInTheDocument();
+    expect(screen.getByText("Upcoming - Extension Requested")).toBeInTheDocument();
+    expect(screen.getByText("Upcoming (2) - Extension Requested")).toBeInTheDocument();
   });
 
   it("renders column filter dropdown", () => {
