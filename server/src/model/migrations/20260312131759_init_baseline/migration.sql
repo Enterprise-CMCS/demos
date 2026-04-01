@@ -931,9 +931,17 @@ CHECK (
 ALTER TABLE
     demos_app.deliverable_action
 ADD CONSTRAINT
+    check_non_empty_note
+CHECK (
+    (note IS NULL OR trim(note) != '')
+);
+
+ALTER TABLE
+    demos_app.deliverable_action
+ADD CONSTRAINT
     require_notes_for_user_actions
 CHECK (
-    (should_have_note = FALSE and note IS NULL) OR (should_have_note = TRUE AND note IS NOT NULL and trim(note) != '')
+    (should_have_note = FALSE AND note IS NULL) OR (should_have_note = TRUE AND note IS NOT NULL)
 );
 
 ALTER TABLE
@@ -941,7 +949,7 @@ ALTER TABLE
 ADD CONSTRAINT
     require_user_id_for_user_actions
 CHECK (
-    (should_have_user_id = FALSE and user_id IS NULL) OR (should_have_user_id = TRUE AND user_id IS NOT NULL)
+    (should_have_user_id = FALSE AND user_id IS NULL) OR (should_have_user_id = TRUE AND user_id IS NOT NULL)
 );
 
 ALTER TABLE
