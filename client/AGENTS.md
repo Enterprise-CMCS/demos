@@ -45,7 +45,7 @@ This file provides some helpful tips for AI agents to use when generating or edi
 
 ## Files and Folders
 
-Some of the most important folders are below, though these are non-exhaustive.
+Some of the most important folders in the project are below:
 
 - `src/components/` - Shared, reusable UI components
 - `src/pages/` - Route-level page components
