@@ -10,6 +10,8 @@ model DeliverableAction {
   note                 String?
   activeExtensionId    String?  @map("active_extension_id") @db.Uuid
   dueDateChangeAllowed Boolean  @map("due_date_change_allowed")
+  shouldHaveNote       Boolean  @map("should_have_note")
+  shouldHaveUserId     Boolean  @map("should_have_user_id")
   oldDueDate           DateTime @map("old_due_date") @db.Timestamptz
   newDueDate           DateTime @map("new_due_date") @db.Timestamptz
   userId               String?  @map("user_id") @db.Uuid
@@ -17,7 +19,7 @@ model DeliverableAction {
   deliverable         Deliverable                    @relation(fields: [deliverableId], references: [id])
   activeExtension     DeliverableExtension?          @relation(fields: [activeExtensionId, deliverableId], references: [id, deliverableId])
   user                User?                          @relation(fields: [userId], references: [id], onDelete: Restrict)
-  actionType          DeliverableActionType          @relation(fields: [actionTypeId, dueDateChangeAllowed], references: [id, dueDateChangeAllowed])
+  actionType          DeliverableActionType          @relation(fields: [actionTypeId, dueDateChangeAllowed, shouldHaveNote, shouldHaveUserId], references: [id, dueDateChangeAllowed, shouldHaveNote, shouldHaveUserId])
   actionConfiguration DeliverableActionConfiguration @relation(fields: [actionTypeId, oldStatusId, newStatusId], references: [actionTypeId, oldStatusId, newStatusId])
   documents           Document[]
 

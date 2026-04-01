@@ -371,6 +371,8 @@ CREATE TABLE "deliverable_action" (
     "note" TEXT,
     "active_extension_id" UUID,
     "due_date_change_allowed" BOOLEAN NOT NULL,
+    "should_have_note" BOOLEAN NOT NULL,
+    "should_have_user_id" BOOLEAN NOT NULL,
     "old_due_date" TIMESTAMPTZ NOT NULL,
     "new_due_date" TIMESTAMPTZ NOT NULL,
     "user_id" UUID,
@@ -412,6 +414,8 @@ CREATE TABLE "deliverable_action_configuration" (
 CREATE TABLE "deliverable_action_type" (
     "id" TEXT NOT NULL,
     "due_date_change_allowed" BOOLEAN NOT NULL,
+    "should_have_note" BOOLEAN NOT NULL,
+    "should_have_user_id" BOOLEAN NOT NULL,
 
     CONSTRAINT "deliverable_action_type_pkey" PRIMARY KEY ("id")
 );
@@ -1236,21 +1240,6 @@ CREATE TABLE "tag_type" (
 );
 
 -- CreateTable
-CREATE TABLE "uipath_result" (
-    "id" UUID NOT NULL,
-    "request_id" TEXT NOT NULL,
-    "response" JSONB NOT NULL,
-    "project_id" TEXT NOT NULL,
-    "document_id" UUID NOT NULL,
-    "application_id" UUID NOT NULL,
-    "status_id" TEXT NOT NULL DEFAULT 'Pending',
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ NOT NULL,
-
-    CONSTRAINT "uipath_result_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "uipath_result_history" (
     "revision_id" SERIAL NOT NULL,
     "revision_type" "revision_type_enum" NOT NULL,
@@ -1266,6 +1255,21 @@ CREATE TABLE "uipath_result_history" (
     "updated_at" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "uipath_result_history_pkey" PRIMARY KEY ("revision_id")
+);
+
+-- CreateTable
+CREATE TABLE "uipath_result" (
+    "id" UUID NOT NULL,
+    "request_id" TEXT NOT NULL,
+    "response" JSONB NOT NULL,
+    "project_id" TEXT NOT NULL,
+    "document_id" UUID NOT NULL,
+    "application_id" UUID NOT NULL,
+    "status_id" TEXT NOT NULL DEFAULT 'Pending',
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "uipath_result_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -1367,7 +1371,7 @@ CREATE UNIQUE INDEX "deliverable_id_demonstration_id_deliverable_type_id_key" ON
 CREATE UNIQUE INDEX "deliverable_action_id_action_type_id_key" ON "deliverable_action"("id", "action_type_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "deliverable_action_type_id_due_date_change_allowed_key" ON "deliverable_action_type"("id", "due_date_change_allowed");
+CREATE UNIQUE INDEX "deliverable_action_type_id_due_date_change_allowed_should_h_key" ON "deliverable_action_type"("id", "due_date_change_allowed", "should_have_note", "should_have_user_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "deliverable_active_extension_deliverable_id_key" ON "deliverable_active_extension"("deliverable_id");
@@ -1544,7 +1548,7 @@ ALTER TABLE "deliverable_action" ADD CONSTRAINT "deliverable_action_active_exten
 ALTER TABLE "deliverable_action" ADD CONSTRAINT "deliverable_action_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "deliverable_action" ADD CONSTRAINT "deliverable_action_action_type_id_due_date_change_allowed_fkey" FOREIGN KEY ("action_type_id", "due_date_change_allowed") REFERENCES "deliverable_action_type"("id", "due_date_change_allowed") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "deliverable_action" ADD CONSTRAINT "deliverable_action_action_type_id_due_date_change_allowed__fkey" FOREIGN KEY ("action_type_id", "due_date_change_allowed", "should_have_note", "should_have_user_id") REFERENCES "deliverable_action_type"("id", "due_date_change_allowed", "should_have_note", "should_have_user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "deliverable_action" ADD CONSTRAINT "deliverable_action_action_type_id_old_status_id_new_status_fkey" FOREIGN KEY ("action_type_id", "old_status_id", "new_status_id") REFERENCES "deliverable_action_configuration"("action_type_id", "old_status_id", "new_status_id") ON DELETE RESTRICT ON UPDATE CASCADE;

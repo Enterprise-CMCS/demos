@@ -87,19 +87,19 @@ VALUES
 INSERT INTO
     demos_app.deliverable_action_type
 VALUES
-    ('Created Deliverable Slot', FALSE),
-    ('Marked as Past Due', FALSE),
-    ('Requested Extension', FALSE),
-    ('Approved Extension Request', TRUE),
-    ('Denied Extension Request', FALSE),
-    ('Withdrew Extension Request', FALSE),
-    ('Manually Changed Due Date', TRUE),
-    ('Requested Resubmission', TRUE),
-    ('Submitted Deliverable', FALSE),
-    ('Started Review', FALSE),
-    ('Accepted Deliverable', FALSE),
-    ('Approved Deliverable', FALSE),
-    ('Received and Filed Deliverable', FALSE);
+    ('Created Deliverable Slot', FALSE, FALSE, TRUE),
+    ('Marked as Past Due', FALSE, FALSE, FALSE),
+    ('Requested Extension', FALSE, FALSE, TRUE),
+    ('Approved Extension Request', TRUE, FALSE, TRUE),
+    ('Denied Extension Request', FALSE, FALSE, TRUE),
+    ('Withdrew Extension Request', FALSE, FALSE, TRUE),
+    ('Manually Changed Due Date', TRUE, FALSE, TRUE),
+    ('Requested Resubmission', TRUE, TRUE, TRUE),
+    ('Submitted Deliverable', FALSE, FALSE, TRUE),
+    ('Started Review', FALSE, FALSE, TRUE),
+    ('Accepted Deliverable', FALSE, FALSE, TRUE),
+    ('Approved Deliverable', FALSE, FALSE, TRUE),
+    ('Received and Filed Deliverable', FALSE, FALSE, TRUE);
 
 INSERT INTO
     demos_app.deliverable_due_date_type
@@ -933,8 +933,7 @@ ALTER TABLE
 ADD CONSTRAINT
     require_notes_for_user_actions
 CHECK (
-    action_type_id NOT IN ('Requested Resubmission')
-    OR (note IS NOT NULL AND trim(note) != '')
+    (should_have_note = FALSE and note IS NULL) OR (should_have_note = TRUE AND note IS NOT NULL and trim(note) != '')
 );
 
 ALTER TABLE
@@ -942,9 +941,7 @@ ALTER TABLE
 ADD CONSTRAINT
     require_user_id_for_user_actions
 CHECK (
-    (action_type_id IN ('Marked as Past Due') AND user_id IS NULL)
-    OR
-    (action_type_id NOT IN ('Marked as Past Due') AND user_id IS NOT NULL)
+    (should_have_user_id = FALSE and user_id IS NULL) OR (should_have_user_id = TRUE AND user_id IS NOT NULL)
 );
 
 ALTER TABLE
