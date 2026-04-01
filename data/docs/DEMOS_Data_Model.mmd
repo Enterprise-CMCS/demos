@@ -183,8 +183,10 @@ erDiagram
   }
 
   deliverable_action_type:::staticConstraint {
-    text id PK, UK "UK: (id, due_date_change_allowed)"
-    bool due_date_change_allowed UK "UK: (id, due_date_change_allowed)"
+    text id PK, UK "UK: (id, due_date_change_allowed, should_have_note, should_have_user_id)"
+    bool due_date_change_allowed UK "UK: (id, due_date_change_allowed, should_have_note, should_have_user_id)"
+    bool should_have_note UK "UK: (id, due_date_change_allowed, should_have_note, should_have_user_id)"
+    bool should_have_user_id UK "UK: (id, due_date_change_allowed, should_have_note, should_have_user_id)"
   }
 
   deliverable_due_date_type:::staticConstraint {
@@ -462,18 +464,21 @@ erDiagram
     uuid id PK, UK "UK: (id, action_type_id)"
     timestamptz action_timestamp
     uuid deliverable_id FK "FK114: deliverable_id ∈ deliverable.id<br>FK133: (active_extension_id, deliverable_id) ∈ deliverable_extension.(id, deliverable_id)"
-    text action_type_id FK "FK119: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)<br>FK141: (action_type_id, due_date_change_allowed) ∈ deliverable_action_type.(id, due_date_change_allowed)<br>UK: (id, action_type_id)"
+    text action_type_id FK "FK119: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)<br>FK141: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id)<br>UK: (id, action_type_id)"
     text old_status_id FK "FK119: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)"
     text new_status_id FK "FK119: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)"
     text note "NULLABLE"
     uuid active_extension_id FK "FK133: (active_extension_id, deliverable_id) ∈ deliverable_extension.(id, deliverable_id)<br>NULLABLE"
-    bool due_date_change_allowed FK "FK141: (action_type_id, due_date_change_allowed) ∈ deliverable_action_type.(id, due_date_change_allowed)"
+    bool due_date_change_allowed FK "FK141: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id)"
+    bool should_have_note FK "FK141: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id)"
+    bool should_have_user_id FK "FK141: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id)"
     timestamptz old_due_date
     timestamptz new_due_date
     uuid user_id FK "FK117: user_id ∈ users.id<br>NULLABLE"
     CONSTRAINT_CHECK block_unpermitted_due_date_changes "If the action does not allow a due date change, confirm that old and new dates are unchanged."
     CONSTRAINT_CHECK require_notes_for_user_actions "If the action is a user action and requires a note, ensure it is not null or empty string."
     CONSTRAINT_CHECK require_user_id_for_user_actions "If the action type is not a system action, require a user ID to be present."
+    CONSTRAINT_CHECK check_non_empty_note "Check that the note is either null or a non empty string."
     TRIGGER_BEFORE_INSERT block_final_states_if_extension_request_active "If an active extension request exists, do not allow moving the deliverable to completed."
     TRIGGER_BEFORE_INSERT capture_active_extension_request_id_for_action "Before insert, look in deliverable_active_extension and if there is an active extension for this deliverable, add the ID here."
     TRIGGER_AFTER_INSERT update_documents_in_submission "After insert, if it is a submission, go to the documents table and associate the action with any documents not belonging to a submission."
