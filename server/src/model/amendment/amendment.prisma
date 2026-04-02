@@ -12,6 +12,7 @@ model Amendment {
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
+  // DEFERRED: will be manually replaced by new deferred key through migration
   application     Application                   @relation(fields: [id, applicationTypeId], references: [id, applicationTypeId])
   applicationType AmendmentApplicationTypeLimit @relation(fields: [applicationTypeId], references: [id])
   demonstration   Demonstration                 @relation(fields: [demonstrationId], references: [id])

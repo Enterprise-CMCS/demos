@@ -6,6 +6,7 @@ model BudgetNeutralityWorkbook {
   createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
+  // DEFERRED: will be manually replaced by new deferred key through migration
   document         Document                                  @relation(fields: [id, documentTypeId], references: [id, documentTypeId])
   documentType     BudgetNeutralityWorkbookDocumentTypeLimit @relation(fields: [documentTypeId], references: [id])
   validationStatus BudgetNeutralityValidationStatus          @relation(fields: [validationStatusId], references: [id])

@@ -5,7 +5,8 @@ model DeliverableActiveExtension {
   deliverableId          String @map("deliverable_id") @db.Uuid
   statusId               String @map("status_id")
 
-  deliverableExtension DeliverableExtension                  @relation(fields: [deliverableExtensionId, deliverableId, statusId], references: [id, deliverableId, statusId], onUpdate: NoAction)
+  // DEFERRED: will be manually replaced by new deferred key through migration
+  deliverableExtension DeliverableExtension                  @relation(fields: [deliverableExtensionId, deliverableId, statusId], references: [id, deliverableId, statusId])
   status               DeliverableActiveExtensionStatusLimit @relation(fields: [statusId], references: [id])
 
   @@id([deliverableExtensionId])
