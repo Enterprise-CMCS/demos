@@ -1,4 +1,4 @@
-type MockDeliverable = {
+export type MockDeliverable = {
   id: string;
   deliverableName: string;
   demonstrationName: string;
@@ -80,7 +80,7 @@ export const MOCK_DELIVERABLES: MockDeliverable[] = [
   {
     id: "1b6d2e71-4c98-4a26-a8ff-2csf4af7d2a4",
     deliverableName: "Annual Report For NYC Demonstration",
-    demonstrationName: "Alabama Health Demonstration",
+    demonstrationName: "'BAMA Health and wellness",
     deliverableType: "Evaluation Design",
     cmsOwner: "Ackbar",
     dueDate: "2026-04-15",
@@ -267,4 +267,47 @@ export const MOCK_DELIVERABLES: MockDeliverable[] = [
       id: "CO",
     },
   },
+  {
+    id: "5f2d5c57-8cc5-4c28-a9b0-89f44b6dc112",
+    deliverableName: "Montana Monitoring Protocol",
+    demonstrationName: "Montana Medicaid Waiver",
+    deliverableType: "Monitoring Protocol",
+    cmsOwner: "Mock User",
+    dueDate: "2025-03-15",
+    submissionDate: undefined,
+    status: "Upcoming",
+    extensionRequested: false,
+    resubmissionCount: 1,
+    primaryContact: {
+      id: "mockuser",
+      fullName: "Mock User",
+    },
+    state: {
+      id: "MT",
+    },
+  },
+  {
+    id: "a7dcfe66-1d03-4d8e-a9d6-a34b4a3297be",
+    deliverableName: "Montana Interim Evaluation",
+    demonstrationName: "Montana Medicaid Waiver",
+    deliverableType: "Interim Evaluation Report",
+    cmsOwner: "Mock User",
+    dueDate: "2025-04-20",
+    submissionDate: "2025-04-18",
+    status: "Upcoming",
+    extensionRequested: true,
+    resubmissionCount: 0,
+    primaryContact: {
+      id: "mockuser",
+      fullName: "Mock User",
+    },
+    state: {
+      id: "MT",
+    },
+  },
 ];
+
+export const getDeliverablesForDemonstration = (
+  demonstrationName: string
+): MockDeliverable[] =>
+  MOCK_DELIVERABLES.filter((deliverable) => deliverable.demonstrationName === demonstrationName);
