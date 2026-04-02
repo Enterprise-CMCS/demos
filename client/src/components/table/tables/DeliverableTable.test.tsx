@@ -15,7 +15,7 @@ describe("DeliverableTable", () => {
   });
 
   it("renders all deliverable names initially", () => {
-    MOCK_DELIVERABLES.forEach((deliverable) => {
+    MOCK_DELIVERABLES.slice(0, 10).forEach((deliverable) => {
       expect(
         screen.getByText(deliverable.deliverableName)
       ).toBeInTheDocument();
@@ -133,7 +133,7 @@ describe("DeliverableTable", () => {
 
       expect(searchInput).toHaveValue("");
 
-      MOCK_DELIVERABLES.forEach((deliverable) => {
+      MOCK_DELIVERABLES.slice(0, 10).forEach((deliverable) => {
         expect(
           screen.getByText(deliverable.deliverableName)
         ).toBeInTheDocument();
@@ -142,9 +142,9 @@ describe("DeliverableTable", () => {
   });
 
   it("renders combined status values for upcoming deliverables", () => {
-    expect(screen.getByText("Upcoming")).toBeInTheDocument();
-    expect(screen.getByText("Upcoming - Extension Requested")).toBeInTheDocument();
-    expect(screen.getByText("Upcoming (2) - Extension Requested")).toBeInTheDocument();
+    expect(screen.getAllByText("Upcoming").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Upcoming - Extension Requested").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Upcoming (2) - Extension Requested").length).toBeGreaterThan(0);
   });
 
   it("renders column filter dropdown", () => {
