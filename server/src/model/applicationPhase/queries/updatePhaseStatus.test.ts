@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { updatePhaseStatus } from "./updatePhaseStatus.js";
-import { PhaseNameWithTrackedStatus } from "../../../types.js";
+import { PhaseName } from "../../../types.js";
 
 describe("updatePhaseStatus", () => {
   const transactionMocks = {
@@ -14,7 +14,7 @@ describe("updatePhaseStatus", () => {
     },
   } as any;
   const testApplicationId: string = "9d663828-20b3-4911-9b8f-d537e9ddeda3";
-  const testPhaseName: PhaseNameWithTrackedStatus = "Completeness";
+  const testPhaseName: PhaseName = "Completeness";
 
   beforeEach(() => {
     vi.resetAllMocks();

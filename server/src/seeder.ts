@@ -152,6 +152,7 @@ async function seedNotes() {
 
 async function seedDocuments() {
   console.log("🌱 Seeding documents...");
+
   const s3Client = new S3Client(
     process.env.S3_ENDPOINT_LOCAL
       ? {

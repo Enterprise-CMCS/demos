@@ -1,5 +1,5 @@
 import { PrismaTransactionClient } from "../../../prismaClient";
-import { PhaseNameWithTrackedStatus, PhaseStatus } from "../../../types";
+import { PhaseName, PhaseStatus } from "../../../types";
 
 const COMPLETED_PHASE_STATUS_ID: PhaseStatus = "Completed";
 const SKIPPED_PHASE_STATUS_ID: PhaseStatus = "Skipped";
@@ -7,7 +7,7 @@ const SKIPPED_PHASE_STATUS_ID: PhaseStatus = "Skipped";
 export const getFinishedApplicationPhaseIds = async (
   tx: PrismaTransactionClient,
   applicationId: string
-): Promise<PhaseNameWithTrackedStatus[]> => {
+): Promise<PhaseName[]> => {
   return (
     (
       await tx.applicationPhase.findMany({
@@ -21,6 +21,6 @@ export const getFinishedApplicationPhaseIds = async (
       })
     )
       // casting enforced by database constraints
-      .map((phase) => phase.phaseId) as PhaseNameWithTrackedStatus[]
+      .map((phase) => phase.phaseId) as PhaseName[]
   );
 };

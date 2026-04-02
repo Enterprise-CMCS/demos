@@ -1,4 +1,4 @@
-import { DateType, DocumentType, ExpectedTimestamp, PhaseNameWithTrackedStatus } from "./types.js";
+import { DateType, DocumentType, ExpectedTimestamp, PhaseName } from "./types.js";
 
 export const CLEARANCE_LEVELS = ["COMMs", "CMS (OSORA)"] as const;
 
@@ -9,6 +9,67 @@ export const APPLICATION_STATUS = [
   "Denied",
   "Withdrawn",
   "On-hold",
+] as const;
+
+export const DELIVERABLE_ACTION_TYPES = [
+  "Created Deliverable Slot",
+  "Marked as Past Due",
+  "Requested Extension",
+  "Approved Extension Request",
+  "Denied Extension Request",
+  "Withdrew Extension Request",
+  "Manually Changed Due Date",
+  "Requested Resubmission",
+  "Submitted Deliverable",
+  "Started Review",
+  "Accepted Deliverable",
+  "Approved Deliverable",
+  "Received and Filed Deliverable",
+] as const;
+
+export const DELIVERABLE_TYPES = [
+  "Annual Budget Neutrality Report",
+  "Close Out Report",
+  "Demonstration-Specific Deliverable",
+  "Evaluation Design",
+  "HCBS Actual and Estimated Enrollment Number Report (1915(i)-like)",
+  "HCBS Deficiency, Remediation and A/N/E Incident Report (1915(c)-like)",
+  "HCBS Evidentiary Report",
+  "HCBS Performance Measures Report",
+  "HCBS Quality Improvement Strategy Report",
+  "Implementation Plan",
+  "Interim Evaluation Report",
+  "Mid-point Assessment",
+  "Monitoring Protocol",
+  "Monitoring Report",
+  "Quarterly Budget Neutrality Report",
+  "Summative Evaluation Report",
+  "Transition Plan",
+] as const;
+
+export const DELIVERABLE_DUE_DATE_TYPES = ["Normal", "Open Ended"] as const;
+
+export const DELIVERABLE_EXTENSION_REASON_CODES = [
+  "COVID-19",
+  "Technical Difficulties",
+  "Other",
+] as const;
+
+export const DELIVERABLE_EXTENSION_STATUSES = [
+  "Requested",
+  "Approved",
+  "Denied",
+  "Withdrawn",
+] as const;
+
+export const DELIVERABLE_STATUSES = [
+  "Upcoming",
+  "Past Due",
+  "Submitted",
+  "Under CMS Review",
+  "Accepted",
+  "Approved",
+  "Received and Filed",
 ] as const;
 
 export const DEMONSTRATION_TYPE_STATUSES = ["Expired", "Pending", "Active"] as const;
@@ -56,21 +117,36 @@ export const SDG_DIVISIONS = [
 export const DOCUMENT_TYPES = [
   "Application Completeness Letter",
   "Approval Letter",
+  "BN Workbook",
+  "Close Out Report",
+  "Demonstration-Specific Deliverable",
+  "Evaluation Design",
   "Federal Comment Internal Analysis Document",
-  "Final BN Worksheet",
   "Final Budget Neutrality Formulation Workbook",
   "Formal OMB Policy Concurrence Email",
   "General File",
+  "HCBS Actual and Estimated Enrollment Number Report (1915(i)-like)",
+  "HCBS Deficiency, Remediation and A/N/E Incident Report (1915(c)-like)",
+  "HCBS Evidentiary Report",
+  "HCBS Performance Measures Report",
+  "HCBS Quality Improvement Strategy Report",
+  "Implementation Plan",
+  "Interim Evaluation Report",
   "Internal Completeness Review Form",
+  "Mid-point Assessment",
+  "Monitoring Protocol",
+  "Monitoring Report",
   "Payment Ratio Analysis",
   "Pre-Submission",
   "Q&A",
   "Signed Decision Memo",
   "Special Terms & Conditions",
   "State Application",
+  "Summative Evaluation Report",
+  "Transition Plan",
 ] as const;
 
-export const PHASE_NAMES_WITH_TRACKED_STATUS = [
+export const PHASE_NAMES = [
   "Concept",
   "Application Intake",
   "Completeness",
@@ -80,8 +156,6 @@ export const PHASE_NAMES_WITH_TRACKED_STATUS = [
   "Approval Package",
   "Approval Summary",
 ] as const;
-
-export const PHASE_NAME = ["None", ...PHASE_NAMES_WITH_TRACKED_STATUS] as const;
 
 export const PHASE_STATUS = [
   "Not Started",
@@ -284,21 +358,6 @@ export const EVENT_TYPES = [
   "Delete Document Failed",
 ] as const;
 
-export const NONE_PHASE_DOCUMENTS: DocumentType[] = [
-  "Application Completeness Letter",
-  "Approval Letter",
-  "Final BN Worksheet",
-  "Final Budget Neutrality Formulation Workbook",
-  "Formal OMB Policy Concurrence Email",
-  "Internal Completeness Review Form",
-  "Payment Ratio Analysis",
-  "Pre-Submission",
-  "Q&A",
-  "Signed Decision Memo",
-  "State Application",
-  "General File",
-] as const;
-
 export const CONCEPT_PHASE_DOCUMENTS: DocumentType[] = ["General File", "Pre-Submission"] as const;
 
 export const APPLICATION_INTAKE_PHASE_DOCUMENTS: DocumentType[] = [
@@ -341,7 +400,6 @@ export const APPROVAL_PACKAGE_PHASE_DOCUMENTS: DocumentType[] = [
 export const APPROVAL_SUMMARY_PHASE_DOCUMENTS: DocumentType[] = ["General File"] as const;
 
 export const PHASE_DOCUMENT_TYPE_MAP = {
-  None: NONE_PHASE_DOCUMENTS,
   Concept: CONCEPT_PHASE_DOCUMENTS,
   "Application Intake": APPLICATION_INTAKE_PHASE_DOCUMENTS,
   Completeness: COMPLETENESS_PHASE_DOCUMENTS,
@@ -352,10 +410,7 @@ export const PHASE_DOCUMENT_TYPE_MAP = {
   "Approval Summary": APPROVAL_SUMMARY_PHASE_DOCUMENTS,
 };
 
-type PhaseStartEndDateRecord = Record<
-  PhaseNameWithTrackedStatus,
-  { startDate?: DateType; endDate?: DateType }
->;
+type PhaseStartEndDateRecord = Record<PhaseName, { startDate?: DateType; endDate?: DateType }>;
 export const PHASE_START_END_DATES: PhaseStartEndDateRecord = {
   Concept: { startDate: "Concept Start Date", endDate: "Concept Completion Date" },
   "Application Intake": {
@@ -403,23 +458,3 @@ export const BUDGET_NEUTRALITY_VALIDATION_STATUSES = [
   "Pending",
   "In Progress",
 ];
-
-export const DELIVERABLE_TYPES = [
-  "Annual Budget Neutrality Report",
-  "Close Out Report",
-  "Demonstration-Specific Deliverable",
-  "Evaluation Design",
-  "HCBS Actual and Estimated Enrollment Number Report (1915(i)-like)",
-  "HCBS Deficiency, Remediation and A/N/E Incident Report (1915(c)-like)",
-  "HCBS Evidentiary Report",
-  "HCBS Performance Measures Report",
-  "HCBS Quality Improvement Strategy Report",
-  "Implementation Plan",
-  "Interim Evaluation Report",
-  "Mid-point Assessment",
-  "Monitoring Protocol",
-  "Monitoring Report",
-  "Quarterly Budget Neutrality Report",
-  "Summative Evaluation Report",
-  "Transition Plan",
-] as const;

@@ -12,7 +12,6 @@ import {
   ApplicationDateInput,
   LocalDate,
   PhaseName,
-  PhaseNameWithTrackedStatus,
 } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
@@ -116,7 +115,7 @@ const calculateFederalCommentPeriodDates = (
 
 export const getApplicationCompletenessFromApplication = (
   application: WorkflowApplication,
-  setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void
+  setSelectedPhase: (phase: PhaseName) => void
 ) => {
   const completenessPhase = application.phases.find((phase) => phase.phaseName === THIS_PHASE_NAME);
   const applicationIntakePhase = application.phases.find(
@@ -166,7 +165,7 @@ export interface CompletenessPhaseProps {
   completenessComplete: boolean;
   stateDeemedCompleteDate: string;
   completenessDocuments: ApplicationWorkflowDocument[];
-  setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void;
+  setSelectedPhase: (phase: PhaseName) => void;
 }
 
 export const CompletenessPhase = ({

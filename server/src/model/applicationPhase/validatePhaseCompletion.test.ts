@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { validatePhaseCompletion } from "./validatePhaseCompletion.js";
-import { PhaseNameWithTrackedStatus } from "../../types.js";
+import { PhaseName } from "../../types.js";
 
 // Mock imports
 import {
@@ -27,7 +27,7 @@ vi.mock("../application", () => ({
 
 describe("validatePhaseCompletion", () => {
   const testApplicationId: string = "4884dd86-4ebd-4530-9204-0d687e4ba6c7";
-  const testPhaseName: PhaseNameWithTrackedStatus = "Approval Package";
+  const testPhaseName: PhaseName = "Approval Package";
   const testApplicationDates: any = "Test Application Dates";
   const testApplicationPhaseDocumentTypes: any = "Test Application Phase Document Types";
   const testApplicationPhaseStatuses: any = "Test Application Phase Statuses";

@@ -117,7 +117,7 @@ describe("getDocumentsForPhase", () => {
     const application = {
       ...baseDemonstration,
       documents: [
-        doc({ documentType: "Q&A", phaseName: "None" }),
+        doc({ documentType: "Q&A", phaseName: "Concept" }),
         doc({ documentType: "Approval Letter", phaseName: "Review" }),
       ],
     };
@@ -160,7 +160,7 @@ describe("getApprovalPackagePhaseFromApplication", () => {
       documents: [
         doc({ documentType: "Q&A", name: "Q&A Doc", phaseName: "Approval Package" }),
         doc({ documentType: "Approval Letter", name: "Approval Doc", phaseName: "Approval Package" }),
-        doc({ documentType: "Special Terms & Conditions", name: "STCs", phaseName: "None" }), // wrong phase
+        doc({ documentType: "Special Terms & Conditions", name: "STCs", phaseName: "Concept" }), // wrong phase
       ],
     };
 

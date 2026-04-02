@@ -7,7 +7,7 @@ import {
 } from "./reviewPhaseData";
 import { ReviewPhaseFormData } from "./ReviewPhase";
 import { SimplePhase, WorkflowApplication } from "components/application";
-import { PhaseNameWithTrackedStatus, PhaseStatus } from "demos-server";
+import { PhaseName, PhaseStatus } from "demos-server";
 
 describe("reviewPhaseData", () => {
   const mockOnFinish = vi.fn();
@@ -67,7 +67,7 @@ describe("reviewPhaseData", () => {
   });
 
   describe("getReviewPhaseComponentFromApplication", () => {
-    const buildPhase = (phaseName: PhaseNameWithTrackedStatus, phaseStatus: PhaseStatus) => {
+    const buildPhase = (phaseName: PhaseName, phaseStatus: PhaseStatus) => {
       return {
         phaseName,
         phaseDates: [],

@@ -3,6 +3,7 @@ model DocumentType {
   id String
 
   phaseDocumentTypes                        PhaseDocumentType[]
+  deliverableTypeDocumentTypes              DeliverableTypeDocumentType[]
   budgetNeutralityWorkbookDocumentTypeLimit BudgetNeutralityWorkbookDocumentTypeLimit[]
 
   @@id([id])
