@@ -292,11 +292,7 @@ export async function buildLambdaContext(
     const { sub, email, role, givenName, familyName, name, externalUserId } = await decodeToken(token);
     return buildContextFromClaims({ sub, email, role, givenName, familyName, name, externalUserId });
   } catch (err) {
-    log.error({
-      errorName: (err as Error).name,
-      message: (err as Error).message,
-      type: "auth.lambda_context.error",
-    });
+    log.error({ errorName: (err as Error).name, message: (err as Error).message, type: "auth.lambda_context.error" });
     return { user: null };
   }
 }
@@ -311,7 +307,7 @@ export async function buildHttpContext(req: IncomingMessage): Promise<GraphQLCon
     const { sub, email, role, givenName, familyName, name, externalUserId } = decodedToken;
     return buildContextFromClaims({ sub, email, role, givenName, familyName, name, externalUserId });
   } catch (err) {
-    log.error({ errorName: (err as Error).name, message: (err as Error).message, type: "auth.lambda_context.error" });
+    log.error({ errorName: (err as Error).name, message: (err as Error).message, type: "auth.http_context.error" });
     return { user: null };
   }
 }
