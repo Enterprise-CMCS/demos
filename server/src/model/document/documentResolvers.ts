@@ -45,6 +45,11 @@ export async function uploadDocument(
   { input }: { input: UploadDocumentInput },
   context: GraphQLContext
 ): Promise<UploadDocumentResponse> {
+  checkOptionalNotNullFields(
+    ["name", "documentType", "applicationId", "phaseName", "deliverableId"],
+    input
+  );
+
   const s3Adapter = getS3Adapter();
 
   try {
@@ -96,7 +101,10 @@ export async function updateDocument(
   _: unknown,
   { id, input }: { id: string; input: UpdateDocumentInput }
 ): Promise<PrismaDocument> {
-  checkOptionalNotNullFields(["name", "documentType", "applicationId", "phaseName"], input);
+  checkOptionalNotNullFields(
+    ["name", "documentType", "applicationId", "phaseName", "deliverableId"],
+    input
+  );
   try {
     return await prisma().$transaction(async (tx) => {
       return await updateDocumentQuery(tx, id, input);
