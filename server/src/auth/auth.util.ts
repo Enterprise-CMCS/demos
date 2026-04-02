@@ -69,7 +69,7 @@ function getKey(header: JwtHeader, cb: (err: Error | null, key?: string) => void
 
 // Check if role is demos-admin, demos-cms-user, or demos-state-user
 export function verifyRole(role: string): void {
-  const validRoles = (PERSON_TYPES as readonly string[]).filter((r) => r !== "non-user-contact");
+  const validRoles = (PERSON_TYPES as readonly string[]).filter(r => r !== "non-user-contact");
   if (!validRoles.includes(role)) {
     throw new GraphQLError(`Invalid user role: '${role}'`, {
       extensions: {
@@ -116,9 +116,7 @@ export function normalizeClaimsFromRaw(raw: Record<string, unknown>): Claims {
   // role from custom or flat authorizer
   const role = pickString(raw, ["custom:roles", "role"]);
   if (!role) {
-    throw new GraphQLError("Missing role in token", {
-      extensions: { code: "UNAUTHORIZED", http: { status: 403 } },
-    });
+    throw new GraphQLError("Missing role in token", { extensions: { code: "UNAUTHORIZED", http: { status: 403 } } });
   }
   verifyRole(role);
 
@@ -137,7 +135,6 @@ export function normalizeClaimsFromRaw(raw: Record<string, unknown>): Claims {
 
   return { sub, email, role, givenName, familyName, name, externalUserId };
 }
-
 function decodeToken(token: string): Promise<DecodedJWT> {
   return new Promise((resolve, reject) => {
     jwt.verify(token, getKey, verifyOpts, (err, decoded) => {
@@ -153,11 +150,7 @@ function decodeToken(token: string): Promise<DecodedJWT> {
       try {
         claims = normalizeClaimsFromRaw(rawDecoded);
       } catch (error) {
-        log.error({
-          errorName: (error as Error).name,
-          message: (error as Error).message,
-          type: "auth.token.claims_error",
-        });
+        log.error({ errorName: (error as Error).name, message: (error as Error).message, type: "auth.token.claims_error" });
         return reject(error);
       }
 
@@ -188,7 +181,7 @@ export function createHeaderGetter(obj: Record<string, unknown> | undefined | nu
   return (name: string) => lowerMap.get(name.toLowerCase());
 }
 
-export function parseCookie(header: string | undefined): Record<string, string> {
+function parseCookie(header: string | undefined): Record<string, string> {
   if (!header) return {};
   const entries = header.split("; ").map((c) => {
     const idx = c.indexOf("=");
@@ -212,7 +205,8 @@ function extractToken(getHeader: HeaderGetter): string {
 }
 
 function deriveUserFields(claims: Claims) {
-  const backupUserName = claims.email && claims.email.includes("@") ? claims.email : undefined;
+  const backupUserName =
+    claims.email && claims.email.includes("@") ? claims.email : undefined;
   const username = claims.externalUserId || backupUserName;
 
   if (!username) {
@@ -220,12 +214,10 @@ function deriveUserFields(claims: Claims) {
   }
 
   const firstName = claims.givenName?.trim();
-  const lastName = claims.familyName?.trim();
+  const lastName  = claims.familyName?.trim();
 
   if (!firstName || !lastName || !claims.email) {
-    throw new Error(
-      "Missing required name parts from claims; given_name family_name and email are required"
-    );
+    throw new Error("Missing required name parts from claims; given_name family_name and email are required");
   }
 
   return { username, email: claims.email, firstName, lastName };
@@ -297,17 +289,8 @@ export async function buildLambdaContext(
   if (!token) return { user: null };
 
   try {
-    const { sub, email, role, givenName, familyName, name, externalUserId } =
-      await decodeToken(token);
-    return buildContextFromClaims({
-      sub,
-      email,
-      role,
-      givenName,
-      familyName,
-      name,
-      externalUserId,
-    });
+    const { sub, email, role, givenName, familyName, name, externalUserId } = await decodeToken(token);
+    return buildContextFromClaims({ sub, email, role, givenName, familyName, name, externalUserId });
   } catch (err) {
     log.error({
       errorName: (err as Error).name,
@@ -326,21 +309,9 @@ export async function buildHttpContext(req: IncomingMessage): Promise<GraphQLCon
   try {
     const decodedToken = await decodeToken(token);
     const { sub, email, role, givenName, familyName, name, externalUserId } = decodedToken;
-    return buildContextFromClaims({
-      sub,
-      email,
-      role,
-      givenName,
-      familyName,
-      name,
-      externalUserId,
-    });
+    return buildContextFromClaims({ sub, email, role, givenName, familyName, name, externalUserId });
   } catch (err) {
-    log.error({
-      errorName: (err as Error).name,
-      message: (err as Error).message,
-      type: "auth.http_context.error",
-    });
+    log.error({ errorName: (err as Error).name, message: (err as Error).message, type: "auth.lambda_context.error" });
     return { user: null };
   }
 }
@@ -375,7 +346,7 @@ let databaseUrlCache = "";
 let cacheExpiration = 0;
 
 export async function getDatabaseUrl(): Promise<string> {
-  log.debug({ type: "graphql.db.creds_request" });
+  log.debug({type: "graphql.db.creds_request"});
   const now = Date.now();
   if (databaseUrlCache && cacheExpiration > now) return databaseUrlCache;
 
