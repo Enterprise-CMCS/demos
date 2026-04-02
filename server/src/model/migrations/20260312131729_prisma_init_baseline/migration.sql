@@ -394,6 +394,8 @@ CREATE TABLE "deliverable_action_history" (
     "note" TEXT,
     "active_extension_id" UUID,
     "due_date_change_allowed" BOOLEAN NOT NULL,
+    "should_have_note" BOOLEAN NOT NULL,
+    "should_have_user_id" BOOLEAN NOT NULL,
     "old_due_date" TIMESTAMPTZ NOT NULL,
     "new_due_date" TIMESTAMPTZ NOT NULL,
     "user_id" UUID,
