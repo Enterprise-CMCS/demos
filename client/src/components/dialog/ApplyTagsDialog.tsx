@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 import { gql, TypedDocumentNode, useMutation } from "@apollo/client";
-import { Application, SetApplicationTagsInput } from "demos-server";
+import { Application, SetApplicationTagsInput, Tag } from "demos-server";
 
 import { useToast } from "components/toast";
 import { Button } from "components/button";
@@ -25,22 +25,34 @@ export const SET_APPLICATION_TAGS_MUTATION: TypedDocumentNode<
     setApplicationTags(input: $input) {
       ... on Demonstration {
         id
-        tags
+        tags {
+          tagName
+          approvalStatus
+        }
       }
       ... on Amendment {
         id
-        tags
+        tags {
+          tagName
+          approvalStatus
+        }
       }
       ... on Extension {
         id
-        tags
+        tags {
+          tagName
+          approvalStatus
+        }
       }
     }
   }
 `;
 
-const tagSetsDiffer = (a: string[], b: string[]): boolean => {
-  return a.length !== b.length || a.some((item) => !b.includes(item));
+const tagSetsDiffer = (setA: Tag[], setB: Tag[]): boolean => {
+  return (
+    setA.length !== setB.length ||
+    setA.some((itemA) => !setB.map((itemB) => itemB.tagName).includes(itemA.tagName))
+  );
 };
 
 const SearchField = ({
@@ -68,22 +80,22 @@ const TagSelector = ({
   selectedTags,
   setSelectedTags,
 }: {
-  allTags: string[];
-  selectedTags: string[];
-  setSelectedTags: (tags: string[]) => void;
+  allTags: Tag[];
+  selectedTags: Tag[];
+  setSelectedTags: (tags: Tag[]) => void;
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const handleToggleTag = (tag: string) => {
-    if (selectedTags.includes(tag)) {
-      setSelectedTags(selectedTags.filter((t) => t !== tag));
+  const handleToggleTag = (targetTag: Tag) => {
+    if (selectedTags.map((tag) => tag.tagName).includes(targetTag.tagName)) {
+      setSelectedTags(selectedTags.filter((tag) => tag.tagName !== targetTag.tagName));
     } else {
-      setSelectedTags([...selectedTags, tag]);
+      setSelectedTags([...selectedTags, targetTag]);
     }
   };
 
   const filteredTags = allTags.filter((tag) =>
-    tag.toLowerCase().includes(searchQuery.toLowerCase())
+    tag.tagName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -92,13 +104,16 @@ const TagSelector = ({
       <div className="text-md font-semibold">Select tags ({selectedTags.length} selected)</div>
       <div className={STYLES.tagList}>
         {filteredTags.map((tag) => (
-          <label key={tag} className={STYLES.tagLabel}>
+          <label key={tag.tagName} className={STYLES.tagLabel}>
             <Checkbox
-              name={`checkbox-${tag}`}
-              checked={selectedTags.includes(tag)}
+              name={`checkbox-${tag.tagName}`}
+              checked={selectedTags.map((tag) => tag.tagName).includes(tag.tagName)}
               onChange={() => handleToggleTag(tag)}
             />
-            <span className="text-sm text-text-font">{tag}</span>
+            <span className="text-sm text-text-font">
+              {tag.tagName}
+              {tag.approvalStatus === "Approved" ? "" : " (Unapproved)"}
+            </span>
           </label>
         ))}
         {filteredTags.length === 0 && (
@@ -112,8 +127,8 @@ const TagSelector = ({
 export interface ApplyTagsDialogProps {
   demonstrationId: string;
   onClose: () => void;
-  initiallySelectedTags: string[];
-  allTags: string[];
+  initiallySelectedTags: Tag[];
+  allTags: Tag[];
 }
 
 export const ApplyTagsDialog: React.FC<ApplyTagsDialogProps> = ({
@@ -125,7 +140,7 @@ export const ApplyTagsDialog: React.FC<ApplyTagsDialogProps> = ({
   const [setApplicationTagsMutation] = useMutation(SET_APPLICATION_TAGS_MUTATION);
   const { showSuccess, showError } = useToast();
 
-  const [selectedTags, setSelectedTags] = useState<string[]>([...initiallySelectedTags]);
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([...initiallySelectedTags]);
   const [hasChanges, setHasChanges] = useState<boolean>(false);
 
   useEffect(() => {
@@ -139,7 +154,7 @@ export const ApplyTagsDialog: React.FC<ApplyTagsDialogProps> = ({
         variables: {
           input: {
             applicationId: demonstrationId,
-            applicationTags: selectedTags,
+            applicationTags: selectedTags.map((tag) => tag.tagName),
           },
         },
       });
@@ -175,9 +190,11 @@ export const ApplyTagsDialog: React.FC<ApplyTagsDialogProps> = ({
           <div className="flex flex-wrap gap-1 min-h-8">
             {selectedTags.map((tag) => (
               <TagChip
-                key={tag}
+                key={tag.tagName}
                 tag={tag}
-                onRemoveTag={() => setSelectedTags(selectedTags.filter((t) => t !== tag))}
+                onRemoveTag={() =>
+                  setSelectedTags(selectedTags.filter((t) => t.tagName !== tag.tagName))
+                }
               />
             ))}
             {selectedTags.length === 0 && (

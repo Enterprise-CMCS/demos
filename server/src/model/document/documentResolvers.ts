@@ -12,8 +12,7 @@ import type {
   ApplicationDateInput,
 } from "../../types";
 import { getS3Adapter } from "../../adapters";
-import { getEasternNow, parseJSDateToEasternTZDate } from "../../dateUtilities";
-import { addDays } from "date-fns";
+import { getEasternNow } from "../../dateUtilities";
 import { getApplication, PrismaApplication } from "../application";
 import { findUserById } from "../user";
 import { validateAndUpdateDates } from "../applicationDate";
@@ -46,6 +45,11 @@ export async function uploadDocument(
   { input }: { input: UploadDocumentInput },
   context: GraphQLContext
 ): Promise<UploadDocumentResponse> {
+  checkOptionalNotNullFields(
+    ["name", "documentType", "applicationId", "phaseName", "deliverableId"],
+    input
+  );
+
   const s3Adapter = getS3Adapter();
 
   try {
@@ -54,6 +58,11 @@ export async function uploadDocument(
         "The GraphQL context does not have user information. Are you properly authenticated?"
       );
     }
+
+    if (input.phaseName && input.deliverableId) {
+      throw new Error("A document cannot be associated with both a phase and a deliverable.");
+    }
+
     const userId = context.user.id;
     return await prisma().$transaction(async (tx) => {
       const easternNow = getEasternNow();
@@ -63,24 +72,6 @@ export async function uploadDocument(
 
       if (phaseStartDate) {
         datesToUpdate.push(phaseStartDate);
-      }
-
-      if (input.documentType === "State Application" && input.phaseName === "Application Intake") {
-        const currentDate = easternNow["Start of Day"].easternTZDate;
-
-        datesToUpdate.push({
-          dateType: "State Application Submitted Date",
-          dateValue: currentDate,
-        });
-
-        const dueDatePlus15 = addDays(currentDate, 15);
-        dueDatePlus15.setHours(23, 59, 59, 999);
-        const completenessReviewDueDate = parseJSDateToEasternTZDate(dueDatePlus15);
-
-        datesToUpdate.push({
-          dateType: "Completeness Review Due Date",
-          dateValue: completenessReviewDueDate.easternTZDate,
-        });
       }
 
       if (datesToUpdate.length > 0) {
@@ -110,7 +101,10 @@ export async function updateDocument(
   _: unknown,
   { id, input }: { id: string; input: UpdateDocumentInput }
 ): Promise<PrismaDocument> {
-  checkOptionalNotNullFields(["name", "documentType", "applicationId", "phaseName"], input);
+  checkOptionalNotNullFields(
+    ["name", "documentType", "applicationId", "phaseName", "deliverableId"],
+    input
+  );
   try {
     return await prisma().$transaction(async (tx) => {
       return await updateDocumentQuery(tx, id, input);
@@ -197,6 +191,13 @@ export function resolvePhaseName(parent: PrismaDocument): PhaseName {
   return parent.phaseId as PhaseName;
 }
 
+export async function resolveDeliverable(parent: PrismaDocument) {
+  if (!parent.deliverableId) {
+    return null;
+  }
+  return await prisma().deliverable.findUnique({ where: { id: parent.deliverableId } });
+}
+
 export const documentResolvers = {
   Query: {
     document: getDocument,
@@ -216,6 +217,7 @@ export const documentResolvers = {
     documentType: resolveDocumentType,
     presignedDownloadUrl: resolvePresignedDownloadUrl,
     application: resolveApplication,
+    deliverable: resolveDeliverable,
     phaseName: resolvePhaseName,
   },
 };

@@ -23,7 +23,8 @@ type DownloadedObject = {
 
 type ResolvedS3Input = {
   s3Key: string;
-  documentId?: string;
+  documentId: string;
+  applicationId: string;
 };
 
 function getDocumentBucket(): string {
@@ -37,23 +38,18 @@ function getDocumentBucket(): string {
 
 async function resolveS3InputFromMessage(body: string): Promise<ResolvedS3Input> {
   const parsedBody = parseUiPathMessage(body);
-  const { s3Key: messageKey, documentId } = parsedBody;
+  const { documentId, applicationId } = parsedBody;
 
-  if (messageKey) {
-    return {
-      s3Key: messageKey,
-      documentId,
-    };
+  if (!documentId) {
+    throw new Error("Missing documentId in SQS message body.");
   }
 
-  const documentLookup = await parseDocumentFromId(documentId);
-  if (!documentLookup?.key) {
-    throw new Error("Missing s3Key and documentId in SQS message body.");
-  }
+  const documentLookup = await parseDocumentFromId(documentId, applicationId);
 
   return {
     s3Key: documentLookup.key,
-    documentId,
+    documentId: documentLookup.documentId,
+    applicationId: documentLookup.applicationId,
   };
 }
 
@@ -99,7 +95,7 @@ export const handler = async (event: SQSEvent) =>
     }
     reqIdChild(firstRecord.messageId);
 
-    const { s3Key, documentId } = await resolveS3InputFromMessage(firstRecord.body);
+    const { s3Key, documentId, applicationId } = await resolveS3InputFromMessage(firstRecord.body);
 
     const downloadedObject = await downloadFromS3(documentBucket, s3Key);
     const { localPath } = downloadedObject;
@@ -118,6 +114,7 @@ export const handler = async (event: SQSEvent) =>
       requestId: firstRecord.messageId,
       fileNameWithExtension: uploadFileNameWithExtension,
       documentId,
+      applicationId,
     });
 
     log.info("UiPath extraction completed successfully");

@@ -1,0 +1,16 @@
+model PrivateComment {
+  id                 String   @db.Uuid
+  deliverableId      String   @map("deliverable_id") @db.Uuid
+  authorUserId       String   @map("author_user_id") @db.Uuid
+  authorPersonTypeId String   @map("author_person_type_id")
+  content            String
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  deliverable      Deliverable            @relation(fields: [deliverableId], references: [id])
+  author           User                   @relation(fields: [authorUserId, authorPersonTypeId], references: [id, personTypeId])
+  authorPersonType CmsUserPersonTypeLimit @relation(fields: [authorPersonTypeId], references: [id])
+
+  @@id([id])
+  @@map("private_comment")
+}

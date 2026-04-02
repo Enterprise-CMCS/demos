@@ -1,0 +1,9 @@
+// Flags: STATIC_CONSTRAINT
+model DeliverableExtensionReasonCode {
+  id String
+
+  deliverableExtensions DeliverableExtension[]
+
+  @@id([id])
+  @@map("deliverable_extension_reason_code")
+}

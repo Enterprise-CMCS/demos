@@ -70,7 +70,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   documentTypeSubset,
   titleOverride,
   refetchQueries,
-  phaseName = "None",
+  phaseName,
   onDocumentUploadSucceeded,
 }) => {
   const { showError } = useToast();

@@ -13,13 +13,14 @@ const mockCommonProps: DeploymentConfigProperties = {
   zScalerIps: ["0.1.2.3"],
   hostEnvironment: "dev",
   cloudfrontHost: "unittest.demos.com",
+  srrConfigured: true,
 };
 const commongAppArgs = {
-      context: {
-        [BUNDLING_STACKS]: []
-      }
-    }
-    
+  context: {
+    [BUNDLING_STACKS]: [],
+  },
+};
+
 describe("File Upload Stack", () => {
   test("should create proper resources when non-ephemeral", () => {
     const app = new App(commongAppArgs);
@@ -86,7 +87,7 @@ describe("File Upload Stack", () => {
           },
         ]),
       },
-      0
+      0,
     );
   });
 });

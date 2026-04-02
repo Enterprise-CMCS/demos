@@ -14,13 +14,14 @@ const mockCommonProps: DeploymentConfigProperties = {
   zScalerIps: ["0.1.2.3"],
   hostEnvironment: "dev",
   cloudfrontHost: "unittest.demos.com",
+  srrConfigured: true,
 };
 
 const commongAppArgs = {
-      context: {
-        [BUNDLING_STACKS]: []
-      }
-    }
+  context: {
+    [BUNDLING_STACKS]: [],
+  },
+};
 
 describe("DB Roles Stack", () => {
   test("should create proper resources when non-ephemeral", () => {

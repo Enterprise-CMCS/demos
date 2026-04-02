@@ -29,6 +29,7 @@ import {
 import {
   Demonstration as PrismaDemonstration,
   DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
+  Tag as PrismaTag,
 } from "@prisma/client";
 import { TZDate } from "@date-fns/tz";
 
@@ -785,24 +786,32 @@ describe("demonstrationResolvers", () => {
   describe("resolveDemonstrationTypes", () => {
     it("should look up the demonstration types for the demonstration", async () => {
       // This is present just to test the map in the function
-      const resolvedValue: PrismaDemonstrationTypeTagAssignment[] = [
+      const resolvedValue: (PrismaDemonstrationTypeTagAssignment & {
+        tag: Pick<PrismaTag, "statusId">;
+      })[] = [
         {
           demonstrationId: testValues.demonstrationId,
-          tagId: "Test Demonstration Type A",
+          tagNameId: "Test Demonstration Type A",
           tagTypeId: "Demonstration Type",
           effectiveDate: testValues.dateValue,
           expirationDate: testValues.dateValue,
           createdAt: testValues.dateValue,
           updatedAt: testValues.dateValue,
+          tag: {
+            statusId: "Approved",
+          },
         },
         {
           demonstrationId: testValues.demonstrationId,
-          tagId: "Test Demonstration Type B",
+          tagNameId: "Test Demonstration Type B",
           tagTypeId: "Demonstration Type",
           effectiveDate: testValues.dateValue,
           expirationDate: testValues.dateValue,
           createdAt: testValues.dateValue,
           updatedAt: testValues.dateValue,
+          tag: {
+            statusId: "Unapproved",
+          },
         },
       ];
       regularMocks.demonstrationTypeTagAssignment.findMany.mockResolvedValueOnce(resolvedValue);
@@ -817,6 +826,9 @@ describe("demonstrationResolvers", () => {
       };
 
       const expectedCall = {
+        include: {
+          tag: true,
+        },
         where: {
           demonstrationId: testValues.demonstrationId,
         },
@@ -828,6 +840,7 @@ describe("demonstrationResolvers", () => {
           effectiveDate: testValues.dateValue,
           expirationDate: testValues.dateValue,
           status: "Active",
+          approvalStatus: "Approved",
           createdAt: testValues.dateValue,
           updatedAt: testValues.dateValue,
         },
@@ -836,6 +849,7 @@ describe("demonstrationResolvers", () => {
           effectiveDate: testValues.dateValue,
           expirationDate: testValues.dateValue,
           status: "Pending",
+          approvalStatus: "Unapproved",
           createdAt: testValues.dateValue,
           updatedAt: testValues.dateValue,
         },

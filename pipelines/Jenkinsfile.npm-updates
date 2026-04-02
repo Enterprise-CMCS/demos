@@ -25,6 +25,7 @@ pipeline {
           npmUpdates(dir: "lambdas/emailer")          
           npmUpdates(dir: "lambdas/fileprocess")          
           npmUpdates(dir: "lambdas/deleteinfectedfile")          
+          npmUpdates(dir: "lambdas/UIPath")          
         }
       }
     }

@@ -123,13 +123,14 @@ describe("ApprovalPackageTable", () => {
     await user.click(editBtn);
 
     expect(showEditDocumentDialog).toHaveBeenCalledWith(
-      expect.objectContaining({
+      {
         id: "doc-22",
         name: "Real Doc Name",
         description: "Real Description",
         documentType: "Signed Decision Memo",
         file: null,
-      })
+      },
+      false
     );
   });
 

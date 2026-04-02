@@ -38,9 +38,9 @@ describe("upsertDemonstrationTypeAssignments", () => {
       [
         {
           where: {
-            demonstrationId_tagId: {
+            demonstrationId_tagNameId: {
               demonstrationId: testDemonstrationId,
-              tagId: "Type One",
+              tagNameId: "Type One",
             },
           },
           update: {
@@ -49,7 +49,7 @@ describe("upsertDemonstrationTypeAssignments", () => {
           },
           create: {
             demonstrationId: testDemonstrationId,
-            tagId: "Type One",
+            tagNameId: "Type One",
             tagTypeId: "Demonstration Type",
             effectiveDate: testDate,
             expirationDate: testDate,
@@ -59,9 +59,9 @@ describe("upsertDemonstrationTypeAssignments", () => {
       [
         {
           where: {
-            demonstrationId_tagId: {
+            demonstrationId_tagNameId: {
               demonstrationId: testDemonstrationId,
-              tagId: "Type 3",
+              tagNameId: "Type 3",
             },
           },
           update: {
@@ -70,7 +70,7 @@ describe("upsertDemonstrationTypeAssignments", () => {
           },
           create: {
             demonstrationId: testDemonstrationId,
-            tagId: "Type 3",
+            tagNameId: "Type 3",
             tagTypeId: "Demonstration Type",
             effectiveDate: testDate,
             expirationDate: testDate,

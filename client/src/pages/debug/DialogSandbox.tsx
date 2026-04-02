@@ -39,6 +39,7 @@ export const DialogSandbox: React.FC = () => {
     showApplyTagsDialog,
     showUpdateExtensionDialog,
     showUpdateAmendmentDialog,
+    showAddDeliverableSlotDialog,
   } = useDialog();
 
   const ID = "1";
@@ -135,16 +136,13 @@ export const DialogSandbox: React.FC = () => {
           Remove Document
         </Button>
         {demoId ? (
-          <Button
-            name="upload-bn-workbook"
-            onClick={() => showUploadDocumentDialog(demoId)}
-          >
+          <Button name="upload-bn-workbook" onClick={() => showUploadDocumentDialog(demoId)}>
             Upload Document By a Real Applicaiton ID
           </Button>
         ) : null}
         <Button
           name="application-intake"
-          onClick={() => showApplicationIntakeDocumentUploadDialog(ID, () => {})}
+          onClick={() => showApplicationIntakeDocumentUploadDialog(ID)}
         >
           Application Intake
         </Button>
@@ -153,7 +151,7 @@ export const DialogSandbox: React.FC = () => {
         </Button>
         <Button
           name="concept-presubmission"
-          onClick={() => showConceptPreSubmissionDocumentUploadDialog(ID, () => {})}
+          onClick={() => showConceptPreSubmissionDocumentUploadDialog(ID)}
         >
           Concept Pre-Submission
         </Button>
@@ -162,7 +160,9 @@ export const DialogSandbox: React.FC = () => {
         </Button>
         <Button
           name="approval-package"
-          onClick={() => showApprovalPackageDocumentUploadDialog(ID, "Approval Letter" as DocumentType)}
+          onClick={() =>
+            showApprovalPackageDocumentUploadDialog(ID, "Approval Letter" as DocumentType)
+          }
         >
           Approval Package
         </Button>
@@ -171,17 +171,41 @@ export const DialogSandbox: React.FC = () => {
           <Button name="declare-incomplete" onClick={() => showDeclareIncompleteDialog(() => {})}>
             Declare Incomplete
           </Button>
-          <Button name="manage-contacts" onClick={() => showManageContactsDialog(ID, EXISTING_CONTACTS)}>
+          <Button
+            name="manage-contacts"
+            onClick={() => showManageContactsDialog(ID, EXISTING_CONTACTS)}
+          >
             Manage Contacts
           </Button>
-          <Button name="apply-demonstration-types" onClick={() => showApplyDemonstrationTypesDialog(ID)}>
+          <Button
+            name="apply-demonstration-types"
+            onClick={() => showApplyDemonstrationTypesDialog(ID)}
+          >
             Apply Demonstration Types
           </Button>
           <Button
             name="apply-tags"
-            onClick={() => showApplyTagsDialog("demo-123", ["One", "Two", "Three"], ["One"])}
+            onClick={() =>
+              showApplyTagsDialog(
+                "demo-123",
+                [
+                  { tagName: "One", approvalStatus: "Approved" },
+                  { tagName: "Two", approvalStatus: "Unapproved" },
+                  { tagName: "Three", approvalStatus: "Approved" },
+                ],
+                [{ tagName: "One", approvalStatus: "Approved" }]
+              )
+            }
           >
             Apply Tags
+          </Button>
+          <Button
+            name="add-deliverable-slot"
+            onClick={() =>
+              showAddDeliverableSlotDialog(["Demo Type 1", "Demo Type 2", "Demo Type 3"])
+            }
+          >
+            Add Deliverable Slot
           </Button>
         </div>
       </div>
