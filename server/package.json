@@ -25,8 +25,9 @@
     "jsonwebtoken": "^9.0.3",
     "jwks-rsa": "^3.2.2",
     "pg": "^8.16.3",
-    "pino": "^10.3.1",
-    "react": "^19.2.4"
+    "pino": "^10.3.1",    
+
+    "demos-shared-library": "file:../shared_library"
   },
   "scripts": {
     "clean": "rm -rf dist; npm ci",
