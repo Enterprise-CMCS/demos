@@ -6,6 +6,7 @@
     "target": "es2021",
     "module": "esnext",
     "moduleResolution": "node",
+    "ignoreDeprecations": "6.0",
     "esModuleInterop": true,
     "types": ["node"],
     "strict": true,
