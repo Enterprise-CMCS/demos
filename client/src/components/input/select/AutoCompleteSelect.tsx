@@ -16,6 +16,8 @@ export interface AutoCompleteSelectProps {
   dataTestId?: string;
   isRequired?: boolean;
   isDisabled?: boolean;
+  noMatchMessage?: string;
+  onFilterChange?: (filterValue: string, hasMatches: boolean) => void;
 }
 
 const ICON_CLASSES = tw`text-text-placeholder w-2 h-1`;
@@ -39,6 +41,8 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   label,
   isRequired = false,
   isDisabled = false,
+  noMatchMessage,
+  onFilterChange: onFilterChangeProp,
 }) => {
   const [filterValue, setFilterValue] = useState("");
   const [selectedOption, setSelectedOption] = useState<Option | undefined>(
@@ -47,9 +51,17 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
 
+  const prevValueRef = useRef(value);
+
   useEffect(() => {
     const selected = options.find((opt) => opt.value === value);
     setSelectedOption(selected);
+    if (selected && value !== prevValueRef.current) {
+      setFilterValue("");
+      setIsOpen(false);
+      setActiveIndex(-1);
+    }
+    prevValueRef.current = value;
   }, [value, options]);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -63,15 +75,18 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
     setIsOpen(true);
   };
 
-  const handleFilterChange = (filterValue: string) => {
-    setFilterValue(filterValue);
+  const handleFilterChange = (newFilterValue: string) => {
+    setFilterValue(newFilterValue);
     setActiveIndex(-1);
+    const matches = filterOptions(options, newFilterValue);
+    onFilterChangeProp?.(newFilterValue, matches.length > 0);
   };
 
   const handleSelectOption = (option: Option) => {
     onSelect(option.value);
     setSelectedOption(option);
     setFilterValue("");
+    onFilterChangeProp?.("", true);
     closeSelect();
   };
 
@@ -86,20 +101,45 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
     return () => document.removeEventListener("click", onClick);
   }, []);
 
+  const filteredOptions = filterOptions(options, filterValue);
+
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isOpen && e.key === "ArrowDown") {
       openSelect();
       return;
     }
     if (e.key === "ArrowDown") {
-      setActiveIndex((i) => Math.min(i + 1, filterOptions(options, filterValue).length - 1));
+      setActiveIndex((i) => Math.min(i + 1, filteredOptions.length - 1));
     } else if (e.key === "ArrowUp") {
       setActiveIndex((i) => Math.max(i - 1, 0));
     } else if (e.key === "Enter" && activeIndex >= 0) {
-      handleSelectOption(filterOptions(options, filterValue)[activeIndex]);
+      handleSelectOption(filteredOptions[activeIndex]);
     } else if (e.key === "Escape") {
       closeSelect();
     }
+  };
+
+  const renderDropdownContent = () => {
+    if (filteredOptions.length > 0) {
+      return filteredOptions.map((option, i) => {
+        const isActive = i === activeIndex;
+        return (
+          <li key={option.value}>
+            <button
+              type="button"
+              className={`${ITEM_CLASSES} ${isActive ? ITEM_ACTIVE_CLASSES : ""} w-full text-left`}
+              onClick={() => handleSelectOption(option)}
+              onMouseEnter={() => setActiveIndex(i)}
+            >
+              {option.label}
+            </button>
+          </li>
+        );
+      });
+    }
+
+    const message = noMatchMessage && filterValue.trim() ? noMatchMessage : "No matches found";
+    return <li className={EMPTY_CLASSES}>{message}</li>;
   };
 
   return (
@@ -133,25 +173,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
 
         {isOpen && (
           <ul className={LIST_CLASSES}>
-            {filterOptions(options, filterValue).length > 0 ? (
-              filterOptions(options, filterValue).map((option, i) => {
-                const isActive = i === activeIndex;
-                return (
-                  <li key={option.value}>
-                    <button
-                      type="button"
-                      className={`${ITEM_CLASSES} ${isActive ? ITEM_ACTIVE_CLASSES : ""} w-full text-left`}
-                      onClick={() => handleSelectOption(option)}
-                      onMouseEnter={() => setActiveIndex(i)}
-                    >
-                      {option.label}
-                    </button>
-                  </li>
-                );
-              })
-            ) : (
-              <li className={EMPTY_CLASSES}>No matches found</li>
-            )}
+            {renderDropdownContent()}
           </ul>
         )}
       </div>

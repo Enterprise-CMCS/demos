@@ -95,7 +95,8 @@ describe("runDocumentUnderstanding", () => {
     expect(mocks.queryMock.mock.calls[1]?.[0]).toBe("BEGIN");
     expect(mocks.queryMock.mock.calls[3]?.[0]).toBe("COMMIT");
     expect(mocks.queryMock.mock.calls[0]?.[1]?.[6]).toBe("Pending");
-    expect(mocks.queryMock.mock.calls[2]?.[1]?.[6]).toBe("Finished");
+    expect(mocks.queryMock.mock.calls[2]?.[0]).toContain("update demos_app.uipath_result");
+    expect(mocks.queryMock.mock.calls[2]?.[1]?.[5]).toBe("Finished");
     expect(mocks.releaseMock).toHaveBeenCalled();
   });
 
@@ -157,8 +158,8 @@ describe("runDocumentUnderstanding", () => {
       TEST_APPLICATION_ID,
       "Pending",
     ]);
+    expect(mocks.queryMock.mock.calls[2]?.[0]).toContain("update demos_app.uipath_result");
     expect(mocks.queryMock.mock.calls[2]?.[1]).toEqual([
-      expect.any(String),
       "request-doc-id",
       "project-1",
       expect.any(String),
@@ -186,7 +187,8 @@ describe("runDocumentUnderstanding", () => {
     await expectation;
     expect(mocks.queryMock).toHaveBeenCalledTimes(2);
     expect(mocks.queryMock.mock.calls[0]?.[1]?.[6]).toBe("Pending");
-    expect(mocks.queryMock.mock.calls[1]?.[1]?.[6]).toBe("Failed");
+    expect(mocks.queryMock.mock.calls[1]?.[0]).toContain("update demos_app.uipath_result");
+    expect(mocks.queryMock.mock.calls[1]?.[1]?.[5]).toBe("Failed");
   });
 
   it("persists top-level fields and skips non-string field values", async () => {
@@ -234,11 +236,11 @@ describe("runDocumentUnderstanding", () => {
     mocks.uploadDocumentMock.mockResolvedValue("doc-1");
     mocks.extractDocMock.mockResolvedValue("result-url");
     mocks.queryMock
-      .mockResolvedValueOnce({ rows: [{ id: "result-1" }] }) // pending upsert
+      .mockResolvedValueOnce({ rows: [{ id: "result-1" }] }) // pending insert
       .mockResolvedValueOnce({}) // BEGIN
-      .mockResolvedValueOnce({ rows: [] }) // finished upsert
+      .mockResolvedValueOnce({ rows: [] }) // finished update
       .mockResolvedValueOnce({}) // ROLLBACK
-      .mockResolvedValueOnce({ rows: [{ id: "failed-result-1" }] }); // failed upsert
+      .mockResolvedValueOnce({ rows: [{ id: "failed-result-1" }] }); // failed update
     mocks.fetchExtractionResultMock.mockResolvedValue({ status: "Succeeded", Fields: [] });
 
     const promise = runDocumentUnderstanding("file.pdf", {
@@ -248,7 +250,9 @@ describe("runDocumentUnderstanding", () => {
       applicationId: TEST_APPLICATION_ID,
     });
 
-    const expectation = expect(promise).rejects.toThrow("Failed to persist UiPath result row.");
+    const expectation = expect(promise).rejects.toThrow(
+      "No existing UiPath result row found for request request-no-id."
+    );
     await vi.runAllTimersAsync();
     await expectation;
     expect(mocks.queryMock.mock.calls.map((call) => call[0])).toContain("ROLLBACK");
@@ -319,7 +323,8 @@ describe("runDocumentUnderstanding", () => {
 
     expect(mocks.queryMock).toHaveBeenCalledTimes(2);
     expect(mocks.queryMock.mock.calls[0]?.[1]?.[6]).toBe("Pending");
-    expect(mocks.queryMock.mock.calls[1]?.[1]?.[6]).toBe("Failed");
+    expect(mocks.queryMock.mock.calls[1]?.[0]).toContain("update demos_app.uipath_result");
+    expect(mocks.queryMock.mock.calls[1]?.[1]?.[5]).toBe("Failed");
   });
 
   it("throws when document context is missing", async () => {

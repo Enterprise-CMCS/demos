@@ -28,6 +28,7 @@ import {
   TAG_STATUSES,
   TAG_TYPES,
   UIPATH_RESULT_STATUSES,
+  DELIVERABLE_TYPES,
 } from "./constants.js";
 
 export type {
@@ -130,11 +131,11 @@ export type CmsUserDemonstrationRole = (typeof CMS_USER_DEMONSTRATION_ROLES)[num
 export type StateUserDemonstrationRole = (typeof STATE_USER_DEMONSTRATION_ROLES)[number];
 export type ReviewPhaseDateTypes = (typeof REVIEW_PHASE_DATE_TYPES)[number];
 export type ReviewPhaseNoteTypes = (typeof REVIEW_PHASE_NOTE_TYPES)[number];
-export type ApplicationTagSuggestionStatus =
-  (typeof APPLICATION_TAG_SUGGESTION_STATUSES)[number];
+export type ApplicationTagSuggestionStatus = (typeof APPLICATION_TAG_SUGGESTION_STATUSES)[number];
 export type UiPathResultStatus = (typeof UIPATH_RESULT_STATUSES)[number];
 export type TagStatus = (typeof TAG_STATUSES)[number];
 export type TagSource = (typeof TAG_SOURCES)[number];
 export type TagType = (typeof TAG_TYPES)[number];
 export type BudgetNeutralityValidationStatus =
   (typeof BUDGET_NEUTRALITY_VALIDATION_STATUSES)[number];
+export type DeliverableType = (typeof DELIVERABLE_TYPES)[number];

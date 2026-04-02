@@ -403,3 +403,23 @@ export const BUDGET_NEUTRALITY_VALIDATION_STATUSES = [
   "Pending",
   "In Progress",
 ];
+
+export const DELIVERABLE_TYPES = [
+  "Annual Budget Neutrality Report",
+  "Close Out Report",
+  "Demonstration-Specific Deliverable",
+  "Evaluation Design",
+  "HCBS Actual and Estimated Enrollment Number Report (1915(i)-like)",
+  "HCBS Deficiency, Remediation and A/N/E Incident Report (1915(c)-like)",
+  "HCBS Evidentiary Report",
+  "HCBS Performance Measures Report",
+  "HCBS Quality Improvement Strategy Report",
+  "Implementation Plan",
+  "Interim Evaluation Report",
+  "Mid-point Assessment",
+  "Monitoring Protocol",
+  "Monitoring Report",
+  "Quarterly Budget Neutrality Report",
+  "Summative Evaluation Report",
+  "Transition Plan",
+] as const;
