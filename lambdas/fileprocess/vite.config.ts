@@ -9,6 +9,7 @@ process.env.AWS_REGION = "us-east-1";
 process.env.AWS_ENDPOINT_URL = "http://localstack:4566";
 process.env.BUDGET_NEUTRALITY_QUEUE_URL =
   "http://localhost.localstack.cloud:4566/000000000000/budget-neutrality-queue";
+process.env.UIPATH_QUEUE_URL = "http://localhost.localstack.cloud:4566/000000000000/uipath-queue";
 
 export default defineConfig({
   test: {

@@ -39,6 +39,7 @@ export const DialogSandbox: React.FC = () => {
     showApplyTagsDialog,
     showUpdateExtensionDialog,
     showUpdateAmendmentDialog,
+    showAddDeliverableSlotDialog,
   } = useDialog();
 
   const ID = "1";
@@ -197,6 +198,14 @@ export const DialogSandbox: React.FC = () => {
             }
           >
             Apply Tags
+          </Button>
+          <Button
+            name="add-deliverable-slot"
+            onClick={() =>
+              showAddDeliverableSlotDialog(["Demo Type 1", "Demo Type 2", "Demo Type 3"])
+            }
+          >
+            Add Deliverable Slot
           </Button>
         </div>
       </div>

@@ -15,6 +15,20 @@ pipeline {
   }
 
   stages {
+    stage('Build Shared Library') {
+      steps {
+        script {
+          if (fileExists('shared_library')) {
+            dirCon('shared_library', 'node') {
+              sh '''
+              npm ci
+              npm run build || true
+              '''
+            }
+          }
+        }
+      }
+    }
     stage('Client - Snyk') {
       steps {
         script {
@@ -31,6 +45,14 @@ pipeline {
           if (hasChange(changePaths)) {
             dirCon('client', 'node') {
               sh '''
+              # Ensure shared_library is installed and built before installing client deps
+              if [ -d ../shared_library ]; then
+                cd ../shared_library
+                npm ci
+                npm run build || true
+                cd -
+              fi
+
               npm ci
               npm run tsc:ci
               npm run lint:ci

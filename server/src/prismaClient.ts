@@ -1,6 +1,17 @@
-import { Prisma, PrismaClient } from "@prisma/client";
-import prismaRandom from "prisma-extension-random";
+import "dotenv/config";
+import { PrismaClient } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { log } from "./log";
+
+function isKnownRequestError(error: unknown): error is { code: string; message: string } {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const candidate = error as { code?: unknown; message?: unknown };
+  return typeof candidate.code === "string" && typeof candidate.message === "string";
+}
 
 export type PrismaTransactionClient = Parameters<
   Parameters<ReturnType<typeof prisma>["$transaction"]>[0]
@@ -9,7 +20,28 @@ export type PrismaTransactionClient = Parameters<
 // really annoying typescript hackiness to get the types to play well with the $extends method
 // the prisma random extension will be eventually removed.
 const createExtendedClient = () => {
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error("DATABASE_URL must be set to initialize Prisma client");
+  }
+
+  let schema: string | undefined;
+  try {
+    const url = new URL(connectionString);
+    schema = url.searchParams.get("schema") ?? undefined;
+  } catch {
+    // Ignore URL parsing errors and let adapter fallback to driver defaults.
+  }
+
+  const adapter = new PrismaPg({
+    connectionString,
+    ssl: { rejectUnauthorized: false },
+  }, {
+    schema,
+  });
+
   const baseClient = new PrismaClient({
+    adapter,
     log: [
       { level: "warn", emit: "event" },
       { level: "error", emit: "event" },
@@ -54,7 +86,7 @@ const createExtendedClient = () => {
           try {
             return await query(args);
           } catch (error: unknown) {
-            if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+            if (isKnownRequestError(error) && error.code === "P2025") {
               // @ts-expect-error: Dynamic model access creates incompatible union of all model signatures
               // Runtime safe: Prisma extension guarantees model and args.where are correctly paired
               // Also note: model is PascalCase, baseClient attributes are camelCase, Prisma handles this internally
@@ -76,7 +108,7 @@ const createExtendedClient = () => {
           try {
             return await query(args);
           } catch (error: unknown) {
-            if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+            if (isKnownRequestError(error) && error.code === "P2025") {
               // @ts-expect-error: Dynamic model access creates incompatible union of all model signatures
               const activeModel = baseClient[model];
               const existing = await activeModel.findUnique({
@@ -96,9 +128,7 @@ const createExtendedClient = () => {
     },
   });
 
-  const client = clientWithRedundantUpdateHandler.$extends(prismaRandom());
-
-  return client;
+  return clientWithRedundantUpdateHandler;
 };
 
 type PrismaExtendedClient = ReturnType<typeof createExtendedClient>;

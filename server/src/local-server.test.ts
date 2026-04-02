@@ -10,7 +10,9 @@ const ApolloServerMock = class {
 
 const startStandaloneServerMock = vi.fn(async (_server: any, _opts: any) => ({ url: "http://localhost:4000" }));
 
-const ApolloArmorMock = vi.fn((cfg: any) => ({ protect: () => ({ plugins: [], validationRules: [] }) }));
+const ApolloArmorMock = vi.fn(function (this: any, cfg: any) {
+  this.protect = () => ({ plugins: [], validationRules: [] });
+});
 
 vi.mock("@apollo/server", () => ({ ApolloServer: ApolloServerMock }));
 vi.mock("@apollo/server/standalone", () => ({ startStandaloneServer: startStandaloneServerMock }));

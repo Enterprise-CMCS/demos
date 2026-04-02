@@ -307,4 +307,130 @@ describe("ApplyDemonstrationTypesDialog", () => {
     expect(mockShowSuccess).not.toHaveBeenCalled();
     expect(mockCloseDialog).toHaveBeenCalledTimes(1);
   });
+
+  describe("Create Tag flow", () => {
+    const assignNewTagMutationMock: MockedResponse<{
+      setDemonstrationTypes: {
+        id: string;
+        demonstrationTypes: {
+          demonstrationTypeName: TagName;
+        }[];
+      };
+    }> = {
+      request: {
+        query: ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION,
+        variables: {
+          input: {
+            demonstrationId: MOCK_DEMONSTRATION_ID,
+            demonstrationTypes: [
+              {
+                demonstrationTypeName: "Brand New Type",
+                demonstrationTypeDates: {
+                  effectiveDate: "2024-06-01" as LocalDate,
+                  expirationDate: "2025-06-01" as LocalDate,
+                },
+              },
+            ],
+          },
+        },
+      },
+      result: {
+        data: {
+          setDemonstrationTypes: {
+            id: MOCK_DEMONSTRATION_ID,
+            demonstrationTypes: [
+              {
+                demonstrationTypeName: "Brand New Type",
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    it("allows creating a new type, adding to list, and applying", async () => {
+      const user = userEvent.setup();
+
+      render(
+        <MockedProvider
+          mocks={[
+            selectDemonstrationTypeQueryMock,
+            addDemonstrationTypesFormQueryMock,
+            assignNewTagMutationMock,
+          ]}
+        >
+          <ApplyDemonstrationTypesDialog demonstrationId={MOCK_DEMONSTRATION_ID} />
+        </MockedProvider>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText("Demonstration Type")).toBeInTheDocument();
+      });
+
+      const submitButton = screen.getByTestId("button-submit-demonstration-dialog");
+      expect(submitButton).toBeDisabled();
+
+      // Type a non-existing type name
+      const input = screen.getByRole("textbox");
+      await user.type(input, "Brand New Type");
+
+      // Create Type button should be enabled
+      const createTypeButton = screen.getByTestId("button-create-type");
+      expect(createTypeButton).toBeEnabled();
+      await user.click(createTypeButton);
+
+      // Warning banner should appear
+      expect(screen.getByTestId("unapproved-warning-banner")).toBeInTheDocument();
+
+      // Fill in dates and add to list
+      await user.type(screen.getByLabelText(/effective date/i), "2024-06-01");
+      await user.type(screen.getByLabelText(/expiration date/i), "2025-06-01");
+      await user.click(screen.getByTestId("button-add-demonstration-type"));
+
+      expect(screen.getByText("Types to be added (1)")).toBeInTheDocument();
+      expect(screen.getByText("Brand New Type (Unapproved)")).toBeInTheDocument();
+      expect(submitButton).toBeEnabled();
+
+      // Apply
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(mockShowSuccess).toHaveBeenCalledWith("Demonstration types applied successfully.");
+      });
+      expect(mockCloseDialog).toHaveBeenCalledTimes(1);
+    });
+
+    it("shows cancellation confirmation when dialog has unsaved new type changes", async () => {
+      const user = userEvent.setup();
+
+      render(
+        <MockedProvider
+          mocks={[selectDemonstrationTypeQueryMock, addDemonstrationTypesFormQueryMock]}
+        >
+          <ApplyDemonstrationTypesDialog demonstrationId={MOCK_DEMONSTRATION_ID} />
+        </MockedProvider>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText("Demonstration Type")).toBeInTheDocument();
+      });
+
+      // Create a new type and add to list
+      const input = screen.getByRole("textbox");
+      await user.type(input, "Brand New Type");
+      await user.click(screen.getByTestId("button-create-type"));
+
+      await user.type(screen.getByLabelText(/effective date/i), "2024-06-01");
+      await user.type(screen.getByLabelText(/expiration date/i), "2025-06-01");
+      await user.click(screen.getByTestId("button-add-demonstration-type"));
+
+      // Cancel should trigger confirmation
+      await user.click(screen.getByRole("button", { name: "button-dialog-cancel" }));
+
+      expect(screen.getByText("Are you sure?")).toBeInTheDocument();
+      expect(
+        screen.getByText("You will lose any unsaved changes in this view.")
+      ).toBeInTheDocument();
+    });
+  });
 });

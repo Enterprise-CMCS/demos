@@ -8,6 +8,8 @@ AWS_REGION="us-east-1"
 AWS_CMD="aws --endpoint-url=$LOCALSTACK_ENDPOINT --region $AWS_REGION"
 
 QUEUE_NAME="fileprocess-queue"
+UIPATH_QUEUE_NAME="uipath-queue"
+UIPATH_QUEUE_URL=$($AWS_CMD sqs get-queue-url --queue-name $UIPATH_QUEUE_NAME --output text --query 'QueueUrl')
 BN_QUEUE_NAME="budget-neutrality-queue"
 BN_QUEUE_URL=$($AWS_CMD sqs get-queue-url --queue-name $BN_QUEUE_NAME --output text --query 'QueueUrl')
 
@@ -53,7 +55,8 @@ $AWS_CMD lambda create-function \
       UPLOAD_BUCKET=upload-bucket,
       CLEAN_BUCKET=clean-bucket,
       INFECTED_BUCKET=infected-bucket,
-      BUDGET_NEUTRALITY_QUEUE_URL=$BN_QUEUE_URL
+      BUDGET_NEUTRALITY_QUEUE_URL=$BN_QUEUE_URL,
+      UIPATH_QUEUE_URL=$UIPATH_QUEUE_URL
     }" >/dev/null
 
 # Wait for Lambda to be active

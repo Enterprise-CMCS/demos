@@ -4,11 +4,15 @@ const sendMock = vi.fn();
 
 vi.mock("@aws-sdk/client-sqs", () => {
   return {
-    SQSClient: vi.fn().mockImplementation(() => ({
-      send: sendMock,
-    })),
-    SendMessageCommand: vi.fn().mockImplementation((input) => ({ input })),
-    GetQueueUrlCommand: vi.fn().mockImplementation((input) => ({ input })),
+    SQSClient: vi.fn(function (this: any) {
+      this.send = sendMock;
+    }),
+    SendMessageCommand: vi.fn(function (this: any, input) {
+      this.input = input;
+    }),
+    GetQueueUrlCommand: vi.fn(function (this: any, input) {
+      this.input = input;
+    }),
   };
 });
 

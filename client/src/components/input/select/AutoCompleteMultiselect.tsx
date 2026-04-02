@@ -117,7 +117,7 @@ export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = (
 
       <div className="relative w-full">
         <input
-          data-testid="input-autocomplete-multiselect"
+          data-testid={id ?? "input-autocomplete-multiselect"}
           id={id}
           type="text"
           placeholder={placeholder}
