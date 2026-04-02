@@ -14,6 +14,7 @@ export async function updateDocument(
       description: input.description,
       documentTypeId: input.documentType,
       applicationId: input.applicationId,
+      deliverableId: input.deliverableId,
       phaseId: input.phaseName,
     },
   });

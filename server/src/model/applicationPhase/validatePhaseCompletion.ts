@@ -4,13 +4,13 @@ import {
   checkPhaseCompletionRules,
 } from ".";
 import { PrismaTransactionClient } from "../../prismaClient.js";
-import { ClearanceLevel, PhaseNameWithTrackedStatus } from "../../types.js";
+import { ClearanceLevel, PhaseName } from "../../types.js";
 import { getApplication } from "../application";
 import { getApplicationDates } from "../applicationDate";
 
 export async function validatePhaseCompletion(
   applicationId: string,
-  phaseName: PhaseNameWithTrackedStatus,
+  phaseName: PhaseName,
   tx: PrismaTransactionClient
 ): Promise<void> {
   const applicationDates = await getApplicationDates(applicationId, tx);

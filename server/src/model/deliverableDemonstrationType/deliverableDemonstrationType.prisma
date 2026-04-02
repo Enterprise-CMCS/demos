@@ -1,0 +1,13 @@
+// Flags: NO_CREATED_TS, NO_UPDATED_TS
+// Table associates deliverables with demonstration types, generally only inserted or removed from
+model DeliverableDemonstrationType {
+  deliverableId              String @map("deliverable_id") @db.Uuid
+  demonstrationId            String @map("demonstration_id") @db.Uuid
+  demonstrationTypeTagNameId String @map("demonstration_type_tag_name_id")
+
+  deliverable                    Deliverable                    @relation(fields: [deliverableId, demonstrationId], references: [id, demonstrationId])
+  demonstrationTypeTagAssignment DemonstrationTypeTagAssignment @relation(fields: [demonstrationId, demonstrationTypeTagNameId], references: [demonstrationId, tagNameId])
+
+  @@id([deliverableId, demonstrationId, demonstrationTypeTagNameId])
+  @@map("deliverable_demonstration_type")
+}

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { getStatusForPhase, setStatusForPhase, type SimplePhase } from "./phaseStatus";
+import { PhaseName } from "demos-server";
 
 const mockApplicationPhases: SimplePhase[] = [
   {
@@ -29,7 +30,7 @@ describe("phaseStatus", () => {
     });
 
     it("should return null for non-existent phase", () => {
-      const status = getStatusForPhase(mockApplicationPhases, "None");
+      const status = getStatusForPhase(mockApplicationPhases, "Not a real phase" as PhaseName);
       expect(status).toBeNull();
     });
 
@@ -50,7 +51,11 @@ describe("phaseStatus", () => {
     });
 
     it("should return unchanged array when setting status for non-existent phase", () => {
-      const updatedPhases = setStatusForPhase(mockApplicationPhases, "None", "Completed");
+      const updatedPhases = setStatusForPhase(
+        mockApplicationPhases,
+        "Not a real phase" as PhaseName,
+        "Completed"
+      );
 
       expect(updatedPhases).toEqual(mockApplicationPhases);
     });

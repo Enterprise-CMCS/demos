@@ -1,0 +1,10 @@
+// Flags: STATIC_CONSTRAINT
+model DeliverableType {
+  id String
+
+  deliverables                 Deliverable[]
+  deliverableTypeDocumentTypes DeliverableTypeDocumentType[]
+
+  @@id([id])
+  @@map("deliverable_type")
+}

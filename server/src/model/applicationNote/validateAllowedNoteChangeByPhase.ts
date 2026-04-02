@@ -1,12 +1,12 @@
 import { PrismaTransactionClient } from "../../prismaClient";
-import { PhaseNameWithTrackedStatus, SetApplicationNotesInput } from "../../types";
+import { PhaseName, SetApplicationNotesInput } from "../../types";
 import { getFinishedApplicationPhaseIds } from "../applicationPhase";
 import { getPhaseNoteTypes, PhaseNoteType } from "../phaseNoteType";
 export async function validateAllowedNoteChangeByPhase(
   tx: PrismaTransactionClient,
   input: SetApplicationNotesInput
 ): Promise<void> {
-  const completedPhaseIds: PhaseNameWithTrackedStatus[] = await getFinishedApplicationPhaseIds(
+  const completedPhaseIds: PhaseName[] = await getFinishedApplicationPhaseIds(
     tx,
     input.applicationId
   );

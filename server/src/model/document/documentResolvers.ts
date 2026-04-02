@@ -45,6 +45,11 @@ export async function uploadDocument(
   { input }: { input: UploadDocumentInput },
   context: GraphQLContext
 ): Promise<UploadDocumentResponse> {
+  checkOptionalNotNullFields(
+    ["name", "documentType", "applicationId", "phaseName", "deliverableId"],
+    input
+  );
+
   const s3Adapter = getS3Adapter();
 
   try {
@@ -53,6 +58,11 @@ export async function uploadDocument(
         "The GraphQL context does not have user information. Are you properly authenticated?"
       );
     }
+
+    if (input.phaseName && input.deliverableId) {
+      throw new Error("A document cannot be associated with both a phase and a deliverable.");
+    }
+
     const userId = context.user.id;
     return await prisma().$transaction(async (tx) => {
       const easternNow = getEasternNow();
@@ -91,7 +101,10 @@ export async function updateDocument(
   _: unknown,
   { id, input }: { id: string; input: UpdateDocumentInput }
 ): Promise<PrismaDocument> {
-  checkOptionalNotNullFields(["name", "documentType", "applicationId", "phaseName"], input);
+  checkOptionalNotNullFields(
+    ["name", "documentType", "applicationId", "phaseName", "deliverableId"],
+    input
+  );
   try {
     return await prisma().$transaction(async (tx) => {
       return await updateDocumentQuery(tx, id, input);
@@ -178,6 +191,13 @@ export function resolvePhaseName(parent: PrismaDocument): PhaseName {
   return parent.phaseId as PhaseName;
 }
 
+export async function resolveDeliverable(parent: PrismaDocument) {
+  if (!parent.deliverableId) {
+    return null;
+  }
+  return await prisma().deliverable.findUnique({ where: { id: parent.deliverableId } });
+}
+
 export const documentResolvers = {
   Query: {
     document: getDocument,
@@ -197,6 +217,7 @@ export const documentResolvers = {
     documentType: resolveDocumentType,
     presignedDownloadUrl: resolvePresignedDownloadUrl,
     application: resolveApplication,
+    deliverable: resolveDeliverable,
     phaseName: resolvePhaseName,
   },
 };
