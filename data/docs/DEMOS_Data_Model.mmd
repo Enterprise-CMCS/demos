@@ -502,7 +502,7 @@ erDiagram
     timestamptz final_date_granted "NULLABLE"
     timestamptz created_at
     timestamptz updated_at
-    CONSTRAINT_CHECK require_final_date_for_finished_requests "If the status is completed, require a final date granted value."
+    CONSTRAINT_CHECK require_final_date_for_finished_requests "If the status is Approved, require a final date granted value. If it is not approved, prohibit a final date granted value"
     TRIGGER_AFTER_INSERT_OR_UPDATE create_or_update_active_record_for_request "If a request is inserted, add it to the deliverable_active_extension table.<br>If a request is edited to move out of the active status, remove from deliverable_active_extension.<br>If a request is edited to move into the active status, add to deliverable_active_extension."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true

@@ -1163,11 +1163,13 @@ RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
+    -- if the action is a submission action
     IF EXISTS (
         SELECT 1
         FROM demos_app.deliverable_submission_action_type_limit
         WHERE id = NEW.action_type_id
     ) THEN
+        -- link any documents that are part of the submission to the action
         UPDATE demos_app.document
         SET deliverable_submission_action_id = NEW.id,
             deliverable_submission_action_type_id = NEW.action_type_id
@@ -1190,11 +1192,11 @@ RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 BEGIN
+    -- if creating a new extension request with an active status, insert to the active table
     IF (TG_OP = 'INSERT') THEN
-        -- If inserting with an active status, add to deliverable_active_extension
         IF EXISTS (
-            SELECT 1 
-            FROM demos_app.deliverable_active_extension_status_limit 
+            SELECT 1
+            FROM demos_app.deliverable_active_extension_status_limit
             WHERE id = NEW.status_id
         ) THEN
             INSERT INTO demos_app.deliverable_active_extension (
@@ -1208,41 +1210,34 @@ BEGIN
             );
         END IF;
         RETURN NEW;
-        
-    ELSIF (TG_OP = 'UPDATE') THEN
-        -- Check if status changed
-        IF OLD.status_id IS DISTINCT FROM NEW.status_id THEN
-            -- Check if OLD status was active
-            IF EXISTS (
-                SELECT 1 
-                FROM demos_app.deliverable_active_extension_status_limit 
-                WHERE id = OLD.status_id
-            ) THEN
-                -- Moving out of active status - remove from active table
-                DELETE FROM demos_app.deliverable_active_extension
-                WHERE deliverable_extension_id = OLD.id;
-            END IF;
-            
-            -- Check if NEW status is active
-            IF EXISTS (
-                SELECT 1 
-                FROM demos_app.deliverable_active_extension_status_limit 
-                WHERE id = NEW.status_id
-            ) THEN
-                -- Moving into active status - add to active table
-                INSERT INTO demos_app.deliverable_active_extension (
-                    deliverable_extension_id,
-                    deliverable_id,
-                    status_id
-                ) VALUES (
-                    NEW.id,
-                    NEW.deliverable_id,
-                    NEW.status_id
-                );
-            END IF;
+    -- if updating an extension request to change its status
+    ELSIF (TG_OP = 'UPDATE' AND (OLD.status_id IS DISTINCT FROM NEW.status_id)) THEN
+        -- if new updated extension request is not in an active status
+        IF NOT EXISTS (
+            SELECT 1
+            FROM demos_app.deliverable_active_extension_status_limit
+            WHERE id = NEW.status_id
+        ) THEN
+            -- remove from active table
+            DELETE FROM demos_app.deliverable_active_extension
+            WHERE deliverable_extension_id = NEW.id;
+        -- if new updated extension request is in an active status
+        ELSE
+            -- upsert into the active table
+            INSERT INTO demos_app.deliverable_active_extension (
+                deliverable_extension_id,
+                deliverable_id,
+                status_id
+            ) VALUES (
+                NEW.id,
+                NEW.deliverable_id,
+                NEW.status_id
+            )
+            ON CONFLICT (deliverable_extension_id) DO NOTHING;
         END IF;
-        RETURN NEW;
     END IF;
+
+    RETURN NEW;
 END;
 $$;
 

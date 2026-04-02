@@ -957,8 +957,11 @@ ALTER TABLE
 ADD CONSTRAINT
     require_final_date_for_finished_requests
 CHECK (
-    NOT (
+    (
         status_id = 'Approved'
+        AND final_date_granted IS NOT NULL
+    ) OR (
+        status_id != 'Approved'
         AND final_date_granted IS NULL
     )
 );
@@ -1008,14 +1011,14 @@ ALTER TABLE
 ADD CONSTRAINT
     check_deliverable_null_states
 CHECK (
-    (deliverable_id IS NULL 
-        AND deliverable_type_id IS NULL 
+    (deliverable_id IS NULL
+        AND deliverable_type_id IS NULL
         AND deliverable_is_cms_attached_file IS NULL
         AND deliverable_submission_action_id IS NULL
         AND deliverable_submission_action_type_id IS NULL)
     OR
-    (deliverable_id IS NOT NULL 
-        AND deliverable_type_id IS NOT NULL 
+    (deliverable_id IS NOT NULL
+        AND deliverable_type_id IS NOT NULL
         AND deliverable_is_cms_attached_file IS NOT NULL)
 );
 
@@ -1049,9 +1052,15 @@ ALTER TABLE
 ADD CONSTRAINT
     check_deliverable_null_states
 CHECK (
-    (deliverable_id IS NULL AND deliverable_type_id IS NULL AND deliverable_is_cms_attached_file IS NULL)
-    OR
-    (deliverable_id IS NOT NULL AND deliverable_type_id IS NOT NULL AND deliverable_is_cms_attached_file IS NOT NULL)
+    (
+        deliverable_id IS NULL
+        AND deliverable_type_id IS NULL
+        AND deliverable_is_cms_attached_file IS NULL
+    ) OR (
+        deliverable_id IS NOT NULL
+        AND deliverable_type_id IS NOT NULL
+        AND deliverable_is_cms_attached_file IS NOT NULL
+    )
 );
 
 ALTER TABLE
@@ -1095,8 +1104,6 @@ ADD CONSTRAINT
 CHECK (
     phase_id IS NULL OR deliverable_id IS NULL
 );
-
-
 
 ALTER TABLE
     demos_app.document_pending_upload
