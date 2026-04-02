@@ -1565,7 +1565,7 @@ ALTER TABLE "deliverable_action_configuration" ADD CONSTRAINT "deliverable_actio
 ALTER TABLE "deliverable_action_configuration" ADD CONSTRAINT "deliverable_action_configuration_new_status_id_fkey" FOREIGN KEY ("new_status_id") REFERENCES "deliverable_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "deliverable_active_extension" ADD CONSTRAINT "deliverable_active_extension_deliverable_extension_id_deli_fkey" FOREIGN KEY ("deliverable_extension_id", "deliverable_id", "status_id") REFERENCES "deliverable_extension"("id", "deliverable_id", "status_id") ON DELETE RESTRICT ON UPDATE NO ACTION;
+ALTER TABLE "deliverable_active_extension" ADD CONSTRAINT "deliverable_active_extension_deliverable_extension_id_deli_fkey" FOREIGN KEY ("deliverable_extension_id", "deliverable_id", "status_id") REFERENCES "deliverable_extension"("id", "deliverable_id", "status_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "deliverable_active_extension" ADD CONSTRAINT "deliverable_active_extension_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "deliverable_active_extension_status_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
