@@ -93,7 +93,7 @@ VALUES
     ('Approved Extension Request', TRUE, FALSE, TRUE),
     ('Denied Extension Request', FALSE, FALSE, TRUE),
     ('Withdrew Extension Request', FALSE, FALSE, TRUE),
-    ('Manually Changed Due Date', TRUE, FALSE, TRUE),
+    ('Manually Changed Due Date', TRUE, TRUE, TRUE),
     ('Requested Resubmission', TRUE, TRUE, TRUE),
     ('Submitted Deliverable', FALSE, FALSE, TRUE),
     ('Started Review', FALSE, FALSE, TRUE),
