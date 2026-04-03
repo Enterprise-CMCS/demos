@@ -4,10 +4,15 @@ import { IconButton } from "components/button";
 import { AddNewIcon } from "components/icons";
 import { TabHeader } from "components/table/TabHeader";
 import { useDialog } from "components/dialog/DialogContext";
+import { AddDeliverableSlotDemonstration } from "components/dialog/deliverable/AddDeliverableSlotDialog";
 
 const ADD_DELIVERABLE_SLOT_BUTTON_NAME = "button-add-deliverable-slot";
 
-export const DeliverablesTab = ({ demonstrationTypes }: { demonstrationTypes: string[] }) => {
+export const DeliverablesTab = ({
+  parentDemonstration,
+}: {
+  parentDemonstration: AddDeliverableSlotDemonstration;
+}) => {
   const { showAddDeliverableSlotDialog } = useDialog();
 
   return (
@@ -17,7 +22,7 @@ export const DeliverablesTab = ({ demonstrationTypes }: { demonstrationTypes: st
           icon={<AddNewIcon />}
           name={ADD_DELIVERABLE_SLOT_BUTTON_NAME}
           size="small"
-          onClick={() => showAddDeliverableSlotDialog(demonstrationTypes)}
+          onClick={() => showAddDeliverableSlotDialog(parentDemonstration)}
         >
           Add Deliverable Slot(s)
         </IconButton>

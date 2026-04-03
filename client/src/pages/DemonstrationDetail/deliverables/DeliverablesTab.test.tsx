@@ -13,7 +13,7 @@ describe("DeliverablesTab", () => {
     render(
       <TestProvider>
         <DialogProvider>
-          <DeliverablesTab demonstrationTypes={[]} />
+          <DeliverablesTab parentDemonstration={{ demonstrationTypes: [] }} />
         </DialogProvider>
       </TestProvider>
     );

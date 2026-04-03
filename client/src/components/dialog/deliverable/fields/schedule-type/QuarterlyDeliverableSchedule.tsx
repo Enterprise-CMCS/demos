@@ -8,10 +8,8 @@ export function getOptionsForYearSelect(
   demonstrationEffectiveDate: Date,
   demonstrationExpirationDate: Date
 ): Option[] {
-  const numYears = Math.max(
-    differenceInCalendarYears(demonstrationExpirationDate, demonstrationEffectiveDate),
-    1
-  );
+  const numYears =
+    differenceInCalendarYears(demonstrationExpirationDate, demonstrationEffectiveDate) + 1;
 
   return Array.from({ length: numYears }, (_, index) => {
     const year = index + 1;

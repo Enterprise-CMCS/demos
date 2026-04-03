@@ -9,6 +9,7 @@ import { DemonstrationTypeField } from "./fields/DemonstrationTypeField";
 import { ScheduleType, ScheduleTypeField } from "./fields/schedule-type/ScheduleTypeField";
 import { SingleDeliverableScheduleType } from "./fields/schedule-type/SingleDeliverableScheduleType";
 import { QuarterlyDeliverableSchedule } from "./fields/schedule-type/QuarterlyDeliverableSchedule";
+import { Demonstration } from "demos-server";
 
 export const ADD_DELIVERABLE_SLOT_DIALOG_TITLE = "Add New Deliverable Slot(s)";
 export const ADD_DELIVERABLE_SLOT_DIALOG_NAME = "add-deliverable-slot-dialog";
@@ -48,21 +49,31 @@ const checkFormHasChanges = (data: AddDeliverableSlotFormData): boolean =>
   data.scheduleType !== INITIAL_FORM_DATA.scheduleType ||
   data.demonstrationTypes.length !== 0;
 
+export type AddDeliverableSlotDemonstration = Pick<
+  Demonstration,
+  "effectiveDate" | "expirationDate"
+> & {
+  demonstrationTypes: string[];
+};
+
 export const AddDeliverableSlotDialog = ({
   onClose,
-  demonstrationTypes,
-  demonstrationEffectiveDate,
-  demonstrationExpirationDate,
+  demonstration,
 }: {
   onClose: () => void;
-  demonstrationTypes: string[];
-  demonstrationEffectiveDate: Date;
-  demonstrationExpirationDate: Date;
+  demonstration: AddDeliverableSlotDemonstration;
 }) => {
   const [formData, setFormData] = useState<AddDeliverableSlotFormData>(INITIAL_FORM_DATA);
 
   const formIsValid = checkFormIsValid(formData);
   const formHasChanges = checkFormHasChanges(formData);
+
+  if (!demonstration.effectiveDate || !demonstration.expirationDate) {
+    console.log(
+      "Demonstration effective and expiration dates are required for AddDeliverableSlotDialog"
+    );
+    return null;
+  }
 
   return (
     <BaseDialog
@@ -87,7 +98,6 @@ export const AddDeliverableSlotDialog = ({
             value={formData.deliverableType}
             onSelect={(deliverableType) => setFormData((prev) => ({ ...prev, deliverableType }))}
           />
-
           <ScheduleTypeField
             value={formData.scheduleType}
             onSelect={(scheduleType) => setFormData((prev) => ({ ...prev, scheduleType }))}
@@ -95,8 +105,8 @@ export const AddDeliverableSlotDialog = ({
         </div>
         {formData.scheduleType === "Quarterly" && (
           <QuarterlyDeliverableSchedule
-            demonstrationEffectiveDate={demonstrationEffectiveDate}
-            demonstrationExpirationDate={demonstrationExpirationDate}
+            demonstrationEffectiveDate={demonstration.effectiveDate}
+            demonstrationExpirationDate={demonstration.expirationDate}
           />
         )}
         {formData.scheduleType === "Single" && <SingleDeliverableScheduleType />}
@@ -110,7 +120,7 @@ export const AddDeliverableSlotDialog = ({
             onSelect={(cmsOwnerId) => setFormData((prev) => ({ ...prev, cmsOwnerId }))}
           />
           <DemonstrationTypeField
-            options={demonstrationTypes}
+            options={demonstration.demonstrationTypes}
             values={formData.demonstrationTypes}
             onSelect={(selectedTypes) =>
               setFormData((prev) => ({ ...prev, demonstrationTypes: selectedTypes }))
