@@ -6,7 +6,9 @@ import { CMSOwnerField } from "./fields/CMSOwnerField";
 import { DeliverableNameField } from "./fields/DeliverableNameField";
 import { DeliverableTypeField } from "./fields/DeliverableTypeField";
 import { DemonstrationTypeField } from "./fields/DemonstrationTypeField";
-import { ScheduleTypeField } from "./fields/ScheduleTypeField";
+import { ScheduleType, ScheduleTypeField } from "./fields/schedule-type/ScheduleTypeField";
+import { SingleDeliverableScheduleType } from "./fields/schedule-type/SingleDeliverableScheduleType";
+import { QuarterlyDeliverableSchedule } from "./fields/schedule-type/QuarterlyDeliverableSchedule";
 
 export const ADD_DELIVERABLE_SLOT_DIALOG_TITLE = "Add New Deliverable Slot(s)";
 export const ADD_DELIVERABLE_SLOT_DIALOG_NAME = "add-deliverable-slot-dialog";
@@ -20,7 +22,7 @@ interface AddDeliverableSlotFormData {
   deliverableName: string;
   cmsOwnerId: string;
   deliverableType: string;
-  scheduleType: string;
+  scheduleType: ScheduleType;
   demonstrationTypes: string[];
 }
 
@@ -28,7 +30,7 @@ const INITIAL_FORM_DATA: AddDeliverableSlotFormData = {
   deliverableName: "",
   cmsOwnerId: "",
   deliverableType: "",
-  scheduleType: "",
+  scheduleType: "Single",
   demonstrationTypes: [],
 };
 
@@ -48,10 +50,14 @@ const checkFormHasChanges = (data: AddDeliverableSlotFormData): boolean =>
 
 export const AddDeliverableSlotDialog = ({
   onClose,
-  demonstrationTypes = [],
+  demonstrationTypes,
+  demonstrationEffectiveDate,
+  demonstrationExpirationDate,
 }: {
   onClose: () => void;
-  demonstrationTypes?: string[];
+  demonstrationTypes: string[];
+  demonstrationEffectiveDate: Date;
+  demonstrationExpirationDate: Date;
 }) => {
   const [formData, setFormData] = useState<AddDeliverableSlotFormData>(INITIAL_FORM_DATA);
 
@@ -64,6 +70,7 @@ export const AddDeliverableSlotDialog = ({
       title={ADD_DELIVERABLE_SLOT_DIALOG_TITLE}
       onClose={onClose}
       dialogHasChanges={formHasChanges}
+      maxWidthClass="max-w-[960px]"
       actionButton={
         <Button
           name={ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME}
@@ -86,6 +93,13 @@ export const AddDeliverableSlotDialog = ({
             onSelect={(scheduleType) => setFormData((prev) => ({ ...prev, scheduleType }))}
           />
         </div>
+        {formData.scheduleType === "Quarterly" && (
+          <QuarterlyDeliverableSchedule
+            demonstrationEffectiveDate={demonstrationEffectiveDate}
+            demonstrationExpirationDate={demonstrationExpirationDate}
+          />
+        )}
+        {formData.scheduleType === "Single" && <SingleDeliverableScheduleType />}
         <DeliverableNameField
           value={formData.deliverableName}
           onChange={(deliverableName) => setFormData((prev) => ({ ...prev, deliverableName }))}
