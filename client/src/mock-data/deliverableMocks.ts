@@ -99,7 +99,7 @@ export const MOCK_DELIVERABLES: MockDeliverable[] = [
   {
     id: "1b7d2e71-4c98-4a26-a8ff-2cbf4af7d2a4",
     deliverableName: "Budget Neutrality Worksheet",
-    demonstrationName: "NYC Demonstration",
+    demonstrationName: "ALADEMO",
     deliverableType: "HCBS Actual and Estimated Enrollment Number Report (1915(i)-like)",
     cmsOwner: "Dusty Rhodes",
     dueDate: "2024-08-15",
@@ -118,7 +118,7 @@ export const MOCK_DELIVERABLES: MockDeliverable[] = [
   {
     id: "b7045f1e-3d54-44ef-98a4-95f53d2ce8de",
     deliverableName: "Deliverable 3",
-    demonstrationName: "Demonstration C",
+    demonstrationName: "SET WITH APPROVED DEMO NAME AND SEE IT SHOW IN DEMO DETAILS",
     deliverableType: "HCBS Deficiency, Remediation and A/N/E Incident Report (1915(c)-like)",
     cmsOwner: "CMS Owner C",
     dueDate: "2024-09-30",
@@ -137,9 +137,9 @@ export const MOCK_DELIVERABLES: MockDeliverable[] = [
   {
     id: "f0f85d42-451d-4b83-a0f2-bf4f7f194b91",
     deliverableName: "Deliverable 4",
-    demonstrationName: "Demonstration D",
+    demonstrationName: "ALADEMO",
     deliverableType: "HCBS Evidentiary Report",
-    cmsOwner: "CMS Owner D",
+    cmsOwner: "Dusty Rhodes",
     dueDate: "2024-10-15",
     submissionDate: undefined,
     status: "Upcoming",
