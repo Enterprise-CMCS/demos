@@ -29,6 +29,7 @@ import { ContactsTab } from "./ContactsTab";
 import { useApolloClient } from "@apollo/client/react/hooks/useApolloClient";
 import { TypesTable } from "components/table/tables/TypesTable";
 import { DeliverablesTab } from "./deliverables/DeliverablesTab";
+import { getDeliverablesForDemonstration } from "mock-data/deliverableMocks";
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
   person: Pick<Person, "fullName" | "id" | "email" | "personType">;
@@ -44,7 +45,7 @@ export type DemonstrationDetailDemonstrationType = Pick<
   | "approvalStatus"
 >;
 
-export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "status"> & {
+export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "name" | "status"> & {
   demonstrationTypes: DemonstrationDetailDemonstrationType[];
   documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
     owner: {
@@ -78,17 +79,19 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
 
   const isDemonstrationApproved = demonstration.status === "Approved";
   const defaultTab = isDemonstrationApproved ? TAB.DELIVERABLES : TAB.APPLICATION;
+  const demonstrationDeliverables = getDeliverablesForDemonstration(demonstration.name);
 
   return (
     <div className="p-[16px]">
       <VerticalTabs defaultValue={defaultTab}>
         <Tab
           icon={<FileIcon />}
-          label="Deliverables"
+          label={`Deliverables (${demonstrationDeliverables.length})`}
           value={TAB.DELIVERABLES}
           shouldRender={isDemonstrationApproved}
         >
           <DeliverablesTab
+            deliverables={demonstrationDeliverables}
             demonstrationTypes={demonstration.demonstrationTypes.map(
               (t) => t.demonstrationTypeName
             )}
