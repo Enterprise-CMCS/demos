@@ -24,4 +24,22 @@ describe("getOptionsForYearSelect", () => {
 
     expect(result).toEqual([{ label: "Year 1", value: "1" }]);
   });
+
+  it("returns a single year option when effective date is undefined", () => {
+    const result = getOptionsForYearSelect(undefined, new Date("2026-12-31"));
+
+    expect(result).toEqual([{ label: "Year 1", value: "1" }]);
+  });
+
+  it("returns a single year option when expiration date is undefined", () => {
+    const result = getOptionsForYearSelect(new Date("2026-01-01"), undefined);
+
+    expect(result).toEqual([{ label: "Year 1", value: "1" }]);
+  });
+
+  it("returns a single year option when both dates are undefined", () => {
+    const result = getOptionsForYearSelect(undefined, undefined);
+
+    expect(result).toEqual([{ label: "Year 1", value: "1" }]);
+  });
 });

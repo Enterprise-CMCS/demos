@@ -2,14 +2,16 @@ import React, { useState } from "react";
 import { differenceInCalendarYears } from "date-fns";
 
 import { DatePicker } from "components/input/date/DatePicker";
-import { Option, Select } from "components/input/select/Select";
+import { Select } from "components/input/select/Select";
 
 export function getOptionsForYearSelect(
-  demonstrationEffectiveDate: Date,
-  demonstrationExpirationDate: Date
-): Option[] {
-  const numYears =
-    differenceInCalendarYears(demonstrationExpirationDate, demonstrationEffectiveDate) + 1;
+  demonstrationEffectiveDate?: Date,
+  demonstrationExpirationDate?: Date
+) {
+  const dateMissing = !demonstrationEffectiveDate || !demonstrationExpirationDate;
+  const numYears = dateMissing
+    ? 1
+    : differenceInCalendarYears(demonstrationExpirationDate, demonstrationEffectiveDate) + 1;
 
   return Array.from({ length: numYears }, (_, index) => {
     const year = index + 1;
@@ -24,8 +26,8 @@ export function QuarterlyDeliverableSchedule({
   demonstrationEffectiveDate,
   demonstrationExpirationDate,
 }: {
-  demonstrationEffectiveDate: Date;
-  demonstrationExpirationDate: Date;
+  demonstrationEffectiveDate?: Date;
+  demonstrationExpirationDate?: Date;
 }) {
   const [selectedYear, setSelectedYear] = useState(1);
 

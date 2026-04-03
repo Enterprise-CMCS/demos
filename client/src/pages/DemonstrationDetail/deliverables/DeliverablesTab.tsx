@@ -6,7 +6,7 @@ import { TabHeader } from "components/table/TabHeader";
 import { useDialog } from "components/dialog/DialogContext";
 import { AddDeliverableSlotDemonstration } from "components/dialog/deliverable/AddDeliverableSlotDialog";
 
-const ADD_DELIVERABLE_SLOT_BUTTON_NAME = "button-add-deliverable-slot";
+export const ADD_DELIVERABLE_SLOT_BUTTON_NAME = "button-add-deliverable-slot";
 
 export const DeliverablesTab = ({
   parentDemonstration,

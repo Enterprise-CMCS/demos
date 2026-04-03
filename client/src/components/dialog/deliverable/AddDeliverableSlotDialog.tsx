@@ -68,13 +68,6 @@ export const AddDeliverableSlotDialog = ({
   const formIsValid = checkFormIsValid(formData);
   const formHasChanges = checkFormHasChanges(formData);
 
-  if (!demonstration.effectiveDate || !demonstration.expirationDate) {
-    console.log(
-      "Demonstration effective and expiration dates are required for AddDeliverableSlotDialog"
-    );
-    return null;
-  }
-
   return (
     <BaseDialog
       name={ADD_DELIVERABLE_SLOT_DIALOG_NAME}
