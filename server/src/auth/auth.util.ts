@@ -9,6 +9,13 @@ import { prisma } from "../prismaClient.js";
 import { pickString } from "./claim-utils";
 import { PERSON_TYPES } from "../constants";
 import { log } from "../log.js";
+import {
+  createDemonstrationService,
+  DemonstrationService,
+} from "../model/demonstration/demonstrationService.js";
+import { AmendmentService, createAmendmentService } from "../model/amendment/amendmentService.js";
+import { createExtensionService, ExtensionService } from "../model/extension/extensionService.js";
+import { Permission } from "../types.js";
 
 const config = getAuthConfig();
 
@@ -16,11 +23,19 @@ const ALGORITHMS: Algorithm[] = ["RS256"];
 const CACHE_MAX_AGE = 60 * 60 * 1000; // 10 minutes
 const CACHE_MAX_ENTRIES = 10;
 
+export interface ContextUser {
+  id: string;
+  sub: string;
+  role: string;
+  permissions: string[];
+}
+
 export interface GraphQLContext {
-  user: null | {
-    id: string;
-    sub: string;
-    role: string;
+  user: ContextUser | null;
+  services: {
+    demonstration: DemonstrationService;
+    amendment: AmendmentService;
+    extension: ExtensionService;
   };
 }
 
@@ -69,7 +84,7 @@ function getKey(header: JwtHeader, cb: (err: Error | null, key?: string) => void
 
 // Check if role is demos-admin, demos-cms-user, or demos-state-user
 function verifyRole(role: string): void {
-  const validRoles = (PERSON_TYPES as readonly string[]).filter(r => r !== "non-user-contact");
+  const validRoles = (PERSON_TYPES as readonly string[]).filter((r) => r !== "non-user-contact");
   if (!validRoles.includes(role)) {
     throw new GraphQLError(`Invalid user role: '${role}'`, {
       extensions: {
@@ -116,7 +131,9 @@ export function normalizeClaimsFromRaw(raw: Record<string, unknown>): Claims {
   // role from custom or flat authorizer
   const role = pickString(raw, ["custom:roles", "role"]);
   if (!role) {
-    throw new GraphQLError("Missing role in token", { extensions: { code: "UNAUTHORIZED", http: { status: 403 } } });
+    throw new GraphQLError("Missing role in token", {
+      extensions: { code: "UNAUTHORIZED", http: { status: 403 } },
+    });
   }
   verifyRole(role);
 
@@ -150,7 +167,11 @@ function decodeToken(token: string): Promise<DecodedJWT> {
       try {
         claims = normalizeClaimsFromRaw(rawDecoded);
       } catch (error) {
-        log.error({ errorName: (error as Error).name, message: (error as Error).message, type: "auth.token.claims_error" });
+        log.error({
+          errorName: (error as Error).name,
+          message: (error as Error).message,
+          type: "auth.token.claims_error",
+        });
         return reject(error);
       }
 
@@ -205,8 +226,7 @@ function extractToken(getHeader: HeaderGetter): string {
 }
 
 function deriveUserFields(claims: Claims) {
-  const backupUserName =
-    claims.email && claims.email.includes("@") ? claims.email : undefined;
+  const backupUserName = claims.email && claims.email.includes("@") ? claims.email : undefined;
   const username = claims.externalUserId || backupUserName;
 
   if (!username) {
@@ -214,10 +234,12 @@ function deriveUserFields(claims: Claims) {
   }
 
   const firstName = claims.givenName?.trim();
-  const lastName  = claims.familyName?.trim();
+  const lastName = claims.familyName?.trim();
 
   if (!firstName || !lastName || !claims.email) {
-    throw new Error("Missing required name parts from claims; given_name family_name and email are required");
+    throw new Error(
+      "Missing required name parts from claims; given_name family_name and email are required"
+    );
   }
 
   return { username, email: claims.email, firstName, lastName };
@@ -261,8 +283,32 @@ async function ensureUserFromClaims(claims: Claims) {
 /** Build GraphQLContext from verified claims, creating user/roles as needed */
 async function buildContextFromClaims(claims: Claims): Promise<GraphQLContext> {
   const user = await ensureUserFromClaims(claims);
+  const systemRoles = (
+    await prisma().systemRoleAssignment.findMany({
+      where: { personId: user.id },
+    })
+  ).map((roleAssignment) => roleAssignment.roleId);
+
+  const permissions = (
+    await prisma().rolePermission.findMany({
+      where: { roleId: { in: systemRoles } },
+    })
+  ).map((rolePermission) => rolePermission.permissionId);
+
+  const contextUser: ContextUser = {
+    id: user.id,
+    sub: claims.sub,
+    role: user.personTypeId,
+    permissions,
+  };
+
   return {
-    user: { id: user.id, sub: claims.sub, role: user.personTypeId },
+    user: contextUser,
+    services: {
+      demonstration: createDemonstrationService(contextUser),
+      amendment: createAmendmentService(contextUser),
+      extension: createExtensionService(contextUser),
+    },
   };
 }
 
@@ -286,14 +332,33 @@ export async function buildLambdaContext(
 
   // Fallback: verify the Bearer token yourself if no authorizer-claims header
   const token = extractToken(createHeaderGetter(headers as unknown as Record<string, unknown>));
-  if (!token) return { user: null };
+  if (!token) {
+    throw new GraphQLError("User is not authenticated", {
+      extensions: { code: "UNAUTHENTICATED", http: { status: 401 } },
+    });
+  }
 
   try {
-    const { sub, email, role, givenName, familyName, name, externalUserId } = await decodeToken(token);
-    return buildContextFromClaims({ sub, email, role, givenName, familyName, name, externalUserId });
+    const { sub, email, role, givenName, familyName, name, externalUserId } =
+      await decodeToken(token);
+    return buildContextFromClaims({
+      sub,
+      email,
+      role,
+      givenName,
+      familyName,
+      name,
+      externalUserId,
+    });
   } catch (err) {
-    log.error({ errorName: (err as Error).name, message: (err as Error).message, type: "auth.lambda_context.error" });
-    return { user: null };
+    log.error({
+      errorName: (err as Error).name,
+      message: (err as Error).message,
+      type: "auth.lambda_context.error",
+    });
+    throw new GraphQLError("User is not authenticated", {
+      extensions: { code: "UNAUTHENTICATED", http: { status: 401 } },
+    });
   }
 }
 
@@ -301,14 +366,32 @@ export async function buildLambdaContext(
 export async function buildHttpContext(req: IncomingMessage): Promise<GraphQLContext> {
   const token = extractToken(createHeaderGetter(req.headers as Record<string, unknown>));
 
-  if (!token) return { user: null };
+  if (!token) {
+    throw new GraphQLError("User is not authenticated", {
+      extensions: { code: "UNAUTHENTICATED", http: { status: 401 } },
+    });
+  }
   try {
     const decodedToken = await decodeToken(token);
     const { sub, email, role, givenName, familyName, name, externalUserId } = decodedToken;
-    return buildContextFromClaims({ sub, email, role, givenName, familyName, name, externalUserId });
+    return buildContextFromClaims({
+      sub,
+      email,
+      role,
+      givenName,
+      familyName,
+      name,
+      externalUserId,
+    });
   } catch (err) {
-    log.error({ errorName: (err as Error).name, message: (err as Error).message, type: "auth.http_context.error" });
-    return { user: null };
+    log.error({
+      errorName: (err as Error).name,
+      message: (err as Error).message,
+      type: "auth.http_context.error",
+    });
+    throw new GraphQLError("User is not authenticated", {
+      extensions: { code: "UNAUTHENTICATED", http: { status: 401 } },
+    });
   }
 }
 
@@ -342,7 +425,7 @@ let databaseUrlCache = "";
 let cacheExpiration = 0;
 
 export async function getDatabaseUrl(): Promise<string> {
-  log.debug({type: "graphql.db.creds_request"});
+  log.debug({ type: "graphql.db.creds_request" });
   const now = Date.now();
   if (databaseUrlCache && cacheExpiration > now) return databaseUrlCache;
 
@@ -354,4 +437,33 @@ export async function getDatabaseUrl(): Promise<string> {
   databaseUrlCache = `postgresql://${s.username}:${s.password}@${s.host}:${s.port}/${s.dbname}?schema=demos_app`;
   cacheExpiration = now + CACHE_MAX_AGE;
   return databaseUrlCache;
+}
+
+export type PermissionMap<PrismaWhereClause> = Partial<Record<Permission, PrismaWhereClause>>;
+
+export function buildAuthorizedWhere<PrismaWhereClause extends object>(
+  user: ContextUser,
+  where: PrismaWhereClause,
+  alwaysFalseClause: PrismaWhereClause,
+  permissionMapper: (userid: string) => PermissionMap<PrismaWhereClause>
+): {
+  AND: [object, { OR: PrismaWhereClause[] }];
+} {
+  const baseWhere = Object.keys(where).length === 0 ? {} : where;
+  const authorizationWhereClauses: PrismaWhereClause[] = [alwaysFalseClause];
+
+  for (const [permission, permissionWhere] of Object.entries(permissionMapper(user.id))) {
+    if (user.permissions.includes(permission)) {
+      authorizationWhereClauses.push(permissionWhere);
+    }
+  }
+
+  return {
+    AND: [
+      baseWhere,
+      {
+        OR: authorizationWhereClauses,
+      },
+    ],
+  };
 }

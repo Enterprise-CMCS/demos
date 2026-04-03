@@ -22,6 +22,7 @@ import {
   resolveApplicationTags,
   resolveApplicationSignatureLevel,
 } from "../application";
+import { GraphQLContext } from "../../auth/auth.util.js";
 
 const extensionApplicationType: ApplicationType = "Extension";
 const conceptPhaseName: PhaseName = "Concept";
@@ -110,8 +111,10 @@ export async function __resolveParentDemonstration(
 
 export const extensionResolvers = {
   Query: {
-    extension: __getExtension,
-    extensions: __getManyExtensions,
+    extension: (parent: never, args: { id: string }, context: GraphQLContext) =>
+      context.services.extension.get({ id: args.id }),
+    extensions: (parent: never, args: never, context: GraphQLContext) =>
+      context.services.extension.getMany(),
   },
 
   Mutation: {
@@ -121,7 +124,8 @@ export const extensionResolvers = {
   },
 
   Extension: {
-    demonstration: __resolveParentDemonstration,
+    demonstration: (parent: { demonstrationId: string }, args: never, context: GraphQLContext) =>
+      context.services.demonstration.get({ id: parent.demonstrationId }),
     documents: resolveApplicationDocuments,
     currentPhaseName: resolveApplicationCurrentPhaseName,
     status: resolveApplicationStatus,

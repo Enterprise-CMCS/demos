@@ -458,3 +458,15 @@ export const BUDGET_NEUTRALITY_VALIDATION_STATUSES = [
   "Pending",
   "In Progress",
 ];
+
+export const PERMISSIONS = [
+  "View All Demonstrations",
+  "View Assigned Demonstrations",
+  "View All Amendments",
+  "View Assigned Amendments",
+  "View All Extensions",
+  "View Assigned Extensions",
+  "View All Demonstration Role Assignments",
+  "View All Demonstration Role Assignments on Assigned Demonstrations",
+  "View My Demonstration Role Assignments",
+] as const;
