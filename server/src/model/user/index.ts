@@ -1,1 +1,1 @@
-export { findUserById } from "./queries/findUserById";
+export { getUser } from "./queries/getUser";

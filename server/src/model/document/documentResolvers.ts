@@ -14,7 +14,7 @@ import type {
 import { getS3Adapter } from "../../adapters";
 import { getEasternNow } from "../../dateUtilities";
 import { getApplication, PrismaApplication } from "../application";
-import { findUserById } from "../user";
+import { getUser } from "../user";
 import { validateAndUpdateDates } from "../applicationDate";
 import { startPhaseByDocument } from "../applicationPhase";
 import { enqueueUiPath } from "../../services/uipathQueue";
@@ -172,7 +172,7 @@ export async function triggerUiPath(
 export async function resolveOwner(parent: PrismaDocument): Promise<PrismaUser> {
   try {
     return prisma().$transaction(async (tx) => {
-      return findUserById(tx, parent.ownerUserId);
+      return getUser(parent.ownerUserId, tx);
     });
   } catch (error) {
     handlePrismaError(error);

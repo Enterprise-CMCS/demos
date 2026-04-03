@@ -25,7 +25,17 @@ import { sdgDivisionResolvers } from "./sdgDivision/sdgDivisionResolvers.js";
 import { dateTypeSchema } from "./dateType/dateTypeSchema.js";
 import { dateTypeResolvers } from "./dateType/dateTypeResolvers.js";
 
-import { deliverableSchema } from "./deliverable/deliverableSchema.js";
+import { deliverableDueDateTypeSchema } from "./deliverableDueDateType/deliverableDueDateTypeSchema";
+import { deliverableDueDateTypeResolvers } from "./deliverableDueDateType/deliverableDueDateTypeResolvers";
+
+import { deliverableSchema } from "./deliverable/deliverableSchema";
+import { deliverableResolvers } from "./deliverable/deliverableResolvers";
+
+import { deliverableStatusSchema } from "./deliverableStatus/deliverableStatusSchema";
+import { deliverableStatusResolvers } from "./deliverableStatus/deliverableStatusResolvers";
+
+import { deliverableTypeSchema } from "./deliverableType/deliverableTypeSchema";
+import { deliverableTypeResolvers } from "./deliverableType/deliverableTypeResolvers";
 
 import { demonstrationRoleAssignmentSchema } from "./demonstrationRoleAssignment/demonstrationRoleAssignmentSchema.js";
 import { demonstrationRoleAssigmentResolvers } from "./demonstrationRoleAssignment/demonstrationRoleAssignmentResolvers.js";
@@ -121,7 +131,10 @@ export const typeDefs = [
   applicationTagAssignmentSchema,
   clearanceLevelSchema,
   dateTypeSchema,
+  deliverableDueDateTypeSchema,
   deliverableSchema,
+  deliverableStatusSchema,
+  deliverableTypeSchema,
   demonstrationRoleAssignmentSchema,
   demonstrationSchema,
   demonstrationTypeTagAssignmentSchema,
@@ -141,9 +154,9 @@ export const typeDefs = [
   signatureLevelSchema,
   stateSchema,
   tagNameSchema,
+  tagSchema,
   tagSourceSchema,
   tagStatusSchema,
-  tagSchema,
   tagTypeSchema,
   userSchema,
   ...scalarTypes,
@@ -160,6 +173,10 @@ export const resolvers = [
   clearanceLevelResolvers,
   customScalarResolvers,
   dateTypeResolvers,
+  deliverableDueDateTypeResolvers,
+  deliverableResolvers,
+  deliverableStatusResolvers,
+  deliverableTypeResolvers,
   demonstrationResolvers,
   demonstrationRoleAssigmentResolvers,
   demonstrationTypeTagAssignmentResolvers,
