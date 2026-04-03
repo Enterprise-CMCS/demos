@@ -45,44 +45,52 @@ export function QuarterlyDeliverableSchedule({
 
       <div className="col-span-1">
         <DatePicker
-          name={`quarter-1`}
+          name="quarter-1"
           key={1}
-          label={`1st Quarter`}
+          label="1st Quarter"
           value={""}
-          onChange={(newDate: string) => {}}
+          onChange={(newDate: string) => {
+            console.log(newDate);
+          }}
           isRequired={true}
         />
       </div>
 
       <div className="col-span-1">
         <DatePicker
-          name={`quarter-2`}
+          name="quarter-2"
           key={2}
-          label={`2nd Quarter`}
+          label="2nd Quarter"
           value={""}
-          onChange={(newDate: string) => {}}
+          onChange={(newDate: string) => {
+            console.log(newDate);
+          }}
           isRequired={true}
         />
       </div>
 
       <div className="col-span-1">
         <DatePicker
-          name={`quarter-3`}
+          name="quarter-3"
           key={3}
-          label={`3rd Quarter`}
+          label="3rd Quarter"
           value={""}
-          onChange={(newDate: string) => {}}
+          onChange={(newDate: string) => {
+            console.log(newDate);
+          }}
           isRequired={true}
         />
       </div>
 
       <div className="col-span-1">
         <DatePicker
-          name={`quarter-4`}
+          name="quarter-4"
           key={4}
-          label={`4th Quarter`}
+          label="4th Quarter"
           value={""}
-          onChange={(newDate: string) => {}}
+          onChange={(newDate: string) => {
+            console.log(newDate);
+          }}
           isRequired={true}
         />
       </div>
