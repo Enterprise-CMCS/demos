@@ -1,6 +1,38 @@
+import React from "react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { getOptionsForYearSelect } from "./QuarterlyDeliverableSchedule";
+import {
+  getOptionsForYearSelect,
+  QuarterlyDeliverableSchedule,
+} from "./QuarterlyDeliverableSchedule";
+
+describe("QuarterlyDeliverableSchedule", () => {
+  it("renders 4 quarter datepickers", () => {
+    render(<QuarterlyDeliverableSchedule />);
+
+    expect(screen.getAllByLabelText(/Quarter/i)).toHaveLength(4);
+  });
+
+  it("shows correct year options in the year select", () => {
+    render(
+      <QuarterlyDeliverableSchedule
+        demonstrationEffectiveDate={new Date("2024-01-01")}
+        demonstrationExpirationDate={new Date("2026-12-31")}
+      />
+    );
+
+    const yearSelect = screen.getByRole("combobox") as HTMLSelectElement;
+    const options = Array.from(yearSelect.options).map(({ label, value }) => ({ label, value }));
+
+    expect(options).toEqual([
+      { label: "Select", value: "" },
+      { label: "Year 1", value: "1" },
+      { label: "Year 2", value: "2" },
+      { label: "Year 3", value: "3" },
+    ]);
+  });
+});
 
 describe("getOptionsForYearSelect", () => {
   it("returns a single year option when dates are in the same calendar year", () => {
