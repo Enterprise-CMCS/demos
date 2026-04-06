@@ -1,3 +1,4 @@
+import { AmendmentService, createAmendmentService } from "../model/amendment/amendmentService";
 import {
   createDemonstrationService,
   DemonstrationService,
@@ -10,11 +11,13 @@ export type PermissionMap<PrismaWhereClause, TPermission extends string = Permis
 
 export type Services = {
   demonstration: DemonstrationService;
+  amendment: AmendmentService;
 };
 
 export function createServices(user: ContextUser): Services {
   return {
     demonstration: createDemonstrationService(user),
+    amendment: createAmendmentService(user),
   };
 }
 

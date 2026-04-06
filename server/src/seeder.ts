@@ -864,12 +864,12 @@ async function seedDatabase() {
         user: null,
         services: {
           demonstration: {
-            get: async () => {
-              return null;
-            },
-            getMany: async () => {
-              return [];
-            },
+            get: async () => null,
+            getMany: async () => [],
+          },
+          amendment: {
+            get: async () => null,
+            getMany: async () => [],
           },
         },
       };
@@ -883,12 +883,12 @@ async function seedDatabase() {
         },
         services: {
           demonstration: {
-            get: async () => {
-              return null;
-            },
-            getMany: async () => {
-              return [];
-            },
+            get: async () => null,
+            getMany: async () => [],
+          },
+          amendment: {
+            get: async () => null,
+            getMany: async () => [],
           },
         },
       };

@@ -718,18 +718,26 @@ describe("demonstrationResolvers", () => {
     });
   });
 
-  describe("__resolveDemonstrationAmendments", () => {
-    it("should look up the relevant amendments", async () => {
-      const input: Partial<PrismaDemonstration> = {
-        id: testValues.demonstrationId,
-      };
-      const expectedCall = {
-        where: {
-          demonstrationId: testValues.demonstrationId,
+  it("delegates `Demonstration.amendments` to `context.services.amendment.getMany`", async () => {
+    const getMany = vi.fn();
+
+    const context = {
+      services: {
+        amendment: {
+          get: vi.fn(),
+          getMany,
         },
-      };
-      await __resolveDemonstrationAmendments(input as PrismaDemonstration);
-      expect(regularMocks.amendment.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      },
+    } as unknown as GraphQLContext;
+
+    await demonstrationResolvers.Demonstration.amendments(
+      { id: "parent-demo" },
+      undefined as never,
+      context
+    );
+
+    expect(getMany).toHaveBeenCalledExactlyOnceWith({
+      demonstrationId: "parent-demo",
     });
   });
 

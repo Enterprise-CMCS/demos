@@ -111,8 +111,10 @@ export async function __resolveParentDemonstration(
 
 export const amendmentResolvers = {
   Query: {
-    amendment: __getAmendment,
-    amendments: __getManyAmendments,
+    amendment: (parent: never, args: { id: string }, context: GraphQLContext) =>
+      context.services.amendment.get({ id: args.id }),
+    amendments: (parent: never, args: never, context: GraphQLContext) =>
+      context.services.amendment.getMany(),
   },
 
   Mutation: {

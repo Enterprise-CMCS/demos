@@ -6,6 +6,7 @@ import {
   __updateAmendment,
   deleteAmendment,
   __resolveParentDemonstration,
+  amendmentResolvers,
 } from "./amendmentResolvers.js";
 import {
   ApplicationStatus,
@@ -39,6 +40,7 @@ import {
   checkInputDateIsEndOfDay,
 } from "../applicationDate/checkInputDateFunctions.js";
 import { EasternTZDate, parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities.js";
+import { GraphQLContext } from "../../auth/auth.util.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -126,23 +128,38 @@ describe("amendmentResolvers", () => {
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
-  describe("__getAmendment", () => {
-    it("should request the amendment", async () => {
-      const testInput = {
-        id: testAmendmentId,
-      };
-      await __getAmendment(undefined, testInput);
-      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testAmendmentId, {
-        applicationTypeId: "Amendment",
-      });
-    });
+  it("delegates `amendment` to `context.services.amendment.get`", async () => {
+    const get = vi.fn();
+
+    const context = {
+      services: {
+        amendment: {
+          get,
+          getMany: vi.fn(),
+        },
+      },
+    } as unknown as GraphQLContext;
+
+    await amendmentResolvers.Query.amendment(undefined as never, { id: testAmendmentId }, context);
+
+    expect(get).toHaveBeenCalledExactlyOnceWith({ id: testAmendmentId });
   });
 
-  describe("__getManyAmendments", () => {
-    it("should request many amendments with the right type", async () => {
-      await __getManyAmendments();
-      expect(getManyApplications).toHaveBeenCalledExactlyOnceWith("Amendment");
-    });
+  it("delegates `amendments` to `context.services.amendment.getMany`", async () => {
+    const getMany = vi.fn();
+
+    const context = {
+      services: {
+        amendment: {
+          get: vi.fn(),
+          getMany,
+        },
+      },
+    } as unknown as GraphQLContext;
+
+    await amendmentResolvers.Query.amendments(undefined as never, undefined as never, context);
+
+    expect(getMany).toHaveBeenCalledExactlyOnceWith();
   });
 
   describe("__createAmendment", () => {
@@ -303,18 +320,26 @@ describe("amendmentResolvers", () => {
     });
   });
 
-  describe("__resolveParentDemonstration", () => {
-    it("should look up the relevant demonstration", async () => {
-      const input: Partial<PrismaAmendment> = {
-        demonstrationId: testDemonstrationId,
-      };
-      const expectedCall = {
-        where: {
-          id: testDemonstrationId,
+  it("delegates `demonstration` to `context.services.demonstration.get`", async () => {
+    const get = vi.fn();
+
+    const context = {
+      services: {
+        demonstration: {
+          get,
+          getMany: vi.fn(),
         },
-      };
-      await __resolveParentDemonstration(input as PrismaAmendment);
-      expect(regularMocks.demonstration.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      },
+    } as unknown as GraphQLContext;
+
+    await amendmentResolvers.Amendment.demonstration(
+      { demonstrationId: "parent-demo-id" },
+      undefined as never,
+      context
+    );
+
+    expect(get).toHaveBeenCalledExactlyOnceWith({
+      id: "parent-demo-id",
     });
   });
 });

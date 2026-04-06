@@ -6,6 +6,7 @@ import {
   __updateExtension,
   deleteExtension,
   __resolveParentDemonstration,
+  extensionResolvers,
 } from "./extensionResolvers.js";
 import {
   ApplicationStatus,
@@ -39,6 +40,7 @@ import {
   checkInputDateIsEndOfDay,
 } from "../applicationDate/checkInputDateFunctions.js";
 import { EasternTZDate, parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities.js";
+import { GraphQLContext } from "../../auth/auth.util.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -303,18 +305,26 @@ describe("extensionResolvers", () => {
     });
   });
 
-  describe("__resolveParentDemonstration", () => {
-    it("should look up the relevant demonstration", async () => {
-      const input: Partial<PrismaExtension> = {
-        demonstrationId: testDemonstrationId,
-      };
-      const expectedCall = {
-        where: {
-          id: testDemonstrationId,
+  it("delegates `Extension.demonstration` to `context.services.demonstration.get`", async () => {
+    const get = vi.fn();
+
+    const context = {
+      services: {
+        demonstration: {
+          get,
+          getMany: vi.fn(),
         },
-      };
-      await __resolveParentDemonstration(input as PrismaExtension);
-      expect(regularMocks.demonstration.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      },
+    } as unknown as GraphQLContext;
+
+    await extensionResolvers.Extension.demonstration(
+      { demonstrationId: "parent-demo" },
+      undefined as never,
+      context
+    );
+
+    expect(get).toHaveBeenCalledExactlyOnceWith({
+      id: "parent-demo",
     });
   });
 });

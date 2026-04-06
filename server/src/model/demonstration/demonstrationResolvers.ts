@@ -304,7 +304,8 @@ export const demonstrationResolvers = {
   Demonstration: {
     state: __resolveDemonstrationState,
     documents: resolveApplicationDocuments,
-    amendments: __resolveDemonstrationAmendments,
+    amendments: (parent: { id: string }, args: never, context: GraphQLContext) =>
+      context.services.amendment.getMany({ demonstrationId: parent.id }),
     extensions: __resolveDemonstrationExtensions,
     sdgDivision: resolveDemonstrationSdgDivision,
     signatureLevel: resolveApplicationSignatureLevel,
