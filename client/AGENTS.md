@@ -4,8 +4,8 @@ This file provides instructions for AI agents to use when generating or editing 
 
 ## Meta
 
-- AI output should be understood and reviewed by the supervisor before being sent to the team for code-review.
-- Keep verbiage in this file concise
+- AI output should be reviewed, understood, and approved by the supervisor.
+- Keep verbiage in this file concise.
 
 ## TypeScript
 
