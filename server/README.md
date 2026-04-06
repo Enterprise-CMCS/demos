@@ -188,9 +188,6 @@ Flags can be added using the format:
 
 The flags we've identified as useful are:
 
-* `NATURAL_KEY`:
-  * Meaning: The table uses a human-readable / natural key, rather than a UUID or something similar.
-  * Explanation Comment: Not required.
 * `NO_HISTORY`:
   * Meaning: This table does not have an accompanying history table.
   * Explanation Comment: Required; include reason in your comment.

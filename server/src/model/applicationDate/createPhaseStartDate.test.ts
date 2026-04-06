@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createPhaseStartDate } from "./createPhaseStartDate.js";
 import { EasternNow } from "../../dateUtilities.js";
-import { PhaseNameWithTrackedStatus } from "../../types.js";
+import { PhaseName } from "../../types.js";
 import { PHASE_START_END_DATES } from "../../constants.js";
 
 vi.mock("../../dateUtilities.js", async (importOriginal) => {
@@ -33,7 +33,7 @@ describe("createPhaseStartDate", () => {
 
   describe("when phase has a start date", () => {
     it("should create ApplicationDateInput with Start of Day timestamp", () => {
-      const phaseId: PhaseNameWithTrackedStatus = "Concept";
+      const phaseId: PhaseName = "Concept";
       vi.mocked(getDayBoundaryLabel).mockReturnValue("Start of Day");
 
       const result = createPhaseStartDate(phaseId, mockEasternNow);
@@ -48,7 +48,7 @@ describe("createPhaseStartDate", () => {
     });
 
     it("should create ApplicationDateInput with End of Day timestamp", () => {
-      const phaseId: PhaseNameWithTrackedStatus = "Application Intake";
+      const phaseId: PhaseName = "Application Intake";
       vi.mocked(getDayBoundaryLabel).mockReturnValue("End of Day");
 
       const result = createPhaseStartDate(phaseId, mockEasternNow);
@@ -66,7 +66,7 @@ describe("createPhaseStartDate", () => {
   describe("when phase has no start date", () => {
     it("should return null for phase without start date", () => {
       // approval summary phase currently has no start date
-      const phaseId = "Approval Summary" as PhaseNameWithTrackedStatus;
+      const phaseId = "Approval Summary" as PhaseName;
 
       const result = createPhaseStartDate(phaseId, mockEasternNow);
 

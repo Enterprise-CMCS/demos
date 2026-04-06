@@ -17,8 +17,7 @@ import { useToast } from "components/toast";
 import { getPhaseCompletedMessage } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
-import { PhaseName } from "components/application/phase-selector/PhaseSelector";
-import type { LocalDate, PhaseStatus } from "demos-server";
+import type { LocalDate, PhaseName, PhaseStatus } from "demos-server";
 import {
   useCompletePhase,
   useSkipConceptPhase,

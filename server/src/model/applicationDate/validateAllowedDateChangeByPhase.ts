@@ -1,5 +1,5 @@
 import { PrismaTransactionClient } from "../../prismaClient";
-import { PhaseNameWithTrackedStatus, SetApplicationDatesInput } from "../../types";
+import { PhaseName, SetApplicationDatesInput } from "../../types";
 import { getFinishedApplicationPhaseIds } from "../applicationPhase";
 import { getPhaseDateTypesByIds, PhaseDateType } from "../phaseDateType";
 
@@ -7,7 +7,7 @@ export async function validateAllowedDateChangeByPhase(
   tx: PrismaTransactionClient,
   input: SetApplicationDatesInput
 ): Promise<void> {
-  const completedPhaseIds: PhaseNameWithTrackedStatus[] = await getFinishedApplicationPhaseIds(
+  const completedPhaseIds: PhaseName[] = await getFinishedApplicationPhaseIds(
     tx,
     input.applicationId
   );

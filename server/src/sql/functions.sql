@@ -251,6 +251,7 @@ BEGIN
         document_type_id,
         application_id,
         phase_id,
+        deliverable_id,
         created_at,
         updated_at
     )
@@ -263,6 +264,7 @@ BEGIN
         document_type_id,
         application_id,
         phase_id,
+        deliverable_id,
         created_at,
         updated_at
     FROM
@@ -808,6 +810,31 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
 CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.budget_neutrality_workbook
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.deliverable
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.deliverable_active_extension
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.deliverable_demonstration_type
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.deliverable_extension
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
 BEFORE UPDATE ON demos_app.demonstration
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
@@ -828,12 +855,12 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
 CREATE TRIGGER _disable_redundant_updates
-BEFORE UPDATE ON demos_app.document_pending_upload
+BEFORE UPDATE ON demos_app.document_infected
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
 CREATE TRIGGER _disable_redundant_updates
-BEFORE UPDATE ON demos_app.document_infected
+BEFORE UPDATE ON demos_app.document_pending_upload
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
@@ -858,6 +885,16 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
 CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.private_comment
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
+BEFORE UPDATE ON demos_app.public_comment
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.disable_redundant_updates();
+
+CREATE TRIGGER _disable_redundant_updates
 BEFORE UPDATE ON demos_app.role_permission
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
@@ -868,12 +905,12 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
 CREATE TRIGGER _disable_redundant_updates
-BEFORE UPDATE ON demos_app.tag_name
+BEFORE UPDATE ON demos_app.tag
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
 CREATE TRIGGER _disable_redundant_updates
-BEFORE UPDATE ON demos_app.tag
+BEFORE UPDATE ON demos_app.tag_name
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.disable_redundant_updates();
 
@@ -1064,3 +1101,221 @@ CREATE TRIGGER check_demonstration_type_exists_for_approved_demonstrations
 BEFORE UPDATE ON demos_app.demonstration
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations();
+
+-- block_final_states_if_extension_request_active
+CREATE FUNCTION demos_app.block_final_states_if_extension_request_active()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF NEW.new_status_id in (
+        'Accepted',
+        'Approved',
+        'Received and Filed'
+    ) THEN
+        IF EXISTS (
+            SELECT 1
+            FROM demos_app.deliverable_active_extension
+            WHERE deliverable_active_extension.deliverable_id = NEW.deliverable_id
+        )
+        THEN
+            RAISE EXCEPTION 'Cannot finalize deliverable % when it has an active extension', NEW.deliverable_id;
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER block_final_states_if_extension_request_active
+BEFORE INSERT ON demos_app.deliverable_action
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.block_final_states_if_extension_request_active();
+
+-- capture_active_extension_request_id_for_action
+CREATE FUNCTION demos_app.capture_active_extension_request_id_for_action()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_active_extension_id UUID;
+BEGIN
+    SELECT deliverable_extension_id
+    INTO v_active_extension_id
+    FROM demos_app.deliverable_active_extension
+    WHERE deliverable_id = NEW.deliverable_id;
+
+    IF FOUND THEN
+        NEW.active_extension_id := v_active_extension_id;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER capture_active_extension_request_id_for_action
+BEFORE INSERT ON demos_app.deliverable_action
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.capture_active_extension_request_id_for_action();
+
+-- update_documents_in_submission
+CREATE FUNCTION demos_app.update_documents_in_submission()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- if the action is a submission action
+    IF EXISTS (
+        SELECT 1
+        FROM demos_app.deliverable_submission_action_type_limit
+        WHERE id = NEW.action_type_id
+    ) THEN
+        -- link any documents that are part of the submission to the action
+        UPDATE demos_app.document
+        SET deliverable_submission_action_id = NEW.id,
+            deliverable_submission_action_type_id = NEW.action_type_id
+        WHERE deliverable_id = NEW.deliverable_id
+        AND deliverable_submission_action_id IS NULL;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER update_documents_in_submission
+AFTER INSERT ON demos_app.deliverable_action
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.update_documents_in_submission();
+
+-- create_or_update_active_record_for_request
+CREATE FUNCTION demos_app.create_or_update_active_record_for_request()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- if creating a new extension request with an active status, insert to the active table
+    IF (TG_OP = 'INSERT') THEN
+        IF EXISTS (
+            SELECT 1
+            FROM demos_app.deliverable_active_extension_status_limit
+            WHERE id = NEW.status_id
+        ) THEN
+            INSERT INTO demos_app.deliverable_active_extension (
+                deliverable_extension_id,
+                deliverable_id,
+                status_id
+            ) VALUES (
+                NEW.id,
+                NEW.deliverable_id,
+                NEW.status_id
+            );
+        END IF;
+        RETURN NEW;
+    -- if updating an extension request to change its status
+    ELSIF (TG_OP = 'UPDATE' AND (OLD.status_id IS DISTINCT FROM NEW.status_id)) THEN
+        -- if new updated extension request is not in an active status
+        IF NOT EXISTS (
+            SELECT 1
+            FROM demos_app.deliverable_active_extension_status_limit
+            WHERE id = NEW.status_id
+        ) THEN
+            -- remove from active table
+            DELETE FROM demos_app.deliverable_active_extension
+            WHERE deliverable_extension_id = NEW.id;
+        -- if new updated extension request is in an active status
+        ELSE
+            -- upsert into the active table
+            INSERT INTO demos_app.deliverable_active_extension (
+                deliverable_extension_id,
+                deliverable_id,
+                status_id
+            ) VALUES (
+                NEW.id,
+                NEW.deliverable_id,
+                NEW.status_id
+            )
+            ON CONFLICT (deliverable_extension_id) DO NOTHING;
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER create_or_update_active_record_for_request
+AFTER INSERT OR UPDATE ON demos_app.deliverable_extension
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.create_or_update_active_record_for_request();
+
+-- change_open_ended_due_dates_to_expiration_date
+CREATE FUNCTION demos_app.change_open_ended_due_dates_to_expiration_date()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Only proceed if demonstration is approved and expiration_date changed
+    IF NEW.status_id = 'Approved' AND OLD.expiration_date IS DISTINCT FROM NEW.expiration_date THEN
+        -- Update all open-ended deliverables for this demonstration
+        UPDATE demos_app.deliverable
+        SET due_date = NEW.expiration_date
+        WHERE demonstration_id = NEW.id
+        AND due_date_type_id = 'Open Ended';
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER change_open_ended_due_dates_to_expiration_date
+AFTER UPDATE ON demos_app.demonstration
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.change_open_ended_due_dates_to_expiration_date();
+
+-- check_budget_neutrality_validation_record_exists
+CREATE FUNCTION demos_app.check_budget_neutrality_validation_record_exists()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- Check if this document type requires a budget_neutrality_workbook record
+    IF EXISTS (
+        SELECT 1
+        FROM demos_app.budget_neutrality_workbook_document_type_limit
+        WHERE id = NEW.document_type_id
+    ) THEN
+        -- Verify that a corresponding record exists in budget_neutrality_workbook
+        IF NOT EXISTS (
+            SELECT 1
+            FROM demos_app.budget_neutrality_workbook
+            WHERE id = NEW.id
+        ) THEN
+            RAISE EXCEPTION 'Document % with type % requires a corresponding record in budget_neutrality_workbook', NEW.id, NEW.document_type_id;
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE CONSTRAINT TRIGGER check_budget_neutrality_validation_record_exists
+AFTER INSERT OR UPDATE ON demos_app.document
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.check_budget_neutrality_validation_record_exists();
+
+-- check_that_main_record_deleted_from_document
+CREATE FUNCTION demos_app.check_that_main_record_deleted_from_document()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM demos_app.document WHERE id = OLD.id) THEN
+        RAISE EXCEPTION 'Cannot delete from budget_neutrality_workbook table while the corresponding record is in demos_app.document';
+    END IF;
+    RETURN OLD;
+END;
+$$;
+
+CREATE TRIGGER check_that_main_record_deleted_from_document
+BEFORE DELETE ON demos_app.budget_neutrality_workbook
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.check_that_main_record_deleted_from_document();

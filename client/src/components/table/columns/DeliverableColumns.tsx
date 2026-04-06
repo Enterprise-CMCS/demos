@@ -39,11 +39,16 @@ export function DeliverableColumns() {
       header: "Deliverable Type",
       cell: highlightCell,
     }),
-    createDateColumnDef(columnHelper, "dueDate", "Due Date"),
-    columnHelper.accessor("name", {
+    columnHelper.accessor("deliverableName", {
       header: "Deliverable Name",
       cell: highlightCell,
     }),
+    columnHelper.accessor("cmsOwner", {
+      header: "CMS Owner",
+      cell: highlightCell,
+    }),
+    createDateColumnDef(columnHelper, "dueDate", "Due Date"),
+    createDateColumnDef(columnHelper, "submissionDate", "Submission Date"),
     columnHelper.accessor("status", {
       header: "Status",
       cell: highlightCell,

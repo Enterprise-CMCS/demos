@@ -5,7 +5,7 @@ import { dbSchema } from "./db";
  * Let's document the checks as we go.
  */
 
-export const FINAL_BN_WORKSHEET_DOCUMENT_TYPE = "Final BN Worksheet";
+export const FINAL_BN_WORKSHEET_DOCUMENT_TYPE = "BN Workbook";
 
 /**
  * Checks if a document with the given ID exists in the database.
@@ -43,7 +43,9 @@ export function validateSingleRecordCount(recordCount: number): void {
  * @returns The parsed and validated BudgetNeutralityMessage object.
  * @throws An error if the message is invalid or missing required fields.
  */
-export function parseAndValidateBudgetNeutralityMessage(recordBody: string): BudgetNeutralityMessage {
+export function parseAndValidateBudgetNeutralityMessage(
+  recordBody: string
+): BudgetNeutralityMessage {
   const parsed = JSON.parse(recordBody);
 
   if (!parsed.documentId || typeof parsed.documentId !== "string") {
@@ -65,4 +67,3 @@ export function parseAndValidateBudgetNeutralityMessage(recordBody: string): Bud
     documentTypeId: parsed.documentTypeId,
   };
 }
-
