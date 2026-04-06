@@ -13,4 +13,8 @@ export const tagResolvers = {
     demonstrationTypeOptions: getDemonstrationTypes,
     applicationTagOptions: getApplicationTags,
   },
+
+  Tag: {
+    tagName: (parent: { tagNameId: string }) => parent.tagNameId,
+  },
 };

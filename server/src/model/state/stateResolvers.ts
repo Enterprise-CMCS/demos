@@ -1,20 +1,15 @@
-import { prisma } from "../../prismaClient.js";
 import { GraphQLContext } from "../../auth/auth.util.js";
 
 export const stateResolvers = {
   Query: {
-    state: async (_: unknown, { id }: { id: string }) => {
-      return await prisma().state.findUnique({
-        where: { id: id },
-      });
-    },
-    states: async () => {
-      return await prisma().state.findMany();
-    },
+    state: (parent: never, args: { id: string }, context: GraphQLContext) =>
+      context.services.state.get({ id: args.id }),
+    states: (parent: never, args: never, context: GraphQLContext) =>
+      context.services.state.getMany(),
   },
 
   State: {
     demonstrations: (parent: { demonstrationId: string }, args: never, context: GraphQLContext) =>
-      context.services.demonstration!.getMany({ id: parent.demonstrationId }),
+      context.services.demonstration.getMany({ id: parent.demonstrationId }),
   },
 };

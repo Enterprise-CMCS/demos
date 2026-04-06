@@ -16,6 +16,26 @@ import {
 import { AmendmentService, createAmendmentService } from "../model/amendment/amendmentService.js";
 import { createExtensionService, ExtensionService } from "../model/extension/extensionService.js";
 import { Permission } from "../types.js";
+import {
+  createDemonstrationRoleAssigmentService,
+  DemonstrationRoleAssignmentService,
+} from "../model/demonstrationRoleAssignment/demonstrationRoleAssignmentService.js";
+import { createStateService, StateService } from "../model/state/stateService.js";
+import { createDocumentService, DocumentService } from "../model/document/documentService.js";
+import {
+  ApplicationPhaseService,
+  createApplicationPhaseService,
+} from "../model/applicationPhase/applicationPhaseService.js";
+import { createPersonService, PersonService } from "../model/person/personService.js";
+import {
+  ApplicationTagAssignmentService,
+  createApplicationTagAssignmentService,
+} from "../model/applicationTagAssignment/applicationTagAssignmentService.js";
+import { createTagService, TagService } from "../model/tag/tagService.js";
+import {
+  createDemonstrationTypeTagAssignmentService,
+  DemonstrationTypeTagAssignmentService,
+} from "../model/demonstrationTypeTagAssignment/demonstrationTypeTagAssignmentService.js";
 
 const config = getAuthConfig();
 
@@ -36,6 +56,14 @@ export interface GraphQLContext {
     demonstration: DemonstrationService;
     amendment: AmendmentService;
     extension: ExtensionService;
+    demonstrationRoleAssignment: DemonstrationRoleAssignmentService;
+    state: StateService;
+    document: DocumentService;
+    applicationPhase: ApplicationPhaseService;
+    person: PersonService;
+    applicationTagAssignment: ApplicationTagAssignmentService;
+    demonstrationTypeTagAssignment: DemonstrationTypeTagAssignmentService;
+    tag: TagService;
   };
 }
 
@@ -302,12 +330,26 @@ async function buildContextFromClaims(claims: Claims): Promise<GraphQLContext> {
     permissions,
   };
 
+  if (!contextUser) {
+    throw new GraphQLError("User not authenticated", {
+      extensions: { code: "UNAUTHENTICATED" },
+    });
+  }
+
   return {
     user: contextUser,
     services: {
       demonstration: createDemonstrationService(contextUser),
       amendment: createAmendmentService(contextUser),
       extension: createExtensionService(contextUser),
+      demonstrationRoleAssignment: createDemonstrationRoleAssigmentService(contextUser),
+      state: createStateService(contextUser),
+      document: createDocumentService(contextUser),
+      applicationPhase: createApplicationPhaseService(contextUser),
+      person: createPersonService(contextUser),
+      applicationTagAssignment: createApplicationTagAssignmentService(contextUser),
+      demonstrationTypeTagAssignment: createDemonstrationTypeTagAssignmentService(contextUser),
+      tag: createTagService(contextUser),
     },
   };
 }

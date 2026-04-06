@@ -1,5 +1,4 @@
 import { Demonstration, Prisma } from "@prisma/client";
-import { GraphQLError } from "graphql";
 import { prisma } from "../../prismaClient.js";
 import { buildAuthorizedWhere, ContextUser, PermissionMap } from "../../auth/auth.util.js";
 
@@ -29,12 +28,6 @@ export type DemonstrationService = {
 };
 
 export function createDemonstrationService(user: ContextUser): DemonstrationService {
-  if (!user) {
-    throw new GraphQLError("User not authenticated", {
-      extensions: { code: "UNAUTHENTICATED" },
-    });
-  }
-
   return {
     async get(where: Prisma.DemonstrationWhereUniqueInput): Promise<Demonstration | null> {
       return await prisma().demonstration.findFirst({

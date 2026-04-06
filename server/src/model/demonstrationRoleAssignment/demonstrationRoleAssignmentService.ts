@@ -1,4 +1,4 @@
-import { Demonstration, Prisma } from "@prisma/client";
+import { DemonstrationRoleAssignment, Prisma } from "@prisma/client";
 import { GraphQLError } from "graphql";
 import { prisma } from "../../prismaClient.js";
 import { buildAuthorizedWhere, ContextUser, PermissionMap } from "../../auth/auth.util.js";
@@ -19,12 +19,22 @@ const permissionMapper = (userId: string) =>
     },
   }) satisfies PermissionMap<Prisma.DemonstrationRoleAssignmentWhereInput>;
 
-export type DemonstrationService = {
-  get(where: Prisma.DemonstrationWhereUniqueInput): Promise<Demonstration | null>;
-  getMany(where?: Prisma.DemonstrationWhereInput): Promise<Demonstration[]>;
+type DemonstrationRoleAssignmentWithPrimary = DemonstrationRoleAssignment & {
+  isPrimary: boolean;
 };
 
-export function createDemonstrationService(user: ContextUser): DemonstrationService {
+export type DemonstrationRoleAssignmentService = {
+  get(
+    where: Prisma.DemonstrationRoleAssignmentWhereUniqueInput
+  ): Promise<DemonstrationRoleAssignmentWithPrimary | null>;
+  getMany(
+    where?: Prisma.DemonstrationRoleAssignmentWhereInput
+  ): Promise<DemonstrationRoleAssignmentWithPrimary[]>;
+};
+
+export function createDemonstrationRoleAssigmentService(
+  user: ContextUser
+): DemonstrationRoleAssignmentService {
   if (!user) {
     throw new GraphQLError("User not authenticated", {
       extensions: { code: "UNAUTHENTICATED" },
@@ -32,15 +42,33 @@ export function createDemonstrationService(user: ContextUser): DemonstrationServ
   }
 
   return {
-    async get(where: Prisma.DemonstrationWhereUniqueInput): Promise<Demonstration | null> {
-      return await prisma().demonstration.findFirst({
+    async get(where) {
+      const demonstrationRoleAssignment = await prisma().demonstrationRoleAssignment.findFirst({
         where: buildAuthorizedWhere(user, where, alwaysFalseClause, permissionMapper),
+        include: {
+          primaryDemonstrationRoleAssignment: true,
+        },
       });
+      if (!demonstrationRoleAssignment) {
+        return null;
+      }
+      return {
+        ...demonstrationRoleAssignment,
+        isPrimary: !!demonstrationRoleAssignment.primaryDemonstrationRoleAssignment,
+      };
     },
-    async getMany(where: Prisma.DemonstrationWhereInput = {}): Promise<Demonstration[]> {
-      return await prisma().demonstration.findMany({
+    async getMany(where = {}) {
+      const demonstrationRoleAssignments = await prisma().demonstrationRoleAssignment.findMany({
         where: buildAuthorizedWhere(user, where, alwaysFalseClause, permissionMapper),
+        include: {
+          primaryDemonstrationRoleAssignment: true,
+        },
       });
+
+      return demonstrationRoleAssignments.map((assignment) => ({
+        ...assignment,
+        isPrimary: !!assignment.primaryDemonstrationRoleAssignment,
+      }));
     },
   };
 }

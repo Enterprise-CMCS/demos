@@ -12,16 +12,8 @@ import {
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate";
-import {
-  deleteApplication,
-  getApplication,
-  resolveApplicationClearanceLevel,
-  resolveApplicationDocuments,
-  resolveApplicationPhases,
-  resolveApplicationTags,
-} from "../application";
+import { deleteApplication, getApplication } from "../application";
 import { GraphQLContext } from "../../auth/auth.util.js";
-import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -176,63 +168,6 @@ export async function deleteDemonstration(
   });
 }
 
-async function resolveDemonstrationState(parent: PrismaDemonstration) {
-  return await prisma().state.findUnique({
-    where: { id: parent.stateId },
-  });
-}
-
-async function resolveDemonstrationRoleAssignments(parent: PrismaDemonstration) {
-  return await prisma().demonstrationRoleAssignment.findMany({
-    where: { demonstrationId: parent.id },
-  });
-}
-
-async function resolveDemonstrationPrimaryProjectOfficer(parent: PrismaDemonstration) {
-  const primaryProjectOfficer = await prisma().primaryDemonstrationRoleAssignment.findUnique({
-    where: {
-      demonstrationId_roleId: {
-        demonstrationId: parent.id,
-        roleId: roleProjectOfficer,
-      },
-    },
-    include: {
-      demonstrationRoleAssignment: {
-        include: {
-          person: true,
-        },
-      },
-    },
-  });
-
-  if (!primaryProjectOfficer) {
-    throw new Error(`Primary project officer not found for demonstration ${parent.id}.`);
-  }
-
-  return primaryProjectOfficer.demonstrationRoleAssignment.person;
-}
-
-async function resolveDemonstrationTypes(parent: PrismaDemonstration) {
-  const assignments = await prisma().demonstrationTypeTagAssignment.findMany({
-    where: {
-      demonstrationId: parent.id,
-    },
-    include: {
-      tag: true,
-    },
-  });
-
-  return assignments.map((assignment) => ({
-    demonstrationTypeName: assignment.tagNameId,
-    effectiveDate: assignment.effectiveDate,
-    expirationDate: assignment.expirationDate,
-    status: determineDemonstrationTypeStatus(assignment.effectiveDate, assignment.expirationDate),
-    approvalStatus: assignment.tag.statusId,
-    createdAt: assignment.createdAt,
-    updatedAt: assignment.updatedAt,
-  }));
-}
-
 export const demonstrationResolvers = {
   Query: {
     demonstration: (parent: never, args: { id: string }, context: GraphQLContext) =>
@@ -248,8 +183,10 @@ export const demonstrationResolvers = {
   },
 
   Demonstration: {
-    state: resolveDemonstrationState,
-    documents: resolveApplicationDocuments,
+    state: (parent: { stateId: string }, args: never, context: GraphQLContext) =>
+      context.services.state.get({ id: parent.stateId }),
+    documents: (parent: { id: string }, args: never, context: GraphQLContext) =>
+      context.services.document.getMany({ applicationId: parent.id }),
     amendments: (parent: { id: string }, args: never, context: GraphQLContext) =>
       context.services.amendment.getMany({ demonstrationId: parent.id }),
     extensions: (parent: { id: string }, args: never, context: GraphQLContext) =>
@@ -257,12 +194,35 @@ export const demonstrationResolvers = {
     sdgDivision: (parent: PrismaDemonstration) => parent.sdgDivisionId,
     signatureLevel: (parent: PrismaDemonstration) => parent.signatureLevelId,
     currentPhaseName: (parent: PrismaDemonstration) => parent.currentPhaseId,
-    roles: resolveDemonstrationRoleAssignments,
+    roles: (parent: { id: string }, args: never, context: GraphQLContext) =>
+      context.services.demonstrationRoleAssignment.getMany({ demonstrationId: parent.id }),
     status: (parent: PrismaDemonstration) => parent.statusId,
-    phases: resolveApplicationPhases,
-    primaryProjectOfficer: resolveDemonstrationPrimaryProjectOfficer,
-    clearanceLevel: resolveApplicationClearanceLevel,
-    tags: resolveApplicationTags,
-    demonstrationTypes: resolveDemonstrationTypes,
+    phases: (parent: { id: string }, args: never, context: GraphQLContext) =>
+      context.services.applicationPhase.getMany({ applicationId: parent.id }),
+    primaryProjectOfficer: async (parent: { id: string }, args: never, context: GraphQLContext) => {
+      const primaryProjectOfficers = await context.services.demonstrationRoleAssignment.getMany({
+        demonstrationId: parent.id,
+        roleId: "Project Officer",
+        primaryDemonstrationRoleAssignment: {
+          isNot: null,
+        },
+      });
+      if (primaryProjectOfficers.length !== 1) {
+        throw new Error(`Primary project officer not found for demonstration ${parent.id}.`);
+      }
+      return context.services.person.get({ id: primaryProjectOfficers[0].personId });
+    },
+    clearanceLevel: (parent: PrismaDemonstration) => parent.clearanceLevelId,
+    tags: async (parent: { id: string }, args: never, context: GraphQLContext) => {
+      const applicationTagAssignments = await context.services.applicationTagAssignment.getMany({
+        applicationId: parent.id,
+      });
+      return applicationTagAssignments.map((assignment) => assignment.tag);
+    },
+    demonstrationTypes: async (parent: { id: string }, args: never, context: GraphQLContext) => {
+      return await context.services.demonstrationTypeTagAssignment.getMany({
+        demonstrationId: parent.id,
+      });
+    },
   },
 };
