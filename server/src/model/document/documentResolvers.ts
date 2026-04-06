@@ -198,6 +198,23 @@ export async function resolveDeliverable(parent: PrismaDocument) {
   return await prisma().deliverable.findUnique({ where: { id: parent.deliverableId } });
 }
 
+export async function resolveHasPendingUIPathResult(
+  parent: PrismaDocument
+): Promise<boolean> {
+  try {
+    return await prisma().uiPathResult.findFirst({
+      where: {
+        documentId: parent.id,
+        applicationId: parent.applicationId,
+        statusId: "Pending",
+      },
+      select: { id: true },
+    }) !== null;
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
+
 export const documentResolvers = {
   Query: {
     document: getDocument,
@@ -219,5 +236,6 @@ export const documentResolvers = {
     application: resolveApplication,
     deliverable: resolveDeliverable,
     phaseName: resolvePhaseName,
+    hasPendingUIPathResult: resolveHasPendingUIPathResult,
   },
 };
