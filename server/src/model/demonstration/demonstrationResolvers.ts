@@ -34,6 +34,7 @@ import {
   resolveApplicationSignatureLevel,
 } from "../application";
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
+import { GraphQLContext } from "../../auth/auth.util.js";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -288,8 +289,10 @@ export function resolveDemonstrationSdgDivision(parent: PrismaDemonstration): st
 
 export const demonstrationResolvers = {
   Query: {
-    demonstration: __getDemonstration,
-    demonstrations: __getManyDemonstrations,
+    demonstration: (parent: never, args: { id: string }, context: GraphQLContext) =>
+      context.services.demonstration.get({ id: args.id }),
+    demonstrations: (parent: never, args: never, context: GraphQLContext) =>
+      context.services.demonstration.getMany(),
   },
 
   Mutation: {

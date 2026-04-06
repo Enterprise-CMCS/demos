@@ -22,6 +22,7 @@ import {
   resolveApplicationTags,
   resolveApplicationSignatureLevel,
 } from "../application";
+import { GraphQLContext } from "../../auth/auth.util.js";
 
 const extensionApplicationType: ApplicationType = "Extension";
 const conceptPhaseName: PhaseName = "Concept";
@@ -121,7 +122,8 @@ export const extensionResolvers = {
   },
 
   Extension: {
-    demonstration: __resolveParentDemonstration,
+    demonstration: (parent: { demonstrationId: string }, args: never, context: GraphQLContext) =>
+      context.services.demonstration.get({ id: parent.demonstrationId }),
     documents: resolveApplicationDocuments,
     currentPhaseName: resolveApplicationCurrentPhaseName,
     status: resolveApplicationStatus,

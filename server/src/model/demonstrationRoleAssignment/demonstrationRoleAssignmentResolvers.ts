@@ -5,6 +5,7 @@ import {
   SetDemonstrationRoleInput,
   UnsetDemonstrationRoleInput,
 } from "./demonstrationRoleAssignmentSchema.js";
+import { GraphQLContext } from "../../auth/auth.util.js";
 
 const DEMONSTRATION_GRANT_LEVEL = "Demonstration";
 
@@ -230,11 +231,8 @@ export const demonstrationRoleAssigmentResolvers = {
     role: async (parent: PrismaDemonstrationRoleAssignment) => {
       return parent.roleId;
     },
-    demonstration: async (parent: PrismaDemonstrationRoleAssignment) => {
-      return await prisma().demonstration.findUnique({
-        where: { id: parent.demonstrationId },
-      });
-    },
+    demonstration: (parent: { demonstrationId: string }, args: never, context: GraphQLContext) =>
+      context.services.demonstration.get({ id: parent.demonstrationId }),
     isPrimary: async (parent: PrismaDemonstrationRoleAssignment) => {
       return !!(await prisma().primaryDemonstrationRoleAssignment.findUnique({
         where: {
