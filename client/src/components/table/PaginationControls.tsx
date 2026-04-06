@@ -39,6 +39,13 @@ export function PaginationControls<T>({
       setPageSize(newSize);
     }
   };
+
+  const goToFirstPage = () => setPageIndex(0);
+  const goToLastPage = () => {
+    if (totalPages > 0) {
+      setPageIndex(totalPages - 1);
+    }
+  };
   /**
    * Build a list of page indices or -1 for ellipses,
    * showing at most 5 actual page‐numbers.
@@ -106,6 +113,14 @@ export function PaginationControls<T>({
       </div>
       {/* Prev / Page Buttons / Next */}
       <div className="mr-2 flex items-center gap-1 flex-wrap">
+        <SecondaryButton
+          name="Go to first page"
+          onClick={goToFirstPage}
+          disabled={!canPreviousPage}
+          aria-label={canPreviousPage ? "Go to first page" : "Already on first page"}
+        >
+          First
+        </SecondaryButton>
         <Button
           name="Go to Previous Page"
           onClick={previousPage}
@@ -147,6 +162,14 @@ export function PaginationControls<T>({
         >
           Next
         </Button>
+        <SecondaryButton
+          name="Go to last page"
+          onClick={goToLastPage}
+          disabled={!canNextPage}
+          aria-label={canNextPage ? "Go to last page" : "Already on last page"}
+        >
+          Last
+        </SecondaryButton>
       </div>
     </nav>
   );

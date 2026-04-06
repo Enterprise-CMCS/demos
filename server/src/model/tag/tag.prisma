@@ -3,8 +3,8 @@ model Tag {
   tagTypeId String   @map("tag_type_id")
   sourceId  String   @map("source_id")
   statusId  String   @map("status_id")
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   tagName                         TagName                          @relation(fields: [tagNameId], references: [id])
   tagType                         TagType                          @relation(fields: [tagTypeId], references: [id])

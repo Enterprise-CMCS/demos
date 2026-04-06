@@ -1,9 +1,9 @@
 import { PrismaTransactionClient } from "../../../prismaClient.js";
-import { PhaseNameWithTrackedStatus, PhaseStatus } from "../../../types.js";
+import { PhaseName, PhaseStatus } from "../../../types.js";
 
 export async function getApplicationPhaseStatus(
   applicationId: string,
-  phaseName: PhaseNameWithTrackedStatus,
+  phaseName: PhaseName,
   tx: PrismaTransactionClient
 ): Promise<PhaseStatus> {
   const results = await tx.applicationPhase.findUnique({

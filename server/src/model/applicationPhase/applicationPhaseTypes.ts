@@ -2,31 +2,31 @@ import {
   ApplicationDate as PrismaApplicationDate,
   ApplicationNote as PrismaApplicationNote,
 } from "@prisma/client";
-import { DateType, DocumentType, PhaseNameWithTrackedStatus, PhaseStatus } from "../../types.js";
+import { DateType, DocumentType, PhaseName, PhaseStatus } from "../../types.js";
 
 export type ValidationChecks = {
   datesMustExist: DateType[];
   documentTypesMustExist: DocumentType[];
-  phasesMustBeComplete: PhaseNameWithTrackedStatus[];
+  phasesMustBeComplete: PhaseName[];
 };
 
 export type PhaseCompletionValidationChecksRecord = Record<
-  PhaseNameWithTrackedStatus,
+  PhaseName,
   ValidationChecks | "No Validation"
 >;
 
 export type PhaseActions = {
   dateToComplete: DateType;
   nextPhase?: {
-    phaseName: PhaseNameWithTrackedStatus;
+    phaseName: PhaseName;
     dateToStart?: DateType;
   };
 };
-export type PhaseActionRecord = Record<PhaseNameWithTrackedStatus, PhaseActions | "Not Permitted">;
+export type PhaseActionRecord = Record<PhaseName, PhaseActions | "Not Permitted">;
 
-export type ApplicationPhaseStatusRecord = Record<PhaseNameWithTrackedStatus, PhaseStatus>;
+export type ApplicationPhaseStatusRecord = Record<PhaseName, PhaseStatus>;
 
-export type ApplicationPhaseDocumentTypeRecord = Record<PhaseNameWithTrackedStatus, DocumentType[]>;
+export type ApplicationPhaseDocumentTypeRecord = Record<PhaseName, DocumentType[]>;
 
 export type PrismaApplicationDateResults = Pick<
   PrismaApplicationDate,

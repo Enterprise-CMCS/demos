@@ -15,8 +15,10 @@ const {
   };
 
   return {
-    prismaPgCtorMock: vi.fn(),
-    prismaClientCtorMock: vi.fn(() => baseClient),
+    prismaPgCtorMock: vi.fn(function (this: any) {}),
+    prismaClientCtorMock: vi.fn(function (this: any) {
+      return baseClient;
+    }),
     baseClientMock: baseClient,
     extendedClientMock: extendedClient,
     logWarnMock: vi.fn(),

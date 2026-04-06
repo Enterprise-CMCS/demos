@@ -2,6 +2,7 @@ import { gql } from "graphql-tag";
 
 import { User } from "../user/userSchema.js";
 import { DocumentType, Application, PhaseName, NonEmptyString } from "../../types.js";
+import { Deliverable } from "../deliverable/deliverableSchema.js";
 
 export const documentSchema = gql`
   type Document {
@@ -12,8 +13,9 @@ export const documentSchema = gql`
     owner: User!
     documentType: DocumentType!
     application: Application!
-    phaseName: PhaseName!
+    phaseName: PhaseName
     presignedDownloadUrl: String!
+    deliverable: Deliverable
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -23,7 +25,8 @@ export const documentSchema = gql`
     description: String
     documentType: DocumentType!
     applicationId: ID!
-    phaseName: PhaseName!
+    phaseName: PhaseName
+    deliverableId: ID
   }
 
   input UpdateDocumentInput {
@@ -32,6 +35,7 @@ export const documentSchema = gql`
     documentType: DocumentType
     applicationId: ID
     phaseName: PhaseName
+    deliverableId: ID
   }
 
   type UploadDocumentResponse {
@@ -61,7 +65,8 @@ export interface Document {
   owner: User;
   documentType: DocumentType;
   application: Application;
-  phaseName: PhaseName;
+  phaseName?: PhaseName;
+  deliverable?: Deliverable;
   createdAt: Date;
   updatedAt: Date;
   presignedDownloadUrl: string;
@@ -72,7 +77,8 @@ export interface UploadDocumentInput {
   description?: string;
   documentType: DocumentType;
   applicationId: string;
-  phaseName: PhaseName;
+  phaseName?: PhaseName;
+  deliverableId?: string;
 }
 
 export interface UpdateDocumentInput {
@@ -81,6 +87,7 @@ export interface UpdateDocumentInput {
   documentType?: DocumentType;
   applicationId?: string;
   phaseName?: PhaseName;
+  deliverableId?: string;
 }
 
 export interface UploadDocumentResponse {

@@ -1,8 +1,9 @@
 import React from "react";
 import { tw } from "tags/tw";
-import type { PhaseName, PhaseStatus } from "./PhaseSelector";
+import type { PhaseStatus } from "./PhaseSelector";
 import { SuccessIcon } from "components/icons";
 import { PhaseDate } from "./PhaseDate";
+import { PhaseName } from "demos-server";
 
 const BASE_STYLES = {
   PHASE_BOX: tw`flex flex-col items-center justify-center rounded-sm hover:cursor-pointer aspect-2/1 p-1`,

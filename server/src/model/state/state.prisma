@@ -1,4 +1,4 @@
-// Flags: NATURAL_KEY, NO_CREATED_TS, NO_UPDATED_TS, NO_HISTORY
+// Flags: NO_CREATED_TS, NO_UPDATED_TS, NO_HISTORY
 // State codes are managed via migration and should almost never change
 model State {
   id   String @id
