@@ -27,6 +27,7 @@ export const amendmentSchema = gql`
     clearanceLevel: ClearanceLevel!
     tags: [Tag!]!
     signatureLevel: SignatureLevel
+    suggestedApplicationTags: [String!]!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -72,6 +73,7 @@ export interface Amendment {
   clearanceLevel: ClearanceLevel;
   tags: Tag[];
   signatureLevel?: SignatureLevel;
+  suggestedApplicationTags: string[];
   updatedAt: Date;
   createdAt: Date;
 }

@@ -65,6 +65,24 @@ export async function resolveApplicationTags(parent: PrismaApplication): Promise
   }));
 }
 
+export async function resolveSuggestedApplicationTags(
+  parent: PrismaApplication
+): Promise<string[]> {
+  const suggestions = await prisma().applicationTagSuggestion.findMany({
+    where: {
+      applicationId: parent.id,
+      statusId: {
+        in: ["Pending"],
+      },
+    },
+    select: {
+      value: true,
+    },
+  });
+
+  return suggestions.map((s) => s.value);
+}
+
 export const applicationResolvers = {
   Mutation: {
     setApplicationClearanceLevel: setApplicationClearanceLevel,

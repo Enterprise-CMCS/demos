@@ -41,6 +41,7 @@ export const demonstrationSchema = gql`
     clearanceLevel: ClearanceLevel!
     tags: [Tag!]!
     demonstrationTypes: [DemonstrationTypeAssignment!]!
+    suggestedApplicationTags: [String!]!
   }
 
   input CreateDemonstrationInput {
@@ -98,6 +99,7 @@ export interface Demonstration {
   clearanceLevel: ClearanceLevel;
   tags: Tag[];
   demonstrationTypes: DemonstrationTypeAssignment[];
+  suggestedApplicationTags: string[];
 }
 
 export interface CreateDemonstrationInput {

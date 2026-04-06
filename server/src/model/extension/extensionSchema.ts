@@ -27,6 +27,7 @@ export const extensionSchema = gql`
     clearanceLevel: ClearanceLevel!
     tags: [Tag!]!
     signatureLevel: SignatureLevel
+    suggestedApplicationTags: [String!]!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -72,6 +73,7 @@ export interface Extension {
   clearanceLevel: ClearanceLevel;
   tags: Tag[];
   signatureLevel?: SignatureLevel;
+  suggestedApplicationTags: string[];
   createdAt: Date;
   updatedAt: Date;
 }
