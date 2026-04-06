@@ -4,7 +4,9 @@ import {
 } from "../model/demonstration/demonstrationService";
 import { Permission } from "../types";
 import { ContextUser } from "./auth.util";
-export type PermissionMap<PrismaWhereClause> = Partial<Record<Permission, PrismaWhereClause>>;
+export type PermissionMap<PrismaWhereClause, TPermission extends string = Permission> = Partial<
+  Record<TPermission, PrismaWhereClause>
+>;
 
 export type Services = {
   demonstration: DemonstrationService;

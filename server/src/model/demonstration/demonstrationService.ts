@@ -18,6 +18,7 @@ const permissionMapper = (userId: string) =>
       demonstrationRoleAssignments: {
         some: {
           personId: userId,
+          roleId: "State Point of Contact",
         },
       },
     },

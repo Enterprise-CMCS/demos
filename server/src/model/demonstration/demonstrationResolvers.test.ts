@@ -12,6 +12,7 @@ import {
   __resolveDemonstrationRoleAssignments,
   __resolveDemonstrationPrimaryProjectOfficer,
   resolveDemonstrationTypes,
+  demonstrationResolvers,
 } from "./demonstrationResolvers";
 import {
   ApplicationStatus,
@@ -56,6 +57,7 @@ import {
 } from "../application";
 import { parseDateTimeOrLocalDateToEasternTZDate, EasternTZDate } from "../../dateUtilities.js";
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
+import { GraphQLContext } from "../../auth/auth.util.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -225,23 +227,46 @@ describe("demonstrationResolvers", () => {
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
-  describe("__getDemonstration", () => {
-    it("should request the demonstration", async () => {
-      const testInput = {
-        id: testValues.demonstrationId,
-      };
-      await __getDemonstration(undefined, testInput);
-      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testValues.demonstrationId, {
-        applicationTypeId: "Demonstration",
-      });
-    });
+  it("delegates `demonstration` to `context.services.demonstration.get`", async () => {
+    const get = vi.fn();
+
+    const context = {
+      services: {
+        demonstration: {
+          get,
+          getMany: vi.fn(),
+        },
+      },
+    } as unknown as GraphQLContext;
+
+    await demonstrationResolvers.Query.demonstration(
+      undefined as never,
+      { id: testValues.demonstrationId },
+      context
+    );
+
+    expect(get).toHaveBeenCalledExactlyOnceWith({ id: testValues.demonstrationId });
   });
 
-  describe("__getManyDemonstrations", () => {
-    it("should request many demonstrations with the right type", async () => {
-      await __getManyDemonstrations();
-      expect(getManyApplications).toHaveBeenCalledExactlyOnceWith("Demonstration");
-    });
+  it("delegates `demonstrations` to `context.services.demonstration.getMany`", async () => {
+    const getMany = vi.fn();
+
+    const context = {
+      services: {
+        demonstration: {
+          get: vi.fn(),
+          getMany,
+        },
+      },
+    } as unknown as GraphQLContext;
+
+    await demonstrationResolvers.Query.demonstrations(
+      undefined as never,
+      undefined as never,
+      context
+    );
+
+    expect(getMany).toHaveBeenCalledExactlyOnceWith();
   });
 
   describe("__createDemonstration", () => {

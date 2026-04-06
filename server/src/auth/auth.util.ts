@@ -73,7 +73,7 @@ function getKey(header: JwtHeader, cb: (err: Error | null, key?: string) => void
 }
 
 // Check if role is demos-admin, demos-cms-user, or demos-state-user
-function verifyRole(role: string): void {
+export function verifyRole(role: string): void {
   const validRoles = (PERSON_TYPES as readonly string[]).filter((r) => r !== "non-user-contact");
   if (!validRoles.includes(role)) {
     throw new GraphQLError(`Invalid user role: '${role}'`, {
@@ -181,7 +181,7 @@ function decodeToken(token: string): Promise<DecodedJWT> {
 
 type HeaderGetter = (name: string) => string | undefined;
 
-function createHeaderGetter(obj: Record<string, unknown> | undefined | null): HeaderGetter {
+export function createHeaderGetter(obj: Record<string, unknown> | undefined | null): HeaderGetter {
   const lowerMap = new Map<string, string | undefined>();
   if (obj) {
     for (const k of Object.keys(obj)) {

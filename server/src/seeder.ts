@@ -560,11 +560,13 @@ async function seedDatabase() {
   }
 
   console.log("🌱 Seeding all dates for one demonstration");
-  const randomDemonstration = faker.helpers.arrayElement(await prisma().demonstration.findMany({
-    select: {
-      id: true,
-    },
-  }));
+  const randomDemonstration = faker.helpers.arrayElement(
+    await prisma().demonstration.findMany({
+      select: {
+        id: true,
+      },
+    })
+  );
   const dateInput: SetApplicationDatesInput = {
     applicationId: randomDemonstration!.id,
     applicationDates: [
@@ -860,6 +862,16 @@ async function seedDatabase() {
     if (!user) {
       context = {
         user: null,
+        services: {
+          demonstration: {
+            get: async () => {
+              return null;
+            },
+            getMany: async () => {
+              return [];
+            },
+          },
+        },
       };
     } else {
       context = {
@@ -867,6 +879,17 @@ async function seedDatabase() {
           id: user.id,
           sub: user.cognitoSubject,
           role: user.personTypeId,
+          permissions: [],
+        },
+        services: {
+          demonstration: {
+            get: async () => {
+              return null;
+            },
+            getMany: async () => {
+              return [];
+            },
+          },
         },
       };
     }
