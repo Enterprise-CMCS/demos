@@ -44,7 +44,10 @@ export type DemonstrationDetailDemonstrationType = Pick<
   | "approvalStatus"
 >;
 
-export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "status"> & {
+export type DemonstrationTabDemonstration = Pick<
+  Demonstration,
+  "id" | "status" | "effectiveDate" | "expirationDate"
+> & {
   demonstrationTypes: DemonstrationDetailDemonstrationType[];
   documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
     owner: {
@@ -78,6 +81,9 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
 
   const isDemonstrationApproved = demonstration.status === "Approved";
   const defaultTab = isDemonstrationApproved ? TAB.DELIVERABLES : TAB.APPLICATION;
+  const demonstrationTypeNames: string[] = demonstration.demonstrationTypes.map(
+    (dt) => dt.demonstrationTypeName
+  );
 
   return (
     <div className="p-[16px]">
@@ -89,9 +95,11 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           shouldRender={isDemonstrationApproved}
         >
           <DeliverablesTab
-            demonstrationTypes={demonstration.demonstrationTypes.map(
-              (t) => t.demonstrationTypeName
-            )}
+            parentDemonstration={{
+              demonstrationTypes: demonstrationTypeNames,
+              effectiveDate: demonstration.effectiveDate,
+              expirationDate: demonstration.expirationDate,
+            }}
           />
         </Tab>
         <Tab icon={<ListIcon />} label="Applications" value={TAB.APPLICATION}>

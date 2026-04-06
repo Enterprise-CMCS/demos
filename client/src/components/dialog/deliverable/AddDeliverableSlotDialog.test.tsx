@@ -11,16 +11,31 @@ import {
 import { SELECT_DEMONSTRATION_TYPE_NAME } from "components/dialog/deliverable/fields/DemonstrationTypeField";
 import { DELIVERABLE_TYPE_SELECT_NAME } from "components/dialog/deliverable/fields/DeliverableTypeField";
 import { personMocks } from "mock-data/personMocks";
+import { AddDeliverableSlotDemonstration } from "./AddDeliverableSlotDialog";
 
-const MOCK_DEMONSTRATION_TYPES = ["Aggregate Cap", "Annual Limits", "Basic Health Plan (BHP)"];
+const MOCK_DEMONSTRATION_TYPES: string[] = [
+  "Aggregate Cap",
+  "Annual Limits",
+  "Basic Health Plan (BHP)",
+];
+const DEFAULT_DEMONSTRATION: AddDeliverableSlotDemonstration = {
+  demonstrationTypes: MOCK_DEMONSTRATION_TYPES,
+  effectiveDate: new Date("2024-01-01"),
+  expirationDate: new Date("2026-12-31"),
+};
 
 describe("AddDeliverableSlotDialog", () => {
-  const setup = (demonstrationTypes = MOCK_DEMONSTRATION_TYPES) => {
+  const setup = (demonstrationOverrides?: Partial<AddDeliverableSlotDemonstration>) => {
     const onClose = vi.fn();
+
+    const demonstrationWithOverrides = {
+      ...DEFAULT_DEMONSTRATION,
+      ...demonstrationOverrides,
+    };
 
     render(
       <MockedProvider mocks={personMocks}>
-        <AddDeliverableSlotDialog onClose={onClose} demonstrationTypes={demonstrationTypes} />
+        <AddDeliverableSlotDialog onClose={onClose} demonstration={demonstrationWithOverrides} />
       </MockedProvider>
     );
 

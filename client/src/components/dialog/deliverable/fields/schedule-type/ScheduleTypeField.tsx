@@ -2,29 +2,26 @@ import React from "react";
 
 import { AutoCompleteSelect } from "components/input/select/AutoCompleteSelect";
 
-export const SCHEDULE_TYPES = ["Single", "Quarterly"] as const;
-const SCHEDULE_TYPE_OPTIONS = SCHEDULE_TYPES.map((type) => ({ label: type, value: type }));
+export const ALL_SCHEDULE_TYPES: string[] = ["Single", "Quarterly"];
+export type ScheduleType = (typeof ALL_SCHEDULE_TYPES)[number];
 
 export const ScheduleTypeField = ({
   value,
   onSelect,
-  isDisabled = false,
 }: {
-  value: string;
-  onSelect: (value: string) => void;
-  isDisabled?: boolean;
+  value: ScheduleType;
+  onSelect: (value: ScheduleType) => void;
 }) => {
   return (
     <AutoCompleteSelect
       id="schedule-type"
       dataTestId="select-schedule-type"
       label="Schedule Type"
-      options={SCHEDULE_TYPE_OPTIONS}
+      options={ALL_SCHEDULE_TYPES.map((type) => ({ label: type, value: type }))}
       value={value}
       onSelect={onSelect}
       isRequired
-      isDisabled={isDisabled}
-      placeholder="Select schedule type…"
+      placeholder="Select..."
     />
   );
 };
