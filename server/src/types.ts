@@ -7,6 +7,12 @@ import {
   CLEARANCE_LEVELS,
   CMS_USER_DEMONSTRATION_ROLES,
   DATE_TYPES,
+  DELIVERABLE_ACTION_TYPES,
+  DELIVERABLE_DUE_DATE_TYPES,
+  DELIVERABLE_EXTENSION_REASON_CODES,
+  DELIVERABLE_EXTENSION_STATUSES,
+  DELIVERABLE_STATUSES,
+  DELIVERABLE_TYPES,
   DEMONSTRATION_TYPE_STATUSES,
   DOCUMENT_TYPES,
   EVENT_TYPES,
@@ -15,8 +21,7 @@ import {
   LOG_LEVELS,
   NOTE_TYPES,
   PERSON_TYPES,
-  PHASE_NAME,
-  PHASE_NAMES_WITH_TRACKED_STATUS,
+  PHASE_NAMES,
   PHASE_STATUS,
   REVIEW_PHASE_DATE_TYPES,
   REVIEW_PHASE_NOTE_TYPES,
@@ -114,8 +119,7 @@ export type ApplicationType = (typeof APPLICATION_TYPES)[number];
 export type SdgDivision = (typeof SDG_DIVISIONS)[number];
 export type SignatureLevel = (typeof SIGNATURE_LEVEL)[number];
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
-export type PhaseName = (typeof PHASE_NAME)[number];
-export type PhaseNameWithTrackedStatus = (typeof PHASE_NAMES_WITH_TRACKED_STATUS)[number];
+export type PhaseName = (typeof PHASE_NAMES)[number];
 export type PhaseStatus = (typeof PHASE_STATUS)[number];
 export type PersonType = (typeof PERSON_TYPES)[number];
 export type GrantLevel = (typeof GRANT_LEVELS)[number];
@@ -130,11 +134,16 @@ export type CmsUserDemonstrationRole = (typeof CMS_USER_DEMONSTRATION_ROLES)[num
 export type StateUserDemonstrationRole = (typeof STATE_USER_DEMONSTRATION_ROLES)[number];
 export type ReviewPhaseDateTypes = (typeof REVIEW_PHASE_DATE_TYPES)[number];
 export type ReviewPhaseNoteTypes = (typeof REVIEW_PHASE_NOTE_TYPES)[number];
-export type ApplicationTagSuggestionStatus =
-  (typeof APPLICATION_TAG_SUGGESTION_STATUSES)[number];
+export type ApplicationTagSuggestionStatus = (typeof APPLICATION_TAG_SUGGESTION_STATUSES)[number];
 export type UiPathResultStatus = (typeof UIPATH_RESULT_STATUSES)[number];
 export type TagStatus = (typeof TAG_STATUSES)[number];
 export type TagSource = (typeof TAG_SOURCES)[number];
 export type TagType = (typeof TAG_TYPES)[number];
 export type BudgetNeutralityValidationStatus =
   (typeof BUDGET_NEUTRALITY_VALIDATION_STATUSES)[number];
+export type DeliverableType = (typeof DELIVERABLE_TYPES)[number];
+export type DeliverableStatus = (typeof DELIVERABLE_STATUSES)[number];
+export type DeliverableDueDateType = (typeof DELIVERABLE_DUE_DATE_TYPES)[number];
+export type DeliverableActionType = (typeof DELIVERABLE_ACTION_TYPES)[number];
+export type DeliverableExtensionReasonCode = (typeof DELIVERABLE_EXTENSION_REASON_CODES)[number];
+export type DeliverableExtensionStatus = (typeof DELIVERABLE_EXTENSION_STATUSES)[number];

@@ -1,0 +1,10 @@
+// Flags: TYPE_LIMITER
+model DeliverableActiveExtensionStatusLimit {
+  id String
+
+  deliverableExtensionStatus  DeliverableExtensionStatus   @relation(fields: [id], references: [id])
+  deliverableActiveExtensions DeliverableActiveExtension[]
+
+  @@id([id])
+  @@map("deliverable_active_extension_status_limit")
+}

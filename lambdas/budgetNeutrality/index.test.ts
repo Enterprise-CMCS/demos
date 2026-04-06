@@ -50,10 +50,9 @@ describe("budgetNeutrality index", () => {
     const exists = await documentExists(pool, "0d3f4a68-195d-49ef-8d36-0cc0eaa31935");
 
     expect(exists).toBe(true);
-    expect(mocks.queryMock).toHaveBeenCalledWith(
-      expect.stringContaining("SELECT EXISTS"),
-      ["0d3f4a68-195d-49ef-8d36-0cc0eaa31935"]
-    );
+    expect(mocks.queryMock).toHaveBeenCalledWith(expect.stringContaining("SELECT EXISTS"), [
+      "0d3f4a68-195d-49ef-8d36-0cc0eaa31935",
+    ]);
   });
 
   it("processes a single record and returns 200", async () => {
@@ -63,7 +62,7 @@ describe("budgetNeutrality index", () => {
     mocks.getDbPoolMock.mockResolvedValue(pool);
 
     const event = {
-      Records: [{ body: JSON.stringify({ documentId: "doc-1", documentTypeId: "Final BN Worksheet" }) }],
+      Records: [{ body: JSON.stringify({ documentId: "doc-1", documentTypeId: "BN Workbook" }) }],
     } as unknown as SQSEvent;
 
     const context = { awsRequestId: "test-request-id" } as Context;
@@ -79,9 +78,9 @@ describe("budgetNeutrality index", () => {
     expect(mocks.queryMock.mock.calls[1]?.[0]).toContain("budget_neutrality_workbook");
     expect(mocks.queryMock.mock.calls[1]?.[1]).toEqual([
       "doc-1",
-      "Final BN Worksheet",
+      "BN Workbook",
       "Succeeded",
-      "{\"source\":\"budgetNeutrality\"}",
+      '{"source":"budgetNeutrality"}',
     ]);
     expect(mocks.logInfoMock).toHaveBeenCalledWith(
       {
@@ -103,8 +102,8 @@ describe("budgetNeutrality index", () => {
 
     const event = {
       Records: [
-        { body: JSON.stringify({ documentId: "doc-1", documentTypeId: "Final BN Worksheet" }) },
-        { body: JSON.stringify({ documentId: "doc-2", documentTypeId: "Final BN Worksheet" }) },
+        { body: JSON.stringify({ documentId: "doc-1", documentTypeId: "BN Workbook" }) },
+        { body: JSON.stringify({ documentId: "doc-2", documentTypeId: "BN Workbook" }) },
       ],
     } as unknown as SQSEvent;
 
@@ -130,18 +129,20 @@ describe("budgetNeutrality index", () => {
     expect(mocks.queryMock).not.toHaveBeenCalled();
   });
 
-  it("throws when documentTypeId is not Final BN Worksheet", async () => {
+  it("throws when documentTypeId is not BN Workbook", async () => {
     const pool = { query: mocks.queryMock } as unknown as Pool;
     mocks.getDbPoolMock.mockResolvedValue(pool);
 
     const event = {
-      Records: [{ body: JSON.stringify({ documentId: "doc-1", documentTypeId: "State Application" }) }],
+      Records: [
+        { body: JSON.stringify({ documentId: "doc-1", documentTypeId: "State Application" }) },
+      ],
     } as unknown as SQSEvent;
 
     const context = { awsRequestId: "test-request-id" } as Context;
 
     await expect(handler(event, context)).rejects.toThrow(
-      'Lambda failed: Invalid message: documentTypeId must be "Final BN Worksheet". Received "State Application".'
+      'Lambda failed: Invalid message: documentTypeId must be "BN Workbook". Received "State Application".'
     );
     expect(mocks.queryMock).not.toHaveBeenCalled();
   });
@@ -151,7 +152,7 @@ describe("budgetNeutrality index", () => {
     mocks.getDbPoolMock.mockResolvedValue(pool);
 
     const event = {
-      Records: [{ body: JSON.stringify({ documentTypeId: "Final BN Worksheet" }) }],
+      Records: [{ body: JSON.stringify({ documentTypeId: "BN Workbook" }) }],
     } as unknown as SQSEvent;
 
     const context = { awsRequestId: "test-request-id" } as Context;

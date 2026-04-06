@@ -15,18 +15,43 @@ export const SELECT_DEMONSTRATION_TYPE_QUERY: TypedDocumentNode<
   }
 `;
 
+const NO_MATCH_MESSAGE =
+  "Entry not found. New tags remain unapproved until admin review. Ensure accuracy before adding.";
+
 export type SelectDemonstrationTypeProps = {
   value: TagName;
   onSelect: (demonstrationTypeOption: Tag) => void;
   isRequired?: boolean;
   filter?: (tag: TagName) => boolean;
+  allowCreateNew?: boolean;
+  onFilterChange?: (filterValue: string, hasMatches: boolean) => void;
+  createdOptions?: Tag[];
 };
 export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => {
-  const { filter, onSelect, ...rest } = props;
+  const {
+    filter,
+    onSelect,
+    allowCreateNew = false,
+    onFilterChange,
+    createdOptions = [],
+    ...rest
+  } = props;
 
   const { loading, error, data } = useQuery(SELECT_DEMONSTRATION_TYPE_QUERY);
 
-  const demonstrationTypeOptions = (data?.demonstrationTypeOptions || [])
+  const fetchedOptions = data?.demonstrationTypeOptions || [];
+  const allOptions = [...fetchedOptions, ...createdOptions];
+
+  // Dedupe by tagName (case-sensitive, matching database behavior).
+  // Needed because createdOptions may overlap with fetchedOptions after a refetch.
+  const seen = new Set<string>();
+  const uniqueOptions = allOptions.filter((opt) => {
+    if (seen.has(opt.tagName)) return false;
+    seen.add(opt.tagName);
+    return true;
+  });
+
+  const demonstrationTypeOptions = uniqueOptions
     .filter((typeOption) => (filter ? filter(typeOption.tagName) : true))
     .sort((a, b) => a.tagName.localeCompare(b.tagName))
     .map((typeOption) => ({
@@ -36,17 +61,17 @@ export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => 
 
   const placeholderText = useMemo(() => {
     if (loading) return "Loading...";
-    return demonstrationTypeOptions.length ? "Select an option" : "No types available";
-  }, [loading, demonstrationTypeOptions.length]);
+    return demonstrationTypeOptions.length || allowCreateNew
+      ? "Select an option"
+      : "No types available";
+  }, [loading, demonstrationTypeOptions.length, allowCreateNew]);
 
   if (error) {
     return <p className="text-red-500">Error loading demonstration type options.</p>;
   }
 
   const handleSelect = (value: TagName) => {
-    const demonstrationTypeOption = data?.demonstrationTypeOptions.find(
-      (opt) => opt.tagName === value
-    );
+    const demonstrationTypeOption = uniqueOptions.find((opt) => opt.tagName === value);
     if (demonstrationTypeOption) {
       onSelect(demonstrationTypeOption);
     }
@@ -57,9 +82,11 @@ export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => 
       label="Demonstration Type"
       dataTestId="select-demonstration-type"
       options={demonstrationTypeOptions}
-      isDisabled={demonstrationTypeOptions.length === 0}
+      isDisabled={demonstrationTypeOptions.length === 0 && !allowCreateNew}
       placeholder={placeholderText}
       onSelect={handleSelect}
+      noMatchMessage={allowCreateNew ? NO_MATCH_MESSAGE : undefined}
+      onFilterChange={onFilterChange}
       {...rest}
     />
   );

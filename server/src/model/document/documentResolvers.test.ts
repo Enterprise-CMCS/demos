@@ -202,6 +202,11 @@ describe("documentResolvers", () => {
 
       const result = await uploadDocument(undefined, { input: mockUploadInput }, mockContext);
 
+      expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(
+        ["name", "documentType", "applicationId", "phaseName", "deliverableId"],
+        mockUploadInput
+      );
+
       expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
       expect(mockS3Adapter.uploadDocument).toHaveBeenCalledExactlyOnceWith(
         mockTransaction,
@@ -364,7 +369,7 @@ describe("documentResolvers", () => {
       });
 
       expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(
-        ["name", "documentType", "applicationId", "phaseName"],
+        ["name", "documentType", "applicationId", "phaseName", "deliverableId"],
         mockUpdateInput
       );
       expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();

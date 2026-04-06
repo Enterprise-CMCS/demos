@@ -209,4 +209,81 @@ describe("SelectDemonstrationTypes", () => {
       ]);
     });
   });
+
+  describe("allowCreateNew", () => {
+    const renderWithCreateNew = async () => {
+      const result = render(
+        <MockedProvider mocks={[mockSelectDemonstrationTypeQuery]}>
+          <SelectDemonstrationType value="" onSelect={mockOnSelect} allowCreateNew />
+        </MockedProvider>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText("Select an option")).toBeInTheDocument();
+      });
+
+      return result;
+    };
+
+    it("shows 'Entry not found' message when no matches and allowCreateNew is true", async () => {
+      await renderWithCreateNew();
+
+      const input = screen.getByRole("textbox");
+      await userEvent.type(input, "Nonexistent Type");
+
+      expect(
+        screen.getByText(
+          "Entry not found. New tags remain unapproved until admin review. Ensure accuracy before adding."
+        )
+      ).toBeInTheDocument();
+    });
+
+    it("shows default 'No matches found' when allowCreateNew is false", async () => {
+      render(
+        <MockedProvider mocks={[mockSelectDemonstrationTypeQuery]}>
+          <SelectDemonstrationType value="" onSelect={mockOnSelect} />
+        </MockedProvider>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText("Select an option")).toBeInTheDocument();
+      });
+
+      const input = screen.getByRole("textbox");
+      await userEvent.type(input, "Nonexistent Type");
+
+      expect(screen.getByText(/no matches found/i)).toBeInTheDocument();
+    });
+
+    it("keeps input enabled even when no options match and allowCreateNew is true", async () => {
+      await renderWithCreateNew();
+
+      const input = screen.getByRole("textbox");
+      expect(input).not.toBeDisabled();
+    });
+  });
+
+  describe("onFilterChange", () => {
+    it("passes onFilterChange callback through to AutoCompleteSelect", async () => {
+      const mockFilterChange = vi.fn();
+      render(
+        <MockedProvider mocks={[mockSelectDemonstrationTypeQuery]}>
+          <SelectDemonstrationType
+            value=""
+            onSelect={mockOnSelect}
+            onFilterChange={mockFilterChange}
+          />
+        </MockedProvider>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText("Select an option")).toBeInTheDocument();
+      });
+
+      const input = screen.getByRole("textbox");
+      await userEvent.type(input, "zzz");
+
+      expect(mockFilterChange).toHaveBeenLastCalledWith("zzz", false);
+    });
+  });
 });

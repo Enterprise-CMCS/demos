@@ -144,13 +144,6 @@ CREATE TABLE "application_phase_history" (
 );
 
 -- CreateTable
-CREATE TABLE "application_phase_type_limit" (
-    "id" TEXT NOT NULL,
-
-    CONSTRAINT "application_phase_type_limit_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "application_status" (
     "id" TEXT NOT NULL,
 
@@ -179,6 +172,80 @@ CREATE TABLE "application_tag_assignment_history" (
 );
 
 -- CreateTable
+CREATE TABLE "application_tag_suggestion" (
+    "id" UUID NOT NULL,
+    "application_id" UUID NOT NULL,
+    "value" TEXT NOT NULL,
+    "status_id" TEXT NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "application_tag_suggestion_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "application_tag_suggestion_history" (
+    "revision_id" SERIAL NOT NULL,
+    "revision_type" "revision_type_enum" NOT NULL,
+    "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "id" UUID NOT NULL,
+    "application_id" UUID NOT NULL,
+    "value" TEXT NOT NULL,
+    "status_id" TEXT NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "application_tag_suggestion_history_pkey" PRIMARY KEY ("revision_id")
+);
+
+-- CreateTable
+CREATE TABLE "application_tag_suggestion_extract" (
+    "suggestion_id" UUID NOT NULL,
+    "uipath_value_id" UUID NOT NULL,
+    "application_id" UUID NOT NULL,
+    "field_id" TEXT NOT NULL,
+    "value" TEXT NOT NULL,
+    "start_page_no" INTEGER NOT NULL,
+    "end_page_no" INTEGER NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "application_tag_suggestion_extract_pkey" PRIMARY KEY ("suggestion_id","uipath_value_id")
+);
+
+-- CreateTable
+CREATE TABLE "application_tag_suggestion_extract_history" (
+    "revision_id" SERIAL NOT NULL,
+    "revision_type" "revision_type_enum" NOT NULL,
+    "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "suggestion_id" UUID NOT NULL,
+    "uipath_value_id" UUID NOT NULL,
+    "application_id" UUID NOT NULL,
+    "field_id" TEXT NOT NULL,
+    "value" TEXT NOT NULL,
+    "start_page_no" INTEGER NOT NULL,
+    "end_page_no" INTEGER NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "application_tag_suggestion_extract_history_pkey" PRIMARY KEY ("revision_id")
+);
+
+-- CreateTable
+CREATE TABLE "application_tag_suggestion_extract_field_limit" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "application_tag_suggestion_extract_field_limit_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "application_tag_suggestion_status" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "application_tag_suggestion_status_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "application_tag_type_limit" (
     "id" TEXT NOT NULL,
 
@@ -204,7 +271,7 @@ CREATE TABLE "budget_neutrality_workbook" (
     "id" UUID NOT NULL,
     "document_type_id" TEXT NOT NULL,
     "validation_status_id" TEXT NOT NULL,
-    "validation_data" JSON NOT NULL,
+    "validation_data" JSONB NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
@@ -219,7 +286,7 @@ CREATE TABLE "budget_neutrality_workbook_history" (
     "id" UUID NOT NULL,
     "document_type_id" TEXT NOT NULL,
     "validation_status_id" TEXT NOT NULL,
-    "validation_data" JSON NOT NULL,
+    "validation_data" JSONB NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
@@ -241,10 +308,245 @@ CREATE TABLE "clearance_level" (
 );
 
 -- CreateTable
+CREATE TABLE "cms_user_person_type_limit" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "cms_user_person_type_limit_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "date_type" (
     "id" TEXT NOT NULL,
 
     CONSTRAINT "date_type_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "deliverable" (
+    "id" UUID NOT NULL,
+    "deliverable_type_id" TEXT NOT NULL,
+    "demonstration_id" UUID NOT NULL,
+    "demonstration_status_id" TEXT NOT NULL,
+    "status_id" TEXT NOT NULL,
+    "cms_owner_user_id" UUID NOT NULL,
+    "cms_owner_person_type_id" TEXT NOT NULL,
+    "due_date" TIMESTAMPTZ NOT NULL,
+    "due_date_type_id" TEXT NOT NULL,
+    "expected_to_be_submitted" BOOLEAN NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "deliverable_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "deliverable_history" (
+    "revision_id" SERIAL NOT NULL,
+    "revision_type" "revision_type_enum" NOT NULL,
+    "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "id" UUID NOT NULL,
+    "deliverable_type_id" TEXT NOT NULL,
+    "demonstration_id" UUID NOT NULL,
+    "demonstration_status_id" TEXT NOT NULL,
+    "status_id" TEXT NOT NULL,
+    "cms_owner_user_id" UUID NOT NULL,
+    "cms_owner_person_type_id" TEXT NOT NULL,
+    "due_date" TIMESTAMPTZ NOT NULL,
+    "due_date_type_id" TEXT NOT NULL,
+    "expected_to_be_submitted" BOOLEAN NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "deliverable_history_pkey" PRIMARY KEY ("revision_id")
+);
+
+-- CreateTable
+CREATE TABLE "deliverable_action" (
+    "id" UUID NOT NULL,
+    "action_timestamp" TIMESTAMPTZ NOT NULL,
+    "deliverable_id" UUID NOT NULL,
+    "action_type_id" TEXT NOT NULL,
+    "old_status_id" TEXT NOT NULL,
+    "new_status_id" TEXT NOT NULL,
+    "note" TEXT,
+    "active_extension_id" UUID,
+    "due_date_change_allowed" BOOLEAN NOT NULL,
+    "should_have_note" BOOLEAN NOT NULL,
+    "should_have_user_id" BOOLEAN NOT NULL,
+    "old_due_date" TIMESTAMPTZ NOT NULL,
+    "new_due_date" TIMESTAMPTZ NOT NULL,
+    "user_id" UUID,
+
+    CONSTRAINT "deliverable_action_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "deliverable_action_history" (
+    "revision_id" SERIAL NOT NULL,
+    "revision_type" "revision_type_enum" NOT NULL,
+    "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "id" UUID NOT NULL,
+    "action_timestamp" TIMESTAMPTZ NOT NULL,
+    "deliverable_id" UUID NOT NULL,
+    "action_type_id" TEXT NOT NULL,
+    "old_status_id" TEXT NOT NULL,
+    "new_status_id" TEXT NOT NULL,
+    "note" TEXT,
+    "active_extension_id" UUID,
+    "due_date_change_allowed" BOOLEAN NOT NULL,
+    "should_have_note" BOOLEAN NOT NULL,
+    "should_have_user_id" BOOLEAN NOT NULL,
+    "old_due_date" TIMESTAMPTZ NOT NULL,
+    "new_due_date" TIMESTAMPTZ NOT NULL,
+    "user_id" UUID,
+
+    CONSTRAINT "deliverable_action_history_pkey" PRIMARY KEY ("revision_id")
+);
+
+-- CreateTable
+CREATE TABLE "deliverable_action_configuration" (
+    "action_type_id" TEXT NOT NULL,
+    "old_status_id" TEXT NOT NULL,
+    "new_status_id" TEXT NOT NULL,
+
+    CONSTRAINT "deliverable_action_configuration_pkey" PRIMARY KEY ("action_type_id","old_status_id","new_status_id")
+);
+
+-- CreateTable
+CREATE TABLE "deliverable_action_type" (
+    "id" TEXT NOT NULL,
+    "due_date_change_allowed" BOOLEAN NOT NULL,
+    "should_have_note" BOOLEAN NOT NULL,
+    "should_have_user_id" BOOLEAN NOT NULL,
+
+    CONSTRAINT "deliverable_action_type_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "deliverable_active_extension" (
+    "deliverable_extension_id" UUID NOT NULL,
+    "deliverable_id" UUID NOT NULL,
+    "status_id" TEXT NOT NULL,
+
+    CONSTRAINT "deliverable_active_extension_pkey" PRIMARY KEY ("deliverable_extension_id")
+);
+
+-- CreateTable
+CREATE TABLE "deliverable_active_extension_status_limit" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "deliverable_active_extension_status_limit_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "deliverable_demonstration_status_limit" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "deliverable_demonstration_status_limit_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "deliverable_demonstration_type" (
+    "deliverable_id" UUID NOT NULL,
+    "demonstration_id" UUID NOT NULL,
+    "demonstration_type_tag_name_id" TEXT NOT NULL,
+
+    CONSTRAINT "deliverable_demonstration_type_pkey" PRIMARY KEY ("deliverable_id","demonstration_id","demonstration_type_tag_name_id")
+);
+
+-- CreateTable
+CREATE TABLE "deliverable_demonstration_type_history" (
+    "revision_id" SERIAL NOT NULL,
+    "revision_type" "revision_type_enum" NOT NULL,
+    "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deliverable_id" UUID NOT NULL,
+    "demonstration_id" UUID NOT NULL,
+    "demonstration_type_tag_name_id" TEXT NOT NULL,
+
+    CONSTRAINT "deliverable_demonstration_type_history_pkey" PRIMARY KEY ("revision_id")
+);
+
+-- CreateTable
+CREATE TABLE "deliverable_due_date_type" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "deliverable_due_date_type_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "deliverable_extension" (
+    "id" UUID NOT NULL,
+    "deliverable_id" UUID NOT NULL,
+    "status_id" TEXT NOT NULL,
+    "reason_code_id" TEXT NOT NULL,
+    "note" TEXT,
+    "original_date_requested" TIMESTAMPTZ NOT NULL,
+    "final_date_granted" TIMESTAMPTZ,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "deliverable_extension_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "deliverable_extension_history" (
+    "revision_id" SERIAL NOT NULL,
+    "revision_type" "revision_type_enum" NOT NULL,
+    "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "id" UUID NOT NULL,
+    "deliverable_id" UUID NOT NULL,
+    "status_id" TEXT NOT NULL,
+    "reason_code_id" TEXT NOT NULL,
+    "note" TEXT,
+    "original_date_requested" TIMESTAMPTZ NOT NULL,
+    "final_date_granted" TIMESTAMPTZ,
+    "created_at" TIMESTAMPTZ NOT NULL,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "deliverable_extension_history_pkey" PRIMARY KEY ("revision_id")
+);
+
+-- CreateTable
+CREATE TABLE "deliverable_extension_reason_code" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "deliverable_extension_reason_code_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "deliverable_extension_status" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "deliverable_extension_status_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "deliverable_status" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "deliverable_status_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "deliverable_submission_action_type_limit" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "deliverable_submission_action_type_limit_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "deliverable_type" (
+    "id" TEXT NOT NULL,
+
+    CONSTRAINT "deliverable_type_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "deliverable_type_document_type" (
+    "deliverable_type_id" TEXT NOT NULL,
+    "document_type_id" TEXT NOT NULL,
+
+    CONSTRAINT "deliverable_type_document_type_pkey" PRIMARY KEY ("deliverable_type_id","document_type_id")
 );
 
 -- CreateTable
@@ -376,7 +678,12 @@ CREATE TABLE "document" (
     "owner_user_id" UUID NOT NULL,
     "document_type_id" TEXT NOT NULL,
     "application_id" UUID NOT NULL,
-    "phase_id" TEXT NOT NULL,
+    "phase_id" TEXT,
+    "deliverable_id" UUID,
+    "deliverable_type_id" TEXT,
+    "deliverable_is_cms_attached_file" BOOLEAN,
+    "deliverable_submission_action_id" UUID,
+    "deliverable_submission_action_type_id" TEXT,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
@@ -395,7 +702,12 @@ CREATE TABLE "document_history" (
     "owner_user_id" UUID NOT NULL,
     "document_type_id" TEXT NOT NULL,
     "application_id" UUID NOT NULL,
-    "phase_id" TEXT NOT NULL,
+    "phase_id" TEXT,
+    "deliverable_id" UUID,
+    "deliverable_type_id" TEXT,
+    "deliverable_is_cms_attached_file" BOOLEAN,
+    "deliverable_submission_action_id" UUID,
+    "deliverable_submission_action_type_id" TEXT,
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
@@ -411,7 +723,10 @@ CREATE TABLE "document_infected" (
     "owner_user_id" UUID NOT NULL,
     "document_type_id" TEXT NOT NULL,
     "application_id" UUID NOT NULL,
-    "phase_id" TEXT NOT NULL,
+    "phase_id" TEXT,
+    "deliverable_id" UUID,
+    "deliverable_type_id" TEXT,
+    "deliverable_is_cms_attached_file" BOOLEAN,
     "infection_status" TEXT NOT NULL,
     "infection_threats" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -432,7 +747,10 @@ CREATE TABLE "document_infected_history" (
     "owner_user_id" UUID NOT NULL,
     "document_type_id" TEXT NOT NULL,
     "application_id" UUID NOT NULL,
-    "phase_id" TEXT NOT NULL,
+    "phase_id" TEXT,
+    "deliverable_id" UUID,
+    "deliverable_type_id" TEXT,
+    "deliverable_is_cms_attached_file" BOOLEAN,
     "infection_status" TEXT NOT NULL,
     "infection_threats" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL,
@@ -449,7 +767,10 @@ CREATE TABLE "document_pending_upload" (
     "owner_user_id" UUID NOT NULL,
     "document_type_id" TEXT NOT NULL,
     "application_id" UUID NOT NULL,
-    "phase_id" TEXT NOT NULL,
+    "phase_id" TEXT,
+    "deliverable_id" UUID,
+    "deliverable_type_id" TEXT,
+    "deliverable_is_cms_attached_file" BOOLEAN,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
@@ -467,7 +788,10 @@ CREATE TABLE "document_pending_upload_history" (
     "owner_user_id" UUID NOT NULL,
     "document_type_id" TEXT NOT NULL,
     "application_id" UUID NOT NULL,
-    "phase_id" TEXT NOT NULL,
+    "phase_id" TEXT,
+    "deliverable_id" UUID,
+    "deliverable_type_id" TEXT,
+    "deliverable_is_cms_attached_file" BOOLEAN,
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
@@ -491,7 +815,7 @@ CREATE TABLE "event" (
     "log_level_id" TEXT NOT NULL,
     "route" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "event_data" JSON NOT NULL,
+    "event_data" JSONB NOT NULL,
 
     CONSTRAINT "event_pkey" PRIMARY KEY ("id")
 );
@@ -704,6 +1028,62 @@ CREATE TABLE "primary_demonstration_role_assignment_history" (
 );
 
 -- CreateTable
+CREATE TABLE "private_comment" (
+    "id" UUID NOT NULL,
+    "deliverable_id" UUID NOT NULL,
+    "author_user_id" UUID NOT NULL,
+    "author_person_type_id" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "private_comment_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "private_comment_history" (
+    "revision_id" SERIAL NOT NULL,
+    "revision_type" "revision_type_enum" NOT NULL,
+    "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "id" UUID NOT NULL,
+    "deliverable_id" UUID NOT NULL,
+    "author_user_id" UUID NOT NULL,
+    "author_person_type_id" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "private_comment_history_pkey" PRIMARY KEY ("revision_id")
+);
+
+-- CreateTable
+CREATE TABLE "public_comment" (
+    "id" UUID NOT NULL,
+    "deliverable_id" UUID NOT NULL,
+    "author_user_id" UUID NOT NULL,
+    "content" TEXT NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "public_comment_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public_comment_history" (
+    "revision_id" SERIAL NOT NULL,
+    "revision_type" "revision_type_enum" NOT NULL,
+    "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "id" UUID NOT NULL,
+    "deliverable_id" UUID NOT NULL,
+    "author_user_id" UUID NOT NULL,
+    "content" TEXT NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "public_comment_history_pkey" PRIMARY KEY ("revision_id")
+);
+
+-- CreateTable
 CREATE TABLE "role" (
     "id" TEXT NOT NULL,
     "grant_level_id" TEXT NOT NULL,
@@ -862,32 +1242,36 @@ CREATE TABLE "tag_type" (
 );
 
 -- CreateTable
-CREATE TABLE "uipath_result" (
+CREATE TABLE "uipath_result_history" (
+    "revision_id" SERIAL NOT NULL,
+    "revision_type" "revision_type_enum" NOT NULL,
+    "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "id" UUID NOT NULL,
     "request_id" TEXT NOT NULL,
-    "status_id" TEXT NOT NULL DEFAULT 'Pending',
     "response" JSONB NOT NULL,
     "project_id" TEXT NOT NULL,
-    "document_id" UUID,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "document_id" UUID NOT NULL,
+    "application_id" UUID NOT NULL,
+    "status_id" TEXT NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL,
+    "updated_at" TIMESTAMPTZ NOT NULL,
 
-    CONSTRAINT "uipath_result_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "uipath_result_history_pkey" PRIMARY KEY ("revision_id")
 );
 
 -- CreateTable
-CREATE TABLE "uipath_result_field" (
+CREATE TABLE "uipath_result" (
     "id" UUID NOT NULL,
-    "uipath_result_id" UUID NOT NULL,
-    "field_id" TEXT NOT NULL,
-    "field_name" TEXT NOT NULL,
-    "field_type" TEXT NOT NULL,
-    "value" TEXT NOT NULL,
-    "confidence" DOUBLE PRECISION NOT NULL,
-    "value_json" JSONB NOT NULL,
-    "text_length" INTEGER NOT NULL,
+    "request_id" TEXT NOT NULL,
+    "response" JSONB NOT NULL,
+    "project_id" TEXT NOT NULL,
+    "document_id" UUID NOT NULL,
+    "application_id" UUID NOT NULL,
+    "status_id" TEXT NOT NULL DEFAULT 'Pending',
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
 
-    CONSTRAINT "uipath_result_field_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "uipath_result_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -895,6 +1279,45 @@ CREATE TABLE "uipath_result_status" (
     "id" TEXT NOT NULL,
 
     CONSTRAINT "uipath_result_status_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "uipath_value" (
+    "id" UUID NOT NULL,
+    "uipath_result_id" UUID NOT NULL,
+    "document_id" UUID NOT NULL,
+    "application_id" UUID NOT NULL,
+    "field_id" TEXT NOT NULL,
+    "value" TEXT NOT NULL,
+    "text_length" INTEGER NOT NULL,
+    "text_start_index" INTEGER NOT NULL,
+    "confidence" DOUBLE PRECISION NOT NULL,
+    "token_list" JSONB NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "uipath_value_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "uipath_value_history" (
+    "revision_id" SERIAL NOT NULL,
+    "revision_type" "revision_type_enum" NOT NULL,
+    "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "id" UUID NOT NULL,
+    "uipath_result_id" UUID NOT NULL,
+    "document_id" UUID NOT NULL,
+    "application_id" UUID NOT NULL,
+    "field_id" TEXT NOT NULL,
+    "value" TEXT NOT NULL,
+    "text_length" INTEGER NOT NULL,
+    "text_start_index" INTEGER NOT NULL,
+    "confidence" DOUBLE PRECISION NOT NULL,
+    "token_list" JSONB NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "uipath_value_history_pkey" PRIMARY KEY ("revision_id")
 );
 
 -- CreateTable
@@ -938,13 +1361,43 @@ CREATE UNIQUE INDEX "amendment_id_application_type_id_key" ON "amendment"("id", 
 CREATE UNIQUE INDEX "application_id_application_type_id_key" ON "application"("id", "application_type_id");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "application_tag_suggestion_id_application_id_value_key" ON "application_tag_suggestion"("id", "application_id", "value");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "deliverable_id_demonstration_id_key" ON "deliverable"("id", "demonstration_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "deliverable_id_demonstration_id_deliverable_type_id_key" ON "deliverable"("id", "demonstration_id", "deliverable_type_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "deliverable_action_id_action_type_id_key" ON "deliverable_action"("id", "action_type_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "deliverable_action_type_id_due_date_change_allowed_should_h_key" ON "deliverable_action_type"("id", "due_date_change_allowed", "should_have_note", "should_have_user_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "deliverable_active_extension_deliverable_id_key" ON "deliverable_active_extension"("deliverable_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "deliverable_extension_id_deliverable_id_status_id_key" ON "deliverable_extension"("id", "deliverable_id", "status_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "deliverable_extension_id_deliverable_id_key" ON "deliverable_extension"("id", "deliverable_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "demonstration_id_state_id_key" ON "demonstration"("id", "state_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "demonstration_id_status_id_key" ON "demonstration"("id", "status_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "demonstration_id_application_type_id_key" ON "demonstration"("id", "application_type_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "document_id_document_type_id_key" ON "document"("id", "document_type_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "document_id_application_id_key" ON "document"("id", "application_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "extension_id_application_type_id_key" ON "extension"("id", "application_type_id");
@@ -965,10 +1418,16 @@ CREATE UNIQUE INDEX "primary_demonstration_role_assignment_person_id_demonstrati
 CREATE UNIQUE INDEX "role_id_grant_level_id_key" ON "role"("id", "grant_level_id");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "uipath_result_id_document_id_application_id_key" ON "uipath_result"("id", "document_id", "application_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "uipath_result_request_id_key" ON "uipath_result"("request_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "uipath_result_field_uipath_result_id_field_id_key" ON "uipath_result_field"("uipath_result_id", "field_id");
+CREATE UNIQUE INDEX "uipath_result_document_id_key" ON "uipath_result"("document_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "uipath_value_id_application_id_field_id_value_key" ON "uipath_value"("id", "application_id", "field_id", "value");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_id_person_type_id_key" ON "users"("id", "person_type_id");
@@ -1019,13 +1478,7 @@ ALTER TABLE "application_note" ADD CONSTRAINT "application_note_note_type_id_fke
 ALTER TABLE "application_phase" ADD CONSTRAINT "application_phase_application_id_fkey" FOREIGN KEY ("application_id") REFERENCES "application"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "application_phase" ADD CONSTRAINT "application_phase_phase_id_fkey" FOREIGN KEY ("phase_id") REFERENCES "application_phase_type_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "application_phase" ADD CONSTRAINT "application_phase_phase_id_phase_status_id_fkey" FOREIGN KEY ("phase_id", "phase_status_id") REFERENCES "phase_phase_status"("phase_id", "phase_status_id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "application_phase_type_limit" ADD CONSTRAINT "application_phase_type_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "phase"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "application_tag_assignment" ADD CONSTRAINT "application_tag_assignment_application_id_fkey" FOREIGN KEY ("application_id") REFERENCES "application"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1035,6 +1488,18 @@ ALTER TABLE "application_tag_assignment" ADD CONSTRAINT "application_tag_assignm
 
 -- AddForeignKey
 ALTER TABLE "application_tag_assignment" ADD CONSTRAINT "application_tag_assignment_tag_type_id_fkey" FOREIGN KEY ("tag_type_id") REFERENCES "application_tag_type_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "application_tag_suggestion" ADD CONSTRAINT "application_tag_suggestion_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "application_tag_suggestion_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "application_tag_suggestion_extract" ADD CONSTRAINT "application_tag_suggestion_extract_suggestion_id_applicati_fkey" FOREIGN KEY ("suggestion_id", "application_id", "value") REFERENCES "application_tag_suggestion"("id", "application_id", "value") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "application_tag_suggestion_extract" ADD CONSTRAINT "application_tag_suggestion_extract_uipath_value_id_applica_fkey" FOREIGN KEY ("uipath_value_id", "application_id", "field_id", "value") REFERENCES "uipath_value"("id", "application_id", "field_id", "value") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "application_tag_suggestion_extract" ADD CONSTRAINT "application_tag_suggestion_extract_field_id_fkey" FOREIGN KEY ("field_id") REFERENCES "application_tag_suggestion_extract_field_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "application_tag_type_limit" ADD CONSTRAINT "application_tag_type_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "tag_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1050,6 +1515,90 @@ ALTER TABLE "budget_neutrality_workbook" ADD CONSTRAINT "budget_neutrality_workb
 
 -- AddForeignKey
 ALTER TABLE "budget_neutrality_workbook_document_type_limit" ADD CONSTRAINT "budget_neutrality_workbook_document_type_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "document_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "cms_user_person_type_limit" ADD CONSTRAINT "cms_user_person_type_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "person_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable" ADD CONSTRAINT "deliverable_deliverable_type_id_fkey" FOREIGN KEY ("deliverable_type_id") REFERENCES "deliverable_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable" ADD CONSTRAINT "deliverable_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "deliverable_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable" ADD CONSTRAINT "deliverable_demonstration_id_demonstration_status_id_fkey" FOREIGN KEY ("demonstration_id", "demonstration_status_id") REFERENCES "demonstration"("id", "status_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable" ADD CONSTRAINT "deliverable_demonstration_status_id_fkey" FOREIGN KEY ("demonstration_status_id") REFERENCES "deliverable_demonstration_status_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable" ADD CONSTRAINT "deliverable_cms_owner_user_id_cms_owner_person_type_id_fkey" FOREIGN KEY ("cms_owner_user_id", "cms_owner_person_type_id") REFERENCES "users"("id", "person_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable" ADD CONSTRAINT "deliverable_cms_owner_person_type_id_fkey" FOREIGN KEY ("cms_owner_person_type_id") REFERENCES "cms_user_person_type_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable" ADD CONSTRAINT "deliverable_due_date_type_id_fkey" FOREIGN KEY ("due_date_type_id") REFERENCES "deliverable_due_date_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable_action" ADD CONSTRAINT "deliverable_action_deliverable_id_fkey" FOREIGN KEY ("deliverable_id") REFERENCES "deliverable"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable_action" ADD CONSTRAINT "deliverable_action_active_extension_id_deliverable_id_fkey" FOREIGN KEY ("active_extension_id", "deliverable_id") REFERENCES "deliverable_extension"("id", "deliverable_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable_action" ADD CONSTRAINT "deliverable_action_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable_action" ADD CONSTRAINT "deliverable_action_action_type_id_due_date_change_allowed__fkey" FOREIGN KEY ("action_type_id", "due_date_change_allowed", "should_have_note", "should_have_user_id") REFERENCES "deliverable_action_type"("id", "due_date_change_allowed", "should_have_note", "should_have_user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable_action" ADD CONSTRAINT "deliverable_action_action_type_id_old_status_id_new_status_fkey" FOREIGN KEY ("action_type_id", "old_status_id", "new_status_id") REFERENCES "deliverable_action_configuration"("action_type_id", "old_status_id", "new_status_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable_action_configuration" ADD CONSTRAINT "deliverable_action_configuration_action_type_id_fkey" FOREIGN KEY ("action_type_id") REFERENCES "deliverable_action_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable_action_configuration" ADD CONSTRAINT "deliverable_action_configuration_old_status_id_fkey" FOREIGN KEY ("old_status_id") REFERENCES "deliverable_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable_action_configuration" ADD CONSTRAINT "deliverable_action_configuration_new_status_id_fkey" FOREIGN KEY ("new_status_id") REFERENCES "deliverable_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable_active_extension" ADD CONSTRAINT "deliverable_active_extension_deliverable_extension_id_deli_fkey" FOREIGN KEY ("deliverable_extension_id", "deliverable_id", "status_id") REFERENCES "deliverable_extension"("id", "deliverable_id", "status_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable_active_extension" ADD CONSTRAINT "deliverable_active_extension_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "deliverable_active_extension_status_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable_active_extension_status_limit" ADD CONSTRAINT "deliverable_active_extension_status_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "deliverable_extension_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable_demonstration_status_limit" ADD CONSTRAINT "deliverable_demonstration_status_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "application_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable_demonstration_type" ADD CONSTRAINT "deliverable_demonstration_type_deliverable_id_demonstratio_fkey" FOREIGN KEY ("deliverable_id", "demonstration_id") REFERENCES "deliverable"("id", "demonstration_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable_demonstration_type" ADD CONSTRAINT "deliverable_demonstration_type_demonstration_id_demonstrat_fkey" FOREIGN KEY ("demonstration_id", "demonstration_type_tag_name_id") REFERENCES "demonstration_type_tag_assignment"("demonstration_id", "tag_name_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable_extension" ADD CONSTRAINT "deliverable_extension_deliverable_id_fkey" FOREIGN KEY ("deliverable_id") REFERENCES "deliverable"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable_extension" ADD CONSTRAINT "deliverable_extension_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "deliverable_extension_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable_extension" ADD CONSTRAINT "deliverable_extension_reason_code_id_fkey" FOREIGN KEY ("reason_code_id") REFERENCES "deliverable_extension_reason_code"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable_submission_action_type_limit" ADD CONSTRAINT "deliverable_submission_action_type_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "deliverable_action_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable_type_document_type" ADD CONSTRAINT "deliverable_type_document_type_deliverable_type_id_fkey" FOREIGN KEY ("deliverable_type_id") REFERENCES "deliverable_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "deliverable_type_document_type" ADD CONSTRAINT "deliverable_type_document_type_document_type_id_fkey" FOREIGN KEY ("document_type_id") REFERENCES "document_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "demonstration" ADD CONSTRAINT "demonstration_id_application_type_id_fkey" FOREIGN KEY ("id", "application_type_id") REFERENCES "application"("id", "application_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1121,6 +1670,18 @@ ALTER TABLE "document" ADD CONSTRAINT "document_application_id_fkey" FOREIGN KEY
 ALTER TABLE "document" ADD CONSTRAINT "document_phase_id_document_type_id_fkey" FOREIGN KEY ("phase_id", "document_type_id") REFERENCES "phase_document_type"("phase_id", "document_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "document" ADD CONSTRAINT "document_deliverable_id_application_id_deliverable_type_id_fkey" FOREIGN KEY ("deliverable_id", "application_id", "deliverable_type_id") REFERENCES "deliverable"("id", "demonstration_id", "deliverable_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "document" ADD CONSTRAINT "document_deliverable_type_id_document_type_id_fkey" FOREIGN KEY ("deliverable_type_id", "document_type_id") REFERENCES "deliverable_type_document_type"("deliverable_type_id", "document_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "document" ADD CONSTRAINT "document_deliverable_submission_action_id_deliverable_subm_fkey" FOREIGN KEY ("deliverable_submission_action_id", "deliverable_submission_action_type_id") REFERENCES "deliverable_action"("id", "action_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "document" ADD CONSTRAINT "document_deliverable_submission_action_type_id_fkey" FOREIGN KEY ("deliverable_submission_action_type_id") REFERENCES "deliverable_submission_action_type_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "document_infected" ADD CONSTRAINT "document_infected_owner_user_id_fkey" FOREIGN KEY ("owner_user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1130,6 +1691,12 @@ ALTER TABLE "document_infected" ADD CONSTRAINT "document_infected_application_id
 ALTER TABLE "document_infected" ADD CONSTRAINT "document_infected_phase_id_document_type_id_fkey" FOREIGN KEY ("phase_id", "document_type_id") REFERENCES "phase_document_type"("phase_id", "document_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "document_infected" ADD CONSTRAINT "document_infected_deliverable_id_application_id_deliverabl_fkey" FOREIGN KEY ("deliverable_id", "application_id", "deliverable_type_id") REFERENCES "deliverable"("id", "demonstration_id", "deliverable_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "document_infected" ADD CONSTRAINT "document_infected_deliverable_type_id_document_type_id_fkey" FOREIGN KEY ("deliverable_type_id", "document_type_id") REFERENCES "deliverable_type_document_type"("deliverable_type_id", "document_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "document_pending_upload" ADD CONSTRAINT "document_pending_upload_owner_user_id_fkey" FOREIGN KEY ("owner_user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1137,6 +1704,12 @@ ALTER TABLE "document_pending_upload" ADD CONSTRAINT "document_pending_upload_ap
 
 -- AddForeignKey
 ALTER TABLE "document_pending_upload" ADD CONSTRAINT "document_pending_upload_phase_id_document_type_id_fkey" FOREIGN KEY ("phase_id", "document_type_id") REFERENCES "phase_document_type"("phase_id", "document_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "document_pending_upload" ADD CONSTRAINT "document_pending_upload_deliverable_id_application_id_deli_fkey" FOREIGN KEY ("deliverable_id", "application_id", "deliverable_type_id") REFERENCES "deliverable"("id", "demonstration_id", "deliverable_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "document_pending_upload" ADD CONSTRAINT "document_pending_upload_deliverable_type_id_document_type__fkey" FOREIGN KEY ("deliverable_type_id", "document_type_id") REFERENCES "deliverable_type_document_type"("deliverable_type_id", "document_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "event" ADD CONSTRAINT "event_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "role"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -1217,6 +1790,21 @@ ALTER TABLE "phase_phase_status" ADD CONSTRAINT "phase_phase_status_phase_status
 ALTER TABLE "primary_demonstration_role_assignment" ADD CONSTRAINT "primary_demonstration_role_assignment_person_id_demonstrat_fkey" FOREIGN KEY ("person_id", "demonstration_id", "role_id") REFERENCES "demonstration_role_assignment"("person_id", "demonstration_id", "role_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "private_comment" ADD CONSTRAINT "private_comment_deliverable_id_fkey" FOREIGN KEY ("deliverable_id") REFERENCES "deliverable"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "private_comment" ADD CONSTRAINT "private_comment_author_user_id_author_person_type_id_fkey" FOREIGN KEY ("author_user_id", "author_person_type_id") REFERENCES "users"("id", "person_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "private_comment" ADD CONSTRAINT "private_comment_author_person_type_id_fkey" FOREIGN KEY ("author_person_type_id") REFERENCES "cms_user_person_type_limit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public_comment" ADD CONSTRAINT "public_comment_deliverable_id_fkey" FOREIGN KEY ("deliverable_id") REFERENCES "deliverable"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public_comment" ADD CONSTRAINT "public_comment_author_user_id_fkey" FOREIGN KEY ("author_user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "role" ADD CONSTRAINT "role_grant_level_id_fkey" FOREIGN KEY ("grant_level_id") REFERENCES "grant_level"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1259,13 +1847,13 @@ ALTER TABLE "tag" ADD CONSTRAINT "tag_source_id_fkey" FOREIGN KEY ("source_id") 
 ALTER TABLE "tag" ADD CONSTRAINT "tag_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "tag_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "uipath_result" ADD CONSTRAINT "uipath_result_document_id_fkey" FOREIGN KEY ("document_id") REFERENCES "document"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "uipath_result" ADD CONSTRAINT "uipath_result_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "uipath_result_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "uipath_result_field" ADD CONSTRAINT "uipath_result_field_uipath_result_id_fkey" FOREIGN KEY ("uipath_result_id") REFERENCES "uipath_result"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "uipath_result" ADD CONSTRAINT "uipath_result_document_id_application_id_fkey" FOREIGN KEY ("document_id", "application_id") REFERENCES "document"("id", "application_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "uipath_value" ADD CONSTRAINT "uipath_value_uipath_result_id_document_id_application_id_fkey" FOREIGN KEY ("uipath_result_id", "document_id", "application_id") REFERENCES "uipath_result"("id", "document_id", "application_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "users" ADD CONSTRAINT "users_id_person_type_id_fkey" FOREIGN KEY ("id", "person_type_id") REFERENCES "person"("id", "person_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;

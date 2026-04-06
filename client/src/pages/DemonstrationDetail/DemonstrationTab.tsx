@@ -28,6 +28,7 @@ import { useDialog } from "components/dialog/DialogContext";
 import { ContactsTab } from "./ContactsTab";
 import { useApolloClient } from "@apollo/client/react/hooks/useApolloClient";
 import { TypesTable } from "components/table/tables/TypesTable";
+import { DeliverablesTab } from "./deliverables/DeliverablesTab";
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
   person: Pick<Person, "fullName" | "id" | "email" | "personType">;
@@ -87,7 +88,11 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           value={TAB.DELIVERABLES}
           shouldRender={isDemonstrationApproved}
         >
-          <div></div>
+          <DeliverablesTab
+            demonstrationTypes={demonstration.demonstrationTypes.map(
+              (t) => t.demonstrationTypeName
+            )}
+          />
         </Tab>
         <Tab icon={<ListIcon />} label="Applications" value={TAB.APPLICATION}>
           <DemonstrationWorkflow demonstrationId={demonstration.id} />

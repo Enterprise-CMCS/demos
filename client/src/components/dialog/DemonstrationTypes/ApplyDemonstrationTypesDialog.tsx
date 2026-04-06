@@ -72,6 +72,7 @@ export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrati
         variables: {
           input: getSetDemonstrationTypesInput(demonstrationId, demonstrationTypes),
         },
+        refetchQueries: ["SelectDemonstrationTypeQuery"],
       });
       showSuccess("Demonstration types applied successfully.");
     } catch (error) {

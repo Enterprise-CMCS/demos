@@ -1,0 +1,12 @@
+// Flags: STATIC_CONSTRAINT
+model DeliverableStatus {
+  id String
+
+  // Note: the quoted relation names are purely Prisma metadata used to link fields with different relation names
+  deliverables                              Deliverable[]
+  deliverableActionConfigurationOldStatuses DeliverableActionConfiguration[] @relation("deliverableActionConfigurationOldStatusRelation")
+  deliverableActionConfigurationNewStatuses DeliverableActionConfiguration[] @relation("deliverableActionConfigurationNewStatusRelation")
+
+  @@id([id])
+  @@map("deliverable_status")
+}

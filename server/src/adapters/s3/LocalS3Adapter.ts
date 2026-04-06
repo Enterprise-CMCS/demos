@@ -52,6 +52,7 @@ export function createLocalS3Adapter(): S3Adapter {
           documentTypeId: input.documentType,
           applicationId: input.applicationId,
           phaseId: input.phaseName,
+          deliverableId: input.deliverableId,
           s3Path,
         },
       });
