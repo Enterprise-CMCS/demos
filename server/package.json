@@ -19,7 +19,6 @@
     "@prisma/adapter-pg": "^7.6.0",
     "@prisma/client": "^7.6.0",
     "date-fns": "^4.1.0",
-    "demos-shared-library": "file:../shared_library",
     "dotenv": "^17.2.3",
     "graphql-scalars": "^1.25.0",
     "graphql-tools": "^9.0.26",
