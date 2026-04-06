@@ -40,13 +40,13 @@ describe("getUser", () => {
   });
 
   it("should get the user by ID from the database directly if no transaction is given", async () => {
-    await getUser(testUserId);
+    await getUser({ id: testUserId });
     expect(regularMocks.user.findUniqueOrThrow).toHaveBeenCalledExactlyOnceWith(expectedCall);
     expect(transactionMocks.user.findUniqueOrThrow).not.toHaveBeenCalled();
   });
 
   it("should get the user by ID from the database via a transaction if one is given", async () => {
-    await getUser(testUserId, mockTransaction);
+    await getUser({ id: testUserId }, mockTransaction);
     expect(regularMocks.user.findUniqueOrThrow).not.toHaveBeenCalled();
     expect(transactionMocks.user.findUniqueOrThrow).toHaveBeenCalledExactlyOnceWith(expectedCall);
   });

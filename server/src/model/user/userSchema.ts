@@ -1,5 +1,5 @@
 import { gql } from "graphql-tag";
-import { Document, PersonType, Event, Person } from "../../types.js";
+import { Deliverable, Document, PersonType, Event, Person } from "../../types.js";
 
 export const userSchema = gql`
   type User {
@@ -9,6 +9,7 @@ export const userSchema = gql`
     person: Person!
     events: [Event!]!
     ownedDocuments: [Document!]!
+    ownedDeliverables: [Deliverable!]!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -25,6 +26,7 @@ export interface User {
   person: Person;
   events: Event[];
   ownedDocuments: Document[];
+  ownedDeliverables: Deliverable[];
   createdAt: Date;
   updatedAt: Date;
 }

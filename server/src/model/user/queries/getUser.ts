@@ -1,9 +1,12 @@
-import { User as PrismaUser } from "@prisma/client";
+import { Prisma, User as PrismaUser } from "@prisma/client";
 import { prisma, PrismaTransactionClient } from "../../../prismaClient";
 
-export async function getUser(id: string, tx?: PrismaTransactionClient): Promise<PrismaUser> {
+export async function getUser(
+  filter: Prisma.UserWhereUniqueInput,
+  tx?: PrismaTransactionClient
+): Promise<PrismaUser> {
   const prismaClient = tx ?? prisma();
   return await prismaClient.user.findUniqueOrThrow({
-    where: { id: id },
+    where: { ...filter },
   });
 }

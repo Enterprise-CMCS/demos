@@ -1,8 +1,13 @@
 import { gql } from "graphql-tag";
 
-import { User } from "../user/userSchema.js";
-import { DocumentType, Application, PhaseName, NonEmptyString } from "../../types.js";
-import { Deliverable } from "../deliverable/deliverableSchema.js";
+import {
+  Application,
+  Deliverable,
+  DocumentType,
+  NonEmptyString,
+  PhaseName,
+  User,
+} from "../../types.js";
 
 export const documentSchema = gql`
   type Document {

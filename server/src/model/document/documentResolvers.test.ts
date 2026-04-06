@@ -99,6 +99,11 @@ describe("documentResolvers", () => {
     phaseId: "Concept",
     createdAt: new Date("2025-01-01T00:00:00.000Z"),
     updatedAt: new Date("2025-01-02T00:00:00.000Z"),
+    deliverableId: null,
+    deliverableTypeId: null,
+    deliverableIsCmsAttachedFile: null,
+    deliverableSubmissionActionId: null,
+    deliverableSubmissionActionTypeId: null,
   };
 
   const mockUser: PrismaUser = {
@@ -428,7 +433,7 @@ describe("documentResolvers", () => {
       const result = await resolveOwner(mockDocument);
 
       expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
-      expect(getUser).toHaveBeenCalledExactlyOnceWith("user-123", mockTransaction);
+      expect(getUser).toHaveBeenCalledExactlyOnceWith({ id: "user-123" }, mockTransaction);
       expect(result).toEqual(mockUser);
     });
   });
