@@ -93,17 +93,18 @@ describe("AddDemonstrationTypesForm", () => {
     expect(screen.getByTestId("button-add-demonstration-type")).toBeDisabled();
   });
 
-  it("filters out pending demonstration types but shows already-assigned ones", async () => {
+  it("filters out both already-assigned and pending demonstration types", async () => {
     const user = userEvent.setup();
     await renderWithProvider();
 
     const input = screen.getByRole("textbox");
     await user.click(input);
 
-    // type A is already assigned to the demonstration — still shown in dropdown
-    expect(screen.getByText("Type A")).toBeInTheDocument();
+    // type A is already assigned to the demonstration — filtered out
+    expect(screen.queryByText("Type A")).not.toBeInTheDocument();
     // type B is in the pending list (demonstrationTypeNames prop) — filtered out
     expect(screen.queryByText("Type B")).not.toBeInTheDocument();
+    // type C is neither assigned nor pending — shown in dropdown
     expect(screen.getByText("Type C (Unapproved)")).toBeInTheDocument();
   });
 
@@ -226,10 +227,38 @@ describe("AddDemonstrationTypesForm", () => {
 
   it("does not show warning banner when an approved type is selected", async () => {
     const user = userEvent.setup();
-    await renderWithProvider();
+
+    const mockWithApprovedAvailable: MockedResponse<{
+      demonstrationTypeOptions: Tag[];
+    }> = {
+      request: { query: SELECT_DEMONSTRATION_TYPE_QUERY },
+      result: {
+        data: {
+          demonstrationTypeOptions: [
+            { tagName: "Type A", approvalStatus: "Approved" },
+            { tagName: "Type B", approvalStatus: "Approved" },
+            { tagName: "Type D", approvalStatus: "Approved" },
+          ],
+        },
+      },
+    };
+
+    render(
+      <MockedProvider mocks={[mockWithApprovedAvailable, mockAddDemonstrationTypesFormQuery]}>
+        <AddDemonstrationTypesForm
+          demonstrationId="1"
+          demonstrationTypeNames={["Type B"]}
+          addDemonstrationType={mockAddDemonstrationType}
+        />
+      </MockedProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("Select an option")).toBeInTheDocument();
+    });
 
     await user.click(screen.getByRole("textbox"));
-    await user.click(screen.getByText("Type A"));
+    await user.click(screen.getByText("Type D"));
 
     expect(screen.queryByTestId("unapproved-warning-banner")).not.toBeInTheDocument();
   });

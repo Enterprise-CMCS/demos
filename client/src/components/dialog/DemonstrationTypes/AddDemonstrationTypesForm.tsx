@@ -88,8 +88,15 @@ export const AddDemonstrationTypesForm = ({
     });
   };
 
+  const existingDemonstrationTypeNames = new Set(
+    data.demonstration.demonstrationTypes.map((dt) => dt.demonstrationTypeName)
+  );
+
   const filterDemonstrationTypes = (demonstrationTypeName: string) => {
-    return !demonstrationTypeNames.includes(demonstrationTypeName);
+    return (
+      !demonstrationTypeNames.includes(demonstrationTypeName) &&
+      !existingDemonstrationTypeNames.has(demonstrationTypeName)
+    );
   };
 
   const validateDatePicker = (effectiveDate: string, expirationDate: string) => {
