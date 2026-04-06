@@ -128,23 +128,38 @@ describe("extensionResolvers", () => {
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
-  describe("__getExtension", () => {
-    it("should request the extension", async () => {
-      const testInput = {
-        id: testExtensionId,
-      };
-      await __getExtension(undefined, testInput);
-      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testExtensionId, {
-        applicationTypeId: "Extension",
-      });
-    });
+  it("delegates `extension` to `context.services.extension.get`", async () => {
+    const get = vi.fn();
+
+    const context = {
+      services: {
+        extension: {
+          get,
+          getMany: vi.fn(),
+        },
+      },
+    } as unknown as GraphQLContext;
+
+    await extensionResolvers.Query.extension(undefined as never, { id: testExtensionId }, context);
+
+    expect(get).toHaveBeenCalledExactlyOnceWith({ id: testExtensionId });
   });
 
-  describe("__getManyExtensions", () => {
-    it("should request many extensions with the right type", async () => {
-      await __getManyExtensions();
-      expect(getManyApplications).toHaveBeenCalledExactlyOnceWith("Extension");
-    });
+  it("delegates `extensions` to `context.services.extension.getMany`", async () => {
+    const getMany = vi.fn();
+
+    const context = {
+      services: {
+        extension: {
+          get: vi.fn(),
+          getMany,
+        },
+      },
+    } as unknown as GraphQLContext;
+
+    await extensionResolvers.Query.extensions(undefined as never, undefined as never, context);
+
+    expect(getMany).toHaveBeenCalledExactlyOnceWith();
   });
 
   describe("__createExtension", () => {

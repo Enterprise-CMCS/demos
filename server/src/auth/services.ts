@@ -3,6 +3,7 @@ import {
   createDemonstrationService,
   DemonstrationService,
 } from "../model/demonstration/demonstrationService";
+import { createExtensionService, ExtensionService } from "../model/extension/extensionService";
 import { Permission } from "../types";
 import { ContextUser } from "./auth.util";
 export type PermissionMap<PrismaWhereClause, TPermission extends string = Permission> = Partial<
@@ -12,12 +13,14 @@ export type PermissionMap<PrismaWhereClause, TPermission extends string = Permis
 export type Services = {
   demonstration: DemonstrationService;
   amendment: AmendmentService;
+  extension: ExtensionService;
 };
 
 export function createServices(user: ContextUser): Services {
   return {
     demonstration: createDemonstrationService(user),
     amendment: createAmendmentService(user),
+    extension: createExtensionService(user),
   };
 }
 

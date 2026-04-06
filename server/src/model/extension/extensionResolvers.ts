@@ -111,8 +111,10 @@ export async function __resolveParentDemonstration(
 
 export const extensionResolvers = {
   Query: {
-    extension: __getExtension,
-    extensions: __getManyExtensions,
+    extension: (parent: never, args: { id: string }, context: GraphQLContext) =>
+      context.services.extension.get({ id: args.id }),
+    extensions: (parent: never, args: never, context: GraphQLContext) =>
+      context.services.extension.getMany(),
   },
 
   Mutation: {

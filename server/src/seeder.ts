@@ -867,6 +867,10 @@ async function seedDatabase() {
             get: async () => null,
             getMany: async () => [],
           },
+          extension: {
+            get: async () => null,
+            getMany: async () => [],
+          },
           amendment: {
             get: async () => null,
             getMany: async () => [],
@@ -887,6 +891,10 @@ async function seedDatabase() {
             getMany: async () => [],
           },
           amendment: {
+            get: async () => null,
+            getMany: async () => [],
+          },
+          extension: {
             get: async () => null,
             getMany: async () => [],
           },

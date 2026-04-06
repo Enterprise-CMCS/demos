@@ -464,4 +464,6 @@ export const PERMISSIONS = [
   "View Assigned Demonstrations",
   "View All Amendments",
   "View Amendments on Assigned Demonstrations",
+  "View All Extensions",
+  "View Extensions on Assigned Demonstrations",
 ] as const;
