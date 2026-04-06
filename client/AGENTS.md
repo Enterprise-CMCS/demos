@@ -1,8 +1,11 @@
 # DEMOS Client Agent Guidelines
 
-This file provides some helpful tips for AI agents to use when generating or editing code for the DEMOS client application.
+This file provides instructions for AI agents to use when generating or editing code for the DEMOS client application.
 
-AI output should always be supervised and carefully reviewed by the supervisor.
+## Meta
+
+- AI output should be understood and reviewed by the supervisor before being sent to the team for code-review.
+- Keep verbiage in this file concise
 
 ## TypeScript
 
