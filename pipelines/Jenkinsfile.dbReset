@@ -33,6 +33,11 @@ pipeline {
               echo "other-branch"
               otherBranchCommit = sh(script: "git log --oneline -1", returnStdout: true)
             }
+            dir("other-branch/shared_library") {
+              container("node") {
+                  sh "npm ci"
+              }
+            }
             dir("deployment") {
               container("node") {
                 sh """

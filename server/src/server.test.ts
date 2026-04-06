@@ -9,7 +9,9 @@ const ApolloServerMock = class {
 
 const startServerAndCreateLambdaHandlerMock = vi.fn((server: any, handler: any, opts: any) => ({ handlerCalled: true }));
 const handlersMock = { createAPIGatewayProxyEventRequestHandler: vi.fn(() => ({ handler: true })) };
-const ApolloArmorMock = vi.fn((cfg: any) => ({ protect: () => ({ plugins: [], validationRules: [] }) }));
+const ApolloArmorMock = vi.fn(function (this: any, cfg: any) {
+  this.protect = () => ({ plugins: [], validationRules: [] });
+});
 
 vi.mock("@apollo/server", () => ({ ApolloServer: ApolloServerMock }));
 vi.mock("@as-integrations/aws-lambda", () => ({ startServerAndCreateLambdaHandler: startServerAndCreateLambdaHandlerMock, handlers: handlersMock }));
