@@ -40,6 +40,7 @@ pipeline {
                 npm i -g esbuild
                 npm i -g tsx
 
+                # Ensure shared_library is installed and built before building client and server
                 cd ../shared_library
                 npm ci
                 npm run build
