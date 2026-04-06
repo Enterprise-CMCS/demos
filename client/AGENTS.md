@@ -22,6 +22,7 @@ This file provides instructions for AI agents to use when generating or editing 
 ### Functions
 
 - Prefer writing functions that take sentinel values over optional / undefined. For instance `""` or `[]` can be the "base case" and used as "falsey"
+- Prefer to fail-fast over delaying error handling. Use guard / precondition statements if appropriate.
 
 ## React
 
@@ -33,6 +34,7 @@ This file provides instructions for AI agents to use when generating or editing 
   4. Apollo hooks
 - Keep state close to where it is used; lift state only when needed.
 - Do not export props interfaces unless shared across files. Prefer inlining props.
+- Generally, prefer required props. Optional props are okay iff updating calls to an existing component would be a heavy lift.
 
 ### Components
 
