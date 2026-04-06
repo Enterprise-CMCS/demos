@@ -14,7 +14,7 @@ export const stateResolvers = {
   },
 
   State: {
-    demonstration: (parent: { id: string }, args: never, context: GraphQLContext) =>
+    demonstrations: (parent: { id: string }, args: never, context: GraphQLContext) =>
       context.services.demonstration.getMany({ stateId: parent.id }),
   },
 };
