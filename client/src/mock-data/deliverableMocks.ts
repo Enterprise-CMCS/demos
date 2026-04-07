@@ -79,8 +79,8 @@ export const MOCK_DELIVERABLES: MockDeliverable[] = [
   },
   {
     id: "1b6d2e71-4c98-4a26-a8ff-2csf4af7d2a4",
-    deliverableName: "Annual Report For NYC Demonstration",
-    demonstrationName: "'BAMA Health and wellness",
+    deliverableName: "Annual Report For AL Demonstration",
+    demonstrationName: "Alabama Health and wellness",
     deliverableType: "Evaluation Design",
     cmsOwner: "Ackbar",
     dueDate: "2026-04-15",
