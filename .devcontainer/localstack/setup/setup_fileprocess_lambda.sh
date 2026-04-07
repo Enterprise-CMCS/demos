@@ -17,21 +17,20 @@ BN_QUEUE_URL=$($AWS_CMD sqs get-queue-url --queue-name $BN_QUEUE_NAME --output t
 cd /workspaces/demos/lambdas/fileprocess
 
 npm ci --silent
-npx esbuild index.ts \
+npx tsc --outDir build
+
+npx esbuild build/index.js \
   --bundle \
   --platform=node \
-  --target=node18 \
-  --format=esm \
+  --target=node24 \
   --sourcemap \
-  --external:@aws-sdk/* \
-  --external:pg \
-  --external:pino \
-  --outfile=index.js
-
-zip -qr fileprocess.zip index.js node_modules/ package.json package-lock.json
+  --outfile=dist/index.cjs
+rm -f lambda.zip
+cp dist/index.cjs index.cjs
+zip -qr lambda.zip index.cjs
 
 # Clean up build artifacts
-rm index.js index.js.map
+rm -f index.cjs
 
 cd - > /dev/null
 
@@ -44,7 +43,7 @@ $AWS_CMD lambda create-function \
     --runtime nodejs18.x \
     --role arn:aws:iam::000000000000:role/lambda-execution-role \
     --handler index.handler \
-    --zip-file fileb:///workspaces/demos/lambdas/fileprocess/fileprocess.zip \
+    --zip-file fileb:///workspaces/demos/lambdas/fileprocess/lambda.zip \
     --timeout 30 \
     --environment "Variables={
       AWS_REGION=$AWS_REGION,
