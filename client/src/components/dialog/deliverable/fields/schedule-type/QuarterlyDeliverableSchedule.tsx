@@ -32,6 +32,15 @@ export function QuarterlyDeliverableSchedule({
   onSelectYear: (year: number) => void;
 }) {
   const [selectedYear, setSelectedYear] = useState(1);
+  const [quarterDates, setQuarterDates] = useState<string[]>(["", "", "", ""]);
+
+  const updateQuarterDate = (quarterIndex: number, newDate: string) => {
+    setQuarterDates((prev) => {
+      const next = [...prev];
+      next[quarterIndex] = newDate;
+      return next;
+    });
+  };
 
   return (
     <div className="grid grid-cols-5 gap-sm">
@@ -55,10 +64,8 @@ export function QuarterlyDeliverableSchedule({
           name="quarter-1"
           key={1}
           label="1st Quarter"
-          value={""}
-          onChange={(newDate: string) => {
-            console.log(newDate);
-          }}
+          value={quarterDates[0]}
+          onChange={(newDate: string) => updateQuarterDate(0, newDate)}
           isRequired={true}
         />
       </div>
@@ -68,10 +75,8 @@ export function QuarterlyDeliverableSchedule({
           name="quarter-2"
           key={2}
           label="2nd Quarter"
-          value={""}
-          onChange={(newDate: string) => {
-            console.log(newDate);
-          }}
+          value={quarterDates[1]}
+          onChange={(newDate: string) => updateQuarterDate(1, newDate)}
           isRequired={true}
         />
       </div>
@@ -81,10 +86,8 @@ export function QuarterlyDeliverableSchedule({
           name="quarter-3"
           key={3}
           label="3rd Quarter"
-          value={""}
-          onChange={(newDate: string) => {
-            console.log(newDate);
-          }}
+          value={quarterDates[2]}
+          onChange={(newDate: string) => updateQuarterDate(2, newDate)}
           isRequired={true}
         />
       </div>
@@ -94,10 +97,8 @@ export function QuarterlyDeliverableSchedule({
           name="quarter-4"
           key={4}
           label="4th Quarter"
-          value={""}
-          onChange={(newDate: string) => {
-            console.log(newDate);
-          }}
+          value={quarterDates[3]}
+          onChange={(newDate: string) => updateQuarterDate(3, newDate)}
           isRequired={true}
         />
       </div>
