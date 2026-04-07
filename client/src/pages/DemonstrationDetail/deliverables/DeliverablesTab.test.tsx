@@ -4,16 +4,25 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { ADD_DELIVERABLE_SLOT_DIALOG_TITLE } from "components/dialog/deliverable";
-import { DeliverablesTab } from "./DeliverablesTab";
+import { ADD_DELIVERABLE_SLOT_BUTTON_NAME, DeliverablesTab } from "./DeliverablesTab";
 import { TestProvider } from "test-utils/TestProvider";
 import { MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
+
+const MOCK_PARENT_DEMONSTRATION = {
+  demonstrationTypes: [],
+  effectiveDate: new Date("2026-01-01"),
+  expirationDate: new Date("2026-12-31"),
+};
 
 describe("DeliverablesTab", () => {
   it("renders Deliverables Management header and required columns", () => {
     render(
       <TestProvider>
         <DialogProvider>
-          <DeliverablesTab demonstrationTypes={[]} deliverables={MOCK_DELIVERABLES.slice(0, 1)} />
+          <DeliverablesTab
+            parentDemonstration={MOCK_PARENT_DEMONSTRATION}
+            deliverables={MOCK_DELIVERABLES.slice(0, 1)}
+          />
         </DialogProvider>
       </TestProvider>
     );
@@ -32,12 +41,12 @@ describe("DeliverablesTab", () => {
     render(
       <TestProvider>
         <DialogProvider>
-          <DeliverablesTab demonstrationTypes={[]} deliverables={[]} />
+          <DeliverablesTab parentDemonstration={MOCK_PARENT_DEMONSTRATION} deliverables={[]} />
         </DialogProvider>
       </TestProvider>
     );
 
-    await user.click(screen.getByTestId("button-add-deliverable-slot"));
+    await user.click(screen.getByTestId(ADD_DELIVERABLE_SLOT_BUTTON_NAME));
 
     const dialog = screen.getByRole("dialog");
     expect(dialog).toBeInTheDocument();
@@ -48,7 +57,7 @@ describe("DeliverablesTab", () => {
     render(
       <TestProvider>
         <DialogProvider>
-          <DeliverablesTab demonstrationTypes={[]} deliverables={[]} />
+          <DeliverablesTab parentDemonstration={MOCK_PARENT_DEMONSTRATION} deliverables={[]} />
         </DialogProvider>
       </TestProvider>
     );

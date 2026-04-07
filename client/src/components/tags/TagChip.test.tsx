@@ -24,7 +24,7 @@ describe("TagChip", () => {
 });
 
 describe("Approval status", () => {
-  it("renders approved status", () => {
+  it("renders approved status with white background", () => {
     render(
       <TagChip
         tag={{ tagName: "ApprovedTag", approvalStatus: "Approved" }}
@@ -36,7 +36,7 @@ describe("Approval status", () => {
     expect(tagElement).toHaveClass("bg-surface-white");
   });
 
-  it("renders unapproved status", () => {
+  it("renders unapproved status with yellow background", () => {
     render(
       <TagChip
         tag={{ tagName: "UnapprovedTag", approvalStatus: "Unapproved" }}
@@ -45,6 +45,7 @@ describe("Approval status", () => {
     );
     const tagElement = screen.getByText("UnapprovedTag (Unapproved)");
     expect(tagElement).toBeInTheDocument();
-    expect(tagElement).toHaveClass("bg-border-alert");
+    expect(tagElement).toHaveClass("bg-yellow-100");
+    expect(tagElement).toHaveClass("border-yellow-400");
   });
 });

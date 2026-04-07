@@ -1,6 +1,5 @@
 import React from "react";
 import { createColumnHelper } from "@tanstack/react-table";
-
 import { IconButton } from "components/button";
 import { AddNewIcon } from "components/icons";
 import { TabHeader } from "components/table/TabHeader";
@@ -12,8 +11,9 @@ import { highlightCell, KeywordSearch } from "components/table/KeywordSearch";
 import { ColumnFilter } from "components/table/ColumnFilter";
 import { PaginationControls } from "components/table/PaginationControls";
 import { formatDeliverableStatus } from "components/table/tables/DeliverableTable";
+import { AddDeliverableSlotDemonstration } from "components/dialog/deliverable/AddDeliverableSlotDialog";
 
-const ADD_DELIVERABLE_SLOT_BUTTON_NAME = "button-add-deliverable-slot";
+export const ADD_DELIVERABLE_SLOT_BUTTON_NAME = "button-add-deliverable-slot";
 const EMPTY_ROWS_MESSAGE = "You have no assigned Deliverables at this time";
 const NO_SEARCH_RESULTS_MESSAGE =
   "No results were returned. Adjust your search and filter criteria.";
@@ -30,10 +30,10 @@ type DemonstrationDeliverableTableRow = Pick<
 >;
 
 export const DeliverablesTab = ({
-  demonstrationTypes,
+  parentDemonstration,
   deliverables,
 }: {
-  demonstrationTypes: string[];
+  parentDemonstration: AddDeliverableSlotDemonstration;
   deliverables: Deliverable[];
 }) => {
   const { showAddDeliverableSlotDialog } = useDialog();
@@ -72,7 +72,7 @@ export const DeliverablesTab = ({
           icon={<AddNewIcon />}
           name={ADD_DELIVERABLE_SLOT_BUTTON_NAME}
           size="small"
-          onClick={() => showAddDeliverableSlotDialog(demonstrationTypes)}
+          onClick={() => showAddDeliverableSlotDialog(parentDemonstration)}
         >
           Add Deliverable Slot
         </IconButton>
