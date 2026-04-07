@@ -79,19 +79,19 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
 
   const isDemonstrationApproved = demonstration.status === "Approved";
   const defaultTab = isDemonstrationApproved ? TAB.DELIVERABLES : TAB.APPLICATION;
-  const demonstrationDeliverables = getDeliverablesForDemonstration(demonstration.name);
+  const postApprovalDeliverables = getDeliverablesForDemonstration(demonstration.name);
 
   return (
     <div className="p-[16px]">
       <VerticalTabs defaultValue={defaultTab}>
         <Tab
           icon={<FileIcon />}
-          label={`Deliverables (${demonstrationDeliverables.length})`}
+          label={`Deliverables (${postApprovalDeliverables.length})`}
           value={TAB.DELIVERABLES}
           shouldRender={isDemonstrationApproved}
         >
           <DeliverablesTab
-            deliverables={demonstrationDeliverables}
+            deliverables={postApprovalDeliverables}
             demonstrationTypes={demonstration.demonstrationTypes.map(
               (t) => t.demonstrationTypeName
             )}
