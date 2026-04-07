@@ -207,7 +207,7 @@ export const DialogSandbox: React.FC = () => {
               })
             }
           >
-            Add Deliverable Slot
+            Add Deliverable Slot(s)
           </Button>
         </div>
       </div>

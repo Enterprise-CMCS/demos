@@ -32,6 +32,21 @@ describe("DeliverableTable", () => {
     });
   });
 
+  it("supports custom empty state message", async () => {
+    render(
+      <DeliverableTable
+        deliverables={[]}
+        emptyRowsMessage="You have no assigned Deliverables at this time"
+      />
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("You have no assigned Deliverables at this time")
+      ).toBeInTheDocument();
+    });
+  });
+
   it("renders action buttons (add/edit/remove)", () => {
     expect(screen.getByLabelText(/Add Deliverable/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Edit Deliverable/i)).toBeInTheDocument();
