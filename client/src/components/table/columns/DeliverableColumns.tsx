@@ -55,7 +55,6 @@ export function DeliverableColumns() {
     }),
     columnHelper.display({
       id: "view",
-      header: "View",
       cell: ({ row }) => {
         const deliverableId = row.original.id;
         const handleClick = () => {
