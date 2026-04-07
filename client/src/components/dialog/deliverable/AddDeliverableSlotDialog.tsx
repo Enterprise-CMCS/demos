@@ -10,6 +10,8 @@ import { ScheduleType, ScheduleTypeField } from "./fields/schedule-type/Schedule
 import { SingleDeliverableScheduleType } from "./fields/schedule-type/SingleDeliverableScheduleType";
 import { QuarterlyDeliverableSchedule } from "./fields/schedule-type/QuarterlyDeliverableSchedule";
 import { Demonstration } from "demos-server";
+import { useToast } from "components/toast";
+import { DELIVERABLE_SLOTS_CREATED_MESSAGE } from "util/messages";
 
 export const ADD_DELIVERABLE_SLOT_DIALOG_TITLE = "Add New Deliverable Slot(s)";
 export const ADD_DELIVERABLE_SLOT_DIALOG_NAME = "add-deliverable-slot-dialog";
@@ -35,14 +37,26 @@ const INITIAL_FORM_DATA: AddDeliverableSlotFormData = {
   demonstrationTypes: [],
 };
 
-const checkFormIsValid = (data: AddDeliverableSlotFormData): boolean =>
+// Outputs deliverable name in the format of DYXQY {Deliverable Name}
+// where X is the demonstration year and Y is the quarter
+export const getQuarterlyDeliverableSlotNames = (
+  demonstrationYear: number,
+  deliverableName: string
+): string[] => [
+  `DY${demonstrationYear}Q1 ${deliverableName}`,
+  `DY${demonstrationYear}Q2 ${deliverableName}`,
+  `DY${demonstrationYear}Q3 ${deliverableName}`,
+  `DY${demonstrationYear}Q4 ${deliverableName}`,
+];
+
+const formIsValid = (data: AddDeliverableSlotFormData): boolean =>
   data.deliverableName.trim().length > 0 &&
   data.cmsOwnerId.length > 0 &&
   data.deliverableType.length > 0 &&
   data.scheduleType.length > 0 &&
   (!requiresDemonstrationTypes(data.deliverableType) || data.demonstrationTypes.length > 0);
 
-const checkFormHasChanges = (data: AddDeliverableSlotFormData): boolean =>
+const formHasChanges = (data: AddDeliverableSlotFormData): boolean =>
   data.deliverableName !== INITIAL_FORM_DATA.deliverableName ||
   data.cmsOwnerId !== INITIAL_FORM_DATA.cmsOwnerId ||
   data.deliverableType !== INITIAL_FORM_DATA.deliverableType ||
@@ -63,23 +77,28 @@ export const AddDeliverableSlotDialog = ({
   onClose: () => void;
   demonstration: AddDeliverableSlotDemonstration;
 }) => {
+  const { showSuccess } = useToast();
+
   const [formData, setFormData] = useState<AddDeliverableSlotFormData>(INITIAL_FORM_DATA);
 
-  const formIsValid = checkFormIsValid(formData);
-  const formHasChanges = checkFormHasChanges(formData);
+  const isFormValid = formIsValid(formData);
+  const hasFormChanges = formHasChanges(formData);
 
   return (
     <BaseDialog
       name={ADD_DELIVERABLE_SLOT_DIALOG_NAME}
       title={ADD_DELIVERABLE_SLOT_DIALOG_TITLE}
       onClose={onClose}
-      dialogHasChanges={formHasChanges}
+      dialogHasChanges={hasFormChanges}
       maxWidthClass="max-w-[960px]"
       actionButton={
         <Button
           name={ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME}
-          onClick={onClose}
-          disabled={!formIsValid}
+          onClick={() => {
+            showSuccess(DELIVERABLE_SLOTS_CREATED_MESSAGE);
+            onClose();
+          }}
+          disabled={!isFormValid}
         >
           Save
         </Button>

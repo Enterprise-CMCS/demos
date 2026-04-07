@@ -11,7 +11,10 @@ import {
 import { SELECT_DEMONSTRATION_TYPE_NAME } from "components/dialog/deliverable/fields/DemonstrationTypeField";
 import { DELIVERABLE_TYPE_SELECT_NAME } from "components/dialog/deliverable/fields/DeliverableTypeField";
 import { personMocks } from "mock-data/personMocks";
-import { AddDeliverableSlotDemonstration } from "./AddDeliverableSlotDialog";
+import {
+  AddDeliverableSlotDemonstration,
+  getQuarterlyDeliverableSlotNames,
+} from "./AddDeliverableSlotDialog";
 
 const MOCK_DEMONSTRATION_TYPES: string[] = [
   "Aggregate Cap",
@@ -107,5 +110,16 @@ describe("AddDeliverableSlotDialog", () => {
     MOCK_DEMONSTRATION_TYPES.forEach((type) => {
       expect(screen.getByText(type)).toBeInTheDocument();
     });
+  });
+
+  it("returns quarterly deliverable slot names for a demonstration year", () => {
+    expect(
+      getQuarterlyDeliverableSlotNames(3, "Alabama Substance Abuse Quarterly BN Report")
+    ).toEqual([
+      "DY3Q1 Alabama Substance Abuse Quarterly BN Report",
+      "DY3Q2 Alabama Substance Abuse Quarterly BN Report",
+      "DY3Q3 Alabama Substance Abuse Quarterly BN Report",
+      "DY3Q4 Alabama Substance Abuse Quarterly BN Report",
+    ]);
   });
 });
