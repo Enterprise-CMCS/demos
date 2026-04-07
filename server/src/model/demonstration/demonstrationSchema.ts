@@ -5,6 +5,7 @@ import {
   ApplicationStatus,
   ClearanceLevel,
   DateTimeOrLocalDate,
+  Deliverable,
   DemonstrationRoleAssignment,
   DemonstrationTypeAssignment,
   Document,
@@ -34,13 +35,14 @@ export const demonstrationSchema = gql`
     documents: [Document!]!
     amendments: [Amendment!]!
     extensions: [Extension!]!
-    createdAt: DateTime!
-    updatedAt: DateTime!
     roles: [DemonstrationRoleAssignment!]!
     primaryProjectOfficer: Person!
     clearanceLevel: ClearanceLevel!
     tags: [Tag!]!
     demonstrationTypes: [DemonstrationTypeAssignment!]!
+    deliverables: [Deliverable!]!
+    createdAt: DateTime!
+    updatedAt: DateTime!
   }
 
   input CreateDemonstrationInput {
@@ -91,13 +93,14 @@ export interface Demonstration {
   documents: Document[];
   amendments: Amendment[];
   extensions: Extension[];
-  createdAt: Date;
-  updatedAt: Date;
   roles: DemonstrationRoleAssignment[];
   primaryProjectOfficer: Person;
   clearanceLevel: ClearanceLevel;
   tags: Tag[];
   demonstrationTypes: DemonstrationTypeAssignment[];
+  deliverables: Deliverable[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface CreateDemonstrationInput {

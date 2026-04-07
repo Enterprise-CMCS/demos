@@ -7,7 +7,7 @@ import { prisma } from "../../prismaClient.js";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { getS3Adapter } from "../../adapters";
 import { EasternNow, getEasternNow } from "../../dateUtilities";
-import { findUserById } from "../user";
+import { getUser } from "../user";
 import { getApplication } from "../application";
 import { validateAndUpdateDates } from "../applicationDate";
 import { startPhaseByDocument } from "../applicationPhase";
@@ -67,7 +67,7 @@ vi.mock("../../services/uipathQueue", () => ({
 }));
 
 vi.mock("../user", () => ({
-  findUserById: vi.fn(),
+  getUser: vi.fn(),
 }));
 
 vi.mock(".", () => ({
@@ -99,6 +99,11 @@ describe("documentResolvers", () => {
     phaseId: "Concept",
     createdAt: new Date("2025-01-01T00:00:00.000Z"),
     updatedAt: new Date("2025-01-02T00:00:00.000Z"),
+    deliverableId: null,
+    deliverableTypeId: null,
+    deliverableIsCmsAttachedFile: null,
+    deliverableSubmissionActionId: null,
+    deliverableSubmissionActionTypeId: null,
   };
 
   const mockUser: PrismaUser = {
@@ -423,12 +428,12 @@ describe("documentResolvers", () => {
 
   describe("resolveOwner", () => {
     it("should resolve document owner", async () => {
-      vi.mocked(findUserById).mockResolvedValue(mockUser);
+      vi.mocked(getUser).mockResolvedValue(mockUser);
 
       const result = await resolveOwner(mockDocument);
 
       expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
-      expect(findUserById).toHaveBeenCalledExactlyOnceWith(mockTransaction, "user-123");
+      expect(getUser).toHaveBeenCalledExactlyOnceWith({ id: "user-123" }, mockTransaction);
       expect(result).toEqual(mockUser);
     });
   });
