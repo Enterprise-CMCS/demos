@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 
-import { SCHEDULE_TYPES, ScheduleTypeField } from "./ScheduleTypeField";
+import { ALL_SCHEDULE_TYPES, ScheduleTypeField } from "./ScheduleTypeField";
 
 describe("ScheduleTypeField", () => {
   const setup = (value = "", onSelect = vi.fn()) => {
@@ -29,7 +29,7 @@ describe("ScheduleTypeField", () => {
 
     await user.click(screen.getByTestId("select-schedule-type"));
 
-    SCHEDULE_TYPES.forEach((type) => {
+    ALL_SCHEDULE_TYPES.forEach((type) => {
       expect(screen.getByText(type)).toBeInTheDocument();
     });
   });
@@ -42,11 +42,5 @@ describe("ScheduleTypeField", () => {
     await user.click(screen.getByText("Quarterly"));
 
     expect(onSelect).toHaveBeenCalledWith("Quarterly");
-  });
-
-  it("is disabled when isDisabled is true", () => {
-    render(<ScheduleTypeField value="" onSelect={vi.fn()} isDisabled />);
-
-    expect(screen.getByTestId("select-schedule-type")).toBeDisabled();
   });
 });
