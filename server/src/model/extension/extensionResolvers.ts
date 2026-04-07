@@ -1,4 +1,4 @@
-import { Extension as PrismaExtension, Demonstration as PrismaDemonstration } from "@prisma/client";
+import { Extension as PrismaExtension } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import {
   ApplicationStatus,
@@ -12,32 +12,17 @@ import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate";
 import {
   deleteApplication,
-  getApplication,
-  getManyApplications,
-  resolveApplicationClearanceLevel,
-  resolveApplicationCurrentPhaseName,
   resolveApplicationDocuments,
   resolveApplicationPhases,
-  resolveApplicationStatus,
   resolveApplicationTags,
-  resolveApplicationSignatureLevel,
 } from "../application";
 import { GraphQLContext } from "../../auth/auth.util.js";
+import { getExtension, getManyExtensions } from "./Extension.js";
+import { getDemonstration } from "../demonstration/Demonstration.js";
 
 const extensionApplicationType: ApplicationType = "Extension";
 const conceptPhaseName: PhaseName = "Concept";
 const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
-
-export async function __getExtension(
-  parent: unknown,
-  { id }: { id: string }
-): Promise<PrismaExtension> {
-  return await getApplication(id, { applicationTypeId: "Extension" });
-}
-
-export async function __getManyExtensions(): Promise<PrismaExtension[]> {
-  return await getManyApplications("Extension");
-}
 
 export async function __createExtension(
   parent: unknown,
@@ -99,22 +84,12 @@ export async function deleteExtension(
   });
 }
 
-export async function __resolveParentDemonstration(
-  parent: PrismaExtension
-): Promise<PrismaDemonstration> {
-  // DB enforces that you cannot orphan the demonstration record
-  const result = await prisma().demonstration.findUnique({
-    where: { id: parent.demonstrationId },
-  });
-  return result!;
-}
-
 export const extensionResolvers = {
   Query: {
-    extension: (parent: never, args: { id: string }, context: GraphQLContext) =>
-      context.services.extension.get({ id: args.id }),
-    extensions: (parent: never, args: never, context: GraphQLContext) =>
-      context.services.extension.getMany(),
+    extension: (parent: unknown, args: { id: string }, context: GraphQLContext) =>
+      getExtension({ id: args.id }, context.user!),
+    extensions: (parent: unknown, args: unknown, context: GraphQLContext) =>
+      getManyExtensions({}, context.user!),
   },
 
   Mutation: {
@@ -124,14 +99,14 @@ export const extensionResolvers = {
   },
 
   Extension: {
-    demonstration: (parent: { demonstrationId: string }, args: never, context: GraphQLContext) =>
-      context.services.demonstration.get({ id: parent.demonstrationId }),
+    demonstration: (parent: { demonstrationId: string }, args: unknown, context: GraphQLContext) =>
+      getDemonstration({ id: parent.demonstrationId }, context.user!),
     documents: resolveApplicationDocuments,
-    currentPhaseName: resolveApplicationCurrentPhaseName,
-    status: resolveApplicationStatus,
+    currentPhaseName: (parent: PrismaExtension) => parent.currentPhaseId,
+    status: (parent: PrismaExtension) => parent.statusId,
     phases: resolveApplicationPhases,
-    clearanceLevel: resolveApplicationClearanceLevel,
+    clearanceLevel: (parent: PrismaExtension) => parent.clearanceLevelId,
     tags: resolveApplicationTags,
-    signatureLevel: resolveApplicationSignatureLevel,
+    signatureLevel: (parent: PrismaExtension) => parent.signatureLevelId,
   },
 };

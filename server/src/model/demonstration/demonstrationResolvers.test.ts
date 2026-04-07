@@ -1,14 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
-  __getDemonstration,
-  __getManyDemonstrations,
   __createDemonstration,
   __updateDemonstration,
   deleteDemonstration,
   __resolveDemonstrationState,
-  __resolveDemonstrationAmendments,
-  __resolveDemonstrationExtensions,
-  resolveDemonstrationSdgDivision,
   __resolveDemonstrationRoleAssignments,
   __resolveDemonstrationPrimaryProjectOfficer,
   resolveDemonstrationTypes,
@@ -17,6 +12,7 @@ import {
 import {
   ApplicationStatus,
   ApplicationType,
+  ClearanceLevel,
   CreateDemonstrationInput,
   DemonstrationTypeAssignment,
   GrantLevel,
@@ -47,20 +43,32 @@ import {
   getApplication,
   getManyApplications,
   // None of these are tested but need to be exported to avoid mocking issues
-  resolveApplicationCurrentPhaseName,
   resolveApplicationDocuments,
   resolveApplicationPhases,
-  resolveApplicationStatus,
-  resolveApplicationClearanceLevel,
   resolveApplicationTags,
-  resolveApplicationSignatureLevel,
 } from "../application";
 import { parseDateTimeOrLocalDateToEasternTZDate, EasternTZDate } from "../../dateUtilities.js";
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
-import { GraphQLContext } from "../../auth/auth.util.js";
+import { ContextUser, GraphQLContext } from "../../auth/auth.util.js";
+import { getDemonstration, getManyDemonstrations } from "./Demonstration.js";
+import { getManyExtensions } from "../extension/Extension.js";
+import { getManyAmendments } from "../amendment/Amendment.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
+}));
+
+vi.mock("../amendment/Amendment.js", () => ({
+  getManyAmendments: vi.fn(),
+}));
+
+vi.mock("../extension/Extension.js", () => ({
+  getManyExtensions: vi.fn(),
+}));
+
+vi.mock("./Demonstration.js", () => ({
+  getDemonstration: vi.fn(),
+  getManyDemonstrations: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -227,46 +235,55 @@ describe("demonstrationResolvers", () => {
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
-  it("delegates `demonstration` to `context.services.demonstration.get`", async () => {
-    const get = vi.fn();
+  const mockUser = {} as unknown as ContextUser;
+  const mockContext = {
+    user: mockUser,
+  };
 
-    const context = {
-      services: {
-        demonstration: {
-          get,
-          getMany: vi.fn(),
-        },
-      },
-    } as unknown as GraphQLContext;
-
-    await demonstrationResolvers.Query.demonstration(
-      undefined as never,
-      { id: testValues.demonstrationId },
-      context
-    );
-
-    expect(get).toHaveBeenCalledExactlyOnceWith({ id: testValues.demonstrationId });
+  it("delegates `Query.demonstration` to `Demonstration.getDemonstration`", async () => {
+    await demonstrationResolvers.Query.demonstration(undefined, { id: "abc123" }, mockContext);
+    expect(getDemonstration).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
   });
 
-  it("delegates `demonstrations` to `context.services.demonstration.getMany`", async () => {
-    const getMany = vi.fn();
+  it("delegates `Query.demonstrations` to `Demonstration.getManyDemonstrations`", async () => {
+    await demonstrationResolvers.Query.demonstrations(undefined, {}, mockContext);
+    expect(getManyDemonstrations).toHaveBeenCalledExactlyOnceWith({}, mockUser);
+  });
 
-    const context = {
-      services: {
-        demonstration: {
-          get: vi.fn(),
-          getMany,
-        },
-      },
-    } as unknown as GraphQLContext;
+  it("resolves `Demonstration.currentPhaseName`", () => {
+    const demonstration = {
+      currentPhaseId: "Application Intake" satisfies PhaseName,
+    } as PrismaDemonstration;
 
-    await demonstrationResolvers.Query.demonstrations(
-      undefined as never,
-      undefined as never,
-      context
-    );
+    const result = demonstrationResolvers.Demonstration.currentPhaseName(demonstration);
+    expect(result).toBe(demonstration.currentPhaseId);
+  });
 
-    expect(getMany).toHaveBeenCalledExactlyOnceWith();
+  it("resolves `Demonstration.signatureLevel`", () => {
+    const demonstration = {
+      signatureLevelId: "OA" satisfies SignatureLevel,
+    } as PrismaDemonstration;
+
+    const result = demonstrationResolvers.Demonstration.signatureLevel(demonstration);
+    expect(result).toBe(demonstration.signatureLevelId);
+  });
+
+  it("resolves `Demonstration.status`", () => {
+    const demonstration = {
+      statusId: "Pre-Submission" satisfies ApplicationStatus,
+    } as PrismaDemonstration;
+
+    const result = demonstrationResolvers.Demonstration.status(demonstration);
+    expect(result).toBe(demonstration.statusId);
+  });
+
+  it("resolves the `Demonstration.clearanceLevel`", () => {
+    const demonstration = {
+      clearanceLevelId: "COMMs" satisfies ClearanceLevel,
+    } as PrismaDemonstration;
+
+    const result = demonstrationResolvers.Demonstration.clearanceLevel(demonstration);
+    expect(result).toBe(demonstration.clearanceLevelId);
   });
 
   describe("__createDemonstration", () => {
@@ -718,61 +735,28 @@ describe("demonstrationResolvers", () => {
     });
   });
 
-  it("delegates `Demonstration.amendments` to `context.services.amendment.getMany`", async () => {
-    const getMany = vi.fn();
-
-    const context = {
-      services: {
-        amendment: {
-          get: vi.fn(),
-          getMany,
-        },
-      },
-    } as unknown as GraphQLContext;
-
-    await demonstrationResolvers.Demonstration.amendments(
-      { id: "parent-demo" },
-      undefined as never,
-      context
-    );
-
-    expect(getMany).toHaveBeenCalledExactlyOnceWith({
-      demonstrationId: "parent-demo",
-    });
-  });
-
-  it("delegates `Demonstration.extensions` to `context.services.extension.getMany`", async () => {
-    const getMany = vi.fn();
-
-    const context = {
-      services: {
-        extension: {
-          get: vi.fn(),
-          getMany,
-        },
-      },
-    } as unknown as GraphQLContext;
-
+  it("delegates `Demonstration.extensions` to `Extension.getManyExtensions`", async () => {
     await demonstrationResolvers.Demonstration.extensions(
-      { id: "parent-demo" },
-      undefined as never,
-      context
+      { id: "abc123" } as PrismaDemonstration,
+      {},
+      mockContext
     );
-
-    expect(getMany).toHaveBeenCalledExactlyOnceWith({
-      demonstrationId: "parent-demo",
-    });
+    expect(getManyExtensions).toHaveBeenCalledExactlyOnceWith(
+      { demonstrationId: "abc123" },
+      mockUser
+    );
   });
 
-  describe("resolveDemonstrationSdgDivision", () => {
-    it("should resolve the relevant SDG Division", () => {
-      const input: Partial<PrismaDemonstration> = {
-        sdgDivisionId: testValues.sdgDivisionId,
-      };
-      expect(resolveDemonstrationSdgDivision(input as PrismaDemonstration)).toBe(
-        testValues.sdgDivisionId
-      );
-    });
+  it("delegates `Demonstration.amendments` to `Amendments.getManyAmendments`", async () => {
+    await demonstrationResolvers.Demonstration.amendments(
+      { id: "abc123" } as PrismaDemonstration,
+      {},
+      mockContext
+    );
+    expect(getManyAmendments).toHaveBeenCalledExactlyOnceWith(
+      { demonstrationId: "abc123" },
+      mockUser
+    );
   });
 
   describe("__resolveDemonstrationRoleAssignments", () => {

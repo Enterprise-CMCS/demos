@@ -2,13 +2,9 @@
 export { setApplicationClearanceLevel } from "./setApplicationClearanceLevel";
 export {
   resolveApplicationDocuments,
-  resolveApplicationCurrentPhaseName,
-  resolveApplicationStatus,
   resolveApplicationType,
   resolveApplicationPhases,
-  resolveApplicationClearanceLevel,
   resolveApplicationTags,
-  resolveApplicationSignatureLevel,
 } from "./applicationResolvers";
 
 // Queries

@@ -1,5 +1,5 @@
 import { prisma } from "../../prismaClient.js";
-import { ClearanceLevel, TagStatus } from "../../types.js";
+import { TagStatus } from "../../types.js";
 import {
   Document as PrismaDocument,
   ApplicationPhase as PrismaApplicationPhase,
@@ -17,18 +17,6 @@ export async function resolveApplicationDocuments(
   });
 }
 
-export function resolveApplicationCurrentPhaseName(parent: PrismaApplication): string {
-  return parent.currentPhaseId;
-}
-
-export function resolveApplicationStatus(parent: PrismaApplication): string {
-  return parent.statusId;
-}
-
-export function resolveApplicationSignatureLevel(parent: PrismaApplication): string | null {
-  return parent.signatureLevelId;
-}
-
 export function resolveApplicationType(parent: PrismaApplication): string {
   return parent.applicationTypeId;
 }
@@ -43,11 +31,6 @@ export async function resolveApplicationPhases(
     },
   });
   return result!;
-}
-
-export function resolveApplicationClearanceLevel(parent: PrismaApplication): ClearanceLevel {
-  // clearance level casting enforced by database constraints
-  return parent.clearanceLevelId as ClearanceLevel;
 }
 
 export async function resolveApplicationTags(parent: PrismaApplication): Promise<Tag[]> {

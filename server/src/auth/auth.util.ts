@@ -9,7 +9,6 @@ import { prisma } from "../prismaClient.js";
 import { pickString } from "./claim-utils";
 import { PERSON_TYPES } from "../constants";
 import { log } from "../log.js";
-import { createServices, Services } from "./services.js";
 
 const config = getAuthConfig();
 
@@ -26,7 +25,6 @@ export interface ContextUser {
 
 export interface GraphQLContext {
   user: ContextUser | null;
-  services: Services;
 }
 
 type DecodedJWT = {
@@ -300,7 +298,6 @@ async function buildContextFromClaims(claims: Claims): Promise<GraphQLContext> {
 
   return {
     user: contextUser,
-    services: createServices(contextUser),
   };
 }
 
