@@ -13,7 +13,8 @@ import { DELIVERABLE_TYPE_SELECT_NAME } from "components/dialog/deliverable/fiel
 import { personMocks } from "mock-data/personMocks";
 import {
   AddDeliverableSlotDemonstration,
-  getQuarterlyDeliverableSlotNames,
+  buildAddDeliverableSlotPayloads,
+  getQuarterlyDeliverableSlotName,
 } from "./AddDeliverableSlotDialog";
 
 const MOCK_DEMONSTRATION_TYPES: string[] = [
@@ -111,15 +112,43 @@ describe("AddDeliverableSlotDialog", () => {
       expect(screen.getByText(type)).toBeInTheDocument();
     });
   });
+});
 
-  it("returns quarterly deliverable slot names for a demonstration year", () => {
-    expect(
-      getQuarterlyDeliverableSlotNames(3, "Alabama Substance Abuse Quarterly BN Report")
-    ).toEqual([
-      "DY3Q1 Alabama Substance Abuse Quarterly BN Report",
-      "DY3Q2 Alabama Substance Abuse Quarterly BN Report",
-      "DY3Q3 Alabama Substance Abuse Quarterly BN Report",
-      "DY3Q4 Alabama Substance Abuse Quarterly BN Report",
+describe("getQuarterlyDeliverableSlotName", () => {
+  it("formats the name as DYXQY {Deliverable Name}", () => {
+    expect(getQuarterlyDeliverableSlotName(3, 2, "Quarterly Report")).toBe(
+      "DY3Q2 Quarterly Report"
+    );
+  });
+});
+
+describe("buildAddDeliverableSlotPayloads", () => {
+  it("returns a single payload when schedule type is Single", () => {
+    const formData = {
+      deliverableName: "My Deliverable",
+      cmsOwnerId: "user-1",
+      deliverableType: "Annual Budget Neutrality Report",
+      scheduleType: "Single" as const,
+      demonstrationTypes: ["Aggregate Cap"],
+    };
+
+    expect(buildAddDeliverableSlotPayloads(2, formData)).toEqual([formData]);
+  });
+
+  it("returns four quarterly payloads when schedule type is Quarterly", () => {
+    const formData = {
+      deliverableName: "My Deliverable",
+      cmsOwnerId: "user-1",
+      deliverableType: "Annual Budget Neutrality Report",
+      scheduleType: "Quarterly" as const,
+      demonstrationTypes: ["Aggregate Cap"],
+    };
+
+    expect(buildAddDeliverableSlotPayloads(2, formData)).toEqual([
+      { ...formData, deliverableName: "DY2Q1 My Deliverable" },
+      { ...formData, deliverableName: "DY2Q2 My Deliverable" },
+      { ...formData, deliverableName: "DY2Q3 My Deliverable" },
+      { ...formData, deliverableName: "DY2Q4 My Deliverable" },
     ]);
   });
 });

@@ -25,9 +25,11 @@ export function getOptionsForYearSelect(
 export function QuarterlyDeliverableSchedule({
   demonstrationEffectiveDate,
   demonstrationExpirationDate,
+  onSelectYear,
 }: {
   demonstrationEffectiveDate?: Date;
   demonstrationExpirationDate?: Date;
+  onSelectYear: (year: number) => void;
 }) {
   const [selectedYear, setSelectedYear] = useState(1);
 
@@ -38,7 +40,12 @@ export function QuarterlyDeliverableSchedule({
           label="Year"
           options={getOptionsForYearSelect(demonstrationEffectiveDate, demonstrationExpirationDate)}
           value={String(selectedYear)}
-          onSelect={(value: string) => setSelectedYear(Number(value))}
+          onSelect={(value: string) => {
+            // Strip the "Year " prefix from the label to get the numeric year value
+            const year = Number(value.replace("Year ", ""));
+            onSelectYear(year);
+            setSelectedYear(year);
+          }}
           isRequired={true}
         />
       </div>

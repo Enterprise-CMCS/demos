@@ -17,6 +17,9 @@ export const ADD_DELIVERABLE_SLOT_DIALOG_TITLE = "Add New Deliverable Slot(s)";
 export const ADD_DELIVERABLE_SLOT_DIALOG_NAME = "add-deliverable-slot-dialog";
 export const ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME = "button-add-deliverable-slot-confirm";
 
+const ALL_QUARTERS = [1, 2, 3, 4] as const;
+type Quarter = (typeof ALL_QUARTERS)[number];
+
 // If the deliverable type is Implementation Plan or Monitoring Protocol, then at least one demonstration type must be selected
 const requiresDemonstrationTypes = (deliverableType: string): boolean =>
   (["Implementation Plan", "Monitoring Protocol"] as readonly string[]).includes(deliverableType);
@@ -37,17 +40,29 @@ const INITIAL_FORM_DATA: AddDeliverableSlotFormData = {
   demonstrationTypes: [],
 };
 
-// Outputs deliverable name in the format of DYXQY {Deliverable Name}
-// where X is the demonstration year and Y is the quarter
-export const getQuarterlyDeliverableSlotNames = (
+export const getQuarterlyDeliverableSlotName = (
   demonstrationYear: number,
+  quarter: Quarter,
   deliverableName: string
-): string[] => [
-  `DY${demonstrationYear}Q1 ${deliverableName}`,
-  `DY${demonstrationYear}Q2 ${deliverableName}`,
-  `DY${demonstrationYear}Q3 ${deliverableName}`,
-  `DY${demonstrationYear}Q4 ${deliverableName}`,
-];
+): string => `DY${demonstrationYear}Q${quarter} ${deliverableName}`;
+
+export const buildAddDeliverableSlotPayloads = (
+  demonstrationYear: number,
+  formData: AddDeliverableSlotFormData
+): AddDeliverableSlotFormData[] => {
+  if (formData.scheduleType === "Single") {
+    return [formData];
+  }
+
+  return ALL_QUARTERS.map((quarter) => ({
+    ...formData,
+    deliverableName: getQuarterlyDeliverableSlotName(
+      demonstrationYear,
+      quarter,
+      formData.deliverableName
+    ),
+  }));
+};
 
 const formIsValid = (data: AddDeliverableSlotFormData): boolean =>
   data.deliverableName.trim().length > 0 &&
@@ -60,7 +75,6 @@ const formHasChanges = (data: AddDeliverableSlotFormData): boolean =>
   data.deliverableName !== INITIAL_FORM_DATA.deliverableName ||
   data.cmsOwnerId !== INITIAL_FORM_DATA.cmsOwnerId ||
   data.deliverableType !== INITIAL_FORM_DATA.deliverableType ||
-  data.scheduleType !== INITIAL_FORM_DATA.scheduleType ||
   data.demonstrationTypes.length !== 0;
 
 export type AddDeliverableSlotDemonstration = Pick<
@@ -80,6 +94,7 @@ export const AddDeliverableSlotDialog = ({
   const { showSuccess } = useToast();
 
   const [formData, setFormData] = useState<AddDeliverableSlotFormData>(INITIAL_FORM_DATA);
+  const [demonstrationYear, setDemonstrationYear] = useState<number>(1);
 
   const isFormValid = formIsValid(formData);
   const hasFormChanges = formHasChanges(formData);
@@ -95,6 +110,10 @@ export const AddDeliverableSlotDialog = ({
         <Button
           name={ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME}
           onClick={() => {
+            // For now log out the payload that would be sent to the backend.
+            // In the future, this is where the API call to create deliverable slots would go
+            const payloads = buildAddDeliverableSlotPayloads(demonstrationYear, formData);
+            console.log(payloads);
             showSuccess(DELIVERABLE_SLOTS_CREATED_MESSAGE);
             onClose();
           }}
@@ -119,6 +138,7 @@ export const AddDeliverableSlotDialog = ({
           <QuarterlyDeliverableSchedule
             demonstrationEffectiveDate={demonstration.effectiveDate}
             demonstrationExpirationDate={demonstration.expirationDate}
+            onSelectYear={(demonstrationYear) => setDemonstrationYear(demonstrationYear)}
           />
         )}
         {formData.scheduleType === "Single" && <SingleDeliverableScheduleType />}
