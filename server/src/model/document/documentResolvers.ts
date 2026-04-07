@@ -21,17 +21,17 @@ import { enqueueUiPath } from "../../services/uipathQueue";
 import { resolveDeliverable } from "../deliverable";
 import {
   checkDocumentExists,
-  getDocumentById,
+  getDocument,
   updateDocument as updateDocumentQuery,
   handleDeleteDocument,
 } from ".";
 
-export async function getDocument(
+export async function queryDocument(
   parent: unknown,
   { id }: { id: string }
 ): Promise<PrismaDocument> {
   return await prisma().$transaction(async (tx) => {
-    return await getDocumentById(tx, id);
+    return await getDocument({ id: id }, tx);
   });
 }
 
@@ -194,7 +194,7 @@ export function resolvePhaseName(parent: PrismaDocument): PhaseName {
 
 export const documentResolvers = {
   Query: {
-    document: getDocument,
+    document: queryDocument,
     documentExists: documentExists,
   },
 

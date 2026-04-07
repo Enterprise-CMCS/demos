@@ -1,11 +1,12 @@
-import { Document as PrismaDocument } from "@prisma/client";
-import { PrismaTransactionClient } from "../../../prismaClient";
+import { Prisma, Document as PrismaDocument } from "@prisma/client";
+import { prisma, PrismaTransactionClient } from "../../../prismaClient";
 
-export async function getDocumentById(
-  tx: PrismaTransactionClient,
-  documentId: string
+export async function getDocument(
+  filter: Prisma.DocumentWhereUniqueInput,
+  tx?: PrismaTransactionClient
 ): Promise<PrismaDocument> {
-  return await tx.document.findUniqueOrThrow({
-    where: { id: documentId },
+  const prismaClient = tx ?? prisma();
+  return await prismaClient.document.findUniqueOrThrow({
+    where: { ...filter },
   });
 }
