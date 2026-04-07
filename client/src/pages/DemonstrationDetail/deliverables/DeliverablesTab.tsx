@@ -27,7 +27,7 @@ export const DeliverablesTab = ({
           size="small"
           onClick={() => showAddDeliverableSlotDialog(parentDemonstration)}
         >
-          Add Deliverable Slot
+          Add Deliverable Slot(s)
         </IconButton>
       </TabHeader>
       <DemonstrationDeliverableTable deliverables={deliverables} />
