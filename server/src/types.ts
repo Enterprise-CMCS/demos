@@ -81,6 +81,7 @@ export type {
   ApplicationPhase,
   CompletePhaseInput,
 } from "./model/applicationPhase/applicationPhaseSchema.js";
+
 export type { Application } from "./model/application/applicationSchema.js";
 export type {
   ApplicationDate,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ContextUser } from "./auth.util";
-import { buildAuthorizationFilter, PermissionMap } from "./buildAuthorizationFilter";
+import { buildAuthorizationFilter, PermissionFilters } from "./buildAuthorizationFilter";
 import { ApplicationStatus, SignatureLevel } from "../types";
 
 describe("buildAuthorizationFilter", () => {
@@ -19,13 +19,13 @@ describe("buildAuthorizationFilter", () => {
       permissions: ["View All Demonstrations", "View All Amendments"],
     };
 
-    const permissionMapper = (userId: string): PermissionMap<TestWhereClause> => ({
+    const mockGetPermissionFilters = (userId: string): PermissionFilters<TestWhereClause> => ({
       "View All Demonstrations": { name: "Name" },
       "View Assigned Demonstrations": { id: userId },
       "View All Amendments": { statusId: "Approved" },
     });
 
-    const result = buildAuthorizationFilter(user, permissionMapper);
+    const result = buildAuthorizationFilter(user, mockGetPermissionFilters);
 
     expect(result).toEqual({
       OR: [{ name: "Name" }, { statusId: "Approved" }],
@@ -40,12 +40,12 @@ describe("buildAuthorizationFilter", () => {
       permissions: ["View All Extensions"],
     };
 
-    const permissionMapper = (): PermissionMap<TestWhereClause> => ({
+    const mockGetPermissionFilters = (): PermissionFilters<TestWhereClause> => ({
       "View All Demonstrations": { name: "Name" },
       "View All Amendments": { statusId: "Approved" },
     });
 
-    const result = buildAuthorizationFilter(user, permissionMapper);
+    const result = buildAuthorizationFilter(user, mockGetPermissionFilters);
 
     expect(result).toBeNull();
   });
@@ -58,12 +58,12 @@ describe("buildAuthorizationFilter", () => {
       permissions: ["View Assigned Demonstrations"],
     };
 
-    const permissionMapper = (userId: string): PermissionMap<TestWhereClause> => ({
+    const mockGetPermissionFilters = (userId: string): PermissionFilters<TestWhereClause> => ({
       "View All Demonstrations": undefined,
       "View Assigned Demonstrations": { id: userId },
     });
 
-    const result = buildAuthorizationFilter(user, permissionMapper);
+    const result = buildAuthorizationFilter(user, mockGetPermissionFilters);
 
     expect(result).toEqual({
       OR: [{ id: "user-3" }],
