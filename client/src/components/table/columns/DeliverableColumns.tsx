@@ -8,10 +8,47 @@ import { STATES_AND_TERRITORIES } from "demos-server-constants";
 
 import { SecondaryButton } from "../../button/SecondaryButton";
 import { highlightCell } from "../KeywordSearch";
-import { DeliverableTableRow } from "../tables/DeliverableTable";
+import type { DeliverableTableRow, DeliverableTableViewMode } from "../tables/DeliverableTable";
 
-export function DeliverableColumns() {
+type DeliverableColumnsProps = {
+  viewMode?: DeliverableTableViewMode;
+};
+
+export function DeliverableColumns({ viewMode = "default" }: DeliverableColumnsProps = {}) {
   const columnHelper = createColumnHelper<DeliverableTableRow>();
+
+  const demonstrationNameColumn = columnHelper.accessor("demonstrationName", {
+    header: "Demonstration Name",
+    cell: highlightCell,
+  });
+
+  const deliverableTypeColumn = columnHelper.accessor("deliverableType", {
+    header: "Deliverable Type",
+    cell: highlightCell,
+  });
+
+  const deliverableNameColumn = columnHelper.accessor("deliverableName", {
+    header: "Deliverable Name",
+    cell: highlightCell,
+  });
+
+  const dueDateColumn = createDateColumnDef(columnHelper, "dueDate", "Due Date");
+  const submissionDateColumn = createDateColumnDef(columnHelper, "submissionDate", "Submission Date");
+  const statusColumn = columnHelper.accessor("status", {
+    header: "Status",
+    cell: highlightCell,
+  });
+
+  if (viewMode === "stateUser") {
+    return [
+      demonstrationNameColumn,
+      deliverableTypeColumn,
+      deliverableNameColumn,
+      dueDateColumn,
+      submissionDateColumn,
+      statusColumn,
+    ];
+  }
 
   return [
     createSelectColumnDef(columnHelper),
@@ -31,28 +68,16 @@ export function DeliverableColumns() {
         },
       },
     }),
-    columnHelper.accessor("demonstrationName", {
-      header: "Demonstration Name",
-      cell: highlightCell,
-    }),
-    columnHelper.accessor("deliverableType", {
-      header: "Deliverable Type",
-      cell: highlightCell,
-    }),
-    columnHelper.accessor("deliverableName", {
-      header: "Deliverable Name",
-      cell: highlightCell,
-    }),
+    demonstrationNameColumn,
+    deliverableTypeColumn,
+    deliverableNameColumn,
     columnHelper.accessor("cmsOwner", {
       header: "CMS Owner",
       cell: highlightCell,
     }),
-    createDateColumnDef(columnHelper, "dueDate", "Due Date"),
-    createDateColumnDef(columnHelper, "submissionDate", "Submission Date"),
-    columnHelper.accessor("status", {
-      header: "Status",
-      cell: highlightCell,
-    }),
+    dueDateColumn,
+    submissionDateColumn,
+    statusColumn,
     columnHelper.display({
       id: "view",
       cell: ({ row }) => {

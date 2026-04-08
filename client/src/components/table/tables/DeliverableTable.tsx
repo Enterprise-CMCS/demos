@@ -24,6 +24,8 @@ export type DeliverableTableRow = {
   state: { id: string };
 };
 
+export type DeliverableTableViewMode = "default" | "stateUser";
+
 const DEFAULT_EMPTY_ROWS_MESSAGE = "There are no assigned Deliverables at this time";
 const DEFAULT_NO_SEARCH_RESULTS_MESSAGE =
   "No results were returned. Adjust your search and filter criteria.";
@@ -54,11 +56,13 @@ export const formatDeliverableStatus = ({
 export const DeliverableTable: React.FC<{
   deliverables: Deliverable[];
   emptyRowsMessage?: string;
+  viewMode?: DeliverableTableViewMode;
 }> = ({
   deliverables,
   emptyRowsMessage = DEFAULT_EMPTY_ROWS_MESSAGE,
+  viewMode = "default",
 }) => {
-  const deliverableColumns = DeliverableColumns();
+  const deliverableColumns = DeliverableColumns({ viewMode });
   const formattedDeliverables = deliverables.map((deliverable) => ({
     ...deliverable,
     status: formatDeliverableStatus(deliverable),
@@ -70,7 +74,7 @@ export const DeliverableTable: React.FC<{
   const showRemoveDeliverableDialog = () => { };
 
   return (
-    <div className="flex flex-col gap-[24px]">
+    <div className="flex flex-col gap-[24px]" data-view-mode={viewMode}>
       {deliverableColumns && (
         <Table<DeliverableTableRow>
           data={formattedDeliverables}
@@ -80,60 +84,64 @@ export const DeliverableTable: React.FC<{
           pagination={(table) => <PaginationControls table={table} />}
           emptyRowsMessage={emptyRowsMessage}
           noResultsFoundMessage={DEFAULT_NO_SEARCH_RESULTS_MESSAGE}
-          actionButtons={(table) => {
-            const selectedDeliverables = table.getSelectedRowModel().rows.map((row) => row.original);
-            const selectedCount = selectedDeliverables.length;
+          actionButtons={
+            viewMode === "stateUser"
+              ? undefined
+              : (table) => {
+                const selectedDeliverables = table.getSelectedRowModel().rows.map((row) => row.original);
+                const selectedCount = selectedDeliverables.length;
 
-            const editEnabled = selectedCount === 1;
-            const deleteEnabled = selectedCount >= 1;
+                const editEnabled = selectedCount === 1;
+                const deleteEnabled = selectedCount >= 1;
 
-            const editTooltip = selectionTooltip({
-              action: "Edit",
-              nounSingular: "Deliverable",
-              selectedCount,
-              rule: { kind: "exactly", count: 1 },
-            });
+                const editTooltip = selectionTooltip({
+                  action: "Edit",
+                  nounSingular: "Deliverable",
+                  selectedCount,
+                  rule: { kind: "exactly", count: 1 },
+                });
 
-            const deleteTooltip = selectionTooltip({
-              action: "Delete",
-              nounSingular: "Deliverable",
-              selectedCount,
-              rule: { kind: "atLeast", count: 1 },
-            });
+                const deleteTooltip = selectionTooltip({
+                  action: "Delete",
+                  nounSingular: "Deliverable",
+                  selectedCount,
+                  rule: { kind: "atLeast", count: 1 },
+                });
 
-            return (
-              <div className="flex gap-1 ml-4">
-                <CircleButton
-                  name="add-deliverable"
-                  ariaLabel="Add Deliverable"
-                  tooltip="Add Deliverable"
-                  onClick={() => showAddDeliverableDialog()}
-                >
-                  <ImportIcon />
-                </CircleButton>
+                return (
+                  <div className="flex gap-1 ml-4">
+                    <CircleButton
+                      name="add-deliverable"
+                      ariaLabel="Add Deliverable"
+                      tooltip="Add Deliverable"
+                      onClick={() => showAddDeliverableDialog()}
+                    >
+                      <ImportIcon />
+                    </CircleButton>
 
-                <CircleButton
-                  name="edit-deliverable"
-                  ariaLabel="Edit Deliverable"
-                  tooltip={editTooltip}
-                  disabled={!editEnabled}
-                  onClick={() => showEditDeliverableDialog()}
-                >
-                  <EditIcon />
-                </CircleButton>
+                    <CircleButton
+                      name="edit-deliverable"
+                      ariaLabel="Edit Deliverable"
+                      tooltip={editTooltip}
+                      disabled={!editEnabled}
+                      onClick={() => showEditDeliverableDialog()}
+                    >
+                      <EditIcon />
+                    </CircleButton>
 
-                <CircleButton
-                  name="remove-deliverable"
-                  ariaLabel="Remove Deliverable"
-                  tooltip={deleteTooltip}
-                  disabled={!deleteEnabled}
-                  onClick={() => showRemoveDeliverableDialog()}
-                >
-                  <DeleteIcon />
-                </CircleButton>
-              </div>
-            );
-          }}
+                    <CircleButton
+                      name="remove-deliverable"
+                      ariaLabel="Remove Deliverable"
+                      tooltip={deleteTooltip}
+                      disabled={!deleteEnabled}
+                      onClick={() => showRemoveDeliverableDialog()}
+                    >
+                      <DeleteIcon />
+                    </CircleButton>
+                  </div>
+                );
+              }
+          }
         />
       )}
     </div>

@@ -1,4 +1,5 @@
 import { DeliverableTable } from "components/table/tables/DeliverableTable";
+import { getCurrentUser } from "components/user/UserContext";
 import { HorizontalSectionTabs, Tab } from "layout/Tabs";
 import React from "react";
 
@@ -31,6 +32,9 @@ type DeliverablesPageQueryResult = {
 };
 
 export const DeliverablesPage: React.FC = () => {
+  const { currentUser } = getCurrentUser();
+  const isStateUser = currentUser?.person.personType === "demos-state-user";
+
   // Placeholder query-state shape until this page is wired to real API data.
   const [loading] = React.useState(false);
   const [error] = React.useState<Error | undefined>(undefined);
@@ -73,10 +77,14 @@ export const DeliverablesPage: React.FC = () => {
             <DeliverableTable
               deliverables={myDeliverables}
               emptyRowsMessage={"You have no assigned Deliverables at this time"}
+              viewMode={isStateUser ? "stateUser" : "default"}
             />
           </Tab>
           <Tab label={`All Deliverables (${deliverables.length})`} value="deliverables">
-            <DeliverableTable deliverables={deliverables} />
+            <DeliverableTable
+              deliverables={deliverables}
+              viewMode={isStateUser ? "stateUser" : "default"}
+            />
           </Tab>
         </HorizontalSectionTabs>
       )}
