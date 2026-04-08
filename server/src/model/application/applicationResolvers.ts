@@ -1,5 +1,5 @@
 import { prisma } from "../../prismaClient.js";
-import { ClearanceLevel, TagStatus } from "../../types.js";
+import { ClearanceLevel, TagStatus, UiPathResultStatus } from "../../types.js";
 import {
   Document as PrismaDocument,
   ApplicationPhase as PrismaApplicationPhase,
@@ -72,7 +72,7 @@ export async function resolveSuggestedApplicationTags(
     where: {
       applicationId: parent.id,
       statusId: {
-        in: ["Pending"],
+        in: ["Pending" satisfies UiPathResultStatus],
       },
     },
     select: {

@@ -196,14 +196,15 @@ export async function resolveHasPendingUIPathResult(
   parent: PrismaDocument
 ): Promise<boolean> {
   try {
-    return await prisma().uiPathResult.findFirst({
+    const pendingUiPathResults = await prisma().uiPathResult.findFirst({
       where: {
         documentId: parent.id,
         applicationId: parent.applicationId,
         statusId: "Pending",
       },
       select: { id: true },
-    }) !== null;
+    })
+    return pendingUiPathResults !== null;
   } catch (error) {
     handlePrismaError(error);
   }

@@ -17,6 +17,7 @@ import {
   SignatureLevel,
   State,
   Tag,
+  TagName,
 } from "../../types.js";
 
 export const demonstrationSchema = gql`
@@ -40,7 +41,7 @@ export const demonstrationSchema = gql`
     clearanceLevel: ClearanceLevel!
     tags: [Tag!]!
     demonstrationTypes: [DemonstrationTypeAssignment!]!
-    suggestedApplicationTags: [String!]!
+    suggestedApplicationTags: [TagName!]!
     deliverables: [Deliverable!]!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -99,7 +100,7 @@ export interface Demonstration {
   clearanceLevel: ClearanceLevel;
   tags: Tag[];
   demonstrationTypes: DemonstrationTypeAssignment[];
-  suggestedApplicationTags: string[];
+  suggestedApplicationTags: TagName[];
   deliverables: Deliverable[];
   createdAt: Date;
   updatedAt: Date;

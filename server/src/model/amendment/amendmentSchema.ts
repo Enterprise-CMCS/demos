@@ -10,6 +10,7 @@ import {
   DateTimeOrLocalDate,
   ClearanceLevel,
   Tag,
+  TagName,
   SignatureLevel,
 } from "../../types.js";
 
@@ -27,7 +28,7 @@ export const amendmentSchema = gql`
     clearanceLevel: ClearanceLevel!
     tags: [Tag!]!
     signatureLevel: SignatureLevel
-    suggestedApplicationTags: [String!]!
+    suggestedApplicationTags: [TagName!]!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -73,7 +74,7 @@ export interface Amendment {
   clearanceLevel: ClearanceLevel;
   tags: Tag[];
   signatureLevel?: SignatureLevel;
-  suggestedApplicationTags: string[];
+  suggestedApplicationTags: TagName[];
   updatedAt: Date;
   createdAt: Date;
 }
