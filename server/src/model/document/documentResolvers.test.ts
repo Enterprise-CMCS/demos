@@ -488,6 +488,12 @@ describe("documentResolvers", () => {
       expect(mockPrismaClient.uiPathResult.findFirst).toHaveBeenCalledOnce();
       expect(result).toBe(true);
     });
+
+    it("should throw when an error is occurred during DB processing", async () => {
+      vi.mocked(mockPrismaClient.uiPathResult.findFirst).mockRejectedValue(new Error("DB error"));
+
+      await expect(resolveHasPendingUIPathResult(mockDocument)).rejects.toThrow("DB error");
+    })
   });
 
   describe("resolver exports", () => {
