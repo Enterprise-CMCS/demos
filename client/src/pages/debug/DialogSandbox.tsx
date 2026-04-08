@@ -202,10 +202,12 @@ export const DialogSandbox: React.FC = () => {
           <Button
             name="add-deliverable-slot"
             onClick={() =>
-              showAddDeliverableSlotDialog(["Demo Type 1", "Demo Type 2", "Demo Type 3"])
+              showAddDeliverableSlotDialog({
+                demonstrationTypes: ["Demo Type 1", "Demo Type 2", "Demo Type 3"],
+              })
             }
           >
-            Add Deliverable Slot
+            Add Deliverable Slot(s)
           </Button>
         </div>
       </div>

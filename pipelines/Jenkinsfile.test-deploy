@@ -50,6 +50,7 @@ pipeline {
           assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
           dirCon('deployment', 'node') {
             sh """
+            mkdir ../shared_library/dist
             mkdir ../client/dist
             mkdir ../server/build
 
@@ -57,6 +58,12 @@ pipeline {
             apk add bash
             npm i -g esbuild
             npm i -g tsx
+
+            # Ensure shared_library is installed and built before building client and server
+            cd ../shared_library
+            npm ci
+            npm run build
+            cd ../deployment
 
             npm ci
             npx tsx demosctl/index deploy:core ${env.STAGE}
