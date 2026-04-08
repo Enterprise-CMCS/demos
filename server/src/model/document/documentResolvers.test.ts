@@ -12,9 +12,9 @@ import { getApplication } from "../application";
 import { validateAndUpdateDates } from "../applicationDate";
 import { startPhaseByDocument } from "../applicationPhase";
 import { enqueueUiPath } from "../../services/uipathQueue";
-import { getDocumentById, checkDocumentExists, updateDocument, handleDeleteDocument } from ".";
+import { getDocument, checkDocumentExists, updateDocument, handleDeleteDocument } from ".";
 import {
-  getDocument,
+  queryDocument,
   documentExists,
   uploadDocument,
   triggerUiPath,
@@ -72,7 +72,7 @@ vi.mock("../user", () => ({
 }));
 
 vi.mock(".", () => ({
-  getDocumentById: vi.fn(),
+  getDocument: vi.fn(),
   checkDocumentExists: vi.fn(),
   updateDocument: vi.fn(),
   handleDeleteDocument: vi.fn(),
@@ -136,14 +136,14 @@ describe("documentResolvers", () => {
     vi.mocked(getS3Adapter).mockReturnValue(mockS3Adapter as any);
   });
 
-  describe("getDocument", () => {
-    it("should get document by id", async () => {
-      vi.mocked(getDocumentById).mockResolvedValue(mockDocument);
+  describe("queryDocument", () => {
+    it("should query document by id", async () => {
+      vi.mocked(getDocument).mockResolvedValue(mockDocument);
 
-      const result = await getDocument(undefined, { id: testDocumentId });
+      const result = await queryDocument(undefined, { id: testDocumentId });
 
       expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
-      expect(getDocumentById).toHaveBeenCalledExactlyOnceWith(mockTransaction, testDocumentId);
+      expect(getDocument).toHaveBeenCalledExactlyOnceWith({ id: testDocumentId }, mockTransaction);
       expect(result).toEqual(mockDocument);
     });
   });
@@ -288,7 +288,7 @@ describe("documentResolvers", () => {
     const mockPresignedUrl = "https://s3.amazonaws.com/download-url";
 
     it("should generate presigned download URL", async () => {
-      vi.mocked(getDocumentById).mockResolvedValue(mockDocument);
+      vi.mocked(getDocument).mockResolvedValue(mockDocument);
       vi.mocked(mockS3Adapter.getPresignedDownloadUrl).mockResolvedValue(mockPresignedUrl);
 
       const result = await resolvePresignedDownloadUrl({ s3Path: testDocumentS3Path });

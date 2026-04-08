@@ -1,6 +1,11 @@
+// Functions
+export { handleDeleteDocument } from "./handleDeleteDocument";
+
+// Queries
 export { deleteDocumentById } from "./queries/deleteDocumentById";
-export { getDocumentById } from "./queries/getDocumentById";
+export { getDocument } from "./queries/getDocument";
+export { getManyDocuments } from "./queries/getManyDocuments";
 export { checkDocumentExists } from "./queries/checkDocumentExists";
 export { updateDocument } from "./queries/updateDocument";
 
-export { handleDeleteDocument } from "./handleDeleteDocument";
+// Types & Constants

@@ -14,15 +14,18 @@ import {
   resolveDeliverableDueDateType,
   resolveDemonstration,
   resolveDeliverableCmsOwner,
+  resolveDeliverableCmsDocuments,
+  resolveDeliverableStateDocuments,
 } from "./deliverableResolvers";
+import { GraphQLContext } from "../../auth/auth.util.js";
+import { GraphQLResolveInfo } from "graphql";
+import { DeliverableDueDateType, DeliverableStatus, DeliverableType } from "../../types.js";
 
 // Mock imports
 import { getDeliverable, getManyDeliverables } from ".";
 import { getApplication } from "../application";
 import { getUser } from "../user";
-import { GraphQLContext } from "../../auth/auth.util.js";
-import { GraphQLArgs, GraphQLResolveInfo } from "graphql";
-import { DeliverableDueDateType, DeliverableStatus, DeliverableType } from "../../types.js";
+import { getManyDocuments } from "../document";
 
 vi.mock(".", () => ({
   getDeliverable: vi.fn(),
@@ -35,6 +38,10 @@ vi.mock("../application", () => ({
 
 vi.mock("../user", () => ({
   getUser: vi.fn(),
+}));
+
+vi.mock("../document", () => ({
+  getManyDocuments: vi.fn(),
 }));
 
 describe("deliverableResolvers", () => {
@@ -91,7 +98,7 @@ describe("deliverableResolvers", () => {
       await expect(() =>
         resolveDeliverable(
           testDocumentWithDeliverableParent as PrismaDocument,
-          {} as GraphQLArgs,
+          {} as unknown,
           {} as GraphQLContext,
           testDemonstrationInfo as GraphQLResolveInfo
         )
@@ -103,7 +110,7 @@ describe("deliverableResolvers", () => {
       it("should not query and return null if there is no deliverable ID", async () => {
         const result = await resolveDeliverable(
           testDocumentWithoutDeliverableParent as PrismaDocument,
-          {} as GraphQLArgs,
+          {} as unknown,
           {} as GraphQLContext,
           testDocumentInfo as GraphQLResolveInfo
         );
@@ -114,7 +121,7 @@ describe("deliverableResolvers", () => {
       it("should query if there is a deliverable ID", async () => {
         await resolveDeliverable(
           testDocumentWithDeliverableParent as PrismaDocument,
-          {} as GraphQLArgs,
+          {} as unknown,
           {} as GraphQLContext,
           testDocumentInfo as GraphQLResolveInfo
         );
@@ -128,7 +135,7 @@ describe("deliverableResolvers", () => {
       await expect(() =>
         resolveManyDeliverables(
           testDemonstrationParent as PrismaDemonstration,
-          {} as GraphQLArgs,
+          {} as unknown,
           {} as GraphQLContext,
           testDocumentInfo as GraphQLResolveInfo
         )
@@ -140,7 +147,7 @@ describe("deliverableResolvers", () => {
       it("should query for a demonstration ID", async () => {
         await resolveManyDeliverables(
           testDemonstrationParent as PrismaDemonstration,
-          {} as GraphQLArgs,
+          {} as unknown,
           {} as GraphQLContext,
           testDemonstrationInfo as GraphQLResolveInfo
         );
@@ -154,7 +161,7 @@ describe("deliverableResolvers", () => {
       it("should query for a owner user ID", async () => {
         await resolveManyDeliverables(
           testUserParent as PrismaUser,
-          {} as GraphQLArgs,
+          {} as unknown,
           {} as GraphQLContext,
           testUserInfo as GraphQLResolveInfo
         );
@@ -207,6 +214,24 @@ describe("deliverableResolvers", () => {
       await resolveDeliverableCmsOwner(testDeliverable as PrismaDeliverable);
       expect(getUser).toHaveBeenCalledExactlyOnceWith({
         id: testUserId,
+      });
+    });
+  });
+
+  describe("resolveDeliverableCmsDocuments", () => {
+    it("should query the CMS documents belonging to this deliverable", async () => {
+      await resolveDeliverableCmsDocuments(testDeliverable as PrismaDeliverable);
+      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith({
+        AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: true }],
+      });
+    });
+  });
+
+  describe("resolveDeliverableStateDocuments", () => {
+    it("should query the state documents belonging to this deliverable", async () => {
+      await resolveDeliverableStateDocuments(testDeliverable as PrismaDeliverable);
+      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith({
+        AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: false }],
       });
     });
   });
