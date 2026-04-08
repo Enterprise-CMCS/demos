@@ -21,6 +21,7 @@ export const documentSchema = gql`
     phaseName: PhaseName
     presignedDownloadUrl: String!
     deliverable: Deliverable
+    hasPendingUIPathResult: Boolean!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -75,6 +76,7 @@ export interface Document {
   createdAt: Date;
   updatedAt: Date;
   presignedDownloadUrl: string;
+  hasPendingUIPathResult: boolean;
 }
 
 export interface UploadDocumentInput {

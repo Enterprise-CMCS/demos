@@ -1,5 +1,5 @@
 import { prisma } from "../../prismaClient.js";
-import { ClearanceLevel, TagStatus } from "../../types.js";
+import { ClearanceLevel, TagStatus, UiPathResultStatus } from "../../types.js";
 import {
   Document as PrismaDocument,
   ApplicationPhase as PrismaApplicationPhase,
@@ -63,6 +63,24 @@ export async function resolveApplicationTags(parent: PrismaApplication): Promise
     tagName: tagAssignment.tagNameId,
     approvalStatus: tagAssignment.tag.statusId as TagStatus,
   }));
+}
+
+export async function resolveSuggestedApplicationTags(
+  parent: PrismaApplication
+): Promise<string[]> {
+  const suggestions = await prisma().applicationTagSuggestion.findMany({
+    where: {
+      applicationId: parent.id,
+      statusId: {
+        in: ["Pending" satisfies UiPathResultStatus],
+      },
+    },
+    select: {
+      value: true,
+    },
+  });
+
+  return suggestions.map((s) => s.value);
 }
 
 export const applicationResolvers = {

@@ -192,6 +192,24 @@ export function resolvePhaseName(parent: PrismaDocument): PhaseName {
   return parent.phaseId as PhaseName;
 }
 
+export async function resolveHasPendingUIPathResult(
+  parent: PrismaDocument
+): Promise<boolean> {
+  try {
+    const pendingUiPathResults = await prisma().uiPathResult.findFirst({
+      where: {
+        documentId: parent.id,
+        applicationId: parent.applicationId,
+        statusId: "Pending",
+      },
+      select: { id: true },
+    })
+    return pendingUiPathResults !== null;
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
+
 export const documentResolvers = {
   Query: {
     document: getDocument,
@@ -213,5 +231,6 @@ export const documentResolvers = {
     application: resolveApplication,
     deliverable: resolveDeliverable,
     phaseName: resolvePhaseName,
+    hasPendingUIPathResult: resolveHasPendingUIPathResult,
   },
 };

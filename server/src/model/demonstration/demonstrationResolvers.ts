@@ -32,6 +32,7 @@ import {
   resolveApplicationStatus,
   resolveApplicationTags,
   resolveApplicationSignatureLevel,
+  resolveSuggestedApplicationTags,
 } from "../application";
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
 import { resolveManyDeliverables } from "../deliverable";
@@ -313,6 +314,7 @@ export const demonstrationResolvers = {
     primaryProjectOfficer: __resolveDemonstrationPrimaryProjectOfficer,
     clearanceLevel: resolveApplicationClearanceLevel,
     tags: resolveApplicationTags,
+    suggestedApplicationTags: resolveSuggestedApplicationTags,
     demonstrationTypes: resolveDemonstrationTypes,
     deliverables: resolveManyDeliverables,
   },
