@@ -1,8 +1,39 @@
-import { describe, it, expect } from "vitest";
-import { verifyRole, extractExternalUserIdFromIdentities, createHeaderGetter } from "./auth.util";
+import { beforeEach, describe, it, expect, vi } from "vitest";
+import { prisma } from "../prismaClient.js";
+import {
+  verifyRole,
+  extractExternalUserIdFromIdentities,
+  createHeaderGetter,
+  buildContextFromClaims,
+} from "./auth.util";
 import { GraphQLError } from "graphql";
 
+vi.mock("../prismaClient.js", () => ({
+  prisma: vi.fn(),
+}));
+
 describe("auth.util", () => {
+  const mockPrismaClient = {
+    user: {
+      findUnique: vi.fn(),
+      create: vi.fn(),
+    },
+    person: {
+      create: vi.fn(),
+    },
+    systemRoleAssignment: {
+      findMany: vi.fn(),
+    },
+    rolePermission: {
+      findMany: vi.fn(),
+    },
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(prisma).mockReturnValue(mockPrismaClient as never);
+  });
+
   describe("verifyRole", () => {
     it("should accept valid person types", () => {
       expect(() => verifyRole("demos-admin")).not.toThrow();
@@ -10,6 +41,46 @@ describe("auth.util", () => {
 
     it("should throw for invalid person types", () => {
       expect(() => verifyRole("not a real thing")).toThrow("Invalid user role: 'not a real thing'");
+    });
+  });
+
+  describe("buildContextFromClaims", () => {
+    it("includes the user's permissions in the returned context", async () => {
+      mockPrismaClient.user.findUnique.mockResolvedValueOnce({
+        id: "user-123",
+        personTypeId: "demos-admin",
+      });
+      mockPrismaClient.systemRoleAssignment.findMany.mockResolvedValueOnce([
+        { roleId: "system-role-1" },
+        { roleId: "system-role-2" },
+      ]);
+      mockPrismaClient.rolePermission.findMany.mockResolvedValueOnce([
+        { permissionId: "View All Demonstrations" },
+        { permissionId: "View All Amendments" },
+      ]);
+
+      const context = await buildContextFromClaims({
+        sub: "cognito-sub-123",
+        role: "demos-admin",
+        email: "user@example.com",
+        givenName: "Test",
+        familyName: "User",
+      });
+
+      expect(context).toEqual({
+        user: {
+          id: "user-123",
+          sub: "cognito-sub-123",
+          role: "demos-admin",
+          permissions: ["View All Demonstrations", "View All Amendments"],
+        },
+      });
+      expect(mockPrismaClient.systemRoleAssignment.findMany).toHaveBeenCalledExactlyOnceWith({
+        where: { personId: "user-123" },
+      });
+      expect(mockPrismaClient.rolePermission.findMany).toHaveBeenCalledExactlyOnceWith({
+        where: { roleId: { in: ["system-role-1", "system-role-2"] } },
+      });
     });
   });
 
