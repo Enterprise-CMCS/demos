@@ -87,9 +87,9 @@ export async function deleteExtension(
 export const extensionResolvers = {
   Query: {
     extension: (parent: unknown, args: { id: string }, context: GraphQLContext) =>
-      getExtension({ id: args.id }, context.user!),
+      getExtension({ id: args.id }, context.user),
     extensions: (parent: unknown, args: unknown, context: GraphQLContext) =>
-      getManyExtensions({}, context.user!),
+      getManyExtensions({}, context.user),
   },
 
   Mutation: {
@@ -100,7 +100,7 @@ export const extensionResolvers = {
 
   Extension: {
     demonstration: (parent: { demonstrationId: string }, args: unknown, context: GraphQLContext) =>
-      getDemonstration({ id: parent.demonstrationId }, context.user!),
+      getDemonstration({ id: parent.demonstrationId }, context.user),
     documents: resolveApplicationDocuments,
     currentPhaseName: (parent: PrismaExtension) => parent.currentPhaseId,
     status: (parent: PrismaExtension) => parent.statusId,

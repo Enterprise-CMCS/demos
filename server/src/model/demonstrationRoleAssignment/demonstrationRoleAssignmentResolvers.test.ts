@@ -1,28 +1,25 @@
 import { describe, expect, it, vi } from "vitest";
-import { GraphQLContext } from "../../auth/auth.util";
+import { ContextUser } from "../../auth/auth.util";
 import { demonstrationRoleAssigmentResolvers } from "./demonstrationRoleAssignmentResolvers";
+import { DemonstrationRoleAssignment as PrismaDemonstrationRoleAssignment } from "@prisma/client";
+import { getDemonstration } from "../demonstration/Demonstration";
+
+const mockUser = {} as unknown as ContextUser;
+const mockContext = {
+  user: mockUser,
+};
+
+vi.mock("../demonstration/Demonstration.js", () => ({
+  getDemonstration: vi.fn(),
+}));
 
 describe("demonstrationRoleAssignmentResolvers", () => {
-  it("delegates `DemonstrationRoleAssignment.demonstration` to `context.services.demonstration.get`", async () => {
-    const get = vi.fn();
-
-    const context = {
-      services: {
-        demonstration: {
-          get,
-          getMany: vi.fn(),
-        },
-      },
-    } as unknown as GraphQLContext;
-
+  it("delegates `DemonstrationRoleAssignment.demonstration` to `Demonstration.getDemonstration`", async () => {
     await demonstrationRoleAssigmentResolvers.DemonstrationRoleAssignment.demonstration(
-      { demonstrationId: "parent-demo" },
-      undefined as never,
-      context
+      { demonstrationId: "abc123" } as PrismaDemonstrationRoleAssignment,
+      {},
+      mockContext
     );
-
-    expect(get).toHaveBeenCalledExactlyOnceWith({
-      id: "parent-demo",
-    });
+    expect(getDemonstration).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
   });
 });

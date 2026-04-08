@@ -1,24 +1,21 @@
 import { describe, expect, it, vi } from "vitest";
-import { GraphQLContext } from "../../auth/auth.util";
 import { stateResolvers } from "./stateResolvers";
+import { ContextUser } from "../../auth/auth.util";
+import { State as PrismaState } from "@prisma/client";
+import { getManyDemonstrations } from "../demonstration/Demonstration";
+
+const mockUser = {} as unknown as ContextUser;
+const mockContext = {
+  user: mockUser,
+};
+
+vi.mock("../demonstration/Demonstration.js", () => ({
+  getManyDemonstrations: vi.fn(),
+}));
 
 describe("stateResolvers", () => {
-  it("delegates `State.demonstrations` to `context.services.demonstration.getMany`", async () => {
-    const getMany = vi.fn();
-
-    const context = {
-      services: {
-        demonstration: {
-          get: vi.fn(),
-          getMany,
-        },
-      },
-    } as unknown as GraphQLContext;
-
-    await stateResolvers.State.demonstrations({ id: "AL" }, undefined as never, context);
-
-    expect(getMany).toHaveBeenCalledExactlyOnceWith({
-      stateId: "AL",
-    });
+  it("delegates `State.demonstrations` to `Demonstration.getManyDemonstrations`", async () => {
+    await stateResolvers.State.demonstrations({ id: "NC" } as PrismaState, {}, mockContext);
+    expect(getManyDemonstrations).toHaveBeenCalledExactlyOnceWith({ stateId: "NC" }, mockUser);
   });
 });

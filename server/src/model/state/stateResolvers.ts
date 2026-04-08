@@ -1,5 +1,7 @@
 import { prisma } from "../../prismaClient.js";
 import { GraphQLContext } from "../../auth/auth.util.js";
+import { State as PrismaState } from "@prisma/client";
+import { getManyDemonstrations } from "../demonstration/Demonstration.js";
 
 export const stateResolvers = {
   Query: {
@@ -14,7 +16,7 @@ export const stateResolvers = {
   },
 
   State: {
-    demonstrations: (parent: { id: string }, args: never, context: GraphQLContext) =>
-      context.services.demonstration.getMany({ stateId: parent.id }),
+    demonstrations: (parent: PrismaState, args: unknown, context: GraphQLContext) =>
+      getManyDemonstrations({ stateId: parent.id }, context.user),
   },
 };

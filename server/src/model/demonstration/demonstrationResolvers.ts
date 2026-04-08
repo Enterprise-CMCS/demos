@@ -251,9 +251,9 @@ export async function resolveDemonstrationTypes(
 export const demonstrationResolvers = {
   Query: {
     demonstration: (parent: unknown, args: { id: string }, context: GraphQLContext) =>
-      getDemonstration({ id: args.id }, context.user!),
+      getDemonstration({ id: args.id }, context.user),
     demonstrations: (parent: unknown, args: unknown, context: GraphQLContext) =>
-      getManyDemonstrations({}, context.user!),
+      getManyDemonstrations({}, context.user),
   },
 
   Mutation: {
@@ -266,9 +266,9 @@ export const demonstrationResolvers = {
     state: __resolveDemonstrationState,
     documents: resolveApplicationDocuments,
     amendments: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
-      getManyAmendments({ demonstrationId: parent.id }, context.user!),
+      getManyAmendments({ demonstrationId: parent.id }, context.user),
     extensions: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
-      getManyExtensions({ demonstrationId: parent.id }, context.user!),
+      getManyExtensions({ demonstrationId: parent.id }, context.user),
     sdgDivision: (parent: PrismaDemonstration) => parent.sdgDivisionId,
     signatureLevel: (parent: PrismaDemonstration) => parent.signatureLevelId,
     currentPhaseName: (parent: PrismaDemonstration) => parent.currentPhaseId,

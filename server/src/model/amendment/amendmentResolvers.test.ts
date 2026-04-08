@@ -20,8 +20,6 @@ import { TZDate } from "@date-fns/tz";
 // Mock imports
 import { prisma } from "../../prismaClient.js";
 import {
-  getApplication,
-  getManyApplications,
   deleteApplication,
   // None of these are tested but need to be exported to avoid mocking issues
   resolveApplicationDocuments,
@@ -57,12 +55,8 @@ vi.mock("../application", () => ({
   getManyApplications: vi.fn(),
   deleteApplication: vi.fn(),
   resolveApplicationDocuments: vi.fn(),
-  resolveApplicationCurrentPhaseName: vi.fn(),
-  resolveApplicationStatus: vi.fn(),
   resolveApplicationPhases: vi.fn(),
-  resolveApplicationClearanceLevel: vi.fn(),
   resolveApplicationTags: vi.fn(),
-  resolveApplicationSignatureLevel: vi.fn(),
 }));
 
 vi.mock("../../errors/checkOptionalNotNullFields.js", () => ({
@@ -90,9 +84,6 @@ describe("amendmentResolvers", () => {
     amendment: {
       update: vi.fn(),
     },
-    demonstration: {
-      findUnique: vi.fn(),
-    },
   };
   const transactionMocks = {
     application: {
@@ -114,9 +105,6 @@ describe("amendmentResolvers", () => {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
     amendment: {
       update: regularMocks.amendment.update,
-    },
-    demonstration: {
-      findUnique: regularMocks.demonstration.findUnique,
     },
   };
   const testAmendmentId = "8167c039-9c08-4203-b7d2-9e35ec156993";

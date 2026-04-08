@@ -87,9 +87,9 @@ export async function deleteAmendment(
 export const amendmentResolvers = {
   Query: {
     amendment: (parent: unknown, args: { id: string }, context: GraphQLContext) =>
-      getAmendment({ id: args.id }, context.user!),
+      getAmendment({ id: args.id }, context.user),
     amendments: (parent: unknown, args: unknown, context: GraphQLContext) =>
-      getManyAmendments({}, context.user!),
+      getManyAmendments({}, context.user),
   },
 
   Mutation: {
@@ -100,7 +100,7 @@ export const amendmentResolvers = {
 
   Amendment: {
     demonstration: (parent: PrismaAmendment, args: unknown, context: GraphQLContext) =>
-      getDemonstration({ id: parent.demonstrationId }, context.user!),
+      getDemonstration({ id: parent.demonstrationId }, context.user),
     documents: resolveApplicationDocuments,
     currentPhaseName: (parent: PrismaAmendment) => parent.currentPhaseId,
     status: (parent: PrismaAmendment) => parent.statusId,

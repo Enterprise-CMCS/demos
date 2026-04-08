@@ -41,7 +41,6 @@ import {
 import {
   deleteApplication,
   getApplication,
-  getManyApplications,
   // None of these are tested but need to be exported to avoid mocking issues
   resolveApplicationDocuments,
   resolveApplicationPhases,
@@ -49,7 +48,7 @@ import {
 } from "../application";
 import { parseDateTimeOrLocalDateToEasternTZDate, EasternTZDate } from "../../dateUtilities.js";
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
-import { ContextUser, GraphQLContext } from "../../auth/auth.util.js";
+import { ContextUser } from "../../auth/auth.util.js";
 import { getDemonstration, getManyDemonstrations } from "./Demonstration.js";
 import { getManyExtensions } from "../extension/Extension.js";
 import { getManyAmendments } from "../amendment/Amendment.js";
@@ -73,15 +72,10 @@ vi.mock("./Demonstration.js", () => ({
 
 vi.mock("../application", () => ({
   getApplication: vi.fn(),
-  getManyApplications: vi.fn(),
   deleteApplication: vi.fn(),
   resolveApplicationDocuments: vi.fn(),
-  resolveApplicationCurrentPhaseName: vi.fn(),
-  resolveApplicationStatus: vi.fn(),
   resolveApplicationPhases: vi.fn(),
-  resolveApplicationClearanceLevel: vi.fn(),
   resolveApplicationTags: vi.fn(),
-  resolveApplicationSignatureLevel: vi.fn(),
 }));
 
 vi.mock("../../errors/checkOptionalNotNullFields.js", () => ({
@@ -112,12 +106,6 @@ describe("demonstrationResolvers", () => {
   const regularMocks = {
     state: {
       findUnique: vi.fn(),
-    },
-    amendment: {
-      findMany: vi.fn(),
-    },
-    extension: {
-      findMany: vi.fn(),
     },
     demonstrationRoleAssignment: {
       findMany: vi.fn(),
@@ -173,12 +161,6 @@ describe("demonstrationResolvers", () => {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
     state: {
       findUnique: regularMocks.state.findUnique,
-    },
-    amendment: {
-      findMany: regularMocks.amendment.findMany,
-    },
-    extension: {
-      findMany: regularMocks.extension.findMany,
     },
     demonstrationRoleAssignment: {
       findMany: regularMocks.demonstrationRoleAssignment.findMany,
@@ -266,6 +248,15 @@ describe("demonstrationResolvers", () => {
 
     const result = demonstrationResolvers.Demonstration.signatureLevel(demonstration);
     expect(result).toBe(demonstration.signatureLevelId);
+  });
+
+  it("resolves `Demonstration.sdgDivision`", () => {
+    const demonstration = {
+      sdgDivisionId: "Division of Eligibility and Coverage Demonstrations" satisfies SdgDivision,
+    } as PrismaDemonstration;
+
+    const result = demonstrationResolvers.Demonstration.sdgDivision(demonstration);
+    expect(result).toBe(demonstration.sdgDivisionId);
   });
 
   it("resolves `Demonstration.status`", () => {

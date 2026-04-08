@@ -20,8 +20,6 @@ import { TZDate } from "@date-fns/tz";
 // Mock imports
 import { prisma } from "../../prismaClient.js";
 import {
-  getApplication,
-  getManyApplications,
   deleteApplication,
   // None of these are tested but need to be exported to avoid mocking issues
   resolveApplicationDocuments,
@@ -53,16 +51,10 @@ vi.mock("../demonstration/Demonstration.js", () => ({
 }));
 
 vi.mock("../application", () => ({
-  getApplication: vi.fn(),
-  getManyApplications: vi.fn(),
   deleteApplication: vi.fn(),
   resolveApplicationDocuments: vi.fn(),
-  resolveApplicationCurrentPhaseName: vi.fn(),
-  resolveApplicationStatus: vi.fn(),
   resolveApplicationPhases: vi.fn(),
-  resolveApplicationClearanceLevel: vi.fn(),
   resolveApplicationTags: vi.fn(),
-  resolveApplicationSignatureLevel: vi.fn(),
 }));
 
 vi.mock("../../errors/checkOptionalNotNullFields.js", () => ({
@@ -90,9 +82,6 @@ describe("extensionResolvers", () => {
     extension: {
       update: vi.fn(),
     },
-    demonstration: {
-      findUnique: vi.fn(),
-    },
   };
   const transactionMocks = {
     application: {
@@ -114,9 +103,6 @@ describe("extensionResolvers", () => {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
     extension: {
       update: regularMocks.extension.update,
-    },
-    demonstration: {
-      findUnique: regularMocks.demonstration.findUnique,
     },
   };
   const testExtensionId = "8167c039-9c08-4203-b7d2-9e35ec156993";
@@ -140,6 +126,7 @@ describe("extensionResolvers", () => {
   const mockContext = {
     user: mockUser,
   };
+
   it("delegates `Query.extension` to `Extension.getExtension`", async () => {
     const extension = {
       id: testExtensionId,

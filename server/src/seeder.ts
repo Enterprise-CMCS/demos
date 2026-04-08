@@ -861,20 +861,11 @@ async function seedDatabase() {
     let context: GraphQLContext;
     if (!user) {
       context = {
-        user: null,
-        services: {
-          demonstration: {
-            get: async () => null,
-            getMany: async () => [],
-          },
-          extension: {
-            get: async () => null,
-            getMany: async () => [],
-          },
-          amendment: {
-            get: async () => null,
-            getMany: async () => [],
-          },
+        user: {
+          id: "User1",
+          sub: "User1",
+          role: "demos-cms-user",
+          permissions: [],
         },
       };
     } else {
@@ -884,20 +875,6 @@ async function seedDatabase() {
           sub: user.cognitoSubject,
           role: user.personTypeId,
           permissions: [],
-        },
-        services: {
-          demonstration: {
-            get: async () => null,
-            getMany: async () => [],
-          },
-          amendment: {
-            get: async () => null,
-            getMany: async () => [],
-          },
-          extension: {
-            get: async () => null,
-            getMany: async () => [],
-          },
         },
       };
     }
