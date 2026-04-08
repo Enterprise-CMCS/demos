@@ -39,12 +39,18 @@ export const DeliverablesPage: React.FC = () => {
     currentUserId: "dustyrhodes",
   });
 
+  // For when we get the backend working. Based on demo table
+  // const { data, loading, error } = useQuery<DeliverablesPageQueryResult>(
+  //   DELIVERABLES_PAGE_QUERY
+  // );
+
   const deliverables = data?.deliverables || [];
   const myDeliverables = deliverables.filter((d) => d.primaryContact?.id === data?.currentUserId);
 
   const tabDeliKey = "selectedDeliverableTab";
   let tabValue = "my-deliverables";
 
+  // Go back to the tab you came from.
   if (typeof window !== "undefined") {
     const stored = sessionStorage.getItem(tabDeliKey);
     tabValue = ["my-deliverables", "deliverables"].includes(stored ?? "") ? stored! : tabValue;
@@ -64,7 +70,10 @@ export const DeliverablesPage: React.FC = () => {
           onSelect={(value) => sessionStorage.setItem(tabDeliKey, value)}
         >
           <Tab label={`My Deliverables (${myDeliverables.length})`} value="my-deliverables">
-            <DeliverableTable deliverables={myDeliverables} />
+            <DeliverableTable
+              deliverables={myDeliverables}
+              emptyRowsMessage={"You have no assigned Deliverables at this time"}
+            />
           </Tab>
           <Tab label={`All Deliverables (${deliverables.length})`} value="deliverables">
             <DeliverableTable deliverables={deliverables} />

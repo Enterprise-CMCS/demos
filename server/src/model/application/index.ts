@@ -8,6 +8,7 @@ export {
   resolveApplicationPhases,
   resolveApplicationClearanceLevel,
   resolveApplicationTags,
+  resolveSuggestedApplicationTags,
   resolveApplicationSignatureLevel,
 } from "./applicationResolvers";
 

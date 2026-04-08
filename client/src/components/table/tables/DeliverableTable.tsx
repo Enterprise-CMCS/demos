@@ -51,8 +51,12 @@ export const formatDeliverableStatus = ({
   return combinedStatus;
 };
 
-export const DeliverableTable: React.FC<{ deliverables: Deliverable[] }> = ({
+export const DeliverableTable: React.FC<{
+  deliverables: Deliverable[];
+  emptyRowsMessage?: string;
+}> = ({
   deliverables,
+  emptyRowsMessage = DEFAULT_EMPTY_ROWS_MESSAGE,
 }) => {
   const deliverableColumns = DeliverableColumns();
   const formattedDeliverables = deliverables.map((deliverable) => ({
@@ -74,7 +78,7 @@ export const DeliverableTable: React.FC<{ deliverables: Deliverable[] }> = ({
           keywordSearch={(table) => <KeywordSearch table={table} />}
           columnFilter={(table) => <ColumnFilter table={table} />}
           pagination={(table) => <PaginationControls table={table} />}
-          emptyRowsMessage={DEFAULT_EMPTY_ROWS_MESSAGE}
+          emptyRowsMessage={emptyRowsMessage}
           noResultsFoundMessage={DEFAULT_NO_SEARCH_RESULTS_MESSAGE}
           actionButtons={(table) => {
             const selectedDeliverables = table.getSelectedRowModel().rows.map((row) => row.original);
