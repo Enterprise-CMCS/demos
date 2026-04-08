@@ -110,6 +110,8 @@ export type {
 
 export type { Tag } from "./model/tag/tagSchema.js";
 
+export type { Deliverable } from "./model/deliverable/deliverableSchema";
+
 export type DemonstrationTypeStatus = (typeof DEMONSTRATION_TYPE_STATUSES)[number];
 export type ClearanceLevel = (typeof CLEARANCE_LEVELS)[number];
 export type LocalDate = string & { readonly __brand: "LocalDate" };
