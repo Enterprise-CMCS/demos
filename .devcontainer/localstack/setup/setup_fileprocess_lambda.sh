@@ -26,11 +26,7 @@ npx esbuild build/index.js \
   --sourcemap \
   --outfile=dist/index.cjs
 rm -f lambda.zip
-cp dist/index.cjs index.cjs
-zip -qr lambda.zip index.cjs
-
-# Clean up build artifacts
-rm -f index.cjs
+zip -jqr lambda.zip dist/index.cjs
 
 cd - > /dev/null
 
