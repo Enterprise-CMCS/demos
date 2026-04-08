@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { log } from "./log";
 
@@ -33,12 +33,15 @@ const createExtendedClient = () => {
     // Ignore URL parsing errors and let adapter fallback to driver defaults.
   }
 
-  const adapter = new PrismaPg({
-    connectionString,
-    ssl: { rejectUnauthorized: false },
-  }, {
-    schema,
-  });
+  const adapter = new PrismaPg(
+    {
+      connectionString,
+      ssl: { rejectUnauthorized: false },
+    },
+    {
+      schema,
+    }
+  );
 
   const baseClient = new PrismaClient({
     adapter,
@@ -73,13 +76,39 @@ const createExtendedClient = () => {
     log.error({ message: event.message }, "prisma.error");
   });
 
+  const clientWithFindAtMostOne = baseClient.$extends({
+    model: {
+      $allModels: {
+        async findAtMostOne<T, A extends Prisma.Args<T, "findMany">>(
+          this: T,
+          args: Prisma.Exact<A, Prisma.Args<T, "findMany">>
+        ): Promise<Prisma.Result<T, A, "findMany">[number] | null> {
+          const context = Prisma.getExtensionContext(this);
+
+          if (!("findMany" in context) || typeof context.findMany !== "function") {
+            throw new Error("findAtMostOne can only be used on models that support findMany");
+          }
+
+          const result = await context.findMany(args);
+          if (result.length < 1) {
+            return null;
+          }
+          if (result.length > 1) {
+            throw new Error(`Expected at most one record, but found ${result.length}`);
+          }
+          return result[0];
+        },
+      },
+    },
+  });
+
   // Extension to handle P2025 from redundant update suppression
   // P2025 happens when 0 rows are returned as changed from PostgreSQL
   // We try to run update/upsert statements and catch cases of P2025
   // If P2025 occurs, we try to fetch the record
   // If it exists, we know the P2025 is caused by suppressing redundant updates
   // Otherwise, it is genuine
-  const clientWithRedundantUpdateHandler = baseClient.$extends({
+  const clientWithRedundantUpdateHandler = clientWithFindAtMostOne.$extends({
     query: {
       $allModels: {
         async update({ args, query, model }) {

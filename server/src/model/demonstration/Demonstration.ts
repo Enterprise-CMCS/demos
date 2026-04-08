@@ -1,10 +1,13 @@
 import { Prisma, Demonstration as PrismaDemonstration } from "@prisma/client";
 import { ContextUser } from "../../auth/auth.util.js";
-import { buildAuthorizationFilter, PermissionMap } from "../../auth/buildAuthorizationFilter.js";
+import {
+  buildAuthorizationFilter,
+  PermissionFilters,
+} from "../../auth/buildAuthorizationFilter.js";
 import { queryDemonstration } from "./queries/queryDemonstration.js";
 import { queryManyDemonstrations } from "./queries/queryManyDemonstrations.js";
 
-const permissionMapper = (userId: string) =>
+const getPermissionFilters = (userId: string) =>
   ({
     "View All Demonstrations": {
       NOT: {
@@ -21,7 +24,7 @@ const permissionMapper = (userId: string) =>
         },
       },
     },
-  }) satisfies PermissionMap<Prisma.DemonstrationWhereInput>;
+  }) satisfies PermissionFilters<Prisma.DemonstrationWhereInput>;
 
 export async function getDemonstration(
   where: Prisma.DemonstrationWhereInput,
@@ -29,7 +32,7 @@ export async function getDemonstration(
 ): Promise<PrismaDemonstration | null> {
   const authFilter = buildAuthorizationFilter<Prisma.DemonstrationWhereInput>(
     user,
-    permissionMapper
+    getPermissionFilters
   );
 
   if (authFilter === null) {
@@ -47,7 +50,7 @@ export async function getManyDemonstrations(
 ): Promise<PrismaDemonstration[]> {
   const authFilter = buildAuthorizationFilter<Prisma.DemonstrationWhereInput>(
     user,
-    permissionMapper
+    getPermissionFilters
   );
 
   if (authFilter === null) {

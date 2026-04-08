@@ -1,10 +1,13 @@
 import { Prisma, Extension as PrismaExtension } from "@prisma/client";
 import { ContextUser } from "../../auth/auth.util.js";
-import { buildAuthorizationFilter, PermissionMap } from "../../auth/buildAuthorizationFilter.js";
+import {
+  buildAuthorizationFilter,
+  PermissionFilters,
+} from "../../auth/buildAuthorizationFilter.js";
 import { queryExtension } from "./queries/queryExtension.js";
 import { queryManyExtensions } from "./queries/queryManyExtensions.js";
 
-const permissionMapper = (userId: string) =>
+const getPermissionFilters = (userId: string) =>
   ({
     "View All Extensions": {
       NOT: {
@@ -23,13 +26,16 @@ const permissionMapper = (userId: string) =>
         },
       },
     },
-  }) satisfies PermissionMap<Prisma.ExtensionWhereInput>;
+  }) satisfies PermissionFilters<Prisma.ExtensionWhereInput>;
 
 export async function getExtension(
   where: Prisma.ExtensionWhereInput,
   user: ContextUser
 ): Promise<PrismaExtension | null> {
-  const authFilter = buildAuthorizationFilter<Prisma.ExtensionWhereInput>(user, permissionMapper);
+  const authFilter = buildAuthorizationFilter<Prisma.ExtensionWhereInput>(
+    user,
+    getPermissionFilters
+  );
 
   if (authFilter === null) {
     return null;
@@ -43,7 +49,10 @@ export async function getManyExtensions(
   where: Prisma.ExtensionWhereInput,
   user: ContextUser
 ): Promise<PrismaExtension[]> {
-  const authFilter = buildAuthorizationFilter<Prisma.ExtensionWhereInput>(user, permissionMapper);
+  const authFilter = buildAuthorizationFilter<Prisma.ExtensionWhereInput>(
+    user,
+    getPermissionFilters
+  );
 
   if (authFilter === null) {
     return [];

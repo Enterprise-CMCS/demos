@@ -3,22 +3,30 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const {
   prismaPgCtorMock,
   prismaClientCtorMock,
+  prismaNamespaceMock,
   baseClientMock,
   extendedClientMock,
   logWarnMock,
   logErrorMock,
 } = vi.hoisted(() => {
-  const extendedClient = { __extended: true };
+  const extendedClient = { __extended: true } as {
+    __extended: boolean;
+    $extends?: ReturnType<typeof vi.fn>;
+  };
   const baseClient = {
     $on: vi.fn(),
     $extends: vi.fn(() => extendedClient),
   };
+  extendedClient.$extends = vi.fn(() => extendedClient);
 
   return {
     prismaPgCtorMock: vi.fn(function (this: any) {}),
     prismaClientCtorMock: vi.fn(function (this: any) {
       return baseClient;
     }),
+    prismaNamespaceMock: {
+      getExtensionContext: vi.fn(),
+    },
     baseClientMock: baseClient,
     extendedClientMock: extendedClient,
     logWarnMock: vi.fn(),
@@ -32,6 +40,7 @@ vi.mock("@prisma/adapter-pg", () => ({
 
 vi.mock("@prisma/client", () => ({
   PrismaClient: prismaClientCtorMock,
+  Prisma: prismaNamespaceMock,
 }));
 
 vi.mock("./log", () => ({
@@ -65,11 +74,84 @@ beforeEach(() => {
   baseClientMock.$on.mockClear();
   baseClientMock.$extends.mockClear();
   baseClientMock.$extends.mockImplementation(() => extendedClientMock);
+  extendedClientMock.$extends?.mockClear();
+  extendedClientMock.$extends?.mockImplementation(() => extendedClientMock);
+  prismaNamespaceMock.getExtensionContext.mockReset();
   logWarnMock.mockClear();
   logErrorMock.mockClear();
 });
 
+function getFindAtMostOneExtensionConfig() {
+  const extensionCalls = baseClientMock.$extends.mock.calls as unknown as Array<[any]>;
+  const extensionConfig = extensionCalls[0]?.[0];
+
+  if (!extensionConfig?.model?.$allModels?.findAtMostOne) {
+    throw new Error("Expected findAtMostOne extension to be registered");
+  }
+
+  return extensionConfig;
+}
+
+function getQueryExtensionConfig() {
+  const extensionCalls = (extendedClientMock.$extends?.mock.calls ?? []) as unknown as Array<[any]>;
+  const extensionConfig = extensionCalls[0]?.[0];
+
+  if (!extensionConfig?.query?.$allModels) {
+    throw new Error("Expected query extension to be registered");
+  }
+
+  return extensionConfig;
+}
+
 describe("prismaClient", () => {
+  it("findAtMostOne returns null when findMany returns no rows", async () => {
+    process.env.DATABASE_URL = "postgresql://db:5432/demos?schema=demos_app";
+
+    const mod = await import("./prismaClient.ts");
+    mod.prisma();
+
+    const extensionConfig = getFindAtMostOneExtensionConfig();
+    const findAtMostOne = extensionConfig.model.$allModels.findAtMostOne;
+    const findMany = vi.fn().mockResolvedValue([]);
+    prismaNamespaceMock.getExtensionContext.mockReturnValue({ findMany });
+
+    await expect(findAtMostOne.call({}, { where: { id: "missing" } })).resolves.toBeNull();
+    expect(findMany).toHaveBeenCalledWith({ where: { id: "missing" } });
+  });
+
+  it("findAtMostOne returns the row when findMany returns one row", async () => {
+    process.env.DATABASE_URL = "postgresql://db:5432/demos?schema=demos_app";
+
+    const mod = await import("./prismaClient.ts");
+    mod.prisma();
+
+    const extensionConfig = getFindAtMostOneExtensionConfig();
+    const findAtMostOne = extensionConfig.model.$allModels.findAtMostOne;
+    const row = { id: "row-1" };
+    const findMany = vi.fn().mockResolvedValue([row]);
+    prismaNamespaceMock.getExtensionContext.mockReturnValue({ findMany });
+
+    await expect(findAtMostOne.call({}, { where: { id: "row-1" } })).resolves.toEqual(row);
+    expect(findMany).toHaveBeenCalledWith({ where: { id: "row-1" } });
+  });
+
+  it("findAtMostOne throws when findMany returns multiple rows", async () => {
+    process.env.DATABASE_URL = "postgresql://db:5432/demos?schema=demos_app";
+
+    const mod = await import("./prismaClient.ts");
+    mod.prisma();
+
+    const extensionConfig = getFindAtMostOneExtensionConfig();
+    const findAtMostOne = extensionConfig.model.$allModels.findAtMostOne;
+    const findMany = vi.fn().mockResolvedValue([{ id: "row-1" }, { id: "row-2" }]);
+    prismaNamespaceMock.getExtensionContext.mockReturnValue({ findMany });
+
+    await expect(findAtMostOne.call({}, { where: { id: "duplicate" } })).rejects.toThrow(
+      "Expected at most one record, but found 2"
+    );
+    expect(findMany).toHaveBeenCalledWith({ where: { id: "duplicate" } });
+  });
+
   it("throws when DATABASE_URL is missing", async () => {
     delete process.env.DATABASE_URL;
     process.env.DOTENV_CONFIG_PATH = "/tmp/does-not-exist";
@@ -156,7 +238,7 @@ describe("prismaClient", () => {
     const mod = await import("./prismaClient.ts");
     mod.prisma();
 
-    const extensionConfig = baseClientMock.$extends.mock.calls[0][0];
+    const extensionConfig = getQueryExtensionConfig();
     const update = extensionConfig.query.$allModels.update;
 
     const error = { code: "P2025", message: "missing" };
@@ -181,7 +263,7 @@ describe("prismaClient", () => {
     const mod = await import("./prismaClient.ts");
     mod.prisma();
 
-    const extensionConfig = baseClientMock.$extends.mock.calls[0][0];
+    const extensionConfig = getQueryExtensionConfig();
     const update = extensionConfig.query.$allModels.update;
 
     const error = { code: "P2025", message: "missing" };
@@ -198,12 +280,16 @@ describe("prismaClient", () => {
     const mod = await import("./prismaClient.ts");
     mod.prisma();
 
-    const extensionConfig = baseClientMock.$extends.mock.calls[0][0];
+    const extensionConfig = getQueryExtensionConfig();
     const upsert = extensionConfig.query.$allModels.upsert;
     const args = { where: { id: "abc" } };
     const expected = { id: "abc", status: "ok" };
 
-    const result = await upsert({ args, query: vi.fn().mockResolvedValue(expected), model: "AnyModel" });
+    const result = await upsert({
+      args,
+      query: vi.fn().mockResolvedValue(expected),
+      model: "AnyModel",
+    });
     expect(result).toEqual(expected);
   });
 
@@ -215,7 +301,7 @@ describe("prismaClient", () => {
     const mod = await import("./prismaClient.ts");
     mod.prisma();
 
-    const extensionConfig = baseClientMock.$extends.mock.calls[0][0];
+    const extensionConfig = getQueryExtensionConfig();
     const upsert = extensionConfig.query.$allModels.upsert;
 
     const error = { code: "P2025", message: "upsert-missing" };
@@ -235,7 +321,7 @@ describe("prismaClient", () => {
     const mod = await import("./prismaClient.ts");
     mod.prisma();
 
-    const extensionConfig = baseClientMock.$extends.mock.calls[0][0];
+    const extensionConfig = getQueryExtensionConfig();
     const upsert = extensionConfig.query.$allModels.upsert;
     const args = { where: { id: "999" } };
 
@@ -258,7 +344,7 @@ describe("prismaClient", () => {
     const mod = await import("./prismaClient.ts");
     mod.prisma();
 
-    const extensionConfig = baseClientMock.$extends.mock.calls[0][0];
+    const extensionConfig = getQueryExtensionConfig();
     const update = extensionConfig.query.$allModels.update;
 
     await expect(

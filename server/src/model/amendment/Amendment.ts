@@ -1,10 +1,13 @@
 import { Prisma, Amendment as PrismaAmendment } from "@prisma/client";
 import { ContextUser } from "../../auth/auth.util.js";
-import { buildAuthorizationFilter, PermissionMap } from "../../auth/buildAuthorizationFilter.js";
+import {
+  buildAuthorizationFilter,
+  PermissionFilters,
+} from "../../auth/buildAuthorizationFilter.js";
 import { queryAmendment } from "./queries/queryAmendment.js";
 import { queryManyAmendments } from "./queries/queryManyAmendments.js";
 
-const permissionMapper = (userId: string) =>
+const getPermissionFilters = (userId: string) =>
   ({
     "View All Amendments": {
       NOT: {
@@ -23,13 +26,13 @@ const permissionMapper = (userId: string) =>
         },
       },
     },
-  }) satisfies PermissionMap<Prisma.AmendmentWhereInput>;
+  }) satisfies PermissionFilters<Prisma.AmendmentWhereInput>;
 
 export async function getAmendment(
   where: Prisma.AmendmentWhereInput,
   user: ContextUser
 ): Promise<PrismaAmendment | null> {
-  const authFilter = buildAuthorizationFilter<Prisma.AmendmentWhereInput>(user, permissionMapper);
+  const authFilter = buildAuthorizationFilter<Prisma.AmendmentWhereInput>(user, getPermissionFilters);
 
   if (authFilter === null) {
     return null;
@@ -43,7 +46,7 @@ export async function getManyAmendments(
   where: Prisma.AmendmentWhereInput,
   user: ContextUser
 ): Promise<PrismaAmendment[]> {
-  const authFilter = buildAuthorizationFilter<Prisma.AmendmentWhereInput>(user, permissionMapper);
+  const authFilter = buildAuthorizationFilter<Prisma.AmendmentWhereInput>(user, getPermissionFilters);
 
   if (authFilter === null) {
     return [];
