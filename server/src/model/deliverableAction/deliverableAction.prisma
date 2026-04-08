@@ -1,7 +1,7 @@
 // Flags: NO_CREATED_TS, NO_UPDATED_TS
 // Time is captured by the action timestamp; table is intended to be append-only
 model DeliverableAction {
-  id                   String   @db.Uuid
+  id                   String   @db.Uuid @default(uuid())
   actionTimestamp      DateTime @map("action_timestamp") @db.Timestamptz
   deliverableId        String   @map("deliverable_id") @db.Uuid
   actionTypeId         String   @map("action_type_id")
