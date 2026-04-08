@@ -61,6 +61,7 @@ describe("DeliverablesPage tab persistence", () => {
 
   it("filters My Deliverables correctly", () => {
     render(<DeliverablesPage />);
+    fireEvent.click(screen.getByTestId("button-my-deliverables"));
 
     // Should show only deliverables assigned to CURRENT_USER_ID
     expect(screen.getByText("Quarterly Report For NYC Demonstration")).toBeInTheDocument();

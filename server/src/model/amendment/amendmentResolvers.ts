@@ -15,6 +15,7 @@ import {
   resolveApplicationDocuments,
   resolveApplicationPhases,
   resolveApplicationTags,
+  resolveSuggestedApplicationTags,
 } from "../application";
 import { GraphQLContext } from "../../auth/auth.util.js";
 import { getAmendment, getManyAmendments } from "./Amendment.js";
@@ -108,5 +109,6 @@ export const amendmentResolvers = {
     clearanceLevel: (parent: PrismaAmendment) => parent.clearanceLevelId,
     tags: resolveApplicationTags,
     signatureLevel: (parent: PrismaAmendment) => parent.signatureLevelId,
+    suggestedApplicationTags: resolveSuggestedApplicationTags,
   },
 };

@@ -41,6 +41,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
   query DemonstrationDetailQuery($id: ID!) {
     demonstration(id: $id) {
       id
+      name
       status
       currentPhaseName
       amendments {
@@ -130,7 +131,7 @@ export type DemonstrationDetailModification = Pick<
     owner: { person: Pick<Person, "fullName"> };
   })[];
 };
-export type DemonstrationDetail = Pick<Demonstration, "id" | "status" | "currentPhaseName"> & {
+export type DemonstrationDetail = Pick<Demonstration, "id" | "name" | "status" | "currentPhaseName"> & {
   amendments: DemonstrationDetailModification[];
   extensions: DemonstrationDetailModification[];
   demonstrationTypes: Pick<

@@ -5,6 +5,7 @@ export {
   resolveApplicationType,
   resolveApplicationPhases,
   resolveApplicationTags,
+  resolveSuggestedApplicationTags,
 } from "./applicationResolvers";
 
 // Queries

@@ -14,10 +14,11 @@ import type {
 import { getS3Adapter } from "../../adapters";
 import { getEasternNow } from "../../dateUtilities";
 import { getApplication, PrismaApplication } from "../application";
-import { findUserById } from "../user";
+import { getUser } from "../user";
 import { validateAndUpdateDates } from "../applicationDate";
 import { startPhaseByDocument } from "../applicationPhase";
 import { enqueueUiPath } from "../../services/uipathQueue";
+import { resolveDeliverable } from "../deliverable";
 import {
   checkDocumentExists,
   getDocumentById,
@@ -172,7 +173,7 @@ export async function triggerUiPath(
 export async function resolveOwner(parent: PrismaDocument): Promise<PrismaUser> {
   try {
     return prisma().$transaction(async (tx) => {
-      return findUserById(tx, parent.ownerUserId);
+      return getUser({ id: parent.ownerUserId }, tx);
     });
   } catch (error) {
     handlePrismaError(error);
@@ -191,11 +192,22 @@ export function resolvePhaseName(parent: PrismaDocument): PhaseName {
   return parent.phaseId as PhaseName;
 }
 
-export async function resolveDeliverable(parent: PrismaDocument) {
-  if (!parent.deliverableId) {
-    return null;
+export async function resolveHasPendingUIPathResult(
+  parent: PrismaDocument
+): Promise<boolean> {
+  try {
+    const pendingUiPathResults = await prisma().uiPathResult.findFirst({
+      where: {
+        documentId: parent.id,
+        applicationId: parent.applicationId,
+        statusId: "Pending",
+      },
+      select: { id: true },
+    })
+    return pendingUiPathResults !== null;
+  } catch (error) {
+    handlePrismaError(error);
   }
-  return await prisma().deliverable.findUnique({ where: { id: parent.deliverableId } });
 }
 
 export const documentResolvers = {
@@ -219,5 +231,6 @@ export const documentResolvers = {
     application: resolveApplication,
     deliverable: resolveDeliverable,
     phaseName: resolvePhaseName,
+    hasPendingUIPathResult: resolveHasPendingUIPathResult,
   },
 };

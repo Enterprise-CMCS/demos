@@ -25,6 +25,7 @@ import {
   resolveApplicationDocuments,
   resolveApplicationPhases,
   resolveApplicationTags,
+  resolveSuggestedApplicationTags,
 } from "../application";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
@@ -57,6 +58,7 @@ vi.mock("../application", () => ({
   resolveApplicationDocuments: vi.fn(),
   resolveApplicationPhases: vi.fn(),
   resolveApplicationTags: vi.fn(),
+  resolveSuggestedApplicationTags: vi.fn(),
 }));
 
 vi.mock("../../errors/checkOptionalNotNullFields.js", () => ({

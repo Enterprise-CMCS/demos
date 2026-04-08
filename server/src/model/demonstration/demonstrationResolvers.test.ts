@@ -45,6 +45,7 @@ import {
   resolveApplicationDocuments,
   resolveApplicationPhases,
   resolveApplicationTags,
+  resolveSuggestedApplicationTags,
 } from "../application";
 import { parseDateTimeOrLocalDateToEasternTZDate, EasternTZDate } from "../../dateUtilities.js";
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
@@ -76,6 +77,7 @@ vi.mock("../application", () => ({
   resolveApplicationDocuments: vi.fn(),
   resolveApplicationPhases: vi.fn(),
   resolveApplicationTags: vi.fn(),
+  resolveSuggestedApplicationTags: vi.fn(),
 }));
 
 vi.mock("../../errors/checkOptionalNotNullFields.js", () => ({

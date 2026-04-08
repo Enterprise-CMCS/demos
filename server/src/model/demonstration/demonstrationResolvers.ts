@@ -25,12 +25,14 @@ import {
   resolveApplicationDocuments,
   resolveApplicationPhases,
   resolveApplicationTags,
+  resolveSuggestedApplicationTags,
 } from "../application";
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
 import { GraphQLContext } from "../../auth/auth.util.js";
 import { getDemonstration, getManyDemonstrations } from "./Demonstration.js";
 import { getManyAmendments } from "../amendment/Amendment.js";
 import { getManyExtensions } from "../extension/Extension.js";
+import { resolveManyDeliverables } from "../deliverable";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -278,6 +280,8 @@ export const demonstrationResolvers = {
     primaryProjectOfficer: __resolveDemonstrationPrimaryProjectOfficer,
     clearanceLevel: (parent: PrismaDemonstration) => parent.clearanceLevelId,
     tags: resolveApplicationTags,
+    suggestedApplicationTags: resolveSuggestedApplicationTags,
     demonstrationTypes: resolveDemonstrationTypes,
+    deliverables: resolveManyDeliverables,
   },
 };

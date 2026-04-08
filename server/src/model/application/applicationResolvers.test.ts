@@ -5,6 +5,7 @@ import {
   resolveApplicationPhases,
   resolveApplicationTags,
   PrismaApplication,
+  resolveSuggestedApplicationTags,
 } from ".";
 import { Tag } from "../tag";
 import { ApplicationStatus, ApplicationType, PhaseName } from "../../types";
@@ -42,6 +43,9 @@ describe("applicationResolvers", () => {
     applicationTagAssignment: {
       findMany: vi.fn(),
     },
+    applicationTagSuggestion: {
+      findMany: vi.fn(),
+    },
   };
   const mockPrismaClient = {
     document: {
@@ -52,6 +56,9 @@ describe("applicationResolvers", () => {
     },
     applicationTagAssignment: {
       findMany: regularMocks.applicationTagAssignment.findMany,
+    },
+    applicationTagSuggestion: {
+      findMany: regularMocks.applicationTagSuggestion.findMany,
     },
   };
   const testApplicationId = "8167c039-9c08-4203-b7d2-9e35ec156993";
@@ -151,6 +158,41 @@ describe("applicationResolvers", () => {
 
       const result = await resolveApplicationTags(input as PrismaApplication);
       expect(regularMocks.applicationTagAssignment.findMany).toHaveBeenCalledExactlyOnceWith(
+        expectedCall
+      );
+      expect(result).toStrictEqual(expectedResult);
+    });
+  });
+
+  describe("resolveSuggestedApplicationTags", () => {
+    it("should resolve the suggested tags for an application", async () => {
+      regularMocks.applicationTagSuggestion.findMany.mockResolvedValueOnce([
+        {
+          value: "Suggested Tag Value A",
+        },
+        {
+          value: "Suggested Tag Value B",
+        },
+      ]);
+
+      const expectedCall = {
+        select: {
+          value: true,
+        },
+        where: {
+          applicationId: testApplicationId,
+          statusId: {
+            in: ["Pending"],
+          },
+        },
+      };
+      const expectedResult = ["Suggested Tag Value A", "Suggested Tag Value B"];
+      const input: Partial<PrismaApplication> = {
+        id: testApplicationId,
+      };
+
+      const result = await resolveSuggestedApplicationTags(input as PrismaApplication);
+      expect(regularMocks.applicationTagSuggestion.findMany).toHaveBeenCalledExactlyOnceWith(
         expectedCall
       );
       expect(result).toStrictEqual(expectedResult);

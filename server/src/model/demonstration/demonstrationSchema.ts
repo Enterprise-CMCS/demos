@@ -5,6 +5,7 @@ import {
   ApplicationStatus,
   ClearanceLevel,
   DateTimeOrLocalDate,
+  Deliverable,
   DemonstrationRoleAssignment,
   DemonstrationTypeAssignment,
   Document,
@@ -16,6 +17,7 @@ import {
   SignatureLevel,
   State,
   Tag,
+  TagName,
 } from "../../types.js";
 
 export const demonstrationSchema = gql`
@@ -34,13 +36,15 @@ export const demonstrationSchema = gql`
     documents: [Document!]!
     amendments: [Amendment!]!
     extensions: [Extension!]!
-    createdAt: DateTime!
-    updatedAt: DateTime!
     roles: [DemonstrationRoleAssignment!]!
     primaryProjectOfficer: Person!
     clearanceLevel: ClearanceLevel!
     tags: [Tag!]!
     demonstrationTypes: [DemonstrationTypeAssignment!]!
+    suggestedApplicationTags: [TagName!]!
+    deliverables: [Deliverable!]!
+    createdAt: DateTime!
+    updatedAt: DateTime!
   }
 
   input CreateDemonstrationInput {
@@ -91,13 +95,15 @@ export interface Demonstration {
   documents: Document[];
   amendments: Amendment[];
   extensions: Extension[];
-  createdAt: Date;
-  updatedAt: Date;
   roles: DemonstrationRoleAssignment[];
   primaryProjectOfficer: Person;
   clearanceLevel: ClearanceLevel;
   tags: Tag[];
   demonstrationTypes: DemonstrationTypeAssignment[];
+  suggestedApplicationTags: TagName[];
+  deliverables: Deliverable[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface CreateDemonstrationInput {

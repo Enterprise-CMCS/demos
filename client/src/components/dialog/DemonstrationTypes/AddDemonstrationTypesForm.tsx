@@ -88,9 +88,12 @@ export const AddDemonstrationTypesForm = ({
     });
   };
 
-  const filterDemonstrationTypes = (demonstrationTypeName: string) => {
-    return !demonstrationTypeNames.includes(demonstrationTypeName);
-  };
+  const alreadyAssigned = new Set(
+    data.demonstration.demonstrationTypes.map((dt) => dt.demonstrationTypeName)
+  );
+
+  const isAvailableType = (name: string) =>
+    !alreadyAssigned.has(name) && !demonstrationTypeNames.includes(name);
 
   const validateDatePicker = (effectiveDate: string, expirationDate: string) => {
     if (
@@ -135,7 +138,7 @@ export const AddDemonstrationTypesForm = ({
       <div className="flex gap-2 items-end">
         <div className="flex-1">
           <SelectDemonstrationType
-            filter={filterDemonstrationTypes}
+            filter={isAvailableType}
             isRequired
             allowCreateNew
             createdOptions={createdTypes}

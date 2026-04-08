@@ -15,6 +15,7 @@ import {
   resolveApplicationDocuments,
   resolveApplicationPhases,
   resolveApplicationTags,
+  resolveSuggestedApplicationTags,
 } from "../application";
 import { GraphQLContext } from "../../auth/auth.util.js";
 import { getExtension, getManyExtensions } from "./Extension.js";
@@ -108,5 +109,6 @@ export const extensionResolvers = {
     clearanceLevel: (parent: PrismaExtension) => parent.clearanceLevelId,
     tags: resolveApplicationTags,
     signatureLevel: (parent: PrismaExtension) => parent.signatureLevelId,
+    suggestedApplicationTags: resolveSuggestedApplicationTags,
   },
 };
