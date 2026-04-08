@@ -4,6 +4,7 @@ import {
   DeliverableStatus,
   DeliverableType,
   Demonstration,
+  Document,
   User,
 } from "../../types";
 
@@ -17,6 +18,8 @@ export const deliverableSchema = gql`
     dueDate: DateTime!
     dueDateType: DeliverableDueDateType!
     expectedToBeSubmitted: Boolean!
+    cmsDocuments: [Document!]!
+    stateDocuments: [Document!]!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -35,6 +38,8 @@ export interface Deliverable {
   dueDate: Date;
   dueDateType: DeliverableDueDateType;
   expectedToBeSubmitted: boolean;
+  cmsDocuments: Document[];
+  stateDocuments: Document[];
   createdAt: Date;
   updatedAt: Date;
 }

@@ -1,6 +1,2 @@
-node_modules/
-.env
-.venv/
-uipath.log
 *.pdf
-uipath.zip
+lambda.zip
