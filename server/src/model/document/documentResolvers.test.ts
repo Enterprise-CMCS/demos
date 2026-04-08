@@ -27,6 +27,7 @@ import {
   resolvePhaseName,
   documentResolvers,
   resolvePresignedDownloadUrl,
+  resolveHasPendingUIPathResult,
 } from "./documentResolvers.js";
 
 // Mock dependencies
@@ -81,6 +82,9 @@ describe("documentResolvers", () => {
   const mockTransaction = "mockTransaction" as any;
   const mockPrismaClient = {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
+    uiPathResult: {
+      findFirst: vi.fn(),
+    }
   };
 
   const testDocumentId = "doc-123-456";
@@ -323,6 +327,7 @@ describe("documentResolvers", () => {
       expect(result).toBe("msg-456");
     });
 
+
     it("throws when enqueuing fails", async () => {
       vi.mocked(checkDocumentExists).mockResolvedValue(true);
       vi.mocked(enqueueUiPath).mockRejectedValue(new Error("Queue send failed"));
@@ -462,6 +467,26 @@ describe("documentResolvers", () => {
       const result = resolvePhaseName(mockDocument);
 
       expect(result).toBe("Concept");
+    });
+  });
+
+  describe("resolveHasPendingUIPathResult", () => {
+    it("should return false when pending UiPath result exists", async () => {
+      vi.mocked(mockPrismaClient.uiPathResult.findFirst).mockResolvedValue(null);
+
+      const result = await resolveHasPendingUIPathResult(mockDocument);
+      expect(result).toBe(false);
+    });
+
+    it("should return true when pending UiPath result exists", async () => {
+      vi.mocked(mockPrismaClient.uiPathResult.findFirst).mockResolvedValue({
+        id: "some-id",
+      } as any);
+
+      const result = await resolveHasPendingUIPathResult(mockDocument);
+
+      expect(mockPrismaClient.uiPathResult.findFirst).toHaveBeenCalledOnce();
+      expect(result).toBe(true);
     });
   });
 
