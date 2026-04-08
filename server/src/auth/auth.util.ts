@@ -9,6 +9,7 @@ import { prisma } from "../prismaClient.js";
 import { pickString } from "./claim-utils";
 import { PERSON_TYPES } from "../constants";
 import { log } from "../log.js";
+import { Permission } from "../types.js";
 
 const config = getAuthConfig();
 
@@ -20,11 +21,11 @@ export interface ContextUser {
   id: string;
   sub: string;
   role: string;
-  permissions: string[];
+  permissions: Permission[];
 }
 
 export interface GraphQLContext {
-  user: ContextUser | null;
+  user: ContextUser;
 }
 
 type DecodedJWT = {
@@ -269,35 +270,24 @@ async function ensureUserFromClaims(claims: Claims) {
 }
 
 /** Build GraphQLContext from verified claims, creating user/roles as needed */
-async function buildContextFromClaims(claims: Claims): Promise<GraphQLContext> {
+export async function buildContextFromClaims(claims: Claims): Promise<GraphQLContext> {
   const user = await ensureUserFromClaims(claims);
+
   const systemRoles = (
     await prisma().systemRoleAssignment.findMany({
       where: { personId: user.id },
     })
   ).map((roleAssignment) => roleAssignment.roleId);
 
+  // casting enforeced by database constraints
   const permissions = (
     await prisma().rolePermission.findMany({
       where: { roleId: { in: systemRoles } },
     })
-  ).map((rolePermission) => rolePermission.permissionId);
-
-  const contextUser: ContextUser = {
-    id: user.id,
-    sub: claims.sub,
-    role: user.personTypeId,
-    permissions,
-  };
-
-  if (!contextUser) {
-    throw new GraphQLError("User not authenticated", {
-      extensions: { code: "UNAUTHENTICATED" },
-    });
-  }
+  ).map((rolePermission) => rolePermission.permissionId) as Permission[];
 
   return {
-    user: contextUser,
+    user: { id: user.id, sub: claims.sub, role: user.personTypeId, permissions },
   };
 }
 
@@ -322,7 +312,7 @@ export async function buildLambdaContext(
   // Fallback: verify the Bearer token yourself if no authorizer-claims header
   const token = extractToken(createHeaderGetter(headers as unknown as Record<string, unknown>));
   if (!token) {
-    throw new GraphQLError("User is not authenticated", {
+    throw new GraphQLError("User not authenticated: No token provided", {
       extensions: { code: "UNAUTHENTICATED", http: { status: 401 } },
     });
   }
@@ -345,7 +335,7 @@ export async function buildLambdaContext(
       message: (err as Error).message,
       type: "auth.lambda_context.error",
     });
-    throw new GraphQLError("User is not authenticated", {
+    throw new GraphQLError("User not authenticated: Invalid token", {
       extensions: { code: "UNAUTHENTICATED", http: { status: 401 } },
     });
   }
@@ -356,7 +346,7 @@ export async function buildHttpContext(req: IncomingMessage): Promise<GraphQLCon
   const token = extractToken(createHeaderGetter(req.headers as Record<string, unknown>));
 
   if (!token) {
-    throw new GraphQLError("User is not authenticated", {
+    throw new GraphQLError("User not authenticated: No token provided", {
       extensions: { code: "UNAUTHENTICATED", http: { status: 401 } },
     });
   }
@@ -378,7 +368,7 @@ export async function buildHttpContext(req: IncomingMessage): Promise<GraphQLCon
       message: (err as Error).message,
       type: "auth.http_context.error",
     });
-    throw new GraphQLError("User is not authenticated", {
+    throw new GraphQLError("User not authenticated: Invalid token", {
       extensions: { code: "UNAUTHENTICATED", http: { status: 401 } },
     });
   }

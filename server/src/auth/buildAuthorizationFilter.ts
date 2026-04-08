@@ -1,8 +1,8 @@
 import { Permission } from "../types";
 import { ContextUser } from "./auth.util";
 
-export type PermissionMap<PrismaWhereClause, TPermission extends string = Permission> = Partial<
-  Record<TPermission, PrismaWhereClause>
+export type PermissionMap<PrismaWhereClause extends object> = Partial<
+  Record<Permission, PrismaWhereClause>
 >;
 
 export function buildAuthorizationFilter<PrismaWhereClause extends object>(
@@ -12,9 +12,11 @@ export function buildAuthorizationFilter<PrismaWhereClause extends object>(
   OR: PrismaWhereClause[];
 } | null {
   const authorizationWhereClauses: PrismaWhereClause[] = [];
+  const permissionMap = permissionMapper(user.id);
 
-  for (const [permission, permissionWhere] of Object.entries(permissionMapper(user.id))) {
-    if (user.permissions.includes(permission)) {
+  for (const permission of Object.keys(permissionMap) as Permission[]) {
+    const permissionWhere = permissionMap[permission];
+    if (permissionWhere && user.permissions.includes(permission)) {
       authorizationWhereClauses.push(permissionWhere);
     }
   }
