@@ -25,7 +25,7 @@ describe("buildAuthorizationFilter", () => {
       "View All Amendments": { statusId: "Approved" },
     });
 
-    const result = buildAuthorizationFilter(user, mockGetPermissionFilters);
+    const result = buildAuthorizationFilter<TestWhereClause>(user, mockGetPermissionFilters);
 
     expect(result).toEqual({
       OR: [{ name: "Name" }, { statusId: "Approved" }],
@@ -45,7 +45,7 @@ describe("buildAuthorizationFilter", () => {
       "View All Amendments": { statusId: "Approved" },
     });
 
-    const result = buildAuthorizationFilter(user, mockGetPermissionFilters);
+    const result = buildAuthorizationFilter<TestWhereClause>(user, mockGetPermissionFilters);
 
     expect(result).toBeNull();
   });
@@ -63,7 +63,7 @@ describe("buildAuthorizationFilter", () => {
       "View Assigned Demonstrations": { id: userId },
     });
 
-    const result = buildAuthorizationFilter(user, mockGetPermissionFilters);
+    const result = buildAuthorizationFilter<TestWhereClause>(user, mockGetPermissionFilters);
 
     expect(result).toEqual({
       OR: [{ id: "user-3" }],
