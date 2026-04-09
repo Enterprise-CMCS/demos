@@ -42,7 +42,7 @@ export const MOCK_DELIVERABLES: MockDeliverable[] = [
   {
     id: "8f3a0c8a-2f9f-4bf0-9a3a-6b7eac31f201",
     deliverableName: "Budget Neutrality Report",
-    demonstrationName: "Dusty Demo",
+    demonstrationName: "Demonstration A",
     deliverableType: "Annual Budget Neutrality Report",
     cmsOwner: "Ashoka Tano",
     dueDate: "2024-07-01",
@@ -61,7 +61,7 @@ export const MOCK_DELIVERABLES: MockDeliverable[] = [
   {
     id: "1b6d2e71-4c98-4a26-a8ff-2cbf4af7d2a4",
     deliverableName: "Quarterly Report For NYC Demonstration",
-    demonstrationName: "Dusty Demo",
+    demonstrationName: "NYC Demonstration",
     deliverableType: "Demonstration-Specific Deliverable",
     cmsOwner: "Dusty Rhodes",
     dueDate: "2024-08-15",
@@ -80,7 +80,7 @@ export const MOCK_DELIVERABLES: MockDeliverable[] = [
   {
     id: "1b6d2e71-4c98-4a26-a8ff-2csf4af7d2a4",
     deliverableName: "Annual Report For AL Demonstration",
-    demonstrationName: "Dusty Demo",
+    demonstrationName: "Alabama Health and wellness",
     deliverableType: "Evaluation Design",
     cmsOwner: "Ackbar",
     dueDate: "2026-04-15",
@@ -99,7 +99,7 @@ export const MOCK_DELIVERABLES: MockDeliverable[] = [
   {
     id: "1b7d2e71-4c98-4a26-a8ff-2cbf4af7d2a4",
     deliverableName: "Budget Neutrality Worksheet",
-    demonstrationName: "Dusty Demo",
+    demonstrationName: "ALADEMO",
     deliverableType: "HCBS Actual and Estimated Enrollment Number Report (1915(i)-like)",
     cmsOwner: "Dusty Rhodes",
     dueDate: "2024-08-15",
