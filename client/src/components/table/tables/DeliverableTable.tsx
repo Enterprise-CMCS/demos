@@ -12,6 +12,7 @@ import { DeleteIcon } from "components/icons/Action/DeleteIcon";
 import { selectionTooltip } from "./actionTooltips";
 import { ImportIcon } from "components/icons/Action/ImportIcon";
 import { EditIcon } from "components/icons/Navigation/EditIcon";
+import { sortDeliverablesByDefault } from "util/sortDeliverables";
 
 export type DeliverableTableRow = {
   id: string;
@@ -63,10 +64,14 @@ export const DeliverableTable: React.FC<{
   viewMode,
 }) => {
   const deliverableColumns = DeliverableColumns({ viewMode });
-  const formattedDeliverables = deliverables.map((deliverable) => ({
-    ...deliverable,
-    status: formatDeliverableStatus(deliverable),
-  }));
+  const formattedDeliverables = React.useMemo(
+    () =>
+      sortDeliverablesByDefault(deliverables).map((deliverable) => ({
+        ...deliverable,
+        status: formatDeliverableStatus(deliverable),
+      })),
+    [deliverables]
+  );
 
   const showAddDeliverableDialog = () => { };
   const showEditDeliverableDialog = () => { };
