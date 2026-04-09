@@ -9,7 +9,7 @@ export async function logEvent(
   { input }: { input: LogEventInput },
   context: GraphQLContext
 ) {
-  const userId = await getCurrentUserId(context);
+  const userId = getCurrentUserId(context);
   const eventData = {
     ...input.eventData,
     userId: userId,

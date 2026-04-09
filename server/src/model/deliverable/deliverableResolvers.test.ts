@@ -16,18 +16,26 @@ import {
   resolveDeliverableCmsOwner,
   resolveDeliverableCmsDocuments,
   resolveDeliverableStateDocuments,
+  deliverableResolvers,
 } from "./deliverableResolvers";
 import { GraphQLContext } from "../../auth/auth.util.js";
 import { GraphQLResolveInfo } from "graphql";
-import { DeliverableDueDateType, DeliverableStatus, DeliverableType } from "../../types.js";
+import {
+  CreateDeliverableInput,
+  DateTimeOrLocalDate,
+  DeliverableDueDateType,
+  DeliverableStatus,
+  DeliverableType,
+} from "../../types.js";
 
 // Mock imports
-import { getDeliverable, getManyDeliverables } from ".";
+import { createDeliverable, getDeliverable, getManyDeliverables } from ".";
 import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getManyDocuments } from "../document";
 
 vi.mock(".", () => ({
+  createDeliverable: vi.fn(),
   getDeliverable: vi.fn(),
   getManyDeliverables: vi.fn(),
 }));
@@ -232,6 +240,26 @@ describe("deliverableResolvers", () => {
       await resolveDeliverableStateDocuments(testDeliverable as PrismaDeliverable);
       expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith({
         AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: false }],
+      });
+    });
+  });
+
+  describe("deliverableResolvers", () => {
+    describe("Mutation.createDeliverable", () => {
+      it("should call the createDeliverable function with the right arguments", async () => {
+        const testInput: CreateDeliverableInput = {
+          name: "A name!",
+          deliverableType: "Close Out Report",
+          demonstrationId: testDemonstrationId,
+          dueDate: "2025-11-31" as DateTimeOrLocalDate,
+        };
+
+        await deliverableResolvers.Mutation.createDeliverable(
+          {},
+          { input: testInput },
+          {} as GraphQLContext
+        );
+        expect(createDeliverable).toHaveBeenCalledExactlyOnceWith(testInput, {});
       });
     });
   });

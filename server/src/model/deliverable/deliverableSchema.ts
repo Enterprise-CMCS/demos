@@ -32,7 +32,6 @@ export const deliverableSchema = gql`
     name: NonEmptyString!
     deliverableType: DeliverableType!
     demonstrationId: ID!
-    cmsOwnerUserId: ID!
     dueDate: DateTimeOrLocalDate!
     demonstrationTypes: [TagName!]
   }
@@ -66,7 +65,6 @@ export interface CreateDeliverableInput {
   name: NonEmptyString;
   deliverableType: DeliverableType;
   demonstrationId: string;
-  cmsOwnerUserId: string;
   dueDate: DateTimeOrLocalDate;
   demonstrationTypes?: TagName[];
 }

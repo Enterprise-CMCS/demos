@@ -331,7 +331,7 @@ export const getCurrentUserRoleId = async (context: GraphQLContext): Promise<str
   return user.personTypeId;
 };
 
-export const getCurrentUserId = async (context: GraphQLContext): Promise<string> => {
+export const getCurrentUserId = (context: GraphQLContext): string => {
   assertContextUserExists(context);
   return context.user.id;
 };
