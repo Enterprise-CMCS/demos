@@ -24,7 +24,7 @@ export type DeliverableTableRow = {
   state: { id: string };
 };
 
-export type DeliverableTableViewMode = "default" | "stateUser";
+export type DeliverableTableViewMode = "cmsUser" | "stateUser";
 
 const DEFAULT_EMPTY_ROWS_MESSAGE = "There are no assigned Deliverables at this time";
 const DEFAULT_NO_SEARCH_RESULTS_MESSAGE =
@@ -56,11 +56,11 @@ export const formatDeliverableStatus = ({
 export const DeliverableTable: React.FC<{
   deliverables: Deliverable[];
   emptyRowsMessage?: string;
-  viewMode?: DeliverableTableViewMode;
+  viewMode: DeliverableTableViewMode;
 }> = ({
   deliverables,
   emptyRowsMessage = DEFAULT_EMPTY_ROWS_MESSAGE,
-  viewMode = "default",
+  viewMode,
 }) => {
   const deliverableColumns = DeliverableColumns({ viewMode });
   const formattedDeliverables = deliverables.map((deliverable) => ({

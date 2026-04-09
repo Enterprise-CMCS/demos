@@ -11,10 +11,10 @@ import { highlightCell } from "../KeywordSearch";
 import type { DeliverableTableRow, DeliverableTableViewMode } from "../tables/DeliverableTable";
 
 type DeliverableColumnsProps = {
-  viewMode?: DeliverableTableViewMode;
+  viewMode: DeliverableTableViewMode;
 };
 
-export function DeliverableColumns({ viewMode = "default" }: DeliverableColumnsProps = {}) {
+export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
   const columnHelper = createColumnHelper<DeliverableTableRow>();
 
   const demonstrationNameColumn = columnHelper.accessor("demonstrationName", {

@@ -8,7 +8,7 @@ import { MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
 
 describe("DeliverableTable", () => {
   beforeEach(async () => {
-    render(<DeliverableTable deliverables={MOCK_DELIVERABLES} />);
+    render(<DeliverableTable deliverables={MOCK_DELIVERABLES} viewMode="cmsUser" />);
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
@@ -23,7 +23,7 @@ describe("DeliverableTable", () => {
   });
 
   it("shows empty state when no deliverables provided", async () => {
-    render(<DeliverableTable deliverables={[]} />);
+    render(<DeliverableTable deliverables={[]} viewMode="cmsUser" />);
 
     await waitFor(() => {
       expect(
@@ -37,6 +37,7 @@ describe("DeliverableTable", () => {
       <DeliverableTable
         deliverables={[]}
         emptyRowsMessage="You have no assigned Deliverables at this time"
+        viewMode="cmsUser"
       />
     );
 
