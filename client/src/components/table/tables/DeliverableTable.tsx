@@ -2,7 +2,7 @@ import React from "react";
 
 import { Deliverable } from "pages/DeliverablesPage";
 import { DeliverableColumns } from "../columns/DeliverableColumns";
-import { Table } from "../Table";
+import { Table, type TableProps } from "../Table";
 import { ColumnFilter } from "../ColumnFilter";
 import { PaginationControls } from "../PaginationControls";
 import { KeywordSearch } from "../KeywordSearch";
@@ -68,10 +68,66 @@ export const DeliverableTable: React.FC<{
     status: formatDeliverableStatus(deliverable),
   }));
 
-  /* const { showAddDeliverableDialog, showEditDeliverableDialog, showRemoveDeliverableDialog } = useDialog(); */
   const showAddDeliverableDialog = () => { };
   const showEditDeliverableDialog = () => { };
   const showRemoveDeliverableDialog = () => { };
+  type DeliverableActionButtons = NonNullable<TableProps<DeliverableTableRow>["actionButtons"]>;
+
+  const renderActionButtons: DeliverableActionButtons = (table) => {
+    const selectedCount = table.getSelectedRowModel().rows.length;
+
+    const editEnabled = selectedCount === 1;
+    const deleteEnabled = selectedCount >= 1;
+
+    const editTooltip = selectionTooltip({
+      action: "Edit",
+      nounSingular: "Deliverable",
+      selectedCount,
+      rule: { kind: "exactly", count: 1 },
+    });
+
+    const deleteTooltip = selectionTooltip({
+      action: "Delete",
+      nounSingular: "Deliverable",
+      selectedCount,
+      rule: { kind: "atLeast", count: 1 },
+    });
+
+    return (
+      <div className="flex gap-1 ml-4">
+        <CircleButton
+          name="add-deliverable"
+          ariaLabel="Add Deliverable"
+          tooltip="Add Deliverable"
+          onClick={() => showAddDeliverableDialog()}
+        >
+          <ImportIcon />
+        </CircleButton>
+
+        <CircleButton
+          name="edit-deliverable"
+          ariaLabel="Edit Deliverable"
+          tooltip={editTooltip}
+          disabled={!editEnabled}
+          onClick={() => showEditDeliverableDialog()}
+        >
+          <EditIcon />
+        </CircleButton>
+
+        <CircleButton
+          name="remove-deliverable"
+          ariaLabel="Remove Deliverable"
+          tooltip={deleteTooltip}
+          disabled={!deleteEnabled}
+          onClick={() => showRemoveDeliverableDialog()}
+        >
+          <DeleteIcon />
+        </CircleButton>
+      </div>
+    );
+  };
+
+  const actionButtons = viewMode === "stateUser" ? undefined : renderActionButtons;
 
   return (
     <div className="flex flex-col gap-[24px]" data-view-mode={viewMode}>
@@ -84,64 +140,7 @@ export const DeliverableTable: React.FC<{
           pagination={(table) => <PaginationControls table={table} />}
           emptyRowsMessage={emptyRowsMessage}
           noResultsFoundMessage={DEFAULT_NO_SEARCH_RESULTS_MESSAGE}
-          actionButtons={
-            viewMode === "stateUser"
-              ? undefined
-              : (table) => {
-                const selectedDeliverables = table.getSelectedRowModel().rows.map((row) => row.original);
-                const selectedCount = selectedDeliverables.length;
-
-                const editEnabled = selectedCount === 1;
-                const deleteEnabled = selectedCount >= 1;
-
-                const editTooltip = selectionTooltip({
-                  action: "Edit",
-                  nounSingular: "Deliverable",
-                  selectedCount,
-                  rule: { kind: "exactly", count: 1 },
-                });
-
-                const deleteTooltip = selectionTooltip({
-                  action: "Delete",
-                  nounSingular: "Deliverable",
-                  selectedCount,
-                  rule: { kind: "atLeast", count: 1 },
-                });
-
-                return (
-                  <div className="flex gap-1 ml-4">
-                    <CircleButton
-                      name="add-deliverable"
-                      ariaLabel="Add Deliverable"
-                      tooltip="Add Deliverable"
-                      onClick={() => showAddDeliverableDialog()}
-                    >
-                      <ImportIcon />
-                    </CircleButton>
-
-                    <CircleButton
-                      name="edit-deliverable"
-                      ariaLabel="Edit Deliverable"
-                      tooltip={editTooltip}
-                      disabled={!editEnabled}
-                      onClick={() => showEditDeliverableDialog()}
-                    >
-                      <EditIcon />
-                    </CircleButton>
-
-                    <CircleButton
-                      name="remove-deliverable"
-                      ariaLabel="Remove Deliverable"
-                      tooltip={deleteTooltip}
-                      disabled={!deleteEnabled}
-                      onClick={() => showRemoveDeliverableDialog()}
-                    >
-                      <DeleteIcon />
-                    </CircleButton>
-                  </div>
-                );
-              }
-          }
+          actionButtons={actionButtons}
         />
       )}
     </div>
