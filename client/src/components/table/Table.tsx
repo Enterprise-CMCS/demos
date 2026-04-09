@@ -20,7 +20,7 @@ import { arrIncludesAllInsensitive } from "./KeywordSearch";
 import { ChevronDownIcon, ChevronUpIcon, SortIcon } from "components/icons";
 
 const STYLES = {
-  table: "w-full table-auto",
+  table: "w-full min-w-max table-auto",
   th: "bg-gray-primary-layout p-1 font-semibold text-left border-b cursor-pointer select-none",
   tr: "h-[56px] border-b p-1",
   td: "p-1 text-[14px] break-words overflow-wrap",
@@ -123,7 +123,7 @@ function TableSearch<T>({
   columnFilter?: (table: TanstackTable<T>) => React.ReactNode;
 }) {
   return (
-    <div className="grid w-full grid-cols-1 items-end gap-[24px] md:grid-cols-4 sm:grid-cols-1">
+    <div className="grid w-full min-w-0 grid-cols-1 items-end gap-[24px] md:grid-cols-4 sm:grid-cols-1">
       <div className="col-span-1">{keywordSearch && keywordSearch(table)}</div>
       <div className="col-span-2">{columnFilter && columnFilter(table)}</div>
     </div>
@@ -224,23 +224,27 @@ export function Table<T extends { id: string }>({
   return (
     <>
       {!hideSearchAndActions && (
-        <div className="flex flex-col gap-4 items-start sm:flex-row sm:items-center justify-between mb-[24px]">
-          <TableSearch table={table} keywordSearch={keywordSearch} columnFilter={columnFilter} />
-          <div className="mr-1">{actionButtons?.(table)}</div>
+        <div className="mb-[24px] flex flex-col items-start gap-4 justify-between xl:flex-row xl:items-center">
+          <div className="w-full min-w-0 xl:flex-1">
+            <TableSearch table={table} keywordSearch={keywordSearch} columnFilter={columnFilter} />
+          </div>
+          <div className="mr-1 shrink-0">{actionButtons?.(table)}</div>
         </div>
       )}
 
       {actionModals && actionModals(table)}
 
-      <table className={STYLES.table}>
-        <TableHead headerGroups={table.getHeaderGroups()} />
-        <TableBody
-          data={data}
-          table={table}
-          emptyRowsMessage={emptyRowsMessage}
-          noResultsFoundMessage={noResultsFoundMessage}
-        />
-      </table>
+      <div className="w-full overflow-x-auto">
+        <table className={STYLES.table}>
+          <TableHead headerGroups={table.getHeaderGroups()} />
+          <TableBody
+            data={data}
+            table={table}
+            emptyRowsMessage={emptyRowsMessage}
+            noResultsFoundMessage={noResultsFoundMessage}
+          />
+        </table>
+      </div>
       {pagination && pagination(table)}
     </>
   );
