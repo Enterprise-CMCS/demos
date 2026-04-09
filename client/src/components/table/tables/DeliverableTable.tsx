@@ -1,4 +1,5 @@
 import React from "react";
+import type { PersonType } from "demos-server";
 
 import { Deliverable } from "pages/DeliverablesPage";
 import { DeliverableColumns } from "../columns/DeliverableColumns";
@@ -24,11 +25,10 @@ export type DeliverableTableRow = {
   state: { id: string };
 };
 
-export type DeliverableTableViewMode = "cmsUser" | "stateUser";
+export type DeliverableTableViewMode = Exclude<PersonType, "non-user-contact">;
 
-const DEFAULT_EMPTY_ROWS_MESSAGE = "There are no assigned Deliverables at this time";
-const DEFAULT_NO_SEARCH_RESULTS_MESSAGE =
-  "No results were returned. Adjust your search and filter criteria.";
+const EMPTY_ROWS_MESSAGE = "There are no assigned Deliverables at this time";
+const NO_RESULTS_FOUND = "No results were returned. Adjust your search and filter criteria.";
 
 export const formatDeliverableStatus = ({
   status,
@@ -59,7 +59,7 @@ export const DeliverableTable: React.FC<{
   viewMode: DeliverableTableViewMode;
 }> = ({
   deliverables,
-  emptyRowsMessage = DEFAULT_EMPTY_ROWS_MESSAGE,
+  emptyRowsMessage = EMPTY_ROWS_MESSAGE,
   viewMode,
 }) => {
   const deliverableColumns = DeliverableColumns({ viewMode });
@@ -127,7 +127,7 @@ export const DeliverableTable: React.FC<{
     );
   };
 
-  const actionButtons = viewMode === "stateUser" ? undefined : renderActionButtons;
+  const actionButtons = viewMode === "demos-state-user" ? undefined : renderActionButtons;
 
   return (
     <div className="flex flex-col gap-[24px]" data-view-mode={viewMode}>
@@ -139,7 +139,7 @@ export const DeliverableTable: React.FC<{
           columnFilter={(table) => <ColumnFilter table={table} />}
           pagination={(table) => <PaginationControls table={table} />}
           emptyRowsMessage={emptyRowsMessage}
-          noResultsFoundMessage={DEFAULT_NO_SEARCH_RESULTS_MESSAGE}
+          noResultsFoundMessage={NO_RESULTS_FOUND}
           actionButtons={actionButtons}
         />
       )}

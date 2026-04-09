@@ -8,7 +8,7 @@ import { MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
 
 describe("DeliverableTable", () => {
   beforeEach(async () => {
-    render(<DeliverableTable deliverables={MOCK_DELIVERABLES} viewMode="cmsUser" />);
+    render(<DeliverableTable deliverables={MOCK_DELIVERABLES} viewMode="demos-cms-user" />);
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
@@ -23,7 +23,7 @@ describe("DeliverableTable", () => {
   });
 
   it("shows empty state when no deliverables provided", async () => {
-    render(<DeliverableTable deliverables={[]} viewMode="cmsUser" />);
+    render(<DeliverableTable deliverables={[]} viewMode="demos-cms-user" />);
 
     await waitFor(() => {
       expect(
@@ -37,7 +37,7 @@ describe("DeliverableTable", () => {
       <DeliverableTable
         deliverables={[]}
         emptyRowsMessage="You have no assigned Deliverables at this time"
-        viewMode="cmsUser"
+        viewMode="demos-cms-user"
       />
     );
 
@@ -172,9 +172,9 @@ describe("DeliverableTable", () => {
   });
 });
 
-describe("DeliverableTable stateUser view mode", () => {
+describe("DeliverableTable demos-state-user view mode", () => {
   it("renders the state-user column set and hides state/CMS owner", async () => {
-    render(<DeliverableTable deliverables={MOCK_DELIVERABLES} viewMode="stateUser" />);
+    render(<DeliverableTable deliverables={MOCK_DELIVERABLES} viewMode="demos-state-user" />);
 
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
@@ -192,7 +192,7 @@ describe("DeliverableTable stateUser view mode", () => {
   });
 
   it("hides row action buttons in state-user mode", () => {
-    render(<DeliverableTable deliverables={MOCK_DELIVERABLES} viewMode="stateUser" />);
+    render(<DeliverableTable deliverables={MOCK_DELIVERABLES} viewMode="demos-state-user" />);
 
     expect(screen.queryByLabelText(/Add Deliverable/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Edit Deliverable/i)).not.toBeInTheDocument();

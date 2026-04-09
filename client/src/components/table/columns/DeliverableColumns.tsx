@@ -39,7 +39,7 @@ export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
     cell: highlightCell,
   });
 
-  if (viewMode === "stateUser") {
+  if (viewMode === "demos-state-user") {
     return [
       demonstrationNameColumn,
       deliverableTypeColumn,

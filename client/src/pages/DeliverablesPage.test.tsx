@@ -113,4 +113,39 @@ describe("DeliverablesPage tab persistence", () => {
     expect(screen.queryByRole("columnheader", { name: /CMS Owner/i })).not.toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Demonstration Name/i })).toBeInTheDocument();
   });
+
+  it("shows All Deliverables tab for demos-state-user", () => {
+    mockGetCurrentUser.mockReturnValue({
+      currentUser: {
+        ...mockUsers[0],
+        person: {
+          ...mockUsers[0].person,
+          personType: "demos-state-user",
+        },
+      },
+    });
+
+    render(<DeliverablesPage />);
+
+    expect(screen.getByTestId("button-deliverables")).toBeInTheDocument();
+    expect(screen.getByTestId("button-my-deliverables")).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("uses stored deliverables tab for demos-state-user", () => {
+    mockGetCurrentUser.mockReturnValue({
+      currentUser: {
+        ...mockUsers[0],
+        person: {
+          ...mockUsers[0].person,
+          personType: "demos-state-user",
+        },
+      },
+    });
+    sessionStorage.setItem(TAB_KEY, "deliverables");
+
+    render(<DeliverablesPage />);
+
+    expect(sessionStorage.getItem(TAB_KEY)).toBe("deliverables");
+    expect(screen.getByTestId("button-deliverables")).toHaveAttribute("aria-selected", "true");
+  });
 });
