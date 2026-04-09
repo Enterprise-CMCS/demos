@@ -7,7 +7,7 @@ import {
 import { queryAmendment } from "./queries/queryAmendment.js";
 import { queryManyAmendments } from "./queries/queryManyAmendments.js";
 
-const getPermissionFilters = (userId: string) =>
+const getPermissionFilters = (userId: string): PermissionFilters<Prisma.AmendmentWhereInput> =>
   ({
     "View All Amendments": {
       NOT: {
@@ -32,7 +32,10 @@ export async function getAmendment(
   where: Prisma.AmendmentWhereInput,
   user: ContextUser
 ): Promise<PrismaAmendment | null> {
-  const authFilter = buildAuthorizationFilter<Prisma.AmendmentWhereInput>(user, getPermissionFilters);
+  const authFilter = buildAuthorizationFilter<Prisma.AmendmentWhereInput>(
+    user,
+    getPermissionFilters
+  );
 
   if (authFilter === null) {
     return null;
@@ -46,7 +49,10 @@ export async function getManyAmendments(
   where: Prisma.AmendmentWhereInput,
   user: ContextUser
 ): Promise<PrismaAmendment[]> {
-  const authFilter = buildAuthorizationFilter<Prisma.AmendmentWhereInput>(user, getPermissionFilters);
+  const authFilter = buildAuthorizationFilter<Prisma.AmendmentWhereInput>(
+    user,
+    getPermissionFilters
+  );
 
   if (authFilter === null) {
     return [];

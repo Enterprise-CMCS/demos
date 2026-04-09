@@ -1,17 +1,13 @@
 import { Permission } from "../types";
 import { ContextUser } from "./auth.util";
 
-export type PermissionFilters<PrismaWhereClause extends object> = Partial<
-  Record<Permission, PrismaWhereClause>
->;
+export type PermissionFilters<WhereClause> = Partial<Record<Permission, WhereClause>>;
 
-export function buildAuthorizationFilter<PrismaWhereClause extends object>(
+export function buildAuthorizationFilter<WhereClause>(
   user: ContextUser,
-  getPermissionFilters: (userid: string) => PermissionFilters<PrismaWhereClause>
-): {
-  OR: PrismaWhereClause[];
-} | null {
-  const authorizationWhereClauses: PrismaWhereClause[] = [];
+  getPermissionFilters: (userid: string) => PermissionFilters<WhereClause>
+): { OR: WhereClause[] } | null {
+  const authorizationWhereClauses: WhereClause[] = [];
   const permissionFilters = getPermissionFilters(user.id);
 
   for (const permission of Object.keys(permissionFilters) as Permission[]) {
