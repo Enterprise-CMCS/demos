@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom";
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { TestProvider } from "test-utils/TestProvider";
@@ -89,6 +89,7 @@ describe("CompletenessPhase", () => {
     applicationId: "app-123",
     applicationIntakeComplete: true,
     completenessComplete: false,
+    completenessIncomplete: false,
     completenessReviewDate: "2026-02-28",
     stateDeemedCompleteDate: "",
     completenessDocuments: [],
@@ -233,6 +234,47 @@ describe("CompletenessPhase", () => {
       expect(mockDeclareCompletenessPhaseIncomplete).toHaveBeenCalledWith("app-123");
     });
 
+    it("clears all date pickers when phase is Incomplete even if a Completeness Letter document exists", () => {
+      setup({
+        completenessIncomplete: true,
+        completenessDocuments: [mockCompletenessDoc, mockInternalDoc],
+        stateDeemedCompleteDate: "",
+      });
+
+      expect(screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME)).toHaveValue("");
+      expect(screen.getByTestId(FEDERAL_COMMENT_START_DATEPICKER_NAME)).toHaveValue("");
+      expect(screen.getByTestId(FEDERAL_COMMENT_END_DATEPICKER_NAME)).toHaveValue("");
+    });
+
+    it("clears a user-selected date when phase transitions to Incomplete", () => {
+      const { rerender } = render(
+        <TestProvider>
+          <CompletenessPhase
+            {...defaultProps}
+            completenessDocuments={[mockCompletenessDoc, mockInternalDoc]}
+          />
+        </TestProvider>
+      );
+
+      const dateInput = screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME);
+      fireEvent.change(dateInput, { target: { value: "2026-03-15" } });
+      expect(dateInput).toHaveValue("2026-03-15");
+
+      rerender(
+        <TestProvider>
+          <CompletenessPhase
+            {...defaultProps}
+            completenessIncomplete={true}
+            completenessDocuments={[mockCompletenessDoc, mockInternalDoc]}
+          />
+        </TestProvider>
+      );
+
+      expect(screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME)).toHaveValue("");
+      expect(screen.getByTestId(FEDERAL_COMMENT_START_DATEPICKER_NAME)).toHaveValue("");
+      expect(screen.getByTestId(FEDERAL_COMMENT_END_DATEPICKER_NAME)).toHaveValue("");
+    });
+
     it("disables Declare Incomplete button when completeness is complete", () => {
       setup({
         completenessComplete: true,
@@ -343,6 +385,7 @@ describe("CompletenessPhase", () => {
             applicationIntakeComplete={true}
             completenessReviewDate={reviewDate}
             completenessComplete={false}
+            completenessIncomplete={false}
             stateDeemedCompleteDate=""
             completenessDocuments={[]}
             setSelectedPhase={mockSetSelectedPhase}
@@ -371,6 +414,7 @@ describe("CompletenessPhase", () => {
             applicationIntakeComplete={true}
             completenessReviewDate={undefined}
             completenessComplete={true}
+            completenessIncomplete={false}
             stateDeemedCompleteDate=""
             completenessDocuments={[]}
             setSelectedPhase={mockSetSelectedPhase}
@@ -441,5 +485,28 @@ describe("getApplicationCompletenessFromApplication", () => {
     });
     expect(screen.getByText("Completeness Letter")).toBeInTheDocument();
     expect(screen.queryByText("Internal Form")).not.toBeInTheDocument();
+  });
+
+  it("does not auto-fill dates from a Completeness Letter document when phase is Incomplete", () => {
+    setup({
+      phases: [
+        {
+          phaseName: "Application Intake",
+          phaseStatus: "Started",
+          phaseDates: [],
+          phaseNotes: [],
+        },
+        {
+          phaseName: "Completeness",
+          phaseStatus: "Incomplete",
+          phaseDates: [],
+          phaseNotes: [],
+        },
+      ],
+      documents: [mockCompletenessDoc, mockInternalDoc],
+    });
+    expect(screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME)).toHaveValue("");
+    expect(screen.getByTestId(FEDERAL_COMMENT_START_DATEPICKER_NAME)).toHaveValue("");
+    expect(screen.getByTestId(FEDERAL_COMMENT_END_DATEPICKER_NAME)).toHaveValue("");
   });
 });
