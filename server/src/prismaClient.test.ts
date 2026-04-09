@@ -119,6 +119,21 @@ describe("prismaClient", () => {
     expect(findMany).toHaveBeenCalledWith({ where: { id: "missing" } });
   });
 
+  it("findAtMostOne fails when the model is incapable of calling findMany", async () => {
+    process.env.DATABASE_URL = "postgresql://db:5432/demos?schema=demos_app";
+
+    const mod = await import("./prismaClient.ts");
+    mod.prisma();
+
+    const extensionConfig = getFindAtMostOneExtensionConfig();
+    const findAtMostOne = extensionConfig.model.$allModels.findAtMostOne;
+    prismaNamespaceMock.getExtensionContext.mockReturnValue({});
+
+    await expect(findAtMostOne.call({}, { where: { id: "row-1" } })).rejects.toThrow(
+      "findAtMostOne can only be used on models that support findMany"
+    );
+  });
+
   it("findAtMostOne returns the row when findMany returns one row", async () => {
     process.env.DATABASE_URL = "postgresql://db:5432/demos?schema=demos_app";
 
