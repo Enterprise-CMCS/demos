@@ -40,6 +40,7 @@ export const DialogSandbox: React.FC = () => {
     showUpdateExtensionDialog,
     showUpdateAmendmentDialog,
     showAddDeliverableSlotDialog,
+    showConfirmApproveDialog,
   } = useDialog();
 
   const ID = "1";
@@ -208,6 +209,12 @@ export const DialogSandbox: React.FC = () => {
             }
           >
             Add Deliverable Slot(s)
+          </Button>
+          <Button
+            name="confirm-approve"
+            onClick={() => showConfirmApproveDialog(() => {}, "demonstration")}
+          >
+            Confirm Approve
           </Button>
         </div>
       </div>
