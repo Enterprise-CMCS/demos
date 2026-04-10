@@ -61,7 +61,11 @@ describe("DemonstrationTypeField", () => {
     await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_NAME));
 
     MOCK_OPTIONS.forEach((option) => {
-      expect(screen.getByText(option.tagName)).toBeInTheDocument();
+      const displayText =
+        option.approvalStatus === "Unapproved"
+          ? `${option.tagName} (Unapproved)`
+          : option.tagName;
+      expect(screen.getByText(displayText)).toBeInTheDocument();
     });
   });
 
@@ -81,7 +85,7 @@ describe("DemonstrationTypeField", () => {
 
     await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_NAME));
     await user.click(screen.getByText("Aggregate Cap"));
-    await user.click(screen.getByText("Annual Limits"));
+    await user.click(screen.getByText("Annual Limits (Unapproved)"));
 
     expect(onSelect).toHaveBeenLastCalledWith(["Aggregate Cap", "Annual Limits"]);
   });
@@ -92,7 +96,7 @@ describe("DemonstrationTypeField", () => {
 
     await user.type(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_NAME), "Annual");
 
-    expect(screen.getByText("Annual Limits")).toBeInTheDocument();
+    expect(screen.getByText("Annual Limits (Unapproved)")).toBeInTheDocument();
     expect(screen.queryByText("Aggregate Cap")).not.toBeInTheDocument();
   });
 

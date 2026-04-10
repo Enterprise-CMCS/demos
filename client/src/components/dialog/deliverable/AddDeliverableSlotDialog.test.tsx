@@ -107,7 +107,9 @@ describe("AddDeliverableSlotDialog", () => {
     await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_NAME));
 
     MOCK_DEMONSTRATION_TYPE_TAGS.forEach((type) => {
-      expect(screen.getByText(type.tagName)).toBeInTheDocument();
+      const displayText =
+        type.approvalStatus === "Unapproved" ? `${type.tagName} (Unapproved)` : type.tagName;
+      expect(screen.getByText(displayText)).toBeInTheDocument();
     });
   });
 });
