@@ -21,6 +21,7 @@ import {
   Document,
   Person,
   PhaseName,
+  Tag,
 } from "demos-server";
 import { Tab, VerticalTabs } from "layout/Tabs";
 import { SummaryDetailsTab } from "./SummaryDetailsTab";
@@ -82,9 +83,10 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
   const isDemonstrationApproved = demonstration.status === "Approved";
   const defaultTab = isDemonstrationApproved ? TAB.DELIVERABLES : TAB.APPLICATION;
   const postApprovalDeliverables = getDeliverablesForDemonstration(demonstration.name);
-  const demonstrationTypeNames: string[] = demonstration.demonstrationTypes.map(
-    (dt) => dt.demonstrationTypeName
-  );
+  const demonstrationTypeTags: Tag[] = demonstration.demonstrationTypes.map((dt) => ({
+    tagName: dt.demonstrationTypeName,
+    approvalStatus: dt.approvalStatus,
+  }));
 
   return (
     <div className="p-[16px]">
@@ -97,8 +99,8 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
         >
           <DeliverablesTab
             parentDemonstration={{
+              demonstrationTypes: demonstrationTypeTags,
               id: demonstration.id,
-              demonstrationTypes: demonstrationTypeNames,
               effectiveDate: demonstration.effectiveDate,
               expirationDate: demonstration.expirationDate,
             }}

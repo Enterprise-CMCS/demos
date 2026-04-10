@@ -9,7 +9,7 @@ import { DemonstrationTypeField } from "./fields/DemonstrationTypeField";
 import { ScheduleType, ScheduleTypeField } from "./fields/schedule-type/ScheduleTypeField";
 import { SingleDeliverableScheduleType } from "./fields/schedule-type/SingleDeliverableScheduleType";
 import { QuarterlyDeliverableSchedule } from "./fields/schedule-type/QuarterlyDeliverableSchedule";
-import { Demonstration } from "demos-server";
+import { Demonstration, Tag } from "demos-server";
 import { useToast } from "components/toast";
 import { DELIVERABLE_SLOTS_CREATED_MESSAGE } from "util/messages";
 
@@ -103,7 +103,7 @@ export type AddDeliverableSlotDemonstration = Pick<
   Demonstration,
   "effectiveDate" | "expirationDate" | "id"
 > & {
-  demonstrationTypes: string[];
+  demonstrationTypes: Tag[];
 };
 
 export const AddDeliverableSlotDialog = ({
@@ -195,8 +195,8 @@ export const AddDeliverableSlotDialog = ({
             onSelect={(cmsOwnerId) => setFormData((prev) => ({ ...prev, cmsOwnerId }))}
           />
           <DemonstrationTypeField
-            options={demonstration.demonstrationTypes}
-            values={formData.demonstrationTypes}
+            demonstrationTypeTags={demonstration.demonstrationTypes}
+            selectedValues={formData.demonstrationTypes}
             onSelect={(selectedTypes) =>
               setFormData((prev) => ({ ...prev, demonstrationTypes: selectedTypes }))
             }

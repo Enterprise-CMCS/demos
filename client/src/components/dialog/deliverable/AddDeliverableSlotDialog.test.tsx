@@ -12,6 +12,7 @@ import { DELIVERABLE_TYPE_SELECT_NAME } from "components/dialog/deliverable/fiel
 import { DELIVERABLE_NAME_FIELD_ID } from "components/dialog/deliverable/fields/DeliverableNameField";
 import { SINGLE_DELIVERABLE_DUE_DATE_NAME } from "components/dialog/deliverable/fields/schedule-type/SingleDeliverableScheduleType";
 import { personMocks } from "mock-data/personMocks";
+import { Tag } from "demos-server";
 import {
   ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME,
   AddDeliverableSlotDemonstration,
@@ -30,14 +31,15 @@ vi.mock("components/toast", () => ({
 
 const TEST_DEMO_ID = "demo-123";
 
-const MOCK_DEMONSTRATION_TYPES: string[] = [
-  "Aggregate Cap",
-  "Annual Limits",
-  "Basic Health Plan (BHP)",
+const MOCK_DEMONSTRATION_TYPE_TAGS: Tag[] = [
+  { tagName: "Aggregate Cap", approvalStatus: "Approved" },
+  { tagName: "Annual Limits", approvalStatus: "Unapproved" },
+  { tagName: "Basic Health Plan (BHP)", approvalStatus: "Approved" },
 ];
+
 const DEFAULT_DEMONSTRATION: AddDeliverableSlotDemonstration = {
+  demonstrationTypes: MOCK_DEMONSTRATION_TYPE_TAGS,
   id: TEST_DEMO_ID,
-  demonstrationTypes: MOCK_DEMONSTRATION_TYPES,
   effectiveDate: new Date("2024-01-01"),
   expirationDate: new Date("2026-12-31"),
 };
@@ -126,8 +128,10 @@ describe("AddDeliverableSlotDialog", () => {
 
     await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_NAME));
 
-    MOCK_DEMONSTRATION_TYPES.forEach((type) => {
-      expect(screen.getByText(type)).toBeInTheDocument();
+    MOCK_DEMONSTRATION_TYPE_TAGS.forEach((type) => {
+      const displayText =
+        type.approvalStatus === "Unapproved" ? `${type.tagName} (Unapproved)` : type.tagName;
+      expect(screen.getByText(displayText)).toBeInTheDocument();
     });
   });
 
