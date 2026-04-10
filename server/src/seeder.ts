@@ -36,6 +36,7 @@ import { logEvent } from "./model/event/eventResolvers.js";
 import { GraphQLContext } from "./auth/auth.util.js";
 import { getManyApplications } from "./model/application";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { randomUUID } from "node:crypto";
 
 const DOCUMENTS_PER_APPLICATION = 15;
 const UIPATH_SEED_DOCUMENT_ID = "00000000-0000-0000-0000-000000000000";
@@ -795,8 +796,7 @@ async function seedDatabase() {
     take: 5,
   });
 
-  function pick<T>(arr: T[]): T | null {
-    if (!arr.length) return null;
+  function pick<T>(arr: T[]): T {
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
@@ -806,7 +806,7 @@ async function seedDatabase() {
     // ~60% of events have a applicationId, rest are null
     const attachApplication = Math.random() < 0.6;
     const maybeApplication = attachApplication ? (pick(applicationsForEvents)?.id ?? null) : null;
-    const user = pick(usersForEvents) ?? null;
+    const user = pick(usersForEvents);
 
     // Note that these don't really make sense because application is generic
     // Should come back and be more specific as EventType evolves
@@ -858,24 +858,9 @@ async function seedDatabase() {
       },
     };
 
-    let context: GraphQLContext;
-    if (!user) {
-      context = {
-        user: {
-          id: "123",
-          cognitoSubject: "ABC",
-          personType: "demos-admin",
-        },
-      };
-    } else {
-      context = {
-        user: {
-          id: "123",
-          cognitoSubject: "ABC",
-          personType: "demos-admin",
-        },
-      };
-    }
+    const context = {
+      user,
+    } as GraphQLContext;
 
     logEvent(undefined, { input: eventData }, context);
   }

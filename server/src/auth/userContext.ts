@@ -5,7 +5,7 @@ import { AuthorizationClaims } from "./auth.util";
 export type ContextUser = {
   id: string;
   cognitoSubject: string;
-  personType: UserType;
+  personTypeId: UserType;
 };
 
 async function createNewUserFromClaims(claims: AuthorizationClaims) {
@@ -39,7 +39,7 @@ export async function findOrCreateContextUserFromClaims(
     return {
       id: existingUser.id,
       cognitoSubject: existingUser.cognitoSubject,
-      personType: existingUser.personTypeId as UserType,
+      personTypeId: existingUser.personTypeId as UserType,
     };
   }
 
@@ -47,6 +47,6 @@ export async function findOrCreateContextUserFromClaims(
   return {
     id: newUser.id,
     cognitoSubject: newUser.cognitoSubject,
-    personType: newUser.personTypeId as UserType,
+    personTypeId: newUser.personTypeId as UserType,
   };
 }

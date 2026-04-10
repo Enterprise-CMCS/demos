@@ -49,7 +49,7 @@ describe("findOrCreateContextUserFromClaims", () => {
     expect(result).toEqual({
       id: "user-1",
       cognitoSubject: claims.sub,
-      personType: "demos-admin",
+      personTypeId: "demos-admin",
     });
   });
 
@@ -89,7 +89,7 @@ describe("findOrCreateContextUserFromClaims", () => {
     expect(result).toEqual({
       id: "person-1",
       cognitoSubject: claims.sub,
-      personType: "demos-admin",
+      personTypeId: "demos-admin",
     });
   });
 });
