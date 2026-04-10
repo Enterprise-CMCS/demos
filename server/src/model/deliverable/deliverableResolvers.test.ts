@@ -1,10 +1,24 @@
+// Vitest and other helpers
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
+// Types
 import {
   Deliverable as PrismaDeliverable,
   Demonstration as PrismaDemonstration,
   Document as PrismaDocument,
   User as PrismaUser,
 } from "@prisma/client";
+import { GraphQLContext } from "../../auth/auth.util.js";
+import { GraphQLResolveInfo } from "graphql";
+import {
+  CreateDeliverableInput,
+  DateTimeOrLocalDate,
+  DeliverableDueDateType,
+  DeliverableStatus,
+  DeliverableType,
+} from "../../types.js";
+
+// Functions under test
 import {
   resolveDeliverable,
   resolveManyDeliverables,
@@ -18,22 +32,8 @@ import {
   resolveDeliverableStateDocuments,
   deliverableResolvers,
 } from "./deliverableResolvers";
-import { GraphQLContext } from "../../auth/auth.util.js";
-import { GraphQLResolveInfo } from "graphql";
-import {
-  CreateDeliverableInput,
-  DateTimeOrLocalDate,
-  DeliverableDueDateType,
-  DeliverableStatus,
-  DeliverableType,
-} from "../../types.js";
 
 // Mock imports
-import { createDeliverable, getDeliverable, getManyDeliverables } from ".";
-import { getApplication } from "../application";
-import { getUser } from "../user";
-import { getManyDocuments } from "../document";
-
 vi.mock(".", () => ({
   createDeliverable: vi.fn(),
   getDeliverable: vi.fn(),
@@ -51,6 +51,11 @@ vi.mock("../user", () => ({
 vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
 }));
+
+import { createDeliverable, getDeliverable, getManyDeliverables } from ".";
+import { getApplication } from "../application";
+import { getUser } from "../user";
+import { getManyDocuments } from "../document";
 
 describe("deliverableResolvers", () => {
   const testDeliverableId = "82ef9a17-e8b9-48ab-9aaf-3d1787822b13";
@@ -103,7 +108,7 @@ describe("deliverableResolvers", () => {
 
   describe("resolveDeliverable", () => {
     it("should throw if given something not supported", async () => {
-      await expect(() =>
+      await expect(
         resolveDeliverable(
           testDocumentWithDeliverableParent as PrismaDocument,
           {} as unknown,
@@ -140,7 +145,7 @@ describe("deliverableResolvers", () => {
 
   describe("resolveManyDeliverables", () => {
     it("should throw if given something not supported", async () => {
-      await expect(() =>
+      await expect(
         resolveManyDeliverables(
           testDemonstrationParent as PrismaDemonstration,
           {} as unknown,

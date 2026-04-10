@@ -2,7 +2,7 @@ import { prisma, PrismaTransactionClient } from "../../prismaClient";
 import { SetDeliverableDemonstrationTypesInput } from "../../types";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { deleteAllDeliverableDemonstrationTypes, insertDeliverableDemonstrationTypes } from ".";
-import { getDeliverable } from "../deliverable/queries/getDeliverable";
+import { getDeliverable } from "../deliverable";
 
 export async function setDeliverableDemonstrationTypes(
   input: SetDeliverableDemonstrationTypesInput,

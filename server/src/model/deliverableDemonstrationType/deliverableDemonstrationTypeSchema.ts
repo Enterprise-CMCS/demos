@@ -7,10 +7,6 @@ export const deliverableDemonstrationTypeSchema = gql`
     demonstrationId: ID!
     demonstrationTypes: [TagName!]!
   }
-
-  type Mutation {
-    setDeliverableDemonstrationTypes(input: SetDeliverableDemonstrationTypesInput): Deliverable
-  }
 `;
 
 export interface SetDeliverableDemonstrationTypesInput {

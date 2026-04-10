@@ -2,8 +2,8 @@ import { ParsedCreateDeliverableInput } from ".";
 import { PrismaTransactionClient } from "../../prismaClient.js";
 import { ApplicationStatus, PersonType, TagName } from "../../types";
 import { getApplication } from "../application";
-import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
 import { getUser } from "../user";
+import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
 import { GraphQLError } from "graphql";
 
 export async function validateCreateDeliverableInput(
@@ -55,7 +55,7 @@ export async function validateCreateDeliverableInput(
     throw new GraphQLError("One or more validation checks for createDeliverable have failed.", {
       extensions: {
         code: "CREATE_DELIVERABLE_VALIDATION_FAILED",
-        originalMessages: [errors],
+        originalMessages: errors,
       },
     });
   }

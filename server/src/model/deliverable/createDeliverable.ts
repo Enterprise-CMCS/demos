@@ -22,8 +22,8 @@ export async function createDeliverable(
     await setDeliverableDemonstrationTypes(
       {
         deliverableId: newDeliverable.id,
-        demonstrationId: input.demonstrationId,
-        demonstrationTypes: input.demonstrationTypes ?? [],
+        demonstrationId: parsedInput.demonstrationId,
+        demonstrationTypes: parsedInput.demonstrationTypes ?? [],
       },
       tx
     );

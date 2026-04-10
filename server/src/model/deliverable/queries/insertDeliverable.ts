@@ -1,7 +1,7 @@
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { prisma, PrismaTransactionClient } from "../../../prismaClient.js";
 import { ParsedCreateDeliverableInput } from "..";
-import { DeliverableStatus, DeliverableDueDateType } from "../../../types";
+import { DeliverableStatus, DeliverableDueDateType, ApplicationStatus } from "../../../types";
 
 export async function insertDeliverable(
   input: ParsedCreateDeliverableInput,
@@ -22,7 +22,7 @@ export async function insertDeliverable(
       deliverableTypeId: input.deliverableType,
       name: input.name,
       demonstrationId: input.demonstrationId,
-      demonstrationStatusId: "Approved",
+      demonstrationStatusId: "Approved" satisfies ApplicationStatus,
       statusId: "Upcoming" satisfies DeliverableStatus,
       cmsOwnerUserId: input.cmsOwnerUserId,
       cmsOwnerPersonTypeId: userInfo.personTypeId,
