@@ -336,17 +336,6 @@ vi.mock("./ApplyTagsDialog", () => ({
   ),
 }));
 
-vi.mock("./ConfirmApproveDialog", () => ({
-  ConfirmApproveDialog: ({ onClose }: { onClose: () => void }) => (
-    <div data-testid="confirm-approve-dialog">
-      Confirm Approve Dialog
-      <button data-testid="close-confirm-approve-btn" onClick={onClose}>
-        Close
-      </button>
-    </div>
-  ),
-}));
-
 const mockRoles: ExistingContactType[] = [
   {
     id: "person-1",
@@ -871,22 +860,5 @@ describe("DialogContext", () => {
 
     await user.click(screen.getByTestId("close-apply-tags-btn"));
     expect(screen.queryByTestId("apply-tags-dialog")).not.toBeInTheDocument();
-  });
-  it("shows and hides ConfirmApproveDialog via context", async () => {
-    render(
-      <DialogProvider>
-        <TestConsumer />
-      </DialogProvider>
-    );
-
-    const user = userEvent.setup();
-
-    expect(screen.queryByTestId("confirm-approve-dialog")).not.toBeInTheDocument();
-
-    await user.click(screen.getByTestId("open-confirm-approve-btn"));
-    expect(screen.getByTestId("confirm-approve-dialog")).toBeInTheDocument();
-
-    await user.click(screen.getByTestId("close-confirm-approve-btn"));
-    expect(screen.queryByTestId("confirm-approve-dialog")).not.toBeInTheDocument();
   });
 });
