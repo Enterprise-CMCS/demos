@@ -1,3 +1,5 @@
+import { DELIVERABLE_STATUSES } from "demos-server-constants";
+
 type SortableDeliverable = {
   id: string;
   status: string;
@@ -15,7 +17,13 @@ const STATUS_ORDER = [
   "Received and Filed",
 ] as const;
 
-const STATUS_RANK = new Map(STATUS_ORDER.map((status, index) => [status, index]));
+const STATUS_RANK = new Map(
+  DELIVERABLE_STATUSES.map((status, index) => [status, 100 + index])
+);
+
+STATUS_ORDER.forEach((status, index) => {
+  STATUS_RANK.set(status, index);
+});
 
 const compareDueDateAsc = (firstDate: string, secondDate: string) => {
   const firstTime = Date.parse(firstDate);
@@ -31,27 +39,27 @@ const compareDueDateAsc = (firstDate: string, secondDate: string) => {
 export const sortDeliverablesByDefault = <T extends SortableDeliverable>(
   deliverables: T[]
 ): T[] => {
-  return [...deliverables].sort((firstDate, secondDate) => {
-    const aExtensionRequested = firstDate.extensionRequested ?? false;
-    const bExtensionRequested = secondDate.extensionRequested ?? false;
+  return [...deliverables].sort((firstDel, secondDel) => {
+    const aExtensionRequested = firstDel.extensionRequested ?? false;
+    const bExtensionRequested = secondDel.extensionRequested ?? false;
 
     if (aExtensionRequested !== bExtensionRequested) {
       return aExtensionRequested ? -1 : 1;
     }
 
-    const dueDateCompare = compareDueDateAsc(firstDate.dueDate, secondDate.dueDate);
+    const dueDateCompare = compareDueDateAsc(firstDel.dueDate, secondDel.dueDate);
 
     if (aExtensionRequested && bExtensionRequested) {
-      return dueDateCompare || firstDate.id.localeCompare(secondDate.id);
+      return dueDateCompare || firstDel.id.localeCompare(secondDel.id);
     }
 
-    const aRank = STATUS_RANK.get(firstDate.status) ?? Number.MAX_SAFE_INTEGER;
-    const bRank = STATUS_RANK.get(secondDate.status) ?? Number.MAX_SAFE_INTEGER;
+    const aRank = STATUS_RANK.get(firstDel.status as typeof STATUS_ORDER[number]) ?? Number.MAX_SAFE_INTEGER;
+    const bRank = STATUS_RANK.get(secondDel.status as typeof STATUS_ORDER[number]) ?? Number.MAX_SAFE_INTEGER;
 
     if (aRank !== bRank) {
       return aRank - bRank;
     }
 
-    return dueDateCompare || firstDate.id.localeCompare(secondDate.id);
+    return dueDateCompare || firstDel.id.localeCompare(secondDel.id);
   });
 };
