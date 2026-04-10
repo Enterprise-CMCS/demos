@@ -29,14 +29,23 @@ interface AddDeliverableSlotFormData {
   cmsOwnerId: string;
   deliverableType: string;
   scheduleType: ScheduleType;
+  dueDate: string;
+  quarterlyDueDates: string[];
   demonstrationTypes: string[];
 }
+
+export type AddDeliverableSlotPayload = Omit<
+  AddDeliverableSlotFormData,
+  "quarterlyDueDates" | "scheduleType"
+>;
 
 const INITIAL_FORM_DATA: AddDeliverableSlotFormData = {
   deliverableName: "",
   cmsOwnerId: "",
   deliverableType: "",
   scheduleType: "Single",
+  dueDate: "",
+  quarterlyDueDates: ALL_QUARTERS.map(() => ""),
   demonstrationTypes: [],
 };
 
@@ -49,32 +58,44 @@ export const getQuarterlyDeliverableSlotName = (
 export const buildAddDeliverableSlotPayloads = (
   demonstrationYear: number,
   formData: AddDeliverableSlotFormData
-): AddDeliverableSlotFormData[] => {
+): AddDeliverableSlotPayload[] => {
+  const { quarterlyDueDates, ...payloadBase } = formData;
+
   if (formData.scheduleType === "Single") {
-    return [formData];
+    return [payloadBase];
   }
 
-  return ALL_QUARTERS.map((quarter) => ({
-    ...formData,
+  return ALL_QUARTERS.map((quarter, quarterIndex) => ({
+    ...payloadBase,
     deliverableName: getQuarterlyDeliverableSlotName(
       demonstrationYear,
       quarter,
       formData.deliverableName
     ),
+    dueDate: quarterlyDueDates[quarterIndex],
   }));
 };
+
+const hasValidDueDateForScheduleType = (data: AddDeliverableSlotFormData): boolean =>
+  data.scheduleType === "Single"
+    ? data.dueDate.length > 0
+    : data.quarterlyDueDates.every((dueDate) => dueDate.length > 0);
 
 const formIsValid = (data: AddDeliverableSlotFormData): boolean =>
   data.deliverableName.trim().length > 0 &&
   data.cmsOwnerId.length > 0 &&
   data.deliverableType.length > 0 &&
   data.scheduleType.length > 0 &&
+  hasValidDueDateForScheduleType(data) &&
   (!requiresDemonstrationTypes(data.deliverableType) || data.demonstrationTypes.length > 0);
 
 const formHasChanges = (data: AddDeliverableSlotFormData): boolean =>
   data.deliverableName !== INITIAL_FORM_DATA.deliverableName ||
   data.cmsOwnerId !== INITIAL_FORM_DATA.cmsOwnerId ||
   data.deliverableType !== INITIAL_FORM_DATA.deliverableType ||
+  data.scheduleType !== INITIAL_FORM_DATA.scheduleType ||
+  data.dueDate !== INITIAL_FORM_DATA.dueDate ||
+  data.quarterlyDueDates.some((dueDate) => dueDate.length > 0) ||
   data.demonstrationTypes.length !== 0;
 
 export type AddDeliverableSlotDemonstration = Pick<
@@ -139,9 +160,26 @@ export const AddDeliverableSlotDialog = ({
             demonstrationEffectiveDate={demonstration.effectiveDate}
             demonstrationExpirationDate={demonstration.expirationDate}
             onSelectYear={(demonstrationYear) => setDemonstrationYear(demonstrationYear)}
+            quarterlyDueDates={formData.quarterlyDueDates}
+            onSelectQuarterDate={(quarterIndex, dueDate) =>
+              setFormData((prev) => {
+                const nextQuarterlyDueDates = [...prev.quarterlyDueDates];
+                nextQuarterlyDueDates[quarterIndex] = dueDate;
+
+                return {
+                  ...prev,
+                  quarterlyDueDates: nextQuarterlyDueDates,
+                };
+              })
+            }
           />
         )}
-        {formData.scheduleType === "Single" && <SingleDeliverableScheduleType />}
+        {formData.scheduleType === "Single" && (
+          <SingleDeliverableScheduleType
+            value={formData.dueDate}
+            onChange={(dueDate) => setFormData((prev) => ({ ...prev, dueDate }))}
+          />
+        )}
         <DeliverableNameField
           value={formData.deliverableName}
           onChange={(deliverableName) => setFormData((prev) => ({ ...prev, deliverableName }))}
