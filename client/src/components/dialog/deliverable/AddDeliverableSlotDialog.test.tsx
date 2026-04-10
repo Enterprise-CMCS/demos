@@ -12,14 +12,16 @@ import { SELECT_DEMONSTRATION_TYPE_NAME } from "components/dialog/deliverable/fi
 import { DELIVERABLE_TYPE_SELECT_NAME } from "components/dialog/deliverable/fields/DeliverableTypeField";
 import { personMocks } from "mock-data/personMocks";
 import { AddDeliverableSlotDemonstration } from "./AddDeliverableSlotDialog";
+import { Tag } from "demos-server";
 
-const MOCK_DEMONSTRATION_TYPES: string[] = [
-  "Aggregate Cap",
-  "Annual Limits",
-  "Basic Health Plan (BHP)",
+const MOCK_DEMONSTRATION_TYPE_TAGS: Tag[] = [
+  { tagName: "Aggregate Cap", approvalStatus: "Approved" },
+  { tagName: "Annual Limits", approvalStatus: "Unapproved" },
+  { tagName: "Basic Health Plan (BHP)", approvalStatus: "Approved" },
 ];
+
 const DEFAULT_DEMONSTRATION: AddDeliverableSlotDemonstration = {
-  demonstrationTypes: MOCK_DEMONSTRATION_TYPES,
+  demonstrationTypes: MOCK_DEMONSTRATION_TYPE_TAGS,
   effectiveDate: new Date("2024-01-01"),
   expirationDate: new Date("2026-12-31"),
 };
@@ -104,8 +106,8 @@ describe("AddDeliverableSlotDialog", () => {
 
     await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_NAME));
 
-    MOCK_DEMONSTRATION_TYPES.forEach((type) => {
-      expect(screen.getByText(type)).toBeInTheDocument();
+    MOCK_DEMONSTRATION_TYPE_TAGS.forEach((type) => {
+      expect(screen.getByText(type.tagName)).toBeInTheDocument();
     });
   });
 });

@@ -4,20 +4,25 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 
 import { DemonstrationTypeField, SELECT_DEMONSTRATION_TYPE_NAME } from "./DemonstrationTypeField";
+import { Tag } from "demos-server";
 
-const MOCK_OPTIONS = ["Aggregate Cap", "Annual Limits", "Basic Health Plan (BHP)"];
+const MOCK_OPTIONS: Tag[] = [
+  { tagName: "Aggregate Cap", approvalStatus: "Approved" },
+  { tagName: "Annual Limits", approvalStatus: "Unapproved" },
+  { tagName: "Basic Health Plan (BHP)", approvalStatus: "Approved" },
+];
 
 describe("DemonstrationTypeField", () => {
   const setup = ({
     options = MOCK_OPTIONS,
-    values = [],
+    selectedValues = [],
     onSelect = vi.fn(),
     isRequired = false,
   } = {}) => {
     render(
       <DemonstrationTypeField
-        options={options}
-        values={values}
+        demonstrationTypeTags={options}
+        selectedValues={selectedValues}
         onSelect={onSelect}
         isRequired={isRequired}
       />
@@ -56,7 +61,7 @@ describe("DemonstrationTypeField", () => {
     await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_NAME));
 
     MOCK_OPTIONS.forEach((option) => {
-      expect(screen.getByText(option)).toBeInTheDocument();
+      expect(screen.getByText(option.tagName)).toBeInTheDocument();
     });
   });
 
