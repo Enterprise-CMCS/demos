@@ -21,6 +21,7 @@ import {
   resolveApplicationStatus,
   resolveApplicationTags,
   resolveApplicationSignatureLevel,
+  resolveSuggestedApplicationTags
 } from "../application";
 
 const amendmentApplicationType: ApplicationType = "Amendment";
@@ -129,5 +130,6 @@ export const amendmentResolvers = {
     clearanceLevel: resolveApplicationClearanceLevel,
     tags: resolveApplicationTags,
     signatureLevel: resolveApplicationSignatureLevel,
+    suggestedApplicationTags: resolveSuggestedApplicationTags,
   },
 };

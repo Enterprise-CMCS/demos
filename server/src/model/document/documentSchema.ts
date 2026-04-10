@@ -1,8 +1,13 @@
 import { gql } from "graphql-tag";
 
-import { User } from "../user/userSchema.js";
-import { DocumentType, Application, PhaseName, NonEmptyString } from "../../types.js";
-import { Deliverable } from "../deliverable/deliverableSchema.js";
+import {
+  Application,
+  Deliverable,
+  DocumentType,
+  NonEmptyString,
+  PhaseName,
+  User,
+} from "../../types.js";
 
 export const documentSchema = gql`
   type Document {
@@ -16,6 +21,7 @@ export const documentSchema = gql`
     phaseName: PhaseName
     presignedDownloadUrl: String!
     deliverable: Deliverable
+    hasPendingUIPathResult: Boolean!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -70,6 +76,7 @@ export interface Document {
   createdAt: Date;
   updatedAt: Date;
   presignedDownloadUrl: string;
+  hasPendingUIPathResult: boolean;
 }
 
 export interface UploadDocumentInput {

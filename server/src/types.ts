@@ -80,6 +80,7 @@ export type {
   ApplicationPhase,
   CompletePhaseInput,
 } from "./model/applicationPhase/applicationPhaseSchema.js";
+
 export type { Application } from "./model/application/applicationSchema.js";
 export type {
   ApplicationDate,
@@ -108,6 +109,8 @@ export type {
 } from "./model/demonstrationTypeTagAssignment/demonstrationTypeTagAssignmentSchema.js";
 
 export type { Tag } from "./model/tag/tagSchema.js";
+
+export type { Deliverable } from "./model/deliverable/deliverableSchema";
 
 export type DemonstrationTypeStatus = (typeof DEMONSTRATION_TYPE_STATUSES)[number];
 export type ClearanceLevel = (typeof CLEARANCE_LEVELS)[number];

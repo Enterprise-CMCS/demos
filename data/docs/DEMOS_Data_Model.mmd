@@ -446,6 +446,7 @@ erDiagram
   deliverable:::dataTable {
     uuid id PK, UK "UK: (id, demonstration_id, deliverable_type_id)<br>UK: (id, demonstration_id)<br>&nbsp;"
     text deliverable_type_id FK, UK "FK067: deliverable_type_id ∈ deliverable_type.id<br>UK: (id, demonstration_id, deliverable_type_id)"
+    text name
     uuid demonstration_id FK, UK "FK006: (demonstration_id, demonstration_status_id) ∈ demonstration.(id, status_id)<br>UK: (id, demonstration_id, deliverable_type_id)<br>UK: (id, demonstration_id)"
     text demonstration_status_id FK "FK006: (demonstration_id, demonstration_status_id) ∈ demonstration.(id, status_id)<br>FK105: demonstration_status_id ∈ deliverable_demonstration_status_limit.id"
     text status_id FK "FK094: status_id ∈ deliverable_status.id"
