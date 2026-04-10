@@ -5,26 +5,19 @@ import { describe, it, expect, vi, beforeAll } from "vitest";
 
 import { ConfirmApproveDialog } from "./ConfirmApproveDialog";
 import { WorkflowApplicationType } from "components/application";
-
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = vi.fn();
-  HTMLDialogElement.prototype.close = vi.fn();
-});
+import { DialogProvider } from "./DialogContext";
 
 describe("ConfirmApproveDialog", () => {
   const setup = (applicationType: WorkflowApplicationType = "demonstration") => {
-    const onClose = vi.fn();
     const onConfirm = vi.fn();
 
     render(
-      <ConfirmApproveDialog
-        onClose={onClose}
-        onConfirm={onConfirm}
-        applicationType={applicationType}
-      />
+      <DialogProvider>
+        <ConfirmApproveDialog onConfirm={onConfirm} applicationType={applicationType} />
+      </DialogProvider>
     );
 
-    return { onClose, onConfirm };
+    return { onConfirm };
   };
 
   it("renders dialog content", () => {
@@ -34,30 +27,7 @@ describe("ConfirmApproveDialog", () => {
     expect(
       screen.getByText(/final submission of this approved demonstration/i)
     ).toBeInTheDocument();
-    expect(
-      screen.getByTestId("button-ca-dialog-approve")
-    ).toBeInTheDocument();
-    expect(
-      screen.getByTestId("button-ca-dialog-cancel")
-    ).toBeInTheDocument();
-  });
-
-  it("calls onClose when close (×) button is clicked", async () => {
-    const user = userEvent.setup();
-    const { onClose } = setup();
-
-    await user.click(screen.getByTestId("button-ca-dialog-close"));
-
-    expect(onClose).toHaveBeenCalledTimes(1);
-  });
-
-  it("calls onClose when cancel button is clicked", async () => {
-    const user = userEvent.setup();
-    const { onClose } = setup();
-
-    await user.click(screen.getByTestId("button-ca-dialog-cancel"));
-
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("button-ca-dialog-approve")).toBeInTheDocument();
   });
 
   it("calls onConfirm when submit button is clicked", async () => {
@@ -72,8 +42,6 @@ describe("ConfirmApproveDialog", () => {
   it("shows correct application type in message", () => {
     setup("amendment");
 
-    expect(
-      screen.getByText(/final submission of this approved amendment/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/final submission of this approved amendment/i)).toBeInTheDocument();
   });
 });

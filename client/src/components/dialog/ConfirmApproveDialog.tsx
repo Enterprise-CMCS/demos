@@ -3,29 +3,30 @@ import React from "react";
 import { Button } from "components/button";
 import { WorkflowApplicationType } from "components/application";
 import { BaseDialog } from "./BaseDialog";
+import { useDialog } from "./DialogContext";
 
 interface ConfirmApproveDialogProps {
-  onClose: () => void;
   onConfirm: () => void;
   applicationType: WorkflowApplicationType;
 }
 
 export const ConfirmApproveDialog: React.FC<ConfirmApproveDialogProps> = ({
-  onClose,
   onConfirm,
   applicationType,
 }) => {
+  const { closeDialog } = useDialog();
+
   const handleSubmitClicked = () => {
     onConfirm();
-    onClose();
+    closeDialog();
   };
 
   return (
     <BaseDialog
       name="button-ca-dialog-close"
       title="ARE YOU SURE?"
-      onClose={onClose}
       dialogHasChanges={false}
+      onClose={closeDialog}
       maxWidthClass="max-w-[600px]"
       actionButton={
         <Button name="button-ca-dialog-approve" onClick={handleSubmitClicked}>
