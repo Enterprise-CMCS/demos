@@ -1,7 +1,7 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import {
   ADD_DELIVERABLE_SLOT_DIALOG_TITLE,
@@ -9,13 +9,24 @@ import {
 } from "components/dialog/deliverable";
 import { SELECT_DEMONSTRATION_TYPE_NAME } from "components/dialog/deliverable/fields/DemonstrationTypeField";
 import { DELIVERABLE_TYPE_SELECT_NAME } from "components/dialog/deliverable/fields/DeliverableTypeField";
+import { DELIVERABLE_NAME_FIELD_ID } from "components/dialog/deliverable/fields/DeliverableNameField";
+import { SINGLE_DELIVERABLE_DUE_DATE_NAME } from "components/dialog/deliverable/fields/schedule-type/SingleDeliverableScheduleType";
 import { personMocks } from "mock-data/personMocks";
 import {
+  ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME,
   AddDeliverableSlotDemonstration,
   buildAddDeliverableSlotPayloads,
   getQuarterlyDeliverableSlotName,
 } from "./AddDeliverableSlotDialog";
 import { TestProvider } from "test-utils/TestProvider";
+import { DELIVERABLE_SLOTS_CREATED_MESSAGE } from "util/messages";
+
+const mockShowSuccess = vi.fn();
+vi.mock("components/toast", () => ({
+  useToast: () => ({
+    showSuccess: mockShowSuccess,
+  }),
+}));
 
 const TEST_DEMO_ID = "demo-123";
 
@@ -48,6 +59,10 @@ describe("AddDeliverableSlotDialog", () => {
 
     return { onClose };
   };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it("renders with the correct title", () => {
     setup();
@@ -114,6 +129,57 @@ describe("AddDeliverableSlotDialog", () => {
     MOCK_DEMONSTRATION_TYPES.forEach((type) => {
       expect(screen.getByText(type)).toBeInTheDocument();
     });
+  });
+
+  it("save button is disabled when the form is initially empty", () => {
+    setup();
+
+    expect(screen.getByTestId(ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME)).toBeDisabled();
+  });
+
+  it("shows the due date field for the Single schedule type by default", () => {
+    setup();
+
+    expect(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME)).toBeInTheDocument();
+  });
+
+  it("shows quarterly date pickers and hides the due date field when Quarterly schedule type is selected", async () => {
+    const user = userEvent.setup();
+    setup();
+
+    await user.click(screen.getByTestId("select-schedule-type"));
+    await user.click(screen.getByText("Quarterly"));
+
+    expect(screen.queryByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME)).not.toBeInTheDocument();
+    expect(screen.getAllByLabelText(/Quarter/i)).toHaveLength(4);
+  });
+
+  it("shows success toast and calls onClose when save is clicked with a valid Single schedule form", async () => {
+    const user = userEvent.setup();
+    const { onClose } = setup();
+
+    await waitFor(() => expect(screen.getByTestId("select-users")).toBeInTheDocument());
+
+    await user.click(screen.getByTestId(DELIVERABLE_TYPE_SELECT_NAME));
+    await user.click(screen.getByText("Annual Budget Neutrality Report"));
+
+    fireEvent.change(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME), {
+      target: { value: "2026-06-15" },
+    });
+
+    await user.type(screen.getByTestId(DELIVERABLE_NAME_FIELD_ID), "Test Deliverable");
+
+    await user.click(screen.getByTestId("select-users"));
+    await user.click(screen.getByText("John Doe"));
+
+    await waitFor(() =>
+      expect(screen.getByTestId(ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME)).not.toBeDisabled()
+    );
+
+    await user.click(screen.getByTestId(ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME));
+
+    expect(mockShowSuccess).toHaveBeenCalledWith(DELIVERABLE_SLOTS_CREATED_MESSAGE);
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });
 

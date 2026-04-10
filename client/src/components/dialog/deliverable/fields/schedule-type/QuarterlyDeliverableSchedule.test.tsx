@@ -1,5 +1,6 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -12,6 +13,50 @@ describe("QuarterlyDeliverableSchedule", () => {
     render(<QuarterlyDeliverableSchedule onSelectYear={vi.fn()} />);
 
     expect(screen.getAllByLabelText(/Quarter/i)).toHaveLength(4);
+  });
+
+  it("calls onSelectYear with the year number when a year is selected", async () => {
+    const user = userEvent.setup();
+    const onSelectYear = vi.fn();
+    render(
+      <QuarterlyDeliverableSchedule
+        onSelectYear={onSelectYear}
+        demonstrationEffectiveDate={new Date("2024-01-01")}
+        demonstrationExpirationDate={new Date("2026-12-31")}
+      />
+    );
+
+    await user.selectOptions(screen.getByRole("combobox"), "Year 2");
+
+    expect(onSelectYear).toHaveBeenCalledWith(2);
+  });
+
+  it("displays provided quarterly due dates in the date pickers", () => {
+    render(
+      <QuarterlyDeliverableSchedule
+        onSelectYear={vi.fn()}
+        quarterlyDueDates={["2026-01-15", "2026-04-15", "2026-07-15", "2026-10-15"]}
+      />
+    );
+
+    expect(screen.getByTestId("quarter-1")).toHaveValue("2026-01-15");
+    expect(screen.getByTestId("quarter-2")).toHaveValue("2026-04-15");
+    expect(screen.getByTestId("quarter-3")).toHaveValue("2026-07-15");
+    expect(screen.getByTestId("quarter-4")).toHaveValue("2026-10-15");
+  });
+
+  it("calls onSelectQuarterDate with the correct quarter index and date when a date is changed", () => {
+    const onSelectQuarterDate = vi.fn();
+    render(
+      <QuarterlyDeliverableSchedule
+        onSelectYear={vi.fn()}
+        onSelectQuarterDate={onSelectQuarterDate}
+      />
+    );
+
+    fireEvent.change(screen.getByTestId("quarter-3"), { target: { value: "2026-07-15" } });
+
+    expect(onSelectQuarterDate).toHaveBeenCalledWith(2, "2026-07-15");
   });
 
   it("shows correct year options in the year select", () => {
