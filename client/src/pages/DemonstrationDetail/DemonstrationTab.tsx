@@ -100,6 +100,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           <DeliverablesTab
             parentDemonstration={{
               demonstrationTypes: demonstrationTypeTags,
+              id: demonstration.id,
               effectiveDate: demonstration.effectiveDate,
               expirationDate: demonstration.expirationDate,
             }}

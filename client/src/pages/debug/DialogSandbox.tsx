@@ -210,6 +210,7 @@ export const DialogSandbox: React.FC = () => {
             onClick={() =>
               showAddDeliverableSlotDialog({
                 demonstrationTypes: TAGS,
+                id: "demo-1",
               })
             }
           >
