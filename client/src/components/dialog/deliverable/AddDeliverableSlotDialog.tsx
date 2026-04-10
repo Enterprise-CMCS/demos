@@ -37,7 +37,7 @@ interface AddDeliverableSlotFormData {
 export type AddDeliverableSlotPayload = Omit<
   AddDeliverableSlotFormData,
   "quarterlyDueDates" | "scheduleType"
->;
+> & { demonstrationId: string };
 
 const INITIAL_FORM_DATA: AddDeliverableSlotFormData = {
   deliverableName: "",
@@ -54,14 +54,15 @@ export const getQuarterlyDeliverableSlotName = (
   quarter: Quarter,
   deliverableName: string
 ): string => `DY${demonstrationYear}Q${quarter} ${deliverableName}`;
-
 export const buildAddDeliverableSlotPayloads = (
+  demonstrationId: string,
   demonstrationYear: number,
   formData: AddDeliverableSlotFormData
 ): AddDeliverableSlotPayload[] => {
-  const { quarterlyDueDates, ...payloadBase } = formData;
+  const { quarterlyDueDates, scheduleType, ...rest } = formData;
+  const payloadBase = { ...rest, demonstrationId };
 
-  if (formData.scheduleType === "Single") {
+  if (scheduleType === "Single") {
     return [payloadBase];
   }
 
@@ -100,7 +101,7 @@ const formHasChanges = (data: AddDeliverableSlotFormData): boolean =>
 
 export type AddDeliverableSlotDemonstration = Pick<
   Demonstration,
-  "effectiveDate" | "expirationDate"
+  "effectiveDate" | "expirationDate" | "id"
 > & {
   demonstrationTypes: string[];
 };
@@ -133,7 +134,11 @@ export const AddDeliverableSlotDialog = ({
           onClick={() => {
             // For now log out the payload that would be sent to the backend.
             // In the future, this is where the API call to create deliverable slots would go
-            const payloads = buildAddDeliverableSlotPayloads(demonstrationYear, formData);
+            const payloads = buildAddDeliverableSlotPayloads(
+              demonstration.id,
+              demonstrationYear,
+              formData
+            );
             console.log(payloads);
             showSuccess(DELIVERABLE_SLOTS_CREATED_MESSAGE);
             onClose();

@@ -203,6 +203,7 @@ export const DialogSandbox: React.FC = () => {
             name="add-deliverable-slot"
             onClick={() =>
               showAddDeliverableSlotDialog({
+                id: "demo-1",
                 demonstrationTypes: ["Demo Type 1", "Demo Type 2", "Demo Type 3"],
               })
             }

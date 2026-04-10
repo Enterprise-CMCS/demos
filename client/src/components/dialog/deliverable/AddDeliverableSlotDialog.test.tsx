@@ -2,7 +2,6 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
-import { MockedProvider } from "@apollo/client/testing";
 
 import {
   ADD_DELIVERABLE_SLOT_DIALOG_TITLE,
@@ -18,12 +17,15 @@ import {
 } from "./AddDeliverableSlotDialog";
 import { TestProvider } from "test-utils/TestProvider";
 
+const TEST_DEMO_ID = "demo-123";
+
 const MOCK_DEMONSTRATION_TYPES: string[] = [
   "Aggregate Cap",
   "Annual Limits",
   "Basic Health Plan (BHP)",
 ];
 const DEFAULT_DEMONSTRATION: AddDeliverableSlotDemonstration = {
+  id: TEST_DEMO_ID,
   demonstrationTypes: MOCK_DEMONSTRATION_TYPES,
   effectiveDate: new Date("2024-01-01"),
   expirationDate: new Date("2026-12-31"),
@@ -135,14 +137,14 @@ describe("buildAddDeliverableSlotPayloads", () => {
       demonstrationTypes: ["Aggregate Cap"],
     };
 
-    expect(buildAddDeliverableSlotPayloads(2, formData)).toEqual([
+    expect(buildAddDeliverableSlotPayloads(TEST_DEMO_ID, 2, formData)).toEqual([
       {
         deliverableName: "My Deliverable",
         cmsOwnerId: "user-1",
         deliverableType: "Annual Budget Neutrality Report",
-        scheduleType: "Single",
         dueDate: "2026-04-01",
         demonstrationTypes: ["Aggregate Cap"],
+        demonstrationId: TEST_DEMO_ID,
       },
     ]);
   });
@@ -158,13 +160,14 @@ describe("buildAddDeliverableSlotPayloads", () => {
       demonstrationTypes: ["Aggregate Cap"],
     };
 
-    expect(buildAddDeliverableSlotPayloads(2, formData)).toEqual([
+    expect(buildAddDeliverableSlotPayloads(TEST_DEMO_ID, 2, formData)).toEqual([
       {
         deliverableName: "DY2Q1 My Deliverable",
         cmsOwnerId: "user-1",
         deliverableType: "Annual Budget Neutrality Report",
         dueDate: "2026-01-15",
         demonstrationTypes: ["Aggregate Cap"],
+        demonstrationId: TEST_DEMO_ID,
       },
       {
         deliverableName: "DY2Q2 My Deliverable",
@@ -172,6 +175,7 @@ describe("buildAddDeliverableSlotPayloads", () => {
         deliverableType: "Annual Budget Neutrality Report",
         dueDate: "2026-04-15",
         demonstrationTypes: ["Aggregate Cap"],
+        demonstrationId: TEST_DEMO_ID,
       },
       {
         deliverableName: "DY2Q3 My Deliverable",
@@ -179,6 +183,7 @@ describe("buildAddDeliverableSlotPayloads", () => {
         deliverableType: "Annual Budget Neutrality Report",
         dueDate: "2026-07-15",
         demonstrationTypes: ["Aggregate Cap"],
+        demonstrationId: TEST_DEMO_ID,
       },
       {
         deliverableName: "DY2Q4 My Deliverable",
@@ -186,6 +191,7 @@ describe("buildAddDeliverableSlotPayloads", () => {
         deliverableType: "Annual Budget Neutrality Report",
         dueDate: "2026-10-15",
         demonstrationTypes: ["Aggregate Cap"],
+        demonstrationId: TEST_DEMO_ID,
       },
     ]);
   });

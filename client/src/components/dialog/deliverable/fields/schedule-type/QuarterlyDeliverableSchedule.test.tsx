@@ -9,7 +9,7 @@ import {
 
 describe("QuarterlyDeliverableSchedule", () => {
   it("renders 4 quarter datepickers", () => {
-    render(<QuarterlyDeliverableSchedule />);
+    render(<QuarterlyDeliverableSchedule onSelectYear={vi.fn()} />);
 
     expect(screen.getAllByLabelText(/Quarter/i)).toHaveLength(4);
   });
@@ -17,6 +17,7 @@ describe("QuarterlyDeliverableSchedule", () => {
   it("shows correct year options in the year select", () => {
     render(
       <QuarterlyDeliverableSchedule
+        onSelectYear={vi.fn()}
         demonstrationEffectiveDate={new Date("2024-01-01")}
         demonstrationExpirationDate={new Date("2026-12-31")}
       />
