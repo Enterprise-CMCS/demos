@@ -97,6 +97,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
         >
           <DeliverablesTab
             parentDemonstration={{
+              id: demonstration.id,
               demonstrationTypes: demonstrationTypeNames,
               effectiveDate: demonstration.effectiveDate,
               expirationDate: demonstration.expirationDate,
