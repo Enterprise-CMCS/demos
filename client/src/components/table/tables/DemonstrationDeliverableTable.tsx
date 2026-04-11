@@ -8,6 +8,7 @@ import { highlightCell, KeywordSearch } from "components/table/KeywordSearch";
 import { ColumnFilter } from "components/table/ColumnFilter";
 import { PaginationControls } from "components/table/PaginationControls";
 import { formatDeliverableStatus } from "./DeliverableTable";
+import { sortDeliverablesByDefault } from "util/sortDeliverables";
 
 const DEFAULT_EMPTY_ROWS_MESSAGE = "You have no assigned Deliverables at this time";
 const DEFAULT_NO_SEARCH_RESULTS_MESSAGE =
@@ -56,10 +57,14 @@ export const DemonstrationDeliverableTable: React.FC<{
     }),
   ];
 
-  const formattedDeliverables = deliverables.map((deliverable) => ({
-    ...deliverable,
-    status: formatDeliverableStatus(deliverable),
-  }));
+  const formattedDeliverables = React.useMemo(
+    () =>
+      sortDeliverablesByDefault(deliverables).map((deliverable) => ({
+        ...deliverable,
+        status: formatDeliverableStatus(deliverable),
+      })),
+    [deliverables]
+  );
 
   return (
     <Table<DemonstrationDeliverableTableRow>

@@ -3,8 +3,12 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { DeliverableTable } from "./DeliverableTable";
+import { DeliverableTable, formatDeliverableStatus } from "./DeliverableTable";
 import { MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
+import { sortDeliverablesByDefault } from "util/sortDeliverables";
+
+const sortedDeliverables = sortDeliverablesByDefault(MOCK_DELIVERABLES);
+const sortedFirstPageIds = sortedDeliverables.slice(0, 10).map((deliverable) => deliverable.id);
 
 describe("DeliverableTable", () => {
   beforeEach(async () => {
@@ -15,11 +19,19 @@ describe("DeliverableTable", () => {
   });
 
   it("renders all deliverable names initially", () => {
-    MOCK_DELIVERABLES.slice(0, 10).forEach((deliverable) => {
+    sortedDeliverables.slice(0, 10).forEach((deliverable) => {
       expect(
         screen.getByText(deliverable.deliverableName)
       ).toBeInTheDocument();
     });
+  });
+
+  it("applies default deliverable ordering on first render", () => {
+    const renderedRowIds = screen
+      .getAllByTestId(/^select-row-/)
+      .map((checkbox) => checkbox.getAttribute("data-testid")?.replace("select-row-", ""));
+
+    expect(renderedRowIds).toEqual(sortedFirstPageIds);
   });
 
   it("shows empty state when no deliverables provided", async () => {
@@ -66,7 +78,7 @@ describe("DeliverableTable", () => {
     const user = userEvent.setup();
 
     await user.click(
-      screen.getByTestId(`select-row-${MOCK_DELIVERABLES[0].id}`)
+      screen.getByTestId(`select-row-${sortedFirstPageIds[0]}`)
     );
 
     const editBtn = screen.getByTestId("edit-deliverable");
@@ -77,10 +89,10 @@ describe("DeliverableTable", () => {
     const user = userEvent.setup();
 
     await user.click(
-      screen.getByTestId(`select-row-${MOCK_DELIVERABLES[0].id}`)
+      screen.getByTestId(`select-row-${sortedFirstPageIds[0]}`)
     );
     await user.click(
-      screen.getByTestId(`select-row-${MOCK_DELIVERABLES[1].id}`)
+      screen.getByTestId(`select-row-${sortedFirstPageIds[1]}`)
     );
 
     const editBtn = screen.getByTestId("edit-deliverable");
@@ -91,7 +103,7 @@ describe("DeliverableTable", () => {
     const user = userEvent.setup();
 
     await user.click(
-      screen.getByTestId(`select-row-${MOCK_DELIVERABLES[0].id}`)
+      screen.getByTestId(`select-row-${sortedFirstPageIds[0]}`)
     );
 
     const removeBtn = screen.getByTestId("remove-deliverable");
@@ -149,7 +161,7 @@ describe("DeliverableTable", () => {
 
       expect(searchInput).toHaveValue("");
 
-      MOCK_DELIVERABLES.slice(0, 10).forEach((deliverable) => {
+      sortedDeliverables.slice(0, 10).forEach((deliverable) => {
         expect(
           screen.getByText(deliverable.deliverableName)
         ).toBeInTheDocument();
@@ -158,9 +170,20 @@ describe("DeliverableTable", () => {
   });
 
   it("renders combined status values for upcoming deliverables", () => {
-    expect(screen.getAllByText("Upcoming").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Upcoming - Extension Requested").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Upcoming (2) - Extension Requested").length).toBeGreaterThan(0);
+    expect(
+      formatDeliverableStatus({
+        status: "Upcoming",
+        extensionRequested: true,
+        resubmissionCount: 0,
+      })
+    ).toBe("Upcoming - Extension Requested");
+    expect(
+      formatDeliverableStatus({
+        status: "Upcoming",
+        extensionRequested: true,
+        resubmissionCount: 2,
+      })
+    ).toBe("Upcoming (2) - Extension Requested");
   });
 
   it("renders column filter dropdown", () => {
