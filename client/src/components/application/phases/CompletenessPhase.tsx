@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
@@ -139,6 +139,7 @@ export const getApplicationCompletenessFromApplication = (
       applicationIntakeComplete={applicationIntakePhase?.phaseStatus === "Completed"}
       completenessReviewDate={findDate("Completeness Review Due Date")}
       completenessComplete={completenessPhase?.phaseStatus === "Completed"}
+      completenessIncomplete={completenessPhase?.phaseStatus === "Incomplete"}
       stateDeemedCompleteDate={findDate("State Application Deemed Complete")}
       completenessDocuments={completenessDocuments}
       setSelectedPhase={setSelectedPhase}
@@ -148,9 +149,11 @@ export const getApplicationCompletenessFromApplication = (
 
 const calculateStateDeemedCompleteDate = (
   stateDeemedCompleteDate: string,
-  completenessDocuments: ApplicationWorkflowDocument[]
+  completenessDocuments: ApplicationWorkflowDocument[],
+  completenessIncomplete: boolean
 ): string => {
   if (stateDeemedCompleteDate) return stateDeemedCompleteDate;
+  if (completenessIncomplete) return "";
   const applicationCompletenessLetter = completenessDocuments.find(
     (doc) => doc.documentType === "Application Completeness Letter"
   );
@@ -163,6 +166,7 @@ export interface CompletenessPhaseProps {
   applicationIntakeComplete: boolean;
   completenessReviewDate?: string;
   completenessComplete: boolean;
+  completenessIncomplete: boolean;
   stateDeemedCompleteDate: string;
   completenessDocuments: ApplicationWorkflowDocument[];
   setSelectedPhase: (phase: PhaseName) => void;
@@ -173,6 +177,7 @@ export const CompletenessPhase = ({
   applicationIntakeComplete,
   completenessReviewDate,
   completenessComplete,
+  completenessIncomplete,
   stateDeemedCompleteDate,
   completenessDocuments,
   setSelectedPhase,
@@ -186,9 +191,16 @@ export const CompletenessPhase = ({
   const [userSelectedStateDeemedCompleteDate, setUserSelectedStateDeemedCompleteDate] =
     useState("");
 
+  useEffect(() => {
+    if (completenessIncomplete) {
+      setUserSelectedStateDeemedCompleteDate("");
+    }
+  }, [completenessIncomplete]);
+
   const calculatedStateDeemedCompleteDate = calculateStateDeemedCompleteDate(
     stateDeemedCompleteDate,
-    completenessDocuments
+    completenessDocuments,
+    completenessIncomplete
   );
   const stateDeemedComplete =
     userSelectedStateDeemedCompleteDate || calculatedStateDeemedCompleteDate;
