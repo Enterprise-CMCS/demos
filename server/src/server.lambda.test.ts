@@ -8,18 +8,24 @@ let buildLambdaContext!: typeof import("./auth/auth.util.ts").buildLambdaContext
 const userFindUnique = vi.fn();
 const userCreate     = vi.fn();
 const personCreate   = vi.fn();
+const systemRoleAssignmentFindMany = vi.fn().mockResolvedValue([]); 
+const rolePermissionFindMany = vi.fn().mockResolvedValue([]);
 
 // Prisma: mock BOTH specifiers that your code might use
 vi.mock("./prismaClient.js", () => ({
   prisma: () => ({
     user:   { findUnique: userFindUnique, create: userCreate },
     person: { create: personCreate },
+    systemRoleAssignment: { findMany: systemRoleAssignmentFindMany },
+    rolePermission: { findMany: rolePermissionFindMany },
   }),
 }));
 vi.mock("../prismaClient.js", () => ({
   prisma: () => ({
     user:   { findUnique: userFindUnique, create: userCreate },
     person: { create: personCreate },
+    systemRoleAssignment: { findMany: systemRoleAssignmentFindMany },
+    rolePermission: { findMany: rolePermissionFindMany },
   }),
 }));
 
