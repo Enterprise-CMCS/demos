@@ -12,7 +12,7 @@ import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
 import { als, log, store, reqIdChild } from "./log";
 
 const GUARDDUTY_CLEAN_STATUS = "NO_THREATS_FOUND";
-const FINAL_BN_WORKSHEET_DOCUMENT_TYPE = "Final BN Worksheet";
+const FINAL_BN_WORKSHEET_DOCUMENT_TYPE = "BN Workbook";
 // IF we want to add other file type to run in UIPATH. Add below!
 const UIPATH_AUTOMATED_QUEUE_DOCUMENT_TYPES = new Set(["State Application"]);
 const PROCESS_PENDING_DOCUMENT_CLEAN = "move_document_from_pending_to_clean";
@@ -64,7 +64,9 @@ export async function getApplicationId(client: typeof Client, fileKey: string) {
 
     return result.rows[0].application_id;
   } catch (error) {
-    throw new Error(`Failed to get application ID for key ${fileKey}: ${(error as Error).message}.`);
+    throw new Error(
+      `Failed to get application ID for key ${fileKey}: ${(error as Error).message}.`
+    );
   }
 }
 
@@ -146,17 +148,12 @@ export async function processInfectedDatabaseRecord(
   log.info("Successfully processed infected file.");
 }
 
-export async function enqueueBudgetNeutrality(
-  documentId: string,
-  documentTypeId: string
-) {
+export async function enqueueBudgetNeutrality(documentId: string, documentTypeId: string) {
   log.info({ documentId, documentTypeId }, "BudgetNeutrality Queue Started");
   const budgetNeutralityQueueUrl = process.env.BUDGET_NEUTRALITY_QUEUE_URL;
 
   if (!budgetNeutralityQueueUrl) {
-    throw new Error(
-      "BUDGET_NEUTRALITY_QUEUE_URL environment variable is required."
-    );
+    throw new Error("BUDGET_NEUTRALITY_QUEUE_URL environment variable is required.");
   }
 
   const sqsClient = new SQSClient({
@@ -211,10 +208,7 @@ export async function enqueueUiPath(documentId: string) {
     throw new Error(`Failed to enqueue UiPath message for document ${documentId}.`);
   }
 
-  log.info(
-    { documentId, messageId: response.MessageId },
-    "queued UiPath extraction request."
-  );
+  log.info({ documentId, messageId: response.MessageId }, "queued UiPath extraction request.");
 }
 
 export async function processGuardDutyResult(

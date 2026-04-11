@@ -26,6 +26,7 @@ import { UpdateAmendmentDialog } from "./modification/EditAmendmentDialog";
 import { ConfirmApproveDialog } from "./ConfirmApproveDialog";
 import { AddDeliverableSlotDialog } from "./deliverable";
 import { WorkflowApplicationType } from "components/application";
+import { AddDeliverableSlotDemonstration } from "./deliverable/AddDeliverableSlotDialog";
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -224,20 +225,13 @@ export const useDialog = () => {
     applicationType: WorkflowApplicationType
   ) => {
     context.showDialog(
-      <ConfirmApproveDialog
-        onClose={context.hideDialog}
-        onConfirm={onConfirm}
-        applicationType={applicationType}
-      />
+      <ConfirmApproveDialog onConfirm={onConfirm} applicationType={applicationType} />
     );
   };
 
-  const showAddDeliverableSlotDialog = (demonstrationTypes: string[] = []) => {
+  const showAddDeliverableSlotDialog = (demonstration: AddDeliverableSlotDemonstration) => {
     context.showDialog(
-      <AddDeliverableSlotDialog
-        onClose={context.hideDialog}
-        demonstrationTypes={demonstrationTypes}
-      />
+      <AddDeliverableSlotDialog onClose={context.hideDialog} demonstration={demonstration} />
     );
   };
 

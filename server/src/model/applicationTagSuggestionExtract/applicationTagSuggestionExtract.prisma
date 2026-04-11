@@ -9,6 +9,7 @@ model ApplicationTagSuggestionExtract {
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
+  // DEFERRED: will be manually replaced by new deferred key through migration
   suggestion  ApplicationTagSuggestion                  @relation(fields: [suggestionId, applicationId, value], references: [id, applicationId, value])
   uiPathValue UiPathValue                               @relation(fields: [uiPathValueId, applicationId, fieldId, value], references: [id, applicationId, fieldId, value])
   field       ApplicationTagSuggestionExtractFieldLimit @relation(fields: [fieldId], references: [id])

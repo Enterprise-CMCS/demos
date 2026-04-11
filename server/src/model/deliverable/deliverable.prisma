@@ -1,0 +1,36 @@
+model Deliverable {
+  id                    String   @db.Uuid
+  deliverableTypeId     String   @map("deliverable_type_id")
+  name                  String   
+  demonstrationId       String   @map("demonstration_id") @db.Uuid
+  demonstrationStatusId String   @map("demonstration_status_id")
+  statusId              String   @map("status_id")
+  cmsOwnerUserId        String   @map("cms_owner_user_id") @db.Uuid
+  cmsOwnerPersonTypeId  String   @map("cms_owner_person_type_id")
+  dueDate               DateTime @map("due_date") @db.Timestamptz
+  dueDateTypeId         String   @map("due_date_type_id")
+  expectedToBeSubmitted Boolean  @map("expected_to_be_submitted")
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  deliverableType               DeliverableType                     @relation(fields: [deliverableTypeId], references: [id])
+  status                        DeliverableStatus                   @relation(fields: [statusId], references: [id])
+  demonstration                 Demonstration                       @relation(fields: [demonstrationId, demonstrationStatusId], references: [id, statusId])
+  demonstrationStatus           DeliverableDemonstrationStatusLimit @relation(fields: [demonstrationStatusId], references: [id])
+  cmsOwner                      User                                @relation(fields: [cmsOwnerUserId, cmsOwnerPersonTypeId], references: [id, personTypeId])
+  personType                    CmsUserPersonTypeLimit              @relation(fields: [cmsOwnerPersonTypeId], references: [id])
+  dueDateType                   DeliverableDueDateType              @relation(fields: [dueDateTypeId], references: [id])
+  documents                     Document[]
+  documentsPendingUpload        DocumentPendingUpload[]
+  documentsInfected             DocumentInfected[]
+  deliverableActions            DeliverableAction[]
+  deliverableExtensions         DeliverableExtension[]
+  deliverableDemonstrationTypes DeliverableDemonstrationType[]
+  privateComments               PrivateComment[]
+  publicComments                PublicComment[]
+
+  @@id([id])
+  @@unique([id, demonstrationId])
+  @@unique([id, demonstrationId, deliverableTypeId])
+  @@map("deliverable")
+}

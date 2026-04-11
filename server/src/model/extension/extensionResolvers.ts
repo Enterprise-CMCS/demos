@@ -21,6 +21,7 @@ import {
   resolveApplicationStatus,
   resolveApplicationTags,
   resolveApplicationSignatureLevel,
+  resolveSuggestedApplicationTags,
 } from "../application";
 
 const extensionApplicationType: ApplicationType = "Extension";
@@ -129,5 +130,6 @@ export const extensionResolvers = {
     clearanceLevel: resolveApplicationClearanceLevel,
     tags: resolveApplicationTags,
     signatureLevel: resolveApplicationSignatureLevel,
+    suggestedApplicationTags: resolveSuggestedApplicationTags,
   },
 };

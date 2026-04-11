@@ -14,23 +14,24 @@ import type {
 import { getS3Adapter } from "../../adapters";
 import { getEasternNow } from "../../dateUtilities";
 import { getApplication, PrismaApplication } from "../application";
-import { findUserById } from "../user";
+import { getUser } from "../user";
 import { validateAndUpdateDates } from "../applicationDate";
 import { startPhaseByDocument } from "../applicationPhase";
 import { enqueueUiPath } from "../../services/uipathQueue";
+import { resolveDeliverable } from "../deliverable";
 import {
   checkDocumentExists,
-  getDocumentById,
+  getDocument,
   updateDocument as updateDocumentQuery,
   handleDeleteDocument,
 } from ".";
 
-export async function getDocument(
+export async function queryDocument(
   parent: unknown,
   { id }: { id: string }
 ): Promise<PrismaDocument> {
   return await prisma().$transaction(async (tx) => {
-    return await getDocumentById(tx, id);
+    return await getDocument({ id: id }, tx);
   });
 }
 
@@ -45,6 +46,11 @@ export async function uploadDocument(
   { input }: { input: UploadDocumentInput },
   context: GraphQLContext
 ): Promise<UploadDocumentResponse> {
+  checkOptionalNotNullFields(
+    ["name", "documentType", "applicationId", "phaseName", "deliverableId"],
+    input
+  );
+
   const s3Adapter = getS3Adapter();
 
   try {
@@ -53,6 +59,11 @@ export async function uploadDocument(
         "The GraphQL context does not have user information. Are you properly authenticated?"
       );
     }
+
+    if (input.phaseName && input.deliverableId) {
+      throw new Error("A document cannot be associated with both a phase and a deliverable.");
+    }
+
     const userId = context.user.id;
     return await prisma().$transaction(async (tx) => {
       const easternNow = getEasternNow();
@@ -91,7 +102,10 @@ export async function updateDocument(
   _: unknown,
   { id, input }: { id: string; input: UpdateDocumentInput }
 ): Promise<PrismaDocument> {
-  checkOptionalNotNullFields(["name", "documentType", "applicationId", "phaseName"], input);
+  checkOptionalNotNullFields(
+    ["name", "documentType", "applicationId", "phaseName", "deliverableId"],
+    input
+  );
   try {
     return await prisma().$transaction(async (tx) => {
       return await updateDocumentQuery(tx, id, input);
@@ -159,7 +173,7 @@ export async function triggerUiPath(
 export async function resolveOwner(parent: PrismaDocument): Promise<PrismaUser> {
   try {
     return prisma().$transaction(async (tx) => {
-      return findUserById(tx, parent.ownerUserId);
+      return getUser({ id: parent.ownerUserId }, tx);
     });
   } catch (error) {
     handlePrismaError(error);
@@ -178,9 +192,27 @@ export function resolvePhaseName(parent: PrismaDocument): PhaseName {
   return parent.phaseId as PhaseName;
 }
 
+export async function resolveHasPendingUIPathResult(
+  parent: PrismaDocument
+): Promise<boolean> {
+  try {
+    const pendingUiPathResults = await prisma().uiPathResult.findFirst({
+      where: {
+        documentId: parent.id,
+        applicationId: parent.applicationId,
+        statusId: "Pending",
+      },
+      select: { id: true },
+    })
+    return pendingUiPathResults !== null;
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
+
 export const documentResolvers = {
   Query: {
-    document: getDocument,
+    document: queryDocument,
     documentExists: documentExists,
   },
 
@@ -197,6 +229,8 @@ export const documentResolvers = {
     documentType: resolveDocumentType,
     presignedDownloadUrl: resolvePresignedDownloadUrl,
     application: resolveApplication,
+    deliverable: resolveDeliverable,
     phaseName: resolvePhaseName,
+    hasPendingUIPathResult: resolveHasPendingUIPathResult,
   },
 };

@@ -1,0 +1,16 @@
+// Flags: NO_CREATED_TS, NO_UPDATED_TS, NO_HISTORY
+// Table stores a configuration of how actions change status, and will be largely unchanging.
+model DeliverableActionConfiguration {
+  actionTypeId String @map("action_type_id")
+  oldStatusId  String @map("old_status_id")
+  newStatusId  String @map("new_status_id")
+
+  // Note: the quoted relation names are purely Prisma metadata used to link fields with different relation names
+  actionType         DeliverableActionType @relation(fields: [actionTypeId], references: [id])
+  oldStatus          DeliverableStatus     @relation("deliverableActionConfigurationOldStatusRelation", fields: [oldStatusId], references: [id])
+  newStatus          DeliverableStatus     @relation("deliverableActionConfigurationNewStatusRelation", fields: [newStatusId], references: [id])
+  deliverableActions DeliverableAction[]
+
+  @@id([actionTypeId, oldStatusId, newStatusId])
+  @@map("deliverable_action_configuration")
+}

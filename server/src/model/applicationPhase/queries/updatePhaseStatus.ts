@@ -1,9 +1,9 @@
 import { PrismaTransactionClient } from "../../../prismaClient.js";
-import { PhaseNameWithTrackedStatus, PhaseStatus } from "../../../types.js";
+import { PhaseName, PhaseStatus } from "../../../types.js";
 
 export async function updatePhaseStatus(
   applicationId: string,
-  phaseName: PhaseNameWithTrackedStatus,
+  phaseName: PhaseName,
   phaseStatus: PhaseStatus,
   tx: PrismaTransactionClient
 ): Promise<void> {

@@ -32,8 +32,10 @@ import {
   resolveApplicationStatus,
   resolveApplicationTags,
   resolveApplicationSignatureLevel,
+  resolveSuggestedApplicationTags,
 } from "../application";
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
+import { resolveManyDeliverables } from "../deliverable";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -312,6 +314,8 @@ export const demonstrationResolvers = {
     primaryProjectOfficer: __resolveDemonstrationPrimaryProjectOfficer,
     clearanceLevel: resolveApplicationClearanceLevel,
     tags: resolveApplicationTags,
+    suggestedApplicationTags: resolveSuggestedApplicationTags,
     demonstrationTypes: resolveDemonstrationTypes,
+    deliverables: resolveManyDeliverables,
   },
 };

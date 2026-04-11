@@ -8,9 +8,9 @@ import { handler, getDatabaseUrl, deleteInfectedDocument } from "./index";
 vi.mock("@aws-sdk/client-secrets-manager", () => {
   const mockSend = vi.fn();
   return {
-    SecretsManagerClient: vi.fn(() => ({
-      send: mockSend,
-    })),
+    SecretsManagerClient: vi.fn(function () {
+      return { send: mockSend };
+    }),
     GetSecretValueCommand: vi.fn(),
   };
 });
@@ -22,11 +22,13 @@ vi.mock("pg", () => {
   const mockEnd = vi.fn();
 
   return {
-    Client: vi.fn().mockImplementation(() => ({
-      query: mockQuery,
-      connect: mockConnect,
-      end: mockEnd,
-    })),
+    Client: vi.fn().mockImplementation(function () {
+      return {
+        query: mockQuery,
+        connect: mockConnect,
+        end: mockEnd,
+      };
+    }),
   };
 });
 

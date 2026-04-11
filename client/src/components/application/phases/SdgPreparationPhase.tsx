@@ -5,7 +5,7 @@ import { Button, SecondaryButton } from "components/button";
 import { useToast } from "components/toast";
 import { SimplePhase, WorkflowApplication } from "components/application";
 import { formatDateForServer } from "util/formatDate";
-import { ApplicationStatus, DateType, LocalDate, PhaseNameWithTrackedStatus } from "demos-server";
+import { ApplicationStatus, DateType, LocalDate, PhaseName } from "demos-server";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
 import {
   FAILED_TO_SAVE_MESSAGE,
@@ -62,7 +62,7 @@ export const hasChanges = (
 
 export const getSdgPreparationPhaseFromApplication = (
   application: WorkflowApplication,
-  setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void
+  setSelectedPhase: (phase: PhaseName) => void
 ) => {
   const sdgPreparationPhase = application.phases.find(
     (phase: SimplePhase) => phase.phaseName === "SDG Preparation"
@@ -102,7 +102,7 @@ export const SdgPreparationPhase = ({
 }: {
   applicationId: string;
   sdgPreparationPhase: SimplePhase;
-  setSelectedPhase: (phase: PhaseNameWithTrackedStatus) => void;
+  setSelectedPhase: (phase: PhaseName) => void;
   allPreviousPhasesDone: boolean;
   applicationStatus: ApplicationStatus;
 }) => {

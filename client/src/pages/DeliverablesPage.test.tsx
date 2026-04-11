@@ -1,15 +1,30 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import * as UserContext from "components/user/UserContext";
 
 import { DeliverablesPage } from "./DeliverablesPage";
 import { MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
+import { mockUsers } from "mock-data/userMocks";
+
+vi.mock("components/user/UserContext", async (importOriginal) => {
+  const actual = await importOriginal<typeof UserContext>();
+  return {
+    ...actual,
+    getCurrentUser: vi.fn(),
+  };
+});
 
 describe("DeliverablesPage tab persistence", () => {
   const TAB_KEY = "selectedDeliverableTab";
+  const CURRENT_USER_ID = "dustyrhodes";
+  const mockGetCurrentUser = vi.mocked(UserContext.getCurrentUser);
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetCurrentUser.mockReturnValue({
+      currentUser: mockUsers[0],
+    });
     sessionStorage.clear();
   });
 
@@ -46,7 +61,7 @@ describe("DeliverablesPage tab persistence", () => {
     render(<DeliverablesPage />);
 
     const myDeliverablesCount = MOCK_DELIVERABLES.filter(
-      (d) => d.primaryContact?.id === "currentUserId"
+      (d) => d.primaryContact?.id === CURRENT_USER_ID
     ).length;
 
     expect(
@@ -60,12 +75,14 @@ describe("DeliverablesPage tab persistence", () => {
 
   it("filters My Deliverables correctly", () => {
     render(<DeliverablesPage />);
+    fireEvent.click(screen.getByTestId("button-my-deliverables"));
 
-    // Should show only deliverables assigned to currentUserId
-    expect(screen.getByText("Deliverable 2")).toBeInTheDocument();
+    // Should show only deliverables assigned to CURRENT_USER_ID
+    expect(screen.getByText("Quarterly Report For NYC Demonstration")).toBeInTheDocument();
+    expect(screen.getByText("Budget Neutrality Worksheet")).toBeInTheDocument();
 
     // Should NOT show others in My Deliverables tab
-    expect(screen.queryByText("Deliverable 1")).not.toBeInTheDocument();
+    expect(screen.queryByText("Budget Neutrality Report")).not.toBeInTheDocument();
     expect(screen.queryByText("Deliverable 3")).not.toBeInTheDocument();
   });
 
@@ -74,8 +91,61 @@ describe("DeliverablesPage tab persistence", () => {
 
     fireEvent.click(screen.getByTestId("button-deliverables"));
 
-    expect(screen.getByText("Deliverable 1")).toBeInTheDocument();
-    expect(screen.getByText("Deliverable 2")).toBeInTheDocument();
-    expect(screen.getByText("Deliverable 3")).toBeInTheDocument();
+    expect(screen.getByText("Budget Neutrality Report")).toBeInTheDocument();
+    expect(screen.getByText("Quarterly Report For NYC Demonstration")).toBeInTheDocument();
+    expect(screen.getByText("Deliverable 8")).toBeInTheDocument();
+  });
+
+  it("uses state-user table columns when current user is demos-state-user", () => {
+    mockGetCurrentUser.mockReturnValue({
+      currentUser: {
+        ...mockUsers[0],
+        person: {
+          ...mockUsers[0].person,
+          personType: "demos-state-user",
+        },
+      },
+    });
+
+    render(<DeliverablesPage />);
+
+    expect(screen.queryByRole("columnheader", { name: /State\/Territory/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: /CMS Owner/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /Demonstration Name/i })).toBeInTheDocument();
+  });
+
+  it("shows All Deliverables tab for demos-state-user", () => {
+    mockGetCurrentUser.mockReturnValue({
+      currentUser: {
+        ...mockUsers[0],
+        person: {
+          ...mockUsers[0].person,
+          personType: "demos-state-user",
+        },
+      },
+    });
+
+    render(<DeliverablesPage />);
+
+    expect(screen.getByTestId("button-deliverables")).toBeInTheDocument();
+    expect(screen.getByTestId("button-my-deliverables")).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("uses stored deliverables tab for demos-state-user", () => {
+    mockGetCurrentUser.mockReturnValue({
+      currentUser: {
+        ...mockUsers[0],
+        person: {
+          ...mockUsers[0].person,
+          personType: "demos-state-user",
+        },
+      },
+    });
+    sessionStorage.setItem(TAB_KEY, "deliverables");
+
+    render(<DeliverablesPage />);
+
+    expect(sessionStorage.getItem(TAB_KEY)).toBe("deliverables");
+    expect(screen.getByTestId("button-deliverables")).toHaveAttribute("aria-selected", "true");
   });
 });

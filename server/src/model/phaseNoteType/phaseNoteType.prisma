@@ -1,4 +1,4 @@
-// Flags: NO_CREATED_TS, NO_UPDATED_TS, NO_HISTORY, NATURAL_KEY
+// Flags: NO_CREATED_TS, NO_UPDATED_TS, NO_HISTORY
 // Table stores a configuration of which phases allow which documents, and will be largely unchanging.
 model PhaseNoteType {
   phaseId    String @map("phase_id")

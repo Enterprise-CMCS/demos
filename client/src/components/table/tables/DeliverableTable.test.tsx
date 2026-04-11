@@ -8,26 +8,42 @@ import { MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
 
 describe("DeliverableTable", () => {
   beforeEach(async () => {
-    render(<DeliverableTable deliverables={MOCK_DELIVERABLES} />);
+    render(<DeliverableTable deliverables={MOCK_DELIVERABLES} viewMode="demos-cms-user" />);
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
   });
 
   it("renders all deliverable names initially", () => {
-    MOCK_DELIVERABLES.forEach((deliverable) => {
+    MOCK_DELIVERABLES.slice(0, 10).forEach((deliverable) => {
       expect(
-        screen.getByText(deliverable.name)
+        screen.getByText(deliverable.deliverableName)
       ).toBeInTheDocument();
     });
   });
 
   it("shows empty state when no deliverables provided", async () => {
-    render(<DeliverableTable deliverables={[]} />);
+    render(<DeliverableTable deliverables={[]} viewMode="demos-cms-user" />);
 
     await waitFor(() => {
       expect(
-        screen.getByText("No deliverables available.")
+        screen.getByText("There are no assigned Deliverables at this time")
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("supports custom empty state message", async () => {
+    render(
+      <DeliverableTable
+        deliverables={[]}
+        emptyRowsMessage="You have no assigned Deliverables at this time"
+        viewMode="demos-cms-user"
+      />
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("You have no assigned Deliverables at this time")
       ).toBeInTheDocument();
     });
   });
@@ -92,11 +108,11 @@ describe("DeliverableTable", () => {
       const user = userEvent.setup();
       const searchInput = screen.getByLabelText(/search:/i);
 
-      await user.type(searchInput, MOCK_DELIVERABLES[0].name);
+      await user.type(searchInput, MOCK_DELIVERABLES[0].deliverableName);
 
       await waitFor(() => {
         expect(
-          screen.getByText(MOCK_DELIVERABLES[0].name)
+          screen.getByText(MOCK_DELIVERABLES[0].deliverableName)
         ).toBeInTheDocument();
       });
     });
@@ -120,11 +136,11 @@ describe("DeliverableTable", () => {
       const user = userEvent.setup();
       const searchInput = screen.getByLabelText(/search:/i);
 
-      await user.type(searchInput, MOCK_DELIVERABLES[0].name);
+      await user.type(searchInput, MOCK_DELIVERABLES[0].deliverableName);
 
       await waitFor(() => {
         expect(
-          screen.getByText(MOCK_DELIVERABLES[0].name)
+          screen.getByText(MOCK_DELIVERABLES[0].deliverableName)
         ).toBeInTheDocument();
       });
 
@@ -133,12 +149,18 @@ describe("DeliverableTable", () => {
 
       expect(searchInput).toHaveValue("");
 
-      MOCK_DELIVERABLES.forEach((deliverable) => {
+      MOCK_DELIVERABLES.slice(0, 10).forEach((deliverable) => {
         expect(
-          screen.getByText(deliverable.name)
+          screen.getByText(deliverable.deliverableName)
         ).toBeInTheDocument();
       });
     });
+  });
+
+  it("renders combined status values for upcoming deliverables", () => {
+    expect(screen.getAllByText("Upcoming").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Upcoming - Extension Requested").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Upcoming (2) - Extension Requested").length).toBeGreaterThan(0);
   });
 
   it("renders column filter dropdown", () => {
@@ -147,5 +169,33 @@ describe("DeliverableTable", () => {
 
   it("renders pagination controls", () => {
     expect(screen.getByText(/Items per page/i)).toBeInTheDocument();
+  });
+});
+
+describe("DeliverableTable demos-state-user view mode", () => {
+  it("renders the state-user column set and hides state/CMS owner", async () => {
+    render(<DeliverableTable deliverables={MOCK_DELIVERABLES} viewMode="demos-state-user" />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole("columnheader", { name: /Demonstration Name/i })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /Deliverable Type/i })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /Deliverable Name/i })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /Due Date/i })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /Submission Date/i })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /Status/i })).toBeInTheDocument();
+
+    expect(screen.queryByRole("columnheader", { name: /State\/Territory/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: /CMS Owner/i })).not.toBeInTheDocument();
+  });
+
+  it("hides row action buttons in state-user mode", () => {
+    render(<DeliverableTable deliverables={MOCK_DELIVERABLES} viewMode="demos-state-user" />);
+
+    expect(screen.queryByLabelText(/Add Deliverable/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Edit Deliverable/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Remove Deliverable/i)).not.toBeInTheDocument();
   });
 });

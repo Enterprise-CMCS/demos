@@ -1,0 +1,14 @@
+model PublicComment {
+  id            String   @db.Uuid
+  deliverableId String   @map("deliverable_id") @db.Uuid
+  authorUserId  String   @map("author_user_id") @db.Uuid
+  content       String
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  deliverable Deliverable @relation(fields: [deliverableId], references: [id])
+  author      User        @relation(fields: [authorUserId], references: [id])
+
+  @@id([id])
+  @@map("public_comment")
+}

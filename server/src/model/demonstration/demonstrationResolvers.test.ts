@@ -53,6 +53,7 @@ import {
   resolveApplicationClearanceLevel,
   resolveApplicationTags,
   resolveApplicationSignatureLevel,
+  resolveSuggestedApplicationTags,
 } from "../application";
 import { parseDateTimeOrLocalDateToEasternTZDate, EasternTZDate } from "../../dateUtilities.js";
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
@@ -72,6 +73,7 @@ vi.mock("../application", () => ({
   resolveApplicationClearanceLevel: vi.fn(),
   resolveApplicationTags: vi.fn(),
   resolveApplicationSignatureLevel: vi.fn(),
+  resolveSuggestedApplicationTags: vi.fn(),
 }));
 
 vi.mock("../../errors/checkOptionalNotNullFields.js", () => ({
