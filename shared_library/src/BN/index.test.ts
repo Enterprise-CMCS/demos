@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { parseBNFile, parseBNFileFromPath, excelColumnRow } from "./index.js";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
-const fixturePath = path.join(currentDir, "..", "test", "fixtures", "sample.xlsx");
+const fixturePath = path.join(currentDir, ".." , "..", "test", "fixtures", "sample.xlsx");
 
 describe("parseBNFile", () => {
   it("parses workbook contents from a Blob", async () => {
