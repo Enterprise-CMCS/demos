@@ -29,15 +29,9 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
   }
 `;
 
-type DeliverableDetailsManagementDemonstration = Pick<Demonstration, "id" | "name"> & {state: {id: string}};
-export type DeliverableDetailsManagementDeliverable = Pick<Deliverable,
-"id"  | "deliverableType" | "dueDate" | "status"> &
-{demonstration: DeliverableDetailsManagementDemonstration,
-  cmsOwner: {
-    person: {
-      fullName: string;
-    };
-  };
+export type DeliverableDetailsManagementDeliverable = Pick<Deliverable, "id" | "deliverableType" | "dueDate" | "status"> & {
+  demonstration: Pick<Demonstration, "id" | "name"> & { state: { id: string } };
+  cmsOwner: { person: { fullName: string } };
 };
 
 
@@ -62,8 +56,8 @@ export const DeliverableDetailsManagementPage: React.FC = () => {
   const deliverable = data.deliverable;
 
   return (
-    <div>
-      <h1 >
+    <div className="shadow-md bg-white p-[16px]">
+      <h1 className="text-[20px] font-bold mb-[24px] text-brand uppercase border-b-1 pb-[8px]">
         DELIVERABLES
       </h1>
       <dl className="grid grid-cols-2">

@@ -4,6 +4,7 @@ import { ProfileBlock } from "./ProfileBlock";
 import { QuickLinks } from "./QuickLinks";
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
 import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
+import { DeliverableDetailHeader } from "pages/deliverables/DeliverableDetailHeader";
 
 const HEADER_STYLES = "w-full";
 const HEADER_UPPER_STYLES = "w-full flex justify-between p-[16px] h-[72px]";
@@ -33,7 +34,7 @@ const HeaderUpper: React.FC = () => {
 const HeaderLower: React.FC = () => {
   // Get the current path and params
   const location = useLocation();
-  const params = useParams<{ id?: string }>();
+  const params = useParams<{ id?: string; deliverableId?: string }>();
   const path = location.pathname;
 
   // Match /demonstrations/:id
@@ -41,6 +42,14 @@ const HeaderLower: React.FC = () => {
     const demonstrationId = params.id;
     if (demonstrationId) {
       return <DemonstrationDetailHeader demonstrationId={demonstrationId} />;
+    }
+  }
+
+  // Match /deliverable/:deliverableId
+  if (path.match(/^\/deliverable\/[^/]+$/)) {
+    const deliverableId = params.deliverableId;
+    if (deliverableId) {
+      return <DeliverableDetailHeader deliverableId={deliverableId} />;
     }
   }
 

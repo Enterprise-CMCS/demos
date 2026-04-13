@@ -13,7 +13,7 @@ import { isLocalDevelopment } from "config/env";
 import { DemosLayoutProvider } from "./DemosLayoutProvider";
 import { DocumentDetailPage } from "pages/DocumentDetails/DocumentDetail";
 import { DeliverablesPage } from "pages/DeliverablesPage";
-import { DeliverableDetailsManagementPage } from "pages/DeliverableDetailsManagementPage";
+import { DeliverableDetailsManagementPage } from "pages/deliverables/DeliverableDetailsManagementPage";
 
 export const DemosRouter: React.FC = () => {
   return (

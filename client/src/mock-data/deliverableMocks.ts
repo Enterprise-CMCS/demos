@@ -1,5 +1,6 @@
 import { MockedResponse } from "@apollo/client/testing";
-import { DELIVERABLE_DETAILS_QUERY, DeliverableDetailsManagementDeliverable } from "pages/DeliverableDetailsManagementPage";
+import { DELIVERABLE_DETAIL_HEADER_QUERY } from "pages/deliverables/DeliverableDetailHeader";
+import { DELIVERABLE_DETAILS_QUERY, DeliverableDetailsManagementDeliverable } from "pages/deliverables/DeliverableDetailsManagementPage";
 
 export type MockDeliverable = {
   id: string;
@@ -301,7 +302,7 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
   id: "1",
   deliverableType: "Monitoring Report",
   demonstration: {
-    id: "demo-1",
+    id: "1",
     name: "Demonstration 1",
     state: {
       id: "CA",
@@ -325,6 +326,23 @@ export const deliverableMocks: MockedResponse[] = [
     result: {
       data: {
         deliverable: MOCK_DELIVERABLE_1,
+      },
+    },
+    maxUsageCount: Number.POSITIVE_INFINITY,
+  },
+  {
+    request: {
+      query: DELIVERABLE_DETAIL_HEADER_QUERY,
+      variables: { id: "1" },
+    },
+    result: {
+      data: {
+        deliverable: {
+          id: "1",
+          demonstration: {
+            id: "1",
+          },
+        },
       },
     },
     maxUsageCount: Number.POSITIVE_INFINITY,
