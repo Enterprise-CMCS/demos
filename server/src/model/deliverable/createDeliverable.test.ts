@@ -19,9 +19,6 @@ vi.mock("../../prismaClient.js", () => ({
 vi.mock(".", () => ({
   parseCreateDeliverableInput: vi.fn(),
   validateCreateDeliverableInput: vi.fn(),
-}));
-
-vi.mock("./queries/insertDeliverable", () => ({
   insertDeliverable: vi.fn(),
 }));
 
@@ -34,8 +31,7 @@ vi.mock("../deliverableAction", () => ({
 }));
 
 import { prisma } from "../../prismaClient.js";
-import { parseCreateDeliverableInput, validateCreateDeliverableInput } from ".";
-import { insertDeliverable } from "./queries/insertDeliverable";
+import { parseCreateDeliverableInput, validateCreateDeliverableInput, insertDeliverable } from ".";
 import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 import { insertDeliverableAction } from "../deliverableAction";
 
@@ -51,8 +47,8 @@ describe("createDeliverable", () => {
   const testContext: GraphQLContext = {
     user: {
       id: "57f92f14-7c5e-4c78-a774-5a54d7e9c2e7",
-      sub: "82d0e8e4-82d0-447c-b1bb-52227e49cf51",
-      role: "demos-cms-user",
+      cognitoSubject: "82d0e8e4-82d0-447c-b1bb-52227e49cf51",
+      personTypeId: "demos-cms-user",
     },
   };
 

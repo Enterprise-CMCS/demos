@@ -28,115 +28,74 @@ vi.mock("../demonstrationTypeTagAssignment", () => ({
   getDemonstrationTypeAssignments: vi.fn(),
 }));
 
+vi.mock(".", () => ({
+  checkDemonstrationStatus: vi.fn(),
+  checkOwnerPersonType: vi.fn(),
+  checkRequestedDeliverableDemonstrationType: vi.fn(),
+}));
+
 import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
+import {
+  checkDemonstrationStatus,
+  checkOwnerPersonType,
+  checkRequestedDeliverableDemonstrationType,
+} from ".";
 
 describe("validateDeliverableInputs", () => {
-  // Global mocks to extend for future tests
   const mockDemonstration: Partial<PrismaDemonstration> = {
     id: "791b5e55-680d-47f3-bfba-9f242b69b8b2",
+    statusId: "Approved" satisfies ApplicationStatus,
   };
   const mockUser: Partial<PrismaUser> = {
     id: "e132432c-e26a-4f1e-958b-7c5b68019272",
+    personTypeId: "demos-cms-user" satisfies PersonType,
   };
-
-  // Mock transaction
+  const mockDemonstrationTypeTagAssignments: Partial<PrismaDemonstrationTypeTagAssignment>[] = [
+    {
+      demonstrationId: mockDemonstration.id,
+      tagNameId: "Free Insulin",
+    },
+    {
+      demonstrationId: mockDemonstration.id,
+      tagNameId: "Subsidy Program for At Home Diagnostics",
+    },
+  ];
+  const testInput: ParsedCreateDeliverableInput = {
+    name: "A test deliverable",
+    deliverableType: "Evaluation Design",
+    demonstrationId: mockDemonstration.id!,
+    cmsOwnerUserId: mockUser.id!,
+    dueDate: {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2023, 10, 12, 23, 59, 59, 999, "America/New_York"),
+    },
+    demonstrationTypes: ["Free Insulin", "Subsidy Program for At Home Diagnostics"],
+  };
   const mockTransaction: any = "Test!";
 
   describe("validateCreateDeliverableInput", () => {
-    // Test inputs
-    const testInput: ParsedCreateDeliverableInput = {
-      name: "A test deliverable",
-      deliverableType: "Evaluation Design",
-      demonstrationId: mockDemonstration.id!,
-      cmsOwnerUserId: mockUser.id!,
-      dueDate: {
-        isEasternTZDate: true,
-        easternTZDate: new TZDate(2023, 10, 12, 23, 59, 59, 999, "America/New_York"),
-      },
-      demonstrationTypes: ["Free Insulin", "Subsidy Program for At Home Diagnostics"],
-    };
-
-    // Mock return values for testing
-    const mockApprovedDemonstration = {
-      ...mockDemonstration,
-      statusId: "Approved" satisfies ApplicationStatus,
-    };
-    const mockUnderReviewDemonstration = {
-      ...mockDemonstration,
-      statusId: "Under Review" satisfies ApplicationStatus,
-    };
-
-    const mockAdminUser = {
-      ...mockUser,
-      personTypeId: "demos-admin" satisfies PersonType,
-    };
-    const mockCmsUser = {
-      ...mockUser,
-      personTypeId: "demos-cms-user" satisfies PersonType,
-    };
-    const mockStateUser = {
-      ...mockUser,
-      personTypeId: "demos-state-user" satisfies PersonType,
-    };
-
-    const mockExpectedDemonstrationTypeAssignments: Partial<PrismaDemonstrationTypeTagAssignment>[] =
-      [
-        {
-          demonstrationId: mockDemonstration.id,
-          tagNameId: "Free Insulin",
-        },
-        {
-          demonstrationId: mockDemonstration.id,
-          tagNameId: "Subsidy Program for At Home Diagnostics",
-        },
-      ];
-
-    const mockUnexpectedDemonstrationTypeAssignments: Partial<PrismaDemonstrationTypeTagAssignment>[] =
-      [
-        {
-          demonstrationId: mockDemonstration.id,
-          tagNameId: "Free Cardiac Screenings",
-        },
-        {
-          demonstrationId: mockDemonstration.id,
-          tagNameId: "Subsidy Program for At Home Diagnostics",
-        },
-      ];
-
     beforeEach(() => {
       vi.resetAllMocks();
+      vi.mocked(getApplication).mockResolvedValue(mockDemonstration as PrismaDemonstration);
+      vi.mocked(getUser).mockResolvedValue(mockUser as PrismaUser);
+      vi.mocked(getDemonstrationTypeAssignments).mockResolvedValue(
+        mockDemonstrationTypeTagAssignments as PrismaDemonstrationTypeTagAssignment[]
+      );
     });
 
     it("should not throw if none of the rules are violated", async () => {
-      // Approved demonstration, expected demonstration types, allowed users
-      vi.mocked(getApplication).mockResolvedValue(mockApprovedDemonstration as PrismaDemonstration);
-      vi.mocked(getDemonstrationTypeAssignments).mockResolvedValue(
-        mockExpectedDemonstrationTypeAssignments as PrismaDemonstrationTypeTagAssignment[]
-      );
+      vi.mocked(checkDemonstrationStatus).mockReturnValue(undefined);
+      vi.mocked(checkOwnerPersonType).mockReturnValue(undefined);
+      vi.mocked(checkRequestedDeliverableDemonstrationType).mockReturnValue(undefined);
 
-      // Check for CMS user
-      vi.mocked(getUser).mockResolvedValue(mockCmsUser as PrismaUser);
-      await expect(
-        validateCreateDeliverableInput(testInput, mockTransaction)
-      ).resolves.toBeUndefined();
-
-      // Check for admin user
-      vi.mocked(getUser).mockResolvedValue(mockAdminUser as PrismaUser);
       await expect(
         validateCreateDeliverableInput(testInput, mockTransaction)
       ).resolves.toBeUndefined();
     });
 
     it("should get the demonstration, user, and demonstration type info", async () => {
-      // Approved demonstration, expected demonstration types, CMS user
-      vi.mocked(getApplication).mockResolvedValue(mockApprovedDemonstration as PrismaDemonstration);
-      vi.mocked(getDemonstrationTypeAssignments).mockResolvedValue(
-        mockExpectedDemonstrationTypeAssignments as PrismaDemonstrationTypeTagAssignment[]
-      );
-      vi.mocked(getUser).mockResolvedValue(mockCmsUser as PrismaUser);
-
       await validateCreateDeliverableInput(testInput, mockTransaction);
 
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testInput.demonstrationId, {
@@ -153,30 +112,36 @@ describe("validateDeliverableInputs", () => {
       );
     });
 
-    it("should not throw about demonstration types if they are not provided", async () => {
-      // Approved demonstration, expected demonstration types, CMS user
-      vi.mocked(getApplication).mockResolvedValue(mockApprovedDemonstration as PrismaDemonstration);
-      vi.mocked(getDemonstrationTypeAssignments).mockResolvedValue(
-        mockExpectedDemonstrationTypeAssignments as PrismaDemonstrationTypeTagAssignment[]
-      );
-      vi.mocked(getUser).mockResolvedValue(mockCmsUser as PrismaUser);
-      const updatedTestInput = {
-        ...testInput,
-        demonstrationTypes: undefined,
-      };
+    it("should call the checking functions with the results of the queries", async () => {
+      await validateCreateDeliverableInput(testInput, mockTransaction);
 
-      await expect(
-        validateCreateDeliverableInput(updatedTestInput, mockTransaction)
-      ).resolves.toBeUndefined();
+      expect(checkDemonstrationStatus).toHaveBeenCalledExactlyOnceWith(mockDemonstration);
+      expect(checkOwnerPersonType).toHaveBeenCalledExactlyOnceWith(mockUser);
+      expect(vi.mocked(checkRequestedDeliverableDemonstrationType).mock.calls).toStrictEqual([
+        [testInput.demonstrationTypes![0], mockDemonstrationTypeTagAssignments, mockDemonstration],
+        [testInput.demonstrationTypes![1], mockDemonstrationTypeTagAssignments, mockDemonstration],
+      ]);
     });
 
-    it("should throw if given a state user", async () => {
-      // Approved demonstration, expected demonstration types, state user
-      vi.mocked(getApplication).mockResolvedValue(mockApprovedDemonstration as PrismaDemonstration);
-      vi.mocked(getDemonstrationTypeAssignments).mockResolvedValue(
-        mockExpectedDemonstrationTypeAssignments as PrismaDemonstrationTypeTagAssignment[]
-      );
-      vi.mocked(getUser).mockResolvedValue(mockStateUser as PrismaUser);
+    it("should throw if the demonstration status check fails", async () => {
+      vi.mocked(checkDemonstrationStatus).mockReturnValue("The demo status check failed");
+
+      try {
+        await validateCreateDeliverableInput(testInput, mockTransaction);
+        throw new Error("Expected validateCreateDeliverableInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for createDeliverable have failed."
+        );
+        expect(error.extensions.code).toBe("CREATE_DELIVERABLE_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual(["The demo status check failed"]);
+      }
+    });
+
+    it("should throw if the owner person type check fails", async () => {
+      vi.mocked(checkOwnerPersonType).mockReturnValue("The owner person type check failed");
 
       try {
         await validateCreateDeliverableInput(testInput, mockTransaction);
@@ -189,20 +154,15 @@ describe("validateDeliverableInputs", () => {
         );
         expect(error.extensions.code).toBe("CREATE_DELIVERABLE_VALIDATION_FAILED");
         expect(error.extensions.originalMessages).toStrictEqual([
-          `User ${testInput.cmsOwnerUserId} is not a CMS user; cannot own deliverable.`,
+          "The owner person type check failed",
         ]);
       }
     });
 
-    it("should throw if given an unexpected demonstration status", async () => {
-      // Under Review demonstration, expected demonstration types, CMS user
-      vi.mocked(getApplication).mockResolvedValue(
-        mockUnderReviewDemonstration as PrismaDemonstration
+    it("should throw if the demonstration type check fails", async () => {
+      vi.mocked(checkRequestedDeliverableDemonstrationType).mockReturnValue(
+        "The demonstration type check failed"
       );
-      vi.mocked(getDemonstrationTypeAssignments).mockResolvedValue(
-        mockExpectedDemonstrationTypeAssignments as PrismaDemonstrationTypeTagAssignment[]
-      );
-      vi.mocked(getUser).mockResolvedValue(mockCmsUser as PrismaUser);
 
       try {
         await validateCreateDeliverableInput(testInput, mockTransaction);
@@ -215,18 +175,16 @@ describe("validateDeliverableInputs", () => {
         );
         expect(error.extensions.code).toBe("CREATE_DELIVERABLE_VALIDATION_FAILED");
         expect(error.extensions.originalMessages).toStrictEqual([
-          `Demonstration ${testInput.demonstrationId} is not in Approved status; cannot create deliverable.`,
+          "The demonstration type check failed",
+          "The demonstration type check failed",
         ]);
       }
     });
 
-    it("should throw if given a demonstration type not belonging to the demonstration", async () => {
-      // Approved demonstration, unexpected demonstration types, CMS user
-      vi.mocked(getApplication).mockResolvedValue(mockApprovedDemonstration as PrismaDemonstration);
-      vi.mocked(getDemonstrationTypeAssignments).mockResolvedValue(
-        mockUnexpectedDemonstrationTypeAssignments as PrismaDemonstrationTypeTagAssignment[]
+    it("should only throw for the demonstration type checks that fail", async () => {
+      vi.mocked(checkRequestedDeliverableDemonstrationType).mockReturnValueOnce(
+        "The demonstration type check failed"
       );
-      vi.mocked(getUser).mockResolvedValue(mockCmsUser as PrismaUser);
 
       try {
         await validateCreateDeliverableInput(testInput, mockTransaction);
@@ -239,42 +197,17 @@ describe("validateDeliverableInputs", () => {
         );
         expect(error.extensions.code).toBe("CREATE_DELIVERABLE_VALIDATION_FAILED");
         expect(error.extensions.originalMessages).toStrictEqual([
-          "Demonstration Type Free Insulin does not exist on demonstration " +
-            `${testInput.demonstrationId}; cannot be assigned to deliverable.`,
+          "The demonstration type check failed",
         ]);
-      }
-    });
-
-    it("should only throw an error for the mismatched demonstration types", async () => {
-      // Approved demonstration, unexpected demonstration types, CMS user
-      vi.mocked(getApplication).mockResolvedValue(mockApprovedDemonstration as PrismaDemonstration);
-      vi.mocked(getDemonstrationTypeAssignments).mockResolvedValue(
-        mockUnexpectedDemonstrationTypeAssignments as PrismaDemonstrationTypeTagAssignment[]
-      );
-      vi.mocked(getUser).mockResolvedValue(mockCmsUser as PrismaUser);
-
-      try {
-        await validateCreateDeliverableInput(testInput, mockTransaction);
-        throw new Error("Expected validateCreateDeliverableInput to throw, but it did not.");
-      } catch (e) {
-        expect(e).toBeInstanceOf(GraphQLError);
-        const error = e as GraphQLError;
-        expect(error.extensions.originalMessages).not.toContain(
-          "Demonstration Type Subsidy Program for At Home Diagnostics does not exist on demonstration " +
-            `${testInput.demonstrationId}; cannot be assigned to deliverable.`
-        );
       }
     });
 
     it("should combine all errors into one object", async () => {
-      // Under Review demonstration, unexpected demonstration types, CMS user
-      vi.mocked(getApplication).mockResolvedValue(
-        mockUnderReviewDemonstration as PrismaDemonstration
+      vi.mocked(checkDemonstrationStatus).mockReturnValue("The demo status check failed");
+      vi.mocked(checkOwnerPersonType).mockReturnValue("The owner person type check failed");
+      vi.mocked(checkRequestedDeliverableDemonstrationType).mockReturnValueOnce(
+        "The demonstration type check failed"
       );
-      vi.mocked(getDemonstrationTypeAssignments).mockResolvedValue(
-        mockUnexpectedDemonstrationTypeAssignments as PrismaDemonstrationTypeTagAssignment[]
-      );
-      vi.mocked(getUser).mockResolvedValue(mockCmsUser as PrismaUser);
 
       try {
         await validateCreateDeliverableInput(testInput, mockTransaction);
@@ -282,10 +215,14 @@ describe("validateDeliverableInputs", () => {
       } catch (e) {
         expect(e).toBeInstanceOf(GraphQLError);
         const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for createDeliverable have failed."
+        );
+        expect(error.extensions.code).toBe("CREATE_DELIVERABLE_VALIDATION_FAILED");
         expect(error.extensions.originalMessages).toStrictEqual([
-          `Demonstration ${testInput.demonstrationId} is not in Approved status; cannot create deliverable.`,
-          "Demonstration Type Free Insulin does not exist on demonstration " +
-            `${testInput.demonstrationId}; cannot be assigned to deliverable.`,
+          "The demo status check failed",
+          "The owner person type check failed",
+          "The demonstration type check failed",
         ]);
       }
     });

@@ -111,7 +111,11 @@ export type {
 
 export type { Tag } from "./model/tag/tagSchema.js";
 
-export type { Deliverable, CreateDeliverableInput } from "./model/deliverable/deliverableSchema";
+export type {
+  Deliverable,
+  CreateDeliverableInput,
+  UpdateDeliverableInput,
+} from "./model/deliverable/deliverableSchema";
 
 export type DemonstrationTypeStatus = (typeof DEMONSTRATION_TYPE_STATUSES)[number];
 export type ClearanceLevel = (typeof CLEARANCE_LEVELS)[number];

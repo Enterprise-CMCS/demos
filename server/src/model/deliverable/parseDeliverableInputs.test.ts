@@ -7,7 +7,7 @@ import { CreateDeliverableInput, DateTimeOrLocalDate } from "../../types";
 import { ParsedCreateDeliverableInput } from ".";
 
 // Functions under test
-import { parseCreateDeliverableInput } from "./parseCreateDeliverableInput";
+import { parseCreateDeliverableInput } from "./parseDeliverableInputs";
 
 // Mock imports
 vi.mock("../../dateUtilities", () => ({

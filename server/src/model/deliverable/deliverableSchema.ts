@@ -37,12 +37,21 @@ export const deliverableSchema = gql`
     demonstrationTypes: [TagName!]
   }
 
+  input UpdateDeliverableInput {
+    name: NonEmptyString
+    deliverableType: DeliverableType
+    cmsOwnerUserId: ID
+    dueDate: DateTimeOrLocalDate
+    demonstrationTypes: [TagName!]
+  }
+
   type Query {
     deliverables: [Deliverable!]!
   }
 
   type Mutation {
     createDeliverable(input: CreateDeliverableInput): Deliverable
+    updateDeliverable(id: ID!, input: UpdateDeliverableInput!): Deliverable
   }
 `;
 
@@ -68,5 +77,13 @@ export interface CreateDeliverableInput {
   demonstrationId: string;
   cmsOwnerUserId: string;
   dueDate: DateTimeOrLocalDate;
+  demonstrationTypes?: TagName[];
+}
+
+export interface UpdateDeliverableInput {
+  name?: NonEmptyString;
+  deliverableType?: DeliverableType;
+  cmsOwnerUserId?: string;
+  dueDate?: DateTimeOrLocalDate;
   demonstrationTypes?: TagName[];
 }
