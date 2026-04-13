@@ -52,7 +52,7 @@ export function checkInputDateIsStartOfDay(
 }
 
 export function checkInputDateIsEndOfDay(
-  dateType: DateType | "expirationDate",
+  dateType: DateType | "expirationDate" | "dueDate",
   dateValue: EasternTZDate
 ): void {
   const isEndOfDay = isDateExpectedTimestamp(dateValue, "End of Day");

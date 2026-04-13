@@ -83,12 +83,16 @@ export const handler = async (event: APIGatewayTokenAuthorizerEvent, context: Co
       },
       "success: user authorized"
     );
+
+    const userId = decoded.identities?.[0]?.userId ?? decoded.email;
+
     return generatePolicy(decoded.sub, "Allow", event.methodArn, {
       sub: decoded.sub,
       email: decoded.email,
       given_name: decoded.given_name,
       family_name: decoded.family_name,
       role: roles,
+      userId: userId,
     });
   });
 
@@ -121,9 +125,15 @@ export interface PassedContext {
   given_name: string;
   family_name: string;
   role: string;
+  userId: string;
 }
 
-function generatePolicy(principalId: string, effect: "Allow" | "Deny", resource: string, context: PassedContext) {
+function generatePolicy(
+  principalId: string,
+  effect: "Allow" | "Deny",
+  resource: string,
+  context: PassedContext
+) {
   const policy = {
     principalId,
     policyDocument: {
