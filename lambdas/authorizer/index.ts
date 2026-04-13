@@ -84,7 +84,7 @@ export const handler = async (event: APIGatewayTokenAuthorizerEvent, context: Co
       "success: user authorized"
     );
 
-    const userId = decoded.identities ? decoded.identities[0]?.userId : decoded.email;
+    const userId = decoded.identities?.[0]?.userId ?? decoded.email;
 
     return generatePolicy(decoded.sub, "Allow", event.methodArn, {
       sub: decoded.sub,

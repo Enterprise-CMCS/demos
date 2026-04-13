@@ -33,9 +33,7 @@ const server = new ApolloServer<GraphQLContext>({
 });
 
 export function extractClaimsFromDecodedToken(decodedToken: JwtPayload): AuthorizationClaims {
-  const externalUserId = decodedToken.identities
-    ? decodedToken.identities[0]?.userId
-    : decodedToken.email;
+  const externalUserId = decodedToken.identities?.[0]?.userId ?? decodedToken.email;
 
   const claims = {
     email: decodedToken.email,
