@@ -4,8 +4,7 @@ import { parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities";
 import { checkInputDateIsEndOfDay } from "../applicationDate";
 
 export function parseCreateDeliverableInput(
-  input: CreateDeliverableInput,
-  cmsOwnerUserId: string
+  input: CreateDeliverableInput
 ): ParsedCreateDeliverableInput {
   const parsedDueDate = parseDateTimeOrLocalDateToEasternTZDate(input.dueDate, "End of Day");
   checkInputDateIsEndOfDay("dueDate", parsedDueDate);
@@ -13,7 +12,7 @@ export function parseCreateDeliverableInput(
     name: input.name,
     deliverableType: input.deliverableType,
     demonstrationId: input.demonstrationId,
-    cmsOwnerUserId: cmsOwnerUserId,
+    cmsOwnerUserId: input.cmsOwnerUserId,
     dueDate: parsedDueDate,
     demonstrationTypes: input.demonstrationTypes,
   };

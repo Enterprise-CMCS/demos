@@ -45,6 +45,7 @@ describe("createDeliverable", () => {
     name: "A test name",
     deliverableType: "Close Out Report" satisfies DeliverableType,
     demonstrationId: "7cd6cd0f-e3de-47a0-9faa-32343020c955",
+    cmsOwnerUserId: "500e9bef-8745-4209-ac73-0a87fa5f888b",
     dueDate: "2025-11-21" as DateTimeOrLocalDate,
   };
   const testContext: GraphQLContext = {
@@ -61,7 +62,7 @@ describe("createDeliverable", () => {
     name: testInput.name,
     deliverableType: testInput.deliverableType,
     demonstrationId: testInput.demonstrationId,
-    cmsOwnerUserId: testContext.user!.id,
+    cmsOwnerUserId: testInput.cmsOwnerUserId,
     dueDate: {
       isEasternTZDate: true,
       easternTZDate: new TZDate(2025, 10, 21, 23, 59, 59, 999, "America/New_York"),
@@ -93,10 +94,7 @@ describe("createDeliverable", () => {
 
   it("should parse the input to process dates", async () => {
     await createDeliverable(testInput, testContext);
-    expect(parseCreateDeliverableInput).toHaveBeenCalledExactlyOnceWith(
-      testInput,
-      testContext.user!.id
-    );
+    expect(parseCreateDeliverableInput).toHaveBeenCalledExactlyOnceWith(testInput);
   });
 
   it("should call the validation function with a transaction", async () => {

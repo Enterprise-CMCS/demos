@@ -26,6 +26,7 @@ describe("parseCreateDeliverableInput", () => {
     name: "A new deliverable name!",
     deliverableType: "HCBS Deficiency, Remediation and A/N/E Incident Report (1915(c)-like)",
     demonstrationId: "2bc27502-c286-4e1a-a5a5-3a45ad441149",
+    cmsOwnerUserId: "d6b52b4f-42d3-4c5d-a26d-8a519d15a501",
     dueDate: "2024-11-13" as DateTimeOrLocalDate,
     demonstrationTypes: ["Free Insulin"],
   };
@@ -33,12 +34,11 @@ describe("parseCreateDeliverableInput", () => {
     isEasternTZDate: true,
     easternTZDate: new TZDate(2024, 10, 13, 23, 59, 59, 999, "America/New_York"),
   };
-  const testUserId = "3071585a-c2c8-4839-8c7c-24f5c9559b6c";
   const expectedResult: ParsedCreateDeliverableInput = {
     name: testInput.name,
     deliverableType: testInput.deliverableType,
     demonstrationId: testInput.demonstrationId,
-    cmsOwnerUserId: testUserId,
+    cmsOwnerUserId: testInput.cmsOwnerUserId,
     dueDate: mockParsedDate,
     demonstrationTypes: testInput.demonstrationTypes,
   };
@@ -49,7 +49,7 @@ describe("parseCreateDeliverableInput", () => {
   });
 
   it("should parse the input, check the dates, and return the updated object", () => {
-    const result = parseCreateDeliverableInput(testInput, testUserId);
+    const result = parseCreateDeliverableInput(testInput);
     expect(parseDateTimeOrLocalDateToEasternTZDate).toHaveBeenCalledExactlyOnceWith(
       testInput.dueDate,
       "End of Day"

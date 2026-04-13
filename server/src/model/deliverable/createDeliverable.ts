@@ -12,7 +12,7 @@ export async function createDeliverable(
   context: GraphQLContext
 ): Promise<PrismaDeliverable> {
   const currentUserId = getCurrentUserId(context);
-  const parsedInput = parseCreateDeliverableInput(input, currentUserId);
+  const parsedInput = parseCreateDeliverableInput(input);
   const createdDeliverable = await prisma().$transaction(async (tx) => {
     const actionTime = new Date();
     await validateCreateDeliverableInput(parsedInput, tx);
@@ -37,7 +37,7 @@ export async function createDeliverable(
         newStatus: "Upcoming",
         oldDueDate: parsedInput.dueDate.easternTZDate,
         newDueDate: parsedInput.dueDate.easternTZDate,
-        userId: parsedInput.cmsOwnerUserId,
+        userId: currentUserId,
       },
       tx
     );
