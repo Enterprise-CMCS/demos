@@ -88,8 +88,7 @@ describe("CompletenessPhase", () => {
   const defaultProps: CompletenessPhaseProps = {
     applicationId: "app-123",
     applicationIntakeComplete: true,
-    completenessComplete: false,
-    completenessIncomplete: false,
+    completenessPhaseStatus: "Started",
     completenessReviewDate: "2026-02-28",
     stateDeemedCompleteDate: "",
     completenessDocuments: [],
@@ -236,7 +235,7 @@ describe("CompletenessPhase", () => {
 
     it("clears all date pickers when phase is Incomplete even if a Completeness Letter document exists", () => {
       setup({
-        completenessIncomplete: true,
+        completenessPhaseStatus: "Incomplete",
         completenessDocuments: [mockCompletenessDoc, mockInternalDoc],
         stateDeemedCompleteDate: "",
       });
@@ -264,7 +263,7 @@ describe("CompletenessPhase", () => {
         <TestProvider>
           <CompletenessPhase
             {...defaultProps}
-            completenessIncomplete={true}
+            completenessPhaseStatus="Incomplete"
             completenessDocuments={[mockCompletenessDoc, mockInternalDoc]}
           />
         </TestProvider>
@@ -277,7 +276,7 @@ describe("CompletenessPhase", () => {
 
     it("disables Declare Incomplete button when completeness is complete", () => {
       setup({
-        completenessComplete: true,
+        completenessPhaseStatus: "Completed",
         completenessDocuments: [mockCompletenessDoc, mockInternalDoc],
         stateDeemedCompleteDate: "2026-02-05",
       });
@@ -384,8 +383,7 @@ describe("CompletenessPhase", () => {
             applicationId="app-123"
             applicationIntakeComplete={true}
             completenessReviewDate={reviewDate}
-            completenessComplete={false}
-            completenessIncomplete={false}
+            completenessPhaseStatus="Started"
             stateDeemedCompleteDate=""
             completenessDocuments={[]}
             setSelectedPhase={mockSetSelectedPhase}
@@ -413,8 +411,7 @@ describe("CompletenessPhase", () => {
             applicationId="app-123"
             applicationIntakeComplete={true}
             completenessReviewDate={undefined}
-            completenessComplete={true}
-            completenessIncomplete={false}
+            completenessPhaseStatus="Completed"
             stateDeemedCompleteDate=""
             completenessDocuments={[]}
             setSelectedPhase={mockSetSelectedPhase}

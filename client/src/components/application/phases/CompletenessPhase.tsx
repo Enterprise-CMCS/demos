@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
@@ -12,6 +12,7 @@ import {
   ApplicationDateInput,
   LocalDate,
   PhaseName,
+  PhaseStatus,
 } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
@@ -138,8 +139,7 @@ export const getApplicationCompletenessFromApplication = (
       applicationId={application.id}
       applicationIntakeComplete={applicationIntakePhase?.phaseStatus === "Completed"}
       completenessReviewDate={findDate("Completeness Review Due Date")}
-      completenessComplete={completenessPhase?.phaseStatus === "Completed"}
-      completenessIncomplete={completenessPhase?.phaseStatus === "Incomplete"}
+      completenessPhaseStatus={completenessPhase?.phaseStatus ?? "Not Started"}
       stateDeemedCompleteDate={findDate("State Application Deemed Complete")}
       completenessDocuments={completenessDocuments}
       setSelectedPhase={setSelectedPhase}
@@ -165,8 +165,7 @@ export interface CompletenessPhaseProps {
   applicationId: string;
   applicationIntakeComplete: boolean;
   completenessReviewDate?: string;
-  completenessComplete: boolean;
-  completenessIncomplete: boolean;
+  completenessPhaseStatus: PhaseStatus;
   stateDeemedCompleteDate: string;
   completenessDocuments: ApplicationWorkflowDocument[];
   setSelectedPhase: (phase: PhaseName) => void;
@@ -176,12 +175,14 @@ export const CompletenessPhase = ({
   applicationId,
   applicationIntakeComplete,
   completenessReviewDate,
-  completenessComplete,
-  completenessIncomplete,
+  completenessPhaseStatus,
   stateDeemedCompleteDate,
   completenessDocuments,
   setSelectedPhase,
 }: CompletenessPhaseProps) => {
+  const completenessComplete = completenessPhaseStatus === "Completed";
+  const completenessIncomplete = completenessPhaseStatus === "Incomplete";
+
   const { showCompletenessDocumentUploadDialog, showDeclareIncompleteDialog } = useDialog();
   const { showSuccess, showError } = useToast();
   const { setApplicationDates } = useSetApplicationDates();
@@ -191,19 +192,14 @@ export const CompletenessPhase = ({
   const [userSelectedStateDeemedCompleteDate, setUserSelectedStateDeemedCompleteDate] =
     useState("");
 
-  useEffect(() => {
-    if (completenessIncomplete) {
-      setUserSelectedStateDeemedCompleteDate("");
-    }
-  }, [completenessIncomplete]);
-
   const calculatedStateDeemedCompleteDate = calculateStateDeemedCompleteDate(
     stateDeemedCompleteDate,
     completenessDocuments,
     completenessIncomplete
   );
-  const stateDeemedComplete =
-    userSelectedStateDeemedCompleteDate || calculatedStateDeemedCompleteDate;
+  const stateDeemedComplete = completenessIncomplete
+    ? ""
+    : userSelectedStateDeemedCompleteDate || calculatedStateDeemedCompleteDate;
   const { federalStartDate, federalEndDate } =
     calculateFederalCommentPeriodDates(stateDeemedComplete);
 
