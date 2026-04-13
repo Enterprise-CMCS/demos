@@ -5,8 +5,8 @@ import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/Demonstrati
 
 export const DELIVERABLE_DETAIL_HEADER_QUERY_NAME = "DeliverableDetailHeader";
 export const DELIVERABLE_DETAIL_HEADER_QUERY = gql`
-  query ${DELIVERABLE_DETAIL_HEADER_QUERY_NAME}($id: ID!) {
-    deliverable(id: $id) {
+  query ${DELIVERABLE_DETAIL_HEADER_QUERY_NAME}($deliverableId: ID!) {
+    deliverable(id: $deliverableId) {
       id
       demonstration {
         id
@@ -25,7 +25,7 @@ type DeliverableDetailHeaderQueryResponse = {
 }
 
 export const DeliverableDetailHeader = ({deliverableId}: {deliverableId: string}) => {
-  const { data, loading } = useQuery<DeliverableDetailHeaderQueryResponse>(DELIVERABLE_DETAIL_HEADER_QUERY, { variables: { id: deliverableId } });
+  const { data, loading } = useQuery<DeliverableDetailHeaderQueryResponse>(DELIVERABLE_DETAIL_HEADER_QUERY, { variables: { deliverableId } });
 
   if (loading) {
     return <Loading />;

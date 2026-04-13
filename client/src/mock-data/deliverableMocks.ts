@@ -333,7 +333,7 @@ export const deliverableMocks: MockedResponse[] = [
   {
     request: {
       query: DELIVERABLE_DETAIL_HEADER_QUERY,
-      variables: { id: "1" },
+      variables: { deliverableId: "1" },
     },
     result: {
       data: {
