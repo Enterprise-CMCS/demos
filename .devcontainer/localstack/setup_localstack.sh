@@ -3,6 +3,9 @@ set -e
 
 echo "🚀 Starting LocalStack setup..."
 
+echo "📦 Installing esbuild for Lambda bundling..."
+npm install -g esbuild
+
 # Wait for LocalStack to be ready
 echo "⏳ Waiting for LocalStack to be ready..."
 for i in {1..15}; do
