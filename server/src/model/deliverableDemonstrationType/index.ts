@@ -6,3 +6,4 @@ export { deleteAllDeliverableDemonstrationTypes } from "./queries/deleteAllDeliv
 export { insertDeliverableDemonstrationTypes } from "./queries/insertDeliverableDemonstrationTypes";
 
 // Types & Constants
+export type { SetDeliverableDemonstrationTypesInput } from "./deliverableDemonstrationTypeTypes";
