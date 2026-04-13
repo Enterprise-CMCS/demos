@@ -10,22 +10,29 @@ import { MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
 /* TODO: Probably replace with Pick<Deliverable, "id" | ... > when schema is defined */
 export type Deliverable = {
   id: string;
-  deliverableName: string;
-  demonstrationName: string;
+  name: string;
+  demonstration: {
+    id: string;
+    name: string;
+    state: {
+      id: string;
+    };
+  };
   deliverableType: string;
-  cmsOwner: string;
+  cmsOwner: {
+    id: string;
+    person: {
+      fullName: string;
+    };
+  };
   dueDate: string;
-  submissionDate?: string;
+  dueDateType: string;
+  expectedToBeSubmitted: boolean;
+  cmsDocuments: { id: string }[];
+  stateDocuments: { id: string }[];
+  createdAt: string;
+  updatedAt: string;
   status: string;
-  extensionRequested?: boolean;
-  resubmissionCount?: number;
-  state: {
-    id: string;
-  };
-  primaryContact?: {
-    id: string;
-    fullName: string;
-  };
 };
 
 type DeliverablesPageQueryResult = {
@@ -54,7 +61,7 @@ export const DeliverablesPage: React.FC = () => {
 
   const deliverables = data?.deliverables ?? [];
   const myDeliverables = deliverables.filter(
-    (deliverable) => deliverable.primaryContact?.id === data?.currentUserId
+    (deliverable) => deliverable.cmsOwner.id === data?.currentUserId
   );
 
   const [tabValue, onTabSelect] = useSessionTab({

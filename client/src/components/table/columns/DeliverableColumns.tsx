@@ -17,7 +17,7 @@ type DeliverableColumnsProps = {
 export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
   const columnHelper = createColumnHelper<DeliverableTableRow>();
 
-  const demonstrationNameColumn = columnHelper.accessor("demonstrationName", {
+  const demonstrationNameColumn = columnHelper.accessor("demonstration.name", {
     header: "Demonstration Name",
     cell: highlightCell,
   });
@@ -27,13 +27,12 @@ export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
     cell: highlightCell,
   });
 
-  const deliverableNameColumn = columnHelper.accessor("deliverableName", {
+  const deliverableNameColumn = columnHelper.accessor("name", {
     header: "Deliverable Name",
     cell: highlightCell,
   });
 
   const dueDateColumn = createDateColumnDef(columnHelper, "dueDate", "Due Date");
-  const submissionDateColumn = createDateColumnDef(columnHelper, "submissionDate", "Submission Date");
   const statusColumn = columnHelper.accessor("status", {
     header: "Status",
     cell: highlightCell,
@@ -45,14 +44,13 @@ export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
       deliverableTypeColumn,
       deliverableNameColumn,
       dueDateColumn,
-      submissionDateColumn,
       statusColumn,
     ];
   }
 
   return [
     createSelectColumnDef(columnHelper),
-    columnHelper.accessor("state.id", {
+    columnHelper.accessor("demonstration.state.id", {
       id: "stateId",
       header: "State/Territory",
       cell: highlightCell,
@@ -71,12 +69,11 @@ export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
     demonstrationNameColumn,
     deliverableTypeColumn,
     deliverableNameColumn,
-    columnHelper.accessor("cmsOwner", {
+    columnHelper.accessor("cmsOwner.person.fullName", {
       header: "CMS Owner",
       cell: highlightCell,
     }),
     dueDateColumn,
-    submissionDateColumn,
     statusColumn,
     columnHelper.display({
       id: "view",

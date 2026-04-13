@@ -1,4 +1,4 @@
-export type MockDeliverable = {
+type RawMockDeliverable = {
   id: string;
   deliverableName: string;
   demonstrationName: string;
@@ -7,24 +7,51 @@ export type MockDeliverable = {
   dueDate: string;
   submissionDate?: string;
   status: string;
-  extensionRequested?:boolean;
+  extensionRequested?: boolean;
   resubmissionCount?: number;
   state: {
     id: string;
   };
   primaryContact?: {
     id: string;
-    fullName: string;
+    fullName?: string;
   };
 };
 
-export const MOCK_DELIVERABLES: MockDeliverable[] = [
+export type MockDeliverable = {
+  id: string;
+  deliverableType: string;
+  name: string;
+  demonstration: {
+    id: string;
+    name: string;
+    state: {
+      id: string;
+    };
+  };
+  status: string;
+  cmsOwner: {
+    id: string;
+    person: {
+      fullName: string;
+    };
+  };
+  dueDate: string;
+  dueDateType: string;
+  expectedToBeSubmitted: boolean;
+  cmsDocuments: { id: string }[];
+  stateDocuments: { id: string }[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+const RAW_MOCK_DELIVERABLES: RawMockDeliverable[] = [
   {
     id: "8f3a0c8a-2f9f-4bf0-9a3a-6b7eac31f201",
     deliverableName: "Budget Neutrality Report",
     demonstrationName: "Dusty Demo",
-    deliverableType: "Vadars Annual Budget Neutrality Report",
-    cmsOwner: "Ashoka Tano",
+    deliverableType: "Vadars Annual BN Report - extention requested = true",
+    cmsOwner: "Sheev Palpatine",
     dueDate: "2001-07-01",
     submissionDate: "2024-06-28",
     status: "Past Due",
@@ -40,7 +67,7 @@ export const MOCK_DELIVERABLES: MockDeliverable[] = [
   },
   {
     id: "1b6d2e71-4c98-4a26-a8ff-2cbf4af7d2a4",
-    deliverableName: "AAA This one should be second",
+    deliverableName: "AAA This one should be third upcoming newest new due?",
     demonstrationName: "Dusty Demo",
     deliverableType: "Demonstration-Specific Deliverable",
     cmsOwner: "Dusty Rhodes",
@@ -59,7 +86,7 @@ export const MOCK_DELIVERABLES: MockDeliverable[] = [
   },
   {
     id: "1b6d2e71-4c98-4a26-a8ff-2csf4af7d2a4",
-    deliverableName: "THIS GUY SHOULD BE Second? Cuz past due",
+    deliverableName: "SHOULD BE Second? Cuz past due",
     demonstrationName: "Dusty Demo",
     deliverableType: "Evaluation Design",
     cmsOwner: "Ackbar",
@@ -69,7 +96,7 @@ export const MOCK_DELIVERABLES: MockDeliverable[] = [
     extensionRequested: false,
     resubmissionCount: 0,
     primaryContact: {
-      id: "admiralgialackbar",
+      id: "dustyrhodes",
       fullName: "Admiral Gial Ackbar",
     },
     state: {
@@ -80,16 +107,16 @@ export const MOCK_DELIVERABLES: MockDeliverable[] = [
     id: "1b7d2e71-4c98-4a26-a8ff-2cbf4af7d2a4",
     deliverableName: "Budget Neutrality Worksheet",
     demonstrationName: "Dusty Demo",
-    deliverableType: "HCBS Actual and Estimated Enrollment Number Report (1915(i)-like)",
-    cmsOwner: "Dusty Rhodes",
+    deliverableType: "HCBS Reporty (1st cuz ext requet = true)",
+    cmsOwner: "Dusty Rhodes 1",
     dueDate: "2024-08-15",
     submissionDate: "2024-08-14",
     status: "Upcoming",
-    extensionRequested: false,
+    extensionRequested: true,
     resubmissionCount: 0,
     primaryContact: {
       id: "dustyrhodes",
-      fullName: "Captain Wedge Antilles",
+      fullName: "Dusty Rhodes 1",
     },
     state: {
       id: "NY",
@@ -97,14 +124,14 @@ export const MOCK_DELIVERABLES: MockDeliverable[] = [
   },
   {
     id: "b7045f1e-3d54-44ef-98a4-95f53d2ce8de",
-    deliverableName: "Deliverable 3",
-    demonstrationName: "SET WITH APPROVED DEMO NAME AND SEE IT SHOW IN DEMO DETAILS",
-    deliverableType: "HCBS Deficiency, Remediation and A/N/E Incident Report (1915(c)-like)",
-    cmsOwner: "CMS Owner C",
+    deliverableName: "Ext Request == true",
+    demonstrationName: "Dusty Demo",
+    deliverableType: "HCBS Deficiency, A/N/E Incident Report (1915(c)-like)",
+    cmsOwner: "Dusty Rhodes 1",
     dueDate: "2024-09-30",
     submissionDate: undefined,
-    status: "Upcoming",
-    extensionRequested: false,
+    status: "Past Due",
+    extensionRequested: true,
     resubmissionCount: 2,
     primaryContact: {
       id: "leiaorgana",
@@ -126,7 +153,7 @@ export const MOCK_DELIVERABLES: MockDeliverable[] = [
     extensionRequested: false,
     resubmissionCount: 1,
     state: {
-      id: "FL",
+      id: "dustyrhodes",
     },
     primaryContact: {
       id: "thearmorer",
@@ -290,4 +317,33 @@ export const MOCK_DELIVERABLES: MockDeliverable[] = [
 export const getDeliverablesForDemonstration = (
   demonstrationName: string
 ): MockDeliverable[] =>
-  MOCK_DELIVERABLES.filter((deliverable) => deliverable.demonstrationName === demonstrationName);
+  MOCK_DELIVERABLES.filter((deliverable) => deliverable.demonstration.name === demonstrationName);
+
+export const MOCK_DELIVERABLES: MockDeliverable[] = RAW_MOCK_DELIVERABLES.map(
+  (deliverable, index) => ({
+    id: deliverable.id,
+    deliverableType: deliverable.deliverableType,
+    name: deliverable.deliverableName,
+    demonstration: {
+      id: `demo-${index + 1}`,
+      name: deliverable.demonstrationName,
+      state: {
+        id: deliverable.state.id,
+      },
+    },
+    status: deliverable.status,
+    cmsOwner: {
+      id: deliverable.primaryContact?.id ?? `cms-owner-${index + 1}`,
+      person: {
+        fullName: deliverable.cmsOwner,
+      },
+    },
+    dueDate: deliverable.dueDate,
+    dueDateType: "Normal",
+    expectedToBeSubmitted: true,
+    cmsDocuments: [],
+    stateDocuments: [],
+    createdAt: "2026-01-01",
+    updatedAt: "2026-01-01",
+  })
+);

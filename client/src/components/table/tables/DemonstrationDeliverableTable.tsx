@@ -18,10 +18,9 @@ export type DemonstrationDeliverableTableRow = Pick<
   Deliverable,
   | "id"
   | "deliverableType"
-  | "deliverableName"
+  | "name"
   | "cmsOwner"
   | "dueDate"
-  | "submissionDate"
   | "status"
 >;
 
@@ -41,16 +40,15 @@ export const DemonstrationDeliverableTable: React.FC<{
       header: "Deliverable Type",
       cell: highlightCell,
     }),
-    columnHelper.accessor("deliverableName", {
+    columnHelper.accessor("name", {
       header: "Deliverable Name",
       cell: highlightCell,
     }),
-    columnHelper.accessor("cmsOwner", {
+    columnHelper.accessor("cmsOwner.person.fullName", {
       header: "CMS Owner",
       cell: highlightCell,
     }),
     createDateColumnDef(columnHelper, "dueDate", "Due Date"),
-    createDateColumnDef(columnHelper, "submissionDate", "Submission Date"),
     columnHelper.accessor("status", {
       header: "Status",
       cell: highlightCell,

@@ -3,6 +3,28 @@ import { describe, expect, it } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 
 import { DemonstrationDeliverableTable } from "./DemonstrationDeliverableTable";
+import type { Deliverable } from "pages/DeliverablesPage";
+
+const baseDeliverable: Omit<Deliverable, "id" | "name" | "dueDate" | "status"> = {
+  demonstration: {
+    id: "demo-1",
+    name: "Demo 1",
+    state: { id: "NY" },
+  },
+  deliverableType: "Monitoring Protocol",
+  cmsOwner: {
+    id: "cms-a",
+    person: {
+      fullName: "CMS A",
+    },
+  },
+  dueDateType: "Normal",
+  expectedToBeSubmitted: true,
+  cmsDocuments: [],
+  stateDocuments: [],
+  createdAt: "2026-01-01",
+  updatedAt: "2026-01-01",
+};
 
 describe("DemonstrationDeliverableTable", () => {
   it("applies default deliverable ordering on first render", () => {
@@ -11,58 +33,38 @@ describe("DemonstrationDeliverableTable", () => {
         deliverables={[
           {
             id: "submitted-1",
-            deliverableName: "Submitted Item",
-            demonstrationName: "Demo 1",
-            deliverableType: "Monitoring Protocol",
-            cmsOwner: "CMS A",
+            name: "Submitted Item",
             dueDate: "2026-06-01",
             status: "Submitted",
-            extensionRequested: false,
-            state: { id: "NY" },
+            ...baseDeliverable,
           },
           {
             id: "extension-later",
-            deliverableName: "Extension Later",
-            demonstrationName: "Demo 1",
-            deliverableType: "Monitoring Protocol",
-            cmsOwner: "CMS A",
+            name: "Extension Later",
             dueDate: "2026-05-10",
             status: "Upcoming",
-            extensionRequested: true,
-            state: { id: "NY" },
+            ...baseDeliverable,
           },
           {
             id: "past-due-1",
-            deliverableName: "Past Due Item",
-            demonstrationName: "Demo 1",
-            deliverableType: "Monitoring Protocol",
-            cmsOwner: "CMS A",
+            name: "Past Due Item",
             dueDate: "2026-05-01",
             status: "Past Due",
-            extensionRequested: false,
-            state: { id: "NY" },
+            ...baseDeliverable,
           },
           {
             id: "extension-earlier",
-            deliverableName: "Extension Earlier",
-            demonstrationName: "Demo 1",
-            deliverableType: "Monitoring Protocol",
-            cmsOwner: "CMS A",
+            name: "Extension Earlier",
             dueDate: "2026-04-20",
             status: "Approved",
-            extensionRequested: true,
-            state: { id: "NY" },
+            ...baseDeliverable,
           },
           {
             id: "upcoming-1",
-            deliverableName: "Upcoming Item",
-            demonstrationName: "Demo 1",
-            deliverableType: "Monitoring Protocol",
-            cmsOwner: "CMS A",
+            name: "Upcoming Item",
             dueDate: "2026-05-15",
             status: "Upcoming",
-            extensionRequested: false,
-            state: { id: "NY" },
+            ...baseDeliverable,
           },
         ]}
       />
@@ -72,11 +74,11 @@ describe("DemonstrationDeliverableTable", () => {
     const orderedNames = rows.map((row) => within(row).getAllByRole("cell")[1].textContent);
 
     expect(orderedNames).toEqual([
-      "Extension Earlier",
-      "Extension Later",
       "Past Due Item",
+      "Extension Later",
       "Upcoming Item",
       "Submitted Item",
+      "Extension Earlier",
     ]);
   });
 });

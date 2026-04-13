@@ -16,14 +16,27 @@ import { sortDeliverablesByDefault } from "util/sortDeliverables";
 
 export type DeliverableTableRow = {
   id: string;
-  deliverableName: string;
-  demonstrationName: string;
+  name: string;
   deliverableType: string;
-  cmsOwner: string;
-  dueDate: string;
-  submissionDate?: string;
+  demonstration: {
+    id: string;
+    name: string;
+    state: { id: string };
+  };
   status: string;
-  state: { id: string };
+  cmsOwner: {
+    id: string;
+    person: {
+      fullName: string;
+    };
+  };
+  dueDate: string;
+  dueDateType: string;
+  expectedToBeSubmitted: boolean;
+  cmsDocuments: { id: string }[];
+  stateDocuments: { id: string }[];
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type DeliverableTableViewMode = Exclude<PersonType, "non-user-contact">;
@@ -33,26 +46,7 @@ const NO_RESULTS_FOUND = "No results were returned. Adjust your search and filte
 
 export const formatDeliverableStatus = ({
   status,
-  extensionRequested = false,
-  resubmissionCount = 0,
-}: Pick<Deliverable, "status" | "extensionRequested" | "resubmissionCount">) => {
-  if (status !== "Upcoming") return status;
-
-  const hasResubmission = resubmissionCount > 0;
-  const hasExtensionRequested = extensionRequested;
-
-  let combinedStatus = status;
-
-  if (hasResubmission) {
-    combinedStatus += ` (${resubmissionCount})`;
-  }
-
-  if (hasExtensionRequested) {
-    combinedStatus += " - Extension Requested";
-  }
-
-  return combinedStatus;
-};
+}: Pick<Deliverable, "status">) => status;
 
 export const DeliverableTable: React.FC<{
   deliverables: Deliverable[];

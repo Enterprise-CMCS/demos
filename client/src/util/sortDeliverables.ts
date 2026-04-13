@@ -4,7 +4,6 @@ type SortableDeliverable = {
   id: string;
   status: string;
   dueDate: string;
-  extensionRequested?: boolean;
 };
 
 const STATUS_ORDER = [
@@ -40,18 +39,7 @@ export const sortDeliverablesByDefault = <T extends SortableDeliverable>(
   deliverables: T[]
 ): T[] => {
   return [...deliverables].sort((firstDel, secondDel) => {
-    const aExtensionRequested = firstDel.extensionRequested ?? false;
-    const bExtensionRequested = secondDel.extensionRequested ?? false;
-
-    if (aExtensionRequested !== bExtensionRequested) {
-      return aExtensionRequested ? -1 : 1;
-    }
-
     const dueDateCompare = compareDueDateAsc(firstDel.dueDate, secondDel.dueDate);
-
-    if (aExtensionRequested && bExtensionRequested) {
-      return dueDateCompare || firstDel.id.localeCompare(secondDel.id);
-    }
 
     const aRank = STATUS_RANK.get(firstDel.status as typeof STATUS_ORDER[number]) ?? Number.MAX_SAFE_INTEGER;
     const bRank = STATUS_RANK.get(secondDel.status as typeof STATUS_ORDER[number]) ?? Number.MAX_SAFE_INTEGER;

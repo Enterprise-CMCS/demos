@@ -61,7 +61,7 @@ describe("DeliverablesPage tab persistence", () => {
     render(<DeliverablesPage />);
 
     const myDeliverablesCount = MOCK_DELIVERABLES.filter(
-      (d) => d.primaryContact?.id === CURRENT_USER_ID
+      (d) => d.cmsOwner.id === CURRENT_USER_ID
     ).length;
 
     expect(
@@ -77,13 +77,16 @@ describe("DeliverablesPage tab persistence", () => {
     render(<DeliverablesPage />);
     fireEvent.click(screen.getByTestId("button-my-deliverables"));
 
-    // Should show only deliverables assigned to CURRENT_USER_ID
-    expect(screen.getByText("Quarterly Report For NYC Demonstration")).toBeInTheDocument();
-    expect(screen.getByText("Budget Neutrality Worksheet")).toBeInTheDocument();
+    const myDeliverables = MOCK_DELIVERABLES.filter((d) => d.cmsOwner.id === CURRENT_USER_ID);
+    const notMyDeliverable = MOCK_DELIVERABLES.find((d) => d.cmsOwner.id !== CURRENT_USER_ID);
 
-    // Should NOT show others in My Deliverables tab
-    expect(screen.queryByText("Budget Neutrality Report")).not.toBeInTheDocument();
-    expect(screen.queryByText("Deliverable 3")).not.toBeInTheDocument();
+    myDeliverables.forEach((deliverable) => {
+      expect(screen.getByText(deliverable.name)).toBeInTheDocument();
+    });
+
+    if (notMyDeliverable) {
+      expect(screen.queryByText(notMyDeliverable.name)).not.toBeInTheDocument();
+    }
   });
 
   it("shows all deliverables when All Deliverables tab is selected", () => {
@@ -92,7 +95,7 @@ describe("DeliverablesPage tab persistence", () => {
     fireEvent.click(screen.getByTestId("button-deliverables"));
 
     expect(screen.getByText("Budget Neutrality Report")).toBeInTheDocument();
-    expect(screen.getByText("Quarterly Report For NYC Demonstration")).toBeInTheDocument();
+    expect(screen.getByText("Budget Neutrality Worksheet")).toBeInTheDocument();
     expect(screen.getByText("Deliverable 8")).toBeInTheDocument();
   });
 

@@ -21,7 +21,7 @@ describe("DeliverableTable", () => {
   it("renders all deliverable names initially", () => {
     sortedDeliverables.slice(0, 10).forEach((deliverable) => {
       expect(
-        screen.getByText(deliverable.deliverableName)
+        screen.getByText(deliverable.name)
       ).toBeInTheDocument();
     });
   });
@@ -120,11 +120,11 @@ describe("DeliverableTable", () => {
       const user = userEvent.setup();
       const searchInput = screen.getByLabelText(/search:/i);
 
-      await user.type(searchInput, MOCK_DELIVERABLES[0].deliverableName);
+      await user.type(searchInput, MOCK_DELIVERABLES[0].name);
 
       await waitFor(() => {
         expect(
-          screen.getByText(MOCK_DELIVERABLES[0].deliverableName)
+          screen.getByText(MOCK_DELIVERABLES[0].name)
         ).toBeInTheDocument();
       });
     });
@@ -148,11 +148,11 @@ describe("DeliverableTable", () => {
       const user = userEvent.setup();
       const searchInput = screen.getByLabelText(/search:/i);
 
-      await user.type(searchInput, MOCK_DELIVERABLES[0].deliverableName);
+      await user.type(searchInput, MOCK_DELIVERABLES[0].name);
 
       await waitFor(() => {
         expect(
-          screen.getByText(MOCK_DELIVERABLES[0].deliverableName)
+          screen.getByText(MOCK_DELIVERABLES[0].name)
         ).toBeInTheDocument();
       });
 
@@ -163,27 +163,23 @@ describe("DeliverableTable", () => {
 
       sortedDeliverables.slice(0, 10).forEach((deliverable) => {
         expect(
-          screen.getByText(deliverable.deliverableName)
+          screen.getByText(deliverable.name)
         ).toBeInTheDocument();
       });
     });
   });
 
-  it("renders combined status values for upcoming deliverables", () => {
+  it("renders status values as-is", () => {
     expect(
       formatDeliverableStatus({
         status: "Upcoming",
-        extensionRequested: true,
-        resubmissionCount: 0,
       })
-    ).toBe("Upcoming - Extension Requested");
+    ).toBe("Upcoming");
     expect(
       formatDeliverableStatus({
-        status: "Upcoming",
-        extensionRequested: true,
-        resubmissionCount: 2,
+        status: "Approved",
       })
-    ).toBe("Upcoming (2) - Extension Requested");
+    ).toBe("Approved");
   });
 
   it("renders column filter dropdown", () => {
@@ -207,7 +203,6 @@ describe("DeliverableTable demos-state-user view mode", () => {
     expect(screen.getByRole("columnheader", { name: /Deliverable Type/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Deliverable Name/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Due Date/i })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: /Submission Date/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Status/i })).toBeInTheDocument();
 
     expect(screen.queryByRole("columnheader", { name: /State\/Territory/i })).not.toBeInTheDocument();
