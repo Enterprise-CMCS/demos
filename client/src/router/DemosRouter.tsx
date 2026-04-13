@@ -13,6 +13,7 @@ import { isLocalDevelopment } from "config/env";
 import { DemosLayoutProvider } from "./DemosLayoutProvider";
 import { DocumentDetailPage } from "pages/DocumentDetails/DocumentDetail";
 import { DeliverablesPage } from "pages/DeliverablesPage";
+import { DeliverableDetailsManagementPage } from "pages/DeliverableDetailsManagementPage";
 
 export const DemosRouter: React.FC = () => {
   return (
@@ -28,6 +29,7 @@ export const DemosRouter: React.FC = () => {
                 <Route path="demonstrations" element={<DemonstrationsPage />} />
                 <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
                 <Route path="deliverables" element={<DeliverablesPage />} />
+                <Route path="deliverable/:deliverableId" element={<DeliverableDetailsManagementPage />} />
                 {isLocalDevelopment() && (
                   <>
                     <Route path="components" element={<ComponentLibrary />} />
