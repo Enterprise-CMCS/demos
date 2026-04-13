@@ -2,7 +2,7 @@ import React from "react";
 import { Route, Routes } from "react-router-dom";
 import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { DeliverableDetailsManagementPage } from "./DeliverableDetailsManagementPage";
+import { DeliverableDetailsManagementPage, DELIVERABLE_DETAILS_QUERY } from "./DeliverableDetailsManagementPage";
 import { MOCK_DELIVERABLE_1 } from "mock-data/deliverableMocks";
 import { TestProvider } from "test-utils/TestProvider";
 
@@ -48,6 +48,44 @@ describe("DeliverableDetailsManagementPage", () => {
 
     await waitFor(() =>
       expect(screen.getByText(MOCK_DELIVERABLE_1.cmsOwner.person.fullName)).toBeInTheDocument()
+    );
+  });
+
+  it("shows not found state", async () => {
+    const notFoundMock = {
+      request: { query: DELIVERABLE_DETAILS_QUERY, variables: { id: "1" } },
+      result: { data: { deliverable: null } },
+    };
+
+    render(
+      <TestProvider mocks={[notFoundMock]} routerEntries={["/deliverables/1"]}>
+        <Routes>
+          <Route path="/deliverables/:deliverableId" element={<DeliverableDetailsManagementPage />} />
+        </Routes>
+      </TestProvider>
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText(/deliverable not found/i)).toBeInTheDocument()
+    );
+  });
+
+  it("shows error state", async () => {
+    const errorMock = {
+      request: { query: DELIVERABLE_DETAILS_QUERY, variables: { id: "1" } },
+      error: new Error("Something went wrong"),
+    };
+
+    render(
+      <TestProvider mocks={[errorMock]} routerEntries={["/deliverables/1"]}>
+        <Routes>
+          <Route path="/deliverables/:deliverableId" element={<DeliverableDetailsManagementPage />} />
+        </Routes>
+      </TestProvider>
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText(/error loading deliverable/i)).toBeInTheDocument()
     );
   });
 });
