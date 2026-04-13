@@ -1,6 +1,6 @@
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { CreateDeliverableInput } from "../../types";
-import { getCurrentUserId, GraphQLContext } from "../../auth/auth.util";
+import { GraphQLContext } from "../../auth/auth.util";
 import { parseCreateDeliverableInput, validateCreateDeliverableInput } from ".";
 import { prisma } from "../../prismaClient";
 import { insertDeliverable } from "./queries/insertDeliverable";
@@ -11,7 +11,7 @@ export async function createDeliverable(
   input: CreateDeliverableInput,
   context: GraphQLContext
 ): Promise<PrismaDeliverable> {
-  const currentUserId = getCurrentUserId(context);
+  const currentUserId = context.user.id;
   const parsedInput = parseCreateDeliverableInput(input);
   const createdDeliverable = await prisma().$transaction(async (tx) => {
     const actionTime = new Date();
