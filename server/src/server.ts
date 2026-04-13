@@ -52,7 +52,6 @@ const server = new ApolloServer<GraphQLContext>({
     return formattedError;
   },
   logger: log,
-  
 });
 export function extractClaimsFromEvent(event: APIGatewayProxyEvent): AuthorizationClaims {
   const authorizer = event.requestContext.authorizer;
@@ -66,7 +65,7 @@ export function extractClaimsFromEvent(event: APIGatewayProxyEvent): Authorizati
     role: authorizer.role,
     givenName: authorizer.given_name,
     familyName: authorizer.family_name,
-    externalUserId: authorizer.identities[0].userId,
+    externalUserId: authorizer.userId,
   };
   validateClaims(claims);
   return claims;
