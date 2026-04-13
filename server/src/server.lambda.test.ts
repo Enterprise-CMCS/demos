@@ -86,7 +86,7 @@ function makeEvent(): APIGatewayProxyEvent {
         email: "somehuman@example.com",
         family_name: "Kenobi",
         given_name: "obiwan",
-        identities: [{ userId: "ABCD" }],
+        userId: "ABCD",
         sub: "74a88478-1081-702f-2d85-a65bf907a154",
       },
       protocol: "HTTP/1.1",

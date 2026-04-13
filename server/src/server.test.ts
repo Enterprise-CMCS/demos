@@ -8,7 +8,9 @@ const ApolloServerMock = class {
   }
 };
 
-const startServerAndCreateLambdaHandlerMock = vi.fn((server: any, handler: any, opts: any) => ({ handlerCalled: true }));
+const startServerAndCreateLambdaHandlerMock = vi.fn((server: any, handler: any, opts: any) => ({
+  handlerCalled: true,
+}));
 const handlersMock = { createAPIGatewayProxyEventRequestHandler: vi.fn(() => ({ handler: true })) };
 const ApolloArmorMock = vi.fn(function (this: any, cfg: any) {
   this.protect = () => ({ plugins: [], validationRules: [] });
@@ -16,7 +18,10 @@ const ApolloArmorMock = vi.fn(function (this: any, cfg: any) {
 const validateClaimsMock = vi.fn();
 
 vi.mock("@apollo/server", () => ({ ApolloServer: ApolloServerMock }));
-vi.mock("@as-integrations/aws-lambda", () => ({ startServerAndCreateLambdaHandler: startServerAndCreateLambdaHandlerMock, handlers: handlersMock }));
+vi.mock("@as-integrations/aws-lambda", () => ({
+  startServerAndCreateLambdaHandler: startServerAndCreateLambdaHandlerMock,
+  handlers: handlersMock,
+}));
 vi.mock("@escape.tech/graphql-armor", () => ({ ApolloArmor: ApolloArmorMock }));
 
 vi.mock("./model/graphql.js", () => ({ typeDefs: [], resolvers: {} }));
@@ -29,7 +34,12 @@ vi.mock("./auth/auth.util.js", () => ({
   validateClaims: validateClaimsMock,
   getDatabaseUrl: vi.fn(async () => "postgres://db"),
 }));
-vi.mock("./log.js", () => ({ log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} }, reqIdChild: () => ({ debug: () => {} }), als: { run: (s: any, fn: any) => fn(), }, store: {} }));
+vi.mock("./log.js", () => ({
+  log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },
+  reqIdChild: () => ({ debug: () => {} }),
+  als: { run: (s: any, fn: any) => fn() },
+  store: {},
+}));
 
 function makeEvent(): APIGatewayProxyEvent {
   return {
@@ -53,7 +63,7 @@ function makeEvent(): APIGatewayProxyEvent {
         role: "demos-cms-user",
         given_name: "obiwan",
         family_name: "Kenobi",
-        identities: [{ userId: "ABCD" }],
+        userId: "ABCD",
       },
       protocol: "HTTP/1.1",
       httpMethod: "POST",
@@ -81,7 +91,6 @@ describe("server module", () => {
 
     expect(ApolloArmorMock).toHaveBeenCalled();
     expect(startServerAndCreateLambdaHandlerMock).toHaveBeenCalled();
-    
   });
 
   it("extracts claims from the API Gateway authorizer", async () => {
