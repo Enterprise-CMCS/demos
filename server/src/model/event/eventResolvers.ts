@@ -2,14 +2,14 @@ import { prisma } from "../../prismaClient.js";
 import { LogEventInput } from "./eventSchema.js";
 import { Event as PrismaEvent } from "@prisma/client";
 import { getApplication, PrismaApplication } from "../application";
-import { GraphQLContext, getCurrentUserId } from "../../auth/auth.util.js";
+import { GraphQLContext } from "../../auth/auth.util.js";
 
 export async function logEvent(
   parent: unknown,
   { input }: { input: LogEventInput },
   context: GraphQLContext
 ) {
-  const userId = getCurrentUserId(context);
+  const userId = context.user.id;
   const eventData = {
     ...input.eventData,
     userId: userId,

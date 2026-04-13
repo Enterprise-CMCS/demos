@@ -33,6 +33,7 @@ import {
   TAG_STATUSES,
   TAG_TYPES,
   UIPATH_RESULT_STATUSES,
+  USER_TYPES,
 } from "./constants.js";
 
 export type {
@@ -127,6 +128,7 @@ export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 export type PhaseName = (typeof PHASE_NAMES)[number];
 export type PhaseStatus = (typeof PHASE_STATUS)[number];
 export type PersonType = (typeof PERSON_TYPES)[number];
+export type UserType = (typeof USER_TYPES)[number];
 export type GrantLevel = (typeof GRANT_LEVELS)[number];
 export type Role = (typeof ROLES)[number];
 export type DateType = (typeof DATE_TYPES)[number];
