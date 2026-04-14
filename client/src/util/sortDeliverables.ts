@@ -3,7 +3,7 @@ import { DELIVERABLE_STATUSES } from "demos-server-constants";
 type SortableDeliverable = {
   id: string;
   status: string;
-  dueDate: string;
+  dueDate: string | Date;
 };
 
 const STATUS_ORDER = [
@@ -24,15 +24,20 @@ STATUS_ORDER.forEach((status, index) => {
   STATUS_RANK.set(status, index);
 });
 
-const compareDueDateAsc = (firstDate: string, secondDate: string) => {
-  const firstTime = Date.parse(firstDate);
-  const secondTime = Date.parse(secondDate);
+const dateToTimestamp = (date: string | Date): number => {
+  const value = date instanceof Date ? date.getTime() : Date.parse(date);
+  return Number.isNaN(value) ? Number.NaN : value;
+};
+
+const compareDueDateAsc = (firstDate: string | Date, secondDate: string | Date) => {
+  const firstTime = dateToTimestamp(firstDate);
+  const secondTime = dateToTimestamp(secondDate);
 
   if (!Number.isNaN(firstTime) && !Number.isNaN(secondTime)) {
     return firstTime - secondTime;
   }
 
-  return firstDate.localeCompare(secondDate);
+  return String(firstDate).localeCompare(String(secondDate));
 };
 
 export const sortDeliverablesByDefault = <T extends SortableDeliverable>(

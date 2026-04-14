@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 
 import { DemonstrationDeliverableTable } from "./DemonstrationDeliverableTable";
-import type { Deliverable } from "pages/DeliverablesPage";
+import type { GenericDeliverableTableRow } from "pages/DeliverablesPage";
 
-const baseDeliverable: Omit<Deliverable, "id" | "name" | "dueDate" | "status"> = {
+const baseDeliverable: Omit<GenericDeliverableTableRow, "id" | "name" | "dueDate" | "status"> = {
   demonstration: {
     id: "demo-1",
     name: "Demo 1",
@@ -15,6 +15,7 @@ const baseDeliverable: Omit<Deliverable, "id" | "name" | "dueDate" | "status"> =
   cmsOwner: {
     id: "cms-a",
     person: {
+      id: "cms-a",
       fullName: "CMS A",
     },
   },
@@ -22,8 +23,8 @@ const baseDeliverable: Omit<Deliverable, "id" | "name" | "dueDate" | "status"> =
   expectedToBeSubmitted: true,
   cmsDocuments: [],
   stateDocuments: [],
-  createdAt: "2026-01-01",
-  updatedAt: "2026-01-01",
+  createdAt: new Date("2026-01-01"),
+  updatedAt: new Date("2026-01-01"),
 };
 
 describe("DemonstrationDeliverableTable", () => {
@@ -34,35 +35,35 @@ describe("DemonstrationDeliverableTable", () => {
           {
             id: "submitted-1",
             name: "Submitted Item",
-            dueDate: "2026-06-01",
+            dueDate: new Date("2026-06-01"),
             status: "Submitted",
             ...baseDeliverable,
           },
           {
             id: "extension-later",
             name: "Extension Later",
-            dueDate: "2026-05-10",
+            dueDate: new Date("2026-05-10"),
             status: "Upcoming",
             ...baseDeliverable,
           },
           {
             id: "past-due-1",
             name: "Past Due Item",
-            dueDate: "2026-05-01",
+            dueDate: new Date("2026-05-01"),
             status: "Past Due",
             ...baseDeliverable,
           },
           {
             id: "extension-earlier",
             name: "Extension Earlier",
-            dueDate: "2026-04-20",
+            dueDate: new Date("2026-04-20"),
             status: "Approved",
             ...baseDeliverable,
           },
           {
             id: "upcoming-1",
             name: "Upcoming Item",
-            dueDate: "2026-05-15",
+            dueDate: new Date("2026-05-15"),
             status: "Upcoming",
             ...baseDeliverable,
           },

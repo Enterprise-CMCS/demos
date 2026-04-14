@@ -1,7 +1,7 @@
 import React from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 
-import { Deliverable } from "pages/DeliverablesPage";
+import type { GenericDeliverableTableRow } from "pages/DeliverablesPage";
 import { Table } from "components/table/Table";
 import { createDateColumnDef } from "components/table/columns/dateColumn";
 import { highlightCell, KeywordSearch } from "components/table/KeywordSearch";
@@ -15,7 +15,7 @@ const DEFAULT_NO_SEARCH_RESULTS_MESSAGE =
   "No results were returned. Adjust your search and filter criteria.";
 
 export type DemonstrationDeliverableTableRow = Pick<
-  Deliverable,
+  GenericDeliverableTableRow,
   | "id"
   | "deliverableType"
   | "name"
@@ -25,7 +25,7 @@ export type DemonstrationDeliverableTableRow = Pick<
 >;
 
 export const DemonstrationDeliverableTable: React.FC<{
-  deliverables: Deliverable[];
+  deliverables: GenericDeliverableTableRow[];
   emptyRowsMessage?: string;
   noResultsFoundMessage?: string;
 }> = ({

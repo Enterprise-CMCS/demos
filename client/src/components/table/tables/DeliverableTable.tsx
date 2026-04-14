@@ -1,7 +1,7 @@
 import React from "react";
-import type { PersonType } from "demos-server";
+import type { Deliverable, PersonType } from "demos-server";
+import type { GenericDeliverableTableRow } from "pages/DeliverablesPage";
 
-import { Deliverable } from "pages/DeliverablesPage";
 import { DeliverableColumns } from "../columns/DeliverableColumns";
 import { Table, type TableProps } from "../Table";
 import { ColumnFilter } from "../ColumnFilter";
@@ -14,30 +14,7 @@ import { ImportIcon } from "components/icons/Action/ImportIcon";
 import { EditIcon } from "components/icons/Navigation/EditIcon";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
 
-export type DeliverableTableRow = {
-  id: string;
-  name: string;
-  deliverableType: string;
-  demonstration: {
-    id: string;
-    name: string;
-    state: { id: string };
-  };
-  status: string;
-  cmsOwner: {
-    id: string;
-    person: {
-      fullName: string;
-    };
-  };
-  dueDate: string;
-  dueDateType: string;
-  expectedToBeSubmitted: boolean;
-  cmsDocuments: { id: string }[];
-  stateDocuments: { id: string }[];
-  createdAt: string;
-  updatedAt: string;
-};
+export type DeliverableTableRow = GenericDeliverableTableRow;
 
 export type DeliverableTableViewMode = Exclude<PersonType, "non-user-contact">;
 
@@ -49,7 +26,7 @@ export const formatDeliverableStatus = ({
 }: Pick<Deliverable, "status">) => status;
 
 export const DeliverableTable: React.FC<{
-  deliverables: Deliverable[];
+  deliverables: DeliverableTableRow[];
   emptyRowsMessage?: string;
   viewMode: DeliverableTableViewMode;
 }> = ({

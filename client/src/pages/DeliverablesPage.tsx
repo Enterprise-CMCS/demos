@@ -2,41 +2,28 @@ import { DeliverableTable } from "components/table/tables/DeliverableTable";
 import { getCurrentUser } from "components/user/UserContext";
 import { HorizontalSectionTabs, Tab } from "layout/Tabs";
 import React from "react";
-import { PersonType } from "demos-server";
+import type { Deliverable, Person, PersonType, State } from "demos-server";
 import { useSessionTab } from "hooks/useSessionTab";
 
 import { MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
 
-/* TODO: Probably replace with Pick<Deliverable, "id" | ... > when schema is defined */
-export type Deliverable = {
-  id: string;
-  name: string;
-  demonstration: {
-    id: string;
-    name: string;
-    state: {
-      id: string;
-    };
+export type GenericDeliverableTableRow = Omit<
+  Deliverable,
+  "demonstration" | "cmsOwner" | "cmsDocuments" | "stateDocuments"
+> & {
+  name: string; // APPENDED FOR NOW, PE Toms Deliverables.
+  demonstration: Pick<Deliverable["demonstration"], "id" | "name"> & {
+    state: Pick<State, "id">;
   };
-  deliverableType: string;
-  cmsOwner: {
-    id: string;
-    person: {
-      fullName: string;
-    };
+  cmsOwner: Pick<Deliverable["cmsOwner"], "id"> & {
+    person: Pick<Person, "fullName" | "id">;
   };
-  dueDate: string;
-  dueDateType: string;
-  expectedToBeSubmitted: boolean;
-  cmsDocuments: { id: string }[];
-  stateDocuments: { id: string }[];
-  createdAt: string;
-  updatedAt: string;
-  status: string;
+  cmsDocuments: Pick<Deliverable["cmsDocuments"][number], "id">[];
+  stateDocuments: Pick<Deliverable["stateDocuments"][number], "id">[];
 };
 
 type DeliverablesPageQueryResult = {
-  deliverables: Deliverable[];
+  deliverables: GenericDeliverableTableRow[];
   currentUserId: string;
 };
 type DeliverableTableViewMode = Exclude<PersonType, "non-user-contact">;
