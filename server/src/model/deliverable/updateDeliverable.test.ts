@@ -129,7 +129,9 @@ describe("updateDeliverable", () => {
       id: testDeliverableId,
     };
 
-    vi.mocked(parseUpdateDeliverableInput).mockReturnValue(testInput);
+    vi.mocked(parseUpdateDeliverableInput).mockReturnValue(
+      testInput as ParsedUpdateDeliverableInput
+    );
     vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
     vi.mocked(getDeliverableDemonstrationTypes).mockResolvedValue([
       {
@@ -163,7 +165,9 @@ describe("updateDeliverable", () => {
       demonstrationId: testDemonstrationId,
     };
 
-    vi.mocked(parseUpdateDeliverableInput).mockReturnValue(testInput);
+    vi.mocked(parseUpdateDeliverableInput).mockReturnValue(
+      testInput as ParsedUpdateDeliverableInput
+    );
     vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
     vi.mocked(prismaUpdateDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
     vi.mocked(getDeliverableDemonstrationTypes).mockResolvedValue([

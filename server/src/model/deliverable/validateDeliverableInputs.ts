@@ -30,8 +30,7 @@ export async function validateCreateDeliverableInput(
   );
 
   const errors: (string | undefined)[] = [];
-  errors.push(checkDemonstrationStatus(demonstration));
-  errors.push(checkOwnerPersonType(cmsOwnerUser));
+  errors.push(checkDemonstrationStatus(demonstration), checkOwnerPersonType(cmsOwnerUser));
   if (input.demonstrationTypes) {
     errors.push(checkForDuplicateDemonstrationTypes(input.demonstrationTypes));
     for (const requestedDeliverableDemonstrationType of input.demonstrationTypes) {
