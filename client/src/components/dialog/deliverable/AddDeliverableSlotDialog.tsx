@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { gql, useMutation } from "@apollo/client";
 
 import { Button } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
@@ -12,6 +13,28 @@ import { QuarterlyDeliverableSchedule } from "./fields/schedule-type/QuarterlyDe
 import { CreateDeliverableInput, DeliverableType, Demonstration, LocalDate, Tag } from "demos-server";
 import { useToast } from "components/toast";
 import { DELIVERABLE_SLOTS_CREATED_MESSAGE } from "util/messages";
+
+export const CREATE_DELIVERABLE_MUTATION = gql`
+  mutation CreateDeliverable($input: CreateDeliverableInput!) {
+    createDeliverable(input: $input) {
+      id
+    }
+  }
+`;
+
+export const useCreateDeliverable = () => {
+  // TODO: last piece needed on here is that we need to refetch the deliverable slots after creation
+  // There's not currently a query for that yet
+  const [createDeliverable, { loading }] = useMutation(CREATE_DELIVERABLE_MUTATION);
+
+  const createDeliverables = async (inputs: CreateDeliverableInput[]) => {
+    await Promise.all(
+      inputs.map((input) => createDeliverable({ variables: { input } }))
+    );
+  };
+
+  return { createDeliverables, loading };
+};
 
 export const ADD_DELIVERABLE_SLOT_DIALOG_TITLE = "Add New Deliverable Slot(s)";
 export const ADD_DELIVERABLE_SLOT_DIALOG_NAME = "add-deliverable-slot-dialog";
@@ -115,6 +138,7 @@ export const AddDeliverableSlotDialog = ({
   demonstration: AddDeliverableSlotDemonstration;
 }) => {
   const { showSuccess } = useToast();
+  const { createDeliverables, loading } = useCreateDeliverable();
 
   const [formData, setFormData] = useState<AddDeliverableSlotFormData>(INITIAL_FORM_DATA);
   const [demonstrationYear, setDemonstrationYear] = useState<number>(1);
@@ -132,19 +156,17 @@ export const AddDeliverableSlotDialog = ({
       actionButton={
         <Button
           name={ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME}
-          onClick={() => {
-            // For now log out the payload that would be sent to the backend.
-            // In the future, this is where the API call to create deliverable slots would go
+          onClick={async () => {
             const payloads = buildAddDeliverableSlotPayloads(
               demonstration.id,
               demonstrationYear,
               formData
             );
-            console.log(payloads);
+            await createDeliverables(payloads);
             showSuccess(DELIVERABLE_SLOTS_CREATED_MESSAGE);
             onClose();
           }}
-          disabled={!isFormValid}
+          disabled={!isFormValid || loading}
         >
           Save
         </Button>

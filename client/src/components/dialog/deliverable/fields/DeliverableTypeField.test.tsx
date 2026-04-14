@@ -10,7 +10,7 @@ const DEFAULT_DELIVERABLE_TYPE: DeliverableType = "Annual Budget Neutrality Repo
 
 describe("DeliverableTypeField", () => {
   const setup = (value: DeliverableType = DEFAULT_DELIVERABLE_TYPE, onSelect = vi.fn()) => {
-    render(<DeliverableTypeField value={value ?? DEFAULT_DELIVERABLE_TYPE} onSelect={onSelect} />);
+    render(<DeliverableTypeField value={value} onSelect={onSelect} />);
     return { onSelect };
   };
 
