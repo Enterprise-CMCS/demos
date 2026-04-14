@@ -33,6 +33,7 @@ export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
   });
 
   const dueDateColumn = createDateColumnDef(columnHelper, "dueDate", "Due Date");
+  const submissionDateColumn = createDateColumnDef(columnHelper, "submissionDate", "Submission Date");
   const statusColumn = columnHelper.accessor("status", {
     header: "Status",
     cell: highlightCell,
@@ -44,6 +45,7 @@ export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
       deliverableTypeColumn,
       deliverableNameColumn,
       dueDateColumn,
+      submissionDateColumn,
       statusColumn,
     ];
   }
@@ -74,6 +76,7 @@ export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
       cell: highlightCell,
     }),
     dueDateColumn,
+    submissionDateColumn,
     statusColumn,
     columnHelper.display({
       id: "view",

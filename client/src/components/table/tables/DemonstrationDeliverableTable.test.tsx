@@ -31,6 +31,7 @@ describe("DemonstrationDeliverableTable", () => {
   it("applies default deliverable ordering on first render", () => {
     render(
       <DemonstrationDeliverableTable
+        viewMode="demos-state-user"
         deliverables={[
           {
             id: "submitted-1",
@@ -72,7 +73,7 @@ describe("DemonstrationDeliverableTable", () => {
     );
 
     const rows = screen.getAllByRole("row").slice(1);
-    const orderedNames = rows.map((row) => within(row).getAllByRole("cell")[1].textContent);
+    const orderedNames = rows.map((row) => within(row).getAllByRole("cell")[2].textContent);
 
     expect(orderedNames).toEqual([
       "Past Due Item",
@@ -81,5 +82,45 @@ describe("DemonstrationDeliverableTable", () => {
       "Submitted Item",
       "Extension Earlier",
     ]);
+  });
+
+  it("shows state and CMS owner columns for non-state users", () => {
+    render(
+      <DemonstrationDeliverableTable
+        viewMode="demos-cms-user"
+        deliverables={[
+          {
+            id: "row-1",
+            name: "Item",
+            dueDate: new Date("2026-01-01"),
+            status: "Upcoming",
+            ...baseDeliverable,
+          },
+        ]}
+      />
+    );
+
+    expect(screen.getByRole("columnheader", { name: "State/Territory" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: "CMS Owner" })).toBeInTheDocument();
+  });
+
+  it("hides state and CMS owner columns for state users", () => {
+    render(
+      <DemonstrationDeliverableTable
+        viewMode="demos-state-user"
+        deliverables={[
+          {
+            id: "row-2",
+            name: "Item",
+            dueDate: new Date("2026-01-01"),
+            status: "Upcoming",
+            ...baseDeliverable,
+          },
+        ]}
+      />
+    );
+
+    expect(screen.queryByRole("columnheader", { name: "State/Territory" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "CMS Owner" })).not.toBeInTheDocument();
   });
 });

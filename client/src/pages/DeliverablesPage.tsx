@@ -17,6 +17,7 @@ export type GenericDeliverableTableRow = Omit<
   cmsOwner: Pick<Deliverable["cmsOwner"], "id"> & {
     person: Pick<Person, "fullName" | "id">;
   };
+  submissionDate?: string;
   cmsDocuments: Pick<Deliverable["cmsDocuments"][number], "id">[];
   stateDocuments: Pick<Deliverable["stateDocuments"][number], "id">[];
 };

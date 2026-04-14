@@ -8,6 +8,7 @@ import { highlightCell, KeywordSearch } from "components/table/KeywordSearch";
 import { ColumnFilter } from "components/table/ColumnFilter";
 import { PaginationControls } from "components/table/PaginationControls";
 import { formatDeliverableStatus } from "./DeliverableTable";
+import type { DeliverableTableViewMode } from "./DeliverableTable";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
 
 const DEFAULT_EMPTY_ROWS_MESSAGE = "You have no assigned Deliverables at this time";
@@ -17,6 +18,7 @@ const DEFAULT_NO_SEARCH_RESULTS_MESSAGE =
 export type DemonstrationDeliverableTableRow = Pick<
   GenericDeliverableTableRow,
   | "id"
+  | "demonstration"
   | "deliverableType"
   | "name"
   | "cmsOwner"
@@ -26,16 +28,22 @@ export type DemonstrationDeliverableTableRow = Pick<
 
 export const DemonstrationDeliverableTable: React.FC<{
   deliverables: GenericDeliverableTableRow[];
+  viewMode?: DeliverableTableViewMode;
   emptyRowsMessage?: string;
   noResultsFoundMessage?: string;
 }> = ({
   deliverables,
+  viewMode = "demos-cms-user",
   emptyRowsMessage = DEFAULT_EMPTY_ROWS_MESSAGE,
   noResultsFoundMessage = DEFAULT_NO_SEARCH_RESULTS_MESSAGE,
 }) => {
   const columnHelper = createColumnHelper<DemonstrationDeliverableTableRow>();
 
   const columns = [
+    columnHelper.accessor("demonstration.name", {
+      header: "Demonstration Name",
+      cell: highlightCell,
+    }),
     columnHelper.accessor("deliverableType", {
       header: "Deliverable Type",
       cell: highlightCell,
@@ -44,16 +52,25 @@ export const DemonstrationDeliverableTable: React.FC<{
       header: "Deliverable Name",
       cell: highlightCell,
     }),
-    columnHelper.accessor("cmsOwner.person.fullName", {
-      header: "CMS Owner",
-      cell: highlightCell,
-    }),
     createDateColumnDef(columnHelper, "dueDate", "Due Date"),
     columnHelper.accessor("status", {
       header: "Status",
       cell: highlightCell,
     }),
   ];
+  const columnsWithCmsFields = [
+    columnHelper.accessor("demonstration.state.id", {
+      header: "State/Territory",
+      cell: highlightCell,
+    }),
+    ...columns.slice(0, 3),
+    columnHelper.accessor("cmsOwner.person.fullName", {
+      header: "CMS Owner",
+      cell: highlightCell,
+    }),
+    ...columns.slice(3),
+  ];
+  const resolvedColumns = viewMode === "demos-state-user" ? columns : columnsWithCmsFields;
 
   const formattedDeliverables = React.useMemo(
     () =>
@@ -67,7 +84,7 @@ export const DemonstrationDeliverableTable: React.FC<{
   return (
     <Table<DemonstrationDeliverableTableRow>
       data={formattedDeliverables}
-      columns={columns}
+      columns={resolvedColumns}
       keywordSearch={(table) => <KeywordSearch table={table} />}
       columnFilter={(table) => <ColumnFilter table={table} />}
       pagination={(table) => <PaginationControls table={table} />}
