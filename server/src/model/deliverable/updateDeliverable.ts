@@ -55,21 +55,27 @@ export async function updateDeliverable(
     }
 
     // Conditionally log changes to the due date here
+    // However, suppress false changes to the due date from being logged as actions
     // All as statements below are enforced by the DB
     if (parsedInput.dueDate) {
-      await insertDeliverableAction(
-        {
-          deliverableId: updatedDeliverable.id,
-          actionType: "Manually Changed Due Date",
-          actionTime: actionTime,
-          oldStatus: oldDeliverable.statusId as DeliverableStatus,
-          newStatus: updatedDeliverable.statusId as DeliverableStatus,
-          oldDueDate: oldDeliverable.dueDate,
-          newDueDate: updatedDeliverable.dueDate,
-          userId: currentUserId,
-        },
-        tx
-      );
+      if (
+        oldDeliverable.dueDate.valueOf() !== parsedInput.dueDate.newDueDate.easternTZDate.valueOf()
+      ) {
+        await insertDeliverableAction(
+          {
+            deliverableId: updatedDeliverable.id,
+            actionType: "Manually Changed Due Date",
+            actionTime: actionTime,
+            oldStatus: oldDeliverable.statusId as DeliverableStatus,
+            newStatus: updatedDeliverable.statusId as DeliverableStatus,
+            note: parsedInput.dueDate.dateChangeNote,
+            oldDueDate: oldDeliverable.dueDate,
+            newDueDate: updatedDeliverable.dueDate,
+            userId: currentUserId,
+          },
+          tx
+        );
+      }
     }
 
     return updatedDeliverable;

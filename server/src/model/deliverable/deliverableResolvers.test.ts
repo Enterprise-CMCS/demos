@@ -16,6 +16,7 @@ import {
   DeliverableDueDateType,
   DeliverableStatus,
   DeliverableType,
+  UpdateDeliverableInput,
 } from "../../types.js";
 
 // Functions under test
@@ -38,6 +39,7 @@ vi.mock(".", () => ({
   createDeliverable: vi.fn(),
   getDeliverable: vi.fn(),
   getManyDeliverables: vi.fn(),
+  updateDeliverable: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -52,7 +54,7 @@ vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
 }));
 
-import { createDeliverable, getDeliverable, getManyDeliverables } from ".";
+import { createDeliverable, getDeliverable, getManyDeliverables, updateDeliverable } from ".";
 import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getManyDocuments } from "../document";
@@ -256,6 +258,7 @@ describe("deliverableResolvers", () => {
           name: "A name!",
           deliverableType: "Close Out Report",
           demonstrationId: testDemonstrationId,
+          cmsOwnerUserId: "161f3a85-7b6d-4217-abec-93494db3a207",
           dueDate: "2025-11-31" as DateTimeOrLocalDate,
         };
 
@@ -265,6 +268,23 @@ describe("deliverableResolvers", () => {
           {} as GraphQLContext
         );
         expect(createDeliverable).toHaveBeenCalledExactlyOnceWith(testInput, {});
+      });
+    });
+
+    describe("Mutation.updateDeliverable", () => {
+      it("should call the updateDeliverable function with the right arguments", async () => {
+        const testInput: UpdateDeliverableInput = {
+          name: "A name!",
+          deliverableType: "Close Out Report",
+          cmsOwnerUserId: "161f3a85-7b6d-4217-abec-93494db3a207",
+        };
+
+        await deliverableResolvers.Mutation.updateDeliverable(
+          {},
+          { id: testDeliverableId, input: testInput },
+          {} as GraphQLContext
+        );
+        expect(updateDeliverable).toHaveBeenCalledExactlyOnceWith(testDeliverableId, testInput, {});
       });
     });
   });

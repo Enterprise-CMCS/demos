@@ -238,6 +238,7 @@ describe("updateDeliverable", () => {
         actionTime: mockCurrentDate,
         oldStatus: mockDeliverable.statusId,
         newStatus: mockDeliverable.statusId,
+        note: testInput.dueDate?.dateChangeNote,
         oldDueDate: mockDeliverable.dueDate,
         newDueDate: mockDeliverable.dueDate,
         userId: testContext.user.id,

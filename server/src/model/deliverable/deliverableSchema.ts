@@ -21,6 +21,7 @@ export const deliverableSchema = gql`
     cmsOwner: User!
     dueDate: DateTime!
     dueDateType: DeliverableDueDateType!
+    demonstrationTypes: [TagName!]!
     expectedToBeSubmitted: Boolean!
     cmsDocuments: [Document!]!
     stateDocuments: [Document!]!
@@ -69,6 +70,7 @@ export interface Deliverable {
   cmsOwner: User;
   dueDate: Date;
   dueDateType: DeliverableDueDateType;
+  demonstrationTypes: TagName[];
   expectedToBeSubmitted: boolean;
   cmsDocuments: Document[];
   stateDocuments: Document[];

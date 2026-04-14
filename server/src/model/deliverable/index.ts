@@ -12,6 +12,7 @@ export {
   validateCreateDeliverableInput,
   validateUpdateDeliverableInput,
 } from "./validateDeliverableInputs";
+export { updateDeliverable } from "./updateDeliverable";
 
 // Queries
 export { getDeliverable } from "./queries/getDeliverable";
