@@ -104,7 +104,8 @@ export const checkFormHasChanges = (
     updatedDemonstration.expirationDate !== initialDemonstration.expirationDate ||
     updatedDemonstration.sdgDivision !== initialDemonstration.sdgDivision ||
     updatedDemonstration.signatureLevel !== initialDemonstration.signatureLevel ||
-    updatedDemonstration.demoIds.join(",") !== initialDemonstration.demoIds.join(",")
+    [...updatedDemonstration.demoIds].sort((a, b) => a.localeCompare(b)).join(",") !==
+      [...initialDemonstration.demoIds].sort((a, b) => a.localeCompare(b)).join(",")
   );
 };
 
@@ -118,7 +119,7 @@ export const checkFormIsValid = (demonstration: DemonstrationDialogFields) => {
   if (!demonstration.projectOfficerId) {
     return false;
   }
-  if (!demonstration.demoIds || demonstration.demoIds.length === 0) {
+  if (demonstration.demoIds.length === 0) {
     return false;
   }
   if (
