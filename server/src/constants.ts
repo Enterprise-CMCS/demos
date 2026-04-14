@@ -460,3 +460,14 @@ export const BUDGET_NEUTRALITY_VALIDATION_STATUSES = [
   "Pending",
   "In Progress",
 ];
+
+export const PERMISSIONS = [
+  "View All Demonstrations",
+  "View Assigned Demonstrations",
+  "View All Amendments",
+  "View Amendments on Assigned Demonstrations",
+  "View All Extensions",
+  "View Extensions on Assigned Demonstrations",
+] as const;
+
+export const SYSTEM_ROLES = ["Admin User", "CMS User", "State User"] as const;

@@ -34,6 +34,8 @@ import {
   TAG_TYPES,
   UIPATH_RESULT_STATUSES,
   USER_TYPES,
+  PERMISSIONS,
+  SYSTEM_ROLES,
 } from "./constants.js";
 
 export type {
@@ -157,3 +159,5 @@ export type DeliverableDueDateType = (typeof DELIVERABLE_DUE_DATE_TYPES)[number]
 export type DeliverableActionType = (typeof DELIVERABLE_ACTION_TYPES)[number];
 export type DeliverableExtensionReasonCode = (typeof DELIVERABLE_EXTENSION_REASON_CODES)[number];
 export type DeliverableExtensionStatus = (typeof DELIVERABLE_EXTENSION_STATUSES)[number];
+export type Permission = (typeof PERMISSIONS)[number];
+export type SystemRole = (typeof SYSTEM_ROLES)[number];

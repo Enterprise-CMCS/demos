@@ -16,6 +16,12 @@ describe("findOrCreateContextUserFromClaims", () => {
     person: {
       create: vi.fn(),
     },
+    systemRoleAssignment: {
+      create: vi.fn(),
+    },
+    rolePermission: {
+      findMany: vi.fn(),
+    },
   };
 
   const claims: AuthorizationClaims = {
@@ -37,12 +43,46 @@ describe("findOrCreateContextUserFromClaims", () => {
       id: "user-1",
       cognitoSubject: claims.sub,
       personTypeId: "demos-admin",
+      person: {
+        systemRoleAssignments: [
+          {
+            roleId: "Role 1",
+          },
+          {
+            roleId: "Role 2",
+          },
+        ],
+      },
     });
+
+    mockPrismaClient.rolePermission.findMany.mockResolvedValueOnce([
+      {
+        permissionId: "permission-1",
+      },
+      {
+        permissionId: "permission-2",
+      },
+    ]);
 
     const result = await findOrCreateContextUserFromClaims(claims);
 
     expect(mockPrismaClient.user.findUnique).toHaveBeenCalledExactlyOnceWith({
       where: { cognitoSubject: claims.sub },
+      include: {
+        person: {
+          include: {
+            systemRoleAssignments: true,
+          },
+        },
+      },
+    });
+
+    expect(mockPrismaClient.rolePermission.findMany).toHaveBeenCalledExactlyOnceWith({
+      where: {
+        roleId: {
+          in: ["Role 1", "Role 2"],
+        },
+      },
     });
     expect(mockPrismaClient.person.create).not.toHaveBeenCalled();
     expect(mockPrismaClient.user.create).not.toHaveBeenCalled();
@@ -50,6 +90,7 @@ describe("findOrCreateContextUserFromClaims", () => {
       id: "user-1",
       cognitoSubject: claims.sub,
       personTypeId: "demos-admin",
+      permissions: ["permission-1", "permission-2"],
     });
   });
 
@@ -64,11 +105,23 @@ describe("findOrCreateContextUserFromClaims", () => {
       cognitoSubject: claims.sub,
       personTypeId: "demos-admin",
     });
+    mockPrismaClient.systemRoleAssignment.create.mockResolvedValueOnce({
+      role: {
+        rolePermissions: [{ permissionId: "permission-1" }, { permissionId: "permission-2" }],
+      },
+    });
 
     const result = await findOrCreateContextUserFromClaims(claims);
 
     expect(mockPrismaClient.user.findUnique).toHaveBeenCalledExactlyOnceWith({
       where: { cognitoSubject: claims.sub },
+      include: {
+        person: {
+          include: {
+            systemRoleAssignments: true,
+          },
+        },
+      },
     });
     expect(mockPrismaClient.person.create).toHaveBeenCalledExactlyOnceWith({
       data: {
@@ -90,6 +143,7 @@ describe("findOrCreateContextUserFromClaims", () => {
       id: "person-1",
       cognitoSubject: claims.sub,
       personTypeId: "demos-admin",
+      permissions: ["permission-1", "permission-2"],
     });
   });
 });

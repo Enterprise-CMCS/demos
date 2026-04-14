@@ -417,25 +417,29 @@ async function seedDatabase() {
   }
 
   console.log("🌱 Seeding system role assignments...");
-  // for each user, assign a random set of roles from the system roles
-  const systemRoles = await prisma().role.findMany({
-    where: { grantLevelId: "System" },
-  });
-
   const people = await prisma().person.findMany();
   for (const person of people) {
-    // NOSONAR - this is an appropriate use of Math.random() for seeding a random number of roles
-    const roles = sampleFromArray(systemRoles, 1 + Math.floor(Math.random() * systemRoles.length)); // NOSONAR
-    for (const role of roles) {
-      await prisma().systemRoleAssignment.create({
-        data: {
-          personId: person.id,
-          personTypeId: person.personTypeId,
-          roleId: role.id,
-          grantLevelId: "System",
+    const applicableRoles = await prisma().role.findMany({
+      where: {
+        grantLevelId: "System",
+        rolePersonTypes: {
+          some: {
+            personTypeId: person.personTypeId,
+          },
         },
-      });
-    }
+      },
+    });
+
+    const role = faker.helpers.arrayElement(applicableRoles);
+    console.log(role);
+    await prisma().systemRoleAssignment.create({
+      data: {
+        personId: person.id,
+        personTypeId: person.personTypeId,
+        roleId: role.id,
+        grantLevelId: "System",
+      },
+    });
   }
   // need to add a project officer to each demonstration, so creating a new user from a matching state
   console.log("🌱 Seeding demonstrations...");
