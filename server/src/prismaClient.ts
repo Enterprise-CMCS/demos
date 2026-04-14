@@ -75,6 +75,13 @@ const createExtendedClient = () => {
     log.error({ message: event.message }, "prisma.error");
   });
 
+  /**
+   * because of the way prisma's findUnique works, it prevents the addition of filters that do not
+   * correspond to an exact unique key. This is required, since the permission filters generally
+   * route through a connection to the demonstration and the roles on the demonstration. So this
+   * method was made which essentially acts as a findUnique that can be used with constraints in
+   * general, returning null if not found and erroring if many found
+   */
   const clientWithFindAtMostOne = baseClient.$extends({
     model: {
       $allModels: {

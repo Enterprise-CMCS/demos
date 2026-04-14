@@ -54,6 +54,22 @@ This file provides instructions for AI agents to use when generating or editing 
 - Place tests next to implementation (`Foo.tsx` and `Foo.test.tsx`).
 - Use `@testing-library/react` with `vitest`; prefer `screen.getByTestId()` queries.
 - Prefer real behavior over heavy mocking; use `vi.mock(...)` only at clear boundaries.
+- Run tests with `npm run test:once ...`
+
+### Mocking Mutations
+
+For test files that don't care about testing mutations you can use this code to mock it.
+
+```
+const mockMutate = vi.fn(() => Promise.resolve({ data: {} }));
+vi.mock("@apollo/client", async () => {
+  const actual = await vi.importActual("@apollo/client");
+  return {
+    ...actual,
+    useMutation: vi.fn(() => [mockMutate, { loading: false }]),
+  };
+});
+```
 
 ## Key Folders
 

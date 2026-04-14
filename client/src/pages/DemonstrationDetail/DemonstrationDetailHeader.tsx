@@ -10,8 +10,8 @@ import { useDialog } from "components/dialog/DialogContext";
 import { useNavigate } from "react-router-dom";
 
 export const DEMONSTRATION_HEADER_DETAILS_QUERY = gql`
-  query DemonstrationHeaderDetails($demonstrationId: ID!) {
-    demonstration(id: $demonstrationId) {
+  query DemonstrationHeaderDetails($id: ID!) {
+    demonstration(id: $id) {
       id
       name
       expirationDate
@@ -54,7 +54,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
   const { data, loading, error } = useQuery<{
     demonstration: DemonstrationHeaderDetails;
   }>(DEMONSTRATION_HEADER_DETAILS_QUERY, {
-    variables: { demonstrationId },
+    variables: { id: demonstrationId },
   });
 
   const handleToggleButtons = useCallback(() => {
@@ -110,7 +110,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
               Demonstration List
             </a>
             {/* \u00A0 is unicode for non-breaking space */}
-            {"\u00A0 > \u00A0"} {demonstration.id}
+            {"\u00A0 > \u00A0"} {demonstration.id} {"\u00A0|\u00A0"} 21-W-00014/8
           </span>
           <div className="flex gap-1 items-center -ml-2">
             <div>

@@ -1,3 +1,7 @@
+import { MockedResponse } from "@apollo/client/testing";
+import { DELIVERABLE_DETAIL_HEADER_QUERY } from "pages/deliverables/DeliverableDetailHeader";
+import { DELIVERABLE_DETAILS_QUERY, DeliverableDetailsManagementDeliverable } from "pages/deliverables/DeliverableDetailsManagementPage";
+
 export type MockDeliverable = {
   id: string;
   deliverableName: string;
@@ -18,25 +22,6 @@ export type MockDeliverable = {
   };
 };
 
-/*
-"Annual Budget Neutrality Report",
-  "Close Out Report",
-  "Demonstration-Specific Deliverable",
-  "Evaluation Design",
-  "HCBS Actual and Estimated Enrollment Number Report (1915(i)-like)",
-  "HCBS Deficiency, Remediation and A/N/E Incident Report (1915(c)-like)",
-  "HCBS Evidentiary Report",
-  "HCBS Performance Measures Report",
-  "HCBS Quality Improvement Strategy Report",
-  "Implementation Plan",
-  "Interim Evaluation Report",
-  "Mid-point Assessment",
-  "Monitoring Protocol",
-  "Monitoring Report",
-  "Quarterly Budget Neutrality Report",
-  "Summative Evaluation Report",
-  "Transition Plan",
-  */
 
 export const MOCK_DELIVERABLES: MockDeliverable[] = [
   {
@@ -311,3 +296,55 @@ export const getDeliverablesForDemonstration = (
   demonstrationName: string
 ): MockDeliverable[] =>
   MOCK_DELIVERABLES.filter((deliverable) => deliverable.demonstrationName === demonstrationName);
+
+
+export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
+  id: "1",
+  deliverableType: "Monitoring Report",
+  demonstration: {
+    id: "1",
+    name: "Demonstration 1",
+    state: {
+      id: "CA",
+    },
+  },
+  cmsOwner: {
+    person: {
+      fullName: "Mock User",
+    },
+  },
+  dueDate: new Date("2024-08-15"),
+  status: "Upcoming",
+};
+
+export const deliverableMocks: MockedResponse[] = [
+  {
+    request: {
+      query: DELIVERABLE_DETAILS_QUERY,
+      variables: { id: "1" },
+    },
+    result: {
+      data: {
+        deliverable: MOCK_DELIVERABLE_1,
+      },
+    },
+    maxUsageCount: Number.POSITIVE_INFINITY,
+  },
+  {
+    request: {
+      query: DELIVERABLE_DETAIL_HEADER_QUERY,
+      variables: { deliverableId: "1" },
+    },
+    result: {
+      data: {
+        deliverable: {
+          id: "1",
+          demonstration: {
+            id: "1",
+          },
+        },
+      },
+    },
+    maxUsageCount: Number.POSITIVE_INFINITY,
+  },
+];

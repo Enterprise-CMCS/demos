@@ -90,6 +90,16 @@ export const SummaryDetailsTable: React.FC<{ demonstrationId: string }> = ({ dem
       </div>
 
       <div className={FIELD_CONTAINER_CLASSES}>
+        <div className={LABEL_CLASSES}>Demonstration ID</div>
+        <div className={VALUE_CLASSES}>{demonstration.id}</div>
+      </div>
+
+      <div className={FIELD_CONTAINER_CLASSES}>
+        <div className={LABEL_CLASSES}>CHIP ID</div>
+        <div className={VALUE_CLASSES}>21-W-00014/8</div>
+      </div>
+
+      <div className={FIELD_CONTAINER_CLASSES}>
         <div className={LABEL_CLASSES}>Project Officer</div>
         <div className={VALUE_CLASSES}>{displayData.primaryProjectOfficerName}</div>
       </div>

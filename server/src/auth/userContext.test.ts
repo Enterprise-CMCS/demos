@@ -19,6 +19,9 @@ describe("findOrCreateContextUserFromClaims", () => {
     systemRoleAssignment: {
       create: vi.fn(),
     },
+    rolePermission: {
+      findMany: vi.fn(),
+    },
   };
 
   const claims: AuthorizationClaims = {
@@ -43,13 +46,23 @@ describe("findOrCreateContextUserFromClaims", () => {
       person: {
         systemRoleAssignments: [
           {
-            role: {
-              rolePermissions: [{ permissionId: "permission-1" }, { permissionId: "permission-2" }],
-            },
+            roleId: "Role 1",
+          },
+          {
+            roleId: "Role 2",
           },
         ],
       },
     });
+
+    mockPrismaClient.rolePermission.findMany.mockResolvedValueOnce([
+      {
+        permissionId: "permission-1",
+      },
+      {
+        permissionId: "permission-2",
+      },
+    ]);
 
     const result = await findOrCreateContextUserFromClaims(claims);
 
@@ -58,16 +71,16 @@ describe("findOrCreateContextUserFromClaims", () => {
       include: {
         person: {
           include: {
-            systemRoleAssignments: {
-              include: {
-                role: {
-                  include: {
-                    rolePermissions: true,
-                  },
-                },
-              },
-            },
+            systemRoleAssignments: true,
           },
+        },
+      },
+    });
+
+    expect(mockPrismaClient.rolePermission.findMany).toHaveBeenCalledExactlyOnceWith({
+      where: {
+        roleId: {
+          in: ["Role 1", "Role 2"],
         },
       },
     });
@@ -105,15 +118,7 @@ describe("findOrCreateContextUserFromClaims", () => {
       include: {
         person: {
           include: {
-            systemRoleAssignments: {
-              include: {
-                role: {
-                  include: {
-                    rolePermissions: true,
-                  },
-                },
-              },
-            },
+            systemRoleAssignments: true,
           },
         },
       },
