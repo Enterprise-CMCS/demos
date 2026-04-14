@@ -38,7 +38,10 @@ describe("DeliverablesPage tab persistence", () => {
       error: undefined,
     });
     mockGetCurrentUser.mockReturnValue({
-      currentUser: mockUsers[0],
+      currentUser: {
+        ...mockUsers[0],
+        id: CURRENT_USER_ID,
+      },
     });
     sessionStorage.clear();
   });
