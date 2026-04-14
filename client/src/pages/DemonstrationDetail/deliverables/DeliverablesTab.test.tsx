@@ -9,6 +9,7 @@ import { TestProvider } from "test-utils/TestProvider";
 import { MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
 
 const MOCK_PARENT_DEMONSTRATION = {
+  id: "demo-1",
   demonstrationTypes: [],
   effectiveDate: new Date("2026-01-01"),
   expirationDate: new Date("2026-12-31"),
@@ -61,8 +62,6 @@ describe("DeliverablesTab", () => {
       </TestProvider>
     );
 
-    expect(
-      screen.getByText("You have no assigned Deliverables at this time")
-    ).toBeInTheDocument();
+    expect(screen.getByText("You have no assigned Deliverables at this time")).toBeInTheDocument();
   });
 });

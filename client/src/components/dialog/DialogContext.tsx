@@ -225,11 +225,7 @@ export const useDialog = () => {
     applicationType: WorkflowApplicationType
   ) => {
     context.showDialog(
-      <ConfirmApproveDialog
-        onClose={context.hideDialog}
-        onConfirm={onConfirm}
-        applicationType={applicationType}
-      />
+      <ConfirmApproveDialog onConfirm={onConfirm} applicationType={applicationType} />
     );
   };
 

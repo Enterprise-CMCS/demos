@@ -4,20 +4,25 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 
 import { DemonstrationTypeField, SELECT_DEMONSTRATION_TYPE_NAME } from "./DemonstrationTypeField";
+import { Tag } from "demos-server";
 
-const MOCK_OPTIONS = ["Aggregate Cap", "Annual Limits", "Basic Health Plan (BHP)"];
+const MOCK_OPTIONS: Tag[] = [
+  { tagName: "Aggregate Cap", approvalStatus: "Approved" },
+  { tagName: "Annual Limits", approvalStatus: "Unapproved" },
+  { tagName: "Basic Health Plan (BHP)", approvalStatus: "Approved" },
+];
 
 describe("DemonstrationTypeField", () => {
   const setup = ({
     options = MOCK_OPTIONS,
-    values = [],
+    selectedValues = [],
     onSelect = vi.fn(),
     isRequired = false,
   } = {}) => {
     render(
       <DemonstrationTypeField
-        options={options}
-        values={values}
+        demonstrationTypeTags={options}
+        selectedValues={selectedValues}
         onSelect={onSelect}
         isRequired={isRequired}
       />
@@ -56,7 +61,11 @@ describe("DemonstrationTypeField", () => {
     await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_NAME));
 
     MOCK_OPTIONS.forEach((option) => {
-      expect(screen.getByText(option)).toBeInTheDocument();
+      const displayText =
+        option.approvalStatus === "Unapproved"
+          ? `${option.tagName} (Unapproved)`
+          : option.tagName;
+      expect(screen.getByText(displayText)).toBeInTheDocument();
     });
   });
 
@@ -76,7 +85,7 @@ describe("DemonstrationTypeField", () => {
 
     await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_NAME));
     await user.click(screen.getByText("Aggregate Cap"));
-    await user.click(screen.getByText("Annual Limits"));
+    await user.click(screen.getByText("Annual Limits (Unapproved)"));
 
     expect(onSelect).toHaveBeenLastCalledWith(["Aggregate Cap", "Annual Limits"]);
   });
@@ -87,7 +96,7 @@ describe("DemonstrationTypeField", () => {
 
     await user.type(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_NAME), "Annual");
 
-    expect(screen.getByText("Annual Limits")).toBeInTheDocument();
+    expect(screen.getByText("Annual Limits (Unapproved)")).toBeInTheDocument();
     expect(screen.queryByText("Aggregate Cap")).not.toBeInTheDocument();
   });
 
