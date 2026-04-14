@@ -71,29 +71,32 @@ export async function findOrCreateContextUserFromClaims(
     include: {
       person: {
         include: {
-          systemRoleAssignments: {
-            include: {
-              role: {
-                include: {
-                  rolePermissions: true,
-                },
-              },
-            },
-          },
+          systemRoleAssignments: true,
         },
       },
     },
   });
 
   if (existingUser) {
+    const userRoles = existingUser.person.systemRoleAssignments.map(
+      (assignment) => assignment.roleId
+    );
+
+    const userRolePermissions = await prisma().rolePermission.findMany({
+      where: {
+        roleId: {
+          in: userRoles,
+        },
+      },
+    });
+
     return {
       id: existingUser.id,
       cognitoSubject: existingUser.cognitoSubject,
       // casting enforced by database constraints
       personTypeId: existingUser.personTypeId as UserType,
-      permissions: existingUser.person.systemRoleAssignments.flatMap((assignment) =>
-        // casting enforced by database constraints
-        assignment.role.rolePermissions.map((rp) => rp.permissionId as Permission)
+      permissions: userRolePermissions.map(
+        (rolePermission) => rolePermission.permissionId as Permission
       ),
     };
   }
