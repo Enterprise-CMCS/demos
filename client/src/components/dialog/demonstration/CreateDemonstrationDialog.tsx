@@ -13,6 +13,7 @@ const DEFAULT_DEMONSTRATION_DIALOG_FIELDS: DemonstrationDialogFields = {
   description: "",
   stateId: "",
   projectOfficerId: "",
+  demoIds: [],
 };
 
 const SUCCESS_MESSAGE = "Your demonstration is ready.";
