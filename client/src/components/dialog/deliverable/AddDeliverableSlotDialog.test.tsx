@@ -16,6 +16,7 @@ import { Tag } from "demos-server";
 import {
   ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME,
   AddDeliverableSlotDemonstration,
+  AddDeliverableSlotFormData,
   buildAddDeliverableSlotPayloads,
   getQuarterlyDeliverableSlotName,
 } from "./AddDeliverableSlotDialog";
@@ -197,9 +198,9 @@ describe("getQuarterlyDeliverableSlotName", () => {
 
 describe("buildAddDeliverableSlotPayloads", () => {
   it("returns a single payload when schedule type is Single", () => {
-    const formData = {
+    const formData: AddDeliverableSlotFormData = {
       deliverableName: "My Deliverable",
-      cmsOwnerId: "user-1",
+      cmsOwnerUserId: "user-1",
       deliverableType: "Annual Budget Neutrality Report",
       scheduleType: "Single" as const,
       dueDate: "2026-04-01",
@@ -209,8 +210,8 @@ describe("buildAddDeliverableSlotPayloads", () => {
 
     expect(buildAddDeliverableSlotPayloads(TEST_DEMO_ID, 2, formData)).toEqual([
       {
-        deliverableName: "My Deliverable",
-        cmsOwnerId: "user-1",
+        name: "My Deliverable",
+        cmsOwnerUserId: "user-1",
         deliverableType: "Annual Budget Neutrality Report",
         dueDate: "2026-04-01",
         demonstrationTypes: ["Aggregate Cap"],
@@ -220,9 +221,9 @@ describe("buildAddDeliverableSlotPayloads", () => {
   });
 
   it("returns four quarterly payloads when schedule type is Quarterly", () => {
-    const formData = {
+    const formData: AddDeliverableSlotFormData = {
       deliverableName: "My Deliverable",
-      cmsOwnerId: "user-1",
+      cmsOwnerUserId: "user-1",
       deliverableType: "Annual Budget Neutrality Report",
       scheduleType: "Quarterly" as const,
       dueDate: "",
@@ -232,32 +233,32 @@ describe("buildAddDeliverableSlotPayloads", () => {
 
     expect(buildAddDeliverableSlotPayloads(TEST_DEMO_ID, 2, formData)).toEqual([
       {
-        deliverableName: "DY2Q1 My Deliverable",
-        cmsOwnerId: "user-1",
+        name: "DY2Q1 My Deliverable",
+        cmsOwnerUserId: "user-1",
         deliverableType: "Annual Budget Neutrality Report",
         dueDate: "2026-01-15",
         demonstrationTypes: ["Aggregate Cap"],
         demonstrationId: TEST_DEMO_ID,
       },
       {
-        deliverableName: "DY2Q2 My Deliverable",
-        cmsOwnerId: "user-1",
+        name: "DY2Q2 My Deliverable",
+        cmsOwnerUserId: "user-1",
         deliverableType: "Annual Budget Neutrality Report",
         dueDate: "2026-04-15",
         demonstrationTypes: ["Aggregate Cap"],
         demonstrationId: TEST_DEMO_ID,
       },
       {
-        deliverableName: "DY2Q3 My Deliverable",
-        cmsOwnerId: "user-1",
+        name: "DY2Q3 My Deliverable",
+        cmsOwnerUserId: "user-1",
         deliverableType: "Annual Budget Neutrality Report",
         dueDate: "2026-07-15",
         demonstrationTypes: ["Aggregate Cap"],
         demonstrationId: TEST_DEMO_ID,
       },
       {
-        deliverableName: "DY2Q4 My Deliverable",
-        cmsOwnerId: "user-1",
+        name: "DY2Q4 My Deliverable",
+        cmsOwnerUserId: "user-1",
         deliverableType: "Annual Budget Neutrality Report",
         dueDate: "2026-10-15",
         demonstrationTypes: ["Aggregate Cap"],

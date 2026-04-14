@@ -9,7 +9,7 @@ import { DemonstrationTypeField } from "./fields/DemonstrationTypeField";
 import { ScheduleType, ScheduleTypeField } from "./fields/schedule-type/ScheduleTypeField";
 import { SingleDeliverableScheduleType } from "./fields/schedule-type/SingleDeliverableScheduleType";
 import { QuarterlyDeliverableSchedule } from "./fields/schedule-type/QuarterlyDeliverableSchedule";
-import { Demonstration, Tag } from "demos-server";
+import { CreateDeliverableInput, DeliverableType, Demonstration, LocalDate, Tag } from "demos-server";
 import { useToast } from "components/toast";
 import { DELIVERABLE_SLOTS_CREATED_MESSAGE } from "util/messages";
 
@@ -24,10 +24,10 @@ type Quarter = (typeof ALL_QUARTERS)[number];
 const requiresDemonstrationTypes = (deliverableType: string): boolean =>
   (["Implementation Plan", "Monitoring Protocol"] as readonly string[]).includes(deliverableType);
 
-interface AddDeliverableSlotFormData {
+export interface AddDeliverableSlotFormData {
   deliverableName: string;
-  cmsOwnerId: string;
-  deliverableType: string;
+  cmsOwnerUserId: string;
+  deliverableType: DeliverableType;
   scheduleType: ScheduleType;
   dueDate: string;
   quarterlyDueDates: string[];
@@ -41,8 +41,8 @@ export type AddDeliverableSlotPayload = Omit<
 
 const INITIAL_FORM_DATA: AddDeliverableSlotFormData = {
   deliverableName: "",
-  cmsOwnerId: "",
-  deliverableType: "",
+  cmsOwnerUserId: "",
+  deliverableType: "" as DeliverableType,
   scheduleType: "Single",
   dueDate: "",
   quarterlyDueDates: ALL_QUARTERS.map(() => ""),
@@ -54,13 +54,14 @@ export const getQuarterlyDeliverableSlotName = (
   quarter: Quarter,
   deliverableName: string
 ): string => `DY${demonstrationYear}Q${quarter} ${deliverableName}`;
+
 export const buildAddDeliverableSlotPayloads = (
   demonstrationId: string,
   demonstrationYear: number,
   formData: AddDeliverableSlotFormData
-): AddDeliverableSlotPayload[] => {
-  const { quarterlyDueDates, scheduleType, ...rest } = formData;
-  const payloadBase = { ...rest, demonstrationId };
+): CreateDeliverableInput[] => {
+  const { quarterlyDueDates, scheduleType, deliverableName, ...rest } = formData;
+  const payloadBase = { ...rest, name: deliverableName, demonstrationId, dueDate: formData.dueDate as LocalDate };
 
   if (scheduleType === "Single") {
     return [payloadBase];
@@ -68,12 +69,12 @@ export const buildAddDeliverableSlotPayloads = (
 
   return ALL_QUARTERS.map((quarter, quarterIndex) => ({
     ...payloadBase,
-    deliverableName: getQuarterlyDeliverableSlotName(
+    name: getQuarterlyDeliverableSlotName(
       demonstrationYear,
       quarter,
       formData.deliverableName
     ),
-    dueDate: quarterlyDueDates[quarterIndex],
+    dueDate: quarterlyDueDates[quarterIndex] as LocalDate,
   }));
 };
 
@@ -84,7 +85,7 @@ const hasValidDueDateForScheduleType = (data: AddDeliverableSlotFormData): boole
 
 const formIsValid = (data: AddDeliverableSlotFormData): boolean =>
   data.deliverableName.trim().length > 0 &&
-  data.cmsOwnerId.length > 0 &&
+  data.cmsOwnerUserId.length > 0 &&
   data.deliverableType.length > 0 &&
   data.scheduleType.length > 0 &&
   hasValidDueDateForScheduleType(data) &&
@@ -92,7 +93,7 @@ const formIsValid = (data: AddDeliverableSlotFormData): boolean =>
 
 const formHasChanges = (data: AddDeliverableSlotFormData): boolean =>
   data.deliverableName !== INITIAL_FORM_DATA.deliverableName ||
-  data.cmsOwnerId !== INITIAL_FORM_DATA.cmsOwnerId ||
+  data.cmsOwnerUserId !== INITIAL_FORM_DATA.cmsOwnerUserId ||
   data.deliverableType !== INITIAL_FORM_DATA.deliverableType ||
   data.scheduleType !== INITIAL_FORM_DATA.scheduleType ||
   data.dueDate !== INITIAL_FORM_DATA.dueDate ||
@@ -153,7 +154,7 @@ export const AddDeliverableSlotDialog = ({
         <div className="grid grid-cols-2 gap-sm">
           <DeliverableTypeField
             value={formData.deliverableType}
-            onSelect={(deliverableType) => setFormData((prev) => ({ ...prev, deliverableType }))}
+            onSelect={(deliverableType) => setFormData((prev) => ({ ...prev, deliverableType: deliverableType as DeliverableType }))}
           />
           <ScheduleTypeField
             value={formData.scheduleType}
@@ -191,8 +192,8 @@ export const AddDeliverableSlotDialog = ({
         />
         <div className="grid grid-cols-2 gap-sm">
           <CMSOwnerField
-            value={formData.cmsOwnerId}
-            onSelect={(cmsOwnerId) => setFormData((prev) => ({ ...prev, cmsOwnerId }))}
+            value={formData.cmsOwnerUserId}
+            onSelect={(cmsOwnerId) => setFormData((prev) => ({ ...prev, cmsOwnerUserId: cmsOwnerId }))}
           />
           <DemonstrationTypeField
             demonstrationTypeTags={demonstration.demonstrationTypes}
