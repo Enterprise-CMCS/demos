@@ -144,6 +144,22 @@ describe("validateDeliverableInputs", () => {
       ]);
     });
 
+    it("should only call the demonstration type functions if demonstration types are passed", async () => {
+      const modifiedTestInput: ParsedCreateDeliverableInput = {
+        name: testInput.name,
+        deliverableType: testInput.deliverableType,
+        demonstrationId: testInput.demonstrationId,
+        cmsOwnerUserId: testInput.cmsOwnerUserId,
+        dueDate: testInput.dueDate,
+      };
+      await validateCreateDeliverableInput(modifiedTestInput, mockTransaction);
+
+      expect(checkDemonstrationStatus).toHaveBeenCalledExactlyOnceWith(mockDemonstration);
+      expect(checkOwnerPersonType).toHaveBeenCalledExactlyOnceWith(mockUser);
+      expect(checkForDuplicateDemonstrationTypes).not.toHaveBeenCalled();
+      expect(checkRequestedDeliverableDemonstrationType).not.toHaveBeenCalled();
+    });
+
     it("should throw if the demonstration status check fails", async () => {
       vi.mocked(checkDemonstrationStatus).mockReturnValue("The demo status check failed");
 
