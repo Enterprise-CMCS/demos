@@ -231,7 +231,10 @@ async function seedDeliverables(actionUserId: string) {
       deliverableType: selectedType as CreateDeliverableInput["deliverableType"],
       demonstrationId: demonstration.id,
       cmsOwnerUserId: faker.helpers.arrayElement(cmsOwners).id,
-      dueDate: faker.date.future({ years: 2 }).toISOString().slice(0, 10),
+      dueDate: faker.date
+        .future({ years: 2 })
+        .toISOString()
+        .slice(0, 10) as CreateDeliverableInput["dueDate"],
       demonstrationTypes: selectedDemonstrationTypes,
     };
     await createDeliverable(createInput, context);
