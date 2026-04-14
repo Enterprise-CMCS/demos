@@ -431,7 +431,6 @@ async function seedDatabase() {
     });
 
     const role = faker.helpers.arrayElement(applicableRoles);
-    console.log(role);
     await prisma().systemRoleAssignment.create({
       data: {
         personId: person.id,

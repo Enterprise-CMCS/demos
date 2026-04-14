@@ -124,7 +124,7 @@ export const extensionResolvers = {
   },
 
   Extension: {
-    demonstration: (parent: { demonstrationId: string }, args: unknown, context: GraphQLContext) =>
+    demonstration: (parent: PrismaExtension, args: unknown, context: GraphQLContext) =>
       getDemonstration({ id: parent.demonstrationId }, context.user),
     documents: resolveApplicationDocuments,
     currentPhaseName: resolveApplicationCurrentPhaseName,
