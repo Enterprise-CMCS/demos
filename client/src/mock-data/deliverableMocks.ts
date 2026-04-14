@@ -1,38 +1,12 @@
-import type { GenericDeliverableTableRow } from "pages/DeliverablesPage";
+import { MockedResponse } from "@apollo/client/testing";
+import { DELIVERABLE_DETAIL_HEADER_QUERY } from "pages/deliverables/DeliverableDetailHeader";
+import {
+  DELIVERABLE_DETAILS_QUERY,
+  DeliverableDetailsManagementDeliverable,
+} from "pages/deliverables/DeliverableDetailsManagementPage";
+import { DELIVERABLES_PAGE_QUERY, type GenericDeliverableTableRow } from "pages/DeliverablesPage";
 
-const asDemonstration = (
-  id: string,
-  name: string,
-  stateId: string
-): GenericDeliverableTableRow["demonstration"] => ({
-  id,
-  name,
-  state: { id: stateId },
-});
-
-const asCmsOwner = (
-  id: string,
-  fullName: string
-): GenericDeliverableTableRow["cmsOwner"] => ({
-  id,
-  person: {
-    id,
-    fullName,
-  },
-});
-
-const mockDeliverable = ({
-  id,
-  name,
-  demonstrationId,
-  demonstrationName,
-  deliverableType,
-  cmsOwnerId,
-  cmsOwnerName,
-  dueDate,
-  status,
-  stateId,
-}: {
+type DeliverableSeed = {
   id: string;
   name: string;
   demonstrationId: string;
@@ -41,198 +15,251 @@ const mockDeliverable = ({
   cmsOwnerId: string;
   cmsOwnerName: string;
   dueDate: string;
-  status: GenericDeliverableTableRow["status"];
+  status: string;
   stateId: string;
-}): GenericDeliverableTableRow => ({
-  id,
-  deliverableType: deliverableType as GenericDeliverableTableRow["deliverableType"],
-  name,
-  demonstration: asDemonstration(demonstrationId, demonstrationName, stateId),
-  status,
-  cmsOwner: asCmsOwner(cmsOwnerId, cmsOwnerName),
-  dueDate: new Date(dueDate),
-  dueDateType: "Normal",
-  expectedToBeSubmitted: true,
-  cmsDocuments: [],
-  stateDocuments: [],
-  createdAt: new Date("2026-01-01"),
-  updatedAt: new Date("2026-01-01"),
-});
+};
 
-const RAW_MOCK_DELIVERABLES: GenericDeliverableTableRow[] = [
-  mockDeliverable({
+const makeDeliverable = (seed: DeliverableSeed): GenericDeliverableTableRow => {
+  const dueDate = new Date(`${seed.dueDate}T00:00:00.000Z`);
+  return {
+    id: seed.id,
+    name: seed.name,
+    deliverableType: seed.deliverableType as GenericDeliverableTableRow["deliverableType"],
+    demonstration: {
+      id: seed.demonstrationId,
+      name: seed.demonstrationName,
+      state: {
+        id: seed.stateId,
+      },
+    },
+    status: seed.status as GenericDeliverableTableRow["status"],
+    cmsOwner: {
+      id: seed.cmsOwnerId,
+      person: {
+        id: seed.cmsOwnerId,
+        fullName: seed.cmsOwnerName,
+      },
+    },
+    dueDate,
+    dueDateType: "Normal",
+    expectedToBeSubmitted: true,
+    cmsDocuments: [],
+    stateDocuments: [],
+    createdAt: dueDate,
+    updatedAt: dueDate,
+  };
+};
+
+export const MOCK_DELIVERABLES: GenericDeliverableTableRow[] = [
+  makeDeliverable({
     id: "8f3a0c8a-2f9f-4bf0-9a3a-6b7eac31f201",
     name: "Budget Neutrality Report",
     demonstrationId: "demo-1",
     demonstrationName: "Dusty Demo",
-    deliverableType: "Vadars Annual BN Report - extention requested = true",
+    deliverableType: "Annual Budget Neutrality Report",
     cmsOwnerId: "ashokatano",
-    cmsOwnerName: "Sheev Palpatine",
-    dueDate: "2001-07-01",
-    status: "Past Due",
+    cmsOwnerName: "Ahsoka Tano",
+    dueDate: "2024-07-01",
+    status: "Upcoming",
     stateId: "CA",
   }),
-  mockDeliverable({
+  makeDeliverable({
     id: "1b6d2e71-4c98-4a26-a8ff-2cbf4af7d2a4",
-    name: "AAA This one should be third upcoming newest new due?",
+    name: "Quarterly Report For NYC Demonstration",
     demonstrationId: "demo-2",
     demonstrationName: "Dusty Demo",
     deliverableType: "Demonstration-Specific Deliverable",
     cmsOwnerId: "dustyrhodes",
     cmsOwnerName: "Dusty Rhodes",
-    dueDate: "2026-04-18",
-    status: "Upcoming",
-    stateId: "NY",
-  }),
-  mockDeliverable({
-    id: "1b6d2e71-4c98-4a26-a8ff-2csf4af7d2a4",
-    name: "SHOULD BE Second? Cuz past due",
-    demonstrationId: "demo-3",
-    demonstrationName: "Dusty Demo",
-    deliverableType: "Evaluation Design",
-    cmsOwnerId: "dustyrhodes",
-    cmsOwnerName: "Ackbar",
-    dueDate: "2026-04-15",
-    status: "Past Due",
-    stateId: "AL",
-  }),
-  mockDeliverable({
-    id: "1b7d2e71-4c98-4a26-a8ff-2cbf4af7d2a4",
-    name: "Budget Neutrality Worksheet",
-    demonstrationId: "demo-4",
-    demonstrationName: "Dusty Demo",
-    deliverableType: "HCBS Reporty (1st cuz ext requet = true)",
-    cmsOwnerId: "dustyrhodes",
-    cmsOwnerName: "Dusty Rhodes 1",
     dueDate: "2024-08-15",
     status: "Upcoming",
     stateId: "NY",
   }),
-  mockDeliverable({
-    id: "b7045f1e-3d54-44ef-98a4-95f53d2ce8de",
-    name: "Ext Request == true",
-    demonstrationId: "demo-5",
+  makeDeliverable({
+    id: "1b6d2e71-4c98-4a26-a8ff-2csf4af7d2a4",
+    name: "Annual Report For AL Demonstration",
+    demonstrationId: "demo-3",
     demonstrationName: "Dusty Demo",
-    deliverableType: "HCBS Deficiency, A/N/E Incident Report (1915(c)-like)",
-    cmsOwnerId: "leiaorgana",
-    cmsOwnerName: "Dusty Rhodes 1",
-    dueDate: "2024-09-30",
+    deliverableType: "Evaluation Design",
+    cmsOwnerId: "admiralgialackbar",
+    cmsOwnerName: "Admiral Ackbar",
+    dueDate: "2026-04-15",
     status: "Past Due",
+    stateId: "AL",
+  }),
+  makeDeliverable({
+    id: "1b7d2e71-4c98-4a26-a8ff-2cbf4af7d2a4",
+    name: "Budget Neutrality Worksheet",
+    demonstrationId: "demo-4",
+    demonstrationName: "ALADEMO",
+    deliverableType: "HCBS Actual and Estimated Enrollment Number Report (1915(i)-like)",
+    cmsOwnerId: "dustyrhodes",
+    cmsOwnerName: "Dusty Rhodes",
+    dueDate: "2024-08-15",
+    status: "Upcoming",
+    stateId: "NY",
+  }),
+  makeDeliverable({
+    id: "b7045f1e-3d54-44ef-98a4-95f53d2ce8de",
+    name: "Deliverable 3",
+    demonstrationId: "demo-5",
+    demonstrationName: "Demonstration E",
+    deliverableType: "HCBS Deficiency, Remediation and A/N/E Incident Report (1915(c)-like)",
+    cmsOwnerId: "leiaorgana",
+    cmsOwnerName: "Leia Organa",
+    dueDate: "2024-09-30",
+    status: "Upcoming",
     stateId: "TX",
   }),
-  mockDeliverable({
+  makeDeliverable({
     id: "f0f85d42-451d-4b83-a0f2-bf4f7f194b91",
     name: "Deliverable 4",
     demonstrationId: "demo-6",
     demonstrationName: "ALADEMO",
     deliverableType: "HCBS Evidentiary Report",
     cmsOwnerId: "thearmorer",
-    cmsOwnerName: "Dusty Rhodes",
+    cmsOwnerName: "The Armorer",
     dueDate: "2024-10-15",
     status: "Upcoming",
-    stateId: "NY",
+    stateId: "FL",
   }),
-  mockDeliverable({
+  makeDeliverable({
     id: "62d286f6-e91f-4680-b43e-845f57fb8c3f",
     name: "Deliverable 5",
     demonstrationId: "demo-7",
     demonstrationName: "Gee Willikers it's cold",
     deliverableType: "Implementation Plan",
     cmsOwnerId: "thebane",
-    cmsOwnerName: "CMS Owner E",
+    cmsOwnerName: "Cad Bane",
     dueDate: "2024-11-01",
     status: "Submitted",
     stateId: "AK",
   }),
-  mockDeliverable({
+  makeDeliverable({
     id: "9c9f7dbe-21a5-4309-81d7-4f5962c39a2f",
     name: "Deliverable 6",
     demonstrationId: "demo-8",
     demonstrationName: "Demonstration F",
     deliverableType: "Interim Evaluation Report",
     cmsOwnerId: "therealbendu",
-    cmsOwnerName: "CMS Owner F",
+    cmsOwnerName: "The Bendu",
     dueDate: "2024-11-20",
     status: "Upcoming",
     stateId: "GA",
   }),
-  mockDeliverable({
+  makeDeliverable({
     id: "ad7a8f64-c5a6-4f62-8f95-738bf1cc9817",
     name: "Deliverable 7",
     demonstrationId: "demo-9",
     demonstrationName: "Better health for MD demo",
     deliverableType: "Mid-point Assessment",
     cmsOwnerId: "mesaagain",
-    cmsOwnerName: "CMS Owner G",
+    cmsOwnerName: "Jar Jar Binks",
     dueDate: "2024-12-10",
     status: "Approved",
     stateId: "MD",
   }),
-  mockDeliverable({
+  makeDeliverable({
     id: "e4bd3f86-7e2d-4aa0-b6dd-496778901a10",
     name: "Deliverable 8",
     demonstrationId: "demo-10",
-    demonstrationName: "Virginia is for livers Liver transplant demo",
+    demonstrationName: "Virginia is for livers",
     deliverableType: "Monitoring Protocol",
     cmsOwnerId: "ezbridge",
-    cmsOwnerName: "CMS Owner H",
+    cmsOwnerName: "Ezra Bridger",
     dueDate: "2025-01-05",
     status: "Upcoming",
     stateId: "OH",
   }),
-  mockDeliverable({
+  makeDeliverable({
     id: "7d28b95c-6f70-4cf3-95f3-9e5d3c921e42",
-    name: "Second!",
+    name: "Deliverable 9",
     demonstrationId: "demo-11",
-    demonstrationName: "Dusty Demo",
+    demonstrationName: "Washington SUD demo",
     deliverableType: "Monitoring Report",
     cmsOwnerId: "itsbixie",
-    cmsOwnerName: "CMS Owner I",
-    dueDate: "1900-01-01",
+    cmsOwnerName: "Bix Caleen",
+    dueDate: "2025-02-14",
     status: "Submitted",
     stateId: "WA",
   }),
-  mockDeliverable({
+  makeDeliverable({
     id: "3f11f7ea-c5e9-4b24-9e6f-1c843bf7f9f6",
     name: "Deliverable 10",
     demonstrationId: "demo-12",
     demonstrationName: "Riding the slopes fitness demo",
     deliverableType: "Quarterly Budget Neutrality Report",
-    cmsOwnerId: "therealbendu",
-    cmsOwnerName: "CMS Owner J",
+    cmsOwnerId: "dustyrhodes",
+    cmsOwnerName: "Dusty Rhodes",
     dueDate: "2025-03-01",
     status: "Upcoming",
     stateId: "CO",
   }),
-  mockDeliverable({
-    id: "5f2d5c57-8cc5-4c28-a9b0-89f44b6dc112",
-    name: "Montana Monitoring Protocol",
-    demonstrationId: "demo-13",
-    demonstrationName: "Montana Medicaid Waiver",
-    deliverableType: "Monitoring Protocol",
-    cmsOwnerId: "mockuser",
-    cmsOwnerName: "Mock User",
-    dueDate: "2025-03-15",
-    status: "Upcoming",
-    stateId: "MT",
-  }),
-  mockDeliverable({
-    id: "a7dcfe66-1d03-4d8e-a9d6-a34b4a3297be",
-    name: "Montana Interim Evaluation",
-    demonstrationId: "demo-14",
-    demonstrationName: "Montana Medicaid Waiver",
-    deliverableType: "Interim Evaluation Report",
-    cmsOwnerId: "mockuser",
-    cmsOwnerName: "Mock User",
-    dueDate: "2025-04-20",
-    status: "Upcoming",
-    stateId: "MT",
-  }),
 ];
-
-export const MOCK_DELIVERABLES: GenericDeliverableTableRow[] = RAW_MOCK_DELIVERABLES;
 
 export const getDeliverablesForDemonstration = (
   demonstrationName: string
 ): GenericDeliverableTableRow[] =>
   MOCK_DELIVERABLES.filter((deliverable) => deliverable.demonstration.name === demonstrationName);
+
+export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
+  id: "1",
+  deliverableType: "Monitoring Report",
+  demonstration: {
+    id: "1",
+    name: "Demonstration 1",
+    state: {
+      id: "CA",
+    },
+  },
+  cmsOwner: {
+    person: {
+      fullName: "Mock User",
+    },
+  },
+  dueDate: new Date("2024-08-15"),
+  status: "Upcoming",
+};
+
+export const deliverableMocks: MockedResponse[] = [
+  {
+    request: {
+      query: DELIVERABLES_PAGE_QUERY,
+    },
+    result: {
+      data: {
+        deliverables: MOCK_DELIVERABLES,
+      },
+    },
+    maxUsageCount: Number.POSITIVE_INFINITY,
+  },
+  {
+    request: {
+      query: DELIVERABLE_DETAILS_QUERY,
+      variables: { id: "1" },
+    },
+    result: {
+      data: {
+        deliverable: MOCK_DELIVERABLE_1,
+      },
+    },
+    maxUsageCount: Number.POSITIVE_INFINITY,
+  },
+  {
+    request: {
+      query: DELIVERABLE_DETAIL_HEADER_QUERY,
+      variables: { deliverableId: "1" },
+    },
+    result: {
+      data: {
+        deliverable: {
+          id: "1",
+          demonstration: {
+            id: "1",
+          },
+        },
+      },
+    },
+    maxUsageCount: Number.POSITIVE_INFINITY,
+  },
+];
