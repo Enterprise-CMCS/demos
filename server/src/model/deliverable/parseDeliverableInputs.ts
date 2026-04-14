@@ -21,7 +21,10 @@ export type ParsedUpdateDeliverableInput = {
   name?: NonEmptyString;
   deliverableType?: DeliverableType;
   cmsOwnerUserId?: string;
-  dueDate?: EasternTZDate;
+  dueDate?: {
+    newDueDate: EasternTZDate;
+    dateChangeNote: NonEmptyString;
+  };
   demonstrationTypes?: TagName[];
 };
 
@@ -43,13 +46,20 @@ export function parseCreateDeliverableInput(
 export function parseUpdateDeliverableInput(
   input: UpdateDeliverableInput
 ): ParsedUpdateDeliverableInput {
-  let parsedDueDate: EasternTZDate | undefined;
   if (input.dueDate) {
-    parsedDueDate = parseDateTimeOrLocalDateToEasternTZDate(input.dueDate, "End of Day");
+    const parsedDueDate = parseDateTimeOrLocalDateToEasternTZDate(
+      input.dueDate.newDueDate,
+      "End of Day"
+    );
     checkInputDateIsEndOfDay("dueDate", parsedDueDate);
+    return {
+      ...input,
+      dueDate: {
+        newDueDate: parsedDueDate,
+        dateChangeNote: input.dueDate.dateChangeNote,
+      },
+    };
+  } else {
+    return input as ParsedUpdateDeliverableInput;
   }
-  return {
-    ...input,
-    dueDate: parsedDueDate,
-  };
 }

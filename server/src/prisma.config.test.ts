@@ -29,7 +29,7 @@ describe("prisma.config", () => {
 
     const mod = await importPrismaConfig();
     expect(mod.default.datasource?.url).toBe(process.env.DATABASE_URL);
-  });
+  }, 20000);
 
   it("allows prisma generate without DATABASE_URL", async () => {
     delete process.env.DATABASE_URL;

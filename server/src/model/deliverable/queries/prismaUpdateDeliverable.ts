@@ -1,11 +1,11 @@
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { prisma, PrismaTransactionClient } from "../../../prismaClient";
-import { UpdateDeliverableInput } from "../../../types";
+import { ParsedUpdateDeliverableInput } from "..";
 
 // Note: name is unusual to avoid collision with updateDeliverable function
 export async function prismaUpdateDeliverable(
   deliverableId: string,
-  input: UpdateDeliverableInput,
+  input: ParsedUpdateDeliverableInput,
   tx?: PrismaTransactionClient
 ): Promise<PrismaDeliverable> {
   const prismaClient = tx ?? prisma();
@@ -17,7 +17,7 @@ export async function prismaUpdateDeliverable(
       deliverableTypeId: input.deliverableType,
       name: input.name,
       cmsOwnerUserId: input.cmsOwnerUserId,
-      dueDate: input.dueDate,
+      dueDate: input.dueDate?.newDueDate.easternTZDate,
     },
   });
 }

@@ -115,6 +115,7 @@ export type {
   Deliverable,
   CreateDeliverableInput,
   UpdateDeliverableInput,
+  DeliverableDueDateUpdateInput,
 } from "./model/deliverable/deliverableSchema";
 
 export type DemonstrationTypeStatus = (typeof DEMONSTRATION_TYPE_STATUSES)[number];

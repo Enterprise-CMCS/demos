@@ -37,11 +37,16 @@ export const deliverableSchema = gql`
     demonstrationTypes: [TagName!]
   }
 
+  input DeliverableDueDateUpdateInput {
+    newDueDate: DateTimeOrLocalDate!
+    dateChangeNote: NonEmptyString!
+  }
+
   input UpdateDeliverableInput {
     name: NonEmptyString
     deliverableType: DeliverableType
     cmsOwnerUserId: ID
-    dueDate: DateTimeOrLocalDate
+    dueDate: DeliverableDueDateUpdateInput
     demonstrationTypes: [TagName!]
   }
 
@@ -80,10 +85,15 @@ export interface CreateDeliverableInput {
   demonstrationTypes?: TagName[];
 }
 
+export interface DeliverableDueDateUpdateInput {
+  newDueDate: DateTimeOrLocalDate;
+  dateChangeNote: NonEmptyString;
+}
+
 export interface UpdateDeliverableInput {
   name?: NonEmptyString;
   deliverableType?: DeliverableType;
   cmsOwnerUserId?: string;
-  dueDate?: DateTimeOrLocalDate;
+  dueDate?: DeliverableDueDateUpdateInput;
   demonstrationTypes?: TagName[];
 }

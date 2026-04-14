@@ -4,7 +4,7 @@ import { TZDate } from "@date-fns/tz";
 
 // Types
 import { DeliverableType, PersonType } from "../../../types.js";
-import { ParsedCreateDeliverableInput } from "../deliverableTypes.js";
+import { ParsedCreateDeliverableInput } from "..";
 
 // Functions under test
 import { insertDeliverable } from "./insertDeliverable";

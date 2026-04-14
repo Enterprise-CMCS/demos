@@ -3,11 +3,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
 
 // Types
-import { CreateDeliverableInput, DateTimeOrLocalDate } from "../../types";
-import { ParsedCreateDeliverableInput } from ".";
+import { CreateDeliverableInput, DateTimeOrLocalDate, UpdateDeliverableInput } from "../../types";
+import { ParsedCreateDeliverableInput, ParsedUpdateDeliverableInput } from ".";
 
 // Functions under test
-import { parseCreateDeliverableInput } from "./parseDeliverableInputs";
+import { parseCreateDeliverableInput, parseUpdateDeliverableInput } from "./parseDeliverableInputs";
 
 // Mock imports
 vi.mock("../../dateUtilities", () => ({
@@ -21,26 +21,10 @@ vi.mock("../applicationDate", () => ({
 import { EasternTZDate, parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities";
 import { checkInputDateIsEndOfDay } from "../applicationDate";
 
-describe("parseCreateDeliverableInput", () => {
-  const testInput: CreateDeliverableInput = {
-    name: "A new deliverable name!",
-    deliverableType: "HCBS Deficiency, Remediation and A/N/E Incident Report (1915(c)-like)",
-    demonstrationId: "2bc27502-c286-4e1a-a5a5-3a45ad441149",
-    cmsOwnerUserId: "d6b52b4f-42d3-4c5d-a26d-8a519d15a501",
-    dueDate: "2024-11-13" as DateTimeOrLocalDate,
-    demonstrationTypes: ["Free Insulin"],
-  };
+describe("parseDeliverableInputs", () => {
   const mockParsedDate: EasternTZDate = {
     isEasternTZDate: true,
     easternTZDate: new TZDate(2024, 10, 13, 23, 59, 59, 999, "America/New_York"),
-  };
-  const expectedResult: ParsedCreateDeliverableInput = {
-    name: testInput.name,
-    deliverableType: testInput.deliverableType,
-    demonstrationId: testInput.demonstrationId,
-    cmsOwnerUserId: testInput.cmsOwnerUserId,
-    dueDate: mockParsedDate,
-    demonstrationTypes: testInput.demonstrationTypes,
   };
 
   beforeEach(() => {
@@ -48,13 +32,79 @@ describe("parseCreateDeliverableInput", () => {
     vi.mocked(parseDateTimeOrLocalDateToEasternTZDate).mockReturnValue(mockParsedDate);
   });
 
-  it("should parse the input, check the dates, and return the updated object", () => {
-    const result = parseCreateDeliverableInput(testInput);
-    expect(parseDateTimeOrLocalDateToEasternTZDate).toHaveBeenCalledExactlyOnceWith(
-      testInput.dueDate,
-      "End of Day"
-    );
-    expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith("dueDate", mockParsedDate);
-    expect(result).toStrictEqual(expectedResult);
+  describe("parseCreateDeliverableInput", () => {
+    const testInput: CreateDeliverableInput = {
+      name: "A new deliverable name!",
+      deliverableType: "HCBS Deficiency, Remediation and A/N/E Incident Report (1915(c)-like)",
+      demonstrationId: "2bc27502-c286-4e1a-a5a5-3a45ad441149",
+      cmsOwnerUserId: "d6b52b4f-42d3-4c5d-a26d-8a519d15a501",
+      dueDate: "2024-11-13" as DateTimeOrLocalDate,
+      demonstrationTypes: ["Free Insulin"],
+    };
+    const expectedResult: ParsedCreateDeliverableInput = {
+      name: testInput.name,
+      deliverableType: testInput.deliverableType,
+      demonstrationId: testInput.demonstrationId,
+      cmsOwnerUserId: testInput.cmsOwnerUserId,
+      dueDate: mockParsedDate,
+      demonstrationTypes: testInput.demonstrationTypes,
+    };
+
+    it("should parse the input, check the dates, and return the updated object", () => {
+      const result = parseCreateDeliverableInput(testInput);
+      expect(parseDateTimeOrLocalDateToEasternTZDate).toHaveBeenCalledExactlyOnceWith(
+        testInput.dueDate,
+        "End of Day"
+      );
+      expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith("dueDate", mockParsedDate);
+      expect(result).toStrictEqual(expectedResult);
+    });
+  });
+
+  describe("parseUpdateDeliverableInput", () => {
+    const baseTestInput: UpdateDeliverableInput = {
+      name: "An updated deliverable name!",
+    };
+
+    it("should parse the input, check the dates, and return the updated object", () => {
+      const testInput = {
+        ...baseTestInput,
+        dueDate: {
+          newDueDate: "2024-11-13" as DateTimeOrLocalDate,
+          dateChangeNote: "A required note",
+        },
+      };
+      const expectedResult: ParsedUpdateDeliverableInput = {
+        name: testInput.name,
+        dueDate: {
+          newDueDate: mockParsedDate,
+          dateChangeNote: testInput.dueDate.dateChangeNote,
+        },
+      };
+
+      const result = parseUpdateDeliverableInput(testInput);
+      expect(parseDateTimeOrLocalDateToEasternTZDate).toHaveBeenCalledExactlyOnceWith(
+        testInput.dueDate.newDueDate,
+        "End of Day"
+      );
+      expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith("dueDate", mockParsedDate);
+      expect(result).toStrictEqual(expectedResult);
+    });
+
+    it("should skip dates if they're not included", () => {
+      const testInput = {
+        ...baseTestInput,
+        demonstrationTypes: ["Free Insulin"],
+      };
+      const expectedResult: ParsedUpdateDeliverableInput = {
+        name: testInput.name,
+        demonstrationTypes: testInput.demonstrationTypes,
+      };
+
+      const result = parseUpdateDeliverableInput(testInput);
+      expect(parseDateTimeOrLocalDateToEasternTZDate).not.toHaveBeenCalled();
+      expect(checkInputDateIsEndOfDay).not.toHaveBeenCalled();
+      expect(result).toStrictEqual(expectedResult);
+    });
   });
 });

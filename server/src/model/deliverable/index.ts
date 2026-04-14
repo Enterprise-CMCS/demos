@@ -1,13 +1,17 @@
 // Functions
 export {
   checkDemonstrationStatus,
+  checkForDuplicateDemonstrationTypes,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
 } from "./checkDeliverableInputFunctions";
 export { createDeliverable } from "./createDeliverable";
 export { parseCreateDeliverableInput, parseUpdateDeliverableInput } from "./parseDeliverableInputs";
 export { resolveDeliverable, resolveManyDeliverables } from "./deliverableResolvers";
-export { validateCreateDeliverableInput } from "./validateDeliverableInputs";
+export {
+  validateCreateDeliverableInput,
+  validateUpdateDeliverableInput,
+} from "./validateDeliverableInputs";
 
 // Queries
 export { getDeliverable } from "./queries/getDeliverable";

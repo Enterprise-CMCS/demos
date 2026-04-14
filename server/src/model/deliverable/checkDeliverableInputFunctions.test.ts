@@ -2,7 +2,7 @@
 import { describe, it, expect } from "vitest";
 
 // Types
-import { ApplicationStatus, PersonType } from "../../types";
+import { ApplicationStatus, PersonType, TagName } from "../../types";
 import {
   Demonstration as PrismaDemonstration,
   DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
@@ -12,6 +12,7 @@ import {
 // Functions under test
 import {
   checkDemonstrationStatus,
+  checkForDuplicateDemonstrationTypes,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
 } from "./checkDeliverableInputFunctions";
@@ -87,7 +88,7 @@ describe("checkDeliverableInputFunctions", () => {
       const result = checkRequestedDeliverableDemonstrationType(
         "Test Tag One",
         testDemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment[],
-        testDemonstration as PrismaDemonstration
+        testDemonstration.id!
       );
       expect(result).toBeUndefined();
     });
@@ -96,11 +97,35 @@ describe("checkDeliverableInputFunctions", () => {
       const result = checkRequestedDeliverableDemonstrationType(
         "Test Tag Three",
         testDemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment[],
-        testDemonstration as PrismaDemonstration
+        testDemonstration.id!
       );
       expect(result).toBe(
-        "Demonstration Type Test Tag Three does not exist on " +
+        "Demonstration type Test Tag Three does not exist on " +
           "demonstration abc123; cannot be assigned to deliverable."
+      );
+    });
+  });
+
+  describe("checkForDuplicateDemonstrationTypes", () => {
+    it("should return undefined if the input has no duplicates", () => {
+      const testInput: TagName[] = ["Free Insulin", "Low Cost Thermometers to Newborn Children"];
+
+      const result = checkForDuplicateDemonstrationTypes(testInput);
+      expect(result).toBeUndefined();
+    });
+
+    it("should return an appropriate error string if the input has duplicates", () => {
+      const testInput: TagName[] = [
+        "Free Insulin",
+        "Low Cost Thermometers to Newborn Children",
+        "Free Insulin",
+        "Nutrition Counseling",
+        "Nutrition Counseling",
+      ];
+
+      const result = checkForDuplicateDemonstrationTypes(testInput);
+      expect(result).toBe(
+        "Duplicate demonstration types were included on the input: Free Insulin, Nutrition Counseling."
       );
     });
   });

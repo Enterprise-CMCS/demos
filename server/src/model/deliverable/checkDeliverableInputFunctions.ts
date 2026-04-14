@@ -4,6 +4,7 @@ import {
   User as PrismaUser,
 } from "@prisma/client";
 import { ApplicationStatus, PersonType, TagName } from "../../types";
+import { findDuplicates } from "../../validationUtilities";
 
 export function checkDemonstrationStatus(demonstration: PrismaDemonstration): string | undefined {
   const approvedStatus: ApplicationStatus = "Approved";
@@ -22,16 +23,22 @@ export function checkOwnerPersonType(ownerUser: PrismaUser): string | undefined 
 export function checkRequestedDeliverableDemonstrationType(
   requestedDeliverableDemonstrationType: TagName,
   demonstrationTypeTagAssignments: PrismaDemonstrationTypeTagAssignment[],
-  demonstration: PrismaDemonstration
+  demonstrationId: string
 ): string | undefined {
-  const demonstrationId = demonstration.id;
   const existingDemonstrationTypes = demonstrationTypeTagAssignments.map(
     (assignment) => assignment.tagNameId
   ) as TagName[];
   if (!existingDemonstrationTypes.includes(requestedDeliverableDemonstrationType)) {
     return (
-      `Demonstration Type ${requestedDeliverableDemonstrationType} does not exist on ` +
+      `Demonstration type ${requestedDeliverableDemonstrationType} does not exist on ` +
       `demonstration ${demonstrationId}; cannot be assigned to deliverable.`
     );
+  }
+}
+
+export function checkForDuplicateDemonstrationTypes(input: TagName[]): string | undefined {
+  const duplicates = findDuplicates(input);
+  if (duplicates.length > 0) {
+    return `Duplicate demonstration types were included on the input: ${duplicates.join(", ")}.`;
   }
 }
