@@ -49,6 +49,7 @@ describe("createDeliverable", () => {
       id: "57f92f14-7c5e-4c78-a774-5a54d7e9c2e7",
       cognitoSubject: "82d0e8e4-82d0-447c-b1bb-52227e49cf51",
       personTypeId: "demos-cms-user",
+      permissions: ["View All Demonstrations"],
     },
   };
 
