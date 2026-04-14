@@ -46,7 +46,7 @@ const testDemonstrationWithoutDates = {
 const mockDemonstrationQuery = {
   request: {
     query: DEMONSTRATION_HEADER_DETAILS_QUERY,
-    variables: { demonstrationId: "1" },
+    variables: { id: "1" },
   },
   result: {
     data: {
@@ -58,7 +58,7 @@ const mockDemonstrationQuery = {
 const mockDemonstrationQueryWithoutDatesQuery = {
   request: {
     query: DEMONSTRATION_HEADER_DETAILS_QUERY,
-    variables: { demonstrationId: "1" },
+    variables: { id: "1" },
   },
   result: {
     data: {
@@ -71,7 +71,7 @@ const mockDemonstrationQueryWithoutDatesQuery = {
 const mockDemonstrationQueryError = {
   request: {
     query: DEMONSTRATION_HEADER_DETAILS_QUERY,
-    variables: { demonstrationId: "1" },
+    variables: { id: "1" },
   },
   error: new GraphQLError("Failed to fetch demonstration details"),
 };
