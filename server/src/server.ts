@@ -1,76 +1,51 @@
 // server.ts
 import { ApolloServer } from "@apollo/server";
-import { ApolloArmor } from '@escape.tech/graphql-armor';
+import { ApolloArmor } from "@escape.tech/graphql-armor";
 import { startServerAndCreateLambdaHandler, handlers } from "@as-integrations/aws-lambda";
-import { GraphQLArmorConfig} from "./plugins/graphQLArmorConfig.js";
+import { GraphQLArmorConfig } from "./plugins/graphQLArmorConfig.js";
 import { typeDefs, resolvers } from "./model/graphql.js";
 import { authGatePlugin } from "./auth/auth.plugin.js";
-import {loggingPlugin} from "./plugins/logging.plugin"
-import { GraphQLContext, buildLambdaContext, getDatabaseUrl } from "./auth/auth.util.js";
+import { loggingPlugin } from "./plugins/logging.plugin";
+import {
+  AuthorizationClaims,
+  GraphQLContext,
+  buildContextFromClaims,
+  validateClaims,
+} from "./auth/auth.util.js";
 import { log, reqIdChild, als, store } from "./log.js";
+import type { APIGatewayProxyEvent } from "aws-lambda";
+import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 
-import type { APIGatewayProxyEvent, APIGatewayProxyEventHeaders } from "aws-lambda";
+log.info({ type: "graphql.startup.loaded" });
 
-log.info({type: "graphql.startup.loaded"});
+export async function getDatabaseUrl(): Promise<string> {
+  const secretArn = process.env.DATABASE_SECRET_ARN;
 
-type JwtClaims = {
-  sub: string;
-  email?: string;
-  role?: string;
-  familyName?: string;
-  givenName?: string;
-  identities?: unknown;
-};
+  log.debug({ type: "graphql.db.creds_request" });
 
-export function extractAuthorizerClaims(event: APIGatewayProxyEvent): JwtClaims | null {
-  const auth = (event.requestContext?.authorizer ?? {}) as Record<string, unknown>;
-  const sub        = typeof auth.sub === "string" && auth.sub ? auth.sub : null;
-  const email      = typeof auth.email === "string" ? auth.email : undefined;
-  const role       = typeof auth.role === "string" ? auth.role : undefined;
-  const familyName = typeof auth.family_name === "string" ? auth.family_name : undefined;
-  const givenName  = typeof auth.given_name === "string" ? auth.given_name : undefined;
-  if (!sub) return null;
-  const identities = auth.identities;
-  const cognitoUsername =
-    typeof auth["cognito:username"] === "string" ? auth["cognito:username"] : undefined;
+  const secretsManager = new SecretsManagerClient({ region: process.env.AWS_REGION });
+  const response = await secretsManager.send(new GetSecretValueCommand({ SecretId: secretArn }));
 
-  return {
-    sub,
-    email,
-    role,
-    givenName,
-    familyName,
-    identities,
-    "cognito:username": cognitoUsername,
-  } as JwtClaims & Record<string, unknown>;
-}
-
-export function withAuthorizerHeader(
-  headers: APIGatewayProxyEventHeaders,
-  claims: JwtClaims | null
-): APIGatewayProxyEventHeaders {
-  return claims
-    ? { ...headers, "x-authorizer-claims": JSON.stringify(claims) }
-    : headers;
+  if (!response.SecretString) throw new Error("The SecretString value is undefined!");
+  const s = JSON.parse(response.SecretString);
+  return `postgresql://${s.username}:${s.password}@${s.host}:${s.port}/${s.dbname}?schema=demos_app`;
 }
 
 const setDatabaseUrl = async () => {
-  const url = await getDatabaseUrl()
-  log.debug({type: "graphql.db.creds_retrieved"});
+  const url = await getDatabaseUrl();
+  log.debug({ type: "graphql.db.creds_retrieved" });
   process.env.DATABASE_URL = url;
   return url;
 };
 
-
-
 const armor = new ApolloArmor(GraphQLArmorConfig);
-const protection = armor.protect()
+const protection = armor.protect();
 
 const server = new ApolloServer<GraphQLContext>({
   typeDefs,
   resolvers,
-   ...protection,
-  plugins: [...protection.plugins,authGatePlugin, loggingPlugin],
+  ...protection,
+  plugins: [...protection.plugins, authGatePlugin, loggingPlugin],
   validationRules: [...protection.validationRules],
   formatError: (formattedError, error) => {
     log.debug({ error, type: "graphql.request.error" });
@@ -78,6 +53,23 @@ const server = new ApolloServer<GraphQLContext>({
   },
   logger: log,
 });
+export function extractClaimsFromEvent(event: APIGatewayProxyEvent): AuthorizationClaims {
+  const authorizer = event.requestContext.authorizer;
+  if (!authorizer) {
+    throw new Error("Missing authorizer in request context");
+  }
+
+  const claims = {
+    email: authorizer.email,
+    sub: authorizer.sub,
+    role: authorizer.role,
+    givenName: authorizer.given_name,
+    familyName: authorizer.family_name,
+    externalUserId: authorizer.userId,
+  };
+  validateClaims(claims);
+  return claims;
+}
 
 export const graphqlHandler = startServerAndCreateLambdaHandler(
   server,
@@ -87,22 +79,19 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
       als.run(store, async () => {
         try {
           await setDatabaseUrl();
-          const restEvent = event;
-          const claims = extractAuthorizerClaims(restEvent);
-          // Pass claims to the existing builder via a header so we don't change its signature
-          const headersWithClaims = withAuthorizerHeader(restEvent.headers, claims);
 
-          const gqlCtx = await buildLambdaContext(headersWithClaims);
+          const claims = extractClaimsFromEvent(event);
+          const gqlCtx = await buildContextFromClaims(claims);
 
           const additionalContext = {
             callerUserId: gqlCtx?.user?.id,
-            correlationId: restEvent?.headers?.["x-correlation-id"],
-            callerCognitoSub: claims?.sub
-          }
+            correlationId: event.headers?.["x-correlation-id"],
+            callerCognitoSub: claims?.sub,
+          };
 
           const reqLog = reqIdChild(context.awsRequestId, additionalContext);
 
-          reqLog.debug({type: "lambda.context.built"});
+          reqLog.debug({ type: "lambda.context.built" });
 
           return {
             ...gqlCtx,
@@ -111,7 +100,7 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
             log: reqLog,
           };
         } catch (error) {
-          log.error({type: "lambda.context.error"},(error as Error).toString());
+          log.error({ type: "lambda.context.error" }, (error as Error).toString());
           throw error;
         }
       }),

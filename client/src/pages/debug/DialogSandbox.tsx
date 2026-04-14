@@ -2,7 +2,7 @@ import React from "react";
 import { gql, useQuery } from "@apollo/client";
 import { useDialog } from "components/dialog/DialogContext";
 import { Button } from "components/button";
-import { DocumentType } from "demos-server";
+import { DocumentType, Tag } from "demos-server";
 import { ExistingContactType } from "components/dialog/ManageContactsDialog";
 
 const DIALOG_SANDBOX_ID_QUERY = gql`
@@ -18,6 +18,12 @@ type DialogSandboxIdQueryResult = {
     id: string;
   }[];
 };
+
+const TAGS: Tag[] = [
+  { tagName: "Demonstration Type: Type A", approvalStatus: "Approved" },
+  { tagName: "Demonstration Type: Type B", approvalStatus: "Unapproved" },
+  { tagName: "Demonstration Type: Type C", approvalStatus: "Approved" },
+];
 
 export const DialogSandbox: React.FC = () => {
   const {
@@ -40,6 +46,7 @@ export const DialogSandbox: React.FC = () => {
     showUpdateExtensionDialog,
     showUpdateAmendmentDialog,
     showAddDeliverableSlotDialog,
+    showConfirmApproveDialog,
   } = useDialog();
 
   const ID = "1";
@@ -203,11 +210,18 @@ export const DialogSandbox: React.FC = () => {
             name="add-deliverable-slot"
             onClick={() =>
               showAddDeliverableSlotDialog({
-                demonstrationTypes: ["Demo Type 1", "Demo Type 2", "Demo Type 3"],
+                demonstrationTypes: TAGS,
+                id: "demo-1",
               })
             }
           >
             Add Deliverable Slot(s)
+          </Button>
+          <Button
+            name="confirm-approve"
+            onClick={() => showConfirmApproveDialog(() => {}, "demonstration")}
+          >
+            Confirm Approve
           </Button>
         </div>
       </div>

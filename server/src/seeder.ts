@@ -795,8 +795,7 @@ async function seedDatabase() {
     take: 5,
   });
 
-  function pick<T>(arr: T[]): T | null {
-    if (!arr.length) return null;
+  function pick<T>(arr: T[]): T {
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
@@ -806,7 +805,7 @@ async function seedDatabase() {
     // ~60% of events have a applicationId, rest are null
     const attachApplication = Math.random() < 0.6;
     const maybeApplication = attachApplication ? (pick(applicationsForEvents)?.id ?? null) : null;
-    const user = pick(usersForEvents) ?? null;
+    const user = pick(usersForEvents);
 
     // Note that these don't really make sense because application is generic
     // Should come back and be more specific as EventType evolves
@@ -858,26 +857,9 @@ async function seedDatabase() {
       },
     };
 
-    let context: GraphQLContext;
-    if (!user) {
-      context = {
-        user: {
-          id: "User1",
-          sub: "User1",
-          role: "demos-cms-user",
-          permissions: [],
-        },
-      };
-    } else {
-      context = {
-        user: {
-          id: user.id,
-          sub: user.cognitoSubject,
-          role: user.personTypeId,
-          permissions: [],
-        },
-      };
-    }
+    const context = {
+      user,
+    } as GraphQLContext;
 
     logEvent(undefined, { input: eventData }, context);
   }

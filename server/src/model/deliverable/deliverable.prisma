@@ -1,6 +1,7 @@
 model Deliverable {
-  id                    String   @db.Uuid
+  id                    String   @db.Uuid @default(uuid())
   deliverableTypeId     String   @map("deliverable_type_id")
+  name                  String   
   demonstrationId       String   @map("demonstration_id") @db.Uuid
   demonstrationStatusId String   @map("demonstration_status_id")
   statusId              String   @map("status_id")

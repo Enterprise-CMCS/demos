@@ -6,15 +6,21 @@ import {
   User as PrismaUser,
 } from "@prisma/client";
 import { GraphQLContext } from "../../auth/auth.util";
-import { GraphQLArgs, GraphQLResolveInfo } from "graphql";
-import { getDeliverable, getManyDeliverables } from ".";
-import { DeliverableDueDateType, DeliverableStatus, DeliverableType } from "../../types";
+import { GraphQLResolveInfo } from "graphql";
+import { createDeliverable, getDeliverable, getManyDeliverables } from ".";
+import {
+  CreateDeliverableInput,
+  DeliverableDueDateType,
+  DeliverableStatus,
+  DeliverableType,
+} from "../../types";
 import { getApplication } from "../application";
 import { getUser } from "../user";
+import { getManyDocuments } from "../document";
 
 export async function resolveDeliverable(
   parent: PrismaDocument,
-  args: GraphQLArgs,
+  args: unknown,
   context: GraphQLContext,
   info: GraphQLResolveInfo
 ): Promise<PrismaDeliverable | null> {
@@ -40,7 +46,7 @@ export async function resolveDeliverable(
 
 export async function resolveManyDeliverables(
   parent: PrismaDemonstration | PrismaUser,
-  args: GraphQLArgs,
+  args: unknown,
   context: GraphQLContext,
   info: GraphQLResolveInfo
 ): Promise<PrismaDeliverable[]> {
@@ -88,9 +94,35 @@ export async function resolveDeliverableCmsOwner(parent: PrismaDeliverable): Pro
   return getUser({ id: parent.cmsOwnerUserId });
 }
 
+export async function resolveDeliverableCmsDocuments(
+  parent: PrismaDeliverable
+): Promise<PrismaDocument[]> {
+  return await getManyDocuments({
+    AND: [{ deliverableId: parent.id }, { deliverableIsCmsAttachedFile: true }],
+  });
+}
+
+export async function resolveDeliverableStateDocuments(
+  parent: PrismaDeliverable
+): Promise<PrismaDocument[]> {
+  return await getManyDocuments({
+    AND: [{ deliverableId: parent.id }, { deliverableIsCmsAttachedFile: false }],
+  });
+}
+
 export const deliverableResolvers = {
   Query: {
     deliverables: queryDeliverables,
+  },
+
+  Mutation: {
+    createDeliverable: async (
+      parent: unknown,
+      args: { input: CreateDeliverableInput },
+      context: GraphQLContext
+    ) => {
+      return await createDeliverable(args.input, context);
+    },
   },
 
   Deliverable: {
@@ -99,5 +131,7 @@ export const deliverableResolvers = {
     status: resolveDeliverableStatus,
     cmsOwner: resolveDeliverableCmsOwner,
     dueDateType: resolveDeliverableDueDateType,
+    cmsDocuments: resolveDeliverableCmsDocuments,
+    stateDocuments: resolveDeliverableStateDocuments,
   },
 };

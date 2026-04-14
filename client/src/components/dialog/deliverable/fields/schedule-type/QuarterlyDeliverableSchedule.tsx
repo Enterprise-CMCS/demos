@@ -25,11 +25,19 @@ export function getOptionsForYearSelect(
 export function QuarterlyDeliverableSchedule({
   demonstrationEffectiveDate,
   demonstrationExpirationDate,
+  onSelectYear,
+  quarterlyDueDates,
+  onSelectQuarterDate,
 }: {
   demonstrationEffectiveDate?: Date;
   demonstrationExpirationDate?: Date;
+  onSelectYear: (year: number) => void;
+  quarterlyDueDates?: string[];
+  onSelectQuarterDate?: (quarterIndex: number, dueDate: string) => void;
 }) {
   const [selectedYear, setSelectedYear] = useState(1);
+
+  const getQuarterDueDate = (quarterIndex: number) => quarterlyDueDates?.[quarterIndex] ?? "";
 
   return (
     <div className="grid grid-cols-5 gap-sm">
@@ -38,7 +46,12 @@ export function QuarterlyDeliverableSchedule({
           label="Year"
           options={getOptionsForYearSelect(demonstrationEffectiveDate, demonstrationExpirationDate)}
           value={String(selectedYear)}
-          onSelect={(value: string) => setSelectedYear(Number(value))}
+          onSelect={(value: string) => {
+            // Strip the "Year " prefix from the label to get the numeric year value
+            const year = Number(value.replace("Year ", ""));
+            onSelectYear(year);
+            setSelectedYear(year);
+          }}
           isRequired={true}
         />
       </div>
@@ -48,10 +61,8 @@ export function QuarterlyDeliverableSchedule({
           name="quarter-1"
           key={1}
           label="1st Quarter"
-          value={""}
-          onChange={(newDate: string) => {
-            console.log(newDate);
-          }}
+          value={getQuarterDueDate(0)}
+          onChange={(newDate: string) => onSelectQuarterDate?.(0, newDate)}
           isRequired={true}
         />
       </div>
@@ -61,10 +72,8 @@ export function QuarterlyDeliverableSchedule({
           name="quarter-2"
           key={2}
           label="2nd Quarter"
-          value={""}
-          onChange={(newDate: string) => {
-            console.log(newDate);
-          }}
+          value={getQuarterDueDate(1)}
+          onChange={(newDate: string) => onSelectQuarterDate?.(1, newDate)}
           isRequired={true}
         />
       </div>
@@ -74,10 +83,8 @@ export function QuarterlyDeliverableSchedule({
           name="quarter-3"
           key={3}
           label="3rd Quarter"
-          value={""}
-          onChange={(newDate: string) => {
-            console.log(newDate);
-          }}
+          value={getQuarterDueDate(2)}
+          onChange={(newDate: string) => onSelectQuarterDate?.(2, newDate)}
           isRequired={true}
         />
       </div>
@@ -87,10 +94,8 @@ export function QuarterlyDeliverableSchedule({
           name="quarter-4"
           key={4}
           label="4th Quarter"
-          value={""}
-          onChange={(newDate: string) => {
-            console.log(newDate);
-          }}
+          value={getQuarterDueDate(3)}
+          onChange={(newDate: string) => onSelectQuarterDate?.(3, newDate)}
           isRequired={true}
         />
       </div>

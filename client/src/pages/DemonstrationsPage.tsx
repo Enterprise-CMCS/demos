@@ -10,6 +10,7 @@ import {
   User,
 } from "demos-server";
 import { Tab, HorizontalSectionTabs } from "layout/Tabs";
+import { useSessionTab } from "hooks/useSessionTab";
 
 export const DEMONSTRATIONS_PAGE_QUERY = gql`
   query GetDemonstrationsPage {
@@ -72,15 +73,12 @@ export const DemonstrationsPage: React.FC = () => {
   const myDemonstrations = demonstrations.filter(
     (d) => d.primaryProjectOfficer.id === data?.currentUser.id
   );
-
-  const tabDemoKey = "selectedDemonstrationTab";
-  let tabValue = "my-demonstrations";
-
-  if (typeof window !== "undefined") {
-    const stored = sessionStorage.getItem(tabDemoKey);
-    tabValue = ["my-demonstrations", "demonstrations"].includes(stored ?? "") ? stored! : tabValue;
-    sessionStorage.setItem(tabDemoKey, tabValue);
-  }
+  // Sets session to remember which tab you were on.
+  const [tabValue, onTabSelect] = useSessionTab({
+    key: "selectedDemonstrationTab",
+    defaultValue: "my-demonstrations",
+    allowedValues: ["my-demonstrations", "demonstrations"],
+  });
 
   return (
     <div className="shadow-md bg-white p-[16px]">
@@ -92,7 +90,7 @@ export const DemonstrationsPage: React.FC = () => {
       {data && (
         <HorizontalSectionTabs
           defaultValue={tabValue}
-          onSelect={(value) => sessionStorage.setItem(tabDemoKey, value)}
+          onSelect={onTabSelect}
         >
           <Tab label={`My Demonstrations (${myDemonstrations.length})`} value="my-demonstrations">
             <DemonstrationTable

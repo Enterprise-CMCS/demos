@@ -1,10 +1,24 @@
+// Vitest and other helpers
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
+// Types
 import {
   Deliverable as PrismaDeliverable,
   Demonstration as PrismaDemonstration,
   Document as PrismaDocument,
   User as PrismaUser,
 } from "@prisma/client";
+import { GraphQLContext } from "../../auth/auth.util.js";
+import { GraphQLResolveInfo } from "graphql";
+import {
+  CreateDeliverableInput,
+  DateTimeOrLocalDate,
+  DeliverableDueDateType,
+  DeliverableStatus,
+  DeliverableType,
+} from "../../types.js";
+
+// Functions under test
 import {
   resolveDeliverable,
   resolveManyDeliverables,
@@ -14,17 +28,14 @@ import {
   resolveDeliverableDueDateType,
   resolveDemonstration,
   resolveDeliverableCmsOwner,
+  resolveDeliverableCmsDocuments,
+  resolveDeliverableStateDocuments,
+  deliverableResolvers,
 } from "./deliverableResolvers";
 
 // Mock imports
-import { getDeliverable, getManyDeliverables } from ".";
-import { getApplication } from "../application";
-import { getUser } from "../user";
-import { GraphQLContext } from "../../auth/auth.util.js";
-import { GraphQLArgs, GraphQLResolveInfo } from "graphql";
-import { DeliverableDueDateType, DeliverableStatus, DeliverableType } from "../../types.js";
-
 vi.mock(".", () => ({
+  createDeliverable: vi.fn(),
   getDeliverable: vi.fn(),
   getManyDeliverables: vi.fn(),
 }));
@@ -36,6 +47,15 @@ vi.mock("../application", () => ({
 vi.mock("../user", () => ({
   getUser: vi.fn(),
 }));
+
+vi.mock("../document", () => ({
+  getManyDocuments: vi.fn(),
+}));
+
+import { createDeliverable, getDeliverable, getManyDeliverables } from ".";
+import { getApplication } from "../application";
+import { getUser } from "../user";
+import { getManyDocuments } from "../document";
 
 describe("deliverableResolvers", () => {
   const testDeliverableId = "82ef9a17-e8b9-48ab-9aaf-3d1787822b13";
@@ -88,10 +108,10 @@ describe("deliverableResolvers", () => {
 
   describe("resolveDeliverable", () => {
     it("should throw if given something not supported", async () => {
-      await expect(() =>
+      await expect(
         resolveDeliverable(
           testDocumentWithDeliverableParent as PrismaDocument,
-          {} as GraphQLArgs,
+          {} as unknown,
           {} as GraphQLContext,
           testDemonstrationInfo as GraphQLResolveInfo
         )
@@ -103,7 +123,7 @@ describe("deliverableResolvers", () => {
       it("should not query and return null if there is no deliverable ID", async () => {
         const result = await resolveDeliverable(
           testDocumentWithoutDeliverableParent as PrismaDocument,
-          {} as GraphQLArgs,
+          {} as unknown,
           {} as GraphQLContext,
           testDocumentInfo as GraphQLResolveInfo
         );
@@ -114,7 +134,7 @@ describe("deliverableResolvers", () => {
       it("should query if there is a deliverable ID", async () => {
         await resolveDeliverable(
           testDocumentWithDeliverableParent as PrismaDocument,
-          {} as GraphQLArgs,
+          {} as unknown,
           {} as GraphQLContext,
           testDocumentInfo as GraphQLResolveInfo
         );
@@ -125,10 +145,10 @@ describe("deliverableResolvers", () => {
 
   describe("resolveManyDeliverables", () => {
     it("should throw if given something not supported", async () => {
-      await expect(() =>
+      await expect(
         resolveManyDeliverables(
           testDemonstrationParent as PrismaDemonstration,
-          {} as GraphQLArgs,
+          {} as unknown,
           {} as GraphQLContext,
           testDocumentInfo as GraphQLResolveInfo
         )
@@ -140,7 +160,7 @@ describe("deliverableResolvers", () => {
       it("should query for a demonstration ID", async () => {
         await resolveManyDeliverables(
           testDemonstrationParent as PrismaDemonstration,
-          {} as GraphQLArgs,
+          {} as unknown,
           {} as GraphQLContext,
           testDemonstrationInfo as GraphQLResolveInfo
         );
@@ -154,7 +174,7 @@ describe("deliverableResolvers", () => {
       it("should query for a owner user ID", async () => {
         await resolveManyDeliverables(
           testUserParent as PrismaUser,
-          {} as GraphQLArgs,
+          {} as unknown,
           {} as GraphQLContext,
           testUserInfo as GraphQLResolveInfo
         );
@@ -207,6 +227,44 @@ describe("deliverableResolvers", () => {
       await resolveDeliverableCmsOwner(testDeliverable as PrismaDeliverable);
       expect(getUser).toHaveBeenCalledExactlyOnceWith({
         id: testUserId,
+      });
+    });
+  });
+
+  describe("resolveDeliverableCmsDocuments", () => {
+    it("should query the CMS documents belonging to this deliverable", async () => {
+      await resolveDeliverableCmsDocuments(testDeliverable as PrismaDeliverable);
+      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith({
+        AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: true }],
+      });
+    });
+  });
+
+  describe("resolveDeliverableStateDocuments", () => {
+    it("should query the state documents belonging to this deliverable", async () => {
+      await resolveDeliverableStateDocuments(testDeliverable as PrismaDeliverable);
+      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith({
+        AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: false }],
+      });
+    });
+  });
+
+  describe("deliverableResolvers", () => {
+    describe("Mutation.createDeliverable", () => {
+      it("should call the createDeliverable function with the right arguments", async () => {
+        const testInput: CreateDeliverableInput = {
+          name: "A name!",
+          deliverableType: "Close Out Report",
+          demonstrationId: testDemonstrationId,
+          dueDate: "2025-11-31" as DateTimeOrLocalDate,
+        };
+
+        await deliverableResolvers.Mutation.createDeliverable(
+          {},
+          { input: testInput },
+          {} as GraphQLContext
+        );
+        expect(createDeliverable).toHaveBeenCalledExactlyOnceWith(testInput, {});
       });
     });
   });
