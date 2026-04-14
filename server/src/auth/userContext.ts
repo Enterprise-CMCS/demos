@@ -2,7 +2,7 @@ import { prisma } from "../prismaClient";
 import { Permission, SystemRole, UserType } from "../types";
 import { AuthorizationClaims } from "./auth.util";
 
-const roleMap: Record<UserType, SystemRole> = {
+const initialUserTypeRoles: Record<UserType, SystemRole> = {
   "demos-admin": "Admin User",
   "demos-cms-user": "CMS User",
   "demos-state-user": "State User",
@@ -40,7 +40,7 @@ async function createNewUserFromClaims(claims: AuthorizationClaims): Promise<Con
       grantLevelId: "System",
       personTypeId: person.personTypeId,
       // casting enforced by database constraints
-      roleId: roleMap[person.personTypeId as UserType],
+      roleId: initialUserTypeRoles[person.personTypeId as UserType],
     },
     include: {
       role: {
@@ -53,6 +53,7 @@ async function createNewUserFromClaims(claims: AuthorizationClaims): Promise<Con
 
   return {
     id: person.id,
+    // casting enforced by database constraints
     personTypeId: person.personTypeId as UserType,
     cognitoSubject: user.cognitoSubject,
     permissions: systemRoleAssignment.role.rolePermissions.map(
