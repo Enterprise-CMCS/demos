@@ -118,7 +118,7 @@ describe("DeliverablesPage tab persistence", () => {
 
     expect(screen.getByText("Budget Neutrality Report")).toBeInTheDocument();
     expect(screen.getByText("Budget Neutrality Worksheet")).toBeInTheDocument();
-    expect(screen.getByText("Deliverable 8")).toBeInTheDocument();
+    expect(screen.getByText("Quarterly Report For NYC Demonstration")).toBeInTheDocument();
   });
 
   it("uses state-user table columns when current user is demos-state-user", async () => {

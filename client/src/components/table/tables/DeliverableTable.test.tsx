@@ -6,6 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { DeliverableTable, formatDeliverableStatus } from "./DeliverableTable";
 import { MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
+import type { GenericDeliverableTableRow } from "pages/DeliverablesPage";
 
 const sortedDeliverables = sortDeliverablesByDefault(MOCK_DELIVERABLES);
 const sortedFirstPageIds = sortedDeliverables.slice(0, 10).map((deliverable) => deliverable.id);
@@ -215,5 +216,54 @@ describe("DeliverableTable demos-state-user view mode", () => {
     expect(screen.queryByLabelText(/Add Deliverable/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Edit Deliverable/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Remove Deliverable/i)).not.toBeInTheDocument();
+  });
+});
+
+describe("DeliverableTable default sorting behavior", () => {
+  it("reapplies default sort order when the table data is reloaded", async () => {
+    const base = MOCK_DELIVERABLES[0] as GenericDeliverableTableRow;
+    const createDeliverable = (
+      id: string,
+      name: string,
+      status: GenericDeliverableTableRow["status"],
+      dueDate: string
+    ): GenericDeliverableTableRow => ({
+      ...base,
+      id,
+      name,
+      status,
+      dueDate: new Date(dueDate),
+    });
+
+    const pastDue = createDeliverable("past-due", "Past Due", "Past Due", "2026-05-03");
+    const upcoming = createDeliverable("upcoming", "Upcoming", "Upcoming", "2026-05-02");
+    const submitted = createDeliverable("submitted", "Submitted", "Submitted", "2026-05-01");
+
+    const getRenderedRowIds = () =>
+      screen
+        .getAllByTestId(/^select-row-/)
+        .map((checkbox) => checkbox.getAttribute("data-testid")?.replace("select-row-", ""));
+
+    const { rerender } = render(
+      <DeliverableTable
+        deliverables={[submitted, pastDue, upcoming]}
+        viewMode="demos-cms-user"
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+
+    expect(getRenderedRowIds()).toEqual(["past-due", "upcoming", "submitted"]);
+
+    rerender(
+      <DeliverableTable
+        deliverables={[upcoming, submitted, pastDue]}
+        viewMode="demos-cms-user"
+      />
+    );
+
+    expect(getRenderedRowIds()).toEqual(["past-due", "upcoming", "submitted"]);
   });
 });

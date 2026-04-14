@@ -1,6 +1,6 @@
 import React from "react";
 import type { Deliverable, PersonType } from "demos-server";
-import type { GenericDeliverableTableRow } from "pages/DeliverablesPage";
+import type { DeliverableTableRow } from "pages/DeliverablesPage";
 
 import { DeliverableColumns } from "../columns/DeliverableColumns";
 import { Table, type TableProps } from "../Table";
@@ -13,8 +13,6 @@ import { selectionTooltip } from "./actionTooltips";
 import { ImportIcon } from "components/icons/Action/ImportIcon";
 import { EditIcon } from "components/icons/Navigation/EditIcon";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
-
-export type DeliverableTableRow = GenericDeliverableTableRow;
 
 export type DeliverableTableViewMode = Exclude<PersonType, "non-user-contact">;
 

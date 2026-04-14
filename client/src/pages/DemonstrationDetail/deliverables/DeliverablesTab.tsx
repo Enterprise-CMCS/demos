@@ -3,7 +3,7 @@ import { IconButton } from "components/button";
 import { AddNewIcon } from "components/icons";
 import { TabHeader } from "components/table/TabHeader";
 import { useDialog } from "components/dialog/DialogContext";
-import type { GenericDeliverableTableRow } from "pages/DeliverablesPage";
+import type { DeliverableTableRow } from "pages/DeliverablesPage";
 import { AddDeliverableSlotDemonstration } from "components/dialog/deliverable/AddDeliverableSlotDialog";
 import { DemonstrationDeliverableTable } from "components/table/tables/DemonstrationDeliverableTable";
 import { getCurrentUser } from "components/user/UserContext";
@@ -16,7 +16,7 @@ export const DeliverablesTab = ({
   deliverables,
 }: {
   parentDemonstration: AddDeliverableSlotDemonstration;
-  deliverables: GenericDeliverableTableRow[];
+  deliverables: DeliverableTableRow[];
 }) => {
   const { showAddDeliverableSlotDialog } = useDialog();
   const rawPersonType = getCurrentUser().currentUser?.person.personType;

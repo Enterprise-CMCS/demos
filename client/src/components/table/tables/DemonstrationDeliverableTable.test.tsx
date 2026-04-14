@@ -123,4 +123,52 @@ describe("DemonstrationDeliverableTable", () => {
     expect(screen.queryByRole("columnheader", { name: /State\/Territory/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: /CMS Owner/i })).not.toBeInTheDocument();
   });
+
+  it("reapplies default sort order when deliverables are reloaded", () => {
+    const pastDue = {
+      id: "past-due-2",
+      name: "Past Due",
+      dueDate: new Date("2026-05-03"),
+      status: "Past Due" as const,
+      ...baseDeliverable,
+    };
+    const upcoming = {
+      id: "upcoming-2",
+      name: "Upcoming",
+      dueDate: new Date("2026-05-02"),
+      status: "Upcoming" as const,
+      ...baseDeliverable,
+    };
+    const submitted = {
+      id: "submitted-2",
+      name: "Submitted",
+      dueDate: new Date("2026-05-01"),
+      status: "Submitted" as const,
+      ...baseDeliverable,
+    };
+
+    const getOrderedNames = () =>
+      screen
+        .getAllByRole("row")
+        .slice(1)
+        .map((row) => within(row).getAllByRole("cell")[2].textContent);
+
+    const { rerender } = render(
+      <DemonstrationDeliverableTable
+        viewMode="demos-state-user"
+        deliverables={[submitted, pastDue, upcoming]}
+      />
+    );
+
+    expect(getOrderedNames()).toEqual(["Past Due", "Upcoming", "Submitted"]);
+
+    rerender(
+      <DemonstrationDeliverableTable
+        viewMode="demos-state-user"
+        deliverables={[upcoming, submitted, pastDue]}
+      />
+    );
+
+    expect(getOrderedNames()).toEqual(["Past Due", "Upcoming", "Submitted"]);
+  });
 });

@@ -6,7 +6,7 @@ import type { Deliverable, Person, PersonType, State } from "demos-server";
 import { useSessionTab } from "hooks/useSessionTab";
 import { gql, useQuery } from "@apollo/client";
 
-export type GenericDeliverableTableRow = Omit<
+export type DeliverableTableRow = Omit<
   Deliverable,
   "demonstration" | "cmsOwner" | "cmsDocuments" | "stateDocuments"
 > & {
@@ -23,7 +23,7 @@ export type GenericDeliverableTableRow = Omit<
 };
 
 type DeliverablesPageQueryResult = {
-  deliverables: GenericDeliverableTableRow[];
+  deliverables: DeliverableTableRow[];
 };
 type DeliverableTableViewMode = Exclude<PersonType, "non-user-contact">;
 
