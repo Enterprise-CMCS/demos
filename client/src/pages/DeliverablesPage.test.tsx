@@ -7,6 +7,14 @@ import { DeliverablesPage } from "./DeliverablesPage";
 import { MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
 import { mockUsers } from "mock-data/userMocks";
 
+const mockUseQuery = vi.fn();
+
+vi.mock("@apollo/client", () => ({
+  gql: (literals: TemplateStringsArray, ...placeholders: string[]) =>
+    literals.reduce((acc, curr, idx) => acc + curr + (placeholders[idx] || ""), ""),
+  useQuery: (...args: unknown[]) => mockUseQuery(...args),
+}));
+
 vi.mock("components/user/UserContext", async (importOriginal) => {
   const actual = await importOriginal<typeof UserContext>();
   return {
@@ -22,6 +30,13 @@ describe("DeliverablesPage tab persistence", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseQuery.mockReturnValue({
+      data: {
+        deliverables: MOCK_DELIVERABLES,
+      },
+      loading: false,
+      error: undefined,
+    });
     mockGetCurrentUser.mockReturnValue({
       currentUser: mockUsers[0],
     });

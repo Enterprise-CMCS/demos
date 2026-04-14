@@ -4,8 +4,7 @@ import { HorizontalSectionTabs, Tab } from "layout/Tabs";
 import React from "react";
 import type { Deliverable, Person, PersonType, State } from "demos-server";
 import { useSessionTab } from "hooks/useSessionTab";
-
-import { MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
+import { gql, useQuery } from "@apollo/client";
 
 export type GenericDeliverableTableRow = Omit<
   Deliverable,
@@ -24,31 +23,57 @@ export type GenericDeliverableTableRow = Omit<
 
 type DeliverablesPageQueryResult = {
   deliverables: GenericDeliverableTableRow[];
-  currentUserId: string;
 };
 type DeliverableTableViewMode = Exclude<PersonType, "non-user-contact">;
+
+export const DELIVERABLES_PAGE_QUERY = gql`
+  query GetDeliverablesPage {
+    deliverables {
+      id
+      deliverableType
+      name
+      demonstration {
+        id
+        name
+        state {
+          id
+        }
+      }
+      status
+      cmsOwner {
+        id
+        person {
+          id
+          fullName
+        }
+      }
+      dueDate
+      dueDateType
+      expectedToBeSubmitted
+      cmsDocuments {
+        id
+      }
+      stateDocuments {
+        id
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
 
 export const DeliverablesPage: React.FC = () => {
   const { currentUser } = getCurrentUser();
   const rawPersonType = currentUser?.person.personType;
   // Note. currentUser type by default cannot be non-user-contact.
   const viewMode = rawPersonType as DeliverableTableViewMode;
-  // Placeholder query-state shape until this page is wired to real API data.
-  const [loading] = React.useState(false);
-  const [error] = React.useState<Error | undefined>(undefined);
-  const [data] = React.useState<DeliverablesPageQueryResult>({
-    deliverables: MOCK_DELIVERABLES,
-    currentUserId: "dustyrhodes",
-  });
-
-  // For when we get the backend working. Based on demo table
-  // const { data, loading, error } = useQuery<DeliverablesPageQueryResult>(
-  //   DELIVERABLES_PAGE_QUERY
-  // );
+  const { data, loading, error } = useQuery<DeliverablesPageQueryResult>(
+    DELIVERABLES_PAGE_QUERY
+  );
 
   const deliverables = data?.deliverables ?? [];
   const myDeliverables = deliverables.filter(
-    (deliverable) => deliverable.cmsOwner.id === data?.currentUserId
+    (deliverable) => deliverable.cmsOwner.id === currentUser?.id
   );
 
   const [tabValue, onTabSelect] = useSessionTab({
