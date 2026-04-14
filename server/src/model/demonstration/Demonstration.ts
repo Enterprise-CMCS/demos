@@ -1,11 +1,11 @@
 import { Prisma, Demonstration as PrismaDemonstration } from "@prisma/client";
-import { ContextUser } from "../../auth/auth.util.js";
 import {
   buildAuthorizationFilter,
   PermissionFilters,
 } from "../../auth/buildAuthorizationFilter.js";
 import { queryDemonstration } from "./queries/queryDemonstration.js";
 import { queryManyDemonstrations } from "./queries/queryManyDemonstrations.js";
+import { ContextUser } from "../../auth/userContext.js";
 
 const getPermissionFilters = (userId: string) =>
   ({

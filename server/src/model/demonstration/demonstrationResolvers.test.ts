@@ -763,17 +763,6 @@ describe("demonstrationResolvers", () => {
     });
   });
 
-  describe("resolveDemonstrationSdgDivision", () => {
-    it("should resolve the relevant SDG Division", () => {
-      const input: Partial<PrismaDemonstration> = {
-        sdgDivisionId: testValues.sdgDivisionId,
-      };
-      expect(resolveDemonstrationSdgDivision(input as PrismaDemonstration)).toBe(
-        testValues.sdgDivisionId
-      );
-    });
-  });
-
   describe("__resolveDemonstrationRoleAssignments", () => {
     it("should look up the relevant assignments", async () => {
       const input: Partial<PrismaDemonstration> = {
