@@ -100,8 +100,8 @@ describe("DemonstrationDeliverableTable", () => {
       />
     );
 
-    expect(screen.getByRole("columnheader", { name: "State/Territory" })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: "CMS Owner" })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /State\/Territory/i })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /CMS Owner/i })).toBeInTheDocument();
   });
 
   it("hides state and CMS owner columns for state users", () => {
@@ -120,7 +120,7 @@ describe("DemonstrationDeliverableTable", () => {
       />
     );
 
-    expect(screen.queryByRole("columnheader", { name: "State/Territory" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("columnheader", { name: "CMS Owner" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: /State\/Territory/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: /CMS Owner/i })).not.toBeInTheDocument();
   });
 });

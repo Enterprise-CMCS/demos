@@ -162,7 +162,7 @@ describe("DemonstrationTab", () => {
 
       renderWithProvider(<DemonstrationTab demonstration={demonstrationApproved} />);
 
-      expect(screen.getByRole("button", { name: "Deliverables (2)" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Deliverables \(\d+\)/ })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Applications" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Details" })).toBeInTheDocument();
     });

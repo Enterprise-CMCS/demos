@@ -62,3 +62,7 @@ export function getCurrentUser() {
 
   return ctx;
 }
+
+export function getCurrentUserOrUndefined() {
+  return useContext(Ctx);
+}
