@@ -23,6 +23,15 @@ import {
 import { TestProvider } from "test-utils/TestProvider";
 import { DELIVERABLE_SLOTS_CREATED_MESSAGE } from "util/messages";
 
+const mockMutate = vi.fn(() => Promise.resolve({ data: {} }));
+vi.mock("@apollo/client", async () => {
+  const actual = await vi.importActual("@apollo/client");
+  return {
+    ...actual,
+    useMutation: vi.fn(() => [mockMutate, { loading: false }]),
+  };
+});
+
 const mockShowSuccess = vi.fn();
 vi.mock("components/toast", () => ({
   useToast: () => ({
