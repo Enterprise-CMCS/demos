@@ -89,11 +89,7 @@ export const DeliverableTable: React.FC<{
   deliverables: DeliverableTableRow[];
   emptyRowsMessage?: string;
   viewMode: UserType;
-}> = ({
-  deliverables,
-  emptyRowsMessage = EMPTY_ROWS_MESSAGE,
-  viewMode,
-}) => {
+}> = ({ deliverables, emptyRowsMessage = EMPTY_ROWS_MESSAGE, viewMode }) => {
   const { showEditDeliverableDialog } = useDialog();
   const deliverableColumns = DeliverableColumns({ viewMode });
   const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({
