@@ -5,7 +5,7 @@ import {
   __createAmendment,
   __updateAmendment,
   deleteAmendment,
-  __resolveParentDemonstration,
+  amendmentResolvers,
 } from "./amendmentResolvers.js";
 import {
   ApplicationStatus,
@@ -31,6 +31,7 @@ import {
   resolveApplicationClearanceLevel,
   resolveApplicationTags,
   resolveApplicationSignatureLevel,
+  resolveSuggestedApplicationTags,
 } from "../application";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
@@ -39,9 +40,15 @@ import {
   checkInputDateIsEndOfDay,
 } from "../applicationDate/checkInputDateFunctions.js";
 import { EasternTZDate, parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities.js";
+import { ContextUser } from "../../auth/userContext.js";
+import { getDemonstration } from "../demonstration/demonstrationData.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
+}));
+
+vi.mock("../demonstration/demonstrationData.js", () => ({
+  getDemonstration: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -55,6 +62,7 @@ vi.mock("../application", () => ({
   resolveApplicationClearanceLevel: vi.fn(),
   resolveApplicationTags: vi.fn(),
   resolveApplicationSignatureLevel: vi.fn(),
+  resolveSuggestedApplicationTags: vi.fn(),
 }));
 
 vi.mock("../../errors/checkOptionalNotNullFields.js", () => ({
@@ -82,9 +90,6 @@ describe("amendmentResolvers", () => {
     amendment: {
       update: vi.fn(),
     },
-    demonstration: {
-      findUnique: vi.fn(),
-    },
   };
   const transactionMocks = {
     application: {
@@ -107,9 +112,10 @@ describe("amendmentResolvers", () => {
     amendment: {
       update: regularMocks.amendment.update,
     },
-    demonstration: {
-      findUnique: regularMocks.demonstration.findUnique,
-    },
+  };
+  const mockUser = {} as unknown as ContextUser;
+  const mockContext = {
+    user: mockUser,
   };
   const testAmendmentId = "8167c039-9c08-4203-b7d2-9e35ec156993";
   const testDemonstrationId = "518aa497-d547-422e-95a0-02076c7f7698";
@@ -303,18 +309,12 @@ describe("amendmentResolvers", () => {
     });
   });
 
-  describe("__resolveParentDemonstration", () => {
-    it("should look up the relevant demonstration", async () => {
-      const input: Partial<PrismaAmendment> = {
-        demonstrationId: testDemonstrationId,
-      };
-      const expectedCall = {
-        where: {
-          id: testDemonstrationId,
-        },
-      };
-      await __resolveParentDemonstration(input as PrismaAmendment);
-      expect(regularMocks.demonstration.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCall);
-    });
+  it("delegates `Amendment.demonstration` to `Demonstration.getDemonstration`", async () => {
+    await amendmentResolvers.Amendment.demonstration(
+      { demonstrationId: "abc123" } as PrismaAmendment,
+      {},
+      mockContext
+    );
+    expect(getDemonstration).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
   });
 });

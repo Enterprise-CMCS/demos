@@ -4,13 +4,24 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import * as UserContext from "components/user/UserContext";
 
 import { DemonstrationTab, DemonstrationTabDemonstration } from "./DemonstrationTab";
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
+import { mockUsers } from "mock-data/userMocks";
+
+vi.mock("components/user/UserContext", async (importOriginal) => {
+  const actual = await importOriginal<typeof UserContext>();
+  return {
+    ...actual,
+    getCurrentUser: vi.fn(),
+  };
+});
 
 const mockDemonstration: DemonstrationTabDemonstration = {
   id: "demo-123",
+  name: "Unmatched Demonstration",
   status: "Pre-Submission" as const,
   currentPhaseName: "Concept" as const,
   demonstrationTypes: [],
@@ -67,8 +78,13 @@ const renderWithProvider = (component: React.ReactElement) => {
 };
 
 describe("DemonstrationTab", () => {
+  const mockGetCurrentUser = vi.mocked(UserContext.getCurrentUser);
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetCurrentUser.mockReturnValue({
+      currentUser: mockUsers[0],
+    });
   });
 
   it("renders all tab labels with correct counts", () => {
@@ -147,7 +163,7 @@ describe("DemonstrationTab", () => {
 
       renderWithProvider(<DemonstrationTab demonstration={demonstrationNotApproved} />);
 
-      expect(screen.queryByRole("button", { name: "Deliverables" })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /Deliverables \(\d+\)/ })).not.toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Applications" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Details" })).toBeInTheDocument();
     });
@@ -155,12 +171,13 @@ describe("DemonstrationTab", () => {
     it('renders Deliverables tab when status is "Approved"', () => {
       const demonstrationApproved: DemonstrationTabDemonstration = {
         ...mockDemonstration,
+        name: "Montana Medicaid Waiver",
         status: "Approved",
       };
 
       renderWithProvider(<DemonstrationTab demonstration={demonstrationApproved} />);
 
-      expect(screen.getByRole("button", { name: "Deliverables" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Deliverables \(\d+\)/ })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Applications" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Details" })).toBeInTheDocument();
     });

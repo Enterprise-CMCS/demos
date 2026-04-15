@@ -33,6 +33,9 @@ import {
   TAG_STATUSES,
   TAG_TYPES,
   UIPATH_RESULT_STATUSES,
+  USER_TYPES,
+  PERMISSIONS,
+  SYSTEM_ROLES,
 } from "./constants.js";
 
 export type {
@@ -80,6 +83,7 @@ export type {
   ApplicationPhase,
   CompletePhaseInput,
 } from "./model/applicationPhase/applicationPhaseSchema.js";
+
 export type { Application } from "./model/application/applicationSchema.js";
 export type {
   ApplicationDate,
@@ -109,6 +113,10 @@ export type {
 
 export type { Tag } from "./model/tag/tagSchema.js";
 
+export type { Deliverable, CreateDeliverableInput } from "./model/deliverable/deliverableSchema";
+
+export type { SetDeliverableDemonstrationTypesInput } from "./model/deliverableDemonstrationType/deliverableDemonstrationTypeSchema";
+
 export type DemonstrationTypeStatus = (typeof DEMONSTRATION_TYPE_STATUSES)[number];
 export type ClearanceLevel = (typeof CLEARANCE_LEVELS)[number];
 export type LocalDate = string & { readonly __brand: "LocalDate" };
@@ -122,6 +130,7 @@ export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 export type PhaseName = (typeof PHASE_NAMES)[number];
 export type PhaseStatus = (typeof PHASE_STATUS)[number];
 export type PersonType = (typeof PERSON_TYPES)[number];
+export type UserType = (typeof USER_TYPES)[number];
 export type GrantLevel = (typeof GRANT_LEVELS)[number];
 export type Role = (typeof ROLES)[number];
 export type DateType = (typeof DATE_TYPES)[number];
@@ -147,3 +156,5 @@ export type DeliverableDueDateType = (typeof DELIVERABLE_DUE_DATE_TYPES)[number]
 export type DeliverableActionType = (typeof DELIVERABLE_ACTION_TYPES)[number];
 export type DeliverableExtensionReasonCode = (typeof DELIVERABLE_EXTENSION_REASON_CODES)[number];
 export type DeliverableExtensionStatus = (typeof DELIVERABLE_EXTENSION_STATUSES)[number];
+export type Permission = (typeof PERMISSIONS)[number];
+export type SystemRole = (typeof SYSTEM_ROLES)[number];

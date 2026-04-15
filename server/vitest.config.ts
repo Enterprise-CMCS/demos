@@ -14,6 +14,10 @@ export default defineConfig({
         "**/*.config.?s",
         "**/seeder.ts",
         "**/plugins/**",
+        "src/constants.ts",
+        "src/adapters/s3/LocalS3Adapter.ts",
+        "src/local-server.ts",
+        "src/refreshDbObjects.ts"
       ],
     },
     include: ["src/**/*.test.ts"],

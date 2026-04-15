@@ -103,6 +103,8 @@ export const PERSON_TYPES = [
   "non-user-contact",
 ] as const;
 
+export const USER_TYPES = ["demos-admin", "demos-cms-user", "demos-state-user"] as const;
+
 export const GRANT_LEVELS = ["System", "Demonstration"] as const;
 
 export const APPLICATION_TYPES = ["Demonstration", "Amendment", "Extension"] as const;
@@ -458,3 +460,14 @@ export const BUDGET_NEUTRALITY_VALIDATION_STATUSES = [
   "Pending",
   "In Progress",
 ];
+
+export const PERMISSIONS = [
+  "View All Demonstrations",
+  "View Assigned Demonstrations",
+  "View All Amendments",
+  "View Amendments on Assigned Demonstrations",
+  "View All Extensions",
+  "View Extensions on Assigned Demonstrations",
+] as const;
+
+export const SYSTEM_ROLES = ["Admin User", "CMS User", "State User"] as const;

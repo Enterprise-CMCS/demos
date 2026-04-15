@@ -3,7 +3,7 @@ import { highlightCell } from "../KeywordSearch";
 import { SecondaryButton } from "components/button";
 import { ChevronDownIcon, ChevronRightIcon } from "components/icons";
 import React from "react";
-import { GenericDemonstrationTableRow } from "../tables/DemonstrationTable";
+import { DemonstrationTableRow } from "../tables/DemonstrationTable";
 import { Person } from "demos-server";
 import { createSelectColumnDef } from "./selectColumn";
 import { APPLICATION_STATUS, STATES_AND_TERRITORIES } from "demos-server-constants";
@@ -14,7 +14,7 @@ import type { ApplicationStatus } from "demos-server";
 // reformat to be more like a utility function.
 
 export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullName">[]) {
-  const columnHelper = createColumnHelper<GenericDemonstrationTableRow>();
+  const columnHelper = createColumnHelper<DemonstrationTableRow>();
 
   return [
     createSelectColumnDef(columnHelper),

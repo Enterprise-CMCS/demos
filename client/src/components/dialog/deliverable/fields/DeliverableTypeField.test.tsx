@@ -4,9 +4,12 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 
 import { DeliverableTypeField, DELIVERABLE_TYPE_SELECT_NAME } from "./DeliverableTypeField";
+import { DeliverableType } from "demos-server";
+
+const DEFAULT_DELIVERABLE_TYPE: DeliverableType = "Annual Budget Neutrality Report";
 
 describe("DeliverableTypeField", () => {
-  const setup = (value = "", onSelect = vi.fn()) => {
+  const setup = (value: DeliverableType = DEFAULT_DELIVERABLE_TYPE, onSelect = vi.fn()) => {
     render(<DeliverableTypeField value={value} onSelect={onSelect} />);
     return { onSelect };
   };
@@ -44,7 +47,7 @@ describe("DeliverableTypeField", () => {
   });
 
   it("is disabled when isDisabled is true", () => {
-    render(<DeliverableTypeField value="" onSelect={vi.fn()} isDisabled />);
+    render(<DeliverableTypeField value={DEFAULT_DELIVERABLE_TYPE} onSelect={vi.fn()} isDisabled />);
 
     expect(screen.getByTestId(DELIVERABLE_TYPE_SELECT_NAME)).toBeDisabled();
   });

@@ -22,6 +22,7 @@ vi.mock("components/dialog/DialogContext", () => ({
 
 const mockDemonstration: DemonstrationTabDemonstration = {
   id: "demo-123",
+  name: "Contacts Test Demonstration",
   status: "Pre-Submission" as const,
   currentPhaseName: "Concept" as const,
   demonstrationTypes: [],
@@ -69,6 +70,7 @@ const mockDemonstration: DemonstrationTabDemonstration = {
 
 const mockDemonstrationEmptyRoles: DemonstrationTabDemonstration = {
   id: "demo-123",
+  name: "Contacts Test Demonstration",
   status: "Pre-Submission" as const,
   currentPhaseName: "Concept" as const,
   demonstrationTypes: [],

@@ -1,8 +1,9 @@
 import React from "react";
+import type { Deliverable, PersonType } from "demos-server";
+import type { DeliverableTableRow as DeliverablesPageTableRow } from "pages/DeliverablesPage";
 
-import { Deliverable } from "pages/DeliverablesPage";
 import { DeliverableColumns } from "../columns/DeliverableColumns";
-import { Table } from "../Table";
+import { Table, type TableProps } from "../Table";
 import { ColumnFilter } from "../ColumnFilter";
 import { PaginationControls } from "../PaginationControls";
 import { KeywordSearch } from "../KeywordSearch";
@@ -11,62 +12,96 @@ import { DeleteIcon } from "components/icons/Action/DeleteIcon";
 import { selectionTooltip } from "./actionTooltips";
 import { ImportIcon } from "components/icons/Action/ImportIcon";
 import { EditIcon } from "components/icons/Navigation/EditIcon";
+import { sortDeliverablesByDefault } from "util/sortDeliverables";
 
-export type DeliverableTableRow = {
-  id: string;
-  deliverableName: string;
-  demonstrationName: string;
-  deliverableType: string;
-  cmsOwner: string;
-  dueDate: string;
-  submissionDate?: string;
-  status: string;
-  state: { id: string };
-};
+export type DeliverableTableRow = DeliverablesPageTableRow;
+export type DeliverableTableViewMode = Exclude<PersonType, "non-user-contact">;
 
-const DEFAULT_EMPTY_ROWS_MESSAGE = "There are no assigned Deliverables at this time";
-const DEFAULT_NO_SEARCH_RESULTS_MESSAGE =
-  "No results were returned. Adjust your search and filter criteria.";
+const EMPTY_ROWS_MESSAGE = "There are no assigned Deliverables at this time";
+const NO_RESULTS_FOUND = "No results were returned. Adjust your search and filter criteria.";
 
 export const formatDeliverableStatus = ({
   status,
-  extensionRequested = false,
-  resubmissionCount = 0,
-}: Pick<Deliverable, "status" | "extensionRequested" | "resubmissionCount">) => {
-  if (status !== "Upcoming") return status;
+}: Pick<Deliverable, "status">) => status;
 
-  const hasResubmission = resubmissionCount > 0;
-  const hasExtensionRequested = extensionRequested;
-
-  let combinedStatus = status;
-
-  if (hasResubmission) {
-    combinedStatus += ` (${resubmissionCount})`;
-  }
-
-  if (hasExtensionRequested) {
-    combinedStatus += " - Extension Requested";
-  }
-
-  return combinedStatus;
-};
-
-export const DeliverableTable: React.FC<{ deliverables: Deliverable[] }> = ({
+export const DeliverableTable: React.FC<{
+  deliverables: DeliverableTableRow[];
+  emptyRowsMessage?: string;
+  viewMode: DeliverableTableViewMode;
+}> = ({
   deliverables,
+  emptyRowsMessage = EMPTY_ROWS_MESSAGE,
+  viewMode,
 }) => {
-  const deliverableColumns = DeliverableColumns();
-  const formattedDeliverables = deliverables.map((deliverable) => ({
+  const deliverableColumns = DeliverableColumns({ viewMode });
+  const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({
     ...deliverable,
     status: formatDeliverableStatus(deliverable),
   }));
 
-  /* const { showAddDeliverableDialog, showEditDeliverableDialog, showRemoveDeliverableDialog } = useDialog(); */
   const showAddDeliverableDialog = () => { };
   const showEditDeliverableDialog = () => { };
   const showRemoveDeliverableDialog = () => { };
+  type DeliverableActionButtons = NonNullable<TableProps<DeliverableTableRow>["actionButtons"]>;
+
+  const renderActionButtons: DeliverableActionButtons = (table) => {
+    const selectedCount = table.getSelectedRowModel().rows.length;
+
+    const editEnabled = selectedCount === 1;
+    const deleteEnabled = selectedCount >= 1;
+
+    const editTooltip = selectionTooltip({
+      action: "Edit",
+      nounSingular: "Deliverable",
+      selectedCount,
+      rule: { kind: "exactly", count: 1 },
+    });
+
+    const deleteTooltip = selectionTooltip({
+      action: "Delete",
+      nounSingular: "Deliverable",
+      selectedCount,
+      rule: { kind: "atLeast", count: 1 },
+    });
+
+    return (
+      <div className="flex gap-1 ml-4">
+        <CircleButton
+          name="add-deliverable"
+          ariaLabel="Add Deliverable"
+          tooltip="Add Deliverable"
+          onClick={() => showAddDeliverableDialog()}
+        >
+          <ImportIcon />
+        </CircleButton>
+
+        <CircleButton
+          name="edit-deliverable"
+          ariaLabel="Edit Deliverable"
+          tooltip={editTooltip}
+          disabled={!editEnabled}
+          onClick={() => showEditDeliverableDialog()}
+        >
+          <EditIcon />
+        </CircleButton>
+
+        <CircleButton
+          name="remove-deliverable"
+          ariaLabel="Remove Deliverable"
+          tooltip={deleteTooltip}
+          disabled={!deleteEnabled}
+          onClick={() => showRemoveDeliverableDialog()}
+        >
+          <DeleteIcon />
+        </CircleButton>
+      </div>
+    );
+  };
+
+  const actionButtons = viewMode === "demos-state-user" ? undefined : renderActionButtons;
 
   return (
-    <div className="flex flex-col gap-[24px]">
+    <div className="flex flex-col gap-[24px]" data-view-mode={viewMode}>
       {deliverableColumns && (
         <Table<DeliverableTableRow>
           data={formattedDeliverables}
@@ -74,62 +109,9 @@ export const DeliverableTable: React.FC<{ deliverables: Deliverable[] }> = ({
           keywordSearch={(table) => <KeywordSearch table={table} />}
           columnFilter={(table) => <ColumnFilter table={table} />}
           pagination={(table) => <PaginationControls table={table} />}
-          emptyRowsMessage={DEFAULT_EMPTY_ROWS_MESSAGE}
-          noResultsFoundMessage={DEFAULT_NO_SEARCH_RESULTS_MESSAGE}
-          actionButtons={(table) => {
-            const selectedDeliverables = table.getSelectedRowModel().rows.map((row) => row.original);
-            const selectedCount = selectedDeliverables.length;
-
-            const editEnabled = selectedCount === 1;
-            const deleteEnabled = selectedCount >= 1;
-
-            const editTooltip = selectionTooltip({
-              action: "Edit",
-              nounSingular: "Deliverable",
-              selectedCount,
-              rule: { kind: "exactly", count: 1 },
-            });
-
-            const deleteTooltip = selectionTooltip({
-              action: "Delete",
-              nounSingular: "Deliverable",
-              selectedCount,
-              rule: { kind: "atLeast", count: 1 },
-            });
-
-            return (
-              <div className="flex gap-1 ml-4">
-                <CircleButton
-                  name="add-deliverable"
-                  ariaLabel="Add Deliverable"
-                  tooltip="Add Deliverable"
-                  onClick={() => showAddDeliverableDialog()}
-                >
-                  <ImportIcon />
-                </CircleButton>
-
-                <CircleButton
-                  name="edit-deliverable"
-                  ariaLabel="Edit Deliverable"
-                  tooltip={editTooltip}
-                  disabled={!editEnabled}
-                  onClick={() => showEditDeliverableDialog()}
-                >
-                  <EditIcon />
-                </CircleButton>
-
-                <CircleButton
-                  name="remove-deliverable"
-                  ariaLabel="Remove Deliverable"
-                  tooltip={deleteTooltip}
-                  disabled={!deleteEnabled}
-                  onClick={() => showRemoveDeliverableDialog()}
-                >
-                  <DeleteIcon />
-                </CircleButton>
-              </div>
-            );
-          }}
+          emptyRowsMessage={emptyRowsMessage}
+          noResultsFoundMessage={NO_RESULTS_FOUND}
+          actionButtons={actionButtons}
         />
       )}
     </div>
