@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 
 import { DemonstrationDeliverableTable } from "./DemonstrationDeliverableTable";
-import type { DeliverableTableRow } from "pages/DeliverablesPage";
+import type { DeliverableTableRow } from "./DeliverableTable";
 
 const baseDeliverable: Omit<DeliverableTableRow, "id" | "name" | "dueDate" | "status"> = {
   demonstration: {

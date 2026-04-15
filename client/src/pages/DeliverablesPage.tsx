@@ -1,76 +1,20 @@
-import { DeliverableTable } from "components/table/tables/DeliverableTable";
+import {
+  DELIVERABLES_PAGE_QUERY,
+  DeliverableTable,
+  DeliverablesQueryResult,
+} from "components/table/tables/DeliverableTable";
 import { getCurrentUser } from "components/user/UserContext";
 import { HorizontalSectionTabs, Tab } from "layout/Tabs";
 import React from "react";
-import type { Deliverable, Person, PersonType, State } from "demos-server";
+import type { UserType } from "demos-server";
 import { useSessionTab } from "hooks/useSessionTab";
-import { gql, useQuery } from "@apollo/client";
-
-export type DeliverableTableRow = Omit<
-  Deliverable,
-  "demonstration" | "cmsOwner" | "cmsDocuments" | "stateDocuments"
-> & {
-  name: string; // APPENDED FOR NOW, PE Toms Deliverables.
-  demonstration: Pick<Deliverable["demonstration"], "id" | "name"> & {
-    state: Pick<State, "id">;
-  };
-  cmsOwner: Pick<Deliverable["cmsOwner"], "id"> & {
-    person: Pick<Person, "fullName" | "id">;
-  };
-  submissionDate?: string;
-  cmsDocuments: Pick<Deliverable["cmsDocuments"][number], "id">[];
-  stateDocuments: Pick<Deliverable["stateDocuments"][number], "id">[];
-};
-
-type DeliverablesPageQueryResult = {
-  deliverables: DeliverableTableRow[];
-};
-type DeliverableTableViewMode = Exclude<PersonType, "non-user-contact">;
-
-export const DELIVERABLES_PAGE_QUERY = gql`
-  query GetDeliverablesPage {
-    deliverables {
-      id
-      deliverableType
-      name
-      demonstration {
-        id
-        name
-        state {
-          id
-        }
-      }
-      status
-      cmsOwner {
-        id
-        person {
-          id
-          fullName
-        }
-      }
-      dueDate
-      dueDateType
-      expectedToBeSubmitted
-      cmsDocuments {
-        id
-      }
-      stateDocuments {
-        id
-      }
-      createdAt
-      updatedAt
-    }
-  }
-`;
+import { useQuery } from "@apollo/client";
 
 export const DeliverablesPage: React.FC = () => {
   const { currentUser } = getCurrentUser();
   const rawPersonType = currentUser?.person.personType;
-  // Note. currentUser type by default cannot be non-user-contact.
-  const viewMode = rawPersonType as DeliverableTableViewMode;
-  const { data, loading, error } = useQuery<DeliverablesPageQueryResult>(
-    DELIVERABLES_PAGE_QUERY
-  );
+  const viewMode = rawPersonType as UserType;
+  const { data, loading, error } = useQuery<DeliverablesQueryResult>(DELIVERABLES_PAGE_QUERY);
 
   const deliverables = data?.deliverables ?? [];
   const myDeliverables = deliverables.filter(

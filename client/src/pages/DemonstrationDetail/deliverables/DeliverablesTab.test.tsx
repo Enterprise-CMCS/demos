@@ -6,7 +6,7 @@ import { DialogProvider } from "components/dialog/DialogContext";
 import { ADD_DELIVERABLE_SLOT_DIALOG_TITLE } from "components/dialog/deliverable";
 import { ADD_DELIVERABLE_SLOT_BUTTON_NAME, DeliverablesTab } from "./DeliverablesTab";
 import { TestProvider } from "test-utils/TestProvider";
-import { MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
+import { deliverableMocks } from "mock-data/deliverableMocks";
 import * as UserContext from "components/user/UserContext";
 import { mockUsers } from "mock-data/userMocks";
 
@@ -35,20 +35,17 @@ describe("DeliverablesTab", () => {
     });
   });
 
-  it("renders Deliverables Management header and required columns", () => {
+  it("renders Deliverables Management header and required columns", async () => {
     render(
-      <TestProvider>
+      <TestProvider mocks={deliverableMocks}>
         <DialogProvider>
-          <DeliverablesTab
-            parentDemonstration={MOCK_PARENT_DEMONSTRATION}
-            deliverables={MOCK_DELIVERABLES.slice(0, 1)}
-          />
+          <DeliverablesTab parentDemonstration={MOCK_PARENT_DEMONSTRATION} />
         </DialogProvider>
       </TestProvider>
     );
 
     expect(screen.getByRole("heading", { name: "Deliverables Management" })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: /Deliverable Type/i })).toBeInTheDocument();
+    expect(await screen.findByRole("columnheader", { name: /Deliverable Type/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Deliverable Name/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /CMS Owner/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Due Date/i })).toBeInTheDocument();
@@ -58,9 +55,9 @@ describe("DeliverablesTab", () => {
   it("opens the add deliverable slot dialog when the button is clicked", async () => {
     const user = userEvent.setup();
     render(
-      <TestProvider>
+      <TestProvider mocks={deliverableMocks}>
         <DialogProvider>
-          <DeliverablesTab parentDemonstration={MOCK_PARENT_DEMONSTRATION} deliverables={[]} />
+          <DeliverablesTab parentDemonstration={MOCK_PARENT_DEMONSTRATION} />
         </DialogProvider>
       </TestProvider>
     );
@@ -72,15 +69,17 @@ describe("DeliverablesTab", () => {
     expect(dialog).toHaveTextContent(ADD_DELIVERABLE_SLOT_DIALOG_TITLE);
   });
 
-  it("shows empty state when no demonstration deliverables are available", () => {
+  it("shows empty state when no demonstration deliverables are available", async () => {
     render(
-      <TestProvider>
+      <TestProvider mocks={deliverableMocks}>
         <DialogProvider>
-          <DeliverablesTab parentDemonstration={MOCK_PARENT_DEMONSTRATION} deliverables={[]} />
+          <DeliverablesTab
+            parentDemonstration={{ ...MOCK_PARENT_DEMONSTRATION, id: "demo-does-not-exist" }}
+          />
         </DialogProvider>
       </TestProvider>
     );
 
-    expect(screen.getByText("You have no assigned Deliverables at this time")).toBeInTheDocument();
+    expect(await screen.findByText("You have no assigned Deliverables at this time")).toBeInTheDocument();
   });
 });
