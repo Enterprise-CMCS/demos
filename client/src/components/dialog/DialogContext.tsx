@@ -32,7 +32,7 @@ import type {
 } from "./deliverable/EditDeliverableDialog";
 import { WorkflowApplicationType } from "components/application";
 import { AddDeliverableSlotDemonstration } from "./deliverable/AddDeliverableSlotDialog";
-import type { DeliverableTableRow } from "pages/DeliverablesPage";
+import type { DeliverableTableRow } from "components/table/tables/DeliverableTable";
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -252,10 +252,12 @@ export const useDialog = () => {
       dueDate: deliverable.dueDate,
       cmsOwner: { id: deliverable.cmsOwner.id },
     };
-    const demonstrationTypeTags: Tag[] = deliverable.demonstration.demonstrationTypes.map((dt) => ({
-      tagName: dt.demonstrationTypeName,
-      approvalStatus: dt.approvalStatus,
-    }));
+    const demonstrationTypeTags: Tag[] = deliverable.demonstration.demonstrationTypes.map(
+      (dt: { demonstrationTypeName: string; approvalStatus: "Approved" | "Unapproved" }) => ({
+        tagName: dt.demonstrationTypeName,
+        approvalStatus: dt.approvalStatus,
+      })
+    );
 
     context.showDialog(
       <EditDeliverableDialog
