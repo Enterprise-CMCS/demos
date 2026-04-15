@@ -6,7 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { DeliverableTable, formatDeliverableStatus } from "./DeliverableTable";
 import { MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
-import type { GenericDeliverableTableRow } from "pages/DeliverablesPage";
+import type { DeliverableTableRow } from "pages/DeliverablesPage";
 
 const sortedDeliverables = sortDeliverablesByDefault(MOCK_DELIVERABLES);
 const sortedFirstPageIds = sortedDeliverables.slice(0, 10).map((deliverable) => deliverable.id);
@@ -221,13 +221,13 @@ describe("DeliverableTable demos-state-user view mode", () => {
 
 describe("DeliverableTable default sorting behavior", () => {
   it("reapplies default sort order when the table data is reloaded", async () => {
-    const base = MOCK_DELIVERABLES[0] as GenericDeliverableTableRow;
+    const base = MOCK_DELIVERABLES[0] as DeliverableTableRow;
     const createDeliverable = (
       id: string,
       name: string,
-      status: GenericDeliverableTableRow["status"],
+      status: DeliverableTableRow["status"],
       dueDate: string
-    ): GenericDeliverableTableRow => ({
+    ): DeliverableTableRow => ({
       ...base,
       id,
       name,

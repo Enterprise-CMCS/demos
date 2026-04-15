@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 
 import { DemonstrationDeliverableTable } from "./DemonstrationDeliverableTable";
-import type { GenericDeliverableTableRow } from "pages/DeliverablesPage";
+import type { DeliverableTableRow } from "pages/DeliverablesPage";
 
-const baseDeliverable: Omit<GenericDeliverableTableRow, "id" | "name" | "dueDate" | "status"> = {
+const baseDeliverable: Omit<DeliverableTableRow, "id" | "name" | "dueDate" | "status"> = {
   demonstration: {
     id: "demo-1",
     name: "Demo 1",

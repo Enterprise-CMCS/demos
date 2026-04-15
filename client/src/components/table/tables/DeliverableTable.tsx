@@ -1,6 +1,6 @@
 import React from "react";
 import type { Deliverable, PersonType } from "demos-server";
-import type { DeliverableTableRow } from "pages/DeliverablesPage";
+import type { DeliverableTableRow as DeliverablesPageTableRow } from "pages/DeliverablesPage";
 
 import { DeliverableColumns } from "../columns/DeliverableColumns";
 import { Table, type TableProps } from "../Table";
@@ -14,6 +14,7 @@ import { ImportIcon } from "components/icons/Action/ImportIcon";
 import { EditIcon } from "components/icons/Navigation/EditIcon";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
 
+export type DeliverableTableRow = DeliverablesPageTableRow;
 export type DeliverableTableViewMode = Exclude<PersonType, "non-user-contact">;
 
 const EMPTY_ROWS_MESSAGE = "There are no assigned Deliverables at this time";
@@ -33,14 +34,10 @@ export const DeliverableTable: React.FC<{
   viewMode,
 }) => {
   const deliverableColumns = DeliverableColumns({ viewMode });
-  const formattedDeliverables = React.useMemo(
-    () =>
-      sortDeliverablesByDefault(deliverables).map((deliverable) => ({
-        ...deliverable,
-        status: formatDeliverableStatus(deliverable),
-      })),
-    [deliverables]
-  );
+  const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({
+    ...deliverable,
+    status: formatDeliverableStatus(deliverable),
+  }));
 
   const showAddDeliverableDialog = () => { };
   const showEditDeliverableDialog = () => { };
