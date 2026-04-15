@@ -1,4 +1,4 @@
-import { Amendment as PrismaAmendment, Demonstration as PrismaDemonstration } from "@prisma/client";
+import { Amendment as PrismaAmendment } from "@prisma/client";
 import { prisma } from "../../prismaClient.js";
 import {
   ApplicationStatus,
@@ -83,16 +83,6 @@ export async function deleteAmendment(
   return await prisma().$transaction(async (tx) => {
     return await deleteApplication(id, "Amendment", tx);
   });
-}
-
-export async function __resolveParentDemonstration(
-  parent: PrismaAmendment
-): Promise<PrismaDemonstration> {
-  // DB enforces that you cannot orphan the demonstration record
-  const result = await prisma().demonstration.findUnique({
-    where: { id: parent.demonstrationId },
-  });
-  return result!;
 }
 
 export const amendmentResolvers = {
