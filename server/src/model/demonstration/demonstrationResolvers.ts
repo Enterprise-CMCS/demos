@@ -24,35 +24,21 @@ import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate"
 import {
   deleteApplication,
   getApplication,
-  getManyApplications,
-  resolveApplicationClearanceLevel,
-  resolveApplicationCurrentPhaseName,
   resolveApplicationDocuments,
   resolveApplicationPhases,
-  resolveApplicationStatus,
   resolveApplicationTags,
-  resolveApplicationSignatureLevel,
   resolveSuggestedApplicationTags,
 } from "../application";
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
 import { resolveManyDeliverables } from "../deliverable";
+import { GraphQLContext } from "../../auth/auth.util.js";
+import { getDemonstration, getManyDemonstrations } from "./demonstrationData.js";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
 const conceptPhaseName: PhaseName = "Concept";
 const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
 const demonstrationApplicationType: ApplicationType = "Demonstration";
-
-export async function __getDemonstration(
-  parent: unknown,
-  { id }: { id: string }
-): Promise<PrismaDemonstration> {
-  return await getApplication(id, { applicationTypeId: "Demonstration" });
-}
-
-export async function __getManyDemonstrations(): Promise<PrismaDemonstration[]> {
-  return await getManyApplications("Demonstration");
-}
 
 export async function __createDemonstration(
   parent: unknown,
@@ -284,14 +270,12 @@ export async function resolveDemonstrationTypes(
   }));
 }
 
-export function resolveDemonstrationSdgDivision(parent: PrismaDemonstration): string | null {
-  return parent.sdgDivisionId;
-}
-
 export const demonstrationResolvers = {
   Query: {
-    demonstration: __getDemonstration,
-    demonstrations: __getManyDemonstrations,
+    demonstration: (parent: unknown, args: { id: string }, context: GraphQLContext) =>
+      getDemonstration({ id: args.id }, context.user),
+    demonstrations: (parent: unknown, args: unknown, context: GraphQLContext) =>
+      getManyDemonstrations({}, context.user),
   },
 
   Mutation: {
@@ -305,14 +289,14 @@ export const demonstrationResolvers = {
     documents: resolveApplicationDocuments,
     amendments: __resolveDemonstrationAmendments,
     extensions: __resolveDemonstrationExtensions,
-    sdgDivision: resolveDemonstrationSdgDivision,
-    signatureLevel: resolveApplicationSignatureLevel,
-    currentPhaseName: resolveApplicationCurrentPhaseName,
+    sdgDivision: (parent: PrismaDemonstration) => parent.sdgDivisionId,
+    signatureLevel: (parent: PrismaDemonstration) => parent.signatureLevelId,
+    currentPhaseName: (parent: PrismaDemonstration) => parent.currentPhaseId,
     roles: __resolveDemonstrationRoleAssignments,
-    status: resolveApplicationStatus,
+    status: (parent: PrismaDemonstration) => parent.statusId,
     phases: resolveApplicationPhases,
     primaryProjectOfficer: __resolveDemonstrationPrimaryProjectOfficer,
-    clearanceLevel: resolveApplicationClearanceLevel,
+    clearanceLevel: (parent: PrismaDemonstration) => parent.clearanceLevelId,
     tags: resolveApplicationTags,
     suggestedApplicationTags: resolveSuggestedApplicationTags,
     demonstrationTypes: resolveDemonstrationTypes,

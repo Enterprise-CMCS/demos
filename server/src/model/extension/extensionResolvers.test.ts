@@ -6,6 +6,7 @@ import {
   __updateExtension,
   deleteExtension,
   __resolveParentDemonstration,
+  extensionResolvers,
 } from "./extensionResolvers.js";
 import {
   ApplicationStatus,
@@ -40,9 +41,16 @@ import {
   checkInputDateIsEndOfDay,
 } from "../applicationDate/checkInputDateFunctions.js";
 import { EasternTZDate, parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities.js";
+import { ContextUser } from "../../auth/userContext.js";
+import { GraphQLContext } from "../../auth/auth.util.js";
+import { getDemonstration } from "../demonstration/demonstrationData.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
+}));
+
+vi.mock("../demonstration/demonstrationData.js", () => ({
+  getDemonstration: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -84,9 +92,6 @@ describe("extensionResolvers", () => {
     extension: {
       update: vi.fn(),
     },
-    demonstration: {
-      findUnique: vi.fn(),
-    },
   };
   const transactionMocks = {
     application: {
@@ -109,10 +114,15 @@ describe("extensionResolvers", () => {
     extension: {
       update: regularMocks.extension.update,
     },
-    demonstration: {
-      findUnique: regularMocks.demonstration.findUnique,
-    },
   };
+
+  const mockUser = {
+    id: "user-123",
+  } as unknown as ContextUser;
+  const mockContext: GraphQLContext = {
+    user: mockUser,
+  };
+
   const testExtensionId = "8167c039-9c08-4203-b7d2-9e35ec156993";
   const testDemonstrationId = "518aa497-d547-422e-95a0-02076c7f7698";
   const testExtensionName = "The Extension";
@@ -305,18 +315,12 @@ describe("extensionResolvers", () => {
     });
   });
 
-  describe("__resolveParentDemonstration", () => {
-    it("should look up the relevant demonstration", async () => {
-      const input: Partial<PrismaExtension> = {
-        demonstrationId: testDemonstrationId,
-      };
-      const expectedCall = {
-        where: {
-          id: testDemonstrationId,
-        },
-      };
-      await __resolveParentDemonstration(input as PrismaExtension);
-      expect(regularMocks.demonstration.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCall);
-    });
+  it("delegates `Extension.demonstration` to `Demonstration.getDemonstration`", async () => {
+    await extensionResolvers.Extension.demonstration(
+      { demonstrationId: "abc123" } as PrismaExtension,
+      {},
+      mockContext
+    );
+    expect(getDemonstration).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
   });
 });
