@@ -1,7 +1,6 @@
 import {
   Demonstration as PrismaDemonstration,
   State as PrismaState,
-  Extension as PrismaExtension,
   DemonstrationRoleAssignment as PrismaDemonstrationRoleAssignment,
   Person as PrismaPerson,
 } from "@prisma/client";
@@ -33,6 +32,7 @@ import { resolveManyDeliverables } from "../deliverable";
 import { GraphQLContext } from "../../auth/auth.util.js";
 import { getDemonstration, getManyDemonstrations } from "./demonstrationData.js";
 import { getManyAmendments } from "../amendment/amendmentData.js";
+import { getManyExtensions } from "../extension/extensionData.js";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -197,16 +197,6 @@ export async function __resolveDemonstrationState(
   return result!;
 }
 
-export async function __resolveDemonstrationExtensions(
-  parent: PrismaDemonstration
-): Promise<PrismaExtension[] | null> {
-  return await prisma().extension.findMany({
-    where: {
-      demonstrationId: parent.id,
-    },
-  });
-}
-
 export async function __resolveDemonstrationRoleAssignments(
   parent: PrismaDemonstration
 ): Promise<PrismaDemonstrationRoleAssignment[]> {
@@ -279,7 +269,8 @@ export const demonstrationResolvers = {
     documents: resolveApplicationDocuments,
     amendments: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
       getManyAmendments({ demonstrationId: parent.id }, context.user),
-    extensions: __resolveDemonstrationExtensions,
+    extensions: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
+      getManyExtensions({ demonstrationId: parent.id }, context.user),
     sdgDivision: (parent: PrismaDemonstration) => parent.sdgDivisionId,
     signatureLevel: (parent: PrismaDemonstration) => parent.signatureLevelId,
     currentPhaseName: (parent: PrismaDemonstration) => parent.currentPhaseId,

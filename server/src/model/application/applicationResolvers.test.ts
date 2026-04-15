@@ -1,13 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   resolveApplicationDocuments,
-  resolveApplicationCurrentPhaseName,
-  resolveApplicationStatus,
   resolveApplicationType,
   resolveApplicationPhases,
-  resolveApplicationClearanceLevel,
   resolveApplicationTags,
-  resolveApplicationSignatureLevel,
   PrismaApplication,
   resolveSuggestedApplicationTags,
 } from ".";
@@ -92,26 +88,6 @@ describe("applicationResolvers", () => {
     });
   });
 
-  describe("resolveApplicationCurrentPhaseName", () => {
-    it("should resolve the current phase name", async () => {
-      const input: Partial<PrismaApplication> = {
-        currentPhaseId: testPhaseId,
-      };
-      const result = resolveApplicationCurrentPhaseName(input as PrismaApplication);
-      expect(result).toBe(testPhaseId);
-    });
-  });
-
-  describe("resolveApplicationStatus", () => {
-    it("should resolve the current application status", async () => {
-      const input: Partial<PrismaApplication> = {
-        statusId: testApplicationStatusId,
-      };
-      const result = resolveApplicationStatus(input as PrismaApplication);
-      expect(result).toBe(testApplicationStatusId);
-    });
-  });
-
   describe("resolveApplicationType", () => {
     it("should resolve the application type", async () => {
       const input: Partial<PrismaApplication> = {
@@ -134,16 +110,6 @@ describe("applicationResolvers", () => {
       };
       await resolveApplicationPhases(input as PrismaApplication);
       expect(regularMocks.applicationPhase.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
-    });
-  });
-
-  describe("resolveApplicationClearanceLevel", () => {
-    it("should resolve the current application clearance level", async () => {
-      const input: Partial<PrismaApplication> = {
-        clearanceLevelId: testApplicationClearanceLevelId,
-      };
-      const result = resolveApplicationClearanceLevel(input as PrismaApplication);
-      expect(result).toBe(testApplicationClearanceLevelId);
     });
   });
 
@@ -197,15 +163,7 @@ describe("applicationResolvers", () => {
       expect(result).toStrictEqual(expectedResult);
     });
   });
-  describe("resolveApplicationSignatureLevel", () => {
-    it("should resolve the current application signature level", async () => {
-      const input: Partial<PrismaApplication> = {
-        signatureLevelId: testApplicationSignatureLevelId,
-      };
-      const result = resolveApplicationSignatureLevel(input as PrismaApplication);
-      expect(result).toBe(testApplicationSignatureLevelId);
-    });
-  });
+
   describe("resolveSuggestedApplicationTags", () => {
     it("should resolve the suggested tags for an application", async () => {
       regularMocks.applicationTagSuggestion.findMany.mockResolvedValueOnce([
