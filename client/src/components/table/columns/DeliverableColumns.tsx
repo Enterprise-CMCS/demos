@@ -17,7 +17,7 @@ type DeliverableColumnsProps = {
 export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
   const columnHelper = createColumnHelper<DeliverableTableRow>();
 
-  const demonstrationNameColumn = columnHelper.accessor("demonstrationName", {
+  const demonstrationNameColumn = columnHelper.accessor("demonstration.name", {
     header: "Demonstration Name",
     cell: highlightCell,
   });
@@ -27,7 +27,7 @@ export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
     cell: highlightCell,
   });
 
-  const deliverableNameColumn = columnHelper.accessor("deliverableName", {
+  const deliverableNameColumn = columnHelper.accessor("name", {
     header: "Deliverable Name",
     cell: highlightCell,
   });
@@ -52,7 +52,7 @@ export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
 
   return [
     createSelectColumnDef(columnHelper),
-    columnHelper.accessor("state.id", {
+    columnHelper.accessor("demonstration.state.id", {
       id: "stateId",
       header: "State/Territory",
       cell: highlightCell,
@@ -71,7 +71,7 @@ export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
     demonstrationNameColumn,
     deliverableTypeColumn,
     deliverableNameColumn,
-    columnHelper.accessor("cmsOwner", {
+    columnHelper.accessor("cmsOwner.person.fullName", {
       header: "CMS Owner",
       cell: highlightCell,
     }),

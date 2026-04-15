@@ -1,9 +1,2 @@
-export function greet(name: string): string {
-  return `Hello, ${name}!`;
-}
+export * as BN from "./BN/index.js";
 
-export function hello(name: string): string {
-  return greet(name);
-}
-
-export default greet;

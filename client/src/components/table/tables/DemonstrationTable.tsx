@@ -15,7 +15,7 @@ const DEFAULT_NO_SEARCH_RESULTS_MESSAGE =
   "No results were returned. Adjust your search and filter criteria.";
 const DEFAULT_EMPTY_ROWS_MESSAGE = "No demonstrations are tracked.";
 
-export type GenericDemonstrationTableRow =
+export type DemonstrationTableRow =
   | (Demonstration & { type: "demonstration" })
   | (DemonstrationAmendment & {
       type: "amendment";
@@ -33,8 +33,8 @@ export type GenericDemonstrationTableRow =
     });
 
 const getSubRows = (
-  row: GenericDemonstrationTableRow
-): GenericDemonstrationTableRow[] | undefined => {
+  row: DemonstrationTableRow
+): DemonstrationTableRow[] | undefined => {
   if (row.type !== "demonstration") return undefined;
   return [
     ...row.amendments.map(
@@ -45,7 +45,7 @@ const getSubRows = (
           state: row.state,
           parentId: row.id,
           primaryProjectOfficer: row.primaryProjectOfficer,
-        }) as GenericDemonstrationTableRow
+        }) as DemonstrationTableRow
     ),
     ...row.extensions.map(
       (extension) =>
@@ -55,7 +55,7 @@ const getSubRows = (
           state: row.state,
           parentId: row.id,
           primaryProjectOfficer: row.primaryProjectOfficer,
-        }) as GenericDemonstrationTableRow
+        }) as DemonstrationTableRow
     ),
   ];
 };
@@ -90,7 +90,7 @@ export const DemonstrationTable: React.FC<{
   return (
     <div className="flex flex-col gap-[24px]">
       {demonstrationColumns && (
-        <Table<GenericDemonstrationTableRow>
+        <Table<DemonstrationTableRow>
           data={sortedDemonstrations.map((demonstration) => ({
             ...demonstration,
             type: "demonstration",

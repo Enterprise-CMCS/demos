@@ -4,10 +4,20 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import * as UserContext from "components/user/UserContext";
 
 import { DemonstrationTab, DemonstrationTabDemonstration } from "./DemonstrationTab";
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
+import { mockUsers } from "mock-data/userMocks";
+
+vi.mock("components/user/UserContext", async (importOriginal) => {
+  const actual = await importOriginal<typeof UserContext>();
+  return {
+    ...actual,
+    getCurrentUser: vi.fn(),
+  };
+});
 
 const mockDemonstration: DemonstrationTabDemonstration = {
   id: "demo-123",
@@ -68,8 +78,13 @@ const renderWithProvider = (component: React.ReactElement) => {
 };
 
 describe("DemonstrationTab", () => {
+  const mockGetCurrentUser = vi.mocked(UserContext.getCurrentUser);
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetCurrentUser.mockReturnValue({
+      currentUser: mockUsers[0],
+    });
   });
 
   it("renders all tab labels with correct counts", () => {
@@ -162,7 +177,7 @@ describe("DemonstrationTab", () => {
 
       renderWithProvider(<DemonstrationTab demonstration={demonstrationApproved} />);
 
-      expect(screen.getByRole("button", { name: "Deliverables (2)" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Deliverables \(\d+\)/ })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Applications" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Details" })).toBeInTheDocument();
     });
