@@ -6,7 +6,7 @@ import {
   UnsetDemonstrationRoleInput,
 } from "./demonstrationRoleAssignmentSchema.js";
 import { GraphQLContext } from "../../auth/auth.util.js";
-import { getDemonstration } from "../demonstration/Demonstration.js";
+import { getDemonstration } from "../demonstration/demonstrationData.js";
 
 const DEMONSTRATION_GRANT_LEVEL = "Demonstration";
 

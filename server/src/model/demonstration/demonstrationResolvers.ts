@@ -32,7 +32,7 @@ import {
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
 import { resolveManyDeliverables } from "../deliverable";
 import { GraphQLContext } from "../../auth/auth.util.js";
-import { getDemonstration, getManyDemonstrations } from "./Demonstration.js";
+import { getDemonstration, getManyDemonstrations } from "./demonstrationData.js";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";

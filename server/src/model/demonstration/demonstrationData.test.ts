@@ -1,28 +1,28 @@
 import { Demonstration as PrismaDemonstration, Prisma } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildAuthorizationFilter } from "../../auth/buildAuthorizationFilter.js";
-import { ContextUser } from "../../auth/auth.util.js";
-import { getDemonstration, getManyDemonstrations } from "./Demonstration.js";
-import { queryDemonstration } from "./queries/queryDemonstration.js";
-import { queryManyDemonstrations } from "./queries/queryManyDemonstrations.js";
+import { getDemonstration, getManyDemonstrations } from "./demonstrationData.js";
+import { selectDemonstration } from "./queries/selectDemonstration.js";
+import { selectManyDemonstrations } from "./queries/selectManyDemonstrations.js";
+import { ContextUser } from "../../auth/userContext.js";
 
 vi.mock("../../auth/buildAuthorizationFilter.js", () => ({
   buildAuthorizationFilter: vi.fn(),
 }));
 
-vi.mock("./queries/queryDemonstration.js", () => ({
-  queryDemonstration: vi.fn(),
+vi.mock("./queries/selectDemonstration.js", () => ({
+  selectDemonstration: vi.fn(),
 }));
 
-vi.mock("./queries/queryManyDemonstrations.js", () => ({
-  queryManyDemonstrations: vi.fn(),
+vi.mock("./queries/selectManyDemonstrations.js", () => ({
+  selectManyDemonstrations: vi.fn(),
 }));
 
-describe("Demonstration", () => {
+describe("demonstrationData", () => {
   const user: ContextUser = {
     id: "user-1",
-    sub: "sub-1",
-    role: "demos-state-user",
+    cognitoSubject: "sub-1",
+    personTypeId: "demos-state-user",
     permissions: ["View Assigned Demonstrations"],
   };
 
@@ -54,20 +54,20 @@ describe("Demonstration", () => {
       const result = await getDemonstration(where, user);
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
-      expect(queryDemonstration).not.toHaveBeenCalled();
+      expect(selectDemonstration).not.toHaveBeenCalled();
       expect(result).toBeNull();
     });
 
     it("queries for a single demonstration with the authorization filter applied", async () => {
       const demonstration = { id: "demonstration-1" } as PrismaDemonstration;
       vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
-      vi.mocked(queryDemonstration).mockResolvedValueOnce(demonstration);
+      vi.mocked(selectDemonstration).mockResolvedValueOnce(demonstration);
 
       const result = await getDemonstration(where, user);
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
-      expect(queryDemonstration).toHaveBeenCalledExactlyOnceWith({
+      expect(selectDemonstration).toHaveBeenCalledExactlyOnceWith({
         AND: [where, authFilter],
       });
       expect(result).toBe(demonstration);
@@ -81,7 +81,7 @@ describe("Demonstration", () => {
       const result = await getManyDemonstrations(where, user);
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
-      expect(queryManyDemonstrations).not.toHaveBeenCalled();
+      expect(selectManyDemonstrations).not.toHaveBeenCalled();
       expect(result).toEqual([]);
     });
 
@@ -91,13 +91,13 @@ describe("Demonstration", () => {
         { id: "demonstration-2" },
       ] as PrismaDemonstration[];
       vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
-      vi.mocked(queryManyDemonstrations).mockResolvedValueOnce(demonstrations);
+      vi.mocked(selectManyDemonstrations).mockResolvedValueOnce(demonstrations);
 
       const result = await getManyDemonstrations(where, user);
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
-      expect(queryManyDemonstrations).toHaveBeenCalledExactlyOnceWith({
+      expect(selectManyDemonstrations).toHaveBeenCalledExactlyOnceWith({
         AND: [where, authFilter],
       });
       expect(result).toBe(demonstrations);

@@ -41,13 +41,13 @@ import {
 } from "../applicationDate/checkInputDateFunctions.js";
 import { EasternTZDate, parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities.js";
 import { ContextUser } from "../../auth/userContext.js";
-import { getDemonstration } from "../demonstration/Demonstration.js";
+import { getDemonstration } from "../demonstration/demonstrationData.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
 }));
 
-vi.mock("../demonstration/Demonstration.js", () => ({
+vi.mock("../demonstration/demonstrationData.js", () => ({
   getDemonstration: vi.fn(),
 }));
 

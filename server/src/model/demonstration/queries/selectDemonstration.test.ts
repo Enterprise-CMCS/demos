@@ -1,13 +1,13 @@
 import { Demonstration as PrismaDemonstration } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { prisma, PrismaTransactionClient } from "../../../prismaClient";
-import { queryDemonstration } from "./queryDemonstration";
+import { selectDemonstration } from "./selectDemonstration";
 
 vi.mock("../../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
-describe("queryDemonstration", () => {
+describe("selectDemonstration", () => {
   const demonstrationFindAtMostOne = vi.fn();
 
   const mockPrismaClient = {
@@ -35,7 +35,7 @@ describe("queryDemonstration", () => {
     const demonstration = { id: "demonstration-1" } as PrismaDemonstration;
     demonstrationFindAtMostOne.mockResolvedValueOnce(demonstration);
 
-    const result = await queryDemonstration(where);
+    const result = await selectDemonstration(where);
 
     expect(prisma).toHaveBeenCalledExactlyOnceWith();
     expect(demonstrationFindAtMostOne).toHaveBeenCalledExactlyOnceWith({ where });
@@ -46,7 +46,7 @@ describe("queryDemonstration", () => {
     const demonstration = { id: "demonstration-1" } as PrismaDemonstration;
     mockTransaction.demonstration.findAtMostOne = vi.fn().mockResolvedValueOnce(demonstration);
 
-    const result = await queryDemonstration(where, mockTransaction);
+    const result = await selectDemonstration(where, mockTransaction);
 
     expect(prisma).not.toHaveBeenCalled();
     expect(mockTransaction.demonstration.findAtMostOne).toHaveBeenCalledExactlyOnceWith({ where });
@@ -56,7 +56,7 @@ describe("queryDemonstration", () => {
   it("returns null when no demonstration is found", async () => {
     demonstrationFindAtMostOne.mockResolvedValueOnce(null);
 
-    const result = await queryDemonstration(where);
+    const result = await selectDemonstration(where);
 
     expect(result).toBeNull();
   });

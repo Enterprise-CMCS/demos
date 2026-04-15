@@ -1,13 +1,13 @@
 import { Demonstration as PrismaDemonstration } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { prisma, PrismaTransactionClient } from "../../../prismaClient";
-import { queryManyDemonstrations } from "./queryManyDemonstrations";
+import { selectManyDemonstrations } from "./selectManyDemonstrations";
 
 vi.mock("../../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
-describe("queryManyDemonstrations", () => {
+describe("selectManyDemonstrations", () => {
   const demonstrationFindMany = vi.fn();
 
   const mockPrismaClient = {
@@ -38,7 +38,7 @@ describe("queryManyDemonstrations", () => {
     ] as PrismaDemonstration[];
     demonstrationFindMany.mockResolvedValueOnce(demonstrations);
 
-    const result = await queryManyDemonstrations(where);
+    const result = await selectManyDemonstrations(where);
 
     expect(prisma).toHaveBeenCalledExactlyOnceWith();
     expect(demonstrationFindMany).toHaveBeenCalledExactlyOnceWith({ where });
@@ -52,7 +52,7 @@ describe("queryManyDemonstrations", () => {
     ] as PrismaDemonstration[];
     mockTransaction.demonstration.findMany = vi.fn().mockResolvedValueOnce(demonstrations);
 
-    const result = await queryManyDemonstrations(where, mockTransaction);
+    const result = await selectManyDemonstrations(where, mockTransaction);
 
     expect(prisma).not.toHaveBeenCalled();
     expect(mockTransaction.demonstration.findMany).toHaveBeenCalledExactlyOnceWith({ where });
@@ -62,7 +62,7 @@ describe("queryManyDemonstrations", () => {
   it("returns an empty array when no demonstrations are found", async () => {
     demonstrationFindMany.mockResolvedValueOnce([]);
 
-    const result = await queryManyDemonstrations(where);
+    const result = await selectManyDemonstrations(where);
 
     expect(result).toEqual([]);
   });
@@ -74,7 +74,7 @@ describe("queryManyDemonstrations", () => {
     ] as PrismaDemonstration[];
     demonstrationFindMany.mockResolvedValueOnce(demonstrations);
 
-    const result = await queryManyDemonstrations(where);
+    const result = await selectManyDemonstrations(where);
 
     expect(result).toBe(demonstrations);
   });

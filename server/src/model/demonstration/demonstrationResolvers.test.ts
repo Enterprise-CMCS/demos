@@ -51,7 +51,7 @@ import {
 } from "../application";
 import { parseDateTimeOrLocalDateToEasternTZDate, EasternTZDate } from "../../dateUtilities.js";
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
-import { getDemonstration, getManyDemonstrations } from "./Demonstration.js";
+import { getDemonstration, getManyDemonstrations } from "./demonstrationData.js";
 import { ContextUser } from "../../auth/userContext.js";
 import { GraphQLContext } from "../../auth/auth.util.js";
 
@@ -59,7 +59,7 @@ vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
 }));
 
-vi.mock("./Demonstration.js", () => ({
+vi.mock("./demonstrationData.js", () => ({
   getDemonstration: vi.fn(),
   getManyDemonstrations: vi.fn(),
 }));

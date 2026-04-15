@@ -3,8 +3,8 @@ import {
   buildAuthorizationFilter,
   PermissionFilters,
 } from "../../auth/buildAuthorizationFilter.js";
-import { queryDemonstration } from "./queries/queryDemonstration.js";
-import { queryManyDemonstrations } from "./queries/queryManyDemonstrations.js";
+import { selectDemonstration } from "./queries/selectDemonstration.js";
+import { selectManyDemonstrations } from "./queries/selectManyDemonstrations.js";
 import { ContextUser } from "../../auth/userContext.js";
 
 const getPermissionFilters = (userId: string) =>
@@ -39,7 +39,7 @@ export async function getDemonstration(
     return null;
   }
 
-  return await queryDemonstration({
+  return await selectDemonstration({
     AND: [where, authFilter],
   });
 }
@@ -56,7 +56,7 @@ export async function getManyDemonstrations(
   if (authFilter === null) {
     return [];
   }
-  return await queryManyDemonstrations({
+  return await selectManyDemonstrations({
     AND: [where, authFilter],
   });
 }

@@ -23,7 +23,7 @@ import {
   resolveApplicationSignatureLevel,
   resolveSuggestedApplicationTags,
 } from "../application";
-import { getDemonstration } from "../demonstration/Demonstration.js";
+import { getDemonstration } from "../demonstration/demonstrationData.js";
 import { GraphQLContext } from "../../auth/auth.util.js";
 
 const extensionApplicationType: ApplicationType = "Extension";
