@@ -1,5 +1,6 @@
 // Vitest and other helpers
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { EasternTZDate, parseJSDateToEasternTZDate } from "../../dateUtilities";
 
 // Types
 import { ApplicationStatus, PersonType, TagName } from "../../types";
@@ -15,6 +16,7 @@ import {
   checkForDuplicateDemonstrationTypes,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
+  checkDueDateInFuture,
 } from "./checkDeliverableInputFunctions";
 
 // Mock imports
@@ -126,6 +128,37 @@ describe("checkDeliverableInputFunctions", () => {
       const result = checkForDuplicateDemonstrationTypes(testInput);
       expect(result).toBe(
         "Duplicate demonstration types were included on the input: Free Insulin, Nutrition Counseling."
+      );
+    });
+  });
+
+  describe("checkDueDateInFuture", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(2024, 9, 13, 12, 5, 17, 232));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("should return undefined if the due date is in the future", () => {
+      const testInput: EasternTZDate = parseJSDateToEasternTZDate(
+        new Date(2025, 8, 17, 3, 22, 11, 13)
+      );
+
+      const result = checkDueDateInFuture(testInput);
+      expect(result).toBeUndefined();
+    });
+
+    it("should return an appropriate error message if the eue date is in the past", () => {
+      const testInput: EasternTZDate = parseJSDateToEasternTZDate(
+        new Date(2023, 8, 17, 3, 22, 11, 13)
+      );
+
+      const result = checkDueDateInFuture(testInput);
+      expect(result).toBe(
+        "Cannot request a due date in the past; requested Sat Sep 16 2023 23:22:11 GMT-0400 (Eastern Daylight Time)"
       );
     });
   });

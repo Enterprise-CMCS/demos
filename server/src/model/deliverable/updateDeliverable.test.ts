@@ -246,4 +246,39 @@ describe("updateDeliverable", () => {
       mockTransaction
     );
   });
+
+  it("should not process date changes if the date does not actually change", async () => {
+    const testInput: UpdateDeliverableInput = {
+      name: testBaseInput.name,
+      dueDate: {
+        newDueDate: "2025-11-21" as DateTimeOrLocalDate,
+        dateChangeNote: "Changed the date",
+      },
+    };
+    const mockParsedInput: ParsedUpdateDeliverableInput = {
+      name: testBaseInput.name,
+      dueDate: {
+        newDueDate: {
+          isEasternTZDate: true,
+          easternTZDate: new TZDate(2025, 10, 21, 23, 59, 59, 999, "America/New_York"),
+        },
+        dateChangeNote: testInput.dueDate!.dateChangeNote,
+      },
+    };
+    const mockDeliverable: Partial<PrismaDeliverable> = {
+      id: testDeliverableId,
+      demonstrationId: testDemonstrationId,
+      statusId: "Upcoming",
+      dueDate: new Date(2025, 10, 22, 4, 59, 59, 999),
+    };
+
+    vi.mocked(parseUpdateDeliverableInput).mockReturnValue(mockParsedInput);
+    vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
+    vi.mocked(prismaUpdateDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
+
+    await updateDeliverable(testDeliverableId, testInput, testContext);
+    expect(getDeliverableDemonstrationTypes).not.toHaveBeenCalled();
+    expect(setDeliverableDemonstrationTypes).not.toHaveBeenCalled();
+    expect(insertDeliverableAction).not.toHaveBeenCalled();
+  });
 });

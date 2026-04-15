@@ -1,5 +1,6 @@
 import {
   checkDemonstrationStatus,
+  checkDueDateInFuture,
   checkForDuplicateDemonstrationTypes,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
@@ -30,7 +31,11 @@ export async function validateCreateDeliverableInput(
   );
 
   const errors: (string | undefined)[] = [];
-  errors.push(checkDemonstrationStatus(demonstration), checkOwnerPersonType(cmsOwnerUser));
+  errors.push(
+    checkDemonstrationStatus(demonstration),
+    checkOwnerPersonType(cmsOwnerUser),
+    checkDueDateInFuture(input.dueDate)
+  );
   if (input.demonstrationTypes) {
     errors.push(checkForDuplicateDemonstrationTypes(input.demonstrationTypes));
     for (const requestedDeliverableDemonstrationType of input.demonstrationTypes) {
@@ -61,6 +66,10 @@ export async function validateUpdateDeliverableInput(
   tx: PrismaTransactionClient
 ): Promise<void> {
   const errors: (string | undefined)[] = [];
+
+  if (input.dueDate) {
+    errors.push(checkDueDateInFuture(input.dueDate.newDueDate));
+  }
 
   if (input.cmsOwnerUserId) {
     const cmsOwnerUser = await getUser({ id: input.cmsOwnerUserId }, tx);

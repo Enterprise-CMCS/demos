@@ -27,6 +27,7 @@ import {
   resolveDeliverableType,
   resolveDeliverableStatus,
   resolveDeliverableDueDateType,
+  resolveDeliverableDemonstrationTypes,
   resolveDemonstration,
   resolveDeliverableCmsOwner,
   resolveDeliverableCmsDocuments,
@@ -54,10 +55,15 @@ vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
 }));
 
+vi.mock("../deliverableDemonstrationType", () => ({
+  getDeliverableDemonstrationTypes: vi.fn(),
+}));
+
 import { createDeliverable, getDeliverable, getManyDeliverables, updateDeliverable } from ".";
 import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getManyDocuments } from "../document";
+import { getDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 
 describe("deliverableResolvers", () => {
   const testDeliverableId = "82ef9a17-e8b9-48ab-9aaf-3d1787822b13";
@@ -212,6 +218,29 @@ describe("deliverableResolvers", () => {
     it("should return the deliverable due date type from a deliverable", () => {
       const result = resolveDeliverableDueDateType(testDeliverable as PrismaDeliverable);
       expect(result).toBe(testDeliverableDueDateType);
+    });
+  });
+
+  describe("resolveDeliverableDemonstrationTypes", () => {
+    it("should query the demonstraiton types of the parent deliverable", async () => {
+      vi.mocked(getDeliverableDemonstrationTypes).mockResolvedValue([
+        {
+          demonstrationId: testDemonstrationId,
+          deliverableId: testDeliverableId,
+          demonstrationTypeTagNameId: "Free Insulin",
+        },
+        {
+          demonstrationId: testDemonstrationId,
+          deliverableId: testDeliverableId,
+          demonstrationTypeTagNameId: "Vitamin A Supplementation for Newborns",
+        },
+      ]);
+
+      const result = await resolveDeliverableDemonstrationTypes(
+        testDeliverable as PrismaDeliverable
+      );
+      expect(getDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(testDeliverableId);
+      expect(result).toStrictEqual(["Free Insulin", "Vitamin A Supplementation for Newborns"]);
     });
   });
 

@@ -5,6 +5,7 @@ import {
 } from "@prisma/client";
 import { ApplicationStatus, PersonType, TagName } from "../../types";
 import { findDuplicates } from "../../validationUtilities";
+import { EasternTZDate, getEasternNow } from "../../dateUtilities";
 
 export function checkDemonstrationStatus(demonstration: PrismaDemonstration): string | undefined {
   const approvedStatus: ApplicationStatus = "Approved";
@@ -40,5 +41,12 @@ export function checkForDuplicateDemonstrationTypes(input: TagName[]): string | 
   const duplicates = findDuplicates(input);
   if (duplicates.length > 0) {
     return `Duplicate demonstration types were included on the input: ${duplicates.join(", ")}.`;
+  }
+}
+
+export function checkDueDateInFuture(dueDate: EasternTZDate): string | undefined {
+  const easternNow = getEasternNow()["Current Time"];
+  if (dueDate.easternTZDate.valueOf() < easternNow.easternTZDate.valueOf()) {
+    return `Cannot request a due date in the past; requested ${dueDate.easternTZDate}`;
   }
 }

@@ -13,6 +13,7 @@ import {
   DeliverableDueDateType,
   DeliverableStatus,
   DeliverableType,
+  TagName,
   UpdateDeliverableInput,
 } from "../../types";
 import { getApplication } from "../application";
@@ -86,7 +87,9 @@ export function resolveDeliverableDueDateType(parent: PrismaDeliverable): Delive
   return parent.dueDateTypeId as DeliverableDueDateType;
 }
 
-export async function resolveDeliverableDemonstrationTypes(parent: PrismaDeliverable): TagName[] {
+export async function resolveDeliverableDemonstrationTypes(
+  parent: PrismaDeliverable
+): Promise<TagName[]> {
   return (await getDeliverableDemonstrationTypes(parent.id)).map(
     (demonstrationType) => demonstrationType.demonstrationTypeTagNameId
   );

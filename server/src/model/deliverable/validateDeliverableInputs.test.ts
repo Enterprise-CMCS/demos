@@ -34,6 +34,7 @@ vi.mock("../demonstrationTypeTagAssignment", () => ({
 
 vi.mock(".", () => ({
   checkDemonstrationStatus: vi.fn(),
+  checkDueDateInFuture: vi.fn(),
   checkForDuplicateDemonstrationTypes: vi.fn(),
   checkOwnerPersonType: vi.fn(),
   checkRequestedDeliverableDemonstrationType: vi.fn(),
@@ -45,13 +46,19 @@ import { getUser } from "../user";
 import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
 import {
   checkDemonstrationStatus,
+  checkDueDateInFuture,
   checkForDuplicateDemonstrationTypes,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
   getDeliverable,
 } from ".";
+import { EasternTZDate } from "../../dateUtilities";
 
 describe("validateDeliverableInputs", () => {
+  const testEasternDate: EasternTZDate = {
+    isEasternTZDate: true,
+    easternTZDate: new TZDate(2026, 10, 12, 23, 59, 59, 999, "America/New_York"),
+  };
   const mockDemonstration: Partial<PrismaDemonstration> = {
     id: "791b5e55-680d-47f3-bfba-9f242b69b8b2",
     statusId: "Approved" satisfies ApplicationStatus,
@@ -82,10 +89,7 @@ describe("validateDeliverableInputs", () => {
       deliverableType: "Evaluation Design",
       demonstrationId: mockDemonstration.id!,
       cmsOwnerUserId: mockUser.id!,
-      dueDate: {
-        isEasternTZDate: true,
-        easternTZDate: new TZDate(2023, 10, 12, 23, 59, 59, 999, "America/New_York"),
-      },
+      dueDate: testEasternDate,
       demonstrationTypes: ["Free Insulin", "Subsidy Program for At Home Diagnostics"],
     };
 
@@ -126,10 +130,11 @@ describe("validateDeliverableInputs", () => {
       await validateCreateDeliverableInput(testInput, mockTransaction);
 
       expect(checkDemonstrationStatus).toHaveBeenCalledExactlyOnceWith(mockDemonstration);
+      expect(checkOwnerPersonType).toHaveBeenCalledExactlyOnceWith(mockUser);
+      expect(checkDueDateInFuture).toHaveBeenCalledExactlyOnceWith(testInput.dueDate);
       expect(checkForDuplicateDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
         testInput.demonstrationTypes
       );
-      expect(checkOwnerPersonType).toHaveBeenCalledExactlyOnceWith(mockUser);
       expect(vi.mocked(checkRequestedDeliverableDemonstrationType).mock.calls).toStrictEqual([
         [
           testInput.demonstrationTypes![0],
@@ -156,6 +161,7 @@ describe("validateDeliverableInputs", () => {
 
       expect(checkDemonstrationStatus).toHaveBeenCalledExactlyOnceWith(mockDemonstration);
       expect(checkOwnerPersonType).toHaveBeenCalledExactlyOnceWith(mockUser);
+      expect(checkDueDateInFuture).toHaveBeenCalledExactlyOnceWith(testInput.dueDate);
       expect(checkForDuplicateDemonstrationTypes).not.toHaveBeenCalled();
       expect(checkRequestedDeliverableDemonstrationType).not.toHaveBeenCalled();
     });
@@ -192,6 +198,25 @@ describe("validateDeliverableInputs", () => {
         expect(error.extensions.code).toBe("CREATE_DELIVERABLE_VALIDATION_FAILED");
         expect(error.extensions.originalMessages).toStrictEqual([
           "The owner person type check failed",
+        ]);
+      }
+    });
+
+    it("should throw if the future due date check fails", async () => {
+      vi.mocked(checkDueDateInFuture).mockReturnValue("The future due date check failed");
+
+      try {
+        await validateCreateDeliverableInput(testInput, mockTransaction);
+        throw new Error("Expected validateCreateDeliverableInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for createDeliverable have failed."
+        );
+        expect(error.extensions.code).toBe("CREATE_DELIVERABLE_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The future due date check failed",
         ]);
       }
     });
@@ -263,6 +288,7 @@ describe("validateDeliverableInputs", () => {
     it("should combine all errors into one object", async () => {
       vi.mocked(checkDemonstrationStatus).mockReturnValue("The demo status check failed");
       vi.mocked(checkOwnerPersonType).mockReturnValue("The owner person type check failed");
+      vi.mocked(checkDueDateInFuture).mockReturnValue("The future due date check failed");
       vi.mocked(checkForDuplicateDemonstrationTypes).mockReturnValue(
         "There was a duplicate demonstration type"
       );
@@ -283,6 +309,7 @@ describe("validateDeliverableInputs", () => {
         expect(error.extensions.originalMessages).toStrictEqual([
           "The demo status check failed",
           "The owner person type check failed",
+          "The future due date check failed",
           "There was a duplicate demonstration type",
           "The demonstration type check failed",
         ]);
@@ -323,13 +350,26 @@ describe("validateDeliverableInputs", () => {
       ).resolves.toBeUndefined();
     });
 
+    it("should check the due date if it is passed", async () => {
+      const testInput: ParsedUpdateDeliverableInput = {
+        name: "A new name!",
+        dueDate: {
+          newDueDate: testEasternDate,
+          dateChangeNote: "Note is required",
+        },
+      };
+
+      await validateUpdateDeliverableInput(mockDeliverable.id!, testInput, mockTransaction);
+      expect(checkDueDateInFuture).toHaveBeenCalledExactlyOnceWith(testInput.dueDate!.newDueDate);
+    });
+
     it("should get the user info if a new owner is passed, and call the check function", async () => {
       const testInput: ParsedUpdateDeliverableInput = {
         name: "A new name!",
         cmsOwnerUserId: "7d8fdea5-ca19-42e5-af50-98836b6d47db",
       };
-      await validateUpdateDeliverableInput(mockDeliverable.id!, testInput, mockTransaction);
 
+      await validateUpdateDeliverableInput(mockDeliverable.id!, testInput, mockTransaction);
       expect(getUser).toHaveBeenCalledExactlyOnceWith(
         { id: testInput.cmsOwnerUserId },
         mockTransaction
@@ -342,8 +382,8 @@ describe("validateDeliverableInputs", () => {
         name: "A new name!",
         demonstrationTypes: ["Low Cost Screening for Hepatitis", "Needle Exchange Programs"],
       };
-      await validateUpdateDeliverableInput(mockDeliverable.id!, testInput, mockTransaction);
 
+      await validateUpdateDeliverableInput(mockDeliverable.id!, testInput, mockTransaction);
       expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
         { id: mockDeliverable.id! },
         mockTransaction
@@ -367,6 +407,32 @@ describe("validateDeliverableInputs", () => {
           mockDeliverable.demonstrationId,
         ],
       ]);
+    });
+
+    it("should throw if the future due date check runs and fails", async () => {
+      const testInput: ParsedUpdateDeliverableInput = {
+        name: "A new name!",
+        dueDate: {
+          newDueDate: testEasternDate,
+          dateChangeNote: "Note is required",
+        },
+      };
+      vi.mocked(checkDueDateInFuture).mockReturnValue("The future due date check failed");
+
+      try {
+        await validateUpdateDeliverableInput(mockDeliverable.id!, testInput, mockTransaction);
+        throw new Error("Expected validateUpdateDeliverableInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for updateDeliverable have failed."
+        );
+        expect(error.extensions.code).toBe("UPDATE_DELIVERABLE_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The future due date check failed",
+        ]);
+      }
     });
 
     it("should throw if the owner person type check runs and fails", async () => {
@@ -482,7 +548,12 @@ describe("validateDeliverableInputs", () => {
           "Needle Exchange Programs",
           "Needle Exchange Programs",
         ],
+        dueDate: {
+          newDueDate: testEasternDate,
+          dateChangeNote: "Note is required",
+        },
       };
+      vi.mocked(checkDueDateInFuture).mockReturnValue("The future due date check failed");
       vi.mocked(checkOwnerPersonType).mockReturnValue("The owner person type check failed");
       vi.mocked(checkForDuplicateDemonstrationTypes).mockReturnValue(
         "There was a duplicate demonstration type"
@@ -502,6 +573,7 @@ describe("validateDeliverableInputs", () => {
         );
         expect(error.extensions.code).toBe("UPDATE_DELIVERABLE_VALIDATION_FAILED");
         expect(error.extensions.originalMessages).toStrictEqual([
+          "The future due date check failed",
           "The owner person type check failed",
           "There was a duplicate demonstration type",
           "The demonstration type check failed",
