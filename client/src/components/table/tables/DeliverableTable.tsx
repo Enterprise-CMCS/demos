@@ -1,6 +1,6 @@
 import React from "react";
-import type { Deliverable, PersonType } from "demos-server";
-import type { DeliverableTableRow as DeliverablesPageTableRow } from "pages/DeliverablesPage";
+import { gql } from "@apollo/client";
+import type { Deliverable, Person, State, UserType } from "demos-server";
 
 import { DeliverableColumns } from "../columns/DeliverableColumns";
 import { Table, type TableProps } from "../Table";
@@ -16,8 +16,69 @@ import { sortDeliverablesByDefault } from "util/sortDeliverables";
 import { isDeliverableEditable } from "components/dialog/deliverable";
 import { useDialog } from "components/dialog/DialogContext";
 
-export type DeliverableTableRow = DeliverablesPageTableRow;
-export type DeliverableTableViewMode = Exclude<PersonType, "non-user-contact">;
+export type DeliverableTableRow = Omit<
+  Deliverable,
+  "demonstration" | "cmsOwner" | "cmsDocuments" | "stateDocuments" | "name"
+> & {
+  name: string;
+  demonstration: Pick<Deliverable["demonstration"], "id" | "name"> & {
+    state: Pick<State, "id">;
+    demonstrationTypes: {
+      demonstrationTypeName: string;
+      approvalStatus: "Approved" | "Unapproved";
+    }[];
+  };
+  cmsOwner: Pick<Deliverable["cmsOwner"], "id"> & {
+    person: Pick<Person, "fullName" | "id">;
+  };
+  submissionDate?: string;
+  cmsDocuments: Pick<Deliverable["cmsDocuments"][number], "id">[];
+  stateDocuments: Pick<Deliverable["stateDocuments"][number], "id">[];
+};
+
+export type DeliverablesQueryResult = {
+  deliverables: DeliverableTableRow[];
+};
+
+export const DELIVERABLES_PAGE_QUERY = gql`
+  query GetDeliverablesPage {
+    deliverables {
+      id
+      deliverableType
+      name
+      demonstration {
+        id
+        name
+        state {
+          id
+        }
+        demonstrationTypes {
+          demonstrationTypeName
+          approvalStatus
+        }
+      }
+      status
+      cmsOwner {
+        id
+        person {
+          id
+          fullName
+        }
+      }
+      dueDate
+      dueDateType
+      expectedToBeSubmitted
+      cmsDocuments {
+        id
+      }
+      stateDocuments {
+        id
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
 
 const EMPTY_ROWS_MESSAGE = "There are no assigned Deliverables at this time";
 const NO_RESULTS_FOUND = "No results were returned. Adjust your search and filter criteria.";
@@ -27,8 +88,12 @@ export const formatDeliverableStatus = ({ status }: Pick<Deliverable, "status">)
 export const DeliverableTable: React.FC<{
   deliverables: DeliverableTableRow[];
   emptyRowsMessage?: string;
-  viewMode: DeliverableTableViewMode;
-}> = ({ deliverables, emptyRowsMessage = EMPTY_ROWS_MESSAGE, viewMode }) => {
+  viewMode: UserType;
+}> = ({
+  deliverables,
+  emptyRowsMessage = EMPTY_ROWS_MESSAGE,
+  viewMode,
+}) => {
   const { showEditDeliverableDialog } = useDialog();
   const deliverableColumns = DeliverableColumns({ viewMode });
   const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({

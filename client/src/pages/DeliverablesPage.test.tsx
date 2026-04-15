@@ -3,7 +3,8 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as UserContext from "components/user/UserContext";
 
-import { DELIVERABLES_PAGE_QUERY, DeliverablesPage } from "./DeliverablesPage";
+import { DeliverablesPage } from "./DeliverablesPage";
+import { DELIVERABLES_PAGE_QUERY } from "components/table/tables/DeliverableTable";
 import { deliverableMocks, MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
 import { mockUsers } from "mock-data/userMocks";
 import { TestProvider } from "test-utils/TestProvider";

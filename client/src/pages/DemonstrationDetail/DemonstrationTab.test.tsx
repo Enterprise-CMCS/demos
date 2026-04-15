@@ -10,6 +10,7 @@ import { DemonstrationTab, DemonstrationTabDemonstration } from "./Demonstration
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { mockUsers } from "mock-data/userMocks";
+import { deliverableMocks } from "mock-data/deliverableMocks";
 
 vi.mock("components/user/UserContext", async (importOriginal) => {
   const actual = await importOriginal<typeof UserContext>();
@@ -70,7 +71,7 @@ const mockDemonstration: DemonstrationTabDemonstration = {
 const renderWithProvider = (component: React.ReactElement) => {
   return render(
     <DialogProvider>
-      <TestProvider mocks={[]} addTypename={false}>
+      <TestProvider mocks={deliverableMocks} addTypename={false}>
         {component}
       </TestProvider>
     </DialogProvider>
@@ -163,7 +164,7 @@ describe("DemonstrationTab", () => {
 
       renderWithProvider(<DemonstrationTab demonstration={demonstrationNotApproved} />);
 
-      expect(screen.queryByRole("button", { name: /Deliverables \(\d+\)/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: "Deliverables" })).not.toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Applications" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Details" })).toBeInTheDocument();
     });
@@ -177,7 +178,7 @@ describe("DemonstrationTab", () => {
 
       renderWithProvider(<DemonstrationTab demonstration={demonstrationApproved} />);
 
-      expect(screen.getByRole("button", { name: /Deliverables \(\d+\)/ })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Deliverables" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Applications" })).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Details" })).toBeInTheDocument();
     });

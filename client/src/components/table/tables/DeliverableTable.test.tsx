@@ -6,7 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { DeliverableTable, formatDeliverableStatus } from "./DeliverableTable";
 import { MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
-import type { DeliverableTableRow } from "pages/DeliverablesPage";
+import type { DeliverableTableRow } from "./DeliverableTable";
 
 const showEditDeliverableDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({

@@ -30,15 +30,21 @@ export const ConfirmApproveDialog: React.FC<ConfirmApproveDialogProps> = ({
       maxWidthClass="max-w-[600px]"
       actionButton={
         <Button name="button-ca-dialog-approve" onClick={handleSubmitClicked}>
-          Submit Approved Demonstration
+          Submit Approved {applicationType.charAt(0).toUpperCase() + applicationType.slice(1)}
         </Button>
       }
     >
       <div className="flex flex-col gap-1 items-start text-left">
         <span>
           Are you sure? By hitting accept you will be making the final submission of this approved{" "}
-          {applicationType}. This will finalize the approval process and move the demonstration to
-          the deliverables phase.
+          {applicationType}.
+          {applicationType === "demonstration" && (
+            <>
+              {" "}
+              This will finalize the approval process and move the demonstration to the
+              deliverables phase.
+            </>
+          )}
         </span>
       </div>
     </BaseDialog>
