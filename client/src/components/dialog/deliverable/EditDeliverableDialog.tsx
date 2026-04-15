@@ -167,6 +167,7 @@ export const EditDeliverableDialog: React.FC<EditDeliverableDialogProps> = ({
     setAttemptedSubmit(true);
     if (!isFormValid) return;
 
+    // TODO: wire onSave to the UpdateDeliverable mutation — toast currently fires without persisting.
     await onSave?.(
       {
         id: deliverable.id,
