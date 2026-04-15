@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import type { Deliverable, PersonType } from "demos-server";
 import type { DeliverableTableRow as DeliverablesPageTableRow } from "pages/DeliverablesPage";
 
@@ -13,6 +13,7 @@ import { selectionTooltip } from "./actionTooltips";
 import { ImportIcon } from "components/icons/Action/ImportIcon";
 import { EditIcon } from "components/icons/Navigation/EditIcon";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
+import { EditDeliverableDialog, isDeliverableEditable } from "components/dialog/deliverable";
 
 export type DeliverableTableRow = DeliverablesPageTableRow;
 export type DeliverableTableViewMode = Exclude<PersonType, "non-user-contact">;
@@ -20,42 +21,45 @@ export type DeliverableTableViewMode = Exclude<PersonType, "non-user-contact">;
 const EMPTY_ROWS_MESSAGE = "There are no assigned Deliverables at this time";
 const NO_RESULTS_FOUND = "No results were returned. Adjust your search and filter criteria.";
 
-export const formatDeliverableStatus = ({
-  status,
-}: Pick<Deliverable, "status">) => status;
+export const formatDeliverableStatus = ({ status }: Pick<Deliverable, "status">) => status;
 
 export const DeliverableTable: React.FC<{
   deliverables: DeliverableTableRow[];
   emptyRowsMessage?: string;
   viewMode: DeliverableTableViewMode;
-}> = ({
-  deliverables,
-  emptyRowsMessage = EMPTY_ROWS_MESSAGE,
-  viewMode,
-}) => {
+}> = ({ deliverables, emptyRowsMessage = EMPTY_ROWS_MESSAGE, viewMode }) => {
   const deliverableColumns = DeliverableColumns({ viewMode });
   const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({
     ...deliverable,
     status: formatDeliverableStatus(deliverable),
   }));
 
-  const showAddDeliverableDialog = () => { };
-  const showEditDeliverableDialog = () => { };
-  const showRemoveDeliverableDialog = () => { };
+  const [deliverableBeingEdited, setDeliverableBeingEdited] = useState<DeliverableTableRow | null>(
+    null
+  );
+
+  const showAddDeliverableDialog = () => {};
+  const showRemoveDeliverableDialog = () => {};
   type DeliverableActionButtons = NonNullable<TableProps<DeliverableTableRow>["actionButtons"]>;
 
   const renderActionButtons: DeliverableActionButtons = (table) => {
-    const selectedCount = table.getSelectedRowModel().rows.length;
+    const selectedRows = table.getSelectedRowModel().rows;
+    const selectedCount = selectedRows.length;
+    const singleSelectedDeliverable = selectedCount === 1 ? selectedRows[0].original : null;
 
-    const editEnabled = selectedCount === 1;
+    const selectedIsEditable =
+      singleSelectedDeliverable === null || isDeliverableEditable(singleSelectedDeliverable.status);
+    const editEnabled = selectedCount === 1 && selectedIsEditable;
     const deleteEnabled = selectedCount >= 1;
 
-    const editTooltip = selectionTooltip({
+    const baseEditTooltip = selectionTooltip({
       action: "Edit",
       nounSingular: "Deliverable",
       selectedCount,
       rule: { kind: "exactly", count: 1 },
     });
+    const editTooltip =
+      selectedCount === 1 && !selectedIsEditable ? "Select a Deliverable to Edit" : baseEditTooltip;
 
     const deleteTooltip = selectionTooltip({
       action: "Delete",
@@ -80,7 +84,11 @@ export const DeliverableTable: React.FC<{
           ariaLabel="Edit Deliverable"
           tooltip={editTooltip}
           disabled={!editEnabled}
-          onClick={() => showEditDeliverableDialog()}
+          onClick={() => {
+            if (singleSelectedDeliverable) {
+              setDeliverableBeingEdited(singleSelectedDeliverable);
+            }
+          }}
         >
           <EditIcon />
         </CircleButton>
@@ -112,6 +120,12 @@ export const DeliverableTable: React.FC<{
           emptyRowsMessage={emptyRowsMessage}
           noResultsFoundMessage={NO_RESULTS_FOUND}
           actionButtons={actionButtons}
+        />
+      )}
+      {deliverableBeingEdited && (
+        <EditDeliverableDialog
+          deliverable={deliverableBeingEdited}
+          onClose={() => setDeliverableBeingEdited(null)}
         />
       )}
     </div>
