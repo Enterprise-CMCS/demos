@@ -7,8 +7,13 @@ import {
 } from "@prisma/client";
 import { GraphQLContext } from "../../auth/auth.util";
 import { GraphQLResolveInfo } from "graphql";
-import { getDeliverable, getManyDeliverables } from ".";
-import { DeliverableDueDateType, DeliverableStatus, DeliverableType } from "../../types";
+import { createDeliverable, getDeliverable, getManyDeliverables } from ".";
+import {
+  CreateDeliverableInput,
+  DeliverableDueDateType,
+  DeliverableStatus,
+  DeliverableType,
+} from "../../types";
 import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getManyDocuments } from "../document";
@@ -108,6 +113,16 @@ export async function resolveDeliverableStateDocuments(
 export const deliverableResolvers = {
   Query: {
     deliverables: queryDeliverables,
+  },
+
+  Mutation: {
+    createDeliverable: async (
+      parent: unknown,
+      args: { input: CreateDeliverableInput },
+      context: GraphQLContext
+    ) => {
+      return await createDeliverable(args.input, context);
+    },
   },
 
   Deliverable: {

@@ -1,3 +1,4 @@
+import { deliverableMocks } from "./deliverableMocks";
 import { demonstrationMocks } from "./demonstrationMocks";
 import { demonstrationTypeAssignmentMocks } from "./DemonstrationTypeAssignmentMocks";
 import { eventMocks } from "./eventMocks";
@@ -14,4 +15,5 @@ export const ALL_MOCKS = [
   ...tagMocks,
   ...demonstrationTypeAssignmentMocks,
   ...workflowMocks,
+  ...deliverableMocks,
 ];

@@ -31,7 +31,7 @@ export function handlePrismaError(error: unknown): never {
           {
             extensions: {
               code: "VIOLATED_FOREIGN_KEY",
-              originalMessage: error.message,
+              originalMessages: [error.message],
             },
           }
         );
@@ -39,14 +39,14 @@ export function handlePrismaError(error: unknown): never {
         throw new GraphQLError("An operation was attempted on a record that does not exist.", {
           extensions: {
             code: "NO_RECORD_FOUND_FOR_OPERATION",
-            originalMessage: error.message,
+            originalMessages: [error.message],
           },
         });
       default:
         throw new GraphQLError("A known Prisma error was encountered with no custom handling.", {
           extensions: {
             code: "KNOWN_PRISMA_ERROR",
-            originalMessage: error.message,
+            originalMessages: [error.message],
           },
         });
     }
@@ -61,7 +61,7 @@ export function handlePrismaError(error: unknown): never {
         extensions: {
           code: "VIOLATED_CHECK_CONSTRAINT",
           constraintName: constraintName,
-          originalMessage: error.message,
+          originalMessages: [error.message],
         },
       });
     }

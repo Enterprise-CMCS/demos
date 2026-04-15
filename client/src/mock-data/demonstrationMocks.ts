@@ -27,6 +27,7 @@ import {
   MockDemonstrationTypeAssignment,
 } from "./DemonstrationTypeAssignmentMocks";
 import { ADD_DEMONSTRATION_TYPES_FORM_QUERY } from "components/dialog/DemonstrationTypes/AddDemonstrationTypesForm";
+import { DEMONSTRATION_HEADER_DETAILS_QUERY } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
 
 export type MockDemonstration = Pick<
   Demonstration,
@@ -79,6 +80,14 @@ export const mockAddDemonstrationInput: CreateDemonstrationInput = {
   projectOfficerUserId: "1",
 };
 
+const MOCK_DEMONSTRATION_BY_ID_QUERIES = [
+  HOOK_GET_DEMONSTRATION_BY_ID_QUERY,
+  GET_DEMONSTRATION_BY_ID_QUERY,
+  ADD_DEMONSTRATION_TYPES_FORM_QUERY,
+  DEMONSTRATION_DETAIL_QUERY,
+  DEMONSTRATION_HEADER_DETAILS_QUERY,
+];
+
 export const demonstrationMocks: MockedResponse[] = [
   {
     request: {
@@ -94,18 +103,8 @@ export const demonstrationMocks: MockedResponse[] = [
   },
   {
     request: {
-      query: HOOK_GET_DEMONSTRATION_BY_ID_QUERY,
-      variables: { id: "1" },
-    },
-    result: {
-      data: { demonstration: MOCK_DEMONSTRATION },
-    },
-    maxUsageCount: Number.POSITIVE_INFINITY,
-  },
-  {
-    request: {
       query: GET_WORKFLOW_DEMONSTRATION_QUERY,
-      variables: { id: "1" },
+      variables: { id: MOCK_DEMONSTRATION_ID },
     },
     result: {
       data: {
@@ -114,37 +113,11 @@ export const demonstrationMocks: MockedResponse[] = [
     },
     maxUsageCount: Number.POSITIVE_INFINITY,
   },
-  {
-    request: {
-      query: GET_DEMONSTRATION_BY_ID_QUERY,
-      variables: { id: "1" },
-    },
-    result: {
-      data: { demonstration: MOCK_DEMONSTRATION },
-    },
+  ...MOCK_DEMONSTRATION_BY_ID_QUERIES.map((query) => ({
+    request: { query, variables: { id: MOCK_DEMONSTRATION_ID } },
+    result: { data: { demonstration: MOCK_DEMONSTRATION } },
     maxUsageCount: Number.POSITIVE_INFINITY,
-  },
-  {
-    request: {
-      query: ADD_DEMONSTRATION_TYPES_FORM_QUERY,
-      variables: { id: "1" },
-    },
-    result: {
-      data: { demonstration: MOCK_DEMONSTRATION },
-    },
-  },
-  {
-    request: {
-      query: DEMONSTRATION_DETAIL_QUERY,
-      variables: { id: "1" },
-    },
-    result: {
-      data: {
-        demonstration: MOCK_DEMONSTRATION,
-      },
-    },
-    maxUsageCount: Number.POSITIVE_INFINITY,
-  },
+  })),
   // Update demonstration mock - flexible for various update scenarios
   {
     request: {

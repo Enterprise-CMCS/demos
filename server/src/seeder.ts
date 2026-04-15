@@ -417,25 +417,29 @@ async function seedDatabase() {
   }
 
   console.log("🌱 Seeding system role assignments...");
-  // for each user, assign a random set of roles from the system roles
-  const systemRoles = await prisma().role.findMany({
-    where: { grantLevelId: "System" },
-  });
-
   const people = await prisma().person.findMany();
   for (const person of people) {
-    // NOSONAR - this is an appropriate use of Math.random() for seeding a random number of roles
-    const roles = sampleFromArray(systemRoles, 1 + Math.floor(Math.random() * systemRoles.length)); // NOSONAR
-    for (const role of roles) {
-      await prisma().systemRoleAssignment.create({
-        data: {
-          personId: person.id,
-          personTypeId: person.personTypeId,
-          roleId: role.id,
-          grantLevelId: "System",
+    const applicableRoles = await prisma().role.findMany({
+      where: {
+        grantLevelId: "System",
+        rolePersonTypes: {
+          some: {
+            personTypeId: person.personTypeId,
+          },
         },
-      });
-    }
+      },
+    });
+
+    const role = faker.helpers.arrayElement(applicableRoles);
+    console.log(role);
+    await prisma().systemRoleAssignment.create({
+      data: {
+        personId: person.id,
+        personTypeId: person.personTypeId,
+        roleId: role.id,
+        grantLevelId: "System",
+      },
+    });
   }
   // need to add a project officer to each demonstration, so creating a new user from a matching state
   console.log("🌱 Seeding demonstrations...");
@@ -560,11 +564,13 @@ async function seedDatabase() {
   }
 
   console.log("🌱 Seeding all dates for one demonstration");
-  const randomDemonstration = faker.helpers.arrayElement(await prisma().demonstration.findMany({
-    select: {
-      id: true,
-    },
-  }));
+  const randomDemonstration = faker.helpers.arrayElement(
+    await prisma().demonstration.findMany({
+      select: {
+        id: true,
+      },
+    })
+  );
   const dateInput: SetApplicationDatesInput = {
     applicationId: randomDemonstration!.id,
     applicationDates: [
@@ -793,8 +799,7 @@ async function seedDatabase() {
     take: 5,
   });
 
-  function pick<T>(arr: T[]): T | null {
-    if (!arr.length) return null;
+  function pick<T>(arr: T[]): T {
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
@@ -804,7 +809,7 @@ async function seedDatabase() {
     // ~60% of events have a applicationId, rest are null
     const attachApplication = Math.random() < 0.6;
     const maybeApplication = attachApplication ? (pick(applicationsForEvents)?.id ?? null) : null;
-    const user = pick(usersForEvents) ?? null;
+    const user = pick(usersForEvents);
 
     // Note that these don't really make sense because application is generic
     // Should come back and be more specific as EventType evolves
@@ -856,20 +861,9 @@ async function seedDatabase() {
       },
     };
 
-    let context: GraphQLContext;
-    if (!user) {
-      context = {
-        user: null,
-      };
-    } else {
-      context = {
-        user: {
-          id: user.id,
-          sub: user.cognitoSubject,
-          role: user.personTypeId,
-        },
-      };
-    }
+    const context = {
+      user,
+    } as GraphQLContext;
 
     logEvent(undefined, { input: eventData }, context);
   }
