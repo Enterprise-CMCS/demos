@@ -128,37 +128,6 @@ describe("ApprovalSummaryPhase", () => {
     },
   };
 
-  // Mock for reset (mark incomplete)
-  const mockResetDemonstration = {
-    request: {
-      query: UPDATE_DEMONSTRATION_MUTATION,
-      variables: {
-        id: "demo-123",
-        input: {
-          effectiveDate: null,
-          expirationDate: null,
-          sdgDivision: undefined,
-          signatureLevel: undefined,
-        },
-      },
-    },
-    result: {
-      data: {
-        updateDemonstration: {
-          id: "demo-123",
-          name: "Test Demonstration",
-          description: "Test description",
-          effectiveDate: null,
-          expirationDate: null,
-          sdgDivision: null,
-          signatureLevel: null,
-          state: { id: "CA" },
-          primaryProjectOfficer: { id: "user-123" },
-        },
-      },
-    },
-  };
-
   const mockUpdateAmendment = {
     request: {
       query: UPDATE_AMENDMENT_MUTATION,
@@ -207,7 +176,7 @@ describe("ApprovalSummaryPhase", () => {
 
   const setup = (
     formData = buildInitialFormData(),
-    mocks: MockedResponse[] = [mockUpdateDemonstration, mockResetDemonstration],
+    mocks: MockedResponse[] = [mockUpdateDemonstration],
     initialTypes: DemonstrationDetailDemonstrationType[] = []
   ) => {
     render(
@@ -386,28 +355,8 @@ describe("ApprovalSummaryPhase", () => {
   });
 
   it("covers amendment mark incomplete path", async () => {
-    const mockResetAmendment = {
-      request: {
-        query: UPDATE_AMENDMENT_MUTATION,
-        variables: {
-          id: "demo-123",
-          input: {
-            effectiveDate: null,
-            expirationDate: null,
-            sdgDivision: undefined,
-            signatureLevel: undefined,
-          },
-        },
-      },
-      result: {
-        data: {
-          updateAmendment: { id: "demo-123" },
-        },
-      },
-    };
-
     render(
-      <MockedProvider mocks={[mockResetAmendment]} addTypename={false}>
+      <MockedProvider addTypename={false}>
         <TestProvider>
           <ApprovalSummaryPhase
             applicationId="demo-123"
@@ -438,28 +387,8 @@ describe("ApprovalSummaryPhase", () => {
   });
 
   it("covers extension mark incomplete path", async () => {
-    const mockResetExtension = {
-      request: {
-        query: UPDATE_EXTENSION_MUTATION,
-        variables: {
-          id: "demo-123",
-          input: {
-            effectiveDate: null,
-            expirationDate: null,
-            sdgDivision: undefined,
-            signatureLevel: undefined,
-          },
-        },
-      },
-      result: {
-        data: {
-          updateExtension: { id: "demo-123" },
-        },
-      },
-    };
-
     render(
-      <MockedProvider mocks={[mockResetExtension]} addTypename={false}>
+      <MockedProvider addTypename={false}>
         <TestProvider>
           <ApprovalSummaryPhase
             applicationId="demo-123"
