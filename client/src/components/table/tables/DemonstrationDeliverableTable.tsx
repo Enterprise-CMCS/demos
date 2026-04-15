@@ -1,7 +1,7 @@
 import React from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 
-import type { DeliverableTableRow } from "pages/DeliverablesPage";
+import type { DeliverableTableRow } from "./DeliverableTable";
 import { Table } from "components/table/Table";
 import { createDateColumnDef } from "components/table/columns/dateColumn";
 import { highlightCell, KeywordSearch } from "components/table/KeywordSearch";

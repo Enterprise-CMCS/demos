@@ -4,7 +4,10 @@ import {
   DELIVERABLE_DETAILS_QUERY,
   DeliverableDetailsManagementDeliverable,
 } from "pages/deliverables/DeliverableDetailsManagementPage";
-import { DELIVERABLES_PAGE_QUERY, type DeliverableTableRow } from "pages/DeliverablesPage";
+import {
+  DELIVERABLES_PAGE_QUERY,
+  type DeliverableTableRow,
+} from "components/table/tables/DeliverableTable";
 
 type DeliverableSeed = {
   id: string;
