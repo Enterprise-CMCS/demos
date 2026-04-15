@@ -1,21 +1,24 @@
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { prisma } from "../../prismaClient";
 import { setApplicationTags } from "../applicationTagAssignment";
+import { PrismaApplication } from "../application/applicationTypes";
+import { getApplication } from "../application";
+import { UpdateApplicationTagSuggestionInput } from "./applicationTagSuggestionSchema";
 
 export async function acceptApplicationTagSuggestion(
   _: unknown,
-  { suggestionId }: { suggestionId: string },
-): Promise<void> {
+  { input }: { input: UpdateApplicationTagSuggestionInput },
+): Promise<PrismaApplication> {
   try {
     await prisma().$transaction(async (tx) => {
       // Fetch suggestion
       const suggestion = await tx.applicationTagSuggestion.findUniqueOrThrow({
-        where: { id: suggestionId },
+        where: { id: input.suggestionId },
       });
 
       // Update suggestion status
       await tx.applicationTagSuggestion.update({
-        where: { id: suggestionId },
+        where: { id: input.suggestionId },
         data: { status: { connect: { id: "Accepted" } } },
       });
 
@@ -42,6 +45,7 @@ export async function acceptApplicationTagSuggestion(
   } catch (error) {
     handlePrismaError(error);
   }
+  return await getApplication(input.applicationId);
 }
 
 export async function replaceApplicationTagSuggestion(
