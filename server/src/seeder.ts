@@ -22,6 +22,7 @@ import {
   EventType,
   LogEventInput,
   Role,
+  CreateDeliverableInput,
 } from "./types.js";
 import { prisma } from "./prismaClient.js";
 import { DocumentType, PhaseName } from "./types.js";
@@ -35,6 +36,7 @@ import { __setApplicationDates } from "./model/applicationDate/applicationDateRe
 import { logEvent } from "./model/event/eventResolvers.js";
 import { GraphQLContext } from "./auth/auth.util.js";
 import { getManyApplications } from "./model/application";
+import { createDeliverable } from "./model/deliverable";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 const DOCUMENTS_PER_APPLICATION = 15;
@@ -46,6 +48,7 @@ const UIPATH_SEED_PDF_PATH = path.resolve(
 );
 const NEW_TAG_COUNT = 20;
 const TAG_ASSIGNMENT_MAX = 5;
+const DELIVERABLE_SEED_COUNT = 8;
 
 function getRandomPhaseDocumentTypeCombination(): {
   phaseName: PhaseName;
@@ -132,6 +135,109 @@ async function seedTagsAndStatuses() {
         },
       });
     }
+  }
+}
+
+async function seedApprovedDemonstration() {
+  console.log("🌱 Seeding one approved demonstration...");
+  const approvedDemonstration = await prisma().demonstration.findFirst({
+    where: {
+      demonstrationTypeTagAssignments: {
+        some: {},
+      },
+    },
+    select: {
+      id: true,
+      sdgDivisionId: true,
+    },
+  });
+  if (!approvedDemonstration) {
+    throw new Error("No demonstrations with demonstration types found for approved-demo seeding");
+  }
+
+  await prisma().$transaction([
+    prisma().demonstration.update({
+      where: { id: approvedDemonstration.id },
+      data: {
+        signatureLevelId: "OA",
+        statusId: "Approved",
+        sdgDivisionId: approvedDemonstration.sdgDivisionId ?? SDG_DIVISIONS[0],
+      },
+    }),
+    prisma().applicationPhase.update({
+      where: {
+        applicationId_phaseId: {
+          applicationId: approvedDemonstration.id,
+          phaseId: "Approval Summary",
+        },
+      },
+      data: {
+        phaseStatusId: "Completed",
+      },
+    }),
+  ]);
+
+  console.log(`🌱 Seeded approved demonstration: ${approvedDemonstration.id}`);
+}
+
+async function seedDeliverables(actionUserId: string) {
+  console.log("🌱 Seeding deliverables...");
+  const deliverableTypes = await prisma().deliverableType.findMany({
+    select: { id: true },
+  });
+  const cmsOwners = await prisma().user.findMany({
+    where: {
+      personTypeId: {
+        in: ["demos-admin", "demos-cms-user"],
+      },
+    },
+    select: { id: true },
+  });
+  const approvedDemonstrations = await prisma().demonstration.findMany({
+    where: { statusId: "Approved" },
+    select: {
+      id: true,
+      demonstrationTypeTagAssignments: {
+        select: {
+          tagNameId: true,
+        },
+      },
+    },
+  });
+  if (!deliverableTypes.length || !cmsOwners.length || !approvedDemonstrations.length) {
+    throw new Error("Missing data required for deliverable seeding");
+  }
+
+  const context = {
+    user: {
+      id: actionUserId,
+    },
+  } as GraphQLContext;
+
+  for (let i = 0; i < DELIVERABLE_SEED_COUNT; i++) {
+    const demonstration = faker.helpers.arrayElement(approvedDemonstrations);
+    const deliverableTypeIds = deliverableTypes.map((d) => d.id);
+    const selectedType = faker.helpers.arrayElement(deliverableTypeIds);
+    const demonstrationTypeIds = demonstration.demonstrationTypeTagAssignments.map(
+      (assignment) => assignment.tagNameId
+    );
+    const selectedDemonstrationTypes = sampleFromArray(
+      demonstrationTypeIds,
+      Math.min(2, demonstrationTypeIds.length)
+    );
+
+    const createInput: CreateDeliverableInput = {
+      name: `${selectedType} ${i + 1}`,
+      deliverableType: selectedType as CreateDeliverableInput["deliverableType"],
+      demonstrationId: demonstration.id,
+      cmsOwnerUserId: faker.helpers.arrayElement(cmsOwners).id,
+      dueDate: faker.date
+        .future({ years: 2 })
+        .toISOString()
+        .slice(0, 10) as CreateDeliverableInput["dueDate"],
+      demonstrationTypes: selectedDemonstrationTypes,
+    };
+    await createDeliverable(createInput, context);
   }
 }
 
@@ -781,6 +887,8 @@ async function seedDatabase() {
   }
 
   await seedTagsAndStatuses();
+  await seedApprovedDemonstration();
+  await seedDeliverables(bypassUserId);
 
   await seedDocuments();
 
