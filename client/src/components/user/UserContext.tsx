@@ -62,4 +62,3 @@ export function getCurrentUser() {
 
   return ctx;
 }
-
