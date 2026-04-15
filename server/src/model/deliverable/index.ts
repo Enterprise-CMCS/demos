@@ -19,7 +19,8 @@ export { updateDeliverable } from "./updateDeliverable";
 export { getDeliverable } from "./queries/getDeliverable";
 export { getManyDeliverables } from "./queries/getManyDeliverables";
 export { insertDeliverable } from "./queries/insertDeliverable";
-export { prismaUpdateDeliverable } from "./queries/prismaUpdateDeliverable";
+export { editDeliverable } from "./queries/editDeliverable";
+export { editDeliverableStatus } from "./queries/editDeliverableStatus";
 
 // Types & Constants
 export type {

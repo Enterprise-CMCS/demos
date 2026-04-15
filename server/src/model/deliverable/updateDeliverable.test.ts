@@ -19,7 +19,7 @@ vi.mock("../../prismaClient.js", () => ({
 vi.mock(".", () => ({
   parseUpdateDeliverableInput: vi.fn(),
   validateUpdateDeliverableInput: vi.fn(),
-  prismaUpdateDeliverable: vi.fn(),
+  editDeliverable: vi.fn(),
   getDeliverable: vi.fn(),
 }));
 
@@ -36,7 +36,7 @@ import { prisma } from "../../prismaClient.js";
 import {
   parseUpdateDeliverableInput,
   validateUpdateDeliverableInput,
-  prismaUpdateDeliverable,
+  editDeliverable,
   getDeliverable,
 } from ".";
 import {
@@ -106,7 +106,7 @@ describe("updateDeliverable", () => {
       { id: testDeliverableId },
       mockTransaction
     );
-    expect(prismaUpdateDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(editDeliverable).toHaveBeenCalledExactlyOnceWith(
       testDeliverableId,
       mockBaseParsedInput,
       mockTransaction
@@ -169,7 +169,7 @@ describe("updateDeliverable", () => {
       testInput as ParsedUpdateDeliverableInput
     );
     vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
-    vi.mocked(prismaUpdateDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
+    vi.mocked(editDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
     vi.mocked(getDeliverableDemonstrationTypes).mockResolvedValue([
       {
         demonstrationId: testDemonstrationId,
@@ -226,7 +226,7 @@ describe("updateDeliverable", () => {
 
     vi.mocked(parseUpdateDeliverableInput).mockReturnValue(mockParsedInput);
     vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
-    vi.mocked(prismaUpdateDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
+    vi.mocked(editDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
 
     await updateDeliverable(testDeliverableId, testInput, testContext);
     expect(getDeliverableDemonstrationTypes).not.toHaveBeenCalled();
@@ -274,7 +274,7 @@ describe("updateDeliverable", () => {
 
     vi.mocked(parseUpdateDeliverableInput).mockReturnValue(mockParsedInput);
     vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
-    vi.mocked(prismaUpdateDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
+    vi.mocked(editDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
 
     await updateDeliverable(testDeliverableId, testInput, testContext);
     expect(getDeliverableDemonstrationTypes).not.toHaveBeenCalled();

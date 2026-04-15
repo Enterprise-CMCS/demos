@@ -7,7 +7,7 @@ import { DeliverableType, PersonType } from "../../../types.js";
 import { ParsedUpdateDeliverableInput } from "..";
 
 // Functions under test
-import { prismaUpdateDeliverable } from "./prismaUpdateDeliverable";
+import { editDeliverable } from "./editDeliverable";
 
 // Mock imports
 vi.mock("../../../prismaClient.js", () => ({
@@ -16,7 +16,7 @@ vi.mock("../../../prismaClient.js", () => ({
 
 import { prisma } from "../../../prismaClient.js";
 
-describe("prismaUpdateDeliverable", () => {
+describe("editDeliverable", () => {
   const regularMocks = {
     deliverable: {
       update: vi.fn(),
@@ -61,7 +61,7 @@ describe("prismaUpdateDeliverable", () => {
         dueDate: undefined,
       },
     };
-    await prismaUpdateDeliverable(testDeliverableId, baseTestInput);
+    await editDeliverable(testDeliverableId, baseTestInput);
     expect(regularMocks.deliverable.update).toHaveBeenCalledExactlyOnceWith(expectedCall);
     expect(transactionMocks.deliverable.update).not.toHaveBeenCalled();
   });
@@ -78,7 +78,7 @@ describe("prismaUpdateDeliverable", () => {
         dueDate: undefined,
       },
     };
-    await prismaUpdateDeliverable(testDeliverableId, baseTestInput, mockTransaction);
+    await editDeliverable(testDeliverableId, baseTestInput, mockTransaction);
     expect(regularMocks.deliverable.update).not.toHaveBeenCalled();
     expect(transactionMocks.deliverable.update).toHaveBeenCalledExactlyOnceWith(expectedCall);
   });
@@ -105,7 +105,7 @@ describe("prismaUpdateDeliverable", () => {
         dueDate: testInput.dueDate.newDueDate.easternTZDate,
       },
     };
-    await prismaUpdateDeliverable(testDeliverableId, testInput as ParsedUpdateDeliverableInput);
+    await editDeliverable(testDeliverableId, testInput as ParsedUpdateDeliverableInput);
     expect(regularMocks.deliverable.update).toHaveBeenCalledExactlyOnceWith(expectedCall);
     expect(transactionMocks.deliverable.update).not.toHaveBeenCalled();
   });

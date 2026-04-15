@@ -2,8 +2,7 @@ import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { prisma, PrismaTransactionClient } from "../../../prismaClient";
 import { ParsedUpdateDeliverableInput } from "..";
 
-// Note: name is unusual to avoid collision with updateDeliverable function
-export async function prismaUpdateDeliverable(
+export async function editDeliverable(
   deliverableId: string,
   input: ParsedUpdateDeliverableInput,
   tx?: PrismaTransactionClient

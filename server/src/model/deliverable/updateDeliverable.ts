@@ -4,7 +4,7 @@ import { GraphQLContext } from "../../auth/auth.util";
 import {
   parseUpdateDeliverableInput,
   validateUpdateDeliverableInput,
-  prismaUpdateDeliverable,
+  editDeliverable,
   getDeliverable,
 } from ".";
 import { prisma } from "../../prismaClient";
@@ -30,7 +30,7 @@ export async function updateDeliverable(
     const oldDeliverable = await getDeliverable({ id: deliverableId }, tx);
 
     // Now, run the update
-    const updatedDeliverable = await prismaUpdateDeliverable(deliverableId, parsedInput, tx);
+    const updatedDeliverable = await editDeliverable(deliverableId, parsedInput, tx);
 
     // Conditionally handle if demonstration type changes are requested
     if (parsedInput.demonstrationTypes) {
