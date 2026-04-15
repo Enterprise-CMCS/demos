@@ -37,7 +37,6 @@ const TEST_DELIVERABLE: EditDeliverableDialogDeliverable = {
   deliverableType: "Annual Budget Neutrality Report",
   dueDate: new Date(2026, 5, 15),
   cmsOwner: { id: "ashokatano" },
-  demonstration: { id: "demo-1" },
 };
 
 const MOCK_TAGS: Tag[] = [

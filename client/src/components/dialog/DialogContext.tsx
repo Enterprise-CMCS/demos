@@ -25,8 +25,14 @@ import { UpdateExtensionDialog } from "./modification/EditExtensionDialog";
 import { UpdateAmendmentDialog } from "./modification/EditAmendmentDialog";
 import { ConfirmApproveDialog } from "./ConfirmApproveDialog";
 import { AddDeliverableSlotDialog } from "./deliverable";
+import { EditDeliverableDialog } from "./deliverable/EditDeliverableDialog";
+import type {
+  EditDeliverableDialogDeliverable,
+  EditDeliverableInput,
+} from "./deliverable/EditDeliverableDialog";
 import { WorkflowApplicationType } from "components/application";
 import { AddDeliverableSlotDemonstration } from "./deliverable/AddDeliverableSlotDialog";
+import type { DeliverableTableRow } from "pages/DeliverablesPage";
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -235,6 +241,32 @@ export const useDialog = () => {
     );
   };
 
+  const showEditDeliverableDialog = (
+    deliverable: DeliverableTableRow,
+    onSave?: (input: EditDeliverableInput, reasonForChange?: string) => Promise<void> | void
+  ) => {
+    const dialogDeliverable: EditDeliverableDialogDeliverable = {
+      id: deliverable.id,
+      name: deliverable.name,
+      deliverableType: deliverable.deliverableType,
+      dueDate: deliverable.dueDate,
+      cmsOwner: { id: deliverable.cmsOwner.id },
+    };
+    const demonstrationTypeTags: Tag[] = deliverable.demonstration.demonstrationTypes.map((dt) => ({
+      tagName: dt.demonstrationTypeName,
+      approvalStatus: dt.approvalStatus,
+    }));
+
+    context.showDialog(
+      <EditDeliverableDialog
+        onClose={context.hideDialog}
+        deliverable={dialogDeliverable}
+        demonstrationTypeTags={demonstrationTypeTags}
+        onSave={onSave}
+      />
+    );
+  };
+
   return {
     closeDialog: context.hideDialog,
     showCreateDemonstrationDialog,
@@ -259,5 +291,6 @@ export const useDialog = () => {
     showUpdateAmendmentDialog,
     showConfirmApproveDialog,
     showAddDeliverableSlotDialog,
+    showEditDeliverableDialog,
   };
 };

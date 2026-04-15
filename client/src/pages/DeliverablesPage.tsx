@@ -13,6 +13,10 @@ export type DeliverableTableRow = Omit<
   name: string; // APPENDED FOR NOW, PE Toms Deliverables.
   demonstration: Pick<Deliverable["demonstration"], "id" | "name"> & {
     state: Pick<State, "id">;
+    demonstrationTypes: {
+      demonstrationTypeName: string;
+      approvalStatus: "Approved" | "Unapproved";
+    }[];
   };
   cmsOwner: Pick<Deliverable["cmsOwner"], "id"> & {
     person: Pick<Person, "fullName" | "id">;
@@ -38,6 +42,10 @@ export const DELIVERABLES_PAGE_QUERY = gql`
         name
         state {
           id
+        }
+        demonstrationTypes {
+          demonstrationTypeName
+          approvalStatus
         }
       }
       status
@@ -68,9 +76,7 @@ export const DeliverablesPage: React.FC = () => {
   const rawPersonType = currentUser?.person.personType;
   // Note. currentUser type by default cannot be non-user-contact.
   const viewMode = rawPersonType as DeliverableTableViewMode;
-  const { data, loading, error } = useQuery<DeliverablesPageQueryResult>(
-    DELIVERABLES_PAGE_QUERY
-  );
+  const { data, loading, error } = useQuery<DeliverablesPageQueryResult>(DELIVERABLES_PAGE_QUERY);
 
   const deliverables = data?.deliverables ?? [];
   const myDeliverables = deliverables.filter(
@@ -93,10 +99,7 @@ export const DeliverablesPage: React.FC = () => {
       {error && <div className="p-4 text-red-500">Error loading deliverables.</div>}
 
       {data && (
-        <HorizontalSectionTabs
-          defaultValue={tabValue}
-          onSelect={onTabSelect}
-        >
+        <HorizontalSectionTabs defaultValue={tabValue} onSelect={onTabSelect}>
           <Tab label={`My Deliverables (${myDeliverables.length})`} value="my-deliverables">
             <DeliverableTable
               deliverables={myDeliverables}
@@ -105,10 +108,7 @@ export const DeliverablesPage: React.FC = () => {
             />
           </Tab>
           <Tab label={`All Deliverables (${deliverables.length})`} value="deliverables">
-            <DeliverableTable
-              deliverables={deliverables}
-              viewMode={viewMode}
-            />
+            <DeliverableTable deliverables={deliverables} viewMode={viewMode} />
           </Tab>
         </HorizontalSectionTabs>
       )}

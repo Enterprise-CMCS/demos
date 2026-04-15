@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { gql, useQuery } from "@apollo/client";
 
 import { Button } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
@@ -44,30 +43,7 @@ export interface EditDeliverableDialogDeliverable {
   deliverableType: DeliverableType;
   dueDate: Date;
   cmsOwner: { id: string };
-  demonstration: { id: string };
 }
-
-export const EDIT_DELIVERABLE_DEMO_TYPES_QUERY = gql`
-  query EditDeliverableDemonstrationTypes($id: ID!) {
-    demonstration(id: $id) {
-      id
-      demonstrationTypes {
-        demonstrationTypeName
-        approvalStatus
-      }
-    }
-  }
-`;
-
-type DemonstrationTypesQueryResult = {
-  demonstration: {
-    id: string;
-    demonstrationTypes: {
-      demonstrationTypeName: string;
-      approvalStatus: Tag["approvalStatus"];
-    }[];
-  } | null;
-};
 
 export interface EditDeliverableFormData {
   name: string;
@@ -124,7 +100,7 @@ export const formHasChanges = (
 export interface EditDeliverableDialogProps {
   onClose: () => void;
   deliverable: EditDeliverableDialogDeliverable;
-  demonstrationTypeTags?: Tag[];
+  demonstrationTypeTags: Tag[];
   onSave?: (input: EditDeliverableInput, reasonForChange?: string) => Promise<void> | void;
 }
 
@@ -135,22 +111,6 @@ export const EditDeliverableDialog: React.FC<EditDeliverableDialogProps> = ({
   onSave,
 }) => {
   const { showSuccess } = useToast();
-
-  const { data: demoTypesData } = useQuery<DemonstrationTypesQueryResult>(
-    EDIT_DELIVERABLE_DEMO_TYPES_QUERY,
-    {
-      variables: { id: deliverable.demonstration.id },
-      skip: demonstrationTypeTags !== undefined,
-    }
-  );
-
-  const resolvedTags: Tag[] =
-    demonstrationTypeTags ??
-    demoTypesData?.demonstration?.demonstrationTypes.map((dt) => ({
-      tagName: dt.demonstrationTypeName,
-      approvalStatus: dt.approvalStatus,
-    })) ??
-    [];
 
   const initialFormData = buildInitialFormData(deliverable);
   const [formData, setFormData] = useState<EditDeliverableFormData>(initialFormData);
@@ -225,7 +185,7 @@ export const EditDeliverableDialog: React.FC<EditDeliverableDialogProps> = ({
             }
           />
           <DemonstrationTypeField
-            demonstrationTypeTags={resolvedTags}
+            demonstrationTypeTags={demonstrationTypeTags}
             selectedValues={formData.demonstrationTypes}
             onSelect={(selectedTypes) =>
               setFormData((prev) => ({ ...prev, demonstrationTypes: selectedTypes }))

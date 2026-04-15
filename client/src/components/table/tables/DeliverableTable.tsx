@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import type { Deliverable, PersonType } from "demos-server";
 import type { DeliverableTableRow as DeliverablesPageTableRow } from "pages/DeliverablesPage";
 
@@ -13,7 +13,8 @@ import { selectionTooltip } from "./actionTooltips";
 import { ImportIcon } from "components/icons/Action/ImportIcon";
 import { EditIcon } from "components/icons/Navigation/EditIcon";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
-import { EditDeliverableDialog, isDeliverableEditable } from "components/dialog/deliverable";
+import { isDeliverableEditable } from "components/dialog/deliverable";
+import { useDialog } from "components/dialog/DialogContext";
 
 export type DeliverableTableRow = DeliverablesPageTableRow;
 export type DeliverableTableViewMode = Exclude<PersonType, "non-user-contact">;
@@ -28,18 +29,13 @@ export const DeliverableTable: React.FC<{
   emptyRowsMessage?: string;
   viewMode: DeliverableTableViewMode;
 }> = ({ deliverables, emptyRowsMessage = EMPTY_ROWS_MESSAGE, viewMode }) => {
+  const { showEditDeliverableDialog } = useDialog();
   const deliverableColumns = DeliverableColumns({ viewMode });
   const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({
     ...deliverable,
     status: formatDeliverableStatus(deliverable),
   }));
 
-  const [deliverableBeingEdited, setDeliverableBeingEdited] = useState<DeliverableTableRow | null>(
-    null
-  );
-
-  const showAddDeliverableDialog = () => {};
-  const showRemoveDeliverableDialog = () => {};
   type DeliverableActionButtons = NonNullable<TableProps<DeliverableTableRow>["actionButtons"]>;
 
   const renderActionButtons: DeliverableActionButtons = (table) => {
@@ -74,7 +70,7 @@ export const DeliverableTable: React.FC<{
           name="add-deliverable"
           ariaLabel="Add Deliverable"
           tooltip="Add Deliverable"
-          onClick={() => showAddDeliverableDialog()}
+          onClick={() => {}}
         >
           <ImportIcon />
         </CircleButton>
@@ -86,7 +82,7 @@ export const DeliverableTable: React.FC<{
           disabled={!editEnabled}
           onClick={() => {
             if (singleSelectedDeliverable) {
-              setDeliverableBeingEdited(singleSelectedDeliverable);
+              showEditDeliverableDialog(singleSelectedDeliverable);
             }
           }}
         >
@@ -98,7 +94,7 @@ export const DeliverableTable: React.FC<{
           ariaLabel="Remove Deliverable"
           tooltip={deleteTooltip}
           disabled={!deleteEnabled}
-          onClick={() => showRemoveDeliverableDialog()}
+          onClick={() => {}}
         >
           <DeleteIcon />
         </CircleButton>
@@ -120,12 +116,6 @@ export const DeliverableTable: React.FC<{
           emptyRowsMessage={emptyRowsMessage}
           noResultsFoundMessage={NO_RESULTS_FOUND}
           actionButtons={actionButtons}
-        />
-      )}
-      {deliverableBeingEdited && (
-        <EditDeliverableDialog
-          deliverable={deliverableBeingEdited}
-          onClose={() => setDeliverableBeingEdited(null)}
         />
       )}
     </div>
