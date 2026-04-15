@@ -6,9 +6,9 @@ import { useDialog } from "components/dialog/DialogContext";
 import { AddDeliverableSlotDemonstration } from "components/dialog/deliverable/AddDeliverableSlotDialog";
 import { DemonstrationDeliverableTable } from "components/table/tables/DemonstrationDeliverableTable";
 import { getCurrentUser } from "components/user/UserContext";
+import type { UserType } from "demos-server";
 import {
   DELIVERABLES_PAGE_QUERY,
-  type DeliverableTableViewMode,
   type DeliverablesQueryResult,
 } from "components/table/tables/DeliverableTable";
 import { useQuery } from "@apollo/client";
@@ -22,7 +22,7 @@ export const DeliverablesTab = ({
 }) => {
   const { showAddDeliverableSlotDialog } = useDialog();
   const rawPersonType = getCurrentUser().currentUser?.person.personType;
-  const viewMode = rawPersonType as DeliverableTableViewMode;
+  const viewMode = rawPersonType as UserType;
   const { data, loading, error } = useQuery<DeliverablesQueryResult>(DELIVERABLES_PAGE_QUERY);
   const deliverables = data?.deliverables.filter(
     (deliverable) => deliverable.demonstration.id === parentDemonstration.id

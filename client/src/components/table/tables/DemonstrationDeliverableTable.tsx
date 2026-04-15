@@ -1,5 +1,6 @@
 import React from "react";
 import { createColumnHelper } from "@tanstack/react-table";
+import type { UserType } from "demos-server";
 
 import type { DeliverableTableRow } from "./DeliverableTable";
 import { Table } from "components/table/Table";
@@ -8,7 +9,6 @@ import { highlightCell, KeywordSearch } from "components/table/KeywordSearch";
 import { ColumnFilter } from "components/table/ColumnFilter";
 import { PaginationControls } from "components/table/PaginationControls";
 import { formatDeliverableStatus } from "./DeliverableTable";
-import type { DeliverableTableViewMode } from "./DeliverableTable";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
 
 const DEFAULT_EMPTY_ROWS_MESSAGE = "You have no assigned Deliverables at this time";
@@ -28,7 +28,7 @@ export type DemonstrationDeliverableTableRow = Pick<
 
 export const DemonstrationDeliverableTable: React.FC<{
   deliverables: DeliverableTableRow[];
-  viewMode?: DeliverableTableViewMode;
+  viewMode?: UserType;
   emptyRowsMessage?: string;
   noResultsFoundMessage?: string;
 }> = ({

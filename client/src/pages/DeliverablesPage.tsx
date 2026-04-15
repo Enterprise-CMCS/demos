@@ -6,16 +6,14 @@ import {
 import { getCurrentUser } from "components/user/UserContext";
 import { HorizontalSectionTabs, Tab } from "layout/Tabs";
 import React from "react";
-import type { PersonType } from "demos-server";
+import type { UserType } from "demos-server";
 import { useSessionTab } from "hooks/useSessionTab";
 import { useQuery } from "@apollo/client";
-type DeliverableTableViewMode = Exclude<PersonType, "non-user-contact">;
 
 export const DeliverablesPage: React.FC = () => {
   const { currentUser } = getCurrentUser();
   const rawPersonType = currentUser?.person.personType;
-  // Note. currentUser type by default cannot be non-user-contact.
-  const viewMode = rawPersonType as DeliverableTableViewMode;
+  const viewMode = rawPersonType as UserType;
   const { data, loading, error } = useQuery<DeliverablesQueryResult>(DELIVERABLES_PAGE_QUERY);
 
   const deliverables = data?.deliverables ?? [];
