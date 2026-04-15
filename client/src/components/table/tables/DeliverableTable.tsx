@@ -1,6 +1,6 @@
 import React from "react";
 import { gql } from "@apollo/client";
-import type { Deliverable, Person, PersonType, State } from "demos-server";
+import type { Deliverable, Person, UserType, State } from "demos-server";
 
 import { DeliverableColumns } from "../columns/DeliverableColumns";
 import { Table, type TableProps } from "../Table";
@@ -29,7 +29,7 @@ export type DeliverableTableRow = Omit<
   cmsDocuments: Pick<Deliverable["cmsDocuments"][number], "id">[];
   stateDocuments: Pick<Deliverable["stateDocuments"][number], "id">[];
 };
-export type DeliverableTableViewMode = Exclude<PersonType, "non-user-contact">;
+
 export type DeliverablesQueryResult = {
   deliverables: DeliverableTableRow[];
 };
@@ -80,7 +80,7 @@ export const formatDeliverableStatus = ({
 export const DeliverableTable: React.FC<{
   deliverables: DeliverableTableRow[];
   emptyRowsMessage?: string;
-  viewMode: DeliverableTableViewMode;
+  viewMode: UserType;
 }> = ({
   deliverables,
   emptyRowsMessage = EMPTY_ROWS_MESSAGE,
