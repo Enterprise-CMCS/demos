@@ -10,7 +10,10 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
   query ${GET_DELIVERABLE_DETAILS_QUERY_NAME}($id: ID!) {
     deliverable(id: $id) {
       id
+      name
       deliverableType
+      dueDate
+      status
       demonstration {
         id
         name
@@ -23,13 +26,41 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
           fullName
         }
       }
-      dueDate
-      status
     }
   }
 `;
 
-export type DeliverableDetailsManagementDeliverable = Pick<Deliverable, "id" | "deliverableType" | "dueDate" | "status"> & {
+const DeliverableInfoFields = ({deliverable}: {deliverable: DeliverableDetailsManagementDeliverable}) => {
+  const displayFields = [
+    { label: "Deliverable Type", value: deliverable.deliverableType },
+    { label: "Due Date", value: formatDate(deliverable.dueDate) },
+    { label: "Submission Date", value: "—" },
+    { label: "Status", value: deliverable.status },
+  ];
+
+  const VerticalRule = () => (
+    <div className="text-[18px] mt-0.5 font-title font-normal opacity-70" aria-hidden="true">|</div>
+  );
+
+  return (
+    <div className="inline-flex flex-wrap items-center gap-1">
+      {displayFields.map((field, index) => (
+        <React.Fragment key={field.label}>
+          <div className="text-[16px] mt-0.5 font-title">
+            <span className="font-semibold">{field.label}:{" "}</span>
+            <span className="font-normal" data-testid={`deliverable-${field.label}`}>
+              {field.value}
+            </span>
+          </div>
+          {index < displayFields.length - 1 && (<VerticalRule />)}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+
+};
+
+export type DeliverableDetailsManagementDeliverable = Pick<Deliverable, "id" | "deliverableType" | "dueDate" | "status" | "name" > & {
   demonstration: Pick<Demonstration, "id" | "name"> & { state: { id: string } };
   cmsOwner: { person: { fullName: string } };
 };
@@ -57,28 +88,11 @@ export const DeliverableDetailsManagementPage: React.FC = () => {
 
   return (
     <div className="shadow-md bg-white p-[16px]">
-      <h1 className="text-[20px] font-bold mb-[24px] text-brand uppercase border-b-1 pb-[8px]">
+      <h1 className="text-[20px] font-bold mb-[24px] text-brand uppercase border-b pb-[8px]">
         DELIVERABLES
       </h1>
-      <dl className="grid grid-cols-2">
-        <dt>Demonstration</dt>
-        <dd>{deliverable.demonstration.name}</dd>
-
-        <dt>Type</dt>
-        <dd>{deliverable.deliverableType}</dd>
-
-        <dt>CMS Owner</dt>
-        <dd>{deliverable.cmsOwner.person.fullName}</dd>
-
-        <dt>Due Date</dt>
-        <dd>{formatDate(deliverable.dueDate)}</dd>
-
-        <dt>Status</dt>
-        <dd>{deliverable.status}</dd>
-
-        <dt>State</dt>
-        <dd>{deliverable.demonstration.state.id}</dd>
-      </dl>
+      <h2 className="text-brand text-lg uppercase font-bold">{deliverable.name}</h2>
+      <DeliverableInfoFields deliverable={deliverable} />
     </div>
   );
 };
