@@ -17,12 +17,13 @@ export async function createDeliverable(
     await validateCreateDeliverableInput(parsedInput, tx);
 
     const newDeliverable = await insertDeliverable(parsedInput, tx);
+    const newDemonstrationTypes = parsedInput.demonstrationTypes ?? new Set();
 
     await setDeliverableDemonstrationTypes(
       {
         deliverableId: newDeliverable.id,
         demonstrationId: parsedInput.demonstrationId,
-        demonstrationTypes: parsedInput.demonstrationTypes ?? [],
+        demonstrationTypes: Array.from(newDemonstrationTypes),
       },
       tx
     );

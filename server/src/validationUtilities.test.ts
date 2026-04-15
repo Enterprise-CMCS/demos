@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { findDuplicates, findListDifferences } from "./validationUtilities";
+import { findDuplicates, findSetDifferences } from "./validationUtilities";
 
 describe("validationUtilities", () => {
   describe("findDuplicates", () => {
@@ -14,43 +14,40 @@ describe("validationUtilities", () => {
     });
   });
 
-  describe("findListDifferences", () => {
-    it("should return an empty object if the lists are the same", () => {
-      const result = findListDifferences(["A", "B", "C"], ["A", "B", "C"]);
+  describe("findSetDifferences", () => {
+    it("should return all the objects in the common key if the sets are the same", () => {
+      const result = findSetDifferences(new Set(["A", "B", "C"]), new Set(["A", "B", "C"]));
       expect(result).toEqual({
-        listsElementsSame: true,
-        inL1Only: [],
-        inL2Only: [],
-        listsUnique: {
-          l1: true,
-          l2: true,
-        },
-      });
-    });
-
-    it("should correctly report if the lists have duplicates", () => {
-      const result = findListDifferences(["A", "B", "C", "C"], ["A", "B", "C"]);
-      expect(result).toEqual({
-        listsElementsSame: true,
-        inL1Only: [],
-        inL2Only: [],
-        listsUnique: {
-          l1: false,
-          l2: true,
-        },
+        setsMatch: true,
+        common: new Set(["A", "B", "C"]),
+        inS1Only: new Set(),
+        inS2Only: new Set(),
       });
     });
 
     it("should correctly report items found in only one list", () => {
-      const result = findListDifferences(["A", "B", "C", "C", "F"], ["A", "B", "C", "E", "E", "F"]);
+      const result = findSetDifferences(
+        new Set(["A", "B", "C", "D", "E"]),
+        new Set(["A", "B", "C", "E", "F"])
+      );
       expect(result).toEqual({
-        listsElementsSame: false,
-        inL1Only: [],
-        inL2Only: ["E"],
-        listsUnique: {
-          l1: false,
-          l2: false,
-        },
+        setsMatch: false,
+        common: new Set(["A", "B", "C", "E"]),
+        inS1Only: new Set(["D"]),
+        inS2Only: new Set(["F"]),
+      });
+    });
+
+    it("should work regardless of order", () => {
+      const result = findSetDifferences(
+        new Set(["D", "E", "C", "A", "B"]),
+        new Set(["A", "B", "C", "E", "F"])
+      );
+      expect(result).toEqual({
+        setsMatch: false,
+        common: new Set(["A", "B", "C", "E"]),
+        inS1Only: new Set(["D"]),
+        inS2Only: new Set(["F"]),
       });
     });
   });

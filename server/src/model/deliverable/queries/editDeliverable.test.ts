@@ -1,10 +1,8 @@
 // Vitest and other helpers
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { TZDate } from "@date-fns/tz";
 
 // Types
-import { DeliverableType, PersonType } from "../../../types.js";
-import { ParsedUpdateDeliverableInput } from "..";
+import { EditDeliverableInput } from "..";
 
 // Functions under test
 import { editDeliverable } from "./editDeliverable";
@@ -40,7 +38,7 @@ describe("editDeliverable", () => {
   } as any;
 
   const testDeliverableId = "92ec6ad7-23e4-471d-a61c-c7b378e72271";
-  const baseTestInput: ParsedUpdateDeliverableInput = {
+  const baseTestInput: EditDeliverableInput = {
     name: "A test name",
   };
 
@@ -55,10 +53,7 @@ describe("editDeliverable", () => {
         id: testDeliverableId,
       },
       data: {
-        deliverableTypeId: undefined,
         name: baseTestInput.name,
-        cmsOwnerUserId: undefined,
-        dueDate: undefined,
       },
     };
     await editDeliverable(testDeliverableId, baseTestInput);
@@ -67,46 +62,21 @@ describe("editDeliverable", () => {
   });
 
   it("should update the provided fields via a transaction if one is given", async () => {
-    const expectedCall = {
-      where: {
-        id: testDeliverableId,
-      },
-      data: {
-        deliverableTypeId: undefined,
-        name: baseTestInput.name,
-        cmsOwnerUserId: undefined,
-        dueDate: undefined,
-      },
-    };
-    await editDeliverable(testDeliverableId, baseTestInput, mockTransaction);
-    expect(regularMocks.deliverable.update).not.toHaveBeenCalled();
-    expect(transactionMocks.deliverable.update).toHaveBeenCalledExactlyOnceWith(expectedCall);
-  });
-
-  it("should parse the date correctly if one is provided", async () => {
     const testInput = {
       ...baseTestInput,
-      dueDate: {
-        newDueDate: {
-          isEasternTZDate: true,
-          easternTZDate: new TZDate(2025, 2, 14, 3, 17, 22, 931, "America/New_York"),
-        },
-        dateChangeNote: "A date change note",
-      },
+      dueDate: new Date(2024, 11, 13, 22, 11, 15, 18),
     };
     const expectedCall = {
       where: {
         id: testDeliverableId,
       },
       data: {
-        deliverableTypeId: undefined,
-        name: baseTestInput.name,
-        cmsOwnerUserId: undefined,
-        dueDate: testInput.dueDate.newDueDate.easternTZDate,
+        name: testInput.name,
+        dueDate: testInput.dueDate,
       },
     };
-    await editDeliverable(testDeliverableId, testInput as ParsedUpdateDeliverableInput);
-    expect(regularMocks.deliverable.update).toHaveBeenCalledExactlyOnceWith(expectedCall);
-    expect(transactionMocks.deliverable.update).not.toHaveBeenCalled();
+    await editDeliverable(testDeliverableId, testInput, mockTransaction);
+    expect(regularMocks.deliverable.update).not.toHaveBeenCalled();
+    expect(transactionMocks.deliverable.update).toHaveBeenCalledExactlyOnceWith(expectedCall);
   });
 });

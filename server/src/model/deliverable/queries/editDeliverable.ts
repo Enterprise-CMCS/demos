@@ -1,10 +1,18 @@
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { prisma, PrismaTransactionClient } from "../../../prismaClient";
-import { ParsedUpdateDeliverableInput } from "..";
+import { DeliverableStatus, DeliverableType, NonEmptyString } from "../../../types";
+
+export type EditDeliverableInput = {
+  name?: NonEmptyString;
+  statusId?: DeliverableStatus;
+  deliverableTypeId?: DeliverableType;
+  cmsOwnerUserId?: string;
+  dueDate?: Date;
+};
 
 export async function editDeliverable(
   deliverableId: string,
-  input: ParsedUpdateDeliverableInput,
+  input: EditDeliverableInput,
   tx?: PrismaTransactionClient
 ): Promise<PrismaDeliverable> {
   const prismaClient = tx ?? prisma();
@@ -12,11 +20,6 @@ export async function editDeliverable(
     where: {
       id: deliverableId,
     },
-    data: {
-      deliverableTypeId: input.deliverableType,
-      name: input.name,
-      cmsOwnerUserId: input.cmsOwnerUserId,
-      dueDate: input.dueDate?.newDueDate.easternTZDate,
-    },
+    data: { ...input },
   });
 }

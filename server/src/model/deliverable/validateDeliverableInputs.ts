@@ -1,7 +1,5 @@
 import {
   checkDemonstrationStatus,
-  checkDueDateInFuture,
-  checkForDuplicateDemonstrationTypes,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
   getDeliverable,
@@ -31,13 +29,8 @@ export async function validateCreateDeliverableInput(
   );
 
   const errors: (string | undefined)[] = [];
-  errors.push(
-    checkDemonstrationStatus(demonstration),
-    checkOwnerPersonType(cmsOwnerUser),
-    checkDueDateInFuture(input.dueDate)
-  );
-  if (input.demonstrationTypes) {
-    errors.push(checkForDuplicateDemonstrationTypes(input.demonstrationTypes));
+  errors.push(checkDemonstrationStatus(demonstration), checkOwnerPersonType(cmsOwnerUser));
+  if (input.demonstrationTypes && input.demonstrationTypes.size > 0) {
     for (const requestedDeliverableDemonstrationType of input.demonstrationTypes) {
       errors.push(
         checkRequestedDeliverableDemonstrationType(
@@ -67,16 +60,12 @@ export async function validateUpdateDeliverableInput(
 ): Promise<void> {
   const errors: (string | undefined)[] = [];
 
-  if (input.dueDate) {
-    errors.push(checkDueDateInFuture(input.dueDate.newDueDate));
-  }
-
   if (input.cmsOwnerUserId) {
     const cmsOwnerUser = await getUser({ id: input.cmsOwnerUserId }, tx);
     errors.push(checkOwnerPersonType(cmsOwnerUser));
   }
 
-  if (input.demonstrationTypes) {
+  if (input.demonstrationTypes && input.demonstrationTypes.size > 0) {
     const deliverable = await getDeliverable({ id: deliverableId }, tx);
     const demonstrationTypeAssignments = await getDemonstrationTypeAssignments(
       {
@@ -84,7 +73,6 @@ export async function validateUpdateDeliverableInput(
       },
       tx
     );
-    errors.push(checkForDuplicateDemonstrationTypes(input.demonstrationTypes));
     for (const requestedDeliverableDemonstrationType of input.demonstrationTypes) {
       errors.push(
         checkRequestedDeliverableDemonstrationType(

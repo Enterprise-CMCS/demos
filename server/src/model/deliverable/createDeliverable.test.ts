@@ -126,7 +126,7 @@ describe("createDeliverable", () => {
     };
     const expandedMockParsedInput: ParsedCreateDeliverableInput = {
       ...mockParsedInput,
-      demonstrationTypes: ["Healthy Food", "Free Eye Exams"],
+      demonstrationTypes: new Set(["Healthy Food", "Free Eye Exams"]),
     };
     vi.mocked(parseCreateDeliverableInput).mockReturnValue(expandedMockParsedInput);
 
@@ -135,7 +135,7 @@ describe("createDeliverable", () => {
       {
         deliverableId: mockNewDeliverable.id,
         demonstrationId: expandedTestInput.demonstrationId,
-        demonstrationTypes: expandedMockParsedInput.demonstrationTypes,
+        demonstrationTypes: Array.from(expandedMockParsedInput.demonstrationTypes!),
       },
       mockTransaction
     );

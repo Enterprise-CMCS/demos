@@ -16,40 +16,37 @@ export function findDuplicates<T>(items: T[]): T[] {
   return duplicates;
 }
 
-export function findListDifferences<T>(
-  l1: T[],
-  l2: T[]
+export function findSetDifferences<T>(
+  s1: Set<T>,
+  s2: Set<T>
 ): {
-  listsElementsSame: boolean;
-  inL1Only: T[];
-  inL2Only: T[];
-  listsUnique: {
-    l1: boolean;
-    l2: boolean;
-  };
+  setsMatch: boolean;
+  common: Set<T>;
+  inS1Only: Set<T>;
+  inS2Only: Set<T>;
 } {
-  const s1 = new Set(l1);
-  const s2 = new Set(l2);
-  const inL1Only: T[] = [];
-  const inL2Only: T[] = [];
+  const common = new Set<T>();
+  const inS1Only = new Set<T>();
+  const inS2Only = new Set<T>();
 
   for (const item of s1) {
     if (!s2.has(item)) {
-      inL1Only.push(item);
+      inS1Only.add(item);
+    } else {
+      common.add(item);
     }
   }
   for (const item of s2) {
     if (!s1.has(item)) {
-      inL2Only.push(item);
+      inS2Only.add(item);
+    } else {
+      common.add(item);
     }
   }
   return {
-    listsElementsSame: inL1Only.length === 0 && inL2Only.length === 0,
-    inL1Only: inL1Only,
-    inL2Only: inL2Only,
-    listsUnique: {
-      l1: s1.size === l1.length,
-      l2: s2.size === l2.length,
-    },
+    setsMatch: inS1Only.size === 0 && inS2Only.size === 0,
+    common: common,
+    inS1Only: inS1Only,
+    inS2Only: inS2Only,
   };
 }

@@ -1,5 +1,6 @@
 import {
   CreateDeliverableInput,
+  DeliverableStatus,
   DeliverableType,
   NonEmptyString,
   TagName,
@@ -7,6 +8,7 @@ import {
 } from "../../types";
 import { EasternTZDate, parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities";
 import { checkInputDateIsEndOfDay } from "../applicationDate";
+import { checkForDuplicateDemonstrationTypes } from ".";
 
 export type ParsedCreateDeliverableInput = {
   name: NonEmptyString;
@@ -14,18 +16,21 @@ export type ParsedCreateDeliverableInput = {
   demonstrationId: string;
   cmsOwnerUserId: string;
   dueDate: EasternTZDate;
-  demonstrationTypes?: TagName[];
+  demonstrationTypes?: Set<TagName>;
+};
+
+export type ParsedUpdateDueDate = {
+  newDueDate: EasternTZDate;
+  dateChangeNote: NonEmptyString;
 };
 
 export type ParsedUpdateDeliverableInput = {
   name?: NonEmptyString;
   deliverableType?: DeliverableType;
   cmsOwnerUserId?: string;
-  dueDate?: {
-    newDueDate: EasternTZDate;
-    dateChangeNote: NonEmptyString;
-  };
-  demonstrationTypes?: TagName[];
+  dueDate?: ParsedUpdateDueDate;
+  demonstrationTypes?: Set<TagName>;
+  status?: DeliverableStatus;
 };
 
 export function parseCreateDeliverableInput(
@@ -33,33 +38,51 @@ export function parseCreateDeliverableInput(
 ): ParsedCreateDeliverableInput {
   const parsedDueDate = parseDateTimeOrLocalDateToEasternTZDate(input.dueDate, "End of Day");
   checkInputDateIsEndOfDay("dueDate", parsedDueDate);
-  return {
+
+  const result: ParsedCreateDeliverableInput = {
     name: input.name,
     deliverableType: input.deliverableType,
     demonstrationId: input.demonstrationId,
     cmsOwnerUserId: input.cmsOwnerUserId,
     dueDate: parsedDueDate,
-    demonstrationTypes: input.demonstrationTypes,
   };
+
+  if (input.demonstrationTypes) {
+    const duplicateCheckResult = checkForDuplicateDemonstrationTypes(input.demonstrationTypes);
+    if (duplicateCheckResult) {
+      throw new Error(duplicateCheckResult);
+    }
+    result.demonstrationTypes = new Set(input.demonstrationTypes);
+  }
+
+  return result;
 }
 
 export function parseUpdateDeliverableInput(
   input: UpdateDeliverableInput
 ): ParsedUpdateDeliverableInput {
-  if (input.dueDate) {
+  const { dueDate: inputDueDate, demonstrationTypes: inputDemonstrationTypes, ...rest } = input;
+  const result: ParsedUpdateDeliverableInput = { ...rest };
+
+  if (inputDueDate) {
     const parsedDueDate = parseDateTimeOrLocalDateToEasternTZDate(
-      input.dueDate.newDueDate,
+      inputDueDate.newDueDate,
       "End of Day"
     );
     checkInputDateIsEndOfDay("dueDate", parsedDueDate);
-    return {
-      ...input,
-      dueDate: {
-        newDueDate: parsedDueDate,
-        dateChangeNote: input.dueDate.dateChangeNote,
-      },
+    result.dueDate = {
+      newDueDate: parsedDueDate,
+      dateChangeNote: inputDueDate.dateChangeNote,
     };
-  } else {
-    return input as ParsedUpdateDeliverableInput;
   }
+
+  if (inputDemonstrationTypes) {
+    const duplicateCheckResult = checkForDuplicateDemonstrationTypes(inputDemonstrationTypes);
+    if (duplicateCheckResult) {
+      throw new Error(duplicateCheckResult);
+    }
+    result.demonstrationTypes = new Set(inputDemonstrationTypes);
+  }
+
+  return result;
 }
