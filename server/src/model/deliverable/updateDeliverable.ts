@@ -24,9 +24,9 @@ export async function updateDeliverable(
 
     // Directly edit name, deliverable type, and CMS owner
     const editInput: EditDeliverableInput = {};
-    if (input.name) editInput.name = input.name;
-    if (input.deliverableType) editInput.deliverableTypeId = input.deliverableType;
-    if (input.cmsOwnerUserId) editInput.cmsOwnerUserId = input.cmsOwnerUserId;
+    if (parsedInput.name) editInput.name = parsedInput.name;
+    if (parsedInput.deliverableType) editInput.deliverableTypeId = parsedInput.deliverableType;
+    if (parsedInput.cmsOwnerUserId) editInput.cmsOwnerUserId = parsedInput.cmsOwnerUserId;
     if (Object.keys(editInput).length > 0) {
       editDeliverable(deliverableId, editInput, tx);
     }

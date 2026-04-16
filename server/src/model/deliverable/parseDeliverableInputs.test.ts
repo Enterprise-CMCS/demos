@@ -91,6 +91,23 @@ describe("parseDeliverableInputs", () => {
       expect(checkForDuplicateDemonstrationTypes).not.toHaveBeenCalled();
       expect(result).toStrictEqual(expectedResult);
     });
+
+    it("should throw if given duplicate demonstration types", () => {
+      vi.mocked(checkForDuplicateDemonstrationTypes).mockReturnValue("There are duplicates!!");
+      const testInput = {
+        ...baseTestInput,
+        demonstrationTypes: ["Free Insulin", "Free Insulin"],
+      };
+
+      try {
+        parseCreateDeliverableInput(testInput);
+        throw new Error("Expected parseCreateDeliverableInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(Error);
+        const error = e as Error;
+        expect(error.message).toBe("There are duplicates!!");
+      }
+    });
   });
 
   describe("parseUpdateDeliverableInput", () => {
