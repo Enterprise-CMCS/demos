@@ -22,7 +22,6 @@ import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate"
 import {
   deleteApplication,
   getApplication,
-  resolveApplicationDocuments,
   resolveApplicationPhases,
   resolveApplicationTags,
   resolveSuggestedApplicationTags,
@@ -33,6 +32,7 @@ import { GraphQLContext } from "../../auth/auth.util.js";
 import { getDemonstration, getManyDemonstrations } from "./demonstrationData.js";
 import { getManyAmendments } from "../amendment/amendmentData.js";
 import { getManyExtensions } from "../extension/extensionData.js";
+import { getManyDocuments } from "../document/documentData.js";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -266,7 +266,8 @@ export const demonstrationResolvers = {
 
   Demonstration: {
     state: __resolveDemonstrationState,
-    documents: resolveApplicationDocuments,
+    documents: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
+      getManyDocuments({ applicationId: parent.id }, context.user),
     amendments: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
       getManyAmendments({ demonstrationId: parent.id }, context.user),
     extensions: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>

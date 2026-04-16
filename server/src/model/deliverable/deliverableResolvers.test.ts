@@ -48,14 +48,14 @@ vi.mock("../user", () => ({
   getUser: vi.fn(),
 }));
 
-vi.mock("../document", () => ({
+vi.mock("../document/documentData.js", () => ({
   getManyDocuments: vi.fn(),
 }));
 
 import { createDeliverable, getDeliverable, getManyDeliverables } from ".";
 import { getApplication } from "../application";
 import { getUser } from "../user";
-import { getManyDocuments } from "../document";
+import { getManyDocuments } from "../document/documentData.js";
 
 describe("deliverableResolvers", () => {
   const testDeliverableId = "82ef9a17-e8b9-48ab-9aaf-3d1787822b13";
@@ -88,6 +88,12 @@ describe("deliverableResolvers", () => {
       name: "User",
     },
   };
+
+  const testContext: GraphQLContext = {
+    user: {
+      id: "testUserId",
+    },
+  } as GraphQLContext;
 
   const testDocumentWithDeliverableParent: Partial<PrismaDocument> = {
     deliverableId: testDeliverableId,
@@ -233,19 +239,33 @@ describe("deliverableResolvers", () => {
 
   describe("resolveDeliverableCmsDocuments", () => {
     it("should query the CMS documents belonging to this deliverable", async () => {
-      await resolveDeliverableCmsDocuments(testDeliverable as PrismaDeliverable);
-      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith({
-        AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: true }],
-      });
+      await resolveDeliverableCmsDocuments(
+        testDeliverable as PrismaDeliverable,
+        undefined,
+        testContext
+      );
+      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: true }],
+        },
+        testContext.user
+      );
     });
   });
 
   describe("resolveDeliverableStateDocuments", () => {
     it("should query the state documents belonging to this deliverable", async () => {
-      await resolveDeliverableStateDocuments(testDeliverable as PrismaDeliverable);
-      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith({
-        AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: false }],
-      });
+      await resolveDeliverableStateDocuments(
+        testDeliverable as PrismaDeliverable,
+        undefined,
+        testContext
+      );
+      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: false }],
+        },
+        testContext.user
+      );
     });
   });
 
@@ -257,6 +277,7 @@ describe("deliverableResolvers", () => {
           deliverableType: "Close Out Report",
           demonstrationId: testDemonstrationId,
           dueDate: "2025-11-31" as DateTimeOrLocalDate,
+          cmsOwnerUserId: testUserId,
         };
 
         await deliverableResolvers.Mutation.createDeliverable(
