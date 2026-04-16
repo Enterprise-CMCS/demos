@@ -3,9 +3,11 @@ import React from "react";
 
 export const FileAndHistoryTabs = () => {
   return (
-    <HorizontalSectionTabs defaultValue="files">
-      <Tab label="Files" value="files"><div>Files Tab Coming Soon</div></Tab>
-      <Tab label="History" value="history"><div>History Tab Coming Soon</div></Tab>
-    </HorizontalSectionTabs>
+    <div data-testid="file-and-history-tabs">
+      <HorizontalSectionTabs defaultValue="files">
+        <Tab label="Files" value="files"><div>Files Tab Coming Soon</div></Tab>
+        <Tab label="History" value="history"><div>History Tab Coming Soon</div></Tab>
+      </HorizontalSectionTabs>
+    </div>
   );
 };

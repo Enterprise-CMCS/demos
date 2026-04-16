@@ -15,7 +15,7 @@ export const DeliverableInfoFields = ({deliverable}: {deliverable: DeliverableDe
   );
 
   return (
-    <div className="inline-flex flex-wrap items-center gap-1">
+    <div className="inline-flex flex-wrap items-center gap-1" data-testid="deliverable-info-fields">
       {displayFields.map((field, index) => (
         <React.Fragment key={field.label}>
           <div className="text-[16px] mt-0.5 font-title">

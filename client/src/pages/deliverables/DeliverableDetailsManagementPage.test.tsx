@@ -19,35 +19,43 @@ const renderAtRoute = (deliverableId: string) =>
   );
 
 describe("DeliverableDetailsManagementPage", () => {
-  it("renders deliverable details after query resolves", async () => {
+  it("renders the deliverable name heading", async () => {
     renderAtRoute("1");
 
     await waitFor(() =>
-      expect(screen.getByText(MOCK_DELIVERABLE_1.demonstration.name)).toBeInTheDocument()
+      expect(screen.getByText(MOCK_DELIVERABLE_1.name)).toBeInTheDocument()
     );
   });
 
-  it("shows the demonstration name", async () => {
+  it("renders DeliverableInfoFields", async () => {
     renderAtRoute("1");
 
     await waitFor(() =>
-      expect(screen.getByText(MOCK_DELIVERABLE_1.demonstration.name)).toBeInTheDocument()
+      expect(screen.getByTestId("deliverable-info-fields")).toBeInTheDocument()
     );
   });
 
-  it("shows the status", async () => {
+  it("renders DeliverableButtons", async () => {
     renderAtRoute("1");
 
     await waitFor(() =>
-      expect(screen.getByText(MOCK_DELIVERABLE_1.status)).toBeInTheDocument()
+      expect(screen.getByTestId("deliverable-buttons")).toBeInTheDocument()
     );
   });
 
-  it("shows the primary contact", async () => {
+  it("renders FileAndHistoryTabs", async () => {
     renderAtRoute("1");
 
     await waitFor(() =>
-      expect(screen.getByText(MOCK_DELIVERABLE_1.cmsOwner.person.fullName)).toBeInTheDocument()
+      expect(screen.getByTestId("file-and-history-tabs")).toBeInTheDocument()
+    );
+  });
+
+  it("renders CommentBox", async () => {
+    renderAtRoute("1");
+
+    await waitFor(() =>
+      expect(screen.getByTestId("comment-box")).toBeInTheDocument()
     );
   });
 
