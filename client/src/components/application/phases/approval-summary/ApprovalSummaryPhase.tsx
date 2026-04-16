@@ -63,23 +63,6 @@ const UPDATE_EXTENSION_MUTATION = gql`
   }
 `;
 
-const RESET_DEMONSTRATION_INPUT: UpdateDemonstrationInput = {
-  effectiveDate: null,
-  expirationDate: null,
-  description: "",
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  sdgDivision: null as any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  signatureLevel: null as any,
-};
-
-const RESET_MODIFICATION_INPUT = {
-  effectiveDate: null,
-  description: "",
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  signatureLevel: null as any,
-};
-
 type ApprovalSummaryPhaseProps = {
   applicationId: string;
   demonstrationId: string;
@@ -394,46 +377,6 @@ export const ApprovalSummaryPhase = ({
 
   const handleMarkIncomplete = async () => {
     try {
-      if (approvalSummaryFormData.applicationType === "demonstration") {
-        await updateDemonstrationTrigger({
-          variables: {
-            id: applicationId,
-            input: RESET_DEMONSTRATION_INPUT,
-          },
-        });
-      } else if (approvalSummaryFormData.applicationType === "amendment") {
-        await updateAmendmentTrigger({
-          variables: {
-            id: applicationId,
-            input: RESET_MODIFICATION_INPUT,
-          },
-        });
-      } else {
-        await updateExtensionTrigger({
-          variables: {
-            id: applicationId,
-            input: RESET_MODIFICATION_INPUT,
-          },
-        });
-      }
-
-      setApprovalSummaryFormData((previousFormData) => ({
-        ...previousFormData,
-        effectiveDate: undefined,
-        expirationDate: undefined,
-        description: "",
-        sdgDivision: undefined,
-        signatureLevel: undefined,
-        readonlyFields: {
-          ...previousFormData.readonlyFields,
-          effectiveDate: false,
-          expirationDate: false,
-          description: false,
-          sdgDivision: false,
-          signatureLevel: false,
-        },
-      }));
-
       await setApplicationDate({
         applicationId: applicationId,
         dateType: "Application Details Marked Complete Date",
@@ -442,7 +385,7 @@ export const ApprovalSummaryPhase = ({
 
       setApplicationDetailsUIState(false);
     } catch (error) {
-      console.error("Failed to reset application details:", error);
+      console.error("Failed to set Completion Date:", error);
     }
   };
 

@@ -5,13 +5,14 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { createSelectColumnDef } from "./selectColumn";
 import { createDateColumnDef } from "./dateColumn";
 import { STATES_AND_TERRITORIES } from "demos-server-constants";
+import type { UserType } from "demos-server";
 
 import { SecondaryButton } from "../../button/SecondaryButton";
 import { highlightCell } from "../KeywordSearch";
-import type { DeliverableTableRow, DeliverableTableViewMode } from "../tables/DeliverableTable";
+import type { DeliverableTableRow } from "../tables/DeliverableTable";
 
 type DeliverableColumnsProps = {
-  viewMode: DeliverableTableViewMode;
+  viewMode: UserType;
 };
 
 export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
