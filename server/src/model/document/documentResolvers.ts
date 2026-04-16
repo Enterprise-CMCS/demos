@@ -175,8 +175,11 @@ export const documentResolvers = {
   Query: {
     document: (parent: unknown, args: { id: string }, context: GraphQLContext) =>
       getDocument({ id: args.id }, context.user),
-    documentExists: (parent: unknown, args: { id: string }, context: GraphQLContext) =>
-      !!getDocument({ id: args.id }, context.user),
+    documentExists: async (
+      parent: unknown,
+      args: { documentId: string },
+      context: GraphQLContext
+    ) => !!(await getDocument({ id: args.documentId }, context.user)),
   },
 
   Mutation: {
