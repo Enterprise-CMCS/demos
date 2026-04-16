@@ -2,6 +2,8 @@ import React from "react";
 import { DeliverableDetailsManagementDeliverable } from "../DeliverableDetailsManagementPage";
 import { formatDate } from "util/formatDate";
 
+export const DELIVERABLE_INFO_FIELDS_NAME = "deliverable-info-fields";
+
 export const DeliverableInfoFields = ({deliverable}: {deliverable: DeliverableDetailsManagementDeliverable}) => {
   const displayFields = [
     { label: "Deliverable Type", value: deliverable.deliverableType },
@@ -15,7 +17,7 @@ export const DeliverableInfoFields = ({deliverable}: {deliverable: DeliverableDe
   );
 
   return (
-    <div className="inline-flex flex-wrap items-center gap-1" data-testid="deliverable-info-fields">
+    <div className="inline-flex flex-wrap items-center gap-1" data-testid={DELIVERABLE_INFO_FIELDS_NAME}>
       {displayFields.map((field, index) => (
         <React.Fragment key={field.label}>
           <div className="text-[16px] mt-0.5 font-title">

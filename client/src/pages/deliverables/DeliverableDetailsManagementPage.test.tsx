@@ -5,6 +5,10 @@ import { describe, expect, it } from "vitest";
 import { DeliverableDetailsManagementPage, DELIVERABLE_DETAILS_QUERY } from "./DeliverableDetailsManagementPage";
 import { MOCK_DELIVERABLE_1 } from "mock-data/deliverableMocks";
 import { TestProvider } from "test-utils/TestProvider";
+import { COMMENT_BOX_NAME } from "./sections/CommentBox";
+import { DELIVERABLE_INFO_FIELDS_NAME } from "./sections/DeliverableInfoFields";
+import { FILE_AND_HISTORY_TABS_NAME } from "./sections/FileAndHistoryTabs";
+import { DELIVERABLE_BUTTONS_NAME } from "./sections/DeliverableButtons";
 
 const renderAtRoute = (deliverableId: string) =>
   render(
@@ -31,7 +35,7 @@ describe("DeliverableDetailsManagementPage", () => {
     renderAtRoute("1");
 
     await waitFor(() =>
-      expect(screen.getByTestId("deliverable-info-fields")).toBeInTheDocument()
+      expect(screen.getByTestId(DELIVERABLE_INFO_FIELDS_NAME)).toBeInTheDocument()
     );
   });
 
@@ -39,7 +43,7 @@ describe("DeliverableDetailsManagementPage", () => {
     renderAtRoute("1");
 
     await waitFor(() =>
-      expect(screen.getByTestId("deliverable-buttons")).toBeInTheDocument()
+      expect(screen.getByTestId(DELIVERABLE_BUTTONS_NAME)).toBeInTheDocument()
     );
   });
 
@@ -47,7 +51,7 @@ describe("DeliverableDetailsManagementPage", () => {
     renderAtRoute("1");
 
     await waitFor(() =>
-      expect(screen.getByTestId("file-and-history-tabs")).toBeInTheDocument()
+      expect(screen.getByTestId(FILE_AND_HISTORY_TABS_NAME)).toBeInTheDocument()
     );
   });
 
@@ -55,7 +59,7 @@ describe("DeliverableDetailsManagementPage", () => {
     renderAtRoute("1");
 
     await waitFor(() =>
-      expect(screen.getByTestId("comment-box")).toBeInTheDocument()
+      expect(screen.getByTestId(COMMENT_BOX_NAME)).toBeInTheDocument()
     );
   });
 
