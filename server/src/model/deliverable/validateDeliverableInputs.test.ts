@@ -12,6 +12,7 @@ import {
   User as PrismaUser,
 } from "@prisma/client";
 import { GraphQLError } from "graphql";
+import { EasternTZDate } from "../../dateUtilities";
 
 // Functions under test
 import {
@@ -34,6 +35,7 @@ vi.mock("../demonstrationTypeTagAssignment", () => ({
 
 vi.mock(".", () => ({
   checkDemonstrationStatus: vi.fn(),
+  checkDueDateInFuture: vi.fn(),
   checkOwnerPersonType: vi.fn(),
   checkRequestedDeliverableDemonstrationType: vi.fn(),
   getDeliverable: vi.fn(),
@@ -44,11 +46,11 @@ import { getUser } from "../user";
 import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
 import {
   checkDemonstrationStatus,
+  checkDueDateInFuture,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
   getDeliverable,
 } from ".";
-import { EasternTZDate } from "../../dateUtilities";
 
 describe("validateDeliverableInputs", () => {
   const testEasternDate: EasternTZDate = {
@@ -121,10 +123,11 @@ describe("validateDeliverableInputs", () => {
       );
     });
 
-    it("should call the checking functions with the results of the queries", async () => {
+    it("should call the checking functions, using the results of the queries if appropriate", async () => {
       await validateCreateDeliverableInput(testInput, mockTransaction);
       expect(checkDemonstrationStatus).toHaveBeenCalledExactlyOnceWith(mockDemonstration);
       expect(checkOwnerPersonType).toHaveBeenCalledExactlyOnceWith(mockUser);
+      expect(checkDueDateInFuture).toHaveBeenCalledExactlyOnceWith(testEasternDate);
       expect(vi.mocked(checkRequestedDeliverableDemonstrationType).mock.calls).toStrictEqual([
         [
           Array.from(testInput.demonstrationTypes!)[0],
@@ -204,6 +207,25 @@ describe("validateDeliverableInputs", () => {
       }
     });
 
+    it("should throw if the future due date check fails", async () => {
+      vi.mocked(checkDueDateInFuture).mockReturnValue("The future due date check failed");
+
+      try {
+        await validateCreateDeliverableInput(testInput, mockTransaction);
+        throw new Error("Expected validateCreateDeliverableInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for createDeliverable have failed."
+        );
+        expect(error.extensions.code).toBe("CREATE_DELIVERABLE_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The future due date check failed",
+        ]);
+      }
+    });
+
     it("should throw if the allowed demonstration type check fails", async () => {
       vi.mocked(checkRequestedDeliverableDemonstrationType).mockReturnValue(
         "The demonstration type check failed"
@@ -250,6 +272,7 @@ describe("validateDeliverableInputs", () => {
     it("should combine all errors into one object", async () => {
       vi.mocked(checkDemonstrationStatus).mockReturnValue("The demo status check failed");
       vi.mocked(checkOwnerPersonType).mockReturnValue("The owner person type check failed");
+      vi.mocked(checkDueDateInFuture).mockReturnValue("The future due date check failed");
       vi.mocked(checkRequestedDeliverableDemonstrationType).mockReturnValueOnce(
         "The demonstration type check failed"
       );
@@ -267,6 +290,7 @@ describe("validateDeliverableInputs", () => {
         expect(error.extensions.originalMessages).toStrictEqual([
           "The demo status check failed",
           "The owner person type check failed",
+          "The future due date check failed",
           "The demonstration type check failed",
         ]);
       }

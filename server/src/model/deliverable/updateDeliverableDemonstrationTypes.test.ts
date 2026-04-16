@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Types
-import { TagName } from "../../types.js";
+import { TagName } from "../../types";
 import {
   Deliverable as PrismaDeliverable,
   DeliverableDemonstrationType as PrismaDeliverableDemonstrationType,

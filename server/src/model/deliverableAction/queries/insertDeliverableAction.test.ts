@@ -9,11 +9,11 @@ import { InsertDeliverableActionInput } from "..";
 import { insertDeliverableAction } from "./insertDeliverableAction";
 
 // Mock imports
-vi.mock("../../../prismaClient.js", () => ({
+vi.mock("../../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
-import { prisma } from "../../../prismaClient.js";
+import { prisma } from "../../../prismaClient";
 
 describe("insertDeliverableAction", () => {
   // Test inputs

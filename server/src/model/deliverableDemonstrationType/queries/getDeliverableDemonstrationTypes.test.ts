@@ -7,11 +7,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { getDeliverableDemonstrationTypes } from "./getDeliverableDemonstrationTypes";
 
 // Mock imports
-vi.mock("../../../prismaClient.js", () => ({
+vi.mock("../../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
-import { prisma } from "../../../prismaClient.js";
+import { prisma } from "../../../prismaClient";
 
 describe("getDeliverableDemonstrationTypes", () => {
   const regularMocks = {

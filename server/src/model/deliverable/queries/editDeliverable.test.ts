@@ -8,11 +8,11 @@ import { EditDeliverableInput } from "..";
 import { editDeliverable } from "./editDeliverable";
 
 // Mock imports
-vi.mock("../../../prismaClient.js", () => ({
+vi.mock("../../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
-import { prisma } from "../../../prismaClient.js";
+import { prisma } from "../../../prismaClient";
 
 describe("editDeliverable", () => {
   const regularMocks = {

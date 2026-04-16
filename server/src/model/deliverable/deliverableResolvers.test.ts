@@ -8,7 +8,7 @@ import {
   Document as PrismaDocument,
   User as PrismaUser,
 } from "@prisma/client";
-import { GraphQLContext } from "../../auth/auth.util.js";
+import { GraphQLContext } from "../../auth/auth.util";
 import { GraphQLResolveInfo } from "graphql";
 import {
   CreateDeliverableInput,
@@ -17,7 +17,7 @@ import {
   DeliverableStatus,
   DeliverableType,
   UpdateDeliverableInput,
-} from "../../types.js";
+} from "../../types";
 
 // Functions under test
 import {

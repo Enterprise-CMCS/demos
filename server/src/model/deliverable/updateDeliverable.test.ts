@@ -3,15 +3,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
 
 // Types
-import { UpdateDeliverableInput, DateTimeOrLocalDate, DeliverableType } from "../../types.js";
+import { UpdateDeliverableInput, DateTimeOrLocalDate, DeliverableType } from "../../types";
 import { EditDeliverableInput, ParsedUpdateDeliverableInput } from ".";
-import { GraphQLContext } from "../../auth/auth.util.js";
+import { GraphQLContext } from "../../auth/auth.util";
 
 // Functions under test
 import { updateDeliverable } from "./updateDeliverable";
 
 // Mock imports
-vi.mock("../../prismaClient.js", () => ({
+vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
@@ -24,7 +24,11 @@ vi.mock(".", () => ({
   validateUpdateDeliverableInput: vi.fn(),
 }));
 
-import { prisma } from "../../prismaClient.js";
+vi.mock("../../errors/checkOptionalNotNullFields", () => ({
+  checkOptionalNotNullFields: vi.fn(),
+}));
+
+import { prisma } from "../../prismaClient";
 import {
   editDeliverable,
   getDeliverable,
@@ -33,6 +37,7 @@ import {
   updateDeliverableDemonstrationTypes,
   validateUpdateDeliverableInput,
 } from ".";
+import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 
 describe("updateDeliverable", () => {
   // Test inputs
@@ -68,6 +73,14 @@ describe("updateDeliverable", () => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(parseUpdateDeliverableInput).mockReturnValue(mockParseInputResult);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
+  });
+
+  it("should check for non-null in all the fields", async () => {
+    await updateDeliverable(testDeliverableId, testInput, testContext);
+    expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(
+      ["name", "deliverableType", "cmsOwnerUserId", "dueDate", "demonstrationTypes"],
+      testInput
+    );
   });
 
   it("should parse the input", async () => {

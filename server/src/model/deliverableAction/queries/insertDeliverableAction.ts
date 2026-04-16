@@ -1,5 +1,5 @@
 import { DeliverableAction as PrismaDeliverableAction } from "@prisma/client";
-import { prisma, PrismaTransactionClient } from "../../../prismaClient.js";
+import { prisma, PrismaTransactionClient } from "../../../prismaClient";
 import { DeliverableActionType, DeliverableStatus } from "../../../types";
 
 export type InsertDeliverableActionInput = {

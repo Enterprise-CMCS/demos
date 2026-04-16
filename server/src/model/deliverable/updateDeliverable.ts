@@ -11,12 +11,17 @@ import {
   validateUpdateDeliverableInput,
 } from ".";
 import { prisma } from "../../prismaClient";
+import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 
 export async function updateDeliverable(
   deliverableId: string,
   input: UpdateDeliverableInput,
   context: GraphQLContext
 ): Promise<PrismaDeliverable> {
+  checkOptionalNotNullFields(
+    ["name", "deliverableType", "cmsOwnerUserId", "dueDate", "demonstrationTypes"],
+    input
+  );
   const parsedInput = parseUpdateDeliverableInput(input);
 
   const updatedDeliverable = await prisma().$transaction(async (tx) => {
@@ -28,12 +33,12 @@ export async function updateDeliverable(
     if (parsedInput.deliverableType) editInput.deliverableTypeId = parsedInput.deliverableType;
     if (parsedInput.cmsOwnerUserId) editInput.cmsOwnerUserId = parsedInput.cmsOwnerUserId;
     if (Object.keys(editInput).length > 0) {
-      editDeliverable(deliverableId, editInput, tx);
+      await editDeliverable(deliverableId, editInput, tx);
     }
 
     // Update demonstration types and due date
-    updateDeliverableDemonstrationTypes(deliverableId, parsedInput, tx);
-    manuallyUpdateDeliverableDueDate(deliverableId, parsedInput, context, tx);
+    await updateDeliverableDemonstrationTypes(deliverableId, parsedInput, tx);
+    await manuallyUpdateDeliverableDueDate(deliverableId, parsedInput, context, tx);
 
     return await getDeliverable({ id: deliverableId }, tx);
   });

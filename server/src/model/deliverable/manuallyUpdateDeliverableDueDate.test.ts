@@ -2,9 +2,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Types
-import { GraphQLContext } from "../../auth/auth.util.js";
+import { GraphQLContext } from "../../auth/auth.util";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
-import { DeliverableStatus } from "../../types.js";
+import { DeliverableStatus } from "../../types";
 import { ParsedUpdateDeliverableInput } from ".";
 
 // Functions under test

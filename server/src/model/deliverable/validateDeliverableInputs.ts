@@ -1,12 +1,13 @@
 import {
   checkDemonstrationStatus,
+  checkDueDateInFuture,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
   getDeliverable,
   ParsedCreateDeliverableInput,
   ParsedUpdateDeliverableInput,
 } from ".";
-import { PrismaTransactionClient } from "../../prismaClient.js";
+import { PrismaTransactionClient } from "../../prismaClient";
 import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
@@ -29,7 +30,11 @@ export async function validateCreateDeliverableInput(
   );
 
   const errors: (string | undefined)[] = [];
-  errors.push(checkDemonstrationStatus(demonstration), checkOwnerPersonType(cmsOwnerUser));
+  errors.push(
+    checkDemonstrationStatus(demonstration),
+    checkOwnerPersonType(cmsOwnerUser),
+    checkDueDateInFuture(input.dueDate)
+  );
   if (input.demonstrationTypes && input.demonstrationTypes.size > 0) {
     for (const requestedDeliverableDemonstrationType of input.demonstrationTypes) {
       errors.push(

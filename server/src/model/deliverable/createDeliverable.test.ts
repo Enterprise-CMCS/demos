@@ -3,16 +3,16 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
 
 // Types
-import { CreateDeliverableInput, DateTimeOrLocalDate, DeliverableType } from "../../types.js";
+import { CreateDeliverableInput, DateTimeOrLocalDate, DeliverableType } from "../../types";
 import { ParsedCreateDeliverableInput } from ".";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
-import { GraphQLContext } from "../../auth/auth.util.js";
+import { GraphQLContext } from "../../auth/auth.util";
 
 // Functions under test
 import { createDeliverable } from "./createDeliverable";
 
 // Mock imports
-vi.mock("../../prismaClient.js", () => ({
+vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
@@ -30,7 +30,7 @@ vi.mock("../deliverableAction", () => ({
   insertDeliverableAction: vi.fn(),
 }));
 
-import { prisma } from "../../prismaClient.js";
+import { prisma } from "../../prismaClient";
 import { parseCreateDeliverableInput, validateCreateDeliverableInput, insertDeliverable } from ".";
 import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 import { insertDeliverableAction } from "../deliverableAction";
