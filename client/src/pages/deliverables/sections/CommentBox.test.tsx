@@ -1,10 +1,10 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import { CommentBox } from "./CommentBox";
+import { COMMENT_BOX_NAME, CommentBox } from "./CommentBox";
 
 describe("CommentBox", () => {
   it("renders without crashing", () => {
     render(<CommentBox />);
-    expect(screen.getByText(/comment box/i)).toBeInTheDocument();
+    expect(screen.getByTestId(COMMENT_BOX_NAME)).toBeInTheDocument();
   });
 });

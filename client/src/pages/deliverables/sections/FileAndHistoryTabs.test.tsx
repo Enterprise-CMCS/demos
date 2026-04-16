@@ -11,18 +11,24 @@ describe("FileAndHistoryTabs", () => {
       </TestProvider>
     );
 
-  it("renders the Files tab", () => {
+  it("renders the State Files tab", () => {
     setup();
-    expect(screen.getByText("Files")).toBeInTheDocument();
+    expect(screen.getByText("State Files")).toBeInTheDocument();
   });
+
+  it("renders the CMS Files tab", () => {
+    setup();
+    expect(screen.getByText("CMS Files")).toBeInTheDocument();
+  });
+
 
   it("renders the History tab", () => {
     setup();
     expect(screen.getByText("History")).toBeInTheDocument();
   });
 
-  it("shows Files tab content by default", () => {
+  it("shows State Files tab content by default", () => {
     setup();
-    expect(screen.getByText("Files Tab Coming Soon")).toBeInTheDocument();
+    expect(screen.getByText("State Files Tab Coming Soon")).toBeInTheDocument();
   });
 });
