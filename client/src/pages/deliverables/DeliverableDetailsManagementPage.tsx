@@ -59,18 +59,18 @@ export const DeliverableDetailsManagementPage: React.FC = () => {
   }
 
   return (
-    <div className="shadow-md bg-white p-[16px]">
+    <div className="shadow-md bg-white p-[16px] h-full flex flex-col">
       <h1 className="text-[20px] font-bold mb-[24px] text-brand uppercase border-b pb-[8px]">
         DELIVERABLES
       </h1>
       <h2 className="text-brand text-md uppercase font-bold">{data.deliverable.name}</h2>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 flex-1">
         <div className="flex justify-between items-start">
           <DeliverableInfoFields deliverable={data.deliverable} />
           <DeliverableButtons />
         </div>
-        <div className="grid grid-cols-6 w-full gap-2">
-          <div className="col-span-5"><FileAndHistoryTabs /></div>
+        <div className="grid grid-cols-4 w-full gap-2 flex-1">
+          <div className="col-span-3"><FileAndHistoryTabs /></div>
           <div className="col-span-1"><CommentBox /></div>
         </div>
       </div>
