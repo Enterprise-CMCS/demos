@@ -16,7 +16,7 @@ import { sortDeliverablesByDefault } from "util/sortDeliverables";
 
 export type DeliverableTableRow = Omit<
   Deliverable,
-  "demonstration" | "cmsOwner" | "cmsDocuments" | "stateDocuments" | "name"
+  "demonstration" | "cmsOwner" | "demonstrationTypes" | "cmsDocuments" | "stateDocuments" | "name"
 > & {
   name: string;
   demonstration: Pick<Deliverable["demonstration"], "id" | "name"> & {
