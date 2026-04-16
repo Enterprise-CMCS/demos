@@ -141,7 +141,7 @@ describe("amendmentResolvers", () => {
     expect(getManyAmendments).toHaveBeenCalledExactlyOnceWith({}, mockUser);
   });
 
-  it("delegates `Amendment.documents` to `documentData.getDocument`", async () => {
+  it("delegates `Amendment.documents` to `documentData.getManyDocuments`", async () => {
     const mockAmendment = { id: "abc123" } as PrismaAmendment;
     await amendmentResolvers.Amendment.documents(mockAmendment, undefined, mockContext);
     expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith({ applicationId: "abc123" }, mockUser);

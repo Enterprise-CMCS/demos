@@ -250,7 +250,7 @@ describe("demonstrationResolvers", () => {
     expect(getManyDemonstrations).toHaveBeenCalledExactlyOnceWith({}, mockUser);
   });
 
-  it("delegates `Demonstration.documents` to `documentData.getDocument`", async () => {
+  it("delegates `Demonstration.documents` to `documentData.getManyDocuments`", async () => {
     const mockDemonstration = { id: "abc123" } as PrismaDemonstration;
     await demonstrationResolvers.Demonstration.documents(mockDemonstration, undefined, mockContext);
     expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith({ applicationId: "abc123" }, mockUser);

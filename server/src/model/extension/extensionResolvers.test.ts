@@ -146,7 +146,7 @@ describe("extensionResolvers", () => {
     expect(getManyExtensions).toHaveBeenCalledExactlyOnceWith({}, mockUser);
   });
 
-  it("delegates `Extension.documents` to `documentData.getDocument`", async () => {
+  it("delegates `Extension.documents` to `documentData.getManyDocuments`", async () => {
     const mockExtension = { id: "abc123" } as PrismaExtension;
     await extensionResolvers.Extension.documents(mockExtension, undefined, mockContext);
     expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith({ applicationId: "abc123" }, mockUser);

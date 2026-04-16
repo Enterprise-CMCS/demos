@@ -15,7 +15,6 @@ import { getApplication } from "../application";
 import { completePhase, declareCompletenessPhaseIncomplete, skipConceptPhase } from ".";
 import { GraphQLContext } from "../../auth/auth.util.js";
 import { getManyDocuments } from "../document/documentData.js";
-import { mock } from "node:test";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -30,10 +29,6 @@ vi.mock("../../errors/handlePrismaError.js", () => ({
   handlePrismaError: vi.fn(() => {
     throw testHandlePrismaError;
   }),
-}));
-
-vi.mock("../document/documentData.js", () => ({
-  getManyDocuments: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -83,7 +78,7 @@ describe("applicationPhaseResolvers", () => {
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
-  it("delegates `ApplicationPhase.documents` to `documentData.getDocument`", async () => {
+  it("delegates `ApplicationPhase.documents` to `documentData.getManyDocuments`", async () => {
     const mockApplicationPhase = {
       phaseId: "Completeness" satisfies PhaseName,
       applicationId: "abc123",

@@ -94,32 +94,6 @@ export async function resolveDeliverableCmsOwner(parent: PrismaDeliverable): Pro
   return getUser({ id: parent.cmsOwnerUserId });
 }
 
-export async function resolveDeliverableCmsDocuments(
-  parent: PrismaDeliverable,
-  args: unknown,
-  context: GraphQLContext
-): Promise<PrismaDocument[]> {
-  return await getManyDocuments(
-    {
-      AND: [{ deliverableId: parent.id }, { deliverableIsCmsAttachedFile: true }],
-    },
-    context.user
-  );
-}
-
-export async function resolveDeliverableStateDocuments(
-  parent: PrismaDeliverable,
-  args: unknown,
-  context: GraphQLContext
-): Promise<PrismaDocument[]> {
-  return await getManyDocuments(
-    {
-      AND: [{ deliverableId: parent.id }, { deliverableIsCmsAttachedFile: false }],
-    },
-    context.user
-  );
-}
-
 export const deliverableResolvers = {
   Query: {
     deliverables: queryDeliverables,
@@ -141,7 +115,27 @@ export const deliverableResolvers = {
     status: resolveDeliverableStatus,
     cmsOwner: resolveDeliverableCmsOwner,
     dueDateType: resolveDeliverableDueDateType,
-    cmsDocuments: resolveDeliverableCmsDocuments,
-    stateDocuments: resolveDeliverableStateDocuments,
+    cmsDocuments: async (
+      parent: PrismaDeliverable,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaDocument[]> =>
+      await getManyDocuments(
+        {
+          AND: [{ deliverableId: parent.id }, { deliverableIsCmsAttachedFile: true }],
+        },
+        context.user
+      ),
+    stateDocuments: async (
+      parent: PrismaDeliverable,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaDocument[]> =>
+      await getManyDocuments(
+        {
+          AND: [{ deliverableId: parent.id }, { deliverableIsCmsAttachedFile: false }],
+        },
+        context.user
+      ),
   },
 };
