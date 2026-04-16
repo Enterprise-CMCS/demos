@@ -9,6 +9,7 @@ export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
 
   const hideSideNav =
     location.pathname.startsWith("/demonstrations/") && location.pathname !== "/demonstrations";
+
   return (
     <ToastProvider>
       <DialogProvider>
@@ -16,8 +17,8 @@ export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
           <Header />
           <div className="flex flex-1 overflow-hidden bg-gray-primary-layout min-h-0">
             {!hideSideNav && <SideNav />}
-            <div className="flex-1 overflow-auto min-h-0">
-              <div className="p-[16px] pb-5">{children}</div>
+            <div className="flex-1 overflow-auto min-h-0 flex flex-col">
+              <div className="p-[16px] pb-5 flex-1">{children}</div>
               <Footer />
             </div>
           </div>
