@@ -30,7 +30,6 @@ import { ContactsTab } from "./ContactsTab";
 import { useApolloClient } from "@apollo/client/react/hooks/useApolloClient";
 import { TypesTable } from "components/table/tables/TypesTable";
 import { DeliverablesTab } from "./deliverables/DeliverablesTab";
-import { getDeliverablesForDemonstration } from "mock-data/deliverableMocks";
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
   person: Pick<Person, "fullName" | "id" | "email" | "personType">;
@@ -82,7 +81,6 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
 
   const isDemonstrationApproved = demonstration.status === "Approved";
   const defaultTab = isDemonstrationApproved ? TAB.DELIVERABLES : TAB.APPLICATION;
-  const postApprovalDeliverables = getDeliverablesForDemonstration(demonstration.name);
   const demonstrationTypeTags: Tag[] = demonstration.demonstrationTypes.map((dt) => ({
     tagName: dt.demonstrationTypeName,
     approvalStatus: dt.approvalStatus,
@@ -93,7 +91,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
       <VerticalTabs defaultValue={defaultTab}>
         <Tab
           icon={<FileIcon />}
-          label={`Deliverables (${postApprovalDeliverables.length})`}
+          label="Deliverables"
           value={TAB.DELIVERABLES}
           shouldRender={isDemonstrationApproved}
         >
@@ -104,7 +102,6 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
               effectiveDate: demonstration.effectiveDate,
               expirationDate: demonstration.expirationDate,
             }}
-            deliverables={postApprovalDeliverables}
           />
         </Tab>
         <Tab icon={<ListIcon />} label="Applications" value={TAB.APPLICATION}>

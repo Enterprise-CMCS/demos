@@ -13,6 +13,7 @@ import { QuarterlyDeliverableSchedule } from "./fields/schedule-type/QuarterlyDe
 import { CreateDeliverableInput, DeliverableType, Demonstration, LocalDate, Tag } from "demos-server";
 import { useToast } from "components/toast";
 import { DELIVERABLE_SLOTS_CREATED_MESSAGE } from "util/messages";
+import { DELIVERABLES_PAGE_QUERY } from "components/table/tables/DeliverableTable";
 
 export const CREATE_DELIVERABLE_MUTATION = gql`
   mutation CreateDeliverable($input: CreateDeliverableInput!) {
@@ -23,9 +24,10 @@ export const CREATE_DELIVERABLE_MUTATION = gql`
 `;
 
 export const useCreateDeliverable = () => {
-  // TODO: last piece needed on here is that we need to refetch the deliverable slots after creation
-  // There's not currently a query for that yet
-  const [createDeliverable, { loading }] = useMutation(CREATE_DELIVERABLE_MUTATION);
+  const [createDeliverable, { loading }] = useMutation(CREATE_DELIVERABLE_MUTATION, {
+    refetchQueries: [{ query: DELIVERABLES_PAGE_QUERY }],
+    awaitRefetchQueries: true,
+  });
 
   const createDeliverables = async (inputs: CreateDeliverableInput[]) => {
     await Promise.all(
