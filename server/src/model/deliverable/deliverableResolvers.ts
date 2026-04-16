@@ -16,7 +16,7 @@ import {
 } from "../../types";
 import { getApplication } from "../application";
 import { getUser } from "../user";
-import { getManyDocuments } from "../document";
+import { getManyDocuments } from "../document/documentData";
 
 export async function resolveDeliverable(
   parent: PrismaDocument,
@@ -95,19 +95,29 @@ export async function resolveDeliverableCmsOwner(parent: PrismaDeliverable): Pro
 }
 
 export async function resolveDeliverableCmsDocuments(
-  parent: PrismaDeliverable
+  parent: PrismaDeliverable,
+  args: unknown,
+  context: GraphQLContext
 ): Promise<PrismaDocument[]> {
-  return await getManyDocuments({
-    AND: [{ deliverableId: parent.id }, { deliverableIsCmsAttachedFile: true }],
-  });
+  return await getManyDocuments(
+    {
+      AND: [{ deliverableId: parent.id }, { deliverableIsCmsAttachedFile: true }],
+    },
+    context.user
+  );
 }
 
 export async function resolveDeliverableStateDocuments(
-  parent: PrismaDeliverable
+  parent: PrismaDeliverable,
+  args: unknown,
+  context: GraphQLContext
 ): Promise<PrismaDocument[]> {
-  return await getManyDocuments({
-    AND: [{ deliverableId: parent.id }, { deliverableIsCmsAttachedFile: false }],
-  });
+  return await getManyDocuments(
+    {
+      AND: [{ deliverableId: parent.id }, { deliverableIsCmsAttachedFile: false }],
+    },
+    context.user
+  );
 }
 
 export const deliverableResolvers = {
