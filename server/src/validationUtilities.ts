@@ -30,17 +30,17 @@ export function findSetDifferences<T>(
   const inS2Only = new Set<T>();
 
   for (const item of s1) {
-    if (!s2.has(item)) {
-      inS1Only.add(item);
-    } else {
+    if (s2.has(item)) {
       common.add(item);
+    } else {
+      inS1Only.add(item);
     }
   }
   for (const item of s2) {
-    if (!s1.has(item)) {
-      inS2Only.add(item);
-    } else {
+    if (s1.has(item)) {
       common.add(item);
+    } else {
+      inS2Only.add(item);
     }
   }
   return {

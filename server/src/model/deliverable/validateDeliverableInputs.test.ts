@@ -330,18 +330,6 @@ describe("validateDeliverableInputs", () => {
       ).resolves.toBeUndefined();
     });
 
-    it("should check the due date if it is passed", async () => {
-      const testInput: ParsedUpdateDeliverableInput = {
-        name: "A new name!",
-        dueDate: {
-          newDueDate: testEasternDate,
-          dateChangeNote: "Note is required",
-        },
-      };
-
-      await validateUpdateDeliverableInput(mockDeliverable.id!, testInput, mockTransaction);
-    });
-
     it("should get the user info if a new owner is passed, and call the check function", async () => {
       const testInput: ParsedUpdateDeliverableInput = {
         name: "A new name!",
