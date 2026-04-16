@@ -1,25 +1,18 @@
 import { gql } from "graphql-tag";
 
 export const applicationTagSuggestionSchema = gql`
-  input UpdateApplicationTagSuggestionInput {
-    suggestionId: ID!
+  type ApplicationTagSuggestion {
+    id: ID!
     applicationId: ID!
+    value: String!
+    statusId: String!
+    createdAt: String!
+    updatedAt: String!
   }
 
   type Mutation {
-    acceptApplicationTagSuggestion(input: UpdateApplicationTagSuggestionInput!): Application
-  }
-
-  type Mutation {
-    replaceApplicationTagSuggestion(input: UpdateApplicationTagSuggestionInput!): Application
-  }
-
-  type Mutation {
-    removeApplicationTagSuggestion(input: UpdateApplicationTagSuggestionInput!): Application
+    acceptApplicationTagSuggestion(suggestionId: ID!): Application
+    replaceApplicationTagSuggestion(suggestionId: ID!, newValue: String!): Application
+    removeApplicationTagSuggestion(suggestionId: ID!): ApplicationTagSuggestion
   }
 `;
-
-export interface UpdateApplicationTagSuggestionInput {
-  suggestionId: string;
-  applicationId: string;
-}

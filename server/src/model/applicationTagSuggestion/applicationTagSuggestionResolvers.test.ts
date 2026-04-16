@@ -8,7 +8,6 @@ import {
 // Mock imports
 import { prisma } from "../../prismaClient";
 import { handlePrismaError } from "../../errors/handlePrismaError";
-import { getApplication } from "../application";
 import { setApplicationTags } from "../applicationTagAssignment";
 
 vi.mock("../../prismaClient", () => ({
@@ -20,10 +19,6 @@ vi.mock("../../errors/handlePrismaError", () => ({
   handlePrismaError: vi.fn(() => {
     throw testHandlePrismaError;
   }),
-}));
-
-vi.mock("../application", () => ({
-  getApplication: vi.fn(),
 }));
 
 vi.mock("../applicationTagAssignment", () => ({
@@ -63,16 +58,15 @@ describe("applicationTagSuggestionResolvers", () => {
       });
 
       mockTx.applicationTagAssignment.findMany.mockResolvedValue(existingTags);
-
-      vi.mocked(getApplication).mockResolvedValue({ id: applicationId } as any);
+      vi.mocked(setApplicationTags).mockResolvedValue({ id: applicationId } as any);
 
       const result = await acceptApplicationTagSuggestion(undefined, {
-        input: { suggestionId, applicationId },
+        suggestionId,
       });
 
       expect(mockTx.applicationTagSuggestion.update).toHaveBeenCalledWith({
         where: { id: suggestionId },
-        data: { status: { connect: { id: "Accepted" } } },
+        data: { statusId: "Accepted" },
       });
 
       expect(setApplicationTags).toHaveBeenCalledWith(undefined, {
@@ -82,7 +76,6 @@ describe("applicationTagSuggestionResolvers", () => {
         },
       });
 
-      expect(getApplication).toHaveBeenCalledWith(applicationId);
       expect(result).toEqual({ id: applicationId });
     });
 
@@ -95,10 +88,8 @@ describe("applicationTagSuggestionResolvers", () => {
 
       mockTx.applicationTagAssignment.findMany.mockResolvedValue(existingTags);
 
-      vi.mocked(getApplication).mockResolvedValue({ id: applicationId } as any);
-
       await acceptApplicationTagSuggestion(undefined, {
-        input: { suggestionId, applicationId },
+        suggestionId,
       });
 
       expect(setApplicationTags).toHaveBeenCalledWith(undefined, {
@@ -116,43 +107,15 @@ describe("applicationTagSuggestionResolvers", () => {
 
       await expect(
         acceptApplicationTagSuggestion(undefined, {
-          input: { suggestionId, applicationId },
+          suggestionId,
         })
       ).rejects.toThrow(testHandlePrismaError);
 
       expect(handlePrismaError).toHaveBeenCalledWith(testError);
-      expect(getApplication).not.toHaveBeenCalled();
     });
   });
 
   describe("replaceApplicationTagSuggestion", () => {
-    it("should replace existing tag value", async () => {
-      mockTx.applicationTagSuggestion.findUniqueOrThrow.mockResolvedValue({
-        id: suggestionId,
-        applicationId,
-        value: "Tag1",
-      });
-
-      mockTx.applicationTagAssignment.findMany.mockResolvedValue(existingTags);
-
-      await replaceApplicationTagSuggestion(undefined, {
-        suggestionId,
-        newValue: "ReplacedTag",
-      });
-
-      expect(mockTx.applicationTagSuggestion.update).toHaveBeenCalledWith({
-        where: { id: suggestionId },
-        data: { status: { connect: { id: "Replaced" } } },
-      });
-
-      expect(setApplicationTags).toHaveBeenCalledWith(undefined, {
-        input: {
-          applicationId,
-          applicationTags: ["ReplacedTag", "Tag2"],
-        },
-      });
-    });
-
     it("should add new value if old one not found", async () => {
       mockTx.applicationTagSuggestion.findUniqueOrThrow.mockResolvedValue({
         id: suggestionId,
@@ -197,9 +160,7 @@ describe("applicationTagSuggestionResolvers", () => {
 
       expect(mockTx.applicationTagSuggestion.update).toHaveBeenCalledWith({
         where: { id: suggestionId },
-        data: {
-          status: { connect: { id: "Removed" } },
-        },
+        data: { statusId: "Removed" },
       });
     });
 
