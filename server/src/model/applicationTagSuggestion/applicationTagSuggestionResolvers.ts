@@ -1,15 +1,38 @@
 import { handlePrismaError } from "../../errors/handlePrismaError";
-import { prisma } from "../../prismaClient";
+import { prisma, PrismaTransactionClient } from "../../prismaClient";
 import { setApplicationTags } from "../applicationTagAssignment";
 import { PrismaApplication } from "../application/applicationTypes";
 import { ApplicationTagSuggestion } from "@prisma/client";
+
+export async function appendApplicationTags(
+  _: unknown,
+  tx: PrismaTransactionClient,
+  applicationId: string,
+  newValue: string,
+): Promise<PrismaApplication> {
+  const existingTags = await tx.applicationTagAssignment.findMany({
+    where: { applicationId },
+    select: { tagNameId: true },
+  });
+
+  const tagNames = existingTags.map((t) => t.tagNameId);
+  if (!tagNames.includes(newValue)) {
+    tagNames.push(newValue);
+  }
+
+  return await setApplicationTags(_, {
+    input: {
+      applicationId,
+      applicationTags: tagNames,
+    },
+  });
+}
 
 export async function acceptApplicationTagSuggestion(
   _: unknown,
   { suggestionId }: { suggestionId: string },
 ): Promise<PrismaApplication> {
   try {
-    console.log(`_ is ${JSON.stringify(_)}, suggestionId is ${suggestionId}`);
     return await prisma().$transaction(async (tx) => {
       const suggestion = await tx.applicationTagSuggestion.findUniqueOrThrow({
         where: { id: suggestionId },
@@ -20,22 +43,7 @@ export async function acceptApplicationTagSuggestion(
         data: { statusId: "Accepted" },
       });
 
-      const existingTags = await tx.applicationTagAssignment.findMany({
-        where: { applicationId: suggestion.applicationId },
-        select: { tagNameId: true },
-      });
-      const tagNames = existingTags.map((t) => t.tagNameId);
-
-      if (!tagNames.includes(suggestion.value)) {
-        tagNames.push(suggestion.value);
-      }
-
-      return await setApplicationTags(_, {
-        input: {
-          applicationId: suggestion.applicationId,
-          applicationTags: tagNames,
-        },
-      });
+      return await appendApplicationTags(_, tx, suggestion.applicationId, suggestion.value);
     });
   } catch (error) {
     handlePrismaError(error);
@@ -57,22 +65,7 @@ export async function replaceApplicationTagSuggestion(
         data: { statusId: "Replaced" },
       });
 
-      const existingTags = await tx.applicationTagAssignment.findMany({
-        where: { applicationId: suggestion.applicationId },
-        select: { tagNameId: true },
-      });
-      const tagNames = existingTags.map((t) => t.tagNameId);
-
-      if(!tagNames.includes(newValue)) {
-        tagNames.push(newValue);
-      }
-
-      return await setApplicationTags(_, {
-        input: {
-          applicationId: suggestion.applicationId,
-          applicationTags: tagNames,
-        },
-      });
+      return await appendApplicationTags(_, tx, suggestion.applicationId, newValue);
     });
   } catch (error) {
     handlePrismaError(error);
