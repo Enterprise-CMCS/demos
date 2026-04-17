@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
 import { Document as PrismaDocument, User as PrismaUser } from "@prisma/client";
-import { GraphQLContext } from "../../auth/auth.util.js";
+import { GraphQLContext } from "../../auth";
 import {
   UpdateDocumentInput,
   UploadDocumentInput,
@@ -9,8 +9,8 @@ import {
   DocumentType,
   PhaseName,
 } from "../../types";
-import { prisma } from "../../prismaClient.js";
-import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
+import { prisma } from "../../prismaClient";
+import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { getS3Adapter } from "../../adapters";
 import { EasternNow, getEasternNow } from "../../dateUtilities";
 import { getUser } from "../user";
@@ -29,9 +29,8 @@ import {
   resolveApplication,
   documentResolvers,
   resolveHasPendingUIPathResult,
-} from "./documentResolvers.js";
-import { getDocument } from "./documentData.js";
-import { mock } from "node:test";
+} from "./documentResolvers";
+import { getDocument } from "./documentData";
 
 // Mock dependencies
 vi.mock("../../prismaClient", () => ({
@@ -162,6 +161,10 @@ describe("documentResolvers", () => {
     };
 
     const mockEasternNow: EasternNow = {
+      "Current Time": {
+        easternTZDate: new TZDate("2025-01-15T12:34:56.789Z"),
+        isEasternTZDate: true,
+      },
       "End of Day": {
         easternTZDate: new TZDate("2025-01-15T23:59:59.999Z"),
         isEasternTZDate: true,

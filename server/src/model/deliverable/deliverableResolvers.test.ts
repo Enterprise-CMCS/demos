@@ -8,7 +8,7 @@ import {
   Document as PrismaDocument,
   User as PrismaUser,
 } from "@prisma/client";
-import { GraphQLContext } from "../../auth/auth.util";
+import { GraphQLContext } from "../../auth";
 import { GraphQLResolveInfo } from "graphql";
 import {
   CreateDeliverableInput,
@@ -48,7 +48,7 @@ vi.mock("../user", () => ({
   getUser: vi.fn(),
 }));
 
-vi.mock("../document/documentData.js", () => ({
+vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
 }));
 
@@ -59,7 +59,7 @@ vi.mock("../deliverableDemonstrationType", () => ({
 import { createDeliverable, getDeliverable, getManyDeliverables, updateDeliverable } from ".";
 import { getApplication } from "../application";
 import { getUser } from "../user";
-import { getManyDocuments } from "../document/documentData.js";
+import { getManyDocuments } from "../document";
 import {
   GetDeliverableDemonstrationTypeResult,
   getDeliverableDemonstrationTypes,

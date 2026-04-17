@@ -1,17 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { User as PrismaUser } from "@prisma/client";
-import type { GraphQLContext } from "../../auth/auth.util.js";
+import type { GraphQLContext } from "../../auth";
 import { queryCurrentUser, resolvePerson, resolveEvents, userResolvers } from "./userResolvers";
 
 // Mock imports
-import { prisma } from "../../prismaClient.js";
-import { getManyDocuments } from "../document/documentData.js";
+import { prisma } from "../../prismaClient";
+import { getManyDocuments } from "../document";
 
-vi.mock("../../prismaClient.js", () => ({
+vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
-vi.mock("../document/documentData.js", () => ({
+vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
 }));
 
