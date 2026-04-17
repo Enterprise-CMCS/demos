@@ -3,8 +3,10 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as UserContext from "components/user/UserContext";
 
+import { MockedResponse } from "@apollo/client/testing";
+import { DELIVERABLES_PAGE_QUERY } from "components/table/tables/DeliverableTable";
 import { DeliverablesPage } from "./DeliverablesPage";
-import { deliverableMocks, MOCK_DELIVERABLE_TABLE_ROW } from "mock-data/deliverableMocks";
+import { MOCK_DELIVERABLE_TABLE_ROW } from "mock-data/deliverableMocks";
 import { mockUsers } from "mock-data/userMocks";
 import { TestProvider } from "test-utils/TestProvider";
 
@@ -17,11 +19,30 @@ vi.mock("components/user/UserContext", async (importOriginal) => {
 });
 
 const MOCK_DELIVERABLE_TABLE_ROWS = [
-  MOCK_DELIVERABLE_TABLE_ROW, {
+  MOCK_DELIVERABLE_TABLE_ROW,
+  {
     ...MOCK_DELIVERABLE_TABLE_ROW,
     id: "2",
     name: "Budget Neutrality Worksheet",
-  }];
+  },
+  {
+    ...MOCK_DELIVERABLE_TABLE_ROW,
+    id: "3",
+    name: "Quarterly Report For NYC Demonstration",
+    cmsOwner: {
+      id: "other-user-id",
+      person: { id: "other-person", fullName: "Other Person" },
+    },
+  },
+];
+
+const DELIVERABLES_TABLE_MOCKS: MockedResponse[] = [
+  {
+    request: { query: DELIVERABLES_PAGE_QUERY },
+    result: { data: { deliverables: MOCK_DELIVERABLE_TABLE_ROWS } },
+    maxUsageCount: Number.POSITIVE_INFINITY,
+  },
+];
 
 describe("DeliverablesPage tab persistence", () => {
   const TAB_KEY = "selectedDeliverableTab";
@@ -30,7 +51,7 @@ describe("DeliverablesPage tab persistence", () => {
 
   const renderDeliverablesPage = async () => {
     render(
-      <TestProvider mocks={deliverableMocks}>
+      <TestProvider mocks={DELIVERABLES_TABLE_MOCKS}>
         <DeliverablesPage />
       </TestProvider>
     );
