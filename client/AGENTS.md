@@ -13,6 +13,7 @@ This file provides instructions for AI agents to use when generating or editing 
 - Functions/variables: `camelCase`.
 - Components/classes/types/interfaces: `PascalCase`.
 - Prefer `const`; avoid `var`.
+- Prefer absolute imports using the tsconfig paths
 
 ### Types
 
@@ -35,6 +36,10 @@ This file provides instructions for AI agents to use when generating or editing 
 - Keep state close to where it is used; lift state only when needed.
 - Do not export props interfaces unless shared across files. Prefer inlining props.
 - Generally, prefer required props. Optional props are okay iff updating calls to an existing component would be a heavy lift.
+
+## CSS
+
+- Prefer using `gap` in a parent tag over `margin` in a child tag.
 
 ### Components
 

@@ -4,7 +4,10 @@ import {
   DELIVERABLE_DETAILS_QUERY,
   DeliverableDetailsManagementDeliverable,
 } from "pages/deliverables/DeliverableDetailsManagementPage";
-import { DELIVERABLES_PAGE_QUERY, type DeliverableTableRow } from "pages/DeliverablesPage";
+import {
+  DELIVERABLES_PAGE_QUERY,
+  type DeliverableTableRow,
+} from "components/table/tables/DeliverableTable";
 
 type DeliverableSeed = {
   id: string;
@@ -96,6 +99,7 @@ export const getDeliverablesForDemonstration = (
 
 export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
   id: "1",
+  name: "Mock Deliverable 1",
   deliverableType: "Monitoring Report",
   demonstration: {
     id: "1",

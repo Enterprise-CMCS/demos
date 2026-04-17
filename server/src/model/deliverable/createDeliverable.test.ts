@@ -3,25 +3,22 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
 
 // Types
-import { CreateDeliverableInput, DateTimeOrLocalDate, DeliverableType } from "../../types.js";
+import { CreateDeliverableInput, DateTimeOrLocalDate, DeliverableType } from "../../types";
 import { ParsedCreateDeliverableInput } from ".";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
-import { GraphQLContext } from "../../auth/auth.util.js";
+import { GraphQLContext } from "../../auth/auth.util";
 
 // Functions under test
 import { createDeliverable } from "./createDeliverable";
 
 // Mock imports
-vi.mock("../../prismaClient.js", () => ({
+vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
 vi.mock(".", () => ({
   parseCreateDeliverableInput: vi.fn(),
   validateCreateDeliverableInput: vi.fn(),
-}));
-
-vi.mock("./queries/insertDeliverable", () => ({
   insertDeliverable: vi.fn(),
 }));
 
@@ -33,9 +30,8 @@ vi.mock("../deliverableAction", () => ({
   insertDeliverableAction: vi.fn(),
 }));
 
-import { prisma } from "../../prismaClient.js";
-import { parseCreateDeliverableInput, validateCreateDeliverableInput } from ".";
-import { insertDeliverable } from "./queries/insertDeliverable";
+import { prisma } from "../../prismaClient";
+import { parseCreateDeliverableInput, validateCreateDeliverableInput, insertDeliverable } from ".";
 import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 import { insertDeliverableAction } from "../deliverableAction";
 
@@ -51,8 +47,9 @@ describe("createDeliverable", () => {
   const testContext: GraphQLContext = {
     user: {
       id: "57f92f14-7c5e-4c78-a774-5a54d7e9c2e7",
-      sub: "82d0e8e4-82d0-447c-b1bb-52227e49cf51",
-      role: "demos-cms-user",
+      cognitoSubject: "82d0e8e4-82d0-447c-b1bb-52227e49cf51",
+      personTypeId: "demos-cms-user",
+      permissions: ["View All Demonstrations"],
     },
   };
 
@@ -129,7 +126,7 @@ describe("createDeliverable", () => {
     };
     const expandedMockParsedInput: ParsedCreateDeliverableInput = {
       ...mockParsedInput,
-      demonstrationTypes: ["Healthy Food", "Free Eye Exams"],
+      demonstrationTypes: new Set(["Healthy Food", "Free Eye Exams"]),
     };
     vi.mocked(parseCreateDeliverableInput).mockReturnValue(expandedMockParsedInput);
 
@@ -138,7 +135,7 @@ describe("createDeliverable", () => {
       {
         deliverableId: mockNewDeliverable.id,
         demonstrationId: expandedTestInput.demonstrationId,
-        demonstrationTypes: expandedMockParsedInput.demonstrationTypes,
+        demonstrationTypes: Array.from(expandedMockParsedInput.demonstrationTypes!),
       },
       mockTransaction
     );

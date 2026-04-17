@@ -1,9 +1,8 @@
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { CreateDeliverableInput } from "../../types";
 import { GraphQLContext } from "../../auth/auth.util";
-import { parseCreateDeliverableInput, validateCreateDeliverableInput } from ".";
+import { parseCreateDeliverableInput, validateCreateDeliverableInput, insertDeliverable } from ".";
 import { prisma } from "../../prismaClient";
-import { insertDeliverable } from "./queries/insertDeliverable";
 import { insertDeliverableAction } from "../deliverableAction";
 import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 
@@ -18,12 +17,13 @@ export async function createDeliverable(
     await validateCreateDeliverableInput(parsedInput, tx);
 
     const newDeliverable = await insertDeliverable(parsedInput, tx);
+    const newDemonstrationTypes = parsedInput.demonstrationTypes ?? new Set();
 
     await setDeliverableDemonstrationTypes(
       {
         deliverableId: newDeliverable.id,
         demonstrationId: parsedInput.demonstrationId,
-        demonstrationTypes: parsedInput.demonstrationTypes ?? [],
+        demonstrationTypes: Array.from(newDemonstrationTypes),
       },
       tx
     );

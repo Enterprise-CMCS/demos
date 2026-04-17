@@ -97,4 +97,5 @@ export const customScalarResolvers = {
   DateTime: DateTimeResolver,
   DateTimeOrLocalDate: DateTimeOrLocalDateResolver,
   NonEmptyString: NonEmptyStringResolver,
+  TagName: NonEmptyStringResolver,
 };

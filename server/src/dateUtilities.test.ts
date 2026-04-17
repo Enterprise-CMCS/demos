@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { LocalDate } from "./types.js";
 import {
   parseJSDateToEasternTZDate,
   parseDateTimeOrLocalDateToEasternTZDate,
-  __getTodayStartOfDayEastern,
-  __getTodayEndOfDayEastern,
+  getStartOfDayEastern,
+  getEndOfDayEastern,
   getEasternNow,
   EasternTZDate,
   getDateTimeParts,
@@ -113,7 +113,7 @@ const TEST_DATES: TestDatesRecord = {
 };
 
 describe("dateUtilities", () => {
-  beforeEach(() => {
+  afterEach(() => {
     vi.useRealTimers();
   });
 
@@ -208,110 +208,114 @@ describe("dateUtilities", () => {
       );
       expect(result).toEqual(TEST_DATES.localDateEndOfDayInEDT.easternDate);
     });
+  });
 
-    describe("__getTodayStartOfDayEastern()", () => {
-      it("should return start of day in Eastern time", () => {
-        vi.useFakeTimers();
-        vi.setSystemTime(TEST_DATES.sameDayUTCEastern.utcDate!);
+  describe("getStartOfDayEastern()", () => {
+    it("should return start of day in Eastern time", () => {
+      const now = TEST_DATES.sameDayUTCEastern.utcDate!;
 
-        const result = __getTodayStartOfDayEastern().easternTZDate;
-        expect(result.getTimezoneOffset()).toBe(300);
-        expect(result.getDate()).toBe(19);
-        expect(result.getMonth()).toBe(0);
-        expect(result.getFullYear()).toBe(2025);
-        expect(result.getHours()).toBe(0);
-        expect(result.getMinutes()).toBe(0);
-        expect(result.getSeconds()).toBe(0);
-        expect(result.getMilliseconds()).toBe(0);
-      });
-
-      it("should handle when the UTC date is different in EST", () => {
-        vi.useFakeTimers();
-        vi.setSystemTime(TEST_DATES.differentDayInEST.utcDate!);
-
-        const result = __getTodayStartOfDayEastern().easternTZDate;
-        expect(result.getTimezoneOffset()).toBe(300);
-        expect(result.getDate()).toBe(15);
-        expect(result.getMonth()).toBe(0);
-        expect(result.getFullYear()).toBe(2025);
-        expect(result.getHours()).toBe(0);
-        expect(result.getMinutes()).toBe(0);
-        expect(result.getSeconds()).toBe(0);
-        expect(result.getMilliseconds()).toBe(0);
-      });
-
-      it("should handle when the UTC date is different in EDT", () => {
-        vi.useFakeTimers();
-        vi.setSystemTime(TEST_DATES.differentDayInEDT.utcDate!);
-
-        const result = __getTodayStartOfDayEastern().easternTZDate;
-        expect(result.getTimezoneOffset()).toBe(240);
-        expect(result.getDate()).toBe(15);
-        expect(result.getMonth()).toBe(6);
-        expect(result.getFullYear()).toBe(2025);
-        expect(result.getHours()).toBe(0);
-        expect(result.getMinutes()).toBe(0);
-        expect(result.getSeconds()).toBe(0);
-        expect(result.getMilliseconds()).toBe(0);
-      });
+      const result = getStartOfDayEastern(now).easternTZDate;
+      expect(result.getTimezoneOffset()).toBe(300);
+      expect(result.getDate()).toBe(19);
+      expect(result.getMonth()).toBe(0);
+      expect(result.getFullYear()).toBe(2025);
+      expect(result.getHours()).toBe(0);
+      expect(result.getMinutes()).toBe(0);
+      expect(result.getSeconds()).toBe(0);
+      expect(result.getMilliseconds()).toBe(0);
     });
 
-    describe("__getTodayEndOfDayEastern()", () => {
-      it("should return end of day in Eastern time", () => {
-        vi.useFakeTimers();
-        vi.setSystemTime(TEST_DATES.sameDayUTCEastern.utcDate!);
+    it("should handle when the UTC date is different in EST", () => {
+      const now = TEST_DATES.differentDayInEST.utcDate!;
 
-        const result = __getTodayEndOfDayEastern().easternTZDate;
-        expect(result.getTimezoneOffset()).toBe(300);
-        expect(result.getDate()).toBe(19);
-        expect(result.getMonth()).toBe(0);
-        expect(result.getFullYear()).toBe(2025);
-        expect(result.getHours()).toBe(23);
-        expect(result.getMinutes()).toBe(59);
-        expect(result.getSeconds()).toBe(59);
-        expect(result.getMilliseconds()).toBe(999);
-      });
+      const result = getStartOfDayEastern(now).easternTZDate;
+      expect(result.getTimezoneOffset()).toBe(300);
+      expect(result.getDate()).toBe(15);
+      expect(result.getMonth()).toBe(0);
+      expect(result.getFullYear()).toBe(2025);
+      expect(result.getHours()).toBe(0);
+      expect(result.getMinutes()).toBe(0);
+      expect(result.getSeconds()).toBe(0);
+      expect(result.getMilliseconds()).toBe(0);
+    });
 
-      it("should handle when the UTC date is different in EST", () => {
-        vi.useFakeTimers();
-        vi.setSystemTime(TEST_DATES.differentDayInEST.utcDate!);
+    it("should handle when the UTC date is different in EDT", () => {
+      const now = TEST_DATES.differentDayInEDT.utcDate!;
 
-        const result = __getTodayEndOfDayEastern().easternTZDate;
-        expect(result.getTimezoneOffset()).toBe(300);
-        expect(result.getDate()).toBe(15);
-        expect(result.getMonth()).toBe(0);
-        expect(result.getFullYear()).toBe(2025);
-        expect(result.getHours()).toBe(23);
-        expect(result.getMinutes()).toBe(59);
-        expect(result.getSeconds()).toBe(59);
-        expect(result.getMilliseconds()).toBe(999);
-      });
+      const result = getStartOfDayEastern(now).easternTZDate;
+      expect(result.getTimezoneOffset()).toBe(240);
+      expect(result.getDate()).toBe(15);
+      expect(result.getMonth()).toBe(6);
+      expect(result.getFullYear()).toBe(2025);
+      expect(result.getHours()).toBe(0);
+      expect(result.getMinutes()).toBe(0);
+      expect(result.getSeconds()).toBe(0);
+      expect(result.getMilliseconds()).toBe(0);
+    });
+  });
 
-      it("should handle when the UTC date is different in EDT", () => {
-        vi.useFakeTimers();
-        vi.setSystemTime(TEST_DATES.differentDayInEDT.utcDate!);
+  describe("getEndOfDayEastern()", () => {
+    it("should return end of day in Eastern time", () => {
+      const now = TEST_DATES.sameDayUTCEastern.utcDate!;
 
-        const result = __getTodayEndOfDayEastern().easternTZDate;
-        expect(result.getTimezoneOffset()).toBe(240);
-        expect(result.getDate()).toBe(15);
-        expect(result.getMonth()).toBe(6);
-        expect(result.getFullYear()).toBe(2025);
-        expect(result.getHours()).toBe(23);
-        expect(result.getMinutes()).toBe(59);
-        expect(result.getSeconds()).toBe(59);
-        expect(result.getMilliseconds()).toBe(999);
-      });
+      const result = getEndOfDayEastern(now).easternTZDate;
+      expect(result.getTimezoneOffset()).toBe(300);
+      expect(result.getDate()).toBe(19);
+      expect(result.getMonth()).toBe(0);
+      expect(result.getFullYear()).toBe(2025);
+      expect(result.getHours()).toBe(23);
+      expect(result.getMinutes()).toBe(59);
+      expect(result.getSeconds()).toBe(59);
+      expect(result.getMilliseconds()).toBe(999);
+    });
+
+    it("should handle when the UTC date is different in EST", () => {
+      const now = TEST_DATES.differentDayInEST.utcDate!;
+
+      const result = getEndOfDayEastern(now).easternTZDate;
+      expect(result.getTimezoneOffset()).toBe(300);
+      expect(result.getDate()).toBe(15);
+      expect(result.getMonth()).toBe(0);
+      expect(result.getFullYear()).toBe(2025);
+      expect(result.getHours()).toBe(23);
+      expect(result.getMinutes()).toBe(59);
+      expect(result.getSeconds()).toBe(59);
+      expect(result.getMilliseconds()).toBe(999);
+    });
+
+    it("should handle when the UTC date is different in EDT", () => {
+      const now = TEST_DATES.differentDayInEDT.utcDate!;
+
+      const result = getEndOfDayEastern(now).easternTZDate;
+      expect(result.getTimezoneOffset()).toBe(240);
+      expect(result.getDate()).toBe(15);
+      expect(result.getMonth()).toBe(6);
+      expect(result.getFullYear()).toBe(2025);
+      expect(result.getHours()).toBe(23);
+      expect(result.getMinutes()).toBe(59);
+      expect(result.getSeconds()).toBe(59);
+      expect(result.getMilliseconds()).toBe(999);
     });
   });
 
   describe("getEasternNow()", () => {
-    it("should return start and end of day values in in Eastern time", () => {
+    it("should return current, start and end of day values in in Eastern time", () => {
       vi.useFakeTimers();
       vi.setSystemTime(TEST_DATES.sameDayUTCEastern.utcDate!);
 
       const result = getEasternNow();
+      const resultCurrent = result["Current Time"].easternTZDate;
       const resultStartOfDay = result["Start of Day"].easternTZDate;
       const resultEndOfDay = result["End of Day"].easternTZDate;
+
+      expect(resultCurrent.getTimezoneOffset()).toBe(300);
+      expect(resultCurrent.getDate()).toBe(19);
+      expect(resultCurrent.getMonth()).toBe(0);
+      expect(resultCurrent.getFullYear()).toBe(2025);
+      expect(resultCurrent.getHours()).toBe(10);
+      expect(resultCurrent.getMinutes()).toBe(32);
+      expect(resultCurrent.getSeconds()).toBe(14);
+      expect(resultCurrent.getMilliseconds()).toBe(877);
 
       expect(resultStartOfDay.getTimezoneOffset()).toBe(300);
       expect(resultStartOfDay.getDate()).toBe(19);

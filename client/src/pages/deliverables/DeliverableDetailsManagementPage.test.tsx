@@ -5,6 +5,10 @@ import { describe, expect, it } from "vitest";
 import { DeliverableDetailsManagementPage, DELIVERABLE_DETAILS_QUERY } from "./DeliverableDetailsManagementPage";
 import { MOCK_DELIVERABLE_1 } from "mock-data/deliverableMocks";
 import { TestProvider } from "test-utils/TestProvider";
+import { COMMENT_BOX_NAME } from "./sections/CommentBox";
+import { DELIVERABLE_INFO_FIELDS_NAME } from "./sections/DeliverableInfoFields";
+import { FILE_AND_HISTORY_TABS_NAME } from "./sections/FileAndHistoryTabs";
+import { DELIVERABLE_BUTTONS_NAME } from "./sections/DeliverableButtons";
 
 const renderAtRoute = (deliverableId: string) =>
   render(
@@ -19,35 +23,43 @@ const renderAtRoute = (deliverableId: string) =>
   );
 
 describe("DeliverableDetailsManagementPage", () => {
-  it("renders deliverable details after query resolves", async () => {
+  it("renders the deliverable name heading", async () => {
     renderAtRoute("1");
 
     await waitFor(() =>
-      expect(screen.getByText(MOCK_DELIVERABLE_1.demonstration.name)).toBeInTheDocument()
+      expect(screen.getByText(MOCK_DELIVERABLE_1.name)).toBeInTheDocument()
     );
   });
 
-  it("shows the demonstration name", async () => {
+  it("renders DeliverableInfoFields", async () => {
     renderAtRoute("1");
 
     await waitFor(() =>
-      expect(screen.getByText(MOCK_DELIVERABLE_1.demonstration.name)).toBeInTheDocument()
+      expect(screen.getByTestId(DELIVERABLE_INFO_FIELDS_NAME)).toBeInTheDocument()
     );
   });
 
-  it("shows the status", async () => {
+  it("renders DeliverableButtons", async () => {
     renderAtRoute("1");
 
     await waitFor(() =>
-      expect(screen.getByText(MOCK_DELIVERABLE_1.status)).toBeInTheDocument()
+      expect(screen.getByTestId(DELIVERABLE_BUTTONS_NAME)).toBeInTheDocument()
     );
   });
 
-  it("shows the primary contact", async () => {
+  it("renders FileAndHistoryTabs", async () => {
     renderAtRoute("1");
 
     await waitFor(() =>
-      expect(screen.getByText(MOCK_DELIVERABLE_1.cmsOwner.person.fullName)).toBeInTheDocument()
+      expect(screen.getByTestId(FILE_AND_HISTORY_TABS_NAME)).toBeInTheDocument()
+    );
+  });
+
+  it("renders CommentBox", async () => {
+    renderAtRoute("1");
+
+    await waitFor(() =>
+      expect(screen.getByTestId(COMMENT_BOX_NAME)).toBeInTheDocument()
     );
   });
 
