@@ -37,10 +37,7 @@ export const DeliverablesPage: React.FC = () => {
       {error && <div className="p-4 text-red-500">Error loading deliverables.</div>}
 
       {data && (
-        <HorizontalSectionTabs
-          defaultValue={tabValue}
-          onSelect={onTabSelect}
-        >
+        <HorizontalSectionTabs defaultValue={tabValue} onSelect={onTabSelect}>
           <Tab label={`My Deliverables (${myDeliverables.length})`} value="my-deliverables">
             <DeliverableTable
               deliverables={myDeliverables}
@@ -49,10 +46,7 @@ export const DeliverablesPage: React.FC = () => {
             />
           </Tab>
           <Tab label={`All Deliverables (${deliverables.length})`} value="deliverables">
-            <DeliverableTable
-              deliverables={deliverables}
-              viewMode={viewMode}
-            />
+            <DeliverableTable deliverables={deliverables} viewMode={viewMode} />
           </Tab>
         </HorizontalSectionTabs>
       )}

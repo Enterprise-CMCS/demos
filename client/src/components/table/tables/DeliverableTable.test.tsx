@@ -1,5 +1,5 @@
 import React from "react";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -7,6 +7,11 @@ import { DeliverableTable, formatDeliverableStatus } from "./DeliverableTable";
 import { MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
 import type { DeliverableTableRow } from "./DeliverableTable";
+
+const showEditDeliverableDialog = vi.fn();
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({ showEditDeliverableDialog }),
+}));
 
 const sortedDeliverables = sortDeliverablesByDefault(MOCK_DELIVERABLES);
 const sortedFirstPageIds = sortedDeliverables.slice(0, 10).map((deliverable) => deliverable.id);
@@ -21,9 +26,7 @@ describe("DeliverableTable", () => {
 
   it("renders all deliverable names initially", () => {
     sortedDeliverables.slice(0, 10).forEach((deliverable) => {
-      expect(
-        screen.getByText(deliverable.name)
-      ).toBeInTheDocument();
+      expect(screen.getByText(deliverable.name)).toBeInTheDocument();
     });
   });
 
@@ -78,9 +81,7 @@ describe("DeliverableTable", () => {
   it("enables Edit for exactly one selected row", async () => {
     const user = userEvent.setup();
 
-    await user.click(
-      screen.getByTestId(`select-row-${sortedFirstPageIds[0]}`)
-    );
+    await user.click(screen.getByTestId(`select-row-${sortedFirstPageIds[0]}`));
 
     const editBtn = screen.getByTestId("edit-deliverable");
     expect(editBtn).not.toBeDisabled();
@@ -89,12 +90,8 @@ describe("DeliverableTable", () => {
   it("disables Edit when multiple rows selected", async () => {
     const user = userEvent.setup();
 
-    await user.click(
-      screen.getByTestId(`select-row-${sortedFirstPageIds[0]}`)
-    );
-    await user.click(
-      screen.getByTestId(`select-row-${sortedFirstPageIds[1]}`)
-    );
+    await user.click(screen.getByTestId(`select-row-${sortedFirstPageIds[0]}`));
+    await user.click(screen.getByTestId(`select-row-${sortedFirstPageIds[1]}`));
 
     const editBtn = screen.getByTestId("edit-deliverable");
     expect(editBtn).toBeDisabled();
@@ -103,9 +100,7 @@ describe("DeliverableTable", () => {
   it("enables Remove when at least one row selected", async () => {
     const user = userEvent.setup();
 
-    await user.click(
-      screen.getByTestId(`select-row-${sortedFirstPageIds[0]}`)
-    );
+    await user.click(screen.getByTestId(`select-row-${sortedFirstPageIds[0]}`));
 
     const removeBtn = screen.getByTestId("remove-deliverable");
     expect(removeBtn).not.toBeDisabled();
@@ -124,9 +119,7 @@ describe("DeliverableTable", () => {
       await user.type(searchInput, MOCK_DELIVERABLES[0].name);
 
       await waitFor(() => {
-        expect(
-          screen.getByText(MOCK_DELIVERABLES[0].name)
-        ).toBeInTheDocument();
+        expect(screen.getByText(MOCK_DELIVERABLES[0].name)).toBeInTheDocument();
       });
     });
 
@@ -138,9 +131,7 @@ describe("DeliverableTable", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText(
-            /No results were returned. Adjust your search and filter criteria./i
-          )
+          screen.getByText(/No results were returned. Adjust your search and filter criteria./i)
         ).toBeInTheDocument();
       });
     });
@@ -152,9 +143,7 @@ describe("DeliverableTable", () => {
       await user.type(searchInput, MOCK_DELIVERABLES[0].name);
 
       await waitFor(() => {
-        expect(
-          screen.getByText(MOCK_DELIVERABLES[0].name)
-        ).toBeInTheDocument();
+        expect(screen.getByText(MOCK_DELIVERABLES[0].name)).toBeInTheDocument();
       });
 
       const clearBtn = screen.getByRole("button", { name: /clear search/i });
@@ -163,9 +152,7 @@ describe("DeliverableTable", () => {
       expect(searchInput).toHaveValue("");
 
       sortedDeliverables.slice(0, 10).forEach((deliverable) => {
-        expect(
-          screen.getByText(deliverable.name)
-        ).toBeInTheDocument();
+        expect(screen.getByText(deliverable.name)).toBeInTheDocument();
       });
     });
   });
@@ -206,7 +193,9 @@ describe("DeliverableTable demos-state-user view mode", () => {
     expect(screen.getByRole("columnheader", { name: /Due Date/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Status/i })).toBeInTheDocument();
 
-    expect(screen.queryByRole("columnheader", { name: /State\/Territory/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("columnheader", { name: /State\/Territory/i })
+    ).not.toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: /CMS Owner/i })).not.toBeInTheDocument();
   });
 
@@ -245,10 +234,7 @@ describe("DeliverableTable default sorting behavior", () => {
         .map((checkbox) => checkbox.getAttribute("data-testid")?.replace("select-row-", ""));
 
     const { rerender } = render(
-      <DeliverableTable
-        deliverables={[submitted, pastDue, upcoming]}
-        viewMode="demos-cms-user"
-      />
+      <DeliverableTable deliverables={[submitted, pastDue, upcoming]} viewMode="demos-cms-user" />
     );
 
     await waitFor(() => {
@@ -258,10 +244,7 @@ describe("DeliverableTable default sorting behavior", () => {
     expect(getRenderedRowIds()).toEqual(["past-due", "upcoming", "submitted"]);
 
     rerender(
-      <DeliverableTable
-        deliverables={[upcoming, submitted, pastDue]}
-        viewMode="demos-cms-user"
-      />
+      <DeliverableTable deliverables={[upcoming, submitted, pastDue]} viewMode="demos-cms-user" />
     );
 
     expect(getRenderedRowIds()).toEqual(["past-due", "upcoming", "submitted"]);

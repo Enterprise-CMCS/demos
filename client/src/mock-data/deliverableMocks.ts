@@ -34,6 +34,7 @@ const makeDeliverable = (seed: DeliverableSeed): DeliverableTableRow => {
       state: {
         id: seed.stateId,
       },
+      demonstrationTypes: [],
     },
     status: seed.status as DeliverableTableRow["status"],
     cmsOwner: {
@@ -92,9 +93,7 @@ export const MOCK_DELIVERABLES: DeliverableTableRow[] = [
   }),
 ];
 
-export const getDeliverablesForDemonstration = (
-  demonstrationName: string
-): DeliverableTableRow[] =>
+export const getDeliverablesForDemonstration = (demonstrationName: string): DeliverableTableRow[] =>
   MOCK_DELIVERABLES.filter((deliverable) => deliverable.demonstration.name === demonstrationName);
 
 export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {

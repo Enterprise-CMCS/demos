@@ -17,6 +17,10 @@ vi.mock("components/user/UserContext", async (importOriginal) => {
   };
 });
 
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({ showEditDeliverableDialog: vi.fn() }),
+}));
+
 describe("DeliverablesPage tab persistence", () => {
   const TAB_KEY = "selectedDeliverableTab";
   const CURRENT_USER_ID = "dustyrhodes";
@@ -55,9 +59,7 @@ describe("DeliverablesPage tab persistence", () => {
     await renderDeliverablesPage();
 
     // My Deliverables should be selected
-    expect(
-      screen.getByTestId("button-my-deliverables")
-    ).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByTestId("button-my-deliverables")).toHaveAttribute("aria-selected", "true");
 
     expect(sessionStorage.getItem(TAB_KEY)).toBe("my-deliverables");
   });
@@ -67,9 +69,7 @@ describe("DeliverablesPage tab persistence", () => {
 
     await renderDeliverablesPage();
 
-    expect(
-      screen.getByTestId("button-deliverables")
-    ).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByTestId("button-deliverables")).toHaveAttribute("aria-selected", "true");
   });
 
   it("stores tab changes to sessionStorage", async () => {
@@ -87,13 +87,9 @@ describe("DeliverablesPage tab persistence", () => {
       (d) => d.cmsOwner.id === CURRENT_USER_ID
     ).length;
 
-    expect(
-      screen.getByText(`My Deliverables (${myDeliverablesCount})`)
-    ).toBeInTheDocument();
+    expect(screen.getByText(`My Deliverables (${myDeliverablesCount})`)).toBeInTheDocument();
 
-    expect(
-      screen.getByText(`All Deliverables (${MOCK_DELIVERABLES.length})`)
-    ).toBeInTheDocument();
+    expect(screen.getByText(`All Deliverables (${MOCK_DELIVERABLES.length})`)).toBeInTheDocument();
   });
 
   it("filters My Deliverables correctly", async () => {
@@ -135,7 +131,9 @@ describe("DeliverablesPage tab persistence", () => {
 
     await renderDeliverablesPage();
 
-    expect(screen.queryByRole("columnheader", { name: /State\/Territory/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("columnheader", { name: /State\/Territory/i })
+    ).not.toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: /CMS Owner/i })).not.toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Demonstration Name/i })).toBeInTheDocument();
   });
