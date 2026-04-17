@@ -78,20 +78,22 @@ describe("applicationPhaseResolvers", () => {
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
-  it("delegates `ApplicationPhase.documents` to `documentData.getManyDocuments`", async () => {
-    const mockApplicationPhase = {
-      phaseId: "Completeness" satisfies PhaseName,
-      applicationId: "abc123",
-    } as PrismaApplicationPhase;
-    await applicationPhaseResolvers.ApplicationPhase.documents(
-      mockApplicationPhase,
-      undefined,
-      mockContext
-    );
-    expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
-      { phaseId: "Completeness", applicationId: "abc123" },
-      mockContext.user
-    );
+  describe("ApplicationPhase.documents", () => {
+    it("delegates to `documentData.getManyDocuments`", async () => {
+      const mockApplicationPhase = {
+        phaseId: "Completeness" satisfies PhaseName,
+        applicationId: "abc123",
+      } as PrismaApplicationPhase;
+      await applicationPhaseResolvers.ApplicationPhase.documents(
+        mockApplicationPhase,
+        undefined,
+        mockContext
+      );
+      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
+        { phaseId: "Completeness", applicationId: "abc123" },
+        mockContext.user
+      );
+    });
   });
 
   describe("__resolveApplicationPhaseDates", () => {

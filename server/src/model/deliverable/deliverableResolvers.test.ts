@@ -120,6 +120,32 @@ describe("deliverableResolvers", () => {
     vi.resetAllMocks();
   });
 
+  describe("Deliverable.cmsDocuments", () => {
+    it("delegates to `documentData.getManyDocuments` with CMS filter as true", async () => {
+      const mockDeliverable = { id: testDeliverableId } as PrismaDeliverable;
+      await deliverableResolvers.Deliverable.cmsDocuments(mockDeliverable, undefined, testContext);
+      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: true }],
+        },
+        testContext.user
+      );
+    });
+  });
+
+  describe("Deliverable.stateDocuments", () => {
+    it("delegates to `documentData.getManyDocuments` with CMS filter as false", async () => {
+      const mockDeliverable = { id: testDeliverableId } as PrismaDeliverable;
+      await deliverableResolvers.Deliverable.cmsDocuments(mockDeliverable, undefined, testContext);
+      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: false }],
+        },
+        testContext.user
+      );
+    });
+  });
+
   describe("resolveDeliverable", () => {
     it("should throw if given something not supported", async () => {
       await expect(
@@ -245,27 +271,6 @@ describe("deliverableResolvers", () => {
     });
   });
 
-  it("delegates `Deliverable.cmsDocuments` to `documentData.getManyDocuments`", async () => {
-    const mockDeliverable = { id: testDeliverableId } as PrismaDeliverable;
-    await deliverableResolvers.Deliverable.cmsDocuments(mockDeliverable, undefined, testContext);
-    expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
-      {
-        AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: true }],
-      },
-      testContext.user
-    );
-  });
-
-  it("delegates `Deliverable.stateDocuments` to `documentData.getManyDocuments`", async () => {
-    const mockDeliverable = { id: testDeliverableId } as PrismaDeliverable;
-    await deliverableResolvers.Deliverable.stateDocuments(mockDeliverable, undefined, testContext);
-    expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
-      {
-        AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: false }],
-      },
-      testContext.user
-    );
-  });
   describe("deliverableResolvers", () => {
     describe("Mutation.createDeliverable", () => {
       it("should call the createDeliverable function with the right arguments", async () => {
