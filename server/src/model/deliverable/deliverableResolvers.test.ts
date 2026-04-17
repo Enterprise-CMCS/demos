@@ -136,7 +136,11 @@ describe("deliverableResolvers", () => {
   describe("Deliverable.stateDocuments", () => {
     it("delegates to `documentData.getManyDocuments` with CMS filter as false", async () => {
       const mockDeliverable = { id: testDeliverableId } as PrismaDeliverable;
-      await deliverableResolvers.Deliverable.cmsDocuments(mockDeliverable, undefined, testContext);
+      await deliverableResolvers.Deliverable.stateDocuments(
+        mockDeliverable,
+        undefined,
+        testContext
+      );
       expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
         {
           AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: false }],

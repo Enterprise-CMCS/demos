@@ -8,22 +8,34 @@ vi.mock("../../../prismaClient", () => ({
 }));
 
 describe("selectManyExtensions", () => {
-  const extensionFindMany = vi.fn();
-
-  const mockPrismaClient = {
-    extension: {
-      findMany: extensionFindMany,
-    },
-  };
-
-  const mockTransaction = {
+  const regularMocks = {
     extension: {
       findMany: vi.fn(),
     },
-  } as unknown as PrismaTransactionClient;
+  };
+  const mockPrismaClient = {
+    extension: {
+      findMany: regularMocks.extension.findMany,
+    },
+  };
+  const transactionMocks = {
+    extension: {
+      findMany: vi.fn(),
+    },
+  };
+  const mockTransaction = {
+    extension: {
+      findMany: transactionMocks.extension.findMany,
+    },
+  } as any;
 
+  const testExtensionId = "extension-1";
+  const testExtensionId2 = "extension-2";
   const where = {
-    id: "extension-1",
+    id: testExtensionId,
+  };
+  const expectedCall = {
+    where: { id: testExtensionId },
   };
 
   beforeEach(() => {
@@ -31,42 +43,31 @@ describe("selectManyExtensions", () => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as never);
   });
 
-  it("uses the default prisma client when no transaction client is provided", async () => {
-    const extensions = [{ id: "extension-1" }, { id: "extension-2" }] as PrismaExtension[];
-    extensionFindMany.mockResolvedValueOnce(extensions);
-
-    const result = await selectManyExtensions(where);
-
-    expect(prisma).toHaveBeenCalledExactlyOnceWith();
-    expect(extensionFindMany).toHaveBeenCalledExactlyOnceWith({ where });
-    expect(result).toBe(extensions);
+  it("should get extensions from the database directly if no transaction is given", async () => {
+    await selectManyExtensions(where);
+    expect(regularMocks.extension.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
+    expect(transactionMocks.extension.findMany).not.toHaveBeenCalled();
   });
 
-  it("uses the provided transaction client instead of the default prisma client", async () => {
-    const extensions = [{ id: "extension-1" }, { id: "extension-2" }] as PrismaExtension[];
-    mockTransaction.extension.findMany = vi.fn().mockResolvedValueOnce(extensions);
-
-    const result = await selectManyExtensions(where, mockTransaction);
-
-    expect(prisma).not.toHaveBeenCalled();
-    expect(mockTransaction.extension.findMany).toHaveBeenCalledExactlyOnceWith({ where });
-    expect(result).toBe(extensions);
+  it("should get extensions via a transaction if one is given", async () => {
+    await selectManyExtensions(where, mockTransaction);
+    expect(regularMocks.extension.findMany).not.toHaveBeenCalled();
+    expect(transactionMocks.extension.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
   });
 
   it("returns an empty array when no extensions are found", async () => {
-    extensionFindMany.mockResolvedValueOnce([]);
-
+    regularMocks.extension.findMany.mockResolvedValueOnce([]);
     const result = await selectManyExtensions(where);
-
+    expect(regularMocks.extension.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
     expect(result).toEqual([]);
   });
 
   it("returns all extensions that are found", async () => {
-    const extensions = [{ id: "extension-1" }, { id: "extension-2" }] as PrismaExtension[];
-    extensionFindMany.mockResolvedValueOnce(extensions);
+    const extensions = [{ id: testExtensionId }, { id: testExtensionId2 }] as PrismaExtension[];
+    regularMocks.extension.findMany.mockResolvedValueOnce(extensions);
 
     const result = await selectManyExtensions(where);
-
+    expect(regularMocks.extension.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
     expect(result).toBe(extensions);
   });
 });
