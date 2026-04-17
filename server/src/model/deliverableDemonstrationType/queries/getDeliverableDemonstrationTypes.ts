@@ -31,7 +31,7 @@ export async function getDeliverableDemonstrationTypes(
 
   // Types enforced by database
   return results.map((result) => ({
-    tagName: result.demonstrationTypeTagNameId as TagName,
+    tagName: result.demonstrationTypeTagNameId,
     approvalStatus: result.demonstrationTypeTagAssignment.tag.statusId as TagStatus,
   }));
 }
