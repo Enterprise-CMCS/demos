@@ -191,10 +191,10 @@ export async function __resolveDemonstrationState(
   parent: PrismaDemonstration
 ): Promise<PrismaState> {
   // State can never be null thanks to the database
-  const result = await prisma().state.findUnique({
+  const result = await prisma().state.findUniqueOrThrow({
     where: { id: parent.stateId },
   });
-  return result!;
+  return result;
 }
 
 export async function __resolveDemonstrationRoleAssignments(
@@ -204,27 +204,29 @@ export async function __resolveDemonstrationRoleAssignments(
   const result = await prisma().demonstrationRoleAssignment.findMany({
     where: { demonstrationId: parent.id },
   });
-  return result!;
+  return result;
 }
 
 export async function __resolveDemonstrationPrimaryProjectOfficer(
   parent: PrismaDemonstration
 ): Promise<PrismaPerson> {
   // It is not possible in the DB for the primary project officer not to exist
-  const primaryRoleAssignment = await prisma().primaryDemonstrationRoleAssignment.findUnique({
-    where: {
-      demonstrationId_roleId: {
-        demonstrationId: parent.id,
-        roleId: roleProjectOfficer,
+  const primaryRoleAssignment = await prisma().primaryDemonstrationRoleAssignment.findUniqueOrThrow(
+    {
+      where: {
+        demonstrationId_roleId: {
+          demonstrationId: parent.id,
+          roleId: roleProjectOfficer,
+        },
       },
-    },
-    include: {
-      demonstrationRoleAssignment: {
-        include: { person: true },
+      include: {
+        demonstrationRoleAssignment: {
+          include: { person: true },
+        },
       },
-    },
-  });
-  return primaryRoleAssignment!.demonstrationRoleAssignment!.person;
+    }
+  );
+  return primaryRoleAssignment.demonstrationRoleAssignment.person;
 }
 
 export async function resolveDemonstrationTypes(

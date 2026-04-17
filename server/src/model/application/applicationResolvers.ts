@@ -30,7 +30,7 @@ export async function resolveApplicationPhases(
       applicationId: parent.id,
     },
   });
-  return result!;
+  return result;
 }
 
 export async function resolveApplicationTags(parent: PrismaApplication): Promise<Tag[]> {
