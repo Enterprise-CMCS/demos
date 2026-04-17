@@ -1,15 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 import { demonstrationRoleAssigmentResolvers } from "./demonstrationRoleAssignmentResolvers";
 import { DemonstrationRoleAssignment as PrismaDemonstrationRoleAssignment } from "@prisma/client";
-import { getDemonstration } from "../demonstration/demonstrationData";
-import { ContextUser } from "../../auth/userContext";
+import { getDemonstration } from "../demonstration";
+import { ContextUser } from "../../auth";
 
 const mockUser = {} as unknown as ContextUser;
 const mockContext = {
   user: mockUser,
 };
 
-vi.mock("../demonstration/demonstrationData.js", () => ({
+vi.mock("../demonstration", () => ({
   getDemonstration: vi.fn(),
 }));
 

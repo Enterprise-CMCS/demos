@@ -1,20 +1,15 @@
 import { Extension as PrismaExtension, Prisma } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { buildAuthorizationFilter } from "../../auth/buildAuthorizationFilter.js";
-import { getExtension, getManyExtensions } from "./extensionData.js";
-import { selectExtension } from "./queries/selectExtension.js";
-import { selectManyExtensions } from "./queries/selectManyExtensions.js";
-import { ContextUser } from "../../auth/userContext.js";
+import { buildAuthorizationFilter, ContextUser } from "../../auth";
+import { getExtension, getManyExtensions } from "./extensionData";
+import { selectExtension, selectManyExtensions } from "./queries";
 
-vi.mock("../../auth/buildAuthorizationFilter.js", () => ({
+vi.mock("../../auth", () => ({
   buildAuthorizationFilter: vi.fn(),
 }));
 
-vi.mock("./queries/selectExtension.js", () => ({
+vi.mock("./queries", () => ({
   selectExtension: vi.fn(),
-}));
-
-vi.mock("./queries/selectManyExtensions.js", () => ({
   selectManyExtensions: vi.fn(),
 }));
 

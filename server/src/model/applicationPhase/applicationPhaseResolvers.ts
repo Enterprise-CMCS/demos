@@ -1,16 +1,16 @@
 import {
   ApplicationPhase as PrismaApplicationPhase,
 } from "@prisma/client";
-import { prisma } from "../../prismaClient.js";
+import { prisma } from "../../prismaClient";
 import {
   PrismaApplicationDateResults,
   completePhase,
   declareCompletenessPhaseIncomplete,
   skipConceptPhase,
 } from ".";
-import { PrismaApplicationNoteResults } from "./applicationPhaseTypes.js";
-import { GraphQLContext } from "../../auth/auth.util.js";
-import { getManyDocuments } from "../document/documentData.js";
+import { PrismaApplicationNoteResults } from "./applicationPhaseTypes";
+import { GraphQLContext } from "../../auth";
+import { getManyDocuments } from "../document";
 
 export async function __resolveApplicationPhaseDates(
   parent: PrismaApplicationPhase

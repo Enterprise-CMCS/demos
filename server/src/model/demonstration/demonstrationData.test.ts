@@ -1,20 +1,16 @@
 import { Demonstration as PrismaDemonstration, Prisma } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { buildAuthorizationFilter } from "../../auth/buildAuthorizationFilter.js";
-import { getDemonstration, getManyDemonstrations } from "./demonstrationData.js";
-import { selectDemonstration } from "./queries/selectDemonstration.js";
-import { selectManyDemonstrations } from "./queries/selectManyDemonstrations.js";
-import { ContextUser } from "../../auth/userContext.js";
+import { getDemonstration, getManyDemonstrations } from "./demonstrationData";
+import { selectDemonstration } from "./queries";
+import { selectManyDemonstrations } from "./queries";
+import { ContextUser, buildAuthorizationFilter } from "../../auth";
 
-vi.mock("../../auth/buildAuthorizationFilter.js", () => ({
+vi.mock("../../auth", () => ({
   buildAuthorizationFilter: vi.fn(),
 }));
 
-vi.mock("./queries/selectDemonstration.js", () => ({
+vi.mock("./queries", () => ({
   selectDemonstration: vi.fn(),
-}));
-
-vi.mock("./queries/selectManyDemonstrations.js", () => ({
   selectManyDemonstrations: vi.fn(),
 }));
 

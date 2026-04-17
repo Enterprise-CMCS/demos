@@ -1,6 +1,6 @@
-import { USER_TYPES } from "../constants.js";
-import { ContextUser, findOrCreateContextUserFromClaims } from "./userContext.js";
-import { UserType } from "../types.js";
+import { USER_TYPES } from "../constants";
+import { ContextUser, findOrCreateContextUserFromClaims } from "./userContext";
+import { UserType } from "../types";
 
 export interface GraphQLContext {
   user: ContextUser;

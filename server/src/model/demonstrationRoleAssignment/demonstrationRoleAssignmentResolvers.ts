@@ -1,12 +1,12 @@
 import { DemonstrationRoleAssignment as PrismaDemonstrationRoleAssignment } from "@prisma/client";
 
-import { prisma } from "../../prismaClient.js";
+import { prisma } from "../../prismaClient";
 import {
   SetDemonstrationRoleInput,
   UnsetDemonstrationRoleInput,
-} from "./demonstrationRoleAssignmentSchema.js";
-import { GraphQLContext } from "../../auth/auth.util.js";
-import { getDemonstration } from "../demonstration/demonstrationData.js";
+} from "./demonstrationRoleAssignmentSchema";
+import { GraphQLContext } from "../../auth";
+import { getDemonstration } from "../demonstration";
 
 const DEMONSTRATION_GRANT_LEVEL = "Demonstration";
 

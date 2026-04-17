@@ -5,7 +5,7 @@ import {
   Prisma,
   User as PrismaUser,
 } from "@prisma/client";
-import { GraphQLContext } from "../../auth/auth.util";
+import { GraphQLContext } from "../../auth";
 import { GraphQLResolveInfo } from "graphql";
 import { createDeliverable, getDeliverable, getManyDeliverables } from ".";
 import {
@@ -16,7 +16,7 @@ import {
 } from "../../types";
 import { getApplication } from "../application";
 import { getUser } from "../user";
-import { getManyDocuments } from "../document/documentData";
+import { getManyDocuments } from "../document";
 
 export async function resolveDeliverable(
   parent: PrismaDocument,

@@ -4,7 +4,7 @@ import {
   __updateAmendment,
   deleteAmendment,
   amendmentResolvers,
-} from "./amendmentResolvers.js";
+} from "./amendmentResolvers";
 import {
   ApplicationStatus,
   ApplicationType,
@@ -13,12 +13,12 @@ import {
   PhaseName,
   SignatureLevel,
   UpdateAmendmentInput,
-} from "../../types.js";
+} from "../../types";
 import { Amendment as PrismaAmendment } from "@prisma/client";
 import { TZDate } from "@date-fns/tz";
 
 // Mock imports
-import { prisma } from "../../prismaClient.js";
+import { prisma } from "../../prismaClient";
 import {
   deleteApplication,
   // None of these are tested but need to be exported to avoid mocking issues
@@ -26,32 +26,31 @@ import {
   resolveApplicationTags,
   resolveSuggestedApplicationTags,
 } from "../application";
-import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
-import { handlePrismaError } from "../../errors/handlePrismaError.js";
+import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
+import { handlePrismaError } from "../../errors/handlePrismaError";
 import {
   checkInputDateIsStartOfDay,
   checkInputDateIsEndOfDay,
-} from "../applicationDate/checkInputDateFunctions.js";
-import { EasternTZDate, parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities.js";
-import { ContextUser } from "../../auth/userContext.js";
-import { GraphQLContext } from "../../auth/auth.util.js";
-import { getDemonstration } from "../demonstration/demonstrationData.js";
-import { getAmendment, getManyAmendments } from "./amendmentData.js";
-import { getManyDocuments } from "../document/documentData.js";
-vi.mock("../../prismaClient.js", () => ({
+} from "../applicationDate/checkInputDateFunctions";
+import { EasternTZDate, parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities";
+import { ContextUser, GraphQLContext } from "../../auth";
+import { getDemonstration } from "../demonstration";
+import { getAmendment, getManyAmendments } from "./amendmentData";
+import { getManyDocuments } from "../document";
+vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
-vi.mock("./amendmentData.js", () => ({
+vi.mock("./amendmentData", () => ({
   getAmendment: vi.fn(),
   getManyAmendments: vi.fn(),
 }));
 
-vi.mock("../document/documentData.js", () => ({
+vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
 }));
 
-vi.mock("../demonstration/demonstrationData.js", () => ({
+vi.mock("../demonstration", () => ({
   getDemonstration: vi.fn(),
 }));
 
@@ -64,23 +63,23 @@ vi.mock("../application", () => ({
   resolveSuggestedApplicationTags: vi.fn(),
 }));
 
-vi.mock("../../errors/checkOptionalNotNullFields.js", () => ({
+vi.mock("../../errors/checkOptionalNotNullFields", () => ({
   checkOptionalNotNullFields: vi.fn(),
 }));
 
 const testHandlePrismaError = new Error("Test handlePrismaError!");
-vi.mock("../../errors/handlePrismaError.js", () => ({
+vi.mock("../../errors/handlePrismaError", () => ({
   handlePrismaError: vi.fn(() => {
     throw testHandlePrismaError;
   }),
 }));
 
-vi.mock("../applicationDate/checkInputDateFunctions.js", () => ({
+vi.mock("../applicationDate/checkInputDateFunctions", () => ({
   checkInputDateIsStartOfDay: vi.fn(),
   checkInputDateIsEndOfDay: vi.fn(),
 }));
 
-vi.mock("../../dateUtilities.js", () => ({
+vi.mock("../../dateUtilities", () => ({
   parseDateTimeOrLocalDateToEasternTZDate: vi.fn(),
 }));
 

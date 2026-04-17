@@ -4,28 +4,28 @@ import {
   __resolveApplicationPhaseName,
   __resolveApplicationPhaseStatus,
   applicationPhaseResolvers,
-} from "./applicationPhaseResolvers.js";
+} from "./applicationPhaseResolvers";
 import { ApplicationPhase as PrismaApplicationPhase } from "@prisma/client";
-import { PhaseName, PhaseStatus } from "../../types.js";
+import { PhaseName, PhaseStatus } from "../../types";
 
 // Mock imports
-import { prisma } from "../../prismaClient.js";
-import { handlePrismaError } from "../../errors/handlePrismaError.js";
+import { prisma } from "../../prismaClient";
+import { handlePrismaError } from "../../errors/handlePrismaError";
 import { getApplication } from "../application";
 import { completePhase, declareCompletenessPhaseIncomplete, skipConceptPhase } from ".";
-import { GraphQLContext } from "../../auth/auth.util.js";
-import { getManyDocuments } from "../document/documentData.js";
+import { GraphQLContext } from "../../auth";
+import { getManyDocuments } from "../document";
 
-vi.mock("../../prismaClient.js", () => ({
+vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
-vi.mock("../document/documentData.js", () => ({
+vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
 }));
 
 const testHandlePrismaError = new Error("Test handlePrismaError!");
-vi.mock("../../errors/handlePrismaError.js", () => ({
+vi.mock("../../errors/handlePrismaError", () => ({
   handlePrismaError: vi.fn(() => {
     throw testHandlePrismaError;
   }),

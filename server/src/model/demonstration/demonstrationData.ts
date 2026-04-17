@@ -1,12 +1,11 @@
 import { Prisma, Demonstration as PrismaDemonstration } from "@prisma/client";
+import { selectDemonstration, selectManyDemonstrations } from "./queries";
 import {
+  ContextUser,
   buildAuthorizationFilter,
   isStatePointOfContactOnDemonstration,
   PermissionFilters,
-} from "../../auth/buildAuthorizationFilter.js";
-import { selectDemonstration } from "./queries/selectDemonstration.js";
-import { selectManyDemonstrations } from "./queries/selectManyDemonstrations.js";
-import { ContextUser } from "../../auth/userContext.js";
+} from "../../auth";
 
 const getPermissionFilters = (userId: string) =>
   ({

@@ -1,7 +1,7 @@
 import { State as PrismaState } from "@prisma/client";
-import { prisma } from "../../prismaClient.js";
-import { GraphQLContext } from "../../auth/auth.util.js";
-import { getManyDemonstrations } from "../demonstration/demonstrationData.js";
+import { prisma } from "../../prismaClient";
+import { GraphQLContext } from "../../auth";
+import { getManyDemonstrations } from "../demonstration";
 
 export const stateResolvers = {
   Query: {

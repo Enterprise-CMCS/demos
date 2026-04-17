@@ -4,7 +4,7 @@ import {
   DemonstrationRoleAssignment as PrismaDemonstrationRoleAssignment,
   Person as PrismaPerson,
 } from "@prisma/client";
-import { prisma } from "../../prismaClient.js";
+import { prisma } from "../../prismaClient";
 import {
   ApplicationStatus,
   ApplicationType,
@@ -15,9 +15,9 @@ import {
   Role,
   TagStatus,
   UpdateDemonstrationInput,
-} from "../../types.js";
-import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
-import { handlePrismaError } from "../../errors/handlePrismaError.js";
+} from "../../types";
+import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
+import { handlePrismaError } from "../../errors/handlePrismaError";
 import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate";
 import {
   deleteApplication,
@@ -26,13 +26,13 @@ import {
   resolveApplicationTags,
   resolveSuggestedApplicationTags,
 } from "../application";
-import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
+import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus";
 import { resolveManyDeliverables } from "../deliverable";
-import { GraphQLContext } from "../../auth/auth.util.js";
-import { getDemonstration, getManyDemonstrations } from "./demonstrationData.js";
-import { getManyAmendments } from "../amendment/amendmentData.js";
-import { getManyExtensions } from "../extension/extensionData.js";
-import { getManyDocuments } from "../document/documentData.js";
+import { GraphQLContext } from "../../auth";
+import { getDemonstration, getManyDemonstrations } from "./demonstrationData";
+import { getManyAmendments } from "../amendment";
+import { getManyExtensions } from "../extension";
+import { getManyDocuments } from "../document";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";

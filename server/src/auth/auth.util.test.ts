@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { AuthorizationClaims } from "./auth.util.js";
-import { validateClaims } from "./auth.util.js";
+import { validateClaims, AuthorizationClaims } from "./auth.util";
 
 describe("validateClaims", () => {
   const validClaims: AuthorizationClaims = {

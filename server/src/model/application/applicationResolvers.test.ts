@@ -14,14 +14,14 @@ import {
 } from "@prisma/client";
 
 // Mock imports
-import { prisma } from "../../prismaClient.js";
+import { prisma } from "../../prismaClient";
 
-vi.mock("../../prismaClient.js", () => ({
+vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
 const testHandlePrismaError = new Error("Test handlePrismaError!");
-vi.mock("../../errors/handlePrismaError.js", () => ({
+vi.mock("../../errors/handlePrismaError", () => ({
   handlePrismaError: vi.fn(() => {
     throw testHandlePrismaError;
   }),

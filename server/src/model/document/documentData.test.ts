@@ -1,20 +1,15 @@
 import { Document as PrismaDocument, Prisma } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { buildAuthorizationFilter } from "../../auth/buildAuthorizationFilter.js";
-import { getDocument, getManyDocuments } from "./documentData.js";
-import { selectDocument } from "./queries/selectDocument.js";
-import { selectManyDocuments } from "./queries/selectManyDocuments.js";
-import { ContextUser } from "../../auth/userContext.js";
+import { buildAuthorizationFilter, ContextUser } from "../../auth";
+import { getDocument, getManyDocuments } from "./documentData";
+import { selectDocument, selectManyDocuments } from "./queries";
 
-vi.mock("../../auth/buildAuthorizationFilter.js", () => ({
+vi.mock("../../auth", () => ({
   buildAuthorizationFilter: vi.fn(),
 }));
 
-vi.mock("./queries/selectDocument.js", () => ({
+vi.mock("./queries", () => ({
   selectDocument: vi.fn(),
-}));
-
-vi.mock("./queries/selectManyDocuments.js", () => ({
   selectManyDocuments: vi.fn(),
 }));
 

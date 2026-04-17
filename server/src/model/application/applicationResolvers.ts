@@ -1,5 +1,5 @@
-import { prisma } from "../../prismaClient.js";
-import { TagStatus, UiPathResultStatus } from "../../types.js";
+import { prisma } from "../../prismaClient";
+import { TagStatus, UiPathResultStatus } from "../../types";
 import {
   ApplicationPhase as PrismaApplicationPhase,
 } from "@prisma/client";
