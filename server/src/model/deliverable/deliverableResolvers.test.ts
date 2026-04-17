@@ -222,7 +222,7 @@ describe("deliverableResolvers", () => {
   });
 
   describe("resolveDeliverableDemonstrationTypes", () => {
-    it("should query the demonstraiton types of the parent deliverable", async () => {
+    it("should query the demonstration types of the parent deliverable", async () => {
       vi.mocked(getDeliverableDemonstrationTypes).mockResolvedValue([
         {
           demonstrationId: testDemonstrationId,
