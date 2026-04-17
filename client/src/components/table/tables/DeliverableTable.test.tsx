@@ -4,16 +4,21 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { DeliverableTable, formatDeliverableStatus } from "./DeliverableTable";
-import { MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
 import type { DeliverableTableRow } from "./DeliverableTable";
+import { MOCK_DELIVERABLE_TABLE_ROW } from "mock-data/deliverableMocks";
 
-const sortedDeliverables = sortDeliverablesByDefault(MOCK_DELIVERABLES);
+const MOCK_DELIVERABLE_TABLE_ROWS = [
+  MOCK_DELIVERABLE_TABLE_ROW,
+  {...MOCK_DELIVERABLE_TABLE_ROW, id: "2", name: "Another Deliverable"},
+];
+
+const sortedDeliverables = sortDeliverablesByDefault(MOCK_DELIVERABLE_TABLE_ROWS);
 const sortedFirstPageIds = sortedDeliverables.slice(0, 10).map((deliverable) => deliverable.id);
 
 describe("DeliverableTable", () => {
   beforeEach(async () => {
-    render(<DeliverableTable deliverables={MOCK_DELIVERABLES} viewMode="demos-cms-user" />);
+    render(<DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-cms-user" />);
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
@@ -121,11 +126,11 @@ describe("DeliverableTable", () => {
       const user = userEvent.setup();
       const searchInput = screen.getByLabelText(/search:/i);
 
-      await user.type(searchInput, MOCK_DELIVERABLES[0].name);
+      await user.type(searchInput, MOCK_DELIVERABLE_TABLE_ROWS[0].name);
 
       await waitFor(() => {
         expect(
-          screen.getByText(MOCK_DELIVERABLES[0].name)
+          screen.getByText(MOCK_DELIVERABLE_TABLE_ROWS[0].name)
         ).toBeInTheDocument();
       });
     });
@@ -149,11 +154,11 @@ describe("DeliverableTable", () => {
       const user = userEvent.setup();
       const searchInput = screen.getByLabelText(/search:/i);
 
-      await user.type(searchInput, MOCK_DELIVERABLES[0].name);
+      await user.type(searchInput, MOCK_DELIVERABLE_TABLE_ROWS[0].name);
 
       await waitFor(() => {
         expect(
-          screen.getByText(MOCK_DELIVERABLES[0].name)
+          screen.getByText(MOCK_DELIVERABLE_TABLE_ROWS[0].name)
         ).toBeInTheDocument();
       });
 
@@ -194,7 +199,7 @@ describe("DeliverableTable", () => {
 
 describe("DeliverableTable demos-state-user view mode", () => {
   it("renders the state-user column set and hides state/CMS owner", async () => {
-    render(<DeliverableTable deliverables={MOCK_DELIVERABLES} viewMode="demos-state-user" />);
+    render(<DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-state-user" />);
 
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
@@ -211,7 +216,7 @@ describe("DeliverableTable demos-state-user view mode", () => {
   });
 
   it("hides row action buttons in state-user mode", () => {
-    render(<DeliverableTable deliverables={MOCK_DELIVERABLES} viewMode="demos-state-user" />);
+    render(<DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-state-user" />);
 
     expect(screen.queryByLabelText(/Add Deliverable/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Edit Deliverable/i)).not.toBeInTheDocument();
@@ -221,7 +226,7 @@ describe("DeliverableTable demos-state-user view mode", () => {
 
 describe("DeliverableTable default sorting behavior", () => {
   it("reapplies default sort order when the table data is reloaded", async () => {
-    const base = MOCK_DELIVERABLES[0] as DeliverableTableRow;
+    const base = MOCK_DELIVERABLE_TABLE_ROWS[0] as DeliverableTableRow;
     const createDeliverable = (
       id: string,
       name: string,

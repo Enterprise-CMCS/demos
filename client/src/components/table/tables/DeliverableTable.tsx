@@ -16,7 +16,7 @@ import { sortDeliverablesByDefault } from "util/sortDeliverables";
 
 export type DeliverableTableRow = Omit<
   Deliverable,
-  "demonstration" | "cmsOwner" | "cmsDocuments" | "stateDocuments" | "name"
+  "demonstration" | "cmsOwner" | "cmsDocuments" | "stateDocuments" | "name" | "dueDateType" | "expectedToBeSubmitted" | "createdAt" | "updatedAt" | "cmsDocuments" | "stateDocuments"
 > & {
   name: string;
   demonstration: Pick<Deliverable["demonstration"], "id" | "name"> & {
@@ -26,8 +26,6 @@ export type DeliverableTableRow = Omit<
     person: Pick<Person, "fullName" | "id">;
   };
   submissionDate?: string;
-  cmsDocuments: Pick<Deliverable["cmsDocuments"][number], "id">[];
-  stateDocuments: Pick<Deliverable["stateDocuments"][number], "id">[];
 };
 
 export type DeliverablesQueryResult = {
@@ -56,16 +54,6 @@ export const DELIVERABLES_PAGE_QUERY = gql`
         }
       }
       dueDate
-      dueDateType
-      expectedToBeSubmitted
-      cmsDocuments {
-        id
-      }
-      stateDocuments {
-        id
-      }
-      createdAt
-      updatedAt
     }
   }
 `;
