@@ -84,7 +84,7 @@ export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
       cell: ({ row }) => {
         const deliverableId = row.original.id;
         const handleClick = () => {
-          window.open(`/deliverable/${deliverableId}`, "_blank");
+          window.open(`/deliverables/${deliverableId}`, "_blank");
         };
         return (
           <SecondaryButton onClick={handleClick} name="view-deliverable">
