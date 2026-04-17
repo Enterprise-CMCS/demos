@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ContextUser } from "./auth.util";
+import type { ContextUser } from "./userContext";
 import { buildAuthorizationFilter, PermissionFilters } from "./buildAuthorizationFilter";
 import { ApplicationStatus, SignatureLevel } from "../types";
 
@@ -14,8 +14,8 @@ describe("buildAuthorizationFilter", () => {
   it("builds an OR filter from the permissions the user has", () => {
     const user: ContextUser = {
       id: "user-1",
-      sub: "sub-1",
-      role: "demos-admin",
+      cognitoSubject: "sub-1",
+      personTypeId: "demos-admin",
       permissions: ["View All Demonstrations", "View All Amendments"],
     };
 
@@ -35,8 +35,8 @@ describe("buildAuthorizationFilter", () => {
   it("returns null when the user has no matching permissions", () => {
     const user: ContextUser = {
       id: "user-2",
-      sub: "sub-2",
-      role: "demos-cms-user",
+      cognitoSubject: "sub-2",
+      personTypeId: "demos-cms-user",
       permissions: ["View All Extensions"],
     };
 
@@ -53,8 +53,8 @@ describe("buildAuthorizationFilter", () => {
   it("skips permission entries that are undefined", () => {
     const user: ContextUser = {
       id: "user-3",
-      sub: "sub-3",
-      role: "demos-state-user",
+      cognitoSubject: "sub-3",
+      personTypeId: "demos-state-user",
       permissions: ["View Assigned Demonstrations"],
     };
 

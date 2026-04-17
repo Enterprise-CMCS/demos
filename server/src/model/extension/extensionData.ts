@@ -3,10 +3,9 @@ import {
   buildAuthorizationFilter,
   isStatePointOfContactOnDemonstration,
   PermissionFilters,
-} from "../../auth/buildAuthorizationFilter.js";
-import { selectExtension } from "./queries/selectExtension.js";
-import { selectManyExtensions } from "./queries/selectManyExtensions.js";
-import { ContextUser } from "../../auth/userContext.js";
+  ContextUser,
+} from "../../auth";
+import { selectExtension, selectManyExtensions } from "./queries";
 
 const getPermissionFilters = (userId: string) =>
   ({

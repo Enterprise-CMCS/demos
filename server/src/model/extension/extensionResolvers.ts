@@ -1,14 +1,14 @@
 import { Extension as PrismaExtension } from "@prisma/client";
-import { prisma } from "../../prismaClient.js";
+import { prisma } from "../../prismaClient";
 import {
   ApplicationStatus,
   ApplicationType,
   CreateExtensionInput,
   PhaseName,
   UpdateExtensionInput,
-} from "../../types.js";
-import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
-import { handlePrismaError } from "../../errors/handlePrismaError.js";
+} from "../../types";
+import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
+import { handlePrismaError } from "../../errors/handlePrismaError";
 import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate";
 import {
   deleteApplication,
@@ -16,10 +16,10 @@ import {
   resolveApplicationTags,
   resolveSuggestedApplicationTags,
 } from "../application";
-import { getDemonstration } from "../demonstration/demonstrationData.js";
-import { GraphQLContext } from "../../auth/auth.util.js";
-import { getExtension, getManyExtensions } from "./extensionData.js";
-import { getManyDocuments } from "../document/documentData.js";
+import { getDemonstration } from "../demonstration";
+import { GraphQLContext } from "../../auth";
+import { getExtension, getManyExtensions } from "./extensionData";
+import { getManyDocuments } from "../document";
 
 const extensionApplicationType: ApplicationType = "Extension";
 const conceptPhaseName: PhaseName = "Concept";

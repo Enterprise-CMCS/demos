@@ -1,14 +1,14 @@
 import { Amendment as PrismaAmendment } from "@prisma/client";
-import { prisma } from "../../prismaClient.js";
+import { prisma } from "../../prismaClient";
 import {
   ApplicationStatus,
   ApplicationType,
   CreateAmendmentInput,
   PhaseName,
   UpdateAmendmentInput,
-} from "../../types.js";
-import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
-import { handlePrismaError } from "../../errors/handlePrismaError.js";
+} from "../../types";
+import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
+import { handlePrismaError } from "../../errors/handlePrismaError";
 import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate";
 import {
   deleteApplication,
@@ -16,10 +16,10 @@ import {
   resolveApplicationTags,
   resolveSuggestedApplicationTags,
 } from "../application";
-import { getDemonstration } from "../demonstration/demonstrationData.js";
-import { GraphQLContext } from "../../auth/auth.util.js";
-import { getAmendment, getManyAmendments } from "./amendmentData.js";
-import { getManyDocuments } from "../document/documentData.js";
+import { getDemonstration } from "../demonstration";
+import { GraphQLContext } from "../../auth";
+import { getAmendment, getManyAmendments } from "./amendmentData";
+import { getManyDocuments } from "../document";
 
 const amendmentApplicationType: ApplicationType = "Amendment";
 const conceptPhaseName: PhaseName = "Concept";
