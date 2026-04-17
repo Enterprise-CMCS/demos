@@ -1,5 +1,5 @@
-import { generateCustomSetScalar } from "../../customScalarResolvers.js";
-import { DELIVERABLE_STATUSES } from "../../constants.js";
+import { generateCustomSetScalar } from "../../customScalarResolvers";
+import { DELIVERABLE_STATUSES } from "../../constants";
 
 export const deliverableStatusResolvers = {
   DeliverableStatus: generateCustomSetScalar(

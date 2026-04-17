@@ -4,7 +4,6 @@ import {
   __updateDemonstration,
   deleteDemonstration,
   __resolveDemonstrationState,
-  __resolveDemonstrationAmendments,
   __resolveDemonstrationExtensions,
   __resolveDemonstrationRoleAssignments,
   __resolveDemonstrationPrimaryProjectOfficer,
@@ -54,6 +53,7 @@ import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeSt
 import { getDemonstration, getManyDemonstrations } from "./demonstrationData.js";
 import { ContextUser } from "../../auth/userContext.js";
 import { GraphQLContext } from "../../auth/auth.util.js";
+import { getManyAmendments } from "../amendment/amendmentData.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -62,6 +62,10 @@ vi.mock("../../prismaClient.js", () => ({
 vi.mock("./demonstrationData.js", () => ({
   getDemonstration: vi.fn(),
   getManyDemonstrations: vi.fn(),
+}));
+
+vi.mock("../amendment/amendmentData.js", () => ({
+  getManyAmendments: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -229,14 +233,26 @@ describe("demonstrationResolvers", () => {
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
-  it("delegates `Query.demonstration` to `Demonstration.getDemonstration`", async () => {
+  it("delegates `Query.demonstration` to `demonstrationData.getDemonstration`", async () => {
     await demonstrationResolvers.Query.demonstration(undefined, { id: "abc123" }, mockContext);
     expect(getDemonstration).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
   });
 
-  it("delegates `Query.demonstrations` to `Demonstration.getManyDemonstrations`", async () => {
+  it("delegates `Query.demonstrations` to `demonstrationData.getManyDemonstrations`", async () => {
     await demonstrationResolvers.Query.demonstrations(undefined, {}, mockContext);
     expect(getManyDemonstrations).toHaveBeenCalledExactlyOnceWith({}, mockUser);
+  });
+
+  it("delegates `Demonstration.amendments` to `amendmentData.getManyAmendments`", async () => {
+    await demonstrationResolvers.Demonstration.amendments(
+      { id: "demonstrationId" } as PrismaDemonstration,
+      {},
+      mockContext
+    );
+    expect(getManyAmendments).toHaveBeenCalledExactlyOnceWith(
+      { demonstrationId: "demonstrationId" },
+      mockUser
+    );
   });
 
   it("resolves `Demonstration.currentPhaseName`", () => {
@@ -730,21 +746,6 @@ describe("demonstrationResolvers", () => {
       };
       await __resolveDemonstrationState(input as PrismaDemonstration);
       expect(regularMocks.state.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCall);
-    });
-  });
-
-  describe("__resolveDemonstrationAmendments", () => {
-    it("should look up the relevant amendments", async () => {
-      const input: Partial<PrismaDemonstration> = {
-        id: testValues.demonstrationId,
-      };
-      const expectedCall = {
-        where: {
-          demonstrationId: testValues.demonstrationId,
-        },
-      };
-      await __resolveDemonstrationAmendments(input as PrismaDemonstration);
-      expect(regularMocks.amendment.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
   });
 

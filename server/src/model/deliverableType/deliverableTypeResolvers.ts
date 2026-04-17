@@ -1,5 +1,5 @@
-import { generateCustomSetScalar } from "../../customScalarResolvers.js";
-import { DELIVERABLE_TYPES } from "../../constants.js";
+import { generateCustomSetScalar } from "../../customScalarResolvers";
+import { DELIVERABLE_TYPES } from "../../constants";
 
 export const deliverableTypeResolvers = {
   DeliverableType: generateCustomSetScalar(

@@ -18,7 +18,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     volumes:
-      - ./postgres/postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
       - ./postgres/postgres-init:/docker-entrypoint-initdb.d
     environment:
       POSTGRES_PASSWORD: postgres # pragma: allowlist secret
@@ -45,7 +45,7 @@ services:
       - "9092:9093"
 
   localstack:
-    image: localstack/localstack:latest
+    image: localstack/localstack:4.14.0
     environment:
       DEBUG: ${DEBUG:-0}
       DOCKER_HOST: unix:///var/run/docker.sock

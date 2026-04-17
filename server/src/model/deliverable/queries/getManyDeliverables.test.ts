@@ -2,9 +2,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { getManyDeliverables } from "./getManyDeliverables";
 
 // Mock imports
-import { prisma } from "../../../prismaClient.js";
+import { prisma } from "../../../prismaClient";
 
-vi.mock("../../../prismaClient.js", () => ({
+vi.mock("../../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 

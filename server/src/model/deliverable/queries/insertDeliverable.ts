@@ -1,5 +1,5 @@
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
-import { prisma, PrismaTransactionClient } from "../../../prismaClient.js";
+import { prisma, PrismaTransactionClient } from "../../../prismaClient";
 import { ParsedCreateDeliverableInput } from "..";
 import { DeliverableStatus, DeliverableDueDateType, ApplicationStatus } from "../../../types";
 
