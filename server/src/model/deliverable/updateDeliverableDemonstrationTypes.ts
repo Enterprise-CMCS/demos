@@ -23,7 +23,7 @@ export async function updateDeliverableDemonstrationTypes(
   // Can turn these into a set because DB guarantees uniqueness
   const oldDemonstrationTypes: Set<TagName> = new Set(
     (await getDeliverableDemonstrationTypes(deliverableId, tx)).map(
-      (demonstrationType) => demonstrationType.demonstrationTypeTagNameId
+      (demonstrationType) => demonstrationType.tagName
     )
   );
 

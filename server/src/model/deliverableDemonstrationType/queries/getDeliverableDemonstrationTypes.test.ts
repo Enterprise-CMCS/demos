@@ -2,6 +2,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Types
+import { TagStatus } from "../../../types";
+import { GetDeliverableDemonstrationTypeResult } from "..";
 
 // Functions under test
 import { getDeliverableDemonstrationTypes } from "./getDeliverableDemonstrationTypes";
@@ -37,15 +39,62 @@ describe("getDeliverableDemonstrationTypes", () => {
   const testDeliverableId = "c8697763-fdd8-4502-b538-9e3cde153b05";
   const expectedCall = {
     where: { deliverableId: testDeliverableId },
+    select: {
+      demonstrationTypeTagNameId: true,
+      demonstrationTypeTagAssignment: {
+        select: {
+          tag: {
+            select: {
+              statusId: true,
+            },
+          },
+        },
+      },
+    },
   };
+  const mockReturnValue = [
+    {
+      demonstrationTypeTagNameId: "Free Insulin",
+      demonstrationTypeTagAssignment: {
+        tag: {
+          statusId: "Approved",
+        },
+      },
+    },
+    {
+      demonstrationTypeTagNameId: "Reduced Cost Insulin Pump Supplies",
+      demonstrationTypeTagAssignment: {
+        tag: {
+          statusId: "Unapproved",
+        },
+      },
+    },
+  ];
+  const expectedResult: GetDeliverableDemonstrationTypeResult[] = [
+    {
+      tagName: "Free Insulin",
+      approvalStatus: "Approved",
+    },
+    {
+      tagName: "Reduced Cost Insulin Pump Supplies",
+      approvalStatus: "Unapproved",
+    },
+  ];
 
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
+    vi.mocked(mockPrismaClient.deliverableDemonstrationType.findMany).mockResolvedValue(
+      mockReturnValue
+    );
+    vi.mocked(mockTransaction.deliverableDemonstrationType.findMany).mockResolvedValue(
+      mockReturnValue
+    );
   });
 
   it("should get the deliverable demonstration types directly from the database directly if no transaction is given", async () => {
-    await getDeliverableDemonstrationTypes(testDeliverableId);
+    const result = await getDeliverableDemonstrationTypes(testDeliverableId);
+    expect(result).toStrictEqual(expectedResult);
     expect(regularMocks.deliverableDemonstrationType.findMany).toHaveBeenCalledExactlyOnceWith(
       expectedCall
     );
@@ -53,7 +102,8 @@ describe("getDeliverableDemonstrationTypes", () => {
   });
 
   it("should get the deliverable demonstration types via a transaction if one is given", async () => {
-    await getDeliverableDemonstrationTypes(testDeliverableId, mockTransaction);
+    const result = await getDeliverableDemonstrationTypes(testDeliverableId, mockTransaction);
+    expect(result).toStrictEqual(expectedResult);
     expect(regularMocks.deliverableDemonstrationType.findMany).not.toHaveBeenCalled();
     expect(transactionMocks.deliverableDemonstrationType.findMany).toHaveBeenCalledExactlyOnceWith(
       expectedCall
