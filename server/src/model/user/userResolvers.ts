@@ -1,8 +1,8 @@
-import { prisma } from "../../prismaClient.js";
-import type { GraphQLContext } from "../../auth/auth.util.js";
+import { prisma } from "../../prismaClient";
+import type { GraphQLContext } from "../../auth";
 import { Event as PrismaEvent, Person as PrismaPerson, User as PrismaUser } from "@prisma/client";
 import { resolveManyDeliverables } from "../deliverable";
-import { getManyDocuments } from "../document/documentData.js";
+import { getManyDocuments } from "../document";
 
 export async function queryCurrentUser(
   parent: unknown,
