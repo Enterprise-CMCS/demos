@@ -13,7 +13,6 @@ import {
   DeliverableDueDateType,
   DeliverableStatus,
   DeliverableType,
-  TagName,
   UpdateDeliverableInput,
 } from "../../types";
 import { getApplication } from "../application";
@@ -87,14 +86,6 @@ export function resolveDeliverableDueDateType(parent: PrismaDeliverable): Delive
   return parent.dueDateTypeId as DeliverableDueDateType;
 }
 
-export async function resolveDeliverableDemonstrationTypes(
-  parent: PrismaDeliverable
-): Promise<TagName[]> {
-  return (await getDeliverableDemonstrationTypes(parent.id)).map(
-    (demonstrationType) => demonstrationType.demonstrationTypeTagNameId
-  );
-}
-
 export async function resolveDemonstration(
   parent: PrismaDeliverable
 ): Promise<PrismaDemonstration> {
@@ -149,7 +140,9 @@ export const deliverableResolvers = {
     status: resolveDeliverableStatus,
     cmsOwner: resolveDeliverableCmsOwner,
     dueDateType: resolveDeliverableDueDateType,
-    demonstrationTypes: resolveDeliverableDemonstrationTypes,
+    demonstrationTypes: async (parent: PrismaDeliverable) => {
+      return await getDeliverableDemonstrationTypes(parent.id);
+    },
     cmsDocuments: resolveDeliverableCmsDocuments,
     stateDocuments: resolveDeliverableStateDocuments,
   },

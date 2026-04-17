@@ -2,11 +2,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Types
-import { TagName } from "../../types";
-import {
-  Deliverable as PrismaDeliverable,
-  DeliverableDemonstrationType as PrismaDeliverableDemonstrationType,
-} from "@prisma/client";
+import { TagName, TagStatus } from "../../types";
+import { Deliverable as PrismaDeliverable } from "@prisma/client";
+import { GetDeliverableDemonstrationTypeResult } from "../deliverableDemonstrationType";
 
 // Functions under test
 import { updateDeliverableDemonstrationTypes } from "./updateDeliverableDemonstrationTypes";
@@ -37,16 +35,14 @@ describe("updateDeliverableDemonstrationTypes", () => {
     id: testDeliverableId,
     demonstrationId: mockDemonstrationId,
   };
-  const mockDeliverableDemonstrationTypes: PrismaDeliverableDemonstrationType[] = [
+  const mockDeliverableDemonstrationTypes: GetDeliverableDemonstrationTypeResult[] = [
     {
-      deliverableId: testDeliverableId,
-      demonstrationId: mockDemonstrationId,
-      demonstrationTypeTagNameId: "Free Insulin",
+      tagName: "Free Insulin",
+      approvalStatus: "Approved" satisfies TagStatus,
     },
     {
-      deliverableId: testDeliverableId,
-      demonstrationId: mockDemonstrationId,
-      demonstrationTypeTagNameId: "Low Cost Vitamin A Supplements for Newborns",
+      tagName: "Low Cost Vitamin A Supplements for Newborns",
+      approvalStatus: "Unapproved" satisfies TagStatus,
     },
   ];
 
@@ -140,6 +136,31 @@ describe("updateDeliverableDemonstrationTypes", () => {
         deliverableId: testDeliverableId,
         demonstrationId: mockDemonstrationId,
         demonstrationTypes: ["Free Insulin"],
+      },
+      mockTransaction
+    );
+  });
+
+  it("should treat empty demonstration types as a valid input to pass", async () => {
+    const testInput = {
+      name: "A deliverable!",
+      demonstrationTypes: new Set<TagName>(),
+    };
+
+    await updateDeliverableDemonstrationTypes(testDeliverableId, testInput, mockTransaction);
+    expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+      { id: testDeliverableId },
+      mockTransaction
+    );
+    expect(getDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
+      testDeliverableId,
+      mockTransaction
+    );
+    expect(setDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
+      {
+        deliverableId: testDeliverableId,
+        demonstrationId: mockDemonstrationId,
+        demonstrationTypes: [],
       },
       mockTransaction
     );

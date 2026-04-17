@@ -27,7 +27,6 @@ import {
   resolveDeliverableType,
   resolveDeliverableStatus,
   resolveDeliverableDueDateType,
-  resolveDeliverableDemonstrationTypes,
   resolveDemonstration,
   resolveDeliverableCmsOwner,
   resolveDeliverableCmsDocuments,
@@ -63,7 +62,10 @@ import { createDeliverable, getDeliverable, getManyDeliverables, updateDeliverab
 import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getManyDocuments } from "../document";
-import { getDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
+import {
+  GetDeliverableDemonstrationTypeResult,
+  getDeliverableDemonstrationTypes,
+} from "../deliverableDemonstrationType";
 
 describe("deliverableResolvers", () => {
   const testDeliverableId = "82ef9a17-e8b9-48ab-9aaf-3d1787822b13";
@@ -221,29 +223,6 @@ describe("deliverableResolvers", () => {
     });
   });
 
-  describe("resolveDeliverableDemonstrationTypes", () => {
-    it("should query the demonstration types of the parent deliverable", async () => {
-      vi.mocked(getDeliverableDemonstrationTypes).mockResolvedValue([
-        {
-          demonstrationId: testDemonstrationId,
-          deliverableId: testDeliverableId,
-          demonstrationTypeTagNameId: "Free Insulin",
-        },
-        {
-          demonstrationId: testDemonstrationId,
-          deliverableId: testDeliverableId,
-          demonstrationTypeTagNameId: "Vitamin A Supplementation for Newborns",
-        },
-      ]);
-
-      const result = await resolveDeliverableDemonstrationTypes(
-        testDeliverable as PrismaDeliverable
-      );
-      expect(getDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(testDeliverableId);
-      expect(result).toStrictEqual(["Free Insulin", "Vitamin A Supplementation for Newborns"]);
-    });
-  });
-
   describe("resolveDemonstration", () => {
     it("should query the demonstration of the parent deliverable", async () => {
       await resolveDemonstration(testDeliverable as PrismaDeliverable);
@@ -314,6 +293,30 @@ describe("deliverableResolvers", () => {
           {} as GraphQLContext
         );
         expect(updateDeliverable).toHaveBeenCalledExactlyOnceWith(testDeliverableId, testInput, {});
+      });
+    });
+
+    describe("Deliverable.demonstrationTypes", () => {
+      it("should query the demonstration types of the parent deliverable", async () => {
+        const mockGetDeliverableDemonstrationTypeResult: GetDeliverableDemonstrationTypeResult[] = [
+          {
+            tagName: "Free Insulin",
+            approvalStatus: "Approved",
+          },
+          {
+            tagName: "Vitamin A Supplementation for Newborns",
+            approvalStatus: "Unapproved",
+          },
+        ];
+        vi.mocked(getDeliverableDemonstrationTypes).mockResolvedValue(
+          mockGetDeliverableDemonstrationTypeResult
+        );
+
+        const result = await deliverableResolvers.Deliverable.demonstrationTypes(
+          testDeliverable as PrismaDeliverable
+        );
+        expect(getDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(testDeliverableId);
+        expect(result).toStrictEqual(mockGetDeliverableDemonstrationTypeResult);
       });
     });
   });

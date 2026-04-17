@@ -7,6 +7,7 @@ import {
   Demonstration,
   Document,
   NonEmptyString,
+  Tag,
   TagName,
   User,
 } from "../../types";
@@ -21,7 +22,7 @@ export const deliverableSchema = gql`
     cmsOwner: User!
     dueDate: DateTime!
     dueDateType: DeliverableDueDateType!
-    demonstrationTypes: [TagName!]!
+    demonstrationTypes: [Tag!]!
     expectedToBeSubmitted: Boolean!
     cmsDocuments: [Document!]!
     stateDocuments: [Document!]!
@@ -70,7 +71,7 @@ export interface Deliverable {
   cmsOwner: User;
   dueDate: Date;
   dueDateType: DeliverableDueDateType;
-  demonstrationTypes: TagName[];
+  demonstrationTypes: Tag[];
   expectedToBeSubmitted: boolean;
   cmsDocuments: Document[];
   stateDocuments: Document[];
