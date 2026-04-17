@@ -19,6 +19,7 @@ This file provides instructions for AI agents to use when generating or editing 
 
 - Reuse shared types from `demos-server` when available; do not duplicate local copies.
 - Use `Pick<>` or similar utility types when a component needs only part of a larger type.
+- Prefer `Pick` over `Omit` for type derivations.
 
 ### Functions
 
