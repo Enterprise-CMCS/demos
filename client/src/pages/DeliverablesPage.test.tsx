@@ -3,9 +3,10 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as UserContext from "components/user/UserContext";
 
-import { DeliverablesPage } from "./DeliverablesPage";
+import { MockedResponse } from "@apollo/client/testing";
 import { DELIVERABLES_PAGE_QUERY } from "components/table/tables/DeliverableTable";
-import { deliverableMocks, MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
+import { DeliverablesPage } from "./DeliverablesPage";
+import { MOCK_DELIVERABLE_TABLE_ROW } from "mock-data/deliverableMocks";
 import { mockUsers } from "mock-data/userMocks";
 import { TestProvider } from "test-utils/TestProvider";
 
@@ -17,23 +18,40 @@ vi.mock("components/user/UserContext", async (importOriginal) => {
   };
 });
 
+const MOCK_DELIVERABLE_TABLE_ROWS = [
+  MOCK_DELIVERABLE_TABLE_ROW,
+  {
+    ...MOCK_DELIVERABLE_TABLE_ROW,
+    id: "2",
+    name: "Budget Neutrality Worksheet",
+  },
+  {
+    ...MOCK_DELIVERABLE_TABLE_ROW,
+    id: "3",
+    name: "Quarterly Report For NYC Demonstration",
+    cmsOwner: {
+      id: "other-user-id",
+      person: { id: "other-person", fullName: "Other Person" },
+    },
+  },
+];
+
+const DELIVERABLES_TABLE_MOCKS: MockedResponse[] = [
+  {
+    request: { query: DELIVERABLES_PAGE_QUERY },
+    result: { data: { deliverables: MOCK_DELIVERABLE_TABLE_ROWS } },
+    maxUsageCount: Number.POSITIVE_INFINITY,
+  },
+];
+
 describe("DeliverablesPage tab persistence", () => {
   const TAB_KEY = "selectedDeliverableTab";
-  const CURRENT_USER_ID = "dustyrhodes";
+  const CURRENT_USER_ID = MOCK_DELIVERABLE_TABLE_ROW.cmsOwner.id;
   const mockGetCurrentUser = vi.mocked(UserContext.getCurrentUser);
-  const deliverablesPageMocks = [
-    {
-      ...deliverableMocks[0]!,
-      request: {
-        ...deliverableMocks[0]!.request,
-        query: DELIVERABLES_PAGE_QUERY,
-      },
-    },
-  ];
 
   const renderDeliverablesPage = async () => {
     render(
-      <TestProvider mocks={deliverablesPageMocks} addTypename={false}>
+      <TestProvider mocks={DELIVERABLES_TABLE_MOCKS}>
         <DeliverablesPage />
       </TestProvider>
     );
@@ -83,7 +101,7 @@ describe("DeliverablesPage tab persistence", () => {
   it("shows correct deliverable counts in tab labels", async () => {
     await renderDeliverablesPage();
 
-    const myDeliverablesCount = MOCK_DELIVERABLES.filter(
+    const myDeliverablesCount = MOCK_DELIVERABLE_TABLE_ROWS.filter(
       (d) => d.cmsOwner.id === CURRENT_USER_ID
     ).length;
 
@@ -92,7 +110,7 @@ describe("DeliverablesPage tab persistence", () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText(`All Deliverables (${MOCK_DELIVERABLES.length})`)
+      screen.getByText(`All Deliverables (${MOCK_DELIVERABLE_TABLE_ROWS.length})`)
     ).toBeInTheDocument();
   });
 
@@ -100,8 +118,8 @@ describe("DeliverablesPage tab persistence", () => {
     await renderDeliverablesPage();
     fireEvent.click(screen.getByTestId("button-my-deliverables"));
 
-    const myDeliverables = MOCK_DELIVERABLES.filter((d) => d.cmsOwner.id === CURRENT_USER_ID);
-    const notMyDeliverable = MOCK_DELIVERABLES.find((d) => d.cmsOwner.id !== CURRENT_USER_ID);
+    const myDeliverables = MOCK_DELIVERABLE_TABLE_ROWS.filter((d) => d.cmsOwner.id === CURRENT_USER_ID);
+    const notMyDeliverable = MOCK_DELIVERABLE_TABLE_ROWS.find((d) => d.cmsOwner.id !== CURRENT_USER_ID);
 
     myDeliverables.forEach((deliverable) => {
       expect(screen.getByText(deliverable.name)).toBeInTheDocument();

@@ -31,7 +31,7 @@ const CommentBoxHistory = () => (
 
 export const CommentBox = () => {
   return (
-    <div className="flex flex-col gap-1 bg-gray p-1 min-h-full" data-testid={COMMENT_BOX_NAME}>
+    <div className="flex flex-col gap-1 bg-gray-primary-layout p-1 min-h-full" data-testid={COMMENT_BOX_NAME}>
       <CommentBoxHeader />
       <CommentBoxTextArea />
       <CommentBoxHistory />
