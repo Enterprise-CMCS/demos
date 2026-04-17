@@ -3,9 +3,12 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as UserContext from "components/user/UserContext";
 
+import { MockedResponse } from "@apollo/client/testing";
+import { DELIVERABLES_PAGE_QUERY } from "components/table/tables/DeliverableTable";
 import { DeliverablesPage } from "./DeliverablesPage";
-import { MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
+import { MOCK_DELIVERABLE_TABLE_ROW } from "mock-data/deliverableMocks";
 import { mockUsers } from "mock-data/userMocks";
+import { TestProvider } from "test-utils/TestProvider";
 
 vi.mock("components/user/UserContext", async (importOriginal) => {
   const actual = await importOriginal<typeof UserContext>();
@@ -15,21 +18,59 @@ vi.mock("components/user/UserContext", async (importOriginal) => {
   };
 });
 
+const MOCK_DELIVERABLE_TABLE_ROWS = [
+  MOCK_DELIVERABLE_TABLE_ROW,
+  {
+    ...MOCK_DELIVERABLE_TABLE_ROW,
+    id: "2",
+    name: "Budget Neutrality Worksheet",
+  },
+  {
+    ...MOCK_DELIVERABLE_TABLE_ROW,
+    id: "3",
+    name: "Quarterly Report For NYC Demonstration",
+    cmsOwner: {
+      id: "other-user-id",
+      person: { id: "other-person", fullName: "Other Person" },
+    },
+  },
+];
+
+const DELIVERABLES_TABLE_MOCKS: MockedResponse[] = [
+  {
+    request: { query: DELIVERABLES_PAGE_QUERY },
+    result: { data: { deliverables: MOCK_DELIVERABLE_TABLE_ROWS } },
+    maxUsageCount: Number.POSITIVE_INFINITY,
+  },
+];
+
 describe("DeliverablesPage tab persistence", () => {
   const TAB_KEY = "selectedDeliverableTab";
-  const CURRENT_USER_ID = "dustyrhodes";
+  const CURRENT_USER_ID = MOCK_DELIVERABLE_TABLE_ROW.cmsOwner.id;
   const mockGetCurrentUser = vi.mocked(UserContext.getCurrentUser);
+
+  const renderDeliverablesPage = async () => {
+    render(
+      <TestProvider mocks={DELIVERABLES_TABLE_MOCKS}>
+        <DeliverablesPage />
+      </TestProvider>
+    );
+    await screen.findByTestId("button-my-deliverables");
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetCurrentUser.mockReturnValue({
-      currentUser: mockUsers[0],
+      currentUser: {
+        ...mockUsers[0],
+        id: CURRENT_USER_ID,
+      },
     });
     sessionStorage.clear();
   });
 
-  it("defaults to My Deliverables when no tab is stored", () => {
-    render(<DeliverablesPage />);
+  it("defaults to My Deliverables when no tab is stored", async () => {
+    await renderDeliverablesPage();
 
     // My Deliverables should be selected
     expect(
@@ -39,29 +80,29 @@ describe("DeliverablesPage tab persistence", () => {
     expect(sessionStorage.getItem(TAB_KEY)).toBe("my-deliverables");
   });
 
-  it("uses stored tab selection from sessionStorage", () => {
+  it("uses stored tab selection from sessionStorage", async () => {
     sessionStorage.setItem(TAB_KEY, "deliverables");
 
-    render(<DeliverablesPage />);
+    await renderDeliverablesPage();
 
     expect(
       screen.getByTestId("button-deliverables")
     ).toHaveAttribute("aria-selected", "true");
   });
 
-  it("stores tab changes to sessionStorage", () => {
-    render(<DeliverablesPage />);
+  it("stores tab changes to sessionStorage", async () => {
+    await renderDeliverablesPage();
 
     fireEvent.click(screen.getByTestId("button-deliverables"));
 
     expect(sessionStorage.getItem(TAB_KEY)).toBe("deliverables");
   });
 
-  it("shows correct deliverable counts in tab labels", () => {
-    render(<DeliverablesPage />);
+  it("shows correct deliverable counts in tab labels", async () => {
+    await renderDeliverablesPage();
 
-    const myDeliverablesCount = MOCK_DELIVERABLES.filter(
-      (d) => d.primaryContact?.id === CURRENT_USER_ID
+    const myDeliverablesCount = MOCK_DELIVERABLE_TABLE_ROWS.filter(
+      (d) => d.cmsOwner.id === CURRENT_USER_ID
     ).length;
 
     expect(
@@ -69,34 +110,37 @@ describe("DeliverablesPage tab persistence", () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText(`All Deliverables (${MOCK_DELIVERABLES.length})`)
+      screen.getByText(`All Deliverables (${MOCK_DELIVERABLE_TABLE_ROWS.length})`)
     ).toBeInTheDocument();
   });
 
-  it("filters My Deliverables correctly", () => {
-    render(<DeliverablesPage />);
+  it("filters My Deliverables correctly", async () => {
+    await renderDeliverablesPage();
     fireEvent.click(screen.getByTestId("button-my-deliverables"));
 
-    // Should show only deliverables assigned to CURRENT_USER_ID
-    expect(screen.getByText("Quarterly Report For NYC Demonstration")).toBeInTheDocument();
-    expect(screen.getByText("Budget Neutrality Worksheet")).toBeInTheDocument();
+    const myDeliverables = MOCK_DELIVERABLE_TABLE_ROWS.filter((d) => d.cmsOwner.id === CURRENT_USER_ID);
+    const notMyDeliverable = MOCK_DELIVERABLE_TABLE_ROWS.find((d) => d.cmsOwner.id !== CURRENT_USER_ID);
 
-    // Should NOT show others in My Deliverables tab
-    expect(screen.queryByText("Budget Neutrality Report")).not.toBeInTheDocument();
-    expect(screen.queryByText("Deliverable 3")).not.toBeInTheDocument();
+    myDeliverables.forEach((deliverable) => {
+      expect(screen.getByText(deliverable.name)).toBeInTheDocument();
+    });
+
+    if (notMyDeliverable) {
+      expect(screen.queryByText(notMyDeliverable.name)).not.toBeInTheDocument();
+    }
   });
 
-  it("shows all deliverables when All Deliverables tab is selected", () => {
-    render(<DeliverablesPage />);
+  it("shows all deliverables when All Deliverables tab is selected", async () => {
+    await renderDeliverablesPage();
 
     fireEvent.click(screen.getByTestId("button-deliverables"));
 
     expect(screen.getByText("Budget Neutrality Report")).toBeInTheDocument();
+    expect(screen.getByText("Budget Neutrality Worksheet")).toBeInTheDocument();
     expect(screen.getByText("Quarterly Report For NYC Demonstration")).toBeInTheDocument();
-    expect(screen.getByText("Deliverable 8")).toBeInTheDocument();
   });
 
-  it("uses state-user table columns when current user is demos-state-user", () => {
+  it("uses state-user table columns when current user is demos-state-user", async () => {
     mockGetCurrentUser.mockReturnValue({
       currentUser: {
         ...mockUsers[0],
@@ -107,14 +151,14 @@ describe("DeliverablesPage tab persistence", () => {
       },
     });
 
-    render(<DeliverablesPage />);
+    await renderDeliverablesPage();
 
     expect(screen.queryByRole("columnheader", { name: /State\/Territory/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: /CMS Owner/i })).not.toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Demonstration Name/i })).toBeInTheDocument();
   });
 
-  it("shows All Deliverables tab for demos-state-user", () => {
+  it("shows All Deliverables tab for demos-state-user", async () => {
     mockGetCurrentUser.mockReturnValue({
       currentUser: {
         ...mockUsers[0],
@@ -125,13 +169,13 @@ describe("DeliverablesPage tab persistence", () => {
       },
     });
 
-    render(<DeliverablesPage />);
+    await renderDeliverablesPage();
 
     expect(screen.getByTestId("button-deliverables")).toBeInTheDocument();
     expect(screen.getByTestId("button-my-deliverables")).toHaveAttribute("aria-selected", "true");
   });
 
-  it("uses stored deliverables tab for demos-state-user", () => {
+  it("uses stored deliverables tab for demos-state-user", async () => {
     mockGetCurrentUser.mockReturnValue({
       currentUser: {
         ...mockUsers[0],
@@ -143,7 +187,7 @@ describe("DeliverablesPage tab persistence", () => {
     });
     sessionStorage.setItem(TAB_KEY, "deliverables");
 
-    render(<DeliverablesPage />);
+    await renderDeliverablesPage();
 
     expect(sessionStorage.getItem(TAB_KEY)).toBe("deliverables");
     expect(screen.getByTestId("button-deliverables")).toHaveAttribute("aria-selected", "true");

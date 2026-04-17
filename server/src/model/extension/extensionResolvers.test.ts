@@ -1,17 +1,17 @@
 import { describe, it, expect, vi, beforeEach, expectTypeOf } from "vitest";
 import {
-  __getExtension,
-  __getManyExtensions,
   __createExtension,
   __updateExtension,
   deleteExtension,
-  __resolveParentDemonstration,
+  extensionResolvers,
 } from "./extensionResolvers.js";
 import {
   ApplicationStatus,
   ApplicationType,
+  ClearanceLevel,
   CreateExtensionInput,
   PhaseName,
+  SignatureLevel,
   UpdateExtensionInput,
 } from "../../types.js";
 import { Extension as PrismaExtension } from "@prisma/client";
@@ -20,17 +20,10 @@ import { TZDate } from "@date-fns/tz";
 // Mock imports
 import { prisma } from "../../prismaClient.js";
 import {
-  getApplication,
-  getManyApplications,
   deleteApplication,
   // None of these are tested but need to be exported to avoid mocking issues
-  resolveApplicationDocuments,
-  resolveApplicationCurrentPhaseName,
-  resolveApplicationStatus,
   resolveApplicationPhases,
-  resolveApplicationClearanceLevel,
   resolveApplicationTags,
-  resolveApplicationSignatureLevel,
   resolveSuggestedApplicationTags,
 } from "../application";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
@@ -40,22 +33,35 @@ import {
   checkInputDateIsEndOfDay,
 } from "../applicationDate/checkInputDateFunctions.js";
 import { EasternTZDate, parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities.js";
+import { ContextUser } from "../../auth/userContext.js";
+import { GraphQLContext } from "../../auth/auth.util.js";
+import { getDemonstration } from "../demonstration/demonstrationData.js";
+import { getExtension, getManyExtensions } from "./extensionData.js";
+import { getManyDocuments } from "../document/documentData.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
+}));
+
+vi.mock("./extensionData.js", () => ({
+  getExtension: vi.fn(),
+  getManyExtensions: vi.fn(),
+}));
+
+vi.mock("../document/documentData.js", () => ({
+  getManyDocuments: vi.fn(),
+}));
+
+vi.mock("../demonstration/demonstrationData.js", () => ({
+  getDemonstration: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
   getApplication: vi.fn(),
   getManyApplications: vi.fn(),
   deleteApplication: vi.fn(),
-  resolveApplicationDocuments: vi.fn(),
-  resolveApplicationCurrentPhaseName: vi.fn(),
-  resolveApplicationStatus: vi.fn(),
   resolveApplicationPhases: vi.fn(),
-  resolveApplicationClearanceLevel: vi.fn(),
   resolveApplicationTags: vi.fn(),
-  resolveApplicationSignatureLevel: vi.fn(),
   resolveSuggestedApplicationTags: vi.fn(),
 }));
 
@@ -84,9 +90,6 @@ describe("extensionResolvers", () => {
     extension: {
       update: vi.fn(),
     },
-    demonstration: {
-      findUnique: vi.fn(),
-    },
   };
   const transactionMocks = {
     application: {
@@ -109,10 +112,15 @@ describe("extensionResolvers", () => {
     extension: {
       update: regularMocks.extension.update,
     },
-    demonstration: {
-      findUnique: regularMocks.demonstration.findUnique,
-    },
   };
+
+  const mockUser = {
+    id: "user-123",
+  } as unknown as ContextUser;
+  const mockContext: GraphQLContext = {
+    user: mockUser,
+  };
+
   const testExtensionId = "8167c039-9c08-4203-b7d2-9e35ec156993";
   const testDemonstrationId = "518aa497-d547-422e-95a0-02076c7f7698";
   const testExtensionName = "The Extension";
@@ -128,23 +136,65 @@ describe("extensionResolvers", () => {
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
-  describe("__getExtension", () => {
-    it("should request the extension", async () => {
-      const testInput = {
-        id: testExtensionId,
-      };
-      await __getExtension(undefined, testInput);
-      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testExtensionId, {
-        applicationTypeId: "Extension",
-      });
-    });
+  it("delegates `Query.extension` to `extensionData.getExtension`", async () => {
+    await extensionResolvers.Query.extension(undefined, { id: "abc123" }, mockContext);
+    expect(getExtension).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
   });
 
-  describe("__getManyExtensions", () => {
-    it("should request many extensions with the right type", async () => {
-      await __getManyExtensions();
-      expect(getManyApplications).toHaveBeenCalledExactlyOnceWith("Extension");
-    });
+  it("delegates `Query.extensions` to `extensionData.getManyExtensions`", async () => {
+    await extensionResolvers.Query.extensions(undefined, {}, mockContext);
+    expect(getManyExtensions).toHaveBeenCalledExactlyOnceWith({}, mockUser);
+  });
+
+  it("delegates `Extension.documents` to `documentData.getManyDocuments`", async () => {
+    const mockExtension = { id: "abc123" } as PrismaExtension;
+    await extensionResolvers.Extension.documents(mockExtension, undefined, mockContext);
+    expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith({ applicationId: "abc123" }, mockUser);
+  });
+
+  it("resolves `Extension.currentPhaseName`", () => {
+    const extension = {
+      currentPhaseId: "Application Intake" satisfies PhaseName,
+    } as PrismaExtension;
+
+    const result = extensionResolvers.Extension.currentPhaseName(extension);
+    expect(result).toBe(extension.currentPhaseId);
+  });
+
+  it("resolves `Extension.signatureLevel`", () => {
+    const extension = {
+      signatureLevelId: "OA" satisfies SignatureLevel,
+    } as PrismaExtension;
+
+    const result = extensionResolvers.Extension.signatureLevel(extension);
+    expect(result).toBe(extension.signatureLevelId);
+  });
+
+  it("resolves `Extension.status`", () => {
+    const extension = {
+      statusId: "Pre-Submission" satisfies ApplicationStatus,
+    } as PrismaExtension;
+
+    const result = extensionResolvers.Extension.status(extension);
+    expect(result).toBe(extension.statusId);
+  });
+
+  it("resolves the `Extension.clearanceLevel`", () => {
+    const extension = {
+      clearanceLevelId: "COMMs" satisfies ClearanceLevel,
+    } as PrismaExtension;
+
+    const result = extensionResolvers.Extension.clearanceLevel(extension);
+    expect(result).toBe(extension.clearanceLevelId);
+  });
+
+  it("delegates `Extension.demonstration` to `Demonstration.getDemonstration`", async () => {
+    await extensionResolvers.Extension.demonstration(
+      { demonstrationId: "abc123" } as PrismaExtension,
+      {},
+      mockContext
+    );
+    expect(getDemonstration).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
   });
 
   describe("__createExtension", () => {
@@ -302,21 +352,6 @@ describe("extensionResolvers", () => {
         "Extension",
         mockTransaction
       );
-    });
-  });
-
-  describe("__resolveParentDemonstration", () => {
-    it("should look up the relevant demonstration", async () => {
-      const input: Partial<PrismaExtension> = {
-        demonstrationId: testDemonstrationId,
-      };
-      const expectedCall = {
-        where: {
-          id: testDemonstrationId,
-        },
-      };
-      await __resolveParentDemonstration(input as PrismaExtension);
-      expect(regularMocks.demonstration.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
   });
 });

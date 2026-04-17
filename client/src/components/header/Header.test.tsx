@@ -80,11 +80,11 @@ describe("Header", () => {
 
   it("renders DeliverableDetailHeader for deliverable routes", async () => {
     render(
-      <TestProvider addTypename={false} routerEntries={["/deliverable/123"]}>
+      <TestProvider addTypename={false} routerEntries={["/deliverables/123"]}>
         <DialogProvider>
           <UserProvider>
             <Routes>
-              <Route path="/deliverable/:deliverableId" element={<Header />} />
+              <Route path="/deliverables/:deliverableId" element={<Header />} />
             </Routes>
           </UserProvider>
         </DialogProvider>

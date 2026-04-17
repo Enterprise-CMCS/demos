@@ -3,20 +3,30 @@ import { IconButton } from "components/button";
 import { AddNewIcon } from "components/icons";
 import { TabHeader } from "components/table/TabHeader";
 import { useDialog } from "components/dialog/DialogContext";
-import { Deliverable } from "pages/DeliverablesPage";
 import { AddDeliverableSlotDemonstration } from "components/dialog/deliverable/AddDeliverableSlotDialog";
 import { DemonstrationDeliverableTable } from "components/table/tables/DemonstrationDeliverableTable";
+import { getCurrentUser } from "components/user/UserContext";
+import type { UserType } from "demos-server";
+import {
+  DELIVERABLES_PAGE_QUERY,
+  type DeliverablesQueryResult,
+} from "components/table/tables/DeliverableTable";
+import { useQuery } from "@apollo/client";
 
 export const ADD_DELIVERABLE_SLOT_BUTTON_NAME = "button-add-deliverable-slot";
 
 export const DeliverablesTab = ({
   parentDemonstration,
-  deliverables,
 }: {
   parentDemonstration: AddDeliverableSlotDemonstration;
-  deliverables: Deliverable[];
 }) => {
   const { showAddDeliverableSlotDialog } = useDialog();
+  const rawPersonType = getCurrentUser().currentUser?.person.personType;
+  const viewMode = rawPersonType as UserType;
+  const { data, loading, error } = useQuery<DeliverablesQueryResult>(DELIVERABLES_PAGE_QUERY);
+  const deliverables = data?.deliverables.filter(
+    (deliverable) => deliverable.demonstration.id === parentDemonstration.id
+  ) ?? [];
 
   return (
     <div className="flex flex-col gap-[24px]">
@@ -30,7 +40,16 @@ export const DeliverablesTab = ({
           Add Deliverable Slot(s)
         </IconButton>
       </TabHeader>
-      <DemonstrationDeliverableTable deliverables={deliverables} />
+      {loading && <div className="p-4">Loading deliverables...</div>}
+      {error && (
+        <div className="p-4 text-red-500">Error loading deliverables.</div>
+      )}
+      {!loading && !error && (
+        <DemonstrationDeliverableTable
+          deliverables={deliverables}
+          viewMode={viewMode}
+        />
+      )}
     </div>
   );
 };

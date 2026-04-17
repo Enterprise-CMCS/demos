@@ -3,23 +3,41 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { DeliverableTable } from "./DeliverableTable";
-import { MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
+import { DeliverableTable, formatDeliverableStatus } from "./DeliverableTable";
+import { sortDeliverablesByDefault } from "util/sortDeliverables";
+import type { DeliverableTableRow } from "./DeliverableTable";
+import { MOCK_DELIVERABLE_TABLE_ROW } from "mock-data/deliverableMocks";
+
+const MOCK_DELIVERABLE_TABLE_ROWS = [
+  MOCK_DELIVERABLE_TABLE_ROW,
+  {...MOCK_DELIVERABLE_TABLE_ROW, id: "2", name: "Another Deliverable"},
+];
+
+const sortedDeliverables = sortDeliverablesByDefault(MOCK_DELIVERABLE_TABLE_ROWS);
+const sortedFirstPageIds = sortedDeliverables.slice(0, 10).map((deliverable) => deliverable.id);
 
 describe("DeliverableTable", () => {
   beforeEach(async () => {
-    render(<DeliverableTable deliverables={MOCK_DELIVERABLES} viewMode="demos-cms-user" />);
+    render(<DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-cms-user" />);
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
   });
 
   it("renders all deliverable names initially", () => {
-    MOCK_DELIVERABLES.slice(0, 10).forEach((deliverable) => {
+    sortedDeliverables.slice(0, 10).forEach((deliverable) => {
       expect(
-        screen.getByText(deliverable.deliverableName)
+        screen.getByText(deliverable.name)
       ).toBeInTheDocument();
     });
+  });
+
+  it("applies default deliverable ordering on first render", () => {
+    const renderedRowIds = screen
+      .getAllByTestId(/^select-row-/)
+      .map((checkbox) => checkbox.getAttribute("data-testid")?.replace("select-row-", ""));
+
+    expect(renderedRowIds).toEqual(sortedFirstPageIds);
   });
 
   it("shows empty state when no deliverables provided", async () => {
@@ -66,7 +84,7 @@ describe("DeliverableTable", () => {
     const user = userEvent.setup();
 
     await user.click(
-      screen.getByTestId(`select-row-${MOCK_DELIVERABLES[0].id}`)
+      screen.getByTestId(`select-row-${sortedFirstPageIds[0]}`)
     );
 
     const editBtn = screen.getByTestId("edit-deliverable");
@@ -77,10 +95,10 @@ describe("DeliverableTable", () => {
     const user = userEvent.setup();
 
     await user.click(
-      screen.getByTestId(`select-row-${MOCK_DELIVERABLES[0].id}`)
+      screen.getByTestId(`select-row-${sortedFirstPageIds[0]}`)
     );
     await user.click(
-      screen.getByTestId(`select-row-${MOCK_DELIVERABLES[1].id}`)
+      screen.getByTestId(`select-row-${sortedFirstPageIds[1]}`)
     );
 
     const editBtn = screen.getByTestId("edit-deliverable");
@@ -91,7 +109,7 @@ describe("DeliverableTable", () => {
     const user = userEvent.setup();
 
     await user.click(
-      screen.getByTestId(`select-row-${MOCK_DELIVERABLES[0].id}`)
+      screen.getByTestId(`select-row-${sortedFirstPageIds[0]}`)
     );
 
     const removeBtn = screen.getByTestId("remove-deliverable");
@@ -108,11 +126,11 @@ describe("DeliverableTable", () => {
       const user = userEvent.setup();
       const searchInput = screen.getByLabelText(/search:/i);
 
-      await user.type(searchInput, MOCK_DELIVERABLES[0].deliverableName);
+      await user.type(searchInput, MOCK_DELIVERABLE_TABLE_ROWS[0].name);
 
       await waitFor(() => {
         expect(
-          screen.getByText(MOCK_DELIVERABLES[0].deliverableName)
+          screen.getByText(MOCK_DELIVERABLE_TABLE_ROWS[0].name)
         ).toBeInTheDocument();
       });
     });
@@ -136,11 +154,11 @@ describe("DeliverableTable", () => {
       const user = userEvent.setup();
       const searchInput = screen.getByLabelText(/search:/i);
 
-      await user.type(searchInput, MOCK_DELIVERABLES[0].deliverableName);
+      await user.type(searchInput, MOCK_DELIVERABLE_TABLE_ROWS[0].name);
 
       await waitFor(() => {
         expect(
-          screen.getByText(MOCK_DELIVERABLES[0].deliverableName)
+          screen.getByText(MOCK_DELIVERABLE_TABLE_ROWS[0].name)
         ).toBeInTheDocument();
       });
 
@@ -149,18 +167,25 @@ describe("DeliverableTable", () => {
 
       expect(searchInput).toHaveValue("");
 
-      MOCK_DELIVERABLES.slice(0, 10).forEach((deliverable) => {
+      sortedDeliverables.slice(0, 10).forEach((deliverable) => {
         expect(
-          screen.getByText(deliverable.deliverableName)
+          screen.getByText(deliverable.name)
         ).toBeInTheDocument();
       });
     });
   });
 
-  it("renders combined status values for upcoming deliverables", () => {
-    expect(screen.getAllByText("Upcoming").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Upcoming - Extension Requested").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Upcoming (2) - Extension Requested").length).toBeGreaterThan(0);
+  it("renders status values as-is", () => {
+    expect(
+      formatDeliverableStatus({
+        status: "Upcoming",
+      })
+    ).toBe("Upcoming");
+    expect(
+      formatDeliverableStatus({
+        status: "Approved",
+      })
+    ).toBe("Approved");
   });
 
   it("renders column filter dropdown", () => {
@@ -174,7 +199,7 @@ describe("DeliverableTable", () => {
 
 describe("DeliverableTable demos-state-user view mode", () => {
   it("renders the state-user column set and hides state/CMS owner", async () => {
-    render(<DeliverableTable deliverables={MOCK_DELIVERABLES} viewMode="demos-state-user" />);
+    render(<DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-state-user" />);
 
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
@@ -184,7 +209,6 @@ describe("DeliverableTable demos-state-user view mode", () => {
     expect(screen.getByRole("columnheader", { name: /Deliverable Type/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Deliverable Name/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Due Date/i })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: /Submission Date/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Status/i })).toBeInTheDocument();
 
     expect(screen.queryByRole("columnheader", { name: /State\/Territory/i })).not.toBeInTheDocument();
@@ -192,10 +216,59 @@ describe("DeliverableTable demos-state-user view mode", () => {
   });
 
   it("hides row action buttons in state-user mode", () => {
-    render(<DeliverableTable deliverables={MOCK_DELIVERABLES} viewMode="demos-state-user" />);
+    render(<DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-state-user" />);
 
     expect(screen.queryByLabelText(/Add Deliverable/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Edit Deliverable/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Remove Deliverable/i)).not.toBeInTheDocument();
+  });
+});
+
+describe("DeliverableTable default sorting behavior", () => {
+  it("reapplies default sort order when the table data is reloaded", async () => {
+    const base = MOCK_DELIVERABLE_TABLE_ROWS[0] as DeliverableTableRow;
+    const createDeliverable = (
+      id: string,
+      name: string,
+      status: DeliverableTableRow["status"],
+      dueDate: string
+    ): DeliverableTableRow => ({
+      ...base,
+      id,
+      name,
+      status,
+      dueDate: new Date(dueDate),
+    });
+
+    const pastDue = createDeliverable("past-due", "Past Due", "Past Due", "2026-05-03");
+    const upcoming = createDeliverable("upcoming", "Upcoming", "Upcoming", "2026-05-02");
+    const submitted = createDeliverable("submitted", "Submitted", "Submitted", "2026-05-01");
+
+    const getRenderedRowIds = () =>
+      screen
+        .getAllByTestId(/^select-row-/)
+        .map((checkbox) => checkbox.getAttribute("data-testid")?.replace("select-row-", ""));
+
+    const { rerender } = render(
+      <DeliverableTable
+        deliverables={[submitted, pastDue, upcoming]}
+        viewMode="demos-cms-user"
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+
+    expect(getRenderedRowIds()).toEqual(["past-due", "upcoming", "submitted"]);
+
+    rerender(
+      <DeliverableTable
+        deliverables={[upcoming, submitted, pastDue]}
+        viewMode="demos-cms-user"
+      />
+    );
+
+    expect(getRenderedRowIds()).toEqual(["past-due", "upcoming", "submitted"]);
   });
 });

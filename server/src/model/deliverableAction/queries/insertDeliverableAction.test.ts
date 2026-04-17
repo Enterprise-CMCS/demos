@@ -3,21 +3,21 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { DeliverableActionType as PrismaDeliverableActionType } from "@prisma/client";
 
 // Types
-import { DeliverableAction } from "..";
+import { InsertDeliverableActionInput } from "..";
 
 // Functions under test
 import { insertDeliverableAction } from "./insertDeliverableAction";
 
 // Mock imports
-vi.mock("../../../prismaClient.js", () => ({
+vi.mock("../../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
-import { prisma } from "../../../prismaClient.js";
+import { prisma } from "../../../prismaClient";
 
 describe("insertDeliverableAction", () => {
   // Test inputs
-  const testInput: DeliverableAction = {
+  const testInput: InsertDeliverableActionInput = {
     deliverableId: "c25385d4-d5e3-4e27-aaf3-7dfa87f677d3",
     actionType: "Created Deliverable Slot",
     actionTime: new Date(2025, 6, 11, 12, 1, 53, 299),

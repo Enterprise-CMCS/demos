@@ -1,6 +1,6 @@
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
-import { prisma, PrismaTransactionClient } from "../../../prismaClient.js";
-import { SetDeliverableDemonstrationTypesInput } from "../../../types";
+import { prisma, PrismaTransactionClient } from "../../../prismaClient";
+import { SetDeliverableDemonstrationTypesInput } from "..";
 import { getDeliverable } from "../../deliverable";
 
 export async function insertDeliverableDemonstrationTypes(

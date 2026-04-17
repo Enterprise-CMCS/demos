@@ -5,19 +5,20 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { createSelectColumnDef } from "./selectColumn";
 import { createDateColumnDef } from "./dateColumn";
 import { STATES_AND_TERRITORIES } from "demos-server-constants";
+import type { UserType } from "demos-server";
 
 import { SecondaryButton } from "../../button/SecondaryButton";
 import { highlightCell } from "../KeywordSearch";
-import type { DeliverableTableRow, DeliverableTableViewMode } from "../tables/DeliverableTable";
+import type { DeliverableTableRow } from "../tables/DeliverableTable";
 
 type DeliverableColumnsProps = {
-  viewMode: DeliverableTableViewMode;
+  viewMode: UserType;
 };
 
 export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
   const columnHelper = createColumnHelper<DeliverableTableRow>();
 
-  const demonstrationNameColumn = columnHelper.accessor("demonstrationName", {
+  const demonstrationNameColumn = columnHelper.accessor("demonstration.name", {
     header: "Demonstration Name",
     cell: highlightCell,
   });
@@ -27,7 +28,7 @@ export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
     cell: highlightCell,
   });
 
-  const deliverableNameColumn = columnHelper.accessor("deliverableName", {
+  const deliverableNameColumn = columnHelper.accessor("name", {
     header: "Deliverable Name",
     cell: highlightCell,
   });
@@ -52,7 +53,7 @@ export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
 
   return [
     createSelectColumnDef(columnHelper),
-    columnHelper.accessor("state.id", {
+    columnHelper.accessor("demonstration.state.id", {
       id: "stateId",
       header: "State/Territory",
       cell: highlightCell,
@@ -71,7 +72,7 @@ export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
     demonstrationNameColumn,
     deliverableTypeColumn,
     deliverableNameColumn,
-    columnHelper.accessor("cmsOwner", {
+    columnHelper.accessor("cmsOwner.person.fullName", {
       header: "CMS Owner",
       cell: highlightCell,
     }),
@@ -83,7 +84,7 @@ export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
       cell: ({ row }) => {
         const deliverableId = row.original.id;
         const handleClick = () => {
-          window.open(`/deliverable/${deliverableId}`, "_blank");
+          window.open(`/deliverables/${deliverableId}`, "_blank");
         };
         return (
           <SecondaryButton onClick={handleClick} name="view-deliverable">

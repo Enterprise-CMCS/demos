@@ -113,15 +113,20 @@ export type {
 
 export type { Tag } from "./model/tag/tagSchema.js";
 
-export type { Deliverable, CreateDeliverableInput } from "./model/deliverable/deliverableSchema";
+export type {
+  Deliverable,
+  CreateDeliverableInput,
+  UpdateDeliverableInput,
+  DeliverableDueDateUpdateInput,
+} from "./model/deliverable/deliverableSchema";
 
-export type { SetDeliverableDemonstrationTypesInput } from "./model/deliverableDemonstrationType/deliverableDemonstrationTypeSchema";
+// Alias is not enforced in TS but maintains alignment between GQL and TS
+export type NonEmptyString = string; // NOSONAR: typescript:S6564
 
 export type DemonstrationTypeStatus = (typeof DEMONSTRATION_TYPE_STATUSES)[number];
 export type ClearanceLevel = (typeof CLEARANCE_LEVELS)[number];
 export type LocalDate = string & { readonly __brand: "LocalDate" };
 export type DateTimeOrLocalDate = Date | LocalDate;
-export type NonEmptyString = string;
 export type ApplicationStatus = (typeof APPLICATION_STATUS)[number];
 export type ApplicationType = (typeof APPLICATION_TYPES)[number];
 export type SdgDivision = (typeof SDG_DIVISIONS)[number];

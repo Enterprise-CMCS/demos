@@ -1,60 +1,24 @@
-import { DeliverableTable } from "components/table/tables/DeliverableTable";
+import {
+  DELIVERABLES_PAGE_QUERY,
+  DeliverableTable,
+  DeliverablesQueryResult,
+} from "components/table/tables/DeliverableTable";
 import { getCurrentUser } from "components/user/UserContext";
 import { HorizontalSectionTabs, Tab } from "layout/Tabs";
 import React from "react";
-import { PersonType } from "demos-server";
+import type { UserType } from "demos-server";
 import { useSessionTab } from "hooks/useSessionTab";
-
-import { MOCK_DELIVERABLES } from "mock-data/deliverableMocks";
-
-/* TODO: Probably replace with Pick<Deliverable, "id" | ... > when schema is defined */
-export type Deliverable = {
-  id: string;
-  deliverableName: string;
-  demonstrationName: string;
-  deliverableType: string;
-  cmsOwner: string;
-  dueDate: string;
-  submissionDate?: string;
-  status: string;
-  extensionRequested?: boolean;
-  resubmissionCount?: number;
-  state: {
-    id: string;
-  };
-  primaryContact?: {
-    id: string;
-    fullName: string;
-  };
-};
-
-type DeliverablesPageQueryResult = {
-  deliverables: Deliverable[];
-  currentUserId: string;
-};
-type DeliverableTableViewMode = Exclude<PersonType, "non-user-contact">;
+import { useQuery } from "@apollo/client";
 
 export const DeliverablesPage: React.FC = () => {
   const { currentUser } = getCurrentUser();
   const rawPersonType = currentUser?.person.personType;
-  // Note. currentUser type by default cannot be non-user-contact.
-  const viewMode = rawPersonType as DeliverableTableViewMode;
-  // Placeholder query-state shape until this page is wired to real API data.
-  const [loading] = React.useState(false);
-  const [error] = React.useState<Error | undefined>(undefined);
-  const [data] = React.useState<DeliverablesPageQueryResult>({
-    deliverables: MOCK_DELIVERABLES,
-    currentUserId: "dustyrhodes",
-  });
-
-  // For when we get the backend working. Based on demo table
-  // const { data, loading, error } = useQuery<DeliverablesPageQueryResult>(
-  //   DELIVERABLES_PAGE_QUERY
-  // );
+  const viewMode = rawPersonType as UserType;
+  const { data, loading, error } = useQuery<DeliverablesQueryResult>(DELIVERABLES_PAGE_QUERY);
 
   const deliverables = data?.deliverables ?? [];
   const myDeliverables = deliverables.filter(
-    (deliverable) => deliverable.primaryContact?.id === data?.currentUserId
+    (deliverable) => deliverable.cmsOwner.id === currentUser?.id
   );
 
   const [tabValue, onTabSelect] = useSessionTab({

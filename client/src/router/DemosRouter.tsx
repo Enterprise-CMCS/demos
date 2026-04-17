@@ -29,7 +29,7 @@ export const DemosRouter: React.FC = () => {
                 <Route path="demonstrations" element={<DemonstrationsPage />} />
                 <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
                 <Route path="deliverables" element={<DeliverablesPage />} />
-                <Route path="deliverable/:deliverableId" element={<DeliverableDetailsManagementPage />} />
+                <Route path="deliverables/:deliverableId" element={<DeliverableDetailsManagementPage />} />
                 {isLocalDevelopment() && (
                   <>
                     <Route path="components" element={<ComponentLibrary />} />

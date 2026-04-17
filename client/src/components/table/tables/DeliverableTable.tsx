@@ -1,7 +1,7 @@
 import React from "react";
-import type { PersonType } from "demos-server";
+import { gql } from "@apollo/client";
+import type { Deliverable, Person, State, UserType } from "demos-server";
 
-import { Deliverable } from "pages/DeliverablesPage";
 import { DeliverableColumns } from "../columns/DeliverableColumns";
 import { Table, type TableProps } from "../Table";
 import { ColumnFilter } from "../ColumnFilter";
@@ -12,58 +12,70 @@ import { DeleteIcon } from "components/icons/Action/DeleteIcon";
 import { selectionTooltip } from "./actionTooltips";
 import { ImportIcon } from "components/icons/Action/ImportIcon";
 import { EditIcon } from "components/icons/Navigation/EditIcon";
+import { sortDeliverablesByDefault } from "util/sortDeliverables";
 
-export type DeliverableTableRow = {
-  id: string;
-  deliverableName: string;
-  demonstrationName: string;
-  deliverableType: string;
-  cmsOwner: string;
-  dueDate: string;
+export type DeliverableTableRow = Omit<
+  Deliverable,
+  "demonstration" | "cmsOwner" | "demonstrationTypes" | "cmsDocuments" | "stateDocuments" | "name" | "dueDateType" | "expectedToBeSubmitted" | "createdAt" | "updatedAt"
+> & {
+  name: string;
+  demonstration: Pick<Deliverable["demonstration"], "id" | "name"> & {
+    state: Pick<State, "id">;
+  };
+  cmsOwner: Pick<Deliverable["cmsOwner"], "id"> & {
+    person: Pick<Person, "fullName" | "id">;
+  };
   submissionDate?: string;
-  status: string;
-  state: { id: string };
 };
 
-export type DeliverableTableViewMode = Exclude<PersonType, "non-user-contact">;
+export type DeliverablesQueryResult = {
+  deliverables: DeliverableTableRow[];
+};
+
+export const DELIVERABLES_PAGE_QUERY = gql`
+  query GetDeliverablesPage {
+    deliverables {
+      id
+      deliverableType
+      name
+      demonstration {
+        id
+        name
+        state {
+          id
+        }
+      }
+      status
+      cmsOwner {
+        id
+        person {
+          id
+          fullName
+        }
+      }
+      dueDate
+    }
+  }
+`;
 
 const EMPTY_ROWS_MESSAGE = "There are no assigned Deliverables at this time";
 const NO_RESULTS_FOUND = "No results were returned. Adjust your search and filter criteria.";
 
 export const formatDeliverableStatus = ({
   status,
-  extensionRequested = false,
-  resubmissionCount = 0,
-}: Pick<Deliverable, "status" | "extensionRequested" | "resubmissionCount">) => {
-  if (status !== "Upcoming") return status;
-
-  const hasResubmission = resubmissionCount > 0;
-  const hasExtensionRequested = extensionRequested;
-
-  let combinedStatus = status;
-
-  if (hasResubmission) {
-    combinedStatus += ` (${resubmissionCount})`;
-  }
-
-  if (hasExtensionRequested) {
-    combinedStatus += " - Extension Requested";
-  }
-
-  return combinedStatus;
-};
+}: Pick<Deliverable, "status">) => status;
 
 export const DeliverableTable: React.FC<{
-  deliverables: Deliverable[];
+  deliverables: DeliverableTableRow[];
   emptyRowsMessage?: string;
-  viewMode: DeliverableTableViewMode;
+  viewMode: UserType;
 }> = ({
   deliverables,
   emptyRowsMessage = EMPTY_ROWS_MESSAGE,
   viewMode,
 }) => {
   const deliverableColumns = DeliverableColumns({ viewMode });
-  const formattedDeliverables = deliverables.map((deliverable) => ({
+  const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({
     ...deliverable,
     status: formatDeliverableStatus(deliverable),
   }));

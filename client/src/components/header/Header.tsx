@@ -45,8 +45,8 @@ const HeaderLower: React.FC = () => {
     }
   }
 
-  // Match /deliverable/:deliverableId
-  if (path.match(/^\/deliverable\/[^/]+$/)) {
+  // Match /deliverables/:deliverableId
+  if (path.match(/^\/deliverables\/[^/]+$/)) {
     const deliverableId = params.deliverableId;
     if (deliverableId) {
       return <DeliverableDetailHeader deliverableId={deliverableId} />;
