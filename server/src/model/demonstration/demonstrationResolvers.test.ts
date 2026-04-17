@@ -4,7 +4,6 @@ import {
   __updateDemonstration,
   deleteDemonstration,
   __resolveDemonstrationState,
-  __resolveDemonstrationExtensions,
   __resolveDemonstrationRoleAssignments,
   __resolveDemonstrationPrimaryProjectOfficer,
   resolveDemonstrationTypes,
@@ -54,6 +53,7 @@ import { getDemonstration, getManyDemonstrations } from "./demonstrationData.js"
 import { ContextUser } from "../../auth/userContext.js";
 import { GraphQLContext } from "../../auth/auth.util.js";
 import { getManyAmendments } from "../amendment/amendmentData.js";
+import { getManyExtensions } from "../extension/extensionData.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -66,6 +66,10 @@ vi.mock("./demonstrationData.js", () => ({
 
 vi.mock("../amendment/amendmentData.js", () => ({
   getManyAmendments: vi.fn(),
+}));
+
+vi.mock("../extension/extensionData.js", () => ({
+  getManyExtensions: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -250,6 +254,18 @@ describe("demonstrationResolvers", () => {
       mockContext
     );
     expect(getManyAmendments).toHaveBeenCalledExactlyOnceWith(
+      { demonstrationId: "demonstrationId" },
+      mockUser
+    );
+  });
+
+  it("delegates `Demonstration.extensions` to `extensionData.getManyExtensions`", async () => {
+    await demonstrationResolvers.Demonstration.extensions(
+      { id: "demonstrationId" } as PrismaDemonstration,
+      {},
+      mockContext
+    );
+    expect(getManyExtensions).toHaveBeenCalledExactlyOnceWith(
       { demonstrationId: "demonstrationId" },
       mockUser
     );
@@ -746,21 +762,6 @@ describe("demonstrationResolvers", () => {
       };
       await __resolveDemonstrationState(input as PrismaDemonstration);
       expect(regularMocks.state.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCall);
-    });
-  });
-
-  describe("__resolveDemonstrationExtensions", () => {
-    it("should look up the relevant extensions", async () => {
-      const input: Partial<PrismaDemonstration> = {
-        id: testValues.demonstrationId,
-      };
-      const expectedCall = {
-        where: {
-          demonstrationId: testValues.demonstrationId,
-        },
-      };
-      await __resolveDemonstrationExtensions(input as PrismaDemonstration);
-      expect(regularMocks.extension.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
   });
 
