@@ -108,7 +108,7 @@ vi.mock("./determineDemonstrationTypeStatus.js", () => ({
 describe("demonstrationResolvers", () => {
   const regularMocks = {
     state: {
-      findUnique: vi.fn(),
+      findUniqueOrThrow: vi.fn(),
     },
     amendment: {
       findMany: vi.fn(),
@@ -120,7 +120,7 @@ describe("demonstrationResolvers", () => {
       findMany: vi.fn(),
     },
     primaryDemonstrationRoleAssignment: {
-      findUnique: vi.fn(),
+      findUniqueOrThrow: vi.fn(),
     },
     demonstrationTypeTagAssignment: {
       findMany: vi.fn(),
@@ -169,7 +169,7 @@ describe("demonstrationResolvers", () => {
   const mockPrismaClient = {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
     state: {
-      findUnique: regularMocks.state.findUnique,
+      findUniqueOrThrow: regularMocks.state.findUniqueOrThrow,
     },
     amendment: {
       findMany: regularMocks.amendment.findMany,
@@ -181,7 +181,7 @@ describe("demonstrationResolvers", () => {
       findMany: regularMocks.demonstrationRoleAssignment.findMany,
     },
     primaryDemonstrationRoleAssignment: {
-      findUnique: regularMocks.primaryDemonstrationRoleAssignment.findUnique,
+      findUniqueOrThrow: regularMocks.primaryDemonstrationRoleAssignment.findUniqueOrThrow,
     },
     demonstrationTypeTagAssignment: {
       findMany: regularMocks.demonstrationTypeTagAssignment.findMany,
@@ -761,7 +761,7 @@ describe("demonstrationResolvers", () => {
         },
       };
       await __resolveDemonstrationState(input as PrismaDemonstration);
-      expect(regularMocks.state.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      expect(regularMocks.state.findUniqueOrThrow).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
   });
 
@@ -784,7 +784,7 @@ describe("demonstrationResolvers", () => {
 
   describe("__resolveDemonstrationPrimaryProjectOfficer", () => {
     it("should look up the primary project officer", async () => {
-      regularMocks.primaryDemonstrationRoleAssignment.findUnique.mockResolvedValueOnce({
+      regularMocks.primaryDemonstrationRoleAssignment.findUniqueOrThrow.mockResolvedValueOnce({
         demonstrationRoleAssignment: {
           person: {
             id: testValues.userId,
@@ -809,7 +809,7 @@ describe("demonstrationResolvers", () => {
       };
       await __resolveDemonstrationPrimaryProjectOfficer(input as PrismaDemonstration);
       expect(
-        regularMocks.primaryDemonstrationRoleAssignment.findUnique
+        regularMocks.primaryDemonstrationRoleAssignment.findUniqueOrThrow
       ).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
   });
