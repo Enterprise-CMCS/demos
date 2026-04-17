@@ -1,6 +1,13 @@
-import { ParsedCreateDeliverableInput } from ".";
-import { PrismaTransactionClient } from "../../prismaClient.js";
-import { ApplicationStatus, PersonType, TagName } from "../../types";
+import {
+  checkDemonstrationStatus,
+  checkDueDateInFuture,
+  checkOwnerPersonType,
+  checkRequestedDeliverableDemonstrationType,
+  getDeliverable,
+  ParsedCreateDeliverableInput,
+  ParsedUpdateDeliverableInput,
+} from ".";
+import { PrismaTransactionClient } from "../../prismaClient";
 import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
@@ -22,40 +29,72 @@ export async function validateCreateDeliverableInput(
     tx
   );
 
-  // Enforced by database constraints
-  const demonstrationStatus = demonstration.statusId as ApplicationStatus;
-  const ownerUserPersonType = cmsOwnerUser.personTypeId as PersonType;
-  const demonstrationTypes = demonstrationTypeAssignments.map(
-    (assignment) => assignment.tagNameId
-  ) as TagName[];
-
-  const errors = [];
-
-  if (demonstrationStatus !== "Approved") {
-    errors.push(
-      `Demonstration ${demonstration.id} is not in Approved status; cannot create deliverable.`
-    );
-  }
-
-  const permittedOwnerPersonTypes: PersonType[] = ["demos-admin", "demos-cms-user"];
-  if (!permittedOwnerPersonTypes.includes(ownerUserPersonType)) {
-    errors.push(`User ${cmsOwnerUser.id} is not a CMS user; cannot own deliverable.`);
-  }
-
-  const requestedDeliverableDemonstrationTypes = input.demonstrationTypes ?? [];
-  for (const requestedDeliverableDemonstrationType of requestedDeliverableDemonstrationTypes) {
-    if (!demonstrationTypes.includes(requestedDeliverableDemonstrationType)) {
+  const errors: (string | undefined)[] = [];
+  errors.push(
+    checkDemonstrationStatus(demonstration),
+    checkOwnerPersonType(cmsOwnerUser),
+    checkDueDateInFuture(input.dueDate)
+  );
+  if (input.demonstrationTypes && input.demonstrationTypes.size > 0) {
+    for (const requestedDeliverableDemonstrationType of input.demonstrationTypes) {
       errors.push(
-        `Demonstration Type ${requestedDeliverableDemonstrationType} does not exist on demonstration ${demonstration.id}; cannot be assigned to deliverable.`
+        checkRequestedDeliverableDemonstrationType(
+          requestedDeliverableDemonstrationType,
+          demonstrationTypeAssignments,
+          input.demonstrationId
+        )
       );
     }
   }
 
-  if (errors.length > 0) {
+  const cleanedErrors = errors.filter((e) => e !== undefined);
+  if (cleanedErrors.length > 0) {
     throw new GraphQLError("One or more validation checks for createDeliverable have failed.", {
       extensions: {
         code: "CREATE_DELIVERABLE_VALIDATION_FAILED",
-        originalMessages: errors,
+        originalMessages: cleanedErrors,
+      },
+    });
+  }
+}
+
+export async function validateUpdateDeliverableInput(
+  deliverableId: string,
+  input: ParsedUpdateDeliverableInput,
+  tx: PrismaTransactionClient
+): Promise<void> {
+  const errors: (string | undefined)[] = [];
+
+  if (input.cmsOwnerUserId) {
+    const cmsOwnerUser = await getUser({ id: input.cmsOwnerUserId }, tx);
+    errors.push(checkOwnerPersonType(cmsOwnerUser));
+  }
+
+  if (input.demonstrationTypes && input.demonstrationTypes.size > 0) {
+    const deliverable = await getDeliverable({ id: deliverableId }, tx);
+    const demonstrationTypeAssignments = await getDemonstrationTypeAssignments(
+      {
+        demonstrationId: deliverable.demonstrationId,
+      },
+      tx
+    );
+    for (const requestedDeliverableDemonstrationType of input.demonstrationTypes) {
+      errors.push(
+        checkRequestedDeliverableDemonstrationType(
+          requestedDeliverableDemonstrationType,
+          demonstrationTypeAssignments,
+          deliverable.demonstrationId
+        )
+      );
+    }
+  }
+
+  const cleanedErrors = errors.filter((e) => e !== undefined);
+  if (cleanedErrors.length > 0) {
+    throw new GraphQLError("One or more validation checks for updateDeliverable have failed.", {
+      extensions: {
+        code: "UPDATE_DELIVERABLE_VALIDATION_FAILED",
+        originalMessages: cleanedErrors,
       },
     });
   }

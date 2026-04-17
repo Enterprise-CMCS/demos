@@ -2,13 +2,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Types
-import { SetDeliverableDemonstrationTypesInput } from "../../../types.js";
+import { SetDeliverableDemonstrationTypesInput } from "..";
 
 // Functions under test
 import { insertDeliverableDemonstrationTypes } from "./insertDeliverableDemonstrationTypes";
 
 // Mock imports
-vi.mock("../../../prismaClient.js", () => ({
+vi.mock("../../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
@@ -16,7 +16,7 @@ vi.mock("../../deliverable", () => ({
   getDeliverable: vi.fn(),
 }));
 
-import { prisma } from "../../../prismaClient.js";
+import { prisma } from "../../../prismaClient";
 import { getDeliverable } from "../../deliverable";
 
 describe("insertDeliverableDemonstrationTypes", () => {

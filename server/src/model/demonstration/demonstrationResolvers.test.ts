@@ -4,6 +4,10 @@ import {
   __updateDemonstration,
   deleteDemonstration,
   __resolveDemonstrationState,
+<<<<<<< HEAD
+=======
+  __resolveDemonstrationExtensions,
+>>>>>>> c6eb1934e9a986297e489cd5482bdb98595ba07e
   __resolveDemonstrationRoleAssignments,
   __resolveDemonstrationPrimaryProjectOfficer,
   resolveDemonstrationTypes,

@@ -196,9 +196,10 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
 
     setSelectedContacts((prev) => {
       const idmRoles = [person.personType];
+      const isStateUser = person.personType === "demos-state-user";
 
       const defaults: { contactType?: ContactType; isPrimary: boolean } = {
-        contactType: undefined,
+        contactType: isStateUser ? "State Point of Contact" : undefined,
         isPrimary: false,
       };
 

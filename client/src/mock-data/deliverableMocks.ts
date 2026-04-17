@@ -99,6 +99,7 @@ export const getDeliverablesForDemonstration = (
 
 export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
   id: "1",
+  name: "Mock Deliverable 1",
   deliverableType: "Monitoring Report",
   demonstration: {
     id: "1",

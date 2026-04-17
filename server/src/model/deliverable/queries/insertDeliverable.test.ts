@@ -3,18 +3,18 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
 
 // Types
-import { DeliverableType, PersonType } from "../../../types.js";
-import { ParsedCreateDeliverableInput } from "../deliverableTypes.js";
+import { DeliverableType, PersonType, TagName } from "../../../types";
+import { ParsedCreateDeliverableInput } from "..";
 
 // Functions under test
 import { insertDeliverable } from "./insertDeliverable";
 
 // Mock imports
-vi.mock("../../../prismaClient.js", () => ({
+vi.mock("../../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
-import { prisma } from "../../../prismaClient.js";
+import { prisma } from "../../../prismaClient";
 
 describe("insertDeliverable", () => {
   const testPersonTypeId: PersonType = "demos-cms-user";
@@ -61,7 +61,7 @@ describe("insertDeliverable", () => {
       isEasternTZDate: true,
       easternTZDate: new TZDate(2025, 2, 14, 3, 17, 22, 931, "America/New_York"),
     },
-    demonstrationTypes: [],
+    demonstrationTypes: new Set<TagName>(),
   };
   const expectedFindCall = {
     where: {
