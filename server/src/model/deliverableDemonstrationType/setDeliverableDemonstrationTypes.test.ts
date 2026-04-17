@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Types
-import { SetDeliverableDemonstrationTypesInput } from "../../types";
+import { SetDeliverableDemonstrationTypesInput } from ".";
 
 // Functions under test
 import { setDeliverableDemonstrationTypes } from "./setDeliverableDemonstrationTypes";
