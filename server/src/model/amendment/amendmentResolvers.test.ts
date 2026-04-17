@@ -22,7 +22,6 @@ import { prisma } from "../../prismaClient.js";
 import {
   deleteApplication,
   // None of these are tested but need to be exported to avoid mocking issues
-  resolveApplicationDocuments,
   resolveApplicationPhases,
   resolveApplicationTags,
   resolveSuggestedApplicationTags,
@@ -38,6 +37,7 @@ import { ContextUser } from "../../auth/userContext.js";
 import { GraphQLContext } from "../../auth/auth.util.js";
 import { getDemonstration } from "../demonstration/demonstrationData.js";
 import { getAmendment, getManyAmendments } from "./amendmentData.js";
+import { getManyDocuments } from "../document/documentData.js";
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
 }));
@@ -45,6 +45,10 @@ vi.mock("../../prismaClient.js", () => ({
 vi.mock("./amendmentData.js", () => ({
   getAmendment: vi.fn(),
   getManyAmendments: vi.fn(),
+}));
+
+vi.mock("../document/documentData.js", () => ({
+  getManyDocuments: vi.fn(),
 }));
 
 vi.mock("../demonstration/demonstrationData.js", () => ({
@@ -55,7 +59,6 @@ vi.mock("../application", () => ({
   getApplication: vi.fn(),
   getManyApplications: vi.fn(),
   deleteApplication: vi.fn(),
-  resolveApplicationDocuments: vi.fn(),
   resolveApplicationPhases: vi.fn(),
   resolveApplicationTags: vi.fn(),
   resolveSuggestedApplicationTags: vi.fn(),
@@ -136,6 +139,12 @@ describe("amendmentResolvers", () => {
   it("delegates `Query.amendments` to `amendmentData.getManyAmendments`", async () => {
     await amendmentResolvers.Query.amendments(undefined, {}, mockContext);
     expect(getManyAmendments).toHaveBeenCalledExactlyOnceWith({}, mockUser);
+  });
+
+  it("delegates `Amendment.documents` to `documentData.getManyDocuments`", async () => {
+    const mockAmendment = { id: "abc123" } as PrismaAmendment;
+    await amendmentResolvers.Amendment.documents(mockAmendment, undefined, mockContext);
+    expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith({ applicationId: "abc123" }, mockUser);
   });
 
   it("resolves `Amendment.currentPhaseName`", () => {

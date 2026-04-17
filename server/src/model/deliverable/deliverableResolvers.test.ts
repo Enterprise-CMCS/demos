@@ -29,8 +29,6 @@ import {
   resolveDeliverableDueDateType,
   resolveDemonstration,
   resolveDeliverableCmsOwner,
-  resolveDeliverableCmsDocuments,
-  resolveDeliverableStateDocuments,
   deliverableResolvers,
 } from "./deliverableResolvers";
 
@@ -50,7 +48,7 @@ vi.mock("../user", () => ({
   getUser: vi.fn(),
 }));
 
-vi.mock("../document", () => ({
+vi.mock("../document/documentData.js", () => ({
   getManyDocuments: vi.fn(),
 }));
 
@@ -61,7 +59,7 @@ vi.mock("../deliverableDemonstrationType", () => ({
 import { createDeliverable, getDeliverable, getManyDeliverables, updateDeliverable } from ".";
 import { getApplication } from "../application";
 import { getUser } from "../user";
-import { getManyDocuments } from "../document";
+import { getManyDocuments } from "../document/documentData.js";
 import {
   GetDeliverableDemonstrationTypeResult,
   getDeliverableDemonstrationTypes,
@@ -98,6 +96,12 @@ describe("deliverableResolvers", () => {
       name: "User",
     },
   };
+
+  const testContext: GraphQLContext = {
+    user: {
+      id: "testUserId",
+    },
+  } as GraphQLContext;
 
   const testDocumentWithDeliverableParent: Partial<PrismaDocument> = {
     deliverableId: testDeliverableId,
@@ -241,24 +245,27 @@ describe("deliverableResolvers", () => {
     });
   });
 
-  describe("resolveDeliverableCmsDocuments", () => {
-    it("should query the CMS documents belonging to this deliverable", async () => {
-      await resolveDeliverableCmsDocuments(testDeliverable as PrismaDeliverable);
-      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith({
+  it("delegates `Deliverable.cmsDocuments` to `documentData.getManyDocuments`", async () => {
+    const mockDeliverable = { id: testDeliverableId } as PrismaDeliverable;
+    await deliverableResolvers.Deliverable.cmsDocuments(mockDeliverable, undefined, testContext);
+    expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
+      {
         AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: true }],
-      });
-    });
+      },
+      testContext.user
+    );
   });
 
-  describe("resolveDeliverableStateDocuments", () => {
-    it("should query the state documents belonging to this deliverable", async () => {
-      await resolveDeliverableStateDocuments(testDeliverable as PrismaDeliverable);
-      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith({
+  it("delegates `Deliverable.stateDocuments` to `documentData.getManyDocuments`", async () => {
+    const mockDeliverable = { id: testDeliverableId } as PrismaDeliverable;
+    await deliverableResolvers.Deliverable.stateDocuments(mockDeliverable, undefined, testContext);
+    expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
+      {
         AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: false }],
-      });
-    });
+      },
+      testContext.user
+    );
   });
-
   describe("deliverableResolvers", () => {
     describe("Mutation.createDeliverable", () => {
       it("should call the createDeliverable function with the right arguments", async () => {

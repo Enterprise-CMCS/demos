@@ -1,6 +1,7 @@
 import { Prisma, Extension as PrismaExtension } from "@prisma/client";
 import {
   buildAuthorizationFilter,
+  isStatePointOfContactOnDemonstration,
   PermissionFilters,
 } from "../../auth/buildAuthorizationFilter.js";
 import { selectExtension } from "./queries/selectExtension.js";
@@ -17,14 +18,7 @@ const getPermissionFilters = (userId: string) =>
       },
     },
     "View Extensions on Assigned Demonstrations": {
-      demonstration: {
-        demonstrationRoleAssignments: {
-          some: {
-            personId: userId,
-            roleId: "State Point of Contact",
-          },
-        },
-      },
+      demonstration: isStatePointOfContactOnDemonstration(userId),
     },
   }) satisfies PermissionFilters<Prisma.ExtensionWhereInput>;
 

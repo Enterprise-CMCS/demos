@@ -474,6 +474,9 @@ export const PERMISSIONS = [
   "View Amendments on Assigned Demonstrations",
   "View All Extensions",
   "View Extensions on Assigned Demonstrations",
+  "View All Documents",
+  "View Documents on Assigned Demonstrations",
+  "View Owned Documents",
 ] as const;
 
 export const SYSTEM_ROLES = ["Admin User", "CMS User", "State User"] as const;

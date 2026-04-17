@@ -1,6 +1,7 @@
 import { Prisma, Amendment as PrismaAmendment } from "@prisma/client";
 import {
   buildAuthorizationFilter,
+  isStatePointOfContactOnDemonstration,
   PermissionFilters,
 } from "../../auth/buildAuthorizationFilter.js";
 import { selectAmendment } from "./queries/selectAmendment.js";
@@ -17,14 +18,7 @@ const getPermissionFilters = (userId: string) =>
       },
     },
     "View Amendments on Assigned Demonstrations": {
-      demonstration: {
-        demonstrationRoleAssignments: {
-          some: {
-            personId: userId,
-            roleId: "State Point of Contact",
-          },
-        },
-      },
+      demonstration: isStatePointOfContactOnDemonstration(userId),
     },
   }) satisfies PermissionFilters<Prisma.AmendmentWhereInput>;
 

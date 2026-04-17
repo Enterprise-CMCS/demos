@@ -42,7 +42,6 @@ import {
   deleteApplication,
   getApplication,
   // None of these are tested but need to be exported to avoid mocking issues
-  resolveApplicationDocuments,
   resolveApplicationPhases,
   resolveApplicationTags,
   resolveSuggestedApplicationTags,
@@ -54,6 +53,7 @@ import { ContextUser } from "../../auth/userContext.js";
 import { GraphQLContext } from "../../auth/auth.util.js";
 import { getManyAmendments } from "../amendment/amendmentData.js";
 import { getManyExtensions } from "../extension/extensionData.js";
+import { getManyDocuments } from "../document/documentData.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -62,6 +62,10 @@ vi.mock("../../prismaClient.js", () => ({
 vi.mock("./demonstrationData.js", () => ({
   getDemonstration: vi.fn(),
   getManyDemonstrations: vi.fn(),
+}));
+
+vi.mock("../document/documentData.js", () => ({
+  getManyDocuments: vi.fn(),
 }));
 
 vi.mock("../amendment/amendmentData.js", () => ({
@@ -75,7 +79,6 @@ vi.mock("../extension/extensionData.js", () => ({
 vi.mock("../application", () => ({
   getApplication: vi.fn(),
   deleteApplication: vi.fn(),
-  resolveApplicationDocuments: vi.fn(),
   resolveApplicationPhases: vi.fn(),
   resolveApplicationTags: vi.fn(),
   resolveSuggestedApplicationTags: vi.fn(),
@@ -245,6 +248,12 @@ describe("demonstrationResolvers", () => {
   it("delegates `Query.demonstrations` to `demonstrationData.getManyDemonstrations`", async () => {
     await demonstrationResolvers.Query.demonstrations(undefined, {}, mockContext);
     expect(getManyDemonstrations).toHaveBeenCalledExactlyOnceWith({}, mockUser);
+  });
+
+  it("delegates `Demonstration.documents` to `documentData.getManyDocuments`", async () => {
+    const mockDemonstration = { id: "abc123" } as PrismaDemonstration;
+    await demonstrationResolvers.Demonstration.documents(mockDemonstration, undefined, mockContext);
+    expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith({ applicationId: "abc123" }, mockUser);
   });
 
   it("delegates `Demonstration.amendments` to `amendmentData.getManyAmendments`", async () => {

@@ -1,12 +1,8 @@
 import { prisma } from "../../prismaClient.js";
 import type { GraphQLContext } from "../../auth/auth.util.js";
-import {
-  Document as PrismaDocument,
-  Event as PrismaEvent,
-  Person as PrismaPerson,
-  User as PrismaUser,
-} from "@prisma/client";
+import { Event as PrismaEvent, Person as PrismaPerson, User as PrismaUser } from "@prisma/client";
 import { resolveManyDeliverables } from "../deliverable";
+import { getManyDocuments } from "../document/documentData.js";
 
 export async function queryCurrentUser(
   parent: unknown,
@@ -35,14 +31,6 @@ export async function resolveEvents(parent: PrismaUser): Promise<PrismaEvent[]> 
   });
 }
 
-export async function resolveOwnedDocuments(parent: PrismaUser): Promise<PrismaDocument[]> {
-  return await prisma().document.findMany({
-    where: {
-      ownerUserId: parent.id,
-    },
-  });
-}
-
 export const userResolvers = {
   Query: {
     currentUser: queryCurrentUser,
@@ -50,7 +38,8 @@ export const userResolvers = {
   User: {
     person: resolvePerson,
     events: resolveEvents,
-    ownedDocuments: resolveOwnedDocuments,
+    ownedDocuments: (parent: PrismaUser, args: unknown, context: GraphQLContext) =>
+      getManyDocuments({ ownerUserId: parent.id }, context.user),
     ownedDeliverables: resolveManyDeliverables,
   },
 };

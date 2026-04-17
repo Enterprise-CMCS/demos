@@ -3,9 +3,8 @@ export { handleDeleteDocument } from "./handleDeleteDocument";
 
 // Queries
 export { deleteDocumentById } from "./queries/deleteDocumentById";
-export { getDocument } from "./queries/getDocument";
-export { getManyDocuments } from "./queries/getManyDocuments";
-export { checkDocumentExists } from "./queries/checkDocumentExists";
+export { selectDocument } from "./queries/selectDocument";
+export { selectManyDocuments } from "./queries/selectManyDocuments";
 export { updateDocument } from "./queries/updateDocument";
 
 // Types & Constants
