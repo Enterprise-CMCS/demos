@@ -1,9 +1,21 @@
 import { DeliverableAction as PrismaDeliverableAction } from "@prisma/client";
-import { prisma, PrismaTransactionClient } from "../../../prismaClient.js";
-import { DeliverableAction } from "..";
+import { prisma, PrismaTransactionClient } from "../../../prismaClient";
+import { DeliverableActionType, DeliverableStatus } from "../../../types";
+
+export type InsertDeliverableActionInput = {
+  deliverableId: string;
+  actionType: DeliverableActionType;
+  actionTime: Date;
+  oldStatus: DeliverableStatus;
+  newStatus: DeliverableStatus;
+  oldDueDate: Date;
+  newDueDate: Date;
+  note?: string;
+  userId?: string;
+};
 
 export async function insertDeliverableAction(
-  action: DeliverableAction,
+  action: InsertDeliverableActionInput,
   tx?: PrismaTransactionClient
 ): Promise<PrismaDeliverableAction> {
   const prismaClient = tx ?? prisma();

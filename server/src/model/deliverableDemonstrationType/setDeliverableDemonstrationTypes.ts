@@ -1,8 +1,14 @@
 import { prisma, PrismaTransactionClient } from "../../prismaClient";
-import { SetDeliverableDemonstrationTypesInput } from "../../types";
-import { Deliverable as PrismaDeliverable } from "@prisma/client";
+import { TagName } from "../../types";
 import { deleteAllDeliverableDemonstrationTypes, insertDeliverableDemonstrationTypes } from ".";
+import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { getDeliverable } from "../deliverable";
+
+export type SetDeliverableDemonstrationTypesInput = {
+  deliverableId: string;
+  demonstrationId: string;
+  demonstrationTypes: TagName[];
+};
 
 export async function setDeliverableDemonstrationTypes(
   input: SetDeliverableDemonstrationTypesInput,

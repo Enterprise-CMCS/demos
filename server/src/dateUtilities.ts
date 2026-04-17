@@ -66,29 +66,30 @@ export function parseDateTimeOrLocalDateToEasternTZDate(
   return { isEasternTZDate: true, easternTZDate: dateValue };
 }
 
-export function __getTodayStartOfDayEastern(): EasternTZDate {
-  const easternNow: EasternTZDate = {
-    isEasternTZDate: true,
-    easternTZDate: new TZDate(new Date(), "America/New_York"),
-  };
+export function getCurrentTimeEastern(now: Date): EasternTZDate {
+  const easternNow = parseJSDateToEasternTZDate(now);
+  return easternNow;
+}
+
+export function getStartOfDayEastern(now: Date): EasternTZDate {
+  const easternNow = parseJSDateToEasternTZDate(now);
   easternNow.easternTZDate.setHours(0, 0, 0, 0);
   return easternNow;
 }
 
-export function __getTodayEndOfDayEastern(): EasternTZDate {
-  const easternNow: EasternTZDate = {
-    isEasternTZDate: true,
-    easternTZDate: new TZDate(new Date(), "America/New_York"),
-  };
+export function getEndOfDayEastern(now: Date): EasternTZDate {
+  const easternNow = parseJSDateToEasternTZDate(now);
   easternNow.easternTZDate.setHours(23, 59, 59, 999);
   return easternNow;
 }
 
-export type EasternNow = Record<ExpectedTimestamp, EasternTZDate>;
+export type EasternNow = Record<"Current Time" | ExpectedTimestamp, EasternTZDate>;
 export function getEasternNow(): EasternNow {
+  const now = new Date();
   return {
-    "Start of Day": __getTodayStartOfDayEastern(),
-    "End of Day": __getTodayEndOfDayEastern(),
+    "Current Time": getCurrentTimeEastern(now),
+    "Start of Day": getStartOfDayEastern(now),
+    "End of Day": getEndOfDayEastern(now),
   };
 }
 

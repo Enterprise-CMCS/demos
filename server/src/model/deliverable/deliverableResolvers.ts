@@ -7,16 +7,18 @@ import {
 } from "@prisma/client";
 import { GraphQLContext } from "../../auth/auth.util";
 import { GraphQLResolveInfo } from "graphql";
-import { createDeliverable, getDeliverable, getManyDeliverables } from ".";
+import { createDeliverable, getDeliverable, getManyDeliverables, updateDeliverable } from ".";
 import {
   CreateDeliverableInput,
   DeliverableDueDateType,
   DeliverableStatus,
   DeliverableType,
+  UpdateDeliverableInput,
 } from "../../types";
 import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getManyDocuments } from "../document/documentData";
+import { getDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 
 export async function resolveDeliverable(
   parent: PrismaDocument,
@@ -107,6 +109,13 @@ export const deliverableResolvers = {
     ) => {
       return await createDeliverable(args.input, context);
     },
+    updateDeliverable: async (
+      parent: unknown,
+      args: { id: string; input: UpdateDeliverableInput },
+      context: GraphQLContext
+    ) => {
+      return await updateDeliverable(args.id, args.input, context);
+    },
   },
 
   Deliverable: {
@@ -137,5 +146,8 @@ export const deliverableResolvers = {
         },
         context.user
       ),
+    demonstrationTypes: async (parent: PrismaDeliverable) => {
+      return await getDeliverableDemonstrationTypes(parent.id);
+    },
   },
 };
