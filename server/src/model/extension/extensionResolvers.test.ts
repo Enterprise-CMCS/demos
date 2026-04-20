@@ -133,65 +133,84 @@ describe("extensionResolvers", () => {
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
-  it("delegates `Query.extension` to `extensionData.getExtension`", async () => {
-    await extensionResolvers.Query.extension(undefined, { id: "abc123" }, mockContext);
-    expect(getExtension).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
+  describe("Query.extension", () => {
+    it("delegates to `extensionData.getExtension`", async () => {
+      await extensionResolvers.Query.extension(undefined, { id: "abc123" }, mockContext);
+      expect(getExtension).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
+    });
   });
 
-  it("delegates `Query.extensions` to `extensionData.getManyExtensions`", async () => {
-    await extensionResolvers.Query.extensions(undefined, {}, mockContext);
-    expect(getManyExtensions).toHaveBeenCalledExactlyOnceWith({}, mockUser);
+  describe("Query.extensions", () => {
+    it("delegates to `extensionData.getManyExtensions`", async () => {
+      await extensionResolvers.Query.extensions(undefined, {}, mockContext);
+      expect(getManyExtensions).toHaveBeenCalledExactlyOnceWith({}, mockUser);
+    });
   });
 
-  it("delegates `Extension.documents` to `documentData.getManyDocuments`", async () => {
-    const mockExtension = { id: "abc123" } as PrismaExtension;
-    await extensionResolvers.Extension.documents(mockExtension, undefined, mockContext);
-    expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith({ applicationId: "abc123" }, mockUser);
+  describe("Extension.documents", () => {
+    it("delegates to `documentData.getManyDocuments`", async () => {
+      const mockExtension = { id: "abc123" } as PrismaExtension;
+      await extensionResolvers.Extension.documents(mockExtension, undefined, mockContext);
+      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
+        { applicationId: "abc123" },
+        mockUser
+      );
+    });
   });
 
-  it("resolves `Extension.currentPhaseName`", () => {
-    const extension = {
-      currentPhaseId: "Application Intake" satisfies PhaseName,
-    } as PrismaExtension;
+  describe("Extension.currentPhaseName", () => {
+    it("returns currentPhaseId", () => {
+      const extension = {
+        currentPhaseId: "Application Intake" satisfies PhaseName,
+      } as PrismaExtension;
 
-    const result = extensionResolvers.Extension.currentPhaseName(extension);
-    expect(result).toBe(extension.currentPhaseId);
+      const result = extensionResolvers.Extension.currentPhaseName(extension);
+      expect(result).toBe(extension.currentPhaseId);
+    });
   });
 
-  it("resolves `Extension.signatureLevel`", () => {
-    const extension = {
-      signatureLevelId: "OA" satisfies SignatureLevel,
-    } as PrismaExtension;
+  describe("Extension.signatureLevel", () => {
+    it("returns signatureLevelId", () => {
+      const extension = {
+        signatureLevelId: "OA" satisfies SignatureLevel,
+      } as PrismaExtension;
 
-    const result = extensionResolvers.Extension.signatureLevel(extension);
-    expect(result).toBe(extension.signatureLevelId);
+      const result = extensionResolvers.Extension.signatureLevel(extension);
+      expect(result).toBe(extension.signatureLevelId);
+    });
   });
 
-  it("resolves `Extension.status`", () => {
-    const extension = {
-      statusId: "Pre-Submission" satisfies ApplicationStatus,
-    } as PrismaExtension;
+  describe("Extension.status", () => {
+    it("returns statusId", () => {
+      const extension = {
+        statusId: "Pre-Submission" satisfies ApplicationStatus,
+      } as PrismaExtension;
 
-    const result = extensionResolvers.Extension.status(extension);
-    expect(result).toBe(extension.statusId);
+      const result = extensionResolvers.Extension.status(extension);
+      expect(result).toBe(extension.statusId);
+    });
   });
 
-  it("resolves the `Extension.clearanceLevel`", () => {
-    const extension = {
-      clearanceLevelId: "COMMs" satisfies ClearanceLevel,
-    } as PrismaExtension;
+  describe("Extension.clearanceLevel", () => {
+    it("returns clearanceLevelId", () => {
+      const extension = {
+        clearanceLevelId: "COMMs" satisfies ClearanceLevel,
+      } as PrismaExtension;
 
-    const result = extensionResolvers.Extension.clearanceLevel(extension);
-    expect(result).toBe(extension.clearanceLevelId);
+      const result = extensionResolvers.Extension.clearanceLevel(extension);
+      expect(result).toBe(extension.clearanceLevelId);
+    });
   });
 
-  it("delegates `Extension.demonstration` to `Demonstration.getDemonstration`", async () => {
-    await extensionResolvers.Extension.demonstration(
-      { demonstrationId: "abc123" } as PrismaExtension,
-      {},
-      mockContext
-    );
-    expect(getDemonstration).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
+  describe("Extension.demonstrations", () => {
+    it("delegates to `Demonstration.getDemonstration`", async () => {
+      await extensionResolvers.Extension.demonstration(
+        { demonstrationId: "abc123" } as PrismaExtension,
+        {},
+        mockContext
+      );
+      expect(getDemonstration).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
+    });
   });
 
   describe("__createExtension", () => {

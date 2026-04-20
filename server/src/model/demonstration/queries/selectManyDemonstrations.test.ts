@@ -8,22 +8,34 @@ vi.mock("../../../prismaClient", () => ({
 }));
 
 describe("selectManyDemonstrations", () => {
-  const demonstrationFindMany = vi.fn();
-
-  const mockPrismaClient = {
-    demonstration: {
-      findMany: demonstrationFindMany,
-    },
-  };
-
-  const mockTransaction = {
+  const regularMocks = {
     demonstration: {
       findMany: vi.fn(),
     },
-  } as unknown as PrismaTransactionClient;
+  };
+  const mockPrismaClient = {
+    demonstration: {
+      findMany: regularMocks.demonstration.findMany,
+    },
+  };
+  const transactionMocks = {
+    demonstration: {
+      findMany: vi.fn(),
+    },
+  };
+  const mockTransaction = {
+    demonstration: {
+      findMany: transactionMocks.demonstration.findMany,
+    },
+  } as any;
 
+  const testDemonstrationId = "demonstration-1";
+  const testDemonstrationId2 = "demonstration-2";
   const where = {
-    id: "demonstration-1",
+    id: testDemonstrationId,
+  };
+  const expectedCall = {
+    where: { id: testDemonstrationId },
   };
 
   beforeEach(() => {
@@ -31,51 +43,31 @@ describe("selectManyDemonstrations", () => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as never);
   });
 
-  it("uses the default prisma client when no transaction client is provided", async () => {
-    const demonstrations = [
-      { id: "demonstration-1" },
-      { id: "demonstration-2" },
-    ] as PrismaDemonstration[];
-    demonstrationFindMany.mockResolvedValueOnce(demonstrations);
-
-    const result = await selectManyDemonstrations(where);
-
-    expect(prisma).toHaveBeenCalledExactlyOnceWith();
-    expect(demonstrationFindMany).toHaveBeenCalledExactlyOnceWith({ where });
-    expect(result).toBe(demonstrations);
+  it("should get demonstrations from the database directly if no transaction is given", async () => {
+    await selectManyDemonstrations(where);
+    expect(regularMocks.demonstration.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
+    expect(transactionMocks.demonstration.findMany).not.toHaveBeenCalled();
   });
 
-  it("uses the provided transaction client instead of the default prisma client", async () => {
-    const demonstrations = [
-      { id: "demonstration-1" },
-      { id: "demonstration-2" },
-    ] as PrismaDemonstration[];
-    mockTransaction.demonstration.findMany = vi.fn().mockResolvedValueOnce(demonstrations);
-
-    const result = await selectManyDemonstrations(where, mockTransaction);
-
-    expect(prisma).not.toHaveBeenCalled();
-    expect(mockTransaction.demonstration.findMany).toHaveBeenCalledExactlyOnceWith({ where });
-    expect(result).toBe(demonstrations);
+  it("should get demonstrations via a transaction if one is given", async () => {
+    await selectManyDemonstrations(where, mockTransaction);
+    expect(regularMocks.demonstration.findMany).not.toHaveBeenCalled();
+    expect(transactionMocks.demonstration.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
   });
 
   it("returns an empty array when no demonstrations are found", async () => {
-    demonstrationFindMany.mockResolvedValueOnce([]);
-
+    regularMocks.demonstration.findMany.mockResolvedValueOnce([]);
     const result = await selectManyDemonstrations(where);
-
+    expect(regularMocks.demonstration.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
     expect(result).toEqual([]);
   });
 
   it("returns all demonstrations that are found", async () => {
-    const demonstrations = [
-      { id: "demonstration-1" },
-      { id: "demonstration-2" },
-    ] as PrismaDemonstration[];
-    demonstrationFindMany.mockResolvedValueOnce(demonstrations);
+    const demonstrations = [{ id: testDemonstrationId }, { id: testDemonstrationId2 }] as PrismaDemonstration[];
+    regularMocks.demonstration.findMany.mockResolvedValueOnce(demonstrations);
 
     const result = await selectManyDemonstrations(where);
-
+    expect(regularMocks.demonstration.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
     expect(result).toBe(demonstrations);
   });
 });

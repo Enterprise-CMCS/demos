@@ -146,6 +146,70 @@ describe("documentResolvers", () => {
     vi.mocked(getS3Adapter).mockReturnValue(mockS3Adapter as any);
   });
 
+  describe("Query.document", () => {
+    it("delegates to `documentData.getDocument`", async () => {
+      await documentResolvers.Query.document(undefined, { id: "abc123" }, mockContext);
+      expect(getDocument).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, { id: testUserId });
+    });
+  });
+
+  describe("Query.documentExists", () => {
+    it("returns true when getDocument returns non-null", async () => {
+      vi.mocked(getDocument).mockResolvedValue({ id: "abc123" } as PrismaDocument);
+      const result = await documentResolvers.Query.documentExists(
+        undefined,
+        { documentId: "abc123" },
+        mockContext
+      );
+      expect(getDocument).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, { id: testUserId });
+      expect(result).toBe(true);
+    });
+
+    it("returns false when getDocument returns null", async () => {
+      vi.mocked(getDocument).mockResolvedValue(null);
+      const result = await documentResolvers.Query.documentExists(
+        undefined,
+        { documentId: "abc123" },
+        mockContext
+      );
+      expect(getDocument).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, { id: testUserId });
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("Document.documentType", () => {
+    it("returns documentTypeId", () => {
+      const document = {
+        documentTypeId: "Approval Letter" satisfies DocumentType,
+      } as PrismaDocument;
+
+      const result = documentResolvers.Document.documentType(document);
+      expect(result).toBe(document.documentTypeId);
+    });
+  });
+  describe("Document.presignedDownloadUrl", () => {
+    it("delegates to s3adapter.getPresignedDownloadUrl", async () => {
+      const document = {
+        s3Path: "s3/path/to/document.pdf",
+      } as PrismaDocument;
+
+      await documentResolvers.Document.presignedDownloadUrl(document);
+      expect(mockS3Adapter.getPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith(
+        document.s3Path
+      );
+    });
+  });
+  describe("Document.phaseName", () => {
+    it("returns phaseId", () => {
+      const document = {
+        phaseId: "Approval Summary" satisfies PhaseName,
+      } as PrismaDocument;
+
+      const result = documentResolvers.Document.phaseName(document);
+      expect(result).toBe(document.phaseId);
+    });
+  });
+
   describe("uploadDocument", () => {
     const mockUploadInput: UploadDocumentInput = {
       name: "test.pdf",
@@ -241,19 +305,6 @@ describe("documentResolvers", () => {
 
       expect(validateAndUpdateDates).not.toHaveBeenCalled();
     });
-  });
-
-  it("resolves `Document.presignedDownloadUrl`", async () => {
-    const mockPresignedUrl = "https://s3.amazonaws.com/download-url";
-    vi.mocked(mockS3Adapter.getPresignedDownloadUrl).mockResolvedValue(mockPresignedUrl);
-
-    const document = {
-      s3Path: "s3/path/to/document.pdf",
-    } as PrismaDocument;
-
-    const result = await documentResolvers.Document.presignedDownloadUrl(document);
-    expect(mockS3Adapter.getPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith(document.s3Path);
-    expect(result).toBe(mockPresignedUrl);
   });
 
   describe("triggerUiPath", () => {
@@ -384,15 +435,6 @@ describe("documentResolvers", () => {
     });
   });
 
-  it("resolves `Document.documentType`", () => {
-    const document = {
-      documentTypeId: "Approval Letter" satisfies DocumentType,
-    } as PrismaDocument;
-
-    const result = documentResolvers.Document.documentType(document);
-    expect(result).toBe(document.documentTypeId);
-  });
-
   describe("resolveApplication", () => {
     it("should resolve application by id", async () => {
       vi.mocked(getApplication).mockResolvedValue(mockApplication as any);
@@ -402,15 +444,6 @@ describe("documentResolvers", () => {
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
       expect(result).toEqual(mockApplication);
     });
-  });
-
-  it("resolves `Document.phaseName`", () => {
-    const document = {
-      phaseId: "Approval Summary" satisfies PhaseName,
-    } as PrismaDocument;
-
-    const result = documentResolvers.Document.phaseName(document);
-    expect(result).toBe(document.phaseId);
   });
 
   describe("resolveHasPendingUIPathResult", () => {
@@ -440,11 +473,6 @@ describe("documentResolvers", () => {
   });
 
   describe("resolver exports", () => {
-    it("should export Query resolvers", () => {
-      expect(documentResolvers.Query).toHaveProperty("document");
-      expect(documentResolvers.Query).toHaveProperty("documentExists");
-    });
-
     it("should export Mutation resolvers", () => {
       expect(documentResolvers.Mutation).toHaveProperty("uploadDocument");
       expect(documentResolvers.Mutation).toHaveProperty("updateDocument");
@@ -455,10 +483,7 @@ describe("documentResolvers", () => {
 
     it("should export Document field resolvers", () => {
       expect(documentResolvers.Document).toHaveProperty("owner");
-      expect(documentResolvers.Document).toHaveProperty("documentType");
       expect(documentResolvers.Document).toHaveProperty("application");
-      expect(documentResolvers.Document).toHaveProperty("phaseName");
-      expect(documentResolvers.Document).toHaveProperty("presignedDownloadUrl");
     });
   });
 });
