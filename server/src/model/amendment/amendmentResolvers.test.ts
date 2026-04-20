@@ -36,6 +36,7 @@ import { ContextUser, GraphQLContext } from "../../auth";
 import { getDemonstration } from "../demonstration";
 import { getAmendment, getManyAmendments } from "./amendmentData";
 import { getManyDocuments } from "../document";
+import { getManyApplicationPhases } from "../applicationPhase";
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
@@ -51,6 +52,10 @@ vi.mock("../document", () => ({
 
 vi.mock("../demonstration", () => ({
   getDemonstration: vi.fn(),
+}));
+
+vi.mock("../applicationPhase", () => ({
+  getManyApplicationPhases: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -161,6 +166,20 @@ describe("amendmentResolvers", () => {
         mockContext
       );
       expect(getDemonstration).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
+    });
+  });
+
+  describe("Amendment.phases", () => {
+    it("delegates to `applicationPhaseData.getManyApplicationPhases`", async () => {
+      await amendmentResolvers.Amendment.phases(
+        { id: "amendmentId" } as PrismaAmendment,
+        {},
+        mockContext
+      );
+      expect(getManyApplicationPhases).toHaveBeenCalledExactlyOnceWith(
+        { applicationId: "amendmentId" },
+        mockUser
+      );
     });
   });
 

@@ -36,6 +36,7 @@ import { ContextUser, GraphQLContext } from "../../auth";
 import { getDemonstration } from "../demonstration";
 import { getExtension, getManyExtensions } from "./extensionData";
 import { getManyDocuments } from "../document";
+import { getManyApplicationPhases } from "../applicationPhase";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -46,11 +47,15 @@ vi.mock("./extensionData", () => ({
   getManyExtensions: vi.fn(),
 }));
 
-vi.mock("../document/documentData", () => ({
+vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
 }));
 
-vi.mock("../demonstration/demonstrationData", () => ({
+vi.mock("../applicationPhase", () => ({
+  getManyApplicationPhases: vi.fn(),
+}));
+
+vi.mock("../demonstration", () => ({
   getDemonstration: vi.fn(),
 }));
 
@@ -153,6 +158,20 @@ describe("extensionResolvers", () => {
       await extensionResolvers.Extension.documents(mockExtension, undefined, mockContext);
       expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
         { applicationId: "abc123" },
+        mockUser
+      );
+    });
+  });
+
+  describe("Extension.phases", () => {
+    it("delegates to `applicationPhaseData.getManyApplicationPhases`", async () => {
+      await extensionResolvers.Extension.phases(
+        { id: "extensionId" } as PrismaExtension,
+        {},
+        mockContext
+      );
+      expect(getManyApplicationPhases).toHaveBeenCalledExactlyOnceWith(
+        { applicationId: "extensionId" },
         mockUser
       );
     });
