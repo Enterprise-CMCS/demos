@@ -1,17 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { User as PrismaUser } from "@prisma/client";
-import type { GraphQLContext } from "../../auth/auth.util.js";
+import type { GraphQLContext } from "../../auth";
 import { queryCurrentUser, resolvePerson, resolveEvents, userResolvers } from "./userResolvers";
 
 // Mock imports
-import { prisma } from "../../prismaClient.js";
-import { getManyDocuments } from "../document/documentData.js";
+import { prisma } from "../../prismaClient";
+import { getManyDocuments } from "../document";
 
-vi.mock("../../prismaClient.js", () => ({
+vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
-vi.mock("../document/documentData.js", () => ({
+vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
 }));
 
@@ -53,6 +53,19 @@ describe("userResolvers", () => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
   });
 
+  describe("User.ownedDocuments", () => {
+    it("delegates to `documentData.getManyDocuments`", async () => {
+      const mockUser = {
+        id: "abc123",
+      } as PrismaUser;
+      await userResolvers.User.ownedDocuments(mockUser, undefined, mockContext);
+      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
+        { ownerUserId: "abc123" },
+        mockContext.user
+      );
+    });
+  });
+
   describe("queryCurrentUser", () => {
     it("should query the user found in the GQL context", async () => {
       const expectedCall = {
@@ -90,16 +103,5 @@ describe("userResolvers", () => {
       await resolveEvents(testParent as PrismaUser);
       expect(regularMocks.event.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
-  });
-
-  it("delegates `User.ownedDocuments` to `documentData.getManyDocuments`", async () => {
-    const mockUser = {
-      id: "abc123",
-    } as PrismaUser;
-    await userResolvers.User.ownedDocuments(mockUser, undefined, mockContext);
-    expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
-      { ownerUserId: "abc123" },
-      mockContext.user
-    );
   });
 });

@@ -1,20 +1,15 @@
 import { Amendment as PrismaAmendment, Prisma } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { buildAuthorizationFilter } from "../../auth/buildAuthorizationFilter.js";
-import { getAmendment, getManyAmendments } from "./amendmentData.js";
-import { selectAmendment } from "./queries/selectAmendment.js";
-import { selectManyAmendments } from "./queries/selectManyAmendments.js";
-import { ContextUser } from "../../auth/userContext.js";
+import { buildAuthorizationFilter, ContextUser } from "../../auth";
+import { getAmendment, getManyAmendments } from "./amendmentData";
+import { selectAmendment, selectManyAmendments } from "./queries";
 
-vi.mock("../../auth/buildAuthorizationFilter.js", () => ({
+vi.mock("../../auth", () => ({
   buildAuthorizationFilter: vi.fn(),
 }));
 
-vi.mock("./queries/selectAmendment.js", () => ({
+vi.mock("./queries", () => ({
   selectAmendment: vi.fn(),
-}));
-
-vi.mock("./queries/selectManyAmendments.js", () => ({
   selectManyAmendments: vi.fn(),
 }));
 
@@ -69,10 +64,27 @@ describe("amendmentData", () => {
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
-      expect(selectAmendment).toHaveBeenCalledExactlyOnceWith({
-        AND: [where, authFilter],
-      });
+      expect(selectAmendment).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        undefined
+      );
       expect(result).toBe(amendment);
+    });
+
+    it("passes transaction client to selectAmendment if provided", async () => {
+      const mockTransactionClient = {} as any;
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+
+      await getAmendment(where, user, mockTransactionClient);
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(selectAmendment).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        mockTransactionClient
+      );
     });
   });
 
@@ -96,10 +108,27 @@ describe("amendmentData", () => {
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
-      expect(selectManyAmendments).toHaveBeenCalledExactlyOnceWith({
-        AND: [where, authFilter],
-      });
+      expect(selectManyAmendments).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        undefined
+      );
       expect(result).toBe(amendments);
+    });
+
+    it("passes transaction client to selectManyAmendments if provided", async () => {
+      const mockTransactionClient = {} as any;
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+
+      await getManyAmendments(where, user, mockTransactionClient);
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(selectManyAmendments).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        mockTransactionClient
+      );
     });
   });
 });

@@ -1,20 +1,15 @@
 import { Document as PrismaDocument, Prisma } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { buildAuthorizationFilter } from "../../auth/buildAuthorizationFilter.js";
-import { getDocument, getManyDocuments } from "./documentData.js";
-import { selectDocument } from "./queries/selectDocument.js";
-import { selectManyDocuments } from "./queries/selectManyDocuments.js";
-import { ContextUser } from "../../auth/userContext.js";
+import { buildAuthorizationFilter, ContextUser } from "../../auth";
+import { getDocument, getManyDocuments } from "./documentData";
+import { selectDocument, selectManyDocuments } from "./queries";
 
-vi.mock("../../auth/buildAuthorizationFilter.js", () => ({
+vi.mock("../../auth", () => ({
   buildAuthorizationFilter: vi.fn(),
 }));
 
-vi.mock("./queries/selectDocument.js", () => ({
+vi.mock("./queries", () => ({
   selectDocument: vi.fn(),
-}));
-
-vi.mock("./queries/selectManyDocuments.js", () => ({
   selectManyDocuments: vi.fn(),
 }));
 
@@ -62,10 +57,27 @@ describe("documentData", () => {
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
-      expect(selectDocument).toHaveBeenCalledExactlyOnceWith({
-        AND: [where, authFilter],
-      });
+      expect(selectDocument).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        undefined
+      );
       expect(result).toBe(document);
+    });
+
+    it("passes transaction client to selectDocument if provided", async () => {
+      const mockTransactionClient = {} as any;
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+
+      await getDocument(where, user, mockTransactionClient);
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(selectDocument).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        mockTransactionClient
+      );
     });
   });
 
@@ -89,10 +101,27 @@ describe("documentData", () => {
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
-      expect(selectManyDocuments).toHaveBeenCalledExactlyOnceWith({
-        AND: [where, authFilter],
-      });
+      expect(selectManyDocuments).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        undefined
+      );
       expect(result).toBe(documents);
+    });
+
+    it("passes transaction client to selectManyDemonstrations if provided", async () => {
+      const mockTransactionClient = {} as any;
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+
+      await getManyDocuments(where, user, mockTransactionClient);
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(selectManyDocuments).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        mockTransactionClient
+      );
     });
   });
 });

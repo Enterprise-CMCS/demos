@@ -4,28 +4,28 @@ import {
   __resolveApplicationPhaseName,
   __resolveApplicationPhaseStatus,
   applicationPhaseResolvers,
-} from "./applicationPhaseResolvers.js";
+} from "./applicationPhaseResolvers";
 import { ApplicationPhase as PrismaApplicationPhase } from "@prisma/client";
-import { PhaseName, PhaseStatus } from "../../types.js";
+import { PhaseName, PhaseStatus } from "../../types";
 
 // Mock imports
-import { prisma } from "../../prismaClient.js";
-import { handlePrismaError } from "../../errors/handlePrismaError.js";
+import { prisma } from "../../prismaClient";
+import { handlePrismaError } from "../../errors/handlePrismaError";
 import { getApplication } from "../application";
 import { completePhase, declareCompletenessPhaseIncomplete, skipConceptPhase } from ".";
-import { GraphQLContext } from "../../auth/auth.util.js";
-import { getManyDocuments } from "../document/documentData.js";
+import { GraphQLContext } from "../../auth";
+import { getManyDocuments } from "../document";
 
-vi.mock("../../prismaClient.js", () => ({
+vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
-vi.mock("../document/documentData.js", () => ({
+vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
 }));
 
 const testHandlePrismaError = new Error("Test handlePrismaError!");
-vi.mock("../../errors/handlePrismaError.js", () => ({
+vi.mock("../../errors/handlePrismaError", () => ({
   handlePrismaError: vi.fn(() => {
     throw testHandlePrismaError;
   }),
@@ -78,20 +78,22 @@ describe("applicationPhaseResolvers", () => {
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
-  it("delegates `ApplicationPhase.documents` to `documentData.getManyDocuments`", async () => {
-    const mockApplicationPhase = {
-      phaseId: "Completeness" satisfies PhaseName,
-      applicationId: "abc123",
-    } as PrismaApplicationPhase;
-    await applicationPhaseResolvers.ApplicationPhase.documents(
-      mockApplicationPhase,
-      undefined,
-      mockContext
-    );
-    expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
-      { phaseId: "Completeness", applicationId: "abc123" },
-      mockContext.user
-    );
+  describe("ApplicationPhase.documents", () => {
+    it("delegates to `documentData.getManyDocuments`", async () => {
+      const mockApplicationPhase = {
+        phaseId: "Completeness" satisfies PhaseName,
+        applicationId: "abc123",
+      } as PrismaApplicationPhase;
+      await applicationPhaseResolvers.ApplicationPhase.documents(
+        mockApplicationPhase,
+        undefined,
+        mockContext
+      );
+      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
+        { phaseId: "Completeness", applicationId: "abc123" },
+        mockContext.user
+      );
+    });
   });
 
   describe("__resolveApplicationPhaseDates", () => {

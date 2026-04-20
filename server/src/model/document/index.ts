@@ -1,6 +1,6 @@
 // Functions
 export { handleDeleteDocument } from "./handleDeleteDocument";
-
+export { getDocument, getManyDocuments } from "./documentData";
 // Queries
 export { deleteDocumentById } from "./queries/deleteDocumentById";
 export { selectDocument } from "./queries/selectDocument";

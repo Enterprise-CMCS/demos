@@ -3,10 +3,10 @@ import {
   buildAuthorizationFilter,
   isStatePointOfContactOnDemonstration,
   PermissionFilters,
-} from "../../auth/buildAuthorizationFilter.js";
-import { selectDocument } from "./queries/selectDocument.js";
-import { selectManyDocuments } from "./queries/selectManyDocuments.js";
-import { ContextUser } from "../../auth/userContext.js";
+  ContextUser,
+} from "../../auth";
+import { selectDocument, selectManyDocuments } from "./queries";
+import { PrismaTransactionClient } from "../../prismaClient";
 
 const getPermissionFilters = (userId: string) =>
   ({
@@ -43,7 +43,8 @@ const getPermissionFilters = (userId: string) =>
 
 export async function getDocument(
   where: Prisma.DocumentWhereInput,
-  user: ContextUser
+  user: ContextUser,
+  tx?: PrismaTransactionClient
 ): Promise<PrismaDocument | null> {
   const authFilter = buildAuthorizationFilter<Prisma.DocumentWhereInput>(
     user,
@@ -54,14 +55,18 @@ export async function getDocument(
     return null;
   }
 
-  return await selectDocument({
-    AND: [where, authFilter],
-  });
+  return await selectDocument(
+    {
+      AND: [where, authFilter],
+    },
+    tx
+  );
 }
 
 export async function getManyDocuments(
   where: Prisma.DocumentWhereInput,
-  user: ContextUser
+  user: ContextUser,
+  tx?: PrismaTransactionClient
 ): Promise<PrismaDocument[]> {
   const authFilter = buildAuthorizationFilter<Prisma.DocumentWhereInput>(
     user,
@@ -71,7 +76,10 @@ export async function getManyDocuments(
   if (authFilter === null) {
     return [];
   }
-  return await selectManyDocuments({
-    AND: [where, authFilter],
-  });
+  return await selectManyDocuments(
+    {
+      AND: [where, authFilter],
+    },
+    tx
+  );
 }

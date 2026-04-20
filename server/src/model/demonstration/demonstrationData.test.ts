@@ -1,20 +1,15 @@
 import { Demonstration as PrismaDemonstration, Prisma } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { buildAuthorizationFilter } from "../../auth/buildAuthorizationFilter.js";
-import { getDemonstration, getManyDemonstrations } from "./demonstrationData.js";
-import { selectDemonstration } from "./queries/selectDemonstration.js";
-import { selectManyDemonstrations } from "./queries/selectManyDemonstrations.js";
-import { ContextUser } from "../../auth/userContext.js";
+import { buildAuthorizationFilter, ContextUser } from "../../auth";
+import { getDemonstration, getManyDemonstrations } from "./demonstrationData";
+import { selectDemonstration, selectManyDemonstrations } from "./queries";
 
-vi.mock("../../auth/buildAuthorizationFilter.js", () => ({
+vi.mock("../../auth", () => ({
   buildAuthorizationFilter: vi.fn(),
 }));
 
-vi.mock("./queries/selectDemonstration.js", () => ({
+vi.mock("./queries", () => ({
   selectDemonstration: vi.fn(),
-}));
-
-vi.mock("./queries/selectManyDemonstrations.js", () => ({
   selectManyDemonstrations: vi.fn(),
 }));
 
@@ -67,10 +62,27 @@ describe("demonstrationData", () => {
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
-      expect(selectDemonstration).toHaveBeenCalledExactlyOnceWith({
-        AND: [where, authFilter],
-      });
+      expect(selectDemonstration).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        undefined
+      );
       expect(result).toBe(demonstration);
+    });
+
+    it("passes transaction client to selectDemonstration if provided", async () => {
+      const mockTransactionClient = {} as any;
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+
+      await getDemonstration(where, user, mockTransactionClient);
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(selectDemonstration).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        mockTransactionClient
+      );
     });
   });
 
@@ -97,10 +109,27 @@ describe("demonstrationData", () => {
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
-      expect(selectManyDemonstrations).toHaveBeenCalledExactlyOnceWith({
-        AND: [where, authFilter],
-      });
+      expect(selectManyDemonstrations).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        undefined
+      );
       expect(result).toBe(demonstrations);
+    });
+
+    it("passes transaction client to selectManyDemonstration if provided", async () => {
+      const mockTransactionClient = {} as any;
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+
+      await getManyDemonstrations(where, user, mockTransactionClient);
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(selectManyDemonstrations).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        mockTransactionClient
+      );
     });
   });
 });

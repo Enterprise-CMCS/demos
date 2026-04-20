@@ -8,22 +8,34 @@ vi.mock("../../../prismaClient", () => ({
 }));
 
 describe("selectManyAmendments", () => {
-  const amendmentFindMany = vi.fn();
-
-  const mockPrismaClient = {
-    amendment: {
-      findMany: amendmentFindMany,
-    },
-  };
-
-  const mockTransaction = {
+  const regularMocks = {
     amendment: {
       findMany: vi.fn(),
     },
-  } as unknown as PrismaTransactionClient;
+  };
+  const mockPrismaClient = {
+    amendment: {
+      findMany: regularMocks.amendment.findMany,
+    },
+  };
+  const transactionMocks = {
+    amendment: {
+      findMany: vi.fn(),
+    },
+  };
+  const mockTransaction = {
+    amendment: {
+      findMany: transactionMocks.amendment.findMany,
+    },
+  } as any;
 
+  const testAmendmentId = "amendment-1";
+  const testAmendmentId2 = "amendment-2";
   const where = {
-    id: "amendment-1",
+    id: testAmendmentId,
+  };
+  const expectedCall = {
+    where: { id: testAmendmentId },
   };
 
   beforeEach(() => {
@@ -31,42 +43,31 @@ describe("selectManyAmendments", () => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as never);
   });
 
-  it("uses the default prisma client when no transaction client is provided", async () => {
-    const amendments = [{ id: "amendment-1" }, { id: "amendment-2" }] as PrismaAmendment[];
-    amendmentFindMany.mockResolvedValueOnce(amendments);
-
-    const result = await selectManyAmendments(where);
-
-    expect(prisma).toHaveBeenCalledExactlyOnceWith();
-    expect(amendmentFindMany).toHaveBeenCalledExactlyOnceWith({ where });
-    expect(result).toBe(amendments);
+  it("should get amendments from the database directly if no transaction is given", async () => {
+    await selectManyAmendments(where);
+    expect(regularMocks.amendment.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
+    expect(transactionMocks.amendment.findMany).not.toHaveBeenCalled();
   });
 
-  it("uses the provided transaction client instead of the default prisma client", async () => {
-    const amendments = [{ id: "amendment-1" }, { id: "amendment-2" }] as PrismaAmendment[];
-    mockTransaction.amendment.findMany = vi.fn().mockResolvedValueOnce(amendments);
-
-    const result = await selectManyAmendments(where, mockTransaction);
-
-    expect(prisma).not.toHaveBeenCalled();
-    expect(mockTransaction.amendment.findMany).toHaveBeenCalledExactlyOnceWith({ where });
-    expect(result).toBe(amendments);
+  it("should get amendments via a transaction if one is given", async () => {
+    await selectManyAmendments(where, mockTransaction);
+    expect(regularMocks.amendment.findMany).not.toHaveBeenCalled();
+    expect(transactionMocks.amendment.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
   });
 
   it("returns an empty array when no amendments are found", async () => {
-    amendmentFindMany.mockResolvedValueOnce([]);
-
+    regularMocks.amendment.findMany.mockResolvedValueOnce([]);
     const result = await selectManyAmendments(where);
-
+    expect(regularMocks.amendment.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
     expect(result).toEqual([]);
   });
 
   it("returns all amendments that are found", async () => {
-    const amendments = [{ id: "amendment-1" }, { id: "amendment-2" }] as PrismaAmendment[];
-    amendmentFindMany.mockResolvedValueOnce(amendments);
+    const amendments = [{ id: testAmendmentId }, { id: testAmendmentId2 }] as PrismaAmendment[];
+    regularMocks.amendment.findMany.mockResolvedValueOnce(amendments);
 
     const result = await selectManyAmendments(where);
-
+    expect(regularMocks.amendment.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
     expect(result).toBe(amendments);
   });
 });

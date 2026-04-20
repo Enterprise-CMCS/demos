@@ -1,20 +1,15 @@
 import { Extension as PrismaExtension, Prisma } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { buildAuthorizationFilter } from "../../auth/buildAuthorizationFilter.js";
-import { getExtension, getManyExtensions } from "./extensionData.js";
-import { selectExtension } from "./queries/selectExtension.js";
-import { selectManyExtensions } from "./queries/selectManyExtensions.js";
-import { ContextUser } from "../../auth/userContext.js";
+import { buildAuthorizationFilter, ContextUser } from "../../auth";
+import { getExtension, getManyExtensions } from "./extensionData";
+import { selectExtension, selectManyExtensions } from "./queries";
 
-vi.mock("../../auth/buildAuthorizationFilter.js", () => ({
+vi.mock("../../auth", () => ({
   buildAuthorizationFilter: vi.fn(),
 }));
 
-vi.mock("./queries/selectExtension.js", () => ({
+vi.mock("./queries", () => ({
   selectExtension: vi.fn(),
-}));
-
-vi.mock("./queries/selectManyExtensions.js", () => ({
   selectManyExtensions: vi.fn(),
 }));
 
@@ -69,10 +64,27 @@ describe("extensionData", () => {
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
-      expect(selectExtension).toHaveBeenCalledExactlyOnceWith({
-        AND: [where, authFilter],
-      });
+      expect(selectExtension).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        undefined
+      );
       expect(result).toBe(extension);
+    });
+
+    it("passes transaction client to selectManyAmendments if provided", async () => {
+      const mockTransactionClient = {} as any;
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+
+      await getExtension(where, user, mockTransactionClient);
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(selectExtension).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        mockTransactionClient
+      );
     });
   });
 
@@ -96,10 +108,27 @@ describe("extensionData", () => {
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
-      expect(selectManyExtensions).toHaveBeenCalledExactlyOnceWith({
-        AND: [where, authFilter],
-      });
+      expect(selectManyExtensions).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        undefined
+      );
       expect(result).toBe(extensions);
+    });
+
+    it("passes transaction client to selectManyExtensions if provided", async () => {
+      const mockTransactionClient = {} as any;
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+
+      await getManyExtensions(where, user, mockTransactionClient);
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(selectManyExtensions).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        mockTransactionClient
+      );
     });
   });
 });

@@ -4,7 +4,7 @@ import {
   __updateAmendment,
   deleteAmendment,
   amendmentResolvers,
-} from "./amendmentResolvers.js";
+} from "./amendmentResolvers";
 import {
   ApplicationStatus,
   ApplicationType,
@@ -13,12 +13,12 @@ import {
   PhaseName,
   SignatureLevel,
   UpdateAmendmentInput,
-} from "../../types.js";
+} from "../../types";
 import { Amendment as PrismaAmendment } from "@prisma/client";
 import { TZDate } from "@date-fns/tz";
 
 // Mock imports
-import { prisma } from "../../prismaClient.js";
+import { prisma } from "../../prismaClient";
 import {
   deleteApplication,
   // None of these are tested but need to be exported to avoid mocking issues
@@ -26,32 +26,31 @@ import {
   resolveApplicationTags,
   resolveSuggestedApplicationTags,
 } from "../application";
-import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
-import { handlePrismaError } from "../../errors/handlePrismaError.js";
+import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
+import { handlePrismaError } from "../../errors/handlePrismaError";
 import {
   checkInputDateIsStartOfDay,
   checkInputDateIsEndOfDay,
-} from "../applicationDate/checkInputDateFunctions.js";
-import { EasternTZDate, parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities.js";
-import { ContextUser } from "../../auth/userContext.js";
-import { GraphQLContext } from "../../auth/auth.util.js";
-import { getDemonstration } from "../demonstration/demonstrationData.js";
-import { getAmendment, getManyAmendments } from "./amendmentData.js";
-import { getManyDocuments } from "../document/documentData.js";
-vi.mock("../../prismaClient.js", () => ({
+} from "../applicationDate/checkInputDateFunctions";
+import { EasternTZDate, parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities";
+import { ContextUser, GraphQLContext } from "../../auth";
+import { getDemonstration } from "../demonstration";
+import { getAmendment, getManyAmendments } from "./amendmentData";
+import { getManyDocuments } from "../document";
+vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
-vi.mock("./amendmentData.js", () => ({
+vi.mock("./amendmentData", () => ({
   getAmendment: vi.fn(),
   getManyAmendments: vi.fn(),
 }));
 
-vi.mock("../document/documentData.js", () => ({
+vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
 }));
 
-vi.mock("../demonstration/demonstrationData.js", () => ({
+vi.mock("../demonstration", () => ({
   getDemonstration: vi.fn(),
 }));
 
@@ -131,65 +130,84 @@ describe("amendmentResolvers", () => {
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
-  it("delegates `Query.amendment` to `amendmentData.getAmendment`", async () => {
-    await amendmentResolvers.Query.amendment(undefined, { id: "abc123" }, mockContext);
-    expect(getAmendment).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
+  describe("Query.amendment", () => {
+    it("delegates to amendmentData.getAmendment", async () => {
+      await amendmentResolvers.Query.amendment(undefined, { id: "abc123" }, mockContext);
+      expect(getAmendment).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
+    });
   });
 
-  it("delegates `Query.amendments` to `amendmentData.getManyAmendments`", async () => {
-    await amendmentResolvers.Query.amendments(undefined, {}, mockContext);
-    expect(getManyAmendments).toHaveBeenCalledExactlyOnceWith({}, mockUser);
+  describe("Query.amendments", () => {
+    it("delegates to amendmentData.getManyAmendments", async () => {
+      await amendmentResolvers.Query.amendments(undefined, {}, mockContext);
+      expect(getManyAmendments).toHaveBeenCalledExactlyOnceWith({}, mockUser);
+    });
   });
 
-  it("delegates `Amendment.documents` to `documentData.getManyDocuments`", async () => {
-    const mockAmendment = { id: "abc123" } as PrismaAmendment;
-    await amendmentResolvers.Amendment.documents(mockAmendment, undefined, mockContext);
-    expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith({ applicationId: "abc123" }, mockUser);
+  describe("Amendment.documents", () => {
+    it("delegates to documentData.getManyDocuments", async () => {
+      const mockAmendment = { id: "abc123" } as PrismaAmendment;
+      await amendmentResolvers.Amendment.documents(mockAmendment, undefined, mockContext);
+      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
+        { applicationId: "abc123" },
+        mockUser
+      );
+    });
   });
 
-  it("resolves `Amendment.currentPhaseName`", () => {
-    const amendment = {
-      currentPhaseId: "Application Intake" satisfies PhaseName,
-    } as PrismaAmendment;
-
-    const result = amendmentResolvers.Amendment.currentPhaseName(amendment);
-    expect(result).toBe(amendment.currentPhaseId);
+  describe("Amendment.demonstration", () => {
+    it("delegates to `Demonstration.getDemonstration`", async () => {
+      await amendmentResolvers.Amendment.demonstration(
+        { demonstrationId: "abc123" } as PrismaAmendment,
+        {},
+        mockContext
+      );
+      expect(getDemonstration).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
+    });
   });
 
-  it("resolves `Amendment.signatureLevel`", () => {
-    const amendment = {
-      signatureLevelId: "OA" satisfies SignatureLevel,
-    } as PrismaAmendment;
+  describe("Amendment.currentPhaseName", () => {
+    it("returns currentPhaseId", () => {
+      const amendment = {
+        currentPhaseId: "Application Intake" satisfies PhaseName,
+      } as PrismaAmendment;
 
-    const result = amendmentResolvers.Amendment.signatureLevel(amendment);
-    expect(result).toBe(amendment.signatureLevelId);
+      const result = amendmentResolvers.Amendment.currentPhaseName(amendment);
+      expect(result).toBe(amendment.currentPhaseId);
+    });
   });
 
-  it("resolves `Amendment.status`", () => {
-    const amendment = {
-      statusId: "Pre-Submission" satisfies ApplicationStatus,
-    } as PrismaAmendment;
+  describe("Amendment.signatureLevel", () => {
+    it("return signatureLevelId", () => {
+      const amendment = {
+        signatureLevelId: "OA" satisfies SignatureLevel,
+      } as PrismaAmendment;
 
-    const result = amendmentResolvers.Amendment.status(amendment);
-    expect(result).toBe(amendment.statusId);
+      const result = amendmentResolvers.Amendment.signatureLevel(amendment);
+      expect(result).toBe(amendment.signatureLevelId);
+    });
   });
 
-  it("resolves the `Amendment.clearanceLevel`", () => {
-    const amendment = {
-      clearanceLevelId: "COMMs" satisfies ClearanceLevel,
-    } as PrismaAmendment;
+  describe("Amendment.status", () => {
+    it("returns statusId", () => {
+      const amendment = {
+        statusId: "Pre-Submission" satisfies ApplicationStatus,
+      } as PrismaAmendment;
 
-    const result = amendmentResolvers.Amendment.clearanceLevel(amendment);
-    expect(result).toBe(amendment.clearanceLevelId);
+      const result = amendmentResolvers.Amendment.status(amendment);
+      expect(result).toBe(amendment.statusId);
+    });
   });
 
-  it("delegates `Amendment.demonstration` to `Demonstration.getDemonstration`", async () => {
-    await amendmentResolvers.Amendment.demonstration(
-      { demonstrationId: "abc123" } as PrismaAmendment,
-      {},
-      mockContext
-    );
-    expect(getDemonstration).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
+  describe("Amendment.clearanceLevel", () => {
+    it("returns clearanceLevelId", () => {
+      const amendment = {
+        clearanceLevelId: "COMMs" satisfies ClearanceLevel,
+      } as PrismaAmendment;
+
+      const result = amendmentResolvers.Amendment.clearanceLevel(amendment);
+      expect(result).toBe(amendment.clearanceLevelId);
+    });
   });
 
   describe("__createAmendment", () => {
