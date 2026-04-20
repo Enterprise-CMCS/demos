@@ -4,9 +4,10 @@ import { describe, it, expect, vi } from "vitest";
 import userEvent from "@testing-library/user-event";
 import { Textarea } from "./Textarea";
 
+const DEFAULT_TEXT_AREA_NAME = "description";
 describe("Textarea", () => {
   const defaultProps = {
-    name: "description",
+    name: DEFAULT_TEXT_AREA_NAME,
     label: "Description",
     initialValue: "",
     onChange: () => {},
@@ -16,7 +17,7 @@ describe("Textarea", () => {
     render(<Textarea {...defaultProps} />);
 
     expect(screen.getByLabelText("Description")).toBeInTheDocument();
-    expect(screen.getByTestId("textarea-description")).toBeInTheDocument();
+    expect(screen.getByTestId(DEFAULT_TEXT_AREA_NAME)).toBeInTheDocument();
   });
 
   it("shows required indicator when isRequired is true", () => {
@@ -34,7 +35,7 @@ describe("Textarea", () => {
   it("starts with 1 row by default", () => {
     render(<Textarea {...defaultProps} />);
 
-    const textarea = screen.getByTestId("textarea-description");
+    const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
     expect(textarea).toHaveAttribute("rows", "1");
   });
 
@@ -43,7 +44,7 @@ describe("Textarea", () => {
       const user = userEvent.setup();
       render(<Textarea {...defaultProps} />);
 
-      const textarea = screen.getByTestId("textarea-description");
+      const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
 
       // Initially 1 row
       expect(textarea).toHaveAttribute("rows", "1");
@@ -59,7 +60,7 @@ describe("Textarea", () => {
       const user = userEvent.setup();
       render(<Textarea {...defaultProps} />);
 
-      const textarea = screen.getByTestId("textarea-description");
+      const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
 
       // Type text with multiple line breaks
       await user.type(textarea, "Line 1{Enter}Line 2{Enter}Line 3{Enter}Line 4");
@@ -72,7 +73,7 @@ describe("Textarea", () => {
       const user = userEvent.setup();
       render(<Textarea {...defaultProps} />);
 
-      const textarea = screen.getByTestId("textarea-description");
+      const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
 
       // Type very long single line
       const longText =
@@ -87,7 +88,7 @@ describe("Textarea", () => {
       const user = userEvent.setup();
       render(<Textarea {...defaultProps} />);
 
-      const textarea = screen.getByTestId("textarea-description");
+      const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
 
       // Type multiline text
       await user.type(textarea, "Line 1{Enter}Line 2{Enter}Line 3");
@@ -136,14 +137,14 @@ describe("Textarea", () => {
     it("disables textarea when isDisabled is true", () => {
       render(<Textarea {...defaultProps} isDisabled />);
 
-      const textarea = screen.getByTestId("textarea-description");
+      const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
       expect(textarea).toBeDisabled();
     });
 
     it("applies disabled styling when disabled", () => {
       render(<Textarea {...defaultProps} isDisabled />);
 
-      const textarea = screen.getByTestId("textarea-description");
+      const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
       expect(textarea).toHaveClass("disabled:bg-surface-secondary");
     });
   });
@@ -153,16 +154,16 @@ describe("Textarea", () => {
       render(<Textarea {...defaultProps} />);
 
       const label = screen.getByText("Description");
-      const textarea = screen.getByTestId("textarea-description");
+      const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
 
-      expect(label).toHaveAttribute("for", "description");
-      expect(textarea).toHaveAttribute("id", "description");
+      expect(label).toHaveAttribute("for", DEFAULT_TEXT_AREA_NAME);
+      expect(textarea).toHaveAttribute("id", DEFAULT_TEXT_AREA_NAME);
     });
 
     it("sets required attribute when isRequired is true", () => {
       render(<Textarea {...defaultProps} isRequired />);
 
-      const textarea = screen.getByTestId("textarea-description");
+      const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
       expect(textarea).toHaveAttribute("required");
     });
   });
@@ -171,7 +172,7 @@ describe("Textarea", () => {
     it("handles empty string without errors", () => {
       render(<Textarea {...defaultProps} onChange={vi.fn()} />);
 
-      const textarea = screen.getByTestId("textarea-description");
+      const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
       expect(textarea).toHaveValue("");
       expect(textarea).toHaveAttribute("rows", "1");
     });
@@ -180,7 +181,7 @@ describe("Textarea", () => {
       const user = userEvent.setup();
       render(<Textarea {...defaultProps} />);
 
-      const textarea = screen.getByTestId("textarea-description");
+      const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
 
       // Type only line breaks
       await user.type(textarea, "{Enter}{Enter}");
@@ -193,7 +194,7 @@ describe("Textarea", () => {
       const user = userEvent.setup();
       render(<Textarea {...defaultProps} />);
 
-      const textarea = screen.getByTestId("textarea-description");
+      const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
 
       // Mix of text and line breaks
       await user.type(textarea, "Text{Enter}{Enter}More text{Enter}Final");

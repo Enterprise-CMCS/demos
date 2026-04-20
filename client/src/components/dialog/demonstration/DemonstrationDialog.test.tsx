@@ -10,6 +10,7 @@ import {
   checkFormHasChanges,
   DemonstrationDialogFields,
   checkFormIsValid,
+  DEMONSTRATION_DIALOG_DESCRIPTION_NAME,
 } from "./DemonstrationDialog";
 import userEvent from "@testing-library/user-event";
 import { SdgDivision, SignatureLevel } from "demos-server";
@@ -35,7 +36,6 @@ const DEFAULT_PROPS = {
 
 // Test ID constants
 const SUBMIT_BUTTON_TEST_ID = "button-submit-demonstration-dialog";
-const DESCRIPTION_TEXTAREA_TEST_ID = "textarea-description";
 const TITLE_INPUT_TEST_ID = "input-demonstration-title";
 const STATE_SELECT_TEST_ID = "select-us-state";
 const SELECT_USERS_TEST_ID = "select-users";
@@ -93,7 +93,7 @@ describe("DemonstrationDialog", () => {
 
   it("renders the description textarea", () => {
     render(getDemonstrationDialog());
-    expect(screen.getByTestId(DESCRIPTION_TEXTAREA_TEST_ID)).toBeInTheDocument();
+    expect(screen.getByTestId(DEMONSTRATION_DIALOG_DESCRIPTION_NAME)).toBeInTheDocument();
   });
 
   it("renders title input field", () => {
@@ -200,7 +200,7 @@ describe("DemonstrationDialog", () => {
 
   it("renders the description textarea", () => {
     render(getDemonstrationDialog());
-    expect(screen.getByTestId("textarea-description")).toBeInTheDocument();
+    expect(screen.getByTestId(DEMONSTRATION_DIALOG_DESCRIPTION_NAME)).toBeInTheDocument();
   });
 
   it("should enable submit button when form has changes and is valid", async () => {
@@ -253,7 +253,7 @@ describe("DemonstrationDialog", () => {
     const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
     expect(submitButton).toBeDisabled();
 
-    const descriptionInput = getByTestId(DESCRIPTION_TEXTAREA_TEST_ID);
+    const descriptionInput = getByTestId(DEMONSTRATION_DIALOG_DESCRIPTION_NAME);
     await user.clear(descriptionInput);
     await user.type(descriptionInput, "New Description");
     expect(submitButton).toBeEnabled();
