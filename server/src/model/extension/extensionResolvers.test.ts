@@ -22,7 +22,6 @@ import { prisma } from "../../prismaClient";
 import {
   deleteApplication,
   // None of these are tested but need to be exported to avoid mocking issues
-  resolveApplicationPhases,
   resolveApplicationTags,
   resolveSuggestedApplicationTags,
 } from "../application";
@@ -59,7 +58,6 @@ vi.mock("../application", () => ({
   getApplication: vi.fn(),
   getManyApplications: vi.fn(),
   deleteApplication: vi.fn(),
-  resolveApplicationPhases: vi.fn(),
   resolveApplicationTags: vi.fn(),
   resolveSuggestedApplicationTags: vi.fn(),
 }));

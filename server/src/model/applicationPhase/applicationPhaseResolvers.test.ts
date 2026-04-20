@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   __resolveApplicationPhaseDates,
-  __resolveApplicationPhaseName,
-  __resolveApplicationPhaseStatus,
   applicationPhaseResolvers,
 } from "./applicationPhaseResolvers";
 import { ApplicationPhase as PrismaApplicationPhase } from "@prisma/client";
@@ -115,20 +113,6 @@ describe("applicationPhaseResolvers", () => {
 
       await __resolveApplicationPhaseDates(testInput);
       expect(mockFindMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
-    });
-  });
-
-  describe("__resolveApplicationPhaseName", () => {
-    it("should retrieve the phase name", async () => {
-      const result = __resolveApplicationPhaseName(testInput);
-      expect(result).toBe(testPhaseId);
-    });
-  });
-
-  describe("__resolveApplicationPhaseStatus", () => {
-    it("should retrieve the phase status", async () => {
-      const result = __resolveApplicationPhaseStatus(testInput);
-      expect(result).toBe(testPhaseStatusId);
     });
   });
 });
