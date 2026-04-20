@@ -42,4 +42,14 @@ describe("CommentBox", () => {
 
     expect(screen.getByTestId(COMMENT_BOX_NAME)).toBeInTheDocument();
   });
+
+  it("preserves typed comment text after collapsing and expanding", async () => {
+    render(<CommentBox />);
+
+    await userEvent.type(screen.getByTestId(COMMENT_BOX_TEXT_AREA_NAME), "my draft comment");
+    await userEvent.click(screen.getByTestId(COLLAPSE_COMMENTS_BUTTON_NAME));
+    await userEvent.click(screen.getByTestId(COMMENT_BOX_NAME));
+
+    expect(screen.getByTestId(COMMENT_BOX_TEXT_AREA_NAME)).toHaveValue("my draft comment");
+  });
 });

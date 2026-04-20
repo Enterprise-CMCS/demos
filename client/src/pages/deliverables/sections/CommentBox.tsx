@@ -21,10 +21,10 @@ const CommentBoxHeader = ({ onCollapse }: { onCollapse: () => void }) => (
   </div>
 );
 
-const CommentBoxTextArea = () => {
+const CommentBoxTextArea = ({ value, onChange }: { value: string; onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void }) => {
   return (
     <div className="flex-1">
-      <Textarea label="Comments" initialValue="" name={COMMENT_BOX_TEXT_AREA_NAME} onChange={() => {}} />
+      <Textarea label="Comments" initialValue={value} name={COMMENT_BOX_TEXT_AREA_NAME} onChange={onChange} />
     </div>
   );
 };
@@ -38,6 +38,7 @@ const CommentBoxHistory = () => (
 
 export const CommentBox = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [currentComment, setCurrentComment] = useState("");
 
   if (isCollapsed) {
     return (
@@ -55,7 +56,7 @@ export const CommentBox = () => {
   return (
     <div className="flex flex-col gap-1 bg-gray-primary-layout p-1 min-h-full min-w-[350px]" data-testid={COMMENT_BOX_NAME}>
       <CommentBoxHeader onCollapse={() => setIsCollapsed(true)} />
-      <CommentBoxTextArea />
+      <CommentBoxTextArea value={currentComment} onChange={(e) => setCurrentComment(e.target.value)} />
       <CommentBoxHistory />
     </div>
   );
