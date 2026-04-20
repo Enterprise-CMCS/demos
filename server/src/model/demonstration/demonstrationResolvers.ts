@@ -22,7 +22,6 @@ import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate"
 import {
   deleteApplication,
   getApplication,
-  resolveApplicationTags,
   resolveSuggestedApplicationTags,
 } from "../application";
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus";
@@ -33,6 +32,7 @@ import { getManyAmendments } from "../amendment";
 import { getManyExtensions } from "../extension";
 import { getManyDocuments } from "../document";
 import { getManyApplicationPhases } from "../applicationPhase";
+import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -283,7 +283,16 @@ export const demonstrationResolvers = {
       getManyApplicationPhases({ applicationId: parent.id }, context.user),
     primaryProjectOfficer: __resolveDemonstrationPrimaryProjectOfficer,
     clearanceLevel: (parent: PrismaDemonstration) => parent.clearanceLevelId,
-    tags: resolveApplicationTags,
+    tags: async (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
+      (await getManyApplicationTagAssignments({ applicationId: parent.id }, context.user)).map(
+        (assignment) => {
+          const { statusId, ...tag } = assignment.tag;
+          return {
+            ...tag,
+            approvalStatus: statusId,
+          };
+        }
+      ),
     suggestedApplicationTags: resolveSuggestedApplicationTags,
     demonstrationTypes: resolveDemonstrationTypes,
     deliverables: resolveManyDeliverables,

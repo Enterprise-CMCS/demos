@@ -53,6 +53,8 @@ import { getManyAmendments } from "../amendment";
 import { getManyExtensions } from "../extension";
 import { getManyDocuments } from "../document";
 import { getManyApplicationPhases } from "../applicationPhase";
+import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
+import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -77,6 +79,10 @@ vi.mock("../extension", () => ({
 
 vi.mock("../applicationPhase", () => ({
   getManyApplicationPhases: vi.fn(),
+}));
+
+vi.mock("../applicationTagAssignment", () => ({
+  getManyApplicationTagAssignments: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -310,6 +316,44 @@ describe("demonstrationResolvers", () => {
         { applicationId: "demonstrationId" },
         mockUser
       );
+    });
+  });
+
+  describe("Demonstration.tags", () => {
+    it("delegates to applicationTagAssignmentData.getManyApplicationTagAssignments and maps result", async () => {
+      const mockDemonstration = { id: "abc123" } as PrismaDemonstration;
+      vi.mocked(getManyApplicationTagAssignments).mockResolvedValueOnce([
+        {
+          applicationId: "abc123",
+          tag: {
+            statusId: "Approved",
+          },
+        },
+        {
+          applicationId: "abc123",
+          tag: {
+            statusId: "Unapproved",
+          },
+        },
+      ] as ApplicationTagAssignmentQueryResult[]);
+
+      const result = await demonstrationResolvers.Demonstration.tags(
+        mockDemonstration,
+        undefined,
+        mockContext
+      );
+      expect(getManyApplicationTagAssignments).toHaveBeenCalledExactlyOnceWith(
+        { applicationId: "abc123" },
+        mockUser
+      );
+      expect(result).toEqual([
+        {
+          approvalStatus: "Approved",
+        },
+        {
+          approvalStatus: "Unapproved",
+        },
+      ]);
     });
   });
 
