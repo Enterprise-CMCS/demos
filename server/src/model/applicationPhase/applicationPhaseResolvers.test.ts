@@ -14,6 +14,7 @@ import { completePhase, declareCompletenessPhaseIncomplete, skipConceptPhase } f
 import { GraphQLContext } from "../../auth";
 import { getManyDocuments } from "../document";
 import { getManyApplicationDates } from "../applicationDate";
+import { getManyApplicationNotes } from "../applicationNote";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -25,6 +26,10 @@ vi.mock("../document", () => ({
 
 vi.mock("../applicationDate", () => ({
   getManyApplicationDates: vi.fn(),
+}));
+
+vi.mock("../applicationNote", () => ({
+  getManyApplicationNotes: vi.fn(),
 }));
 
 const testHandlePrismaError = new Error("Test handlePrismaError!");
@@ -115,6 +120,31 @@ describe("applicationPhaseResolvers", () => {
           applicationId: "abc123",
           dateType: {
             phaseDateTypes: {
+              some: { phaseId: "Completeness" },
+            },
+          },
+        },
+        mockContext.user
+      );
+    });
+  });
+
+  describe("ApplicationPhase.phaseNotes", () => {
+    it("delegates to `applicationNoteData.getManyApplicationNotes`", async () => {
+      const mockApplicationPhase = {
+        phaseId: "Completeness" satisfies PhaseName,
+        applicationId: "abc123",
+      } as PrismaApplicationPhase;
+      await applicationPhaseResolvers.ApplicationPhase.phaseNotes(
+        mockApplicationPhase,
+        undefined,
+        mockContext
+      );
+      expect(getManyApplicationNotes).toHaveBeenCalledExactlyOnceWith(
+        {
+          applicationId: "abc123",
+          noteType: {
+            phaseNoteTypes: {
               some: { phaseId: "Completeness" },
             },
           },
