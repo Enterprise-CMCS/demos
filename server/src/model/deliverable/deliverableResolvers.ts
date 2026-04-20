@@ -10,6 +10,7 @@ import { GraphQLResolveInfo } from "graphql";
 import { createDeliverable, getDeliverable, getManyDeliverables, updateDeliverable } from ".";
 import {
   CreateDeliverableInput,
+  DeliverableAction,
   DeliverableDueDateType,
   DeliverableStatus,
   DeliverableType,
@@ -19,6 +20,7 @@ import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getManyDocuments } from "../document";
 import { getDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
+import { getDeliverableActions } from "../deliverableAction/getDeliverableActions";
 
 export async function resolveDeliverable(
   parent: PrismaDocument,
@@ -124,6 +126,9 @@ export const deliverableResolvers = {
     status: resolveDeliverableStatus,
     cmsOwner: resolveDeliverableCmsOwner,
     dueDateType: resolveDeliverableDueDateType,
+    demonstrationTypes: async (parent: PrismaDeliverable) => {
+      return await getDeliverableDemonstrationTypes(parent.id);
+    },
     cmsDocuments: async (
       parent: PrismaDeliverable,
       args: unknown,
@@ -146,8 +151,8 @@ export const deliverableResolvers = {
         },
         context.user
       ),
-    demonstrationTypes: async (parent: PrismaDeliverable) => {
-      return await getDeliverableDemonstrationTypes(parent.id);
+    deliverableActions: async (parent: PrismaDeliverable): Promise<DeliverableAction[]> => {
+      return await getDeliverableActions(parent.id);
     },
   },
 };
