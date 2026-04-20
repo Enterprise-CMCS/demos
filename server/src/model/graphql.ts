@@ -19,6 +19,9 @@ import { applicationStatusResolvers } from "./applicationStatus/applicationStatu
 import { applicationTagAssignmentSchema } from "./applicationTagAssignment/applicationTagAssignmentSchema.js";
 import { applicationTagAssignmentResolvers } from "./applicationTagAssignment/applicationTagAssignmentResolvers.js";
 
+import { applicationTagSuggestionSchema } from "./applicationTagSuggestion/applicationTagSuggestionSchema.js";
+import { applicationTagSuggestionResolvers } from "./applicationTagSuggestion/applicationTagSuggestionResolvers.js";
+
 import { sdgDivisionSchema } from "./sdgDivision/sdgDivisionSchema.js";
 import { sdgDivisionResolvers } from "./sdgDivision/sdgDivisionResolvers.js";
 
@@ -131,6 +134,7 @@ export const typeDefs = [
   applicationSchema,
   applicationStatusSchema,
   applicationTagAssignmentSchema,
+  applicationTagSuggestionSchema,
   clearanceLevelSchema,
   dateTypeSchema,
   deliverableDemonstrationTypeSchema,
@@ -173,6 +177,7 @@ export const resolvers = [
   applicationResolvers,
   applicationStatusResolvers,
   applicationTagAssignmentResolvers,
+  applicationTagSuggestionResolvers,
   clearanceLevelResolvers,
   customScalarResolvers,
   dateTypeResolvers,

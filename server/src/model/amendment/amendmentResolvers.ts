@@ -1,45 +1,29 @@
-import { Amendment as PrismaAmendment, Demonstration as PrismaDemonstration } from "@prisma/client";
-import { prisma } from "../../prismaClient.js";
+import { Amendment as PrismaAmendment } from "@prisma/client";
+import { prisma } from "../../prismaClient";
 import {
   ApplicationStatus,
   ApplicationType,
   CreateAmendmentInput,
   PhaseName,
   UpdateAmendmentInput,
-} from "../../types.js";
-import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
-import { handlePrismaError } from "../../errors/handlePrismaError.js";
+} from "../../types";
+import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
+import { handlePrismaError } from "../../errors/handlePrismaError";
 import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate";
 import {
   deleteApplication,
-  getApplication,
-  getManyApplications,
-  resolveApplicationClearanceLevel,
-  resolveApplicationCurrentPhaseName,
-  resolveApplicationDocuments,
   resolveApplicationPhases,
-  resolveApplicationStatus,
   resolveApplicationTags,
-  resolveApplicationSignatureLevel,
   resolveSuggestedApplicationTags,
 } from "../application";
-import { getDemonstration } from "../demonstration/demonstrationData.js";
-import { GraphQLContext } from "../../auth/auth.util.js";
+import { getDemonstration } from "../demonstration";
+import { GraphQLContext } from "../../auth";
+import { getAmendment, getManyAmendments } from "./amendmentData";
+import { getManyDocuments } from "../document";
 
 const amendmentApplicationType: ApplicationType = "Amendment";
 const conceptPhaseName: PhaseName = "Concept";
 const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
-
-export async function __getAmendment(
-  parent: unknown,
-  { id }: { id: string }
-): Promise<PrismaAmendment> {
-  return await getApplication(id, { applicationTypeId: "Amendment" });
-}
-
-export async function __getManyAmendments(): Promise<PrismaAmendment[]> {
-  return await getManyApplications("Amendment");
-}
 
 export async function __createAmendment(
   parent: unknown,
@@ -101,20 +85,12 @@ export async function deleteAmendment(
   });
 }
 
-export async function __resolveParentDemonstration(
-  parent: PrismaAmendment
-): Promise<PrismaDemonstration> {
-  // DB enforces that you cannot orphan the demonstration record
-  const result = await prisma().demonstration.findUnique({
-    where: { id: parent.demonstrationId },
-  });
-  return result!;
-}
-
 export const amendmentResolvers = {
   Query: {
-    amendment: __getAmendment,
-    amendments: __getManyAmendments,
+    amendment: (parent: unknown, args: { id: string }, context: GraphQLContext) =>
+      getAmendment({ id: args.id }, context.user),
+    amendments: (parent: unknown, args: unknown, context: GraphQLContext) =>
+      getManyAmendments({}, context.user),
   },
 
   Mutation: {
@@ -126,13 +102,14 @@ export const amendmentResolvers = {
   Amendment: {
     demonstration: (parent: PrismaAmendment, args: unknown, context: GraphQLContext) =>
       getDemonstration({ id: parent.demonstrationId }, context.user),
-    documents: resolveApplicationDocuments,
-    currentPhaseName: resolveApplicationCurrentPhaseName,
-    status: resolveApplicationStatus,
+    documents: (parent: PrismaAmendment, args: unknown, context: GraphQLContext) =>
+      getManyDocuments({ applicationId: parent.id }, context.user),
+    currentPhaseName: (parent: PrismaAmendment) => parent.currentPhaseId,
+    status: (parent: PrismaAmendment) => parent.statusId,
     phases: resolveApplicationPhases,
-    clearanceLevel: resolveApplicationClearanceLevel,
+    clearanceLevel: (parent: PrismaAmendment) => parent.clearanceLevelId,
     tags: resolveApplicationTags,
-    signatureLevel: resolveApplicationSignatureLevel,
+    signatureLevel: (parent: PrismaAmendment) => parent.signatureLevelId,
     suggestedApplicationTags: resolveSuggestedApplicationTags,
   },
 };

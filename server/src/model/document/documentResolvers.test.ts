@@ -1,10 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
 import { Document as PrismaDocument, User as PrismaUser } from "@prisma/client";
-import { GraphQLContext } from "../../auth/auth.util.js";
-import { UpdateDocumentInput, UploadDocumentInput, ApplicationDateInput } from "../../types";
-import { prisma } from "../../prismaClient.js";
-import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
+import { GraphQLContext } from "../../auth";
+import {
+  UpdateDocumentInput,
+  UploadDocumentInput,
+  ApplicationDateInput,
+  DocumentType,
+  PhaseName,
+} from "../../types";
+import { prisma } from "../../prismaClient";
+import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { getS3Adapter } from "../../adapters";
 import { EasternNow, getEasternNow } from "../../dateUtilities";
 import { getUser } from "../user";
@@ -12,23 +18,19 @@ import { getApplication } from "../application";
 import { validateAndUpdateDates } from "../applicationDate";
 import { startPhaseByDocument } from "../applicationPhase";
 import { enqueueUiPath } from "../../services/uipathQueue";
-import { getDocument, checkDocumentExists, updateDocument, handleDeleteDocument } from ".";
+import { updateDocument, handleDeleteDocument } from ".";
 import {
-  queryDocument,
-  documentExists,
   uploadDocument,
   triggerUiPath,
   updateDocument as updateDocumentResolver,
   deleteDocument,
   deleteDocuments,
   resolveOwner,
-  resolveDocumentType,
   resolveApplication,
-  resolvePhaseName,
   documentResolvers,
-  resolvePresignedDownloadUrl,
   resolveHasPendingUIPathResult,
-} from "./documentResolvers.js";
+} from "./documentResolvers";
+import { getDocument } from "./documentData";
 
 // Mock dependencies
 vi.mock("../../prismaClient", () => ({
@@ -41,6 +43,10 @@ vi.mock("../../errors/checkOptionalNotNullFields", () => ({
 
 vi.mock("../../adapters", () => ({
   getS3Adapter: vi.fn(),
+}));
+
+vi.mock("./documentData", () => ({
+  getDocument: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -72,8 +78,6 @@ vi.mock("../user", () => ({
 }));
 
 vi.mock(".", () => ({
-  getDocument: vi.fn(),
-  checkDocumentExists: vi.fn(),
   updateDocument: vi.fn(),
   handleDeleteDocument: vi.fn(),
 }));
@@ -84,7 +88,7 @@ describe("documentResolvers", () => {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
     uiPathResult: {
       findFirst: vi.fn(),
-    }
+    },
   };
 
   const testDocumentId = "doc-123-456";
@@ -130,42 +134,16 @@ describe("documentResolvers", () => {
     moveDocumentFromCleanToDeleted: vi.fn(),
   };
 
+  const mockContext: GraphQLContext = {
+    user: {
+      id: testUserId,
+    },
+  } as GraphQLContext;
+
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(getS3Adapter).mockReturnValue(mockS3Adapter as any);
-  });
-
-  describe("queryDocument", () => {
-    it("should query document by id", async () => {
-      vi.mocked(getDocument).mockResolvedValue(mockDocument);
-
-      const result = await queryDocument(undefined, { id: testDocumentId });
-
-      expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
-      expect(getDocument).toHaveBeenCalledExactlyOnceWith({ id: testDocumentId }, mockTransaction);
-      expect(result).toEqual(mockDocument);
-    });
-  });
-
-  describe("documentExists", () => {
-    it("should check if document exists", async () => {
-      vi.mocked(checkDocumentExists).mockResolvedValue(true);
-
-      const result = await documentExists(undefined, { documentId: testDocumentId });
-
-      expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
-      expect(checkDocumentExists).toHaveBeenCalledExactlyOnceWith(mockTransaction, testDocumentId);
-      expect(result).toBe(true);
-    });
-
-    it("should return false when document does not exist", async () => {
-      vi.mocked(checkDocumentExists).mockResolvedValue(false);
-
-      const result = await documentExists(undefined, { documentId: testDocumentId });
-
-      expect(result).toBe(false);
-    });
   });
 
   describe("uploadDocument", () => {
@@ -177,20 +155,16 @@ describe("documentResolvers", () => {
       phaseName: "Concept",
     };
 
-    const mockContext: GraphQLContext = {
-      user: {
-        id: testUserId,
-        sub: "1234-1234-1234-1234-1234",
-        role: "demos-cms-user",
-      },
-    };
-
     const mockUploadResponse = {
       document: mockDocument,
       uploadUrl: "https://s3.amazonaws.com/upload-url",
     };
 
     const mockEasternNow: EasternNow = {
+      "Current Time": {
+        easternTZDate: new TZDate("2025-01-15T12:34:56.789Z"),
+        isEasternTZDate: true,
+      },
       "End of Day": {
         easternTZDate: new TZDate("2025-01-15T23:59:59.999Z"),
         isEasternTZDate: true,
@@ -223,21 +197,6 @@ describe("documentResolvers", () => {
         testUserId
       );
       expect(result).toEqual(mockUploadResponse);
-    });
-
-    it("should throw error when user is not authenticated", async () => {
-      const contextWithoutUser: GraphQLContext = {
-        user: null,
-      };
-
-      await expect(
-        uploadDocument(undefined, { input: mockUploadInput }, contextWithoutUser)
-      ).rejects.toThrow(
-        "The GraphQL context does not have user information. Are you properly authenticated?"
-      );
-
-      expect(mockS3Adapter.uploadDocument).not.toHaveBeenCalled();
-      expect(mockPrismaClient.$transaction).not.toHaveBeenCalled();
     });
 
     it("should call startPhaseByDocument with correct parameters", async () => {
@@ -284,30 +243,26 @@ describe("documentResolvers", () => {
     });
   });
 
-  describe("resolvePresignedDownloadUrl", () => {
+  it("resolves `Document.presignedDownloadUrl`", async () => {
     const mockPresignedUrl = "https://s3.amazonaws.com/download-url";
+    vi.mocked(mockS3Adapter.getPresignedDownloadUrl).mockResolvedValue(mockPresignedUrl);
 
-    it("should generate presigned download URL", async () => {
-      vi.mocked(getDocument).mockResolvedValue(mockDocument);
-      vi.mocked(mockS3Adapter.getPresignedDownloadUrl).mockResolvedValue(mockPresignedUrl);
+    const document = {
+      s3Path: "s3/path/to/document.pdf",
+    } as PrismaDocument;
 
-      const result = await resolvePresignedDownloadUrl({ s3Path: testDocumentS3Path });
-
-      expect(mockS3Adapter.getPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith(
-        testDocumentS3Path
-      );
-      expect(result).toBe(mockPresignedUrl);
-    });
+    const result = await documentResolvers.Document.presignedDownloadUrl(document);
+    expect(mockS3Adapter.getPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith(document.s3Path);
+    expect(result).toBe(mockPresignedUrl);
   });
 
   describe("triggerUiPath", () => {
     it("enqueues UiPath using only documentId", async () => {
-      vi.mocked(checkDocumentExists).mockResolvedValue(true);
+      vi.mocked(getDocument).mockResolvedValue({ id: testDocumentId } as PrismaDocument);
       vi.mocked(enqueueUiPath).mockResolvedValue("msg-123");
+      const result = await triggerUiPath(undefined, { documentId: testDocumentId }, mockContext);
 
-      const result = await triggerUiPath(undefined, { documentId: testDocumentId });
-
-      expect(checkDocumentExists).toHaveBeenCalledExactlyOnceWith(mockTransaction, testDocumentId);
+      expect(getDocument).toHaveBeenCalledExactlyOnceWith({ id: testDocumentId }, mockContext.user);
       expect(enqueueUiPath).toHaveBeenCalledExactlyOnceWith({
         documentId: testDocumentId,
       });
@@ -315,48 +270,34 @@ describe("documentResolvers", () => {
     });
 
     it("passes the provided documentId through to the queue", async () => {
-      vi.mocked(checkDocumentExists).mockResolvedValue(true);
+      vi.mocked(getDocument).mockResolvedValue({ id: testDocumentId } as PrismaDocument);
       vi.mocked(enqueueUiPath).mockResolvedValue("msg-456");
 
-      const result = await triggerUiPath(undefined, { documentId: testDocumentId });
+      const result = await triggerUiPath(undefined, { documentId: testDocumentId }, mockContext);
 
-      expect(checkDocumentExists).toHaveBeenCalledExactlyOnceWith(mockTransaction, testDocumentId);
+      expect(getDocument).toHaveBeenCalledExactlyOnceWith({ id: testDocumentId }, mockContext.user);
       expect(enqueueUiPath).toHaveBeenCalledExactlyOnceWith({
         documentId: testDocumentId,
       });
       expect(result).toBe("msg-456");
     });
 
-
     it("throws when enqueuing fails", async () => {
-      vi.mocked(checkDocumentExists).mockResolvedValue(true);
+      vi.mocked(getDocument).mockResolvedValue({ id: "abc123" } as PrismaDocument);
       vi.mocked(enqueueUiPath).mockRejectedValue(new Error("Queue send failed"));
 
-      await expect(triggerUiPath(undefined, { documentId: testDocumentId })).rejects.toThrow(
-        "Queue send failed"
-      );
-    });
-
-    it("throws when the provided document id does not exist", async () => {
-      const invalidDocumentId = "12345678910";
-      vi.mocked(checkDocumentExists).mockResolvedValue(false);
-
-      await expect(triggerUiPath(undefined, { documentId: invalidDocumentId })).rejects.toThrow(
-        `Document with ID ${invalidDocumentId} does not exist.`
-      );
-      expect(checkDocumentExists).toHaveBeenCalledExactlyOnceWith(
-        mockTransaction,
-        invalidDocumentId
-      );
-      expect(enqueueUiPath).not.toHaveBeenCalled();
+      await expect(
+        triggerUiPath(undefined, { documentId: testDocumentId }, mockContext)
+      ).rejects.toThrow("Queue send failed");
     });
 
     it("throws when document does not exist", async () => {
-      vi.mocked(checkDocumentExists).mockResolvedValue(false);
+      vi.mocked(getDocument).mockResolvedValue(null);
 
-      await expect(triggerUiPath(undefined, { documentId: testDocumentId })).rejects.toThrow(
-        `Document with ID ${testDocumentId} does not exist.`
+      await expect(triggerUiPath(undefined, { documentId: "abc123" }, mockContext)).rejects.toThrow(
+        `Document with ID abc123 does not exist.`
       );
+      expect(getDocument).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockContext.user);
       expect(enqueueUiPath).not.toHaveBeenCalled();
     });
   });
@@ -443,12 +384,13 @@ describe("documentResolvers", () => {
     });
   });
 
-  describe("resolveDocumentType", () => {
-    it("should resolve document type from documentTypeId", () => {
-      const result = resolveDocumentType(mockDocument);
+  it("resolves `Document.documentType`", () => {
+    const document = {
+      documentTypeId: "Approval Letter" satisfies DocumentType,
+    } as PrismaDocument;
 
-      expect(result).toBe("State Application");
-    });
+    const result = documentResolvers.Document.documentType(document);
+    expect(result).toBe(document.documentTypeId);
   });
 
   describe("resolveApplication", () => {
@@ -462,12 +404,13 @@ describe("documentResolvers", () => {
     });
   });
 
-  describe("resolvePhaseName", () => {
-    it("should resolve phase name from phaseId", () => {
-      const result = resolvePhaseName(mockDocument);
+  it("resolves `Document.phaseName`", () => {
+    const document = {
+      phaseId: "Approval Summary" satisfies PhaseName,
+    } as PrismaDocument;
 
-      expect(result).toBe("Concept");
-    });
+    const result = documentResolvers.Document.phaseName(document);
+    expect(result).toBe(document.phaseId);
   });
 
   describe("resolveHasPendingUIPathResult", () => {
@@ -493,7 +436,7 @@ describe("documentResolvers", () => {
       vi.mocked(mockPrismaClient.uiPathResult.findFirst).mockRejectedValue(new Error("DB error"));
 
       await expect(resolveHasPendingUIPathResult(mockDocument)).rejects.toThrow("DB error");
-    })
+    });
   });
 
   describe("resolver exports", () => {

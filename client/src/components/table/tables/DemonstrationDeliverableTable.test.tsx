@@ -20,12 +20,6 @@ const baseDeliverable: Omit<DeliverableTableRow, "id" | "name" | "dueDate" | "st
       fullName: "CMS A",
     },
   },
-  dueDateType: "Normal",
-  expectedToBeSubmitted: true,
-  cmsDocuments: [],
-  stateDocuments: [],
-  createdAt: new Date("2026-01-01"),
-  updatedAt: new Date("2026-01-01"),
 };
 
 describe("DemonstrationDeliverableTable", () => {

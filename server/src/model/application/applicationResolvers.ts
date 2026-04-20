@@ -1,33 +1,10 @@
 import { prisma } from "../../prismaClient.js";
-import { ClearanceLevel, TagStatus, UiPathResultStatus } from "../../types.js";
+import { TagStatus, UiPathResultStatus } from "../../types.js";
 import {
-  Document as PrismaDocument,
   ApplicationPhase as PrismaApplicationPhase,
 } from "@prisma/client";
 import { setApplicationClearanceLevel, PrismaApplication } from ".";
 import { Tag } from "../tag";
-
-export async function resolveApplicationDocuments(
-  parent: PrismaApplication
-): Promise<PrismaDocument[] | null> {
-  return await prisma().document.findMany({
-    where: {
-      applicationId: parent.id,
-    },
-  });
-}
-
-export function resolveApplicationCurrentPhaseName(parent: PrismaApplication): string {
-  return parent.currentPhaseId;
-}
-
-export function resolveApplicationStatus(parent: PrismaApplication): string {
-  return parent.statusId;
-}
-
-export function resolveApplicationSignatureLevel(parent: PrismaApplication): string | null {
-  return parent.signatureLevelId;
-}
 
 export function resolveApplicationType(parent: PrismaApplication): string {
   return parent.applicationTypeId;
@@ -42,12 +19,7 @@ export async function resolveApplicationPhases(
       applicationId: parent.id,
     },
   });
-  return result!;
-}
-
-export function resolveApplicationClearanceLevel(parent: PrismaApplication): ClearanceLevel {
-  // clearance level casting enforced by database constraints
-  return parent.clearanceLevelId as ClearanceLevel;
+  return result;
 }
 
 export async function resolveApplicationTags(parent: PrismaApplication): Promise<Tag[]> {

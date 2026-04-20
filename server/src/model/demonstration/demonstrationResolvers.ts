@@ -1,12 +1,10 @@
 import {
   Demonstration as PrismaDemonstration,
   State as PrismaState,
-  Amendment as PrismaAmendment,
-  Extension as PrismaExtension,
   DemonstrationRoleAssignment as PrismaDemonstrationRoleAssignment,
   Person as PrismaPerson,
 } from "@prisma/client";
-import { prisma } from "../../prismaClient.js";
+import { prisma } from "../../prismaClient";
 import {
   ApplicationStatus,
   ApplicationType,
@@ -17,22 +15,24 @@ import {
   Role,
   TagStatus,
   UpdateDemonstrationInput,
-} from "../../types.js";
-import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
-import { handlePrismaError } from "../../errors/handlePrismaError.js";
+} from "../../types";
+import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
+import { handlePrismaError } from "../../errors/handlePrismaError";
 import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate";
 import {
   deleteApplication,
   getApplication,
-  resolveApplicationDocuments,
   resolveApplicationPhases,
   resolveApplicationTags,
   resolveSuggestedApplicationTags,
 } from "../application";
-import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
+import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus";
 import { resolveManyDeliverables } from "../deliverable";
-import { GraphQLContext } from "../../auth/auth.util.js";
-import { getDemonstration, getManyDemonstrations } from "./demonstrationData.js";
+import { GraphQLContext } from "../../auth";
+import { getDemonstration, getManyDemonstrations } from "./demonstrationData";
+import { getManyAmendments } from "../amendment";
+import { getManyExtensions } from "../extension";
+import { getManyDocuments } from "../document";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -191,30 +191,10 @@ export async function __resolveDemonstrationState(
   parent: PrismaDemonstration
 ): Promise<PrismaState> {
   // State can never be null thanks to the database
-  const result = await prisma().state.findUnique({
+  const result = await prisma().state.findUniqueOrThrow({
     where: { id: parent.stateId },
   });
-  return result!;
-}
-
-export async function __resolveDemonstrationAmendments(
-  parent: PrismaDemonstration
-): Promise<PrismaAmendment[] | null> {
-  return await prisma().amendment.findMany({
-    where: {
-      demonstrationId: parent.id,
-    },
-  });
-}
-
-export async function __resolveDemonstrationExtensions(
-  parent: PrismaDemonstration
-): Promise<PrismaExtension[] | null> {
-  return await prisma().extension.findMany({
-    where: {
-      demonstrationId: parent.id,
-    },
-  });
+  return result;
 }
 
 export async function __resolveDemonstrationRoleAssignments(
@@ -224,27 +204,29 @@ export async function __resolveDemonstrationRoleAssignments(
   const result = await prisma().demonstrationRoleAssignment.findMany({
     where: { demonstrationId: parent.id },
   });
-  return result!;
+  return result;
 }
 
 export async function __resolveDemonstrationPrimaryProjectOfficer(
   parent: PrismaDemonstration
 ): Promise<PrismaPerson> {
   // It is not possible in the DB for the primary project officer not to exist
-  const primaryRoleAssignment = await prisma().primaryDemonstrationRoleAssignment.findUnique({
-    where: {
-      demonstrationId_roleId: {
-        demonstrationId: parent.id,
-        roleId: roleProjectOfficer,
+  const primaryRoleAssignment = await prisma().primaryDemonstrationRoleAssignment.findUniqueOrThrow(
+    {
+      where: {
+        demonstrationId_roleId: {
+          demonstrationId: parent.id,
+          roleId: roleProjectOfficer,
+        },
       },
-    },
-    include: {
-      demonstrationRoleAssignment: {
-        include: { person: true },
+      include: {
+        demonstrationRoleAssignment: {
+          include: { person: true },
+        },
       },
-    },
-  });
-  return primaryRoleAssignment!.demonstrationRoleAssignment!.person;
+    }
+  );
+  return primaryRoleAssignment.demonstrationRoleAssignment.person;
 }
 
 export async function resolveDemonstrationTypes(
@@ -286,9 +268,12 @@ export const demonstrationResolvers = {
 
   Demonstration: {
     state: __resolveDemonstrationState,
-    documents: resolveApplicationDocuments,
-    amendments: __resolveDemonstrationAmendments,
-    extensions: __resolveDemonstrationExtensions,
+    documents: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
+      getManyDocuments({ applicationId: parent.id }, context.user),
+    amendments: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
+      getManyAmendments({ demonstrationId: parent.id }, context.user),
+    extensions: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
+      getManyExtensions({ demonstrationId: parent.id }, context.user),
     sdgDivision: (parent: PrismaDemonstration) => parent.sdgDivisionId,
     signatureLevel: (parent: PrismaDemonstration) => parent.signatureLevelId,
     currentPhaseName: (parent: PrismaDemonstration) => parent.currentPhaseId,

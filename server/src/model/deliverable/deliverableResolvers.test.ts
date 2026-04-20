@@ -8,7 +8,7 @@ import {
   Document as PrismaDocument,
   User as PrismaUser,
 } from "@prisma/client";
-import { GraphQLContext } from "../../auth/auth.util.js";
+import { GraphQLContext } from "../../auth";
 import { GraphQLResolveInfo } from "graphql";
 import {
   CreateDeliverableInput,
@@ -16,7 +16,8 @@ import {
   DeliverableDueDateType,
   DeliverableStatus,
   DeliverableType,
-} from "../../types.js";
+  UpdateDeliverableInput,
+} from "../../types";
 
 // Functions under test
 import {
@@ -28,8 +29,6 @@ import {
   resolveDeliverableDueDateType,
   resolveDemonstration,
   resolveDeliverableCmsOwner,
-  resolveDeliverableCmsDocuments,
-  resolveDeliverableStateDocuments,
   deliverableResolvers,
 } from "./deliverableResolvers";
 
@@ -38,6 +37,7 @@ vi.mock(".", () => ({
   createDeliverable: vi.fn(),
   getDeliverable: vi.fn(),
   getManyDeliverables: vi.fn(),
+  updateDeliverable: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -52,10 +52,18 @@ vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
 }));
 
-import { createDeliverable, getDeliverable, getManyDeliverables } from ".";
+vi.mock("../deliverableDemonstrationType", () => ({
+  getDeliverableDemonstrationTypes: vi.fn(),
+}));
+
+import { createDeliverable, getDeliverable, getManyDeliverables, updateDeliverable } from ".";
 import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getManyDocuments } from "../document";
+import {
+  GetDeliverableDemonstrationTypeResult,
+  getDeliverableDemonstrationTypes,
+} from "../deliverableDemonstrationType";
 
 describe("deliverableResolvers", () => {
   const testDeliverableId = "82ef9a17-e8b9-48ab-9aaf-3d1787822b13";
@@ -88,6 +96,12 @@ describe("deliverableResolvers", () => {
       name: "User",
     },
   };
+
+  const testContext: GraphQLContext = {
+    user: {
+      id: "testUserId",
+    },
+  } as GraphQLContext;
 
   const testDocumentWithDeliverableParent: Partial<PrismaDocument> = {
     deliverableId: testDeliverableId,
@@ -231,24 +245,27 @@ describe("deliverableResolvers", () => {
     });
   });
 
-  describe("resolveDeliverableCmsDocuments", () => {
-    it("should query the CMS documents belonging to this deliverable", async () => {
-      await resolveDeliverableCmsDocuments(testDeliverable as PrismaDeliverable);
-      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith({
+  it("delegates `Deliverable.cmsDocuments` to `documentData.getManyDocuments`", async () => {
+    const mockDeliverable = { id: testDeliverableId } as PrismaDeliverable;
+    await deliverableResolvers.Deliverable.cmsDocuments(mockDeliverable, undefined, testContext);
+    expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
+      {
         AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: true }],
-      });
-    });
+      },
+      testContext.user
+    );
   });
 
-  describe("resolveDeliverableStateDocuments", () => {
-    it("should query the state documents belonging to this deliverable", async () => {
-      await resolveDeliverableStateDocuments(testDeliverable as PrismaDeliverable);
-      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith({
+  it("delegates `Deliverable.stateDocuments` to `documentData.getManyDocuments`", async () => {
+    const mockDeliverable = { id: testDeliverableId } as PrismaDeliverable;
+    await deliverableResolvers.Deliverable.stateDocuments(mockDeliverable, undefined, testContext);
+    expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
+      {
         AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: false }],
-      });
-    });
+      },
+      testContext.user
+    );
   });
-
   describe("deliverableResolvers", () => {
     describe("Mutation.createDeliverable", () => {
       it("should call the createDeliverable function with the right arguments", async () => {
@@ -256,6 +273,7 @@ describe("deliverableResolvers", () => {
           name: "A name!",
           deliverableType: "Close Out Report",
           demonstrationId: testDemonstrationId,
+          cmsOwnerUserId: "161f3a85-7b6d-4217-abec-93494db3a207",
           dueDate: "2025-11-31" as DateTimeOrLocalDate,
         };
 
@@ -265,6 +283,47 @@ describe("deliverableResolvers", () => {
           {} as GraphQLContext
         );
         expect(createDeliverable).toHaveBeenCalledExactlyOnceWith(testInput, {});
+      });
+    });
+
+    describe("Mutation.updateDeliverable", () => {
+      it("should call the updateDeliverable function with the right arguments", async () => {
+        const testInput: UpdateDeliverableInput = {
+          name: "A name!",
+          deliverableType: "Close Out Report",
+          cmsOwnerUserId: "161f3a85-7b6d-4217-abec-93494db3a207",
+        };
+
+        await deliverableResolvers.Mutation.updateDeliverable(
+          {},
+          { id: testDeliverableId, input: testInput },
+          {} as GraphQLContext
+        );
+        expect(updateDeliverable).toHaveBeenCalledExactlyOnceWith(testDeliverableId, testInput, {});
+      });
+    });
+
+    describe("Deliverable.demonstrationTypes", () => {
+      it("should query the demonstration types of the parent deliverable", async () => {
+        const mockGetDeliverableDemonstrationTypeResult: GetDeliverableDemonstrationTypeResult[] = [
+          {
+            tagName: "Free Insulin",
+            approvalStatus: "Approved",
+          },
+          {
+            tagName: "Vitamin A Supplementation for Newborns",
+            approvalStatus: "Unapproved",
+          },
+        ];
+        vi.mocked(getDeliverableDemonstrationTypes).mockResolvedValue(
+          mockGetDeliverableDemonstrationTypeResult
+        );
+
+        const result = await deliverableResolvers.Deliverable.demonstrationTypes(
+          testDeliverable as PrismaDeliverable
+        );
+        expect(getDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(testDeliverableId);
+        expect(result).toStrictEqual(mockGetDeliverableDemonstrationTypeResult);
       });
     });
   });

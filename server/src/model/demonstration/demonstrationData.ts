@@ -1,11 +1,11 @@
 import { Prisma, Demonstration as PrismaDemonstration } from "@prisma/client";
 import {
   buildAuthorizationFilter,
+  isStatePointOfContactOnDemonstration,
   PermissionFilters,
-} from "../../auth/buildAuthorizationFilter.js";
-import { selectDemonstration } from "./queries/selectDemonstration.js";
-import { selectManyDemonstrations } from "./queries/selectManyDemonstrations.js";
-import { ContextUser } from "../../auth/userContext.js";
+  ContextUser,
+} from "../../auth";
+import { selectDemonstration, selectManyDemonstrations } from "./queries";
 
 const getPermissionFilters = (userId: string) =>
   ({
@@ -16,14 +16,7 @@ const getPermissionFilters = (userId: string) =>
         },
       },
     },
-    "View Assigned Demonstrations": {
-      demonstrationRoleAssignments: {
-        some: {
-          personId: userId,
-          roleId: "State Point of Contact",
-        },
-      },
-    },
+    "View Assigned Demonstrations": isStatePointOfContactOnDemonstration(userId),
   }) satisfies PermissionFilters<Prisma.DemonstrationWhereInput>;
 
 export async function getDemonstration(

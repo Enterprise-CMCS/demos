@@ -1,15 +1,10 @@
 // Functions
 export { setApplicationClearanceLevel } from "./setApplicationClearanceLevel";
 export {
-  resolveApplicationDocuments,
-  resolveApplicationCurrentPhaseName,
-  resolveApplicationStatus,
   resolveApplicationType,
   resolveApplicationPhases,
-  resolveApplicationClearanceLevel,
   resolveApplicationTags,
   resolveSuggestedApplicationTags,
-  resolveApplicationSignatureLevel,
 } from "./applicationResolvers";
 
 // Queries
