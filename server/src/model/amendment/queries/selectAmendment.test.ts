@@ -8,22 +8,33 @@ vi.mock("../../../prismaClient", () => ({
 }));
 
 describe("selectAmendment", () => {
-  const amendmentFindAtMostOne = vi.fn();
-
-  const mockPrismaClient = {
-    amendment: {
-      findAtMostOne: amendmentFindAtMostOne,
-    },
-  };
-
-  const mockTransaction = {
+  const regularMocks = {
     amendment: {
       findAtMostOne: vi.fn(),
     },
-  } as unknown as PrismaTransactionClient;
+  };
+  const mockPrismaClient = {
+    amendment: {
+      findAtMostOne: regularMocks.amendment.findAtMostOne,
+    },
+  };
+  const transactionMocks = {
+    amendment: {
+      findAtMostOne: vi.fn(),
+    },
+  };
+  const mockTransaction = {
+    amendment: {
+      findAtMostOne: transactionMocks.amendment.findAtMostOne,
+    },
+  } as any;
 
+  const testAmendmentId = "amendment-1";
   const where = {
-    id: "amendment-1",
+    id: testAmendmentId,
+  };
+  const expectedCall = {
+    where: { id: testAmendmentId },
   };
 
   beforeEach(() => {
@@ -31,33 +42,31 @@ describe("selectAmendment", () => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as never);
   });
 
-  it("uses the default prisma client when no transaction client is provided", async () => {
-    const amendment = { id: "amendment-1" } as PrismaAmendment;
-    amendmentFindAtMostOne.mockResolvedValueOnce(amendment);
-
-    const result = await selectAmendment(where);
-
-    expect(prisma).toHaveBeenCalledExactlyOnceWith();
-    expect(amendmentFindAtMostOne).toHaveBeenCalledExactlyOnceWith({ where });
-    expect(result).toBe(amendment);
+  it("should get amendment from the database directly if no transaction is given", async () => {
+    await selectAmendment(where);
+    expect(regularMocks.amendment.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
+    expect(transactionMocks.amendment.findAtMostOne).not.toHaveBeenCalled();
   });
 
-  it("uses the provided transaction client instead of the default prisma client", async () => {
-    const amendment = { id: "amendment-1" } as PrismaAmendment;
-    mockTransaction.amendment.findAtMostOne = vi.fn().mockResolvedValueOnce(amendment);
-
-    const result = await selectAmendment(where, mockTransaction);
-
-    expect(prisma).not.toHaveBeenCalled();
-    expect(mockTransaction.amendment.findAtMostOne).toHaveBeenCalledExactlyOnceWith({ where });
-    expect(result).toBe(amendment);
+  it("should get amendment via a transaction if one is given", async () => {
+    await selectAmendment(where, mockTransaction);
+    expect(regularMocks.amendment.findAtMostOne).not.toHaveBeenCalled();
+    expect(transactionMocks.amendment.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
   });
 
   it("returns null when no amendment is found", async () => {
-    amendmentFindAtMostOne.mockResolvedValueOnce(null);
+    regularMocks.amendment.findAtMostOne.mockResolvedValueOnce(null);
+    const result = await selectAmendment(where);
+    expect(regularMocks.amendment.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
+    expect(result).toBeNull();
+  });
+
+  it("returns amendment that is found", async () => {
+    const amendment = { id: testAmendmentId } as PrismaAmendment;
+    regularMocks.amendment.findAtMostOne.mockResolvedValueOnce(amendment);
 
     const result = await selectAmendment(where);
-
-    expect(result).toBeNull();
+    expect(regularMocks.amendment.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
+    expect(result).toBe(amendment);
   });
 });

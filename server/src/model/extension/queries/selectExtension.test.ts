@@ -8,22 +8,33 @@ vi.mock("../../../prismaClient", () => ({
 }));
 
 describe("selectExtension", () => {
-  const extensionFindAtMostOne = vi.fn();
-
-  const mockPrismaClient = {
-    extension: {
-      findAtMostOne: extensionFindAtMostOne,
-    },
-  };
-
-  const mockTransaction = {
+  const regularMocks = {
     extension: {
       findAtMostOne: vi.fn(),
     },
-  } as unknown as PrismaTransactionClient;
+  };
+  const mockPrismaClient = {
+    extension: {
+      findAtMostOne: regularMocks.extension.findAtMostOne,
+    },
+  };
+  const transactionMocks = {
+    extension: {
+      findAtMostOne: vi.fn(),
+    },
+  };
+  const mockTransaction = {
+    extension: {
+      findAtMostOne: transactionMocks.extension.findAtMostOne,
+    },
+  } as any;
 
+  const testExtensionId = "extension-1";
   const where = {
-    id: "extension-1",
+    id: testExtensionId,
+  };
+  const expectedCall = {
+    where: { id: testExtensionId },
   };
 
   beforeEach(() => {
@@ -31,33 +42,31 @@ describe("selectExtension", () => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as never);
   });
 
-  it("uses the default prisma client when no transaction client is provided", async () => {
-    const extension = { id: "extension-1" } as PrismaExtension;
-    extensionFindAtMostOne.mockResolvedValueOnce(extension);
-
-    const result = await selectExtension(where);
-
-    expect(prisma).toHaveBeenCalledExactlyOnceWith();
-    expect(extensionFindAtMostOne).toHaveBeenCalledExactlyOnceWith({ where });
-    expect(result).toBe(extension);
+  it("should get extension from the database directly if no transaction is given", async () => {
+    await selectExtension(where);
+    expect(regularMocks.extension.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
+    expect(transactionMocks.extension.findAtMostOne).not.toHaveBeenCalled();
   });
 
-  it("uses the provided transaction client instead of the default prisma client", async () => {
-    const extension = { id: "extension-1" } as PrismaExtension;
-    mockTransaction.extension.findAtMostOne = vi.fn().mockResolvedValueOnce(extension);
-
-    const result = await selectExtension(where, mockTransaction);
-
-    expect(prisma).not.toHaveBeenCalled();
-    expect(mockTransaction.extension.findAtMostOne).toHaveBeenCalledExactlyOnceWith({ where });
-    expect(result).toBe(extension);
+  it("should get extension via a transaction if one is given", async () => {
+    await selectExtension(where, mockTransaction);
+    expect(regularMocks.extension.findAtMostOne).not.toHaveBeenCalled();
+    expect(transactionMocks.extension.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
   });
 
   it("returns null when no extension is found", async () => {
-    extensionFindAtMostOne.mockResolvedValueOnce(null);
+    regularMocks.extension.findAtMostOne.mockResolvedValueOnce(null);
+    const result = await selectExtension(where);
+    expect(regularMocks.extension.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
+    expect(result).toBeNull();
+  });
+
+  it("returns extension that is found", async () => {
+    const extension = { id: testExtensionId } as PrismaExtension;
+    regularMocks.extension.findAtMostOne.mockResolvedValueOnce(extension);
 
     const result = await selectExtension(where);
-
-    expect(result).toBeNull();
+    expect(regularMocks.extension.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
+    expect(result).toBe(extension);
   });
 });
