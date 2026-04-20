@@ -54,18 +54,10 @@ export async function __resolveApplicationPhaseNotes(
   return rows;
 }
 
-export function __resolveApplicationPhaseName(parent: PrismaApplicationPhase): string {
-  return parent.phaseId;
-}
-
-export function __resolveApplicationPhaseStatus(parent: PrismaApplicationPhase): string {
-  return parent.phaseStatusId;
-}
-
 export const applicationPhaseResolvers = {
   ApplicationPhase: {
-    phaseName: __resolveApplicationPhaseName,
-    phaseStatus: __resolveApplicationPhaseStatus,
+    phaseName: (parent: PrismaApplicationPhase) => parent.phaseId,
+    phaseStatus: (parent: PrismaApplicationPhase) => parent.phaseStatusId,
     phaseDates: __resolveApplicationPhaseDates,
     phaseNotes: __resolveApplicationPhaseNotes,
     documents: (parent: PrismaApplicationPhase, args: unknown, context: GraphQLContext) =>
