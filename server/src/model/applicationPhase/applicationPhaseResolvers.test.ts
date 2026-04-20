@@ -4,7 +4,7 @@ import {
   applicationPhaseResolvers,
 } from "./applicationPhaseResolvers";
 import { ApplicationPhase as PrismaApplicationPhase } from "@prisma/client";
-import { PhaseName, PhaseStatus } from "../../types";
+import { ApplicationStatus, PhaseName, PhaseStatus } from "../../types";
 
 // Mock imports
 import { prisma } from "../../prismaClient";
@@ -13,6 +13,7 @@ import { getApplication } from "../application";
 import { completePhase, declareCompletenessPhaseIncomplete, skipConceptPhase } from ".";
 import { GraphQLContext } from "../../auth";
 import { getManyDocuments } from "../document";
+import { getManyApplicationDates } from "../applicationDate";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -20,6 +21,10 @@ vi.mock("../../prismaClient", () => ({
 
 vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
+}));
+
+vi.mock("../applicationDate", () => ({
+  getManyApplicationDates: vi.fn(),
 }));
 
 const testHandlePrismaError = new Error("Test handlePrismaError!");
@@ -91,6 +96,53 @@ describe("applicationPhaseResolvers", () => {
         { phaseId: "Completeness", applicationId: "abc123" },
         mockContext.user
       );
+    });
+  });
+
+  describe("ApplicationPhase.phaseDates", () => {
+    it("delegates to `applicationDateData.getManyApplicationDates`", async () => {
+      const mockApplicationPhase = {
+        phaseId: "Completeness" satisfies PhaseName,
+        applicationId: "abc123",
+      } as PrismaApplicationPhase;
+      await applicationPhaseResolvers.ApplicationPhase.phaseDates(
+        mockApplicationPhase,
+        undefined,
+        mockContext
+      );
+      expect(getManyApplicationDates).toHaveBeenCalledExactlyOnceWith(
+        {
+          applicationId: "abc123",
+          dateType: {
+            phaseDateTypes: {
+              some: { phaseId: "Completeness" },
+            },
+          },
+        },
+        mockContext.user
+      );
+    });
+  });
+
+  describe("ApplicationPhase.phaseName", () => {
+    it("returns phaseId", () => {
+      const applicationPhase = {
+        phaseId: "Approval Summary" satisfies PhaseName,
+      } as PrismaApplicationPhase;
+
+      const result = applicationPhaseResolvers.ApplicationPhase.phaseName(applicationPhase);
+      expect(result).toBe(applicationPhase.phaseId);
+    });
+  });
+
+  describe("ApplicationPhase.status", () => {
+    it("returns phaseStatusId", () => {
+      const applicationPhase = {
+        phaseStatusId: "Incomplete" satisfies PhaseStatus,
+      } as PrismaApplicationPhase;
+
+      const result = applicationPhaseResolvers.ApplicationPhase.phaseStatus(applicationPhase);
+      expect(result).toBe(applicationPhase.phaseStatusId);
     });
   });
 

@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   __setApplicationDates,
-  __resolveApplicationDateType,
   __setApplicationDate,
+  applicationDateResolvers,
 } from "./applicationDateResolvers";
 import { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
-import { SetApplicationDateInput, SetApplicationDatesInput } from "../../types";
+import { DateType, SetApplicationDateInput, SetApplicationDatesInput } from "../../types";
 import { prisma } from "../../prismaClient";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { getEasternNow } from "../../dateUtilities";
@@ -67,6 +67,17 @@ describe("applicationDateResolvers", () => {
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
     vi.mocked(getEasternNow).mockReturnValue(mockEasternNow as any);
     vi.mocked(startPhasesByDates).mockResolvedValue([]);
+  });
+
+  describe("ApplicationDate.dateType", () => {
+    it("returns dateTypeId", () => {
+      const applicationDate = {
+        dateTypeId: "Approval Package Completion Date" satisfies DateType,
+      } as PrismaApplicationDate;
+
+      const result = applicationDateResolvers.ApplicationDate.dateType(applicationDate);
+      expect(result).toBe(applicationDate.dateTypeId);
+    });
   });
 
   describe("__setApplicationDates", () => {
@@ -209,20 +220,6 @@ describe("applicationDateResolvers", () => {
         );
         expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
       });
-    });
-  });
-
-  describe("__resolveApplicationDateType", () => {
-    it("should retrieve the requested date type", () => {
-      const testPrismaResult: PrismaApplicationDate = {
-        applicationId: testApplicationId,
-        dateTypeId: "Concept Start Date",
-        dateValue: testDateValue,
-        createdAt: testDateValue,
-        updatedAt: testDateValue,
-      };
-      const result = __resolveApplicationDateType(testPrismaResult);
-      expect(result).toBe("Concept Start Date");
     });
   });
 });
