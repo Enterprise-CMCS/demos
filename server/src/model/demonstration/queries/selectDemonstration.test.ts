@@ -8,22 +8,33 @@ vi.mock("../../../prismaClient", () => ({
 }));
 
 describe("selectDemonstration", () => {
-  const demonstrationFindAtMostOne = vi.fn();
-
-  const mockPrismaClient = {
-    demonstration: {
-      findAtMostOne: demonstrationFindAtMostOne,
-    },
-  };
-
-  const mockTransaction = {
+  const regularMocks = {
     demonstration: {
       findAtMostOne: vi.fn(),
     },
-  } as unknown as PrismaTransactionClient;
+  };
+  const mockPrismaClient = {
+    demonstration: {
+      findAtMostOne: regularMocks.demonstration.findAtMostOne,
+    },
+  };
+  const transactionMocks = {
+    demonstration: {
+      findAtMostOne: vi.fn(),
+    },
+  };
+  const mockTransaction = {
+    demonstration: {
+      findAtMostOne: transactionMocks.demonstration.findAtMostOne,
+    },
+  } as any;
 
+  const testDemonstrationId = "demonstration-1";
   const where = {
-    id: "demonstration-1",
+    id: testDemonstrationId,
+  };
+  const expectedCall = {
+    where: { id: testDemonstrationId },
   };
 
   beforeEach(() => {
@@ -31,33 +42,31 @@ describe("selectDemonstration", () => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as never);
   });
 
-  it("uses the default prisma client when no transaction client is provided", async () => {
-    const demonstration = { id: "demonstration-1" } as PrismaDemonstration;
-    demonstrationFindAtMostOne.mockResolvedValueOnce(demonstration);
-
-    const result = await selectDemonstration(where);
-
-    expect(prisma).toHaveBeenCalledExactlyOnceWith();
-    expect(demonstrationFindAtMostOne).toHaveBeenCalledExactlyOnceWith({ where });
-    expect(result).toBe(demonstration);
+  it("should get demonstration from the database directly if no transaction is given", async () => {
+    await selectDemonstration(where);
+    expect(regularMocks.demonstration.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
+    expect(transactionMocks.demonstration.findAtMostOne).not.toHaveBeenCalled();
   });
 
-  it("uses the provided transaction client instead of the default prisma client", async () => {
-    const demonstration = { id: "demonstration-1" } as PrismaDemonstration;
-    mockTransaction.demonstration.findAtMostOne = vi.fn().mockResolvedValueOnce(demonstration);
-
-    const result = await selectDemonstration(where, mockTransaction);
-
-    expect(prisma).not.toHaveBeenCalled();
-    expect(mockTransaction.demonstration.findAtMostOne).toHaveBeenCalledExactlyOnceWith({ where });
-    expect(result).toBe(demonstration);
+  it("should get demonstration via a transaction if one is given", async () => {
+    await selectDemonstration(where, mockTransaction);
+    expect(regularMocks.demonstration.findAtMostOne).not.toHaveBeenCalled();
+    expect(transactionMocks.demonstration.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
   });
 
   it("returns null when no demonstration is found", async () => {
-    demonstrationFindAtMostOne.mockResolvedValueOnce(null);
+    regularMocks.demonstration.findAtMostOne.mockResolvedValueOnce(null);
+    const result = await selectDemonstration(where);
+    expect(regularMocks.demonstration.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
+    expect(result).toBeNull();
+  });
+
+  it("returns demonstration that is found", async () => {
+    const demonstration = { id: testDemonstrationId } as PrismaDemonstration;
+    regularMocks.demonstration.findAtMostOne.mockResolvedValueOnce(demonstration);
 
     const result = await selectDemonstration(where);
-
-    expect(result).toBeNull();
+    expect(regularMocks.demonstration.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
+    expect(result).toBe(demonstration);
   });
 });

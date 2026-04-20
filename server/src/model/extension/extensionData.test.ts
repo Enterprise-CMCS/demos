@@ -64,10 +64,27 @@ describe("extensionData", () => {
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
-      expect(selectExtension).toHaveBeenCalledExactlyOnceWith({
-        AND: [where, authFilter],
-      });
+      expect(selectExtension).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        undefined
+      );
       expect(result).toBe(extension);
+    });
+
+    it("passes transaction client to selectManyAmendments if provided", async () => {
+      const mockTransactionClient = {} as any;
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+
+      await getExtension(where, user, mockTransactionClient);
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(selectExtension).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        mockTransactionClient
+      );
     });
   });
 
@@ -91,10 +108,27 @@ describe("extensionData", () => {
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
-      expect(selectManyExtensions).toHaveBeenCalledExactlyOnceWith({
-        AND: [where, authFilter],
-      });
+      expect(selectManyExtensions).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        undefined
+      );
       expect(result).toBe(extensions);
+    });
+
+    it("passes transaction client to selectManyExtensions if provided", async () => {
+      const mockTransactionClient = {} as any;
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+
+      await getManyExtensions(where, user, mockTransactionClient);
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(selectManyExtensions).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        mockTransactionClient
+      );
     });
   });
 });

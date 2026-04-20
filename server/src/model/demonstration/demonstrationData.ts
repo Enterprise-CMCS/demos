@@ -6,6 +6,7 @@ import {
   ContextUser,
 } from "../../auth";
 import { selectDemonstration, selectManyDemonstrations } from "./queries";
+import { PrismaTransactionClient } from "../../prismaClient";
 
 const getPermissionFilters = (userId: string) =>
   ({
@@ -21,7 +22,8 @@ const getPermissionFilters = (userId: string) =>
 
 export async function getDemonstration(
   where: Prisma.DemonstrationWhereInput,
-  user: ContextUser
+  user: ContextUser,
+  tx?: PrismaTransactionClient
 ): Promise<PrismaDemonstration | null> {
   const authFilter = buildAuthorizationFilter<Prisma.DemonstrationWhereInput>(
     user,
@@ -32,14 +34,18 @@ export async function getDemonstration(
     return null;
   }
 
-  return await selectDemonstration({
-    AND: [where, authFilter],
-  });
+  return await selectDemonstration(
+    {
+      AND: [where, authFilter],
+    },
+    tx
+  );
 }
 
 export async function getManyDemonstrations(
   where: Prisma.DemonstrationWhereInput,
-  user: ContextUser
+  user: ContextUser,
+  tx?: PrismaTransactionClient
 ): Promise<PrismaDemonstration[]> {
   const authFilter = buildAuthorizationFilter<Prisma.DemonstrationWhereInput>(
     user,
@@ -49,7 +55,10 @@ export async function getManyDemonstrations(
   if (authFilter === null) {
     return [];
   }
-  return await selectManyDemonstrations({
-    AND: [where, authFilter],
-  });
+  return await selectManyDemonstrations(
+    {
+      AND: [where, authFilter],
+    },
+    tx
+  );
 }

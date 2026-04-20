@@ -1,7 +1,7 @@
-export { GraphQLContext } from "./auth.util";
-export { ContextUser } from "./userContext";
+export { type GraphQLContext } from "./auth.util";
+export { type ContextUser } from "./userContext";
 export {
   buildAuthorizationFilter,
   isStatePointOfContactOnDemonstration,
-  PermissionFilters,
+  type PermissionFilters,
 } from "./buildAuthorizationFilter";
