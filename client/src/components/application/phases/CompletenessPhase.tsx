@@ -8,12 +8,7 @@ import { addDays, differenceInCalendarDays, parseISO } from "date-fns";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { useToast } from "components/toast";
 import { DocumentList } from "./sections";
-import {
-  ApplicationDateInput,
-  LocalDate,
-  PhaseName,
-  PhaseStatus,
-} from "demos-server";
+import { ApplicationDateInput, LocalDate, PhaseName, PhaseStatus } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
@@ -197,9 +192,8 @@ export const CompletenessPhase = ({
     completenessDocuments,
     completenessIncomplete
   );
-  const stateDeemedComplete = completenessIncomplete
-    ? ""
-    : userSelectedStateDeemedCompleteDate || calculatedStateDeemedCompleteDate;
+  const stateDeemedComplete =
+    userSelectedStateDeemedCompleteDate || calculatedStateDeemedCompleteDate;
   const { federalStartDate, federalEndDate } =
     calculateFederalCommentPeriodDates(stateDeemedComplete);
 
@@ -248,6 +242,7 @@ export const CompletenessPhase = ({
     showDeclareIncompleteDialog(async () => {
       try {
         await declareCompletenessPhaseIncomplete(applicationId);
+        setUserSelectedStateDeemedCompleteDate("");
         showSuccess(SAVE_FOR_LATER_MESSAGE);
       } catch (error) {
         showError(error instanceof Error ? error.message : String(error));

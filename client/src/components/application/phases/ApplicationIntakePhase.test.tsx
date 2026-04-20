@@ -59,6 +59,7 @@ describe("ApplicationIntakePhase", () => {
     initialStateApplicationSubmittedDate: "",
     tags: [],
     phaseStatus: "Started",
+    completenessPhaseStatus: "Not Started",
     setSelectedPhase: vi.fn(),
   };
 
@@ -198,6 +199,42 @@ describe("ApplicationIntakePhase", () => {
     it("shows help text for auto-calculated due date", () => {
       setup();
       expect(screen.getByText(/Automatically calculated as 15 calendar days/)).toBeInTheDocument();
+    });
+
+    it("clears both date pickers when Completeness phase is Incomplete even if State Application documents exist", () => {
+      setup({
+        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        initialStateApplicationSubmittedDate: "",
+        completenessPhaseStatus: "Incomplete",
+      });
+
+      expect(screen.getByTestId(APPLICATION_SUBMITTED_DATEPICKER_NAME)).toHaveValue("");
+      expect(screen.getByTestId(COMPLETENESS_REVIEW_DATEPICKER_NAME)).toHaveValue("");
+    });
+
+    it("allows the user to enter a new date while Completeness phase is Incomplete", async () => {
+      setup({
+        applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        initialStateApplicationSubmittedDate: "",
+        completenessPhaseStatus: "Incomplete",
+      });
+
+      const submittedDateInput = screen.getByTestId(
+        APPLICATION_SUBMITTED_DATEPICKER_NAME
+      ) as HTMLInputElement;
+
+      expect(submittedDateInput.value).toBe("");
+
+      fireEvent.change(submittedDateInput, { target: { value: "2024-04-10" } });
+
+      expect(submittedDateInput.value).toBe("2024-04-10");
+
+      await waitFor(() => {
+        const dueDateInput = screen.getByTestId(
+          COMPLETENESS_REVIEW_DATEPICKER_NAME
+        ) as HTMLInputElement;
+        expect(dueDateInput.value).toBe("2024-04-25");
+      });
     });
   });
 
@@ -417,6 +454,36 @@ describe("ApplicationIntakePhase", () => {
       expect(component.props.applicationId).toBe("app-123");
       expect(component.props.applicationIntakeDocuments).toHaveLength(1);
       expect(component.props.initialStateApplicationSubmittedDate).toBe("2024-10-13");
+      expect(component.props.completenessPhaseStatus).toBe("Not Started");
+    });
+
+    it("passes completenessPhaseStatus from the Completeness phase", () => {
+      const mockApplication: WorkflowApplication = {
+        id: "app-123",
+        status: "On-hold",
+        currentPhaseName: "Application Intake",
+        clearanceLevel: "CMS (OSORA)",
+        phases: [
+          {
+            phaseName: "Application Intake",
+            phaseStatus: "Started",
+            phaseDates: [],
+            phaseNotes: [],
+          },
+          {
+            phaseName: "Completeness",
+            phaseStatus: "Incomplete",
+            phaseDates: [],
+            phaseNotes: [],
+          },
+        ],
+        documents: [],
+        tags: [],
+      };
+
+      const component = getApplicationIntakeComponentFromApplication(mockApplication, () => {});
+
+      expect(component.props.completenessPhaseStatus).toBe("Incomplete");
     });
   });
 
