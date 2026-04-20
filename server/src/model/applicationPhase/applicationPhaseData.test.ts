@@ -13,7 +13,7 @@ vi.mock("./queries", () => ({
   selectManyApplicationPhases: vi.fn(),
 }));
 
-describe("applicationPhaseData", () => {
+describe("./applicationPhaseData", () => {
   const user: ContextUser = {
     id: "user-1",
     cognitoSubject: "sub-1",
