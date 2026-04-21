@@ -22,7 +22,6 @@ import { prisma } from "../../prismaClient";
 import {
   deleteApplication,
   // None of these are tested but need to be exported to avoid mocking issues
-  resolveApplicationPhases,
   resolveApplicationTags,
   resolveSuggestedApplicationTags,
 } from "../application";
@@ -37,6 +36,7 @@ import { ContextUser, GraphQLContext } from "../../auth";
 import { getDemonstration } from "../demonstration";
 import { getExtension, getManyExtensions } from "./extensionData";
 import { getManyDocuments } from "../document";
+import { getManyApplicationPhases } from "../applicationPhase";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -47,11 +47,15 @@ vi.mock("./extensionData", () => ({
   getManyExtensions: vi.fn(),
 }));
 
-vi.mock("../document/documentData", () => ({
+vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
 }));
 
-vi.mock("../demonstration/demonstrationData", () => ({
+vi.mock("../applicationPhase", () => ({
+  getManyApplicationPhases: vi.fn(),
+}));
+
+vi.mock("../demonstration", () => ({
   getDemonstration: vi.fn(),
 }));
 
@@ -59,7 +63,6 @@ vi.mock("../application", () => ({
   getApplication: vi.fn(),
   getManyApplications: vi.fn(),
   deleteApplication: vi.fn(),
-  resolveApplicationPhases: vi.fn(),
   resolveApplicationTags: vi.fn(),
   resolveSuggestedApplicationTags: vi.fn(),
 }));
@@ -155,6 +158,20 @@ describe("extensionResolvers", () => {
       await extensionResolvers.Extension.documents(mockExtension, undefined, mockContext);
       expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
         { applicationId: "abc123" },
+        mockUser
+      );
+    });
+  });
+
+  describe("Extension.phases", () => {
+    it("delegates to `applicationPhaseData.getManyApplicationPhases`", async () => {
+      await extensionResolvers.Extension.phases(
+        { id: "extensionId" } as PrismaExtension,
+        {},
+        mockContext
+      );
+      expect(getManyApplicationPhases).toHaveBeenCalledExactlyOnceWith(
+        { applicationId: "extensionId" },
         mockUser
       );
     });

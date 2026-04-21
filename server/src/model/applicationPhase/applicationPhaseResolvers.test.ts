@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   __resolveApplicationPhaseDates,
-  __resolveApplicationPhaseName,
-  __resolveApplicationPhaseStatus,
   applicationPhaseResolvers,
 } from "./applicationPhaseResolvers";
 import { ApplicationPhase as PrismaApplicationPhase } from "@prisma/client";
@@ -96,6 +94,28 @@ describe("applicationPhaseResolvers", () => {
     });
   });
 
+  describe("ApplicationPhase.phaseName", () => {
+    it("returns phaseId", () => {
+      const applicationPhase = {
+        phaseId: "Approval Summary" satisfies PhaseName,
+      } as PrismaApplicationPhase;
+
+      const result = applicationPhaseResolvers.ApplicationPhase.phaseName(applicationPhase);
+      expect(result).toBe(applicationPhase.phaseId);
+    });
+  });
+
+  describe("ApplicationPhase.status", () => {
+    it("returns phaseStatusId", () => {
+      const applicationPhase = {
+        phaseStatusId: "Incomplete" satisfies PhaseStatus,
+      } as PrismaApplicationPhase;
+
+      const result = applicationPhaseResolvers.ApplicationPhase.phaseStatus(applicationPhase);
+      expect(result).toBe(applicationPhase.phaseStatusId);
+    });
+  });
+
   describe("__resolveApplicationPhaseDates", () => {
     it("should retrieve the requested dates for the phase and application", async () => {
       const expectedCall = {
@@ -117,20 +137,6 @@ describe("applicationPhaseResolvers", () => {
 
       await __resolveApplicationPhaseDates(testInput);
       expect(mockFindMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
-    });
-  });
-
-  describe("__resolveApplicationPhaseName", () => {
-    it("should retrieve the phase name", async () => {
-      const result = __resolveApplicationPhaseName(testInput);
-      expect(result).toBe(testPhaseId);
-    });
-  });
-
-  describe("__resolveApplicationPhaseStatus", () => {
-    it("should retrieve the phase status", async () => {
-      const result = __resolveApplicationPhaseStatus(testInput);
-      expect(result).toBe(testPhaseStatusId);
     });
   });
 });
