@@ -97,6 +97,20 @@ describe("DemonstrationDeliverableTable", () => {
 
     expect(screen.getByRole("columnheader", { name: /State\/Territory/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /CMS Owner/i })).toBeInTheDocument();
+
+    const filterByColumn = screen.getByTestId("filter-by-column") as HTMLSelectElement;
+    const optionLabels = Array.from(filterByColumn.options).map((option) => option.text);
+
+    expect(optionLabels).toEqual([
+      "Select a Column...",
+      "State/Territory",
+      "Demonstration Name",
+      "Deliverable Type",
+      "Deliverable Name",
+      "CMS Owner",
+      "Due Date",
+      "Status",
+    ]);
   });
 
   it("hides state and CMS owner columns for state users", () => {
@@ -117,6 +131,18 @@ describe("DemonstrationDeliverableTable", () => {
 
     expect(screen.queryByRole("columnheader", { name: /State\/Territory/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: /CMS Owner/i })).not.toBeInTheDocument();
+
+    const filterByColumn = screen.getByTestId("filter-by-column") as HTMLSelectElement;
+    const optionLabels = Array.from(filterByColumn.options).map((option) => option.text);
+
+    expect(optionLabels).toEqual([
+      "Select a Column...",
+      "Demonstration Name",
+      "Deliverable Type",
+      "Deliverable Name",
+      "Due Date",
+      "Status",
+    ]);
   });
 
   it("reapplies default sort order when deliverables are reloaded", () => {

@@ -493,6 +493,33 @@ describe("ColumnFilter Component", () => {
         ).toBeInTheDocument();
       });
     });
+
+    it("clears date range inputs when switching away from and back to date filter", async () => {
+      const user = userEvent.setup();
+      const columnSelect = screen.getByTestId("filter-by-column");
+
+      await user.selectOptions(columnSelect, "Date");
+
+      const startInput = document.body.querySelector('input[name="date-filter-start"]');
+      const endInput = document.body.querySelector('input[name="date-filter-end"]');
+
+      fireEvent.change(startInput!, { target: { value: "2023-02-01" } });
+      fireEvent.change(endInput!, { target: { value: "2023-04-01" } });
+
+      await user.selectOptions(columnSelect, "Name");
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText(/filter name/i)).toBeInTheDocument();
+      });
+
+      await user.selectOptions(columnSelect, "Date");
+
+      await waitFor(() => {
+        const resetStartInput = document.body.querySelector('input[name="date-filter-start"]');
+        const resetEndInput = document.body.querySelector('input[name="date-filter-end"]');
+        expect(resetStartInput).toHaveValue("");
+        expect(resetEndInput).toHaveValue("");
+      });
+    });
   });
 
   describe("No Results State", () => {
