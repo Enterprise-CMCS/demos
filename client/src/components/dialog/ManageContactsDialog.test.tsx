@@ -729,6 +729,28 @@ describe("ManageContactsDialog", () => {
     });
   });
 
+  it("shows warning message when contacts are missing contact types", async () => {
+    const user = userEvent.setup();
+    const mocks = [SEARCH_PEOPLE_MOCKS[0]];
+
+    renderWithProviders(defaultProps, mocks);
+
+    const searchInput = screen.getByPlaceholderText("Search by name or email");
+
+    await user.type(searchInput, "jo");
+
+    await waitFor(() => {
+      expect(screen.getByText("John Doe")).toBeInTheDocument();
+    });
+
+    const addButton = screen.getByText("John Doe").closest("button")!;
+    await user.click(addButton);
+
+    expect(
+      screen.getByText("Please select a contact type for all contacts before adding more.")
+    ).toBeInTheDocument();
+  });
+
   it("clears search results when search term is less than 2 characters", async () => {
     const user = userEvent.setup();
     const mocks = SEARCH_PEOPLE_MOCKS;
