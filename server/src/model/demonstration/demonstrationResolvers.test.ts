@@ -55,6 +55,8 @@ import { getManyDocuments } from "../document";
 import { getManyApplicationPhases } from "../applicationPhase";
 import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
+import { getManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment";
+import { DemonstrationTypeTagAssignmentQueryResult } from "../demonstrationTypeTagAssignment/queries";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -83,6 +85,10 @@ vi.mock("../applicationPhase", () => ({
 
 vi.mock("../applicationTagAssignment", () => ({
   getManyApplicationTagAssignments: vi.fn(),
+}));
+
+vi.mock("../demonstrationTypeTagAssignment", () => ({
+  getManyDemonstrationTypeTagAssignments: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -353,6 +359,46 @@ describe("demonstrationResolvers", () => {
         },
         {
           tagName: "Tag2",
+          approvalStatus: "Unapproved",
+        },
+      ]);
+    });
+  });
+
+  describe("Demonstration.demonstrationTypes", () => {
+    it("delegates to demonstrationTypeTagAssignmentData.getManyDemonstrationTypeTagAssignments and maps result", async () => {
+      const mockDemonstration = { id: "abc123" } as PrismaDemonstration;
+      vi.mocked(getManyDemonstrationTypeTagAssignments).mockResolvedValueOnce([
+        {
+          tagNameId: "Tag1",
+          tag: {
+            statusId: "Approved",
+          },
+        },
+        {
+          tagNameId: "Tag2",
+          tag: {
+            statusId: "Unapproved",
+          },
+        },
+      ] as DemonstrationTypeTagAssignmentQueryResult[]);
+
+      const result = await demonstrationResolvers.Demonstration.demonstrationTypes(
+        mockDemonstration,
+        undefined,
+        mockContext
+      );
+      expect(getManyDemonstrationTypeTagAssignments).toHaveBeenCalledExactlyOnceWith(
+        { demonstrationId: "abc123" },
+        mockUser
+      );
+      expect(result).toEqual([
+        {
+          demonstrationTypeName: "Tag1",
+          approvalStatus: "Approved",
+        },
+        {
+          demonstrationTypeName: "Tag2",
           approvalStatus: "Unapproved",
         },
       ]);

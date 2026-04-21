@@ -29,6 +29,7 @@ import { getManyExtensions } from "../extension";
 import { getManyDocuments } from "../document";
 import { getManyApplicationPhases } from "../applicationPhase";
 import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
+import { getManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -291,7 +292,25 @@ export const demonstrationResolvers = {
         }
       ),
     suggestedApplicationTags: resolveSuggestedApplicationTags,
-    demonstrationTypes: resolveDemonstrationTypes,
+    demonstrationTypes: async (
+      parent: PrismaDemonstration,
+      args: unknown,
+      context: GraphQLContext
+    ) =>
+      (
+        await getManyDemonstrationTypeTagAssignments({ demonstrationId: parent.id }, context.user)
+      ).map((assignment) => {
+        const { tagNameId, tag, ...rest } = assignment;
+        return {
+          ...rest,
+          demonstrationTypeName: tagNameId,
+          status: determineDemonstrationTypeStatus(
+            assignment.effectiveDate,
+            assignment.expirationDate
+          ),
+          approvalStatus: tag.statusId,
+        };
+      }),
     deliverables: resolveManyDeliverables,
   },
 };
