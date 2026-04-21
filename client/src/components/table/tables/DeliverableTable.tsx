@@ -15,6 +15,7 @@ import { EditIcon } from "components/icons/Navigation/EditIcon";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
 import { isDeliverableEditable } from "components/dialog/deliverable";
 import { useDialog } from "components/dialog/DialogContext";
+import type { Option } from "components/input/select/Select";
 
 export type DeliverableTableRow = Omit<
   Deliverable,
@@ -79,7 +80,25 @@ export const DeliverableTable: React.FC<{
   viewMode: UserType;
 }> = ({ deliverables, emptyRowsMessage = EMPTY_ROWS_MESSAGE, viewMode }) => {
   const { showEditDeliverableDialog } = useDialog();
-  const deliverableColumns = DeliverableColumns({ viewMode });
+  const demonstrationNameOptions = React.useMemo<Option[]>(
+    () =>
+      Array.from(new Set(deliverables.map((deliverable) => deliverable.demonstration.name)))
+        .sort((a, b) => a.localeCompare(b))
+        .map((name) => ({ label: name, value: name })),
+    [deliverables]
+  );
+  const cmsOwnerOptions = React.useMemo<Option[]>(
+    () =>
+      Array.from(new Set(deliverables.map((deliverable) => deliverable.cmsOwner.person.fullName)))
+        .sort((a, b) => a.localeCompare(b))
+        .map((name) => ({ label: name, value: name })),
+    [deliverables]
+  );
+  const deliverableColumns = DeliverableColumns({
+    viewMode,
+    demonstrationNameOptions,
+    cmsOwnerOptions,
+  });
   const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({
     ...deliverable,
     status: formatDeliverableStatus(deliverable),

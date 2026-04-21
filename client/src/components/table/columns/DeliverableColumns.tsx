@@ -1,11 +1,10 @@
-// DocumentColumns.tsx
 import * as React from "react";
-
 import { createColumnHelper } from "@tanstack/react-table";
 import { createSelectColumnDef } from "./selectColumn";
 import { createDateColumnDef } from "./dateColumn";
-import { STATES_AND_TERRITORIES } from "demos-server-constants";
+import { DELIVERABLE_STATUSES, DELIVERABLE_TYPES, STATES_AND_TERRITORIES } from "demos-server-constants";
 import type { UserType } from "demos-server";
+import type { Option } from "components/input/select/Select";
 
 import { SecondaryButton } from "../../button/SecondaryButton";
 import { highlightCell } from "../KeywordSearch";
@@ -13,19 +12,39 @@ import type { DeliverableTableRow } from "../tables/DeliverableTable";
 
 type DeliverableColumnsProps = {
   viewMode: UserType;
+  demonstrationNameOptions: Option[];
+  cmsOwnerOptions: Option[];
 };
 
-export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
+export function DeliverableColumns({
+  viewMode,
+  demonstrationNameOptions,
+  cmsOwnerOptions,
+}: DeliverableColumnsProps) {
   const columnHelper = createColumnHelper<DeliverableTableRow>();
 
   const demonstrationNameColumn = columnHelper.accessor("demonstration.name", {
     header: "Demonstration Name",
     cell: highlightCell,
+    filterFn: "arrIncludesSome",
+    meta: {
+      filterConfig: {
+        filterType: "select",
+        options: demonstrationNameOptions,
+      },
+    },
   });
 
   const deliverableTypeColumn = columnHelper.accessor("deliverableType", {
     header: "Deliverable Type",
     cell: highlightCell,
+    filterFn: "arrIncludesSome",
+    meta: {
+      filterConfig: {
+        filterType: "select",
+        options: DELIVERABLE_TYPES.map((type) => ({ label: type, value: type })),
+      },
+    },
   });
 
   const deliverableNameColumn = columnHelper.accessor("name", {
@@ -38,6 +57,13 @@ export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
   const statusColumn = columnHelper.accessor("status", {
     header: "Status",
     cell: highlightCell,
+    filterFn: "arrIncludesSome",
+    meta: {
+      filterConfig: {
+        filterType: "select",
+        options: DELIVERABLE_STATUSES.map((status) => ({ label: status, value: status })),
+      },
+    },
   });
 
   if (viewMode === "demos-state-user") {
@@ -75,6 +101,13 @@ export function DeliverableColumns({ viewMode }: DeliverableColumnsProps) {
     columnHelper.accessor("cmsOwner.person.fullName", {
       header: "CMS Owner",
       cell: highlightCell,
+      filterFn: "arrIncludesSome",
+      meta: {
+        filterConfig: {
+          filterType: "select",
+          options: cmsOwnerOptions,
+        },
+      },
     }),
     dueDateColumn,
     submissionDateColumn,

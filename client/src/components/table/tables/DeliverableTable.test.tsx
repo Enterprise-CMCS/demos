@@ -183,6 +183,31 @@ describe("DeliverableTable", () => {
     expect(screen.getByTestId("filter-by-column")).toBeInTheDocument();
   });
 
+  it("uses multiselect filter inputs for configured categorical fields", async () => {
+    const user = userEvent.setup();
+    const columnSelect = screen.getByTestId("filter-by-column");
+
+    await user.selectOptions(columnSelect, "Demonstration Name");
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("Select Demonstration Name")).toBeInTheDocument();
+    });
+
+    await user.selectOptions(columnSelect, "Deliverable Type");
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("Select Deliverable Type")).toBeInTheDocument();
+    });
+
+    await user.selectOptions(columnSelect, "CMS Owner");
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("Select CMS Owner")).toBeInTheDocument();
+    });
+
+    await user.selectOptions(columnSelect, "Status");
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("Select Status")).toBeInTheDocument();
+    });
+  });
+
   it("shows filter options aligned to visible CMS-user columns", () => {
     const filterByColumn = screen.getByTestId("filter-by-column") as HTMLSelectElement;
     const optionLabels = Array.from(filterByColumn.options).map((option) => option.text);
