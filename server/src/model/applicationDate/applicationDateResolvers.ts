@@ -1,8 +1,8 @@
 import { ApplicationDate as PrismaApplicationDate } from "@prisma/client";
-import { prisma } from "../../prismaClient.js";
-import { DateType, SetApplicationDateInput, SetApplicationDatesInput } from "../../types.js";
+import { prisma } from "../../prismaClient";
+import { DateType, SetApplicationDateInput, SetApplicationDatesInput } from "../../types";
 import { getApplication, PrismaApplication } from "../application";
-import { handlePrismaError } from "../../errors/handlePrismaError.js";
+import { handlePrismaError } from "../../errors/handlePrismaError";
 import { getEasternNow } from "../../dateUtilities";
 import { startPhasesByDates } from "../applicationPhase";
 import { validateAndUpdateDates } from ".";
@@ -70,16 +70,12 @@ export async function __setApplicationDates(
   return await getApplication(input.applicationId);
 }
 
-export function __resolveApplicationDateType(parent: PrismaApplicationDate): string {
-  return parent.dateTypeId;
-}
-
 export const applicationDateResolvers = {
   Mutation: {
     setApplicationDate: __setApplicationDate,
     setApplicationDates: __setApplicationDates,
   },
   ApplicationDate: {
-    dateType: __resolveApplicationDateType,
+    dateType: (parent: PrismaApplicationDate) => parent.dateTypeId,
   },
 };

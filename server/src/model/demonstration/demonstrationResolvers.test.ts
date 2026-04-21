@@ -42,7 +42,6 @@ import {
   deleteApplication,
   getApplication,
   // None of these are tested but need to be exported to avoid mocking issues
-  resolveApplicationPhases,
   resolveApplicationTags,
   resolveSuggestedApplicationTags,
 } from "../application";
@@ -53,6 +52,7 @@ import { ContextUser, GraphQLContext } from "../../auth";
 import { getManyAmendments } from "../amendment";
 import { getManyExtensions } from "../extension";
 import { getManyDocuments } from "../document";
+import { getManyApplicationPhases } from "../applicationPhase";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -75,10 +75,13 @@ vi.mock("../extension", () => ({
   getManyExtensions: vi.fn(),
 }));
 
+vi.mock("../applicationPhase", () => ({
+  getManyApplicationPhases: vi.fn(),
+}));
+
 vi.mock("../application", () => ({
   getApplication: vi.fn(),
   deleteApplication: vi.fn(),
-  resolveApplicationPhases: vi.fn(),
   resolveApplicationTags: vi.fn(),
   resolveSuggestedApplicationTags: vi.fn(),
 }));
@@ -291,6 +294,20 @@ describe("demonstrationResolvers", () => {
       );
       expect(getManyExtensions).toHaveBeenCalledExactlyOnceWith(
         { demonstrationId: "demonstrationId" },
+        mockUser
+      );
+    });
+  });
+
+  describe("Demonstration.phases", () => {
+    it("delegates to `applicationPhaseData.getManyApplicationPhases`", async () => {
+      await demonstrationResolvers.Demonstration.phases(
+        { id: "demonstrationId" } as PrismaDemonstration,
+        {},
+        mockContext
+      );
+      expect(getManyApplicationPhases).toHaveBeenCalledExactlyOnceWith(
+        { applicationId: "demonstrationId" },
         mockUser
       );
     });

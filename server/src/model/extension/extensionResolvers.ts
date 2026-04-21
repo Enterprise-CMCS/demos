@@ -12,7 +12,6 @@ import { handlePrismaError } from "../../errors/handlePrismaError";
 import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate";
 import {
   deleteApplication,
-  resolveApplicationPhases,
   resolveApplicationTags,
   resolveSuggestedApplicationTags,
 } from "../application";
@@ -20,6 +19,7 @@ import { getDemonstration } from "../demonstration";
 import { GraphQLContext } from "../../auth";
 import { getExtension, getManyExtensions } from "./extensionData";
 import { getManyDocuments } from "../document";
+import { getManyApplicationPhases } from "../applicationPhase";
 
 const extensionApplicationType: ApplicationType = "Extension";
 const conceptPhaseName: PhaseName = "Concept";
@@ -106,7 +106,8 @@ export const extensionResolvers = {
       getManyDocuments({ applicationId: parent.id }, context.user),
     currentPhaseName: (parent: PrismaExtension) => parent.currentPhaseId,
     status: (parent: PrismaExtension) => parent.statusId,
-    phases: resolveApplicationPhases,
+    phases: (parent: PrismaExtension, args: unknown, context: GraphQLContext) =>
+      getManyApplicationPhases({ applicationId: parent.id }, context.user),
     clearanceLevel: (parent: PrismaExtension) => parent.clearanceLevelId,
     tags: resolveApplicationTags,
     signatureLevel: (parent: PrismaExtension) => parent.signatureLevelId,
