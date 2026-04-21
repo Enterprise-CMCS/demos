@@ -94,6 +94,28 @@ describe("applicationPhaseResolvers", () => {
     });
   });
 
+  describe("ApplicationPhase.phaseName", () => {
+    it("returns phaseId", () => {
+      const applicationPhase = {
+        phaseId: "Approval Summary" satisfies PhaseName,
+      } as PrismaApplicationPhase;
+
+      const result = applicationPhaseResolvers.ApplicationPhase.phaseName(applicationPhase);
+      expect(result).toBe(applicationPhase.phaseId);
+    });
+  });
+
+  describe("ApplicationPhase.status", () => {
+    it("returns phaseStatusId", () => {
+      const applicationPhase = {
+        phaseStatusId: "Incomplete" satisfies PhaseStatus,
+      } as PrismaApplicationPhase;
+
+      const result = applicationPhaseResolvers.ApplicationPhase.phaseStatus(applicationPhase);
+      expect(result).toBe(applicationPhase.phaseStatusId);
+    });
+  });
+
   describe("__resolveApplicationPhaseDates", () => {
     it("should retrieve the requested dates for the phase and application", async () => {
       const expectedCall = {
