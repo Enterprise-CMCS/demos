@@ -432,6 +432,12 @@ describe("ApplicationIntakePhase", () => {
             ],
             phaseNotes: [],
           },
+          {
+            phaseName: "Completeness",
+            phaseStatus: "Not Started",
+            phaseDates: [],
+            phaseNotes: [],
+          },
         ],
         documents: [
           {
@@ -455,6 +461,29 @@ describe("ApplicationIntakePhase", () => {
       expect(component.props.applicationIntakeDocuments).toHaveLength(1);
       expect(component.props.initialStateApplicationSubmittedDate).toBe("2024-10-13");
       expect(component.props.completenessPhaseStatus).toBe("Not Started");
+    });
+
+    it("throws when the Completeness phase is missing from the application", () => {
+      const mockApplication: WorkflowApplication = {
+        id: "app-123",
+        status: "Under Review",
+        currentPhaseName: "Application Intake",
+        clearanceLevel: "CMS (OSORA)",
+        phases: [
+          {
+            phaseName: "Application Intake",
+            phaseStatus: "Started",
+            phaseDates: [],
+            phaseNotes: [],
+          },
+        ],
+        documents: [],
+        tags: [],
+      };
+
+      expect(() =>
+        getApplicationIntakeComponentFromApplication(mockApplication, () => {})
+      ).toThrow("Application is missing expected phase: Completeness");
     });
 
     it("passes completenessPhaseStatus from the Completeness phase", () => {

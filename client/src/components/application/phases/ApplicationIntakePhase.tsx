@@ -199,6 +199,10 @@ export const getApplicationIntakeComponentFromApplication = (
 
   const completenessPhase = application.phases.find((phase) => phase.phaseName === "Completeness");
 
+  if (!completenessPhase) {
+    throw new Error("Application is missing expected phase: Completeness");
+  }
+
   const stateApplicationSubmittedDate = applicationIntakePhase.phaseDates.find(
     (date) => date.dateType === "State Application Submitted Date"
   )?.dateValue;
@@ -220,7 +224,7 @@ export const getApplicationIntakeComponentFromApplication = (
       tags={application.tags}
       setSelectedPhase={setSelectedPhase}
       phaseStatus={applicationIntakePhase.phaseStatus ?? "Not Started"}
-      completenessPhaseStatus={completenessPhase?.phaseStatus ?? "Not Started"}
+      completenessPhaseStatus={completenessPhase.phaseStatus ?? "Not Started"}
     />
   );
 };
