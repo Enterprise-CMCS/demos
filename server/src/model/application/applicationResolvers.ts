@@ -1,26 +1,9 @@
 import { prisma } from "../../prismaClient.js";
-import { TagStatus, UiPathResultStatus } from "../../types.js";
+import { UiPathResultStatus } from "../../types.js";
 import { setApplicationClearanceLevel, PrismaApplication } from ".";
-import { Tag } from "../tag";
 
 export function resolveApplicationType(parent: PrismaApplication): string {
   return parent.applicationTypeId;
-}
-
-
-export async function resolveApplicationTags(parent: PrismaApplication): Promise<Tag[]> {
-  const applicationTags = await prisma().applicationTagAssignment.findMany({
-    where: {
-      applicationId: parent.id,
-    },
-    include: {
-      tag: true,
-    },
-  });
-  return applicationTags.map((tagAssignment) => ({
-    tagName: tagAssignment.tagNameId,
-    approvalStatus: tagAssignment.tag.statusId as TagStatus,
-  }));
 }
 
 export async function resolveSuggestedApplicationTags(
