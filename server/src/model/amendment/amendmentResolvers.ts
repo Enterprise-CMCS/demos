@@ -109,9 +109,10 @@ export const amendmentResolvers = {
     tags: async (parent: PrismaAmendment, args: unknown, context: GraphQLContext) =>
       (await getManyApplicationTagAssignments({ applicationId: parent.id }, context.user)).map(
         (assignment) => {
-          const { statusId, ...tag } = assignment.tag;
+          const { statusId, tagNameId, ...tag } = assignment.tag;
           return {
             ...tag,
+            tagName: tagNameId,
             approvalStatus: statusId,
           };
         }

@@ -19,11 +19,7 @@ import {
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate";
-import {
-  deleteApplication,
-  getApplication,
-  resolveSuggestedApplicationTags,
-} from "../application";
+import { deleteApplication, getApplication, resolveSuggestedApplicationTags } from "../application";
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus";
 import { resolveManyDeliverables } from "../deliverable";
 import { GraphQLContext } from "../../auth";
@@ -286,9 +282,10 @@ export const demonstrationResolvers = {
     tags: async (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
       (await getManyApplicationTagAssignments({ applicationId: parent.id }, context.user)).map(
         (assignment) => {
-          const { statusId, ...tag } = assignment.tag;
+          const { statusId, tagNameId, ...tag } = assignment.tag;
           return {
             ...tag,
+            tagName: tagNameId,
             approvalStatus: statusId,
           };
         }

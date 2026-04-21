@@ -324,14 +324,14 @@ describe("demonstrationResolvers", () => {
       const mockDemonstration = { id: "abc123" } as PrismaDemonstration;
       vi.mocked(getManyApplicationTagAssignments).mockResolvedValueOnce([
         {
-          applicationId: "abc123",
           tag: {
+            tagNameId: "Tag1",
             statusId: "Approved",
           },
         },
         {
-          applicationId: "abc123",
           tag: {
+            tagNameId: "Tag2",
             statusId: "Unapproved",
           },
         },
@@ -348,9 +348,11 @@ describe("demonstrationResolvers", () => {
       );
       expect(result).toEqual([
         {
+          tagName: "Tag1",
           approvalStatus: "Approved",
         },
         {
+          tagName: "Tag2",
           approvalStatus: "Unapproved",
         },
       ]);

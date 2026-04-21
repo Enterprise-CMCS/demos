@@ -10,10 +10,7 @@ import {
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate";
-import {
-  deleteApplication,
-  resolveSuggestedApplicationTags,
-} from "../application";
+import { deleteApplication, resolveSuggestedApplicationTags } from "../application";
 import { getDemonstration } from "../demonstration";
 import { GraphQLContext } from "../../auth";
 import { getExtension, getManyExtensions } from "./extensionData";
@@ -112,9 +109,10 @@ export const extensionResolvers = {
     tags: async (parent: PrismaExtension, args: unknown, context: GraphQLContext) =>
       (await getManyApplicationTagAssignments({ applicationId: parent.id }, context.user)).map(
         (assignment) => {
-          const { statusId, ...tag } = assignment.tag;
+          const { statusId, tagNameId, ...tag } = assignment.tag;
           return {
             ...tag,
+            tagName: tagNameId,
             approvalStatus: statusId,
           };
         }

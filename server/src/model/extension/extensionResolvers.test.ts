@@ -188,14 +188,14 @@ describe("extensionResolvers", () => {
       const mockExtension = { id: "abc123" } as PrismaExtension;
       vi.mocked(getManyApplicationTagAssignments).mockResolvedValueOnce([
         {
-          applicationId: "abc123",
           tag: {
+            tagNameId: "Tag1",
             statusId: "Approved",
           },
         },
         {
-          applicationId: "abc123",
           tag: {
+            tagNameId: "Tag2",
             statusId: "Unapproved",
           },
         },
@@ -208,9 +208,11 @@ describe("extensionResolvers", () => {
       );
       expect(result).toEqual([
         {
+          tagName: "Tag1",
           approvalStatus: "Approved",
         },
         {
+          tagName: "Tag2",
           approvalStatus: "Unapproved",
         },
       ]);
