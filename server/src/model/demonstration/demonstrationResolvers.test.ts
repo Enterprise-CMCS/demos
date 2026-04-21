@@ -42,7 +42,6 @@ import {
   deleteApplication,
   getApplication,
   // None of these are tested but need to be exported to avoid mocking issues
-  resolveApplicationTags,
   resolveSuggestedApplicationTags,
 } from "../application";
 import { parseDateTimeOrLocalDateToEasternTZDate, EasternTZDate } from "../../dateUtilities";
@@ -94,7 +93,6 @@ vi.mock("../demonstrationTypeTagAssignment", () => ({
 vi.mock("../application", () => ({
   getApplication: vi.fn(),
   deleteApplication: vi.fn(),
-  resolveApplicationTags: vi.fn(),
   resolveSuggestedApplicationTags: vi.fn(),
 }));
 
