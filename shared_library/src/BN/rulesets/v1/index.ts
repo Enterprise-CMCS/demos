@@ -72,7 +72,7 @@ export const validations: ValidationFunction[] = [
           return {
             code: "4",
             message:
-              "TODO: Error: C Report - Expenditure data is present for DY(s) that extend beyond the Reporting DY.\n\nPlease only enter data through the current Reporting DY.",
+              "Error: C Report - Expenditure data is present for DY(s) that extend beyond the Reporting DY.\n\nPlease only enter data through the current Reporting DY.",
           };
         }
       }
