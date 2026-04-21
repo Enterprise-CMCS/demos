@@ -1,11 +1,17 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { COLLAPSE_COMMENTS_BUTTON_NAME, COMMENT_BOX_NAME, COMMENT_BOX_TEXT_AREA_NAME, CommentBox } from "./CommentBox";
+import { COLLAPSE_COMMENTS_BUTTON_NAME, COMMENT_BOX_NAME, COMMENT_BOX_TABS_NAME, COMMENT_BOX_TEXT_AREA_NAME, CommentBox } from "./CommentBox";
 import { TestProvider } from "test-utils/TestProvider";
+import { developmentMockUser } from "mock-data/userMocks";
+import { PersonType } from "demos-server";
+import { CurrentUser } from "components/user/UserContext";
 
 
-const renderCommentBox = () => render(<TestProvider><CommentBox /></TestProvider>);
+const renderCommentBox = (personType?: PersonType) => {
+  const currentUser: CurrentUser = {...developmentMockUser, person: { ...developmentMockUser.person, personType: personType || developmentMockUser.person.personType } };
+  render(<TestProvider currentUser={currentUser}><CommentBox /></TestProvider>);
+};
 
 describe("CommentBox", () => {
   it("renders without crashing", () => {
@@ -55,5 +61,20 @@ describe("CommentBox", () => {
     await userEvent.click(screen.getByTestId(COMMENT_BOX_NAME));
 
     expect(screen.getByTestId(COMMENT_BOX_TEXT_AREA_NAME)).toHaveValue("my draft comment");
+  });
+
+  it("renders comment box tabs for Admin users", () => {
+    renderCommentBox("demos-admin");
+    expect(screen.getByTestId(COMMENT_BOX_TABS_NAME)).toBeInTheDocument();
+  });
+
+  it("renders comment box tabs for CMS users", () => {
+    renderCommentBox("demos-cms-user");
+    expect(screen.getByTestId(COMMENT_BOX_TABS_NAME)).toBeInTheDocument();
+  });
+
+  it("does not render comment box tabs for state users", () => {
+    renderCommentBox("demos-state-user");
+    expect(screen.queryByTestId(COMMENT_BOX_TABS_NAME)).not.toBeInTheDocument();
   });
 });

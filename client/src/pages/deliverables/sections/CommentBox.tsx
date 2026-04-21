@@ -10,6 +10,7 @@ import { PersonType } from "demos-server";
 export const COMMENT_BOX_NAME = "comment-box";
 export const COMMENT_BOX_TEXT_AREA_NAME = "textarea-comment-box";
 export const COLLAPSE_COMMENTS_BUTTON_NAME = "button-collapse-comments";
+export const COMMENT_BOX_TABS_NAME = "comment-box-tabs";
 
 const CommentBoxHeader = ({ onCollapse }: { onCollapse: () => void }) => (
   <div className="flex items-center justify-between pb-1 border-b border-gray-dark">
@@ -32,8 +33,8 @@ const CommentBoxTextArea = ({ value, onChange }: { value: string; onChange: (e: 
 };
 
 const CommentBoxTabs = () => (
-  <div data-testid="comment-box-tabs">
-    ONLY CMS / ADMIN USERS CAN SEE THIS TAB
+  <div data-testid={COMMENT_BOX_TABS_NAME}>
+    ONLY CMS / ADMIN USERS CAN SEE THIS
     {/* TODO: implement tab content */}
   </div>
 );
