@@ -11,7 +11,7 @@ import { ColumnFilter } from "components/table/ColumnFilter";
 import { PaginationControls } from "components/table/PaginationControls";
 import { formatDeliverableStatus } from "./DeliverableTable";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
-import type { Option } from "components/input/select/Select";
+import { toUniqueSortedOptions } from "./filterOptions";
 
 const DEFAULT_EMPTY_ROWS_MESSAGE = "You have no assigned Deliverables at this time";
 const DEFAULT_NO_SEARCH_RESULTS_MESSAGE =
@@ -40,18 +40,12 @@ export const DemonstrationDeliverableTable: React.FC<{
   noResultsFoundMessage = DEFAULT_NO_SEARCH_RESULTS_MESSAGE,
 }) => {
   const columnHelper = createColumnHelper<DemonstrationDeliverableTableRow>();
-  const demonstrationNameOptions = React.useMemo<Option[]>(
-    () =>
-      Array.from(new Set(deliverables.map((deliverable) => deliverable.demonstration.name)))
-        .sort((a, b) => a.localeCompare(b))
-        .map((name) => ({ label: name, value: name })),
+  const demonstrationNameOptions = React.useMemo(
+    () => toUniqueSortedOptions(deliverables.map((deliverable) => deliverable.demonstration.name)),
     [deliverables]
   );
-  const cmsOwnerOptions = React.useMemo<Option[]>(
-    () =>
-      Array.from(new Set(deliverables.map((deliverable) => deliverable.cmsOwner.person.fullName)))
-        .sort((a, b) => a.localeCompare(b))
-        .map((name) => ({ label: name, value: name })),
+  const cmsOwnerOptions = React.useMemo(
+    () => toUniqueSortedOptions(deliverables.map((deliverable) => deliverable.cmsOwner.person.fullName)),
     [deliverables]
   );
 

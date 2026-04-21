@@ -15,7 +15,7 @@ import { EditIcon } from "components/icons/Navigation/EditIcon";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
 import { isDeliverableEditable } from "components/dialog/deliverable";
 import { useDialog } from "components/dialog/DialogContext";
-import type { Option } from "components/input/select/Select";
+import { toUniqueSortedOptions } from "./filterOptions";
 
 export type DeliverableTableRow = Omit<
   Deliverable,
@@ -80,18 +80,12 @@ export const DeliverableTable: React.FC<{
   viewMode: UserType;
 }> = ({ deliverables, emptyRowsMessage = EMPTY_ROWS_MESSAGE, viewMode }) => {
   const { showEditDeliverableDialog } = useDialog();
-  const demonstrationNameOptions = React.useMemo<Option[]>(
-    () =>
-      Array.from(new Set(deliverables.map((deliverable) => deliverable.demonstration.name)))
-        .sort((a, b) => a.localeCompare(b))
-        .map((name) => ({ label: name, value: name })),
+  const demonstrationNameOptions = React.useMemo(
+    () => toUniqueSortedOptions(deliverables.map((deliverable) => deliverable.demonstration.name)),
     [deliverables]
   );
-  const cmsOwnerOptions = React.useMemo<Option[]>(
-    () =>
-      Array.from(new Set(deliverables.map((deliverable) => deliverable.cmsOwner.person.fullName)))
-        .sort((a, b) => a.localeCompare(b))
-        .map((name) => ({ label: name, value: name })),
+  const cmsOwnerOptions = React.useMemo(
+    () => toUniqueSortedOptions(deliverables.map((deliverable) => deliverable.cmsOwner.person.fullName)),
     [deliverables]
   );
   const deliverableColumns = DeliverableColumns({
