@@ -10,13 +10,24 @@ import {
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate";
+<<<<<<< HEAD
 import { deleteApplication, resolveSuggestedApplicationTags } from "../application";
+=======
+import {
+  deleteApplication,
+  resolveApplicationTags,
+  resolveSuggestedApplicationTags,
+} from "../application";
+>>>>>>> 40e2d189b898434185f192ee1a65ea5c481cb389
 import { getDemonstration } from "../demonstration";
 import { GraphQLContext } from "../../auth";
 import { getAmendment, getManyAmendments } from "./amendmentData";
 import { getManyDocuments } from "../document";
 import { getManyApplicationPhases } from "../applicationPhase";
+<<<<<<< HEAD
 import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
+=======
+>>>>>>> 40e2d189b898434185f192ee1a65ea5c481cb389
 
 const amendmentApplicationType: ApplicationType = "Amendment";
 const conceptPhaseName: PhaseName = "Concept";
