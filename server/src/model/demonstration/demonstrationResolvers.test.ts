@@ -57,6 +57,7 @@ import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
 import { getManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment";
 import { DemonstrationTypeTagAssignmentQueryResult } from "../demonstrationTypeTagAssignment/queries";
+import { getManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -89,6 +90,10 @@ vi.mock("../applicationTagAssignment", () => ({
 
 vi.mock("../demonstrationTypeTagAssignment", () => ({
   getManyDemonstrationTypeTagAssignments: vi.fn(),
+}));
+
+vi.mock("../demonstrationRoleAssignment", () => ({
+  getManyDemonstrationRoleAssignments: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -402,6 +407,20 @@ describe("demonstrationResolvers", () => {
           approvalStatus: "Unapproved",
         },
       ]);
+    });
+  });
+
+  describe("Demonstration.roles", () => {
+    it("delegates to demonstrationRoleAssignmentData.getManyDemonstrationRoleAssignments", async () => {
+      await demonstrationResolvers.Demonstration.roles(
+        { id: "demonstrationId" } as PrismaDemonstration,
+        {},
+        mockContext
+      );
+      expect(getManyDemonstrationRoleAssignments).toHaveBeenCalledExactlyOnceWith(
+        { demonstrationId: "demonstrationId" },
+        mockUser
+      );
     });
   });
 

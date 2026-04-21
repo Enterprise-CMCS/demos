@@ -30,6 +30,7 @@ import { getManyDocuments } from "../document";
 import { getManyApplicationPhases } from "../applicationPhase";
 import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
 import { getManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment";
+import { getManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -274,7 +275,8 @@ export const demonstrationResolvers = {
     sdgDivision: (parent: PrismaDemonstration) => parent.sdgDivisionId,
     signatureLevel: (parent: PrismaDemonstration) => parent.signatureLevelId,
     currentPhaseName: (parent: PrismaDemonstration) => parent.currentPhaseId,
-    roles: __resolveDemonstrationRoleAssignments,
+    roles: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
+      getManyDemonstrationRoleAssignments({ demonstrationId: parent.id }, context.user),
     status: (parent: PrismaDemonstration) => parent.statusId,
     phases: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
       getManyApplicationPhases({ applicationId: parent.id }, context.user),
