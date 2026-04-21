@@ -11,6 +11,7 @@ import {
   CREATE_DEMONSTRATION_MUTATION,
 } from "./CreateDemonstrationDialog";
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
+import { DEMONSTRATION_DIALOG_DESCRIPTION_NAME } from "./DemonstrationDialog";
 
 const DEFAULT_PROPS = {
   onClose: vi.fn(),
@@ -19,7 +20,6 @@ const DEFAULT_PROPS = {
 const SUBMIT_BUTTON_TEST_ID = "button-submit-demonstration-dialog";
 const TITLE_INPUT_TEST_ID = "input-demonstration-title";
 const STATE_SELECT_ID = "us-state"; // This is an id, not data-testid
-const DESCRIPTION_TEXTAREA_TEST_ID = "textarea-description";
 
 describe("CreateDemonstrationDialog", () => {
   const GET_USER_SELECT_OPTIONS_MOCK = {
@@ -98,7 +98,7 @@ describe("CreateDemonstrationDialog", () => {
 
     expect(screen.getByTestId(TITLE_INPUT_TEST_ID)).toBeInTheDocument();
     expect(document.getElementById(STATE_SELECT_ID)).toBeInTheDocument();
-    expect(screen.getByTestId(DESCRIPTION_TEXTAREA_TEST_ID)).toBeInTheDocument();
+    expect(screen.getByTestId(DEMONSTRATION_DIALOG_DESCRIPTION_NAME)).toBeInTheDocument();
   });
   it("enables Submit button when all required fields are filled", async () => {
     render(getCreateDemonstrationDialog());
@@ -133,7 +133,7 @@ describe("CreateDemonstrationDialog", () => {
     const titleInput = screen.getByTestId(TITLE_INPUT_TEST_ID);
     fireEvent.change(titleInput, { target: { value: "New Test Demonstration" } });
 
-    const descriptionTextarea = screen.getByTestId(DESCRIPTION_TEXTAREA_TEST_ID);
+    const descriptionTextarea = screen.getByTestId(DEMONSTRATION_DIALOG_DESCRIPTION_NAME);
     fireEvent.change(descriptionTextarea, { target: { value: "Test description" } });
 
     // Note: Full form submission would require selecting state and project officer

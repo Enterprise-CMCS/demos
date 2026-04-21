@@ -69,9 +69,9 @@ export const DeliverableDetailsManagementPage: React.FC = () => {
           <DeliverableInfoFields deliverable={data.deliverable} />
           <DeliverableButtons />
         </div>
-        <div className="grid grid-cols-4 w-full gap-2 flex-1">
-          <div className="col-span-3"><FileAndHistoryTabs /></div>
-          <div className="col-span-1"><CommentBox /></div>
+        <div className="flex w-full gap-2 flex-1">
+          <div className="flex-1"><FileAndHistoryTabs /></div>
+          <div><CommentBox /></div>
         </div>
       </div>
     </div>
