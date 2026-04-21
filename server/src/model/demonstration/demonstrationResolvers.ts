@@ -9,11 +9,9 @@ import {
   ApplicationStatus,
   ApplicationType,
   CreateDemonstrationInput,
-  DemonstrationTypeAssignment,
   GrantLevel,
   PhaseName,
   Role,
-  TagStatus,
   UpdateDemonstrationInput,
 } from "../../types";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
@@ -225,29 +223,6 @@ export async function __resolveDemonstrationPrimaryProjectOfficer(
     }
   );
   return primaryRoleAssignment.demonstrationRoleAssignment.person;
-}
-
-export async function resolveDemonstrationTypes(
-  parent: PrismaDemonstration
-): Promise<DemonstrationTypeAssignment[]> {
-  const assignments = await prisma().demonstrationTypeTagAssignment.findMany({
-    where: {
-      demonstrationId: parent.id,
-    },
-    include: {
-      tag: true,
-    },
-  });
-  return assignments.map((assignment) => ({
-    demonstrationTypeName: assignment.tagNameId,
-    effectiveDate: assignment.effectiveDate,
-    expirationDate: assignment.expirationDate,
-    status: determineDemonstrationTypeStatus(assignment.effectiveDate, assignment.expirationDate),
-    // casting enforced by database constraints
-    approvalStatus: assignment.tag.statusId as TagStatus,
-    createdAt: assignment.createdAt,
-    updatedAt: assignment.updatedAt,
-  }));
 }
 
 export const demonstrationResolvers = {
