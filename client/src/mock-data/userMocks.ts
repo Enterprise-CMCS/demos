@@ -9,7 +9,7 @@ import { mockPeople, MockPerson } from "./personMocks";
 import { mockStates } from "./stateMocks";
 import { getMockPersonType } from "config/env";
 
-const developmentMockUser: MockUser = {
+export const developmentMockUser: MockUser = {
   id: "999",
   username: "mock.dev.user",
   person: {
@@ -44,13 +44,6 @@ export const userMocks: MockedResponse[] = [
     result: {
       data: { currentUser: developmentMockUser },
     },
-  },
-  {
-    request: {
-      query: GET_CURRENT_USER_QUERY,
-    },
-    result: {
-      data: { currentUser: mockUsers[0] },
-    },
+    maxUsageCount: Number.POSITIVE_INFINITY,
   },
 ];
