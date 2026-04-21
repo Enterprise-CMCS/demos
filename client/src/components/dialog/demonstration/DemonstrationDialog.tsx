@@ -15,6 +15,8 @@ import { SubmitButton } from "components/button/SubmitButton";
 import { HintIcon } from "components/icons/Input/HintIcon";
 import { isBefore } from "date-fns";
 
+export const DEMONSTRATION_DIALOG_DESCRIPTION_NAME = "textarea-demonstration-description";
+
 export type DemonstrationDialogMode = "create" | "edit";
 
 export const DEMO_ID_MEDICAID = "medicaid";
@@ -42,7 +44,7 @@ const DemonstrationDescriptionTextArea: React.FC<{
 }> = ({ description, setDescription }) => {
   return (
     <Textarea
-      name="description"
+      name={DEMONSTRATION_DIALOG_DESCRIPTION_NAME}
       label="Demonstration Description"
       placeholder="Enter description"
       initialValue={description ?? ""}

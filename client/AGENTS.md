@@ -59,6 +59,7 @@ This file provides instructions for AI agents to use when generating or editing 
 
 - Place tests next to implementation (`Foo.tsx` and `Foo.test.tsx`).
 - Use `@testing-library/react` with `vitest`; prefer `screen.getByTestId()` queries.
+- Often times `name` attributes are propagated to `data-test-id`, try this approach first.
 - Prefer real behavior over heavy mocking; use `vi.mock(...)` only at clear boundaries.
 - Run tests with `npm run test:once ...`
 - Prefer to keep mock data in test files for clarity / isolation rather than in `/mock-data`.
