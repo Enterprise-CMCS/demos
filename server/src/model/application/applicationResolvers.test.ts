@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   resolveApplicationType,
-  resolveApplicationPhases,
   resolveApplicationTags,
   PrismaApplication,
   resolveSuggestedApplicationTags,
@@ -33,9 +32,6 @@ vi.mock("../applicationPhase", () => ({
 
 describe("applicationResolvers", () => {
   const regularMocks = {
-    applicationPhase: {
-      findMany: vi.fn(),
-    },
     applicationTagAssignment: {
       findMany: vi.fn(),
     },
@@ -44,9 +40,6 @@ describe("applicationResolvers", () => {
     }
   };
   const mockPrismaClient = {
-    applicationPhase: {
-      findMany: regularMocks.applicationPhase.findMany,
-    },
     applicationTagAssignment: {
       findMany: regularMocks.applicationTagAssignment.findMany,
     },
@@ -73,21 +66,6 @@ describe("applicationResolvers", () => {
       };
       const result = resolveApplicationType(input as PrismaApplication);
       expect(result).toBe(testDemonstrationApplicationTypeId);
-    });
-  });
-
-  describe("resolveApplicationPhases", () => {
-    it("should resolve the application phases", async () => {
-      const input: Partial<PrismaApplication> = {
-        id: testApplicationId,
-      };
-      const expectedCall = {
-        where: {
-          applicationId: testApplicationId,
-        },
-      };
-      await resolveApplicationPhases(input as PrismaApplication);
-      expect(regularMocks.applicationPhase.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
   });
 

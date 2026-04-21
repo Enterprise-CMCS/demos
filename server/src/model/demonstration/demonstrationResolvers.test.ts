@@ -42,7 +42,6 @@ import {
   deleteApplication,
   getApplication,
   // None of these are tested but need to be exported to avoid mocking issues
-  resolveApplicationPhases,
   resolveApplicationTags,
   resolveSuggestedApplicationTags,
 } from "../application";
@@ -53,6 +52,7 @@ import { ContextUser, GraphQLContext } from "../../auth";
 import { getManyAmendments } from "../amendment";
 import { getManyExtensions } from "../extension";
 import { getManyDocuments } from "../document";
+import { getManyApplicationPhases } from "../applicationPhase";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -75,10 +75,13 @@ vi.mock("../extension", () => ({
   getManyExtensions: vi.fn(),
 }));
 
+vi.mock("../applicationPhase", () => ({
+  getManyApplicationPhases: vi.fn(),
+}));
+
 vi.mock("../application", () => ({
   getApplication: vi.fn(),
   deleteApplication: vi.fn(),
-  resolveApplicationPhases: vi.fn(),
   resolveApplicationTags: vi.fn(),
   resolveSuggestedApplicationTags: vi.fn(),
 }));
@@ -239,89 +242,130 @@ describe("demonstrationResolvers", () => {
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
-  it("delegates `Query.demonstration` to `demonstrationData.getDemonstration`", async () => {
-    await demonstrationResolvers.Query.demonstration(undefined, { id: "abc123" }, mockContext);
-    expect(getDemonstration).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
+  describe("Query.demonstration", () => {
+    it("delegates to `demonstrationData.getDemonstration`", async () => {
+      await demonstrationResolvers.Query.demonstration(undefined, { id: "abc123" }, mockContext);
+      expect(getDemonstration).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
+    });
   });
 
-  it("delegates `Query.demonstrations` to `demonstrationData.getManyDemonstrations`", async () => {
-    await demonstrationResolvers.Query.demonstrations(undefined, {}, mockContext);
-    expect(getManyDemonstrations).toHaveBeenCalledExactlyOnceWith({}, mockUser);
+  describe("Query.demonstrations", () => {
+    it("delegates to `demonstrationData.getManyDemonstrations`", async () => {
+      await demonstrationResolvers.Query.demonstrations(undefined, {}, mockContext);
+      expect(getManyDemonstrations).toHaveBeenCalledExactlyOnceWith({}, mockUser);
+    });
   });
 
-  it("delegates `Demonstration.documents` to `documentData.getManyDocuments`", async () => {
-    const mockDemonstration = { id: "abc123" } as PrismaDemonstration;
-    await demonstrationResolvers.Demonstration.documents(mockDemonstration, undefined, mockContext);
-    expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith({ applicationId: "abc123" }, mockUser);
+  describe("Demonstration.documents", () => {
+    it("delegates to `documentData.getManyDocuments`", async () => {
+      const mockDemonstration = { id: "abc123" } as PrismaDemonstration;
+      await demonstrationResolvers.Demonstration.documents(
+        mockDemonstration,
+        undefined,
+        mockContext
+      );
+      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
+        { applicationId: "abc123" },
+        mockUser
+      );
+    });
   });
 
-  it("delegates `Demonstration.amendments` to `amendmentData.getManyAmendments`", async () => {
-    await demonstrationResolvers.Demonstration.amendments(
-      { id: "demonstrationId" } as PrismaDemonstration,
-      {},
-      mockContext
-    );
-    expect(getManyAmendments).toHaveBeenCalledExactlyOnceWith(
-      { demonstrationId: "demonstrationId" },
-      mockUser
-    );
+  describe("Demonstration.amendments", () => {
+    it("delegates to `amendmentData.getManyAmendments`", async () => {
+      await demonstrationResolvers.Demonstration.amendments(
+        { id: "demonstrationId" } as PrismaDemonstration,
+        {},
+        mockContext
+      );
+      expect(getManyAmendments).toHaveBeenCalledExactlyOnceWith(
+        { demonstrationId: "demonstrationId" },
+        mockUser
+      );
+    });
   });
 
-  it("delegates `Demonstration.extensions` to `extensionData.getManyExtensions`", async () => {
-    await demonstrationResolvers.Demonstration.extensions(
-      { id: "demonstrationId" } as PrismaDemonstration,
-      {},
-      mockContext
-    );
-    expect(getManyExtensions).toHaveBeenCalledExactlyOnceWith(
-      { demonstrationId: "demonstrationId" },
-      mockUser
-    );
+  describe("Demonstration.extensions", () => {
+    it("delegates to `extensionData.getManyExtensions`", async () => {
+      await demonstrationResolvers.Demonstration.extensions(
+        { id: "demonstrationId" } as PrismaDemonstration,
+        {},
+        mockContext
+      );
+      expect(getManyExtensions).toHaveBeenCalledExactlyOnceWith(
+        { demonstrationId: "demonstrationId" },
+        mockUser
+      );
+    });
   });
 
-  it("resolves `Demonstration.currentPhaseName`", () => {
-    const demonstration = {
-      currentPhaseId: "Application Intake" satisfies PhaseName,
-    } as PrismaDemonstration;
-
-    const result = demonstrationResolvers.Demonstration.currentPhaseName(demonstration);
-    expect(result).toBe(demonstration.currentPhaseId);
+  describe("Demonstration.phases", () => {
+    it("delegates to `applicationPhaseData.getManyApplicationPhases`", async () => {
+      await demonstrationResolvers.Demonstration.phases(
+        { id: "demonstrationId" } as PrismaDemonstration,
+        {},
+        mockContext
+      );
+      expect(getManyApplicationPhases).toHaveBeenCalledExactlyOnceWith(
+        { applicationId: "demonstrationId" },
+        mockUser
+      );
+    });
   });
 
-  it("resolves `Demonstration.signatureLevel`", () => {
-    const demonstration = {
-      signatureLevelId: "OA" satisfies SignatureLevel,
-    } as PrismaDemonstration;
+  describe("Demonstration.currentPhaseName", () => {
+    it("returns currentPhaseId", () => {
+      const demonstration = {
+        currentPhaseId: "Application Intake" satisfies PhaseName,
+      } as PrismaDemonstration;
 
-    const result = demonstrationResolvers.Demonstration.signatureLevel(demonstration);
-    expect(result).toBe(demonstration.signatureLevelId);
+      const result = demonstrationResolvers.Demonstration.currentPhaseName(demonstration);
+      expect(result).toBe(demonstration.currentPhaseId);
+    });
   });
 
-  it("resolves `Demonstration.sdgDivision`", () => {
-    const demonstration = {
-      sdgDivisionId: "Division of Eligibility and Coverage Demonstrations" satisfies SdgDivision,
-    } as PrismaDemonstration;
+  describe("Demonstration.signatureLevel", () => {
+    it("returns signatureLevelId", () => {
+      const demonstration = {
+        signatureLevelId: "OA" satisfies SignatureLevel,
+      } as PrismaDemonstration;
 
-    const result = demonstrationResolvers.Demonstration.sdgDivision(demonstration);
-    expect(result).toBe(demonstration.sdgDivisionId);
+      const result = demonstrationResolvers.Demonstration.signatureLevel(demonstration);
+      expect(result).toBe(demonstration.signatureLevelId);
+    });
   });
 
-  it("resolves `Demonstration.status`", () => {
-    const demonstration = {
-      statusId: "Pre-Submission" satisfies ApplicationStatus,
-    } as PrismaDemonstration;
+  describe("Demonstration.sdgDivision", () => {
+    it("returns sdgDivisionId", () => {
+      const demonstration = {
+        sdgDivisionId: "Division of Eligibility and Coverage Demonstrations" satisfies SdgDivision,
+      } as PrismaDemonstration;
 
-    const result = demonstrationResolvers.Demonstration.status(demonstration);
-    expect(result).toBe(demonstration.statusId);
+      const result = demonstrationResolvers.Demonstration.sdgDivision(demonstration);
+      expect(result).toBe(demonstration.sdgDivisionId);
+    });
   });
 
-  it("resolves the `Demonstration.clearanceLevel`", () => {
-    const demonstration = {
-      clearanceLevelId: "COMMs" satisfies ClearanceLevel,
-    } as PrismaDemonstration;
+  describe("Demonstration.status", () => {
+    it("return statusId", () => {
+      const demonstration = {
+        statusId: "Pre-Submission" satisfies ApplicationStatus,
+      } as PrismaDemonstration;
 
-    const result = demonstrationResolvers.Demonstration.clearanceLevel(demonstration);
-    expect(result).toBe(demonstration.clearanceLevelId);
+      const result = demonstrationResolvers.Demonstration.status(demonstration);
+      expect(result).toBe(demonstration.statusId);
+    });
+  });
+
+  describe("Demonstration.clearanceLevel", () => {
+    it("returns clearanceLevelId", () => {
+      const demonstration = {
+        clearanceLevelId: "COMMs" satisfies ClearanceLevel,
+      } as PrismaDemonstration;
+
+      const result = demonstrationResolvers.Demonstration.clearanceLevel(demonstration);
+      expect(result).toBe(demonstration.clearanceLevelId);
+    });
   });
 
   describe("__createDemonstration", () => {

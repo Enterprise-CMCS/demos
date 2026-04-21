@@ -53,6 +53,19 @@ describe("userResolvers", () => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
   });
 
+  describe("User.ownedDocuments", () => {
+    it("delegates to `documentData.getManyDocuments`", async () => {
+      const mockUser = {
+        id: "abc123",
+      } as PrismaUser;
+      await userResolvers.User.ownedDocuments(mockUser, undefined, mockContext);
+      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
+        { ownerUserId: "abc123" },
+        mockContext.user
+      );
+    });
+  });
+
   describe("queryCurrentUser", () => {
     it("should query the user found in the GQL context", async () => {
       const expectedCall = {
@@ -90,16 +103,5 @@ describe("userResolvers", () => {
       await resolveEvents(testParent as PrismaUser);
       expect(regularMocks.event.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
-  });
-
-  it("delegates `User.ownedDocuments` to `documentData.getManyDocuments`", async () => {
-    const mockUser = {
-      id: "abc123",
-    } as PrismaUser;
-    await userResolvers.User.ownedDocuments(mockUser, undefined, mockContext);
-    expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
-      { ownerUserId: "abc123" },
-      mockContext.user
-    );
   });
 });

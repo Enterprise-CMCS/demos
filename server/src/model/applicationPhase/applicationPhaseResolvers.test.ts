@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   __resolveApplicationPhaseDates,
-  __resolveApplicationPhaseName,
-  __resolveApplicationPhaseStatus,
   applicationPhaseResolvers,
 } from "./applicationPhaseResolvers";
 import { ApplicationPhase as PrismaApplicationPhase } from "@prisma/client";
@@ -78,20 +76,44 @@ describe("applicationPhaseResolvers", () => {
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
-  it("delegates `ApplicationPhase.documents` to `documentData.getManyDocuments`", async () => {
-    const mockApplicationPhase = {
-      phaseId: "Completeness" satisfies PhaseName,
-      applicationId: "abc123",
-    } as PrismaApplicationPhase;
-    await applicationPhaseResolvers.ApplicationPhase.documents(
-      mockApplicationPhase,
-      undefined,
-      mockContext
-    );
-    expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
-      { phaseId: "Completeness", applicationId: "abc123" },
-      mockContext.user
-    );
+  describe("ApplicationPhase.documents", () => {
+    it("delegates to `documentData.getManyDocuments`", async () => {
+      const mockApplicationPhase = {
+        phaseId: "Completeness" satisfies PhaseName,
+        applicationId: "abc123",
+      } as PrismaApplicationPhase;
+      await applicationPhaseResolvers.ApplicationPhase.documents(
+        mockApplicationPhase,
+        undefined,
+        mockContext
+      );
+      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
+        { phaseId: "Completeness", applicationId: "abc123" },
+        mockContext.user
+      );
+    });
+  });
+
+  describe("ApplicationPhase.phaseName", () => {
+    it("returns phaseId", () => {
+      const applicationPhase = {
+        phaseId: "Approval Summary" satisfies PhaseName,
+      } as PrismaApplicationPhase;
+
+      const result = applicationPhaseResolvers.ApplicationPhase.phaseName(applicationPhase);
+      expect(result).toBe(applicationPhase.phaseId);
+    });
+  });
+
+  describe("ApplicationPhase.status", () => {
+    it("returns phaseStatusId", () => {
+      const applicationPhase = {
+        phaseStatusId: "Incomplete" satisfies PhaseStatus,
+      } as PrismaApplicationPhase;
+
+      const result = applicationPhaseResolvers.ApplicationPhase.phaseStatus(applicationPhase);
+      expect(result).toBe(applicationPhase.phaseStatusId);
+    });
   });
 
   describe("__resolveApplicationPhaseDates", () => {
@@ -115,20 +137,6 @@ describe("applicationPhaseResolvers", () => {
 
       await __resolveApplicationPhaseDates(testInput);
       expect(mockFindMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
-    });
-  });
-
-  describe("__resolveApplicationPhaseName", () => {
-    it("should retrieve the phase name", async () => {
-      const result = __resolveApplicationPhaseName(testInput);
-      expect(result).toBe(testPhaseId);
-    });
-  });
-
-  describe("__resolveApplicationPhaseStatus", () => {
-    it("should retrieve the phase status", async () => {
-      const result = __resolveApplicationPhaseStatus(testInput);
-      expect(result).toBe(testPhaseStatusId);
     });
   });
 });

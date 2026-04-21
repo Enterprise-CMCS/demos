@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { parseBNFile, parseBNFileFromPath, excelColumnRow } from "./index.js";
+import { parseBNFile, parseBNFileFromPath, excelColumnRow, numberToExcelColumn, excelColumnToNumber } from "./index.js";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const fixturePath = path.join(currentDir, ".." , "..", "test", "fixtures", "sample.xlsx");
@@ -94,4 +94,24 @@ describe("excelColumnRow", () => {
       "Row 99 not found",
     );
   });
+
+  it("numberToExcelColumn converts numbers to Excel column letters correctly", () => {
+    expect(numberToExcelColumn(0)).toBe("A");
+    expect(numberToExcelColumn(25)).toBe("Z");
+    expect(numberToExcelColumn(26)).toBe("AA");
+    expect(numberToExcelColumn(51)).toBe("AZ");
+    expect(numberToExcelColumn(52)).toBe("BA");
+    expect(numberToExcelColumn(701)).toBe("ZZ");
+    expect(numberToExcelColumn(702)).toBe("AAA");
+  });
+
+  describe("excelColumnToNumber", () => {
+  it("converts A, Z, AA, and AH correctly", () => {
+    expect(excelColumnToNumber("A")).toBe(0);
+    expect(excelColumnToNumber("Z")).toBe(25);
+    expect(excelColumnToNumber("AA")).toBe(26);
+    expect(excelColumnToNumber("AH")).toBe(33);
+  });
+});
+
 });

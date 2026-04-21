@@ -6,6 +6,7 @@ import {
   ContextUser,
 } from "../../auth";
 import { selectAmendment, selectManyAmendments } from "./queries";
+import { PrismaTransactionClient } from "../../prismaClient";
 
 const getPermissionFilters = (userId: string) =>
   ({
@@ -23,7 +24,8 @@ const getPermissionFilters = (userId: string) =>
 
 export async function getAmendment(
   where: Prisma.AmendmentWhereInput,
-  user: ContextUser
+  user: ContextUser,
+  tx?: PrismaTransactionClient
 ): Promise<PrismaAmendment | null> {
   const authFilter = buildAuthorizationFilter<Prisma.AmendmentWhereInput>(
     user,
@@ -34,14 +36,18 @@ export async function getAmendment(
     return null;
   }
 
-  return await selectAmendment({
-    AND: [where, authFilter],
-  });
+  return await selectAmendment(
+    {
+      AND: [where, authFilter],
+    },
+    tx
+  );
 }
 
 export async function getManyAmendments(
   where: Prisma.AmendmentWhereInput,
-  user: ContextUser
+  user: ContextUser,
+  tx?: PrismaTransactionClient
 ): Promise<PrismaAmendment[]> {
   const authFilter = buildAuthorizationFilter<Prisma.AmendmentWhereInput>(
     user,
@@ -51,7 +57,10 @@ export async function getManyAmendments(
   if (authFilter === null) {
     return [];
   }
-  return await selectManyAmendments({
-    AND: [where, authFilter],
-  });
+  return await selectManyAmendments(
+    {
+      AND: [where, authFilter],
+    },
+    tx
+  );
 }

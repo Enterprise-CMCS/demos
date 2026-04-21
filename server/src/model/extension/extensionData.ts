@@ -6,6 +6,7 @@ import {
   ContextUser,
 } from "../../auth";
 import { selectExtension, selectManyExtensions } from "./queries";
+import { PrismaTransactionClient } from "../../prismaClient";
 
 const getPermissionFilters = (userId: string) =>
   ({
@@ -23,7 +24,8 @@ const getPermissionFilters = (userId: string) =>
 
 export async function getExtension(
   where: Prisma.ExtensionWhereInput,
-  user: ContextUser
+  user: ContextUser,
+  tx?: PrismaTransactionClient
 ): Promise<PrismaExtension | null> {
   const authFilter = buildAuthorizationFilter<Prisma.ExtensionWhereInput>(
     user,
@@ -34,14 +36,18 @@ export async function getExtension(
     return null;
   }
 
-  return await selectExtension({
-    AND: [where, authFilter],
-  });
+  return await selectExtension(
+    {
+      AND: [where, authFilter],
+    },
+    tx
+  );
 }
 
 export async function getManyExtensions(
   where: Prisma.ExtensionWhereInput,
-  user: ContextUser
+  user: ContextUser,
+  tx?: PrismaTransactionClient
 ): Promise<PrismaExtension[]> {
   const authFilter = buildAuthorizationFilter<Prisma.ExtensionWhereInput>(
     user,
@@ -51,7 +57,10 @@ export async function getManyExtensions(
   if (authFilter === null) {
     return [];
   }
-  return await selectManyExtensions({
-    AND: [where, authFilter],
-  });
+  return await selectManyExtensions(
+    {
+      AND: [where, authFilter],
+    },
+    tx
+  );
 }

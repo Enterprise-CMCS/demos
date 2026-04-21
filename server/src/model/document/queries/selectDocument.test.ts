@@ -8,22 +8,33 @@ vi.mock("../../../prismaClient", () => ({
 }));
 
 describe("selectDocument", () => {
-  const documentFindAtMostOne = vi.fn();
-
-  const mockPrismaClient = {
-    document: {
-      findAtMostOne: documentFindAtMostOne,
-    },
-  };
-
-  const mockTransaction = {
+  const regularMocks = {
     document: {
       findAtMostOne: vi.fn(),
     },
-  } as unknown as PrismaTransactionClient;
+  };
+  const mockPrismaClient = {
+    document: {
+      findAtMostOne: regularMocks.document.findAtMostOne,
+    },
+  };
+  const transactionMocks = {
+    document: {
+      findAtMostOne: vi.fn(),
+    },
+  };
+  const mockTransaction = {
+    document: {
+      findAtMostOne: transactionMocks.document.findAtMostOne,
+    },
+  } as any;
 
+  const testDocumentId = "document-1";
   const where = {
-    id: "document-1",
+    id: testDocumentId,
+  };
+  const expectedCall = {
+    where: { id: testDocumentId },
   };
 
   beforeEach(() => {
@@ -31,33 +42,31 @@ describe("selectDocument", () => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as never);
   });
 
-  it("uses the default prisma client when no transaction client is provided", async () => {
-    const document = { id: "document-1" } as PrismaDocument;
-    documentFindAtMostOne.mockResolvedValueOnce(document);
-
-    const result = await selectDocument(where);
-
-    expect(prisma).toHaveBeenCalledExactlyOnceWith();
-    expect(documentFindAtMostOne).toHaveBeenCalledExactlyOnceWith({ where });
-    expect(result).toBe(document);
+  it("should get document from the database directly if no transaction is given", async () => {
+    await selectDocument(where);
+    expect(regularMocks.document.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
+    expect(transactionMocks.document.findAtMostOne).not.toHaveBeenCalled();
   });
 
-  it("uses the provided transaction client instead of the default prisma client", async () => {
-    const document = { id: "document-1" } as PrismaDocument;
-    mockTransaction.document.findAtMostOne = vi.fn().mockResolvedValueOnce(document);
-
-    const result = await selectDocument(where, mockTransaction);
-
-    expect(prisma).not.toHaveBeenCalled();
-    expect(mockTransaction.document.findAtMostOne).toHaveBeenCalledExactlyOnceWith({ where });
-    expect(result).toBe(document);
+  it("should get document via a transaction if one is given", async () => {
+    await selectDocument(where, mockTransaction);
+    expect(regularMocks.document.findAtMostOne).not.toHaveBeenCalled();
+    expect(transactionMocks.document.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
   });
 
   it("returns null when no document is found", async () => {
-    documentFindAtMostOne.mockResolvedValueOnce(null);
+    regularMocks.document.findAtMostOne.mockResolvedValueOnce(null);
+    const result = await selectDocument(where);
+    expect(regularMocks.document.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
+    expect(result).toBeNull();
+  });
+
+  it("returns document that is found", async () => {
+    const document = { id: testDocumentId } as PrismaDocument;
+    regularMocks.document.findAtMostOne.mockResolvedValueOnce(document);
 
     const result = await selectDocument(where);
-
-    expect(result).toBeNull();
+    expect(regularMocks.document.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
+    expect(result).toBe(document);
   });
 });

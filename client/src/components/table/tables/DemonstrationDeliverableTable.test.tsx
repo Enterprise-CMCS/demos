@@ -10,6 +10,7 @@ const baseDeliverable: Omit<DeliverableTableRow, "id" | "name" | "dueDate" | "st
     id: "demo-1",
     name: "Demo 1",
     state: { id: "NY" },
+    demonstrationTypes: [],
   },
   deliverableType: "Monitoring Protocol",
   cmsOwner: {
