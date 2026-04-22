@@ -1,22 +1,12 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import * as UserContext from "components/user/UserContext";
-
 import { MockedResponse } from "@apollo/client/testing";
 import { DELIVERABLES_PAGE_QUERY } from "components/table/tables/DeliverableTable";
 import { DeliverablesPage } from "./DeliverablesPage";
 import { MOCK_DELIVERABLE_TABLE_ROW } from "mock-data/deliverableMocks";
 import { mockUsers } from "mock-data/userMocks";
 import { TestProvider } from "test-utils/TestProvider";
-
-vi.mock("components/user/UserContext", async (importOriginal) => {
-  const actual = await importOriginal<typeof UserContext>();
-  return {
-    ...actual,
-    getCurrentUser: vi.fn(),
-  };
-});
 
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({ showEditDeliverableDialog: vi.fn() }),
@@ -51,11 +41,11 @@ const DELIVERABLES_TABLE_MOCKS: MockedResponse[] = [
 describe("DeliverablesPage tab persistence", () => {
   const TAB_KEY = "selectedDeliverableTab";
   const CURRENT_USER_ID = MOCK_DELIVERABLE_TABLE_ROW.cmsOwner.id;
-  const mockGetCurrentUser = vi.mocked(UserContext.getCurrentUser);
+  const DEFAULT_TEST_USER = { ...mockUsers[0], id: CURRENT_USER_ID };
 
-  const renderDeliverablesPage = async () => {
+  const renderDeliverablesPage = async (currentUser = DEFAULT_TEST_USER) => {
     render(
-      <TestProvider mocks={DELIVERABLES_TABLE_MOCKS}>
+      <TestProvider mocks={DELIVERABLES_TABLE_MOCKS} currentUser={currentUser}>
         <DeliverablesPage />
       </TestProvider>
     );
@@ -64,12 +54,6 @@ describe("DeliverablesPage tab persistence", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetCurrentUser.mockReturnValue({
-      currentUser: {
-        ...mockUsers[0],
-        id: CURRENT_USER_ID,
-      },
-    });
     sessionStorage.clear();
   });
 
@@ -139,17 +123,13 @@ describe("DeliverablesPage tab persistence", () => {
   });
 
   it("uses state-user table columns when current user is demos-state-user", async () => {
-    mockGetCurrentUser.mockReturnValue({
-      currentUser: {
-        ...mockUsers[0],
-        person: {
-          ...mockUsers[0].person,
-          personType: "demos-state-user",
-        },
+    await renderDeliverablesPage({
+      ...mockUsers[0],
+      person: {
+        ...mockUsers[0].person,
+        personType: "demos-state-user",
       },
     });
-
-    await renderDeliverablesPage();
 
     expect(
       screen.queryByRole("columnheader", { name: /State\/Territory/i })
@@ -159,35 +139,28 @@ describe("DeliverablesPage tab persistence", () => {
   });
 
   it("shows All Deliverables tab for demos-state-user", async () => {
-    mockGetCurrentUser.mockReturnValue({
-      currentUser: {
-        ...mockUsers[0],
-        person: {
-          ...mockUsers[0].person,
-          personType: "demos-state-user",
-        },
+    await renderDeliverablesPage({
+      ...mockUsers[0],
+      person: {
+        ...mockUsers[0].person,
+        personType: "demos-state-user",
       },
     });
-
-    await renderDeliverablesPage();
 
     expect(screen.getByTestId("button-deliverables")).toBeInTheDocument();
     expect(screen.getByTestId("button-my-deliverables")).toHaveAttribute("aria-selected", "true");
   });
 
   it("uses stored deliverables tab for demos-state-user", async () => {
-    mockGetCurrentUser.mockReturnValue({
-      currentUser: {
-        ...mockUsers[0],
-        person: {
-          ...mockUsers[0].person,
-          personType: "demos-state-user",
-        },
-      },
-    });
     sessionStorage.setItem(TAB_KEY, "deliverables");
 
-    await renderDeliverablesPage();
+    await renderDeliverablesPage({
+      ...mockUsers[0],
+      person: {
+        ...mockUsers[0].person,
+        personType: "demos-state-user",
+      },
+    });
 
     expect(sessionStorage.getItem(TAB_KEY)).toBe("deliverables");
     expect(screen.getByTestId("button-deliverables")).toHaveAttribute("aria-selected", "true");

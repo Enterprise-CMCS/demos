@@ -1,6 +1,7 @@
 import React from "react";
 import { describe, expect, it } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 import { DemonstrationDeliverableTable } from "./DemonstrationDeliverableTable";
 import type { DeliverableTableRow } from "./DeliverableTable";
@@ -97,6 +98,61 @@ describe("DemonstrationDeliverableTable", () => {
 
     expect(screen.getByRole("columnheader", { name: /State\/Territory/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /CMS Owner/i })).toBeInTheDocument();
+
+    const filterByColumn = screen.getByTestId("filter-by-column") as HTMLSelectElement;
+    const optionLabels = Array.from(filterByColumn.options).map((option) => option.text);
+
+    expect(optionLabels).toEqual([
+      "Select a Column...",
+      "State/Territory",
+      "Demonstration Name",
+      "Deliverable Type",
+      "Deliverable Name",
+      "CMS Owner",
+      "Due Date",
+      "Status",
+    ]);
+  });
+
+  it("uses multiselect filter inputs for configured categorical fields", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <DemonstrationDeliverableTable
+        viewMode="demos-cms-user"
+        deliverables={[
+          {
+            id: "row-3",
+            name: "Item",
+            dueDate: new Date("2026-01-01"),
+            status: "Upcoming",
+            ...baseDeliverable,
+          },
+        ]}
+      />
+    );
+
+    const columnSelect = screen.getByTestId("filter-by-column");
+
+    await user.selectOptions(columnSelect, "Demonstration Name");
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("Select Demonstration Name")).toBeInTheDocument();
+    });
+
+    await user.selectOptions(columnSelect, "Deliverable Type");
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("Select Deliverable Type")).toBeInTheDocument();
+    });
+
+    await user.selectOptions(columnSelect, "CMS Owner");
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("Select CMS Owner")).toBeInTheDocument();
+    });
+
+    await user.selectOptions(columnSelect, "Status");
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("Select Status")).toBeInTheDocument();
+    });
   });
 
   it("hides state and CMS owner columns for state users", () => {
@@ -117,6 +173,18 @@ describe("DemonstrationDeliverableTable", () => {
 
     expect(screen.queryByRole("columnheader", { name: /State\/Territory/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: /CMS Owner/i })).not.toBeInTheDocument();
+
+    const filterByColumn = screen.getByTestId("filter-by-column") as HTMLSelectElement;
+    const optionLabels = Array.from(filterByColumn.options).map((option) => option.text);
+
+    expect(optionLabels).toEqual([
+      "Select a Column...",
+      "Demonstration Name",
+      "Deliverable Type",
+      "Deliverable Name",
+      "Due Date",
+      "Status",
+    ]);
   });
 
   it("reapplies default sort order when deliverables are reloaded", () => {

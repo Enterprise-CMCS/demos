@@ -15,6 +15,7 @@ import { EditIcon } from "components/icons/Navigation/EditIcon";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
 import { isDeliverableEditable } from "components/dialog/deliverable";
 import { useDialog } from "components/dialog/DialogContext";
+import { getDeliverableFilterOptions } from "./deliverablesFilterOptions";
 
 export type DeliverableTableRow = Omit<
   Deliverable,
@@ -69,7 +70,7 @@ export const DELIVERABLES_PAGE_QUERY = gql`
 `;
 
 const EMPTY_ROWS_MESSAGE = "There are no assigned Deliverables at this time";
-const NO_RESULTS_FOUND = "No results were returned. Adjust your search and filter criteria.";
+const NO_RESULTS_FOUND = "No deliverables match your search.";
 
 export const formatDeliverableStatus = ({ status }: Pick<Deliverable, "status">) => status;
 
@@ -79,7 +80,12 @@ export const DeliverableTable: React.FC<{
   viewMode: UserType;
 }> = ({ deliverables, emptyRowsMessage = EMPTY_ROWS_MESSAGE, viewMode }) => {
   const { showEditDeliverableDialog } = useDialog();
-  const deliverableColumns = DeliverableColumns({ viewMode });
+  const { demonstrationNameOptions, cmsOwnerOptions } = getDeliverableFilterOptions(deliverables);
+  const deliverableColumns = DeliverableColumns({
+    viewMode,
+    demonstrationNameOptions,
+    cmsOwnerOptions,
+  });
   const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({
     ...deliverable,
     status: formatDeliverableStatus(deliverable),

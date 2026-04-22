@@ -197,6 +197,12 @@ export const getApplicationIntakeComponentFromApplication = (
     throw new Error(`Application is missing expected phase: ${THIS_PHASE_NAME}`);
   }
 
+  const completenessPhase = application.phases.find((phase) => phase.phaseName === "Completeness");
+
+  if (!completenessPhase) {
+    throw new Error("Application is missing expected phase: Completeness");
+  }
+
   const stateApplicationSubmittedDate = applicationIntakePhase.phaseDates.find(
     (date) => date.dateType === "State Application Submitted Date"
   )?.dateValue;
@@ -218,6 +224,7 @@ export const getApplicationIntakeComponentFromApplication = (
       tags={application.tags}
       setSelectedPhase={setSelectedPhase}
       phaseStatus={applicationIntakePhase.phaseStatus ?? "Not Started"}
+      completenessPhaseStatus={completenessPhase.phaseStatus ?? "Not Started"}
     />
   );
 };
@@ -228,6 +235,7 @@ export interface ApplicationIntakeProps {
   tags: Tag[];
   setSelectedPhase: (phase: PhaseName) => void;
   phaseStatus: PhaseStatus;
+  completenessPhaseStatus: PhaseStatus;
 }
 
 export const ApplicationIntakePhase = ({
@@ -237,7 +245,9 @@ export const ApplicationIntakePhase = ({
   tags,
   setSelectedPhase,
   phaseStatus,
+  completenessPhaseStatus,
 }: ApplicationIntakeProps) => {
+  const completenessIncomplete = completenessPhaseStatus === "Incomplete";
   const { showSuccess, showError } = useToast();
   const { completePhase } = useCompletePhase();
   const { setApplicationDates } = useSetApplicationDates();
@@ -246,16 +256,18 @@ export const ApplicationIntakePhase = ({
   const [submittedDateOverride, setSubmittedDateOverride] = useState<string>("");
 
   // Calculate the dates to display based on the following rules:
-  // 1. If a date was passed to this component (most likely finalized), use this
-  // 2. If the user has manually entered a date (submittedDateOverride), use this
-  // 3. If no manual date, calculate based on the latest createdAt date of State Application documents
+  // 1. If the user has manually entered a date (submittedDateOverride), use this
+  // 2. If a date was passed to this component (most likely finalized), use this
+  // 3. If no manual date and Completeness is Incomplete (downstream Declare Incomplete just
+  //    reset this phase), show blank — any document auto-fill is stale until the user re-enters.
+  // 4. Otherwise, calculate based on the latest createdAt of State Application documents.
   const calculatedStateApplicationSubmittedDate = calculateStateApplicationSubmittedDate(
     initialStateApplicationSubmittedDate,
     applicationIntakeDocuments
   );
-  const stateApplicationSubmittedDate = submittedDateOverride
-    ? submittedDateOverride
-    : calculatedStateApplicationSubmittedDate;
+  const stateApplicationSubmittedDate =
+    submittedDateOverride ||
+    (completenessIncomplete ? "" : calculatedStateApplicationSubmittedDate);
   const completenessReviewDueDate = getCompletenessReviewDueDate(stateApplicationSubmittedDate);
 
   const isPhaseFinalized = phaseStatus === "Completed";
