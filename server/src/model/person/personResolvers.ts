@@ -1,6 +1,8 @@
 import { Person as PrismaPerson } from "@prisma/client";
 
 import { prisma } from "../../prismaClient";
+import { GraphQLContext } from "../../auth";
+import { getManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment";
 
 export const personResolvers = {
   Query: {
@@ -69,16 +71,9 @@ export const personResolvers = {
     personType: async (parent: PrismaPerson) => {
       return parent.personTypeId;
     },
-    roles: async (parent: PrismaPerson) => {
-      const roleAssignments = await prisma().demonstrationRoleAssignment.findMany({
-        where: { personId: parent.id },
-        include: { primaryDemonstrationRoleAssignment: true },
-      });
-      return roleAssignments.map((assignment) => ({
-        ...assignment,
-        isPrimary: !!assignment.primaryDemonstrationRoleAssignment,
-      }));
-    },
+    roles: (parent: PrismaPerson, args: unknown, context: GraphQLContext) =>
+      getManyDemonstrationRoleAssignments({ personId: parent.id }, context.user),
+
     states: async (parent: PrismaPerson) => {
       const personStates = await prisma().personState.findMany({
         where: { personId: parent.id },

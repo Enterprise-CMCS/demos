@@ -636,6 +636,7 @@ BEGIN
             due_date_change_allowed,
             should_have_note,
             should_have_user_id,
+            extension_id_optional,
             old_due_date,
             new_due_date,
             user_id
@@ -656,6 +657,7 @@ BEGIN
             NEW.due_date_change_allowed,
             NEW.should_have_note,
             NEW.should_have_user_id,
+            NEW.extension_id_optional,
             NEW.old_due_date,
             NEW.new_due_date,
             NEW.user_id
@@ -675,6 +677,7 @@ BEGIN
             due_date_change_allowed,
             should_have_note,
             should_have_user_id,
+            extension_id_optional,
             old_due_date,
             new_due_date,
             user_id
@@ -692,6 +695,7 @@ BEGIN
             OLD.due_date_change_allowed,
             OLD.should_have_note,
             OLD.should_have_user_id,
+            OLD.extension_id_optional,
             OLD.old_due_date,
             OLD.new_due_date,
             OLD.user_id

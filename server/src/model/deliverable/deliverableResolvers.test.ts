@@ -8,7 +8,7 @@ import {
   Document as PrismaDocument,
   User as PrismaUser,
 } from "@prisma/client";
-import { GraphQLContext } from "../../auth";
+import { ContextUser, GraphQLContext } from "../../auth";
 import { GraphQLResolveInfo } from "graphql";
 import {
   CreateDeliverableInput,
@@ -32,6 +32,9 @@ import {
   deliverableResolvers,
 } from "./deliverableResolvers";
 
+import { DeliverableDemonstrationTypeQueryResult } from "../deliverableDemonstrationType/queries";
+import { getManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
+
 // Mock imports
 vi.mock(".", () => ({
   createDeliverable: vi.fn(),
@@ -53,17 +56,13 @@ vi.mock("../document", () => ({
 }));
 
 vi.mock("../deliverableDemonstrationType", () => ({
-  getDeliverableDemonstrationTypes: vi.fn(),
+  getManyDeliverableDemonstrationTypes: vi.fn(),
 }));
 
 import { createDeliverable, getDeliverable, getManyDeliverables, updateDeliverable } from ".";
 import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getManyDocuments } from "../document";
-import {
-  GetDeliverableDemonstrationTypeResult,
-  getDeliverableDemonstrationTypes,
-} from "../deliverableDemonstrationType";
 
 describe("deliverableResolvers", () => {
   const testDeliverableId = "82ef9a17-e8b9-48ab-9aaf-3d1787822b13";
@@ -114,6 +113,11 @@ describe("deliverableResolvers", () => {
   };
   const testUserParent: Partial<PrismaUser> = {
     id: testUserId,
+  };
+
+  const mockUser = {} as unknown as ContextUser;
+  const mockContext: GraphQLContext = {
+    user: mockUser,
   };
 
   beforeEach(() => {
@@ -314,25 +318,48 @@ describe("deliverableResolvers", () => {
 
     describe("Deliverable.demonstrationTypes", () => {
       it("should query the demonstration types of the parent deliverable", async () => {
-        const mockGetDeliverableDemonstrationTypeResult: GetDeliverableDemonstrationTypeResult[] = [
-          {
-            tagName: "Free Insulin",
-            approvalStatus: "Approved",
-          },
-          {
-            tagName: "Vitamin A Supplementation for Newborns",
-            approvalStatus: "Unapproved",
-          },
-        ];
-        vi.mocked(getDeliverableDemonstrationTypes).mockResolvedValue(
-          mockGetDeliverableDemonstrationTypeResult
+        const mockDeliverableDemonstrationTypeQueryResult: DeliverableDemonstrationTypeQueryResult[] =
+          [
+            {
+              demonstrationTypeTagAssignment: {
+                tag: {
+                  statusId: "Approved",
+                  tagNameId: "Free Insulin",
+                },
+              },
+            },
+            {
+              demonstrationTypeTagAssignment: {
+                tag: {
+                  statusId: "Unapproved",
+                  tagNameId: "Vitamin A Supplementation for Newborns",
+                },
+              },
+            },
+          ] as DeliverableDemonstrationTypeQueryResult[];
+        vi.mocked(getManyDeliverableDemonstrationTypes).mockResolvedValue(
+          mockDeliverableDemonstrationTypeQueryResult
         );
 
         const result = await deliverableResolvers.Deliverable.demonstrationTypes(
-          testDeliverable as PrismaDeliverable
+          testDeliverable as PrismaDeliverable,
+          undefined,
+          mockContext
         );
-        expect(getDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(testDeliverableId);
-        expect(result).toStrictEqual(mockGetDeliverableDemonstrationTypeResult);
+        expect(getManyDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
+          { deliverableId: testDeliverableId },
+          mockUser
+        );
+        expect(result).toStrictEqual([
+          {
+            approvalStatus: "Approved",
+            tagName: "Free Insulin",
+          },
+          {
+            approvalStatus: "Unapproved",
+            tagName: "Vitamin A Supplementation for Newborns",
+          },
+        ]);
       });
     });
   });
