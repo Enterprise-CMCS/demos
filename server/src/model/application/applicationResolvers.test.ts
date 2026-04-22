@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   resolveApplicationType,
-  resolveApplicationTags,
   PrismaApplication,
   resolveSuggestedApplicationTags,
 } from ".";
@@ -66,57 +65,6 @@ describe("applicationResolvers", () => {
       };
       const result = resolveApplicationType(input as PrismaApplication);
       expect(result).toBe(testDemonstrationApplicationTypeId);
-    });
-  });
-
-  describe("resolveApplicationTags", () => {
-    it("should resolve the tags on an application", async () => {
-      // This is present just to test the map in the function
-      const resolvedValue: (Pick<PrismaApplicationTagAssignment, "tagNameId"> & {
-        tag: Pick<PrismaTag, "statusId">;
-      })[] = [
-        {
-          tagNameId: "Test Tag Value A",
-          tag: {
-            statusId: "Unapproved",
-          },
-        },
-        {
-          tagNameId: "Test Tag Value B",
-          tag: {
-            statusId: "Approved",
-          },
-        },
-      ];
-      regularMocks.applicationTagAssignment.findMany.mockResolvedValueOnce(resolvedValue);
-
-      const expectedCall = {
-        where: {
-          applicationId: testApplicationId,
-        },
-        include: {
-          tag: true,
-        },
-      };
-      const expectedResult: Tag[] = [
-        {
-          approvalStatus: "Unapproved",
-          tagName: "Test Tag Value A",
-        },
-        {
-          approvalStatus: "Approved",
-          tagName: "Test Tag Value B",
-        },
-      ];
-      const input: Partial<PrismaApplication> = {
-        id: testApplicationId,
-      };
-
-      const result = await resolveApplicationTags(input as PrismaApplication);
-      expect(regularMocks.applicationTagAssignment.findMany).toHaveBeenCalledExactlyOnceWith(
-        expectedCall
-      );
-      expect(result).toStrictEqual(expectedResult);
     });
   });
 

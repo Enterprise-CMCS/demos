@@ -22,7 +22,6 @@ import { prisma } from "../../prismaClient";
 import {
   deleteApplication,
   // None of these are tested but need to be exported to avoid mocking issues
-  resolveApplicationTags,
   resolveSuggestedApplicationTags,
 } from "../application";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
@@ -37,6 +36,8 @@ import { getDemonstration } from "../demonstration";
 import { getAmendment, getManyAmendments } from "./amendmentData";
 import { getManyDocuments } from "../document";
 import { getManyApplicationPhases } from "../applicationPhase";
+import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
+import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
@@ -58,31 +59,34 @@ vi.mock("../applicationPhase", () => ({
   getManyApplicationPhases: vi.fn(),
 }));
 
+vi.mock("../applicationTagAssignment", () => ({
+  getManyApplicationTagAssignments: vi.fn(),
+}));
+
 vi.mock("../application", () => ({
   getApplication: vi.fn(),
   getManyApplications: vi.fn(),
   deleteApplication: vi.fn(),
-  resolveApplicationTags: vi.fn(),
   resolveSuggestedApplicationTags: vi.fn(),
 }));
 
-vi.mock("../../errors/checkOptionalNotNullFields.js", () => ({
+vi.mock("../../errors/checkOptionalNotNullFields", () => ({
   checkOptionalNotNullFields: vi.fn(),
 }));
 
 const testHandlePrismaError = new Error("Test handlePrismaError!");
-vi.mock("../../errors/handlePrismaError.js", () => ({
+vi.mock("../../errors/handlePrismaError", () => ({
   handlePrismaError: vi.fn(() => {
     throw testHandlePrismaError;
   }),
 }));
 
-vi.mock("../applicationDate/checkInputDateFunctions.js", () => ({
+vi.mock("../applicationDate/checkInputDateFunctions", () => ({
   checkInputDateIsStartOfDay: vi.fn(),
   checkInputDateIsEndOfDay: vi.fn(),
 }));
 
-vi.mock("../../dateUtilities.js", () => ({
+vi.mock("../../dateUtilities", () => ({
   parseDateTimeOrLocalDateToEasternTZDate: vi.fn(),
 }));
 
@@ -180,6 +184,42 @@ describe("amendmentResolvers", () => {
         { applicationId: "amendmentId" },
         mockUser
       );
+    });
+  });
+
+  describe("Amendment.tags", () => {
+    it("delegates to applicationTagAssignmentData.getManyApplicationTagAssignments and maps result", async () => {
+      const mockAmendment = { id: "abc123" } as PrismaAmendment;
+      vi.mocked(getManyApplicationTagAssignments).mockResolvedValueOnce([
+        {
+          tag: {
+            tagNameId: "Tag1",
+            statusId: "Approved",
+          },
+        },
+        {
+          tag: {
+            tagNameId: "Tag2",
+            statusId: "Unapproved",
+          },
+        },
+      ] as ApplicationTagAssignmentQueryResult[]);
+
+      const result = await amendmentResolvers.Amendment.tags(mockAmendment, undefined, mockContext);
+      expect(getManyApplicationTagAssignments).toHaveBeenCalledExactlyOnceWith(
+        { applicationId: "abc123" },
+        mockUser
+      );
+      expect(result).toEqual([
+        {
+          tagName: "Tag1",
+          approvalStatus: "Approved",
+        },
+        {
+          tagName: "Tag2",
+          approvalStatus: "Unapproved",
+        },
+      ]);
     });
   });
 

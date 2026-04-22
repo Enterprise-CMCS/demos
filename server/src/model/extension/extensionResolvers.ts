@@ -10,16 +10,13 @@ import {
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate";
-import {
-  deleteApplication,
-  resolveApplicationTags,
-  resolveSuggestedApplicationTags,
-} from "../application";
+import { deleteApplication, resolveSuggestedApplicationTags } from "../application";
 import { getDemonstration } from "../demonstration";
 import { GraphQLContext } from "../../auth";
 import { getExtension, getManyExtensions } from "./extensionData";
 import { getManyDocuments } from "../document";
 import { getManyApplicationPhases } from "../applicationPhase";
+import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
 
 const extensionApplicationType: ApplicationType = "Extension";
 const conceptPhaseName: PhaseName = "Concept";
@@ -109,7 +106,17 @@ export const extensionResolvers = {
     phases: (parent: PrismaExtension, args: unknown, context: GraphQLContext) =>
       getManyApplicationPhases({ applicationId: parent.id }, context.user),
     clearanceLevel: (parent: PrismaExtension) => parent.clearanceLevelId,
-    tags: resolveApplicationTags,
+    tags: async (parent: PrismaExtension, args: unknown, context: GraphQLContext) =>
+      (await getManyApplicationTagAssignments({ applicationId: parent.id }, context.user)).map(
+        (assignment) => {
+          const { statusId, tagNameId, ...tag } = assignment.tag;
+          return {
+            ...tag,
+            tagName: tagNameId,
+            approvalStatus: statusId,
+          };
+        }
+      ),
     signatureLevel: (parent: PrismaExtension) => parent.signatureLevelId,
     suggestedApplicationTags: resolveSuggestedApplicationTags,
   },

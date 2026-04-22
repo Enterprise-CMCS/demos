@@ -22,7 +22,6 @@ import { prisma } from "../../prismaClient";
 import {
   deleteApplication,
   // None of these are tested but need to be exported to avoid mocking issues
-  resolveApplicationTags,
   resolveSuggestedApplicationTags,
 } from "../application";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
@@ -37,6 +36,8 @@ import { getDemonstration } from "../demonstration";
 import { getExtension, getManyExtensions } from "./extensionData";
 import { getManyDocuments } from "../document";
 import { getManyApplicationPhases } from "../applicationPhase";
+import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
+import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -59,11 +60,14 @@ vi.mock("../demonstration", () => ({
   getDemonstration: vi.fn(),
 }));
 
+vi.mock("../applicationTagAssignment", () => ({
+  getManyApplicationTagAssignments: vi.fn(),
+}));
+
 vi.mock("../application", () => ({
   getApplication: vi.fn(),
   getManyApplications: vi.fn(),
   deleteApplication: vi.fn(),
-  resolveApplicationTags: vi.fn(),
   resolveSuggestedApplicationTags: vi.fn(),
 }));
 
@@ -174,6 +178,42 @@ describe("extensionResolvers", () => {
         { applicationId: "extensionId" },
         mockUser
       );
+    });
+  });
+
+  describe("Extension.tags", () => {
+    it("delegates to applicationTagAssignmentData.getManyApplicationTagAssignments and maps result", async () => {
+      const mockExtension = { id: "abc123" } as PrismaExtension;
+      vi.mocked(getManyApplicationTagAssignments).mockResolvedValueOnce([
+        {
+          tag: {
+            tagNameId: "Tag1",
+            statusId: "Approved",
+          },
+        },
+        {
+          tag: {
+            tagNameId: "Tag2",
+            statusId: "Unapproved",
+          },
+        },
+      ] as ApplicationTagAssignmentQueryResult[]);
+
+      const result = await extensionResolvers.Extension.tags(mockExtension, undefined, mockContext);
+      expect(getManyApplicationTagAssignments).toHaveBeenCalledExactlyOnceWith(
+        { applicationId: "abc123" },
+        mockUser
+      );
+      expect(result).toEqual([
+        {
+          tagName: "Tag1",
+          approvalStatus: "Approved",
+        },
+        {
+          tagName: "Tag2",
+          approvalStatus: "Unapproved",
+        },
+      ]);
     });
   });
 
