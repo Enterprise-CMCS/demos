@@ -11,18 +11,19 @@ import { updateDeliverableDemonstrationTypes } from "./updateDeliverableDemonstr
 
 // Mock imports
 vi.mock("../deliverableDemonstrationType", () => ({
-  getDeliverableDemonstrationTypes: vi.fn(),
   setDeliverableDemonstrationTypes: vi.fn(),
+}));
+
+vi.mock("../deliverableDemonstrationType/queries", () => ({
+  getDeliverableDemonstrationTypes: vi.fn(),
 }));
 
 vi.mock(".", () => ({
   getDeliverable: vi.fn(),
 }));
 
-import {
-  getDeliverableDemonstrationTypes,
-  setDeliverableDemonstrationTypes,
-} from "../deliverableDemonstrationType";
+import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
+import { getDeliverableDemonstrationTypes } from "../deliverableDemonstrationType/queries";
 import { getDeliverable } from ".";
 
 describe("updateDeliverableDemonstrationTypes", () => {

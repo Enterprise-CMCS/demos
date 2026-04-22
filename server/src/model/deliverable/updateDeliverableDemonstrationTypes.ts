@@ -2,10 +2,8 @@ import { getDeliverable, ParsedUpdateDeliverableInput } from ".";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { TagName } from "../../types";
 import { findSetDifferences } from "../../validationUtilities";
-import {
-  getDeliverableDemonstrationTypes,
-  setDeliverableDemonstrationTypes,
-} from "../deliverableDemonstrationType";
+import { getDeliverableDemonstrationTypes } from "../deliverableDemonstrationType/queries";
+import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 
 export async function updateDeliverableDemonstrationTypes(
   deliverableId: string,
