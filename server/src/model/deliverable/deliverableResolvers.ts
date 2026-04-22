@@ -70,6 +70,13 @@ export async function resolveManyDeliverables(
   return results;
 }
 
+export async function queryDeliverable(
+  parent: unknown,
+  args: { id: string }
+): Promise<PrismaDeliverable | null> {
+  return await getDeliverable({ id: args.id });
+}
+
 export async function queryDeliverables(): Promise<PrismaDeliverable[]> {
   return await getManyDeliverables();
 }
@@ -98,6 +105,7 @@ export async function resolveDeliverableCmsOwner(parent: PrismaDeliverable): Pro
 
 export const deliverableResolvers = {
   Query: {
+    deliverable: queryDeliverable,
     deliverables: queryDeliverables,
   },
 
