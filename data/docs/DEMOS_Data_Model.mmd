@@ -501,7 +501,6 @@ erDiagram
     uuid deliverable_id FK "FK127: deliverable_id ∈ deliverable.id<br>UK: (id, deliverable_id, status_id)<br>UK: (id, deliverable_id)"
     text status_id FK "FK128: status_id ∈ deliverable_extension_status.id<br>UK: (id, deliverable_id, status_id)"
     text reason_code_id FK "FK129: reason_code_id ∈ deliverable_extension_reason_code.id"
-    text note "NULLABLE"
     timestamptz original_date_requested
     timestamptz final_date_granted "NULLABLE"
     timestamptz created_at
