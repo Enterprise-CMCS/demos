@@ -4,10 +4,13 @@ import { MenuCollapseRightIcon } from "components/icons/Navigation/MenuCollapseR
 import { Textarea } from "components/input";
 import { CommentIcon } from "components/icons";
 import { SecondaryButton } from "components/button";
+import { getCurrentUser } from "components/user/UserContext";
+import { PersonType } from "demos-server";
 
 export const COMMENT_BOX_NAME = "comment-box";
 export const COMMENT_BOX_TEXT_AREA_NAME = "textarea-comment-box";
 export const COLLAPSE_COMMENTS_BUTTON_NAME = "button-collapse-comments";
+export const COMMENT_BOX_TABS_NAME = "comment-box-tabs";
 
 const CommentBoxHeader = ({ onCollapse }: { onCollapse: () => void }) => (
   <div className="flex items-center justify-between pb-1 border-b border-gray-dark">
@@ -29,6 +32,13 @@ const CommentBoxTextArea = ({ value, onChange }: { value: string; onChange: (e: 
   );
 };
 
+const CommentBoxTabs = () => (
+  <div data-testid={COMMENT_BOX_TABS_NAME}>
+    ONLY CMS / ADMIN USERS CAN SEE THIS
+    {/* TODO: implement tab content */}
+  </div>
+);
+
 const CommentBoxHistory = () => (
   <>
     <span className="font-semibold">Comment History</span>
@@ -37,8 +47,16 @@ const CommentBoxHistory = () => (
 );
 
 export const CommentBox = () => {
+  const { currentUser } = getCurrentUser();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [currentComment, setCurrentComment] = useState("");
+
+  if (!currentUser) {
+    return null;
+  }
+
+  const userPersonType: PersonType = currentUser.person.personType;
+  const isCmsOrAdminUser = userPersonType === "demos-cms-user" || userPersonType === "demos-admin";
 
   if (isCollapsed) {
     return (
@@ -56,6 +74,7 @@ export const CommentBox = () => {
   return (
     <div className="flex flex-col gap-1 bg-gray-primary-layout p-1 min-h-full min-w-[350px]" data-testid={COMMENT_BOX_NAME}>
       <CommentBoxHeader onCollapse={() => setIsCollapsed(true)} />
+      {isCmsOrAdminUser && <CommentBoxTabs />}
       <CommentBoxTextArea value={currentComment} onChange={(e) => setCurrentComment(e.target.value)} />
       <CommentBoxHistory />
     </div>
