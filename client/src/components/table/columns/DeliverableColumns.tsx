@@ -61,6 +61,7 @@ export function DeliverableColumns({
     meta: {
       filterConfig: {
         filterType: "select",
+        // Extension Requested options not ready yet.
         options: DELIVERABLE_STATUSES.map((status) => ({ label: status, value: status })),
       },
     },

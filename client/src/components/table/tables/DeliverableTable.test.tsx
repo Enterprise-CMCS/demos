@@ -138,7 +138,7 @@ describe("DeliverableTable", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText(/No results were returned. Adjust your search and filter criteria./i)
+          screen.getByText(/No deliverables match your search\./i)
         ).toBeInTheDocument();
       });
     });
