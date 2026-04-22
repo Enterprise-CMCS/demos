@@ -9,6 +9,8 @@ import {
 import { PrismaApplicationNoteResults } from "./applicationPhaseTypes";
 import { GraphQLContext } from "../../auth";
 import { getManyDocuments } from "../document";
+import { getManyApplicationDates } from "../applicationDate";
+import { getManyApplicationNotes } from "../applicationNote";
 
 export async function __resolveApplicationPhaseDates(
   parent: PrismaApplicationPhase
@@ -54,20 +56,34 @@ export async function __resolveApplicationPhaseNotes(
   return rows;
 }
 
-export function __resolveApplicationPhaseName(parent: PrismaApplicationPhase): string {
-  return parent.phaseId;
-}
-
-export function __resolveApplicationPhaseStatus(parent: PrismaApplicationPhase): string {
-  return parent.phaseStatusId;
-}
-
 export const applicationPhaseResolvers = {
   ApplicationPhase: {
-    phaseName: __resolveApplicationPhaseName,
-    phaseStatus: __resolveApplicationPhaseStatus,
-    phaseDates: __resolveApplicationPhaseDates,
-    phaseNotes: __resolveApplicationPhaseNotes,
+    phaseName: (parent: PrismaApplicationPhase) => parent.phaseId,
+    phaseStatus: (parent: PrismaApplicationPhase) => parent.phaseStatusId,
+    phaseDates: (parent: PrismaApplicationPhase, args: unknown, context: GraphQLContext) =>
+      getManyApplicationDates(
+        {
+          applicationId: parent.applicationId,
+          dateType: {
+            phaseDateTypes: {
+              some: { phaseId: parent.phaseId },
+            },
+          },
+        },
+        context.user
+      ),
+    phaseNotes: (parent: PrismaApplicationPhase, args: unknown, context: GraphQLContext) =>
+      getManyApplicationNotes(
+        {
+          applicationId: parent.applicationId,
+          noteType: {
+            phaseNoteTypes: {
+              some: { phaseId: parent.phaseId },
+            },
+          },
+        },
+        context.user
+      ),
     documents: (parent: PrismaApplicationPhase, args: unknown, context: GraphQLContext) =>
       getManyDocuments(
         {

@@ -477,6 +477,16 @@ export const PERMISSIONS = [
   "View All Documents",
   "View Documents on Assigned Demonstrations",
   "View Owned Documents",
+  "View All ApplicationPhases",
+  "View ApplicationPhases on Assigned Demonstrations",
+  "View All ApplicationDates",
+  "View ApplicationDates on Assigned Demonstrations",
+  "View All ApplicationNotes",
+  "View ApplicationNotes on Assigned Demonstrations",
+  "View All ApplicationTagAssignments",
+  "View ApplicationTagAssignments on Assigned Demonstrations",
+  "View All DemonstrationTypeTagAssignments",
+  "View DemonstrationTypeTagAssignments on Assigned Demonstrations",
 ] as const;
 
 export const SYSTEM_ROLES = ["Admin User", "CMS User", "State User"] as const;

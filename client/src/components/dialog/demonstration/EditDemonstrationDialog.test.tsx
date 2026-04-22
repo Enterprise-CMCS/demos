@@ -12,6 +12,7 @@ import {
   UPDATE_DEMONSTRATION_MUTATION,
 } from "./EditDemonstrationDialog";
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
+import { DEMONSTRATION_DIALOG_DESCRIPTION_NAME } from "./DemonstrationDialog";
 
 const DEFAULT_DEMONSTRATION = {
   name: "",
@@ -177,7 +178,7 @@ describe("EditDemonstrationDialog", () => {
 
     // Wait for loading to complete
     await waitFor(() => {
-      expect(screen.getByTestId("textarea-description")).toBeInTheDocument();
+      expect(screen.getByTestId(DEMONSTRATION_DIALOG_DESCRIPTION_NAME)).toBeInTheDocument();
     });
   });
 

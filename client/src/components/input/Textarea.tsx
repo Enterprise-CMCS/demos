@@ -51,7 +51,7 @@ export const Textarea: React.FC<TextareaProps> = ({
       <textarea
         id={name}
         name={name}
-        data-testid={`textarea-${name}`}
+        data-testid={name}
         className={`${TEXTAREA_BASE_CLASSES} ${getInputColors(validationMessage ?? "")}`}
         placeholder={placeholder ?? ""}
         required={isRequired ?? false}

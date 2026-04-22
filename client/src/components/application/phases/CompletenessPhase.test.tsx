@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom";
 import React from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { TestProvider } from "test-utils/TestProvider";
@@ -245,7 +245,8 @@ describe("CompletenessPhase", () => {
       expect(screen.getByTestId(FEDERAL_COMMENT_END_DATEPICKER_NAME)).toHaveValue("");
     });
 
-    it("clears a user-selected date when phase transitions to Incomplete", () => {
+    it("clears a user-typed date when the Declare Incomplete button is clicked and the refetch sets phase to Incomplete", async () => {
+      const user = userEvent.setup();
       const { rerender } = render(
         <TestProvider>
           <CompletenessPhase
@@ -259,19 +260,48 @@ describe("CompletenessPhase", () => {
       fireEvent.change(dateInput, { target: { value: "2026-03-15" } });
       expect(dateInput).toHaveValue("2026-03-15");
 
+      const declareIncompleteButton = screen.getByTestId(
+        COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME
+      );
+      await user.click(declareIncompleteButton);
+
+      // Apollo refetches after the mutation and the server sets status to Incomplete +
+      // clears DB dates. Simulate that prop update here.
       rerender(
         <TestProvider>
           <CompletenessPhase
             {...defaultProps}
             completenessPhaseStatus="Incomplete"
+            stateDeemedCompleteDate=""
             completenessDocuments={[mockCompletenessDoc, mockInternalDoc]}
           />
         </TestProvider>
       );
 
-      expect(screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME)).toHaveValue("");
+      await waitFor(() => {
+        expect(screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME)).toHaveValue("");
+      });
       expect(screen.getByTestId(FEDERAL_COMMENT_START_DATEPICKER_NAME)).toHaveValue("");
       expect(screen.getByTestId(FEDERAL_COMMENT_END_DATEPICKER_NAME)).toHaveValue("");
+    });
+
+    it("allows the user to enter a new date while phase is Incomplete", () => {
+      setup({
+        completenessPhaseStatus: "Incomplete",
+        completenessDocuments: [mockCompletenessDoc, mockInternalDoc],
+        stateDeemedCompleteDate: "",
+      });
+
+      const dateInput = screen.getByTestId(
+        STATE_DEEMED_COMPLETE_DATEPICKER_NAME
+      ) as HTMLInputElement;
+      expect(dateInput.value).toBe("");
+
+      fireEvent.change(dateInput, { target: { value: "2026-04-10" } });
+
+      expect(dateInput.value).toBe("2026-04-10");
+      expect(screen.getByTestId(FEDERAL_COMMENT_START_DATEPICKER_NAME)).toHaveValue("2026-04-11");
+      expect(screen.getByTestId(FEDERAL_COMMENT_END_DATEPICKER_NAME)).toHaveValue("2026-05-11");
     });
 
     it("disables Declare Incomplete button when completeness is complete", () => {

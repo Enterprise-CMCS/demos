@@ -47,15 +47,11 @@ export async function __setApplicationNotes(
   return await getApplication(input.applicationId);
 }
 
-export function __resolveApplicationNoteType(parent: PrismaApplicationNote): string {
-  return parent.noteTypeId;
-}
-
 export const applicationNoteResolvers = {
   Mutation: {
     setApplicationNotes: __setApplicationNotes,
   },
   ApplicationNote: {
-    noteType: __resolveApplicationNoteType,
+    noteType: (parent: PrismaApplicationNote) => parent.noteTypeId,
   },
 };

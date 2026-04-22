@@ -2,8 +2,6 @@
 export { setApplicationClearanceLevel } from "./setApplicationClearanceLevel";
 export {
   resolveApplicationType,
-  resolveApplicationPhases,
-  resolveApplicationTags,
   resolveSuggestedApplicationTags,
 } from "./applicationResolvers";
 

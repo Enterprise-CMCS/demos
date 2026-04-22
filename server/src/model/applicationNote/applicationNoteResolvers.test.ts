@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { __resolveApplicationNoteType, __setApplicationNotes } from "./applicationNoteResolvers";
-import { ApplicationNote as PrismaApplicationNote } from "@prisma/client";
+import { __setApplicationNotes, applicationNoteResolvers } from "./applicationNoteResolvers";
+import { Prisma, ApplicationNote as PrismaApplicationNote } from "@prisma/client";
 import { prisma } from "../../prismaClient";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { getApplication } from "../application";
 import { parseSetApplicationNotesInput, upsertApplicationNotes, deleteApplicationNotes } from ".";
-import { SetApplicationNotesInput } from "../../types";
+import { NoteType, SetApplicationNotesInput } from "../../types";
 import { validateAllowedNoteChangeByPhase } from "./validateAllowedNoteChangeByPhase";
 
 vi.mock("../../prismaClient", () => ({
@@ -53,6 +53,17 @@ describe("applicationNoteResolvers", () => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
+  });
+
+  describe("ApplicationNote.noteType", () => {
+    it("returns noteTypeId", () => {
+      const applicationNote = {
+        noteTypeId: "COMMs Clearance" satisfies NoteType,
+      } as PrismaApplicationNote;
+
+      const result = applicationNoteResolvers.ApplicationNote.noteType(applicationNote);
+      expect(result).toBe(applicationNote.noteTypeId);
+    });
   });
 
   describe("__setApplicationNotes", () => {
@@ -142,20 +153,6 @@ describe("applicationNoteResolvers", () => {
         mockTransaction,
         testInput
       );
-    });
-  });
-
-  describe("__resolveApplicationNoteType", () => {
-    it("should retrieve the requested note type", () => {
-      const testPrismaResult: PrismaApplicationNote = {
-        applicationId: testApplicationId,
-        noteTypeId: "PO and OGD",
-        content: testNoteContent,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      const result = __resolveApplicationNoteType(testPrismaResult);
-      expect(result).toBe("PO and OGD");
     });
   });
 });

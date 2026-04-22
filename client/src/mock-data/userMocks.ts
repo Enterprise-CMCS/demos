@@ -7,8 +7,9 @@ import { MockedResponse } from "@apollo/client/testing";
 import { GET_CURRENT_USER_QUERY } from "components/user/UserContext";
 import { mockPeople, MockPerson } from "./personMocks";
 import { mockStates } from "./stateMocks";
+import { getMockPersonType } from "config/env";
 
-const developmentMockUser: MockUser = {
+export const developmentMockUser: MockUser = {
   id: "999",
   username: "mock.dev.user",
   person: {
@@ -16,7 +17,7 @@ const developmentMockUser: MockUser = {
     firstName: "Mock",
     lastName: "User",
     fullName: "Mock User",
-    personType: "demos-cms-user",
+    personType: getMockPersonType(),
     email: "mock.user@email.com",
     states: mockStates,
   },
@@ -43,13 +44,6 @@ export const userMocks: MockedResponse[] = [
     result: {
       data: { currentUser: developmentMockUser },
     },
-  },
-  {
-    request: {
-      query: GET_CURRENT_USER_QUERY,
-    },
-    result: {
-      data: { currentUser: mockUsers[0] },
-    },
+    maxUsageCount: Number.POSITIVE_INFINITY,
   },
 ];

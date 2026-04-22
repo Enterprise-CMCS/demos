@@ -24,7 +24,7 @@ This file provides instructions for AI agents to use when generating or editing 
 ### Functions
 
 - Prefer writing functions that take sentinel values over optional / undefined. For instance `""` or `[]` can be the "base case" and used as "falsey"
-- Prefer to fail-fast over delaying error handling. Use guard / precondition statements if appropriate.
+- Prefer to fail-fast over delaying error handling. Use guard clauses as needed.
 
 ## React
 
@@ -59,9 +59,11 @@ This file provides instructions for AI agents to use when generating or editing 
 
 - Place tests next to implementation (`Foo.tsx` and `Foo.test.tsx`).
 - Use `@testing-library/react` with `vitest`; prefer `screen.getByTestId()` queries.
+- Often times `name` attributes are propagated to `data-test-id`, try this approach first.
 - Prefer real behavior over heavy mocking; use `vi.mock(...)` only at clear boundaries.
 - Run tests with `npm run test:once ...`
 - Prefer to keep mock data in test files for clarity / isolation rather than in `/mock-data`.
+- For testing behavior with different roles you can use the different variants of `npm run dev:mocks`
 
 ### Mocking Mutations
 
@@ -85,3 +87,10 @@ vi.mock("@apollo/client", async () => {
 - `src/router/`: app-level providers and routing
 - `src/layout/`: layout and navigation shells
 - `src/mock-data/`: Apollo `MockedResponse` fixtures
+
+## Outdated Patterns
+
+Patterns that exist now that will likely be replaced in the future. Try not entrench these patterns further if avoidable and if not then implement them consistently with other usages to make for a simpler refactor.
+
+- `getCurrentUser` SHOULD NEVER return undefined for `currentUser`. If `getCurrentUser` cannot resolve a proper `currentUser` object then `<UserContext>` should show a relevant error page itself and cease operation.
+- `addTypename` on `<MockedProvider>` is deprecated and should be removed.
