@@ -6,8 +6,8 @@ export const deliverableActionSchema = gql`
     id: ID!
     actionTimestamp: DateTime!
     actionType: DeliverableActionType!
-    userFullName: NonEmptyString
-    details: NonEmptyString
+    userFullName: NonEmptyString!
+    details: String!
   }
 `;
 
@@ -15,6 +15,6 @@ export interface DeliverableAction {
   id: string;
   actionTimestamp: Date;
   actionType: DeliverableActionType;
-  userFullName?: NonEmptyString | null;
-  details?: NonEmptyString | null;
+  userFullName: NonEmptyString;
+  details: string;
 }
