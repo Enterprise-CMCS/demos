@@ -1,22 +1,12 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { ADD_DELIVERABLE_SLOT_DIALOG_TITLE } from "components/dialog/deliverable";
 import { ADD_DELIVERABLE_SLOT_BUTTON_NAME, DeliverablesTab } from "./DeliverablesTab";
 import { TestProvider } from "test-utils/TestProvider";
 import { deliverableMocks } from "mock-data/deliverableMocks";
-import * as UserContext from "components/user/UserContext";
-import { mockUsers } from "mock-data/userMocks";
-
-vi.mock("components/user/UserContext", async (importOriginal) => {
-  const actual = await importOriginal<typeof UserContext>();
-  return {
-    ...actual,
-    getCurrentUser: vi.fn(),
-  };
-});
 
 const MOCK_PARENT_DEMONSTRATION = {
   id: "demo-1",
@@ -26,15 +16,6 @@ const MOCK_PARENT_DEMONSTRATION = {
 };
 
 describe("DeliverablesTab", () => {
-  const mockGetCurrentUser = vi.mocked(UserContext.getCurrentUser);
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockGetCurrentUser.mockReturnValue({
-      currentUser: mockUsers[0],
-    });
-  });
-
   it("renders Deliverables Management header and required columns", async () => {
     render(
       <TestProvider mocks={deliverableMocks}>

@@ -1,6 +1,7 @@
 import React from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import type { UserType } from "demos-server";
+import { DELIVERABLE_STATUSES, DELIVERABLE_TYPES } from "demos-server-constants";
 
 import type { DeliverableTableRow } from "./DeliverableTable";
 import { Table } from "components/table/Table";
@@ -10,10 +11,11 @@ import { ColumnFilter } from "components/table/ColumnFilter";
 import { PaginationControls } from "components/table/PaginationControls";
 import { formatDeliverableStatus } from "./DeliverableTable";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
+import { getDeliverableFilterOptions } from "./deliverablesFilterOptions";
 
 const DEFAULT_EMPTY_ROWS_MESSAGE = "You have no assigned Deliverables at this time";
 const DEFAULT_NO_SEARCH_RESULTS_MESSAGE =
-  "No results were returned. Adjust your search and filter criteria.";
+  "No deliverables match your search";
 
 export type DemonstrationDeliverableTableRow = Pick<
   DeliverableTableRow,
@@ -38,15 +40,30 @@ export const DemonstrationDeliverableTable: React.FC<{
   noResultsFoundMessage = DEFAULT_NO_SEARCH_RESULTS_MESSAGE,
 }) => {
   const columnHelper = createColumnHelper<DemonstrationDeliverableTableRow>();
+  const { demonstrationNameOptions, cmsOwnerOptions } = getDeliverableFilterOptions(deliverables);
 
   const columns = [
     columnHelper.accessor("demonstration.name", {
       header: "Demonstration Name",
       cell: highlightCell,
+      filterFn: "arrIncludesSome",
+      meta: {
+        filterConfig: {
+          filterType: "select",
+          options: demonstrationNameOptions,
+        },
+      },
     }),
     columnHelper.accessor("deliverableType", {
       header: "Deliverable Type",
       cell: highlightCell,
+      filterFn: "arrIncludesSome",
+      meta: {
+        filterConfig: {
+          filterType: "select",
+          options: DELIVERABLE_TYPES.map((type) => ({ label: type, value: type })),
+        },
+      },
     }),
     columnHelper.accessor("name", {
       header: "Deliverable Name",
@@ -56,6 +73,13 @@ export const DemonstrationDeliverableTable: React.FC<{
     columnHelper.accessor("status", {
       header: "Status",
       cell: highlightCell,
+      filterFn: "arrIncludesSome",
+      meta: {
+        filterConfig: {
+          filterType: "select",
+          options: DELIVERABLE_STATUSES.map((status) => ({ label: status, value: status })),
+        },
+      },
     }),
   ];
   const columnsWithCmsFields = [
@@ -67,19 +91,22 @@ export const DemonstrationDeliverableTable: React.FC<{
     columnHelper.accessor("cmsOwner.person.fullName", {
       header: "CMS Owner",
       cell: highlightCell,
+      filterFn: "arrIncludesSome",
+      meta: {
+        filterConfig: {
+          filterType: "select",
+          options: cmsOwnerOptions,
+        },
+      },
     }),
     ...columns.slice(3),
   ];
   const resolvedColumns = viewMode === "demos-state-user" ? columns : columnsWithCmsFields;
 
-  const formattedDeliverables = React.useMemo(
-    () =>
-      sortDeliverablesByDefault(deliverables).map((deliverable) => ({
-        ...deliverable,
-        status: formatDeliverableStatus(deliverable),
-      })),
-    [deliverables]
-  );
+  const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({
+    ...deliverable,
+    status: formatDeliverableStatus(deliverable),
+  }));
 
   return (
     <Table<DemonstrationDeliverableTableRow>

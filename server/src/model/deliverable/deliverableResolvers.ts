@@ -98,6 +98,7 @@ export async function resolveDeliverableCmsOwner(parent: PrismaDeliverable): Pro
 
 export const deliverableResolvers = {
   Query: {
+    deliverable: async (parent: unknown, args: {id: string}) => await getDeliverable({ id: args.id }),
     deliverables: queryDeliverables,
   },
 
