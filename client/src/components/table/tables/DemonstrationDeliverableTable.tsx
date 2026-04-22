@@ -11,11 +11,11 @@ import { ColumnFilter } from "components/table/ColumnFilter";
 import { PaginationControls } from "components/table/PaginationControls";
 import { formatDeliverableStatus } from "./DeliverableTable";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
-import { toUniqueSortedOptions } from "./filterOptions";
+import { getDeliverableFilterOptions } from "./deliverablesFilterOptions";
 
 const DEFAULT_EMPTY_ROWS_MESSAGE = "You have no assigned Deliverables at this time";
 const DEFAULT_NO_SEARCH_RESULTS_MESSAGE =
-  "No results were returned. Adjust your search and filter criteria.";
+  "No deliverables match your search";
 
 export type DemonstrationDeliverableTableRow = Pick<
   DeliverableTableRow,
@@ -40,14 +40,7 @@ export const DemonstrationDeliverableTable: React.FC<{
   noResultsFoundMessage = DEFAULT_NO_SEARCH_RESULTS_MESSAGE,
 }) => {
   const columnHelper = createColumnHelper<DemonstrationDeliverableTableRow>();
-  const demonstrationNameOptions = React.useMemo(
-    () => toUniqueSortedOptions(deliverables.map((deliverable) => deliverable.demonstration.name)),
-    [deliverables]
-  );
-  const cmsOwnerOptions = React.useMemo(
-    () => toUniqueSortedOptions(deliverables.map((deliverable) => deliverable.cmsOwner.person.fullName)),
-    [deliverables]
-  );
+  const { demonstrationNameOptions, cmsOwnerOptions } = getDeliverableFilterOptions(deliverables);
 
   const columns = [
     columnHelper.accessor("demonstration.name", {
@@ -110,14 +103,10 @@ export const DemonstrationDeliverableTable: React.FC<{
   ];
   const resolvedColumns = viewMode === "demos-state-user" ? columns : columnsWithCmsFields;
 
-  const formattedDeliverables = React.useMemo(
-    () =>
-      sortDeliverablesByDefault(deliverables).map((deliverable) => ({
-        ...deliverable,
-        status: formatDeliverableStatus(deliverable),
-      })),
-    [deliverables]
-  );
+  const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({
+    ...deliverable,
+    status: formatDeliverableStatus(deliverable),
+  }));
 
   return (
     <Table<DemonstrationDeliverableTableRow>
