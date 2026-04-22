@@ -14,16 +14,15 @@ import {
   SignatureLevel,
   UpdateAmendmentInput,
 } from "../../types";
-import { Amendment as PrismaAmendment } from "@prisma/client";
+import {
+  ApplicationTagSuggestion as PrismaApplicationTagSuggestion,
+  Amendment as PrismaAmendment,
+} from "@prisma/client";
 import { TZDate } from "@date-fns/tz";
 
 // Mock imports
 import { prisma } from "../../prismaClient";
-import {
-  deleteApplication,
-  // None of these are tested but need to be exported to avoid mocking issues
-  resolveSuggestedApplicationTags,
-} from "../application";
+import { deleteApplication } from "../application";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import {
@@ -38,6 +37,7 @@ import { getManyDocuments } from "../document";
 import { getManyApplicationPhases } from "../applicationPhase";
 import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
+import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
@@ -63,11 +63,14 @@ vi.mock("../applicationTagAssignment", () => ({
   getManyApplicationTagAssignments: vi.fn(),
 }));
 
+vi.mock("../applicationTagSuggestion", () => ({
+  getManyApplicationTagSuggestions: vi.fn(),
+}));
+
 vi.mock("../application", () => ({
   getApplication: vi.fn(),
   getManyApplications: vi.fn(),
   deleteApplication: vi.fn(),
-  resolveSuggestedApplicationTags: vi.fn(),
 }));
 
 vi.mock("../../errors/checkOptionalNotNullFields", () => ({
@@ -220,6 +223,36 @@ describe("amendmentResolvers", () => {
           approvalStatus: "Unapproved",
         },
       ]);
+    });
+  });
+
+  describe("Amendment.applicationTagSuggestions", () => {
+    it("delegates to applicationTagSuggestionData.getManyApplicationTagSuggestions and maps result", async () => {
+      const mockAmendment = { id: "abc123" } as PrismaAmendment;
+      vi.mocked(getManyApplicationTagSuggestions).mockResolvedValueOnce([
+        {
+          value: "Suggestion1",
+        },
+        {
+          value: "Suggestion2",
+        },
+      ] as PrismaApplicationTagSuggestion[]);
+
+      const result = await amendmentResolvers.Amendment.suggestedApplicationTags(
+        mockAmendment,
+        undefined,
+        mockContext
+      );
+      expect(getManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith(
+        {
+          applicationId: "abc123",
+          statusId: {
+            in: ["Pending"],
+          },
+        },
+        mockUser
+      );
+      expect(result).toEqual(["Suggestion1", "Suggestion2"]);
     });
   });
 
