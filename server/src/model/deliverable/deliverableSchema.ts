@@ -53,7 +53,7 @@ export const deliverableSchema = gql`
   }
 
   type Query {
-    deliverable(id: ID!): Deliverable
+    deliverable(id: ID!): Deliverable!
     deliverables: [Deliverable!]!
   }
 
