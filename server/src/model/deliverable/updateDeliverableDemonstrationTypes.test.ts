@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // Types
 import { TagName, TagStatus } from "../../types";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
-import { GetDeliverableDemonstrationTypeResult } from "../deliverableDemonstrationType";
+import { DeliverableDemonstrationTypeQueryResult } from "../deliverableDemonstrationType/queries";
 
 // Functions under test
 import { updateDeliverableDemonstrationTypes } from "./updateDeliverableDemonstrationTypes";
@@ -15,7 +15,7 @@ vi.mock("../deliverableDemonstrationType", () => ({
 }));
 
 vi.mock("../deliverableDemonstrationType/queries", () => ({
-  getDeliverableDemonstrationTypes: vi.fn(),
+  selectManyDeliverableDemonstrationTypes: vi.fn(),
 }));
 
 vi.mock(".", () => ({
@@ -23,8 +23,13 @@ vi.mock(".", () => ({
 }));
 
 import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
-import { getDeliverableDemonstrationTypes } from "../deliverableDemonstrationType/queries";
+import { selectManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType/queries";
 import { getDeliverable } from ".";
+
+// Deep partial extension for creating test objects
+type DeepPartial<T> = {
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
+};
 
 describe("updateDeliverableDemonstrationTypes", () => {
   // Test inputs
@@ -36,16 +41,31 @@ describe("updateDeliverableDemonstrationTypes", () => {
     id: testDeliverableId,
     demonstrationId: mockDemonstrationId,
   };
-  const mockDeliverableDemonstrationTypes: GetDeliverableDemonstrationTypeResult[] = [
-    {
-      tagName: "Free Insulin",
-      approvalStatus: "Approved" satisfies TagStatus,
-    },
-    {
-      tagName: "Low Cost Vitamin A Supplements for Newborns",
-      approvalStatus: "Unapproved" satisfies TagStatus,
-    },
-  ];
+  const mockDeliverableDemonstrationTypes: DeepPartial<DeliverableDemonstrationTypeQueryResult>[] =
+    [
+      {
+        deliverableId: testDeliverableId,
+        demonstrationId: mockDemonstrationId,
+        demonstrationTypeTagAssignment: {
+          tagNameId: "Free Insulin",
+          tag: {
+            tagNameId: "Free Insulin",
+            statusId: "Approved" satisfies TagStatus,
+          },
+        },
+      },
+      {
+        deliverableId: testDeliverableId,
+        demonstrationId: mockDemonstrationId,
+        demonstrationTypeTagAssignment: {
+          tagNameId: "Low Cost Vitamin A Supplements for Newborns",
+          tag: {
+            tagNameId: "Low Cost Vitamin A Supplements for Newborns",
+            statusId: "Unapproved" satisfies TagStatus,
+          },
+        },
+      },
+    ];
 
   // Mock transaction
   const mockTransaction: any = "Test!";
@@ -53,8 +73,8 @@ describe("updateDeliverableDemonstrationTypes", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
-    vi.mocked(getDeliverableDemonstrationTypes).mockResolvedValue(
-      mockDeliverableDemonstrationTypes
+    vi.mocked(selectManyDeliverableDemonstrationTypes).mockResolvedValue(
+      mockDeliverableDemonstrationTypes as DeliverableDemonstrationTypeQueryResult[]
     );
   });
 
@@ -70,7 +90,7 @@ describe("updateDeliverableDemonstrationTypes", () => {
     );
     expect(result).toBeUndefined();
     expect(getDeliverable).not.toHaveBeenCalled();
-    expect(getDeliverableDemonstrationTypes).not.toHaveBeenCalled();
+    expect(selectManyDeliverableDemonstrationTypes).not.toHaveBeenCalled();
     expect(setDeliverableDemonstrationTypes).not.toHaveBeenCalled();
   });
 
@@ -85,8 +105,8 @@ describe("updateDeliverableDemonstrationTypes", () => {
       { id: testDeliverableId },
       mockTransaction
     );
-    expect(getDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
-      testDeliverableId,
+    expect(selectManyDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
+      { deliverableId: testDeliverableId },
       mockTransaction
     );
     expect(setDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
@@ -110,8 +130,8 @@ describe("updateDeliverableDemonstrationTypes", () => {
       { id: testDeliverableId },
       mockTransaction
     );
-    expect(getDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
-      testDeliverableId,
+    expect(selectManyDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
+      { deliverableId: testDeliverableId },
       mockTransaction
     );
     expect(setDeliverableDemonstrationTypes).not.toHaveBeenCalled();
@@ -128,8 +148,8 @@ describe("updateDeliverableDemonstrationTypes", () => {
       { id: testDeliverableId },
       mockTransaction
     );
-    expect(getDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
-      testDeliverableId,
+    expect(selectManyDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
+      { deliverableId: testDeliverableId },
       mockTransaction
     );
     expect(setDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
@@ -153,8 +173,8 @@ describe("updateDeliverableDemonstrationTypes", () => {
       { id: testDeliverableId },
       mockTransaction
     );
-    expect(getDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
-      testDeliverableId,
+    expect(selectManyDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
+      { deliverableId: testDeliverableId },
       mockTransaction
     );
     expect(setDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(

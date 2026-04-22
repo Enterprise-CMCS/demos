@@ -7,4 +7,3 @@ export {
 
 // Types & Constants
 export type { SetDeliverableDemonstrationTypesInput } from "./setDeliverableDemonstrationTypes";
-export type { GetDeliverableDemonstrationTypeResult } from "./queries/getDeliverableDemonstrationTypes";
