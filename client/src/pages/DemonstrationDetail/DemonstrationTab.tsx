@@ -45,9 +45,7 @@ export type DemonstrationDetailDemonstrationType = Pick<
   | "approvalStatus"
 >;
 
-export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "name" | "status"> & {
-  effectiveDate?: Demonstration["effectiveDate"];
-  expirationDate?: Demonstration["expirationDate"];
+export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "name" | "status" | "effectiveDate" | "expirationDate"> & {
   demonstrationTypes: DemonstrationDetailDemonstrationType[];
   documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
     owner: {
