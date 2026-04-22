@@ -6,7 +6,7 @@ import {
   ParsedUpdateDeliverableInput,
 } from ".";
 import { PrismaTransactionClient } from "../../prismaClient";
-import { insertDeliverableAction } from "../deliverableAction";
+import { insertDeliverableAction } from "../deliverableAction/queries";
 import { GraphQLContext } from "../../auth/auth.util";
 
 export async function manuallyUpdateDeliverableDueDate(

@@ -19,7 +19,7 @@ import {
 import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getManyDocuments } from "../document";
-import { getDeliverableActions } from "../deliverableAction/getDeliverableActions";
+import { getFormattedDeliverableActions } from "../deliverableAction";
 import { getManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 
 export async function resolveDeliverable(
@@ -163,7 +163,7 @@ export const deliverableResolvers = {
         context.user
       ),
     deliverableActions: async (parent: PrismaDeliverable): Promise<DeliverableAction[]> => {
-      return await getDeliverableActions(parent.id);
+      return await getFormattedDeliverableActions(parent.id);
     },
   },
 };

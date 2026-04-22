@@ -1,13 +1,13 @@
 import { gql } from "graphql-tag";
-import { DeliverableActionType, NonEmptyString, User } from "../../types";
+import { DeliverableActionType, NonEmptyString } from "../../types";
 
 export const deliverableActionSchema = gql`
   type DeliverableAction {
     id: ID!
     actionTimestamp: DateTime!
     actionType: DeliverableActionType!
-    user: User
-    note: NonEmptyString
+    userFullName: NonEmptyString
+    details: NonEmptyString
   }
 `;
 
@@ -15,6 +15,6 @@ export interface DeliverableAction {
   id: string;
   actionTimestamp: Date;
   actionType: DeliverableActionType;
-  user?: User | null;
-  note?: NonEmptyString | null;
+  userFullName?: NonEmptyString | null;
+  details?: NonEmptyString | null;
 }

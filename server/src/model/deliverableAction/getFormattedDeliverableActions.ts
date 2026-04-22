@@ -1,8 +1,8 @@
 import { prisma, PrismaTransactionClient } from "../../prismaClient";
-import { DeliverableAction, DeliverableActionType } from "../../types";
-import { selectManyDeliverableActions } from "./queries/selectManyDeliverableActions";
+import { DeliverableAction, DeliverableActionType, NonEmptyString } from "../../types";
+import { selectManyDeliverableActions } from "./queries";
 
-export async function getDeliverableActions(
+export async function getFormattedDeliverableActions(
   deliverableId: string,
   tx?: PrismaTransactionClient
 ): Promise<DeliverableAction[]> {
@@ -12,11 +12,16 @@ export async function getDeliverableActions(
     prismaClient
   );
   const results: DeliverableAction[] = queryResults.map((result) => {
+    let userFullName: NonEmptyString | null = null;
+    if (result.user) {
+      userFullName = [result.user.person.firstName, result.user.person.lastName].join(" ").trim();
+    }
     return {
       id: result.id,
       actionTimestamp: result.actionTimestamp,
       actionType: result.actionTypeId as DeliverableActionType,
       note: result.note,
+      userFullName: userFullName,
     };
   });
   return results;
