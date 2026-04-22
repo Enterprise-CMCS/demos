@@ -18,7 +18,7 @@ import {
 import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getManyDocuments } from "../document";
-import { getDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
+import { getManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 
 export async function resolveDeliverable(
   parent: PrismaDocument,
@@ -147,8 +147,17 @@ export const deliverableResolvers = {
         },
         context.user
       ),
-    demonstrationTypes: async (parent: PrismaDeliverable) => {
-      return await getDeliverableDemonstrationTypes(parent.id);
-    },
+    demonstrationTypes: async (parent: PrismaDeliverable, args: unknown, context: GraphQLContext) =>
+      (await getManyDeliverableDemonstrationTypes({ deliverableId: parent.id }, context.user)).map(
+        (deliverableDemonstrationType) => {
+          const { statusId, tagNameId, ...tag } =
+            deliverableDemonstrationType.demonstrationTypeTagAssignment.tag;
+          return {
+            ...tag,
+            tagName: tagNameId,
+            approvalStatus: statusId,
+          };
+        }
+      ),
   },
 };

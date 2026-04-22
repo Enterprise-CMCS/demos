@@ -1,5 +1,9 @@
 // Functions
 export { setDeliverableDemonstrationTypes } from "./setDeliverableDemonstrationTypes";
+export {
+  getDeliverableDemonstrationType,
+  getManyDeliverableDemonstrationTypes,
+} from "./deliverableDemonstrationTypeData";
 
 // Queries
 export { deleteAllDeliverableDemonstrationTypes } from "./queries/deleteAllDeliverableDemonstrationTypes";
