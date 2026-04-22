@@ -8,12 +8,7 @@ import { addDays, differenceInCalendarDays, parseISO } from "date-fns";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { useToast } from "components/toast";
 import { DocumentList } from "./sections";
-import {
-  ApplicationDateInput,
-  LocalDate,
-  PhaseName,
-  PhaseStatus,
-} from "demos-server";
+import { ApplicationDateInput, LocalDate, PhaseName, PhaseStatus } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
@@ -119,12 +114,21 @@ export const getApplicationCompletenessFromApplication = (
   setSelectedPhase: (phase: PhaseName) => void
 ) => {
   const completenessPhase = application.phases.find((phase) => phase.phaseName === THIS_PHASE_NAME);
+
+  if (!completenessPhase) {
+    throw new Error(`Application is missing expected phase: ${THIS_PHASE_NAME}`);
+  }
+
   const applicationIntakePhase = application.phases.find(
     (phase) => phase.phaseName === "Application Intake"
   );
 
+  if (!applicationIntakePhase) {
+    throw new Error("Application is missing expected phase: Application Intake");
+  }
+
   const findDate = (dateType: string): string => {
-    const dateValue = completenessPhase?.phaseDates.find(
+    const dateValue = completenessPhase.phaseDates.find(
       (date) => date.dateType === dateType
     )?.dateValue;
     return dateValue ? getDateEst(dateValue) : "";
@@ -137,9 +141,9 @@ export const getApplicationCompletenessFromApplication = (
   return (
     <CompletenessPhase
       applicationId={application.id}
-      applicationIntakeComplete={applicationIntakePhase?.phaseStatus === "Completed"}
+      applicationIntakeComplete={applicationIntakePhase.phaseStatus === "Completed"}
       completenessReviewDate={findDate("Completeness Review Due Date")}
-      completenessPhaseStatus={completenessPhase?.phaseStatus ?? "Not Started"}
+      completenessPhaseStatus={completenessPhase.phaseStatus ?? "Not Started"}
       stateDeemedCompleteDate={findDate("State Application Deemed Complete")}
       completenessDocuments={completenessDocuments}
       setSelectedPhase={setSelectedPhase}
@@ -197,9 +201,8 @@ export const CompletenessPhase = ({
     completenessDocuments,
     completenessIncomplete
   );
-  const stateDeemedComplete = completenessIncomplete
-    ? ""
-    : userSelectedStateDeemedCompleteDate || calculatedStateDeemedCompleteDate;
+  const stateDeemedComplete =
+    userSelectedStateDeemedCompleteDate || calculatedStateDeemedCompleteDate;
   const { federalStartDate, federalEndDate } =
     calculateFederalCommentPeriodDates(stateDeemedComplete);
 
@@ -248,6 +251,7 @@ export const CompletenessPhase = ({
     showDeclareIncompleteDialog(async () => {
       try {
         await declareCompletenessPhaseIncomplete(applicationId);
+        setUserSelectedStateDeemedCompleteDate("");
         showSuccess(SAVE_FOR_LATER_MESSAGE);
       } catch (error) {
         showError(error instanceof Error ? error.message : String(error));
