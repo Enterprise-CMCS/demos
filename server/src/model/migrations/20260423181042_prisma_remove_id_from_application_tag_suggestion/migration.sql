@@ -27,7 +27,7 @@ ADD CONSTRAINT "application_tag_suggestion_pkey" PRIMARY KEY ("application_id", 
 -- AlterTable
 ALTER TABLE "application_tag_suggestion_extract" DROP CONSTRAINT "application_tag_suggestion_extract_pkey",
 DROP COLUMN "suggestion_id",
-ADD CONSTRAINT "application_tag_suggestion_extract_pkey" PRIMARY KEY ("uipath_value_id");
+ADD CONSTRAINT "application_tag_suggestion_extract_pkey" PRIMARY KEY ("uipath_value_id", "application_id", "value");
 
 -- AlterTable
 ALTER TABLE "application_tag_suggestion_extract_history" DROP COLUMN "suggestion_id";

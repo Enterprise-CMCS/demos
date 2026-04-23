@@ -418,9 +418,9 @@ erDiagram
 
   application_tag_suggestion_extract:::dataTable {
     uuid uipath_value_id PK, FK "FK137: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)"
-    uuid application_id FK "FK137: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK138: (application_id, value) ∈ application_tag_suggestion.(application_id, value) DEFERRED"
+    uuid application_id PK, FK "FK137: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK138: (application_id, value) ∈ application_tag_suggestion.(application_id, value) DEFERRED"
     text field_id FK "FK137: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK139: field_id ∈ application_tag_suggestion_extract_field_limit.id"
-    text value FK "FK137: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK138: (application_id, value) ∈ application_tag_suggestion.(application_id, value) DEFERRED"
+    text value PK, FK "FK137: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK138: (application_id, value) ∈ application_tag_suggestion.(application_id, value) DEFERRED"
     integer start_page_no
     integer end_page_no
     timestamptz created_at

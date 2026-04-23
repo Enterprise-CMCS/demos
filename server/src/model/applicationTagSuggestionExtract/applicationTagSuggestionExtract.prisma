@@ -13,6 +13,6 @@ model ApplicationTagSuggestionExtract {
   uiPathValue UiPathValue                               @relation(fields: [uiPathValueId, applicationId, fieldId, value], references: [id, applicationId, fieldId, value])
   field       ApplicationTagSuggestionExtractFieldLimit @relation(fields: [fieldId], references: [id])
 
-  @@id([uiPathValueId])
+  @@id([uiPathValueId, applicationId, value])
   @@map("application_tag_suggestion_extract")
 }
