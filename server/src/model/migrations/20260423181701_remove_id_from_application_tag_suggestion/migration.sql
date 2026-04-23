@@ -8,3 +8,17 @@ REFERENCES demos_app.application_tag_suggestion(application_id, value)
 ON DELETE NO ACTION
 ON UPDATE CASCADE
 DEFERRABLE INITIALLY DEFERRED;
+
+ALTER TABLE
+    demos_app.application_tag_suggestion
+ADD CONSTRAINT
+    check_application_tag_suggestion_non_null_replaced_value_when_replaced
+CHECK (
+  (
+    status_id = 'Replaced'
+    AND replaced_value IS NOT NULL
+  ) OR (
+    status_id != 'Replaced'
+    AND replaced_value IS NULL
+  )
+);

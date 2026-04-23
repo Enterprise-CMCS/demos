@@ -21,6 +21,7 @@ DROP INDEX "application_tag_suggestion_id_application_id_value_key";
 -- AlterTable
 ALTER TABLE "application_tag_suggestion" DROP CONSTRAINT "application_tag_suggestion_pkey",
 DROP COLUMN "id",
+ADD COLUMN "replaced_value" TEXT,
 ADD CONSTRAINT "application_tag_suggestion_pkey" PRIMARY KEY ("application_id", "value");
 
 -- AlterTable
