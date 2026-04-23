@@ -8,7 +8,7 @@ const STYLES = {
   container: "flex items-center gap-3",
   link: "flex items-center gap-1",
   icon: "text-action",
-  selectedLink: "border-b-2 border-current",
+  selectedLink: "p-0-5 border-b-4 border-border-focus",
 };
 
 export const QuickLinks: React.FC = () => {

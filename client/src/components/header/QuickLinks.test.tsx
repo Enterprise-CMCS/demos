@@ -23,7 +23,7 @@ describe("QuickLinks", () => {
       </MemoryRouter>
     );
     const adminLink = screen.getByTestId(ADMIN_LINK_NAME);
-    expect(adminLink.className).toContain("border-b-2");
+    expect(adminLink.className).toContain("border-b");
   });
 
   it("does not underline Admin link when not on /admin route", () => {
@@ -33,6 +33,6 @@ describe("QuickLinks", () => {
       </MemoryRouter>
     );
     const adminLink = screen.getByTestId(ADMIN_LINK_NAME);
-    expect(adminLink.className).not.toContain("border-b-2");
+    expect(adminLink.className).not.toContain("border-b");
   });
 });
