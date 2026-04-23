@@ -186,7 +186,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
         (c) =>
           c.personId === personId &&
           c.contactType &&
-          c.id !== currentRowId // 👈 key fix
+          c.id !== currentRowId
       )
       .map((c) => c.contactType);
 
