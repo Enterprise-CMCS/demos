@@ -49,6 +49,7 @@ const UIPATH_SEED_PDF_PATH = path.resolve(
 const NEW_TAG_COUNT = 20;
 const TAG_ASSIGNMENT_MAX = 5;
 const DELIVERABLE_SEED_COUNT = 8;
+const APPLICATION_TAG_SUGGESTION_POOL_SIZE = 10;
 
 function getRandomPhaseDocumentTypeCombination(): {
   phaseName: PhaseName;
@@ -377,13 +378,9 @@ async function seedDocuments() {
 async function seedApplicationTagSuggestions() {
   console.log("🌱 Seeding application tag suggestions...");
 
-  const applicationTags = await prisma().tag.findMany({
-    where: {
-      tagTypeId: "Application",
-    },
-    take: 5,
-  });
-
+  const suggestedTags = Array.from({ length: APPLICATION_TAG_SUGGESTION_POOL_SIZE }, () =>
+    faker.lorem.words(2)
+  );
   // for every document, make an extract
 
   const documents = await prisma().document.findMany();
@@ -405,7 +402,7 @@ async function seedApplicationTagSuggestions() {
     });
 
     const uiPathValueId = faker.string.uuid();
-    const value = faker.helpers.arrayElement(applicationTags).tagNameId;
+    const value = faker.helpers.arrayElement(suggestedTags);
     await prisma().uiPathValue.create({
       data: {
         id: uiPathValueId,
