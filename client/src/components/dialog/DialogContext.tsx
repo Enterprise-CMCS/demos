@@ -1,10 +1,5 @@
 import React, { createContext, useContext, useState } from "react";
-import {
-  DocumentType,
-  Tag as DemonstrationTypeName,
-  DemonstrationTypeAssignment,
-  UploadDocumentInput,
-} from "demos-server";
+import { DocumentType, TagName, DemonstrationTypeAssignment, Tag } from "demos-server";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
 import { CreateExtensionDialog } from "./modification/CreateExtensionDialog";
@@ -29,6 +24,15 @@ import { EditDemonstrationTypeDialog } from "./DemonstrationTypes/EditDemonstrat
 import { UpdateExtensionDialog } from "./modification/EditExtensionDialog";
 import { UpdateAmendmentDialog } from "./modification/EditAmendmentDialog";
 import { ConfirmApproveDialog } from "./ConfirmApproveDialog";
+import { AddDeliverableSlotDialog } from "./deliverable";
+import { EditDeliverableDialog } from "./deliverable/EditDeliverableDialog";
+import type {
+  EditDeliverableDialogDeliverable,
+  EditDeliverableInput,
+} from "./deliverable/EditDeliverableDialog";
+import { WorkflowApplicationType } from "components/application";
+import { AddDeliverableSlotDemonstration } from "./deliverable/AddDeliverableSlotDialog";
+import type { DeliverableTableRow } from "components/table/tables/DeliverableTable";
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -112,9 +116,16 @@ export const useDialog = () => {
     );
   };
 
-  const showEditDocumentDialog = (initialDocument: DocumentDialogFields) => {
+  const showEditDocumentDialog = (
+    initialDocument: DocumentDialogFields,
+    canEditDocumentType?: boolean
+  ) => {
     context.showDialog(
-      <EditDocumentDialog initialDocument={initialDocument} onClose={context.hideDialog} />
+      <EditDocumentDialog
+        initialDocument={initialDocument}
+        onClose={context.hideDialog}
+        canEditDocumentType={canEditDocumentType}
+      />
     );
   };
 
@@ -124,41 +135,26 @@ export const useDialog = () => {
     );
   };
 
-  const showApplicationIntakeDocumentUploadDialog = (
-    applicationId: string,
-    onDocumentUploadSucceeded: () => void
-  ) => {
+  const showApplicationIntakeDocumentUploadDialog = (applicationId: string) => {
     context.showDialog(
-      <ApplicationIntakeUploadDialog
-        onDocumentUploadSucceeded={onDocumentUploadSucceeded}
-        onClose={context.hideDialog}
-        applicationId={applicationId}
-      />
+      <ApplicationIntakeUploadDialog onClose={context.hideDialog} applicationId={applicationId} />
     );
   };
 
-  const showCompletenessDocumentUploadDialog = (
-    applicationId: string,
-    onDocumentUploadSucceeded?: (payload?: UploadDocumentInput) => void
-  ) => {
+  const showCompletenessDocumentUploadDialog = (applicationId: string) => {
     context.showDialog(
       <CompletenessDocumentUploadDialog
-        onDocumentUploadSucceeded={onDocumentUploadSucceeded}
-        onClose={context.hideDialog}
         applicationId={applicationId}
+        onClose={context.hideDialog}
       />
     );
   };
 
-  const showConceptPreSubmissionDocumentUploadDialog = (
-    applicationId: string,
-    onDocumentUploadSucceeded: (payload?: UploadDocumentInput) => void
-  ) => {
+  const showConceptPreSubmissionDocumentUploadDialog = (applicationId: string) => {
     context.showDialog(
       <ConceptPreSubmissionUploadDialog
-        onDocumentUploadSucceeded={onDocumentUploadSucceeded}
-        onClose={context.hideDialog}
         applicationId={applicationId}
+        onClose={context.hideDialog}
       />
     );
   };
@@ -194,7 +190,7 @@ export const useDialog = () => {
 
   const showRemoveDemonstrationTypesDialog = (
     demonstrationId: string,
-    demonstrationTypeNames: DemonstrationTypeName[]
+    demonstrationTypeNames: TagName[]
   ) => {
     context.showDialog(
       <RemoveDemonstrationTypesDialog
@@ -208,7 +204,7 @@ export const useDialog = () => {
     demonstrationId: string,
     demonstrationType: Pick<
       DemonstrationTypeAssignment,
-      "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate"
+      "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "approvalStatus"
     >
   ) => {
     context.showDialog(
@@ -219,11 +215,7 @@ export const useDialog = () => {
     );
   };
 
-  const showApplyTagsDialog = (
-    demonstrationId: string,
-    allTags: string[],
-    selectedTags: string[]
-  ) => {
+  const showApplyTagsDialog = (demonstrationId: string, allTags: Tag[], selectedTags: Tag[]) => {
     context.showDialog(
       <ApplyTagsDialog
         demonstrationId={demonstrationId}
@@ -234,11 +226,45 @@ export const useDialog = () => {
     );
   };
 
-  const showConfirmApproveDialog = (onConfirm: () => void) => {
+  const showConfirmApproveDialog = (
+    onConfirm: () => void,
+    applicationType: WorkflowApplicationType
+  ) => {
     context.showDialog(
-      <ConfirmApproveDialog
+      <ConfirmApproveDialog onConfirm={onConfirm} applicationType={applicationType} />
+    );
+  };
+
+  const showAddDeliverableSlotDialog = (demonstration: AddDeliverableSlotDemonstration) => {
+    context.showDialog(
+      <AddDeliverableSlotDialog onClose={context.hideDialog} demonstration={demonstration} />
+    );
+  };
+
+  const showEditDeliverableDialog = (
+    deliverable: DeliverableTableRow,
+    onSave?: (input: EditDeliverableInput, reasonForChange?: string) => Promise<void> | void
+  ) => {
+    const dialogDeliverable: EditDeliverableDialogDeliverable = {
+      id: deliverable.id,
+      name: deliverable.name,
+      deliverableType: deliverable.deliverableType,
+      dueDate: deliverable.dueDate,
+      cmsOwner: { id: deliverable.cmsOwner.id },
+    };
+    const demonstrationTypeTags: Tag[] = deliverable.demonstration.demonstrationTypes.map(
+      (dt: { demonstrationTypeName: string; approvalStatus: "Approved" | "Unapproved" }) => ({
+        tagName: dt.demonstrationTypeName,
+        approvalStatus: dt.approvalStatus,
+      })
+    );
+
+    context.showDialog(
+      <EditDeliverableDialog
         onClose={context.hideDialog}
-        onConfirm={onConfirm}
+        deliverable={dialogDeliverable}
+        demonstrationTypeTags={demonstrationTypeTags}
+        onSave={onSave}
       />
     );
   };
@@ -266,5 +292,7 @@ export const useDialog = () => {
     showUpdateExtensionDialog,
     showUpdateAmendmentDialog,
     showConfirmApproveDialog,
+    showAddDeliverableSlotDialog,
+    showEditDeliverableDialog,
   };
 };

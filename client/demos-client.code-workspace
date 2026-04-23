@@ -5,23 +5,19 @@
     "files.exclude": {
       "**/node_modules": true,
       "**/dist": true,
-      "**/coverage": true
+      "**/coverage": true,
     },
     "files.associations": {
-      "*.css": "tailwindcss"
+      "*.css": "tailwindcss",
     },
     "extensions": {
-      "recommendations": ["dbaeumer.vscode-eslint"]
+      "recommendations": ["dbaeumer.vscode-eslint"],
     },
     "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": "always"
+      "source.fixAll.eslint": "always",
     },
-    "eslint.validate": [
-      "javascript",
-      "javascriptreact",
-      "typescript",
-      "typescriptreact",
-    ],
+    "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
     "tailwindCSS.classFunctions": ["tw"],
-  }
+    "chat.useAgentsMdFile": true,
+  },
 }

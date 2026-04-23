@@ -1,0 +1,20 @@
+model DeliverableHistory {
+  revisionId            Int          @id @default(autoincrement()) @map("revision_id")
+  revisionType          RevisionType @map("revision_type")
+  modifiedAt            DateTime     @default(now()) @map("modified_at") @db.Timestamptz
+  id                    String       @db.Uuid
+  deliverableTypeId     String       @map("deliverable_type_id")
+  name                  String
+  demonstrationId       String       @map("demonstration_id") @db.Uuid
+  demonstrationStatusId String       @map("demonstration_status_id")
+  statusId              String       @map("status_id")
+  cmsOwnerUserId        String       @map("cms_owner_user_id") @db.Uuid
+  cmsOwnerPersonTypeId  String       @map("cms_owner_person_type_id")
+  dueDate               DateTime     @map("due_date") @db.Timestamptz
+  dueDateTypeId         String       @map("due_date_type_id")
+  expectedToBeSubmitted Boolean      @map("expected_to_be_submitted")
+  createdAt             DateTime     @map("created_at") @db.Timestamptz
+  updatedAt             DateTime     @map("updated_at") @db.Timestamptz
+
+  @@map("deliverable_history")
+}

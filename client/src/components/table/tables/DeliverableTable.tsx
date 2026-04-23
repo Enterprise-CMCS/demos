@@ -1,8 +1,9 @@
 import React from "react";
+import { gql } from "@apollo/client";
+import type { Deliverable, Person, State, UserType } from "demos-server";
 
-import { Deliverable } from "pages/DeliverablesPage";
 import { DeliverableColumns } from "../columns/DeliverableColumns";
-import { Table } from "../Table";
+import { Table, type TableProps } from "../Table";
 import { ColumnFilter } from "../ColumnFilter";
 import { PaginationControls } from "../PaginationControls";
 import { KeywordSearch } from "../KeywordSearch";
@@ -11,92 +12,159 @@ import { DeleteIcon } from "components/icons/Action/DeleteIcon";
 import { selectionTooltip } from "./actionTooltips";
 import { ImportIcon } from "components/icons/Action/ImportIcon";
 import { EditIcon } from "components/icons/Navigation/EditIcon";
+import { sortDeliverablesByDefault } from "util/sortDeliverables";
+import { isDeliverableEditable } from "components/dialog/deliverable";
+import { useDialog } from "components/dialog/DialogContext";
 
-export type DeliverableTableRow = {
-  id: string;
+export type DeliverableTableRow = Omit<
+  Deliverable,
+  "demonstration" | "cmsOwner" | "demonstrationTypes" | "cmsDocuments" | "stateDocuments" | "name" | "dueDateType" | "expectedToBeSubmitted" | "createdAt" | "updatedAt"
+> & {
   name: string;
-  demonstrationName: string;
-  deliverableType: string;
-  dueDate: string;
-  status: string;
-  state: { id: string };
+  demonstration: Pick<Deliverable["demonstration"], "id" | "name"> & {
+    state: Pick<State, "id">;
+    demonstrationTypes: {
+      demonstrationTypeName: string;
+      approvalStatus: "Approved" | "Unapproved";
+    }[];
+  };
+  cmsOwner: Pick<Deliverable["cmsOwner"], "id"> & {
+    person: Pick<Person, "fullName" | "id">;
+  };
+  submissionDate?: string;
 };
 
-export const DeliverableTable: React.FC<{ deliverables: Deliverable[] }> = ({
-  deliverables,
-}) => {
-  const deliverableColumns = DeliverableColumns();
+export type DeliverablesQueryResult = {
+  deliverables: DeliverableTableRow[];
+};
 
-  /* const { showAddDeliverableDialog, showEditDeliverableDialog, showRemoveDeliverableDialog } = useDialog(); */
-  const showAddDeliverableDialog = () => { };
-  const showEditDeliverableDialog = () => { };
-  const showRemoveDeliverableDialog = () => { };
+export const DELIVERABLES_PAGE_QUERY = gql`
+  query GetDeliverablesPage {
+    deliverables {
+      id
+      deliverableType
+      name
+      demonstration {
+        id
+        name
+        state {
+          id
+        }
+        demonstrationTypes {
+          demonstrationTypeName
+          approvalStatus
+        }
+      }
+      status
+      cmsOwner {
+        id
+        person {
+          id
+          fullName
+        }
+      }
+      dueDate
+    }
+  }
+`;
+
+const EMPTY_ROWS_MESSAGE = "There are no assigned Deliverables at this time";
+const NO_RESULTS_FOUND = "No results were returned. Adjust your search and filter criteria.";
+
+export const formatDeliverableStatus = ({ status }: Pick<Deliverable, "status">) => status;
+
+export const DeliverableTable: React.FC<{
+  deliverables: DeliverableTableRow[];
+  emptyRowsMessage?: string;
+  viewMode: UserType;
+}> = ({ deliverables, emptyRowsMessage = EMPTY_ROWS_MESSAGE, viewMode }) => {
+  const { showEditDeliverableDialog } = useDialog();
+  const deliverableColumns = DeliverableColumns({ viewMode });
+  const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({
+    ...deliverable,
+    status: formatDeliverableStatus(deliverable),
+  }));
+
+  type DeliverableActionButtons = NonNullable<TableProps<DeliverableTableRow>["actionButtons"]>;
+
+  const renderActionButtons: DeliverableActionButtons = (table) => {
+    const selectedRows = table.getSelectedRowModel().rows;
+    const selectedCount = selectedRows.length;
+    const singleSelectedDeliverable = selectedCount === 1 ? selectedRows[0].original : null;
+
+    const selectedIsEditable =
+      singleSelectedDeliverable === null || isDeliverableEditable(singleSelectedDeliverable.status);
+    const editEnabled = selectedCount === 1 && selectedIsEditable;
+    const deleteEnabled = selectedCount >= 1;
+
+    const baseEditTooltip = selectionTooltip({
+      action: "Edit",
+      nounSingular: "Deliverable",
+      selectedCount,
+      rule: { kind: "exactly", count: 1 },
+    });
+    const editTooltip =
+      selectedCount === 1 && !selectedIsEditable ? "Select a Deliverable to Edit" : baseEditTooltip;
+
+    const deleteTooltip = selectionTooltip({
+      action: "Delete",
+      nounSingular: "Deliverable",
+      selectedCount,
+      rule: { kind: "atLeast", count: 1 },
+    });
+
+    return (
+      <div className="flex gap-1 ml-4">
+        <CircleButton
+          name="add-deliverable"
+          ariaLabel="Add Deliverable"
+          tooltip="Add Deliverable"
+          onClick={() => {}}
+        >
+          <ImportIcon />
+        </CircleButton>
+
+        <CircleButton
+          name="edit-deliverable"
+          ariaLabel="Edit Deliverable"
+          tooltip={editTooltip}
+          disabled={!editEnabled}
+          onClick={() => {
+            if (singleSelectedDeliverable) {
+              showEditDeliverableDialog(singleSelectedDeliverable);
+            }
+          }}
+        >
+          <EditIcon />
+        </CircleButton>
+
+        <CircleButton
+          name="remove-deliverable"
+          ariaLabel="Remove Deliverable"
+          tooltip={deleteTooltip}
+          disabled={!deleteEnabled}
+          onClick={() => {}}
+        >
+          <DeleteIcon />
+        </CircleButton>
+      </div>
+    );
+  };
+
+  const actionButtons = viewMode === "demos-state-user" ? undefined : renderActionButtons;
 
   return (
-    <div className="flex flex-col gap-[24px]">
+    <div className="flex flex-col gap-[24px]" data-view-mode={viewMode}>
       {deliverableColumns && (
         <Table<DeliverableTableRow>
-          data={deliverables}
+          data={formattedDeliverables}
           columns={deliverableColumns}
           keywordSearch={(table) => <KeywordSearch table={table} />}
           columnFilter={(table) => <ColumnFilter table={table} />}
           pagination={(table) => <PaginationControls table={table} />}
-          emptyRowsMessage="No deliverables available."
-          noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
-          actionButtons={(table) => {
-            const selectedDeliverables = table.getSelectedRowModel().rows.map((row) => row.original);
-            const selectedCount = selectedDeliverables.length;
-
-            const editEnabled = selectedCount === 1;
-            const deleteEnabled = selectedCount >= 1;
-
-            const editTooltip = selectionTooltip({
-              action: "Edit",
-              nounSingular: "Deliverable",
-              selectedCount,
-              rule: { kind: "exactly", count: 1 },
-            });
-
-            const deleteTooltip = selectionTooltip({
-              action: "Delete",
-              nounSingular: "Deliverable",
-              selectedCount,
-              rule: { kind: "atLeast", count: 1 },
-            });
-
-            return (
-              <div className="flex gap-1 ml-4">
-                <CircleButton
-                  name="add-deliverable"
-                  ariaLabel="Add Deliverable"
-                  tooltip="Add Deliverable"
-                  onClick={() => showAddDeliverableDialog()}
-                >
-                  <ImportIcon />
-                </CircleButton>
-
-                <CircleButton
-                  name="edit-deliverable"
-                  ariaLabel="Edit Deliverable"
-                  tooltip={editTooltip}
-                  disabled={!editEnabled}
-                  onClick={() => showEditDeliverableDialog()}
-                >
-                  <EditIcon />
-                </CircleButton>
-
-                <CircleButton
-                  name="remove-deliverable"
-                  ariaLabel="Remove Deliverable"
-                  tooltip={deleteTooltip}
-                  disabled={!deleteEnabled}
-                  onClick={() => showRemoveDeliverableDialog()}
-                >
-                  <DeleteIcon />
-                </CircleButton>
-              </div>
-            );
-          }}
+          emptyRowsMessage={emptyRowsMessage}
+          noResultsFoundMessage={NO_RESULTS_FOUND}
+          actionButtons={actionButtons}
         />
       )}
     </div>

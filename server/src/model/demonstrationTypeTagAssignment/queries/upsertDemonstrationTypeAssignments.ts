@@ -10,9 +10,9 @@ export async function upsertDemonstrationTypeAssignments(
   for (const recordToUpsert of demonstartionTypeAssignemnts) {
     await tx.demonstrationTypeTagAssignment.upsert({
       where: {
-        demonstrationId_tagId: {
+        demonstrationId_tagNameId: {
           demonstrationId: demonstrationId,
-          tagId: recordToUpsert.demonstrationTypeName,
+          tagNameId: recordToUpsert.demonstrationTypeName,
         },
       },
       update: {
@@ -21,7 +21,7 @@ export async function upsertDemonstrationTypeAssignments(
       },
       create: {
         demonstrationId: demonstrationId,
-        tagId: recordToUpsert.demonstrationTypeName,
+        tagNameId: recordToUpsert.demonstrationTypeName,
         tagTypeId: "Demonstration Type" satisfies TagType,
         effectiveDate: recordToUpsert.demonstrationTypeDates.effectiveDate,
         expirationDate: recordToUpsert.demonstrationTypeDates.expirationDate,

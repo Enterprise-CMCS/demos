@@ -5,6 +5,7 @@ export { parseSetDemonstrationTypesInput } from "./parseSetDemonstrationTypesInp
 
 // Queries
 export { deleteDemonstrationTypeAssignments } from "./queries/deleteDemonstrationTypeAssignments";
+export { getDemonstrationTypeAssignments } from "./queries/getDemonstrationTypeAssignments";
 export { upsertDemonstrationTypeAssignments } from "./queries/upsertDemonstrationTypeAssignments";
 
 // Types

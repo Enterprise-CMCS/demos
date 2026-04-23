@@ -1,12 +1,11 @@
-import { spawnSync } from "child_process";
+import { spawnSync } from "node:child_process";
 
 function executeSqlFile(filePath: string): void {
   console.log(`Executing SQL file: ${filePath}`);
-  const result = spawnSync(
-    "npx",
-    ["prisma", "db", "execute", "--schema", "./src/model/schema.prisma", "--file", filePath],
-    { stdio: "inherit" }
-  );
+  // prettier-ignore
+  const result = spawnSync("npx", ["prisma", "db", "execute", "--file", filePath], { // NOSONAR: typescript:S4036
+    stdio: "inherit",
+  });
 
   if (result.error) {
     console.error(`Error spawning process for ${filePath}:`, result.error);

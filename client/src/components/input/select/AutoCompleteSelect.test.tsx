@@ -128,4 +128,89 @@ describe("AutoCompleteSelect", () => {
     render(<AutoCompleteSelect options={options} onSelect={onSelect} value="banana" />);
     expect(screen.getByDisplayValue("Banana")).toBeInTheDocument();
   });
+
+  describe("noMatchMessage", () => {
+    it("shows custom no-match message when provided and filter has text", async () => {
+      render(
+        <AutoCompleteSelect
+          value=""
+          options={options}
+          onSelect={onSelect}
+          noMatchMessage="Entry not found. New tags remain unapproved."
+        />
+      );
+      const input = screen.getByRole("textbox");
+      await userEvent.type(input, "zzz");
+      expect(screen.getByText("Entry not found. New tags remain unapproved.")).toBeInTheDocument();
+    });
+
+    it("shows default 'No matches found' when noMatchMessage is provided but filter is empty", async () => {
+      render(
+        <AutoCompleteSelect
+          value=""
+          options={options}
+          onSelect={onSelect}
+          noMatchMessage="Custom message"
+        />
+      );
+      const input = screen.getByRole("textbox");
+      await userEvent.click(input);
+      // All options visible when filter is empty, so no "no match" message
+      expect(screen.getByText("Apple")).toBeInTheDocument();
+    });
+  });
+
+  describe("onFilterChange", () => {
+    it("calls onFilterChange with filter value and match status as user types", async () => {
+      const onFilterChange = vi.fn();
+      render(
+        <AutoCompleteSelect
+          value=""
+          options={options}
+          onSelect={onSelect}
+          onFilterChange={onFilterChange}
+        />
+      );
+      const input = screen.getByRole("textbox");
+      await userEvent.type(input, "Ban");
+
+      // Called for each character: "B", "Ba", "Ban"
+      expect(onFilterChange).toHaveBeenCalledWith("B", true);
+      expect(onFilterChange).toHaveBeenCalledWith("Ba", true);
+      expect(onFilterChange).toHaveBeenCalledWith("Ban", true);
+    });
+
+    it("reports hasMatches=false when no options match", async () => {
+      const onFilterChange = vi.fn();
+      render(
+        <AutoCompleteSelect
+          value=""
+          options={options}
+          onSelect={onSelect}
+          onFilterChange={onFilterChange}
+        />
+      );
+      const input = screen.getByRole("textbox");
+      await userEvent.type(input, "zzz");
+
+      expect(onFilterChange).toHaveBeenLastCalledWith("zzz", false);
+    });
+
+    it("resets filter state on option select", async () => {
+      const onFilterChange = vi.fn();
+      render(
+        <AutoCompleteSelect
+          value=""
+          options={options}
+          onSelect={onSelect}
+          onFilterChange={onFilterChange}
+        />
+      );
+      const input = screen.getByRole("textbox");
+      await userEvent.click(input);
+      await userEvent.click(screen.getByText("Cherry"));
+
+      expect(onFilterChange).toHaveBeenLastCalledWith("", true);
+    });
+  });
 });

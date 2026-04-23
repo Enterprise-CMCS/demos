@@ -1,21 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
-  __getDemonstration,
-  __getManyDemonstrations,
   __createDemonstration,
   __updateDemonstration,
   deleteDemonstration,
   __resolveDemonstrationState,
-  __resolveDemonstrationAmendments,
-  __resolveDemonstrationExtensions,
-  resolveDemonstrationSdgDivision,
   __resolveDemonstrationRoleAssignments,
   __resolveDemonstrationPrimaryProjectOfficer,
   resolveDemonstrationTypes,
+  demonstrationResolvers,
 } from "./demonstrationResolvers";
 import {
   ApplicationStatus,
   ApplicationType,
+  ClearanceLevel,
   CreateDemonstrationInput,
   DemonstrationTypeAssignment,
   GrantLevel,
@@ -25,82 +22,98 @@ import {
   SdgDivision,
   SignatureLevel,
   UpdateDemonstrationInput,
-} from "../../types.js";
+} from "../../types";
 import {
   Demonstration as PrismaDemonstration,
   DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
+  Tag as PrismaTag,
 } from "@prisma/client";
 import { TZDate } from "@date-fns/tz";
 
 // Mock imports
-import { prisma } from "../../prismaClient.js";
-import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
-import { handlePrismaError } from "../../errors/handlePrismaError.js";
+import { prisma } from "../../prismaClient";
+import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
+import { handlePrismaError } from "../../errors/handlePrismaError";
 import {
   checkInputDateIsStartOfDay,
   checkInputDateIsEndOfDay,
-} from "../applicationDate/checkInputDateFunctions.js";
+} from "../applicationDate/checkInputDateFunctions";
 import {
   deleteApplication,
   getApplication,
-  getManyApplications,
   // None of these are tested but need to be exported to avoid mocking issues
-  resolveApplicationCurrentPhaseName,
-  resolveApplicationDocuments,
-  resolveApplicationPhases,
-  resolveApplicationStatus,
-  resolveApplicationClearanceLevel,
   resolveApplicationTags,
-  resolveApplicationSignatureLevel,
+  resolveSuggestedApplicationTags,
 } from "../application";
-import { parseDateTimeOrLocalDateToEasternTZDate, EasternTZDate } from "../../dateUtilities.js";
-import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus.js";
+import { parseDateTimeOrLocalDateToEasternTZDate, EasternTZDate } from "../../dateUtilities";
+import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus";
+import { getDemonstration, getManyDemonstrations } from "./demonstrationData";
+import { ContextUser, GraphQLContext } from "../../auth";
+import { getManyAmendments } from "../amendment";
+import { getManyExtensions } from "../extension";
+import { getManyDocuments } from "../document";
+import { getManyApplicationPhases } from "../applicationPhase";
 
-vi.mock("../../prismaClient.js", () => ({
+vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
+}));
+
+vi.mock("./demonstrationData", () => ({
+  getDemonstration: vi.fn(),
+  getManyDemonstrations: vi.fn(),
+}));
+
+vi.mock("../document", () => ({
+  getManyDocuments: vi.fn(),
+}));
+
+vi.mock("../amendment", () => ({
+  getManyAmendments: vi.fn(),
+}));
+
+vi.mock("../extension", () => ({
+  getManyExtensions: vi.fn(),
+}));
+
+vi.mock("../applicationPhase", () => ({
+  getManyApplicationPhases: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
   getApplication: vi.fn(),
-  getManyApplications: vi.fn(),
   deleteApplication: vi.fn(),
-  resolveApplicationDocuments: vi.fn(),
-  resolveApplicationCurrentPhaseName: vi.fn(),
-  resolveApplicationStatus: vi.fn(),
-  resolveApplicationPhases: vi.fn(),
-  resolveApplicationClearanceLevel: vi.fn(),
   resolveApplicationTags: vi.fn(),
-  resolveApplicationSignatureLevel: vi.fn(),
+  resolveSuggestedApplicationTags: vi.fn(),
 }));
 
-vi.mock("../../errors/checkOptionalNotNullFields.js", () => ({
+vi.mock("../../errors/checkOptionalNotNullFields", () => ({
   checkOptionalNotNullFields: vi.fn(),
 }));
 
 const testHandlePrismaError = new Error("Test handlePrismaError!");
-vi.mock("../../errors/handlePrismaError.js", () => ({
+vi.mock("../../errors/handlePrismaError", () => ({
   handlePrismaError: vi.fn(() => {
     throw testHandlePrismaError;
   }),
 }));
 
-vi.mock("../applicationDate/checkInputDateFunctions.js", () => ({
+vi.mock("../applicationDate/checkInputDateFunctions", () => ({
   checkInputDateIsStartOfDay: vi.fn(),
   checkInputDateIsEndOfDay: vi.fn(),
 }));
 
-vi.mock("../../dateUtilities.js", () => ({
+vi.mock("../../dateUtilities", () => ({
   parseDateTimeOrLocalDateToEasternTZDate: vi.fn(),
 }));
 
-vi.mock("./determineDemonstrationTypeStatus.js", () => ({
+vi.mock("./determineDemonstrationTypeStatus", () => ({
   determineDemonstrationTypeStatus: vi.fn(),
 }));
 
 describe("demonstrationResolvers", () => {
   const regularMocks = {
     state: {
-      findUnique: vi.fn(),
+      findUniqueOrThrow: vi.fn(),
     },
     amendment: {
       findMany: vi.fn(),
@@ -112,7 +125,7 @@ describe("demonstrationResolvers", () => {
       findMany: vi.fn(),
     },
     primaryDemonstrationRoleAssignment: {
-      findUnique: vi.fn(),
+      findUniqueOrThrow: vi.fn(),
     },
     demonstrationTypeTagAssignment: {
       findMany: vi.fn(),
@@ -161,7 +174,7 @@ describe("demonstrationResolvers", () => {
   const mockPrismaClient = {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
     state: {
-      findUnique: regularMocks.state.findUnique,
+      findUniqueOrThrow: regularMocks.state.findUniqueOrThrow,
     },
     amendment: {
       findMany: regularMocks.amendment.findMany,
@@ -173,12 +186,17 @@ describe("demonstrationResolvers", () => {
       findMany: regularMocks.demonstrationRoleAssignment.findMany,
     },
     primaryDemonstrationRoleAssignment: {
-      findUnique: regularMocks.primaryDemonstrationRoleAssignment.findUnique,
+      findUniqueOrThrow: regularMocks.primaryDemonstrationRoleAssignment.findUniqueOrThrow,
     },
     demonstrationTypeTagAssignment: {
       findMany: regularMocks.demonstrationTypeTagAssignment.findMany,
     },
   };
+  const mockUser = {} as unknown as ContextUser;
+  const mockContext: GraphQLContext = {
+    user: mockUser,
+  };
+
   type TestValues = {
     demonstrationId: string;
     userId: string;
@@ -224,22 +242,129 @@ describe("demonstrationResolvers", () => {
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
-  describe("__getDemonstration", () => {
-    it("should request the demonstration", async () => {
-      const testInput = {
-        id: testValues.demonstrationId,
-      };
-      await __getDemonstration(undefined, testInput);
-      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testValues.demonstrationId, {
-        applicationTypeId: "Demonstration",
-      });
+  describe("Query.demonstration", () => {
+    it("delegates to `demonstrationData.getDemonstration`", async () => {
+      await demonstrationResolvers.Query.demonstration(undefined, { id: "abc123" }, mockContext);
+      expect(getDemonstration).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
     });
   });
 
-  describe("__getManyDemonstrations", () => {
-    it("should request many demonstrations with the right type", async () => {
-      await __getManyDemonstrations();
-      expect(getManyApplications).toHaveBeenCalledExactlyOnceWith("Demonstration");
+  describe("Query.demonstrations", () => {
+    it("delegates to `demonstrationData.getManyDemonstrations`", async () => {
+      await demonstrationResolvers.Query.demonstrations(undefined, {}, mockContext);
+      expect(getManyDemonstrations).toHaveBeenCalledExactlyOnceWith({}, mockUser);
+    });
+  });
+
+  describe("Demonstration.documents", () => {
+    it("delegates to `documentData.getManyDocuments`", async () => {
+      const mockDemonstration = { id: "abc123" } as PrismaDemonstration;
+      await demonstrationResolvers.Demonstration.documents(
+        mockDemonstration,
+        undefined,
+        mockContext
+      );
+      expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
+        { applicationId: "abc123" },
+        mockUser
+      );
+    });
+  });
+
+  describe("Demonstration.amendments", () => {
+    it("delegates to `amendmentData.getManyAmendments`", async () => {
+      await demonstrationResolvers.Demonstration.amendments(
+        { id: "demonstrationId" } as PrismaDemonstration,
+        {},
+        mockContext
+      );
+      expect(getManyAmendments).toHaveBeenCalledExactlyOnceWith(
+        { demonstrationId: "demonstrationId" },
+        mockUser
+      );
+    });
+  });
+
+  describe("Demonstration.extensions", () => {
+    it("delegates to `extensionData.getManyExtensions`", async () => {
+      await demonstrationResolvers.Demonstration.extensions(
+        { id: "demonstrationId" } as PrismaDemonstration,
+        {},
+        mockContext
+      );
+      expect(getManyExtensions).toHaveBeenCalledExactlyOnceWith(
+        { demonstrationId: "demonstrationId" },
+        mockUser
+      );
+    });
+  });
+
+  describe("Demonstration.phases", () => {
+    it("delegates to `applicationPhaseData.getManyApplicationPhases`", async () => {
+      await demonstrationResolvers.Demonstration.phases(
+        { id: "demonstrationId" } as PrismaDemonstration,
+        {},
+        mockContext
+      );
+      expect(getManyApplicationPhases).toHaveBeenCalledExactlyOnceWith(
+        { applicationId: "demonstrationId" },
+        mockUser
+      );
+    });
+  });
+
+  describe("Demonstration.currentPhaseName", () => {
+    it("returns currentPhaseId", () => {
+      const demonstration = {
+        currentPhaseId: "Application Intake" satisfies PhaseName,
+      } as PrismaDemonstration;
+
+      const result = demonstrationResolvers.Demonstration.currentPhaseName(demonstration);
+      expect(result).toBe(demonstration.currentPhaseId);
+    });
+  });
+
+  describe("Demonstration.signatureLevel", () => {
+    it("returns signatureLevelId", () => {
+      const demonstration = {
+        signatureLevelId: "OA" satisfies SignatureLevel,
+      } as PrismaDemonstration;
+
+      const result = demonstrationResolvers.Demonstration.signatureLevel(demonstration);
+      expect(result).toBe(demonstration.signatureLevelId);
+    });
+  });
+
+  describe("Demonstration.sdgDivision", () => {
+    it("returns sdgDivisionId", () => {
+      const demonstration = {
+        sdgDivisionId: "Division of Eligibility and Coverage Demonstrations" satisfies SdgDivision,
+      } as PrismaDemonstration;
+
+      const result = demonstrationResolvers.Demonstration.sdgDivision(demonstration);
+      expect(result).toBe(demonstration.sdgDivisionId);
+    });
+  });
+
+  describe("Demonstration.status", () => {
+    it("return statusId", () => {
+      const demonstration = {
+        statusId: "Pre-Submission" satisfies ApplicationStatus,
+      } as PrismaDemonstration;
+
+      const result = demonstrationResolvers.Demonstration.status(demonstration);
+      expect(result).toBe(demonstration.statusId);
+    });
+  });
+
+  describe("Demonstration.clearanceLevel", () => {
+    it("returns clearanceLevelId", () => {
+      const demonstration = {
+        clearanceLevelId: "COMMs" satisfies ClearanceLevel,
+      } as PrismaDemonstration;
+
+      const result = demonstrationResolvers.Demonstration.clearanceLevel(demonstration);
+      expect(result).toBe(demonstration.clearanceLevelId);
     });
   });
 
@@ -688,48 +813,7 @@ describe("demonstrationResolvers", () => {
         },
       };
       await __resolveDemonstrationState(input as PrismaDemonstration);
-      expect(regularMocks.state.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCall);
-    });
-  });
-
-  describe("__resolveDemonstrationAmendments", () => {
-    it("should look up the relevant amendments", async () => {
-      const input: Partial<PrismaDemonstration> = {
-        id: testValues.demonstrationId,
-      };
-      const expectedCall = {
-        where: {
-          demonstrationId: testValues.demonstrationId,
-        },
-      };
-      await __resolveDemonstrationAmendments(input as PrismaDemonstration);
-      expect(regularMocks.amendment.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
-    });
-  });
-
-  describe("__resolveDemonstrationExtensions", () => {
-    it("should look up the relevant extensions", async () => {
-      const input: Partial<PrismaDemonstration> = {
-        id: testValues.demonstrationId,
-      };
-      const expectedCall = {
-        where: {
-          demonstrationId: testValues.demonstrationId,
-        },
-      };
-      await __resolveDemonstrationExtensions(input as PrismaDemonstration);
-      expect(regularMocks.extension.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
-    });
-  });
-
-  describe("resolveDemonstrationSdgDivision", () => {
-    it("should resolve the relevant SDG Division", () => {
-      const input: Partial<PrismaDemonstration> = {
-        sdgDivisionId: testValues.sdgDivisionId,
-      };
-      expect(resolveDemonstrationSdgDivision(input as PrismaDemonstration)).toBe(
-        testValues.sdgDivisionId
-      );
+      expect(regularMocks.state.findUniqueOrThrow).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
   });
 
@@ -752,7 +836,7 @@ describe("demonstrationResolvers", () => {
 
   describe("__resolveDemonstrationPrimaryProjectOfficer", () => {
     it("should look up the primary project officer", async () => {
-      regularMocks.primaryDemonstrationRoleAssignment.findUnique.mockResolvedValueOnce({
+      regularMocks.primaryDemonstrationRoleAssignment.findUniqueOrThrow.mockResolvedValueOnce({
         demonstrationRoleAssignment: {
           person: {
             id: testValues.userId,
@@ -777,7 +861,7 @@ describe("demonstrationResolvers", () => {
       };
       await __resolveDemonstrationPrimaryProjectOfficer(input as PrismaDemonstration);
       expect(
-        regularMocks.primaryDemonstrationRoleAssignment.findUnique
+        regularMocks.primaryDemonstrationRoleAssignment.findUniqueOrThrow
       ).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
   });
@@ -785,24 +869,32 @@ describe("demonstrationResolvers", () => {
   describe("resolveDemonstrationTypes", () => {
     it("should look up the demonstration types for the demonstration", async () => {
       // This is present just to test the map in the function
-      const resolvedValue: PrismaDemonstrationTypeTagAssignment[] = [
+      const resolvedValue: (PrismaDemonstrationTypeTagAssignment & {
+        tag: Pick<PrismaTag, "statusId">;
+      })[] = [
         {
           demonstrationId: testValues.demonstrationId,
-          tagId: "Test Demonstration Type A",
+          tagNameId: "Test Demonstration Type A",
           tagTypeId: "Demonstration Type",
           effectiveDate: testValues.dateValue,
           expirationDate: testValues.dateValue,
           createdAt: testValues.dateValue,
           updatedAt: testValues.dateValue,
+          tag: {
+            statusId: "Approved",
+          },
         },
         {
           demonstrationId: testValues.demonstrationId,
-          tagId: "Test Demonstration Type B",
+          tagNameId: "Test Demonstration Type B",
           tagTypeId: "Demonstration Type",
           effectiveDate: testValues.dateValue,
           expirationDate: testValues.dateValue,
           createdAt: testValues.dateValue,
           updatedAt: testValues.dateValue,
+          tag: {
+            statusId: "Unapproved",
+          },
         },
       ];
       regularMocks.demonstrationTypeTagAssignment.findMany.mockResolvedValueOnce(resolvedValue);
@@ -817,6 +909,9 @@ describe("demonstrationResolvers", () => {
       };
 
       const expectedCall = {
+        include: {
+          tag: true,
+        },
         where: {
           demonstrationId: testValues.demonstrationId,
         },
@@ -828,6 +923,7 @@ describe("demonstrationResolvers", () => {
           effectiveDate: testValues.dateValue,
           expirationDate: testValues.dateValue,
           status: "Active",
+          approvalStatus: "Approved",
           createdAt: testValues.dateValue,
           updatedAt: testValues.dateValue,
         },
@@ -836,6 +932,7 @@ describe("demonstrationResolvers", () => {
           effectiveDate: testValues.dateValue,
           expirationDate: testValues.dateValue,
           status: "Pending",
+          approvalStatus: "Unapproved",
           createdAt: testValues.dateValue,
           updatedAt: testValues.dateValue,
         },

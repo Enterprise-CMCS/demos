@@ -1,4 +1,4 @@
-import { DateType, DocumentType, ExpectedTimestamp, PhaseNameWithTrackedStatus } from "./types.js";
+import { DateType, DocumentType, ExpectedTimestamp, PhaseName } from "./types.js";
 
 export const CLEARANCE_LEVELS = ["COMMs", "CMS (OSORA)"] as const;
 
@@ -9,6 +9,67 @@ export const APPLICATION_STATUS = [
   "Denied",
   "Withdrawn",
   "On-hold",
+] as const;
+
+export const DELIVERABLE_ACTION_TYPES = [
+  "Created Deliverable Slot",
+  "Marked as Past Due",
+  "Requested Extension",
+  "Approved Extension Request",
+  "Denied Extension Request",
+  "Withdrew Extension Request",
+  "Manually Changed Due Date",
+  "Requested Resubmission",
+  "Submitted Deliverable",
+  "Started Review",
+  "Accepted Deliverable",
+  "Approved Deliverable",
+  "Received and Filed Deliverable",
+] as const;
+
+export const DELIVERABLE_TYPES = [
+  "Annual Budget Neutrality Report",
+  "Close Out Report",
+  "Demonstration-Specific Deliverable",
+  "Evaluation Design",
+  "HCBS Actual and Estimated Enrollment Number Report (1915(i)-like)",
+  "HCBS Deficiency, Remediation and A/N/E Incident Report (1915(c)-like)",
+  "HCBS Evidentiary Report",
+  "HCBS Performance Measures Report",
+  "HCBS Quality Improvement Strategy Report",
+  "Implementation Plan",
+  "Interim Evaluation Report",
+  "Mid-point Assessment",
+  "Monitoring Protocol",
+  "Monitoring Report",
+  "Quarterly Budget Neutrality Report",
+  "Summative Evaluation Report",
+  "Transition Plan",
+] as const;
+
+export const DELIVERABLE_DUE_DATE_TYPES = ["Normal", "Open Ended"] as const;
+
+export const DELIVERABLE_EXTENSION_REASON_CODES = [
+  "COVID-19",
+  "Technical Difficulties",
+  "Other",
+] as const;
+
+export const DELIVERABLE_EXTENSION_STATUSES = [
+  "Requested",
+  "Approved",
+  "Denied",
+  "Withdrawn",
+] as const;
+
+export const DELIVERABLE_STATUSES = [
+  "Upcoming",
+  "Past Due",
+  "Submitted",
+  "Under CMS Review",
+  "Accepted",
+  "Approved",
+  "Received and Filed",
 ] as const;
 
 export const DEMONSTRATION_TYPE_STATUSES = ["Expired", "Pending", "Active"] as const;
@@ -24,7 +85,13 @@ export const ROLES = [
 
 export const CONTACT_TYPES = ["DDME Analyst", "Project Officer", "State Point of Contact"] as const;
 
-export const ADMIN_DEMONSTRATION_ROLES = ROLES;
+export const ADMIN_DEMONSTRATION_ROLES = [
+  "Project Officer",
+  "State Point of Contact",
+  "DDME Analyst",
+  "Policy Technical Director",
+  "Monitoring & Evaluation Technical Director",
+] as const;
 
 export const CMS_USER_DEMONSTRATION_ROLES = [
   "Project Officer",
@@ -42,6 +109,8 @@ export const PERSON_TYPES = [
   "non-user-contact",
 ] as const;
 
+export const USER_TYPES = ["demos-admin", "demos-cms-user", "demos-state-user"] as const;
+
 export const GRANT_LEVELS = ["System", "Demonstration"] as const;
 
 export const APPLICATION_TYPES = ["Demonstration", "Amendment", "Extension"] as const;
@@ -56,21 +125,36 @@ export const SDG_DIVISIONS = [
 export const DOCUMENT_TYPES = [
   "Application Completeness Letter",
   "Approval Letter",
+  "BN Workbook",
+  "Close Out Report",
+  "Demonstration-Specific Deliverable",
+  "Evaluation Design",
   "Federal Comment Internal Analysis Document",
-  "Final BN Worksheet",
   "Final Budget Neutrality Formulation Workbook",
   "Formal OMB Policy Concurrence Email",
   "General File",
+  "HCBS Actual and Estimated Enrollment Number Report (1915(i)-like)",
+  "HCBS Deficiency, Remediation and A/N/E Incident Report (1915(c)-like)",
+  "HCBS Evidentiary Report",
+  "HCBS Performance Measures Report",
+  "HCBS Quality Improvement Strategy Report",
+  "Implementation Plan",
+  "Interim Evaluation Report",
   "Internal Completeness Review Form",
+  "Mid-point Assessment",
+  "Monitoring Protocol",
+  "Monitoring Report",
   "Payment Ratio Analysis",
   "Pre-Submission",
   "Q&A",
   "Signed Decision Memo",
   "Special Terms & Conditions",
   "State Application",
+  "Summative Evaluation Report",
+  "Transition Plan",
 ] as const;
 
-export const PHASE_NAMES_WITH_TRACKED_STATUS = [
+export const PHASE_NAMES = [
   "Concept",
   "Application Intake",
   "Completeness",
@@ -80,8 +164,6 @@ export const PHASE_NAMES_WITH_TRACKED_STATUS = [
   "Approval Package",
   "Approval Summary",
 ] as const;
-
-export const PHASE_NAME = ["None", ...PHASE_NAMES_WITH_TRACKED_STATUS] as const;
 
 export const PHASE_STATUS = [
   "Not Started",
@@ -284,21 +366,6 @@ export const EVENT_TYPES = [
   "Delete Document Failed",
 ] as const;
 
-export const NONE_PHASE_DOCUMENTS: DocumentType[] = [
-  "Application Completeness Letter",
-  "Approval Letter",
-  "Final BN Worksheet",
-  "Final Budget Neutrality Formulation Workbook",
-  "Formal OMB Policy Concurrence Email",
-  "Internal Completeness Review Form",
-  "Payment Ratio Analysis",
-  "Pre-Submission",
-  "Q&A",
-  "Signed Decision Memo",
-  "State Application",
-  "General File",
-] as const;
-
 export const CONCEPT_PHASE_DOCUMENTS: DocumentType[] = ["General File", "Pre-Submission"] as const;
 
 export const APPLICATION_INTAKE_PHASE_DOCUMENTS: DocumentType[] = [
@@ -341,7 +408,6 @@ export const APPROVAL_PACKAGE_PHASE_DOCUMENTS: DocumentType[] = [
 export const APPROVAL_SUMMARY_PHASE_DOCUMENTS: DocumentType[] = ["General File"] as const;
 
 export const PHASE_DOCUMENT_TYPE_MAP = {
-  None: NONE_PHASE_DOCUMENTS,
   Concept: CONCEPT_PHASE_DOCUMENTS,
   "Application Intake": APPLICATION_INTAKE_PHASE_DOCUMENTS,
   Completeness: COMPLETENESS_PHASE_DOCUMENTS,
@@ -352,10 +418,7 @@ export const PHASE_DOCUMENT_TYPE_MAP = {
   "Approval Summary": APPROVAL_SUMMARY_PHASE_DOCUMENTS,
 };
 
-type PhaseStartEndDateRecord = Record<
-  PhaseNameWithTrackedStatus,
-  { startDate?: DateType; endDate?: DateType }
->;
+type PhaseStartEndDateRecord = Record<PhaseName, { startDate?: DateType; endDate?: DateType }>;
 export const PHASE_START_END_DATES: PhaseStartEndDateRecord = {
   Concept: { startDate: "Concept Start Date", endDate: "Concept Completion Date" },
   "Application Intake": {
@@ -379,75 +442,20 @@ export const PHASE_START_END_DATES: PhaseStartEndDateRecord = {
   "Approval Summary": {},
 };
 
-export const TAG_CONFIGURATION_STATUSES = ["Unreviewed", "Approved"] as const;
+export const TAG_STATUSES = ["Unapproved", "Approved"] as const;
 
-export const TAG_CONFIGURATION_SOURCES = ["User", "System"] as const;
+export const APPLICATION_TAG_SUGGESTION_STATUSES = [
+  "Pending",
+  "Accepted",
+  "Replaced",
+  "Removed",
+] as const;
+
+export const UIPATH_RESULT_STATUSES = ["Pending", "Finished", "Failed"] as const;
+
+export const TAG_SOURCES = ["User", "System"] as const;
 
 export const TAG_TYPES = ["Application", "Demonstration Type"] as const;
-
-export const DEMONSTRATION_TYPE_TAGS: string[] = [
-  "Aggregate Cap",
-  "Annual Limits",
-  "Basic Health Plan (BHP)",
-  "Behavioral Health",
-  "Beneficiary Engagement",
-  "Children's Health Insurance Program (CHIP)",
-  "CMMI - AHEAD",
-  "CMMI - Integrated Care for Kids (IncK)",
-  "CMMI - Maternal Opioid Misuse (MOM)",
-  "Community Engagement",
-  "Contingency Management",
-  "Continuous Eligibility",
-  "Delivery System Reform Incentive Payment (DSRIP)",
-  "Dental",
-  "Designated State Health Programs (DSHP)",
-  "Employment Supports",
-  "Enrollment Cap",
-  "End-Stage Renal Disease (ESRD)",
-  "Expenditure Cap",
-  "Former Foster Care Youth (FFCY)",
-  "Global Payment Program (GPP)",
-  "Health Equity",
-  "Health-Related Social Needs (HRSN)",
-  "Healthy Behavior Incentives",
-  "HIV",
-  "Home Community Based Services (HCBS)",
-  "Lead Exposure",
-  "Lifetime Limits",
-  "Long-Term Services and Supports (LTSS)",
-  "Managed Care",
-  "Marketplace Coverage/Premium Assistance Wrap",
-  "New Adult Group Expansion",
-  "Non-Eligibility Period",
-  "Non-Emergency Medical Transportation (NEMT)",
-  "Partial Expansion of the New Adult Group",
-  "Pharmacy",
-  "PHE-Appendix K",
-  "PHE-COVID-19",
-  "PHE-Reasonable Opportunity Period (ROP)",
-  "PHE-Risk Mitigation",
-  "PHE-Vaccine Coverage",
-  "Premium Assistance/Employer-Sponsored Health Insurance (ESI)/Qualified Health Plan (QHP)",
-  "Premiums/Cost-Sharing",
-  "Provider Cap",
-  "Provider Restriction",
-  "ReEntry",
-  "Reproductive Health: Family Planning",
-  "Reproductive Health: Fertility",
-  "Reproductive Health: Hyde",
-  "Reproductive Health: Maternal Health",
-  "Reproductive Health: Post-Partum Extension",
-  "Reproductive Health: RAD",
-  "Retroactive Eligibility",
-  "Serious Mental Illness (SMI)",
-  "Special Needs",
-  "Substance Use Disorder (SUD)",
-  "Targeted Population Expansion",
-  "Tribal",
-  "Uncompensated Care",
-  "Value Based Care (VBC)",
-  "Vision",
-] as const;
 
 // This seemed like a no brainer.
 export const PRIMARY_AWS_REGION = "us-east-1";
@@ -458,3 +466,23 @@ export const BUDGET_NEUTRALITY_VALIDATION_STATUSES = [
   "Pending",
   "In Progress",
 ];
+
+export const PERMISSIONS = [
+  "View All Demonstrations",
+  "View Assigned Demonstrations",
+  "View All Amendments",
+  "View Amendments on Assigned Demonstrations",
+  "View All Extensions",
+  "View Extensions on Assigned Demonstrations",
+  "View All Documents",
+  "View Documents on Assigned Demonstrations",
+  "View Owned Documents",
+  "View All ApplicationPhases",
+  "View ApplicationPhases on Assigned Demonstrations",
+  "View All ApplicationDates",
+  "View ApplicationDates on Assigned Demonstrations",
+  "View All ApplicationNotes",
+  "View ApplicationNotes on Assigned Demonstrations",
+] as const;
+
+export const SYSTEM_ROLES = ["Admin User", "CMS User", "State User"] as const;

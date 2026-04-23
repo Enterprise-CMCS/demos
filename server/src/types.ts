@@ -1,11 +1,18 @@
 import {
   ADMIN_DEMONSTRATION_ROLES,
+  APPLICATION_TAG_SUGGESTION_STATUSES,
   APPLICATION_STATUS,
   APPLICATION_TYPES,
   BUDGET_NEUTRALITY_VALIDATION_STATUSES,
   CLEARANCE_LEVELS,
   CMS_USER_DEMONSTRATION_ROLES,
   DATE_TYPES,
+  DELIVERABLE_ACTION_TYPES,
+  DELIVERABLE_DUE_DATE_TYPES,
+  DELIVERABLE_EXTENSION_REASON_CODES,
+  DELIVERABLE_EXTENSION_STATUSES,
+  DELIVERABLE_STATUSES,
+  DELIVERABLE_TYPES,
   DEMONSTRATION_TYPE_STATUSES,
   DOCUMENT_TYPES,
   EVENT_TYPES,
@@ -14,8 +21,7 @@ import {
   LOG_LEVELS,
   NOTE_TYPES,
   PERSON_TYPES,
-  PHASE_NAME,
-  PHASE_NAMES_WITH_TRACKED_STATUS,
+  PHASE_NAMES,
   PHASE_STATUS,
   REVIEW_PHASE_DATE_TYPES,
   REVIEW_PHASE_NOTE_TYPES,
@@ -23,9 +29,13 @@ import {
   SDG_DIVISIONS,
   SIGNATURE_LEVEL,
   STATE_USER_DEMONSTRATION_ROLES,
-  TAG_CONFIGURATION_SOURCES,
-  TAG_CONFIGURATION_STATUSES,
+  TAG_SOURCES,
+  TAG_STATUSES,
   TAG_TYPES,
+  UIPATH_RESULT_STATUSES,
+  USER_TYPES,
+  PERMISSIONS,
+  SYSTEM_ROLES,
 } from "./constants.js";
 
 export type {
@@ -73,6 +83,7 @@ export type {
   ApplicationPhase,
   CompletePhaseInput,
 } from "./model/applicationPhase/applicationPhaseSchema.js";
+
 export type { Application } from "./model/application/applicationSchema.js";
 export type {
   ApplicationDate,
@@ -87,7 +98,7 @@ export type {
   SetApplicationNotesInput,
 } from "./model/applicationNote/applicationNoteSchema.js";
 
-export type { Tag } from "./model/tag/tagSchema.js";
+export type { TagName } from "./model/tagName/tagNameSchema.js";
 
 export type { SetApplicationTagsInput } from "./model/applicationTagAssignment/applicationTagAssignmentSchema";
 
@@ -100,20 +111,31 @@ export type {
   SetDemonstrationTypesInput,
 } from "./model/demonstrationTypeTagAssignment/demonstrationTypeTagAssignmentSchema.js";
 
+export type { Tag } from "./model/tag/tagSchema.js";
+
+export type {
+  Deliverable,
+  CreateDeliverableInput,
+  UpdateDeliverableInput,
+  DeliverableDueDateUpdateInput,
+} from "./model/deliverable/deliverableSchema";
+
+// Alias is not enforced in TS but maintains alignment between GQL and TS
+export type NonEmptyString = string; // NOSONAR: typescript:S6564
+
 export type DemonstrationTypeStatus = (typeof DEMONSTRATION_TYPE_STATUSES)[number];
 export type ClearanceLevel = (typeof CLEARANCE_LEVELS)[number];
 export type LocalDate = string & { readonly __brand: "LocalDate" };
 export type DateTimeOrLocalDate = Date | LocalDate;
-export type NonEmptyString = string;
 export type ApplicationStatus = (typeof APPLICATION_STATUS)[number];
 export type ApplicationType = (typeof APPLICATION_TYPES)[number];
 export type SdgDivision = (typeof SDG_DIVISIONS)[number];
 export type SignatureLevel = (typeof SIGNATURE_LEVEL)[number];
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
-export type PhaseName = (typeof PHASE_NAME)[number];
-export type PhaseNameWithTrackedStatus = (typeof PHASE_NAMES_WITH_TRACKED_STATUS)[number];
+export type PhaseName = (typeof PHASE_NAMES)[number];
 export type PhaseStatus = (typeof PHASE_STATUS)[number];
 export type PersonType = (typeof PERSON_TYPES)[number];
+export type UserType = (typeof USER_TYPES)[number];
 export type GrantLevel = (typeof GRANT_LEVELS)[number];
 export type Role = (typeof ROLES)[number];
 export type DateType = (typeof DATE_TYPES)[number];
@@ -126,8 +148,18 @@ export type CmsUserDemonstrationRole = (typeof CMS_USER_DEMONSTRATION_ROLES)[num
 export type StateUserDemonstrationRole = (typeof STATE_USER_DEMONSTRATION_ROLES)[number];
 export type ReviewPhaseDateTypes = (typeof REVIEW_PHASE_DATE_TYPES)[number];
 export type ReviewPhaseNoteTypes = (typeof REVIEW_PHASE_NOTE_TYPES)[number];
-export type TagConfigurationStatus = (typeof TAG_CONFIGURATION_STATUSES)[number];
-export type TagConfigurationSource = (typeof TAG_CONFIGURATION_SOURCES)[number];
+export type ApplicationTagSuggestionStatus = (typeof APPLICATION_TAG_SUGGESTION_STATUSES)[number];
+export type UiPathResultStatus = (typeof UIPATH_RESULT_STATUSES)[number];
+export type TagStatus = (typeof TAG_STATUSES)[number];
+export type TagSource = (typeof TAG_SOURCES)[number];
 export type TagType = (typeof TAG_TYPES)[number];
 export type BudgetNeutralityValidationStatus =
   (typeof BUDGET_NEUTRALITY_VALIDATION_STATUSES)[number];
+export type DeliverableType = (typeof DELIVERABLE_TYPES)[number];
+export type DeliverableStatus = (typeof DELIVERABLE_STATUSES)[number];
+export type DeliverableDueDateType = (typeof DELIVERABLE_DUE_DATE_TYPES)[number];
+export type DeliverableActionType = (typeof DELIVERABLE_ACTION_TYPES)[number];
+export type DeliverableExtensionReasonCode = (typeof DELIVERABLE_EXTENSION_REASON_CODES)[number];
+export type DeliverableExtensionStatus = (typeof DELIVERABLE_EXTENSION_STATUSES)[number];
+export type Permission = (typeof PERMISSIONS)[number];
+export type SystemRole = (typeof SYSTEM_ROLES)[number];

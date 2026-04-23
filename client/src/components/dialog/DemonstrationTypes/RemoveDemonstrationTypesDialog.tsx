@@ -5,7 +5,7 @@ import { useToast } from "components/toast";
 import { ErrorButton } from "components/button";
 import {
   DemonstrationTypeAssignment,
-  Tag as DemonstrationTypeName,
+  TagName,
   SetDemonstrationTypesInput,
   Demonstration as ServerDemonstration,
 } from "demos-server";
@@ -35,7 +35,7 @@ export const RemoveDemonstrationTypesDialog = ({
   demonstrationTypeNames,
 }: {
   demonstrationId: string;
-  demonstrationTypeNames: DemonstrationTypeName[];
+  demonstrationTypeNames: TagName[];
 }) => {
   const { closeDialog } = useDialog();
   const { showSuccess, showError } = useToast();

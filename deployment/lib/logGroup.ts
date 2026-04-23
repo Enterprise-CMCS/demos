@@ -26,8 +26,8 @@ export class DemosLogGroup extends Construct {
 
     this.logGroup = new LogGroup(this, "LogGroup", {
       logGroupName: props.overrideFullName ?? `/demos/${props.stage}/${props.name}`,
-      retention: !props.isEphemeral ? RetentionDays.THREE_MONTHS : RetentionDays.ONE_WEEK,
-      removalPolicy: !props.isEphemeral ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
+      retention: props.isEphemeral ? RetentionDays.ONE_WEEK : RetentionDays.THREE_MONTHS,
+      removalPolicy: props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
     })
 
 

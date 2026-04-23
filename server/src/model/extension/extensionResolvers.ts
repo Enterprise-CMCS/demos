@@ -1,42 +1,29 @@
-import { Extension as PrismaExtension, Demonstration as PrismaDemonstration } from "@prisma/client";
-import { prisma } from "../../prismaClient.js";
+import { Extension as PrismaExtension } from "@prisma/client";
+import { prisma } from "../../prismaClient";
 import {
   ApplicationStatus,
   ApplicationType,
   CreateExtensionInput,
   PhaseName,
   UpdateExtensionInput,
-} from "../../types.js";
-import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields.js";
-import { handlePrismaError } from "../../errors/handlePrismaError.js";
+} from "../../types";
+import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
+import { handlePrismaError } from "../../errors/handlePrismaError";
 import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate";
 import {
   deleteApplication,
-  getApplication,
-  getManyApplications,
-  resolveApplicationClearanceLevel,
-  resolveApplicationCurrentPhaseName,
-  resolveApplicationDocuments,
-  resolveApplicationPhases,
-  resolveApplicationStatus,
   resolveApplicationTags,
-  resolveApplicationSignatureLevel,
+  resolveSuggestedApplicationTags,
 } from "../application";
+import { getDemonstration } from "../demonstration";
+import { GraphQLContext } from "../../auth";
+import { getExtension, getManyExtensions } from "./extensionData";
+import { getManyDocuments } from "../document";
+import { getManyApplicationPhases } from "../applicationPhase";
 
 const extensionApplicationType: ApplicationType = "Extension";
 const conceptPhaseName: PhaseName = "Concept";
 const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
-
-export async function __getExtension(
-  parent: unknown,
-  { id }: { id: string }
-): Promise<PrismaExtension> {
-  return await getApplication(id, { applicationTypeId: "Extension" });
-}
-
-export async function __getManyExtensions(): Promise<PrismaExtension[]> {
-  return await getManyApplications("Extension");
-}
 
 export async function __createExtension(
   parent: unknown,
@@ -98,20 +85,12 @@ export async function deleteExtension(
   });
 }
 
-export async function __resolveParentDemonstration(
-  parent: PrismaExtension
-): Promise<PrismaDemonstration> {
-  // DB enforces that you cannot orphan the demonstration record
-  const result = await prisma().demonstration.findUnique({
-    where: { id: parent.demonstrationId },
-  });
-  return result!;
-}
-
 export const extensionResolvers = {
   Query: {
-    extension: __getExtension,
-    extensions: __getManyExtensions,
+    extension: (parent: unknown, args: { id: string }, context: GraphQLContext) =>
+      getExtension({ id: args.id }, context.user),
+    extensions: (parent: unknown, args: unknown, context: GraphQLContext) =>
+      getManyExtensions({}, context.user),
   },
 
   Mutation: {
@@ -121,13 +100,17 @@ export const extensionResolvers = {
   },
 
   Extension: {
-    demonstration: __resolveParentDemonstration,
-    documents: resolveApplicationDocuments,
-    currentPhaseName: resolveApplicationCurrentPhaseName,
-    status: resolveApplicationStatus,
-    phases: resolveApplicationPhases,
-    clearanceLevel: resolveApplicationClearanceLevel,
+    demonstration: (parent: PrismaExtension, args: unknown, context: GraphQLContext) =>
+      getDemonstration({ id: parent.demonstrationId }, context.user),
+    documents: (parent: PrismaExtension, args: unknown, context: GraphQLContext) =>
+      getManyDocuments({ applicationId: parent.id }, context.user),
+    currentPhaseName: (parent: PrismaExtension) => parent.currentPhaseId,
+    status: (parent: PrismaExtension) => parent.statusId,
+    phases: (parent: PrismaExtension, args: unknown, context: GraphQLContext) =>
+      getManyApplicationPhases({ applicationId: parent.id }, context.user),
+    clearanceLevel: (parent: PrismaExtension) => parent.clearanceLevelId,
     tags: resolveApplicationTags,
-    signatureLevel: resolveApplicationSignatureLevel,
+    signatureLevel: (parent: PrismaExtension) => parent.signatureLevelId,
+    suggestedApplicationTags: resolveSuggestedApplicationTags,
   },
 };

@@ -65,6 +65,9 @@ const SEARCH_PEOPLE_MOCKS = [
   createSearchMock("jo"),
   createSearchMock("joh"),
   createSearchMock("john"),
+  createSearchMock("ja"),
+  createSearchMock("jan"),
+  createSearchMock("jane"),
 ];
 
 const SET_ROLES_MOCK = {
@@ -1208,6 +1211,37 @@ describe("ManageContactsDialog", () => {
 
       const stateContact = screen.getByText("State User");
       expect(stateContact).toBeInTheDocument();
+    });
+
+    it("defaults contact type to State Point of Contact when adding a state user", async () => {
+      const user = userEvent.setup();
+      const mocks = SEARCH_PEOPLE_MOCKS;
+
+      renderWithProviders(defaultProps, mocks);
+
+      const searchInput = screen.getByPlaceholderText("Search by name or email");
+
+      // Type to trigger search
+      await user.type(searchInput, "ja"); // matches Jane (state user)
+
+      await waitFor(() => {
+        expect(screen.getByText("Jane Smith")).toBeInTheDocument();
+      });
+
+      // Add the state user
+      const addButton = screen.getByText("Jane Smith");
+      await user.click(addButton);
+
+      // Verify they appear in the table
+      await waitFor(() => {
+        expect(screen.getByText("Jane Smith")).toBeInTheDocument();
+      });
+
+      // ✅ Assert default contact type is applied
+      expect(screen.getByDisplayValue("State Point of Contact")).toBeInTheDocument();
+
+      // (Optional but useful) verify no "Select Type…" placeholder exists
+      expect(screen.queryByDisplayValue("Select Type…")).not.toBeInTheDocument();
     });
   });
 

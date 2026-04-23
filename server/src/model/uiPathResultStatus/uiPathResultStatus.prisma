@@ -1,0 +1,9 @@
+// Flags: STATIC_CONSTRAINT
+model UiPathResultStatus {
+  id String
+
+  uiPathResults UiPathResult[]
+
+  @@id([id])
+  @@map("uipath_result_status")
+}

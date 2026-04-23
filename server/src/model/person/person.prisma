@@ -5,8 +5,8 @@ model Person {
   firstName    String @map("first_name")
   lastName     String @map("last_name")
 
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   personType                   PersonType                    @relation(fields: [personTypeId], references: [id])
   user                         User?

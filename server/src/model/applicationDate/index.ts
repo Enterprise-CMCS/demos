@@ -20,6 +20,7 @@ export {
 export { createPhaseStartDate } from "./createPhaseStartDate.js";
 export { validateAllowedDateChangeForApplication } from "./validateAllowedDateChangeForApplication";
 export { validateAllowedDateChangeByPhase } from "./validateAllowedDateChangeByPhase";
+export { getApplicationDate, getManyApplicationDates } from "./applicationDateData";
 
 // Queries
 export { deleteApplicationDates } from "./queries/deleteApplicationDates.js";

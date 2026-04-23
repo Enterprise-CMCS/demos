@@ -9,10 +9,12 @@ import userEvent from "@testing-library/user-event";
 import { PhaseSelector, getDisplayedPhaseStatus, getDisplayedPhaseDate } from "./PhaseSelector";
 import { ApplicationWorkflowDemonstration } from "../demonstration/DemonstrationWorkflow";
 import {
+  getApplicationIntakeComponentFromApplication,
   getReviewPhaseComponentFromApplication,
   getApplicationCompletenessFromApplication,
   getApprovalPackagePhaseFromApplication,
   getSdgPreparationPhaseFromApplication,
+  getApprovalSummaryPhaseFromApplication,
 } from "../phases";
 
 const mockPO = {
@@ -28,10 +30,12 @@ vi.mock("../phases", async () => {
   const actual = await vi.importActual("../phases");
   return {
     ...actual,
+    getApplicationIntakeComponentFromApplication: vi.fn(),
     getReviewPhaseComponentFromApplication: vi.fn(),
     getApplicationCompletenessFromApplication: vi.fn(),
     getSdgPreparationPhaseFromApplication: vi.fn(),
     getApprovalPackagePhaseFromApplication: vi.fn(),
+    getApprovalSummaryPhaseFromApplication: vi.fn(),
   };
 });
 
@@ -665,5 +669,77 @@ describe("completeness phase component", () => {
 
     expect(select).toHaveValue("B");
     expect(screen.getByText("Current value: B")).toBeInTheDocument();
+  });
+});
+
+describe("application intake phase component", () => {
+  it("calls getApplicationIntakeComponentFromApplication with correct props when Approval Package is selected", async () => {
+    vi.mocked(getApplicationIntakeComponentFromApplication).mockReturnValue(
+      <div>Application Intake Phase Mock</div>
+    );
+
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "test-id",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+      },
+      primaryProjectOfficer: mockPO,
+      status: "Under Review",
+      currentPhaseName: "Application Intake",
+      clearanceLevel: "CMS (OSORA)",
+      phases: [],
+      documents: [],
+      demonstrationTypes: [],
+      tags: [],
+    };
+
+    render(
+      <TestProvider>
+        <PhaseSelector application={demonstration} workflowApplicationType="demonstration" />
+      </TestProvider>
+    );
+
+    expect(getApplicationIntakeComponentFromApplication).toHaveBeenCalledWith(
+      demonstration,
+      expect.any(Function)
+    );
+  });
+});
+
+describe("Approval Summary phase component", () => {
+  it("calls getApprovalSummaryPhaseFromApplication with correct props when Approval Package is selected", async () => {
+    vi.mocked(getApprovalSummaryPhaseFromApplication).mockReturnValue(
+      <div>Application Intake Phase Mock</div>
+    );
+
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "test-id",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+      },
+      primaryProjectOfficer: mockPO,
+      status: "Under Review",
+      currentPhaseName: "Approval Summary",
+      clearanceLevel: "CMS (OSORA)",
+      phases: [],
+      documents: [],
+      demonstrationTypes: [],
+      tags: [],
+    };
+
+    render(
+      <TestProvider>
+        <PhaseSelector application={demonstration} workflowApplicationType="demonstration" />
+      </TestProvider>
+    );
+
+    expect(getApprovalSummaryPhaseFromApplication).toHaveBeenCalledWith(
+      demonstration,
+      "demonstration"
+    );
   });
 });

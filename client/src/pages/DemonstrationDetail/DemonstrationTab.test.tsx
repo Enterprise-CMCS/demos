@@ -4,13 +4,25 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import * as UserContext from "components/user/UserContext";
 
 import { DemonstrationTab, DemonstrationTabDemonstration } from "./DemonstrationTab";
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
+import { mockUsers } from "mock-data/userMocks";
+import { deliverableMocks } from "mock-data/deliverableMocks";
+
+vi.mock("components/user/UserContext", async (importOriginal) => {
+  const actual = await importOriginal<typeof UserContext>();
+  return {
+    ...actual,
+    getCurrentUser: vi.fn(),
+  };
+});
 
 const mockDemonstration: DemonstrationTabDemonstration = {
   id: "demo-123",
+  name: "Unmatched Demonstration",
   status: "Pre-Submission" as const,
   currentPhaseName: "Concept" as const,
   demonstrationTypes: [],
@@ -59,7 +71,7 @@ const mockDemonstration: DemonstrationTabDemonstration = {
 const renderWithProvider = (component: React.ReactElement) => {
   return render(
     <DialogProvider>
-      <TestProvider mocks={[]} addTypename={false}>
+      <TestProvider mocks={deliverableMocks} addTypename={false}>
         {component}
       </TestProvider>
     </DialogProvider>
@@ -67,8 +79,13 @@ const renderWithProvider = (component: React.ReactElement) => {
 };
 
 describe("DemonstrationTab", () => {
+  const mockGetCurrentUser = vi.mocked(UserContext.getCurrentUser);
+
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetCurrentUser.mockReturnValue({
+      currentUser: mockUsers[0],
+    });
   });
 
   it("renders all tab labels with correct counts", () => {
@@ -155,6 +172,7 @@ describe("DemonstrationTab", () => {
     it('renders Deliverables tab when status is "Approved"', () => {
       const demonstrationApproved: DemonstrationTabDemonstration = {
         ...mockDemonstration,
+        name: "Montana Medicaid Waiver",
         status: "Approved",
       };
 

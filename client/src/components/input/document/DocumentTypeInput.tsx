@@ -9,7 +9,8 @@ export const DocumentTypeInput: React.FC<{
   value: string;
   onSelect: (value: string) => void;
   documentTypeSubset?: DocumentType[];
-}> = ({ value, onSelect, documentTypeSubset }) => {
+  canEditDocumentType?: boolean;
+}> = ({ value, onSelect, documentTypeSubset, canEditDocumentType = true }) => {
   const documentTypeOptions = (documentTypeSubset || DOCUMENT_TYPES).map((type) => ({
     label: type,
     value: type,
@@ -22,7 +23,8 @@ export const DocumentTypeInput: React.FC<{
       isRequired
       options={documentTypeOptions}
       value={value}
-      onSelect={(selectedValue) => onSelect(selectedValue)}
+      onSelect={(selectedValue) => canEditDocumentType && onSelect(selectedValue)}
+      isDisabled={!canEditDocumentType}
     />
   );
 };

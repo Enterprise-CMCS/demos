@@ -15,9 +15,9 @@ export class BootstrapStack extends Stack {
       ...props,
       scope: this,
       iamPermissionsBoundary:
-        props.iamPermissionsBoundaryArn != null
-          ? aws_iam.ManagedPolicy.fromManagedPolicyArn(this, "iamPermissionsBoundary", props.iamPermissionsBoundaryArn)
-          : undefined,
+        props.iamPermissionsBoundaryArn == null
+          ? undefined : 
+          aws_iam.ManagedPolicy.fromManagedPolicyArn(this, "iamPermissionsBoundary", props.iamPermissionsBoundaryArn),
     };
 
     const apiGwCloudWatchRole = new aws_iam.Role(commonProps.scope, "ApiGatewayCloudWatchRole", {
@@ -128,9 +128,11 @@ export class BootstrapStack extends Stack {
           actions: ["s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:ListBucket", "s3:DeleteObjectVersion", "s3:ListBucketVersions"],
           resources: [
             "arn:aws:s3:::demos-dev-file-upload-*",
-            "arn:aws:s3:::demos-test-file-upload-*",
             "arn:aws:s3:::demos-dev-file-upload-*/*",
-            "arn:aws:s3:::demos-test-file-upload-*/*"
+            "arn:aws:s3:::demos-test-file-upload-*",
+            "arn:aws:s3:::demos-test-file-upload-*/*",
+            "arn:aws:s3:::demos-impl-file-upload-*",
+            "arn:aws:s3:::demos-impl-file-upload-*/*"
           ],
         }),
       ],

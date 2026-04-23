@@ -15,6 +15,7 @@ export async function createDocumentPendingUpload(
       documentTypeId: input.documentType,
       applicationId: input.applicationId,
       phaseId: input.phaseName,
+      deliverableId: input.deliverableId,
     },
   });
 }

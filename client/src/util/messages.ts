@@ -19,3 +19,7 @@ export const FAILED_TO_SAVE_MESSAGE = "Failed to save updates.";
 export const getPhaseCompletedMessage = (phaseName: PhaseName) => {
   return `${phaseName} has been completed`;
 };
+
+// Deliverable Messages
+export const DELIVERABLE_SLOTS_CREATED_MESSAGE = "Deliverable Slot(s) - have been added";
+export const DELIVERABLE_UPDATED_MESSAGE = "Changes have been saved to the deliverable";

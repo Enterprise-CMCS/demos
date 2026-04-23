@@ -4,20 +4,21 @@ model Amendment {
   demonstrationId   String    @map("demonstration_id") @db.Uuid
   name              String
   description       String?
-  effectiveDate     DateTime? @map("effective_date") @db.Timestamptz()
+  effectiveDate     DateTime? @map("effective_date") @db.Timestamptz
   statusId          String    @map("status_id")
   currentPhaseId    String    @map("current_phase_id")
   clearanceLevelId  String    @default("CMS (OSORA)") @map("clearance_level_id")
   signatureLevelId  String?   @map("signature_level_id")
-  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
+  // DEFERRED: will be manually replaced by new deferred key through migration
   application     Application                   @relation(fields: [id, applicationTypeId], references: [id, applicationTypeId])
   applicationType AmendmentApplicationTypeLimit @relation(fields: [applicationTypeId], references: [id])
   demonstration   Demonstration                 @relation(fields: [demonstrationId], references: [id])
   status          ApplicationStatus             @relation(fields: [statusId], references: [id])
   currentPhase    Phase                         @relation(fields: [currentPhaseId], references: [id])
-  clearanceLevel  ClearanceLevel                @relation(fields: [clearanceLevelId], references: [id], onDelete: Restrict)
+  clearanceLevel  ClearanceLevel                @relation(fields: [clearanceLevelId], references: [id])
   signatureLevel  SignatureLevel?               @relation(fields: [signatureLevelId], references: [id], onDelete: Restrict)
 
   @@id([id])

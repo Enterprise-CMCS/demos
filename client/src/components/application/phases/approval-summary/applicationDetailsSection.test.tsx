@@ -45,6 +45,7 @@ describe("ApplicationDetailsSection", () => {
   const mockOnMarkComplete = vi.fn();
 
   const baseFormData: ApplicationDetailsFormData = {
+    applicationType: "demonstration",
     stateId: "",
     stateName: "",
     name: "",
@@ -88,6 +89,18 @@ describe("ApplicationDetailsSection", () => {
     expect(screen.getByText("Application Details")).toBeInTheDocument();
     expect(
       screen.getByText(/Confirm all demonstration information/i)
+    ).toBeInTheDocument();
+  });
+
+  it("shows 'demonstration' text for demonstration", () => {
+    setup();
+
+    expect(
+      screen.getByText(/confirm all demonstration information/i)
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByLabelText(/demonstration title/i)
     ).toBeInTheDocument();
   });
 
@@ -174,5 +187,86 @@ describe("ApplicationDetailsSection", () => {
     await userEvent.click(toggle);
 
     expect(mockOnMarkComplete).toHaveBeenCalledOnce();
+  });
+
+  describe("Amendment and Extension behavior", () => {
+    it("shows 'amendment' text for amendment", () => {
+      setup({
+        applicationType: "amendment",
+        name: "Amendment 1",
+        effectiveDate: "2025-01-01",
+        signatureLevel: "OA",
+        readonlyFields: {},
+      } as ApplicationDetailsFormData);
+
+      expect(
+        screen.getByText(/confirm all amendment information/i)
+      ).toBeInTheDocument();
+
+      expect(
+        screen.getByLabelText(/amendment title/i)
+      ).toBeInTheDocument();
+    });
+
+    it("does not render demonstration-only fields for amendment", () => {
+      setup({
+        applicationType: "amendment",
+        name: "Amendment 1",
+        effectiveDate: "2025-01-01",
+        signatureLevel: "OA",
+        readonlyFields: {},
+      } as ApplicationDetailsFormData);
+
+      expect(
+        screen.queryByText(/state\/territory/i)
+      ).not.toBeInTheDocument();
+
+      expect(
+        screen.queryByText(/project officer/i)
+      ).not.toBeInTheDocument();
+
+      expect(
+        screen.queryByText(/sdg division/i)
+      ).not.toBeInTheDocument();
+    });
+
+    it("enables Mark Complete for amendment with minimal required fields", () => {
+      setup({
+        applicationType: "amendment",
+        name: "Amendment 1",
+        effectiveDate: "2025-01-01",
+        signatureLevel: "OA",
+        readonlyFields: {},
+      } as ApplicationDetailsFormData);
+
+      const toggle = screen.getByRole("switch", { name: /mark complete/i });
+      expect(toggle).toBeEnabled();
+    });
+
+    it("disables Mark Complete for amendment when required fields missing", () => {
+      setup({
+        applicationType: "amendment",
+        name: "Amendment 1",
+        // missing effectiveDate + signatureLevel
+        readonlyFields: {},
+      } as ApplicationDetailsFormData);
+
+      const toggle = screen.getByRole("switch", { name: /mark complete/i });
+      expect(toggle).toBeDisabled();
+    });
+
+    it("capitalizes application type in labels", () => {
+      setup({
+        applicationType: "extension",
+        name: "Extension 1",
+        effectiveDate: "2025-01-01",
+        signatureLevel: "OA",
+        readonlyFields: {},
+      } as ApplicationDetailsFormData);
+
+      expect(
+        screen.getByLabelText(/extension title/i)
+      ).toBeInTheDocument();
+    });
   });
 });

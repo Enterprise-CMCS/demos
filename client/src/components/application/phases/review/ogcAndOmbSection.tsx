@@ -22,7 +22,7 @@ export const OgcAndOmbSection = ({
   return (
     <CompletableSection title="OGC & OMB" isComplete={isComplete}>
       <p className="text-sm text-text-placeholder mt-1 mb-2">
-        Record the OGC & OMB Review Process.
+        Record the Sign-Off for the edits End Date.
       </p>
       <div className="grid grid-cols-4 gap-8 text-sm text-text-placeholder">
         <div className="flex flex-col">

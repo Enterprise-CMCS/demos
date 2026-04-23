@@ -1,28 +1,23 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, it, expect, vi, beforeAll } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 import { ConfirmApproveDialog } from "./ConfirmApproveDialog";
-
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = vi.fn();
-  HTMLDialogElement.prototype.close = vi.fn();
-});
+import { WorkflowApplicationType } from "components/application";
+import { DialogProvider } from "./DialogContext";
 
 describe("ConfirmApproveDialog", () => {
-  const setup = () => {
-    const onClose = vi.fn();
+  const setup = (applicationType: WorkflowApplicationType = "demonstration") => {
     const onConfirm = vi.fn();
 
     render(
-      <ConfirmApproveDialog
-        onClose={onClose}
-        onConfirm={onConfirm}
-      />
+      <DialogProvider>
+        <ConfirmApproveDialog onConfirm={onConfirm} applicationType={applicationType} />
+      </DialogProvider>
     );
 
-    return { onClose, onConfirm };
+    return { onConfirm };
   };
 
   it("renders dialog content", () => {
@@ -32,30 +27,7 @@ describe("ConfirmApproveDialog", () => {
     expect(
       screen.getByText(/final submission of this approved demonstration/i)
     ).toBeInTheDocument();
-    expect(
-      screen.getByTestId("button-ca-dialog-approve")
-    ).toBeInTheDocument();
-    expect(
-      screen.getByTestId("button-ca-dialog-cancel")
-    ).toBeInTheDocument();
-  });
-
-  it("calls onClose when close (×) button is clicked", async () => {
-    const user = userEvent.setup();
-    const { onClose } = setup();
-
-    await user.click(screen.getByTestId("button-ca-dialog-close"));
-
-    expect(onClose).toHaveBeenCalledTimes(1);
-  });
-
-  it("calls onClose when cancel button is clicked", async () => {
-    const user = userEvent.setup();
-    const { onClose } = setup();
-
-    await user.click(screen.getByTestId("button-ca-dialog-cancel"));
-
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("button-ca-dialog-approve")).toBeInTheDocument();
   });
 
   it("calls onConfirm when submit button is clicked", async () => {
@@ -65,5 +37,41 @@ describe("ConfirmApproveDialog", () => {
     await user.click(screen.getByTestId("button-ca-dialog-approve"));
 
     expect(onConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows correct application type in message", () => {
+    setup("amendment");
+
+    expect(screen.getByText(/final submission of this approved amendment/i)).toBeInTheDocument();
+  });
+
+  it("shows finalize approval message for demonstration application type", () => {
+    setup("demonstration");
+
+    expect(
+      screen.getByText(/This will finalize the approval process and move the demonstration to the deliverables phase./i)
+    ).toBeInTheDocument();
+  });
+
+  it("does not show finalize approval message for non-demonstration application type", () => {
+    setup("extension");
+
+    expect(
+      screen.queryByText(/This will finalize the approval process and move the demonstration to the deliverables phase./i)
+    ).not.toBeInTheDocument();
+  });
+
+  it("should show the correct button text based on application type", () => {
+    setup("amendment");
+    expect(screen.getByTestId("button-ca-dialog-approve")).toHaveTextContent("Submit Approved Amendment");
+    cleanup();
+
+    setup("extension");
+    expect(screen.getByTestId("button-ca-dialog-approve")).toHaveTextContent("Submit Approved Extension");
+    cleanup();
+
+    setup("demonstration");
+    expect(screen.getByTestId("button-ca-dialog-approve")).toHaveTextContent("Submit Approved Demonstration");
+    cleanup();
   });
 });

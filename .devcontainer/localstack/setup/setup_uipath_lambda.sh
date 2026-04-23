@@ -8,6 +8,7 @@ AWS_REGION="us-east-1"
 AWS_CMD="aws --endpoint-url=$LOCALSTACK_ENDPOINT --region $AWS_REGION"
 QUEUE_NAME="uipath-queue"
 LAMBDA_NAME="uipath"
+MAX_ZIPPED_SIZE_BYTES=52428800
 UIPATH_SECRET_ID="demos-local/uipath"
 UIPATH_PROJECT_NAME=${UIPATH_PROJECT_NAME:-"demosOCR"}
 UIPATH_DOCUMENT_BUCKET=${UIPATH_DOCUMENT_BUCKET:-"uipath-documents"}
@@ -22,26 +23,16 @@ DB_SSL_MODE=${DB_SSL_MODE:-"disable"}
 cd /workspaces/demos/lambdas/UIPath
 
 npm ci --silent
-npx esbuild index.ts \
+npx tsc --outDir build
+
+npx esbuild build/index.js \
   --bundle \
   --platform=node \
-  --target=node18 \
-  --format=esm \
+  --target=node24 \
   --sourcemap \
-  --external:@aws-sdk/* \
-  --external:pg \
-  --external:pino \
-  --external:axios \
-  --external:form-data \
-  --external:axios-oauth-client \
-  --external:file-type \
-  --external:dotenv \
-  --outfile=index.js
-
-zip -qr uipath.zip index.js node_modules/ package.json package-lock.json ak-behavioral-health-demo-pa.pdf
-
-# Clean up build artifacts
-rm index.js index.js.map
+  --outfile=dist/index.cjs
+rm -f lambda.zip
+zip -jqr lambda.zip dist/index.cjs
 
 cd - > /dev/null
 
@@ -51,10 +42,10 @@ $AWS_CMD lambda delete-function --function-name $LAMBDA_NAME 2>/dev/null || true
 # Create Lambda function
 $AWS_CMD lambda create-function \
     --function-name $LAMBDA_NAME \
-    --runtime nodejs18.x \
+    --runtime nodejs22.x \
     --role arn:aws:iam::000000000000:role/lambda-execution-role \
     --handler index.handler \
-    --zip-file fileb:///workspaces/demos/lambdas/UIPath/uipath.zip \
+    --zip-file fileb:///workspaces/demos/lambdas/UIPath/lambda.zip \
     --timeout 900 \
     --environment "Variables={
         AWS_REGION=$AWS_REGION,

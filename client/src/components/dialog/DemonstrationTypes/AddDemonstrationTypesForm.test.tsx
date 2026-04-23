@@ -7,17 +7,22 @@ import {
   AddDemonstrationTypesForm,
 } from "./AddDemonstrationTypesForm";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
-import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectDemonstrationTypeName";
+import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectDemonstrationType";
+import { Tag } from "demos-server";
 
 const mockSelectDemonstrationTypeQuery: MockedResponse<{
-  demonstrationTypeNames: string[];
+  demonstrationTypeOptions: Tag[];
 }> = {
   request: {
     query: SELECT_DEMONSTRATION_TYPE_QUERY,
   },
   result: {
     data: {
-      demonstrationTypeNames: ["Type A", "Type B", "Type C"],
+      demonstrationTypeOptions: [
+        { tagName: "Type A", approvalStatus: "Approved" },
+        { tagName: "Type B", approvalStatus: "Approved" },
+        { tagName: "Type C", approvalStatus: "Unapproved" },
+      ],
     },
   },
 };
@@ -76,7 +81,7 @@ describe("AddDemonstrationTypesForm", () => {
   it("renders all form fields", async () => {
     await renderWithProvider();
 
-    expect(screen.getByTestId("select-demonstration-type-name")).toBeInTheDocument();
+    expect(screen.getByTestId("select-demonstration-type")).toBeInTheDocument();
     expect(screen.getByLabelText(/effective date/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/expiration date/i)).toBeInTheDocument();
     expect(screen.getByTestId("button-add-demonstration-type")).toBeInTheDocument();
@@ -88,18 +93,19 @@ describe("AddDemonstrationTypesForm", () => {
     expect(screen.getByTestId("button-add-demonstration-type")).toBeDisabled();
   });
 
-  it("filters out existing demonstration types from select options", async () => {
+  it("filters out both already-assigned and pending demonstration types", async () => {
     const user = userEvent.setup();
     await renderWithProvider();
 
     const input = screen.getByRole("textbox");
     await user.click(input);
 
-    // type A comes from demonstration query
+    // type A is already assigned to the demonstration — filtered out
     expect(screen.queryByText("Type A")).not.toBeInTheDocument();
-    // type B comes from props
+    // type B is in the pending list (demonstrationTypeNames prop) — filtered out
     expect(screen.queryByText("Type B")).not.toBeInTheDocument();
-    expect(screen.getByText("Type C")).toBeInTheDocument();
+    // type C is neither assigned nor pending — shown in dropdown
+    expect(screen.getByText("Type C (Unapproved)")).toBeInTheDocument();
   });
 
   it("enables add button when all fields are filled", async () => {
@@ -110,7 +116,7 @@ describe("AddDemonstrationTypesForm", () => {
     expect(addButton).toBeDisabled();
 
     await user.click(screen.getByRole("textbox"));
-    await user.click(screen.getByText("Type C"));
+    await user.click(screen.getByText("Type C (Unapproved)"));
     await user.type(screen.getByLabelText(/effective date/i), "2024-01-03");
     await user.type(screen.getByLabelText(/expiration date/i), "2025-01-03");
 
@@ -122,7 +128,7 @@ describe("AddDemonstrationTypesForm", () => {
     await renderWithProvider();
 
     await user.click(screen.getByRole("textbox"));
-    await user.click(screen.getByText("Type C"));
+    await user.click(screen.getByText("Type C (Unapproved)"));
     await user.type(screen.getByLabelText(/effective date/i), "2024-01-03");
     await user.type(screen.getByLabelText(/expiration date/i), "2025-01-03");
     await user.click(screen.getByTestId("button-add-demonstration-type"));
@@ -131,6 +137,7 @@ describe("AddDemonstrationTypesForm", () => {
       demonstrationTypeName: "Type C",
       effectiveDate: "2024-01-03",
       expirationDate: "2025-01-03",
+      approvalStatus: "Unapproved",
     });
     expect(mockAddDemonstrationType).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("textbox")).toHaveValue("");
@@ -165,5 +172,109 @@ describe("AddDemonstrationTypesForm", () => {
     await waitFor(() => {
       expect(screen.getByText("Error loading demonstration.")).toBeInTheDocument();
     });
+  });
+
+  it("renders the Create Type button", async () => {
+    await renderWithProvider();
+
+    expect(screen.getByTestId("button-create-type")).toBeInTheDocument();
+    expect(screen.getByTestId("button-create-type")).toBeDisabled();
+  });
+
+  it("enables Create Type button when search has no matches", async () => {
+    const user = userEvent.setup();
+    await renderWithProvider();
+
+    const input = screen.getByRole("textbox");
+    await user.type(input, "Brand New Type");
+
+    expect(screen.getByTestId("button-create-type")).toBeEnabled();
+  });
+
+  it("creates unapproved type and shows warning banner on Create Type click", async () => {
+    const user = userEvent.setup();
+    await renderWithProvider();
+
+    const input = screen.getByRole("textbox");
+    await user.type(input, "Brand New Type");
+    await user.click(screen.getByTestId("button-create-type"));
+
+    expect(screen.getByTestId("unapproved-warning-banner")).toBeInTheDocument();
+    expect(screen.getByTestId("unapproved-warning-banner")).toHaveTextContent(
+      "Unapproved types are still searchable by others. Please verify it's correct before applying to prevent compounding errors."
+    );
+  });
+
+  it("allows adding a newly created type with dates to the list", async () => {
+    const user = userEvent.setup();
+    await renderWithProvider();
+
+    const input = screen.getByRole("textbox");
+    await user.type(input, "Brand New Type");
+    await user.click(screen.getByTestId("button-create-type"));
+
+    await user.type(screen.getByLabelText(/effective date/i), "2024-01-03");
+    await user.type(screen.getByLabelText(/expiration date/i), "2025-01-03");
+    await user.click(screen.getByTestId("button-add-demonstration-type"));
+
+    expect(mockAddDemonstrationType).toHaveBeenCalledWith({
+      demonstrationTypeName: "Brand New Type",
+      effectiveDate: "2024-01-03",
+      expirationDate: "2025-01-03",
+      approvalStatus: "Unapproved",
+    });
+  });
+
+  it("does not show warning banner when an approved type is selected", async () => {
+    const user = userEvent.setup();
+
+    const mockWithApprovedAvailable: MockedResponse<{
+      demonstrationTypeOptions: Tag[];
+    }> = {
+      request: { query: SELECT_DEMONSTRATION_TYPE_QUERY },
+      result: {
+        data: {
+          demonstrationTypeOptions: [
+            { tagName: "Type A", approvalStatus: "Approved" },
+            { tagName: "Type B", approvalStatus: "Approved" },
+            { tagName: "Type D", approvalStatus: "Approved" },
+          ],
+        },
+      },
+    };
+
+    render(
+      <MockedProvider mocks={[mockWithApprovedAvailable, mockAddDemonstrationTypesFormQuery]}>
+        <AddDemonstrationTypesForm
+          demonstrationId="1"
+          demonstrationTypeNames={["Type B"]}
+          addDemonstrationType={mockAddDemonstrationType}
+        />
+      </MockedProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("Select an option")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("textbox"));
+    await user.click(screen.getByText("Type D"));
+
+    expect(screen.queryByTestId("unapproved-warning-banner")).not.toBeInTheDocument();
+  });
+
+  it("clears warning banner after adding an unapproved type to the list", async () => {
+    const user = userEvent.setup();
+    await renderWithProvider();
+
+    await user.click(screen.getByRole("textbox"));
+    await user.click(screen.getByText("Type C (Unapproved)"));
+    expect(screen.getByTestId("unapproved-warning-banner")).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText(/effective date/i), "2024-01-03");
+    await user.type(screen.getByLabelText(/expiration date/i), "2025-01-03");
+    await user.click(screen.getByTestId("button-add-demonstration-type"));
+
+    expect(screen.queryByTestId("unapproved-warning-banner")).not.toBeInTheDocument();
   });
 });

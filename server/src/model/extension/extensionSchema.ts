@@ -10,6 +10,7 @@ import {
   DateTimeOrLocalDate,
   ClearanceLevel,
   Tag,
+  TagName,
   SignatureLevel,
 } from "../../types.js";
 
@@ -27,6 +28,7 @@ export const extensionSchema = gql`
     clearanceLevel: ClearanceLevel!
     tags: [Tag!]!
     signatureLevel: SignatureLevel
+    suggestedApplicationTags: [TagName!]!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -72,6 +74,7 @@ export interface Extension {
   clearanceLevel: ClearanceLevel;
   tags: Tag[];
   signatureLevel?: SignatureLevel;
+  suggestedApplicationTags: TagName[];
   createdAt: Date;
   updatedAt: Date;
 }

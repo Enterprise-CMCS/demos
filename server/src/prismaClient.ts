@@ -1,6 +1,16 @@
-import { Prisma, PrismaClient } from "@prisma/client";
-import prismaRandom from "prisma-extension-random";
+import "dotenv/config";
+import { PrismaClient, Prisma } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { log } from "./log";
+
+function isKnownRequestError(error: unknown): error is { code: string; message: string } {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const candidate = error as { code?: unknown; message?: unknown };
+  return typeof candidate.code === "string" && typeof candidate.message === "string";
+}
 
 export type PrismaTransactionClient = Parameters<
   Parameters<ReturnType<typeof prisma>["$transaction"]>[0]
@@ -9,7 +19,31 @@ export type PrismaTransactionClient = Parameters<
 // really annoying typescript hackiness to get the types to play well with the $extends method
 // the prisma random extension will be eventually removed.
 const createExtendedClient = () => {
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error("DATABASE_URL must be set to initialize Prisma client");
+  }
+
+  let schema: string | undefined;
+  try {
+    const url = new URL(connectionString);
+    schema = url.searchParams.get("schema") ?? undefined;
+  } catch {
+    // Ignore URL parsing errors and let adapter fallback to driver defaults.
+  }
+
+  const adapter = new PrismaPg(
+    {
+      connectionString,
+      ssl: { rejectUnauthorized: false },
+    },
+    {
+      schema,
+    }
+  );
+
   const baseClient = new PrismaClient({
+    adapter,
     log: [
       { level: "warn", emit: "event" },
       { level: "error", emit: "event" },
@@ -41,20 +75,53 @@ const createExtendedClient = () => {
     log.error({ message: event.message }, "prisma.error");
   });
 
+  /**
+   * because of the way prisma's findUnique works, it prevents the addition of filters that do not
+   * correspond to an exact unique key. This is required, since the permission filters generally
+   * route through a connection to the demonstration and the roles on the demonstration. So this
+   * method was made which essentially acts as a findUnique that can be used with constraints in
+   * general, returning null if not found and erroring if many found
+   */
+  const clientWithFindAtMostOne = baseClient.$extends({
+    model: {
+      $allModels: {
+        async findAtMostOne<T, A extends Prisma.Args<T, "findMany">>(
+          this: T,
+          args: Prisma.Exact<A, Prisma.Args<T, "findMany">>
+        ): Promise<Prisma.Result<T, A, "findMany">[number] | null> {
+          const context = Prisma.getExtensionContext(this);
+
+          if (!("findMany" in context) || typeof context.findMany !== "function") {
+            throw new Error("findAtMostOne can only be used on models that support findMany");
+          }
+
+          const result = await context.findMany(args);
+          if (result.length < 1) {
+            return null;
+          }
+          if (result.length > 1) {
+            throw new Error(`Expected at most one record, but found ${result.length}`);
+          }
+          return result[0];
+        },
+      },
+    },
+  });
+
   // Extension to handle P2025 from redundant update suppression
   // P2025 happens when 0 rows are returned as changed from PostgreSQL
   // We try to run update/upsert statements and catch cases of P2025
   // If P2025 occurs, we try to fetch the record
   // If it exists, we know the P2025 is caused by suppressing redundant updates
   // Otherwise, it is genuine
-  const clientWithRedundantUpdateHandler = baseClient.$extends({
+  const clientWithRedundantUpdateHandler = clientWithFindAtMostOne.$extends({
     query: {
       $allModels: {
         async update({ args, query, model }) {
           try {
             return await query(args);
           } catch (error: unknown) {
-            if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+            if (isKnownRequestError(error) && error.code === "P2025") {
               // @ts-expect-error: Dynamic model access creates incompatible union of all model signatures
               // Runtime safe: Prisma extension guarantees model and args.where are correctly paired
               // Also note: model is PascalCase, baseClient attributes are camelCase, Prisma handles this internally
@@ -76,7 +143,7 @@ const createExtendedClient = () => {
           try {
             return await query(args);
           } catch (error: unknown) {
-            if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+            if (isKnownRequestError(error) && error.code === "P2025") {
               // @ts-expect-error: Dynamic model access creates incompatible union of all model signatures
               const activeModel = baseClient[model];
               const existing = await activeModel.findUnique({
@@ -96,9 +163,7 @@ const createExtendedClient = () => {
     },
   });
 
-  const client = clientWithRedundantUpdateHandler.$extends(prismaRandom());
-
-  return client;
+  return clientWithRedundantUpdateHandler;
 };
 
 type PrismaExtendedClient = ReturnType<typeof createExtendedClient>;

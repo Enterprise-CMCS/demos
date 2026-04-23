@@ -2,7 +2,7 @@ import React from "react";
 import { gql, useQuery } from "@apollo/client";
 import { useDialog } from "components/dialog/DialogContext";
 import { Button } from "components/button";
-import { DocumentType } from "demos-server";
+import { DocumentType, Tag } from "demos-server";
 import { ExistingContactType } from "components/dialog/ManageContactsDialog";
 
 const DIALOG_SANDBOX_ID_QUERY = gql`
@@ -18,6 +18,12 @@ type DialogSandboxIdQueryResult = {
     id: string;
   }[];
 };
+
+const TAGS: Tag[] = [
+  { tagName: "Demonstration Type: Type A", approvalStatus: "Approved" },
+  { tagName: "Demonstration Type: Type B", approvalStatus: "Unapproved" },
+  { tagName: "Demonstration Type: Type C", approvalStatus: "Approved" },
+];
 
 export const DialogSandbox: React.FC = () => {
   const {
@@ -39,6 +45,8 @@ export const DialogSandbox: React.FC = () => {
     showApplyTagsDialog,
     showUpdateExtensionDialog,
     showUpdateAmendmentDialog,
+    showAddDeliverableSlotDialog,
+    showConfirmApproveDialog,
   } = useDialog();
 
   const ID = "1";
@@ -135,16 +143,13 @@ export const DialogSandbox: React.FC = () => {
           Remove Document
         </Button>
         {demoId ? (
-          <Button
-            name="upload-bn-workbook"
-            onClick={() => showUploadDocumentDialog(demoId)}
-          >
+          <Button name="upload-bn-workbook" onClick={() => showUploadDocumentDialog(demoId)}>
             Upload Document By a Real Applicaiton ID
           </Button>
         ) : null}
         <Button
           name="application-intake"
-          onClick={() => showApplicationIntakeDocumentUploadDialog(ID, () => {})}
+          onClick={() => showApplicationIntakeDocumentUploadDialog(ID)}
         >
           Application Intake
         </Button>
@@ -153,7 +158,7 @@ export const DialogSandbox: React.FC = () => {
         </Button>
         <Button
           name="concept-presubmission"
-          onClick={() => showConceptPreSubmissionDocumentUploadDialog(ID, () => {})}
+          onClick={() => showConceptPreSubmissionDocumentUploadDialog(ID)}
         >
           Concept Pre-Submission
         </Button>
@@ -162,7 +167,9 @@ export const DialogSandbox: React.FC = () => {
         </Button>
         <Button
           name="approval-package"
-          onClick={() => showApprovalPackageDocumentUploadDialog(ID, "Approval Letter" as DocumentType)}
+          onClick={() =>
+            showApprovalPackageDocumentUploadDialog(ID, "Approval Letter" as DocumentType)
+          }
         >
           Approval Package
         </Button>
@@ -171,17 +178,50 @@ export const DialogSandbox: React.FC = () => {
           <Button name="declare-incomplete" onClick={() => showDeclareIncompleteDialog(() => {})}>
             Declare Incomplete
           </Button>
-          <Button name="manage-contacts" onClick={() => showManageContactsDialog(ID, EXISTING_CONTACTS)}>
+          <Button
+            name="manage-contacts"
+            onClick={() => showManageContactsDialog(ID, EXISTING_CONTACTS)}
+          >
             Manage Contacts
           </Button>
-          <Button name="apply-demonstration-types" onClick={() => showApplyDemonstrationTypesDialog(ID)}>
+          <Button
+            name="apply-demonstration-types"
+            onClick={() => showApplyDemonstrationTypesDialog(ID)}
+          >
             Apply Demonstration Types
           </Button>
           <Button
             name="apply-tags"
-            onClick={() => showApplyTagsDialog("demo-123", ["One", "Two", "Three"], ["One"])}
+            onClick={() =>
+              showApplyTagsDialog(
+                "demo-123",
+                [
+                  { tagName: "One", approvalStatus: "Approved" },
+                  { tagName: "Two", approvalStatus: "Unapproved" },
+                  { tagName: "Three", approvalStatus: "Approved" },
+                ],
+                [{ tagName: "One", approvalStatus: "Approved" }]
+              )
+            }
           >
             Apply Tags
+          </Button>
+          <Button
+            name="add-deliverable-slot"
+            onClick={() =>
+              showAddDeliverableSlotDialog({
+                demonstrationTypes: TAGS,
+                id: "demo-1",
+              })
+            }
+          >
+            Add Deliverable Slot(s)
+          </Button>
+          <Button
+            name="confirm-approve"
+            onClick={() => showConfirmApproveDialog(() => {}, "demonstration")}
+          >
+            Confirm Approve
           </Button>
         </div>
       </div>

@@ -2,15 +2,15 @@ import { describe, it, expect, vi } from "vitest";
 import { createApplicationTagsDemonstrationTypesIfNotExists } from ".";
 
 // Mock imports
+import { createNewTagNameIfNotExists } from "../tagName";
 import { createNewTagIfNotExists } from "../tag";
-import { createNewTagConfigurationIfNotExists } from "../tagConfiguration";
+
+vi.mock("../tagName", () => ({
+  createNewTagNameIfNotExists: vi.fn(),
+}));
 
 vi.mock("../tag", () => ({
   createNewTagIfNotExists: vi.fn(),
-}));
-
-vi.mock("../tagConfiguration", () => ({
-  createNewTagConfigurationIfNotExists: vi.fn(),
 }));
 
 describe("createApplicationTagDemonstrationTypeIfNotExists", async () => {
@@ -20,11 +20,11 @@ describe("createApplicationTagDemonstrationTypeIfNotExists", async () => {
 
     await createApplicationTagsDemonstrationTypesIfNotExists(newTags, mockTransaction);
 
-    expect(vi.mocked(createNewTagIfNotExists).mock.calls).toStrictEqual([
+    expect(vi.mocked(createNewTagNameIfNotExists).mock.calls).toStrictEqual([
       [newTags[0], mockTransaction],
       [newTags[1], mockTransaction],
     ]);
-    expect(vi.mocked(createNewTagConfigurationIfNotExists).mock.calls).toStrictEqual([
+    expect(vi.mocked(createNewTagIfNotExists).mock.calls).toStrictEqual([
       [newTags[0], "Application", mockTransaction],
       [newTags[0], "Demonstration Type", mockTransaction],
       [newTags[1], "Application", mockTransaction],

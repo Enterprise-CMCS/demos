@@ -8,23 +8,13 @@ import userEvent from "@testing-library/user-event";
 import { FederalCommentUploadDialog } from "./FederalCommentUploadDialog";
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 
-// Mock Apollo Client
-const mockMutation = vi.fn();
-vi.mock("@apollo/client", async () => {
-  const actual = await vi.importActual("@apollo/client");
-  return {
-    ...actual,
-    useMutation: () => [mockMutation, { loading: false }],
-  };
-});
-
-const defaultProps = {
+const DEFAULT_PROPS = {
   onClose: vi.fn(),
   applicationId: "test-application-id",
 };
 
 function setup(props = {}) {
-  const finalProps = { ...defaultProps, ...props };
+  const finalProps = { ...DEFAULT_PROPS, ...props };
   return render(
     <TestProvider>
       <FederalCommentUploadDialog {...finalProps} />

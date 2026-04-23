@@ -1,4 +1,4 @@
-import { DateType, PhaseNameWithTrackedStatus, PhaseStatus, DocumentType } from "../../types.js";
+import { DateType, PhaseName, PhaseStatus, DocumentType } from "../../types.js";
 import { ApplicationDateMap } from "../applicationDate";
 import { ApplicationPhaseDocumentTypeRecord, ApplicationPhaseStatusRecord } from ".";
 
@@ -14,7 +14,7 @@ export function checkPhaseStatus(
 
 export function checkPhaseStartedBeforeCompletion(
   applicationId: string,
-  phaseToValidate: PhaseNameWithTrackedStatus,
+  phaseToValidate: PhaseName,
   currentPhaseStatus: PhaseStatus
 ): void {
   checkPhaseStatus(
@@ -67,7 +67,7 @@ export function checkApplicationIntakeStatusForIncomplete(
 
 export function checkApplicationDateExistsForCompletion(
   applicationId: string,
-  phaseToValidate: PhaseNameWithTrackedStatus,
+  phaseToValidate: PhaseName,
   dateToCheck: DateType,
   applicationDates: ApplicationDateMap
 ): void {
@@ -82,7 +82,7 @@ export function checkApplicationDateExistsForCompletion(
 
 export function checkDocumentTypeExistsForCompletion(
   applicationId: string,
-  phaseToValidate: PhaseNameWithTrackedStatus,
+  phaseToValidate: PhaseName,
   documentTypeToCheck: DocumentType,
   applicationDocumentTypes: ApplicationPhaseDocumentTypeRecord
 ): void {
@@ -97,8 +97,8 @@ export function checkDocumentTypeExistsForCompletion(
 
 export function checkPriorPhaseCompleteForCompletion(
   applicationId: string,
-  phaseToValidate: PhaseNameWithTrackedStatus,
-  phaseToCheckComplete: PhaseNameWithTrackedStatus,
+  phaseToValidate: PhaseName,
+  phaseToCheckComplete: PhaseName,
   applicationPhases: ApplicationPhaseStatusRecord
 ): void {
   const actualPhaseStatus = applicationPhases[phaseToCheckComplete];

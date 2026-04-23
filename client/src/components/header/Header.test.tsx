@@ -2,8 +2,10 @@ import React from "react";
 import { vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { UserProvider } from "components/user/UserContext";
+import { DialogProvider } from "components/dialog/DialogContext";
 import { userMocks } from "mock-data/userMocks";
 import { TestProvider } from "test-utils/TestProvider";
+import { Route, Routes } from "react-router-dom";
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
 import { Header } from "./Header";
 import { ProfileBlock } from "./ProfileBlock";
@@ -12,14 +14,26 @@ import { QuickLinks } from "./QuickLinks";
 function renderWithProviders(ui: React.ReactNode) {
   return render(
     <TestProvider mocks={userMocks} addTypename={false}>
-      <UserProvider>{ui}</UserProvider>
+      <DialogProvider>
+        <UserProvider>{ui}</UserProvider>
+      </DialogProvider>
     </TestProvider>
   );
 }
 
-vi.mock("components/dialog/DialogContext", () => ({
-  useDialog: () => ({}),
-}));
+
+vi.mock(
+  "pages/deliverables/DeliverableDetailHeader",
+  async (importOriginal) => {
+    const actual = await importOriginal<typeof import("pages/deliverables/DeliverableDetailHeader")>();
+    return {
+      ...actual,
+      DeliverableDetailHeader: ({ deliverableId }: { deliverableId: string }) => (
+        <div data-testid="deliverable-detail-header">{deliverableId}</div>
+      ),
+    };
+  }
+);
 
 vi.mock("react-oidc-context", () => ({
   useAuth: () => ({
@@ -35,16 +49,16 @@ vi.mock("react-oidc-context", () => ({
 }));
 
 describe("Header", () => {
-  it("renders the logo", () => {
+  it("renders the logo", async () => {
     renderWithProviders(<Header />);
-    waitFor(() => expect(screen.getByAltText("Logo")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByAltText("Logo")).toBeInTheDocument());
   });
 
-  it("renders all quick links", () => {
+  it("renders all quick links", async () => {
     renderWithProviders(<QuickLinks />);
-    waitFor(() => expect(screen.getByRole("link", { name: /Admin/i })).toBeInTheDocument());
-    waitFor(() => expect(screen.getByRole("link", { name: /Notifications/i })).toBeInTheDocument());
-    waitFor(() => expect(screen.getByRole("link", { name: /Help/i })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("link", { name: /Admin/i })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("link", { name: /Notifications/i })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole("link", { name: /Help/i })).toBeInTheDocument());
   });
 
   it("renders the Create New button", async () => {
@@ -62,6 +76,21 @@ describe("Header", () => {
 
     fireEvent.click(profileName);
     expect(screen.queryByRole("button", { name: /Sign Out/i })).not.toBeInTheDocument();
+  });
+
+  it("renders DeliverableDetailHeader for deliverable routes", async () => {
+    render(
+      <TestProvider addTypename={false} routerEntries={["/deliverables/123"]}>
+        <DialogProvider>
+          <UserProvider>
+            <Routes>
+              <Route path="/deliverables/:deliverableId" element={<Header />} />
+            </Routes>
+          </UserProvider>
+        </DialogProvider>
+      </TestProvider>
+    );
+    expect(await screen.findByTestId("deliverable-detail-header")).toBeInTheDocument();
   });
 
   it("closes the ProfileBlock menu when clicking outside", async () => {

@@ -1,0 +1,9 @@
+// Flags: STATIC_CONSTRAINT
+model ApplicationTagSuggestionStatus {
+  id String
+
+  suggestions ApplicationTagSuggestion[]
+
+  @@id([id])
+  @@map("application_tag_suggestion_status")
+}

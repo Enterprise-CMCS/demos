@@ -9,6 +9,7 @@ import {
   SIGNATURE_LEVEL,
   PHASE_DOCUMENT_TYPE_MAP,
   NOTE_TYPES,
+  TAG_TYPES,
 } from "./constants.js";
 import {
   CreateDemonstrationInput,
@@ -21,6 +22,7 @@ import {
   EventType,
   LogEventInput,
   Role,
+  CreateDeliverableInput,
 } from "./types.js";
 import { prisma } from "./prismaClient.js";
 import { DocumentType, PhaseName } from "./types.js";
@@ -34,6 +36,7 @@ import { __setApplicationDates } from "./model/applicationDate/applicationDateRe
 import { logEvent } from "./model/event/eventResolvers.js";
 import { GraphQLContext } from "./auth/auth.util.js";
 import { getManyApplications } from "./model/application";
+import { createDeliverable } from "./model/deliverable";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 const DOCUMENTS_PER_APPLICATION = 15;
@@ -43,6 +46,9 @@ const UIPATH_SEED_PDF_PATH = path.resolve(
   SEEDER_DIR,
   "../../.devcontainer/localstack/debug/test_uipath.pdf"
 );
+const NEW_TAG_COUNT = 20;
+const TAG_ASSIGNMENT_MAX = 5;
+const DELIVERABLE_SEED_COUNT = 8;
 
 function getRandomPhaseDocumentTypeCombination(): {
   phaseName: PhaseName;
@@ -56,6 +62,183 @@ function getRandomPhaseDocumentTypeCombination(): {
     phaseName: randomPhase,
     documentType: randomDocumentType,
   };
+}
+
+async function seedTagsAndStatuses() {
+  console.log("🌱 Seeding tags and tag statuses...");
+  // add some random tags for unapproved tags
+  for (let i = 0; i < NEW_TAG_COUNT; i++) {
+    const tagName = faker.lorem.words(2);
+    await prisma().tagName.create({
+      data: {
+        id: tagName,
+      },
+    });
+    await prisma().tag.create({
+      data: {
+        tagNameId: tagName,
+        tagTypeId: faker.helpers.arrayElement(TAG_TYPES),
+        sourceId: "User",
+        statusId: "Unapproved",
+      },
+    });
+  }
+
+  // assign random tags to applications
+  const applications = await prisma().application.findMany();
+  for (const application of applications) {
+    const applicationTags = await prisma().tag.findMany({
+      where: {
+        tagTypeId: "Application",
+      },
+    });
+
+    const maxApplicationTags = Math.min(TAG_ASSIGNMENT_MAX, applicationTags.length);
+    const tagsToAssign = sampleFromArray(
+      applicationTags,
+      Math.floor(Math.random() * (maxApplicationTags + 1)) // NOSONAR
+    );
+
+    for (const tag of tagsToAssign) {
+      await prisma().applicationTagAssignment.create({
+        data: {
+          applicationId: application.id,
+          tagNameId: tag.tagNameId,
+          tagTypeId: tag.tagTypeId,
+        },
+      });
+    }
+  }
+
+  const demonstrations = await prisma().demonstration.findMany();
+  for (const demonstration of demonstrations) {
+    const demonstrationTypes = await prisma().tag.findMany({
+      where: {
+        tagTypeId: "Demonstration Type",
+      },
+    });
+
+    const maxDemonstrationTypes = Math.min(TAG_ASSIGNMENT_MAX, demonstrationTypes.length);
+    const demonstrationTypesToAssign = sampleFromArray(
+      demonstrationTypes,
+      Math.floor(Math.random() * (maxDemonstrationTypes + 1)) // NOSONAR
+    );
+
+    for (const demonstrationType of demonstrationTypesToAssign) {
+      await prisma().demonstrationTypeTagAssignment.create({
+        data: {
+          demonstrationId: demonstration.id,
+          tagNameId: demonstrationType.tagNameId,
+          tagTypeId: demonstrationType.tagTypeId,
+          effectiveDate: faker.date.past(),
+          expirationDate: faker.date.future(),
+        },
+      });
+    }
+  }
+}
+
+async function seedApprovedDemonstration() {
+  console.log("🌱 Seeding one approved demonstration...");
+  const approvedDemonstration = await prisma().demonstration.findFirst({
+    where: {
+      demonstrationTypeTagAssignments: {
+        some: {},
+      },
+    },
+    select: {
+      id: true,
+      sdgDivisionId: true,
+    },
+  });
+  if (!approvedDemonstration) {
+    throw new Error("No demonstrations with demonstration types found for approved-demo seeding");
+  }
+
+  await prisma().$transaction([
+    prisma().demonstration.update({
+      where: { id: approvedDemonstration.id },
+      data: {
+        signatureLevelId: "OA",
+        statusId: "Approved",
+        sdgDivisionId: approvedDemonstration.sdgDivisionId ?? SDG_DIVISIONS[0],
+      },
+    }),
+    prisma().applicationPhase.update({
+      where: {
+        applicationId_phaseId: {
+          applicationId: approvedDemonstration.id,
+          phaseId: "Approval Summary",
+        },
+      },
+      data: {
+        phaseStatusId: "Completed",
+      },
+    }),
+  ]);
+
+  console.log(`🌱 Seeded approved demonstration: ${approvedDemonstration.id}`);
+}
+
+async function seedDeliverables(actionUserId: string) {
+  console.log("🌱 Seeding deliverables...");
+  const deliverableTypes = await prisma().deliverableType.findMany({
+    select: { id: true },
+  });
+  const cmsOwners = await prisma().user.findMany({
+    where: {
+      personTypeId: {
+        in: ["demos-admin", "demos-cms-user"],
+      },
+    },
+    select: { id: true },
+  });
+  const approvedDemonstrations = await prisma().demonstration.findMany({
+    where: { statusId: "Approved" },
+    select: {
+      id: true,
+      demonstrationTypeTagAssignments: {
+        select: {
+          tagNameId: true,
+        },
+      },
+    },
+  });
+  if (!deliverableTypes.length || !cmsOwners.length || !approvedDemonstrations.length) {
+    throw new Error("Missing data required for deliverable seeding");
+  }
+
+  const context = {
+    user: {
+      id: actionUserId,
+    },
+  } as GraphQLContext;
+
+  for (let i = 0; i < DELIVERABLE_SEED_COUNT; i++) {
+    const demonstration = faker.helpers.arrayElement(approvedDemonstrations);
+    const deliverableTypeIds = deliverableTypes.map((d) => d.id);
+    const selectedType = faker.helpers.arrayElement(deliverableTypeIds);
+    const demonstrationTypeIds = demonstration.demonstrationTypeTagAssignments.map(
+      (assignment) => assignment.tagNameId
+    );
+    const selectedDemonstrationTypes = sampleFromArray(
+      demonstrationTypeIds,
+      Math.min(2, demonstrationTypeIds.length)
+    );
+
+    const createInput: CreateDeliverableInput = {
+      name: `${selectedType} ${i + 1}`,
+      deliverableType: selectedType as CreateDeliverableInput["deliverableType"],
+      demonstrationId: demonstration.id,
+      cmsOwnerUserId: faker.helpers.arrayElement(cmsOwners).id,
+      dueDate: faker.date
+        .future({ years: 2 })
+        .toISOString()
+        .slice(0, 10) as CreateDeliverableInput["dueDate"],
+      demonstrationTypes: selectedDemonstrationTypes,
+    };
+    await createDeliverable(createInput, context);
+  }
 }
 
 async function seedNotes() {
@@ -75,6 +258,7 @@ async function seedNotes() {
 
 async function seedDocuments() {
   console.log("🌱 Seeding documents...");
+
   const s3Client = new S3Client(
     process.env.S3_ENDPOINT_LOCAL
       ? {
@@ -90,12 +274,18 @@ async function seedDocuments() {
   );
 
   const applications = await prisma().application.findMany();
+  const users = await prisma().user.findMany({
+    select: { id: true },
+  });
   const owner = await prisma().user.findFirst({
     select: { id: true },
   });
 
   if (!owner) {
     throw new Error("Could not seed documents: no owner user found.");
+  }
+  if (!users.length) {
+    throw new Error("Could not seed documents: no users found.");
   }
 
   for (const application of applications) {
@@ -108,7 +298,7 @@ async function seedDocuments() {
             name: name,
             description: faker.lorem.sentence(5),
             s3Path: "tmp",
-            ownerUserId: (await prisma().user.findRandom())!.id,
+            ownerUserId: faker.helpers.arrayElement(users).id,
             documentTypeId: documentType,
             applicationId: application.id,
             phaseId: phaseName,
@@ -314,15 +504,16 @@ async function seedDatabase() {
 
   console.log("🌱 Seeding person states...");
   const allPeople = await prisma().person.findMany();
+  const states = await prisma().state.findMany();
+  if (!states.length) {
+    throw new Error("No states found to assign to person");
+  }
   for (const person of allPeople) {
     // demos-cms-users already belong to every state, so this applies only to state users
     if (person.personTypeId !== "demos-state-user") continue;
 
     // for now, just adding one state to each person
-    const state = await prisma().state.findRandom();
-    if (!state) {
-      throw new Error("No states found to assign to person");
-    }
+    const state = faker.helpers.arrayElement(states);
     await prisma().personState.create({
       data: {
         personId: person.id,
@@ -332,25 +523,28 @@ async function seedDatabase() {
   }
 
   console.log("🌱 Seeding system role assignments...");
-  // for each user, assign a random set of roles from the system roles
-  const systemRoles = await prisma().role.findMany({
-    where: { grantLevelId: "System" },
-  });
-
   const people = await prisma().person.findMany();
   for (const person of people) {
-    // NOSONAR - this is an appropriate use of Math.random() for seeding a random number of roles
-    const roles = sampleFromArray(systemRoles, 1 + Math.floor(Math.random() * systemRoles.length)); // NOSONAR
-    for (const role of roles) {
-      await prisma().systemRoleAssignment.create({
-        data: {
-          personId: person.id,
-          personTypeId: person.personTypeId,
-          roleId: role.id,
-          grantLevelId: "System",
+    const applicableRoles = await prisma().role.findMany({
+      where: {
+        grantLevelId: "System",
+        rolePersonTypes: {
+          some: {
+            personTypeId: person.personTypeId,
+          },
         },
-      });
-    }
+      },
+    });
+
+    const role = faker.helpers.arrayElement(applicableRoles);
+    await prisma().systemRoleAssignment.create({
+      data: {
+        personId: person.id,
+        personTypeId: person.personTypeId,
+        roleId: role.id,
+        grantLevelId: "System",
+      },
+    });
   }
   // need to add a project officer to each demonstration, so creating a new user from a matching state
   console.log("🌱 Seeding demonstrations...");
@@ -417,25 +611,25 @@ async function seedDatabase() {
     "Vision",
   ];
   const demonstrationTypes = ["Section 1115", "Section 1915(b)", "Section 1915(c)"];
+  const cmsUsers = await prisma().person.findMany({
+    where: { personTypeId: "demos-cms-user" },
+    include: {
+      personStates: {
+        include: { state: true },
+      },
+    },
+  });
+  if (!cmsUsers.length) {
+    throw new Error("No cms users found to assign as project officers");
+  }
 
   for (let i = 0; i < demonstrationCount; i++) {
     // get a random cms-user
-    const person = await prisma().person.findRandom({
-      where: { personTypeId: "demos-cms-user" },
-      include: {
-        personStates: {
-          include: { state: true },
-        },
-      },
-    });
-
-    if (!person) {
-      throw new Error("No cms users found to assign as project officers");
-    }
+    const person = faker.helpers.arrayElement(cmsUsers);
 
     let stateSelection = sampleFromArray(person.personStates, 1)[0];
     if (!stateSelection) {
-      const fallbackState = await prisma().state.findRandom();
+      const fallbackState = faker.helpers.arrayElement(states);
       if (!fallbackState) {
         throw new Error("No states available to assign to demonstration");
       }
@@ -475,11 +669,13 @@ async function seedDatabase() {
   }
 
   console.log("🌱 Seeding all dates for one demonstration");
-  const randomDemonstration = await prisma().demonstration.findRandom({
-    select: {
-      id: true,
-    },
-  });
+  const randomDemonstration = faker.helpers.arrayElement(
+    await prisma().demonstration.findMany({
+      select: {
+        id: true,
+      },
+    })
+  );
   const dateInput: SetApplicationDatesInput = {
     applicationId: randomDemonstration!.id,
     applicationDates: [
@@ -638,9 +834,15 @@ async function seedDatabase() {
   });
 
   console.log("🌱 Seeding amendments...");
+  const demonstrationIds = await prisma().demonstration.findMany({
+    select: { id: true },
+  });
+  if (!demonstrationIds.length) {
+    throw new Error("No demonstrations found for amendment/extension seeding");
+  }
   for (let i = 0; i < amendmentCount; i++) {
     const createInput: CreateAmendmentInput = {
-      demonstrationId: (await prisma().demonstration.findRandom())!.id,
+      demonstrationId: faker.helpers.arrayElement(demonstrationIds).id,
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
       signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
@@ -663,7 +865,7 @@ async function seedDatabase() {
   console.log("🌱 Seeding extensions...");
   for (let i = 0; i < extensionCount; i++) {
     const createInput: CreateExtensionInput = {
-      demonstrationId: (await prisma().demonstration.findRandom())!.id,
+      demonstrationId: faker.helpers.arrayElement(demonstrationIds).id,
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
       signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
@@ -683,6 +885,10 @@ async function seedDatabase() {
     await __updateExtension(undefined, updateInput);
   }
 
+  await seedTagsAndStatuses();
+  await seedApprovedDemonstration();
+  await seedDeliverables(bypassUserId);
+
   await seedDocuments();
 
   await seedNotes();
@@ -700,8 +906,7 @@ async function seedDatabase() {
     take: 5,
   });
 
-  function pick<T>(arr: T[]): T | null {
-    if (!arr.length) return null;
+  function pick<T>(arr: T[]): T {
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
@@ -711,7 +916,7 @@ async function seedDatabase() {
     // ~60% of events have a applicationId, rest are null
     const attachApplication = Math.random() < 0.6;
     const maybeApplication = attachApplication ? (pick(applicationsForEvents)?.id ?? null) : null;
-    const user = pick(usersForEvents) ?? null;
+    const user = pick(usersForEvents);
 
     // Note that these don't really make sense because application is generic
     // Should come back and be more specific as EventType evolves
@@ -763,20 +968,9 @@ async function seedDatabase() {
       },
     };
 
-    let context: GraphQLContext;
-    if (!user) {
-      context = {
-        user: null,
-      };
-    } else {
-      context = {
-        user: {
-          id: user.id,
-          sub: user.cognitoSubject,
-          role: user.personTypeId,
-        },
-      };
-    }
+    const context = {
+      user,
+    } as GraphQLContext;
 
     logEvent(undefined, { input: eventData }, context);
   }

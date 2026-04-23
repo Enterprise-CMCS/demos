@@ -1,5 +1,5 @@
 import { TZDate } from "@date-fns/tz";
-import { Tag } from "../../types";
+import { TagName } from "../../types";
 
 export interface ParsedDemonstrationTypeDatesInput {
   effectiveDate: TZDate;
@@ -7,12 +7,12 @@ export interface ParsedDemonstrationTypeDatesInput {
 }
 
 export interface ParsedDemonstrationTypeInput {
-  demonstrationTypeName: Tag;
+  demonstrationTypeName: TagName;
   demonstrationTypeDates: ParsedDemonstrationTypeDatesInput;
 }
 
 export interface ParsedSetDemonstrationTypesInput {
   demonstrationId: string;
   demonstrationTypesToUpsert: ParsedDemonstrationTypeInput[];
-  demonstrationTypesToDelete: Tag[];
+  demonstrationTypesToDelete: TagName[];
 }

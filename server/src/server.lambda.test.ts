@@ -1,24 +1,22 @@
 import { describe, it, vi, expect, beforeAll, beforeEach } from "vitest";
 import type { APIGatewayProxyEvent } from "aws-lambda";
-let extractAuthorizerClaims!: typeof import("./server").extractAuthorizerClaims;
-let withAuthorizerHeader!: typeof import("./server").withAuthorizerHeader;
-let buildLambdaContext!: typeof import("./auth/auth.util.ts").buildLambdaContext;
+let extractClaimsFromEvent!: typeof import("./server").extractClaimsFromEvent;
 
 // Shared spies
 const userFindUnique = vi.fn();
-const userCreate     = vi.fn();
-const personCreate   = vi.fn();
+const userCreate = vi.fn();
+const personCreate = vi.fn();
 
 // Prisma: mock BOTH specifiers that your code might use
 vi.mock("./prismaClient.js", () => ({
   prisma: () => ({
-    user:   { findUnique: userFindUnique, create: userCreate },
+    user: { findUnique: userFindUnique, create: userCreate },
     person: { create: personCreate },
   }),
 }));
 vi.mock("../prismaClient.js", () => ({
   prisma: () => ({
-    user:   { findUnique: userFindUnique, create: userCreate },
+    user: { findUnique: userFindUnique, create: userCreate },
     person: { create: personCreate },
   }),
 }));
@@ -26,14 +24,20 @@ vi.mock("../prismaClient.js", () => ({
 // Logger: mock BOTH specifiers
 vi.mock("./logger.js", () => ({
   log: {
-    debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
   },
   setRequestContext: vi.fn(),
   addToRequestContext: vi.fn(),
 }));
 vi.mock("../logger.js", () => ({
   log: {
-    debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
   },
   setRequestContext: vi.fn(),
   addToRequestContext: vi.fn(),
@@ -57,23 +61,11 @@ vi.mock("jsonwebtoken", () => ({ default: {}, verify: vi.fn() }));
 console.log("[TEST] prisma mock wired");
 
 beforeAll(async () => {
-  ({ extractAuthorizerClaims, withAuthorizerHeader } = await import("./server"));
-  ({ buildLambdaContext } = await import("./auth/auth.util.ts"));
+  ({ extractClaimsFromEvent } = await import("./server"));
 });
 
-// Minimal APIGatewayProxyEvent with authorizer claims that match your screenshot
+// Minimal APIGatewayProxyEvent with authorizer claims
 function makeEvent(): APIGatewayProxyEvent {
-  const identitiesString = JSON.stringify([
-    {
-      dateCreated: "1754511350609",
-      userId: "ABCD",
-      providerName: "demos-obiwan-idm",
-      providerType: "SAML",
-      issuer: "http://www.okta.com/exky6bddrj7f9Wp7v297",
-      primary: "true",
-    },
-  ]);
-
   return {
     body: null,
     headers: {},
@@ -90,14 +82,12 @@ function makeEvent(): APIGatewayProxyEvent {
       accountId: "1234567890",
       apiId: "abc123",
       authorizer: {
-        "custom:roles": "demos-cms-user",
-        role: "demos-cms-user", // 👈 add this for now
+        role: "demos-cms-user",
         email: "somehuman@example.com",
         family_name: "Kenobi",
         given_name: "obiwan",
-        identities: identitiesString, // JSON string
+        userId: "ABCD",
         sub: "74a88478-1081-702f-2d85-a65bf907a154",
-        "cognito:username": "somehuman@example.com",
       },
       protocol: "HTTP/1.1",
       httpMethod: "POST",
@@ -133,82 +123,33 @@ beforeEach(() => {
     lastName: "Kenobi",
   });
 });
-// --- Tests ------------------------------------------------------------------
-
-function patchHeaderClaimsForCompat(headers: Record<string, any>) {
-  const key = "x-authorizer-claims";
-  const raw = headers[key];
-  if (!raw || typeof raw !== "string") return;
-
-  const claims = JSON.parse(raw);
-
-  // Ensure a role is present (normalizer accepts either key)
-  claims["custom:roles"] = claims["custom:roles"] || claims.role || "demos-cms-user";
-
-  // Ensure snake_case name keys exist (some code reads these)
-  if (claims.givenName && !claims.given_name) claims.given_name = claims.givenName;
-  if (claims.familyName && !claims.family_name) claims.family_name = claims.familyName;
-
-  headers[key] = JSON.stringify(claims);
-}
-
-describe("Lambda entrypoint claims plumbing", () => {
-  it("extracts claims from API Gateway authorizer and builds a user context via x-authorizer-claims", async () => {
+describe("extractClaimsFromEvent", () => {
+  it("maps authorizer claims into AuthorizationClaims", () => {
     const event = makeEvent();
 
-    // 1) Pull claims from requestContext.authorizer
-    const claims = extractAuthorizerClaims(event);
-    expect(claims).toBeTruthy();
-    expect(claims?.sub).toBe("74a88478-1081-702f-2d85-a65bf907a154");
-    expect(claims?.role).toBe("demos-cms-user");
-    expect(claims?.givenName).toBe("obiwan");
-    expect(claims?.familyName).toBe("Kenobi");
+    const claims = extractClaimsFromEvent(event);
 
-    const headersWithClaims = withAuthorizerHeader(event.headers, claims);
-    expect(typeof headersWithClaims["x-authorizer-claims"]).toBe("string");
-
-    // 3) Build GraphQL context using the fast-path (no JWT verification)
-    const gqlCtx = await buildLambdaContext(headersWithClaims);
-
-    // 4) Assert we got a user and role mapped correctly
-    expect(gqlCtx.user).toBeTruthy();
-    expect(gqlCtx.user?.id).toBe("user-123");
-    expect(gqlCtx.user?.role).toBe("demos-cms-user");
-    expect(gqlCtx.user?.sub).toBe("74a88478-1081-702f-2d85-a65bf907a154");
-  });
-
-  it("falls back to email as username if identities.userId missing", async () => {
-    const event = makeEvent();
-
-    (event.requestContext.authorizer as any).identities = JSON.stringify([
-      { providerType: "SAML", issuer: "http://idp.example" }
-    ]);
-
-    const claims = extractAuthorizerClaims(event);
-    const headersWithClaims = withAuthorizerHeader(event.headers, claims);
-    const gqlCtx = await buildLambdaContext(headersWithClaims);
-
-    expect(gqlCtx.user).toBeTruthy();
-    expect(gqlCtx.user?.id).toBe("user-123");
-  });
-
-  it("sets username from identities.userId when identities exist", async () => {
-    const event = makeEvent();
-    userFindUnique.mockResolvedValueOnce(null); // no existing user
-
-    const claims = extractAuthorizerClaims(event);
-    const headers = withAuthorizerHeader(event.headers, claims);
-
-    const ctx = await buildLambdaContext(headers);
-
-    expect(personCreate).toHaveBeenCalledTimes(1);
-    expect(userCreate).toHaveBeenCalledTimes(1);
-    expect(userCreate.mock.calls[0][0]).toMatchObject({
-      data: {
-        username: "ABCD",
-        cognitoSubject: expect.stringMatching(/^74a8/)
-      },
+    expect(claims).toEqual({
+      email: "somehuman@example.com",
+      sub: "74a88478-1081-702f-2d85-a65bf907a154",
+      role: "demos-cms-user",
+      givenName: "obiwan",
+      familyName: "Kenobi",
+      externalUserId: "ABCD",
     });
-    expect(ctx.user?.id).toBe("new-user-123");
+  });
+
+  it("throws when the request context has no authorizer", () => {
+    const event = makeEvent();
+    (event.requestContext as any).authorizer = undefined;
+
+    expect(() => extractClaimsFromEvent(event)).toThrow("Missing authorizer in request context");
+  });
+
+  it("throws when the authorizer claims are invalid", () => {
+    const event = makeEvent();
+    (event.requestContext.authorizer as any).role = "not-a-real-role";
+
+    expect(() => extractClaimsFromEvent(event)).toThrow("Invalid user role: 'not-a-real-role'");
   });
 });

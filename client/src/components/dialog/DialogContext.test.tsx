@@ -6,7 +6,7 @@ import { DialogProvider, useDialog } from "./DialogContext";
 import { ExistingContactType } from "./ManageContactsDialog";
 import { DocumentDialogFields } from "./document/DocumentDialog";
 import { DeclareIncompleteForm } from "./DeclareIncompleteDialog";
-import { Tag as DemonstrationTypeName } from "demos-server";
+import { TagName } from "demos-server";
 import { DemonstrationType } from "./DemonstrationTypes/EditDemonstrationTypeDialog";
 import { formatDateForServer } from "util/formatDate";
 
@@ -288,7 +288,7 @@ vi.mock("./DemonstrationTypes/RemoveDemonstrationTypesDialog", () => ({
     demonstrationTypeNames,
   }: {
     demonstrationId: string;
-    demonstrationTypeNames: DemonstrationTypeName[];
+    demonstrationTypeNames: TagName[];
   }) => (
     <div data-testid="remove-demonstration-types-dialog">
       Remove Demonstration Types Dialog
@@ -330,17 +330,6 @@ vi.mock("./ApplyTagsDialog", () => ({
     <div data-testid="apply-tags-dialog">
       Apply Tags Dialog
       <button data-testid="close-apply-tags-btn" onClick={onClose}>
-        Close
-      </button>
-    </div>
-  ),
-}));
-
-vi.mock("./ConfirmApproveDialog", () => ({
-  ConfirmApproveDialog: ({ onClose }: { onClose: () => void }) => (
-    <div data-testid="confirm-approve-dialog">
-      Confirm Approve Dialog
-      <button data-testid="close-confirm-approve-btn" onClick={onClose}>
         Close
       </button>
     </div>
@@ -456,7 +445,7 @@ const TestConsumer: React.FC = () => {
       </button>
       <button
         data-testid="open-application-intake-upload-btn"
-        onClick={() => showApplicationIntakeDocumentUploadDialog("app-2", vi.fn())}
+        onClick={() => showApplicationIntakeDocumentUploadDialog("app-2")}
       >
         Open Application Intake Upload Dialog
       </button>
@@ -468,7 +457,7 @@ const TestConsumer: React.FC = () => {
       </button>
       <button
         data-testid="open-concept-pre-upload-btn"
-        onClick={() => showConceptPreSubmissionDocumentUploadDialog("app-4", vi.fn())}
+        onClick={() => showConceptPreSubmissionDocumentUploadDialog("app-4")}
       >
         Open Concept Pre-Submission Upload Dialog
       </button>
@@ -502,6 +491,7 @@ const TestConsumer: React.FC = () => {
           showEditDemonstrationTypeDialog("app-1", {
             demonstrationTypeName: "Type1",
             status: "Active",
+            approvalStatus: "Approved",
             effectiveDate: new Date("2024-01-01"),
             expirationDate: new Date("2025-01-01"),
           })
@@ -512,14 +502,26 @@ const TestConsumer: React.FC = () => {
       <button
         data-testid="open-apply-tags-btn"
         onClick={() =>
-          showApplyTagsDialog("app-1", ["Tag1", "Tag2", "Tag3"], ["Tag1", "Tag2", "Tag3"])
+          showApplyTagsDialog(
+            "app-1",
+            [
+              { tagName: "Tag1", approvalStatus: "Approved" },
+              { tagName: "Tag2", approvalStatus: "Unapproved" },
+              { tagName: "Tag3", approvalStatus: "Approved" },
+            ],
+            [
+              { tagName: "Tag1", approvalStatus: "Approved" },
+              { tagName: "Tag2", approvalStatus: "Unapproved" },
+              { tagName: "Tag3", approvalStatus: "Approved" },
+            ]
+          )
         }
       >
         Open Apply Tags Dialog
       </button>
       <button
         data-testid="open-confirm-approve-btn"
-        onClick={() => showConfirmApproveDialog(vi.fn())}
+        onClick={() => showConfirmApproveDialog(vi.fn(), "demonstration")}
       >
         Open Confirm Approve Dialog
       </button>
@@ -858,22 +860,5 @@ describe("DialogContext", () => {
 
     await user.click(screen.getByTestId("close-apply-tags-btn"));
     expect(screen.queryByTestId("apply-tags-dialog")).not.toBeInTheDocument();
-  });
-  it("shows and hides ConfirmApproveDialog via context", async () => {
-    render(
-      <DialogProvider>
-        <TestConsumer />
-      </DialogProvider>
-    );
-
-    const user = userEvent.setup();
-
-    expect(screen.queryByTestId("confirm-approve-dialog")).not.toBeInTheDocument();
-
-    await user.click(screen.getByTestId("open-confirm-approve-btn"));
-    expect(screen.getByTestId("confirm-approve-dialog")).toBeInTheDocument();
-
-    await user.click(screen.getByTestId("close-confirm-approve-btn"));
-    expect(screen.queryByTestId("confirm-approve-dialog")).not.toBeInTheDocument();
   });
 });

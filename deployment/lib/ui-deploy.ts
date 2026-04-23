@@ -9,7 +9,7 @@ import {
   Duration,
 } from "aws-cdk-lib";
 import { CommonProps } from "../types/props";
-import path from "path";
+import path from "node:path";
 import { Construct } from "constructs";
 
 interface UIDeploymentProps extends CommonProps {

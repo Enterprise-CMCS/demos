@@ -1,5 +1,9 @@
 import { gql, useMutation } from "@apollo/client";
-import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "../demonstration/DemonstrationWorkflow";
+import {
+  GET_AMENDMENT_WORKFLOW_QUERY,
+  GET_EXTENSION_WORKFLOW_QUERY,
+  GET_WORKFLOW_DEMONSTRATION_QUERY,
+} from "components/application";
 import { SetApplicationNotesInput } from "demos-server";
 
 const SET_APPLICATION_NOTES_MUTATION = gql`
@@ -15,7 +19,11 @@ export const useSetApplicationNotes = () => {
   const setApplicationNotes = async (input: SetApplicationNotesInput) => {
     return await mutate({
       variables: { input },
-      refetchQueries: [GET_WORKFLOW_DEMONSTRATION_QUERY],
+      refetchQueries: [
+        GET_WORKFLOW_DEMONSTRATION_QUERY,
+        GET_AMENDMENT_WORKFLOW_QUERY,
+        GET_EXTENSION_WORKFLOW_QUERY,
+      ],
     });
   };
 

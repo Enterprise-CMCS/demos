@@ -7,13 +7,23 @@ import { createDocumentPendingUpload } from "../../model/documentPendingUpload";
 import { PRIMARY_AWS_REGION } from "../../constants";
 
 vi.mock("@aws-sdk/client-s3", () => ({
-  S3Client: vi.fn(() => ({
-    send: vi.fn(),
-  })),
-  PutObjectCommand: vi.fn((params) => ({ params })),
-  GetObjectCommand: vi.fn((params) => ({ params })),
-  CopyObjectCommand: vi.fn((params) => ({ params })),
-  DeleteObjectCommand: vi.fn((params) => ({ params })),
+  S3Client: vi.fn(function (this: any) {
+    return {
+      send: vi.fn(),
+    };
+  }),
+  PutObjectCommand: vi.fn(function (this: any, params) {
+    this.params = params;
+  }),
+  GetObjectCommand: vi.fn(function (this: any, params) {
+    this.params = params;
+  }),
+  CopyObjectCommand: vi.fn(function (this: any, params) {
+    this.params = params;
+  }),
+  DeleteObjectCommand: vi.fn(function (this: any, params) {
+    this.params = params;
+  }),
 }));
 
 vi.mock("@aws-sdk/s3-request-presigner", () => ({
@@ -103,7 +113,9 @@ describe("AwsS3Adapter", () => {
           .mockResolvedValueOnce({ $metadata: { httpStatusCode: 200 } }) // copy response
           .mockResolvedValueOnce({ $metadata: { httpStatusCode: 204 } }), // delete response
       };
-      vi.mocked(S3Client).mockReturnValue(mockS3Client as any);
+      vi.mocked(S3Client).mockImplementation(function (this: any) {
+        return mockS3Client as any;
+      });
 
       const adapter = createAWSS3Adapter();
       await adapter.moveDocumentFromCleanToDeleted(testKey);
@@ -116,7 +128,9 @@ describe("AwsS3Adapter", () => {
       const mockS3Client = {
         send: vi.fn().mockResolvedValueOnce({ $metadata: { httpStatusCode: 500 } }),
       };
-      vi.mocked(S3Client).mockReturnValue(mockS3Client as any);
+      vi.mocked(S3Client).mockImplementation(function (this: any) {
+        return mockS3Client as any;
+      });
 
       const adapter = createAWSS3Adapter();
 
@@ -133,7 +147,9 @@ describe("AwsS3Adapter", () => {
           .mockResolvedValueOnce({ $metadata: { httpStatusCode: 200 } })
           .mockResolvedValueOnce({ $metadata: { httpStatusCode: 500 } }),
       };
-      vi.mocked(S3Client).mockReturnValue(mockS3Client as any);
+      vi.mocked(S3Client).mockImplementation(function (this: any) {
+        return mockS3Client as any;
+      });
 
       const adapter = createAWSS3Adapter();
 

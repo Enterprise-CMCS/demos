@@ -1,17 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
-  resolveApplicationDocuments,
-  resolveApplicationCurrentPhaseName,
-  resolveApplicationStatus,
   resolveApplicationType,
-  resolveApplicationPhases,
-  resolveApplicationClearanceLevel,
   resolveApplicationTags,
-  resolveApplicationSignatureLevel,
-} from "./applicationResolvers";
-import { PrismaApplication } from ".";
-import { ApplicationStatus, ApplicationType, PhaseName, Tag } from "../../types";
-import { ApplicationTagAssignment as PrismaApplicationTagAssignment } from "@prisma/client";
+  PrismaApplication,
+  resolveSuggestedApplicationTags,
+} from ".";
+import { Tag } from "../tag";
+import { ApplicationStatus, ApplicationType, PhaseName } from "../../types";
+import {
+  ApplicationTagAssignment as PrismaApplicationTagAssignment,
+  Tag as PrismaTag,
+} from "@prisma/client";
 
 // Mock imports
 import { prisma } from "../../prismaClient.js";
@@ -33,26 +32,20 @@ vi.mock("../applicationPhase", () => ({
 
 describe("applicationResolvers", () => {
   const regularMocks = {
-    document: {
-      findMany: vi.fn(),
-    },
-    applicationPhase: {
-      findMany: vi.fn(),
-    },
     applicationTagAssignment: {
       findMany: vi.fn(),
     },
+    applicationTagSuggestion: {
+      findMany: vi.fn(),
+    }
   };
   const mockPrismaClient = {
-    document: {
-      findMany: regularMocks.document.findMany,
-    },
-    applicationPhase: {
-      findMany: regularMocks.applicationPhase.findMany,
-    },
     applicationTagAssignment: {
       findMany: regularMocks.applicationTagAssignment.findMany,
     },
+    applicationTagSuggestion: {
+      findMany: regularMocks.applicationTagSuggestion.findMany,
+    }
   };
   const testApplicationId = "8167c039-9c08-4203-b7d2-9e35ec156993";
   const testDemonstrationApplicationTypeId: ApplicationType = "Demonstration";
@@ -66,41 +59,6 @@ describe("applicationResolvers", () => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
   });
 
-  describe("resolveApplicationDocuments", () => {
-    it("should look up the relevant documents", async () => {
-      const input: Partial<PrismaApplication> = {
-        id: testApplicationId,
-      };
-      const expectedCall = {
-        where: {
-          applicationId: testApplicationId,
-        },
-      };
-      await resolveApplicationDocuments(input as PrismaApplication);
-      expect(regularMocks.document.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
-    });
-  });
-
-  describe("resolveApplicationCurrentPhaseName", () => {
-    it("should resolve the current phase name", async () => {
-      const input: Partial<PrismaApplication> = {
-        currentPhaseId: testPhaseId,
-      };
-      const result = resolveApplicationCurrentPhaseName(input as PrismaApplication);
-      expect(result).toBe(testPhaseId);
-    });
-  });
-
-  describe("resolveApplicationStatus", () => {
-    it("should resolve the current application status", async () => {
-      const input: Partial<PrismaApplication> = {
-        statusId: testApplicationStatusId,
-      };
-      const result = resolveApplicationStatus(input as PrismaApplication);
-      expect(result).toBe(testApplicationStatusId);
-    });
-  });
-
   describe("resolveApplicationType", () => {
     it("should resolve the application type", async () => {
       const input: Partial<PrismaApplication> = {
@@ -111,40 +69,23 @@ describe("applicationResolvers", () => {
     });
   });
 
-  describe("resolveApplicationPhases", () => {
-    it("should resolve the application phases", async () => {
-      const input: Partial<PrismaApplication> = {
-        id: testApplicationId,
-      };
-      const expectedCall = {
-        where: {
-          applicationId: testApplicationId,
-        },
-      };
-      await resolveApplicationPhases(input as PrismaApplication);
-      expect(regularMocks.applicationPhase.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
-    });
-  });
-
-  describe("resolveApplicationClearanceLevel", () => {
-    it("should resolve the current application clearance level", async () => {
-      const input: Partial<PrismaApplication> = {
-        clearanceLevelId: testApplicationClearanceLevelId,
-      };
-      const result = resolveApplicationClearanceLevel(input as PrismaApplication);
-      expect(result).toBe(testApplicationClearanceLevelId);
-    });
-  });
-
   describe("resolveApplicationTags", () => {
     it("should resolve the tags on an application", async () => {
       // This is present just to test the map in the function
-      const resolvedValue: Pick<PrismaApplicationTagAssignment, "tagId">[] = [
+      const resolvedValue: (Pick<PrismaApplicationTagAssignment, "tagNameId"> & {
+        tag: Pick<PrismaTag, "statusId">;
+      })[] = [
         {
-          tagId: "Test Tag Value A",
+          tagNameId: "Test Tag Value A",
+          tag: {
+            statusId: "Unapproved",
+          },
         },
         {
-          tagId: "Test Tag Value B",
+          tagNameId: "Test Tag Value B",
+          tag: {
+            statusId: "Approved",
+          },
         },
       ];
       regularMocks.applicationTagAssignment.findMany.mockResolvedValueOnce(resolvedValue);
@@ -153,11 +94,20 @@ describe("applicationResolvers", () => {
         where: {
           applicationId: testApplicationId,
         },
-        select: {
-          tagId: true,
+        include: {
+          tag: true,
         },
       };
-      const expectedResult: Tag[] = ["Test Tag Value A", "Test Tag Value B"];
+      const expectedResult: Tag[] = [
+        {
+          approvalStatus: "Unapproved",
+          tagName: "Test Tag Value A",
+        },
+        {
+          approvalStatus: "Approved",
+          tagName: "Test Tag Value B",
+        },
+      ];
       const input: Partial<PrismaApplication> = {
         id: testApplicationId,
       };
@@ -169,13 +119,39 @@ describe("applicationResolvers", () => {
       expect(result).toStrictEqual(expectedResult);
     });
   });
-  describe("resolveApplicationSignatureLevel", () => {
-    it("should resolve the current application signature level", async () => {
-      const input: Partial<PrismaApplication> = {
-        signatureLevelId: testApplicationSignatureLevelId,
+
+  describe("resolveSuggestedApplicationTags", () => {
+    it("should resolve the suggested tags for an application", async () => {
+      regularMocks.applicationTagSuggestion.findMany.mockResolvedValueOnce([
+        {
+          value: "Suggested Tag Value A",
+        },
+        {
+          value: "Suggested Tag Value B",
+        },
+      ]);
+
+      const expectedCall = {
+        select: {
+          value: true,
+        },
+        where: {
+          applicationId: testApplicationId,
+          statusId: {
+            in: ["Pending"],
+          }
+        },
       };
-      const result = resolveApplicationSignatureLevel(input as PrismaApplication);
-      expect(result).toBe(testApplicationSignatureLevelId);
+      const expectedResult = ["Suggested Tag Value A", "Suggested Tag Value B"];
+      const input: Partial<PrismaApplication> = {
+        id: testApplicationId,
+      };
+
+      const result = await resolveSuggestedApplicationTags(input as PrismaApplication);
+      expect(regularMocks.applicationTagSuggestion.findMany).toHaveBeenCalledExactlyOnceWith(
+        expectedCall
+      );
+      expect(result).toStrictEqual(expectedResult);
     });
   });
 });

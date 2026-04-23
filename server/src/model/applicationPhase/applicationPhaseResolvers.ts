@@ -1,15 +1,16 @@
-import {
-  ApplicationPhase as PrismaApplicationPhase,
-  Document as PrismaDocument,
-} from "@prisma/client";
-import { prisma } from "../../prismaClient.js";
+import { ApplicationPhase as PrismaApplicationPhase } from "@prisma/client";
+import { prisma } from "../../prismaClient";
 import {
   PrismaApplicationDateResults,
   completePhase,
   declareCompletenessPhaseIncomplete,
   skipConceptPhase,
 } from ".";
-import { PrismaApplicationNoteResults } from "./applicationPhaseTypes.js";
+import { PrismaApplicationNoteResults } from "./applicationPhaseTypes";
+import { GraphQLContext } from "../../auth";
+import { getManyDocuments } from "../document";
+import { getManyApplicationDates } from "../applicationDate";
+import { getManyApplicationNotes } from "../applicationNote";
 
 export async function __resolveApplicationPhaseDates(
   parent: PrismaApplicationPhase
@@ -55,32 +56,42 @@ export async function __resolveApplicationPhaseNotes(
   return rows;
 }
 
-export async function __resolveApplicationPhaseDocuments(
-  parent: PrismaApplicationPhase
-): Promise<PrismaDocument[]> {
-  return await prisma().document.findMany({
-    where: {
-      applicationId: parent.applicationId,
-      phaseId: parent.phaseId,
-    },
-  });
-}
-
-export function __resolveApplicationPhaseName(parent: PrismaApplicationPhase): string {
-  return parent.phaseId;
-}
-
-export function __resolveApplicationPhaseStatus(parent: PrismaApplicationPhase): string {
-  return parent.phaseStatusId;
-}
-
 export const applicationPhaseResolvers = {
   ApplicationPhase: {
-    phaseName: __resolveApplicationPhaseName,
-    phaseStatus: __resolveApplicationPhaseStatus,
-    phaseDates: __resolveApplicationPhaseDates,
-    phaseNotes: __resolveApplicationPhaseNotes,
-    documents: __resolveApplicationPhaseDocuments,
+    phaseName: (parent: PrismaApplicationPhase) => parent.phaseId,
+    phaseStatus: (parent: PrismaApplicationPhase) => parent.phaseStatusId,
+    phaseDates: (parent: PrismaApplicationPhase, args: unknown, context: GraphQLContext) =>
+      getManyApplicationDates(
+        {
+          applicationId: parent.applicationId,
+          dateType: {
+            phaseDateTypes: {
+              some: { phaseId: parent.phaseId },
+            },
+          },
+        },
+        context.user
+      ),
+    phaseNotes: (parent: PrismaApplicationPhase, args: unknown, context: GraphQLContext) =>
+      getManyApplicationNotes(
+        {
+          applicationId: parent.applicationId,
+          noteType: {
+            phaseNoteTypes: {
+              some: { phaseId: parent.phaseId },
+            },
+          },
+        },
+        context.user
+      ),
+    documents: (parent: PrismaApplicationPhase, args: unknown, context: GraphQLContext) =>
+      getManyDocuments(
+        {
+          applicationId: parent.applicationId,
+          phaseId: parent.phaseId,
+        },
+        context.user
+      ),
   },
 
   Mutation: {

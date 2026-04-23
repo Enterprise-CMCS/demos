@@ -1,66 +1,44 @@
 import { prisma } from "../../prismaClient.js";
-import { ClearanceLevel, Tag } from "../../types.js";
-import {
-  Document as PrismaDocument,
-  ApplicationPhase as PrismaApplicationPhase,
-  ApplicationTagAssignment as PrismaApplicationTagAssignment,
-} from "@prisma/client";
+import { TagStatus, UiPathResultStatus } from "../../types.js";
 import { setApplicationClearanceLevel, PrismaApplication } from ".";
-
-export async function resolveApplicationDocuments(
-  parent: PrismaApplication
-): Promise<PrismaDocument[] | null> {
-  return await prisma().document.findMany({
-    where: {
-      applicationId: parent.id,
-    },
-  });
-}
-
-export function resolveApplicationCurrentPhaseName(parent: PrismaApplication): string {
-  return parent.currentPhaseId;
-}
-
-export function resolveApplicationStatus(parent: PrismaApplication): string {
-  return parent.statusId;
-}
-
-export function resolveApplicationSignatureLevel(parent: PrismaApplication): string | null {
-  return parent.signatureLevelId;
-}
+import { Tag } from "../tag";
 
 export function resolveApplicationType(parent: PrismaApplication): string {
   return parent.applicationTypeId;
 }
 
-export async function resolveApplicationPhases(
-  parent: PrismaApplication
-): Promise<PrismaApplicationPhase[]> {
-  // The phases are prepopulated by the database so this is never null
-  const result = await prisma().applicationPhase.findMany({
+
+export async function resolveApplicationTags(parent: PrismaApplication): Promise<Tag[]> {
+  const applicationTags = await prisma().applicationTagAssignment.findMany({
     where: {
       applicationId: parent.id,
     },
+    include: {
+      tag: true,
+    },
   });
-  return result!;
+  return applicationTags.map((tagAssignment) => ({
+    tagName: tagAssignment.tagNameId,
+    approvalStatus: tagAssignment.tag.statusId as TagStatus,
+  }));
 }
 
-export function resolveApplicationClearanceLevel(parent: PrismaApplication): ClearanceLevel {
-  // clearance level casting enforced by database constraints
-  return parent.clearanceLevelId as ClearanceLevel;
-}
+export async function resolveSuggestedApplicationTags(
+  parent: PrismaApplication
+): Promise<string[]> {
+  const suggestions = await prisma().applicationTagSuggestion.findMany({
+    where: {
+      applicationId: parent.id,
+      statusId: {
+        in: ["Pending" satisfies UiPathResultStatus],
+      },
+    },
+    select: {
+      value: true,
+    },
+  });
 
-export async function resolveApplicationTags(parent: PrismaApplication): Promise<Tag[]> {
-  const applicationTags: Pick<PrismaApplicationTagAssignment, "tagId">[] =
-    await prisma().applicationTagAssignment.findMany({
-      where: {
-        applicationId: parent.id,
-      },
-      select: {
-        tagId: true,
-      },
-    });
-  return applicationTags.map((tag) => tag.tagId);
+  return suggestions.map((s) => s.value);
 }
 
 export const applicationResolvers = {

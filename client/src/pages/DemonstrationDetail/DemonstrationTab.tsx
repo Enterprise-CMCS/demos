@@ -21,6 +21,7 @@ import {
   Document,
   Person,
   PhaseName,
+  Tag,
 } from "demos-server";
 import { Tab, VerticalTabs } from "layout/Tabs";
 import { SummaryDetailsTab } from "./SummaryDetailsTab";
@@ -28,6 +29,7 @@ import { useDialog } from "components/dialog/DialogContext";
 import { ContactsTab } from "./ContactsTab";
 import { useApolloClient } from "@apollo/client/react/hooks/useApolloClient";
 import { TypesTable } from "components/table/tables/TypesTable";
+import { DeliverablesTab } from "./deliverables/DeliverablesTab";
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
   person: Pick<Person, "fullName" | "id" | "email" | "personType">;
@@ -35,10 +37,17 @@ type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
 
 export type DemonstrationDetailDemonstrationType = Pick<
   DemonstrationTypeAssignment,
-  "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "createdAt"
+  | "demonstrationTypeName"
+  | "status"
+  | "effectiveDate"
+  | "expirationDate"
+  | "createdAt"
+  | "approvalStatus"
 >;
 
-export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "status"> & {
+export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "name" | "status"> & {
+  effectiveDate?: Demonstration["effectiveDate"];
+  expirationDate?: Demonstration["expirationDate"];
   demonstrationTypes: DemonstrationDetailDemonstrationType[];
   documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
     owner: {
@@ -72,6 +81,10 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
 
   const isDemonstrationApproved = demonstration.status === "Approved";
   const defaultTab = isDemonstrationApproved ? TAB.DELIVERABLES : TAB.APPLICATION;
+  const demonstrationTypeTags: Tag[] = demonstration.demonstrationTypes.map((dt) => ({
+    tagName: dt.demonstrationTypeName,
+    approvalStatus: dt.approvalStatus,
+  }));
 
   return (
     <div className="p-[16px]">
@@ -82,7 +95,14 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           value={TAB.DELIVERABLES}
           shouldRender={isDemonstrationApproved}
         >
-          <div></div>
+          <DeliverablesTab
+            parentDemonstration={{
+              demonstrationTypes: demonstrationTypeTags,
+              id: demonstration.id,
+              effectiveDate: demonstration.effectiveDate,
+              expirationDate: demonstration.expirationDate,
+            }}
+          />
         </Tab>
         <Tab icon={<ListIcon />} label="Applications" value={TAB.APPLICATION}>
           <DemonstrationWorkflow demonstrationId={demonstration.id} />

@@ -1,0 +1,16 @@
+model DeliverableExtensionHistory {
+  revisionId            Int          @id @default(autoincrement()) @map("revision_id")
+  revisionType          RevisionType @map("revision_type")
+  modifiedAt            DateTime     @default(now()) @map("modified_at") @db.Timestamptz
+  id                    String       @db.Uuid
+  deliverableId         String       @map("deliverable_id") @db.Uuid
+  statusId              String       @map("status_id")
+  reasonCodeId          String       @map("reason_code_id")
+  note                  String?      @map("note")
+  originalDateRequested DateTime     @map("original_date_requested") @db.Timestamptz
+  finalDateGranted      DateTime?    @map("final_date_granted") @db.Timestamptz
+  createdAt             DateTime     @map("created_at") @db.Timestamptz
+  updatedAt             DateTime     @map("updated_at") @db.Timestamptz
+
+  @@map("deliverable_extension_history")
+}
