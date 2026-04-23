@@ -942,7 +942,8 @@ BEGIN
     FROM
         demos_app.application_tag_suggestion_extract
     WHERE
-        suggestion_id = OLD.suggestion_id
+        application_id = OLD.application_id
+        and value = OLD.value
     INTO
         suggestion_extract_count;
 
@@ -952,9 +953,10 @@ BEGIN
         FROM
             demos_app.application_tag_suggestion
         WHERE
-            id = OLD.suggestion_id
+            application_id = OLD.application_id
+            and value = OLD.value
     ) THEN
-        RAISE EXCEPTION 'Cannot delete the final extract for suggestion % without deleting the suggestion in the same transaction', OLD.suggestion_id;
+        RAISE EXCEPTION 'Cannot delete the final extract for suggestion (%, %) without deleting the suggestion in the same transaction', OLD.application_id, OLD.value;
     END IF;
 
     RETURN OLD;
@@ -1014,9 +1016,10 @@ BEGIN
         FROM
             demos_app.application_tag_suggestion_extract
         WHERE
-          suggestion_id = NEW.id
+          application_id = NEW.application_id
+          and value = NEW.value
     ) THEN
-        RAISE EXCEPTION 'Suggestion % must have at least one extract', NEW.id;
+        RAISE EXCEPTION 'Suggestion (%, %) must have at least one extract', NEW.application_id, NEW.value;
     END IF;
 
     RETURN NEW;

@@ -374,6 +374,65 @@ async function seedDocuments() {
   );
 }
 
+async function seedApplicationTagSuggestions() {
+  console.log("🌱 Seeding application tag suggestions...");
+
+  const applicationTags = await prisma().tag.findMany({
+    where: {
+      tagTypeId: "Application",
+    },
+    take: 5,
+  });
+
+  // for every document, make an extract
+
+  const documents = await prisma().document.findMany();
+
+  for (const document of documents) {
+    if (!document.applicationId) continue;
+
+    const uipathResultId = faker.string.uuid();
+    await prisma().uiPathResult.create({
+      data: {
+        id: uipathResultId,
+        requestId: faker.string.uuid(),
+        response: {},
+        projectId: faker.string.uuid(),
+        documentId: document.id,
+        applicationId: document.applicationId,
+        statusId: "Finished",
+      },
+    });
+
+    const uiPathValueId = faker.string.uuid();
+    const value = faker.helpers.arrayElement(applicationTags).tagNameId;
+    await prisma().uiPathValue.create({
+      data: {
+        id: uiPathValueId,
+        uiPathResultId: uipathResultId,
+        documentId: document.id,
+        applicationId: document.applicationId,
+        fieldId: "demo_type",
+        value: value,
+        textLength: 1,
+        textStartIndex: 1,
+        confidence: 1,
+        tokenList: {},
+      },
+    });
+    await prisma().applicationTagSuggestionExtract.create({
+      data: {
+        uiPathValueId: uiPathValueId,
+        applicationId: document.applicationId,
+        fieldId: "demo_type",
+        value: value,
+        startPageNo: 1,
+        endPageNo: 2,
+      },
+    });
+  }
+}
+
 function randomDateRange() {
   const randomStart = faker.date.future({ years: 1 });
   const randomEnd = faker.date.future({ years: 1, refDate: randomStart });
@@ -890,6 +949,8 @@ async function seedDatabase() {
   await seedDeliverables(bypassUserId);
 
   await seedDocuments();
+
+  await seedApplicationTagSuggestions();
 
   await seedNotes();
   console.log("🌱 Seeding events (with and without applicationIds)...");

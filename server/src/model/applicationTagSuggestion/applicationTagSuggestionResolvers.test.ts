@@ -40,8 +40,8 @@ describe("applicationTagSuggestionResolvers", () => {
     $transaction: vi.fn((cb) => cb(mockTx)),
   };
 
-  const suggestionId = "suggestion-id";
   const applicationId = "app-id";
+  const value = "NewTag";
   const existingTags = [{ tagNameId: "Tag1" }, { tagNameId: "Tag2" }];
 
   beforeEach(() => {
@@ -52,20 +52,25 @@ describe("applicationTagSuggestionResolvers", () => {
   describe("acceptApplicationTagSuggestion", () => {
     it("should accept suggestion and add tag if not present", async () => {
       mockTx.applicationTagSuggestion.findUniqueOrThrow.mockResolvedValue({
-        id: suggestionId,
         applicationId,
-        value: "NewTag",
+        value,
       });
 
       mockTx.applicationTagAssignment.findMany.mockResolvedValue(existingTags);
       vi.mocked(setApplicationTags).mockResolvedValue({ id: applicationId } as any);
 
       const result = await acceptApplicationTagSuggestion(undefined, {
-        suggestionId,
+        applicationId,
+        value,
       });
 
       expect(mockTx.applicationTagSuggestion.update).toHaveBeenCalledWith({
-        where: { id: suggestionId },
+        where: {
+          applicationId_value: {
+            applicationId,
+            value,
+          },
+        },
         data: { statusId: "Accepted" },
       });
 
@@ -81,7 +86,6 @@ describe("applicationTagSuggestionResolvers", () => {
 
     it("should not duplicate tag if already present", async () => {
       mockTx.applicationTagSuggestion.findUniqueOrThrow.mockResolvedValue({
-        id: suggestionId,
         applicationId,
         value: "Tag1",
       });
@@ -89,7 +93,8 @@ describe("applicationTagSuggestionResolvers", () => {
       mockTx.applicationTagAssignment.findMany.mockResolvedValue(existingTags);
 
       await acceptApplicationTagSuggestion(undefined, {
-        suggestionId,
+        applicationId,
+        value: "Tag1",
       });
 
       expect(setApplicationTags).toHaveBeenCalledWith(undefined, {
@@ -107,7 +112,8 @@ describe("applicationTagSuggestionResolvers", () => {
 
       await expect(
         acceptApplicationTagSuggestion(undefined, {
-          suggestionId,
+          applicationId,
+          value,
         })
       ).rejects.toThrow(testHandlePrismaError);
 
@@ -118,7 +124,6 @@ describe("applicationTagSuggestionResolvers", () => {
   describe("replaceApplicationTagSuggestion", () => {
     it("should add new value if old one not found", async () => {
       mockTx.applicationTagSuggestion.findUniqueOrThrow.mockResolvedValue({
-        id: suggestionId,
         applicationId,
         value: "MissingTag",
       });
@@ -126,7 +131,8 @@ describe("applicationTagSuggestionResolvers", () => {
       mockTx.applicationTagAssignment.findMany.mockResolvedValue(existingTags);
 
       await replaceApplicationTagSuggestion(undefined, {
-        suggestionId,
+        applicationId,
+        value: "MissingTag",
         newValue: "NewTag",
       });
 
@@ -145,7 +151,8 @@ describe("applicationTagSuggestionResolvers", () => {
 
       await expect(
         replaceApplicationTagSuggestion(undefined, {
-          suggestionId,
+          applicationId,
+          value,
           newValue: "NewTag",
         })
       ).rejects.toThrow(testHandlePrismaError);
@@ -156,10 +163,15 @@ describe("applicationTagSuggestionResolvers", () => {
 
   describe("removeApplicationTagSuggestion", () => {
     it("should mark suggestion as removed", async () => {
-      await removeApplicationTagSuggestion(undefined, { suggestionId });
+      await removeApplicationTagSuggestion(undefined, { applicationId, value });
 
       expect(mockTx.applicationTagSuggestion.update).toHaveBeenCalledWith({
-        where: { id: suggestionId },
+        where: {
+          applicationId_value: {
+            applicationId,
+            value,
+          },
+        },
         data: { statusId: "Removed" },
       });
     });
@@ -169,9 +181,9 @@ describe("applicationTagSuggestionResolvers", () => {
       vi.mocked(prisma).mockRejectedValueOnce(testError);
 
       await expect(
-        removeApplicationTagSuggestion(undefined, { suggestionId })
+        removeApplicationTagSuggestion(undefined, { applicationId, value })
       ).rejects.toThrow(testHandlePrismaError);
-      
+
       expect(handlePrismaError).toHaveBeenCalled();
     });
   });

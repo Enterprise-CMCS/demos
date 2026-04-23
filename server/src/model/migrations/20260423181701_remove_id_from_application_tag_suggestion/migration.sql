@@ -1,3 +1,5 @@
+SET search_path TO demos_app;
+
 ALTER TABLE demos_app.application_tag_suggestion_extract DROP CONSTRAINT application_tag_suggestion_extract_application_id_value_fkey;
 ALTER TABLE demos_app.application_tag_suggestion_extract
 ADD CONSTRAINT application_tag_suggestion_extract_application_id_value_fkey
