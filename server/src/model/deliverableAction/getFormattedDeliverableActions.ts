@@ -1,6 +1,6 @@
 import { prisma, PrismaTransactionClient } from "../../prismaClient";
 import { DeliverableAction, DeliverableActionType } from "../../types";
-import { formatDetailsMessage, formatFullUserName } from "./deliverableActionFormattingFunctions";
+import { formatDetailsMessage, formatFullUserName } from ".";
 import { selectManyDeliverableActions } from "./queries";
 
 export async function getFormattedDeliverableActions(

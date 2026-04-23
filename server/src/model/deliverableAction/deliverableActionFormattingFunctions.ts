@@ -60,7 +60,7 @@ function makeResubmissionRequestedOrDateChangedMessage(
 ): string {
   const formattedOldDue = formatEasternTZDateToMMDDYYYY(oldDueDate);
   const formattedNewDue = formatEasternTZDateToMMDDYYYY(newDueDate);
-  return `Old Due Date: ${formattedOldDue}\nNew Due Date: ${formattedNewDue}\nReason: ${reason}`;
+  return `Old Due Date: ${formattedOldDue}\nNew Due Date: ${formattedNewDue}\nReason Details: ${reason}`;
 }
 
 export function formatDetailsMessage(input: SelectManyDeliverableActionsRowResult): string {
@@ -71,7 +71,7 @@ export function formatDetailsMessage(input: SelectManyDeliverableActionsRowResul
 
     case "Requested Extension":
       return makeRequestedExtensionMessage(
-        parseJSDateToEasternTZDate(input.newDueDate),
+        parseJSDateToEasternTZDate(input.oldDueDate),
         parseJSDateToEasternTZDate(input.activeExtension!.originalDateRequested),
         input.activeExtension!.reasonCodeId as DeliverableExtensionReasonCode,
         input.note!

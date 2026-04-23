@@ -1,5 +1,6 @@
 // Vitest and other helpers
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { DeepPartial } from "../../testUtilities";
 
 // Types
 import { TagName, TagStatus } from "../../types";
@@ -25,11 +26,6 @@ vi.mock(".", () => ({
 import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 import { selectManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType/queries";
 import { getDeliverable } from ".";
-
-// Deep partial extension for creating test objects
-type DeepPartial<T> = {
-  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
-};
 
 describe("updateDeliverableDemonstrationTypes", () => {
   // Test inputs

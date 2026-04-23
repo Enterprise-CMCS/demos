@@ -19,7 +19,7 @@ export async function selectManyDeliverableActions(
 ): Promise<SelectManyDeliverableActionsRowResult[]> {
   const prismaClient = tx ?? prisma();
   const deliverableActions = await prismaClient.deliverableAction.findMany({
-    where,
+    where: where,
     include: {
       user: {
         include: {

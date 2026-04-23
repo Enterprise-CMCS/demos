@@ -24,7 +24,6 @@ export async function updateDeliverableDemonstrationTypes(
       (record) => record.demonstrationTypeTagAssignment.tag.tagNameId
     )
   );
-  console.log(oldDemonstrationTypes);
 
   // If there's a difference, do an update on the database
   const diff = findSetDifferences(oldDemonstrationTypes, updateInput.demonstrationTypes);
