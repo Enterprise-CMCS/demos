@@ -7,6 +7,7 @@ import { CommentBox } from "./sections/CommentBox";
 import { DeliverableButtons } from "./sections/DeliverableButtons";
 import { DeliverableInfoFields } from "./sections/DeliverableInfoFields";
 import { FileAndHistoryTabs } from "./sections/FileAndHistoryTabs";
+import type { DeliverableFileRow } from "./sections/DeliverableFileTypes";
 
 export const GET_DELIVERABLE_DETAILS_QUERY_NAME = "GetDeliverableDetails";
 export const DELIVERABLE_DETAILS_QUERY = gql`
@@ -30,13 +31,42 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
           fullName
         }
       }
+      stateDocuments {
+        id
+        name
+        description
+        documentType
+        createdAt
+        owner {
+          person {
+            fullName
+          }
+        }
+      }
+      cmsDocuments {
+        id
+        name
+        description
+        documentType
+        createdAt
+        owner {
+          person {
+            fullName
+          }
+        }
+      }
     }
   }
 `;
 
-export type DeliverableDetailsManagementDeliverable = Pick<Deliverable, "id" | "deliverableType" | "dueDate" | "status" | "name" > & {
+export type DeliverableDetailsManagementDeliverable = Pick<
+  Deliverable,
+  "id" | "deliverableType" | "dueDate" | "status" | "name"
+> & {
   demonstration: Pick<Demonstration, "id" | "name" | "expirationDate"> & { state: { id: string } };
   cmsOwner: { person: { fullName: string } };
+  stateDocuments: Omit<DeliverableFileRow, "isCurrent">[];
+  cmsDocuments: Omit<DeliverableFileRow, "isCurrent">[];
 };
 
 export const DeliverableDetailsManagementPage: React.FC = () => {
@@ -68,8 +98,12 @@ export const DeliverableDetailsManagementPage: React.FC = () => {
           <DeliverableButtons deliverable={data.deliverable} />
         </div>
         <div className="flex w-full gap-2 flex-1">
-          <div className="flex-1"><FileAndHistoryTabs /></div>
-          <div><CommentBox /></div>
+          <div className="flex-1">
+            <FileAndHistoryTabs deliverable={data.deliverable} />
+          </div>
+          <div>
+            <CommentBox />
+          </div>
         </div>
       </div>
     </div>
