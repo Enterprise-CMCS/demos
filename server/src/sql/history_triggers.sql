@@ -365,7 +365,6 @@ BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
         INSERT INTO demos_app.application_tag_suggestion_history (
             revision_type,
-            id,
             application_id,
             value,
             status_id,
@@ -377,7 +376,6 @@ BEGIN
                 WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
                 WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
             END,
-            NEW.id,
             NEW.application_id,
             NEW.value,
             NEW.status_id,
@@ -388,7 +386,6 @@ BEGIN
     ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO demos_app.application_tag_suggestion_history (
             revision_type,
-            id,
             application_id,
             value,
             status_id,
@@ -397,7 +394,6 @@ BEGIN
         )
         VALUES (
             'D'::demos_app.revision_type_enum,
-            OLD.id,
             OLD.application_id,
             OLD.value,
             OLD.status_id,
@@ -420,7 +416,6 @@ BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
         INSERT INTO demos_app.application_tag_suggestion_extract_history (
             revision_type,
-            suggestion_id,
             uipath_value_id,
             application_id,
             field_id,
@@ -435,7 +430,6 @@ BEGIN
                 WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
                 WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
             END,
-            NEW.suggestion_id,
             NEW.uipath_value_id,
             NEW.application_id,
             NEW.field_id,
@@ -449,7 +443,6 @@ BEGIN
     ELSIF TG_OP = 'DELETE' THEN
         INSERT INTO demos_app.application_tag_suggestion_extract_history (
             revision_type,
-            suggestion_id,
             uipath_value_id,
             application_id,
             field_id,
@@ -461,7 +454,6 @@ BEGIN
         )
         VALUES (
             'D'::demos_app.revision_type_enum,
-            OLD.suggestion_id,
             OLD.uipath_value_id,
             OLD.application_id,
             OLD.field_id,

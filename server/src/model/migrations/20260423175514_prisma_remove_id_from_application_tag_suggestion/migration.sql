@@ -1,0 +1,37 @@
+/*
+  Warnings:
+
+  - The primary key for the `application_tag_suggestion` table will be changed. If it partially fails, the table could be left without primary key constraint.
+  - You are about to drop the column `id` on the `application_tag_suggestion` table. All the data in the column will be lost.
+  - The primary key for the `application_tag_suggestion_extract` table will be changed. If it partially fails, the table could be left without primary key constraint.
+  - You are about to drop the column `suggestion_id` on the `application_tag_suggestion_extract` table. All the data in the column will be lost.
+  - You are about to drop the column `suggestion_id` on the `application_tag_suggestion_extract_history` table. All the data in the column will be lost.
+  - You are about to drop the column `id` on the `application_tag_suggestion_history` table. All the data in the column will be lost.
+
+*/
+
+-- DropForeignKey
+ALTER TABLE "application_tag_suggestion_extract" DROP CONSTRAINT "application_tag_suggestion_extract_suggestion_id_applicati_fkey";
+
+-- DropIndex
+DROP INDEX "application_tag_suggestion_id_application_id_value_key";
+
+-- AlterTable
+ALTER TABLE "application_tag_suggestion" DROP CONSTRAINT "application_tag_suggestion_pkey",
+DROP COLUMN "id",
+ADD CONSTRAINT "application_tag_suggestion_pkey" PRIMARY KEY ("application_id", "value");
+
+-- AlterTable
+ALTER TABLE "application_tag_suggestion_extract" DROP CONSTRAINT "application_tag_suggestion_extract_pkey",
+DROP COLUMN "suggestion_id",
+ADD CONSTRAINT "application_tag_suggestion_extract_pkey" PRIMARY KEY ("uipath_value_id");
+
+-- AlterTable
+ALTER TABLE "application_tag_suggestion_extract_history" DROP COLUMN "suggestion_id";
+
+-- AlterTable
+ALTER TABLE "application_tag_suggestion_history" DROP COLUMN "id";
+
+
+-- AddForeignKey
+ALTER TABLE "application_tag_suggestion_extract" ADD CONSTRAINT "application_tag_suggestion_extract_application_id_value_fkey" FOREIGN KEY ("application_id", "value") REFERENCES "application_tag_suggestion"("application_id", "value") ON DELETE RESTRICT ON UPDATE CASCADE;

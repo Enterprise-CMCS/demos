@@ -404,9 +404,8 @@ erDiagram
   }
 
   application_tag_suggestion:::dataTable {
-    uuid id PK, UK "UK: (id, application_id, value)"
-    uuid application_id UK "UK: (id, application_id, value)"
-    text value UK "UK: (id, application_id, value)"
+    uuid application_id PK
+    text value PK
     text status_id FK "FK140: status_id ∈ application_tag_suggestion_status.id"
     timestamptz created_at
     timestamptz updated_at
@@ -416,11 +415,10 @@ erDiagram
   }
 
   application_tag_suggestion_extract:::dataTable {
-    uuid suggestion_id PK, FK "FK138: (suggestion_id, application_id, value) ∈ application_tag_suggestion.(id, application_id, value) DEFERRED"
     uuid uipath_value_id PK, FK "FK137: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)"
-    uuid application_id FK "FK137: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK138: (suggestion_id, application_id, value) ∈ application_tag_suggestion.(id, application_id, value) DEFERRED"
+    uuid application_id FK "FK137: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK138: (application_id, value) ∈ application_tag_suggestion.(application_id, value) DEFERRED"
     text field_id FK "FK137: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK139: field_id ∈ application_tag_suggestion_extract_field_limit.id"
-    text value FK "FK137: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK138: (suggestion_id, application_id, value) ∈ application_tag_suggestion.(id, application_id, value) DEFERRED"
+    text value FK "FK137: (uipath_value_id, application_id, field_id, value) ∈ uipath_value.(id, application_id, field_id, value)<br>FK138: (application_id, value) ∈ application_tag_suggestion.(application_id, value) DEFERRED"
     integer start_page_no
     integer end_page_no
     timestamptz created_at

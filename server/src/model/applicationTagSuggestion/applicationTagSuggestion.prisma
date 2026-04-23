@@ -1,5 +1,4 @@
 model ApplicationTagSuggestion {
-  id            String   @db.Uuid
   applicationId String   @map("application_id") @db.Uuid
   value         String   @map("value")
   statusId      String   @map("status_id")
@@ -9,7 +8,6 @@ model ApplicationTagSuggestion {
   extracts ApplicationTagSuggestionExtract[]
   status   ApplicationTagSuggestionStatus    @relation(fields: [statusId], references: [id])
 
-  @@id([id])
-  @@unique([id, applicationId, value])
+  @@id([applicationId, value])
   @@map("application_tag_suggestion")
 }
