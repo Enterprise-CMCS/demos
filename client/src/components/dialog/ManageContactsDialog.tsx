@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
@@ -92,7 +92,7 @@ export type ManageContactsDialogProps = {
 
 const mapExistingContacts = (arr: ManageContactsDialogProps["existingContacts"] = []) =>
   arr.map((contact) => ({
-    id: `${contact.person.id}-${contact.role}`,
+    id: contact.id,
     personId: contact.person.id,
     name: contact.person.fullName,
     email: contact.person.email,
@@ -106,7 +106,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   demonstrationId,
   existingContacts = [],
 }) => {
-  const contactIdCounter = useRef(0);
   const { showSuccess, showError } = useToast();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -162,35 +161,12 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     []
   );
 
-  const hasUnassignedContacts = useMemo(
-    () => selectedContacts.some((c) => !c.contactType),
-    [selectedContacts]
-  );
-
-  const getFilteredContactTypeOptions = (
-    idmRoles?: string[],
-    personId?: string,
-    currentRowId?: string
-  ) => {
+  const getFilteredContactTypeOptions = (idmRoles?: string[]) => {
     const roles = idmRoles ?? [];
-    let options;
-    if (roles.includes("demos-cms-user")) options = optionsByRole["demos-cms-user"];
-    else if (roles.includes("demos-state-user")) options = optionsByRole["demos-state-user"];
-    else if (roles.includes("demos-admin")) options = optionsByRole["demos-admin"];
-    else options = optionsByRole.Default;
-
-    if (!personId) return options;
-
-    const usedRoles = selectedContacts
-      .filter(
-        (c) =>
-          c.personId === personId &&
-          c.contactType &&
-          c.id !== currentRowId
-      )
-      .map((c) => c.contactType);
-
-    return options.filter((opt) => !usedRoles.includes(opt.value));
+    if (roles.includes("demos-cms-user")) return optionsByRole["demos-cms-user"];
+    if (roles.includes("demos-state-user")) return optionsByRole["demos-state-user"];
+    if (roles.includes("demos-admin")) return optionsByRole["demos-admin"];
+    return optionsByRole.Default;
   };
 
   const debouncedSearchTerm = useDebounced(searchTerm, 300);
@@ -216,56 +192,46 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   };
 
   const handleAddContact = (person: PersonSearchResult) => {
-    const idmRoles = [person.personType];
+    if (selectedContacts.some((c) => c.personId === person.id)) return;
 
-    const allowedRoles = getFilteredContactTypeOptions(idmRoles).map((r) => r.value);
+    setSelectedContacts((prev) => {
+      const idmRoles = [person.personType];
+      const isStateUser = person.personType === "demos-state-user";
 
-    const usedRoles = selectedContacts
-      .filter((c) => c.personId === person.id && c.contactType)
-      .map((c) => c.contactType);
-
-    const remainingRoles = allowedRoles.filter((role) => !usedRoles.includes(role));
-
-    if (remainingRoles.length === 0) return;
-
-    const isStateUser = idmRoles.includes("demos-state-user");
-
-    const defaultRole = isStateUser ? "State Point of Contact" : undefined;
-
-    const newId = `person-${contactIdCounter.current++}`;
-
-    setSelectedContacts((prev) => [
-      ...prev,
-      {
-        id: newId,
-        personId: person.id,
-        name: `${person.firstName} ${person.lastName}`,
-        email: person.email,
-        idmRoles,
-        contactType: defaultRole,
+      const defaults: { contactType?: ContactType; isPrimary: boolean } = {
+        contactType: isStateUser ? "State Point of Contact" : undefined,
         isPrimary: false,
-      },
-    ]);
+      };
+
+      return [
+        ...prev,
+        {
+          id: person.id,
+          personId: person.id,
+          name: `${person.firstName} ${person.lastName}`,
+          email: person.email,
+          idmRoles: idmRoles,
+          ...defaults,
+        },
+      ];
+    });
 
     setSearchResults([]);
     setSearchTerm("");
   };
 
-  const handleContactTypeChange = useCallback((id: string, newType?: ContactType) => {
+  const handleContactTypeChange = useCallback((personId: string, newType?: ContactType) => {
     setSelectedContacts((previousContacts) => {
-      const targetContact = previousContacts.find((c) => c.id === id);
+      const targetContact = previousContacts.find((c) => c.personId === personId);
       if (!targetContact) return previousContacts;
 
       return previousContacts.map((contact) => {
-        if (contact.id === id) {
+        if (contact.personId === personId) {
           let newIsPrimary = false;
 
           if (newType === "Project Officer") {
             const existingPrimaryPOs = previousContacts.filter(
-              (c) =>
-                c.contactType === "Project Officer" &&
-                c.isPrimary &&
-                c.id !== id
+              (c) => c.contactType === "Project Officer" && c.isPrimary && c.personId !== personId
             );
             newIsPrimary = existingPrimaryPOs.length === 0;
           }
@@ -279,10 +245,10 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
           newType !== "Project Officer"
         ) {
           const otherPOs = previousContacts.filter(
-            (c) => c.contactType === "Project Officer" && c.id !== id
+            (c) => c.contactType === "Project Officer" && c.personId !== personId
           );
 
-          if (otherPOs.length > 0 && contact.id === otherPOs[0].id) {
+          if (otherPOs.length > 0 && contact.personId === otherPOs[0].personId) {
             return { ...contact, isPrimary: true };
           }
         }
@@ -292,14 +258,14 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     });
   }, []);
 
-  const handlePrimaryToggle = useCallback((id: string) => {
+  const handlePrimaryToggle = useCallback((personId: string) => {
     setSelectedContacts((prev) => {
-      const target = prev.find((c) => c.id === id);
+      const target = prev.find((c) => c.personId === personId);
       if (!target || !target.contactType) return prev;
 
       const type = target.contactType;
       const existingPrimary = prev.find(
-        (c) => c.contactType === type && c.isPrimary && c.id !== id
+        (c) => c.contactType === type && c.isPrimary && c.personId !== personId
       );
 
       if (type === "Project Officer") {
@@ -316,7 +282,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
 
         return prev.map((contact) => {
           if (contact.contactType === "Project Officer") {
-            return { ...contact, isPrimary: contact.id === id };
+            return { ...contact, isPrimary: contact.personId === personId };
           }
           return contact;
         });
@@ -327,7 +293,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
 
         const willBePrimary = !target.isPrimary;
         return prev.map((contact) => {
-          if (contact.id === id) {
+          if (contact.personId === personId) {
             return { ...contact, isPrimary: willBePrimary };
           }
           if (contact.contactType === type) {
@@ -340,11 +306,11 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   }, []);
 
   const handleRemoveContact = useCallback(
-    (id: string) => {
-      const contactToRemove = selectedContacts.find((c) => c.id === id);
+    (personId: string) => {
+      const contactToRemove = selectedContacts.find((c) => c.personId === personId);
       if (!contactToRemove) return;
 
-      setContactToDelete(id);
+      setContactToDelete(personId);
       setShowDeleteConfirm(true);
     },
     [selectedContacts]
@@ -353,17 +319,17 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   const confirmDeleteContact = async () => {
     if (!contactToDelete) return;
 
-    const contactToRemove = selectedContacts.find((c) => c.id === contactToDelete);
+    const contactToRemove = selectedContacts.find((c) => c.personId === contactToDelete);
     if (!contactToRemove) return;
 
-    const updated = selectedContacts.filter((c) => c.id !== contactToDelete);
+    const updated = selectedContacts.filter((c) => c.personId !== contactToDelete);
 
     let finalUpdated = updated;
     if (contactToRemove.isPrimary && contactToRemove.contactType === "Project Officer") {
       const remainingPOs = updated.filter((c) => c.contactType === "Project Officer");
       if (remainingPOs.length > 0) {
         finalUpdated = updated.map((c) => {
-          if (c.id === remainingPOs[0].id) {
+          if (c.personId === remainingPOs[0].personId) {
             return { ...c, isPrimary: true };
           }
           return c;
@@ -583,32 +549,14 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
                 placeholder="Search by name or email"
                 value={searchTerm}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
-                disabled={hasUnassignedContacts}
                 aria-label="Search for contacts by name or email"
                 autoComplete="off"
               />
             </div>
-            {hasUnassignedContacts && (
-              <div className="text-sm">
-                Please select a contact type for all contacts before adding more.
-              </div>
-            )}
             {(() => {
-              let filteredResults = searchResults.filter((p) => {
-                const idmRoles = [p.personType];
-
-                const allowedRoles = getFilteredContactTypeOptions(idmRoles).map((r) => r.value);
-
-                const alreadyUsedRoles = selectedContacts
-                  .filter((c) => c.personId === p.id && c.contactType)
-                  .map((c) => c.contactType);
-
-                const remainingRoles = allowedRoles.filter((role) => !alreadyUsedRoles.includes(role));
-
-                return remainingRoles.length > 0;
-              }).filter(
-                (p, index, arr) => arr.findIndex((item) => item.id === p.id) === index
-              );
+              let filteredResults = searchResults
+                .filter((p) => !selectedContacts.some((c) => c.personId === p.id))
+                .filter((p, index, arr) => arr.findIndex((item) => item.id === p.id) === index);
 
               if (searchTerm.length >= 2) {
                 const searchTermLower = searchTerm.toLowerCase();

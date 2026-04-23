@@ -24,10 +24,10 @@ export type ContactRow = {
 };
 
 type ContactColumnsProps = {
-  getFilteredContactTypeOptions: (idmRoles?: string[], personId?: string, currentRowId?: string) => Array<{ label: string; value: string }>;
-  onContactTypeChange: (id: string, value: ContactType) => void;
-  onPrimaryToggle: (id: string) => void;
-  onRemoveContact: (id: string) => void;
+  getFilteredContactTypeOptions: (idmRoles?: string[]) => Array<{ label: string; value: string }>;
+  onContactTypeChange: (personId: string, value: ContactType) => void;
+  onPrimaryToggle: (personId: string) => void;
+  onRemoveContact: (personId: string) => void;
 };
 
 export function ContactColumns({
@@ -65,15 +65,11 @@ export function ContactColumns({
             <Select
               id={`contact-type-${rowIndex}`}
               value={contact.contactType}
-              options={getFilteredContactTypeOptions(
-                contact.idmRoles,
-                contact.personId,
-                contact.id
-              )}
+              options={getFilteredContactTypeOptions(contact.idmRoles)}
               placeholder="Select Type…"
               onSelect={(value) => {
                 const typedValue = value as ContactType;
-                onContactTypeChange(contact.id, typedValue);
+                onContactTypeChange(contact.personId, typedValue);
               }}
               isRequired
               validationMessage={isInvalid ? "Contact Type is required" : ""}
@@ -91,7 +87,7 @@ export function ContactColumns({
           <div className="inline-flex items-center justify-center">
             <Switch
               checked={!!contact.isPrimary}
-              onChange={() => onPrimaryToggle(contact.id)}
+              onChange={() => onPrimaryToggle(contact.personId)}
               onColor="#6B7280"
               offColor="#E5E7EB"
               checkedIcon={false}
@@ -129,7 +125,7 @@ export function ContactColumns({
               ariaLabel="Delete Contact"
               tooltip={deleteTooltip}
               size="small"
-              onClick={() => onRemoveContact(contact.id)}
+              onClick={() => onRemoveContact(contact.personId)}
               disabled={deleteDisabled}
             >
               <DeleteIcon width="15" height="15" fill={deleteDisabled ? "#9CA3AF" : "#CD2026"} />
