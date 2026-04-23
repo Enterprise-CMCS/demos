@@ -2,7 +2,6 @@ import { gql } from "graphql-tag";
 
 export const applicationTagSuggestionSchema = gql`
   type ApplicationTagSuggestion {
-    id: ID!
     applicationId: ID!
     value: String!
     statusId: String!
@@ -11,8 +10,12 @@ export const applicationTagSuggestionSchema = gql`
   }
 
   type Mutation {
-    acceptApplicationTagSuggestion(suggestionId: ID!): Application
-    replaceApplicationTagSuggestion(suggestionId: ID!, newValue: String!): Application
-    removeApplicationTagSuggestion(suggestionId: ID!): ApplicationTagSuggestion
+    acceptApplicationTagSuggestion(applicationId: ID!, value: String!): Application
+    replaceApplicationTagSuggestion(
+      applicationId: ID!
+      value: String!
+      newValue: String!
+    ): Application
+    removeApplicationTagSuggestion(applicationId: ID!, value: String!): ApplicationTagSuggestion
   }
 `;

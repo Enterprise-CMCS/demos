@@ -49,6 +49,7 @@ const UIPATH_SEED_PDF_PATH = path.resolve(
 const NEW_TAG_COUNT = 20;
 const TAG_ASSIGNMENT_MAX = 5;
 const DELIVERABLE_SEED_COUNT = 8;
+const APPLICATION_TAG_SUGGESTION_POOL_SIZE = 10;
 
 function getRandomPhaseDocumentTypeCombination(): {
   phaseName: PhaseName;
@@ -372,6 +373,61 @@ async function seedDocuments() {
   console.log(
     `🌱 Seeded UiPath test document: ${UIPATH_SEED_DOCUMENT_ID} (${seededS3Path}) using ${UIPATH_SEED_PDF_PATH}`
   );
+}
+
+async function seedApplicationTagSuggestions() {
+  console.log("🌱 Seeding application tag suggestions...");
+
+  const suggestedTags = Array.from({ length: APPLICATION_TAG_SUGGESTION_POOL_SIZE }, () =>
+    faker.lorem.words(2)
+  );
+  // for every document, make an extract
+
+  const documents = await prisma().document.findMany();
+
+  for (const document of documents) {
+    if (!document.applicationId) continue;
+
+    const uipathResultId = faker.string.uuid();
+    await prisma().uiPathResult.create({
+      data: {
+        id: uipathResultId,
+        requestId: faker.string.uuid(),
+        response: {},
+        projectId: faker.string.uuid(),
+        documentId: document.id,
+        applicationId: document.applicationId,
+        statusId: "Finished",
+      },
+    });
+
+    const uiPathValueId = faker.string.uuid();
+    const value = faker.helpers.arrayElement(suggestedTags);
+    await prisma().uiPathValue.create({
+      data: {
+        id: uiPathValueId,
+        uiPathResultId: uipathResultId,
+        documentId: document.id,
+        applicationId: document.applicationId,
+        fieldId: "demo_type",
+        value: value,
+        textLength: 1,
+        textStartIndex: 1,
+        confidence: 1,
+        tokenList: {},
+      },
+    });
+    await prisma().applicationTagSuggestionExtract.create({
+      data: {
+        uiPathValueId: uiPathValueId,
+        applicationId: document.applicationId,
+        fieldId: "demo_type",
+        value: value,
+        startPageNo: 1,
+        endPageNo: 2,
+      },
+    });
+  }
 }
 
 function randomDateRange() {
@@ -890,6 +946,8 @@ async function seedDatabase() {
   await seedDeliverables(bypassUserId);
 
   await seedDocuments();
+
+  await seedApplicationTagSuggestions();
 
   await seedNotes();
   console.log("🌱 Seeding events (with and without applicationIds)...");
