@@ -285,6 +285,13 @@ describe("deliverableResolvers", () => {
   });
 
   describe("deliverableResolvers", () => {
+    describe("Query.deliverable", () => {
+      it("should call getDeliverable to retrieve the deliverable", async () => {
+        await deliverableResolvers.Query.deliverable(undefined, { id: "an-id" });
+        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith({ id: "an-id" });
+      });
+    });
+
     describe("Mutation.createDeliverable", () => {
       it("should call the createDeliverable function with the right arguments", async () => {
         const testInput: CreateDeliverableInput = {
