@@ -33,7 +33,8 @@ ADD CONSTRAINT "application_tag_suggestion_extract_pkey" PRIMARY KEY ("uipath_va
 ALTER TABLE "application_tag_suggestion_extract_history" DROP COLUMN "suggestion_id";
 
 -- AlterTable
-ALTER TABLE "application_tag_suggestion_history" DROP COLUMN "id";
+ALTER TABLE "application_tag_suggestion_history" DROP COLUMN "id",
+ADD COLUMN "replaced_value" TEXT;
 
 -- AddForeignKey
 -- intentionally left in generation of default FK by prisma to maintain general pattern of drop and recreate in followup migration

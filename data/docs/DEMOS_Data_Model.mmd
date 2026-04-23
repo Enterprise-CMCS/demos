@@ -407,9 +407,11 @@ erDiagram
     uuid application_id PK
     text value PK
     text status_id FK "FK140: status_id ∈ application_tag_suggestion_status.id"
+    text replaced_value "NULLABLE"
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_suggestion_has_extract "Verify that at least one extract record exists for this suggestion."
+    CONSTRAINT_CHECK check_application_tag_suggestion_non_null_replaced_value_when_replaced "If the status_id is Replaced, replaced_value must be non null.<br>If the status_id is not Replaced, the replaced_value must be null."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }

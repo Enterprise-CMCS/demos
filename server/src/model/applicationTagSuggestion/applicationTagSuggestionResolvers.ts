@@ -82,7 +82,7 @@ export async function replaceApplicationTagSuggestion(
             value,
           },
         },
-        data: { statusId: "Replaced" },
+        data: { statusId: "Replaced", replacedValue: newValue },
       });
 
       return await appendApplicationTags(_, tx, suggestion.applicationId, newValue);

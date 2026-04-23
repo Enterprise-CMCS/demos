@@ -5,6 +5,7 @@ model ApplicationTagSuggestionHistory {
   applicationId String       @map("application_id") @db.Uuid
   value         String       @map("value")
   statusId      String       @map("status_id")
+  replacedValue String?      @map("replaced_value")
   createdAt     DateTime     @map("created_at") @db.Timestamptz()
   updatedAt     DateTime     @map("updated_at") @db.Timestamptz()
 

@@ -368,6 +368,7 @@ BEGIN
             application_id,
             value,
             status_id,
+            replaced_value,
             created_at,
             updated_at
         )
@@ -379,6 +380,7 @@ BEGIN
             NEW.application_id,
             NEW.value,
             NEW.status_id,
+            NEW.replaced_value,
             NEW.created_at,
             NEW.updated_at
         );
@@ -389,6 +391,7 @@ BEGIN
             application_id,
             value,
             status_id,
+            replaced_value,
             created_at,
             updated_at
         )
@@ -397,6 +400,7 @@ BEGIN
             OLD.application_id,
             OLD.value,
             OLD.status_id,
+            OLD.replaced_value,
             OLD.created_at,
             OLD.updated_at
         );

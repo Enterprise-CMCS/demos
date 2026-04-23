@@ -136,6 +136,16 @@ describe("applicationTagSuggestionResolvers", () => {
         newValue: "NewTag",
       });
 
+      expect(mockTx.applicationTagSuggestion.update).toHaveBeenCalledWith({
+        where: {
+          applicationId_value: {
+            applicationId,
+            value: "MissingTag",
+          },
+        },
+        data: { statusId: "Replaced", replacedValue: "NewTag" },
+      });
+
       expect(setApplicationTags).toHaveBeenCalledWith(undefined, {
         input: {
           applicationId,
