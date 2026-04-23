@@ -1,0 +1,8 @@
+ALTER TABLE demos_app.application_tag_suggestion_extract DROP CONSTRAINT application_tag_suggestion_extract_application_id_value_fkey;
+ALTER TABLE demos_app.application_tag_suggestion_extract
+ADD CONSTRAINT application_tag_suggestion_extract_application_id_value_fkey
+FOREIGN KEY (application_id, value)
+REFERENCES demos_app.application_tag_suggestion(application_id, value)
+ON DELETE NO ACTION
+ON UPDATE CASCADE
+DEFERRABLE INITIALLY DEFERRED;

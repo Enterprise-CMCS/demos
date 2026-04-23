@@ -7,10 +7,10 @@
   - You are about to drop the column `suggestion_id` on the `application_tag_suggestion_extract` table. All the data in the column will be lost.
   - You are about to drop the column `suggestion_id` on the `application_tag_suggestion_extract_history` table. All the data in the column will be lost.
   - You are about to drop the column `id` on the `application_tag_suggestion_history` table. All the data in the column will be lost.
-
 */
 
 -- DropForeignKey
+-- Note: this is a deferred check constraint, so it must be dropped to allow changes in its referenced columns.
 ALTER TABLE "application_tag_suggestion_extract" DROP CONSTRAINT "application_tag_suggestion_extract_suggestion_id_applicati_fkey";
 
 -- DropIndex
@@ -32,6 +32,7 @@ ALTER TABLE "application_tag_suggestion_extract_history" DROP COLUMN "suggestion
 -- AlterTable
 ALTER TABLE "application_tag_suggestion_history" DROP COLUMN "id";
 
-
 -- AddForeignKey
+-- intentionally left in generation of default FK by prisma to maintain general pattern of drop and recreate in followup migration
 ALTER TABLE "application_tag_suggestion_extract" ADD CONSTRAINT "application_tag_suggestion_extract_application_id_value_fkey" FOREIGN KEY ("application_id", "value") REFERENCES "application_tag_suggestion"("application_id", "value") ON DELETE RESTRICT ON UPDATE CASCADE;
+

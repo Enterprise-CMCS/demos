@@ -973,7 +973,6 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
     INSERT INTO demos_app.application_tag_suggestion (
-        id,
         application_id,
         value,
         status_id,
@@ -981,14 +980,13 @@ BEGIN
         updated_at
     )
     VALUES (
-        NEW.suggestion_id,
         NEW.application_id,
         NEW.value,
         'Pending',
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP
     )
-    ON CONFLICT (id) DO UPDATE
+    ON CONFLICT (application_id, value) DO UPDATE
     SET
         status_id = 'Pending',
         updated_at = CURRENT_TIMESTAMP
