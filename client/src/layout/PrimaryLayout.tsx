@@ -4,7 +4,7 @@ import { SideNav } from "./SideNav";
 import { useLocation } from "react-router-dom";
 import { DialogProvider } from "components/dialog/DialogContext";
 
-const ROUTES_WITH_HIDDEN_SIDENAV = ["/demonstrations/", "/deliverables/"];
+const ROUTES_WITH_HIDDEN_SIDENAV = ["/demonstrations/", "/deliverables/", "/admin/"];
 
 export const shouldHideSideNav = (pathname: string) =>
   ROUTES_WITH_HIDDEN_SIDENAV.some((route) => {
