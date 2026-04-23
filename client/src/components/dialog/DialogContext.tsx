@@ -26,6 +26,10 @@ import { UpdateAmendmentDialog } from "./modification/EditAmendmentDialog";
 import { ConfirmApproveDialog } from "./ConfirmApproveDialog";
 import { AddDeliverableSlotDialog } from "./deliverable";
 import { EditDeliverableDialog } from "./deliverable/EditDeliverableDialog";
+import {
+  RequestExtensionDeliverableDialog,
+  RequestExtensionDeliverableDialogDeliverable,
+} from "./deliverable/RequestExtensionDeliverableDialog";
 import type {
   EditDeliverableDialogDeliverable,
   EditDeliverableInput,
@@ -241,6 +245,14 @@ export const useDialog = () => {
     );
   };
 
+  const showRequestExtensionDeliverableDialog = (
+    deliverable: RequestExtensionDeliverableDialogDeliverable
+  ) => {
+    context.showDialog(
+      <RequestExtensionDeliverableDialog onClose={context.hideDialog} deliverable={deliverable} />
+    );
+  };
+
   const showEditDeliverableDialog = (
     deliverable: DeliverableTableRow,
     onSave?: (input: EditDeliverableInput, reasonForChange?: string) => Promise<void> | void
@@ -294,5 +306,6 @@ export const useDialog = () => {
     showConfirmApproveDialog,
     showAddDeliverableSlotDialog,
     showEditDeliverableDialog,
+    showRequestExtensionDeliverableDialog,
   };
 };
