@@ -1,5 +1,5 @@
 import React from "react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -233,5 +233,29 @@ describe("DemonstrationDeliverableTable", () => {
     );
 
     expect(getOrderedNames()).toEqual(["Past Due", "Upcoming", "Submitted"]);
+  });
+
+  it("calls onViewDeliverable when the row view button is clicked", async () => {
+    const user = userEvent.setup();
+    const onViewDeliverable = vi.fn();
+
+    render(
+      <DemonstrationDeliverableTable
+        viewMode="demos-state-user"
+        deliverables={[
+          {
+            id: "row-view-1",
+            name: "Item",
+            dueDate: new Date("2026-01-01"),
+            status: "Upcoming",
+            ...baseDeliverable,
+          },
+        ]}
+        onViewDeliverable={onViewDeliverable}
+      />
+    );
+
+    await user.click(screen.getByTestId("view-deliverable-row-view-1"));
+    expect(onViewDeliverable).toHaveBeenCalledWith("row-view-1");
   });
 });

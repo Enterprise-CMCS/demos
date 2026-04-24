@@ -7,7 +7,11 @@ import { MockedProvider } from "@apollo/client/testing";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { DEMONSTRATION_DETAIL_QUERY, DemonstrationDetail } from "./DemonstrationDetail";
+import {
+  DELIVERABLE_DEMONSTRATION_ID_QUERY,
+  DEMONSTRATION_DETAIL_QUERY,
+  DemonstrationDetail,
+} from "./DemonstrationDetail";
 
 // Mock the tab components
 vi.mock("pages/DemonstrationDetail/DemonstrationTab.tsx", () => ({
@@ -58,6 +62,23 @@ const DemonstrationDetailMock = {
   },
 };
 
+const DeliverableToDemonstrationMock = {
+  request: {
+    query: DELIVERABLE_DEMONSTRATION_ID_QUERY,
+    variables: { deliverableId: "1" },
+  },
+  result: {
+    data: {
+      deliverable: {
+        id: "1",
+        demonstration: {
+          id: "1",
+        },
+      },
+    },
+  },
+};
+
 describe("DemonstrationDetail", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -69,6 +90,18 @@ describe("DemonstrationDetail", () => {
         <MemoryRouter initialEntries={[initialEntry]}>
           <Routes>
             <Route path="/demonstrations/:id" element={<DemonstrationDetail />} />
+          </Routes>
+        </MemoryRouter>
+      </MockedProvider>
+    );
+  };
+
+  const renderDeliverableRoute = (initialEntry = "/deliverables/1") => {
+    return render(
+      <MockedProvider mocks={[DeliverableToDemonstrationMock, DemonstrationDetailMock]} addTypename={false}>
+        <MemoryRouter initialEntries={[initialEntry]}>
+          <Routes>
+            <Route path="/deliverables/:deliverableId" element={<DemonstrationDetail />} />
           </Routes>
         </MemoryRouter>
       </MockedProvider>
@@ -182,5 +215,16 @@ describe("DemonstrationDetail", () => {
     await waitFor(() => {
       expect(screen.getByTestId("demonstration-tab")).toBeInTheDocument();
     });
+  });
+
+  it("renders tabbed demonstration detail for deliverable route", async () => {
+    renderDeliverableRoute();
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /Demonstration Details/i })).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole("button", { name: /Amendments \(2\)/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Extensions \(1\)/i })).toBeInTheDocument();
   });
 });

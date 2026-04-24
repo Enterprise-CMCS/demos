@@ -1,4 +1,3 @@
-// DocumentTable.tsx
 import * as React from "react";
 
 import { CircleButton } from "components/button/CircleButton";

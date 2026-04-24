@@ -12,6 +12,8 @@ import {
   type DeliverablesQueryResult,
 } from "components/table/tables/DeliverableTable";
 import { useQuery } from "@apollo/client";
+import { useNavigate, useParams } from "react-router-dom";
+import { DemonstrationDeliverableDetailView } from "./DemonstrationDeliverableDetailView";
 
 export const ADD_DELIVERABLE_SLOT_BUTTON_NAME = "button-add-deliverable-slot";
 
@@ -23,6 +25,8 @@ export const DeliverablesTab = ({
   const { showAddDeliverableSlotDialog } = useDialog();
   const rawPersonType = getCurrentUser().currentUser?.person.personType;
   const viewMode = rawPersonType as UserType;
+  const navigate = useNavigate();
+  const { deliverableId } = useParams<{ deliverableId?: string }>();
   const { data, loading, error } = useQuery<DeliverablesQueryResult>(DELIVERABLES_PAGE_QUERY);
   const deliverables = data?.deliverables.filter(
     (deliverable) => deliverable.demonstration.id === parentDemonstration.id
@@ -30,7 +34,7 @@ export const DeliverablesTab = ({
 
   return (
     <div className="flex flex-col gap-[24px]">
-      <TabHeader title="Deliverables Management">
+      <TabHeader title="Deliverables">
         <IconButton
           icon={<AddNewIcon />}
           name={ADD_DELIVERABLE_SLOT_BUTTON_NAME}
@@ -45,10 +49,20 @@ export const DeliverablesTab = ({
         <div className="p-4 text-red-500">Error loading deliverables.</div>
       )}
       {!loading && !error && (
-        <DemonstrationDeliverableTable
-          deliverables={deliverables}
-          viewMode={viewMode}
-        />
+        deliverableId ? (
+          <DemonstrationDeliverableDetailView
+            deliverableId={deliverableId}
+            onBack={() => navigate(`/demonstrations/${parentDemonstration.id}`)}
+          />
+        ) : (
+          <DemonstrationDeliverableTable
+            deliverables={deliverables}
+            viewMode={viewMode}
+            onViewDeliverable={(selectedDeliverableId) =>
+              navigate(`/deliverables/${selectedDeliverableId}`)
+            }
+          />
+        )
       )}
     </div>
   );

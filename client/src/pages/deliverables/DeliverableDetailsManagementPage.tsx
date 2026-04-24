@@ -33,15 +33,17 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
   }
 `;
 
-
 export type DeliverableDetailsManagementDeliverable = Pick<Deliverable, "id" | "deliverableType" | "dueDate" | "status" | "name" > & {
   demonstration: Pick<Demonstration, "id" | "name"> & { state: { id: string } };
   cmsOwner: { person: { fullName: string } };
 };
 
-
 export const DeliverableDetailsManagementPage: React.FC = () => {
-  const { deliverableId } = useParams<{ deliverableId: string }>();
+  const { id: demonstrationId, deliverableId } = useParams<{ id?: string; deliverableId: string }>();
+
+  if (!deliverableId) {
+    return <div>Deliverable not found.</div>;
+  }
 
   const { data, loading, error } = useQuery<{ deliverable: DeliverableDetailsManagementDeliverable }>(
     DELIVERABLE_DETAILS_QUERY,
@@ -55,6 +57,9 @@ export const DeliverableDetailsManagementPage: React.FC = () => {
     return <div>Error loading deliverable: {error.message}</div>;
   }
   if (!data || !data.deliverable) {
+    return <div>Deliverable not found.</div>;
+  }
+  if (demonstrationId && data.deliverable.demonstration.id !== demonstrationId) {
     return <div>Deliverable not found.</div>;
   }
 

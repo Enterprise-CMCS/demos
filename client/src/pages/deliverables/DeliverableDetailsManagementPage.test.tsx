@@ -9,22 +9,20 @@ import { COMMENT_BOX_NAME } from "./sections/CommentBox";
 import { DELIVERABLE_INFO_FIELDS_NAME } from "./sections/DeliverableInfoFields";
 import { FILE_AND_HISTORY_TABS_NAME } from "./sections/FileAndHistoryTabs";
 import { DELIVERABLE_BUTTONS_NAME } from "./sections/DeliverableButtons";
+import { deliverableMocks } from "mock-data/deliverableMocks";
 
-const renderAtRoute = (deliverableId: string) =>
+const renderAtRoute = (entry: string, path = "/deliverables/:deliverableId") =>
   render(
-    <TestProvider routerEntries={[`/deliverables/${deliverableId}`]}>
+    <TestProvider mocks={deliverableMocks} routerEntries={[entry]}>
       <Routes>
-        <Route
-          path="/deliverables/:deliverableId"
-          element={<DeliverableDetailsManagementPage />}
-        />
+        <Route path={path} element={<DeliverableDetailsManagementPage />} />
       </Routes>
     </TestProvider>
   );
 
 describe("DeliverableDetailsManagementPage", () => {
   it("renders the deliverable name heading", async () => {
-    renderAtRoute("1");
+    renderAtRoute("/deliverables/1");
 
     await waitFor(() =>
       expect(screen.getByText(MOCK_DELIVERABLE_1.name)).toBeInTheDocument()
@@ -32,7 +30,7 @@ describe("DeliverableDetailsManagementPage", () => {
   });
 
   it("renders DeliverableInfoFields", async () => {
-    renderAtRoute("1");
+    renderAtRoute("/deliverables/1");
 
     await waitFor(() =>
       expect(screen.getByTestId(DELIVERABLE_INFO_FIELDS_NAME)).toBeInTheDocument()
@@ -40,7 +38,7 @@ describe("DeliverableDetailsManagementPage", () => {
   });
 
   it("renders DeliverableButtons", async () => {
-    renderAtRoute("1");
+    renderAtRoute("/deliverables/1");
 
     await waitFor(() =>
       expect(screen.getByTestId(DELIVERABLE_BUTTONS_NAME)).toBeInTheDocument()
@@ -48,7 +46,7 @@ describe("DeliverableDetailsManagementPage", () => {
   });
 
   it("renders FileAndHistoryTabs", async () => {
-    renderAtRoute("1");
+    renderAtRoute("/deliverables/1");
 
     await waitFor(() =>
       expect(screen.getByTestId(FILE_AND_HISTORY_TABS_NAME)).toBeInTheDocument()
@@ -56,7 +54,7 @@ describe("DeliverableDetailsManagementPage", () => {
   });
 
   it("renders CommentBox", async () => {
-    renderAtRoute("1");
+    renderAtRoute("/deliverables/1");
 
     await waitFor(() =>
       expect(screen.getByTestId(COMMENT_BOX_NAME)).toBeInTheDocument()
@@ -98,6 +96,28 @@ describe("DeliverableDetailsManagementPage", () => {
 
     await waitFor(() =>
       expect(screen.getByText(/error loading deliverable/i)).toBeInTheDocument()
+    );
+  });
+
+  it("renders on demonstration-scoped deliverable route", async () => {
+    renderAtRoute(
+      "/demonstrations/1/deliverables/1",
+      "/demonstrations/:id/deliverables/:deliverableId"
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText(MOCK_DELIVERABLE_1.name)).toBeInTheDocument()
+    );
+  });
+
+  it("shows not found when demonstration route id does not match deliverable demonstration", async () => {
+    renderAtRoute(
+      "/demonstrations/not-demo-1/deliverables/1",
+      "/demonstrations/:id/deliverables/:deliverableId"
+    );
+
+    await waitFor(() =>
+      expect(screen.getByText(/deliverable not found/i)).toBeInTheDocument()
     );
   });
 });
