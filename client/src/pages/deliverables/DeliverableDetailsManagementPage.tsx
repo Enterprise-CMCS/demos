@@ -82,7 +82,7 @@ export const DeliverableDetailsManagementPage: React.FC = () => {
   if (error) {
     return <div>Error loading deliverable: {error.message}</div>;
   }
-  if (!data || !data.deliverable) {
+  if (!data?.deliverable) {
     return <div>Deliverable not found.</div>;
   }
 

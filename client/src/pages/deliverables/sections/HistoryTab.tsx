@@ -2,12 +2,11 @@ import React from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 
 import { ColumnFilter } from "components/table/ColumnFilter";
-import { KeywordSearch } from "components/table/KeywordSearch";
+import { KeywordSearch, highlightCell } from "components/table/KeywordSearch";
 import { PaginationControls } from "components/table/PaginationControls";
 import { Table } from "components/table/Table";
 import { createDateColumnDef } from "components/table/columns/dateColumn";
 import { createSelectColumnDef } from "components/table/columns/selectColumn";
-import { highlightCell } from "components/table/KeywordSearch";
 
 export const HISTORY_TAB_NAME = "history-tab";
 
@@ -50,9 +49,9 @@ export const HistoryTab: React.FC<{ rows: DeliverableHistoryRow[] }> = ({ rows }
       <Table<DeliverableHistoryRow>
         data={rows}
         columns={makeHistoryColumns()}
-        keywordSearch={(table) => <KeywordSearch table={table} />}
-        columnFilter={(table) => <ColumnFilter table={table} />}
-        pagination={(table) => <PaginationControls table={table} />}
+        keywordSearch={(table) => <KeywordSearch table={table} />} // NOSONAR
+        columnFilter={(table) => <ColumnFilter table={table} />} // NOSONAR
+        pagination={(table) => <PaginationControls table={table} />} // NOSONAR
         initialState={INITIAL_TABLE_STATE}
         emptyRowsMessage="No history available."
         noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."

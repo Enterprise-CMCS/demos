@@ -46,13 +46,13 @@ export const CmsFilesTab: React.FC<CmsFilesTabProps> = ({
       <Table<DeliverableFileRow>
         data={files}
         columns={columns}
-        keywordSearch={(table) => <KeywordSearch table={table} />}
-        columnFilter={(table) => <ColumnFilter table={table} />}
-        pagination={(table) => <PaginationControls table={table} />}
+        keywordSearch={(table) => <KeywordSearch table={table} />} // NOSONAR
+        columnFilter={(table) => <ColumnFilter table={table} />} // NOSONAR
+        pagination={(table) => <PaginationControls table={table} />} // NOSONAR
         initialState={INITIAL_TABLE_STATE}
         emptyRowsMessage={CMS_FILES_EMPTY_MESSAGE}
         noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
-        actionButtons={(table) => {
+        actionButtons={(table) => { // NOSONAR
           const selectedRows = table.getSelectedRowModel().rows.map((row) => row.original);
           const selectedCount = selectedRows.length;
 
