@@ -1,7 +1,5 @@
 import {
   Demonstration as PrismaDemonstration,
-  State as PrismaState,
-  DemonstrationRoleAssignment as PrismaDemonstrationRoleAssignment,
   Person as PrismaPerson,
 } from "@prisma/client";
 import { prisma } from "../../prismaClient";
@@ -31,6 +29,7 @@ import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
 import { getManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment";
 import { getManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment";
 import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
+import { getState } from "../state";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -185,26 +184,6 @@ export async function deleteDemonstration(
   });
 }
 
-export async function __resolveDemonstrationState(
-  parent: PrismaDemonstration
-): Promise<PrismaState> {
-  // State can never be null thanks to the database
-  const result = await prisma().state.findUniqueOrThrow({
-    where: { id: parent.stateId },
-  });
-  return result;
-}
-
-export async function __resolveDemonstrationRoleAssignments(
-  parent: PrismaDemonstration
-): Promise<PrismaDemonstrationRoleAssignment[]> {
-  // There will always be at least one assignment for primary project officer
-  const result = await prisma().demonstrationRoleAssignment.findMany({
-    where: { demonstrationId: parent.id },
-  });
-  return result;
-}
-
 export async function __resolveDemonstrationPrimaryProjectOfficer(
   parent: PrismaDemonstration
 ): Promise<PrismaPerson> {
@@ -242,7 +221,7 @@ export const demonstrationResolvers = {
   },
 
   Demonstration: {
-    state: __resolveDemonstrationState,
+    state: (parent: PrismaDemonstration) => getState({ id: parent.stateId }),
     documents: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
       getManyDocuments({ applicationId: parent.id }, context.user),
     amendments: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>

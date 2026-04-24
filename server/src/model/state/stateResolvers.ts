@@ -1,18 +1,12 @@
 import { State as PrismaState } from "@prisma/client";
-import { prisma } from "../../prismaClient.js";
 import { GraphQLContext } from "../../auth/auth.util.js";
 import { getManyDemonstrations } from "../demonstration/demonstrationData.js";
+import { getManyStates, getState } from "./stateData.js";
 
 export const stateResolvers = {
   Query: {
-    state: async (_: unknown, { id }: { id: string }) => {
-      return await prisma().state.findUnique({
-        where: { id: id },
-      });
-    },
-    states: async () => {
-      return await prisma().state.findMany();
-    },
+    state: (parent: unknown, args: { id: string }) => getState({ id: args.id }),
+    states: () => getManyStates({}),
   },
 
   State: {

@@ -3,6 +3,7 @@ import { Person as PrismaPerson } from "@prisma/client";
 import { prisma } from "../../prismaClient";
 import { GraphQLContext } from "../../auth";
 import { getManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment";
+import { getManyStates } from "../state";
 
 export const personResolvers = {
   Query: {
@@ -74,12 +75,13 @@ export const personResolvers = {
     roles: (parent: PrismaPerson, args: unknown, context: GraphQLContext) =>
       getManyDemonstrationRoleAssignments({ personId: parent.id }, context.user),
 
-    states: async (parent: PrismaPerson) => {
-      const personStates = await prisma().personState.findMany({
-        where: { personId: parent.id },
-        include: { state: true },
-      });
-      return personStates.map((ps) => ps.state);
-    },
+    states: async (parent: PrismaPerson) =>
+      getManyStates({
+        personStates: {
+          some: {
+            personId: parent.id,
+          },
+        },
+      }),
   },
 };

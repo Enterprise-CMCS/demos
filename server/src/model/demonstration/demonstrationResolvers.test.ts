@@ -3,8 +3,6 @@ import {
   __createDemonstration,
   __updateDemonstration,
   deleteDemonstration,
-  __resolveDemonstrationState,
-  __resolveDemonstrationRoleAssignments,
   __resolveDemonstrationPrimaryProjectOfficer,
   demonstrationResolvers,
 } from "./demonstrationResolvers";
@@ -13,7 +11,6 @@ import {
   ApplicationType,
   ClearanceLevel,
   CreateDemonstrationInput,
-  DemonstrationTypeAssignment,
   GrantLevel,
   PersonType,
   PhaseName,
@@ -25,8 +22,6 @@ import {
 import {
   ApplicationTagSuggestion as PrismaApplicationTagSuggestion,
   Demonstration as PrismaDemonstration,
-  DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
-  Tag as PrismaTag,
 } from "@prisma/client";
 import { TZDate } from "@date-fns/tz";
 
@@ -44,7 +39,6 @@ import {
   // None of these are tested but need to be exported to avoid mocking issues
 } from "../application";
 import { parseDateTimeOrLocalDateToEasternTZDate, EasternTZDate } from "../../dateUtilities";
-import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus";
 import { getDemonstration, getManyDemonstrations } from "./demonstrationData";
 import { ContextUser, GraphQLContext } from "../../auth";
 import { getManyAmendments } from "../amendment";
@@ -57,6 +51,7 @@ import { getManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagA
 import { DemonstrationTypeTagAssignmentQueryResult } from "../demonstrationTypeTagAssignment/queries";
 import { getManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment";
 import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
+import { getState } from "../state";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -130,23 +125,8 @@ vi.mock("./determineDemonstrationTypeStatus", () => ({
 
 describe("demonstrationResolvers", () => {
   const regularMocks = {
-    state: {
-      findUniqueOrThrow: vi.fn(),
-    },
-    amendment: {
-      findMany: vi.fn(),
-    },
-    extension: {
-      findMany: vi.fn(),
-    },
-    demonstrationRoleAssignment: {
-      findMany: vi.fn(),
-    },
     primaryDemonstrationRoleAssignment: {
       findUniqueOrThrow: vi.fn(),
-    },
-    demonstrationTypeTagAssignment: {
-      findMany: vi.fn(),
     },
   };
   const transactionMocks = {
@@ -191,23 +171,8 @@ describe("demonstrationResolvers", () => {
   };
   const mockPrismaClient = {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
-    state: {
-      findUniqueOrThrow: regularMocks.state.findUniqueOrThrow,
-    },
-    amendment: {
-      findMany: regularMocks.amendment.findMany,
-    },
-    extension: {
-      findMany: regularMocks.extension.findMany,
-    },
-    demonstrationRoleAssignment: {
-      findMany: regularMocks.demonstrationRoleAssignment.findMany,
-    },
     primaryDemonstrationRoleAssignment: {
       findUniqueOrThrow: regularMocks.primaryDemonstrationRoleAssignment.findUniqueOrThrow,
-    },
-    demonstrationTypeTagAssignment: {
-      findMany: regularMocks.demonstrationTypeTagAssignment.findMany,
     },
   };
   const mockUser = {} as unknown as ContextUser;
@@ -452,6 +417,13 @@ describe("demonstrationResolvers", () => {
         { demonstrationId: "demonstrationId" },
         mockUser
       );
+    });
+  });
+
+  describe("Demonstration.state", () => {
+    it("delegates to stateData.getState", async () => {
+      await demonstrationResolvers.Demonstration.state({ stateId: "NC" } as PrismaDemonstration);
+      expect(getState).toHaveBeenCalledExactlyOnceWith({ id: "NC" });
     });
   });
 
