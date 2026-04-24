@@ -16,11 +16,11 @@
     "build": "npx esbuild index.ts --bundle --platform=node --format=esm --outdir=dist"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1021.0",
-    "@aws-sdk/client-secrets-manager": "^3.1021.0",
-    "axios": "^1.15.0",
+    "@aws-sdk/client-s3": "^3.1036.0",
+    "@aws-sdk/client-secrets-manager": "^3.1036.0",
+    "axios": "^1.15.2",
     "axios-oauth-client": "^2.2.0",
-    "dotenv": "^17.3.1",
+    "dotenv": "^17.4.2",
     "file-type": "^21.3.4",
     "form-data": "^4.0.5",
     "pg": "^8.20.0",
@@ -28,13 +28,13 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.161",
-    "@types/node": "^24.12.0",
+    "@types/node": "^24.12.2",
     "@types/pg": "^8.20.0",
-    "@vitest/coverage-v8": "^4.1.2",
-    "esbuild": "^0.27.4",
+    "@vitest/coverage-v8": "^4.1.5",
+    "esbuild": "^0.28.0",
     "pino-pretty": "^11.3.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.2"
+    "vitest": "^4.1.5"
   }
 }
