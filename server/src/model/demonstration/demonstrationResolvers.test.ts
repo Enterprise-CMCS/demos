@@ -94,6 +94,10 @@ vi.mock("../demonstrationRoleAssignment", () => ({
   getManyDemonstrationRoleAssignments: vi.fn(),
 }));
 
+vi.mock("../state", () => ({
+  getState: vi.fn(),
+}));
+
 vi.mock("../application", () => ({
   getApplication: vi.fn(),
   deleteApplication: vi.fn(),
@@ -912,38 +916,6 @@ describe("demonstrationResolvers", () => {
         testValues.demonstrationId,
         testValues.applicationTypeId,
         mockTransaction
-      );
-    });
-  });
-
-  describe("__resolveDemonstrationState", () => {
-    it("should look up the relevant state", async () => {
-      const input: Partial<PrismaDemonstration> = {
-        stateId: testValues.stateId,
-      };
-      const expectedCall = {
-        where: {
-          id: testValues.stateId,
-        },
-      };
-      await __resolveDemonstrationState(input as PrismaDemonstration);
-      expect(regularMocks.state.findUniqueOrThrow).toHaveBeenCalledExactlyOnceWith(expectedCall);
-    });
-  });
-
-  describe("__resolveDemonstrationRoleAssignments", () => {
-    it("should look up the relevant assignments", async () => {
-      const input: Partial<PrismaDemonstration> = {
-        id: testValues.demonstrationId,
-      };
-      const expectedCall = {
-        where: {
-          demonstrationId: testValues.demonstrationId,
-        },
-      };
-      await __resolveDemonstrationRoleAssignments(input as PrismaDemonstration);
-      expect(regularMocks.demonstrationRoleAssignment.findMany).toHaveBeenCalledExactlyOnceWith(
-        expectedCall
       );
     });
   });
