@@ -4,7 +4,10 @@ import {
   DELIVERABLE_DETAILS_QUERY,
   DeliverableDetailsManagementDeliverable,
 } from "pages/deliverables/DeliverableDetailsManagementPage";
-import {DELIVERABLES_PAGE_QUERY, DeliverableTableRow} from "components/table/tables/DeliverableTable";
+import {
+  DELIVERABLES_PAGE_QUERY,
+  DeliverableTableRow,
+} from "components/table/tables/DeliverableTable";
 
 export const MOCK_DELIVERABLE_TABLE_ROW: DeliverableTableRow = {
   id: "8f3a0c8a-2f9f-4bf0-9a3a-6b7eac31f201",
@@ -36,6 +39,7 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
   demonstration: {
     id: "1",
     name: "Demonstration 1",
+    expirationDate: new Date("2026-12-31"),
     state: {
       id: "CA",
     },
