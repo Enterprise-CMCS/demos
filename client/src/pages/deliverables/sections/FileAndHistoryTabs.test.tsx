@@ -2,18 +2,21 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import { TestProvider } from "test-utils/TestProvider";
 import { FileAndHistoryTabs } from "./FileAndHistoryTabs";
+import { DialogProvider } from "components/dialog/DialogContext";
 
 describe("FileAndHistoryTabs", () => {
   const setup = () =>
     render(
       <TestProvider>
-        <FileAndHistoryTabs />
+        <DialogProvider>
+          <FileAndHistoryTabs />
+        </DialogProvider>
       </TestProvider>
     );
 
   it("renders the State Files tab", () => {
     setup();
-    expect(screen.getByText("State Files")).toBeInTheDocument();
+    expect(screen.getByText(/State Files/)).toBeInTheDocument();
   });
 
   it("renders the CMS Files tab", () => {
@@ -27,8 +30,9 @@ describe("FileAndHistoryTabs", () => {
     expect(screen.getByText("History")).toBeInTheDocument();
   });
 
-  it("shows State Files tab content by default", () => {
+  it("shows State Files table content by default", () => {
     setup();
-    expect(screen.getByText("State Files Tab Coming Soon")).toBeInTheDocument();
+    expect(screen.getByRole("table")).toBeInTheDocument();
+    expect(screen.getByText("Example File")).toBeInTheDocument();
   });
 });
