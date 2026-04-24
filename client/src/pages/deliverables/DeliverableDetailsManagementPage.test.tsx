@@ -10,13 +10,16 @@ import { DELIVERABLE_INFO_FIELDS_NAME } from "./sections/DeliverableInfoFields";
 import { FILE_AND_HISTORY_TABS_NAME } from "./sections/FileAndHistoryTabs";
 import { DELIVERABLE_BUTTONS_NAME } from "./sections/DeliverableButtons";
 import { deliverableMocks } from "mock-data/deliverableMocks";
+import { DialogProvider } from "components/dialog/DialogContext";
 
 const renderAtRoute = (entry: string, path = "/deliverables/:deliverableId") =>
   render(
     <TestProvider mocks={deliverableMocks} routerEntries={[entry]}>
-      <Routes>
-        <Route path={path} element={<DeliverableDetailsManagementPage />} />
-      </Routes>
+      <DialogProvider>
+        <Routes>
+          <Route path={path} element={<DeliverableDetailsManagementPage />} />
+        </Routes>
+      </DialogProvider>
     </TestProvider>
   );
 
@@ -69,9 +72,11 @@ describe("DeliverableDetailsManagementPage", () => {
 
     render(
       <TestProvider mocks={[notFoundMock]} routerEntries={["/deliverables/1"]}>
-        <Routes>
-          <Route path="/deliverables/:deliverableId" element={<DeliverableDetailsManagementPage />} />
-        </Routes>
+        <DialogProvider>
+          <Routes>
+            <Route path="/deliverables/:deliverableId" element={<DeliverableDetailsManagementPage />} />
+          </Routes>
+        </DialogProvider>
       </TestProvider>
     );
 
@@ -88,9 +93,11 @@ describe("DeliverableDetailsManagementPage", () => {
 
     render(
       <TestProvider mocks={[errorMock]} routerEntries={["/deliverables/1"]}>
-        <Routes>
-          <Route path="/deliverables/:deliverableId" element={<DeliverableDetailsManagementPage />} />
-        </Routes>
+        <DialogProvider>
+          <Routes>
+            <Route path="/deliverables/:deliverableId" element={<DeliverableDetailsManagementPage />} />
+          </Routes>
+        </DialogProvider>
       </TestProvider>
     );
 
