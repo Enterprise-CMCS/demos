@@ -5,7 +5,6 @@ import { QuickLinks } from "./QuickLinks";
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
 import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
 import { DeliverableDetailHeader } from "pages/deliverables/DeliverableDetailHeader";
-import { AdminHeader } from "pages/admin/AdminHeader";
 
 const HEADER_STYLES = "w-full";
 const HEADER_UPPER_STYLES = "w-full flex justify-between p-[16px] h-[72px]";
@@ -52,10 +51,6 @@ const HeaderLower: React.FC = () => {
     if (deliverableId) {
       return <DeliverableDetailHeader deliverableId={deliverableId} />;
     }
-  }
-
-  if (path.match(/^\/admin/)) {
-    return <AdminHeader />;
   }
 
   // Default header for all other routes

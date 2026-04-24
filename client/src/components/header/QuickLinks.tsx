@@ -1,37 +1,24 @@
 import { HelpIcon, NotifyIcon, SettingsIcon } from "components/icons";
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
-
-export const ADMIN_LINK_NAME = "link-admin";
-
-const STYLES = {
-  container: "flex items-center gap-3",
-  link: "flex items-center gap-1",
-  icon: "text-action",
-  selectedLink: "p-0-5 border-b-4 border-border-focus",
-};
 
 export const QuickLinks: React.FC = () => {
-  const { pathname } = useLocation();
+  const iconStyles = "text-action";
+  const linkStyles = "flex items-center gap-1";
 
   return (
-    <div className={STYLES.container}>
-      <Link
-        to="/admin"
-        className={`${STYLES.link} ${pathname === "/admin" ? STYLES.selectedLink : ""}`}
-        data-testid={ADMIN_LINK_NAME}
-      >
-        <SettingsIcon className={STYLES.icon} />
+    <div className="flex items-center gap-3">
+      <a href="#" className={linkStyles}>
+        <SettingsIcon className={iconStyles} />
         <span>Admin</span>
-      </Link>
+      </a>
 
-      <a href="#" className={STYLES.link}>
-        <NotifyIcon className={STYLES.icon} />
+      <a href="#" className={linkStyles}>
+        <NotifyIcon className={iconStyles} />
         <span>Notifications</span>
       </a>
 
-      <a href="#" className={STYLES.link}>
-        <HelpIcon className={STYLES.icon} />
+      <a href="#" className={linkStyles}>
+        <HelpIcon className={iconStyles} />
         <span>Help</span>
       </a>
     </div>

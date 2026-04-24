@@ -14,7 +14,6 @@ import { DemosLayoutProvider } from "./DemosLayoutProvider";
 import { DocumentDetailPage } from "pages/DocumentDetails/DocumentDetail";
 import { DeliverablesPage } from "pages/DeliverablesPage";
 import { DeliverableDetailsManagementPage } from "pages/deliverables/DeliverableDetailsManagementPage";
-import { AdminPage } from "pages/admin/AdminPage";
 
 export const DemosRouter: React.FC = () => {
   return (
@@ -31,7 +30,6 @@ export const DemosRouter: React.FC = () => {
                 <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
                 <Route path="deliverables" element={<DeliverablesPage />} />
                 <Route path="deliverables/:deliverableId" element={<DeliverableDetailsManagementPage />} />
-                <Route path="admin" element={<AdminPage />} />
                 {isLocalDevelopment() && (
                   <>
                     <Route path="components" element={<ComponentLibrary />} />
