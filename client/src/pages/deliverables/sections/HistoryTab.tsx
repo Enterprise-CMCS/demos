@@ -1,5 +1,5 @@
 import React from "react";
-import { createColumnHelper } from "@tanstack/react-table";
+import { createColumnHelper, Table as TanstackTable } from "@tanstack/react-table";
 
 import { ColumnFilter } from "components/table/ColumnFilter";
 import { KeywordSearch, highlightCell } from "components/table/KeywordSearch";
@@ -19,6 +19,16 @@ export type DeliverableHistoryRow = {
 };
 
 const INITIAL_TABLE_STATE = { sorting: [{ id: "date", desc: true }] };
+
+const renderKeywordSearch = (table: TanstackTable<DeliverableHistoryRow>) => (
+  <KeywordSearch table={table} />
+);
+const renderColumnFilter = (table: TanstackTable<DeliverableHistoryRow>) => (
+  <ColumnFilter table={table} />
+);
+const renderPagination = (table: TanstackTable<DeliverableHistoryRow>) => (
+  <PaginationControls table={table} />
+);
 
 function makeHistoryColumns() {
   const columnHelper = createColumnHelper<DeliverableHistoryRow>();
@@ -49,9 +59,9 @@ export const HistoryTab: React.FC<{ rows: DeliverableHistoryRow[] }> = ({ rows }
       <Table<DeliverableHistoryRow>
         data={rows}
         columns={makeHistoryColumns()}
-        keywordSearch={(table) => <KeywordSearch table={table} />} // NOSONAR
-        columnFilter={(table) => <ColumnFilter table={table} />} // NOSONAR
-        pagination={(table) => <PaginationControls table={table} />} // NOSONAR
+        keywordSearch={renderKeywordSearch}
+        columnFilter={renderColumnFilter}
+        pagination={renderPagination}
         initialState={INITIAL_TABLE_STATE}
         emptyRowsMessage="No history available."
         noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
