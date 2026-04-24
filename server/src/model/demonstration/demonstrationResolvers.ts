@@ -1,7 +1,4 @@
-import {
-  Demonstration as PrismaDemonstration,
-  Person as PrismaPerson,
-} from "@prisma/client";
+import { Demonstration as PrismaDemonstration, Person as PrismaPerson } from "@prisma/client";
 import { prisma } from "../../prismaClient";
 import {
   ApplicationStatus,
@@ -27,9 +24,13 @@ import { getManyDocuments } from "../document";
 import { getManyApplicationPhases } from "../applicationPhase";
 import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
 import { getManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment";
-import { getManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment";
+import {
+  getDemonstrationRoleAssignment,
+  getManyDemonstrationRoleAssignments,
+} from "../demonstrationRoleAssignment";
 import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
 import { getState } from "../state";
+import { getPerson } from "../person";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -206,6 +207,28 @@ export async function __resolveDemonstrationPrimaryProjectOfficer(
   return primaryRoleAssignment.demonstrationRoleAssignment.person;
 }
 
+export const resolverPrimaryProjectOfficer = async (
+  parent: PrismaDemonstration,
+  args: undefined,
+  context: GraphQLContext
+) => {
+  const primaryProjectOfficerAssignment = await getDemonstrationRoleAssignment(
+    {
+      demonstrationId: parent.id,
+      roleId: roleProjectOfficer,
+      primaryDemonstrationRoleAssignment: {
+        isNot: null,
+      },
+    },
+    context.user
+  );
+
+  if (!primaryProjectOfficerAssignment) {
+    throw new Error(`Primary project officer not found for demonstration with id ${parent.id}`);
+  }
+  return getPerson({ id: primaryProjectOfficerAssignment.personId });
+};
+
 export const demonstrationResolvers = {
   Query: {
     demonstration: (parent: unknown, args: { id: string }, context: GraphQLContext) =>
@@ -236,7 +259,7 @@ export const demonstrationResolvers = {
     status: (parent: PrismaDemonstration) => parent.statusId,
     phases: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
       getManyApplicationPhases({ applicationId: parent.id }, context.user),
-    primaryProjectOfficer: __resolveDemonstrationPrimaryProjectOfficer,
+    primaryProjectOfficer: resolverPrimaryProjectOfficer,
     clearanceLevel: (parent: PrismaDemonstration) => parent.clearanceLevelId,
     tags: async (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
       (await getManyApplicationTagAssignments({ applicationId: parent.id }, context.user)).map(
