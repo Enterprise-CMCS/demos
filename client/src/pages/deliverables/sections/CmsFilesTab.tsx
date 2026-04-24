@@ -1,5 +1,4 @@
 import React from "react";
-import type { Table as TanstackTable } from "@tanstack/react-table";
 
 import { CircleButton } from "components/button/CircleButton";
 import { SecondaryButton } from "components/button";
@@ -21,62 +20,6 @@ export const CMS_FILES_DELETE_BUTTON_NAME = "button-delete-cms-file";
 const INITIAL_TABLE_STATE = { sorting: [{ id: "createdAt", desc: true }] };
 const CMS_FILES_EMPTY_MESSAGE = "No files have been added yet.";
 
-const renderKeywordSearch = (table: TanstackTable<DeliverableFileRow>) => (
-  <KeywordSearch table={table} />
-);
-const renderColumnFilter = (table: TanstackTable<DeliverableFileRow>) => (
-  <ColumnFilter table={table} />
-);
-const renderPagination = (table: TanstackTable<DeliverableFileRow>) => (
-  <PaginationControls table={table} />
-);
-
-function makeCmsFilesActionButtons(
-  onEdit: (file: DeliverableFileRow) => void,
-  onDelete: (fileIds: string[]) => void
-) {
-  return function renderCmsFilesActionButtons(table: TanstackTable<DeliverableFileRow>) {
-    const selectedRows = table.getSelectedRowModel().rows.map((row) => row.original);
-    const selectedCount = selectedRows.length;
-
-    const editTooltip = selectionTooltip({
-      action: "Edit",
-      nounSingular: "File",
-      selectedCount,
-      rule: { kind: "exactly", count: 1 },
-    });
-    const deleteTooltip = selectionTooltip({
-      action: "Delete",
-      nounSingular: "File",
-      selectedCount,
-      rule: { kind: "atLeast", count: 1 },
-    });
-
-    return (
-      <div className="flex gap-1 ml-4">
-        <CircleButton
-          name={CMS_FILES_EDIT_BUTTON_NAME}
-          ariaLabel="Edit CMS File"
-          tooltip={editTooltip}
-          disabled={selectedCount !== 1}
-          onClick={() => onEdit(selectedRows[0])}
-        >
-          <EditIcon />
-        </CircleButton>
-        <CircleButton
-          name={CMS_FILES_DELETE_BUTTON_NAME}
-          ariaLabel="Delete CMS File"
-          tooltip={deleteTooltip}
-          disabled={selectedCount < 1}
-          onClick={() => onDelete(selectedRows.map((row) => row.id))}
-        >
-          <DeleteIcon />
-        </CircleButton>
-      </div>
-    );
-  };
-}
-
 export type CmsFilesTabProps = {
   files: DeliverableFileRow[];
   onAdd?: () => void;
@@ -86,15 +29,11 @@ export type CmsFilesTabProps = {
 
 export const CmsFilesTab: React.FC<CmsFilesTabProps> = ({
   files,
-  onAdd = () => {},
-  onEdit = () => {},
-  onDelete = () => {},
+  onAdd,
+  onEdit,
+  onDelete,
 }) => {
   const columns = makeCmsFileColumns();
-  const actionButtons = React.useMemo(
-    () => makeCmsFilesActionButtons(onEdit, onDelete),
-    [onEdit, onDelete]
-  );
 
   return (
     <div data-testid={CMS_FILES_TAB_NAME} className="flex flex-col gap-1">
@@ -107,13 +46,52 @@ export const CmsFilesTab: React.FC<CmsFilesTabProps> = ({
       <Table<DeliverableFileRow>
         data={files}
         columns={columns}
-        keywordSearch={renderKeywordSearch}
-        columnFilter={renderColumnFilter}
-        pagination={renderPagination}
+        keywordSearch={(table) => <KeywordSearch table={table} />}
+        columnFilter={(table) => <ColumnFilter table={table} />}
+        pagination={(table) => <PaginationControls table={table} />}
         initialState={INITIAL_TABLE_STATE}
         emptyRowsMessage={CMS_FILES_EMPTY_MESSAGE}
         noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
-        actionButtons={actionButtons}
+        actionButtons={(table) => {
+          const selectedRows = table.getSelectedRowModel().rows.map((row) => row.original);
+          const selectedCount = selectedRows.length;
+
+          const editTooltip = selectionTooltip({
+            action: "Edit",
+            nounSingular: "File",
+            selectedCount,
+            rule: { kind: "exactly", count: 1 },
+          });
+          const deleteTooltip = selectionTooltip({
+            action: "Delete",
+            nounSingular: "File",
+            selectedCount,
+            rule: { kind: "atLeast", count: 1 },
+          });
+
+          return (
+            <div className="flex gap-1 ml-4">
+              <CircleButton
+                name={CMS_FILES_EDIT_BUTTON_NAME}
+                ariaLabel="Edit CMS File"
+                tooltip={editTooltip}
+                disabled={selectedCount !== 1}
+                onClick={() => onEdit?.(selectedRows[0])}
+              >
+                <EditIcon />
+              </CircleButton>
+              <CircleButton
+                name={CMS_FILES_DELETE_BUTTON_NAME}
+                ariaLabel="Delete CMS File"
+                tooltip={deleteTooltip}
+                disabled={selectedCount < 1}
+                onClick={() => onDelete?.(selectedRows.map((row) => row.id))}
+              >
+                <DeleteIcon />
+              </CircleButton>
+            </div>
+          );
+        }}
       />
     </div>
   );

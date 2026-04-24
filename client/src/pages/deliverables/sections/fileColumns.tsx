@@ -48,7 +48,7 @@ const uploadedByColumn = columnHelper.accessor("owner.person.fullName", {
 const uploadedDateColumn = createDateColumnDef(columnHelper, "createdAt", "Uploaded Date");
 
 export function makeStateFileColumns(
-  onToggleCurrent: (fileId: string, nextValue: boolean) => void
+  onToggleCurrent?: (fileId: string, nextValue: boolean) => void
 ) {
   return [
     createSelectColumnDef(columnHelper),
@@ -100,7 +100,7 @@ export function makeCmsFileColumns() {
 const CurrentToggle: React.FC<{
   fileId: string;
   checked: boolean;
-  onToggle: (fileId: string, nextValue: boolean) => void;
+  onToggle?: (fileId: string, nextValue: boolean) => void;
 }> = ({ fileId, checked, onToggle }) => (
   <button
     type="button"
@@ -108,7 +108,7 @@ const CurrentToggle: React.FC<{
     aria-checked={checked}
     aria-label={`Toggle current file ${fileId}`}
     data-testid={`toggle-current-${fileId}`}
-    onClick={() => onToggle(fileId, !checked)}
+    onClick={() => onToggle?.(fileId, !checked)}
     className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-action-focus ${
       checked ? "bg-action" : "bg-border-fields"
     }`}
