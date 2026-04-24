@@ -1,14 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { resolveApplicationType, PrismaApplication } from ".";
-import { Tag } from "../tag";
 import { ApplicationStatus, ApplicationType, PhaseName } from "../../types";
-import {
-  ApplicationTagAssignment as PrismaApplicationTagAssignment,
-  Tag as PrismaTag,
-} from "@prisma/client";
-
-// Mock imports
-import { prisma } from "../../prismaClient.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -26,26 +18,10 @@ vi.mock("../applicationPhase", () => ({
 }));
 
 describe("applicationResolvers", () => {
-  const regularMocks = {
-    applicationTagAssignment: {
-      findMany: vi.fn(),
-    },
-  };
-  const mockPrismaClient = {
-    applicationTagAssignment: {
-      findMany: regularMocks.applicationTagAssignment.findMany,
-    },
-  };
-  const testApplicationId = "8167c039-9c08-4203-b7d2-9e35ec156993";
   const testDemonstrationApplicationTypeId: ApplicationType = "Demonstration";
-  const testPhaseId: PhaseName = "Application Intake";
-  const testApplicationStatusId: ApplicationStatus = "Approved";
-  const testApplicationClearanceLevelId = "COMMs";
-  const testApplicationSignatureLevelId = "Level 1";
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
   });
 
   describe("resolveApplicationType", () => {
