@@ -6,6 +6,9 @@ set -e
 
 CI=${CI:-false}
 
+echo "Installing browser driver..."
+npx browser-driver-manager install chrome
+
 if [ "$CI" = "true" ]; then
   npx @axe-core/cli http://localhost:3000 \
     --save accessibility-report.json \
