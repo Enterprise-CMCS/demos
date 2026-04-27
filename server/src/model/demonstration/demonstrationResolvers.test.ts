@@ -6,7 +6,6 @@ import {
   __resolveDemonstrationState,
   __resolveDemonstrationRoleAssignments,
   __resolveDemonstrationPrimaryProjectOfficer,
-  resolveDemonstrationTypes,
   demonstrationResolvers,
 } from "./demonstrationResolvers";
 import {
@@ -54,6 +53,9 @@ import { getManyDocuments } from "../document";
 import { getManyApplicationPhases } from "../applicationPhase";
 import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
+import { getManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment";
+import { DemonstrationTypeTagAssignmentQueryResult } from "../demonstrationTypeTagAssignment/queries";
+import { getManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -82,6 +84,14 @@ vi.mock("../applicationPhase", () => ({
 
 vi.mock("../applicationTagAssignment", () => ({
   getManyApplicationTagAssignments: vi.fn(),
+}));
+
+vi.mock("../demonstrationTypeTagAssignment", () => ({
+  getManyDemonstrationTypeTagAssignments: vi.fn(),
+}));
+
+vi.mock("../demonstrationRoleAssignment", () => ({
+  getManyDemonstrationRoleAssignments: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -354,6 +364,60 @@ describe("demonstrationResolvers", () => {
           approvalStatus: "Unapproved",
         },
       ]);
+    });
+  });
+
+  describe("Demonstration.demonstrationTypes", () => {
+    it("delegates to demonstrationTypeTagAssignmentData.getManyDemonstrationTypeTagAssignments and maps result", async () => {
+      const mockDemonstration = { id: "abc123" } as PrismaDemonstration;
+      vi.mocked(getManyDemonstrationTypeTagAssignments).mockResolvedValueOnce([
+        {
+          tagNameId: "Tag1",
+          tag: {
+            statusId: "Approved",
+          },
+        },
+        {
+          tagNameId: "Tag2",
+          tag: {
+            statusId: "Unapproved",
+          },
+        },
+      ] as DemonstrationTypeTagAssignmentQueryResult[]);
+
+      const result = await demonstrationResolvers.Demonstration.demonstrationTypes(
+        mockDemonstration,
+        undefined,
+        mockContext
+      );
+      expect(getManyDemonstrationTypeTagAssignments).toHaveBeenCalledExactlyOnceWith(
+        { demonstrationId: "abc123" },
+        mockUser
+      );
+      expect(result).toEqual([
+        {
+          demonstrationTypeName: "Tag1",
+          approvalStatus: "Approved",
+        },
+        {
+          demonstrationTypeName: "Tag2",
+          approvalStatus: "Unapproved",
+        },
+      ]);
+    });
+  });
+
+  describe("Demonstration.roles", () => {
+    it("delegates to demonstrationRoleAssignmentData.getManyDemonstrationRoleAssignments", async () => {
+      await demonstrationResolvers.Demonstration.roles(
+        { id: "demonstrationId" } as PrismaDemonstration,
+        {},
+        mockContext
+      );
+      expect(getManyDemonstrationRoleAssignments).toHaveBeenCalledExactlyOnceWith(
+        { demonstrationId: "demonstrationId" },
+        mockUser
+      );
     });
   });
 
@@ -907,85 +971,6 @@ describe("demonstrationResolvers", () => {
       expect(
         regularMocks.primaryDemonstrationRoleAssignment.findUniqueOrThrow
       ).toHaveBeenCalledExactlyOnceWith(expectedCall);
-    });
-  });
-
-  describe("resolveDemonstrationTypes", () => {
-    it("should look up the demonstration types for the demonstration", async () => {
-      // This is present just to test the map in the function
-      const resolvedValue: (PrismaDemonstrationTypeTagAssignment & {
-        tag: Pick<PrismaTag, "statusId">;
-      })[] = [
-        {
-          demonstrationId: testValues.demonstrationId,
-          tagNameId: "Test Demonstration Type A",
-          tagTypeId: "Demonstration Type",
-          effectiveDate: testValues.dateValue,
-          expirationDate: testValues.dateValue,
-          createdAt: testValues.dateValue,
-          updatedAt: testValues.dateValue,
-          tag: {
-            statusId: "Approved",
-          },
-        },
-        {
-          demonstrationId: testValues.demonstrationId,
-          tagNameId: "Test Demonstration Type B",
-          tagTypeId: "Demonstration Type",
-          effectiveDate: testValues.dateValue,
-          expirationDate: testValues.dateValue,
-          createdAt: testValues.dateValue,
-          updatedAt: testValues.dateValue,
-          tag: {
-            statusId: "Unapproved",
-          },
-        },
-      ];
-      regularMocks.demonstrationTypeTagAssignment.findMany.mockResolvedValueOnce(resolvedValue);
-
-      // This mocks the return from the status function, again is present to make sure the map at the end is right
-      vi.mocked(determineDemonstrationTypeStatus)
-        .mockReturnValueOnce("Active")
-        .mockReturnValueOnce("Pending");
-
-      const input: Partial<PrismaDemonstration> = {
-        id: testValues.demonstrationId,
-      };
-
-      const expectedCall = {
-        include: {
-          tag: true,
-        },
-        where: {
-          demonstrationId: testValues.demonstrationId,
-        },
-      };
-
-      const expectedResult: DemonstrationTypeAssignment[] = [
-        {
-          demonstrationTypeName: "Test Demonstration Type A",
-          effectiveDate: testValues.dateValue,
-          expirationDate: testValues.dateValue,
-          status: "Active",
-          approvalStatus: "Approved",
-          createdAt: testValues.dateValue,
-          updatedAt: testValues.dateValue,
-        },
-        {
-          demonstrationTypeName: "Test Demonstration Type B",
-          effectiveDate: testValues.dateValue,
-          expirationDate: testValues.dateValue,
-          status: "Pending",
-          approvalStatus: "Unapproved",
-          createdAt: testValues.dateValue,
-          updatedAt: testValues.dateValue,
-        },
-      ];
-      const result = await resolveDemonstrationTypes(input as PrismaDemonstration);
-      expect(regularMocks.demonstrationTypeTagAssignment.findMany).toHaveBeenCalledExactlyOnceWith(
-        expectedCall
-      );
-      expect(result).toStrictEqual(expectedResult);
     });
   });
 });

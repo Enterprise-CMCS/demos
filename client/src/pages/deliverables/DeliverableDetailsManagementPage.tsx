@@ -20,6 +20,7 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
       demonstration {
         id
         name
+        expirationDate
         state {
           id
         }
@@ -34,7 +35,7 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
 `;
 
 export type DeliverableDetailsManagementDeliverable = Pick<Deliverable, "id" | "deliverableType" | "dueDate" | "status" | "name" > & {
-  demonstration: Pick<Demonstration, "id" | "name"> & { state: { id: string } };
+  demonstration: Pick<Demonstration, "id" | "name" | "expirationDate"> & { state: { id: string } };
   cmsOwner: { person: { fullName: string } };
 };
 
@@ -45,10 +46,9 @@ export const DeliverableDetailsManagementPage: React.FC = () => {
     return <div>Deliverable not found.</div>;
   }
 
-  const { data, loading, error } = useQuery<{ deliverable: DeliverableDetailsManagementDeliverable }>(
-    DELIVERABLE_DETAILS_QUERY,
-    { variables: { id: deliverableId } }
-  );
+  const { data, loading, error } = useQuery<{
+    deliverable: DeliverableDetailsManagementDeliverable;
+  }>(DELIVERABLE_DETAILS_QUERY, { variables: { id: deliverableId } });
 
   if (loading) {
     return <Loading />;
@@ -72,7 +72,7 @@ export const DeliverableDetailsManagementPage: React.FC = () => {
       <div className="flex flex-col gap-2 flex-1">
         <div className="flex justify-between items-start">
           <DeliverableInfoFields deliverable={data.deliverable} />
-          <DeliverableButtons />
+          <DeliverableButtons deliverable={data.deliverable} />
         </div>
         <div className="flex w-full gap-2 flex-1">
           <div className="flex-1"><FileAndHistoryTabs /></div>

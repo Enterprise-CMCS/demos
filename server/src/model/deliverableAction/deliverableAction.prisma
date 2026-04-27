@@ -1,7 +1,7 @@
 // Flags: NO_CREATED_TS, NO_UPDATED_TS
 // Time is captured by the action timestamp; table is intended to be append-only
 model DeliverableAction {
-  id                   String   @db.Uuid @default(uuid())
+  id                   String   @default(uuid()) @db.Uuid
   actionTimestamp      DateTime @map("action_timestamp") @db.Timestamptz
   deliverableId        String   @map("deliverable_id") @db.Uuid
   actionTypeId         String   @map("action_type_id")
@@ -12,6 +12,7 @@ model DeliverableAction {
   dueDateChangeAllowed Boolean  @map("due_date_change_allowed")
   shouldHaveNote       Boolean  @map("should_have_note")
   shouldHaveUserId     Boolean  @map("should_have_user_id")
+  extensionIdOptional  Boolean  @map("extension_id_optional")
   oldDueDate           DateTime @map("old_due_date") @db.Timestamptz
   newDueDate           DateTime @map("new_due_date") @db.Timestamptz
   userId               String?  @map("user_id") @db.Uuid
@@ -19,7 +20,7 @@ model DeliverableAction {
   deliverable         Deliverable                    @relation(fields: [deliverableId], references: [id])
   activeExtension     DeliverableExtension?          @relation(fields: [activeExtensionId, deliverableId], references: [id, deliverableId])
   user                User?                          @relation(fields: [userId], references: [id], onDelete: Restrict)
-  actionType          DeliverableActionType          @relation(fields: [actionTypeId, dueDateChangeAllowed, shouldHaveNote, shouldHaveUserId], references: [id, dueDateChangeAllowed, shouldHaveNote, shouldHaveUserId])
+  actionType          DeliverableActionType          @relation(fields: [actionTypeId, dueDateChangeAllowed, shouldHaveNote, shouldHaveUserId, extensionIdOptional], references: [id, dueDateChangeAllowed, shouldHaveNote, shouldHaveUserId, extensionIdOptional])
   actionConfiguration DeliverableActionConfiguration @relation(fields: [actionTypeId, oldStatusId, newStatusId], references: [actionTypeId, oldStatusId, newStatusId])
   documents           Document[]
 
