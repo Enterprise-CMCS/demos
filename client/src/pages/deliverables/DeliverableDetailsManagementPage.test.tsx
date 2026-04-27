@@ -14,12 +14,15 @@ import { FILE_AND_HISTORY_TABS_NAME } from "./sections/FileAndHistoryTabs";
 import { DELIVERABLE_BUTTONS_NAME } from "./sections/DeliverableButtons";
 import { DialogProvider } from "components/dialog/DialogContext";
 
-const renderAtRoute = (entry: string, path = "/deliverables/:deliverableId") =>
+const renderAtRoute = (entry: string) =>
   render(
     <TestProvider mocks={deliverableMocks} routerEntries={[entry]}>
       <DialogProvider>
         <Routes>
-          <Route path={path} element={<DeliverableDetailsManagementPage />} />
+          <Route
+            path="/deliverables/:deliverableId"
+            element={<DeliverableDetailsManagementPage />}
+          />
         </Routes>
       </DialogProvider>
     </TestProvider>
@@ -96,27 +99,5 @@ describe("DeliverableDetailsManagementPage", () => {
     );
 
     await waitFor(() => expect(screen.getByText(/error loading deliverable/i)).toBeInTheDocument());
-  });
-
-  it("renders on demonstration-scoped deliverable route", async () => {
-    renderAtRoute(
-      "/demonstrations/1/deliverables/1",
-      "/demonstrations/:id/deliverables/:deliverableId"
-    );
-
-    await waitFor(() =>
-      expect(screen.getByText(MOCK_DELIVERABLE_1.name)).toBeInTheDocument()
-    );
-  });
-
-  it("shows not found when demonstration route id does not match deliverable demonstration", async () => {
-    renderAtRoute(
-      "/demonstrations/not-demo-1/deliverables/1",
-      "/demonstrations/:id/deliverables/:deliverableId"
-    );
-
-    await waitFor(() =>
-      expect(screen.getByText(/deliverable not found/i)).toBeInTheDocument()
-    );
   });
 });

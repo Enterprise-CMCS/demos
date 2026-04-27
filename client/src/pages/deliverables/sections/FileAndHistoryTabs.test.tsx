@@ -16,7 +16,7 @@ describe("FileAndHistoryTabs", () => {
 
   it("renders the State Files tab", () => {
     setup();
-    expect(screen.getByText(/State Files/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "State Files" })).toBeInTheDocument();
   });
 
   it("renders the CMS Files tab", () => {
