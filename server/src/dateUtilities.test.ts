@@ -1,13 +1,14 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { LocalDate } from "./types.js";
 import {
-  parseJSDateToEasternTZDate,
-  parseDateTimeOrLocalDateToEasternTZDate,
-  getStartOfDayEastern,
-  getEndOfDayEastern,
-  getEasternNow,
   EasternTZDate,
+  formatEasternTZDateToMMDDYYYY,
   getDateTimeParts,
+  getEasternNow,
+  getEndOfDayEastern,
+  getStartOfDayEastern,
+  parseDateTimeOrLocalDateToEasternTZDate,
+  parseJSDateToEasternTZDate,
 } from "./dateUtilities.js";
 import { TZDate } from "@date-fns/tz";
 
@@ -150,6 +151,13 @@ describe("dateUtilities", () => {
       expect(testDatePartsEDT.minutes).toBe(39);
       expect(testDatePartsEDT.seconds).toBe(18);
       expect(testDatePartsEDT.milliseconds).toBe(585);
+    });
+  });
+
+  describe("formatEasternTZDateToMMDDYYYY", () => {
+    it("should format an EasternTZDate to a MM/DD/YYYY date", () => {
+      const result = formatEasternTZDateToMMDDYYYY(TEST_DATES.sameDayUTCEastern.easternDate);
+      expect(result).toBe("01/19/2025");
     });
   });
 

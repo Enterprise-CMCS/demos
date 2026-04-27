@@ -11,7 +11,7 @@ import { ParsedUpdateDeliverableInput } from ".";
 import { manuallyUpdateDeliverableDueDate } from "./manuallyUpdateDeliverableDueDate";
 
 // Mock imports
-vi.mock("../deliverableAction", () => ({
+vi.mock("../deliverableAction/queries", () => ({
   insertDeliverableAction: vi.fn(),
 }));
 
@@ -21,7 +21,7 @@ vi.mock(".", () => ({
   getDeliverable: vi.fn(),
 }));
 
-import { insertDeliverableAction } from "../deliverableAction";
+import { insertDeliverableAction } from "../deliverableAction/queries";
 import { checkDueDateInFuture, editDeliverable, getDeliverable } from ".";
 import { TZDate } from "@date-fns/tz";
 
