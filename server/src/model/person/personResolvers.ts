@@ -3,19 +3,13 @@ import { Person as PrismaPerson } from "@prisma/client";
 import { prisma } from "../../prismaClient";
 import { GraphQLContext } from "../../auth";
 import { getManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment";
+import { getManyStates } from "../state";
+import { getManyPeople, getPerson } from "./personData";
 
 export const personResolvers = {
   Query: {
-    person: async (_: unknown, { id }: { id: string }) => {
-      return await prisma().person.findUnique({
-        where: {
-          id,
-        },
-      });
-    },
-    people: async () => {
-      return await prisma().person.findMany();
-    },
+    person: async (parent: unknown, args: { id: string }) => getPerson({ id: args.id }),
+    people: async () => getManyPeople({}),
     searchPeople: async (
       _: unknown,
       { search, demonstrationId }: { search: string; demonstrationId?: string }
@@ -65,21 +59,17 @@ export const personResolvers = {
   },
 
   Person: {
-    fullName: (parent: PrismaPerson) => {
-      return [parent.firstName, parent.lastName].filter(Boolean).join(" ").trim();
-    },
-    personType: async (parent: PrismaPerson) => {
-      return parent.personTypeId;
-    },
+    fullName: (parent: PrismaPerson) => `${parent.firstName} ${parent.lastName}`,
+    personType: async (parent: PrismaPerson) => parent.personTypeId,
     roles: (parent: PrismaPerson, args: unknown, context: GraphQLContext) =>
       getManyDemonstrationRoleAssignments({ personId: parent.id }, context.user),
-
-    states: async (parent: PrismaPerson) => {
-      const personStates = await prisma().personState.findMany({
-        where: { personId: parent.id },
-        include: { state: true },
-      });
-      return personStates.map((ps) => ps.state);
-    },
+    states: async (parent: PrismaPerson) =>
+      getManyStates({
+        personStates: {
+          some: {
+            personId: parent.id,
+          },
+        },
+      }),
   },
 };

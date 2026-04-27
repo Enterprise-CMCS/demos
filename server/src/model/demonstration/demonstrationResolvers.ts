@@ -1,9 +1,4 @@
-import {
-  Demonstration as PrismaDemonstration,
-  State as PrismaState,
-  DemonstrationRoleAssignment as PrismaDemonstrationRoleAssignment,
-  Person as PrismaPerson,
-} from "@prisma/client";
+import { Demonstration as PrismaDemonstration, Person as PrismaPerson } from "@prisma/client";
 import { prisma } from "../../prismaClient";
 import {
   ApplicationStatus,
@@ -29,8 +24,13 @@ import { getManyDocuments } from "../document";
 import { getManyApplicationPhases } from "../applicationPhase";
 import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
 import { getManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment";
-import { getManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment";
+import {
+  getDemonstrationRoleAssignment,
+  getManyDemonstrationRoleAssignments,
+} from "../demonstrationRoleAssignment";
 import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
+import { getState } from "../state";
+import { getPerson } from "../person";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -185,26 +185,6 @@ export async function deleteDemonstration(
   });
 }
 
-export async function __resolveDemonstrationState(
-  parent: PrismaDemonstration
-): Promise<PrismaState> {
-  // State can never be null thanks to the database
-  const result = await prisma().state.findUniqueOrThrow({
-    where: { id: parent.stateId },
-  });
-  return result;
-}
-
-export async function __resolveDemonstrationRoleAssignments(
-  parent: PrismaDemonstration
-): Promise<PrismaDemonstrationRoleAssignment[]> {
-  // There will always be at least one assignment for primary project officer
-  const result = await prisma().demonstrationRoleAssignment.findMany({
-    where: { demonstrationId: parent.id },
-  });
-  return result;
-}
-
 export async function __resolveDemonstrationPrimaryProjectOfficer(
   parent: PrismaDemonstration
 ): Promise<PrismaPerson> {
@@ -227,6 +207,28 @@ export async function __resolveDemonstrationPrimaryProjectOfficer(
   return primaryRoleAssignment.demonstrationRoleAssignment.person;
 }
 
+export const resolvePrimaryProjectOfficer = async (
+  parent: PrismaDemonstration,
+  args: undefined,
+  context: GraphQLContext
+) => {
+  const primaryProjectOfficerAssignment = await getDemonstrationRoleAssignment(
+    {
+      demonstrationId: parent.id,
+      roleId: roleProjectOfficer,
+      primaryDemonstrationRoleAssignment: {
+        isNot: null,
+      },
+    },
+    context.user
+  );
+
+  if (!primaryProjectOfficerAssignment) {
+    throw new Error(`Primary project officer not found for demonstration with id ${parent.id}`);
+  }
+  return getPerson({ id: primaryProjectOfficerAssignment.personId });
+};
+
 export const demonstrationResolvers = {
   Query: {
     demonstration: (parent: unknown, args: { id: string }, context: GraphQLContext) =>
@@ -242,7 +244,7 @@ export const demonstrationResolvers = {
   },
 
   Demonstration: {
-    state: __resolveDemonstrationState,
+    state: (parent: PrismaDemonstration) => getState({ id: parent.stateId }),
     documents: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
       getManyDocuments({ applicationId: parent.id }, context.user),
     amendments: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
@@ -257,7 +259,7 @@ export const demonstrationResolvers = {
     status: (parent: PrismaDemonstration) => parent.statusId,
     phases: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
       getManyApplicationPhases({ applicationId: parent.id }, context.user),
-    primaryProjectOfficer: __resolveDemonstrationPrimaryProjectOfficer,
+    primaryProjectOfficer: resolvePrimaryProjectOfficer,
     clearanceLevel: (parent: PrismaDemonstration) => parent.clearanceLevelId,
     tags: async (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
       (await getManyApplicationTagAssignments({ applicationId: parent.id }, context.user)).map(
