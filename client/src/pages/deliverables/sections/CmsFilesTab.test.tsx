@@ -21,7 +21,6 @@ const MOCK_FILES: DeliverableFileRow[] = [
     documentType: "General File",
     createdAt: new Date("2026-03-10"),
     owner: { person: { fullName: "Tess Davenport" } },
-    isCurrent: false,
   },
 ];
 

@@ -22,7 +22,6 @@ const MOCK_FILES: DeliverableFileRow[] = [
     documentType: "General File",
     createdAt: new Date("2026-01-15"),
     owner: { person: { fullName: "Alpha Owner" } },
-    isCurrent: false,
   },
   {
     id: "file-b",
@@ -31,7 +30,6 @@ const MOCK_FILES: DeliverableFileRow[] = [
     documentType: "Monitoring Report",
     createdAt: new Date("2026-02-20"),
     owner: { person: { fullName: "Bravo Owner" } },
-    isCurrent: true,
   },
 ];
 
@@ -147,23 +145,6 @@ describe("StateFilesTab", () => {
       await user.click(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME));
 
       expect(onAdd).toHaveBeenCalledTimes(1);
-    });
-
-    it("reflects the Current toggle state from the row data", () => {
-      renderTab();
-
-      expect(screen.getByTestId("toggle-current-file-a")).toHaveAttribute("aria-checked", "false");
-      expect(screen.getByTestId("toggle-current-file-b")).toHaveAttribute("aria-checked", "true");
-    });
-
-    it("invokes onToggleCurrent when the toggle is clicked", async () => {
-      const user = userEvent.setup();
-      const onToggleCurrent = vi.fn();
-      renderTab({ onToggleCurrent });
-
-      await user.click(screen.getByTestId("toggle-current-file-a"));
-
-      expect(onToggleCurrent).toHaveBeenCalledWith("file-a", true);
     });
 
     it("shows Submit Deliverable only when files are present", async () => {

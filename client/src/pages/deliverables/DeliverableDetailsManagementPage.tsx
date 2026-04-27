@@ -65,8 +65,8 @@ export type DeliverableDetailsManagementDeliverable = Pick<
 > & {
   demonstration: Pick<Demonstration, "id" | "name" | "expirationDate"> & { state: { id: string } };
   cmsOwner: { person: { fullName: string } };
-  stateDocuments: Omit<DeliverableFileRow, "isCurrent">[];
-  cmsDocuments: Omit<DeliverableFileRow, "isCurrent">[];
+  stateDocuments: DeliverableFileRow[];
+  cmsDocuments: DeliverableFileRow[];
 };
 
 export const DeliverableDetailsManagementPage: React.FC = () => {

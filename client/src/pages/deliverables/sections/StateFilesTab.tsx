@@ -20,7 +20,6 @@ export type StateFilesTabProps = {
   onAdd?: () => void;
   onEdit?: (file: DeliverableFileRow) => void;
   onDelete?: (fileIds: string[]) => void;
-  onToggleCurrent?: (fileId: string, nextValue: boolean) => void;
   onSubmit?: () => void;
 };
 
@@ -29,10 +28,9 @@ export const StateFilesTab: React.FC<StateFilesTabProps> = ({
   onAdd,
   onEdit,
   onDelete,
-  onToggleCurrent,
   onSubmit,
 }) => {
-  const columns = makeStateFileColumns(onToggleCurrent);
+  const columns = makeStateFileColumns();
   const hasFiles = files.length > 0;
 
   return (

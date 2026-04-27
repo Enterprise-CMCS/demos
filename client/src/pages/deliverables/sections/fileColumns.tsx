@@ -47,9 +47,7 @@ const uploadedByColumn = columnHelper.accessor("owner.person.fullName", {
 
 const uploadedDateColumn = createDateColumnDef(columnHelper, "createdAt", "Uploaded Date");
 
-export function makeStateFileColumns(
-  onToggleCurrent?: (fileId: string, nextValue: boolean) => void
-) {
+export function makeStateFileColumns() {
   return [
     createSelectColumnDef(columnHelper),
     typeColumn,
@@ -60,13 +58,7 @@ export function makeStateFileColumns(
     columnHelper.display({
       id: "current",
       header: "Current",
-      cell: ({ row }) => (
-        <CurrentToggle
-          fileId={row.original.id}
-          checked={row.original.isCurrent}
-          onToggle={onToggleCurrent}
-        />
-      ),
+      cell: ({ row }) => <CurrentToggle fileId={row.original.id} />,
       enableSorting: false,
     }),
   ];
@@ -97,26 +89,15 @@ export function makeCmsFileColumns() {
   ];
 }
 
-const CurrentToggle: React.FC<{
-  fileId: string;
-  checked: boolean;
-  onToggle?: (fileId: string, nextValue: boolean) => void;
-}> = ({ fileId, checked, onToggle }) => (
+const CurrentToggle: React.FC<{ fileId: string }> = ({ fileId }) => (
   <button
     type="button"
     role="switch"
-    aria-checked={checked}
+    aria-checked={false}
     aria-label={`Toggle current file ${fileId}`}
     data-testid={`toggle-current-${fileId}`}
-    onClick={() => onToggle?.(fileId, !checked)}
-    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-action-focus ${
-      checked ? "bg-action" : "bg-border-fields"
-    }`}
+    className="relative inline-flex h-5 w-9 items-center rounded-full bg-border-fields focus:outline-none focus:ring-2 focus:ring-action-focus"
   >
-    <span
-      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-        checked ? "translate-x-4" : "translate-x-1"
-      }`}
-    />
+    <span className="inline-block h-4 w-4 translate-x-1 transform rounded-full bg-white" />
   </button>
 );

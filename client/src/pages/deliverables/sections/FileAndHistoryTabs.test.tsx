@@ -53,20 +53,6 @@ describe("FileAndHistoryTabs", () => {
     expect(screen.getByTestId(HISTORY_TAB_NAME)).toBeInTheDocument();
   });
 
-  it("toggling current on a state file updates the switch's aria-checked", async () => {
-    const user = userEvent.setup();
-    setup();
-
-    const toggle = screen.getByTestId(`toggle-current-${MOCK_DELIVERABLE_1.stateDocuments[0].id}`);
-    expect(toggle).toHaveAttribute("aria-checked", "false");
-
-    await user.click(toggle);
-
-    expect(
-      screen.getByTestId(`toggle-current-${MOCK_DELIVERABLE_1.stateDocuments[0].id}`)
-    ).toHaveAttribute("aria-checked", "true");
-  });
-
   it("renders the Submit Deliverable button in the State Files tab when files exist", () => {
     setup();
 
