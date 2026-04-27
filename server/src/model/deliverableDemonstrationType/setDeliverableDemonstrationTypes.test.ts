@@ -12,7 +12,7 @@ vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
-vi.mock(".", () => ({
+vi.mock("./queries", () => ({
   deleteAllDeliverableDemonstrationTypes: vi.fn(),
   insertDeliverableDemonstrationTypes: vi.fn(),
 }));
@@ -22,7 +22,10 @@ vi.mock("../deliverable", () => ({
 }));
 
 import { prisma } from "../../prismaClient";
-import { deleteAllDeliverableDemonstrationTypes, insertDeliverableDemonstrationTypes } from ".";
+import {
+  deleteAllDeliverableDemonstrationTypes,
+  insertDeliverableDemonstrationTypes,
+} from "./queries";
 import { getDeliverable } from "../deliverable";
 
 describe("setDeliverableDemonstrationTypes", () => {

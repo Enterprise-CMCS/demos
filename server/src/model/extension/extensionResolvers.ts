@@ -5,18 +5,20 @@ import {
   ApplicationType,
   CreateExtensionInput,
   PhaseName,
+  UiPathResultStatus,
   UpdateExtensionInput,
 } from "../../types";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate";
-import { deleteApplication, resolveSuggestedApplicationTags } from "../application";
+import { deleteApplication } from "../application";
 import { getDemonstration } from "../demonstration";
 import { GraphQLContext } from "../../auth";
 import { getExtension, getManyExtensions } from "./extensionData";
 import { getManyDocuments } from "../document";
 import { getManyApplicationPhases } from "../applicationPhase";
 import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
+import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
 
 const extensionApplicationType: ApplicationType = "Extension";
 const conceptPhaseName: PhaseName = "Concept";
@@ -118,6 +120,21 @@ export const extensionResolvers = {
         }
       ),
     signatureLevel: (parent: PrismaExtension) => parent.signatureLevelId,
-    suggestedApplicationTags: resolveSuggestedApplicationTags,
+    suggestedApplicationTags: async (
+      parent: PrismaExtension,
+      args: unknown,
+      context: GraphQLContext
+    ) =>
+      (
+        await getManyApplicationTagSuggestions(
+          {
+            applicationId: parent.id,
+            statusId: {
+              in: ["Pending" satisfies UiPathResultStatus],
+            },
+          },
+          context.user
+        )
+      ).map((suggestion) => suggestion.value),
   },
 };

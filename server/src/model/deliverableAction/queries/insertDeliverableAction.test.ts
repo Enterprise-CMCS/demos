@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { DeliverableActionType as PrismaDeliverableActionType } from "@prisma/client";
 
 // Types
-import { InsertDeliverableActionInput } from "..";
+import { InsertDeliverableActionInput } from ".";
 
 // Functions under test
 import { insertDeliverableAction } from "./insertDeliverableAction";
@@ -69,6 +69,7 @@ describe("insertDeliverableAction", () => {
     dueDateChangeAllowed: false,
     shouldHaveNote: false,
     shouldHaveUserId: true,
+    extensionIdOptional: true,
   };
 
   // Expected calls
@@ -88,6 +89,7 @@ describe("insertDeliverableAction", () => {
       dueDateChangeAllowed: mockDeliverableActionType.dueDateChangeAllowed,
       shouldHaveNote: mockDeliverableActionType.shouldHaveNote,
       shouldHaveUserId: mockDeliverableActionType.shouldHaveUserId,
+      extensionIdOptional: mockDeliverableActionType.extensionIdOptional,
       oldDueDate: testInput.oldDueDate,
       newDueDate: testInput.newDueDate,
       userId: testInput.userId,

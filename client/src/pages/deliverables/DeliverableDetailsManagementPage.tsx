@@ -44,14 +44,7 @@ export type DeliverableDetailsManagementDeliverable = Pick<
 };
 
 export const DeliverableDetailsManagementPage: React.FC = () => {
-  const { id: demonstrationId, deliverableId } = useParams<{
-    id?: string;
-    deliverableId: string;
-  }>();
-
-  if (!deliverableId) {
-    return <div>Deliverable not found.</div>;
-  }
+  const { deliverableId } = useParams<{ deliverableId: string }>();
 
   const { data, loading, error } = useQuery<{
     deliverable: DeliverableDetailsManagementDeliverable;
@@ -64,9 +57,6 @@ export const DeliverableDetailsManagementPage: React.FC = () => {
     return <div>Error loading deliverable: {error.message}</div>;
   }
   if (!data || !data.deliverable) {
-    return <div>Deliverable not found.</div>;
-  }
-  if (demonstrationId && data.deliverable.demonstration.id !== demonstrationId) {
     return <div>Deliverable not found.</div>;
   }
 

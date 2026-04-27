@@ -3,8 +3,6 @@ import {
   __createDemonstration,
   __updateDemonstration,
   deleteDemonstration,
-  __resolveDemonstrationState,
-  __resolveDemonstrationRoleAssignments,
   __resolveDemonstrationPrimaryProjectOfficer,
   demonstrationResolvers,
 } from "./demonstrationResolvers";
@@ -13,7 +11,6 @@ import {
   ApplicationType,
   ClearanceLevel,
   CreateDemonstrationInput,
-  DemonstrationTypeAssignment,
   GrantLevel,
   PersonType,
   PhaseName,
@@ -23,9 +20,8 @@ import {
   UpdateDemonstrationInput,
 } from "../../types";
 import {
+  ApplicationTagSuggestion as PrismaApplicationTagSuggestion,
   Demonstration as PrismaDemonstration,
-  DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
-  Tag as PrismaTag,
 } from "@prisma/client";
 import { TZDate } from "@date-fns/tz";
 
@@ -41,10 +37,8 @@ import {
   deleteApplication,
   getApplication,
   // None of these are tested but need to be exported to avoid mocking issues
-  resolveSuggestedApplicationTags,
 } from "../application";
 import { parseDateTimeOrLocalDateToEasternTZDate, EasternTZDate } from "../../dateUtilities";
-import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus";
 import { getDemonstration, getManyDemonstrations } from "./demonstrationData";
 import { ContextUser, GraphQLContext } from "../../auth";
 import { getManyAmendments } from "../amendment";
@@ -55,7 +49,14 @@ import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
 import { getManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment";
 import { DemonstrationTypeTagAssignmentQueryResult } from "../demonstrationTypeTagAssignment/queries";
-import { getManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment";
+import {
+  getDemonstrationRoleAssignment,
+  getManyDemonstrationRoleAssignments,
+} from "../demonstrationRoleAssignment";
+import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
+import { getState } from "../state";
+import { getPerson } from "../person";
+import { DemonstrationRoleAssignmentQueryResult } from "../demonstrationRoleAssignment/queries";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -86,18 +87,30 @@ vi.mock("../applicationTagAssignment", () => ({
   getManyApplicationTagAssignments: vi.fn(),
 }));
 
+vi.mock("../applicationTagSuggestion", () => ({
+  getManyApplicationTagSuggestions: vi.fn(),
+}));
+
 vi.mock("../demonstrationTypeTagAssignment", () => ({
   getManyDemonstrationTypeTagAssignments: vi.fn(),
 }));
 
 vi.mock("../demonstrationRoleAssignment", () => ({
+  getDemonstrationRoleAssignment: vi.fn(),
   getManyDemonstrationRoleAssignments: vi.fn(),
+}));
+
+vi.mock("../person", () => ({
+  getPerson: vi.fn(),
+}));
+
+vi.mock("../state", () => ({
+  getState: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
   getApplication: vi.fn(),
   deleteApplication: vi.fn(),
-  resolveSuggestedApplicationTags: vi.fn(),
 }));
 
 vi.mock("../../errors/checkOptionalNotNullFields", () => ({
@@ -126,23 +139,8 @@ vi.mock("./determineDemonstrationTypeStatus", () => ({
 
 describe("demonstrationResolvers", () => {
   const regularMocks = {
-    state: {
-      findUniqueOrThrow: vi.fn(),
-    },
-    amendment: {
-      findMany: vi.fn(),
-    },
-    extension: {
-      findMany: vi.fn(),
-    },
-    demonstrationRoleAssignment: {
-      findMany: vi.fn(),
-    },
     primaryDemonstrationRoleAssignment: {
       findUniqueOrThrow: vi.fn(),
-    },
-    demonstrationTypeTagAssignment: {
-      findMany: vi.fn(),
     },
   };
   const transactionMocks = {
@@ -187,23 +185,8 @@ describe("demonstrationResolvers", () => {
   };
   const mockPrismaClient = {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
-    state: {
-      findUniqueOrThrow: regularMocks.state.findUniqueOrThrow,
-    },
-    amendment: {
-      findMany: regularMocks.amendment.findMany,
-    },
-    extension: {
-      findMany: regularMocks.extension.findMany,
-    },
-    demonstrationRoleAssignment: {
-      findMany: regularMocks.demonstrationRoleAssignment.findMany,
-    },
     primaryDemonstrationRoleAssignment: {
       findUniqueOrThrow: regularMocks.primaryDemonstrationRoleAssignment.findUniqueOrThrow,
-    },
-    demonstrationTypeTagAssignment: {
-      findMany: regularMocks.demonstrationTypeTagAssignment.findMany,
     },
   };
   const mockUser = {} as unknown as ContextUser;
@@ -367,6 +350,36 @@ describe("demonstrationResolvers", () => {
     });
   });
 
+  describe("Demonstration.applicationTagSuggestions", () => {
+    it("delegates to applicationTagSuggestionData.getManyApplicationTagSuggestions and maps result", async () => {
+      const mockDemonstration = { id: "abc123" } as PrismaDemonstration;
+      vi.mocked(getManyApplicationTagSuggestions).mockResolvedValueOnce([
+        {
+          value: "Suggestion1",
+        },
+        {
+          value: "Suggestion2",
+        },
+      ] as PrismaApplicationTagSuggestion[]);
+
+      const result = await demonstrationResolvers.Demonstration.suggestedApplicationTags(
+        mockDemonstration,
+        undefined,
+        mockContext
+      );
+      expect(getManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith(
+        {
+          applicationId: "abc123",
+          statusId: {
+            in: ["Pending"],
+          },
+        },
+        mockUser
+      );
+      expect(result).toEqual(["Suggestion1", "Suggestion2"]);
+    });
+  });
+
   describe("Demonstration.demonstrationTypes", () => {
     it("delegates to demonstrationTypeTagAssignmentData.getManyDemonstrationTypeTagAssignments and maps result", async () => {
       const mockDemonstration = { id: "abc123" } as PrismaDemonstration;
@@ -418,6 +431,63 @@ describe("demonstrationResolvers", () => {
         { demonstrationId: "demonstrationId" },
         mockUser
       );
+    });
+  });
+
+  describe("Demonstration.primaryProjectOfficer", () => {
+    it("delegates to demonstrationRoleAssignmentData.getManyDemonstrationRoleAssignments and getPerson", async () => {
+      vi.mocked(getDemonstrationRoleAssignment).mockResolvedValueOnce({
+        personId: "personId",
+      } as DemonstrationRoleAssignmentQueryResult);
+
+      await demonstrationResolvers.Demonstration.primaryProjectOfficer(
+        { id: "demonstrationId" } as PrismaDemonstration,
+        undefined,
+        mockContext
+      );
+
+      expect(getDemonstrationRoleAssignment).toHaveBeenCalledExactlyOnceWith(
+        {
+          demonstrationId: "demonstrationId",
+          roleId: "Project Officer",
+          primaryDemonstrationRoleAssignment: { isNot: null },
+        },
+        mockUser
+      );
+
+      expect(getPerson).toHaveBeenCalledExactlyOnceWith({ id: "personId" });
+    });
+
+    it("throws an error if primary project officer is not found", async () => {
+      vi.mocked(getDemonstrationRoleAssignment).mockResolvedValueOnce(null);
+
+      expect(
+        demonstrationResolvers.Demonstration.primaryProjectOfficer(
+          { id: "demonstrationId" } as PrismaDemonstration,
+          undefined,
+          mockContext
+        )
+      ).rejects.toThrow(
+        `Primary project officer not found for demonstration with id demonstrationId`
+      );
+
+      expect(getDemonstrationRoleAssignment).toHaveBeenCalledExactlyOnceWith(
+        {
+          demonstrationId: "demonstrationId",
+          roleId: "Project Officer",
+          primaryDemonstrationRoleAssignment: { isNot: null },
+        },
+        mockUser
+      );
+
+      expect(getPerson).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Demonstration.state", () => {
+    it("delegates to stateData.getState", async () => {
+      await demonstrationResolvers.Demonstration.state({ stateId: "NC" } as PrismaDemonstration);
+      expect(getState).toHaveBeenCalledExactlyOnceWith({ id: "NC" });
     });
   });
 
@@ -907,70 +977,6 @@ describe("demonstrationResolvers", () => {
         testValues.applicationTypeId,
         mockTransaction
       );
-    });
-  });
-
-  describe("__resolveDemonstrationState", () => {
-    it("should look up the relevant state", async () => {
-      const input: Partial<PrismaDemonstration> = {
-        stateId: testValues.stateId,
-      };
-      const expectedCall = {
-        where: {
-          id: testValues.stateId,
-        },
-      };
-      await __resolveDemonstrationState(input as PrismaDemonstration);
-      expect(regularMocks.state.findUniqueOrThrow).toHaveBeenCalledExactlyOnceWith(expectedCall);
-    });
-  });
-
-  describe("__resolveDemonstrationRoleAssignments", () => {
-    it("should look up the relevant assignments", async () => {
-      const input: Partial<PrismaDemonstration> = {
-        id: testValues.demonstrationId,
-      };
-      const expectedCall = {
-        where: {
-          demonstrationId: testValues.demonstrationId,
-        },
-      };
-      await __resolveDemonstrationRoleAssignments(input as PrismaDemonstration);
-      expect(regularMocks.demonstrationRoleAssignment.findMany).toHaveBeenCalledExactlyOnceWith(
-        expectedCall
-      );
-    });
-  });
-
-  describe("__resolveDemonstrationPrimaryProjectOfficer", () => {
-    it("should look up the primary project officer", async () => {
-      regularMocks.primaryDemonstrationRoleAssignment.findUniqueOrThrow.mockResolvedValueOnce({
-        demonstrationRoleAssignment: {
-          person: {
-            id: testValues.userId,
-          },
-        },
-      });
-      const input: Partial<PrismaDemonstration> = {
-        id: testValues.demonstrationId,
-      };
-      const expectedCall = {
-        where: {
-          demonstrationId_roleId: {
-            demonstrationId: testValues.demonstrationId,
-            roleId: testValues.projectOfficerRole,
-          },
-        },
-        include: {
-          demonstrationRoleAssignment: {
-            include: { person: true },
-          },
-        },
-      };
-      await __resolveDemonstrationPrimaryProjectOfficer(input as PrismaDemonstration);
-      expect(
-        regularMocks.primaryDemonstrationRoleAssignment.findUniqueOrThrow
-      ).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
   });
 });

@@ -8,6 +8,9 @@ model ApplicationTagSuggestion {
 
   extracts ApplicationTagSuggestionExtract[]
   status   ApplicationTagSuggestionStatus    @relation(fields: [statusId], references: [id])
+  
+  // relation is already handled transitively, but explicitly adding aids in simplifying queries 
+  application Application @relation(fields: [applicationId], references: [id])
 
   @@id([applicationId, value])
   @@map("application_tag_suggestion")

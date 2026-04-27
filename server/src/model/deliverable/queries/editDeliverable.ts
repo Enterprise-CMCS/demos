@@ -1,11 +1,10 @@
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { prisma, PrismaTransactionClient } from "../../../prismaClient";
-import { DeliverableStatus, DeliverableType, NonEmptyString } from "../../../types";
+import { DeliverableStatus, NonEmptyString } from "../../../types";
 
 export type EditDeliverableInput = {
   name?: NonEmptyString;
   statusId?: DeliverableStatus;
-  deliverableTypeId?: DeliverableType;
   cmsOwnerUserId?: string;
   dueDate?: Date;
 };

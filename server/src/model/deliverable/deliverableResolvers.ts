@@ -10,6 +10,7 @@ import { GraphQLResolveInfo } from "graphql";
 import { createDeliverable, getDeliverable, getManyDeliverables, updateDeliverable } from ".";
 import {
   CreateDeliverableInput,
+  DeliverableAction,
   DeliverableDueDateType,
   DeliverableStatus,
   DeliverableType,
@@ -18,6 +19,7 @@ import {
 import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getManyDocuments } from "../document";
+import { getFormattedDeliverableActions } from "../deliverableAction";
 import { getManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 
 export async function resolveDeliverable(
@@ -98,7 +100,8 @@ export async function resolveDeliverableCmsOwner(parent: PrismaDeliverable): Pro
 
 export const deliverableResolvers = {
   Query: {
-    deliverable: async (parent: unknown, args: {id: string}) => await getDeliverable({ id: args.id }),
+    deliverable: async (parent: unknown, args: { id: string }) =>
+      await getDeliverable({ id: args.id }),
     deliverables: queryDeliverables,
   },
 
@@ -125,6 +128,18 @@ export const deliverableResolvers = {
     status: resolveDeliverableStatus,
     cmsOwner: resolveDeliverableCmsOwner,
     dueDateType: resolveDeliverableDueDateType,
+    demonstrationTypes: async (parent: PrismaDeliverable, args: unknown, context: GraphQLContext) =>
+      (await getManyDeliverableDemonstrationTypes({ deliverableId: parent.id }, context.user)).map(
+        (deliverableDemonstrationType) => {
+          const { statusId, tagNameId, ...tag } =
+            deliverableDemonstrationType.demonstrationTypeTagAssignment.tag;
+          return {
+            ...tag,
+            tagName: tagNameId,
+            approvalStatus: statusId,
+          };
+        }
+      ),
     cmsDocuments: async (
       parent: PrismaDeliverable,
       args: unknown,
@@ -147,17 +162,8 @@ export const deliverableResolvers = {
         },
         context.user
       ),
-    demonstrationTypes: async (parent: PrismaDeliverable, args: unknown, context: GraphQLContext) =>
-      (await getManyDeliverableDemonstrationTypes({ deliverableId: parent.id }, context.user)).map(
-        (deliverableDemonstrationType) => {
-          const { statusId, tagNameId, ...tag } =
-            deliverableDemonstrationType.demonstrationTypeTagAssignment.tag;
-          return {
-            ...tag,
-            tagName: tagNameId,
-            approvalStatus: statusId,
-          };
-        }
-      ),
+    deliverableActions: async (parent: PrismaDeliverable): Promise<DeliverableAction[]> => {
+      return await getFormattedDeliverableActions(parent.id);
+    },
   },
 };

@@ -40,7 +40,7 @@ const DemonstrationDetailMock = {
     data: {
       demonstration: {
         id: "1",
-        status: "Active",
+        status: "Approved",
         currentPhaseName: "Phase 1",
         amendments: [
           {
@@ -98,7 +98,10 @@ describe("DemonstrationDetail", () => {
 
   const renderDeliverableRoute = (initialEntry = "/deliverables/1") => {
     return render(
-      <MockedProvider mocks={[DeliverableToDemonstrationMock, DemonstrationDetailMock]} addTypename={false}>
+      <MockedProvider
+        mocks={[DeliverableToDemonstrationMock, DemonstrationDetailMock]}
+        addTypename={false}
+      >
         <MemoryRouter initialEntries={[initialEntry]}>
           <Routes>
             <Route path="/deliverables/:deliverableId" element={<DemonstrationDetail />} />
@@ -217,13 +220,22 @@ describe("DemonstrationDetail", () => {
     });
   });
 
-  it("renders tabbed demonstration detail for deliverable route", async () => {
+  it("renders approved demonstration detail for deliverable route", async () => {
     renderDeliverableRoute();
 
     await waitFor(() => {
       expect(screen.getByRole("button", { name: /Demonstration Details/i })).toBeInTheDocument();
     });
 
+    expect(DemonstrationTab).toHaveBeenCalledWith(
+      expect.objectContaining({
+        demonstration: expect.objectContaining({
+          id: "1",
+          status: "Approved",
+        }),
+      }),
+      undefined
+    );
     expect(screen.getByRole("button", { name: /Amendments \(2\)/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Extensions \(1\)/i })).toBeInTheDocument();
   });

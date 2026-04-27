@@ -14,6 +14,7 @@ import { DemosLayoutProvider } from "./DemosLayoutProvider";
 import { DocumentDetailPage } from "pages/DocumentDetails/DocumentDetail";
 import { DeliverablesPage } from "pages/DeliverablesPage";
 import { AdminPage } from "pages/admin/AdminPage";
+import { RequireAdmin } from "./RequireAdmin";
 
 export const DemosRouter: React.FC = () => {
   return (

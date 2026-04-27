@@ -1,5 +1,6 @@
 import {
   checkDemonstrationStatus,
+  checkDeliverableStatusNotFinalized,
   checkDueDateInFuture,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
@@ -63,7 +64,10 @@ export async function validateUpdateDeliverableInput(
   input: ParsedUpdateDeliverableInput,
   tx: PrismaTransactionClient
 ): Promise<void> {
+  const deliverable = await getDeliverable({ id: deliverableId }, tx);
   const errors: (string | undefined)[] = [];
+
+  errors.push(checkDeliverableStatusNotFinalized(deliverable));
 
   if (input.cmsOwnerUserId) {
     const cmsOwnerUser = await getUser({ id: input.cmsOwnerUserId }, tx);
@@ -71,7 +75,6 @@ export async function validateUpdateDeliverableInput(
   }
 
   if (input.demonstrationTypes && input.demonstrationTypes.size > 0) {
-    const deliverable = await getDeliverable({ id: deliverableId }, tx);
     const demonstrationTypeAssignments = await getDemonstrationTypeAssignments(
       {
         demonstrationId: deliverable.demonstrationId,

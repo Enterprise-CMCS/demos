@@ -25,11 +25,15 @@ describe("startPhasesByDates", () => {
 
   const mockEasternNow: EasternNow = {
     "Start of Day": {
-      easternTZDate: new TZDate("2025-01-01T05:00:00.000Z"),
+      easternTZDate: new TZDate("2025-01-01T00:00:00.000-05:00", "America/New_York"),
       isEasternTZDate: true,
     },
     "End of Day": {
-      easternTZDate: new TZDate("2025-01-02T04:59:59.999Z"),
+      easternTZDate: new TZDate("2025-01-01T23:59:59.999-05:00", "America/New_York"),
+      isEasternTZDate: true,
+    },
+    "Current Time": {
+      easternTZDate: new TZDate("2025-01-15T11:29:14.978-05:00", "America/New_York"),
       isEasternTZDate: true,
     },
   };

@@ -1,9 +1,10 @@
 import {
+  Deliverable as PrismaDeliverable,
   Demonstration as PrismaDemonstration,
   DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
   User as PrismaUser,
 } from "@prisma/client";
-import { ApplicationStatus, PersonType, TagName } from "../../types";
+import { ApplicationStatus, DeliverableStatus, PersonType, TagName } from "../../types";
 import { findDuplicates } from "../../validationUtilities";
 import { EasternTZDate, getEasternNow } from "../../dateUtilities";
 
@@ -11,6 +12,20 @@ export function checkDemonstrationStatus(demonstration: PrismaDemonstration): st
   const approvedStatus: ApplicationStatus = "Approved";
   if (demonstration.statusId !== approvedStatus) {
     return `Demonstration ${demonstration.id} is not in Approved status; cannot create deliverable.`;
+  }
+}
+
+export function checkDeliverableStatusNotFinalized(
+  deliverable: PrismaDeliverable
+): string | undefined {
+  const deliverableStatus = deliverable.statusId as DeliverableStatus;
+  const finalDeliverableStatuses: DeliverableStatus[] = [
+    "Approved",
+    "Accepted",
+    "Received and Filed",
+  ];
+  if (finalDeliverableStatuses.includes(deliverableStatus)) {
+    return `Cannot modify deliverable ${deliverable.id} as it has already been finalized.`;
   }
 }
 

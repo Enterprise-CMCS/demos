@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
 
 // Types
-import { UpdateDeliverableInput, DateTimeOrLocalDate, DeliverableType } from "../../types";
+import { UpdateDeliverableInput } from "../../types";
 import { EditDeliverableInput, ParsedUpdateDeliverableInput } from ".";
 import { GraphQLContext } from "../../auth/auth.util";
 
@@ -43,7 +43,6 @@ describe("updateDeliverable", () => {
   // Test inputs
   const testDeliverableId = "2563ded3-b5c5-4d89-9ee4-0a9bc072e89e";
   const testName = "Test Input 1";
-  const testDeliverableType: DeliverableType = "Close Out Report";
   const testCmsOwnerUserId = "7643eef9-dc5e-4640-bc1f-b0a660034386";
   const testInput: UpdateDeliverableInput = {
     name: testName,
@@ -78,7 +77,7 @@ describe("updateDeliverable", () => {
   it("should check for non-null in all the fields", async () => {
     await updateDeliverable(testDeliverableId, testInput, testContext);
     expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(
-      ["name", "deliverableType", "cmsOwnerUserId", "dueDate", "demonstrationTypes"],
+      ["name", "cmsOwnerUserId", "dueDate", "demonstrationTypes"],
       testInput
     );
   });
@@ -114,42 +113,14 @@ describe("updateDeliverable", () => {
     [
       ["name only", { name: testName }, { name: testName }],
       [
-        "deliverableType only",
-        { deliverableType: testDeliverableType },
-        { deliverableTypeId: testDeliverableType },
-      ],
-      [
         "cmsOwnerUserId only",
         { cmsOwnerUserId: testCmsOwnerUserId },
         { cmsOwnerUserId: testCmsOwnerUserId },
       ],
       [
-        "name + deliverableType",
-        { name: testName, deliverableType: testDeliverableType },
-        { name: testName, deliverableTypeId: testDeliverableType },
-      ],
-      [
         "name + cmsOwnerUserId",
         { name: testName, cmsOwnerUserId: testCmsOwnerUserId },
         { name: testName, cmsOwnerUserId: testCmsOwnerUserId },
-      ],
-      [
-        "deliverableType + cmsOwnerUserId",
-        { deliverableType: testDeliverableType, cmsOwnerUserId: testCmsOwnerUserId },
-        { deliverableTypeId: testDeliverableType, cmsOwnerUserId: testCmsOwnerUserId },
-      ],
-      [
-        "name + deliverableType + cmsOwnerUserId",
-        {
-          name: testName,
-          deliverableType: testDeliverableType,
-          cmsOwnerUserId: testCmsOwnerUserId,
-        },
-        {
-          name: testName,
-          deliverableTypeId: testDeliverableType,
-          cmsOwnerUserId: testCmsOwnerUserId,
-        },
       ],
     ];
   it.each(editDeliverableInputTests)(
@@ -168,7 +139,7 @@ describe("updateDeliverable", () => {
     }
   );
 
-  it("should not do a direct update if there is no new name, type, or owner", async () => {
+  it("should not do a direct update if there is no new name or owner", async () => {
     // Note that logic is based on results of parseUpdateDeliverableInput
     // That is why this mock is necessary
     const mockParseInputResult: ParsedUpdateDeliverableInput = {

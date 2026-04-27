@@ -1,4 +1,4 @@
-import { User } from "demos-server";
+import { PersonType, User } from "demos-server";
 
 export type MockUser = Pick<User, "id" | "username"> & {
   person: MockPerson;
@@ -9,14 +9,27 @@ import { mockPeople, MockPerson } from "./personMocks";
 import { mockStates } from "./stateMocks";
 import { getMockPersonType } from "config/env";
 
+const getPrettyFirstName =(personType: PersonType): string => {
+  switch (personType) {
+    case "demos-admin":
+      return "Admin";
+    case "demos-state-user":
+      return "State";
+    case "demos-cms-user":
+      return "CMS";
+    default:
+      return "Unknown";
+  }
+};
+
 export const developmentMockUser: MockUser = {
   id: "999",
   username: "mock.dev.user",
   person: {
     id: "999",
-    firstName: "Mock",
+    firstName: getPrettyFirstName(getMockPersonType()),
     lastName: "User",
-    fullName: "Mock User",
+    fullName: `${getPrettyFirstName(getMockPersonType())} User`,
     personType: getMockPersonType(),
     email: "mock.user@email.com",
     states: mockStates,

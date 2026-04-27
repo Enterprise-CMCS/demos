@@ -1,6 +1,7 @@
 // Functions
 export {
   checkDemonstrationStatus,
+  checkDeliverableStatusNotFinalized,
   checkDueDateInFuture,
   checkForDuplicateDemonstrationTypes,
   checkOwnerPersonType,
