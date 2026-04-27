@@ -23,6 +23,7 @@ import {
   UpdateDemonstrationInput,
 } from "../../types";
 import {
+  ApplicationTagSuggestion as PrismaApplicationTagSuggestion,
   Demonstration as PrismaDemonstration,
   DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
   Tag as PrismaTag,
@@ -41,7 +42,6 @@ import {
   deleteApplication,
   getApplication,
   // None of these are tested but need to be exported to avoid mocking issues
-  resolveSuggestedApplicationTags,
 } from "../application";
 import { parseDateTimeOrLocalDateToEasternTZDate, EasternTZDate } from "../../dateUtilities";
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus";
@@ -56,6 +56,7 @@ import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment
 import { getManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment";
 import { DemonstrationTypeTagAssignmentQueryResult } from "../demonstrationTypeTagAssignment/queries";
 import { getManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment";
+import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -86,6 +87,10 @@ vi.mock("../applicationTagAssignment", () => ({
   getManyApplicationTagAssignments: vi.fn(),
 }));
 
+vi.mock("../applicationTagSuggestion", () => ({
+  getManyApplicationTagSuggestions: vi.fn(),
+}));
+
 vi.mock("../demonstrationTypeTagAssignment", () => ({
   getManyDemonstrationTypeTagAssignments: vi.fn(),
 }));
@@ -97,7 +102,6 @@ vi.mock("../demonstrationRoleAssignment", () => ({
 vi.mock("../application", () => ({
   getApplication: vi.fn(),
   deleteApplication: vi.fn(),
-  resolveSuggestedApplicationTags: vi.fn(),
 }));
 
 vi.mock("../../errors/checkOptionalNotNullFields", () => ({
@@ -364,6 +368,36 @@ describe("demonstrationResolvers", () => {
           approvalStatus: "Unapproved",
         },
       ]);
+    });
+  });
+
+  describe("Demonstration.applicationTagSuggestions", () => {
+    it("delegates to applicationTagSuggestionData.getManyApplicationTagSuggestions and maps result", async () => {
+      const mockDemonstration = { id: "abc123" } as PrismaDemonstration;
+      vi.mocked(getManyApplicationTagSuggestions).mockResolvedValueOnce([
+        {
+          value: "Suggestion1",
+        },
+        {
+          value: "Suggestion2",
+        },
+      ] as PrismaApplicationTagSuggestion[]);
+
+      const result = await demonstrationResolvers.Demonstration.suggestedApplicationTags(
+        mockDemonstration,
+        undefined,
+        mockContext
+      );
+      expect(getManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith(
+        {
+          applicationId: "abc123",
+          statusId: {
+            in: ["Pending"],
+          },
+        },
+        mockUser
+      );
+      expect(result).toEqual(["Suggestion1", "Suggestion2"]);
     });
   });
 

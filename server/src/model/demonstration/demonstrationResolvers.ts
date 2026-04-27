@@ -12,12 +12,13 @@ import {
   GrantLevel,
   PhaseName,
   Role,
+  UiPathResultStatus,
   UpdateDemonstrationInput,
 } from "../../types";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate";
-import { deleteApplication, getApplication, resolveSuggestedApplicationTags } from "../application";
+import { deleteApplication, getApplication } from "../application";
 import { determineDemonstrationTypeStatus } from "./determineDemonstrationTypeStatus";
 import { resolveManyDeliverables } from "../deliverable";
 import { GraphQLContext } from "../../auth";
@@ -29,6 +30,7 @@ import { getManyApplicationPhases } from "../applicationPhase";
 import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
 import { getManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment";
 import { getManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment";
+import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -268,7 +270,22 @@ export const demonstrationResolvers = {
           };
         }
       ),
-    suggestedApplicationTags: resolveSuggestedApplicationTags,
+    suggestedApplicationTags: async (
+      parent: PrismaDemonstration,
+      args: unknown,
+      context: GraphQLContext
+    ) =>
+      (
+        await getManyApplicationTagSuggestions(
+          {
+            applicationId: parent.id,
+            statusId: {
+              in: ["Pending" satisfies UiPathResultStatus],
+            },
+          },
+          context.user
+        )
+      ).map((suggestion) => suggestion.value),
     demonstrationTypes: async (
       parent: PrismaDemonstration,
       args: unknown,
