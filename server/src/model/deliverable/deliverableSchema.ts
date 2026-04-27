@@ -62,6 +62,7 @@ export const deliverableSchema = gql`
     createDeliverable(input: CreateDeliverableInput): Deliverable
     updateDeliverable(id: ID!, input: UpdateDeliverableInput!): Deliverable
     submitDeliverable(id: ID!): Deliverable
+    startDeliverableReview(id: ID!): Deliverable
   }
 `;
 

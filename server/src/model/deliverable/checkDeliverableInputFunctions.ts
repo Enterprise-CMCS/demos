@@ -83,3 +83,14 @@ export async function checkDeliverableHasAtLeastOneDocument(
     return `Cannot submit deliverable ${deliverable.id} because it has no state documents attached.`;
   }
 }
+
+export function checkDeliverableHasStatus(
+  deliverable: PrismaDeliverable,
+  expectedStatus: DeliverableStatus
+): string | undefined {
+  // Cast enforced by database constraints
+  const deliverableStatus = deliverable.statusId as DeliverableStatus;
+  if (deliverableStatus !== expectedStatus) {
+    return `Deliverable expected to have status ${expectedStatus}; actual status was ${deliverableStatus}.`;
+  }
+}

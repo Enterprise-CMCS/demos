@@ -7,6 +7,7 @@ export {
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
   checkDeliverableHasAtLeastOneDocument,
+  checkDeliverableHasStatus,
 } from "./checkDeliverableInputFunctions";
 export { createDeliverable } from "./createDeliverable";
 export { manuallyUpdateDeliverableDueDate } from "./manuallyUpdateDeliverableDueDate";
@@ -14,9 +15,11 @@ export { parseCreateDeliverableInput, parseUpdateDeliverableInput } from "./pars
 export { resolveDeliverable, resolveManyDeliverables } from "./deliverableResolvers";
 export {
   validateCreateDeliverableInput,
+  validateStartDeliverableReviewInput,
   validateSubmitDeliverableInput,
   validateUpdateDeliverableInput,
 } from "./validateDeliverableInputs";
+export { startDeliverableReview } from "./startDeliverableReview";
 export { submitDeliverable } from "./submitDeliverable";
 export { updateDeliverable } from "./updateDeliverable";
 export { updateDeliverableDemonstrationTypes } from "./updateDeliverableDemonstrationTypes";
