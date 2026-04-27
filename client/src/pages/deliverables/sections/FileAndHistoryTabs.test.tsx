@@ -24,7 +24,6 @@ describe("FileAndHistoryTabs", () => {
     expect(screen.getByText("CMS Files")).toBeInTheDocument();
   });
 
-
   it("renders the History tab", () => {
     setup();
     expect(screen.getByText("History")).toBeInTheDocument();
@@ -32,7 +31,8 @@ describe("FileAndHistoryTabs", () => {
 
   it("shows State Files table content by default", () => {
     setup();
+    expect(screen.getByRole("heading", { name: "State Files" })).toBeInTheDocument();
     expect(screen.getByRole("table")).toBeInTheDocument();
-    expect(screen.getByText("Example File")).toBeInTheDocument();
+    expect(screen.getByText("You have no files added at this time")).toBeInTheDocument();
   });
 });

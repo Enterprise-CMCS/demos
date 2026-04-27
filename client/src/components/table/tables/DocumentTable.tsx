@@ -21,8 +21,13 @@ export type DocumentTableDocument = Pick<
 export type DocumentsTableProps = {
   applicationId: string;
   documents: DocumentTableDocument[];
+  emptyRowsMessage?: string;
 };
-export const DocumentTable: React.FC<DocumentsTableProps> = ({ applicationId, documents }) => {
+export const DocumentTable: React.FC<DocumentsTableProps> = ({
+  applicationId,
+  documents,
+  emptyRowsMessage = "No documents available.",
+}) => {
   const documentColumns = DocumentColumns();
   const { showUploadDocumentDialog, showEditDocumentDialog, showRemoveDocumentDialog } =
     useDialog();
@@ -39,7 +44,7 @@ export const DocumentTable: React.FC<DocumentsTableProps> = ({ applicationId, do
           keywordSearch={(table) => <KeywordSearch table={table} />}
           columnFilter={(table) => <ColumnFilter table={table} />}
           pagination={(table) => <PaginationControls table={table} />}
-          emptyRowsMessage="No documents available."
+          emptyRowsMessage={emptyRowsMessage}
           noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
           initialState={initialState}
           actionButtons={(table) => {
