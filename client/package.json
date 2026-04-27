@@ -52,7 +52,7 @@
   },
   "scripts": {
     "ally": "bash scripts/ally.sh",
-    "ally:ci": "CI=true bash scripts/ally.sh",
+    "ally:ci": "DEMOS_AXE_CI=true bash scripts/ally.sh",
     "analyze": "vite-bundle-visualizer --mode=build",
     "build": "npm run tsc && vite build",
     "build:ci": "vite build",

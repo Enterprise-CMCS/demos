@@ -4,12 +4,12 @@ set -e
 # @axe-core/cli is run via npx to avoid a global install.
 # It was removed from devDependencies due to security findings in axe-core.
 
-CI=${CI:-false}
+DEMOS_AXE_CI=${DEMOS_AXE_CI:-false}
 
 echo "Installing browser driver..."
 npx browser-driver-manager install chrome
 
-if [ "$CI" = "true" ]; then
+if [ "$DEMOS_AXE_CI" = "true" ]; then
   npx @axe-core/cli http://localhost:3000 \
     --save accessibility-report.json \
     --exit \
