@@ -61,6 +61,7 @@ export const deliverableSchema = gql`
   type Mutation {
     createDeliverable(input: CreateDeliverableInput): Deliverable
     updateDeliverable(id: ID!, input: UpdateDeliverableInput!): Deliverable
+    submitDeliverable(id: ID!): Deliverable
   }
 `;
 
