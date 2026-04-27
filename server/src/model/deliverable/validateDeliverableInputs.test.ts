@@ -35,6 +35,7 @@ vi.mock("../demonstrationTypeTagAssignment", () => ({
 
 vi.mock(".", () => ({
   checkDemonstrationStatus: vi.fn(),
+  checkDeliverableStatusNotFinalized: vi.fn(),
   checkDueDateInFuture: vi.fn(),
   checkOwnerPersonType: vi.fn(),
   checkRequestedDeliverableDemonstrationType: vi.fn(),
@@ -46,6 +47,7 @@ import { getUser } from "../user";
 import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
 import {
   checkDemonstrationStatus,
+  checkDeliverableStatusNotFinalized,
   checkDueDateInFuture,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
@@ -317,6 +319,19 @@ describe("validateDeliverableInputs", () => {
       ).resolves.toBeUndefined();
     });
 
+    it("should always get the deliverable information from the DB", async () => {
+      const testInput: ParsedUpdateDeliverableInput = {
+        name: "A new name!",
+      };
+
+      await validateUpdateDeliverableInput(mockDeliverable.id!, testInput, mockTransaction);
+
+      expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+        { id: mockDeliverable.id },
+        mockTransaction
+      );
+    });
+
     it("should not throw if none of the rules are violated", async () => {
       // Note: don't need to set returns to undefined, as this is what vi.fn() does already
       const testInput: ParsedUpdateDeliverableInput = {
@@ -383,9 +398,33 @@ describe("validateDeliverableInputs", () => {
       };
 
       await validateUpdateDeliverableInput(mockDeliverable.id!, testInput, mockTransaction);
-      expect(getDeliverable).not.toHaveBeenCalled();
       expect(getDemonstrationTypeAssignments).not.toHaveBeenCalled();
       expect(checkRequestedDeliverableDemonstrationType).not.toHaveBeenCalled();
+    });
+
+    it("should throw if the deliverable status check fails", async () => {
+      const testInput: ParsedUpdateDeliverableInput = {
+        name: "A new name!",
+        cmsOwnerUserId: "7d8fdea5-ca19-42e5-af50-98836b6d47db",
+      };
+      vi.mocked(checkDeliverableStatusNotFinalized).mockReturnValue(
+        "The deliverable finalized status check failed!"
+      );
+
+      try {
+        await validateUpdateDeliverableInput(mockDeliverable.id!, testInput, mockTransaction);
+        throw new Error("Expected validateUpdateDeliverableInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for updateDeliverable have failed."
+        );
+        expect(error.extensions.code).toBe("UPDATE_DELIVERABLE_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable finalized status check failed!",
+        ]);
+      }
     });
 
     it("should throw if the owner person type check runs and fails", async () => {
@@ -481,6 +520,9 @@ describe("validateDeliverableInputs", () => {
           dateChangeNote: "Note is required",
         },
       };
+      vi.mocked(checkDeliverableStatusNotFinalized).mockReturnValue(
+        "The deliverable finalized status check failed!"
+      );
       vi.mocked(checkOwnerPersonType).mockReturnValue("The owner person type check failed");
       vi.mocked(checkRequestedDeliverableDemonstrationType).mockReturnValueOnce(
         "The demonstration type check failed"
@@ -497,6 +539,7 @@ describe("validateDeliverableInputs", () => {
         );
         expect(error.extensions.code).toBe("UPDATE_DELIVERABLE_VALIDATION_FAILED");
         expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable finalized status check failed!",
           "The owner person type check failed",
           "The demonstration type check failed",
         ]);

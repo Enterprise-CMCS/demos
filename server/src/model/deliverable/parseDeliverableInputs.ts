@@ -1,6 +1,5 @@
 import {
   CreateDeliverableInput,
-  DeliverableStatus,
   DeliverableType,
   NonEmptyString,
   TagName,
@@ -30,7 +29,6 @@ export type ParsedUpdateDeliverableInput = {
   cmsOwnerUserId?: string;
   dueDate?: ParsedUpdateDueDate;
   demonstrationTypes?: Set<TagName>;
-  status?: DeliverableStatus;
 };
 
 export function parseCreateDeliverableInput(
