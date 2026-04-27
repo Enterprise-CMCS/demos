@@ -1,7 +1,7 @@
 pipeline {
   agent {
-    kubernetes { 
-      yaml kubeBlock(containerNames:["node"])
+    kubernetes {
+      yaml kubeBlock(containerNames:['node'])
     }
   }
 
@@ -14,18 +14,28 @@ pipeline {
   }
 
   stages {
+    stage('Install shared library deps') {
+      steps {
+        dirCon('shared_library', 'node') {
+          sh 'npm ci'
+        }
+      }
+    }
+
     stage('Check for updates') {
       steps {
         script {
-          npmUpdates(dir: "client")          
-          npmUpdates(dir: "server")          
-          npmUpdates(dir: "deployment")          
-          npmUpdates(dir: "lambdas/authorizer")          
-          npmUpdates(dir: "lambdas/dbRoleManagement")          
-          npmUpdates(dir: "lambdas/emailer")          
-          npmUpdates(dir: "lambdas/fileprocess")          
-          npmUpdates(dir: "lambdas/deleteinfectedfile")          
-          npmUpdates(dir: "lambdas/UIPath")          
+          npmUpdates(dir: 'shared_library')
+          npmUpdates(dir: 'client')
+          npmUpdates(dir: 'server')
+          npmUpdates(dir: 'deployment')
+          npmUpdates(dir: 'lambdas/authorizer')
+          npmUpdates(dir: 'lambdas/dbRoleManagement')
+          npmUpdates(dir: 'lambdas/emailer')
+          npmUpdates(dir: 'lambdas/fileprocess')
+          npmUpdates(dir: 'lambdas/deleteinfectedfile')
+          npmUpdates(dir: 'lambdas/UIPath')
+          npmUpdates(dir: 'lambdas/budgetNeutrality')
         }
       }
     }
