@@ -51,7 +51,7 @@ export const VerticalTabs: React.FC<VerticalTabsProps> = ({ children, defaultVal
     setSelectedValue(value);
   };
 
-  const navWidth = isNavCollapsed ? "w-12" : "w-50";
+  const navWidth = isNavCollapsed ? "min-w-12" : "min-w-50";
 
   return (
     <div className="flex flex-row">
