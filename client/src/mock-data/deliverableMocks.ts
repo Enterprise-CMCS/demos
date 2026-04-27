@@ -18,6 +18,7 @@ export const MOCK_DELIVERABLE_TABLE_ROW: DeliverableTableRow = {
     state: {
       id: "CA",
     },
+    roles: [],
     demonstrationTypes: [],
   },
   cmsOwner: {

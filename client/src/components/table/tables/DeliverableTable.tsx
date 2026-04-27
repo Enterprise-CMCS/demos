@@ -1,6 +1,6 @@
 import React from "react";
 import { gql } from "@apollo/client";
-import type { Deliverable, Person, State, UserType } from "demos-server";
+import type { Deliverable, Person, Role, State, UserType } from "demos-server";
 
 import { DeliverableColumns } from "../columns/DeliverableColumns";
 import { Table, type TableProps } from "../Table";
@@ -34,6 +34,10 @@ export type DeliverableTableRow = Omit<
   name: string;
   demonstration: Pick<Deliverable["demonstration"], "id" | "name"> & {
     state: Pick<State, "id">;
+    roles?: {
+      role: Role;
+      person: Pick<Person, "id">;
+    }[];
     demonstrationTypes: {
       demonstrationTypeName: string;
       approvalStatus: "Approved" | "Unapproved";
@@ -64,6 +68,12 @@ export const DELIVERABLES_PAGE_QUERY = gql`
         demonstrationTypes {
           demonstrationTypeName
           approvalStatus
+        }
+        roles {
+          role
+          person {
+            id
+          }
         }
       }
       status

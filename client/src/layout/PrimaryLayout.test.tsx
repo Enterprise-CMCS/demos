@@ -43,6 +43,10 @@ describe("shouldHideSideNav", () => {
       expect(shouldHideSideNav("/")).toBe(false);
     });
 
+    it("returns true for the state-user landing page", () => {
+      expect(shouldHideSideNav("/", "demos-state-user")).toBe(true);
+    });
+
     it("returns false for an unrelated route", () => {
       expect(shouldHideSideNav("/settings")).toBe(false);
     });

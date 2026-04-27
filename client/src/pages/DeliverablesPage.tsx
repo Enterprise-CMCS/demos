@@ -14,11 +14,17 @@ export const DeliverablesPage: React.FC = () => {
   const { currentUser } = getCurrentUser();
   const rawPersonType = currentUser?.person.personType;
   const viewMode = rawPersonType as UserType;
+  const isStateUser = viewMode === "demos-state-user";
   const { data, loading, error } = useQuery<DeliverablesQueryResult>(DELIVERABLES_PAGE_QUERY);
 
   const deliverables = data?.deliverables ?? [];
   const myDeliverables = deliverables.filter(
     (deliverable) => deliverable.cmsOwner.id === currentUser?.id
+  );
+  const stateDeliverables = deliverables.filter((deliverable) =>
+    deliverable.demonstration.roles?.some(
+      (role) => role.role === "State Point of Contact" && role.person.id === currentUser?.person.id
+    )
   );
 
   const [tabValue, onTabSelect] = useSessionTab({
@@ -36,7 +42,11 @@ export const DeliverablesPage: React.FC = () => {
       {loading && <div className="p-4">Loading deliverables...</div>}
       {error && <div className="p-4 text-red-500">Error loading deliverables.</div>}
 
-      {data && (
+      {data && isStateUser && (
+        <DeliverableTable deliverables={stateDeliverables} viewMode={viewMode} />
+      )}
+
+      {data && !isStateUser && (
         <HorizontalSectionTabs defaultValue={tabValue} onSelect={onTabSelect}>
           <Tab label={`My Deliverables (${myDeliverables.length})`} value="my-deliverables">
             <DeliverableTable

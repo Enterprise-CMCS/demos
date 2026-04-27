@@ -9,7 +9,6 @@ import { createDateColumnDef } from "components/table/columns/dateColumn";
 import { highlightCell, KeywordSearch } from "components/table/KeywordSearch";
 import { ColumnFilter } from "components/table/ColumnFilter";
 import { PaginationControls } from "components/table/PaginationControls";
-import { formatDeliverableStatus } from "./DeliverableTable";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
 import { getDeliverableFilterOptions } from "./deliverablesFilterOptions";
 
@@ -103,10 +102,7 @@ export const DemonstrationDeliverableTable: React.FC<{
   ];
   const resolvedColumns = viewMode === "demos-state-user" ? columns : columnsWithCmsFields;
 
-  const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({
-    ...deliverable,
-    status: formatDeliverableStatus(deliverable),
-  }));
+  const formattedDeliverables = sortDeliverablesByDefault(deliverables);
 
   return (
     <Table<DemonstrationDeliverableTableRow>

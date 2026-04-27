@@ -13,16 +13,30 @@ vi.mock("components/dialog/DialogContext", () => ({
 }));
 
 const MOCK_DELIVERABLE_TABLE_ROWS = [
-  MOCK_DELIVERABLE_TABLE_ROW,
+  {
+    ...MOCK_DELIVERABLE_TABLE_ROW,
+    demonstration: {
+      ...MOCK_DELIVERABLE_TABLE_ROW.demonstration,
+      roles: [{ role: "State Point of Contact" as const, person: { id: "1" } }],
+    },
+  },
   {
     ...MOCK_DELIVERABLE_TABLE_ROW,
     id: "2",
     name: "Budget Neutrality Worksheet",
+    demonstration: {
+      ...MOCK_DELIVERABLE_TABLE_ROW.demonstration,
+      roles: [{ role: "State Point of Contact" as const, person: { id: "1" } }],
+    },
   },
   {
     ...MOCK_DELIVERABLE_TABLE_ROW,
     id: "3",
     name: "Quarterly Report For NYC Demonstration",
+    demonstration: {
+      ...MOCK_DELIVERABLE_TABLE_ROW.demonstration,
+      roles: [{ role: "State Point of Contact" as const, person: { id: "2" } }],
+    },
     cmsOwner: {
       id: "other-user-id",
       person: { id: "other-person", fullName: "Other Person" },
@@ -138,7 +152,7 @@ describe("DeliverablesPage tab persistence", () => {
     expect(screen.getByRole("columnheader", { name: /Demonstration Name/i })).toBeInTheDocument();
   });
 
-  it("shows All Deliverables tab for demos-state-user", async () => {
+  it("shows only deliverables where the state user is a State Point of Contact", async () => {
     await renderDeliverablesPage({
       ...mockUsers[0],
       person: {
@@ -147,22 +161,22 @@ describe("DeliverablesPage tab persistence", () => {
       },
     });
 
-    expect(screen.getByTestId("button-deliverables")).toBeInTheDocument();
-    expect(screen.getByTestId("button-my-deliverables")).toHaveAttribute("aria-selected", "true");
+    expect(screen.queryByTestId("button-deliverables")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("button-my-deliverables")).not.toBeInTheDocument();
+    expect(screen.getByText("Budget Neutrality Report")).toBeInTheDocument();
+    expect(screen.getByText("Budget Neutrality Worksheet")).toBeInTheDocument();
+    expect(screen.queryByText("Quarterly Report For NYC Demonstration")).not.toBeInTheDocument();
   });
 
-  it("uses stored deliverables tab for demos-state-user", async () => {
-    sessionStorage.setItem(TAB_KEY, "deliverables");
-
+  it("shows the state-user empty message when no State Point of Contact rows match", async () => {
     await renderDeliverablesPage({
-      ...mockUsers[0],
+      ...mockUsers[9],
       person: {
-        ...mockUsers[0].person,
+        ...mockUsers[9].person,
         personType: "demos-state-user",
       },
     });
 
-    expect(sessionStorage.getItem(TAB_KEY)).toBe("deliverables");
-    expect(screen.getByTestId("button-deliverables")).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText("There are no assigned Deliverables at this time")).toBeInTheDocument();
   });
 });

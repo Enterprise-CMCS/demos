@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { DemonstrationDetail } from "pages/DemonstrationDetail/index";
 import { DemosApolloProvider } from "./DemosApolloProvider";
 import { DemosAuthProvider } from "./DemosAuthProvider";
-import { UserProvider } from "components/user/UserContext";
+import { getCurrentUser, UserProvider } from "components/user/UserContext";
 import { DemonstrationsPage } from "pages/DemonstrationsPage";
 import { ComponentLibrary, DialogSandbox } from "pages/debug";
 import { IconLibrary } from "pages/debug/IconLibrary";
@@ -16,6 +16,15 @@ import { DeliverablesPage } from "pages/DeliverablesPage";
 import { DeliverableDetailsManagementPage } from "pages/deliverables/DeliverableDetailsManagementPage";
 import { AdminPage } from "pages/admin/AdminPage";
 
+const HomePage = () => {
+  const { currentUser } = getCurrentUser();
+  return currentUser?.person.personType === "demos-state-user" ? (
+    <DeliverablesPage />
+  ) : (
+    <DemonstrationsPage />
+  );
+};
+
 export const DemosRouter: React.FC = () => {
   return (
     <DemosAuthProvider>
@@ -26,7 +35,7 @@ export const DemosRouter: React.FC = () => {
               <Route path="document/:id" element={<DocumentDetailPage />} />
               <Route element={<DemosLayoutProvider />}>
                 <Route path="*" element={<div>404: Page Not Found</div>} />
-                <Route path="/" element={<DemonstrationsPage />} />
+                <Route path="/" element={<HomePage />} />
                 <Route path="demonstrations" element={<DemonstrationsPage />} />
                 <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
                 <Route path="deliverables" element={<DeliverablesPage />} />

@@ -285,6 +285,7 @@ describe("DeliverableTable demos-state-user view mode", () => {
     expect(screen.getByRole("columnheader", { name: /Deliverable Type/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Deliverable Name/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Due Date/i })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /Submission Date/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Status/i })).toBeInTheDocument();
 
     expect(
