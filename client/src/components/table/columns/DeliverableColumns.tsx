@@ -60,6 +60,7 @@ export function DeliverableColumns({
     filterFn: "arrIncludesSome",
     meta: {
       filterConfig: {
+        // Extension Requested options not ready yet.
         filterType: "select",
         options: DELIVERABLE_STATUSES.map((status) => ({ label: status, value: status })),
       },
