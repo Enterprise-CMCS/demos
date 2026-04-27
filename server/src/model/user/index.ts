@@ -1,6 +1,1 @@
-// Functions
-
-// Queries
-export { getUser } from "./queries/getUser";
-
-// Types & Constants
+export { getUser, getManyUsers } from "./userData";
