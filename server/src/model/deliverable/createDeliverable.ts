@@ -3,7 +3,7 @@ import { CreateDeliverableInput } from "../../types";
 import { GraphQLContext } from "../../auth/auth.util";
 import { parseCreateDeliverableInput, validateCreateDeliverableInput, insertDeliverable } from ".";
 import { prisma } from "../../prismaClient";
-import { insertDeliverableAction } from "../deliverableAction";
+import { insertDeliverableAction } from "../deliverableAction/queries";
 import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 
 export async function createDeliverable(

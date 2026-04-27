@@ -26,14 +26,14 @@ vi.mock("../deliverableDemonstrationType", () => ({
   setDeliverableDemonstrationTypes: vi.fn(),
 }));
 
-vi.mock("../deliverableAction", () => ({
+vi.mock("../deliverableAction/queries", () => ({
   insertDeliverableAction: vi.fn(),
 }));
 
 import { prisma } from "../../prismaClient";
 import { parseCreateDeliverableInput, validateCreateDeliverableInput, insertDeliverable } from ".";
 import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
-import { insertDeliverableAction } from "../deliverableAction";
+import { insertDeliverableAction } from "../deliverableAction/queries";
 
 describe("createDeliverable", () => {
   // Test inputs

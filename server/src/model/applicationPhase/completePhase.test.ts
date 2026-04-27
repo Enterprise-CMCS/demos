@@ -7,7 +7,7 @@ import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { validateAndUpdateDates } from "../applicationDate";
 import { validatePhaseCompletion, updatePhaseStatus, setPhaseToStarted } from ".";
-import { EasternTZDate, getEasternNow } from "../../dateUtilities.js";
+import { EasternNow, EasternTZDate, getEasternNow } from "../../dateUtilities.js";
 import { TZDate } from "@date-fns/tz";
 import { getApplication } from "../application";
 
@@ -53,16 +53,21 @@ describe("completePhase", () => {
   const testApplicationId: string = "f036a1a4-039f-464a-b73c-f806b0ff17b6";
   const testError = new Error("Database connection failed");
   const mockEasternStartOfDayDate = new Date("2025-01-13T00:00:00.000-05:00");
+  const mockEasternCurrentTime = new Date("2025-01-13T07:19:23.199-05:00");
   const mockEasternEndOfDayDate = new Date("2025-01-13T23:59:59.999-05:00");
-  const mockEasternValue = {
+  const mockEasternValue: EasternNow = {
     "Start of Day": {
       isEasternTZDate: true,
       easternTZDate: new TZDate(mockEasternStartOfDayDate, "America/New_York"),
-    } satisfies EasternTZDate,
+    },
     "End of Day": {
       isEasternTZDate: true,
       easternTZDate: new TZDate(mockEasternEndOfDayDate, "America/New_York"),
-    } satisfies EasternTZDate,
+    },
+    "Current Time": {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(mockEasternCurrentTime, "America/New_York"),
+    },
   };
 
   beforeEach(() => {
