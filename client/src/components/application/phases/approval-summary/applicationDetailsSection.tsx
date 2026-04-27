@@ -274,9 +274,9 @@ export const ApplicationDetailsSection = ({
               name="description"
               label={`${capitalizedType} Description`}
               placeholder="Enter description"
-              initialValue={sectionFormData.description ?? ""}
+              value={sectionFormData.description ?? ""}
               isDisabled={isReadonly}
-              onChange={(e) => setSectionFormData({ ...sectionFormData, description: e.target.value })}
+              onChange={(value) => setSectionFormData({ ...sectionFormData, description: value })}
             />
           )}
         </div>
