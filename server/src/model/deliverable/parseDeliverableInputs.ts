@@ -25,7 +25,6 @@ export type ParsedUpdateDueDate = {
 
 export type ParsedUpdateDeliverableInput = {
   name?: NonEmptyString;
-  deliverableType?: DeliverableType;
   cmsOwnerUserId?: string;
   dueDate?: ParsedUpdateDueDate;
   demonstrationTypes?: Set<TagName>;

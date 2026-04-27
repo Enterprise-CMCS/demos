@@ -315,7 +315,6 @@ describe("deliverableResolvers", () => {
       it("should call the updateDeliverable function with the right arguments", async () => {
         const testInput: UpdateDeliverableInput = {
           name: "A name!",
-          deliverableType: "Close Out Report",
           cmsOwnerUserId: "161f3a85-7b6d-4217-abec-93494db3a207",
         };
 
