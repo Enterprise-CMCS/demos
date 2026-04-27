@@ -8,6 +8,7 @@ import {
   Document,
   Person,
 } from "demos-server";
+
 import { useLocation, useParams } from "react-router-dom";
 import { gql, useQuery } from "@apollo/client";
 import { AmendmentsTab } from "./modifications/AmendmentsTab";
