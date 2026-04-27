@@ -1,5 +1,4 @@
 import React from "react";
-import { ColumnDef } from "@tanstack/react-table";
 
 import { CircleButton } from "components/button/CircleButton";
 import { SecondaryButton } from "components/button";
@@ -7,7 +6,7 @@ import { DeleteIcon, EditIcon } from "components/icons";
 import { ColumnFilter } from "components/table/ColumnFilter";
 import { KeywordSearch } from "components/table/KeywordSearch";
 import { PaginationControls } from "components/table/PaginationControls";
-import { Table } from "components/table/Table";
+import { Table, TableProps } from "components/table/Table";
 import { selectionTooltip } from "components/table/tables/actionTooltips";
 
 import type { DeliverableFileRow } from "./DeliverableFileTypes";
@@ -24,8 +23,7 @@ export type DeliverableFileTableProps = {
   deleteAriaLabel: string;
   emptyMessage: string;
   files: DeliverableFileRow[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  columns: ColumnDef<DeliverableFileRow, any>[];
+  columns: TableProps<DeliverableFileRow>["columns"];
   onAdd?: () => void;
   onEdit?: (file: DeliverableFileRow) => void;
   onDelete?: (fileIds: string[]) => void;
