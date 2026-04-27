@@ -19,7 +19,15 @@ import { getDeliverableFilterOptions } from "./deliverablesFilterOptions";
 
 export type DeliverableTableRow = Omit<
   Deliverable,
-  "demonstration" | "cmsOwner" | "demonstrationTypes" | "cmsDocuments" | "stateDocuments" | "name" | "dueDateType" | "expectedToBeSubmitted" | "createdAt" | "updatedAt"
+  | "demonstration"
+  | "cmsOwner"
+  | "demonstrationTypes"
+  | "cmsDocuments"
+  | "stateDocuments"
+  | "name"
+  | "dueDateType"
+  | "expectedToBeSubmitted"
+  | "updatedAt"
 > & {
   name: string;
   demonstration: Pick<Deliverable["demonstration"], "id" | "name"> & {
@@ -32,7 +40,6 @@ export type DeliverableTableRow = Omit<
   cmsOwner: Pick<Deliverable["cmsOwner"], "id"> & {
     person: Pick<Person, "fullName" | "id">;
   };
-  submissionDate?: string;
 };
 
 export type DeliverablesQueryResult = {
@@ -65,6 +72,7 @@ export const DELIVERABLES_PAGE_QUERY = gql`
         }
       }
       dueDate
+      createdAt
     }
   }
 `;

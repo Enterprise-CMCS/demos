@@ -16,6 +16,7 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
       name
       deliverableType
       dueDate
+      createdAt
       status
       demonstration {
         id
@@ -34,13 +35,19 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
   }
 `;
 
-export type DeliverableDetailsManagementDeliverable = Pick<Deliverable, "id" | "deliverableType" | "dueDate" | "status" | "name" > & {
+export type DeliverableDetailsManagementDeliverable = Pick<
+  Deliverable,
+  "id" | "deliverableType" | "dueDate" | "createdAt" | "status" | "name"
+> & {
   demonstration: Pick<Demonstration, "id" | "name" | "expirationDate"> & { state: { id: string } };
   cmsOwner: { person: { fullName: string } };
 };
 
 export const DeliverableDetailsManagementPage: React.FC = () => {
-  const { id: demonstrationId, deliverableId } = useParams<{ id?: string; deliverableId: string }>();
+  const { id: demonstrationId, deliverableId } = useParams<{
+    id?: string;
+    deliverableId: string;
+  }>();
 
   if (!deliverableId) {
     return <div>Deliverable not found.</div>;
@@ -75,8 +82,12 @@ export const DeliverableDetailsManagementPage: React.FC = () => {
           <DeliverableButtons deliverable={data.deliverable} />
         </div>
         <div className="flex w-full gap-2 flex-1">
-          <div className="flex-1"><FileAndHistoryTabs /></div>
-          <div><CommentBox /></div>
+          <div className="flex-1">
+            <FileAndHistoryTabs />
+          </div>
+          <div>
+            <CommentBox />
+          </div>
         </div>
       </div>
     </div>

@@ -7,7 +7,9 @@ import { DeliverableInfoFields } from "./DeliverableInfoFields";
 describe("DeliverableInfoFields", () => {
   it("renders the deliverable type", () => {
     render(<DeliverableInfoFields deliverable={MOCK_DELIVERABLE_1} />);
-    expect(screen.getByTestId("deliverable-Deliverable Type")).toHaveTextContent(MOCK_DELIVERABLE_1.deliverableType);
+    expect(screen.getByTestId("deliverable-Deliverable Type")).toHaveTextContent(
+      MOCK_DELIVERABLE_1.deliverableType
+    );
   });
 
   it("renders the due date", () => {
@@ -20,8 +22,8 @@ describe("DeliverableInfoFields", () => {
     expect(screen.getByTestId("deliverable-Status")).toHaveTextContent(MOCK_DELIVERABLE_1.status);
   });
 
-  it("renders the submission date placeholder", () => {
+  it("renders the submission date", () => {
     render(<DeliverableInfoFields deliverable={MOCK_DELIVERABLE_1} />);
-    expect(screen.getByTestId("deliverable-Submission Date")).toHaveTextContent("—");
+    expect(screen.getByTestId("deliverable-Submission Date")).toHaveTextContent("06/01/2024");
   });
 });

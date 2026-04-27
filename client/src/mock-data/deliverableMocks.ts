@@ -29,6 +29,7 @@ export const MOCK_DELIVERABLE_TABLE_ROW: DeliverableTableRow = {
   },
   deliverableType: "Annual Budget Neutrality Report",
   dueDate: new Date("2024-07-01"),
+  createdAt: new Date("2024-06-01T12:00:00.000Z"),
   status: "Upcoming",
 };
 
@@ -50,6 +51,7 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
     },
   },
   dueDate: new Date("2024-08-15"),
+  createdAt: new Date("2024-06-01T12:00:00.000Z"),
   status: "Upcoming",
 };
 

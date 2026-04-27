@@ -2,7 +2,11 @@ import * as React from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import { createSelectColumnDef } from "./selectColumn";
 import { createDateColumnDef } from "./dateColumn";
-import { DELIVERABLE_STATUSES, DELIVERABLE_TYPES, STATES_AND_TERRITORIES } from "demos-server-constants";
+import {
+  DELIVERABLE_STATUSES,
+  DELIVERABLE_TYPES,
+  STATES_AND_TERRITORIES,
+} from "demos-server-constants";
 import type { UserType } from "demos-server";
 import type { Option } from "components/input/select/Select";
 
@@ -53,7 +57,7 @@ export function DeliverableColumns({
   });
 
   const dueDateColumn = createDateColumnDef(columnHelper, "dueDate", "Due Date");
-  const submissionDateColumn = createDateColumnDef(columnHelper, "submissionDate", "Submission Date");
+  const submissionDateColumn = createDateColumnDef(columnHelper, "createdAt", "Submission Date");
   const statusColumn = columnHelper.accessor("status", {
     header: "Status",
     cell: highlightCell,

@@ -32,7 +32,9 @@ export const DeliverableInfoFields = ({
     { label: "Due Date", value: formatDate(deliverable.dueDate) },
     { label: "Status", value: deliverable.status },
   ];
-  const additionalFields: DeliverableInfoField[] = [{ label: "Submission Date", value: "—" }];
+  const additionalFields: DeliverableInfoField[] = [
+    { label: "Submission Date", value: formatDate(deliverable.createdAt) },
+  ];
   const shouldShowAdditionalDetails = !showAdditionalDetailsToggle || showAdditionalDetails;
   const displayFields: DeliverableInfoField[] = shouldShowAdditionalDetails
     ? [...baseFields, ...additionalFields]
@@ -66,12 +68,12 @@ export const DeliverableInfoFields = ({
           {displayFields.map((field, index) => (
             <React.Fragment key={field.label}>
               <div className="text-[16px] mt-0.5 font-title">
-                <span className="font-semibold">{field.label}:{" "}</span>
+                <span className="font-semibold">{field.label}: </span>
                 <span className="font-normal" data-testid={`deliverable-${field.label}`}>
                   {field.value}
                 </span>
               </div>
-              {index < displayFields.length - 1 && (<VerticalRule />)}
+              {index < displayFields.length - 1 && <VerticalRule />}
             </React.Fragment>
           ))}
           {showAdditionalDetailsToggle ? (
