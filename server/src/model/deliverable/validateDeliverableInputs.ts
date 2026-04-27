@@ -111,8 +111,10 @@ export async function validateSubmitDeliverableInput(
 ): Promise<void> {
   const errors: (string | undefined)[] = [];
 
-  errors.push(checkDeliverableStatusNotFinalized(deliverable));
-  errors.push(await checkDeliverableHasAtLeastOneDocument(deliverable, tx));
+  errors.push(
+    checkDeliverableStatusNotFinalized(deliverable),
+    await checkDeliverableHasAtLeastOneDocument(deliverable, tx)
+  );
 
   const cleanedErrors = errors.filter((e) => e !== undefined);
   if (cleanedErrors.length > 0) {
