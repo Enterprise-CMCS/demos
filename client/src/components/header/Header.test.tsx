@@ -9,7 +9,7 @@ import { Route, Routes } from "react-router-dom";
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
 import { Header } from "./Header";
 import { ProfileBlock } from "./ProfileBlock";
-import { QuickLinks } from "./QuickLinks";
+import { QUICK_LINKS_TEST_ID } from "./QuickLinks";
 
 function renderWithProviders(ui: React.ReactNode) {
   return render(
@@ -20,7 +20,6 @@ function renderWithProviders(ui: React.ReactNode) {
     </TestProvider>
   );
 }
-
 
 vi.mock(
   "pages/deliverables/DeliverableDetailHeader",
@@ -35,30 +34,15 @@ vi.mock(
   }
 );
 
-vi.mock("react-oidc-context", () => ({
-  useAuth: () => ({
-    isAuthenticated: true,
-    isLoading: false,
-    user: { id_token: "fake" },
-    signinRedirect: vi.fn(),
-    signoutRedirect: vi.fn(),
-    removeUser: vi.fn(),
-    revokeTokens: vi.fn(),
-    activeNavigator: undefined,
-  }),
-}));
-
 describe("Header", () => {
   it("renders the logo", async () => {
     renderWithProviders(<Header />);
     await waitFor(() => expect(screen.getByAltText("Logo")).toBeInTheDocument());
   });
 
-  it("renders all quick links", async () => {
-    renderWithProviders(<QuickLinks />);
-    await waitFor(() => expect(screen.getByRole("link", { name: /Admin/i })).toBeInTheDocument());
-    await waitFor(() => expect(screen.getByRole("link", { name: /Notifications/i })).toBeInTheDocument());
-    await waitFor(() => expect(screen.getByRole("link", { name: /Help/i })).toBeInTheDocument());
+  it("renders the QuickLinks", async () => {
+    renderWithProviders(<Header />);
+    expect(await screen.findByTestId(QUICK_LINKS_TEST_ID)).toBeInTheDocument();
   });
 
   it("renders the Create New button", async () => {

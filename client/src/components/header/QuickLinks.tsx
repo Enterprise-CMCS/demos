@@ -3,6 +3,7 @@ import { getCurrentUser } from "components/user/UserContext";
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 
+export const QUICK_LINKS_TEST_ID = "quick-links";
 export const ADMIN_LINK_NAME = "link-admin";
 
 const STYLES = {
@@ -18,7 +19,7 @@ export const QuickLinks: React.FC = () => {
   const isAdmin = currentUser?.person.personType === "demos-admin";
 
   return (
-    <div className={STYLES.container}>
+    <div className={STYLES.container} data-testid={QUICK_LINKS_TEST_ID}>
       {isAdmin && (
         <Link
           to="/admin"

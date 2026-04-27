@@ -54,7 +54,7 @@ export const VerticalTabs: React.FC<VerticalTabsProps> = ({ children, defaultVal
   const navWidth = isNavCollapsed ? "w-12" : "w-50";
 
   return (
-    <div className={tw`flex flex-row`}>
+    <div className="flex flex-row">
       <div
         className={`flex flex-col bg-gray-primary-layout border-r border-r-gray-dark ${navWidth}`}
       >
