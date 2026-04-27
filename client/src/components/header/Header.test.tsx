@@ -1,22 +1,18 @@
 import React from "react";
 import { vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { UserProvider } from "components/user/UserContext";
 import { DialogProvider } from "components/dialog/DialogContext";
-import { userMocks } from "mock-data/userMocks";
 import { TestProvider } from "test-utils/TestProvider";
 import { Route, Routes } from "react-router-dom";
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
 import { Header } from "./Header";
-import { ProfileBlock } from "./ProfileBlock";
+import { PROFILE_BLOCK_TEST_ID, ProfileBlock } from "./ProfileBlock";
 import { QUICK_LINKS_TEST_ID } from "./QuickLinks";
 
 function renderWithProviders(ui: React.ReactNode) {
   return render(
-    <TestProvider mocks={userMocks} addTypename={false}>
-      <DialogProvider>
-        <UserProvider>{ui}</UserProvider>
-      </DialogProvider>
+    <TestProvider>
+      <DialogProvider>{ui}</DialogProvider>
     </TestProvider>
   );
 }
@@ -52,7 +48,7 @@ describe("Header", () => {
 
   it("opens and closes the ProfileBlock menu when toggled by clicking the name", async () => {
     renderWithProviders(<ProfileBlock />);
-    const profileName = await screen.findByText("Mock User");
+    const profileName = screen.getByTestId(PROFILE_BLOCK_TEST_ID);
 
     fireEvent.click(profileName);
     const signOutLink = await screen.findByRole("button", { name: /Sign Out/i });
@@ -64,13 +60,11 @@ describe("Header", () => {
 
   it("renders DeliverableDetailHeader for deliverable routes", async () => {
     render(
-      <TestProvider addTypename={false} routerEntries={["/deliverables/123"]}>
+      <TestProvider routerEntries={["/deliverables/123"]}>
         <DialogProvider>
-          <UserProvider>
-            <Routes>
-              <Route path="/deliverables/:deliverableId" element={<Header />} />
-            </Routes>
-          </UserProvider>
+          <Routes>
+            <Route path="/deliverables/:deliverableId" element={<Header />} />
+          </Routes>
         </DialogProvider>
       </TestProvider>
     );
@@ -85,7 +79,7 @@ describe("Header", () => {
       </>
     );
 
-    const profileName = await screen.findByText("Mock User");
+    const profileName = screen.getByTestId(PROFILE_BLOCK_TEST_ID);
 
     fireEvent.click(profileName);
     const signOutLink = await screen.findByRole("button", { name: /Sign Out/i });
