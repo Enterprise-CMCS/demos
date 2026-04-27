@@ -59,10 +59,15 @@ vi.mock("../deliverableDemonstrationType", () => ({
   getManyDeliverableDemonstrationTypes: vi.fn(),
 }));
 
+vi.mock("../deliverableAction", () => ({
+  getFormattedDeliverableActions: vi.fn(),
+}));
+
 import { createDeliverable, getDeliverable, getManyDeliverables, updateDeliverable } from ".";
 import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getManyDocuments } from "../document";
+import { getFormattedDeliverableActions } from "../deliverableAction";
 
 describe("deliverableResolvers", () => {
   const testDeliverableId = "82ef9a17-e8b9-48ab-9aaf-3d1787822b13";
@@ -280,6 +285,13 @@ describe("deliverableResolvers", () => {
   });
 
   describe("deliverableResolvers", () => {
+    describe("Query.deliverable", () => {
+      it("should call getDeliverable to retrieve the deliverable", async () => {
+        await deliverableResolvers.Query.deliverable(undefined, { id: "an-id" });
+        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith({ id: "an-id" });
+      });
+    });
+
     describe("Mutation.createDeliverable", () => {
       it("should call the createDeliverable function with the right arguments", async () => {
         const testInput: CreateDeliverableInput = {
@@ -360,6 +372,15 @@ describe("deliverableResolvers", () => {
             tagName: "Vitamin A Supplementation for Newborns",
           },
         ]);
+      });
+    });
+
+    describe("Deliverable.deliverableActions", () => {
+      it("should query the deliverable actions of the parent deliverable", async () => {
+        await deliverableResolvers.Deliverable.deliverableActions(
+          testDeliverable as PrismaDeliverable
+        );
+        expect(getFormattedDeliverableActions).toHaveBeenCalledExactlyOnceWith(testDeliverableId);
       });
     });
   });

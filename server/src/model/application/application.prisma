@@ -20,7 +20,6 @@ model Application {
   // relation is already handled transitively, but explicitly adding aids in simplifying queries 
   applicationTagSuggestions ApplicationTagSuggestion[]
 
-
   @@unique([id, applicationTypeId])
   @@map("application")
 }

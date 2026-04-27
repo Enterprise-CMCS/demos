@@ -4,6 +4,8 @@ import { Avatar } from "./Avatar";
 import { getCurrentUser } from "components/user/UserContext";
 import { SignoutLink } from "../auth/AuthLinks";
 
+export const PROFILE_BLOCK_TEST_ID = "profile-block";
+
 export const ProfileBlock: React.FC = () => {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -40,6 +42,7 @@ export const ProfileBlock: React.FC = () => {
       ref={containerRef}
       className="relative flex items-center gap-x-1 mr-2 cursor-pointer select-none"
       onClick={() => setOpen((value) => !value)}
+      data-testid={PROFILE_BLOCK_TEST_ID}
     >
       <Avatar character={avaChar} />
       <span id="profile-name" className="text-lg font-semibold">
