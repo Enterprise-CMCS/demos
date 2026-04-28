@@ -86,11 +86,15 @@ export const formatDeliverableStatus = ({ status }: Pick<Deliverable, "status">)
 
 export const DeliverableTable: React.FC<{
   deliverables: DeliverableTableRow[];
+  cmsOwnerPeople?: Pick<Person, "id" | "fullName" | "personType">[];
   emptyRowsMessage?: string;
   viewMode: UserType;
-}> = ({ deliverables, emptyRowsMessage = EMPTY_ROWS_MESSAGE, viewMode }) => {
+}> = ({ deliverables, cmsOwnerPeople, emptyRowsMessage = EMPTY_ROWS_MESSAGE, viewMode }) => {
   const { showEditDeliverableDialog } = useDialog();
-  const { demonstrationNameOptions, cmsOwnerOptions } = getDeliverableFilterOptions(deliverables);
+  const { demonstrationNameOptions, cmsOwnerOptions } = getDeliverableFilterOptions(
+    deliverables,
+    cmsOwnerPeople
+  );
   const deliverableColumns = DeliverableColumns({
     viewMode,
     demonstrationNameOptions,

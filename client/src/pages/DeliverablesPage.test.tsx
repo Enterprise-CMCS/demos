@@ -1,10 +1,13 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MockedResponse } from "@apollo/client/testing";
 import { DELIVERABLES_PAGE_QUERY } from "components/table/tables/DeliverableTable";
+import { GET_USER_SELECT_OPTIONS_QUERY } from "components/input/select/SelectUsers";
 import { DeliverablesPage } from "./DeliverablesPage";
 import { MOCK_DELIVERABLE_TABLE_ROW } from "mock-data/deliverableMocks";
+import { mockPeople } from "mock-data/personMocks";
 import { mockUsers } from "mock-data/userMocks";
 import { TestProvider } from "test-utils/TestProvider";
 
@@ -34,6 +37,11 @@ const DELIVERABLES_TABLE_MOCKS: MockedResponse[] = [
   {
     request: { query: DELIVERABLES_PAGE_QUERY },
     result: { data: { deliverables: MOCK_DELIVERABLE_TABLE_ROWS } },
+    maxUsageCount: Number.POSITIVE_INFINITY,
+  },
+  {
+    request: { query: GET_USER_SELECT_OPTIONS_QUERY },
+    result: { data: { people: mockPeople } },
     maxUsageCount: Number.POSITIVE_INFINITY,
   },
 ];
@@ -120,6 +128,18 @@ describe("DeliverablesPage tab persistence", () => {
     expect(screen.getByText("Budget Neutrality Report")).toBeInTheDocument();
     expect(screen.getByText("Budget Neutrality Worksheet")).toBeInTheDocument();
     expect(screen.getByText("Quarterly Report For NYC Demonstration")).toBeInTheDocument();
+  });
+
+  it("lists all CMS and admin users in the CMS Owner filter", async () => {
+    const user = userEvent.setup();
+    await renderDeliverablesPage();
+
+    await user.selectOptions(screen.getByTestId("filter-by-column"), "CMS Owner");
+    const cmsOwnerFilter = screen.getByPlaceholderText("Select CMS Owner");
+    await user.click(cmsOwnerFilter);
+    await user.type(cmsOwnerFilter, "John");
+
+    expect(within(screen.getByRole("listbox")).getByText("John Doe")).toBeInTheDocument();
   });
 
   it("uses state-user table columns when current user is demos-state-user", async () => {
