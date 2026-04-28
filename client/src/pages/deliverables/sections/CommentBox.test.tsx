@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { COLLAPSE_COMMENTS_BUTTON_NAME, COMMENT_BOX_NAME, COMMENT_BOX_TABS_NAME, COMMENT_BOX_TEXT_AREA_NAME, CommentBox } from "./CommentBox";
+import { COLLAPSE_COMMENTS_BUTTON_NAME, COMMENT_BOX_NAME, COMMENT_BOX_TABS_NAME, COMMENT_BOX_TEXT_AREA_NAME, ADD_COMMENT_BUTTON_NAME, CommentBox } from "./CommentBox";
 import { TestProvider } from "test-utils/TestProvider";
 import { developmentMockUser } from "mock-data/userMocks";
 import { PersonType } from "demos-server";
@@ -76,5 +76,45 @@ describe("CommentBox", () => {
   it("does not render comment box tabs for state users", () => {
     renderCommentBox("demos-state-user");
     expect(screen.queryByTestId(COMMENT_BOX_TABS_NAME)).not.toBeInTheDocument();
+  });
+
+  it("shows 'No comments yet' when there are no comments", () => {
+    renderCommentBox();
+    expect(screen.getByText("No comments yet.")).toBeInTheDocument();
+  });
+
+  it("adds a comment to the history when Add Comment is clicked", async () => {
+    renderCommentBox();
+
+    await userEvent.type(screen.getByTestId(COMMENT_BOX_TEXT_AREA_NAME), "hello world");
+    await userEvent.click(screen.getByTestId(ADD_COMMENT_BUTTON_NAME));
+
+    expect(screen.getByText(/hello world/)).toBeInTheDocument();
+  });
+
+  it("clears the textarea after adding a comment", async () => {
+    renderCommentBox();
+
+    await userEvent.type(screen.getByTestId(COMMENT_BOX_TEXT_AREA_NAME), "hello world");
+    await userEvent.click(screen.getByTestId(ADD_COMMENT_BUTTON_NAME));
+
+    expect(screen.getByTestId(COMMENT_BOX_TEXT_AREA_NAME)).toHaveValue("");
+  });
+
+  it("does not add a comment when the textarea is empty", async () => {
+    renderCommentBox();
+
+    await userEvent.click(screen.getByTestId(ADD_COMMENT_BUTTON_NAME));
+
+    expect(screen.getByText("No comments yet.")).toBeInTheDocument();
+  });
+
+  it("does not add a comment when the textarea contains only whitespace", async () => {
+    renderCommentBox();
+
+    await userEvent.type(screen.getByTestId(COMMENT_BOX_TEXT_AREA_NAME), "   ");
+    await userEvent.click(screen.getByTestId(ADD_COMMENT_BUTTON_NAME));
+
+    expect(screen.getByText("No comments yet.")).toBeInTheDocument();
   });
 });

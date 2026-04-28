@@ -76,9 +76,9 @@ const Comment = ({ comment }: { comment: CommentBoxComment }) => {
 const CommentBoxHistory = ({comments}: {comments: CommentBoxComment[]}) => (
   <>
     <span className="font-semibold">Comment History</span>
-    {comments ? comments.map((comment, index) => (
+    {comments.length ? comments.map((comment, index) => (
       <Comment key={index} comment={comment} />
-    )) :<span className="text-sm text-gray-500">No comments yet.</span>
+    )) : <span className="text-sm text-gray-500">No comments yet.</span>
     }
   </>
 );
