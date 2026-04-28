@@ -16,7 +16,8 @@ vi.mock("react-router-dom", async () => {
 describe("AdminHeader", () => {
   it("renders the Admin Dashboard title", () => {
     render(<MemoryRouter><AdminHeader /></MemoryRouter>);
-    expect(screen.getByText("Admin Dashboard")).toBeInTheDocument();
+    expect(screen.getByText("Admin")).toBeInTheDocument();
+    expect(screen.getByLabelText("Settings")).toBeInTheDocument();
   });
 
   it("renders the Close Admin button", () => {
