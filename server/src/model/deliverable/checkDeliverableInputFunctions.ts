@@ -4,9 +4,11 @@ import {
   DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
   User as PrismaUser,
 } from "@prisma/client";
+import { PrismaTransactionClient } from "../../prismaClient";
 import { ApplicationStatus, DeliverableStatus, PersonType, TagName } from "../../types";
 import { findDuplicates } from "../../validationUtilities";
 import { EasternTZDate, getEasternNow } from "../../dateUtilities";
+import { selectManyDocuments } from "../document";
 
 export function checkDemonstrationStatus(demonstration: PrismaDemonstration): string | undefined {
   const approvedStatus: ApplicationStatus = "Approved";
@@ -18,6 +20,7 @@ export function checkDemonstrationStatus(demonstration: PrismaDemonstration): st
 export function checkDeliverableStatusNotFinalized(
   deliverable: PrismaDeliverable
 ): string | undefined {
+  // Cast enforced by DB constraints
   const deliverableStatus = deliverable.statusId as DeliverableStatus;
   const finalDeliverableStatuses: DeliverableStatus[] = [
     "Approved",
@@ -25,12 +28,13 @@ export function checkDeliverableStatusNotFinalized(
     "Received and Filed",
   ];
   if (finalDeliverableStatuses.includes(deliverableStatus)) {
-    return `Cannot modify deliverable ${deliverable.id} as it has already been finalized.`;
+    return `Cannot submit or modify deliverable ${deliverable.id} as it has already been finalized.`;
   }
 }
 
 export function checkOwnerPersonType(ownerUser: PrismaUser): string | undefined {
   const permittedOwnerPersonTypes: readonly PersonType[] = ["demos-admin", "demos-cms-user"];
+  // Cast enforced by DB constraints
   if (!permittedOwnerPersonTypes.includes(ownerUser.personTypeId as PersonType)) {
     return `User ${ownerUser.id} is not a CMS user; cannot own deliverable.`;
   }
@@ -63,5 +67,19 @@ export function checkDueDateInFuture(dueDate: EasternTZDate): string | undefined
   const easternNow = getEasternNow()["Current Time"];
   if (dueDate.easternTZDate.valueOf() < easternNow.easternTZDate.valueOf()) {
     return `Cannot request a due date in the past; requested ${dueDate.easternTZDate}`;
+  }
+}
+
+export async function checkDeliverableHasAtLeastOneDocument(
+  deliverable: PrismaDeliverable,
+  tx: PrismaTransactionClient
+): Promise<string | undefined> {
+  const deliverableDocuments = await selectManyDocuments(
+    { deliverableId: deliverable.id, deliverableIsCmsAttachedFile: false },
+    tx
+  );
+
+  if (deliverableDocuments.length === 0) {
+    return `Cannot submit deliverable ${deliverable.id} because it has no state documents attached.`;
   }
 }

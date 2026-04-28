@@ -1,6 +1,7 @@
 import {
-  checkDemonstrationStatus,
+  checkDeliverableHasAtLeastOneDocument,
   checkDeliverableStatusNotFinalized,
+  checkDemonstrationStatus,
   checkDueDateInFuture,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
@@ -13,6 +14,7 @@ import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
 import { GraphQLError } from "graphql";
+import { Deliverable as PrismaDeliverable } from "@prisma/client";
 
 export async function validateCreateDeliverableInput(
   input: ParsedCreateDeliverableInput,
@@ -97,6 +99,28 @@ export async function validateUpdateDeliverableInput(
     throw new GraphQLError("One or more validation checks for updateDeliverable have failed.", {
       extensions: {
         code: "UPDATE_DELIVERABLE_VALIDATION_FAILED",
+        originalMessages: cleanedErrors,
+      },
+    });
+  }
+}
+
+export async function validateSubmitDeliverableInput(
+  deliverable: PrismaDeliverable,
+  tx: PrismaTransactionClient
+): Promise<void> {
+  const errors: (string | undefined)[] = [];
+
+  errors.push(
+    checkDeliverableStatusNotFinalized(deliverable),
+    await checkDeliverableHasAtLeastOneDocument(deliverable, tx)
+  );
+
+  const cleanedErrors = errors.filter((e) => e !== undefined);
+  if (cleanedErrors.length > 0) {
+    throw new GraphQLError("One or more validation checks for submitDeliverable have failed.", {
+      extensions: {
+        code: "SUBMIT_DELIVERABLE_VALIDATION_FAILED",
         originalMessages: cleanedErrors,
       },
     });

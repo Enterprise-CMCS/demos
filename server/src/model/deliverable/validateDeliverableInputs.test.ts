@@ -17,6 +17,7 @@ import { EasternTZDate } from "../../dateUtilities";
 // Functions under test
 import {
   validateCreateDeliverableInput,
+  validateSubmitDeliverableInput,
   validateUpdateDeliverableInput,
 } from "./validateDeliverableInputs";
 
@@ -39,6 +40,7 @@ vi.mock(".", () => ({
   checkDueDateInFuture: vi.fn(),
   checkOwnerPersonType: vi.fn(),
   checkRequestedDeliverableDemonstrationType: vi.fn(),
+  checkDeliverableHasAtLeastOneDocument: vi.fn(),
   getDeliverable: vi.fn(),
 }));
 
@@ -51,6 +53,7 @@ import {
   checkDueDateInFuture,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
+  checkDeliverableHasAtLeastOneDocument,
   getDeliverable,
 } from ".";
 
@@ -542,6 +545,107 @@ describe("validateDeliverableInputs", () => {
           "The deliverable finalized status check failed!",
           "The owner person type check failed",
           "The demonstration type check failed",
+        ]);
+      }
+    });
+  });
+
+  describe("validateSubmitDeliverableInput", () => {
+    beforeEach(() => {
+      vi.resetAllMocks();
+    });
+
+    it("should not throw if none of the rules are violated", async () => {
+      // Note: don't need to set returns to undefined, as this is what vi.fn() does already
+      const testInput: Partial<PrismaDeliverable> = {
+        id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
+        statusId: "Upcoming",
+        cmsOwnerUserId: "7d8fdea5-ca19-42e5-af50-98836b6d47db",
+      };
+
+      await expect(
+        validateSubmitDeliverableInput(testInput as PrismaDeliverable, mockTransaction)
+      ).resolves.toBeUndefined();
+    });
+
+    it("should throw if the deliverable status check fails", async () => {
+      const testInput: Partial<PrismaDeliverable> = {
+        id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
+        statusId: "Approved",
+        cmsOwnerUserId: "7d8fdea5-ca19-42e5-af50-98836b6d47db",
+      };
+      vi.mocked(checkDeliverableStatusNotFinalized).mockReturnValue(
+        "The deliverable finalized status check failed!"
+      );
+
+      try {
+        await validateSubmitDeliverableInput(testInput as PrismaDeliverable, mockTransaction);
+        throw new Error("Expected validateSubmitDeliverableInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for submitDeliverable have failed."
+        );
+        expect(error.extensions.code).toBe("SUBMIT_DELIVERABLE_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable finalized status check failed!",
+        ]);
+      }
+    });
+
+    it("should throw if the deliverable document check failes", async () => {
+      const testInput: Partial<PrismaDeliverable> = {
+        id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
+        statusId: "Submitted",
+        cmsOwnerUserId: "7d8fdea5-ca19-42e5-af50-98836b6d47db",
+      };
+      vi.mocked(checkDeliverableHasAtLeastOneDocument).mockResolvedValue(
+        "The deliverable document check has failed!"
+      );
+
+      try {
+        await validateSubmitDeliverableInput(testInput as PrismaDeliverable, mockTransaction);
+        throw new Error("Expected validateSubmitDeliverableInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for submitDeliverable have failed."
+        );
+        expect(error.extensions.code).toBe("SUBMIT_DELIVERABLE_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable document check has failed!",
+        ]);
+      }
+    });
+
+    it("should combine all errors into one object", async () => {
+      const testInput: Partial<PrismaDeliverable> = {
+        id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
+        statusId: "Approved",
+        cmsOwnerUserId: "7d8fdea5-ca19-42e5-af50-98836b6d47db",
+      };
+      vi.mocked(checkDeliverableStatusNotFinalized).mockReturnValue(
+        "The deliverable finalized status check failed!"
+      );
+      vi.mocked(checkDeliverableHasAtLeastOneDocument).mockResolvedValue(
+        "The deliverable document check has failed!"
+      );
+
+      try {
+        await validateSubmitDeliverableInput(testInput as PrismaDeliverable, mockTransaction);
+        throw new Error("Expected validateSubmitDeliverableInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for submitDeliverable have failed."
+        );
+        expect(error.extensions.code).toBe("SUBMIT_DELIVERABLE_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable finalized status check failed!",
+          "The deliverable document check has failed!",
         ]);
       }
     });

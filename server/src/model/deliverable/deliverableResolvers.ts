@@ -7,7 +7,13 @@ import {
 } from "@prisma/client";
 import { GraphQLContext } from "../../auth";
 import { GraphQLResolveInfo } from "graphql";
-import { createDeliverable, getDeliverable, getManyDeliverables, updateDeliverable } from ".";
+import {
+  createDeliverable,
+  getDeliverable,
+  getManyDeliverables,
+  submitDeliverable,
+  updateDeliverable,
+} from ".";
 import {
   CreateDeliverableInput,
   DeliverableAction,
@@ -119,6 +125,9 @@ export const deliverableResolvers = {
       context: GraphQLContext
     ) => {
       return await updateDeliverable(args.id, args.input, context);
+    },
+    submitDeliverable: async (parent: unknown, args: { id: string }, context: GraphQLContext) => {
+      return await submitDeliverable(args.id, context);
     },
   },
 
