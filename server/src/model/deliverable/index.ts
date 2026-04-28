@@ -38,5 +38,6 @@ export type {
   ParsedCreateDeliverableInput,
   ParsedUpdateDeliverableInput,
   ParsedUpdateDueDate,
+  ParsedRequestDeliverableResubmissionInput,
 } from "./parseDeliverableInputs";
 export type { EditDeliverableInput } from "./queries/editDeliverable";
