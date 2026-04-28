@@ -10,10 +10,12 @@ export {
   checkDeliverableHasStatus,
 } from "./checkDeliverableInputFunctions";
 export { createDeliverable } from "./createDeliverable";
+export { completeDeliverable } from "./completeDeliverable";
 export { manuallyUpdateDeliverableDueDate } from "./manuallyUpdateDeliverableDueDate";
 export { parseCreateDeliverableInput, parseUpdateDeliverableInput } from "./parseDeliverableInputs";
 export { resolveDeliverable, resolveManyDeliverables } from "./deliverableResolvers";
 export {
+  validateCompleteDeliverableInput,
   validateCreateDeliverableInput,
   validateStartDeliverableReviewInput,
   validateSubmitDeliverableInput,

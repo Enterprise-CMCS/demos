@@ -44,6 +44,7 @@ vi.mock(".", () => ({
   startDeliverableReview: vi.fn(),
   submitDeliverable: vi.fn(),
   updateDeliverable: vi.fn(),
+  completeDeliverable: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -73,6 +74,7 @@ import {
   startDeliverableReview,
   submitDeliverable,
   updateDeliverable,
+  completeDeliverable,
 } from ".";
 import { getApplication } from "../application";
 import { getUser } from "../user";
@@ -149,6 +151,21 @@ describe("deliverableResolvers", () => {
       expect(submitDeliverable).toHaveBeenCalledExactlyOnceWith(
         testDeliverableId,
         testContext as GraphQLContext
+      );
+    });
+  });
+
+  describe("Mutation.completeDeliverable", () => {
+    it("calls completeDeliverable with appropriate arguments", async () => {
+      await deliverableResolvers.Mutation.completeDeliverable(
+        undefined,
+        { id: testDeliverableId, finalStatus: "Approved" },
+        testContext as GraphQLContext
+      );
+      expect(completeDeliverable).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId,
+        "Approved",
+        testContext
       );
     });
   });

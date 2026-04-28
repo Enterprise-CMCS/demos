@@ -163,3 +163,19 @@ export function validateStartDeliverableReviewInput(deliverable: PrismaDeliverab
     );
   }
 }
+
+export function validateCompleteDeliverableInput(deliverable: PrismaDeliverable): void {
+  const errors: (string | undefined)[] = [];
+
+  errors.push(checkDeliverableHasStatus(deliverable, "Under CMS Review"));
+
+  const cleanedErrors = errors.filter((e) => e !== undefined);
+  if (cleanedErrors.length > 0) {
+    throw new GraphQLError("One or more validation checks for completeDeliverable have failed.", {
+      extensions: {
+        code: "COMPLETE_DELIVERABLE_VALIDATION_FAILED",
+        originalMessages: cleanedErrors,
+      },
+    });
+  }
+}
