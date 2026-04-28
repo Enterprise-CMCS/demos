@@ -19,7 +19,10 @@ interface CommentBoxComment {
   comment: string;
   userFullName: string;
   timestamp: Date;
+  commentVisibility?: CommentVisibility;
 }
+
+export type CommentVisibility = "public" | "private";
 
 const CommentBoxHeader = ({ onCollapse }: { onCollapse: () => void }) => (
   <div className="flex items-center justify-between pb-1 border-b border-gray-dark">
@@ -27,7 +30,7 @@ const CommentBoxHeader = ({ onCollapse }: { onCollapse: () => void }) => (
       <span className="text-lg font-bold uppercase text-brand">Comments</span>
       <CommentIcon className="text-action" />
     </div>
-    <SecondaryButton size="large" name={COLLAPSE_COMMENTS_BUTTON_NAME} data-testid={COLLAPSE_COMMENTS_BUTTON_NAME} onClick={onCollapse} aria-label="Collapse comments">
+    <SecondaryButton size="small" name={COLLAPSE_COMMENTS_BUTTON_NAME} data-testid={COLLAPSE_COMMENTS_BUTTON_NAME} onClick={onCollapse} aria-label="Collapse comments">
       <MenuCollapseRightIcon className="w-[20px] h-[20px]" />
     </SecondaryButton>
   </div>
@@ -85,6 +88,7 @@ export const CommentBox = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [comments, setComments] = useState<CommentBoxComment[]>([]);
   const [currentComment, setCurrentComment] = useState("");
+  const [commentVisibility, setCommentVisibility] = useState<CommentVisibility>("public");
 
   if (!currentUser) {
     return null;
@@ -94,7 +98,12 @@ export const CommentBox = () => {
   const isCmsOrAdminUser = userPersonType === "demos-cms-user" || userPersonType === "demos-admin";
 
   const addComment = (newComment: CommentBoxComment) => {
-    setComments((prevComments) => [...prevComments, newComment]);
+    const commentWithVisibility = { ...newComment, commentVisibility };
+    // TODO: Eventually we will replace this with the actual API call to save the comment,
+    // and we might want to handle the visibility differently depending on the API design.
+    // For now, we are just adding it to the local state with the visibility included.
+    console.log("Adding comment:", commentWithVisibility);
+    setComments((prevComments) => [...prevComments, commentWithVisibility]);
   };
 
   if (isCollapsed) {
@@ -113,7 +122,7 @@ export const CommentBox = () => {
   return (
     <div className="flex flex-col gap-1 bg-gray-primary-layout p-1 min-h-full min-w-87.5" data-testid={COMMENT_BOX_NAME}>
       <CommentBoxHeader onCollapse={() => setIsCollapsed(true)} />
-      {isCmsOrAdminUser && <CommentBoxTabs />}
+      {isCmsOrAdminUser && <CommentBoxTabs setCommentVisibility={setCommentVisibility} />}
       <CommentBoxTextArea addComment={addComment} currentComment={currentComment} setCurrentComment={setCurrentComment} />
       <CommentBoxHistory comments={comments} />
     </div>
