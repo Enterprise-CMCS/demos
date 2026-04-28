@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
 
 // Types
+import { DeepPartial } from "../../testUtilities";
 import { UpdateDeliverableInput } from "../../types";
 import { EditDeliverableInput, ParsedUpdateDeliverableInput } from ".";
 import { GraphQLContext } from "../../auth/auth.util";
@@ -47,12 +48,9 @@ describe("updateDeliverable", () => {
   const testInput: UpdateDeliverableInput = {
     name: testName,
   };
-  const testContext: GraphQLContext = {
+  const testContext: DeepPartial<GraphQLContext> = {
     user: {
       id: "57f92f14-7c5e-4c78-a774-5a54d7e9c2e7",
-      cognitoSubject: "82d0e8e4-82d0-447c-b1bb-52227e49cf51",
-      personTypeId: "demos-cms-user",
-      permissions: ["View All Demonstrations"],
     },
   };
 
@@ -75,7 +73,7 @@ describe("updateDeliverable", () => {
   });
 
   it("should check for non-null in all the fields", async () => {
-    await updateDeliverable(testDeliverableId, testInput, testContext);
+    await updateDeliverable(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(
       ["name", "cmsOwnerUserId", "dueDate", "demonstrationTypes"],
       testInput
@@ -83,12 +81,12 @@ describe("updateDeliverable", () => {
   });
 
   it("should parse the input", async () => {
-    await updateDeliverable(testDeliverableId, testInput, testContext);
+    await updateDeliverable(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(parseUpdateDeliverableInput).toHaveBeenCalledExactlyOnceWith(testInput);
   });
 
   it("should call the validation function with a transaction", async () => {
-    await updateDeliverable(testDeliverableId, testInput, testContext);
+    await updateDeliverable(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(validateUpdateDeliverableInput).toHaveBeenCalledExactlyOnceWith(
       testDeliverableId,
       mockParseInputResult,
@@ -97,7 +95,7 @@ describe("updateDeliverable", () => {
   });
 
   it("should edit the deliverable and then fetch the final version within a transaction", async () => {
-    await updateDeliverable(testDeliverableId, testInput, testContext);
+    await updateDeliverable(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(editDeliverable).toHaveBeenCalledExactlyOnceWith(
       testDeliverableId,
       { name: mockParseInputResult.name },
@@ -130,7 +128,7 @@ describe("updateDeliverable", () => {
       // That is why this mock is necessary, and needs to change for each set of parameters
       vi.mocked(parseUpdateDeliverableInput).mockReturnValue(mockParseInputResult);
 
-      await updateDeliverable(testDeliverableId, testInput, testContext);
+      await updateDeliverable(testDeliverableId, testInput, testContext as GraphQLContext);
       expect(editDeliverable).toHaveBeenCalledWith(
         testDeliverableId,
         expectedEditInput,
@@ -153,7 +151,7 @@ describe("updateDeliverable", () => {
     };
     vi.mocked(parseUpdateDeliverableInput).mockReturnValue(mockParseInputResult);
 
-    await updateDeliverable(testDeliverableId, testInput, testContext);
+    await updateDeliverable(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(editDeliverable).not.toHaveBeenCalled();
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
@@ -162,7 +160,7 @@ describe("updateDeliverable", () => {
   });
 
   it("should always call the demonstration type and due date update functions", async () => {
-    await updateDeliverable(testDeliverableId, testInput, testContext);
+    await updateDeliverable(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(updateDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
       testDeliverableId,
       mockParseInputResult,

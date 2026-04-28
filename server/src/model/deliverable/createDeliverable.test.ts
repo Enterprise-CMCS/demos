@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
 
 // Types
+import { DeepPartial } from "../../testUtilities";
 import { CreateDeliverableInput, DateTimeOrLocalDate, DeliverableType } from "../../types";
 import { ParsedCreateDeliverableInput } from ".";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
@@ -44,12 +45,9 @@ describe("createDeliverable", () => {
     cmsOwnerUserId: "500e9bef-8745-4209-ac73-0a87fa5f888b",
     dueDate: "2025-11-21" as DateTimeOrLocalDate,
   };
-  const testContext: GraphQLContext = {
+  const testContext: DeepPartial<GraphQLContext> = {
     user: {
       id: "57f92f14-7c5e-4c78-a774-5a54d7e9c2e7",
-      cognitoSubject: "82d0e8e4-82d0-447c-b1bb-52227e49cf51",
-      personTypeId: "demos-cms-user",
-      permissions: ["View All Demonstrations"],
     },
   };
 
@@ -90,12 +88,12 @@ describe("createDeliverable", () => {
   });
 
   it("should parse the input to process dates", async () => {
-    await createDeliverable(testInput, testContext);
+    await createDeliverable(testInput, testContext as GraphQLContext);
     expect(parseCreateDeliverableInput).toHaveBeenCalledExactlyOnceWith(testInput);
   });
 
   it("should call the validation function with a transaction", async () => {
-    await createDeliverable(testInput, testContext);
+    await createDeliverable(testInput, testContext as GraphQLContext);
     expect(validateCreateDeliverableInput).toHaveBeenCalledExactlyOnceWith(
       mockParsedInput,
       mockTransaction
@@ -103,12 +101,12 @@ describe("createDeliverable", () => {
   });
 
   it("should call the insert function with a transaction", async () => {
-    await createDeliverable(testInput, testContext);
+    await createDeliverable(testInput, testContext as GraphQLContext);
     expect(insertDeliverable).toHaveBeenCalledExactlyOnceWith(mockParsedInput, mockTransaction);
   });
 
   it("should use an empty list if no demonstration types are passed", async () => {
-    await createDeliverable(testInput, testContext);
+    await createDeliverable(testInput, testContext as GraphQLContext);
     expect(setDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
       {
         deliverableId: mockNewDeliverable.id,
@@ -130,7 +128,7 @@ describe("createDeliverable", () => {
     };
     vi.mocked(parseCreateDeliverableInput).mockReturnValue(expandedMockParsedInput);
 
-    await createDeliverable(expandedTestInput, testContext);
+    await createDeliverable(expandedTestInput, testContext as GraphQLContext);
     expect(setDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
       {
         deliverableId: mockNewDeliverable.id,
@@ -142,7 +140,7 @@ describe("createDeliverable", () => {
   });
 
   it("should insert a deliverable action with a transaction", async () => {
-    await createDeliverable(testInput, testContext);
+    await createDeliverable(testInput, testContext as GraphQLContext);
     expect(insertDeliverableAction).toHaveBeenCalledExactlyOnceWith(
       {
         deliverableId: mockNewDeliverable.id,
