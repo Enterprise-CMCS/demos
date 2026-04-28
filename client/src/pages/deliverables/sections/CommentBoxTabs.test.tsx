@@ -31,7 +31,7 @@ describe("CommentBoxTabs", () => {
     setup();
     expect(screen.getByText("These comments wil be visible to the state")).toBeInTheDocument();
   });
-  
+
   it("calls setCommentVisibility with 'private' when the Private tab is clicked", async () => {
     const { setCommentVisibility } = setup();
     await userEvent.click(screen.getByTestId("button-private"));
