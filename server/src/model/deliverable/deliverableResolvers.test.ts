@@ -40,6 +40,7 @@ vi.mock(".", () => ({
   createDeliverable: vi.fn(),
   getDeliverable: vi.fn(),
   getManyDeliverables: vi.fn(),
+  submitDeliverable: vi.fn(),
   updateDeliverable: vi.fn(),
 }));
 
@@ -63,7 +64,13 @@ vi.mock("../deliverableAction", () => ({
   getFormattedDeliverableActions: vi.fn(),
 }));
 
-import { createDeliverable, getDeliverable, getManyDeliverables, updateDeliverable } from ".";
+import {
+  createDeliverable,
+  getDeliverable,
+  getManyDeliverables,
+  submitDeliverable,
+  updateDeliverable,
+} from ".";
 import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getManyDocuments } from "../document";
@@ -127,6 +134,17 @@ describe("deliverableResolvers", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+  });
+
+  describe("Mutation.submitDeliverable", () => {
+    it("calls submitDeliverable with appropriate arguments", async () => {
+      await deliverableResolvers.Mutation.submitDeliverable(
+        undefined,
+        { id: testDeliverableId },
+        testContext
+      );
+      expect(submitDeliverable).toHaveBeenCalledExactlyOnceWith(testDeliverableId, testContext);
+    });
   });
 
   describe("Deliverable.cmsDocuments", () => {
