@@ -17,7 +17,6 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
       name
       deliverableType
       dueDate
-      createdAt
       status
       demonstration {
         id
@@ -62,7 +61,7 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
 
 export type DeliverableDetailsManagementDeliverable = Pick<
   Deliverable,
-  "id" | "deliverableType" | "dueDate" | "status" | "name" | "createdAt"
+  "id" | "deliverableType" | "dueDate" | "status" | "name"
 > & {
   demonstration: Pick<Demonstration, "id" | "name" | "expirationDate"> & { state: { id: string } };
   cmsOwner: { person: { fullName: string } };

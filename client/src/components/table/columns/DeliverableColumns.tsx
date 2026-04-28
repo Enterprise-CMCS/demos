@@ -57,7 +57,11 @@ export function DeliverableColumns({
   });
 
   const dueDateColumn = createDateColumnDef(columnHelper, "dueDate", "Due Date");
-  const submissionDateColumn = createDateColumnDef(columnHelper, "createdAt", "Submission Date");
+  const submissionDateColumn = createDateColumnDef(
+    columnHelper,
+    "submissionDate",
+    "Submission Date"
+  );
   const statusColumn = columnHelper.accessor("status", {
     header: "Status",
     cell: highlightCell,

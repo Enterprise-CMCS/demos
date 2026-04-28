@@ -28,6 +28,7 @@ export type DeliverableTableRow = Omit<
   | "dueDateType"
   | "expectedToBeSubmitted"
   | "deliverableActions"
+  | "createdAt"
   | "updatedAt"
 > & {
   name: string;
@@ -41,6 +42,7 @@ export type DeliverableTableRow = Omit<
   cmsOwner: Pick<Deliverable["cmsOwner"], "id"> & {
     person: Pick<Person, "fullName" | "id">;
   };
+  submissionDate?: string;
 };
 
 export type DeliverablesQueryResult = {
@@ -73,7 +75,6 @@ export const DELIVERABLES_PAGE_QUERY = gql`
         }
       }
       dueDate
-      createdAt
     }
   }
 `;

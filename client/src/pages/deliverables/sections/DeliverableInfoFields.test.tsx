@@ -22,8 +22,8 @@ describe("DeliverableInfoFields", () => {
     expect(screen.getByTestId("deliverable-Status")).toHaveTextContent(MOCK_DELIVERABLE_1.status);
   });
 
-  it("renders the submission date", () => {
+  it("renders an empty submission date", () => {
     render(<DeliverableInfoFields deliverable={MOCK_DELIVERABLE_1} />);
-    expect(screen.getByTestId("deliverable-Submission Date")).toHaveTextContent("06/01/2024");
+    expect(screen.getByTestId("deliverable-Submission Date")).toBeEmptyDOMElement();
   });
 });

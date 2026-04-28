@@ -32,9 +32,7 @@ export const DeliverableInfoFields = ({
     { label: "Due Date", value: formatDate(deliverable.dueDate) },
     { label: "Status", value: deliverable.status },
   ];
-  const additionalFields: DeliverableInfoField[] = [
-    { label: "Submission Date", value: formatDate(deliverable.createdAt) },
-  ];
+  const additionalFields: DeliverableInfoField[] = [{ label: "Submission Date", value: "" }];
   const shouldShowAdditionalDetails = !showAdditionalDetailsToggle || showAdditionalDetails;
   const displayFields: DeliverableInfoField[] = shouldShowAdditionalDetails
     ? [...baseFields, ...additionalFields]
