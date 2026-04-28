@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Types
+import { DeepPartial } from "../../testUtilities";
 import {
   Deliverable as PrismaDeliverable,
   Demonstration as PrismaDemonstration,
@@ -40,6 +41,7 @@ vi.mock(".", () => ({
   createDeliverable: vi.fn(),
   getDeliverable: vi.fn(),
   getManyDeliverables: vi.fn(),
+  startDeliverableReview: vi.fn(),
   submitDeliverable: vi.fn(),
   updateDeliverable: vi.fn(),
 }));
@@ -68,6 +70,7 @@ import {
   createDeliverable,
   getDeliverable,
   getManyDeliverables,
+  startDeliverableReview,
   submitDeliverable,
   updateDeliverable,
 } from ".";
@@ -108,11 +111,11 @@ describe("deliverableResolvers", () => {
     },
   };
 
-  const testContext: GraphQLContext = {
+  const testContext: DeepPartial<GraphQLContext> = {
     user: {
       id: "testUserId",
     },
-  } as GraphQLContext;
+  };
 
   const testDocumentWithDeliverableParent: Partial<PrismaDocument> = {
     deliverableId: testDeliverableId,
@@ -141,16 +144,37 @@ describe("deliverableResolvers", () => {
       await deliverableResolvers.Mutation.submitDeliverable(
         undefined,
         { id: testDeliverableId },
+        testContext as GraphQLContext
+      );
+      expect(submitDeliverable).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId,
+        testContext as GraphQLContext
+      );
+    });
+  });
+
+  describe("Mutation.startDeliverableReview", () => {
+    it("calls startDeliverableReview with appropriate arguments", async () => {
+      await deliverableResolvers.Mutation.startDeliverableReview(
+        undefined,
+        { id: testDeliverableId },
+        testContext as GraphQLContext
+      );
+      expect(startDeliverableReview).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId,
         testContext
       );
-      expect(submitDeliverable).toHaveBeenCalledExactlyOnceWith(testDeliverableId, testContext);
     });
   });
 
   describe("Deliverable.cmsDocuments", () => {
     it("delegates to `documentData.getManyDocuments` with CMS filter as true", async () => {
       const mockDeliverable = { id: testDeliverableId } as PrismaDeliverable;
-      await deliverableResolvers.Deliverable.cmsDocuments(mockDeliverable, undefined, testContext);
+      await deliverableResolvers.Deliverable.cmsDocuments(
+        mockDeliverable,
+        undefined,
+        testContext as GraphQLContext
+      );
       expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
         {
           AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: true }],
@@ -166,7 +190,7 @@ describe("deliverableResolvers", () => {
       await deliverableResolvers.Deliverable.stateDocuments(
         mockDeliverable,
         undefined,
-        testContext
+        testContext as GraphQLContext
       );
       expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
         {

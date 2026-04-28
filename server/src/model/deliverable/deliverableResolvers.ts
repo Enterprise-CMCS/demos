@@ -11,6 +11,7 @@ import {
   createDeliverable,
   getDeliverable,
   getManyDeliverables,
+  startDeliverableReview,
   submitDeliverable,
   updateDeliverable,
 } from ".";
@@ -128,6 +129,13 @@ export const deliverableResolvers = {
     },
     submitDeliverable: async (parent: unknown, args: { id: string }, context: GraphQLContext) => {
       return await submitDeliverable(args.id, context);
+    },
+    startDeliverableReview: async (
+      parent: unknown,
+      args: { id: string },
+      context: GraphQLContext
+    ) => {
+      return await startDeliverableReview(args.id, context);
     },
   },
 

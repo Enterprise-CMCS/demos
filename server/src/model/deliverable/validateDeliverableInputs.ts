@@ -1,5 +1,6 @@
 import {
   checkDeliverableHasAtLeastOneDocument,
+  checkDeliverableHasStatus,
   checkDeliverableStatusNotFinalized,
   checkDemonstrationStatus,
   checkDueDateInFuture,
@@ -124,5 +125,24 @@ export async function validateSubmitDeliverableInput(
         originalMessages: cleanedErrors,
       },
     });
+  }
+}
+
+export function validateStartDeliverableReviewInput(deliverable: PrismaDeliverable): void {
+  const errors: (string | undefined)[] = [];
+
+  errors.push(checkDeliverableHasStatus(deliverable, "Submitted"));
+
+  const cleanedErrors = errors.filter((e) => e !== undefined);
+  if (cleanedErrors.length > 0) {
+    throw new GraphQLError(
+      "One or more validation checks for startDeliverableReview have failed.",
+      {
+        extensions: {
+          code: "START_DELIVERABLE_REVIEW_VALIDATION_FAILED",
+          originalMessages: cleanedErrors,
+        },
+      }
+    );
   }
 }

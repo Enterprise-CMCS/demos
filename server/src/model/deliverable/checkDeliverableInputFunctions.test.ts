@@ -21,6 +21,7 @@ import {
   checkRequestedDeliverableDemonstrationType,
   checkDueDateInFuture,
   checkDeliverableHasAtLeastOneDocument,
+  checkDeliverableHasStatus,
 } from "./checkDeliverableInputFunctions";
 
 // Mock imports
@@ -286,6 +287,28 @@ describe("checkDeliverableInputFunctions", () => {
       );
       expect(result).toBe(
         `Cannot submit deliverable ${testDeliverableId} because it has no state documents attached.`
+      );
+    });
+  });
+
+  describe("checkDeliverableHasStatus", () => {
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      id: "1e42da3a-9355-4c5d-a541-812a9f95ef56",
+      statusId: "Under CMS Review",
+    };
+
+    it("should return undefined if the passed status matches the object", async () => {
+      const result = checkDeliverableHasStatus(
+        testDeliverable as PrismaDeliverable,
+        "Under CMS Review"
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it("should return an error message the passed status does not match the object", async () => {
+      const result = checkDeliverableHasStatus(testDeliverable as PrismaDeliverable, "Approved");
+      expect(result).toBe(
+        "Deliverable expected to have status Approved; actual status was Under CMS Review."
       );
     });
   });
