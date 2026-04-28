@@ -31,7 +31,7 @@ export const DemosRouter: React.FC = () => {
                 <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
                 <Route path="deliverables" element={<DeliverablesPage />} />
                 <Route path="deliverables/:deliverableId" element={<DemonstrationDetail />} />
-                <Route path="admin" element={<AdminPage />} />
+                <Route path="admin" element={<RequireAdmin><AdminPage /></RequireAdmin>} />
                 {isLocalDevelopment() && (
                   <>
                     <Route path="components" element={<ComponentLibrary />} />
