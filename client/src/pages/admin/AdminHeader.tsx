@@ -9,12 +9,12 @@ export const AdminHeader: React.FC = () => {
   return (
     <header className="w-full">
       <div className="w-full flex items-center justify-between">
-        <span className="text-2xl font-bold">Admin Dashboard</span>
+        <span className="text-xl font-bold">Admin</span>
         <IconButton
           icon={<ExitIcon />}
           name="close-admin"
           data-testid="close-admin"
-          onClick={() => navigate("/")}
+          onClick={() => navigate(-1)}
         >
           Close Admin
         </IconButton>
