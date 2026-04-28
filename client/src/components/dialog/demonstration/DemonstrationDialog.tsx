@@ -47,8 +47,8 @@ const DemonstrationDescriptionTextArea: React.FC<{
       name={DEMONSTRATION_DIALOG_DESCRIPTION_NAME}
       label="Demonstration Description"
       placeholder="Enter description"
-      initialValue={description ?? ""}
-      onChange={(e) => setDescription(e.target.value)}
+      value={description ?? ""}
+      onChange={setDescription}
     />
   );
 };

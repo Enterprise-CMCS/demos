@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 
 import { tw } from "tags/tw";
 
@@ -14,8 +14,8 @@ const VALIDATION_MESSAGE_CLASSES = tw`text-error-dark`;
 export interface TextareaProps {
   name: string;
   label: string;
-  initialValue: string;
-  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  value: string;
+  onChange: (newString: string) => void;
   isRequired?: boolean;
   isDisabled?: boolean;
   placeholder?: string;
@@ -25,22 +25,18 @@ export interface TextareaProps {
 export const Textarea: React.FC<TextareaProps> = ({
   name,
   label,
-  initialValue,
+  value,
   onChange,
   isRequired,
   isDisabled,
   placeholder,
   getValidationMessage,
 }) => {
-  const [value, setValue] = useState(initialValue);
   const validationMessage = getValidationMessage ? getValidationMessage(value) : "";
   const rowsToDisplay = Math.min(Math.max(value.split("\n").length, 1), MAX_ROWS);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setValue(e.target.value);
-    if (onChange) {
-      onChange(e);
-    }
+    onChange(e.target.value);
   };
   return (
     <div className="flex flex-col gap-xs">
