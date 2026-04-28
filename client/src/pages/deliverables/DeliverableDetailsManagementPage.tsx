@@ -7,6 +7,7 @@ import { CommentBox } from "./sections/CommentBox";
 import { DeliverableButtons } from "./sections/DeliverableButtons";
 import { DeliverableInfoFields } from "./sections/DeliverableInfoFields";
 import { FileAndHistoryTabs } from "./sections/FileAndHistoryTabs";
+import type { DeliverableFileRow } from "./sections/DeliverableFileTypes";
 
 export const GET_DELIVERABLE_DETAILS_QUERY_NAME = "GetDeliverableDetails";
 export const DELIVERABLE_DETAILS_QUERY = gql`
@@ -31,16 +32,42 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
           fullName
         }
       }
+      stateDocuments {
+        id
+        name
+        description
+        documentType
+        createdAt
+        owner {
+          person {
+            fullName
+          }
+        }
+      }
+      cmsDocuments {
+        id
+        name
+        description
+        documentType
+        createdAt
+        owner {
+          person {
+            fullName
+          }
+        }
+      }
     }
   }
 `;
 
 export type DeliverableDetailsManagementDeliverable = Pick<
   Deliverable,
-  "id" | "deliverableType" | "dueDate" | "createdAt" | "status" | "name"
+  "id" | "deliverableType" | "dueDate" | "status" | "name" | "createdAt"
 > & {
   demonstration: Pick<Demonstration, "id" | "name" | "expirationDate"> & { state: { id: string } };
   cmsOwner: { person: { fullName: string } };
+  stateDocuments: DeliverableFileRow[];
+  cmsDocuments: DeliverableFileRow[];
 };
 
 export const DeliverableDetailsManagementPage: React.FC = () => {
@@ -56,7 +83,7 @@ export const DeliverableDetailsManagementPage: React.FC = () => {
   if (error) {
     return <div>Error loading deliverable: {error.message}</div>;
   }
-  if (!data || !data.deliverable) {
+  if (!data?.deliverable) {
     return <div>Deliverable not found.</div>;
   }
 
@@ -73,7 +100,7 @@ export const DeliverableDetailsManagementPage: React.FC = () => {
         </div>
         <div className="flex w-full gap-2 flex-1">
           <div className="flex-1">
-            <FileAndHistoryTabs />
+            <FileAndHistoryTabs deliverable={data.deliverable} />
           </div>
           <div>
             <CommentBox />

@@ -18,10 +18,9 @@ export const DemonstrationDeliverableDetailView: React.FC<{
   const [showAdditionalDetails, setShowAdditionalDetails] = useState(false);
   const [showSubmissionPendingNotice, setShowSubmissionPendingNotice] = useState(true);
   const { id: demonstrationId } = useParams<{ id?: string }>();
-  const { data, loading, error } = useQuery<{ deliverable: DeliverableDetailsManagementDeliverable }>(
-    DELIVERABLE_DETAILS_QUERY,
-    { variables: { id: deliverableId } }
-  );
+  const { data, loading, error } = useQuery<{
+    deliverable: DeliverableDetailsManagementDeliverable;
+  }>(DELIVERABLE_DETAILS_QUERY, { variables: { id: deliverableId } });
   const handleToggleAdditionalDetails = useCallback(() => {
     setShowAdditionalDetails((prev) => !prev);
   }, []);
@@ -74,7 +73,7 @@ export const DemonstrationDeliverableDetailView: React.FC<{
           ) : null}
           <div className="flex w-full gap-2 flex-1">
             <div className="flex-1">
-              <FileAndHistoryTabs />
+              <FileAndHistoryTabs deliverable={data.deliverable} />
             </div>
             <div>
               <CommentBox />

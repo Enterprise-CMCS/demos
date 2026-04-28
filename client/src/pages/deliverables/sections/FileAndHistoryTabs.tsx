@@ -1,6 +1,11 @@
-import { HorizontalSectionTabs, Tab } from "layout/Tabs";
 import React from "react";
-import { StateFilesTable } from "./StateFilesTable";
+
+import { HorizontalSectionTabs, Tab } from "layout/Tabs";
+
+import { CmsFilesTab } from "./CmsFilesTab";
+import type { DeliverableDetailsManagementDeliverable } from "../DeliverableDetailsManagementPage";
+import { HistoryTab, type DeliverableHistoryRow } from "./HistoryTab";
+import { StateFilesTab } from "./StateFilesTab";
 
 export const FILE_AND_HISTORY_TABS_NAME = "file-and-history-tabs";
 
@@ -10,18 +15,27 @@ const TABS = {
   HISTORY: "history",
 };
 
-export const FileAndHistoryTabs = () => {
+const buildTabLabel = (label: string, count: number) => (count > 0 ? `${label} (${count})` : label);
+
+const EMPTY_HISTORY: DeliverableHistoryRow[] = [];
+
+export const FileAndHistoryTabs: React.FC<{
+  deliverable: DeliverableDetailsManagementDeliverable;
+}> = ({ deliverable }) => {
+  const stateFiles = deliverable.stateDocuments;
+  const cmsFiles = deliverable.cmsDocuments;
+
   return (
     <div data-testid={FILE_AND_HISTORY_TABS_NAME}>
-      <HorizontalSectionTabs defaultValue={TABS.STATE_FILES} variant="bordered">
-        <Tab label="State Files" value={TABS.STATE_FILES}>
-          <StateFilesTable />
+      <HorizontalSectionTabs defaultValue={TABS.STATE_FILES}>
+        <Tab label={buildTabLabel("State Files", stateFiles.length)} value={TABS.STATE_FILES}>
+          <StateFilesTab files={stateFiles} />
         </Tab>
-        <Tab label="CMS Files" value={TABS.CMS_FILES}>
-          <div>CMS Files Tab Coming Soon</div>
+        <Tab label={buildTabLabel("CMS Files", cmsFiles.length)} value={TABS.CMS_FILES}>
+          <CmsFilesTab files={cmsFiles} />
         </Tab>
         <Tab label="History" value={TABS.HISTORY}>
-          <div>History Tab Coming Soon</div>
+          <HistoryTab rows={EMPTY_HISTORY} />
         </Tab>
       </HorizontalSectionTabs>
     </div>
