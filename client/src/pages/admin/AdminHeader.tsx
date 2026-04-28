@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { IconButton } from "components/button";
-import { ExitIcon } from "components/icons";
+import { ExitIcon, SettingsIcon } from "components/icons";
 
 export const AdminHeader: React.FC = () => {
   const navigate = useNavigate();
@@ -9,7 +9,9 @@ export const AdminHeader: React.FC = () => {
   return (
     <header className="w-full">
       <div className="w-full flex items-center justify-between">
-        <span className="text-xl font-bold">Admin</span>
+        <div className="text-xl font-bold flex gap-0-5 items-baseline">
+          <SettingsIcon />Admin
+        </div>
         <IconButton
           icon={<ExitIcon />}
           name="close-admin"
