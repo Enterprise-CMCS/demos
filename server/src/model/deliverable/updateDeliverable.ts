@@ -18,19 +18,15 @@ export async function updateDeliverable(
   input: UpdateDeliverableInput,
   context: GraphQLContext
 ): Promise<PrismaDeliverable> {
-  checkOptionalNotNullFields(
-    ["name", "deliverableType", "cmsOwnerUserId", "dueDate", "demonstrationTypes"],
-    input
-  );
+  checkOptionalNotNullFields(["name", "cmsOwnerUserId", "dueDate", "demonstrationTypes"], input);
   const parsedInput = parseUpdateDeliverableInput(input);
 
   const updatedDeliverable = await prisma().$transaction(async (tx) => {
     await validateUpdateDeliverableInput(deliverableId, parsedInput, tx);
 
-    // Directly edit name, deliverable type, and CMS owner
+    // Directly edit name and CMS owner
     const editInput: EditDeliverableInput = {};
     if (parsedInput.name) editInput.name = parsedInput.name;
-    if (parsedInput.deliverableType) editInput.deliverableTypeId = parsedInput.deliverableType;
     if (parsedInput.cmsOwnerUserId) editInput.cmsOwnerUserId = parsedInput.cmsOwnerUserId;
     if (Object.keys(editInput).length > 0) {
       await editDeliverable(deliverableId, editInput, tx);

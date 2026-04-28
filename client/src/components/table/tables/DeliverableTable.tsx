@@ -19,7 +19,17 @@ import { getDeliverableFilterOptions } from "./deliverablesFilterOptions";
 
 export type DeliverableTableRow = Omit<
   Deliverable,
-  "demonstration" | "cmsOwner" | "demonstrationTypes" | "cmsDocuments" | "stateDocuments" | "name" | "dueDateType" | "expectedToBeSubmitted" | "createdAt" | "updatedAt"
+  | "demonstration"
+  | "cmsOwner"
+  | "demonstrationTypes"
+  | "cmsDocuments"
+  | "stateDocuments"
+  | "name"
+  | "dueDateType"
+  | "expectedToBeSubmitted"
+  | "deliverableActions"
+  | "createdAt"
+  | "updatedAt"
 > & {
   name: string;
   demonstration: Pick<Deliverable["demonstration"], "id" | "name"> & {

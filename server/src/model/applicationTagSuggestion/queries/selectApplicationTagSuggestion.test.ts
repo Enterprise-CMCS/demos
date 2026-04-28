@@ -39,7 +39,7 @@ describe("selectApplicationTagSuggestion", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(prisma).mockReturnValue(mockPrismaClient as never);
+    vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
   });
 
   it("should get applicationTagSuggestion and associated tags from the database directly if no transaction is given", async () => {

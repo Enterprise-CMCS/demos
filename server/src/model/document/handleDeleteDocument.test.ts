@@ -26,7 +26,7 @@ describe("handleDeleteDocument", () => {
   const testDocumentId = "doc-123-456";
   const testApplicationId = "app-123-456";
 
-  const mockDeletedDocument: PrismaDocument = {
+  const mockDeletedDocument: Partial<PrismaDocument> = {
     name: "Test Document",
     id: testDocumentId,
     description: "Test document description",
@@ -44,7 +44,7 @@ describe("handleDeleteDocument", () => {
   });
 
   it("should delete document by id and move it to deleted bucket", async () => {
-    vi.mocked(deleteDocumentById).mockResolvedValue(mockDeletedDocument);
+    vi.mocked(deleteDocumentById).mockResolvedValue(mockDeletedDocument as PrismaDocument);
 
     await handleDeleteDocument(mockTransaction, mockS3Adapter, testDocumentId);
 
@@ -55,7 +55,7 @@ describe("handleDeleteDocument", () => {
   });
 
   it("should construct S3 key from applicationId and document id", async () => {
-    vi.mocked(deleteDocumentById).mockResolvedValue(mockDeletedDocument);
+    vi.mocked(deleteDocumentById).mockResolvedValue(mockDeletedDocument as PrismaDocument);
     const expectedKey = `${testApplicationId}/${testDocumentId}`;
 
     await handleDeleteDocument(mockTransaction, mockS3Adapter, testDocumentId);
@@ -64,7 +64,7 @@ describe("handleDeleteDocument", () => {
   });
 
   it("should return the deleted document", async () => {
-    vi.mocked(deleteDocumentById).mockResolvedValue(mockDeletedDocument);
+    vi.mocked(deleteDocumentById).mockResolvedValue(mockDeletedDocument as PrismaDocument);
 
     const result = await handleDeleteDocument(mockTransaction, mockS3Adapter, testDocumentId);
 

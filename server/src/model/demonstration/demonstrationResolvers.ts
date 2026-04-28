@@ -207,7 +207,7 @@ export async function __resolveDemonstrationPrimaryProjectOfficer(
   return primaryRoleAssignment.demonstrationRoleAssignment.person;
 }
 
-export const resolverPrimaryProjectOfficer = async (
+export const resolvePrimaryProjectOfficer = async (
   parent: PrismaDemonstration,
   args: undefined,
   context: GraphQLContext
@@ -259,7 +259,7 @@ export const demonstrationResolvers = {
     status: (parent: PrismaDemonstration) => parent.statusId,
     phases: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
       getManyApplicationPhases({ applicationId: parent.id }, context.user),
-    primaryProjectOfficer: resolverPrimaryProjectOfficer,
+    primaryProjectOfficer: resolvePrimaryProjectOfficer,
     clearanceLevel: (parent: PrismaDemonstration) => parent.clearanceLevelId,
     tags: async (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
       (await getManyApplicationTagAssignments({ applicationId: parent.id }, context.user)).map(

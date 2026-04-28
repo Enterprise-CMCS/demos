@@ -5,12 +5,11 @@
   "type": "module",
   "devDependencies": {
     "@apollo/client": "^3.14.1",
-    "@axe-core/cli": "^4.11.2",
     "@date-fns/tz": "^1.4.1",
     "@date-fns/utc": "^2.1.1",
     "@eslint/js": "^9.39.4",
     "@faker-js/faker": "^9.9.0",
-    "@tailwindcss/vite": "^4.2.2",
+    "@tailwindcss/vite": "^4.2.4",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -18,24 +17,24 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.7.0",
-    "@vitest/coverage-v8": "^4.1.2",
+    "@vitest/coverage-v8": "^4.1.5",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^16.5.0",
     "jsdom": "^26.1.0",
-    "prettier": "^3.8.1",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
+    "prettier": "^3.8.3",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
     "react-idle-timer": "^5.7.3",
-    "tailwindcss": "^4.2.2",
+    "tailwindcss": "^4.2.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.58.0",
+    "typescript-eslint": "^8.59.0",
     "vite": "^6.4.2",
     "vite-bundle-visualizer": "^1.2.1",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^4.1.2",
+    "vitest": "^4.1.5",
     "vitest-sonar-reporter": "^3.0.0"
   },
   "browserslist": {
@@ -52,8 +51,8 @@
     ]
   },
   "scripts": {
-    "ally": "echo 'Running accessibility check...' && echo 'Make sure dev server is running (npm run dev)' && axe http://localhost:3000 --save accessibility-report.json --verbose --timer --tags wcag2a,wcag2aa,wcag21aa && echo 'Accessibility report saved to accessibility-report.json'",
-    "ally:ci": "axe http://localhost:3000 --save accessibility-report.json --exit --no-reporter",
+    "ally": "bash scripts/ally.sh",
+    "ally:ci": "DEMOS_AXE_CI=true bash scripts/ally.sh",
     "analyze": "vite-bundle-visualizer --mode=build",
     "build": "npm run tsc && vite build",
     "build:ci": "vite build",
@@ -85,11 +84,11 @@
     "demos-shared-library": "file:../shared_library",
     "file-type": "^21.3.4",
     "react-oidc-context": "^3.3.1",
-    "react-router-dom": "^7.13.2",
+    "react-router-dom": "^7.14.2",
     "react-switch": "^7.1.0"
   },
   "optionalDependencies": {
-    "@emnapi/core": "^1.9.1",
-    "@rollup/rollup-linux-x64-musl": "^4.60.1"
+    "@emnapi/core": "^1.10.0",
+    "@rollup/rollup-linux-x64-musl": "^4.60.2"
   }
 }

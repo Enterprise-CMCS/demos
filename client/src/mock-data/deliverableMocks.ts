@@ -51,6 +51,26 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
   },
   dueDate: new Date("2024-08-15"),
   status: "Upcoming",
+  stateDocuments: [
+    {
+      id: "state-file-1",
+      name: "Example File",
+      description: "CMS guidelines for service utilization reporting requirements",
+      documentType: "General File",
+      createdAt: new Date("2026-03-23"),
+      owner: { person: { fullName: "Florida State" } },
+    },
+  ],
+  cmsDocuments: [
+    {
+      id: "cms-file-1",
+      name: "Screenshot 2026-03-10 074301.png",
+      description: "Here is a file that we have added for you",
+      documentType: "General File",
+      createdAt: new Date("2026-03-24"),
+      owner: { person: { fullName: "Tess Davenport" } },
+    },
+  ],
 };
 
 export const deliverableMocks: MockedResponse[] = [

@@ -7,6 +7,10 @@ export function applyCoreSuppressions(core: Stack, stage: string) {
       id: "AwsSolutions-COG3",
       reason: "Advanced security mode is an increased cost and unnecessary since all logins are managed by IDM in PROD",
     },
+    {
+      id: "AwsSolutions-COG8",
+      reason: "We are relying on IDM to provide the same benefits as the Plus tier and 100% of logins will come through IDM"
+    },
   ]);
 
   NagSuppressions.addResourceSuppressionsByPath(core, `/demos-${stage}-core/S3AccessLogBucket/Resource`, 

@@ -1,6 +1,7 @@
 import { gql } from "graphql-tag";
 import {
   DateTimeOrLocalDate,
+  DeliverableAction,
   DeliverableDueDateType,
   DeliverableStatus,
   DeliverableType,
@@ -26,6 +27,7 @@ export const deliverableSchema = gql`
     expectedToBeSubmitted: Boolean!
     cmsDocuments: [Document!]!
     stateDocuments: [Document!]!
+    deliverableActions: [DeliverableAction!]!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -46,7 +48,6 @@ export const deliverableSchema = gql`
 
   input UpdateDeliverableInput {
     name: NonEmptyString
-    deliverableType: DeliverableType
     cmsOwnerUserId: ID
     dueDate: DeliverableDueDateUpdateInput
     demonstrationTypes: [TagName!]
@@ -76,6 +77,7 @@ export interface Deliverable {
   expectedToBeSubmitted: boolean;
   cmsDocuments: Document[];
   stateDocuments: Document[];
+  deliverableActions: DeliverableAction[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -96,7 +98,6 @@ export interface DeliverableDueDateUpdateInput {
 
 export interface UpdateDeliverableInput {
   name?: NonEmptyString;
-  deliverableType?: DeliverableType;
   cmsOwnerUserId?: string;
   dueDate?: DeliverableDueDateUpdateInput;
   demonstrationTypes?: TagName[];

@@ -3,8 +3,9 @@ import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { EasternTZDate, parseJSDateToEasternTZDate } from "../../dateUtilities";
 
 // Types
-import { ApplicationStatus, PersonType, TagName } from "../../types";
+import { ApplicationStatus, DeliverableStatus, PersonType, TagName } from "../../types";
 import {
+  Deliverable as PrismaDeliverable,
   Demonstration as PrismaDemonstration,
   DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
   User as PrismaUser,
@@ -13,6 +14,7 @@ import {
 // Functions under test
 import {
   checkDemonstrationStatus,
+  checkDeliverableStatusNotFinalized,
   checkForDuplicateDemonstrationTypes,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
@@ -42,6 +44,78 @@ describe("checkDeliverableInputFunctions", () => {
         "Demonstration abc123 is not in Approved status; cannot create deliverable."
       );
     });
+  });
+
+  describe("checkDeliverableStatusNotFinalized", () => {
+    const checkDeliverableStatusInputs: [
+      DeliverableStatus,
+      Partial<PrismaDeliverable>,
+      string | undefined,
+    ][] = [
+      [
+        "Upcoming",
+        {
+          id: "abc123",
+          statusId: "Upcoming",
+        },
+        undefined,
+      ],
+      [
+        "Past Due",
+        {
+          id: "abc123",
+          statusId: "Past Due",
+        },
+        undefined,
+      ],
+      [
+        "Submitted",
+        {
+          id: "abc123",
+          statusId: "Submitted",
+        },
+        undefined,
+      ],
+      [
+        "Under CMS Review",
+        {
+          id: "abc123",
+          statusId: "Under CMS Review",
+        },
+        undefined,
+      ],
+      [
+        "Accepted",
+        {
+          id: "abc123",
+          statusId: "Accepted",
+        },
+        "Cannot modify deliverable abc123 as it has already been finalized.",
+      ],
+      [
+        "Approved",
+        {
+          id: "abc123",
+          statusId: "Approved",
+        },
+        "Cannot modify deliverable abc123 as it has already been finalized.",
+      ],
+      [
+        "Received and Filed",
+        {
+          id: "abc123",
+          statusId: "Received and Filed",
+        },
+        "Cannot modify deliverable abc123 as it has already been finalized.",
+      ],
+    ];
+    it.each(checkDeliverableStatusInputs)(
+      "properly checks the status (%s)",
+      (deliverableStatus, testDeliverable, expectedResult) => {
+        const result = checkDeliverableStatusNotFinalized(testDeliverable as PrismaDeliverable);
+        expect(result).toBe(expectedResult);
+      }
+    );
   });
 
   describe("checkOwnerPersonType", () => {
