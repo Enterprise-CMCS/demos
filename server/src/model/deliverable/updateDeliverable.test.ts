@@ -23,6 +23,7 @@ vi.mock(".", () => ({
   parseUpdateDeliverableInput: vi.fn(),
   updateDeliverableDemonstrationTypes: vi.fn(),
   validateUpdateDeliverableInput: vi.fn(),
+  validateUserPersonTypeAllowed: vi.fn(),
 }));
 
 vi.mock("../../errors/checkOptionalNotNullFields", () => ({
@@ -37,6 +38,7 @@ import {
   parseUpdateDeliverableInput,
   updateDeliverableDemonstrationTypes,
   validateUpdateDeliverableInput,
+  validateUserPersonTypeAllowed,
 } from ".";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 
@@ -70,6 +72,26 @@ describe("updateDeliverable", () => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(parseUpdateDeliverableInput).mockReturnValue(mockParseInputResult);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
+  });
+
+  it("should check that the user is allowed to do this operation", async () => {
+    await updateDeliverable(testDeliverableId, testInput, testContext as GraphQLContext);
+    expect(validateUserPersonTypeAllowed).toHaveBeenCalledExactlyOnceWith(
+      testContext,
+      "updateDeliverable",
+      ["demos-admin", "demos-cms-user"]
+    );
+  });
+
+  it("should not create a transaction if the user is not permitted", async () => {
+    vi.mocked(validateUserPersonTypeAllowed).mockThrow("I'm throwing!");
+
+    try {
+      await updateDeliverable(testDeliverableId, testInput, testContext as GraphQLContext);
+      throw new Error("Expected updateDeliverable to throw, but it did not.");
+    } catch (e) {
+      expect(prisma).not.toHaveBeenCalled();
+    }
   });
 
   it("should check for non-null in all the fields", async () => {
