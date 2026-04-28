@@ -5,15 +5,8 @@ import {
   LABEL_CLASSES,
   VALIDATION_MESSAGE_CLASSES,
 } from "components/input/Input";
-import { isAfter, isBefore } from "date-fns";
-
-// Format YYYY-MM-DD as MM/DD/YYYY without going through Date — avoids the timezone
-// shift where new Date("2026-04-28") is parsed as UTC midnight and formatted in local time
-// rolls back a day for users west of UTC.
-const formatIsoDateForDisplay = (isoDate: string): string => {
-  const [year, month, day] = isoDate.split("-");
-  return `${month}/${day}/${year}`;
-};
+import { isAfter, isBefore, parseISO } from "date-fns";
+import { formatDate } from "util/formatDate";
 
 const DEFAULT_MIN_DATE = "1900-01-01";
 const DEFAULT_MAX_DATE = "2099-12-31";
@@ -66,7 +59,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   const externalValidationMessage = getValidationMessage ? getValidationMessage() : "";
   const minViolationMessage =
     value && minDate && isBefore(value, minDate)
-      ? `Date must be on or after ${formatIsoDateForDisplay(minDate)}.`
+      ? `Date must be on or after ${formatDate(parseISO(minDate))}.`
       : "";
   const validationMessage = externalValidationMessage || minViolationMessage;
 

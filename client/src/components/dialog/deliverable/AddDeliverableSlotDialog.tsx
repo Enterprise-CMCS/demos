@@ -105,13 +105,15 @@ export const buildAddDeliverableSlotPayloads = (
   }));
 };
 
-const isOnOrAfterToday = (date: string, today: string): boolean =>
-  date.length > 0 && !isBefore(date, today);
-
-const hasValidDueDateForScheduleType = (data: AddDeliverableSlotFormData, today: string): boolean =>
-  data.scheduleType === "Single"
-    ? isOnOrAfterToday(data.dueDate, today)
-    : data.quarterlyDueDates.every((dueDate) => isOnOrAfterToday(dueDate, today));
+const hasValidDueDateForScheduleType = (
+  data: AddDeliverableSlotFormData,
+  today: string
+): boolean => {
+  if (data.scheduleType === "Single") {
+    return data.dueDate.length > 0 && !isBefore(data.dueDate, today);
+  }
+  return data.quarterlyDueDates.every((dueDate) => dueDate.length > 0);
+};
 
 const formIsValid = (data: AddDeliverableSlotFormData, today: string): boolean =>
   data.deliverableName.trim().length > 0 &&
