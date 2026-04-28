@@ -18,6 +18,7 @@ export {
   validateStartDeliverableReviewInput,
   validateSubmitDeliverableInput,
   validateUpdateDeliverableInput,
+  validateUserPersonTypeAllowed,
 } from "./validateDeliverableInputs";
 export { startDeliverableReview } from "./startDeliverableReview";
 export { submitDeliverable } from "./submitDeliverable";

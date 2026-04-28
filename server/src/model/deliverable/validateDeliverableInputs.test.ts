@@ -3,6 +3,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
 
 // Types
+import { GraphQLContext } from "../../auth";
+import { DeepPartial } from "../../testUtilities";
 import { ApplicationStatus, PersonType } from "../../types";
 import { ParsedCreateDeliverableInput, ParsedUpdateDeliverableInput } from ".";
 import {
@@ -17,9 +19,10 @@ import { EasternTZDate } from "../../dateUtilities";
 // Functions under test
 import {
   validateCreateDeliverableInput,
+  validateStartDeliverableReviewInput,
   validateSubmitDeliverableInput,
   validateUpdateDeliverableInput,
-  validateStartDeliverableReviewInput,
+  validateUserPersonTypeAllowed,
 } from "./validateDeliverableInputs";
 
 // Mock imports
@@ -88,6 +91,39 @@ describe("validateDeliverableInputs", () => {
     demonstrationId: mockDemonstration.id,
   };
   const mockTransaction: any = "Test!";
+
+  describe("validateUserPersonTypeAllowed", () => {
+    const testUserContext: DeepPartial<GraphQLContext> = {
+      user: {
+        id: "0a3bd415-39a3-4f72-a067-418a5219216a",
+        personTypeId: "demos-admin",
+      },
+    };
+
+    it("should not throw if the context is one of the permitted person types", () => {
+      const result = validateUserPersonTypeAllowed(
+        testUserContext as GraphQLContext,
+        "Combobulate",
+        ["demos-admin"]
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it("should throw if the context is not of the permitted person types", () => {
+      try {
+        validateUserPersonTypeAllowed(testUserContext as GraphQLContext, "Discombobulate", [
+          "demos-cms-user",
+        ]);
+        throw new Error("Expected validateUserPersonTypeAllowed to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(Error);
+        const error = e as Error;
+        expect(error.message).toBe(
+          "A user of type demos-admin is not permitted to perform the action Discombobulate."
+        );
+      }
+    });
+  });
 
   describe("validateCreateDeliverableInput", () => {
     const testInput: ParsedCreateDeliverableInput = {
