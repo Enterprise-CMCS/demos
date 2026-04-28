@@ -34,9 +34,10 @@ vi.mock("components/toast", () => ({
 const TEST_DELIVERABLE: EditDeliverableDialogDeliverable = {
   id: "deliverable-1",
   name: "Quarterly Report",
-  deliverableType: "Annual Budget Neutrality Report",
+  deliverableType: "Implementation Plan",
   dueDate: new Date(2026, 5, 15),
   cmsOwner: { id: "ashokatano" },
+  demonstrationTypes: [],
 };
 
 const MOCK_TAGS: Tag[] = [
@@ -214,6 +215,9 @@ describe("isDeliverableEditable", () => {
 
 describe("formIsValid / formHasChanges / buildInitialFormData", () => {
   const initial = buildInitialFormData(TEST_DELIVERABLE);
+  const TODAY = "2026-04-28";
+  const TYPE_REQUIRES_DEMO = "Implementation Plan";
+  const TYPE_DEMO_OPTIONAL = "Annual Budget Neutrality Report";
 
   it("buildInitialFormData converts the due date to ISO YYYY-MM-DD", () => {
     expect(initial.dueDate).toBe("2026-06-15");
@@ -222,30 +226,71 @@ describe("formIsValid / formHasChanges / buildInitialFormData", () => {
   });
 
   it("formIsValid is false when name is blank", () => {
-    expect(formIsValid(initial, { ...initial, name: "  ", demonstrationTypes: ["x"] })).toBe(false);
+    expect(
+      formIsValid(
+        initial,
+        { ...initial, name: "  ", demonstrationTypes: ["x"] },
+        TODAY,
+        TYPE_REQUIRES_DEMO
+      )
+    ).toBe(false);
   });
 
-  it("formIsValid is false when no demonstration types are selected", () => {
-    expect(formIsValid(initial, { ...initial, demonstrationTypes: [] })).toBe(false);
+  it("formIsValid is false when demonstration types empty for Implementation Plan / Monitoring Protocol", () => {
+    expect(formIsValid(initial, { ...initial, demonstrationTypes: [] }, TODAY, TYPE_REQUIRES_DEMO)).toBe(
+      false
+    );
+  });
+
+  it("formIsValid is true when demonstration types empty for other deliverable types", () => {
+    expect(formIsValid(initial, { ...initial, demonstrationTypes: [] }, TODAY, TYPE_DEMO_OPTIONAL)).toBe(
+      true
+    );
   });
 
   it("formIsValid requires reason when due date changes", () => {
     expect(
-      formIsValid(initial, {
-        ...initial,
-        dueDate: "2026-08-01",
-        demonstrationTypes: ["x"],
-        reasonForChange: "",
-      })
+      formIsValid(
+        initial,
+        {
+          ...initial,
+          dueDate: "2026-08-01",
+          demonstrationTypes: ["x"],
+          reasonForChange: "",
+        },
+        TODAY,
+        TYPE_REQUIRES_DEMO
+      )
     ).toBe(false);
     expect(
-      formIsValid(initial, {
-        ...initial,
-        dueDate: "2026-08-01",
-        demonstrationTypes: ["x"],
-        reasonForChange: "valid reason",
-      })
+      formIsValid(
+        initial,
+        {
+          ...initial,
+          dueDate: "2026-08-01",
+          demonstrationTypes: ["x"],
+          reasonForChange: "valid reason",
+        },
+        TODAY,
+        TYPE_REQUIRES_DEMO
+      )
     ).toBe(true);
+  });
+
+  it("formIsValid is false when the due date is changed to a past date", () => {
+    expect(
+      formIsValid(
+        initial,
+        {
+          ...initial,
+          dueDate: "2026-04-01",
+          demonstrationTypes: ["x"],
+          reasonForChange: "valid reason",
+        },
+        TODAY,
+        TYPE_REQUIRES_DEMO
+      )
+    ).toBe(false);
   });
 
   it("formHasChanges detects modifications", () => {

@@ -14,6 +14,8 @@ import { CreateDeliverableInput, DeliverableType, Demonstration, LocalDate, Tag 
 import { useToast } from "components/toast";
 import { DELIVERABLE_SLOTS_CREATED_MESSAGE } from "util/messages";
 import { DELIVERABLES_PAGE_QUERY } from "components/table/tables/DeliverableTable";
+import { getTodayEst } from "util/formatDate";
+import { isBefore } from "date-fns";
 
 export const CREATE_DELIVERABLE_MUTATION = gql`
   mutation CreateDeliverable($input: CreateDeliverableInput!) {
@@ -45,8 +47,8 @@ export const ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME = "button-add-deliverable-slo
 const ALL_QUARTERS = [1, 2, 3, 4] as const;
 type Quarter = (typeof ALL_QUARTERS)[number];
 
-// If the deliverable type is Implementation Plan or Monitoring Protocol, then at least one demonstration type must be selected
-const requiresDemonstrationTypes = (deliverableType: string): boolean =>
+// Demonstration types are required only for Implementation Plan or Monitoring Protocol; optional otherwise.
+export const requiresDemonstrationTypes = (deliverableType: string): boolean =>
   (["Implementation Plan", "Monitoring Protocol"] as readonly string[]).includes(deliverableType);
 
 export interface AddDeliverableSlotFormData {
@@ -103,17 +105,20 @@ export const buildAddDeliverableSlotPayloads = (
   }));
 };
 
-const hasValidDueDateForScheduleType = (data: AddDeliverableSlotFormData): boolean =>
-  data.scheduleType === "Single"
-    ? data.dueDate.length > 0
-    : data.quarterlyDueDates.every((dueDate) => dueDate.length > 0);
+const isOnOrAfterToday = (date: string, today: string): boolean =>
+  date.length > 0 && !isBefore(date, today);
 
-const formIsValid = (data: AddDeliverableSlotFormData): boolean =>
+const hasValidDueDateForScheduleType = (data: AddDeliverableSlotFormData, today: string): boolean =>
+  data.scheduleType === "Single"
+    ? isOnOrAfterToday(data.dueDate, today)
+    : data.quarterlyDueDates.every((dueDate) => isOnOrAfterToday(dueDate, today));
+
+const formIsValid = (data: AddDeliverableSlotFormData, today: string): boolean =>
   data.deliverableName.trim().length > 0 &&
   data.cmsOwnerUserId.length > 0 &&
   data.deliverableType.length > 0 &&
   data.scheduleType.length > 0 &&
-  hasValidDueDateForScheduleType(data) &&
+  hasValidDueDateForScheduleType(data, today) &&
   (!requiresDemonstrationTypes(data.deliverableType) || data.demonstrationTypes.length > 0);
 
 const formHasChanges = (data: AddDeliverableSlotFormData): boolean =>
@@ -145,7 +150,8 @@ export const AddDeliverableSlotDialog = ({
   const [formData, setFormData] = useState<AddDeliverableSlotFormData>(INITIAL_FORM_DATA);
   const [demonstrationYear, setDemonstrationYear] = useState<number>(1);
 
-  const isFormValid = formIsValid(formData);
+  const today = getTodayEst();
+  const isFormValid = formIsValid(formData, today);
   const hasFormChanges = formHasChanges(formData);
 
   return (

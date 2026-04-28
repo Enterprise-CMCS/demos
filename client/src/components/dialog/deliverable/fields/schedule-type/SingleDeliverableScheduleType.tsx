@@ -1,5 +1,6 @@
 import { DatePicker } from "components/input/date/DatePicker";
 import React from "react";
+import { getTodayEst } from "util/formatDate";
 
 export const SINGLE_DELIVERABLE_DUE_DATE_NAME = "single-deliverable-due-date";
 
@@ -19,6 +20,7 @@ export const SingleDeliverableScheduleType = ({
           value={value}
           onChange={onChange}
           isRequired={true}
+          minDate={getTodayEst()}
         />
       </div>
     </div>

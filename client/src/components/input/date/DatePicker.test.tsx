@@ -144,5 +144,28 @@ describe("DatePicker component", () => {
       const input = screen.getByTestId("test-date");
       expect(input.className).toContain("border-border-warn");
     });
+
+    it("shows a min-date violation message when value is before minDate", () => {
+      render(<DatePicker {...requiredProps} value="2026-01-01" minDate="2026-04-28" />);
+      expect(screen.getByText("Date must be on or after 04/28/2026.")).toBeInTheDocument();
+    });
+
+    it("does not show a min-date violation message when value is on or after minDate", () => {
+      render(<DatePicker {...requiredProps} value="2026-04-28" minDate="2026-04-28" />);
+      expect(screen.queryByText(/Date must be on or after/)).not.toBeInTheDocument();
+    });
+
+    it("prefers an external validation message over the built-in min-date message", () => {
+      render(
+        <DatePicker
+          {...requiredProps}
+          value="2026-01-01"
+          minDate="2026-04-28"
+          getValidationMessage={() => "Custom error"}
+        />
+      );
+      expect(screen.getByText("Custom error")).toBeInTheDocument();
+      expect(screen.queryByText(/Date must be on or after/)).not.toBeInTheDocument();
+    });
   });
 });
