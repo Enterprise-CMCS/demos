@@ -6,6 +6,7 @@ import { ChevronDownIcon, ChevronLeftIcon } from "components/icons";
 
 export const DELIVERABLE_INFO_FIELDS_NAME = "deliverable-info-fields";
 export const BACK_TO_DELIVERABLES_BUTTON_NAME = "button-back-to-deliverables";
+const DUMMY_SUBMISSION_DATE = "01/05/2026";
 
 export const DeliverableInfoFields = ({
   deliverable,
@@ -23,16 +24,28 @@ export const DeliverableInfoFields = ({
   onToggleAdditionalDetails?: () => void;
 }) => {
   type DeliverableInfoField = {
-    label: "Deliverable Type" | "Due Date" | "Submission Date" | "Status";
+    label:
+      | "Deliverable Type"
+      | "Due Date"
+      | "Submission Date"
+      | "Status"
+      | "Extension"
+      | "Resubmissions Requested"
+      | "CMS Owner";
     value: string;
   };
 
   const baseFields: DeliverableInfoField[] = [
     { label: "Deliverable Type", value: deliverable.deliverableType },
     { label: "Due Date", value: formatDate(deliverable.dueDate) },
+    { label: "Submission Date", value: DUMMY_SUBMISSION_DATE },
     { label: "Status", value: deliverable.status },
   ];
-  const additionalFields: DeliverableInfoField[] = [{ label: "Submission Date", value: "" }];
+  const additionalFields: DeliverableInfoField[] = [
+    { label: "Extension", value: "N/A" },
+    { label: "Resubmissions Requested", value: "0" },
+    { label: "CMS Owner", value: deliverable.cmsOwner.person.fullName },
+  ];
   const shouldShowAdditionalDetails = !showAdditionalDetailsToggle || showAdditionalDetails;
   const displayFields: DeliverableInfoField[] = shouldShowAdditionalDetails
     ? [...baseFields, ...additionalFields]
@@ -82,7 +95,7 @@ export const DeliverableInfoFields = ({
                 onClick={onToggleAdditionalDetails}
                 className="inline-flex items-center gap-[4px] text-action underline underline-offset-2"
               >
-                Additional Details
+                {showAdditionalDetails ? "Hide Additional Details" : "Show Additional Details"}
                 <span
                   className={`transition-transform duration-200 ${
                     showAdditionalDetails ? "rotate-180" : "rotate-0"

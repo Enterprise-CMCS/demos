@@ -71,10 +71,14 @@ export type DeliverableDetailsManagementDeliverable = Pick<
 
 export const DeliverableDetailsManagementPage: React.FC = () => {
   const { deliverableId } = useParams<{ deliverableId: string }>();
+  const [showAdditionalDetails, setShowAdditionalDetails] = React.useState(false);
 
   const { data, loading, error } = useQuery<{
     deliverable: DeliverableDetailsManagementDeliverable;
   }>(DELIVERABLE_DETAILS_QUERY, { variables: { id: deliverableId } });
+  const handleToggleAdditionalDetails = React.useCallback(() => {
+    setShowAdditionalDetails((prev) => !prev);
+  }, []);
 
   if (loading) {
     return <Loading />;
@@ -94,7 +98,12 @@ export const DeliverableDetailsManagementPage: React.FC = () => {
       <h2 className="text-brand text-md uppercase font-bold">{data.deliverable.name}</h2>
       <div className="flex flex-col gap-2 flex-1">
         <div className="flex justify-between items-start">
-          <DeliverableInfoFields deliverable={data.deliverable} />
+          <DeliverableInfoFields
+            deliverable={data.deliverable}
+            showAdditionalDetailsToggle
+            showAdditionalDetails={showAdditionalDetails}
+            onToggleAdditionalDetails={handleToggleAdditionalDetails}
+          />
           <DeliverableButtons deliverable={data.deliverable} />
         </div>
         <div className="flex w-full gap-2 flex-1">
