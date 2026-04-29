@@ -505,6 +505,7 @@ export const PERMISSIONS = [
   "View All ApplicationTagSuggestions",
   "View ApplicationTagSuggestions on Assigned Demonstrations",
   "View All Users",
+  "View Users on Assigned Demonstrations",
   "View My User",
 ] as const;
 
