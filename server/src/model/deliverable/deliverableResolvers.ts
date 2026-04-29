@@ -8,6 +8,7 @@ import {
 import { GraphQLContext } from "../../auth";
 import { GraphQLResolveInfo } from "graphql";
 import {
+  completeDeliverable,
   createDeliverable,
   getDeliverable,
   getManyDeliverables,
@@ -21,6 +22,7 @@ import {
   DeliverableDueDateType,
   DeliverableStatus,
   DeliverableType,
+  FinalDeliverableStatus,
   UpdateDeliverableInput,
 } from "../../types";
 import { getApplication } from "../application";
@@ -136,6 +138,13 @@ export const deliverableResolvers = {
       context: GraphQLContext
     ) => {
       return await startDeliverableReview(args.id, context);
+    },
+    completeDeliverable: async (
+      parent: unknown,
+      args: { id: string; finalStatus: FinalDeliverableStatus },
+      context: GraphQLContext
+    ) => {
+      return await completeDeliverable(args.id, args.finalStatus, context);
     },
   },
 

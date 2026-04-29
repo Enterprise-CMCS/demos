@@ -18,6 +18,7 @@ vi.mock(".", () => ({
   editDeliverable: vi.fn(),
   getDeliverable: vi.fn(),
   validateStartDeliverableReviewInput: vi.fn(),
+  validateUserPersonTypeAllowed: vi.fn(),
 }));
 
 vi.mock("../deliverableAction/queries", () => ({
@@ -25,28 +26,21 @@ vi.mock("../deliverableAction/queries", () => ({
 }));
 
 import { prisma } from "../../prismaClient";
-import { editDeliverable, getDeliverable, validateStartDeliverableReviewInput } from ".";
+import {
+  editDeliverable,
+  getDeliverable,
+  validateStartDeliverableReviewInput,
+  validateUserPersonTypeAllowed,
+} from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 
 describe("startDeliverableReview", () => {
   // Test inputs
   const testDeliverableId = "b18cf1ce-3e41-4a71-b4f4-585f343bc74f";
-  const testAdminUserContext: DeepPartial<GraphQLContext> = {
+  const testUserContext: DeepPartial<GraphQLContext> = {
     user: {
       id: "0a3bd415-39a3-4f72-a067-418a5219216a",
       personTypeId: "demos-admin",
-    },
-  };
-  const testCmsUserContext: DeepPartial<GraphQLContext> = {
-    user: {
-      id: "3f676b18-15cd-4eea-bf20-40281974a18e",
-      personTypeId: "demos-cms-user",
-    },
-  };
-  const testStateUserContext: DeepPartial<GraphQLContext> = {
-    user: {
-      id: "526903b0-badf-4154-95d3-3584b0351e90",
-      personTypeId: "demos-state-user",
     },
   };
 
@@ -83,44 +77,43 @@ describe("startDeliverableReview", () => {
     vi.useRealTimers();
   });
 
+  it("should check that the user is allowed to do this operation", async () => {
+    await startDeliverableReview(testDeliverableId, testUserContext as GraphQLContext);
+    expect(validateUserPersonTypeAllowed).toHaveBeenCalledExactlyOnceWith(
+      testUserContext,
+      "startDeliverableReview",
+      ["demos-admin", "demos-cms-user"]
+    );
+  });
+
+  it("should not create a transaction if the user is not permitted", async () => {
+    vi.mocked(validateUserPersonTypeAllowed).mockThrow("I'm throwing!");
+
+    try {
+      await startDeliverableReview(testDeliverableId, testUserContext as GraphQLContext);
+      throw new Error("Expected startDeliverableReview to throw, but it did not.");
+    } catch (e) {
+      expect(prisma).not.toHaveBeenCalled();
+    }
+  });
+
   it("should get the deliverable before making changes", async () => {
-    await startDeliverableReview(testDeliverableId, testAdminUserContext as GraphQLContext);
+    await startDeliverableReview(testDeliverableId, testUserContext as GraphQLContext);
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
       mockTransaction
     );
   });
 
-  it("should not throw if the user context is an admin or CMS user", async () => {
-    expect(
-      startDeliverableReview(testDeliverableId, testAdminUserContext as GraphQLContext)
-    ).resolves.toBeDefined();
-
-    expect(
-      startDeliverableReview(testDeliverableId, testCmsUserContext as GraphQLContext)
-    ).resolves.toBeDefined();
-  });
-
-  it("should throw if the user context is a state user", async () => {
-    try {
-      await startDeliverableReview(testDeliverableId, testStateUserContext as GraphQLContext);
-      throw new Error("Expected startDeliverableReview to throw, but it did not.");
-    } catch (e) {
-      expect(e).toBeInstanceOf(Error);
-      const error = e as Error;
-      expect(error.message).toBe("Only Admin Users and CMS Users may start the review process.");
-    }
-  });
-
   it("should call the validator on the unchanged deliverable", async () => {
-    await startDeliverableReview(testDeliverableId, testCmsUserContext as GraphQLContext);
+    await startDeliverableReview(testDeliverableId, testUserContext as GraphQLContext);
     expect(validateStartDeliverableReviewInput).toHaveBeenCalledExactlyOnceWith(
       mockUnstartedDeliverable
     );
   });
 
   it("should call edit function to set the status to under CMS review", async () => {
-    await startDeliverableReview(testDeliverableId, testCmsUserContext as GraphQLContext);
+    await startDeliverableReview(testDeliverableId, testUserContext as GraphQLContext);
     expect(editDeliverable).toHaveBeenCalledExactlyOnceWith(
       testDeliverableId,
       { statusId: "Under CMS Review" },
@@ -129,7 +122,7 @@ describe("startDeliverableReview", () => {
   });
 
   it("should log an action for the submission", async () => {
-    await startDeliverableReview(testDeliverableId, testCmsUserContext as GraphQLContext);
+    await startDeliverableReview(testDeliverableId, testUserContext as GraphQLContext);
     expect(insertDeliverableAction).toHaveBeenCalledExactlyOnceWith(
       {
         deliverableId: testDeliverableId,
@@ -139,7 +132,7 @@ describe("startDeliverableReview", () => {
         newStatus: mockStartedDeliverable.statusId,
         oldDueDate: mockUnstartedDeliverable.dueDate,
         newDueDate: mockStartedDeliverable.dueDate,
-        userId: testCmsUserContext.user!.id,
+        userId: testUserContext.user!.id,
       },
       mockTransaction
     );
