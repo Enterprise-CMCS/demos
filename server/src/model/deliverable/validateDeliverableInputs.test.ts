@@ -31,8 +31,8 @@ vi.mock("../application", () => ({
   getApplication: vi.fn(),
 }));
 
-vi.mock("../user", () => ({
-  getUser: vi.fn(),
+vi.mock("../user/queries", () => ({
+  selectUser: vi.fn(),
 }));
 
 vi.mock("../demonstrationTypeTagAssignment", () => ({
@@ -51,7 +51,6 @@ vi.mock(".", () => ({
 }));
 
 import { getApplication } from "../application";
-import { getUser } from "../user";
 import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
 import {
   checkDemonstrationStatus,
@@ -63,6 +62,7 @@ import {
   checkDeliverableHasStatus,
   getDeliverable,
 } from ".";
+import { selectUser } from "../user/queries";
 
 describe("validateDeliverableInputs", () => {
   const testEasternDate: EasternTZDate = {
@@ -139,7 +139,7 @@ describe("validateDeliverableInputs", () => {
     beforeEach(() => {
       vi.resetAllMocks();
       vi.mocked(getApplication).mockResolvedValue(mockDemonstration as PrismaDemonstration);
-      vi.mocked(getUser).mockResolvedValue(mockUser as PrismaUser);
+      vi.mocked(selectUser).mockResolvedValue(mockUser as PrismaUser);
       vi.mocked(getDemonstrationTypeAssignments).mockResolvedValue(
         mockDemonstrationTypeTagAssignments as PrismaDemonstrationTypeTagAssignment[]
       );
@@ -158,7 +158,7 @@ describe("validateDeliverableInputs", () => {
         applicationTypeId: "Demonstration",
         tx: mockTransaction,
       });
-      expect(getUser).toHaveBeenCalledExactlyOnceWith(
+      expect(selectUser).toHaveBeenCalledExactlyOnceWith(
         { id: testInput.cmsOwnerUserId },
         mockTransaction
       );
@@ -345,7 +345,7 @@ describe("validateDeliverableInputs", () => {
   describe("validateUpdateDeliverableInput", () => {
     beforeEach(() => {
       vi.resetAllMocks();
-      vi.mocked(getUser).mockResolvedValue(mockUser as PrismaUser);
+      vi.mocked(selectUser).mockResolvedValue(mockUser as PrismaUser);
       vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
       vi.mocked(getDemonstrationTypeAssignments).mockResolvedValue(
         mockDemonstrationTypeTagAssignments as PrismaDemonstrationTypeTagAssignment[]
@@ -395,7 +395,7 @@ describe("validateDeliverableInputs", () => {
       };
 
       await validateUpdateDeliverableInput(mockDeliverable.id!, testInput, mockTransaction);
-      expect(getUser).toHaveBeenCalledExactlyOnceWith(
+      expect(selectUser).toHaveBeenCalledExactlyOnceWith(
         { id: testInput.cmsOwnerUserId },
         mockTransaction
       );
