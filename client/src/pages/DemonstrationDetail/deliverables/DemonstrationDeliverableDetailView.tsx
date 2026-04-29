@@ -1,15 +1,73 @@
 import React, { useCallback, useState } from "react";
-import { useQuery } from "@apollo/client";
+import { gql, useQuery } from "@apollo/client";
 import { useParams } from "react-router-dom";
-import {
-  DELIVERABLE_DETAILS_QUERY,
-  type DeliverableDetailsManagementDeliverable,
-} from "pages/deliverables/DeliverableDetailsManagementPage";
+import { Deliverable, Demonstration } from "demos-server";
 import { CommentBox } from "pages/deliverables/sections/CommentBox";
 import { DeliverableInfoFields } from "pages/deliverables/sections/DeliverableInfoFields";
+import type { DeliverableFileRow } from "pages/deliverables/sections/DeliverableFileTypes";
 import { FileAndHistoryTabs } from "pages/deliverables/sections/FileAndHistoryTabs";
 import { EditAndDeleteButtonGroup } from "./EditAndDeleteButtonGroup";
 import { PendingReviewNotice } from "./PendingReviewNotice";
+
+export const GET_DELIVERABLE_DETAILS_QUERY_NAME = "GetDeliverableDetails";
+export const DELIVERABLE_DETAILS_QUERY = gql`
+  query ${GET_DELIVERABLE_DETAILS_QUERY_NAME}($id: ID!) {
+    deliverable(id: $id) {
+      id
+      name
+      deliverableType
+      dueDate
+      status
+      demonstration {
+        id
+        name
+        expirationDate
+        state {
+          id
+        }
+      }
+      cmsOwner {
+        person {
+          fullName
+        }
+      }
+      stateDocuments {
+        id
+        name
+        description
+        documentType
+        createdAt
+        owner {
+          person {
+            fullName
+          }
+        }
+      }
+      cmsDocuments {
+        id
+        name
+        description
+        documentType
+        createdAt
+        owner {
+          person {
+            fullName
+          }
+        }
+      }
+    }
+  }
+`;
+
+export type DeliverableDetailsManagementDeliverable = Pick<
+  Deliverable,
+  "id" | "deliverableType" | "dueDate" | "status" | "name"
+> & {
+  demonstration: Pick<Demonstration, "id" | "name" | "expirationDate"> & { state: { id: string } };
+  cmsOwner: { person: { fullName: string } };
+  stateDocuments: DeliverableFileRow[];
+  cmsDocuments: DeliverableFileRow[];
+};
 
 export const DemonstrationDeliverableDetailView: React.FC<{
   deliverableId: string;

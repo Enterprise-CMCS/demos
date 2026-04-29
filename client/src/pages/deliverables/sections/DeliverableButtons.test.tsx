@@ -10,7 +10,7 @@ import {
   REQUEST_EXTENSION_BUTTON_NAME,
 } from "./DeliverableButtons";
 import { MOCK_DELIVERABLE_1 } from "mock-data/deliverableMocks";
-import { DeliverableDetailsManagementDeliverable } from "../DeliverableDetailsManagementPage";
+import type { DeliverableDetailsManagementDeliverable } from "pages/DemonstrationDetail/deliverables/DemonstrationDeliverableDetailView";
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
 

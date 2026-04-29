@@ -1,5 +1,5 @@
 import React from "react";
-import { DeliverableDetailsManagementDeliverable } from "../DeliverableDetailsManagementPage";
+import type { DeliverableDetailsManagementDeliverable } from "pages/DemonstrationDetail/deliverables/DemonstrationDeliverableDetailView";
 import { formatDate } from "util/formatDate";
 import { SecondaryButton } from "components/button";
 import { ChevronDownIcon, ChevronLeftIcon } from "components/icons";
