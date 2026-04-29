@@ -3,7 +3,7 @@ import React from "react";
 import { HorizontalSectionTabs, Tab } from "layout/Tabs";
 
 import { CmsFilesTab } from "./CmsFilesTab";
-import type { DeliverableDetailsManagementDeliverable } from "pages/DemonstrationDetail/deliverables/DemonstrationDeliverableDetailView";
+import type { DeliverableDetailsManagementDeliverable } from "pages/deliverables/DeliverableDetailsManagementPage";
 import { HistoryTab, type DeliverableHistoryRow } from "./HistoryTab";
 import { StateFilesTab } from "./StateFilesTab";
 

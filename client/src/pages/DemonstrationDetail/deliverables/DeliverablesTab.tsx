@@ -13,7 +13,7 @@ import {
 } from "components/table/tables/DeliverableTable";
 import { useQuery } from "@apollo/client";
 import { useNavigate, useParams } from "react-router-dom";
-import { DemonstrationDeliverableDetailView } from "./DemonstrationDeliverableDetailView";
+import { DeliverableDetailsManagementPage } from "pages/deliverables/DeliverableDetailsManagementPage";
 
 export const ADD_DELIVERABLE_SLOT_BUTTON_NAME = "button-add-deliverable-slot";
 
@@ -28,9 +28,10 @@ export const DeliverablesTab = ({
   const navigate = useNavigate();
   const { deliverableId } = useParams<{ deliverableId?: string }>();
   const { data, loading, error } = useQuery<DeliverablesQueryResult>(DELIVERABLES_PAGE_QUERY);
-  const deliverables = data?.deliverables.filter(
-    (deliverable) => deliverable.demonstration.id === parentDemonstration.id
-  ) ?? [];
+  const deliverables =
+    data?.deliverables.filter(
+      (deliverable) => deliverable.demonstration.id === parentDemonstration.id
+    ) ?? [];
 
   return (
     <div className="flex flex-col">
@@ -45,12 +46,11 @@ export const DeliverablesTab = ({
         </IconButton>
       </TabHeader>
       {loading && <div className="p-4">Loading deliverables...</div>}
-      {error && (
-        <div className="p-4 text-red-500">Error loading deliverables.</div>
-      )}
-      {!loading && !error && (
-        deliverableId ? (
-          <DemonstrationDeliverableDetailView
+      {error && <div className="p-4 text-red-500">Error loading deliverables.</div>}
+      {!loading &&
+        !error &&
+        (deliverableId ? (
+          <DeliverableDetailsManagementPage
             deliverableId={deliverableId}
             onBack={() => navigate(`/demonstrations/${parentDemonstration.id}`)}
           />
@@ -62,8 +62,7 @@ export const DeliverablesTab = ({
               navigate(`/deliverables/${selectedDeliverableId}`)
             }
           />
-        )
-      )}
+        ))}
     </div>
   );
 };

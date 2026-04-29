@@ -4,7 +4,7 @@ import { DELIVERABLE_DETAIL_HEADER_QUERY } from "pages/deliverables/DeliverableD
 import {
   DELIVERABLE_DETAILS_QUERY,
   DeliverableDetailsManagementDeliverable,
-} from "pages/DemonstrationDetail/deliverables/DemonstrationDeliverableDetailView";
+} from "pages/deliverables/DeliverableDetailsManagementPage";
 import {
   DELIVERABLES_PAGE_QUERY,
   DeliverableTableRow,

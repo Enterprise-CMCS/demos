@@ -6,8 +6,8 @@ import { CommentBox } from "pages/deliverables/sections/CommentBox";
 import { DeliverableInfoFields } from "pages/deliverables/sections/DeliverableInfoFields";
 import type { DeliverableFileRow } from "pages/deliverables/sections/DeliverableFileTypes";
 import { FileAndHistoryTabs } from "pages/deliverables/sections/FileAndHistoryTabs";
-import { EditAndDeleteButtonGroup } from "./EditAndDeleteButtonGroup";
-import { PendingReviewNotice } from "./PendingReviewNotice";
+import { EditAndDeleteButtonGroup } from "pages/DemonstrationDetail/deliverables/EditAndDeleteButtonGroup";
+import { PendingReviewNotice } from "pages/DemonstrationDetail/deliverables/PendingReviewNotice";
 
 export const GET_DELIVERABLE_DETAILS_QUERY_NAME = "GetDeliverableDetails";
 export const DELIVERABLE_DETAILS_QUERY = gql`
@@ -69,7 +69,7 @@ export type DeliverableDetailsManagementDeliverable = Pick<
   cmsDocuments: DeliverableFileRow[];
 };
 
-export const DemonstrationDeliverableDetailView: React.FC<{
+export const DeliverableDetailsManagementPage: React.FC<{
   deliverableId: string;
   onBack: () => void;
 }> = ({ deliverableId, onBack }) => {
@@ -79,6 +79,7 @@ export const DemonstrationDeliverableDetailView: React.FC<{
   const { data, loading, error } = useQuery<{
     deliverable: DeliverableDetailsManagementDeliverable;
   }>(DELIVERABLE_DETAILS_QUERY, { variables: { id: deliverableId } });
+
   const handleToggleAdditionalDetails = useCallback(() => {
     setShowAdditionalDetails((prev) => !prev);
   }, []);

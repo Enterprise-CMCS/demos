@@ -2,7 +2,7 @@ import React from "react";
 import { SecondaryButton, TertiaryButton } from "components/button";
 import { canRequestExtension } from "components/dialog/deliverable";
 import { useDialog } from "components/dialog/DialogContext";
-import type { DeliverableDetailsManagementDeliverable } from "pages/DemonstrationDetail/deliverables/DemonstrationDeliverableDetailView";
+import type { DeliverableDetailsManagementDeliverable } from "pages/deliverables/DeliverableDetailsManagementPage";
 
 export const DELIVERABLE_BUTTONS_NAME = "deliverable-buttons";
 export const REFERENCES_BUTTON_NAME = "button-references";
