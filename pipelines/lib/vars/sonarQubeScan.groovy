@@ -1,5 +1,4 @@
 def call(Map params) {
-  def scannerHome = tool 'SonarQube'
   println "Running sonarQubeScan"
 
   def success = true
@@ -32,7 +31,7 @@ def call(Map params) {
   withCredentials([string(credentialsId: "${credentialsId}", variable: 'TOKEN')]) {
       container('scanner') {
         sh """
-          sonar-scanner \
+          /opt/sonar-scanner/bin/sonar-scanner \
             -Dsonar.projectKey=${projectKey} \
             -Dsonar.projectBaseDir=${projectBaseDir} \
             -Dsonar.host.url=https://sonarqube.cloud.cms.gov \
