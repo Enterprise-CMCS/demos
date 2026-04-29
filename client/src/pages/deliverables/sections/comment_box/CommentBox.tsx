@@ -10,9 +10,6 @@ import { CommentBoxTextArea } from "./CommentBoxTextArea";
 import { CommentBoxHistory } from "./CommentBoxHistory";
 import { CommentBoxComment, CommentVisibility } from "./Comment";
 
-export { CommentVisibility } from "./Comment";
-export { COMMENT_BOX_TEXT_AREA_NAME, ADD_COMMENT_BUTTON_NAME } from "./CommentBoxTextArea";
-
 export const COMMENT_BOX_NAME = "comment-box";
 export const COLLAPSE_COMMENTS_BUTTON_NAME = "button-collapse-comments";
 export const COMMENT_BOX_TABS_NAME = "comment-box-tabs";

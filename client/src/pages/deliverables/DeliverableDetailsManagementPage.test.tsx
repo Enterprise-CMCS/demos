@@ -8,7 +8,7 @@ import {
 } from "./DeliverableDetailsManagementPage";
 import { MOCK_DELIVERABLE_1 } from "mock-data/deliverableMocks";
 import { TestProvider } from "test-utils/TestProvider";
-import { COMMENT_BOX_NAME } from "./sections/comment_box/CommentBox";
+import { COMMENT_BOX_NAME } from "./sections/comment_box";
 import { DELIVERABLE_INFO_FIELDS_NAME } from "./sections/DeliverableInfoFields";
 import { FILE_AND_HISTORY_TABS_NAME } from "./sections/FileAndHistoryTabs";
 import { DELIVERABLE_BUTTONS_NAME } from "./sections/DeliverableButtons";
