@@ -25,7 +25,7 @@ describe("DeliverablesTab", () => {
       </TestProvider>
     );
 
-    expect(screen.getByRole("heading", { name: "Deliverables Management" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Deliverables" })).toBeInTheDocument();
     expect(await screen.findByRole("columnheader", { name: /Deliverable Type/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Deliverable Name/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /CMS Owner/i })).toBeInTheDocument();
