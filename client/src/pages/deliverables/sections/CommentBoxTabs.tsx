@@ -21,7 +21,7 @@ export const CommentBoxTabs = (
         </div>
       </Tab>
       <Tab label="Private" value={TABS.PRIVATE}>
-        <div>{/* Empty Div because tabs need children */}</div>
+        <span>{/* Empty because tabs need children */}</span>
       </Tab>
     </HorizontalSectionTabs>
   </div>
