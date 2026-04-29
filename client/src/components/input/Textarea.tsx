@@ -16,6 +16,7 @@ export interface TextareaProps {
   label: string;
   value: string;
   onChange: (newString: string) => void;
+  onEnterPress?: () => void;
   isRequired?: boolean;
   isDisabled?: boolean;
   placeholder?: string;
@@ -27,6 +28,7 @@ export const Textarea: React.FC<TextareaProps> = ({
   label,
   value,
   onChange,
+  onEnterPress,
   isRequired,
   isDisabled,
   placeholder,
@@ -37,6 +39,13 @@ export const Textarea: React.FC<TextareaProps> = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange(e.target.value);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (onEnterPress && e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      onEnterPress();
+    }
   };
   return (
     <div className="flex flex-col gap-xs">
@@ -54,6 +63,7 @@ export const Textarea: React.FC<TextareaProps> = ({
         disabled={isDisabled ?? false}
         value={value}
         onChange={handleChange}
+        onKeyDown={handleKeyDown}
         rows={rowsToDisplay}
       />
       {validationMessage && <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>}
