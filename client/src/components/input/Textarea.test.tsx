@@ -209,4 +209,39 @@ describe("Textarea", () => {
       expect(textarea).toHaveAttribute("rows", "3");
     });
   });
+
+  describe("onEnterPress", () => {
+    it("calls onEnterPress when Enter is pressed", async () => {
+      const user = userEvent.setup();
+      const onEnterPress = vi.fn();
+      render(<Textarea {...defaultProps} onEnterPress={onEnterPress} />);
+
+      const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
+      await user.type(textarea, "{Enter}");
+
+      expect(onEnterPress).toHaveBeenCalledTimes(1);
+    });
+
+    it("does not call onEnterPress when Shift+Enter is pressed", async () => {
+      const user = userEvent.setup();
+      const onEnterPress = vi.fn();
+      render(<Textarea {...defaultProps} onEnterPress={onEnterPress} />);
+
+      const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
+      await user.type(textarea, "{Shift>}{Enter}{/Shift}");
+
+      expect(onEnterPress).not.toHaveBeenCalled();
+    });
+
+    it("does not call onEnterPress when onEnterPress is not provided", async () => {
+      const user = userEvent.setup();
+      render(<ControlledTextarea />);
+
+      const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
+      // Should not throw when Enter is pressed without onEnterPress
+      await user.type(textarea, "{Enter}");
+
+      expect(textarea).toHaveAttribute("rows", "2");
+    });
+  });
 });

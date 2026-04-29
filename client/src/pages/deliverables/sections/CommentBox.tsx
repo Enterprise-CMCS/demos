@@ -16,7 +16,7 @@ export const COMMENT_BOX_TABS_NAME = "comment-box-tabs";
 export const ADD_COMMENT_BUTTON_NAME = "button-add-comment";
 
 interface CommentBoxComment {
-  comment: string;
+  commentText: string;
   userFullName: string;
   timestamp: Date;
   commentVisibility?: CommentVisibility;
@@ -46,7 +46,7 @@ const  CommentBoxTextArea = ({ addComment, currentComment, setCurrentComment }: 
   const handleAddComment = () => {
     if (currentComment.trim() !== "") {
       addComment({
-        comment: currentComment,
+        commentText: currentComment,
         userFullName: currentUser.person.fullName,
         timestamp: new Date(),
       });
@@ -56,31 +56,34 @@ const  CommentBoxTextArea = ({ addComment, currentComment, setCurrentComment }: 
 
   return (
     <div className="flex-1 flex flex-col gap-1">
-      <Textarea label="Comments" value={currentComment} name={COMMENT_BOX_TEXT_AREA_NAME} onChange={setCurrentComment} />
+      <Textarea label="Comments" value={currentComment} name={COMMENT_BOX_TEXT_AREA_NAME} onChange={setCurrentComment} onEnterPress={handleAddComment} />
       <Button name={ADD_COMMENT_BUTTON_NAME} data-testid={ADD_COMMENT_BUTTON_NAME} onClick={handleAddComment}>Add Comment</Button>
     </div>
   );
 };
 
 const Comment = ({ comment }: { comment: CommentBoxComment }) => {
-  const formattedDate = format(comment.timestamp, "MM/dd/yyyy, hh:mm:ss a");
+  const formattedDate = format(comment.timestamp, "MM/dd/yyyy, hh:mm a");
 
   return (
-    <div className="p-1 bg-gray-secondary-layout rounded">
-      {comment.userFullName} - {formattedDate}
-      {comment.comment}
+    <div className="flex flex-col bg-gray-secondary-layout rounded">
+      <div className="flex justify-between">
+        <span className="text-xs font-bold italic">{comment.userFullName}</span>
+        <span className="text-xs text-text-placeholder italic">{formattedDate}</span>
+      </div>
+      <div className="text-sm">{comment.commentText}</div>
     </div>
   );
 };
 
 const CommentBoxHistory = ({comments}: {comments: CommentBoxComment[]}) => (
-  <>
+  <div className="flex flex-col gap-1">
     <span className="font-semibold">Comment History</span>
     {comments.length ? comments.map((comment, index) => (
       <Comment key={index} comment={comment} />
-    )) : <span className="text-sm text-gray-500">No comments yet.</span>
+    )) : <span className="text-sm text-text-placeholder italic">No comments yet.</span>
     }
-  </>
+  </div>
 );
 
 export const CommentBox = () => {
@@ -103,7 +106,7 @@ export const CommentBox = () => {
     // and we might want to handle the visibility differently depending on the API design.
     // For now, we are just adding it to the local state with the visibility included.
     console.log("Adding comment:", commentWithVisibility);
-    setComments((prevComments) => [...prevComments, commentWithVisibility]);
+    setComments((prevComments) => [commentWithVisibility, ...prevComments]);
   };
 
   if (isCollapsed) {
