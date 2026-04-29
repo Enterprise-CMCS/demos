@@ -45,7 +45,10 @@ export type DemonstrationDetailDemonstrationType = Pick<
   | "approvalStatus"
 >;
 
-export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "name" | "status" | "effectiveDate" | "expirationDate"> & {
+export type DemonstrationTabDemonstration = Pick<
+  Demonstration,
+  "id" | "name" | "status" | "effectiveDate" | "expirationDate"
+> & {
   demonstrationTypes: DemonstrationDetailDemonstrationType[];
   documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
     owner: {
@@ -83,6 +86,16 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
     tagName: dt.demonstrationTypeName,
     approvalStatus: dt.approvalStatus,
   }));
+  const deliverablesTab = (
+    <DeliverablesTab
+      parentDemonstration={{
+        demonstrationTypes: demonstrationTypeTags,
+        id: demonstration.id,
+        effectiveDate: demonstration.effectiveDate,
+        expirationDate: demonstration.expirationDate,
+      }}
+    />
+  );
 
   return (
     <div className="p-[16px]">
@@ -93,14 +106,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
           value={TAB.DELIVERABLES}
           shouldRender={isDemonstrationApproved}
         >
-          <DeliverablesTab
-            parentDemonstration={{
-              demonstrationTypes: demonstrationTypeTags,
-              id: demonstration.id,
-              effectiveDate: demonstration.effectiveDate,
-              expirationDate: demonstration.expirationDate,
-            }}
-          />
+          {deliverablesTab}
         </Tab>
         <Tab icon={<ListIcon />} label="Applications" value={TAB.APPLICATION}>
           <DemonstrationWorkflow demonstrationId={demonstration.id} />
