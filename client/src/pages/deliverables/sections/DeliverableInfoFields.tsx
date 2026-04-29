@@ -62,7 +62,7 @@ export const DeliverableInfoFields = ({
       {onBack ? (
         <>
           <SecondaryButton
-            size="small"
+            size="large"
             type="button"
             name={BACK_TO_DELIVERABLES_BUTTON_NAME}
             onClick={onBack}
