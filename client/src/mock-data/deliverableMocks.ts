@@ -1,4 +1,5 @@
 import { MockedResponse } from "@apollo/client/testing";
+import { DELIVERABLE_DEMONSTRATION_ID_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { DELIVERABLE_DETAIL_HEADER_QUERY } from "pages/deliverables/DeliverableDetailHeader";
 import {
   DELIVERABLE_DETAILS_QUERY,
@@ -13,7 +14,7 @@ export const MOCK_DELIVERABLE_TABLE_ROW: DeliverableTableRow = {
   id: "8f3a0c8a-2f9f-4bf0-9a3a-6b7eac31f201",
   name: "Budget Neutrality Report",
   demonstration: {
-    id: "demo-1",
+    id: "1",
     name: "Dusty Demo",
     state: {
       id: "CA",
@@ -73,6 +74,75 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
   ],
 };
 
+export const MOCK_DELIVERABLE_2: DeliverableDetailsManagementDeliverable = {
+  ...MOCK_DELIVERABLE_1,
+  id: MOCK_DELIVERABLE_TABLE_ROW.id,
+  name: MOCK_DELIVERABLE_TABLE_ROW.name,
+  deliverableType: MOCK_DELIVERABLE_TABLE_ROW.deliverableType,
+  demonstration: {
+    ...MOCK_DELIVERABLE_1.demonstration,
+    id: MOCK_DELIVERABLE_TABLE_ROW.demonstration.id,
+    name: MOCK_DELIVERABLE_TABLE_ROW.demonstration.name,
+    state: MOCK_DELIVERABLE_TABLE_ROW.demonstration.state,
+  },
+  cmsOwner: {
+    person: {
+      fullName: MOCK_DELIVERABLE_TABLE_ROW.cmsOwner.person.fullName,
+    },
+  },
+  dueDate: MOCK_DELIVERABLE_TABLE_ROW.dueDate,
+  status: MOCK_DELIVERABLE_TABLE_ROW.status,
+};
+
+const deliverableDetailMocks = [MOCK_DELIVERABLE_1, MOCK_DELIVERABLE_2].flatMap((deliverable) => [
+  {
+    request: {
+      query: DELIVERABLE_DETAILS_QUERY,
+      variables: { id: deliverable.id },
+    },
+    result: {
+      data: {
+        deliverable,
+      },
+    },
+    maxUsageCount: Number.POSITIVE_INFINITY,
+  },
+  {
+    request: {
+      query: DELIVERABLE_DEMONSTRATION_ID_QUERY,
+      variables: { deliverableId: deliverable.id },
+    },
+    result: {
+      data: {
+        deliverable: {
+          id: deliverable.id,
+          demonstration: {
+            id: deliverable.demonstration.id,
+          },
+        },
+      },
+    },
+    maxUsageCount: Number.POSITIVE_INFINITY,
+  },
+  {
+    request: {
+      query: DELIVERABLE_DETAIL_HEADER_QUERY,
+      variables: { deliverableId: deliverable.id },
+    },
+    result: {
+      data: {
+        deliverable: {
+          id: deliverable.id,
+          demonstration: {
+            id: deliverable.demonstration.id,
+          },
+        },
+      },
+    },
+    maxUsageCount: Number.POSITIVE_INFINITY,
+  },
+]);
+
 export const deliverableMocks: MockedResponse[] = [
   {
     request: {
@@ -85,33 +155,5 @@ export const deliverableMocks: MockedResponse[] = [
     },
     maxUsageCount: Number.POSITIVE_INFINITY,
   },
-  {
-    request: {
-      query: DELIVERABLE_DETAILS_QUERY,
-      variables: { id: MOCK_DELIVERABLE_1.id },
-    },
-    result: {
-      data: {
-        deliverable: MOCK_DELIVERABLE_1,
-      },
-    },
-    maxUsageCount: Number.POSITIVE_INFINITY,
-  },
-  {
-    request: {
-      query: DELIVERABLE_DETAIL_HEADER_QUERY,
-      variables: { deliverableId: MOCK_DELIVERABLE_1.id },
-    },
-    result: {
-      data: {
-        deliverable: {
-          id: MOCK_DELIVERABLE_1.id,
-          demonstration: {
-            id: MOCK_DELIVERABLE_1.demonstration.id,
-          },
-        },
-      },
-    },
-    maxUsageCount: Number.POSITIVE_INFINITY,
-  },
+  ...deliverableDetailMocks,
 ];
