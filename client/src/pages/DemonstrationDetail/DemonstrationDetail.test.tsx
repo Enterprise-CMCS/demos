@@ -7,11 +7,11 @@ import { MockedProvider } from "@apollo/client/testing";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
+import { DEMONSTRATION_DETAIL_QUERY, DemonstrationDetail } from "./DemonstrationDetail";
 import {
   DELIVERABLE_DEMONSTRATION_ID_QUERY,
-  DEMONSTRATION_DETAIL_QUERY,
-  DemonstrationDetail,
-} from "./DemonstrationDetail";
+  DeliverableDetailRoute,
+} from "./DeliverableDetailRoute";
 
 // Mock the tab components
 vi.mock("pages/DemonstrationDetail/DemonstrationTab.tsx", () => ({
@@ -104,7 +104,7 @@ describe("DemonstrationDetail", () => {
       >
         <MemoryRouter initialEntries={[initialEntry]}>
           <Routes>
-            <Route path="/deliverables/:deliverableId" element={<DemonstrationDetail />} />
+            <Route path="/deliverables/:deliverableId" element={<DeliverableDetailRoute />} />
           </Routes>
         </MemoryRouter>
       </MockedProvider>

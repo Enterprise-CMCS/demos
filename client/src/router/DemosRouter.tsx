@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { DemonstrationDetail } from "pages/DemonstrationDetail/index";
+import { DeliverableDetailRoute, DemonstrationDetail } from "pages/DemonstrationDetail/index";
 import { DemosApolloProvider } from "./DemosApolloProvider";
 import { DemosAuthProvider } from "./DemosAuthProvider";
 import { UserProvider } from "components/user/UserContext";
@@ -30,7 +30,7 @@ export const DemosRouter: React.FC = () => {
                 <Route path="demonstrations" element={<DemonstrationsPage />} />
                 <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
                 <Route path="deliverables" element={<DeliverablesPage />} />
-                <Route path="deliverables/:deliverableId" element={<DemonstrationDetail />} />
+                <Route path="deliverables/:deliverableId" element={<DeliverableDetailRoute />} />
                 <Route
                   path="admin"
                   element={

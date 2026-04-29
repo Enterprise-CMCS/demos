@@ -1,5 +1,5 @@
 import { MockedResponse } from "@apollo/client/testing";
-import { DELIVERABLE_DEMONSTRATION_ID_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
+import { DELIVERABLE_DEMONSTRATION_ID_QUERY } from "pages/DemonstrationDetail/DeliverableDetailRoute";
 import { DELIVERABLE_DETAIL_HEADER_QUERY } from "pages/deliverables/DeliverableDetailHeader";
 import {
   DELIVERABLE_DETAILS_QUERY,

@@ -126,17 +126,6 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
   }
 `;
 
-export const DELIVERABLE_DEMONSTRATION_ID_QUERY = gql`
-  query DeliverableDemonstrationIdQuery($deliverableId: ID!) {
-    deliverable(id: $deliverableId) {
-      id
-      demonstration {
-        id
-      }
-    }
-  }
-`;
-
 export type DemonstrationDetailModification = Pick<
   Amendment,
   "id" | "name" | "description" | "status" | "createdAt" | "effectiveDate" | "signatureLevel"
@@ -173,26 +162,11 @@ const getQueryParamValue = (
   return searchParams.get(plural) || searchParams.get(singular);
 };
 
-export const DemonstrationDetail: React.FC = () => {
-  const { id, deliverableId } = useParams<{ id?: string; deliverableId?: string }>();
-  const shouldResolveDemonstrationId = !id && Boolean(deliverableId);
-  const {
-    data: deliverableData,
-    loading: deliverableLoading,
-    error: deliverableError,
-  } = useQuery<{
-    deliverable: {
-      id: string;
-      demonstration: {
-        id: string;
-      };
-    };
-  }>(DELIVERABLE_DEMONSTRATION_ID_QUERY, {
-    variables: { deliverableId: deliverableId ?? "" },
-    skip: !shouldResolveDemonstrationId,
-  });
-  // Over kill is underrated?
-  const resolvedDemonstrationId = id ?? deliverableData?.deliverable?.demonstration?.id;
+export const DemonstrationDetail: React.FC<{ demonstrationId?: string }> = ({
+  demonstrationId,
+}) => {
+  const { id } = useParams<{ id?: string }>();
+  const resolvedDemonstrationId = demonstrationId ?? id;
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const amendmentParam = getQueryParamValue(queryParams, "amendment", "amendments");
@@ -208,11 +182,11 @@ export const DemonstrationDetail: React.FC = () => {
 
   const demonstration = data?.demonstration;
 
-  if (deliverableLoading || loading) {
+  if (loading) {
     return <div>Loading demonstration...</div>;
   }
 
-  if (deliverableError || !resolvedDemonstrationId || error || !demonstration) {
+  if (!resolvedDemonstrationId || error || !demonstration) {
     return <div>Failed to load demonstration.</div>;
   }
 
