@@ -80,7 +80,9 @@ describe("uipathQueue", () => {
 
       expect(result).toBe("msg-123");
       expect(sendMock).toHaveBeenCalledTimes(1);
-      const call = sendMock.mock.calls[0][0] as { input: { QueueUrl: string; MessageBody: string } };
+      const call = sendMock.mock.calls[0][0] as {
+        input: { QueueUrl: string; MessageBody: string };
+      };
       expect(call.input.QueueUrl).toBe("http://example.com/queue");
       expect(JSON.parse(call.input.MessageBody)).toEqual(payload);
     });

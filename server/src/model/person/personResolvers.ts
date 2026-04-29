@@ -8,8 +8,10 @@ import { getManyPeople, getPerson } from "./personData";
 
 export const personResolvers = {
   Query: {
-    person: async (parent: unknown, args: { id: string }) => getPerson({ id: args.id }),
-    people: async () => getManyPeople({}),
+    person: async (parent: unknown, args: { id: string }, context: GraphQLContext) =>
+      getPerson({ id: args.id }, context.user),
+    people: async (parent: unknown, args: unknown, context: GraphQLContext) =>
+      getManyPeople({}, context.user),
     searchPeople: async (
       _: unknown,
       { search, demonstrationId }: { search: string; demonstrationId?: string }

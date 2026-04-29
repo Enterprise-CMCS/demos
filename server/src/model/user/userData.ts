@@ -1,16 +1,21 @@
 import { Prisma, User as PrismaUser } from "@prisma/client";
-import {
-  buildAuthorizationFilter,
-  isStatePointOfContactOnDemonstration,
-  PermissionFilters,
-  ContextUser,
-} from "../../auth";
+import { buildAuthorizationFilter, PermissionFilters, ContextUser } from "../../auth";
 import { selectUser, selectManyUsers } from "./queries";
 import { PrismaTransactionClient } from "../../prismaClient";
-import {
-  isStatePointOfContactAssociatedToApplication,
-} from "../../auth/buildAuthorizationFilter";
-
+import { isAStatePointOfContactAssociatedWithPerson } from "../person/personData";
+import { isAStatePointOfContactAssociatedWithDocument } from "../document/documentData";
+import { isAStatePointOfContactAssociatedWithEvent } from "../event/eventData";
+import { isAStatePointOfContactAssociatedWithDeliverable } from "../deliverable/deliverableData";
+export const isAStatePointOfContactAssociatedWithUser = (
+  userId: string
+): Prisma.UserWhereInput => ({
+  OR: [
+    { deliverables: { some: isAStatePointOfContactAssociatedWithDeliverable(userId) } },
+    { person: isAStatePointOfContactAssociatedWithPerson(userId) },
+    { documents: { some: isAStatePointOfContactAssociatedWithDocument(userId) } },
+    { events: { some: isAStatePointOfContactAssociatedWithEvent(userId) } },
+  ],
+});
 const getPermissionFilters = (userId: string) =>
   ({
     "View All Users": {
@@ -20,40 +25,7 @@ const getPermissionFilters = (userId: string) =>
         },
       },
     },
-    "View Users on Assigned Demonstrations": {
-      OR: [
-        {
-          deliverables: {
-            some: {
-              demonstration: isStatePointOfContactOnDemonstration(userId),
-            },
-          },
-        },
-        {
-          person: {
-            demonstrationRoleAssignments: {
-              some: {
-                demonstration: isStatePointOfContactOnDemonstration(userId),
-              },
-            },
-          },
-        },
-        {
-          documents: {
-            some: {
-              application: isStatePointOfContactAssociatedToApplication(userId),
-            },
-          },
-        },
-        {
-          events: {
-            some: {
-              application: isStatePointOfContactAssociatedToApplication(userId),
-            },
-          },
-        },
-      ],
-    },
+    "View Users on Assigned Demonstrations": isAStatePointOfContactAssociatedWithUser(userId),
     "View My User": {
       id: userId,
     },

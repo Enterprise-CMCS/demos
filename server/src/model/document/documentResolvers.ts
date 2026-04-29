@@ -1,4 +1,4 @@
-import { Document as PrismaDocument, User as PrismaUser } from "@prisma/client";
+import { Document as PrismaDocument } from "@prisma/client";
 import { GraphQLContext } from "../../auth";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { handlePrismaError } from "../../errors/handlePrismaError";
@@ -141,16 +141,6 @@ export async function triggerUiPath(
   }
 }
 
-export async function resolveOwner(parent: PrismaDocument): Promise<PrismaUser> {
-  try {
-    return prisma().$transaction(async (tx) => {
-      return getUser({ id: parent.ownerUserId }, tx);
-    });
-  } catch (error) {
-    handlePrismaError(error);
-  }
-}
-
 export async function resolveApplication(parent: PrismaDocument): Promise<PrismaApplication> {
   return await getApplication(parent.applicationId);
 }
@@ -191,7 +181,8 @@ export const documentResolvers = {
   },
 
   Document: {
-    owner: resolveOwner,
+    owner: (parent: PrismaDocument, args: unknown, context: GraphQLContext) =>
+      getUser({ id: parent.ownerUserId }, context.user),
     documentType: (parent: PrismaDocument) => parent.documentTypeId as DocumentType,
     presignedDownloadUrl: async (parent: PrismaDocument) =>
       await getS3Adapter().getPresignedDownloadUrl(parent.s3Path),

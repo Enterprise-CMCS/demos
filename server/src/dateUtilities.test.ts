@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { LocalDate } from "./types.js";
 import {
   EasternTZDate,

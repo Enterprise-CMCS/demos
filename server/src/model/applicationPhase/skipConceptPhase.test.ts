@@ -12,8 +12,7 @@ import {
   setPhaseToStarted,
   updatePhaseStatus,
 } from ".";
-import { EasternNow, EasternTZDate, getEasternNow } from "../../dateUtilities.js";
-import { getApplication } from "../application";
+import { EasternNow, getEasternNow } from "../../dateUtilities.js";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),

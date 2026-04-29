@@ -1,5 +1,4 @@
 import {
-  DeliverableDemonstrationType as PrismaDeliverableDemonstrationType,
   Prisma,
 } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";

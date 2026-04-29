@@ -3,7 +3,6 @@ import {
   __createDemonstration,
   __updateDemonstration,
   deleteDemonstration,
-  __resolveDemonstrationPrimaryProjectOfficer,
   demonstrationResolvers,
 } from "./demonstrationResolvers";
 import {
@@ -455,7 +454,7 @@ describe("demonstrationResolvers", () => {
         mockUser
       );
 
-      expect(getPerson).toHaveBeenCalledExactlyOnceWith({ id: "personId" });
+      expect(getPerson).toHaveBeenCalledExactlyOnceWith({ id: "personId" }, mockUser);
     });
 
     it("throws an error if primary project officer is not found", async () => {

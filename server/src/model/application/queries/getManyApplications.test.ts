@@ -31,8 +31,6 @@ describe("getManyApplications", () => {
     },
   };
   const testDemonstrationApplicationTypeId: ApplicationType = "Demonstration";
-  const testAmendmentApplicationTypeId: ApplicationType = "Amendment";
-  const testExtensionApplicationTypeId: ApplicationType = "Extension";
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -71,7 +69,7 @@ describe("getManyApplications", () => {
         extension: true,
       },
     };
-    const result = await getManyApplications(testDemonstrationApplicationTypeId, mockTransaction);
+    await getManyApplications(testDemonstrationApplicationTypeId, mockTransaction);
 
     expect(transactionMocks.application.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
   });
@@ -80,16 +78,7 @@ describe("getManyApplications", () => {
     mockPrismaClient.application.findMany.mockResolvedValue([
       { applicationId: "abc", demonstration: { id: "abc", value: "Just some test" } },
     ]);
-    const expectedCall = {
-      where: {
-        applicationTypeId: testDemonstrationApplicationTypeId,
-      },
-      include: {
-        demonstration: true,
-        amendment: true,
-        extension: true,
-      },
-    };
+
     const result = await getManyApplications(testDemonstrationApplicationTypeId);
     expect(result).toEqual([{ id: "abc", value: "Just some test" }]);
   });
@@ -98,16 +87,6 @@ describe("getManyApplications", () => {
     mockPrismaClient.application.findMany.mockResolvedValue([
       { applicationId: "abc", amendment: { id: "abc", value: "Just some test" } },
     ]);
-    const expectedCall = {
-      where: {
-        applicationTypeId: testDemonstrationApplicationTypeId,
-      },
-      include: {
-        demonstration: true,
-        amendment: true,
-        extension: true,
-      },
-    };
     const result = await getManyApplications(testDemonstrationApplicationTypeId);
     expect(result).toEqual([{ id: "abc", value: "Just some test" }]);
   });
@@ -116,16 +95,7 @@ describe("getManyApplications", () => {
     mockPrismaClient.application.findMany.mockResolvedValue([
       { applicationId: "abc", extension: { id: "abc", value: "Just some test" } },
     ]);
-    const expectedCall = {
-      where: {
-        applicationTypeId: testDemonstrationApplicationTypeId,
-      },
-      include: {
-        demonstration: true,
-        amendment: true,
-        extension: true,
-      },
-    };
+
     const result = await getManyApplications(testDemonstrationApplicationTypeId);
     expect(result).toEqual([{ id: "abc", value: "Just some test" }]);
   });

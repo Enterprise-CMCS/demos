@@ -1,9 +1,8 @@
 import {
-  DeliverableDemonstrationType as PrismaDeliverableDemonstrationType,
   Prisma,
 } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { prisma, PrismaTransactionClient } from "../../../prismaClient";
+import { prisma } from "../../../prismaClient";
 import { selectManyDeliverableDemonstrationTypes } from "./selectManyDeliverableDemonstrationTypes";
 import { DeliverableDemonstrationTypeQueryResult } from ".";
 

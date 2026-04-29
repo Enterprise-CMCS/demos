@@ -1,9 +1,7 @@
 import {
-  Deliverable,
-  DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
 } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { prisma, PrismaTransactionClient } from "../../../prismaClient";
+import { prisma } from "../../../prismaClient";
 import { selectDeliverableDemonstrationType } from "./selectDeliverableDemonstrationType";
 import { DeliverableDemonstrationTypeQueryResult } from ".";
 

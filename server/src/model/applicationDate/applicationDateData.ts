@@ -1,12 +1,14 @@
 import { Prisma, ApplicationDate as PrismaApplicationDate } from "@prisma/client";
-import {
-  buildAuthorizationFilter,
-  isStatePointOfContactOnDemonstration,
-  PermissionFilters,
-  ContextUser,
-} from "../../auth";
+import { buildAuthorizationFilter, PermissionFilters, ContextUser } from "../../auth";
 import { selectApplicationDate, selectManyApplicationDates } from "./queries";
 import { PrismaTransactionClient } from "../../prismaClient";
+import { isAStatePointOfContactAssociatedWithApplication } from "../application/applicationData";
+
+export const isAStatePointOfContactAssociatedWithApplicationDate = (
+  userId: string
+): Prisma.ApplicationDateWhereInput => ({
+  application: isAStatePointOfContactAssociatedWithApplication(userId),
+});
 
 const getPermissionFilters = (userId: string) =>
   ({
@@ -17,25 +19,8 @@ const getPermissionFilters = (userId: string) =>
         },
       },
     },
-    "View ApplicationDates on Assigned Demonstrations": {
-      application: {
-        OR: [
-          {
-            demonstration: isStatePointOfContactOnDemonstration(userId),
-          },
-          {
-            amendment: {
-              demonstration: isStatePointOfContactOnDemonstration(userId),
-            },
-          },
-          {
-            extension: {
-              demonstration: isStatePointOfContactOnDemonstration(userId),
-            },
-          },
-        ],
-      },
-    },
+    "View ApplicationDates on Assigned Demonstrations":
+      isAStatePointOfContactAssociatedWithApplicationDate(userId),
   }) satisfies PermissionFilters<Prisma.ApplicationDateWhereInput>;
 
 export async function getApplicationDate(

@@ -103,10 +103,6 @@ export async function resolveDemonstration(
   return await getApplication(parent.demonstrationId, { applicationTypeId: "Demonstration" });
 }
 
-export async function resolveDeliverableCmsOwner(parent: PrismaDeliverable): Promise<PrismaUser> {
-  return getUser({ id: parent.cmsOwnerUserId });
-}
-
 export const deliverableResolvers = {
   Query: {
     deliverable: async (parent: unknown, args: { id: string }) =>
@@ -152,7 +148,8 @@ export const deliverableResolvers = {
     deliverableType: resolveDeliverableType,
     demonstration: resolveDemonstration,
     status: resolveDeliverableStatus,
-    cmsOwner: resolveDeliverableCmsOwner,
+    cmsOwner: (parent: PrismaDeliverable, args: unknown, context: GraphQLContext) =>
+      getUser({ id: parent.cmsOwnerUserId }, context.user),
     dueDateType: resolveDeliverableDueDateType,
     demonstrationTypes: async (parent: PrismaDeliverable, args: unknown, context: GraphQLContext) =>
       (await getManyDeliverableDemonstrationTypes({ deliverableId: parent.id }, context.user)).map(

@@ -1,4 +1,4 @@
-import { ApplicationTagAssignment as PrismaApplicationTagAssignment, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildAuthorizationFilter, ContextUser } from "../../auth";
 import {

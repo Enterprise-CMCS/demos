@@ -109,7 +109,7 @@ describe("createDeliverable", () => {
     try {
       await createDeliverable(testInput, testContext as GraphQLContext);
       throw new Error("Expected createDeliverable to throw, but it did not.");
-    } catch (e) {
+    } catch {
       expect(prisma).not.toHaveBeenCalled();
     }
   });

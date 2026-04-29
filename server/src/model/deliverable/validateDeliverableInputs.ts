@@ -16,7 +16,7 @@ import { getUser } from "../user";
 import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
 import { GraphQLError } from "graphql";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
-import { GraphQLContext } from "../../auth";
+import { ContextUser, GraphQLContext } from "../../auth";
 import { PersonType } from "../../types";
 
 // This probably will be modified when permissions are updated more generally
@@ -42,7 +42,8 @@ export async function validateCreateDeliverableInput(
     applicationTypeId: "Demonstration",
     tx: tx,
   });
-  const cmsOwnerUser = await getUser({ id: input.cmsOwnerUserId }, tx);
+  const cmsOwnerUser = await getUser({ id: input.cmsOwnerUserId }, {} as ContextUser, tx);
+
   const demonstrationTypeAssignments = await getDemonstrationTypeAssignments(
     {
       demonstrationId: input.demonstrationId,
@@ -53,7 +54,9 @@ export async function validateCreateDeliverableInput(
   const errors: (string | undefined)[] = [];
   errors.push(
     checkDemonstrationStatus(demonstration),
-    checkOwnerPersonType(cmsOwnerUser),
+    cmsOwnerUser
+      ? checkOwnerPersonType(cmsOwnerUser)
+      : `CMS Owner user with id ${input.cmsOwnerUserId} not found.`,
     checkDueDateInFuture(input.dueDate)
   );
   if (input.demonstrationTypes && input.demonstrationTypes.size > 0) {
@@ -90,8 +93,12 @@ export async function validateUpdateDeliverableInput(
   errors.push(checkDeliverableStatusNotFinalized(deliverable));
 
   if (input.cmsOwnerUserId) {
-    const cmsOwnerUser = await getUser({ id: input.cmsOwnerUserId }, tx);
-    errors.push(checkOwnerPersonType(cmsOwnerUser));
+    const cmsOwnerUser = await getUser({ id: input.cmsOwnerUserId }, {} as ContextUser, tx);
+    if (cmsOwnerUser) {
+      errors.push(checkOwnerPersonType(cmsOwnerUser));
+    } else {
+      errors.push(`CMS Owner user with id ${input.cmsOwnerUserId} not found.`);
+    }
   }
 
   if (input.demonstrationTypes && input.demonstrationTypes.size > 0) {

@@ -1,16 +1,18 @@
 import { Prisma } from "@prisma/client";
-import {
-  buildAuthorizationFilter,
-  isStatePointOfContactOnDemonstration,
-  PermissionFilters,
-  ContextUser,
-} from "../../auth";
+import { buildAuthorizationFilter, PermissionFilters, ContextUser } from "../../auth";
 import {
   type ApplicationTagAssignmentQueryResult,
   selectApplicationTagAssignment,
   selectManyApplicationTagAssignments,
 } from "./queries";
 import { PrismaTransactionClient } from "../../prismaClient";
+import { isAStatePointOfContactAssociatedWithApplication } from "../application/applicationData";
+
+const isAStatePointOfContactAssociatedWithApplicationTagAssignment = (
+  userId: string
+): Prisma.ApplicationTagAssignmentWhereInput => ({
+  application: isAStatePointOfContactAssociatedWithApplication(userId),
+});
 
 const getPermissionFilters = (userId: string) =>
   ({
@@ -21,25 +23,8 @@ const getPermissionFilters = (userId: string) =>
         },
       },
     },
-    "View ApplicationTagAssignments on Assigned Demonstrations": {
-      application: {
-        OR: [
-          {
-            demonstration: isStatePointOfContactOnDemonstration(userId),
-          },
-          {
-            amendment: {
-              demonstration: isStatePointOfContactOnDemonstration(userId),
-            },
-          },
-          {
-            extension: {
-              demonstration: isStatePointOfContactOnDemonstration(userId),
-            },
-          },
-        ],
-      },
-    },
+    "View ApplicationTagAssignments on Assigned Demonstrations":
+      isAStatePointOfContactAssociatedWithApplicationTagAssignment(userId),
   }) satisfies PermissionFilters<Prisma.ApplicationTagAssignmentWhereInput>;
 
 export async function getApplicationTagAssignment(

@@ -1,6 +1,6 @@
 import { ApplicationTagSuggestion as PrismaApplicationTagSuggestion } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { prisma, PrismaTransactionClient } from "../../../prismaClient";
+import { prisma } from "../../../prismaClient";
 import { selectApplicationTagSuggestion } from "./selectApplicationTagSuggestion";
 
 vi.mock("../../../prismaClient", () => ({

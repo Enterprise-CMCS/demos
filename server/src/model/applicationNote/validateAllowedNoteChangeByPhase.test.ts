@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { validateAllowedNoteChangeByPhase } from "./validateAllowedNoteChangeByPhase";
 import { SetApplicationNotesInput } from "../../types";
-import { PrismaTransactionClient } from "../../prismaClient";
 import { getFinishedApplicationPhaseIds } from "../applicationPhase";
 import { getPhaseNoteTypes } from "../phaseNoteType";
 

@@ -1,6 +1,6 @@
 import { Document as PrismaDocument } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { prisma, PrismaTransactionClient } from "../../../prismaClient";
+import { prisma } from "../../../prismaClient";
 import { selectDocument } from "./selectDocument";
 
 vi.mock("../../../prismaClient", () => ({

@@ -160,6 +160,7 @@ describe("validateDeliverableInputs", () => {
       });
       expect(getUser).toHaveBeenCalledExactlyOnceWith(
         { id: testInput.cmsOwnerUserId },
+        {},
         mockTransaction
       );
       expect(getDemonstrationTypeAssignments).toHaveBeenCalledExactlyOnceWith(
@@ -397,6 +398,7 @@ describe("validateDeliverableInputs", () => {
       await validateUpdateDeliverableInput(mockDeliverable.id!, testInput, mockTransaction);
       expect(getUser).toHaveBeenCalledExactlyOnceWith(
         { id: testInput.cmsOwnerUserId },
+        {},
         mockTransaction
       );
       expect(checkOwnerPersonType).toHaveBeenCalledExactlyOnceWith(mockUser);

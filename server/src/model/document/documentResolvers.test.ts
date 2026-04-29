@@ -25,7 +25,6 @@ import {
   updateDocument as updateDocumentResolver,
   deleteDocument,
   deleteDocuments,
-  resolveOwner,
   resolveApplication,
   documentResolvers,
   resolveHasPendingUIPathResult,
@@ -51,6 +50,10 @@ vi.mock("./documentData", () => ({
 
 vi.mock("../application", () => ({
   getApplication: vi.fn(),
+}));
+
+vi.mock("../user", () => ({
+  getUser: vi.fn(),
 }));
 
 vi.mock("../../dateUtilities", async (importOriginal) => {
@@ -208,6 +211,15 @@ describe("documentResolvers", () => {
       const result = documentResolvers.Document.phaseName(document);
       expect(result).toBe(document.phaseId);
     });
+  });
+
+  it("delegates `Document.owner` to `UserData.getUser`", async () => {
+    await documentResolvers.Document.owner(
+      { ownerUserId: "user-123" } as PrismaDocument,
+      {},
+      mockContext
+    );
+    expect(getUser).toHaveBeenCalledExactlyOnceWith({ id: "user-123" }, mockContext.user);
   });
 
   describe("uploadDocument", () => {
@@ -420,18 +432,6 @@ describe("documentResolvers", () => {
 
       expect(handleDeleteDocument).not.toHaveBeenCalled();
       expect(result).toBe(0);
-    });
-  });
-
-  describe("resolveOwner", () => {
-    it("should resolve document owner", async () => {
-      vi.mocked(getUser).mockResolvedValue(mockUser);
-
-      const result = await resolveOwner(mockDocument);
-
-      expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
-      expect(getUser).toHaveBeenCalledExactlyOnceWith({ id: "user-123" }, mockTransaction);
-      expect(result).toEqual(mockUser);
     });
   });
 

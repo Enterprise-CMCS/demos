@@ -3,7 +3,7 @@ import {
   DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
 } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { prisma, PrismaTransactionClient } from "../../../prismaClient";
+import { prisma } from "../../../prismaClient";
 import { selectManyDemonstrationTypeTagAssignments } from "./selectManyDemonstrationTypeTagAssignments";
 
 vi.mock("../../../prismaClient", () => ({

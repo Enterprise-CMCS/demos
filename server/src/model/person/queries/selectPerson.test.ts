@@ -1,6 +1,6 @@
 import { Person as PrismaPerson } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { prisma, PrismaTransactionClient } from "../../../prismaClient";
+import { prisma } from "../../../prismaClient";
 import { selectPerson } from "./selectPerson";
 
 vi.mock("../../../prismaClient", () => ({

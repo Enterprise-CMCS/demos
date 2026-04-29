@@ -131,9 +131,6 @@ describe("parseDeliverableInputs", () => {
       const testInput = {
         ...baseTestInput,
       };
-      const expectedResult: ParsedUpdateDeliverableInput = {
-        name: testInput.name,
-      };
 
       parseUpdateDeliverableInput(testInput);
       expect(parseDateTimeOrLocalDateToEasternTZDate).not.toHaveBeenCalled();

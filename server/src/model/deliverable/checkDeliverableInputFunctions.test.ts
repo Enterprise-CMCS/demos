@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { EasternTZDate, parseJSDateToEasternTZDate } from "../../dateUtilities";
 
 // Types
-import { ApplicationStatus, DeliverableStatus, Document, PersonType, TagName } from "../../types";
+import { ApplicationStatus, DeliverableStatus, PersonType, TagName } from "../../types";
 import {
   Deliverable as PrismaDeliverable,
   Demonstration as PrismaDemonstration,

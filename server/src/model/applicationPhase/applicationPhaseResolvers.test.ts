@@ -4,13 +4,10 @@ import {
   applicationPhaseResolvers,
 } from "./applicationPhaseResolvers";
 import { ApplicationPhase as PrismaApplicationPhase } from "@prisma/client";
-import { ApplicationStatus, PhaseName, PhaseStatus } from "../../types";
+import { PhaseName, PhaseStatus } from "../../types";
 
 // Mock imports
 import { prisma } from "../../prismaClient";
-import { handlePrismaError } from "../../errors/handlePrismaError";
-import { getApplication } from "../application";
-import { completePhase, declareCompletenessPhaseIncomplete, skipConceptPhase } from ".";
 import { GraphQLContext } from "../../auth";
 import { getManyDocuments } from "../document";
 import { getManyApplicationDates } from "../applicationDate";

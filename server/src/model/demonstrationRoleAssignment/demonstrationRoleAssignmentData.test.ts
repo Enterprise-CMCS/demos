@@ -1,5 +1,4 @@
 import {
-  DemonstrationRoleAssignment as PrismaDemonstrationRoleAssignment,
   Prisma,
 } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";

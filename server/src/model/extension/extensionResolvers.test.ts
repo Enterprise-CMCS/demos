@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, expectTypeOf } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   __createExtension,
   __updateExtension,

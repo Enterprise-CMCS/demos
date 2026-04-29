@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
 import { deleteAllApplicationTags } from "./deleteAllApplicationTags";
-import { SetApplicationTagsInput } from "../../../types";
 
 describe("deleteAllApplicationTags", () => {
   const transactionMocks = {

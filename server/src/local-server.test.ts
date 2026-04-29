@@ -9,11 +9,11 @@ const ApolloServerMock = class {
   }
 };
 
-const startStandaloneServerMock = vi.fn(async (_server: any, _opts: any) => ({
+const startStandaloneServerMock = vi.fn(async () => ({
   url: "http://localhost:4000",
 }));
 
-const ApolloArmorMock = vi.fn(function (this: any, cfg: any) {
+const ApolloArmorMock = vi.fn(function (this: any) {
   this.protect = () => ({ plugins: [], validationRules: [] });
 });
 const validateClaimsMock = vi.fn();
@@ -52,7 +52,7 @@ describe("local-server startup", () => {
 
   it("initializes ApolloArmor with GraphQLArmorConfig and starts the server", async () => {
     // Import module after mocks are active
-    const mod = await import("./local-server.ts");
+    await import("./local-server.ts");
 
     // ApolloArmor should have been constructed with the sentinel config
     expect(ApolloArmorMock).toHaveBeenCalled();

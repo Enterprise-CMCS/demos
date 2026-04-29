@@ -15,14 +15,14 @@ describe("tagResolvers", () => {
 
   describe("getDemonstrationTypes", () => {
     it("should query the demonstration type tags", async () => {
-      const result = await getDemonstrationTypes();
+      await getDemonstrationTypes();
       expect(getFormattedTagsByTagType).toHaveBeenCalledExactlyOnceWith("Demonstration Type");
     });
   });
 
   describe("getApplicationTags", () => {
     it("should query the application tags", async () => {
-      const result = await getApplicationTags();
+      await getApplicationTags();
       expect(getFormattedTagsByTagType).toHaveBeenCalledExactlyOnceWith("Application");
     });
   });

@@ -1,12 +1,14 @@
 import { Prisma, ApplicationPhase as PrismaApplicationPhase } from "@prisma/client";
-import {
-  buildAuthorizationFilter,
-  isStatePointOfContactOnDemonstration,
-  PermissionFilters,
-  ContextUser,
-} from "../../auth";
+import { buildAuthorizationFilter, PermissionFilters, ContextUser } from "../../auth";
 import { selectApplicationPhase, selectManyApplicationPhases } from "./queries";
 import { PrismaTransactionClient } from "../../prismaClient";
+import { isAStatePointOfContactAssociatedWithApplication } from "../application/applicationData";
+
+export const isAStatePointOfContactAssociatedWithApplicationPhase = (
+  userId: string
+): Prisma.ApplicationPhaseWhereInput => ({
+  application: isAStatePointOfContactAssociatedWithApplication(userId),
+});
 
 const getPermissionFilters = (userId: string) =>
   ({
@@ -17,25 +19,8 @@ const getPermissionFilters = (userId: string) =>
         },
       },
     },
-    "View ApplicationPhases on Assigned Demonstrations": {
-      application: {
-        OR: [
-          {
-            demonstration: isStatePointOfContactOnDemonstration(userId),
-          },
-          {
-            amendment: {
-              demonstration: isStatePointOfContactOnDemonstration(userId),
-            },
-          },
-          {
-            extension: {
-              demonstration: isStatePointOfContactOnDemonstration(userId),
-            },
-          },
-        ],
-      },
-    },
+    "View ApplicationPhases on Assigned Demonstrations":
+      isAStatePointOfContactAssociatedWithApplicationPhase(userId),
   }) satisfies PermissionFilters<Prisma.ApplicationPhaseWhereInput>;
 
 export async function getApplicationPhase(

@@ -111,8 +111,8 @@ describe("handlePrismaError", () => {
       const err = {
         // Pulled example test message, this is just a portion of it
         message:
-          '\"new row for relation \\\"demonstration\\\" violates check constraint \\\"' +
-          'effective_date_check\\\"\", severity: \"ERROR\",',
+          '"new row for relation \\"demonstration\\" violates check constraint \\"' +
+          'effective_date_check\\"", severity: "ERROR",',
       };
       try {
         handlePrismaError(err);
@@ -128,7 +128,7 @@ describe("handlePrismaError", () => {
 
     it("throws fails gracefully if unable to extract the name of the constraint", () => {
       const err = {
-        message: '\"new row for relation \\\"demonstration\\\" violates check constraint \\\"',
+        message: '"new row for relation \\"demonstration\\" violates check constraint \\"',
       };
       try {
         handlePrismaError(err);
