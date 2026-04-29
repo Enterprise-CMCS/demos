@@ -1,6 +1,7 @@
 import { DatePicker } from "components/input/date/DatePicker";
 import React from "react";
-import { getTodayEst } from "util/formatDate";
+import { isBefore, parseISO } from "date-fns";
+import { formatDate, getTodayEst } from "util/formatDate";
 
 export const SINGLE_DELIVERABLE_DUE_DATE_NAME = "single-deliverable-due-date";
 
@@ -11,6 +12,7 @@ export const SingleDeliverableScheduleType = ({
   value: string;
   onChange: (dueDate: string) => void;
 }) => {
+  const today = getTodayEst();
   return (
     <div className="grid grid-cols-2">
       <div className="col-span-1">
@@ -20,7 +22,12 @@ export const SingleDeliverableScheduleType = ({
           value={value}
           onChange={onChange}
           isRequired={true}
-          minDate={getTodayEst()}
+          minDate={today}
+          getValidationMessage={() =>
+            value && isBefore(value, today)
+              ? `Date must be on or after ${formatDate(parseISO(today))}.`
+              : ""
+          }
         />
       </div>
     </div>

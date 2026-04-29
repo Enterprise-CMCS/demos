@@ -112,7 +112,9 @@ const hasValidDueDateForScheduleType = (
   if (data.scheduleType === "Single") {
     return data.dueDate.length > 0 && !isBefore(data.dueDate, today);
   }
-  return data.quarterlyDueDates.every((dueDate) => dueDate.length > 0);
+  return data.quarterlyDueDates.every(
+    (dueDate) => dueDate.length > 0 && !isBefore(dueDate, today)
+  );
 };
 
 const formIsValid = (data: AddDeliverableSlotFormData, today: string): boolean =>

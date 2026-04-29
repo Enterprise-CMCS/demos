@@ -5,8 +5,7 @@ import {
   LABEL_CLASSES,
   VALIDATION_MESSAGE_CLASSES,
 } from "components/input/Input";
-import { isAfter, isBefore, parseISO } from "date-fns";
-import { formatDate } from "util/formatDate";
+import { isAfter, isBefore } from "date-fns";
 
 const DEFAULT_MIN_DATE = "1900-01-01";
 const DEFAULT_MAX_DATE = "2099-12-31";
@@ -33,7 +32,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   getValidationMessage,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const inputMin = minDate && isAfter(minDate, DEFAULT_MIN_DATE) ? minDate : DEFAULT_MIN_DATE;
+  const inputMin = minDate ?? DEFAULT_MIN_DATE;
 
   // The input is uncontrolled (defaultValue + ref-sync) instead of fully controlled.
   // Native <input type="date"> fires input events with value="" while the user is mid-typing the
@@ -56,12 +55,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     }
   };
 
-  const externalValidationMessage = getValidationMessage ? getValidationMessage() : "";
-  const minViolationMessage =
-    value && minDate && isBefore(value, minDate)
-      ? `Date must be on or after ${formatDate(parseISO(minDate))}.`
-      : "";
-  const validationMessage = externalValidationMessage || minViolationMessage;
+  const validationMessage = getValidationMessage?.() ?? "";
 
   return (
     <div className="flex flex-col gap-xs">
