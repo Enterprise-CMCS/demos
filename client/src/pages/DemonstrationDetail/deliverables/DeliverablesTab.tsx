@@ -33,7 +33,7 @@ export const DeliverablesTab = ({
   ) ?? [];
 
   return (
-    <div className="flex flex-col gap-[24px]">
+    <div className="flex flex-col">
       <TabHeader title="Deliverables">
         <IconButton
           icon={<AddNewIcon />}
