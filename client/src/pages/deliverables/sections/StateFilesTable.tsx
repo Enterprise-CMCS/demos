@@ -8,11 +8,7 @@ export const StateFilesTable = () => {
   return (
     <>
       <TabHeader title="State Files" />
-      <DocumentTable
-        applicationId="mock-deliverable-application-id"
-        documents={STATE_FILES}
-        emptyRowsMessage="You have no files added at this time"
-      />
+      <DocumentTable applicationId="mock-deliverable-application-id" documents={STATE_FILES} />
     </>
   );
 };
