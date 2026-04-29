@@ -1,7 +1,7 @@
 import React from "react";
 
 import { HorizontalSectionTabs, Tab } from "layout/Tabs";
-import { COMMENT_BOX_TABS_NAME, CommentVisibility } from "./CommentBox";
+import { COMMENT_BOX_TABS_NAME, CommentVisibility } from ".";
 import { AlertIcon } from "components/icons";
 
 const TABS = {

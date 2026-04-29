@@ -3,13 +3,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import { gql, useQuery } from "@apollo/client";
 import { Deliverable, Demonstration } from "demos-server";
 import { Loading } from "components/loading/Loading";
-import { CommentBox } from "./sections/CommentBox";
-// import { DeliverableButtons } from "./sections/DeliverableButtons";
-import { EditAndDeleteButtonGroup } from "./sections/EditAndDeleteButtonGroup";
+import { CommentBox } from "./sections/comment_box";
 import { DeliverableInfoFields } from "./sections/DeliverableInfoFields";
 import { FileAndHistoryTabs } from "./sections/FileAndHistoryTabs";
 import { PendingReviewNotice } from "./sections/PendingReviewNotice";
 import type { DeliverableFileRow } from "./sections/DeliverableFileTypes";
+import { EditAndDeleteButtonGroup } from "./sections/EditAndDeleteButtonGroup";
 
 export const GET_DELIVERABLE_DETAILS_QUERY_NAME = "GetDeliverableDetails";
 export const DELIVERABLE_DETAILS_QUERY = gql`

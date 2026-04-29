@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { COLLAPSE_COMMENTS_BUTTON_NAME, COMMENT_BOX_NAME, COMMENT_BOX_TABS_NAME, COMMENT_BOX_TEXT_AREA_NAME, ADD_COMMENT_BUTTON_NAME, CommentBox } from "./CommentBox";
+import { COLLAPSE_COMMENTS_BUTTON_NAME, COMMENT_BOX_NAME, COMMENT_BOX_TABS_NAME, COMMENT_BOX_TEXT_AREA_NAME, ADD_COMMENT_BUTTON_NAME, CommentBox } from ".";
 import { TestProvider } from "test-utils/TestProvider";
 import { developmentMockUser } from "mock-data/userMocks";
 import { PersonType } from "demos-server";
