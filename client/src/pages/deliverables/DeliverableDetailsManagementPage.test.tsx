@@ -15,7 +15,7 @@ import {
   DELIVERABLE_INFO_FIELDS_NAME,
 } from "./sections/DeliverableInfoFields";
 import { FILE_AND_HISTORY_TABS_NAME } from "./sections/FileAndHistoryTabs";
-import { DELIVERABLE_BUTTONS_NAME } from "./sections/DeliverableButtons";
+// import { DELIVERABLE_BUTTONS_NAME } from "./sections/DeliverableButtons";
 import { DialogProvider } from "components/dialog/DialogContext";
 import {
   DELIVERABLE_REVIEW_NOTICE_NAME,
@@ -52,11 +52,12 @@ describe("DeliverableDetailsManagementPage", () => {
     );
   });
 
-  it("renders DeliverableButtons", async () => {
-    renderAtRoute("1");
+  // Commented out in the page.
+  // it("renders DeliverableButtons", async () => {
+  //   renderAtRoute("1");
 
-    await waitFor(() => expect(screen.getByTestId(DELIVERABLE_BUTTONS_NAME)).toBeInTheDocument());
-  });
+  //   await waitFor(() => expect(screen.getByTestId(DELIVERABLE_BUTTONS_NAME)).toBeInTheDocument());
+  // });
 
   it("renders FileAndHistoryTabs", async () => {
     renderAtRoute("1");

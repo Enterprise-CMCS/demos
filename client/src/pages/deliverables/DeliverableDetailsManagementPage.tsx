@@ -4,7 +4,7 @@ import { gql, useQuery } from "@apollo/client";
 import { Deliverable, Demonstration } from "demos-server";
 import { Loading } from "components/loading/Loading";
 import { CommentBox } from "./sections/CommentBox";
-import { DeliverableButtons } from "./sections/DeliverableButtons";
+// import { DeliverableButtons } from "./sections/DeliverableButtons";
 import { EditAndDeleteButtonGroup } from "./sections/EditAndDeleteButtonGroup";
 import { DeliverableInfoFields } from "./sections/DeliverableInfoFields";
 import { FileAndHistoryTabs } from "./sections/FileAndHistoryTabs";
