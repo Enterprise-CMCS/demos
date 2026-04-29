@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "components/button";
-import { InfoIcon } from "components/icons";
+import { WarningIcon } from "components/icons";
 
 export const START_REVIEW_BUTTON_NAME = "button-start-review";
 export const DELIVERABLE_REVIEW_NOTICE_NAME = "deliverable-review-notice";
@@ -8,11 +8,11 @@ export const DELIVERABLE_REVIEW_NOTICE_NAME = "deliverable-review-notice";
 export const PendingReviewNotice: React.FC<{ onStartReview: () => void }> = ({ onStartReview }) => {
   return (
     <div
-      className="flex items-center gap-1 border border-brand border-l-[6px] rounded-sm bg-white px-1 py-1"
+      className="flex items-center gap-2 border border-border-alert border-l-[6px] rounded-sm bg-white px-1 py-1"
       data-testid={DELIVERABLE_REVIEW_NOTICE_NAME}
     >
-      <span className="shrink-0 text-brand" aria-hidden="true">
-        <InfoIcon />
+      <span className="shrink-0" aria-hidden="true">
+        <WarningIcon width="28" height="28" />
       </span>
       <div className="flex-1 leading-2">
         <p className="text-[15px] font-bold text-text-font">Submission pending review</p>

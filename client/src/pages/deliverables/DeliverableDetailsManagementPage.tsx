@@ -5,6 +5,7 @@ import { Deliverable, Demonstration } from "demos-server";
 import { Loading } from "components/loading/Loading";
 import { CommentBox } from "./sections/CommentBox";
 import { DeliverableButtons } from "./sections/DeliverableButtons";
+import { EditAndDeleteButtonGroup } from "./sections/EditAndDeleteButtonGroup";
 import { DeliverableInfoFields } from "./sections/DeliverableInfoFields";
 import { FileAndHistoryTabs } from "./sections/FileAndHistoryTabs";
 import { PendingReviewNotice } from "./sections/PendingReviewNotice";
@@ -95,6 +96,9 @@ export const DeliverableDetailsManagementPage: React.FC<{
     setShowPendingReviewNotice(false);
   }, []);
 
+  const handleDeleteDeliverable = useCallback(() => {}, []);
+  const handleEditDeliverable = useCallback(() => {}, []);
+
   const handleBack = useCallback(() => {
     if (onBack) {
       onBack();
@@ -129,7 +133,12 @@ export const DeliverableDetailsManagementPage: React.FC<{
             showAdditionalDetailsToggle
             onToggleAdditionalDetails={handleToggleAdditionalDetails}
           />
-          <DeliverableButtons deliverable={data.deliverable} />
+          {/* I'm sure these go somewhere but they arent in my spec sheet. Uncomment at your leisure */}
+          {/* <DeliverableButtons deliverable={data.deliverable} /> */}
+          <EditAndDeleteButtonGroup
+            onDelete={handleDeleteDeliverable}
+            onEdit={handleEditDeliverable}
+          />
         </div>
         {showPendingReviewNotice ? (
           <PendingReviewNotice onStartReview={handleStartReview} />
