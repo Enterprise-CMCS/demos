@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { gql, useQuery } from "@apollo/client";
 import { Deliverable, Demonstration } from "demos-server";
 import { Loading } from "components/loading/Loading";
-import { CommentBox } from "./sections/CommentBox";
+import { CommentBox } from "./sections/comment_box/CommentBox";
 import { DeliverableButtons } from "./sections/DeliverableButtons";
 import { DeliverableInfoFields } from "./sections/DeliverableInfoFields";
 import { FileAndHistoryTabs } from "./sections/FileAndHistoryTabs";

@@ -1,28 +1,21 @@
 import React, { useState } from "react";
 
 import { MenuCollapseRightIcon } from "components/icons/Navigation/MenuCollapseRightIcon";
-import { Textarea } from "components/input";
 import { CommentIcon } from "components/icons";
-import { Button, SecondaryButton } from "components/button";
+import { SecondaryButton } from "components/button";
 import { getCurrentUser } from "components/user/UserContext";
 import { PersonType } from "demos-server";
 import { CommentBoxTabs } from "./CommentBoxTabs";
-import { format } from "date-fns";
+import { CommentBoxTextArea } from "./CommentBoxTextArea";
+import { CommentBoxHistory } from "./CommentBoxHistory";
+import { CommentBoxComment, CommentVisibility } from "./Comment";
+
+export { CommentVisibility } from "./Comment";
+export { COMMENT_BOX_TEXT_AREA_NAME, ADD_COMMENT_BUTTON_NAME } from "./CommentBoxTextArea";
 
 export const COMMENT_BOX_NAME = "comment-box";
-export const COMMENT_BOX_TEXT_AREA_NAME = "textarea-comment-box";
 export const COLLAPSE_COMMENTS_BUTTON_NAME = "button-collapse-comments";
 export const COMMENT_BOX_TABS_NAME = "comment-box-tabs";
-export const ADD_COMMENT_BUTTON_NAME = "button-add-comment";
-
-interface CommentBoxComment {
-  commentText: string;
-  userFullName: string;
-  timestamp: Date;
-  commentVisibility?: CommentVisibility;
-}
-
-export type CommentVisibility = "public" | "private";
 
 const CommentBoxHeader = ({ onCollapse }: { onCollapse: () => void }) => (
   <div className="flex items-center justify-between pb-1 border-b border-gray-dark">
@@ -33,64 +26,6 @@ const CommentBoxHeader = ({ onCollapse }: { onCollapse: () => void }) => (
     <SecondaryButton size="small" name={COLLAPSE_COMMENTS_BUTTON_NAME} data-testid={COLLAPSE_COMMENTS_BUTTON_NAME} onClick={onCollapse} aria-label="Collapse comments">
       <MenuCollapseRightIcon className="w-[20px] h-[20px]" />
     </SecondaryButton>
-  </div>
-);
-
-const  CommentBoxTextArea = ({ addComment, currentComment, setCurrentComment, commentVisibility }:
-  { addComment: (newComment: CommentBoxComment) => void;
-    currentComment: string;
-    setCurrentComment: (value: string) => void;
-    commentVisibility: CommentVisibility;
-  }) => {
-  const {currentUser} = getCurrentUser();
-
-  if (!currentUser) {
-    throw new Error("Current user is required to render CommentBoxTextArea");
-  }
-
-  const handleAddComment = () => {
-    if (currentComment.trim() !== "") {
-      addComment({
-        commentText: currentComment,
-        userFullName: currentUser.person.fullName,
-        timestamp: new Date(),
-        commentVisibility,
-      });
-      setCurrentComment("");
-    }
-  };
-
-  const textareaLabel = commentVisibility === "public" ? "Comments" : "CMS Internal Comments";
-
-  return (
-    <div className="flex-1 flex flex-col gap-1">
-      <Textarea label={textareaLabel} value={currentComment} name={COMMENT_BOX_TEXT_AREA_NAME} onChange={setCurrentComment} onEnterPress={handleAddComment} />
-      <Button name={ADD_COMMENT_BUTTON_NAME} data-testid={ADD_COMMENT_BUTTON_NAME} onClick={handleAddComment}>Add Comment</Button>
-    </div>
-  );
-};
-
-const Comment = ({ comment }: { comment: CommentBoxComment }) => {
-  const formattedDate = format(comment.timestamp, "MM/dd/yyyy, hh:mm a");
-
-  return (
-    <div className="flex flex-col bg-gray-secondary-layout rounded">
-      <div className="flex justify-between">
-        <span className="text-xs font-bold italic">{comment.userFullName}</span>
-        <span className="text-xs text-text-placeholder italic">{formattedDate}</span>
-      </div>
-      <div className="text-sm">{comment.commentText}</div>
-    </div>
-  );
-};
-
-const CommentBoxHistory = ({comments}: {comments: CommentBoxComment[]}) => (
-  <div className="flex flex-col gap-1">
-    <span className="font-semibold">Comment History</span>
-    {comments.length ? comments.map((comment, index) => (
-      <Comment key={index} comment={comment} />
-    )) : <span className="text-sm text-text-placeholder italic">No comments yet.</span>
-    }
   </div>
 );
 
