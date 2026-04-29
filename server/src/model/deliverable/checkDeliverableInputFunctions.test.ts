@@ -3,11 +3,12 @@ import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { EasternTZDate, parseJSDateToEasternTZDate } from "../../dateUtilities";
 
 // Types
-import { ApplicationStatus, DeliverableStatus, PersonType, TagName } from "../../types";
+import { ApplicationStatus, DeliverableStatus, Document, PersonType, TagName } from "../../types";
 import {
   Deliverable as PrismaDeliverable,
   Demonstration as PrismaDemonstration,
   DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
+  Document as PrismaDocument,
   User as PrismaUser,
 } from "@prisma/client";
 
@@ -19,9 +20,16 @@ import {
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
   checkDueDateInFuture,
+  checkDeliverableHasAtLeastOneDocument,
+  checkDeliverableHasStatus,
 } from "./checkDeliverableInputFunctions";
 
 // Mock imports
+vi.mock("../document", () => ({
+  selectManyDocuments: vi.fn(),
+}));
+
+import { selectManyDocuments } from "../document";
 
 describe("checkDeliverableInputFunctions", () => {
   describe("checkDemonstrationStatus", () => {
@@ -90,7 +98,7 @@ describe("checkDeliverableInputFunctions", () => {
           id: "abc123",
           statusId: "Accepted",
         },
-        "Cannot modify deliverable abc123 as it has already been finalized.",
+        "Cannot submit or modify deliverable abc123 as it has already been finalized.",
       ],
       [
         "Approved",
@@ -98,7 +106,7 @@ describe("checkDeliverableInputFunctions", () => {
           id: "abc123",
           statusId: "Approved",
         },
-        "Cannot modify deliverable abc123 as it has already been finalized.",
+        "Cannot submit or modify deliverable abc123 as it has already been finalized.",
       ],
       [
         "Received and Filed",
@@ -106,7 +114,7 @@ describe("checkDeliverableInputFunctions", () => {
           id: "abc123",
           statusId: "Received and Filed",
         },
-        "Cannot modify deliverable abc123 as it has already been finalized.",
+        "Cannot submit or modify deliverable abc123 as it has already been finalized.",
       ],
     ];
     it.each(checkDeliverableStatusInputs)(
@@ -233,6 +241,74 @@ describe("checkDeliverableInputFunctions", () => {
       const result = checkDueDateInFuture(testInput);
       expect(result).toBe(
         "Cannot request a due date in the past; requested Sat Sep 16 2023 23:22:11 GMT-0400 (Eastern Daylight Time)"
+      );
+    });
+  });
+
+  describe("checkDeliverableHasAtLeastOneDocument", () => {
+    const testTransaction = "I'm a test transaction!" as any;
+    const testDeliverableId = "72c01127-bf42-4b9f-a902-1a237ecdf7b7";
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      id: testDeliverableId,
+    };
+
+    const mockDocumentList: Partial<PrismaDocument>[] = [
+      { id: "document1", deliverableId: testDeliverableId },
+      { id: "document2", deliverableId: testDeliverableId },
+    ];
+
+    beforeEach(() => {
+      vi.resetAllMocks();
+    });
+
+    it("should return undefined if there is at least one document", async () => {
+      vi.mocked(selectManyDocuments).mockResolvedValue(mockDocumentList as PrismaDocument[]);
+
+      const result = await checkDeliverableHasAtLeastOneDocument(
+        testDeliverable as PrismaDeliverable,
+        testTransaction
+      );
+      expect(result).toBeUndefined();
+      expect(selectManyDocuments).toHaveBeenCalledExactlyOnceWith(
+        {
+          deliverableId: testDeliverableId,
+          deliverableIsCmsAttachedFile: false,
+        },
+        testTransaction
+      );
+    });
+
+    it("should return an error message if there are no documents returned", async () => {
+      vi.mocked(selectManyDocuments).mockResolvedValue([] as PrismaDocument[]);
+
+      const result = await checkDeliverableHasAtLeastOneDocument(
+        testDeliverable as PrismaDeliverable,
+        testTransaction
+      );
+      expect(result).toBe(
+        `Cannot submit deliverable ${testDeliverableId} because it has no state documents attached.`
+      );
+    });
+  });
+
+  describe("checkDeliverableHasStatus", () => {
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      id: "1e42da3a-9355-4c5d-a541-812a9f95ef56",
+      statusId: "Under CMS Review",
+    };
+
+    it("should return undefined if the passed status matches the object", async () => {
+      const result = checkDeliverableHasStatus(
+        testDeliverable as PrismaDeliverable,
+        "Under CMS Review"
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it("should return an error message the passed status does not match the object", async () => {
+      const result = checkDeliverableHasStatus(testDeliverable as PrismaDeliverable, "Approved");
+      expect(result).toBe(
+        "Deliverable expected to have status Approved; actual status was Under CMS Review."
       );
     });
   });
