@@ -12,6 +12,7 @@ import {
   type DeliverablesQueryResult,
 } from "components/table/tables/DeliverableTable";
 import { useQuery } from "@apollo/client";
+import { useNavigate } from "react-router-dom";
 
 export const ADD_DELIVERABLE_SLOT_BUTTON_NAME = "button-add-deliverable-slot";
 
@@ -23,14 +24,15 @@ export const DeliverablesTab = ({
   const { showAddDeliverableSlotDialog } = useDialog();
   const rawPersonType = getCurrentUser().currentUser?.person.personType;
   const viewMode = rawPersonType as UserType;
+  const navigate = useNavigate();
   const { data, loading, error } = useQuery<DeliverablesQueryResult>(DELIVERABLES_PAGE_QUERY);
   const deliverables = data?.deliverables.filter(
     (deliverable) => deliverable.demonstration.id === parentDemonstration.id
   ) ?? [];
 
   return (
-    <div className="flex flex-col gap-[24px]">
-      <TabHeader title="Deliverables Management">
+    <div className="flex flex-col">
+      <TabHeader title="Deliverables">
         <IconButton
           icon={<AddNewIcon />}
           name={ADD_DELIVERABLE_SLOT_BUTTON_NAME}
@@ -48,6 +50,9 @@ export const DeliverablesTab = ({
         <DemonstrationDeliverableTable
           deliverables={deliverables}
           viewMode={viewMode}
+          onViewDeliverable={(selectedDeliverableId) =>
+            navigate(`/deliverables/${selectedDeliverableId}`)
+          }
         />
       )}
     </div>
