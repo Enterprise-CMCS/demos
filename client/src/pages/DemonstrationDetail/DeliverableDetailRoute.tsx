@@ -38,6 +38,6 @@ export const DeliverableDetailRoute: React.FC = () => {
   if (error || !demonstrationId) {
     return <div>Failed to load demonstration.</div>;
   }
-
+  // if we want to pull the tabs, we just swap this for DeliverableDetailsManagementPage
   return <DemonstrationDetail demonstrationId={demonstrationId} />;
 };

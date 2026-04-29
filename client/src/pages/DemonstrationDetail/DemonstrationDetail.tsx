@@ -134,7 +134,10 @@ export type DemonstrationDetailModification = Pick<
     owner: { person: Pick<Person, "fullName"> };
   })[];
 };
-export type DemonstrationDetail = Pick<Demonstration, "id" | "name" | "status" | "currentPhaseName" | "effectiveDate" | "expirationDate"> & {
+export type DemonstrationDetail = Pick<
+  Demonstration,
+  "id" | "name" | "status" | "currentPhaseName" | "effectiveDate" | "expirationDate"
+> & {
   amendments: DemonstrationDetailModification[];
   extensions: DemonstrationDetailModification[];
   demonstrationTypes: Pick<
