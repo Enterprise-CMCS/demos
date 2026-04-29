@@ -16,7 +16,7 @@ export const COMMENT_BOX_TABS_NAME = "comment-box-tabs";
 export const ADD_COMMENT_BUTTON_NAME = "button-add-comment";
 
 interface CommentBoxComment {
-  comment: string;
+  commentText: string;
   userFullName: string;
   timestamp: Date;
   commentVisibility?: CommentVisibility;
@@ -36,7 +36,12 @@ const CommentBoxHeader = ({ onCollapse }: { onCollapse: () => void }) => (
   </div>
 );
 
-const  CommentBoxTextArea = ({ addComment, currentComment, setCurrentComment }: { addComment: (newComment: CommentBoxComment) => void; currentComment: string; setCurrentComment: (value: string) => void }) => {
+const  CommentBoxTextArea = ({ addComment, currentComment, setCurrentComment, commentVisibility }:
+  { addComment: (newComment: CommentBoxComment) => void;
+    currentComment: string;
+    setCurrentComment: (value: string) => void;
+    commentVisibility: CommentVisibility;
+  }) => {
   const {currentUser} = getCurrentUser();
 
   if (!currentUser) {
@@ -46,41 +51,47 @@ const  CommentBoxTextArea = ({ addComment, currentComment, setCurrentComment }: 
   const handleAddComment = () => {
     if (currentComment.trim() !== "") {
       addComment({
-        comment: currentComment,
+        commentText: currentComment,
         userFullName: currentUser.person.fullName,
         timestamp: new Date(),
+        commentVisibility,
       });
       setCurrentComment("");
     }
   };
 
+  const textareaLabel = commentVisibility === "public" ? "Comments" : "CMS Internal Comments";
+
   return (
     <div className="flex-1 flex flex-col gap-1">
-      <Textarea label="Comments" value={currentComment} name={COMMENT_BOX_TEXT_AREA_NAME} onChange={setCurrentComment} />
+      <Textarea label={textareaLabel} value={currentComment} name={COMMENT_BOX_TEXT_AREA_NAME} onChange={setCurrentComment} onEnterPress={handleAddComment} />
       <Button name={ADD_COMMENT_BUTTON_NAME} data-testid={ADD_COMMENT_BUTTON_NAME} onClick={handleAddComment}>Add Comment</Button>
     </div>
   );
 };
 
 const Comment = ({ comment }: { comment: CommentBoxComment }) => {
-  const formattedDate = format(comment.timestamp, "MM/dd/yyyy, hh:mm:ss a");
+  const formattedDate = format(comment.timestamp, "MM/dd/yyyy, hh:mm a");
 
   return (
-    <div className="p-1 bg-gray-secondary-layout rounded">
-      {comment.userFullName} - {formattedDate}
-      {comment.comment}
+    <div className="flex flex-col bg-gray-secondary-layout rounded">
+      <div className="flex justify-between">
+        <span className="text-xs font-bold italic">{comment.userFullName}</span>
+        <span className="text-xs text-text-placeholder italic">{formattedDate}</span>
+      </div>
+      <div className="text-sm">{comment.commentText}</div>
     </div>
   );
 };
 
 const CommentBoxHistory = ({comments}: {comments: CommentBoxComment[]}) => (
-  <>
+  <div className="flex flex-col gap-1">
     <span className="font-semibold">Comment History</span>
     {comments.length ? comments.map((comment, index) => (
       <Comment key={index} comment={comment} />
-    )) : <span className="text-sm text-gray-500">No comments yet.</span>
+    )) : <span className="text-sm text-text-placeholder italic">No comments yet.</span>
     }
-  </>
+  </div>
 );
 
 export const CommentBox = () => {
@@ -98,12 +109,11 @@ export const CommentBox = () => {
   const isCmsOrAdminUser = userPersonType === "demos-cms-user" || userPersonType === "demos-admin";
 
   const addComment = (newComment: CommentBoxComment) => {
-    const commentWithVisibility = { ...newComment, commentVisibility };
     // TODO: Eventually we will replace this with the actual API call to save the comment,
     // and we might want to handle the visibility differently depending on the API design.
     // For now, we are just adding it to the local state with the visibility included.
-    console.log("Adding comment:", commentWithVisibility);
-    setComments((prevComments) => [...prevComments, commentWithVisibility]);
+    console.log("Adding comment:", newComment);
+    setComments((prevComments) => [newComment, ...prevComments]);
   };
 
   if (isCollapsed) {
@@ -120,10 +130,10 @@ export const CommentBox = () => {
   }
 
   return (
-    <div className="flex flex-col gap-1 bg-gray-primary-layout p-1 min-h-full min-w-87.5" data-testid={COMMENT_BOX_NAME}>
+    <div className="flex flex-col gap-1 bg-gray-primary-layout p-1 min-h-full min-w-87.5 max-w-87.5" data-testid={COMMENT_BOX_NAME}>
       <CommentBoxHeader onCollapse={() => setIsCollapsed(true)} />
       {isCmsOrAdminUser && <CommentBoxTabs setCommentVisibility={setCommentVisibility} />}
-      <CommentBoxTextArea addComment={addComment} currentComment={currentComment} setCurrentComment={setCurrentComment} />
+      <CommentBoxTextArea addComment={addComment} currentComment={currentComment} setCurrentComment={setCurrentComment} commentVisibility={commentVisibility} />
       <CommentBoxHistory comments={comments} />
     </div>
   );
