@@ -1,43 +1,50 @@
 // Functions
 export {
-  checkDemonstrationStatus,
-  checkDeliverableStatusNotFinalized,
-  checkDueDateInFuture,
-  checkForDuplicateDemonstrationTypes,
-  checkOwnerPersonType,
-  checkRequestedDeliverableDemonstrationType,
   checkDeliverableHasAtLeastOneDocument,
   checkDeliverableHasStatus,
+  checkDeliverableStatusNotFinalized,
+  checkDemonstrationStatus,
+  checkDueDateInFuture,
+  checkForDuplicateDemonstrationTypes,
+  checkNewDueDateIsAtLeastCurrentDueDate,
+  checkOwnerPersonType,
+  checkRequestedDeliverableDemonstrationType,
 } from "./checkDeliverableInputFunctions";
-export { createDeliverable } from "./createDeliverable";
 export { completeDeliverable } from "./completeDeliverable";
-export { manuallyUpdateDeliverableDueDate } from "./manuallyUpdateDeliverableDueDate";
-export { parseCreateDeliverableInput, parseUpdateDeliverableInput } from "./parseDeliverableInputs";
+export { createDeliverable } from "./createDeliverable";
 export { resolveDeliverable, resolveManyDeliverables } from "./deliverableResolvers";
+export { manuallyUpdateDeliverableDueDate } from "./manuallyUpdateDeliverableDueDate";
+export {
+  parseCreateDeliverableInput,
+  parseRequestDeliverableResubmissionInput,
+  parseUpdateDeliverableInput,
+} from "./parseDeliverableInputs";
+export { requestDeliverableResubmission } from "./requestDeliverableResubmission";
+export { startDeliverableReview } from "./startDeliverableReview";
+export { submitDeliverable } from "./submitDeliverable";
+export { updateDeliverable } from "./updateDeliverable";
+export { updateDeliverableDemonstrationTypes } from "./updateDeliverableDemonstrationTypes";
 export {
   validateCompleteDeliverableInput,
   validateCreateDeliverableInput,
+  validateRequestDeliverableResubmissionInput,
   validateStartDeliverableReviewInput,
   validateSubmitDeliverableInput,
   validateUpdateDeliverableInput,
   validateUserPersonTypeAllowed,
 } from "./validateDeliverableInputs";
-export { startDeliverableReview } from "./startDeliverableReview";
-export { submitDeliverable } from "./submitDeliverable";
-export { updateDeliverable } from "./updateDeliverable";
-export { updateDeliverableDemonstrationTypes } from "./updateDeliverableDemonstrationTypes";
 
 // Queries
+export { editDeliverable } from "./queries/editDeliverable";
 export { getDeliverable } from "./queries/getDeliverable";
 export { getManyDeliverables } from "./queries/getManyDeliverables";
 export { insertDeliverable } from "./queries/insertDeliverable";
-export { editDeliverable } from "./queries/editDeliverable";
 
 // Types & Constants
+export type { EditDeliverableInput } from "./queries/editDeliverable";
 export type {
   ParsedCreateDeliverableInput,
   ParsedUpdateDeliverableInput,
   ParsedUpdateDueDate,
   ParsedRequestDeliverableResubmissionInput,
 } from "./parseDeliverableInputs";
-export type { EditDeliverableInput } from "./queries/editDeliverable";

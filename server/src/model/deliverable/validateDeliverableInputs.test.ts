@@ -6,7 +6,11 @@ import { TZDate } from "@date-fns/tz";
 import { GraphQLContext } from "../../auth";
 import { DeepPartial } from "../../testUtilities";
 import { ApplicationStatus, PersonType } from "../../types";
-import { ParsedCreateDeliverableInput, ParsedUpdateDeliverableInput } from ".";
+import {
+  ParsedCreateDeliverableInput,
+  ParsedRequestDeliverableResubmissionInput,
+  ParsedUpdateDeliverableInput,
+} from ".";
 import {
   Deliverable as PrismaDeliverable,
   Demonstration as PrismaDemonstration,
@@ -18,12 +22,13 @@ import { EasternTZDate } from "../../dateUtilities";
 
 // Functions under test
 import {
+  validateCompleteDeliverableInput,
   validateCreateDeliverableInput,
+  validateRequestDeliverableResubmissionInput,
   validateStartDeliverableReviewInput,
   validateSubmitDeliverableInput,
   validateUpdateDeliverableInput,
   validateUserPersonTypeAllowed,
-  validateCompleteDeliverableInput,
 } from "./validateDeliverableInputs";
 
 // Mock imports
@@ -40,13 +45,14 @@ vi.mock("../demonstrationTypeTagAssignment", () => ({
 }));
 
 vi.mock(".", () => ({
-  checkDemonstrationStatus: vi.fn(),
-  checkDeliverableStatusNotFinalized: vi.fn(),
-  checkDueDateInFuture: vi.fn(),
-  checkOwnerPersonType: vi.fn(),
-  checkRequestedDeliverableDemonstrationType: vi.fn(),
   checkDeliverableHasAtLeastOneDocument: vi.fn(),
   checkDeliverableHasStatus: vi.fn(),
+  checkDeliverableStatusNotFinalized: vi.fn(),
+  checkDemonstrationStatus: vi.fn(),
+  checkDueDateInFuture: vi.fn(),
+  checkNewDueDateIsAtLeastCurrentDueDate: vi.fn(),
+  checkOwnerPersonType: vi.fn(),
+  checkRequestedDeliverableDemonstrationType: vi.fn(),
   getDeliverable: vi.fn(),
 }));
 
@@ -54,13 +60,14 @@ import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
 import {
-  checkDemonstrationStatus,
-  checkDeliverableStatusNotFinalized,
-  checkDueDateInFuture,
-  checkOwnerPersonType,
-  checkRequestedDeliverableDemonstrationType,
   checkDeliverableHasAtLeastOneDocument,
   checkDeliverableHasStatus,
+  checkDeliverableStatusNotFinalized,
+  checkDemonstrationStatus,
+  checkDueDateInFuture,
+  checkNewDueDateIsAtLeastCurrentDueDate,
+  checkOwnerPersonType,
+  checkRequestedDeliverableDemonstrationType,
   getDeliverable,
 } from ".";
 
@@ -696,7 +703,7 @@ describe("validateDeliverableInputs", () => {
       vi.resetAllMocks();
     });
 
-    it("should not throw if none of the rules are violated", async () => {
+    it("should not throw if none of the rules are violated", () => {
       // Note: don't need to set returns to undefined, as this is what vi.fn() does already
       const testInput: Partial<PrismaDeliverable> = {
         id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
@@ -706,7 +713,7 @@ describe("validateDeliverableInputs", () => {
       expect(validateStartDeliverableReviewInput(testInput as PrismaDeliverable)).toBeUndefined();
     });
 
-    it("should throw if the deliverable status check fails", async () => {
+    it("should throw if the deliverable status check fails", () => {
       const testInput: Partial<PrismaDeliverable> = {
         id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
         statusId: "Upcoming",
@@ -735,7 +742,7 @@ describe("validateDeliverableInputs", () => {
       vi.resetAllMocks();
     });
 
-    it("should not throw if none of the rules are violated", async () => {
+    it("should not throw if none of the rules are violated", () => {
       // Note: don't need to set returns to undefined, as this is what vi.fn() does already
       const testInput: Partial<PrismaDeliverable> = {
         id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
@@ -745,7 +752,7 @@ describe("validateDeliverableInputs", () => {
       expect(validateCompleteDeliverableInput(testInput as PrismaDeliverable)).toBeUndefined();
     });
 
-    it("should throw if the deliverable status check fails", async () => {
+    it("should throw if the deliverable status check fails", () => {
       const testInput: Partial<PrismaDeliverable> = {
         id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
         statusId: "Submitted",
@@ -764,6 +771,134 @@ describe("validateDeliverableInputs", () => {
         expect(error.extensions.code).toBe("COMPLETE_DELIVERABLE_VALIDATION_FAILED");
         expect(error.extensions.originalMessages).toStrictEqual([
           "The deliverable status check failed!",
+        ]);
+      }
+    });
+  });
+
+  describe("validateRequestDeliverableResubmissionInput", () => {
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
+    };
+    const testInput: ParsedRequestDeliverableResubmissionInput = {
+      details: "Some details",
+      newDueDate: {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2026, 11, 1, 0, 0, 0, 0, "America/New_York"),
+      },
+    };
+
+    beforeEach(() => {
+      vi.resetAllMocks();
+    });
+
+    it("should not throw if none of the rules are violated", () => {
+      // Note: don't need to set returns to undefined, as this is what vi.fn() does already
+      expect(
+        validateRequestDeliverableResubmissionInput(testDeliverable as PrismaDeliverable, testInput)
+      ).toBeUndefined();
+    });
+
+    it("should throw if the deliverable status check fails", () => {
+      vi.mocked(checkDeliverableHasStatus).mockReturnValue("The deliverable status check failed!");
+
+      try {
+        validateRequestDeliverableResubmissionInput(
+          testDeliverable as PrismaDeliverable,
+          testInput
+        );
+        throw new Error(
+          "Expected validateRequestDeliverableResubmissionInput to throw, but it did not."
+        );
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for requestDeliverableResubmission have failed."
+        );
+        expect(error.extensions.code).toBe("REQUEST_DELIVERABLE_RESUBMISSION_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable status check failed!",
+        ]);
+      }
+    });
+
+    it("should throw if the future due date check fails", () => {
+      vi.mocked(checkDueDateInFuture).mockReturnValue("The future due date check failed!");
+
+      try {
+        validateRequestDeliverableResubmissionInput(
+          testDeliverable as PrismaDeliverable,
+          testInput
+        );
+        throw new Error(
+          "Expected validateRequestDeliverableResubmissionInput to throw, but it did not."
+        );
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for requestDeliverableResubmission have failed."
+        );
+        expect(error.extensions.code).toBe("REQUEST_DELIVERABLE_RESUBMISSION_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The future due date check failed!",
+        ]);
+      }
+    });
+
+    it("should throw if the current vs new due date check fails", () => {
+      vi.mocked(checkNewDueDateIsAtLeastCurrentDueDate).mockReturnValue(
+        "The current and new due date check failed!"
+      );
+
+      try {
+        validateRequestDeliverableResubmissionInput(
+          testDeliverable as PrismaDeliverable,
+          testInput
+        );
+        throw new Error(
+          "Expected validateRequestDeliverableResubmissionInput to throw, but it did not."
+        );
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for requestDeliverableResubmission have failed."
+        );
+        expect(error.extensions.code).toBe("REQUEST_DELIVERABLE_RESUBMISSION_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The current and new due date check failed!",
+        ]);
+      }
+    });
+
+    it("should combine all errors into one object", async () => {
+      vi.mocked(checkDeliverableHasStatus).mockReturnValue("The deliverable status check failed!");
+      vi.mocked(checkDueDateInFuture).mockReturnValue("The future due date check failed!");
+      vi.mocked(checkNewDueDateIsAtLeastCurrentDueDate).mockReturnValue(
+        "The current and new due date check failed!"
+      );
+
+      try {
+        validateRequestDeliverableResubmissionInput(
+          testDeliverable as PrismaDeliverable,
+          testInput
+        );
+        throw new Error(
+          "Expected validateRequestDeliverableResubmissionInput to throw, but it did not."
+        );
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for requestDeliverableResubmission have failed."
+        );
+        expect(error.extensions.code).toBe("REQUEST_DELIVERABLE_RESUBMISSION_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable status check failed!",
+          "The future due date check failed!",
+          "The current and new due date check failed!",
         ]);
       }
     });

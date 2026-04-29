@@ -4,11 +4,20 @@ import { TZDate } from "@date-fns/tz";
 
 // Types
 import { EasternTZDate } from "../../dateUtilities";
-import { CreateDeliverableInput, DateTimeOrLocalDate, UpdateDeliverableInput } from "../../types";
+import {
+  CreateDeliverableInput,
+  DateTimeOrLocalDate,
+  RequestDeliverableResubmissionInput,
+  UpdateDeliverableInput,
+} from "../../types";
 import { ParsedCreateDeliverableInput, ParsedUpdateDeliverableInput } from ".";
 
 // Functions under test
-import { parseCreateDeliverableInput, parseUpdateDeliverableInput } from "./parseDeliverableInputs";
+import {
+  parseCreateDeliverableInput,
+  parseUpdateDeliverableInput,
+  parseRequestDeliverableResubmissionInput,
+} from "./parseDeliverableInputs";
 
 // Mock imports
 vi.mock("../../dateUtilities", () => ({
@@ -231,6 +240,26 @@ describe("parseDeliverableInputs", () => {
         const error = e as Error;
         expect(error.message).toBe("There are duplicates!!");
       }
+    });
+  });
+
+  describe("parseRequestDeliverableResubmissionInput", () => {
+    const testInput: RequestDeliverableResubmissionInput = {
+      details: "A set of details",
+      newDueDate: "2025-11-13" as DateTimeOrLocalDate,
+    };
+
+    it("should parse the input, check the date, and return the updated object", () => {
+      const result = parseRequestDeliverableResubmissionInput(testInput);
+      expect(parseDateTimeOrLocalDateToEasternTZDate).toHaveBeenCalledExactlyOnceWith(
+        testInput.newDueDate,
+        "End of Day"
+      );
+      expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith("dueDate", mockParsedDate);
+      expect(result).toStrictEqual({
+        details: testInput.details,
+        newDueDate: mockParsedDate,
+      });
     });
   });
 });
