@@ -1,7 +1,7 @@
 import React from "react";
 import type { DeliverableDetailsManagementDeliverable } from "pages/deliverables/DeliverableDetailsManagementPage";
 import { formatDate } from "util/formatDate";
-import { SecondaryButton } from "components/button";
+import { BaseButton } from "components/button/BaseButton";
 import { ChevronDownIcon, ChevronLeftIcon } from "components/icons";
 
 export const DELIVERABLE_INFO_FIELDS_NAME = "deliverable-info-fields";
@@ -60,18 +60,17 @@ export const DeliverableInfoFields = ({
   return (
     <div className="flex items-start gap-1 min-w-0" data-testid={DELIVERABLE_INFO_FIELDS_NAME}>
       {onBack ? (
-        <>
-          <SecondaryButton
-            size="large"
-            type="button"
-            name={BACK_TO_DELIVERABLES_BUTTON_NAME}
-            onClick={onBack}
-          >
-            <span className="flex items-center gap-0.5">
-              <ChevronLeftIcon height="12" width="12" />
-            </span>
-          </SecondaryButton>
-        </>
+        <BaseButton
+          type="button"
+          name={BACK_TO_DELIVERABLES_BUTTON_NAME}
+          ariaLabel="Back to deliverables"
+          onClick={onBack}
+          className="w-[48px] h-[60px] bg-white text-action hover:bg-action hover:text-white border border-action"
+        >
+          <span>
+            <ChevronLeftIcon height="14" width="14" />
+          </span>
+        </BaseButton>
       ) : null}
       <div className="flex flex-col gap-0.5 min-w-0">
         {title ? <h2 className="text-brand text-md font-bold">{title}</h2> : null}
