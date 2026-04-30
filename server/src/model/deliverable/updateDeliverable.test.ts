@@ -6,7 +6,7 @@ import { TZDate } from "@date-fns/tz";
 import { DeepPartial } from "../../testUtilities";
 import { UpdateDeliverableInput } from "../../types";
 import { EditDeliverableInput, ParsedUpdateDeliverableInput } from ".";
-import { GraphQLContext } from "../../auth/auth.util";
+import { GraphQLContext } from "../../auth";
 
 // Functions under test
 import { updateDeliverable } from "./updateDeliverable";

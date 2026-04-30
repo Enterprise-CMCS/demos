@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Types
 import { DeepPartial } from "../../testUtilities";
-import { GraphQLContext } from "../../auth/auth.util";
+import { GraphQLContext } from "../../auth";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { DeliverableStatus } from "../../types";
 import { ParsedUpdateDeliverableInput } from ".";
