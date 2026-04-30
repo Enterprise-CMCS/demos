@@ -1,5 +1,5 @@
 import { PrismaTransactionClient } from "../../prismaClient";
-import { PhaseName, ApplicationDateInput } from "../../types";
+import { ApplicationDateInput } from "../../types";
 import { EasternNow } from "../../dateUtilities";
 import { createPhaseStartDate } from "../applicationDate";
 import { getOrderedPhaseDateTypes } from "../phaseDateType";
@@ -31,8 +31,7 @@ export async function startPhasesByDates(
       throw new Error(`No phase found for date type ${date.dateType} `);
     }
 
-    // casting constrained by database
-    const phaseId = phase.phaseId as PhaseName;
+    const phaseId = phase.phaseId;
     const phaseStarted = await setPhaseToStarted(applicationId, phaseId, tx);
     if (phaseStarted) {
       const startDateForPhase = createPhaseStartDate(phaseId, easternNow);

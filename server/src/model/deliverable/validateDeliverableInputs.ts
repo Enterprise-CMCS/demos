@@ -4,10 +4,12 @@ import {
   checkDeliverableStatusNotFinalized,
   checkDemonstrationStatus,
   checkDueDateInFuture,
+  checkNewDueDateIsAtLeastCurrentDueDate,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
   getDeliverable,
   ParsedCreateDeliverableInput,
+  ParsedRequestDeliverableResubmissionInput,
   ParsedUpdateDeliverableInput,
 } from ".";
 import { PrismaTransactionClient } from "../../prismaClient";
@@ -148,7 +150,7 @@ export async function validateSubmitDeliverableInput(
 export function validateStartDeliverableReviewInput(deliverable: PrismaDeliverable): void {
   const errors: (string | undefined)[] = [];
 
-  errors.push(checkDeliverableHasStatus(deliverable, "Submitted"));
+  errors.push(checkDeliverableHasStatus(deliverable, ["Submitted"]));
 
   const cleanedErrors = errors.filter((e) => e !== undefined);
   if (cleanedErrors.length > 0) {
@@ -167,7 +169,7 @@ export function validateStartDeliverableReviewInput(deliverable: PrismaDeliverab
 export function validateCompleteDeliverableInput(deliverable: PrismaDeliverable): void {
   const errors: (string | undefined)[] = [];
 
-  errors.push(checkDeliverableHasStatus(deliverable, "Under CMS Review"));
+  errors.push(checkDeliverableHasStatus(deliverable, ["Under CMS Review"]));
 
   const cleanedErrors = errors.filter((e) => e !== undefined);
   if (cleanedErrors.length > 0) {
@@ -177,5 +179,31 @@ export function validateCompleteDeliverableInput(deliverable: PrismaDeliverable)
         originalMessages: cleanedErrors,
       },
     });
+  }
+}
+
+export function validateRequestDeliverableResubmissionInput(
+  deliverable: PrismaDeliverable,
+  input: ParsedRequestDeliverableResubmissionInput
+): void {
+  const errors: (string | undefined)[] = [];
+
+  errors.push(
+    checkDeliverableHasStatus(deliverable, ["Submitted", "Under CMS Review"]),
+    checkDueDateInFuture(input.newDueDate),
+    checkNewDueDateIsAtLeastCurrentDueDate(deliverable, input.newDueDate)
+  );
+
+  const cleanedErrors = errors.filter((e) => e !== undefined);
+  if (cleanedErrors.length > 0) {
+    throw new GraphQLError(
+      "One or more validation checks for requestDeliverableResubmission have failed.",
+      {
+        extensions: {
+          code: "REQUEST_DELIVERABLE_RESUBMISSION_VALIDATION_FAILED",
+          originalMessages: cleanedErrors,
+        },
+      }
+    );
   }
 }
