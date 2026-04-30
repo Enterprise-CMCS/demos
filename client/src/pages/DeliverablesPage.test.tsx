@@ -38,18 +38,47 @@ const DELIVERABLES_TABLE_MOCKS: MockedResponse[] = [
   },
 ];
 
+const EMPTY_DELIVERABLES_TABLE_MOCKS: MockedResponse[] = [
+  {
+    request: { query: DELIVERABLES_PAGE_QUERY },
+    result: { data: { deliverables: [] } },
+    maxUsageCount: Number.POSITIVE_INFINITY,
+  },
+];
+
 describe("DeliverablesPage tab persistence", () => {
   const TAB_KEY = "selectedDeliverableTab";
   const CURRENT_USER_ID = MOCK_DELIVERABLE_TABLE_ROW.cmsOwner.id;
   const DEFAULT_TEST_USER = { ...mockUsers[0], id: CURRENT_USER_ID };
+  const STATE_TEST_USER = {
+    ...mockUsers[0],
+    person: {
+      ...mockUsers[0].person,
+      personType: "demos-state-user" as const,
+    },
+  };
 
-  const renderDeliverablesPage = async (currentUser = DEFAULT_TEST_USER) => {
+  const renderDeliverablesPage = async (
+    currentUser = DEFAULT_TEST_USER,
+    mocks: MockedResponse[] = DELIVERABLES_TABLE_MOCKS
+  ) => {
     render(
-      <TestProvider mocks={DELIVERABLES_TABLE_MOCKS} currentUser={currentUser}>
+      <TestProvider mocks={mocks} currentUser={currentUser}>
         <DeliverablesPage />
       </TestProvider>
     );
     await screen.findByTestId("button-my-deliverables");
+  };
+
+  const renderStateDeliverablesPage = async (
+    mocks: MockedResponse[] = DELIVERABLES_TABLE_MOCKS
+  ) => {
+    render(
+      <TestProvider mocks={mocks} currentUser={STATE_TEST_USER}>
+        <DeliverablesPage />
+      </TestProvider>
+    );
+    await screen.findByText("Deliverables");
   };
 
   beforeEach(() => {
@@ -100,8 +129,12 @@ describe("DeliverablesPage tab persistence", () => {
     await renderDeliverablesPage();
     fireEvent.click(screen.getByTestId("button-my-deliverables"));
 
-    const myDeliverables = MOCK_DELIVERABLE_TABLE_ROWS.filter((d) => d.cmsOwner.id === CURRENT_USER_ID);
-    const notMyDeliverable = MOCK_DELIVERABLE_TABLE_ROWS.find((d) => d.cmsOwner.id !== CURRENT_USER_ID);
+    const myDeliverables = MOCK_DELIVERABLE_TABLE_ROWS.filter(
+      (d) => d.cmsOwner.id === CURRENT_USER_ID
+    );
+    const notMyDeliverable = MOCK_DELIVERABLE_TABLE_ROWS.find(
+      (d) => d.cmsOwner.id !== CURRENT_USER_ID
+    );
 
     myDeliverables.forEach((deliverable) => {
       expect(screen.getByText(deliverable.name)).toBeInTheDocument();
@@ -122,14 +155,18 @@ describe("DeliverablesPage tab persistence", () => {
     expect(screen.getByText("Quarterly Report For NYC Demonstration")).toBeInTheDocument();
   });
 
+  it("uses distinct empty messages for My Deliverables and All Deliverables", async () => {
+    await renderDeliverablesPage(DEFAULT_TEST_USER, EMPTY_DELIVERABLES_TABLE_MOCKS);
+
+    expect(screen.getByText("You have no assigned Deliverables at this time")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("button-deliverables"));
+
+    expect(screen.getByText("There are no assigned Deliverables at this time")).toBeInTheDocument();
+  });
+
   it("uses state-user table columns when current user is demos-state-user", async () => {
-    await renderDeliverablesPage({
-      ...mockUsers[0],
-      person: {
-        ...mockUsers[0].person,
-        personType: "demos-state-user",
-      },
-    });
+    await renderStateDeliverablesPage();
 
     expect(
       screen.queryByRole("columnheader", { name: /State\/Territory/i })
@@ -138,31 +175,21 @@ describe("DeliverablesPage tab persistence", () => {
     expect(screen.getByRole("columnheader", { name: /Demonstration Name/i })).toBeInTheDocument();
   });
 
-  it("shows All Deliverables tab for demos-state-user", async () => {
-    await renderDeliverablesPage({
-      ...mockUsers[0],
-      person: {
-        ...mockUsers[0].person,
-        personType: "demos-state-user",
-      },
-    });
+  it("renders all deliverables without tabs for demos-state-user", async () => {
+    await renderStateDeliverablesPage();
 
-    expect(screen.getByTestId("button-deliverables")).toBeInTheDocument();
-    expect(screen.getByTestId("button-my-deliverables")).toHaveAttribute("aria-selected", "true");
+    expect(screen.queryByTestId("button-deliverables")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("button-my-deliverables")).not.toBeInTheDocument();
+    expect(screen.getByText("Budget Neutrality Report")).toBeInTheDocument();
+    expect(screen.getByText("Budget Neutrality Worksheet")).toBeInTheDocument();
+    expect(screen.getByText("Quarterly Report For NYC Demonstration")).toBeInTheDocument();
   });
 
-  it("uses stored deliverables tab for demos-state-user", async () => {
-    sessionStorage.setItem(TAB_KEY, "deliverables");
+  it("shows state-user empty message when there are no deliverables", async () => {
+    await renderStateDeliverablesPage(EMPTY_DELIVERABLES_TABLE_MOCKS);
 
-    await renderDeliverablesPage({
-      ...mockUsers[0],
-      person: {
-        ...mockUsers[0].person,
-        personType: "demos-state-user",
-      },
-    });
-
-    expect(sessionStorage.getItem(TAB_KEY)).toBe("deliverables");
-    expect(screen.getByTestId("button-deliverables")).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText("There are no assigned Deliverables at this time")).toBeInTheDocument();
+    expect(screen.queryByTestId("button-deliverables")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("button-my-deliverables")).not.toBeInTheDocument();
   });
 });
