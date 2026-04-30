@@ -40,6 +40,9 @@ describe("selectManyDeliverableActions", () => {
   // Expected calls
   const expectedUnfilteredCall = {
     where: {},
+    orderBy: {
+      actionTimestamp: "asc",
+    },
     include: {
       user: {
         include: {
@@ -53,6 +56,9 @@ describe("selectManyDeliverableActions", () => {
   const expectedFilteredCall = {
     where: {
       id: "56e3b26d-f629-4bd2-b419-d4d4a5bb751b",
+    },
+    orderBy: {
+      actionTimestamp: "asc",
     },
     include: {
       user: {
