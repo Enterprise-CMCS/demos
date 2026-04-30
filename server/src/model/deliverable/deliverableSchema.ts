@@ -62,7 +62,7 @@ export const deliverableSchema = gql`
   input RequestDeliverableExtensionInput {
     reason: DeliverableExtensionReasonCode!
     details: NonEmptyString!
-    newDueDate: DateTimeOrLocalDate!
+    requestedDueDate: DateTimeOrLocalDate!
   }
 
   type Query {
@@ -131,5 +131,5 @@ export interface RequestDeliverableResubmissionInput {
 export interface RequestDeliverableExtensionInput {
   reason: DeliverableExtensionReasonCode;
   details: NonEmptyString;
-  newDueDate: DateTimeOrLocalDate;
+  requestedDueDate: DateTimeOrLocalDate;
 }

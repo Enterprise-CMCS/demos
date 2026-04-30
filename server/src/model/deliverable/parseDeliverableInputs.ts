@@ -41,7 +41,7 @@ export type ParsedRequestDeliverableResubmissionInput = {
 export type ParsedRequestDeliverableExtensionInput = {
   reason: DeliverableExtensionReasonCode;
   details: NonEmptyString;
-  newDueDate: EasternTZDate;
+  requestedDueDate: EasternTZDate;
 };
 
 export function parseCreateDeliverableInput(
@@ -113,12 +113,15 @@ export function parseRequestDeliverableResubmissionInput(
 export function parseRequestDeliverableExtensionInput(
   input: RequestDeliverableExtensionInput
 ): ParsedRequestDeliverableExtensionInput {
-  const parsedDueDate = parseDateTimeOrLocalDateToEasternTZDate(input.newDueDate, "End of Day");
+  const parsedDueDate = parseDateTimeOrLocalDateToEasternTZDate(
+    input.requestedDueDate,
+    "End of Day"
+  );
   checkInputDateIsEndOfDay("dueDate", parsedDueDate);
 
   return {
     reason: input.reason,
     details: input.details,
-    newDueDate: parsedDueDate,
+    requestedDueDate: parsedDueDate,
   };
 }

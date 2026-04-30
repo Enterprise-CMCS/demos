@@ -220,8 +220,8 @@ export async function validateRequestDeliverableExtensionInput(
   errors.push(
     await checkDeliverableHasNoActiveExtension(deliverable, tx),
     checkDeliverableHasStatus(deliverable, ["Upcoming", "Past Due"]),
-    checkDueDateInFuture(input.newDueDate),
-    checkNewDueDateIsAtLeastCurrentDueDate(deliverable, input.newDueDate)
+    checkDueDateInFuture(input.requestedDueDate),
+    checkNewDueDateIsAtLeastCurrentDueDate(deliverable, input.requestedDueDate)
   );
 
   const cleanedErrors = errors.filter((e) => e !== undefined);

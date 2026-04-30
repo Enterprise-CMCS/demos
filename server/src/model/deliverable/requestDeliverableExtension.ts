@@ -28,7 +28,7 @@ export async function requestDeliverableExtension(
       {
         deliverableId: deliverableId,
         reasonCode: parsedInput.reason,
-        requestedDate: parsedInput.newDueDate.easternTZDate,
+        requestedDate: parsedInput.requestedDueDate.easternTZDate,
       },
       tx
     );

@@ -48,7 +48,7 @@ describe("requestDeliverableExtension", () => {
   const testInput: RequestDeliverableExtensionInput = {
     reason: "COVID-19",
     details: "COVID-19 caused major delays in processing our requests.",
-    newDueDate: "2026-12-14" as DateTimeOrLocalDate,
+    requestedDueDate: "2026-12-14" as DateTimeOrLocalDate,
   };
   const testUserContext: DeepPartial<GraphQLContext> = {
     user: {
@@ -66,7 +66,7 @@ describe("requestDeliverableExtension", () => {
   const mockParsedInput: ParsedRequestDeliverableExtensionInput = {
     reason: testInput.reason,
     details: testInput.details,
-    newDueDate: {
+    requestedDueDate: {
       isEasternTZDate: true,
       easternTZDate: new TZDate(2026, 9, 12, 23, 59, 59, 999, "America/New_York"),
     },
@@ -180,7 +180,7 @@ describe("requestDeliverableExtension", () => {
       {
         deliverableId: testDeliverableId,
         reasonCode: mockParsedInput.reason,
-        requestedDate: mockParsedInput.newDueDate.easternTZDate,
+        requestedDate: mockParsedInput.requestedDueDate.easternTZDate,
       },
       mockTransaction
     );

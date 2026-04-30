@@ -216,7 +216,7 @@ describe("deliverableResolvers", () => {
       const testInput: RequestDeliverableExtensionInput = {
         reason: "COVID-19",
         details: "A change is gonna come",
-        newDueDate: "2025-11-13" as DateTimeOrLocalDate,
+        requestedDueDate: "2025-11-13" as DateTimeOrLocalDate,
       };
 
       await deliverableResolvers.Mutation.requestDeliverableExtension(

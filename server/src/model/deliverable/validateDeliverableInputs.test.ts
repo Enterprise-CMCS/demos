@@ -915,7 +915,7 @@ describe("validateDeliverableInputs", () => {
     const testInput: ParsedRequestDeliverableExtensionInput = {
       reason: "Technical Difficulties",
       details: "Some details",
-      newDueDate: {
+      requestedDueDate: {
         isEasternTZDate: true,
         easternTZDate: new TZDate(2026, 11, 1, 0, 0, 0, 0, "America/New_York"),
       },
