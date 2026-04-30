@@ -7,6 +7,7 @@ import { CommentBox } from "./sections/comment_box";
 import { DeliverableInfoFields } from "./sections/DeliverableInfoFields";
 import { FileAndHistoryTabs } from "./sections/FileAndHistoryTabs";
 import { PendingReviewNotice } from "./sections/PendingReviewNotice";
+import { DeliverableButtons } from "./sections/DeliverableButtons";
 import type { DeliverableFileRow } from "./sections/DeliverableFileTypes";
 import { EditAndDeleteButtonGroup } from "./sections/EditAndDeleteButtonGroup";
 
@@ -133,7 +134,7 @@ export const DeliverableDetailsManagementPage: React.FC<{
             onToggleAdditionalDetails={handleToggleAdditionalDetails}
           />
           {/* I'm sure these go somewhere but they arent in my spec sheet. Uncomment at your leisure */}
-          {/* <DeliverableButtons deliverable={data.deliverable} /> */}
+          <DeliverableButtons deliverable={data.deliverable} />
           <EditAndDeleteButtonGroup
             onDelete={handleDeleteDeliverable}
             onEdit={handleEditDeliverable}
