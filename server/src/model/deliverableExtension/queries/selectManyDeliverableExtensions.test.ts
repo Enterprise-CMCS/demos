@@ -45,6 +45,7 @@ describe("selectManyDeliverableExtensions", () => {
 
   it("should get deliverable extensions from the database directly if no transaction is given", async () => {
     await selectManyDeliverableExtensions({ deliverableId: expectedCall.where.deliverableId });
+    expect(prisma).toHaveBeenCalledOnce();
     expect(regularMocks.deliverableExtension.findMany).toHaveBeenCalledExactlyOnceWith(
       expectedCall
     );
@@ -56,9 +57,18 @@ describe("selectManyDeliverableExtensions", () => {
       { deliverableId: expectedCall.where.deliverableId },
       mockTransaction
     );
+    expect(prisma).not.toHaveBeenCalled();
     expect(regularMocks.deliverableExtension.findMany).not.toHaveBeenCalled();
     expect(transactionMocks.deliverableExtension.findMany).toHaveBeenCalledExactlyOnceWith(
       expectedCall
     );
+  });
+
+  it("should default to an empty where if nothing is given", async () => {
+    await selectManyDeliverableExtensions();
+    expect(regularMocks.deliverableExtension.findMany).toHaveBeenCalledExactlyOnceWith({
+      where: {},
+    });
+    expect(transactionMocks.deliverableExtension.findMany).not.toHaveBeenCalled();
   });
 });
