@@ -3,10 +3,13 @@ import { Footer, Header, ToastContainer, ToastProvider } from "components";
 import { SideNav } from "./SideNav";
 import { useLocation } from "react-router-dom";
 import { DialogProvider } from "components/dialog/DialogContext";
+import { getCurrentUser } from "components/user/UserContext";
+import type { PersonType } from "demos-server";
 
 const ROUTES_WITH_HIDDEN_SIDENAV = ["/demonstrations/", "/deliverables/", "/admin"];
 
-export const shouldHideSideNav = (pathname: string) =>
+export const shouldHideSideNav = (pathname: string, personType?: PersonType) =>
+  personType === "demos-state-user" ||
   ROUTES_WITH_HIDDEN_SIDENAV.some((route) => {
     if (!route.endsWith("/") && pathname === route) return true;
     const pathStartsWithRoute = pathname.startsWith(route);
@@ -16,7 +19,8 @@ export const shouldHideSideNav = (pathname: string) =>
 
 export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
-  const hideSideNav = shouldHideSideNav(location.pathname);
+  const { currentUser } = getCurrentUser();
+  const hideSideNav = shouldHideSideNav(location.pathname, currentUser?.person.personType);
 
   return (
     <ToastProvider>

@@ -47,4 +47,14 @@ describe("shouldHideSideNav", () => {
       expect(shouldHideSideNav("/settings")).toBe(false);
     });
   });
+
+  describe("state users", () => {
+    it("returns true for the root route", () => {
+      expect(shouldHideSideNav("/", "demos-state-user")).toBe(true);
+    });
+
+    it("returns true for the deliverables list page", () => {
+      expect(shouldHideSideNav("/deliverables", "demos-state-user")).toBe(true);
+    });
+  });
 });
