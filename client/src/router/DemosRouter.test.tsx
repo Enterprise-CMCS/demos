@@ -1,8 +1,25 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, Mock } from "vitest";
+import { beforeEach, describe, it, expect, vi, Mock } from "vitest";
 import { DemosRouter } from "./DemosRouter";
 import * as envMod from "config/env";
+
+const { currentUserState } = vi.hoisted(() => ({
+  currentUserState: {
+    currentUser: {
+      id: "user-1",
+      username: "test.user",
+      person: {
+        id: "person-1",
+        firstName: "Test",
+        lastName: "User",
+        fullName: "Test User",
+        email: "test.user@example.com",
+        personType: "demos-cms-user",
+      },
+    },
+  },
+}));
 
 vi.mock("config/env", async (importOriginal) => {
   const actual = await importOriginal<typeof import("config/env")>();
@@ -13,6 +30,11 @@ vi.mock("config/env", async (importOriginal) => {
     shouldUseMocks: vi.fn(() => true),
   };
 });
+
+vi.mock("components/user/UserContext", () => ({
+  UserProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  getCurrentUser: () => ({ currentUser: currentUserState.currentUser }),
+}));
 
 vi.mock("react-oidc-context", () => {
   const signinRedirect = vi.fn();
@@ -58,9 +80,8 @@ vi.mock("react-oidc-context", () => {
 vi.mock("./DemosApolloProvider", async () => {
   const React = (await import("react")).default;
   const { MockedProvider } = await import("@apollo/client/testing");
-  const { userMocks } = await import("mock-data/userMocks");
   const DemosApolloProvider = ({ children }: { children: React.ReactNode }) => (
-    <MockedProvider mocks={userMocks} addTypename={false}>
+    <MockedProvider mocks={[]} addTypename={false}>
       {children}
     </MockedProvider>
   );
@@ -84,37 +105,52 @@ vi.mock("pages/DemonstrationsPage", () => ({
   DemonstrationsPage: () => <div>DemonstrationsPage</div>,
   DEMONSTRATIONS_PAGE_QUERY: {},
 }));
+vi.mock("pages/DeliverablesPage", () => ({
+  DeliverablesPage: () => <div>DeliverablesPage</div>,
+}));
 
 describe("DemosRouter", () => {
-  it("renders the DemonstrationsPage at root path", () => {
+  beforeEach(() => {
+    currentUserState.currentUser.person.personType = "demos-cms-user";
+    (envMod.isLocalDevelopment as unknown as Mock).mockReturnValue(false);
+  });
+
+  it("renders the DemonstrationsPage at root path for CMS users", async () => {
     window.history.pushState({}, "Home", "/");
     render(<DemosRouter />);
-    waitFor(() => expect(screen.getByText("DemonstrationsPage")).toBeInTheDocument());
-    waitFor(() => expect(screen.getByText("PrimaryLayout")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("DemonstrationsPage")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("PrimaryLayout")).toBeInTheDocument());
   });
 
-  it("renders the Demonstrations page at /demonstrations", () => {
+  it("renders the DeliverablesPage at root path for state users", async () => {
+    currentUserState.currentUser.person.personType = "demos-state-user";
+    window.history.pushState({}, "Home", "/");
+    render(<DemosRouter />);
+    await waitFor(() => expect(screen.getByText("DeliverablesPage")).toBeInTheDocument());
+  });
+
+  it("renders the Demonstrations page at /demonstrations", async () => {
     window.history.pushState({}, "Demonstrations", "/demonstrations");
     render(<DemosRouter />);
-    waitFor(() => expect(screen.getByText("DemonstrationsPage")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("DemonstrationsPage")).toBeInTheDocument());
   });
 
-  it("renders the Deliverables page at /deliverables", () => {
+  it("renders the Deliverables page at /deliverables", async () => {
     window.history.pushState({}, "Deliverables", "/deliverables");
     render(<DemosRouter />);
-    waitFor(() => expect(screen.getByText("DeliverablesPage")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("DeliverablesPage")).toBeInTheDocument());
   });
 
-  it("renders debug routes in development mode", () => {
+  it("renders debug routes in development mode", async () => {
     (envMod.isLocalDevelopment as unknown as Mock).mockReturnValue(true);
 
     window.history.pushState({}, "Components", "/components");
     render(<DemosRouter />);
-    waitFor(() => expect(screen.getByText("ComponentLibrary")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("ComponentLibrary")).toBeInTheDocument());
 
     window.history.pushState({}, "Auth", "/auth");
     render(<DemosRouter />);
-    waitFor(() => expect(screen.getByText("AuthDebugComponent")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("AuthDebugComponent")).toBeInTheDocument());
   });
 
   it("does not render debug routes outside development mode", () => {
