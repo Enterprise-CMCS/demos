@@ -93,7 +93,7 @@ vi.mock("pages/debug", () => ({
   TestHooks: () => <div>TestHooks</div>,
   DialogSandbox: () => <div>DialogSandbox</div>,
 }));
-vi.mock("components/auth/AuthDebugComponent", () => ({
+vi.mock("pages/debug/AuthDebugComponent", () => ({
   AuthDebugComponent: () => <div>AuthDebugComponent</div>,
 }));
 vi.mock("layout/PrimaryLayout", () => ({
@@ -141,13 +141,16 @@ describe("DemosRouter", () => {
     await waitFor(() => expect(screen.getByText("DeliverablesPage")).toBeInTheDocument());
   });
 
-  it("renders debug routes in development mode", async () => {
+  it("renders component debug routes in development mode", async () => {
     (envMod.isLocalDevelopment as unknown as Mock).mockReturnValue(true);
 
     window.history.pushState({}, "Components", "/components");
     render(<DemosRouter />);
     await waitFor(() => expect(screen.getByText("ComponentLibrary")).toBeInTheDocument());
+  });
 
+  it("renders auth debug routes in development mode", async () => {
+    (envMod.isLocalDevelopment as unknown as Mock).mockReturnValue(true);
     window.history.pushState({}, "Auth", "/auth");
     render(<DemosRouter />);
     await waitFor(() => expect(screen.getByText("AuthDebugComponent")).toBeInTheDocument());
