@@ -5,10 +5,17 @@ import {
   User as PrismaUser,
 } from "@prisma/client";
 import { PrismaTransactionClient } from "../../prismaClient";
-import { ApplicationStatus, DeliverableStatus, PersonType, TagName } from "../../types";
+import {
+  ApplicationStatus,
+  DeliverableExtensionStatus,
+  DeliverableStatus,
+  PersonType,
+  TagName,
+} from "../../types";
 import { findDuplicates } from "../../validationUtilities";
 import { EasternTZDate, getEasternNow } from "../../dateUtilities";
 import { selectManyDocuments } from "../document";
+import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
 
 export function checkDemonstrationStatus(demonstration: PrismaDemonstration): string | undefined {
   const approvedStatus: ApplicationStatus = "Approved";
@@ -104,5 +111,19 @@ export async function checkDeliverableHasAtLeastOneDocument(
 
   if (deliverableDocuments.length === 0) {
     return `Cannot submit deliverable ${deliverable.id} because it has no state documents attached.`;
+  }
+}
+
+export async function checkDeliverableHasNoActiveExtension(
+  deliverable: PrismaDeliverable,
+  tx: PrismaTransactionClient
+): Promise<string | undefined> {
+  const openExtensionRequestStatus: DeliverableExtensionStatus = "Requested";
+  const deliverableExtensions = await selectManyDeliverableExtensions(
+    { deliverableId: deliverable.id, statusId: openExtensionRequestStatus },
+    tx
+  );
+  if (deliverableExtensions.length > 0) {
+    return `Cannot create new extension request for deliverable ${deliverable.id} as there is already an open request.`;
   }
 }

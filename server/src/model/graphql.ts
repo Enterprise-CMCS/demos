@@ -38,6 +38,9 @@ import { deliverableDemonstrationTypeSchema } from "./deliverableDemonstrationTy
 import { deliverableDueDateTypeSchema } from "./deliverableDueDateType/deliverableDueDateTypeSchema";
 import { deliverableDueDateTypeResolvers } from "./deliverableDueDateType/deliverableDueDateTypeResolvers";
 
+import { deliverableExtensionReasonCodeSchema } from "./deliverableExtensionReasonCode/deliverableExtensionReasonCodeSchema";
+import { deliverableExtensionReasonCodeResolvers } from "./deliverableExtensionReasonCode/deliverableExtensionReasonCodeResolvers";
+
 import { deliverableSchema } from "./deliverable/deliverableSchema";
 import { deliverableResolvers } from "./deliverable/deliverableResolvers";
 
@@ -146,6 +149,7 @@ export const typeDefs = [
   deliverableActionTypeSchema,
   deliverableDemonstrationTypeSchema,
   deliverableDueDateTypeSchema,
+  deliverableExtensionReasonCodeSchema,
   deliverableSchema,
   deliverableStatusSchema,
   deliverableTypeSchema,
@@ -190,6 +194,7 @@ export const resolvers = [
   dateTypeResolvers,
   deliverableActionTypeResolvers,
   deliverableDueDateTypeResolvers,
+  deliverableExtensionReasonCodeResolvers,
   deliverableResolvers,
   deliverableStatusResolvers,
   deliverableTypeResolvers,

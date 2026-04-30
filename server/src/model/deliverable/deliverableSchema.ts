@@ -3,6 +3,7 @@ import {
   DateTimeOrLocalDate,
   DeliverableAction,
   DeliverableDueDateType,
+  DeliverableExtensionReasonCode,
   DeliverableStatus,
   DeliverableType,
   Demonstration,
@@ -58,6 +59,12 @@ export const deliverableSchema = gql`
     newDueDate: DateTimeOrLocalDate!
   }
 
+  input RequestDeliverableExtensionInput {
+    reason: DeliverableExtensionReasonCode!
+    details: NonEmptyString!
+    newDueDate: DateTimeOrLocalDate!
+  }
+
   type Query {
     deliverable(id: ID!): Deliverable!
     deliverables: [Deliverable!]!
@@ -73,6 +80,7 @@ export const deliverableSchema = gql`
       id: ID!
       input: RequestDeliverableResubmissionInput!
     ): Deliverable
+    requestDeliverableExtension(id: ID!, input: RequestDeliverableExtensionInput): Deliverable
   }
 `;
 
@@ -116,6 +124,12 @@ export interface UpdateDeliverableInput {
 }
 
 export interface RequestDeliverableResubmissionInput {
+  details: NonEmptyString;
+  newDueDate: DateTimeOrLocalDate;
+}
+
+export interface RequestDeliverableExtensionInput {
+  reason: DeliverableExtensionReasonCode;
   details: NonEmptyString;
   newDueDate: DateTimeOrLocalDate;
 }

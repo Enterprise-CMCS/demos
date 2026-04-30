@@ -7,6 +7,7 @@ import { EasternTZDate } from "../../dateUtilities";
 import {
   CreateDeliverableInput,
   DateTimeOrLocalDate,
+  RequestDeliverableExtensionInput,
   RequestDeliverableResubmissionInput,
   UpdateDeliverableInput,
 } from "../../types";
@@ -15,8 +16,9 @@ import { ParsedCreateDeliverableInput, ParsedUpdateDeliverableInput } from ".";
 // Functions under test
 import {
   parseCreateDeliverableInput,
-  parseUpdateDeliverableInput,
+  parseRequestDeliverableExtensionInput,
   parseRequestDeliverableResubmissionInput,
+  parseUpdateDeliverableInput,
 } from "./parseDeliverableInputs";
 
 // Mock imports
@@ -257,6 +259,28 @@ describe("parseDeliverableInputs", () => {
       );
       expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith("dueDate", mockParsedDate);
       expect(result).toStrictEqual({
+        details: testInput.details,
+        newDueDate: mockParsedDate,
+      });
+    });
+  });
+
+  describe("parseRequestDeliverableExtensionInput", () => {
+    const testInput: RequestDeliverableExtensionInput = {
+      reason: "COVID-19",
+      details: "A set of details",
+      newDueDate: "2025-11-13" as DateTimeOrLocalDate,
+    };
+
+    it("should parse the input, check the date, and return the updated object", () => {
+      const result = parseRequestDeliverableExtensionInput(testInput);
+      expect(parseDateTimeOrLocalDateToEasternTZDate).toHaveBeenCalledExactlyOnceWith(
+        testInput.newDueDate,
+        "End of Day"
+      );
+      expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith("dueDate", mockParsedDate);
+      expect(result).toStrictEqual({
+        reason: testInput.reason,
         details: testInput.details,
         newDueDate: mockParsedDate,
       });

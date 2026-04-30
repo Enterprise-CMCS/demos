@@ -17,8 +17,10 @@ import {
   DeliverableDueDateType,
   DeliverableStatus,
   DeliverableType,
+  RequestDeliverableExtensionInput,
   UpdateDeliverableInput,
 } from "../../types";
+import { DeliverableDemonstrationTypeQueryResult } from "../deliverableDemonstrationType/queries";
 
 // Functions under test
 import {
@@ -33,15 +35,13 @@ import {
   deliverableResolvers,
 } from "./deliverableResolvers";
 
-import { DeliverableDemonstrationTypeQueryResult } from "../deliverableDemonstrationType/queries";
-import { getManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
-
 // Mock imports
 vi.mock(".", () => ({
   completeDeliverable: vi.fn(),
   createDeliverable: vi.fn(),
   getDeliverable: vi.fn(),
   getManyDeliverables: vi.fn(),
+  requestDeliverableExtension: vi.fn(),
   requestDeliverableResubmission: vi.fn(),
   startDeliverableReview: vi.fn(),
   submitDeliverable: vi.fn(),
@@ -73,6 +73,7 @@ import {
   createDeliverable,
   getDeliverable,
   getManyDeliverables,
+  requestDeliverableExtension,
   requestDeliverableResubmission,
   startDeliverableReview,
   submitDeliverable,
@@ -81,6 +82,7 @@ import {
 import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getManyDocuments } from "../document";
+import { getManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 import { getFormattedDeliverableActions } from "../deliverableAction";
 
 describe("deliverableResolvers", () => {
@@ -202,6 +204,30 @@ describe("deliverableResolvers", () => {
         testContext as GraphQLContext
       );
       expect(requestDeliverableResubmission).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId,
+        testInput,
+        testContext
+      );
+    });
+  });
+
+  describe("Mutation.requestDeliverableExtension", () => {
+    it("calls requestDeliverableExtension with appropriate arguments", async () => {
+      const testInput: RequestDeliverableExtensionInput = {
+        reason: "COVID-19",
+        details: "A change is gonna come",
+        newDueDate: "2025-11-13" as DateTimeOrLocalDate,
+      };
+
+      await deliverableResolvers.Mutation.requestDeliverableExtension(
+        undefined,
+        {
+          id: testDeliverableId,
+          input: testInput,
+        },
+        testContext as GraphQLContext
+      );
+      expect(requestDeliverableExtension).toHaveBeenCalledExactlyOnceWith(
         testDeliverableId,
         testInput,
         testContext

@@ -1,6 +1,7 @@
 // Functions
 export {
   checkDeliverableHasAtLeastOneDocument,
+  checkDeliverableHasNoActiveExtension,
   checkDeliverableHasStatus,
   checkDeliverableStatusNotFinalized,
   checkDemonstrationStatus,
@@ -16,9 +17,11 @@ export { resolveDeliverable, resolveManyDeliverables } from "./deliverableResolv
 export { manuallyUpdateDeliverableDueDate } from "./manuallyUpdateDeliverableDueDate";
 export {
   parseCreateDeliverableInput,
+  parseRequestDeliverableExtensionInput,
   parseRequestDeliverableResubmissionInput,
   parseUpdateDeliverableInput,
 } from "./parseDeliverableInputs";
+export { requestDeliverableExtension } from "./requestDeliverableExtension";
 export { requestDeliverableResubmission } from "./requestDeliverableResubmission";
 export { startDeliverableReview } from "./startDeliverableReview";
 export { submitDeliverable } from "./submitDeliverable";
@@ -27,6 +30,7 @@ export { updateDeliverableDemonstrationTypes } from "./updateDeliverableDemonstr
 export {
   validateCompleteDeliverableInput,
   validateCreateDeliverableInput,
+  validateRequestDeliverableExtensionInput,
   validateRequestDeliverableResubmissionInput,
   validateStartDeliverableReviewInput,
   validateSubmitDeliverableInput,
@@ -44,7 +48,8 @@ export { insertDeliverable } from "./queries/insertDeliverable";
 export type { EditDeliverableInput } from "./queries/editDeliverable";
 export type {
   ParsedCreateDeliverableInput,
+  ParsedRequestDeliverableExtensionInput,
+  ParsedRequestDeliverableResubmissionInput,
   ParsedUpdateDeliverableInput,
   ParsedUpdateDueDate,
-  ParsedRequestDeliverableResubmissionInput,
 } from "./parseDeliverableInputs";
