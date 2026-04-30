@@ -192,4 +192,14 @@ describe("DeliverablesPage tab persistence", () => {
     expect(screen.queryByTestId("button-deliverables")).not.toBeInTheDocument();
     expect(screen.queryByTestId("button-my-deliverables")).not.toBeInTheDocument();
   });
+
+  it("does not use stored deliverables tab for demos-state-user", async () => {
+    sessionStorage.setItem(TAB_KEY, "deliverables");
+
+    await renderStateDeliverablesPage();
+
+    expect(sessionStorage.getItem(TAB_KEY)).toBe("deliverables");
+    expect(screen.queryByTestId("button-deliverables")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("button-my-deliverables")).not.toBeInTheDocument();
+  });
 });
