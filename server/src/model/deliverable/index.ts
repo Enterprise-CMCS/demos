@@ -1,19 +1,29 @@
 // Functions
 export {
   checkDemonstrationStatus,
+  checkDeliverableStatusNotFinalized,
   checkDueDateInFuture,
   checkForDuplicateDemonstrationTypes,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
+  checkDeliverableHasAtLeastOneDocument,
+  checkDeliverableHasStatus,
 } from "./checkDeliverableInputFunctions";
 export { createDeliverable } from "./createDeliverable";
+export { completeDeliverable } from "./completeDeliverable";
 export { manuallyUpdateDeliverableDueDate } from "./manuallyUpdateDeliverableDueDate";
 export { parseCreateDeliverableInput, parseUpdateDeliverableInput } from "./parseDeliverableInputs";
 export { resolveDeliverable, resolveManyDeliverables } from "./deliverableResolvers";
 export {
+  validateCompleteDeliverableInput,
   validateCreateDeliverableInput,
+  validateStartDeliverableReviewInput,
+  validateSubmitDeliverableInput,
   validateUpdateDeliverableInput,
+  validateUserPersonTypeAllowed,
 } from "./validateDeliverableInputs";
+export { startDeliverableReview } from "./startDeliverableReview";
+export { submitDeliverable } from "./submitDeliverable";
 export { updateDeliverable } from "./updateDeliverable";
 export { updateDeliverableDemonstrationTypes } from "./updateDeliverableDemonstrationTypes";
 

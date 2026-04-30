@@ -117,12 +117,12 @@ export const ModificationForm: React.FC<{
       <Textarea
         name={"description"}
         label={`${modificationType} Description`}
-        onChange={(e) =>
+        onChange={(value) =>
           setModificationFormDataField({
-            description: e.target.value,
+            description: value,
           })
         }
-        initialValue={modificationFormData.description || ""}
+        value={modificationFormData.description || ""}
         placeholder={`Enter ${modificationType.toLowerCase()} description`}
       />
       <div className="w-1/2">

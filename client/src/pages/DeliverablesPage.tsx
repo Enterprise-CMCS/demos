@@ -9,6 +9,7 @@ import React from "react";
 import type { UserType } from "demos-server";
 import { useSessionTab } from "hooks/useSessionTab";
 import { useQuery } from "@apollo/client";
+import { Card } from "components/card/Card";
 
 export const DeliverablesPage: React.FC = () => {
   const { currentUser } = getCurrentUser();
@@ -34,11 +35,7 @@ export const DeliverablesPage: React.FC = () => {
   });
 
   return (
-    <div className="shadow-md bg-white p-[16px]">
-      <h1 className="text-[20px] font-bold mb-[24px] text-brand uppercase border-b-1 pb-[8px]">
-        Deliverables
-      </h1>
-
+    <Card title="Deliverables">
       {loading && <div className="p-4">Loading deliverables...</div>}
       {error && <div className="p-4 text-red-500">Error loading deliverables.</div>}
 
@@ -60,6 +57,6 @@ export const DeliverablesPage: React.FC = () => {
           </Tab>
         </HorizontalSectionTabs>
       )}
-    </div>
+    </Card>
   );
 };

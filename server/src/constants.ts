@@ -1,5 +1,3 @@
-import { DateType, DocumentType, ExpectedTimestamp, PhaseName } from "./types.js";
-
 export const CLEARANCE_LEVELS = ["COMMs", "CMS (OSORA)"] as const;
 
 export const APPLICATION_STATUS = [
@@ -71,6 +69,15 @@ export const DELIVERABLE_STATUSES = [
   "Approved",
   "Received and Filed",
 ] as const;
+export type DeliverableStatus = (typeof DELIVERABLE_STATUSES)[number];
+
+export const FINAL_DELIVERABLE_STATUSES = [
+  "Accepted",
+  "Approved",
+  "Received and Filed",
+] as const satisfies DeliverableStatus[];
+
+export type FinalDeliverableStatus = (typeof FINAL_DELIVERABLE_STATUSES)[number];
 
 export const DEMONSTRATION_TYPE_STATUSES = ["Expired", "Pending", "Active"] as const;
 
@@ -153,6 +160,7 @@ export const DOCUMENT_TYPES = [
   "Summative Evaluation Report",
   "Transition Plan",
 ] as const;
+export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 
 export const PHASE_NAMES = [
   "Concept",
@@ -164,6 +172,7 @@ export const PHASE_NAMES = [
   "Approval Package",
   "Approval Summary",
 ] as const;
+export type PhaseName = (typeof PHASE_NAMES)[number];
 
 export const PHASE_STATUS = [
   "Not Started",
@@ -228,8 +237,10 @@ export const DATE_TYPES = [
   "Approval Summary Start Date",
   "Approval Summary Completion Date",
 ] as const;
+export type DateType = (typeof DATE_TYPES)[number];
 
 export const EXPECTED_TIMESTAMPS = ["Start of Day", "End of Day"] as const;
+export type ExpectedTimestamp = (typeof EXPECTED_TIMESTAMPS)[number];
 
 type DateTypeExpectedTimestampRecord = Record<DateType, { expectedTimestamp: ExpectedTimestamp }>;
 
@@ -465,7 +476,7 @@ export const BUDGET_NEUTRALITY_VALIDATION_STATUSES = [
   "Failed",
   "Pending",
   "In Progress",
-];
+] as const;
 
 export const PERMISSIONS = [
   "View All Demonstrations",
@@ -491,6 +502,8 @@ export const PERMISSIONS = [
   "View DeliverableDemonstrationTypes on Assigned Demonstrations",
   "View All DemonstrationRoleAssignments",
   "View DemonstrationRoleAssignments on Assigned Demonstrations",
+  "View All ApplicationTagSuggestions",
+  "View ApplicationTagSuggestions on Assigned Demonstrations",
 ] as const;
 
 export const SYSTEM_ROLES = ["Admin User", "CMS User", "State User"] as const;

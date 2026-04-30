@@ -7,13 +7,22 @@ import {
 } from "@prisma/client";
 import { GraphQLContext } from "../../auth";
 import { GraphQLResolveInfo } from "graphql";
-import { createDeliverable, getDeliverable, getManyDeliverables, updateDeliverable } from ".";
+import {
+  completeDeliverable,
+  createDeliverable,
+  getDeliverable,
+  getManyDeliverables,
+  startDeliverableReview,
+  submitDeliverable,
+  updateDeliverable,
+} from ".";
 import {
   CreateDeliverableInput,
   DeliverableAction,
   DeliverableDueDateType,
   DeliverableStatus,
   DeliverableType,
+  FinalDeliverableStatus,
   UpdateDeliverableInput,
 } from "../../types";
 import { getApplication } from "../application";
@@ -119,6 +128,23 @@ export const deliverableResolvers = {
       context: GraphQLContext
     ) => {
       return await updateDeliverable(args.id, args.input, context);
+    },
+    submitDeliverable: async (parent: unknown, args: { id: string }, context: GraphQLContext) => {
+      return await submitDeliverable(args.id, context);
+    },
+    startDeliverableReview: async (
+      parent: unknown,
+      args: { id: string },
+      context: GraphQLContext
+    ) => {
+      return await startDeliverableReview(args.id, context);
+    },
+    completeDeliverable: async (
+      parent: unknown,
+      args: { id: string; finalStatus: FinalDeliverableStatus },
+      context: GraphQLContext
+    ) => {
+      return await completeDeliverable(args.id, args.finalStatus, context);
     },
   },
 

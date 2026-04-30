@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Types
+import { DeepPartial } from "../../testUtilities";
 import {
   Deliverable as PrismaDeliverable,
   Demonstration as PrismaDemonstration,
@@ -40,7 +41,10 @@ vi.mock(".", () => ({
   createDeliverable: vi.fn(),
   getDeliverable: vi.fn(),
   getManyDeliverables: vi.fn(),
+  startDeliverableReview: vi.fn(),
+  submitDeliverable: vi.fn(),
   updateDeliverable: vi.fn(),
+  completeDeliverable: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -63,7 +67,15 @@ vi.mock("../deliverableAction", () => ({
   getFormattedDeliverableActions: vi.fn(),
 }));
 
-import { createDeliverable, getDeliverable, getManyDeliverables, updateDeliverable } from ".";
+import {
+  createDeliverable,
+  getDeliverable,
+  getManyDeliverables,
+  startDeliverableReview,
+  submitDeliverable,
+  updateDeliverable,
+  completeDeliverable,
+} from ".";
 import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getManyDocuments } from "../document";
@@ -101,11 +113,11 @@ describe("deliverableResolvers", () => {
     },
   };
 
-  const testContext: GraphQLContext = {
+  const testContext: DeepPartial<GraphQLContext> = {
     user: {
       id: "testUserId",
     },
-  } as GraphQLContext;
+  };
 
   const testDocumentWithDeliverableParent: Partial<PrismaDocument> = {
     deliverableId: testDeliverableId,
@@ -129,10 +141,57 @@ describe("deliverableResolvers", () => {
     vi.resetAllMocks();
   });
 
+  describe("Mutation.submitDeliverable", () => {
+    it("calls submitDeliverable with appropriate arguments", async () => {
+      await deliverableResolvers.Mutation.submitDeliverable(
+        undefined,
+        { id: testDeliverableId },
+        testContext as GraphQLContext
+      );
+      expect(submitDeliverable).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId,
+        testContext as GraphQLContext
+      );
+    });
+  });
+
+  describe("Mutation.completeDeliverable", () => {
+    it("calls completeDeliverable with appropriate arguments", async () => {
+      await deliverableResolvers.Mutation.completeDeliverable(
+        undefined,
+        { id: testDeliverableId, finalStatus: "Approved" },
+        testContext as GraphQLContext
+      );
+      expect(completeDeliverable).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId,
+        "Approved",
+        testContext
+      );
+    });
+  });
+
+  describe("Mutation.startDeliverableReview", () => {
+    it("calls startDeliverableReview with appropriate arguments", async () => {
+      await deliverableResolvers.Mutation.startDeliverableReview(
+        undefined,
+        { id: testDeliverableId },
+        testContext as GraphQLContext
+      );
+      expect(startDeliverableReview).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId,
+        testContext
+      );
+    });
+  });
+
   describe("Deliverable.cmsDocuments", () => {
     it("delegates to `documentData.getManyDocuments` with CMS filter as true", async () => {
       const mockDeliverable = { id: testDeliverableId } as PrismaDeliverable;
-      await deliverableResolvers.Deliverable.cmsDocuments(mockDeliverable, undefined, testContext);
+      await deliverableResolvers.Deliverable.cmsDocuments(
+        mockDeliverable,
+        undefined,
+        testContext as GraphQLContext
+      );
       expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
         {
           AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: true }],
@@ -148,7 +207,7 @@ describe("deliverableResolvers", () => {
       await deliverableResolvers.Deliverable.stateDocuments(
         mockDeliverable,
         undefined,
-        testContext
+        testContext as GraphQLContext
       );
       expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
         {
@@ -315,7 +374,6 @@ describe("deliverableResolvers", () => {
       it("should call the updateDeliverable function with the right arguments", async () => {
         const testInput: UpdateDeliverableInput = {
           name: "A name!",
-          deliverableType: "Close Out Report",
           cmsOwnerUserId: "161f3a85-7b6d-4217-abec-93494db3a207",
         };
 

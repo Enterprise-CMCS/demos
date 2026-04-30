@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { stateResolvers } from "./stateResolvers";
 import { State as PrismaState } from "@prisma/client";
-import { getManyDemonstrations } from "../demonstration/demonstrationData";
+import { getManyDemonstrations } from "../demonstration";
 import { ContextUser } from "../../auth/userContext";
 import { GraphQLContext } from "../../auth/auth.util";
 
@@ -10,7 +10,7 @@ const mockContext: GraphQLContext = {
   user: mockUser,
 };
 
-vi.mock("../demonstration/demonstrationData.js", () => ({
+vi.mock("../demonstration/", () => ({
   getManyDemonstrations: vi.fn(),
 }));
 

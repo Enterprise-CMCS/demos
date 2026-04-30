@@ -62,8 +62,9 @@ This file provides instructions for AI agents to use when generating or editing 
 - Often times `name` attributes are propagated to `data-test-id`, try this approach first.
 - Prefer real behavior over heavy mocking; use `vi.mock(...)` only at clear boundaries.
 - Run tests with `npm run test:once ...`
+- Run linting + typechecking with `npm run lint`
 - Prefer to keep mock data in test files for clarity / isolation rather than in `/mock-data`.
-- For testing behavior with different roles you can use the different variants of `npm run dev:mocks`
+- For testing behavior with different roles you can use the different variants of `npm run dev:mocks` - `dev:mocks:admin`, `dev:mocks:state`, etc. Some functionality is only available through certain roles. 
 
 ### Mocking Mutations
 

@@ -2,6 +2,7 @@ import React from "react";
 import { createColumnHelper } from "@tanstack/react-table";
 import type { UserType } from "demos-server";
 import { DELIVERABLE_STATUSES, DELIVERABLE_TYPES } from "demos-server-constants";
+import { SecondaryButton } from "components/button";
 
 import type { DeliverableTableRow } from "./DeliverableTable";
 import { Table } from "components/table/Table";
@@ -32,14 +33,31 @@ export const DemonstrationDeliverableTable: React.FC<{
   viewMode?: UserType;
   emptyRowsMessage?: string;
   noResultsFoundMessage?: string;
+  onViewDeliverable?: (deliverableId: string) => void;
 }> = ({
   deliverables,
   viewMode = "demos-cms-user",
   emptyRowsMessage = DEFAULT_EMPTY_ROWS_MESSAGE,
   noResultsFoundMessage = DEFAULT_NO_SEARCH_RESULTS_MESSAGE,
+  onViewDeliverable,
 }) => {
   const columnHelper = createColumnHelper<DemonstrationDeliverableTableRow>();
   const { demonstrationNameOptions, cmsOwnerOptions } = getDeliverableFilterOptions(deliverables);
+  const viewColumn = columnHelper.display({
+    id: "view",
+    header: "View",
+    cell: ({ row }) => (
+      <SecondaryButton
+        type="button"
+        size="small"
+        onClick={() => onViewDeliverable?.(row.original.id)}
+        name={`view-deliverable-${row.original.id}`}
+      >
+        View
+      </SecondaryButton>
+    ),
+    enableSorting: false,
+  });
 
   const columns = [
     columnHelper.accessor("demonstration.name", {
@@ -80,6 +98,7 @@ export const DemonstrationDeliverableTable: React.FC<{
         },
       },
     }),
+    viewColumn,
   ];
   const columnsWithCmsFields = [
     columnHelper.accessor("demonstration.state.id", {

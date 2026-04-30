@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 
 import { tw } from "tags/tw";
 
@@ -14,8 +14,9 @@ const VALIDATION_MESSAGE_CLASSES = tw`text-error-dark`;
 export interface TextareaProps {
   name: string;
   label: string;
-  initialValue: string;
-  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  value: string;
+  onChange: (newString: string) => void;
+  onEnterPress?: () => void;
   isRequired?: boolean;
   isDisabled?: boolean;
   placeholder?: string;
@@ -25,21 +26,25 @@ export interface TextareaProps {
 export const Textarea: React.FC<TextareaProps> = ({
   name,
   label,
-  initialValue,
+  value,
   onChange,
+  onEnterPress,
   isRequired,
   isDisabled,
   placeholder,
   getValidationMessage,
 }) => {
-  const [value, setValue] = useState(initialValue);
   const validationMessage = getValidationMessage ? getValidationMessage(value) : "";
   const rowsToDisplay = Math.min(Math.max(value.split("\n").length, 1), MAX_ROWS);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setValue(e.target.value);
-    if (onChange) {
-      onChange(e);
+    onChange(e.target.value);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (onEnterPress && e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      onEnterPress();
     }
   };
   return (
@@ -58,6 +63,7 @@ export const Textarea: React.FC<TextareaProps> = ({
         disabled={isDisabled ?? false}
         value={value}
         onChange={handleChange}
+        onKeyDown={handleKeyDown}
         rows={rowsToDisplay}
       />
       {validationMessage && <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>}

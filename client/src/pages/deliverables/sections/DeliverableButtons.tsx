@@ -26,11 +26,13 @@ export const DeliverableButtons = ({
   return (
     <div className="flex gap-2" data-testid={DELIVERABLE_BUTTONS_NAME}>
       <TertiaryButton name={REFERENCES_BUTTON_NAME}>References</TertiaryButton>
-      {canRequestExtension(deliverable.status) && (
-        <SecondaryButton name={REQUEST_EXTENSION_BUTTON_NAME} onClick={handleRequestExtension}>
-          Request Extension
-        </SecondaryButton>
-      )}
+      <SecondaryButton
+        name={REQUEST_EXTENSION_BUTTON_NAME}
+        onClick={handleRequestExtension}
+        disabled={!canRequestExtension(deliverable.status)}
+      >
+        Request Extension
+      </SecondaryButton>
     </div>
   );
 };

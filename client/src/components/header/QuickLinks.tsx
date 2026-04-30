@@ -1,7 +1,9 @@
 import { HelpIcon, NotifyIcon, SettingsIcon } from "components/icons";
+import { getCurrentUser } from "components/user/UserContext";
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 
+export const QUICK_LINKS_TEST_ID = "quick-links";
 export const ADMIN_LINK_NAME = "link-admin";
 
 const STYLES = {
@@ -13,17 +15,21 @@ const STYLES = {
 
 export const QuickLinks: React.FC = () => {
   const { pathname } = useLocation();
+  const { currentUser } = getCurrentUser();
+  const isAdmin = currentUser?.person.personType === "demos-admin";
 
   return (
-    <div className={STYLES.container}>
-      <Link
-        to="/admin"
-        className={`${STYLES.link} ${pathname === "/admin" ? STYLES.selectedLink : ""}`}
-        data-testid={ADMIN_LINK_NAME}
-      >
-        <SettingsIcon className={STYLES.icon} />
-        <span>Admin</span>
-      </Link>
+    <div className={STYLES.container} data-testid={QUICK_LINKS_TEST_ID}>
+      {isAdmin && (
+        <Link
+          to="/admin"
+          className={`${STYLES.link} ${pathname === "/admin" ? STYLES.selectedLink : ""}`}
+          data-testid={ADMIN_LINK_NAME}
+        >
+          <SettingsIcon className={STYLES.icon} />
+          <span>Admin</span>
+        </Link>
+      )}
 
       <a href="#" className={STYLES.link}>
         <NotifyIcon className={STYLES.icon} />

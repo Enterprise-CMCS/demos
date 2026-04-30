@@ -48,7 +48,6 @@ export const deliverableSchema = gql`
 
   input UpdateDeliverableInput {
     name: NonEmptyString
-    deliverableType: DeliverableType
     cmsOwnerUserId: ID
     dueDate: DeliverableDueDateUpdateInput
     demonstrationTypes: [TagName!]
@@ -62,6 +61,9 @@ export const deliverableSchema = gql`
   type Mutation {
     createDeliverable(input: CreateDeliverableInput): Deliverable
     updateDeliverable(id: ID!, input: UpdateDeliverableInput!): Deliverable
+    submitDeliverable(id: ID!): Deliverable
+    startDeliverableReview(id: ID!): Deliverable
+    completeDeliverable(id: ID!, finalStatus: FinalDeliverableStatus!): Deliverable
   }
 `;
 
@@ -99,7 +101,6 @@ export interface DeliverableDueDateUpdateInput {
 
 export interface UpdateDeliverableInput {
   name?: NonEmptyString;
-  deliverableType?: DeliverableType;
   cmsOwnerUserId?: string;
   dueDate?: DeliverableDueDateUpdateInput;
   demonstrationTypes?: TagName[];
