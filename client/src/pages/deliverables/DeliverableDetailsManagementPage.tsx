@@ -138,9 +138,10 @@ export const DeliverableDetailsManagementPage: React.FC<{
             showAdditionalDetailsToggle
             onToggleAdditionalDetails={handleToggleAdditionalDetails}
           />
+          {/* I'm sure these go somewhere but they arent in my spec sheet. Uncomment at your leisure */}
           <DeliverableButtons
             deliverable={data.deliverable}
-            onRequestResubmission={handleRequestResubmission}
+            onRequestResubmission={() => {}}
           />
           <EditAndDeleteButtonGroup
             onDelete={handleDeleteDeliverable}
