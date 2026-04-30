@@ -141,7 +141,7 @@ export const DeliverableDetailsManagementPage: React.FC<{
           {/* I'm sure these go somewhere but they arent in my spec sheet. Uncomment at your leisure */}
           <DeliverableButtons
             deliverable={data.deliverable}
-            onRequestResubmission={() => {}}
+            onRequestResubmission={handleRequestResubmission}
           />
           <EditAndDeleteButtonGroup
             onDelete={handleDeleteDeliverable}
