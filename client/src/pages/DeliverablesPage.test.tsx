@@ -2,7 +2,10 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MockedResponse } from "@apollo/client/testing";
-import { DELIVERABLES_PAGE_QUERY } from "components/table/tables/DeliverableTable";
+import {
+  DELIVERABLES_PAGE_QUERY,
+  STATE_USER_DELIVERABLES_PAGE_QUERY,
+} from "components/table/tables/DeliverableTable";
 import { DeliverablesPage } from "./DeliverablesPage";
 import { MOCK_DELIVERABLE_TABLE_ROW } from "mock-data/deliverableMocks";
 import { mockUsers } from "mock-data/userMocks";
@@ -46,6 +49,67 @@ const EMPTY_DELIVERABLES_TABLE_MOCKS: MockedResponse[] = [
   },
 ];
 
+const STATE_USER_DELIVERABLES_TABLE_MOCKS: MockedResponse[] = [
+  {
+    request: { query: STATE_USER_DELIVERABLES_PAGE_QUERY },
+    result: {
+      data: {
+        currentUser: {
+          person: {
+            roles: [
+              {
+                role: "State Point of Contact",
+                demonstration: {
+                  id: "assigned-demonstration",
+                  deliverables: MOCK_DELIVERABLE_TABLE_ROWS,
+                },
+              },
+              {
+                role: "Project Officer",
+                demonstration: {
+                  id: "unassigned-demonstration",
+                  deliverables: [
+                    {
+                      ...MOCK_DELIVERABLE_TABLE_ROW,
+                      id: "not-state-assigned",
+                      name: "Unassigned Demonstration Deliverable",
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      },
+    },
+    maxUsageCount: Number.POSITIVE_INFINITY,
+  },
+];
+
+const EMPTY_STATE_USER_DELIVERABLES_TABLE_MOCKS: MockedResponse[] = [
+  {
+    request: { query: STATE_USER_DELIVERABLES_PAGE_QUERY },
+    result: {
+      data: {
+        currentUser: {
+          person: {
+            roles: [
+              {
+                role: "State Point of Contact",
+                demonstration: {
+                  id: "assigned-demonstration",
+                  deliverables: [],
+                },
+              },
+            ],
+          },
+        },
+      },
+    },
+    maxUsageCount: Number.POSITIVE_INFINITY,
+  },
+];
+
 describe("DeliverablesPage tab persistence", () => {
   const TAB_KEY = "selectedDeliverableTab";
   const CURRENT_USER_ID = MOCK_DELIVERABLE_TABLE_ROW.cmsOwner.id;
@@ -71,7 +135,7 @@ describe("DeliverablesPage tab persistence", () => {
   };
 
   const renderStateDeliverablesPage = async (
-    mocks: MockedResponse[] = DELIVERABLES_TABLE_MOCKS
+    mocks: MockedResponse[] = STATE_USER_DELIVERABLES_TABLE_MOCKS
   ) => {
     render(
       <TestProvider mocks={mocks} currentUser={STATE_TEST_USER}>
@@ -183,10 +247,11 @@ describe("DeliverablesPage tab persistence", () => {
     expect(screen.getByText("Budget Neutrality Report")).toBeInTheDocument();
     expect(screen.getByText("Budget Neutrality Worksheet")).toBeInTheDocument();
     expect(screen.getByText("Quarterly Report For NYC Demonstration")).toBeInTheDocument();
+    expect(screen.queryByText("Unassigned Demonstration Deliverable")).not.toBeInTheDocument();
   });
 
   it("shows state-user empty message when there are no deliverables", async () => {
-    await renderStateDeliverablesPage(EMPTY_DELIVERABLES_TABLE_MOCKS);
+    await renderStateDeliverablesPage(EMPTY_STATE_USER_DELIVERABLES_TABLE_MOCKS);
 
     expect(screen.getByText("There are no assigned Deliverables at this time")).toBeInTheDocument();
     expect(screen.queryByTestId("button-deliverables")).not.toBeInTheDocument();

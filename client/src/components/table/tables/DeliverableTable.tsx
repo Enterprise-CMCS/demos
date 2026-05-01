@@ -1,6 +1,6 @@
 import React from "react";
 import { gql } from "@apollo/client";
-import type { Deliverable, Person, State, UserType } from "demos-server";
+import type { Deliverable, Person, Role, State, UserType } from "demos-server";
 
 import { DeliverableColumns } from "../columns/DeliverableColumns";
 import { Table, type TableProps } from "../Table";
@@ -49,6 +49,20 @@ export type DeliverablesQueryResult = {
   deliverables: DeliverableTableRow[];
 };
 
+export type StateUserDeliverablesQueryResult = {
+  currentUser?: {
+    person: {
+      roles: {
+        role: Role;
+        demonstration: {
+          id: string;
+          deliverables: DeliverableTableRow[];
+        };
+      }[];
+    };
+  } | null;
+};
+
 export const DELIVERABLES_PAGE_QUERY = gql`
   query GetDeliverablesPage {
     deliverables {
@@ -75,6 +89,46 @@ export const DELIVERABLES_PAGE_QUERY = gql`
         }
       }
       dueDate
+    }
+  }
+`;
+
+export const STATE_USER_DELIVERABLES_PAGE_QUERY = gql`
+  query GetStateUserDeliverablesPage {
+    currentUser {
+      person {
+        roles {
+          role
+          demonstration {
+            id
+            deliverables {
+              id
+              deliverableType
+              name
+              demonstration {
+                id
+                name
+                state {
+                  id
+                }
+                demonstrationTypes {
+                  demonstrationTypeName
+                  approvalStatus
+                }
+              }
+              status
+              cmsOwner {
+                id
+                person {
+                  id
+                  fullName
+                }
+              }
+              dueDate
+            }
+          }
+        }
+      }
     }
   }
 `;
