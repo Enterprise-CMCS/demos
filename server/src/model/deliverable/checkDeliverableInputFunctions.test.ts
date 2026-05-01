@@ -14,14 +14,15 @@ import {
 
 // Functions under test
 import {
-  checkDemonstrationStatus,
-  checkDeliverableStatusNotFinalized,
-  checkForDuplicateDemonstrationTypes,
-  checkOwnerPersonType,
-  checkRequestedDeliverableDemonstrationType,
-  checkDueDateInFuture,
   checkDeliverableHasAtLeastOneDocument,
   checkDeliverableHasStatus,
+  checkDeliverableStatusNotFinalized,
+  checkDemonstrationStatus,
+  checkDueDateInFuture,
+  checkForDuplicateDemonstrationTypes,
+  checkNewDueDateIsAtLeastCurrentDueDate,
+  checkOwnerPersonType,
+  checkRequestedDeliverableDemonstrationType,
 } from "./checkDeliverableInputFunctions";
 
 // Mock imports
@@ -50,6 +51,32 @@ describe("checkDeliverableInputFunctions", () => {
       const result = checkDemonstrationStatus(testInput as PrismaDemonstration);
       expect(result).toBe(
         "Demonstration abc123 is not in Approved status; cannot create deliverable."
+      );
+    });
+  });
+
+  describe("checkDeliverableHasStatus", () => {
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      id: "1e42da3a-9355-4c5d-a541-812a9f95ef56",
+      statusId: "Under CMS Review",
+    };
+
+    it("should return undefined if the passed status matches the object", async () => {
+      const result = checkDeliverableHasStatus(testDeliverable as PrismaDeliverable, [
+        "Under CMS Review",
+      ]);
+      expect(result).toBeUndefined();
+    });
+
+    it("should return an error message the passed status does not match the object", async () => {
+      const result = checkDeliverableHasStatus(testDeliverable as PrismaDeliverable, [
+        "Approved",
+        "Accepted",
+        "Received and Filed",
+      ]);
+      expect(result).toBe(
+        "Deliverable expected to have one of status Approved, Accepted, " +
+          "Received and Filed; actual status was Under CMS Review."
       );
     });
   });
@@ -233,7 +260,7 @@ describe("checkDeliverableInputFunctions", () => {
       expect(result).toBeUndefined();
     });
 
-    it("should return an appropriate error message if the eue date is in the past", () => {
+    it("should return an appropriate error message if the due date is in the past", () => {
       const testInput: EasternTZDate = parseJSDateToEasternTZDate(
         new Date(2023, 8, 17, 3, 22, 11, 13)
       );
@@ -241,6 +268,49 @@ describe("checkDeliverableInputFunctions", () => {
       const result = checkDueDateInFuture(testInput);
       expect(result).toBe(
         "Cannot request a due date in the past; requested Sat Sep 16 2023 23:22:11 GMT-0400 (Eastern Daylight Time)"
+      );
+    });
+  });
+
+  describe("checkNewDueDateIsAtLeastCurrentDueDate", () => {
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      dueDate: new Date(2026, 11, 13, 4, 59, 59, 999),
+    };
+
+    it("should return undefined if the new date is equal to the current due date", () => {
+      const testInput: EasternTZDate = parseJSDateToEasternTZDate(testDeliverable.dueDate!);
+
+      const result = checkNewDueDateIsAtLeastCurrentDueDate(
+        testDeliverable as PrismaDeliverable,
+        testInput
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it("should return undefined if the new date is greater than the current due date", () => {
+      const testInput: EasternTZDate = parseJSDateToEasternTZDate(
+        new Date(2026, 11, 14, 4, 59, 59, 999)
+      );
+
+      const result = checkNewDueDateIsAtLeastCurrentDueDate(
+        testDeliverable as PrismaDeliverable,
+        testInput
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it("should return an appropriate error message if the new due date is less than the current due date", () => {
+      const testInput: EasternTZDate = parseJSDateToEasternTZDate(
+        new Date(2026, 11, 12, 4, 59, 59, 999)
+      );
+
+      const result = checkNewDueDateIsAtLeastCurrentDueDate(
+        testDeliverable as PrismaDeliverable,
+        testInput
+      );
+      expect(result).toBe(
+        "Newly requested due date cannot be less than the original due date; " +
+          "requested Fri Dec 11 2026 23:59:59 GMT-0500 (Eastern Standard Time)."
       );
     });
   });
@@ -287,28 +357,6 @@ describe("checkDeliverableInputFunctions", () => {
       );
       expect(result).toBe(
         `Cannot submit deliverable ${testDeliverableId} because it has no state documents attached.`
-      );
-    });
-  });
-
-  describe("checkDeliverableHasStatus", () => {
-    const testDeliverable: Partial<PrismaDeliverable> = {
-      id: "1e42da3a-9355-4c5d-a541-812a9f95ef56",
-      statusId: "Under CMS Review",
-    };
-
-    it("should return undefined if the passed status matches the object", async () => {
-      const result = checkDeliverableHasStatus(
-        testDeliverable as PrismaDeliverable,
-        "Under CMS Review"
-      );
-      expect(result).toBeUndefined();
-    });
-
-    it("should return an error message the passed status does not match the object", async () => {
-      const result = checkDeliverableHasStatus(testDeliverable as PrismaDeliverable, "Approved");
-      expect(result).toBe(
-        "Deliverable expected to have status Approved; actual status was Under CMS Review."
       );
     });
   });

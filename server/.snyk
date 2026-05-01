@@ -22,4 +22,12 @@ ignore:
         reason: No patch available
         expires: 2026-04-10T00:00:00.000Z
         created: 2026-03-27T12:16:37.263Z
+  SNYK-JS-APOLLOPROTOBUFJS-16321047:
+    - '*':
+        reason: No patch available
+        expires: 2026-05-06T03:59:59.999Z
+        created: 2026-04-29T04:00:00.000Z
 patch: {}
+exclude:
+  global:
+    - node_modules

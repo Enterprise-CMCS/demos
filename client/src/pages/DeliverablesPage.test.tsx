@@ -42,6 +42,13 @@ describe("DeliverablesPage tab persistence", () => {
   const TAB_KEY = "selectedDeliverableTab";
   const CURRENT_USER_ID = MOCK_DELIVERABLE_TABLE_ROW.cmsOwner.id;
   const DEFAULT_TEST_USER = { ...mockUsers[0], id: CURRENT_USER_ID };
+  const STATE_TEST_USER = {
+    ...mockUsers[0],
+    person: {
+      ...mockUsers[0].person,
+      personType: "demos-state-user" as const,
+    },
+  };
 
   const renderDeliverablesPage = async (currentUser = DEFAULT_TEST_USER) => {
     render(
@@ -50,6 +57,15 @@ describe("DeliverablesPage tab persistence", () => {
       </TestProvider>
     );
     await screen.findByTestId("button-my-deliverables");
+  };
+
+  const renderStateDeliverablesPage = async () => {
+    render(
+      <TestProvider mocks={DELIVERABLES_TABLE_MOCKS} currentUser={STATE_TEST_USER}>
+        <DeliverablesPage />
+      </TestProvider>
+    );
+    await screen.findByText("Budget Neutrality Report");
   };
 
   beforeEach(() => {
@@ -100,8 +116,12 @@ describe("DeliverablesPage tab persistence", () => {
     await renderDeliverablesPage();
     fireEvent.click(screen.getByTestId("button-my-deliverables"));
 
-    const myDeliverables = MOCK_DELIVERABLE_TABLE_ROWS.filter((d) => d.cmsOwner.id === CURRENT_USER_ID);
-    const notMyDeliverable = MOCK_DELIVERABLE_TABLE_ROWS.find((d) => d.cmsOwner.id !== CURRENT_USER_ID);
+    const myDeliverables = MOCK_DELIVERABLE_TABLE_ROWS.filter(
+      (d) => d.cmsOwner.id === CURRENT_USER_ID
+    );
+    const notMyDeliverable = MOCK_DELIVERABLE_TABLE_ROWS.find(
+      (d) => d.cmsOwner.id !== CURRENT_USER_ID
+    );
 
     myDeliverables.forEach((deliverable) => {
       expect(screen.getByText(deliverable.name)).toBeInTheDocument();
@@ -123,13 +143,7 @@ describe("DeliverablesPage tab persistence", () => {
   });
 
   it("uses state-user table columns when current user is demos-state-user", async () => {
-    await renderDeliverablesPage({
-      ...mockUsers[0],
-      person: {
-        ...mockUsers[0].person,
-        personType: "demos-state-user",
-      },
-    });
+    await renderStateDeliverablesPage();
 
     expect(
       screen.queryByRole("columnheader", { name: /State\/Territory/i })
@@ -138,31 +152,23 @@ describe("DeliverablesPage tab persistence", () => {
     expect(screen.getByRole("columnheader", { name: /Demonstration Name/i })).toBeInTheDocument();
   });
 
-  it("shows All Deliverables tab for demos-state-user", async () => {
-    await renderDeliverablesPage({
-      ...mockUsers[0],
-      person: {
-        ...mockUsers[0].person,
-        personType: "demos-state-user",
-      },
-    });
+  it("renders all deliverables without tabs for demos-state-user", async () => {
+    await renderStateDeliverablesPage();
 
-    expect(screen.getByTestId("button-deliverables")).toBeInTheDocument();
-    expect(screen.getByTestId("button-my-deliverables")).toHaveAttribute("aria-selected", "true");
+    expect(screen.queryByTestId("button-deliverables")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("button-my-deliverables")).not.toBeInTheDocument();
+    expect(screen.getByText("Budget Neutrality Report")).toBeInTheDocument();
+    expect(screen.getByText("Budget Neutrality Worksheet")).toBeInTheDocument();
+    expect(screen.getByText("Quarterly Report For NYC Demonstration")).toBeInTheDocument();
   });
 
-  it("uses stored deliverables tab for demos-state-user", async () => {
+  it("does not use stored deliverables tab for demos-state-user", async () => {
     sessionStorage.setItem(TAB_KEY, "deliverables");
 
-    await renderDeliverablesPage({
-      ...mockUsers[0],
-      person: {
-        ...mockUsers[0].person,
-        personType: "demos-state-user",
-      },
-    });
+    await renderStateDeliverablesPage();
 
     expect(sessionStorage.getItem(TAB_KEY)).toBe("deliverables");
-    expect(screen.getByTestId("button-deliverables")).toHaveAttribute("aria-selected", "true");
+    expect(screen.queryByTestId("button-deliverables")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("button-my-deliverables")).not.toBeInTheDocument();
   });
 });

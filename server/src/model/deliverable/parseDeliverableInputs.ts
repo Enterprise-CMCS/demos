@@ -4,6 +4,7 @@ import {
   NonEmptyString,
   TagName,
   UpdateDeliverableInput,
+  RequestDeliverableResubmissionInput,
 } from "../../types";
 import { EasternTZDate, parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities";
 import { checkInputDateIsEndOfDay } from "../applicationDate";
@@ -28,6 +29,11 @@ export type ParsedUpdateDeliverableInput = {
   cmsOwnerUserId?: string;
   dueDate?: ParsedUpdateDueDate;
   demonstrationTypes?: Set<TagName>;
+};
+
+export type ParsedRequestDeliverableResubmissionInput = {
+  details: NonEmptyString;
+  newDueDate: EasternTZDate;
 };
 
 export function parseCreateDeliverableInput(
@@ -82,4 +88,16 @@ export function parseUpdateDeliverableInput(
   }
 
   return result;
+}
+
+export function parseRequestDeliverableResubmissionInput(
+  input: RequestDeliverableResubmissionInput
+): ParsedRequestDeliverableResubmissionInput {
+  const parsedDueDate = parseDateTimeOrLocalDateToEasternTZDate(input.newDueDate, "End of Day");
+  checkInputDateIsEndOfDay("dueDate", parsedDueDate);
+
+  return {
+    details: input.details,
+    newDueDate: parsedDueDate,
+  };
 }

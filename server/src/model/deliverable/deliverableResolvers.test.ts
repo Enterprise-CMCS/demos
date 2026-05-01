@@ -38,13 +38,14 @@ import { getManyDeliverableDemonstrationTypes } from "../deliverableDemonstratio
 
 // Mock imports
 vi.mock(".", () => ({
+  completeDeliverable: vi.fn(),
   createDeliverable: vi.fn(),
   getDeliverable: vi.fn(),
   getManyDeliverables: vi.fn(),
+  requestDeliverableResubmission: vi.fn(),
   startDeliverableReview: vi.fn(),
   submitDeliverable: vi.fn(),
   updateDeliverable: vi.fn(),
-  completeDeliverable: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -68,13 +69,14 @@ vi.mock("../deliverableAction", () => ({
 }));
 
 import {
+  completeDeliverable,
   createDeliverable,
   getDeliverable,
   getManyDeliverables,
+  requestDeliverableResubmission,
   startDeliverableReview,
   submitDeliverable,
   updateDeliverable,
-  completeDeliverable,
 } from ".";
 import { getApplication } from "../application";
 import { getUser } from "../user";
@@ -155,6 +157,20 @@ describe("deliverableResolvers", () => {
     });
   });
 
+  describe("Mutation.startDeliverableReview", () => {
+    it("calls startDeliverableReview with appropriate arguments", async () => {
+      await deliverableResolvers.Mutation.startDeliverableReview(
+        undefined,
+        { id: testDeliverableId },
+        testContext as GraphQLContext
+      );
+      expect(startDeliverableReview).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId,
+        testContext
+      );
+    });
+  });
+
   describe("Mutation.completeDeliverable", () => {
     it("calls completeDeliverable with appropriate arguments", async () => {
       await deliverableResolvers.Mutation.completeDeliverable(
@@ -170,15 +186,24 @@ describe("deliverableResolvers", () => {
     });
   });
 
-  describe("Mutation.startDeliverableReview", () => {
-    it("calls startDeliverableReview with appropriate arguments", async () => {
-      await deliverableResolvers.Mutation.startDeliverableReview(
+  describe("Mutation.requestDeliverableResubmission", () => {
+    it("calls requestDeliverableResubmission with appropriate arguments", async () => {
+      const testInput = {
+        details: "A change is gonna come",
+        newDueDate: "2025-11-13" as DateTimeOrLocalDate,
+      };
+
+      await deliverableResolvers.Mutation.requestDeliverableResubmission(
         undefined,
-        { id: testDeliverableId },
+        {
+          id: testDeliverableId,
+          input: testInput,
+        },
         testContext as GraphQLContext
       );
-      expect(startDeliverableReview).toHaveBeenCalledExactlyOnceWith(
+      expect(requestDeliverableResubmission).toHaveBeenCalledExactlyOnceWith(
         testDeliverableId,
+        testInput,
         testContext
       );
     });

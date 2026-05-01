@@ -20,6 +20,9 @@ export async function selectManyDeliverableActions(
   const prismaClient = tx ?? prisma();
   const deliverableActions = await prismaClient.deliverableAction.findMany({
     where: where,
+    orderBy: {
+      actionTimestamp: "asc",
+    },
     include: {
       user: {
         include: {

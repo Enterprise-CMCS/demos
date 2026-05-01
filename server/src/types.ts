@@ -113,6 +113,7 @@ export type {
   CreateDeliverableInput,
   UpdateDeliverableInput,
   DeliverableDueDateUpdateInput,
+  RequestDeliverableResubmissionInput,
 } from "./model/deliverable/deliverableSchema";
 
 export type { DeliverableAction } from "./model/deliverableAction/deliverableActionSchema";

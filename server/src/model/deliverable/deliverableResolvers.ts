@@ -12,6 +12,7 @@ import {
   createDeliverable,
   getDeliverable,
   getManyDeliverables,
+  requestDeliverableResubmission,
   startDeliverableReview,
   submitDeliverable,
   updateDeliverable,
@@ -23,6 +24,7 @@ import {
   DeliverableStatus,
   DeliverableType,
   FinalDeliverableStatus,
+  RequestDeliverableResubmissionInput,
   UpdateDeliverableInput,
 } from "../../types";
 import { getApplication } from "../application";
@@ -145,6 +147,13 @@ export const deliverableResolvers = {
       context: GraphQLContext
     ) => {
       return await completeDeliverable(args.id, args.finalStatus, context);
+    },
+    requestDeliverableResubmission: async (
+      parent: unknown,
+      args: { id: string; input: RequestDeliverableResubmissionInput },
+      context: GraphQLContext
+    ) => {
+      return await requestDeliverableResubmission(args.id, args.input, context);
     },
   },
 

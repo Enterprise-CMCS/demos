@@ -53,6 +53,11 @@ export const deliverableSchema = gql`
     demonstrationTypes: [TagName!]
   }
 
+  input RequestDeliverableResubmissionInput {
+    details: NonEmptyString!
+    newDueDate: DateTimeOrLocalDate!
+  }
+
   type Query {
     deliverable(id: ID!): Deliverable!
     deliverables: [Deliverable!]!
@@ -64,6 +69,10 @@ export const deliverableSchema = gql`
     submitDeliverable(id: ID!): Deliverable
     startDeliverableReview(id: ID!): Deliverable
     completeDeliverable(id: ID!, finalStatus: FinalDeliverableStatus!): Deliverable
+    requestDeliverableResubmission(
+      id: ID!
+      input: RequestDeliverableResubmissionInput!
+    ): Deliverable
   }
 `;
 
@@ -104,4 +113,9 @@ export interface UpdateDeliverableInput {
   cmsOwnerUserId?: string;
   dueDate?: DeliverableDueDateUpdateInput;
   demonstrationTypes?: TagName[];
+}
+
+export interface RequestDeliverableResubmissionInput {
+  details: NonEmptyString;
+  newDueDate: DateTimeOrLocalDate;
 }

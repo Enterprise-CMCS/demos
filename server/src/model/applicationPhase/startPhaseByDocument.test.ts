@@ -119,22 +119,4 @@ describe("startPhaseByDocument", () => {
     expect(createPhaseStartDate).not.toHaveBeenCalled();
     expect(result).toBeNull();
   });
-
-  it("should update the application status to under review if the phase is Application Intake", async () => {
-    vi.mocked(setPhaseToStarted).mockResolvedValue(true);
-    vi.mocked(createPhaseStartDate).mockReturnValue(mockPhaseStartDate);
-
-    const mockDocument: Pick<UploadDocumentInput, "phaseName"> = {
-      phaseName: "Application Intake",
-    };
-
-    await startPhaseByDocument(mockTransaction, testApplicationId, mockDocument, mockEasternNow);
-  });
-
-  it("should not update the application status to under review if the phase is not Application Intake", async () => {
-    vi.mocked(setPhaseToStarted).mockResolvedValue(true);
-    vi.mocked(createPhaseStartDate).mockReturnValue(mockPhaseStartDate);
-
-    await startPhaseByDocument(mockTransaction, testApplicationId, mockDocument, mockEasternNow);
-  });
 });
