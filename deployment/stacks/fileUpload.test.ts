@@ -14,6 +14,7 @@ const mockCommonProps: DeploymentConfigProperties = {
   hostEnvironment: "dev",
   cloudfrontHost: "unittest.demos.com",
   srrConfigured: true,
+  dataConnectRoleArn: "arn:aws:iam::1234567890:role/dataconnectrole",
 };
 const commongAppArgs = {
   context: {
@@ -52,6 +53,9 @@ describe("File Upload Stack", () => {
         },
       ]),
     });
+
+    template.resourceCountIs("AWS::S3::Bucket", 7)
+
   });
 
   test("should create proper resources when ephemeral", () => {
