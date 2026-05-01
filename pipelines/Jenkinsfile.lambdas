@@ -1,9 +1,9 @@
 pipeline {
   agent {
     kubernetes {
-      yaml kubeBlock(containerNames:['node', 'scanner', 'snyk'], opts: [
+      yaml kubeBlock(containerNames:['node', 'snyk'], opts: [
         NODE_IMAGE: 'artifactory.cloud.cms.gov/docker/node:24-alpine'
-      ])
+    ])
     }
   }
 
@@ -38,10 +38,10 @@ pipeline {
               if (hasChange('lambdas')) {
                 dirCon('lambdas/authorizer', 'node') {
                   sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
+                npm ci
+                npm run lint
+                npm run test
+                '''
                 }
               }
             }
@@ -53,10 +53,10 @@ pipeline {
               if (hasChange('lambdas')) {
                 dirCon('lambdas/dbRoleManagement', 'node') {
                   sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
+                npm ci
+                npm run lint
+                npm run test
+                '''
                 }
               }
             }
@@ -68,10 +68,10 @@ pipeline {
               if (hasChange('lambdas')) {
                 dirCon('lambdas/fileprocess', 'node') {
                   sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
+                npm ci
+                npm run lint
+                npm run test
+                '''
                 }
               }
             }
@@ -83,10 +83,10 @@ pipeline {
               if (hasChange('lambdas')) {
                 dirCon('lambdas/UIPath', 'node') {
                   sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
+                npm ci
+                npm run lint
+                npm run test
+                '''
                 }
               }
             }
@@ -98,10 +98,10 @@ pipeline {
               if (hasChange('lambdas')) {
                 dirCon('lambdas/deleteinfectedfile', 'node') {
                   sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
+                npm ci
+                npm run lint
+                npm run test
+                '''
                 }
               }
             }
@@ -113,10 +113,10 @@ pipeline {
               if (hasChange('lambdas')) {
                 dirCon('lambdas/emailer', 'node') {
                   sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
+                npm ci
+                npm run lint
+                npm run test
+                '''
                 }
               }
             }
@@ -128,10 +128,10 @@ pipeline {
               if (hasChange('lambdas')) {
                 dirCon('lambdas/budgetNeutrality', 'node') {
                   sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
+                npm ci
+                npm run lint
+                npm run test
+                '''
                 }
               }
             }
@@ -144,7 +144,7 @@ pipeline {
       steps {
         script {
           if (hasChange('lambdas')) {
-                snykCodeScan('lambdas', [allProjects: true])
+            snykCodeScan('lambdas', [allProjects: true])
           }
         }
       }
