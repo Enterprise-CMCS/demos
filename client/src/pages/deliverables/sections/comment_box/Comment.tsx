@@ -15,7 +15,7 @@ export const Comment = ({ comment }: { comment: CommentBoxComment }) => {
   const formattedDate = format(comment.timestamp, "MM/dd/yyyy, hh:mm a");
 
   return (
-    <div className="flex flex-col bg-gray-secondary-layout rounded">
+    <div className="flex flex-col bg-gray-secondary-layout rounded" data-testid="comment">
       <div className="flex justify-between">
         <span className="text-xs font-bold italic">{comment.userFullName}</span>
         <span className="text-xs text-text-placeholder italic">{formattedDate}</span>

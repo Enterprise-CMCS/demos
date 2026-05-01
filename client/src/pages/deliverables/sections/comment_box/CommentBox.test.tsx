@@ -1,19 +1,58 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { COLLAPSE_COMMENTS_BUTTON_NAME, COMMENT_BOX_NAME, COMMENT_BOX_TABS_NAME, COMMENT_BOX_TEXT_AREA_NAME, ADD_COMMENT_BUTTON_NAME, CommentBox } from ".";
+import { vi } from "vitest";
+import {
+  COLLAPSE_COMMENTS_BUTTON_NAME,
+  COMMENT_BOX_NAME,
+  COMMENT_BOX_TABS_NAME,
+  COMMENT_BOX_TEXT_AREA_NAME,
+  ADD_COMMENT_BUTTON_NAME,
+  CommentBox,
+} from ".";
 import { TestProvider } from "test-utils/TestProvider";
 import { developmentMockUser } from "mock-data/userMocks";
 import { PersonType } from "demos-server";
 import { CurrentUser } from "components/user/UserContext";
+import { CommentBoxComment } from "./Comment";
+import { getComments } from "./getComments";
 
+vi.mock("./getComments");
+
+const STUB_COMMENTS: CommentBoxComment[] = [
+  {
+    commentText: "This is a public comment.",
+    userFullName: "Jane Doe",
+    timestamp: new Date("2026-04-01T10:00:00"),
+    commentVisibility: "public",
+  },
+  {
+    commentText: "This is a private comment.",
+    userFullName: "John Smith",
+    timestamp: new Date("2026-04-02T09:00:00"),
+    commentVisibility: "private",
+  },
+];
 
 const renderCommentBox = (personType?: PersonType) => {
-  const currentUser: CurrentUser = {...developmentMockUser, person: { ...developmentMockUser.person, personType: personType || developmentMockUser.person.personType } };
-  render(<TestProvider currentUser={currentUser}><CommentBox /></TestProvider>);
+  const currentUser: CurrentUser = {
+    ...developmentMockUser,
+    person: {
+      ...developmentMockUser.person,
+      personType: personType || developmentMockUser.person.personType,
+    },
+  };
+  render(
+    <TestProvider currentUser={currentUser}>
+      <CommentBox />
+    </TestProvider>
+  );
 };
 
 describe("CommentBox", () => {
+  beforeEach(() => {
+    vi.mocked(getComments).mockReturnValue([]);
+  });
   it("renders without crashing", () => {
     renderCommentBox();
     expect(screen.getByTestId(COMMENT_BOX_NAME)).toBeInTheDocument();
@@ -115,6 +154,47 @@ describe("CommentBox", () => {
     await userEvent.type(screen.getByTestId(COMMENT_BOX_TEXT_AREA_NAME), "   ");
     await userEvent.click(screen.getByTestId(ADD_COMMENT_BUTTON_NAME));
 
+    expect(screen.getByText("No comments yet.")).toBeInTheDocument();
+  });
+
+  it("state users only see public comments", () => {
+    vi.mocked(getComments).mockReturnValue(
+      STUB_COMMENTS.filter((c) => c.commentVisibility === "public")
+    );
+    renderCommentBox("demos-state-user");
+    expect(screen.getByText("This is a public comment.")).toBeInTheDocument();
+    expect(screen.queryByText("This is a private comment.")).not.toBeInTheDocument();
+  });
+
+  it("admin users see public comments on the Public tab by default", () => {
+    vi.mocked(getComments).mockReturnValue(STUB_COMMENTS);
+    renderCommentBox("demos-admin");
+    expect(screen.getByText("This is a public comment.")).toBeInTheDocument();
+    expect(screen.queryByText("This is a private comment.")).not.toBeInTheDocument();
+  });
+
+  it("admin users see private comments after switching to the Private tab", async () => {
+    vi.mocked(getComments).mockReturnValue(STUB_COMMENTS);
+    renderCommentBox("demos-admin");
+    await userEvent.click(screen.getByTestId("button-private"));
+    expect(screen.queryByText("This is a public comment.")).not.toBeInTheDocument();
+    expect(screen.getByText("This is a private comment.")).toBeInTheDocument();
+  });
+
+  it("CMS users see private comments after switching to the Private tab", async () => {
+    vi.mocked(getComments).mockReturnValue(STUB_COMMENTS);
+    renderCommentBox("demos-cms-user");
+    await userEvent.click(screen.getByTestId("button-private"));
+    expect(screen.queryByText("This is a public comment.")).not.toBeInTheDocument();
+    expect(screen.getByText("This is a private comment.")).toBeInTheDocument();
+  });
+
+  it("shows 'No comments yet.' when a tab has no comments", async () => {
+    vi.mocked(getComments).mockReturnValue(
+      STUB_COMMENTS.filter((c) => c.commentVisibility === "public")
+    );
+    renderCommentBox("demos-admin");
+    await userEvent.click(screen.getByTestId("button-private"));
     expect(screen.getByText("No comments yet.")).toBeInTheDocument();
   });
 });
