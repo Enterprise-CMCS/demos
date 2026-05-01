@@ -144,5 +144,11 @@ describe("DatePicker component", () => {
       const input = screen.getByTestId("test-date");
       expect(input.className).toContain("border-border-warn");
     });
+
+    it("forwards minDate to the input's min attribute", () => {
+      render(<DatePicker {...requiredProps} minDate="2026-04-28" />);
+      const input = screen.getByTestId("test-date") as HTMLInputElement;
+      expect(input.min).toBe("2026-04-28");
+    });
   });
 });

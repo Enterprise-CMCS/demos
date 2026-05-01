@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import {
   getInputColors,
   INPUT_BASE_CLASSES,
@@ -17,6 +17,7 @@ interface DatePickerProps {
   value?: string;
   isRequired?: boolean;
   isDisabled?: boolean;
+  minDate?: string;
   getValidationMessage?: () => string;
 }
 
@@ -27,8 +28,23 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   onChange,
   isRequired,
   isDisabled,
+  minDate,
   getValidationMessage,
 }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const inputMin = minDate ?? DEFAULT_MIN_DATE;
+
+  // The input is uncontrolled (defaultValue + ref-sync) instead of fully controlled.
+  // Native <input type="date"> fires input events with value="" while the user is mid-typing the
+  // year subfield (the date is briefly incomplete). A controlled input would re-render on every
+  // such event and wipe the in-progress digits. With this ref-sync pattern, React only touches
+  // the DOM when the value prop changes externally.
+  useEffect(() => {
+    if (inputRef.current && inputRef.current.value !== (value ?? "")) {
+      inputRef.current.value = value ?? "";
+    }
+  }, [value]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = e.target.value;
     if (
@@ -39,7 +55,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     }
   };
 
-  const validationMessage = getValidationMessage ? getValidationMessage() : "";
+  const validationMessage = getValidationMessage?.() ?? "";
 
   return (
     <div className="flex flex-col gap-xs">
@@ -48,6 +64,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         {label}
       </label>
       <input
+        ref={inputRef}
         type="date"
         id={name}
         name={name}
@@ -55,9 +72,9 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         className={`${INPUT_BASE_CLASSES} ${getInputColors(validationMessage ?? "")}`}
         required={isRequired ?? false}
         disabled={isDisabled ?? false}
-        value={value ?? ""}
+        defaultValue={value ?? ""}
         onChange={handleChange}
-        min={DEFAULT_MIN_DATE}
+        min={inputMin}
         max={DEFAULT_MAX_DATE}
       />
       {validationMessage && <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>}

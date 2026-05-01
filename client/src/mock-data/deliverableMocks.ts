@@ -30,6 +30,7 @@ export const MOCK_DELIVERABLE_TABLE_ROW: DeliverableTableRow = {
   deliverableType: "Annual Budget Neutrality Report",
   dueDate: new Date("2024-07-01"),
   status: "Upcoming",
+  demonstrationTypes: [],
 };
 
 export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {

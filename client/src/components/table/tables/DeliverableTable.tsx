@@ -1,6 +1,6 @@
 import React from "react";
 import { gql } from "@apollo/client";
-import type { Deliverable, Person, State, UserType } from "demos-server";
+import type { Deliverable, Person, State, Tag, UserType } from "demos-server";
 
 import { DeliverableColumns } from "../columns/DeliverableColumns";
 import { Table, type TableProps } from "../Table";
@@ -42,6 +42,7 @@ export type DeliverableTableRow = Omit<
   cmsOwner: Pick<Deliverable["cmsOwner"], "id"> & {
     person: Pick<Person, "fullName" | "id">;
   };
+  demonstrationTypes: Tag[];
   submissionDate?: string;
 };
 
@@ -75,6 +76,10 @@ export const DELIVERABLES_PAGE_QUERY = gql`
         }
       }
       dueDate
+      demonstrationTypes {
+        tagName
+        approvalStatus
+      }
     }
   }
 `;
