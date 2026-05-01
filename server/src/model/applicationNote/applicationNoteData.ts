@@ -1,12 +1,14 @@
 import { Prisma, ApplicationNote as PrismaApplicationNote } from "@prisma/client";
-import {
-  buildAuthorizationFilter,
-  isStatePointOfContactOnDemonstration,
-  PermissionFilters,
-  ContextUser,
-} from "../../auth";
+import { buildAuthorizationFilter, PermissionFilters, ContextUser } from "../../auth";
 import { selectApplicationNote, selectManyApplicationNotes } from "./queries";
 import { PrismaTransactionClient } from "../../prismaClient";
+import { isAStatePointOfContactAssociatedWithApplication } from "../application/applicationData";
+
+export const isAStatePointOfContactAssociatedWithApplicationNote = (
+  userId: string
+): Prisma.ApplicationNoteWhereInput => ({
+  application: isAStatePointOfContactAssociatedWithApplication(userId),
+});
 
 const getPermissionFilters = (userId: string) =>
   ({
@@ -17,25 +19,8 @@ const getPermissionFilters = (userId: string) =>
         },
       },
     },
-    "View ApplicationNotes on Assigned Demonstrations": {
-      application: {
-        OR: [
-          {
-            demonstration: isStatePointOfContactOnDemonstration(userId),
-          },
-          {
-            amendment: {
-              demonstration: isStatePointOfContactOnDemonstration(userId),
-            },
-          },
-          {
-            extension: {
-              demonstration: isStatePointOfContactOnDemonstration(userId),
-            },
-          },
-        ],
-      },
-    },
+    "View ApplicationNotes on Assigned Demonstrations":
+      isAStatePointOfContactAssociatedWithApplicationNote(userId),
   }) satisfies PermissionFilters<Prisma.ApplicationNoteWhereInput>;
 
 export async function getApplicationNote(

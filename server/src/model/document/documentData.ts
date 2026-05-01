@@ -1,13 +1,14 @@
 import { Prisma, Document as PrismaDocument } from "@prisma/client";
-import {
-  buildAuthorizationFilter,
-  isStatePointOfContactOnDemonstration,
-  PermissionFilters,
-  ContextUser,
-} from "../../auth";
+import { buildAuthorizationFilter, PermissionFilters, ContextUser } from "../../auth";
 import { selectDocument, selectManyDocuments } from "./queries";
 import { PrismaTransactionClient } from "../../prismaClient";
+import { isAStatePointOfContactAssociatedWithApplication } from "../application/applicationData";
 
+export const isAStatePointOfContactAssociatedWithDocument = (
+  userId: string
+): Prisma.DocumentWhereInput => ({
+  application: isAStatePointOfContactAssociatedWithApplication(userId),
+});
 const getPermissionFilters = (userId: string) =>
   ({
     "View All Documents": {
@@ -17,25 +18,8 @@ const getPermissionFilters = (userId: string) =>
         },
       },
     },
-    "View Documents on Assigned Demonstrations": {
-      application: {
-        OR: [
-          {
-            demonstration: isStatePointOfContactOnDemonstration(userId),
-          },
-          {
-            amendment: {
-              demonstration: isStatePointOfContactOnDemonstration(userId),
-            },
-          },
-          {
-            extension: {
-              demonstration: isStatePointOfContactOnDemonstration(userId),
-            },
-          },
-        ],
-      },
-    },
+    "View Documents on Assigned Demonstrations":
+      isAStatePointOfContactAssociatedWithDocument(userId),
     "View Owned Documents": {
       ownerUserId: userId,
     },

@@ -1,12 +1,14 @@
 import { Prisma, Amendment as PrismaAmendment } from "@prisma/client";
-import {
-  buildAuthorizationFilter,
-  isStatePointOfContactOnDemonstration,
-  PermissionFilters,
-  ContextUser,
-} from "../../auth";
+import { buildAuthorizationFilter, PermissionFilters, ContextUser } from "../../auth";
 import { selectAmendment, selectManyAmendments } from "./queries";
 import { PrismaTransactionClient } from "../../prismaClient";
+import { isAStatePointOfContactAssociatedWithDemonstration } from "../demonstration/demonstrationData";
+
+export const isAStatePointOfContactAssociatedWithAmendment = (
+  userId: string
+): Prisma.AmendmentWhereInput => ({
+  demonstration: isAStatePointOfContactAssociatedWithDemonstration(userId),
+});
 
 const getPermissionFilters = (userId: string) =>
   ({
@@ -17,9 +19,8 @@ const getPermissionFilters = (userId: string) =>
         },
       },
     },
-    "View Amendments on Assigned Demonstrations": {
-      demonstration: isStatePointOfContactOnDemonstration(userId),
-    },
+    "View Amendments on Assigned Demonstrations":
+      isAStatePointOfContactAssociatedWithAmendment(userId),
   }) satisfies PermissionFilters<Prisma.AmendmentWhereInput>;
 
 export async function getAmendment(

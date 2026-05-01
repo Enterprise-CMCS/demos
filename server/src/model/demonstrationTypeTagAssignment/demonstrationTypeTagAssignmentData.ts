@@ -1,16 +1,18 @@
 import { Prisma } from "@prisma/client";
-import {
-  buildAuthorizationFilter,
-  isStatePointOfContactOnDemonstration,
-  PermissionFilters,
-  ContextUser,
-} from "../../auth";
+import { buildAuthorizationFilter, PermissionFilters, ContextUser } from "../../auth";
 import {
   type DemonstrationTypeTagAssignmentQueryResult,
   selectDemonstrationTypeTagAssignment,
   selectManyDemonstrationTypeTagAssignments,
 } from "./queries";
 import { PrismaTransactionClient } from "../../prismaClient";
+import { isAStatePointOfContactAssociatedWithDemonstration } from "../demonstration/demonstrationData";
+
+export const isAStatePointOfContactAssociatedWithDemonstrationTypeTagAssignment = (
+  userId: string
+): Prisma.DemonstrationTypeTagAssignmentWhereInput => ({
+  demonstration: isAStatePointOfContactAssociatedWithDemonstration(userId),
+});
 
 const getPermissionFilters = (userId: string) =>
   ({
@@ -21,9 +23,8 @@ const getPermissionFilters = (userId: string) =>
         },
       },
     },
-    "View DemonstrationTypeTagAssignments on Assigned Demonstrations": {
-      demonstration: isStatePointOfContactOnDemonstration(userId),
-    },
+    "View DemonstrationTypeTagAssignments on Assigned Demonstrations":
+      isAStatePointOfContactAssociatedWithDemonstrationTypeTagAssignment(userId),
   }) satisfies PermissionFilters<Prisma.DemonstrationTypeTagAssignmentWhereInput>;
 
 export async function getDemonstrationTypeTagAssignment(
