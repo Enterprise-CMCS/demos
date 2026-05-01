@@ -1,12 +1,12 @@
 pipeline {
   agent {
-    kubernetes { 
-      yaml kubeBlock(containerNames:["node", "scanner", "snyk","aws-cli"], opts: [
-        NODE_IMAGE: "artifactory.cloud.cms.gov/docker/node:24-alpine"
+    kubernetes {
+      yaml kubeBlock(containerNames:['node', 'scanner', 'snyk', 'aws-cli'], opts: [
+        NODE_IMAGE: 'artifactory.cloud.cms.gov/docker/node:24-alpine'
       ])
     }
   }
-  
+
   options {
     disableConcurrentBuilds(abortPrevious: true)
     buildDiscarder(retentionPolicy(env.BRANCH_NAME))
@@ -30,17 +30,17 @@ pipeline {
     stage('Server - Snyk') {
       steps {
         script {
-          if (hasChange("server")) {
+          if (hasChange('server')) {
             snykScan('server')
           }
-        } 
+        }
       }
     }
 
     stage('Server - Lint') {
       steps {
         script {
-          if (hasChange("server")) {
+          if (hasChange('server')) {
             dirCon('server', 'node') {
               sh '''
               # Ensure shared_library is installed and built before installing server deps
@@ -63,40 +63,27 @@ pipeline {
       }
     }
 
-    stage('Server - Unit Test') {
-      steps {
-        script {
-          if (hasChange("server")) {
-            dirCon('server', 'node') {
-              sh '''
-                npm run coverage:ci
-                '''
-            }
-          } 
-        }
-      }
-    }
-
     stage('Server - Concurrent Steps') {
       parallel {
-        stage('Server - Sonar Scan') {
+        stage('Server - Unit Test') {
           steps {
             script {
-              if (hasChange("server")) {
-                sonarQubeScan(
-                  projectKey: 'demos-server',
-                  credentialsId: 'sonarqube-demos-all',
-                  projectBaseDir: 'server',
-                  sonarqubeFlags: [
-                    "javascript.lcov.reportPaths": "coverage/lcov.info",
-                    "testExecutionReportPaths": "coverage/test-results.xml",
-                    "pullrequest.key": env.CHANGE_ID ?: null,
-                    "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
-                    "pullrequest.base": env.CHANGE_TARGET ?: null,
-                    "exclusions": "**/*.test.ts,**/*.sql,src/seeder.ts",
-                    "cpd.exclusions": "src/prismaClient.ts"
-                  ]
-                )
+              if (hasChange('server')) {
+                dirCon('server', 'node') {
+                  sh '''
+                  npm run coverage:ci
+                  '''
+                }
+              }
+            }
+          }
+        }
+
+        stage('Server - Code Scan') {
+          steps {
+            script {
+              if (hasChange('server')) {
+                snykCodeScan('server')
               }
             }
           }
@@ -141,7 +128,7 @@ pipeline {
   }
   post {
     failure {
-      slackPipelineFail("Server")
+      slackPipelineFail('Server')
     }
     always {
       cleanWs(deleteDirs: true)
