@@ -29,7 +29,6 @@ import {
   resolveDeliverableStatus,
   resolveDeliverableDueDateType,
   resolveDemonstration,
-  resolveDeliverableCmsOwner,
   deliverableResolvers,
 } from "./deliverableResolvers";
 
@@ -243,6 +242,18 @@ describe("deliverableResolvers", () => {
     });
   });
 
+  describe("Deliverable.cmsOwner", () => {
+    it("delegates to `userData.getUser`", async () => {
+      const mockDeliverable = { cmsOwnerUserId: testUserId } as PrismaDeliverable;
+      await deliverableResolvers.Deliverable.cmsOwner(
+        mockDeliverable,
+        undefined,
+        testContext as GraphQLContext
+      );
+      expect(getUser).toHaveBeenCalledExactlyOnceWith({ id: testUserId }, testContext.user);
+    });
+  });
+
   describe("resolveDeliverable", () => {
     it("should throw if given something not supported", async () => {
       await expect(
@@ -355,15 +366,6 @@ describe("deliverableResolvers", () => {
       await resolveDemonstration(testDeliverable as PrismaDeliverable);
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testDemonstrationId, {
         applicationTypeId: "Demonstration",
-      });
-    });
-  });
-
-  describe("resolveDeliverableCmsOwner", () => {
-    it("should query the CMS owner user of the parent deliverable", async () => {
-      await resolveDeliverableCmsOwner(testDeliverable as PrismaDeliverable);
-      expect(getUser).toHaveBeenCalledExactlyOnceWith({
-        id: testUserId,
       });
     });
   });

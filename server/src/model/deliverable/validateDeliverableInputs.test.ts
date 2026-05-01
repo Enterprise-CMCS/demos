@@ -36,7 +36,7 @@ vi.mock("../application", () => ({
   getApplication: vi.fn(),
 }));
 
-vi.mock("../user", () => ({
+vi.mock("../user/queries", () => ({
   getUser: vi.fn(),
 }));
 
@@ -57,7 +57,7 @@ vi.mock(".", () => ({
 }));
 
 import { getApplication } from "../application";
-import { getUser } from "../user";
+import { getUser } from "../user/queries";
 import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
 import {
   checkDeliverableHasAtLeastOneDocument,

@@ -212,6 +212,7 @@ async function seedDeliverables(actionUserId: string) {
   const context = {
     user: {
       id: actionUserId,
+      personTypeId: "demos-admin",
     },
   } as GraphQLContext;
 

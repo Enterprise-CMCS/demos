@@ -25,7 +25,6 @@ import {
   updateDocument as updateDocumentResolver,
   deleteDocument,
   deleteDocuments,
-  resolveOwner,
   resolveApplication,
   documentResolvers,
   resolveHasPendingUIPathResult,
@@ -207,6 +206,16 @@ describe("documentResolvers", () => {
 
       const result = documentResolvers.Document.phaseName(document);
       expect(result).toBe(document.phaseId);
+    });
+  });
+
+  describe("Document.owner", () => {
+    it("delegates to userData.getUser", () => {
+      documentResolvers.Document.owner(mockDocument, undefined, mockContext);
+      expect(getUser).toHaveBeenCalledExactlyOnceWith(
+        { id: mockDocument.ownerUserId },
+        mockContext.user
+      );
     });
   });
 
@@ -420,18 +429,6 @@ describe("documentResolvers", () => {
 
       expect(handleDeleteDocument).not.toHaveBeenCalled();
       expect(result).toBe(0);
-    });
-  });
-
-  describe("resolveOwner", () => {
-    it("should resolve document owner", async () => {
-      vi.mocked(getUser).mockResolvedValue(mockUser);
-
-      const result = await resolveOwner(mockDocument);
-
-      expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
-      expect(getUser).toHaveBeenCalledExactlyOnceWith({ id: "user-123" }, mockTransaction);
-      expect(result).toEqual(mockUser);
     });
   });
 
