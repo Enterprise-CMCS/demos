@@ -17,9 +17,6 @@ export const isAStatePointOfContactAssociatedWithUser = (
       },
     },
     {
-      person: isAStatePointOfContactAssociatedWithPerson(userId),
-    },
-    {
       documents: {
         some: isAStatePointOfContactAssociatedWithDocument(userId),
       },
