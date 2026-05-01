@@ -11,6 +11,7 @@ import {
   aws_ec2,
   Tags,
   aws_s3_notifications,
+  aws_iam,
 } from "aws-cdk-lib";
 
 import { Construct } from "constructs";
@@ -113,6 +114,42 @@ export class FileUploadStack extends Stack {
         },
       ],
     });
+
+    const dataConnectBucket = new Bucket(this, "DataConnectBucket", {
+      bucketName: `demos-${props.stage}-dataconnect`,
+      versioned: true,
+      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      publicReadAccess: false,
+      serverAccessLogsBucket: s3AccessLogBucket,
+      serverAccessLogsPrefix: "dataconnect/",
+      enforceSSL: true,
+      eventBridgeEnabled: true,
+      blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
+    });
+
+    dataConnectBucket.addToResourcePolicy(new aws_iam.PolicyStatement({
+      effect: aws_iam.Effect.ALLOW,
+      principals: [
+        new aws_iam.ArnPrincipal(props.dataConnectRoleArn)
+      ],
+      actions: [
+        "s3:GetBucketLocation",
+        "s3:GetObject",
+        "s3:GetObjectTagging",
+        "s3:ListBucket",
+        "s3:ListBucketMultipartUploads",
+        "s3:ListMultipartUploadParts"
+      ],
+      resources: [
+        dataConnectBucket.bucketArn,
+        dataConnectBucket.arnForObjects("*"),
+      ]
+    }))
+
+     if (!props.isEphemeral) {
+      Tags.of(dataConnectBucket).add("AWS_Backup", backupTags.d15_w90);
+    }
 
     const uploadBucketCfn = uploadBucket.node.defaultChild as aws_s3.CfnBucket;
     uploadBucketCfn.cfnOptions.metadata = {

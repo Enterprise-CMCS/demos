@@ -52,6 +52,9 @@ describe("File Upload Stack", () => {
         },
       ]),
     });
+
+    template.resourceCountIs("AWS::S3::Bucket", 7)
+
   });
 
   test("should create proper resources when ephemeral", () => {
