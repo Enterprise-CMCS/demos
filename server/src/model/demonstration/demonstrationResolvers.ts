@@ -226,7 +226,7 @@ export const resolvePrimaryProjectOfficer = async (
   if (!primaryProjectOfficerAssignment) {
     throw new Error(`Primary project officer not found for demonstration with id ${parent.id}`);
   }
-  return getPerson({ id: primaryProjectOfficerAssignment.personId });
+  return getPerson({ id: primaryProjectOfficerAssignment.personId }, context.user);
 };
 
 export const demonstrationResolvers = {

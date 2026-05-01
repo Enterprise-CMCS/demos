@@ -1,16 +1,20 @@
 import { Prisma } from "@prisma/client";
-import {
-  buildAuthorizationFilter,
-  isStatePointOfContactOnDemonstration,
-  PermissionFilters,
-  ContextUser,
-} from "../../auth";
+import { buildAuthorizationFilter, PermissionFilters, ContextUser } from "../../auth";
 import {
   type DeliverableDemonstrationTypeQueryResult,
   selectDeliverableDemonstrationType,
   selectManyDeliverableDemonstrationTypes,
 } from "./queries";
 import { PrismaTransactionClient } from "../../prismaClient";
+import { isAStatePointOfContactAssociatedWithDemonstration } from "../demonstration/demonstrationData";
+
+export const isAStatePointOfContactAssociatedWithDeliverableDemonstrationType = (
+  userId: string
+): Prisma.DeliverableDemonstrationTypeWhereInput => ({
+  deliverable: {
+    demonstration: isAStatePointOfContactAssociatedWithDemonstration(userId),
+  },
+});
 
 const getPermissionFilters = (userId: string) =>
   ({
@@ -21,11 +25,8 @@ const getPermissionFilters = (userId: string) =>
         },
       },
     },
-    "View DeliverableDemonstrationTypes on Assigned Demonstrations": {
-      deliverable: {
-        demonstration: isStatePointOfContactOnDemonstration(userId),
-      },
-    },
+    "View DeliverableDemonstrationTypes on Assigned Demonstrations":
+      isAStatePointOfContactAssociatedWithDeliverableDemonstrationType(userId),
   }) satisfies PermissionFilters<Prisma.DeliverableDemonstrationTypeWhereInput>;
 
 export async function getDeliverableDemonstrationType(

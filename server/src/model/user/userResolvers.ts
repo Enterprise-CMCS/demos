@@ -20,7 +20,8 @@ export const userResolvers = {
       getUser({ id: context.user.id }, context.user),
   },
   User: {
-    person: (parent: PrismaUser) => getPerson({ id: parent.id }),
+    person: (parent: PrismaUser, args: unknown, context: GraphQLContext) =>
+      getPerson({ id: parent.id }, context.user),
     events: resolveEvents,
     ownedDocuments: (parent: PrismaUser, args: unknown, context: GraphQLContext) =>
       getManyDocuments({ ownerUserId: parent.id }, context.user),
