@@ -29,7 +29,7 @@ describe("CommentBoxTabs", () => {
 
   it("shows the public tab content by default", () => {
     setup();
-    expect(screen.getByText("These comments wil be visible to the state")).toBeInTheDocument();
+    expect(screen.getByText("These comments wil be visible to the State")).toBeInTheDocument();
   });
 
   it("calls setCommentVisibility with 'private' when the Private tab is clicked", async () => {
