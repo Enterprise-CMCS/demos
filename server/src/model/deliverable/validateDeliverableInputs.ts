@@ -12,12 +12,12 @@ import {
 } from ".";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { getApplication } from "../application";
+import { getUser } from "../user/queries";
 import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
 import { GraphQLError } from "graphql";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { GraphQLContext } from "../../auth";
 import { PersonType } from "../../types";
-import { selectUser } from "../user/queries";
 
 // This probably will be modified when permissions are updated more generally
 // Temporary solution for deliverables
@@ -42,7 +42,7 @@ export async function validateCreateDeliverableInput(
     applicationTypeId: "Demonstration",
     tx: tx,
   });
-  const cmsOwnerUser = await selectUser({ id: input.cmsOwnerUserId }, tx);
+  const cmsOwnerUser = await getUser({ id: input.cmsOwnerUserId }, tx);
   const demonstrationTypeAssignments = await getDemonstrationTypeAssignments(
     {
       demonstrationId: input.demonstrationId,
@@ -53,9 +53,7 @@ export async function validateCreateDeliverableInput(
   const errors: (string | undefined)[] = [];
   errors.push(
     checkDemonstrationStatus(demonstration),
-    cmsOwnerUser
-      ? checkOwnerPersonType(cmsOwnerUser)
-      : `CMS Owner user with id ${input.cmsOwnerUserId} does not exist.`,
+    checkOwnerPersonType(cmsOwnerUser),
     checkDueDateInFuture(input.dueDate)
   );
   if (input.demonstrationTypes && input.demonstrationTypes.size > 0) {
@@ -92,12 +90,8 @@ export async function validateUpdateDeliverableInput(
   errors.push(checkDeliverableStatusNotFinalized(deliverable));
 
   if (input.cmsOwnerUserId) {
-    const cmsOwnerUser = await selectUser({ id: input.cmsOwnerUserId }, tx);
-    if (!cmsOwnerUser) {
-      errors.push(`CMS Owner user with id ${input.cmsOwnerUserId} does not exist.`);
-    } else {
-      errors.push(checkOwnerPersonType(cmsOwnerUser));
-    }
+    const cmsOwnerUser = await getUser({ id: input.cmsOwnerUserId }, tx);
+    errors.push(checkOwnerPersonType(cmsOwnerUser));
   }
 
   if (input.demonstrationTypes && input.demonstrationTypes.size > 0) {
