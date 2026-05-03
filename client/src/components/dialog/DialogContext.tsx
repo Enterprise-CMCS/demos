@@ -37,6 +37,7 @@ import type {
 import { WorkflowApplicationType } from "components/application";
 import { AddDeliverableSlotDemonstration } from "./deliverable/AddDeliverableSlotDialog";
 import type { DeliverableTableRow } from "components/table/tables/DeliverableTable";
+import { RequestResubmissionDeliverableDialog, RequestResubmissionDeliverableDialogDeliverable } from "./deliverable/RequestResubmissionDeliverableDialog";
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -253,6 +254,17 @@ export const useDialog = () => {
     );
   };
 
+  const showRequestResubmissionDeliverableDialog = (
+    deliverable: RequestResubmissionDeliverableDialogDeliverable
+  ) => {
+    context.showDialog(
+      <RequestResubmissionDeliverableDialog
+        onClose={context.hideDialog}
+        deliverable={deliverable}
+      />
+    );
+  };
+
   const showEditDeliverableDialog = (
     deliverable: DeliverableTableRow,
     onSave?: (input: EditDeliverableInput, reasonForChange?: string) => Promise<void> | void
@@ -307,5 +319,6 @@ export const useDialog = () => {
     showAddDeliverableSlotDialog,
     showEditDeliverableDialog,
     showRequestExtensionDeliverableDialog,
+    showRequestResubmissionDeliverableDialog,
   };
 };
