@@ -77,6 +77,20 @@ type ApprovalSummaryPhaseProps = {
   demonstrationStatus: ApplicationStatus;
 };
 
+const getReadonlyFields = (data: ApplicationDetailsFormData) => ({
+  name: !!data.name,
+  effectiveDate: !!data.effectiveDate,
+  description: !!data.description,
+  signatureLevel: !!data.signatureLevel,
+  ...(data.applicationType === "demonstration" && {
+    stateId: !!data.stateId,
+    projectOfficerId: !!data.projectOfficerId,
+    status: !!data.status,
+    expirationDate: !!data.expirationDate,
+    sdgDivision: !!data.sdgDivision,
+  }),
+});
+
 export const getDemonstrationApprovalSummaryFormData = (
   demonstration: ApplicationWorkflowDemonstration
 ): ApplicationDetailsFormData => {
@@ -383,6 +397,11 @@ export const ApprovalSummaryPhase = ({
         dateValue: null,
       });
 
+      setApprovalSummaryFormData((previousFormData) => ({
+        ...previousFormData,
+        readonlyFields: getReadonlyFields(previousFormData), // Recalculate readonly fields based on current form data when marking incomplete
+      }));
+
       setApplicationDetailsUIState(false);
     } catch (error) {
       console.error("Failed to set Completion Date:", error);
@@ -420,7 +439,9 @@ export const ApprovalSummaryPhase = ({
 
       setApprovalSummaryFormData((previousFormData) => ({
         ...previousFormData,
-        status: "Approved",
+        readonlyFields: Object.fromEntries(
+          Object.keys(previousFormData.readonlyFields).map((key) => [key, true])
+        ) as typeof previousFormData.readonlyFields,
       }));
 
       setApprovalSummaryCompletionDate(formatDate(today));
