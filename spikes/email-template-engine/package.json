@@ -1,0 +1,17 @@
+{
+  "name": "email-template-engine",
+  "version": "1.0.0",
+  "description": "Email template Engine to be user with emaoler lambda",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "render:deliverable-created": "node scripts/render-deliverable-created.js",
+    "render:test-email": "node scripts/render-test-email.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "axios": "^1.16.0"
+  }
+}
