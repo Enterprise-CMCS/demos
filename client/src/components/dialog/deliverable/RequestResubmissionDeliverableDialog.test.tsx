@@ -22,6 +22,7 @@ import {
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "../DialogContext";
+import { DELIVERABLE_DETAILS_QUERY } from "pages/deliverables/DeliverableDetailsManagementPage";
 
 const mockShowSuccess = vi.fn();
 const mockShowError = vi.fn();
@@ -193,7 +194,10 @@ describe("RequestResubmissionDeliverableDialog", () => {
           details: "Missing documentation",
         },
       },
-      refetchQueries: ["GetDeliverable"],
+      refetchQueries: [{
+        query: DELIVERABLE_DETAILS_QUERY,
+        variables: { id: "deliverable-1" },
+      }],
       awaitRefetchQueries: true,
     });
 

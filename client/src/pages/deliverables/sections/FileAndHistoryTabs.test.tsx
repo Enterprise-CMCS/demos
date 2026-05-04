@@ -13,17 +13,12 @@ import { HISTORY_TAB_NAME } from "./HistoryTab";
 
 const mockShowRequestResubmissionDeliverableDialog = vi.fn();
 
-vi.mock("components/dialog/DialogContext", async () => {
-  const actual = await vi.importActual("components/dialog/DialogContext");
-
-  return {
-    ...actual,
-    useDialog: () => ({
-      showRequestResubmissionDeliverableDialog:
-        mockShowRequestResubmissionDeliverableDialog,
-    }),
-  };
-});
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({
+    showRequestResubmissionDeliverableDialog:
+      mockShowRequestResubmissionDeliverableDialog,
+  }),
+}));
 
 const setup = (overrides?: Partial<typeof MOCK_DELIVERABLE_1>) =>
   render(

@@ -11,6 +11,7 @@ import { DeliverableStatus } from "demos-server";
 import { formatDateForServer } from "util/formatDate";
 
 import { isBefore, isValid, parseISO } from "date-fns";
+import { DELIVERABLE_DETAILS_QUERY } from "pages/deliverables/DeliverableDetailsManagementPage";
 
 export const REQUEST_RESUBMISSION_DIALOG_TITLE = "Request Resubmission";
 export const REQUEST_RESUBMISSION_DIALOG_NAME = "request-resubmission-dialog";
@@ -128,7 +129,10 @@ export const RequestResubmissionDeliverableDialog: React.FC<
             details: formData.details.trim(),
           },
         },
-        refetchQueries: ["GetDeliverable"],
+        refetchQueries: [{
+          query: DELIVERABLE_DETAILS_QUERY,
+          variables: { id: deliverable.id },
+        }],
         awaitRefetchQueries: true,
       });
 

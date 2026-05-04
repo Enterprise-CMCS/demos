@@ -71,6 +71,16 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
       owner: { person: { fullName: "Tess Davenport" } },
     },
   ],
+  deliverableActions: [
+    {
+      id: "action-0",
+      actionType: "Created Deliverable Slot",
+    },
+    {
+      id: "action-1",
+      actionType: "Requested Resubmission",
+    },
+  ],
 };
 
 export const deliverableMocks: MockedResponse[] = [

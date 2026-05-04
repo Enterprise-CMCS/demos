@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { gql, useQuery } from "@apollo/client";
-import { Deliverable, Demonstration } from "demos-server";
+import { Deliverable, DeliverableAction, Demonstration } from "demos-server";
 import { Loading } from "components/loading/Loading";
 import { CommentBox } from "./sections/comment_box";
 import { DeliverableInfoFields } from "./sections/DeliverableInfoFields";
@@ -58,6 +58,10 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
           }
         }
       }
+      deliverableActions {
+        id
+        actionType
+      }
     }
   }
 `;
@@ -70,6 +74,7 @@ export type DeliverableDetailsManagementDeliverable = Pick<
   cmsOwner: { person: { fullName: string } };
   stateDocuments: DeliverableFileRow[];
   cmsDocuments: DeliverableFileRow[];
+  deliverableActions: Pick<DeliverableAction, "id" | "actionType">[];
 };
 
 export const DeliverableDetailsManagementPage: React.FC<{
