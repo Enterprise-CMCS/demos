@@ -15,6 +15,7 @@ const mockProps: DeploymentConfigProperties = {
   hostEnvironment: "dev",
   cloudfrontHost: "unittest.demos.com",
   srrConfigured: false,
+  dataConnectRoleArn: "arn:aws:iam::1234567890:role/dataconnectrole",
 };
 
 describe("BudgetNeutralityProcessor construct", () => {
