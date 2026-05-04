@@ -10,7 +10,7 @@ export function ReportsColumns() {
 
   return [
     columnHelper.accessor("id", {
-      header: "Report Type",
+      header: "Report Name",
       cell: highlightCell,
       enableColumnFilter: false,
     }),

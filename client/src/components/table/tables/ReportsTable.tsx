@@ -21,7 +21,7 @@ export const ReportsTable: React.FC = () => {
   }));
 
   return (
-    <div className="flex flex-col gap-[24px]">
+    <div className="flex flex-col">
       {reportsColumns && (
         <Table<ReportsTableRow> data={rows} columns={reportsColumns} />
       )}
