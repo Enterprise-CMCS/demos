@@ -105,10 +105,8 @@ export const buildAddDeliverableSlotPayloads = (
   }));
 };
 
-const hasValidDueDateForScheduleType = (
-  data: AddDeliverableSlotFormData,
-  today: string
-): boolean => {
+const hasValidDueDateForScheduleType = (data: AddDeliverableSlotFormData): boolean => {
+  const today = getTodayEst();
   if (data.scheduleType === "Single") {
     return data.dueDate.length > 0 && !isBefore(data.dueDate, today);
   }
@@ -117,12 +115,12 @@ const hasValidDueDateForScheduleType = (
   );
 };
 
-const formIsValid = (data: AddDeliverableSlotFormData, today: string): boolean =>
+const formIsValid = (data: AddDeliverableSlotFormData): boolean =>
   data.deliverableName.trim().length > 0 &&
   data.cmsOwnerUserId.length > 0 &&
   data.deliverableType.length > 0 &&
   data.scheduleType.length > 0 &&
-  hasValidDueDateForScheduleType(data, today) &&
+  hasValidDueDateForScheduleType(data) &&
   (!requiresDemonstrationTypes(data.deliverableType) || data.demonstrationTypes.length > 0);
 
 const formHasChanges = (data: AddDeliverableSlotFormData): boolean =>
@@ -154,8 +152,7 @@ export const AddDeliverableSlotDialog = ({
   const [formData, setFormData] = useState<AddDeliverableSlotFormData>(INITIAL_FORM_DATA);
   const [demonstrationYear, setDemonstrationYear] = useState<number>(1);
 
-  const today = getTodayEst();
-  const isFormValid = formIsValid(formData, today);
+  const isFormValid = formIsValid(formData);
   const hasFormChanges = formHasChanges(formData);
 
   return (

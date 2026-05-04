@@ -135,6 +135,25 @@ describe("DatePicker component", () => {
       rerender(<DatePicker {...requiredProps} value="" />);
       expect(input.value).toBe("");
     });
+
+    // Regression test for the year-typing bug. Native <input type="date"> fires input
+    // events with e.target.value === "" while the user is mid-typing the year subfield
+    // (the date is briefly incomplete). If DatePicker were a controlled <input value={value}>,
+    // React would write input.value = "" on every render, wiping the in-progress digits and
+    // making it impossible to type a year character-by-character. The defaultValue + ref-sync
+    // pattern guarantees React only touches the DOM when the value prop actually changes,
+    // so a parent re-render with the same value must NOT clobber the input's current state.
+    it("does not overwrite the input DOM value when re-rendered with the same value", () => {
+      const { rerender } = render(<DatePicker {...requiredProps} value="" />);
+      const input = screen.getByTestId("test-date") as HTMLInputElement;
+
+      // Simulate the browser's internal partial state during year typing
+      input.value = "2024-01-15";
+
+      rerender(<DatePicker {...requiredProps} value="" />);
+
+      expect(input.value).toBe("2024-01-15");
+    });
   });
 
   describe("Validation Message", () => {
