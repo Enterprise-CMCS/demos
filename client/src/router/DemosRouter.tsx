@@ -13,6 +13,7 @@ import { isLocalDevelopment } from "config/env";
 import { DemosLayoutProvider } from "./DemosLayoutProvider";
 import { DocumentDetailPage } from "pages/DocumentDetails/DocumentDetail";
 import { DeliverablesPage } from "pages/DeliverablesPage";
+import { ReportsPage } from "pages/ReportsPage";
 import { DeliverableDetailsManagementPage } from "pages/deliverables/DeliverableDetailsManagementPage";
 import { AdminPage } from "pages/admin/AdminPage";
 import { RequireAdmin } from "./RequireAdmin";
@@ -45,6 +46,7 @@ export const DemosRouter: React.FC = () => {
                   path="deliverables/:deliverableId"
                   element={<DeliverableDetailsManagementPage />}
                 />
+                <Route path="reports" element={<ReportsPage />} />
                 <Route
                   path="admin"
                   element={
