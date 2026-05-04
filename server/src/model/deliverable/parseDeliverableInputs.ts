@@ -1,4 +1,5 @@
 import {
+  ApproveDeliverableExtensionInput,
   CreateDeliverableInput,
   DeliverableExtensionReasonCode,
   DeliverableType,
@@ -42,6 +43,11 @@ export type ParsedRequestDeliverableExtensionInput = {
   reason: DeliverableExtensionReasonCode;
   details: NonEmptyString;
   requestedDueDate: EasternTZDate;
+};
+
+export type ParsedApproveDeliverableExtensionInput = {
+  deliverableExtensionId: string;
+  newDueDate?: EasternTZDate;
 };
 
 export function parseCreateDeliverableInput(
@@ -123,5 +129,20 @@ export function parseRequestDeliverableExtensionInput(
     reason: input.reason,
     details: input.details,
     requestedDueDate: parsedDueDate,
+  };
+}
+
+export function parseApproveDeliverableExtensionInput(
+  input: ApproveDeliverableExtensionInput
+): ParsedApproveDeliverableExtensionInput {
+  let parsedDueDate: EasternTZDate | undefined = undefined;
+  if (input.newDueDate) {
+    parsedDueDate = parseDateTimeOrLocalDateToEasternTZDate(input.newDueDate, "End of Day");
+    checkInputDateIsEndOfDay("dueDate", parsedDueDate);
+  }
+
+  return {
+    deliverableExtensionId: input.deliverableExtensionId,
+    newDueDate: parsedDueDate,
   };
 }

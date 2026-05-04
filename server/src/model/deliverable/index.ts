@@ -17,6 +17,7 @@ export { createDeliverable } from "./createDeliverable";
 export { resolveDeliverable, resolveManyDeliverables } from "./deliverableResolvers";
 export { manuallyUpdateDeliverableDueDate } from "./manuallyUpdateDeliverableDueDate";
 export {
+  parseApproveDeliverableExtensionInput,
   parseCreateDeliverableInput,
   parseRequestDeliverableExtensionInput,
   parseRequestDeliverableResubmissionInput,

@@ -1,4 +1,5 @@
 export { insertDeliverableExtension } from "./insertDeliverableExtension";
+export { selectDeliverableExtension } from "./selectDeliverableExtension";
 export { selectManyDeliverableExtensions } from "./selectManyDeliverableExtensions";
 export { updateDeliverableExtension } from "./updateDeliverableExtension";
 
