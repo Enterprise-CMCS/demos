@@ -10,7 +10,6 @@ import { PendingReviewNotice } from "./sections/PendingReviewNotice";
 import { DeliverableButtons } from "./sections/DeliverableButtons";
 import type { DeliverableFileRow } from "./sections/DeliverableFileTypes";
 import { EditAndDeleteButtonGroup } from "./sections/EditAndDeleteButtonGroup";
-import { useToast } from "components/toast";
 
 export const GET_DELIVERABLE_DETAILS_QUERY_NAME = "GetDeliverableDetails";
 export const DELIVERABLE_DETAILS_QUERY = gql`
@@ -81,7 +80,6 @@ export const DeliverableDetailsManagementPage: React.FC<{
   deliverableId?: string;
   onBack?: () => void;
 }> = ({ deliverableId, onBack }) => {
-  const { showError } = useToast();
   const [showAdditionalDetails, setShowAdditionalDetails] = useState(false);
   const [showPendingReviewNotice, setShowPendingReviewNotice] = useState(true);
   const navigate = useNavigate();
@@ -105,9 +103,6 @@ export const DeliverableDetailsManagementPage: React.FC<{
 
   const handleDeleteDeliverable = useCallback(() => {}, []);
   const handleEditDeliverable = useCallback(() => {}, []);
-  const handleRequestResubmission = useCallback(() => {
-    showError("Request resubmission is not available yet.");
-  }, [showError]);
 
   const handleBack = useCallback(() => {
     if (onBack) {
@@ -146,7 +141,6 @@ export const DeliverableDetailsManagementPage: React.FC<{
           {/* I'm sure these go somewhere but they arent in my spec sheet. Uncomment at your leisure */}
           <DeliverableButtons
             deliverable={data.deliverable}
-            onRequestResubmission={handleRequestResubmission}
           />
           <EditAndDeleteButtonGroup
             onDelete={handleDeleteDeliverable}
