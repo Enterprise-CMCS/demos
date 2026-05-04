@@ -1,9 +1,9 @@
 pipeline {
   agent {
     kubernetes {
-      yaml kubeBlock(containerNames:["node", "scanner","snyk"], opts: [
-        NODE_IMAGE: "artifactory.cloud.cms.gov/docker/node:24-alpine"
-      ])
+      yaml kubeBlock(containerNames:['node', 'snyk'], opts: [
+        NODE_IMAGE: 'artifactory.cloud.cms.gov/docker/node:24-alpine'
+    ])
     }
   }
 
@@ -16,7 +16,7 @@ pipeline {
     stage('Lambdas - Snyk - All') {
       steps {
         script {
-          if (hasChange("lambdas")) {
+          if (hasChange('lambdas')) {
             snykScan('lambdas/authorizer')
             snykScan('lambdas/dbRoleManagement')
             snykScan('lambdas/fileprocess')
@@ -35,13 +35,13 @@ pipeline {
         stage('Unit Test - Authorizer') {
           steps {
             script {
-              if (hasChange("lambdas")) {
+              if (hasChange('lambdas')) {
                 dirCon('lambdas/authorizer', 'node') {
                   sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
+                npm ci
+                npm run lint
+                npm run test
+                '''
                 }
               }
             }
@@ -50,13 +50,13 @@ pipeline {
         stage('Unit Test - DB Role Management') {
           steps {
             script {
-              if (hasChange("lambdas")) {
+              if (hasChange('lambdas')) {
                 dirCon('lambdas/dbRoleManagement', 'node') {
                   sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
+                npm ci
+                npm run lint
+                npm run test
+                '''
                 }
               }
             }
@@ -65,13 +65,13 @@ pipeline {
         stage('Unit Test - File Process') {
           steps {
             script {
-              if (hasChange("lambdas")) {
+              if (hasChange('lambdas')) {
                 dirCon('lambdas/fileprocess', 'node') {
                   sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
+                npm ci
+                npm run lint
+                npm run test
+                '''
                 }
               }
             }
@@ -80,13 +80,13 @@ pipeline {
         stage('Unit Test - UI Path') {
           steps {
             script {
-              if (hasChange("lambdas")) {
+              if (hasChange('lambdas')) {
                 dirCon('lambdas/UIPath', 'node') {
                   sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
+                npm ci
+                npm run lint
+                npm run test
+                '''
                 }
               }
             }
@@ -95,13 +95,13 @@ pipeline {
         stage('Unit Test - Delete Infected File') {
           steps {
             script {
-              if (hasChange("lambdas")) {
+              if (hasChange('lambdas')) {
                 dirCon('lambdas/deleteinfectedfile', 'node') {
                   sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
+                npm ci
+                npm run lint
+                npm run test
+                '''
                 }
               }
             }
@@ -110,13 +110,13 @@ pipeline {
         stage('Unit Test - Emailer') {
           steps {
             script {
-              if (hasChange("lambdas")) {
+              if (hasChange('lambdas')) {
                 dirCon('lambdas/emailer', 'node') {
                   sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
+                npm ci
+                npm run lint
+                npm run test
+                '''
                 }
               }
             }
@@ -125,13 +125,13 @@ pipeline {
         stage('Unit Test - budgetNeutrality') {
           steps {
             script {
-              if (hasChange("lambdas")) {
+              if (hasChange('lambdas')) {
                 dirCon('lambdas/budgetNeutrality', 'node') {
                   sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
+                npm ci
+                npm run lint
+                npm run test
+                '''
                 }
               }
             }
@@ -140,33 +140,11 @@ pipeline {
       }
     }
 
-    stage('Lambdas - Sonar Scan') {
+    stage('Lambdas - Code Scan') {
       steps {
         script {
-          if (hasChange("lambdas")) {
-            dirCon('lambdas', 'node') {
-              sh """
-                npx -y lcov-result-merger  '*/coverage/lcov.info' lcov-lambdas.info --prepend-source-files --prepend-path-fix
-              """
-            }
-            script {
-              sonarQubeScan(
-                projectKey: 'demos-lambdas',
-                credentialsId: 'sonarqube-demos-all',
-                projectBaseDir: 'lambdas',
-                sonarqubeFlags: [
-                  "javascript.lcov.reportPaths": "lcov-lambdas.info",
-                  "pullrequest.key": env.CHANGE_ID ?: null,
-                  "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
-                  "pullrequest.base": env.CHANGE_TARGET ?: null,
-                  "exclusions": "**/*.test.ts,**/*.test.tsx,**/coverage/**,**/jest.config.cjs,**/vite.config.ts",
-                  "cpd.exclusions": "**/log.ts,**/index.ts",
-                  "coverage.exclusions": "**/log.ts",
-                  "sources": "./",
-                  "tests": "./",
-                ]
-              )
-            }
+          if (hasChange('lambdas')) {
+            snykCodeScan('lambdas', [allProjects: true])
           }
         }
       }
@@ -175,7 +153,7 @@ pipeline {
 
   post {
     failure {
-      slackPipelineFail("Lambdas")
+      slackPipelineFail('Lambdas')
     }
     always {
       cleanWs(deleteDirs: true)

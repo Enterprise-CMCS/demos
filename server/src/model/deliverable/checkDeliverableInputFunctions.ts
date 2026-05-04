@@ -17,17 +17,30 @@ export function checkDemonstrationStatus(demonstration: PrismaDemonstration): st
   }
 }
 
+export function checkDeliverableHasStatus(
+  deliverable: PrismaDeliverable,
+  expectedStatuses: DeliverableStatus[]
+): string | undefined {
+  // Cast enforced by database constraints
+  const deliverableStatus = deliverable.statusId as DeliverableStatus;
+  if (!expectedStatuses.includes(deliverableStatus)) {
+    return (
+      `Deliverable expected to have one of status ${expectedStatuses.join(", ")}; ` +
+      `actual status was ${deliverableStatus}.`
+    );
+  }
+}
+
 export function checkDeliverableStatusNotFinalized(
   deliverable: PrismaDeliverable
 ): string | undefined {
   // Cast enforced by DB constraints
-  const deliverableStatus = deliverable.statusId as DeliverableStatus;
-  const finalDeliverableStatuses: DeliverableStatus[] = [
+  const result = checkDeliverableHasStatus(deliverable, [
     "Approved",
     "Accepted",
     "Received and Filed",
-  ];
-  if (finalDeliverableStatuses.includes(deliverableStatus)) {
+  ]);
+  if (result === undefined) {
     return `Cannot submit or modify deliverable ${deliverable.id} as it has already been finalized.`;
   }
 }
@@ -67,6 +80,16 @@ export function checkDueDateInFuture(dueDate: EasternTZDate): string | undefined
   const easternNow = getEasternNow()["Current Time"];
   if (dueDate.easternTZDate.valueOf() < easternNow.easternTZDate.valueOf()) {
     return `Cannot request a due date in the past; requested ${dueDate.easternTZDate}`;
+  }
+}
+
+export function checkNewDueDateIsAtLeastCurrentDueDate(
+  deliverable: PrismaDeliverable,
+  newDueDate: EasternTZDate
+): string | undefined {
+  const currentDate = deliverable.dueDate;
+  if (newDueDate.easternTZDate.valueOf() < currentDate.valueOf()) {
+    return `Newly requested due date cannot be less than the original due date; requested ${newDueDate.easternTZDate}.`;
   }
 }
 

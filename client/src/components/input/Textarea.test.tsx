@@ -9,8 +9,14 @@ describe("Textarea", () => {
   const defaultProps = {
     name: DEFAULT_TEXT_AREA_NAME,
     label: "Description",
-    initialValue: "",
+    value: "",
     onChange: () => {},
+  };
+
+  // Needed for tests that type into the textarea to test behavior
+  const ControlledTextarea: React.FC = () => {
+    const [value, setValue] = React.useState("");
+    return <Textarea name={DEFAULT_TEXT_AREA_NAME} label="Description" value={value} onChange={setValue} />;
   };
 
   it("renders with label and textarea", () => {
@@ -42,7 +48,7 @@ describe("Textarea", () => {
   describe("Auto-growing behavior", () => {
     it("grows to 2 rows when user adds one line break", async () => {
       const user = userEvent.setup();
-      render(<Textarea {...defaultProps} />);
+      render(<ControlledTextarea />);
 
       const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
 
@@ -58,7 +64,7 @@ describe("Textarea", () => {
 
     it("grows to 3 rows (max) with multiple line breaks", async () => {
       const user = userEvent.setup();
-      render(<Textarea {...defaultProps} />);
+      render(<ControlledTextarea />);
 
       const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
 
@@ -71,7 +77,7 @@ describe("Textarea", () => {
 
     it("does not grow on long single-line text", async () => {
       const user = userEvent.setup();
-      render(<Textarea {...defaultProps} />);
+      render(<ControlledTextarea />);
 
       const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
 
@@ -86,7 +92,7 @@ describe("Textarea", () => {
 
     it("shrinks back down when line breaks are removed", async () => {
       const user = userEvent.setup();
-      render(<Textarea {...defaultProps} />);
+      render(<ControlledTextarea />);
 
       const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
 
@@ -110,7 +116,7 @@ describe("Textarea", () => {
       render(
         <Textarea
           {...defaultProps}
-          initialValue="This is way too long"
+          value="This is way too long"
           getValidationMessage={getValidationMessage}
         />
       );
@@ -124,7 +130,7 @@ describe("Textarea", () => {
       render(
         <Textarea
           {...defaultProps}
-          initialValue="Short"
+          value="Short"
           getValidationMessage={getValidationMessage}
         />
       );
@@ -179,7 +185,7 @@ describe("Textarea", () => {
 
     it("handles text with only line breaks", async () => {
       const user = userEvent.setup();
-      render(<Textarea {...defaultProps} />);
+      render(<ControlledTextarea />);
 
       const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
 
@@ -192,7 +198,7 @@ describe("Textarea", () => {
 
     it("maintains row count with mixed content", async () => {
       const user = userEvent.setup();
-      render(<Textarea {...defaultProps} />);
+      render(<ControlledTextarea />);
 
       const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
 
@@ -201,6 +207,41 @@ describe("Textarea", () => {
 
       // Should be 4 lines, but capped at 3
       expect(textarea).toHaveAttribute("rows", "3");
+    });
+  });
+
+  describe("onEnterPress", () => {
+    it("calls onEnterPress when Enter is pressed", async () => {
+      const user = userEvent.setup();
+      const onEnterPress = vi.fn();
+      render(<Textarea {...defaultProps} onEnterPress={onEnterPress} />);
+
+      const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
+      await user.type(textarea, "{Enter}");
+
+      expect(onEnterPress).toHaveBeenCalledTimes(1);
+    });
+
+    it("does not call onEnterPress when Shift+Enter is pressed", async () => {
+      const user = userEvent.setup();
+      const onEnterPress = vi.fn();
+      render(<Textarea {...defaultProps} onEnterPress={onEnterPress} />);
+
+      const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
+      await user.type(textarea, "{Shift>}{Enter}{/Shift}");
+
+      expect(onEnterPress).not.toHaveBeenCalled();
+    });
+
+    it("does not call onEnterPress when onEnterPress is not provided", async () => {
+      const user = userEvent.setup();
+      render(<ControlledTextarea />);
+
+      const textarea = screen.getByTestId(DEFAULT_TEXT_AREA_NAME);
+      // Should not throw when Enter is pressed without onEnterPress
+      await user.type(textarea, "{Enter}");
+
+      expect(textarea).toHaveAttribute("rows", "2");
     });
   });
 });

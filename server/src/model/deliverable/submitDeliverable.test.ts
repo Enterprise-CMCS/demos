@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Types
+import { DeepPartial } from "../../testUtilities";
 import { GraphQLContext } from "../../auth";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 
@@ -30,12 +31,9 @@ import { insertDeliverableAction } from "../deliverableAction/queries";
 describe("submitDeliverable", () => {
   // Test inputs
   const testDeliverableId = "b18cf1ce-3e41-4a71-b4f4-585f343bc74f";
-  const testContext: GraphQLContext = {
+  const testContext: DeepPartial<GraphQLContext> = {
     user: {
       id: "57f92f14-7c5e-4c78-a774-5a54d7e9c2e7",
-      cognitoSubject: "82d0e8e4-82d0-447c-b1bb-52227e49cf51",
-      personTypeId: "demos-cms-user",
-      permissions: ["View All Demonstrations"],
     },
   };
 
@@ -73,7 +71,7 @@ describe("submitDeliverable", () => {
   });
 
   it("should get the deliverable before making changes", async () => {
-    await submitDeliverable(testDeliverableId, testContext);
+    await submitDeliverable(testDeliverableId, testContext as GraphQLContext);
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
       mockTransaction
@@ -81,7 +79,7 @@ describe("submitDeliverable", () => {
   });
 
   it("should call the validator on the unchanged deliverable", async () => {
-    await submitDeliverable(testDeliverableId, testContext);
+    await submitDeliverable(testDeliverableId, testContext as GraphQLContext);
     expect(validateSubmitDeliverableInput).toHaveBeenCalledExactlyOnceWith(
       mockUnsubmittedDeliverable,
       mockTransaction
@@ -89,7 +87,7 @@ describe("submitDeliverable", () => {
   });
 
   it("should call edit function to set the status to submitted", async () => {
-    await submitDeliverable(testDeliverableId, testContext);
+    await submitDeliverable(testDeliverableId, testContext as GraphQLContext);
     expect(editDeliverable).toHaveBeenCalledExactlyOnceWith(
       testDeliverableId,
       { statusId: "Submitted" },
@@ -98,7 +96,7 @@ describe("submitDeliverable", () => {
   });
 
   it("should log an action for the submission", async () => {
-    await submitDeliverable(testDeliverableId, testContext);
+    await submitDeliverable(testDeliverableId, testContext as GraphQLContext);
     expect(insertDeliverableAction).toHaveBeenCalledExactlyOnceWith(
       {
         deliverableId: testDeliverableId,
@@ -108,7 +106,7 @@ describe("submitDeliverable", () => {
         newStatus: mockSubmittedDeliverable.statusId,
         oldDueDate: mockUnsubmittedDeliverable.dueDate,
         newDueDate: mockSubmittedDeliverable.dueDate,
-        userId: testContext.user.id,
+        userId: testContext.user!.id,
       },
       mockTransaction
     );

@@ -27,7 +27,7 @@ export const FileAndHistoryTabs: React.FC<{
 
   return (
     <div data-testid={FILE_AND_HISTORY_TABS_NAME}>
-      <HorizontalSectionTabs defaultValue={TABS.STATE_FILES}>
+      <HorizontalSectionTabs defaultValue={TABS.STATE_FILES} variant="bordered">
         <Tab label={buildTabLabel("State Files", stateFiles.length)} value={TABS.STATE_FILES}>
           <StateFilesTab files={stateFiles} />
         </Tab>

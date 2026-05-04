@@ -175,9 +175,9 @@ export const RequestExtensionDeliverableDialog: React.FC<
           name={REQUEST_EXTENSION_DETAILS_FIELD_NAME}
           label="Details"
           isRequired
-          initialValue={formData.details}
+          value={formData.details}
           placeholder="Enter"
-          onChange={(event) => setFormData((prev) => ({ ...prev, details: event.target.value }))}
+          onChange={(value) => setFormData((prev) => ({ ...prev, details: value }))}
           getValidationMessage={(value) =>
             attemptedSubmit && value.trim() === "" ? "Details is required." : ""
           }
