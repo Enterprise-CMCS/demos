@@ -263,6 +263,7 @@ export const useDialog = () => {
       deliverableType: deliverable.deliverableType,
       dueDate: deliverable.dueDate,
       cmsOwner: { id: deliverable.cmsOwner.id },
+      demonstrationTypes: deliverable.demonstrationTypes,
     };
     const demonstrationTypeTags: Tag[] = deliverable.demonstration.demonstrationTypes.map(
       (dt: { demonstrationTypeName: string; approvalStatus: "Approved" | "Unapproved" }) => ({

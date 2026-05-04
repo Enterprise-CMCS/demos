@@ -1,10 +1,10 @@
-def changePaths =  ["client", "server/src/constants.ts", "server/src/types.ts"]
+def changePaths =  ['client', 'server/src/constants.ts', 'server/src/types.ts']
 
 pipeline {
   agent {
-    kubernetes { 
-      yaml kubeBlock(containerNames:["node", "scanner","snyk"], opts: [
-        NODE_IMAGE: "artifactory.cloud.cms.gov/docker/node:24-alpine"
+    kubernetes {
+      yaml kubeBlock(containerNames:['node', 'snyk'], opts: [
+        NODE_IMAGE: 'artifactory.cloud.cms.gov/docker/node:24-alpine'
       ])
     }
   }
@@ -78,32 +78,20 @@ pipeline {
       }
     }
 
-    stage('Client - Sonar Scan') {
-      steps {
-        script {
-          if (hasChange(changePaths)) {
-            sonarQubeScan(
-              projectKey: 'demos',
-              credentialsId: 'sonarqube-demos-all',
-              projectBaseDir: 'client',
-              sonarqubeFlags: [
-                "javascript.lcov.reportPaths": "coverage/lcov.info",
-                "testExecutionReportPaths": "coverage/test-results.xml",
-                "pullrequest.key": env.CHANGE_ID ?: null,
-                "pullrequest.branch": env.CHANGE_ID ? "${env.BRANCH_NAME}" : null,
-                "pullrequest.base": env.CHANGE_TARGET ?: null,
-                "exclusions": "**/*.test.ts,**/*.test.tsx,src/mock-data/**,src/pages/debug/**"
-              ]
-            )
+    stage('Client - Code Scan') {
+          steps {
+            script {
+              if (hasChange('client')) {
+            snykCodeScan('client')
+              }
+            }
           }
-        }
-      }
     }
   }
 
   post {
     failure {
-      slackPipelineFail("Client")
+      slackPipelineFail('Client')
     }
     always {
       cleanWs(deleteDirs: true)

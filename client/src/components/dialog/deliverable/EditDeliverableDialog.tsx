@@ -5,14 +5,16 @@ import { BaseDialog } from "components/dialog/BaseDialog";
 import { TextInput } from "components/input";
 import { useToast } from "components/toast";
 import { DeliverableType, DeliverableStatus, Tag } from "demos-server";
-import { format } from "date-fns";
+import { format, isBefore } from "date-fns";
 import { DELIVERABLE_UPDATED_MESSAGE } from "util/messages";
+import { getTodayEst } from "util/formatDate";
 
 import { CMSOwnerField } from "./fields/CMSOwnerField";
 import { DeliverableNameField } from "./fields/DeliverableNameField";
 import { DeliverableTypeField } from "./fields/DeliverableTypeField";
 import { DemonstrationTypeField } from "./fields/DemonstrationTypeField";
 import { SingleDeliverableScheduleType } from "./fields/schedule-type/SingleDeliverableScheduleType";
+import { requiresDemonstrationTypes } from "./AddDeliverableSlotDialog";
 
 export const EDIT_DELIVERABLE_DIALOG_TITLE = "Edit Deliverable";
 export const EDIT_DELIVERABLE_DIALOG_NAME = "edit-deliverable-dialog";
@@ -43,6 +45,7 @@ export interface EditDeliverableDialogDeliverable {
   deliverableType: DeliverableType;
   dueDate: Date;
   cmsOwner: { id: string };
+  demonstrationTypes: Tag[];
 }
 
 export interface EditDeliverableFormData {
@@ -61,7 +64,7 @@ export const buildInitialFormData = (
   name: deliverable.name,
   cmsOwnerUserId: deliverable.cmsOwner.id,
   dueDate: toIsoDate(deliverable.dueDate),
-  demonstrationTypes: [],
+  demonstrationTypes: deliverable.demonstrationTypes.map((tag) => tag.tagName),
   reasonForChange: "",
 });
 
@@ -70,16 +73,19 @@ export const dueDateChanged = (initialDueDate: string, currentDueDate: string): 
 
 export const formIsValid = (
   initial: EditDeliverableFormData,
-  current: EditDeliverableFormData
+  current: EditDeliverableFormData,
+  today: string,
+  deliverableType: DeliverableType
 ): boolean => {
   const requiredOk =
     current.name.trim().length > 0 &&
     current.cmsOwnerUserId.length > 0 &&
-    current.demonstrationTypes.length > 0;
+    (!requiresDemonstrationTypes(deliverableType) || current.demonstrationTypes.length > 0);
 
   if (!requiredOk) return false;
 
   if (dueDateChanged(initial.dueDate, current.dueDate)) {
+    if (isBefore(current.dueDate, today)) return false;
     return current.reasonForChange.trim().length > 0;
   }
 
@@ -116,8 +122,9 @@ export const EditDeliverableDialog: React.FC<EditDeliverableDialogProps> = ({
   const [formData, setFormData] = useState<EditDeliverableFormData>(initialFormData);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
 
+  const today = getTodayEst();
   const dueDateWasChanged = dueDateChanged(initialFormData.dueDate, formData.dueDate);
-  const isFormValid = formIsValid(initialFormData, formData);
+  const isFormValid = formIsValid(initialFormData, formData, today, deliverable.deliverableType);
   const hasChanges = formHasChanges(initialFormData, formData);
 
   const reasonInvalid =
@@ -190,7 +197,7 @@ export const EditDeliverableDialog: React.FC<EditDeliverableDialogProps> = ({
             onSelect={(selectedTypes) =>
               setFormData((prev) => ({ ...prev, demonstrationTypes: selectedTypes }))
             }
-            isRequired
+            isRequired={requiresDemonstrationTypes(deliverable.deliverableType)}
           />
         </div>
         {dueDateWasChanged && (

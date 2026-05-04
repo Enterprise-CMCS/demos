@@ -15,6 +15,7 @@ const mockCommonProps: DeploymentConfigProperties = {
   cloudfrontWafHeaderValue: "cloudfront-header-for-api",
   cloudfrontHost: "unittest.demos.com",
   srrConfigured: true,
+  dataConnectRoleArn: "arn:aws:iam::1234567890:role/dataconnectrole",
 };
 
 describe("UI Stack", () => {

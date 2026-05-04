@@ -13,11 +13,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "nodemailer": "^8.0.6",
+    "nodemailer": "^8.0.7",
     "pino": "^10.3.1"
   },
   "devDependencies": {
-    "@aws-sdk/client-ssm": "^3.1036.0",
+    "@aws-sdk/client-ssm": "^3.1041.0",
     "@types/aws-lambda": "^8.10.161",
     "@types/nodemailer": "^7.0.11",
     "@vitest/coverage-v8": "^4.1.5",
