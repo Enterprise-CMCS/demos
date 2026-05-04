@@ -23,6 +23,7 @@ import {
   checkDueDateInFuture,
   checkForDuplicateDemonstrationTypes,
   checkNewDueDateIsAtLeastCurrentDueDate,
+  checkNewDueDateIsGreaterThanCurrentDueDate,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
 } from "./checkDeliverableInputFunctions";
@@ -318,6 +319,54 @@ describe("checkDeliverableInputFunctions", () => {
       expect(result).toBe(
         "Newly requested due date cannot be less than the original due date; " +
           "requested Fri Dec 11 2026 23:59:59 GMT-0500 (Eastern Standard Time)."
+      );
+    });
+  });
+
+  describe("checkNewDueDateIsGreaterThanCurrentDueDate", () => {
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      dueDate: new Date(2026, 11, 13, 4, 59, 59, 999),
+    };
+
+    it("should return undefined if the new date is greater than the current due date", () => {
+      const testInput: EasternTZDate = parseJSDateToEasternTZDate(
+        new Date(2026, 11, 14, 4, 59, 59, 999)
+      );
+
+      const result = checkNewDueDateIsGreaterThanCurrentDueDate(
+        testDeliverable as PrismaDeliverable,
+        testInput
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it("should return an appropriate error message if the new due date is less than the current due date", () => {
+      const testInput: EasternTZDate = parseJSDateToEasternTZDate(
+        new Date(2026, 11, 12, 4, 59, 59, 999)
+      );
+
+      const result = checkNewDueDateIsGreaterThanCurrentDueDate(
+        testDeliverable as PrismaDeliverable,
+        testInput
+      );
+      expect(result).toBe(
+        "Newly requested due date cannot be less than or equal to the original due date; " +
+          "requested Fri Dec 11 2026 23:59:59 GMT-0500 (Eastern Standard Time)."
+      );
+    });
+
+    it("should return an appropriate error message if the new due date is equal to the current due date", () => {
+      const testInput: EasternTZDate = parseJSDateToEasternTZDate(
+        new Date(2026, 11, 13, 4, 59, 59, 999)
+      );
+
+      const result = checkNewDueDateIsGreaterThanCurrentDueDate(
+        testDeliverable as PrismaDeliverable,
+        testInput
+      );
+      expect(result).toBe(
+        "Newly requested due date cannot be less than or equal to the original due date; " +
+          "requested Sat Dec 12 2026 23:59:59 GMT-0500 (Eastern Standard Time)."
       );
     });
   });

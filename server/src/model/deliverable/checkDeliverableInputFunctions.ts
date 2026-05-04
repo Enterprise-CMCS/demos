@@ -100,6 +100,16 @@ export function checkNewDueDateIsAtLeastCurrentDueDate(
   }
 }
 
+export function checkNewDueDateIsGreaterThanCurrentDueDate(
+  deliverable: PrismaDeliverable,
+  newDueDate: EasternTZDate
+): string | undefined {
+  const currentDate = deliverable.dueDate;
+  if (newDueDate.easternTZDate.valueOf() <= currentDate.valueOf()) {
+    return `Newly requested due date cannot be less than or equal to the original due date; requested ${newDueDate.easternTZDate}.`;
+  }
+}
+
 export async function checkDeliverableHasAtLeastOneDocument(
   deliverable: PrismaDeliverable,
   tx: PrismaTransactionClient

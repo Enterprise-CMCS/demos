@@ -6,6 +6,7 @@ import {
   checkDemonstrationStatus,
   checkDueDateInFuture,
   checkNewDueDateIsAtLeastCurrentDueDate,
+  checkNewDueDateIsGreaterThanCurrentDueDate,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
   getDeliverable,
@@ -221,7 +222,7 @@ export async function validateRequestDeliverableExtensionInput(
     await checkDeliverableHasNoActiveExtension(deliverable, tx),
     checkDeliverableHasStatus(deliverable, ["Upcoming", "Past Due"]),
     checkDueDateInFuture(input.requestedDueDate),
-    checkNewDueDateIsAtLeastCurrentDueDate(deliverable, input.requestedDueDate)
+    checkNewDueDateIsGreaterThanCurrentDueDate(deliverable, input.requestedDueDate)
   );
 
   const cleanedErrors = errors.filter((e) => e !== undefined);

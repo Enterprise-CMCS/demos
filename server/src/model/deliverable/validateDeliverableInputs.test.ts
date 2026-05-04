@@ -54,6 +54,7 @@ vi.mock(".", () => ({
   checkDemonstrationStatus: vi.fn(),
   checkDueDateInFuture: vi.fn(),
   checkNewDueDateIsAtLeastCurrentDueDate: vi.fn(),
+  checkNewDueDateIsGreaterThanCurrentDueDate: vi.fn(),
   checkOwnerPersonType: vi.fn(),
   checkRequestedDeliverableDemonstrationType: vi.fn(),
   getDeliverable: vi.fn(),
@@ -70,6 +71,7 @@ import {
   checkDemonstrationStatus,
   checkDueDateInFuture,
   checkNewDueDateIsAtLeastCurrentDueDate,
+  checkNewDueDateIsGreaterThanCurrentDueDate,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
   getDeliverable,
@@ -1014,7 +1016,7 @@ describe("validateDeliverableInputs", () => {
     });
 
     it("should throw if the current vs new due date check fails", async () => {
-      vi.mocked(checkNewDueDateIsAtLeastCurrentDueDate).mockReturnValue(
+      vi.mocked(checkNewDueDateIsGreaterThanCurrentDueDate).mockReturnValue(
         "The current and new due date check failed!"
       );
 
@@ -1046,7 +1048,7 @@ describe("validateDeliverableInputs", () => {
       );
       vi.mocked(checkDeliverableHasStatus).mockReturnValue("The deliverable status check failed!");
       vi.mocked(checkDueDateInFuture).mockReturnValue("The future due date check failed!");
-      vi.mocked(checkNewDueDateIsAtLeastCurrentDueDate).mockReturnValue(
+      vi.mocked(checkNewDueDateIsGreaterThanCurrentDueDate).mockReturnValue(
         "The current and new due date check failed!"
       );
 
