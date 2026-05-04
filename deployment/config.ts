@@ -23,6 +23,7 @@ export interface DeploymentConfigProperties {
   cloudfrontWafHeaderValue?: string;
   zapHeaderValue?: string;
   srrConfigured: boolean;
+  dataConnectRoleArn: string;
 }
 
 export const determineDeploymentConfig = async (

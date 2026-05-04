@@ -16,9 +16,9 @@
     "build": "npx esbuild index.ts --bundle --platform=node --format=esm --outdir=dist"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1036.0",
-    "@aws-sdk/client-secrets-manager": "^3.1036.0",
-    "axios": "^1.15.2",
+    "@aws-sdk/client-s3": "^3.1041.0",
+    "@aws-sdk/client-secrets-manager": "^3.1041.0",
+    "axios": "^1.16.0",
     "axios-oauth-client": "^2.2.0",
     "dotenv": "^17.4.2",
     "file-type": "^21.3.4",
