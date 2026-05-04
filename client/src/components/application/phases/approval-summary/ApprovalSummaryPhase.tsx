@@ -439,6 +439,7 @@ export const ApprovalSummaryPhase = ({
 
       setApprovalSummaryFormData((previousFormData) => ({
         ...previousFormData,
+        status: "Approved",
         readonlyFields: Object.fromEntries(
           Object.keys(previousFormData.readonlyFields).map((key) => [key, true])
         ) as typeof previousFormData.readonlyFields,
