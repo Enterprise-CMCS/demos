@@ -3,10 +3,19 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
 
 // Types
+import { GraphQLContext } from "../../auth";
+import { DeepPartial } from "../../testUtilities";
 import { ApplicationStatus, PersonType } from "../../types";
-import { ParsedCreateDeliverableInput, ParsedUpdateDeliverableInput } from ".";
+import {
+  ParsedApproveDeliverableExtensionInput,
+  ParsedCreateDeliverableInput,
+  ParsedRequestDeliverableExtensionInput,
+  ParsedRequestDeliverableResubmissionInput,
+  ParsedUpdateDeliverableInput,
+} from ".";
 import {
   Deliverable as PrismaDeliverable,
+  DeliverableExtension as PrismaDeliverableExtension,
   Demonstration as PrismaDemonstration,
   DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
   User as PrismaUser,
@@ -16,8 +25,15 @@ import { EasternTZDate } from "../../dateUtilities";
 
 // Functions under test
 import {
+  validateApproveDeliverableExtensionInput,
+  validateCompleteDeliverableInput,
   validateCreateDeliverableInput,
+  validateRequestDeliverableExtensionInput,
+  validateRequestDeliverableResubmissionInput,
+  validateStartDeliverableReviewInput,
+  validateSubmitDeliverableInput,
   validateUpdateDeliverableInput,
+  validateUserPersonTypeAllowed,
 } from "./validateDeliverableInputs";
 
 // Mock imports
@@ -34,8 +50,15 @@ vi.mock("../demonstrationTypeTagAssignment", () => ({
 }));
 
 vi.mock(".", () => ({
+  checkDeliverableExtensionHasStatus: vi.fn(),
+  checkDeliverableHasAtLeastOneDocument: vi.fn(),
+  checkDeliverableHasNoActiveExtension: vi.fn(),
+  checkDeliverableHasStatus: vi.fn(),
+  checkDeliverableStatusNotFinalized: vi.fn(),
   checkDemonstrationStatus: vi.fn(),
   checkDueDateInFuture: vi.fn(),
+  checkNewDueDateIsAtLeastCurrentDueDate: vi.fn(),
+  checkNewDueDateIsGreaterThanCurrentDueDate: vi.fn(),
   checkOwnerPersonType: vi.fn(),
   checkRequestedDeliverableDemonstrationType: vi.fn(),
   getDeliverable: vi.fn(),
@@ -45,8 +68,15 @@ import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
 import {
+  checkDeliverableExtensionHasStatus,
+  checkDeliverableHasAtLeastOneDocument,
+  checkDeliverableHasNoActiveExtension,
+  checkDeliverableHasStatus,
+  checkDeliverableStatusNotFinalized,
   checkDemonstrationStatus,
   checkDueDateInFuture,
+  checkNewDueDateIsAtLeastCurrentDueDate,
+  checkNewDueDateIsGreaterThanCurrentDueDate,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
   getDeliverable,
@@ -80,6 +110,39 @@ describe("validateDeliverableInputs", () => {
     demonstrationId: mockDemonstration.id,
   };
   const mockTransaction: any = "Test!";
+
+  describe("validateUserPersonTypeAllowed", () => {
+    const testUserContext: DeepPartial<GraphQLContext> = {
+      user: {
+        id: "0a3bd415-39a3-4f72-a067-418a5219216a",
+        personTypeId: "demos-admin",
+      },
+    };
+
+    it("should not throw if the context is one of the permitted person types", () => {
+      const result = validateUserPersonTypeAllowed(
+        testUserContext as GraphQLContext,
+        "Combobulate",
+        ["demos-admin"]
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it("should throw if the context is not of the permitted person types", () => {
+      try {
+        validateUserPersonTypeAllowed(testUserContext as GraphQLContext, "Discombobulate", [
+          "demos-cms-user",
+        ]);
+        throw new Error("Expected validateUserPersonTypeAllowed to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(Error);
+        const error = e as Error;
+        expect(error.message).toBe(
+          "A user of type demos-admin is not permitted to perform the action Discombobulate."
+        );
+      }
+    });
+  });
 
   describe("validateCreateDeliverableInput", () => {
     const testInput: ParsedCreateDeliverableInput = {
@@ -317,6 +380,19 @@ describe("validateDeliverableInputs", () => {
       ).resolves.toBeUndefined();
     });
 
+    it("should always get the deliverable information from the DB", async () => {
+      const testInput: ParsedUpdateDeliverableInput = {
+        name: "A new name!",
+      };
+
+      await validateUpdateDeliverableInput(mockDeliverable.id!, testInput, mockTransaction);
+
+      expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+        { id: mockDeliverable.id },
+        mockTransaction
+      );
+    });
+
     it("should not throw if none of the rules are violated", async () => {
       // Note: don't need to set returns to undefined, as this is what vi.fn() does already
       const testInput: ParsedUpdateDeliverableInput = {
@@ -383,9 +459,33 @@ describe("validateDeliverableInputs", () => {
       };
 
       await validateUpdateDeliverableInput(mockDeliverable.id!, testInput, mockTransaction);
-      expect(getDeliverable).not.toHaveBeenCalled();
       expect(getDemonstrationTypeAssignments).not.toHaveBeenCalled();
       expect(checkRequestedDeliverableDemonstrationType).not.toHaveBeenCalled();
+    });
+
+    it("should throw if the deliverable status check fails", async () => {
+      const testInput: ParsedUpdateDeliverableInput = {
+        name: "A new name!",
+        cmsOwnerUserId: "7d8fdea5-ca19-42e5-af50-98836b6d47db",
+      };
+      vi.mocked(checkDeliverableStatusNotFinalized).mockReturnValue(
+        "The deliverable finalized status check failed!"
+      );
+
+      try {
+        await validateUpdateDeliverableInput(mockDeliverable.id!, testInput, mockTransaction);
+        throw new Error("Expected validateUpdateDeliverableInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for updateDeliverable have failed."
+        );
+        expect(error.extensions.code).toBe("UPDATE_DELIVERABLE_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable finalized status check failed!",
+        ]);
+      }
     });
 
     it("should throw if the owner person type check runs and fails", async () => {
@@ -481,6 +581,9 @@ describe("validateDeliverableInputs", () => {
           dateChangeNote: "Note is required",
         },
       };
+      vi.mocked(checkDeliverableStatusNotFinalized).mockReturnValue(
+        "The deliverable finalized status check failed!"
+      );
       vi.mocked(checkOwnerPersonType).mockReturnValue("The owner person type check failed");
       vi.mocked(checkRequestedDeliverableDemonstrationType).mockReturnValueOnce(
         "The demonstration type check failed"
@@ -497,8 +600,623 @@ describe("validateDeliverableInputs", () => {
         );
         expect(error.extensions.code).toBe("UPDATE_DELIVERABLE_VALIDATION_FAILED");
         expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable finalized status check failed!",
           "The owner person type check failed",
           "The demonstration type check failed",
+        ]);
+      }
+    });
+  });
+
+  describe("validateSubmitDeliverableInput", () => {
+    beforeEach(() => {
+      vi.resetAllMocks();
+    });
+
+    it("should not throw if none of the rules are violated", async () => {
+      // Note: don't need to set returns to undefined, as this is what vi.fn() does already
+      const testInput: Partial<PrismaDeliverable> = {
+        id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
+        statusId: "Upcoming",
+        cmsOwnerUserId: "7d8fdea5-ca19-42e5-af50-98836b6d47db",
+      };
+
+      await expect(
+        validateSubmitDeliverableInput(testInput as PrismaDeliverable, mockTransaction)
+      ).resolves.toBeUndefined();
+    });
+
+    it("should throw if the deliverable status check fails", async () => {
+      const testInput: Partial<PrismaDeliverable> = {
+        id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
+        statusId: "Approved",
+        cmsOwnerUserId: "7d8fdea5-ca19-42e5-af50-98836b6d47db",
+      };
+      vi.mocked(checkDeliverableStatusNotFinalized).mockReturnValue(
+        "The deliverable finalized status check failed!"
+      );
+
+      try {
+        await validateSubmitDeliverableInput(testInput as PrismaDeliverable, mockTransaction);
+        throw new Error("Expected validateSubmitDeliverableInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for submitDeliverable have failed."
+        );
+        expect(error.extensions.code).toBe("SUBMIT_DELIVERABLE_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable finalized status check failed!",
+        ]);
+      }
+    });
+
+    it("should throw if the deliverable document check failes", async () => {
+      const testInput: Partial<PrismaDeliverable> = {
+        id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
+        statusId: "Submitted",
+        cmsOwnerUserId: "7d8fdea5-ca19-42e5-af50-98836b6d47db",
+      };
+      vi.mocked(checkDeliverableHasAtLeastOneDocument).mockResolvedValue(
+        "The deliverable document check has failed!"
+      );
+
+      try {
+        await validateSubmitDeliverableInput(testInput as PrismaDeliverable, mockTransaction);
+        throw new Error("Expected validateSubmitDeliverableInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for submitDeliverable have failed."
+        );
+        expect(error.extensions.code).toBe("SUBMIT_DELIVERABLE_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable document check has failed!",
+        ]);
+      }
+    });
+
+    it("should combine all errors into one object", async () => {
+      const testInput: Partial<PrismaDeliverable> = {
+        id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
+        statusId: "Approved",
+        cmsOwnerUserId: "7d8fdea5-ca19-42e5-af50-98836b6d47db",
+      };
+      vi.mocked(checkDeliverableStatusNotFinalized).mockReturnValue(
+        "The deliverable finalized status check failed!"
+      );
+      vi.mocked(checkDeliverableHasAtLeastOneDocument).mockResolvedValue(
+        "The deliverable document check has failed!"
+      );
+
+      try {
+        await validateSubmitDeliverableInput(testInput as PrismaDeliverable, mockTransaction);
+        throw new Error("Expected validateSubmitDeliverableInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for submitDeliverable have failed."
+        );
+        expect(error.extensions.code).toBe("SUBMIT_DELIVERABLE_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable finalized status check failed!",
+          "The deliverable document check has failed!",
+        ]);
+      }
+    });
+  });
+
+  describe("validateStartDeliverableReviewInput", () => {
+    beforeEach(() => {
+      vi.resetAllMocks();
+    });
+
+    it("should not throw if none of the rules are violated", () => {
+      // Note: don't need to set returns to undefined, as this is what vi.fn() does already
+      const testInput: Partial<PrismaDeliverable> = {
+        id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
+        statusId: "Submitted",
+      };
+
+      expect(validateStartDeliverableReviewInput(testInput as PrismaDeliverable)).toBeUndefined();
+    });
+
+    it("should throw if the deliverable status check fails", () => {
+      const testInput: Partial<PrismaDeliverable> = {
+        id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
+        statusId: "Upcoming",
+      };
+      vi.mocked(checkDeliverableHasStatus).mockReturnValue("The deliverable status check failed!");
+
+      try {
+        validateStartDeliverableReviewInput(testInput as PrismaDeliverable);
+        throw new Error("Expected validateStartDeliverableReviewInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for startDeliverableReview have failed."
+        );
+        expect(error.extensions.code).toBe("START_DELIVERABLE_REVIEW_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable status check failed!",
+        ]);
+      }
+    });
+  });
+
+  describe("validateCompleteDeliverableInput", () => {
+    beforeEach(() => {
+      vi.resetAllMocks();
+    });
+
+    it("should not throw if none of the rules are violated", () => {
+      // Note: don't need to set returns to undefined, as this is what vi.fn() does already
+      const testInput: Partial<PrismaDeliverable> = {
+        id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
+        statusId: "Under CMS Review",
+      };
+
+      expect(validateCompleteDeliverableInput(testInput as PrismaDeliverable)).toBeUndefined();
+    });
+
+    it("should throw if the deliverable status check fails", () => {
+      const testInput: Partial<PrismaDeliverable> = {
+        id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
+        statusId: "Submitted",
+      };
+      vi.mocked(checkDeliverableHasStatus).mockReturnValue("The deliverable status check failed!");
+
+      try {
+        validateCompleteDeliverableInput(testInput as PrismaDeliverable);
+        throw new Error("Expected validateCompleteDeliverableInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for completeDeliverable have failed."
+        );
+        expect(error.extensions.code).toBe("COMPLETE_DELIVERABLE_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable status check failed!",
+        ]);
+      }
+    });
+  });
+
+  describe("validateRequestDeliverableResubmissionInput", () => {
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
+    };
+    const testInput: ParsedRequestDeliverableResubmissionInput = {
+      details: "Some details",
+      newDueDate: {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2026, 11, 1, 0, 0, 0, 0, "America/New_York"),
+      },
+    };
+
+    beforeEach(() => {
+      vi.resetAllMocks();
+    });
+
+    it("should not throw if none of the rules are violated", () => {
+      // Note: don't need to set returns to undefined, as this is what vi.fn() does already
+      expect(
+        validateRequestDeliverableResubmissionInput(testDeliverable as PrismaDeliverable, testInput)
+      ).toBeUndefined();
+    });
+
+    it("should throw if the deliverable status check fails", () => {
+      vi.mocked(checkDeliverableHasStatus).mockReturnValue("The deliverable status check failed!");
+
+      try {
+        validateRequestDeliverableResubmissionInput(
+          testDeliverable as PrismaDeliverable,
+          testInput
+        );
+        throw new Error(
+          "Expected validateRequestDeliverableResubmissionInput to throw, but it did not."
+        );
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for requestDeliverableResubmission have failed."
+        );
+        expect(error.extensions.code).toBe("REQUEST_DELIVERABLE_RESUBMISSION_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable status check failed!",
+        ]);
+      }
+    });
+
+    it("should throw if the future due date check fails", () => {
+      vi.mocked(checkDueDateInFuture).mockReturnValue("The future due date check failed!");
+
+      try {
+        validateRequestDeliverableResubmissionInput(
+          testDeliverable as PrismaDeliverable,
+          testInput
+        );
+        throw new Error(
+          "Expected validateRequestDeliverableResubmissionInput to throw, but it did not."
+        );
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for requestDeliverableResubmission have failed."
+        );
+        expect(error.extensions.code).toBe("REQUEST_DELIVERABLE_RESUBMISSION_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The future due date check failed!",
+        ]);
+      }
+    });
+
+    it("should throw if the current vs new due date check fails", () => {
+      vi.mocked(checkNewDueDateIsAtLeastCurrentDueDate).mockReturnValue(
+        "The current and new due date check failed!"
+      );
+
+      try {
+        validateRequestDeliverableResubmissionInput(
+          testDeliverable as PrismaDeliverable,
+          testInput
+        );
+        throw new Error(
+          "Expected validateRequestDeliverableResubmissionInput to throw, but it did not."
+        );
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for requestDeliverableResubmission have failed."
+        );
+        expect(error.extensions.code).toBe("REQUEST_DELIVERABLE_RESUBMISSION_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The current and new due date check failed!",
+        ]);
+      }
+    });
+
+    it("should combine all errors into one object", () => {
+      vi.mocked(checkDeliverableHasStatus).mockReturnValue("The deliverable status check failed!");
+      vi.mocked(checkDueDateInFuture).mockReturnValue("The future due date check failed!");
+      vi.mocked(checkNewDueDateIsAtLeastCurrentDueDate).mockReturnValue(
+        "The current and new due date check failed!"
+      );
+
+      try {
+        validateRequestDeliverableResubmissionInput(
+          testDeliverable as PrismaDeliverable,
+          testInput
+        );
+        throw new Error(
+          "Expected validateRequestDeliverableResubmissionInput to throw, but it did not."
+        );
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for requestDeliverableResubmission have failed."
+        );
+        expect(error.extensions.code).toBe("REQUEST_DELIVERABLE_RESUBMISSION_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable status check failed!",
+          "The future due date check failed!",
+          "The current and new due date check failed!",
+        ]);
+      }
+    });
+  });
+
+  describe("validateRequestDeliverableExtensionInput", () => {
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
+    };
+    const testInput: ParsedRequestDeliverableExtensionInput = {
+      reason: "Technical Difficulties",
+      details: "Some details",
+      requestedDueDate: {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2026, 11, 1, 0, 0, 0, 0, "America/New_York"),
+      },
+    };
+
+    beforeEach(() => {
+      vi.resetAllMocks();
+    });
+
+    it("should not throw if none of the rules are violated", async () => {
+      // Note: don't need to set returns to undefined, as this is what vi.fn() does already
+      await expect(
+        validateRequestDeliverableExtensionInput(
+          testDeliverable as PrismaDeliverable,
+          testInput,
+          mockTransaction
+        )
+      ).resolves.toBeUndefined();
+    });
+
+    it("should throw if the active extension check fails", async () => {
+      vi.mocked(checkDeliverableHasNoActiveExtension).mockResolvedValue(
+        "The active extenson check failed!"
+      );
+
+      try {
+        await validateRequestDeliverableExtensionInput(
+          testDeliverable as PrismaDeliverable,
+          testInput,
+          mockTransaction
+        );
+        throw new Error(
+          "Expected validateRequestDeliverableExtensionInput to throw, but it did not."
+        );
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for requestDeliverableExtension have failed."
+        );
+        expect(error.extensions.code).toBe("REQUEST_DELIVERABLE_EXTENSION_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The active extenson check failed!",
+        ]);
+      }
+    });
+
+    it("should throw if the deliverable status check fails", async () => {
+      vi.mocked(checkDeliverableHasStatus).mockReturnValue("The deliverable status check failed!");
+
+      try {
+        await validateRequestDeliverableExtensionInput(
+          testDeliverable as PrismaDeliverable,
+          testInput,
+          mockTransaction
+        );
+        throw new Error(
+          "Expected validateRequestDeliverableExtensionInput to throw, but it did not."
+        );
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for requestDeliverableExtension have failed."
+        );
+        expect(error.extensions.code).toBe("REQUEST_DELIVERABLE_EXTENSION_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable status check failed!",
+        ]);
+      }
+    });
+
+    it("should throw if the future due date check fails", async () => {
+      vi.mocked(checkDueDateInFuture).mockReturnValue("The future due date check failed!");
+
+      try {
+        await validateRequestDeliverableExtensionInput(
+          testDeliverable as PrismaDeliverable,
+          testInput,
+          mockTransaction
+        );
+        throw new Error(
+          "Expected validateRequestDeliverableExtensionInput to throw, but it did not."
+        );
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for requestDeliverableExtension have failed."
+        );
+        expect(error.extensions.code).toBe("REQUEST_DELIVERABLE_EXTENSION_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The future due date check failed!",
+        ]);
+      }
+    });
+
+    it("should throw if the current vs new due date check fails", async () => {
+      vi.mocked(checkNewDueDateIsGreaterThanCurrentDueDate).mockReturnValue(
+        "The current and new due date check failed!"
+      );
+
+      try {
+        await validateRequestDeliverableExtensionInput(
+          testDeliverable as PrismaDeliverable,
+          testInput,
+          mockTransaction
+        );
+        throw new Error(
+          "Expected validateRequestDeliverableExtensionInput to throw, but it did not."
+        );
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for requestDeliverableExtension have failed."
+        );
+        expect(error.extensions.code).toBe("REQUEST_DELIVERABLE_EXTENSION_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The current and new due date check failed!",
+        ]);
+      }
+    });
+
+    it("should combine all errors into one object", async () => {
+      vi.mocked(checkDeliverableHasNoActiveExtension).mockResolvedValue(
+        "The active extenson check failed!"
+      );
+      vi.mocked(checkDeliverableHasStatus).mockReturnValue("The deliverable status check failed!");
+      vi.mocked(checkDueDateInFuture).mockReturnValue("The future due date check failed!");
+      vi.mocked(checkNewDueDateIsGreaterThanCurrentDueDate).mockReturnValue(
+        "The current and new due date check failed!"
+      );
+
+      try {
+        await validateRequestDeliverableExtensionInput(
+          testDeliverable as PrismaDeliverable,
+          testInput,
+          mockTransaction
+        );
+        throw new Error(
+          "Expected validateRequestDeliverableExtensionInput to throw, but it did not."
+        );
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for requestDeliverableExtension have failed."
+        );
+        expect(error.extensions.code).toBe("REQUEST_DELIVERABLE_EXTENSION_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The active extenson check failed!",
+          "The deliverable status check failed!",
+          "The future due date check failed!",
+          "The current and new due date check failed!",
+        ]);
+      }
+    });
+  });
+
+  describe("validateApproveDeliverableExtensionInput", () => {
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      id: "edc74187-52b7-4310-8262-d1d5feee7084",
+    };
+    const testDeliverableExtension: Partial<PrismaDeliverableExtension> = {
+      id: "7e08fcc3-0e7d-4ed6-9a18-bc2033d0024a",
+    };
+    const testInput: ParsedApproveDeliverableExtensionInput = {
+      deliverableExtensionId: (testDeliverableExtension as PrismaDeliverable).id,
+      finalDateGranted: {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2026, 11, 1, 0, 0, 0, 0, "America/New_York"),
+      },
+    };
+
+    beforeEach(() => {
+      vi.resetAllMocks();
+    });
+
+    it("should not throw if none of the rules are violated", () => {
+      // Note: don't need to set returns to undefined, as this is what vi.fn() does already
+      expect(
+        validateApproveDeliverableExtensionInput(
+          testDeliverable as PrismaDeliverable,
+          testDeliverableExtension as PrismaDeliverableExtension,
+          testInput
+        )
+      ).toBeUndefined();
+    });
+
+    it("should throw if the deliverable status check fails", () => {
+      vi.mocked(checkDeliverableHasStatus).mockReturnValue("The deliverable status check failed!");
+
+      try {
+        validateApproveDeliverableExtensionInput(
+          testDeliverable as PrismaDeliverable,
+          testDeliverableExtension as PrismaDeliverableExtension,
+          testInput
+        );
+        throw new Error(
+          "Expected validateApproveDeliverableExtensionInput to throw, but it did not."
+        );
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for approveDeliverableExtension have failed."
+        );
+        expect(error.extensions.code).toBe("APPROVE_DELIVERABLE_EXTENSION_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable status check failed!",
+        ]);
+      }
+    });
+
+    it("should throw if the deliverable extension status check fails", () => {
+      vi.mocked(checkDeliverableExtensionHasStatus).mockReturnValue(
+        "The deliverable extension status check failed!"
+      );
+
+      try {
+        validateApproveDeliverableExtensionInput(
+          testDeliverable as PrismaDeliverable,
+          testDeliverableExtension as PrismaDeliverableExtension,
+          testInput
+        );
+        throw new Error(
+          "Expected validateApproveDeliverableExtensionInput to throw, but it did not."
+        );
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for approveDeliverableExtension have failed."
+        );
+        expect(error.extensions.code).toBe("APPROVE_DELIVERABLE_EXTENSION_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable extension status check failed!",
+        ]);
+      }
+    });
+
+    it("should throw if the future due date check fails", async () => {
+      vi.mocked(checkDueDateInFuture).mockReturnValue("The future due date check failed!");
+
+      try {
+        validateApproveDeliverableExtensionInput(
+          testDeliverable as PrismaDeliverable,
+          testDeliverableExtension as PrismaDeliverableExtension,
+          testInput
+        );
+        throw new Error(
+          "Expected validateApproveDeliverableExtensionInput to throw, but it did not."
+        );
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for approveDeliverableExtension have failed."
+        );
+        expect(error.extensions.code).toBe("APPROVE_DELIVERABLE_EXTENSION_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The future due date check failed!",
+        ]);
+      }
+    });
+
+    it("should combine all errors into one object", async () => {
+      vi.mocked(checkDeliverableHasStatus).mockReturnValue("The deliverable status check failed!");
+      vi.mocked(checkDeliverableExtensionHasStatus).mockReturnValue(
+        "The deliverable extension status check failed!"
+      );
+      vi.mocked(checkDueDateInFuture).mockReturnValue("The future due date check failed!");
+
+      try {
+        validateApproveDeliverableExtensionInput(
+          testDeliverable as PrismaDeliverable,
+          testDeliverableExtension as PrismaDeliverableExtension,
+          testInput
+        );
+        throw new Error(
+          "Expected validateApproveDeliverableExtensionInput to throw, but it did not."
+        );
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for approveDeliverableExtension have failed."
+        );
+        expect(error.extensions.code).toBe("APPROVE_DELIVERABLE_EXTENSION_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable status check failed!",
+          "The deliverable extension status check failed!",
+          "The future due date check failed!",
         ]);
       }
     });

@@ -2,22 +2,26 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Types
+import { DeepPartial } from "../../testUtilities";
 import {
   Deliverable as PrismaDeliverable,
   Demonstration as PrismaDemonstration,
   Document as PrismaDocument,
   User as PrismaUser,
 } from "@prisma/client";
-import { GraphQLContext } from "../../auth";
+import { ContextUser, GraphQLContext } from "../../auth";
 import { GraphQLResolveInfo } from "graphql";
 import {
+  ApproveDeliverableExtensionInput,
   CreateDeliverableInput,
   DateTimeOrLocalDate,
   DeliverableDueDateType,
   DeliverableStatus,
   DeliverableType,
+  RequestDeliverableExtensionInput,
   UpdateDeliverableInput,
 } from "../../types";
+import { DeliverableDemonstrationTypeQueryResult } from "../deliverableDemonstrationType/queries";
 
 // Functions under test
 import {
@@ -34,9 +38,15 @@ import {
 
 // Mock imports
 vi.mock(".", () => ({
+  approveDeliverableExtension: vi.fn(),
+  completeDeliverable: vi.fn(),
   createDeliverable: vi.fn(),
   getDeliverable: vi.fn(),
   getManyDeliverables: vi.fn(),
+  requestDeliverableExtension: vi.fn(),
+  requestDeliverableResubmission: vi.fn(),
+  startDeliverableReview: vi.fn(),
+  submitDeliverable: vi.fn(),
   updateDeliverable: vi.fn(),
 }));
 
@@ -53,17 +63,30 @@ vi.mock("../document", () => ({
 }));
 
 vi.mock("../deliverableDemonstrationType", () => ({
-  getDeliverableDemonstrationTypes: vi.fn(),
+  getManyDeliverableDemonstrationTypes: vi.fn(),
 }));
 
-import { createDeliverable, getDeliverable, getManyDeliverables, updateDeliverable } from ".";
+vi.mock("../deliverableAction", () => ({
+  getFormattedDeliverableActions: vi.fn(),
+}));
+
+import {
+  approveDeliverableExtension,
+  completeDeliverable,
+  createDeliverable,
+  getDeliverable,
+  getManyDeliverables,
+  requestDeliverableExtension,
+  requestDeliverableResubmission,
+  startDeliverableReview,
+  submitDeliverable,
+  updateDeliverable,
+} from ".";
 import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getManyDocuments } from "../document";
-import {
-  GetDeliverableDemonstrationTypeResult,
-  getDeliverableDemonstrationTypes,
-} from "../deliverableDemonstrationType";
+import { getManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
+import { getFormattedDeliverableActions } from "../deliverableAction";
 
 describe("deliverableResolvers", () => {
   const testDeliverableId = "82ef9a17-e8b9-48ab-9aaf-3d1787822b13";
@@ -97,11 +120,11 @@ describe("deliverableResolvers", () => {
     },
   };
 
-  const testContext: GraphQLContext = {
+  const testContext: DeepPartial<GraphQLContext> = {
     user: {
       id: "testUserId",
     },
-  } as GraphQLContext;
+  };
 
   const testDocumentWithDeliverableParent: Partial<PrismaDocument> = {
     deliverableId: testDeliverableId,
@@ -116,14 +139,136 @@ describe("deliverableResolvers", () => {
     id: testUserId,
   };
 
+  const mockUser = {} as unknown as ContextUser;
+  const mockContext: GraphQLContext = {
+    user: mockUser,
+  };
+
   beforeEach(() => {
     vi.resetAllMocks();
+  });
+
+  describe("Mutation.submitDeliverable", () => {
+    it("calls submitDeliverable with appropriate arguments", async () => {
+      await deliverableResolvers.Mutation.submitDeliverable(
+        undefined,
+        { id: testDeliverableId },
+        testContext as GraphQLContext
+      );
+      expect(submitDeliverable).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId,
+        testContext as GraphQLContext
+      );
+    });
+  });
+
+  describe("Mutation.startDeliverableReview", () => {
+    it("calls startDeliverableReview with appropriate arguments", async () => {
+      await deliverableResolvers.Mutation.startDeliverableReview(
+        undefined,
+        { id: testDeliverableId },
+        testContext as GraphQLContext
+      );
+      expect(startDeliverableReview).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId,
+        testContext
+      );
+    });
+  });
+
+  describe("Mutation.completeDeliverable", () => {
+    it("calls completeDeliverable with appropriate arguments", async () => {
+      await deliverableResolvers.Mutation.completeDeliverable(
+        undefined,
+        { id: testDeliverableId, finalStatus: "Approved" },
+        testContext as GraphQLContext
+      );
+      expect(completeDeliverable).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId,
+        "Approved",
+        testContext
+      );
+    });
+  });
+
+  describe("Mutation.requestDeliverableResubmission", () => {
+    it("calls requestDeliverableResubmission with appropriate arguments", async () => {
+      const testInput = {
+        details: "A change is gonna come",
+        newDueDate: "2025-11-13" as DateTimeOrLocalDate,
+      };
+
+      await deliverableResolvers.Mutation.requestDeliverableResubmission(
+        undefined,
+        {
+          id: testDeliverableId,
+          input: testInput,
+        },
+        testContext as GraphQLContext
+      );
+      expect(requestDeliverableResubmission).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId,
+        testInput,
+        testContext
+      );
+    });
+  });
+
+  describe("Mutation.requestDeliverableExtension", () => {
+    it("calls requestDeliverableExtension with appropriate arguments", async () => {
+      const testInput: RequestDeliverableExtensionInput = {
+        reason: "COVID-19",
+        details: "A change is gonna come",
+        requestedDueDate: "2025-11-13" as DateTimeOrLocalDate,
+      };
+
+      await deliverableResolvers.Mutation.requestDeliverableExtension(
+        undefined,
+        {
+          deliverableId: testDeliverableId,
+          input: testInput,
+        },
+        testContext as GraphQLContext
+      );
+      expect(requestDeliverableExtension).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId,
+        testInput,
+        testContext
+      );
+    });
+  });
+
+  describe("Mutation.approveDeliverableExtension", () => {
+    it("calls approveDeliverableExtension with appropriate arguments", async () => {
+      const testInput: ApproveDeliverableExtensionInput = {
+        deliverableExtensionId: "e0b332b7-2ecd-4058-a484-a3ecbb81344e",
+        newDueDate: "2025-11-13" as DateTimeOrLocalDate,
+      };
+
+      await deliverableResolvers.Mutation.approveDeliverableExtension(
+        undefined,
+        {
+          deliverableId: testDeliverableId,
+          input: testInput,
+        },
+        testContext as GraphQLContext
+      );
+      expect(approveDeliverableExtension).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId,
+        testInput,
+        testContext
+      );
+    });
   });
 
   describe("Deliverable.cmsDocuments", () => {
     it("delegates to `documentData.getManyDocuments` with CMS filter as true", async () => {
       const mockDeliverable = { id: testDeliverableId } as PrismaDeliverable;
-      await deliverableResolvers.Deliverable.cmsDocuments(mockDeliverable, undefined, testContext);
+      await deliverableResolvers.Deliverable.cmsDocuments(
+        mockDeliverable,
+        undefined,
+        testContext as GraphQLContext
+      );
       expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
         {
           AND: [{ deliverableId: testDeliverableId }, { deliverableIsCmsAttachedFile: true }],
@@ -139,7 +284,7 @@ describe("deliverableResolvers", () => {
       await deliverableResolvers.Deliverable.stateDocuments(
         mockDeliverable,
         undefined,
-        testContext
+        testContext as GraphQLContext
       );
       expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
         {
@@ -276,6 +421,13 @@ describe("deliverableResolvers", () => {
   });
 
   describe("deliverableResolvers", () => {
+    describe("Query.deliverable", () => {
+      it("should call getDeliverable to retrieve the deliverable", async () => {
+        await deliverableResolvers.Query.deliverable(undefined, { id: "an-id" });
+        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith({ id: "an-id" });
+      });
+    });
+
     describe("Mutation.createDeliverable", () => {
       it("should call the createDeliverable function with the right arguments", async () => {
         const testInput: CreateDeliverableInput = {
@@ -299,7 +451,6 @@ describe("deliverableResolvers", () => {
       it("should call the updateDeliverable function with the right arguments", async () => {
         const testInput: UpdateDeliverableInput = {
           name: "A name!",
-          deliverableType: "Close Out Report",
           cmsOwnerUserId: "161f3a85-7b6d-4217-abec-93494db3a207",
         };
 
@@ -314,25 +465,57 @@ describe("deliverableResolvers", () => {
 
     describe("Deliverable.demonstrationTypes", () => {
       it("should query the demonstration types of the parent deliverable", async () => {
-        const mockGetDeliverableDemonstrationTypeResult: GetDeliverableDemonstrationTypeResult[] = [
-          {
-            tagName: "Free Insulin",
-            approvalStatus: "Approved",
-          },
-          {
-            tagName: "Vitamin A Supplementation for Newborns",
-            approvalStatus: "Unapproved",
-          },
-        ];
-        vi.mocked(getDeliverableDemonstrationTypes).mockResolvedValue(
-          mockGetDeliverableDemonstrationTypeResult
+        const mockDeliverableDemonstrationTypeQueryResult: DeliverableDemonstrationTypeQueryResult[] =
+          [
+            {
+              demonstrationTypeTagAssignment: {
+                tag: {
+                  statusId: "Approved",
+                  tagNameId: "Free Insulin",
+                },
+              },
+            },
+            {
+              demonstrationTypeTagAssignment: {
+                tag: {
+                  statusId: "Unapproved",
+                  tagNameId: "Vitamin A Supplementation for Newborns",
+                },
+              },
+            },
+          ] as DeliverableDemonstrationTypeQueryResult[];
+        vi.mocked(getManyDeliverableDemonstrationTypes).mockResolvedValue(
+          mockDeliverableDemonstrationTypeQueryResult
         );
 
         const result = await deliverableResolvers.Deliverable.demonstrationTypes(
+          testDeliverable as PrismaDeliverable,
+          undefined,
+          mockContext
+        );
+        expect(getManyDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
+          { deliverableId: testDeliverableId },
+          mockUser
+        );
+        expect(result).toStrictEqual([
+          {
+            approvalStatus: "Approved",
+            tagName: "Free Insulin",
+          },
+          {
+            approvalStatus: "Unapproved",
+            tagName: "Vitamin A Supplementation for Newborns",
+          },
+        ]);
+      });
+    });
+
+    describe("Deliverable.deliverableActions", () => {
+      it("should query the deliverable actions of the parent deliverable", async () => {
+        await deliverableResolvers.Deliverable.deliverableActions(
           testDeliverable as PrismaDeliverable
         );
-        expect(getDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(testDeliverableId);
-        expect(result).toStrictEqual(mockGetDeliverableDemonstrationTypeResult);
+        expect(getFormattedDeliverableActions).toHaveBeenCalledExactlyOnceWith(testDeliverableId);
       });
     });
   });

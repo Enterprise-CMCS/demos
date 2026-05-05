@@ -9,6 +9,7 @@ import { SelectSdgDivision } from "components/input/select/SelectSdgDivision";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
 import { DatePicker } from "components/input/date/DatePicker";
 import { tw } from "tags/tw";
+import { formatDate } from "util/formatDate";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-sm tracking-wide h-[14px] flex items-center`;
 const VALUE_CLASSES = tw`text-text-font text-base leading-relaxed h-[40px] flex items-start mt-1`;
@@ -210,13 +211,13 @@ export const ApplicationDetailsSection = ({
         )}
 
         <div className="flex flex-col">
-          {sectionFormData.readonlyFields.effectiveDate ? (
+          {sectionFormData.readonlyFields.effectiveDate || isComplete ? (
             <div>
               <div className={LABEL_CLASSES}>
                 Effective Date
               </div>
               <div className={VALUE_CLASSES}>
-                {sectionFormData.effectiveDate || ""}
+                {sectionFormData.effectiveDate ? formatDate(sectionFormData.effectiveDate) : ""}
               </div>
             </div>
           ) : (
@@ -235,13 +236,13 @@ export const ApplicationDetailsSection = ({
 
         {sectionFormData.applicationType === "demonstration" && (
           <div className="flex flex-col">
-            {sectionFormData.readonlyFields.expirationDate ? (
+            {sectionFormData.readonlyFields.expirationDate || isComplete ? (
               <div>
                 <div className={LABEL_CLASSES}>
                   Expiration Date
                 </div>
                 <div className={VALUE_CLASSES}>
-                  {sectionFormData.expirationDate || ""}
+                  {sectionFormData.expirationDate ? formatDate(sectionFormData.expirationDate) : ""}
                 </div>
               </div>
             ) : (
@@ -274,9 +275,9 @@ export const ApplicationDetailsSection = ({
               name="description"
               label={`${capitalizedType} Description`}
               placeholder="Enter description"
-              initialValue={sectionFormData.description ?? ""}
+              value={sectionFormData.description ?? ""}
               isDisabled={isReadonly}
-              onChange={(e) => setSectionFormData({ ...sectionFormData, description: e.target.value })}
+              onChange={(value) => setSectionFormData({ ...sectionFormData, description: value })}
             />
           )}
         </div>

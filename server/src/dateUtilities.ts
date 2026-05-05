@@ -24,6 +24,14 @@ export type EasternTZDate = {
   easternTZDate: TZDate;
 };
 
+export function formatEasternTZDateToMMDDYYYY(input: EasternTZDate): string {
+  return input.easternTZDate.toLocaleString("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    year: "numeric",
+  });
+}
+
 export function parseJSDateToEasternTZDate(input: Date): EasternTZDate {
   return { isEasternTZDate: true, easternTZDate: new TZDate(input, "America/New_York") };
 }

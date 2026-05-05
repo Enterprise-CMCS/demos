@@ -3,11 +3,15 @@ import { Footer, Header, ToastContainer, ToastProvider } from "components";
 import { SideNav } from "./SideNav";
 import { useLocation } from "react-router-dom";
 import { DialogProvider } from "components/dialog/DialogContext";
+import { getCurrentUser } from "components/user/UserContext";
+import type { PersonType } from "demos-server";
 
-const ROUTES_WITH_HIDDEN_SIDENAV = ["/demonstrations/", "/deliverables/"];
+const ROUTES_WITH_HIDDEN_SIDENAV = ["/demonstrations/", "/deliverables/", "/admin"];
 
-export const shouldHideSideNav = (pathname: string) =>
+export const shouldHideSideNav = (pathname: string, personType?: PersonType) =>
+  personType === "demos-state-user" ||
   ROUTES_WITH_HIDDEN_SIDENAV.some((route) => {
+    if (!route.endsWith("/") && pathname === route) return true;
     const pathStartsWithRoute = pathname.startsWith(route);
     const pathIsLongerThanRoute = pathname.length > route.length;
     return pathStartsWithRoute && pathIsLongerThanRoute;
@@ -15,7 +19,8 @@ export const shouldHideSideNav = (pathname: string) =>
 
 export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
-  const hideSideNav = shouldHideSideNav(location.pathname);
+  const { currentUser } = getCurrentUser();
+  const hideSideNav = shouldHideSideNav(location.pathname, currentUser?.person.personType);
 
   return (
     <ToastProvider>
@@ -25,7 +30,7 @@ export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
           <div className="flex flex-1 overflow-hidden bg-gray-primary-layout min-h-0">
             {!hideSideNav && <SideNav />}
             <div className="flex-1 overflow-auto min-h-0 flex flex-col">
-              <div className="p-[16px] pb-5 flex-1">{children}</div>
+              <div className="p-[16px] flex-1">{children}</div>
               <Footer />
             </div>
           </div>

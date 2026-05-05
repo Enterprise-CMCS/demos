@@ -2,10 +2,8 @@ import { getDeliverable, ParsedUpdateDeliverableInput } from ".";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { TagName } from "../../types";
 import { findSetDifferences } from "../../validationUtilities";
-import {
-  getDeliverableDemonstrationTypes,
-  setDeliverableDemonstrationTypes,
-} from "../deliverableDemonstrationType";
+import { selectManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType/queries";
+import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 
 export async function updateDeliverableDemonstrationTypes(
   deliverableId: string,
@@ -22,8 +20,8 @@ export async function updateDeliverableDemonstrationTypes(
 
   // Can turn these into a set because DB guarantees uniqueness
   const oldDemonstrationTypes: Set<TagName> = new Set(
-    (await getDeliverableDemonstrationTypes(deliverableId, tx)).map(
-      (demonstrationType) => demonstrationType.tagName
+    (await selectManyDeliverableDemonstrationTypes({ deliverableId: deliverableId }, tx)).map(
+      (record) => record.demonstrationTypeTagAssignment.tag.tagNameId
     )
   );
 

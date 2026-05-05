@@ -46,6 +46,7 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
   // Whenever the selected column changes, reset the filterValue and clear filters
   React.useEffect(() => {
     setFilterValue("");
+    setFilterRangeValue({ start: null, end: null });
     table.setColumnFilters([]);
   }, [selectedColumn, table]);
 

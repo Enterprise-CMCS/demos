@@ -33,6 +33,7 @@ export async function insertDeliverableAction(
       dueDateChangeAllowed: actionTypeConfig.dueDateChangeAllowed,
       shouldHaveNote: actionTypeConfig.shouldHaveNote,
       shouldHaveUserId: actionTypeConfig.shouldHaveUserId,
+      extensionIdOptional: actionTypeConfig.extensionIdOptional,
       oldDueDate: action.oldDueDate,
       newDueDate: action.newDueDate,
       userId: action.userId,

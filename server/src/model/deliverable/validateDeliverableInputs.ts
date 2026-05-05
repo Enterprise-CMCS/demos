@@ -1,10 +1,20 @@
 import {
+  checkDeliverableExtensionHasStatus,
+  checkDeliverableHasAtLeastOneDocument,
+  checkDeliverableHasNoActiveExtension,
+  checkDeliverableHasStatus,
+  checkDeliverableStatusNotFinalized,
   checkDemonstrationStatus,
   checkDueDateInFuture,
+  checkNewDueDateIsAtLeastCurrentDueDate,
+  checkNewDueDateIsGreaterThanCurrentDueDate,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
   getDeliverable,
+  ParsedApproveDeliverableExtensionInput,
   ParsedCreateDeliverableInput,
+  ParsedRequestDeliverableExtensionInput,
+  ParsedRequestDeliverableResubmissionInput,
   ParsedUpdateDeliverableInput,
 } from ".";
 import { PrismaTransactionClient } from "../../prismaClient";
@@ -12,6 +22,39 @@ import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
 import { GraphQLError } from "graphql";
+import {
+  Deliverable as PrismaDeliverable,
+  DeliverableExtension as PrismaDeliverableExtension,
+} from "@prisma/client";
+import { GraphQLContext } from "../../auth";
+import { PersonType } from "../../types";
+
+function cleanErrorsAndThrow(errors: (string | undefined)[], mutator: string, code: string): void {
+  const cleanedErrors = errors.filter((e) => e !== undefined);
+  if (cleanedErrors.length > 0) {
+    throw new GraphQLError(`One or more validation checks for ${mutator} have failed.`, {
+      extensions: {
+        code: code,
+        originalMessages: cleanedErrors,
+      },
+    });
+  }
+}
+
+// This probably will be modified when permissions are updated more generally
+// Temporary solution for deliverables
+export function validateUserPersonTypeAllowed(
+  context: GraphQLContext,
+  action: string,
+  allowedPersonTypes: PersonType[]
+): void {
+  const allowedType = allowedPersonTypes.includes(context.user.personTypeId);
+  if (!allowedType) {
+    throw new Error(
+      `A user of type ${context.user.personTypeId} is not permitted to perform the action ${action}.`
+    );
+  }
+}
 
 export async function validateCreateDeliverableInput(
   input: ParsedCreateDeliverableInput,
@@ -46,16 +89,7 @@ export async function validateCreateDeliverableInput(
       );
     }
   }
-
-  const cleanedErrors = errors.filter((e) => e !== undefined);
-  if (cleanedErrors.length > 0) {
-    throw new GraphQLError("One or more validation checks for createDeliverable have failed.", {
-      extensions: {
-        code: "CREATE_DELIVERABLE_VALIDATION_FAILED",
-        originalMessages: cleanedErrors,
-      },
-    });
-  }
+  cleanErrorsAndThrow(errors, "createDeliverable", "CREATE_DELIVERABLE_VALIDATION_FAILED");
 }
 
 export async function validateUpdateDeliverableInput(
@@ -63,7 +97,10 @@ export async function validateUpdateDeliverableInput(
   input: ParsedUpdateDeliverableInput,
   tx: PrismaTransactionClient
 ): Promise<void> {
+  const deliverable = await getDeliverable({ id: deliverableId }, tx);
   const errors: (string | undefined)[] = [];
+
+  errors.push(checkDeliverableStatusNotFinalized(deliverable));
 
   if (input.cmsOwnerUserId) {
     const cmsOwnerUser = await getUser({ id: input.cmsOwnerUserId }, tx);
@@ -71,7 +108,6 @@ export async function validateUpdateDeliverableInput(
   }
 
   if (input.demonstrationTypes && input.demonstrationTypes.size > 0) {
-    const deliverable = await getDeliverable({ id: deliverableId }, tx);
     const demonstrationTypeAssignments = await getDemonstrationTypeAssignments(
       {
         demonstrationId: deliverable.demonstrationId,
@@ -88,14 +124,98 @@ export async function validateUpdateDeliverableInput(
       );
     }
   }
+  cleanErrorsAndThrow(errors, "updateDeliverable", "UPDATE_DELIVERABLE_VALIDATION_FAILED");
+}
 
-  const cleanedErrors = errors.filter((e) => e !== undefined);
-  if (cleanedErrors.length > 0) {
-    throw new GraphQLError("One or more validation checks for updateDeliverable have failed.", {
-      extensions: {
-        code: "UPDATE_DELIVERABLE_VALIDATION_FAILED",
-        originalMessages: cleanedErrors,
-      },
-    });
-  }
+export async function validateSubmitDeliverableInput(
+  deliverable: PrismaDeliverable,
+  tx: PrismaTransactionClient
+): Promise<void> {
+  const errors: (string | undefined)[] = [];
+
+  errors.push(
+    checkDeliverableStatusNotFinalized(deliverable),
+    await checkDeliverableHasAtLeastOneDocument(deliverable, tx)
+  );
+  cleanErrorsAndThrow(errors, "submitDeliverable", "SUBMIT_DELIVERABLE_VALIDATION_FAILED");
+}
+
+export function validateStartDeliverableReviewInput(deliverable: PrismaDeliverable): void {
+  const errors: (string | undefined)[] = [];
+
+  errors.push(checkDeliverableHasStatus(deliverable, ["Submitted"]));
+  cleanErrorsAndThrow(
+    errors,
+    "startDeliverableReview",
+    "START_DELIVERABLE_REVIEW_VALIDATION_FAILED"
+  );
+}
+
+export function validateCompleteDeliverableInput(deliverable: PrismaDeliverable): void {
+  const errors: (string | undefined)[] = [];
+
+  errors.push(checkDeliverableHasStatus(deliverable, ["Under CMS Review"]));
+  cleanErrorsAndThrow(errors, "completeDeliverable", "COMPLETE_DELIVERABLE_VALIDATION_FAILED");
+}
+
+export function validateRequestDeliverableResubmissionInput(
+  deliverable: PrismaDeliverable,
+  input: ParsedRequestDeliverableResubmissionInput
+): void {
+  const errors: (string | undefined)[] = [];
+
+  errors.push(
+    checkDeliverableHasStatus(deliverable, ["Submitted", "Under CMS Review"]),
+    checkDueDateInFuture(input.newDueDate),
+    checkNewDueDateIsAtLeastCurrentDueDate(deliverable, input.newDueDate)
+  );
+  cleanErrorsAndThrow(
+    errors,
+    "requestDeliverableResubmission",
+    "REQUEST_DELIVERABLE_RESUBMISSION_VALIDATION_FAILED"
+  );
+}
+
+export async function validateRequestDeliverableExtensionInput(
+  deliverable: PrismaDeliverable,
+  input: ParsedRequestDeliverableExtensionInput,
+  tx: PrismaTransactionClient
+): Promise<void> {
+  const errors: (string | undefined)[] = [];
+
+  errors.push(
+    await checkDeliverableHasNoActiveExtension(deliverable, tx),
+    checkDeliverableHasStatus(deliverable, ["Upcoming", "Past Due"]),
+    checkDueDateInFuture(input.requestedDueDate),
+    checkNewDueDateIsGreaterThanCurrentDueDate(deliverable, input.requestedDueDate)
+  );
+  cleanErrorsAndThrow(
+    errors,
+    "requestDeliverableExtension",
+    "REQUEST_DELIVERABLE_EXTENSION_VALIDATION_FAILED"
+  );
+}
+
+export function validateApproveDeliverableExtensionInput(
+  deliverable: PrismaDeliverable,
+  deliverableExtension: PrismaDeliverableExtension,
+  input: ParsedApproveDeliverableExtensionInput
+): void {
+  const errors: (string | undefined)[] = [];
+
+  errors.push(
+    checkDeliverableHasStatus(deliverable, [
+      "Upcoming",
+      "Past Due",
+      "Submitted",
+      "Under CMS Review",
+    ]),
+    checkDeliverableExtensionHasStatus(deliverableExtension, ["Requested"]),
+    checkDueDateInFuture(input.finalDateGranted)
+  );
+  cleanErrorsAndThrow(
+    errors,
+    "approveDeliverableExtension",
+    "APPROVE_DELIVERABLE_EXTENSION_VALIDATION_FAILED"
+  );
 }

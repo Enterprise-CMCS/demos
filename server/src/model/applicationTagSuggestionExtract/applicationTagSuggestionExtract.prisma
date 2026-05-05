@@ -1,5 +1,4 @@
 model ApplicationTagSuggestionExtract {
-  suggestionId  String   @map("suggestion_id") @db.Uuid
   uiPathValueId String   @map("uipath_value_id") @db.Uuid
   applicationId String   @map("application_id") @db.Uuid
   fieldId       String   @map("field_id")
@@ -10,10 +9,10 @@ model ApplicationTagSuggestionExtract {
   updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 
   // DEFERRED: will be manually replaced by new deferred key through migration
-  suggestion  ApplicationTagSuggestion                  @relation(fields: [suggestionId, applicationId, value], references: [id, applicationId, value])
+  suggestion  ApplicationTagSuggestion                  @relation(fields: [applicationId, value], references: [applicationId, value])
   uiPathValue UiPathValue                               @relation(fields: [uiPathValueId, applicationId, fieldId, value], references: [id, applicationId, fieldId, value])
   field       ApplicationTagSuggestionExtractFieldLimit @relation(fields: [fieldId], references: [id])
 
-  @@id([suggestionId, uiPathValueId])
+  @@id([uiPathValueId, applicationId, value])
   @@map("application_tag_suggestion_extract")
 }

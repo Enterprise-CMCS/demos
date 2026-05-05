@@ -28,10 +28,18 @@ import { sdgDivisionResolvers } from "./sdgDivision/sdgDivisionResolvers.js";
 import { dateTypeSchema } from "./dateType/dateTypeSchema.js";
 import { dateTypeResolvers } from "./dateType/dateTypeResolvers.js";
 
+import { deliverableActionSchema } from "./deliverableAction/deliverableActionSchema";
+
+import { deliverableActionTypeSchema } from "./deliverableActionType/deliverableActionTypeSchema";
+import { deliverableActionTypeResolvers } from "./deliverableActionType/deliverableActionTypeResolvers";
+
 import { deliverableDemonstrationTypeSchema } from "./deliverableDemonstrationType/deliverableDemonstrationTypeSchema";
 
 import { deliverableDueDateTypeSchema } from "./deliverableDueDateType/deliverableDueDateTypeSchema";
 import { deliverableDueDateTypeResolvers } from "./deliverableDueDateType/deliverableDueDateTypeResolvers";
+
+import { deliverableExtensionReasonCodeSchema } from "./deliverableExtensionReasonCode/deliverableExtensionReasonCodeSchema";
+import { deliverableExtensionReasonCodeResolvers } from "./deliverableExtensionReasonCode/deliverableExtensionReasonCodeResolvers";
 
 import { deliverableSchema } from "./deliverable/deliverableSchema";
 import { deliverableResolvers } from "./deliverable/deliverableResolvers";
@@ -137,8 +145,11 @@ export const typeDefs = [
   applicationTagSuggestionSchema,
   clearanceLevelSchema,
   dateTypeSchema,
+  deliverableActionSchema,
+  deliverableActionTypeSchema,
   deliverableDemonstrationTypeSchema,
   deliverableDueDateTypeSchema,
+  deliverableExtensionReasonCodeSchema,
   deliverableSchema,
   deliverableStatusSchema,
   deliverableTypeSchema,
@@ -181,7 +192,9 @@ export const resolvers = [
   clearanceLevelResolvers,
   customScalarResolvers,
   dateTypeResolvers,
+  deliverableActionTypeResolvers,
   deliverableDueDateTypeResolvers,
+  deliverableExtensionReasonCodeResolvers,
   deliverableResolvers,
   deliverableStatusResolvers,
   deliverableTypeResolvers,

@@ -1,6 +1,9 @@
 import { prisma, PrismaTransactionClient } from "../../prismaClient";
 import { TagName } from "../../types";
-import { deleteAllDeliverableDemonstrationTypes, insertDeliverableDemonstrationTypes } from ".";
+import {
+  deleteAllDeliverableDemonstrationTypes,
+  insertDeliverableDemonstrationTypes,
+} from "./queries";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { getDeliverable } from "../deliverable";
 

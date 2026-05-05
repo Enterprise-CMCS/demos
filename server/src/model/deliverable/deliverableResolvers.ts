@@ -7,18 +7,35 @@ import {
 } from "@prisma/client";
 import { GraphQLContext } from "../../auth";
 import { GraphQLResolveInfo } from "graphql";
-import { createDeliverable, getDeliverable, getManyDeliverables, updateDeliverable } from ".";
 import {
+  approveDeliverableExtension,
+  completeDeliverable,
+  createDeliverable,
+  getDeliverable,
+  getManyDeliverables,
+  requestDeliverableExtension,
+  requestDeliverableResubmission,
+  startDeliverableReview,
+  submitDeliverable,
+  updateDeliverable,
+} from ".";
+import {
+  ApproveDeliverableExtensionInput,
   CreateDeliverableInput,
+  DeliverableAction,
   DeliverableDueDateType,
   DeliverableStatus,
   DeliverableType,
+  FinalDeliverableStatus,
+  RequestDeliverableExtensionInput,
+  RequestDeliverableResubmissionInput,
   UpdateDeliverableInput,
 } from "../../types";
 import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getManyDocuments } from "../document";
-import { getDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
+import { getFormattedDeliverableActions } from "../deliverableAction";
+import { getManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 
 export async function resolveDeliverable(
   parent: PrismaDocument,
@@ -98,6 +115,8 @@ export async function resolveDeliverableCmsOwner(parent: PrismaDeliverable): Pro
 
 export const deliverableResolvers = {
   Query: {
+    deliverable: async (parent: unknown, args: { id: string }) =>
+      await getDeliverable({ id: args.id }),
     deliverables: queryDeliverables,
   },
 
@@ -116,6 +135,44 @@ export const deliverableResolvers = {
     ) => {
       return await updateDeliverable(args.id, args.input, context);
     },
+    submitDeliverable: async (parent: unknown, args: { id: string }, context: GraphQLContext) => {
+      return await submitDeliverable(args.id, context);
+    },
+    startDeliverableReview: async (
+      parent: unknown,
+      args: { id: string },
+      context: GraphQLContext
+    ) => {
+      return await startDeliverableReview(args.id, context);
+    },
+    completeDeliverable: async (
+      parent: unknown,
+      args: { id: string; finalStatus: FinalDeliverableStatus },
+      context: GraphQLContext
+    ) => {
+      return await completeDeliverable(args.id, args.finalStatus, context);
+    },
+    requestDeliverableResubmission: async (
+      parent: unknown,
+      args: { id: string; input: RequestDeliverableResubmissionInput },
+      context: GraphQLContext
+    ) => {
+      return await requestDeliverableResubmission(args.id, args.input, context);
+    },
+    requestDeliverableExtension: async (
+      parent: unknown,
+      args: { deliverableId: string; input: RequestDeliverableExtensionInput },
+      context: GraphQLContext
+    ) => {
+      return await requestDeliverableExtension(args.deliverableId, args.input, context);
+    },
+    approveDeliverableExtension: async (
+      parent: unknown,
+      args: { deliverableId: string; input: ApproveDeliverableExtensionInput },
+      context: GraphQLContext
+    ) => {
+      return await approveDeliverableExtension(args.deliverableId, args.input, context);
+    },
   },
 
   Deliverable: {
@@ -124,6 +181,18 @@ export const deliverableResolvers = {
     status: resolveDeliverableStatus,
     cmsOwner: resolveDeliverableCmsOwner,
     dueDateType: resolveDeliverableDueDateType,
+    demonstrationTypes: async (parent: PrismaDeliverable, args: unknown, context: GraphQLContext) =>
+      (await getManyDeliverableDemonstrationTypes({ deliverableId: parent.id }, context.user)).map(
+        (deliverableDemonstrationType) => {
+          const { statusId, tagNameId, ...tag } =
+            deliverableDemonstrationType.demonstrationTypeTagAssignment.tag;
+          return {
+            ...tag,
+            tagName: tagNameId,
+            approvalStatus: statusId,
+          };
+        }
+      ),
     cmsDocuments: async (
       parent: PrismaDeliverable,
       args: unknown,
@@ -146,8 +215,8 @@ export const deliverableResolvers = {
         },
         context.user
       ),
-    demonstrationTypes: async (parent: PrismaDeliverable) => {
-      return await getDeliverableDemonstrationTypes(parent.id);
+    deliverableActions: async (parent: PrismaDeliverable): Promise<DeliverableAction[]> => {
+      return await getFormattedDeliverableActions(parent.id);
     },
   },
 };

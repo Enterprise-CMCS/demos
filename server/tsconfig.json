@@ -11,10 +11,11 @@
     "strict": true,
     "sourceMap": true,
     "declaration": true,
-    "declarationMap": true
+    "declarationMap": true,
+    "isolatedModules": true
   },
   "include": ["src/**/*.ts"],
   "exclude": [
     "src/**/*.test.ts"
-  ] 
+  ]
 }

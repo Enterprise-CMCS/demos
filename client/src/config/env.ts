@@ -1,3 +1,6 @@
+import { PersonType } from "demos-server";
+import { PERSON_TYPES } from "demos-server-constants";
+
 const VALID_MODES = ["development", "test", "production"] as const;
 
 export type AppMode = (typeof VALID_MODES)[number];
@@ -35,4 +38,17 @@ export const shouldUseMocks = (): boolean => {
 export const getIdleTimeoutMs = (): number => {
   const n = Number(import.meta.env.VITE_IDLE_TIMEOUT);
   return Number.isFinite(n) ? n : 60 * 60 * 1000; // default 60 min per fisma
+};
+
+export const getMockPersonType = (): PersonType => {
+  const defaultMockPersonType: PersonType = "demos-cms-user";
+  const envMockPersonType = import.meta.env.VITE_MOCK_PERSON_TYPE;
+  if (!envMockPersonType) return defaultMockPersonType;
+
+  if (PERSON_TYPES.includes(envMockPersonType as PersonType)) {
+    return envMockPersonType as PersonType;
+  } else {
+    console.warn(`Invalid VITE_MOCK_PERSON_TYPE: ${envMockPersonType}. Defaulting to ${defaultMockPersonType}.`);
+    return defaultMockPersonType;
+  }
 };

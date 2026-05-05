@@ -2,6 +2,8 @@ import {
   DELIVERABLES_PAGE_QUERY,
   DeliverableTable,
   DeliverablesQueryResult,
+  STATE_USER_DELIVERABLES_PAGE_QUERY,
+  StateUserDeliverablesQueryResult,
 } from "components/table/tables/DeliverableTable";
 import { getCurrentUser } from "components/user/UserContext";
 import { HorizontalSectionTabs, Tab } from "layout/Tabs";
@@ -9,18 +11,34 @@ import React from "react";
 import type { UserType } from "demos-server";
 import { useSessionTab } from "hooks/useSessionTab";
 import { useQuery } from "@apollo/client";
+import { Card } from "components/card/Card";
 
-export const DeliverablesPage: React.FC = () => {
-  const { currentUser } = getCurrentUser();
-  const rawPersonType = currentUser?.person.personType;
-  const viewMode = rawPersonType as UserType;
-  const { data, loading, error } = useQuery<DeliverablesQueryResult>(DELIVERABLES_PAGE_QUERY);
+const ASSIGNED_DELIVERABLES_EMPTY_ROWS_MESSAGE = "There are no assigned Deliverables at this time";
+const MY_DELIVERABLES_EMPTY_ROWS_MESSAGE = "You have no assigned Deliverables at this time";
+const STATE_POINT_OF_CONTACT_ROLE = "State Point of Contact";
 
-  const deliverables = data?.deliverables ?? [];
-  const myDeliverables = deliverables.filter(
-    (deliverable) => deliverable.cmsOwner.id === currentUser?.id
+type DeliverablesPageQueryResult = Partial<
+  DeliverablesQueryResult & StateUserDeliverablesQueryResult
+>;
+
+const getStateUserDeliverables = (
+  data: DeliverablesPageQueryResult | undefined
+): DeliverablesQueryResult["deliverables"] => {
+  const deliverables =
+    data?.currentUser?.person.roles
+      .filter((roleAssignment) => roleAssignment.role === STATE_POINT_OF_CONTACT_ROLE)
+      .flatMap((roleAssignment) => roleAssignment.demonstration.deliverables) ?? [];
+
+  return Array.from(
+    new Map(deliverables.map((deliverable) => [deliverable.id, deliverable])).values()
   );
+};
 
+const DeliverablesTabs: React.FC<{
+  deliverables: DeliverablesQueryResult["deliverables"];
+  myDeliverables: DeliverablesQueryResult["deliverables"];
+  viewMode: UserType;
+}> = ({ deliverables, myDeliverables, viewMode }) => {
   const [tabValue, onTabSelect] = useSessionTab({
     key: "selectedDeliverableTab",
     defaultValue: "my-deliverables",
@@ -28,28 +46,58 @@ export const DeliverablesPage: React.FC = () => {
   });
 
   return (
-    <div className="shadow-md bg-white p-[16px]">
-      <h1 className="text-[20px] font-bold mb-[24px] text-brand uppercase border-b-1 pb-[8px]">
-        Deliverables
-      </h1>
+    <HorizontalSectionTabs defaultValue={tabValue} onSelect={onTabSelect}>
+      <Tab label={`My Deliverables (${myDeliverables.length})`} value="my-deliverables">
+        <DeliverableTable
+          deliverables={myDeliverables}
+          emptyRowsMessage={MY_DELIVERABLES_EMPTY_ROWS_MESSAGE}
+          viewMode={viewMode}
+        />
+      </Tab>
+      <Tab label={`All Deliverables (${deliverables.length})`} value="deliverables">
+        <DeliverableTable
+          deliverables={deliverables}
+          emptyRowsMessage={ASSIGNED_DELIVERABLES_EMPTY_ROWS_MESSAGE}
+          viewMode={viewMode}
+        />
+      </Tab>
+    </HorizontalSectionTabs>
+  );
+};
 
+export const DeliverablesPage: React.FC = () => {
+  const { currentUser } = getCurrentUser();
+  const rawPersonType = currentUser?.person.personType;
+  const viewMode = rawPersonType as UserType;
+  const isStateUser = rawPersonType === "demos-state-user";
+  const { data, loading, error } = useQuery<DeliverablesPageQueryResult>(
+    isStateUser ? STATE_USER_DELIVERABLES_PAGE_QUERY : DELIVERABLES_PAGE_QUERY
+  );
+
+  const deliverables = isStateUser ? getStateUserDeliverables(data) : (data?.deliverables ?? []);
+  const myDeliverables = deliverables.filter(
+    (deliverable) => deliverable.cmsOwner.id === currentUser?.id
+  );
+
+  return (
+    <Card title="Deliverables">
       {loading && <div className="p-4">Loading deliverables...</div>}
       {error && <div className="p-4 text-red-500">Error loading deliverables.</div>}
 
-      {data && (
-        <HorizontalSectionTabs defaultValue={tabValue} onSelect={onTabSelect}>
-          <Tab label={`My Deliverables (${myDeliverables.length})`} value="my-deliverables">
-            <DeliverableTable
-              deliverables={myDeliverables}
-              emptyRowsMessage="You have no assigned Deliverables at this time"
-              viewMode={viewMode}
-            />
-          </Tab>
-          <Tab label={`All Deliverables (${deliverables.length})`} value="deliverables">
-            <DeliverableTable deliverables={deliverables} viewMode={viewMode} />
-          </Tab>
-        </HorizontalSectionTabs>
-      )}
-    </div>
+      {data &&
+        (isStateUser ? (
+          <DeliverableTable
+            deliverables={deliverables}
+            emptyRowsMessage={ASSIGNED_DELIVERABLES_EMPTY_ROWS_MESSAGE}
+            viewMode={viewMode}
+          />
+        ) : (
+          <DeliverablesTabs
+            deliverables={deliverables}
+            myDeliverables={myDeliverables}
+            viewMode={viewMode}
+          />
+        ))}
+    </Card>
   );
 };

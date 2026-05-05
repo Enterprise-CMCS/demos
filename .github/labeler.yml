@@ -37,3 +37,9 @@ lambda:
 "lambda:deleteinfectedfile":
 - changed-files:
   - any-glob-to-any-file: lambdas/deleteinfectedfile/**
+"lambda:budgetNeutrality":
+- changed-files:
+  - any-glob-to-any-file: lambdas/budgetNeutrality/**
+"shared-library":
+- changed-files:
+  - any-glob-to-any-file: shared_library/**

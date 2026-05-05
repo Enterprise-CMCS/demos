@@ -23,3 +23,4 @@ export const getPhaseCompletedMessage = (phaseName: PhaseName) => {
 // Deliverable Messages
 export const DELIVERABLE_SLOTS_CREATED_MESSAGE = "Deliverable Slot(s) - have been added";
 export const DELIVERABLE_UPDATED_MESSAGE = "Changes have been saved to the deliverable";
+export const DELIVERABLE_EXTENSION_REQUESTED_MESSAGE = "Extension Request - has been Submitted";

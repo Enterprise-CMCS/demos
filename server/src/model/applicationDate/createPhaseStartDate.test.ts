@@ -25,6 +25,10 @@ describe("createPhaseStartDate", () => {
       easternTZDate: new TZDate("2025-01-02T04:59:59.999Z"),
       isEasternTZDate: true,
     },
+    "Current Time": {
+      easternTZDate: new TZDate("2025-01-01T11:14:32.141Z"),
+      isEasternTZDate: true,
+    },
   };
 
   beforeEach(() => {

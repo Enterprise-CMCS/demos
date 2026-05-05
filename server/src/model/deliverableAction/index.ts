@@ -1,7 +1,7 @@
 // Functions
+export { formatFullUserName, formatDetailsMessage } from "./deliverableActionFormattingFunctions";
+export { getFormattedDeliverableActions } from "./getFormattedDeliverableActions";
 
 // Queries
-export { insertDeliverableAction } from "./queries/insertDeliverableAction";
 
 // Types & Constants
-export type { InsertDeliverableActionInput } from "./queries/insertDeliverableAction";

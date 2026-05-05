@@ -93,9 +93,15 @@ export const DateTimeOrLocalDateResolver = new GraphQLScalarType({
   },
 });
 
+// This simple wrapper is necessary to use the logic of NonEmptyString with the TagName alias
+const TagNameResolver = new GraphQLScalarType({
+  ...NonEmptyStringResolver.toConfig(),
+  name: "TagName",
+});
+
 export const customScalarResolvers = {
   DateTime: DateTimeResolver,
   DateTimeOrLocalDate: DateTimeOrLocalDateResolver,
   NonEmptyString: NonEmptyStringResolver,
-  TagName: NonEmptyStringResolver,
+  TagName: TagNameResolver,
 };

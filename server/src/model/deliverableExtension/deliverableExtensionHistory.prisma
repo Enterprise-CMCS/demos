@@ -6,7 +6,6 @@ model DeliverableExtensionHistory {
   deliverableId         String       @map("deliverable_id") @db.Uuid
   statusId              String       @map("status_id")
   reasonCodeId          String       @map("reason_code_id")
-  note                  String?      @map("note")
   originalDateRequested DateTime     @map("original_date_requested") @db.Timestamptz
   finalDateGranted      DateTime?    @map("final_date_granted") @db.Timestamptz
   createdAt             DateTime     @map("created_at") @db.Timestamptz

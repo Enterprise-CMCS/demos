@@ -2,7 +2,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Types
-import { GraphQLContext } from "../../auth/auth.util";
+import { DeepPartial } from "../../testUtilities";
+import { GraphQLContext } from "../../auth";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { DeliverableStatus } from "../../types";
 import { ParsedUpdateDeliverableInput } from ".";
@@ -11,7 +12,7 @@ import { ParsedUpdateDeliverableInput } from ".";
 import { manuallyUpdateDeliverableDueDate } from "./manuallyUpdateDeliverableDueDate";
 
 // Mock imports
-vi.mock("../deliverableAction", () => ({
+vi.mock("../deliverableAction/queries", () => ({
   insertDeliverableAction: vi.fn(),
 }));
 
@@ -21,19 +22,16 @@ vi.mock(".", () => ({
   getDeliverable: vi.fn(),
 }));
 
-import { insertDeliverableAction } from "../deliverableAction";
+import { insertDeliverableAction } from "../deliverableAction/queries";
 import { checkDueDateInFuture, editDeliverable, getDeliverable } from ".";
 import { TZDate } from "@date-fns/tz";
 
 describe("manuallyUpdateDeliverableDueDate", () => {
   // Test inputs
   const testDeliverableId = "03cb9763-1dea-4a40-a449-dc9fbc969c50";
-  const testContext: GraphQLContext = {
+  const testContext: DeepPartial<GraphQLContext> = {
     user: {
       id: "57f92f14-7c5e-4c78-a774-5a54d7e9c2e7",
-      cognitoSubject: "82d0e8e4-82d0-447c-b1bb-52227e49cf51",
-      personTypeId: "demos-cms-user",
-      permissions: ["View All Demonstrations"],
     },
   };
 
@@ -70,7 +68,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
     const result = await manuallyUpdateDeliverableDueDate(
       testDeliverableId,
       testInput,
-      testContext,
+      testContext as GraphQLContext,
       mockTransaction
     );
     expect(result).toBeUndefined();
@@ -97,7 +95,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
       await manuallyUpdateDeliverableDueDate(
         testDeliverableId,
         testInput,
-        testContext,
+        testContext as GraphQLContext,
         mockTransaction
       );
       throw new Error("Expected manuallyUpdateDeliverableDueDate to throw, but it did not.");
@@ -127,7 +125,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
     await manuallyUpdateDeliverableDueDate(
       testDeliverableId,
       testInput,
-      testContext,
+      testContext as GraphQLContext,
       mockTransaction
     );
     expect(checkDueDateInFuture).toHaveBeenCalledExactlyOnceWith(testInput.dueDate!.newDueDate);
@@ -154,7 +152,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
     await manuallyUpdateDeliverableDueDate(
       testDeliverableId,
       testInput,
-      testContext,
+      testContext as GraphQLContext,
       mockTransaction
     );
     expect(checkDueDateInFuture).toHaveBeenCalledExactlyOnceWith(testInput.dueDate!.newDueDate);
@@ -180,7 +178,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
         note: testInput.dueDate!.dateChangeNote,
         oldDueDate: mockDeliverable.dueDate,
         newDueDate: testInput.dueDate!.newDueDate.easternTZDate,
-        userId: testContext.user.id,
+        userId: testContext.user!.id,
       },
       mockTransaction
     );
@@ -208,7 +206,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
     await manuallyUpdateDeliverableDueDate(
       testDeliverableId,
       testInput,
-      testContext,
+      testContext as GraphQLContext,
       mockTransaction
     );
     expect(checkDueDateInFuture).toHaveBeenCalledExactlyOnceWith(testInput.dueDate!.newDueDate);
@@ -234,7 +232,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
         note: testInput.dueDate!.dateChangeNote,
         oldDueDate: mockDeliverable.dueDate,
         newDueDate: testInput.dueDate!.newDueDate.easternTZDate,
-        userId: testContext.user.id,
+        userId: testContext.user!.id,
       },
       mockTransaction
     );

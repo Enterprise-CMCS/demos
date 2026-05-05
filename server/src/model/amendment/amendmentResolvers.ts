@@ -5,21 +5,20 @@ import {
   ApplicationType,
   CreateAmendmentInput,
   PhaseName,
+  UiPathResultStatus,
   UpdateAmendmentInput,
 } from "../../types";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate";
-import {
-  deleteApplication,
-  resolveApplicationTags,
-  resolveSuggestedApplicationTags,
-} from "../application";
+import { deleteApplication } from "../application";
 import { getDemonstration } from "../demonstration";
 import { GraphQLContext } from "../../auth";
 import { getAmendment, getManyAmendments } from "./amendmentData";
 import { getManyDocuments } from "../document";
 import { getManyApplicationPhases } from "../applicationPhase";
+import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
+import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
 
 const amendmentApplicationType: ApplicationType = "Amendment";
 const conceptPhaseName: PhaseName = "Concept";
@@ -109,8 +108,33 @@ export const amendmentResolvers = {
     phases: (parent: PrismaAmendment, args: unknown, context: GraphQLContext) =>
       getManyApplicationPhases({ applicationId: parent.id }, context.user),
     clearanceLevel: (parent: PrismaAmendment) => parent.clearanceLevelId,
-    tags: resolveApplicationTags,
+    tags: async (parent: PrismaAmendment, args: unknown, context: GraphQLContext) =>
+      (await getManyApplicationTagAssignments({ applicationId: parent.id }, context.user)).map(
+        (assignment) => {
+          const { statusId, tagNameId, ...tag } = assignment.tag;
+          return {
+            ...tag,
+            tagName: tagNameId,
+            approvalStatus: statusId,
+          };
+        }
+      ),
     signatureLevel: (parent: PrismaAmendment) => parent.signatureLevelId,
-    suggestedApplicationTags: resolveSuggestedApplicationTags,
+    suggestedApplicationTags: async (
+      parent: PrismaAmendment,
+      args: unknown,
+      context: GraphQLContext
+    ) =>
+      (
+        await getManyApplicationTagSuggestions(
+          {
+            applicationId: parent.id,
+            statusId: {
+              in: ["Pending" satisfies UiPathResultStatus],
+            },
+          },
+          context.user
+        )
+      ).map((suggestion) => suggestion.value),
   },
 };

@@ -1,7 +1,9 @@
 import { gql } from "graphql-tag";
 import {
   DateTimeOrLocalDate,
+  DeliverableAction,
   DeliverableDueDateType,
+  DeliverableExtensionReasonCode,
   DeliverableStatus,
   DeliverableType,
   Demonstration,
@@ -26,6 +28,7 @@ export const deliverableSchema = gql`
     expectedToBeSubmitted: Boolean!
     cmsDocuments: [Document!]!
     stateDocuments: [Document!]!
+    deliverableActions: [DeliverableAction!]!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -46,19 +49,50 @@ export const deliverableSchema = gql`
 
   input UpdateDeliverableInput {
     name: NonEmptyString
-    deliverableType: DeliverableType
     cmsOwnerUserId: ID
     dueDate: DeliverableDueDateUpdateInput
     demonstrationTypes: [TagName!]
   }
 
+  input RequestDeliverableResubmissionInput {
+    details: NonEmptyString!
+    newDueDate: DateTimeOrLocalDate!
+  }
+
+  input RequestDeliverableExtensionInput {
+    reason: DeliverableExtensionReasonCode!
+    details: NonEmptyString!
+    requestedDueDate: DateTimeOrLocalDate!
+  }
+
+  input ApproveDeliverableExtensionInput {
+    deliverableExtensionId: ID!
+    newDueDate: DateTimeOrLocalDate
+  }
+
   type Query {
+    deliverable(id: ID!): Deliverable!
     deliverables: [Deliverable!]!
   }
 
   type Mutation {
     createDeliverable(input: CreateDeliverableInput): Deliverable
     updateDeliverable(id: ID!, input: UpdateDeliverableInput!): Deliverable
+    submitDeliverable(id: ID!): Deliverable
+    startDeliverableReview(id: ID!): Deliverable
+    completeDeliverable(id: ID!, finalStatus: FinalDeliverableStatus!): Deliverable
+    requestDeliverableResubmission(
+      id: ID!
+      input: RequestDeliverableResubmissionInput!
+    ): Deliverable
+    requestDeliverableExtension(
+      deliverableId: ID!
+      input: RequestDeliverableExtensionInput!
+    ): Deliverable
+    approveDeliverableExtension(
+      deliverableId: ID!
+      input: ApproveDeliverableExtensionInput!
+    ): Deliverable
   }
 `;
 
@@ -75,6 +109,7 @@ export interface Deliverable {
   expectedToBeSubmitted: boolean;
   cmsDocuments: Document[];
   stateDocuments: Document[];
+  deliverableActions: DeliverableAction[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -95,8 +130,23 @@ export interface DeliverableDueDateUpdateInput {
 
 export interface UpdateDeliverableInput {
   name?: NonEmptyString;
-  deliverableType?: DeliverableType;
   cmsOwnerUserId?: string;
   dueDate?: DeliverableDueDateUpdateInput;
   demonstrationTypes?: TagName[];
+}
+
+export interface RequestDeliverableResubmissionInput {
+  details: NonEmptyString;
+  newDueDate: DateTimeOrLocalDate;
+}
+
+export interface RequestDeliverableExtensionInput {
+  reason: DeliverableExtensionReasonCode;
+  details: NonEmptyString;
+  requestedDueDate: DateTimeOrLocalDate;
+}
+
+export interface ApproveDeliverableExtensionInput {
+  deliverableExtensionId: string;
+  newDueDate?: DateTimeOrLocalDate;
 }

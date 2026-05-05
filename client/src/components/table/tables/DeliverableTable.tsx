@@ -1,6 +1,6 @@
 import React from "react";
 import { gql } from "@apollo/client";
-import type { Deliverable, Person, State, UserType } from "demos-server";
+import type { Deliverable, Person, Role, State, Tag, UserType } from "demos-server";
 
 import { DeliverableColumns } from "../columns/DeliverableColumns";
 import { Table, type TableProps } from "../Table";
@@ -15,10 +15,21 @@ import { EditIcon } from "components/icons/Navigation/EditIcon";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
 import { isDeliverableEditable } from "components/dialog/deliverable";
 import { useDialog } from "components/dialog/DialogContext";
+import { getDeliverableFilterOptions } from "./deliverablesFilterOptions";
 
 export type DeliverableTableRow = Omit<
   Deliverable,
-  "demonstration" | "cmsOwner" | "demonstrationTypes" | "cmsDocuments" | "stateDocuments" | "name" | "dueDateType" | "expectedToBeSubmitted" | "createdAt" | "updatedAt"
+  | "demonstration"
+  | "cmsOwner"
+  | "demonstrationTypes"
+  | "cmsDocuments"
+  | "stateDocuments"
+  | "name"
+  | "dueDateType"
+  | "expectedToBeSubmitted"
+  | "deliverableActions"
+  | "createdAt"
+  | "updatedAt"
 > & {
   name: string;
   demonstration: Pick<Deliverable["demonstration"], "id" | "name"> & {
@@ -31,11 +42,26 @@ export type DeliverableTableRow = Omit<
   cmsOwner: Pick<Deliverable["cmsOwner"], "id"> & {
     person: Pick<Person, "fullName" | "id">;
   };
+  demonstrationTypes: Tag[];
   submissionDate?: string;
 };
 
 export type DeliverablesQueryResult = {
   deliverables: DeliverableTableRow[];
+};
+
+export type StateUserDeliverablesQueryResult = {
+  currentUser?: {
+    person: {
+      roles: {
+        role: Role;
+        demonstration: {
+          id: string;
+          deliverables: DeliverableTableRow[];
+        };
+      }[];
+    };
+  } | null;
 };
 
 export const DELIVERABLES_PAGE_QUERY = gql`
@@ -64,12 +90,56 @@ export const DELIVERABLES_PAGE_QUERY = gql`
         }
       }
       dueDate
+      demonstrationTypes {
+        tagName
+        approvalStatus
+      }
+    }
+  }
+`;
+
+export const STATE_USER_DELIVERABLES_PAGE_QUERY = gql`
+  query GetStateUserDeliverablesPage {
+    currentUser {
+      person {
+        roles {
+          role
+          demonstration {
+            id
+            deliverables {
+              id
+              deliverableType
+              name
+              demonstration {
+                id
+                name
+                state {
+                  id
+                }
+                demonstrationTypes {
+                  demonstrationTypeName
+                  approvalStatus
+                }
+              }
+              status
+              cmsOwner {
+                id
+                person {
+                  id
+                  fullName
+                }
+              }
+              dueDate
+            }
+          }
+        }
+      }
     }
   }
 `;
 
 const EMPTY_ROWS_MESSAGE = "There are no assigned Deliverables at this time";
-const NO_RESULTS_FOUND = "No results were returned. Adjust your search and filter criteria.";
+const NO_RESULTS_FOUND = "No deliverables match your search.";
 
 export const formatDeliverableStatus = ({ status }: Pick<Deliverable, "status">) => status;
 
@@ -79,7 +149,12 @@ export const DeliverableTable: React.FC<{
   viewMode: UserType;
 }> = ({ deliverables, emptyRowsMessage = EMPTY_ROWS_MESSAGE, viewMode }) => {
   const { showEditDeliverableDialog } = useDialog();
-  const deliverableColumns = DeliverableColumns({ viewMode });
+  const { demonstrationNameOptions, cmsOwnerOptions } = getDeliverableFilterOptions(deliverables);
+  const deliverableColumns = DeliverableColumns({
+    viewMode,
+    demonstrationNameOptions,
+    cmsOwnerOptions,
+  });
   const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({
     ...deliverable,
     status: formatDeliverableStatus(deliverable),

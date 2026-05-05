@@ -1,6 +1,6 @@
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { DeliverableTable, formatDeliverableStatus } from "./DeliverableTable";
@@ -138,7 +138,7 @@ describe("DeliverableTable", () => {
 
       await waitFor(() => {
         expect(
-          screen.getByText(/No results were returned. Adjust your search and filter criteria./i)
+          screen.getByText(/No deliverables match your search\./i)
         ).toBeInTheDocument();
       });
     });
@@ -183,6 +183,91 @@ describe("DeliverableTable", () => {
     expect(screen.getByTestId("filter-by-column")).toBeInTheDocument();
   });
 
+  it("uses multiselect filter inputs for configured categorical fields", async () => {
+    const user = userEvent.setup();
+    const columnSelect = screen.getByTestId("filter-by-column");
+
+    await user.selectOptions(columnSelect, "Demonstration Name");
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("Select Demonstration Name")).toBeInTheDocument();
+    });
+
+    await user.selectOptions(columnSelect, "Deliverable Type");
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("Select Deliverable Type")).toBeInTheDocument();
+    });
+
+    await user.selectOptions(columnSelect, "CMS Owner");
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("Select CMS Owner")).toBeInTheDocument();
+    });
+
+    await user.selectOptions(columnSelect, "Status");
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("Select Status")).toBeInTheDocument();
+    });
+  });
+
+  it("shows filter options aligned to visible CMS-user columns", () => {
+    const filterByColumn = screen.getByTestId("filter-by-column") as HTMLSelectElement;
+    const optionLabels = Array.from(filterByColumn.options).map((option) => option.text);
+
+    expect(optionLabels).toEqual([
+      "Select a Column...",
+      "State/Territory",
+      "Demonstration Name",
+      "Deliverable Type",
+      "Deliverable Name",
+      "CMS Owner",
+      "Due Date",
+      "Submission Date",
+      "Status",
+    ]);
+  });
+
+  it("keeps applied sorting after a column filter is cleared", async () => {
+    const user = userEvent.setup();
+    const getVisibleDeliverableOrder = () =>
+      screen.getAllByRole("row").slice(1).flatMap((row) => {
+        if (within(row).queryByText("Another Deliverable")) {
+          return ["Another Deliverable"];
+        }
+        if (within(row).queryByText("Budget Neutrality Report")) {
+          return ["Budget Neutrality Report"];
+        }
+        return [];
+      });
+
+    await user.click(screen.getByRole("columnheader", { name: /Deliverable Name/i }));
+
+    let sortedOrderBeforeFiltering: string[] = [];
+    await waitFor(() => {
+      sortedOrderBeforeFiltering = getVisibleDeliverableOrder();
+      expect(sortedOrderBeforeFiltering).toHaveLength(2);
+    });
+
+    const filterByColumn = screen.getByTestId("filter-by-column");
+    await user.selectOptions(filterByColumn, "Deliverable Name");
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/Filter Deliverable Name/i)).toBeInTheDocument();
+    });
+
+    const nameFilter = screen.getByPlaceholderText(/Filter Deliverable Name/i);
+    await user.type(nameFilter, "Another");
+
+    await waitFor(() => {
+      expect(screen.getByText("Another Deliverable")).toBeInTheDocument();
+      expect(screen.queryByText("Budget Neutrality Report")).not.toBeInTheDocument();
+    });
+
+    await user.clear(nameFilter);
+
+    await waitFor(() => {
+      expect(getVisibleDeliverableOrder()).toEqual(sortedOrderBeforeFiltering);
+    });
+  });
+
   it("renders pagination controls", () => {
     expect(screen.getByText(/Items per page/i)).toBeInTheDocument();
   });
@@ -214,6 +299,27 @@ describe("DeliverableTable demos-state-user view mode", () => {
     expect(screen.queryByLabelText(/Add Deliverable/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Edit Deliverable/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Remove Deliverable/i)).not.toBeInTheDocument();
+  });
+
+  it("shows filter options aligned to visible state-user columns", async () => {
+    render(<DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-state-user" />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+
+    const filterByColumn = screen.getByTestId("filter-by-column") as HTMLSelectElement;
+    const optionLabels = Array.from(filterByColumn.options).map((option) => option.text);
+
+    expect(optionLabels).toEqual([
+      "Select a Column...",
+      "Demonstration Name",
+      "Deliverable Type",
+      "Deliverable Name",
+      "Due Date",
+      "Submission Date",
+      "Status",
+    ]);
   });
 });
 

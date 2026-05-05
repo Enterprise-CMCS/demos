@@ -14,7 +14,10 @@ import {
   SignatureLevel,
   UpdateExtensionInput,
 } from "../../types";
-import { Extension as PrismaExtension } from "@prisma/client";
+import {
+  ApplicationTagSuggestion as PrismaApplicationTagSuggestion,
+  Extension as PrismaExtension,
+} from "@prisma/client";
 import { TZDate } from "@date-fns/tz";
 
 // Mock imports
@@ -22,8 +25,6 @@ import { prisma } from "../../prismaClient";
 import {
   deleteApplication,
   // None of these are tested but need to be exported to avoid mocking issues
-  resolveApplicationTags,
-  resolveSuggestedApplicationTags,
 } from "../application";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { handlePrismaError } from "../../errors/handlePrismaError";
@@ -37,6 +38,9 @@ import { getDemonstration } from "../demonstration";
 import { getExtension, getManyExtensions } from "./extensionData";
 import { getManyDocuments } from "../document";
 import { getManyApplicationPhases } from "../applicationPhase";
+import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
+import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
+import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -59,12 +63,18 @@ vi.mock("../demonstration", () => ({
   getDemonstration: vi.fn(),
 }));
 
+vi.mock("../applicationTagAssignment", () => ({
+  getManyApplicationTagAssignments: vi.fn(),
+}));
+
+vi.mock("../applicationTagSuggestion", () => ({
+  getManyApplicationTagSuggestions: vi.fn(),
+}));
+
 vi.mock("../application", () => ({
   getApplication: vi.fn(),
   getManyApplications: vi.fn(),
   deleteApplication: vi.fn(),
-  resolveApplicationTags: vi.fn(),
-  resolveSuggestedApplicationTags: vi.fn(),
 }));
 
 vi.mock("../../errors/checkOptionalNotNullFields", () => ({
@@ -174,6 +184,72 @@ describe("extensionResolvers", () => {
         { applicationId: "extensionId" },
         mockUser
       );
+    });
+  });
+
+  describe("Extension.tags", () => {
+    it("delegates to applicationTagAssignmentData.getManyApplicationTagAssignments and maps result", async () => {
+      const mockExtension = { id: "abc123" } as PrismaExtension;
+      vi.mocked(getManyApplicationTagAssignments).mockResolvedValueOnce([
+        {
+          tag: {
+            tagNameId: "Tag1",
+            statusId: "Approved",
+          },
+        },
+        {
+          tag: {
+            tagNameId: "Tag2",
+            statusId: "Unapproved",
+          },
+        },
+      ] as ApplicationTagAssignmentQueryResult[]);
+
+      const result = await extensionResolvers.Extension.tags(mockExtension, undefined, mockContext);
+      expect(getManyApplicationTagAssignments).toHaveBeenCalledExactlyOnceWith(
+        { applicationId: "abc123" },
+        mockUser
+      );
+      expect(result).toEqual([
+        {
+          tagName: "Tag1",
+          approvalStatus: "Approved",
+        },
+        {
+          tagName: "Tag2",
+          approvalStatus: "Unapproved",
+        },
+      ]);
+    });
+  });
+
+  describe("Extension.applicationTagSuggestions", () => {
+    it("delegates to applicationTagSuggestionData.getManyApplicationTagSuggestions and maps result", async () => {
+      const mockExtension = { id: "abc123" } as PrismaExtension;
+      vi.mocked(getManyApplicationTagSuggestions).mockResolvedValueOnce([
+        {
+          value: "Suggestion1",
+        },
+        {
+          value: "Suggestion2",
+        },
+      ] as PrismaApplicationTagSuggestion[]);
+
+      const result = await extensionResolvers.Extension.suggestedApplicationTags(
+        mockExtension,
+        undefined,
+        mockContext
+      );
+      expect(getManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith(
+        {
+          applicationId: "abc123",
+          statusId: {
+            in: ["Pending"],
+          },
+        },
+        mockUser
+      );
+      expect(result).toEqual(["Suggestion1", "Suggestion2"]);
     });
   });
 

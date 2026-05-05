@@ -26,6 +26,10 @@ import { UpdateAmendmentDialog } from "./modification/EditAmendmentDialog";
 import { ConfirmApproveDialog } from "./ConfirmApproveDialog";
 import { AddDeliverableSlotDialog } from "./deliverable";
 import { EditDeliverableDialog } from "./deliverable/EditDeliverableDialog";
+import {
+  RequestExtensionDeliverableDialog,
+  RequestExtensionDeliverableDialogDeliverable,
+} from "./deliverable/RequestExtensionDeliverableDialog";
 import type {
   EditDeliverableDialogDeliverable,
   EditDeliverableInput,
@@ -33,6 +37,7 @@ import type {
 import { WorkflowApplicationType } from "components/application";
 import { AddDeliverableSlotDemonstration } from "./deliverable/AddDeliverableSlotDialog";
 import type { DeliverableTableRow } from "components/table/tables/DeliverableTable";
+import { RequestResubmissionDeliverableDialog, RequestResubmissionDeliverableDialogDeliverable } from "./deliverable/RequestResubmissionDeliverableDialog";
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -241,6 +246,25 @@ export const useDialog = () => {
     );
   };
 
+  const showRequestExtensionDeliverableDialog = (
+    deliverable: RequestExtensionDeliverableDialogDeliverable
+  ) => {
+    context.showDialog(
+      <RequestExtensionDeliverableDialog onClose={context.hideDialog} deliverable={deliverable} />
+    );
+  };
+
+  const showRequestResubmissionDeliverableDialog = (
+    deliverable: RequestResubmissionDeliverableDialogDeliverable
+  ) => {
+    context.showDialog(
+      <RequestResubmissionDeliverableDialog
+        onClose={context.hideDialog}
+        deliverable={deliverable}
+      />
+    );
+  };
+
   const showEditDeliverableDialog = (
     deliverable: DeliverableTableRow,
     onSave?: (input: EditDeliverableInput, reasonForChange?: string) => Promise<void> | void
@@ -251,6 +275,7 @@ export const useDialog = () => {
       deliverableType: deliverable.deliverableType,
       dueDate: deliverable.dueDate,
       cmsOwner: { id: deliverable.cmsOwner.id },
+      demonstrationTypes: deliverable.demonstrationTypes,
     };
     const demonstrationTypeTags: Tag[] = deliverable.demonstration.demonstrationTypes.map(
       (dt: { demonstrationTypeName: string; approvalStatus: "Approved" | "Unapproved" }) => ({
@@ -294,5 +319,7 @@ export const useDialog = () => {
     showConfirmApproveDialog,
     showAddDeliverableSlotDialog,
     showEditDeliverableDialog,
+    showRequestExtensionDeliverableDialog,
+    showRequestResubmissionDeliverableDialog,
   };
 };

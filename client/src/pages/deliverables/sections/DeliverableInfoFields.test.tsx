@@ -24,4 +24,9 @@ describe("DeliverableInfoFields", () => {
     render(<DeliverableInfoFields deliverable={MOCK_DELIVERABLE_1} />);
     expect(screen.getByTestId("deliverable-Submission Date")).toHaveTextContent("—");
   });
+
+  it("computes and renders the number of resubmissions requested", () => {
+    render(<DeliverableInfoFields deliverable={MOCK_DELIVERABLE_1} showAdditionalDetailsToggle showAdditionalDetails />);
+    expect(screen.getByTestId("deliverable-Resubmissions Requested")).toHaveTextContent("1");
+  });
 });

@@ -44,6 +44,8 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       name
       status
       currentPhaseName
+      effectiveDate
+      expirationDate
       amendments {
         name
         id
@@ -131,7 +133,7 @@ export type DemonstrationDetailModification = Pick<
     owner: { person: Pick<Person, "fullName"> };
   })[];
 };
-export type DemonstrationDetail = Pick<Demonstration, "id" | "name" | "status" | "currentPhaseName"> & {
+export type DemonstrationDetail = Pick<Demonstration, "id" | "name" | "status" | "currentPhaseName" | "effectiveDate" | "expirationDate"> & {
   amendments: DemonstrationDetailModification[];
   extensions: DemonstrationDetailModification[];
   demonstrationTypes: Pick<

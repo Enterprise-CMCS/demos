@@ -1,9 +1,14 @@
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { CreateDeliverableInput } from "../../types";
-import { GraphQLContext } from "../../auth/auth.util";
-import { parseCreateDeliverableInput, validateCreateDeliverableInput, insertDeliverable } from ".";
+import { GraphQLContext } from "../../auth";
+import {
+  parseCreateDeliverableInput,
+  validateCreateDeliverableInput,
+  insertDeliverable,
+  validateUserPersonTypeAllowed,
+} from ".";
 import { prisma } from "../../prismaClient";
-import { insertDeliverableAction } from "../deliverableAction";
+import { insertDeliverableAction } from "../deliverableAction/queries";
 import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 
 export async function createDeliverable(
@@ -11,6 +16,7 @@ export async function createDeliverable(
   context: GraphQLContext
 ): Promise<PrismaDeliverable> {
   const currentUserId = context.user.id;
+  validateUserPersonTypeAllowed(context, "createDeliverable", ["demos-admin", "demos-cms-user"]);
   const parsedInput = parseCreateDeliverableInput(input);
   const createdDeliverable = await prisma().$transaction(async (tx) => {
     const actionTime = new Date();

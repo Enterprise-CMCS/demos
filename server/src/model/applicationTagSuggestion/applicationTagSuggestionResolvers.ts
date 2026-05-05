@@ -8,7 +8,7 @@ export async function appendApplicationTags(
   _: unknown,
   tx: PrismaTransactionClient,
   applicationId: string,
-  newValue: string,
+  newValue: string
 ): Promise<PrismaApplication> {
   const existingTags = await tx.applicationTagAssignment.findMany({
     where: { applicationId },
@@ -30,16 +30,26 @@ export async function appendApplicationTags(
 
 export async function acceptApplicationTagSuggestion(
   _: unknown,
-  { suggestionId }: { suggestionId: string },
+  { applicationId, value }: { applicationId: string; value: string }
 ): Promise<PrismaApplication> {
   try {
     return await prisma().$transaction(async (tx) => {
       const suggestion = await tx.applicationTagSuggestion.findUniqueOrThrow({
-        where: { id: suggestionId },
+        where: {
+          applicationId_value: {
+            applicationId,
+            value,
+          },
+        },
       });
 
       await tx.applicationTagSuggestion.update({
-        where: { id: suggestionId },
+        where: {
+          applicationId_value: {
+            applicationId,
+            value,
+          },
+        },
         data: { statusId: "Accepted" },
       });
 
@@ -52,17 +62,27 @@ export async function acceptApplicationTagSuggestion(
 
 export async function replaceApplicationTagSuggestion(
   _: unknown,
-  { suggestionId, newValue }: { suggestionId: string; newValue: string },
+  { applicationId, value, newValue }: { applicationId: string; value: string; newValue: string }
 ): Promise<PrismaApplication> {
   try {
     return await prisma().$transaction(async (tx) => {
       const suggestion = await tx.applicationTagSuggestion.findUniqueOrThrow({
-        where: { id: suggestionId },
+        where: {
+          applicationId_value: {
+            applicationId,
+            value,
+          },
+        },
       });
 
       await tx.applicationTagSuggestion.update({
-        where: { id: suggestionId },
-        data: { statusId: "Replaced" },
+        where: {
+          applicationId_value: {
+            applicationId,
+            value,
+          },
+        },
+        data: { statusId: "Replaced", replacedValue: newValue },
       });
 
       return await appendApplicationTags(_, tx, suggestion.applicationId, newValue);
@@ -74,12 +94,17 @@ export async function replaceApplicationTagSuggestion(
 
 export async function removeApplicationTagSuggestion(
   _: unknown,
-  { suggestionId }: { suggestionId: string },
+  { applicationId, value }: { applicationId: string; value: string }
 ): Promise<ApplicationTagSuggestion> {
   try {
     return prisma().$transaction(async (tx) => {
       return await tx.applicationTagSuggestion.update({
-        where: { id: suggestionId },
+        where: {
+          applicationId_value: {
+            applicationId,
+            value,
+          },
+        },
         data: { statusId: "Removed" },
       });
     });

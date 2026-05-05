@@ -4,7 +4,7 @@ import { useAuth } from "react-oidc-context";
 import { Person, User } from "demos-server";
 import { Loading } from "components/loading/Loading";
 
-type CurrentUser = Pick<User, "id" | "username"> & {
+export type CurrentUser = Pick<User, "id" | "username"> & {
   person: Pick<Person, "id" | "personType" | "fullName" | "firstName" | "lastName" | "email">;
 };
 
@@ -61,4 +61,14 @@ export function getCurrentUser() {
   }
 
   return ctx;
+}
+
+export function TestUserProvider({
+  children,
+  currentUser,
+}: {
+  children: React.ReactNode;
+  currentUser: CurrentUser;
+}) {
+  return <Ctx.Provider value={{ currentUser }}>{children}</Ctx.Provider>;
 }
