@@ -7,8 +7,10 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "render:deliverable-created": "node scripts/render-deliverable-created.js",
-    "render:test-email": "node scripts/render-test-email.js",
+    "render": "node scripts/render-email.js",
+    "render:deliverable-created": "node scripts/render-email.js deliverable-created",
+    "render:deliverable-submitted": "node scripts/render-email.js deliverable-submitted",
+    "render:test-email": "node scripts/render-email.js systems-test",
     "test": "node --test"
   },
   "dependencies": {

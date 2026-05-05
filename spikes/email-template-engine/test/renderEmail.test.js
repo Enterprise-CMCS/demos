@@ -45,6 +45,27 @@ test("renders the deliverable-created template as an emailer queue payload", asy
   assert.match(payload.html, /Deliverable type: Report/);
 });
 
+test("renders the deliverable-submitted template as an emailer queue payload", async () => {
+  const payload = await renderEmail("deliverable-submitted", deliverableCreatedData);
+
+  assert.deepEqual(payload.to, [
+    {
+      name: "Dustin Horning",
+      address: "Dustin.H@globalalliantinc.com",
+    },
+  ]);
+  assert.equal(payload.subject, "CMS DEMOS Deliverable: Deliverable Submitted");
+  assert.match(payload.text, /A Report deliverable has been submitted for your Demonstration\./);
+  assert.match(payload.text, /DEMOS system: https:\/\/demos\.example\.gov\/deliverables\/123\./);
+  assert.match(payload.text, /Demonstration: Medicaid Demo Renewal/);
+  assert.match(payload.text, /State: MD/);
+  assert.match(payload.text, /Deliverable type: Report/);
+  assert.match(payload.text, /Deliverable: Quarterly Budget Report/);
+  assert.match(payload.text, /Action: Deliverable Submitted/);
+  assert.match(payload.text, /Current due date: 2026-06-01/);
+  assert.match(payload.html, /Action: Deliverable Submitted/);
+});
+
 test("reports the missing template variable when render data is incomplete", async () => {
   const data = {
     ...systemsTestData,

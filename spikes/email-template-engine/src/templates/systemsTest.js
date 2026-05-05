@@ -3,7 +3,10 @@ import { Text } from "@react-email/components";
 
 import { EmailLayout } from "../emailComponents/EmailLayout.js";
 import { textStyle } from "../emailComponents/styles.js";
-import { buildSystemsTestProps } from "../templateData.js";
+import { formatDate } from "../formatDate.js";
+import { read } from "../read.js";
+
+const templateId = "systems-test";
 
 function SystemsTestEmail({ personGivenName, userEmail, currentDate }) {
   return React.createElement(
@@ -20,8 +23,14 @@ function SystemsTestEmail({ personGivenName, userEmail, currentDate }) {
 }
 
 export const systemsTestTemplate = {
-  id: "systems-test",
+  id: templateId,
   subject: "Dear Admin User, Email functionality is nominal",
   Component: SystemsTestEmail,
-  getProps: buildSystemsTestProps,
+  getProps(data, context) {
+    return {
+      personGivenName: read(data, "person.givenName", templateId),
+      userEmail: read(data, "users.email", templateId),
+      currentDate: formatDate(context.now),
+    };
+  },
 };

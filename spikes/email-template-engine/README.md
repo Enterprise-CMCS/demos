@@ -14,8 +14,9 @@ This spike renders a named email template into the same payload shape the existi
 ## Local Render
 
 ```sh
-npm run render:test-email
-npm run render:deliverable-created
+npm run render -- systems-test
+npm run render -- deliverable-created
+npm run render -- deliverable-submitted
 ```
 
 Each command writes a queue-ready JSON payload to `renders/completed/`. That directory is ignored by git so local completed renders can be inspected without becoming committed artifacts.
@@ -52,19 +53,23 @@ Templates are React Email components rendered through `@react-email/render`. Eac
 
 `renderEmail()` renders the component to `html`, derives `text` with `toPlainText()`, and returns the emailer queue payload.
 
-Template data mapping is centralized in `src/templateData.js`:
+Each template owns its own data mapping in `getProps`:
 
 ```js
-function buildDeliverableCreatedProps(data) {
-  return {
-    demonstrationTitle: read(data, "demonstration.title", "deliverable-created"),
-    state: read(data, "demonstration.state", "deliverable-created"),
-    deliverableType: read(data, "deliverable.type", "deliverable-created"),
-    dueDate: read(data, "deliverable.dueDate", "deliverable-created"),
-    currentDueDate: read(data, "deliverable.currentDueDate", "deliverable-created"),
-    link: read(data, "deliverable.link", "deliverable-created"),
-    deliverableName: read(data, "deliverable.name", "deliverable-created"),
-  };
+export const deliverableSubmittedTemplate = {
+  id: "deliverable-submitted",
+  subject: "CMS DEMOS Deliverable: Deliverable Submitted",
+  Component: DeliverableSubmittedEmail,
+  getProps(data) {
+    return {
+      demonstrationTitle: read(data, "demonstration.title", "deliverable-submitted"),
+      state: read(data, "demonstration.state", "deliverable-submitted"),
+      deliverableType: read(data, "deliverable.type", "deliverable-submitted"),
+      currentDueDate: read(data, "deliverable.currentDueDate", "deliverable-submitted"),
+      link: read(data, "deliverable.link", "deliverable-submitted"),
+      deliverableName: read(data, "deliverable.name", "deliverable-submitted"),
+    };
+  },
 }
 ```
 
