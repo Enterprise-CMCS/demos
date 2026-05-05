@@ -3,7 +3,13 @@ import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { EasternTZDate, parseJSDateToEasternTZDate } from "../../dateUtilities";
 
 // Types
-import { ApplicationStatus, DeliverableStatus, Document, PersonType, TagName } from "../../types";
+import {
+  ApplicationStatus,
+  DeliverableExtensionStatus,
+  DeliverableStatus,
+  PersonType,
+  TagName,
+} from "../../types";
 import {
   DeliverableExtension as PrismaDeliverableExtension,
   Deliverable as PrismaDeliverable,
@@ -15,6 +21,7 @@ import {
 
 // Functions under test
 import {
+  checkDeliverableExtensionHasStatus,
   checkDeliverableHasAtLeastOneDocument,
   checkDeliverableHasNoActiveExtension,
   checkDeliverableHasStatus,
@@ -462,6 +469,32 @@ describe("checkDeliverableInputFunctions", () => {
       expect(result).toBe(
         `Cannot create new extension request for deliverable ${testDeliverableId} ` +
           "as there is already an open request."
+      );
+    });
+  });
+
+  describe("checkDeliverableExtensionHasStatus", () => {
+    const testDeliverableExtension: Partial<PrismaDeliverableExtension> = {
+      id: "1e42da3a-9355-4c5d-a541-812a9f95ef56",
+      statusId: "Denied" satisfies DeliverableExtensionStatus,
+    };
+
+    it("should return undefined if the passed status matches the object", async () => {
+      const result = checkDeliverableExtensionHasStatus(
+        testDeliverableExtension as PrismaDeliverableExtension,
+        ["Denied"]
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it("should return an error message the passed status does not match the object", async () => {
+      const result = checkDeliverableExtensionHasStatus(
+        testDeliverableExtension as PrismaDeliverableExtension,
+        ["Approved", "Requested"]
+      );
+      expect(result).toBe(
+        "Deliverable extension expected to have one of status Approved, Requested; " +
+          "actual status was Denied."
       );
     });
   });

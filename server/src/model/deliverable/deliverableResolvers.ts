@@ -8,6 +8,7 @@ import {
 import { GraphQLContext } from "../../auth";
 import { GraphQLResolveInfo } from "graphql";
 import {
+  approveDeliverableExtension,
   completeDeliverable,
   createDeliverable,
   getDeliverable,
@@ -19,6 +20,7 @@ import {
   updateDeliverable,
 } from ".";
 import {
+  ApproveDeliverableExtensionInput,
   CreateDeliverableInput,
   DeliverableAction,
   DeliverableDueDateType,
@@ -159,10 +161,17 @@ export const deliverableResolvers = {
     },
     requestDeliverableExtension: async (
       parent: unknown,
-      args: { id: string; input: RequestDeliverableExtensionInput },
+      args: { deliverableId: string; input: RequestDeliverableExtensionInput },
       context: GraphQLContext
     ) => {
-      return await requestDeliverableExtension(args.id, args.input, context);
+      return await requestDeliverableExtension(args.deliverableId, args.input, context);
+    },
+    approveDeliverableExtension: async (
+      parent: unknown,
+      args: { deliverableId: string; input: ApproveDeliverableExtensionInput },
+      context: GraphQLContext
+    ) => {
+      return await approveDeliverableExtension(args.deliverableId, args.input, context);
     },
   },
 

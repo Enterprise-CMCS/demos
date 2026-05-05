@@ -102,7 +102,7 @@ describe("requestDeliverableExtension", () => {
     expect(validateUserPersonTypeAllowed).toHaveBeenCalledExactlyOnceWith(
       testUserContext,
       "requestDeliverableExtension",
-      ["demos-state-user"]
+      ["demos-admin", "demos-state-user"]
     );
   });
 

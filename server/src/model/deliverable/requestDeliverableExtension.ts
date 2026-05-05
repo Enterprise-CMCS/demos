@@ -16,7 +16,10 @@ export async function requestDeliverableExtension(
   input: RequestDeliverableExtensionInput,
   context: GraphQLContext
 ): Promise<PrismaDeliverable> {
-  validateUserPersonTypeAllowed(context, "requestDeliverableExtension", ["demos-state-user"]);
+  validateUserPersonTypeAllowed(context, "requestDeliverableExtension", [
+    "demos-admin",
+    "demos-state-user",
+  ]);
   const parsedInput = parseRequestDeliverableExtensionInput(input);
 
   return await prisma().$transaction(async (tx) => {

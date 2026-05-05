@@ -109,6 +109,7 @@ export type {
 export type { Tag } from "./model/tag/tagSchema.js";
 
 export type {
+  ApproveDeliverableExtensionInput,
   CreateDeliverableInput,
   Deliverable,
   DeliverableDueDateUpdateInput,

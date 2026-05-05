@@ -12,6 +12,7 @@ import {
 import { ContextUser, GraphQLContext } from "../../auth";
 import { GraphQLResolveInfo } from "graphql";
 import {
+  ApproveDeliverableExtensionInput,
   CreateDeliverableInput,
   DateTimeOrLocalDate,
   DeliverableDueDateType,
@@ -37,6 +38,7 @@ import {
 
 // Mock imports
 vi.mock(".", () => ({
+  approveDeliverableExtension: vi.fn(),
   completeDeliverable: vi.fn(),
   createDeliverable: vi.fn(),
   getDeliverable: vi.fn(),
@@ -69,6 +71,7 @@ vi.mock("../deliverableAction", () => ({
 }));
 
 import {
+  approveDeliverableExtension,
   completeDeliverable,
   createDeliverable,
   getDeliverable,
@@ -222,12 +225,35 @@ describe("deliverableResolvers", () => {
       await deliverableResolvers.Mutation.requestDeliverableExtension(
         undefined,
         {
-          id: testDeliverableId,
+          deliverableId: testDeliverableId,
           input: testInput,
         },
         testContext as GraphQLContext
       );
       expect(requestDeliverableExtension).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId,
+        testInput,
+        testContext
+      );
+    });
+  });
+
+  describe("Mutation.approveDeliverableExtension", () => {
+    it("calls approveDeliverableExtension with appropriate arguments", async () => {
+      const testInput: ApproveDeliverableExtensionInput = {
+        deliverableExtensionId: "e0b332b7-2ecd-4058-a484-a3ecbb81344e",
+        newDueDate: "2025-11-13" as DateTimeOrLocalDate,
+      };
+
+      await deliverableResolvers.Mutation.approveDeliverableExtension(
+        undefined,
+        {
+          deliverableId: testDeliverableId,
+          input: testInput,
+        },
+        testContext as GraphQLContext
+      );
+      expect(approveDeliverableExtension).toHaveBeenCalledExactlyOnceWith(
         testDeliverableId,
         testInput,
         testContext
