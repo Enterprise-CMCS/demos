@@ -108,6 +108,9 @@ vi.mock("pages/DemonstrationsPage", () => ({
 vi.mock("pages/DeliverablesPage", () => ({
   DeliverablesPage: () => <div>DeliverablesPage</div>,
 }));
+vi.mock("pages/reports/ReportsPage", () => ({
+  ReportsPage: () => <div>ReportsPage</div>,
+}));
 
 describe("DemosRouter", () => {
   beforeEach(() => {
@@ -139,6 +142,12 @@ describe("DemosRouter", () => {
     window.history.pushState({}, "Deliverables", "/deliverables");
     render(<DemosRouter />);
     await waitFor(() => expect(screen.getByText("DeliverablesPage")).toBeInTheDocument());
+  });
+
+  it("renders the Reports page at /reports", async () => {
+    window.history.pushState({}, "Reports", "/reports");
+    render(<DemosRouter />);
+    await waitFor(() => expect(screen.getByText("Reports")).toBeInTheDocument());
   });
 
   it("renders component debug routes in development mode", async () => {

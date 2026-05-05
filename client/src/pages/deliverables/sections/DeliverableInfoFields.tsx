@@ -36,6 +36,10 @@ export const DeliverableInfoFields = ({
   showAdditionalDetailsToggle = false,
   onToggleAdditionalDetails,
 }: DeliverableInfoFieldsProps) => {
+  const resubmissionsRequested = deliverable.deliverableActions.filter(
+    (action) => action.actionType === "Requested Resubmission"
+  ).length;
+
   const baseFields: DeliverableInfoField[] = [
     { label: "Deliverable Type", value: deliverable.deliverableType },
     { label: "Due Date", value: formatDate(deliverable.dueDate) },
@@ -44,7 +48,7 @@ export const DeliverableInfoFields = ({
   ];
   const additionalFields: DeliverableInfoField[] = [
     { label: "Extension", value: "N/A" },
-    { label: "Resubmissions Requested", value: "0" },
+    { label: "Resubmissions Requested", value: resubmissionsRequested.toString() },
     { label: "CMS Owner", value: deliverable.cmsOwner.person.fullName },
   ];
   const displayFields =
