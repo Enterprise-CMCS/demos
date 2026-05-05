@@ -1,4 +1,5 @@
 import {
+  checkDeliverableExtensionHasStatus,
   checkDeliverableHasAtLeastOneDocument,
   checkDeliverableHasNoActiveExtension,
   checkDeliverableHasStatus,
@@ -10,6 +11,7 @@ import {
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
   getDeliverable,
+  ParsedApproveDeliverableExtensionInput,
   ParsedCreateDeliverableInput,
   ParsedRequestDeliverableExtensionInput,
   ParsedRequestDeliverableResubmissionInput,
@@ -20,9 +22,24 @@ import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
 import { GraphQLError } from "graphql";
-import { Deliverable as PrismaDeliverable } from "@prisma/client";
+import {
+  Deliverable as PrismaDeliverable,
+  DeliverableExtension as PrismaDeliverableExtension,
+} from "@prisma/client";
 import { GraphQLContext } from "../../auth";
 import { PersonType } from "../../types";
+
+function cleanErrorsAndThrow(errors: (string | undefined)[], mutator: string, code: string): void {
+  const cleanedErrors = errors.filter((e) => e !== undefined);
+  if (cleanedErrors.length > 0) {
+    throw new GraphQLError(`One or more validation checks for ${mutator} have failed.`, {
+      extensions: {
+        code: code,
+        originalMessages: cleanedErrors,
+      },
+    });
+  }
+}
 
 // This probably will be modified when permissions are updated more generally
 // Temporary solution for deliverables
@@ -72,16 +89,7 @@ export async function validateCreateDeliverableInput(
       );
     }
   }
-
-  const cleanedErrors = errors.filter((e) => e !== undefined);
-  if (cleanedErrors.length > 0) {
-    throw new GraphQLError("One or more validation checks for createDeliverable have failed.", {
-      extensions: {
-        code: "CREATE_DELIVERABLE_VALIDATION_FAILED",
-        originalMessages: cleanedErrors,
-      },
-    });
-  }
+  cleanErrorsAndThrow(errors, "createDeliverable", "CREATE_DELIVERABLE_VALIDATION_FAILED");
 }
 
 export async function validateUpdateDeliverableInput(
@@ -116,16 +124,7 @@ export async function validateUpdateDeliverableInput(
       );
     }
   }
-
-  const cleanedErrors = errors.filter((e) => e !== undefined);
-  if (cleanedErrors.length > 0) {
-    throw new GraphQLError("One or more validation checks for updateDeliverable have failed.", {
-      extensions: {
-        code: "UPDATE_DELIVERABLE_VALIDATION_FAILED",
-        originalMessages: cleanedErrors,
-      },
-    });
-  }
+  cleanErrorsAndThrow(errors, "updateDeliverable", "UPDATE_DELIVERABLE_VALIDATION_FAILED");
 }
 
 export async function validateSubmitDeliverableInput(
@@ -138,51 +137,25 @@ export async function validateSubmitDeliverableInput(
     checkDeliverableStatusNotFinalized(deliverable),
     await checkDeliverableHasAtLeastOneDocument(deliverable, tx)
   );
-
-  const cleanedErrors = errors.filter((e) => e !== undefined);
-  if (cleanedErrors.length > 0) {
-    throw new GraphQLError("One or more validation checks for submitDeliverable have failed.", {
-      extensions: {
-        code: "SUBMIT_DELIVERABLE_VALIDATION_FAILED",
-        originalMessages: cleanedErrors,
-      },
-    });
-  }
+  cleanErrorsAndThrow(errors, "submitDeliverable", "SUBMIT_DELIVERABLE_VALIDATION_FAILED");
 }
 
 export function validateStartDeliverableReviewInput(deliverable: PrismaDeliverable): void {
   const errors: (string | undefined)[] = [];
 
   errors.push(checkDeliverableHasStatus(deliverable, ["Submitted"]));
-
-  const cleanedErrors = errors.filter((e) => e !== undefined);
-  if (cleanedErrors.length > 0) {
-    throw new GraphQLError(
-      "One or more validation checks for startDeliverableReview have failed.",
-      {
-        extensions: {
-          code: "START_DELIVERABLE_REVIEW_VALIDATION_FAILED",
-          originalMessages: cleanedErrors,
-        },
-      }
-    );
-  }
+  cleanErrorsAndThrow(
+    errors,
+    "startDeliverableReview",
+    "START_DELIVERABLE_REVIEW_VALIDATION_FAILED"
+  );
 }
 
 export function validateCompleteDeliverableInput(deliverable: PrismaDeliverable): void {
   const errors: (string | undefined)[] = [];
 
   errors.push(checkDeliverableHasStatus(deliverable, ["Under CMS Review"]));
-
-  const cleanedErrors = errors.filter((e) => e !== undefined);
-  if (cleanedErrors.length > 0) {
-    throw new GraphQLError("One or more validation checks for completeDeliverable have failed.", {
-      extensions: {
-        code: "COMPLETE_DELIVERABLE_VALIDATION_FAILED",
-        originalMessages: cleanedErrors,
-      },
-    });
-  }
+  cleanErrorsAndThrow(errors, "completeDeliverable", "COMPLETE_DELIVERABLE_VALIDATION_FAILED");
 }
 
 export function validateRequestDeliverableResubmissionInput(
@@ -196,19 +169,11 @@ export function validateRequestDeliverableResubmissionInput(
     checkDueDateInFuture(input.newDueDate),
     checkNewDueDateIsAtLeastCurrentDueDate(deliverable, input.newDueDate)
   );
-
-  const cleanedErrors = errors.filter((e) => e !== undefined);
-  if (cleanedErrors.length > 0) {
-    throw new GraphQLError(
-      "One or more validation checks for requestDeliverableResubmission have failed.",
-      {
-        extensions: {
-          code: "REQUEST_DELIVERABLE_RESUBMISSION_VALIDATION_FAILED",
-          originalMessages: cleanedErrors,
-        },
-      }
-    );
-  }
+  cleanErrorsAndThrow(
+    errors,
+    "requestDeliverableResubmission",
+    "REQUEST_DELIVERABLE_RESUBMISSION_VALIDATION_FAILED"
+  );
 }
 
 export async function validateRequestDeliverableExtensionInput(
@@ -224,17 +189,33 @@ export async function validateRequestDeliverableExtensionInput(
     checkDueDateInFuture(input.requestedDueDate),
     checkNewDueDateIsGreaterThanCurrentDueDate(deliverable, input.requestedDueDate)
   );
+  cleanErrorsAndThrow(
+    errors,
+    "requestDeliverableExtension",
+    "REQUEST_DELIVERABLE_EXTENSION_VALIDATION_FAILED"
+  );
+}
 
-  const cleanedErrors = errors.filter((e) => e !== undefined);
-  if (cleanedErrors.length > 0) {
-    throw new GraphQLError(
-      "One or more validation checks for requestDeliverableExtension have failed.",
-      {
-        extensions: {
-          code: "REQUEST_DELIVERABLE_EXTENSION_VALIDATION_FAILED",
-          originalMessages: cleanedErrors,
-        },
-      }
-    );
-  }
+export function validateApproveDeliverableExtensionInput(
+  deliverable: PrismaDeliverable,
+  deliverableExtension: PrismaDeliverableExtension,
+  input: ParsedApproveDeliverableExtensionInput
+): void {
+  const errors: (string | undefined)[] = [];
+
+  errors.push(
+    checkDeliverableHasStatus(deliverable, [
+      "Upcoming",
+      "Past Due",
+      "Submitted",
+      "Under CMS Review",
+    ]),
+    checkDeliverableExtensionHasStatus(deliverableExtension, ["Requested"]),
+    checkDueDateInFuture(input.finalDateGranted)
+  );
+  cleanErrorsAndThrow(
+    errors,
+    "approveDeliverableExtension",
+    "APPROVE_DELIVERABLE_EXTENSION_VALIDATION_FAILED"
+  );
 }

@@ -5,6 +5,7 @@ import {
   editDeliverable,
   getDeliverable,
   parseApproveDeliverableExtensionInput,
+  validateApproveDeliverableExtensionInput,
   validateUserPersonTypeAllowed,
 } from ".";
 import { prisma } from "../../prismaClient";
@@ -13,7 +14,7 @@ import {
   selectDeliverableExtension,
   updateDeliverableExtension,
 } from "../deliverableExtension/queries";
-import { parseJSDateToEasternTZDate } from "../../dateUtilities";
+import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 
 export async function approveDeliverableExtension(
   deliverableId: string,
@@ -24,27 +25,44 @@ export async function approveDeliverableExtension(
     "demos-admin",
     "demos-cms-user",
   ]);
-  const parsedInput = parseApproveDeliverableExtensionInput(input);
+  checkOptionalNotNullFields(["newDueDate"], input);
 
   return await prisma().$transaction(async (tx) => {
+    // Note that parsing is inside tx here because we need to get the extension first
+    // This is passed to the parser to give back the final date to use
     const unapprovedDeliverable = await getDeliverable({ id: deliverableId }, tx);
-    const deliverableExtension = await selectDeliverableExtension(input.deliverableExtensionId, tx);
-    const finalDateGranted =
-      parsedInput.newDueDate ??
-      parseJSDateToEasternTZDate(deliverableExtension.originalDateRequested);
-    const approvedDeliverable = await editDeliverable(deliverableId, {
-      statusId:
-        unapprovedDeliverable.statusId === "Past Due"
-          ? "Upcoming"
-          : (unapprovedDeliverable.statusId as DeliverableStatus),
-      dueDate: finalDateGranted.easternTZDate,
-    });
+    const unapprovedDeliverableExtension = await selectDeliverableExtension(
+      input.deliverableExtensionId,
+      tx
+    );
+    const parsedInput = parseApproveDeliverableExtensionInput(
+      input,
+      unapprovedDeliverableExtension
+    );
 
-    // await validateRequestDeliverableExtensionInput(deliverable, parsedInput, tx);
+    // Pass request and current data into validation
+    validateApproveDeliverableExtensionInput(
+      unapprovedDeliverable,
+      unapprovedDeliverableExtension,
+      parsedInput
+    );
 
-    // Casts below enforced by database
-    // Insert the action before closing the deliverable
-    // This ensures that the ID is recorded correctly by the triggers
+    // All casts below enforced by database
+    // Cannot go from Past Due to Past Due; otherwise, status does not change
+    const newDeliverableStatus = (
+      unapprovedDeliverable.statusId === "Past Due" ? "Upcoming" : unapprovedDeliverable.statusId
+    ) as DeliverableStatus;
+
+    // Make changes in order - update deliverable, insert action, close extension
+    // This ensures that action record has the extension ID attached by triggers
+    const approvedDeliverable = await editDeliverable(
+      deliverableId,
+      {
+        statusId: newDeliverableStatus,
+        dueDate: parsedInput.finalDateGranted.easternTZDate,
+      },
+      tx
+    );
     await insertDeliverableAction(
       {
         deliverableId: deliverableId,
@@ -53,7 +71,7 @@ export async function approveDeliverableExtension(
         oldStatus: unapprovedDeliverable.statusId as DeliverableStatus,
         newStatus: approvedDeliverable.statusId as DeliverableStatus,
         oldDueDate: unapprovedDeliverable.dueDate,
-        newDueDate: finalDateGranted.easternTZDate,
+        newDueDate: parsedInput.finalDateGranted.easternTZDate,
         userId: context.user.id,
       },
       tx
@@ -62,11 +80,10 @@ export async function approveDeliverableExtension(
       input.deliverableExtensionId,
       {
         statusId: "Approved",
-        finalDateGranted: finalDateGranted.easternTZDate,
+        finalDateGranted: parsedInput.finalDateGranted.easternTZDate,
       },
       tx
     );
-
     return approvedDeliverable;
   });
 }

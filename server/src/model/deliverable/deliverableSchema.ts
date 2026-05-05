@@ -85,8 +85,14 @@ export const deliverableSchema = gql`
       id: ID!
       input: RequestDeliverableResubmissionInput!
     ): Deliverable
-    requestDeliverableExtension(id: ID!, input: RequestDeliverableExtensionInput!): Deliverable
-    approveDeliverableExtension(id: ID!, input: ApproveDeliverableExtensionInput!): Deliverable
+    requestDeliverableExtension(
+      deliverableId: ID!
+      input: RequestDeliverableExtensionInput!
+    ): Deliverable
+    approveDeliverableExtension(
+      deliverableId: ID!
+      input: ApproveDeliverableExtensionInput!
+    ): Deliverable
   }
 `;
 

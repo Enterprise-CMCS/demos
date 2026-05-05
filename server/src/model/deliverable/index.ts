@@ -1,5 +1,7 @@
 // Functions
+export { approveDeliverableExtension } from "./approveDeliverableExtension";
 export {
+  checkDeliverableExtensionHasStatus,
   checkDeliverableHasAtLeastOneDocument,
   checkDeliverableHasNoActiveExtension,
   checkDeliverableHasStatus,
@@ -30,6 +32,7 @@ export { submitDeliverable } from "./submitDeliverable";
 export { updateDeliverable } from "./updateDeliverable";
 export { updateDeliverableDemonstrationTypes } from "./updateDeliverableDemonstrationTypes";
 export {
+  validateApproveDeliverableExtensionInput,
   validateCompleteDeliverableInput,
   validateCreateDeliverableInput,
   validateRequestDeliverableExtensionInput,
@@ -49,6 +52,7 @@ export { insertDeliverable } from "./queries/insertDeliverable";
 // Types & Constants
 export type { EditDeliverableInput } from "./queries/editDeliverable";
 export type {
+  ParsedApproveDeliverableExtensionInput,
   ParsedCreateDeliverableInput,
   ParsedRequestDeliverableExtensionInput,
   ParsedRequestDeliverableResubmissionInput,

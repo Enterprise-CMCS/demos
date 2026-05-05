@@ -9,9 +9,14 @@ import {
   TagName,
   UpdateDeliverableInput,
 } from "../../types";
-import { EasternTZDate, parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities";
+import {
+  EasternTZDate,
+  parseDateTimeOrLocalDateToEasternTZDate,
+  parseJSDateToEasternTZDate,
+} from "../../dateUtilities";
 import { checkInputDateIsEndOfDay } from "../applicationDate";
 import { checkForDuplicateDemonstrationTypes } from ".";
+import { DeliverableExtension as PrismaDeliverableExtension } from "@prisma/client";
 
 export type ParsedCreateDeliverableInput = {
   name: NonEmptyString;
@@ -47,7 +52,7 @@ export type ParsedRequestDeliverableExtensionInput = {
 
 export type ParsedApproveDeliverableExtensionInput = {
   deliverableExtensionId: string;
-  newDueDate?: EasternTZDate;
+  finalDateGranted: EasternTZDate;
 };
 
 export function parseCreateDeliverableInput(
@@ -133,16 +138,19 @@ export function parseRequestDeliverableExtensionInput(
 }
 
 export function parseApproveDeliverableExtensionInput(
-  input: ApproveDeliverableExtensionInput
+  input: ApproveDeliverableExtensionInput,
+  deliverableExtension: PrismaDeliverableExtension
 ): ParsedApproveDeliverableExtensionInput {
-  let parsedDueDate: EasternTZDate | undefined = undefined;
+  let parsedDueDate: EasternTZDate;
   if (input.newDueDate) {
     parsedDueDate = parseDateTimeOrLocalDateToEasternTZDate(input.newDueDate, "End of Day");
     checkInputDateIsEndOfDay("dueDate", parsedDueDate);
+  } else {
+    parsedDueDate = parseJSDateToEasternTZDate(deliverableExtension.originalDateRequested);
   }
 
   return {
     deliverableExtensionId: input.deliverableExtensionId,
-    newDueDate: parsedDueDate,
+    finalDateGranted: parsedDueDate,
   };
 }

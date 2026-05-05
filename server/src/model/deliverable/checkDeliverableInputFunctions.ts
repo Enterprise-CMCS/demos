@@ -1,5 +1,6 @@
 import {
   Deliverable as PrismaDeliverable,
+  DeliverableExtension as PrismaDeliverableExtension,
   Demonstration as PrismaDemonstration,
   DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
   User as PrismaUser,
@@ -135,5 +136,19 @@ export async function checkDeliverableHasNoActiveExtension(
   );
   if (deliverableExtensions.length > 0) {
     return `Cannot create new extension request for deliverable ${deliverable.id} as there is already an open request.`;
+  }
+}
+
+export function checkDeliverableExtensionHasStatus(
+  deliverableExtension: PrismaDeliverableExtension,
+  expectedStatuses: DeliverableExtensionStatus[]
+): string | undefined {
+  // Cast enforced by database constraints
+  const deliverableExtensionStatus = deliverableExtension.statusId as DeliverableExtensionStatus;
+  if (!expectedStatuses.includes(deliverableExtensionStatus)) {
+    return (
+      `Deliverable extension expected to have one of status ${expectedStatuses.join(", ")}; ` +
+      `actual status was ${deliverableExtensionStatus}.`
+    );
   }
 }
