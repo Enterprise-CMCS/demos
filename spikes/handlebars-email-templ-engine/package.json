@@ -1,7 +1,7 @@
 {
-  "name": "react-emailer-template-engine",
+  "name": "handlebars-email-templ-engine",
   "version": "1.0.0",
-  "description": "Email template Engine to be user with emaoler lambda",
+  "description": "Basic spoike for email template engine this tiem using handlebars",
   "license": "ISC",
   "author": "",
   "type": "module",
@@ -15,9 +15,6 @@
     "test": "node --test"
   },
   "dependencies": {
-    "@react-email/components": "^1.0.12",
-    "@react-email/render": "^2.0.8",
-    "axios": "^1.16.0",
-    "react": "^19.2.5"
+    "handlebars": "^4.7.9"
   }
 }
