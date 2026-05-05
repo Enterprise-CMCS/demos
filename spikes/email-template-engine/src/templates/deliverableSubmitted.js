@@ -17,7 +17,7 @@ function DeliverableSubmittedEmail({
 }) {
   return React.createElement(
     EmailLayout,
-    { preview: "A DEMOS deliverable has been submitted." },
+    null,
     React.createElement(Text, { style: textStyle }, "Hello,"),
     React.createElement(
       Text,

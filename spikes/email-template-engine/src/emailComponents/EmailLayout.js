@@ -1,5 +1,5 @@
 import React from "react";
-import { Body, Container, Head, Html, Preview } from "@react-email/components";
+import { Body, Container, Head, Html } from "@react-email/components";
 
 const bodyStyle = {
   backgroundColor: "#ffffff",
@@ -15,12 +15,11 @@ const containerStyle = {
   maxWidth: "640px",
 };
 
-export function EmailLayout({ preview, children }) {
+export function EmailLayout({ children }) {
   return React.createElement(
     Html,
     { lang: "en" },
     React.createElement(Head),
-    React.createElement(Preview, null, preview),
     React.createElement(
       Body,
       { style: bodyStyle },

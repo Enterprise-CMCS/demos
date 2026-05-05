@@ -21,6 +21,14 @@ npm run render -- deliverable-submitted
 
 Each command writes a queue-ready JSON payload to `renders/completed/`. That directory is ignored by git so local completed renders can be inspected without becoming committed artifacts.
 
+## HTML Preview
+
+```sh
+npm run preview -- renders/completed/systems-test-2026-05-05T18-51-43-451Z.json
+```
+
+The preview command writes the render payload's `html` field to `renders/previews/<render-name>.html`.
+
 ## Usage
 
 ```js

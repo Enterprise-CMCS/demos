@@ -11,7 +11,7 @@ const templateId = "systems-test";
 function SystemsTestEmail({ personGivenName, userEmail, currentDate }) {
   return React.createElement(
     EmailLayout,
-    { preview: "This email template system works." },
+    null,
     React.createElement(Text, { style: textStyle }, `Hello ${personGivenName},`),
     React.createElement(Text, { style: textStyle }, "This email template system works."),
     React.createElement(Text, { style: textStyle }, `This email was sent to ${userEmail} ✌️`),
