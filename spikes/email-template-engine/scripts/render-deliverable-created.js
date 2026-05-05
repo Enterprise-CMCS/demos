@@ -1,8 +1,15 @@
-const { renderEmail, saveCompletedRender } = require("..");
-const { deliverableCreatedData } = require("../fixtures/deliverable-created-data");
+import { renderEmail, saveCompletedRender } from "../index.js";
+import { deliverableCreatedData } from "../fixtures/deliverable-created-data.js";
 
-const templateId = "deliverable-created";
-const payload = renderEmail(templateId, deliverableCreatedData);
-const filePath = saveCompletedRender(templateId, payload);
+async function main() {
+  const templateId = "deliverable-created";
+  const payload = await renderEmail(templateId, deliverableCreatedData);
+  const filePath = saveCompletedRender(templateId, payload);
 
-console.log(`Rendered ${templateId} email payload to ${filePath}`);
+  console.log(`Rendered ${templateId} email payload to ${filePath}`);
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

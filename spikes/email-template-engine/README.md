@@ -20,6 +20,16 @@ npm run render:deliverable-created
 
 Each command writes a queue-ready JSON payload to `renders/completed/`. That directory is ignored by git so local completed renders can be inspected without becoming committed artifacts.
 
+## Usage
+
+```js
+import { renderEmail } from "./index.js";
+
+const payload = await renderEmail("deliverable-created", data);
+```
+
+The package is ESM-only in this spike.
+
 ## Recipient Approach
 
 Templates do not own recipients. Render data provides `recipients.to`, which supports both emailer-compatible recipient forms:
@@ -34,30 +44,31 @@ Future application code should resolve users, roles, or notification preferences
 
 ## Template Design
 
-Each template defines:
+Templates are React Email components rendered through `@react-email/render`. Each template module defines:
 
 - `subject`
-- `text`
-- `html`
+- `Component`
+- `getProps`
 
-Template variables are centralized in `src/templateVariables.js`:
+`renderEmail()` renders the component to `html`, derives `text` with `toPlainText()`, and returns the emailer queue payload.
+
+Template data mapping is centralized in `src/templateData.js`:
 
 ```js
-{
-  "<Person.Given Name>": "person.givenName",
-  "<users.email>": "users.email",
-  "<Current Date>": (_data, context) => formatDate(context.now),
-  "<Deliverable Type>": "deliverable.type",
-  "<Due Date>": "deliverable.dueDate",
-  "<Link>": "deliverable.link",
-  "<Demonstration Title>": "demonstration.title",
-  "<State>": "demonstration.state",
-  "<Deliverable Name>": "deliverable.name",
-  "<Current Due Date>": "deliverable.currentDueDate"
+function buildDeliverableCreatedProps(data) {
+  return {
+    demonstrationTitle: read(data, "demonstration.title", "deliverable-created"),
+    state: read(data, "demonstration.state", "deliverable-created"),
+    deliverableType: read(data, "deliverable.type", "deliverable-created"),
+    dueDate: read(data, "deliverable.dueDate", "deliverable-created"),
+    currentDueDate: read(data, "deliverable.currentDueDate", "deliverable-created"),
+    link: read(data, "deliverable.link", "deliverable-created"),
+    deliverableName: read(data, "deliverable.name", "deliverable-created"),
+  };
 }
 ```
 
-Missing variables throw render errors that name the token, data path, template id, and template part.
+Missing values throw render errors that name the data path, template id, and render part.
 
 ## Queue Recommendation
 

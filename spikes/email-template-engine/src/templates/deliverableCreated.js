@@ -1,39 +1,44 @@
-const deliverableCreatedTemplate = {
+import React from "react";
+import { Link, Text } from "@react-email/components";
+
+import { EmailLayout } from "../emailComponents/EmailLayout.js";
+import { detailStyle, textStyle } from "../emailComponents/styles.js";
+import { buildDeliverableCreatedProps } from "../templateData.js";
+
+function DeliverableCreatedEmail({
+  currentDueDate,
+  demonstrationTitle,
+  deliverableName,
+  deliverableType,
+  dueDate,
+  link,
+  state,
+}) {
+  return React.createElement(
+    EmailLayout,
+    { preview: "You have been assigned a new DEMOS deliverable." },
+    React.createElement(Text, { style: textStyle }, "Hello,"),
+    React.createElement(
+      Text,
+      { style: textStyle },
+      `You have been assigned a new ${deliverableType} deliverable for your Demonstration, due ${dueDate}. View this deliverable and any required next steps in the DEMOS system: `,
+      React.createElement(Link, { href: link }, link),
+      ".",
+    ),
+    React.createElement(Text, { style: textStyle }, "Thank you,"),
+    React.createElement(Text, { style: textStyle }, "DEMOS Notifications"),
+    React.createElement(Text, { style: detailStyle }, `Demonstration: ${demonstrationTitle}`),
+    React.createElement(Text, { style: detailStyle }, `State: ${state}`),
+    React.createElement(Text, { style: detailStyle }, `Deliverable type: ${deliverableType}`),
+    React.createElement(Text, { style: detailStyle }, `Deliverable: ${deliverableName}`),
+    React.createElement(Text, { style: detailStyle }, "Action: Deliverable Created"),
+    React.createElement(Text, { style: detailStyle }, `Current due date: ${currentDueDate}`),
+  );
+}
+
+export const deliverableCreatedTemplate = {
   id: "deliverable-created",
   subject: "CMS DEMOS Deliverable: Deliverable Created",
-  text: `Hello,
-
-You have been assigned a new <Deliverable Type> deliverable for your Demonstration, due <Due Date>. View this deliverable and any required next steps in the DEMOS system: <Link>.
-
-Thank you,
-
-DEMOS Notifications
-
-
-
-Demonstration: <Demonstration Title>
-
-State: <State>
-
-Deliverable type: <Deliverable Type>
-
-Deliverable: <Deliverable Name>
-
-Action: Deliverable Created
-
-Current due date: <Current Due Date>`,
-  html: `<p>Hello,</p>
-<p>You have been assigned a new <Deliverable Type> deliverable for your Demonstration, due <Due Date>. View this deliverable and any required next steps in the DEMOS system: <a href="<Link>"><Link></a>.</p>
-<p>Thank you,</p>
-<p>DEMOS Notifications</p>
-<p><strong>Demonstration:</strong> <Demonstration Title></p>
-<p><strong>State:</strong> <State></p>
-<p><strong>Deliverable type:</strong> <Deliverable Type></p>
-<p><strong>Deliverable:</strong> <Deliverable Name></p>
-<p><strong>Action:</strong> Deliverable Created</p>
-<p><strong>Current due date:</strong> <Current Due Date></p>`,
-};
-
-module.exports = {
-  deliverableCreatedTemplate,
+  Component: DeliverableCreatedEmail,
+  getProps: buildDeliverableCreatedProps,
 };

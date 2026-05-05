@@ -1,11 +1,9 @@
-const { renderEmail } = require("./src/renderEmail");
-const { saveCompletedRender } = require("./src/saveCompletedRender");
-const { templateVariables } = require("./src/templateVariables");
-const { templates } = require("./src/templates");
+import { renderEmail } from "./src/renderEmail.js";
+import { saveCompletedRender } from "./src/saveCompletedRender.js";
+import { templates } from "./src/templates/index.js";
 
-module.exports = {
+export {
   renderEmail,
   saveCompletedRender,
-  templateVariables,
   templates,
 };

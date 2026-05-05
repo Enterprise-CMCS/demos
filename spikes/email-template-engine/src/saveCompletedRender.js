@@ -1,7 +1,7 @@
-const fs = require("node:fs");
-const path = require("node:path");
+import fs from "node:fs";
+import path from "node:path";
 
-function saveCompletedRender(templateId, payload, options = {}) {
+export function saveCompletedRender(templateId, payload, options = {}) {
   const outputDir = options.outputDir || path.join(process.cwd(), "renders", "completed");
   const renderedAt = options.renderedAt || new Date();
   const fileSafeTimestamp = renderedAt.toISOString().replace(/[:.]/g, "-");
@@ -12,7 +12,3 @@ function saveCompletedRender(templateId, payload, options = {}) {
 
   return filePath;
 }
-
-module.exports = {
-  saveCompletedRender,
-};

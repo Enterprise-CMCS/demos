@@ -1,9 +1,11 @@
-const { templates } = require("./templates");
-const { templateVariables } = require("./templateVariables");
+import React from "react";
+import { render, toPlainText } from "@react-email/render";
 
-function renderEmail(templateId, data, options = {}) {
+import { getRequiredValue } from "./getRequiredValue.js";
+import { templates } from "./templates/index.js";
+
+export async function renderEmail(templateId, data, options = {}) {
   const templateRegistry = options.templateRegistry || templates;
-  const variableRegistry = options.variableRegistry || templateVariables;
   const context = {
     now: options.now || new Date(),
   };
@@ -14,55 +16,16 @@ function renderEmail(templateId, data, options = {}) {
   }
 
   const to = normalizeRecipients(getRequiredValue(data, "recipients.to", templateId, "recipients"));
+  const props = template.getProps(data, context);
+  const element = React.createElement(template.Component, props);
+  const html = await render(element);
 
   return {
     to,
-    subject: renderTemplatePart(template.subject, variableRegistry, data, context, templateId, "subject"),
-    text: renderTemplatePart(template.text, variableRegistry, data, context, templateId, "text"),
-    html: renderTemplatePart(template.html, variableRegistry, data, context, templateId, "html"),
+    subject: typeof template.subject === "function" ? template.subject(props) : template.subject,
+    text: toPlainText(html),
+    html,
   };
-}
-
-function renderTemplatePart(source, variables, data, context, templateId, partName) {
-  return Object.entries(variables).reduce((rendered, [token, resolver]) => {
-    if (!rendered.includes(token)) {
-      return rendered;
-    }
-
-    const value = getTemplateVariableValue(data, context, resolver, templateId, partName, token);
-    return rendered.replace(new RegExp(escapeRegExp(token), "g"), String(value));
-  }, source);
-}
-
-function getTemplateVariableValue(data, context, resolver, templateId, partName, token) {
-  if (typeof resolver === "function") {
-    const value = resolver(data, context);
-
-    if (value === undefined || value === null || value === "") {
-      throw new Error(`Missing value for ${token} while rendering ${templateId}.${partName}`);
-    }
-
-    return value;
-  }
-
-  return getRequiredValue(data, resolver, templateId, partName, token);
-}
-
-function getRequiredValue(data, dataPath, templateId, partName, token) {
-  const value = dataPath.split(".").reduce((current, key) => {
-    if (current === undefined || current === null) {
-      return undefined;
-    }
-
-    return current[key];
-  }, data);
-
-  if (value === undefined || value === null || value === "") {
-    const prefix = token ? `Missing value for ${token}` : `Missing value for ${dataPath}`;
-    throw new Error(`${prefix} at ${dataPath} while rendering ${templateId}.${partName}`);
-  }
-
-  return value;
 }
 
 function normalizeRecipients(recipients) {
@@ -90,11 +53,3 @@ function normalizeRecipients(recipients) {
     throw new Error(`Invalid recipient at recipients.to[${index}]`);
   });
 }
-
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-module.exports = {
-  renderEmail,
-};

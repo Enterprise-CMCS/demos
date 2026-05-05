@@ -1,4 +1,4 @@
-const systemsTestData = {
+export const systemsTestData = {
   recipients: {
     to: [
       {
@@ -13,8 +13,4 @@ const systemsTestData = {
   users: {
     email: "Dustin.H@globalalliantinc.com",
   },
-};
-
-module.exports = {
-  systemsTestData,
 };

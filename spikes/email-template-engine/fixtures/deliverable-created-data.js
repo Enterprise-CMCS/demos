@@ -1,4 +1,4 @@
-const deliverableCreatedData = {
+export const deliverableCreatedData = {
   recipients: {
     to: [
       {
@@ -18,8 +18,4 @@ const deliverableCreatedData = {
     link: "https://demos.example.gov/deliverables/123",
     name: "Quarterly Budget Report",
   },
-};
-
-module.exports = {
-  deliverableCreatedData,
 };

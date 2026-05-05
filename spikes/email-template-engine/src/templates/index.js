@@ -1,11 +1,7 @@
-const { deliverableCreatedTemplate } = require("./deliverableCreated");
-const { systemsTestTemplate } = require("./systemsTest");
+import { deliverableCreatedTemplate } from "./deliverableCreated.js";
+import { systemsTestTemplate } from "./systemsTest.js";
 
-const templates = {
+export const templates = {
   [deliverableCreatedTemplate.id]: deliverableCreatedTemplate,
   [systemsTestTemplate.id]: systemsTestTemplate,
-};
-
-module.exports = {
-  templates,
 };

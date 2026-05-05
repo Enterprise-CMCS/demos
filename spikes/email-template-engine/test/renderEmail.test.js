@@ -1,12 +1,12 @@
-const assert = require("node:assert/strict");
-const test = require("node:test");
+import assert from "node:assert/strict";
+import test from "node:test";
 
-const { renderEmail } = require("../src/renderEmail");
-const { deliverableCreatedData } = require("../fixtures/deliverable-created-data");
-const { systemsTestData } = require("../fixtures/systems-test-data");
+import { deliverableCreatedData } from "../fixtures/deliverable-created-data.js";
+import { systemsTestData } from "../fixtures/systems-test-data.js";
+import { renderEmail } from "../src/renderEmail.js";
 
-test("renders the systems-test template as an emailer queue payload", () => {
-  const payload = renderEmail("systems-test", systemsTestData, {
+test("renders the systems-test template as an emailer queue payload", async () => {
+  const payload = await renderEmail("systems-test", systemsTestData, {
     now: new Date("2026-05-04T12:00:00.000Z"),
   });
 
@@ -21,11 +21,11 @@ test("renders the systems-test template as an emailer queue payload", () => {
   assert.match(payload.text, /This email template system works\./);
   assert.match(payload.text, /This email was sent to Dustin\.H@globalalliantinc\.com/);
   assert.match(payload.text, /Current due date: 2026-05-04/);
-  assert.match(payload.html, /<p>Hello Dustin,<\/p>/);
+  assert.match(payload.html, /Hello Dustin,/);
 });
 
-test("renders the deliverable-created template as an emailer queue payload", () => {
-  const payload = renderEmail("deliverable-created", deliverableCreatedData);
+test("renders the deliverable-created template as an emailer queue payload", async () => {
+  const payload = await renderEmail("deliverable-created", deliverableCreatedData);
 
   assert.deepEqual(payload.to, [
     {
@@ -42,22 +42,22 @@ test("renders the deliverable-created template as an emailer queue payload", () 
   assert.match(payload.text, /Deliverable: Quarterly Budget Report/);
   assert.match(payload.text, /Action: Deliverable Created/);
   assert.match(payload.text, /Current due date: 2026-06-01/);
-  assert.match(payload.html, /<strong>Deliverable type:<\/strong> Report/);
+  assert.match(payload.html, /Deliverable type: Report/);
 });
 
-test("reports the missing template variable when render data is incomplete", () => {
+test("reports the missing template variable when render data is incomplete", async () => {
   const data = {
     ...systemsTestData,
     person: {},
   };
 
-  assert.throws(
+  await assert.rejects(
     () => renderEmail("systems-test", data),
-    /Missing value for <Person\.Given Name> at person\.givenName while rendering systems-test\.text/,
+    /Missing value for person\.givenName at person\.givenName while rendering systems-test\.data/,
   );
 });
 
-test("validates recipients before rendering", () => {
+test("validates recipients before rendering", async () => {
   const data = {
     ...systemsTestData,
     recipients: {
@@ -65,5 +65,5 @@ test("validates recipients before rendering", () => {
     },
   };
 
-  assert.throws(() => renderEmail("systems-test", data), /recipients\.to must include at least one recipient/);
+  await assert.rejects(() => renderEmail("systems-test", data), /recipients\.to must include at least one recipient/);
 });
