@@ -4,9 +4,9 @@ This spike renders a named email template into the same payload shape the existi
 
 ```json
 {
-  "to": [{ "name": "Dustin Horning", "address": "Dustin.H@globalalliantinc.com" }],
+  "to": [{ "name": "Dustin H", "address": "Dustin.H@globalalliantinc.com" }],
   "subject": "Dear Admin User, Email functionality is nominal",
-  "text": "Plain text body",
+  "text": "Plain text body - EMOJI! 🙌",
   "html": "<p>HTML body</p>"
 }
 ```

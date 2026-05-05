@@ -14,7 +14,7 @@ function SystemsTestEmail({ personGivenName, userEmail, currentDate }) {
     { preview: "This email template system works." },
     React.createElement(Text, { style: textStyle }, `Hello ${personGivenName},`),
     React.createElement(Text, { style: textStyle }, "This email template system works."),
-    React.createElement(Text, { style: textStyle }, `This email was sent to ${userEmail}`),
+    React.createElement(Text, { style: textStyle }, `This email was sent to ${userEmail} ✌️`),
     React.createElement(Text, { style: textStyle }, "Thank you,"),
     React.createElement(Text, { style: textStyle }, "DEMOS Notifications"),
     React.createElement(Text, { style: textStyle }, "Action: Systems test"),
