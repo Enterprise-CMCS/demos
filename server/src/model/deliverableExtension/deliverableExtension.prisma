@@ -1,5 +1,5 @@
 model DeliverableExtension {
-  id                    String    @db.Uuid
+  id                    String    @default(uuid()) @db.Uuid
   deliverableId         String    @map("deliverable_id") @db.Uuid
   statusId              String    @map("status_id")
   reasonCodeId          String    @map("reason_code_id")

@@ -5,6 +5,7 @@ import { EasternTZDate, parseJSDateToEasternTZDate } from "../../dateUtilities";
 // Types
 import { ApplicationStatus, DeliverableStatus, Document, PersonType, TagName } from "../../types";
 import {
+  DeliverableExtension as PrismaDeliverableExtension,
   Deliverable as PrismaDeliverable,
   Demonstration as PrismaDemonstration,
   DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
@@ -15,12 +16,14 @@ import {
 // Functions under test
 import {
   checkDeliverableHasAtLeastOneDocument,
+  checkDeliverableHasNoActiveExtension,
   checkDeliverableHasStatus,
   checkDeliverableStatusNotFinalized,
   checkDemonstrationStatus,
   checkDueDateInFuture,
   checkForDuplicateDemonstrationTypes,
   checkNewDueDateIsAtLeastCurrentDueDate,
+  checkNewDueDateIsGreaterThanCurrentDueDate,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
 } from "./checkDeliverableInputFunctions";
@@ -30,7 +33,12 @@ vi.mock("../document", () => ({
   selectManyDocuments: vi.fn(),
 }));
 
+vi.mock("../deliverableExtension/queries", () => ({
+  selectManyDeliverableExtensions: vi.fn(),
+}));
+
 import { selectManyDocuments } from "../document";
+import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
 
 describe("checkDeliverableInputFunctions", () => {
   describe("checkDemonstrationStatus", () => {
@@ -315,6 +323,54 @@ describe("checkDeliverableInputFunctions", () => {
     });
   });
 
+  describe("checkNewDueDateIsGreaterThanCurrentDueDate", () => {
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      dueDate: new Date(2026, 11, 13, 4, 59, 59, 999),
+    };
+
+    it("should return undefined if the new date is greater than the current due date", () => {
+      const testInput: EasternTZDate = parseJSDateToEasternTZDate(
+        new Date(2026, 11, 14, 4, 59, 59, 999)
+      );
+
+      const result = checkNewDueDateIsGreaterThanCurrentDueDate(
+        testDeliverable as PrismaDeliverable,
+        testInput
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it("should return an appropriate error message if the new due date is less than the current due date", () => {
+      const testInput: EasternTZDate = parseJSDateToEasternTZDate(
+        new Date(2026, 11, 12, 4, 59, 59, 999)
+      );
+
+      const result = checkNewDueDateIsGreaterThanCurrentDueDate(
+        testDeliverable as PrismaDeliverable,
+        testInput
+      );
+      expect(result).toBe(
+        "Newly requested due date cannot be less than or equal to the original due date; " +
+          "requested Fri Dec 11 2026 23:59:59 GMT-0500 (Eastern Standard Time)."
+      );
+    });
+
+    it("should return an appropriate error message if the new due date is equal to the current due date", () => {
+      const testInput: EasternTZDate = parseJSDateToEasternTZDate(
+        new Date(2026, 11, 13, 4, 59, 59, 999)
+      );
+
+      const result = checkNewDueDateIsGreaterThanCurrentDueDate(
+        testDeliverable as PrismaDeliverable,
+        testInput
+      );
+      expect(result).toBe(
+        "Newly requested due date cannot be less than or equal to the original due date; " +
+          "requested Sat Dec 12 2026 23:59:59 GMT-0500 (Eastern Standard Time)."
+      );
+    });
+  });
+
   describe("checkDeliverableHasAtLeastOneDocument", () => {
     const testTransaction = "I'm a test transaction!" as any;
     const testDeliverableId = "72c01127-bf42-4b9f-a902-1a237ecdf7b7";
@@ -357,6 +413,55 @@ describe("checkDeliverableInputFunctions", () => {
       );
       expect(result).toBe(
         `Cannot submit deliverable ${testDeliverableId} because it has no state documents attached.`
+      );
+    });
+  });
+
+  describe("checkDeliverableHasNoActiveExtension", () => {
+    const testTransaction = "I'm a test transaction!" as any;
+    const testDeliverableId = "72c01127-bf42-4b9f-a902-1a237ecdf7b7";
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      id: testDeliverableId,
+    };
+
+    const mockDeliverableExtensionList: Partial<PrismaDeliverableExtension>[] = [
+      { id: "extension1", deliverableId: "someId" },
+      { id: "extension2", deliverableId: "anotherId" },
+    ];
+
+    beforeEach(() => {
+      vi.resetAllMocks();
+    });
+
+    it("should return undefined if no extension is returned", async () => {
+      vi.mocked(selectManyDeliverableExtensions).mockResolvedValue([]);
+
+      const result = await checkDeliverableHasNoActiveExtension(
+        testDeliverable as PrismaDeliverable,
+        testTransaction
+      );
+      expect(result).toBeUndefined();
+      expect(selectManyDeliverableExtensions).toHaveBeenCalledExactlyOnceWith(
+        {
+          deliverableId: testDeliverableId,
+          statusId: "Requested",
+        },
+        testTransaction
+      );
+    });
+
+    it("should return an error message if an extension is returned", async () => {
+      vi.mocked(selectManyDeliverableExtensions).mockResolvedValue(
+        mockDeliverableExtensionList as PrismaDeliverableExtension[]
+      );
+
+      const result = await checkDeliverableHasNoActiveExtension(
+        testDeliverable as PrismaDeliverable,
+        testTransaction
+      );
+      expect(result).toBe(
+        `Cannot create new extension request for deliverable ${testDeliverableId} ` +
+          "as there is already an open request."
       );
     });
   });

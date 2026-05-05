@@ -1,14 +1,17 @@
 import {
   checkDeliverableHasAtLeastOneDocument,
+  checkDeliverableHasNoActiveExtension,
   checkDeliverableHasStatus,
   checkDeliverableStatusNotFinalized,
   checkDemonstrationStatus,
   checkDueDateInFuture,
   checkNewDueDateIsAtLeastCurrentDueDate,
+  checkNewDueDateIsGreaterThanCurrentDueDate,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
   getDeliverable,
   ParsedCreateDeliverableInput,
+  ParsedRequestDeliverableExtensionInput,
   ParsedRequestDeliverableResubmissionInput,
   ParsedUpdateDeliverableInput,
 } from ".";
@@ -201,6 +204,34 @@ export function validateRequestDeliverableResubmissionInput(
       {
         extensions: {
           code: "REQUEST_DELIVERABLE_RESUBMISSION_VALIDATION_FAILED",
+          originalMessages: cleanedErrors,
+        },
+      }
+    );
+  }
+}
+
+export async function validateRequestDeliverableExtensionInput(
+  deliverable: PrismaDeliverable,
+  input: ParsedRequestDeliverableExtensionInput,
+  tx: PrismaTransactionClient
+): Promise<void> {
+  const errors: (string | undefined)[] = [];
+
+  errors.push(
+    await checkDeliverableHasNoActiveExtension(deliverable, tx),
+    checkDeliverableHasStatus(deliverable, ["Upcoming", "Past Due"]),
+    checkDueDateInFuture(input.requestedDueDate),
+    checkNewDueDateIsGreaterThanCurrentDueDate(deliverable, input.requestedDueDate)
+  );
+
+  const cleanedErrors = errors.filter((e) => e !== undefined);
+  if (cleanedErrors.length > 0) {
+    throw new GraphQLError(
+      "One or more validation checks for requestDeliverableExtension have failed.",
+      {
+        extensions: {
+          code: "REQUEST_DELIVERABLE_EXTENSION_VALIDATION_FAILED",
           originalMessages: cleanedErrors,
         },
       }
