@@ -3,6 +3,7 @@ import {
   DateTimeOrLocalDate,
   DeliverableAction,
   DeliverableDueDateType,
+  DeliverableExtensionReasonCode,
   DeliverableStatus,
   DeliverableType,
   Demonstration,
@@ -53,6 +54,22 @@ export const deliverableSchema = gql`
     demonstrationTypes: [TagName!]
   }
 
+  input RequestDeliverableResubmissionInput {
+    details: NonEmptyString!
+    newDueDate: DateTimeOrLocalDate!
+  }
+
+  input RequestDeliverableExtensionInput {
+    reason: DeliverableExtensionReasonCode!
+    details: NonEmptyString!
+    requestedDueDate: DateTimeOrLocalDate!
+  }
+
+  input ApproveDeliverableExtensionInput {
+    deliverableExtensionId: ID!
+    newDueDate: DateTimeOrLocalDate
+  }
+
   type Query {
     deliverable(id: ID!): Deliverable!
     deliverables: [Deliverable!]!
@@ -64,6 +81,18 @@ export const deliverableSchema = gql`
     submitDeliverable(id: ID!): Deliverable
     startDeliverableReview(id: ID!): Deliverable
     completeDeliverable(id: ID!, finalStatus: FinalDeliverableStatus!): Deliverable
+    requestDeliverableResubmission(
+      id: ID!
+      input: RequestDeliverableResubmissionInput!
+    ): Deliverable
+    requestDeliverableExtension(
+      deliverableId: ID!
+      input: RequestDeliverableExtensionInput!
+    ): Deliverable
+    approveDeliverableExtension(
+      deliverableId: ID!
+      input: ApproveDeliverableExtensionInput!
+    ): Deliverable
   }
 `;
 
@@ -104,4 +133,20 @@ export interface UpdateDeliverableInput {
   cmsOwnerUserId?: string;
   dueDate?: DeliverableDueDateUpdateInput;
   demonstrationTypes?: TagName[];
+}
+
+export interface RequestDeliverableResubmissionInput {
+  details: NonEmptyString;
+  newDueDate: DateTimeOrLocalDate;
+}
+
+export interface RequestDeliverableExtensionInput {
+  reason: DeliverableExtensionReasonCode;
+  details: NonEmptyString;
+  requestedDueDate: DateTimeOrLocalDate;
+}
+
+export interface ApproveDeliverableExtensionInput {
+  deliverableExtensionId: string;
+  newDueDate?: DateTimeOrLocalDate;
 }

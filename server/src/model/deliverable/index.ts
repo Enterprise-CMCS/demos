@@ -1,42 +1,61 @@
 // Functions
+export { approveDeliverableExtension } from "./approveDeliverableExtension";
 export {
-  checkDemonstrationStatus,
+  checkDeliverableExtensionHasStatus,
+  checkDeliverableHasAtLeastOneDocument,
+  checkDeliverableHasNoActiveExtension,
+  checkDeliverableHasStatus,
   checkDeliverableStatusNotFinalized,
+  checkDemonstrationStatus,
   checkDueDateInFuture,
   checkForDuplicateDemonstrationTypes,
+  checkNewDueDateIsAtLeastCurrentDueDate,
+  checkNewDueDateIsGreaterThanCurrentDueDate,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
-  checkDeliverableHasAtLeastOneDocument,
-  checkDeliverableHasStatus,
 } from "./checkDeliverableInputFunctions";
-export { createDeliverable } from "./createDeliverable";
 export { completeDeliverable } from "./completeDeliverable";
-export { manuallyUpdateDeliverableDueDate } from "./manuallyUpdateDeliverableDueDate";
-export { parseCreateDeliverableInput, parseUpdateDeliverableInput } from "./parseDeliverableInputs";
+export { createDeliverable } from "./createDeliverable";
 export { resolveDeliverable, resolveManyDeliverables } from "./deliverableResolvers";
+export { manuallyUpdateDeliverableDueDate } from "./manuallyUpdateDeliverableDueDate";
 export {
+  parseApproveDeliverableExtensionInput,
+  parseCreateDeliverableInput,
+  parseRequestDeliverableExtensionInput,
+  parseRequestDeliverableResubmissionInput,
+  parseUpdateDeliverableInput,
+} from "./parseDeliverableInputs";
+export { requestDeliverableExtension } from "./requestDeliverableExtension";
+export { requestDeliverableResubmission } from "./requestDeliverableResubmission";
+export { startDeliverableReview } from "./startDeliverableReview";
+export { submitDeliverable } from "./submitDeliverable";
+export { updateDeliverable } from "./updateDeliverable";
+export { updateDeliverableDemonstrationTypes } from "./updateDeliverableDemonstrationTypes";
+export {
+  validateApproveDeliverableExtensionInput,
   validateCompleteDeliverableInput,
   validateCreateDeliverableInput,
+  validateRequestDeliverableExtensionInput,
+  validateRequestDeliverableResubmissionInput,
   validateStartDeliverableReviewInput,
   validateSubmitDeliverableInput,
   validateUpdateDeliverableInput,
   validateUserPersonTypeAllowed,
 } from "./validateDeliverableInputs";
-export { startDeliverableReview } from "./startDeliverableReview";
-export { submitDeliverable } from "./submitDeliverable";
-export { updateDeliverable } from "./updateDeliverable";
-export { updateDeliverableDemonstrationTypes } from "./updateDeliverableDemonstrationTypes";
 
 // Queries
+export { editDeliverable } from "./queries/editDeliverable";
 export { getDeliverable } from "./queries/getDeliverable";
 export { getManyDeliverables } from "./queries/getManyDeliverables";
 export { insertDeliverable } from "./queries/insertDeliverable";
-export { editDeliverable } from "./queries/editDeliverable";
 
 // Types & Constants
+export type { EditDeliverableInput } from "./queries/editDeliverable";
 export type {
+  ParsedApproveDeliverableExtensionInput,
   ParsedCreateDeliverableInput,
+  ParsedRequestDeliverableExtensionInput,
+  ParsedRequestDeliverableResubmissionInput,
   ParsedUpdateDeliverableInput,
   ParsedUpdateDueDate,
 } from "./parseDeliverableInputs";
-export type { EditDeliverableInput } from "./queries/editDeliverable";

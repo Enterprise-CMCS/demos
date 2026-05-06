@@ -1,5 +1,5 @@
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
-import { GraphQLContext } from "../../auth/auth.util";
+import { GraphQLContext } from "../../auth";
 import { DeliverableStatus } from "../../types";
 import { prisma } from "../../prismaClient";
 import { editDeliverable, getDeliverable, validateSubmitDeliverableInput } from ".";

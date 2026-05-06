@@ -8,21 +8,27 @@ import {
 import { GraphQLContext } from "../../auth";
 import { GraphQLResolveInfo } from "graphql";
 import {
+  approveDeliverableExtension,
   completeDeliverable,
   createDeliverable,
   getDeliverable,
   getManyDeliverables,
+  requestDeliverableExtension,
+  requestDeliverableResubmission,
   startDeliverableReview,
   submitDeliverable,
   updateDeliverable,
 } from ".";
 import {
+  ApproveDeliverableExtensionInput,
   CreateDeliverableInput,
   DeliverableAction,
   DeliverableDueDateType,
   DeliverableStatus,
   DeliverableType,
   FinalDeliverableStatus,
+  RequestDeliverableExtensionInput,
+  RequestDeliverableResubmissionInput,
   UpdateDeliverableInput,
 } from "../../types";
 import { getApplication } from "../application";
@@ -141,6 +147,27 @@ export const deliverableResolvers = {
       context: GraphQLContext
     ) => {
       return await completeDeliverable(args.id, args.finalStatus, context);
+    },
+    requestDeliverableResubmission: async (
+      parent: unknown,
+      args: { id: string; input: RequestDeliverableResubmissionInput },
+      context: GraphQLContext
+    ) => {
+      return await requestDeliverableResubmission(args.id, args.input, context);
+    },
+    requestDeliverableExtension: async (
+      parent: unknown,
+      args: { deliverableId: string; input: RequestDeliverableExtensionInput },
+      context: GraphQLContext
+    ) => {
+      return await requestDeliverableExtension(args.deliverableId, args.input, context);
+    },
+    approveDeliverableExtension: async (
+      parent: unknown,
+      args: { deliverableId: string; input: ApproveDeliverableExtensionInput },
+      context: GraphQLContext
+    ) => {
+      return await approveDeliverableExtension(args.deliverableId, args.input, context);
     },
   },
 

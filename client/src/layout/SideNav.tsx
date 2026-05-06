@@ -32,7 +32,7 @@ const navLinks: NavLink[] = [
   { label: "Deliverables", href: "/deliverables", icon: <FileIcon />},
   { label: "Tasks", href: "#2", icon: <ListIcon /> },
   { label: "Dashboards", href: "#3", icon: <AnalyticsIcon /> },
-  { label: "Reports", href: "#4", icon: <FolderIcon /> },
+  { label: "Reports", href: "/reports", icon: <FolderIcon /> },
   { label: "Budget", href: "#5", icon: <ScaleIcon /> },
 ];
 

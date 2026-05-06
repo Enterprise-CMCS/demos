@@ -4,15 +4,30 @@ import { TZDate } from "@date-fns/tz";
 
 // Types
 import { EasternTZDate } from "../../dateUtilities";
-import { CreateDeliverableInput, DateTimeOrLocalDate, UpdateDeliverableInput } from "../../types";
+import {
+  ApproveDeliverableExtensionInput,
+  CreateDeliverableInput,
+  DateTimeOrLocalDate,
+  RequestDeliverableExtensionInput,
+  RequestDeliverableResubmissionInput,
+  UpdateDeliverableInput,
+} from "../../types";
 import { ParsedCreateDeliverableInput, ParsedUpdateDeliverableInput } from ".";
+import { DeliverableExtension as PrismaDeliverableExtension } from "@prisma/client";
 
 // Functions under test
-import { parseCreateDeliverableInput, parseUpdateDeliverableInput } from "./parseDeliverableInputs";
+import {
+  parseApproveDeliverableExtensionInput,
+  parseCreateDeliverableInput,
+  parseRequestDeliverableExtensionInput,
+  parseRequestDeliverableResubmissionInput,
+  parseUpdateDeliverableInput,
+} from "./parseDeliverableInputs";
 
 // Mock imports
 vi.mock("../../dateUtilities", () => ({
   parseDateTimeOrLocalDateToEasternTZDate: vi.fn(),
+  parseJSDateToEasternTZDate: vi.fn(),
 }));
 
 vi.mock("../applicationDate", () => ({
@@ -23,7 +38,10 @@ vi.mock(".", () => ({
   checkForDuplicateDemonstrationTypes: vi.fn(),
 }));
 
-import { parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities";
+import {
+  parseDateTimeOrLocalDateToEasternTZDate,
+  parseJSDateToEasternTZDate,
+} from "../../dateUtilities";
 import { checkInputDateIsEndOfDay } from "../applicationDate";
 import { checkForDuplicateDemonstrationTypes } from ".";
 
@@ -231,6 +249,114 @@ describe("parseDeliverableInputs", () => {
         const error = e as Error;
         expect(error.message).toBe("There are duplicates!!");
       }
+    });
+  });
+
+  describe("parseRequestDeliverableResubmissionInput", () => {
+    const testInput: RequestDeliverableResubmissionInput = {
+      details: "A set of details",
+      newDueDate: "2025-11-13" as DateTimeOrLocalDate,
+    };
+
+    it("should parse the input, check the date, and return the updated object", () => {
+      const result = parseRequestDeliverableResubmissionInput(testInput);
+      expect(parseDateTimeOrLocalDateToEasternTZDate).toHaveBeenCalledExactlyOnceWith(
+        testInput.newDueDate,
+        "End of Day"
+      );
+      expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith("dueDate", mockParsedDate);
+      expect(result).toStrictEqual({
+        details: testInput.details,
+        newDueDate: mockParsedDate,
+      });
+    });
+  });
+
+  describe("parseRequestDeliverableExtensionInput", () => {
+    const testInput: RequestDeliverableExtensionInput = {
+      reason: "COVID-19",
+      details: "A set of details",
+      requestedDueDate: "2025-11-13" as DateTimeOrLocalDate,
+    };
+
+    it("should parse the input, check the date, and return the updated object", () => {
+      const result = parseRequestDeliverableExtensionInput(testInput);
+      expect(parseDateTimeOrLocalDateToEasternTZDate).toHaveBeenCalledExactlyOnceWith(
+        testInput.requestedDueDate,
+        "End of Day"
+      );
+      expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith("dueDate", mockParsedDate);
+      expect(result).toStrictEqual({
+        reason: testInput.reason,
+        details: testInput.details,
+        requestedDueDate: mockParsedDate,
+      });
+    });
+  });
+
+  describe("parseApproveDeliverableExtensionInput", () => {
+    it("should parse the input and use the date from the DB if no date is given", () => {
+      const testInput: ApproveDeliverableExtensionInput = {
+        deliverableExtensionId: "a57dbf4f-12ab-4d40-b236-1fd13201a99c",
+      };
+      const testDeliverableExtension: Partial<PrismaDeliverableExtension> = {
+        originalDateRequested: new Date(2027, 10, 12, 4, 59, 59, 999),
+      };
+      const mockTZDate = new TZDate(2027, 10, 11, 23, 59, 59, 999, "America/New_York");
+      vi.mocked(parseJSDateToEasternTZDate).mockReturnValue({
+        isEasternTZDate: true,
+        easternTZDate: mockTZDate,
+      });
+
+      const result = parseApproveDeliverableExtensionInput(
+        testInput,
+        testDeliverableExtension as PrismaDeliverableExtension
+      );
+      expect(parseDateTimeOrLocalDateToEasternTZDate).not.toHaveBeenCalled();
+      expect(checkInputDateIsEndOfDay).not.toHaveBeenCalled();
+      expect(parseJSDateToEasternTZDate).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableExtension.originalDateRequested
+      );
+      expect(result).toStrictEqual({
+        deliverableExtensionId: testInput.deliverableExtensionId,
+        finalDateGranted: {
+          isEasternTZDate: true,
+          easternTZDate: mockTZDate,
+        },
+      });
+    });
+
+    it("should parse the input and use inputted date if it is present", () => {
+      const testInput: ApproveDeliverableExtensionInput = {
+        deliverableExtensionId: "a57dbf4f-12ab-4d40-b236-1fd13201a99c",
+        newDueDate: new Date(2027, 10, 12, 4, 59, 59, 999),
+      };
+      const testDeliverableExtension: Partial<PrismaDeliverableExtension> = {
+        originalDateRequested: new Date(2027, 7, 11, 3, 59, 59, 999),
+      };
+      const mockDateReturnValue: EasternTZDate = {
+        isEasternTZDate: true,
+        easternTZDate: new TZDate(2027, 10, 11, 23, 59, 59, 999, "America/New_York"),
+      };
+      vi.mocked(parseDateTimeOrLocalDateToEasternTZDate).mockReturnValue(mockDateReturnValue);
+
+      const result = parseApproveDeliverableExtensionInput(
+        testInput,
+        testDeliverableExtension as PrismaDeliverableExtension
+      );
+      expect(parseDateTimeOrLocalDateToEasternTZDate).toHaveBeenCalledExactlyOnceWith(
+        testInput.newDueDate,
+        "End of Day"
+      );
+      expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith(
+        "dueDate",
+        mockDateReturnValue
+      );
+      expect(parseJSDateToEasternTZDate).not.toHaveBeenCalled();
+      expect(result).toStrictEqual({
+        deliverableExtensionId: testInput.deliverableExtensionId,
+        finalDateGranted: mockDateReturnValue,
+      });
     });
   });
 });

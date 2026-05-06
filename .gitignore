@@ -18,3 +18,5 @@ all-outputs.json
 
 **/.scannerwork/**
 deployment/*.pem
+
+.dccache

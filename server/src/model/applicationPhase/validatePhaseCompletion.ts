@@ -17,9 +17,8 @@ export async function validatePhaseCompletion(
   const applicationPhaseDocumentTypes = await getApplicationPhaseDocumentTypes(applicationId, tx);
   const applicationPhaseStatuses = await getApplicationPhaseStatuses(applicationId, tx);
   // casting enforced by database schema
-  const applicationClearanceLevel = (await (
-    await getApplication(applicationId)
-  ).clearanceLevelId) as ClearanceLevel;
+  const applicationClearanceLevel = (await getApplication(applicationId))
+    .clearanceLevelId as ClearanceLevel;
 
   checkPhaseCompletionRules(
     applicationId,

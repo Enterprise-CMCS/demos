@@ -19,6 +19,19 @@ function getKey(header: JwtHeader, callback: SigningKeyCallback) {
 }
 /* v8 ignore stop */
 
+function redactEmailAddress(address: string): string {
+
+  const [local, domain] = address.split("@");
+  if (!domain) return address;
+
+  const visible = local.slice(0, 2);
+
+  const redactedEmail = `${visible}****@${domain}`;
+  
+  return redactedEmail;
+  
+}
+
 export const handler = async (event: APIGatewayTokenAuthorizerEvent, context: Context) =>
   als.run(store, async () => {
     reqIdChild(context.awsRequestId);
@@ -53,10 +66,16 @@ export const handler = async (event: APIGatewayTokenAuthorizerEvent, context: Co
 
     const roles = decoded["custom:roles"] as string | undefined;
 
+    const userId = decoded.identities?.[0]?.userId ?? decoded.email;
+    if (decoded.identities?.[0]?.userId === undefined) {
+      log.warn({sub: decoded.sub, userId: redactEmailAddress(userId)}, "user does not have a standard idm user id")
+    }
+
     if (!roles) {
       log.info(
         {
           sub: decoded.sub,
+          userId,
         },
         "unauthorized: user has no roles"
       );
@@ -70,6 +89,7 @@ export const handler = async (event: APIGatewayTokenAuthorizerEvent, context: Co
         {
           sub: decoded.sub,
           roles: roles ?? "none",
+          userId: redactEmailAddress(userId),
         },
         "unauthorized: user has invalid roles"
       );
@@ -80,11 +100,11 @@ export const handler = async (event: APIGatewayTokenAuthorizerEvent, context: Co
       {
         sub: decoded.sub,
         roles: roles,
+        userId: redactEmailAddress(userId),
       },
       "success: user authorized"
     );
 
-    const userId = decoded.identities?.[0]?.userId ?? decoded.email;
 
     return generatePolicy(decoded.sub, "Allow", event.methodArn, {
       sub: decoded.sub,
