@@ -26,7 +26,7 @@ export interface DeliverableExtension {
   reasonDetails: NonEmptyString;
   initialDueDateAtRequest: Date;
   originalDateRequested: Date;
-  finalDateGranted?: Date;
+  finalDateGranted: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
