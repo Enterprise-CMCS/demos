@@ -30,6 +30,9 @@ const getPermissionFilters = (userId: string) =>
       },
     },
     "View People on Assigned Demonstrations": isAStatePointOfContactAssociatedWithPerson(userId),
+    "View My Person": {
+      id: userId,
+    },
   }) satisfies PermissionFilters<Prisma.PersonWhereInput>;
 
 export async function getPerson(
