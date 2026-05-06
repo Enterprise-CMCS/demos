@@ -9,6 +9,7 @@ import { StateFilesTab } from "./StateFilesTab";
 import { Button } from "components/button/Button";
 import { useDialog } from "components/dialog/DialogContext";
 import { DeliverableStatus } from "demos-server";
+import { getCurrentUser } from "components/user/UserContext";
 
 export const FILE_AND_HISTORY_TABS_NAME = "file-and-history-tabs";
 export const FILE_AND_HISTORY_ACTIONS_NAME = "file-and-history-actions";
@@ -32,6 +33,9 @@ const EMPTY_HISTORY: DeliverableHistoryRow[] = [];
 export const FileAndHistoryTabs: React.FC<{
   deliverable: DeliverableDetailsManagementDeliverable;
 }> = ({ deliverable }) => {
+  const { currentUser } = getCurrentUser();
+  const userPersonType = currentUser?.person.personType;
+
   const stateFiles = deliverable.stateDocuments;
   const cmsFiles = deliverable.cmsDocuments;
 
@@ -57,32 +61,34 @@ export const FileAndHistoryTabs: React.FC<{
           <HistoryTab rows={EMPTY_HISTORY} />
         </Tab>
       </HorizontalSectionTabs>
-      <div data-testid={FILE_AND_HISTORY_ACTIONS_NAME} className="flex justify-end mt-2 gap-2">
-        <Button
-          onClick={handleRequestResubmission}
-          size="large"
-          name="button-actions-request-resubmission"
-          disabled={isResubmissionDisabled(deliverable.status)}
-        >
+      { userPersonType &&["demos-cms-user", "demos-admin"].includes(userPersonType) && (
+        <div data-testid={FILE_AND_HISTORY_ACTIONS_NAME} className="flex justify-end mt-2 gap-2">
+          <Button
+            onClick={handleRequestResubmission}
+            size="large"
+            name="button-actions-request-resubmission"
+            disabled={isResubmissionDisabled(deliverable.status)}
+          >
           Request Re-submission
-        </Button>
-        <Button
-          disabled={true}
-          onClick={() => {}}
-          size="large"
-          name="button-actions-submit-deliverable"
-        >
-          Submit Deliverable
-        </Button>
-        <Button
-          disabled={true}
-          onClick={() => {}}
-          size="large"
-          name="button-actions-complete-review"
-        >
-          Complete Review
-        </Button>
-      </div>
+          </Button>
+          <Button
+            disabled={true}
+            onClick={() => {}}
+            size="large"
+            name="button-actions-submit-deliverable"
+          >
+            Submit Deliverable
+          </Button>
+          <Button
+            disabled={true}
+            onClick={() => {}}
+            size="large"
+            name="button-actions-complete-review"
+          >
+            Complete Review
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
