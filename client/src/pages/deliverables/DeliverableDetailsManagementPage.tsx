@@ -1,7 +1,12 @@
 import React, { useCallback, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { gql, useQuery } from "@apollo/client";
-import { Deliverable, DeliverableAction, Demonstration } from "demos-server";
+import {
+  Deliverable,
+  DeliverableAction,
+  DeliverableExtension,
+  Demonstration,
+} from "demos-server";
 import { Loading } from "components/loading/Loading";
 import { CommentBox } from "./sections/comment_box";
 import { DeliverableInfoFields } from "./sections/DeliverableInfoFields";
@@ -61,6 +66,11 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
         id
         actionType
       }
+      deliverableExtensions {
+        id
+        status
+        createdAt
+      }
     }
   }
 `;
@@ -74,6 +84,7 @@ export type DeliverableDetailsManagementDeliverable = Pick<
   stateDocuments: DeliverableFileRow[];
   cmsDocuments: DeliverableFileRow[];
   deliverableActions: Pick<DeliverableAction, "id" | "actionType">[];
+  deliverableExtensions: Pick<DeliverableExtension, "id" | "status" | "createdAt">[];
 };
 
 export const DeliverableDetailsManagementPage: React.FC<{

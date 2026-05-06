@@ -3,6 +3,7 @@ import {
   DateTimeOrLocalDate,
   DeliverableAction,
   DeliverableDueDateType,
+  DeliverableExtension,
   DeliverableExtensionReasonCode,
   DeliverableStatus,
   DeliverableType,
@@ -29,6 +30,7 @@ export const deliverableSchema = gql`
     cmsDocuments: [Document!]!
     stateDocuments: [Document!]!
     deliverableActions: [DeliverableAction!]!
+    deliverableExtensions: [DeliverableExtension!]!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -110,6 +112,7 @@ export interface Deliverable {
   cmsDocuments: Document[];
   stateDocuments: Document[];
   deliverableActions: DeliverableAction[];
+  deliverableExtensions: DeliverableExtension[];
   createdAt: Date;
   updatedAt: Date;
 }

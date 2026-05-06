@@ -24,6 +24,9 @@ import {
   CreateDeliverableInput,
   DeliverableAction,
   DeliverableDueDateType,
+  DeliverableExtension,
+  DeliverableExtensionReasonCode,
+  DeliverableExtensionStatus,
   DeliverableStatus,
   DeliverableType,
   FinalDeliverableStatus,
@@ -36,6 +39,7 @@ import { getUser } from "../user";
 import { getManyDocuments } from "../document";
 import { getFormattedDeliverableActions } from "../deliverableAction";
 import { getManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
+import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
 
 export async function resolveDeliverable(
   parent: PrismaDocument,
@@ -214,6 +218,20 @@ export const deliverableResolvers = {
       ),
     deliverableActions: async (parent: PrismaDeliverable): Promise<DeliverableAction[]> => {
       return await getFormattedDeliverableActions(parent.id);
+    },
+    deliverableExtensions: async (
+      parent: PrismaDeliverable
+    ): Promise<DeliverableExtension[]> => {
+      const rows = await selectManyDeliverableExtensions({ deliverableId: parent.id });
+      return rows.map((row) => ({
+        id: row.id,
+        status: row.statusId as DeliverableExtensionStatus,
+        reasonCode: row.reasonCodeId as DeliverableExtensionReasonCode,
+        originalDateRequested: row.originalDateRequested,
+        finalDateGranted: row.finalDateGranted,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+      }));
     },
   },
 };
