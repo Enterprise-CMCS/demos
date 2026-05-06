@@ -16,7 +16,7 @@ import { DeliverablesPage } from "pages/DeliverablesPage";
 import { ReportsPage } from "pages/ReportsPage";
 import { DeliverableDetailsManagementPage } from "pages/deliverables/DeliverableDetailsManagementPage";
 import { AdminPage } from "pages/admin/AdminPage";
-import { RequireAdmin } from "./RequireAdmin";
+import { RequireRole } from "./RequireRole";
 
 const HomePage = () => {
   const { currentUser } = getCurrentUser();
@@ -46,13 +46,20 @@ export const DemosRouter: React.FC = () => {
                   path="deliverables/:deliverableId"
                   element={<DeliverableDetailsManagementPage />}
                 />
-                <Route path="reports" element={<ReportsPage />} />
+                <Route
+                  path="reports"
+                  element={
+                    <RequireRole allowedRoles={["demos-admin", "demos-cms-user"]}>
+                      <ReportsPage />
+                    </RequireRole>
+                  }
+                />
                 <Route
                   path="admin"
                   element={
-                    <RequireAdmin>
+                    <RequireRole allowedRoles={["demos-admin"]}>
                       <AdminPage />
-                    </RequireAdmin>
+                    </RequireRole>
                   }
                 />
                 {isLocalDevelopment() && (
