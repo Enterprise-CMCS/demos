@@ -39,6 +39,7 @@ import { deliverableDueDateTypeSchema } from "./deliverableDueDateType/deliverab
 import { deliverableDueDateTypeResolvers } from "./deliverableDueDateType/deliverableDueDateTypeResolvers";
 
 import { deliverableExtensionSchema } from "./deliverableExtension/deliverableExtensionSchema";
+import { deliverableExtensionResolvers } from "./deliverableExtension/deliverableExtensionResolvers";
 
 import { deliverableExtensionReasonCodeSchema } from "./deliverableExtensionReasonCode/deliverableExtensionReasonCodeSchema";
 import { deliverableExtensionReasonCodeResolvers } from "./deliverableExtensionReasonCode/deliverableExtensionReasonCodeResolvers";
@@ -201,6 +202,7 @@ export const resolvers = [
   dateTypeResolvers,
   deliverableActionTypeResolvers,
   deliverableDueDateTypeResolvers,
+  deliverableExtensionResolvers,
   deliverableExtensionReasonCodeResolvers,
   deliverableExtensionStatusResolvers,
   deliverableResolvers,

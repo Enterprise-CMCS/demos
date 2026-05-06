@@ -1,8 +1,8 @@
 // Vitest and other helpers
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { DeepPartial } from "../../testUtilities";
 
 // Types
-import { DeepPartial } from "../../testUtilities";
 import {
   Deliverable as PrismaDeliverable,
   Demonstration as PrismaDemonstration,
@@ -69,6 +69,10 @@ vi.mock("../deliverableAction", () => ({
   getFormattedDeliverableActions: vi.fn(),
 }));
 
+vi.mock("../deliverableExtension/queries", () => ({
+  selectManyDeliverableExtensions: vi.fn(),
+}));
+
 import {
   approveDeliverableExtension,
   completeDeliverable,
@@ -86,6 +90,7 @@ import { getUser } from "../user";
 import { getManyDocuments } from "../document";
 import { getManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 import { getFormattedDeliverableActions } from "../deliverableAction";
+import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
 
 describe("deliverableResolvers", () => {
   const testDeliverableId = "82ef9a17-e8b9-48ab-9aaf-3d1787822b13";
@@ -518,6 +523,17 @@ describe("deliverableResolvers", () => {
           testDeliverable as PrismaDeliverable
         );
         expect(getFormattedDeliverableActions).toHaveBeenCalledExactlyOnceWith(testDeliverableId);
+      });
+    });
+
+    describe("Deliverable.extensionRequests", () => {
+      it("should query the extension requests of the parent deliverable", async () => {
+        await deliverableResolvers.Deliverable.extensionRequests(
+          testDeliverable as PrismaDeliverable
+        );
+        expect(selectManyDeliverableExtensions).toHaveBeenCalledExactlyOnceWith({
+          deliverableId: testDeliverableId,
+        });
       });
     });
   });

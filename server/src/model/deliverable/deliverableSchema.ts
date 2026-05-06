@@ -30,7 +30,7 @@ export const deliverableSchema = gql`
     cmsDocuments: [Document!]!
     stateDocuments: [Document!]!
     deliverableActions: [DeliverableAction!]!
-    deliverableExtensions: [DeliverableExtension!]!
+    extensionRequests: [DeliverableExtension!]!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -112,7 +112,7 @@ export interface Deliverable {
   cmsDocuments: Document[];
   stateDocuments: Document[];
   deliverableActions: DeliverableAction[];
-  deliverableExtensions: DeliverableExtension[];
+  extensionRequests: DeliverableExtension[];
   createdAt: Date;
   updatedAt: Date;
 }

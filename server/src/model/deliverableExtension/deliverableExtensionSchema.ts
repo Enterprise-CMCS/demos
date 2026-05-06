@@ -1,11 +1,17 @@
 import { gql } from "graphql-tag";
-import { DeliverableExtensionReasonCode, DeliverableExtensionStatus } from "../../types";
+import {
+  DeliverableExtensionReasonCode,
+  DeliverableExtensionStatus,
+  NonEmptyString,
+} from "../../types";
 
 export const deliverableExtensionSchema = gql`
   type DeliverableExtension {
     id: ID!
     status: DeliverableExtensionStatus!
     reasonCode: DeliverableExtensionReasonCode!
+    reasonDetails: NonEmptyString!
+    initialDueDateAtRequest: DateTime!
     originalDateRequested: DateTime!
     finalDateGranted: DateTime
     createdAt: DateTime!
@@ -17,6 +23,8 @@ export interface DeliverableExtension {
   id: string;
   status: DeliverableExtensionStatus;
   reasonCode: DeliverableExtensionReasonCode;
+  reasonDetails: NonEmptyString;
+  initialDueDateAtRequest: Date;
   originalDateRequested: Date;
   finalDateGranted: Date | null;
   createdAt: Date;

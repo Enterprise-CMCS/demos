@@ -76,8 +76,8 @@ describe("userResolvers", () => {
       const mockUser = {
         id: "abc123",
       } as PrismaUser;
-      await userResolvers.User.person(mockUser);
-      expect(getPerson).toHaveBeenCalledExactlyOnceWith({ id: "abc123" });
+      await userResolvers.User.person(mockUser, undefined, mockContext);
+      expect(getPerson).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
     });
   });
 

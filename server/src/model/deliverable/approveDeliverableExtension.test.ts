@@ -1,10 +1,10 @@
 // Vitest and other helpers
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
+import { DeepPartial } from "../../testUtilities";
 
 // Types
 import { ParsedApproveDeliverableExtensionInput } from "./parseDeliverableInputs";
-import { DeepPartial } from "../../testUtilities";
 import { ApproveDeliverableExtensionInput, DeliverableExtensionStatus } from "../../types";
 import { GraphQLContext } from "../../auth";
 import {
@@ -190,7 +190,8 @@ describe("approveDeliverableExtension", () => {
       testUserContext as GraphQLContext
     );
     expect(selectDeliverableExtension).toHaveBeenCalledExactlyOnceWith(
-      testDeliverableExtensionId,
+      { id: testDeliverableExtensionId },
+      true,
       mockTransaction
     );
   });

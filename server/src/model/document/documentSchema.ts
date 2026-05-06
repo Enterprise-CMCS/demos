@@ -14,7 +14,7 @@ export const documentSchema = gql`
     id: ID!
     name: NonEmptyString!
     description: String
-    s3Path: String!
+    s3Path: NonEmptyString!
     owner: User!
     documentType: DocumentType!
     application: Application!
@@ -67,7 +67,7 @@ export interface Document {
   id: string;
   name: NonEmptyString;
   description?: string;
-  s3Path: string;
+  s3Path: NonEmptyString;
   owner: User;
   documentType: DocumentType;
   application: Application;

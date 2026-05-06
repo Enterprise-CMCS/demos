@@ -1,5 +1,6 @@
 import { Person as PrismaPerson, Prisma } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { buildAuthorizationFilter, ContextUser } from "../../auth";
 import { getPerson, getManyPeople } from "./personData";
 import { selectPerson, selectManyPeople } from "./queries";
 
@@ -13,12 +14,23 @@ vi.mock("./queries", () => ({
 }));
 
 describe("personData", () => {
+  const user: ContextUser = {
+    id: "user-1",
+    cognitoSubject: "sub-1",
+    personTypeId: "demos-state-user",
+    permissions: ["View People on Assigned Demonstrations"],
+  };
+
   const where: Prisma.PersonWhereInput = {
-    id: "NC",
+    id: "person-1",
   };
 
   const authorizedWhereClause: Prisma.PersonWhereInput = {
-    id: "SC",
+    id: "auth-id",
+  };
+
+  const authFilter = {
+    OR: [authorizedWhereClause],
   };
 
   beforeEach(() => {
@@ -26,39 +38,90 @@ describe("personData", () => {
   });
 
   describe("getPerson", () => {
-    it("queries for a single person", async () => {
-      const person = { id: "NC" } as PrismaPerson;
+    it("returns null when authorization filter returns null", async () => {
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(null);
+
+      const result = await getPerson(where, user);
+
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(selectPerson).not.toHaveBeenCalled();
+      expect(result).toBeNull();
+    });
+
+    it("queries for a single person with the authorization filter applied", async () => {
+      const person = { id: "person-1" } as PrismaPerson;
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
       vi.mocked(selectPerson).mockResolvedValueOnce(person);
 
-      const result = await getPerson(where);
+      const result = await getPerson(where, user);
 
-      expect(selectPerson).toHaveBeenCalledExactlyOnceWith(where, undefined);
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
+      expect(selectPerson).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        undefined
+      );
       expect(result).toBe(person);
     });
 
     it("passes transaction client to selectPerson if provided", async () => {
       const mockTransactionClient = {} as any;
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
 
-      await getPerson(where, mockTransactionClient);
-      expect(selectPerson).toHaveBeenCalledExactlyOnceWith(where, mockTransactionClient);
+      await getPerson(where, user, mockTransactionClient);
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(selectPerson).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        mockTransactionClient
+      );
     });
   });
 
   describe("getManyPeople", () => {
-    it("queries for many people", async () => {
-      const people = [{ id: "NC" }, { id: "SC" }] as PrismaPerson[];
+    it("returns an empty array when authorization filter returns null", async () => {
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(null);
+
+      const result = await getManyPeople(where, user);
+
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(selectManyPeople).not.toHaveBeenCalled();
+      expect(result).toEqual([]);
+    });
+
+    it("queries for many people with the authorization filter applied", async () => {
+      const people = [{ id: "person-1" }, { id: "person-2" }] as PrismaPerson[];
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
       vi.mocked(selectManyPeople).mockResolvedValueOnce(people);
 
-      const result = await getManyPeople(where);
-      expect(selectManyPeople).toHaveBeenCalledExactlyOnceWith(where, undefined);
+      const result = await getManyPeople(where, user);
+
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
+      expect(selectManyPeople).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        undefined
+      );
       expect(result).toBe(people);
     });
 
-    it("passes transaction client to selectManyDemonstrations if provided", async () => {
+    it("passes transaction client to selectManyPerson if provided", async () => {
       const mockTransactionClient = {} as any;
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
 
-      await getManyPeople(where, mockTransactionClient);
-      expect(selectManyPeople).toHaveBeenCalledExactlyOnceWith(where, mockTransactionClient);
+      await getManyPeople(where, user, mockTransactionClient);
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(selectManyPeople).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        mockTransactionClient
+      );
     });
   });
 });

@@ -1,10 +1,10 @@
 // Vitest and other helpers
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
+import { DeepPartial } from "../../testUtilities";
 
 // Types
 import { GraphQLContext } from "../../auth";
-import { DeepPartial } from "../../testUtilities";
 import { ApplicationStatus, PersonType } from "../../types";
 import {
   ParsedApproveDeliverableExtensionInput,
