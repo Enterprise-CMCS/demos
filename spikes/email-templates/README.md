@@ -317,6 +317,59 @@ mutation/action happens
 
 Email rendering should stay in the server, not the client. The client should only trigger mutations. The server has the domain data, recipient rules, and SQS access.
 
+## Lessons Learned From The Server POC
+
+The React Email POC was small to integrate into the existing server because the server already has the right execution model:
+
+```text
+server event data -> renderEmail(templateId, data) -> existing emailer queue payload
+```
+
+The renderer returns the exact payload the emailer already accepts:
+
+```ts
+{
+  to: [{ name: "CMS Owner", address: "cms.owner@example.com" }],
+  subject: "CMS DEMOS Deliverable: Deliverable Created",
+  text: "Plain text body",
+  html: "<html>...</html>",
+}
+```
+
+That means the email-template layer does not need its own queue. The existing emailer queue should remain the delivery boundary. The template system only needs to produce queue-ready JSON.
+
+### What Worked
+
+- The server can render React Email templates locally and during build.
+- The existing TypeScript server can own the template input types and data mapping.
+- Templates can accept a normal DEMOS object, then pull out the values they need inside `getProps()`.
+- `@react-email/render` can create HTML, and `toPlainText()` can create the text body.
+- Local JSON renders are useful for inspection and for proving the emailer payload contract before wiring to SQS.
+- Keeping local renders under `server/rendered-emails/` works well as a dev artifact, and that directory should stay gitignored.
+
+### Issues We Hit
+
+- React Email in the server requires React runtime dependencies: `react`, `react-dom`, `@react-email/render`, and `@react-email/components`.
+- If templates use React component syntax, server TypeScript config needs JSX enabled and must include template component files.
+- The local machine and Docker/container environments can disagree on native packages like `esbuild`. If `tsx` reports a platform mismatch, `npm rebuild esbuild` fixes the local install.
+- Avoid importing guessed shared types into dev fixtures. Either export the real input type from the template module or keep the local fixture type explicit.
+- The React Email `<Preview>` component can add hidden preheader characters to rendered HTML. That is normal email behavior, but for this POC we skipped it because the JSON blob is easier to inspect without it.
+- Rendered React Email HTML is intentionally noisy because it is email-client-safe markup. The JSON payload is correct, but the HTML string is not meant to be pleasant to read inline.
+
+### Simple Integration Path
+
+The production integration can stay narrow:
+
+1. Put email templates in the server near the notification/domain code.
+2. Keep a small template registry keyed by ids like `deliverable-created` and `deliverable-submitted`.
+3. Have each template define its subject, recipient resolver, and typed `getProps()` mapping.
+4. On a deliverable event, load the deliverable, demonstration, link, and recipient data the template needs.
+5. Call `renderEmail(templateId, data)`.
+6. Send the returned `{ to, subject, text, html }` to the existing emailer queue.
+7. Log the template id, recipient count, target entity id, queue message id, and render/send failures.
+
+For the next real implementation step, the main work is not rendering. The main work is deciding where recipient rules live for each notification event and making sure the event handler loads the right object graph before calling the renderer.
+
 ## References
 
 - React Email render utility: https://react.email/docs/utilities/render
