@@ -105,5 +105,21 @@ describe("deliverableExtensionResolvers", () => {
       );
       expect(result).toBe(mockDeliverableAction.note);
     });
+
+    it("returns null if nothing is returned by the query", async () => {
+      vi.mocked(selectDeliverableAction).mockResolvedValue(null);
+      const result = await deliverableExtensionResolvers.DeliverableExtension.denialDetails(
+        testDeliverableExtension as PrismaDeliverableExtension
+      );
+      expect(selectDeliverableAction).toHaveBeenCalledExactlyOnceWith(
+        {
+          deliverableId: testDeliverableExtension.deliverableId,
+          activeExtensionId: testDeliverableExtension.id,
+          actionTypeId: "Denied Extension Request",
+        },
+        false
+      );
+      expect(result).toBe(null);
+    });
   });
 });
