@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { User as PrismaUser } from "@prisma/client";
 import type { GraphQLContext } from "../../auth";
-import { queryCurrentUser, resolvePerson, resolveEvents, userResolvers } from "./userResolvers";
+import { resolveEvents, userResolvers } from "./userResolvers";
 
 // Mock imports
 import { prisma } from "../../prismaClient";
 import { getManyDocuments } from "../document";
+import { getUser } from "./userData";
+import { getPerson } from "../person";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -15,33 +17,26 @@ vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
 }));
 
+vi.mock("./userData", () => ({
+  getUser: vi.fn(),
+}));
+
+vi.mock("../person", () => ({
+  getPerson: vi.fn(),
+}));
+
 describe("userResolvers", () => {
   const regularMocks = {
-    user: {
-      findUniqueOrThrow: vi.fn(),
-    },
-    person: {
-      findUniqueOrThrow: vi.fn(),
-    },
     event: {
       findMany: vi.fn(),
     },
   };
   const mockPrismaClient = {
-    user: {
-      findUniqueOrThrow: regularMocks.user.findUniqueOrThrow,
-    },
-    person: {
-      findUniqueOrThrow: regularMocks.person.findUniqueOrThrow,
-    },
     event: {
       findMany: regularMocks.event.findMany,
     },
   };
-  const testUserId = "1b5967a6-97f8-4fbb-9bc1-f8666406fbd4";
-  const testParent: Partial<PrismaUser> = {
-    id: testUserId,
-  };
+  const testUserId = "abc123";
   const mockContext: GraphQLContext = {
     user: {
       id: testUserId,
@@ -51,6 +46,16 @@ describe("userResolvers", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
+  });
+
+  describe("Query.currentUser", () => {
+    it("delegates to `userData.getUser`", async () => {
+      const mockUser = {
+        id: "abc123",
+      } as PrismaUser;
+      await userResolvers.Query.currentUser(mockUser, undefined, mockContext);
+      expect(getUser).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockContext.user);
+    });
   });
 
   describe("User.ownedDocuments", () => {
@@ -66,29 +71,13 @@ describe("userResolvers", () => {
     });
   });
 
-  describe("queryCurrentUser", () => {
-    it("should query the user found in the GQL context", async () => {
-      const expectedCall = {
-        where: {
-          id: testUserId,
-        },
-      };
-
-      await queryCurrentUser(undefined, undefined, mockContext);
-      expect(regularMocks.user.findUniqueOrThrow).toHaveBeenCalledExactlyOnceWith(expectedCall);
-    });
-  });
-
-  describe("resolvePerson", () => {
-    it("should query the person record for the parent", async () => {
-      const expectedCall = {
-        where: {
-          id: testUserId,
-        },
-      };
-
-      await resolvePerson(testParent as PrismaUser);
-      expect(regularMocks.person.findUniqueOrThrow).toHaveBeenCalledExactlyOnceWith(expectedCall);
+  describe("User.person", () => {
+    it("delegates to `personData.getPerson`", async () => {
+      const mockUser = {
+        id: "abc123",
+      } as PrismaUser;
+      await userResolvers.User.person(mockUser);
+      expect(getPerson).toHaveBeenCalledExactlyOnceWith({ id: "abc123" });
     });
   });
 
@@ -100,7 +89,7 @@ describe("userResolvers", () => {
         },
       };
 
-      await resolveEvents(testParent as PrismaUser);
+      await resolveEvents({ id: "abc123" } as PrismaUser);
       expect(regularMocks.event.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
   });

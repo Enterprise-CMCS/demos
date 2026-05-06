@@ -17,6 +17,34 @@ export function isStatePointOfContactOnDemonstration(
   };
 }
 
+export function isStatePointOfContactAssociatedToAmendment(
+  userId: string
+): Prisma.AmendmentWhereInput {
+  return {
+    demonstration: isStatePointOfContactOnDemonstration(userId),
+  };
+}
+
+export function isStatePointOfContactAssociatedToExtension(
+  userId: string
+): Prisma.ExtensionWhereInput {
+  return {
+    demonstration: isStatePointOfContactOnDemonstration(userId),
+  };
+}
+
+export function isStatePointOfContactAssociatedToApplication(
+  userId: string
+): Prisma.ApplicationWhereInput {
+  return {
+    OR: [
+      { amendment: isStatePointOfContactAssociatedToAmendment(userId) },
+      { extension: isStatePointOfContactAssociatedToExtension(userId) },
+      { demonstration: isStatePointOfContactOnDemonstration(userId) },
+    ],
+  };
+}
+
 export function buildAuthorizationFilter<WhereClause>(
   user: ContextUser,
   getPermissionFilters: (userid: string) => PermissionFilters<WhereClause>
