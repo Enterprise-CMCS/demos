@@ -28,6 +28,7 @@ export type DeliverableTableRow = Omit<
   | "dueDateType"
   | "expectedToBeSubmitted"
   | "deliverableActions"
+  | "extensionRequests"
   | "createdAt"
   | "updatedAt"
 > & {
