@@ -12,13 +12,16 @@ import {
 import { ContextUser, GraphQLContext } from "../../auth";
 import { GraphQLResolveInfo } from "graphql";
 import {
+  ApproveDeliverableExtensionInput,
   CreateDeliverableInput,
   DateTimeOrLocalDate,
   DeliverableDueDateType,
   DeliverableStatus,
   DeliverableType,
+  RequestDeliverableExtensionInput,
   UpdateDeliverableInput,
 } from "../../types";
+import { DeliverableDemonstrationTypeQueryResult } from "../deliverableDemonstrationType/queries";
 
 // Functions under test
 import {
@@ -32,18 +35,18 @@ import {
   deliverableResolvers,
 } from "./deliverableResolvers";
 
-import { DeliverableDemonstrationTypeQueryResult } from "../deliverableDemonstrationType/queries";
-import { getManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
-
 // Mock imports
 vi.mock(".", () => ({
+  approveDeliverableExtension: vi.fn(),
+  completeDeliverable: vi.fn(),
   createDeliverable: vi.fn(),
   getDeliverable: vi.fn(),
   getManyDeliverables: vi.fn(),
+  requestDeliverableExtension: vi.fn(),
+  requestDeliverableResubmission: vi.fn(),
   startDeliverableReview: vi.fn(),
   submitDeliverable: vi.fn(),
   updateDeliverable: vi.fn(),
-  completeDeliverable: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -67,17 +70,21 @@ vi.mock("../deliverableAction", () => ({
 }));
 
 import {
+  approveDeliverableExtension,
+  completeDeliverable,
   createDeliverable,
   getDeliverable,
   getManyDeliverables,
+  requestDeliverableExtension,
+  requestDeliverableResubmission,
   startDeliverableReview,
   submitDeliverable,
   updateDeliverable,
-  completeDeliverable,
 } from ".";
 import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getManyDocuments } from "../document";
+import { getManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 import { getFormattedDeliverableActions } from "../deliverableAction";
 
 describe("deliverableResolvers", () => {
@@ -154,6 +161,20 @@ describe("deliverableResolvers", () => {
     });
   });
 
+  describe("Mutation.startDeliverableReview", () => {
+    it("calls startDeliverableReview with appropriate arguments", async () => {
+      await deliverableResolvers.Mutation.startDeliverableReview(
+        undefined,
+        { id: testDeliverableId },
+        testContext as GraphQLContext
+      );
+      expect(startDeliverableReview).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId,
+        testContext
+      );
+    });
+  });
+
   describe("Mutation.completeDeliverable", () => {
     it("calls completeDeliverable with appropriate arguments", async () => {
       await deliverableResolvers.Mutation.completeDeliverable(
@@ -169,15 +190,71 @@ describe("deliverableResolvers", () => {
     });
   });
 
-  describe("Mutation.startDeliverableReview", () => {
-    it("calls startDeliverableReview with appropriate arguments", async () => {
-      await deliverableResolvers.Mutation.startDeliverableReview(
+  describe("Mutation.requestDeliverableResubmission", () => {
+    it("calls requestDeliverableResubmission with appropriate arguments", async () => {
+      const testInput = {
+        details: "A change is gonna come",
+        newDueDate: "2025-11-13" as DateTimeOrLocalDate,
+      };
+
+      await deliverableResolvers.Mutation.requestDeliverableResubmission(
         undefined,
-        { id: testDeliverableId },
+        {
+          id: testDeliverableId,
+          input: testInput,
+        },
         testContext as GraphQLContext
       );
-      expect(startDeliverableReview).toHaveBeenCalledExactlyOnceWith(
+      expect(requestDeliverableResubmission).toHaveBeenCalledExactlyOnceWith(
         testDeliverableId,
+        testInput,
+        testContext
+      );
+    });
+  });
+
+  describe("Mutation.requestDeliverableExtension", () => {
+    it("calls requestDeliverableExtension with appropriate arguments", async () => {
+      const testInput: RequestDeliverableExtensionInput = {
+        reason: "COVID-19",
+        details: "A change is gonna come",
+        requestedDueDate: "2025-11-13" as DateTimeOrLocalDate,
+      };
+
+      await deliverableResolvers.Mutation.requestDeliverableExtension(
+        undefined,
+        {
+          deliverableId: testDeliverableId,
+          input: testInput,
+        },
+        testContext as GraphQLContext
+      );
+      expect(requestDeliverableExtension).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId,
+        testInput,
+        testContext
+      );
+    });
+  });
+
+  describe("Mutation.approveDeliverableExtension", () => {
+    it("calls approveDeliverableExtension with appropriate arguments", async () => {
+      const testInput: ApproveDeliverableExtensionInput = {
+        deliverableExtensionId: "e0b332b7-2ecd-4058-a484-a3ecbb81344e",
+        newDueDate: "2025-11-13" as DateTimeOrLocalDate,
+      };
+
+      await deliverableResolvers.Mutation.approveDeliverableExtension(
+        undefined,
+        {
+          deliverableId: testDeliverableId,
+          input: testInput,
+        },
+        testContext as GraphQLContext
+      );
+      expect(approveDeliverableExtension).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId,
+        testInput,
         testContext
       );
     });

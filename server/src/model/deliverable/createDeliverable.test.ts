@@ -7,7 +7,7 @@ import { DeepPartial } from "../../testUtilities";
 import { CreateDeliverableInput, DateTimeOrLocalDate, DeliverableType } from "../../types";
 import { ParsedCreateDeliverableInput } from ".";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
-import { GraphQLContext } from "../../auth/auth.util";
+import { GraphQLContext } from "../../auth";
 
 // Functions under test
 import { createDeliverable } from "./createDeliverable";

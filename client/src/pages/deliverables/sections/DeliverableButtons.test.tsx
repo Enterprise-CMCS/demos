@@ -6,13 +6,14 @@ import { DeliverableStatus } from "demos-server";
 
 import {
   DeliverableButtons,
-  REFERENCES_BUTTON_NAME,
   REQUEST_EXTENSION_BUTTON_NAME,
 } from "./DeliverableButtons";
 import { MOCK_DELIVERABLE_1 } from "mock-data/deliverableMocks";
 import { DeliverableDetailsManagementDeliverable } from "../DeliverableDetailsManagementPage";
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
+import { CurrentUser } from "components/user/UserContext";
+import { developmentMockUser } from "mock-data/userMocks";
 
 const mockShowRequestExtensionDeliverableDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", async () => {
@@ -36,11 +37,24 @@ const buildDeliverable = (
   ...overrides,
 });
 
-const renderButtons = (deliverable: DeliverableDetailsManagementDeliverable) =>
+const buildCurrentUser = (personType: CurrentUser["person"]["personType"]): CurrentUser => ({
+  ...developmentMockUser,
+  person: {
+    ...developmentMockUser.person,
+    personType,
+  },
+});
+
+const renderButtons = (
+  deliverable: DeliverableDetailsManagementDeliverable,
+  personType: CurrentUser["person"]["personType"] = "demos-state-user"
+) =>
   render(
-    <TestProvider>
+    <TestProvider currentUser={buildCurrentUser(personType)}>
       <DialogProvider>
-        <DeliverableButtons deliverable={deliverable} />
+        <DeliverableButtons
+          deliverable={deliverable}
+        />
       </DialogProvider>
     </TestProvider>
   );
@@ -50,9 +64,11 @@ describe("DeliverableButtons", () => {
     mockShowRequestExtensionDeliverableDialog.mockClear();
   });
 
-  it("renders the References button", () => {
-    renderButtons(buildDeliverable());
-    expect(screen.getByTestId(REFERENCES_BUTTON_NAME)).toHaveTextContent("References");
+  it("renders the Request Extension button for state users", () => {
+    renderButtons(buildDeliverable(), "demos-state-user");
+    expect(screen.getByTestId(REQUEST_EXTENSION_BUTTON_NAME)).toHaveTextContent(
+      "Request Extension"
+    );
   });
 
   it("renders the Request Extension button enabled for Upcoming deliverables", () => {

@@ -66,6 +66,21 @@ export function DeliverableColumns({
       },
     },
   });
+  const viewColumn = columnHelper.display({
+    id: "view",
+    cell: ({ row }) => {
+      const deliverableId = row.original.id;
+      const handleClick = () => {
+        window.open(`/deliverables/${deliverableId}`, "_blank");
+      };
+      return (
+        <SecondaryButton onClick={handleClick} name="view-deliverable">
+          View
+        </SecondaryButton>
+      );
+    },
+    enableSorting: false,
+  });
 
   if (viewMode === "demos-state-user") {
     return [
@@ -75,6 +90,7 @@ export function DeliverableColumns({
       dueDateColumn,
       submissionDateColumn,
       statusColumn,
+      viewColumn,
     ];
   }
 
@@ -113,20 +129,6 @@ export function DeliverableColumns({
     dueDateColumn,
     submissionDateColumn,
     statusColumn,
-    columnHelper.display({
-      id: "view",
-      cell: ({ row }) => {
-        const deliverableId = row.original.id;
-        const handleClick = () => {
-          window.open(`/deliverables/${deliverableId}`, "_blank");
-        };
-        return (
-          <SecondaryButton onClick={handleClick} name="view-deliverable">
-            View
-          </SecondaryButton>
-        );
-      },
-      enableSorting: false,
-    }),
+    viewColumn,
   ];
 }

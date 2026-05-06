@@ -21,6 +21,7 @@ const baseDeliverable: Omit<DeliverableTableRow, "id" | "name" | "dueDate" | "st
       fullName: "CMS A",
     },
   },
+  demonstrationTypes: [],
 };
 
 describe("DemonstrationDeliverableTable", () => {

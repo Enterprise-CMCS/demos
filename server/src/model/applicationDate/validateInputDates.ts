@@ -10,6 +10,7 @@ import {
   ApplicationDateMap,
   DateTypeValidationChecksRecord,
 } from ".";
+import { EasternTZDate } from "../../dateUtilities";
 
 export function makeEmptyValidations(): DateTypeValidationChecksRecord {
   const result = {} as DateTypeValidationChecksRecord;
@@ -111,35 +112,61 @@ VALIDATION_CHECKS["Federal Comment Period Start Date"]["offsetChecks"].push({
   },
 });
 
+function runExpectedTimestampCheck(
+  dateType: DateType,
+  dateValue: EasternTZDate,
+  check: DateTypeValidationChecksRecord[DateType]["expectedTimestamp"]
+): void {
+  if (check === "Start of Day") {
+    checkInputDateIsStartOfDay(dateType, dateValue);
+  }
+  if (check === "End of Day") {
+    checkInputDateIsEndOfDay(dateType, dateValue);
+  }
+}
+
+function runGreaterThanChecks(
+  datesToValidateMap: ApplicationDateMap,
+  dateType: DateType,
+  checks: DateTypeValidationChecksRecord[DateType]["greaterThanChecks"]
+): void {
+  for (const check of checks) {
+    checkInputDateGreaterThan(datesToValidateMap, dateType, check.dateTypeToCheck);
+  }
+}
+
+function runGreaterThanOrEqualChecks(
+  datesToValidateMap: ApplicationDateMap,
+  dateType: DateType,
+  checks: DateTypeValidationChecksRecord[DateType]["greaterThanOrEqualChecks"]
+): void {
+  for (const check of checks) {
+    checkInputDateGreaterThanOrEqual(datesToValidateMap, dateType, check.dateTypeToCheck);
+  }
+}
+
+function runOffsetChecks(
+  datesToValidateMap: ApplicationDateMap,
+  dateType: DateType,
+  checks: DateTypeValidationChecksRecord[DateType]["offsetChecks"]
+): void {
+  for (const check of checks) {
+    checkInputDateMeetsOffset(
+      datesToValidateMap,
+      dateType,
+      check.dateTypeToCheck,
+      check.dateOffset
+    );
+  }
+}
+
 export function validateInputDates(datesToValidate: ParsedApplicationDateInput[]): void {
   const datesToValidateMap = makeApplicationDateMapFromList(datesToValidate);
   for (const [dateType, dateValue] of datesToValidateMap.entries()) {
     const checks = VALIDATION_CHECKS[dateType];
-    if (checks.expectedTimestamp === "Start of Day") {
-      checkInputDateIsStartOfDay(dateType, dateValue);
-    }
-    if (checks.expectedTimestamp === "End of Day") {
-      checkInputDateIsEndOfDay(dateType, dateValue);
-    }
-    if (checks.greaterThanChecks.length !== 0) {
-      for (const check of checks.greaterThanChecks) {
-        checkInputDateGreaterThan(datesToValidateMap, dateType, check.dateTypeToCheck);
-      }
-    }
-    if (checks.greaterThanOrEqualChecks.length !== 0) {
-      for (const check of checks.greaterThanOrEqualChecks) {
-        checkInputDateGreaterThanOrEqual(datesToValidateMap, dateType, check.dateTypeToCheck);
-      }
-    }
-    if (checks.offsetChecks.length !== 0) {
-      for (const check of checks.offsetChecks) {
-        checkInputDateMeetsOffset(
-          datesToValidateMap,
-          dateType,
-          check.dateTypeToCheck,
-          check.dateOffset
-        );
-      }
-    }
+    runExpectedTimestampCheck(dateType, dateValue, checks.expectedTimestamp);
+    runGreaterThanChecks(datesToValidateMap, dateType, checks.greaterThanChecks);
+    runGreaterThanOrEqualChecks(datesToValidateMap, dateType, checks.greaterThanOrEqualChecks);
+    runOffsetChecks(datesToValidateMap, dateType, checks.offsetChecks);
   }
 }

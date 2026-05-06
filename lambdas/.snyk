@@ -1,0 +1,13 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.0
+ignore: {}
+patch: {}
+exclude:
+  global:
+    - authorizer/node_modules
+    - budgetNeutrality/node_modules
+    - dbRoleManagement/node_modules
+    - deleteinfectedfile/node_modules
+    - emailer/node_modules
+    - fileprocess/node_modules
+    - UIPath/node_modules
