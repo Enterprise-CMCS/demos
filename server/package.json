@@ -18,6 +18,8 @@
     "@escape.tech/graphql-armor": "^3.2.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "@react-email/components": "^1.0.12",
+    "@react-email/render": "^2.0.8",
     "cookie": "^1.1.1",
     "date-fns": "^4.1.0",
     "demos-shared-library": "file:../shared_library",
@@ -27,7 +29,9 @@
     "jsonwebtoken": "^9.0.3",
     "jwks-rsa": "^3.2.2",
     "pg": "^8.20.0",
-    "pino": "^10.3.1"
+    "pino": "^10.3.1",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
   },
   "scripts": {
     "clean": "rm -rf dist; npm ci",
@@ -63,6 +67,8 @@
     "@graphql-tools/merge": "^9.1.9",
     "@parcel/watcher": "^2.5.6",
     "@types/node": "^22.19.17",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "@vitest/coverage-v8": "^4.1.5",
     "@vitest/ui": "^4.1.5",
     "concurrently": "^9.2.1",
