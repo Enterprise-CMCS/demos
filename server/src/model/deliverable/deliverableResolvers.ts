@@ -12,6 +12,7 @@ import {
   approveDeliverableExtension,
   completeDeliverable,
   createDeliverable,
+  denyDeliverableExtension,
   getDeliverable,
   getManyDeliverables,
   requestDeliverableExtension,
@@ -27,6 +28,7 @@ import {
   DeliverableDueDateType,
   DeliverableStatus,
   DeliverableType,
+  DenyDeliverableExtensionInput,
   FinalDeliverableStatus,
   RequestDeliverableExtensionInput,
   RequestDeliverableResubmissionInput,
@@ -170,6 +172,13 @@ export const deliverableResolvers = {
       context: GraphQLContext
     ) => {
       return await approveDeliverableExtension(args.deliverableId, args.input, context);
+    },
+    denyDeliverableExtension: async (
+      parent: unknown,
+      args: { deliverableId: string; input: DenyDeliverableExtensionInput },
+      context: GraphQLContext
+    ) => {
+      return await denyDeliverableExtension(args.deliverableId, args.input, context);
     },
   },
 

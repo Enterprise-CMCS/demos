@@ -18,6 +18,7 @@ import {
   DeliverableDueDateType,
   DeliverableStatus,
   DeliverableType,
+  DenyDeliverableExtensionInput,
   RequestDeliverableExtensionInput,
   UpdateDeliverableInput,
 } from "../../types";
@@ -40,6 +41,7 @@ vi.mock(".", () => ({
   approveDeliverableExtension: vi.fn(),
   completeDeliverable: vi.fn(),
   createDeliverable: vi.fn(),
+  denyDeliverableExtension: vi.fn(),
   getDeliverable: vi.fn(),
   getManyDeliverables: vi.fn(),
   requestDeliverableExtension: vi.fn(),
@@ -77,6 +79,7 @@ import {
   approveDeliverableExtension,
   completeDeliverable,
   createDeliverable,
+  denyDeliverableExtension,
   getDeliverable,
   getManyDeliverables,
   requestDeliverableExtension,
@@ -258,6 +261,29 @@ describe("deliverableResolvers", () => {
         testContext as GraphQLContext
       );
       expect(approveDeliverableExtension).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId,
+        testInput,
+        testContext
+      );
+    });
+  });
+
+  describe("Mutation.denyDeliverableExtension", () => {
+    it("calls denyDeliverableExtension with appropriate arguments", async () => {
+      const testInput: DenyDeliverableExtensionInput = {
+        deliverableExtensionId: "e0b332b7-2ecd-4058-a484-a3ecbb81344e",
+        details: "This is denied",
+      };
+
+      await deliverableResolvers.Mutation.denyDeliverableExtension(
+        undefined,
+        {
+          deliverableId: testDeliverableId,
+          input: testInput,
+        },
+        testContext as GraphQLContext
+      );
+      expect(denyDeliverableExtension).toHaveBeenCalledExactlyOnceWith(
         testDeliverableId,
         testInput,
         testContext

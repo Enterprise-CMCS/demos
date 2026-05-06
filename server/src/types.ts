@@ -113,6 +113,7 @@ export type {
   CreateDeliverableInput,
   Deliverable,
   DeliverableDueDateUpdateInput,
+  DenyDeliverableExtensionInput,
   RequestDeliverableExtensionInput,
   RequestDeliverableResubmissionInput,
   UpdateDeliverableInput,

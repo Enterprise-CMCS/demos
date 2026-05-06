@@ -38,5 +38,20 @@ export const deliverableExtensionResolvers = {
       // Both old and new due dates will be the same, just using old by convention
       return result.oldDueDate;
     },
+    denialDetails: async (parent: PrismaDeliverableExtension): Promise<NonEmptyString | null> => {
+      const result = await selectDeliverableAction(
+        {
+          deliverableId: parent.deliverableId,
+          activeExtensionId: parent.id,
+          actionTypeId: "Denied Extension Request",
+        },
+        false
+      );
+      // Note is guaranteed to exist by database in this case
+      if (result) {
+        return result.note!;
+      }
+      return null;
+    },
   },
 };
