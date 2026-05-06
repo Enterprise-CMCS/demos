@@ -107,7 +107,7 @@ describe("prismaClient", () => {
   it("findAtMostOne returns null when findMany returns no rows", async () => {
     process.env.DATABASE_URL = "postgresql://db:5432/demos?schema=demos_app";
 
-    const mod = await import("./prismaClient.ts");
+    const mod = await import("./prismaClient");
     mod.prisma();
 
     const extensionConfig = getFindAtMostOneExtensionConfig();
@@ -122,7 +122,7 @@ describe("prismaClient", () => {
   it("findAtMostOne fails when the model is incapable of calling findMany", async () => {
     process.env.DATABASE_URL = "postgresql://db:5432/demos?schema=demos_app";
 
-    const mod = await import("./prismaClient.ts");
+    const mod = await import("./prismaClient");
     mod.prisma();
 
     const extensionConfig = getFindAtMostOneExtensionConfig();
@@ -137,7 +137,7 @@ describe("prismaClient", () => {
   it("findAtMostOne returns the row when findMany returns one row", async () => {
     process.env.DATABASE_URL = "postgresql://db:5432/demos?schema=demos_app";
 
-    const mod = await import("./prismaClient.ts");
+    const mod = await import("./prismaClient");
     mod.prisma();
 
     const extensionConfig = getFindAtMostOneExtensionConfig();
@@ -153,7 +153,7 @@ describe("prismaClient", () => {
   it("findAtMostOne throws when findMany returns multiple rows", async () => {
     process.env.DATABASE_URL = "postgresql://db:5432/demos?schema=demos_app";
 
-    const mod = await import("./prismaClient.ts");
+    const mod = await import("./prismaClient");
     mod.prisma();
 
     const extensionConfig = getFindAtMostOneExtensionConfig();
@@ -171,14 +171,14 @@ describe("prismaClient", () => {
     delete process.env.DATABASE_URL;
     process.env.DOTENV_CONFIG_PATH = "/tmp/does-not-exist";
 
-    const mod = await import("./prismaClient.ts");
+    const mod = await import("./prismaClient");
     expect(() => mod.prisma()).toThrow("DATABASE_URL must be set to initialize Prisma client");
   });
 
   it("passes parsed schema from DATABASE_URL to PrismaPg", async () => {
     process.env.DATABASE_URL = "postgresql://db:5432/demos?schema=demos_app";
 
-    const mod = await import("./prismaClient.ts");
+    const mod = await import("./prismaClient");
     mod.prisma();
 
     expect(prismaPgCtorMock).toHaveBeenCalledWith(
@@ -193,7 +193,7 @@ describe("prismaClient", () => {
   it("falls back to undefined schema when DATABASE_URL is not parseable", async () => {
     process.env.DATABASE_URL = "not-a-url";
 
-    const mod = await import("./prismaClient.ts");
+    const mod = await import("./prismaClient");
     mod.prisma();
 
     expect(prismaPgCtorMock).toHaveBeenCalledWith(
@@ -208,7 +208,7 @@ describe("prismaClient", () => {
   it("registers query/warn/error handlers and logs expected events", async () => {
     process.env.DATABASE_URL = "postgresql://db:5432/demos?schema=demos_app";
 
-    const mod = await import("./prismaClient.ts");
+    const mod = await import("./prismaClient");
     mod.prisma();
 
     const handlers = new Map<string, (event: any) => void>();
@@ -236,7 +236,7 @@ describe("prismaClient", () => {
   it("returns a singleton prisma client instance", async () => {
     process.env.DATABASE_URL = "postgresql://db:5432/demos?schema=demos_app";
 
-    const mod = await import("./prismaClient.ts");
+    const mod = await import("./prismaClient");
     const first = mod.prisma();
     const second = mod.prisma();
 
@@ -250,7 +250,7 @@ describe("prismaClient", () => {
     const findUnique = vi.fn().mockResolvedValue(existing);
     (baseClientMock as any).TestModel = { findUnique };
 
-    const mod = await import("./prismaClient.ts");
+    const mod = await import("./prismaClient");
     mod.prisma();
 
     const extensionConfig = getQueryExtensionConfig();
@@ -275,7 +275,7 @@ describe("prismaClient", () => {
     const findUnique = vi.fn().mockResolvedValue(null);
     (baseClientMock as any).TestModel = { findUnique };
 
-    const mod = await import("./prismaClient.ts");
+    const mod = await import("./prismaClient");
     mod.prisma();
 
     const extensionConfig = getQueryExtensionConfig();
@@ -292,7 +292,7 @@ describe("prismaClient", () => {
   it("upsert extension passes through successful query result", async () => {
     process.env.DATABASE_URL = "postgresql://db:5432/demos?schema=demos_app";
 
-    const mod = await import("./prismaClient.ts");
+    const mod = await import("./prismaClient");
     mod.prisma();
 
     const extensionConfig = getQueryExtensionConfig();
@@ -313,7 +313,7 @@ describe("prismaClient", () => {
     const findUnique = vi.fn().mockResolvedValue(null);
     (baseClientMock as any).TestModel = { findUnique };
 
-    const mod = await import("./prismaClient.ts");
+    const mod = await import("./prismaClient");
     mod.prisma();
 
     const extensionConfig = getQueryExtensionConfig();
@@ -333,7 +333,7 @@ describe("prismaClient", () => {
     const findUnique = vi.fn().mockResolvedValue(existing);
     (baseClientMock as any).TestModel = { findUnique };
 
-    const mod = await import("./prismaClient.ts");
+    const mod = await import("./prismaClient");
     mod.prisma();
 
     const extensionConfig = getQueryExtensionConfig();
@@ -356,7 +356,7 @@ describe("prismaClient", () => {
   it("rethrows non-object errors from extension queries", async () => {
     process.env.DATABASE_URL = "postgresql://db:5432/demos?schema=demos_app";
 
-    const mod = await import("./prismaClient.ts");
+    const mod = await import("./prismaClient");
     mod.prisma();
 
     const extensionConfig = getQueryExtensionConfig();

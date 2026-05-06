@@ -52,7 +52,7 @@ describe("local-server startup", () => {
 
   it("initializes ApolloArmor with GraphQLArmorConfig and starts the server", async () => {
     // Import module after mocks are active
-    const mod = await import("./local-server.ts");
+    const mod = await import("./local-server");
 
     // ApolloArmor should have been constructed with the sentinel config
     expect(ApolloArmorMock).toHaveBeenCalled();
@@ -66,7 +66,7 @@ describe("local-server startup", () => {
   });
 
   it("extracts claims from a decoded token", async () => {
-    const { extractClaimsFromDecodedToken } = await import("./local-server.ts");
+    const { extractClaimsFromDecodedToken } = await import("./local-server");
     const decodedToken: JwtPayload = {
       email: "somehuman@example.com",
       sub: "74a88478-1081-702f-2d85-a65bf907a154",

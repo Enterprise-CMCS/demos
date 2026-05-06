@@ -1,16 +1,18 @@
 import { Prisma } from "@prisma/client";
-import {
-  buildAuthorizationFilter,
-  isStatePointOfContactOnDemonstration,
-  PermissionFilters,
-  ContextUser,
-} from "../../auth";
+import { buildAuthorizationFilter, PermissionFilters, ContextUser } from "../../auth";
 import {
   type DemonstrationRoleAssignmentQueryResult,
   selectDemonstrationRoleAssignment,
   selectManyDemonstrationRoleAssignments,
 } from "./queries";
 import { PrismaTransactionClient } from "../../prismaClient";
+import { isAStatePointOfContactAssociatedWithDemonstration } from "../demonstration/demonstrationData";
+
+export const isAStatePointOfContactAssociatedWithDemonstrationRoleAssignment = (
+  userId: string
+): Prisma.DemonstrationRoleAssignmentWhereInput => ({
+  demonstration: isAStatePointOfContactAssociatedWithDemonstration(userId),
+});
 
 const getPermissionFilters = (userId: string) =>
   ({
@@ -21,9 +23,8 @@ const getPermissionFilters = (userId: string) =>
         },
       },
     },
-    "View DemonstrationRoleAssignments on Assigned Demonstrations": {
-      demonstration: isStatePointOfContactOnDemonstration(userId),
-    },
+    "View DemonstrationRoleAssignments on Assigned Demonstrations":
+      isAStatePointOfContactAssociatedWithDemonstrationRoleAssignment(userId),
   }) satisfies PermissionFilters<Prisma.DemonstrationRoleAssignmentWhereInput>;
 
 export async function getDemonstrationRoleAssignment(
