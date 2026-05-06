@@ -16,7 +16,7 @@ export type RenderContext = {
   now: Date;
 };
 
-export type TemplateDefinition<Props extends object> = {
+export type TemplateDefinition<Props extends object = any> = {
   id: string;
   subject: string | ((props: Props) => string);
   Component: ComponentType<Props>;

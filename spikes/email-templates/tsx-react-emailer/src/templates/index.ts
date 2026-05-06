@@ -7,4 +7,4 @@ export const templates = {
   [deliverableCreatedTemplate.id]: deliverableCreatedTemplate,
   [deliverableSubmittedTemplate.id]: deliverableSubmittedTemplate,
   [systemsTestTemplate.id]: systemsTestTemplate,
-} satisfies Record<string, TemplateDefinition<object>>;
+} satisfies Record<string, TemplateDefinition<any>>;

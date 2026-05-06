@@ -7,7 +7,7 @@ import type { EmailPayload, Recipient, RenderContext, TemplateDefinition } from 
 
 export async function renderEmail(templateId: string, data: unknown, options: {
   now?: Date;
-  templateRegistry?: Record<string, TemplateDefinition<object>>;
+  templateRegistry?: Record<string, TemplateDefinition<any>>;
 } = {}): Promise<EmailPayload> {
   const templateRegistry = options.templateRegistry ?? templates;
   const context: RenderContext = {
