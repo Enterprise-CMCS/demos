@@ -39,7 +39,7 @@ export const DeliverableButtons = ({
         <SecondaryButton
           name={REQUEST_EXTENSION_BUTTON_NAME}
           onClick={handleRequestExtension}
-          disabled={!canRequestExtension(deliverable.status, deliverable.deliverableExtensions)}
+          disabled={!canRequestExtension(deliverable.status, deliverable.extensionRequests)}
         >
           Request Extension
         </SecondaryButton>

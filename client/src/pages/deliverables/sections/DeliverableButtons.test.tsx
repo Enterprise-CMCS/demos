@@ -112,7 +112,7 @@ describe("DeliverableButtons", () => {
     renderButtons(
       buildDeliverable({
         status: "Upcoming",
-        deliverableExtensions: [
+        extensionRequests: [
           { id: "ext-1", status: "Requested", createdAt: new Date("2026-04-01") },
         ],
       })

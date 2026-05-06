@@ -44,7 +44,7 @@ describe("DeliverableInfoFields", () => {
   it("renders Extension status from the most recent extension", () => {
     const deliverable = {
       ...MOCK_DELIVERABLE_1,
-      deliverableExtensions: [
+      extensionRequests: [
         { id: "ext-old", status: "Approved" as const, createdAt: new Date("2026-01-01") },
         { id: "ext-new", status: "Requested" as const, createdAt: new Date("2026-03-01") },
       ],

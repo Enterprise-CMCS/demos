@@ -82,7 +82,7 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
       actionType: "Requested Resubmission",
     },
   ],
-  deliverableExtensions: [],
+  extensionRequests: [],
 };
 
 export const deliverableMocks: MockedResponse[] = [

@@ -66,7 +66,7 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
         id
         actionType
       }
-      deliverableExtensions {
+      extensionRequests {
         id
         status
         createdAt
@@ -84,7 +84,7 @@ export type DeliverableDetailsManagementDeliverable = Pick<
   stateDocuments: DeliverableFileRow[];
   cmsDocuments: DeliverableFileRow[];
   deliverableActions: Pick<DeliverableAction, "id" | "actionType">[];
-  deliverableExtensions: Pick<DeliverableExtension, "id" | "status" | "createdAt">[];
+  extensionRequests: Pick<DeliverableExtension, "id" | "status" | "createdAt">[];
 };
 
 export const DeliverableDetailsManagementPage: React.FC<{
