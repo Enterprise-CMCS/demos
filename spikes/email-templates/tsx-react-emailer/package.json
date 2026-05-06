@@ -1,0 +1,27 @@
+{
+  "name": "tsx-react-emailer",
+  "version": "1.0.0",
+  "description": "Email template creator spike",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.tsx",
+  "scripts": {
+    "preview": "tsx scripts/preview-render.ts",
+    "render": "tsx scripts/render-email.ts",
+    "render:deliverable-created": "tsx scripts/render-email.ts deliverable-created",
+    "render:deliverable-submitted": "tsx scripts/render-email.ts deliverable-submitted",
+    "render:test-email": "tsx scripts/render-email.ts systems-test",
+    "test": "tsx --test test/**/*.test.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "@react-email/components": "^1.0.12",
+    "@react-email/render": "^2.0.8",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
+  }
+}
