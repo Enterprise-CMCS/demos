@@ -1,6 +1,7 @@
 import {
   Demonstration as PrismaDemonstration,
   Deliverable as PrismaDeliverable,
+  DeliverableExtension as PrismaDeliverableExtension,
   Document as PrismaDocument,
   Prisma,
   User as PrismaUser,
@@ -36,6 +37,7 @@ import { getUser } from "../user";
 import { getManyDocuments } from "../document";
 import { getFormattedDeliverableActions } from "../deliverableAction";
 import { getManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
+import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
 
 export async function resolveDeliverable(
   parent: PrismaDocument,
@@ -214,6 +216,9 @@ export const deliverableResolvers = {
       ),
     deliverableActions: async (parent: PrismaDeliverable): Promise<DeliverableAction[]> => {
       return await getFormattedDeliverableActions(parent.id);
+    },
+    extensionRequests: async (parent: PrismaDeliverable): Promise<PrismaDeliverableExtension[]> => {
+      return await selectManyDeliverableExtensions({ deliverableId: parent.id });
     },
   },
 };

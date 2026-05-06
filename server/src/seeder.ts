@@ -23,6 +23,8 @@ import {
   LogEventInput,
   Role,
   CreateDeliverableInput,
+  PersonType,
+  DateTimeOrLocalDate,
 } from "./types.js";
 import { prisma } from "./prismaClient.js";
 import { DocumentType, PhaseName } from "./types.js";
@@ -36,8 +38,19 @@ import { __setApplicationDates } from "./model/applicationDate/applicationDateRe
 import { logEvent } from "./model/event/eventResolvers.js";
 import { GraphQLContext } from "./auth/auth.util.js";
 import { getManyApplications } from "./model/application";
-import { createDeliverable } from "./model/deliverable";
+import {
+  approveDeliverableExtension,
+  completeDeliverable,
+  createDeliverable,
+  requestDeliverableExtension,
+  requestDeliverableResubmission,
+  startDeliverableReview,
+  submitDeliverable,
+  updateDeliverable,
+} from "./model/deliverable";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { Deliverable as PrismaDeliverable } from "@prisma/client";
+import { selectDeliverableExtension } from "./model/deliverableExtension/queries";
 
 const DOCUMENTS_PER_APPLICATION = 15;
 const UIPATH_SEED_DOCUMENT_ID = "00000000-0000-0000-0000-000000000000";
@@ -181,7 +194,7 @@ async function seedApprovedDemonstration() {
   console.log(`🌱 Seeded approved demonstration: ${approvedDemonstration.id}`);
 }
 
-async function seedDeliverables(actionUserId: string) {
+async function seedDeliverables(actionUserId: string, actionUserPersonTypeId: PersonType) {
   console.log("🌱 Seeding deliverables...");
   const deliverableTypes = await prisma().deliverableType.findMany({
     select: { id: true },
@@ -212,9 +225,11 @@ async function seedDeliverables(actionUserId: string) {
   const context = {
     user: {
       id: actionUserId,
-      personTypeId: "demos-admin",
+      personTypeId: actionUserPersonTypeId,
     },
   } as GraphQLContext;
+
+  const createdDeliverables = [];
 
   for (let i = 0; i < DELIVERABLE_SEED_COUNT; i++) {
     const demonstration = faker.helpers.arrayElement(approvedDemonstrations);
@@ -239,8 +254,73 @@ async function seedDeliverables(actionUserId: string) {
         .slice(0, 10) as CreateDeliverableInput["dueDate"],
       demonstrationTypes: selectedDemonstrationTypes,
     };
-    await createDeliverable(createInput, context);
+    createdDeliverables.push(await createDeliverable(createInput, context));
   }
+  return createdDeliverables;
+}
+
+async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
+  const context = {
+    user: {
+      id: "00000000-1111-2222-3333-123abc123abc",
+      personTypeId: "demos-admin",
+    },
+  } as GraphQLContext;
+  await updateDeliverable(
+    deliverable.id,
+    { dueDate: { newDueDate: "2028-11-01" as DateTimeOrLocalDate, dateChangeNote: "Test change" } },
+    context
+  );
+  await requestDeliverableExtension(
+    deliverable.id,
+    {
+      reason: "COVID-19",
+      details: "This is a thing",
+      requestedDueDate: "2028-11-30" as DateTimeOrLocalDate,
+    },
+    context
+  );
+  // Need a document of the right type to submit
+  await prisma().document.create({
+    data: {
+      name: "This is a test document to support test submission of a deliverable",
+      description: faker.lorem.sentence(5),
+      s3Path: "tmp",
+      ownerUserId: context.user.id,
+      documentTypeId: "General File",
+      applicationId: deliverable.demonstrationId,
+      deliverableId: deliverable.id,
+      deliverableTypeId: deliverable.deliverableTypeId,
+      deliverableIsCmsAttachedFile: false,
+      createdAt: new Date(),
+    },
+  });
+  await submitDeliverable(deliverable.id, context);
+  await requestDeliverableResubmission(
+    deliverable.id,
+    {
+      details: "This is a resubmission request",
+      newDueDate: "2028-12-31" as DateTimeOrLocalDate,
+    },
+    context
+  );
+  const deliverableExtension = await selectDeliverableExtension(
+    {
+      deliverableId: deliverable.id,
+      statusId: "Requested",
+    },
+    true
+  );
+  await approveDeliverableExtension(
+    deliverable.id,
+    {
+      deliverableExtensionId: deliverableExtension.id,
+    },
+    context
+  );
+  await submitDeliverable(deliverable.id, context);
+  await startDeliverableReview(deliverable.id, context);
+  await completeDeliverable(deliverable.id, "Approved", context);
 }
 
 async function seedNotes() {
@@ -944,7 +1024,8 @@ async function seedDatabase() {
 
   await seedTagsAndStatuses();
   await seedApprovedDemonstration();
-  await seedDeliverables(bypassUserId);
+  const createdDeliverables = await seedDeliverables(bypassUserId, "demos-admin");
+  await simulateDeliverableActions(createdDeliverables[0]);
 
   await seedDocuments();
 

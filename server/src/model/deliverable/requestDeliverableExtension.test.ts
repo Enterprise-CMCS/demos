@@ -1,9 +1,9 @@
 // Vitest and other helpers
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { DeepPartial } from "../../testUtilities";
 
 // Types
 import { DateTimeOrLocalDate, RequestDeliverableExtensionInput } from "../../types";
-import { DeepPartial } from "../../testUtilities";
 import { GraphQLContext } from "../../auth";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 

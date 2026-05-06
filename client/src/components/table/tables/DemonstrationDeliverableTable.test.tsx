@@ -172,7 +172,9 @@ describe("DemonstrationDeliverableTable", () => {
       />
     );
 
-    expect(screen.queryByRole("columnheader", { name: /State\/Territory/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("columnheader", { name: /State\/Territory/i })
+    ).not.toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: /CMS Owner/i })).not.toBeInTheDocument();
 
     const filterByColumn = screen.getByTestId("filter-by-column") as HTMLSelectElement;

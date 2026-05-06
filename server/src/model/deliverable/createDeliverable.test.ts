@@ -1,9 +1,9 @@
 // Vitest and other helpers
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
+import { DeepPartial } from "../../testUtilities";
 
 // Types
-import { DeepPartial } from "../../testUtilities";
 import { CreateDeliverableInput, DateTimeOrLocalDate, DeliverableType } from "../../types";
 import { ParsedCreateDeliverableInput } from ".";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
