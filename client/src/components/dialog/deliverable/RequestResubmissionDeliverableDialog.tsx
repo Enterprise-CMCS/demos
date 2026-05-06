@@ -10,7 +10,7 @@ import { useToast } from "components/toast";
 import { DeliverableStatus } from "demos-server";
 import { formatDateForServer } from "util/formatDate";
 
-import { isBefore, isValid, parseISO } from "date-fns";
+import { isBefore, isValid, parseISO, startOfDay } from "date-fns";
 import { DELIVERABLE_DETAILS_QUERY } from "pages/deliverables/DeliverableDetailsManagementPage";
 
 export const REQUEST_RESUBMISSION_DIALOG_TITLE = "Request Resubmission";
@@ -65,14 +65,14 @@ export const getNewDueDateValidationMessage = (
 ): string => {
   if (newDueDate === "") return "";
 
-  const parsed = parseISO(newDueDate);
+  const parsedDate = startOfDay(parseISO(newDueDate));
+  const currentDate = startOfDay(currentDueDate);
 
-  if (!isValid(parsed)) return "Enter a valid date.";
+  if (!isValid(parsedDate)) return "Enter a valid date.";
 
-  if (isBefore(parsed, currentDueDate)) {
+  if (isBefore(parsedDate, currentDate)) {
     return "New Due Date must be greater than or equal to Current Due Date.";
   }
-
   return "";
 };
 
