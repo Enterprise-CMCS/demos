@@ -76,10 +76,14 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
     {
       id: "action-0",
       actionType: "Created Deliverable Slot",
+      actionTimestamp: new Date("2026-03-20T10:00:00Z"),
+      userFullName: "System",
     },
     {
       id: "action-1",
       actionType: "Requested Resubmission",
+      actionTimestamp: new Date("2026-03-21T10:00:00Z"),
+      userFullName: "Mock CMS User",
     },
   ],
 };
