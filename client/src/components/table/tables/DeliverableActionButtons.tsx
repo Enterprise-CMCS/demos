@@ -1,0 +1,79 @@
+import React from "react";
+import type { Table as TanstackTable } from "@tanstack/react-table";
+
+import { CircleButton } from "components/index";
+import { useDialog } from "components/dialog/DialogContext";
+import { isDeliverableEditable } from "components/dialog/deliverable";
+import { DeleteIcon } from "components/icons/Action/DeleteIcon";
+import { ImportIcon } from "components/icons/Action/ImportIcon";
+import { EditIcon } from "components/icons/Navigation/EditIcon";
+
+import { selectionTooltip } from "./actionTooltips";
+import type { DeliverableTableRow } from "./DeliverableTable";
+
+export const DeliverableActionButtons: React.FC<{
+  table: TanstackTable<DeliverableTableRow>;
+}> = ({ table }) => {
+  const { showEditDeliverableDialog } = useDialog();
+  const selectedRows = table.getSelectedRowModel().rows;
+  const selectedCount = selectedRows.length;
+  const singleSelectedDeliverable = selectedCount === 1 ? selectedRows[0].original : null;
+
+  const selectedIsEditable =
+    singleSelectedDeliverable === null || isDeliverableEditable(singleSelectedDeliverable.status);
+  const editEnabled = selectedCount === 1 && selectedIsEditable;
+  const deleteEnabled = selectedCount >= 1;
+
+  const baseEditTooltip = selectionTooltip({
+    action: "Edit",
+    nounSingular: "Deliverable",
+    selectedCount,
+    rule: { kind: "exactly", count: 1 },
+  });
+  const editTooltip =
+    selectedCount === 1 && !selectedIsEditable ? "Select a Deliverable to Edit" : baseEditTooltip;
+
+  const deleteTooltip = selectionTooltip({
+    action: "Delete",
+    nounSingular: "Deliverable",
+    selectedCount,
+    rule: { kind: "atLeast", count: 1 },
+  });
+
+  return (
+    <div className="flex gap-1 ml-4">
+      <CircleButton
+        name="add-deliverable"
+        ariaLabel="Add Deliverable"
+        tooltip="Add Deliverable"
+        onClick={() => {}}
+      >
+        <ImportIcon />
+      </CircleButton>
+
+      <CircleButton
+        name="edit-deliverable"
+        ariaLabel="Edit Deliverable"
+        tooltip={editTooltip}
+        disabled={!editEnabled}
+        onClick={() => {
+          if (singleSelectedDeliverable) {
+            showEditDeliverableDialog(singleSelectedDeliverable);
+          }
+        }}
+      >
+        <EditIcon />
+      </CircleButton>
+
+      <CircleButton
+        name="remove-deliverable"
+        ariaLabel="Remove Deliverable"
+        tooltip={deleteTooltip}
+        disabled={!deleteEnabled}
+        onClick={() => {}}
+      >
+        <DeleteIcon />
+      </CircleButton>
+    </div>
+  );
+};
