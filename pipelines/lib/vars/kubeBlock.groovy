@@ -1,13 +1,12 @@
 def call(Map params = [:]) {
-
   def containerNames = params.containerNames ?: []
   def opts = params.opts ?: [:]
 
   if (containerNames.size() == 0) {
-    error("No container names provided")
+    error('No container names provided')
   }
 
-    def containerPresets = [
+  def containerPresets = [
       'node': """
 - name: node
   image: ${opts.NODE_IMAGE ?: 'artifactory.cloud.cms.gov/docker/node:24-alpine'}
@@ -16,19 +15,19 @@ def call(Map params = [:]) {
   tty: true
   resources:
     requests:
-      cpu: 750m
-      memory: 2Gi
-      ephemeral-storage: "1Gi"
+      cpu: ${opts.NODE_CPU_REQUEST ?: '750m'}
+      memory: ${opts.NODE_MEMORY_REQUEST ?: '1Gi'}
+      ephemeral-storage: "2Gi"
     limits:
-      cpu: 1500m
-      memory: 4Gi
-      ephemeral-storage: "5Gi"
+      cpu: ${opts.NODE_CPU_LIMIT ?: '1500m'}
+      memory: ${opts.NODE_MEMORY_LIMIT ?: '2Gi'}
+      ephemeral-storage: "10Gi"
 """,
       'aws-cli': """
 - name: aws-cli
   image: ${opts.AWS_IMAGE ?: 'artifactory.cloud.cms.gov/docker/amazon/aws-cli:latest'}
-  command:    
-  - sleep 
+  command:
+  - sleep
   - 99999
   tty: true
   resources:
@@ -107,15 +106,15 @@ def call(Map params = [:]) {
 """
     ]
 
-    def selectedContainersYaml = containerNames.collect { containerName -> 
+  def selectedContainersYaml = containerNames.collect { containerName ->
       def block = containerPresets[containerName]
       if (!block) error("Unknown container: ${containerName}")
       indentYaml(block, 8)
     }.join('')
 
-    env.AVAILABLE_CONTAINERS = containerNames.join(',')
+  env.AVAILABLE_CONTAINERS = containerNames.join(',')
 
-    def output = """
+  def output = """
     apiVersion: v1
     kind: Pod
     metadata:
@@ -130,11 +129,11 @@ def call(Map params = [:]) {
 ${selectedContainersYaml}
 
     """
-    echo "YAML: ${output}"
-    return output
+  echo "YAML: ${output}"
+  return output
 }
 
 String indentYaml(String yamlBlock, int spaces = 4) {
-    def indent = ' ' * spaces
-    return yamlBlock.readLines().collect { indent + it }.join('\n')
+  def indent = ' ' * spaces
+  return yamlBlock.readLines().collect { indent + it }.join('\n')
 }
