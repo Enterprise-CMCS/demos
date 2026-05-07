@@ -72,6 +72,11 @@ export const deliverableSchema = gql`
     newDueDate: DateTimeOrLocalDate
   }
 
+  input DenyDeliverableExtensionInput {
+    deliverableExtensionId: ID!
+    details: NonEmptyString!
+  }
+
   type Query {
     deliverable(id: ID!): Deliverable!
     deliverables: [Deliverable!]!
@@ -95,6 +100,7 @@ export const deliverableSchema = gql`
       deliverableId: ID!
       input: ApproveDeliverableExtensionInput!
     ): Deliverable
+    denyDeliverableExtension(deliverableId: ID!, input: DenyDeliverableExtensionInput!): Deliverable
   }
 `;
 
@@ -152,4 +158,9 @@ export interface RequestDeliverableExtensionInput {
 export interface ApproveDeliverableExtensionInput {
   deliverableExtensionId: string;
   newDueDate?: DateTimeOrLocalDate;
+}
+
+export interface DenyDeliverableExtensionInput {
+  deliverableExtensionId: string;
+  details: NonEmptyString;
 }

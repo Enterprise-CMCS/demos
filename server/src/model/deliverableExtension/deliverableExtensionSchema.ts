@@ -14,6 +14,7 @@ export const deliverableExtensionSchema = gql`
     initialDueDateAtRequest: DateTime!
     originalDateRequested: DateTime!
     finalDateGranted: DateTime
+    denialDetails: NonEmptyString
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -27,6 +28,7 @@ export interface DeliverableExtension {
   initialDueDateAtRequest: Date;
   originalDateRequested: Date;
   finalDateGranted: Date | null;
+  denialDetails: NonEmptyString | null;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -39,20 +39,6 @@ export function checkDeliverableHasStatus(
   }
 }
 
-export function checkDeliverableStatusNotFinalized(
-  deliverable: PrismaDeliverable
-): string | undefined {
-  // Cast enforced by DB constraints
-  const result = checkDeliverableHasStatus(deliverable, [
-    "Approved",
-    "Accepted",
-    "Received and Filed",
-  ]);
-  if (result === undefined) {
-    return `Cannot submit or modify deliverable ${deliverable.id} as it has already been finalized.`;
-  }
-}
-
 export function checkOwnerPersonType(ownerUser: PrismaUser): string | undefined {
   const permittedOwnerPersonTypes: readonly PersonType[] = ["demos-admin", "demos-cms-user"];
   // Cast enforced by DB constraints
