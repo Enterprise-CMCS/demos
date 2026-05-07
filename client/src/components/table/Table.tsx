@@ -224,7 +224,7 @@ export function Table<T extends { id: string }>({
   return (
     <>
       {!hideSearchAndActions && (
-        <div className="mb-[24px] flex flex-col items-start gap-4 justify-between xl:flex-row xl:items-center">
+        <div className="mb-[24px] flex flex-col items-start gap-4 justify-between lg:flex-row lg:items-center">
           <div className="w-full min-w-0 xl:flex-1">
             <TableSearch table={table} keywordSearch={keywordSearch} columnFilter={columnFilter} />
           </div>

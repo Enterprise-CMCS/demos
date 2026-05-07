@@ -5,7 +5,7 @@ import { DELIVERABLE_STATUSES, DELIVERABLE_TYPES } from "demos-server-constants"
 import { SecondaryButton } from "components/button";
 
 import type { DeliverableTableRow } from "./DeliverableTable";
-import { Table } from "components/table/Table";
+import { Table, type TableProps } from "components/table/Table";
 import { createDateColumnDef } from "components/table/columns/dateColumn";
 import { highlightCell, KeywordSearch } from "components/table/KeywordSearch";
 import { ColumnFilter } from "components/table/ColumnFilter";
@@ -13,21 +13,11 @@ import { PaginationControls } from "components/table/PaginationControls";
 import { formatDeliverableStatus } from "./DeliverableTable";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
 import { getDeliverableFilterOptions } from "./deliverablesFilterOptions";
+import { createSelectColumnDef } from "../columns/selectColumn";
+import { DeliverableActionButtons } from "./DeliverableActionButtons";
 
 const DEFAULT_EMPTY_ROWS_MESSAGE = "You have no assigned Deliverables at this time";
-const DEFAULT_NO_SEARCH_RESULTS_MESSAGE =
-  "No deliverables match your search";
-
-export type DemonstrationDeliverableTableRow = Pick<
-  DeliverableTableRow,
-  | "id"
-  | "demonstration"
-  | "deliverableType"
-  | "name"
-  | "cmsOwner"
-  | "dueDate"
-  | "status"
->;
+const DEFAULT_NO_SEARCH_RESULTS_MESSAGE = "No deliverables match your search";
 
 export const DemonstrationDeliverableTable: React.FC<{
   deliverables: DeliverableTableRow[];
@@ -42,8 +32,8 @@ export const DemonstrationDeliverableTable: React.FC<{
   noResultsFoundMessage = DEFAULT_NO_SEARCH_RESULTS_MESSAGE,
   onViewDeliverable,
 }) => {
-  const columnHelper = createColumnHelper<DemonstrationDeliverableTableRow>();
-  const { demonstrationNameOptions, cmsOwnerOptions } = getDeliverableFilterOptions(deliverables);
+  const columnHelper = createColumnHelper<DeliverableTableRow>();
+  const { cmsOwnerOptions } = getDeliverableFilterOptions(deliverables);
   const viewColumn = columnHelper.display({
     id: "view",
     header: "View",
@@ -61,17 +51,6 @@ export const DemonstrationDeliverableTable: React.FC<{
   });
 
   const columns = [
-    columnHelper.accessor("demonstration.name", {
-      header: "Demonstration Name",
-      cell: highlightCell,
-      filterFn: "arrIncludesSome",
-      meta: {
-        filterConfig: {
-          filterType: "select",
-          options: demonstrationNameOptions,
-        },
-      },
-    }),
     columnHelper.accessor("deliverableType", {
       header: "Deliverable Type",
       cell: highlightCell,
@@ -88,6 +67,7 @@ export const DemonstrationDeliverableTable: React.FC<{
       cell: highlightCell,
     }),
     createDateColumnDef(columnHelper, "dueDate", "Due Date"),
+    createDateColumnDef(columnHelper, "submissionDate", "Submission Date"),
     columnHelper.accessor("status", {
       header: "Status",
       cell: highlightCell,
@@ -102,11 +82,8 @@ export const DemonstrationDeliverableTable: React.FC<{
     viewColumn,
   ];
   const columnsWithCmsFields = [
-    columnHelper.accessor("demonstration.state.id", {
-      header: "State/Territory",
-      cell: highlightCell,
-    }),
-    ...columns.slice(0, 3),
+    createSelectColumnDef(columnHelper),
+    ...columns.slice(0, 2),
     columnHelper.accessor("cmsOwner.person.fullName", {
       header: "CMS Owner",
       cell: highlightCell,
@@ -118,9 +95,16 @@ export const DemonstrationDeliverableTable: React.FC<{
         },
       },
     }),
-    ...columns.slice(3),
+    ...columns.slice(2),
   ];
   const resolvedColumns = viewMode === "demos-state-user" ? columns : columnsWithCmsFields;
+  type DemonstrationDeliverableActionButtons = NonNullable<
+    TableProps<DeliverableTableRow>["actionButtons"]
+  >;
+  const renderActionButtons: DemonstrationDeliverableActionButtons = (table) => (
+    <DeliverableActionButtons table={table} />
+  );
+  const actionButtons = viewMode === "demos-state-user" ? undefined : renderActionButtons;
 
   const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({
     ...deliverable,
@@ -128,7 +112,7 @@ export const DemonstrationDeliverableTable: React.FC<{
   }));
 
   return (
-    <Table<DemonstrationDeliverableTableRow>
+    <Table<DeliverableTableRow>
       data={formattedDeliverables}
       columns={resolvedColumns}
       keywordSearch={(table) => <KeywordSearch table={table} />}
@@ -136,6 +120,7 @@ export const DemonstrationDeliverableTable: React.FC<{
       pagination={(table) => <PaginationControls table={table} />}
       emptyRowsMessage={emptyRowsMessage}
       noResultsFoundMessage={noResultsFoundMessage}
+      actionButtons={actionButtons}
     />
   );
 };
