@@ -1,10 +1,15 @@
 import React from "react";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { DemonstrationDeliverableTable } from "./DemonstrationDeliverableTable";
 import type { DeliverableTableRow } from "./DeliverableTable";
+
+const showEditDeliverableDialog = vi.fn();
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({ showEditDeliverableDialog }),
+}));
 
 const baseDeliverable: Omit<DeliverableTableRow, "id" | "name" | "dueDate" | "status"> = {
   demonstration: {
@@ -25,6 +30,10 @@ const baseDeliverable: Omit<DeliverableTableRow, "id" | "name" | "dueDate" | "st
 };
 
 describe("DemonstrationDeliverableTable", () => {
+  beforeEach(() => {
+    showEditDeliverableDialog.mockClear();
+  });
+
   it("applies default deliverable ordering on first render", () => {
     render(
       <DemonstrationDeliverableTable
@@ -70,7 +79,7 @@ describe("DemonstrationDeliverableTable", () => {
     );
 
     const rows = screen.getAllByRole("row").slice(1);
-    const orderedNames = rows.map((row) => within(row).getAllByRole("cell")[2].textContent);
+    const orderedNames = rows.map((row) => within(row).getAllByRole("cell")[1].textContent);
 
     expect(orderedNames).toEqual([
       "Past Due Item",
@@ -81,7 +90,7 @@ describe("DemonstrationDeliverableTable", () => {
     ]);
   });
 
-  it("shows state and CMS owner columns for non-state users", () => {
+  it("shows demo detail columns for non-state users", () => {
     render(
       <DemonstrationDeliverableTable
         viewMode="demos-cms-user"
@@ -97,22 +106,56 @@ describe("DemonstrationDeliverableTable", () => {
       />
     );
 
-    expect(screen.getByRole("columnheader", { name: /State\/Territory/i })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("columnheader", { name: /State\/Territory/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("columnheader", { name: /Demonstration Name/i })
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /Deliverable Type/i })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /Deliverable Name/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /CMS Owner/i })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /Due Date/i })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /Submission Date/i })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /Status/i })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /View/i })).toBeInTheDocument();
 
     const filterByColumn = screen.getByTestId("filter-by-column") as HTMLSelectElement;
     const optionLabels = Array.from(filterByColumn.options).map((option) => option.text);
 
     expect(optionLabels).toEqual([
       "Select a Column...",
-      "State/Territory",
-      "Demonstration Name",
       "Deliverable Type",
       "Deliverable Name",
       "CMS Owner",
       "Due Date",
+      "Submission Date",
       "Status",
     ]);
+  });
+
+  it("shows row selection and action buttons for non-state users", async () => {
+    const user = userEvent.setup();
+    const deliverable = {
+      id: "row-action",
+      name: "Editable Item",
+      dueDate: new Date("2026-01-01"),
+      status: "Upcoming" as const,
+      ...baseDeliverable,
+    };
+
+    render(
+      <DemonstrationDeliverableTable viewMode="demos-cms-user" deliverables={[deliverable]} />
+    );
+
+    expect(screen.getByTestId("select-all-rows")).toBeInTheDocument();
+    await user.click(screen.getByTestId("select-row-row-action"));
+
+    expect(screen.getByLabelText(/Edit Deliverable/i)).not.toBeDisabled();
+    expect(screen.getByLabelText(/Remove Deliverable/i)).not.toBeDisabled();
+
+    await user.click(screen.getByLabelText(/Edit Deliverable/i));
+    expect(showEditDeliverableDialog).toHaveBeenCalledWith(deliverable);
   });
 
   it("uses multiselect filter inputs for configured categorical fields", async () => {
@@ -135,11 +178,6 @@ describe("DemonstrationDeliverableTable", () => {
 
     const columnSelect = screen.getByTestId("filter-by-column");
 
-    await user.selectOptions(columnSelect, "Demonstration Name");
-    await waitFor(() => {
-      expect(screen.getByPlaceholderText("Select Demonstration Name")).toBeInTheDocument();
-    });
-
     await user.selectOptions(columnSelect, "Deliverable Type");
     await waitFor(() => {
       expect(screen.getByPlaceholderText("Select Deliverable Type")).toBeInTheDocument();
@@ -156,7 +194,7 @@ describe("DemonstrationDeliverableTable", () => {
     });
   });
 
-  it("hides state and CMS owner columns for state users", () => {
+  it("hides scoped and CMS-only controls for state users", () => {
     render(
       <DemonstrationDeliverableTable
         viewMode="demos-state-user"
@@ -175,17 +213,23 @@ describe("DemonstrationDeliverableTable", () => {
     expect(
       screen.queryByRole("columnheader", { name: /State\/Territory/i })
     ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("columnheader", { name: /Demonstration Name/i })
+    ).not.toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: /CMS Owner/i })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("select-all-rows")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Edit Deliverable/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Remove Deliverable/i)).not.toBeInTheDocument();
 
     const filterByColumn = screen.getByTestId("filter-by-column") as HTMLSelectElement;
     const optionLabels = Array.from(filterByColumn.options).map((option) => option.text);
 
     expect(optionLabels).toEqual([
       "Select a Column...",
-      "Demonstration Name",
       "Deliverable Type",
       "Deliverable Name",
       "Due Date",
+      "Submission Date",
       "Status",
     ]);
   });
@@ -217,7 +261,7 @@ describe("DemonstrationDeliverableTable", () => {
       screen
         .getAllByRole("row")
         .slice(1)
-        .map((row) => within(row).getAllByRole("cell")[2].textContent);
+        .map((row) => within(row).getAllByRole("cell")[1].textContent);
 
     const { rerender } = render(
       <DemonstrationDeliverableTable

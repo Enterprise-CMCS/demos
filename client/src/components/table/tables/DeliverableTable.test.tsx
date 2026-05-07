@@ -15,7 +15,7 @@ vi.mock("components/dialog/DialogContext", () => ({
 
 const MOCK_DELIVERABLE_TABLE_ROWS = [
   MOCK_DELIVERABLE_TABLE_ROW,
-  {...MOCK_DELIVERABLE_TABLE_ROW, id: "2", name: "Another Deliverable"},
+  { ...MOCK_DELIVERABLE_TABLE_ROW, id: "2", name: "Another Deliverable" },
 ];
 
 const sortedDeliverables = sortDeliverablesByDefault(MOCK_DELIVERABLE_TABLE_ROWS);
@@ -23,7 +23,9 @@ const sortedFirstPageIds = sortedDeliverables.slice(0, 10).map((deliverable) => 
 
 describe("DeliverableTable", () => {
   beforeEach(async () => {
-    render(<DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-cms-user" />);
+    render(
+      <DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-cms-user" />
+    );
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
@@ -69,8 +71,7 @@ describe("DeliverableTable", () => {
     });
   });
 
-  it("renders action buttons (add/edit/remove)", () => {
-    expect(screen.getByLabelText(/Add Deliverable/i)).toBeInTheDocument();
+  it("renders action buttons (edit/remove)", () => {
     expect(screen.getByLabelText(/Edit Deliverable/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Remove Deliverable/i)).toBeInTheDocument();
   });
@@ -124,9 +125,7 @@ describe("DeliverableTable", () => {
       await user.type(searchInput, MOCK_DELIVERABLE_TABLE_ROWS[0].name);
 
       await waitFor(() => {
-        expect(
-          screen.getByText(MOCK_DELIVERABLE_TABLE_ROWS[0].name)
-        ).toBeInTheDocument();
+        expect(screen.getByText(MOCK_DELIVERABLE_TABLE_ROWS[0].name)).toBeInTheDocument();
       });
     });
 
@@ -137,9 +136,7 @@ describe("DeliverableTable", () => {
       await user.type(searchInput, "notarealkeyword");
 
       await waitFor(() => {
-        expect(
-          screen.getByText(/No deliverables match your search\./i)
-        ).toBeInTheDocument();
+        expect(screen.getByText(/No deliverables match your search\./i)).toBeInTheDocument();
       });
     });
 
@@ -150,9 +147,7 @@ describe("DeliverableTable", () => {
       await user.type(searchInput, MOCK_DELIVERABLE_TABLE_ROWS[0].name);
 
       await waitFor(() => {
-        expect(
-          screen.getByText(MOCK_DELIVERABLE_TABLE_ROWS[0].name)
-        ).toBeInTheDocument();
+        expect(screen.getByText(MOCK_DELIVERABLE_TABLE_ROWS[0].name)).toBeInTheDocument();
       });
 
       const clearBtn = screen.getByRole("button", { name: /clear search/i });
@@ -228,15 +223,18 @@ describe("DeliverableTable", () => {
   it("keeps applied sorting after a column filter is cleared", async () => {
     const user = userEvent.setup();
     const getVisibleDeliverableOrder = () =>
-      screen.getAllByRole("row").slice(1).flatMap((row) => {
-        if (within(row).queryByText("Another Deliverable")) {
-          return ["Another Deliverable"];
-        }
-        if (within(row).queryByText("Budget Neutrality Report")) {
-          return ["Budget Neutrality Report"];
-        }
-        return [];
-      });
+      screen
+        .getAllByRole("row")
+        .slice(1)
+        .flatMap((row) => {
+          if (within(row).queryByText("Another Deliverable")) {
+            return ["Another Deliverable"];
+          }
+          if (within(row).queryByText("Budget Neutrality Report")) {
+            return ["Budget Neutrality Report"];
+          }
+          return [];
+        });
 
     await user.click(screen.getByRole("columnheader", { name: /Deliverable Name/i }));
 
@@ -275,7 +273,9 @@ describe("DeliverableTable", () => {
 
 describe("DeliverableTable demos-state-user view mode", () => {
   it("renders the state-user column set and hides state/CMS owner", async () => {
-    render(<DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-state-user" />);
+    render(
+      <DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-state-user" />
+    );
 
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
@@ -294,15 +294,18 @@ describe("DeliverableTable demos-state-user view mode", () => {
   });
 
   it("hides row action buttons in state-user mode", () => {
-    render(<DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-state-user" />);
+    render(
+      <DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-state-user" />
+    );
 
-    expect(screen.queryByLabelText(/Add Deliverable/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Edit Deliverable/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Remove Deliverable/i)).not.toBeInTheDocument();
   });
 
   it("shows filter options aligned to visible state-user columns", async () => {
-    render(<DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-state-user" />);
+    render(
+      <DeliverableTable deliverables={MOCK_DELIVERABLE_TABLE_ROWS} viewMode="demos-state-user" />
+    );
 
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
