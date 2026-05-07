@@ -219,3 +219,25 @@ export function validateApproveDeliverableExtensionInput(
     "APPROVE_DELIVERABLE_EXTENSION_VALIDATION_FAILED"
   );
 }
+
+export function validateDenyDeliverableExtensionInput(
+  deliverable: PrismaDeliverable,
+  deliverableExtension: PrismaDeliverableExtension
+): void {
+  const errors: (string | undefined)[] = [];
+
+  errors.push(
+    checkDeliverableHasStatus(deliverable, [
+      "Upcoming",
+      "Past Due",
+      "Submitted",
+      "Under CMS Review",
+    ]),
+    checkDeliverableExtensionHasStatus(deliverableExtension, ["Requested"])
+  );
+  cleanErrorsAndThrow(
+    errors,
+    "denyDeliverableExtension",
+    "DENY_DELIVERABLE_EXTENSION_VALIDATION_FAILED"
+  );
+}

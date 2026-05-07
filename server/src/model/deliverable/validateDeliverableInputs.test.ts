@@ -28,6 +28,7 @@ import {
   validateApproveDeliverableExtensionInput,
   validateCompleteDeliverableInput,
   validateCreateDeliverableInput,
+  validateDenyDeliverableExtensionInput,
   validateRequestDeliverableExtensionInput,
   validateRequestDeliverableResubmissionInput,
   validateStartDeliverableReviewInput,
@@ -1217,6 +1218,101 @@ describe("validateDeliverableInputs", () => {
           "The deliverable status check failed!",
           "The deliverable extension status check failed!",
           "The future due date check failed!",
+        ]);
+      }
+    });
+  });
+
+  describe("validateDenyDeliverableExtensionInput", () => {
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      id: "edc74187-52b7-4310-8262-d1d5feee7084",
+    };
+    const testDeliverableExtension: Partial<PrismaDeliverableExtension> = {
+      id: "7e08fcc3-0e7d-4ed6-9a18-bc2033d0024a",
+    };
+
+    beforeEach(() => {
+      vi.resetAllMocks();
+    });
+
+    it("should not throw if none of the rules are violated", () => {
+      // Note: don't need to set returns to undefined, as this is what vi.fn() does already
+      expect(
+        validateDenyDeliverableExtensionInput(
+          testDeliverable as PrismaDeliverable,
+          testDeliverableExtension as PrismaDeliverableExtension
+        )
+      ).toBeUndefined();
+    });
+
+    it("should throw if the deliverable status check fails", () => {
+      vi.mocked(checkDeliverableHasStatus).mockReturnValue("The deliverable status check failed!");
+
+      try {
+        validateDenyDeliverableExtensionInput(
+          testDeliverable as PrismaDeliverable,
+          testDeliverableExtension as PrismaDeliverableExtension
+        );
+        throw new Error("Expected validateDenyDeliverableExtensionInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for denyDeliverableExtension have failed."
+        );
+        expect(error.extensions.code).toBe("DENY_DELIVERABLE_EXTENSION_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable status check failed!",
+        ]);
+      }
+    });
+
+    it("should throw if the deliverable extension status check fails", () => {
+      vi.mocked(checkDeliverableExtensionHasStatus).mockReturnValue(
+        "The deliverable extension status check failed!"
+      );
+
+      try {
+        validateDenyDeliverableExtensionInput(
+          testDeliverable as PrismaDeliverable,
+          testDeliverableExtension as PrismaDeliverableExtension
+        );
+        throw new Error("Expected validateDenyDeliverableExtensionInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for denyDeliverableExtension have failed."
+        );
+        expect(error.extensions.code).toBe("DENY_DELIVERABLE_EXTENSION_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable extension status check failed!",
+        ]);
+      }
+    });
+
+    it("should combine all errors into one object", async () => {
+      vi.mocked(checkDeliverableHasStatus).mockReturnValue("The deliverable status check failed!");
+      vi.mocked(checkDeliverableExtensionHasStatus).mockReturnValue(
+        "The deliverable extension status check failed!"
+      );
+
+      try {
+        validateDenyDeliverableExtensionInput(
+          testDeliverable as PrismaDeliverable,
+          testDeliverableExtension as PrismaDeliverableExtension
+        );
+        throw new Error("Expected validateDenyDeliverableExtensionInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for denyDeliverableExtension have failed."
+        );
+        expect(error.extensions.code).toBe("DENY_DELIVERABLE_EXTENSION_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable status check failed!",
+          "The deliverable extension status check failed!",
         ]);
       }
     });

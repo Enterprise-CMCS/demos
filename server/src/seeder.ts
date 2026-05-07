@@ -42,6 +42,7 @@ import {
   approveDeliverableExtension,
   completeDeliverable,
   createDeliverable,
+  denyDeliverableExtension,
   requestDeliverableExtension,
   requestDeliverableResubmission,
   startDeliverableReview,
@@ -304,7 +305,7 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
     },
     context
   );
-  const deliverableExtension = await selectDeliverableExtension(
+  const firstDeliverableExtension = await selectDeliverableExtension(
     {
       deliverableId: deliverable.id,
       statusId: "Requested",
@@ -314,12 +315,46 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
   await approveDeliverableExtension(
     deliverable.id,
     {
-      deliverableExtensionId: deliverableExtension.id,
+      deliverableExtensionId: firstDeliverableExtension.id,
     },
     context
   );
   await submitDeliverable(deliverable.id, context);
   await startDeliverableReview(deliverable.id, context);
+  await requestDeliverableResubmission(
+    deliverable.id,
+    {
+      details: "This is a secondary resubmission request",
+      newDueDate: "2029-01-31" as DateTimeOrLocalDate,
+    },
+    context
+  );
+  await requestDeliverableExtension(
+    deliverable.id,
+    {
+      reason: "Other",
+      details: "Need more time for the resubmission request",
+      requestedDueDate: "2029-02-15" as DateTimeOrLocalDate,
+    },
+    context
+  );
+  const secondDeliverableExtension = await selectDeliverableExtension(
+    {
+      deliverableId: deliverable.id,
+      statusId: "Requested",
+    },
+    true
+  );
+  await submitDeliverable(deliverable.id, context);
+  await startDeliverableReview(deliverable.id, context);
+  await denyDeliverableExtension(
+    deliverable.id,
+    {
+      deliverableExtensionId: secondDeliverableExtension.id,
+      details: "Users have already submitted, no extension is required",
+    },
+    context
+  );
   await completeDeliverable(deliverable.id, "Approved", context);
 }
 
