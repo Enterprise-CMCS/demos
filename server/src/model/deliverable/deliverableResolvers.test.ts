@@ -94,6 +94,7 @@ import { getManyDocuments } from "../document";
 import { getManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 import { getFormattedDeliverableActions } from "../deliverableAction";
 import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
+import { DELETED_DELIVERABLE_STATUS } from "../../constants";
 
 describe("deliverableResolvers", () => {
   const testDeliverableId = "82ef9a17-e8b9-48ab-9aaf-3d1787822b13";
@@ -369,7 +370,10 @@ describe("deliverableResolvers", () => {
           {} as GraphQLContext,
           testDocumentInfo as GraphQLResolveInfo
         );
-        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith({ id: testDeliverableId });
+        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith({
+          id: testDeliverableId,
+          NOT: { statusId: DELETED_DELIVERABLE_STATUS },
+        });
       });
     });
   });
@@ -397,6 +401,7 @@ describe("deliverableResolvers", () => {
         );
         expect(getManyDeliverables).toHaveBeenCalledExactlyOnceWith({
           demonstrationId: testDemonstrationId,
+          NOT: { statusId: DELETED_DELIVERABLE_STATUS },
         });
       });
     });
@@ -411,6 +416,7 @@ describe("deliverableResolvers", () => {
         );
         expect(getManyDeliverables).toHaveBeenCalledExactlyOnceWith({
           cmsOwnerUserId: testUserId,
+          NOT: { statusId: DELETED_DELIVERABLE_STATUS },
         });
       });
     });
@@ -419,7 +425,9 @@ describe("deliverableResolvers", () => {
   describe("queryDeliverables", () => {
     it("should query all the deliverables", async () => {
       await queryDeliverables();
-      expect(getManyDeliverables).toHaveBeenCalledExactlyOnceWith();
+      expect(getManyDeliverables).toHaveBeenCalledExactlyOnceWith({
+        NOT: { statusId: DELETED_DELIVERABLE_STATUS },
+      });
     });
   });
 

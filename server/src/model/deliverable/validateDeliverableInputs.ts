@@ -3,7 +3,6 @@ import {
   checkDeliverableHasAtLeastOneDocument,
   checkDeliverableHasNoActiveExtension,
   checkDeliverableHasStatus,
-  checkDeliverableStatusNotFinalized,
   checkDemonstrationStatus,
   checkDueDateInFuture,
   checkNewDueDateIsAtLeastCurrentDueDate,
@@ -28,6 +27,7 @@ import {
 } from "@prisma/client";
 import { GraphQLContext } from "../../auth";
 import { PersonType } from "../../types";
+import { ACTIVE_DELIVERABLE_STATUSES } from "../../constants";
 
 function cleanErrorsAndThrow(errors: (string | undefined)[], mutator: string, code: string): void {
   const cleanedErrors = errors.filter((e) => e !== undefined);
@@ -100,7 +100,8 @@ export async function validateUpdateDeliverableInput(
   const deliverable = await getDeliverable({ id: deliverableId }, tx);
   const errors: (string | undefined)[] = [];
 
-  errors.push(checkDeliverableStatusNotFinalized(deliverable));
+  // Updates can be performed on all active deliverables
+  errors.push(checkDeliverableHasStatus(deliverable, ACTIVE_DELIVERABLE_STATUSES));
 
   if (input.cmsOwnerUserId) {
     const cmsOwnerUser = await getUser({ id: input.cmsOwnerUserId }, tx);
@@ -134,7 +135,8 @@ export async function validateSubmitDeliverableInput(
   const errors: (string | undefined)[] = [];
 
   errors.push(
-    checkDeliverableStatusNotFinalized(deliverable),
+    // Users may submit on all active deliverables
+    checkDeliverableHasStatus(deliverable, ACTIVE_DELIVERABLE_STATUSES),
     await checkDeliverableHasAtLeastOneDocument(deliverable, tx)
   );
   cleanErrorsAndThrow(errors, "submitDeliverable", "SUBMIT_DELIVERABLE_VALIDATION_FAILED");
@@ -143,6 +145,7 @@ export async function validateSubmitDeliverableInput(
 export function validateStartDeliverableReviewInput(deliverable: PrismaDeliverable): void {
   const errors: (string | undefined)[] = [];
 
+  // Review can only be started when the deliverable is submitted
   errors.push(checkDeliverableHasStatus(deliverable, ["Submitted"]));
   cleanErrorsAndThrow(
     errors,
@@ -154,6 +157,7 @@ export function validateStartDeliverableReviewInput(deliverable: PrismaDeliverab
 export function validateCompleteDeliverableInput(deliverable: PrismaDeliverable): void {
   const errors: (string | undefined)[] = [];
 
+  // Deliverables may only be completed from review status
   errors.push(checkDeliverableHasStatus(deliverable, ["Under CMS Review"]));
   cleanErrorsAndThrow(errors, "completeDeliverable", "COMPLETE_DELIVERABLE_VALIDATION_FAILED");
 }
@@ -164,6 +168,7 @@ export function validateRequestDeliverableResubmissionInput(
 ): void {
   const errors: (string | undefined)[] = [];
 
+  // Resubmissions may be requested from submitted or under review status
   errors.push(
     checkDeliverableHasStatus(deliverable, ["Submitted", "Under CMS Review"]),
     checkDueDateInFuture(input.newDueDate),
@@ -184,8 +189,9 @@ export async function validateRequestDeliverableExtensionInput(
   const errors: (string | undefined)[] = [];
 
   errors.push(
-    await checkDeliverableHasNoActiveExtension(deliverable, tx),
+    // Extensions may only be requested prior to submission
     checkDeliverableHasStatus(deliverable, ["Upcoming", "Past Due"]),
+    await checkDeliverableHasNoActiveExtension(deliverable, tx),
     checkDueDateInFuture(input.requestedDueDate),
     checkNewDueDateIsGreaterThanCurrentDueDate(deliverable, input.requestedDueDate)
   );
@@ -204,12 +210,8 @@ export function validateApproveDeliverableExtensionInput(
   const errors: (string | undefined)[] = [];
 
   errors.push(
-    checkDeliverableHasStatus(deliverable, [
-      "Upcoming",
-      "Past Due",
-      "Submitted",
-      "Under CMS Review",
-    ]),
+    // Extensions may be processed for any active deliverable
+    checkDeliverableHasStatus(deliverable, ACTIVE_DELIVERABLE_STATUSES),
     checkDeliverableExtensionHasStatus(deliverableExtension, ["Requested"]),
     checkDueDateInFuture(input.finalDateGranted)
   );
@@ -227,12 +229,8 @@ export function validateDenyDeliverableExtensionInput(
   const errors: (string | undefined)[] = [];
 
   errors.push(
-    checkDeliverableHasStatus(deliverable, [
-      "Upcoming",
-      "Past Due",
-      "Submitted",
-      "Under CMS Review",
-    ]),
+    // Extensions may be processed for any active deliverable
+    checkDeliverableHasStatus(deliverable, ACTIVE_DELIVERABLE_STATUSES),
     checkDeliverableExtensionHasStatus(deliverableExtension, ["Requested"])
   );
   cleanErrorsAndThrow(
