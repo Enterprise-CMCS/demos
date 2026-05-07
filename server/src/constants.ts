@@ -23,6 +23,7 @@ export const DELIVERABLE_ACTION_TYPES = [
   "Accepted Deliverable",
   "Approved Deliverable",
   "Received and Filed Deliverable",
+  "Deleted Deliverable",
 ] as const;
 
 export const DELIVERABLE_TYPES = [
@@ -68,16 +69,25 @@ export const DELIVERABLE_STATUSES = [
   "Accepted",
   "Approved",
   "Received and Filed",
+  "Deleted",
 ] as const;
 export type DeliverableStatus = (typeof DELIVERABLE_STATUSES)[number];
+
+export const ACTIVE_DELIVERABLE_STATUSES = [
+  "Upcoming",
+  "Past Due",
+  "Submitted",
+  "Under CMS Review",
+] as const satisfies DeliverableStatus[];
 
 export const FINAL_DELIVERABLE_STATUSES = [
   "Accepted",
   "Approved",
   "Received and Filed",
 ] as const satisfies DeliverableStatus[];
-
 export type FinalDeliverableStatus = (typeof FINAL_DELIVERABLE_STATUSES)[number];
+
+export const DELETED_DELIVERABLE_STATUS = "Deleted" as const satisfies DeliverableStatus;
 
 export const DEMONSTRATION_TYPE_STATUSES = ["Expired", "Pending", "Active"] as const;
 

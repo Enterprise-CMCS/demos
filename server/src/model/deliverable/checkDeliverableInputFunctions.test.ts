@@ -25,7 +25,6 @@ import {
   checkDeliverableHasAtLeastOneDocument,
   checkDeliverableHasNoActiveExtension,
   checkDeliverableHasStatus,
-  checkDeliverableStatusNotFinalized,
   checkDemonstrationStatus,
   checkDueDateInFuture,
   checkForDuplicateDemonstrationTypes,
@@ -94,78 +93,6 @@ describe("checkDeliverableInputFunctions", () => {
           "Received and Filed; actual status was Under CMS Review."
       );
     });
-  });
-
-  describe("checkDeliverableStatusNotFinalized", () => {
-    const checkDeliverableStatusInputs: [
-      DeliverableStatus,
-      Partial<PrismaDeliverable>,
-      string | undefined,
-    ][] = [
-      [
-        "Upcoming",
-        {
-          id: "abc123",
-          statusId: "Upcoming",
-        },
-        undefined,
-      ],
-      [
-        "Past Due",
-        {
-          id: "abc123",
-          statusId: "Past Due",
-        },
-        undefined,
-      ],
-      [
-        "Submitted",
-        {
-          id: "abc123",
-          statusId: "Submitted",
-        },
-        undefined,
-      ],
-      [
-        "Under CMS Review",
-        {
-          id: "abc123",
-          statusId: "Under CMS Review",
-        },
-        undefined,
-      ],
-      [
-        "Accepted",
-        {
-          id: "abc123",
-          statusId: "Accepted",
-        },
-        "Cannot submit or modify deliverable abc123 as it has already been finalized.",
-      ],
-      [
-        "Approved",
-        {
-          id: "abc123",
-          statusId: "Approved",
-        },
-        "Cannot submit or modify deliverable abc123 as it has already been finalized.",
-      ],
-      [
-        "Received and Filed",
-        {
-          id: "abc123",
-          statusId: "Received and Filed",
-        },
-        "Cannot submit or modify deliverable abc123 as it has already been finalized.",
-      ],
-    ];
-    it.each(checkDeliverableStatusInputs)(
-      "properly checks the status (%s)",
-      (deliverableStatus, testDeliverable, expectedResult) => {
-        const result = checkDeliverableStatusNotFinalized(testDeliverable as PrismaDeliverable);
-        expect(result).toBe(expectedResult);
-      }
-    );
   });
 
   describe("checkOwnerPersonType", () => {
