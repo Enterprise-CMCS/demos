@@ -364,7 +364,13 @@ describe("deliverableResolvers", () => {
       });
 
       it("should query if there is a deliverable ID", async () => {
-        await resolveDeliverable(
+        const mockDeliverable: Partial<PrismaDeliverable> = {
+          id: "abc123",
+          statusId: "Upcoming",
+        };
+        vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
+
+        const result = await resolveDeliverable(
           testDocumentWithDeliverableParent as PrismaDocument,
           {} as unknown,
           {} as GraphQLContext,
@@ -372,8 +378,27 @@ describe("deliverableResolvers", () => {
         );
         expect(getDeliverable).toHaveBeenCalledExactlyOnceWith({
           id: testDeliverableId,
-          NOT: { statusId: DELETED_DELIVERABLE_STATUS },
         });
+        expect(result).toBe(mockDeliverable);
+      });
+
+      it("should filter out deleted deliverables", async () => {
+        const mockDeliverable: Partial<PrismaDeliverable> = {
+          id: "abc123",
+          statusId: "Deleted",
+        };
+        vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
+
+        const result = await resolveDeliverable(
+          testDocumentWithDeliverableParent as PrismaDocument,
+          {} as unknown,
+          {} as GraphQLContext,
+          testDocumentInfo as GraphQLResolveInfo
+        );
+        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith({
+          id: testDeliverableId,
+        });
+        expect(result).toBeNull();
       });
     });
   });

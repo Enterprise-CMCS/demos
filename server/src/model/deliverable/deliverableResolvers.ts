@@ -53,7 +53,7 @@ export async function resolveDeliverable(
 
   if (parentType === Prisma.ModelName.Document) {
     if (parent.deliverableId) {
-      filter = { id: parent.deliverableId, NOT: { statusId: DELETED_DELIVERABLE_STATUS } };
+      filter = { id: parent.deliverableId };
     } else {
       filter = null;
     }
@@ -65,6 +65,11 @@ export async function resolveDeliverable(
     return null;
   }
   const result = await getDeliverable(filter);
+  // We add the filter here to handle soft-deleted records
+  // Do it here instead of in Prisma filter to avoid throwing when returning no records
+  if (result.statusId === DELETED_DELIVERABLE_STATUS) {
+    return null;
+  }
   return result;
 }
 
