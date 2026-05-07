@@ -214,6 +214,7 @@ export const ApplicationDetailsSection = ({
           {sectionFormData.readonlyFields.effectiveDate || isComplete ? (
             <div>
               <div className={LABEL_CLASSES}>
+                <span className="text-text-warn mr-xs">*</span>
                 Effective Date
               </div>
               <div className={VALUE_CLASSES}>
@@ -239,6 +240,7 @@ export const ApplicationDetailsSection = ({
             {sectionFormData.readonlyFields.expirationDate || isComplete ? (
               <div>
                 <div className={LABEL_CLASSES}>
+                  <span className="text-text-warn mr-xs">*</span>
                   Expiration Date
                 </div>
                 <div className={VALUE_CLASSES}>
@@ -287,6 +289,7 @@ export const ApplicationDetailsSection = ({
             {sectionFormData.readonlyFields.sdgDivision || isComplete ? (
               <div>
                 <div className={LABEL_CLASSES}>
+                  <span className="text-text-warn mr-xs">*</span>
                   SDG Division
                 </div>
                 <div className={VALUE_CLASSES}>
@@ -311,6 +314,7 @@ export const ApplicationDetailsSection = ({
           {sectionFormData.readonlyFields.signatureLevel || isComplete ? (
             <div>
               <div className={LABEL_CLASSES}>
+                <span className="text-text-warn mr-xs">*</span>
                 Signature Level
               </div>
               <div className={VALUE_CLASSES}>
