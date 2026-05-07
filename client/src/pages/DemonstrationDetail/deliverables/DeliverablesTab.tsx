@@ -57,8 +57,8 @@ export const DeliverablesTab = ({
   const deliverables = isStateUser
     ? getStateUserDemonstrationDeliverables(data, parentDemonstration.id)
     : (data?.deliverables?.filter(
-        (deliverable) => deliverable.demonstration.id === parentDemonstration.id
-      ) ?? []);
+      (deliverable) => deliverable.demonstration.id === parentDemonstration.id
+    ) ?? []);
 
   return (
     <div className="flex flex-col">
