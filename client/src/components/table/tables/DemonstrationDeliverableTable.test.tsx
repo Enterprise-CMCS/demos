@@ -116,6 +116,7 @@ describe("DemonstrationDeliverableTable", () => {
     expect(screen.getByRole("columnheader", { name: /Deliverable Name/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /CMS Owner/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Due Date/i })).toBeInTheDocument();
+    expect(screen.getByRole("columnheader", { name: /Submission Date/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Status/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /View/i })).toBeInTheDocument();
 
@@ -128,6 +129,7 @@ describe("DemonstrationDeliverableTable", () => {
       "Deliverable Name",
       "CMS Owner",
       "Due Date",
+      "Submission Date",
       "Status",
     ]);
   });
@@ -149,7 +151,6 @@ describe("DemonstrationDeliverableTable", () => {
     expect(screen.getByTestId("select-all-rows")).toBeInTheDocument();
     await user.click(screen.getByTestId("select-row-row-action"));
 
-    expect(screen.getByLabelText(/Add Deliverable/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Edit Deliverable/i)).not.toBeDisabled();
     expect(screen.getByLabelText(/Remove Deliverable/i)).not.toBeDisabled();
 
@@ -228,6 +229,7 @@ describe("DemonstrationDeliverableTable", () => {
       "Deliverable Type",
       "Deliverable Name",
       "Due Date",
+      "Submission Date",
       "Status",
     ]);
   });

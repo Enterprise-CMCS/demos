@@ -5,7 +5,6 @@ import { CircleButton } from "components/index";
 import { useDialog } from "components/dialog/DialogContext";
 import { isDeliverableEditable } from "components/dialog/deliverable";
 import { DeleteIcon } from "components/icons/Action/DeleteIcon";
-import { ImportIcon } from "components/icons/Action/ImportIcon";
 import { EditIcon } from "components/icons/Navigation/EditIcon";
 
 import { selectionTooltip } from "./actionTooltips";
@@ -42,15 +41,6 @@ export const DeliverableActionButtons: React.FC<{
 
   return (
     <div className="flex gap-1 ml-4">
-      <CircleButton
-        name="add-deliverable"
-        ariaLabel="Add Deliverable"
-        tooltip="Add Deliverable"
-        onClick={() => {}}
-      >
-        <ImportIcon />
-      </CircleButton>
-
       <CircleButton
         name="edit-deliverable"
         ariaLabel="Edit Deliverable"

@@ -67,6 +67,7 @@ export const DemonstrationDeliverableTable: React.FC<{
       cell: highlightCell,
     }),
     createDateColumnDef(columnHelper, "dueDate", "Due Date"),
+    createDateColumnDef(columnHelper, "submissionDate", "Submission Date"),
     columnHelper.accessor("status", {
       header: "Status",
       cell: highlightCell,
