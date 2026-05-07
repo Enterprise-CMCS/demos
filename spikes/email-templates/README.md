@@ -356,6 +356,25 @@ That means the email-template layer does not need its own queue. The existing em
 - The React Email `<Preview>` component can add hidden preheader characters to rendered HTML. That is normal email behavior, but for this POC we skipped it because the JSON blob is easier to inspect without it.
 - Rendered React Email HTML is intentionally noisy because it is email-client-safe markup. The JSON payload is correct, but the HTML string is not meant to be pleasant to read inline.
 
+### Overhead
+Not a lot of runtime overhead for this use case, but it does add noticeable dependency/build overhead.
+
+The real cost is:
+
+- react and react-dom become backend runtime dependencies.
+- @react-email/render and @react-email/components add more package surface.
+- Server TypeScript needs JSX support if templates are .tsx.
+The server bundle gets larger.
+- Devs now need to understand that React is being used as a server-side email rendering library, not as frontend code.
+
+Runtime-wise, rendering one transactional email is cheap. The server would take a typed object, render HTML/text, and send the existing emailer queue payload. That is not heavy unless we are rendering a huge volume synchronously in a hot request path.
+
+### Takeaway
+
+For 9 templates, React Email is reasonable if we value typed templates, reusable layout components, and keeping the object parsing inside the template. The overhead is acceptable, but not zero.
+
+If we want the smallest backend footprint and simplest dependency story, Handlebars wins. If we want stronger TypeScript ergonomics and component reuse, React Email wins.
+
 ### Simple Integration Path
 
 The production integration can stay narrow:
