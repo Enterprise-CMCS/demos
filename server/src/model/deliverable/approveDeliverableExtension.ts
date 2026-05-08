@@ -68,7 +68,6 @@ export async function approveDeliverableExtension(
       {
         deliverableId: deliverableId,
         actionType: "Approved Extension Request",
-        actionTime: new Date(),
         oldStatus: unapprovedDeliverable.statusId as DeliverableStatus,
         newStatus: approvedDeliverable.statusId as DeliverableStatus,
         oldDueDate: unapprovedDeliverable.dueDate,

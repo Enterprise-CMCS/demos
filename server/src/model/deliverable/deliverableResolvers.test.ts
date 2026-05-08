@@ -44,6 +44,7 @@ vi.mock(".", () => ({
   approveDeliverableExtension: vi.fn(),
   completeDeliverable: vi.fn(),
   createDeliverable: vi.fn(),
+  deleteDeliverable: vi.fn(),
   denyDeliverableExtension: vi.fn(),
   getDeliverable: vi.fn(),
   getManyDeliverables: vi.fn(),
@@ -90,6 +91,7 @@ import {
   approveDeliverableExtension,
   completeDeliverable,
   createDeliverable,
+  deleteDeliverable,
   denyDeliverableExtension,
   getDeliverable,
   getManyDeliverables,
@@ -301,6 +303,19 @@ describe("deliverableResolvers", () => {
         testInput,
         testContext
       );
+    });
+  });
+
+  describe("Mutation.deleteDeliverable", () => {
+    it("calls deleteDeliverable with appropriate arguments", async () => {
+      await deliverableResolvers.Mutation.deleteDeliverable(
+        undefined,
+        {
+          id: testDeliverableId,
+        },
+        testContext as GraphQLContext
+      );
+      expect(deleteDeliverable).toHaveBeenCalledExactlyOnceWith(testDeliverableId, testContext);
     });
   });
 

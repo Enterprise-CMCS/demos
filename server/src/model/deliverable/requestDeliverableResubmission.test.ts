@@ -1,5 +1,5 @@
 // Vitest and other helpers
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
 import { DeepPartial } from "../../testUtilities";
 
@@ -71,7 +71,6 @@ describe("requestDeliverableResubmission", () => {
       easternTZDate: new TZDate(2026, 10, 13, 4, 59, 59, 999, "America/New_York"),
     },
   };
-  const mockNow = new Date(2026, 3, 27, 10, 4, 19, 232);
 
   // Mock transaction
   const mockTransaction: any = "Test!";
@@ -81,17 +80,11 @@ describe("requestDeliverableResubmission", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.useFakeTimers();
-    vi.setSystemTime(mockNow);
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(parseRequestDeliverableResubmissionInput).mockReturnValue(mockParsedInput);
     vi.mocked(getDeliverable).mockResolvedValue(mockUnrequestedDeliverable as PrismaDeliverable);
     vi.mocked(editDeliverable).mockResolvedValue(mockRequestedDeliverable as PrismaDeliverable);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
   });
 
   it("should check that the user is allowed to do this operation", async () => {
@@ -193,7 +186,6 @@ describe("requestDeliverableResubmission", () => {
       {
         deliverableId: testDeliverableId,
         actionType: "Requested Resubmission",
-        actionTime: mockNow,
         oldStatus: mockUnrequestedDeliverable.statusId,
         newStatus: mockRequestedDeliverable.statusId,
         note: mockParsedInput.details,

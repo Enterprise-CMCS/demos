@@ -1,5 +1,5 @@
 // Vitest and other helpers
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
 import { DeepPartial } from "../../testUtilities";
 
@@ -93,7 +93,6 @@ describe("approveDeliverableExtension", () => {
       easternTZDate: new TZDate(2026, 9, 28, 23, 59, 59, 999, "America/New_York"),
     },
   };
-  const mockNow = new Date(2026, 3, 27, 10, 4, 19, 232);
 
   // Mock transaction
   const mockTransaction: any = "Test!";
@@ -103,8 +102,6 @@ describe("approveDeliverableExtension", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.useFakeTimers();
-    vi.setSystemTime(mockNow);
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(getDeliverable).mockResolvedValue(mockUnapprovedDeliverable as PrismaDeliverable);
     vi.mocked(selectDeliverableExtension).mockResolvedValue(
@@ -113,10 +110,6 @@ describe("approveDeliverableExtension", () => {
     vi.mocked(parseApproveDeliverableExtensionInput).mockReturnValue(mockParsedInput);
     vi.mocked(editDeliverable).mockResolvedValue(mockApprovedDeliverable as PrismaDeliverable);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
   });
 
   it("should check that the user is allowed to do this operation", async () => {
@@ -270,7 +263,6 @@ describe("approveDeliverableExtension", () => {
       {
         deliverableId: testDeliverableId,
         actionType: "Approved Extension Request",
-        actionTime: mockNow,
         oldStatus: mockUnapprovedDeliverable.statusId,
         newStatus: mockApprovedDeliverable.statusId,
         oldDueDate: mockUnapprovedDeliverable.dueDate,

@@ -1,5 +1,5 @@
 // Vitest and other helpers
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DeepPartial } from "../../testUtilities";
 
 // Types
@@ -71,7 +71,6 @@ describe("requestDeliverableExtension", () => {
       easternTZDate: new TZDate(2026, 9, 12, 23, 59, 59, 999, "America/New_York"),
     },
   };
-  const mockNow = new Date(2026, 3, 27, 10, 4, 19, 232);
 
   // Mock transaction
   const mockTransaction: any = "Test!";
@@ -81,16 +80,10 @@ describe("requestDeliverableExtension", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.useFakeTimers();
-    vi.setSystemTime(mockNow);
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
     vi.mocked(parseRequestDeliverableExtensionInput).mockReturnValue(mockParsedInput);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
   });
 
   it("should check that the user is allowed to do this operation", async () => {
@@ -196,7 +189,6 @@ describe("requestDeliverableExtension", () => {
       {
         deliverableId: testDeliverableId,
         actionType: "Requested Extension",
-        actionTime: mockNow,
         oldStatus: mockDeliverable.statusId,
         newStatus: mockDeliverable.statusId,
         note: mockParsedInput.details,

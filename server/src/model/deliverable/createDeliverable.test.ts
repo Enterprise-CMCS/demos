@@ -1,5 +1,5 @@
 // Vitest and other helpers
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
 import { DeepPartial } from "../../testUtilities";
 
@@ -59,7 +59,6 @@ describe("createDeliverable", () => {
   };
 
   // Mock return values
-  const mockCurrentDate = new Date(2025, 3, 17, 14, 33, 19, 205);
   const mockParsedInput: ParsedCreateDeliverableInput = {
     name: testInput.name,
     deliverableType: testInput.deliverableType,
@@ -82,16 +81,10 @@ describe("createDeliverable", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.useFakeTimers();
-    vi.setSystemTime(mockCurrentDate);
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(parseCreateDeliverableInput).mockReturnValue(mockParsedInput);
     vi.mocked(insertDeliverable).mockResolvedValue(mockNewDeliverable as PrismaDeliverable);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
   });
 
   it("should check that the user is allowed to do this operation", async () => {
@@ -172,7 +165,6 @@ describe("createDeliverable", () => {
       {
         deliverableId: mockNewDeliverable.id,
         actionType: "Created Deliverable Slot",
-        actionTime: mockCurrentDate,
         oldStatus: "Upcoming",
         newStatus: "Upcoming",
         oldDueDate: mockParsedInput.dueDate.easternTZDate,

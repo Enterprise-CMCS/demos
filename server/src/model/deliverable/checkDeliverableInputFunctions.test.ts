@@ -11,11 +11,13 @@ import {
   TagName,
 } from "../../types";
 import {
-  DeliverableExtension as PrismaDeliverableExtension,
   Deliverable as PrismaDeliverable,
+  DeliverableExtension as PrismaDeliverableExtension,
   Demonstration as PrismaDemonstration,
   DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
   Document as PrismaDocument,
+  PrivateComment as PrismaPrivateComment,
+  PublicComment as PrismaPublicComment,
   User as PrismaUser,
 } from "@prisma/client";
 
@@ -24,6 +26,8 @@ import {
   checkDeliverableExtensionHasStatus,
   checkDeliverableHasAtLeastOneDocument,
   checkDeliverableHasNoActiveExtension,
+  checkDeliverableHasNoComments,
+  checkDeliverableHasNoDocuments,
   checkDeliverableHasStatus,
   checkDemonstrationStatus,
   checkDueDateInFuture,
@@ -43,8 +47,18 @@ vi.mock("../deliverableExtension/queries", () => ({
   selectManyDeliverableExtensions: vi.fn(),
 }));
 
+vi.mock("../publicComment/queries", () => ({
+  selectManyPublicComments: vi.fn(),
+}));
+
+vi.mock("../privateComment/queries", () => ({
+  selectManyPrivateComments: vi.fn(),
+}));
+
 import { selectManyDocuments } from "../document";
 import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
+import { selectManyPublicComments } from "../publicComment/queries";
+import { selectManyPrivateComments } from "../privateComment/queries";
 
 describe("checkDeliverableInputFunctions", () => {
   describe("checkDemonstrationStatus", () => {
@@ -75,14 +89,14 @@ describe("checkDeliverableInputFunctions", () => {
       statusId: "Under CMS Review",
     };
 
-    it("should return undefined if the passed status matches the object", async () => {
+    it("should return undefined if the passed status matches the object", () => {
       const result = checkDeliverableHasStatus(testDeliverable as PrismaDeliverable, [
         "Under CMS Review",
       ]);
       expect(result).toBeUndefined();
     });
 
-    it("should return an error message the passed status does not match the object", async () => {
+    it("should return an error message the passed status does not match the object", () => {
       const result = checkDeliverableHasStatus(testDeliverable as PrismaDeliverable, [
         "Approved",
         "Accepted",
@@ -406,7 +420,7 @@ describe("checkDeliverableInputFunctions", () => {
       statusId: "Denied" satisfies DeliverableExtensionStatus,
     };
 
-    it("should return undefined if the passed status matches the object", async () => {
+    it("should return undefined if the passed status matches the object", () => {
       const result = checkDeliverableExtensionHasStatus(
         testDeliverableExtension as PrismaDeliverableExtension,
         ["Denied"]
@@ -414,7 +428,7 @@ describe("checkDeliverableInputFunctions", () => {
       expect(result).toBeUndefined();
     });
 
-    it("should return an error message the passed status does not match the object", async () => {
+    it("should return an error message the passed status does not match the object", () => {
       const result = checkDeliverableExtensionHasStatus(
         testDeliverableExtension as PrismaDeliverableExtension,
         ["Approved", "Requested"]
@@ -422,6 +436,106 @@ describe("checkDeliverableInputFunctions", () => {
       expect(result).toBe(
         "Deliverable extension expected to have one of status Approved, Requested; " +
           "actual status was Denied."
+      );
+    });
+  });
+
+  describe("checkDeliverableHasNoDocuments", () => {
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      id: "3d802d02-f464-44e0-b789-53a9aa249979",
+      statusId: "Upcoming" satisfies DeliverableStatus,
+    };
+    const testTransaction = "I'm a test transaction!" as any;
+
+    it("should return undefined if no documents are returned", async () => {
+      vi.mocked(selectManyDocuments).mockResolvedValue([]);
+
+      const result = await checkDeliverableHasNoDocuments(
+        testDeliverable as PrismaDeliverable,
+        testTransaction
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it("should return an error message if documents are returned", async () => {
+      vi.mocked(selectManyDocuments).mockResolvedValue([{ id: "abc123" }] as PrismaDocument[]);
+
+      const result = await checkDeliverableHasNoDocuments(
+        testDeliverable as PrismaDeliverable,
+        testTransaction
+      );
+      expect(result).toBe(
+        `Expected deliverable ${testDeliverable.id} to have no ` +
+          "documents attached, but documents were found."
+      );
+    });
+  });
+
+  describe("checkDeliverableHasNoComments", () => {
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      id: "45f7753b-9d83-425c-9274-dad2cf5d551e",
+      statusId: "Past Due" satisfies DeliverableStatus,
+    };
+    const testTransaction = "I'm a test transaction!" as any;
+
+    it("should return undefined if no comments are returned", async () => {
+      vi.mocked(selectManyPublicComments).mockResolvedValue([]);
+      vi.mocked(selectManyPrivateComments).mockResolvedValue([]);
+
+      const result = await checkDeliverableHasNoComments(
+        testDeliverable as PrismaDeliverable,
+        testTransaction
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it("should return an error message if private comments are found", async () => {
+      vi.mocked(selectManyPublicComments).mockResolvedValue([]);
+      vi.mocked(selectManyPrivateComments).mockResolvedValue([
+        { id: "abc123" },
+      ] as PrismaPrivateComment[]);
+
+      const result = await checkDeliverableHasNoComments(
+        testDeliverable as PrismaDeliverable,
+        testTransaction
+      );
+      expect(result).toBe(
+        `Expected deliverable ${testDeliverable.id} to have no ` +
+          "comments, but public or private comments were found."
+      );
+    });
+
+    it("should return an error message if public comments are found", async () => {
+      vi.mocked(selectManyPublicComments).mockResolvedValue([
+        { id: "abc123" },
+      ] as PrismaPrivateComment[]);
+      vi.mocked(selectManyPrivateComments).mockResolvedValue([]);
+
+      const result = await checkDeliverableHasNoComments(
+        testDeliverable as PrismaDeliverable,
+        testTransaction
+      );
+      expect(result).toBe(
+        `Expected deliverable ${testDeliverable.id} to have no ` +
+          "comments, but public or private comments were found."
+      );
+    });
+
+    it("should return an error message if both type of comments are found", async () => {
+      vi.mocked(selectManyPublicComments).mockResolvedValue([
+        { id: "abc123" },
+      ] as PrismaPrivateComment[]);
+      vi.mocked(selectManyPrivateComments).mockResolvedValue([
+        { id: "def456" },
+      ] as PrismaPrivateComment[]);
+
+      const result = await checkDeliverableHasNoComments(
+        testDeliverable as PrismaDeliverable,
+        testTransaction
+      );
+      expect(result).toBe(
+        `Expected deliverable ${testDeliverable.id} to have no ` +
+          "comments, but public or private comments were found."
       );
     });
   });

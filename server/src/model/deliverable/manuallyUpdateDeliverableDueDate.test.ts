@@ -1,5 +1,5 @@
 // Vitest and other helpers
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DeepPartial } from "../../testUtilities";
 
 // Types
@@ -54,10 +54,6 @@ describe("manuallyUpdateDeliverableDueDate", () => {
     vi.useFakeTimers();
     vi.setSystemTime(mockCurrentDate);
     vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
   });
 
   it("should do nothing if the test input has no due date", async () => {
@@ -172,7 +168,6 @@ describe("manuallyUpdateDeliverableDueDate", () => {
       {
         deliverableId: testDeliverableId,
         actionType: "Manually Changed Due Date",
-        actionTime: mockCurrentDate,
         oldStatus: mockDeliverable.statusId,
         newStatus: mockDeliverable.statusId,
         note: testInput.dueDate!.dateChangeNote,
@@ -226,7 +221,6 @@ describe("manuallyUpdateDeliverableDueDate", () => {
       {
         deliverableId: testDeliverableId,
         actionType: "Manually Changed Due Date",
-        actionTime: mockCurrentDate,
         oldStatus: "Past Due",
         newStatus: "Upcoming",
         note: testInput.dueDate!.dateChangeNote,

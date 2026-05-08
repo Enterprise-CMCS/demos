@@ -1,5 +1,5 @@
 // Vitest and other helpers
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DeepPartial } from "../../testUtilities";
 
 // Types
@@ -55,7 +55,6 @@ describe("completeDeliverable", () => {
     statusId: "Approved",
     dueDate: new Date(2026, 9, 13, 4, 59, 59, 999),
   };
-  const mockNow = new Date(2026, 3, 27, 10, 4, 19, 232);
 
   // Mock transaction
   const mockTransaction: any = "Test!";
@@ -65,16 +64,10 @@ describe("completeDeliverable", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.useFakeTimers();
-    vi.setSystemTime(mockNow);
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(getDeliverable).mockResolvedValue(mockIncompleteDeliverable as PrismaDeliverable);
     vi.mocked(editDeliverable).mockResolvedValue(mockCompleteDeliverable as PrismaDeliverable);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
   });
 
   it("should check that the user is allowed to do this operation", async () => {
@@ -127,7 +120,6 @@ describe("completeDeliverable", () => {
       {
         deliverableId: testDeliverableId,
         actionType: "Approved Deliverable",
-        actionTime: mockNow,
         oldStatus: mockIncompleteDeliverable.statusId,
         newStatus: mockCompleteDeliverable.statusId,
         oldDueDate: mockIncompleteDeliverable.dueDate,
@@ -144,7 +136,6 @@ describe("completeDeliverable", () => {
       {
         deliverableId: testDeliverableId,
         actionType: "Accepted Deliverable",
-        actionTime: mockNow,
         oldStatus: mockIncompleteDeliverable.statusId,
         newStatus: mockCompleteDeliverable.statusId,
         oldDueDate: mockIncompleteDeliverable.dueDate,
@@ -165,7 +156,6 @@ describe("completeDeliverable", () => {
       {
         deliverableId: testDeliverableId,
         actionType: "Received and Filed Deliverable",
-        actionTime: mockNow,
         oldStatus: mockIncompleteDeliverable.statusId,
         newStatus: mockCompleteDeliverable.statusId,
         oldDueDate: mockIncompleteDeliverable.dueDate,

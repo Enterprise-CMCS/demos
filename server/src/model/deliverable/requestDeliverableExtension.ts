@@ -41,7 +41,6 @@ export async function requestDeliverableExtension(
       {
         deliverableId: deliverableId,
         actionType: "Requested Extension",
-        actionTime: new Date(),
         oldStatus: deliverable.statusId as DeliverableStatus,
         newStatus: deliverable.statusId as DeliverableStatus,
         note: input.details,

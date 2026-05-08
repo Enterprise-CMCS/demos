@@ -24,7 +24,6 @@ export async function submitDeliverable(
       {
         deliverableId: deliverableId,
         actionType: "Submitted Deliverable",
-        actionTime: new Date(),
         oldStatus: unsubmittedDeliverable.statusId as DeliverableStatus,
         newStatus: submittedDeliverable.statusId as DeliverableStatus,
         oldDueDate: unsubmittedDeliverable.dueDate,

@@ -20,7 +20,6 @@ describe("insertDeliverableAction", () => {
   const testInput: InsertDeliverableActionInput = {
     deliverableId: "c25385d4-d5e3-4e27-aaf3-7dfa87f677d3",
     actionType: "Created Deliverable Slot",
-    actionTime: new Date(2025, 6, 11, 12, 1, 53, 299),
     oldStatus: "Upcoming",
     newStatus: "Upcoming",
     oldDueDate: new Date(2025, 8, 13, 0, 0, 0, 0),

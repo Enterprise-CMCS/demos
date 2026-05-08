@@ -40,7 +40,6 @@ export async function denyDeliverableExtension(
       {
         deliverableId: deliverableId,
         actionType: "Denied Extension Request",
-        actionTime: new Date(),
         oldStatus: deliverable.statusId as DeliverableStatus,
         newStatus: deliverable.statusId as DeliverableStatus,
         note: input.details,

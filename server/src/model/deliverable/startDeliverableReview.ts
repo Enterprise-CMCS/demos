@@ -33,7 +33,6 @@ export async function startDeliverableReview(
       {
         deliverableId: deliverableId,
         actionType: "Started Review",
-        actionTime: new Date(),
         oldStatus: unstartedDeliverable.statusId as DeliverableStatus,
         newStatus: startedDeliverable.statusId as DeliverableStatus,
         oldDueDate: unstartedDeliverable.dueDate,

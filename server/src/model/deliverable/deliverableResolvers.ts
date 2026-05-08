@@ -14,6 +14,7 @@ import {
   approveDeliverableExtension,
   completeDeliverable,
   createDeliverable,
+  deleteDeliverable,
   denyDeliverableExtension,
   getDeliverable,
   getManyDeliverables,
@@ -194,6 +195,9 @@ export const deliverableResolvers = {
       context: GraphQLContext
     ) => {
       return await denyDeliverableExtension(args.deliverableId, args.input, context);
+    },
+    deleteDeliverable: async (parent: unknown, args: { id: string }, context: GraphQLContext) => {
+      return await deleteDeliverable(args.id, context);
     },
   },
 

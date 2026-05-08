@@ -37,7 +37,6 @@ export async function completeDeliverable(
       {
         deliverableId: deliverableId,
         actionType: statusToAction[finalStatus],
-        actionTime: new Date(),
         oldStatus: incompleteDeliverable.statusId as DeliverableStatus,
         newStatus: completedDeliverable.statusId as DeliverableStatus,
         oldDueDate: incompleteDeliverable.dueDate,

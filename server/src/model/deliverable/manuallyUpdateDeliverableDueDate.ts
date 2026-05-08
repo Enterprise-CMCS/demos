@@ -53,7 +53,6 @@ export async function manuallyUpdateDeliverableDueDate(
       {
         deliverableId: deliverableId,
         actionType: "Manually Changed Due Date",
-        actionTime: new Date(),
         oldStatus: currentDeliverable.statusId as DeliverableStatus,
         newStatus: newStatus,
         note: input.dueDate.dateChangeNote,

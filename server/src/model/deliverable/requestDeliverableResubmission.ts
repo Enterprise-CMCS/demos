@@ -40,7 +40,6 @@ export async function requestDeliverableResubmission(
       {
         deliverableId: deliverableId,
         actionType: "Requested Resubmission",
-        actionTime: new Date(),
         oldStatus: unrequestedDeliverable.statusId as DeliverableStatus,
         newStatus: requestedDeliverable.statusId as DeliverableStatus,
         note: input.details,

@@ -4,6 +4,8 @@ export {
   checkDeliverableExtensionHasStatus,
   checkDeliverableHasAtLeastOneDocument,
   checkDeliverableHasNoActiveExtension,
+  checkDeliverableHasNoComments,
+  checkDeliverableHasNoDocuments,
   checkDeliverableHasStatus,
   checkDemonstrationStatus,
   checkDueDateInFuture,
@@ -15,6 +17,7 @@ export {
 } from "./checkDeliverableInputFunctions";
 export { completeDeliverable } from "./completeDeliverable";
 export { createDeliverable } from "./createDeliverable";
+export { deleteDeliverable } from "./deleteDeliverable";
 export { denyDeliverableExtension } from "./denyDeliverableExtension";
 export { resolveDeliverable, resolveManyDeliverables } from "./deliverableResolvers";
 export { manuallyUpdateDeliverableDueDate } from "./manuallyUpdateDeliverableDueDate";
@@ -35,6 +38,7 @@ export {
   validateApproveDeliverableExtensionInput,
   validateCompleteDeliverableInput,
   validateCreateDeliverableInput,
+  validateDeleteDeliverableInput,
   validateDenyDeliverableExtensionInput,
   validateRequestDeliverableExtensionInput,
   validateRequestDeliverableResubmissionInput,
