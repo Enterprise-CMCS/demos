@@ -26,22 +26,34 @@ export const documentSchema = gql`
     updatedAt: DateTime!
   }
 
-  input UploadDocumentInput {
+  input UploadDocumentToApplicationInput {
     name: NonEmptyString!
     description: String
     documentType: DocumentType!
     applicationId: ID!
-    phaseName: PhaseName
-    deliverableId: ID
+  }
+
+  input UploadDocumentToApplicationPhaseInput {
+    name: NonEmptyString!
+    description: String
+    documentType: DocumentType!
+    applicationId: ID!
+    phaseName: PhaseName!
+  }
+
+  input UploadDocumentToDeliverableInput {
+    name: NonEmptyString!
+    description: String
+    documentType: DocumentType!
+    applicationId: ID!
+    deliverableId: ID!
+    isCmsAttachedFile: Boolean!
   }
 
   input UpdateDocumentInput {
     name: NonEmptyString
     description: String
     documentType: DocumentType
-    applicationId: ID
-    phaseName: PhaseName
-    deliverableId: ID
   }
 
   type UploadDocumentResponse {
@@ -50,7 +62,11 @@ export const documentSchema = gql`
   }
 
   type Mutation {
-    uploadDocument(input: UploadDocumentInput!): UploadDocumentResponse!
+    uploadDocumentToApplication(input: UploadDocumentToApplicationInput!): UploadDocumentResponse!
+    uploadDocumentToApplicationPhase(
+      input: UploadDocumentToApplicationPhaseInput!
+    ): UploadDocumentResponse!
+    uploadDocumentToDeliverable(input: UploadDocumentToDeliverableInput!): UploadDocumentResponse!
     updateDocument(id: ID!, input: UpdateDocumentInput!): Document
     deleteDocument(id: ID!): Document!
     deleteDocuments(ids: [ID!]!): Int!
@@ -79,22 +95,34 @@ export interface Document {
   hasPendingUIPathResult: boolean;
 }
 
-export interface UploadDocumentInput {
+export interface UploadDocumentToApplicationInput {
   name: NonEmptyString;
   description?: string;
   documentType: DocumentType;
   applicationId: string;
-  phaseName?: PhaseName;
-  deliverableId?: string;
+}
+
+export interface UploadDocumentToApplicationPhaseInput {
+  name: NonEmptyString;
+  description?: string;
+  documentType: DocumentType;
+  applicationId: string;
+  phaseName: PhaseName;
+}
+
+export interface UploadDocumentToDeliverableInput {
+  name: NonEmptyString;
+  description?: string;
+  documentType: DocumentType;
+  applicationId: string;
+  deliverableId: string;
+  isCmsAttachedFile: boolean;
 }
 
 export interface UpdateDocumentInput {
   name?: NonEmptyString;
   description?: string;
   documentType?: DocumentType;
-  applicationId?: string;
-  phaseName?: PhaseName;
-  deliverableId?: string;
 }
 
 export interface UploadDocumentResponse {

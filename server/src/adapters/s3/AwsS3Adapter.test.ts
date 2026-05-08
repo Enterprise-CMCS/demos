@@ -1,10 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { UploadDocumentInput } from "../../model/document/documentSchema";
 import { createAWSS3Adapter } from "./AwsS3Adapter";
-import { createDocumentPendingUpload } from "../../model/documentPendingUpload";
 import { PRIMARY_AWS_REGION } from "../../constants";
+import { Prisma } from "@prisma/client";
 
 vi.mock("@aws-sdk/client-s3", () => ({
   S3Client: vi.fn(function (this: any) {
@@ -30,17 +29,33 @@ vi.mock("@aws-sdk/s3-request-presigner", () => ({
   getSignedUrl: vi.fn(),
 }));
 
-vi.mock("../../model/documentPendingUpload/queries/createDocumentPendingUpload.js", () => ({
-  createDocumentPendingUpload: vi.fn(),
-}));
+const transactionMocks = {
+  documentPendingUpload: {
+    create: vi.fn(),
+  },
+};
+const mockTransaction = {
+  documentPendingUpload: {
+    create: transactionMocks.documentPendingUpload.create,
+  },
+} as any;
 
 describe("AwsS3Adapter", () => {
   const originalEnv = { ...process.env };
-  const mockTransaction = "mockTransaction" as any;
   const testUserId = "user-123";
 
   beforeEach(() => {
     vi.resetAllMocks();
+    transactionMocks.documentPendingUpload.create.mockResolvedValue({
+      id: "pending-doc-123",
+      name: "test.pdf",
+      description: "Test document",
+      documentTypeId: "State Application",
+      applicationId: "app-123",
+      phaseId: "Concept",
+      ownerUserId: testUserId,
+      createdAt: new Date(),
+    });
     process.env.UPLOAD_BUCKET = "test-upload-bucket";
     process.env.CLEAN_BUCKET = "test-clean-bucket";
     process.env.DELETED_BUCKET = "test-deleted-bucket";
@@ -160,38 +175,25 @@ describe("AwsS3Adapter", () => {
   });
 
   describe("uploadDocument", () => {
-    const mockUploadInput: UploadDocumentInput = {
-      name: "test.pdf",
-      description: "Test document",
-      documentType: "State Application",
-      applicationId: "app-123",
-      phaseName: "Concept",
-    };
-
-    const mockDocumentPendingUpload = {
-      id: "pending-doc-123",
+    const mockUploadInput: Prisma.DocumentPendingUploadCreateArgs["data"] = {
       name: "test.pdf",
       description: "Test document",
       documentTypeId: "State Application",
       applicationId: "app-123",
       phaseId: "Concept",
       ownerUserId: testUserId,
-      createdAt: new Date(),
     };
 
     it("should create pending upload and return presigned URL with document ID", async () => {
       const mockPresignedUrl = "https://s3.amazonaws.com/upload/presigned-url";
-      vi.mocked(createDocumentPendingUpload).mockResolvedValue(mockDocumentPendingUpload as any);
       vi.mocked(getSignedUrl).mockResolvedValue(mockPresignedUrl);
 
       const adapter = createAWSS3Adapter();
-      const result = await adapter.uploadDocument(mockTransaction, mockUploadInput, testUserId);
+      const result = await adapter.uploadDocument(mockUploadInput, mockTransaction);
 
-      expect(createDocumentPendingUpload).toHaveBeenCalledExactlyOnceWith(
-        mockTransaction,
-        mockUploadInput,
-        testUserId
-      );
+      expect(mockTransaction.documentPendingUpload.create).toHaveBeenCalledExactlyOnceWith({
+        data: mockUploadInput,
+      });
       expect(result).toEqual({
         presignedURL: mockPresignedUrl,
         documentId: "pending-doc-123",
@@ -200,11 +202,10 @@ describe("AwsS3Adapter", () => {
 
     it("should use document pending upload ID for presigned URL key", async () => {
       const mockPresignedUrl = "https://s3.amazonaws.com/upload/presigned-url";
-      vi.mocked(createDocumentPendingUpload).mockResolvedValue(mockDocumentPendingUpload as any);
       vi.mocked(getSignedUrl).mockResolvedValue(mockPresignedUrl);
 
       const adapter = createAWSS3Adapter();
-      await adapter.uploadDocument(mockTransaction, mockUploadInput, testUserId);
+      await adapter.uploadDocument(mockUploadInput, mockTransaction);
 
       const putObjectCommand = vi.mocked(getSignedUrl).mock.calls[0][1];
       expect((putObjectCommand as any).params.Key).toBe("pending-doc-123");

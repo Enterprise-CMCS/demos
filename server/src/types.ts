@@ -68,7 +68,9 @@ export type {
 export type {
   Document,
   UpdateDocumentInput,
-  UploadDocumentInput,
+  UploadDocumentToApplicationInput,
+  UploadDocumentToApplicationPhaseInput,
+  UploadDocumentToDeliverableInput,
   UploadDocumentResponse,
 } from "./model/document/documentSchema.js";
 
