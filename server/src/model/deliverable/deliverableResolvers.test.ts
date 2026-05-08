@@ -23,6 +23,7 @@ import {
   UpdateDeliverableInput,
 } from "../../types";
 import { DeliverableDemonstrationTypeQueryResult } from "../deliverableDemonstrationType/queries";
+import { DELETED_DELIVERABLE_STATUS } from "../../constants";
 
 // Functions under test
 import {
@@ -75,6 +76,14 @@ vi.mock("../deliverableExtension/queries", () => ({
   selectManyDeliverableExtensions: vi.fn(),
 }));
 
+vi.mock("../publicComment/queries", () => ({
+  selectManyPublicComments: vi.fn(),
+}));
+
+vi.mock("../privateComment/queries", () => ({
+  selectManyPrivateComments: vi.fn(),
+}));
+
 import {
   approveDeliverableExtension,
   completeDeliverable,
@@ -94,7 +103,8 @@ import { getManyDocuments } from "../document";
 import { getManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 import { getFormattedDeliverableActions } from "../deliverableAction";
 import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
-import { DELETED_DELIVERABLE_STATUS } from "../../constants";
+import { selectManyPublicComments } from "../publicComment/queries";
+import { selectManyPrivateComments } from "../privateComment/queries";
 
 describe("deliverableResolvers", () => {
   const testDeliverableId = "82ef9a17-e8b9-48ab-9aaf-3d1787822b13";
@@ -591,6 +601,26 @@ describe("deliverableResolvers", () => {
           testDeliverable as PrismaDeliverable
         );
         expect(selectManyDeliverableExtensions).toHaveBeenCalledExactlyOnceWith({
+          deliverableId: testDeliverableId,
+        });
+      });
+    });
+
+    describe("Deliverable.publicComments", () => {
+      it("should query the public comments of the parent deliverable", async () => {
+        await deliverableResolvers.Deliverable.publicComments(testDeliverable as PrismaDeliverable);
+        expect(selectManyPublicComments).toHaveBeenCalledExactlyOnceWith({
+          deliverableId: testDeliverableId,
+        });
+      });
+    });
+
+    describe("Deliverable.privateComments", () => {
+      it("should query the private comments of the parent deliverable", async () => {
+        await deliverableResolvers.Deliverable.privateComments(
+          testDeliverable as PrismaDeliverable
+        );
+        expect(selectManyPrivateComments).toHaveBeenCalledExactlyOnceWith({
           deliverableId: testDeliverableId,
         });
       });
