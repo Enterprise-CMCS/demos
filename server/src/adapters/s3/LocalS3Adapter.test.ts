@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { PrismaTransactionClient } from "../../prismaClient";
-import { UploadDocumentInput } from "../../types";
 import { createLocalS3Adapter } from "./LocalS3Adapter";
-import { Document as PrismaDocument } from "@prisma/client";
+import { Prisma, Document as PrismaDocument } from "@prisma/client";
 
 describe("LocalS3Adapter", () => {
   const mockTransaction = {
@@ -94,12 +93,13 @@ describe("LocalS3Adapter", () => {
   });
 
   describe("uploadDocument", () => {
-    const mockUploadInput: UploadDocumentInput = {
+    const mockUploadInput = {
       name: "test.pdf",
       description: "Test document",
-      documentType: "State Application",
+      documentTypeId: "State Application",
       applicationId: "app-123",
-      phaseName: "Concept",
+      phaseId: "Concept",
+      ownerUserId: testUserId,
     };
 
     const mockCreatedDocument: PrismaDocument = {
@@ -119,7 +119,10 @@ describe("LocalS3Adapter", () => {
       vi.mocked(mockTransaction.document.create).mockResolvedValue(mockCreatedDocument);
 
       const adapter = createLocalS3Adapter();
-      const result = await adapter.uploadDocument(mockTransaction, mockUploadInput, testUserId);
+      const result = await adapter.uploadDocument(
+        mockUploadInput as Prisma.DocumentCreateArgs["data"],
+        mockTransaction
+      );
 
       expect(mockTransaction.document.create).toHaveBeenCalledExactlyOnceWith({
         data: {
@@ -148,11 +151,11 @@ describe("LocalS3Adapter", () => {
       vi.mocked(mockTransaction.document.create).mockResolvedValue(mockCreatedDocument);
 
       const adapter = createLocalS3Adapter();
-      await adapter.uploadDocument(mockTransaction, inputWithoutDescription, testUserId);
+      await adapter.uploadDocument(inputWithoutDescription, mockTransaction);
 
       expect(mockTransaction.document.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
-          description: "",
+          description: undefined,
         }),
       });
     });
@@ -161,7 +164,7 @@ describe("LocalS3Adapter", () => {
       vi.mocked(mockTransaction.document.create).mockResolvedValue(mockCreatedDocument);
 
       const adapter = createLocalS3Adapter();
-      await adapter.uploadDocument(mockTransaction, mockUploadInput, testUserId);
+      await adapter.uploadDocument(mockUploadInput, mockTransaction);
 
       const createCall = vi.mocked(mockTransaction.document.create).mock.calls[0][0];
       expect(createCall.data.id).toMatch(
@@ -173,7 +176,7 @@ describe("LocalS3Adapter", () => {
       vi.mocked(mockTransaction.document.create).mockResolvedValue(mockCreatedDocument);
 
       const adapter = createLocalS3Adapter();
-      await adapter.uploadDocument(mockTransaction, mockUploadInput, testUserId);
+      await adapter.uploadDocument(mockUploadInput, mockTransaction);
 
       const createCall = vi.mocked(mockTransaction.document.create).mock.calls[0][0];
       expect(createCall.data.s3Path).toMatch(/^s3:\/\/local-simple-upload\/app-123\/.+$/);
@@ -188,7 +191,7 @@ describe("LocalS3Adapter", () => {
       });
 
       const adapter = createLocalS3Adapter();
-      await adapter.uploadDocument(mockTransaction, mockUploadInput, testUserId);
+      await adapter.uploadDocument(mockUploadInput, mockTransaction);
 
       const createCall = vi.mocked(mockTransaction.document.create).mock.calls[0][0];
       expect(createCall.data.s3Path).toMatch(/^s3:\/\/custom-upload-bucket\/.+$/);
@@ -205,7 +208,7 @@ describe("LocalS3Adapter", () => {
       vi.mocked(mockTransaction.document.create).mockResolvedValue(mockCreatedDocument);
 
       const adapter = createLocalS3Adapter();
-      const result = await adapter.uploadDocument(mockTransaction, mockUploadInput, testUserId);
+      const result = await adapter.uploadDocument(mockUploadInput, mockTransaction);
 
       // Verify the document can be downloaded (exists in memory)
       const downloadUrl = await adapter.getPresignedDownloadUrl(result.documentId);

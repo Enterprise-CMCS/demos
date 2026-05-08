@@ -18,8 +18,6 @@ describe("updateDocument", () => {
     name: "Updated Document Name",
     description: "Updated description",
     documentType: "State Application",
-    applicationId: "app-123-456",
-    phaseName: "Concept",
   };
 
   beforeEach(() => {
@@ -33,8 +31,6 @@ describe("updateDocument", () => {
         name: testInput.name,
         description: testInput.description,
         documentTypeId: testInput.documentType,
-        applicationId: testInput.applicationId,
-        phaseId: testInput.phaseName,
       },
     };
 

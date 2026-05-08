@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { log } from "../../log";
-import { UploadDocumentInput } from "../../types";
 import { S3Adapter } from "../";
+import { Prisma } from "@prisma/client";
 
 const HOSTNAME = "LocalS3Adapter";
 const BUCKET_NAME = "local-demos-bucket";
@@ -33,28 +33,21 @@ export function createLocalS3Adapter(): S3Adapter {
     },
 
     async uploadDocument(
-      tx: PrismaTransactionClient,
-      input: UploadDocumentInput,
-      userId: string
+      documentData: Omit<Prisma.DocumentCreateArgs["data"], "s3Path">,
+      tx: PrismaTransactionClient
     ): Promise<{
       presignedURL: string;
       documentId: string;
     }> {
       const documentId = randomUUID();
       const uploadBucket = process.env.UPLOAD_BUCKET ?? "local-simple-upload";
-      const s3Path = `s3://${uploadBucket}/${input.applicationId}/${documentId}`;
+      const s3Path = `s3://${uploadBucket}/${documentData.applicationId}/${documentId}`;
       const document = await tx.document.create({
         data: {
+          ...documentData,
           id: documentId,
-          name: input.name,
-          description: input.description ?? "",
-          ownerUserId: userId,
-          documentTypeId: input.documentType,
-          applicationId: input.applicationId,
-          phaseId: input.phaseName,
-          deliverableId: input.deliverableId,
           s3Path,
-        },
+        } as Prisma.DocumentCreateArgs["data"],
       });
 
       const fakePresignedUrl = await this.getPresignedUploadUrl(document.id);

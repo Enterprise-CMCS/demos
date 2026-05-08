@@ -1,26 +1,29 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
-import { Document as PrismaDocument, User as PrismaUser } from "@prisma/client";
+import {
+  Deliverable as PrismaDeliverable,
+  Document as PrismaDocument,
+  User as PrismaUser,
+} from "@prisma/client";
 import { GraphQLContext } from "../../auth";
 import {
   UpdateDocumentInput,
-  UploadDocumentInput,
   ApplicationDateInput,
   DocumentType,
   PhaseName,
+  UploadDocumentToApplicationInput,
+  UploadDocumentToDeliverableInput,
+  UploadDocumentToApplicationPhaseInput,
 } from "../../types";
 import { prisma } from "../../prismaClient";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { getS3Adapter } from "../../adapters";
-import { EasternNow, getEasternNow } from "../../dateUtilities";
 import { getUser } from "../user";
 import { getApplication } from "../application";
 import { validateAndUpdateDates } from "../applicationDate";
-import { startPhaseByDocument } from "../applicationPhase";
 import { enqueueUiPath } from "../../services/uipathQueue";
 import { updateDocument, handleDeleteDocument } from ".";
 import {
-  uploadDocument,
   triggerUiPath,
   updateDocument as updateDocumentResolver,
   deleteDocument,
@@ -30,6 +33,8 @@ import {
   resolveHasPendingUIPathResult,
 } from "./documentResolvers";
 import { getDocument } from "./documentData";
+import { getDeliverable } from "../deliverable";
+import { startPhaseByDocument } from "../applicationPhase";
 
 // Mock dependencies
 vi.mock("../../prismaClient", () => ({
@@ -74,6 +79,11 @@ vi.mock("../../services/uipathQueue", () => ({
 
 vi.mock("../user", () => ({
   getUser: vi.fn(),
+}));
+
+vi.mock("../deliverable", () => ({
+  getDeliverable: vi.fn(),
+  resolveDeliverable: vi.fn(),
 }));
 
 vi.mock(".", () => ({
@@ -219,82 +229,81 @@ describe("documentResolvers", () => {
     });
   });
 
-  describe("uploadDocument", () => {
-    const mockUploadInput: UploadDocumentInput = {
-      name: "test.pdf",
-      description: "Test upload document",
+  describe("Document.uploadDocumentToApplication", () => {
+    const input: UploadDocumentToApplicationInput = {
+      name: "Test Document",
       documentType: "State Application",
       applicationId: testApplicationId,
+      description: "Test document description",
+    };
+
+    it("should validate optional fields are not null", async () => {
+      await documentResolvers.Mutation.uploadDocumentToApplication(
+        undefined,
+        { input },
+        mockContext
+      );
+
+      expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(["description"], input);
+    });
+
+    it("should call s3Adapter.uploadDocument with correct parameters", async () => {
+      await documentResolvers.Mutation.uploadDocumentToApplication(
+        undefined,
+        { input },
+        mockContext
+      );
+
+      expect(getS3Adapter).toHaveBeenCalledOnce();
+      expect(mockS3Adapter.uploadDocument).toHaveBeenCalledExactlyOnceWith({
+        name: input.name,
+        description: input.description,
+        applicationId: input.applicationId,
+        ownerUserId: mockContext.user.id,
+        documentTypeId: input.documentType,
+      });
+    });
+  });
+  describe("Document.uploadDocumentToApplicationPhase", () => {
+    const input: UploadDocumentToApplicationPhaseInput = {
+      name: "Test Document",
+      documentType: "State Application",
+      applicationId: testApplicationId,
+      description: "Test document description",
       phaseName: "Concept",
     };
 
-    const mockUploadResponse = {
-      document: mockDocument,
-      uploadUrl: "https://s3.amazonaws.com/upload-url",
-    };
-
-    const mockEasternNow: EasternNow = {
-      "Current Time": {
-        easternTZDate: new TZDate("2025-01-15T12:34:56.789Z"),
-        isEasternTZDate: true,
-      },
-      "End of Day": {
-        easternTZDate: new TZDate("2025-01-15T23:59:59.999Z"),
-        isEasternTZDate: true,
-      },
-      "Start of Day": {
-        easternTZDate: new TZDate("2025-01-15T00:00:00.000Z"),
-        isEasternTZDate: true,
-      },
-    };
-
-    const mockPhaseStartDate: ApplicationDateInput = {
-      dateType: "Application Intake Completion Date",
-      dateValue: new TZDate("2025-01-20"),
-    };
-
-    it("should upload document with user context", async () => {
-      vi.mocked(mockS3Adapter.uploadDocument).mockResolvedValue(mockUploadResponse);
-
-      const result = await uploadDocument(undefined, { input: mockUploadInput }, mockContext);
-
-      expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(
-        ["name", "documentType", "applicationId", "phaseName", "deliverableId"],
-        mockUploadInput
+    it("should validate optional fields are not null", async () => {
+      await documentResolvers.Mutation.uploadDocumentToApplication(
+        undefined,
+        { input },
+        mockContext
       );
 
-      expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
-      expect(mockS3Adapter.uploadDocument).toHaveBeenCalledExactlyOnceWith(
-        mockTransaction,
-        mockUploadInput,
-        testUserId
-      );
-      expect(result).toEqual(mockUploadResponse);
+      expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(["description"], input);
     });
 
     it("should call startPhaseByDocument with correct parameters", async () => {
-      vi.mocked(mockS3Adapter.uploadDocument).mockResolvedValue(mockUploadResponse);
-      vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);
-      vi.mocked(startPhaseByDocument).mockResolvedValue(null);
-
-      await uploadDocument(undefined, { input: mockUploadInput }, mockContext);
-
-      expect(getEasternNow).toHaveBeenCalledOnce();
-      expect(startPhaseByDocument).toHaveBeenCalledExactlyOnceWith(
-        mockTransaction,
-        testApplicationId,
-        mockUploadInput,
-        mockEasternNow
+      await documentResolvers.Mutation.uploadDocumentToApplication(
+        undefined,
+        { input },
+        mockContext
       );
     });
 
     it("should call validateAndUpdateDates when phase start date is returned", async () => {
-      vi.mocked(mockS3Adapter.uploadDocument).mockResolvedValue(mockUploadResponse);
-      vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);
-      vi.mocked(startPhaseByDocument).mockResolvedValue(mockPhaseStartDate);
-      vi.mocked(validateAndUpdateDates).mockResolvedValue(undefined);
+      const mockPhaseStartDate: ApplicationDateInput = {
+        dateType: "Application Intake Completion Date",
+        dateValue: new TZDate("2025-01-20"),
+      };
 
-      await uploadDocument(undefined, { input: mockUploadInput }, mockContext);
+      vi.mocked(startPhaseByDocument).mockResolvedValue(mockPhaseStartDate);
+
+      await documentResolvers.Mutation.uploadDocumentToApplicationPhase(
+        undefined,
+        { input },
+        mockContext
+      );
 
       expect(validateAndUpdateDates).toHaveBeenCalledExactlyOnceWith(
         {
@@ -306,13 +315,102 @@ describe("documentResolvers", () => {
     });
 
     it("should not call validateAndUpdateDates when phase start date is null", async () => {
-      vi.mocked(mockS3Adapter.uploadDocument).mockResolvedValue(mockUploadResponse);
-      vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);
-      vi.mocked(startPhaseByDocument).mockResolvedValue(null);
-
-      await uploadDocument(undefined, { input: mockUploadInput }, mockContext);
+      await documentResolvers.Mutation.uploadDocumentToApplicationPhase(
+        undefined,
+        { input },
+        mockContext
+      );
 
       expect(validateAndUpdateDates).not.toHaveBeenCalled();
+    });
+
+    it("should call s3Adapter.uploadDocument with correct parameters", async () => {
+      await documentResolvers.Mutation.uploadDocumentToApplicationPhase(
+        undefined,
+        { input },
+        mockContext
+      );
+
+      expect(getS3Adapter).toHaveBeenCalledOnce();
+      expect(mockS3Adapter.uploadDocument).toHaveBeenCalledExactlyOnceWith(
+        {
+          name: input.name,
+          description: input.description,
+          applicationId: input.applicationId,
+          documentTypeId: input.documentType,
+          ownerUserId: mockContext.user.id,
+          phaseId: input.phaseName,
+        },
+        mockTransaction
+      );
+    });
+  });
+  describe("Document.uploadDocumentToDeliverable", () => {
+    const input: UploadDocumentToDeliverableInput = {
+      name: "Test Document",
+      documentType: "State Application",
+      applicationId: testApplicationId,
+      description: "Test document description",
+      deliverableId: "deliverable-123",
+      isCmsAttachedFile: true,
+    };
+
+    it("should validate optional fields are not null", async () => {
+      const mockDeliverable: Partial<PrismaDeliverable> = {
+        id: input.deliverableId,
+        deliverableTypeId: "Close Out Report",
+      };
+      vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
+
+      await documentResolvers.Mutation.uploadDocumentToDeliverable(
+        undefined,
+        { input },
+        mockContext
+      );
+
+      expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(["description"], input);
+    });
+
+    it("should fetch the corresponding deliverable", async () => {
+      const mockDeliverable: Partial<PrismaDeliverable> = {
+        id: input.deliverableId,
+        deliverableTypeId: "Close Out Report",
+      };
+      vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
+
+      await documentResolvers.Mutation.uploadDocumentToDeliverable(
+        undefined,
+        { input },
+        mockContext
+      );
+
+      expect(getDeliverable).toHaveBeenCalledExactlyOnceWith({ id: input.deliverableId });
+    });
+
+    it("should call s3Adapter.uploadDocument with correct parameters", async () => {
+      const mockDeliverable: Partial<PrismaDeliverable> = {
+        id: input.deliverableId,
+        deliverableTypeId: "Close Out Report",
+      };
+      vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
+
+      await documentResolvers.Mutation.uploadDocumentToDeliverable(
+        undefined,
+        { input },
+        mockContext
+      );
+
+      expect(getS3Adapter).toHaveBeenCalledOnce();
+      expect(mockS3Adapter.uploadDocument).toHaveBeenCalledExactlyOnceWith({
+        name: input.name,
+        description: input.description,
+        applicationId: input.applicationId,
+        documentTypeId: input.documentType,
+        ownerUserId: mockContext.user.id,
+        deliverableId: input.deliverableId,
+        deliverableIsCmsAttachedFile: input.isCmsAttachedFile,
+        deliverableTypeId: mockDeliverable.deliverableTypeId,
+      });
     });
   });
 
@@ -367,8 +465,6 @@ describe("documentResolvers", () => {
       name: "Updated Document",
       description: "Updated description",
       documentType: "State Application",
-      applicationId: testApplicationId,
-      phaseName: "Concept",
     };
 
     it("should update document metadata", async () => {
@@ -380,7 +476,7 @@ describe("documentResolvers", () => {
       });
 
       expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(
-        ["name", "documentType", "applicationId", "phaseName", "deliverableId"],
+        ["name", "description", "documentType"],
         mockUpdateInput
       );
       expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
@@ -471,7 +567,6 @@ describe("documentResolvers", () => {
 
   describe("resolver exports", () => {
     it("should export Mutation resolvers", () => {
-      expect(documentResolvers.Mutation).toHaveProperty("uploadDocument");
       expect(documentResolvers.Mutation).toHaveProperty("updateDocument");
       expect(documentResolvers.Mutation).toHaveProperty("deleteDocument");
       expect(documentResolvers.Mutation).toHaveProperty("deleteDocuments");
