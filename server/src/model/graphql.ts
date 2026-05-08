@@ -98,6 +98,9 @@ import { phaseResolvers } from "./phase/phaseResolvers.js";
 import { phaseStatusSchema } from "./phaseStatus/phaseStatusSchema.js";
 import { phaseStatusResolvers } from "./phaseStatus/phaseStatusResolvers.js";
 
+import { publicCommentSchema } from "./publicComment/publicCommentSchema";
+import { publicCommentResolvers } from "./publicComment/publicCommentResolvers";
+
 import { roleSchema } from "./role/roleSchema.js";
 import { roleResolvers } from "./role/roleResolvers.js";
 
@@ -175,6 +178,7 @@ export const typeDefs = [
   personTypeSchema,
   phaseSchema,
   phaseStatusSchema,
+  publicCommentSchema,
   roleSchema,
   sdgDivisionSchema,
   signatureLevelSchema,
@@ -222,6 +226,7 @@ export const resolvers = [
   personTypeResolvers,
   phaseResolvers,
   phaseStatusResolvers,
+  publicCommentResolvers,
   roleResolvers,
   sdgDivisionResolvers,
   signatureLevelResolvers,
