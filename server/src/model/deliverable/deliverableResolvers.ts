@@ -1,9 +1,11 @@
 import {
-  Demonstration as PrismaDemonstration,
   Deliverable as PrismaDeliverable,
   DeliverableExtension as PrismaDeliverableExtension,
+  Demonstration as PrismaDemonstration,
   Document as PrismaDocument,
   Prisma,
+  PrivateComment as PrismaPrivateComment,
+  PublicComment as PrismaPublicComment,
   User as PrismaUser,
 } from "@prisma/client";
 import { GraphQLContext } from "../../auth";
@@ -41,9 +43,11 @@ import { getFormattedDeliverableActions } from "../deliverableAction";
 import { getManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
 import { DELETED_DELIVERABLE_STATUS } from "../../constants";
+import { selectManyPublicComments } from "../publicComment/queries";
+import { selectManyPrivateComments } from "../privateComment/queries";
 
 export async function resolveDeliverable(
-  parent: PrismaDocument,
+  parent: PrismaDocument | PrismaPrivateComment | PrismaPublicComment,
   args: unknown,
   context: GraphQLContext,
   info: GraphQLResolveInfo
@@ -51,14 +55,19 @@ export async function resolveDeliverable(
   const parentType = info.parentType.name;
   let filter: Prisma.DeliverableWhereUniqueInput | null;
 
-  if (parentType === Prisma.ModelName.Document) {
-    if (parent.deliverableId) {
-      filter = { id: parent.deliverableId };
-    } else {
-      filter = null;
+  switch (parentType) {
+    case Prisma.ModelName.Document: {
+      const doc = parent as PrismaDocument;
+      filter = doc.deliverableId ? { id: doc.deliverableId } : null;
+      break;
     }
-  } else {
-    throw new Error(`Unsupported parent type: ${parentType}`);
+    case "DeliverableComment": {
+      const comment = parent as PrismaPublicComment | PrismaPrivateComment;
+      filter = { id: comment.deliverableId };
+      break;
+    }
+    default:
+      throw new Error(`Unsupported parent type: ${parentType}`);
   }
 
   if (filter === null) {
@@ -234,6 +243,12 @@ export const deliverableResolvers = {
     },
     extensionRequests: async (parent: PrismaDeliverable): Promise<PrismaDeliverableExtension[]> => {
       return await selectManyDeliverableExtensions({ deliverableId: parent.id });
+    },
+    publicComments: async (parent: PrismaDeliverable): Promise<PrismaPublicComment[]> => {
+      return await selectManyPublicComments({ deliverableId: parent.id });
+    },
+    privateComments: async (parent: PrismaDeliverable): Promise<PrismaPrivateComment[]> => {
+      return await selectManyPrivateComments({ deliverableId: parent.id });
     },
   },
 };

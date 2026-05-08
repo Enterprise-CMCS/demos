@@ -23,6 +23,8 @@ export type DeliverableTableRow = Omit<
   | "expectedToBeSubmitted"
   | "deliverableActions"
   | "extensionRequests"
+  | "publicComments"
+  | "privateComments"
   | "createdAt"
   | "updatedAt"
 > & {

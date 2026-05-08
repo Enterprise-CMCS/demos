@@ -676,6 +676,7 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    CONSTRAINT_CHECK check_non_empty_content "Validate that the content is not empty or only whitespace."
     HAS_HISTORY true
   }
 
@@ -687,6 +688,7 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    CONSTRAINT_CHECK check_non_empty_content "Validate that the content is not empty or only whitespace."
     HAS_HISTORY true
   }
 
