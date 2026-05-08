@@ -2,6 +2,7 @@ import { gql } from "graphql-tag";
 import {
   DateTimeOrLocalDate,
   DeliverableAction,
+  DeliverableComment,
   DeliverableDueDateType,
   DeliverableExtension,
   DeliverableExtensionReasonCode,
@@ -31,6 +32,8 @@ export const deliverableSchema = gql`
     stateDocuments: [Document!]!
     deliverableActions: [DeliverableAction!]!
     extensionRequests: [DeliverableExtension!]!
+    publicComments: [DeliverableComment!]!
+    privateComments: [DeliverableComment!]!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -119,6 +122,8 @@ export interface Deliverable {
   stateDocuments: Document[];
   deliverableActions: DeliverableAction[];
   extensionRequests: DeliverableExtension[];
+  publicComments: DeliverableComment[];
+  privateComments: DeliverableComment[];
   createdAt: Date;
   updatedAt: Date;
 }

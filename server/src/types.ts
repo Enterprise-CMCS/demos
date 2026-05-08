@@ -123,6 +123,8 @@ export type { DeliverableAction } from "./model/deliverableAction/deliverableAct
 
 export type { DeliverableExtension } from "./model/deliverableExtension/deliverableExtensionSchema";
 
+export type { DeliverableComment } from "./model/publicComment/publicCommentSchema";
+
 // Alias is not enforced in TS but maintains alignment between GQL and TS
 export type NonEmptyString = string; // NOSONAR: typescript:S6564
 
