@@ -62,7 +62,7 @@ export async function resolveDeliverable(
       break;
     }
     case "DeliverableComment": {
-      const comment = parent as PrismaPublicComment | PrismaPublicComment;
+      const comment = parent as PrismaPublicComment | PrismaPrivateComment;
       filter = { id: comment.deliverableId };
       break;
     }
