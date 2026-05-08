@@ -19,7 +19,7 @@ export async function setApplicationClearanceLevel(
         input.applicationId
       );
 
-      if (finishedApplicationPhaseIds.some((phase) => phase === "Review")) {
+      if (finishedApplicationPhaseIds.includes("Review")) {
         throw new Error("Cannot change clearance level after the Review phase has been completed.");
       }
 
