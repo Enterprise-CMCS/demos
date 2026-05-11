@@ -97,13 +97,13 @@ export const DeliverableInfoFields = ({
                 onClick={onToggleAdditionalDetails}
                 className="inline-flex items-center gap-[4px] text-action underline underline-offset-2"
               >
-                {showAdditionalDetails ? "Hide Additional Details" : "Show Additional Details"}
+                {showAdditionalDetails ? "Less Details" : "See Additional Details"}
                 <span
                   className={`transition-transform duration-200 ${
                     showAdditionalDetails ? "rotate-180" : "rotate-0"
                   }`}
                 >
-                  <ChevronDownIcon className="w-[10px] h-[10px]" />
+                  <ChevronDownIcon />
                 </span>
               </button>
             </>
