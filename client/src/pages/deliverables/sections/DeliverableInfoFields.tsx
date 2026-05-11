@@ -1,4 +1,5 @@
 import React from "react";
+import { compareDesc } from "date-fns";
 import { BaseButton } from "components/button/BaseButton";
 import { ChevronDownIcon, ChevronLeftIcon } from "components/icons";
 import type { DeliverableDetailsManagementDeliverable } from "../DeliverableDetailsManagementPage";
@@ -40,6 +41,11 @@ export const DeliverableInfoFields = ({
     (action) => action.actionType === "Requested Resubmission"
   ).length;
 
+  const latestExtension = [...deliverable.extensionRequests].sort((a, b) =>
+    compareDesc(a.createdAt, b.createdAt)
+  )[0];
+  const extensionValue = latestExtension?.status ?? "N/A";
+
   const baseFields: DeliverableInfoField[] = [
     { label: "Deliverable Type", value: deliverable.deliverableType },
     { label: "Due Date", value: formatDate(deliverable.dueDate) },
@@ -47,7 +53,7 @@ export const DeliverableInfoFields = ({
     { label: "Status", value: deliverable.status },
   ];
   const additionalFields: DeliverableInfoField[] = [
-    { label: "Extension", value: "N/A" },
+    { label: "Extension", value: extensionValue },
     { label: "Resubmissions Requested", value: resubmissionsRequested.toString() },
     { label: "CMS Owner", value: deliverable.cmsOwner.person.fullName },
   ];
