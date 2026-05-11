@@ -94,10 +94,10 @@ export async function resolveManyDeliverables(
 
   switch (parentType) {
     case Prisma.ModelName.Demonstration:
-      filter = { demonstrationId: parent.id, NOT: { statusId: DELETED_DELIVERABLE_STATUS } };
+      filter = { demonstrationId: parent.id };
       break;
     case Prisma.ModelName.User:
-      filter = { cmsOwnerUserId: parent.id, NOT: { statusId: DELETED_DELIVERABLE_STATUS } };
+      filter = { cmsOwnerUserId: parent.id };
       break;
     default:
       throw new Error(`Unsupported parent type: ${parentType}`);
@@ -108,7 +108,7 @@ export async function resolveManyDeliverables(
 }
 
 export async function queryDeliverables(): Promise<PrismaDeliverable[]> {
-  return await getManyDeliverables({ NOT: { statusId: DELETED_DELIVERABLE_STATUS } });
+  return await getManyDeliverables();
 }
 
 export function resolveDeliverableType(parent: PrismaDeliverable): DeliverableType {

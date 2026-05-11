@@ -523,7 +523,6 @@ describe("deliverableResolvers", () => {
         );
         expect(getManyDeliverables).toHaveBeenCalledExactlyOnceWith({
           demonstrationId: testDemonstrationId,
-          NOT: { statusId: DELETED_DELIVERABLE_STATUS },
         });
       });
     });
@@ -538,7 +537,6 @@ describe("deliverableResolvers", () => {
         );
         expect(getManyDeliverables).toHaveBeenCalledExactlyOnceWith({
           cmsOwnerUserId: testUserId,
-          NOT: { statusId: DELETED_DELIVERABLE_STATUS },
         });
       });
     });
@@ -547,9 +545,7 @@ describe("deliverableResolvers", () => {
   describe("queryDeliverables", () => {
     it("should query all the deliverables", async () => {
       await queryDeliverables();
-      expect(getManyDeliverables).toHaveBeenCalledExactlyOnceWith({
-        NOT: { statusId: DELETED_DELIVERABLE_STATUS },
-      });
+      expect(getManyDeliverables).toHaveBeenCalledExactlyOnceWith();
     });
   });
 
