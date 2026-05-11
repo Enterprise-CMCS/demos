@@ -87,14 +87,14 @@ describe("server module", () => {
   });
 
   it("constructs ApolloArmor with GraphQLArmorConfig and creates graphqlHandler", async () => {
-    await import("./server.ts");
+    await import("./server");
 
     expect(ApolloArmorMock).toHaveBeenCalled();
     expect(startServerAndCreateLambdaHandlerMock).toHaveBeenCalled();
   });
 
   it("extracts claims from the API Gateway authorizer", async () => {
-    const { extractClaimsFromEvent } = await import("./server.ts");
+    const { extractClaimsFromEvent } = await import("./server");
 
     const claims = extractClaimsFromEvent(makeEvent());
 

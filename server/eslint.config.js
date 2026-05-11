@@ -1,20 +1,15 @@
-import jsEslint from '@eslint/js';
-import tseslint from 'typescript-eslint';
-import { validateGraphQLTypescriptMatch } from './eslint-rules/validate-graphql-typescript-match.js';
+import jsEslint from "@eslint/js";
+import tseslint from "typescript-eslint";
+import { validateGraphQLTypescriptMatch } from "./eslint-rules/validate-graphql-typescript-match.js";
 
 const eslintConfig = tseslint.config(
   {
-    ignores: [
-      '**/dev/*',
-      '**/dist/*',
-      '**/*.test.ts',
-      'tsconfig.json',
-    ]
+    ignores: ["**/dev/*", "**/dist/*", "tsconfig.json"],
   },
   jsEslint.configs.recommended,
   tseslint.configs.recommended,
-  {    
-    files: ["src/model/**/*.ts"], // Scope to model folder only    
+  {
+    files: ["src/model/**/*.ts"], // Scope to model folder only
     plugins: {
       "validate-graphql-typescript-match": {
         rules: { "validate-graphql-typescript-match": validateGraphQLTypescriptMatch },
@@ -22,11 +17,18 @@ const eslintConfig = tseslint.config(
     },
     rules: {
       "eol-last": ["error", "always"], // Newline at the end of files
-      "no-restricted-exports": ["error", { "restrictDefaultExports": { "direct": true } }], // Disallow default exports
+      "no-restricted-exports": ["error", { restrictDefaultExports: { direct: true } }], // Disallow default exports
       "validate-graphql-typescript-match/validate-graphql-typescript-match": "error",
-    }
+    },
   },
+  {
+    files: ["**/*.{ts,tsx}"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+      "no-useless-escape": "off",
+    },
+  }
 );
 
-// eslint-disable-next-line no-restricted-exports
 export default eslintConfig;

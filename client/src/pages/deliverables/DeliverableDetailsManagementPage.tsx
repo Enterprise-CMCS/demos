@@ -1,7 +1,13 @@
 import React, { useCallback, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { gql, useMutation, useQuery } from "@apollo/client";
-import { Deliverable, DeliverableAction, Demonstration, PersonType } from "demos-server";
+import {
+  Deliverable,
+  DeliverableAction,
+  DeliverableExtension,
+  Demonstration,
+  PersonType,
+} from "demos-server";
 import { Loading } from "components/loading/Loading";
 import { useToast } from "components/toast";
 import { getCurrentUser } from "components/user/UserContext";
@@ -80,6 +86,11 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
         actionTimestamp
         userFullName
       }
+      extensionRequests {
+        id
+        status
+        createdAt
+      }
     }
   }
 `;
@@ -96,6 +107,7 @@ export type DeliverableDetailsManagementDeliverable = Pick<
     DeliverableAction,
     "id" | "actionType" | "actionTimestamp" | "userFullName"
   >[];
+  extensionRequests: Pick<DeliverableExtension, "id" | "status" | "createdAt">[];
 };
 
 export const DeliverableDetailsManagementPage: React.FC<{

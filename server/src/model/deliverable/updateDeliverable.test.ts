@@ -1,9 +1,9 @@
 // Vitest and other helpers
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
+import { DeepPartial } from "../../testUtilities";
 
 // Types
-import { DeepPartial } from "../../testUtilities";
 import { UpdateDeliverableInput } from "../../types";
 import { EditDeliverableInput, ParsedUpdateDeliverableInput } from ".";
 import { GraphQLContext } from "../../auth";

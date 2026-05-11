@@ -38,8 +38,14 @@ import { deliverableDemonstrationTypeSchema } from "./deliverableDemonstrationTy
 import { deliverableDueDateTypeSchema } from "./deliverableDueDateType/deliverableDueDateTypeSchema";
 import { deliverableDueDateTypeResolvers } from "./deliverableDueDateType/deliverableDueDateTypeResolvers";
 
+import { deliverableExtensionSchema } from "./deliverableExtension/deliverableExtensionSchema";
+import { deliverableExtensionResolvers } from "./deliverableExtension/deliverableExtensionResolvers";
+
 import { deliverableExtensionReasonCodeSchema } from "./deliverableExtensionReasonCode/deliverableExtensionReasonCodeSchema";
 import { deliverableExtensionReasonCodeResolvers } from "./deliverableExtensionReasonCode/deliverableExtensionReasonCodeResolvers";
+
+import { deliverableExtensionStatusSchema } from "./deliverableExtensionStatus/deliverableExtensionStatusSchema";
+import { deliverableExtensionStatusResolvers } from "./deliverableExtensionStatus/deliverableExtensionStatusResolvers";
 
 import { deliverableSchema } from "./deliverable/deliverableSchema";
 import { deliverableResolvers } from "./deliverable/deliverableResolvers";
@@ -91,6 +97,9 @@ import { phaseResolvers } from "./phase/phaseResolvers.js";
 
 import { phaseStatusSchema } from "./phaseStatus/phaseStatusSchema.js";
 import { phaseStatusResolvers } from "./phaseStatus/phaseStatusResolvers.js";
+
+import { publicCommentSchema } from "./publicComment/publicCommentSchema";
+import { publicCommentResolvers } from "./publicComment/publicCommentResolvers";
 
 import { roleSchema } from "./role/roleSchema.js";
 import { roleResolvers } from "./role/roleResolvers.js";
@@ -149,7 +158,9 @@ export const typeDefs = [
   deliverableActionTypeSchema,
   deliverableDemonstrationTypeSchema,
   deliverableDueDateTypeSchema,
+  deliverableExtensionSchema,
   deliverableExtensionReasonCodeSchema,
+  deliverableExtensionStatusSchema,
   deliverableSchema,
   deliverableStatusSchema,
   deliverableTypeSchema,
@@ -167,6 +178,7 @@ export const typeDefs = [
   personTypeSchema,
   phaseSchema,
   phaseStatusSchema,
+  publicCommentSchema,
   roleSchema,
   sdgDivisionSchema,
   signatureLevelSchema,
@@ -194,7 +206,9 @@ export const resolvers = [
   dateTypeResolvers,
   deliverableActionTypeResolvers,
   deliverableDueDateTypeResolvers,
+  deliverableExtensionResolvers,
   deliverableExtensionReasonCodeResolvers,
+  deliverableExtensionStatusResolvers,
   deliverableResolvers,
   deliverableStatusResolvers,
   deliverableTypeResolvers,
@@ -212,6 +226,7 @@ export const resolvers = [
   personTypeResolvers,
   phaseResolvers,
   phaseStatusResolvers,
+  publicCommentResolvers,
   roleResolvers,
   sdgDivisionResolvers,
   signatureLevelResolvers,

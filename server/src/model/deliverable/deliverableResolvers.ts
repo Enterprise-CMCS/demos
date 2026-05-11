@@ -1,8 +1,11 @@
 import {
-  Demonstration as PrismaDemonstration,
   Deliverable as PrismaDeliverable,
+  DeliverableExtension as PrismaDeliverableExtension,
+  Demonstration as PrismaDemonstration,
   Document as PrismaDocument,
   Prisma,
+  PrivateComment as PrismaPrivateComment,
+  PublicComment as PrismaPublicComment,
   User as PrismaUser,
 } from "@prisma/client";
 import { GraphQLContext } from "../../auth";
@@ -11,6 +14,7 @@ import {
   approveDeliverableExtension,
   completeDeliverable,
   createDeliverable,
+  denyDeliverableExtension,
   getDeliverable,
   getManyDeliverables,
   requestDeliverableExtension,
@@ -26,6 +30,7 @@ import {
   DeliverableDueDateType,
   DeliverableStatus,
   DeliverableType,
+  DenyDeliverableExtensionInput,
   FinalDeliverableStatus,
   RequestDeliverableExtensionInput,
   RequestDeliverableResubmissionInput,
@@ -36,9 +41,13 @@ import { getUser } from "../user";
 import { getManyDocuments } from "../document";
 import { getFormattedDeliverableActions } from "../deliverableAction";
 import { getManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
+import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
+import { DELETED_DELIVERABLE_STATUS } from "../../constants";
+import { selectManyPublicComments } from "../publicComment/queries";
+import { selectManyPrivateComments } from "../privateComment/queries";
 
 export async function resolveDeliverable(
-  parent: PrismaDocument,
+  parent: PrismaDocument | PrismaPrivateComment | PrismaPublicComment,
   args: unknown,
   context: GraphQLContext,
   info: GraphQLResolveInfo
@@ -46,20 +55,30 @@ export async function resolveDeliverable(
   const parentType = info.parentType.name;
   let filter: Prisma.DeliverableWhereUniqueInput | null;
 
-  if (parentType === Prisma.ModelName.Document) {
-    if (parent.deliverableId) {
-      filter = { id: parent.deliverableId };
-    } else {
-      filter = null;
+  switch (parentType) {
+    case Prisma.ModelName.Document: {
+      const doc = parent as PrismaDocument;
+      filter = doc.deliverableId ? { id: doc.deliverableId } : null;
+      break;
     }
-  } else {
-    throw new Error(`Unsupported parent type: ${parentType}`);
+    case "DeliverableComment": {
+      const comment = parent as PrismaPublicComment | PrismaPrivateComment;
+      filter = { id: comment.deliverableId };
+      break;
+    }
+    default:
+      throw new Error(`Unsupported parent type: ${parentType}`);
   }
 
   if (filter === null) {
     return null;
   }
   const result = await getDeliverable(filter);
+  // We add the filter here to handle soft-deleted records
+  // Do it here instead of in Prisma filter to avoid throwing when returning no records
+  if (result.statusId === DELETED_DELIVERABLE_STATUS) {
+    return null;
+  }
   return result;
 }
 
@@ -74,10 +93,10 @@ export async function resolveManyDeliverables(
 
   switch (parentType) {
     case Prisma.ModelName.Demonstration:
-      filter = { demonstrationId: parent.id };
+      filter = { demonstrationId: parent.id, NOT: { statusId: DELETED_DELIVERABLE_STATUS } };
       break;
     case Prisma.ModelName.User:
-      filter = { cmsOwnerUserId: parent.id };
+      filter = { cmsOwnerUserId: parent.id, NOT: { statusId: DELETED_DELIVERABLE_STATUS } };
       break;
     default:
       throw new Error(`Unsupported parent type: ${parentType}`);
@@ -88,7 +107,7 @@ export async function resolveManyDeliverables(
 }
 
 export async function queryDeliverables(): Promise<PrismaDeliverable[]> {
-  return await getManyDeliverables();
+  return await getManyDeliverables({ NOT: { statusId: DELETED_DELIVERABLE_STATUS } });
 }
 
 export function resolveDeliverableType(parent: PrismaDeliverable): DeliverableType {
@@ -169,6 +188,13 @@ export const deliverableResolvers = {
     ) => {
       return await approveDeliverableExtension(args.deliverableId, args.input, context);
     },
+    denyDeliverableExtension: async (
+      parent: unknown,
+      args: { deliverableId: string; input: DenyDeliverableExtensionInput },
+      context: GraphQLContext
+    ) => {
+      return await denyDeliverableExtension(args.deliverableId, args.input, context);
+    },
   },
 
   Deliverable: {
@@ -214,6 +240,15 @@ export const deliverableResolvers = {
       ),
     deliverableActions: async (parent: PrismaDeliverable): Promise<DeliverableAction[]> => {
       return await getFormattedDeliverableActions(parent.id);
+    },
+    extensionRequests: async (parent: PrismaDeliverable): Promise<PrismaDeliverableExtension[]> => {
+      return await selectManyDeliverableExtensions({ deliverableId: parent.id });
+    },
+    publicComments: async (parent: PrismaDeliverable): Promise<PrismaPublicComment[]> => {
+      return await selectManyPublicComments({ deliverableId: parent.id });
+    },
+    privateComments: async (parent: PrismaDeliverable): Promise<PrismaPrivateComment[]> => {
+      return await selectManyPrivateComments({ deliverableId: parent.id });
     },
   },
 };

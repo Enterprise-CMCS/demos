@@ -113,12 +113,17 @@ export type {
   CreateDeliverableInput,
   Deliverable,
   DeliverableDueDateUpdateInput,
+  DenyDeliverableExtensionInput,
   RequestDeliverableExtensionInput,
   RequestDeliverableResubmissionInput,
   UpdateDeliverableInput,
 } from "./model/deliverable/deliverableSchema";
 
 export type { DeliverableAction } from "./model/deliverableAction/deliverableActionSchema";
+
+export type { DeliverableExtension } from "./model/deliverableExtension/deliverableExtensionSchema";
+
+export type { DeliverableComment } from "./model/publicComment/publicCommentSchema";
 
 // Alias is not enforced in TS but maintains alignment between GQL and TS
 export type NonEmptyString = string; // NOSONAR: typescript:S6564

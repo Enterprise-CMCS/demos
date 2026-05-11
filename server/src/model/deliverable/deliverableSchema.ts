@@ -2,7 +2,9 @@ import { gql } from "graphql-tag";
 import {
   DateTimeOrLocalDate,
   DeliverableAction,
+  DeliverableComment,
   DeliverableDueDateType,
+  DeliverableExtension,
   DeliverableExtensionReasonCode,
   DeliverableStatus,
   DeliverableType,
@@ -29,6 +31,9 @@ export const deliverableSchema = gql`
     cmsDocuments: [Document!]!
     stateDocuments: [Document!]!
     deliverableActions: [DeliverableAction!]!
+    extensionRequests: [DeliverableExtension!]!
+    publicComments: [DeliverableComment!]!
+    privateComments: [DeliverableComment!]!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -70,6 +75,11 @@ export const deliverableSchema = gql`
     newDueDate: DateTimeOrLocalDate
   }
 
+  input DenyDeliverableExtensionInput {
+    deliverableExtensionId: ID!
+    details: NonEmptyString!
+  }
+
   type Query {
     deliverable(id: ID!): Deliverable!
     deliverables: [Deliverable!]!
@@ -93,6 +103,7 @@ export const deliverableSchema = gql`
       deliverableId: ID!
       input: ApproveDeliverableExtensionInput!
     ): Deliverable
+    denyDeliverableExtension(deliverableId: ID!, input: DenyDeliverableExtensionInput!): Deliverable
   }
 `;
 
@@ -110,6 +121,9 @@ export interface Deliverable {
   cmsDocuments: Document[];
   stateDocuments: Document[];
   deliverableActions: DeliverableAction[];
+  extensionRequests: DeliverableExtension[];
+  publicComments: DeliverableComment[];
+  privateComments: DeliverableComment[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -149,4 +163,9 @@ export interface RequestDeliverableExtensionInput {
 export interface ApproveDeliverableExtensionInput {
   deliverableExtensionId: string;
   newDueDate?: DateTimeOrLocalDate;
+}
+
+export interface DenyDeliverableExtensionInput {
+  deliverableExtensionId: string;
+  details: NonEmptyString;
 }

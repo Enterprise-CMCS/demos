@@ -86,6 +86,7 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
       userFullName: "Mock CMS User",
     },
   ],
+  extensionRequests: [],
 };
 
 export const deliverableMocks: MockedResponse[] = [

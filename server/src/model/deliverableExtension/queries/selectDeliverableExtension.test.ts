@@ -15,27 +15,29 @@ import { prisma } from "../../../prismaClient";
 describe("selectDeliverableExtension", () => {
   const regularMocks = {
     deliverableExtension: {
-      findUniqueOrThrow: vi.fn(),
+      findAtMostOne: vi.fn(),
     },
   };
   const mockPrismaClient = {
     deliverableExtension: {
-      findUniqueOrThrow: regularMocks.deliverableExtension.findUniqueOrThrow,
+      findAtMostOne: regularMocks.deliverableExtension.findAtMostOne,
     },
   };
   const transactionMocks = {
     deliverableExtension: {
-      findUniqueOrThrow: vi.fn(),
+      findAtMostOne: vi.fn(),
     },
   };
   const mockTransaction = {
     deliverableExtension: {
-      findUniqueOrThrow: transactionMocks.deliverableExtension.findUniqueOrThrow,
+      findAtMostOne: transactionMocks.deliverableExtension.findAtMostOne,
     },
   } as any;
 
+  const testInput = { id: "2b8638ad-8ce3-46de-a313-7c9c5a44ceda" };
+
   const expectedCall = {
-    where: { id: "2b8638ad-8ce3-46de-a313-7c9c5a44ceda" },
+    where: testInput,
   };
 
   beforeEach(() => {
@@ -44,20 +46,34 @@ describe("selectDeliverableExtension", () => {
   });
 
   it("should get a deliverable extension from the database directly if no transaction is given", async () => {
-    await selectDeliverableExtension(expectedCall.where.id);
+    await selectDeliverableExtension(testInput, false);
     expect(prisma).toHaveBeenCalledOnce();
-    expect(regularMocks.deliverableExtension.findUniqueOrThrow).toHaveBeenCalledExactlyOnceWith(
+    expect(regularMocks.deliverableExtension.findAtMostOne).toHaveBeenCalledExactlyOnceWith(
       expectedCall
     );
-    expect(transactionMocks.deliverableExtension.findUniqueOrThrow).not.toHaveBeenCalled();
+    expect(transactionMocks.deliverableExtension.findAtMostOne).not.toHaveBeenCalled();
   });
 
   it("should get a deliverable extension via a transaction if one is given", async () => {
-    await selectDeliverableExtension(expectedCall.where.id, mockTransaction);
+    await selectDeliverableExtension(testInput, false, mockTransaction);
     expect(prisma).not.toHaveBeenCalled();
-    expect(regularMocks.deliverableExtension.findUniqueOrThrow).not.toHaveBeenCalled();
-    expect(transactionMocks.deliverableExtension.findUniqueOrThrow).toHaveBeenCalledExactlyOnceWith(
+    expect(regularMocks.deliverableExtension.findAtMostOne).not.toHaveBeenCalled();
+    expect(transactionMocks.deliverableExtension.findAtMostOne).toHaveBeenCalledExactlyOnceWith(
       expectedCall
     );
+  });
+
+  it("should throw if a result is expected and not returned", async () => {
+    try {
+      await selectDeliverableExtension(testInput, true);
+      throw new Error("Expected selectDeliverableExtension to throw, but it did not.");
+    } catch (e) {
+      expect(e).toBeInstanceOf(Error);
+      const error = e as Error;
+      expect(error.message).toBe(
+        "Expected selectDeliverableExtension to return a record but it did not! " +
+          'Where clause: {"id":"2b8638ad-8ce3-46de-a313-7c9c5a44ceda"}'
+      );
+    }
   });
 });

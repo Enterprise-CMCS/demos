@@ -32,7 +32,8 @@ export async function approveDeliverableExtension(
     // This is passed to the parser to give back the final date to use
     const unapprovedDeliverable = await getDeliverable({ id: deliverableId }, tx);
     const unapprovedDeliverableExtension = await selectDeliverableExtension(
-      input.deliverableExtensionId,
+      { id: input.deliverableExtensionId },
+      true,
       tx
     );
     const parsedInput = parseApproveDeliverableExtensionInput(

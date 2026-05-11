@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { UploadDocumentInput } from "../../types";
 import { createLocalS3Adapter } from "./LocalS3Adapter";
+import { Document as PrismaDocument } from "@prisma/client";
 
 describe("LocalS3Adapter", () => {
   const mockTransaction = {
@@ -101,7 +102,7 @@ describe("LocalS3Adapter", () => {
       phaseName: "Concept",
     };
 
-    const mockCreatedDocument = {
+    const mockCreatedDocument: PrismaDocument = {
       id: testDocumentId,
       name: "test.pdf",
       description: "Test document",
@@ -112,7 +113,7 @@ describe("LocalS3Adapter", () => {
       s3Path: "s3://local-simple-upload/app-123/doc-123-456",
       createdAt: new Date("2025-01-01T00:00:00.000Z"),
       updatedAt: new Date("2025-01-01T00:00:00.000Z"),
-    };
+    } as PrismaDocument;
 
     it("should create document in database and return presigned URL", async () => {
       vi.mocked(mockTransaction.document.create).mockResolvedValue(mockCreatedDocument);

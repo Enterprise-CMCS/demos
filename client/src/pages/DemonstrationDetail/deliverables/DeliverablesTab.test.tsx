@@ -26,7 +26,9 @@ describe("DeliverablesTab", () => {
     );
 
     expect(screen.getByRole("heading", { name: "Deliverables" })).toBeInTheDocument();
-    expect(await screen.findByRole("columnheader", { name: /Deliverable Type/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("columnheader", { name: /Deliverable Type/i })
+    ).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Deliverable Name/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /CMS Owner/i })).toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: /Due Date/i })).toBeInTheDocument();
@@ -61,6 +63,8 @@ describe("DeliverablesTab", () => {
       </TestProvider>
     );
 
-    expect(await screen.findByText("You have no assigned Deliverables at this time")).toBeInTheDocument();
+    expect(
+      await screen.findByText("You have no assigned Deliverables at this time")
+    ).toBeInTheDocument();
   });
 });
