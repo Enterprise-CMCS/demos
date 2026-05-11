@@ -8,7 +8,9 @@ import { HistoryTab, type DeliverableHistoryRow } from "./HistoryTab";
 import { StateFilesTab } from "./StateFilesTab";
 import { Button } from "components/button/Button";
 import { useDialog } from "components/dialog/DialogContext";
-import { DeliverableStatus } from "demos-server";
+import { canCompleteReview } from "components/dialog/deliverable";
+import { getCurrentUser } from "components/user/UserContext";
+import { DeliverableStatus, PersonType } from "demos-server";
 
 export const FILE_AND_HISTORY_TABS_NAME = "file-and-history-tabs";
 export const FILE_AND_HISTORY_ACTIONS_NAME = "file-and-history-actions";
@@ -18,6 +20,11 @@ export const RESUBMISSION_DISABLED_STATUSES: ReadonlySet<DeliverableStatus> =
 
 export const isResubmissionDisabled = (status: DeliverableStatus): boolean =>
   RESUBMISSION_DISABLED_STATUSES.has(status);
+
+const COMPLETE_REVIEW_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
+  "demos-admin",
+  "demos-cms-user",
+]);
 
 const TABS = {
   STATE_FILES: "state_files",
@@ -35,13 +42,25 @@ export const FileAndHistoryTabs: React.FC<{
   const stateFiles = deliverable.stateDocuments;
   const cmsFiles = deliverable.cmsDocuments;
 
-  const { showRequestResubmissionDeliverableDialog } = useDialog();
+  const { showRequestResubmissionDeliverableDialog, showCompleteReviewDeliverableDialog } =
+    useDialog();
+  const { currentUser } = getCurrentUser();
+  const userPersonType = currentUser?.person.personType;
+  const isCompleteReviewAllowedForUser =
+    !!userPersonType && COMPLETE_REVIEW_PERSON_TYPES.has(userPersonType);
+  const isCompleteReviewDisabled =
+    !isCompleteReviewAllowedForUser ||
+    !canCompleteReview(deliverable.status, deliverable.extensionRequests);
 
   const handleRequestResubmission = () => {
     showRequestResubmissionDeliverableDialog({
       id: deliverable.id,
       dueDate: deliverable.dueDate,
     });
+  };
+
+  const handleCompleteReview = () => {
+    showCompleteReviewDeliverableDialog({ id: deliverable.id });
   };
 
   return (
@@ -75,8 +94,8 @@ export const FileAndHistoryTabs: React.FC<{
           Submit Deliverable
         </Button>
         <Button
-          disabled={true}
-          onClick={() => {}}
+          disabled={isCompleteReviewDisabled}
+          onClick={handleCompleteReview}
           size="large"
           name="button-actions-complete-review"
         >
