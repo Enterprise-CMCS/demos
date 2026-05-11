@@ -16,12 +16,12 @@ import { tryUploadingFileToS3 } from "./tryUploadingFileToS3";
 import { useDocumentPassedVirusScan } from "./useDocumentPassedVirusScan";
 import { useUploadDocument } from "./useUploadDocument";
 
-export const UPLOAD_DOCUMENT_QUERY: TypedDocumentNode<{
-  uploadDocument: UploadDocumentResponse;
-  input: UploadDocumentToApplicationInput;
-}> = gql`
-  mutation UploadDocument($input: UploadDocumentInput!) {
-    uploadDocument(input: $input) {
+export const UPLOAD_DOCUMENT_QUERY: TypedDocumentNode<
+  { uploadDocumentToApplication: UploadDocumentResponse },
+  { input: UploadDocumentToApplicationInput }
+> = gql`
+  mutation UploadDocumentToApplication($input: UploadDocumentToApplicationInput!) {
+    uploadDocumentToApplication(input: $input) {
       presignedURL
       documentId
     }
@@ -29,8 +29,6 @@ export const UPLOAD_DOCUMENT_QUERY: TypedDocumentNode<{
 `;
 
 export const LOCAL_UPLOAD_PREFIX = "LocalS3Adapter";
-
-export const handleUploadDocument = () => {};
 
 interface AddDocumentDialogProps {
   onClose: () => void;
@@ -52,8 +50,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   const { showError } = useToast();
   const client = useApolloClient();
   const { documentPassedVirusScan } = useDocumentPassedVirusScan();
-  const { uploadDocument } =
-    useUploadDocument<UploadDocumentToApplicationInput>(UPLOAD_DOCUMENT_QUERY);
+  const { uploadDocument } = useUploadDocument(UPLOAD_DOCUMENT_QUERY);
   const handleDocumentUploadSucceeded = async (
     payload: UploadDocumentToApplicationInput
   ): Promise<void> => {
@@ -78,7 +75,7 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       documentType: dialogFields.documentType,
     };
 
-    const uploadResult = await uploadDocument(uploadDocumentInput);
+    const uploadResult = (await uploadDocument(uploadDocumentInput)).uploadDocumentToApplication;
 
     // Short-circuit: Skip S3 upload attempt and virus scan in local development
     // Hint: If you want to test an upload scenario locally such as virus scan failure,
