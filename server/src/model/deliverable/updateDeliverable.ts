@@ -38,7 +38,7 @@ export async function updateDeliverable(
     await updateDeliverableDemonstrationTypes(deliverableId, parsedInput, tx);
     await manuallyUpdateDeliverableDueDate(deliverableId, parsedInput, context, tx);
 
-    return await getDeliverable({ id: deliverableId }, tx);
+    return await getDeliverable({ id: deliverableId }, { tx: tx });
   });
   return updatedDeliverable;
 }

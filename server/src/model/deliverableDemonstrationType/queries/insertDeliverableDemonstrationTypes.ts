@@ -18,5 +18,5 @@ export async function insertDeliverableDemonstrationTypes(
       data: createManyPayload,
     });
   }
-  return await getDeliverable({ id: input.deliverableId }, prismaClient);
+  return await getDeliverable({ id: input.deliverableId }, { tx: prismaClient });
 }

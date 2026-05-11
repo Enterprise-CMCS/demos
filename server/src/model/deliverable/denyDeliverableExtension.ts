@@ -24,7 +24,7 @@ export async function denyDeliverableExtension(
   ]);
 
   return await prisma().$transaction(async (tx) => {
-    const deliverable = await getDeliverable({ id: deliverableId }, tx);
+    const deliverable = await getDeliverable({ id: deliverableId }, { tx: tx });
     const deliverableExtension = await selectDeliverableExtension(
       { id: input.deliverableExtensionId },
       true,
@@ -40,7 +40,6 @@ export async function denyDeliverableExtension(
       {
         deliverableId: deliverableId,
         actionType: "Denied Extension Request",
-        actionTime: new Date(),
         oldStatus: deliverable.statusId as DeliverableStatus,
         newStatus: deliverable.statusId as DeliverableStatus,
         note: input.details,

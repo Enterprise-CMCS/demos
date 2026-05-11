@@ -14,6 +14,7 @@ import {
   approveDeliverableExtension,
   completeDeliverable,
   createDeliverable,
+  deleteDeliverable,
   denyDeliverableExtension,
   getDeliverable,
   getManyDeliverables,
@@ -73,7 +74,7 @@ export async function resolveDeliverable(
   if (filter === null) {
     return null;
   }
-  const result = await getDeliverable(filter);
+  const result = await getDeliverable(filter, { includeDeleted: true });
   // We add the filter here to handle soft-deleted records
   // Do it here instead of in Prisma filter to avoid throwing when returning no records
   if (result.statusId === DELETED_DELIVERABLE_STATUS) {
@@ -93,10 +94,10 @@ export async function resolveManyDeliverables(
 
   switch (parentType) {
     case Prisma.ModelName.Demonstration:
-      filter = { demonstrationId: parent.id, NOT: { statusId: DELETED_DELIVERABLE_STATUS } };
+      filter = { demonstrationId: parent.id };
       break;
     case Prisma.ModelName.User:
-      filter = { cmsOwnerUserId: parent.id, NOT: { statusId: DELETED_DELIVERABLE_STATUS } };
+      filter = { cmsOwnerUserId: parent.id };
       break;
     default:
       throw new Error(`Unsupported parent type: ${parentType}`);
@@ -107,7 +108,7 @@ export async function resolveManyDeliverables(
 }
 
 export async function queryDeliverables(): Promise<PrismaDeliverable[]> {
-  return await getManyDeliverables({ NOT: { statusId: DELETED_DELIVERABLE_STATUS } });
+  return await getManyDeliverables();
 }
 
 export function resolveDeliverableType(parent: PrismaDeliverable): DeliverableType {
@@ -194,6 +195,9 @@ export const deliverableResolvers = {
       context: GraphQLContext
     ) => {
       return await denyDeliverableExtension(args.deliverableId, args.input, context);
+    },
+    deleteDeliverable: async (parent: unknown, args: { id: string }, context: GraphQLContext) => {
+      return await deleteDeliverable(args.id, context);
     },
   },
 

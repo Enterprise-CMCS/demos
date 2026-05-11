@@ -44,6 +44,7 @@ vi.mock(".", () => ({
   approveDeliverableExtension: vi.fn(),
   completeDeliverable: vi.fn(),
   createDeliverable: vi.fn(),
+  deleteDeliverable: vi.fn(),
   denyDeliverableExtension: vi.fn(),
   getDeliverable: vi.fn(),
   getManyDeliverables: vi.fn(),
@@ -90,6 +91,7 @@ import {
   approveDeliverableExtension,
   completeDeliverable,
   createDeliverable,
+  deleteDeliverable,
   denyDeliverableExtension,
   getDeliverable,
   getManyDeliverables,
@@ -304,6 +306,19 @@ describe("deliverableResolvers", () => {
     });
   });
 
+  describe("Mutation.deleteDeliverable", () => {
+    it("calls deleteDeliverable with appropriate arguments", async () => {
+      await deliverableResolvers.Mutation.deleteDeliverable(
+        undefined,
+        {
+          id: testDeliverableId,
+        },
+        testContext as GraphQLContext
+      );
+      expect(deleteDeliverable).toHaveBeenCalledExactlyOnceWith(testDeliverableId, testContext);
+    });
+  });
+
   describe("Deliverable.cmsDocuments", () => {
     it("delegates to `documentData.getManyDocuments` with CMS filter as true", async () => {
       const mockDeliverable = { id: testDeliverableId } as PrismaDeliverable;
@@ -382,9 +397,12 @@ describe("deliverableResolvers", () => {
         {} as GraphQLContext,
         testDocumentInfo as GraphQLResolveInfo
       );
-      expect(getDeliverable).toHaveBeenCalledExactlyOnceWith({
-        id: testDeliverableId,
-      });
+      expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+        {
+          id: testDeliverableId,
+        },
+        { includeDeleted: true }
+      );
       expect(result).toBeNull();
     });
 
@@ -413,9 +431,12 @@ describe("deliverableResolvers", () => {
           {} as GraphQLContext,
           testDocumentInfo as GraphQLResolveInfo
         );
-        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith({
-          id: testDeliverableId,
-        });
+        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+          {
+            id: testDeliverableId,
+          },
+          { includeDeleted: true }
+        );
         expect(result).toBe(mockDeliverable);
       });
     });
@@ -439,9 +460,12 @@ describe("deliverableResolvers", () => {
           {} as GraphQLContext,
           testCommentInfo as GraphQLResolveInfo
         );
-        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith({
-          id: testPublicComment.deliverableId,
-        });
+        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+          {
+            id: testPublicComment.deliverableId,
+          },
+          { includeDeleted: true }
+        );
         expect(result).toBe(mockDeliverable);
       });
     });
@@ -465,9 +489,12 @@ describe("deliverableResolvers", () => {
           {} as GraphQLContext,
           testCommentInfo as GraphQLResolveInfo
         );
-        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith({
-          id: testPrivateComment.deliverableId,
-        });
+        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+          {
+            id: testPrivateComment.deliverableId,
+          },
+          { includeDeleted: true }
+        );
         expect(result).toBe(mockDeliverable);
       });
     });
@@ -496,7 +523,6 @@ describe("deliverableResolvers", () => {
         );
         expect(getManyDeliverables).toHaveBeenCalledExactlyOnceWith({
           demonstrationId: testDemonstrationId,
-          NOT: { statusId: DELETED_DELIVERABLE_STATUS },
         });
       });
     });
@@ -511,7 +537,6 @@ describe("deliverableResolvers", () => {
         );
         expect(getManyDeliverables).toHaveBeenCalledExactlyOnceWith({
           cmsOwnerUserId: testUserId,
-          NOT: { statusId: DELETED_DELIVERABLE_STATUS },
         });
       });
     });
@@ -520,9 +545,7 @@ describe("deliverableResolvers", () => {
   describe("queryDeliverables", () => {
     it("should query all the deliverables", async () => {
       await queryDeliverables();
-      expect(getManyDeliverables).toHaveBeenCalledExactlyOnceWith({
-        NOT: { statusId: DELETED_DELIVERABLE_STATUS },
-      });
+      expect(getManyDeliverables).toHaveBeenCalledExactlyOnceWith();
     });
   });
 

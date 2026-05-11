@@ -2,6 +2,8 @@ import {
   checkDeliverableExtensionHasStatus,
   checkDeliverableHasAtLeastOneDocument,
   checkDeliverableHasNoActiveExtension,
+  checkDeliverableHasNoComments,
+  checkDeliverableHasNoDocuments,
   checkDeliverableHasStatus,
   checkDemonstrationStatus,
   checkDueDateInFuture,
@@ -97,7 +99,7 @@ export async function validateUpdateDeliverableInput(
   input: ParsedUpdateDeliverableInput,
   tx: PrismaTransactionClient
 ): Promise<void> {
-  const deliverable = await getDeliverable({ id: deliverableId }, tx);
+  const deliverable = await getDeliverable({ id: deliverableId }, { tx: tx });
   const errors: (string | undefined)[] = [];
 
   // Updates can be performed on all active deliverables
@@ -238,4 +240,19 @@ export function validateDenyDeliverableExtensionInput(
     "denyDeliverableExtension",
     "DENY_DELIVERABLE_EXTENSION_VALIDATION_FAILED"
   );
+}
+
+export async function validateDeleteDeliverableInput(
+  deliverable: PrismaDeliverable,
+  tx: PrismaTransactionClient
+): Promise<void> {
+  const errors: (string | undefined)[] = [];
+
+  errors.push(
+    // Extensions may be processed for any active deliverable
+    checkDeliverableHasStatus(deliverable, ["Upcoming", "Past Due"]),
+    await checkDeliverableHasNoDocuments(deliverable, tx),
+    await checkDeliverableHasNoComments(deliverable, tx)
+  );
+  cleanErrorsAndThrow(errors, "deleteDeliverable", "DELETE_DELIVERABLE_VALIDATION_FAILED");
 }

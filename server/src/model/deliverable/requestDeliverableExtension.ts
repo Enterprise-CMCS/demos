@@ -23,7 +23,7 @@ export async function requestDeliverableExtension(
   const parsedInput = parseRequestDeliverableExtensionInput(input);
 
   return await prisma().$transaction(async (tx) => {
-    const deliverable = await getDeliverable({ id: deliverableId }, tx);
+    const deliverable = await getDeliverable({ id: deliverableId }, { tx: tx });
     await validateRequestDeliverableExtensionInput(deliverable, parsedInput, tx);
 
     // Add the extension before the action record; this ensures triggers capture the information
@@ -41,7 +41,6 @@ export async function requestDeliverableExtension(
       {
         deliverableId: deliverableId,
         actionType: "Requested Extension",
-        actionTime: new Date(),
         oldStatus: deliverable.statusId as DeliverableStatus,
         newStatus: deliverable.statusId as DeliverableStatus,
         note: input.details,

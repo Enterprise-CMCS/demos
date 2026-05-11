@@ -59,7 +59,7 @@ describe("setDeliverableDemonstrationTypes", () => {
       {
         id: testInput.deliverableId,
       },
-      mockTransaction
+      { tx: mockTransaction }
     );
   });
 
@@ -80,7 +80,7 @@ describe("setDeliverableDemonstrationTypes", () => {
       {
         id: testInput.deliverableId,
       },
-      mockPrismaClient
+      { tx: mockPrismaClient }
     );
   });
 });

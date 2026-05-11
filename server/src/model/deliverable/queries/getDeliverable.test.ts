@@ -3,6 +3,7 @@ import { getDeliverable } from "./getDeliverable";
 
 // Mock imports
 import { prisma } from "../../../prismaClient";
+import { DELETED_DELIVERABLE_STATUS } from "../../../constants";
 
 vi.mock("../../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -30,7 +31,10 @@ describe("getDeliverable", () => {
     },
   } as any;
   const testDeliverableId = "c8697763-fdd8-4502-b538-9e3cde153b05";
-  const expectedCall = {
+  const expectedFilteredCall = {
+    where: { id: testDeliverableId, NOT: { statusId: DELETED_DELIVERABLE_STATUS } },
+  };
+  const expectedUnfilteredCall = {
     where: { id: testDeliverableId },
   };
 
@@ -41,17 +45,28 @@ describe("getDeliverable", () => {
 
   it("should get the deliverable directly from the database directly if no transaction is given", async () => {
     await getDeliverable({ id: testDeliverableId });
+    expect(prisma).toHaveBeenCalled();
     expect(regularMocks.deliverable.findUniqueOrThrow).toHaveBeenCalledExactlyOnceWith(
-      expectedCall
+      expectedFilteredCall
     );
     expect(transactionMocks.deliverable.findUniqueOrThrow).not.toHaveBeenCalled();
   });
 
   it("should get the deliverable via a transaction if one is given", async () => {
-    await getDeliverable({ id: testDeliverableId }, mockTransaction);
+    await getDeliverable({ id: testDeliverableId }, { tx: mockTransaction });
+    expect(prisma).not.toHaveBeenCalled();
     expect(regularMocks.deliverable.findUniqueOrThrow).not.toHaveBeenCalled();
     expect(transactionMocks.deliverable.findUniqueOrThrow).toHaveBeenCalledExactlyOnceWith(
-      expectedCall
+      expectedFilteredCall
     );
+  });
+
+  it("should not filter out deleted records if passed the right option", async () => {
+    await getDeliverable({ id: testDeliverableId }, { includeDeleted: true });
+    expect(prisma).toHaveBeenCalled();
+    expect(regularMocks.deliverable.findUniqueOrThrow).toHaveBeenCalledExactlyOnceWith(
+      expectedUnfilteredCall
+    );
+    expect(transactionMocks.deliverable.findUniqueOrThrow).not.toHaveBeenCalled();
   });
 });

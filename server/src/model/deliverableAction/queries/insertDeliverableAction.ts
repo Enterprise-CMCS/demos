@@ -5,7 +5,6 @@ import { DeliverableActionType, DeliverableStatus } from "../../../types";
 export type InsertDeliverableActionInput = {
   deliverableId: string;
   actionType: DeliverableActionType;
-  actionTime: Date;
   oldStatus: DeliverableStatus;
   newStatus: DeliverableStatus;
   oldDueDate: Date;

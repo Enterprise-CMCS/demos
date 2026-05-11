@@ -1,5 +1,5 @@
 // Vitest and other helpers
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DeepPartial } from "../../testUtilities";
 
 // Types
@@ -70,7 +70,6 @@ describe("denyDeliverableExtension", () => {
     id: testDeliverableExtensionId,
     statusId: "Requested" satisfies DeliverableExtensionStatus,
   };
-  const mockNow = new Date(2026, 3, 27, 10, 4, 19, 232);
 
   // Mock transaction
   const mockTransaction: any = "Test!";
@@ -80,18 +79,12 @@ describe("denyDeliverableExtension", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.useFakeTimers();
-    vi.setSystemTime(mockNow);
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
     vi.mocked(selectDeliverableExtension).mockResolvedValue(
       mockDeliverableExtension as PrismaDeliverableExtension
     );
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
   });
 
   it("should check that the user is allowed to do this operation", async () => {
@@ -122,7 +115,7 @@ describe("denyDeliverableExtension", () => {
     await denyDeliverableExtension(testDeliverableId, testInput, testUserContext as GraphQLContext);
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      mockTransaction
+      { tx: mockTransaction }
     );
   });
 
@@ -149,7 +142,6 @@ describe("denyDeliverableExtension", () => {
       {
         deliverableId: testDeliverableId,
         actionType: "Denied Extension Request",
-        actionTime: mockNow,
         oldStatus: mockDeliverable.statusId,
         newStatus: mockDeliverable.statusId,
         note: testInput.details,

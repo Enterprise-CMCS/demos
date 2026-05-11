@@ -17,6 +17,8 @@ import { findDuplicates } from "../../validationUtilities";
 import { EasternTZDate, getEasternNow } from "../../dateUtilities";
 import { selectManyDocuments } from "../document";
 import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
+import { selectManyPublicComments } from "../publicComment/queries";
+import { selectManyPrivateComments } from "../privateComment/queries";
 
 export function checkDemonstrationStatus(demonstration: PrismaDemonstration): string | undefined {
   const approvedStatus: ApplicationStatus = "Approved";
@@ -136,5 +138,26 @@ export function checkDeliverableExtensionHasStatus(
       `Deliverable extension expected to have one of status ${expectedStatuses.join(", ")}; ` +
       `actual status was ${deliverableExtensionStatus}.`
     );
+  }
+}
+
+export async function checkDeliverableHasNoDocuments(
+  deliverable: PrismaDeliverable,
+  tx: PrismaTransactionClient
+): Promise<string | undefined> {
+  const deliverableDocuments = await selectManyDocuments({ deliverableId: deliverable.id }, tx);
+  if (deliverableDocuments.length > 0) {
+    return `Expected deliverable ${deliverable.id} to have no documents attached, but documents were found.`;
+  }
+}
+
+export async function checkDeliverableHasNoComments(
+  deliverable: PrismaDeliverable,
+  tx: PrismaTransactionClient
+): Promise<string | undefined> {
+  const publicComments = await selectManyPublicComments({ deliverableId: deliverable.id }, tx);
+  const privateComments = await selectManyPrivateComments({ deliverableId: deliverable.id }, tx);
+  if (publicComments.length > 0 || privateComments.length > 0) {
+    return `Expected deliverable ${deliverable.id} to have no comments, but public or private comments were found.`;
   }
 }

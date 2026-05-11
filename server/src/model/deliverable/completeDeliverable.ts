@@ -17,7 +17,7 @@ export async function completeDeliverable(
 ): Promise<PrismaDeliverable> {
   validateUserPersonTypeAllowed(context, "completeDeliverable", ["demos-admin", "demos-cms-user"]);
   return await prisma().$transaction(async (tx) => {
-    const incompleteDeliverable = await getDeliverable({ id: deliverableId }, tx);
+    const incompleteDeliverable = await getDeliverable({ id: deliverableId }, { tx: tx });
     validateCompleteDeliverableInput(incompleteDeliverable);
 
     const completedDeliverable = await editDeliverable(
@@ -37,7 +37,6 @@ export async function completeDeliverable(
       {
         deliverableId: deliverableId,
         actionType: statusToAction[finalStatus],
-        actionTime: new Date(),
         oldStatus: incompleteDeliverable.statusId as DeliverableStatus,
         newStatus: completedDeliverable.statusId as DeliverableStatus,
         oldDueDate: incompleteDeliverable.dueDate,

@@ -125,7 +125,7 @@ describe("updateDeliverable", () => {
     );
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      mockTransaction
+      { tx: mockTransaction }
     );
   });
 
@@ -177,7 +177,7 @@ describe("updateDeliverable", () => {
     expect(editDeliverable).not.toHaveBeenCalled();
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      mockTransaction
+      { tx: mockTransaction }
     );
   });
 
