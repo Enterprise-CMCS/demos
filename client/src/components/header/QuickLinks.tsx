@@ -1,4 +1,4 @@
-import { HelpIcon, NotifyIcon, SettingsIcon } from "components/icons";
+import { SettingsIcon } from "components/icons";
 import { getCurrentUser } from "components/user/UserContext";
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -30,16 +30,6 @@ export const QuickLinks: React.FC = () => {
           <span>Admin</span>
         </Link>
       )}
-
-      <a href="#" className={STYLES.link}>
-        <NotifyIcon className={STYLES.icon} />
-        <span>Notifications</span>
-      </a>
-
-      <a href="#" className={STYLES.link}>
-        <HelpIcon className={STYLES.icon} />
-        <span>Help</span>
-      </a>
     </div>
   );
 };
