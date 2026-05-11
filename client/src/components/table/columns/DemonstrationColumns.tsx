@@ -5,7 +5,6 @@ import { ChevronDownIcon, ChevronRightIcon } from "components/icons";
 import React from "react";
 import { DemonstrationTableRow } from "../tables/DemonstrationTable";
 import { Person } from "demos-server";
-import { createSelectColumnDef } from "./selectColumn";
 import { APPLICATION_STATUS, STATES_AND_TERRITORIES } from "demos-server-constants";
 import { ApplicationStatusBadge } from "components/badge/ApplicationStatusBadge";
 import type { ApplicationStatus } from "demos-server";
@@ -17,7 +16,6 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
   const columnHelper = createColumnHelper<DemonstrationTableRow>();
 
   return [
-    createSelectColumnDef(columnHelper),
     columnHelper.accessor("state.id", {
       id: "stateId",
       header: "State/Territory",
