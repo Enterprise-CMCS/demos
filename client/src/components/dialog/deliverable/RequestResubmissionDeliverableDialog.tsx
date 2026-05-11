@@ -22,7 +22,7 @@ export const REQUEST_RESUBMISSION_SUBMIT_BUTTON_NAME =
   "button-request-resubmission-submit";
 
 export const RESUBMISSION_REQUESTED_MESSAGE =
-  "Resubmission Request was successfully submitted";
+  "Resubmission Request was submitted successfully";
 
 const REQUEST_DELIVERABLE_RESUBMISSION_MUTATION = gql`
   mutation RequestDeliverableResubmission(
@@ -136,7 +136,7 @@ export const RequestResubmissionDeliverableDialog: React.FC<
         awaitRefetchQueries: true,
       });
 
-      showSuccess("Resubmission Request was successfully submitted");
+      showSuccess(RESUBMISSION_REQUESTED_MESSAGE);
       onClose();
     } catch (error) {
       console.error(error);
