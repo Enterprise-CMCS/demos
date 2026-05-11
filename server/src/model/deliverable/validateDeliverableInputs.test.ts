@@ -394,7 +394,7 @@ describe("validateDeliverableInputs", () => {
 
       expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
         { id: mockDeliverable.id },
-        mockTransaction
+        { tx: mockTransaction }
       );
     });
 
@@ -449,7 +449,7 @@ describe("validateDeliverableInputs", () => {
       await validateUpdateDeliverableInput(mockDeliverable.id!, testInput, mockTransaction);
       expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
         { id: mockDeliverable.id! },
-        mockTransaction
+        { tx: mockTransaction }
       );
       expect(getDemonstrationTypeAssignments).toHaveBeenCalledExactlyOnceWith(
         { demonstrationId: mockDeliverable.demonstrationId },

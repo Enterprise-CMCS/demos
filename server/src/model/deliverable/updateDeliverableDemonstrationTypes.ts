@@ -16,7 +16,7 @@ export async function updateDeliverableDemonstrationTypes(
   }
 
   // Need to get the demonstration ID for inserts
-  const currentDeliverable = await getDeliverable({ id: deliverableId }, tx);
+  const currentDeliverable = await getDeliverable({ id: deliverableId }, { tx: tx });
 
   // Can turn these into a set because DB guarantees uniqueness
   const oldDemonstrationTypes: Set<TagName> = new Set(

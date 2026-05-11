@@ -147,7 +147,7 @@ describe("requestDeliverableResubmission", () => {
     );
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      mockTransaction
+      { tx: mockTransaction }
     );
   });
 

@@ -99,7 +99,7 @@ export async function validateUpdateDeliverableInput(
   input: ParsedUpdateDeliverableInput,
   tx: PrismaTransactionClient
 ): Promise<void> {
-  const deliverable = await getDeliverable({ id: deliverableId }, tx);
+  const deliverable = await getDeliverable({ id: deliverableId }, { tx: tx });
   const errors: (string | undefined)[] = [];
 
   // Updates can be performed on all active deliverables

@@ -146,7 +146,7 @@ describe("requestDeliverableExtension", () => {
     );
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      mockTransaction
+      { tx: mockTransaction }
     );
   });
 

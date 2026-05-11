@@ -171,8 +171,10 @@ describe("approveDeliverableExtension", () => {
       testUserContext as GraphQLContext
     );
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
-      { id: testDeliverableId },
-      mockTransaction
+      {
+        id: testDeliverableId,
+      },
+      { tx: mockTransaction }
     );
   });
 

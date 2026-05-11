@@ -10,7 +10,7 @@ export async function submitDeliverable(
   context: GraphQLContext
 ): Promise<PrismaDeliverable> {
   return await prisma().$transaction(async (tx) => {
-    const unsubmittedDeliverable = await getDeliverable({ id: deliverableId }, tx);
+    const unsubmittedDeliverable = await getDeliverable({ id: deliverableId }, { tx: tx });
     await validateSubmitDeliverableInput(unsubmittedDeliverable, tx);
 
     const submittedDeliverable = await editDeliverable(

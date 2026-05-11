@@ -67,7 +67,7 @@ describe("submitDeliverable", () => {
     await submitDeliverable(testDeliverableId, testContext as GraphQLContext);
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      mockTransaction
+      { tx: mockTransaction }
     );
   });
 

@@ -27,7 +27,7 @@ export async function manuallyUpdateDeliverableDueDate(
   }
 
   // Get current record to check dates, and check if they match
-  const currentDeliverable = await getDeliverable({ id: deliverableId }, tx);
+  const currentDeliverable = await getDeliverable({ id: deliverableId }, { tx: tx });
   const datesMatch =
     currentDeliverable.dueDate.valueOf() === input.dueDate.newDueDate.easternTZDate.valueOf();
 

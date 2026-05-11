@@ -94,7 +94,7 @@ describe("startDeliverableReview", () => {
     await startDeliverableReview(testDeliverableId, testUserContext as GraphQLContext);
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      mockTransaction
+      { tx: mockTransaction }
     );
   });
 

@@ -88,7 +88,7 @@ describe("deleteDeliverable", () => {
     await deleteDeliverable(testDeliverableId, testUserContext as GraphQLContext);
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      mockTransaction
+      { tx: mockTransaction }
     );
   });
 

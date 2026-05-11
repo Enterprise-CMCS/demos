@@ -127,7 +127,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
     expect(checkDueDateInFuture).toHaveBeenCalledExactlyOnceWith(testInput.dueDate!.newDueDate);
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      mockTransaction
+      { tx: mockTransaction }
     );
     expect(editDeliverable).not.toHaveBeenCalled();
     expect(insertDeliverableAction).not.toHaveBeenCalled();
@@ -154,7 +154,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
     expect(checkDueDateInFuture).toHaveBeenCalledExactlyOnceWith(testInput.dueDate!.newDueDate);
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      mockTransaction
+      { tx: mockTransaction }
     );
     expect(editDeliverable).toHaveBeenCalledExactlyOnceWith(
       testDeliverableId,
@@ -207,7 +207,7 @@ describe("manuallyUpdateDeliverableDueDate", () => {
     expect(checkDueDateInFuture).toHaveBeenCalledExactlyOnceWith(testInput.dueDate!.newDueDate);
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      mockTransaction
+      { tx: mockTransaction }
     );
     expect(editDeliverable).toHaveBeenCalledExactlyOnceWith(
       testDeliverableId,

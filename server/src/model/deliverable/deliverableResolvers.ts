@@ -74,7 +74,7 @@ export async function resolveDeliverable(
   if (filter === null) {
     return null;
   }
-  const result = await getDeliverable(filter);
+  const result = await getDeliverable(filter, { includeDeleted: true });
   // We add the filter here to handle soft-deleted records
   // Do it here instead of in Prisma filter to avoid throwing when returning no records
   if (result.statusId === DELETED_DELIVERABLE_STATUS) {

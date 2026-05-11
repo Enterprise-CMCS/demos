@@ -397,9 +397,12 @@ describe("deliverableResolvers", () => {
         {} as GraphQLContext,
         testDocumentInfo as GraphQLResolveInfo
       );
-      expect(getDeliverable).toHaveBeenCalledExactlyOnceWith({
-        id: testDeliverableId,
-      });
+      expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+        {
+          id: testDeliverableId,
+        },
+        { includeDeleted: true }
+      );
       expect(result).toBeNull();
     });
 
@@ -428,9 +431,12 @@ describe("deliverableResolvers", () => {
           {} as GraphQLContext,
           testDocumentInfo as GraphQLResolveInfo
         );
-        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith({
-          id: testDeliverableId,
-        });
+        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+          {
+            id: testDeliverableId,
+          },
+          { includeDeleted: true }
+        );
         expect(result).toBe(mockDeliverable);
       });
     });
@@ -454,9 +460,12 @@ describe("deliverableResolvers", () => {
           {} as GraphQLContext,
           testCommentInfo as GraphQLResolveInfo
         );
-        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith({
-          id: testPublicComment.deliverableId,
-        });
+        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+          {
+            id: testPublicComment.deliverableId,
+          },
+          { includeDeleted: true }
+        );
         expect(result).toBe(mockDeliverable);
       });
     });
@@ -480,9 +489,12 @@ describe("deliverableResolvers", () => {
           {} as GraphQLContext,
           testCommentInfo as GraphQLResolveInfo
         );
-        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith({
-          id: testPrivateComment.deliverableId,
-        });
+        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+          {
+            id: testPrivateComment.deliverableId,
+          },
+          { includeDeleted: true }
+        );
         expect(result).toBe(mockDeliverable);
       });
     });

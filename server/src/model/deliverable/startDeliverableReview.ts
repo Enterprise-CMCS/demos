@@ -19,7 +19,7 @@ export async function startDeliverableReview(
     "demos-cms-user",
   ]);
   return await prisma().$transaction(async (tx) => {
-    const unstartedDeliverable = await getDeliverable({ id: deliverableId }, tx);
+    const unstartedDeliverable = await getDeliverable({ id: deliverableId }, { tx: tx });
     validateStartDeliverableReviewInput(unstartedDeliverable);
 
     const startedDeliverable = await editDeliverable(

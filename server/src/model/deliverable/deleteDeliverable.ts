@@ -17,7 +17,7 @@ export async function deleteDeliverable(
   validateUserPersonTypeAllowed(context, "deleteDeliverable", ["demos-admin", "demos-cms-user"]);
 
   return await prisma().$transaction(async (tx) => {
-    const deliverable = await getDeliverable({ id: deliverableId }, tx);
+    const deliverable = await getDeliverable({ id: deliverableId }, { tx: tx });
     await validateDeleteDeliverableInput(deliverable, tx);
 
     await editDeliverable(deliverableId, { statusId: "Deleted" }, tx);

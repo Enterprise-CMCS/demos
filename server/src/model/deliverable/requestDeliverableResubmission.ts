@@ -23,7 +23,7 @@ export async function requestDeliverableResubmission(
   const parsedInput = parseRequestDeliverableResubmissionInput(input);
 
   return await prisma().$transaction(async (tx) => {
-    const unrequestedDeliverable = await getDeliverable({ id: deliverableId }, tx);
+    const unrequestedDeliverable = await getDeliverable({ id: deliverableId }, { tx: tx });
     validateRequestDeliverableResubmissionInput(unrequestedDeliverable, parsedInput);
 
     const requestedDeliverable = await editDeliverable(

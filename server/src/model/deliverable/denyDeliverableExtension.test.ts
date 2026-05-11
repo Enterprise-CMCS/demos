@@ -115,7 +115,7 @@ describe("denyDeliverableExtension", () => {
     await denyDeliverableExtension(testDeliverableId, testInput, testUserContext as GraphQLContext);
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      mockTransaction
+      { tx: mockTransaction }
     );
   });
 

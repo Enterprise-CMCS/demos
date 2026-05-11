@@ -23,5 +23,5 @@ export async function setDeliverableDemonstrationTypes(
     prismaClient
   );
   await insertDeliverableDemonstrationTypes(input, prismaClient);
-  return getDeliverable({ id: input.deliverableId }, prismaClient);
+  return getDeliverable({ id: input.deliverableId }, { tx: prismaClient });
 }

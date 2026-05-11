@@ -86,7 +86,7 @@ describe("insertDeliverableDemonstrationTypes", () => {
     expect(transactionMocks.deliverableDemonstrationType.createMany).not.toHaveBeenCalled();
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: regularTestInput.deliverableId },
-      mockPrismaClient
+      { tx: mockPrismaClient }
     );
   });
 
@@ -98,7 +98,7 @@ describe("insertDeliverableDemonstrationTypes", () => {
     ).toHaveBeenCalledExactlyOnceWith(expectedRegularCall);
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: regularTestInput.deliverableId },
-      mockTransaction
+      { tx: mockTransaction }
     );
   });
 
@@ -108,7 +108,7 @@ describe("insertDeliverableDemonstrationTypes", () => {
     expect(transactionMocks.deliverableDemonstrationType.createMany).not.toHaveBeenCalled();
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: emptyTestInput.deliverableId },
-      mockTransaction
+      { tx: mockTransaction }
     );
   });
 });
