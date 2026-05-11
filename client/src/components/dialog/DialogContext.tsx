@@ -6,7 +6,8 @@ import { CreateExtensionDialog } from "./modification/CreateExtensionDialog";
 import { EditDemonstrationDialog } from "./demonstration";
 import { ExistingContactType, ManageContactsDialog } from "./ManageContactsDialog";
 import {
-  AddDocumentDialog,
+  AddDocumentToApplicationDialog,
+  AddDocumentToApplicationPhaseDialog,
   DocumentDialogFields,
   EditDocumentDialog,
   RemoveDocumentDialog,
@@ -117,7 +118,7 @@ export const useDialog = () => {
     onDocumentUploadSucceeded?: () => void
   ) => {
     context.showDialog(
-      <AddDocumentDialog
+      <AddDocumentToApplicationDialog
         onClose={context.hideDialog}
         applicationId={applicationId}
         onDocumentUploadSucceeded={onDocumentUploadSucceeded}
