@@ -19,7 +19,6 @@ export async function createDeliverable(
   validateUserPersonTypeAllowed(context, "createDeliverable", ["demos-admin", "demos-cms-user"]);
   const parsedInput = parseCreateDeliverableInput(input);
   const createdDeliverable = await prisma().$transaction(async (tx) => {
-    const actionTime = new Date();
     await validateCreateDeliverableInput(parsedInput, tx);
 
     const newDeliverable = await insertDeliverable(parsedInput, tx);
@@ -38,7 +37,6 @@ export async function createDeliverable(
       {
         deliverableId: newDeliverable.id,
         actionType: "Created Deliverable Slot",
-        actionTime: actionTime,
         oldStatus: "Upcoming",
         newStatus: "Upcoming",
         oldDueDate: parsedInput.dueDate.easternTZDate,

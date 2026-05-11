@@ -10,7 +10,7 @@ export async function submitDeliverable(
   context: GraphQLContext
 ): Promise<PrismaDeliverable> {
   return await prisma().$transaction(async (tx) => {
-    const unsubmittedDeliverable = await getDeliverable({ id: deliverableId }, tx);
+    const unsubmittedDeliverable = await getDeliverable({ id: deliverableId }, { tx: tx });
     await validateSubmitDeliverableInput(unsubmittedDeliverable, tx);
 
     const submittedDeliverable = await editDeliverable(
@@ -24,7 +24,6 @@ export async function submitDeliverable(
       {
         deliverableId: deliverableId,
         actionType: "Submitted Deliverable",
-        actionTime: new Date(),
         oldStatus: unsubmittedDeliverable.statusId as DeliverableStatus,
         newStatus: submittedDeliverable.statusId as DeliverableStatus,
         oldDueDate: unsubmittedDeliverable.dueDate,

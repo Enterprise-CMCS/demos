@@ -7,7 +7,7 @@ import { GraphQLContext } from "../../auth";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 
 // Functions under test
-import { startDeliverableReview } from "./startDeliverableReview";
+import { deleteDeliverable } from "./deleteDeliverable";
 
 // Mock imports
 vi.mock("../../prismaClient", () => ({
@@ -17,7 +17,7 @@ vi.mock("../../prismaClient", () => ({
 vi.mock(".", () => ({
   editDeliverable: vi.fn(),
   getDeliverable: vi.fn(),
-  validateStartDeliverableReviewInput: vi.fn(),
+  validateDeleteDeliverableInput: vi.fn(),
   validateUserPersonTypeAllowed: vi.fn(),
 }));
 
@@ -29,31 +29,26 @@ import { prisma } from "../../prismaClient";
 import {
   editDeliverable,
   getDeliverable,
-  validateStartDeliverableReviewInput,
+  validateDeleteDeliverableInput,
   validateUserPersonTypeAllowed,
 } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 
-describe("startDeliverableReview", () => {
+describe("deleteDeliverable", () => {
   // Test inputs
   const testDeliverableId = "b18cf1ce-3e41-4a71-b4f4-585f343bc74f";
   const testUserContext: DeepPartial<GraphQLContext> = {
     user: {
-      id: "0a3bd415-39a3-4f72-a067-418a5219216a",
+      id: "7c1f216a-a51e-472a-a480-aa9dcdb3de7f",
       personTypeId: "demos-admin",
     },
   };
 
   // Mock results
-  const mockUnstartedDeliverable: Partial<PrismaDeliverable> = {
+  const mockDeliverable: Partial<PrismaDeliverable> = {
     id: testDeliverableId,
-    statusId: "Submitted",
-    dueDate: new Date(2026, 9, 13, 4, 59, 59, 999),
-  };
-  const mockStartedDeliverable: Partial<PrismaDeliverable> = {
-    id: testDeliverableId,
-    statusId: "Under CMS Review",
-    dueDate: new Date(2026, 9, 13, 4, 59, 59, 999),
+    statusId: "Upcoming",
+    dueDate: new Date(2027, 1, 13, 2, 55, 19, 11),
   };
 
   // Mock transaction
@@ -65,16 +60,15 @@ describe("startDeliverableReview", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
-    vi.mocked(getDeliverable).mockResolvedValue(mockUnstartedDeliverable as PrismaDeliverable);
-    vi.mocked(editDeliverable).mockResolvedValue(mockStartedDeliverable as PrismaDeliverable);
+    vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
   it("should check that the user is allowed to do this operation", async () => {
-    await startDeliverableReview(testDeliverableId, testUserContext as GraphQLContext);
+    await deleteDeliverable(testDeliverableId, testUserContext as GraphQLContext);
     expect(validateUserPersonTypeAllowed).toHaveBeenCalledExactlyOnceWith(
       testUserContext,
-      "startDeliverableReview",
+      "deleteDeliverable",
       ["demos-admin", "demos-cms-user"]
     );
   });
@@ -83,15 +77,15 @@ describe("startDeliverableReview", () => {
     vi.mocked(validateUserPersonTypeAllowed).mockThrow("I'm throwing!");
 
     try {
-      await startDeliverableReview(testDeliverableId, testUserContext as GraphQLContext);
-      throw new Error("Expected startDeliverableReview to throw, but it did not.");
+      await deleteDeliverable(testDeliverableId, testUserContext as GraphQLContext);
+      throw new Error("Expected deleteDeliverable to throw, but it did not.");
     } catch (e) {
       expect(prisma).not.toHaveBeenCalled();
     }
   });
 
   it("should get the deliverable before making changes", async () => {
-    await startDeliverableReview(testDeliverableId, testUserContext as GraphQLContext);
+    await deleteDeliverable(testDeliverableId, testUserContext as GraphQLContext);
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
       { tx: mockTransaction }
@@ -99,31 +93,32 @@ describe("startDeliverableReview", () => {
   });
 
   it("should call the validator on the unchanged deliverable", async () => {
-    await startDeliverableReview(testDeliverableId, testUserContext as GraphQLContext);
-    expect(validateStartDeliverableReviewInput).toHaveBeenCalledExactlyOnceWith(
-      mockUnstartedDeliverable
-    );
-  });
-
-  it("should call edit function to set the status to under CMS review", async () => {
-    await startDeliverableReview(testDeliverableId, testUserContext as GraphQLContext);
-    expect(editDeliverable).toHaveBeenCalledExactlyOnceWith(
-      testDeliverableId,
-      { statusId: "Under CMS Review" },
+    await deleteDeliverable(testDeliverableId, testUserContext as GraphQLContext);
+    expect(validateDeleteDeliverableInput).toHaveBeenCalledExactlyOnceWith(
+      mockDeliverable,
       mockTransaction
     );
   });
 
-  it("should log an action for the submission", async () => {
-    await startDeliverableReview(testDeliverableId, testUserContext as GraphQLContext);
+  it("should call edit function to set the status to the passed value", async () => {
+    await deleteDeliverable(testDeliverableId, testUserContext as GraphQLContext);
+    expect(editDeliverable).toHaveBeenCalledExactlyOnceWith(
+      testDeliverableId,
+      { statusId: "Deleted" },
+      mockTransaction
+    );
+  });
+
+  it("should log an action for the completion", async () => {
+    await deleteDeliverable(testDeliverableId, testUserContext as GraphQLContext);
     expect(insertDeliverableAction).toHaveBeenCalledExactlyOnceWith(
       {
         deliverableId: testDeliverableId,
-        actionType: "Started Review",
-        oldStatus: mockUnstartedDeliverable.statusId,
-        newStatus: mockStartedDeliverable.statusId,
-        oldDueDate: mockUnstartedDeliverable.dueDate,
-        newDueDate: mockStartedDeliverable.dueDate,
+        actionType: "Deleted Deliverable",
+        oldStatus: mockDeliverable.statusId,
+        newStatus: "Deleted",
+        oldDueDate: mockDeliverable.dueDate,
+        newDueDate: mockDeliverable.dueDate,
         userId: testUserContext.user!.id,
       },
       mockTransaction

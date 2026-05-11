@@ -99,7 +99,7 @@ describe("updateDeliverableDemonstrationTypes", () => {
     await updateDeliverableDemonstrationTypes(testDeliverableId, testInput, mockTransaction);
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      mockTransaction
+      { tx: mockTransaction }
     );
     expect(selectManyDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
       { deliverableId: testDeliverableId },
@@ -124,7 +124,7 @@ describe("updateDeliverableDemonstrationTypes", () => {
     await updateDeliverableDemonstrationTypes(testDeliverableId, testInput, mockTransaction);
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      mockTransaction
+      { tx: mockTransaction }
     );
     expect(selectManyDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
       { deliverableId: testDeliverableId },
@@ -142,7 +142,7 @@ describe("updateDeliverableDemonstrationTypes", () => {
     await updateDeliverableDemonstrationTypes(testDeliverableId, testInput, mockTransaction);
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      mockTransaction
+      { tx: mockTransaction }
     );
     expect(selectManyDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
       { deliverableId: testDeliverableId },
@@ -167,7 +167,7 @@ describe("updateDeliverableDemonstrationTypes", () => {
     await updateDeliverableDemonstrationTypes(testDeliverableId, testInput, mockTransaction);
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      mockTransaction
+      { tx: mockTransaction }
     );
     expect(selectManyDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
       { deliverableId: testDeliverableId },

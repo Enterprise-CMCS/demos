@@ -28,6 +28,7 @@ import {
   validateApproveDeliverableExtensionInput,
   validateCompleteDeliverableInput,
   validateCreateDeliverableInput,
+  validateDeleteDeliverableInput,
   validateDenyDeliverableExtensionInput,
   validateRequestDeliverableExtensionInput,
   validateRequestDeliverableResubmissionInput,
@@ -54,6 +55,8 @@ vi.mock(".", () => ({
   checkDeliverableExtensionHasStatus: vi.fn(),
   checkDeliverableHasAtLeastOneDocument: vi.fn(),
   checkDeliverableHasNoActiveExtension: vi.fn(),
+  checkDeliverableHasNoComments: vi.fn(),
+  checkDeliverableHasNoDocuments: vi.fn(),
   checkDeliverableHasStatus: vi.fn(),
   checkDemonstrationStatus: vi.fn(),
   checkDueDateInFuture: vi.fn(),
@@ -71,6 +74,8 @@ import {
   checkDeliverableExtensionHasStatus,
   checkDeliverableHasAtLeastOneDocument,
   checkDeliverableHasNoActiveExtension,
+  checkDeliverableHasNoComments,
+  checkDeliverableHasNoDocuments,
   checkDeliverableHasStatus,
   checkDemonstrationStatus,
   checkDueDateInFuture,
@@ -389,7 +394,7 @@ describe("validateDeliverableInputs", () => {
 
       expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
         { id: mockDeliverable.id },
-        mockTransaction
+        { tx: mockTransaction }
       );
     });
 
@@ -444,7 +449,7 @@ describe("validateDeliverableInputs", () => {
       await validateUpdateDeliverableInput(mockDeliverable.id!, testInput, mockTransaction);
       expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
         { id: mockDeliverable.id! },
-        mockTransaction
+        { tx: mockTransaction }
       );
       expect(getDemonstrationTypeAssignments).toHaveBeenCalledExactlyOnceWith(
         { demonstrationId: mockDeliverable.demonstrationId },
@@ -1418,6 +1423,131 @@ describe("validateDeliverableInputs", () => {
         expect(error.extensions.originalMessages).toStrictEqual([
           "The deliverable status check failed!",
           "The deliverable extension status check failed!",
+        ]);
+      }
+    });
+  });
+
+  describe("validateDeleteDeliverableInput", () => {
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      id: "40aaed7d-b0ad-47e0-aaa0-c2433db20cb7",
+    };
+
+    beforeEach(() => {
+      vi.resetAllMocks();
+    });
+
+    it("should not throw if none of the rules are violated", async () => {
+      // Note: don't need to set returns to undefined, as this is what vi.fn() does already
+      await expect(
+        validateDeleteDeliverableInput(testDeliverable as PrismaDeliverable, mockTransaction)
+      ).resolves.toBeUndefined();
+    });
+
+    it("should call the check functions", async () => {
+      await validateDeleteDeliverableInput(testDeliverable as PrismaDeliverable, mockTransaction);
+      expect(checkDeliverableHasStatus).toHaveBeenCalledExactlyOnceWith(testDeliverable, [
+        "Upcoming",
+        "Past Due",
+      ]);
+      expect(checkDeliverableHasNoDocuments).toHaveBeenCalledExactlyOnceWith(
+        testDeliverable,
+        mockTransaction
+      );
+      expect(checkDeliverableHasNoComments).toHaveBeenCalledExactlyOnceWith(
+        testDeliverable,
+        mockTransaction
+      );
+    });
+
+    it("should throw if the deliverable status check fails", async () => {
+      vi.mocked(checkDeliverableHasStatus).mockReturnValue(
+        "The deliverable status check has failed!"
+      );
+
+      try {
+        await validateDeleteDeliverableInput(testDeliverable as PrismaDeliverable, mockTransaction);
+        throw new Error("Expected validateDeleteDeliverableInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for deleteDeliverable have failed."
+        );
+        expect(error.extensions.code).toBe("DELETE_DELIVERABLE_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable status check has failed!",
+        ]);
+      }
+    });
+
+    it("should throw if the no documents check fails", async () => {
+      vi.mocked(checkDeliverableHasNoDocuments).mockResolvedValue(
+        "The check for no documents has failed!"
+      );
+
+      try {
+        await validateDeleteDeliverableInput(testDeliverable as PrismaDeliverable, mockTransaction);
+        throw new Error("Expected validateDeleteDeliverableInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for deleteDeliverable have failed."
+        );
+        expect(error.extensions.code).toBe("DELETE_DELIVERABLE_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The check for no documents has failed!",
+        ]);
+      }
+    });
+
+    it("should throw if the no comments check fails", async () => {
+      vi.mocked(checkDeliverableHasNoComments).mockResolvedValue(
+        "The check for no comments has failed!"
+      );
+
+      try {
+        await validateDeleteDeliverableInput(testDeliverable as PrismaDeliverable, mockTransaction);
+        throw new Error("Expected validateDeleteDeliverableInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for deleteDeliverable have failed."
+        );
+        expect(error.extensions.code).toBe("DELETE_DELIVERABLE_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The check for no comments has failed!",
+        ]);
+      }
+    });
+
+    it("should combine all errors into one object", async () => {
+      vi.mocked(checkDeliverableHasStatus).mockReturnValue(
+        "The deliverable status check has failed!"
+      );
+      vi.mocked(checkDeliverableHasNoDocuments).mockResolvedValue(
+        "The check for no documents has failed!"
+      );
+      vi.mocked(checkDeliverableHasNoComments).mockResolvedValue(
+        "The check for no comments has failed!"
+      );
+
+      try {
+        await validateDeleteDeliverableInput(testDeliverable as PrismaDeliverable, mockTransaction);
+        throw new Error("Expected validateDeleteDeliverableInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for deleteDeliverable have failed."
+        );
+        expect(error.extensions.code).toBe("DELETE_DELIVERABLE_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The deliverable status check has failed!",
+          "The check for no documents has failed!",
+          "The check for no comments has failed!",
         ]);
       }
     });

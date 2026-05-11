@@ -104,6 +104,7 @@ export const deliverableSchema = gql`
       input: ApproveDeliverableExtensionInput!
     ): Deliverable
     denyDeliverableExtension(deliverableId: ID!, input: DenyDeliverableExtensionInput!): Deliverable
+    deleteDeliverable(id: ID!): Deliverable
   }
 `;
 
