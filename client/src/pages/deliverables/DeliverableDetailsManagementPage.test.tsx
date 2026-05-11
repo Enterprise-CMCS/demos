@@ -134,12 +134,12 @@ describe("DeliverableDetailsManagementPage", () => {
     const user = userEvent.setup();
     renderAtRoute("1");
 
-    expect(await screen.findByText("Show Additional Details")).toBeInTheDocument();
+    expect(await screen.findByText("See Additional Details")).toBeInTheDocument();
     expect(screen.queryByTestId("deliverable-CMS Owner")).not.toBeInTheDocument();
 
-    await user.click(screen.getByText("Show Additional Details"));
+    await user.click(screen.getByText("See Additional Details"));
 
-    expect(screen.getByText("Hide Additional Details")).toBeInTheDocument();
+    expect(screen.getByText("Less Details")).toBeInTheDocument();
     expect(screen.getByTestId("deliverable-CMS Owner")).toHaveTextContent("Mock User");
   });
 
