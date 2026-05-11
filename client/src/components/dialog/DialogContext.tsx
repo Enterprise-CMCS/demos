@@ -38,7 +38,10 @@ import type {
 import { WorkflowApplicationType } from "components/application";
 import { AddDeliverableSlotDemonstration } from "./deliverable/AddDeliverableSlotDialog";
 import type { DeliverableTableRow } from "components/table/tables/DeliverableTable";
-import { RequestResubmissionDeliverableDialog, RequestResubmissionDeliverableDialogDeliverable } from "./deliverable/RequestResubmissionDeliverableDialog";
+import {
+  RequestResubmissionDeliverableDialog,
+  RequestResubmissionDeliverableDialogDeliverable,
+} from "./deliverable/RequestResubmissionDeliverableDialog";
 import {
   CompleteReviewDeliverableDialog,
   CompleteReviewDeliverableDialogDeliverable,
@@ -274,10 +277,7 @@ export const useDialog = () => {
     deliverable: CompleteReviewDeliverableDialogDeliverable
   ) => {
     context.showDialog(
-      <CompleteReviewDeliverableDialog
-        onClose={context.hideDialog}
-        deliverable={deliverable}
-      />
+      <CompleteReviewDeliverableDialog onClose={context.hideDialog} deliverable={deliverable} />
     );
   };
 
