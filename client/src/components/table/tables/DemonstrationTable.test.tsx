@@ -252,8 +252,8 @@ describe("Demonstrations", () => {
       const rowData = demoRows.map((row) => {
         const cells = within(row).getAllByRole("cell");
         // Assuming state is in column 1 and title is in column 2 (after select column)
-        const stateCell = cells[1];
-        const titleCell = cells[2];
+        const stateCell = cells[0];
+        const titleCell = cells[1];
         return {
           state: stateCell.textContent,
           title: titleCell.textContent,
@@ -271,7 +271,7 @@ describe("Demonstrations", () => {
 
     it("renders table columns correctly", () => {
       const headers = screen.getAllByRole("columnheader");
-      expect(headers).toHaveLength(8);
+      expect(headers).toHaveLength(7);
       expect(screen.getByRole("columnheader", { name: "Title Sort" })).toBeInTheDocument();
       expect(
         screen.getByRole("columnheader", { name: "State/Territory Sort" })
