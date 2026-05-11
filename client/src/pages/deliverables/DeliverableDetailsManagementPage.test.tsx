@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
   DeliverableDetailsManagementPage,
   DELIVERABLE_DETAILS_QUERY,
+  START_DELIVERABLE_REVIEW_MUTATION,
 } from "./DeliverableDetailsManagementPage";
 import { MOCK_DELIVERABLE_1 } from "mock-data/deliverableMocks";
 import { TestProvider } from "test-utils/TestProvider";
@@ -18,10 +19,62 @@ import {
   DELIVERABLE_REVIEW_NOTICE_NAME,
   START_REVIEW_BUTTON_NAME,
 } from "./sections/PendingReviewNotice";
+import { CurrentUser } from "components/user/UserContext";
+import { developmentMockUser } from "mock-data/userMocks";
 
 const renderAtRoute = (deliverableId: string) =>
   render(
     <TestProvider routerEntries={[`/deliverables/${deliverableId}`]}>
+      <DialogProvider>
+        <Routes>
+          <Route
+            path="/deliverables/:deliverableId"
+            element={<DeliverableDetailsManagementPage />}
+          />
+          <Route path="/deliverables" element={<div>Deliverables list</div>} />
+        </Routes>
+      </DialogProvider>
+    </TestProvider>
+  );
+
+const buildSubmittedDeliverableMock = (overrides?: { submitterName?: string }) => ({
+  ...MOCK_DELIVERABLE_1,
+  status: "Submitted" as const,
+  deliverableActions: [
+    ...MOCK_DELIVERABLE_1.deliverableActions,
+    {
+      id: "action-submit",
+      actionType: "Submitted Deliverable" as const,
+      actionTimestamp: new Date("2026-04-01T10:00:00Z"),
+      userFullName: overrides?.submitterName ?? "Jane State",
+    },
+  ],
+});
+
+const buildCurrentUser = (
+  personType: CurrentUser["person"]["personType"]
+): CurrentUser => ({
+  ...developmentMockUser,
+  person: { ...developmentMockUser.person, personType },
+});
+
+const renderWithDeliverable = (
+  deliverable: ReturnType<typeof buildSubmittedDeliverableMock>,
+  personType: CurrentUser["person"]["personType"] = "demos-cms-user",
+  extraMocks: import("@apollo/client/testing").MockedResponse[] = []
+) =>
+  render(
+    <TestProvider
+      currentUser={buildCurrentUser(personType)}
+      mocks={[
+        {
+          request: { query: DELIVERABLE_DETAILS_QUERY, variables: { id: deliverable.id } },
+          result: { data: { deliverable } },
+        },
+        ...extraMocks,
+      ]}
+      routerEntries={[`/deliverables/${deliverable.id}`]}
+    >
       <DialogProvider>
         <Routes>
           <Route
@@ -90,15 +143,63 @@ describe("DeliverableDetailsManagementPage", () => {
     expect(screen.getByTestId("deliverable-CMS Owner")).toHaveTextContent("Mock User");
   });
 
-  it("dismisses the pending review notice when review starts", async () => {
-    const user = userEvent.setup();
+  it("does not render the pending review notice when status is not Submitted", async () => {
     renderAtRoute("1");
 
-    expect(await screen.findByTestId(DELIVERABLE_REVIEW_NOTICE_NAME)).toBeInTheDocument();
-
-    await user.click(screen.getByTestId(START_REVIEW_BUTTON_NAME));
-
+    await waitFor(() => expect(screen.getByTestId(COMMENT_BOX_NAME)).toBeInTheDocument());
     expect(screen.queryByTestId(DELIVERABLE_REVIEW_NOTICE_NAME)).not.toBeInTheDocument();
+  });
+
+  it("renders the pending review notice with the submitter's name for CMS users when status is Submitted", async () => {
+    const deliverable = buildSubmittedDeliverableMock({ submitterName: "Alex Patel" });
+    renderWithDeliverable(deliverable, "demos-cms-user");
+
+    expect(await screen.findByTestId(DELIVERABLE_REVIEW_NOTICE_NAME)).toBeInTheDocument();
+    expect(
+      screen.getByText("Alex Patel has submitted deliverable(s) for review")
+    ).toBeInTheDocument();
+  });
+
+  it("renders the pending review notice for admin users", async () => {
+    const deliverable = buildSubmittedDeliverableMock();
+    renderWithDeliverable(deliverable, "demos-admin");
+
+    expect(await screen.findByTestId(DELIVERABLE_REVIEW_NOTICE_NAME)).toBeInTheDocument();
+  });
+
+  it("does not render the pending review notice for state users", async () => {
+    const deliverable = buildSubmittedDeliverableMock();
+    renderWithDeliverable(deliverable, "demos-state-user");
+
+    await waitFor(() => expect(screen.getByTestId(COMMENT_BOX_NAME)).toBeInTheDocument());
+    expect(screen.queryByTestId(DELIVERABLE_REVIEW_NOTICE_NAME)).not.toBeInTheDocument();
+  });
+
+  it("triggers the start review mutation and hides the banner once status flips to Under CMS Review", async () => {
+    const user = userEvent.setup();
+    const deliverable = buildSubmittedDeliverableMock();
+    const reviewedDeliverable = { ...deliverable, status: "Under CMS Review" as const };
+
+    renderWithDeliverable(deliverable, "demos-cms-user", [
+      {
+        request: {
+          query: START_DELIVERABLE_REVIEW_MUTATION,
+          variables: { id: deliverable.id },
+        },
+        result: { data: { startDeliverableReview: { id: deliverable.id, status: "Under CMS Review" } } },
+      },
+      {
+        request: { query: DELIVERABLE_DETAILS_QUERY, variables: { id: deliverable.id } },
+        result: { data: { deliverable: reviewedDeliverable } },
+        maxUsageCount: Number.POSITIVE_INFINITY,
+      },
+    ]);
+
+    await user.click(await screen.findByTestId(START_REVIEW_BUTTON_NAME));
+
+    await waitFor(() =>
+      expect(screen.queryByTestId(DELIVERABLE_REVIEW_NOTICE_NAME)).not.toBeInTheDocument()
+    );
   });
 
   it("shows not found state", async () => {
