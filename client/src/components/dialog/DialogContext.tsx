@@ -6,7 +6,8 @@ import { CreateExtensionDialog } from "./modification/CreateExtensionDialog";
 import { EditDemonstrationDialog } from "./demonstration";
 import { ExistingContactType, ManageContactsDialog } from "./ManageContactsDialog";
 import {
-  AddDocumentDialog,
+  AddDocumentToApplicationDialog,
+  AddDocumentToApplicationPhaseDialog,
   DocumentDialogFields,
   EditDocumentDialog,
   RemoveDocumentDialog,
@@ -37,7 +38,10 @@ import type {
 import { WorkflowApplicationType } from "components/application";
 import { AddDeliverableSlotDemonstration } from "./deliverable/AddDeliverableSlotDialog";
 import type { DeliverableTableRow } from "components/table/tables/DeliverableTable";
-import { RequestResubmissionDeliverableDialog, RequestResubmissionDeliverableDialogDeliverable } from "./deliverable/RequestResubmissionDeliverableDialog";
+import {
+  RequestResubmissionDeliverableDialog,
+  RequestResubmissionDeliverableDialogDeliverable,
+} from "./deliverable/RequestResubmissionDeliverableDialog";
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -113,7 +117,7 @@ export const useDialog = () => {
     onDocumentUploadSucceeded?: () => void
   ) => {
     context.showDialog(
-      <AddDocumentDialog
+      <AddDocumentToApplicationDialog
         onClose={context.hideDialog}
         applicationId={applicationId}
         onDocumentUploadSucceeded={onDocumentUploadSucceeded}

@@ -30,7 +30,7 @@ export const UPLOAD_DOCUMENT_QUERY: TypedDocumentNode<
 
 export const LOCAL_UPLOAD_PREFIX = "LocalS3Adapter";
 
-interface AddDocumentDialogProps {
+interface AddDocumentToApplicationDialogProps {
   onClose: () => void;
   applicationId: string;
   documentTypeSubset?: DocumentType[];
@@ -39,9 +39,26 @@ interface AddDocumentDialogProps {
   onDocumentUploadSucceeded?: (payload?: UploadDocumentToApplicationInput) => void;
 }
 
-export const useHandleUpload = (applicationId, handleDocumentUploadSucceeded, uploadDocument) => {
+export const AddDocumentToApplicationDialog: React.FC<AddDocumentToApplicationDialogProps> = ({
+  onClose,
+  applicationId,
+  documentTypeSubset,
+  titleOverride,
+  refetchQueries,
+  onDocumentUploadSucceeded,
+}) => {
   const { showError } = useToast();
+  const client = useApolloClient();
   const { documentPassedVirusScan } = useDocumentPassedVirusScan();
+  const { uploadDocument } = useUploadDocument(UPLOAD_DOCUMENT_QUERY);
+  const handleDocumentUploadSucceeded = async (
+    payload: UploadDocumentToApplicationInput
+  ): Promise<void> => {
+    onDocumentUploadSucceeded?.(payload);
+    if (refetchQueries) {
+      await client.refetchQueries({ include: refetchQueries });
+    }
+  };
 
   const handleUpload = async (
     dialogFields: DocumentDialogFields
@@ -51,7 +68,7 @@ export const useHandleUpload = (applicationId, handleDocumentUploadSucceeded, up
       return "unknown-error";
     }
 
-    const uploadDocumentInput = {
+    const uploadDocumentInput: UploadDocumentToApplicationInput = {
       applicationId,
       name: dialogFields.name,
       description: dialogFields.description,
@@ -83,34 +100,6 @@ export const useHandleUpload = (applicationId, handleDocumentUploadSucceeded, up
     await handleDocumentUploadSucceeded(uploadDocumentInput);
     return "succeeded";
   };
-
-  return { handleUpload };
-};
-
-export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
-  onClose,
-  applicationId,
-  documentTypeSubset,
-  titleOverride,
-  refetchQueries,
-  onDocumentUploadSucceeded,
-}) => {
-  const client = useApolloClient();
-  const { uploadDocument } = useUploadDocument(UPLOAD_DOCUMENT_QUERY);
-  const handleDocumentUploadSucceeded = async (
-    payload: UploadDocumentToApplicationInput
-  ): Promise<void> => {
-    onDocumentUploadSucceeded?.(payload);
-    if (refetchQueries) {
-      await client.refetchQueries({ include: refetchQueries });
-    }
-  };
-
-  const { handleUpload } = useHandleUpload(
-    applicationId,
-    handleDocumentUploadSucceeded,
-    uploadDocument
-  );
 
   return (
     <DocumentDialog
