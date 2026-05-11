@@ -1,0 +1,22 @@
+{
+  "features": {
+    "ghcr.io/devcontainers-community/npm-features/typescript:1": {
+      "version": "1.1.0",
+      "resolved": "ghcr.io/devcontainers-community/npm-features/typescript@sha256:13a0f63e88513a6022431c39b7ca4ec732ba0760cdb6d882638f4ddf73deb0e7",
+      "integrity": "sha256:13a0f63e88513a6022431c39b7ca4ec732ba0760cdb6d882638f4ddf73deb0e7",
+      "dependsOn": [
+        "ghcr.io/devcontainers/features/node"
+      ]
+    },
+    "ghcr.io/devcontainers-extra/features/ts-node:1": {
+      "version": "1.0.2",
+      "resolved": "ghcr.io/devcontainers-extra/features/ts-node@sha256:f5882fbf39d63424c151918e15a6cf3f3b302036256338718f414dfc488a0e6f",
+      "integrity": "sha256:f5882fbf39d63424c151918e15a6cf3f3b302036256338718f414dfc488a0e6f"
+    },
+    "ghcr.io/devcontainers/features/node": {
+      "version": "2.0.0",
+      "resolved": "ghcr.io/devcontainers/features/node@sha256:fedd4c11f7adfb64283b578dddc7da906728daa25fa293351c9d913231acf12f",
+      "integrity": "sha256:fedd4c11f7adfb64283b578dddc7da906728daa25fa293351c9d913231acf12f"
+    }
+  }
+}

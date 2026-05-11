@@ -1,25 +1,25 @@
 import { TypedDocumentNode, useMutation } from "@apollo/client";
 
-export const useUploadDocument = <UploadDocumentInput>(
-  uploadDocumentMutation: TypedDocumentNode
+
+export const useUploadDocument = <UploadDocumentResult, UploadDocumentInput>(
+  uploadDocumentMutation: TypedDocumentNode<UploadDocumentResult, { input: UploadDocumentInput }>
 ) => {
   const [uploadDocumentTrigger] = useMutation(uploadDocumentMutation);
 
   const uploadDocument = async (uploadDocumentInput: UploadDocumentInput) => {
     // Get presigned URL from the server
-    const uploadDocumentResponse = await uploadDocumentTrigger({
+    const uploadResult = await uploadDocumentTrigger({
       variables: { input: uploadDocumentInput },
     });
 
-    if (uploadDocumentResponse.errors?.length) {
-      throw new Error(uploadDocumentResponse.errors[0].message);
+    if (uploadResult.errors?.length) {
+      throw new Error(uploadResult.errors[0].message);
     }
 
-    const uploadResult = uploadDocumentResponse.data?.uploadDocument;
-    if (!uploadResult) {
+    if (!uploadResult.data) {
       throw new Error("Upload response from the server was empty");
     }
-    return uploadResult;
+    return uploadResult.data;
   };
 
   return { uploadDocument };
