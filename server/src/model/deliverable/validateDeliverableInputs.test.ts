@@ -1523,7 +1523,7 @@ describe("validateDeliverableInputs", () => {
       }
     });
 
-    it("should combine all errors into one bject", async () => {
+    it("should combine all errors into one object", async () => {
       vi.mocked(checkDeliverableHasStatus).mockReturnValue(
         "The deliverable status check has failed!"
       );
