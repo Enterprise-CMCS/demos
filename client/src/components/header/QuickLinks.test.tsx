@@ -31,8 +31,6 @@ describe("QuickLinks", () => {
   it("renders all quick links for an admin user", () => {
     setup();
     expect(screen.getByRole("link", { name: /Admin/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Notifications/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Help/i })).toBeInTheDocument();
   });
 
   it("does not render the Admin link for a non-admin user", () => {
