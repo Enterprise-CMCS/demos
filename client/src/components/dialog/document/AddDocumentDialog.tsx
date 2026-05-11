@@ -1,15 +1,25 @@
 import React from "react";
-import { gql, useLazyQuery, useMutation, useApolloClient } from "@apollo/client";
+import { gql, useApolloClient, TypedDocumentNode } from "@apollo/client";
 
-import { DocumentType, PhaseName, UploadDocumentInput } from "demos-server";
+import {
+  DocumentType,
+  UploadDocumentResponse,
+  UploadDocumentToApplicationInput,
+} from "demos-server";
 import {
   DocumentDialog,
   DocumentDialogFields,
   DocumentUploadResult,
 } from "components/dialog/document/DocumentDialog";
 import { useToast } from "components/toast/ToastContext";
+import { tryUploadingFileToS3 } from "./tryUploadingFileToS3";
+import { useDocumentPassedVirusScan } from "./useDocumentPassedVirusScan";
+import { useUploadDocument } from "./useUploadDocument";
 
-export const UPLOAD_DOCUMENT_QUERY = gql`
+export const UPLOAD_DOCUMENT_QUERY: TypedDocumentNode<{
+  uploadDocument: UploadDocumentResponse;
+  input: UploadDocumentToApplicationInput;
+}> = gql`
   mutation UploadDocument($input: UploadDocumentInput!) {
     uploadDocument(input: $input) {
       presignedURL
@@ -18,41 +28,9 @@ export const UPLOAD_DOCUMENT_QUERY = gql`
   }
 `;
 
-export const DOCUMENT_EXISTS_QUERY = gql`
-  query DocumentExists($documentId: ID!) {
-    documentExists(documentId: $documentId)
-  }
-`;
-
-export const VIRUS_SCAN_MAX_ATTEMPTS = 10;
-export const DOCUMENT_POLL_INTERVAL_MS = 2_000;
 export const LOCAL_UPLOAD_PREFIX = "LocalS3Adapter";
 
-/**
- * @internal - Exported for testing only
- */
-export const tryUploadingFileToS3 = async (
-  presignedURL: string,
-  file: File
-): Promise<{ success: boolean; errorMessage: string }> => {
-  try {
-    const putResponse = await fetch(presignedURL, {
-      method: "PUT",
-      body: file,
-      headers: { "Content-Type": file.type },
-    });
-
-    if (putResponse.ok) {
-      return { success: true, errorMessage: "" };
-    } else {
-      const errorText = await putResponse.text();
-      return { success: false, errorMessage: `Failed to upload file: ${errorText}` };
-    }
-  } catch (error) {
-    const errorText = error instanceof Error ? error.message : "Network error during upload";
-    return { success: false, errorMessage: errorText };
-  }
-};
+export const handleUploadDocument = () => {};
 
 interface AddDocumentDialogProps {
   onClose: () => void;
@@ -60,8 +38,7 @@ interface AddDocumentDialogProps {
   documentTypeSubset?: DocumentType[];
   titleOverride?: string;
   refetchQueries?: string[];
-  phaseName?: PhaseName;
-  onDocumentUploadSucceeded?: (payload?: UploadDocumentInput) => void;
+  onDocumentUploadSucceeded?: (payload?: UploadDocumentToApplicationInput) => void;
 }
 
 export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
@@ -70,36 +47,16 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
   documentTypeSubset,
   titleOverride,
   refetchQueries,
-  phaseName,
   onDocumentUploadSucceeded,
 }) => {
   const { showError } = useToast();
   const client = useApolloClient();
-  const [uploadDocumentTrigger] = useMutation(UPLOAD_DOCUMENT_QUERY);
-
-  const [checkDocumentExists] = useLazyQuery(DOCUMENT_EXISTS_QUERY, {
-    fetchPolicy: "network-only",
-  });
-
-  const documentPassedVirusScan = async (documentId: string): Promise<boolean> => {
-    for (let attempt = 0; attempt < VIRUS_SCAN_MAX_ATTEMPTS; attempt++) {
-      // Check if the document exists in the documents table
-      const { data } = await checkDocumentExists({
-        variables: { documentId },
-      });
-      if (data?.documentExists === true) {
-        return true;
-      }
-
-      // Wait before the next attempt
-      await new Promise((resolve) => setTimeout(resolve, DOCUMENT_POLL_INTERVAL_MS));
-    }
-
-    // Not appearing in the document for this much time is signal of failing the virus scan
-    return false;
-  };
-
-  const handleDocumentUploadSucceeded = async (payload: UploadDocumentInput): Promise<void> => {
+  const { documentPassedVirusScan } = useDocumentPassedVirusScan();
+  const { uploadDocument } =
+    useUploadDocument<UploadDocumentToApplicationInput>(UPLOAD_DOCUMENT_QUERY);
+  const handleDocumentUploadSucceeded = async (
+    payload: UploadDocumentToApplicationInput
+  ): Promise<void> => {
     onDocumentUploadSucceeded?.(payload);
     if (refetchQueries) {
       await client.refetchQueries({ include: refetchQueries });
@@ -114,32 +71,14 @@ export const AddDocumentDialog: React.FC<AddDocumentDialogProps> = ({
       return "unknown-error";
     }
 
-    const uploadDocumentInput: UploadDocumentInput = {
+    const uploadDocumentInput: UploadDocumentToApplicationInput = {
       applicationId,
       name: dialogFields.name,
       description: dialogFields.description,
       documentType: dialogFields.documentType,
-      phaseName,
     };
 
-    // Get presigned URL from the server
-    const uploadDocumentResponse = await uploadDocumentTrigger({
-      variables: { input: uploadDocumentInput },
-    });
-
-    if (uploadDocumentResponse.errors?.length) {
-      throw new Error(uploadDocumentResponse.errors[0].message);
-    }
-
-    const uploadResult = uploadDocumentResponse.data?.uploadDocument;
-    if (!uploadResult) {
-      throw new Error("Upload response from the server was empty");
-    }
-
-    // Guard: Ensure presignedURL is present
-    if (!uploadResult.presignedURL) {
-      throw new Error("Could not get presigned URL from the server");
-    }
+    const uploadResult = await uploadDocument(uploadDocumentInput);
 
     // Short-circuit: Skip S3 upload attempt and virus scan in local development
     // Hint: If you want to test an upload scenario locally such as virus scan failure,
