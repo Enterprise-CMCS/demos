@@ -7,10 +7,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import {
-  AddDocumentToApplicationDialog,
-  LOCAL_UPLOAD_PREFIX,
-} from "./AddDocumentToApplicationDialog";
+import { AddDocumentToApplicationDialog } from "./AddDocumentToApplicationDialog";
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 import { DOCUMENT_POLL_INTERVAL_MS, VIRUS_SCAN_MAX_ATTEMPTS } from "./useDocumentPassedVirusScan";
 import { tryUploadingFileToS3 } from "./tryUploadingFileToS3";
@@ -196,8 +193,8 @@ describe("virus scan polling", () => {
     mockMutationFn.mockResolvedValue({
       data: {
         uploadDocumentToApplication: {
-          presignedURL: "https://s3.amazonaws.com/test-bucket/test-file",
-          documentId: "test-doc-id",
+          presignedUploadUrl: "https://s3.amazonaws.com/test-bucket/test-file",
+          id: "test-doc-id",
         },
       },
     });
@@ -249,8 +246,8 @@ describe("virus scan polling", () => {
     mockMutationFn.mockResolvedValue({
       data: {
         uploadDocumentToApplication: {
-          presignedURL: "https://s3.amazonaws.com/test-bucket/test-file",
-          documentId: "test-doc-id",
+          presignedUploadUrl: "https://s3.amazonaws.com/test-bucket/test-file",
+          id: "test-doc-id",
         },
       },
     });
@@ -306,8 +303,8 @@ describe("virus scan polling", () => {
     mockMutationFn.mockResolvedValue({
       data: {
         uploadDocumentToApplication: {
-          presignedURL: "https://s3.amazonaws.com/test-bucket/test-file",
-          documentId: "test-doc-id",
+          presignedUploadUrl: "https://s3.amazonaws.com/test-bucket/test-file",
+          id: "test-doc-id",
         },
       },
     });
@@ -349,57 +346,12 @@ describe("virus scan polling", () => {
     expect(mockLazyQueryFn).toHaveBeenCalledTimes(VIRUS_SCAN_MAX_ATTEMPTS);
   });
 
-  it("skips virus scan polling for localhost uploads", async () => {
-    mockMutationFn.mockResolvedValue({
-      data: {
-        uploadDocumentToApplication: {
-          presignedURL: LOCAL_UPLOAD_PREFIX + "/test-file",
-          documentId: "test-doc-id",
-        },
-      },
-    });
-
-    const onDocumentUploadSucceeded = vi.fn();
-
-    render(
-      <ToastProvider>
-        <AddDocumentToApplicationDialog
-          onClose={vi.fn()}
-          applicationId="test-app-id"
-          onDocumentUploadSucceeded={onDocumentUploadSucceeded}
-          documentTypeSubset={["General File"]}
-        />
-      </ToastProvider>
-    );
-
-    const file = new File(["content"], "test.pdf", { type: "application/pdf" });
-    fireEvent.change(screen.getByTestId(FILE_INPUT_TEST_ID), {
-      target: { files: [file] },
-    });
-
-    const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
-    await waitFor(() => expect(uploadBtn).toBeEnabled());
-
-    const clickPromise = new Promise<void>((resolve) => {
-      fireEvent.click(uploadBtn);
-      setTimeout(() => resolve(), 0);
-    });
-
-    await clickPromise;
-    // Advance timers (though localhost should skip polling)
-    await vi.advanceTimersByTimeAsync(100);
-
-    expect(onDocumentUploadSucceeded).toHaveBeenCalled();
-    // Should not poll for virus scan in localhost mode
-    expect(mockLazyQueryFn).not.toHaveBeenCalled();
-  });
-
   it("refetches queries after successful upload when refetchQueries is provided", async () => {
     mockMutationFn.mockResolvedValue({
       data: {
         uploadDocumentToApplication: {
-          presignedURL: "https://s3.amazonaws.com/test-bucket/test-file",
-          documentId: "test-doc-id",
+          presignedUploadUrl: "https://s3.amazonaws.com/test-bucket/test-file",
+          id: "test-doc-id",
         },
       },
     });
@@ -449,8 +401,8 @@ describe("virus scan polling", () => {
     mockMutationFn.mockResolvedValue({
       data: {
         uploadDocumentToApplication: {
-          presignedURL: "https://s3.amazonaws.com/test-bucket/test-file",
-          documentId: "test-doc-id",
+          presignedUploadUrl: "https://s3.amazonaws.com/test-bucket/test-file",
+          id: "test-doc-id",
         },
       },
     });
@@ -497,7 +449,7 @@ describe("virus scan polling", () => {
 
 describe("tryUploadingFileToS3", () => {
   const mockFile = new File(["test content"], "test.pdf", { type: "application/pdf" });
-  const testPresignedURL = "https://test-bucket.s3.amazonaws.com/test-key?presigned=true";
+  const testpresignedUploadUrl = "https://test-bucket.s3.amazonaws.com/test-key?presigned=true";
 
   beforeEach(() => {
     globalThis.fetch = vi.fn();
@@ -513,10 +465,10 @@ describe("tryUploadingFileToS3", () => {
     };
     vi.mocked(globalThis.fetch).mockResolvedValue(mockResponse as Response);
 
-    const result = await tryUploadingFileToS3(testPresignedURL, mockFile);
+    const result = await tryUploadingFileToS3(testpresignedUploadUrl, mockFile);
 
     expect(result).toEqual({ success: true, errorMessage: "" });
-    expect(globalThis.fetch).toHaveBeenCalledWith(testPresignedURL, {
+    expect(globalThis.fetch).toHaveBeenCalledWith(testpresignedUploadUrl, {
       method: "PUT",
       body: mockFile,
       headers: { "Content-Type": "application/pdf" },
@@ -531,7 +483,7 @@ describe("tryUploadingFileToS3", () => {
     } as unknown as Response;
     vi.mocked(globalThis.fetch).mockResolvedValue(mockResponse);
 
-    const result = await tryUploadingFileToS3(testPresignedURL, mockFile);
+    const result = await tryUploadingFileToS3(testpresignedUploadUrl, mockFile);
 
     expect(result).toEqual({
       success: false,
@@ -544,7 +496,7 @@ describe("tryUploadingFileToS3", () => {
     const networkError = new Error("Network timeout");
     vi.mocked(globalThis.fetch).mockRejectedValue(networkError);
 
-    const result = await tryUploadingFileToS3(testPresignedURL, mockFile);
+    const result = await tryUploadingFileToS3(testpresignedUploadUrl, mockFile);
 
     expect(result).toEqual({
       success: false,
@@ -556,7 +508,7 @@ describe("tryUploadingFileToS3", () => {
     const nonErrorException = "String error";
     vi.mocked(globalThis.fetch).mockRejectedValue(nonErrorException);
 
-    const result = await tryUploadingFileToS3(testPresignedURL, mockFile);
+    const result = await tryUploadingFileToS3(testpresignedUploadUrl, mockFile);
 
     expect(result).toEqual({
       success: false,
@@ -571,9 +523,9 @@ describe("tryUploadingFileToS3", () => {
     const mockResponse = { ok: true };
     vi.mocked(globalThis.fetch).mockResolvedValue(mockResponse as Response);
 
-    await tryUploadingFileToS3(testPresignedURL, mockFileWithDifferentType);
+    await tryUploadingFileToS3(testpresignedUploadUrl, mockFileWithDifferentType);
 
-    expect(globalThis.fetch).toHaveBeenCalledWith(testPresignedURL, {
+    expect(globalThis.fetch).toHaveBeenCalledWith(testpresignedUploadUrl, {
       method: "PUT",
       body: mockFileWithDifferentType,
       headers: {
