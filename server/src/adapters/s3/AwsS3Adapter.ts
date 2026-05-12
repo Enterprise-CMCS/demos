@@ -8,7 +8,7 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { prisma, PrismaTransactionClient } from "../../prismaClient";
 import { S3Adapter } from "../";
-import { Prisma } from "@prisma/client";
+import { Prisma, DocumentPendingUpload as PrismaDocumentPendingUpload } from "@prisma/client";
 
 const EXPIRATION_TIME_SECONDS = 10;
 
@@ -106,29 +106,16 @@ export function createAWSS3Adapter(): S3Adapter {
     async uploadDocument(
       documentData: Prisma.DocumentPendingUploadCreateArgs["data"],
       tx?: PrismaTransactionClient
-    ): Promise<{
-      presignedURL: string;
-      documentId: string;
-    }> {
-      const createPendingUpload = async (transaction: PrismaTransactionClient) => {
-        const documentPendingUpload = await transaction.documentPendingUpload.create({
-          data: documentData,
-        });
-        const presignedURL = await this.getPresignedUploadUrl(documentPendingUpload.id);
-
-        return {
-          presignedURL,
-          documentId: documentPendingUpload.id,
-        };
-      };
-
-      if (tx) {
-        return await createPendingUpload(tx);
-      }
-
-      return await prisma().$transaction(async (transaction) => {
-        return await createPendingUpload(transaction);
-      });
+    ): Promise<PrismaDocumentPendingUpload> {
+      return tx
+        ? tx.documentPendingUpload.create({
+            data: documentData,
+          })
+        : prisma().$transaction((transaction) =>
+            transaction.documentPendingUpload.create({
+              data: documentData,
+            })
+          );
     },
   };
 }
