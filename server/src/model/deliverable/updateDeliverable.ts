@@ -1,5 +1,5 @@
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
-import { UpdateDeliverableInput } from "../../types";
+import { PersonType, UpdateDeliverableInput } from "../../types";
 import { GraphQLContext } from "../../auth";
 import {
   editDeliverable,
@@ -13,6 +13,7 @@ import {
 } from ".";
 import { prisma } from "../../prismaClient";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
+import { getUser } from "../user/queries";
 
 export async function updateDeliverable(
   deliverableId: string,
@@ -27,9 +28,18 @@ export async function updateDeliverable(
     await validateUpdateDeliverableInput(deliverableId, parsedInput, tx);
 
     // Directly edit name and CMS owner
+    // Cast below enforced by database
     const editInput: EditDeliverableInput = {};
-    if (parsedInput.name) editInput.name = parsedInput.name;
-    if (parsedInput.cmsOwnerUserId) editInput.cmsOwnerUserId = parsedInput.cmsOwnerUserId;
+    if (parsedInput.name) {
+      editInput.name = parsedInput.name;
+    }
+    if (parsedInput.cmsOwnerUserId) {
+      const cmsOwner = await getUser({ id: parsedInput.cmsOwnerUserId }, tx);
+      editInput.cmsOwner = {
+        cmsOwnerUserId: cmsOwner.id,
+        cmsOwnerPersonTypeId: cmsOwner.personTypeId as PersonType,
+      };
+    }
     if (Object.keys(editInput).length > 0) {
       await editDeliverable(deliverableId, editInput, tx);
     }
