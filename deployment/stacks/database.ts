@@ -54,6 +54,13 @@ export class DatabaseStack extends Stack {
       props.vpc
     );
 
+    const cmsSecuritySg = aws_ec2.SecurityGroup.fromLookupByName(
+      commonProps.scope,
+      "cmsSecurityToolsSG",
+      "cmscloud-security-tools",
+      props.vpc
+    );
+
     new CfnOutput(commonProps.scope, "dbSecurityGroupID", {
       value: rdsSecurityGroup.securityGroup.securityGroupId,
       exportName: `${commonProps.project}-${commonProps.stage}-rds-security-group-id`,
@@ -94,7 +101,7 @@ export class DatabaseStack extends Stack {
         credentials: aws_rds.Credentials.fromGeneratedSecret("demos_admin", {
           secretName: `${commonProps.project}-${commonProps.stage}-rds-admin`,
         }),
-        securityGroups: [rdsSecurityGroup.securityGroup, commonProps.cloudVpnSecurityGroup, sharedServicesSg],
+        securityGroups: [rdsSecurityGroup.securityGroup, commonProps.cloudVpnSecurityGroup, sharedServicesSg, cmsSecuritySg],
         publiclyAccessible: false,
         removalPolicy: ["prod", "impl"].includes(commonProps.stage) ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
         deleteAutomatedBackups: true,
