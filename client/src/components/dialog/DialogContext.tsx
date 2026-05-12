@@ -7,7 +7,6 @@ import { EditDemonstrationDialog } from "./demonstration";
 import { ExistingContactType, ManageContactsDialog } from "./ManageContactsDialog";
 import {
   AddDocumentToApplicationDialog,
-  AddDocumentToApplicationPhaseDialog,
   DocumentDialogFields,
   EditDocumentDialog,
   RemoveDocumentDialog,

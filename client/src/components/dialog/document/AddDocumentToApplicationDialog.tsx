@@ -3,7 +3,7 @@ import { gql, useApolloClient, TypedDocumentNode } from "@apollo/client";
 
 import {
   DocumentType,
-  UploadDocumentResponse,
+  DocumentPendingUpload,
   UploadDocumentToApplicationInput,
 } from "demos-server";
 import {
@@ -17,13 +17,13 @@ import { useDocumentPassedVirusScan } from "./useDocumentPassedVirusScan";
 import { useUploadDocument } from "./useUploadDocument";
 
 export const UPLOAD_DOCUMENT_QUERY: TypedDocumentNode<
-  { uploadDocumentToApplication: UploadDocumentResponse },
+  { uploadDocumentToApplication: Pick<DocumentPendingUpload, "presignedUploadUrl" | "id"> },
   { input: UploadDocumentToApplicationInput }
 > = gql`
   mutation UploadDocumentToApplication($input: UploadDocumentToApplicationInput!) {
     uploadDocumentToApplication(input: $input) {
-      presignedURL
-      documentId
+      id
+      presignedUploadUrl
     }
   }
 `;
@@ -77,22 +77,14 @@ export const AddDocumentToApplicationDialog: React.FC<AddDocumentToApplicationDi
 
     const uploadResult = (await uploadDocument(uploadDocumentInput)).uploadDocumentToApplication;
 
-    // Short-circuit: Skip S3 upload attempt and virus scan in local development
-    // Hint: If you want to test an upload scenario locally such as virus scan failure,
-    // simply return that DocumentUploadResult from this function
-    if (uploadResult.presignedURL.startsWith(LOCAL_UPLOAD_PREFIX)) {
-      await handleDocumentUploadSucceeded(uploadDocumentInput);
-      return "succeeded";
-    }
-
     // Upload the file to presigned URL
-    const response = await tryUploadingFileToS3(uploadResult.presignedURL, dialogFields.file);
+    const response = await tryUploadingFileToS3(uploadResult.presignedUploadUrl, dialogFields.file);
     if (!response.success) {
       throw new Error(response.errorMessage);
     }
 
     // Check for virus scan results and early return if failed
-    const isDocumentClean = await documentPassedVirusScan(uploadResult.documentId);
+    const isDocumentClean = await documentPassedVirusScan(uploadResult.id);
     if (!isDocumentClean) {
       return "virus-scan-failed";
     }

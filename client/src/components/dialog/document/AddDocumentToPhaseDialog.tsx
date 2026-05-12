@@ -2,10 +2,10 @@ import React from "react";
 import { gql, useApolloClient, TypedDocumentNode } from "@apollo/client";
 
 import {
+  DocumentPendingUpload,
   DocumentType,
   PhaseName,
-  UploadDocumentResponse,
-  UploadDocumentToApplicationPhaseInput,
+  UploadDocumentToPhaseInput,
 } from "demos-server";
 import {
   DocumentDialog,
@@ -18,32 +18,28 @@ import { useDocumentPassedVirusScan } from "./useDocumentPassedVirusScan";
 import { useUploadDocument } from "./useUploadDocument";
 
 export const UPLOAD_DOCUMENT_QUERY: TypedDocumentNode<
-  { uploadDocumentToApplicationPhase: UploadDocumentResponse },
-  { input: UploadDocumentToApplicationPhaseInput }
+  { uploadDocumentToPhase: Pick<DocumentPendingUpload, "id" | "presignedUploadUrl"> },
+  { input: UploadDocumentToPhaseInput }
 > = gql`
-  mutation UploadDocumentToApplicationPhase($input: UploadDocumentToApplicationPhaseInput!) {
-    uploadDocumentToApplicationPhase(input: $input) {
-      presignedURL
-      documentId
+  mutation UploadDocumentToPhase($input: UploadDocumentToPhaseInput!) {
+    uploadDocumentToPhase(input: $input) {
+      id
+      presignedUploadUrl
     }
   }
 `;
 
-export const LOCAL_UPLOAD_PREFIX = "LocalS3Adapter";
-
-interface AddDocumentToApplicationPhaseDialogProps {
+interface AddDocumentToPhaseDialogProps {
   onClose: () => void;
   applicationId: string;
   documentTypeSubset?: DocumentType[];
   titleOverride?: string;
   refetchQueries?: string[];
-  onDocumentUploadSucceeded?: (payload?: UploadDocumentToApplicationPhaseInput) => void;
+  onDocumentUploadSucceeded?: (payload?: UploadDocumentToPhaseInput) => void;
   phaseName: PhaseName;
 }
 
-export const AddDocumentToApplicationPhaseDialog: React.FC<
-  AddDocumentToApplicationPhaseDialogProps
-> = ({
+export const AddDocumentToPhaseDialog: React.FC<AddDocumentToPhaseDialogProps> = ({
   onClose,
   applicationId,
   documentTypeSubset,
@@ -57,7 +53,7 @@ export const AddDocumentToApplicationPhaseDialog: React.FC<
   const { documentPassedVirusScan } = useDocumentPassedVirusScan();
   const { uploadDocument } = useUploadDocument(UPLOAD_DOCUMENT_QUERY);
   const handleDocumentUploadSucceeded = async (
-    payload: UploadDocumentToApplicationPhaseInput
+    payload: UploadDocumentToPhaseInput
   ): Promise<void> => {
     onDocumentUploadSucceeded?.(payload);
     if (refetchQueries) {
@@ -73,7 +69,7 @@ export const AddDocumentToApplicationPhaseDialog: React.FC<
       return "unknown-error";
     }
 
-    const uploadDocumentInput: UploadDocumentToApplicationPhaseInput = {
+    const uploadDocumentInput: UploadDocumentToPhaseInput = {
       applicationId,
       name: dialogFields.name,
       description: dialogFields.description,
@@ -81,25 +77,16 @@ export const AddDocumentToApplicationPhaseDialog: React.FC<
       phaseName,
     };
 
-    const uploadResult = (await uploadDocument(uploadDocumentInput))
-      .uploadDocumentToApplicationPhase;
-
-    // Short-circuit: Skip S3 upload attempt and virus scan in local development
-    // Hint: If you want to test an upload scenario locally such as virus scan failure,
-    // simply return that DocumentUploadResult from this function
-    if (uploadResult.presignedURL.startsWith(LOCAL_UPLOAD_PREFIX)) {
-      await handleDocumentUploadSucceeded(uploadDocumentInput);
-      return "succeeded";
-    }
+    const uploadResult = (await uploadDocument(uploadDocumentInput)).uploadDocumentToPhase;
 
     // Upload the file to presigned URL
-    const response = await tryUploadingFileToS3(uploadResult.presignedURL, dialogFields.file);
+    const response = await tryUploadingFileToS3(uploadResult.presignedUploadUrl, dialogFields.file);
     if (!response.success) {
       throw new Error(response.errorMessage);
     }
 
     // Check for virus scan results and early return if failed
-    const isDocumentClean = await documentPassedVirusScan(uploadResult.documentId);
+    const isDocumentClean = await documentPassedVirusScan(uploadResult.id);
     if (!isDocumentClean) {
       return "virus-scan-failed";
     }

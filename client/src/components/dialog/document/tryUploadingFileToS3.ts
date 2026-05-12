@@ -1,5 +1,7 @@
 import gql from "graphql-tag";
 
+export const LOCAL_UPLOAD_PREFIX = "LocalS3Adapter";
+
 export const DOCUMENT_EXISTS_QUERY = gql`
   query DocumentExists($documentId: ID!) {
     documentExists(documentId: $documentId)
@@ -10,6 +12,9 @@ export const tryUploadingFileToS3 = async (
   presignedURL: string,
   file: File
 ): Promise<{ success: boolean; errorMessage: string }> => {
+  if (presignedURL.startsWith(LOCAL_UPLOAD_PREFIX)) {
+    return { success: true, errorMessage: "" };
+  }
   try {
     const putResponse = await fetch(presignedURL, {
       method: "PUT",
