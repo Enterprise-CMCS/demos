@@ -13,6 +13,7 @@ vi.mock("../../../prismaClient", () => ({
 }));
 
 import { prisma } from "../../../prismaClient";
+import { PersonType } from "../../../types";
 
 describe("editDeliverable", () => {
   const regularMocks = {
@@ -78,5 +79,29 @@ describe("editDeliverable", () => {
     await editDeliverable(testDeliverableId, testInput, mockTransaction);
     expect(regularMocks.deliverable.update).not.toHaveBeenCalled();
     expect(transactionMocks.deliverable.update).toHaveBeenCalledExactlyOnceWith(expectedCall);
+  });
+
+  it("should flatten the user change if it is provided", async () => {
+    const testPersonType: PersonType = "demos-admin";
+    const testInput = {
+      ...baseTestInput,
+      cmsOwner: {
+        cmsOwnerUserId: "487d8f98-8543-41bf-9d15-640c3ed5466c",
+        cmsOwnerPersonTypeId: testPersonType,
+      },
+    };
+    const expectedCall = {
+      where: {
+        id: testDeliverableId,
+      },
+      data: {
+        name: testInput.name,
+        cmsOwnerUserId: testInput.cmsOwner.cmsOwnerUserId,
+        cmsOwnerPersonTypeId: testInput.cmsOwner.cmsOwnerPersonTypeId,
+      },
+    };
+    await editDeliverable(testDeliverableId, testInput);
+    expect(regularMocks.deliverable.update).toHaveBeenCalledExactlyOnceWith(expectedCall);
+    expect(transactionMocks.deliverable.update).not.toHaveBeenCalled();
   });
 });
