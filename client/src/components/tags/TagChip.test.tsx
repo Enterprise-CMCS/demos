@@ -48,4 +48,22 @@ describe("Approval status", () => {
     expect(tagElement).toHaveClass("bg-yellow-100");
     expect(tagElement).toHaveClass("border-yellow-400");
   });
+
+  it("renders suggestion variant with purple styling", () => {
+    render(
+      <TagChip
+        tag={{ tagName: "Health Equity", approvalStatus: "Approved" }}
+        variant="suggestion"
+        onClick={() => {}}
+        ariaLabel="Apply suggested tag Health Equity"
+      />
+    );
+
+    const tagElement = screen.getByRole("button", {
+      name: "Apply suggested tag Health Equity",
+    });
+    expect(tagElement).toHaveClass("bg-purple-50");
+    expect(tagElement).toHaveClass("border-purple-200");
+    expect(tagElement).toHaveClass("text-purple-700");
+  });
 });

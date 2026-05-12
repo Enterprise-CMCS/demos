@@ -36,6 +36,7 @@ export const GET_AMENDMENT_WORKFLOW_QUERY = gql`
         tagName
         approvalStatus
       }
+      suggestedApplicationTags
       phases {
         ...WORKFLOW_PHASE_FIELDS
       }
