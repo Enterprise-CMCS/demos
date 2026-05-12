@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { useMutation } from "@apollo/client";
+import { gql, TypedDocumentNode, useMutation } from "@apollo/client";
 
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
@@ -16,7 +16,7 @@ import { getPhaseCompletedMessage } from "util/messages";
 import { useToast } from "components/toast";
 import { DatePicker } from "components/input/date/DatePicker";
 import { ApplicationHealthTypeTags } from "components/tags/ApplicationHealthTypeTags";
-import type { LocalDate, PhaseName, PhaseStatus, Tag, TagName } from "demos-server";
+import type { Application, LocalDate, PhaseName, PhaseStatus, Tag, TagName } from "demos-server";
 import { SET_APPLICATION_TAGS_MUTATION } from "components/dialog/ApplyTagsDialog";
 
 /** Business Rules for this Phase:
@@ -50,6 +50,40 @@ export const APPLICATION_INTAKE_FINISH_BUTTON_NAME = "button-finish-state-applic
 export const APPLICATION_INTAKE_UPLOAD_BUTTON_NAME = "button-open-upload-modal";
 export const APPLICATION_SUBMITTED_DATEPICKER_NAME = "datepicker-state-application-submitted-date";
 export const COMPLETENESS_REVIEW_DATEPICKER_NAME = "datepicker-completeness-review-due-date";
+
+export const ACCEPT_APPLICATION_TAG_SUGGESTION_MUTATION: TypedDocumentNode<
+  { acceptApplicationTagSuggestion: Application | null },
+  { applicationId: string; value: TagName }
+> = gql`
+  mutation AcceptApplicationTagSuggestion($applicationId: ID!, $value: String!) {
+    acceptApplicationTagSuggestion(applicationId: $applicationId, value: $value) {
+      ... on Demonstration {
+        id
+        tags {
+          tagName
+          approvalStatus
+        }
+        suggestedApplicationTags
+      }
+      ... on Amendment {
+        id
+        tags {
+          tagName
+          approvalStatus
+        }
+        suggestedApplicationTags
+      }
+      ... on Extension {
+        id
+        tags {
+          tagName
+          approvalStatus
+        }
+        suggestedApplicationTags
+      }
+    }
+  }
+`;
 
 const UploadSection = ({
   applicationId,
@@ -222,6 +256,7 @@ export const getApplicationIntakeComponentFromApplication = (
       applicationIntakeDocuments={applicationIntakeDocuments}
       initialStateApplicationSubmittedDate={estStateApplicationSubmittedDate}
       tags={application.tags}
+      suggestedTags={application.suggestedApplicationTags ?? []}
       setSelectedPhase={setSelectedPhase}
       phaseStatus={applicationIntakePhase.phaseStatus ?? "Not Started"}
       completenessPhaseStatus={completenessPhase.phaseStatus ?? "Not Started"}
@@ -233,6 +268,7 @@ export interface ApplicationIntakeProps {
   applicationIntakeDocuments: ApplicationWorkflowDocument[];
   initialStateApplicationSubmittedDate: string;
   tags: Tag[];
+  suggestedTags?: TagName[];
   setSelectedPhase: (phase: PhaseName) => void;
   phaseStatus: PhaseStatus;
   completenessPhaseStatus: PhaseStatus;
@@ -243,6 +279,7 @@ export const ApplicationIntakePhase = ({
   applicationIntakeDocuments,
   initialStateApplicationSubmittedDate,
   tags,
+  suggestedTags = [],
   setSelectedPhase,
   phaseStatus,
   completenessPhaseStatus,
@@ -252,6 +289,9 @@ export const ApplicationIntakePhase = ({
   const { completePhase } = useCompletePhase();
   const { setApplicationDates } = useSetApplicationDates();
   const [setApplicationTagsMutation] = useMutation(SET_APPLICATION_TAGS_MUTATION);
+  const [acceptApplicationTagSuggestion, { loading: isApplyingSuggestedTag }] = useMutation(
+    ACCEPT_APPLICATION_TAG_SUGGESTION_MUTATION
+  );
 
   const [submittedDateOverride, setSubmittedDateOverride] = useState<string>("");
 
@@ -319,6 +359,21 @@ export const ApplicationIntakePhase = ({
     }
   };
 
+  const handleAcceptSuggestedTag = async (tagName: TagName) => {
+    try {
+      await acceptApplicationTagSuggestion({
+        variables: {
+          applicationId,
+          value: tagName,
+        },
+      });
+      showSuccess("Application tags updated");
+    } catch (error) {
+      showError("Failed to update application tags");
+      throw error;
+    }
+  };
+
   return (
     <div>
       <h3 className="text-brand text-[22px] font-bold">APPLICATION INTAKE</h3>
@@ -348,7 +403,10 @@ export const ApplicationIntakePhase = ({
               "You must tag this application with one or more demonstration types involved in this request before it can be reviewed and approved."
             }
             selectedTags={tags}
+            suggestedTags={suggestedTags}
             onRemoveTag={handleRemoveTag}
+            onAcceptSuggestedTag={handleAcceptSuggestedTag}
+            isApplyingSuggestedTag={isApplyingSuggestedTag}
           />
         </div>
       </section>

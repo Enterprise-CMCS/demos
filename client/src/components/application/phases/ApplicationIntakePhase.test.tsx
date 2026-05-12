@@ -1,6 +1,6 @@
 import React from "react";
 import { TestProvider } from "test-utils/TestProvider";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -72,6 +72,10 @@ describe("ApplicationIntakePhase", () => {
     owner: { person: { fullName: "John Doe" } },
     createdAt: new TZDate("2024-01-12", EST_TIMEZONE),
   };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   const setup = (props: Partial<ApplicationIntakeProps> = {}) => {
     const finalProps = { ...DEFAULT_APPLICATION_INTAKE_PROPS, ...props } as ApplicationIntakeProps;
@@ -312,6 +316,31 @@ describe("ApplicationIntakePhase", () => {
         },
       });
     });
+
+    it("accepts a UiPath suggested tag", async () => {
+      setup({
+        suggestedTags: ["Health Equity"],
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText("DEMOS AI SUGGESTIONS")).toBeInTheDocument();
+      });
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "Apply suggested tag Health Equity" })
+      );
+
+      await waitFor(() => {
+        expect(mockSetApplicationTagsMutation).toHaveBeenCalledTimes(1);
+      });
+
+      expect(mockSetApplicationTagsMutation).toHaveBeenCalledWith({
+        variables: {
+          applicationId: TEST_APP_ID,
+          value: "Health Equity",
+        },
+      });
+    });
   });
 
   describe("Button Logic", () => {
@@ -481,9 +510,9 @@ describe("ApplicationIntakePhase", () => {
         tags: [],
       };
 
-      expect(() =>
-        getApplicationIntakeComponentFromApplication(mockApplication, () => {})
-      ).toThrow("Application is missing expected phase: Completeness");
+      expect(() => getApplicationIntakeComponentFromApplication(mockApplication, () => {})).toThrow(
+        "Application is missing expected phase: Completeness"
+      );
     });
 
     it("passes completenessPhaseStatus from the Completeness phase", () => {

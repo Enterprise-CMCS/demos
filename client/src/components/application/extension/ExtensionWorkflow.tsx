@@ -35,6 +35,7 @@ export const GET_EXTENSION_WORKFLOW_QUERY = gql`
         tagName
         approvalStatus
       }
+      suggestedApplicationTags
       phases {
         ...WORKFLOW_PHASE_FIELDS
       }
