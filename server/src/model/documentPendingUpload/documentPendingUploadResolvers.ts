@@ -98,7 +98,7 @@ export const documentPendingUploadResolvers = {
       getUser({ id: parent.ownerUserId }, context.user),
     documentType: (parent: PrismaDocumentPendingUpload) => parent.documentTypeId as DocumentType,
     presignedUploadUrl: async (parent: PrismaDocumentPendingUpload) =>
-      await getS3Adapter().getPresignedUploadUrl(`${parent.applicationId}/${parent.id}`),
+      await getS3Adapter().getPresignedUploadUrl(parent.id),
     application: resolveApplication,
     deliverable: resolveDeliverable,
     phaseName: (parent: PrismaDocumentPendingUpload) => parent.phaseId as PhaseName,

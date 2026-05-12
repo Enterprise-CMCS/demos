@@ -6,7 +6,7 @@ import { ApprovalPackageUploadDialog } from "./ApprovalPackageUploadDialog";
 import { DocumentType } from "demos-server";
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 
-interface MockAddDocumentToApplicationPhaseDialogProps {
+interface MockAddDocumentToPhaseDialogProps {
   titleOverride: string;
   documentTypeSubset: DocumentType[];
   phaseName: string;
@@ -22,13 +22,13 @@ vi.mock("@apollo/client", async () => {
   };
 });
 
-// Mock AddDocumentToApplicationPhaseDialog
+// Mock AddDocumentToPhaseDialog
 vi.mock("components/dialog/document", () => ({
-  AddDocumentToApplicationPhaseDialog: ({
+  AddDocumentToPhaseDialog: ({
     titleOverride,
     documentTypeSubset,
     phaseName,
-  }: MockAddDocumentToApplicationPhaseDialogProps) => (
+  }: MockAddDocumentToPhaseDialogProps) => (
     <div>
       <div data-testid="add-document-dialog">{titleOverride}</div>
       <div data-testid="document-type">{documentTypeSubset.join(",")}</div>

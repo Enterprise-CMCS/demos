@@ -1,6 +1,6 @@
 import React from "react";
 
-import { AddDocumentToApplicationPhaseDialog } from "components/dialog/document";
+import { AddDocumentToPhaseDialog } from "components/dialog/document";
 import { DocumentType } from "demos-server";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application/demonstration/DemonstrationWorkflow";
@@ -16,7 +16,7 @@ export const ConceptPreSubmissionUploadDialog = ({
   onClose: () => void;
 }) => {
   return (
-    <AddDocumentToApplicationPhaseDialog
+    <AddDocumentToPhaseDialog
       applicationId={applicationId}
       onClose={onClose}
       documentTypeSubset={DOCUMENT_TYPE_SUBSET}

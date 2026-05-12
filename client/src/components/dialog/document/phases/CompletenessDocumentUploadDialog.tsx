@@ -1,6 +1,6 @@
 import React from "react";
 import { DocumentType } from "demos-server";
-import { AddDocumentToApplicationPhaseDialog } from "components/dialog/document";
+import { AddDocumentToPhaseDialog } from "components/dialog/document";
 import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application/demonstration/DemonstrationWorkflow";
 import { GET_AMENDMENT_WORKFLOW_QUERY, GET_EXTENSION_WORKFLOW_QUERY } from "components/application";
 
@@ -18,7 +18,7 @@ export const CompletenessDocumentUploadDialog = ({
   onClose: () => void;
 }) => {
   return (
-    <AddDocumentToApplicationPhaseDialog
+    <AddDocumentToPhaseDialog
       applicationId={applicationId}
       onClose={onClose}
       documentTypeSubset={COMPLETENESS_DOCUMENT_TYPES}
