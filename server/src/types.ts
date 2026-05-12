@@ -65,12 +65,14 @@ export type {
   UpdateExtensionInput,
 } from "./model/extension/extensionSchema.js";
 
+export type { Document, UpdateDocumentInput } from "./model/document/documentSchema.js";
+
 export type {
-  Document,
-  UpdateDocumentInput,
-  UploadDocumentInput,
-  UploadDocumentResponse,
-} from "./model/document/documentSchema.js";
+  DocumentPendingUpload,
+  UploadDocumentToApplicationInput,
+  UploadDocumentToPhaseInput,
+  UploadDocumentToDeliverableInput,
+} from "./model/documentPendingUpload/documentPendingUploadSchema.js";
 
 export type { SetApplicationClearanceLevelInput } from "./model/application/applicationSchema.js";
 

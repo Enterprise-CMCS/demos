@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
-import { ApplicationDateInput, UploadDocumentInput } from "../../types";
+import { ApplicationDateInput, PhaseName } from "../../types";
 import { EasternNow } from "../../dateUtilities";
-import { startPhaseByDocument } from "./startPhaseByDocument";
+import { startPhase } from "./startPhase";
 
 // Mock imports
 import { setPhaseToStarted } from ".";
@@ -19,9 +19,7 @@ vi.mock("../applicationDate", () => ({
 describe("startPhaseByDocument", () => {
   const mockTransaction = "mockTransaction" as any;
   const testApplicationId = "app-123-456";
-  const mockDocument: Pick<UploadDocumentInput, "phaseName"> = {
-    phaseName: "Concept",
-  };
+  const mockPhaseName: PhaseName = "Concept";
   const mockEasternNow: EasternNow = {
     "End of Day": {
       easternTZDate: new TZDate("2025-01-15T23:59:59.999-05:00", "America/New_York"),
@@ -50,10 +48,10 @@ describe("startPhaseByDocument", () => {
     vi.mocked(setPhaseToStarted).mockResolvedValue(true);
     vi.mocked(createPhaseStartDate).mockReturnValue(mockPhaseStartDate);
 
-    const result = await startPhaseByDocument(
+    const result = await startPhase(
       mockTransaction,
       testApplicationId,
-      mockDocument,
+      mockPhaseName,
       mockEasternNow
     );
 
@@ -69,10 +67,10 @@ describe("startPhaseByDocument", () => {
   it("should return null when phase is not started", async () => {
     vi.mocked(setPhaseToStarted).mockResolvedValue(false);
 
-    const result = await startPhaseByDocument(
+    const result = await startPhase(
       mockTransaction,
       testApplicationId,
-      mockDocument,
+      mockPhaseName,
       mockEasternNow
     );
 
@@ -89,10 +87,10 @@ describe("startPhaseByDocument", () => {
     vi.mocked(setPhaseToStarted).mockResolvedValue(true);
     vi.mocked(createPhaseStartDate).mockReturnValue(null);
 
-    const result = await startPhaseByDocument(
+    const result = await startPhase(
       mockTransaction,
       testApplicationId,
-      mockDocument,
+      mockPhaseName,
       mockEasternNow
     );
 
@@ -102,21 +100,6 @@ describe("startPhaseByDocument", () => {
       mockTransaction
     );
     expect(createPhaseStartDate).toHaveBeenCalledExactlyOnceWith("Concept", mockEasternNow);
-    expect(result).toBeNull();
-  });
-
-  it("should return null immediately when phaseName is undefined", async () => {
-    const result = await startPhaseByDocument(
-      mockTransaction,
-      testApplicationId,
-      {
-        phaseName: undefined,
-      },
-      mockEasternNow
-    );
-
-    expect(setPhaseToStarted).not.toHaveBeenCalled();
-    expect(createPhaseStartDate).not.toHaveBeenCalled();
     expect(result).toBeNull();
   });
 });

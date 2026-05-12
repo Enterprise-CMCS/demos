@@ -1,6 +1,6 @@
 import React from "react";
 
-import { AddDocumentDialog } from "components/dialog/document";
+import { AddDocumentToPhaseDialog } from "components/dialog/document";
 import { DocumentType } from "demos-server";
 import {
   GET_AMENDMENT_WORKFLOW_QUERY,
@@ -21,7 +21,7 @@ export const FederalCommentUploadDialog = ({
   applicationId: string;
 }) => {
   return (
-    <AddDocumentDialog
+    <AddDocumentToPhaseDialog
       onClose={onClose}
       documentTypeSubset={FEDERAL_COMMENT_DOCUMENT_TYPES}
       applicationId={applicationId}

@@ -13,9 +13,6 @@ export async function updateDocument(
       name: input.name,
       description: input.description,
       documentTypeId: input.documentType,
-      applicationId: input.applicationId,
-      deliverableId: input.deliverableId,
-      phaseId: input.phaseName,
     },
   });
 }
