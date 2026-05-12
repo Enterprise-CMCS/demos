@@ -32,7 +32,7 @@ export type WorkflowApplication = {
   phases: SimplePhase[];
   documents: ApplicationWorkflowDocument[];
   tags: Tag[];
-  suggestedApplicationTags: TagName[];
+  suggestedApplicationTags?: TagName[];
   clearanceLevel: ClearanceLevel;
 };
 
