@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TZDate } from "@date-fns/tz";
 import { ApplicationDateInput, PhaseName } from "../../types";
 import { EasternNow } from "../../dateUtilities";
-import { startPhaseByDocument } from "./startPhaseByDocument";
+import { startPhase } from "./startPhase";
 
 // Mock imports
 import { setPhaseToStarted } from ".";
@@ -48,7 +48,7 @@ describe("startPhaseByDocument", () => {
     vi.mocked(setPhaseToStarted).mockResolvedValue(true);
     vi.mocked(createPhaseStartDate).mockReturnValue(mockPhaseStartDate);
 
-    const result = await startPhaseByDocument(
+    const result = await startPhase(
       mockTransaction,
       testApplicationId,
       mockPhaseName,
@@ -67,7 +67,7 @@ describe("startPhaseByDocument", () => {
   it("should return null when phase is not started", async () => {
     vi.mocked(setPhaseToStarted).mockResolvedValue(false);
 
-    const result = await startPhaseByDocument(
+    const result = await startPhase(
       mockTransaction,
       testApplicationId,
       mockPhaseName,
@@ -87,7 +87,7 @@ describe("startPhaseByDocument", () => {
     vi.mocked(setPhaseToStarted).mockResolvedValue(true);
     vi.mocked(createPhaseStartDate).mockReturnValue(null);
 
-    const result = await startPhaseByDocument(
+    const result = await startPhase(
       mockTransaction,
       testApplicationId,
       mockPhaseName,

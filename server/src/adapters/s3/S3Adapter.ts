@@ -1,7 +1,7 @@
 import { PrismaTransactionClient } from "../../prismaClient";
 import { createAWSS3Adapter } from "./AwsS3Adapter";
 import { createLocalS3Adapter } from "./LocalS3Adapter";
-import { Prisma, Document as PrismaDocument } from "@prisma/client";
+import { Prisma, DocumentPendingUpload as PrismaDocumentPendingUpload } from "@prisma/client";
 export interface S3Adapter {
   getPresignedUploadUrl(key: string): Promise<string>;
   getPresignedDownloadUrl(key: string): Promise<string>;
@@ -9,10 +9,7 @@ export interface S3Adapter {
   uploadDocument(
     documentData: Prisma.DocumentPendingUploadCreateArgs["data"],
     tx?: PrismaTransactionClient
-  ): Promise<{
-    presignedURL: string;
-    documentId: string;
-  }>;
+  ): Promise<PrismaDocumentPendingUpload>;
 }
 
 let s3AdapterInstance: S3Adapter | null = null;

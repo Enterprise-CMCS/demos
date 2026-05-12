@@ -1,11 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { createLocalS3Adapter } from "./LocalS3Adapter";
-import { Prisma, Document as PrismaDocument } from "@prisma/client";
+import {
+  Prisma,
+  Document as PrismaDocument,
+  DocumentPendingUpload as PrismaDocumentPendingUpload,
+} from "@prisma/client";
 
 describe("LocalS3Adapter", () => {
   const mockTransaction = {
     document: {
+      create: vi.fn(),
+    },
+    documentPendingUpload: {
       create: vi.fn(),
     },
   } as unknown as PrismaTransactionClient;
@@ -26,31 +33,9 @@ describe("LocalS3Adapter", () => {
 
       expect(result).toBe("LocalS3Adapter/local-demos-bucket/test-key?upload=true&expires=3600");
     });
-
-    it("should track uploaded keys in memory", async () => {
-      const adapter = createLocalS3Adapter();
-      const testKey = "test-key";
-
-      await adapter.getPresignedUploadUrl(testKey);
-      const downloadUrl = await adapter.getPresignedDownloadUrl(testKey);
-
-      expect(downloadUrl).toBe(
-        "LocalS3Adapter/local-demos-bucket/test-key?download=true&expires=3600"
-      );
-    });
   });
 
   describe("getPresignedDownloadUrl", () => {
-    it("should return a fake presigned download URL for uploaded files", async () => {
-      const adapter = createLocalS3Adapter();
-      const testKey = "test-key";
-
-      await adapter.getPresignedUploadUrl(testKey);
-      const result = await adapter.getPresignedDownloadUrl(testKey);
-
-      expect(result).toBe("LocalS3Adapter/local-demos-bucket/test-key?download=true&expires=3600");
-    });
-
     it("should return error message for non-existent files", async () => {
       const adapter = createLocalS3Adapter();
       const testKey = "non-existent-key";
@@ -102,7 +87,7 @@ describe("LocalS3Adapter", () => {
       ownerUserId: testUserId,
     };
 
-    const mockCreatedDocument: PrismaDocument = {
+    const mockCreatedDocument: Partial<PrismaDocument> = {
       id: testDocumentId,
       name: "test.pdf",
       description: "Test document",
@@ -110,13 +95,18 @@ describe("LocalS3Adapter", () => {
       documentTypeId: "State Application",
       applicationId: "app-123",
       phaseId: "Concept",
-      s3Path: "s3://local-simple-upload/app-123/doc-123-456",
+      s3Path: "s3://local-demos-bucket/app-123/doc-123-456",
       createdAt: new Date("2025-01-01T00:00:00.000Z"),
       updatedAt: new Date("2025-01-01T00:00:00.000Z"),
-    } as PrismaDocument;
+    };
 
     it("should create document in database and return presigned URL", async () => {
-      vi.mocked(mockTransaction.document.create).mockResolvedValue(mockCreatedDocument);
+      vi.mocked(mockTransaction.document.create).mockResolvedValue(
+        mockCreatedDocument as PrismaDocument
+      );
+      vi.mocked(mockTransaction.documentPendingUpload.create).mockResolvedValue(
+        mockCreatedDocument as PrismaDocument
+      );
 
       const adapter = createLocalS3Adapter();
       const result = await adapter.uploadDocument(
@@ -124,23 +114,32 @@ describe("LocalS3Adapter", () => {
         mockTransaction
       );
 
-      expect(mockTransaction.document.create).toHaveBeenCalledExactlyOnceWith({
+      expect(mockTransaction.documentPendingUpload.create).toHaveBeenCalledExactlyOnceWith({
         data: {
-          id: expect.any(String),
           name: "test.pdf",
           description: "Test document",
           ownerUserId: testUserId,
           documentTypeId: "State Application",
           applicationId: "app-123",
           phaseId: "Concept",
-          s3Path: expect.stringMatching(/^s3:\/\/local-simple-upload\/app-123\/.+$/),
         },
       });
-      expect(result).toHaveProperty("presignedURL");
-      expect(result).toHaveProperty("documentId", testDocumentId);
-      expect(result.presignedURL).toMatch(
-        /^LocalS3Adapter\/local-demos-bucket\/.+\?upload=true&expires=3600$/
-      );
+
+      expect(mockTransaction.document.create).toHaveBeenCalledExactlyOnceWith({
+        data: {
+          id: testDocumentId,
+          name: "test.pdf",
+          description: "Test document",
+          ownerUserId: testUserId,
+          documentTypeId: "State Application",
+          applicationId: "app-123",
+          phaseId: "Concept",
+          s3Path: `LocalS3Adapter/local-demos-bucket/${testDocumentId}`,
+        },
+      });
+      expect(result).toMatchObject({
+        id: testDocumentId,
+      });
     });
 
     it("should handle input without description", async () => {
@@ -148,7 +147,10 @@ describe("LocalS3Adapter", () => {
         ...mockUploadInput,
         description: undefined,
       };
-      vi.mocked(mockTransaction.document.create).mockResolvedValue(mockCreatedDocument);
+      vi.mocked(mockTransaction.documentPendingUpload.create).mockResolvedValue({
+        ...mockCreatedDocument,
+        description: null,
+      } as PrismaDocument);
 
       const adapter = createLocalS3Adapter();
       await adapter.uploadDocument(inputWithoutDescription, mockTransaction);
@@ -160,60 +162,30 @@ describe("LocalS3Adapter", () => {
       });
     });
 
-    it("should generate UUID for document ID", async () => {
-      vi.mocked(mockTransaction.document.create).mockResolvedValue(mockCreatedDocument);
-
-      const adapter = createLocalS3Adapter();
-      await adapter.uploadDocument(mockUploadInput, mockTransaction);
-
-      const createCall = vi.mocked(mockTransaction.document.create).mock.calls[0][0];
-      expect(createCall.data.id).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
-      );
-    });
-
     it("should construct s3Path with applicationId and documentId", async () => {
-      vi.mocked(mockTransaction.document.create).mockResolvedValue(mockCreatedDocument);
+      vi.mocked(mockTransaction.documentPendingUpload.create).mockResolvedValue(
+        mockCreatedDocument as PrismaDocumentPendingUpload
+      );
 
       const adapter = createLocalS3Adapter();
       await adapter.uploadDocument(mockUploadInput, mockTransaction);
 
       const createCall = vi.mocked(mockTransaction.document.create).mock.calls[0][0];
-      expect(createCall.data.s3Path).toMatch(/^s3:\/\/local-simple-upload\/app-123\/.+$/);
-    });
-
-    it("should use UPLOAD_BUCKET environment variable if set", async () => {
-      const originalEnv = process.env.UPLOAD_BUCKET;
-      process.env.UPLOAD_BUCKET = "custom-upload-bucket";
-      vi.mocked(mockTransaction.document.create).mockResolvedValue({
-        ...mockCreatedDocument,
-        s3Path: "s3://custom-upload-bucket/app-123/doc-123-456",
-      });
-
-      const adapter = createLocalS3Adapter();
-      await adapter.uploadDocument(mockUploadInput, mockTransaction);
-
-      const createCall = vi.mocked(mockTransaction.document.create).mock.calls[0][0];
-      expect(createCall.data.s3Path).toMatch(/^s3:\/\/custom-upload-bucket\/.+$/);
-
-      // Restore original env
-      if (originalEnv !== undefined) {
-        process.env.UPLOAD_BUCKET = originalEnv;
-      } else {
-        delete process.env.UPLOAD_BUCKET;
-      }
+      expect(createCall.data.s3Path).toMatch(`LocalS3Adapter/local-demos-bucket/${testDocumentId}`);
     });
 
     it("should add uploaded document to in-memory tracking", async () => {
-      vi.mocked(mockTransaction.document.create).mockResolvedValue(mockCreatedDocument);
+      vi.mocked(mockTransaction.documentPendingUpload.create).mockResolvedValue(
+        mockCreatedDocument as PrismaDocumentPendingUpload
+      );
 
       const adapter = createLocalS3Adapter();
       const result = await adapter.uploadDocument(mockUploadInput, mockTransaction);
 
       // Verify the document can be downloaded (exists in memory)
-      const downloadUrl = await adapter.getPresignedDownloadUrl(result.documentId);
+      const downloadUrl = await adapter.getPresignedDownloadUrl(result.id);
       expect(downloadUrl).toMatch(
-        /^LocalS3Adapter\/local-demos-bucket\/.+\?download=true&expires=3600$/
+        `LocalS3Adapter/local-demos-bucket/${testDocumentId}?download=true&expires=3600`
       );
     });
   });

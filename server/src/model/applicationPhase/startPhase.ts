@@ -4,7 +4,7 @@ import { EasternNow } from "../../dateUtilities";
 import { createPhaseStartDate } from "../applicationDate";
 import { setPhaseToStarted } from ".";
 
-export async function startPhaseByDocument(
+export async function startPhase(
   tx: PrismaTransactionClient,
   applicationId: string,
   phaseName: PhaseName,

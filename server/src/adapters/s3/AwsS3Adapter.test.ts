@@ -184,7 +184,7 @@ describe("AwsS3Adapter", () => {
       ownerUserId: testUserId,
     };
 
-    it("should create pending upload and return presigned URL with document ID", async () => {
+    it("should create pending upload and return it", async () => {
       const mockPresignedUrl = "https://s3.amazonaws.com/upload/presigned-url";
       vi.mocked(getSignedUrl).mockResolvedValue(mockPresignedUrl);
 
@@ -194,21 +194,7 @@ describe("AwsS3Adapter", () => {
       expect(mockTransaction.documentPendingUpload.create).toHaveBeenCalledExactlyOnceWith({
         data: mockUploadInput,
       });
-      expect(result).toEqual({
-        presignedURL: mockPresignedUrl,
-        documentId: "pending-doc-123",
-      });
-    });
-
-    it("should use document pending upload ID for presigned URL key", async () => {
-      const mockPresignedUrl = "https://s3.amazonaws.com/upload/presigned-url";
-      vi.mocked(getSignedUrl).mockResolvedValue(mockPresignedUrl);
-
-      const adapter = createAWSS3Adapter();
-      await adapter.uploadDocument(mockUploadInput, mockTransaction);
-
-      const putObjectCommand = vi.mocked(getSignedUrl).mock.calls[0][1];
-      expect((putObjectCommand as any).params.Key).toBe("pending-doc-123");
+      expect(result).toMatchObject({ ...mockUploadInput, id: "pending-doc-123" });
     });
   });
 
