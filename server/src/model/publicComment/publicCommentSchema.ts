@@ -10,6 +10,10 @@ export const publicCommentSchema = gql`
     createdAt: DateTime!
     updatedAt: DateTime!
   }
+
+  type Mutation {
+    createPublicComment(deliverableId: ID!, comment: NonEmptyString): DeliverableComment
+  }
 `;
 
 export interface DeliverableComment {

@@ -37,7 +37,7 @@ import { insertDeliverableAction } from "../deliverableAction/queries";
 describe("deleteDeliverable", () => {
   // Test inputs
   const testDeliverableId = "b18cf1ce-3e41-4a71-b4f4-585f343bc74f";
-  const testUserContext: DeepPartial<GraphQLContext> = {
+  const testContext: DeepPartial<GraphQLContext> = {
     user: {
       id: "7c1f216a-a51e-472a-a480-aa9dcdb3de7f",
       personTypeId: "demos-admin",
@@ -65,9 +65,9 @@ describe("deleteDeliverable", () => {
   });
 
   it("should check that the user is allowed to do this operation", async () => {
-    await deleteDeliverable(testDeliverableId, testUserContext as GraphQLContext);
+    await deleteDeliverable(testDeliverableId, testContext as GraphQLContext);
     expect(validateUserPersonTypeAllowed).toHaveBeenCalledExactlyOnceWith(
-      testUserContext,
+      testContext,
       "deleteDeliverable",
       ["demos-admin", "demos-cms-user"]
     );
@@ -77,7 +77,7 @@ describe("deleteDeliverable", () => {
     vi.mocked(validateUserPersonTypeAllowed).mockThrow("I'm throwing!");
 
     try {
-      await deleteDeliverable(testDeliverableId, testUserContext as GraphQLContext);
+      await deleteDeliverable(testDeliverableId, testContext as GraphQLContext);
       throw new Error("Expected deleteDeliverable to throw, but it did not.");
     } catch (e) {
       expect(prisma).not.toHaveBeenCalled();
@@ -85,7 +85,7 @@ describe("deleteDeliverable", () => {
   });
 
   it("should get the deliverable before making changes", async () => {
-    await deleteDeliverable(testDeliverableId, testUserContext as GraphQLContext);
+    await deleteDeliverable(testDeliverableId, testContext as GraphQLContext);
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
       { tx: mockTransaction }
@@ -93,7 +93,7 @@ describe("deleteDeliverable", () => {
   });
 
   it("should call the validator on the unchanged deliverable", async () => {
-    await deleteDeliverable(testDeliverableId, testUserContext as GraphQLContext);
+    await deleteDeliverable(testDeliverableId, testContext as GraphQLContext);
     expect(validateDeleteDeliverableInput).toHaveBeenCalledExactlyOnceWith(
       mockDeliverable,
       mockTransaction
@@ -101,7 +101,7 @@ describe("deleteDeliverable", () => {
   });
 
   it("should call edit function to set the status to the passed value", async () => {
-    await deleteDeliverable(testDeliverableId, testUserContext as GraphQLContext);
+    await deleteDeliverable(testDeliverableId, testContext as GraphQLContext);
     expect(editDeliverable).toHaveBeenCalledExactlyOnceWith(
       testDeliverableId,
       { statusId: "Deleted" },
@@ -110,7 +110,7 @@ describe("deleteDeliverable", () => {
   });
 
   it("should log an action for the completion", async () => {
-    await deleteDeliverable(testDeliverableId, testUserContext as GraphQLContext);
+    await deleteDeliverable(testDeliverableId, testContext as GraphQLContext);
     expect(insertDeliverableAction).toHaveBeenCalledExactlyOnceWith(
       {
         deliverableId: testDeliverableId,
@@ -119,7 +119,7 @@ describe("deleteDeliverable", () => {
         newStatus: "Deleted",
         oldDueDate: mockDeliverable.dueDate,
         newDueDate: mockDeliverable.dueDate,
-        userId: testUserContext.user!.id,
+        userId: testContext.user!.id,
       },
       mockTransaction
     );

@@ -117,7 +117,7 @@ describe("validateDeliverableInputs", () => {
   const mockTransaction: any = "Test!";
 
   describe("validateUserPersonTypeAllowed", () => {
-    const testUserContext: DeepPartial<GraphQLContext> = {
+    const testContext: DeepPartial<GraphQLContext> = {
       user: {
         id: "0a3bd415-39a3-4f72-a067-418a5219216a",
         personTypeId: "demos-admin",
@@ -125,17 +125,15 @@ describe("validateDeliverableInputs", () => {
     };
 
     it("should not throw if the context is one of the permitted person types", () => {
-      const result = validateUserPersonTypeAllowed(
-        testUserContext as GraphQLContext,
-        "Combobulate",
-        ["demos-admin"]
-      );
+      const result = validateUserPersonTypeAllowed(testContext as GraphQLContext, "Combobulate", [
+        "demos-admin",
+      ]);
       expect(result).toBeUndefined();
     });
 
     it("should throw if the context is not of the permitted person types", () => {
       try {
-        validateUserPersonTypeAllowed(testUserContext as GraphQLContext, "Discombobulate", [
+        validateUserPersonTypeAllowed(testContext as GraphQLContext, "Discombobulate", [
           "demos-cms-user",
         ]);
         throw new Error("Expected validateUserPersonTypeAllowed to throw, but it did not.");
