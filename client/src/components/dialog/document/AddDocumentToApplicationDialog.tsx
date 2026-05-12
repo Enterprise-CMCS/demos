@@ -28,8 +28,6 @@ export const UPLOAD_DOCUMENT_QUERY: TypedDocumentNode<
   }
 `;
 
-export const LOCAL_UPLOAD_PREFIX = "LocalS3Adapter";
-
 interface AddDocumentToApplicationDialogProps {
   onClose: () => void;
   applicationId: string;
