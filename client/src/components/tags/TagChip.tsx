@@ -7,8 +7,8 @@ const STYLES = {
   baseTagChip: tw`inline-flex items-center gap-1 rounded-full px-1 py-0.75 text-sm text-black`,
   approvedChip: tw`border border-[#5b616b] bg-surface-white`,
   unapprovedChip: tw`border border-yellow-400 bg-yellow-100`,
-  suggestionChip: tw`border border-purple-200 bg-purple-50 font-semibold text-purple-700 hover:border-purple-400 hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-300 disabled:cursor-not-allowed disabled:opacity-60`,
-  tagRemove: tw`inline-flex items-center justify-center rounded-full bg-[#5b616b] cursor-pointer`,
+  suggestionChip: tw`border border-purple-200 bg-purple-50 text-purple-700`,
+  tagRemove: tw`inline-flex items-center justify-center rounded-full w-[15px] h-[15px] bg-[#5b616b] cursor-pointer`,
   unapprovedTagRemove: tw`inline-flex items-center justify-center rounded-full w-[15px] h-[15px] bg-yellow-600 cursor-pointer`,
 };
 
