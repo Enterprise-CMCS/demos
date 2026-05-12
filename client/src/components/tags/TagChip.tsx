@@ -4,7 +4,7 @@ import React from "react";
 import { tw } from "tags/tw";
 
 const STYLES = {
-  baseTagChip: tw`inline-flex items-center gap-1 rounded-full px-1 py-0.75 text-sm text-black`,
+  baseTagChip: tw`inline-flex items-center gap-1 rounded-full px-1 py-[6px] text-sm text-black`,
   approvedChip: tw`border border-[#5b616b] bg-surface-white`,
   unapprovedChip: tw`border border-yellow-400 bg-yellow-100`,
   suggestionChip: tw`border border-purple-200 bg-purple-50 text-purple-700`,
