@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 
 import { HorizontalSectionTabs, Tab } from "layout/Tabs";
 
@@ -49,10 +49,7 @@ export const FileAndHistoryTabs: React.FC<{
 }> = ({ deliverable }) => {
   const stateFiles = deliverable.stateDocuments;
   const cmsFiles = deliverable.cmsDocuments;
-  const historyRows = useMemo<DeliverableHistoryRow[]>(
-    () => deliverable.deliverableActions.map(toHistoryRow),
-    [deliverable.deliverableActions]
-  );
+  const historyRows: DeliverableHistoryRow[] = deliverable.deliverableActions.map(toHistoryRow);
 
   const { showRequestResubmissionDeliverableDialog, showCompleteReviewDeliverableDialog } =
     useDialog();
