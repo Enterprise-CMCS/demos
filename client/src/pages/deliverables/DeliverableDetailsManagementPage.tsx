@@ -215,33 +215,29 @@ export const DeliverableDetailsManagementPage: React.FC<{
       )[0]?.userFullName ?? "State User";
 
   const pendingExtensionRequest =
-    [...data.deliverable.extensionRequests]
-      .filter((extension) => extension.status === "Requested")
-      .sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      )[0] ?? null;
+    data.deliverable.extensionRequests.find((e) => e.status === "Requested") ?? null;
 
+  const requestExtensionActions = data.deliverable.deliverableActions.filter(
+    (a) => a.actionType === "Requested Extension"
+  );
   const extensionRequesterName =
-    [...data.deliverable.deliverableActions]
-      .filter((action) => action.actionType === "Requested Extension")
-      .sort(
-        (a, b) =>
-          new Date(b.actionTimestamp).getTime() - new Date(a.actionTimestamp).getTime()
-      )[0]?.userFullName ?? "State User";
+    requestExtensionActions[requestExtensionActions.length - 1]?.userFullName ?? "State User";
 
   const canReviewExtension =
     EXTENSION_REVIEWER_PERSON_TYPES.has(userPersonType) && pendingExtensionRequest !== null;
 
   const handleReviewExtensionRequest = () => {
     if (!pendingExtensionRequest) return;
+    const { id, reasonCode, reasonDetails, initialDueDateAtRequest, originalDateRequested } =
+      pendingExtensionRequest;
     showReviewExtensionDeliverableDialog({
       id: data.deliverable.id,
       extensionRequest: {
-        id: pendingExtensionRequest.id,
-        reasonCode: pendingExtensionRequest.reasonCode,
-        reasonDetails: pendingExtensionRequest.reasonDetails,
-        initialDueDateAtRequest: pendingExtensionRequest.initialDueDateAtRequest,
-        originalDateRequested: pendingExtensionRequest.originalDateRequested,
+        id,
+        reasonCode,
+        reasonDetails,
+        initialDueDateAtRequest,
+        originalDateRequested,
       },
     });
   };
