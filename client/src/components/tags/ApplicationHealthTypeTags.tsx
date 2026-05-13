@@ -4,8 +4,9 @@ import { SecondaryButton } from "components/button";
 import { useDialog } from "components/dialog/DialogContext";
 import { tw } from "tags/tw";
 import { TagChip } from "./TagChip";
-import { Tag } from "demos-server";
+import { Tag, TagName } from "demos-server";
 import { gql, TypedDocumentNode, useQuery } from "@apollo/client";
+import { SparklyUIPathTags } from "./SparklyUIPathTags";
 
 const STYLES = {
   stepThree: tw`font-bold uppercase tracking-wide text-[#242424] mb-2`,
@@ -32,7 +33,10 @@ export interface ApplicationHealthTypeTagsProps {
   selectedTags: Tag[];
   title: string;
   description?: string;
+  suggestedTags?: TagName[];
   onRemoveTag: (tag: string) => void;
+  onAcceptSuggestedTag?: (tag: TagName) => void;
+  isApplyingSuggestedTag?: boolean;
 }
 
 export const ApplicationHealthTypeTags = ({
@@ -40,7 +44,10 @@ export const ApplicationHealthTypeTags = ({
   selectedTags,
   title,
   description,
+  suggestedTags = [],
   onRemoveTag,
+  onAcceptSuggestedTag,
+  isApplyingSuggestedTag = false,
 }: ApplicationHealthTypeTagsProps) => {
   const { showApplyTagsDialog } = useDialog();
 
@@ -75,6 +82,14 @@ export const ApplicationHealthTypeTags = ({
           Apply Tags
         </SecondaryButton>
       </div>
+      {onAcceptSuggestedTag && (
+        <SparklyUIPathTags
+          selectedTags={selectedTags}
+          suggestedTags={suggestedTags}
+          onAcceptSuggestion={onAcceptSuggestedTag}
+          isApplyingSuggestion={isApplyingSuggestedTag}
+        />
+      )}
     </div>
   );
 };

@@ -12,6 +12,16 @@ import { canCompleteReview } from "components/dialog/deliverable";
 import { getCurrentUser } from "components/user/UserContext";
 import { DeliverableStatus, PersonType } from "demos-server";
 
+type DeliverableActionRow = DeliverableDetailsManagementDeliverable["deliverableActions"][number];
+
+const toHistoryRow = (action: DeliverableActionRow): DeliverableHistoryRow => ({
+  id: action.id,
+  event: action.actionType,
+  date: new Date(action.actionTimestamp),
+  user: action.userFullName,
+  details: action.details,
+});
+
 export const FILE_AND_HISTORY_TABS_NAME = "file-and-history-tabs";
 export const FILE_AND_HISTORY_ACTIONS_NAME = "file-and-history-actions";
 
@@ -34,13 +44,12 @@ const TABS = {
 
 const buildTabLabel = (label: string, count: number) => (count > 0 ? `${label} (${count})` : label);
 
-const EMPTY_HISTORY: DeliverableHistoryRow[] = [];
-
 export const FileAndHistoryTabs: React.FC<{
   deliverable: DeliverableDetailsManagementDeliverable;
 }> = ({ deliverable }) => {
   const stateFiles = deliverable.stateDocuments;
   const cmsFiles = deliverable.cmsDocuments;
+  const historyRows: DeliverableHistoryRow[] = deliverable.deliverableActions.map(toHistoryRow);
 
   const { showRequestResubmissionDeliverableDialog, showCompleteReviewDeliverableDialog } =
     useDialog();
@@ -73,7 +82,7 @@ export const FileAndHistoryTabs: React.FC<{
           <CmsFilesTab files={cmsFiles} />
         </Tab>
         <Tab label="History" value={TABS.HISTORY}>
-          <HistoryTab rows={EMPTY_HISTORY} />
+          <HistoryTab rows={historyRows} />
         </Tab>
       </HorizontalSectionTabs>
       <div data-testid={FILE_AND_HISTORY_ACTIONS_NAME} className="flex justify-end mt-2 gap-2">

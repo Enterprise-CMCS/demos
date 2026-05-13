@@ -21,6 +21,7 @@ export * from "./Action/ReviewIcon";
 export * from "./Action/SendIcon";
 export * from "./Action/SettingsIcon";
 export * from "./Action/SortIcon";
+export * from "./Action/SparklyIcon";
 export * from "./Action/StackIcon";
 export * from "./Action/SubmitIcon";
 export * from "./Action/ThumbsUpIcon";

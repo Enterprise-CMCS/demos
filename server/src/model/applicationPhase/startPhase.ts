@@ -1,21 +1,18 @@
 import { PrismaTransactionClient } from "../../prismaClient";
-import { ApplicationDateInput, UploadDocumentInput } from "../../types";
+import { ApplicationDateInput, PhaseName } from "../../types";
 import { EasternNow } from "../../dateUtilities";
 import { createPhaseStartDate } from "../applicationDate";
 import { setPhaseToStarted } from ".";
 
-export async function startPhaseByDocument(
+export async function startPhase(
   tx: PrismaTransactionClient,
   applicationId: string,
-  document: Pick<UploadDocumentInput, "phaseName">,
+  phaseName: PhaseName,
   easternNow: EasternNow
 ): Promise<ApplicationDateInput | null> {
-  if (!document.phaseName) {
-    return null;
-  }
-  const phaseStarted = await setPhaseToStarted(applicationId, document.phaseName, tx);
+  const phaseStarted = await setPhaseToStarted(applicationId, phaseName, tx);
   if (phaseStarted) {
-    const startDateForPhase = createPhaseStartDate(document.phaseName, easternNow);
+    const startDateForPhase = createPhaseStartDate(phaseName, easternNow);
     if (startDateForPhase) {
       return startDateForPhase;
     }

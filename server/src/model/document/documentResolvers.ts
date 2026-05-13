@@ -5,79 +5,22 @@ import { handlePrismaError } from "../../errors/handlePrismaError";
 import { prisma } from "../../prismaClient";
 import type {
   UpdateDocumentInput,
-  UploadDocumentInput,
-  UploadDocumentResponse,
-  ApplicationDateInput,
   DocumentType,
   PhaseName,
 } from "../../types";
 import { getS3Adapter } from "../../adapters";
-import { getEasternNow } from "../../dateUtilities";
 import { getApplication, PrismaApplication } from "../application";
 import { getUser } from "../user";
-import { validateAndUpdateDates } from "../applicationDate";
-import { startPhaseByDocument } from "../applicationPhase";
 import { enqueueUiPath } from "../../services/uipathQueue";
 import { resolveDeliverable } from "../deliverable";
 import { updateDocument as updateDocumentQuery, handleDeleteDocument } from ".";
 import { getDocument } from "./documentData";
 
-export async function uploadDocument(
-  parent: unknown,
-  { input }: { input: UploadDocumentInput },
-  context: GraphQLContext
-): Promise<UploadDocumentResponse> {
-  checkOptionalNotNullFields(
-    ["name", "documentType", "applicationId", "phaseName", "deliverableId"],
-    input
-  );
-
-  const s3Adapter = getS3Adapter();
-
-  try {
-    if (context.user === null) {
-      throw new Error(
-        "The GraphQL context does not have user information. Are you properly authenticated?"
-      );
-    }
-
-    if (input.phaseName && input.deliverableId) {
-      throw new Error("A document cannot be associated with both a phase and a deliverable.");
-    }
-
-    const userId = context.user.id;
-    return await prisma().$transaction(async (tx) => {
-      const easternNow = getEasternNow();
-      const phaseStartDate = await startPhaseByDocument(tx, input.applicationId, input, easternNow);
-
-      const datesToUpdate: ApplicationDateInput[] = [];
-
-      if (phaseStartDate) {
-        datesToUpdate.push(phaseStartDate);
-      }
-
-      if (datesToUpdate.length > 0) {
-        await validateAndUpdateDates(
-          { applicationId: input.applicationId, applicationDates: datesToUpdate },
-          tx
-        );
-      }
-
-      return await s3Adapter.uploadDocument(tx, input, userId);
-    });
-  } catch (error) {
-    handlePrismaError(error);
-  }
-}
-
 export async function updateDocument(
   _: unknown,
   { id, input }: { id: string; input: UpdateDocumentInput }
 ): Promise<PrismaDocument> {
-  checkOptionalNotNullFields(
-    ["name", "documentType", "applicationId", "phaseName", "deliverableId"],
-    input
-  );
+  checkOptionalNotNullFields(["name", "description", "documentType"], input);
   try {
     return await prisma().$transaction(async (tx) => {
       return await updateDocumentQuery(tx, id, input);
@@ -173,7 +116,6 @@ export const documentResolvers = {
   },
 
   Mutation: {
-    uploadDocument: uploadDocument,
     updateDocument: updateDocument,
     deleteDocument: deleteDocument,
     deleteDocuments: deleteDocuments,

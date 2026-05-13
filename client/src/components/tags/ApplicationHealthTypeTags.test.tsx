@@ -127,4 +127,39 @@ describe("DemonstrationHealthTypeTags", () => {
     await user.click(screen.getByLabelText("Remove Dental"));
     expect(onRemoveTag).toHaveBeenCalledWith("Dental");
   });
+
+  it("renders UiPath suggested tags and calls accept handler", async () => {
+    const user = userEvent.setup();
+    const onAcceptSuggestedTag = vi.fn();
+
+    render(
+      <TestProvider mocks={[applicationTagOptionsMock]}>
+        <DialogProvider>
+          <ApplicationHealthTypeTags
+            applicationId="demo-123"
+            title="STEP 3 - APPLY TAGS"
+            selectedTags={[{ tagName: "Behavioral Health", approvalStatus: "Approved" }]}
+            suggestedTags={["Health Equity", "Behavioral Health"]}
+            onRemoveTag={() => {}}
+            onAcceptSuggestedTag={onAcceptSuggestedTag}
+          />
+        </DialogProvider>
+      </TestProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("DEMOS AI SUGGESTIONS")).toBeInTheDocument();
+    });
+
+    expect(
+      screen.getByRole("button", { name: "Apply suggested tag Health Equity" })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Apply suggested tag Behavioral Health" })
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Apply suggested tag Health Equity" }));
+
+    expect(onAcceptSuggestedTag).toHaveBeenCalledExactlyOnceWith("Health Equity");
+  });
 });

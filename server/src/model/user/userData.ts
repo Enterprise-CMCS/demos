@@ -1,10 +1,9 @@
 import { Prisma, User as PrismaUser } from "@prisma/client";
 import { buildAuthorizationFilter, PermissionFilters, ContextUser } from "../../auth";
 import { selectUser, selectManyUsers } from "./queries";
-import { PrismaTransactionClient } from "../../prismaClient";
+import { prisma, PrismaTransactionClient } from "../../prismaClient";
 import { isAStatePointOfContactAssociatedWithDocument } from "../document/documentData";
 import { isAStatePointOfContactAssociatedWithApplication } from "../application/applicationData";
-import { isAStatePointOfContactAssociatedWithPerson } from "../person/personData";
 import { isAStatePointOfContactAssociatedWithDeliverable } from "../deliverable/deliverableData";
 
 export const isAStatePointOfContactAssociatedWithUser = (
@@ -51,6 +50,7 @@ export async function getUser(
   user: ContextUser,
   tx?: PrismaTransactionClient
 ): Promise<PrismaUser | null> {
+  const prismaClient = tx ?? prisma();
   const authFilter = buildAuthorizationFilter<Prisma.UserWhereInput>(user, getPermissionFilters);
   if (authFilter === null) {
     return null;
@@ -60,7 +60,8 @@ export async function getUser(
     {
       AND: [where, authFilter],
     },
-    tx
+    false,
+    prismaClient
   );
 }
 
@@ -69,6 +70,7 @@ export async function getManyUsers(
   user: ContextUser,
   tx?: PrismaTransactionClient
 ): Promise<PrismaUser[]> {
+  const prismaClient = tx ?? prisma();
   const authFilter = buildAuthorizationFilter<Prisma.UserWhereInput>(user, getPermissionFilters);
 
   if (authFilter === null) {
@@ -78,6 +80,6 @@ export async function getManyUsers(
     {
       AND: [where, authFilter],
     },
-    tx
+    prismaClient
   );
 }

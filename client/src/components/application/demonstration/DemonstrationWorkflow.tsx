@@ -33,6 +33,7 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
         tagName
         approvalStatus
       }
+      suggestedApplicationTags
       demonstrationTypes {
         demonstrationTypeName
         status
