@@ -59,13 +59,27 @@ describe("FileAndHistoryTabs", () => {
     expect(screen.getByTestId(CMS_FILES_TAB_NAME)).toBeInTheDocument();
   });
 
-  it("switches to the History tab on click", async () => {
+  it("switches to the History tab on click and renders rows from deliverable actions", async () => {
     const user = userEvent.setup();
     setup();
 
     await user.click(screen.getByTestId("button-history"));
 
-    expect(screen.getByTestId(HISTORY_TAB_NAME)).toBeInTheDocument();
+    const historyTab = screen.getByTestId(HISTORY_TAB_NAME);
+    expect(historyTab).toBeInTheDocument();
+    expect(within(historyTab).getByText("Created Deliverable Slot")).toBeInTheDocument();
+    expect(within(historyTab).getByText("Requested Resubmission")).toBeInTheDocument();
+    expect(within(historyTab).getByText("Mock CMS User (CMS User)")).toBeInTheDocument();
+    expect(within(historyTab).getByText(/Old Due Date: 03\/15\/2026/)).toBeInTheDocument();
+  });
+
+  it("shows the empty-state message in History when the deliverable has no actions", async () => {
+    const user = userEvent.setup();
+    setup({ deliverableActions: [] });
+
+    await user.click(screen.getByTestId("button-history"));
+
+    expect(screen.getByText(/No history available\./i)).toBeInTheDocument();
   });
 
   it("renders the Submit Deliverable button in the State Files tab when files exist", () => {

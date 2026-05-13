@@ -78,12 +78,15 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
       actionType: "Created Deliverable Slot",
       actionTimestamp: new Date("2026-03-20T10:00:00Z"),
       userFullName: "System",
+      details: "",
     },
     {
       id: "action-1",
       actionType: "Requested Resubmission",
       actionTimestamp: new Date("2026-03-21T10:00:00Z"),
-      userFullName: "Mock CMS User",
+      userFullName: "Mock CMS User (CMS User)",
+      details:
+        "Old Due Date: 03/15/2026\nNew Due Date: 04/15/2026\nReason Details: Please resubmit with corrected figures.",
     },
   ],
   extensionRequests: [],
