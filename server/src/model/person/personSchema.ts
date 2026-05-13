@@ -14,7 +14,7 @@ export const personSchema = gql`
     createdAt: DateTime!
     updatedAt: DateTime!
     states: [State!]!
-    roles: [DemonstrationRoleAssignment!]!
+    roles: [DemonstrationRoleAssignment!]! @auth(requires: "Access Person Contacts")
   }
   type Query {
     person(id: ID!): Person

@@ -4,8 +4,8 @@ import { Deliverable, NonEmptyString, User } from "../../types";
 export const publicCommentSchema = gql`
   type DeliverableComment {
     id: ID!
-    deliverable: Deliverable!
-    authorUser: User!
+    deliverable: Deliverable! @auth(requires: "Access Comment Deliverable")
+    authorUser: User! @auth(requires: "Access Comment Author")
     content: NonEmptyString!
     createdAt: DateTime!
     updatedAt: DateTime!

@@ -16,10 +16,10 @@ export const documentPendingUploadSchema = gql`
     description: String
     owner: User!
     documentType: DocumentType!
-    application: Application!
-    phaseName: PhaseName
-    presignedUploadUrl: String!
-    deliverable: Deliverable
+    application: Application! @auth(requires: "Access Document Application")
+    phaseName: PhaseName @auth(requires: "Access Document Application")
+    presignedUploadUrl: String! @auth(requires: "Access Document Upload")
+    deliverable: Deliverable @auth(requires: "Access Document Deliverable")
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -56,8 +56,11 @@ export const documentPendingUploadSchema = gql`
 
   type Mutation {
     uploadDocumentToApplication(input: UploadDocumentToApplicationInput!): DocumentPendingUpload!
+      @auth(requires: "Upload Application Document")
     uploadDocumentToPhase(input: UploadDocumentToPhaseInput!): DocumentPendingUpload!
+      @auth(requires: "Upload Application Workflow Document")
     uploadDocumentToDeliverable(input: UploadDocumentToDeliverableInput!): DocumentPendingUpload!
+      @auth(requires: "Upload Deliverable Document")
   }
 `;
 

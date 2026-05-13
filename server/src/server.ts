@@ -15,6 +15,7 @@ import {
 import { log, reqIdChild, als, store } from "./log.js";
 import type { APIGatewayProxyEvent } from "aws-lambda";
 import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
+import { fieldAuthPlugin } from "./plugins/fieldAuthPlugin.js";
 
 log.info({ type: "graphql.startup.loaded" });
 
@@ -45,7 +46,7 @@ const server = new ApolloServer<GraphQLContext>({
   typeDefs,
   resolvers,
   ...protection,
-  plugins: [...protection.plugins, authGatePlugin, loggingPlugin],
+  plugins: [...protection.plugins, authGatePlugin, loggingPlugin, fieldAuthPlugin],
   validationRules: [...protection.validationRules],
   formatError: (formattedError, error) => {
     log.debug({ error, type: "graphql.request.error" });

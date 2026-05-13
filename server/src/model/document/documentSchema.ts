@@ -14,13 +14,13 @@ export const documentSchema = gql`
     id: ID!
     name: NonEmptyString!
     description: String
-    s3Path: NonEmptyString!
-    owner: User!
+    s3Path: NonEmptyString! @auth(requires: "Access Document Download")
+    owner: User! @auth(requires: "Access Document Owner")
     documentType: DocumentType!
-    application: Application!
-    phaseName: PhaseName
-    presignedDownloadUrl: String!
-    deliverable: Deliverable
+    application: Application! @auth(requires: "Access Document Application")
+    phaseName: PhaseName @auth(requires: "Access Document Application")
+    presignedDownloadUrl: String! @auth(requires: "Access Document Download")
+    deliverable: Deliverable @auth(requires: "Access Document Deliverable")
     hasPendingUIPathResult: Boolean!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -34,9 +34,10 @@ export const documentSchema = gql`
 
   type Mutation {
     updateDocument(id: ID!, input: UpdateDocumentInput!): Document
-    deleteDocument(id: ID!): Document!
-    deleteDocuments(ids: [ID!]!): Int!
-    triggerUiPath(documentId: ID!): String!
+      @auth(requires: "Manage Document")
+    deleteDocument(id: ID!): Document! @auth(requires: "Delete Document")
+    deleteDocuments(ids: [ID!]!): Int! @auth(requires: "Delete Document")
+    triggerUiPath(documentId: ID!): String! @auth(requires: "Manage Document")
   }
 
   type Query {

@@ -27,7 +27,9 @@ export const applicationDateSchema = gql`
 
   type Mutation {
     setApplicationDate(input: SetApplicationDateInput): Application
+      @auth(requires: "Manage Application Workflow")
     setApplicationDates(input: SetApplicationDatesInput): Application
+      @auth(requires: "Manage Application Workflow")
   }
 `;
 

@@ -8,8 +8,8 @@ export const userSchema = gql`
     username: String!
     person: Person!
     events: [Event!]!
-    ownedDocuments: [Document!]!
-    ownedDeliverables: [Deliverable!]!
+    ownedDocuments: [Document!]! @auth(requires: "Access User Documents")
+    ownedDeliverables: [Deliverable!]! @auth(requires: "Access User Deliverables")
     createdAt: DateTime!
     updatedAt: DateTime!
   }

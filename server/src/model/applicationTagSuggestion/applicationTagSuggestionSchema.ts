@@ -11,11 +11,13 @@ export const applicationTagSuggestionSchema = gql`
 
   type Mutation {
     acceptApplicationTagSuggestion(applicationId: ID!, value: String!): Application
+      @auth(requires: "Manage Application Workflow")
     replaceApplicationTagSuggestion(
       applicationId: ID!
       value: String!
       newValue: String!
-    ): Application
+    ): Application @auth(requires: "Manage Application Workflow")
     removeApplicationTagSuggestion(applicationId: ID!, value: String!): ApplicationTagSuggestion
+      @auth(requires: "Manage Application Workflow")
   }
 `;

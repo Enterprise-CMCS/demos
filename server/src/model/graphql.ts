@@ -142,6 +142,8 @@ import { customScalarResolvers } from "../customScalarResolvers.js";
 import { clearanceLevelSchema } from "./clearanceLevel/clearanceLeveSchema.js";
 import { clearanceLevelResolvers } from "./clearanceLevel/clearanceLevelResolvers.js";
 
+import { directivesSchema } from "./directives/directivesSchema.js";
+
 const scalarTypes = [
   JSONObjectDefinition,
   DateTimeTypeDefinition,
@@ -173,6 +175,8 @@ export const typeDefs = [
   demonstrationRoleAssignmentSchema,
   demonstrationSchema,
   demonstrationTypeTagAssignmentSchema,
+  directivesSchema,
+  documentSchema,
   documentPendingUploadSchema,
   documentSchema,
   documentTypeSchema,
