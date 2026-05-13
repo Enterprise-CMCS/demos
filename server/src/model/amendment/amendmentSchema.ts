@@ -17,18 +17,18 @@ import {
 export const amendmentSchema = gql`
   type Amendment {
     id: ID!
-    demonstration: Demonstration!
+    demonstration: Demonstration! @auth(requires: "Access Modification Demonstration")
     name: NonEmptyString!
     description: String
     effectiveDate: DateTime
     status: ApplicationStatus!
-    currentPhaseName: PhaseName!
-    phases: [ApplicationPhase!]!
-    documents: [Document!]!
-    clearanceLevel: ClearanceLevel!
-    tags: [Tag!]!
+    currentPhaseName: PhaseName! @auth(requires: "Access Application Workflow")
+    phases: [ApplicationPhase!]! @auth(requires: "Access Application Workflow")
+    documents: [Document!]! @auth(requires: "Access Application Documents")
+    clearanceLevel: ClearanceLevel! @auth(requires: "Access Application Workflow")
+    tags: [Tag!]! @auth(requires: "Access Application Workflow")
     signatureLevel: SignatureLevel
-    suggestedApplicationTags: [TagName!]!
+    suggestedApplicationTags: [TagName!]! @auth(requires: "Access Application Workflow")
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -50,9 +50,9 @@ export const amendmentSchema = gql`
   }
 
   type Mutation {
-    createAmendment(input: CreateAmendmentInput!): Amendment
-    updateAmendment(id: ID!, input: UpdateAmendmentInput!): Amendment
-    deleteAmendment(id: ID!): Amendment
+    createAmendment(input: CreateAmendmentInput!): Amendment @auth(requires: "Create Modification")
+    updateAmendment(id: ID!, input: UpdateAmendmentInput!): Amendment @auth(requires: "Manage Modification")
+    deleteAmendment(id: ID!): Amendment @auth(requires: "Delete Modification")
   }
 
   type Query {

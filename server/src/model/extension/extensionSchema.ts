@@ -17,18 +17,18 @@ import {
 export const extensionSchema = gql`
   type Extension {
     id: ID!
-    demonstration: Demonstration!
+    demonstration: Demonstration! @auth(requires: "Access Modification Demonstration")
     name: NonEmptyString!
     description: String
     effectiveDate: DateTime
     status: ApplicationStatus!
-    currentPhaseName: PhaseName!
-    phases: [ApplicationPhase!]!
-    documents: [Document!]!
-    clearanceLevel: ClearanceLevel!
-    tags: [Tag!]!
+    currentPhaseName: PhaseName! @auth(requires: "Access Application Workflow")
+    phases: [ApplicationPhase!]! @auth(requires: "Access Application Workflow")
+    documents: [Document!]! @auth(requires: "Access Application Documents")
+    clearanceLevel: ClearanceLevel! @auth(requires: "Access Application Workflow")
+    tags: [Tag!]! @auth(requires: "Access Application Workflow")
     signatureLevel: SignatureLevel
-    suggestedApplicationTags: [TagName!]!
+    suggestedApplicationTags: [TagName!]! @auth(requires: "Access Application Workflow")
     createdAt: DateTime!
     updatedAt: DateTime!
   }

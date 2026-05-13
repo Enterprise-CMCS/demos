@@ -21,6 +21,7 @@ export const applicationNoteSchema = gql`
 
   type Mutation {
     setApplicationNotes(input: SetApplicationNotesInput): Application
+      @auth(requires: "Manage Application Workflow")
   }
 `;
 

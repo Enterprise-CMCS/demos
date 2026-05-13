@@ -489,6 +489,7 @@ export const BUDGET_NEUTRALITY_VALIDATION_STATUSES = [
 ] as const;
 
 export const PERMISSIONS = [
+  // row-level permissions
   "View All Demonstrations",
   "View Assigned Demonstrations",
   "View All Amendments",
@@ -520,6 +521,50 @@ export const PERMISSIONS = [
   "View All Users",
   "View Users on Assigned Demonstrations",
   "View My User",
+
+  // entity-level permissions
+  "Access Application Documents",
+  "Access Application Workflow",
+  "Access Comment Author",
+  "Access Comment Deliverable",
+  "Access Contact Demonstration",
+  "Access Contact Person",
+  "Access Deliverable Actions",
+  "Access Deliverable CmsDocuments",
+  "Access Deliverable PrivateComments",
+  "Access Demonstration Contacts",
+  "Access Demonstration Deliverables",
+  "Access Demonstration DemonstrationTypes",
+  "Access Demonstration Modifications",
+  "Access Document Application",
+  "Access Document Deliverable",
+  "Access Document Download",
+  "Access Document Owner",
+  "Access Document Upload",
+  "Access Modification Demonstration",
+  "Access Person Contacts",
+  "Access State Demonstrations",
+  "Access User Deliverables",
+  "Access User Documents",
+
+  // action-level permissions
+  "Create Deliverable",
+  "Create Demonstration",
+  "Create Modification",
+  "Delete Deliverable",
+  "Delete Demonstration",
+  "Delete Document",
+  "Delete Modification",
+  "Manage Deliverable",
+  "Manage Demonstration",
+  "Manage Demonstration Contacts",
+  "Manage Document",
+  "Review Deliverable",
+  "Submit Deliverable",
+  "Manage Modification",
+  "Upload Application Document",
+  "Upload Application Workflow Document",
+  "Upload Deliverable Document",
 ] as const;
 
 export const SYSTEM_ROLES = ["Admin User", "CMS User", "State User"] as const;

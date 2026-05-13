@@ -28,12 +28,12 @@ export const deliverableSchema = gql`
     dueDateType: DeliverableDueDateType!
     demonstrationTypes: [Tag!]!
     expectedToBeSubmitted: Boolean!
-    cmsDocuments: [Document!]!
+    cmsDocuments: [Document!]! @auth(requires: "Access Deliverable CmsDocuments")
     stateDocuments: [Document!]!
-    deliverableActions: [DeliverableAction!]!
+    deliverableActions: [DeliverableAction!]! @auth(requires: "Access Deliverable Actions")
     extensionRequests: [DeliverableExtension!]!
     publicComments: [DeliverableComment!]!
-    privateComments: [DeliverableComment!]!
+    privateComments: [DeliverableComment!]! @auth(requires: "Access Deliverable PrivateComments")
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -87,24 +87,30 @@ export const deliverableSchema = gql`
 
   type Mutation {
     createDeliverable(input: CreateDeliverableInput): Deliverable
+      @auth(requires: "Create Deliverable")
     updateDeliverable(id: ID!, input: UpdateDeliverableInput!): Deliverable
-    submitDeliverable(id: ID!): Deliverable
-    startDeliverableReview(id: ID!): Deliverable
+      @auth(requires: "Manage Deliverable")
+    submitDeliverable(id: ID!): Deliverable @auth(requires: "Submit Deliverable")
+    startDeliverableReview(id: ID!): Deliverable @auth(requires: "Review Deliverable")
     completeDeliverable(id: ID!, finalStatus: FinalDeliverableStatus!): Deliverable
+      @auth(requires: "Review Deliverable")
     requestDeliverableResubmission(
       id: ID!
       input: RequestDeliverableResubmissionInput!
-    ): Deliverable
+    ): Deliverable @auth(requires: "Review Deliverable")
     requestDeliverableExtension(
       deliverableId: ID!
       input: RequestDeliverableExtensionInput!
-    ): Deliverable
+    ): Deliverable @auth(requires: "Submit Deliverable")
     approveDeliverableExtension(
       deliverableId: ID!
       input: ApproveDeliverableExtensionInput!
-    ): Deliverable
-    denyDeliverableExtension(deliverableId: ID!, input: DenyDeliverableExtensionInput!): Deliverable
-    deleteDeliverable(id: ID!): Deliverable
+    ): Deliverable @auth(requires: "Review Deliverable")
+    denyDeliverableExtension(
+      deliverableId: ID!
+      input: DenyDeliverableExtensionInput!
+    ): Deliverable @auth(requires: "Review Deliverable")
+    deleteDeliverable(id: ID!): Deliverable @auth(requires: "Delete Deliverable")
   }
 `;
 

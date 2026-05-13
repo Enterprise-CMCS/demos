@@ -31,18 +31,19 @@ export const demonstrationSchema = gql`
     signatureLevel: SignatureLevel
     status: ApplicationStatus!
     state: State!
-    currentPhaseName: PhaseName!
-    phases: [ApplicationPhase!]!
-    documents: [Document!]!
-    amendments: [Amendment!]!
-    extensions: [Extension!]!
-    roles: [DemonstrationRoleAssignment!]!
+    currentPhaseName: PhaseName! @auth(requires: "Access Application Workflow")
+    phases: [ApplicationPhase!]! @auth(requires: "Access Application Workflow")
+    documents: [Document!]! @auth(requires: "Access Application Documents")
+    amendments: [Amendment!]! @auth(requires: "Access Demonstration Modifications")
+    extensions: [Extension!]! @auth(requires: "Access Demonstration Modifications")
+    roles: [DemonstrationRoleAssignment!]! @auth(requires: "Access Demonstration Contacts")
     primaryProjectOfficer: Person!
-    clearanceLevel: ClearanceLevel!
-    tags: [Tag!]!
+    clearanceLevel: ClearanceLevel! @auth(requires: "Access Application Workflow")
+    tags: [Tag!]! @auth(requires: "Access Application Workflow")
     demonstrationTypes: [DemonstrationTypeAssignment!]!
-    suggestedApplicationTags: [TagName!]!
-    deliverables: [Deliverable!]!
+      @auth(requires: "Access Demonstration DemonstrationTypes")
+    suggestedApplicationTags: [TagName!]! @auth(requires: "Access Application Workflow")
+    deliverables: [Deliverable!]! @auth(requires: "Access Demonstration Deliverables")
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -70,8 +71,10 @@ export const demonstrationSchema = gql`
 
   type Mutation {
     createDemonstration(input: CreateDemonstrationInput!): Demonstration
+      @auth(requires: "Create Demonstration")
     updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration
-    deleteDemonstration(id: ID!): Demonstration
+      @auth(requires: "Manage Demonstration")
+    deleteDemonstration(id: ID!): Demonstration @auth(requires: "Delete Demonstration")
   }
 
   type Query {
