@@ -7,6 +7,7 @@ import {
   GrantLevel,
   PhaseName,
   Role,
+  SignatureLevel,
   UiPathResultStatus,
   UpdateDemonstrationInput,
 } from "../../types";
@@ -38,6 +39,8 @@ const conceptPhaseName: PhaseName = "Concept";
 const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
 const demonstrationApplicationType: ApplicationType = "Demonstration";
 
+const VALID_INTIAL_DEMONSTRATION_SIGNATURE_LEVELS = ["OA"] as SignatureLevel[];
+
 export async function __createDemonstration(
   parent: unknown,
   { input }: { input: CreateDemonstrationInput }
@@ -45,6 +48,10 @@ export async function __createDemonstration(
   let newApplicationId: string;
   try {
     newApplicationId = await prisma().$transaction(async (tx) => {
+      if (input.signatureLevel && !VALID_INTIAL_DEMONSTRATION_SIGNATURE_LEVELS.includes(input.signatureLevel)) {
+        throw new Error(`Invalid signature level: ${input.signatureLevel}`);
+      }
+
       const application = await tx.application.create({
         data: {
           applicationTypeId: demonstrationApplicationType,

@@ -5,6 +5,7 @@ import {
   ApplicationType,
   CreateAmendmentInput,
   PhaseName,
+  SignatureLevel,
   UiPathResultStatus,
   UpdateAmendmentInput,
 } from "../../types";
@@ -24,11 +25,17 @@ const amendmentApplicationType: ApplicationType = "Amendment";
 const conceptPhaseName: PhaseName = "Concept";
 const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
 
+const VALID_INITIAL_AMENDMENT_SIGNATURE_LEVELS = ["OA", "OCD"] as SignatureLevel[];
+
 export async function __createAmendment(
   parent: unknown,
   { input }: { input: CreateAmendmentInput }
 ): Promise<PrismaAmendment> {
   return await prisma().$transaction(async (tx) => {
+    if (input.signatureLevel && !VALID_INITIAL_AMENDMENT_SIGNATURE_LEVELS.includes(input.signatureLevel)) {
+      throw new Error(`Invalid signature level: ${input.signatureLevel}`);
+    }
+
     const application = await tx.application.create({
       data: {
         applicationTypeId: amendmentApplicationType,

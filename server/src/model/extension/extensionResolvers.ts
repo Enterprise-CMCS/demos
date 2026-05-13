@@ -5,6 +5,7 @@ import {
   ApplicationType,
   CreateExtensionInput,
   PhaseName,
+  SignatureLevel,
   UiPathResultStatus,
   UpdateExtensionInput,
 } from "../../types";
@@ -24,11 +25,17 @@ const extensionApplicationType: ApplicationType = "Extension";
 const conceptPhaseName: PhaseName = "Concept";
 const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
 
+const VALID_INITIAL_EXTENSION_SIGNATURE_LEVELS = ["OA", "OCD"] as SignatureLevel[];
+
 export async function __createExtension(
   parent: unknown,
   { input }: { input: CreateExtensionInput }
 ): Promise<PrismaExtension> {
   return await prisma().$transaction(async (tx) => {
+    if (input.signatureLevel && !VALID_INITIAL_EXTENSION_SIGNATURE_LEVELS.includes(input.signatureLevel)) {
+      throw new Error(`Invalid signature level: ${input.signatureLevel}`);
+    }
+
     const application = await tx.application.create({
       data: {
         applicationTypeId: extensionApplicationType,
