@@ -9,7 +9,7 @@ const BASE_STYLES = {
   PHASE_BOX: tw`relative flex flex-col items-center justify-center rounded-sm hover:cursor-pointer aspect-2/1 p-1`,
   PHASE_NUMBER: tw`flex items-center justify-center text-lg w-3 h-3 my-1 rounded-full font-bold`,
   PHASE_NAME: tw`text-[12px] font-bold truncate max-w-full`,
-  AI_SUGGESTION_ICON: tw`absolute right-0.5 top-0.5 text-purple-700 size-[25px]`,
+  AI_SUGGESTION_ICON: tw`absolute right-[5px] top-[5px] text-purple-700 size-[1.8em]`,
 };
 
 const PHASE_STYLE_LOOKUP: Record<PhaseStatus, { box: string; number: string }> = {
