@@ -13,18 +13,20 @@ import { GraphQLContext } from "../../auth";
 import { publicCommentResolvers } from "./publicCommentResolvers";
 
 // Mock imports
-vi.mock("../deliverable", () => ({
-  resolveDeliverable: vi.fn(),
-}));
-
 vi.mock("../user/queries", () => ({
   selectUser: vi.fn(),
 }));
 
-import { resolveDeliverable } from "../deliverable";
+vi.mock(".", () => ({
+  createPublicComment: vi.fn(),
+}));
+
 import { selectUser } from "../user/queries";
+import { createPublicComment } from ".";
 
 describe("publicCommentResolvers", () => {
+  const testDeliverableId = "5090af2f-8bd5-4fba-834d-28483670a674";
+  const testComment = "Free insulin is a good policy proposal!";
   const testPublicComment: Partial<PrismaPublicComment> = {
     id: "8c11d5c0-f51e-4401-bb72-072a69443f30",
     authorUserId: "c83a9d0c-4de3-46af-b4f4-fd0cc214dadb",
@@ -41,6 +43,25 @@ describe("publicCommentResolvers", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+  });
+
+  describe("Mutation.createPublicComment", () => {
+    it("should call the createPublicComment function", async () => {
+      await publicCommentResolvers.Mutation.createPublicComment(
+        undefined,
+        {
+          deliverableId: testDeliverableId,
+          comment: testComment,
+        },
+        testContext as GraphQLContext
+      );
+
+      expect(createPublicComment).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId,
+        testComment,
+        testContext
+      );
+    });
   });
 
   describe("DeliverableComment.authorUser", () => {
