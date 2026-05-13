@@ -1,4 +1,4 @@
-import { PublicComment as PrismaPublicComment, Prisma } from "@prisma/client";
+import { PublicComment as PrismaPublicComment } from "@prisma/client";
 import { prisma, PrismaTransactionClient } from "../../../prismaClient";
 import { NonEmptyString } from "../../../types";
 

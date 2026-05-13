@@ -12,10 +12,13 @@ export async function createPublicComment(
 ): Promise<PrismaPublicComment> {
   return await prisma().$transaction(async (tx) => {
     await validateUserPermittedToMakePublicComment(deliverableId, context, tx);
-    return await insertPublicComment({
-      deliverableId: deliverableId,
-      authorUserId: context.user.id,
-      content: comment,
-    });
+    return await insertPublicComment(
+      {
+        deliverableId: deliverableId,
+        authorUserId: context.user.id,
+        content: comment,
+      },
+      tx
+    );
   });
 }

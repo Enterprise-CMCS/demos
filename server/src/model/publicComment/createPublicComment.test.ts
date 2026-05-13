@@ -64,10 +64,13 @@ describe("createPublicComment", () => {
 
   it("should insert the comment", async () => {
     await createPublicComment(testDeliverableId, testComment, testContext as GraphQLContext);
-    expect(insertPublicComment).toHaveBeenCalledExactlyOnceWith({
-      deliverableId: testDeliverableId,
-      authorUserId: testContext.user!.id,
-      content: testComment,
-    });
+    expect(insertPublicComment).toHaveBeenCalledExactlyOnceWith(
+      {
+        deliverableId: testDeliverableId,
+        authorUserId: testContext.user!.id,
+        content: testComment,
+      },
+      mockTransaction
+    );
   });
 });
