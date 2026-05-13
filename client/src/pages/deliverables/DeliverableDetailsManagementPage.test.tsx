@@ -139,7 +139,7 @@ describe("DeliverableDetailsManagementPage", () => {
 
     await user.click(screen.getByText("See Additional Details"));
 
-    expect(screen.getByText("Less Details")).toBeInTheDocument();
+    expect(screen.getByText("Less Additional Details")).toBeInTheDocument();
     expect(screen.getByTestId("deliverable-CMS Owner")).toHaveTextContent("Mock User");
   });
 

@@ -9,10 +9,10 @@ import { tw } from "tags/tw";
 
 const STYLES = {
   intro: tw`text-lg text-text-placeholder`,
-  content: tw`space-y-6`,
+  content: tw`space-y-2`,
   sourceTitle: tw`text-lg font-semibold text-text-font`,
-  sourcePreview: tw`border-l-4 border-action bg-surface-secondary px-4 py-3 text-text-placeholder italic`,
-  sourceMeta: tw`mt-2 text-right text-sm italic text-text-placeholder`,
+  sourcePreview: tw`border-l-4 border-action bg-surface-secondary px-1 py-1 text-text-placeholder italic`,
+  sourceMeta: tw`mt-1 text-right text-sm italic text-text-placeholder`,
   footer: tw`flex items-center justify-between`,
   rightActions: tw`flex gap-3`,
   removeButton: tw`font-semibold text-error hover:text-error-dark focus:outline-none focus:ring-2 focus:ring-error-lightest`,
@@ -26,14 +26,15 @@ type ConfirmSuggestedSparklyTagDialogProps = {
   isSubmitting?: boolean;
 };
 
+// Apparently NOT part of DEMOS-1638
 const SourcePassagePdfPreviewPlaceholder = ({ tagName }: { tagName: TagName }) => (
   <div>
     <h3 className={STYLES.sourceTitle}>Source Passage</h3>
     <div className={STYLES.sourcePreview}>
-      "...The proposed demonstration request specifically references {tagName} in the application
-      text..."
-      <div className={STYLES.sourceMeta}>Found in Document X, Page N, Position NN/NNN</div>
+      &quot;...This is a placeholder, This feature does not exist yet, but is specifically references {tagName} in the application
+      text...&quot;
     </div>
+    <div className={STYLES.sourceMeta}>(Found in Document X, Page N, Position NN/NNN)</div>
   </div>
 );
 
@@ -50,7 +51,7 @@ export const ConfirmSuggestedSparklyTagDialog = ({
       title="Confirm Tags from DEMOS AI"
       onClose={onClose}
       dialogHasChanges={false}
-      maxWidthClass="max-w-[960px]"
+      maxWidthClass="max-w-[850px]"
     >
       <div className={STYLES.content}>
         <p className={STYLES.intro}>
@@ -77,7 +78,11 @@ export const ConfirmSuggestedSparklyTagDialog = ({
             Remove
           </button>
           <div className={STYLES.rightActions}>
-            <SecondaryButton name="button-improve-suggested-tag" onClick={() => {}} disabled={true}>
+            <SecondaryButton
+              name="button-improve-suggested-tag"
+              onClick={() => {
+                console.log("Thanks for pressing me. But i don't work yet. :-)");
+              }}>
               Improve this Suggestion
             </SecondaryButton>
             <Button
