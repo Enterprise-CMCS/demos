@@ -44,7 +44,7 @@ vi.mock("../application", () => ({
 }));
 
 vi.mock("../user/queries", () => ({
-  getUser: vi.fn(),
+  selectUser: vi.fn(),
 }));
 
 vi.mock("../demonstrationTypeTagAssignment", () => ({
@@ -68,7 +68,7 @@ vi.mock(".", () => ({
 }));
 
 import { getApplication } from "../application";
-import { getUser } from "../user/queries";
+import { selectUser } from "../user/queries";
 import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
 import {
   checkDeliverableExtensionHasStatus,
@@ -162,7 +162,7 @@ describe("validateDeliverableInputs", () => {
     beforeEach(() => {
       vi.resetAllMocks();
       vi.mocked(getApplication).mockResolvedValue(mockDemonstration as PrismaDemonstration);
-      vi.mocked(getUser).mockResolvedValue(mockUser as PrismaUser);
+      vi.mocked(selectUser).mockResolvedValue(mockUser as PrismaUser);
       vi.mocked(getDemonstrationTypeAssignments).mockResolvedValue(
         mockDemonstrationTypeTagAssignments as PrismaDemonstrationTypeTagAssignment[]
       );
@@ -181,8 +181,9 @@ describe("validateDeliverableInputs", () => {
         applicationTypeId: "Demonstration",
         tx: mockTransaction,
       });
-      expect(getUser).toHaveBeenCalledExactlyOnceWith(
+      expect(selectUser).toHaveBeenCalledExactlyOnceWith(
         { id: testInput.cmsOwnerUserId },
+        true,
         mockTransaction
       );
       expect(getDemonstrationTypeAssignments).toHaveBeenCalledExactlyOnceWith(
@@ -368,7 +369,7 @@ describe("validateDeliverableInputs", () => {
   describe("validateUpdateDeliverableInput", () => {
     beforeEach(() => {
       vi.resetAllMocks();
-      vi.mocked(getUser).mockResolvedValue(mockUser as PrismaUser);
+      vi.mocked(selectUser).mockResolvedValue(mockUser as PrismaUser);
       vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
       vi.mocked(getDemonstrationTypeAssignments).mockResolvedValue(
         mockDemonstrationTypeTagAssignments as PrismaDemonstrationTypeTagAssignment[]
@@ -430,8 +431,9 @@ describe("validateDeliverableInputs", () => {
       };
 
       await validateUpdateDeliverableInput(mockDeliverable.id!, testInput, mockTransaction);
-      expect(getUser).toHaveBeenCalledExactlyOnceWith(
+      expect(selectUser).toHaveBeenCalledExactlyOnceWith(
         { id: testInput.cmsOwnerUserId },
+        true,
         mockTransaction
       );
       expect(checkOwnerPersonType).toHaveBeenCalledExactlyOnceWith(mockUser);

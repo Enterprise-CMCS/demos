@@ -43,20 +43,33 @@ describe("selectUser", () => {
   });
 
   it("should get user from the database directly if no transaction is given", async () => {
-    await selectUser(where);
+    await selectUser(where, false);
     expect(regularMocks.user.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
     expect(transactionMocks.user.findAtMostOne).not.toHaveBeenCalled();
   });
 
   it("should get user via a transaction if one is given", async () => {
-    await selectUser(where, mockTransaction);
+    await selectUser(where, false, mockTransaction);
     expect(regularMocks.user.findAtMostOne).not.toHaveBeenCalled();
     expect(transactionMocks.user.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
   });
 
-  it("returns null when no user is found", async () => {
+  it("should throw if a result is expected and not returned", async () => {
+    try {
+      await selectUser(where, true);
+      throw new Error("Expected selectUser to throw, but it did not.");
+    } catch (e) {
+      expect(e).toBeInstanceOf(Error);
+      const error = e as Error;
+      expect(error.message).toBe(
+        'Expected selectUser to return a record but it did not! Where clause: {"id":"user-1"}'
+      );
+    }
+  });
+
+  it("returns null when no user is found and result is not expected", async () => {
     regularMocks.user.findAtMostOne.mockResolvedValueOnce(null);
-    const result = await selectUser(where);
+    const result = await selectUser(where, false);
     expect(regularMocks.user.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
     expect(result).toBeNull();
   });
@@ -65,7 +78,7 @@ describe("selectUser", () => {
     const user = { id: testUserId } as PrismaUser;
     regularMocks.user.findAtMostOne.mockResolvedValueOnce(user);
 
-    const result = await selectUser(where);
+    const result = await selectUser(where, true);
     expect(regularMocks.user.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
     expect(result).toBe(user);
   });
