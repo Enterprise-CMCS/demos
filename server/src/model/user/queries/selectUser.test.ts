@@ -55,6 +55,10 @@ describe("selectUser", () => {
   });
 
   it("should throw if a result is expected and not returned", async () => {
+    // Note: because vi.fn() returns undefined this isn't strictly necessary
+    // Adding it to make the intent of the test more clear
+    regularMocks.user.findAtMostOne.mockResolvedValueOnce(null);
+
     try {
       await selectUser(where, true);
       throw new Error("Expected selectUser to throw, but it did not.");
@@ -69,6 +73,7 @@ describe("selectUser", () => {
 
   it("returns null when no user is found and result is not expected", async () => {
     regularMocks.user.findAtMostOne.mockResolvedValueOnce(null);
+
     const result = await selectUser(where, false);
     expect(regularMocks.user.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
     expect(result).toBeNull();

@@ -19,7 +19,7 @@ export async function selectUser(
   tx?: PrismaTransactionClient
 ): Promise<PrismaUser | null> {
   const prismaClient = tx ?? prisma();
-  const result = prismaClient.user.findAtMostOne({ where });
+  const result = await prismaClient.user.findAtMostOne({ where });
   if (shouldAlwaysReturn && !result) {
     throw new Error(
       `Expected selectUser to return a record but it did not! Where clause: ${JSON.stringify(where)}`
