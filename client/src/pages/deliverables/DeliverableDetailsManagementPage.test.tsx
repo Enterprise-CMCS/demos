@@ -130,14 +130,14 @@ describe("DeliverableDetailsManagementPage", () => {
     expect(screen.getByText("Deliverables list")).toBeInTheDocument();
   });
 
-  it("toggles additional details", async () => {
+  it("toggles more details", async () => {
     const user = userEvent.setup();
     renderAtRoute("1");
 
-    expect(await screen.findByText("Additional Details")).toBeInTheDocument();
+    expect(await screen.findByText("More Details")).toBeInTheDocument();
     expect(screen.queryByTestId("deliverable-CMS Owner")).not.toBeInTheDocument();
 
-    await user.click(screen.getByText("Additional Details"));
+    await user.click(screen.getByText("More Details"));
 
     expect(screen.getByText("Less Details")).toBeInTheDocument();
     expect(screen.getByTestId("deliverable-CMS Owner")).toHaveTextContent("Mock User");
