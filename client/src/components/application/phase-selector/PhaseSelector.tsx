@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
-import type { DateType, PhaseName, PhaseStatus as ServerPhaseStatus } from "demos-server";
+import type { DateType, PhaseName, PhaseStatus as ServerPhaseStatus, TagName } from "demos-server";
 
 import { WorkflowApplication, WorkflowApplicationType } from "components/application";
 import {
@@ -106,6 +106,16 @@ export const PhaseSelector = ({
 }) => {
   const initialPhase: PhaseName = application.currentPhaseName ?? "Concept";
   const [selectedPhase, setSelectedPhase] = useState<PhaseName>(initialPhase);
+  const [actionedSuggestedTags, setActionedSuggestedTags] = useState<Set<TagName>>(new Set());
+
+  useEffect(() => {
+    setActionedSuggestedTags(new Set());
+  }, [application.id]);
+
+  const pendingSuggestedTags = (application.suggestedApplicationTags ?? []).filter(
+    (tagName) => !actionedSuggestedTags.has(tagName)
+  );
+  const hasPendingAISuggestions = pendingSuggestedTags.length > 0;
 
   const renderPhase = (phaseName: PhaseName) => {
     switch (phaseName) {
@@ -116,7 +126,11 @@ export const PhaseSelector = ({
           setSelectedPhase
         );
       case "Application Intake":
-        return getApplicationIntakeComponentFromApplication(application, setSelectedPhase);
+        return getApplicationIntakeComponentFromApplication(
+          { ...application, suggestedApplicationTags: pendingSuggestedTags },
+          setSelectedPhase,
+          (tagName) => setActionedSuggestedTags((current) => new Set(current).add(tagName))
+        );
       case "Completeness":
         return getApplicationCompletenessFromApplication(application, setSelectedPhase);
       case "Federal Comment":
@@ -150,6 +164,7 @@ export const PhaseSelector = ({
               phaseNumber={index + 1}
               displayDate={displayDate}
               isSelectedPhase={selectedPhase === phaseName}
+              showAISuggestions={phaseName === "Application Intake" && hasPendingAISuggestions}
               setPhaseAsSelected={() => setSelectedPhase(phaseName)}
             />
           );

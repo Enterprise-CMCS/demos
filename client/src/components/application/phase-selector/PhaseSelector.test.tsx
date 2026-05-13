@@ -3,7 +3,7 @@ import React from "react";
 import { TestProvider } from "test-utils/TestProvider";
 import { describe, expect, it, vi } from "vitest";
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { PhaseSelector, getDisplayedPhaseStatus, getDisplayedPhaseDate } from "./PhaseSelector";
@@ -105,6 +105,77 @@ describe("PhaseSelector", () => {
     expect(screen.getByText("Submission")).toBeInTheDocument();
     expect(screen.getByText("Approval")).toBeInTheDocument();
     expect(screen.queryByText("Post-Approval")).not.toBeInTheDocument();
+  });
+
+  it("displays AI sparkles on Application Intake when pending suggestions exist", () => {
+    vi.mocked(getApplicationCompletenessFromApplication).mockReturnValue(<div>Completeness</div>);
+
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "fcf8d9f9-03ff-4092-b784-937a760e5f5b",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+      },
+      primaryProjectOfficer: mockPO,
+      status: "Under Review",
+      currentPhaseName: "Completeness",
+      clearanceLevel: "CMS (OSORA)",
+      phases: [],
+      documents: [],
+      demonstrationTypes: [],
+      tags: [],
+      suggestedApplicationTags: ["Dental"],
+    };
+
+    render(
+      <TestProvider>
+        <PhaseSelector application={demonstration} workflowApplicationType="demonstration" />
+      </TestProvider>
+    );
+
+    expect(screen.getByLabelText("DEMOS AI suggestions available")).toBeInTheDocument();
+  });
+
+  it("removes AI sparkles after the last pending suggestion is actioned", () => {
+    vi.mocked(getApplicationIntakeComponentFromApplication).mockReturnValue(
+      <div>Application Intake</div>
+    );
+
+    const demonstration: ApplicationWorkflowDemonstration = {
+      id: "fcf8d9f9-03ff-4092-b784-937a760e5f5b",
+      name: "Test Demo",
+      state: {
+        id: "CA",
+        name: "California",
+      },
+      primaryProjectOfficer: mockPO,
+      status: "Under Review",
+      currentPhaseName: "Application Intake",
+      clearanceLevel: "CMS (OSORA)",
+      phases: [],
+      documents: [],
+      demonstrationTypes: [],
+      tags: [],
+      suggestedApplicationTags: ["Dental"],
+    };
+
+    render(
+      <TestProvider>
+        <PhaseSelector application={demonstration} workflowApplicationType="demonstration" />
+      </TestProvider>
+    );
+
+    const onSuggestedTagActioned = vi.mocked(getApplicationIntakeComponentFromApplication).mock
+      .calls[0][2];
+
+    expect(screen.getByLabelText("DEMOS AI suggestions available")).toBeInTheDocument();
+
+    act(() => {
+      onSuggestedTagActioned?.("Dental");
+    });
+
+    expect(screen.queryByLabelText("DEMOS AI suggestions available")).not.toBeInTheDocument();
   });
 });
 
@@ -702,7 +773,11 @@ describe("application intake phase component", () => {
     );
 
     expect(getApplicationIntakeComponentFromApplication).toHaveBeenCalledWith(
-      demonstration,
+      expect.objectContaining({
+        id: demonstration.id,
+        suggestedApplicationTags: [],
+      }),
+      expect.any(Function),
       expect.any(Function)
     );
   });
