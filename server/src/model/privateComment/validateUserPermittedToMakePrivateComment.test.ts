@@ -29,8 +29,12 @@ describe("validateUserPermittedToMakePrivateComment", () => {
       },
     };
 
-    validateUserPermittedToMakePrivateComment(testContext1 as GraphQLContext);
-    validateUserPermittedToMakePrivateComment(testContext2 as GraphQLContext);
+    expect(
+      validateUserPermittedToMakePrivateComment(testContext1 as GraphQLContext)
+    ).toBeUndefined();
+    expect(
+      validateUserPermittedToMakePrivateComment(testContext2 as GraphQLContext)
+    ).toBeUndefined();
   });
 
   it("should throw if the user is a state user", () => {
