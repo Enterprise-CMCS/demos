@@ -33,6 +33,7 @@ import {
   DeliverableType,
   DenyDeliverableExtensionInput,
   FinalDeliverableStatus,
+  PersonType,
   RequestDeliverableExtensionInput,
   RequestDeliverableResubmissionInput,
   UpdateDeliverableInput,
@@ -251,7 +252,18 @@ export const deliverableResolvers = {
     publicComments: async (parent: PrismaDeliverable): Promise<PrismaPublicComment[]> => {
       return await selectManyPublicComments({ deliverableId: parent.id });
     },
-    privateComments: async (parent: PrismaDeliverable): Promise<PrismaPrivateComment[]> => {
+    privateComments: async (
+      parent: PrismaDeliverable,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaPrivateComment[]> => {
+      // Temporary implementation, to be replaced with generalized solution
+      const permittedOwnerPersonTypes: readonly PersonType[] = ["demos-admin", "demos-cms-user"];
+      if (!permittedOwnerPersonTypes.includes(context.user.personTypeId)) {
+        throw new Error(
+          `The user ${context.user.id} does not have permissions to query Deliverable.privateComments!`
+        );
+      }
       return await selectManyPrivateComments({ deliverableId: parent.id });
     },
   },

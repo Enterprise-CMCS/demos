@@ -44,7 +44,7 @@ vi.mock("../application", () => ({
 }));
 
 vi.mock("../user/queries", () => ({
-  getUser: vi.fn(),
+  selectUser: vi.fn(),
 }));
 
 vi.mock("../demonstrationTypeTagAssignment", () => ({
@@ -68,7 +68,7 @@ vi.mock(".", () => ({
 }));
 
 import { getApplication } from "../application";
-import { getUser } from "../user/queries";
+import { selectUser } from "../user/queries";
 import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
 import {
   checkDeliverableExtensionHasStatus,
@@ -117,7 +117,7 @@ describe("validateDeliverableInputs", () => {
   const mockTransaction: any = "Test!";
 
   describe("validateUserPersonTypeAllowed", () => {
-    const testUserContext: DeepPartial<GraphQLContext> = {
+    const testContext: DeepPartial<GraphQLContext> = {
       user: {
         id: "0a3bd415-39a3-4f72-a067-418a5219216a",
         personTypeId: "demos-admin",
@@ -125,17 +125,15 @@ describe("validateDeliverableInputs", () => {
     };
 
     it("should not throw if the context is one of the permitted person types", () => {
-      const result = validateUserPersonTypeAllowed(
-        testUserContext as GraphQLContext,
-        "Combobulate",
-        ["demos-admin"]
-      );
+      const result = validateUserPersonTypeAllowed(testContext as GraphQLContext, "Combobulate", [
+        "demos-admin",
+      ]);
       expect(result).toBeUndefined();
     });
 
     it("should throw if the context is not of the permitted person types", () => {
       try {
-        validateUserPersonTypeAllowed(testUserContext as GraphQLContext, "Discombobulate", [
+        validateUserPersonTypeAllowed(testContext as GraphQLContext, "Discombobulate", [
           "demos-cms-user",
         ]);
         throw new Error("Expected validateUserPersonTypeAllowed to throw, but it did not.");
@@ -162,7 +160,7 @@ describe("validateDeliverableInputs", () => {
     beforeEach(() => {
       vi.resetAllMocks();
       vi.mocked(getApplication).mockResolvedValue(mockDemonstration as PrismaDemonstration);
-      vi.mocked(getUser).mockResolvedValue(mockUser as PrismaUser);
+      vi.mocked(selectUser).mockResolvedValue(mockUser as PrismaUser);
       vi.mocked(getDemonstrationTypeAssignments).mockResolvedValue(
         mockDemonstrationTypeTagAssignments as PrismaDemonstrationTypeTagAssignment[]
       );
@@ -181,8 +179,9 @@ describe("validateDeliverableInputs", () => {
         applicationTypeId: "Demonstration",
         tx: mockTransaction,
       });
-      expect(getUser).toHaveBeenCalledExactlyOnceWith(
+      expect(selectUser).toHaveBeenCalledExactlyOnceWith(
         { id: testInput.cmsOwnerUserId },
+        true,
         mockTransaction
       );
       expect(getDemonstrationTypeAssignments).toHaveBeenCalledExactlyOnceWith(
@@ -368,7 +367,7 @@ describe("validateDeliverableInputs", () => {
   describe("validateUpdateDeliverableInput", () => {
     beforeEach(() => {
       vi.resetAllMocks();
-      vi.mocked(getUser).mockResolvedValue(mockUser as PrismaUser);
+      vi.mocked(selectUser).mockResolvedValue(mockUser as PrismaUser);
       vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
       vi.mocked(getDemonstrationTypeAssignments).mockResolvedValue(
         mockDemonstrationTypeTagAssignments as PrismaDemonstrationTypeTagAssignment[]
@@ -430,8 +429,9 @@ describe("validateDeliverableInputs", () => {
       };
 
       await validateUpdateDeliverableInput(mockDeliverable.id!, testInput, mockTransaction);
-      expect(getUser).toHaveBeenCalledExactlyOnceWith(
+      expect(selectUser).toHaveBeenCalledExactlyOnceWith(
         { id: testInput.cmsOwnerUserId },
+        true,
         mockTransaction
       );
       expect(checkOwnerPersonType).toHaveBeenCalledExactlyOnceWith(mockUser);

@@ -60,7 +60,7 @@ describe("approveDeliverableExtension", () => {
   // Test inputs
   const testDeliverableId = "9693437d-1f31-402c-bccb-ab2a5690ea30";
   const testDeliverableExtensionId = "8f86afb2-5013-4334-b8a3-6cf8098ee781";
-  const testUserContext: DeepPartial<GraphQLContext> = {
+  const testContext: DeepPartial<GraphQLContext> = {
     user: {
       id: "0a3bd415-39a3-4f72-a067-418a5219216a",
       personTypeId: "demos-admin",
@@ -113,24 +113,16 @@ describe("approveDeliverableExtension", () => {
   });
 
   it("should check that the user is allowed to do this operation", async () => {
-    await approveDeliverableExtension(
-      testDeliverableId,
-      testInput,
-      testUserContext as GraphQLContext
-    );
+    await approveDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(validateUserPersonTypeAllowed).toHaveBeenCalledExactlyOnceWith(
-      testUserContext,
+      testContext,
       "approveDeliverableExtension",
       ["demos-admin", "demos-cms-user"]
     );
   });
 
   it("should check that the date field isn't null if it's provided", async () => {
-    await approveDeliverableExtension(
-      testDeliverableId,
-      testInput,
-      testUserContext as GraphQLContext
-    );
+    await approveDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(["newDueDate"], testInput);
   });
 
@@ -141,7 +133,7 @@ describe("approveDeliverableExtension", () => {
       await approveDeliverableExtension(
         testDeliverableId,
         testInput,
-        testUserContext as GraphQLContext
+        testContext as GraphQLContext
       );
       throw new Error("Expected approveDeliverableExtension to throw, but it did not.");
     } catch (e) {
@@ -156,7 +148,7 @@ describe("approveDeliverableExtension", () => {
       await approveDeliverableExtension(
         testDeliverableId,
         testInput,
-        testUserContext as GraphQLContext
+        testContext as GraphQLContext
       );
       throw new Error("Expected approveDeliverableExtension to throw, but it did not.");
     } catch (e) {
@@ -165,11 +157,7 @@ describe("approveDeliverableExtension", () => {
   });
 
   it("should get the deliverable before making changes", async () => {
-    await approveDeliverableExtension(
-      testDeliverableId,
-      testInput,
-      testUserContext as GraphQLContext
-    );
+    await approveDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       {
         id: testDeliverableId,
@@ -179,11 +167,7 @@ describe("approveDeliverableExtension", () => {
   });
 
   it("should get the deliverable extension before making changes", async () => {
-    await approveDeliverableExtension(
-      testDeliverableId,
-      testInput,
-      testUserContext as GraphQLContext
-    );
+    await approveDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(selectDeliverableExtension).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableExtensionId },
       true,
@@ -192,11 +176,7 @@ describe("approveDeliverableExtension", () => {
   });
 
   it("should call the parser with the unchanged extension and the input", async () => {
-    await approveDeliverableExtension(
-      testDeliverableId,
-      testInput,
-      testUserContext as GraphQLContext
-    );
+    await approveDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(parseApproveDeliverableExtensionInput).toHaveBeenCalledExactlyOnceWith(
       testInput,
       mockUnapprovedDeliverableExtension
@@ -204,11 +184,7 @@ describe("approveDeliverableExtension", () => {
   });
 
   it("should call the validator using the parsed input and the unchanged records", async () => {
-    await approveDeliverableExtension(
-      testDeliverableId,
-      testInput,
-      testUserContext as GraphQLContext
-    );
+    await approveDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(validateApproveDeliverableExtensionInput).toHaveBeenCalledExactlyOnceWith(
       mockUnapprovedDeliverable,
       mockUnapprovedDeliverableExtension,
@@ -217,11 +193,7 @@ describe("approveDeliverableExtension", () => {
   });
 
   it("should update the deliverable with the correct status and due date", async () => {
-    await approveDeliverableExtension(
-      testDeliverableId,
-      testInput,
-      testUserContext as GraphQLContext
-    );
+    await approveDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(editDeliverable).toHaveBeenCalledExactlyOnceWith(
       testDeliverableId,
       {
@@ -240,11 +212,7 @@ describe("approveDeliverableExtension", () => {
     };
     vi.mocked(getDeliverable).mockResolvedValue(mockUnapprovedDeliverable as PrismaDeliverable);
 
-    await approveDeliverableExtension(
-      testDeliverableId,
-      testInput,
-      testUserContext as GraphQLContext
-    );
+    await approveDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(editDeliverable).toHaveBeenCalledExactlyOnceWith(
       testDeliverableId,
       {
@@ -256,11 +224,7 @@ describe("approveDeliverableExtension", () => {
   });
 
   it("should insert an action record for the approval", async () => {
-    await approveDeliverableExtension(
-      testDeliverableId,
-      testInput,
-      testUserContext as GraphQLContext
-    );
+    await approveDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(insertDeliverableAction).toHaveBeenCalledExactlyOnceWith(
       {
         deliverableId: testDeliverableId,
@@ -269,18 +233,14 @@ describe("approveDeliverableExtension", () => {
         newStatus: mockApprovedDeliverable.statusId,
         oldDueDate: mockUnapprovedDeliverable.dueDate,
         newDueDate: mockParsedInput.finalDateGranted.easternTZDate,
-        userId: testUserContext.user!.id,
+        userId: testContext.user!.id,
       },
       mockTransaction
     );
   });
 
   it("should update the deliverable extension", async () => {
-    await approveDeliverableExtension(
-      testDeliverableId,
-      testInput,
-      testUserContext as GraphQLContext
-    );
+    await approveDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(updateDeliverableExtension).toHaveBeenCalledExactlyOnceWith(
       testDeliverableExtensionId,
       {
@@ -292,11 +252,7 @@ describe("approveDeliverableExtension", () => {
   });
 
   it("should invoke the updates to tables in the right order", async () => {
-    await approveDeliverableExtension(
-      testDeliverableId,
-      testInput,
-      testUserContext as GraphQLContext
-    );
+    await approveDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
 
     // Note that when resetAllMocks is called, the invocationCallOrder array is emptied
     // That is why we can compare the 0 index of each of them

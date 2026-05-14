@@ -46,7 +46,7 @@ describe("requestDeliverableResubmission", () => {
     details: "These are details",
     newDueDate: "2026-11-13" as DateTimeOrLocalDate,
   };
-  const testUserContext: DeepPartial<GraphQLContext> = {
+  const testContext: DeepPartial<GraphQLContext> = {
     user: {
       id: "0a3bd415-39a3-4f72-a067-418a5219216a",
       personTypeId: "demos-admin",
@@ -91,10 +91,10 @@ describe("requestDeliverableResubmission", () => {
     await requestDeliverableResubmission(
       testDeliverableId,
       testInput,
-      testUserContext as GraphQLContext
+      testContext as GraphQLContext
     );
     expect(validateUserPersonTypeAllowed).toHaveBeenCalledExactlyOnceWith(
-      testUserContext,
+      testContext,
       "requestDeliverableResubmission",
       ["demos-admin", "demos-cms-user"]
     );
@@ -107,7 +107,7 @@ describe("requestDeliverableResubmission", () => {
       await requestDeliverableResubmission(
         testDeliverableId,
         testInput,
-        testUserContext as GraphQLContext
+        testContext as GraphQLContext
       );
       throw new Error("Expected requestDeliverableResubmission to throw, but it did not.");
     } catch (e) {
@@ -119,7 +119,7 @@ describe("requestDeliverableResubmission", () => {
     await requestDeliverableResubmission(
       testDeliverableId,
       testInput,
-      testUserContext as GraphQLContext
+      testContext as GraphQLContext
     );
     expect(parseRequestDeliverableResubmissionInput).toHaveBeenCalledExactlyOnceWith(testInput);
   });
@@ -131,7 +131,7 @@ describe("requestDeliverableResubmission", () => {
       await requestDeliverableResubmission(
         testDeliverableId,
         testInput,
-        testUserContext as GraphQLContext
+        testContext as GraphQLContext
       );
       throw new Error("Expected requestDeliverableResubmission to throw, but it did not.");
     } catch (e) {
@@ -143,7 +143,7 @@ describe("requestDeliverableResubmission", () => {
     await requestDeliverableResubmission(
       testDeliverableId,
       testInput,
-      testUserContext as GraphQLContext
+      testContext as GraphQLContext
     );
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
@@ -155,7 +155,7 @@ describe("requestDeliverableResubmission", () => {
     await requestDeliverableResubmission(
       testDeliverableId,
       testInput,
-      testUserContext as GraphQLContext
+      testContext as GraphQLContext
     );
     expect(validateRequestDeliverableResubmissionInput).toHaveBeenCalledExactlyOnceWith(
       mockUnrequestedDeliverable,
@@ -167,7 +167,7 @@ describe("requestDeliverableResubmission", () => {
     await requestDeliverableResubmission(
       testDeliverableId,
       testInput,
-      testUserContext as GraphQLContext
+      testContext as GraphQLContext
     );
     expect(editDeliverable).toHaveBeenCalledExactlyOnceWith(
       testDeliverableId,
@@ -180,7 +180,7 @@ describe("requestDeliverableResubmission", () => {
     await requestDeliverableResubmission(
       testDeliverableId,
       testInput,
-      testUserContext as GraphQLContext
+      testContext as GraphQLContext
     );
     expect(insertDeliverableAction).toHaveBeenCalledExactlyOnceWith(
       {
@@ -191,7 +191,7 @@ describe("requestDeliverableResubmission", () => {
         note: mockParsedInput.details,
         oldDueDate: mockUnrequestedDeliverable.dueDate,
         newDueDate: mockRequestedDeliverable.dueDate,
-        userId: testUserContext.user!.id,
+        userId: testContext.user!.id,
       },
       mockTransaction
     );

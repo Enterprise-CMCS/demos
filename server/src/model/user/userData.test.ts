@@ -1,8 +1,17 @@
-import { User as PrismaUser, Prisma } from "@prisma/client";
+// Vitest and other helpers
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { buildAuthorizationFilter, ContextUser } from "../../auth";
+
+// Types
+import { User as PrismaUser, Prisma } from "@prisma/client";
+import { ContextUser } from "../../auth";
+
+// Functions under test
 import { getUser, getManyUsers } from "./userData";
-import { selectUser, selectManyUsers } from "./queries";
+
+// Mock imports
+vi.mock("../../prismaClient", () => ({
+  prisma: vi.fn(),
+}));
 
 vi.mock("../../auth", () => ({
   buildAuthorizationFilter: vi.fn(),
@@ -12,6 +21,10 @@ vi.mock("./queries", () => ({
   selectUser: vi.fn(),
   selectManyUsers: vi.fn(),
 }));
+
+import { prisma } from "../../prismaClient";
+import { buildAuthorizationFilter } from "../../auth";
+import { selectUser, selectManyUsers } from "./queries";
 
 describe("userData", () => {
   const contextUser: ContextUser = {
@@ -33,8 +46,13 @@ describe("userData", () => {
     OR: [authorizedWhereClause],
   };
 
+  // Mock transaction
+  const mockTransaction: any = "Transaction!";
+  const mockPrismaClient: any = "Client!";
+
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(prisma).mockReturnValue(mockPrismaClient);
   });
 
   describe("getUser", () => {
@@ -43,6 +61,7 @@ describe("userData", () => {
 
       const result = await getUser(where, contextUser);
 
+      expect(prisma).toHaveBeenCalledOnce();
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(selectUser).not.toHaveBeenCalled();
       expect(result).toBeNull();
@@ -55,28 +74,31 @@ describe("userData", () => {
 
       const result = await getUser(where, contextUser);
 
+      expect(prisma).toHaveBeenCalledOnce();
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(buildAuthorizationFilter).toHaveBeenCalledWith(contextUser, expect.any(Function));
       expect(selectUser).toHaveBeenCalledExactlyOnceWith(
         {
           AND: [where, authFilter],
         },
-        undefined
+        false,
+        mockPrismaClient
       );
       expect(result).toBe(user);
     });
 
     it("passes transaction client to selectUser if provided", async () => {
-      const mockTransactionClient = {} as any;
       vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
 
-      await getUser(where, contextUser, mockTransactionClient);
+      await getUser(where, contextUser, mockTransaction);
+      expect(prisma).not.toHaveBeenCalled();
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(selectUser).toHaveBeenCalledExactlyOnceWith(
         {
           AND: [where, authFilter],
         },
-        mockTransactionClient
+        false,
+        mockTransaction
       );
     });
   });
@@ -87,6 +109,7 @@ describe("userData", () => {
 
       const result = await getManyUsers(where, contextUser);
 
+      expect(prisma).toHaveBeenCalledOnce();
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(selectManyUsers).not.toHaveBeenCalled();
       expect(result).toEqual([]);
@@ -99,28 +122,30 @@ describe("userData", () => {
 
       const result = await getManyUsers(where, contextUser);
 
+      expect(prisma).toHaveBeenCalledOnce();
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(buildAuthorizationFilter).toHaveBeenCalledWith(contextUser, expect.any(Function));
       expect(selectManyUsers).toHaveBeenCalledExactlyOnceWith(
         {
           AND: [where, authFilter],
         },
-        undefined
+        mockPrismaClient
       );
       expect(result).toBe(users);
     });
 
     it("passes transaction client to selectManyUsers if provided", async () => {
-      const mockTransactionClient = {} as any;
       vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
 
-      await getManyUsers(where, contextUser, mockTransactionClient);
+      await getManyUsers(where, contextUser, mockTransaction);
+
+      expect(prisma).not.toHaveBeenCalled();
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(selectManyUsers).toHaveBeenCalledExactlyOnceWith(
         {
           AND: [where, authFilter],
         },
-        mockTransactionClient
+        mockTransaction
       );
     });
   });

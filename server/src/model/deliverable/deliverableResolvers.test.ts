@@ -700,12 +700,40 @@ describe("deliverableResolvers", () => {
 
     describe("Deliverable.privateComments", () => {
       it("should query the private comments of the parent deliverable", async () => {
+        const testContext: DeepPartial<GraphQLContext> = {
+          user: {
+            id: "27cb9043-0016-44ca-a361-dd047bfa5993",
+            personTypeId: "demos-cms-user",
+          },
+        };
         await deliverableResolvers.Deliverable.privateComments(
-          testDeliverable as PrismaDeliverable
+          testDeliverable as PrismaDeliverable,
+          undefined,
+          testContext as GraphQLContext
         );
         expect(selectManyPrivateComments).toHaveBeenCalledExactlyOnceWith({
           deliverableId: testDeliverableId,
         });
+      });
+
+      it("should throw if a state user attempts the query", async () => {
+        const testContext: DeepPartial<GraphQLContext> = {
+          user: {
+            id: "27cb9043-0016-44ca-a361-dd047bfa5993",
+            personTypeId: "demos-state-user",
+          },
+        };
+
+        try {
+          await deliverableResolvers.Deliverable.privateComments(
+            testDeliverable as PrismaDeliverable,
+            undefined,
+            testContext as GraphQLContext
+          );
+          throw new Error("Expected Deliverable.privateComments to throw, but it did not.");
+        } catch (e) {
+          expect(selectManyPrivateComments).not.toHaveBeenCalled();
+        }
       });
     });
   });

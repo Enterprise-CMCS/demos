@@ -45,6 +45,10 @@ import {
   CompleteReviewDeliverableDialog,
   CompleteReviewDeliverableDialogDeliverable,
 } from "./deliverable/CompleteReviewDeliverableDialog";
+import {
+  ReviewExtensionDeliverableDialog,
+  ReviewExtensionDeliverableDialogDeliverable,
+} from "./deliverable/ReviewExtensionDeliverableDialog";
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -280,6 +284,14 @@ export const useDialog = () => {
     );
   };
 
+  const showReviewExtensionDeliverableDialog = (
+    deliverable: ReviewExtensionDeliverableDialogDeliverable
+  ) => {
+    context.showDialog(
+      <ReviewExtensionDeliverableDialog onClose={context.hideDialog} deliverable={deliverable} />
+    );
+  };
+
   const showEditDeliverableDialog = (
     deliverable: DeliverableTableRow,
     onSave?: (input: EditDeliverableInput, reasonForChange?: string) => Promise<void> | void
@@ -337,5 +349,6 @@ export const useDialog = () => {
     showRequestExtensionDeliverableDialog,
     showRequestResubmissionDeliverableDialog,
     showCompleteReviewDeliverableDialog,
+    showReviewExtensionDeliverableDialog,
   };
 };

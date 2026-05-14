@@ -75,7 +75,9 @@ export const DemonstrationDeliverableTable: React.FC<{
       meta: {
         filterConfig: {
           filterType: "select",
-          options: DELIVERABLE_STATUSES.map((status) => ({ label: status, value: status })),
+          options: DELIVERABLE_STATUSES
+            .filter((status) => status !== "Deleted")
+            .map((status) => ({ label: status, value: status })),
         },
       },
     }),

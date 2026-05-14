@@ -37,7 +37,7 @@ import { insertDeliverableAction } from "../deliverableAction/queries";
 describe("startDeliverableReview", () => {
   // Test inputs
   const testDeliverableId = "b18cf1ce-3e41-4a71-b4f4-585f343bc74f";
-  const testUserContext: DeepPartial<GraphQLContext> = {
+  const testContext: DeepPartial<GraphQLContext> = {
     user: {
       id: "0a3bd415-39a3-4f72-a067-418a5219216a",
       personTypeId: "demos-admin",
@@ -71,9 +71,9 @@ describe("startDeliverableReview", () => {
   });
 
   it("should check that the user is allowed to do this operation", async () => {
-    await startDeliverableReview(testDeliverableId, testUserContext as GraphQLContext);
+    await startDeliverableReview(testDeliverableId, testContext as GraphQLContext);
     expect(validateUserPersonTypeAllowed).toHaveBeenCalledExactlyOnceWith(
-      testUserContext,
+      testContext,
       "startDeliverableReview",
       ["demos-admin", "demos-cms-user"]
     );
@@ -83,7 +83,7 @@ describe("startDeliverableReview", () => {
     vi.mocked(validateUserPersonTypeAllowed).mockThrow("I'm throwing!");
 
     try {
-      await startDeliverableReview(testDeliverableId, testUserContext as GraphQLContext);
+      await startDeliverableReview(testDeliverableId, testContext as GraphQLContext);
       throw new Error("Expected startDeliverableReview to throw, but it did not.");
     } catch (e) {
       expect(prisma).not.toHaveBeenCalled();
@@ -91,7 +91,7 @@ describe("startDeliverableReview", () => {
   });
 
   it("should get the deliverable before making changes", async () => {
-    await startDeliverableReview(testDeliverableId, testUserContext as GraphQLContext);
+    await startDeliverableReview(testDeliverableId, testContext as GraphQLContext);
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
       { tx: mockTransaction }
@@ -99,14 +99,14 @@ describe("startDeliverableReview", () => {
   });
 
   it("should call the validator on the unchanged deliverable", async () => {
-    await startDeliverableReview(testDeliverableId, testUserContext as GraphQLContext);
+    await startDeliverableReview(testDeliverableId, testContext as GraphQLContext);
     expect(validateStartDeliverableReviewInput).toHaveBeenCalledExactlyOnceWith(
       mockUnstartedDeliverable
     );
   });
 
   it("should call edit function to set the status to under CMS review", async () => {
-    await startDeliverableReview(testDeliverableId, testUserContext as GraphQLContext);
+    await startDeliverableReview(testDeliverableId, testContext as GraphQLContext);
     expect(editDeliverable).toHaveBeenCalledExactlyOnceWith(
       testDeliverableId,
       { statusId: "Under CMS Review" },
@@ -115,7 +115,7 @@ describe("startDeliverableReview", () => {
   });
 
   it("should log an action for the submission", async () => {
-    await startDeliverableReview(testDeliverableId, testUserContext as GraphQLContext);
+    await startDeliverableReview(testDeliverableId, testContext as GraphQLContext);
     expect(insertDeliverableAction).toHaveBeenCalledExactlyOnceWith(
       {
         deliverableId: testDeliverableId,
@@ -124,7 +124,7 @@ describe("startDeliverableReview", () => {
         newStatus: mockStartedDeliverable.statusId,
         oldDueDate: mockUnstartedDeliverable.dueDate,
         newDueDate: mockStartedDeliverable.dueDate,
-        userId: testUserContext.user!.id,
+        userId: testContext.user!.id,
       },
       mockTransaction
     );

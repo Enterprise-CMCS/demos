@@ -53,6 +53,7 @@ export { editDeliverable } from "./queries/editDeliverable";
 export { getDeliverable } from "./queries/getDeliverable";
 export { getManyDeliverables } from "./queries/getManyDeliverables";
 export { insertDeliverable } from "./queries/insertDeliverable";
+export { isStatePointOfContactOnDeliverableDemonstration } from "./queries/isStatePointOfContactOnDeliverableDemonstration";
 
 // Types & Constants
 export type { EditDeliverableInput } from "./queries/editDeliverable";

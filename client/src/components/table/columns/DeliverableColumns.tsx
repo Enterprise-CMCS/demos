@@ -62,7 +62,9 @@ export function DeliverableColumns({
       filterConfig: {
         filterType: "select",
         // Extension Requested options not ready yet.
-        options: DELIVERABLE_STATUSES.map((status) => ({ label: status, value: status })),
+        options: DELIVERABLE_STATUSES
+          .filter((status) => status !== "Deleted")
+          .map((status) => ({ label: status, value: status })),
       },
     },
   });
