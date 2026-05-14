@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
-import type { DateType, PhaseName, PhaseStatus as ServerPhaseStatus, TagName } from "demos-server";
+import type { DateType, PhaseName, PhaseStatus as ServerPhaseStatus } from "demos-server";
 
 import { WorkflowApplication, WorkflowApplicationType } from "components/application";
 import {
@@ -106,19 +106,9 @@ export const PhaseSelector = ({
 }) => {
   const initialPhase: PhaseName = application.currentPhaseName ?? "Concept";
   const [selectedPhase, setSelectedPhase] = useState<PhaseName>(initialPhase);
-  const [suggestedTags, setSuggestedTags] = useState<Set<TagName>>(new Set());
-
-  // resets tags on new application page load.
-  useEffect(() => {
-    setSuggestedTags(new Set());
-  }, [application.id]);
 
   const suggestedApplicationTags = application.suggestedApplicationTags ?? [];
-  const pendingSuggestedTags = suggestedApplicationTags.filter(
-    (tagName) => !suggestedTags.has(tagName)
-  );
-
-  const hasPendingAISuggestions = pendingSuggestedTags.length > 0;
+  const hasPendingAISuggestions = suggestedApplicationTags.length > 0;
 
   const renderPhase = (phaseName: PhaseName) => {
     switch (phaseName) {
@@ -129,14 +119,7 @@ export const PhaseSelector = ({
           setSelectedPhase
         );
       case "Application Intake":
-        return getApplicationIntakeComponentFromApplication(
-          {
-            ...application,
-            suggestedApplicationTags: pendingSuggestedTags,
-          },
-          setSelectedPhase, (tagName) =>
-            setSuggestedTags((current) => new Set(current).add(tagName))
-        );
+        return getApplicationIntakeComponentFromApplication(application, setSelectedPhase);
       case "Completeness":
         return getApplicationCompletenessFromApplication(application, setSelectedPhase);
       case "Federal Comment":
