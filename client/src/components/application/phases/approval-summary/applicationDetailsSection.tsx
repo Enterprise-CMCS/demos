@@ -14,6 +14,9 @@ import { formatDate } from "util/formatDate";
 const LABEL_CLASSES = tw`text-text-font font-bold text-sm tracking-wide h-[14px] flex items-center`;
 const VALUE_CLASSES = tw`text-text-font text-base leading-relaxed h-[40px] flex items-start mt-1`;
 
+export const DEMONSTRATION_SIGNATURE_LEVELS: SignatureLevel[] = ["OA"];
+export const MODIFICATION_SIGNATURE_LEVELS: SignatureLevel[] = ["OA", "OCD"];
+
 export type BaseFormData = {
   name: string;
   description?: string;
@@ -327,8 +330,8 @@ export const ApplicationDetailsSection = ({
               initialValue={sectionFormData.signatureLevel}
               allowedSignatureLevels={
                 sectionFormData.applicationType === "demonstration"
-                  ? ["OA"]
-                  : ["OA", "OCD"]
+                  ? DEMONSTRATION_SIGNATURE_LEVELS
+                  : MODIFICATION_SIGNATURE_LEVELS
               }
               onSelect={(signatureLevel) =>
                 setSectionFormData({ ...sectionFormData, signatureLevel })
