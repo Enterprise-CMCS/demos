@@ -15,9 +15,15 @@ export const FINAL_BN_WORKSHEET_DOCUMENT_TYPE = "BN Workbook";
  * @throws An error if the database query fails.
  */
 export async function documentExists(pool: Pool, documentId: string): Promise<boolean> {
-  const query = `SELECT EXISTS(SELECT 1 FROM ${dbSchema}.document WHERE id = $1::UUID) AS exists;`;
+  const query = `SELECT EXISTS(SELECT 1 FROM ${dbSchema}.document WHERE id = $1::UUID);`;
   const result = await pool.query(query, [documentId]);
-  return Boolean(result.rows[0]?.exists);
+  return result.rows[0]?.exists || false;
+}
+
+export async function getS3Path(pool: Pool, documentId: string): Promise<string | null> {
+  const query = `SELECT s3_path FROM ${dbSchema}.document WHERE id = $1::UUID;`;
+  const result = await pool.query(query, [documentId]);
+  return result.rows[0]?.s3_path || null;
 }
 
 export interface BudgetNeutralityMessage {
@@ -33,7 +39,7 @@ export interface BudgetNeutralityMessage {
 
 export function validateSingleRecordCount(recordCount: number): void {
   if (recordCount !== 1) {
-    throw new Error(`Expected exactly 1 record, received ${recordCount}.`);
+    throw new Error(`Lambda failed: Expected exactly 1 record, received ${recordCount}.`);
   }
 }
 
@@ -49,16 +55,16 @@ export function parseAndValidateBudgetNeutralityMessage(
   const parsed = JSON.parse(recordBody);
 
   if (!parsed.documentId || typeof parsed.documentId !== "string") {
-    throw new Error("Invalid message: documentId is required.");
+    throw new Error("Lambda failed: Invalid message: documentId is required.");
   }
 
   if (!parsed.documentTypeId || typeof parsed.documentTypeId !== "string") {
-    throw new Error("Invalid message: documentTypeId is required.");
+    throw new Error("Lambda failed: Invalid message: documentTypeId is required.");
   }
 
   if (parsed.documentTypeId !== FINAL_BN_WORKSHEET_DOCUMENT_TYPE) {
     throw new Error(
-      `Invalid message: documentTypeId must be "${FINAL_BN_WORKSHEET_DOCUMENT_TYPE}". Received "${parsed.documentTypeId}".`
+      `Lambda failed: Invalid message: documentTypeId must be "${FINAL_BN_WORKSHEET_DOCUMENT_TYPE}". Received "${parsed.documentTypeId}".`
     );
   }
 
