@@ -46,6 +46,10 @@ const STYLES = {
 
 const THIS_PHASE_NAME: PhaseName = "Application Intake";
 const NEXT_PHASE_NAME: PhaseName = "Completeness";
+const REFETCH_ACTIVE_QUERIES_AFTER_SUGGESTION_UPDATE = {
+  awaitRefetchQueries: true,
+  refetchQueries: "active" as const,
+};
 
 export const APPLICATION_INTAKE_FINISH_BUTTON_NAME = "button-finish-state-application";
 export const APPLICATION_INTAKE_UPLOAD_BUTTON_NAME = "button-open-upload-modal";
@@ -304,15 +308,16 @@ export const ApplicationIntakePhase = ({
   const { setApplicationDates } = useSetApplicationDates();
   const [setApplicationTagsMutation] = useMutation(SET_APPLICATION_TAGS_MUTATION);
   const [acceptApplicationTagSuggestion, { loading: isApplyingSuggestedTag }] = useMutation(
-    ACCEPT_APPLICATION_TAG_SUGGESTION_MUTATION
+    ACCEPT_APPLICATION_TAG_SUGGESTION_MUTATION,
+    REFETCH_ACTIVE_QUERIES_AFTER_SUGGESTION_UPDATE
   );
   const [removeApplicationTagSuggestion, { loading: isRemovingSuggestedTag }] = useMutation(
-    REMOVE_APPLICATION_TAG_SUGGESTION_MUTATION
+    REMOVE_APPLICATION_TAG_SUGGESTION_MUTATION,
+    REFETCH_ACTIVE_QUERIES_AFTER_SUGGESTION_UPDATE
   );
 
   const [submittedDateOverride, setSubmittedDateOverride] = useState<string>("");
   const [selectedSuggestedTag, setSelectedSuggestedTag] = useState<TagName | null>(null);
-  const [hiddenSuggestedTags, setHiddenSuggestedTags] = useState<Set<TagName>>(new Set());
 
   // Calculate the dates to display based on the following rules:
   // 1. If the user has manually entered a date (submittedDateOverride), use this
@@ -386,7 +391,6 @@ export const ApplicationIntakePhase = ({
           value: tagName,
         },
       });
-      setHiddenSuggestedTags((current) => new Set(current).add(tagName));
       setSelectedSuggestedTag(null);
       showSuccess(`Tag "${tagName}" confirmed`);
     } catch (error) {
@@ -403,7 +407,6 @@ export const ApplicationIntakePhase = ({
           value: tagName,
         },
       });
-      setHiddenSuggestedTags((current) => new Set(current).add(tagName));
       setSelectedSuggestedTag(null);
       showSuccess(`Tag "${tagName}" removed`);
     } catch (error) {
@@ -441,7 +444,7 @@ export const ApplicationIntakePhase = ({
               "You must tag this application with one or more demonstration types involved in this request before it can be reviewed and approved."
             }
             selectedTags={tags}
-            suggestedTags={suggestedTags.filter((tagName) => !hiddenSuggestedTags.has(tagName))}
+            suggestedTags={suggestedTags}
             onRemoveTag={handleRemoveTag}
             onAcceptSuggestedTag={setSelectedSuggestedTag}
             isApplyingSuggestedTag={isApplyingSuggestedTag || isRemovingSuggestedTag}
