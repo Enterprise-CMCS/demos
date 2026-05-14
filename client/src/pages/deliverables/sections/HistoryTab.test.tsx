@@ -9,17 +9,18 @@ import { HISTORY_TAB_NAME, HistoryTab, type DeliverableHistoryRow } from "./Hist
 const MOCK_ROWS: DeliverableHistoryRow[] = [
   {
     id: "hist-1",
-    event: "Submitted",
+    event: "Submitted Deliverable",
     date: new Date("2026-04-01"),
-    user: "Leslie Carlson",
-    details: "Sorry",
+    user: "Leslie Carlson (State User)",
+    details: "",
   },
   {
     id: "hist-2",
-    event: "Resubmission Request",
+    event: "Requested Resubmission",
     date: new Date("2026-04-01"),
-    user: "Tess Davenport",
-    details: "-",
+    user: "Tess Davenport (CMS User)",
+    details:
+      "Old Due Date: 03/15/2026\nNew Due Date: 04/15/2026\nReason Details: Needs correction.",
   },
 ];
 
@@ -45,10 +46,32 @@ describe("HistoryTab", () => {
       </TestProvider>
     );
 
-    expect(screen.getByText("Submitted")).toBeInTheDocument();
-    expect(screen.getByText("Resubmission Request")).toBeInTheDocument();
-    expect(screen.getByText("Leslie Carlson")).toBeInTheDocument();
-    expect(screen.getByText("Tess Davenport")).toBeInTheDocument();
+    expect(screen.getByText("Submitted Deliverable")).toBeInTheDocument();
+    expect(screen.getByText("Requested Resubmission")).toBeInTheDocument();
+    expect(screen.getByText("Leslie Carlson (State User)")).toBeInTheDocument();
+    expect(screen.getByText("Tess Davenport (CMS User)")).toBeInTheDocument();
+  });
+
+  it("formats action timestamps in MM/DD/YYYY", () => {
+    render(
+      <TestProvider>
+        <HistoryTab rows={MOCK_ROWS} />
+      </TestProvider>
+    );
+
+    expect(screen.getAllByText("04/01/2026").length).toBeGreaterThan(0);
+  });
+
+  it("preserves newlines in the details column for multi-line entries", () => {
+    render(
+      <TestProvider>
+        <HistoryTab rows={MOCK_ROWS} />
+      </TestProvider>
+    );
+
+    const detailsText = screen.getByText(/Old Due Date: 03\/15\/2026/);
+    expect(detailsText).toBeInTheDocument();
+    expect(detailsText.closest("div")?.className).toContain("whitespace-pre-line");
   });
 
   it("renders an empty-state message when there are no rows", () => {

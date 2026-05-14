@@ -8,24 +8,25 @@ import {
   PublicComment as PrismaPublicComment,
 } from "@prisma/client";
 import { GraphQLContext } from "../../auth";
-import { GraphQLResolveInfo } from "graphql";
 
 // Functions under test
 import { publicCommentResolvers } from "./publicCommentResolvers";
 
 // Mock imports
-vi.mock("../deliverable", () => ({
-  resolveDeliverable: vi.fn(),
+vi.mock("../user/queries", () => ({
+  selectUser: vi.fn(),
 }));
 
-vi.mock("../user", () => ({
-  getUser: vi.fn(),
+vi.mock(".", () => ({
+  createPublicComment: vi.fn(),
 }));
 
-import { resolveDeliverable } from "../deliverable";
-import { getUser } from "../user";
+import { selectUser } from "../user/queries";
+import { createPublicComment } from ".";
 
 describe("publicCommentResolvers", () => {
+  const testDeliverableId = "5090af2f-8bd5-4fba-834d-28483670a674";
+  const testComment = "Free insulin is a good policy proposal!";
   const testPublicComment: Partial<PrismaPublicComment> = {
     id: "8c11d5c0-f51e-4401-bb72-072a69443f30",
     authorUserId: "c83a9d0c-4de3-46af-b4f4-fd0cc214dadb",
@@ -44,28 +45,43 @@ describe("publicCommentResolvers", () => {
     vi.resetAllMocks();
   });
 
+  describe("Mutation.createPublicComment", () => {
+    it("should call the createPublicComment function", async () => {
+      await publicCommentResolvers.Mutation.createPublicComment(
+        undefined,
+        {
+          deliverableId: testDeliverableId,
+          comment: testComment,
+        },
+        testContext as GraphQLContext
+      );
+
+      expect(createPublicComment).toHaveBeenCalledExactlyOnceWith(
+        testDeliverableId,
+        testComment,
+        testContext
+      );
+    });
+  });
+
   describe("DeliverableComment.authorUser", () => {
     it("should query the author of the comment for public comments", async () => {
       await publicCommentResolvers.DeliverableComment.authorUser(
-        testPublicComment as PrismaPublicComment,
-        undefined,
-        testContext as GraphQLContext
+        testPublicComment as PrismaPublicComment
       );
-      expect(getUser).toHaveBeenCalledExactlyOnceWith(
+      expect(selectUser).toHaveBeenCalledExactlyOnceWith(
         { id: testPublicComment.authorUserId },
-        testContext.user
+        true
       );
     });
 
     it("should query the author of the comment for private comments", async () => {
       await publicCommentResolvers.DeliverableComment.authorUser(
-        testPrivateComment as PrismaPrivateComment,
-        undefined,
-        testContext as GraphQLContext
+        testPrivateComment as PrismaPrivateComment
       );
-      expect(getUser).toHaveBeenCalledExactlyOnceWith(
+      expect(selectUser).toHaveBeenCalledExactlyOnceWith(
         { id: testPrivateComment.authorUserId },
-        testContext.user
+        true
       );
     });
   });

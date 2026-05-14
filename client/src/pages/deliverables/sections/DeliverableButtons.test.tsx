@@ -113,7 +113,15 @@ describe("DeliverableButtons", () => {
       buildDeliverable({
         status: "Upcoming",
         extensionRequests: [
-          { id: "ext-1", status: "Requested", createdAt: new Date("2026-04-01") },
+          {
+            id: "ext-1",
+            status: "Requested",
+            reasonCode: "Other",
+            reasonDetails: "details",
+            initialDueDateAtRequest: new Date("2026-03-01"),
+            originalDateRequested: new Date("2026-04-15"),
+            createdAt: new Date("2026-04-01"),
+          },
         ],
       })
     );

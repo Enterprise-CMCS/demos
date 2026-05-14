@@ -68,6 +68,9 @@ import { demonstrationResolvers } from "./demonstration/demonstrationResolvers.j
 import { documentSchema } from "./document/documentSchema.js";
 import { documentResolvers } from "./document/documentResolvers.js";
 
+import { documentPendingUploadSchema } from "./documentPendingUpload/documentPendingUploadSchema.js";
+import { documentPendingUploadResolvers } from "./documentPendingUpload/documentPendingUploadResolvers.js";
+
 import { documentTypeSchema } from "./documentType/documentTypeSchema.js";
 import { documentTypeResolvers } from "./documentType/documentTypeResolvers.js";
 
@@ -168,6 +171,7 @@ export const typeDefs = [
   demonstrationSchema,
   demonstrationTypeTagAssignmentSchema,
   documentSchema,
+  documentPendingUploadSchema,
   documentTypeSchema,
   eventSchema,
   eventTypeSchema,
@@ -216,6 +220,7 @@ export const resolvers = [
   demonstrationRoleAssigmentResolvers,
   demonstrationTypeTagAssignmentResolvers,
   documentResolvers,
+  documentPendingUploadResolvers,
   documentTypeResolvers,
   eventResolvers,
   eventTypeResolvers,

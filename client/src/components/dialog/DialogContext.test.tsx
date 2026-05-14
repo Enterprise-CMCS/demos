@@ -128,7 +128,7 @@ vi.mock("./ManageContactsDialog", () => ({
   ),
 }));
 vi.mock("./document", () => ({
-  AddDocumentDialog: ({
+  AddDocumentToApplicationDialog: ({
     onClose,
     applicationId,
   }: {

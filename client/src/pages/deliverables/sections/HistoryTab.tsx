@@ -1,12 +1,10 @@
 import React from "react";
-import { createColumnHelper } from "@tanstack/react-table";
+import { CellContext, createColumnHelper } from "@tanstack/react-table";
 
-import { ColumnFilter } from "components/table/ColumnFilter";
-import { KeywordSearch, highlightCell } from "components/table/KeywordSearch";
+import { highlightCell } from "components/table/KeywordSearch";
 import { PaginationControls } from "components/table/PaginationControls";
 import { Table } from "components/table/Table";
 import { createDateColumnDef } from "components/table/columns/dateColumn";
-import { createSelectColumnDef } from "components/table/columns/selectColumn";
 
 export const HISTORY_TAB_NAME = "history-tab";
 
@@ -20,10 +18,14 @@ export type DeliverableHistoryRow = {
 
 const INITIAL_TABLE_STATE = { sorting: [{ id: "date", desc: true }] };
 
+// Details may include embedded "\n" (e.g. extension request reasons); preserve those line breaks.
+function detailsCell(context: CellContext<DeliverableHistoryRow, string>) {
+  return <div className="whitespace-pre-line">{highlightCell(context)}</div>;
+}
+
 function makeHistoryColumns() {
   const columnHelper = createColumnHelper<DeliverableHistoryRow>();
   return [
-    createSelectColumnDef(columnHelper),
     columnHelper.accessor("event", {
       header: "Event",
       cell: highlightCell,
@@ -37,7 +39,7 @@ function makeHistoryColumns() {
     }),
     columnHelper.accessor("details", {
       header: "Details",
-      cell: highlightCell,
+      cell: detailsCell,
       enableColumnFilter: false,
     }),
   ];
@@ -49,12 +51,10 @@ export const HistoryTab: React.FC<{ rows: DeliverableHistoryRow[] }> = ({ rows }
       <Table<DeliverableHistoryRow>
         data={rows}
         columns={makeHistoryColumns()}
-        keywordSearch={(table) => <KeywordSearch table={table} />}
-        columnFilter={(table) => <ColumnFilter table={table} />}
         pagination={(table) => <PaginationControls table={table} />}
         initialState={INITIAL_TABLE_STATE}
         emptyRowsMessage="No history available."
-        noResultsFoundMessage="No results were returned. Adjust your search and filter criteria."
+        hideSearchAndActions
       />
     </div>
   );

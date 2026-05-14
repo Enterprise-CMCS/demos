@@ -3,4 +3,4 @@ export { DeclareIncompleteDialog } from "./DeclareIncompleteDialog";
 export { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
 export { CreateDemonstrationDialog, EditDemonstrationDialog } from "./demonstration";
 export { CreateExtensionDialog } from "./modification/CreateExtensionDialog";
-export { AddDocumentDialog, EditDocumentDialog, RemoveDocumentDialog } from "./document";
+export { AddDocumentToApplicationDialog, EditDocumentDialog, RemoveDocumentDialog } from "./document";

@@ -26,31 +26,13 @@ export const documentSchema = gql`
     updatedAt: DateTime!
   }
 
-  input UploadDocumentInput {
-    name: NonEmptyString!
-    description: String
-    documentType: DocumentType!
-    applicationId: ID!
-    phaseName: PhaseName
-    deliverableId: ID
-  }
-
   input UpdateDocumentInput {
     name: NonEmptyString
     description: String
     documentType: DocumentType
-    applicationId: ID
-    phaseName: PhaseName
-    deliverableId: ID
-  }
-
-  type UploadDocumentResponse {
-    presignedURL: String!
-    documentId: ID!
   }
 
   type Mutation {
-    uploadDocument(input: UploadDocumentInput!): UploadDocumentResponse!
     updateDocument(id: ID!, input: UpdateDocumentInput!): Document
     deleteDocument(id: ID!): Document!
     deleteDocuments(ids: [ID!]!): Int!
@@ -79,25 +61,8 @@ export interface Document {
   hasPendingUIPathResult: boolean;
 }
 
-export interface UploadDocumentInput {
-  name: NonEmptyString;
-  description?: string;
-  documentType: DocumentType;
-  applicationId: string;
-  phaseName?: PhaseName;
-  deliverableId?: string;
-}
-
 export interface UpdateDocumentInput {
   name?: NonEmptyString;
   description?: string;
   documentType?: DocumentType;
-  applicationId?: string;
-  phaseName?: PhaseName;
-  deliverableId?: string;
-}
-
-export interface UploadDocumentResponse {
-  presignedURL: string;
-  documentId: string;
 }

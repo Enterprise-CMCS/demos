@@ -45,8 +45,24 @@ describe("DeliverableInfoFields", () => {
     const deliverable = {
       ...MOCK_DELIVERABLE_1,
       extensionRequests: [
-        { id: "ext-old", status: "Approved" as const, createdAt: new Date("2026-01-01") },
-        { id: "ext-new", status: "Requested" as const, createdAt: new Date("2026-03-01") },
+        {
+          id: "ext-old",
+          status: "Approved" as const,
+          reasonCode: "Other" as const,
+          reasonDetails: "details" as const,
+          initialDueDateAtRequest: new Date("2025-12-01"),
+          originalDateRequested: new Date("2026-01-15"),
+          createdAt: new Date("2026-01-01"),
+        },
+        {
+          id: "ext-new",
+          status: "Requested" as const,
+          reasonCode: "Other" as const,
+          reasonDetails: "details" as const,
+          initialDueDateAtRequest: new Date("2026-02-01"),
+          originalDateRequested: new Date("2026-04-15"),
+          createdAt: new Date("2026-03-01"),
+        },
       ],
     };
     render(
