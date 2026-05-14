@@ -28,6 +28,7 @@ export type DeliverableFileTableProps = {
   onEdit?: (file: DeliverableFileRow) => void;
   onDelete?: (fileIds: string[]) => void;
   footer?: React.ReactNode;
+  disabled?: boolean;
 };
 
 export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
@@ -45,11 +46,12 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
   onEdit,
   onDelete,
   footer,
+  disabled = false,
 }) => (
   <div data-testid={testId} className="flex flex-col gap-1">
     <div className="flex justify-between items-center">
       <span className="text-[20px] font-bold uppercase text-brand">{title}</span>
-      <SecondaryButton name={addButtonName} onClick={onAdd}>
+      <SecondaryButton name={addButtonName} onClick={onAdd} disabled={disabled}>
         Add File(s)
       </SecondaryButton>
     </div>
@@ -85,7 +87,7 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
               name={editButtonName}
               ariaLabel={editAriaLabel}
               tooltip={editTooltip}
-              disabled={selectedCount !== 1}
+              disabled={disabled || selectedCount !== 1}
               onClick={() => onEdit?.(selectedRows[0])}
             >
               <EditIcon />
@@ -94,7 +96,7 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
               name={deleteButtonName}
               ariaLabel={deleteAriaLabel}
               tooltip={deleteTooltip}
-              disabled={selectedCount < 1}
+              disabled={disabled || selectedCount < 1}
               onClick={() => onDelete?.(selectedRows.map((row) => row.id))}
             >
               <DeleteIcon />

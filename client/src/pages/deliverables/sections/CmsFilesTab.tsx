@@ -16,9 +16,16 @@ export type CmsFilesTabProps = {
   onAdd?: () => void;
   onEdit?: (file: DeliverableFileRow) => void;
   onDelete?: (fileIds: string[]) => void;
+  disabled?: boolean;
 };
 
-export const CmsFilesTab: React.FC<CmsFilesTabProps> = ({ files, onAdd, onEdit, onDelete }) => {
+export const CmsFilesTab: React.FC<CmsFilesTabProps> = ({
+  files,
+  onAdd,
+  onEdit,
+  onDelete,
+  disabled = false,
+}) => {
   const columns = makeCmsFileColumns();
 
   return (
@@ -36,6 +43,7 @@ export const CmsFilesTab: React.FC<CmsFilesTabProps> = ({ files, onAdd, onEdit, 
       onAdd={onAdd}
       onEdit={onEdit}
       onDelete={onDelete}
+      disabled={disabled}
     />
   );
 };

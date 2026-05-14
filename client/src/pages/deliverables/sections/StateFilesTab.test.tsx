@@ -159,4 +159,36 @@ describe("StateFilesTab", () => {
       expect(onSubmit).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe("when disabled", () => {
+    it("disables the Add File(s) button", () => {
+      renderTab({ disabled: true });
+
+      expect(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME)).toBeDisabled();
+    });
+
+    it("disables the Submit Deliverable button", () => {
+      renderTab({ disabled: true });
+
+      expect(screen.getByTestId(STATE_FILES_SUBMIT_BUTTON_NAME)).toBeDisabled();
+    });
+
+    it("keeps Edit disabled even when a row is selected", async () => {
+      const user = userEvent.setup();
+      renderTab({ disabled: true });
+
+      await user.click(screen.getByTestId("select-row-file-a"));
+
+      expect(screen.getByTestId(STATE_FILES_EDIT_BUTTON_NAME)).toBeDisabled();
+    });
+
+    it("keeps Delete disabled even when rows are selected", async () => {
+      const user = userEvent.setup();
+      renderTab({ disabled: true });
+
+      await user.click(screen.getByTestId("select-row-file-a"));
+
+      expect(screen.getByTestId(STATE_FILES_DELETE_BUTTON_NAME)).toBeDisabled();
+    });
+  });
 });

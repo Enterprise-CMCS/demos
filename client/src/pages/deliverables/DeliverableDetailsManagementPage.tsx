@@ -12,6 +12,7 @@ import { Loading } from "components/loading/Loading";
 import { useToast } from "components/toast";
 import { getCurrentUser } from "components/user/UserContext";
 import { DELIVERABLE_REVIEW_STARTED_MESSAGE } from "util/messages";
+import { isDeliverableEditable } from "components/dialog/deliverable";
 import { CommentBox } from "./sections/comment_box";
 import { DeliverableInfoFields } from "./sections/DeliverableInfoFields";
 import { FileAndHistoryTabs } from "./sections/FileAndHistoryTabs";
@@ -184,6 +185,7 @@ export const DeliverableDetailsManagementPage: React.FC<{
   const canStartReview =
     REVIEW_STARTER_PERSON_TYPES.has(userPersonType) &&
     data.deliverable.status === "Submitted";
+  const isFinalized = !isDeliverableEditable(data.deliverable.status);
 
   const submitterName =
     [...data.deliverable.deliverableActions]
@@ -215,6 +217,8 @@ export const DeliverableDetailsManagementPage: React.FC<{
           <EditAndDeleteButtonGroup
             onDelete={handleDeleteDeliverable}
             onEdit={handleEditDeliverable}
+            deleteDisabled={isFinalized}
+            editDisabled={isFinalized}
           />
         </div>
         {canStartReview ? (

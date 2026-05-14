@@ -120,4 +120,30 @@ describe("CmsFilesTab", () => {
     expect(openSpy).toHaveBeenCalledWith("/document/cms-a", "_blank");
     openSpy.mockRestore();
   });
+
+  describe("when disabled", () => {
+    it("disables the Add File(s) button", () => {
+      renderTab({ disabled: true });
+
+      expect(screen.getByTestId(CMS_FILES_ADD_BUTTON_NAME)).toBeDisabled();
+    });
+
+    it("keeps Edit disabled even when a row is selected", async () => {
+      const user = userEvent.setup();
+      renderTab({ disabled: true });
+
+      await user.click(screen.getByTestId("select-row-cms-a"));
+
+      expect(screen.getByTestId(CMS_FILES_EDIT_BUTTON_NAME)).toBeDisabled();
+    });
+
+    it("keeps Delete disabled even when a row is selected", async () => {
+      const user = userEvent.setup();
+      renderTab({ disabled: true });
+
+      await user.click(screen.getByTestId("select-row-cms-a"));
+
+      expect(screen.getByTestId(CMS_FILES_DELETE_BUTTON_NAME)).toBeDisabled();
+    });
+  });
 });

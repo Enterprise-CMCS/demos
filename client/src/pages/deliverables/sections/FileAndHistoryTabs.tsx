@@ -8,7 +8,7 @@ import { HistoryTab, type DeliverableHistoryRow } from "./HistoryTab";
 import { StateFilesTab } from "./StateFilesTab";
 import { Button } from "components/button/Button";
 import { useDialog } from "components/dialog/DialogContext";
-import { canCompleteReview } from "components/dialog/deliverable";
+import { canCompleteReview, isDeliverableEditable } from "components/dialog/deliverable";
 import { getCurrentUser } from "components/user/UserContext";
 import { DeliverableStatus, PersonType } from "demos-server";
 
@@ -50,6 +50,7 @@ export const FileAndHistoryTabs: React.FC<{
   const stateFiles = deliverable.stateDocuments;
   const cmsFiles = deliverable.cmsDocuments;
   const historyRows: DeliverableHistoryRow[] = deliverable.deliverableActions.map(toHistoryRow);
+  const isFinalized = !isDeliverableEditable(deliverable.status);
 
   const { showRequestResubmissionDeliverableDialog, showCompleteReviewDeliverableDialog } =
     useDialog();
@@ -76,10 +77,10 @@ export const FileAndHistoryTabs: React.FC<{
     <div data-testid={FILE_AND_HISTORY_TABS_NAME}>
       <HorizontalSectionTabs defaultValue={TABS.STATE_FILES} variant="bordered">
         <Tab label={buildTabLabel("State Files", stateFiles.length)} value={TABS.STATE_FILES}>
-          <StateFilesTab files={stateFiles} />
+          <StateFilesTab files={stateFiles} disabled={isFinalized} />
         </Tab>
         <Tab label={buildTabLabel("CMS Files", cmsFiles.length)} value={TABS.CMS_FILES}>
-          <CmsFilesTab files={cmsFiles} />
+          <CmsFilesTab files={cmsFiles} disabled={isFinalized} />
         </Tab>
         <Tab label="History" value={TABS.HISTORY}>
           <HistoryTab rows={historyRows} />
