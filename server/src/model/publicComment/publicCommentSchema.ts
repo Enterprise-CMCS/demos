@@ -12,7 +12,7 @@ export const publicCommentSchema = gql`
   }
 
   type Mutation {
-    createPublicComment(deliverableId: ID!, comment: NonEmptyString): DeliverableComment!
+    createPublicComment(deliverableId: ID!, comment: NonEmptyString!): DeliverableComment!
   }
 `;
 
