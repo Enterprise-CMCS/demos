@@ -85,6 +85,7 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
         actionType
         actionTimestamp
         userFullName
+        details
       }
       extensionRequests {
         id
@@ -105,7 +106,7 @@ export type DeliverableDetailsManagementDeliverable = Pick<
   cmsDocuments: DeliverableFileRow[];
   deliverableActions: Pick<
     DeliverableAction,
-    "id" | "actionType" | "actionTimestamp" | "userFullName"
+    "id" | "actionType" | "actionTimestamp" | "userFullName" | "details"
   >[];
   extensionRequests: Pick<DeliverableExtension, "id" | "status" | "createdAt">[];
 };

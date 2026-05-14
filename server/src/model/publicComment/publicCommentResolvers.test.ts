@@ -8,7 +8,6 @@ import {
   PublicComment as PrismaPublicComment,
 } from "@prisma/client";
 import { GraphQLContext } from "../../auth";
-import { GraphQLResolveInfo } from "graphql";
 
 // Functions under test
 import { publicCommentResolvers } from "./publicCommentResolvers";
@@ -18,12 +17,12 @@ vi.mock("../deliverable", () => ({
   resolveDeliverable: vi.fn(),
 }));
 
-vi.mock("../user", () => ({
-  getUser: vi.fn(),
+vi.mock("../user/queries", () => ({
+  selectUser: vi.fn(),
 }));
 
 import { resolveDeliverable } from "../deliverable";
-import { getUser } from "../user";
+import { selectUser } from "../user/queries";
 
 describe("publicCommentResolvers", () => {
   const testPublicComment: Partial<PrismaPublicComment> = {
@@ -47,25 +46,21 @@ describe("publicCommentResolvers", () => {
   describe("DeliverableComment.authorUser", () => {
     it("should query the author of the comment for public comments", async () => {
       await publicCommentResolvers.DeliverableComment.authorUser(
-        testPublicComment as PrismaPublicComment,
-        undefined,
-        testContext as GraphQLContext
+        testPublicComment as PrismaPublicComment
       );
-      expect(getUser).toHaveBeenCalledExactlyOnceWith(
+      expect(selectUser).toHaveBeenCalledExactlyOnceWith(
         { id: testPublicComment.authorUserId },
-        testContext.user
+        true
       );
     });
 
     it("should query the author of the comment for private comments", async () => {
       await publicCommentResolvers.DeliverableComment.authorUser(
-        testPrivateComment as PrismaPrivateComment,
-        undefined,
-        testContext as GraphQLContext
+        testPrivateComment as PrismaPrivateComment
       );
-      expect(getUser).toHaveBeenCalledExactlyOnceWith(
+      expect(selectUser).toHaveBeenCalledExactlyOnceWith(
         { id: testPrivateComment.authorUserId },
-        testContext.user
+        true
       );
     });
   });

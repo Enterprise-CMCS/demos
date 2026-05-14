@@ -20,7 +20,7 @@ import {
 } from ".";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { getApplication } from "../application";
-import { getUser } from "../user/queries";
+import { selectUser } from "../user/queries";
 import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
 import { GraphQLError } from "graphql";
 import {
@@ -66,7 +66,7 @@ export async function validateCreateDeliverableInput(
     applicationTypeId: "Demonstration",
     tx: tx,
   });
-  const cmsOwnerUser = await getUser({ id: input.cmsOwnerUserId }, tx);
+  const cmsOwnerUser = await selectUser({ id: input.cmsOwnerUserId }, true, tx);
   const demonstrationTypeAssignments = await getDemonstrationTypeAssignments(
     {
       demonstrationId: input.demonstrationId,
@@ -106,7 +106,7 @@ export async function validateUpdateDeliverableInput(
   errors.push(checkDeliverableHasStatus(deliverable, ACTIVE_DELIVERABLE_STATUSES));
 
   if (input.cmsOwnerUserId) {
-    const cmsOwnerUser = await getUser({ id: input.cmsOwnerUserId }, tx);
+    const cmsOwnerUser = await selectUser({ id: input.cmsOwnerUserId }, true, tx);
     errors.push(checkOwnerPersonType(cmsOwnerUser));
   }
 
