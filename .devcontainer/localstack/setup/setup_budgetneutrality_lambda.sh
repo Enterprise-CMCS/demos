@@ -14,16 +14,17 @@ LAMBDA_NAME="budgetneutrality"
 cd /workspaces/demos/lambdas/budgetNeutrality
 
 npm ci --silent
-npx tsc --outDir build
-
-npx esbuild build/index.js \
+npx esbuild index.ts \
   --bundle \
   --platform=node \
-  --target=node24 \
+    --format=cjs \
+    --target=node22 \
   --sourcemap \
-  --outfile=dist/index.cjs
+    --sources-content=true \
+    --source-root=/var/task/ \
+    --outfile=dist/index.js
 rm -f lambda.zip
-zip -jqr lambda.zip dist/index.cjs
+zip -jqr lambda.zip dist/index.js dist/index.js.map
 
 cd - > /dev/null
 
@@ -38,7 +39,7 @@ $AWS_CMD lambda create-function \
     --handler index.handler \
     --zip-file fileb:///workspaces/demos/lambdas/budgetNeutrality/lambda.zip \
     --timeout 60 \
-    --environment "Variables={AWS_REGION=$AWS_REGION,AWS_ENDPOINT_URL=$LOCALSTACK_ENDPOINT,DATABASE_SECRET_ARN=database-secret,DB_SCHEMA=demos_app,DB_SSL_MODE=disable}" >/dev/null
+    --environment "Variables={AWS_REGION=$AWS_REGION,AWS_ENDPOINT_URL=$LOCALSTACK_ENDPOINT,DATABASE_SECRET_ARN=database-secret,DB_SCHEMA=demos_app,DB_SSL_MODE=disable,NODE_OPTIONS=--enable-source-maps}" >/dev/null
 
 # Wait for Lambda to be active
 echo "⏳ Waiting for budgetNeutrality Lambda to be active..."
@@ -89,3 +90,6 @@ $AWS_CMD lambda create-event-source-mapping \
 
 echo "✅ budgetNeutrality Lambda connected to BN validation SQS queue"
 echo "   Queue ARN: $QUEUE_ARN"
+
+cd /workspaces/demos/lambdas/budgetNeutrality
+rm lambda.zip
