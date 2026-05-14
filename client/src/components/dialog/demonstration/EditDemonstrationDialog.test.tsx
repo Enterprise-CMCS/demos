@@ -88,7 +88,6 @@ describe("EditDemonstrationDialog", () => {
           description: "A test demonstration.",
           stateId: "AL",
           sdgDivision: "Division of System Reform Demonstrations",
-          signatureLevel: "OA",
         },
       },
     },

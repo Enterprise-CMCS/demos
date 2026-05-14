@@ -325,6 +325,11 @@ export const ApplicationDetailsSection = ({
             <SelectSignatureLevel
               key={`sig-${sectionFormData.signatureLevel || "empty"}`}
               initialValue={sectionFormData.signatureLevel}
+              allowedSignatureLevels={
+                sectionFormData.applicationType === "demonstration"
+                  ? ["OA"]
+                  : ["OA", "OCD"]
+              }
               onSelect={(signatureLevel) =>
                 setSectionFormData({ ...sectionFormData, signatureLevel })
               }
