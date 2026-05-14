@@ -228,12 +228,14 @@ describe("DeliverableDetailsManagementPage", () => {
 
     render(
       <TestProvider mocks={[notFoundMock]} routerEntries={["/deliverables/1"]}>
-        <Routes>
-          <Route
-            path="/deliverables/:deliverableId"
-            element={<DeliverableDetailsManagementPage />}
-          />
-        </Routes>
+        <DialogProvider>
+          <Routes>
+            <Route
+              path="/deliverables/:deliverableId"
+              element={<DeliverableDetailsManagementPage />}
+            />
+          </Routes>
+        </DialogProvider>
       </TestProvider>
     );
 
@@ -248,12 +250,14 @@ describe("DeliverableDetailsManagementPage", () => {
 
     render(
       <TestProvider mocks={[errorMock]} routerEntries={["/deliverables/1"]}>
-        <Routes>
-          <Route
-            path="/deliverables/:deliverableId"
-            element={<DeliverableDetailsManagementPage />}
-          />
-        </Routes>
+        <DialogProvider>
+          <Routes>
+            <Route
+              path="/deliverables/:deliverableId"
+              element={<DeliverableDetailsManagementPage />}
+            />
+          </Routes>
+        </DialogProvider>
       </TestProvider>
     );
 

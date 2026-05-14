@@ -8,4 +8,8 @@ export {
   canRequestExtension,
   REQUEST_EXTENSION_DIALOG_TITLE,
 } from "./RequestExtensionDeliverableDialog";
+export {
+  ReviewExtensionDeliverableDialog,
+  REVIEW_EXTENSION_DIALOG_TITLE,
+} from "./ReviewExtensionDeliverableDialog";
 export { canCompleteReview } from "./CompleteReviewDeliverableDialog";

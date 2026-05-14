@@ -13,8 +13,10 @@ import { useToast } from "components/toast";
 import { getCurrentUser } from "components/user/UserContext";
 import { DELIVERABLE_REVIEW_STARTED_MESSAGE } from "util/messages";
 import { isDeliverableEditable } from "components/dialog/deliverable";
+import { useDialog } from "components/dialog/DialogContext";
 import { CommentBox } from "./sections/comment_box";
 import { DeliverableInfoFields } from "./sections/DeliverableInfoFields";
+import { ExtensionRequestedNotice } from "./sections/ExtensionRequestedNotice";
 import { FileAndHistoryTabs } from "./sections/FileAndHistoryTabs";
 import { PendingReviewNotice } from "./sections/PendingReviewNotice";
 import { DeliverableButtons } from "./sections/DeliverableButtons";
@@ -31,6 +33,11 @@ export const START_DELIVERABLE_REVIEW_MUTATION = gql`
 `;
 
 const REVIEW_STARTER_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
+  "demos-admin",
+  "demos-cms-user",
+]);
+
+const EXTENSION_REVIEWER_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
   "demos-admin",
   "demos-cms-user",
 ]);
@@ -91,6 +98,10 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
       extensionRequests {
         id
         status
+        reasonCode
+        reasonDetails
+        initialDueDateAtRequest
+        originalDateRequested
         createdAt
       }
     }
@@ -109,7 +120,16 @@ export type DeliverableDetailsManagementDeliverable = Pick<
     DeliverableAction,
     "id" | "actionType" | "actionTimestamp" | "userFullName" | "details"
   >[];
-  extensionRequests: Pick<DeliverableExtension, "id" | "status" | "createdAt">[];
+  extensionRequests: Pick<
+    DeliverableExtension,
+    | "id"
+    | "status"
+    | "reasonCode"
+    | "reasonDetails"
+    | "initialDueDateAtRequest"
+    | "originalDateRequested"
+    | "createdAt"
+  >[];
 };
 
 export const DeliverableDetailsManagementPage: React.FC<{
@@ -118,6 +138,7 @@ export const DeliverableDetailsManagementPage: React.FC<{
 }> = ({ deliverableId, onBack }) => {
   const { currentUser } = getCurrentUser();
   const { showSuccess, showError } = useToast();
+  const { showReviewExtensionDeliverableDialog } = useDialog();
   const navigate = useNavigate();
   const { deliverableId: routeDeliverableId } = useParams<{ deliverableId?: string }>();
   const resolvedDeliverableId = deliverableId ?? routeDeliverableId;
@@ -195,6 +216,34 @@ export const DeliverableDetailsManagementPage: React.FC<{
           new Date(b.actionTimestamp).getTime() - new Date(a.actionTimestamp).getTime()
       )[0]?.userFullName ?? "State User";
 
+  const pendingExtensionRequest =
+    data.deliverable.extensionRequests.find((e) => e.status === "Requested") ?? null;
+
+  const requestExtensionActions = data.deliverable.deliverableActions.filter(
+    (a) => a.actionType === "Requested Extension"
+  );
+  const extensionRequesterName =
+    requestExtensionActions[requestExtensionActions.length - 1]?.userFullName ?? "State User";
+
+  const canReviewExtension =
+    EXTENSION_REVIEWER_PERSON_TYPES.has(userPersonType) && pendingExtensionRequest !== null;
+
+  const handleReviewExtensionRequest = () => {
+    if (!pendingExtensionRequest) return;
+    const { id, reasonCode, reasonDetails, initialDueDateAtRequest, originalDateRequested } =
+      pendingExtensionRequest;
+    showReviewExtensionDeliverableDialog({
+      id: data.deliverable.id,
+      extensionRequest: {
+        id,
+        reasonCode,
+        reasonDetails,
+        initialDueDateAtRequest,
+        originalDateRequested,
+      },
+    });
+  };
+
   return (
     <div className="shadow-md bg-white p-[16px] h-full flex flex-col">
       <h1 className="text-[20px] font-bold mb-[24px] text-brand uppercase border-b pb-[8px]">
@@ -226,6 +275,12 @@ export const DeliverableDetailsManagementPage: React.FC<{
             submitterName={submitterName}
             onStartReview={handleStartReview}
             isSubmitting={startReviewLoading}
+          />
+        ) : null}
+        {canReviewExtension ? (
+          <ExtensionRequestedNotice
+            requesterName={extensionRequesterName}
+            onReviewRequest={handleReviewExtensionRequest}
           />
         ) : null}
         <div className="flex w-full gap-2 flex-1">
