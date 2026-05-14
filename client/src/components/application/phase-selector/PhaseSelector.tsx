@@ -107,6 +107,9 @@ export const PhaseSelector = ({
   const initialPhase: PhaseName = application.currentPhaseName ?? "Concept";
   const [selectedPhase, setSelectedPhase] = useState<PhaseName>(initialPhase);
 
+  const suggestedApplicationTags = application.suggestedApplicationTags ?? [];
+  const hasPendingAISuggestions = suggestedApplicationTags.length > 0;
+
   const renderPhase = (phaseName: PhaseName) => {
     switch (phaseName) {
       case "Concept":
@@ -150,6 +153,7 @@ export const PhaseSelector = ({
               phaseNumber={index + 1}
               displayDate={displayDate}
               isSelectedPhase={selectedPhase === phaseName}
+              showAISuggestions={phaseName === "Application Intake" && hasPendingAISuggestions}
               setPhaseAsSelected={() => setSelectedPhase(phaseName)}
             />
           );

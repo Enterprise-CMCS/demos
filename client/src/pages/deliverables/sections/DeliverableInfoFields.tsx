@@ -103,7 +103,7 @@ export const DeliverableInfoFields = ({
                 onClick={onToggleAdditionalDetails}
                 className="inline-flex items-center gap-[4px] text-action underline underline-offset-2"
               >
-                {showAdditionalDetails ? "Less Details" : "See Additional Details"}
+                {showAdditionalDetails ? "Less Details" : "More Details"}
                 <span
                   className={`transition-transform duration-200 ${
                     showAdditionalDetails ? "rotate-180" : "rotate-0"
