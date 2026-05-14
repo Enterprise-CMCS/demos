@@ -106,15 +106,18 @@ export const PhaseSelector = ({
 }) => {
   const initialPhase: PhaseName = application.currentPhaseName ?? "Concept";
   const [selectedPhase, setSelectedPhase] = useState<PhaseName>(initialPhase);
-  const [actionedSuggestedTags, setActionedSuggestedTags] = useState<Set<TagName>>(new Set());
+  const [suggestedTags, setSuggestedTags] = useState<Set<TagName>>(new Set());
 
+  // resets tags on new application page load.
   useEffect(() => {
-    setActionedSuggestedTags(new Set());
+    setSuggestedTags(new Set());
   }, [application.id]);
 
-  const pendingSuggestedTags = (application.suggestedApplicationTags ?? []).filter(
-    (tagName) => !actionedSuggestedTags.has(tagName)
+  const suggestedApplicationTags = application.suggestedApplicationTags ?? [];
+  const pendingSuggestedTags = suggestedApplicationTags.filter(
+    (tagName) => !suggestedTags.has(tagName)
   );
+
   const hasPendingAISuggestions = pendingSuggestedTags.length > 0;
 
   const renderPhase = (phaseName: PhaseName) => {
@@ -127,9 +130,12 @@ export const PhaseSelector = ({
         );
       case "Application Intake":
         return getApplicationIntakeComponentFromApplication(
-          { ...application, suggestedApplicationTags: pendingSuggestedTags },
-          setSelectedPhase,
-          (tagName) => setActionedSuggestedTags((current) => new Set(current).add(tagName))
+          {
+            ...application,
+            suggestedApplicationTags: pendingSuggestedTags,
+          },
+          setSelectedPhase, (tagName) =>
+            setSuggestedTags((current) => new Set(current).add(tagName))
         );
       case "Completeness":
         return getApplicationCompletenessFromApplication(application, setSelectedPhase);
