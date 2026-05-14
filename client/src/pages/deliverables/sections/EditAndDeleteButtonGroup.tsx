@@ -6,12 +6,16 @@ type EditAndDeleteButtonGroupProps = {
   onDelete: () => void;
   onEdit: () => void;
   defaultExpanded?: boolean;
+  deleteDisabled?: boolean;
+  editDisabled?: boolean;
 };
 
 export const EditAndDeleteButtonGroup: React.FC<EditAndDeleteButtonGroupProps> = ({
   onDelete,
   onEdit,
   defaultExpanded = true,
+  deleteDisabled = false,
+  editDisabled = false,
 }) => {
   const [showButtons, setShowButtons] = useState(defaultExpanded);
 
@@ -28,7 +32,8 @@ export const EditAndDeleteButtonGroup: React.FC<EditAndDeleteButtonGroupProps> =
             name="Delete deliverable"
             data-testid="delete-deliverable-button"
             onClick={onDelete}
-            className="inline-flex items-center justify-center text-[#CD2026] hover:opacity-80"
+            disabled={deleteDisabled}
+            className="inline-flex items-center justify-center text-[#CD2026] hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:opacity-40"
           >
             <DeleteIcon fill="currentColor" width="18" height="18" />
           </button>
@@ -37,7 +42,8 @@ export const EditAndDeleteButtonGroup: React.FC<EditAndDeleteButtonGroupProps> =
             name="Edit deliverable"
             data-testid="edit-deliverable-button"
             onClick={onEdit}
-            className="inline-flex items-center justify-center text-action hover:opacity-80"
+            disabled={editDisabled}
+            className="inline-flex items-center justify-center text-action hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:opacity-40"
           >
             <EditIcon width="18" height="18" />
           </button>

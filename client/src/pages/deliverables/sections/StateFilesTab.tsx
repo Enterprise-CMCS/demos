@@ -21,6 +21,7 @@ export type StateFilesTabProps = {
   onEdit?: (file: DeliverableFileRow) => void;
   onDelete?: (fileIds: string[]) => void;
   onSubmit?: () => void;
+  disabled?: boolean;
 };
 
 export const StateFilesTab: React.FC<StateFilesTabProps> = ({
@@ -29,6 +30,7 @@ export const StateFilesTab: React.FC<StateFilesTabProps> = ({
   onEdit,
   onDelete,
   onSubmit,
+  disabled = false,
 }) => {
   const columns = makeStateFileColumns();
   const hasFiles = files.length > 0;
@@ -48,10 +50,15 @@ export const StateFilesTab: React.FC<StateFilesTabProps> = ({
       onAdd={onAdd}
       onEdit={onEdit}
       onDelete={onDelete}
+      disabled={disabled}
       footer={
         hasFiles && (
           <div className="flex justify-end">
-            <SecondaryButton name={STATE_FILES_SUBMIT_BUTTON_NAME} onClick={onSubmit}>
+            <SecondaryButton
+              name={STATE_FILES_SUBMIT_BUTTON_NAME}
+              onClick={onSubmit}
+              disabled={disabled}
+            >
               Submit Deliverable
             </SecondaryButton>
           </div>
