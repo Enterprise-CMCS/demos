@@ -56,8 +56,8 @@ export const handler = async (event: SQSEvent, context: Context) =>
 
     try {
       const pool = await getDbPool();
-
-      // BN VALIDATION STARTS HERE! budgetNeutralityValidation.ts is starter validation logic.
+      
+      // BN VALIDATION STARTS HERE! budgetNeutralityValidation.ts is starter validation logic.      
       validateSingleRecordCount(event.Records.length); // this will throw if fails.
 
       const record = event.Records[0];
@@ -89,6 +89,6 @@ export const handler = async (event: SQSEvent, context: Context) =>
       };
     } catch (error) {
       log.error({ error: (error as Error).message }, "Budget Neutrality validation failed.");
-      throw new Error(`Lambda failed: ${(error as Error).message}`);
+      throw error;
     }
   });
