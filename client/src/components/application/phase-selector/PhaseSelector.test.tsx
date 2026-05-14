@@ -56,6 +56,7 @@ describe("PhaseSelector", () => {
       documents: [],
       demonstrationTypes: [],
       tags: [],
+      suggestedApplicationTags: [],
     };
 
     render(
@@ -93,6 +94,7 @@ describe("PhaseSelector", () => {
       documents: [],
       demonstrationTypes: [],
       tags: [],
+      suggestedApplicationTags: [],
     };
 
     render(
@@ -723,6 +725,7 @@ describe("application intake phase component", () => {
       documents: [],
       demonstrationTypes: [],
       tags: [],
+      suggestedApplicationTags: [],
     };
 
     render(

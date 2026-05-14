@@ -235,8 +235,7 @@ const VerifyCompleteSection = ({
 
 export const getApplicationIntakeComponentFromApplication = (
   application: WorkflowApplication,
-  setSelectedPhase: (phase: PhaseName) => void,
-  suggestedTagChange?: (tagName: TagName) => void
+  setSelectedPhase: (phase: PhaseName) => void
 ) => {
   const applicationIntakePhase = application.phases.find(
     (phase) => phase.phaseName === THIS_PHASE_NAME
@@ -272,7 +271,6 @@ export const getApplicationIntakeComponentFromApplication = (
       initialStateApplicationSubmittedDate={estStateApplicationSubmittedDate}
       tags={application.tags}
       suggestedTags={application.suggestedApplicationTags}
-      suggestedTagChange={suggestedTagChange}
       setSelectedPhase={setSelectedPhase}
       phaseStatus={applicationIntakePhase.phaseStatus ?? "Not Started"}
       completenessPhaseStatus={completenessPhase.phaseStatus ?? "Not Started"}
@@ -285,7 +283,6 @@ export interface ApplicationIntakeProps {
   initialStateApplicationSubmittedDate: string;
   tags: Tag[];
   suggestedTags?: TagName[];
-  suggestedTagChange?: (tagName: TagName) => void;
   setSelectedPhase: (phase: PhaseName) => void;
   phaseStatus: PhaseStatus;
   completenessPhaseStatus: PhaseStatus;
@@ -297,7 +294,6 @@ export const ApplicationIntakePhase = ({
   initialStateApplicationSubmittedDate,
   tags,
   suggestedTags = [],
-  suggestedTagChange,
   setSelectedPhase,
   phaseStatus,
   completenessPhaseStatus,
@@ -391,7 +387,6 @@ export const ApplicationIntakePhase = ({
         },
       });
       setHiddenSuggestedTags((current) => new Set(current).add(tagName));
-      suggestedTagChange?.(tagName);
       setSelectedSuggestedTag(null);
       showSuccess(`Tag "${tagName}" confirmed`);
     } catch (error) {
@@ -409,7 +404,6 @@ export const ApplicationIntakePhase = ({
         },
       });
       setHiddenSuggestedTags((current) => new Set(current).add(tagName));
-      suggestedTagChange?.(tagName);
       setSelectedSuggestedTag(null);
       showSuccess(`Tag "${tagName}" removed`);
     } catch (error) {
