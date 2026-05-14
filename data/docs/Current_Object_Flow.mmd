@@ -1,0 +1,77 @@
+---
+title: Current Object Flow
+config:
+  theme: default
+  layout: elk
+  elk:
+    nodePlacementStrategy: NETWORK_SIMPLEX
+---
+
+stateDiagram-v2
+  classDef topLevel fill:LightPink,stroke:Maroon
+  classDef secondaryLevel fill:LightSteelBlue,stroke:MidnightBlue
+  classDef terminatingLines fill:LightGreen,stroke:Green
+
+  class Deliverable,Demonstration,Document,User,Person topLevel
+  class Amendment,Extension,DemonstrationRoleAssignment,DeliverableComment,Event,ApplicationPhase,USState secondaryLevel
+  class Tag,DeliverableAction,DeliverableExtension,ApplicationNote,ApplicationDate,DemonstrationTypeAssignment terminatingLines
+
+  Demonstration --> USState
+  Demonstration --> ApplicationPhase
+  Demonstration --> Document
+  Demonstration --> Amendment
+  Demonstration --> Extension
+  Demonstration --> DemonstrationRoleAssignment
+  Demonstration --> Person
+  Demonstration --> Tag
+  Demonstration --> DemonstrationTypeAssignment
+  Demonstration --> Deliverable
+
+  Deliverable --> Demonstration
+  Deliverable --> User
+  Deliverable --> Tag
+  Deliverable --> Document
+  Deliverable --> DeliverableAction
+  Deliverable --> DeliverableExtension
+  Deliverable --> DeliverableComment
+
+  Document --> User
+  Document --> Demonstration
+  Document --> Amendment
+  Document --> Extension
+  Document --> Deliverable
+
+  User --> Person
+  User --> Event
+  User --> Document
+  User --> Deliverable
+
+  Person --> DemonstrationRoleAssignment
+  Person --> USState
+
+  Amendment --> Demonstration
+  Amendment --> ApplicationPhase
+  Amendment --> Document
+  Amendment --> Tag
+
+  Extension --> Demonstration
+  Extension --> ApplicationPhase
+  Extension --> Document
+  Extension --> Tag
+
+  ApplicationPhase --> ApplicationDate
+  ApplicationPhase --> ApplicationNote
+  ApplicationPhase --> Document
+
+  DeliverableComment --> Deliverable
+  DeliverableComment --> User
+
+  DemonstrationRoleAssignment --> Demonstration
+  DemonstrationRoleAssignment --> Person
+
+  Event --> User
+  Event --> Demonstration
+  Event --> Amendment
+  Event --> Extension
+
+  USState --> Demonstration

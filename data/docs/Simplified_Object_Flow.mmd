@@ -1,0 +1,65 @@
+---
+title: Simplified Object Flow
+config:
+  theme: default
+  layout: elk
+  elk:
+    nodePlacementStrategy: NETWORK_SIMPLEX
+---
+
+stateDiagram-v2
+  classDef topLevel fill:LightPink,stroke:Maroon
+  classDef secondaryLevel fill:LightSteelBlue,stroke:MidnightBlue
+
+  class Deliverable,Demonstration,Document,User,Person topLevel
+  class Amendment,Extension,DemonstrationRoleAssignment,DeliverableComment,ApplicationPhase,DeliverableAction secondaryLevel
+
+  [*] --> Demonstration
+  [*] --> Deliverable
+  [*] --> Document
+  [*] --> User
+  [*] --> Person
+
+  Demonstration --> ApplicationPhase
+  Demonstration --> Document
+  Demonstration --> Amendment
+  Demonstration --> Extension
+  Demonstration --> DemonstrationRoleAssignment
+  Demonstration --> Person
+  Demonstration --> Deliverable
+
+  Deliverable --> Demonstration
+  Deliverable --> User
+  Deliverable --> Document
+  Deliverable --> DeliverableComment
+  Deliverable --> DeliverableAction
+
+  Document --> User
+  Document --> Demonstration
+  Document --> Amendment
+  Document --> Extension
+  Document --> Deliverable
+
+  User --> Person
+  %% User --> Document
+  %% User --> Deliverable
+
+  %% Person --> DemonstrationRoleAssignment
+
+  Amendment --> Demonstration
+  Amendment --> ApplicationPhase
+  Amendment --> Document
+
+  Extension --> Demonstration
+  Extension --> ApplicationPhase
+  Extension --> Document
+
+  ApplicationPhase --> Document
+
+  %% DeliverableComment --> Deliverable
+  DeliverableComment --> User
+
+  DemonstrationRoleAssignment --> Demonstration
+  DemonstrationRoleAssignment --> Person
+
+  DeliverableAction --> User
