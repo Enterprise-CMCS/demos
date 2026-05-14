@@ -50,7 +50,7 @@ describe("requestDeliverableExtension", () => {
     details: "COVID-19 caused major delays in processing our requests.",
     requestedDueDate: "2026-12-14" as DateTimeOrLocalDate,
   };
-  const testUserContext: DeepPartial<GraphQLContext> = {
+  const testContext: DeepPartial<GraphQLContext> = {
     user: {
       id: "0a3bd415-39a3-4f72-a067-418a5219216a",
       personTypeId: "demos-admin",
@@ -87,13 +87,9 @@ describe("requestDeliverableExtension", () => {
   });
 
   it("should check that the user is allowed to do this operation", async () => {
-    await requestDeliverableExtension(
-      testDeliverableId,
-      testInput,
-      testUserContext as GraphQLContext
-    );
+    await requestDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(validateUserPersonTypeAllowed).toHaveBeenCalledExactlyOnceWith(
-      testUserContext,
+      testContext,
       "requestDeliverableExtension",
       ["demos-admin", "demos-state-user"]
     );
@@ -106,7 +102,7 @@ describe("requestDeliverableExtension", () => {
       await requestDeliverableExtension(
         testDeliverableId,
         testInput,
-        testUserContext as GraphQLContext
+        testContext as GraphQLContext
       );
       throw new Error("Expected requestDeliverableExtension to throw, but it did not.");
     } catch (e) {
@@ -115,11 +111,7 @@ describe("requestDeliverableExtension", () => {
   });
 
   it("should parse the input received", async () => {
-    await requestDeliverableExtension(
-      testDeliverableId,
-      testInput,
-      testUserContext as GraphQLContext
-    );
+    await requestDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(parseRequestDeliverableExtensionInput).toHaveBeenCalledExactlyOnceWith(testInput);
   });
 
@@ -130,7 +122,7 @@ describe("requestDeliverableExtension", () => {
       await requestDeliverableExtension(
         testDeliverableId,
         testInput,
-        testUserContext as GraphQLContext
+        testContext as GraphQLContext
       );
       throw new Error("Expected requestDeliverableExtension to throw, but it did not.");
     } catch (e) {
@@ -139,11 +131,7 @@ describe("requestDeliverableExtension", () => {
   });
 
   it("should get the deliverable before making changes", async () => {
-    await requestDeliverableExtension(
-      testDeliverableId,
-      testInput,
-      testUserContext as GraphQLContext
-    );
+    await requestDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
       { tx: mockTransaction }
@@ -151,11 +139,7 @@ describe("requestDeliverableExtension", () => {
   });
 
   it("should call the validator on the unchanged deliverable", async () => {
-    await requestDeliverableExtension(
-      testDeliverableId,
-      testInput,
-      testUserContext as GraphQLContext
-    );
+    await requestDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(validateRequestDeliverableExtensionInput).toHaveBeenCalledExactlyOnceWith(
       mockDeliverable,
       mockParsedInput,
@@ -164,11 +148,7 @@ describe("requestDeliverableExtension", () => {
   });
 
   it("should call the insert function to retrieve a new extension", async () => {
-    await requestDeliverableExtension(
-      testDeliverableId,
-      testInput,
-      testUserContext as GraphQLContext
-    );
+    await requestDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(insertDeliverableExtension).toHaveBeenCalledExactlyOnceWith(
       {
         deliverableId: testDeliverableId,
@@ -180,11 +160,7 @@ describe("requestDeliverableExtension", () => {
   });
 
   it("should log an action for the resubmission request", async () => {
-    await requestDeliverableExtension(
-      testDeliverableId,
-      testInput,
-      testUserContext as GraphQLContext
-    );
+    await requestDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(insertDeliverableAction).toHaveBeenCalledExactlyOnceWith(
       {
         deliverableId: testDeliverableId,
@@ -194,7 +170,7 @@ describe("requestDeliverableExtension", () => {
         note: mockParsedInput.details,
         oldDueDate: mockDeliverable.dueDate,
         newDueDate: mockDeliverable.dueDate,
-        userId: testUserContext.user!.id,
+        userId: testContext.user!.id,
       },
       mockTransaction
     );

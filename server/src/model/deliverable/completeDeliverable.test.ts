@@ -37,7 +37,7 @@ import { insertDeliverableAction } from "../deliverableAction/queries";
 describe("completeDeliverable", () => {
   // Test inputs
   const testDeliverableId = "b18cf1ce-3e41-4a71-b4f4-585f343bc74f";
-  const testUserContext: DeepPartial<GraphQLContext> = {
+  const testContext: DeepPartial<GraphQLContext> = {
     user: {
       id: "0a3bd415-39a3-4f72-a067-418a5219216a",
       personTypeId: "demos-admin",
@@ -71,9 +71,9 @@ describe("completeDeliverable", () => {
   });
 
   it("should check that the user is allowed to do this operation", async () => {
-    await completeDeliverable(testDeliverableId, "Approved", testUserContext as GraphQLContext);
+    await completeDeliverable(testDeliverableId, "Approved", testContext as GraphQLContext);
     expect(validateUserPersonTypeAllowed).toHaveBeenCalledExactlyOnceWith(
-      testUserContext,
+      testContext,
       "completeDeliverable",
       ["demos-admin", "demos-cms-user"]
     );
@@ -83,7 +83,7 @@ describe("completeDeliverable", () => {
     vi.mocked(validateUserPersonTypeAllowed).mockThrow("I'm throwing!");
 
     try {
-      await completeDeliverable(testDeliverableId, "Approved", testUserContext as GraphQLContext);
+      await completeDeliverable(testDeliverableId, "Approved", testContext as GraphQLContext);
       throw new Error("Expected completeDeliverable to throw, but it did not.");
     } catch (e) {
       expect(prisma).not.toHaveBeenCalled();
@@ -91,7 +91,7 @@ describe("completeDeliverable", () => {
   });
 
   it("should get the deliverable before making changes", async () => {
-    await completeDeliverable(testDeliverableId, "Approved", testUserContext as GraphQLContext);
+    await completeDeliverable(testDeliverableId, "Approved", testContext as GraphQLContext);
     expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
       { tx: mockTransaction }
@@ -99,14 +99,14 @@ describe("completeDeliverable", () => {
   });
 
   it("should call the validator on the unchanged deliverable", async () => {
-    await completeDeliverable(testDeliverableId, "Approved", testUserContext as GraphQLContext);
+    await completeDeliverable(testDeliverableId, "Approved", testContext as GraphQLContext);
     expect(validateCompleteDeliverableInput).toHaveBeenCalledExactlyOnceWith(
       mockIncompleteDeliverable
     );
   });
 
   it("should call edit function to set the status to the passed value", async () => {
-    await completeDeliverable(testDeliverableId, "Approved", testUserContext as GraphQLContext);
+    await completeDeliverable(testDeliverableId, "Approved", testContext as GraphQLContext);
     expect(editDeliverable).toHaveBeenCalledExactlyOnceWith(
       testDeliverableId,
       { statusId: "Approved" },
@@ -115,7 +115,7 @@ describe("completeDeliverable", () => {
   });
 
   it("should log an action for the completion", async () => {
-    await completeDeliverable(testDeliverableId, "Approved", testUserContext as GraphQLContext);
+    await completeDeliverable(testDeliverableId, "Approved", testContext as GraphQLContext);
     expect(insertDeliverableAction).toHaveBeenCalledExactlyOnceWith(
       {
         deliverableId: testDeliverableId,
@@ -124,14 +124,14 @@ describe("completeDeliverable", () => {
         newStatus: mockCompleteDeliverable.statusId,
         oldDueDate: mockIncompleteDeliverable.dueDate,
         newDueDate: mockCompleteDeliverable.dueDate,
-        userId: testUserContext.user!.id,
+        userId: testContext.user!.id,
       },
       mockTransaction
     );
   });
 
   it("should map accepted to the correct action type", async () => {
-    await completeDeliverable(testDeliverableId, "Accepted", testUserContext as GraphQLContext);
+    await completeDeliverable(testDeliverableId, "Accepted", testContext as GraphQLContext);
     expect(insertDeliverableAction).toHaveBeenCalledExactlyOnceWith(
       {
         deliverableId: testDeliverableId,
@@ -140,7 +140,7 @@ describe("completeDeliverable", () => {
         newStatus: mockCompleteDeliverable.statusId,
         oldDueDate: mockIncompleteDeliverable.dueDate,
         newDueDate: mockCompleteDeliverable.dueDate,
-        userId: testUserContext.user!.id,
+        userId: testContext.user!.id,
       },
       mockTransaction
     );
@@ -150,7 +150,7 @@ describe("completeDeliverable", () => {
     await completeDeliverable(
       testDeliverableId,
       "Received and Filed",
-      testUserContext as GraphQLContext
+      testContext as GraphQLContext
     );
     expect(insertDeliverableAction).toHaveBeenCalledExactlyOnceWith(
       {
@@ -160,7 +160,7 @@ describe("completeDeliverable", () => {
         newStatus: mockCompleteDeliverable.statusId,
         oldDueDate: mockIncompleteDeliverable.dueDate,
         newDueDate: mockCompleteDeliverable.dueDate,
-        userId: testUserContext.user!.id,
+        userId: testContext.user!.id,
       },
       mockTransaction
     );
