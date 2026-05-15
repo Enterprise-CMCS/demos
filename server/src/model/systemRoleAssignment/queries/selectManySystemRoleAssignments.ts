@@ -1,6 +1,6 @@
 import { SystemRoleAssignment as PrismaSystemRoleAssignment, Prisma } from "@prisma/client";
 import { prisma, PrismaTransactionClient } from "../../../prismaClient";
-import { SystemRoleAssignmentQueryResult } from ".";
+import { SystemRoleAssignmentQueryResult } from "..";
 
 export async function selectManySystemRoleAssignments(
   where: Prisma.SystemRoleAssignmentWhereInput,
@@ -12,11 +12,7 @@ export async function selectManySystemRoleAssignments(
     include: {
       role: {
         include: {
-          rolePermissions: {
-            include: {
-              permission: true,
-            },
-          },
+          rolePermissions: true,
         },
       },
     },

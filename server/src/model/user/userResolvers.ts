@@ -5,8 +5,8 @@ import { resolveManyDeliverables } from "../deliverable";
 import { getManyDocuments } from "../document";
 import { getUser } from "./userData";
 import { getPerson } from "../person";
-import { Permission } from "../../types";
-import { getManySystemRoleAssignments } from "../systemRoleAssignment/systemRoleAssignmentData";
+import { Permission, Role } from "../../types";
+import { selectManySystemRoleAssignments } from "../systemRoleAssignment";
 
 export async function resolveEvents(parent: PrismaUser): Promise<PrismaEvent[]> {
   return await prisma().event.findMany({
@@ -28,19 +28,16 @@ export const userResolvers = {
     ownedDocuments: (parent: PrismaUser, args: unknown, context: GraphQLContext) =>
       getManyDocuments({ ownerUserId: parent.id }, context.user),
     ownedDeliverables: resolveManyDeliverables,
-    permissions: async (
-      parent: PrismaUser,
-      args: unknown,
-      context: GraphQLContext
-    ): Promise<Permission[]> => {
-      const roleAssignments = await getManySystemRoleAssignments(
-        { personId: parent.id },
-        context.user
-      );
+    systemRoles: async (parent: PrismaUser): Promise<Role[]> => {
+      const roleAssignments = await selectManySystemRoleAssignments({ personId: parent.id });
+      return roleAssignments.map((role) => role.roleId as Role);
+    },
+    permissions: async (parent: PrismaUser): Promise<Permission[]> => {
+      const roleAssignments = await selectManySystemRoleAssignments({ personId: parent.id });
       const permissions = new Set<Permission>();
       roleAssignments.forEach((assignment) => {
         assignment.role.rolePermissions.forEach((rolePermission) => {
-          permissions.add(rolePermission.permission.id as Permission);
+          permissions.add(rolePermission.permissionId as Permission);
         });
       });
       return Array.from(permissions);

@@ -21,5 +21,5 @@ VALUES
   ('Admin User', 'System', 'Access CMS-Only Mutations'),
   ('CMS User', 'System', 'Access CMS-Only Fields'),
   ('CMS User', 'System', 'Access CMS-Only Queries'),
-  ('CMS User', 'System', 'Access CMS-Only Mutations'),
+  ('CMS User', 'System', 'Access CMS-Only Mutations')
 ;
