@@ -36,7 +36,7 @@ vi.mock("./db", () => ({
 }));
 
 vi.mock("./log", () => ({
-  log: { info: vi.fn(), error: vi.fn() },
+  log: { info: vi.fn(), error: vi.fn(), warn: vi.fn() },
 }));
 
 import { runDocumentUnderstanding } from "./runDocumentUnderstanding";
@@ -44,6 +44,28 @@ import { getToken } from "./getToken";
 
 const TEST_DOCUMENT_ID = "4cdfe542-90aa-489f-93d5-e786aaff49a2";
 const TEST_APPLICATION_ID = "app-1";
+
+function mockSuccessfulDbQueries(allowedTagSuggestionFieldIds: string[] = []) {
+  mocks.queryMock.mockImplementation((sql: string) => {
+    if (sql.includes("application_tag_suggestion_extract_field_limit")) {
+      return Promise.resolve({
+        rows: allowedTagSuggestionFieldIds.map((id) => ({ id })),
+      });
+    }
+
+    if (
+      sql === "BEGIN" ||
+      sql === "COMMIT" ||
+      sql === "ROLLBACK" ||
+      sql.includes("uipath_value") ||
+      sql.includes("application_tag_suggestion_extract")
+    ) {
+      return Promise.resolve({ rows: [] });
+    }
+
+    return Promise.resolve({ rows: [{ id: "result-1" }] });
+  });
+}
 
 describe("runDocumentUnderstanding", () => {
   beforeEach(() => {
@@ -194,7 +216,7 @@ describe("runDocumentUnderstanding", () => {
   it("persists top-level fields and skips non-string field values", async () => {
     mocks.uploadDocumentMock.mockResolvedValue("doc-1");
     mocks.extractDocMock.mockResolvedValue("result-url");
-    mocks.queryMock.mockResolvedValue({ rows: [{ id: "result-1" }] });
+    mockSuccessfulDbQueries();
     mocks.fetchExtractionResultMock.mockResolvedValue({
       status: "Succeeded",
       Fields: [
@@ -217,7 +239,7 @@ describe("runDocumentUnderstanding", () => {
     const result = await promise;
 
     expect(result).toMatchObject({ status: "Succeeded" });
-    expect(mocks.queryMock).toHaveBeenCalledTimes(5);
+    expect(mocks.queryMock).toHaveBeenCalledTimes(8);
     expect(mocks.queryMock.mock.calls[3]?.[1]).toEqual([
       expect.any(String),
       "result-1",
@@ -261,7 +283,7 @@ describe("runDocumentUnderstanding", () => {
   it("deduplicates multi-value demo_type and persists combined value", async () => {
     mocks.uploadDocumentMock.mockResolvedValue("doc-1");
     mocks.extractDocMock.mockResolvedValue("result-url");
-    mocks.queryMock.mockResolvedValue({ rows: [{ id: "result-1" }] });
+    mockSuccessfulDbQueries(["demo_type"]);
     mocks.fetchExtractionResultMock.mockResolvedValue({
       status: "Succeeded",
       Fields: [
@@ -270,9 +292,21 @@ describe("runDocumentUnderstanding", () => {
           FieldName: "demo_type",
           FieldType: "Text",
           Values: [
-            { Value: "SUD", Confidence: 0.5224329 },
-            { Value: "BHP", Confidence: 0.3818529 },
-            { Value: "SUD", Confidence: 0.1225322 },
+            {
+              Value: "SUD",
+              Confidence: 0.5224329,
+              Reference: { TokenList: [{ Page: 0 }] },
+            },
+            {
+              Value: "BHP",
+              Confidence: 0.3818529,
+              Reference: { TokenList: [{ Page: 1 }] },
+            },
+            {
+              Value: "SUD",
+              Confidence: 0.1225322,
+              Reference: { TokenList: [{ Page: 2 }] },
+            },
           ],
         },
       ],
@@ -288,7 +322,7 @@ describe("runDocumentUnderstanding", () => {
     await vi.runAllTimersAsync();
     await promise;
 
-    expect(mocks.queryMock).toHaveBeenCalledTimes(5);
+    expect(mocks.queryMock).toHaveBeenCalledTimes(9);
     const fieldInsertArgs = mocks.queryMock.mock.calls[3]?.[1];
     expect(fieldInsertArgs).toEqual([
       expect.any(String),
@@ -300,8 +334,55 @@ describe("runDocumentUnderstanding", () => {
       8,
       0,
       0.5224329,
-      "[]",
+      JSON.stringify([{ Page: 0 }, { Page: 1 }]),
     ]);
+    expect(mocks.queryMock.mock.calls[7]?.[0]).toContain(
+      "insert into demos_app.application_tag_suggestion_extract"
+    );
+    expect(mocks.queryMock.mock.calls[7]?.[1]).toEqual([
+      fieldInsertArgs?.[0],
+      TEST_APPLICATION_ID,
+      "demo_type",
+      "SUD, BHP",
+      1,
+      2,
+    ]);
+  });
+
+  it("throws when a tag suggestion field has no token page without rolling back UiPath values", async () => {
+    mocks.uploadDocumentMock.mockResolvedValue("doc-1");
+    mocks.extractDocMock.mockResolvedValue("result-url");
+    mockSuccessfulDbQueries(["demo_type"]);
+    mocks.fetchExtractionResultMock.mockResolvedValue({
+      status: "Succeeded",
+      Fields: [
+        {
+          FieldId: "demo_type",
+          FieldName: "demo_type",
+          FieldType: "Text",
+          Values: [{ Value: "SUD", Confidence: 0.5224329 }],
+        },
+      ],
+    });
+
+    const promise = runDocumentUnderstanding("file.pdf", {
+      pollIntervalMs: 10,
+      requestId: "request-demo-type-missing-page",
+      documentId: TEST_DOCUMENT_ID,
+      applicationId: TEST_APPLICATION_ID,
+    });
+
+    const expectation = expect(promise).rejects.toThrow(
+      "token_list must include numeric Page values"
+    );
+    await vi.runAllTimersAsync();
+    await expectation;
+
+    expect(mocks.queryMock.mock.calls[4]?.[0]).toBe("COMMIT");
+    expect(mocks.queryMock.mock.calls[7]?.[0]).toBe("ROLLBACK");
+    expect(
+      mocks.queryMock.mock.calls.some((call) => Array.isArray(call[1]) && call[1][5] === "Failed")
+    ).toBe(false);
   });
 
   it("marks result as failed when UiPath returns failed status", async () => {
