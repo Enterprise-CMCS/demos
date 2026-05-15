@@ -84,6 +84,7 @@ export class BudgetNeutralityProcessor extends Construct {
         vpc: props.vpc,
         securityGroup: props.securityGroup,
         format: OutputFormat.ESM,
+        memorySize: 2048,
         environment: {
           DB_SSL_MODE: "verify-full",
           DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret

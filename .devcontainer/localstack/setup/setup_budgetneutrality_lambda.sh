@@ -39,6 +39,7 @@ $AWS_CMD lambda create-function \
     --handler index.handler \
     --zip-file fileb:///workspaces/demos/lambdas/budgetNeutrality/lambda.zip \
     --timeout 60 \
+    --memory-size 2048 \
     --environment "Variables={AWS_REGION=$AWS_REGION,AWS_ENDPOINT_URL=$LOCALSTACK_ENDPOINT,DATABASE_SECRET_ARN=database-secret,DB_SCHEMA=demos_app,DB_SSL_MODE=disable,NODE_OPTIONS=--enable-source-maps}" >/dev/null
 
 # Wait for Lambda to be active
