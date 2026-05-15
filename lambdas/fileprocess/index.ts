@@ -331,7 +331,7 @@ export const handler = async (event: SQSEvent, context: Context) =>
       };
     } catch (error) {
       log.error({ error: error.message }, "lambda execution failed.");
-      throw new Error(`Lambda failed: ${(error as Error).message}`);
+      throw error;
     } finally {
       if (client) {
         try {

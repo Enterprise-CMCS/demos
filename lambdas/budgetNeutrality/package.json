@@ -9,17 +9,19 @@
   },
   "scripts": {
     "test": "vitest run --coverage",
-    "lint": "tsc --noEmit --skipLibCheck"
+    "lint": "tsc --noEmit --skipLibCheck"    
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1041.0",
     "@aws-sdk/client-secrets-manager": "^3.1041.0",
+    "demos-shared-library": "file:../../shared_library",
     "pg": "^8.20.0",
     "pino": "^10.3.1"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.161",
     "@types/node": "^24.12.2",
+    "@types/pg": "^8.20.0",
     "@vitest/coverage-v8": "^3.2.4",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"

@@ -17,16 +17,18 @@ BN_QUEUE_URL=$($AWS_CMD sqs get-queue-url --queue-name $BN_QUEUE_NAME --output t
 cd /workspaces/demos/lambdas/fileprocess
 
 npm ci --silent
-npx tsc --outDir build
 
-npx esbuild build/index.js \
+npx esbuild index.ts \
   --bundle \
   --platform=node \
+  --format=cjs \
   --target=node24 \
   --sourcemap \
-  --outfile=dist/index.cjs
+    --sources-content=true \
+    --source-root=/workspaces/demos/lambdas/fileprocess/ \
+  --outfile=dist/index.js
 rm -f lambda.zip
-zip -jqr lambda.zip dist/index.cjs
+zip -jqr lambda.zip dist/index.js dist/index.js.map
 
 cd - > /dev/null
 
@@ -36,7 +38,7 @@ $AWS_CMD lambda delete-function --function-name fileprocess 2>/dev/null || true
 # Create Lambda function
 $AWS_CMD lambda create-function \
     --function-name fileprocess \
-    --runtime nodejs18.x \
+    --runtime nodejs24.x \
     --role arn:aws:iam::000000000000:role/lambda-execution-role \
     --handler index.handler \
     --zip-file fileb:///workspaces/demos/lambdas/fileprocess/lambda.zip \
@@ -51,7 +53,8 @@ $AWS_CMD lambda create-function \
       CLEAN_BUCKET=clean-bucket,
       INFECTED_BUCKET=infected-bucket,
       BUDGET_NEUTRALITY_QUEUE_URL=$BN_QUEUE_URL,
-      UIPATH_QUEUE_URL=$UIPATH_QUEUE_URL
+      UIPATH_QUEUE_URL=$UIPATH_QUEUE_URL,
+      NODE_OPTIONS=--enable-source-maps
     }" >/dev/null
 
 # Wait for Lambda to be active
