@@ -179,7 +179,6 @@ export const typeDefs = [
   demonstrationSchema,
   demonstrationTypeTagAssignmentSchema,
   directivesSchema,
-  documentSchema,
   documentPendingUploadSchema,
   documentSchema,
   documentTypeSchema,
