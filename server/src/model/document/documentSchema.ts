@@ -34,15 +34,15 @@ export const documentSchema = gql`
 
   type Mutation {
     updateDocument(id: ID!, input: UpdateDocumentInput!): Document
-      @auth(requires: "Manage Document")
-    deleteDocument(id: ID!): Document! @auth(requires: "Delete Document")
-    deleteDocuments(ids: [ID!]!): Int! @auth(requires: "Delete Document")
-    triggerUiPath(documentId: ID!): String! @auth(requires: "Manage Document")
+      @auth(requires: "Access CMS-Only Mutations")
+    deleteDocument(id: ID!): Document! @auth(requires: "Access CMS-Only Mutations")
+    deleteDocuments(ids: [ID!]!): Int! @auth(requires: "Access CMS-Only Mutations")
+    triggerUiPath(documentId: ID!): String! @auth(requires: "Access CMS-Only Mutations")
   }
 
   type Query {
-    document(id: ID!): Document
-    documentExists(documentId: ID!): Boolean!
+    document(id: ID!): Document @auth(requires: "Access CMS-Only Queries")
+    documentExists(documentId: ID!): Boolean! @auth(requires: "Access CMS-Only Queries")
   }
 `;
 

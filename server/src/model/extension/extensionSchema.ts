@@ -17,18 +17,18 @@ import {
 export const extensionSchema = gql`
   type Extension {
     id: ID!
-    demonstration: Demonstration! @auth(requires: "Access Modification Demonstration")
+    demonstration: Demonstration!
     name: NonEmptyString!
     description: String
     effectiveDate: DateTime
     status: ApplicationStatus!
-    currentPhaseName: PhaseName! @auth(requires: "Access Application Workflow")
-    phases: [ApplicationPhase!]! @auth(requires: "Access Application Workflow")
-    documents: [Document!]! @auth(requires: "Access Application Documents")
-    clearanceLevel: ClearanceLevel! @auth(requires: "Access Application Workflow")
-    tags: [Tag!]! @auth(requires: "Access Application Workflow")
+    currentPhaseName: PhaseName! @auth(requires: "Access CMS-Only Fields")
+    phases: [ApplicationPhase!]! @auth(requires: "Access CMS-Only Fields")
+    documents: [Document!]! @auth(requires: "Access CMS-Only Fields")
+    clearanceLevel: ClearanceLevel! @auth(requires: "Access CMS-Only Fields")
+    tags: [Tag!]! @auth(requires: "Access CMS-Only Fields")
     signatureLevel: SignatureLevel
-    suggestedApplicationTags: [TagName!]! @auth(requires: "Access Application Workflow")
+    suggestedApplicationTags: [TagName!]! @auth(requires: "Access CMS-Only Fields")
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -51,13 +51,15 @@ export const extensionSchema = gql`
 
   type Mutation {
     createExtension(input: CreateExtensionInput!): Extension
+      @auth(requires: "Access CMS-Only Mutations")
     updateExtension(id: ID!, input: UpdateExtensionInput!): Extension
-    deleteExtension(id: ID!): Extension
+      @auth(requires: "Access CMS-Only Mutations")
+    deleteExtension(id: ID!): Extension @auth(requires: "Access CMS-Only Mutations")
   }
 
   type Query {
-    extensions: [Extension!]!
-    extension(id: ID!): Extension
+    extensions: [Extension!]! @auth(requires: "Access CMS-Only Queries")
+    extension(id: ID!): Extension @auth(requires: "Access CMS-Only Queries")
   }
 `;
 

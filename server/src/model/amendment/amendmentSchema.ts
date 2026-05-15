@@ -17,18 +17,18 @@ import {
 export const amendmentSchema = gql`
   type Amendment {
     id: ID!
-    demonstration: Demonstration! @auth(requires: "Access Modification Demonstration")
+    demonstration: Demonstration!
     name: NonEmptyString!
     description: String
     effectiveDate: DateTime
     status: ApplicationStatus!
-    currentPhaseName: PhaseName! @auth(requires: "Access Application Workflow")
-    phases: [ApplicationPhase!]! @auth(requires: "Access Application Workflow")
-    documents: [Document!]! @auth(requires: "Access Application Documents")
-    clearanceLevel: ClearanceLevel! @auth(requires: "Access Application Workflow")
-    tags: [Tag!]! @auth(requires: "Access Application Workflow")
+    currentPhaseName: PhaseName! @auth(requires: "Access CMS-Only Fields")
+    phases: [ApplicationPhase!]! @auth(requires: "Access CMS-Only Fields")
+    documents: [Document!]! @auth(requires: "Access CMS-Only Fields")
+    clearanceLevel: ClearanceLevel! @auth(requires: "Access CMS-Only Fields")
+    tags: [Tag!]! @auth(requires: "Access CMS-Only Fields")
     signatureLevel: SignatureLevel
-    suggestedApplicationTags: [TagName!]! @auth(requires: "Access Application Workflow")
+    suggestedApplicationTags: [TagName!]! @auth(requires: "Access CMS-Only Fields")
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -50,14 +50,16 @@ export const amendmentSchema = gql`
   }
 
   type Mutation {
-    createAmendment(input: CreateAmendmentInput!): Amendment @auth(requires: "Create Modification")
-    updateAmendment(id: ID!, input: UpdateAmendmentInput!): Amendment @auth(requires: "Manage Modification")
-    deleteAmendment(id: ID!): Amendment @auth(requires: "Delete Modification")
+    createAmendment(input: CreateAmendmentInput!): Amendment
+      @auth(requires: "Access CMS-Only Mutations")
+    updateAmendment(id: ID!, input: UpdateAmendmentInput!): Amendment
+      @auth(requires: "Access CMS-Only Mutations")
+    deleteAmendment(id: ID!): Amendment @auth(requires: "Access CMS-Only Mutations")
   }
 
   type Query {
-    amendments: [Amendment!]!
-    amendment(id: ID!): Amendment
+    amendments: [Amendment!]! @auth(requires: "Access CMS-Only Queries")
+    amendment(id: ID!): Amendment @auth(requires: "Access CMS-Only Queries")
   }
 `;
 

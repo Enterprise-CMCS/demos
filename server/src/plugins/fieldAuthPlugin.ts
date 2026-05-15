@@ -19,7 +19,10 @@ import { PERMISSIONS } from "../constants";
 export const validateAuthDirectives = (authDirective: Record<string, any>[]) => {
   for (const directive of authDirective) {
     if (!directive.requires || !PERMISSIONS.includes(directive["requires"])) {
-      throw new Error("Invalid @auth directive: 'requires' argument must be a valid permission");
+      throw new Error(
+        "Invalid @auth directive: 'requires' argument must be a valid permission. Received: " +
+          directive["requires"]
+      );
     }
   }
 };
@@ -66,8 +69,6 @@ export const fieldAuthPlugin = {
             Field() {
               const fieldDef = typeInfo.getFieldDef();
               const parentType = typeInfo.getParentType();
-
-              return true;
 
               if (!fieldDef || !parentType) {
                 return false;
