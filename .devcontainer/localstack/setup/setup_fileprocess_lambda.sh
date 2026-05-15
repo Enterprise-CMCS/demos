@@ -38,7 +38,7 @@ $AWS_CMD lambda delete-function --function-name fileprocess 2>/dev/null || true
 # Create Lambda function
 $AWS_CMD lambda create-function \
     --function-name fileprocess \
-    --runtime nodejs22.x \
+    --runtime nodejs24.x \
     --role arn:aws:iam::000000000000:role/lambda-execution-role \
     --handler index.handler \
     --zip-file fileb:///workspaces/demos/lambdas/fileprocess/lambda.zip \
