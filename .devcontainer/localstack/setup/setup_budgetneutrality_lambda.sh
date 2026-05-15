@@ -18,10 +18,10 @@ npx esbuild index.ts \
   --bundle \
   --platform=node \
     --format=cjs \
-    --target=node22 \
+    --target=node24 \
   --sourcemap \
     --sources-content=true \
-    --source-root=/var/task/ \
+    --source-root=/workspaces/demos/lambdas/budgetNeutrality/ \
     --outfile=dist/index.js
 rm -f lambda.zip
 zip -jqr lambda.zip dist/index.js dist/index.js.map
@@ -34,7 +34,7 @@ $AWS_CMD lambda delete-function --function-name $LAMBDA_NAME 2>/dev/null || true
 # Create Lambda function
 $AWS_CMD lambda create-function \
     --function-name $LAMBDA_NAME \
-    --runtime nodejs22.x \
+    --runtime nodejs24.x \
     --role arn:aws:iam::000000000000:role/lambda-execution-role \
     --handler index.handler \
     --zip-file fileb:///workspaces/demos/lambdas/budgetNeutrality/lambda.zip \
