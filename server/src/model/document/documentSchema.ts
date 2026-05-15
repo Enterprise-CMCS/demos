@@ -14,14 +14,14 @@ export const documentSchema = gql`
     id: ID!
     name: NonEmptyString!
     description: String
-    s3Path: NonEmptyString! @auth(requires: "Access Document Download")
-    owner: User! @auth(requires: "Access Document Owner")
+    s3Path: NonEmptyString! @auth(requires: "Access CMS-Only Fields")
+    owner: User!
     documentType: DocumentType!
-    application: Application! @auth(requires: "Access Document Application")
-    phaseName: PhaseName @auth(requires: "Access Document Application")
-    presignedDownloadUrl: String! @auth(requires: "Access Document Download")
-    deliverable: Deliverable @auth(requires: "Access Document Deliverable")
-    hasPendingUIPathResult: Boolean!
+    application: Application! @auth(requires: "Access CMS-Only Fields")
+    phaseName: PhaseName @auth(requires: "Access CMS-Only Fields")
+    presignedDownloadUrl: String! @auth(requires: "Access CMS-Only Fields")
+    deliverable: Deliverable @auth(requires: "Access CMS-Only Fields")
+    hasPendingUIPathResult: Boolean! @auth(requires: "Access CMS-Only Fields")
     createdAt: DateTime!
     updatedAt: DateTime!
   }
