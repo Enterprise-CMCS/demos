@@ -101,6 +101,9 @@ import { phaseResolvers } from "./phase/phaseResolvers.js";
 import { phaseStatusSchema } from "./phaseStatus/phaseStatusSchema.js";
 import { phaseStatusResolvers } from "./phaseStatus/phaseStatusResolvers.js";
 
+import { privateCommentSchema } from "./privateComment/privateCommentSchema";
+import { privateCommentResolvers } from "./privateComment/privateCommentResolvers";
+
 import { publicCommentSchema } from "./publicComment/publicCommentSchema";
 import { publicCommentResolvers } from "./publicComment/publicCommentResolvers";
 
@@ -170,8 +173,8 @@ export const typeDefs = [
   demonstrationRoleAssignmentSchema,
   demonstrationSchema,
   demonstrationTypeTagAssignmentSchema,
-  documentSchema,
   documentPendingUploadSchema,
+  documentSchema,
   documentTypeSchema,
   eventSchema,
   eventTypeSchema,
@@ -182,6 +185,7 @@ export const typeDefs = [
   personTypeSchema,
   phaseSchema,
   phaseStatusSchema,
+  privateCommentSchema,
   publicCommentSchema,
   roleSchema,
   sdgDivisionSchema,
@@ -219,8 +223,8 @@ export const resolvers = [
   demonstrationResolvers,
   demonstrationRoleAssigmentResolvers,
   demonstrationTypeTagAssignmentResolvers,
-  documentResolvers,
   documentPendingUploadResolvers,
+  documentResolvers,
   documentTypeResolvers,
   eventResolvers,
   eventTypeResolvers,
@@ -231,6 +235,7 @@ export const resolvers = [
   personTypeResolvers,
   phaseResolvers,
   phaseStatusResolvers,
+  privateCommentResolvers,
   publicCommentResolvers,
   roleResolvers,
   sdgDivisionResolvers,

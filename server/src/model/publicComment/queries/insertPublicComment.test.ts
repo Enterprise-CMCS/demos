@@ -2,7 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Types
-import { InsertPublicCommentInput } from "./insertPublicComment";
+import { InsertPublicCommentInput } from ".";
 
 // Functions under test
 import { insertPublicComment } from "./insertPublicComment";
