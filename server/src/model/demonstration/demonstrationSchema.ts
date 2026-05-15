@@ -53,7 +53,6 @@ export const demonstrationSchema = gql`
     projectOfficerUserId: String!
     description: String
     sdgDivision: SdgDivision
-    signatureLevel: SignatureLevel
   }
 
   input UpdateDemonstrationInput {
@@ -62,7 +61,6 @@ export const demonstrationSchema = gql`
     effectiveDate: DateTimeOrLocalDate
     expirationDate: DateTimeOrLocalDate
     sdgDivision: SdgDivision
-    signatureLevel: SignatureLevel
     status: ApplicationStatus
     stateId: ID
     projectOfficerUserId: String
@@ -112,7 +110,6 @@ export interface CreateDemonstrationInput {
   stateId: string;
   description?: string;
   sdgDivision?: SdgDivision;
-  signatureLevel?: SignatureLevel;
 }
 
 export interface UpdateDemonstrationInput {
@@ -121,7 +118,6 @@ export interface UpdateDemonstrationInput {
   effectiveDate?: DateTimeOrLocalDate | null;
   expirationDate?: DateTimeOrLocalDate | null;
   sdgDivision?: SdgDivision;
-  signatureLevel?: SignatureLevel;
   status?: ApplicationStatus;
   stateId?: string;
   projectOfficerUserId?: string;
