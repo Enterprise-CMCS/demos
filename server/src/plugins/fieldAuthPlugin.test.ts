@@ -61,7 +61,7 @@ describe("fieldAuthPlugin", () => {
       expect(() => validateAuthDirectives([validAuthDirective])).not.toThrow();
 
       expect(() => validateAuthDirectives([invalidAuthDirective])).toThrow(
-        "Invalid @auth directive: 'requires' argument must be a valid permission"
+        "Invalid @auth directive: 'requires' argument contains invalid permission 'Access Anything I Want'."
       );
     });
   });

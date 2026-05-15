@@ -19,7 +19,7 @@ const mockEvents = [
     user: mockUsers[0],
     eventType: "Login Succeeded",
     logLevel: "info",
-    role: "All Users",
+    role: "Project Officer",
     route: "/events",
     createdAt: new Date(2025, 0, 1),
     eventData: {
@@ -32,7 +32,7 @@ const mockEvents = [
     user: mockUsers[0],
     eventType: "Login Failed",
     logLevel: "err",
-    role: "All Users",
+    role: "Project Officer",
     route: "/demonstrations",
     createdAt: new Date(2025, 0, 1),
     eventData: {},

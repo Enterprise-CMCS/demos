@@ -26,6 +26,7 @@ import {
   PersonType,
   DateTimeOrLocalDate,
   SystemRole,
+  SignatureLevel,
 } from "./types.js";
 import { prisma } from "./prismaClient.js";
 import { DocumentType, PhaseName } from "./types.js";
@@ -1017,7 +1018,7 @@ async function seedDatabase() {
       demonstrationId: faker.helpers.arrayElement(demonstrationIds).id,
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
-      signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
+      signatureLevel: sampleFromArray([...(["OA", "OCD"] as SignatureLevel[]), undefined], 1)[0],
     };
     await __createAmendment(undefined, { input: createInput });
   }
@@ -1040,7 +1041,7 @@ async function seedDatabase() {
       demonstrationId: faker.helpers.arrayElement(demonstrationIds).id,
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
-      signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
+      signatureLevel: sampleFromArray([...(["OA", "OCD"] as SignatureLevel[]), undefined], 1)[0],
     };
     await __createExtension(undefined, { input: createInput });
   }
