@@ -16,13 +16,10 @@ import type { GraphQLContext } from "../auth";
 import { Permission } from "../types";
 import { PERMISSIONS } from "../constants";
 
-export const validateAuthDirectives = (authDirective: Record<string, any>[]) => {
+export const validateAuthDirectives = (authDirective: Record<"requires", Permission>[]) => {
   for (const directive of authDirective) {
     if (!directive.requires || !PERMISSIONS.includes(directive["requires"])) {
-      throw new Error(
-        "Invalid @auth directive: 'requires' argument must be a valid permission. Received: " +
-          directive["requires"]
-      );
+      throw new Error("Invalid @auth directive: 'requires' argument must be a valid permission.");
     }
   }
 };

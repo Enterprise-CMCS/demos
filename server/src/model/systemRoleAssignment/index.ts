@@ -5,12 +5,10 @@ import {
   Permission as PrismaPermission,
 } from "@prisma/client";
 
-export { selectManySystemRoleAssignments } from "./selectManySystemRoleAssignments";
+export { selectManySystemRoleAssignments } from "./queries/selectManySystemRoleAssignments";
 
 export type SystemRoleAssignmentQueryResult = PrismaSystemRoleAssignment & {
   role: PrismaRole & {
-    rolePermissions: (PrismaRolePermission & {
-      permission: PrismaPermission;
-    })[];
+    rolePermissions: PrismaRolePermission[];
   };
 };
