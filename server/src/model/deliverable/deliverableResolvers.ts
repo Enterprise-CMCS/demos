@@ -61,12 +61,11 @@ export async function resolveDeliverable(
   switch (parentType) {
     case Prisma.ModelName.Document:
     case Prisma.ModelName.DocumentPendingUpload: {
-      {
-        const doc = parent as PrismaDocument | PrismaDocumentPendingUpload;
-        filter = doc.deliverableId ? { id: doc.deliverableId } : null;
-        break;
-      }
+      const doc = parent as PrismaDocument | PrismaDocumentPendingUpload;
+      filter = doc.deliverableId ? { id: doc.deliverableId } : null;
+      break;
     }
+
     case "DeliverableComment": {
       const comment = parent as PrismaPublicComment | PrismaPrivateComment;
       filter = { id: comment.deliverableId };
