@@ -13,6 +13,19 @@ pipeline {
   }
 
   stages {
+    stage('Prep Shared Library') {
+      steps {
+        script {
+          dirCon('shared_library', 'node') {
+            sh '''
+              npm ci
+              npm run build || true
+            '''
+          }
+        }
+      }
+    }
+
     stage('Lambdas - Snyk - All') {
       steps {
         script {
