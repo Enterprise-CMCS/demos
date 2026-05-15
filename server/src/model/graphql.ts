@@ -89,6 +89,9 @@ import { logLevelResolvers } from "./logLevel/logLevelResolvers.js";
 import { noteTypeSchema } from "./noteType/noteTypeSchema.js";
 import { noteTypeResolvers } from "./noteType/noteTypeResolvers.js";
 
+import { permissionSchema } from "./permission/permissionSchema.js";
+import { permissionResolvers } from "./permission/permissionResolvers.js";
+
 import { personSchema } from "./person/personSchema.js";
 import { personResolvers } from "./person/personResolvers.js";
 
@@ -185,6 +188,7 @@ export const typeDefs = [
   extensionSchema,
   logLevelSchema,
   noteTypeSchema,
+  permissionSchema,
   personSchema,
   personTypeSchema,
   phaseSchema,
@@ -235,6 +239,7 @@ export const resolvers = [
   extensionResolvers,
   logLevelResolvers,
   noteTypeResolvers,
+  permissionResolvers,
   personResolvers,
   personTypeResolvers,
   phaseResolvers,

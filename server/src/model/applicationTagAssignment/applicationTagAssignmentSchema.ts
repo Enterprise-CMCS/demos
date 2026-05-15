@@ -9,7 +9,7 @@ export const applicationTagAssignmentSchema = gql`
 
   type Mutation {
     setApplicationTags(input: SetApplicationTagsInput): Application
-      @auth(requires: "Manage Application Workflow")
+      @auth(requires: "Access CMS-Only Mutations")
   }
 `;
 

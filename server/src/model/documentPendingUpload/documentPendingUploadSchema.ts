@@ -56,11 +56,10 @@ export const documentPendingUploadSchema = gql`
 
   type Mutation {
     uploadDocumentToApplication(input: UploadDocumentToApplicationInput!): DocumentPendingUpload!
-      @auth(requires: "Upload Application Document")
+      @auth(requires: "Access Upload Application Document")
     uploadDocumentToPhase(input: UploadDocumentToPhaseInput!): DocumentPendingUpload!
-      @auth(requires: "Upload Application Workflow Document")
+      @auth(requires: "Access Upload Phase Document")
     uploadDocumentToDeliverable(input: UploadDocumentToDeliverableInput!): DocumentPendingUpload!
-      @auth(requires: "Upload Deliverable Document")
   }
 `;
 

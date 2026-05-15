@@ -11,13 +11,13 @@ export const applicationTagSuggestionSchema = gql`
 
   type Mutation {
     acceptApplicationTagSuggestion(applicationId: ID!, value: String!): Application
-      @auth(requires: "Manage Application Workflow")
+      @auth(requires: "Access CMS-Only Mutations")
     replaceApplicationTagSuggestion(
       applicationId: ID!
       value: String!
       newValue: String!
-    ): Application @auth(requires: "Manage Application Workflow")
+    ): Application @auth(requires: "Access CMS-Only Mutations")
     removeApplicationTagSuggestion(applicationId: ID!, value: String!): ApplicationTagSuggestion
-      @auth(requires: "Manage Application Workflow")
+      @auth(requires: "Access CMS-Only Mutations")
   }
 `;

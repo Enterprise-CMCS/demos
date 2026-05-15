@@ -1,5 +1,5 @@
 import { gql } from "graphql-tag";
-import { Deliverable, Document, PersonType, Event, Person } from "../../types.js";
+import { Deliverable, Document, PersonType, Event, Person, Permission } from "../../types.js";
 
 export const userSchema = gql`
   type User {
@@ -8,8 +8,9 @@ export const userSchema = gql`
     username: String!
     person: Person!
     events: [Event!]!
-    ownedDocuments: [Document!]! @auth(requires: "Access User Documents")
-    ownedDeliverables: [Deliverable!]! @auth(requires: "Access User Deliverables")
+    ownedDocuments: [Document!]!
+    ownedDeliverables: [Deliverable!]!
+    permissions: [Permission!]!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -27,6 +28,7 @@ export interface User {
   events: Event[];
   ownedDocuments: Document[];
   ownedDeliverables: Deliverable[];
+  permissions: Permission[];
   createdAt: Date;
   updatedAt: Date;
 }

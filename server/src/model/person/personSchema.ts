@@ -14,12 +14,13 @@ export const personSchema = gql`
     createdAt: DateTime!
     updatedAt: DateTime!
     states: [State!]!
-    roles: [DemonstrationRoleAssignment!]! @auth(requires: "Access Person Contacts")
+    roles: [DemonstrationRoleAssignment!]!
   }
   type Query {
-    person(id: ID!): Person
-    people: [Person!]!
+    person(id: ID!): Person @auth(requires: "Access CMS-Only Queries")
+    people: [Person!]! @auth(requires: "Access CMS-Only Queries")
     searchPeople(search: String!, demonstrationId: ID): [Person!]!
+      @auth(requires: "Access CMS-Only Queries")
   }
 `;
 
