@@ -11,7 +11,7 @@ export const applicationSchema = gql`
 
   type Mutation {
     setApplicationClearanceLevel(input: SetApplicationClearanceLevelInput!): Application!
-      @auth(requires: "Access CMS-Only Mutations")
+      @auth(requires: ["Perform CMS Action"])
   }
 `;
 

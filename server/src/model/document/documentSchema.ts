@@ -14,14 +14,14 @@ export const documentSchema = gql`
     id: ID!
     name: NonEmptyString!
     description: String
-    s3Path: NonEmptyString! @auth(requires: "Access CMS-Only Fields")
+    s3Path: NonEmptyString! @auth(requires: ["Access CMS Field"])
     owner: User!
     documentType: DocumentType!
-    application: Application! @auth(requires: "Access CMS-Only Fields")
-    phaseName: PhaseName @auth(requires: "Access CMS-Only Fields")
-    presignedDownloadUrl: String! @auth(requires: "Access CMS-Only Fields")
-    deliverable: Deliverable @auth(requires: "Access CMS-Only Fields")
-    hasPendingUIPathResult: Boolean! @auth(requires: "Access CMS-Only Fields")
+    application: Application! @auth(requires: ["Access CMS Field"])
+    phaseName: PhaseName @auth(requires: ["Access CMS Field"])
+    presignedDownloadUrl: String! @auth(requires: ["Access CMS Field"])
+    deliverable: Deliverable @auth(requires: ["Access CMS Field"])
+    hasPendingUIPathResult: Boolean! @auth(requires: ["Access CMS Field"])
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -34,15 +34,15 @@ export const documentSchema = gql`
 
   type Mutation {
     updateDocument(id: ID!, input: UpdateDocumentInput!): Document
-      @auth(requires: "Access CMS-Only Mutations")
-    deleteDocument(id: ID!): Document! @auth(requires: "Access CMS-Only Mutations")
-    deleteDocuments(ids: [ID!]!): Int! @auth(requires: "Access CMS-Only Mutations")
-    triggerUiPath(documentId: ID!): String! @auth(requires: "Access CMS-Only Mutations")
+      @auth(requires: ["Perform CMS Action"])
+    deleteDocument(id: ID!): Document! @auth(requires: ["Perform CMS Action"])
+    deleteDocuments(ids: [ID!]!): Int! @auth(requires: ["Perform CMS Action"])
+    triggerUiPath(documentId: ID!): String! @auth(requires: ["Perform CMS Action"])
   }
 
   type Query {
-    document(id: ID!): Document @auth(requires: "Access CMS-Only Queries")
-    documentExists(documentId: ID!): Boolean! @auth(requires: "Access CMS-Only Queries")
+    document(id: ID!): Document @auth(requires: ["Access CMS Query"])
+    documentExists(documentId: ID!): Boolean! @auth(requires: ["Access CMS Query"])
   }
 `;
 

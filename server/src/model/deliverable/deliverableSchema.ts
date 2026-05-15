@@ -33,7 +33,7 @@ export const deliverableSchema = gql`
     deliverableActions: [DeliverableAction!]!
     extensionRequests: [DeliverableExtension!]!
     publicComments: [DeliverableComment!]!
-    privateComments: [DeliverableComment!]! @auth(requires: "Access CMS-Only Fields")
+    privateComments: [DeliverableComment!]! @auth(requires: ["Access CMS Field"])
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -87,30 +87,31 @@ export const deliverableSchema = gql`
 
   type Mutation {
     createDeliverable(input: CreateDeliverableInput): Deliverable
-      @auth(requires: "Access CMS-Only Mutations")
+      @auth(requires: ["Perform CMS Action"])
     updateDeliverable(id: ID!, input: UpdateDeliverableInput!): Deliverable
-      @auth(requires: "Access CMS-Only Mutations")
+      @auth(requires: ["Perform CMS Action"])
     submitDeliverable(id: ID!): Deliverable
-    startDeliverableReview(id: ID!): Deliverable @auth(requires: "Access CMS-Only Mutations")
+      @auth(requires: ["Perform CMS Action", "Perform State Action"])
+    startDeliverableReview(id: ID!): Deliverable @auth(requires: ["Perform CMS Action"])
     completeDeliverable(id: ID!, finalStatus: FinalDeliverableStatus!): Deliverable
-      @auth(requires: "Access CMS-Only Mutations")
+      @auth(requires: ["Perform CMS Action"])
     requestDeliverableResubmission(
       id: ID!
       input: RequestDeliverableResubmissionInput!
-    ): Deliverable @auth(requires: "Access CMS-Only Mutations")
+    ): Deliverable @auth(requires: ["Perform CMS Action"])
     requestDeliverableExtension(
       deliverableId: ID!
       input: RequestDeliverableExtensionInput!
-    ): Deliverable
+    ): Deliverable @auth(requires: ["Perform State Action"])
     approveDeliverableExtension(
       deliverableId: ID!
       input: ApproveDeliverableExtensionInput!
-    ): Deliverable @auth(requires: "Access CMS-Only Mutations")
+    ): Deliverable @auth(requires: ["Perform CMS Action"])
     denyDeliverableExtension(
       deliverableId: ID!
       input: DenyDeliverableExtensionInput!
-    ): Deliverable @auth(requires: "Access CMS-Only Mutations")
-    deleteDeliverable(id: ID!): Deliverable @auth(requires: "Access CMS-Only Mutations")
+    ): Deliverable @auth(requires: ["Perform CMS Action"])
+    deleteDeliverable(id: ID!): Deliverable @auth(requires: ["Perform CMS Action"])
   }
 `;
 

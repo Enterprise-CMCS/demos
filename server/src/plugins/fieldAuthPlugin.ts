@@ -16,10 +16,19 @@ import type { GraphQLContext } from "../auth";
 import { Permission } from "../types";
 import { PERMISSIONS } from "../constants";
 
-export const validateAuthDirectives = (authDirective: Record<"requires", Permission>[]) => {
+export const validateAuthDirectives = (authDirective: Record<"requires", Permission[]>[]) => {
   for (const directive of authDirective) {
-    if (!directive.requires || !PERMISSIONS.includes(directive["requires"])) {
-      throw new Error("Invalid @auth directive: 'requires' argument must be a valid permission.");
+    if (!directive.requires) {
+      throw new Error("Invalid @auth directive: Missing 'requires' argument.");
+    }
+
+    const requiredPermissions = directive["requires"];
+    for (const permission of requiredPermissions) {
+      if (!PERMISSIONS.includes(permission)) {
+        throw new Error(
+          `Invalid @auth directive: 'requires' argument contains invalid permission '${permission}'.`
+        );
+      }
     }
   }
 };
@@ -30,15 +39,22 @@ export const checkFieldAuthorization = (
   parentType: GraphQLCompositeType,
   userPermissions: Permission[]
 ): string | false => {
-  const authDirectives = getDirective(schema, fieldDef, "auth");
-
+  const authDirectives: Record<string, Permission[]>[] | undefined = getDirective(
+    schema,
+    fieldDef,
+    "auth"
+  );
   if (!authDirectives || authDirectives.length === 0) {
     return false;
   }
 
   validateAuthDirectives(authDirectives);
 
-  if (authDirectives.some((directive) => userPermissions.includes(directive["requires"]))) {
+  if (
+    authDirectives.some((directive) =>
+      directive.requires.some((permission) => userPermissions.includes(permission))
+    )
+  ) {
     return false;
   }
 

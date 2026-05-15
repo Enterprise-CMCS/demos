@@ -5,7 +5,7 @@ export const stateSchema = gql`
   type State {
     id: String!
     name: String!
-    demonstrations: [Demonstration!]! @auth(requires: "Access CMS-Only Fields")
+    demonstrations: [Demonstration!]! @auth(requires: ["Access CMS Field"])
   }
 
   type Query {

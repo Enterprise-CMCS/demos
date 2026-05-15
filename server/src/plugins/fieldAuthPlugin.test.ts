@@ -14,10 +14,10 @@ vi.mock("@graphql-tools/utils", () => ({
 }));
 
 describe("fieldAuthPlugin", () => {
-  const requiredPermission = "Access CMS-Only Fields" as Permission;
+  const requiredPermission = "Access CMS Field" as Permission;
   const invalidPermission = "Access Anything I Want" as Permission;
-  const validAuthDirective = { requires: requiredPermission };
-  const invalidAuthDirective = { requires: invalidPermission };
+  const validAuthDirective = { requires: [requiredPermission] };
+  const invalidAuthDirective = { requires: [invalidPermission] };
   const schema = buildSchema(/* GraphQL */ `
     type Query {
       restrictedField: String
@@ -35,7 +35,7 @@ describe("fieldAuthPlugin", () => {
     vi.clearAllMocks();
   });
 
-  const mockAuthDirectives = (authDirectives?: Record<"requires", Permission>[]) => {
+  const mockAuthDirectives = (authDirectives?: Record<"requires", Permission[]>[]) => {
     vi.mocked(getDirective).mockReturnValue(authDirectives);
   };
 

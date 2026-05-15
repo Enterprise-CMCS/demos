@@ -22,13 +22,13 @@ export const extensionSchema = gql`
     description: String
     effectiveDate: DateTime
     status: ApplicationStatus!
-    currentPhaseName: PhaseName! @auth(requires: "Access CMS-Only Fields")
-    phases: [ApplicationPhase!]! @auth(requires: "Access CMS-Only Fields")
-    documents: [Document!]! @auth(requires: "Access CMS-Only Fields")
-    clearanceLevel: ClearanceLevel! @auth(requires: "Access CMS-Only Fields")
-    tags: [Tag!]! @auth(requires: "Access CMS-Only Fields")
+    currentPhaseName: PhaseName! @auth(requires: ["Access CMS Field"])
+    phases: [ApplicationPhase!]! @auth(requires: ["Access CMS Field"])
+    documents: [Document!]! @auth(requires: ["Access CMS Field"])
+    clearanceLevel: ClearanceLevel! @auth(requires: ["Access CMS Field"])
+    tags: [Tag!]! @auth(requires: ["Access CMS Field"])
     signatureLevel: SignatureLevel
-    suggestedApplicationTags: [TagName!]! @auth(requires: "Access CMS-Only Fields")
+    suggestedApplicationTags: [TagName!]! @auth(requires: ["Access CMS Field"])
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -50,16 +50,15 @@ export const extensionSchema = gql`
   }
 
   type Mutation {
-    createExtension(input: CreateExtensionInput!): Extension
-      @auth(requires: "Access CMS-Only Mutations")
+    createExtension(input: CreateExtensionInput!): Extension @auth(requires: ["Perform CMS Action"])
     updateExtension(id: ID!, input: UpdateExtensionInput!): Extension
-      @auth(requires: "Access CMS-Only Mutations")
-    deleteExtension(id: ID!): Extension @auth(requires: "Access CMS-Only Mutations")
+      @auth(requires: ["Perform CMS Action"])
+    deleteExtension(id: ID!): Extension @auth(requires: ["Perform CMS Action"])
   }
 
   type Query {
-    extensions: [Extension!]! @auth(requires: "Access CMS-Only Queries")
-    extension(id: ID!): Extension @auth(requires: "Access CMS-Only Queries")
+    extensions: [Extension!]! @auth(requires: ["Access CMS Query"])
+    extension(id: ID!): Extension @auth(requires: ["Access CMS Query"])
   }
 `;
 

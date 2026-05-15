@@ -21,7 +21,7 @@ export const applicationNoteSchema = gql`
 
   type Mutation {
     setApplicationNotes(input: SetApplicationNotesInput): Application
-      @auth(requires: "Access CMS-Only Mutations")
+      @auth(requires: ["Perform CMS Action"])
   }
 `;
 

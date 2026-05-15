@@ -31,17 +31,17 @@ export const demonstrationSchema = gql`
     signatureLevel: SignatureLevel
     status: ApplicationStatus!
     state: State!
-    currentPhaseName: PhaseName! @auth(requires: "Access CMS-Only Fields")
-    phases: [ApplicationPhase!]! @auth(requires: "Access CMS-Only Fields")
-    documents: [Document!]! @auth(requires: "Access CMS-Only Fields")
-    amendments: [Amendment!]! @auth(requires: "Access CMS-Only Fields")
-    extensions: [Extension!]! @auth(requires: "Access CMS-Only Fields")
-    roles: [DemonstrationRoleAssignment!]! @auth(requires: "Access CMS-Only Fields")
+    currentPhaseName: PhaseName! @auth(requires: ["Access CMS Field"])
+    phases: [ApplicationPhase!]! @auth(requires: ["Access CMS Field"])
+    documents: [Document!]! @auth(requires: ["Access CMS Field"])
+    amendments: [Amendment!]! @auth(requires: ["Access CMS Field"])
+    extensions: [Extension!]! @auth(requires: ["Access CMS Field"])
+    roles: [DemonstrationRoleAssignment!]! @auth(requires: ["Access CMS Field"])
     primaryProjectOfficer: Person!
-    clearanceLevel: ClearanceLevel! @auth(requires: "Access CMS-Only Fields")
+    clearanceLevel: ClearanceLevel! @auth(requires: ["Access CMS Field"])
     tags: [Tag!]!
     demonstrationTypes: [DemonstrationTypeAssignment!]!
-    suggestedApplicationTags: [TagName!]! @auth(requires: "Access CMS-Only Fields")
+    suggestedApplicationTags: [TagName!]! @auth(requires: ["Access CMS Field"])
     deliverables: [Deliverable!]!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -68,10 +68,10 @@ export const demonstrationSchema = gql`
 
   type Mutation {
     createDemonstration(input: CreateDemonstrationInput!): Demonstration
-      @auth(requires: "Access CMS-Only Mutations")
+      @auth(requires: ["Perform CMS Action"])
     updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration
-      @auth(requires: "Access CMS-Only Mutations")
-    deleteDemonstration(id: ID!): Demonstration @auth(requires: "Access CMS-Only Mutations")
+      @auth(requires: ["Perform CMS Action"])
+    deleteDemonstration(id: ID!): Demonstration @auth(requires: ["Perform CMS Action"])
   }
 
   type Query {
