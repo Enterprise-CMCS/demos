@@ -24,19 +24,18 @@ interface Results {
   insertedWorkbooks: number;
 }
 
-export async function insertBudgetNeutralityWorkbook(
+export async function updateBudgetNeutralityWorkbook(
   pool: Pool,
   message: BudgetNeutralityMessage,
   validationResults: ValidationError[]
 ): Promise<void> {
-  const query = `INSERT INTO ${DB_SCHEMA}.budget_neutrality_workbook (
-      id,
-      document_type_id,
-      validation_status_id,
-      validation_data,
-      updated_at
-    )
-    VALUES ($1::UUID, $2::TEXT, $3::TEXT, $4::JSON, CURRENT_TIMESTAMP);`;
+  const query = `UPDATE ${DB_SCHEMA}.budget_neutrality_workbook
+    SET
+      document_type_id = $2::TEXT,
+      validation_status_id = $3::TEXT,
+      validation_data = $4::JSON,
+      updated_at = CURRENT_TIMESTAMP
+    WHERE id = $1::UUID;`;
 
   await pool.query(query, [
     message.documentId,
@@ -85,7 +84,7 @@ export const handler = async (event: SQSEvent, context: Context) =>
 
       log.info("Validation completed. Inserting BN results into database.");
       results.existingDocuments = 1;
-      await insertBudgetNeutralityWorkbook(pool, message, validationResults);
+      await updateBudgetNeutralityWorkbook(pool, message, validationResults);
       
       results.insertedWorkbooks = 1;
       log.info(
