@@ -80,8 +80,16 @@ export class DatabaseStack extends Stack {
       name: `demos-${commonProps.stage}-postgres-17`,
       engine,
       parameters: {
-        shared_preload_libraries: "pg_stat_statements,pg_tle,pg_cron",
+        shared_preload_libraries: "pg_stat_statements,pg_tle,pg_cron,pgaudit",
         "cron.database_name": "demos",
+        ssl_min_protocol_version: "TLSv1.3",
+        log_replication_commands: "on",
+        log_disconnections: "on",
+        log_connections: "on",
+        log_line_prefix: "%m:%r:%u@%d:[%p]:%l:%e:%s:%v:%x:%c:%q%a:",
+        log_statement: "ddl",
+        log_error_verbosity: "verbose",
+        log_rotation_size: "1000000"
       }
     })
 
