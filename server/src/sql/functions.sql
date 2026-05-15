@@ -275,6 +275,12 @@ BEGIN
     INTO
         v_document_type_id;
 
+    -- If the document type is "BN Workbook", create a corresponding record in budget_neutrality_workbook
+    IF v_document_type_id = 'BN Workbook' THEN
+        INSERT INTO demos_app.budget_neutrality_workbook (id, document_type_id, validation_status_id, validation_data, updated_at)
+        VALUES (p_id, v_document_type_id, 'Pending', '{}'::jsonb, CURRENT_TIMESTAMP);
+    END IF;
+
     DELETE FROM
         demos_app.document_pending_upload
     WHERE
