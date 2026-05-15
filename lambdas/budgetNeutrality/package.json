@@ -9,8 +9,7 @@
   },
   "scripts": {
     "test": "vitest run --coverage",
-    "lint": "tsc --noEmit --skipLibCheck",
-    "build": "tsc && esbuild dist/index.js --bundle --platform=node --outfile=build/index.cjs --minify --external:@yaacovcr/transform"
+    "lint": "tsc --noEmit --skipLibCheck"    
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1041.0",
