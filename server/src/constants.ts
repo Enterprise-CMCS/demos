@@ -357,36 +357,6 @@ export const STATES_AND_TERRITORIES = [
   { id: "VI", name: "Virgin Islands" },
 ] as const;
 
-export const LOG_LEVELS = [
-  "emerg",
-  "alert",
-  "crit",
-  "err",
-  "warning",
-  "notice",
-  "info",
-  "debug",
-] as const;
-
-export const EVENT_TYPES = [
-  "Login Succeeded",
-  "Login Failed",
-  "Logout Succeeded",
-  "Logout Failed",
-  "Create Demonstration Succeeded",
-  "Create Demonstration Failed",
-  "Create Extension Succeeded",
-  "Create Extension Failed",
-  "Create Amendment Succeeded",
-  "Create Amendment Failed",
-  "Edit Demonstration Succeeded",
-  "Edit Demonstration Failed",
-  "Delete Demonstration Succeeded",
-  "Delete Demonstration Failed",
-  "Delete Document Succeeded",
-  "Delete Document Failed",
-] as const;
-
 export const CONCEPT_PHASE_DOCUMENTS: DocumentType[] = ["General File", "Pre-Submission"] as const;
 
 export const APPLICATION_INTAKE_PHASE_DOCUMENTS: DocumentType[] = [

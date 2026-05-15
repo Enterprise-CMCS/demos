@@ -74,17 +74,8 @@ import { documentPendingUploadResolvers } from "./documentPendingUpload/document
 import { documentTypeSchema } from "./documentType/documentTypeSchema.js";
 import { documentTypeResolvers } from "./documentType/documentTypeResolvers.js";
 
-import { eventSchema } from "./event/eventSchema.js";
-import { eventResolvers } from "./event/eventResolvers.js";
-
-import { eventTypeSchema } from "./eventType/eventTypeSchema.js";
-import { eventTypeResolvers } from "./eventType/eventTypeResolvers.js";
-
 import { extensionSchema } from "./extension/extensionSchema.js";
 import { extensionResolvers } from "./extension/extensionResolvers.js";
-
-import { logLevelSchema } from "./logLevel/logLevelSchema.js";
-import { logLevelResolvers } from "./logLevel/logLevelResolvers.js";
 
 import { noteTypeSchema } from "./noteType/noteTypeSchema.js";
 import { noteTypeResolvers } from "./noteType/noteTypeResolvers.js";
@@ -176,10 +167,7 @@ export const typeDefs = [
   documentPendingUploadSchema,
   documentSchema,
   documentTypeSchema,
-  eventSchema,
-  eventTypeSchema,
   extensionSchema,
-  logLevelSchema,
   noteTypeSchema,
   personSchema,
   personTypeSchema,
@@ -226,10 +214,7 @@ export const resolvers = [
   documentPendingUploadResolvers,
   documentResolvers,
   documentTypeResolvers,
-  eventResolvers,
-  eventTypeResolvers,
   extensionResolvers,
-  logLevelResolvers,
   noteTypeResolvers,
   personResolvers,
   personTypeResolvers,
