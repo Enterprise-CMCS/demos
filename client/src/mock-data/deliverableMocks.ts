@@ -31,6 +31,8 @@ export const MOCK_DELIVERABLE_TABLE_ROW: DeliverableTableRow = {
   dueDate: new Date("2024-07-01"),
   status: "Upcoming",
   demonstrationTypes: [],
+  deliverableActions: [],
+  extensionRequests: [],
 };
 
 export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {

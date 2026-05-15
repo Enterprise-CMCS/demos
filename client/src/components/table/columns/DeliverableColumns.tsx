@@ -8,7 +8,7 @@ import type { Option } from "components/input/select/Select";
 
 import { SecondaryButton } from "../../button/SecondaryButton";
 import { highlightCell } from "../KeywordSearch";
-import type { DeliverableTableRow } from "../tables/DeliverableTable";
+import type { FormattedDeliverableTableRow } from "../tables/DeliverableTable";
 
 type DeliverableColumnsProps = {
   viewMode: UserType;
@@ -21,7 +21,7 @@ export function DeliverableColumns({
   demonstrationNameOptions,
   cmsOwnerOptions,
 }: DeliverableColumnsProps) {
-  const columnHelper = createColumnHelper<DeliverableTableRow>();
+  const columnHelper = createColumnHelper<FormattedDeliverableTableRow>();
 
   const demonstrationNameColumn = columnHelper.accessor("demonstration.name", {
     header: "Demonstration Name",
@@ -54,7 +54,7 @@ export function DeliverableColumns({
 
   const dueDateColumn = createDateColumnDef(columnHelper, "dueDate", "Due Date");
   const submissionDateColumn = createDateColumnDef(columnHelper, "submissionDate", "Submission Date");
-  const statusColumn = columnHelper.accessor("status", {
+  const statusColumn = columnHelper.accessor("combinedStatus", {
     header: "Status",
     cell: highlightCell,
     filterFn: "arrIncludesSome",
