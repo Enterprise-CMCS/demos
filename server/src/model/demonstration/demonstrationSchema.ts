@@ -39,10 +39,10 @@ export const demonstrationSchema = gql`
     roles: [DemonstrationRoleAssignment!]! @auth(requires: "Access CMS-Only Fields")
     primaryProjectOfficer: Person!
     clearanceLevel: ClearanceLevel! @auth(requires: "Access CMS-Only Fields")
-    tags: [Tag!]! @auth(requires: "Access CMS-Only Fields")
+    tags: [Tag!]!
     demonstrationTypes: [DemonstrationTypeAssignment!]!
     suggestedApplicationTags: [TagName!]! @auth(requires: "Access CMS-Only Fields")
-    deliverables: [Deliverable!]! @auth(requires: "Access CMS-Only Fields")
+    deliverables: [Deliverable!]!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -73,12 +73,12 @@ export const demonstrationSchema = gql`
       @auth(requires: "Access CMS-Only Mutations")
     updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration
       @auth(requires: "Access CMS-Only Mutations")
-    deleteDemonstration(id: ID!): Demonstration @auth(requires: "Delete Demonstration")
+    deleteDemonstration(id: ID!): Demonstration @auth(requires: "Access CMS-Only Mutations")
   }
 
   type Query {
-    demonstrations: [Demonstration!]! @auth(requires: "Access CMS-Only Queries")
-    demonstration(id: ID!): Demonstration @auth(requires: "Access CMS-Only Queries")
+    demonstrations: [Demonstration!]!
+    demonstration(id: ID!): Demonstration
   }
 `;
 
