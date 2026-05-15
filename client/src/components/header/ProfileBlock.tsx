@@ -57,17 +57,6 @@ export const ProfileBlock: React.FC = () => {
           <li className="hover:bg-gray-100 cursor-pointer p-1">
             <SignoutLink />
           </li>
-          <li className="hover:bg-gray-100 cursor-pointer p-1">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                // Optionally close menu when clicking inside:
-                setOpen(false);
-              }}
-            >
-              View Roles
-            </button>
-          </li>
         </ul>
       )}
     </div>
