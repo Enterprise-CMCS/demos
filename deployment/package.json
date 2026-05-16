@@ -25,7 +25,7 @@
     "tsc:ci": "tsc --noEmit --skipLibCheck"
   },
   "devDependencies": {
-    "@aws-sdk/client-secrets-manager": "^3.1036.0",
+    "@aws-sdk/client-secrets-manager": "^3.1037.0",
     "@eslint/js": "^9.39.4",
     "@types/node": "^24.12.2",
     "@types/pg": "^8.20.0",
