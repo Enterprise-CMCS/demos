@@ -99,7 +99,7 @@ export class BudgetNeutralityProcessor extends Construct {
           DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
           LOG_LEVEL: process.env.LOG_LEVEL ?? "info",
           NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
-          CLEAN_BUCKET: cleanReadBucket?.bucketName ?? "clean-bucket",
+          CLEAN_BUCKET: cleanReadBucket?.bucketName ?? "",
         },
       }
     );
