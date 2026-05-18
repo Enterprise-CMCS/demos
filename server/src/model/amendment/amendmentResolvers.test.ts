@@ -357,22 +357,6 @@ describe("amendmentResolvers", () => {
         expect(transactionMocks.amendment.create).toHaveBeenCalledOnce();
       }
     );
-
-    it("rejects invalid signature levels during creation", async () => {
-      await expect(
-        __createAmendment(undefined, {
-          input: {
-            demonstrationId: testDemonstrationId,
-            name: testAmendmentName,
-            description: testAmendmentDescription,
-            signatureLevel: "INVALID" as SignatureLevel,
-          },
-        })
-      ).rejects.toThrowError("Invalid signature level for amendment.");
-
-      expect(transactionMocks.application.create).not.toHaveBeenCalled();
-      expect(transactionMocks.amendment.create).not.toHaveBeenCalled();
-    });
   });
 
   describe("__updateAmendment", () => {

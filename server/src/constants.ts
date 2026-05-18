@@ -134,6 +134,10 @@ export const APPLICATION_TYPES = ["Demonstration", "Amendment", "Extension"] as 
 
 export const SIGNATURE_LEVEL = ["OA", "OCD", "OGD"] as const;
 
+export const AMENDMENT_SIGNATURE_LEVELS = ["OA", "OCD"] as const;
+
+export const EXTENSION_SIGNATURE_LEVELS = ["OA", "OCD"] as const;
+
 export const SDG_DIVISIONS = [
   "Division of System Reform Demonstrations",
   "Division of Eligibility and Coverage Demonstrations",

@@ -10,6 +10,8 @@ import {
   PHASE_DOCUMENT_TYPE_MAP,
   NOTE_TYPES,
   TAG_TYPES,
+  AMENDMENT_SIGNATURE_LEVELS,
+  EXTENSION_SIGNATURE_LEVELS,
 } from "./constants.js";
 import {
   CreateDemonstrationInput,
@@ -1016,7 +1018,7 @@ async function seedDatabase() {
       demonstrationId: faker.helpers.arrayElement(demonstrationIds).id,
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
-      signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
+      signatureLevel: sampleFromArray([...AMENDMENT_SIGNATURE_LEVELS, undefined], 1)[0],
     };
     await __createAmendment(undefined, { input: createInput });
   }
@@ -1039,7 +1041,7 @@ async function seedDatabase() {
       demonstrationId: faker.helpers.arrayElement(demonstrationIds).id,
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
-      signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
+      signatureLevel: sampleFromArray([...EXTENSION_SIGNATURE_LEVELS, undefined], 1)[0],
     };
     await __createExtension(undefined, { input: createInput });
   }
