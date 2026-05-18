@@ -110,6 +110,9 @@ export class BudgetNeutralityProcessor extends Construct {
 
     this.queue.grantConsumeMessages(budgetNeutralityLambda.lambda);
     dbSecret.grantRead(budgetNeutralityLambda.lambda);
+    for (const bucket of props.readBuckets ?? []) {
+      bucket.grantRead(budgetNeutralityLambda.lambda);
+    }
     props.kmsKey.grantEncryptDecrypt(budgetNeutralityLambda.lambda);
   }
 }
