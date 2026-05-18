@@ -13,7 +13,6 @@ model User {
   documents              Document[]
   documentsPendingUpload DocumentPendingUpload[]
   documentsInfected      DocumentInfected[]
-  events                 Event[]
   privateComments        PrivateComment[]
   publicComments         PublicComment[]
 

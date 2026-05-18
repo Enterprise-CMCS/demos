@@ -362,6 +362,12 @@ export class FileUploadStack extends Stack {
       "Allow traffic to secrets manager VPCE"
     );
 
+    budgetNeutralityLambdaSecurityGroup.securityGroup.addEgressRule(
+      aws_ec2.Peer.prefixList(s3PrefixList.prefixListId),
+      aws_ec2.Port.HTTPS,
+      "Allow traffic to S3"
+    );
+
     const dbSecretFileProcess = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
       "rdsFileProcessDatabaseSecret",

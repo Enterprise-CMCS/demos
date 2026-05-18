@@ -20,13 +20,6 @@ export const isAStatePointOfContactAssociatedWithUser = (
         some: isAStatePointOfContactAssociatedWithDocument(userId),
       },
     },
-    {
-      events: {
-        some: {
-          application: isAStatePointOfContactAssociatedWithApplication(userId),
-        },
-      },
-    },
   ],
 });
 

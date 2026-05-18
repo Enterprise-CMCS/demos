@@ -12,9 +12,7 @@ import {
   DELIVERABLE_EXTENSION_STATUSES,
   DELIVERABLE_TYPES,
   DEMONSTRATION_TYPE_STATUSES,
-  EVENT_TYPES,
   GRANT_LEVELS,
-  LOG_LEVELS,
   NOTE_TYPES,
   PERMISSIONS,
   PERSON_TYPES,
@@ -50,8 +48,6 @@ export type {
 } from "./model/demonstration/demonstrationSchema.js";
 
 export type { State } from "./model/state/stateSchema.js";
-
-export type { Event, LogEventInput } from "./model/event/eventSchema.js";
 
 export type {
   Amendment,
@@ -148,13 +144,13 @@ export type ApplicationStatus = (typeof APPLICATION_STATUS)[number];
 export type ApplicationType = (typeof APPLICATION_TYPES)[number];
 export type SdgDivision = (typeof SDG_DIVISIONS)[number];
 export type SignatureLevel = (typeof SIGNATURE_LEVEL)[number];
+export type AmendmentSignatureLevel = (typeof SIGNATURE_LEVEL)[number];
+export type ExtensionSignatureLevel = (typeof SIGNATURE_LEVEL)[number];
 export type PhaseStatus = (typeof PHASE_STATUS)[number];
 export type PersonType = (typeof PERSON_TYPES)[number];
 export type UserType = (typeof USER_TYPES)[number];
 export type GrantLevel = (typeof GRANT_LEVELS)[number];
 export type Role = (typeof ROLES)[number];
-export type LogLevel = (typeof LOG_LEVELS)[number];
-export type EventType = (typeof EVENT_TYPES)[number];
 export type NoteType = (typeof NOTE_TYPES)[number];
 export type AdminDemonstrationRole = (typeof ADMIN_DEMONSTRATION_ROLES)[number];
 export type CmsUserDemonstrationRole = (typeof CMS_USER_DEMONSTRATION_ROLES)[number];
