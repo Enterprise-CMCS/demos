@@ -25,23 +25,31 @@ export class ApplicationTagSuggestionExtractError extends Error {
   }
 }
 
-function getPageNumber(token: unknown): number | null {
+function getPageNumber(value: PersistedUiPathValue, token: unknown): number {
   if (!token || typeof token !== "object" || !("Page" in token)) {
-    return null;
-  }
-
-  const page = (token as { Page: unknown }).Page;
-  return typeof page === "number" && Number.isInteger(page) ? page : null;
-}
-
-function getTokenPageRange(value: PersistedUiPathValue): { startPageNo: number; endPageNo: number } {
-  const pages = value.tokenList.map(getPageNumber).filter((page): page is number => page !== null);
-
-  if (!pages.length) {
     throw new ApplicationTagSuggestionExtractError(
       `Cannot create application tag suggestion extract for UiPath value ${value.id}: token_list must include numeric Page values.`
     );
   }
+
+  const page = (token as { Page: unknown }).Page;
+  if (typeof page !== "number" || !Number.isInteger(page)) {
+    throw new ApplicationTagSuggestionExtractError(
+      `Cannot create application tag suggestion extract for UiPath value ${value.id}: token_list must include numeric Page values.`
+    );
+  }
+
+  return page;
+}
+
+function getTokenPageRange(value: PersistedUiPathValue): { startPageNo: number; endPageNo: number } {
+  if (!value.tokenList.length) {
+    throw new ApplicationTagSuggestionExtractError(
+      `Cannot create application tag suggestion extract for UiPath value ${value.id}: token_list must include numeric Page values.`
+    );
+  }
+
+  const pages = value.tokenList.map((token) => getPageNumber(value, token));
 
   return {
     startPageNo: Math.min(...pages) + 1,
