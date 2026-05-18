@@ -317,7 +317,7 @@ describe("ApplicationIntakePhase", () => {
       });
     });
 
-    it("accepts a UiPath suggested tag", async () => {
+    it("opens a confirmation modal before accepting a UiPath suggested tag", async () => {
       setup({
         suggestedTags: ["Health Equity"],
       });
@@ -331,6 +331,17 @@ describe("ApplicationIntakePhase", () => {
       );
 
       await waitFor(() => {
+        expect(screen.getByText("Confirm Tags from DEMOS AI")).toBeInTheDocument();
+      });
+      expect(
+        screen.getByText("DEMOS AI identified the following tag based on the application text:")
+      ).toBeInTheDocument();
+      expect(screen.getByText("Source Passage")).toBeInTheDocument();
+      expect(screen.getByText(/Found in Document X, Page N, Position NN\/NNN/)).toBeInTheDocument();
+
+      await userEvent.click(screen.getByTestId("button-confirm-suggested-tag"));
+
+      await waitFor(() => {
         expect(mockSetApplicationTagsMutation).toHaveBeenCalledTimes(1);
       });
 
@@ -340,6 +351,52 @@ describe("ApplicationIntakePhase", () => {
           value: "Health Equity",
         },
       });
+    });
+
+    it("removes a UiPath suggested tag from the confirmation modal", async () => {
+      setup({
+        suggestedTags: ["Health Equity"],
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText("DEMOS AI SUGGESTIONS")).toBeInTheDocument();
+      });
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "Apply suggested tag Health Equity" })
+      );
+      await userEvent.click(screen.getByRole("button", { name: "Remove" }));
+
+      await waitFor(() => {
+        expect(mockSetApplicationTagsMutation).toHaveBeenCalledTimes(1);
+      });
+
+      expect(mockSetApplicationTagsMutation).toHaveBeenCalledWith({
+        variables: {
+          applicationId: TEST_APP_ID,
+          value: "Health Equity",
+        },
+      });
+    });
+
+    it("closes the UiPath suggested tag modal without changes", async () => {
+      setup({
+        suggestedTags: ["Health Equity"],
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText("DEMOS AI SUGGESTIONS")).toBeInTheDocument();
+      });
+
+      await userEvent.click(
+        screen.getByRole("button", { name: "Apply suggested tag Health Equity" })
+      );
+      await userEvent.click(screen.getByRole("button", { name: "Close dialog" }));
+
+      await waitFor(() => {
+        expect(screen.queryByText("Confirm Tags from DEMOS AI")).not.toBeInTheDocument();
+      });
+      expect(mockSetApplicationTagsMutation).not.toHaveBeenCalled();
     });
   });
 

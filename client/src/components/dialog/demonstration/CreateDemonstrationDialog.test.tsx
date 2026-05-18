@@ -11,7 +11,7 @@ import {
   CREATE_DEMONSTRATION_MUTATION,
 } from "./CreateDemonstrationDialog";
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
-import { DEMONSTRATION_DIALOG_DESCRIPTION_NAME } from "./DemonstrationDialog";
+import { DEFAULT_DEMONSTRATION_SIGNATURE_LEVEL, DEMONSTRATION_DIALOG_DESCRIPTION_NAME } from "./DemonstrationDialog";
 
 const DEFAULT_PROPS = {
   onClose: vi.fn(),
@@ -49,7 +49,6 @@ describe("CreateDemonstrationDialog", () => {
           stateId: "AL",
           projectOfficerUserId: "test-officer-id",
           sdgDivision: "Division of System Reform Demonstrations",
-          signatureLevel: "OA",
         },
       },
     },
@@ -124,6 +123,14 @@ describe("CreateDemonstrationDialog", () => {
 
     // Note: Actual selection of project officer would require more complex interaction
     // This test verifies the fields render correctly
+  });
+  it("renders signature level select disabled and with the default value", () => {
+    render(getCreateDemonstrationDialog());
+
+    const signatureLevelSelect = screen.getByLabelText(/Signature Level/i);
+    expect(signatureLevelSelect).toBeInTheDocument();
+    expect(signatureLevelSelect).toBeDisabled();
+    expect(signatureLevelSelect).toHaveValue(DEFAULT_DEMONSTRATION_SIGNATURE_LEVEL);
   });
 
   it("calls onSubmit with correct data when form is submitted", async () => {

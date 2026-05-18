@@ -18,6 +18,7 @@ import { DatePicker } from "components/input/date/DatePicker";
 import { ApplicationHealthTypeTags } from "components/tags/ApplicationHealthTypeTags";
 import type { Application, LocalDate, PhaseName, PhaseStatus, Tag, TagName } from "demos-server";
 import { SET_APPLICATION_TAGS_MUTATION } from "components/dialog/ApplyTagsDialog";
+import { ConfirmSuggestedSparklyTagDialog } from "components/dialog/ConfirmSuggestedSparklyTagDialog";
 
 /** Business Rules for this Phase:
  * - **Application Intake Start Date** - Can start in one of two ways, whichever comes first:
@@ -45,6 +46,10 @@ const STYLES = {
 
 const THIS_PHASE_NAME: PhaseName = "Application Intake";
 const NEXT_PHASE_NAME: PhaseName = "Completeness";
+const REFETCH_ACTIVE_QUERIES_AFTER_SUGGESTION_UPDATE = {
+  awaitRefetchQueries: true,
+  refetchQueries: "active" as const,
+};
 
 export const APPLICATION_INTAKE_FINISH_BUTTON_NAME = "button-finish-state-application";
 export const APPLICATION_INTAKE_UPLOAD_BUTTON_NAME = "button-open-upload-modal";
@@ -81,6 +86,19 @@ export const ACCEPT_APPLICATION_TAG_SUGGESTION_MUTATION: TypedDocumentNode<
         }
         suggestedApplicationTags
       }
+    }
+  }
+`;
+
+export const REMOVE_APPLICATION_TAG_SUGGESTION_MUTATION: TypedDocumentNode<
+  { removeApplicationTagSuggestion: { applicationId: string; value: string; statusId: string } },
+  { applicationId: string; value: TagName }
+> = gql`
+  mutation RemoveApplicationTagSuggestion($applicationId: ID!, $value: String!) {
+    removeApplicationTagSuggestion(applicationId: $applicationId, value: $value) {
+      applicationId
+      value
+      statusId
     }
   }
 `;
@@ -256,7 +274,7 @@ export const getApplicationIntakeComponentFromApplication = (
       applicationIntakeDocuments={applicationIntakeDocuments}
       initialStateApplicationSubmittedDate={estStateApplicationSubmittedDate}
       tags={application.tags}
-      suggestedTags={application.suggestedApplicationTags ?? []}
+      suggestedTags={application.suggestedApplicationTags}
       setSelectedPhase={setSelectedPhase}
       phaseStatus={applicationIntakePhase.phaseStatus ?? "Not Started"}
       completenessPhaseStatus={completenessPhase.phaseStatus ?? "Not Started"}
@@ -290,10 +308,16 @@ export const ApplicationIntakePhase = ({
   const { setApplicationDates } = useSetApplicationDates();
   const [setApplicationTagsMutation] = useMutation(SET_APPLICATION_TAGS_MUTATION);
   const [acceptApplicationTagSuggestion, { loading: isApplyingSuggestedTag }] = useMutation(
-    ACCEPT_APPLICATION_TAG_SUGGESTION_MUTATION
+    ACCEPT_APPLICATION_TAG_SUGGESTION_MUTATION,
+    REFETCH_ACTIVE_QUERIES_AFTER_SUGGESTION_UPDATE
+  );
+  const [removeApplicationTagSuggestion, { loading: isRemovingSuggestedTag }] = useMutation(
+    REMOVE_APPLICATION_TAG_SUGGESTION_MUTATION,
+    REFETCH_ACTIVE_QUERIES_AFTER_SUGGESTION_UPDATE
   );
 
   const [submittedDateOverride, setSubmittedDateOverride] = useState<string>("");
+  const [selectedSuggestedTag, setSelectedSuggestedTag] = useState<TagName | null>(null);
 
   // Calculate the dates to display based on the following rules:
   // 1. If the user has manually entered a date (submittedDateOverride), use this
@@ -367,7 +391,24 @@ export const ApplicationIntakePhase = ({
           value: tagName,
         },
       });
-      showSuccess("Application tags updated");
+      setSelectedSuggestedTag(null);
+      showSuccess(`Tag "${tagName}" confirmed`);
+    } catch (error) {
+      showError("Failed to update application tags");
+      throw error;
+    }
+  };
+
+  const handleRemoveSuggestedTag = async (tagName: TagName) => {
+    try {
+      await removeApplicationTagSuggestion({
+        variables: {
+          applicationId,
+          value: tagName,
+        },
+      });
+      setSelectedSuggestedTag(null);
+      showSuccess(`Tag "${tagName}" removed`);
     } catch (error) {
       showError("Failed to update application tags");
       throw error;
@@ -405,11 +446,20 @@ export const ApplicationIntakePhase = ({
             selectedTags={tags}
             suggestedTags={suggestedTags}
             onRemoveTag={handleRemoveTag}
-            onAcceptSuggestedTag={handleAcceptSuggestedTag}
-            isApplyingSuggestedTag={isApplyingSuggestedTag}
+            onAcceptSuggestedTag={setSelectedSuggestedTag}
+            isApplyingSuggestedTag={isApplyingSuggestedTag || isRemovingSuggestedTag}
           />
         </div>
       </section>
+      {selectedSuggestedTag && (
+        <ConfirmSuggestedSparklyTagDialog
+          tagName={selectedSuggestedTag}
+          onClose={() => setSelectedSuggestedTag(null)}
+          onConfirm={handleAcceptSuggestedTag}
+          onRemove={handleRemoveSuggestedTag}
+          isSubmitting={isApplyingSuggestedTag || isRemovingSuggestedTag}
+        />
+      )}
     </div>
   );
 };

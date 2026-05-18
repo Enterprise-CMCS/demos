@@ -161,17 +161,139 @@ describe("DeliverableTable", () => {
     });
   });
 
-  it("renders status values as-is", () => {
+  it("renders finalized statuses as-is", () => {
     expect(
       formatDeliverableStatus({
-        status: "Upcoming",
+        status: "Accepted",
+        deliverableActions: [],
+        extensionRequests: [],
       })
-    ).toBe("Upcoming");
+    ).toBe("Accepted");
+
     expect(
       formatDeliverableStatus({
         status: "Approved",
+        deliverableActions: [],
+        extensionRequests: [
+          {
+            id: "1",
+            status: "Requested",
+          },
+        ],
       })
     ).toBe("Approved");
+
+    expect(
+      formatDeliverableStatus({
+        status: "Received and Filed",
+        deliverableActions: [
+          {
+            id: "1",
+            actionType: "Requested Resubmission",
+          },
+        ],
+        extensionRequests: [
+          {
+            id: "1",
+            status: "Requested",
+          },
+        ],
+      })
+    ).toBe("Received and Filed");
+  });
+
+  it("renders base status when there are no resubmissions or open extension requests", () => {
+    expect(
+      formatDeliverableStatus({
+        status: "Submitted",
+        deliverableActions: [],
+        extensionRequests: [],
+      })
+    ).toBe("Submitted");
+  });
+
+  it("renders extension requested suffix when an extension request is open", () => {
+    expect(
+      formatDeliverableStatus({
+        status: "Submitted",
+        deliverableActions: [],
+        extensionRequests: [
+          {
+            id: "1",
+            status: "Requested",
+          },
+        ],
+      })
+    ).toBe("Submitted - Extension Requested");
+  });
+
+  it("renders resubmission count when resubmissions have been requested", () => {
+    expect(
+      formatDeliverableStatus({
+        status: "Submitted",
+        deliverableActions: [
+          {
+            id: "1",
+            actionType: "Requested Resubmission",
+          },
+          {
+            id: "2",
+            actionType: "Requested Resubmission",
+          },
+        ],
+        extensionRequests: [],
+      })
+    ).toBe("Submitted (2)");
+  });
+
+  it("renders both resubmission count and extension requested suffix", () => {
+    expect(
+      formatDeliverableStatus({
+        status: "Under CMS Review",
+        deliverableActions: [
+          {
+            id: "1",
+            actionType: "Requested Resubmission",
+          },
+        ],
+        extensionRequests: [
+          {
+            id: "1",
+            status: "Requested",
+          },
+        ],
+      })
+    ).toBe("Under CMS Review (1) - Extension Requested");
+  });
+
+  it("ignores non-requested extension request statuses", () => {
+    expect(
+      formatDeliverableStatus({
+        status: "Submitted",
+        deliverableActions: [],
+        extensionRequests: [
+          {
+            id: "1",
+            status: "Approved",
+          },
+        ],
+      })
+    ).toBe("Submitted");
+  });
+
+  it("ignores non-resubmission deliverable actions", () => {
+    expect(
+      formatDeliverableStatus({
+        status: "Submitted",
+        deliverableActions: [
+          {
+            id: "1",
+            actionType: "Created Deliverable Slot",
+          },
+        ],
+        extensionRequests: [],
+      })
+    ).toBe("Submitted");
   });
 
   it("renders column filter dropdown", () => {
@@ -323,6 +445,42 @@ describe("DeliverableTable demos-state-user view mode", () => {
       "Submission Date",
       "Status",
     ]);
+  });
+});
+
+describe("DeliverableTable Remove gating with finalized rows", () => {
+  const FINALIZED_ROWS: DeliverableTableRow[] = [
+    { ...MOCK_DELIVERABLE_TABLE_ROW, id: "active", status: "Upcoming" },
+    { ...MOCK_DELIVERABLE_TABLE_ROW, id: "approved", status: "Approved" },
+    { ...MOCK_DELIVERABLE_TABLE_ROW, id: "accepted", status: "Accepted" },
+  ];
+
+  it("disables Remove when the only selected row is finalized", async () => {
+    render(<DeliverableTable deliverables={FINALIZED_ROWS} viewMode="demos-cms-user" />);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("select-row-approved"));
+
+    expect(screen.getByTestId("remove-deliverable")).toBeDisabled();
+  });
+
+  it("disables Remove when any of multiple selected rows is finalized", async () => {
+    render(<DeliverableTable deliverables={FINALIZED_ROWS} viewMode="demos-cms-user" />);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("select-row-active"));
+    await user.click(screen.getByTestId("select-row-accepted"));
+
+    expect(screen.getByTestId("remove-deliverable")).toBeDisabled();
+  });
+
+  it("enables Remove when every selected row is not finalized", async () => {
+    render(<DeliverableTable deliverables={FINALIZED_ROWS} viewMode="demos-cms-user" />);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("select-row-active"));
+
+    expect(screen.getByTestId("remove-deliverable")).not.toBeDisabled();
   });
 });
 

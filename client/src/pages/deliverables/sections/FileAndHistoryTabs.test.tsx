@@ -7,8 +7,12 @@ import { MOCK_DELIVERABLE_1 } from "mock-data/deliverableMocks";
 import { TestProvider } from "test-utils/TestProvider";
 
 import { FileAndHistoryTabs } from "./FileAndHistoryTabs";
-import { STATE_FILES_TAB_NAME } from "./StateFilesTab";
-import { CMS_FILES_TAB_NAME } from "./CmsFilesTab";
+import {
+  STATE_FILES_ADD_BUTTON_NAME,
+  STATE_FILES_SUBMIT_BUTTON_NAME,
+  STATE_FILES_TAB_NAME,
+} from "./StateFilesTab";
+import { CMS_FILES_ADD_BUTTON_NAME, CMS_FILES_TAB_NAME } from "./CmsFilesTab";
 import { HISTORY_TAB_NAME } from "./HistoryTab";
 
 const mockShowRequestResubmissionDeliverableDialog = vi.fn();
@@ -175,6 +179,33 @@ describe("FileAndHistoryTabs", () => {
       expect(
         screen.getByTestId("button-actions-complete-review")
       ).toBeDisabled();
+    });
+  });
+
+  describe("when the deliverable is finalized", () => {
+    it.each(["Accepted", "Approved", "Received and Filed"] as const)(
+      "disables the State Files Add and Submit Deliverable buttons for status %s",
+      (status) => {
+        setup({ status });
+
+        expect(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME)).toBeDisabled();
+        expect(screen.getByTestId(STATE_FILES_SUBMIT_BUTTON_NAME)).toBeDisabled();
+      }
+    );
+
+    it("disables the CMS Files Add button when status is Approved", async () => {
+      const user = userEvent.setup();
+      setup({ status: "Approved" });
+
+      await user.click(screen.getByTestId("button-cms_files"));
+
+      expect(screen.getByTestId(CMS_FILES_ADD_BUTTON_NAME)).toBeDisabled();
+    });
+
+    it("keeps the State Files Add button enabled when status is Submitted", () => {
+      setup({ status: "Submitted" });
+
+      expect(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME)).not.toBeDisabled();
     });
   });
 });

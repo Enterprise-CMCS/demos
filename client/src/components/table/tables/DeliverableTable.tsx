@@ -41,6 +41,12 @@ export type DeliverableTableRow = Omit<
   };
   demonstrationTypes: Tag[];
   submissionDate?: string;
+  extensionRequests: Pick<Deliverable["extensionRequests"][number], "id" | "status">[];
+  deliverableActions: Pick<Deliverable["deliverableActions"][number], "id" | "actionType">[];
+};
+
+export type FormattedDeliverableTableRow = DeliverableTableRow & {
+  combinedStatus: string;
 };
 
 export type DeliverablesQueryResult = {
@@ -91,6 +97,14 @@ export const DELIVERABLES_PAGE_QUERY = gql`
         tagName
         approvalStatus
       }
+      extensionRequests {
+        id
+        status
+      }
+      deliverableActions {
+        id
+        actionType
+      }
     }
   }
 `;
@@ -127,6 +141,14 @@ export const STATE_USER_DELIVERABLES_PAGE_QUERY = gql`
                 }
               }
               dueDate
+              extensionRequests {
+                id
+                status
+              }
+              deliverableActions {
+                id
+                actionType
+              }
             }
           }
         }
@@ -138,7 +160,41 @@ export const STATE_USER_DELIVERABLES_PAGE_QUERY = gql`
 const EMPTY_ROWS_MESSAGE = "There are no assigned Deliverables at this time";
 const NO_RESULTS_FOUND = "No deliverables match your search.";
 
-export const formatDeliverableStatus = ({ status }: Pick<Deliverable, "status">) => status;
+const FINAL_STATUSES = ["Accepted", "Approved", "Received and Filed"];
+
+export const formatDeliverableStatus = (
+  deliverable: Pick<
+    DeliverableTableRow,
+    "status" | "deliverableActions" | "extensionRequests"
+  >
+) => {
+  const { status, deliverableActions, extensionRequests } = deliverable;
+
+  // Final statuses always display as-is
+  if (FINAL_STATUSES.includes(status)) {
+    return status;
+  }
+
+  const resubmissionsRequested = deliverableActions.filter(
+    (action) => action.actionType === "Requested Resubmission"
+  ).length;
+
+  const hasOpenExtensionRequest = extensionRequests.some(
+    (request) => request.status === "Requested"
+  );
+
+  let formattedStatus = status;
+
+  if (resubmissionsRequested > 0) {
+    formattedStatus += ` (${resubmissionsRequested})`;
+  }
+
+  if (hasOpenExtensionRequest) {
+    formattedStatus += " - Extension Requested";
+  }
+
+  return formattedStatus;
+};
 
 export const DeliverableTable: React.FC<{
   deliverables: DeliverableTableRow[];
@@ -153,11 +209,11 @@ export const DeliverableTable: React.FC<{
   });
   const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({
     ...deliverable,
-    status: formatDeliverableStatus(deliverable),
+    combinedStatus: formatDeliverableStatus(deliverable),
   }));
 
   type RenderDeliverableActionButtons = NonNullable<
-    TableProps<DeliverableTableRow>["actionButtons"]
+    TableProps<FormattedDeliverableTableRow>["actionButtons"]
   >;
 
   const renderActionButtons: RenderDeliverableActionButtons = (table) => (
@@ -169,7 +225,7 @@ export const DeliverableTable: React.FC<{
   return (
     <div className="flex flex-col gap-[24px]" data-view-mode={viewMode}>
       {deliverableColumns && (
-        <Table<DeliverableTableRow>
+        <Table<FormattedDeliverableTableRow>
           data={formattedDeliverables}
           columns={deliverableColumns}
           keywordSearch={(table) => <KeywordSearch table={table} />}

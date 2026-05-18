@@ -335,6 +335,44 @@ describe("amendmentResolvers", () => {
       expect(transactionMocks.application.create).toHaveBeenCalledExactlyOnceWith(expectedCalls[0]);
       expect(transactionMocks.amendment.create).toHaveBeenCalledExactlyOnceWith(expectedCalls[1]);
     });
+
+    it.each(["OA", "OCD"] as const)(
+      "allows valid signature level %s during creation",
+      async (signatureLevel) => {
+        transactionMocks.application.create.mockResolvedValueOnce({
+          id: testAmendmentId,
+          applicationTypeId: testAmendmentTypeId,
+        });
+
+        await __createAmendment(undefined, {
+          input: {
+            demonstrationId: testDemonstrationId,
+            name: testAmendmentName,
+            description: testAmendmentDescription,
+            signatureLevel,
+          },
+        });
+
+        expect(transactionMocks.application.create).toHaveBeenCalledOnce();
+        expect(transactionMocks.amendment.create).toHaveBeenCalledOnce();
+      }
+    );
+
+    it("rejects invalid signature levels during creation", async () => {
+      await expect(
+        __createAmendment(undefined, {
+          input: {
+            demonstrationId: testDemonstrationId,
+            name: testAmendmentName,
+            description: testAmendmentDescription,
+            signatureLevel: "INVALID" as SignatureLevel,
+          },
+        })
+      ).rejects.toThrowError("Invalid signature level for amendment.");
+
+      expect(transactionMocks.application.create).not.toHaveBeenCalled();
+      expect(transactionMocks.amendment.create).not.toHaveBeenCalled();
+    });
   });
 
   describe("__updateAmendment", () => {

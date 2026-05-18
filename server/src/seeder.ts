@@ -817,7 +817,6 @@ async function seedDatabase() {
       name: demoName,
       description: faker.lorem.sentence(),
       sdgDivision: sampleFromArray([...SDG_DIVISIONS, undefined], 1)[0],
-      signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
       stateId: stateSelection.stateId,
       projectOfficerUserId: person.id,
     };

@@ -2,7 +2,7 @@ import { PublicComment as PrismaPublicComment } from "@prisma/client";
 import { NonEmptyString } from "../../types";
 import { GraphQLContext } from "../../auth";
 import { prisma } from "../../prismaClient";
-import { validateUserPermittedToMakePublicComment } from "./validateUserPermittedToMakePublicComment";
+import { validateUserPermittedToMakePublicComment } from ".";
 import { insertPublicComment } from "./queries";
 
 export async function createPublicComment(

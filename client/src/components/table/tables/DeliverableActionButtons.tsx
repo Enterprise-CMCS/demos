@@ -8,10 +8,10 @@ import { DeleteIcon } from "components/icons/Action/DeleteIcon";
 import { EditIcon } from "components/icons/Navigation/EditIcon";
 
 import { selectionTooltip } from "./actionTooltips";
-import type { DeliverableTableRow } from "./DeliverableTable";
+import type { FormattedDeliverableTableRow } from "./DeliverableTable";
 
 export const DeliverableActionButtons: React.FC<{
-  table: TanstackTable<DeliverableTableRow>;
+  table: TanstackTable<FormattedDeliverableTableRow>;
 }> = ({ table }) => {
   const { showEditDeliverableDialog } = useDialog();
   const selectedRows = table.getSelectedRowModel().rows;
@@ -20,8 +20,11 @@ export const DeliverableActionButtons: React.FC<{
 
   const selectedIsEditable =
     singleSelectedDeliverable === null || isDeliverableEditable(singleSelectedDeliverable.status);
+  const allSelectedAreDeletable = selectedRows.every((row) =>
+    isDeliverableEditable(row.original.status)
+  );
   const editEnabled = selectedCount === 1 && selectedIsEditable;
-  const deleteEnabled = selectedCount >= 1;
+  const deleteEnabled = selectedCount >= 1 && allSelectedAreDeletable;
 
   const baseEditTooltip = selectionTooltip({
     action: "Edit",
@@ -32,12 +35,16 @@ export const DeliverableActionButtons: React.FC<{
   const editTooltip =
     selectedCount === 1 && !selectedIsEditable ? "Select a Deliverable to Edit" : baseEditTooltip;
 
-  const deleteTooltip = selectionTooltip({
+  const baseDeleteTooltip = selectionTooltip({
     action: "Delete",
     nounSingular: "Deliverable",
     selectedCount,
     rule: { kind: "atLeast", count: 1 },
   });
+  const deleteTooltip =
+    selectedCount >= 1 && !allSelectedAreDeletable
+      ? "Finalized Deliverables cannot be deleted"
+      : baseDeleteTooltip;
 
   return (
     <div className="flex gap-1 ml-4">

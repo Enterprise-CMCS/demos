@@ -7,6 +7,7 @@ import {
   DeliverableDetailsManagementPage,
   DELIVERABLE_DETAILS_QUERY,
   START_DELIVERABLE_REVIEW_MUTATION,
+  type DeliverableDetailsManagementDeliverable,
 } from "./DeliverableDetailsManagementPage";
 import { MOCK_DELIVERABLE_1 } from "mock-data/deliverableMocks";
 import { TestProvider } from "test-utils/TestProvider";
@@ -47,6 +48,7 @@ const buildSubmittedDeliverableMock = (overrides?: { submitterName?: string }) =
       actionType: "Submitted Deliverable" as const,
       actionTimestamp: new Date("2026-04-01T10:00:00Z"),
       userFullName: overrides?.submitterName ?? "Jane State",
+      details: "",
     },
   ],
 });
@@ -59,7 +61,7 @@ const buildCurrentUser = (
 });
 
 const renderWithDeliverable = (
-  deliverable: ReturnType<typeof buildSubmittedDeliverableMock>,
+  deliverable: DeliverableDetailsManagementDeliverable,
   personType: CurrentUser["person"]["personType"] = "demos-cms-user",
   extraMocks: import("@apollo/client/testing").MockedResponse[] = []
 ) =>
@@ -130,14 +132,14 @@ describe("DeliverableDetailsManagementPage", () => {
     expect(screen.getByText("Deliverables list")).toBeInTheDocument();
   });
 
-  it("toggles additional details", async () => {
+  it("toggles more details", async () => {
     const user = userEvent.setup();
     renderAtRoute("1");
 
-    expect(await screen.findByText("See Additional Details")).toBeInTheDocument();
+    expect(await screen.findByText("More Details")).toBeInTheDocument();
     expect(screen.queryByTestId("deliverable-CMS Owner")).not.toBeInTheDocument();
 
-    await user.click(screen.getByText("See Additional Details"));
+    await user.click(screen.getByText("More Details"));
 
     expect(screen.getByText("Less Details")).toBeInTheDocument();
     expect(screen.getByTestId("deliverable-CMS Owner")).toHaveTextContent("Mock User");
@@ -200,6 +202,22 @@ describe("DeliverableDetailsManagementPage", () => {
     await waitFor(() =>
       expect(screen.queryByTestId(DELIVERABLE_REVIEW_NOTICE_NAME)).not.toBeInTheDocument()
     );
+  });
+
+  it("disables the header Edit and Delete buttons when the deliverable is finalized", async () => {
+    const deliverable = { ...MOCK_DELIVERABLE_1, status: "Approved" as const };
+    renderWithDeliverable(deliverable);
+
+    expect(await screen.findByTestId("edit-deliverable-button")).toBeDisabled();
+    expect(screen.getByTestId("delete-deliverable-button")).toBeDisabled();
+  });
+
+  it("keeps the header Edit and Delete buttons enabled for an editable deliverable", async () => {
+    const deliverable = { ...MOCK_DELIVERABLE_1, status: "Upcoming" as const };
+    renderWithDeliverable(deliverable);
+
+    expect(await screen.findByTestId("edit-deliverable-button")).not.toBeDisabled();
+    expect(screen.getByTestId("delete-deliverable-button")).not.toBeDisabled();
   });
 
   it("shows not found state", async () => {
