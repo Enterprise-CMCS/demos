@@ -8,10 +8,10 @@ import { DeleteIcon } from "components/icons/Action/DeleteIcon";
 import { EditIcon } from "components/icons/Navigation/EditIcon";
 
 import { selectionTooltip } from "./actionTooltips";
-import type { DeliverableTableRow } from "./DeliverableTable";
+import type { FormattedDeliverableTableRow } from "./DeliverableTable";
 
 export const DeliverableActionButtons: React.FC<{
-  table: TanstackTable<DeliverableTableRow>;
+  table: TanstackTable<FormattedDeliverableTableRow>;
 }> = ({ table }) => {
   const { showEditDeliverableDialog } = useDialog();
   const selectedRows = table.getSelectedRowModel().rows;

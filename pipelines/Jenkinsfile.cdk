@@ -76,6 +76,12 @@ pipeline {
         script {
           if (hasChange('deployment')) {
             assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
+            dirCon('shared_library', 'node') {
+              sh '''
+            npm ci
+            npm run build
+            '''
+            }
             dirCon('deployment', 'node') {
               sh '''
             npm run synth:dev

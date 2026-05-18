@@ -29,6 +29,26 @@ vi.mock("./log", () => ({
   },
 }));
 
+vi.mock("./budgetNeutralityValidation", async () => {
+  const actual = await vi.importActual("./budgetNeutralityValidation");
+  return {
+    ...actual,
+    getS3Path: vi.fn().mockResolvedValue("s3://test-bucket/test-file.xlsx"),
+  };
+});
+
+vi.mock("./s3", () => ({
+  downloadDocumentFromS3: vi.fn().mockResolvedValue("/tmp/test-file.xlsx"),
+}));
+
+vi.mock("demos-shared-library/src/BN/index", () => ({
+  parseBNFileFromPath: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock("demos-shared-library/src/BN/validation", () => ({
+  validateBNWorkbook: vi.fn().mockResolvedValue([]),
+}));
+
 import { handler } from "./index";
 import { documentExists } from "./budgetNeutralityValidation";
 
@@ -56,7 +76,7 @@ describe("budgetNeutrality index", () => {
   });
 
   it("processes a single record and returns 200", async () => {
-    mocks.queryMock.mockResolvedValueOnce({ rows: [{ exists: true }] }).mockResolvedValueOnce({});
+    mocks.queryMock.mockResolvedValueOnce({}); // INSERT query result
 
     const pool = { query: mocks.queryMock } as unknown as Pool;
     mocks.getDbPoolMock.mockResolvedValue(pool);
@@ -74,13 +94,13 @@ describe("budgetNeutrality index", () => {
       body: "Processed 1 records.",
     });
     expect(mocks.getDbPoolMock).toHaveBeenCalledTimes(1);
-    expect(mocks.queryMock).toHaveBeenCalledTimes(2);
-    expect(mocks.queryMock.mock.calls[1]?.[0]).toContain("budget_neutrality_workbook");
-    expect(mocks.queryMock.mock.calls[1]?.[1]).toEqual([
+    expect(mocks.queryMock).toHaveBeenCalledTimes(1); // Only INSERT query
+    expect(mocks.queryMock.mock.calls[0]?.[0]).toContain("budget_neutrality_workbook");
+    expect(mocks.queryMock.mock.calls[0]?.[1]).toEqual([
       "doc-1",
       "BN Workbook",
       "Succeeded",
-      '{"source":"budgetNeutrality"}',
+      "[]",
     ]);
     expect(mocks.logInfoMock).toHaveBeenCalledWith(
       {
@@ -91,7 +111,7 @@ describe("budgetNeutrality index", () => {
           insertedWorkbooks: 1,
         },
       },
-      "Budget Neutrality validation placeholder completed."
+      "Budget Neutrality validation completed."
     );
     expect(mocks.logWarnMock).not.toHaveBeenCalled();
   });

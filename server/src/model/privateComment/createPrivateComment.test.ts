@@ -6,7 +6,7 @@ import { DeepPartial } from "../../testUtilities";
 import { GraphQLContext } from "../../auth";
 
 // Functions under test
-import { createPublicComment } from "./createPublicComment";
+import { createPrivateComment } from "./createPrivateComment";
 
 // Mock imports
 vi.mock("../../prismaClient", () => ({
@@ -14,24 +14,24 @@ vi.mock("../../prismaClient", () => ({
 }));
 
 vi.mock(".", () => ({
-  validateUserPermittedToMakePublicComment: vi.fn(),
+  validateUserPermittedToMakePrivateComment: vi.fn(),
 }));
 
 vi.mock("./queries", () => ({
-  insertPublicComment: vi.fn(),
+  insertPrivateComment: vi.fn(),
 }));
 
 import { prisma } from "../../prismaClient";
-import { validateUserPermittedToMakePublicComment } from ".";
-import { insertPublicComment } from "./queries";
+import { validateUserPermittedToMakePrivateComment } from ".";
+import { insertPrivateComment } from "./queries";
 
-describe("createPublicComment", () => {
+describe("createPrivateComment", () => {
   // Test inputs
-  const testDeliverableId = "e1b4a166-9a23-480c-9ac8-d5361414dfd0";
+  const testDeliverableId = "7dad9b78-9c38-4bca-8985-f292edb4d12d";
   const testComment = "Free insulin is a good policy proposal!";
   const testContext: DeepPartial<GraphQLContext> = {
     user: {
-      id: "03728c69-1676-4cb5-8b31-c98b24cbda76",
+      id: "f41d7a0b-49d7-4f9e-b079-2e97a21c294d",
       personTypeId: "demos-cms-user",
     },
   };
@@ -49,25 +49,22 @@ describe("createPublicComment", () => {
   });
 
   it("should create a transaction whenever it is called", async () => {
-    await createPublicComment(testDeliverableId, testComment, testContext as GraphQLContext);
+    await createPrivateComment(testDeliverableId, testComment, testContext as GraphQLContext);
     expect(prisma).toHaveBeenCalledOnce();
   });
 
   it("should call the validator to verify the inputs", async () => {
-    await createPublicComment(testDeliverableId, testComment, testContext as GraphQLContext);
-    expect(validateUserPermittedToMakePublicComment).toHaveBeenCalledExactlyOnceWith(
-      testDeliverableId,
-      testContext,
-      mockTransaction
-    );
+    await createPrivateComment(testDeliverableId, testComment, testContext as GraphQLContext);
+    expect(validateUserPermittedToMakePrivateComment).toHaveBeenCalledExactlyOnceWith(testContext);
   });
 
   it("should insert the comment", async () => {
-    await createPublicComment(testDeliverableId, testComment, testContext as GraphQLContext);
-    expect(insertPublicComment).toHaveBeenCalledExactlyOnceWith(
+    await createPrivateComment(testDeliverableId, testComment, testContext as GraphQLContext);
+    expect(insertPrivateComment).toHaveBeenCalledExactlyOnceWith(
       {
         deliverableId: testDeliverableId,
         authorUserId: testContext.user!.id,
+        authorPersonTypeId: testContext.user!.personTypeId,
         content: testComment,
       },
       mockTransaction
