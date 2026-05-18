@@ -16,7 +16,7 @@ vi.mock("../../prismaClient", () => ({
 
 vi.mock(".", () => ({
   editDeliverable: vi.fn(),
-  getDeliverable: vi.fn(),
+  selectDeliverable: vi.fn(),
   validateSubmitDeliverableInput: vi.fn(),
 }));
 
@@ -25,7 +25,7 @@ vi.mock("../deliverableAction/queries", () => ({
 }));
 
 import { prisma } from "../../prismaClient";
-import { editDeliverable, getDeliverable, validateSubmitDeliverableInput } from ".";
+import { editDeliverable, selectDeliverable, validateSubmitDeliverableInput } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 
 describe("submitDeliverable", () => {
@@ -58,16 +58,16 @@ describe("submitDeliverable", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
-    vi.mocked(getDeliverable).mockResolvedValue(mockUnsubmittedDeliverable as PrismaDeliverable);
+    vi.mocked(selectDeliverable).mockResolvedValue(mockUnsubmittedDeliverable as PrismaDeliverable);
     vi.mocked(editDeliverable).mockResolvedValue(mockSubmittedDeliverable as PrismaDeliverable);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
   it("should get the deliverable before making changes", async () => {
     await submitDeliverable(testDeliverableId, testContext as GraphQLContext);
-    expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(selectDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      { tx: mockTransaction }
+      mockTransaction
     );
   });
 

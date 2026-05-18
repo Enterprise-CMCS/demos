@@ -66,7 +66,7 @@ vi.mock("../user", () => ({
 }));
 
 vi.mock("../deliverable", () => ({
-  getDeliverable: vi.fn(),
+  selectDeliverable: vi.fn(),
   resolveDeliverable: vi.fn(),
 }));
 

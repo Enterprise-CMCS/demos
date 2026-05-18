@@ -20,12 +20,12 @@ vi.mock("../deliverableDemonstrationType/queries", () => ({
 }));
 
 vi.mock(".", () => ({
-  getDeliverable: vi.fn(),
+  selectDeliverable: vi.fn(),
 }));
 
 import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 import { selectManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType/queries";
-import { getDeliverable } from ".";
+import { selectDeliverable } from ".";
 
 describe("updateDeliverableDemonstrationTypes", () => {
   // Test inputs
@@ -68,7 +68,7 @@ describe("updateDeliverableDemonstrationTypes", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
+    vi.mocked(selectDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
     vi.mocked(selectManyDeliverableDemonstrationTypes).mockResolvedValue(
       mockDeliverableDemonstrationTypes as DeliverableDemonstrationTypeQueryResult[]
     );
@@ -85,7 +85,7 @@ describe("updateDeliverableDemonstrationTypes", () => {
       mockTransaction
     );
     expect(result).toBeUndefined();
-    expect(getDeliverable).not.toHaveBeenCalled();
+    expect(selectDeliverable).not.toHaveBeenCalled();
     expect(selectManyDeliverableDemonstrationTypes).not.toHaveBeenCalled();
     expect(setDeliverableDemonstrationTypes).not.toHaveBeenCalled();
   });
@@ -97,9 +97,9 @@ describe("updateDeliverableDemonstrationTypes", () => {
     };
 
     await updateDeliverableDemonstrationTypes(testDeliverableId, testInput, mockTransaction);
-    expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(selectDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      { tx: mockTransaction }
+      mockTransaction
     );
     expect(selectManyDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
       { deliverableId: testDeliverableId },
@@ -122,9 +122,9 @@ describe("updateDeliverableDemonstrationTypes", () => {
     };
 
     await updateDeliverableDemonstrationTypes(testDeliverableId, testInput, mockTransaction);
-    expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(selectDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      { tx: mockTransaction }
+      mockTransaction
     );
     expect(selectManyDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
       { deliverableId: testDeliverableId },
@@ -140,9 +140,9 @@ describe("updateDeliverableDemonstrationTypes", () => {
     };
 
     await updateDeliverableDemonstrationTypes(testDeliverableId, testInput, mockTransaction);
-    expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(selectDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      { tx: mockTransaction }
+      mockTransaction
     );
     expect(selectManyDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
       { deliverableId: testDeliverableId },
@@ -165,9 +165,9 @@ describe("updateDeliverableDemonstrationTypes", () => {
     };
 
     await updateDeliverableDemonstrationTypes(testDeliverableId, testInput, mockTransaction);
-    expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(selectDeliverable).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      { tx: mockTransaction }
+      mockTransaction
     );
     expect(selectManyDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
       { deliverableId: testDeliverableId },

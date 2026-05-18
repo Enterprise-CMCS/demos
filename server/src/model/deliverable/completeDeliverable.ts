@@ -4,7 +4,7 @@ import { DeliverableStatus, FinalDeliverableStatus, DeliverableActionType } from
 import { prisma } from "../../prismaClient";
 import {
   editDeliverable,
-  getDeliverable,
+  selectDeliverable,
   validateCompleteDeliverableInput,
   validateUserPersonTypeAllowed,
 } from ".";
@@ -17,7 +17,10 @@ export async function completeDeliverable(
 ): Promise<PrismaDeliverable> {
   validateUserPersonTypeAllowed(context, "completeDeliverable", ["demos-admin", "demos-cms-user"]);
   return await prisma().$transaction(async (tx) => {
-    const incompleteDeliverable = await getDeliverable({ id: deliverableId }, { tx: tx });
+    const incompleteDeliverable = await selectDeliverable({ id: deliverableId }, tx);
+    if (!incompleteDeliverable) {
+      throw new Error(`Deliverable with ID ${deliverableId} not found`);
+    }
     validateCompleteDeliverableInput(incompleteDeliverable);
 
     const completedDeliverable = await editDeliverable(

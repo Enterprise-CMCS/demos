@@ -22,7 +22,7 @@ vi.mock("../../prismaClient", () => ({
 
 vi.mock(".", () => ({
   editDeliverable: vi.fn(),
-  getDeliverable: vi.fn(),
+  selectDeliverable: vi.fn(),
   parseApproveDeliverableExtensionInput: vi.fn(),
   validateApproveDeliverableExtensionInput: vi.fn(),
   validateUserPersonTypeAllowed: vi.fn(),
@@ -44,7 +44,7 @@ vi.mock("../../errors/checkOptionalNotNullFields", () => ({
 import { prisma } from "../../prismaClient";
 import {
   editDeliverable,
-  getDeliverable,
+  selectDeliverable,
   parseApproveDeliverableExtensionInput,
   validateApproveDeliverableExtensionInput,
   validateUserPersonTypeAllowed,
@@ -103,7 +103,7 @@ describe("approveDeliverableExtension", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
-    vi.mocked(getDeliverable).mockResolvedValue(mockUnapprovedDeliverable as PrismaDeliverable);
+    vi.mocked(selectDeliverable).mockResolvedValue(mockUnapprovedDeliverable as PrismaDeliverable);
     vi.mocked(selectDeliverableExtension).mockResolvedValue(
       mockUnapprovedDeliverableExtension as PrismaDeliverableExtension
     );
@@ -158,11 +158,11 @@ describe("approveDeliverableExtension", () => {
 
   it("should get the deliverable before making changes", async () => {
     await approveDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
-    expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(selectDeliverable).toHaveBeenCalledExactlyOnceWith(
       {
         id: testDeliverableId,
       },
-      { tx: mockTransaction }
+      mockTransaction
     );
   });
 
@@ -210,7 +210,7 @@ describe("approveDeliverableExtension", () => {
       statusId: "Past Due",
       dueDate: new Date(2026, 9, 13, 4, 59, 59, 999),
     };
-    vi.mocked(getDeliverable).mockResolvedValue(mockUnapprovedDeliverable as PrismaDeliverable);
+    vi.mocked(selectDeliverable).mockResolvedValue(mockUnapprovedDeliverable as PrismaDeliverable);
 
     await approveDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
     expect(editDeliverable).toHaveBeenCalledExactlyOnceWith(

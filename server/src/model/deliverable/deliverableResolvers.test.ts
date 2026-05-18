@@ -31,7 +31,6 @@ import { DELETED_DELIVERABLE_STATUS } from "../../constants";
 import {
   resolveDeliverable,
   resolveManyDeliverables,
-  queryDeliverables,
   resolveDeliverableType,
   resolveDeliverableStatus,
   resolveDeliverableDueDateType,
@@ -46,7 +45,9 @@ vi.mock(".", () => ({
   createDeliverable: vi.fn(),
   deleteDeliverable: vi.fn(),
   denyDeliverableExtension: vi.fn(),
+  selectDeliverable: vi.fn(),
   getDeliverable: vi.fn(),
+  selectManyDeliverables: vi.fn(),
   getManyDeliverables: vi.fn(),
   requestDeliverableExtension: vi.fn(),
   requestDeliverableResubmission: vi.fn(),
@@ -93,13 +94,15 @@ import {
   createDeliverable,
   deleteDeliverable,
   denyDeliverableExtension,
-  getDeliverable,
-  getManyDeliverables,
+  selectDeliverable,
+  selectManyDeliverables,
   requestDeliverableExtension,
   requestDeliverableResubmission,
   startDeliverableReview,
   submitDeliverable,
   updateDeliverable,
+  getDeliverable,
+  getManyDeliverables,
 } from ".";
 import { getApplication } from "../application";
 import { getUser } from "../user";
@@ -377,33 +380,11 @@ describe("deliverableResolvers", () => {
         resolveDeliverable(
           testDocumentWithDeliverableParent as PrismaDocument,
           {} as unknown,
-          {} as GraphQLContext,
+          mockContext as GraphQLContext,
           testDemonstrationInfo as GraphQLResolveInfo
         )
       ).rejects.toThrow("Unsupported parent type: Demonstration");
       expect(getDeliverable).not.toHaveBeenCalled();
-    });
-
-    it("should filter out deleted deliverables", async () => {
-      const mockDeliverable: Partial<PrismaDeliverable> = {
-        id: "abc123",
-        statusId: "Deleted",
-      };
-      vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
-
-      const result = await resolveDeliverable(
-        testDocumentWithDeliverableParent as PrismaDocument,
-        {} as unknown,
-        {} as GraphQLContext,
-        testDocumentInfo as GraphQLResolveInfo
-      );
-      expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
-        {
-          id: testDeliverableId,
-        },
-        { includeDeleted: true }
-      );
-      expect(result).toBeNull();
     });
 
     describe("Parent: Document", () => {
@@ -411,7 +392,7 @@ describe("deliverableResolvers", () => {
         const result = await resolveDeliverable(
           testDocumentWithoutDeliverableParent as PrismaDocument,
           {} as unknown,
-          {} as GraphQLContext,
+          mockContext as GraphQLContext,
           testDocumentInfo as GraphQLResolveInfo
         );
         expect(result).toBeNull();
@@ -428,14 +409,14 @@ describe("deliverableResolvers", () => {
         const result = await resolveDeliverable(
           testDocumentWithDeliverableParent as PrismaDocument,
           {} as unknown,
-          {} as GraphQLContext,
+          mockContext as GraphQLContext,
           testDocumentInfo as GraphQLResolveInfo
         );
         expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
           {
             id: testDeliverableId,
           },
-          { includeDeleted: true }
+          mockUser
         );
         expect(result).toBe(mockDeliverable);
       });
@@ -457,14 +438,14 @@ describe("deliverableResolvers", () => {
         const result = await resolveDeliverable(
           testPublicComment as PrismaPublicComment,
           {} as unknown,
-          {} as GraphQLContext,
+          mockContext as GraphQLContext,
           testCommentInfo as GraphQLResolveInfo
         );
         expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
           {
             id: testPublicComment.deliverableId,
           },
-          { includeDeleted: true }
+          mockUser
         );
         expect(result).toBe(mockDeliverable);
       });
@@ -486,14 +467,14 @@ describe("deliverableResolvers", () => {
         const result = await resolveDeliverable(
           testPrivateComment as PrismaPrivateComment,
           {} as unknown,
-          {} as GraphQLContext,
+          mockContext as GraphQLContext,
           testCommentInfo as GraphQLResolveInfo
         );
         expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
           {
             id: testPrivateComment.deliverableId,
           },
-          { includeDeleted: true }
+          mockUser
         );
         expect(result).toBe(mockDeliverable);
       });
@@ -518,12 +499,15 @@ describe("deliverableResolvers", () => {
         await resolveManyDeliverables(
           testDemonstrationParent as PrismaDemonstration,
           {} as unknown,
-          {} as GraphQLContext,
+          mockContext as GraphQLContext,
           testDemonstrationInfo as GraphQLResolveInfo
         );
-        expect(getManyDeliverables).toHaveBeenCalledExactlyOnceWith({
-          demonstrationId: testDemonstrationId,
-        });
+        expect(getManyDeliverables).toHaveBeenCalledExactlyOnceWith(
+          {
+            demonstrationId: testDemonstrationId,
+          },
+          mockUser
+        );
       });
     });
 
@@ -532,20 +516,27 @@ describe("deliverableResolvers", () => {
         await resolveManyDeliverables(
           testUserParent as PrismaUser,
           {} as unknown,
-          {} as GraphQLContext,
+          mockContext as GraphQLContext,
           testUserInfo as GraphQLResolveInfo
         );
-        expect(getManyDeliverables).toHaveBeenCalledExactlyOnceWith({
-          cmsOwnerUserId: testUserId,
-        });
+        expect(getManyDeliverables).toHaveBeenCalledExactlyOnceWith(
+          {
+            cmsOwnerUserId: testUserId,
+          },
+          mockUser
+        );
       });
     });
   });
 
-  describe("queryDeliverables", () => {
+  describe("Query.deliverables", () => {
     it("should query all the deliverables", async () => {
-      await queryDeliverables();
-      expect(getManyDeliverables).toHaveBeenCalledExactlyOnceWith();
+      await deliverableResolvers.Query.deliverables(
+        undefined,
+        undefined,
+        mockContext as GraphQLContext
+      );
+      expect(getManyDeliverables).toHaveBeenCalledExactlyOnceWith({}, mockUser);
     });
   });
 
@@ -582,8 +573,12 @@ describe("deliverableResolvers", () => {
   describe("deliverableResolvers", () => {
     describe("Query.deliverable", () => {
       it("should call getDeliverable to retrieve the deliverable", async () => {
-        await deliverableResolvers.Query.deliverable(undefined, { id: "an-id" });
-        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith({ id: "an-id" });
+        await deliverableResolvers.Query.deliverable(
+          undefined,
+          { id: "an-id" },
+          mockContext as GraphQLContext
+        );
+        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith({ id: "an-id" }, mockUser);
       });
     });
 

@@ -1016,7 +1016,7 @@ async function seedDatabase() {
       demonstrationId: faker.helpers.arrayElement(demonstrationIds).id,
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
-      signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
+      signatureLevel: sampleFromArray([undefined], 1)[0],
     };
     await __createAmendment(undefined, { input: createInput });
   }
@@ -1039,7 +1039,7 @@ async function seedDatabase() {
       demonstrationId: faker.helpers.arrayElement(demonstrationIds).id,
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
-      signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
+      signatureLevel: sampleFromArray([undefined], 1)[0],
     };
     await __createExtension(undefined, { input: createInput });
   }

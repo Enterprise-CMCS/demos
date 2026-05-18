@@ -16,13 +16,15 @@ import {
   createDeliverable,
   deleteDeliverable,
   denyDeliverableExtension,
-  getDeliverable,
-  getManyDeliverables,
+  selectDeliverable,
+  selectManyDeliverables,
   requestDeliverableExtension,
   requestDeliverableResubmission,
   startDeliverableReview,
   submitDeliverable,
   updateDeliverable,
+  getDeliverable,
+  getManyDeliverables,
 } from ".";
 import {
   ApproveDeliverableExtensionInput,
@@ -44,7 +46,6 @@ import { getManyDocuments } from "../document";
 import { getFormattedDeliverableActions } from "../deliverableAction";
 import { getManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
-import { DELETED_DELIVERABLE_STATUS } from "../../constants";
 import { selectManyPublicComments } from "../publicComment/queries";
 import { selectManyPrivateComments } from "../privateComment/queries";
 
@@ -75,13 +76,9 @@ export async function resolveDeliverable(
   if (filter === null) {
     return null;
   }
-  const result = await getDeliverable(filter, { includeDeleted: true });
+  return await getDeliverable(filter, context.user);
   // We add the filter here to handle soft-deleted records
   // Do it here instead of in Prisma filter to avoid throwing when returning no records
-  if (result.statusId === DELETED_DELIVERABLE_STATUS) {
-    return null;
-  }
-  return result;
 }
 
 export async function resolveManyDeliverables(
@@ -104,12 +101,8 @@ export async function resolveManyDeliverables(
       throw new Error(`Unsupported parent type: ${parentType}`);
   }
 
-  const results = await getManyDeliverables(filter);
+  const results = await getManyDeliverables(filter, context.user);
   return results;
-}
-
-export async function queryDeliverables(): Promise<PrismaDeliverable[]> {
-  return await getManyDeliverables();
 }
 
 export function resolveDeliverableType(parent: PrismaDeliverable): DeliverableType {
@@ -132,9 +125,10 @@ export async function resolveDemonstration(
 
 export const deliverableResolvers = {
   Query: {
-    deliverable: async (parent: unknown, args: { id: string }) =>
-      await getDeliverable({ id: args.id }),
-    deliverables: queryDeliverables,
+    deliverable: async (parent: unknown, args: { id: string }, context: GraphQLContext) =>
+      await getDeliverable({ id: args.id }, context.user),
+    deliverables: async (parent: unknown, args: undefined, context: GraphQLContext) =>
+      await getManyDeliverables({}, context.user),
   },
 
   Mutation: {

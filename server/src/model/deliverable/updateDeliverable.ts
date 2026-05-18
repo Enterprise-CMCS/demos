@@ -4,7 +4,7 @@ import { GraphQLContext } from "../../auth";
 import {
   editDeliverable,
   EditDeliverableInput,
-  getDeliverable,
+  selectDeliverable,
   manuallyUpdateDeliverableDueDate,
   parseUpdateDeliverableInput,
   updateDeliverableDemonstrationTypes,
@@ -24,7 +24,7 @@ export async function updateDeliverable(
   checkOptionalNotNullFields(["name", "cmsOwnerUserId", "dueDate", "demonstrationTypes"], input);
   const parsedInput = parseUpdateDeliverableInput(input);
 
-  const updatedDeliverable = await prisma().$transaction(async (tx) => {
+  return await prisma().$transaction(async (tx) => {
     await validateUpdateDeliverableInput(deliverableId, parsedInput, tx);
 
     // Directly edit name and CMS owner
@@ -48,7 +48,10 @@ export async function updateDeliverable(
     await updateDeliverableDemonstrationTypes(deliverableId, parsedInput, tx);
     await manuallyUpdateDeliverableDueDate(deliverableId, parsedInput, context, tx);
 
-    return await getDeliverable({ id: deliverableId }, { tx: tx });
+    const updatedDeliverable = await selectDeliverable({ id: deliverableId }, tx);
+    if (!updatedDeliverable) {
+      throw new Error(`Deliverable with ID ${deliverableId} not found after update`);
+    }
+    return updatedDeliverable;
   });
-  return updatedDeliverable;
 }

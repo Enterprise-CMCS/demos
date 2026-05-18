@@ -1,7 +1,7 @@
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { prisma, PrismaTransactionClient } from "../../../prismaClient";
 import { SetDeliverableDemonstrationTypesInput } from "..";
-import { getDeliverable } from "../../deliverable";
+import { selectDeliverable } from "../../deliverable";
 
 export async function insertDeliverableDemonstrationTypes(
   input: SetDeliverableDemonstrationTypesInput,
@@ -18,5 +18,9 @@ export async function insertDeliverableDemonstrationTypes(
       data: createManyPayload,
     });
   }
-  return await getDeliverable({ id: input.deliverableId }, { tx: prismaClient });
+  const deliverable = await selectDeliverable({ id: input.deliverableId }, prismaClient);
+  if (!deliverable) {
+    throw new Error(`Deliverable with ID ${input.deliverableId} not found`);
+  }
+  return deliverable;
 }

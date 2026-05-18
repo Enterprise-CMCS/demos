@@ -5,7 +5,7 @@ import {
   insertDeliverableDemonstrationTypes,
 } from "./queries";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
-import { getDeliverable } from "../deliverable";
+import { selectDeliverable } from "../deliverable";
 
 export type SetDeliverableDemonstrationTypesInput = {
   deliverableId: string;
@@ -23,5 +23,9 @@ export async function setDeliverableDemonstrationTypes(
     prismaClient
   );
   await insertDeliverableDemonstrationTypes(input, prismaClient);
-  return getDeliverable({ id: input.deliverableId }, { tx: prismaClient });
+  const deliverable = await selectDeliverable({ id: input.deliverableId }, prismaClient);
+  if (!deliverable) {
+    throw new Error(`Deliverable with ID ${input.deliverableId} not found`);
+  }
+  return deliverable;
 }

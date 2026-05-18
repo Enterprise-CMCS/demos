@@ -1,4 +1,4 @@
-import { getDeliverable, ParsedUpdateDeliverableInput } from ".";
+import { selectDeliverable, ParsedUpdateDeliverableInput } from ".";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { TagName } from "../../types";
 import { findSetDifferences } from "../../validationUtilities";
@@ -16,7 +16,10 @@ export async function updateDeliverableDemonstrationTypes(
   }
 
   // Need to get the demonstration ID for inserts
-  const currentDeliverable = await getDeliverable({ id: deliverableId }, { tx: tx });
+  const currentDeliverable = await selectDeliverable({ id: deliverableId }, tx);
+  if (!currentDeliverable) {
+    throw new Error(`Deliverable with ID ${deliverableId} not found`);
+  }
 
   // Can turn these into a set because DB guarantees uniqueness
   const oldDemonstrationTypes: Set<TagName> = new Set(
