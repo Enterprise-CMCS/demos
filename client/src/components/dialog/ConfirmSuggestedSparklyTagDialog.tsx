@@ -31,7 +31,7 @@ const SourcePassagePdfPreviewPlaceholder = ({ tagName }: { tagName: TagName }) =
   <div>
     <h3 className={STYLES.sourceTitle}>Source Passage</h3>
     <div className={STYLES.sourcePreview}>
-      &quot;...This is a placeholder, This feature does not exist yet, but is specifically references {tagName} in the application
+      &quot;...This specifically references {tagName} in the application
       text...&quot;
     </div>
     <div className={STYLES.sourceMeta}>(Found in Document X, Page N, Position NN/NNN)</div>
