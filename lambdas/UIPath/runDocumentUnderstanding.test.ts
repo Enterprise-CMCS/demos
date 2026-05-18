@@ -349,7 +349,7 @@ describe("runDocumentUnderstanding", () => {
     ]);
   });
 
-  it("throws when a tag suggestion field has no token page without rolling back UiPath values", async () => {
+  it("throws when a tag suggestion field has no token page after committing UiPath values", async () => {
     mocks.uploadDocumentMock.mockResolvedValue("doc-1");
     mocks.extractDocMock.mockResolvedValue("result-url");
     mockSuccessfulDbQueries(["demo_type"]);
@@ -382,7 +382,7 @@ describe("runDocumentUnderstanding", () => {
     expect(mocks.queryMock.mock.calls[7]?.[0]).toBe("ROLLBACK");
     expect(
       mocks.queryMock.mock.calls.some((call) => Array.isArray(call[1]) && call[1][5] === "Failed")
-    ).toBe(false);
+    ).toBe(true);
   });
 
   it("marks result as failed when UiPath returns failed status", async () => {
