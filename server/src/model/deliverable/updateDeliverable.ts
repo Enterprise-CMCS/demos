@@ -48,7 +48,6 @@ export async function updateDeliverable(
     await updateDeliverableDemonstrationTypes(deliverableId, parsedInput, tx);
     await manuallyUpdateDeliverableDueDate(deliverableId, parsedInput, context, tx);
 
-    const updatedDeliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
-    return updatedDeliverable;
+    return await selectDeliverableOrThrow({ id: deliverableId }, tx);
   });
 }

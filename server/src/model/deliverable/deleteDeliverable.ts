@@ -18,7 +18,6 @@ export async function deleteDeliverable(
 
   return await prisma().$transaction(async (tx) => {
     const deliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
-
     await validateDeleteDeliverableInput(deliverable, tx);
 
     await editDeliverable(deliverableId, { statusId: "Deleted" }, tx);

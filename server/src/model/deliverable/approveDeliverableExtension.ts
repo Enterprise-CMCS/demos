@@ -31,7 +31,6 @@ export async function approveDeliverableExtension(
     // Note that parsing is inside tx here because we need to get the extension first
     // This is passed to the parser to give back the final date to use
     const unapprovedDeliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
-
     const unapprovedDeliverableExtension = await selectDeliverableExtension(
       { id: input.deliverableExtensionId },
       true,
