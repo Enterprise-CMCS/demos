@@ -89,6 +89,9 @@ export function makeCmsFileColumns() {
   ];
 }
 
+// Sizing uses explicit px instead of the spacing scale: this project's custom
+// Tailwind theme remaps `--spacing-*`, so `h-5`/`w-9`/`h-4` resolve to large,
+// mismatched values that render the switch as a tall vertical sliver.
 const CurrentToggle: React.FC<{ fileId: string }> = ({ fileId }) => (
   <button
     type="button"
@@ -96,8 +99,8 @@ const CurrentToggle: React.FC<{ fileId: string }> = ({ fileId }) => (
     aria-checked={false}
     aria-label={`Toggle current file ${fileId}`}
     data-testid={`toggle-current-${fileId}`}
-    className="relative inline-flex h-5 w-9 items-center rounded-full bg-border-fields focus:outline-none focus:ring-2 focus:ring-action-focus"
+    className="relative inline-flex h-[20px] w-[36px] shrink-0 items-center rounded-full bg-border-fields focus:outline-none focus:ring-2 focus:ring-action-focus"
   >
-    <span className="inline-block h-4 w-4 translate-x-1 transform rounded-full bg-white" />
+    <span className="inline-block h-[16px] w-[16px] translate-x-[2px] transform rounded-full bg-white" />
   </button>
 );

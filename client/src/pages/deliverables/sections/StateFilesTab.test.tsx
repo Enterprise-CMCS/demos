@@ -158,6 +158,16 @@ describe("StateFilesTab", () => {
       await user.click(submitButton);
       expect(onSubmit).toHaveBeenCalledTimes(1);
     });
+
+    it("renders the Current toggle with horizontal sizing", () => {
+      renderTab();
+
+      const toggle = screen.getByTestId("toggle-current-file-a");
+      // Width must exceed height so the switch renders horizontally, not as a
+      // vertical sliver. Guards against the spacing-scale regression (w-9/h-5).
+      expect(toggle).toHaveClass("w-[36px]", "h-[20px]");
+      expect(toggle).not.toHaveClass("w-9", "h-5");
+    });
   });
 
   describe("when disabled", () => {
