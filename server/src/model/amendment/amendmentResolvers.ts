@@ -24,7 +24,6 @@ import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
 const amendmentApplicationType: ApplicationType = "Amendment";
 const conceptPhaseName: PhaseName = "Concept";
 const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
-
 const VALID_AMENDMENT_SIGNATURE_LEVELS: readonly SignatureLevel[] = ["OA", "OCD"];
 
 export async function __createAmendment(
