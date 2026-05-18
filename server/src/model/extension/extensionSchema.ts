@@ -11,7 +11,7 @@ import {
   ClearanceLevel,
   Tag,
   TagName,
-  SignatureLevel,
+  ExtensionSignatureLevel,
 } from "../../types.js";
 
 export const extensionSchema = gql`
@@ -27,7 +27,7 @@ export const extensionSchema = gql`
     documents: [Document!]!
     clearanceLevel: ClearanceLevel!
     tags: [Tag!]!
-    signatureLevel: SignatureLevel
+    signatureLevel: ExtensionSignatureLevel
     suggestedApplicationTags: [TagName!]!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -37,7 +37,7 @@ export const extensionSchema = gql`
     demonstrationId: ID!
     name: NonEmptyString!
     description: String
-    signatureLevel: SignatureLevel
+    signatureLevel: ExtensionSignatureLevel
   }
 
   input UpdateExtensionInput {
@@ -46,7 +46,7 @@ export const extensionSchema = gql`
     description: String
     effectiveDate: DateTimeOrLocalDate
     status: ApplicationStatus
-    signatureLevel: SignatureLevel
+    signatureLevel: ExtensionSignatureLevel
   }
 
   type Mutation {
@@ -73,7 +73,7 @@ export interface Extension {
   documents: Document[];
   clearanceLevel: ClearanceLevel;
   tags: Tag[];
-  signatureLevel?: SignatureLevel;
+  signatureLevel?: ExtensionSignatureLevel;
   suggestedApplicationTags: TagName[];
   createdAt: Date;
   updatedAt: Date;
@@ -83,7 +83,7 @@ export interface CreateExtensionInput {
   demonstrationId: string;
   name: NonEmptyString;
   description: string | null;
-  signatureLevel?: SignatureLevel;
+  signatureLevel?: ExtensionSignatureLevel;
 }
 
 export interface UpdateExtensionInput {
@@ -92,5 +92,5 @@ export interface UpdateExtensionInput {
   description?: string | null;
   effectiveDate?: DateTimeOrLocalDate | null;
   status?: ApplicationStatus;
-  signatureLevel?: SignatureLevel;
+  signatureLevel?: ExtensionSignatureLevel;
 }

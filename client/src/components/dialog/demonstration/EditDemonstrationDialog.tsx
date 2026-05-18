@@ -97,12 +97,6 @@ const getUpdateDemonstrationInput = (
     input.sdgDivision = null;
   }
 
-  if (demonstration.signatureLevel) {
-    input.signatureLevel = demonstration.signatureLevel;
-  } else {
-    input.signatureLevel = null;
-  }
-
   return input as UpdateDemonstrationInput;
 };
 
