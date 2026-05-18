@@ -6,7 +6,6 @@ import { fileURLToPath } from "node:url";
 import {
   SDG_DIVISIONS,
   PERSON_TYPES,
-  SIGNATURE_LEVEL,
   PHASE_DOCUMENT_TYPE_MAP,
   NOTE_TYPES,
   TAG_TYPES,
@@ -25,6 +24,7 @@ import {
   CreateDeliverableInput,
   PersonType,
   DateTimeOrLocalDate,
+  SignatureLevel,
 } from "./types.js";
 import { prisma } from "./prismaClient.js";
 import { DocumentType, PhaseName } from "./types.js";
@@ -64,6 +64,7 @@ const NEW_TAG_COUNT = 20;
 const TAG_ASSIGNMENT_MAX = 5;
 const DELIVERABLE_SEED_COUNT = 8;
 const APPLICATION_TAG_SUGGESTION_POOL_SIZE = 10;
+const AMENDMENT_EXTENSION_SIGNATURE_LEVELS = ["OA", "OCD"] as const satisfies readonly SignatureLevel[];
 
 function getRandomPhaseDocumentTypeCombination(): {
   phaseName: PhaseName;
@@ -1016,7 +1017,7 @@ async function seedDatabase() {
       demonstrationId: faker.helpers.arrayElement(demonstrationIds).id,
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
-      signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
+      signatureLevel: sampleFromArray([...AMENDMENT_EXTENSION_SIGNATURE_LEVELS, undefined], 1)[0],
     };
     await __createAmendment(undefined, { input: createInput });
   }
@@ -1039,7 +1040,7 @@ async function seedDatabase() {
       demonstrationId: faker.helpers.arrayElement(demonstrationIds).id,
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
-      signatureLevel: sampleFromArray([...SIGNATURE_LEVEL, undefined], 1)[0],
+      signatureLevel: sampleFromArray([...AMENDMENT_EXTENSION_SIGNATURE_LEVELS, undefined], 1)[0],
     };
     await __createExtension(undefined, { input: createInput });
   }
