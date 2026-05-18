@@ -6,7 +6,6 @@ import { fetchExtractionResult, ExtractionStatus } from "./fetchExtractResult";
 import { getDbPool } from "./db";
 import { getProjectIdByName } from "./getProjectId";
 import {
-  ApplicationTagSuggestionExtractError,
   persistApplicationTagSuggestionExtracts,
 } from "./db/applicationTagSuggestionExtracts";
 import {
@@ -48,8 +47,8 @@ async function persistExtractionStatus(
   }
 }
 
-function buildFailureResponse(error: Error, lastPolledStatus: ExtractionStatus | null): Record<string, unknown> {
-  const message = error.message;
+function buildFailureResponse(error: unknown, lastPolledStatus: ExtractionStatus | null): Record<string, unknown> {
+  const message = error instanceof Error ? error.message : String(error);
   const response: Record<string, unknown> = { error: message };
 
   if (lastPolledStatus) {
@@ -130,10 +129,6 @@ export async function runDocumentUnderstanding(
 
     throw new Error("UiPath extraction did not succeed within the configured attempts.");
   } catch (error) {
-    if (error instanceof ApplicationTagSuggestionExtractError) {
-      throw error;
-    }
-
     try {
       await persistResultStatus(
         requestId,
