@@ -75,8 +75,6 @@ export async function resolveDeliverable(
     return null;
   }
   return await getDeliverable(filter, context.user);
-  // We add the filter here to handle soft-deleted records
-  // Do it here instead of in Prisma filter to avoid throwing when returning no records
 }
 
 export async function resolveManyDeliverables(
