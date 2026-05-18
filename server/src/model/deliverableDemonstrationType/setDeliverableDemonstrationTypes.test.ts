@@ -18,7 +18,7 @@ vi.mock("./queries", () => ({
 }));
 
 vi.mock("../deliverable", () => ({
-  selectDeliverable: vi.fn(),
+  selectDeliverableOrThrow: vi.fn(),
 }));
 
 import { prisma } from "../../prismaClient";
@@ -26,7 +26,7 @@ import {
   deleteAllDeliverableDemonstrationTypes,
   insertDeliverableDemonstrationTypes,
 } from "./queries";
-import { selectDeliverable } from "../deliverable";
+import { selectDeliverableOrThrow } from "../deliverable";
 
 describe("setDeliverableDemonstrationTypes", () => {
   const mockPrismaClient: any = "Test return client!";
@@ -40,9 +40,6 @@ describe("setDeliverableDemonstrationTypes", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
-    vi.mocked(selectDeliverable).mockResolvedValue({
-      id: testInput.deliverableId,
-    } as any);
   });
 
   it("should delete, insert, and then get the deliverable in cases where a client is provided", async () => {
@@ -58,7 +55,7 @@ describe("setDeliverableDemonstrationTypes", () => {
       testInput,
       mockTransaction
     );
-    expect(selectDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith(
       {
         id: testInput.deliverableId,
       },
@@ -79,7 +76,7 @@ describe("setDeliverableDemonstrationTypes", () => {
       testInput,
       mockPrismaClient
     );
-    expect(selectDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith(
       {
         id: testInput.deliverableId,
       },

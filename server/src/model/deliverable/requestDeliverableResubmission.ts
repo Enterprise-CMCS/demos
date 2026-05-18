@@ -3,7 +3,7 @@ import { DeliverableStatus, RequestDeliverableResubmissionInput } from "../../ty
 import { GraphQLContext } from "../../auth";
 import {
   editDeliverable,
-  selectDeliverable,
+  selectDeliverableOrThrow,
   parseRequestDeliverableResubmissionInput,
   validateRequestDeliverableResubmissionInput,
   validateUserPersonTypeAllowed,
@@ -23,10 +23,7 @@ export async function requestDeliverableResubmission(
   const parsedInput = parseRequestDeliverableResubmissionInput(input);
 
   return await prisma().$transaction(async (tx) => {
-    const unrequestedDeliverable = await selectDeliverable({ id: deliverableId }, tx);
-    if (!unrequestedDeliverable) {
-      throw new Error(`Deliverable with ID ${deliverableId} not found`);
-    }
+    const unrequestedDeliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
     validateRequestDeliverableResubmissionInput(unrequestedDeliverable, parsedInput);
 
     const requestedDeliverable = await editDeliverable(

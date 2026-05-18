@@ -2,7 +2,7 @@ import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { GraphQLContext } from "../../auth";
 import { DeliverableStatus } from "../../types";
 import { prisma } from "../../prismaClient";
-import { editDeliverable, selectDeliverable, validateSubmitDeliverableInput } from ".";
+import { editDeliverable, selectDeliverableOrThrow, validateSubmitDeliverableInput } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 
 export async function submitDeliverable(
@@ -10,10 +10,7 @@ export async function submitDeliverable(
   context: GraphQLContext
 ): Promise<PrismaDeliverable> {
   return await prisma().$transaction(async (tx) => {
-    const unsubmittedDeliverable = await selectDeliverable({ id: deliverableId }, tx);
-    if (!unsubmittedDeliverable) {
-      throw new Error(`Deliverable with ID ${deliverableId} not found`);
-    }
+    const unsubmittedDeliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
     await validateSubmitDeliverableInput(unsubmittedDeliverable, tx);
 
     const submittedDeliverable = await editDeliverable(

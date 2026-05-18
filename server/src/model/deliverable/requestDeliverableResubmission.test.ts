@@ -18,7 +18,7 @@ vi.mock("../../prismaClient", () => ({
 
 vi.mock(".", () => ({
   editDeliverable: vi.fn(),
-  selectDeliverable: vi.fn(),
+  selectDeliverableOrThrow: vi.fn(),
   parseRequestDeliverableResubmissionInput: vi.fn(),
   validateRequestDeliverableResubmissionInput: vi.fn(),
   validateUserPersonTypeAllowed: vi.fn(),
@@ -31,7 +31,7 @@ vi.mock("../deliverableAction/queries", () => ({
 import { prisma } from "../../prismaClient";
 import {
   editDeliverable,
-  selectDeliverable,
+  selectDeliverableOrThrow,
   ParsedRequestDeliverableResubmissionInput,
   parseRequestDeliverableResubmissionInput,
   validateRequestDeliverableResubmissionInput,
@@ -82,7 +82,7 @@ describe("requestDeliverableResubmission", () => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(parseRequestDeliverableResubmissionInput).mockReturnValue(mockParsedInput);
-    vi.mocked(selectDeliverable).mockResolvedValue(mockUnrequestedDeliverable as PrismaDeliverable);
+    vi.mocked(selectDeliverableOrThrow).mockResolvedValue(mockUnrequestedDeliverable as PrismaDeliverable);
     vi.mocked(editDeliverable).mockResolvedValue(mockRequestedDeliverable as PrismaDeliverable);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
@@ -145,7 +145,7 @@ describe("requestDeliverableResubmission", () => {
       testInput,
       testContext as GraphQLContext
     );
-    expect(selectDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
       mockTransaction
     );

@@ -4,7 +4,7 @@ import { GraphQLContext } from "../../auth";
 import {
   editDeliverable,
   EditDeliverableInput,
-  selectDeliverable,
+  selectDeliverableOrThrow,
   manuallyUpdateDeliverableDueDate,
   parseUpdateDeliverableInput,
   updateDeliverableDemonstrationTypes,
@@ -48,10 +48,7 @@ export async function updateDeliverable(
     await updateDeliverableDemonstrationTypes(deliverableId, parsedInput, tx);
     await manuallyUpdateDeliverableDueDate(deliverableId, parsedInput, context, tx);
 
-    const updatedDeliverable = await selectDeliverable({ id: deliverableId }, tx);
-    if (!updatedDeliverable) {
-      throw new Error(`Deliverable with ID ${deliverableId} not found after update`);
-    }
+    const updatedDeliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
     return updatedDeliverable;
   });
 }

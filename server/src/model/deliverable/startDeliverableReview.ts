@@ -4,7 +4,7 @@ import { DeliverableStatus } from "../../types";
 import { prisma } from "../../prismaClient";
 import {
   editDeliverable,
-  selectDeliverable,
+  selectDeliverableOrThrow,
   validateStartDeliverableReviewInput,
   validateUserPersonTypeAllowed,
 } from ".";
@@ -19,10 +19,7 @@ export async function startDeliverableReview(
     "demos-cms-user",
   ]);
   return await prisma().$transaction(async (tx) => {
-    const unstartedDeliverable = await selectDeliverable({ id: deliverableId }, tx);
-    if (!unstartedDeliverable) {
-      throw new Error(`Deliverable with ID ${deliverableId} not found`);
-    }
+    const unstartedDeliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
     validateStartDeliverableReviewInput(unstartedDeliverable);
 
     const startedDeliverable = await editDeliverable(

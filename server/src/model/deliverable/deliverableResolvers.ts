@@ -16,8 +16,6 @@ import {
   createDeliverable,
   deleteDeliverable,
   denyDeliverableExtension,
-  selectDeliverable,
-  selectManyDeliverables,
   requestDeliverableExtension,
   requestDeliverableResubmission,
   startDeliverableReview,

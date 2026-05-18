@@ -4,7 +4,7 @@ import { DeliverableStatus } from "../../types";
 import { prisma } from "../../prismaClient";
 import {
   editDeliverable,
-  selectDeliverable,
+  selectDeliverableOrThrow,
   validateDeleteDeliverableInput,
   validateUserPersonTypeAllowed,
 } from ".";
@@ -17,10 +17,8 @@ export async function deleteDeliverable(
   validateUserPersonTypeAllowed(context, "deleteDeliverable", ["demos-admin", "demos-cms-user"]);
 
   return await prisma().$transaction(async (tx) => {
-    const deliverable = await selectDeliverable({ id: deliverableId }, tx);
-    if (!deliverable) {
-      throw new Error(`Deliverable with ID ${deliverableId} not found`);
-    }
+    const deliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
+
     await validateDeleteDeliverableInput(deliverable, tx);
 
     await editDeliverable(deliverableId, { statusId: "Deleted" }, tx);

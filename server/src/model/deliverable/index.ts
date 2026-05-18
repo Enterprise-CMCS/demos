@@ -51,7 +51,7 @@ export { getDeliverable, getManyDeliverables } from "./deliverableData";
 
 // Queries
 export { editDeliverable } from "./queries/editDeliverable";
-export { selectDeliverable } from "./queries/selectDeliverable";
+export { selectDeliverable, selectDeliverableOrThrow } from "./queries";
 export { selectManyDeliverables } from "./queries/selectManyDeliverables";
 export { insertDeliverable } from "./queries/insertDeliverable";
 export { isStatePointOfContactOnDeliverableDemonstration } from "./queries/isStatePointOfContactOnDeliverableDemonstration";

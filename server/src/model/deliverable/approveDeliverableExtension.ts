@@ -3,10 +3,10 @@ import { ApproveDeliverableExtensionInput, DeliverableStatus } from "../../types
 import { GraphQLContext } from "../../auth";
 import {
   editDeliverable,
-  selectDeliverable,
   parseApproveDeliverableExtensionInput,
   validateApproveDeliverableExtensionInput,
   validateUserPersonTypeAllowed,
+  selectDeliverableOrThrow,
 } from ".";
 import { prisma } from "../../prismaClient";
 import { insertDeliverableAction } from "../deliverableAction/queries";
@@ -30,10 +30,8 @@ export async function approveDeliverableExtension(
   return await prisma().$transaction(async (tx) => {
     // Note that parsing is inside tx here because we need to get the extension first
     // This is passed to the parser to give back the final date to use
-    const unapprovedDeliverable = await selectDeliverable({ id: deliverableId }, tx);
-    if (!unapprovedDeliverable) {
-      throw new Error(`Deliverable with ID ${deliverableId} not found`);
-    }
+    const unapprovedDeliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
+
     const unapprovedDeliverableExtension = await selectDeliverableExtension(
       { id: input.deliverableExtensionId },
       true,

@@ -11,7 +11,7 @@ import {
   checkNewDueDateIsGreaterThanCurrentDueDate,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
-  selectDeliverable,
+  selectDeliverableOrThrow,
   ParsedApproveDeliverableExtensionInput,
   ParsedCreateDeliverableInput,
   ParsedRequestDeliverableExtensionInput,
@@ -99,10 +99,7 @@ export async function validateUpdateDeliverableInput(
   input: ParsedUpdateDeliverableInput,
   tx: PrismaTransactionClient
 ): Promise<void> {
-  const deliverable = await selectDeliverable({ id: deliverableId }, tx);
-  if (!deliverable) {
-    throw new Error(`Deliverable with ID ${deliverableId} not found`);
-  }
+  const deliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
   const errors: (string | undefined)[] = [];
 
   // Updates can be performed on all active deliverables

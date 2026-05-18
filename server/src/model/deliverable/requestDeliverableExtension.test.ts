@@ -16,7 +16,7 @@ vi.mock("../../prismaClient", () => ({
 }));
 
 vi.mock(".", () => ({
-  selectDeliverable: vi.fn(),
+  selectDeliverableOrThrow: vi.fn(),
   parseRequestDeliverableExtensionInput: vi.fn(),
   validateRequestDeliverableExtensionInput: vi.fn(),
   validateUserPersonTypeAllowed: vi.fn(),
@@ -32,7 +32,7 @@ vi.mock("../deliverableExtension/queries", () => ({
 
 import { prisma } from "../../prismaClient";
 import {
-  selectDeliverable,
+  selectDeliverableOrThrow,
   ParsedRequestDeliverableExtensionInput,
   parseRequestDeliverableExtensionInput,
   validateRequestDeliverableExtensionInput,
@@ -81,7 +81,7 @@ describe("requestDeliverableExtension", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
-    vi.mocked(selectDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
+    vi.mocked(selectDeliverableOrThrow).mockResolvedValue(mockDeliverable as PrismaDeliverable);
     vi.mocked(parseRequestDeliverableExtensionInput).mockReturnValue(mockParsedInput);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
@@ -132,7 +132,7 @@ describe("requestDeliverableExtension", () => {
 
   it("should get the deliverable before making changes", async () => {
     await requestDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
-    expect(selectDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
       mockTransaction
     );
