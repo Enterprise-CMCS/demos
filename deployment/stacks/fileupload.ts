@@ -459,7 +459,7 @@ export class FileUploadStack extends Stack {
       {
         ...props,
         removalPolicy: props.isDev || props.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
-        kmsKey,        
+        kmsKey,
         deadLetterQueue,
         readBuckets: [cleanBucket],
         vpc: props.vpc,
