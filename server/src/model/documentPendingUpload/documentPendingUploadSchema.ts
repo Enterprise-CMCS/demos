@@ -60,6 +60,7 @@ export const documentPendingUploadSchema = gql`
     uploadDocumentToPhase(input: UploadDocumentToPhaseInput!): DocumentPendingUpload!
       @auth(requires: ["Perform CMS Action"])
     uploadDocumentToDeliverable(input: UploadDocumentToDeliverableInput!): DocumentPendingUpload!
+      @auth(requires: ["Perform CMS Action", "Perform State Action"])
   }
 `;
 
