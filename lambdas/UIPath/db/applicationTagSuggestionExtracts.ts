@@ -8,7 +8,8 @@ const INSERT_TAG_SUGGESTION_EXTRACT_SQL = `insert into ${DEMOS_SCHEMA}.applicati
  values
   ($1, $2, $3, $4, $5, $6, now())
  on conflict (uipath_value_id, application_id, value) do nothing`;
-
+// the on conflict prevents multiple identical "uipath_value_id, application_id, value" combination.
+// There are safeguards earlier in this code too. But this can stand on it's if needed and not product replicates.
 export type PersistedUiPathValue = {
   id: string;
   applicationId: string;
