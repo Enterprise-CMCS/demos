@@ -219,7 +219,7 @@ describe("demonstrationResolvers", () => {
     demonstrationName: "The Demonstration",
     demonstrationDescription: "A description of a demonstration",
     sdgDivisionId: "Division of Eligibility and Coverage Demonstrations",
-    signatureLevelId: "OCD",
+    signatureLevelId: "OA",
     personTypeId: "demos-cms-user",
     newApplicationStatusId: "Pre-Submission",
     newApplicationPhaseId: "Concept",
@@ -563,7 +563,6 @@ describe("demonstrationResolvers", () => {
           stateId: testValues.stateId,
           description: testValues.demonstrationDescription,
           sdgDivision: testValues.sdgDivisionId,
-          signatureLevel: testValues.signatureLevelId,
         },
       };
 
@@ -580,8 +579,8 @@ describe("demonstrationResolvers", () => {
             name: testValues.demonstrationName,
             description: testValues.demonstrationDescription,
             sdgDivisionId: testValues.sdgDivisionId,
-            signatureLevelId: testValues.signatureLevelId,
             statusId: testValues.newApplicationStatusId,
+            signatureLevelId: testValues.signatureLevelId,
             stateId: testValues.stateId,
             currentPhaseId: testValues.newApplicationPhaseId,
           },
@@ -644,7 +643,6 @@ describe("demonstrationResolvers", () => {
           stateId: testValues.stateId,
           description: testValues.demonstrationDescription,
           sdgDivision: testValues.sdgDivisionId,
-          signatureLevel: testValues.signatureLevelId,
         },
       };
 

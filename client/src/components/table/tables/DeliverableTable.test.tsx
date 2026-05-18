@@ -161,17 +161,139 @@ describe("DeliverableTable", () => {
     });
   });
 
-  it("renders status values as-is", () => {
+  it("renders finalized statuses as-is", () => {
     expect(
       formatDeliverableStatus({
-        status: "Upcoming",
+        status: "Accepted",
+        deliverableActions: [],
+        extensionRequests: [],
       })
-    ).toBe("Upcoming");
+    ).toBe("Accepted");
+
     expect(
       formatDeliverableStatus({
         status: "Approved",
+        deliverableActions: [],
+        extensionRequests: [
+          {
+            id: "1",
+            status: "Requested",
+          },
+        ],
       })
     ).toBe("Approved");
+
+    expect(
+      formatDeliverableStatus({
+        status: "Received and Filed",
+        deliverableActions: [
+          {
+            id: "1",
+            actionType: "Requested Resubmission",
+          },
+        ],
+        extensionRequests: [
+          {
+            id: "1",
+            status: "Requested",
+          },
+        ],
+      })
+    ).toBe("Received and Filed");
+  });
+
+  it("renders base status when there are no resubmissions or open extension requests", () => {
+    expect(
+      formatDeliverableStatus({
+        status: "Submitted",
+        deliverableActions: [],
+        extensionRequests: [],
+      })
+    ).toBe("Submitted");
+  });
+
+  it("renders extension requested suffix when an extension request is open", () => {
+    expect(
+      formatDeliverableStatus({
+        status: "Submitted",
+        deliverableActions: [],
+        extensionRequests: [
+          {
+            id: "1",
+            status: "Requested",
+          },
+        ],
+      })
+    ).toBe("Submitted - Extension Requested");
+  });
+
+  it("renders resubmission count when resubmissions have been requested", () => {
+    expect(
+      formatDeliverableStatus({
+        status: "Submitted",
+        deliverableActions: [
+          {
+            id: "1",
+            actionType: "Requested Resubmission",
+          },
+          {
+            id: "2",
+            actionType: "Requested Resubmission",
+          },
+        ],
+        extensionRequests: [],
+      })
+    ).toBe("Submitted (2)");
+  });
+
+  it("renders both resubmission count and extension requested suffix", () => {
+    expect(
+      formatDeliverableStatus({
+        status: "Under CMS Review",
+        deliverableActions: [
+          {
+            id: "1",
+            actionType: "Requested Resubmission",
+          },
+        ],
+        extensionRequests: [
+          {
+            id: "1",
+            status: "Requested",
+          },
+        ],
+      })
+    ).toBe("Under CMS Review (1) - Extension Requested");
+  });
+
+  it("ignores non-requested extension request statuses", () => {
+    expect(
+      formatDeliverableStatus({
+        status: "Submitted",
+        deliverableActions: [],
+        extensionRequests: [
+          {
+            id: "1",
+            status: "Approved",
+          },
+        ],
+      })
+    ).toBe("Submitted");
+  });
+
+  it("ignores non-resubmission deliverable actions", () => {
+    expect(
+      formatDeliverableStatus({
+        status: "Submitted",
+        deliverableActions: [
+          {
+            id: "1",
+            actionType: "Created Deliverable Slot",
+          },
+        ],
+        extensionRequests: [],
+      })
+    ).toBe("Submitted");
   });
 
   it("renders column filter dropdown", () => {

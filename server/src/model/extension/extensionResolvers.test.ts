@@ -343,6 +343,44 @@ describe("extensionResolvers", () => {
       expect(transactionMocks.application.create).toHaveBeenCalledExactlyOnceWith(expectedCalls[0]);
       expect(transactionMocks.extension.create).toHaveBeenCalledExactlyOnceWith(expectedCalls[1]);
     });
+
+    it.each(["OA", "OCD"] as const)(
+      "allows valid signature level %s during creation",
+      async (signatureLevel) => {
+        transactionMocks.application.create.mockResolvedValueOnce({
+          id: testExtensionId,
+          applicationTypeId: testExtensionTypeId,
+        });
+
+        await __createExtension(undefined, {
+          input: {
+            demonstrationId: testDemonstrationId,
+            name: testExtensionName,
+            description: testExtensionDescription,
+            signatureLevel,
+          },
+        });
+
+        expect(transactionMocks.application.create).toHaveBeenCalledOnce();
+        expect(transactionMocks.extension.create).toHaveBeenCalledOnce();
+      }
+    );
+
+    it("rejects invalid signature levels during creation", async () => {
+      await expect(
+        __createExtension(undefined, {
+          input: {
+            demonstrationId: testDemonstrationId,
+            name: testExtensionName,
+            description: testExtensionDescription,
+            signatureLevel: "INVALID" as SignatureLevel,
+          },
+        })
+      ).rejects.toThrowError("Invalid signature level for extension.");
+
+      expect(transactionMocks.application.create).not.toHaveBeenCalled();
+      expect(transactionMocks.extension.create).not.toHaveBeenCalled();
+    });
   });
 
   describe("__updateExtension", () => {

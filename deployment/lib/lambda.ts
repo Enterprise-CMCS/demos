@@ -28,6 +28,7 @@ interface LambdaProps extends CommonProps {
   depsLockFilePath?: string;
   commandHooks?: ICommandHooks;
   format?: OutputFormat;
+  esbuildArgs?: Record<string, string | boolean>;
 }
 
 export function create(props: LambdaProps, id: string) {
@@ -127,7 +128,8 @@ export class Lambda extends Construct {
         nodeModules: props.nodeModules,
         logLevel: LogLevel.VERBOSE,
         commandHooks: props.commandHooks,
-        format: props.format
+        format: props.format,
+        esbuildArgs: props.esbuildArgs,
       },
       environment: props.environment,
       vpc: props.vpc,

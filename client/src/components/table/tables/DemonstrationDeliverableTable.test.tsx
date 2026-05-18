@@ -27,6 +27,8 @@ const baseDeliverable: Omit<DeliverableTableRow, "id" | "name" | "dueDate" | "st
     },
   },
   demonstrationTypes: [],
+  extensionRequests: [],
+  deliverableActions: [],
 };
 
 describe("DemonstrationDeliverableTable", () => {
@@ -141,6 +143,7 @@ describe("DemonstrationDeliverableTable", () => {
       name: "Editable Item",
       dueDate: new Date("2026-01-01"),
       status: "Upcoming" as const,
+      combinedStatus: "Upcoming",
       ...baseDeliverable,
     };
 

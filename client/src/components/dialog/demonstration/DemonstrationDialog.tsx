@@ -8,7 +8,7 @@ import { SelectSignatureLevel } from "components/input/select/SelectSignatureLev
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
-import { Demonstration } from "demos-server";
+import { Demonstration, SignatureLevel } from "demos-server";
 import { DatePicker } from "components/input/date/DatePicker";
 import { EXPIRATION_DATE_ERROR_MESSAGE } from "util/messages";
 import { SubmitButton } from "components/button/SubmitButton";
@@ -16,6 +16,7 @@ import { HintIcon } from "components/icons/Input/HintIcon";
 import { isBefore } from "date-fns";
 
 export const DEMONSTRATION_DIALOG_DESCRIPTION_NAME = "textarea-demonstration-description";
+export const DEFAULT_DEMONSTRATION_SIGNATURE_LEVEL = "OA" as SignatureLevel;
 
 export type DemonstrationDialogMode = "create" | "edit";
 
@@ -270,8 +271,12 @@ export const DemonstrationDialog: React.FC<{
             onSelect={(sdgDivision) => handleChange({ ...activeDemonstration, sdgDivision })}
           />
           <SelectSignatureLevel
-            initialValue={activeDemonstration.signatureLevel}
-            onSelect={(signatureLevel) => handleChange({ ...activeDemonstration, signatureLevel })}
+            initialValue={DEFAULT_DEMONSTRATION_SIGNATURE_LEVEL}
+            allowedSignatureLevels={["OA"]}
+            isDisabled
+            onSelect={(signatureLevel) =>
+              handleChange({ ...activeDemonstration, signatureLevel })
+            }
           />
         </div>
 

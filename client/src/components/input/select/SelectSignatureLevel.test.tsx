@@ -23,4 +23,24 @@ describe("SelectSignatureLevel", () => {
     expect(select).toHaveValue(SIGNATURE_LEVEL[0]);
     expect(onSelect).toHaveBeenCalledWith(SIGNATURE_LEVEL[0]);
   });
+
+  it("renders only allowed signature level options", () => {
+    render(
+      <SelectSignatureLevel
+        onSelect={onSelect}
+        allowedSignatureLevels={["OA", "OCD"]}
+      />
+    );
+    const select = screen.getByLabelText("Signature Level");
+    fireEvent.mouseDown(select);
+    expect(
+      screen.getByText("OA - Office of the Administrator")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("OCD - Office of the Center Director")
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("OGD - Office of the Group Director")
+    ).not.toBeInTheDocument();
+  });
 });

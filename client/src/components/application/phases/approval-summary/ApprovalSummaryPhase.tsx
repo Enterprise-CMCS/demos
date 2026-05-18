@@ -309,7 +309,6 @@ export const ApprovalSummaryPhase = ({
           ? formatDateForServer(parseFormDateString(formData.expirationDate))
           : null,
         sdgDivision: formData.sdgDivision,
-        signatureLevel: formData.signatureLevel,
         stateId: formData.stateId,
         projectOfficerUserId: formData.projectOfficerId,
       };
@@ -327,7 +326,6 @@ export const ApprovalSummaryPhase = ({
       effectiveDate: formData.effectiveDate
         ? formatDateForServer(parseFormDateString(formData.effectiveDate))
         : null,
-      signatureLevel: formData.signatureLevel,
     };
     if (formData.applicationType === "amendment") {
       return await updateAmendmentTrigger({

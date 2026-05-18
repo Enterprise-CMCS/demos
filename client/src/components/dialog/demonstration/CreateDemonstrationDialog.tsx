@@ -43,7 +43,6 @@ export const CreateDemonstrationDialog: React.FC<{
     stateId: demonstration.stateId,
     projectOfficerUserId: demonstration.projectOfficerId,
     sdgDivision: demonstration.sdgDivision,
-    signatureLevel: demonstration.signatureLevel,
   });
 
   const onSubmit = async (demonstration: DemonstrationDialogFields) => {

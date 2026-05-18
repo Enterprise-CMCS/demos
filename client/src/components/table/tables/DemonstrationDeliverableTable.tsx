@@ -4,7 +4,7 @@ import type { UserType } from "demos-server";
 import { DELIVERABLE_STATUSES, DELIVERABLE_TYPES } from "demos-server-constants";
 import { SecondaryButton } from "components/button";
 
-import type { DeliverableTableRow } from "./DeliverableTable";
+import type { DeliverableTableRow, FormattedDeliverableTableRow } from "./DeliverableTable";
 import { Table, type TableProps } from "components/table/Table";
 import { createDateColumnDef } from "components/table/columns/dateColumn";
 import { highlightCell, KeywordSearch } from "components/table/KeywordSearch";
@@ -32,7 +32,7 @@ export const DemonstrationDeliverableTable: React.FC<{
   noResultsFoundMessage = DEFAULT_NO_SEARCH_RESULTS_MESSAGE,
   onViewDeliverable,
 }) => {
-  const columnHelper = createColumnHelper<DeliverableTableRow>();
+  const columnHelper = createColumnHelper<FormattedDeliverableTableRow>();
   const { cmsOwnerOptions } = getDeliverableFilterOptions(deliverables);
   const viewColumn = columnHelper.display({
     id: "view",
@@ -68,7 +68,7 @@ export const DemonstrationDeliverableTable: React.FC<{
     }),
     createDateColumnDef(columnHelper, "dueDate", "Due Date"),
     createDateColumnDef(columnHelper, "submissionDate", "Submission Date"),
-    columnHelper.accessor("status", {
+    columnHelper.accessor("combinedStatus", {
       header: "Status",
       cell: highlightCell,
       filterFn: "arrIncludesSome",
@@ -101,7 +101,7 @@ export const DemonstrationDeliverableTable: React.FC<{
   ];
   const resolvedColumns = viewMode === "demos-state-user" ? columns : columnsWithCmsFields;
   type DemonstrationDeliverableActionButtons = NonNullable<
-    TableProps<DeliverableTableRow>["actionButtons"]
+    TableProps<FormattedDeliverableTableRow>["actionButtons"]
   >;
   const renderActionButtons: DemonstrationDeliverableActionButtons = (table) => (
     <DeliverableActionButtons table={table} />
@@ -110,11 +110,11 @@ export const DemonstrationDeliverableTable: React.FC<{
 
   const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({
     ...deliverable,
-    status: formatDeliverableStatus(deliverable),
+    combinedStatus: formatDeliverableStatus(deliverable),
   }));
 
   return (
-    <Table<DeliverableTableRow>
+    <Table<FormattedDeliverableTableRow>
       data={formattedDeliverables}
       columns={resolvedColumns}
       keywordSearch={(table) => <KeywordSearch table={table} />}

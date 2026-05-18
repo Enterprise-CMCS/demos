@@ -127,6 +127,7 @@ export const ModificationForm: React.FC<{
       />
       <div className="w-1/2">
         <SelectSignatureLevel
+          allowedSignatureLevels={["OA", "OCD"]}
           onSelect={(signatureLevel) =>
             setModificationFormDataField({
               signatureLevel: signatureLevel,
