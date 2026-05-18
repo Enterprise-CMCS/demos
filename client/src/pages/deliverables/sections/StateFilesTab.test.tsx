@@ -159,14 +159,16 @@ describe("StateFilesTab", () => {
       expect(onSubmit).toHaveBeenCalledTimes(1);
     });
 
-    it("renders the Current toggle with horizontal sizing", () => {
+    it("renders the Current toggle as the shared styled switch", () => {
       renderTab();
 
-      const toggle = screen.getByTestId("toggle-current-file-a");
-      // Width must exceed height so the switch renders horizontally, not as a
-      // vertical sliver. Guards against the spacing-scale regression (w-9/h-5).
-      expect(toggle).toHaveClass("w-[36px]", "h-[20px]");
-      expect(toggle).not.toHaveClass("w-9", "h-5");
+      // react-switch renders a role="switch" element with fixed px sizing, so
+      // it's immune to the custom Tailwind spacing theme that previously made
+      // the hand-rolled toggle render as a vertical sliver.
+      const toggle = screen.getByRole("switch", {
+        name: /toggle current file file-a/i,
+      });
+      expect(toggle).toBeInTheDocument();
     });
   });
 

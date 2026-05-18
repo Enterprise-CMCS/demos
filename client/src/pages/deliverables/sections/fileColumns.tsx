@@ -1,5 +1,6 @@
 import * as React from "react";
 import { createColumnHelper } from "@tanstack/react-table";
+import Switch from "react-switch";
 
 import { DOCUMENT_TYPES } from "demos-server-constants";
 import { SecondaryButton } from "components/button";
@@ -89,18 +90,24 @@ export function makeCmsFileColumns() {
   ];
 }
 
-// Sizing uses explicit px instead of the spacing scale: this project's custom
-// Tailwind theme remaps `--spacing-*`, so `h-5`/`w-9`/`h-4` resolve to large,
-// mismatched values that render the switch as a tall vertical sliver.
+// Uses the shared `react-switch` styling (matching ContactColumns) so the
+// toggle renders consistently and isn't affected by the custom Tailwind
+// spacing theme.
 const CurrentToggle: React.FC<{ fileId: string }> = ({ fileId }) => (
-  <button
-    type="button"
-    role="switch"
-    aria-checked={false}
-    aria-label={`Toggle current file ${fileId}`}
-    data-testid={`toggle-current-${fileId}`}
-    className="relative inline-flex h-[20px] w-[36px] shrink-0 items-center rounded-full bg-border-fields focus:outline-none focus:ring-2 focus:ring-action-focus"
-  >
-    <span className="inline-block h-[16px] w-[16px] translate-x-[2px] transform rounded-full bg-white" />
-  </button>
+  <div className="inline-flex items-center justify-center">
+    <Switch
+      checked={false}
+      onChange={() => {}}
+      aria-label={`Toggle current file ${fileId}`}
+      onColor="#6B7280"
+      offColor="#E5E7EB"
+      checkedIcon={false}
+      uncheckedIcon={false}
+      height={18}
+      width={40}
+      handleDiameter={24}
+      boxShadow="0 2px 8px rgba(0, 0, 0, 0.6)"
+      activeBoxShadow="0 0 2px 3px #3bf"
+    />
+  </div>
 );
