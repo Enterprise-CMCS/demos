@@ -55,11 +55,8 @@ export async function persistApplicationTagSuggestionExtracts(
 ): Promise<void> {
   if (!uiPathValues.length) return;
 
-  let transactionStarted = false;
-
   try {
     await client.query("BEGIN");
-    transactionStarted = true;
 
     const fieldLimits = await client.query<{ id: string }>(SELECT_TAG_SUGGESTION_FIELD_LIMITS_SQL);
     const allowedFieldIds = new Set(fieldLimits.rows.map((row) => row.id));
@@ -80,9 +77,7 @@ export async function persistApplicationTagSuggestionExtracts(
 
     await client.query("COMMIT");
   } catch (error) {
-    if (transactionStarted) {
-      await client.query("ROLLBACK");
-    }
+    await client.query("ROLLBACK");
 
     if (error instanceof ApplicationTagSuggestionExtractError) {
       throw error;
