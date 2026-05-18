@@ -365,22 +365,6 @@ describe("extensionResolvers", () => {
         expect(transactionMocks.extension.create).toHaveBeenCalledOnce();
       }
     );
-
-    it("rejects invalid signature levels during creation", async () => {
-      await expect(
-        __createExtension(undefined, {
-          input: {
-            demonstrationId: testDemonstrationId,
-            name: testExtensionName,
-            description: testExtensionDescription,
-            signatureLevel: "INVALID" as SignatureLevel,
-          },
-        })
-      ).rejects.toThrowError("Invalid signature level for extension.");
-
-      expect(transactionMocks.application.create).not.toHaveBeenCalled();
-      expect(transactionMocks.extension.create).not.toHaveBeenCalled();
-    });
   });
 
   describe("__updateExtension", () => {

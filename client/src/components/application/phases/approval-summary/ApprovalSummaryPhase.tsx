@@ -28,7 +28,6 @@ const UPDATE_DEMONSTRATION_MUTATION = gql`
       effectiveDate
       expirationDate
       sdgDivision
-      signatureLevel
       state {
         id
       }

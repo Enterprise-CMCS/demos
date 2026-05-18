@@ -5,7 +5,6 @@ import {
   ApplicationType,
   CreateExtensionInput,
   PhaseName,
-  SignatureLevel,
   UiPathResultStatus,
   UpdateExtensionInput,
 } from "../../types";
@@ -24,16 +23,11 @@ import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
 const extensionApplicationType: ApplicationType = "Extension";
 const conceptPhaseName: PhaseName = "Concept";
 const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
-const VALID_EXTENSION_SIGNATURE_LEVELS: readonly SignatureLevel[] = ["OA", "OCD"];
 
 export async function __createExtension(
   parent: unknown,
   { input }: { input: CreateExtensionInput }
 ): Promise<PrismaExtension> {
-  if (input.signatureLevel && !VALID_EXTENSION_SIGNATURE_LEVELS.includes(input.signatureLevel)) {
-    throw new Error(`Invalid signature level for extension.`);
-  }
-
   return await prisma().$transaction(async (tx) => {
     const application = await tx.application.create({
       data: {
@@ -60,10 +54,6 @@ export async function __updateExtension(
   parent: unknown,
   { id, input }: { id: string; input: UpdateExtensionInput }
 ): Promise<PrismaExtension> {
-  if (input.signatureLevel && !VALID_EXTENSION_SIGNATURE_LEVELS.includes(input.signatureLevel)) {
-    throw new Error(`Invalid signature level for extension.`);
-  }
-
   const { effectiveDate } = parseAndValidateEffectiveAndExpirationDates(input);
   checkOptionalNotNullFields(["demonstrationId", "name", "status"], input);
   try {

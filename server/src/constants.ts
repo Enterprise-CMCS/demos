@@ -134,6 +134,10 @@ export const APPLICATION_TYPES = ["Demonstration", "Amendment", "Extension"] as 
 
 export const SIGNATURE_LEVEL = ["OA", "OCD", "OGD"] as const;
 
+export const AMENDMENT_SIGNATURE_LEVELS = ["OA", "OCD"] as const;
+
+export const EXTENSION_SIGNATURE_LEVELS = ["OA", "OCD"] as const;
+
 export const SDG_DIVISIONS = [
   "Division of System Reform Demonstrations",
   "Division of Eligibility and Coverage Demonstrations",
@@ -355,36 +359,6 @@ export const STATES_AND_TERRITORIES = [
   { id: "MP", name: "Northern Mariana Islands" },
   { id: "PR", name: "Puerto Rico" },
   { id: "VI", name: "Virgin Islands" },
-] as const;
-
-export const LOG_LEVELS = [
-  "emerg",
-  "alert",
-  "crit",
-  "err",
-  "warning",
-  "notice",
-  "info",
-  "debug",
-] as const;
-
-export const EVENT_TYPES = [
-  "Login Succeeded",
-  "Login Failed",
-  "Logout Succeeded",
-  "Logout Failed",
-  "Create Demonstration Succeeded",
-  "Create Demonstration Failed",
-  "Create Extension Succeeded",
-  "Create Extension Failed",
-  "Create Amendment Succeeded",
-  "Create Amendment Failed",
-  "Edit Demonstration Succeeded",
-  "Edit Demonstration Failed",
-  "Delete Demonstration Succeeded",
-  "Delete Demonstration Failed",
-  "Delete Document Succeeded",
-  "Delete Document Failed",
 ] as const;
 
 export const CONCEPT_PHASE_DOCUMENTS: DocumentType[] = ["General File", "Pre-Submission"] as const;

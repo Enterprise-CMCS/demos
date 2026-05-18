@@ -10,6 +10,8 @@ import {
   PHASE_DOCUMENT_TYPE_MAP,
   NOTE_TYPES,
   TAG_TYPES,
+  AMENDMENT_SIGNATURE_LEVELS,
+  EXTENSION_SIGNATURE_LEVELS,
 } from "./constants.js";
 import {
   CreateDemonstrationInput,
@@ -19,8 +21,6 @@ import {
   UpdateAmendmentInput,
   UpdateExtensionInput,
   SetApplicationDatesInput,
-  EventType,
-  LogEventInput,
   Role,
   CreateDeliverableInput,
   PersonType,
@@ -35,7 +35,6 @@ import {
 import { __createAmendment, __updateAmendment } from "./model/amendment/amendmentResolvers.js";
 import { __createExtension, __updateExtension } from "./model/extension/extensionResolvers.js";
 import { __setApplicationDates } from "./model/applicationDate/applicationDateResolvers.js";
-import { logEvent } from "./model/event/eventResolvers.js";
 import { GraphQLContext } from "./auth/auth.util.js";
 import { getManyApplications } from "./model/application";
 import {
@@ -608,7 +607,6 @@ async function clearDatabase() {
     prisma().extension.deleteMany(),
     prisma().demonstration.deleteMany(),
 
-    prisma().event.deleteMany(),
     prisma().systemRoleAssignment.deleteMany(),
     prisma().personState.deleteMany(),
     prisma().user.deleteMany(),
@@ -1016,7 +1014,7 @@ async function seedDatabase() {
       demonstrationId: faker.helpers.arrayElement(demonstrationIds).id,
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
-      signatureLevel: sampleFromArray([undefined], 1)[0],
+      signatureLevel: sampleFromArray([...AMENDMENT_SIGNATURE_LEVELS, undefined], 1)[0],
     };
     await __createAmendment(undefined, { input: createInput });
   }
@@ -1039,7 +1037,7 @@ async function seedDatabase() {
       demonstrationId: faker.helpers.arrayElement(demonstrationIds).id,
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
-      signatureLevel: sampleFromArray([undefined], 1)[0],
+      signatureLevel: sampleFromArray([...EXTENSION_SIGNATURE_LEVELS, undefined], 1)[0],
     };
     await __createExtension(undefined, { input: createInput });
   }
@@ -1066,88 +1064,6 @@ async function seedDatabase() {
   await seedApplicationTagSuggestions();
 
   await seedNotes();
-  console.log("🌱 Seeding events (with and without applicationIds)...");
-  // Grab some applications for association
-  const numberOfApplicationEvents = 10;
-  const applicationsForEvents = await prisma().application.findMany({
-    select: { id: true },
-    take: numberOfApplicationEvents,
-  });
-
-  // Grab some users/roles to make events look legit
-  const usersForEvents = await prisma().user.findMany({
-    select: { id: true, personTypeId: true, cognitoSubject: true },
-    take: 5,
-  });
-
-  function pick<T>(arr: T[]): T {
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
-
-  const totalEvents = numberOfApplicationEvents + 10;
-
-  for (let i = 0; i < totalEvents; i++) {
-    // ~60% of events have a applicationId, rest are null
-    const attachApplication = Math.random() < 0.6;
-    const maybeApplication = attachApplication ? (pick(applicationsForEvents)?.id ?? null) : null;
-    const user = pick(usersForEvents);
-
-    // Note that these don't really make sense because application is generic
-    // Should come back and be more specific as EventType evolves
-    const applicationEventTypes: EventType[] = [
-      "Create Amendment Succeeded",
-      "Create Amendment Failed",
-      "Create Demonstration Succeeded",
-      "Create Demonstration Failed",
-      "Create Extension Succeeded",
-      "Create Extension Failed",
-      "Delete Demonstration Succeeded",
-      "Delete Demonstration Failed",
-      "Edit Demonstration Succeeded",
-      "Edit Demonstration Failed",
-    ];
-    const otherEventTypes: EventType[] = ["Login Succeeded", "Logout Succeeded"];
-    const eventTypeId = maybeApplication
-      ? faker.helpers.arrayElement(applicationEventTypes)
-      : faker.helpers.arrayElement(otherEventTypes);
-
-    const systemRoles: Role[] = ["All Users"];
-    const demonstrationRoles: Role[] = [
-      "Project Officer",
-      "Policy Technical Director",
-      "Monitoring & Evaluation Technical Director",
-      "DDME Analyst",
-      "State Point of Contact",
-    ];
-    const roleId = maybeApplication
-      ? faker.helpers.arrayElement(demonstrationRoles)
-      : faker.helpers.arrayElement(systemRoles);
-
-    const eventData: LogEventInput = {
-      role: roleId,
-      applicationId: maybeApplication,
-      eventType: eventTypeId,
-      logLevel: faker.helpers.arrayElement(["err", "warning", "info"]),
-      route: faker.helpers.arrayElement([
-        "/applications",
-        "/applications/:id",
-        "/documents/:id",
-        "/login",
-        "/graph",
-      ]),
-      eventData: {
-        ip: faker.internet.ipv4(),
-        ua: faker.internet.userAgent(),
-        note: faker.lorem.sentence(),
-      },
-    };
-
-    const context = {
-      user,
-    } as GraphQLContext;
-
-    logEvent(undefined, { input: eventData }, context);
-  }
 
   console.log("✨ Database seeding complete.");
 }
