@@ -2,9 +2,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Document as PrismaDocument } from "@prisma/client";
 import { S3Adapter } from "../../adapters";
 import { handleDeleteDocument, deleteDocumentById } from ".";
+import { validateDocumentCanBeDeleted } from "./validateDocumentCanBeDeleted";
 
 vi.mock("./queries/deleteDocumentById", () => ({
   deleteDocumentById: vi.fn(),
+}));
+
+vi.mock("./validateDocumentCanBeDeleted", () => ({
+  validateDocumentCanBeDeleted: vi.fn(),
 }));
 
 describe("handleDeleteDocument", () => {
@@ -41,6 +46,18 @@ describe("handleDeleteDocument", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+  });
+
+  it("should validate that the document can be deleted before proceeding", async () => {
+    vi.mocked(deleteDocumentById).mockResolvedValue(mockDeletedDocument as PrismaDocument);
+
+    await handleDeleteDocument(mockTransaction, mockS3Adapter, testDocumentId);
+
+    expect(validateDocumentCanBeDeleted).toHaveBeenCalledExactlyOnceWith(mockDeletedDocument);
+    expect(deleteDocumentById).toHaveBeenCalledExactlyOnceWith(mockTransaction, testDocumentId);
+    expect(mockS3Adapter.moveDocumentFromCleanToDeleted).toHaveBeenCalledExactlyOnceWith(
+      `${testApplicationId}/${testDocumentId}`
+    );
   });
 
   it("should delete document by id and move it to deleted bucket", async () => {

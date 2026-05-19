@@ -2,6 +2,7 @@ import { Document as PrismaDocument } from "@prisma/client";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { S3Adapter } from "../../adapters/s3/S3Adapter";
 import { deleteDocumentById } from ".";
+import { validateDocumentCanBeDeleted } from "./validateDocumentCanBeDeleted";
 
 export async function handleDeleteDocument(
   tx: PrismaTransactionClient,
@@ -9,6 +10,7 @@ export async function handleDeleteDocument(
   id: string
 ): Promise<PrismaDocument> {
   const document = await deleteDocumentById(tx, id);
+  validateDocumentCanBeDeleted(document);
   const key = `${document.applicationId}/${document.id}`;
   await s3Adapter.moveDocumentFromCleanToDeleted(key);
   return document;
