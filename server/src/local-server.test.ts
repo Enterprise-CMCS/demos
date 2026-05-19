@@ -74,6 +74,7 @@ describe("local-server startup", () => {
       given_name: "obiwan",
       family_name: "Kenobi",
       identities: [{ userId: "ABCD" }],
+      auth_time: "1779211277",
     };
 
     const claims = extractClaimsFromDecodedToken(decodedToken);
@@ -85,6 +86,7 @@ describe("local-server startup", () => {
       givenName: "obiwan",
       familyName: "Kenobi",
       externalUserId: "ABCD",
+      authTime: new Date(1779211277000),
     });
     expect(claims).toEqual({
       email: "somehuman@example.com",
@@ -93,6 +95,7 @@ describe("local-server startup", () => {
       givenName: "obiwan",
       familyName: "Kenobi",
       externalUserId: "ABCD",
+      authTime: new Date(1779211277000),
     });
   });
 });

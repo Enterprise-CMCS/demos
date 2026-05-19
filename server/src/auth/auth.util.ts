@@ -40,6 +40,13 @@ export function validateClaims(
   if (!USER_TYPES.includes(claims.role as UserType)) {
     throw new Error(`Invalid user role: '${claims.role}'`);
   }
+  if (!claims.authTime) {
+    throw new Error("Authorizer claims missing required 'authTime' field");
+  } else if (!(claims.authTime instanceof Date)) {
+    throw new Error("Authorizer claims has non-Date instance of 'authTime' field");
+  } else if (isNaN(claims.authTime.getTime())) {
+    throw new Error("Authorizer claims has invalid Date instance of 'authTime' field");
+  }
 }
 
 export async function buildContextFromClaims(claims: AuthorizationClaims): Promise<GraphQLContext> {
