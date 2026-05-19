@@ -24,6 +24,9 @@ import {
   updateDeliverable,
   getDeliverable,
   getManyDeliverables,
+  selectDeliverable,
+  selectManyDeliverables,
+  selectDeliverableOrThrow,
 } from ".";
 import {
   ApproveDeliverableExtensionInput,
@@ -77,7 +80,7 @@ export async function resolveDeliverable(
   if (filter === null) {
     return null;
   }
-  return await getDeliverable(filter, context.user);
+  return await selectDeliverableOrThrow(filter);
 }
 
 export async function resolveManyDeliverables(
@@ -100,7 +103,7 @@ export async function resolveManyDeliverables(
       throw new Error(`Unsupported parent type: ${parentType}`);
   }
 
-  const results = await getManyDeliverables(filter, context.user);
+  const results = await selectManyDeliverables(filter);
   return results;
 }
 
