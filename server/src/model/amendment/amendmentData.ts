@@ -3,6 +3,7 @@ import { buildAuthorizationFilter, PermissionFilters, ContextUser } from "../../
 import { selectAmendment, selectManyAmendments } from "./queries";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { isAStatePointOfContactAssociatedWithDemonstration } from "../demonstration/demonstrationData";
+import { log } from "../../log";
 
 export const isAStatePointOfContactAssociatedWithAmendment = (
   userId: string
@@ -33,16 +34,27 @@ export async function getAmendment(
     getPermissionFilters
   );
 
-  if (authFilter === null) {
-    return null;
+  if (authFilter !== null) {
+    const authorizedAmendment = await selectAmendment(
+      {
+        AND: [where, authFilter],
+      },
+      tx
+    );
+
+    if (authorizedAmendment) {
+      return authorizedAmendment;
+    }
   }
 
-  return await selectAmendment(
-    {
-      AND: [where, authFilter],
-    },
-    tx
-  );
+  const amendment = await selectAmendment(where, tx);
+  if (amendment) {
+    log.warn(
+      `User ${user.id} attempted to access Amendment ${amendment.id} without sufficient permissions.`
+    );
+  }
+
+  throw new Error("Requested Amendment not found or User does not have Permission to view it.");
 }
 
 export async function getManyAmendments(
