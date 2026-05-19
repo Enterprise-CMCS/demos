@@ -1,17 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { User as PrismaUser } from "@prisma/client";
-import type { GraphQLContext } from "../../auth";
-import { userResolvers } from "./userResolvers";
-
-// Mock imports
-import { getManyDocuments } from "../document";
-import { getUser } from "./userData";
-import { getPerson } from "../person";
-import {
-  selectManySystemRoleAssignments,
-  SystemRoleAssignmentQueryResult,
-} from "../systemRoleAssignment";
 import { DeepPartial } from "../../testUtilities";
+
+import { User as PrismaUser } from "@prisma/client";
+import type { SystemRoleAssignmentQueryResult } from "../systemRoleAssignment";
+import type { GraphQLContext } from "../../auth";
+
+import { userResolvers } from "./userResolvers";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -32,6 +26,16 @@ vi.mock("./userData", () => ({
 vi.mock("../person", () => ({
   getPerson: vi.fn(),
 }));
+
+vi.mock("../userSession/queries", () => ({
+  selectLastLoginForUser: vi.fn(),
+}));
+
+import { selectManySystemRoleAssignments } from "../systemRoleAssignment";
+import { getManyDocuments } from "../document";
+import { getUser } from "./userData";
+import { getPerson } from "../person";
+import { selectLastLoginForUser } from "../userSession/queries";
 
 describe("userResolvers", () => {
   const testUserId = "abc123";
@@ -147,6 +151,16 @@ describe("userResolvers", () => {
         personId: "abc123",
       });
       expect(result).toStrictEqual(["permission-1", "permission-2", "permission-3"]);
+    });
+  });
+
+  describe("User.lastLogin", () => {
+    it("delegates to selectLastLoginForUser", async () => {
+      const testUser = {
+        id: "abc123",
+      } as PrismaUser;
+      await userResolvers.User.lastLogin(testUser);
+      expect(selectLastLoginForUser).toHaveBeenCalledExactlyOnceWith(testUser.id);
     });
   });
 });
