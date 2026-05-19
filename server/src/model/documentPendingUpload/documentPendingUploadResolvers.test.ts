@@ -9,7 +9,7 @@ import { GraphQLContext } from "../../auth";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { getS3Adapter } from "../../adapters";
-import { getDeliverable } from "../deliverable";
+import { selectDeliverableOrThrow } from "../deliverable";
 import { updateAssociatedPhase } from "./updateAssociatedPhase";
 
 vi.mock("../../errors/checkOptionalNotNullFields", () => ({
@@ -39,7 +39,7 @@ vi.mock("../applicationPhase", () => ({
 }));
 
 vi.mock("../deliverable", () => ({
-  getDeliverable: vi.fn(),
+  selectDeliverableOrThrow: vi.fn(),
   resolveDeliverable: vi.fn(),
 }));
 
@@ -159,7 +159,7 @@ describe("documentResolvers", () => {
           id: input.deliverableId,
           deliverableTypeId: "Close Out Report",
         };
-        vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
+        vi.mocked(selectDeliverableOrThrow).mockResolvedValue(mockDeliverable as PrismaDeliverable);
 
         await documentPendingUploadResolvers.Mutation.uploadDocumentToDeliverable(
           undefined,
@@ -175,7 +175,7 @@ describe("documentResolvers", () => {
           id: input.deliverableId,
           deliverableTypeId: "Close Out Report",
         };
-        vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
+        vi.mocked(selectDeliverableOrThrow).mockResolvedValue(mockDeliverable as PrismaDeliverable);
 
         await documentPendingUploadResolvers.Mutation.uploadDocumentToDeliverable(
           undefined,
@@ -183,7 +183,7 @@ describe("documentResolvers", () => {
           mockContext
         );
 
-        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith({ id: input.deliverableId });
+        expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith({ id: input.deliverableId });
       });
 
       it("should call s3Adapter.uploadDocument with correct parameters", async () => {
@@ -191,7 +191,7 @@ describe("documentResolvers", () => {
           id: input.deliverableId,
           deliverableTypeId: "Close Out Report",
         };
-        vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
+        vi.mocked(selectDeliverableOrThrow).mockResolvedValue(mockDeliverable as PrismaDeliverable);
 
         await documentPendingUploadResolvers.Mutation.uploadDocumentToDeliverable(
           undefined,

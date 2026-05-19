@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { getManyDeliverables } from "./getManyDeliverables";
+import { selectManyDeliverables } from "./selectManyDeliverables";
 
 // Mock imports
 import { prisma } from "../../../prismaClient";
@@ -9,7 +9,7 @@ vi.mock("../../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
 
-describe("getManyDeliverables", () => {
+describe("selectManyDeliverables", () => {
   const regularMocks = {
     deliverable: {
       findMany: vi.fn(),
@@ -47,7 +47,7 @@ describe("getManyDeliverables", () => {
   });
 
   it("should only filter by the deleted flag if nothing else is passed to the function", async () => {
-    await getManyDeliverables();
+    await selectManyDeliverables();
     expect(prisma).toHaveBeenCalled();
     expect(regularMocks.deliverable.findMany).toHaveBeenCalledExactlyOnceWith(
       expectedEmptyFilteredCall
@@ -56,7 +56,7 @@ describe("getManyDeliverables", () => {
   });
 
   it("should use a transaction if it is passed, even if not filtering", async () => {
-    await getManyDeliverables({}, { tx: mockTransaction });
+    await selectManyDeliverables({}, mockTransaction);
     expect(prisma).not.toHaveBeenCalled();
     expect(regularMocks.deliverable.findMany).not.toHaveBeenCalled();
     expect(transactionMocks.deliverable.findMany).toHaveBeenCalledExactlyOnceWith(
@@ -65,30 +65,18 @@ describe("getManyDeliverables", () => {
   });
 
   it("should get the deliverables directly from the database directly if no transaction is given", async () => {
-    await getManyDeliverables({ demonstrationId: testDemonstrationId });
+    await selectManyDeliverables({ demonstrationId: testDemonstrationId });
     expect(prisma).toHaveBeenCalled();
     expect(regularMocks.deliverable.findMany).toHaveBeenCalledExactlyOnceWith(expectedFilteredCall);
     expect(transactionMocks.deliverable.findMany).not.toHaveBeenCalled();
   });
 
   it("should get the deliverables via a transaction if one is given", async () => {
-    await getManyDeliverables({ demonstrationId: testDemonstrationId }, { tx: mockTransaction });
+    await selectManyDeliverables({ demonstrationId: testDemonstrationId }, mockTransaction);
     expect(prisma).not.toHaveBeenCalled();
     expect(regularMocks.deliverable.findMany).not.toHaveBeenCalled();
     expect(transactionMocks.deliverable.findMany).toHaveBeenCalledExactlyOnceWith(
       expectedFilteredCall
-    );
-  });
-
-  it("should not filter out deleted records if passed the right option", async () => {
-    await getManyDeliverables(
-      { demonstrationId: testDemonstrationId },
-      { includeDeleted: true, tx: mockTransaction }
-    );
-    expect(prisma).not.toHaveBeenCalled();
-    expect(regularMocks.deliverable.findMany).not.toHaveBeenCalled();
-    expect(transactionMocks.deliverable.findMany).toHaveBeenCalledExactlyOnceWith(
-      expectedUnfilteredCall
     );
   });
 });
