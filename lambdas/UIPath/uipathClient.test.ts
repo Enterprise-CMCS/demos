@@ -3,12 +3,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   getMock: vi.fn(),
   postMock: vi.fn(),
+  isAxiosErrorMock: vi.fn(),
 }));
 
 vi.mock("axios", () => ({
   default: {
     get: mocks.getMock,
     post: mocks.postMock,
+    isAxiosError: mocks.isAxiosErrorMock,
   },
 }));
 
@@ -18,6 +20,8 @@ describe("uipathClient", () => {
   beforeEach(() => {
     mocks.getMock.mockReset();
     mocks.postMock.mockReset();
+    mocks.isAxiosErrorMock.mockReset();
+    mocks.isAxiosErrorMock.mockReturnValue(false);
   });
 
   it("uipathGetRequest adds bearer auth and api-version", async () => {
@@ -55,6 +59,50 @@ describe("uipathClient", () => {
       },
       timeout: 5000,
     });
+  });
+
+  it("uipathGetRequest retries transient failures", async () => {
+    const transientError = {
+      isAxiosError: true,
+      response: {
+        status: 503,
+        headers: {},
+      },
+    };
+    mocks.isAxiosErrorMock.mockImplementation((error) => error?.isAxiosError === true);
+    mocks.getMock.mockRejectedValueOnce(transientError).mockResolvedValueOnce({ data: { ok: true } });
+
+    await uipathGetRequest("https://example.com/resource", "token-123", {
+      retry: {
+        maxAttempts: 2,
+        delayMs: () => 0,
+      },
+    });
+
+    expect(mocks.getMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("uipathGetRequest does not retry non-transient failures", async () => {
+    const validationError = {
+      isAxiosError: true,
+      response: {
+        status: 400,
+        headers: {},
+      },
+    };
+    mocks.isAxiosErrorMock.mockImplementation((error) => error?.isAxiosError === true);
+    mocks.getMock.mockRejectedValueOnce(validationError);
+
+    await expect(
+      uipathGetRequest("https://example.com/resource", "token-123", {
+        retry: {
+          maxAttempts: 2,
+          delayMs: () => 0,
+        },
+      })
+    ).rejects.toBe(validationError);
+
+    expect(mocks.getMock).toHaveBeenCalledTimes(1);
   });
 
   it("uipathPostRequest adds bearer auth, api-version and forwards body", async () => {
