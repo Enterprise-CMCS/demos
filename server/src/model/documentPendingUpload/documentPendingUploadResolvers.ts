@@ -15,6 +15,7 @@ import { getApplication, PrismaApplication } from "../application";
 import { getUser } from "../user";
 import { getDeliverable, resolveDeliverable } from "../deliverable";
 import { updateAssociatedPhase } from "./updateAssociatedPhase";
+import { handleUploadDocumentToDeliverable } from "./handleUploadDocumentToDeliverable";
 
 export async function resolveApplication(
   parent: PrismaDocumentPendingUpload
@@ -68,28 +69,19 @@ export const documentPendingUploadResolvers = {
         handlePrismaError(error);
       }
     },
-    uploadDocumentToDeliverable: async (
+    uploadDocumentToDeliverableCMSFiles: async (
       parent: unknown,
       { input }: { input: UploadDocumentToDeliverableInput },
       context: GraphQLContext
     ): Promise<PrismaDocumentPendingUpload> => {
-      checkOptionalNotNullFields(["description"], input);
-
-      try {
-        const deliverable = await getDeliverable({ id: input.deliverableId });
-        return await getS3Adapter().uploadDocument({
-          name: input.name,
-          description: input.description,
-          applicationId: input.applicationId,
-          ownerUserId: context.user.id,
-          documentTypeId: input.documentType,
-          deliverableId: input.deliverableId,
-          deliverableIsCmsAttachedFile: input.isCmsAttachedFile,
-          deliverableTypeId: deliverable.deliverableTypeId,
-        });
-      } catch (error) {
-        handlePrismaError(error);
-      }
+      return await handleUploadDocumentToDeliverable(input, context.user.id, true);
+    },
+    uploadDocumentToDeliverableStateFiles: async (
+      parent: unknown,
+      { input }: { input: UploadDocumentToDeliverableInput },
+      context: GraphQLContext
+    ): Promise<PrismaDocumentPendingUpload> => {
+      return await handleUploadDocumentToDeliverable(input, context.user.id, false);
     },
   },
 

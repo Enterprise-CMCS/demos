@@ -45,7 +45,6 @@ export const documentPendingUploadSchema = gql`
     documentType: DocumentType!
     applicationId: ID!
     deliverableId: ID!
-    isCmsAttachedFile: Boolean!
   }
 
   input UpdateDocumentInput {
@@ -57,7 +56,12 @@ export const documentPendingUploadSchema = gql`
   type Mutation {
     uploadDocumentToApplication(input: UploadDocumentToApplicationInput!): DocumentPendingUpload!
     uploadDocumentToPhase(input: UploadDocumentToPhaseInput!): DocumentPendingUpload!
-    uploadDocumentToDeliverable(input: UploadDocumentToDeliverableInput!): DocumentPendingUpload!
+    uploadDocumentToDeliverableCMSFiles(
+      input: UploadDocumentToDeliverableInput!
+    ): DocumentPendingUpload!
+    uploadDocumentToDeliverableStateFiles(
+      input: UploadDocumentToDeliverableInput!
+    ): DocumentPendingUpload!
   }
 `;
 
@@ -96,5 +100,4 @@ export interface UploadDocumentToDeliverableInput {
   documentType: DocumentType;
   applicationId: string;
   deliverableId: string;
-  isCmsAttachedFile: boolean;
 }
