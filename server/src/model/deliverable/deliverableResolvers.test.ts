@@ -7,6 +7,7 @@ import {
   Deliverable as PrismaDeliverable,
   Demonstration as PrismaDemonstration,
   Document as PrismaDocument,
+  DocumentPendingUpload as PrismaDocumentPendingUpload,
   User as PrismaUser,
   PrivateComment as PrismaPrivateComment,
   PublicComment as PrismaPublicComment,
@@ -131,6 +132,11 @@ describe("deliverableResolvers", () => {
       name: "Document",
     },
   };
+  const testDocumentPendingUploadInfo = {
+    parentType: {
+      name: "DocumentPendingUpload",
+    },
+  };
   const testDemonstrationInfo = {
     parentType: {
       name: "Demonstration",
@@ -151,7 +157,13 @@ describe("deliverableResolvers", () => {
   const testDocumentWithDeliverableParent: Partial<PrismaDocument> = {
     deliverableId: testDeliverableId,
   };
+  const testDocumentPendingUploadWithDeliverableParent: Partial<PrismaDocumentPendingUpload> = {
+    deliverableId: testDeliverableId,
+  };
   const testDocumentWithoutDeliverableParent: Partial<PrismaDocument> = {
+    deliverableId: null,
+  };
+  const testDocumentPendingUploadWithoutDeliverableParent: Partial<PrismaDocumentPendingUpload> = {
     deliverableId: null,
   };
   const testDemonstrationParent: Partial<PrismaDemonstration> = {
@@ -430,6 +442,41 @@ describe("deliverableResolvers", () => {
           {} as unknown,
           {} as GraphQLContext,
           testDocumentInfo as GraphQLResolveInfo
+        );
+        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+          {
+            id: testDeliverableId,
+          },
+          { includeDeleted: true }
+        );
+        expect(result).toBe(mockDeliverable);
+      });
+    });
+
+    describe("Parent: DocumentPendingUpload", () => {
+      it("should not query and return null if there is no deliverable ID", async () => {
+        const result = await resolveDeliverable(
+          testDocumentPendingUploadWithoutDeliverableParent as PrismaDocumentPendingUpload,
+          {} as unknown,
+          {} as GraphQLContext,
+          testDocumentPendingUploadInfo as GraphQLResolveInfo
+        );
+        expect(result).toBeNull();
+        expect(getDeliverable).not.toHaveBeenCalled();
+      });
+
+      it("should query if there is a deliverable ID", async () => {
+        const mockDeliverable: Partial<PrismaDeliverable> = {
+          id: "abc123",
+          statusId: "Upcoming",
+        };
+        vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
+
+        const result = await resolveDeliverable(
+          testDocumentPendingUploadWithDeliverableParent as PrismaDocumentPendingUpload,
+          {} as unknown,
+          {} as GraphQLContext,
+          testDocumentPendingUploadInfo as GraphQLResolveInfo
         );
         expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
           {
