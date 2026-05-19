@@ -173,14 +173,14 @@ CREATE TABLE "application_tag_assignment_history" (
 
 -- CreateTable
 CREATE TABLE "application_tag_suggestion" (
-    "id" UUID NOT NULL,
     "application_id" UUID NOT NULL,
     "value" TEXT NOT NULL,
     "status_id" TEXT NOT NULL,
+    "replaced_value" TEXT,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
-    CONSTRAINT "application_tag_suggestion_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "application_tag_suggestion_pkey" PRIMARY KEY ("application_id","value")
 );
 
 -- CreateTable
@@ -188,10 +188,10 @@ CREATE TABLE "application_tag_suggestion_history" (
     "revision_id" SERIAL NOT NULL,
     "revision_type" "revision_type_enum" NOT NULL,
     "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "id" UUID NOT NULL,
     "application_id" UUID NOT NULL,
     "value" TEXT NOT NULL,
     "status_id" TEXT NOT NULL,
+    "replaced_value" TEXT,
     "created_at" TIMESTAMPTZ NOT NULL,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
@@ -200,7 +200,6 @@ CREATE TABLE "application_tag_suggestion_history" (
 
 -- CreateTable
 CREATE TABLE "application_tag_suggestion_extract" (
-    "suggestion_id" UUID NOT NULL,
     "uipath_value_id" UUID NOT NULL,
     "application_id" UUID NOT NULL,
     "field_id" TEXT NOT NULL,
@@ -210,7 +209,7 @@ CREATE TABLE "application_tag_suggestion_extract" (
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ NOT NULL,
 
-    CONSTRAINT "application_tag_suggestion_extract_pkey" PRIMARY KEY ("suggestion_id","uipath_value_id")
+    CONSTRAINT "application_tag_suggestion_extract_pkey" PRIMARY KEY ("uipath_value_id","application_id","value")
 );
 
 -- CreateTable
@@ -218,7 +217,6 @@ CREATE TABLE "application_tag_suggestion_extract_history" (
     "revision_id" SERIAL NOT NULL,
     "revision_type" "revision_type_enum" NOT NULL,
     "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "suggestion_id" UUID NOT NULL,
     "uipath_value_id" UUID NOT NULL,
     "application_id" UUID NOT NULL,
     "field_id" TEXT NOT NULL,
@@ -325,6 +323,7 @@ CREATE TABLE "date_type" (
 CREATE TABLE "deliverable" (
     "id" UUID NOT NULL,
     "deliverable_type_id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
     "demonstration_id" UUID NOT NULL,
     "demonstration_status_id" TEXT NOT NULL,
     "status_id" TEXT NOT NULL,
@@ -346,6 +345,7 @@ CREATE TABLE "deliverable_history" (
     "modified_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "id" UUID NOT NULL,
     "deliverable_type_id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
     "demonstration_id" UUID NOT NULL,
     "demonstration_status_id" TEXT NOT NULL,
     "status_id" TEXT NOT NULL,
@@ -373,6 +373,7 @@ CREATE TABLE "deliverable_action" (
     "due_date_change_allowed" BOOLEAN NOT NULL,
     "should_have_note" BOOLEAN NOT NULL,
     "should_have_user_id" BOOLEAN NOT NULL,
+    "extension_id_optional" BOOLEAN NOT NULL,
     "old_due_date" TIMESTAMPTZ NOT NULL,
     "new_due_date" TIMESTAMPTZ NOT NULL,
     "user_id" UUID,
@@ -396,6 +397,7 @@ CREATE TABLE "deliverable_action_history" (
     "due_date_change_allowed" BOOLEAN NOT NULL,
     "should_have_note" BOOLEAN NOT NULL,
     "should_have_user_id" BOOLEAN NOT NULL,
+    "extension_id_optional" BOOLEAN NOT NULL,
     "old_due_date" TIMESTAMPTZ NOT NULL,
     "new_due_date" TIMESTAMPTZ NOT NULL,
     "user_id" UUID,
@@ -418,6 +420,7 @@ CREATE TABLE "deliverable_action_type" (
     "due_date_change_allowed" BOOLEAN NOT NULL,
     "should_have_note" BOOLEAN NOT NULL,
     "should_have_user_id" BOOLEAN NOT NULL,
+    "extension_id_optional" BOOLEAN NOT NULL,
 
     CONSTRAINT "deliverable_action_type_pkey" PRIMARY KEY ("id")
 );
@@ -479,7 +482,6 @@ CREATE TABLE "deliverable_extension" (
     "deliverable_id" UUID NOT NULL,
     "status_id" TEXT NOT NULL,
     "reason_code_id" TEXT NOT NULL,
-    "note" TEXT,
     "original_date_requested" TIMESTAMPTZ NOT NULL,
     "final_date_granted" TIMESTAMPTZ,
     "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -497,7 +499,6 @@ CREATE TABLE "deliverable_extension_history" (
     "deliverable_id" UUID NOT NULL,
     "status_id" TEXT NOT NULL,
     "reason_code_id" TEXT NOT NULL,
-    "note" TEXT,
     "original_date_requested" TIMESTAMPTZ NOT NULL,
     "final_date_granted" TIMESTAMPTZ,
     "created_at" TIMESTAMPTZ NOT NULL,
@@ -806,28 +807,6 @@ CREATE TABLE "document_type" (
 );
 
 -- CreateTable
-CREATE TABLE "event" (
-    "id" UUID NOT NULL,
-    "user_id" UUID,
-    "role_id" TEXT,
-    "application_id" UUID,
-    "event_type_id" TEXT NOT NULL,
-    "log_level_id" TEXT NOT NULL,
-    "route" TEXT NOT NULL,
-    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "event_data" JSONB NOT NULL,
-
-    CONSTRAINT "event_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "event_type" (
-    "id" TEXT NOT NULL,
-
-    CONSTRAINT "event_type_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "extension" (
     "id" UUID NOT NULL,
     "application_type_id" TEXT NOT NULL,
@@ -878,15 +857,6 @@ CREATE TABLE "grant_level" (
     "id" TEXT NOT NULL,
 
     CONSTRAINT "grant_level_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "log_level" (
-    "id" TEXT NOT NULL,
-    "severity" TEXT NOT NULL,
-    "level" INTEGER NOT NULL,
-
-    CONSTRAINT "log_level_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -1354,14 +1324,21 @@ CREATE TABLE "user_person_type_limit" (
     CONSTRAINT "user_person_type_limit_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "user_session" (
+    "user_id" UUID NOT NULL,
+    "auth_time" TIMESTAMPTZ NOT NULL,
+    "last_auth_event_time" TIMESTAMPTZ NOT NULL,
+    "auth_event_count" INTEGER NOT NULL,
+
+    CONSTRAINT "user_session_pkey" PRIMARY KEY ("user_id","auth_time")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "amendment_id_application_type_id_key" ON "amendment"("id", "application_type_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "application_id_application_type_id_key" ON "application"("id", "application_type_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "application_tag_suggestion_id_application_id_value_key" ON "application_tag_suggestion"("id", "application_id", "value");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "deliverable_id_demonstration_id_key" ON "deliverable"("id", "demonstration_id");
@@ -1373,7 +1350,7 @@ CREATE UNIQUE INDEX "deliverable_id_demonstration_id_deliverable_type_id_key" ON
 CREATE UNIQUE INDEX "deliverable_action_id_action_type_id_key" ON "deliverable_action"("id", "action_type_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "deliverable_action_type_id_due_date_change_allowed_should_h_key" ON "deliverable_action_type"("id", "due_date_change_allowed", "should_have_note", "should_have_user_id");
+CREATE UNIQUE INDEX "deliverable_action_type_id_due_date_change_allowed_should_h_key" ON "deliverable_action_type"("id", "due_date_change_allowed", "should_have_note", "should_have_user_id", "extension_id_optional");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "deliverable_active_extension_deliverable_id_key" ON "deliverable_active_extension"("deliverable_id");
@@ -1493,7 +1470,10 @@ ALTER TABLE "application_tag_assignment" ADD CONSTRAINT "application_tag_assignm
 ALTER TABLE "application_tag_suggestion" ADD CONSTRAINT "application_tag_suggestion_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "application_tag_suggestion_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "application_tag_suggestion_extract" ADD CONSTRAINT "application_tag_suggestion_extract_suggestion_id_applicati_fkey" FOREIGN KEY ("suggestion_id", "application_id", "value") REFERENCES "application_tag_suggestion"("id", "application_id", "value") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "application_tag_suggestion" ADD CONSTRAINT "application_tag_suggestion_application_id_fkey" FOREIGN KEY ("application_id") REFERENCES "application"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "application_tag_suggestion_extract" ADD CONSTRAINT "application_tag_suggestion_extract_application_id_value_fkey" FOREIGN KEY ("application_id", "value") REFERENCES "application_tag_suggestion"("application_id", "value") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "application_tag_suggestion_extract" ADD CONSTRAINT "application_tag_suggestion_extract_uipath_value_id_applica_fkey" FOREIGN KEY ("uipath_value_id", "application_id", "field_id", "value") REFERENCES "uipath_value"("id", "application_id", "field_id", "value") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1550,7 +1530,7 @@ ALTER TABLE "deliverable_action" ADD CONSTRAINT "deliverable_action_active_exten
 ALTER TABLE "deliverable_action" ADD CONSTRAINT "deliverable_action_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "deliverable_action" ADD CONSTRAINT "deliverable_action_action_type_id_due_date_change_allowed__fkey" FOREIGN KEY ("action_type_id", "due_date_change_allowed", "should_have_note", "should_have_user_id") REFERENCES "deliverable_action_type"("id", "due_date_change_allowed", "should_have_note", "should_have_user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "deliverable_action" ADD CONSTRAINT "deliverable_action_action_type_id_due_date_change_allowed__fkey" FOREIGN KEY ("action_type_id", "due_date_change_allowed", "should_have_note", "should_have_user_id", "extension_id_optional") REFERENCES "deliverable_action_type"("id", "due_date_change_allowed", "should_have_note", "should_have_user_id", "extension_id_optional") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "deliverable_action" ADD CONSTRAINT "deliverable_action_action_type_id_old_status_id_new_status_fkey" FOREIGN KEY ("action_type_id", "old_status_id", "new_status_id") REFERENCES "deliverable_action_configuration"("action_type_id", "old_status_id", "new_status_id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1712,21 +1692,6 @@ ALTER TABLE "document_pending_upload" ADD CONSTRAINT "document_pending_upload_de
 ALTER TABLE "document_pending_upload" ADD CONSTRAINT "document_pending_upload_deliverable_type_id_document_type__fkey" FOREIGN KEY ("deliverable_type_id", "document_type_id") REFERENCES "deliverable_type_document_type"("deliverable_type_id", "document_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "event" ADD CONSTRAINT "event_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "role"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "event" ADD CONSTRAINT "event_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "event" ADD CONSTRAINT "event_application_id_fkey" FOREIGN KEY ("application_id") REFERENCES "application"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "event" ADD CONSTRAINT "event_event_type_id_fkey" FOREIGN KEY ("event_type_id") REFERENCES "event_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "event" ADD CONSTRAINT "event_log_level_id_fkey" FOREIGN KEY ("log_level_id") REFERENCES "log_level"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "extension" ADD CONSTRAINT "extension_id_application_type_id_fkey" FOREIGN KEY ("id", "application_type_id") REFERENCES "application"("id", "application_type_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1863,3 +1828,6 @@ ALTER TABLE "users" ADD CONSTRAINT "users_person_type_id_fkey" FOREIGN KEY ("per
 
 -- AddForeignKey
 ALTER TABLE "user_person_type_limit" ADD CONSTRAINT "user_person_type_limit_id_fkey" FOREIGN KEY ("id") REFERENCES "person_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "user_session" ADD CONSTRAINT "user_session_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -462,7 +462,7 @@ export const BUDGET_NEUTRALITY_VALIDATION_STATUSES = [
 ] as const;
 
 export const PERMISSIONS = [
-  // row-level permissions
+  // Row Level Permissions
   "View All Demonstrations",
   "View Assigned Demonstrations",
   "View All Amendments",
@@ -498,7 +498,7 @@ export const PERMISSIONS = [
   "View My SystemRoleAssignments",
   "View All Deliverables",
   "View Deliverables on Assigned Demonstrations",
-
+  // Field Level Permissions
   "Access CMS Field",
   "Access CMS Query",
   "Perform CMS Action",
