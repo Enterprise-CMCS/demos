@@ -5,6 +5,9 @@ import { selectDeliverable } from "./selectDeliverable";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { selectDeliverableOrThrow } from "./selectDeliverableOrThrow";
 
+vi.mock("./selectDeliverable", () => ({
+  selectDeliverable: vi.fn(),
+}));
 
 describe("selectDeliverableOrThrow", () => {
   it("should throw an error if no deliverable is found", async () => {
