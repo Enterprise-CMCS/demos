@@ -10,6 +10,7 @@ describe("validateClaims", () => {
     givenName: "Test",
     familyName: "User",
     externalUserId: "external-123",
+    authTime: new Date(1779211277000),
   };
 
   it("does not throw for valid claims", () => {
@@ -88,5 +89,38 @@ describe("validateClaims", () => {
     };
 
     expect(() => validateClaims(claims)).toThrow("Invalid user role: 'not-a-real-role'");
+  });
+
+  it("throws when authTime is missing", () => {
+    const claims: Partial<AuthorizationClaims> = {
+      ...validClaims,
+      authTime: undefined,
+    };
+
+    expect(() => validateClaims(claims)).toThrow(
+      "Authorizer claims missing required 'authTime' field"
+    );
+  });
+
+  it("throws when authTime is not a date", () => {
+    const claims: Partial<AuthorizationClaims> = {
+      ...validClaims,
+      authTime: "not a date" as unknown as Date,
+    };
+
+    expect(() => validateClaims(claims)).toThrow(
+      "Authorizer claims has non-Date instance of 'authTime' field"
+    );
+  });
+
+  it("throws when the date is invalid", () => {
+    const claims: Partial<AuthorizationClaims> = {
+      ...validClaims,
+      authTime: new Date(NaN),
+    };
+
+    expect(() => validateClaims(claims)).toThrow(
+      "Authorizer claims has invalid Date instance of 'authTime' field"
+    );
   });
 });

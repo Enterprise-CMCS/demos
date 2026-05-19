@@ -13,7 +13,7 @@ import type {
 import { getS3Adapter } from "../../adapters";
 import { getApplication, PrismaApplication } from "../application";
 import { getUser } from "../user";
-import { getDeliverable, resolveDeliverable } from "../deliverable";
+import { selectDeliverableOrThrow, resolveDeliverable } from "../deliverable";
 import { updateAssociatedPhase } from "./updateAssociatedPhase";
 import { handleUploadDocumentToDeliverable } from "./handleUploadDocumentToDeliverable";
 
@@ -73,16 +73,14 @@ export const documentPendingUploadResolvers = {
       parent: unknown,
       { input }: { input: UploadDocumentToDeliverableInput },
       context: GraphQLContext
-    ): Promise<PrismaDocumentPendingUpload> => {
-      return await handleUploadDocumentToDeliverable(input, context.user.id, true);
-    },
+    ): Promise<PrismaDocumentPendingUpload> =>
+      handleUploadDocumentToDeliverable(input, context.user.id, true),
     uploadDocumentToDeliverableStateFiles: async (
       parent: unknown,
       { input }: { input: UploadDocumentToDeliverableInput },
       context: GraphQLContext
-    ): Promise<PrismaDocumentPendingUpload> => {
-      return await handleUploadDocumentToDeliverable(input, context.user.id, false);
-    },
+    ): Promise<PrismaDocumentPendingUpload> =>
+      handleUploadDocumentToDeliverable(input, context.user.id, false),
   },
 
   DocumentPendingUpload: {

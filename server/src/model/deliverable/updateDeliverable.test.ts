@@ -19,7 +19,7 @@ vi.mock("../../prismaClient", () => ({
 
 vi.mock(".", () => ({
   editDeliverable: vi.fn(),
-  getDeliverable: vi.fn(),
+  selectDeliverableOrThrow: vi.fn(),
   manuallyUpdateDeliverableDueDate: vi.fn(),
   parseUpdateDeliverableInput: vi.fn(),
   updateDeliverableDemonstrationTypes: vi.fn(),
@@ -38,7 +38,7 @@ vi.mock("../user/queries", () => ({
 import { prisma } from "../../prismaClient";
 import {
   editDeliverable,
-  getDeliverable,
+  selectDeliverableOrThrow,
   manuallyUpdateDeliverableDueDate,
   parseUpdateDeliverableInput,
   updateDeliverableDemonstrationTypes,
@@ -138,9 +138,9 @@ describe("updateDeliverable", () => {
       { name: mockBasicParseInputResult.name },
       mockTransaction
     );
-    expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      { tx: mockTransaction }
+      mockTransaction
     );
   });
 
@@ -225,9 +225,9 @@ describe("updateDeliverable", () => {
 
     await updateDeliverable(testDeliverableId, basicTestInput, testContext as GraphQLContext);
     expect(editDeliverable).not.toHaveBeenCalled();
-    expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+    expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith(
       { id: testDeliverableId },
-      { tx: mockTransaction }
+      mockTransaction
     );
   });
 

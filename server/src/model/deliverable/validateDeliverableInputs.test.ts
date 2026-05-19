@@ -64,7 +64,7 @@ vi.mock(".", () => ({
   checkNewDueDateIsGreaterThanCurrentDueDate: vi.fn(),
   checkOwnerPersonType: vi.fn(),
   checkRequestedDeliverableDemonstrationType: vi.fn(),
-  getDeliverable: vi.fn(),
+  selectDeliverableOrThrow: vi.fn(),
 }));
 
 import { getApplication } from "../application";
@@ -83,7 +83,7 @@ import {
   checkNewDueDateIsGreaterThanCurrentDueDate,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
-  getDeliverable,
+  selectDeliverableOrThrow,
 } from ".";
 import { ACTIVE_DELIVERABLE_STATUSES } from "../../constants";
 
@@ -368,7 +368,7 @@ describe("validateDeliverableInputs", () => {
     beforeEach(() => {
       vi.resetAllMocks();
       vi.mocked(selectUser).mockResolvedValue(mockUser as PrismaUser);
-      vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
+      vi.mocked(selectDeliverableOrThrow).mockResolvedValue(mockDeliverable as PrismaDeliverable);
       vi.mocked(getDemonstrationTypeAssignments).mockResolvedValue(
         mockDemonstrationTypeTagAssignments as PrismaDemonstrationTypeTagAssignment[]
       );
@@ -391,9 +391,9 @@ describe("validateDeliverableInputs", () => {
 
       await validateUpdateDeliverableInput(mockDeliverable.id!, testInput, mockTransaction);
 
-      expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+      expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith(
         { id: mockDeliverable.id },
-        { tx: mockTransaction }
+        mockTransaction
       );
     });
 
@@ -447,9 +447,9 @@ describe("validateDeliverableInputs", () => {
       };
 
       await validateUpdateDeliverableInput(mockDeliverable.id!, testInput, mockTransaction);
-      expect(getDeliverable).toHaveBeenCalledExactlyOnceWith(
+      expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith(
         { id: mockDeliverable.id! },
-        { tx: mockTransaction }
+        mockTransaction
       );
       expect(getDemonstrationTypeAssignments).toHaveBeenCalledExactlyOnceWith(
         { demonstrationId: mockDeliverable.demonstrationId },

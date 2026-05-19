@@ -1,7 +1,7 @@
 import { getS3Adapter } from "../../adapters";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { handlePrismaError } from "../../errors/handlePrismaError";
-import { getDeliverable } from "../deliverable";
+import { selectDeliverableOrThrow } from "../deliverable";
 import { UploadDocumentToDeliverableInput } from "./documentPendingUploadSchema";
 
 export async function handleUploadDocumentToDeliverable(
@@ -12,7 +12,7 @@ export async function handleUploadDocumentToDeliverable(
   checkOptionalNotNullFields(["description"], input);
 
   try {
-    const deliverable = await getDeliverable({ id: input.deliverableId });
+    const deliverable = await selectDeliverableOrThrow({ id: input.deliverableId });
     return await getS3Adapter().uploadDocument({
       name: input.name,
       description: input.description,

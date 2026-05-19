@@ -97,7 +97,6 @@ export const ROLES = [
   "DDME Analyst",
   "Policy Technical Director",
   "Monitoring & Evaluation Technical Director",
-  "All Users",
 ] as const;
 
 export const CONTACT_TYPES = ["DDME Analyst", "Project Officer", "State Point of Contact"] as const;
@@ -463,6 +462,7 @@ export const BUDGET_NEUTRALITY_VALIDATION_STATUSES = [
 ] as const;
 
 export const PERMISSIONS = [
+  // row-level permissions
   "View All Demonstrations",
   "View Assigned Demonstrations",
   "View All Amendments",
@@ -494,6 +494,15 @@ export const PERMISSIONS = [
   "View All Users",
   "View Users on Assigned Demonstrations",
   "View My User",
+  "View All SystemRoleAssignments",
+  "View My SystemRoleAssignments",
+  "View All Deliverables",
+  "View Deliverables on Assigned Demonstrations",
+
+  "Access CMS Field",
+  "Access CMS Query",
+  "Perform CMS Action",
+  "Perform State Action",
 ] as const;
 
 export const SYSTEM_ROLES = ["Admin User", "CMS User", "State User"] as const;

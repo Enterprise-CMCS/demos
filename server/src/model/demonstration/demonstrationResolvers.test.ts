@@ -461,7 +461,7 @@ describe("demonstrationResolvers", () => {
     it("throws an error if primary project officer is not found", async () => {
       vi.mocked(getDemonstrationRoleAssignment).mockResolvedValueOnce(null);
 
-      expect(
+      await expect(
         demonstrationResolvers.Demonstration.primaryProjectOfficer(
           { id: "demonstrationId" } as PrismaDemonstration,
           undefined,

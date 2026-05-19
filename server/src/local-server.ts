@@ -17,6 +17,7 @@ import { GraphQLArmorConfig } from "./plugins/graphQLArmorConfig.js";
 import { JwtPayload } from "jsonwebtoken";
 import { parseCookie } from "cookie";
 import { decodeToken } from "./auth/decodeToken.js";
+import { fieldAuthPlugin } from "./plugins/fieldAuthPlugin.js";
 
 log.debug("Starting server...");
 
@@ -28,7 +29,13 @@ const server = new ApolloServer<GraphQLContext>({
   resolvers,
   introspection: process.env.ALLOW_INTROSPECTION === "true",
   ...protection,
-  plugins: [...protection.plugins, authGatePlugin, gatedLandingPagePlugin(), loggingPlugin],
+  plugins: [
+    ...protection.plugins,
+    authGatePlugin,
+    gatedLandingPagePlugin(),
+    loggingPlugin,
+    fieldAuthPlugin,
+  ],
   validationRules: [...protection.validationRules],
 });
 
@@ -42,6 +49,7 @@ export function extractClaimsFromDecodedToken(decodedToken: JwtPayload): Authori
     givenName: decodedToken.given_name,
     familyName: decodedToken.family_name,
     externalUserId: externalUserId,
+    authTime: new Date(decodedToken.auth_time * 1000),
   };
   validateClaims(claims);
   return claims;

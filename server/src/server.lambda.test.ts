@@ -88,6 +88,7 @@ function makeEvent(): APIGatewayProxyEvent {
         given_name: "obiwan",
         userId: "ABCD",
         sub: "74a88478-1081-702f-2d85-a65bf907a154",
+        auth_time: "1779211277",
       },
       protocol: "HTTP/1.1",
       httpMethod: "POST",
@@ -136,6 +137,7 @@ describe("extractClaimsFromEvent", () => {
       givenName: "obiwan",
       familyName: "Kenobi",
       externalUserId: "ABCD",
+      authTime: new Date(1779211277000),
     });
   });
 

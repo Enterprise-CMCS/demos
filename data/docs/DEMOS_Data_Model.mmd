@@ -66,6 +66,7 @@ erDiagram
   users ||--|{ document : "FK026"
   users ||--|{ document_pending_upload : "FK019"
   users ||--|{ document_infected : "FK063"
+  users ||--|{ user_session : "FK139"
   phase ||--|{ phase_document_type : "FK027"
   phase_document_type }|--|| document_type : "FK028"
   phase_document_type ||--|{ document : "FK029"
@@ -713,6 +714,13 @@ erDiagram
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
+  }
+
+  user_session:::dataTable {
+    uuid user_id FK "FK139: user_id ∈ users.id"
+    timestamptz auth_time
+    timestamptz last_auth_event_time
+    integer auth_event_count
   }
 
   users:::dataTable {

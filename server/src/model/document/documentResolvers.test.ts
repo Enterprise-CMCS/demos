@@ -65,11 +65,6 @@ vi.mock("../user", () => ({
   getUser: vi.fn(),
 }));
 
-vi.mock("../deliverable", () => ({
-  getDeliverable: vi.fn(),
-  resolveDeliverable: vi.fn(),
-}));
-
 vi.mock(".", () => ({
   updateDocument: vi.fn(),
   handleDeleteDocument: vi.fn(),

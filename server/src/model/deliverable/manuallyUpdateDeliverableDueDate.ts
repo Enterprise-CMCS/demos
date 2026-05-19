@@ -2,7 +2,7 @@ import { DeliverableStatus } from "../../types";
 import {
   checkDueDateInFuture,
   editDeliverable,
-  getDeliverable,
+  selectDeliverableOrThrow,
   ParsedUpdateDeliverableInput,
 } from ".";
 import { PrismaTransactionClient } from "../../prismaClient";
@@ -27,7 +27,7 @@ export async function manuallyUpdateDeliverableDueDate(
   }
 
   // Get current record to check dates, and check if they match
-  const currentDeliverable = await getDeliverable({ id: deliverableId }, { tx: tx });
+  const currentDeliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
   const datesMatch =
     currentDeliverable.dueDate.valueOf() === input.dueDate.newDueDate.easternTZDate.valueOf();
 

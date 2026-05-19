@@ -9,8 +9,9 @@ import { GraphQLContext } from "../../auth";
 import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { getS3Adapter } from "../../adapters";
-import { getDeliverable } from "../deliverable";
+import { selectDeliverableOrThrow } from "../deliverable";
 import { updateAssociatedPhase } from "./updateAssociatedPhase";
+import { handleUploadDocumentToDeliverable } from "./handleUploadDocumentToDeliverable";
 
 vi.mock("../../errors/checkOptionalNotNullFields", () => ({
   checkOptionalNotNullFields: vi.fn(),
@@ -39,8 +40,12 @@ vi.mock("../applicationPhase", () => ({
 }));
 
 vi.mock("../deliverable", () => ({
-  getDeliverable: vi.fn(),
+  selectDeliverableOrThrow: vi.fn(),
   resolveDeliverable: vi.fn(),
+}));
+
+vi.mock("./handleUploadDocumentToDeliverable", () => ({
+  handleUploadDocumentToDeliverable: vi.fn(),
 }));
 
 const mockTransaction = {} as any;
@@ -144,72 +149,49 @@ describe("documentResolvers", () => {
         );
       });
     });
-    describe("DocumentPendingUpload.uploadDocumentToDeliverable", () => {
+    describe("DocumentPendingUpload.uploadDocumentToDeliverableCmsFiles", () => {
       const input: UploadDocumentToDeliverableInput = {
         name: "Test Document",
         documentType: "State Application",
         applicationId: testApplicationId,
         description: "Test document description",
         deliverableId: "deliverable-123",
-        isCmsAttachedFile: true,
       };
 
-      it("should validate optional fields are not null", async () => {
-        const mockDeliverable: Partial<PrismaDeliverable> = {
-          id: input.deliverableId,
-          deliverableTypeId: "Close Out Report",
-        };
-        vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
-
-        await documentPendingUploadResolvers.Mutation.uploadDocumentToDeliverable(
+      it("should defer to handleUploadDocumentToDeliverable with correct parameters", async () => {
+        await documentPendingUploadResolvers.Mutation.uploadDocumentToDeliverableCMSFiles(
           undefined,
           { input },
           mockContext
         );
-
-        expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(["description"], input);
+        expect(handleUploadDocumentToDeliverable).toHaveBeenCalledExactlyOnceWith(
+          input,
+          mockContext.user.id,
+          true
+        );
       });
+    });
 
-      it("should fetch the corresponding deliverable", async () => {
-        const mockDeliverable: Partial<PrismaDeliverable> = {
-          id: input.deliverableId,
-          deliverableTypeId: "Close Out Report",
-        };
-        vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
+    describe("DocumentPendingUpload.uploadDocumentToDeliverableStateFiles", () => {
+      const input: UploadDocumentToDeliverableInput = {
+        name: "Test Document",
+        documentType: "State Application",
+        applicationId: testApplicationId,
+        description: "Test document description",
+        deliverableId: "deliverable-123",
+      };
 
-        await documentPendingUploadResolvers.Mutation.uploadDocumentToDeliverable(
+      it("should defer to handleUploadDocumentToDeliverable with correct parameters", async () => {
+        await documentPendingUploadResolvers.Mutation.uploadDocumentToDeliverableStateFiles(
           undefined,
           { input },
           mockContext
         );
-
-        expect(getDeliverable).toHaveBeenCalledExactlyOnceWith({ id: input.deliverableId });
-      });
-
-      it("should call s3Adapter.uploadDocument with correct parameters", async () => {
-        const mockDeliverable: Partial<PrismaDeliverable> = {
-          id: input.deliverableId,
-          deliverableTypeId: "Close Out Report",
-        };
-        vi.mocked(getDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
-
-        await documentPendingUploadResolvers.Mutation.uploadDocumentToDeliverable(
-          undefined,
-          { input },
-          mockContext
+        expect(handleUploadDocumentToDeliverable).toHaveBeenCalledExactlyOnceWith(
+          input,
+          mockContext.user.id,
+          false
         );
-
-        expect(getS3Adapter).toHaveBeenCalledOnce();
-        expect(mockS3Adapter.uploadDocument).toHaveBeenCalledExactlyOnceWith({
-          name: input.name,
-          description: input.description,
-          applicationId: input.applicationId,
-          documentTypeId: input.documentType,
-          ownerUserId: mockContext.user.id,
-          deliverableId: input.deliverableId,
-          deliverableIsCmsAttachedFile: input.isCmsAttachedFile,
-          deliverableTypeId: mockDeliverable.deliverableTypeId,
-        });
       });
     });
   });

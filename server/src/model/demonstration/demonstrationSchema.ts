@@ -31,17 +31,17 @@ export const demonstrationSchema = gql`
     signatureLevel: SignatureLevel
     status: ApplicationStatus!
     state: State!
-    currentPhaseName: PhaseName!
-    phases: [ApplicationPhase!]!
-    documents: [Document!]!
-    amendments: [Amendment!]!
-    extensions: [Extension!]!
-    roles: [DemonstrationRoleAssignment!]!
+    currentPhaseName: PhaseName! @auth(requires: ["Access CMS Field"])
+    phases: [ApplicationPhase!]! @auth(requires: ["Access CMS Field"])
+    documents: [Document!]! @auth(requires: ["Access CMS Field"])
+    amendments: [Amendment!]! @auth(requires: ["Access CMS Field"])
+    extensions: [Extension!]! @auth(requires: ["Access CMS Field"])
+    roles: [DemonstrationRoleAssignment!]! @auth(requires: ["Access CMS Field"])
     primaryProjectOfficer: Person!
-    clearanceLevel: ClearanceLevel!
+    clearanceLevel: ClearanceLevel! @auth(requires: ["Access CMS Field"])
     tags: [Tag!]!
     demonstrationTypes: [DemonstrationTypeAssignment!]!
-    suggestedApplicationTags: [TagName!]!
+    suggestedApplicationTags: [TagName!]! @auth(requires: ["Access CMS Field"])
     deliverables: [Deliverable!]!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -68,8 +68,10 @@ export const demonstrationSchema = gql`
 
   type Mutation {
     createDemonstration(input: CreateDemonstrationInput!): Demonstration
+      @auth(requires: ["Perform CMS Action"])
     updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration
-    deleteDemonstration(id: ID!): Demonstration
+      @auth(requires: ["Perform CMS Action"])
+    deleteDemonstration(id: ID!): Demonstration @auth(requires: ["Perform CMS Action"])
   }
 
   type Query {
