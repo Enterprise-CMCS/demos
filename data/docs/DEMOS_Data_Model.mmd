@@ -717,8 +717,7 @@ erDiagram
   }
 
   user_session:::dataTable {
-    uuid user_id FK "FK139: (user_id, person_type_id) ∈ users.(user_id, person_type_id)"
-    text person_type_id FK "FK139: (user_id, person_type_id) ∈ users.(user_id, person_type_id)"
+    uuid user_id FK "FK139: user_id ∈ users.id"
     timestamptz auth_time
     timestamptz last_auth_event_time
     integer auth_event_count

@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { UserType } from "../../../types";
-
 import { upsertUserSession } from "./upsertUserSession";
 
 vi.mock("../../../prismaClient", () => ({
@@ -12,7 +10,6 @@ import { prisma } from "../../../prismaClient";
 
 describe("upsertUserSession", () => {
   const testUserId = "9a85bee6-9cb1-4714-af5d-ecc50ca3ff64";
-  const testUserType: UserType = "demos-cms-user";
   const testAuthTime = new Date(1778957412000);
 
   const mockCurrentTime = new Date(1779051072000);
@@ -46,7 +43,6 @@ describe("upsertUserSession", () => {
     },
     create: {
       userId: testUserId,
-      personTypeId: testUserType,
       authTime: testAuthTime,
       lastAuthEventTime: testAuthTime,
       authEventCount: 1,
@@ -71,14 +67,14 @@ describe("upsertUserSession", () => {
   });
 
   it("should upsert the session using a new client if no transaction is given", async () => {
-    await upsertUserSession(testUserId, testUserType, testAuthTime);
+    await upsertUserSession(testUserId, testAuthTime);
     expect(prisma).toHaveBeenCalledOnce();
     expect(regularMocks.userSession.upsert).toHaveBeenCalledExactlyOnceWith(expectedCall);
     expect(transactionMocks.userSession.upsert).not.toHaveBeenCalled();
   });
 
   it("should upsert the session using a transaction if one is given", async () => {
-    await upsertUserSession(testUserId, testUserType, testAuthTime, mockTransaction as any);
+    await upsertUserSession(testUserId, testAuthTime, mockTransaction as any);
     expect(prisma).not.toHaveBeenCalledOnce();
     expect(regularMocks.userSession.upsert).not.toHaveBeenCalled();
     expect(transactionMocks.userSession.upsert).toHaveBeenCalledExactlyOnceWith(expectedCall);

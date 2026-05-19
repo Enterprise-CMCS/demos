@@ -1,10 +1,8 @@
 import { UserSession as PrismaUserSession } from "@prisma/client";
 import { prisma, PrismaTransactionClient } from "../../../prismaClient";
-import { UserType } from "../../../types";
 
 export async function upsertUserSession(
   userId: string,
-  personTypeId: UserType,
   authTime: Date,
   tx?: PrismaTransactionClient
 ): Promise<PrismaUserSession> {
@@ -18,7 +16,6 @@ export async function upsertUserSession(
     },
     create: {
       userId: userId,
-      personTypeId: personTypeId,
       authTime: authTime,
       lastAuthEventTime: authTime,
       authEventCount: 1,

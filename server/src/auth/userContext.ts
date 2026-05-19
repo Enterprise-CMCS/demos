@@ -54,7 +54,7 @@ async function createNewUserFromClaims(claims: AuthorizationClaims): Promise<Con
       },
     });
 
-    await upsertUserSession(person.id, newPersonType, claims.authTime, tx);
+    await upsertUserSession(person.id, claims.authTime, tx);
 
     return {
       id: person.id,
@@ -85,9 +85,6 @@ export async function findOrCreateContextUserFromClaims(
     });
 
     if (existingUser) {
-      // Cast enforced by database constraints
-      const existingPersonType = existingUser.personTypeId as UserType;
-
       const userRoles = existingUser.person.systemRoleAssignments.map(
         (assignment) => assignment.roleId
       );
@@ -100,13 +97,13 @@ export async function findOrCreateContextUserFromClaims(
         },
       });
 
-      await upsertUserSession(existingUser.id, existingPersonType, claims.authTime, tx);
+      await upsertUserSession(existingUser.id, claims.authTime, tx);
 
       return {
         id: existingUser.id,
         cognitoSubject: existingUser.cognitoSubject,
         // casting enforced by database constraints
-        personTypeId: existingPersonType,
+        personTypeId: existingUser.personTypeId as UserType,
         permissions: userRolePermissions.map(
           (rolePermission) => rolePermission.permissionId as Permission
         ),
