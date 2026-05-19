@@ -43,9 +43,9 @@ export function validateClaims(
   if (!claims.authTime) {
     throw new Error("Authorizer claims missing required 'authTime' field");
   } else if (!(claims.authTime instanceof Date)) {
-    throw new Error("Authorizer claims has non-Date instance of 'authTime' field");
-  } else if (isNaN(claims.authTime.getTime())) {
-    throw new Error("Authorizer claims has invalid Date instance of 'authTime' field");
+    throw new TypeError("Authorizer claims has non-Date instance of 'authTime' field");
+  } else if (Number.isNaN(claims.authTime.getTime())) {
+    throw new TypeError("Authorizer claims has invalid Date instance of 'authTime' field");
   }
 }
 
