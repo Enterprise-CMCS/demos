@@ -1,7 +1,7 @@
 import { prisma } from "../prismaClient";
 import { Permission, SystemRole, UserType } from "../types";
 import { AuthorizationClaims } from "./auth.util";
-import { insertUserAction } from "../model/userAction/queries";
+import { upsertUserSession } from "../model/userSession/queries";
 
 const initialUserTypeRoles: Record<UserType, SystemRole> = {
   "demos-admin": "Admin User",
@@ -54,7 +54,7 @@ async function createNewUserFromClaims(claims: AuthorizationClaims): Promise<Con
       },
     });
 
-    await insertUserAction(person.id, newPersonType, "User Login", tx);
+    await upsertUserSession(person.id, newPersonType, claims.authTime, tx);
 
     return {
       id: person.id,
@@ -100,7 +100,7 @@ export async function findOrCreateContextUserFromClaims(
         },
       });
 
-      await insertUserAction(existingUser.id, existingPersonType, "User Login", tx);
+      await upsertUserSession(existingUser.id, existingPersonType, claims.authTime, tx);
 
       return {
         id: existingUser.id,

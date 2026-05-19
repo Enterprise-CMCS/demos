@@ -497,5 +497,3 @@ export const PERMISSIONS = [
 ] as const;
 
 export const SYSTEM_ROLES = ["Admin User", "CMS User", "State User"] as const;
-
-export const USER_ACTION_TYPES = ["User Login"] as const;

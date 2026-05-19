@@ -1,9 +1,0 @@
-// Flags: STATIC_CONSTRAINT
-model UserActionType {
-  id String
-
-  userActions UserAction[]
-
-  @@id([id])
-  @@map("user_action_type")
-}

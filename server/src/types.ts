@@ -28,7 +28,6 @@ import {
   TAG_STATUSES,
   TAG_TYPES,
   UIPATH_RESULT_STATUSES,
-  USER_ACTION_TYPES,
   USER_TYPES,
 } from "./constants.js";
 
@@ -172,4 +171,3 @@ export type DeliverableExtensionReasonCode = (typeof DELIVERABLE_EXTENSION_REASO
 export type DeliverableExtensionStatus = (typeof DELIVERABLE_EXTENSION_STATUSES)[number];
 export type Permission = (typeof PERMISSIONS)[number];
 export type SystemRole = (typeof SYSTEM_ROLES)[number];
-export type UserActionType = (typeof USER_ACTION_TYPES)[number];

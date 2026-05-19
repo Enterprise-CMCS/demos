@@ -1,1 +1,0 @@
-export { insertUserAction } from "./insertUserAction";

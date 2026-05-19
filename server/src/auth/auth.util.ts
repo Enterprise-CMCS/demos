@@ -13,6 +13,7 @@ export type AuthorizationClaims = {
   givenName: string;
   familyName: string;
   externalUserId: string;
+  authTime: Date;
 };
 
 export function validateClaims(
