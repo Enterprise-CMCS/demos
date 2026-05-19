@@ -34,7 +34,7 @@ import {
 } from "../applicationDate/checkInputDateFunctions";
 import { EasternTZDate, parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities";
 import { ContextUser, GraphQLContext } from "../../auth";
-import { getDemonstration } from "../demonstration";
+import { selectDemonstrationOrThrow } from "../demonstration";
 import { getExtension, getManyExtensions } from "./extensionData";
 import { getManyDocuments } from "../document";
 import { getManyApplicationPhases } from "../applicationPhase";
@@ -60,7 +60,7 @@ vi.mock("../applicationPhase", () => ({
 }));
 
 vi.mock("../demonstration", () => ({
-  getDemonstration: vi.fn(),
+  selectDemonstrationOrThrow: vi.fn(),
 }));
 
 vi.mock("../applicationTagAssignment", () => ({
@@ -298,13 +298,11 @@ describe("extensionResolvers", () => {
   });
 
   describe("Extension.demonstrations", () => {
-    it("delegates to `Demonstration.getDemonstration`", async () => {
-      await extensionResolvers.Extension.demonstration(
-        { demonstrationId: "abc123" } as PrismaExtension,
-        {},
-        mockContext
-      );
-      expect(getDemonstration).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
+    it("delegates to `Demonstration.selectDemonstrationOrThrow`", async () => {
+      await extensionResolvers.Extension.demonstration({
+        demonstrationId: "abc123",
+      } as PrismaExtension);
+      expect(selectDemonstrationOrThrow).toHaveBeenCalledExactlyOnceWith({ id: "abc123" });
     });
   });
 

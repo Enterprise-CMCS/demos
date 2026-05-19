@@ -31,7 +31,7 @@ import {
 } from "../applicationDate/checkInputDateFunctions";
 import { EasternTZDate, parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities";
 import { ContextUser, GraphQLContext } from "../../auth";
-import { getDemonstration } from "../demonstration";
+import { selectDemonstrationOrThrow } from "../demonstration";
 import { getAmendment, getManyAmendments } from "./amendmentData";
 import { getManyDocuments } from "../document";
 import { getManyApplicationPhases } from "../applicationPhase";
@@ -52,7 +52,7 @@ vi.mock("../document", () => ({
 }));
 
 vi.mock("../demonstration", () => ({
-  getDemonstration: vi.fn(),
+  selectDemonstrationOrThrow: vi.fn(),
 }));
 
 vi.mock("../applicationPhase", () => ({
@@ -166,13 +166,11 @@ describe("amendmentResolvers", () => {
   });
 
   describe("Amendment.demonstration", () => {
-    it("delegates to `Demonstration.getDemonstration`", async () => {
-      await amendmentResolvers.Amendment.demonstration(
-        { demonstrationId: "abc123" } as PrismaAmendment,
-        {},
-        mockContext
-      );
-      expect(getDemonstration).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
+    it("delegates to `Demonstration.selectDemonstrationOrThrow`", async () => {
+      await amendmentResolvers.Amendment.demonstration({
+        demonstrationId: "abc123",
+      } as PrismaAmendment);
+      expect(selectDemonstrationOrThrow).toHaveBeenCalledExactlyOnceWith({ id: "abc123" });
     });
   });
 

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildAuthorizationFilter, ContextUser } from "../../auth";
 import { getDemonstration, getManyDemonstrations } from "./demonstrationData";
 import { selectDemonstration, selectManyDemonstrations } from "./queries";
+import { log } from "../../log";
 
 vi.mock("../../auth", () => ({
   buildAuthorizationFilter: vi.fn(),
@@ -11,6 +12,12 @@ vi.mock("../../auth", () => ({
 vi.mock("./queries", () => ({
   selectDemonstration: vi.fn(),
   selectManyDemonstrations: vi.fn(),
+}));
+
+vi.mock("../../log", () => ({
+  log: {
+    warn: vi.fn(),
+  },
 }));
 
 describe("demonstrationData", () => {
@@ -43,17 +50,65 @@ describe("demonstrationData", () => {
   });
 
   describe("getDemonstration", () => {
-    it("returns null when authorization filter returns null", async () => {
+    it("throws not found error when authorization filter returns null", async () => {
       vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(null);
+      vi.mocked(selectDemonstration).mockResolvedValueOnce(null);
 
-      const result = await getDemonstration(where, user);
+      await expect(getDemonstration(where, user)).rejects.toThrow(
+        "Requested Demonstration not found or User does not have Permission to view it."
+      );
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
-      expect(selectDemonstration).not.toHaveBeenCalled();
-      expect(result).toBeNull();
+      expect(selectDemonstration).toHaveBeenCalledExactlyOnceWith(where, undefined);
     });
 
-    it("queries for a single demonstration with the authorization filter applied", async () => {
+    it("throws not found error when demonstration is not found even if auth filter is applied", async () => {
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+      vi.mocked(selectDemonstration).mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+
+      await expect(getDemonstration(where, user)).rejects.toThrow(
+        "Requested Demonstration not found or User does not have Permission to view it."
+      );
+
+      expect(buildAuthorizationFilter).toHaveBeenCalledExactlyOnceWith(user, expect.any(Function));
+
+      expect(selectDemonstration).toHaveBeenNthCalledWith(
+        1,
+        {
+          AND: [where, authFilter],
+        },
+        undefined
+      );
+      expect(selectDemonstration).toHaveBeenNthCalledWith(2, where, undefined);
+    });
+
+    it("logs a warning and throws not found error when demonstration is found but user does not have permission to view it", async () => {
+      const demonstration = { id: "demonstration-1" } as PrismaDemonstration;
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+      vi.mocked(selectDemonstration)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(demonstration);
+
+      await expect(getDemonstration(where, user)).rejects.toThrow(
+        "Requested Demonstration not found or User does not have Permission to view it."
+      );
+
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
+      expect(selectDemonstration).toHaveBeenNthCalledWith(
+        1,
+        {
+          AND: [where, authFilter],
+        },
+        undefined
+      );
+      expect(selectDemonstration).toHaveBeenNthCalledWith(2, where, undefined);
+      expect(log.warn).toHaveBeenCalledExactlyOnceWith(
+        `User ${user.id} attempted to access Demonstration ${demonstration.id} without sufficient permissions.`
+      );
+    });
+
+    it("returns the demonstration when found and user has permission to view it", async () => {
       const demonstration = { id: "demonstration-1" } as PrismaDemonstration;
       vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
       vi.mocked(selectDemonstration).mockResolvedValueOnce(demonstration);
@@ -69,20 +124,6 @@ describe("demonstrationData", () => {
         undefined
       );
       expect(result).toBe(demonstration);
-    });
-
-    it("passes transaction client to selectDemonstration if provided", async () => {
-      const mockTransactionClient = {} as any;
-      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
-
-      await getDemonstration(where, user, mockTransactionClient);
-      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
-      expect(selectDemonstration).toHaveBeenCalledExactlyOnceWith(
-        {
-          AND: [where, authFilter],
-        },
-        mockTransactionClient
-      );
     });
   });
 

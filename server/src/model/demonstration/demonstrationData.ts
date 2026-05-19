@@ -2,6 +2,7 @@ import { Prisma, Demonstration as PrismaDemonstration } from "@prisma/client";
 import { buildAuthorizationFilter, PermissionFilters, ContextUser } from "../../auth";
 import { selectDemonstration, selectManyDemonstrations } from "./queries";
 import { PrismaTransactionClient } from "../../prismaClient";
+import { log } from "../../log";
 
 export const isAStatePointOfContactAssociatedWithDemonstration = (
   userId: string
@@ -36,16 +37,27 @@ export async function getDemonstration(
     getPermissionFilters
   );
 
-  if (authFilter === null) {
-    return null;
+  if (authFilter !== null) {
+    const authorizedDemonstration = await selectDemonstration(
+      {
+        AND: [where, authFilter],
+      },
+      tx
+    );
+
+    if (authorizedDemonstration) {
+      return authorizedDemonstration;
+    }
   }
 
-  return await selectDemonstration(
-    {
-      AND: [where, authFilter],
-    },
-    tx
-  );
+  const demonstration = await selectDemonstration(where, tx);
+  if (demonstration) {
+    log.warn(
+      `User ${user.id} attempted to access Demonstration ${demonstration.id} without sufficient permissions.`
+    );
+  }
+
+  throw new Error("Requested Demonstration not found or User does not have Permission to view it.");
 }
 
 export async function getManyDemonstrations(

@@ -12,7 +12,7 @@ import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFie
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate";
 import { deleteApplication } from "../application";
-import { getDemonstration } from "../demonstration";
+import { selectDemonstrationOrThrow } from "../demonstration";
 import { GraphQLContext } from "../../auth";
 import { getAmendment, getManyAmendments } from "./amendmentData";
 import { getManyDocuments } from "../document";
@@ -99,8 +99,8 @@ export const amendmentResolvers = {
   },
 
   Amendment: {
-    demonstration: (parent: PrismaAmendment, args: unknown, context: GraphQLContext) =>
-      getDemonstration({ id: parent.demonstrationId }, context.user),
+    demonstration: (parent: PrismaAmendment) =>
+      selectDemonstrationOrThrow({ id: parent.demonstrationId }),
     documents: (parent: PrismaAmendment, args: unknown, context: GraphQLContext) =>
       getManyDocuments({ applicationId: parent.id }, context.user),
     currentPhaseName: (parent: PrismaAmendment) => parent.currentPhaseId,
