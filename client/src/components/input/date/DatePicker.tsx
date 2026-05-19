@@ -5,7 +5,8 @@ import {
   LABEL_CLASSES,
   VALIDATION_MESSAGE_CLASSES,
 } from "components/input/Input";
-import { isAfter, isBefore } from "date-fns";
+import { parseISO } from "date-fns";
+import { formatDate } from "util/formatDate";
 
 const DEFAULT_MIN_DATE = "1900-01-01";
 const DEFAULT_MAX_DATE = "2099-12-31";
@@ -18,6 +19,7 @@ interface DatePickerProps {
   isRequired?: boolean;
   isDisabled?: boolean;
   minDate?: string;
+  maxDate?: string;
   getValidationMessage?: () => string;
 }
 
@@ -29,10 +31,12 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   isRequired,
   isDisabled,
   minDate,
+  maxDate,
   getValidationMessage,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const inputMin = minDate ?? DEFAULT_MIN_DATE;
+  const inputMax = maxDate ?? DEFAULT_MAX_DATE;
 
   // The input is uncontrolled (defaultValue + ref-sync) instead of fully controlled.
   // Native <input type="date"> fires input events with value="" while the user is mid-typing the
@@ -45,17 +49,24 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     }
   }, [value]);
 
+  // Always propagate exactly what the user typed/picked, including "". Range is enforced by the
+  // native min/max attributes below and surfaced via the validation message; out-of-range values
+  // are never silently dropped, so what the user sees always matches what the parent holds.
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newDate = e.target.value;
-    if (
-      newDate === "" ||
-      (isAfter(newDate, DEFAULT_MIN_DATE) && isBefore(newDate, DEFAULT_MAX_DATE))
-    ) {
-      onChange?.(newDate);
-    }
+    onChange?.(e.target.value);
   };
 
-  const validationMessage = getValidationMessage?.() ?? "";
+  // Default out-of-range message, consistent with the native (inclusive) min/max bounds.
+  // A caller-supplied getValidationMessage always takes precedence. Native <input type="date">
+  // emits well-formed YYYY-MM-DD or "", so an ISO string compare is chronologically correct.
+  const getRangeValidationMessage = (): string => {
+    if (!value) return "";
+    if (value < inputMin) return `Date must be on or after ${formatDate(parseISO(inputMin))}.`;
+    if (value > inputMax) return `Date must be on or before ${formatDate(parseISO(inputMax))}.`;
+    return "";
+  };
+
+  const validationMessage = getValidationMessage?.() || getRangeValidationMessage();
 
   return (
     <div className="flex flex-col gap-xs">
@@ -69,13 +80,13 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         id={name}
         name={name}
         data-testid={name}
-        className={`${INPUT_BASE_CLASSES} ${getInputColors(validationMessage ?? "")}`}
+        className={`${INPUT_BASE_CLASSES} ${getInputColors(validationMessage)}`}
         required={isRequired ?? false}
         disabled={isDisabled ?? false}
         defaultValue={value ?? ""}
         onChange={handleChange}
         min={inputMin}
-        max={DEFAULT_MAX_DATE}
+        max={inputMax}
       />
       {validationMessage && <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>}
     </div>
