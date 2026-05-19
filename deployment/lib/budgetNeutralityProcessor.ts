@@ -5,6 +5,7 @@ import {
   aws_sqs as sqs,
   aws_secretsmanager,
   aws_kms as kms,
+  aws_s3 as s3,
   aws_ec2 as ec2,
 } from "aws-cdk-lib";
 import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
@@ -17,6 +18,7 @@ interface BudgetNeutralityProcessorProps extends DeploymentConfigProperties {
   removalPolicy?: RemovalPolicy;
   kmsKey: kms.IKey;
   deadLetterQueue?: sqs.IQueue;
+  readBuckets?: s3.IBucket[];
   vpc?: ec2.IVpc;
   securityGroup?: ec2.ISecurityGroup | ec2.ISecurityGroup[];
 }
@@ -70,6 +72,8 @@ export class BudgetNeutralityProcessor extends Construct {
 
     const sharedLibraryDir = path.resolve(process.cwd(), "..", "shared_library");
 
+    const cleanReadBucket = props.readBuckets?.[0];
+
     const budgetNeutralityLambda = new demosLambda.Lambda(
       this,
       "budgetNeutrality",
@@ -95,6 +99,7 @@ export class BudgetNeutralityProcessor extends Construct {
           DATABASE_SECRET_ARN: dbSecret.secretName, // pragma: allowlist secret
           LOG_LEVEL: process.env.LOG_LEVEL ?? "info",
           NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
+          CLEAN_BUCKET: cleanReadBucket?.bucketName ?? "",
         },
       }
     );
@@ -105,6 +110,9 @@ export class BudgetNeutralityProcessor extends Construct {
 
     this.queue.grantConsumeMessages(budgetNeutralityLambda.lambda);
     dbSecret.grantRead(budgetNeutralityLambda.lambda);
+    for (const bucket of props.readBuckets ?? []) {
+      bucket.grantRead(budgetNeutralityLambda.lambda);
+    }
     props.kmsKey.grantEncryptDecrypt(budgetNeutralityLambda.lambda);
   }
 }

@@ -10,6 +10,8 @@ import {
   PHASE_DOCUMENT_TYPE_MAP,
   NOTE_TYPES,
   TAG_TYPES,
+  AMENDMENT_SIGNATURE_LEVELS,
+  EXTENSION_SIGNATURE_LEVELS,
 } from "./constants.js";
 import {
   CreateDemonstrationInput,
@@ -19,14 +21,10 @@ import {
   UpdateAmendmentInput,
   UpdateExtensionInput,
   SetApplicationDatesInput,
-  EventType,
-  LogEventInput,
   Role,
   CreateDeliverableInput,
   PersonType,
   DateTimeOrLocalDate,
-  SystemRole,
-  SignatureLevel,
 } from "./types.js";
 import { prisma } from "./prismaClient.js";
 import { DocumentType, PhaseName } from "./types.js";
@@ -37,7 +35,6 @@ import {
 import { __createAmendment, __updateAmendment } from "./model/amendment/amendmentResolvers.js";
 import { __createExtension, __updateExtension } from "./model/extension/extensionResolvers.js";
 import { __setApplicationDates } from "./model/applicationDate/applicationDateResolvers.js";
-import { logEvent } from "./model/event/eventResolvers.js";
 import { GraphQLContext } from "./auth/auth.util.js";
 import { getManyApplications } from "./model/application";
 import {
@@ -610,7 +607,6 @@ async function clearDatabase() {
     prisma().extension.deleteMany(),
     prisma().demonstration.deleteMany(),
 
-    prisma().event.deleteMany(),
     prisma().systemRoleAssignment.deleteMany(),
     prisma().personState.deleteMany(),
     prisma().user.deleteMany(),
@@ -1018,7 +1014,7 @@ async function seedDatabase() {
       demonstrationId: faker.helpers.arrayElement(demonstrationIds).id,
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
-      signatureLevel: sampleFromArray([...(["OA", "OCD"] as SignatureLevel[]), undefined], 1)[0],
+      signatureLevel: sampleFromArray([...AMENDMENT_SIGNATURE_LEVELS, undefined], 1)[0],
     };
     await __createAmendment(undefined, { input: createInput });
   }
@@ -1041,7 +1037,7 @@ async function seedDatabase() {
       demonstrationId: faker.helpers.arrayElement(demonstrationIds).id,
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
-      signatureLevel: sampleFromArray([...(["OA", "OCD"] as SignatureLevel[]), undefined], 1)[0],
+      signatureLevel: sampleFromArray([...EXTENSION_SIGNATURE_LEVELS, undefined], 1)[0],
     };
     await __createExtension(undefined, { input: createInput });
   }

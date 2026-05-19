@@ -7,7 +7,6 @@ import { getCurrentUser, UserProvider } from "components/user/UserContext";
 import { DemonstrationsPage } from "pages/DemonstrationsPage";
 import { ComponentLibrary, DialogSandbox } from "pages/debug";
 import { IconLibrary } from "pages/debug/IconLibrary";
-import { EventSandbox } from "pages/debug/EventSandbox";
 import { AuthDebugComponent } from "pages/debug/AuthDebugComponent";
 import { isLocalDevelopment } from "config/env";
 import { DemosLayoutProvider } from "./DemosLayoutProvider";
@@ -66,7 +65,6 @@ export const DemosRouter: React.FC = () => {
                   <>
                     <Route path="components" element={<ComponentLibrary />} />
                     <Route path="icons" element={<IconLibrary />} />
-                    <Route path="events" element={<EventSandbox />} />
                     <Route path="auth" element={<AuthDebugComponent />} />
                     <Route path="dialogs" element={<DialogSandbox />} />
                   </>

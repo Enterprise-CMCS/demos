@@ -1,10 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { User as PrismaUser } from "@prisma/client";
 import type { GraphQLContext } from "../../auth";
-import { resolveEvents, userResolvers } from "./userResolvers";
+import { userResolvers } from "./userResolvers";
 
 // Mock imports
-import { prisma } from "../../prismaClient";
 import { getManyDocuments } from "../document";
 import { getUser } from "./userData";
 import { getPerson } from "../person";
@@ -35,16 +34,6 @@ vi.mock("../person", () => ({
 }));
 
 describe("userResolvers", () => {
-  const regularMocks = {
-    event: {
-      findMany: vi.fn(),
-    },
-  };
-  const mockPrismaClient = {
-    event: {
-      findMany: regularMocks.event.findMany,
-    },
-  };
   const testUserId = "abc123";
   const mockContext: GraphQLContext = {
     user: {
@@ -54,7 +43,6 @@ describe("userResolvers", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
   });
 
   describe("Query.currentUser", () => {
@@ -159,19 +147,6 @@ describe("userResolvers", () => {
         personId: "abc123",
       });
       expect(result).toStrictEqual(["permission-1", "permission-2", "permission-3"]);
-    });
-  });
-
-  describe("resolveEvents", () => {
-    it("should query the events for the parent", async () => {
-      const expectedCall = {
-        where: {
-          userId: testUserId,
-        },
-      };
-
-      await resolveEvents({ id: "abc123" } as PrismaUser);
-      expect(regularMocks.event.findMany).toHaveBeenCalledExactlyOnceWith(expectedCall);
     });
   });
 });

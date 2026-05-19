@@ -11,7 +11,7 @@ import {
   ClearanceLevel,
   Tag,
   TagName,
-  SignatureLevel,
+  AmendmentSignatureLevel,
 } from "../../types.js";
 
 export const amendmentSchema = gql`
@@ -27,7 +27,7 @@ export const amendmentSchema = gql`
     documents: [Document!]! @auth(requires: ["Access CMS Field"])
     clearanceLevel: ClearanceLevel! @auth(requires: ["Access CMS Field"])
     tags: [Tag!]! @auth(requires: ["Access CMS Field"])
-    signatureLevel: SignatureLevel
+    signatureLevel: AmendmentSignatureLevel
     suggestedApplicationTags: [TagName!]! @auth(requires: ["Access CMS Field"])
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -37,7 +37,7 @@ export const amendmentSchema = gql`
     demonstrationId: ID!
     name: NonEmptyString!
     description: String
-    signatureLevel: SignatureLevel
+    signatureLevel: AmendmentSignatureLevel
   }
 
   input UpdateAmendmentInput {
@@ -46,7 +46,7 @@ export const amendmentSchema = gql`
     description: String
     effectiveDate: DateTimeOrLocalDate
     status: ApplicationStatus
-    signatureLevel: SignatureLevel
+    signatureLevel: AmendmentSignatureLevel
   }
 
   type Mutation {
@@ -74,7 +74,7 @@ export interface Amendment {
   documents: Document[];
   clearanceLevel: ClearanceLevel;
   tags: Tag[];
-  signatureLevel?: SignatureLevel;
+  signatureLevel?: AmendmentSignatureLevel;
   suggestedApplicationTags: TagName[];
   updatedAt: Date;
   createdAt: Date;
@@ -84,7 +84,7 @@ export interface CreateAmendmentInput {
   demonstrationId: string;
   name: NonEmptyString;
   description: string | null;
-  signatureLevel?: SignatureLevel;
+  signatureLevel?: AmendmentSignatureLevel;
 }
 
 export interface UpdateAmendmentInput {
@@ -93,5 +93,5 @@ export interface UpdateAmendmentInput {
   description?: string | null;
   effectiveDate?: DateTimeOrLocalDate | null;
   status?: ApplicationStatus;
-  signatureLevel?: SignatureLevel;
+  signatureLevel?: AmendmentSignatureLevel;
 }
