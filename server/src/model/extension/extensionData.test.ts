@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildAuthorizationFilter, ContextUser } from "../../auth";
 import { getExtension, getManyExtensions } from "./extensionData";
 import { selectExtension, selectManyExtensions } from "./queries";
+import { log } from "../../log";
 
 vi.mock("../../auth", () => ({
   buildAuthorizationFilter: vi.fn(),
@@ -11,6 +12,12 @@ vi.mock("../../auth", () => ({
 vi.mock("./queries", () => ({
   selectExtension: vi.fn(),
   selectManyExtensions: vi.fn(),
+}));
+
+vi.mock("../../log", () => ({
+  log: {
+    warn: vi.fn(),
+  },
 }));
 
 describe("extensionData", () => {
@@ -45,17 +52,65 @@ describe("extensionData", () => {
   });
 
   describe("getExtension", () => {
-    it("returns null when authorization filter returns null", async () => {
+    it("throws not found error when authorization filter returns null", async () => {
       vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(null);
+      vi.mocked(selectExtension).mockResolvedValueOnce(null);
 
-      const result = await getExtension(where, user);
+      await expect(getExtension(where, user)).rejects.toThrow(
+        "Requested Extension not found or User does not have Permission to view it."
+      );
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
-      expect(selectExtension).not.toHaveBeenCalled();
-      expect(result).toBeNull();
+      expect(selectExtension).toHaveBeenCalledExactlyOnceWith(where, undefined);
     });
 
-    it("queries for a single extension with the authorization filter applied", async () => {
+    it("throws not found error when extension is not found even if auth filter is applied", async () => {
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+      vi.mocked(selectExtension).mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+
+      await expect(getExtension(where, user)).rejects.toThrow(
+        "Requested Extension not found or User does not have Permission to view it."
+      );
+
+      expect(buildAuthorizationFilter).toHaveBeenCalledExactlyOnceWith(user, expect.any(Function));
+
+      expect(selectExtension).toHaveBeenNthCalledWith(
+        1,
+        {
+          AND: [where, authFilter],
+        },
+        undefined
+      );
+      expect(selectExtension).toHaveBeenNthCalledWith(2, where, undefined);
+    });
+
+    it("logs a warning and throws not found error when extension is found but user does not have permission to view it", async () => {
+      const extension = { id: "extension-1" } as PrismaExtension;
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+      vi.mocked(selectExtension)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(extension);
+
+      await expect(getExtension(where, user)).rejects.toThrow(
+        "Requested Extension not found or User does not have Permission to view it."
+      );
+
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
+      expect(selectExtension).toHaveBeenNthCalledWith(
+        1,
+        {
+          AND: [where, authFilter],
+        },
+        undefined
+      );
+      expect(selectExtension).toHaveBeenNthCalledWith(2, where, undefined);
+      expect(log.warn).toHaveBeenCalledExactlyOnceWith(
+        `User ${user.id} attempted to access Extension ${extension.id} without sufficient permissions.`
+      );
+    });
+
+    it("returns the extension when found and user has permission to view it", async () => {
       const extension = { id: "extension-1" } as PrismaExtension;
       vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
       vi.mocked(selectExtension).mockResolvedValueOnce(extension);
@@ -71,20 +126,6 @@ describe("extensionData", () => {
         undefined
       );
       expect(result).toBe(extension);
-    });
-
-    it("passes transaction client to selectManyAmendments if provided", async () => {
-      const mockTransactionClient = {} as any;
-      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
-
-      await getExtension(where, user, mockTransactionClient);
-      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
-      expect(selectExtension).toHaveBeenCalledExactlyOnceWith(
-        {
-          AND: [where, authFilter],
-        },
-        mockTransactionClient
-      );
     });
   });
 
