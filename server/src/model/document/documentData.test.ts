@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildAuthorizationFilter, ContextUser } from "../../auth";
 import { getDocument, getManyDocuments } from "./documentData";
 import { selectDocument, selectManyDocuments } from "./queries";
+import { log } from "../../log";
 
 vi.mock("../../auth", () => ({
   buildAuthorizationFilter: vi.fn(),
@@ -11,6 +12,12 @@ vi.mock("../../auth", () => ({
 vi.mock("./queries", () => ({
   selectDocument: vi.fn(),
   selectManyDocuments: vi.fn(),
+}));
+
+vi.mock("../../log", () => ({
+  log: {
+    warn: vi.fn(),
+  },
 }));
 
 describe("documentData", () => {
@@ -38,17 +45,63 @@ describe("documentData", () => {
   });
 
   describe("getDocument", () => {
-    it("returns null when authorization filter returns null", async () => {
+    it("throws not found error when authorization filter returns null", async () => {
       vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(null);
+      vi.mocked(selectDocument).mockResolvedValueOnce(null);
 
-      const result = await getDocument(where, user);
+      await expect(getDocument(where, user)).rejects.toThrow(
+        "Requested Document not found or User does not have Permission to view it."
+      );
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
-      expect(selectDocument).not.toHaveBeenCalled();
-      expect(result).toBeNull();
+      expect(selectDocument).toHaveBeenCalledExactlyOnceWith(where, undefined);
     });
 
-    it("queries for a single document with the authorization filter applied", async () => {
+    it("throws not found error when document is not found even if auth filter is applied", async () => {
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+      vi.mocked(selectDocument).mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+
+      await expect(getDocument(where, user)).rejects.toThrow(
+        "Requested Document not found or User does not have Permission to view it."
+      );
+
+      expect(buildAuthorizationFilter).toHaveBeenCalledExactlyOnceWith(user, expect.any(Function));
+
+      expect(selectDocument).toHaveBeenNthCalledWith(
+        1,
+        {
+          AND: [where, authFilter],
+        },
+        undefined
+      );
+      expect(selectDocument).toHaveBeenNthCalledWith(2, where, undefined);
+    });
+
+    it("logs a warning and throws not found error when document is found but user does not have permission to view it", async () => {
+      const document = { id: "document-1" } as PrismaDocument;
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+      vi.mocked(selectDocument).mockResolvedValueOnce(null).mockResolvedValueOnce(document);
+
+      await expect(getDocument(where, user)).rejects.toThrow(
+        "Requested Document not found or User does not have Permission to view it."
+      );
+
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
+      expect(selectDocument).toHaveBeenNthCalledWith(
+        1,
+        {
+          AND: [where, authFilter],
+        },
+        undefined
+      );
+      expect(selectDocument).toHaveBeenNthCalledWith(2, where, undefined);
+      expect(log.warn).toHaveBeenCalledExactlyOnceWith(
+        `User ${user.id} attempted to access Document ${document.id} without sufficient permissions.`
+      );
+    });
+
+    it("returns the document when found and user has permission to view it", async () => {
       const document = { id: "document-1" } as PrismaDocument;
       vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
       vi.mocked(selectDocument).mockResolvedValueOnce(document);
@@ -64,20 +117,6 @@ describe("documentData", () => {
         undefined
       );
       expect(result).toBe(document);
-    });
-
-    it("passes transaction client to selectDocument if provided", async () => {
-      const mockTransactionClient = {} as any;
-      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
-
-      await getDocument(where, user, mockTransactionClient);
-      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
-      expect(selectDocument).toHaveBeenCalledExactlyOnceWith(
-        {
-          AND: [where, authFilter],
-        },
-        mockTransactionClient
-      );
     });
   });
 
