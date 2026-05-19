@@ -37,6 +37,7 @@ TBL_FOLDERS = [
     "uiPathResult",
     "uiPathValue",
     "user",
+    "userAction",
 ]
 APP_SCHEMA = "demos_app"
 DROP_QUERY = """-- Drop existing history logging functions and triggers

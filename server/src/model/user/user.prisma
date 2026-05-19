@@ -15,6 +15,7 @@ model User {
   documentsInfected      DocumentInfected[]
   privateComments        PrivateComment[]
   publicComments         PublicComment[]
+  userActions            UserAction[]
 
   @@id([id])
   @@unique([id, personTypeId]) // Not required by Postgres, but Prisma requires this notation

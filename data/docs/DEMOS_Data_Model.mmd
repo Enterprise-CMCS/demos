@@ -66,6 +66,8 @@ erDiagram
   users ||--|{ document : "FK026"
   users ||--|{ document_pending_upload : "FK019"
   users ||--|{ document_infected : "FK063"
+  users ||--|{ user_action : "FK139"
+  user_action }|--|| user_action_type : "FK140"
   phase ||--|{ phase_document_type : "FK027"
   phase_document_type }|--|| document_type : "FK028"
   phase_document_type ||--|{ document : "FK029"
@@ -266,6 +268,10 @@ erDiagram
   }
 
   uipath_result_status:::staticConstraint {
+    text id PK
+  }
+
+  user_action_type:::staticConstraint {
     text id PK
   }
 
@@ -712,6 +718,15 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    HAS_HISTORY true
+  }
+
+  user_action:::dataTable {
+    uuid id PK
+    timestamptz action_timestamp
+    uuid user_id FK "FK139: (user_id, person_type_id) ∈ users.(user_id, person_type_id)"
+    text person_type_id FK "FK139: (user_id, person_type_id) ∈ users.(user_id, person_type_id)"
+    text action_type_id FK "FK140: action_type_id ∈ user_action_type.id"
     HAS_HISTORY true
   }
 
