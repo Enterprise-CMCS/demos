@@ -1,0 +1,13 @@
+// Flags: NO_CREATED_TS, NO_UPDATED_TS, NO_HISTORY
+// Time is captured by the action timestamp; table already for logging
+model UserSession {
+  userId            String   @map("user_id") @db.Uuid
+  authTime          DateTime @map("auth_time") @db.Timestamptz
+  lastAuthEventTime DateTime @map("last_auth_event_time") @db.Timestamptz
+  authEventCount    Int      @map("auth_event_count")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@id([userId, authTime])
+  @@map("user_session")
+}

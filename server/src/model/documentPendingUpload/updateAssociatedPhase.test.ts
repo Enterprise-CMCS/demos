@@ -1,9 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TZDate } from "@date-fns/tz";
-import { startPhase } from "../applicationPhase";
 import { updateAssociatedPhase } from "./updateAssociatedPhase";
-import { validateAndUpdateDates } from "../applicationDate";
-import { EasternNow, getEasternNow } from "../../dateUtilities";
+import { EasternNow } from "../../dateUtilities";
 
 const mockTransaction = {} as any;
 const testApplicationId = "application-123";
@@ -25,19 +23,23 @@ const mockEasternNow: EasternNow = {
   },
 };
 
+vi.mock("../applicationPhase", () => ({
+  startPhase: vi.fn(),
+}));
+
+vi.mock("../applicationDate", () => ({
+  validateAndUpdateDates: vi.fn(),
+}));
+
+vi.mock("../../dateUtilities", () => ({
+  getEasternNow: vi.fn(),
+}));
+
+import { startPhase } from "../applicationPhase";
+import { validateAndUpdateDates } from "../applicationDate";
+import { getEasternNow } from "../../dateUtilities";
+
 describe("updateAssociatedPhase", () => {
-  vi.mock("../applicationPhase", () => ({
-    startPhase: vi.fn(),
-  }));
-
-  vi.mock("../applicationDate", () => ({
-    validateAndUpdateDates: vi.fn(),
-  }));
-
-  vi.mock("../../dateUtilities", () => ({
-    getEasternNow: vi.fn(),
-  }));
-
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getEasternNow).mockReturnValue(mockEasternNow);

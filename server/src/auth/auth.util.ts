@@ -13,6 +13,7 @@ export type AuthorizationClaims = {
   givenName: string;
   familyName: string;
   externalUserId: string;
+  authTime: Date;
 };
 
 export function validateClaims(
@@ -38,6 +39,13 @@ export function validateClaims(
   }
   if (!USER_TYPES.includes(claims.role as UserType)) {
     throw new Error(`Invalid user role: '${claims.role}'`);
+  }
+  if (!claims.authTime) {
+    throw new Error("Authorizer claims missing required 'authTime' field");
+  } else if (!(claims.authTime instanceof Date)) {
+    throw new TypeError("Authorizer claims has non-Date instance of 'authTime' field");
+  } else if (Number.isNaN(claims.authTime.getTime())) {
+    throw new TypeError("Authorizer claims has invalid Date instance of 'authTime' field");
   }
 }
 
