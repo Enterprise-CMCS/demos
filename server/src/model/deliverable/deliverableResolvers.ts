@@ -58,29 +58,23 @@ export async function resolveDeliverable(
   info: GraphQLResolveInfo
 ): Promise<PrismaDeliverable | null> {
   const parentType = info.parentType.name;
-  let filter: Prisma.DeliverableWhereUniqueInput | null;
-
   switch (parentType) {
     case Prisma.ModelName.Document:
     case Prisma.ModelName.DocumentPendingUpload: {
       const doc = parent as PrismaDocument | PrismaDocumentPendingUpload;
-      filter = doc.deliverableId ? { id: doc.deliverableId } : null;
-      break;
+      if (!doc.deliverableId) {
+        return null;
+      }
+      return await selectDeliverable({ id: doc.deliverableId });
     }
 
     case "DeliverableComment": {
       const comment = parent as PrismaPublicComment | PrismaPrivateComment;
-      filter = { id: comment.deliverableId };
-      break;
+      return await selectDeliverableOrThrow({ id: comment.deliverableId });
     }
     default:
       throw new Error(`Unsupported parent type: ${parentType}`);
   }
-
-  if (filter === null) {
-    return null;
-  }
-  return await selectDeliverableOrThrow(filter);
 }
 
 export async function resolveManyDeliverables(

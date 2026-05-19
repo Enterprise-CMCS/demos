@@ -45,6 +45,7 @@ vi.mock(".", () => ({
   createDeliverable: vi.fn(),
   deleteDeliverable: vi.fn(),
   denyDeliverableExtension: vi.fn(),
+  selectDeliverable: vi.fn(),
   selectDeliverableOrThrow: vi.fn(),
   selectManyDeliverables: vi.fn(),
   getDeliverable: vi.fn(),
@@ -99,6 +100,7 @@ import {
   startDeliverableReview,
   submitDeliverable,
   updateDeliverable,
+  selectDeliverable,
   selectManyDeliverables,
   selectDeliverableOrThrow,
   getDeliverable,
@@ -407,7 +409,7 @@ describe("deliverableResolvers", () => {
           testDocumentInfo as GraphQLResolveInfo
         );
         expect(result).toBeNull();
-        expect(selectDeliverableOrThrow).not.toHaveBeenCalled();
+        expect(selectDeliverable).not.toHaveBeenCalled();
       });
 
       it("should query if there is a deliverable ID", async () => {
@@ -415,7 +417,7 @@ describe("deliverableResolvers", () => {
           id: "abc123",
           statusId: "Upcoming",
         };
-        vi.mocked(selectDeliverableOrThrow).mockResolvedValue(mockDeliverable as PrismaDeliverable);
+        vi.mocked(selectDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
 
         const result = await resolveDeliverable(
           testDocumentWithDeliverableParent as PrismaDocument,
@@ -423,12 +425,25 @@ describe("deliverableResolvers", () => {
           mockContext as GraphQLContext,
           testDocumentInfo as GraphQLResolveInfo
         );
-        expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith(
-          {
-            id: testDeliverableId,
-          },
-        );
+        expect(selectDeliverable).toHaveBeenCalledExactlyOnceWith({
+          id: testDeliverableId,
+        });
         expect(result).toBe(mockDeliverable);
+      });
+
+      it("should not throw even if deliverable was not found (it is deleted)", async () => {
+        vi.mocked(selectDeliverable).mockResolvedValue(null);
+
+        const result = await resolveDeliverable(
+          testDocumentWithDeliverableParent as PrismaDocument,
+          {} as unknown,
+          mockContext as GraphQLContext,
+          testDocumentInfo as GraphQLResolveInfo
+        );
+        expect(selectDeliverable).toHaveBeenCalledExactlyOnceWith({
+          id: testDeliverableId,
+        });
+        expect(result).toBeNull();
       });
     });
 
@@ -441,7 +456,7 @@ describe("deliverableResolvers", () => {
           testDocumentPendingUploadInfo as GraphQLResolveInfo
         );
         expect(result).toBeNull();
-        expect(selectDeliverableOrThrow).not.toHaveBeenCalled();
+        expect(selectDeliverable).not.toHaveBeenCalled();
       });
 
       it("should query if there is a deliverable ID", async () => {
@@ -449,7 +464,7 @@ describe("deliverableResolvers", () => {
           id: "abc123",
           statusId: "Upcoming",
         };
-        vi.mocked(selectDeliverableOrThrow).mockResolvedValue(mockDeliverable as PrismaDeliverable);
+        vi.mocked(selectDeliverable).mockResolvedValue(mockDeliverable as PrismaDeliverable);
 
         const result = await resolveDeliverable(
           testDocumentPendingUploadWithDeliverableParent as PrismaDocumentPendingUpload,
@@ -457,7 +472,7 @@ describe("deliverableResolvers", () => {
           {} as GraphQLContext,
           testDocumentPendingUploadInfo as GraphQLResolveInfo
         );
-        expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith({
+        expect(selectDeliverable).toHaveBeenCalledExactlyOnceWith({
           id: testDeliverableId,
         });
         expect(result).toBe(mockDeliverable);
@@ -483,11 +498,9 @@ describe("deliverableResolvers", () => {
           mockContext as GraphQLContext,
           testCommentInfo as GraphQLResolveInfo
         );
-        expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith(
-          {
-            id: testPublicComment.deliverableId,
-          },
-        );
+        expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith({
+          id: testPublicComment.deliverableId,
+        });
         expect(result).toBe(mockDeliverable);
       });
     });
@@ -511,11 +524,9 @@ describe("deliverableResolvers", () => {
           mockContext as GraphQLContext,
           testCommentInfo as GraphQLResolveInfo
         );
-        expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith(
-          {
-            id: testPrivateComment.deliverableId,
-          },
-        );
+        expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith({
+          id: testPrivateComment.deliverableId,
+        });
         expect(result).toBe(mockDeliverable);
       });
     });
