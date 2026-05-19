@@ -3,6 +3,7 @@ import {
   DeliverableExtension as PrismaDeliverableExtension,
   Demonstration as PrismaDemonstration,
   Document as PrismaDocument,
+  DocumentPendingUpload as PrismaDocumentPendingUpload,
   Prisma,
   PrivateComment as PrismaPrivateComment,
   PublicComment as PrismaPublicComment,
@@ -48,7 +49,7 @@ import { selectManyPublicComments } from "../publicComment/queries";
 import { selectManyPrivateComments } from "../privateComment/queries";
 
 export async function resolveDeliverable(
-  parent: PrismaDocument | PrismaPrivateComment | PrismaPublicComment,
+  parent: PrismaDocument | PrismaDocumentPendingUpload | PrismaPrivateComment | PrismaPublicComment,
   args: unknown,
   context: GraphQLContext,
   info: GraphQLResolveInfo
@@ -57,11 +58,13 @@ export async function resolveDeliverable(
   let filter: Prisma.DeliverableWhereUniqueInput | null;
 
   switch (parentType) {
-    case Prisma.ModelName.Document: {
-      const doc = parent as PrismaDocument;
+    case Prisma.ModelName.Document:
+    case Prisma.ModelName.DocumentPendingUpload: {
+      const doc = parent as PrismaDocument | PrismaDocumentPendingUpload;
       filter = doc.deliverableId ? { id: doc.deliverableId } : null;
       break;
     }
+
     case "DeliverableComment": {
       const comment = parent as PrismaPublicComment | PrismaPrivateComment;
       filter = { id: comment.deliverableId };
