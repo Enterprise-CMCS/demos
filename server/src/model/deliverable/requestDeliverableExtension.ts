@@ -2,7 +2,7 @@ import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { DeliverableStatus, RequestDeliverableExtensionInput } from "../../types";
 import { GraphQLContext } from "../../auth";
 import {
-  getDeliverable,
+  selectDeliverableOrThrow,
   parseRequestDeliverableExtensionInput,
   validateRequestDeliverableExtensionInput,
   validateUserPersonTypeAllowed,
@@ -23,7 +23,7 @@ export async function requestDeliverableExtension(
   const parsedInput = parseRequestDeliverableExtensionInput(input);
 
   return await prisma().$transaction(async (tx) => {
-    const deliverable = await getDeliverable({ id: deliverableId }, { tx: tx });
+    const deliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
     await validateRequestDeliverableExtensionInput(deliverable, parsedInput, tx);
 
     // Add the extension before the action record; this ensures triggers capture the information

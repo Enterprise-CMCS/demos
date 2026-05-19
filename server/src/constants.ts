@@ -496,6 +496,8 @@ export const PERMISSIONS = [
   "View My User",
   "View All SystemRoleAssignments",
   "View My SystemRoleAssignments",
+  "View All Deliverables",
+  "View Deliverables on Assigned Demonstrations",
 
   "Access CMS Field",
   "Access CMS Query",

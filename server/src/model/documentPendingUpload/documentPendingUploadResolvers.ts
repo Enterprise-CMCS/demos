@@ -13,7 +13,7 @@ import type {
 import { getS3Adapter } from "../../adapters";
 import { getApplication, PrismaApplication } from "../application";
 import { getUser } from "../user";
-import { getDeliverable, resolveDeliverable } from "../deliverable";
+import { selectDeliverableOrThrow, resolveDeliverable } from "../deliverable";
 import { updateAssociatedPhase } from "./updateAssociatedPhase";
 
 export async function resolveApplication(
@@ -76,7 +76,7 @@ export const documentPendingUploadResolvers = {
       checkOptionalNotNullFields(["description"], input);
 
       try {
-        const deliverable = await getDeliverable({ id: input.deliverableId });
+        const deliverable = await selectDeliverableOrThrow({ id: input.deliverableId });
         return await getS3Adapter().uploadDocument({
           name: input.name,
           description: input.description,

@@ -42,6 +42,12 @@ const EXTENSION_REVIEWER_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
   "demos-cms-user",
 ]);
 
+// State users only get the Request Extension action; edit/delete is hidden for them.
+const EDIT_DELETE_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
+  "demos-admin",
+  "demos-cms-user",
+]);
+
 export const GET_DELIVERABLE_DETAILS_QUERY_NAME = "GetDeliverableDetails";
 export const DELIVERABLE_DETAILS_QUERY = gql`
   query ${GET_DELIVERABLE_DETAILS_QUERY_NAME}($id: ID!) {
@@ -227,6 +233,7 @@ export const DeliverableDetailsManagementPage: React.FC<{
 
   const canReviewExtension =
     EXTENSION_REVIEWER_PERSON_TYPES.has(userPersonType) && pendingExtensionRequest !== null;
+  const canEditDelete = EDIT_DELETE_PERSON_TYPES.has(userPersonType);
 
   const handleReviewExtensionRequest = () => {
     if (!pendingExtensionRequest) return;
@@ -259,16 +266,17 @@ export const DeliverableDetailsManagementPage: React.FC<{
             showAdditionalDetailsToggle
             onToggleAdditionalDetails={handleToggleAdditionalDetails}
           />
-          {/* I'm sure these go somewhere but they arent in my spec sheet. Uncomment at your leisure */}
-          <DeliverableButtons
-            deliverable={data.deliverable}
-          />
-          <EditAndDeleteButtonGroup
-            onDelete={handleDeleteDeliverable}
-            onEdit={handleEditDeliverable}
-            deleteDisabled={isFinalized}
-            editDisabled={isFinalized}
-          />
+          <div className="flex items-start gap-2">
+            <DeliverableButtons deliverable={data.deliverable} />
+            {canEditDelete ? (
+              <EditAndDeleteButtonGroup
+                onDelete={handleDeleteDeliverable}
+                onEdit={handleEditDeliverable}
+                deleteDisabled={isFinalized}
+                editDisabled={isFinalized}
+              />
+            ) : null}
+          </div>
         </div>
         {canStartReview ? (
           <PendingReviewNotice

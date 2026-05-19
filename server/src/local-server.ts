@@ -49,6 +49,7 @@ export function extractClaimsFromDecodedToken(decodedToken: JwtPayload): Authori
     givenName: decodedToken.given_name,
     familyName: decodedToken.family_name,
     externalUserId: externalUserId,
+    authTime: new Date(decodedToken.auth_time * 1000),
   };
   validateClaims(claims);
   return claims;

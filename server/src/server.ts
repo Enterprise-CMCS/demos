@@ -67,6 +67,7 @@ export function extractClaimsFromEvent(event: APIGatewayProxyEvent): Authorizati
     givenName: authorizer.given_name,
     familyName: authorizer.family_name,
     externalUserId: authorizer.userId,
+    authTime: new Date(Number(authorizer.auth_time) * 1000),
   };
   validateClaims(claims);
   return claims;

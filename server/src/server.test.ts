@@ -64,6 +64,7 @@ function makeEvent(): APIGatewayProxyEvent {
         given_name: "obiwan",
         family_name: "Kenobi",
         userId: "ABCD",
+        auth_time: "1779211277",
       },
       protocol: "HTTP/1.1",
       httpMethod: "POST",
@@ -105,6 +106,7 @@ describe("server module", () => {
       givenName: "obiwan",
       familyName: "Kenobi",
       externalUserId: "ABCD",
+      authTime: new Date(1779211277000),
     });
     expect(claims).toEqual({
       email: "somehuman@example.com",
@@ -113,6 +115,7 @@ describe("server module", () => {
       givenName: "obiwan",
       familyName: "Kenobi",
       externalUserId: "ABCD",
+      authTime: new Date(1779211277000),
     });
   });
 });

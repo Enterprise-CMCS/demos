@@ -20,14 +20,20 @@ describe("authorizer", () => {
       given_name: "unit",
       family_name: "test",
       "custom:roles": "demos-admin",
+      auth_time: 12345,
     };
 
     const verifySpy = vi.spyOn(jwt, "verify").mockImplementationOnce((token, gk, _, f) => {
-      f(null, mockDecoded);
+      f!(null, mockDecoded);
     });
 
     const resp = await handler(mockEvent, mockContext);
-    expect(verifySpy).toHaveBeenCalledWith(mockToken, expect.anything(), expect.anything(), expect.anything());
+    expect(verifySpy).toHaveBeenCalledWith(
+      mockToken,
+      expect.anything(),
+      expect.anything(),
+      expect.anything()
+    );
     expect(resp).toEqual(
       expect.objectContaining({
         context: expect.objectContaining({
@@ -36,6 +42,7 @@ describe("authorizer", () => {
           given_name: expect.any(String),
           family_name: expect.any(String),
           role: expect.any(String),
+          auth_time: expect.any(Number),
         }),
         policyDocument: expect.objectContaining({
           Statement: expect.arrayContaining([
@@ -72,12 +79,12 @@ describe("authorizer", () => {
     const infoSpy = vi.spyOn(log, "info");
 
     vi.spyOn(jwt, "verify").mockImplementationOnce((token, gk, _, f) => {
-      f(null, undefined);
+      f!(null, undefined);
     });
     await expect(handler(mockEvent, mockContext)).rejects.toThrow("Unauthorized");
 
     expect(infoSpy).toHaveBeenCalledWith(
-      expect.objectContaining({error: expect.any(String)}),
+      expect.objectContaining({ error: expect.any(String) }),
       expect.stringContaining("rejected with invalid token")
     );
   });
@@ -89,7 +96,7 @@ describe("authorizer", () => {
       authorizationToken: `Bearer missingsub`,
     };
     vi.spyOn(jwt, "verify").mockImplementationOnce((token, gk, _, f) => {
-      f(null, {});
+      f!(null, {});
     });
 
     const infoSpy = vi.spyOn(log, "info");
@@ -113,7 +120,7 @@ describe("authorizer", () => {
     };
 
     vi.spyOn(jwt, "verify").mockImplementationOnce((token, gk, _, f) => {
-      f(null, mockDecoded);
+      f!(null, mockDecoded);
     });
 
     const infoSpy = vi.spyOn(log, "info");
@@ -121,7 +128,7 @@ describe("authorizer", () => {
     await expect(handler(mockEvent, mockContext)).rejects.toThrow("Unauthorized");
 
     expect(infoSpy).toHaveBeenCalledWith(
-      expect.objectContaining({sub: expect.any(String)}),
+      expect.objectContaining({ sub: expect.any(String) }),
       expect.stringContaining("user has no roles")
     );
   });
@@ -141,7 +148,7 @@ describe("authorizer", () => {
     };
 
     vi.spyOn(jwt, "verify").mockImplementationOnce((token, gk, _, f) => {
-      f(null, mockDecoded);
+      f!(null, mockDecoded);
     });
 
     const infoSpy = vi.spyOn(log, "info");
@@ -149,7 +156,7 @@ describe("authorizer", () => {
     await expect(handler(mockEvent, mockContext)).rejects.toThrow("Unauthorized");
 
     expect(infoSpy).toHaveBeenCalledWith(
-      expect.objectContaining({sub: expect.anything(), roles: expect.anything()}),
+      expect.objectContaining({ sub: expect.anything(), roles: expect.anything() }),
       expect.stringContaining("user has invalid roles")
     );
   });
@@ -169,7 +176,7 @@ describe("authorizer", () => {
     };
 
     vi.spyOn(jwt, "verify").mockImplementationOnce((token, gk, _, f) => {
-      f(new JsonWebTokenError("there was an error"), mockDecoded);
+      f!(new JsonWebTokenError("there was an error"), mockDecoded);
     });
 
     const infoSpy = vi.spyOn(log, "info");

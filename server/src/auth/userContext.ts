@@ -1,6 +1,7 @@
 import { prisma } from "../prismaClient";
 import { Permission, SystemRole, UserType } from "../types";
 import { AuthorizationClaims } from "./auth.util";
+import { upsertUserSession } from "../model/userSession/queries";
 
 const initialUserTypeRoles: Record<UserType, SystemRole> = {
   "demos-admin": "Admin User",
@@ -16,90 +17,105 @@ export type ContextUser = {
 };
 
 async function createNewUserFromClaims(claims: AuthorizationClaims): Promise<ContextUser> {
-  const person = await prisma().person.create({
-    data: {
-      personTypeId: claims.role,
-      email: claims.email,
-      firstName: claims.givenName,
-      lastName: claims.familyName,
-    },
-  });
+  return await prisma().$transaction(async (tx) => {
+    const person = await tx.person.create({
+      data: {
+        personTypeId: claims.role,
+        email: claims.email,
+        firstName: claims.givenName,
+        lastName: claims.familyName,
+      },
+    });
+    // Cast enforced by database constraints
+    const newPersonType = person.personTypeId as UserType;
 
-  const user = await prisma().user.create({
-    data: {
-      id: person.id,
-      personTypeId: person.personTypeId,
-      cognitoSubject: claims.sub,
-      username: claims.externalUserId,
-    },
-  });
+    const user = await tx.user.create({
+      data: {
+        id: person.id,
+        personTypeId: newPersonType,
+        cognitoSubject: claims.sub,
+        username: claims.externalUserId,
+      },
+    });
 
-  const systemRoleAssignment = await prisma().systemRoleAssignment.create({
-    data: {
-      personId: person.id,
-      grantLevelId: "System",
-      personTypeId: person.personTypeId,
-      // casting enforced by database constraints
-      roleId: initialUserTypeRoles[person.personTypeId as UserType],
-    },
-    include: {
-      role: {
-        include: {
-          rolePermissions: true,
+    const systemRoleAssignment = await tx.systemRoleAssignment.create({
+      data: {
+        personId: person.id,
+        grantLevelId: "System",
+        personTypeId: newPersonType,
+        roleId: initialUserTypeRoles[newPersonType],
+      },
+      include: {
+        role: {
+          include: {
+            rolePermissions: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  return {
-    id: person.id,
-    // casting enforced by database constraints
-    personTypeId: person.personTypeId as UserType,
-    cognitoSubject: user.cognitoSubject,
-    permissions: systemRoleAssignment.role.rolePermissions.map(
+    await upsertUserSession(person.id, claims.authTime, tx);
+
+    return {
+      id: person.id,
       // casting enforced by database constraints
-      (rp) => rp.permissionId as Permission
-    ),
-  };
+      personTypeId: newPersonType,
+      cognitoSubject: user.cognitoSubject,
+      permissions: systemRoleAssignment.role.rolePermissions.map(
+        // casting enforced by database constraints
+        (rp) => rp.permissionId as Permission
+      ),
+    };
+  });
 }
 
 export async function findOrCreateContextUserFromClaims(
   claims: AuthorizationClaims
 ): Promise<ContextUser> {
-  const existingUser = await prisma().user.findUnique({
-    where: { cognitoSubject: claims.sub },
-    include: {
-      person: {
-        include: {
-          systemRoleAssignments: true,
-        },
-      },
-    },
-  });
-
-  if (existingUser) {
-    const userRoles = existingUser.person.systemRoleAssignments.map(
-      (assignment) => assignment.roleId
-    );
-
-    const userRolePermissions = await prisma().rolePermission.findMany({
-      where: {
-        roleId: {
-          in: userRoles,
+  const existingContextUser = await prisma().$transaction(async (tx) => {
+    const existingUser = await tx.user.findUnique({
+      where: { cognitoSubject: claims.sub },
+      include: {
+        person: {
+          include: {
+            systemRoleAssignments: true,
+          },
         },
       },
     });
 
-    return {
-      id: existingUser.id,
-      cognitoSubject: existingUser.cognitoSubject,
-      // casting enforced by database constraints
-      personTypeId: existingUser.personTypeId as UserType,
-      permissions: userRolePermissions.map(
-        (rolePermission) => rolePermission.permissionId as Permission
-      ),
-    };
-  }
+    if (existingUser) {
+      const userRoles = existingUser.person.systemRoleAssignments.map(
+        (assignment) => assignment.roleId
+      );
 
-  return await createNewUserFromClaims(claims);
+      const userRolePermissions = await tx.rolePermission.findMany({
+        where: {
+          roleId: {
+            in: userRoles,
+          },
+        },
+      });
+
+      await upsertUserSession(existingUser.id, claims.authTime, tx);
+
+      return {
+        id: existingUser.id,
+        cognitoSubject: existingUser.cognitoSubject,
+        // casting enforced by database constraints
+        personTypeId: existingUser.personTypeId as UserType,
+        permissions: userRolePermissions.map(
+          (rolePermission) => rolePermission.permissionId as Permission
+        ),
+      };
+    } else {
+      return null;
+    }
+  });
+
+  if (existingContextUser) {
+    return existingContextUser;
+  } else {
+    return await createNewUserFromClaims(claims);
+  }
 }
