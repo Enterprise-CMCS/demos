@@ -96,7 +96,6 @@ describe("findOrCreateContextUserFromClaims", () => {
     });
     expect(upsertUserSession).toHaveBeenCalledExactlyOnceWith(
       "user-1",
-      "demos-admin",
       claims.authTime,
       mockTransaction
     );
@@ -173,7 +172,6 @@ describe("findOrCreateContextUserFromClaims", () => {
     });
     expect(upsertUserSession).toHaveBeenCalledExactlyOnceWith(
       "person-1",
-      "demos-admin",
       claims.authTime,
       mockTransaction
     );
