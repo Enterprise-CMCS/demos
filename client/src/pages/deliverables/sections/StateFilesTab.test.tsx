@@ -158,6 +158,18 @@ describe("StateFilesTab", () => {
       await user.click(submitButton);
       expect(onSubmit).toHaveBeenCalledTimes(1);
     });
+
+    it("renders the Current toggle as the shared styled switch", () => {
+      renderTab();
+
+      // react-switch renders a role="switch" element with fixed px sizing, so
+      // it's immune to the custom Tailwind spacing theme that previously made
+      // the hand-rolled toggle render as a vertical sliver.
+      const toggle = screen.getByRole("switch", {
+        name: /toggle current file file-a/i,
+      });
+      expect(toggle).toBeInTheDocument();
+    });
   });
 
   describe("when disabled", () => {

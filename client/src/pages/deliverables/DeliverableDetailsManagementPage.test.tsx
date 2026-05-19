@@ -14,7 +14,7 @@ import { TestProvider } from "test-utils/TestProvider";
 import { COMMENT_BOX_NAME } from "./sections/comment_box";
 import { DELIVERABLE_INFO_FIELDS_NAME,   BACK_TO_DELIVERABLES_BUTTON_NAME} from "./sections/DeliverableInfoFields";
 import { FILE_AND_HISTORY_TABS_NAME } from "./sections/FileAndHistoryTabs";
-// import { DELIVERABLE_BUTTONS_NAME } from "./sections/DeliverableButtons";
+import { REQUEST_EXTENSION_BUTTON_NAME } from "./sections/DeliverableButtons";
 import { DialogProvider } from "components/dialog/DialogContext";
 import {
   DELIVERABLE_REVIEW_NOTICE_NAME,
@@ -218,6 +218,22 @@ describe("DeliverableDetailsManagementPage", () => {
 
     expect(await screen.findByTestId("edit-deliverable-button")).not.toBeDisabled();
     expect(screen.getByTestId("delete-deliverable-button")).not.toBeDisabled();
+  });
+
+  it("shows only the Request Extension button for state users", async () => {
+    renderWithDeliverable(MOCK_DELIVERABLE_1, "demos-state-user");
+
+    expect(await screen.findByTestId(REQUEST_EXTENSION_BUTTON_NAME)).toBeInTheDocument();
+    expect(screen.queryByTestId("edit-deliverable-button")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("delete-deliverable-button")).not.toBeInTheDocument();
+  });
+
+  it("shows Request Extension alongside Edit and Delete for admin users", async () => {
+    renderWithDeliverable(MOCK_DELIVERABLE_1, "demos-admin");
+
+    expect(await screen.findByTestId(REQUEST_EXTENSION_BUTTON_NAME)).toBeInTheDocument();
+    expect(screen.getByTestId("edit-deliverable-button")).toBeInTheDocument();
+    expect(screen.getByTestId("delete-deliverable-button")).toBeInTheDocument();
   });
 
   it("shows not found state", async () => {
