@@ -152,6 +152,7 @@ erDiagram
   application_tag_suggestion_extract }|--|| application_tag_suggestion : "FK133 (DEFERRED)"
   application_tag_suggestion_extract_field_limit ||--|{ application_tag_suggestion_extract : "FK134"
   application_tag_suggestion_status ||--|{ application_tag_suggestion : "FK135"
+  application_tag_suggestion }|..|| application : ""
 
   %% Static Constraints
   application_status:::staticConstraint {
@@ -179,11 +180,11 @@ erDiagram
   }
 
   deliverable_action_type:::staticConstraint {
-    text id PK, UK "UK: (id, due_date_change_allowed, should_have_note, should_have_user_id, should_have_active_extension_id)"
-    bool due_date_change_allowed UK "UK: (id, due_date_change_allowed, should_have_note, should_have_user_id, should_have_active_extension_id)"
-    bool should_have_note UK "UK: (id, due_date_change_allowed, should_have_note, should_have_user_id, should_have_active_extension_id)"
-    bool should_have_user_id UK "UK: (id, due_date_change_allowed, should_have_note, should_have_user_id, should_have_active_extension_id)"
-    bool should_have_active_extension_id UK "UK: (id, due_date_change_allowed, should_have_note, should_have_user_id, should_have_active_extension_id)"
+    text id PK, UK "UK: (id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)"
+    bool due_date_change_allowed UK "UK: (id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)"
+    bool should_have_note UK "UK: (id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)"
+    bool should_have_user_id UK "UK: (id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)"
+    bool extension_id_optional UK "UK: (id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)"
   }
 
   deliverable_due_date_type:::staticConstraint {
@@ -453,15 +454,15 @@ erDiagram
     uuid id PK, UK "UK: (id, action_type_id)"
     timestamptz action_timestamp
     uuid deliverable_id FK "FK109: deliverable_id ∈ deliverable.id<br>FK128: (active_extension_id, deliverable_id) ∈ deliverable_extension.(id, deliverable_id)"
-    text action_type_id FK "FK114: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)<br>FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, should_have_active_extension_id)) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, should_have_active_extension_id)<br>UK: (id, action_type_id)"
+    text action_type_id FK "FK114: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)<br>FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)<br>UK: (id, action_type_id)"
     text old_status_id FK "FK114: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)"
     text new_status_id FK "FK114: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)"
     text note "NULLABLE"
     uuid active_extension_id FK "FK128: (active_extension_id, deliverable_id) ∈ deliverable_extension.(id, deliverable_id)<br>NULLABLE"
-    bool due_date_change_allowed FK "FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, should_have_active_extension_id)) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, should_have_active_extension_id)"
-    bool should_have_note FK "FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, should_have_active_extension_id)) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, should_have_active_extension_id)"
-    bool should_have_user_id FK "FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, should_have_active_extension_id)) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, should_have_active_extension_id)"
-    bool should_have_active_extension_id FK "FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, should_have_active_extension_id)) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, should_have_active_extension_id)"
+    bool due_date_change_allowed FK "FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)"
+    bool should_have_note FK "FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)"
+    bool should_have_user_id FK "FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)"
+    bool extension_id_optional FK "FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)"
     timestamptz old_due_date
     timestamptz new_due_date
     uuid user_id FK "FK112: user_id ∈ users.id<br>NULLABLE"
@@ -717,8 +718,8 @@ erDiagram
   }
 
   user_session:::dataTable {
-    uuid user_id FK "FK139: user_id ∈ users.id"
-    timestamptz auth_time
+    uuid user_id PK, FK "FK139: user_id ∈ users.id"
+    timestamptz auth_time PK
     timestamptz last_auth_event_time
     integer auth_event_count
   }
@@ -838,4 +839,5 @@ erDiagram
     text AssociativeTable "Purple"
     text DataTable "Green"
     text NOTE "HAS_HISTORY true indicates that a table has a _history table as well."
+    text NOTE "Dashed lines indicate foreign keys added for convenience in using Prisma."
   }

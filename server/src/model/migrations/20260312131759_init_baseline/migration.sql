@@ -87,19 +87,20 @@ VALUES
 INSERT INTO
     demos_app.deliverable_action_type
 VALUES
-    ('Created Deliverable Slot', FALSE, FALSE, TRUE),
-    ('Marked as Past Due', FALSE, FALSE, FALSE),
-    ('Requested Extension', FALSE, FALSE, TRUE),
-    ('Approved Extension Request', TRUE, FALSE, TRUE),
-    ('Denied Extension Request', FALSE, FALSE, TRUE),
-    ('Withdrew Extension Request', FALSE, FALSE, TRUE),
-    ('Manually Changed Due Date', TRUE, TRUE, TRUE),
-    ('Requested Resubmission', TRUE, TRUE, TRUE),
-    ('Submitted Deliverable', FALSE, FALSE, TRUE),
-    ('Started Review', FALSE, FALSE, TRUE),
-    ('Accepted Deliverable', FALSE, FALSE, TRUE),
-    ('Approved Deliverable', FALSE, FALSE, TRUE),
-    ('Received and Filed Deliverable', FALSE, FALSE, TRUE);
+    ('Created Deliverable Slot', FALSE, FALSE, TRUE, TRUE),
+    ('Marked as Past Due', FALSE, FALSE, FALSE, TRUE),
+    ('Requested Extension', FALSE, TRUE, TRUE, FALSE),
+    ('Approved Extension Request', TRUE, FALSE, TRUE, FALSE),
+    ('Denied Extension Request', FALSE, TRUE, TRUE, FALSE),
+    ('Withdrew Extension Request', FALSE, FALSE, TRUE, FALSE),
+    ('Manually Changed Due Date', TRUE, TRUE, TRUE, TRUE),
+    ('Requested Resubmission', TRUE, TRUE, TRUE, TRUE),
+    ('Submitted Deliverable', FALSE, FALSE, TRUE, TRUE),
+    ('Started Review', FALSE, FALSE, TRUE, TRUE),
+    ('Accepted Deliverable', FALSE, FALSE, TRUE, TRUE),
+    ('Approved Deliverable', FALSE, FALSE, TRUE, TRUE),
+    ('Received and Filed Deliverable', FALSE, FALSE, TRUE, TRUE),
+    ('Deleted Deliverable', FALSE, FALSE, TRUE, TRUE);
 
 INSERT INTO
     demos_app.deliverable_due_date_type
@@ -131,7 +132,8 @@ VALUES
     ('Under CMS Review'),
     ('Accepted'),
     ('Approved'),
-    ('Received and Filed');
+    ('Received and Filed'),
+    ('Deleted');
 
 INSERT INTO
     demos_app.deliverable_type
@@ -189,46 +191,10 @@ VALUES
     ('Transition Plan');
 
 INSERT INTO
-    demos_app.event_type
-VALUES
-    -- Authentication
-    ('Login Succeeded'),
-    ('Logout Succeeded'),
-    ('Login Failed'),
-    ('Logout Failed'),
-    -- Record Creation
-    ('Create Demonstration Succeeded'),
-    ('Create Demonstration Failed'),
-    ('Create Extension Succeeded'),
-    ('Create Extension Failed'),
-    ('Create Amendment Succeeded'),
-    ('Create Amendment Failed'),
-    -- Editing
-    ('Edit Demonstration Succeeded'),
-    ('Edit Demonstration Failed'),
-    -- Deletion
-    ('Delete Demonstration Succeeded'),
-    ('Delete Demonstration Failed'),
-    ('Delete Document Succeeded'),
-    ('Delete Document Failed');
-
-INSERT INTO
     demos_app.grant_level
 VALUES
     ('System'),
     ('Demonstration');
-
-INSERT INTO
-    demos_app.log_level
-VALUES
-    ('emerg', 'Emergency', 0),
-    ('alert', 'Alert', 1),
-    ('crit', 'Critical', 2),
-    ('err', 'Error', 3),
-    ('warning', 'Warning', 4),
-    ('notice', 'Notice', 5),
-    ('info', 'Informational', 6),
-    ('debug', 'Debug', 7);
 
 INSERT INTO
     demos_app.note_type
@@ -435,73 +401,51 @@ VALUES
 INSERT INTO
     demos_app.deliverable_action_configuration
 VALUES
-    -- Created Deliverable Slot
     ('Created Deliverable Slot', 'Upcoming', 'Upcoming'),
 
-    -- Marked as Past Due
     ('Marked as Past Due', 'Upcoming', 'Past Due'),
 
-    -- Requested Extension
     ('Requested Extension', 'Upcoming', 'Upcoming'),
     ('Requested Extension', 'Past Due', 'Past Due'),
 
-    -- Approved Extension Request
     ('Approved Extension Request', 'Upcoming', 'Upcoming'),
     ('Approved Extension Request', 'Past Due', 'Upcoming'),
     ('Approved Extension Request', 'Submitted', 'Submitted'),
     ('Approved Extension Request', 'Under CMS Review', 'Under CMS Review'),
-    ('Approved Extension Request', 'Accepted', 'Accepted'),
-    ('Approved Extension Request', 'Approved', 'Approved'),
-    ('Approved Extension Request', 'Received and Filed', 'Received and Filed'),
 
-    -- Denied Extension Request
     ('Denied Extension Request', 'Upcoming', 'Upcoming'),
     ('Denied Extension Request', 'Past Due', 'Past Due'),
     ('Denied Extension Request', 'Submitted', 'Submitted'),
     ('Denied Extension Request', 'Under CMS Review', 'Under CMS Review'),
-    ('Denied Extension Request', 'Accepted', 'Accepted'),
-    ('Denied Extension Request', 'Approved', 'Approved'),
-    ('Denied Extension Request', 'Received and Filed', 'Received and Filed'),
 
-    -- Denied Extension Request
     ('Withdrew Extension Request', 'Upcoming', 'Upcoming'),
     ('Withdrew Extension Request', 'Past Due', 'Past Due'),
     ('Withdrew Extension Request', 'Submitted', 'Submitted'),
     ('Withdrew Extension Request', 'Under CMS Review', 'Under CMS Review'),
-    ('Withdrew Extension Request', 'Accepted', 'Accepted'),
-    ('Withdrew Extension Request', 'Approved', 'Approved'),
-    ('Withdrew Extension Request', 'Received and Filed', 'Received and Filed'),
 
-    -- Manually Changed Due Date
     ('Manually Changed Due Date', 'Upcoming', 'Upcoming'),
     ('Manually Changed Due Date', 'Past Due', 'Upcoming'),
     ('Manually Changed Due Date', 'Submitted', 'Submitted'),
     ('Manually Changed Due Date', 'Under CMS Review', 'Under CMS Review'),
-    ('Manually Changed Due Date', 'Accepted', 'Accepted'),
-    ('Manually Changed Due Date', 'Approved', 'Approved'),
-    ('Manually Changed Due Date', 'Received and Filed', 'Received and Filed'),
 
-    -- Requested Resubmission
     ('Requested Resubmission', 'Submitted', 'Upcoming'),
     ('Requested Resubmission', 'Under CMS Review', 'Upcoming'),
 
-    -- Submitted Deliverable
     ('Submitted Deliverable', 'Upcoming', 'Submitted'),
     ('Submitted Deliverable', 'Past Due', 'Submitted'),
     ('Submitted Deliverable', 'Submitted', 'Submitted'),
     ('Submitted Deliverable', 'Under CMS Review', 'Submitted'),
 
-    -- Started Review
     ('Started Review', 'Submitted', 'Under CMS Review'),
 
-    -- Accepted Deliverable
     ('Accepted Deliverable', 'Under CMS Review', 'Accepted'),
 
-    -- Approved Deliverable
     ('Approved Deliverable', 'Under CMS Review', 'Approved'),
 
-    -- Received and Filed Deliverable
-    ('Received and Filed Deliverable', 'Under CMS Review', 'Received and Filed');
+    ('Received and Filed Deliverable', 'Under CMS Review', 'Received and Filed'),
+
+    ('Deleted Deliverable', 'Upcoming', 'Deleted'),
+    ('Deleted Deliverable', 'Past Due', 'Deleted');
 
 INSERT INTO
     demos_app.deliverable_type_document_type
@@ -666,6 +610,51 @@ VALUES
     ('Completeness', 'Incomplete');
 
 INSERT INTO
+    demos_app.permission
+VALUES
+    -- Row Level Permissions
+    ('View All Demonstrations', 'System'),
+    ('View Assigned Demonstrations', 'System'),
+    ('View All Amendments', 'System'),
+    ('View Amendments on Assigned Demonstrations', 'System'),
+    ('View All Extensions', 'System'),
+    ('View Extensions on Assigned Demonstrations', 'System'),
+    ('View All Documents', 'System'),
+    ('View Documents on Assigned Demonstrations', 'System'),
+    ('View Owned Documents', 'System'),
+    ('View All ApplicationPhases', 'System'),
+    ('View ApplicationPhases on Assigned Demonstrations', 'System'),
+    ('View All ApplicationDates', 'System'),
+    ('View ApplicationDates on Assigned Demonstrations', 'System'),
+    ('View All ApplicationNotes', 'System'),
+    ('View ApplicationNotes on Assigned Demonstrations', 'System'),
+    ('View All ApplicationTagAssignments', 'System'),
+    ('View ApplicationTagAssignments on Assigned Demonstrations', 'System'),
+    ('View All DemonstrationTypeTagAssignments', 'System'),
+    ('View DemonstrationTypeTagAssignments on Assigned Demonstrations', 'System'),
+    ('View All DeliverableDemonstrationTypes', 'System'),
+    ('View DeliverableDemonstrationTypes on Assigned Demonstrations', 'System'),
+    ('View All DemonstrationRoleAssignments', 'System'),
+    ('View DemonstrationRoleAssignments on Assigned Demonstrations', 'System'),
+    ('View All ApplicationTagSuggestions', 'System'),
+    ('View ApplicationTagSuggestions on Assigned Demonstrations', 'System'),
+    ('View All People', 'System'),
+    ('View People on Assigned Demonstrations', 'System'),
+    ('View My Person', 'System'),
+    ('View All Users', 'System'),
+    ('View Users on Assigned Demonstrations', 'System'),
+    ('View My User', 'System'),
+    ('View All SystemRoleAssignments', 'System'),
+    ('View My SystemRoleAssignments', 'System'),
+    ('View All Deliverables', 'System'),
+    ('View Deliverables on Assigned Demonstrations', 'System'),
+    -- Field Level Permissions
+    ('Access CMS Field', 'System'),
+    ('Access CMS Query', 'System'),
+    ('Perform CMS Action', 'System'),
+    ('Perform State Action', 'System');
+
+INSERT INTO
     demos_app.role
 VALUES
     ('Project Officer', 'Demonstration'),
@@ -673,7 +662,110 @@ VALUES
     ('DDME Analyst', 'Demonstration'),
     ('Policy Technical Director', 'Demonstration'),
     ('Monitoring & Evaluation Technical Director', 'Demonstration'),
-    ('All Users', 'System');
+    ('Admin User', 'System'),
+    ('CMS User', 'System'),
+    ('State User', 'System');
+
+INSERT INTO
+    demos_app.role_permission
+VALUES
+    ('Admin User', 'System', 'View All Demonstrations'),
+    ('Admin User', 'System', 'View Assigned Demonstrations'),
+    ('CMS User', 'System', 'View All Demonstrations'),
+    ('CMS User', 'System', 'View Assigned Demonstrations'),
+    ('State User', 'System', 'View Assigned Demonstrations'),
+    ('Admin User', 'System', 'View All Amendments'),
+    ('Admin User', 'System', 'View Amendments on Assigned Demonstrations'),
+    ('CMS User', 'System', 'View All Amendments'),
+    ('CMS User', 'System', 'View Amendments on Assigned Demonstrations'),
+    ('State User', 'System', 'View Amendments on Assigned Demonstrations'),
+    ('Admin User', 'System', 'View All Extensions'),
+    ('Admin User', 'System', 'View Extensions on Assigned Demonstrations'),
+    ('CMS User', 'System', 'View All Extensions'),
+    ('CMS User', 'System', 'View Extensions on Assigned Demonstrations'),
+    ('State User', 'System', 'View Extensions on Assigned Demonstrations'),
+    ('Admin User', 'System', 'View All Documents'),
+    ('Admin User', 'System', 'View Documents on Assigned Demonstrations'),
+    ('Admin User', 'System', 'View Owned Documents'),
+    ('CMS User', 'System', 'View All Documents'),
+    ('CMS User', 'System', 'View Documents on Assigned Demonstrations'),
+    ('CMS User', 'System', 'View Owned Documents'),
+    ('State User', 'System', 'View Documents on Assigned Demonstrations'),
+    ('State User', 'System', 'View Owned Documents'),
+    ('Admin User', 'System', 'View All ApplicationPhases'),
+    ('Admin User', 'System', 'View ApplicationPhases on Assigned Demonstrations'),
+    ('CMS User', 'System', 'View All ApplicationPhases'),
+    ('CMS User', 'System', 'View ApplicationPhases on Assigned Demonstrations'),
+    ('State User', 'System', 'View ApplicationPhases on Assigned Demonstrations'),
+    ('Admin User', 'System', 'View All ApplicationDates'),
+    ('Admin User', 'System', 'View ApplicationDates on Assigned Demonstrations'),
+    ('Admin User', 'System', 'View All ApplicationNotes'),
+    ('Admin User', 'System', 'View ApplicationNotes on Assigned Demonstrations'),
+    ('CMS User', 'System', 'View All ApplicationDates'),
+    ('CMS User', 'System', 'View ApplicationDates on Assigned Demonstrations'),
+    ('CMS User', 'System', 'View All ApplicationNotes'),
+    ('CMS User', 'System', 'View ApplicationNotes on Assigned Demonstrations'),
+    ('State User', 'System', 'View ApplicationDates on Assigned Demonstrations'),
+    ('State User', 'System', 'View ApplicationNotes on Assigned Demonstrations'),
+    ('Admin User', 'System', 'View All ApplicationTagAssignments'),
+    ('Admin User', 'System', 'View ApplicationTagAssignments on Assigned Demonstrations'),
+    ('CMS User', 'System', 'View All ApplicationTagAssignments'),
+    ('CMS User', 'System', 'View ApplicationTagAssignments on Assigned Demonstrations'),
+    ('State User', 'System', 'View ApplicationTagAssignments on Assigned Demonstrations'),
+    ('Admin User', 'System', 'View All DemonstrationTypeTagAssignments'),
+    ('Admin User', 'System', 'View DemonstrationTypeTagAssignments on Assigned Demonstrations'),
+    ('CMS User', 'System', 'View All DemonstrationTypeTagAssignments'),
+    ('CMS User', 'System', 'View DemonstrationTypeTagAssignments on Assigned Demonstrations'),
+    ('State User', 'System', 'View DemonstrationTypeTagAssignments on Assigned Demonstrations'),
+    ('Admin User', 'System', 'View All DeliverableDemonstrationTypes'),
+    ('Admin User', 'System', 'View DeliverableDemonstrationTypes on Assigned Demonstrations'),
+    ('CMS User', 'System', 'View All DeliverableDemonstrationTypes'),
+    ('CMS User', 'System', 'View DeliverableDemonstrationTypes on Assigned Demonstrations'),
+    ('State User', 'System', 'View DeliverableDemonstrationTypes on Assigned Demonstrations'),
+    ('Admin User', 'System', 'View All DemonstrationRoleAssignments'),
+    ('Admin User', 'System', 'View DemonstrationRoleAssignments on Assigned Demonstrations'),
+    ('CMS User', 'System', 'View All DemonstrationRoleAssignments'),
+    ('CMS User', 'System', 'View DemonstrationRoleAssignments on Assigned Demonstrations'),
+    ('State User', 'System', 'View DemonstrationRoleAssignments on Assigned Demonstrations'),
+    ('Admin User', 'System', 'View All ApplicationTagSuggestions'),
+    ('Admin User', 'System', 'View ApplicationTagSuggestions on Assigned Demonstrations'),
+    ('CMS User', 'System', 'View All ApplicationTagSuggestions'),
+    ('CMS User', 'System', 'View ApplicationTagSuggestions on Assigned Demonstrations'),
+    ('State User', 'System', 'View ApplicationTagSuggestions on Assigned Demonstrations'),
+    ('Admin User', 'System', 'View All People'),
+    ('Admin User', 'System', 'View People on Assigned Demonstrations'),
+    ('Admin User', 'System', 'View My Person'),
+    ('CMS User', 'System', 'View All People'),
+    ('CMS User', 'System', 'View People on Assigned Demonstrations'),
+    ('CMS User', 'System', 'View My Person'),
+    ('State User', 'System', 'View People on Assigned Demonstrations'),
+    ('State User', 'System', 'View My Person'),
+    ('Admin User', 'System', 'View All Users'),
+    ('Admin User', 'System', 'View Users on Assigned Demonstrations'),
+    ('Admin User', 'System', 'View My User'),
+    ('CMS User', 'System', 'View All Users'),
+    ('CMS User', 'System', 'View Users on Assigned Demonstrations'),
+    ('CMS User', 'System', 'View My User'),
+    ('State User', 'System', 'View Users on Assigned Demonstrations'),
+    ('State User', 'System', 'View My User'),
+    ('Admin User', 'System', 'View All SystemRoleAssignments'),
+    ('Admin User', 'System', 'View My SystemRoleAssignments'),
+    ('CMS User', 'System', 'View All SystemRoleAssignments'),
+    ('CMS User', 'System', 'View My SystemRoleAssignments'),
+    ('State User', 'System', 'View My SystemRoleAssignments'),
+    ('Admin User', 'System', 'View All Deliverables'),
+    ('Admin User', 'System', 'View Deliverables on Assigned Demonstrations'),
+    ('CMS User', 'System', 'View All Deliverables'),
+    ('CMS User', 'System', 'View Deliverables on Assigned Demonstrations'),
+    ('State User', 'System', 'View Deliverables on Assigned Demonstrations'),
+    ('Admin User', 'System', 'Access CMS Field'),
+    ('Admin User', 'System', 'Access CMS Query'),
+    ('Admin User', 'System', 'Perform CMS Action'),
+    ('Admin User', 'System', 'Perform State Action'),
+    ('CMS User', 'System', 'Access CMS Field'),
+    ('CMS User', 'System', 'Access CMS Query'),
+    ('CMS User', 'System', 'Perform CMS Action'),
+    ('State User', 'System', 'Perform State Action');
 
 INSERT INTO
     demos_app.role_person_type
@@ -688,9 +780,9 @@ VALUES
     ('Policy Technical Director', 'demos-cms-user'),
     ('Monitoring & Evaluation Technical Director', 'demos-admin'),
     ('Monitoring & Evaluation Technical Director', 'demos-cms-user'),
-    ('All Users', 'demos-admin'),
-    ('All Users', 'demos-cms-user'),
-    ('All Users', 'demos-state-user');
+    ('Admin User', 'demos-admin'),
+    ('CMS User', 'demos-cms-user'),
+    ('State User', 'demos-state-user');
 
 INSERT INTO
     demos_app.tag
@@ -918,6 +1010,28 @@ CHECK (
 );
 
 ALTER TABLE
+    demos_app.application_tag_suggestion
+ADD CONSTRAINT
+    check_application_tag_suggestion_non_null_replaced_value_when_replaced
+CHECK (
+  (
+    status_id = 'Replaced'
+    AND replaced_value IS NOT NULL
+  ) OR (
+    status_id != 'Replaced'
+    AND replaced_value IS NULL
+  )
+);
+
+ALTER TABLE
+    demos_app.deliverable
+ADD CONSTRAINT
+    check_non_empty_name
+CHECK (
+    trim(name) != ''
+);
+
+ALTER TABLE
     demos_app.deliverable_action
 ADD CONSTRAINT
     block_unpermitted_due_date_changes
@@ -934,6 +1048,15 @@ ADD CONSTRAINT
     check_non_empty_note
 CHECK (
     (note IS NULL OR trim(note) != '')
+);
+
+ALTER TABLE
+    demos_app.deliverable_action
+ADD CONSTRAINT
+    require_extension_id_for_extension_actions
+CHECK (
+    (extension_id_optional = TRUE) OR
+    (extension_id_optional = FALSE AND active_extension_id IS NOT NULL)
 );
 
 ALTER TABLE
@@ -1135,6 +1258,22 @@ CHECK (
     trim(name) != ''
 );
 
+ALTER TABLE
+    demos_app.private_comment
+ADD CONSTRAINT
+    check_non_empty_content
+CHECK (
+    trim(content) != ''
+);
+
+ALTER TABLE
+    demos_app.public_comment
+ADD CONSTRAINT
+    check_non_empty_content
+CHECK (
+    trim(content) != ''
+);
+
 -- Deferred Keys
 -- Sorted by: table name, constraint name
 ALTER TABLE demos_app.amendment DROP CONSTRAINT amendment_id_application_type_id_fkey;
@@ -1146,11 +1285,11 @@ ON DELETE NO ACTION
 ON UPDATE CASCADE
 DEFERRABLE INITIALLY DEFERRED;
 
-ALTER TABLE demos_app.application_tag_suggestion_extract DROP CONSTRAINT application_tag_suggestion_extract_suggestion_id_applicati_fkey;
+ALTER TABLE demos_app.application_tag_suggestion_extract DROP CONSTRAINT application_tag_suggestion_extract_application_id_value_fkey;
 ALTER TABLE demos_app.application_tag_suggestion_extract
-ADD CONSTRAINT application_tag_suggestion_extract_suggestion_id_applicati_fkey
-FOREIGN KEY (suggestion_id, application_id, value)
-REFERENCES demos_app.application_tag_suggestion(id, application_id, value)
+ADD CONSTRAINT application_tag_suggestion_extract_application_id_value_fkey
+FOREIGN KEY (application_id, value)
+REFERENCES demos_app.application_tag_suggestion(application_id, value)
 ON DELETE NO ACTION
 ON UPDATE CASCADE
 DEFERRABLE INITIALLY DEFERRED;
@@ -1190,3 +1329,16 @@ REFERENCES demos_app.deliverable_extension(id, deliverable_id, status_id)
 ON DELETE RESTRICT
 ON UPDATE NO ACTION
 DEFERRABLE INITIALLY DEFERRED;
+
+-- Partial Unique Indexes
+-- Partial unique indexes are not supported yet in Prisma
+-- This is manually managing it; please ensure it is not removed in future migrations
+CREATE UNIQUE INDEX unique_index_on_deliverable_extension_actions
+ON demos_app.deliverable_action (action_type_id, active_extension_id)
+WHERE
+    action_type_id IN (
+        'Approved Extension Request',
+        'Withdrew Extension Request',
+        'Requested Extension',
+        'Denied Extension Request'
+    );
