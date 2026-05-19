@@ -22,13 +22,13 @@ export const extensionSchema = gql`
     description: String
     effectiveDate: DateTime
     status: ApplicationStatus!
-    currentPhaseName: PhaseName!
-    phases: [ApplicationPhase!]!
-    documents: [Document!]!
-    clearanceLevel: ClearanceLevel!
-    tags: [Tag!]!
+    currentPhaseName: PhaseName! @auth(requires: ["Access CMS Field"])
+    phases: [ApplicationPhase!]! @auth(requires: ["Access CMS Field"])
+    documents: [Document!]! @auth(requires: ["Access CMS Field"])
+    clearanceLevel: ClearanceLevel! @auth(requires: ["Access CMS Field"])
+    tags: [Tag!]! @auth(requires: ["Access CMS Field"])
     signatureLevel: ExtensionSignatureLevel
-    suggestedApplicationTags: [TagName!]!
+    suggestedApplicationTags: [TagName!]! @auth(requires: ["Access CMS Field"])
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -50,14 +50,15 @@ export const extensionSchema = gql`
   }
 
   type Mutation {
-    createExtension(input: CreateExtensionInput!): Extension
+    createExtension(input: CreateExtensionInput!): Extension @auth(requires: ["Perform CMS Action"])
     updateExtension(id: ID!, input: UpdateExtensionInput!): Extension
-    deleteExtension(id: ID!): Extension
+      @auth(requires: ["Perform CMS Action"])
+    deleteExtension(id: ID!): Extension @auth(requires: ["Perform CMS Action"])
   }
 
   type Query {
-    extensions: [Extension!]!
-    extension(id: ID!): Extension
+    extensions: [Extension!]! @auth(requires: ["Access CMS Query"])
+    extension(id: ID!): Extension @auth(requires: ["Access CMS Query"])
   }
 `;
 

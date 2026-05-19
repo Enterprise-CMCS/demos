@@ -7,6 +7,19 @@ import { userResolvers } from "./userResolvers";
 import { getManyDocuments } from "../document";
 import { getUser } from "./userData";
 import { getPerson } from "../person";
+import {
+  selectManySystemRoleAssignments,
+  SystemRoleAssignmentQueryResult,
+} from "../systemRoleAssignment";
+import { DeepPartial } from "../../testUtilities";
+
+vi.mock("../../prismaClient", () => ({
+  prisma: vi.fn(),
+}));
+
+vi.mock("../systemRoleAssignment", () => ({
+  selectManySystemRoleAssignments: vi.fn(),
+}));
 
 vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
@@ -62,6 +75,78 @@ describe("userResolvers", () => {
       } as PrismaUser;
       await userResolvers.User.person(mockUser, undefined, mockContext);
       expect(getPerson).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
+    });
+  });
+
+  describe("User.systemRoles", () => {
+    const testSystemRoleAssignments: DeepPartial<SystemRoleAssignmentQueryResult>[] = [
+      {
+        personId: "person-1",
+        roleId: "role-1",
+      },
+      {
+        personId: "person-1",
+        roleId: "role-2",
+      },
+    ];
+
+    it("delegates to `systemRoleAssignment.queries.selectManySystemRoleAssignments` and maps result", async () => {
+      const mockUser = {
+        id: "abc123",
+      } as PrismaUser;
+      vi.mocked(selectManySystemRoleAssignments).mockResolvedValueOnce(
+        testSystemRoleAssignments as SystemRoleAssignmentQueryResult[]
+      );
+      const result = await userResolvers.User.systemRoles(mockUser);
+      expect(selectManySystemRoleAssignments).toHaveBeenCalledExactlyOnceWith({
+        personId: "abc123",
+      });
+      expect(result).toStrictEqual(["role-1", "role-2"]);
+    });
+  });
+
+  describe("User.permissions", () => {
+    const testSystemRoleAssignments: DeepPartial<SystemRoleAssignmentQueryResult>[] = [
+      {
+        personId: "person-1",
+        role: {
+          rolePermissions: [
+            {
+              permissionId: "permission-1",
+            },
+            {
+              permissionId: "permission-2",
+            },
+          ],
+        },
+      },
+      {
+        personId: "person-1",
+        role: {
+          rolePermissions: [
+            {
+              permissionId: "permission-2",
+            },
+            {
+              permissionId: "permission-3",
+            },
+          ],
+        },
+      },
+    ];
+
+    it("delegates to `systemRoleAssignment.queries.selectManySystemRoleAssignments` and maps result", async () => {
+      const mockUser = {
+        id: "abc123",
+      } as PrismaUser;
+      vi.mocked(selectManySystemRoleAssignments).mockResolvedValueOnce(
+        testSystemRoleAssignments as SystemRoleAssignmentQueryResult[]
+      );
+      const result = await userResolvers.User.permissions(mockUser);
+      expect(selectManySystemRoleAssignments).toHaveBeenCalledExactlyOnceWith({
+        personId: "abc123",
+      });
+      expect(result).toStrictEqual(["permission-1", "permission-2", "permission-3"]);
     });
   });
 });

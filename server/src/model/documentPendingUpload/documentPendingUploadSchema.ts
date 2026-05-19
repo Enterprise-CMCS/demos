@@ -16,10 +16,10 @@ export const documentPendingUploadSchema = gql`
     description: String
     owner: User!
     documentType: DocumentType!
-    application: Application!
-    phaseName: PhaseName
-    presignedUploadUrl: String!
-    deliverable: Deliverable
+    application: Application! @auth(requires: ["Perform CMS Action"])
+    phaseName: PhaseName @auth(requires: ["Perform CMS Action"])
+    presignedUploadUrl: String! @auth(requires: ["Perform CMS Action"])
+    deliverable: Deliverable @auth(requires: ["Perform CMS Action"])
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -56,8 +56,11 @@ export const documentPendingUploadSchema = gql`
 
   type Mutation {
     uploadDocumentToApplication(input: UploadDocumentToApplicationInput!): DocumentPendingUpload!
+      @auth(requires: ["Perform CMS Action"])
     uploadDocumentToPhase(input: UploadDocumentToPhaseInput!): DocumentPendingUpload!
+      @auth(requires: ["Perform CMS Action"])
     uploadDocumentToDeliverable(input: UploadDocumentToDeliverableInput!): DocumentPendingUpload!
+      @auth(requires: ["Perform CMS Action", "Perform State Action"])
   }
 `;
 

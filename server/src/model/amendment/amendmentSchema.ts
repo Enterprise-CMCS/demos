@@ -22,13 +22,13 @@ export const amendmentSchema = gql`
     description: String
     effectiveDate: DateTime
     status: ApplicationStatus!
-    currentPhaseName: PhaseName!
-    phases: [ApplicationPhase!]!
-    documents: [Document!]!
-    clearanceLevel: ClearanceLevel!
-    tags: [Tag!]!
+    currentPhaseName: PhaseName! @auth(requires: ["Access CMS Field"])
+    phases: [ApplicationPhase!]! @auth(requires: ["Access CMS Field"])
+    documents: [Document!]! @auth(requires: ["Access CMS Field"])
+    clearanceLevel: ClearanceLevel! @auth(requires: ["Access CMS Field"])
+    tags: [Tag!]! @auth(requires: ["Access CMS Field"])
     signatureLevel: AmendmentSignatureLevel
-    suggestedApplicationTags: [TagName!]!
+    suggestedApplicationTags: [TagName!]! @auth(requires: ["Access CMS Field"])
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -50,14 +50,15 @@ export const amendmentSchema = gql`
   }
 
   type Mutation {
-    createAmendment(input: CreateAmendmentInput!): Amendment
+    createAmendment(input: CreateAmendmentInput!): Amendment @auth(requires: ["Perform CMS Action"])
     updateAmendment(id: ID!, input: UpdateAmendmentInput!): Amendment
-    deleteAmendment(id: ID!): Amendment
+      @auth(requires: ["Perform CMS Action"])
+    deleteAmendment(id: ID!): Amendment @auth(requires: ["Perform CMS Action"])
   }
 
   type Query {
-    amendments: [Amendment!]!
-    amendment(id: ID!): Amendment
+    amendments: [Amendment!]! @auth(requires: ["Access CMS Query"])
+    amendment(id: ID!): Amendment @auth(requires: ["Access CMS Query"])
   }
 `;
 

@@ -13,6 +13,7 @@ export const publicCommentSchema = gql`
 
   type Mutation {
     createPublicComment(deliverableId: ID!, comment: NonEmptyString!): DeliverableComment!
+      @auth(requires: ["Perform CMS Action", "Perform State Action"])
   }
 `;
 

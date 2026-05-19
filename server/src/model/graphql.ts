@@ -80,6 +80,9 @@ import { extensionResolvers } from "./extension/extensionResolvers.js";
 import { noteTypeSchema } from "./noteType/noteTypeSchema.js";
 import { noteTypeResolvers } from "./noteType/noteTypeResolvers.js";
 
+import { permissionSchema } from "./permission/permissionSchema.js";
+import { permissionResolvers } from "./permission/permissionResolvers.js";
+
 import { personSchema } from "./person/personSchema.js";
 import { personResolvers } from "./person/personResolvers.js";
 
@@ -133,6 +136,8 @@ import { customScalarResolvers } from "../customScalarResolvers.js";
 import { clearanceLevelSchema } from "./clearanceLevel/clearanceLeveSchema.js";
 import { clearanceLevelResolvers } from "./clearanceLevel/clearanceLevelResolvers.js";
 
+import { directivesSchema } from "./directives/directivesSchema.js";
+
 const scalarTypes = [
   JSONObjectDefinition,
   DateTimeTypeDefinition,
@@ -164,11 +169,13 @@ export const typeDefs = [
   demonstrationRoleAssignmentSchema,
   demonstrationSchema,
   demonstrationTypeTagAssignmentSchema,
+  directivesSchema,
   documentPendingUploadSchema,
   documentSchema,
   documentTypeSchema,
   extensionSchema,
   noteTypeSchema,
+  permissionSchema,
   personSchema,
   personTypeSchema,
   phaseSchema,
@@ -216,6 +223,7 @@ export const resolvers = [
   documentTypeResolvers,
   extensionResolvers,
   noteTypeResolvers,
+  permissionResolvers,
   personResolvers,
   personTypeResolvers,
   phaseResolvers,

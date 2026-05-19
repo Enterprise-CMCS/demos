@@ -1,10 +1,4 @@
-import {
-  PhaseName,
-  PhaseStatus,
-  ApplicationDate,
-  Document,
-  ApplicationNote,
-} from "../../types.js";
+import { PhaseName, PhaseStatus, ApplicationDate, Document, ApplicationNote } from "../../types.js";
 import { gql } from "graphql-tag";
 
 export const applicationPhaseSchema = gql`
@@ -24,9 +18,10 @@ export const applicationPhaseSchema = gql`
   }
 
   type Mutation {
-    completePhase(input: CompletePhaseInput!): Application!
-    skipConceptPhase(applicationId: ID!): Application!
+    completePhase(input: CompletePhaseInput!): Application! @auth(requires: ["Perform CMS Action"])
+    skipConceptPhase(applicationId: ID!): Application! @auth(requires: ["Perform CMS Action"])
     declareCompletenessPhaseIncomplete(applicationId: ID!): Application!
+      @auth(requires: ["Perform CMS Action"])
   }
 `;
 

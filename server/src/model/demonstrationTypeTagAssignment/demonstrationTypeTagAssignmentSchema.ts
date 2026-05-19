@@ -31,6 +31,7 @@ export const demonstrationTypeTagAssignmentSchema = gql`
 
   type Mutation {
     setDemonstrationTypes(input: SetDemonstrationTypesInput): Demonstration
+      @auth(requires: ["Perform CMS Action"])
   }
 `;
 
