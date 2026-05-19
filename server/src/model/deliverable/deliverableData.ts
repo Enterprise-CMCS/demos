@@ -3,6 +3,7 @@ import { buildAuthorizationFilter, PermissionFilters, ContextUser } from "../../
 import { selectDeliverable, selectManyDeliverables } from "./queries";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { isAStatePointOfContactAssociatedWithDemonstration } from "../demonstration/demonstrationData";
+import { log } from "../../log";
 
 export const isAStatePointOfContactAssociatedWithDeliverable = (
   userId: string
@@ -33,6 +34,8 @@ export async function getDeliverable(
     getPermissionFilters
   );
 
+  
+
   if (authFilter !== null) {
     const authorizedDeliverable = await selectDeliverable(
       {
@@ -48,10 +51,12 @@ export async function getDeliverable(
 
   const deliverable = await selectDeliverable(where, tx);
   if (deliverable) {
-    throw new Error("User does not have permission to view the requested deliverable");
+    log.warn(
+      `User ${user.id} attempted to access Deliverable ${deliverable.id} without sufficient permissions.`
+    );
   }
 
-  return null;
+  throw new Error("Requested Deliverable not found or User does not have Permission to view it.");
 }
 
 export async function getManyDeliverables(
