@@ -253,6 +253,8 @@ erDiagram
   state:::staticConstraint {
     text id PK
     text name
+    integer region
+    CONSTRAINT_CHECK check_region_is_valid "Validate that the region is between 1 and 10."
   }
 
   tag_source:::staticConstraint {
