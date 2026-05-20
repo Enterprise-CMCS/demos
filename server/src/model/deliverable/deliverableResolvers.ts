@@ -247,13 +247,6 @@ export const deliverableResolvers = {
       args: unknown,
       context: GraphQLContext
     ): Promise<PrismaPrivateComment[]> => {
-      // Temporary implementation, to be replaced with generalized solution
-      const permittedOwnerPersonTypes: readonly PersonType[] = ["demos-admin", "demos-cms-user"];
-      if (!permittedOwnerPersonTypes.includes(context.user.personTypeId)) {
-        throw new Error(
-          `The user ${context.user.id} does not have permissions to query Deliverable.privateComments!`
-        );
-      }
       return await selectManyPrivateComments({ deliverableId: parent.id });
     },
   },
