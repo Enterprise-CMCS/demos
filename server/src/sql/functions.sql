@@ -1326,3 +1326,58 @@ CREATE TRIGGER check_that_main_record_deleted_from_document
 BEFORE DELETE ON demos_app.budget_neutrality_workbook
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_that_main_record_deleted_from_document();
+
+-- mark_deliverables_as_past_due
+CREATE PROCEDURE demos_app.mark_deliverables_as_past_due()
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    WITH past_due_deliverables AS (
+        UPDATE
+            demos_app.deliverable
+        SET
+            status_id = 'Past Due',
+            updated_at = CURRENT_TIMESTAMP
+        WHERE
+            status_id = 'Upcoming'
+            AND due_date < CURRENT_TIMESTAMP
+        RETURNING
+            id, due_date
+    )
+    INSERT INTO
+        demos_app.deliverable_action (
+            id,
+            action_timestamp,
+            deliverable_id,
+            action_type_id,
+            old_status_id,
+            new_status_id,
+            note,
+            due_date_change_allowed,
+            should_have_note,
+            should_have_user_id,
+            extension_id_optional,
+            old_due_date,
+            new_due_date,
+            user_id
+        )
+    SELECT
+        gen_random_uuid(),
+        CURRENT_TIMESTAMP,
+        pdd.id,
+        'Marked as Past Due',
+        'Upcoming',
+        'Past Due',
+        NULL,
+        FALSE,
+        FALSE,
+        FALSE,
+        TRUE,
+        pdd.due_date,
+        pdd.due_date,
+        NULL
+    FROM
+        past_due_deliverables AS pdd;
+
+END;
+$$;
