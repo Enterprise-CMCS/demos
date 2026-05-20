@@ -24,7 +24,7 @@ import { getManyExtensions } from "../extension";
 import { getManyDocuments } from "../document";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
 import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
-import { getManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment";
+import { selectManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment/queries";
 import {
   getDemonstrationRoleAssignment,
   getManyDemonstrationRoleAssignments,
@@ -290,25 +290,21 @@ export const demonstrationResolvers = {
           context.user
         )
       ).map((suggestion) => suggestion.value),
-    demonstrationTypes: async (
-      parent: PrismaDemonstration,
-      args: unknown,
-      context: GraphQLContext
-    ) =>
-      (
-        await getManyDemonstrationTypeTagAssignments({ demonstrationId: parent.id }, context.user)
-      ).map((assignment) => {
-        const { tagNameId, tag, ...rest } = assignment;
-        return {
-          ...rest,
-          demonstrationTypeName: tagNameId,
-          status: determineDemonstrationTypeStatus(
-            assignment.effectiveDate,
-            assignment.expirationDate
-          ),
-          approvalStatus: tag.statusId,
-        };
-      }),
+    demonstrationTypes: async (parent: PrismaDemonstration) =>
+      (await selectManyDemonstrationTypeTagAssignments({ demonstrationId: parent.id })).map(
+        (assignment) => {
+          const { tagNameId, tag, ...rest } = assignment;
+          return {
+            ...rest,
+            demonstrationTypeName: tagNameId,
+            status: determineDemonstrationTypeStatus(
+              assignment.effectiveDate,
+              assignment.expirationDate
+            ),
+            approvalStatus: tag.statusId,
+          };
+        }
+      ),
     deliverables: resolveManyDeliverables,
   },
 };

@@ -47,7 +47,7 @@ import { getManyDocuments } from "../document";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
 import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
-import { getManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment";
+import { selectManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment/queries";
 import { DemonstrationTypeTagAssignmentQueryResult } from "../demonstrationTypeTagAssignment/queries";
 import {
   getDemonstrationRoleAssignment,
@@ -91,8 +91,8 @@ vi.mock("../applicationTagSuggestion", () => ({
   getManyApplicationTagSuggestions: vi.fn(),
 }));
 
-vi.mock("../demonstrationTypeTagAssignment", () => ({
-  getManyDemonstrationTypeTagAssignments: vi.fn(),
+vi.mock("../demonstrationTypeTagAssignment/queries", () => ({
+  selectManyDemonstrationTypeTagAssignments: vi.fn(),
 }));
 
 vi.mock("../demonstrationRoleAssignment", () => ({
@@ -375,9 +375,9 @@ describe("demonstrationResolvers", () => {
   });
 
   describe("Demonstration.demonstrationTypes", () => {
-    it("delegates to demonstrationTypeTagAssignmentData.getManyDemonstrationTypeTagAssignments and maps result", async () => {
+    it("delegates to demonstrationTypeTagAssignmentData/queries.selectManyDemonstrationTypeTagAssignments and maps result", async () => {
       const mockDemonstration = { id: "abc123" } as PrismaDemonstration;
-      vi.mocked(getManyDemonstrationTypeTagAssignments).mockResolvedValueOnce([
+      vi.mocked(selectManyDemonstrationTypeTagAssignments).mockResolvedValueOnce([
         {
           tagNameId: "Tag1",
           tag: {
@@ -392,15 +392,11 @@ describe("demonstrationResolvers", () => {
         },
       ] as DemonstrationTypeTagAssignmentQueryResult[]);
 
-      const result = await demonstrationResolvers.Demonstration.demonstrationTypes(
-        mockDemonstration,
-        undefined,
-        mockContext
-      );
-      expect(getManyDemonstrationTypeTagAssignments).toHaveBeenCalledExactlyOnceWith(
-        { demonstrationId: "abc123" },
-        mockUser
-      );
+      const result =
+        await demonstrationResolvers.Demonstration.demonstrationTypes(mockDemonstration);
+      expect(selectManyDemonstrationTypeTagAssignments).toHaveBeenCalledExactlyOnceWith({
+        demonstrationId: "abc123",
+      });
       expect(result).toEqual([
         {
           demonstrationTypeName: "Tag1",

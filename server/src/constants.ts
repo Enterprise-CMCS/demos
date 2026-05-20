@@ -473,8 +473,6 @@ export const PERMISSIONS = [
   "View Documents on Assigned Demonstrations",
   "View Owned Documents",
   
-  "View All DemonstrationTypeTagAssignments",
-  "View DemonstrationTypeTagAssignments on Assigned Demonstrations",
   "View All DeliverableDemonstrationTypes",
   "View DeliverableDemonstrationTypes on Assigned Demonstrations",
   "View All DemonstrationRoleAssignments",
