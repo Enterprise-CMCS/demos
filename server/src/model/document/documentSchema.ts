@@ -21,6 +21,7 @@ export const documentSchema = gql`
     phaseName: PhaseName @auth(requires: ["Access CMS Field"])
     presignedDownloadUrl: String! @auth(requires: ["Access CMS Field"])
     deliverable: Deliverable @auth(requires: ["Access CMS Field"])
+    isPartOfDeliverableSubmission: Boolean!
     hasPendingUIPathResult: Boolean! @auth(requires: ["Access CMS Field"])
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -56,6 +57,7 @@ export interface Document {
   application: Application;
   phaseName?: PhaseName;
   deliverable?: Deliverable;
+  isPartOfDeliverableSubmission: boolean;
   createdAt: Date;
   updatedAt: Date;
   presignedDownloadUrl: string;

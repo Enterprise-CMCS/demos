@@ -187,6 +187,26 @@ describe("documentResolvers", () => {
       );
     });
   });
+
+  describe("Document.isPartOfDeliverableSubmission", () => {
+    it("returns true when deliverableSubmissionActionId is not null", () => {
+      const document = {
+        deliverableSubmissionActionId: "action-123",
+      } as PrismaDocument;
+
+      const result = documentResolvers.Document.isPartOfDeliverableSubmission(document);
+      expect(result).toBe(true);
+    });
+
+    it("returns false when deliverableSubmissionActionId is null", () => {
+      const document = {
+        deliverableSubmissionActionId: null,
+      } as PrismaDocument;
+
+      const result = documentResolvers.Document.isPartOfDeliverableSubmission(document);
+      expect(result).toBe(false);
+    });
+  });
   describe("Document.phaseName", () => {
     it("returns phaseId", () => {
       const document = {

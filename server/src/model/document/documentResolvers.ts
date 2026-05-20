@@ -3,11 +3,7 @@ import { GraphQLContext } from "../../auth";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { prisma } from "../../prismaClient";
-import type {
-  UpdateDocumentInput,
-  DocumentType,
-  PhaseName,
-} from "../../types";
+import type { UpdateDocumentInput, DocumentType, PhaseName } from "../../types";
 import { getS3Adapter } from "../../adapters";
 import { getApplication, PrismaApplication } from "../application";
 import { getUser } from "../user";
@@ -130,6 +126,8 @@ export const documentResolvers = {
       await getS3Adapter().getPresignedDownloadUrl(parent.s3Path),
     application: resolveApplication,
     deliverable: resolveDeliverable,
+    isPartOfDeliverableSubmission: (parent: PrismaDocument) =>
+      !!parent.deliverableSubmissionActionId,
     phaseName: (parent: PrismaDocument) => parent.phaseId as PhaseName,
     hasPendingUIPathResult: resolveHasPendingUIPathResult,
   },

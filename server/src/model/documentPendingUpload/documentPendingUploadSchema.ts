@@ -45,7 +45,6 @@ export const documentPendingUploadSchema = gql`
     documentType: DocumentType!
     applicationId: ID!
     deliverableId: ID!
-    isCmsAttachedFile: Boolean!
   }
 
   input UpdateDocumentInput {
@@ -59,8 +58,12 @@ export const documentPendingUploadSchema = gql`
       @auth(requires: ["Perform CMS Action"])
     uploadDocumentToPhase(input: UploadDocumentToPhaseInput!): DocumentPendingUpload!
       @auth(requires: ["Perform CMS Action"])
-    uploadDocumentToDeliverable(input: UploadDocumentToDeliverableInput!): DocumentPendingUpload!
-      @auth(requires: ["Perform CMS Action", "Perform State Action"])
+    uploadDocumentToDeliverableCMSFiles(
+      input: UploadDocumentToDeliverableInput!
+    ): DocumentPendingUpload! @auth(requires: ["Perform CMS Action"])
+    uploadDocumentToDeliverableStateFiles(
+      input: UploadDocumentToDeliverableInput!
+    ): DocumentPendingUpload! @auth(requires: ["Perform CMS Action", "Perform State Action"])
   }
 `;
 
@@ -99,5 +102,4 @@ export interface UploadDocumentToDeliverableInput {
   documentType: DocumentType;
   applicationId: string;
   deliverableId: string;
-  isCmsAttachedFile: boolean;
 }
