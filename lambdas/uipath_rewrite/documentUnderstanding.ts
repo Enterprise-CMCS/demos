@@ -30,6 +30,38 @@ export type DocumentUnderstandingOptions = {
   maxAttempts?: number;
 };
 
+// Main flow
+export async function runDocumentUnderstanding(
+  input: DocumentUnderstandingInput,
+  options: DocumentUnderstandingOptions = {}
+): Promise<ExtractionStatus> {
+
+  const token = options.token ?? await getToken();
+  const projectId = await getProjectIdByName(token, getUiPathProjectName());
+  const uploadedDocumentId = await uploadDocument(
+    token,
+    input.localPath,
+    projectId,
+    input.uploadFileNameWithExtension
+  );
+
+  const resultUrl = await startExtraction(token, uploadedDocumentId, projectId);
+
+  const persistenceContext = {
+    requestId: input.requestId,
+    projectId,
+    documentId: input.documentId,
+    applicationId: input.applicationId
+  };
+
+  await savePendingExtraction(persistenceContext);
+
+  return waitForExtraction(token, resultUrl, persistenceContext, {
+    pollIntervalMs: options.pollIntervalMs ?? 3000,
+    maxAttempts: options.maxAttempts ?? 50
+  });
+}
+
 async function waitForExtraction(
   token: string,
   resultUrl: string,
@@ -70,34 +102,4 @@ async function waitForExtraction(
 
     throw error;
   }
-}
-
-// Main flow:
-export async function runDocumentUnderstanding(
-  input: DocumentUnderstandingInput,
-  options: DocumentUnderstandingOptions = {}
-): Promise<ExtractionStatus> {
-  const token = options.token ?? await getToken();
-  const projectId = await getProjectIdByName(token, getUiPathProjectName());
-  const uploadedDocumentId = await uploadDocument(
-    token,
-    input.localPath,
-    projectId,
-    input.uploadFileNameWithExtension
-  );
-  const resultUrl = await startExtraction(token, uploadedDocumentId, projectId);
-
-  const persistenceContext = {
-    requestId: input.requestId,
-    projectId,
-    documentId: input.documentId,
-    applicationId: input.applicationId
-  };
-
-  await savePendingExtraction(persistenceContext);
-
-  return waitForExtraction(token, resultUrl, persistenceContext, {
-    pollIntervalMs: options.pollIntervalMs ?? 3000,
-    maxAttempts: options.maxAttempts ?? 50
-  });
 }
