@@ -16,7 +16,15 @@ import { getPhaseCompletedMessage } from "util/messages";
 import { useToast } from "components/toast";
 import { DatePicker } from "components/input/date/DatePicker";
 import { ApplicationHealthTypeTags } from "components/tags/ApplicationHealthTypeTags";
-import type { Application, LocalDate, PhaseName, PhaseStatus, Tag, TagName } from "demos-server";
+import type {
+  Application,
+  LocalDate,
+  PhaseName,
+  PhaseStatus,
+  SuggestedApplicationTag,
+  Tag,
+  TagName,
+} from "demos-server";
 import { SET_APPLICATION_TAGS_MUTATION } from "components/dialog/ApplyTagsDialog";
 import { ConfirmSuggestedSparklyTagDialog } from "components/dialog/ConfirmSuggestedSparklyTagDialog";
 
@@ -275,6 +283,7 @@ export const getApplicationIntakeComponentFromApplication = (
       initialStateApplicationSubmittedDate={estStateApplicationSubmittedDate}
       tags={application.tags}
       suggestedTags={application.suggestedApplicationTags}
+      suggestedTagDetails={application.suggestedApplicationTagDetails}
       setSelectedPhase={setSelectedPhase}
       phaseStatus={applicationIntakePhase.phaseStatus ?? "Not Started"}
       completenessPhaseStatus={completenessPhase.phaseStatus ?? "Not Started"}
@@ -287,6 +296,7 @@ export interface ApplicationIntakeProps {
   initialStateApplicationSubmittedDate: string;
   tags: Tag[];
   suggestedTags?: TagName[];
+  suggestedTagDetails?: SuggestedApplicationTag[];
   setSelectedPhase: (phase: PhaseName) => void;
   phaseStatus: PhaseStatus;
   completenessPhaseStatus: PhaseStatus;
@@ -298,6 +308,7 @@ export const ApplicationIntakePhase = ({
   initialStateApplicationSubmittedDate,
   tags,
   suggestedTags = [],
+  suggestedTagDetails = [],
   setSelectedPhase,
   phaseStatus,
   completenessPhaseStatus,
@@ -318,6 +329,9 @@ export const ApplicationIntakePhase = ({
 
   const [submittedDateOverride, setSubmittedDateOverride] = useState<string>("");
   const [selectedSuggestedTag, setSelectedSuggestedTag] = useState<TagName | null>(null);
+  const selectedSuggestedTagDetails = selectedSuggestedTag
+    ? suggestedTagDetails.find((suggestion) => suggestion.tagName === selectedSuggestedTag)
+    : null;
 
   // Calculate the dates to display based on the following rules:
   // 1. If the user has manually entered a date (submittedDateOverride), use this
@@ -454,6 +468,7 @@ export const ApplicationIntakePhase = ({
       {selectedSuggestedTag && (
         <ConfirmSuggestedSparklyTagDialog
           tagName={selectedSuggestedTag}
+          sources={selectedSuggestedTagDetails?.sources ?? []}
           onClose={() => setSelectedSuggestedTag(null)}
           onConfirm={handleAcceptSuggestedTag}
           onRemove={handleRemoveSuggestedTag}

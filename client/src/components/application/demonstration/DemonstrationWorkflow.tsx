@@ -34,6 +34,19 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
         approvalStatus
       }
       suggestedApplicationTags
+      suggestedApplicationTagDetails {
+        tagName
+        sources {
+          documentId
+          documentName
+          startPageNo
+          endPageNo
+          textStartIndex
+          textEndIndex
+          textLength
+          confidence
+        }
+      }
       demonstrationTypes {
         demonstrationTypeName
         status

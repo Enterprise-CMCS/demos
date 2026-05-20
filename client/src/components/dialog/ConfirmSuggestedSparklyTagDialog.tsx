@@ -4,7 +4,7 @@ import { Button, SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { SparklyIcon } from "components/icons";
 import { TagChip } from "components/tags/TagChip";
-import { TagName } from "demos-server";
+import type { SuggestedApplicationTagSource, TagName } from "demos-server";
 import { tw } from "tags/tw";
 
 const STYLES = {
@@ -20,26 +20,53 @@ const STYLES = {
 
 type ConfirmSuggestedSparklyTagDialogProps = {
   tagName: TagName;
+  sources?: SuggestedApplicationTagSource[];
   onClose: () => void;
   onConfirm: (tagName: TagName) => void;
   onRemove: (tagName: TagName) => void;
   isSubmitting?: boolean;
 };
 
+const formatSourceMeta = (source: SuggestedApplicationTagSource) => {
+  const page =
+    source.startPageNo === source.endPageNo
+      ? `Page ${source.startPageNo}`
+      : `Pages ${source.startPageNo}-${source.endPageNo}`;
+
+  return `(Found in ${source.documentName}, ${page}, Position ${source.textStartIndex}/${source.textEndIndex})`;
+};
+
 // Apparently NOT part of DEMOS-1638
-const SourcePassagePdfPreviewPlaceholder = ({ tagName }: { tagName: TagName }) => (
+const SourcePassagePdfPreviewPlaceholder = ({
+  tagName,
+  sources,
+}: {
+  tagName: TagName;
+  sources: SuggestedApplicationTagSource[];
+}) => (
   <div>
     <h3 className={STYLES.sourceTitle}>Source Passage</h3>
     <div className={STYLES.sourcePreview}>
-      &quot;...This specifically references {tagName} in the application
-      text...&quot;
+      &quot;...This specifically references {tagName} in the application text...&quot;
     </div>
-    <div className={STYLES.sourceMeta}>(Found in Document X, Page N, Position NN/NNN)</div>
+    {sources.length > 0 ? (
+      sources.map((source) => (
+        <div
+          key={`${source.documentId}-${source.startPageNo}-${source.textStartIndex}`}
+          className={STYLES.sourceMeta}
+        >
+          {formatSourceMeta(source)}
+        </div>
+      ))
+    ) : (
+      <div className={STYLES.sourceMeta}>(Source location unavailable)</div>
+    )}
   </div>
 );
 
 export const ConfirmSuggestedSparklyTagDialog = ({
   tagName,
+  sources = [],
   onClose,
   onConfirm,
   onRemove,
@@ -66,7 +93,7 @@ export const ConfirmSuggestedSparklyTagDialog = ({
           />
         </div>
 
-        <SourcePassagePdfPreviewPlaceholder tagName={tagName} />
+        <SourcePassagePdfPreviewPlaceholder tagName={tagName} sources={sources} />
 
         <div className={STYLES.footer}>
           <button
@@ -82,7 +109,8 @@ export const ConfirmSuggestedSparklyTagDialog = ({
               name="button-improve-suggested-tag"
               onClick={() => {
                 console.log("Thanks for pressing me. But i don't work yet. :-)");
-              }}>
+              }}
+            >
               Improve this Suggestion
             </SecondaryButton>
             <Button

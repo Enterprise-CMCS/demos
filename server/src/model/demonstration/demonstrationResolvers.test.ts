@@ -38,7 +38,10 @@ import {
   getApplication,
   // None of these are tested but need to be exported to avoid mocking issues
 } from "../application";
-import { parseDateTimeOrLocalDateToEasternTZDate, EasternTZDate } from "../../dateUtilities";
+import {
+  parseDateTimeOrLocalDateToEasternTZDate,
+  EasternTZDate,
+} from "../../dateUtilities";
 import { getDemonstration, getManyDemonstrations } from "./demonstrationData";
 import { ContextUser, GraphQLContext } from "../../auth";
 import { getManyAmendments } from "../amendment";
@@ -53,7 +56,10 @@ import {
   getDemonstrationRoleAssignment,
   getManyDemonstrationRoleAssignments,
 } from "../demonstrationRoleAssignment";
-import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
+import {
+  getManyApplicationTagSuggestionDetails,
+  getManyApplicationTagSuggestions,
+} from "../applicationTagSuggestion";
 import { getState } from "../state";
 import { getPerson } from "../person";
 import { DemonstrationRoleAssignmentQueryResult } from "../demonstrationRoleAssignment/queries";
@@ -88,6 +94,7 @@ vi.mock("../applicationTagAssignment", () => ({
 }));
 
 vi.mock("../applicationTagSuggestion", () => ({
+  getManyApplicationTagSuggestionDetails: vi.fn(),
   getManyApplicationTagSuggestions: vi.fn(),
 }));
 
@@ -186,7 +193,8 @@ describe("demonstrationResolvers", () => {
   const mockPrismaClient = {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
     primaryDemonstrationRoleAssignment: {
-      findUniqueOrThrow: regularMocks.primaryDemonstrationRoleAssignment.findUniqueOrThrow,
+      findUniqueOrThrow:
+        regularMocks.primaryDemonstrationRoleAssignment.findUniqueOrThrow,
     },
   };
   const mockUser = {} as unknown as ContextUser;
@@ -236,20 +244,36 @@ describe("demonstrationResolvers", () => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     // Note: this line is necessary because resetAllMocks() clears the implementation each time
-    mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
+    mockPrismaClient.$transaction.mockImplementation((callback) =>
+      callback(mockTransaction),
+    );
   });
 
   describe("Query.demonstration", () => {
     it("delegates to `demonstrationData.getDemonstration`", async () => {
-      await demonstrationResolvers.Query.demonstration(undefined, { id: "abc123" }, mockContext);
-      expect(getDemonstration).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
+      await demonstrationResolvers.Query.demonstration(
+        undefined,
+        { id: "abc123" },
+        mockContext,
+      );
+      expect(getDemonstration).toHaveBeenCalledExactlyOnceWith(
+        { id: "abc123" },
+        mockUser,
+      );
     });
   });
 
   describe("Query.demonstrations", () => {
     it("delegates to `demonstrationData.getManyDemonstrations`", async () => {
-      await demonstrationResolvers.Query.demonstrations(undefined, {}, mockContext);
-      expect(getManyDemonstrations).toHaveBeenCalledExactlyOnceWith({}, mockUser);
+      await demonstrationResolvers.Query.demonstrations(
+        undefined,
+        {},
+        mockContext,
+      );
+      expect(getManyDemonstrations).toHaveBeenCalledExactlyOnceWith(
+        {},
+        mockUser,
+      );
     });
   });
 
@@ -259,11 +283,11 @@ describe("demonstrationResolvers", () => {
       await demonstrationResolvers.Demonstration.documents(
         mockDemonstration,
         undefined,
-        mockContext
+        mockContext,
       );
       expect(getManyDocuments).toHaveBeenCalledExactlyOnceWith(
         { applicationId: "abc123" },
-        mockUser
+        mockUser,
       );
     });
   });
@@ -273,11 +297,11 @@ describe("demonstrationResolvers", () => {
       await demonstrationResolvers.Demonstration.amendments(
         { id: "demonstrationId" } as PrismaDemonstration,
         {},
-        mockContext
+        mockContext,
       );
       expect(getManyAmendments).toHaveBeenCalledExactlyOnceWith(
         { demonstrationId: "demonstrationId" },
-        mockUser
+        mockUser,
       );
     });
   });
@@ -287,11 +311,11 @@ describe("demonstrationResolvers", () => {
       await demonstrationResolvers.Demonstration.extensions(
         { id: "demonstrationId" } as PrismaDemonstration,
         {},
-        mockContext
+        mockContext,
       );
       expect(getManyExtensions).toHaveBeenCalledExactlyOnceWith(
         { demonstrationId: "demonstrationId" },
-        mockUser
+        mockUser,
       );
     });
   });
@@ -301,11 +325,11 @@ describe("demonstrationResolvers", () => {
       await demonstrationResolvers.Demonstration.phases(
         { id: "demonstrationId" } as PrismaDemonstration,
         {},
-        mockContext
+        mockContext,
       );
       expect(getManyApplicationPhases).toHaveBeenCalledExactlyOnceWith(
         { applicationId: "demonstrationId" },
-        mockUser
+        mockUser,
       );
     });
   });
@@ -331,11 +355,11 @@ describe("demonstrationResolvers", () => {
       const result = await demonstrationResolvers.Demonstration.tags(
         mockDemonstration,
         undefined,
-        mockContext
+        mockContext,
       );
       expect(getManyApplicationTagAssignments).toHaveBeenCalledExactlyOnceWith(
         { applicationId: "abc123" },
-        mockUser
+        mockUser,
       );
       expect(result).toEqual([
         {
@@ -362,11 +386,12 @@ describe("demonstrationResolvers", () => {
         },
       ] as PrismaApplicationTagSuggestion[]);
 
-      const result = await demonstrationResolvers.Demonstration.suggestedApplicationTags(
-        mockDemonstration,
-        undefined,
-        mockContext
-      );
+      const result =
+        await demonstrationResolvers.Demonstration.suggestedApplicationTags(
+          mockDemonstration,
+          undefined,
+          mockContext,
+        );
       expect(getManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith(
         {
           applicationId: "abc123",
@@ -374,9 +399,72 @@ describe("demonstrationResolvers", () => {
             in: ["Pending"],
           },
         },
-        mockUser
+        mockUser,
       );
       expect(result).toEqual(["Suggestion1", "Suggestion2"]);
+    });
+  });
+
+  describe("Demonstration.suggestedApplicationTagDetails", () => {
+    it("delegates to applicationTagSuggestionData.getManyApplicationTagSuggestionDetails and maps result", async () => {
+      const mockDemonstration = { id: "abc123" } as PrismaDemonstration;
+      vi.mocked(getManyApplicationTagSuggestionDetails).mockResolvedValueOnce([
+        {
+          value: "Suggestion1",
+          extracts: [
+            {
+              startPageNo: 2,
+              endPageNo: 3,
+              uiPathValue: {
+                documentId: "document-1",
+                textStartIndex: 11,
+                textLength: 7,
+                confidence: 0.98,
+                result: {
+                  document: {
+                    name: "State Application.pdf",
+                  },
+                },
+              },
+            },
+          ],
+        },
+      ] as any[]);
+
+      const result =
+        await demonstrationResolvers.Demonstration.suggestedApplicationTagDetails(
+          mockDemonstration,
+          undefined,
+          mockContext,
+        );
+      expect(
+        getManyApplicationTagSuggestionDetails,
+      ).toHaveBeenCalledExactlyOnceWith(
+        {
+          applicationId: "abc123",
+          statusId: {
+            in: ["Pending"],
+          },
+        },
+        mockUser,
+      );
+      expect(result).toEqual([
+        {
+          tagName: "Suggestion1",
+          sources: [
+            {
+              documentId: "document-1",
+              documentName: "State Application.pdf",
+              startPageNo: 2,
+              endPageNo: 3,
+              textStartIndex: 11,
+              textEndIndex: 18,
+              textLength: 7,
+              confidence: 0.98,
+            },
+          ],
+        },
+      ]);
     });
   });
 
@@ -398,14 +486,17 @@ describe("demonstrationResolvers", () => {
         },
       ] as DemonstrationTypeTagAssignmentQueryResult[]);
 
-      const result = await demonstrationResolvers.Demonstration.demonstrationTypes(
-        mockDemonstration,
-        undefined,
-        mockContext
-      );
-      expect(getManyDemonstrationTypeTagAssignments).toHaveBeenCalledExactlyOnceWith(
+      const result =
+        await demonstrationResolvers.Demonstration.demonstrationTypes(
+          mockDemonstration,
+          undefined,
+          mockContext,
+        );
+      expect(
+        getManyDemonstrationTypeTagAssignments,
+      ).toHaveBeenCalledExactlyOnceWith(
         { demonstrationId: "abc123" },
-        mockUser
+        mockUser,
       );
       expect(result).toEqual([
         {
@@ -425,11 +516,13 @@ describe("demonstrationResolvers", () => {
       await demonstrationResolvers.Demonstration.roles(
         { id: "demonstrationId" } as PrismaDemonstration,
         {},
-        mockContext
+        mockContext,
       );
-      expect(getManyDemonstrationRoleAssignments).toHaveBeenCalledExactlyOnceWith(
+      expect(
+        getManyDemonstrationRoleAssignments,
+      ).toHaveBeenCalledExactlyOnceWith(
         { demonstrationId: "demonstrationId" },
-        mockUser
+        mockUser,
       );
     });
   });
@@ -443,7 +536,7 @@ describe("demonstrationResolvers", () => {
       await demonstrationResolvers.Demonstration.primaryProjectOfficer(
         { id: "demonstrationId" } as PrismaDemonstration,
         undefined,
-        mockContext
+        mockContext,
       );
 
       expect(getDemonstrationRoleAssignment).toHaveBeenCalledExactlyOnceWith(
@@ -452,10 +545,13 @@ describe("demonstrationResolvers", () => {
           roleId: "Project Officer",
           primaryDemonstrationRoleAssignment: { isNot: null },
         },
-        mockUser
+        mockUser,
       );
 
-      expect(getPerson).toHaveBeenCalledExactlyOnceWith({ id: "personId" }, mockUser);
+      expect(getPerson).toHaveBeenCalledExactlyOnceWith(
+        { id: "personId" },
+        mockUser,
+      );
     });
 
     it("throws an error if primary project officer is not found", async () => {
@@ -465,10 +561,10 @@ describe("demonstrationResolvers", () => {
         demonstrationResolvers.Demonstration.primaryProjectOfficer(
           { id: "demonstrationId" } as PrismaDemonstration,
           undefined,
-          mockContext
-        )
+          mockContext,
+        ),
       ).rejects.toThrow(
-        `Primary project officer not found for demonstration with id demonstrationId`
+        `Primary project officer not found for demonstration with id demonstrationId`,
       );
 
       expect(getDemonstrationRoleAssignment).toHaveBeenCalledExactlyOnceWith(
@@ -477,7 +573,7 @@ describe("demonstrationResolvers", () => {
           roleId: "Project Officer",
           primaryDemonstrationRoleAssignment: { isNot: null },
         },
-        mockUser
+        mockUser,
       );
 
       expect(getPerson).not.toHaveBeenCalled();
@@ -486,7 +582,9 @@ describe("demonstrationResolvers", () => {
 
   describe("Demonstration.state", () => {
     it("delegates to stateData.getState", async () => {
-      await demonstrationResolvers.Demonstration.state({ stateId: "NC" } as PrismaDemonstration);
+      await demonstrationResolvers.Demonstration.state({
+        stateId: "NC",
+      } as PrismaDemonstration);
       expect(getState).toHaveBeenCalledExactlyOnceWith({ id: "NC" });
     });
   });
@@ -497,7 +595,8 @@ describe("demonstrationResolvers", () => {
         currentPhaseId: "Application Intake" satisfies PhaseName,
       } as PrismaDemonstration;
 
-      const result = demonstrationResolvers.Demonstration.currentPhaseName(demonstration);
+      const result =
+        demonstrationResolvers.Demonstration.currentPhaseName(demonstration);
       expect(result).toBe(demonstration.currentPhaseId);
     });
   });
@@ -508,7 +607,8 @@ describe("demonstrationResolvers", () => {
         signatureLevelId: "OA" satisfies SignatureLevel,
       } as PrismaDemonstration;
 
-      const result = demonstrationResolvers.Demonstration.signatureLevel(demonstration);
+      const result =
+        demonstrationResolvers.Demonstration.signatureLevel(demonstration);
       expect(result).toBe(demonstration.signatureLevelId);
     });
   });
@@ -516,10 +616,12 @@ describe("demonstrationResolvers", () => {
   describe("Demonstration.sdgDivision", () => {
     it("returns sdgDivisionId", () => {
       const demonstration = {
-        sdgDivisionId: "Division of Eligibility and Coverage Demonstrations" satisfies SdgDivision,
+        sdgDivisionId:
+          "Division of Eligibility and Coverage Demonstrations" satisfies SdgDivision,
       } as PrismaDemonstration;
 
-      const result = demonstrationResolvers.Demonstration.sdgDivision(demonstration);
+      const result =
+        demonstrationResolvers.Demonstration.sdgDivision(demonstration);
       expect(result).toBe(demonstration.sdgDivisionId);
     });
   });
@@ -541,7 +643,8 @@ describe("demonstrationResolvers", () => {
         clearanceLevelId: "COMMs" satisfies ClearanceLevel,
       } as PrismaDemonstration;
 
-      const result = demonstrationResolvers.Demonstration.clearanceLevel(demonstration);
+      const result =
+        demonstrationResolvers.Demonstration.clearanceLevel(demonstration);
       expect(result).toBe(demonstration.clearanceLevelId);
     });
   });
@@ -612,20 +715,27 @@ describe("demonstrationResolvers", () => {
         },
       ];
       await __createDemonstration(undefined, testInput);
-      expect(transactionMocks.application.create).toHaveBeenCalledExactlyOnceWith(expectedCalls[0]);
-      expect(transactionMocks.demonstration.create).toHaveBeenCalledExactlyOnceWith(
-        expectedCalls[1]
-      );
-      expect(transactionMocks.person.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCalls[2]);
-      expect(transactionMocks.demonstrationRoleAssignment.create).toHaveBeenCalledExactlyOnceWith(
-        expectedCalls[3]
-      );
       expect(
-        transactionMocks.primaryDemonstrationRoleAssignment.create
+        transactionMocks.application.create,
+      ).toHaveBeenCalledExactlyOnceWith(expectedCalls[0]);
+      expect(
+        transactionMocks.demonstration.create,
+      ).toHaveBeenCalledExactlyOnceWith(expectedCalls[1]);
+      expect(
+        transactionMocks.person.findUnique,
+      ).toHaveBeenCalledExactlyOnceWith(expectedCalls[2]);
+      expect(
+        transactionMocks.demonstrationRoleAssignment.create,
+      ).toHaveBeenCalledExactlyOnceWith(expectedCalls[3]);
+      expect(
+        transactionMocks.primaryDemonstrationRoleAssignment.create,
       ).toHaveBeenCalledExactlyOnceWith(expectedCalls[4]);
-      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testValues.demonstrationId, {
-        applicationTypeId: testValues.applicationTypeId,
-      });
+      expect(getApplication).toHaveBeenCalledExactlyOnceWith(
+        testValues.demonstrationId,
+        {
+          applicationTypeId: testValues.applicationTypeId,
+        },
+      );
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
 
@@ -674,19 +784,27 @@ describe("demonstrationResolvers", () => {
           },
         },
       ];
-      await expect(__createDemonstration(undefined, testInput)).rejects.toThrowError(
-        testHandlePrismaError
-      );
-      expect(transactionMocks.application.create).toHaveBeenCalledExactlyOnceWith(expectedCalls[0]);
-      expect(transactionMocks.demonstration.create).toHaveBeenCalledExactlyOnceWith(
-        expectedCalls[1]
-      );
-      expect(transactionMocks.person.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCalls[2]);
-      expect(transactionMocks.demonstrationRoleAssignment.create).not.toHaveBeenCalled();
-      expect(transactionMocks.primaryDemonstrationRoleAssignment.create).not.toHaveBeenCalled();
+      await expect(
+        __createDemonstration(undefined, testInput),
+      ).rejects.toThrowError(testHandlePrismaError);
+      expect(
+        transactionMocks.application.create,
+      ).toHaveBeenCalledExactlyOnceWith(expectedCalls[0]);
+      expect(
+        transactionMocks.demonstration.create,
+      ).toHaveBeenCalledExactlyOnceWith(expectedCalls[1]);
+      expect(
+        transactionMocks.person.findUnique,
+      ).toHaveBeenCalledExactlyOnceWith(expectedCalls[2]);
+      expect(
+        transactionMocks.demonstrationRoleAssignment.create,
+      ).not.toHaveBeenCalled();
+      expect(
+        transactionMocks.primaryDemonstrationRoleAssignment.create,
+      ).not.toHaveBeenCalled();
       expect(getApplication).not.toHaveBeenCalled();
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(
-        new Error(`Person with id ${testValues.userId} not found.`)
+        new Error(`Person with id ${testValues.userId} not found.`),
       );
     });
   });
@@ -719,9 +837,11 @@ describe("demonstrationResolvers", () => {
 
       expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(
         expectedCheckOptionalNotNullFieldList,
-        testInput.input
+        testInput.input,
       );
-      expect(transactionMocks.demonstration.update).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      expect(
+        transactionMocks.demonstration.update,
+      ).toHaveBeenCalledExactlyOnceWith(expectedCall);
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
 
@@ -729,8 +849,12 @@ describe("demonstrationResolvers", () => {
       await __updateDemonstration(undefined, testInput);
 
       expect(transactionMocks.person.findUnique).not.toHaveBeenCalled();
-      expect(transactionMocks.demonstrationRoleAssignment.upsert).not.toHaveBeenCalled();
-      expect(transactionMocks.primaryDemonstrationRoleAssignment.upsert).not.toHaveBeenCalled();
+      expect(
+        transactionMocks.demonstrationRoleAssignment.upsert,
+      ).not.toHaveBeenCalled();
+      expect(
+        transactionMocks.primaryDemonstrationRoleAssignment.upsert,
+      ).not.toHaveBeenCalled();
     });
 
     it("should update the project officer in a transaction if included", async () => {
@@ -805,17 +929,19 @@ describe("demonstrationResolvers", () => {
 
       expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(
         expectedCheckOptionalNotNullFieldList,
-        testInput.input
-      );
-      expect(transactionMocks.demonstration.update).toHaveBeenCalledExactlyOnceWith(
-        expectedCalls[0]
-      );
-      expect(transactionMocks.person.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCalls[1]);
-      expect(transactionMocks.demonstrationRoleAssignment.upsert).toHaveBeenCalledExactlyOnceWith(
-        expectedCalls[2]
+        testInput.input,
       );
       expect(
-        transactionMocks.primaryDemonstrationRoleAssignment.upsert
+        transactionMocks.demonstration.update,
+      ).toHaveBeenCalledExactlyOnceWith(expectedCalls[0]);
+      expect(
+        transactionMocks.person.findUnique,
+      ).toHaveBeenCalledExactlyOnceWith(expectedCalls[1]);
+      expect(
+        transactionMocks.demonstrationRoleAssignment.upsert,
+      ).toHaveBeenCalledExactlyOnceWith(expectedCalls[2]);
+      expect(
+        transactionMocks.primaryDemonstrationRoleAssignment.upsert,
       ).toHaveBeenCalledExactlyOnceWith(expectedCalls[3]);
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
@@ -852,18 +978,24 @@ describe("demonstrationResolvers", () => {
         },
       ];
 
-      await expect(__updateDemonstration(undefined, testInput)).rejects.toThrowError(
-        testHandlePrismaError
-      );
+      await expect(
+        __updateDemonstration(undefined, testInput),
+      ).rejects.toThrowError(testHandlePrismaError);
 
-      expect(transactionMocks.demonstration.update).toHaveBeenCalledExactlyOnceWith(
-        expectedCalls[0]
-      );
-      expect(transactionMocks.person.findUnique).toHaveBeenCalledExactlyOnceWith(expectedCalls[1]);
-      expect(transactionMocks.demonstrationRoleAssignment.upsert).not.toHaveBeenCalled();
-      expect(transactionMocks.primaryDemonstrationRoleAssignment.upsert).not.toHaveBeenCalled();
+      expect(
+        transactionMocks.demonstration.update,
+      ).toHaveBeenCalledExactlyOnceWith(expectedCalls[0]);
+      expect(
+        transactionMocks.person.findUnique,
+      ).toHaveBeenCalledExactlyOnceWith(expectedCalls[1]);
+      expect(
+        transactionMocks.demonstrationRoleAssignment.upsert,
+      ).not.toHaveBeenCalled();
+      expect(
+        transactionMocks.primaryDemonstrationRoleAssignment.upsert,
+      ).not.toHaveBeenCalled();
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(
-        new Error(`Person with id ${testValues.userId} not found.`)
+        new Error(`Person with id ${testValues.userId} not found.`),
       );
     });
 
@@ -898,9 +1030,11 @@ describe("demonstrationResolvers", () => {
       await __updateDemonstration(undefined, testInput);
       expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(
         expectedCheckOptionalNotNullFieldList,
-        testInput.input
+        testInput.input,
       );
-      expect(transactionMocks.demonstration.update).toHaveBeenCalledExactlyOnceWith(expectedCall);
+      expect(
+        transactionMocks.demonstration.update,
+      ).toHaveBeenCalledExactlyOnceWith(expectedCall);
       expect(parseDateTimeOrLocalDateToEasternTZDate).not.toHaveBeenCalled();
       expect(checkInputDateIsStartOfDay).not.toHaveBeenCalled();
       expect(checkInputDateIsEndOfDay).not.toHaveBeenCalled();
@@ -915,17 +1049,16 @@ describe("demonstrationResolvers", () => {
         },
       };
       vi.mocked(parseDateTimeOrLocalDateToEasternTZDate).mockReturnValueOnce(
-        testValues.easternTZDate
+        testValues.easternTZDate,
       );
 
       await __updateDemonstration(undefined, testInput);
-      expect(parseDateTimeOrLocalDateToEasternTZDate).toHaveBeenCalledExactlyOnceWith(
-        testValues.dateValue,
-        "Start of Day"
-      );
+      expect(
+        parseDateTimeOrLocalDateToEasternTZDate,
+      ).toHaveBeenCalledExactlyOnceWith(testValues.dateValue, "Start of Day");
       expect(checkInputDateIsStartOfDay).toHaveBeenCalledExactlyOnceWith(
         "effectiveDate",
-        testValues.easternTZDate
+        testValues.easternTZDate,
       );
       expect(checkInputDateIsEndOfDay).not.toHaveBeenCalled();
     });
@@ -938,27 +1071,26 @@ describe("demonstrationResolvers", () => {
         },
       };
       vi.mocked(parseDateTimeOrLocalDateToEasternTZDate).mockReturnValueOnce(
-        testValues.easternTZDate
+        testValues.easternTZDate,
       );
 
       await __updateDemonstration(undefined, testInput);
-      expect(parseDateTimeOrLocalDateToEasternTZDate).toHaveBeenCalledExactlyOnceWith(
-        testValues.dateValue,
-        "End of Day"
-      );
+      expect(
+        parseDateTimeOrLocalDateToEasternTZDate,
+      ).toHaveBeenCalledExactlyOnceWith(testValues.dateValue, "End of Day");
       expect(checkInputDateIsStartOfDay).not.toHaveBeenCalled();
       expect(checkInputDateIsEndOfDay).toHaveBeenCalledExactlyOnceWith(
         "expirationDate",
-        testValues.easternTZDate
+        testValues.easternTZDate,
       );
     });
 
     it("should properly handle an error if it occurs", async () => {
       const testError = new Error("Database connection failed");
       transactionMocks.demonstration.update.mockRejectedValueOnce(testError);
-      await expect(__updateDemonstration(undefined, testInput)).rejects.toThrowError(
-        testHandlePrismaError
-      );
+      await expect(
+        __updateDemonstration(undefined, testInput),
+      ).rejects.toThrowError(testHandlePrismaError);
       expect(handlePrismaError).toHaveBeenCalledExactlyOnceWith(testError);
     });
   });
@@ -973,7 +1105,7 @@ describe("demonstrationResolvers", () => {
       expect(deleteApplication).toHaveBeenCalledExactlyOnceWith(
         testValues.demonstrationId,
         testValues.applicationTypeId,
-        mockTransaction
+        mockTransaction,
       );
     });
   });

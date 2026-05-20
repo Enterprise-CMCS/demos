@@ -16,6 +16,7 @@ import {
   SdgDivision,
   SignatureLevel,
   State,
+  SuggestedApplicationTag,
   Tag,
   TagName,
 } from "../../types.js";
@@ -42,6 +43,8 @@ export const demonstrationSchema = gql`
     tags: [Tag!]!
     demonstrationTypes: [DemonstrationTypeAssignment!]!
     suggestedApplicationTags: [TagName!]! @auth(requires: ["Access CMS Field"])
+    suggestedApplicationTagDetails: [SuggestedApplicationTag!]!
+      @auth(requires: ["Access CMS Field"])
     deliverables: [Deliverable!]!
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -101,6 +104,7 @@ export interface Demonstration {
   tags: Tag[];
   demonstrationTypes: DemonstrationTypeAssignment[];
   suggestedApplicationTags: TagName[];
+  suggestedApplicationTagDetails: SuggestedApplicationTag[];
   deliverables: Deliverable[];
   createdAt: Date;
   updatedAt: Date;

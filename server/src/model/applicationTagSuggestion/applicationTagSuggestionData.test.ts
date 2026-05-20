@@ -1,11 +1,19 @@
-import { ApplicationTagSuggestion as PrismaApplicationTagSuggestion, Prisma } from "@prisma/client";
+import {
+  ApplicationTagSuggestion as PrismaApplicationTagSuggestion,
+  Prisma,
+} from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildAuthorizationFilter, ContextUser } from "../../auth";
 import {
   getApplicationTagSuggestion,
+  getManyApplicationTagSuggestionDetails,
   getManyApplicationTagSuggestions,
 } from "./applicationTagSuggestionData";
-import { selectApplicationTagSuggestion, selectManyApplicationTagSuggestions } from "./queries";
+import {
+  selectApplicationTagSuggestion,
+  selectManyApplicationTagSuggestionDetails,
+  selectManyApplicationTagSuggestions,
+} from "./queries";
 
 vi.mock("../../auth", () => ({
   buildAuthorizationFilter: vi.fn(),
@@ -13,6 +21,7 @@ vi.mock("../../auth", () => ({
 
 vi.mock("./queries", () => ({
   selectApplicationTagSuggestion: vi.fn(),
+  selectManyApplicationTagSuggestionDetails: vi.fn(),
   selectManyApplicationTagSuggestions: vi.fn(),
 }));
 
@@ -56,17 +65,22 @@ describe("applicationTagSuggestionData", () => {
         value: "Student Lunch",
       } as PrismaApplicationTagSuggestion;
       vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
-      vi.mocked(selectApplicationTagSuggestion).mockResolvedValueOnce(applicationTagSuggestion);
+      vi.mocked(selectApplicationTagSuggestion).mockResolvedValueOnce(
+        applicationTagSuggestion,
+      );
 
       const result = await getApplicationTagSuggestion(where, user);
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
-      expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
+      expect(buildAuthorizationFilter).toHaveBeenCalledWith(
+        user,
+        expect.any(Function),
+      );
       expect(selectApplicationTagSuggestion).toHaveBeenCalledExactlyOnceWith(
         {
           AND: [where, authFilter],
         },
-        undefined
+        undefined,
       );
       expect(result).toBe(applicationTagSuggestion);
     });
@@ -81,7 +95,7 @@ describe("applicationTagSuggestionData", () => {
         {
           AND: [where, authFilter],
         },
-        mockTransactionClient
+        mockTransactionClient,
       );
     });
   });
@@ -104,18 +118,23 @@ describe("applicationTagSuggestionData", () => {
       ] as PrismaApplicationTagSuggestion[];
       vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
       vi.mocked(selectManyApplicationTagSuggestions).mockResolvedValueOnce(
-        applicationTagSuggestions
+        applicationTagSuggestions,
       );
 
       const result = await getManyApplicationTagSuggestions(where, user);
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
-      expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
-      expect(selectManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith(
+      expect(buildAuthorizationFilter).toHaveBeenCalledWith(
+        user,
+        expect.any(Function),
+      );
+      expect(
+        selectManyApplicationTagSuggestions,
+      ).toHaveBeenCalledExactlyOnceWith(
         {
           AND: [where, authFilter],
         },
-        undefined
+        undefined,
       );
       expect(result).toBe(applicationTagSuggestions);
     });
@@ -124,13 +143,79 @@ describe("applicationTagSuggestionData", () => {
       const mockTransactionClient = {} as any;
       vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
 
-      await getManyApplicationTagSuggestions(where, user, mockTransactionClient);
+      await getManyApplicationTagSuggestions(
+        where,
+        user,
+        mockTransactionClient,
+      );
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
-      expect(selectManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith(
+      expect(
+        selectManyApplicationTagSuggestions,
+      ).toHaveBeenCalledExactlyOnceWith(
         {
           AND: [where, authFilter],
         },
-        mockTransactionClient
+        mockTransactionClient,
+      );
+    });
+  });
+
+  describe("getManyApplicationTagSuggestionDetails", () => {
+    it("returns an empty array when authorization filter returns null", async () => {
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(null);
+
+      const result = await getManyApplicationTagSuggestionDetails(where, user);
+
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(selectManyApplicationTagSuggestionDetails).not.toHaveBeenCalled();
+      expect(result).toEqual([]);
+    });
+
+    it("queries for many applicationTagSuggestion details with the authorization filter applied", async () => {
+      const applicationTagSuggestions = [
+        { value: "Student Lunch", extracts: [] },
+        { value: "City Park Funding", extracts: [] },
+      ] as any[];
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+      vi.mocked(
+        selectManyApplicationTagSuggestionDetails,
+      ).mockResolvedValueOnce(applicationTagSuggestions);
+
+      const result = await getManyApplicationTagSuggestionDetails(where, user);
+
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(buildAuthorizationFilter).toHaveBeenCalledWith(
+        user,
+        expect.any(Function),
+      );
+      expect(
+        selectManyApplicationTagSuggestionDetails,
+      ).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        undefined,
+      );
+      expect(result).toBe(applicationTagSuggestions);
+    });
+
+    it("passes transaction client to selectManyApplicationTagSuggestionDetails if provided", async () => {
+      const mockTransactionClient = {} as any;
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+
+      await getManyApplicationTagSuggestionDetails(
+        where,
+        user,
+        mockTransactionClient,
+      );
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(
+        selectManyApplicationTagSuggestionDetails,
+      ).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        mockTransactionClient,
       );
     });
   });

@@ -320,6 +320,23 @@ describe("ApplicationIntakePhase", () => {
     it("opens a confirmation modal before accepting a UiPath suggested tag", async () => {
       setup({
         suggestedTags: ["Health Equity"],
+        suggestedTagDetails: [
+          {
+            tagName: "Health Equity",
+            sources: [
+              {
+                documentId: "document-1",
+                documentName: "State Application.pdf",
+                startPageNo: 3,
+                endPageNo: 3,
+                textStartIndex: 12,
+                textEndIndex: 25,
+                textLength: 13,
+                confidence: 0.97,
+              },
+            ],
+          },
+        ],
       });
 
       await waitFor(() => {
@@ -337,7 +354,9 @@ describe("ApplicationIntakePhase", () => {
         screen.getByText("DEMOS AI identified the following tag based on the application text:")
       ).toBeInTheDocument();
       expect(screen.getByText("Source Passage")).toBeInTheDocument();
-      expect(screen.getByText(/Found in Document X, Page N, Position NN\/NNN/)).toBeInTheDocument();
+      expect(
+        screen.getByText("(Found in State Application.pdf, Page 3, Position 12/25)")
+      ).toBeInTheDocument();
 
       await userEvent.click(screen.getByTestId("button-confirm-suggested-tag"));
 

@@ -9,6 +9,7 @@ import {
   ClearanceLevel,
   Tag,
   TagName,
+  SuggestedApplicationTag,
 } from "demos-server";
 
 export type ApplicationWorkflowDocument = Pick<
@@ -33,6 +34,7 @@ export type WorkflowApplication = {
   documents: ApplicationWorkflowDocument[];
   tags: Tag[];
   suggestedApplicationTags?: TagName[];
+  suggestedApplicationTagDetails?: SuggestedApplicationTag[];
   clearanceLevel: ClearanceLevel;
 };
 

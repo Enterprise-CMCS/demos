@@ -1,11 +1,23 @@
-import { Prisma, ApplicationTagSuggestion as PrismaApplicationTagSuggestion } from "@prisma/client";
-import { buildAuthorizationFilter, PermissionFilters, ContextUser } from "../../auth";
-import { selectApplicationTagSuggestion, selectManyApplicationTagSuggestions } from "./queries";
+import {
+  Prisma,
+  ApplicationTagSuggestion as PrismaApplicationTagSuggestion,
+} from "@prisma/client";
+import {
+  buildAuthorizationFilter,
+  PermissionFilters,
+  ContextUser,
+} from "../../auth";
+import {
+  selectApplicationTagSuggestion,
+  selectManyApplicationTagSuggestionDetails,
+  selectManyApplicationTagSuggestions,
+  type ApplicationTagSuggestionDetailsQueryResult,
+} from "./queries";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { isAStatePointOfContactAssociatedWithApplication } from "../application/applicationData";
 
 export const isAStatePointOfContactAssociatedWithApplicationTagSuggestion = (
-  userId: string
+  userId: string,
 ): Prisma.ApplicationTagSuggestionWhereInput => ({
   application: isAStatePointOfContactAssociatedWithApplication(userId),
 });
@@ -26,12 +38,13 @@ const getPermissionFilters = (userId: string) =>
 export async function getApplicationTagSuggestion(
   where: Prisma.ApplicationTagSuggestionWhereInput,
   user: ContextUser,
-  tx?: PrismaTransactionClient
+  tx?: PrismaTransactionClient,
 ): Promise<PrismaApplicationTagSuggestion | null> {
-  const authFilter = buildAuthorizationFilter<Prisma.ApplicationTagSuggestionWhereInput>(
-    user,
-    getPermissionFilters
-  );
+  const authFilter =
+    buildAuthorizationFilter<Prisma.ApplicationTagSuggestionWhereInput>(
+      user,
+      getPermissionFilters,
+    );
 
   if (authFilter === null) {
     return null;
@@ -41,19 +54,20 @@ export async function getApplicationTagSuggestion(
     {
       AND: [where, authFilter],
     },
-    tx
+    tx,
   );
 }
 
 export async function getManyApplicationTagSuggestions(
   where: Prisma.ApplicationTagSuggestionWhereInput,
   user: ContextUser,
-  tx?: PrismaTransactionClient
+  tx?: PrismaTransactionClient,
 ): Promise<PrismaApplicationTagSuggestion[]> {
-  const authFilter = buildAuthorizationFilter<Prisma.ApplicationTagSuggestionWhereInput>(
-    user,
-    getPermissionFilters
-  );
+  const authFilter =
+    buildAuthorizationFilter<Prisma.ApplicationTagSuggestionWhereInput>(
+      user,
+      getPermissionFilters,
+    );
 
   if (authFilter === null) {
     return [];
@@ -62,6 +76,28 @@ export async function getManyApplicationTagSuggestions(
     {
       AND: [where, authFilter],
     },
-    tx
+    tx,
+  );
+}
+
+export async function getManyApplicationTagSuggestionDetails(
+  where: Prisma.ApplicationTagSuggestionWhereInput,
+  user: ContextUser,
+  tx?: PrismaTransactionClient,
+): Promise<ApplicationTagSuggestionDetailsQueryResult[]> {
+  const authFilter =
+    buildAuthorizationFilter<Prisma.ApplicationTagSuggestionWhereInput>(
+      user,
+      getPermissionFilters,
+    );
+
+  if (authFilter === null) {
+    return [];
+  }
+  return await selectManyApplicationTagSuggestionDetails(
+    {
+      AND: [where, authFilter],
+    },
+    tx,
   );
 }

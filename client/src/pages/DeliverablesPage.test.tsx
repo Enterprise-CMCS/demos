@@ -239,11 +239,13 @@ describe("DeliverablesPage tab persistence", () => {
     expect(screen.getByRole("columnheader", { name: /Demonstration Name/i })).toBeInTheDocument();
   });
 
-  it("renders all deliverables without tabs for demos-state-user", async () => {
+  it("renders only State Point of Contact demonstration deliverables without tabs for demos-state-user", async () => {
     await renderStateDeliverablesPage();
 
     expect(screen.queryByTestId("button-deliverables")).not.toBeInTheDocument();
     expect(screen.queryByTestId("button-my-deliverables")).not.toBeInTheDocument();
+    expect(screen.queryByText(/All Deliverables/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/My Deliverables/i)).not.toBeInTheDocument();
     expect(screen.getByText("Budget Neutrality Report")).toBeInTheDocument();
     expect(screen.getByText("Budget Neutrality Worksheet")).toBeInTheDocument();
     expect(screen.getByText("Quarterly Report For NYC Demonstration")).toBeInTheDocument();

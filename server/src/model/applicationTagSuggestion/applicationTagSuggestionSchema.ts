@@ -1,6 +1,23 @@
 import { gql } from "graphql-tag";
+import type { TagName } from "../../types.js";
 
 export const applicationTagSuggestionSchema = gql`
+  type SuggestedApplicationTagSource {
+    documentId: ID!
+    documentName: String!
+    startPageNo: Int!
+    endPageNo: Int!
+    textStartIndex: Int!
+    textEndIndex: Int!
+    textLength: Int!
+    confidence: Float!
+  }
+
+  type SuggestedApplicationTag {
+    tagName: TagName!
+    sources: [SuggestedApplicationTagSource!]!
+  }
+
   type ApplicationTagSuggestion {
     applicationId: ID!
     value: String!
@@ -21,3 +38,19 @@ export const applicationTagSuggestionSchema = gql`
       @auth(requires: ["Perform CMS Action"])
   }
 `;
+
+export interface SuggestedApplicationTagSource {
+  documentId: string;
+  documentName: string;
+  startPageNo: number;
+  endPageNo: number;
+  textStartIndex: number;
+  textEndIndex: number;
+  textLength: number;
+  confidence: number;
+}
+
+export interface SuggestedApplicationTag {
+  tagName: TagName;
+  sources: SuggestedApplicationTagSource[];
+}
