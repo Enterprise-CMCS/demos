@@ -9,8 +9,8 @@ import {
 import { PrismaApplicationNoteResults } from "./applicationPhaseTypes";
 import { GraphQLContext } from "../../auth";
 import { getManyDocuments } from "../document";
-import { getManyApplicationDates } from "../applicationDate";
-import { getManyApplicationNotes } from "../applicationNote";
+import { selectManyApplicationDates } from "../applicationDate/queries";
+import { selectManyApplicationNotes } from "../applicationNote/queries";
 
 export async function __resolveApplicationPhaseDates(
   parent: PrismaApplicationPhase
@@ -60,30 +60,24 @@ export const applicationPhaseResolvers = {
   ApplicationPhase: {
     phaseName: (parent: PrismaApplicationPhase) => parent.phaseId,
     phaseStatus: (parent: PrismaApplicationPhase) => parent.phaseStatusId,
-    phaseDates: (parent: PrismaApplicationPhase, args: unknown, context: GraphQLContext) =>
-      getManyApplicationDates(
-        {
-          applicationId: parent.applicationId,
-          dateType: {
-            phaseDateTypes: {
-              some: { phaseId: parent.phaseId },
-            },
+    phaseDates: (parent: PrismaApplicationPhase) =>
+      selectManyApplicationDates({
+        applicationId: parent.applicationId,
+        dateType: {
+          phaseDateTypes: {
+            some: { phaseId: parent.phaseId },
           },
         },
-        context.user
-      ),
-    phaseNotes: (parent: PrismaApplicationPhase, args: unknown, context: GraphQLContext) =>
-      getManyApplicationNotes(
-        {
-          applicationId: parent.applicationId,
-          noteType: {
-            phaseNoteTypes: {
-              some: { phaseId: parent.phaseId },
-            },
+      }),
+    phaseNotes: (parent: PrismaApplicationPhase) =>
+      selectManyApplicationNotes({
+        applicationId: parent.applicationId,
+        noteType: {
+          phaseNoteTypes: {
+            some: { phaseId: parent.phaseId },
           },
         },
-        context.user
-      ),
+      }),
     documents: (parent: PrismaApplicationPhase, args: unknown, context: GraphQLContext) =>
       getManyDocuments(
         {

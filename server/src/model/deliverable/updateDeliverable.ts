@@ -13,7 +13,7 @@ import {
 } from ".";
 import { prisma } from "../../prismaClient";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
-import { selectUser } from "../user/queries";
+import { selectUser, selectUserOrThrow } from "../user/queries";
 
 export async function updateDeliverable(
   deliverableId: string,
@@ -34,7 +34,7 @@ export async function updateDeliverable(
       editInput.name = parsedInput.name;
     }
     if (parsedInput.cmsOwnerUserId) {
-      const cmsOwner = await selectUser({ id: parsedInput.cmsOwnerUserId }, true, tx);
+      const cmsOwner = await selectUserOrThrow({ id: parsedInput.cmsOwnerUserId }, tx);
       editInput.cmsOwner = {
         cmsOwnerUserId: cmsOwner.id,
         cmsOwnerPersonTypeId: cmsOwner.personTypeId as PersonType,

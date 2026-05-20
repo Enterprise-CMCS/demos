@@ -3,8 +3,8 @@ import type { GraphQLContext } from "../../auth";
 import { User as PrismaUser } from "@prisma/client";
 import { resolveManyDeliverables } from "../deliverable";
 import { getManyDocuments } from "../document";
-import { getUser } from "./userData";
-import { getPerson } from "../person";
+import { selectUser } from "./queries";
+import { selectPersonOrThrow } from "../person/queries";
 import { Permission, Role } from "../../types";
 import { selectManySystemRoleAssignments } from "../systemRoleAssignment";
 import { selectLastLoginForUser } from "../userSession/queries";
@@ -12,11 +12,10 @@ import { selectLastLoginForUser } from "../userSession/queries";
 export const userResolvers = {
   Query: {
     currentUser: (parent: unknown, args: unknown, context: GraphQLContext) =>
-      getUser({ id: context.user.id }, context.user),
+      selectUser({ id: context.user.id }),
   },
   User: {
-    person: (parent: PrismaUser, args: unknown, context: GraphQLContext) =>
-      getPerson({ id: parent.id }, context.user),
+    person: (parent: PrismaUser) => selectPersonOrThrow({ id: parent.id }),
     ownedDocuments: (parent: PrismaUser, args: unknown, context: GraphQLContext) =>
       getManyDocuments({ ownerUserId: parent.id }, context.user),
     ownedDeliverables: resolveManyDeliverables,

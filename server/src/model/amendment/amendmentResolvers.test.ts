@@ -34,10 +34,10 @@ import { ContextUser, GraphQLContext } from "../../auth";
 import { getDemonstration } from "../demonstration";
 import { getAmendment, getManyAmendments } from "./amendmentData";
 import { getManyDocuments } from "../document";
-import { getManyApplicationPhases } from "../applicationPhase";
-import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
+import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
-import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
+import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
+import { selectManyApplicationPhases } from "../applicationPhase/queries";
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
@@ -55,16 +55,16 @@ vi.mock("../demonstration", () => ({
   getDemonstration: vi.fn(),
 }));
 
-vi.mock("../applicationPhase", () => ({
-  getManyApplicationPhases: vi.fn(),
+vi.mock("../applicationPhase/queries", () => ({
+  selectManyApplicationPhases: vi.fn(),
 }));
 
-vi.mock("../applicationTagAssignment", () => ({
-  getManyApplicationTagAssignments: vi.fn(),
+vi.mock("../applicationTagAssignment/queries", () => ({
+  selectManyApplicationTagAssignments: vi.fn(),
 }));
 
-vi.mock("../applicationTagSuggestion", () => ({
-  getManyApplicationTagSuggestions: vi.fn(),
+vi.mock("../applicationTagSuggestion/queries", () => ({
+  selectManyApplicationTagSuggestions: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -177,23 +177,22 @@ describe("amendmentResolvers", () => {
   });
 
   describe("Amendment.phases", () => {
-    it("delegates to `applicationPhaseData.getManyApplicationPhases`", async () => {
+    it("delegates to `applicationPhaseData/queries.selectManyApplicationPhases`", async () => {
       await amendmentResolvers.Amendment.phases(
         { id: "amendmentId" } as PrismaAmendment,
         {},
         mockContext
       );
-      expect(getManyApplicationPhases).toHaveBeenCalledExactlyOnceWith(
-        { applicationId: "amendmentId" },
-        mockUser
-      );
+      expect(selectManyApplicationPhases).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "amendmentId",
+      });
     });
   });
 
   describe("Amendment.tags", () => {
-    it("delegates to applicationTagAssignmentData.getManyApplicationTagAssignments and maps result", async () => {
+    it("delegates to applicationTagAssignmentData/queries.selectManyApplicationTagAssignments and maps result", async () => {
       const mockAmendment = { id: "abc123" } as PrismaAmendment;
-      vi.mocked(getManyApplicationTagAssignments).mockResolvedValueOnce([
+      vi.mocked(selectManyApplicationTagAssignments).mockResolvedValueOnce([
         {
           tag: {
             tagNameId: "Tag1",
@@ -208,11 +207,10 @@ describe("amendmentResolvers", () => {
         },
       ] as ApplicationTagAssignmentQueryResult[]);
 
-      const result = await amendmentResolvers.Amendment.tags(mockAmendment, undefined, mockContext);
-      expect(getManyApplicationTagAssignments).toHaveBeenCalledExactlyOnceWith(
-        { applicationId: "abc123" },
-        mockUser
-      );
+      const result = await amendmentResolvers.Amendment.tags(mockAmendment);
+      expect(selectManyApplicationTagAssignments).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "abc123",
+      });
       expect(result).toEqual([
         {
           tagName: "Tag1",
@@ -227,9 +225,9 @@ describe("amendmentResolvers", () => {
   });
 
   describe("Amendment.applicationTagSuggestions", () => {
-    it("delegates to applicationTagSuggestionData.getManyApplicationTagSuggestions and maps result", async () => {
+    it("delegates to applicationTagSuggestionData/queries.selectManyApplicationTagSuggestions and maps result", async () => {
       const mockAmendment = { id: "abc123" } as PrismaAmendment;
-      vi.mocked(getManyApplicationTagSuggestions).mockResolvedValueOnce([
+      vi.mocked(selectManyApplicationTagSuggestions).mockResolvedValueOnce([
         {
           value: "Suggestion1",
         },
@@ -238,19 +236,14 @@ describe("amendmentResolvers", () => {
         },
       ] as PrismaApplicationTagSuggestion[]);
 
-      const result = await amendmentResolvers.Amendment.suggestedApplicationTags(
-        mockAmendment,
-        undefined,
-        mockContext
-      );
-      expect(getManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith(
+      const result = await amendmentResolvers.Amendment.suggestedApplicationTags(mockAmendment);
+      expect(selectManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith(
         {
           applicationId: "abc123",
           statusId: {
             in: ["Pending"],
           },
         },
-        mockUser
       );
       expect(result).toEqual(["Suggestion1", "Suggestion2"]);
     });

@@ -14,14 +14,14 @@ import { publicCommentResolvers } from "./publicCommentResolvers";
 
 // Mock imports
 vi.mock("../user/queries", () => ({
-  selectUser: vi.fn(),
+  selectUserOrThrow: vi.fn(),
 }));
 
 vi.mock(".", () => ({
   createPublicComment: vi.fn(),
 }));
 
-import { selectUser } from "../user/queries";
+import { selectUserOrThrow } from "../user/queries";
 import { createPublicComment } from ".";
 
 describe("publicCommentResolvers", () => {
@@ -69,20 +69,18 @@ describe("publicCommentResolvers", () => {
       await publicCommentResolvers.DeliverableComment.authorUser(
         testPublicComment as PrismaPublicComment
       );
-      expect(selectUser).toHaveBeenCalledExactlyOnceWith(
-        { id: testPublicComment.authorUserId },
-        true
-      );
+      expect(selectUserOrThrow).toHaveBeenCalledExactlyOnceWith({
+        id: testPublicComment.authorUserId,
+      });
     });
 
     it("should query the author of the comment for private comments", async () => {
       await publicCommentResolvers.DeliverableComment.authorUser(
         testPrivateComment as PrismaPrivateComment
       );
-      expect(selectUser).toHaveBeenCalledExactlyOnceWith(
-        { id: testPrivateComment.authorUserId },
-        true
-      );
+      expect(selectUserOrThrow).toHaveBeenCalledExactlyOnceWith({
+        id: testPrivateComment.authorUserId,
+      });
     });
   });
 });

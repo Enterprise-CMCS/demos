@@ -16,9 +16,9 @@ import { getDemonstration } from "../demonstration";
 import { GraphQLContext } from "../../auth";
 import { getExtension, getManyExtensions } from "./extensionData";
 import { getManyDocuments } from "../document";
-import { getManyApplicationPhases } from "../applicationPhase";
-import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
-import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
+import { selectManyApplicationPhases } from "../applicationPhase/queries";
+import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
+import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
 
 const extensionApplicationType: ApplicationType = "Extension";
 const conceptPhaseName: PhaseName = "Concept";
@@ -106,10 +106,10 @@ export const extensionResolvers = {
     currentPhaseName: (parent: PrismaExtension) => parent.currentPhaseId,
     status: (parent: PrismaExtension) => parent.statusId,
     phases: (parent: PrismaExtension, args: unknown, context: GraphQLContext) =>
-      getManyApplicationPhases({ applicationId: parent.id }, context.user),
+      selectManyApplicationPhases({ applicationId: parent.id }),
     clearanceLevel: (parent: PrismaExtension) => parent.clearanceLevelId,
-    tags: async (parent: PrismaExtension, args: unknown, context: GraphQLContext) =>
-      (await getManyApplicationTagAssignments({ applicationId: parent.id }, context.user)).map(
+    tags: async (parent: PrismaExtension) =>
+      (await selectManyApplicationTagAssignments({ applicationId: parent.id })).map(
         (assignment) => {
           const { statusId, tagNameId, ...tag } = assignment.tag;
           return {
@@ -122,18 +122,15 @@ export const extensionResolvers = {
     signatureLevel: (parent: PrismaExtension) => parent.signatureLevelId,
     suggestedApplicationTags: async (
       parent: PrismaExtension,
-      args: unknown,
-      context: GraphQLContext
     ) =>
       (
-        await getManyApplicationTagSuggestions(
+        await selectManyApplicationTagSuggestions(
           {
             applicationId: parent.id,
             statusId: {
               in: ["Pending" satisfies UiPathResultStatus],
             },
           },
-          context.user
         )
       ).map((suggestion) => suggestion.value),
   },

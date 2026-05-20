@@ -43,10 +43,10 @@ import {
   UpdateDeliverableInput,
 } from "../../types";
 import { getApplication } from "../application";
-import { getUser } from "../user";
+import { selectUserOrThrow } from "../user/queries";
 import { getManyDocuments } from "../document";
 import { getFormattedDeliverableActions } from "../deliverableAction";
-import { getManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
+import { selectManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType/queries";
 import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
 import { selectManyPublicComments } from "../publicComment/queries";
 import { selectManyPrivateComments } from "../privateComment/queries";
@@ -196,11 +196,11 @@ export const deliverableResolvers = {
     deliverableType: resolveDeliverableType,
     demonstration: resolveDemonstration,
     status: resolveDeliverableStatus,
-    cmsOwner: (parent: PrismaDeliverable, args: unknown, context: GraphQLContext) =>
-      getUser({ id: parent.cmsOwnerUserId }, context.user),
+    cmsOwner: (parent: PrismaDeliverable) =>
+      selectUserOrThrow({ id: parent.cmsOwnerUserId }),
     dueDateType: resolveDeliverableDueDateType,
-    demonstrationTypes: async (parent: PrismaDeliverable, args: unknown, context: GraphQLContext) =>
-      (await getManyDeliverableDemonstrationTypes({ deliverableId: parent.id }, context.user)).map(
+    demonstrationTypes: async (parent: PrismaDeliverable) =>
+      (await selectManyDeliverableDemonstrationTypes({ deliverableId: parent.id })).map(
         (deliverableDemonstrationType) => {
           const { statusId, tagNameId, ...tag } =
             deliverableDemonstrationType.demonstrationTypeTagAssignment.tag;
@@ -247,13 +247,6 @@ export const deliverableResolvers = {
       args: unknown,
       context: GraphQLContext
     ): Promise<PrismaPrivateComment[]> => {
-      // Temporary implementation, to be replaced with generalized solution
-      const permittedOwnerPersonTypes: readonly PersonType[] = ["demos-admin", "demos-cms-user"];
-      if (!permittedOwnerPersonTypes.includes(context.user.personTypeId)) {
-        throw new Error(
-          `The user ${context.user.id} does not have permissions to query Deliverable.privateComments!`
-        );
-      }
       return await selectManyPrivateComments({ deliverableId: parent.id });
     },
   },

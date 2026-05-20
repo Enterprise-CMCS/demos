@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
+// Mock imports
 import { DeepPartial } from "../../testUtilities";
 
 import { User as PrismaUser } from "@prisma/client";
@@ -19,12 +21,12 @@ vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
 }));
 
-vi.mock("./userData", () => ({
-  getUser: vi.fn(),
+vi.mock("./queries", () => ({
+  selectUser: vi.fn(),
 }));
 
-vi.mock("../person", () => ({
-  getPerson: vi.fn(),
+vi.mock("../person/queries", () => ({
+  selectPersonOrThrow: vi.fn(),
 }));
 
 vi.mock("../userSession/queries", () => ({
@@ -33,8 +35,8 @@ vi.mock("../userSession/queries", () => ({
 
 import { selectManySystemRoleAssignments } from "../systemRoleAssignment";
 import { getManyDocuments } from "../document";
-import { getUser } from "./userData";
-import { getPerson } from "../person";
+import { selectUser } from "./queries";
+import { selectPersonOrThrow } from "../person/queries";
 import { selectLastLoginForUser } from "../userSession/queries";
 
 describe("userResolvers", () => {
@@ -50,12 +52,12 @@ describe("userResolvers", () => {
   });
 
   describe("Query.currentUser", () => {
-    it("delegates to `userData.getUser`", async () => {
+    it("delegates to `userData/queries.selectUser`", async () => {
       const mockUser = {
         id: "abc123",
       } as PrismaUser;
       await userResolvers.Query.currentUser(mockUser, undefined, mockContext);
-      expect(getUser).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockContext.user);
+      expect(selectUser).toHaveBeenCalledExactlyOnceWith({ id: "abc123" });
     });
   });
 
@@ -73,12 +75,12 @@ describe("userResolvers", () => {
   });
 
   describe("User.person", () => {
-    it("delegates to `personData.getPerson`", async () => {
+    it("delegates to `personData/queries.selectPerson`", async () => {
       const mockUser = {
         id: "abc123",
       } as PrismaUser;
-      await userResolvers.User.person(mockUser, undefined, mockContext);
-      expect(getPerson).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
+      await userResolvers.User.person(mockUser);
+      expect(selectPersonOrThrow).toHaveBeenCalledExactlyOnceWith({ id: "abc123" });
     });
   });
 

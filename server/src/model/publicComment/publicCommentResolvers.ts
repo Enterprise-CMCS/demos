@@ -6,7 +6,7 @@ import {
 import { NonEmptyString } from "../../types";
 import { GraphQLContext } from "../../auth";
 import { resolveDeliverable } from "../deliverable";
-import { selectUser } from "../user/queries";
+import { selectUserOrThrow } from "../user/queries";
 import { createPublicComment } from ".";
 
 export const publicCommentResolvers = {
@@ -23,7 +23,7 @@ export const publicCommentResolvers = {
   DeliverableComment: {
     deliverable: resolveDeliverable,
     authorUser: async (parent: PrismaPublicComment | PrismaPrivateComment): Promise<PrismaUser> => {
-      return await selectUser({ id: parent.authorUserId }, true);
+      return await selectUserOrThrow({ id: parent.authorUserId });
     },
   },
 };

@@ -2,16 +2,15 @@ import { Person as PrismaPerson } from "@prisma/client";
 
 import { prisma } from "../../prismaClient";
 import { GraphQLContext } from "../../auth";
-import { getManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment";
+import { selectManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment/queries";
 import { getManyStates } from "../state";
-import { getManyPeople, getPerson } from "./personData";
+import { selectManyPeople, selectPersonOrThrow } from "./queries";
 
 export const personResolvers = {
   Query: {
-    person: (parent: unknown, args: { id: string }, context: GraphQLContext) =>
-      getPerson({ id: args.id }, context.user),
-    people: (parent: unknown, args: unknown, context: GraphQLContext) =>
-      getManyPeople({}, context.user),
+    person: (parent: unknown, args: { id: string }) =>
+      selectPersonOrThrow({ id: args.id }),
+    people: () => selectManyPeople({}),
     searchPeople: async (
       _: unknown,
       { search, demonstrationId }: { search: string; demonstrationId?: string }
@@ -63,8 +62,8 @@ export const personResolvers = {
   Person: {
     fullName: (parent: PrismaPerson) => `${parent.firstName} ${parent.lastName}`,
     personType: async (parent: PrismaPerson) => parent.personTypeId,
-    roles: (parent: PrismaPerson, args: unknown, context: GraphQLContext) =>
-      getManyDemonstrationRoleAssignments({ personId: parent.id }, context.user),
+    roles: (parent: PrismaPerson) =>
+      selectManyDemonstrationRoleAssignments({ personId: parent.id }),
     states: async (parent: PrismaPerson) =>
       getManyStates({
         personStates: {
