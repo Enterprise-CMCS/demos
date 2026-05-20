@@ -69,8 +69,8 @@ vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
 }));
 
-vi.mock("../deliverableDemonstrationType", () => ({
-  getManyDeliverableDemonstrationTypes: vi.fn(),
+vi.mock("../deliverableDemonstrationType/queries", () => ({
+  selectManyDeliverableDemonstrationTypes: vi.fn(),
 }));
 
 vi.mock("../deliverableAction", () => ({
@@ -109,7 +109,7 @@ import {
 import { getApplication } from "../application";
 import { getUser } from "../user";
 import { getManyDocuments } from "../document";
-import { getManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
+import { selectManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType/queries";
 import { getFormattedDeliverableActions } from "../deliverableAction";
 import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
 import { selectManyPublicComments } from "../publicComment/queries";
@@ -683,19 +683,16 @@ describe("deliverableResolvers", () => {
               },
             },
           ] as DeliverableDemonstrationTypeQueryResult[];
-        vi.mocked(getManyDeliverableDemonstrationTypes).mockResolvedValue(
+        vi.mocked(selectManyDeliverableDemonstrationTypes).mockResolvedValue(
           mockDeliverableDemonstrationTypeQueryResult
         );
 
         const result = await deliverableResolvers.Deliverable.demonstrationTypes(
-          testDeliverable as PrismaDeliverable,
-          undefined,
-          mockContext
+          testDeliverable as PrismaDeliverable
         );
-        expect(getManyDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
-          { deliverableId: testDeliverableId },
-          mockUser
-        );
+        expect(selectManyDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith({
+          deliverableId: testDeliverableId,
+        });
         expect(result).toStrictEqual([
           {
             approvalStatus: "Approved",
