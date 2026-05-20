@@ -6,7 +6,7 @@ import { userResolvers } from "./userResolvers";
 // Mock imports
 import { getManyDocuments } from "../document";
 import { getUser } from "./userData";
-import { getPerson } from "../person";
+import { selectPersonOrThrow } from "../person/queries";
 import {
   selectManySystemRoleAssignments,
   SystemRoleAssignmentQueryResult,
@@ -29,8 +29,8 @@ vi.mock("./userData", () => ({
   getUser: vi.fn(),
 }));
 
-vi.mock("../person", () => ({
-  getPerson: vi.fn(),
+vi.mock("../person/queries", () => ({
+  selectPersonOrThrow: vi.fn(),
 }));
 
 describe("userResolvers", () => {
@@ -69,12 +69,12 @@ describe("userResolvers", () => {
   });
 
   describe("User.person", () => {
-    it("delegates to `personData.getPerson`", async () => {
+    it("delegates to `personData/queries.selectPerson`", async () => {
       const mockUser = {
         id: "abc123",
       } as PrismaUser;
-      await userResolvers.User.person(mockUser, undefined, mockContext);
-      expect(getPerson).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
+      await userResolvers.User.person(mockUser);
+      expect(selectPersonOrThrow).toHaveBeenCalledExactlyOnceWith({ id: "abc123" });
     });
   });
 

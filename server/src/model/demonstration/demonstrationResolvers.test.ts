@@ -50,13 +50,13 @@ import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment
 import { selectManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment/queries";
 import { DemonstrationTypeTagAssignmentQueryResult } from "../demonstrationTypeTagAssignment/queries";
 import {
-  getDemonstrationRoleAssignment,
-  getManyDemonstrationRoleAssignments,
-} from "../demonstrationRoleAssignment";
+  selectDemonstrationRoleAssignmentOrThrow,
+  selectManyDemonstrationRoleAssignments,
+} from "../demonstrationRoleAssignment/queries";
 import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
 import { getState } from "../state";
-import { getPerson } from "../person";
 import { DemonstrationRoleAssignmentQueryResult } from "../demonstrationRoleAssignment/queries";
+import { selectPersonOrThrow } from "../person/queries";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -95,13 +95,13 @@ vi.mock("../demonstrationTypeTagAssignment/queries", () => ({
   selectManyDemonstrationTypeTagAssignments: vi.fn(),
 }));
 
-vi.mock("../demonstrationRoleAssignment", () => ({
-  getDemonstrationRoleAssignment: vi.fn(),
-  getManyDemonstrationRoleAssignments: vi.fn(),
+vi.mock("../demonstrationRoleAssignment/queries", () => ({
+  selectDemonstrationRoleAssignmentOrThrow: vi.fn(),
+  selectManyDemonstrationRoleAssignments: vi.fn(),
 }));
 
-vi.mock("../person", () => ({
-  getPerson: vi.fn(),
+vi.mock("../person/queries", () => ({
+  selectPersonOrThrow: vi.fn(),
 }));
 
 vi.mock("../state", () => ({
@@ -411,66 +411,33 @@ describe("demonstrationResolvers", () => {
   });
 
   describe("Demonstration.roles", () => {
-    it("delegates to demonstrationRoleAssignmentData.getManyDemonstrationRoleAssignments", async () => {
-      await demonstrationResolvers.Demonstration.roles(
-        { id: "demonstrationId" } as PrismaDemonstration,
-        {},
-        mockContext
-      );
-      expect(getManyDemonstrationRoleAssignments).toHaveBeenCalledExactlyOnceWith(
-        { demonstrationId: "demonstrationId" },
-        mockUser
-      );
+    it("delegates to demonstrationRoleAssignmentData/queries.selectManyDemonstrationRoleAssignments", async () => {
+      await demonstrationResolvers.Demonstration.roles({
+        id: "demonstrationId",
+      } as PrismaDemonstration);
+      expect(selectManyDemonstrationRoleAssignments).toHaveBeenCalledExactlyOnceWith({
+        demonstrationId: "demonstrationId",
+      });
     });
   });
 
   describe("Demonstration.primaryProjectOfficer", () => {
-    it("delegates to demonstrationRoleAssignmentData.getManyDemonstrationRoleAssignments and getPerson", async () => {
-      vi.mocked(getDemonstrationRoleAssignment).mockResolvedValueOnce({
+    it("delegates to demonstrationRoleAssignmentData/queries.selectDemonstrationRoleAssignmentOrThrow and selectPersonOrThrow", async () => {
+      vi.mocked(selectDemonstrationRoleAssignmentOrThrow).mockResolvedValueOnce({
         personId: "personId",
       } as DemonstrationRoleAssignmentQueryResult);
 
-      await demonstrationResolvers.Demonstration.primaryProjectOfficer(
-        { id: "demonstrationId" } as PrismaDemonstration,
-        undefined,
-        mockContext
-      );
+      await demonstrationResolvers.Demonstration.primaryProjectOfficer({
+        id: "demonstrationId",
+      } as PrismaDemonstration);
 
-      expect(getDemonstrationRoleAssignment).toHaveBeenCalledExactlyOnceWith(
-        {
-          demonstrationId: "demonstrationId",
-          roleId: "Project Officer",
-          primaryDemonstrationRoleAssignment: { isNot: null },
-        },
-        mockUser
-      );
+      expect(selectDemonstrationRoleAssignmentOrThrow).toHaveBeenCalledExactlyOnceWith({
+        demonstrationId: "demonstrationId",
+        roleId: "Project Officer",
+        primaryDemonstrationRoleAssignment: { isNot: null },
+      });
 
-      expect(getPerson).toHaveBeenCalledExactlyOnceWith({ id: "personId" }, mockUser);
-    });
-
-    it("throws an error if primary project officer is not found", async () => {
-      vi.mocked(getDemonstrationRoleAssignment).mockResolvedValueOnce(null);
-
-      await expect(
-        demonstrationResolvers.Demonstration.primaryProjectOfficer(
-          { id: "demonstrationId" } as PrismaDemonstration,
-          undefined,
-          mockContext
-        )
-      ).rejects.toThrow(
-        `Primary project officer not found for demonstration with id demonstrationId`
-      );
-
-      expect(getDemonstrationRoleAssignment).toHaveBeenCalledExactlyOnceWith(
-        {
-          demonstrationId: "demonstrationId",
-          roleId: "Project Officer",
-          primaryDemonstrationRoleAssignment: { isNot: null },
-        },
-        mockUser
-      );
-
-      expect(getPerson).not.toHaveBeenCalled();
+      expect(selectPersonOrThrow).toHaveBeenCalledExactlyOnceWith({ id: "personId" });
     });
   });
 

@@ -26,12 +26,12 @@ import { selectManyApplicationPhases } from "../applicationPhase/queries";
 import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
 import { selectManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment/queries";
 import {
-  getDemonstrationRoleAssignment,
-  getManyDemonstrationRoleAssignments,
-} from "../demonstrationRoleAssignment";
+  selectDemonstrationRoleAssignmentOrThrow,
+  selectManyDemonstrationRoleAssignments,
+} from "../demonstrationRoleAssignment/queries";
 import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
 import { getState } from "../state";
-import { getPerson } from "../person";
+import { selectPersonOrThrow } from "../person/queries";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -209,26 +209,15 @@ export async function __resolveDemonstrationPrimaryProjectOfficer(
   return primaryRoleAssignment.demonstrationRoleAssignment.person;
 }
 
-export const resolvePrimaryProjectOfficer = async (
-  parent: PrismaDemonstration,
-  args: undefined,
-  context: GraphQLContext
-) => {
-  const primaryProjectOfficerAssignment = await getDemonstrationRoleAssignment(
-    {
-      demonstrationId: parent.id,
-      roleId: roleProjectOfficer,
-      primaryDemonstrationRoleAssignment: {
-        isNot: null,
-      },
+export const resolvePrimaryProjectOfficer = async (parent: PrismaDemonstration) => {
+  const primaryProjectOfficerAssignment = await selectDemonstrationRoleAssignmentOrThrow({
+    demonstrationId: parent.id,
+    roleId: roleProjectOfficer,
+    primaryDemonstrationRoleAssignment: {
+      isNot: null,
     },
-    context.user
-  );
-
-  if (!primaryProjectOfficerAssignment) {
-    throw new Error(`Primary project officer not found for demonstration with id ${parent.id}`);
-  }
-  return getPerson({ id: primaryProjectOfficerAssignment.personId }, context.user);
+  });
+  return selectPersonOrThrow({ id: primaryProjectOfficerAssignment.personId });
 };
 
 export const demonstrationResolvers = {
@@ -256,8 +245,8 @@ export const demonstrationResolvers = {
     sdgDivision: (parent: PrismaDemonstration) => parent.sdgDivisionId,
     signatureLevel: (parent: PrismaDemonstration) => parent.signatureLevelId,
     currentPhaseName: (parent: PrismaDemonstration) => parent.currentPhaseId,
-    roles: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
-      getManyDemonstrationRoleAssignments({ demonstrationId: parent.id }, context.user),
+    roles: (parent: PrismaDemonstration) =>
+      selectManyDemonstrationRoleAssignments({ demonstrationId: parent.id }),
     status: (parent: PrismaDemonstration) => parent.statusId,
     phases: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
       selectManyApplicationPhases({ applicationId: parent.id }),

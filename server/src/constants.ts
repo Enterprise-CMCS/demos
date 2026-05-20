@@ -473,13 +473,8 @@ export const PERMISSIONS = [
   "View Documents on Assigned Demonstrations",
   "View Owned Documents",
   
-  "View All DemonstrationRoleAssignments",
-  "View DemonstrationRoleAssignments on Assigned Demonstrations",
   "View All ApplicationTagSuggestions",
   "View ApplicationTagSuggestions on Assigned Demonstrations",
-  "View All People",
-  "View People on Assigned Demonstrations",
-  "View My Person",
   "View All Users",
   "View Users on Assigned Demonstrations",
   "View My User",
