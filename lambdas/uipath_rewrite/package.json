@@ -1,0 +1,40 @@
+{
+  "name": "ui-path-doc-understanding",
+  "version": "1.0.0",
+  "description": "Refactored UiPath Document Understanding Lambda",
+  "type": "module",
+  "main": "index.ts",
+  "overrides": {
+    "@aws-sdk/client-s3": {
+      "fast-xml-parser": "^5.3.6"
+    }
+  },
+  "scripts": {
+    "test": "vitest run --coverage",
+    "lint": "tsc --noEmit --skipLibCheck",
+    "execute": "RUN_LOCAL=true npx tsx index.ts",
+    "build": "npx esbuild index.ts --bundle --platform=node --format=esm --outdir=dist"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1045.0",
+    "@aws-sdk/client-secrets-manager": "^3.1045.0",
+    "axios": "^1.16.0",
+    "axios-oauth-client": "^2.2.0",
+    "dotenv": "^17.4.2",
+    "file-type": "^21.3.4",
+    "form-data": "^4.0.5",
+    "pg": "^8.20.0",
+    "pino": "^10.3.1"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.161",
+    "@types/node": "^24.12.3",
+    "@types/pg": "^8.20.0",
+    "@vitest/coverage-v8": "^4.1.5",
+    "esbuild": "^0.28.0",
+    "pino-pretty": "^11.3.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.5"
+  }
+}
