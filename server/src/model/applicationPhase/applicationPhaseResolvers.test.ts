@@ -10,7 +10,7 @@ import { PhaseName, PhaseStatus } from "../../types";
 import { prisma } from "../../prismaClient";
 import { GraphQLContext } from "../../auth";
 import { getManyDocuments } from "../document";
-import { getManyApplicationNotes } from "../applicationNote";
+import { selectManyApplicationNotes } from "../applicationNote/queries";
 import { selectManyApplicationDates } from "../applicationDate/queries";
 
 vi.mock("../../prismaClient", () => ({
@@ -25,8 +25,8 @@ vi.mock("../applicationDate/queries", () => ({
   selectManyApplicationDates: vi.fn(),
 }));
 
-vi.mock("../applicationNote", () => ({
-  getManyApplicationNotes: vi.fn(),
+vi.mock("../applicationNote/queries", () => ({
+  selectManyApplicationNotes: vi.fn(),
 }));
 
 const testHandlePrismaError = new Error("Test handlePrismaError!");
@@ -107,44 +107,33 @@ describe("applicationPhaseResolvers", () => {
         phaseId: "Completeness" satisfies PhaseName,
         applicationId: "abc123",
       } as PrismaApplicationPhase;
-      await applicationPhaseResolvers.ApplicationPhase.phaseDates(
-        mockApplicationPhase,
-      );
-      expect(selectManyApplicationDates).toHaveBeenCalledExactlyOnceWith(
-        {
-          applicationId: "abc123",
-          dateType: {
-            phaseDateTypes: {
-              some: { phaseId: "Completeness" },
-            },
+      await applicationPhaseResolvers.ApplicationPhase.phaseDates(mockApplicationPhase);
+      expect(selectManyApplicationDates).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "abc123",
+        dateType: {
+          phaseDateTypes: {
+            some: { phaseId: "Completeness" },
           },
         },
-      );
+      });
     });
   });
 
   describe("ApplicationPhase.phaseNotes", () => {
-    it("delegates to `applicationNoteData.getManyApplicationNotes`", async () => {
+    it("delegates to `applicationNoteData/queries.selectManyApplicationNotes`", async () => {
       const mockApplicationPhase = {
         phaseId: "Completeness" satisfies PhaseName,
         applicationId: "abc123",
       } as PrismaApplicationPhase;
-      await applicationPhaseResolvers.ApplicationPhase.phaseNotes(
-        mockApplicationPhase,
-        undefined,
-        mockContext
-      );
-      expect(getManyApplicationNotes).toHaveBeenCalledExactlyOnceWith(
-        {
-          applicationId: "abc123",
-          noteType: {
-            phaseNoteTypes: {
-              some: { phaseId: "Completeness" },
-            },
+      await applicationPhaseResolvers.ApplicationPhase.phaseNotes(mockApplicationPhase);
+      expect(selectManyApplicationNotes).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "abc123",
+        noteType: {
+          phaseNoteTypes: {
+            some: { phaseId: "Completeness" },
           },
         },
-        mockContext.user
-      );
+      });
     });
   });
 

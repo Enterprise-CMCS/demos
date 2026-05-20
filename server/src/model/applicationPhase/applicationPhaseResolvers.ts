@@ -10,7 +10,7 @@ import { PrismaApplicationNoteResults } from "./applicationPhaseTypes";
 import { GraphQLContext } from "../../auth";
 import { getManyDocuments } from "../document";
 import { selectManyApplicationDates } from "../applicationDate/queries";
-import { getManyApplicationNotes } from "../applicationNote";
+import { selectManyApplicationNotes } from "../applicationNote/queries";
 
 export async function __resolveApplicationPhaseDates(
   parent: PrismaApplicationPhase
@@ -69,18 +69,15 @@ export const applicationPhaseResolvers = {
           },
         },
       }),
-    phaseNotes: (parent: PrismaApplicationPhase, args: unknown, context: GraphQLContext) =>
-      getManyApplicationNotes(
-        {
-          applicationId: parent.applicationId,
-          noteType: {
-            phaseNoteTypes: {
-              some: { phaseId: parent.phaseId },
-            },
+    phaseNotes: (parent: PrismaApplicationPhase) =>
+      selectManyApplicationNotes({
+        applicationId: parent.applicationId,
+        noteType: {
+          phaseNoteTypes: {
+            some: { phaseId: parent.phaseId },
           },
         },
-        context.user
-      ),
+      }),
     documents: (parent: PrismaApplicationPhase, args: unknown, context: GraphQLContext) =>
       getManyDocuments(
         {
