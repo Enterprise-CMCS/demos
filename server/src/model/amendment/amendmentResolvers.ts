@@ -16,7 +16,7 @@ import { getDemonstration } from "../demonstration";
 import { GraphQLContext } from "../../auth";
 import { getAmendment, getManyAmendments } from "./amendmentData";
 import { getManyDocuments } from "../document";
-import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
+import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
 import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
 
@@ -108,8 +108,8 @@ export const amendmentResolvers = {
     phases: (parent: PrismaAmendment, args: unknown, context: GraphQLContext) =>
       selectManyApplicationPhases({ applicationId: parent.id }),
     clearanceLevel: (parent: PrismaAmendment) => parent.clearanceLevelId,
-    tags: async (parent: PrismaAmendment, args: unknown, context: GraphQLContext) =>
-      (await getManyApplicationTagAssignments({ applicationId: parent.id }, context.user)).map(
+    tags: async (parent: PrismaAmendment) =>
+      (await selectManyApplicationTagAssignments({ applicationId: parent.id })).map(
         (assignment) => {
           const { statusId, tagNameId, ...tag } = assignment.tag;
           return {

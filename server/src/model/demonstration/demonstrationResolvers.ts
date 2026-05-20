@@ -23,7 +23,7 @@ import { getManyAmendments } from "../amendment";
 import { getManyExtensions } from "../extension";
 import { getManyDocuments } from "../document";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
-import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
+import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
 import { getManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment";
 import {
   getDemonstrationRoleAssignment,
@@ -263,8 +263,8 @@ export const demonstrationResolvers = {
       selectManyApplicationPhases({ applicationId: parent.id }),
     primaryProjectOfficer: resolvePrimaryProjectOfficer,
     clearanceLevel: (parent: PrismaDemonstration) => parent.clearanceLevelId,
-    tags: async (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
-      (await getManyApplicationTagAssignments({ applicationId: parent.id }, context.user)).map(
+    tags: async (parent: PrismaDemonstration) =>
+      (await selectManyApplicationTagAssignments({ applicationId: parent.id })).map(
         (assignment) => {
           const { statusId, tagNameId, ...tag } = assignment.tag;
           return {

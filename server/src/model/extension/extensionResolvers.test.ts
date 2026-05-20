@@ -38,7 +38,7 @@ import { getDemonstration } from "../demonstration";
 import { getExtension, getManyExtensions } from "./extensionData";
 import { getManyDocuments } from "../document";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
-import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
+import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
 import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
 
@@ -63,8 +63,8 @@ vi.mock("../demonstration", () => ({
   getDemonstration: vi.fn(),
 }));
 
-vi.mock("../applicationTagAssignment", () => ({
-  getManyApplicationTagAssignments: vi.fn(),
+vi.mock("../applicationTagAssignment/queries", () => ({
+  selectManyApplicationTagAssignments: vi.fn(),
 }));
 
 vi.mock("../applicationTagSuggestion", () => ({
@@ -187,9 +187,9 @@ describe("extensionResolvers", () => {
   });
 
   describe("Extension.tags", () => {
-    it("delegates to applicationTagAssignmentData.getManyApplicationTagAssignments and maps result", async () => {
+    it("delegates to applicationTagAssignmentData/queries.selectManyApplicationTagAssignments and maps result", async () => {
       const mockExtension = { id: "abc123" } as PrismaExtension;
-      vi.mocked(getManyApplicationTagAssignments).mockResolvedValueOnce([
+      vi.mocked(selectManyApplicationTagAssignments).mockResolvedValueOnce([
         {
           tag: {
             tagNameId: "Tag1",
@@ -204,11 +204,10 @@ describe("extensionResolvers", () => {
         },
       ] as ApplicationTagAssignmentQueryResult[]);
 
-      const result = await extensionResolvers.Extension.tags(mockExtension, undefined, mockContext);
-      expect(getManyApplicationTagAssignments).toHaveBeenCalledExactlyOnceWith(
-        { applicationId: "abc123" },
-        mockUser
-      );
+      const result = await extensionResolvers.Extension.tags(mockExtension);
+      expect(selectManyApplicationTagAssignments).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "abc123",
+      });
       expect(result).toEqual([
         {
           tagName: "Tag1",

@@ -17,7 +17,7 @@ import { GraphQLContext } from "../../auth";
 import { getExtension, getManyExtensions } from "./extensionData";
 import { getManyDocuments } from "../document";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
-import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
+import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
 import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
 
 const extensionApplicationType: ApplicationType = "Extension";
@@ -108,8 +108,8 @@ export const extensionResolvers = {
     phases: (parent: PrismaExtension, args: unknown, context: GraphQLContext) =>
       selectManyApplicationPhases({ applicationId: parent.id }),
     clearanceLevel: (parent: PrismaExtension) => parent.clearanceLevelId,
-    tags: async (parent: PrismaExtension, args: unknown, context: GraphQLContext) =>
-      (await getManyApplicationTagAssignments({ applicationId: parent.id }, context.user)).map(
+    tags: async (parent: PrismaExtension) =>
+      (await selectManyApplicationTagAssignments({ applicationId: parent.id })).map(
         (assignment) => {
           const { statusId, tagNameId, ...tag } = assignment.tag;
           return {

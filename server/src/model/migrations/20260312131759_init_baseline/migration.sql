@@ -622,9 +622,7 @@ VALUES
     ('View All Documents', 'System'),
     ('View Documents on Assigned Demonstrations', 'System'),
     ('View Owned Documents', 'System'),
-    
-    ('View All ApplicationTagAssignments', 'System'),
-    ('View ApplicationTagAssignments on Assigned Demonstrations', 'System'),
+
     ('View All DemonstrationTypeTagAssignments', 'System'),
     ('View DemonstrationTypeTagAssignments on Assigned Demonstrations', 'System'),
     ('View All DeliverableDemonstrationTypes', 'System'),
@@ -687,11 +685,6 @@ VALUES
     ('CMS User', 'System', 'View Owned Documents'),
     ('State User', 'System', 'View Documents on Assigned Demonstrations'),
     ('State User', 'System', 'View Owned Documents'),
-    ('Admin User', 'System', 'View All ApplicationTagAssignments'),
-    ('Admin User', 'System', 'View ApplicationTagAssignments on Assigned Demonstrations'),
-    ('CMS User', 'System', 'View All ApplicationTagAssignments'),
-    ('CMS User', 'System', 'View ApplicationTagAssignments on Assigned Demonstrations'),
-    ('State User', 'System', 'View ApplicationTagAssignments on Assigned Demonstrations'),
     ('Admin User', 'System', 'View All DemonstrationTypeTagAssignments'),
     ('Admin User', 'System', 'View DemonstrationTypeTagAssignments on Assigned Demonstrations'),
     ('CMS User', 'System', 'View All DemonstrationTypeTagAssignments'),

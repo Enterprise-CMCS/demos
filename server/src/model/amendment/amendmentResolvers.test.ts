@@ -34,7 +34,7 @@ import { ContextUser, GraphQLContext } from "../../auth";
 import { getDemonstration } from "../demonstration";
 import { getAmendment, getManyAmendments } from "./amendmentData";
 import { getManyDocuments } from "../document";
-import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
+import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
 import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
@@ -59,8 +59,8 @@ vi.mock("../applicationPhase/queries", () => ({
   selectManyApplicationPhases: vi.fn(),
 }));
 
-vi.mock("../applicationTagAssignment", () => ({
-  getManyApplicationTagAssignments: vi.fn(),
+vi.mock("../applicationTagAssignment/queries", () => ({
+  selectManyApplicationTagAssignments: vi.fn(),
 }));
 
 vi.mock("../applicationTagSuggestion", () => ({
@@ -183,16 +183,16 @@ describe("amendmentResolvers", () => {
         {},
         mockContext
       );
-      expect(selectManyApplicationPhases).toHaveBeenCalledExactlyOnceWith(
-        { applicationId: "amendmentId" },
-      );
+      expect(selectManyApplicationPhases).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "amendmentId",
+      });
     });
   });
 
   describe("Amendment.tags", () => {
-    it("delegates to applicationTagAssignmentData.getManyApplicationTagAssignments and maps result", async () => {
+    it("delegates to applicationTagAssignmentData/queries.selectManyApplicationTagAssignments and maps result", async () => {
       const mockAmendment = { id: "abc123" } as PrismaAmendment;
-      vi.mocked(getManyApplicationTagAssignments).mockResolvedValueOnce([
+      vi.mocked(selectManyApplicationTagAssignments).mockResolvedValueOnce([
         {
           tag: {
             tagNameId: "Tag1",
@@ -207,11 +207,10 @@ describe("amendmentResolvers", () => {
         },
       ] as ApplicationTagAssignmentQueryResult[]);
 
-      const result = await amendmentResolvers.Amendment.tags(mockAmendment, undefined, mockContext);
-      expect(getManyApplicationTagAssignments).toHaveBeenCalledExactlyOnceWith(
-        { applicationId: "abc123" },
-        mockUser
-      );
+      const result = await amendmentResolvers.Amendment.tags(mockAmendment);
+      expect(selectManyApplicationTagAssignments).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "abc123",
+      });
       expect(result).toEqual([
         {
           tagName: "Tag1",

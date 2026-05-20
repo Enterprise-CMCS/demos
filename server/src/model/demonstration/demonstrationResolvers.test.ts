@@ -45,7 +45,7 @@ import { getManyAmendments } from "../amendment";
 import { getManyExtensions } from "../extension";
 import { getManyDocuments } from "../document";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
-import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
+import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
 import { getManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment";
 import { DemonstrationTypeTagAssignmentQueryResult } from "../demonstrationTypeTagAssignment/queries";
@@ -83,8 +83,8 @@ vi.mock("../applicationPhase/queries", () => ({
   selectManyApplicationPhases: vi.fn(),
 }));
 
-vi.mock("../applicationTagAssignment", () => ({
-  getManyApplicationTagAssignments: vi.fn(),
+vi.mock("../applicationTagAssignment/queries", () => ({
+  selectManyApplicationTagAssignments: vi.fn(),
 }));
 
 vi.mock("../applicationTagSuggestion", () => ({
@@ -303,16 +303,16 @@ describe("demonstrationResolvers", () => {
         {},
         mockContext
       );
-      expect(selectManyApplicationPhases).toHaveBeenCalledExactlyOnceWith(
-        { applicationId: "demonstrationId" },
-      );
+      expect(selectManyApplicationPhases).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "demonstrationId",
+      });
     });
   });
 
   describe("Demonstration.tags", () => {
-    it("delegates to applicationTagAssignmentData.getManyApplicationTagAssignments and maps result", async () => {
+    it("delegates to applicationTagAssignmentData/queries.selectManyApplicationTagAssignments and maps result", async () => {
       const mockDemonstration = { id: "abc123" } as PrismaDemonstration;
-      vi.mocked(getManyApplicationTagAssignments).mockResolvedValueOnce([
+      vi.mocked(selectManyApplicationTagAssignments).mockResolvedValueOnce([
         {
           tag: {
             tagNameId: "Tag1",
@@ -327,15 +327,10 @@ describe("demonstrationResolvers", () => {
         },
       ] as ApplicationTagAssignmentQueryResult[]);
 
-      const result = await demonstrationResolvers.Demonstration.tags(
-        mockDemonstration,
-        undefined,
-        mockContext
-      );
-      expect(getManyApplicationTagAssignments).toHaveBeenCalledExactlyOnceWith(
-        { applicationId: "abc123" },
-        mockUser
-      );
+      const result = await demonstrationResolvers.Demonstration.tags(mockDemonstration);
+      expect(selectManyApplicationTagAssignments).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "abc123",
+      });
       expect(result).toEqual([
         {
           tagName: "Tag1",
