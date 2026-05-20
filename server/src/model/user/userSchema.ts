@@ -11,6 +11,7 @@ export const userSchema = gql`
     ownedDeliverables: [Deliverable!]!
     systemRoles: [SystemRole!]!
     permissions: [Permission!]!
+    lastLogin: DateTime
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -29,6 +30,7 @@ export interface User {
   ownedDeliverables: Deliverable[];
   systemRoles: SystemRole[];
   permissions: Permission[];
+  lastLogin: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
