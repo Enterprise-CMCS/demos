@@ -29,7 +29,7 @@ import {
   selectDemonstrationRoleAssignmentOrThrow,
   selectManyDemonstrationRoleAssignments,
 } from "../demonstrationRoleAssignment/queries";
-import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
+import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
 import { getState } from "../state";
 import { selectPersonOrThrow } from "../person/queries";
 
@@ -265,18 +265,15 @@ export const demonstrationResolvers = {
       ),
     suggestedApplicationTags: async (
       parent: PrismaDemonstration,
-      args: unknown,
-      context: GraphQLContext
     ) =>
       (
-        await getManyApplicationTagSuggestions(
+        await selectManyApplicationTagSuggestions(
           {
             applicationId: parent.id,
             statusId: {
               in: ["Pending" satisfies UiPathResultStatus],
             },
           },
-          context.user
         )
       ).map((suggestion) => suggestion.value),
     demonstrationTypes: async (parent: PrismaDemonstration) =>

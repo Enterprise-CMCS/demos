@@ -17,7 +17,7 @@ import { GraphQLContext } from "../../auth";
 import { getAmendment, getManyAmendments } from "./amendmentData";
 import { getManyDocuments } from "../document";
 import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
-import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
+import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
 
 const amendmentApplicationType: ApplicationType = "Amendment";
@@ -122,18 +122,15 @@ export const amendmentResolvers = {
     signatureLevel: (parent: PrismaAmendment) => parent.signatureLevelId,
     suggestedApplicationTags: async (
       parent: PrismaAmendment,
-      args: unknown,
-      context: GraphQLContext
     ) =>
       (
-        await getManyApplicationTagSuggestions(
+        await selectManyApplicationTagSuggestions(
           {
             applicationId: parent.id,
             statusId: {
               in: ["Pending" satisfies UiPathResultStatus],
             },
           },
-          context.user
         )
       ).map((suggestion) => suggestion.value),
   },

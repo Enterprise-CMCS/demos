@@ -18,7 +18,7 @@ import { getExtension, getManyExtensions } from "./extensionData";
 import { getManyDocuments } from "../document";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
 import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
-import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
+import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
 
 const extensionApplicationType: ApplicationType = "Extension";
 const conceptPhaseName: PhaseName = "Concept";
@@ -122,18 +122,15 @@ export const extensionResolvers = {
     signatureLevel: (parent: PrismaExtension) => parent.signatureLevelId,
     suggestedApplicationTags: async (
       parent: PrismaExtension,
-      args: unknown,
-      context: GraphQLContext
     ) =>
       (
-        await getManyApplicationTagSuggestions(
+        await selectManyApplicationTagSuggestions(
           {
             applicationId: parent.id,
             statusId: {
               in: ["Pending" satisfies UiPathResultStatus],
             },
           },
-          context.user
         )
       ).map((suggestion) => suggestion.value),
   },

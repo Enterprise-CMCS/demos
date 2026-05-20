@@ -53,7 +53,7 @@ import {
   selectDemonstrationRoleAssignmentOrThrow,
   selectManyDemonstrationRoleAssignments,
 } from "../demonstrationRoleAssignment/queries";
-import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
+import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
 import { getState } from "../state";
 import { DemonstrationRoleAssignmentQueryResult } from "../demonstrationRoleAssignment/queries";
 import { selectPersonOrThrow } from "../person/queries";
@@ -87,8 +87,8 @@ vi.mock("../applicationTagAssignment/queries", () => ({
   selectManyApplicationTagAssignments: vi.fn(),
 }));
 
-vi.mock("../applicationTagSuggestion", () => ({
-  getManyApplicationTagSuggestions: vi.fn(),
+vi.mock("../applicationTagSuggestion/queries", () => ({
+  selectManyApplicationTagSuggestions: vi.fn(),
 }));
 
 vi.mock("../demonstrationTypeTagAssignment/queries", () => ({
@@ -345,9 +345,9 @@ describe("demonstrationResolvers", () => {
   });
 
   describe("Demonstration.applicationTagSuggestions", () => {
-    it("delegates to applicationTagSuggestionData.getManyApplicationTagSuggestions and maps result", async () => {
+    it("delegates to applicationTagSuggestionData/queries/selectManyApplicationTagSuggestions and maps result", async () => {
       const mockDemonstration = { id: "abc123" } as PrismaDemonstration;
-      vi.mocked(getManyApplicationTagSuggestions).mockResolvedValueOnce([
+      vi.mocked(selectManyApplicationTagSuggestions).mockResolvedValueOnce([
         {
           value: "Suggestion1",
         },
@@ -358,17 +358,14 @@ describe("demonstrationResolvers", () => {
 
       const result = await demonstrationResolvers.Demonstration.suggestedApplicationTags(
         mockDemonstration,
-        undefined,
-        mockContext
       );
-      expect(getManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith(
+      expect(selectManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith(
         {
           applicationId: "abc123",
           statusId: {
             in: ["Pending"],
           },
         },
-        mockUser
       );
       expect(result).toEqual(["Suggestion1", "Suggestion2"]);
     });

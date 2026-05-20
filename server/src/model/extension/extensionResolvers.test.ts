@@ -40,7 +40,7 @@ import { getManyDocuments } from "../document";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
 import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
-import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
+import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -67,8 +67,8 @@ vi.mock("../applicationTagAssignment/queries", () => ({
   selectManyApplicationTagAssignments: vi.fn(),
 }));
 
-vi.mock("../applicationTagSuggestion", () => ({
-  getManyApplicationTagSuggestions: vi.fn(),
+vi.mock("../applicationTagSuggestion/queries", () => ({
+  selectManyApplicationTagSuggestions: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -222,9 +222,9 @@ describe("extensionResolvers", () => {
   });
 
   describe("Extension.applicationTagSuggestions", () => {
-    it("delegates to applicationTagSuggestionData.getManyApplicationTagSuggestions and maps result", async () => {
+    it("delegates to applicationTagSuggestionData/queries.selectManyApplicationTagSuggestions and maps result", async () => {
       const mockExtension = { id: "abc123" } as PrismaExtension;
-      vi.mocked(getManyApplicationTagSuggestions).mockResolvedValueOnce([
+      vi.mocked(selectManyApplicationTagSuggestions).mockResolvedValueOnce([
         {
           value: "Suggestion1",
         },
@@ -235,17 +235,14 @@ describe("extensionResolvers", () => {
 
       const result = await extensionResolvers.Extension.suggestedApplicationTags(
         mockExtension,
-        undefined,
-        mockContext
       );
-      expect(getManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith(
+      expect(selectManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith(
         {
           applicationId: "abc123",
           statusId: {
             in: ["Pending"],
           },
         },
-        mockUser
       );
       expect(result).toEqual(["Suggestion1", "Suggestion2"]);
     });
