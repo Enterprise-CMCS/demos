@@ -13,4 +13,4 @@ The top-level flow is in `index.ts` and `documentUnderstanding.ts`:
 7. Poll until extraction succeeds or fails.
 8. Persist pending, finished, and failed status rows.
 
-HTTP retry behavior is isolated in `uipathHttpClient.ts`. Only safe UiPath `GET` calls that fetch project/extractor metadata use transient retry. Upload and extraction-start `POST` calls do not retry.
+HTTP retry behavior is isolated in `uipathHttpClient.ts` through a UiPath-specific `axios-retry` client. Only safe UiPath `GET` calls that fetch project/extractor metadata use transient retry. Upload, extraction-start, and extraction-status polling use the plain client and do not retry.

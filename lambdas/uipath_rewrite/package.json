@@ -20,6 +20,7 @@
     "@aws-sdk/client-secrets-manager": "^3.1045.0",
     "axios": "^1.16.0",
     "axios-oauth-client": "^2.2.0",
+    "axios-retry": "^4.5.0",
     "dotenv": "^17.4.2",
     "file-type": "^21.3.4",
     "form-data": "^4.0.5",
