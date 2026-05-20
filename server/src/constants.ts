@@ -472,8 +472,6 @@ export const PERMISSIONS = [
   "View All Documents",
   "View Documents on Assigned Demonstrations",
   "View Owned Documents",
-  "View All ApplicationPhases",
-  "View ApplicationPhases on Assigned Demonstrations",
   "View All ApplicationDates",
   "View ApplicationDates on Assigned Demonstrations",
   "View All ApplicationNotes",

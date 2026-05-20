@@ -22,7 +22,7 @@ import { getDemonstration, getManyDemonstrations } from "./demonstrationData";
 import { getManyAmendments } from "../amendment";
 import { getManyExtensions } from "../extension";
 import { getManyDocuments } from "../document";
-import { getManyApplicationPhases } from "../applicationPhase";
+import { selectManyApplicationPhases } from "../applicationPhase/queries";
 import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
 import { getManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment";
 import {
@@ -260,7 +260,7 @@ export const demonstrationResolvers = {
       getManyDemonstrationRoleAssignments({ demonstrationId: parent.id }, context.user),
     status: (parent: PrismaDemonstration) => parent.statusId,
     phases: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
-      getManyApplicationPhases({ applicationId: parent.id }, context.user),
+      selectManyApplicationPhases({ applicationId: parent.id }),
     primaryProjectOfficer: resolvePrimaryProjectOfficer,
     clearanceLevel: (parent: PrismaDemonstration) => parent.clearanceLevelId,
     tags: async (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>

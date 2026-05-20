@@ -34,10 +34,10 @@ import { ContextUser, GraphQLContext } from "../../auth";
 import { getDemonstration } from "../demonstration";
 import { getAmendment, getManyAmendments } from "./amendmentData";
 import { getManyDocuments } from "../document";
-import { getManyApplicationPhases } from "../applicationPhase";
 import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
 import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
+import { selectManyApplicationPhases } from "../applicationPhase/queries";
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
@@ -55,8 +55,8 @@ vi.mock("../demonstration", () => ({
   getDemonstration: vi.fn(),
 }));
 
-vi.mock("../applicationPhase", () => ({
-  getManyApplicationPhases: vi.fn(),
+vi.mock("../applicationPhase/queries", () => ({
+  selectManyApplicationPhases: vi.fn(),
 }));
 
 vi.mock("../applicationTagAssignment", () => ({
@@ -177,15 +177,14 @@ describe("amendmentResolvers", () => {
   });
 
   describe("Amendment.phases", () => {
-    it("delegates to `applicationPhaseData.getManyApplicationPhases`", async () => {
+    it("delegates to `applicationPhaseData/queries.selectManyApplicationPhases`", async () => {
       await amendmentResolvers.Amendment.phases(
         { id: "amendmentId" } as PrismaAmendment,
         {},
         mockContext
       );
-      expect(getManyApplicationPhases).toHaveBeenCalledExactlyOnceWith(
+      expect(selectManyApplicationPhases).toHaveBeenCalledExactlyOnceWith(
         { applicationId: "amendmentId" },
-        mockUser
       );
     });
   });
