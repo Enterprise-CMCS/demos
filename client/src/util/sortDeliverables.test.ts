@@ -76,5 +76,46 @@ describe("sortDeliverablesByDefault", () => {
     expect(sorted.map((row) => row.id)).toEqual(["a", "b"]);
   });
 
-  it.todo("prioritizes extension-requested deliverables before all statuses once extension data exists");
+  it("prioritizes extension-requested rows by due date before sorting remaining rows by status", () => {
+    const sorted = sortDeliverablesByDefault([
+      {
+        id: "upcoming",
+        status: "Upcoming",
+        dueDate: "2026-05-01",
+        extensionRequests: [],
+      },
+      {
+        id: "requested-late",
+        status: "Approved",
+        dueDate: "2026-05-04",
+        extensionRequests: [{ status: "Requested" }],
+      },
+      {
+        id: "past-due",
+        status: "Past Due",
+        dueDate: "2026-05-03",
+        extensionRequests: [],
+      },
+      {
+        id: "requested-early",
+        status: "Submitted",
+        dueDate: "2026-05-02",
+        extensionRequests: [{ status: "Requested" }],
+      },
+      {
+        id: "submitted",
+        status: "Submitted",
+        dueDate: "2026-05-05",
+        extensionRequests: [{ status: "Approved" }],
+      },
+    ]);
+
+    expect(sorted.map((row) => row.id)).toEqual([
+      "requested-early",
+      "requested-late",
+      "past-due",
+      "upcoming",
+      "submitted",
+    ]);
+  });
 });
