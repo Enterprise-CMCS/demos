@@ -7,6 +7,7 @@ import { getUser } from "./userData";
 import { getPerson } from "../person";
 import { Permission, Role } from "../../types";
 import { selectManySystemRoleAssignments } from "../systemRoleAssignment";
+import { selectLastLoginForUser } from "../userSession/queries";
 
 export const userResolvers = {
   Query: {
@@ -32,6 +33,9 @@ export const userResolvers = {
         });
       });
       return Array.from(permissions);
+    },
+    lastLogin: async (parent: PrismaUser): Promise<Date | null> => {
+      return await selectLastLoginForUser(parent.id);
     },
   },
 };
