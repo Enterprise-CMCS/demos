@@ -476,8 +476,6 @@ export const PERMISSIONS = [
   "View All Users",
   "View Users on Assigned Demonstrations",
   "View My User",
-  "View All SystemRoleAssignments",
-  "View My SystemRoleAssignments",
   "View All Deliverables",
   "View Deliverables on Assigned Demonstrations",
   // Field Level Permissions
