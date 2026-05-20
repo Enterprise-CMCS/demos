@@ -12,7 +12,7 @@ import type {
 } from "../../types";
 import { getS3Adapter } from "../../adapters";
 import { getApplication, PrismaApplication } from "../application";
-import { getUser } from "../user";
+import { selectUserOrThrow } from "../user/queries";
 import { selectDeliverableOrThrow, resolveDeliverable } from "../deliverable";
 import { updateAssociatedPhase } from "./updateAssociatedPhase";
 import { handleUploadDocumentToDeliverable } from "./handleUploadDocumentToDeliverable";
@@ -84,8 +84,8 @@ export const documentPendingUploadResolvers = {
   },
 
   DocumentPendingUpload: {
-    owner: (parent: PrismaDocumentPendingUpload, args: unknown, context: GraphQLContext) =>
-      getUser({ id: parent.ownerUserId }, context.user),
+    owner: (parent: PrismaDocumentPendingUpload) =>
+      selectUserOrThrow({ id: parent.ownerUserId }),
     documentType: (parent: PrismaDocumentPendingUpload) => parent.documentTypeId as DocumentType,
     presignedUploadUrl: async (parent: PrismaDocumentPendingUpload) =>
       await getS3Adapter().getPresignedUploadUrl(parent.id),

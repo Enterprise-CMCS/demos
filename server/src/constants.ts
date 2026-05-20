@@ -472,12 +472,9 @@ export const PERMISSIONS = [
   "View All Documents",
   "View Documents on Assigned Demonstrations",
   "View Owned Documents",
-  
-  "View All Users",
-  "View Users on Assigned Demonstrations",
-  "View My User",
   "View All Deliverables",
   "View Deliverables on Assigned Demonstrations",
+  
   // Field Level Permissions
   "Access CMS Field",
   "Access CMS Query",

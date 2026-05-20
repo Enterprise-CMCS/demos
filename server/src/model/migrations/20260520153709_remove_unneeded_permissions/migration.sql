@@ -24,7 +24,10 @@ WHERE
     'View People on Assigned Demonstrations',
     'View My Person',
     'View All SystemRoleAssignments',
-    'View My SystemRoleAssignments'
+    'View My SystemRoleAssignments',
+    'View All Users',
+    'View Users on Assigned Demonstrations',
+    'View My User'
   )
 ;
 
@@ -52,6 +55,9 @@ WHERE
     'View People on Assigned Demonstrations',
     'View My Person',
     'View All SystemRoleAssignments',
-    'View My SystemRoleAssignments'
+    'View My SystemRoleAssignments',
+    'View All Users',
+    'View Users on Assigned Demonstrations',
+    'View My User'
   )
 ;

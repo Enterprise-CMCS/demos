@@ -6,7 +6,7 @@ import { prisma } from "../../prismaClient";
 import type { UpdateDocumentInput, DocumentType, PhaseName } from "../../types";
 import { getS3Adapter } from "../../adapters";
 import { getApplication, PrismaApplication } from "../application";
-import { getUser } from "../user";
+import { selectUserOrThrow } from "../user/queries";
 import { enqueueUiPath } from "../../services/uipathQueue";
 import { resolveDeliverable } from "../deliverable";
 import { updateDocument as updateDocumentQuery, handleDeleteDocument } from ".";
@@ -119,8 +119,8 @@ export const documentResolvers = {
   },
 
   Document: {
-    owner: (parent: PrismaDocument, args: unknown, context: GraphQLContext) =>
-      getUser({ id: parent.ownerUserId }, context.user),
+    owner: (parent: PrismaDocument) =>
+      selectUserOrThrow({ id: parent.ownerUserId }),
     documentType: (parent: PrismaDocument) => parent.documentTypeId as DocumentType,
     presignedDownloadUrl: async (parent: PrismaDocument) =>
       await getS3Adapter().getPresignedDownloadUrl(parent.s3Path),

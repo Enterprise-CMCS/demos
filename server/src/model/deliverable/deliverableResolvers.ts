@@ -43,7 +43,7 @@ import {
   UpdateDeliverableInput,
 } from "../../types";
 import { getApplication } from "../application";
-import { getUser } from "../user";
+import { selectUserOrThrow } from "../user/queries";
 import { getManyDocuments } from "../document";
 import { getFormattedDeliverableActions } from "../deliverableAction";
 import { selectManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType/queries";
@@ -196,8 +196,8 @@ export const deliverableResolvers = {
     deliverableType: resolveDeliverableType,
     demonstration: resolveDemonstration,
     status: resolveDeliverableStatus,
-    cmsOwner: (parent: PrismaDeliverable, args: unknown, context: GraphQLContext) =>
-      getUser({ id: parent.cmsOwnerUserId }, context.user),
+    cmsOwner: (parent: PrismaDeliverable) =>
+      selectUserOrThrow({ id: parent.cmsOwnerUserId }),
     dueDateType: resolveDeliverableDueDateType,
     demonstrationTypes: async (parent: PrismaDeliverable) =>
       (await selectManyDeliverableDemonstrationTypes({ deliverableId: parent.id })).map(

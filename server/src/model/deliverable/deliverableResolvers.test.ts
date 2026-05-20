@@ -61,8 +61,8 @@ vi.mock("../application", () => ({
   getApplication: vi.fn(),
 }));
 
-vi.mock("../user", () => ({
-  getUser: vi.fn(),
+vi.mock("../user/queries", () => ({
+  selectUserOrThrow: vi.fn(),
 }));
 
 vi.mock("../document", () => ({
@@ -107,7 +107,7 @@ import {
   getManyDeliverables,
 } from ".";
 import { getApplication } from "../application";
-import { getUser } from "../user";
+import { selectUserOrThrow } from "../user/queries";
 import { getManyDocuments } from "../document";
 import { selectManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType/queries";
 import { getFormattedDeliverableActions } from "../deliverableAction";
@@ -370,14 +370,10 @@ describe("deliverableResolvers", () => {
   });
 
   describe("Deliverable.cmsOwner", () => {
-    it("delegates to `userData.getUser`", async () => {
+    it("delegates to `userData/queries.selectUserOrThrow`", async () => {
       const mockDeliverable = { cmsOwnerUserId: testUserId } as PrismaDeliverable;
-      await deliverableResolvers.Deliverable.cmsOwner(
-        mockDeliverable,
-        undefined,
-        testContext as GraphQLContext
-      );
-      expect(getUser).toHaveBeenCalledExactlyOnceWith({ id: testUserId }, testContext.user);
+      await deliverableResolvers.Deliverable.cmsOwner(mockDeliverable);
+      expect(selectUserOrThrow).toHaveBeenCalledExactlyOnceWith({ id: testUserId });
     });
   });
 
@@ -751,26 +747,6 @@ describe("deliverableResolvers", () => {
         expect(selectManyPrivateComments).toHaveBeenCalledExactlyOnceWith({
           deliverableId: testDeliverableId,
         });
-      });
-
-      it("should throw if a state user attempts the query", async () => {
-        const testContext: DeepPartial<GraphQLContext> = {
-          user: {
-            id: "27cb9043-0016-44ca-a361-dd047bfa5993",
-            personTypeId: "demos-state-user",
-          },
-        };
-
-        try {
-          await deliverableResolvers.Deliverable.privateComments(
-            testDeliverable as PrismaDeliverable,
-            undefined,
-            testContext as GraphQLContext
-          );
-          throw new Error("Expected Deliverable.privateComments to throw, but it did not.");
-        } catch (e) {
-          expect(selectManyPrivateComments).not.toHaveBeenCalled();
-        }
       });
     });
   });

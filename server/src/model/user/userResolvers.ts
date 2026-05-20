@@ -3,7 +3,7 @@ import type { GraphQLContext } from "../../auth";
 import { User as PrismaUser } from "@prisma/client";
 import { resolveManyDeliverables } from "../deliverable";
 import { getManyDocuments } from "../document";
-import { getUser } from "./userData";
+import { selectUser } from "./queries";
 import { selectPersonOrThrow } from "../person/queries";
 import { Permission, Role } from "../../types";
 import { selectManySystemRoleAssignments } from "../systemRoleAssignment";
@@ -11,7 +11,7 @@ import { selectManySystemRoleAssignments } from "../systemRoleAssignment";
 export const userResolvers = {
   Query: {
     currentUser: (parent: unknown, args: unknown, context: GraphQLContext) =>
-      getUser({ id: context.user.id }, context.user),
+      selectUser({ id: context.user.id }),
   },
   User: {
     person: (parent: PrismaUser) => selectPersonOrThrow({ id: parent.id }),

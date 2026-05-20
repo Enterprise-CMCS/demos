@@ -5,7 +5,7 @@ import { UpdateDocumentInput, DocumentType, PhaseName } from "../../types";
 import { prisma } from "../../prismaClient";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { getS3Adapter } from "../../adapters";
-import { getUser } from "../user";
+import { selectUserOrThrow } from "../user/queries";
 import { getApplication } from "../application";
 import { enqueueUiPath } from "../../services/uipathQueue";
 import { updateDocument, handleDeleteDocument } from ".";
@@ -61,8 +61,8 @@ vi.mock("../../services/uipathQueue", () => ({
   enqueueUiPath: vi.fn(),
 }));
 
-vi.mock("../user", () => ({
-  getUser: vi.fn(),
+vi.mock("../user/queries", () => ({
+  selectUserOrThrow: vi.fn(),
 }));
 
 vi.mock(".", () => ({
@@ -219,11 +219,10 @@ describe("documentResolvers", () => {
   });
 
   describe("Document.owner", () => {
-    it("delegates to userData.getUser", () => {
-      documentResolvers.Document.owner(mockDocument, undefined, mockContext);
-      expect(getUser).toHaveBeenCalledExactlyOnceWith(
+    it("delegates to userData/queries.selectUserOrThrow", () => {
+      documentResolvers.Document.owner(mockDocument);
+      expect(selectUserOrThrow).toHaveBeenCalledExactlyOnceWith(
         { id: mockDocument.ownerUserId },
-        mockContext.user
       );
     });
   });
