@@ -27,7 +27,7 @@ export function checkForDuplicateNoteTypes(input: SetApplicationNotesInput): voi
 }
 
 export async function __setApplicationNotes(
-  _: unknown,
+  parent: unknown,
   { input }: { input: SetApplicationNotesInput }
 ): Promise<PrismaApplication> {
   if (input.applicationNotes.length === 0) {
@@ -52,6 +52,6 @@ export const applicationNoteResolvers = {
     setApplicationNotes: __setApplicationNotes,
   },
   ApplicationNote: {
-    noteType: (parent: PrismaApplicationNote) => parent.noteTypeId,
+    noteType: (parent: PrismaApplicationNote): NoteType => parent.noteTypeId as NoteType,
   },
 };
