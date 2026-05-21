@@ -43,7 +43,6 @@ import {
   TagStatus,
   UpdateDeliverableInput,
 } from "../../types";
-import { getApplication } from "../application";
 import { selectUserOrThrow } from "../user/queries";
 import { getManyDocuments } from "../document";
 import { getFormattedDeliverableActions } from "../deliverableAction";
@@ -51,6 +50,7 @@ import { selectManyDeliverableDemonstrationTypes } from "../deliverableDemonstra
 import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
 import { selectManyPublicComments } from "../publicComment/queries";
 import { selectManyPrivateComments } from "../privateComment/queries";
+import { selectDemonstrationOrThrow } from "../demonstration/queries";
 
 export async function resolveDeliverable(
   parent: PrismaDocument | PrismaDocumentPendingUpload | PrismaPrivateComment | PrismaPublicComment,
@@ -193,7 +193,7 @@ export const deliverableResolvers = {
       return parent.deliverableTypeId as DeliverableType;
     },
     demonstration: (parent: PrismaDeliverable): Promise<PrismaDemonstration> =>
-      getApplication(parent.demonstrationId, { applicationTypeId: "Demonstration" }),
+      selectDemonstrationOrThrow({ id: parent.demonstrationId }),
     status: (parent: PrismaDeliverable): DeliverableStatus => {
       return parent.statusId as DeliverableStatus;
     },

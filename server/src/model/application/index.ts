@@ -1,8 +1,5 @@
 // Functions
 export { setApplicationClearanceLevel } from "./setApplicationClearanceLevel";
-export {
-  resolveApplicationType,
-} from "./applicationResolvers";
 
 // Queries
 export { deleteApplication } from "./queries/deleteApplication";

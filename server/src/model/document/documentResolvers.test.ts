@@ -319,11 +319,11 @@ describe("documentResolvers", () => {
     });
   });
 
-  describe("resolveApplication", () => {
-    it("should resolve application by id", async () => {
+  describe("document.application", () => {
+    it("should defer to Application.getApplication", async () => {
       vi.mocked(getApplication).mockResolvedValue(mockApplication as any);
 
-      const result = await resolveApplication(mockDocument);
+      const result = await documentResolvers.Document.application(mockDocument);
 
       expect(getApplication).toHaveBeenCalledExactlyOnceWith(testApplicationId);
       expect(result).toEqual(mockApplication);

@@ -31,10 +31,6 @@ import { DeliverableDemonstrationTypeQueryResult } from "../deliverableDemonstra
 import {
   resolveDeliverable,
   resolveManyDeliverables,
-  resolveDeliverableType,
-  resolveDeliverableStatus,
-  resolveDeliverableDueDateType,
-  resolveDemonstration,
   deliverableResolvers,
 } from "./deliverableResolvers";
 
@@ -57,12 +53,8 @@ vi.mock(".", () => ({
   updateDeliverable: vi.fn(),
 }));
 
-vi.mock("../thing", () => ({
-  resolveThing: vi.fn(),
-}));
-
-vi.mock("../application", () => ({
-  getApplication: vi.fn(),
+vi.mock("../demonstration/queries", () => ({
+  selectDemonstrationOrThrow: vi.fn(),
 }));
 
 vi.mock("../user/queries", () => ({
@@ -110,7 +102,6 @@ import {
   getDeliverable,
   getManyDeliverables,
 } from ".";
-import { getApplication } from "../application";
 import { selectUserOrThrow } from "../user/queries";
 import { getManyDocuments } from "../document";
 import { selectManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType/queries";
@@ -118,6 +109,7 @@ import { getFormattedDeliverableActions } from "../deliverableAction";
 import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
 import { selectManyPublicComments } from "../publicComment/queries";
 import { selectManyPrivateComments } from "../privateComment/queries";
+import { selectDemonstrationOrThrow } from "../demonstration/queries";
 
 describe("deliverableResolvers", () => {
   const testDeliverableId = "82ef9a17-e8b9-48ab-9aaf-3d1787822b13";
@@ -585,32 +577,36 @@ describe("deliverableResolvers", () => {
     });
   });
 
-  describe("resolveDeliverableType", () => {
+  describe("Deliverable.deliverableType", () => {
     it("should return the deliverable type from a deliverable", () => {
-      const result = resolveDeliverableType(testDeliverable as PrismaDeliverable);
+      const result = deliverableResolvers.Deliverable.deliverableType(
+        testDeliverable as PrismaDeliverable
+      );
       expect(result).toBe(testDeliverableType);
     });
   });
 
-  describe("resolveDeliverableStatus", () => {
+  describe("Deliverable.Status", () => {
     it("should return the deliverable status from a deliverable", () => {
-      const result = resolveDeliverableStatus(testDeliverable as PrismaDeliverable);
+      const result = deliverableResolvers.Deliverable.status(testDeliverable as PrismaDeliverable);
       expect(result).toBe(testDeliverableStatus);
     });
   });
 
-  describe("resolveDeliverableDueDateType", () => {
+  describe("Deliverable.dueDateType", () => {
     it("should return the deliverable due date type from a deliverable", () => {
-      const result = resolveDeliverableDueDateType(testDeliverable as PrismaDeliverable);
+      const result = deliverableResolvers.Deliverable.dueDateType(
+        testDeliverable as PrismaDeliverable
+      );
       expect(result).toBe(testDeliverableDueDateType);
     });
   });
 
-  describe("resolveDemonstration", () => {
-    it("should query the demonstration of the parent deliverable", async () => {
-      await resolveDemonstration(testDeliverable as PrismaDeliverable);
-      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testDemonstrationId, {
-        applicationTypeId: "Demonstration",
+  describe("Deliverable.demonstration", () => {
+    it("should defer to demonstration/queries.selectDemonstrationOrThrow", async () => {
+      await deliverableResolvers.Deliverable.demonstration(testDeliverable as PrismaDeliverable);
+      expect(selectDemonstrationOrThrow).toHaveBeenCalledExactlyOnceWith({
+        id: testDemonstrationId,
       });
     });
   });
