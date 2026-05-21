@@ -108,7 +108,13 @@ export const documentResolvers = {
       parent: unknown,
       args: { documentId: string },
       context: GraphQLContext
-    ) => !!(await getDocument({ id: args.documentId }, context.user)),
+    ) => {
+      try {
+        return !!(await getDocument({ id: args.documentId }, context.user));
+      } catch {
+        return false;
+      }
+    },
   },
 
   Mutation: {
@@ -119,8 +125,7 @@ export const documentResolvers = {
   },
 
   Document: {
-    owner: (parent: PrismaDocument) =>
-      selectUserOrThrow({ id: parent.ownerUserId }),
+    owner: (parent: PrismaDocument) => selectUserOrThrow({ id: parent.ownerUserId }),
     documentType: (parent: PrismaDocument) => parent.documentTypeId as DocumentType,
     presignedDownloadUrl: async (parent: PrismaDocument) =>
       await getS3Adapter().getPresignedDownloadUrl(parent.s3Path),

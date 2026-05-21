@@ -31,7 +31,7 @@ export async function getDemonstration(
   where: Prisma.DemonstrationWhereInput,
   user: ContextUser,
   tx?: PrismaTransactionClient
-): Promise<PrismaDemonstration | null> {
+): Promise<PrismaDemonstration> {
   const authFilter = buildAuthorizationFilter<Prisma.DemonstrationWhereInput>(
     user,
     getPermissionFilters

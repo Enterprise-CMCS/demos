@@ -28,7 +28,7 @@ export async function getAmendment(
   where: Prisma.AmendmentWhereInput,
   user: ContextUser,
   tx?: PrismaTransactionClient
-): Promise<PrismaAmendment | null> {
+): Promise<PrismaAmendment> {
   const authFilter = buildAuthorizationFilter<Prisma.AmendmentWhereInput>(
     user,
     getPermissionFilters

@@ -28,12 +28,11 @@ export async function getDeliverable(
   where: Prisma.DeliverableWhereInput,
   user: ContextUser,
   tx?: PrismaTransactionClient
-): Promise<PrismaDeliverable | null> {
+): Promise<PrismaDeliverable> {
   const authFilter = buildAuthorizationFilter<Prisma.DeliverableWhereInput>(
     user,
     getPermissionFilters
   );
-
 
   if (authFilter !== null) {
     const authorizedDeliverable = await selectDeliverable(

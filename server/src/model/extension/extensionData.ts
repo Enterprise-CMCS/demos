@@ -28,12 +28,11 @@ export async function getExtension(
   where: Prisma.ExtensionWhereInput,
   user: ContextUser,
   tx?: PrismaTransactionClient
-): Promise<PrismaExtension | null> {
+): Promise<PrismaExtension> {
   const authFilter = buildAuthorizationFilter<Prisma.ExtensionWhereInput>(
     user,
     getPermissionFilters
   );
-
 
   if (authFilter !== null) {
     const authorizedExtension = await selectExtension(

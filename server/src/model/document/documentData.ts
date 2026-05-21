@@ -30,7 +30,7 @@ export async function getDocument(
   where: Prisma.DocumentWhereInput,
   user: ContextUser,
   tx?: PrismaTransactionClient
-): Promise<PrismaDocument | null> {
+): Promise<PrismaDocument> {
   const authFilter = buildAuthorizationFilter<Prisma.DocumentWhereInput>(
     user,
     getPermissionFilters
