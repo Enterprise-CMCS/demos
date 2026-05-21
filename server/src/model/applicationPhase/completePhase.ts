@@ -8,7 +8,7 @@ import { setPhaseToStarted, updatePhaseStatus, validatePhaseCompletion, PHASE_AC
 import { validateAndUpdateDates } from "../applicationDate";
 
 export async function completePhase(
-  _: unknown,
+  parent: unknown,
   { input }: { input: CompletePhaseInput }
 ): Promise<PrismaApplication> {
   const phaseActions = PHASE_ACTIONS[input.phaseName];
