@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { resolveApplicationType, PrismaApplication } from ".";
-import { ApplicationStatus, ApplicationType, PhaseName } from "../../types";
+import { ApplicationType } from "../../types";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),

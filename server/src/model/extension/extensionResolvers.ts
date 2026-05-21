@@ -105,7 +105,7 @@ export const extensionResolvers = {
       getManyDocuments({ applicationId: parent.id }, context.user),
     currentPhaseName: (parent: PrismaExtension) => parent.currentPhaseId,
     status: (parent: PrismaExtension) => parent.statusId,
-    phases: (parent: PrismaExtension, args: unknown, context: GraphQLContext) =>
+    phases: (parent: PrismaExtension) =>
       selectManyApplicationPhases({ applicationId: parent.id }),
     clearanceLevel: (parent: PrismaExtension) => parent.clearanceLevelId,
     tags: async (parent: PrismaExtension) =>

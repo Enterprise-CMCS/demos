@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { Document as PrismaDocument, User as PrismaUser } from "@prisma/client";
+import { Document as PrismaDocument } from "@prisma/client";
 import { GraphQLContext } from "../../auth";
 import { UpdateDocumentInput, DocumentType, PhaseName } from "../../types";
 import { prisma } from "../../prismaClient";
@@ -100,15 +100,6 @@ describe("documentResolvers", () => {
     deliverableIsCmsAttachedFile: null,
     deliverableSubmissionActionId: null,
     deliverableSubmissionActionTypeId: null,
-  };
-
-  const mockUser: PrismaUser = {
-    id: testUserId,
-    createdAt: new Date("2025-01-01T00:00:00.000Z"),
-    updatedAt: new Date("2025-01-01T00:00:00.000Z"),
-    personTypeId: "demos-cms-user",
-    cognitoSubject: "cognito-subject-123",
-    username: "testuser",
   };
 
   const mockApplication = {

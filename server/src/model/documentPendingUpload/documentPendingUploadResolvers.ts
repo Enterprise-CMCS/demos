@@ -13,7 +13,7 @@ import type {
 import { getS3Adapter } from "../../adapters";
 import { getApplication, PrismaApplication } from "../application";
 import { selectUserOrThrow } from "../user/queries";
-import { selectDeliverableOrThrow, resolveDeliverable } from "../deliverable";
+import { resolveDeliverable } from "../deliverable";
 import { updateAssociatedPhase } from "./updateAssociatedPhase";
 import { handleUploadDocumentToDeliverable } from "./handleUploadDocumentToDeliverable";
 
@@ -69,13 +69,13 @@ export const documentPendingUploadResolvers = {
         handlePrismaError(error);
       }
     },
-    uploadDocumentToDeliverableCMSFiles: async (
+    uploadDocumentToDeliverableCMSFiles: (
       parent: unknown,
       { input }: { input: UploadDocumentToDeliverableInput },
       context: GraphQLContext
     ): Promise<PrismaDocumentPendingUpload> =>
       handleUploadDocumentToDeliverable(input, context.user.id, true),
-    uploadDocumentToDeliverableStateFiles: async (
+    uploadDocumentToDeliverableStateFiles: (
       parent: unknown,
       { input }: { input: UploadDocumentToDeliverableInput },
       context: GraphQLContext
@@ -84,8 +84,7 @@ export const documentPendingUploadResolvers = {
   },
 
   DocumentPendingUpload: {
-    owner: (parent: PrismaDocumentPendingUpload) =>
-      selectUserOrThrow({ id: parent.ownerUserId }),
+    owner: (parent: PrismaDocumentPendingUpload) => selectUserOrThrow({ id: parent.ownerUserId }),
     documentType: (parent: PrismaDocumentPendingUpload) => parent.documentTypeId as DocumentType,
     presignedUploadUrl: async (parent: PrismaDocumentPendingUpload) =>
       await getS3Adapter().getPresignedUploadUrl(parent.id),

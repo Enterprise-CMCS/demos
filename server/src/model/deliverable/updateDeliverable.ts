@@ -13,7 +13,7 @@ import {
 } from ".";
 import { prisma } from "../../prismaClient";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
-import { selectUser, selectUserOrThrow } from "../user/queries";
+import { selectUserOrThrow } from "../user/queries";
 
 export async function updateDeliverable(
   deliverableId: string,

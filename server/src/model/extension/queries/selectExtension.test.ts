@@ -1,6 +1,6 @@
 import { Extension as PrismaExtension } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { prisma, PrismaTransactionClient } from "../../../prismaClient";
+import { prisma } from "../../../prismaClient";
 import { selectExtension } from "./selectExtension";
 
 vi.mock("../../../prismaClient", () => ({

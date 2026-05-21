@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { getFinishedApplicationPhaseIds } from "./getFinishedApplicationPhaseIds";
-import { PhaseName, PhaseStatus } from "../../../types";
+import { PhaseName } from "../../../types";
 
 describe("getCompletedApplicationPhaseIds", () => {
   const transactionMocks = {

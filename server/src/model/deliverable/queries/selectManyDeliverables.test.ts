@@ -37,9 +37,6 @@ describe("selectManyDeliverables", () => {
   const expectedFilteredCall = {
     where: { demonstrationId: testDemonstrationId, NOT: { statusId: DELETED_DELIVERABLE_STATUS } },
   };
-  const expectedUnfilteredCall = {
-    where: { demonstrationId: testDemonstrationId },
-  };
 
   beforeEach(() => {
     vi.resetAllMocks();

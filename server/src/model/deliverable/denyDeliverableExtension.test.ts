@@ -102,7 +102,7 @@ describe("denyDeliverableExtension", () => {
     try {
       await denyDeliverableExtension(testDeliverableId, testInput, testContext as GraphQLContext);
       throw new Error("Expected denyDeliverableExtension to throw, but it did not.");
-    } catch (e) {
+    } catch {
       expect(prisma).not.toHaveBeenCalled();
     }
   });

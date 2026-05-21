@@ -1,6 +1,6 @@
 import { Demonstration as PrismaDemonstration } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { prisma, PrismaTransactionClient } from "../../../prismaClient";
+import { prisma } from "../../../prismaClient";
 import { selectManyDemonstrations } from "./selectManyDemonstrations";
 
 vi.mock("../../../prismaClient", () => ({

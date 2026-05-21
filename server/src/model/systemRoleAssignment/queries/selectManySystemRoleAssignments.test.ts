@@ -1,6 +1,5 @@
-import { SystemRoleAssignment as PrismaSystemRoleAssignment } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { prisma, PrismaTransactionClient } from "../../../prismaClient";
+import { prisma } from "../../../prismaClient";
 import { selectManySystemRoleAssignments } from "./selectManySystemRoleAssignments";
 import { SystemRoleAssignmentQueryResult } from "..";
 import { DeepPartial } from "../../../testUtilities";

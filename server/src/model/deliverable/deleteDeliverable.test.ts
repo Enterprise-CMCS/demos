@@ -79,7 +79,7 @@ describe("deleteDeliverable", () => {
     try {
       await deleteDeliverable(testDeliverableId, testContext as GraphQLContext);
       throw new Error("Expected deleteDeliverable to throw, but it did not.");
-    } catch (e) {
+    } catch {
       expect(prisma).not.toHaveBeenCalled();
     }
   });

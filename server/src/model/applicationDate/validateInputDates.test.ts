@@ -46,7 +46,7 @@ describe("validateInputDates", () => {
       let isGreaterThanChecksCorrect = true;
       let isGreaterThanOrEqualChecksCorrect = true;
       let isOffsetChecksCorrect = true;
-      for (const [_, validationChecks] of Object.entries(result)) {
+      for (const [, validationChecks] of Object.entries(result)) {
         if (!["Start of Day", "End of Day"].includes(validationChecks.expectedTimestamp)) {
           isExpectedTimestampCorrect = false;
         }
