@@ -193,17 +193,6 @@ export function applyFileUploadSuppressions(fileUpload: Stack, stage: string) {
       },
     ]
   );
-  NagSuppressions.addResourceSuppressionsByPath(
-    fileUpload,
-    `/demos-${stage}-file-upload/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/DefaultPolicy/Resource`,
-    [
-      {
-        id: "AwsSolutions-IAM5",
-        reason:
-          "This is for a CDK managed lambda for updating policies: https://github.com/aws/aws-cdk/issues/9552#issuecomment-677512510",
-      },
-    ]
-  );
 
   NagSuppressions.addResourceSuppressionsByPath(
     fileUpload,
