@@ -34,7 +34,6 @@ export async function getDeliverable(
     getPermissionFilters
   );
 
-  
 
   if (authFilter !== null) {
     const authorizedDeliverable = await selectDeliverable(
