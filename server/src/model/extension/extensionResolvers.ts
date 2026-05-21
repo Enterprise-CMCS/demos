@@ -1,10 +1,19 @@
-import { Extension as PrismaExtension } from "@prisma/client";
+import {
+  ApplicationPhase as PrismaApplicationPhase,
+  Demonstration as PrismaDemonstration,
+  Document as PrismaDocument,
+  Extension as PrismaExtension,
+} from "@prisma/client";
 import { prisma } from "../../prismaClient";
 import {
   ApplicationStatus,
   ApplicationType,
+  ClearanceLevel,
   CreateExtensionInput,
   PhaseName,
+  SignatureLevel,
+  Tag,
+  TagStatus,
   UiPathResultStatus,
   UpdateExtensionInput,
 } from "../../types";
@@ -86,10 +95,16 @@ export async function deleteExtension(
 
 export const extensionResolvers = {
   Query: {
-    extension: (parent: unknown, args: { id: string }, context: GraphQLContext) =>
-      getExtension({ id: args.id }, context.user),
-    extensions: (parent: unknown, args: unknown, context: GraphQLContext) =>
-      getManyExtensions({}, context.user),
+    extension: (
+      parent: unknown,
+      args: { id: string },
+      context: GraphQLContext
+    ): Promise<PrismaExtension> => getExtension({ id: args.id }, context.user),
+    extensions: (
+      parent: unknown,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaExtension[]> => getManyExtensions({}, context.user),
   },
 
   Mutation: {
@@ -99,39 +114,43 @@ export const extensionResolvers = {
   },
 
   Extension: {
-    demonstration: (parent: PrismaExtension, args: unknown, context: GraphQLContext) =>
+    demonstration: (
+      parent: PrismaExtension,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaDemonstration> =>
       getDemonstration({ id: parent.demonstrationId }, context.user),
-    documents: (parent: PrismaExtension, args: unknown, context: GraphQLContext) =>
-      getManyDocuments({ applicationId: parent.id }, context.user),
-    currentPhaseName: (parent: PrismaExtension) => parent.currentPhaseId,
-    status: (parent: PrismaExtension) => parent.statusId,
-    phases: (parent: PrismaExtension) =>
+    documents: (
+      parent: PrismaExtension,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaDocument[]> => getManyDocuments({ applicationId: parent.id }, context.user),
+    currentPhaseName: (parent: PrismaExtension): PhaseName => parent.currentPhaseId as PhaseName,
+    status: (parent: PrismaExtension): ApplicationStatus => parent.statusId as ApplicationStatus,
+    phases: (parent: PrismaExtension): Promise<PrismaApplicationPhase[]> =>
       selectManyApplicationPhases({ applicationId: parent.id }),
-    clearanceLevel: (parent: PrismaExtension) => parent.clearanceLevelId,
-    tags: async (parent: PrismaExtension) =>
+    clearanceLevel: (parent: PrismaExtension): ClearanceLevel =>
+      parent.clearanceLevelId as ClearanceLevel,
+    tags: async (parent: PrismaExtension): Promise<Tag[]> =>
       (await selectManyApplicationTagAssignments({ applicationId: parent.id })).map(
         (assignment) => {
-          const { statusId, tagNameId, ...tag } = assignment.tag;
+          const { statusId, tagNameId } = assignment.tag;
           return {
-            ...tag,
             tagName: tagNameId,
-            approvalStatus: statusId,
+            approvalStatus: statusId as TagStatus,
           };
         }
       ),
-    signatureLevel: (parent: PrismaExtension) => parent.signatureLevelId,
-    suggestedApplicationTags: async (
-      parent: PrismaExtension,
-    ) =>
+    signatureLevel: (parent: PrismaExtension): SignatureLevel =>
+      parent.signatureLevelId as SignatureLevel,
+    suggestedApplicationTags: async (parent: PrismaExtension): Promise<string[]> =>
       (
-        await selectManyApplicationTagSuggestions(
-          {
-            applicationId: parent.id,
-            statusId: {
-              in: ["Pending" satisfies UiPathResultStatus],
-            },
+        await selectManyApplicationTagSuggestions({
+          applicationId: parent.id,
+          statusId: {
+            in: ["Pending" satisfies UiPathResultStatus],
           },
-        )
+        })
       ).map((suggestion) => suggestion.value),
   },
 };
