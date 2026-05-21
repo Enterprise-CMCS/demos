@@ -1,6 +1,8 @@
+def advisoryFailures = []
+
 pipeline {
   agent {
-    kubernetes { 
+    kubernetes {
       yaml kubeBlock(containerNames:["node", "aws-cli"])
     }
   }
@@ -13,7 +15,7 @@ pipeline {
   environment {
     NO_COLOR = 1
   }
-  
+
   stages {
     stage('Set env from branch') {
       steps {
@@ -53,13 +55,11 @@ pipeline {
               parallel(
                 'Build Client': {
                   dirCon('deployment','node') {
-                      sh "npx tsx demosctl/index build:client ${env.STAGE}"
-                      
-                      
+                    sh "npx tsx demosctl/index build:client ${env.STAGE}"
                   }
                 }, 'Build Server': {
                   dirCon('deployment', 'node') {
-                      sh "npx tsx demosctl/index build:server ${env.STAGE}"
+                    sh "npx tsx demosctl/index build:server ${env.STAGE}"
                   }
                 }
               )
@@ -68,22 +68,42 @@ pipeline {
         }
         stage('Test Client') {
           steps {
-            build(job: "Client/$BRANCH_NAME", propagate: true, wait: true)
+            script {
+              def clientBuild = build(job: "Client/$BRANCH_NAME", propagate: false, wait: true, parameters: [booleanParam(name: 'HANDLE_ERRORS', value: true)])
+              if (clientBuild.description) {
+                advisoryFailures.addAll(clientBuild.description.split(/\|/))
+              }
+            }
           }
         }
         stage('Test Server') {
           steps {
-            build(job: "Server/$BRANCH_NAME", propagate: true, wait: true)
+            script {
+              def serverBuild = build(job: "Server/$BRANCH_NAME", propagate: false, wait: true, parameters: [booleanParam(name: 'HANDLE_ERRORS', value: true)])
+              if (serverBuild.description) {
+                advisoryFailures.addAll(serverBuild.description.split(/\|/))
+              }
+            }
           }
         }
         stage('Test CDK') {
           steps {
-            build(job: "CDK/$BRANCH_NAME", propagate: true, wait: true)
+            script {
+              def cdkBuild = build(job: "CDK/$BRANCH_NAME", propagate: false, wait: true, parameters: [booleanParam(name: 'HANDLE_ERRORS', value: true)])
+              if (cdkBuild.description) {
+                advisoryFailures.addAll(cdkBuild.description.split(/\|/))
+              }
+            }
           }
         }
         stage('Test Lambdas') {
           steps {
-            build(job: "Lambdas/$BRANCH_NAME", propagate: true, wait: true)
+            script {
+              def lambdasBuild = build(job: "Lambdas/$BRANCH_NAME", propagate: false, wait: true, parameters: [booleanParam(name: 'HANDLE_ERRORS', value: true)])
+              if (lambdasBuild.description) {
+                advisoryFailures.addAll(lambdasBuild.description.split(/\|/))
+              }
+            }
           }
         }
       }
@@ -110,28 +130,36 @@ pipeline {
 
     stage('Deploy') {
       steps {
-          script {
-            dirCon('deployment','node') {
-              sh """
-              export UI_COMMIT_HASH=${env.GIT_COMMIT}
-              export API_COMMIT_HASH=${env.GIT_COMMIT}
-              npx tsx demosctl/index deploy:all ${env.STAGE}
-              """
-            }
+        script {
+          dirCon('deployment','node') {
+            sh """
+            export UI_COMMIT_HASH=${env.GIT_COMMIT}
+            export API_COMMIT_HASH=${env.GIT_COMMIT}
+            npx tsx demosctl/index deploy:all ${env.STAGE}
+            """
           }
+        }
       }
     }
   }
 
-    post {
-      success {
-        slackSend(color: "good", message: "${env.STAGE.toUpperCase()} Deployment succeeded!\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: ${env.GIT_COMMIT}")
+  post {
+    success {
+      script {
+        if (advisoryFailures) {
+          def advisoryText = advisoryFailures.findAll { it }.collect { "- ${it}" }.join("\n")
+          slackSend(color: "warning", message: "${env.STAGE.toUpperCase()} Deployment completed with check failures\n\nAdvisory failures:\n${advisoryText}\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: <${env.GIT_URL.replaceFirst(/\.git$/, '')}/commit/${env.GIT_COMMIT}|${env.GIT_COMMIT}>")
+
+        } else {
+          slackSend(color: "good", message: "${env.STAGE.toUpperCase()} Deployment succeeded!\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: <${env.GIT_URL.replaceFirst(/\.git$/, '')}/commit/${env.GIT_COMMIT}|${env.GIT_COMMIT}>")
+        }
       }
-      failure {
-        slackSend(color: "danger", message: "${env.STAGE.toUpperCase()} Deployment failed:\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: ${env.GIT_COMMIT}")
-      }
+    }
+    failure {
+      slackSend(color: "danger", message: "${env.STAGE.toUpperCase()} Deployment failed:\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: ${env.GIT_COMMIT}")
+    }
     always {
       cleanWs(deleteDirs: true)
     }
-    }
+  }
 }
