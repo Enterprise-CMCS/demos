@@ -4,31 +4,36 @@ pipeline {
       yaml kubeBlock(containerNames:['node', 'snyk'], opts: [
         NODE_IMAGE: 'artifactory.cloud.cms.gov/docker/node:24-alpine'
     ])
-    }
   }
+}
 
-  options {
-    disableConcurrentBuilds(abortPrevious: true)
-    buildDiscarder(retentionPolicy(env.BRANCH_NAME))
-  }
+options {
+  disableConcurrentBuilds(abortPrevious: true)
+  buildDiscarder(retentionPolicy(env.BRANCH_NAME))
+}
 
-  stages {
-    stage('Prep Shared Library') {
-      steps {
-        script {
-          dirCon('shared_library', 'node') {
-            sh '''
-              npm ci
-              npm run build || true
-            '''
-          }
+parameters {
+  booleanParam(name: 'HANDLE_ERRORS', defaultValue: false, description: 'Allow build to continue when errors occur')
+}
+
+stages {
+  stage('Prep Shared Library') {
+    steps {
+      script {
+        dirCon('shared_library', 'node') {
+          sh '''
+          npm ci
+          npm run build || true
+          '''
         }
       }
     }
+  }
 
-    stage('Lambdas - Snyk - All') {
-      steps {
-        script {
+  stage('Lambdas - Snyk - All') {
+    steps {
+      script {
+        handleError(params.HANDLE_ERRORS) {
           if (hasChange('lambdas')) {
             snykScan('lambdas/authorizer')
             snykScan('lambdas/dbRoleManagement')
@@ -41,110 +46,124 @@ pipeline {
         }
       }
     }
+  }
 
-    stage('Lambdas - Test - All') {
-      failFast true
-      parallel {
-        stage('Unit Test - Authorizer') {
-          steps {
-            script {
+  stage('Lambdas - Test - All') {
+    failFast true
+    parallel {
+      stage('Unit Test - Authorizer') {
+        steps {
+          script {
+            handleError(params.HANDLE_ERRORS) {
               if (hasChange('lambdas')) {
                 dirCon('lambdas/authorizer', 'node') {
                   sh '''
-                npm ci
-                npm run lint
-                npm run test
-                '''
+                  npm ci
+                  npm run lint
+                  npm run test
+                  '''
                 }
               }
             }
           }
         }
-        stage('Unit Test - DB Role Management') {
-          steps {
-            script {
+      }
+      stage('Lambdas - Unit Test - DB Role Management') {
+        steps {
+          script {
+            handleError(params.HANDLE_ERRORS) {
               if (hasChange('lambdas')) {
                 dirCon('lambdas/dbRoleManagement', 'node') {
                   sh '''
-                npm ci
-                npm run lint
-                npm run test
-                '''
+                  npm ci
+                  npm run lint
+                  npm run test
+                  '''
                 }
               }
             }
           }
         }
-        stage('Unit Test - File Process') {
-          steps {
-            script {
+      }
+      stage('Lambdas - Unit Test - File Process') {
+        steps {
+          script {
+            handleError(params.HANDLE_ERRORS) {
               if (hasChange('lambdas')) {
                 dirCon('lambdas/fileprocess', 'node') {
                   sh '''
-                npm ci
-                npm run lint
-                npm run test
-                '''
+                  npm ci
+                  npm run lint
+                  npm run test
+                  '''
                 }
               }
             }
           }
         }
-        stage('Unit Test - UI Path') {
-          steps {
-            script {
+      }
+      stage('Lambdas - Unit Test - UI Path') {
+        steps {
+          script {
+            handleError(params.HANDLE_ERRORS) {
               if (hasChange('lambdas')) {
                 dirCon('lambdas/UIPath', 'node') {
                   sh '''
-                npm ci
-                npm run lint
-                npm run test
-                '''
+                  npm ci
+                  npm run lint
+                  npm run test
+                  '''
                 }
               }
             }
           }
         }
-        stage('Unit Test - Delete Infected File') {
-          steps {
-            script {
+      }
+      stage('Lambdas - Unit Test - Delete Infected File') {
+        steps {
+          script {
+            handleError(params.HANDLE_ERRORS) {
               if (hasChange('lambdas')) {
                 dirCon('lambdas/deleteinfectedfile', 'node') {
                   sh '''
-                npm ci
-                npm run lint
-                npm run test
-                '''
+                  npm ci
+                  npm run lint
+                  npm run test
+                  '''
                 }
               }
             }
           }
         }
-        stage('Unit Test - Emailer') {
-          steps {
-            script {
+      }
+      stage('Lambdas - Unit Test - Emailer') {
+        steps {
+          script {
+            handleError(params.HANDLE_ERRORS) {
               if (hasChange('lambdas')) {
                 dirCon('lambdas/emailer', 'node') {
                   sh '''
-                npm ci
-                npm run lint
-                npm run test
-                '''
+                  npm ci
+                  npm run lint
+                  npm run test
+                  '''
                 }
               }
             }
           }
         }
-        stage('Unit Test - budgetNeutrality') {
-          steps {
-            script {
+      }
+      stage('Lambdas - Unit Test - budgetNeutrality') {
+        steps {
+          script {
+            handleError(params.HANDLE_ERRORS) {
               if (hasChange('lambdas')) {
                 dirCon('lambdas/budgetNeutrality', 'node') {
                   sh '''
-                npm ci
-                npm run lint
-                npm run test
-                '''
+                  npm ci
+                  npm run lint
+                  npm run test
+                  '''
                 }
               }
             }
@@ -152,10 +171,12 @@ pipeline {
         }
       }
     }
+  }
 
-    stage('Lambdas - Code Scan') {
-      steps {
-        script {
+  stage('Lambdas - Lambdas - Code Scan') {
+    steps {
+      script {
+        handleError(params.HANDLE_ERRORS) {
           if (hasChange('lambdas')) {
             snykCodeScan('lambdas', [allProjects: true])
           }
@@ -163,13 +184,17 @@ pipeline {
       }
     }
   }
+}
 
-  post {
-    failure {
-      slackPipelineFail('Lambdas')
-    }
-    always {
-      cleanWs(deleteDirs: true)
-    }
+post {
+  failure {
+    slackPipelineFail('Lambdas')
   }
+  always {
+    script {
+      handleError.setFailureDescription()
+    }
+    cleanWs(deleteDirs: true)
+  }
+}
 }

@@ -1,6 +1,6 @@
 pipeline {
   agent {
-    kubernetes { 
+    kubernetes {
       yaml kubeBlock(containerNames:["node", "aws-cli"])
     }
   }
@@ -28,17 +28,33 @@ pipeline {
 
       steps {
         script {
-          // The GIT_COMMIT env set by Jenkins isn't accurate for this type of
-          // pipeline, so it needs to be parsed
-          env.MAIN_COMMIT_HASH = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
+          container('node') {
+            // The GIT_COMMIT env set by Jenkins isn't accurate for this type of
+            // pipeline, so it needs to be parsed
+            env.MAIN_COMMIT_HASH = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
 
-          def mainStatus = sh( script: """
-            curl -s https://api.github.com/repos/Enterprise-CMCS/demos/commits/${env.MAIN_COMMIT_HASH}/status  | grep "state" | head -n1 | sed -E 's/.*"state": "(.*)".*/\\1/'
-          """, returnStdout: true).trim()
+            sh 'apk add --no-cache curl jq'
 
+            def mainStatus = sh( script:'''
+            required_contexts='ci/cloudbees/stage/Run Migrations|ci/cloudbees/stage/Deploy'
 
-          if (mainStatus != "success") {
-            error("Main branch is not in a successful state: ${mainStatus}")
+            curl -fsSL "https://api.github.com/repos/Enterprise-CMCS/demos/commits/$MAIN_COMMIT_HASH/status" \
+            | jq -r --arg contexts "$required_contexts" '
+            ($contexts | split("|") | map(select(length > 0))) as $required
+            | [ .statuses[] | {context, state} ] as $statuses
+            | $required[]
+            | . as $ctx
+            | ($statuses | map(select(.context == $ctx)) | first) as $status
+            | if $status == null then "\\($ctx)=missing"
+            elif $status.state != "success" then "\\($ctx)=\\($status.state)"
+            else empty
+            end
+            '
+            ''', returnStdout: true).trim()
+
+            if (mainStatus) {
+              error("Main branch is not in a successful state:\n${mainStatus}")
+            }
           }
         }
       }
@@ -72,13 +88,12 @@ pipeline {
           parallel(
             'Build Client': {
               dirCon('deployment','node') {
-                  sh "npx tsx demosctl/index build:client ${env.STAGE}"
-                  
-                  
+                sh "npx tsx demosctl/index build:client ${env.STAGE}"
+
               }
             }, 'Build Server': {
               dirCon('deployment', 'node') {
-                  sh "npx tsx demosctl/index build:server ${env.STAGE}"
+                sh "npx tsx demosctl/index build:server ${env.STAGE}"
               }
             }
           )
@@ -106,25 +121,25 @@ pipeline {
 
     stage('Deploy') {
       steps {
-          script {
-            dirCon('deployment','node') {
-              sh """
-              export UI_COMMIT_HASH=${env.MAIN_COMMIT_HASH}
-              export API_COMMIT_HASH=${env.MAIN_COMMIT_HASH}
-              npx tsx demosctl/index deploy:all ${env.STAGE}
-              """
-            }
+        script {
+          dirCon('deployment','node') {
+            sh """
+            export UI_COMMIT_HASH=${env.MAIN_COMMIT_HASH}
+            export API_COMMIT_HASH=${env.MAIN_COMMIT_HASH}
+            npx tsx demosctl/index deploy:all ${env.STAGE}
+            """
           }
+        }
       }
     }
   }
 
-    post {
-      success {
-        slackSend(color: "good", message: "${env.STAGE.toUpperCase()} Deployment succeeded!\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: <${env.GIT_URL}/commit/${env.MAIN_COMMIT_HASH}|${env.MAIN_COMMIT_HASH}>")
-      }
-      failure {
-        slackSend(color: "danger", message: "${env.STAGE.toUpperCase()} Deployment failed:\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: <${env.GIT_URL}/commit/${env.MAIN_COMMIT_HASH}|${env.MAIN_COMMIT_HASH}>")
-      }
+  post {
+    success {
+      slackSend(color: "good", message: "${env.STAGE.toUpperCase()} Deployment succeeded!\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: <${env.GIT_URL}/commit/${env.MAIN_COMMIT_HASH}|${env.MAIN_COMMIT_HASH}>")
     }
+    failure {
+      slackSend(color: "danger", message: "${env.STAGE.toUpperCase()} Deployment failed:\n\nJenkins Build: <${env.BUILD_URL}|${env.BUILD_NUMBER}>\nCommit Hash: <${env.GIT_URL}/commit/${env.MAIN_COMMIT_HASH}|${env.MAIN_COMMIT_HASH}>")
+    }
+  }
 }
