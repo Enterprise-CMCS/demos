@@ -1,12 +1,13 @@
 import { State as PrismaState } from "@prisma/client";
 import { type GraphQLContext } from "../../auth";
 import { getManyDemonstrations } from "../demonstration";
-import { getManyStates, getState } from "./stateData";
+import { selectManyStates, selectStateOrThrow } from "./queries";
 
 export const stateResolvers = {
   Query: {
-    state: (parent: unknown, args: { id: string }) => getState({ id: args.id }),
-    states: () => getManyStates({}),
+    state: (parent: unknown, args: { id: string }): Promise<PrismaState> =>
+      selectStateOrThrow({ id: args.id }),
+    states: (): Promise<PrismaState[]> => selectManyStates({}),
   },
 
   State: {
