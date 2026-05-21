@@ -1,15 +1,15 @@
 import { NonEmptyString } from "../../types";
 import { GraphQLContext } from "../../auth";
 import { createPrivateComment } from ".";
+import { PrivateComment as PrismaPrivateComment } from "@prisma/client";
 
 export const privateCommentResolvers = {
   Mutation: {
-    createPrivateComment: async (
+    createPrivateComment: (
       parent: unknown,
       args: { deliverableId: string; comment: NonEmptyString },
       context: GraphQLContext
-    ) => {
-      return await createPrivateComment(args.deliverableId, args.comment, context);
-    },
+    ): Promise<PrismaPrivateComment> =>
+      createPrivateComment(args.deliverableId, args.comment, context),
   },
 };
