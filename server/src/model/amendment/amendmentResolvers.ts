@@ -3,7 +3,6 @@ import {
   Amendment as PrismaAmendment,
   Document as PrismaDocument,
   ApplicationPhase as PrismaApplicationPhase,
-  Tag as PrismaTag,
 } from "@prisma/client";
 import { prisma } from "../../prismaClient";
 import {
@@ -13,6 +12,7 @@ import {
   CreateAmendmentInput,
   PhaseName,
   SignatureLevel,
+  Tag,
   TagStatus,
   UiPathResultStatus,
   UpdateAmendmentInput,
@@ -131,19 +131,11 @@ export const amendmentResolvers = {
       selectManyApplicationPhases({ applicationId: parent.id }),
     clearanceLevel: (parent: PrismaAmendment): ClearanceLevel =>
       parent.clearanceLevelId as ClearanceLevel,
-    tags: async (
-      parent: PrismaAmendment
-    ): Promise<
-      (Omit<PrismaTag, "tagNameId" | "statusId"> & {
-        tagName: string;
-        approvalStatus: TagStatus;
-      })[]
-    > =>
+    tags: async (parent: PrismaAmendment): Promise<Tag[]> =>
       (await selectManyApplicationTagAssignments({ applicationId: parent.id })).map(
         (assignment) => {
-          const { statusId, tagNameId, ...tag } = assignment.tag;
+          const { statusId, tagNameId } = assignment.tag;
           return {
-            ...tag,
             tagName: tagNameId,
             approvalStatus: statusId as TagStatus,
           };
