@@ -25,7 +25,6 @@ const eslintConfig = tseslint.config(
     files: ["**/*.{ts,tsx}"],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-unused-vars": "off",
       "no-useless-escape": "off",
     },
   }

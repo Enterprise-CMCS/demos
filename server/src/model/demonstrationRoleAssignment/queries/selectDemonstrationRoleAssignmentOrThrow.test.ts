@@ -1,8 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { selectDemonstrationRoleAssignment } from "./selectDemonstrationRoleAssignment";
 
 // Mock imports
-import { DemonstrationRoleAssignment as PrismaDemonstrationRoleAssignment } from "@prisma/client";
 import { selectDemonstrationRoleAssignmentOrThrow } from "./selectDemonstrationRoleAssignmentOrThrow";
 import { DemonstrationRoleAssignmentQueryResult } from ".";
 

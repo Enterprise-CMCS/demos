@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { __setApplicationNotes, applicationNoteResolvers } from "./applicationNoteResolvers";
-import { Prisma, ApplicationNote as PrismaApplicationNote } from "@prisma/client";
+import { ApplicationNote as PrismaApplicationNote } from "@prisma/client";
 import { prisma } from "../../prismaClient";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { getApplication } from "../application";

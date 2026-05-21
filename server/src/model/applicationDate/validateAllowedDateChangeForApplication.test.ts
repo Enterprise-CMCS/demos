@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ApplicationStatus, SetApplicationDatesInput, LocalDate } from "../../types";
+import { SetApplicationDatesInput, LocalDate } from "../../types";
 import { validateAllowedDateChangeForApplication } from "./validateAllowedDateChangeForApplication";
 
 // Mock imports

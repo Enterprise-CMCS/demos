@@ -1,7 +1,6 @@
 import { Person as PrismaPerson } from "@prisma/client";
 
 import { prisma } from "../../prismaClient";
-import { GraphQLContext } from "../../auth";
 import { selectManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment/queries";
 import { getManyStates } from "../state";
 import { selectManyPeople, selectPersonOrThrow } from "./queries";

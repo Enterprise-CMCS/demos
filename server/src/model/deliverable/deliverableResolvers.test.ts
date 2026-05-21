@@ -57,6 +57,10 @@ vi.mock(".", () => ({
   updateDeliverable: vi.fn(),
 }));
 
+vi.mock("../thing", () => ({
+  resolveThing: vi.fn(),
+}));
+
 vi.mock("../application", () => ({
   getApplication: vi.fn(),
 }));
@@ -733,16 +737,8 @@ describe("deliverableResolvers", () => {
 
     describe("Deliverable.privateComments", () => {
       it("should query the private comments of the parent deliverable", async () => {
-        const testContext: DeepPartial<GraphQLContext> = {
-          user: {
-            id: "27cb9043-0016-44ca-a361-dd047bfa5993",
-            personTypeId: "demos-cms-user",
-          },
-        };
         await deliverableResolvers.Deliverable.privateComments(
-          testDeliverable as PrismaDeliverable,
-          undefined,
-          testContext as GraphQLContext
+          testDeliverable as PrismaDeliverable
         );
         expect(selectManyPrivateComments).toHaveBeenCalledExactlyOnceWith({
           deliverableId: testDeliverableId,

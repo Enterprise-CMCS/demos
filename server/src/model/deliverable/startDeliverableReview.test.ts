@@ -87,7 +87,7 @@ describe("startDeliverableReview", () => {
     try {
       await startDeliverableReview(testDeliverableId, testContext as GraphQLContext);
       throw new Error("Expected startDeliverableReview to throw, but it did not.");
-    } catch (e) {
+    } catch {
       expect(prisma).not.toHaveBeenCalled();
     }
   });

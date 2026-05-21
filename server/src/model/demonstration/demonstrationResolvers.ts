@@ -248,7 +248,7 @@ export const demonstrationResolvers = {
     roles: (parent: PrismaDemonstration) =>
       selectManyDemonstrationRoleAssignments({ demonstrationId: parent.id }),
     status: (parent: PrismaDemonstration) => parent.statusId,
-    phases: (parent: PrismaDemonstration, args: unknown, context: GraphQLContext) =>
+    phases: (parent: PrismaDemonstration) =>
       selectManyApplicationPhases({ applicationId: parent.id }),
     primaryProjectOfficer: resolvePrimaryProjectOfficer,
     clearanceLevel: (parent: PrismaDemonstration) => parent.clearanceLevelId,

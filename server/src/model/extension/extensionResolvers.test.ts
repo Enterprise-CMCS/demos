@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, expectTypeOf } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   __createExtension,
   __updateExtension,
@@ -175,11 +175,7 @@ describe("extensionResolvers", () => {
 
   describe("Extension.phases", () => {
     it("delegates to `applicationPhaseData/queries.selectManyApplicationPhases`", async () => {
-      await extensionResolvers.Extension.phases(
-        { id: "extensionId" } as PrismaExtension,
-        {},
-        mockContext
-      );
+      await extensionResolvers.Extension.phases({ id: "extensionId" } as PrismaExtension);
       expect(selectManyApplicationPhases).toHaveBeenCalledExactlyOnceWith({
         applicationId: "extensionId",
       });
@@ -233,17 +229,13 @@ describe("extensionResolvers", () => {
         },
       ] as PrismaApplicationTagSuggestion[]);
 
-      const result = await extensionResolvers.Extension.suggestedApplicationTags(
-        mockExtension,
-      );
-      expect(selectManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith(
-        {
-          applicationId: "abc123",
-          statusId: {
-            in: ["Pending"],
-          },
+      const result = await extensionResolvers.Extension.suggestedApplicationTags(mockExtension);
+      expect(selectManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "abc123",
+        statusId: {
+          in: ["Pending"],
         },
-      );
+      });
       expect(result).toEqual(["Suggestion1", "Suggestion2"]);
     });
   });

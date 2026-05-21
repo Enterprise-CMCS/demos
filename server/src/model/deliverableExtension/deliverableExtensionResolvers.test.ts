@@ -1,6 +1,5 @@
 // Vitest and other helpers
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { DeepPartial } from "../../testUtilities";
 
 // Types
 import {
