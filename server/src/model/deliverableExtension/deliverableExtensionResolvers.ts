@@ -8,12 +8,10 @@ import { selectDeliverableAction } from "../deliverableAction/queries";
 
 export const deliverableExtensionResolvers = {
   DeliverableExtension: {
-    status: (parent: PrismaDeliverableExtension): DeliverableExtensionStatus => {
-      return parent.statusId as DeliverableExtensionStatus;
-    },
-    reasonCode: (parent: PrismaDeliverableExtension): DeliverableExtensionReasonCode => {
-      return parent.reasonCodeId as DeliverableExtensionReasonCode;
-    },
+    status: (parent: PrismaDeliverableExtension): DeliverableExtensionStatus =>
+      parent.statusId as DeliverableExtensionStatus,
+    reasonCode: (parent: PrismaDeliverableExtension): DeliverableExtensionReasonCode =>
+      parent.reasonCodeId as DeliverableExtensionReasonCode,
     reasonDetails: async (parent: PrismaDeliverableExtension): Promise<NonEmptyString> => {
       const result = await selectDeliverableAction(
         {
