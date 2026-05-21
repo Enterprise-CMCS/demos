@@ -423,8 +423,11 @@ erDiagram
     text document_type_id FK "FK119: (id, document_type_id) ∈ document.(id, document_type_id) DEFERRED<br>FK120: document_type_id ∈ budget_neutrality_workbook_document_type_limit.id"
     text validation_status_id FK "FK121: validation_status_id ∈ budget_neutrality_validation_status.id"
     jsonb validation_data
+    text actuals
+    float netVarianceTotal
     timestamptz created_at
     timestamptz updated_at
+    CONSTRAINT_CHECK check_budget_neutrality_workbook_non_null_fields_when_succeeded "actuals and netVarianceTotal non null when status is succeeded"
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_document "Verify that no corresponding record exists in the document table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
