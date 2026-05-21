@@ -1,8 +1,12 @@
 import type { GraphQLContext } from "../../auth";
-import { User as PrismaUser } from "@prisma/client";
+import {
+  Document as PrismaDocument,
+  Person as PrismaPerson,
+  User as PrismaUser,
+} from "@prisma/client";
 import { resolveManyDeliverables } from "../deliverable";
 import { getManyDocuments } from "../document";
-import { selectUser } from "./queries";
+import { selectUserOrThrow } from "./queries";
 import { selectPersonOrThrow } from "../person/queries";
 import { Permission, Role } from "../../types";
 import { selectManySystemRoleAssignments } from "../systemRoleAssignment";
@@ -10,18 +14,21 @@ import { selectLastLoginForUser } from "../userSession/queries";
 
 export const userResolvers = {
   Query: {
-    currentUser: (parent: unknown, args: unknown, context: GraphQLContext) =>
-      selectUser({ id: context.user.id }),
+    currentUser: (parent: unknown, args: unknown, context: GraphQLContext): Promise<PrismaUser> =>
+      selectUserOrThrow({ id: context.user.id }),
   },
   User: {
-    person: (parent: PrismaUser) => selectPersonOrThrow({ id: parent.id }),
-    ownedDocuments: (parent: PrismaUser, args: unknown, context: GraphQLContext) =>
-      getManyDocuments({ ownerUserId: parent.id }, context.user),
+    person: (parent: PrismaUser): Promise<PrismaPerson> => selectPersonOrThrow({ id: parent.id }),
+    ownedDocuments: (
+      parent: PrismaUser,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaDocument[]> => getManyDocuments({ ownerUserId: parent.id }, context.user),
     ownedDeliverables: resolveManyDeliverables,
-    systemRoles: async (parent: PrismaUser): Promise<Role[]> => {
-      const roleAssignments = await selectManySystemRoleAssignments({ personId: parent.id });
-      return roleAssignments.map((role) => role.roleId as Role);
-    },
+    systemRoles: async (parent: PrismaUser): Promise<Role[]> =>
+      (await selectManySystemRoleAssignments({ personId: parent.id })).map(
+        (role) => role.roleId as Role
+      ),
     permissions: async (parent: PrismaUser): Promise<Permission[]> => {
       const roleAssignments = await selectManySystemRoleAssignments({ personId: parent.id });
       const permissions = new Set<Permission>();
@@ -32,8 +39,6 @@ export const userResolvers = {
       });
       return Array.from(permissions);
     },
-    lastLogin: async (parent: PrismaUser): Promise<Date | null> => {
-      return await selectLastLoginForUser(parent.id);
-    },
+    lastLogin: (parent: PrismaUser): Promise<Date | null> => selectLastLoginForUser(parent.id),
   },
 };
