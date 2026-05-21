@@ -20,7 +20,7 @@ export const applicationNoteSchema = gql`
   }
 
   type Mutation {
-    setApplicationNotes(input: SetApplicationNotesInput): Application
+    setApplicationNotes(input: SetApplicationNotesInput!): Application!
       @auth(requires: ["Perform CMS Action"])
   }
 `;

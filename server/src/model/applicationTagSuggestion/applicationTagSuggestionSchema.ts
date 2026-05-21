@@ -10,14 +10,14 @@ export const applicationTagSuggestionSchema = gql`
   }
 
   type Mutation {
-    acceptApplicationTagSuggestion(applicationId: ID!, value: String!): Application
+    acceptApplicationTagSuggestion(applicationId: ID!, value: String!): Application!
       @auth(requires: ["Perform CMS Action"])
     replaceApplicationTagSuggestion(
       applicationId: ID!
       value: String!
       newValue: String!
-    ): Application @auth(requires: ["Perform CMS Action"])
-    removeApplicationTagSuggestion(applicationId: ID!, value: String!): ApplicationTagSuggestion
+    ): Application! @auth(requires: ["Perform CMS Action"])
+    removeApplicationTagSuggestion(applicationId: ID!, value: String!): ApplicationTagSuggestion!
       @auth(requires: ["Perform CMS Action"])
   }
 `;

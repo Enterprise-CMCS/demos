@@ -50,15 +50,15 @@ export const amendmentSchema = gql`
   }
 
   type Mutation {
-    createAmendment(input: CreateAmendmentInput!): Amendment @auth(requires: ["Perform CMS Action"])
-    updateAmendment(id: ID!, input: UpdateAmendmentInput!): Amendment
+    createAmendment(input: CreateAmendmentInput!): Amendment! @auth(requires: ["Perform CMS Action"])
+    updateAmendment(id: ID!, input: UpdateAmendmentInput!): Amendment!
       @auth(requires: ["Perform CMS Action"])
-    deleteAmendment(id: ID!): Amendment @auth(requires: ["Perform CMS Action"])
+    deleteAmendment(id: ID!): Amendment! @auth(requires: ["Perform CMS Action"])
   }
 
   type Query {
     amendments: [Amendment!]! @auth(requires: ["Access CMS Query"])
-    amendment(id: ID!): Amendment @auth(requires: ["Access CMS Query"])
+    amendment(id: ID!): Amendment! @auth(requires: ["Access CMS Query"])
   }
 `;
 

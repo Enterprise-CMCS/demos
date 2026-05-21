@@ -50,15 +50,15 @@ export const extensionSchema = gql`
   }
 
   type Mutation {
-    createExtension(input: CreateExtensionInput!): Extension @auth(requires: ["Perform CMS Action"])
-    updateExtension(id: ID!, input: UpdateExtensionInput!): Extension
+    createExtension(input: CreateExtensionInput!): Extension! @auth(requires: ["Perform CMS Action"])
+    updateExtension(id: ID!, input: UpdateExtensionInput!): Extension!
       @auth(requires: ["Perform CMS Action"])
-    deleteExtension(id: ID!): Extension @auth(requires: ["Perform CMS Action"])
+    deleteExtension(id: ID!): Extension! @auth(requires: ["Perform CMS Action"])
   }
 
   type Query {
     extensions: [Extension!]! @auth(requires: ["Access CMS Query"])
-    extension(id: ID!): Extension @auth(requires: ["Access CMS Query"])
+    extension(id: ID!): Extension! @auth(requires: ["Access CMS Query"])
   }
 `;
 

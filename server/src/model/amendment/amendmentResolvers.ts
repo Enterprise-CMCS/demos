@@ -120,18 +120,14 @@ export const amendmentResolvers = {
         }
       ),
     signatureLevel: (parent: PrismaAmendment) => parent.signatureLevelId,
-    suggestedApplicationTags: async (
-      parent: PrismaAmendment,
-    ) =>
+    suggestedApplicationTags: async (parent: PrismaAmendment) =>
       (
-        await selectManyApplicationTagSuggestions(
-          {
-            applicationId: parent.id,
-            statusId: {
-              in: ["Pending" satisfies UiPathResultStatus],
-            },
+        await selectManyApplicationTagSuggestions({
+          applicationId: parent.id,
+          statusId: {
+            in: ["Pending" satisfies UiPathResultStatus],
           },
-        )
+        })
       ).map((suggestion) => suggestion.value),
   },
 };

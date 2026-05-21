@@ -10,7 +10,7 @@ export const stateSchema = gql`
 
   type Query {
     states: [State!]!
-    state(id: String!): State
+    state(id: String!): State!
   }
 `;
 
