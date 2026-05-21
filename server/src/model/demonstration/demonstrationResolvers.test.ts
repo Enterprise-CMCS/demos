@@ -3,7 +3,6 @@ import {
   __createDemonstration,
   __updateDemonstration,
   deleteDemonstration,
-  __resolveDemonstrationPrimaryProjectOfficer,
   demonstrationResolvers,
 } from "./demonstrationResolvers";
 import {
@@ -300,8 +299,6 @@ describe("demonstrationResolvers", () => {
     it("delegates to `applicationPhaseData/queries.selectManyApplicationPhases`", async () => {
       await demonstrationResolvers.Demonstration.phases(
         { id: "demonstrationId" } as PrismaDemonstration,
-        {},
-        mockContext
       );
       expect(selectManyApplicationPhases).toHaveBeenCalledExactlyOnceWith({
         applicationId: "demonstrationId",

@@ -1,4 +1,3 @@
-import { prisma } from "../../prismaClient";
 import type { GraphQLContext } from "../../auth";
 import { User as PrismaUser } from "@prisma/client";
 import { resolveManyDeliverables } from "../deliverable";

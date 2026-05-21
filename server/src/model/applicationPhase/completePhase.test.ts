@@ -7,9 +7,8 @@ import { prisma } from "../../prismaClient.js";
 import { handlePrismaError } from "../../errors/handlePrismaError.js";
 import { validateAndUpdateDates } from "../applicationDate";
 import { validatePhaseCompletion, updatePhaseStatus, setPhaseToStarted } from ".";
-import { EasternNow, EasternTZDate, getEasternNow } from "../../dateUtilities.js";
+import { EasternNow, getEasternNow } from "../../dateUtilities.js";
 import { TZDate } from "@date-fns/tz";
-import { getApplication } from "../application";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),

@@ -17,7 +17,6 @@ import {
   DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
   Document as PrismaDocument,
   PrivateComment as PrismaPrivateComment,
-  PublicComment as PrismaPublicComment,
   User as PrismaUser,
 } from "@prisma/client";
 

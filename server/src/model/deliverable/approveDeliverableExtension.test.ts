@@ -138,7 +138,7 @@ describe("approveDeliverableExtension", () => {
         testContext as GraphQLContext
       );
       throw new Error("Expected approveDeliverableExtension to throw, but it did not.");
-    } catch (e) {
+    } catch {
       expect(prisma).not.toHaveBeenCalled();
     }
   });
@@ -153,7 +153,7 @@ describe("approveDeliverableExtension", () => {
         testContext as GraphQLContext
       );
       throw new Error("Expected approveDeliverableExtension to throw, but it did not.");
-    } catch (e) {
+    } catch {
       expect(prisma).not.toHaveBeenCalled();
     }
   });

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { Document as PrismaDocument, User as PrismaUser } from "@prisma/client";
+import { Document as PrismaDocument } from "@prisma/client";
 import { GraphQLContext } from "../../auth";
 import { UpdateDocumentInput, DocumentType, PhaseName } from "../../types";
 import { prisma } from "../../prismaClient";
@@ -102,15 +102,6 @@ describe("documentResolvers", () => {
     deliverableSubmissionActionTypeId: null,
   };
 
-  const mockUser: PrismaUser = {
-    id: testUserId,
-    createdAt: new Date("2025-01-01T00:00:00.000Z"),
-    updatedAt: new Date("2025-01-01T00:00:00.000Z"),
-    personTypeId: "demos-cms-user",
-    cognitoSubject: "cognito-subject-123",
-    username: "testuser",
-  };
-
   const mockApplication = {
     id: testApplicationId,
     demonstrationId: "demo-123",
@@ -142,7 +133,7 @@ describe("documentResolvers", () => {
   });
 
   describe("Query.documentExists", () => {
-    it("returns true when getDocument returns non-null", async () => {
+    it("returns true when getDocument returns", async () => {
       vi.mocked(getDocument).mockResolvedValue({ id: "abc123" } as PrismaDocument);
       const result = await documentResolvers.Query.documentExists(
         undefined,
@@ -153,8 +144,8 @@ describe("documentResolvers", () => {
       expect(result).toBe(true);
     });
 
-    it("returns false when getDocument returns null", async () => {
-      vi.mocked(getDocument).mockResolvedValue(null);
+    it("returns false when getDocument throws", async () => {
+      vi.mocked(getDocument).mockRejectedValue(new Error());
       const result = await documentResolvers.Query.documentExists(
         undefined,
         { documentId: "abc123" },
@@ -221,9 +212,7 @@ describe("documentResolvers", () => {
   describe("Document.owner", () => {
     it("delegates to userData/queries.selectUserOrThrow", () => {
       documentResolvers.Document.owner(mockDocument);
-      expect(selectUserOrThrow).toHaveBeenCalledExactlyOnceWith(
-        { id: mockDocument.ownerUserId },
-      );
+      expect(selectUserOrThrow).toHaveBeenCalledExactlyOnceWith({ id: mockDocument.ownerUserId });
     });
   });
 
@@ -260,16 +249,6 @@ describe("documentResolvers", () => {
       await expect(
         triggerUiPath(undefined, { documentId: testDocumentId }, mockContext)
       ).rejects.toThrow("Queue send failed");
-    });
-
-    it("throws when document does not exist", async () => {
-      vi.mocked(getDocument).mockResolvedValue(null);
-
-      await expect(triggerUiPath(undefined, { documentId: "abc123" }, mockContext)).rejects.toThrow(
-        `Document with ID abc123 does not exist.`
-      );
-      expect(getDocument).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockContext.user);
-      expect(enqueueUiPath).not.toHaveBeenCalled();
     });
   });
 

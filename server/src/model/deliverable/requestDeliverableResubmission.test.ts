@@ -110,7 +110,7 @@ describe("requestDeliverableResubmission", () => {
         testContext as GraphQLContext
       );
       throw new Error("Expected requestDeliverableResubmission to throw, but it did not.");
-    } catch (e) {
+    } catch {
       expect(prisma).not.toHaveBeenCalled();
     }
   });
@@ -134,7 +134,7 @@ describe("requestDeliverableResubmission", () => {
         testContext as GraphQLContext
       );
       throw new Error("Expected requestDeliverableResubmission to throw, but it did not.");
-    } catch (e) {
+    } catch {
       expect(prisma).not.toHaveBeenCalled();
     }
   });

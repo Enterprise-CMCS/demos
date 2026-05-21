@@ -1,4 +1,4 @@
-import { SystemRoleAssignment as PrismaSystemRoleAssignment, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { prisma, PrismaTransactionClient } from "../../../prismaClient";
 import { SystemRoleAssignmentQueryResult } from "..";
 

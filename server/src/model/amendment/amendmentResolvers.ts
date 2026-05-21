@@ -105,7 +105,7 @@ export const amendmentResolvers = {
       getManyDocuments({ applicationId: parent.id }, context.user),
     currentPhaseName: (parent: PrismaAmendment) => parent.currentPhaseId,
     status: (parent: PrismaAmendment) => parent.statusId,
-    phases: (parent: PrismaAmendment, args: unknown, context: GraphQLContext) =>
+    phases: (parent: PrismaAmendment) =>
       selectManyApplicationPhases({ applicationId: parent.id }),
     clearanceLevel: (parent: PrismaAmendment) => parent.clearanceLevelId,
     tags: async (parent: PrismaAmendment) =>

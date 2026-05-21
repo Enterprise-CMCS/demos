@@ -6,10 +6,8 @@ import {
   UploadDocumentToPhaseInput,
 } from "./documentPendingUploadSchema";
 import { GraphQLContext } from "../../auth";
-import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { getS3Adapter } from "../../adapters";
-import { selectDeliverableOrThrow } from "../deliverable";
 import { updateAssociatedPhase } from "./updateAssociatedPhase";
 import { handleUploadDocumentToDeliverable } from "./handleUploadDocumentToDeliverable";
 

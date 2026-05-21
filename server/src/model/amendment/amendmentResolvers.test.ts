@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, expectTypeOf } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   __createAmendment,
   __updateAmendment,
@@ -180,8 +180,6 @@ describe("amendmentResolvers", () => {
     it("delegates to `applicationPhaseData/queries.selectManyApplicationPhases`", async () => {
       await amendmentResolvers.Amendment.phases(
         { id: "amendmentId" } as PrismaAmendment,
-        {},
-        mockContext
       );
       expect(selectManyApplicationPhases).toHaveBeenCalledExactlyOnceWith({
         applicationId: "amendmentId",

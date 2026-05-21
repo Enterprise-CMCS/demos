@@ -37,7 +37,6 @@ import {
   DeliverableType,
   DenyDeliverableExtensionInput,
   FinalDeliverableStatus,
-  PersonType,
   RequestDeliverableExtensionInput,
   RequestDeliverableResubmissionInput,
   UpdateDeliverableInput,
@@ -196,8 +195,7 @@ export const deliverableResolvers = {
     deliverableType: resolveDeliverableType,
     demonstration: resolveDemonstration,
     status: resolveDeliverableStatus,
-    cmsOwner: (parent: PrismaDeliverable) =>
-      selectUserOrThrow({ id: parent.cmsOwnerUserId }),
+    cmsOwner: (parent: PrismaDeliverable) => selectUserOrThrow({ id: parent.cmsOwnerUserId }),
     dueDateType: resolveDeliverableDueDateType,
     demonstrationTypes: async (parent: PrismaDeliverable) =>
       (await selectManyDeliverableDemonstrationTypes({ deliverableId: parent.id })).map(
@@ -242,11 +240,7 @@ export const deliverableResolvers = {
     publicComments: async (parent: PrismaDeliverable): Promise<PrismaPublicComment[]> => {
       return await selectManyPublicComments({ deliverableId: parent.id });
     },
-    privateComments: async (
-      parent: PrismaDeliverable,
-      args: unknown,
-      context: GraphQLContext
-    ): Promise<PrismaPrivateComment[]> => {
+    privateComments: async (parent: PrismaDeliverable): Promise<PrismaPrivateComment[]> => {
       return await selectManyPrivateComments({ deliverableId: parent.id });
     },
   },

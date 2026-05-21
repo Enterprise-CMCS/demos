@@ -105,7 +105,7 @@ describe("requestDeliverableExtension", () => {
         testContext as GraphQLContext
       );
       throw new Error("Expected requestDeliverableExtension to throw, but it did not.");
-    } catch (e) {
+    } catch {
       expect(prisma).not.toHaveBeenCalled();
     }
   });
@@ -125,7 +125,7 @@ describe("requestDeliverableExtension", () => {
         testContext as GraphQLContext
       );
       throw new Error("Expected requestDeliverableExtension to throw, but it did not.");
-    } catch (e) {
+    } catch {
       expect(prisma).not.toHaveBeenCalled();
     }
   });

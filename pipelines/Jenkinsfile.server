@@ -3,19 +3,24 @@ pipeline {
     kubernetes {
       yaml kubeBlock(containerNames:['node', 'snyk', 'aws-cli'], opts: [
         NODE_IMAGE: 'artifactory.cloud.cms.gov/docker/node:24-alpine'
-      ])
-    }
+    ])
   }
+}
 
-  options {
-    disableConcurrentBuilds(abortPrevious: true)
-    buildDiscarder(retentionPolicy(env.BRANCH_NAME))
-  }
+options {
+  disableConcurrentBuilds(abortPrevious: true)
+  buildDiscarder(retentionPolicy(env.BRANCH_NAME))
+}
 
-  stages {
-    stage('Build Shared Library') {
-      steps {
-        script {
+parameters {
+  booleanParam(name: 'HANDLE_ERRORS', defaultValue: false, description: 'Allow build to continue when errors occur')
+}
+
+stages {
+  stage('Build Shared Library') {
+    steps {
+      script {
+        handleError(params.HANDLE_ERRORS) {
           if (fileExists('shared_library')) {
             dirCon('shared_library', 'node') {
               sh '''
@@ -27,28 +32,32 @@ pipeline {
         }
       }
     }
-    stage('Server - Snyk') {
-      steps {
-        script {
+  }
+  stage('Server - Snyk') {
+    steps {
+      script {
+        handleError(params.HANDLE_ERRORS) {
           if (hasChange('server')) {
             snykScan('server')
           }
         }
       }
     }
+  }
 
-    stage('Server - Lint') {
-      steps {
-        script {
+  stage('Server - Lint') {
+    steps {
+      script {
+        handleError(params.HANDLE_ERRORS) {
           if (hasChange('server')) {
             dirCon('server', 'node') {
               sh '''
               # Ensure shared_library is installed and built before installing server deps
               if [ -d ../shared_library ]; then
-                cd ../shared_library
-                npm ci
-                npm run build || true
-                cd -
+              cd ../shared_library
+              npm ci
+              npm run build || true
+              cd -
               fi
 
               npm ci
@@ -62,12 +71,14 @@ pipeline {
         }
       }
     }
+  }
 
-    stage('Server - Concurrent Steps') {
-      parallel {
-        stage('Server - Unit Test') {
-          steps {
-            script {
+  stage('Server - Concurrent Steps') {
+    parallel {
+      stage('Server - Unit Test') {
+        steps {
+          script {
+            handleError(params.HANDLE_ERRORS) {
               if (hasChange('server')) {
                 dirCon('server', 'node') {
                   sh '''
@@ -78,46 +89,50 @@ pipeline {
             }
           }
         }
+      }
 
-        stage('Server - Code Scan') {
-          steps {
-            script {
+      stage('Server - Code Scan') {
+        steps {
+          script {
+            handleError(params.HANDLE_ERRORS) {
               if (hasChange('server')) {
                 snykCodeScan('server')
               }
             }
           }
         }
+      }
 
-        stage('Server - Validate Migrations') {
-          when {
-            expression {
-              if (!env.CHANGE_TARGET) {
-                return false
-              }
-              def diff = sh(
-                script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD",
-                returnStdout: true
-              ).trim()
-              return diff.split('\n').any { it.startsWith('server/src/model/migrations/') }
+      stage('Server - Validate Migrations') {
+        when {
+          expression {
+            if (!env.CHANGE_TARGET) {
+              return false
             }
+            def diff = sh(
+              script: "git diff --name-only origin/${env.CHANGE_TARGET}...HEAD",
+              returnStdout: true
+            ).trim()
+            return diff.split('\n').any { it.startsWith('server/src/model/migrations/') }
           }
-          steps {
-            assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
-            script {
+        }
+        steps {
+          assumeRole(accountNumber: env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER)
+          script {
+            handleError(params.HANDLE_ERRORS) {
               dirCon('deployment', 'node') {
                 sh """
-                  # Build shared_library first so the linked package is ready for migration tests
-                  if [ -d ../shared_library ]; then
-                    cd ../shared_library
-                    npm ci
-                    npm run build || true
-                    cd -
-                  fi
+                # Build shared_library first so the linked package is ready for migration tests
+                if [ -d ../shared_library ]; then
+                cd ../shared_library
+                npm ci
+                npm run build || true
+                cd -
+                fi
 
-                  npm ci
-                  export IS_TEST_MIGRATION="true"
-                  npx tsx demosctl/index test-migration dev "temp_${env.CHANGE_ID}_${currentBuild.startTimeInMillis}"
+                npm ci
+                export IS_TEST_MIGRATION="true"
+                npx tsx demosctl/index test-migration dev "temp_${env.CHANGE_ID}_${currentBuild.startTimeInMillis}"
                 """
               }
             }
@@ -126,12 +141,16 @@ pipeline {
       }
     }
   }
-  post {
-    failure {
-      slackPipelineFail('Server')
-    }
-    always {
-      cleanWs(deleteDirs: true)
-    }
+}
+post {
+  failure {
+    slackPipelineFail('Server')
   }
+  always {
+    script {
+      handleError.setFailureDescription()
+    }
+    cleanWs(deleteDirs: true)
+  }
+}
 }

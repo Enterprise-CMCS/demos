@@ -20,7 +20,7 @@ import {
 } from ".";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { getApplication } from "../application";
-import { selectUser, selectUserOrThrow } from "../user/queries";
+import { selectUserOrThrow } from "../user/queries";
 import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
 import { GraphQLError } from "graphql";
 import {
