@@ -14,7 +14,6 @@ import {
   updateDocument as updateDocumentResolver,
   deleteDocument,
   deleteDocuments,
-  resolveApplication,
   documentResolvers,
   resolveHasPendingUIPathResult,
 } from "./documentResolvers";
