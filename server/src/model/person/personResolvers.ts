@@ -4,7 +4,6 @@ import {
   State,
 } from "@prisma/client";
 
-import { prisma } from "../../prismaClient";
 import { selectManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment/queries";
 import { selectManyPeople, selectPersonOrThrow } from "./queries";
 import { PersonType } from "../../types";
