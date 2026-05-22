@@ -34,7 +34,7 @@ export const documentSchema = gql`
   }
 
   type Mutation {
-    updateDocument(id: ID!, input: UpdateDocumentInput!): Document
+    updateDocument(id: ID!, input: UpdateDocumentInput!): Document!
       @auth(requires: ["Perform CMS Action"])
     deleteDocument(id: ID!): Document! @auth(requires: ["Perform CMS Action"])
     deleteDocuments(ids: [ID!]!): Int! @auth(requires: ["Perform CMS Action"])
@@ -42,7 +42,7 @@ export const documentSchema = gql`
   }
 
   type Query {
-    document(id: ID!): Document @auth(requires: ["Access CMS Query"])
+    document(id: ID!): Document! @auth(requires: ["Access CMS Query"])
     documentExists(documentId: ID!): Boolean! @auth(requires: ["Access CMS Query"])
   }
 `;

@@ -6,7 +6,7 @@ import { getApplication, PrismaApplication } from ".";
 import { ApplicationType } from "../../types";
 
 export async function setApplicationClearanceLevel(
-  _: unknown,
+  parent: unknown,
   { input }: { input: SetApplicationClearanceLevelInput }
 ): Promise<PrismaApplication> {
   try {

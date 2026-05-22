@@ -8,7 +8,7 @@ export const applicationTagAssignmentSchema = gql`
   }
 
   type Mutation {
-    setApplicationTags(input: SetApplicationTagsInput): Application
+    setApplicationTags(input: SetApplicationTagsInput!): Application!
       @auth(requires: ["Perform CMS Action"])
   }
 `;

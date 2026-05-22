@@ -1,19 +1,24 @@
-import { Person as PrismaPerson } from "@prisma/client";
+import {
+  DemonstrationRoleAssignment as PrismaDemonstrationRoleAssignment,
+  Person as PrismaPerson,
+  State,
+} from "@prisma/client";
 
 import { prisma } from "../../prismaClient";
 import { selectManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment/queries";
-import { getManyStates } from "../state";
 import { selectManyPeople, selectPersonOrThrow } from "./queries";
+import { PersonType } from "../../types";
+import { selectManyStates } from "../state/queries";
 
 export const personResolvers = {
   Query: {
-    person: (parent: unknown, args: { id: string }) =>
+    person: (parent: unknown, args: { id: string }): Promise<PrismaPerson> =>
       selectPersonOrThrow({ id: args.id }),
-    people: () => selectManyPeople({}),
+    people: (): Promise<PrismaPerson[]> => selectManyPeople({}),
     searchPeople: async (
-      _: unknown,
+      parent: unknown,
       { search, demonstrationId }: { search: string; demonstrationId?: string }
-    ) => {
+    ): Promise<PrismaPerson[]> => {
       const searchConditions = [
         { firstName: { contains: search, mode: "insensitive" as const } },
         { lastName: { contains: search, mode: "insensitive" as const } },
@@ -59,12 +64,12 @@ export const personResolvers = {
   },
 
   Person: {
-    fullName: (parent: PrismaPerson) => `${parent.firstName} ${parent.lastName}`,
-    personType: async (parent: PrismaPerson) => parent.personTypeId,
-    roles: (parent: PrismaPerson) =>
+    fullName: (parent: PrismaPerson): string => `${parent.firstName} ${parent.lastName}`,
+    personType: (parent: PrismaPerson): PersonType => parent.personTypeId as PersonType,
+    roles: (parent: PrismaPerson): Promise<PrismaDemonstrationRoleAssignment[]> =>
       selectManyDemonstrationRoleAssignments({ personId: parent.id }),
-    states: async (parent: PrismaPerson) =>
-      getManyStates({
+    states: async (parent: PrismaPerson): Promise<State[]> =>
+      selectManyStates({
         personStates: {
           some: {
             personId: parent.id,

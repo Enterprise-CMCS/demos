@@ -1,4 +1,7 @@
-import { DocumentPendingUpload as PrismaDocumentPendingUpload } from "@prisma/client";
+import {
+  DocumentPendingUpload as PrismaDocumentPendingUpload,
+  User as PrismaUser,
+} from "@prisma/client";
 import { GraphQLContext } from "../../auth";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { handlePrismaError } from "../../errors/handlePrismaError";
@@ -16,12 +19,6 @@ import { selectUserOrThrow } from "../user/queries";
 import { resolveDeliverable } from "../deliverable";
 import { updateAssociatedPhase } from "./updateAssociatedPhase";
 import { handleUploadDocumentToDeliverable } from "./handleUploadDocumentToDeliverable";
-
-export async function resolveApplication(
-  parent: PrismaDocumentPendingUpload
-): Promise<PrismaApplication> {
-  return await getApplication(parent.applicationId);
-}
 
 export const documentPendingUploadResolvers = {
   Mutation: {
@@ -84,12 +81,15 @@ export const documentPendingUploadResolvers = {
   },
 
   DocumentPendingUpload: {
-    owner: (parent: PrismaDocumentPendingUpload) => selectUserOrThrow({ id: parent.ownerUserId }),
-    documentType: (parent: PrismaDocumentPendingUpload) => parent.documentTypeId as DocumentType,
-    presignedUploadUrl: async (parent: PrismaDocumentPendingUpload) =>
-      await getS3Adapter().getPresignedUploadUrl(parent.id),
-    application: resolveApplication,
+    owner: (parent: PrismaDocumentPendingUpload): Promise<PrismaUser> =>
+      selectUserOrThrow({ id: parent.ownerUserId }),
+    documentType: (parent: PrismaDocumentPendingUpload): DocumentType =>
+      parent.documentTypeId as DocumentType,
+    presignedUploadUrl: (parent: PrismaDocumentPendingUpload): Promise<string> =>
+      getS3Adapter().getPresignedUploadUrl(parent.id),
+    application: (parent: PrismaDocumentPendingUpload): Promise<PrismaApplication> =>
+      getApplication(parent.applicationId),
     deliverable: resolveDeliverable,
-    phaseName: (parent: PrismaDocumentPendingUpload) => parent.phaseId as PhaseName,
+    phaseName: (parent: PrismaDocumentPendingUpload): PhaseName => parent.phaseId as PhaseName,
   },
 };

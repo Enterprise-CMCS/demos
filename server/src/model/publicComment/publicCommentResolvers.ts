@@ -11,19 +11,17 @@ import { createPublicComment } from ".";
 
 export const publicCommentResolvers = {
   Mutation: {
-    createPublicComment: async (
+    createPublicComment: (
       parent: unknown,
       args: { deliverableId: string; comment: NonEmptyString },
       context: GraphQLContext
-    ) => {
-      return await createPublicComment(args.deliverableId, args.comment, context);
-    },
+    ): Promise<PrismaPublicComment> =>
+      createPublicComment(args.deliverableId, args.comment, context),
   },
 
   DeliverableComment: {
     deliverable: resolveDeliverable,
-    authorUser: async (parent: PrismaPublicComment | PrismaPrivateComment): Promise<PrismaUser> => {
-      return await selectUserOrThrow({ id: parent.authorUserId });
-    },
+    authorUser: (parent: PrismaPublicComment | PrismaPrivateComment): Promise<PrismaUser> =>
+      selectUserOrThrow({ id: parent.authorUserId }),
   },
 };

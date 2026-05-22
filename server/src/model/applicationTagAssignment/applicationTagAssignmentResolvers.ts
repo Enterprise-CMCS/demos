@@ -9,7 +9,7 @@ import {
 } from ".";
 
 export async function setApplicationTags(
-  _: unknown,
+  parent: unknown,
   { input }: { input: SetApplicationTagsInput }
 ): Promise<PrismaApplication> {
   try {

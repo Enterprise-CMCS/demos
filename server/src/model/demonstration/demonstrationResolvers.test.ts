@@ -53,9 +53,9 @@ import {
   selectManyDemonstrationRoleAssignments,
 } from "../demonstrationRoleAssignment/queries";
 import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
-import { getState } from "../state";
 import { DemonstrationRoleAssignmentQueryResult } from "../demonstrationRoleAssignment/queries";
 import { selectPersonOrThrow } from "../person/queries";
+import { selectStateOrThrow } from "../state/queries";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -103,8 +103,8 @@ vi.mock("../person/queries", () => ({
   selectPersonOrThrow: vi.fn(),
 }));
 
-vi.mock("../state", () => ({
-  getState: vi.fn(),
+vi.mock("../state/queries", () => ({
+  selectStateOrThrow: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -297,9 +297,9 @@ describe("demonstrationResolvers", () => {
 
   describe("Demonstration.phases", () => {
     it("delegates to `applicationPhaseData/queries.selectManyApplicationPhases`", async () => {
-      await demonstrationResolvers.Demonstration.phases(
-        { id: "demonstrationId" } as PrismaDemonstration,
-      );
+      await demonstrationResolvers.Demonstration.phases({
+        id: "demonstrationId",
+      } as PrismaDemonstration);
       expect(selectManyApplicationPhases).toHaveBeenCalledExactlyOnceWith({
         applicationId: "demonstrationId",
       });
@@ -353,17 +353,14 @@ describe("demonstrationResolvers", () => {
         },
       ] as PrismaApplicationTagSuggestion[]);
 
-      const result = await demonstrationResolvers.Demonstration.suggestedApplicationTags(
-        mockDemonstration,
-      );
-      expect(selectManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith(
-        {
-          applicationId: "abc123",
-          statusId: {
-            in: ["Pending"],
-          },
+      const result =
+        await demonstrationResolvers.Demonstration.suggestedApplicationTags(mockDemonstration);
+      expect(selectManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "abc123",
+        statusId: {
+          in: ["Pending"],
         },
-      );
+      });
       expect(result).toEqual(["Suggestion1", "Suggestion2"]);
     });
   });
@@ -438,7 +435,7 @@ describe("demonstrationResolvers", () => {
   describe("Demonstration.state", () => {
     it("delegates to stateData.getState", async () => {
       await demonstrationResolvers.Demonstration.state({ stateId: "NC" } as PrismaDemonstration);
-      expect(getState).toHaveBeenCalledExactlyOnceWith({ id: "NC" });
+      expect(selectStateOrThrow).toHaveBeenCalledExactlyOnceWith({ id: "NC" });
     });
   });
 

@@ -17,7 +17,7 @@ export const userSchema = gql`
   }
 
   type Query {
-    currentUser: User
+    currentUser: User!
   }
 `;
 
