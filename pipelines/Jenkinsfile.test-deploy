@@ -28,11 +28,11 @@ pipeline {
 
       steps {
         script {
-          container('node') {
-            // The GIT_COMMIT env set by Jenkins isn't accurate for this type of
-            // pipeline, so it needs to be parsed
-            env.MAIN_COMMIT_HASH = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
+          // The GIT_COMMIT env set by Jenkins isn't accurate for this type of
+          // pipeline, so it needs to be parsed
+          env.MAIN_COMMIT_HASH = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
 
+          container('node') {
             sh 'apk add --no-cache curl jq'
 
             def mainStatus = sh( script:'''
