@@ -24,19 +24,22 @@ import type { ContactRow, ContactType } from "../table/columns/ContactColumns";
 import { ContactColumns } from "../table/columns/ContactColumns";
 import { PaginationControls } from "../table/PaginationControls";
 
-const SEARCH_PEOPLE_QUERY = gql`
-  query SearchPeople($search: String!, $demonstrationId: ID) {
-    searchPeople(search: $search, demonstrationId: $demonstrationId) {
+export const SEARCH_PEOPLE_QUERY = gql`
+  query ManageContactsQuery {
+    people {
       id
       firstName
       lastName
       email
       personType
+      states {
+        id
+      }
     }
   }
 `;
 
-const SET_DEMONSTRATION_ROLE_MUTATION = gql`
+export const SET_DEMONSTRATION_ROLE_MUTATION = gql`
   mutation SetDemonstrationRoles($input: [SetDemonstrationRoleInput!]!) {
     setDemonstrationRoles(input: $input) {
       role
@@ -77,6 +80,9 @@ type PersonSearchResult = {
   lastName: string;
   email: string;
   personType: string;
+  states: {
+    id: string;
+  }[];
 };
 
 export type ExistingContactType = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
@@ -87,6 +93,7 @@ export type ExistingContactType = Pick<DemonstrationRoleAssignment, "role" | "is
 export type ManageContactsDialogProps = {
   onClose: () => void;
   demonstrationId: string;
+  stateId: string;
   existingContacts?: ExistingContactType[];
 };
 
@@ -104,6 +111,7 @@ const mapExistingContacts = (arr: ManageContactsDialogProps["existingContacts"] 
 export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   onClose,
   demonstrationId,
+  stateId,
   existingContacts = [],
 }) => {
   const contactIdCounter = useRef(0);
@@ -125,7 +133,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
   const [searchPeople] = useLazyQuery(SEARCH_PEOPLE_QUERY, {
     fetchPolicy: "network-only",
     onCompleted: (data) => {
-      const results = data.searchPeople || [];
+      const results = data.people || [];
       setSearchResults(results);
     },
     onError: (error) => {
@@ -182,12 +190,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     if (!personId) return options;
 
     const usedRoles = selectedContacts
-      .filter(
-        (c) =>
-          c.personId === personId &&
-          c.contactType &&
-          c.id !== currentRowId
-      )
+      .filter((c) => c.personId === personId && c.contactType && c.id !== currentRowId)
       .map((c) => c.contactType);
 
     return options.filter((opt) => !usedRoles.includes(opt.value));
@@ -197,12 +200,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
 
   useEffect(() => {
     if (debouncedSearchTerm.length >= 2) {
-      searchPeople({
-        variables: {
-          search: debouncedSearchTerm,
-          demonstrationId: demonstrationId,
-        },
-      });
+      searchPeople();
     } else {
       setSearchResults([]);
     }
@@ -262,10 +260,7 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
 
           if (newType === "Project Officer") {
             const existingPrimaryPOs = previousContacts.filter(
-              (c) =>
-                c.contactType === "Project Officer" &&
-                c.isPrimary &&
-                c.id !== id
+              (c) => c.contactType === "Project Officer" && c.isPrimary && c.id !== id
             );
             newIsPrimary = existingPrimaryPOs.length === 0;
           }
@@ -534,7 +529,6 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
     }
   };
 
-
   const contactColumns = useMemo(
     () =>
       ContactColumns({
@@ -594,21 +588,26 @@ export const ManageContactsDialog: React.FC<ManageContactsDialogProps> = ({
               </div>
             )}
             {(() => {
-              let filteredResults = searchResults.filter((p) => {
-                const idmRoles = [p.personType];
+              let filteredResults = searchResults
+                .filter((person) => {
+                  return person.states.some((s) => s.id === stateId);
+                })
+                .filter((p) => {
+                  const idmRoles = [p.personType];
 
-                const allowedRoles = getFilteredContactTypeOptions(idmRoles).map((r) => r.value);
+                  const allowedRoles = getFilteredContactTypeOptions(idmRoles).map((r) => r.value);
 
-                const alreadyUsedRoles = selectedContacts
-                  .filter((c) => c.personId === p.id && c.contactType)
-                  .map((c) => c.contactType);
+                  const alreadyUsedRoles = selectedContacts
+                    .filter((c) => c.personId === p.id && c.contactType)
+                    .map((c) => c.contactType);
 
-                const remainingRoles = allowedRoles.filter((role) => !alreadyUsedRoles.includes(role));
+                  const remainingRoles = allowedRoles.filter(
+                    (role) => !alreadyUsedRoles.includes(role)
+                  );
 
-                return remainingRoles.length > 0;
-              }).filter(
-                (p, index, arr) => arr.findIndex((item) => item.id === p.id) === index
-              );
+                  return remainingRoles.length > 0;
+                })
+                .filter((p, index, arr) => arr.findIndex((item) => item.id === p.id) === index);
 
               if (searchTerm.length >= 2) {
                 const searchTermLower = searchTerm.toLowerCase();

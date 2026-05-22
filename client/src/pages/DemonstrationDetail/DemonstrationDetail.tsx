@@ -7,6 +7,7 @@ import {
   DemonstrationTypeAssignment,
   Document,
   Person,
+  State,
 } from "demos-server";
 import { useLocation, useParams } from "react-router-dom";
 import { gql, useQuery } from "@apollo/client";
@@ -46,6 +47,9 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       currentPhaseName
       effectiveDate
       expirationDate
+      state {
+        id
+      }
       amendments {
         name
         id
@@ -133,7 +137,11 @@ export type DemonstrationDetailModification = Pick<
     owner: { person: Pick<Person, "fullName"> };
   })[];
 };
-export type DemonstrationDetail = Pick<Demonstration, "id" | "name" | "status" | "currentPhaseName" | "effectiveDate" | "expirationDate"> & {
+export type DemonstrationDetail = Pick<
+  Demonstration,
+  "id" | "name" | "status" | "currentPhaseName" | "effectiveDate" | "expirationDate"
+> & {
+  state: Pick<State, "id">;
   amendments: DemonstrationDetailModification[];
   extensions: DemonstrationDetailModification[];
   demonstrationTypes: Pick<

@@ -424,7 +424,7 @@ const TestConsumer: React.FC = () => {
       </button>
       <button
         data-testid="open-contacts-btn"
-        onClick={() => showManageContactsDialog("demo-id", mockRoles)}
+        onClick={() => showManageContactsDialog("demo-id", "NC", mockRoles)}
       >
         Open Manage Contacts Dialog
       </button>
