@@ -15,52 +15,6 @@ export const personResolvers = {
     person: (parent: unknown, args: { id: string }): Promise<PrismaPerson> =>
       selectPersonOrThrow({ id: args.id }),
     people: (): Promise<PrismaPerson[]> => selectManyPeople({}),
-    searchPeople: async (
-      parent: unknown,
-      { search, demonstrationId }: { search: string; demonstrationId?: string }
-    ): Promise<PrismaPerson[]> => {
-      const searchConditions = [
-        { firstName: { contains: search, mode: "insensitive" as const } },
-        { lastName: { contains: search, mode: "insensitive" as const } },
-        { email: { contains: search, mode: "insensitive" as const } },
-      ];
-
-      const baseWhere = {
-        OR: searchConditions,
-      };
-
-      if (demonstrationId) {
-        const demonstration = await prisma().demonstration.findUnique({
-          where: { id: demonstrationId },
-          include: { state: true },
-        });
-
-        if (demonstration) {
-          return await prisma().person.findMany({
-            where: {
-              ...baseWhere,
-              OR: [
-                {
-                  personTypeId: { not: "demos-state-user" },
-                },
-                {
-                  personTypeId: "demos-state-user",
-                  personStates: {
-                    some: {
-                      stateId: demonstration.stateId,
-                    },
-                  },
-                },
-              ],
-            },
-          });
-        }
-      }
-
-      return await prisma().person.findMany({
-        where: baseWhere,
-      });
-    },
   },
 
   Person: {
