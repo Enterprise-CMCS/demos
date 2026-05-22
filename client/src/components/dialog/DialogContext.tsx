@@ -108,11 +108,13 @@ export const useDialog = () => {
 
   const showManageContactsDialog = (
     demonstrationId: string,
+    stateId: string,
     existingContacts?: ExistingContactType[]
   ) => {
     context.showDialog(
       <ManageContactsDialog
         demonstrationId={demonstrationId}
+        stateId={stateId}
         existingContacts={existingContacts}
         onClose={context.hideDialog}
       />

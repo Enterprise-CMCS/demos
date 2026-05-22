@@ -19,8 +19,6 @@ export const personSchema = gql`
   type Query {
     person(id: ID!): Person! @auth(requires: ["Access CMS Query"])
     people: [Person!]! @auth(requires: ["Access CMS Query"])
-    searchPeople(search: String!, demonstrationId: ID): [Person!]!
-      @auth(requires: ["Access CMS Query"])
   }
 `;
 

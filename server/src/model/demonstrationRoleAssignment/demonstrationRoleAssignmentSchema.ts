@@ -5,7 +5,7 @@ import { Person } from "../person/personSchema";
 
 export const demonstrationRoleAssignmentSchema = gql`
   type DemonstrationRoleAssignment {
-    demonstration: Demonstration! @auth(requires: ["Access CMS Field"])
+    demonstration: Demonstration!
     person: Person!
     role: Role!
     isPrimary: Boolean!

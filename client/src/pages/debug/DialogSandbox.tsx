@@ -180,7 +180,7 @@ export const DialogSandbox: React.FC = () => {
           </Button>
           <Button
             name="manage-contacts"
-            onClick={() => showManageContactsDialog(ID, EXISTING_CONTACTS)}
+            onClick={() => showManageContactsDialog(ID, "NC", EXISTING_CONTACTS)}
           >
             Manage Contacts
           </Button>

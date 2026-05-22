@@ -22,6 +22,9 @@ vi.mock("components/dialog/DialogContext", () => ({
 
 const mockDemonstration: DemonstrationTabDemonstration = {
   id: "demo-123",
+  state: {
+    id: "NC",
+  },
   name: "Contacts Test Demonstration",
   status: "Pre-Submission" as const,
   currentPhaseName: "Concept" as const,
@@ -70,6 +73,9 @@ const mockDemonstration: DemonstrationTabDemonstration = {
 
 const mockDemonstrationEmptyRoles: DemonstrationTabDemonstration = {
   id: "demo-123",
+  state: {
+    id: "NC",
+  },
   name: "Contacts Test Demonstration",
   status: "Pre-Submission" as const,
   currentPhaseName: "Concept" as const,
@@ -143,7 +149,7 @@ describe("DemonstrationTab", () => {
       }));
 
       // Verify the dialog gets the mapped contacts with personType
-      expect(showManageContactsDialog).toHaveBeenCalledWith(mockDemonstration.id, roles);
+      expect(showManageContactsDialog).toHaveBeenCalledWith(mockDemonstration.id, "NC", roles);
     });
 
     it("shows Manage Contact(s) button in contacts tab", async () => {
@@ -161,7 +167,11 @@ describe("DemonstrationTab", () => {
       const manageContactsButton = screen.getByRole("button", { name: "manage-contacts" });
       await user.click(manageContactsButton);
 
-      expect(showManageContactsDialog).toHaveBeenCalledWith(mockDemonstrationEmptyRoles.id, []);
+      expect(showManageContactsDialog).toHaveBeenCalledWith(
+        mockDemonstrationEmptyRoles.id,
+        "NC",
+        []
+      );
     });
   });
 });

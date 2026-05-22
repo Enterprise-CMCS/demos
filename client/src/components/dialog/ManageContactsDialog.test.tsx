@@ -10,44 +10,28 @@ import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { ManageContactsDialog, ManageContactsDialogProps } from "./ManageContactsDialog";
-
-// GraphQL queries used in the component
-const SEARCH_PEOPLE_QUERY = gql`
-  query SearchPeople($search: String!, $demonstrationId: ID) {
-    searchPeople(search: $search, demonstrationId: $demonstrationId) {
-      id
-      firstName
-      lastName
-      email
-      personType
-    }
-  }
-`;
-
-const SET_DEMONSTRATION_ROLE_MUTATION = gql`
-  mutation SetDemonstrationRoles($input: [SetDemonstrationRoleInput!]!) {
-    setDemonstrationRoles(input: $input) {
-      role
-    }
-  }
-`;
+import {
+  ManageContactsDialog,
+  ManageContactsDialogProps,
+  SEARCH_PEOPLE_QUERY,
+  SET_DEMONSTRATION_ROLE_MUTATION,
+} from "./ManageContactsDialog";
 
 // Mock GraphQL queries/mutations - Multiple search terms
-const createSearchMock = (searchTerm: string) => ({
+const createSearchMock = () => ({
   request: {
     query: SEARCH_PEOPLE_QUERY,
-    variables: { search: searchTerm, demonstrationId: "demo-1" },
   },
   result: {
     data: {
-      searchPeople: [
+      people: [
         {
           id: "person-1",
           firstName: "John",
           lastName: "Doe",
           email: "john.doe@example.com",
           personType: "demos-cms-user",
+          states: [{ id: "NC" }],
         },
         {
           id: "person-2",
@@ -55,20 +39,15 @@ const createSearchMock = (searchTerm: string) => ({
           lastName: "Smith",
           email: "jane.smith@state.gov",
           personType: "demos-state-user",
+          states: [{ id: "SC" }, { id: "GA" }],
         },
       ],
     },
   },
+  maxUsageCount: Number.POSITIVE_INFINITY,
 });
 
-const SEARCH_PEOPLE_MOCKS = [
-  createSearchMock("jo"),
-  createSearchMock("joh"),
-  createSearchMock("john"),
-  createSearchMock("ja"),
-  createSearchMock("jan"),
-  createSearchMock("jane"),
-];
+const SEARCH_PEOPLE_MOCKS = [createSearchMock()];
 
 const SET_ROLES_MOCK = {
   request: {
@@ -93,6 +72,7 @@ const SET_ROLES_MOCK = {
 
 const defaultProps: ManageContactsDialogProps = {
   onClose: vi.fn(),
+  stateId: "NC",
   demonstrationId: "demo-1",
   existingContacts: [],
 };
@@ -450,7 +430,9 @@ describe("ManageContactsDialog", () => {
       expect(screen.getByText("John Doe")).toBeInTheDocument();
     });
 
-    const deleteButton = screen.getByRole("button", { name: "Delete Contact - Assign another Primary Project Officer to Delete" });
+    const deleteButton = screen.getByRole("button", {
+      name: "Delete Contact - Assign another Primary Project Officer to Delete",
+    });
     expect(deleteButton).toBeDisabled();
   });
 
@@ -504,17 +486,23 @@ describe("ManageContactsDialog", () => {
 
     // Primary Project Officer should be disabled
     const johnRow = screen.getByText("John Doe").closest("tr");
-    const johnDeleteButton = within(johnRow!).getByRole("button", { name: "Delete Contact - Assign another Primary Project Officer to Delete" });
+    const johnDeleteButton = within(johnRow!).getByRole("button", {
+      name: "Delete Contact - Assign another Primary Project Officer to Delete",
+    });
     expect(johnDeleteButton).toBeDisabled();
 
     // Primary State Point of Contact should be enabled (not a Project Officer)
     const janeRow = screen.getByText("Jane Smith").closest("tr");
-    const janeDeleteButton = within(janeRow!).getByRole("button", { name: "Delete Contact - Delete" });
+    const janeDeleteButton = within(janeRow!).getByRole("button", {
+      name: "Delete Contact - Delete",
+    });
     expect(janeDeleteButton).not.toBeDisabled();
 
     // Non-primary State Point of Contact should be enabled
     const bobRow = screen.getByText("Bob Wilson").closest("tr");
-    const bobDeleteButton = within(bobRow!).getByRole("button", { name: "Delete Contact - Delete" });
+    const bobDeleteButton = within(bobRow!).getByRole("button", {
+      name: "Delete Contact - Delete",
+    });
     expect(bobDeleteButton).not.toBeDisabled();
   });
 
@@ -700,9 +688,7 @@ describe("ManageContactsDialog", () => {
     });
     const searchResults1 = await screen.getByTestId("search-results-dropdown");
 
-    await user.click(
-      within(searchResults1).getByText("John Doe")
-    );
+    await user.click(within(searchResults1).getByText("John Doe"));
 
     // Assign role so search re-enables
     const firstSelect = await screen.getByTestId("contact-type-0");
@@ -715,16 +701,16 @@ describe("ManageContactsDialog", () => {
     });
     const searchResults2 = await screen.getByTestId("search-results-dropdown");
 
-    await user.click(
-      within(searchResults2).getByText("John Doe")
-    );
+    await user.click(within(searchResults2).getByText("John Doe"));
 
     // Now second row should exist
     const secondSelect = screen.getByTestId("contact-type-1");
 
     await waitFor(() => {
       expect(
-        within(secondSelect).getAllByRole("option").map(o => o.textContent)
+        within(secondSelect)
+          .getAllByRole("option")
+          .map((o) => o.textContent)
       ).not.toContain("Project Officer");
     });
   });
@@ -946,7 +932,9 @@ describe("ManageContactsDialog", () => {
 
       renderWithProviders(propsWithContacts);
 
-      const deleteButton = screen.getByRole("button", { name: "Delete Contact - Assign another Primary Project Officer to Delete" });
+      const deleteButton = screen.getByRole("button", {
+        name: "Delete Contact - Assign another Primary Project Officer to Delete",
+      });
       expect(deleteButton).toBeDisabled();
     });
 
@@ -988,14 +976,18 @@ describe("ManageContactsDialog", () => {
 
       // Find the delete button for the primary Project Officer (John Doe)
       const johnRow = screen.getByText("John Doe (Primary)").closest("tr");
-      const johnDeleteButton = within(johnRow!).getByRole("button", { name: "Delete Contact - Assign another Primary Project Officer to Delete" });
+      const johnDeleteButton = within(johnRow!).getByRole("button", {
+        name: "Delete Contact - Assign another Primary Project Officer to Delete",
+      });
 
       // Primary Project Officer delete button should ALWAYS be disabled
       expect(johnDeleteButton).toBeDisabled();
 
       // Find the delete button for the non-primary Project Officer (Jane Smith)
       const janeRow = screen.getByText("Jane Smith").closest("tr");
-      const janeDeleteButton = within(janeRow!).getByRole("button", { name: "Delete Contact - Delete" });
+      const janeDeleteButton = within(janeRow!).getByRole("button", {
+        name: "Delete Contact - Delete",
+      });
 
       // Non-primary Project Officer delete button should be enabled when there are multiple POs
       expect(janeDeleteButton).not.toBeDisabled();
@@ -1040,7 +1032,9 @@ describe("ManageContactsDialog", () => {
 
       // Find the delete button for the non-primary Project Officer (Jane Smith)
       const janeRow = screen.getByText("Jane Smith").closest("tr");
-      const deleteButton = within(janeRow!).getByRole("button", { name: "Delete Contact - Delete" });
+      const deleteButton = within(janeRow!).getByRole("button", {
+        name: "Delete Contact - Delete",
+      });
 
       // Non-primary Project Officer should be deletable
       expect(deleteButton).not.toBeDisabled();
@@ -1283,7 +1277,7 @@ describe("ManageContactsDialog", () => {
       const user = userEvent.setup();
       const mocks = SEARCH_PEOPLE_MOCKS;
 
-      renderWithProviders(defaultProps, mocks);
+      renderWithProviders({ ...defaultProps, stateId: "GA" }, mocks);
 
       const searchInput = screen.getByPlaceholderText("Search by name or email");
 
