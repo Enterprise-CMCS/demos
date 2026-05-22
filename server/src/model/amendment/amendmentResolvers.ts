@@ -23,7 +23,7 @@ import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate"
 import { deleteApplication } from "../application";
 import { getDemonstration } from "../demonstration";
 import { GraphQLContext } from "../../auth";
-import { getAmendment, getManyAmendments } from "./amendmentData";
+import { getAmendment } from "./amendmentData";
 import { getManyDocuments } from "../document";
 import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
 import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
@@ -100,11 +100,6 @@ export const amendmentResolvers = {
       args: { id: string },
       context: GraphQLContext
     ): Promise<PrismaAmendment> => getAmendment({ id: args.id }, context.user),
-    amendments: (
-      parent: unknown,
-      args: unknown,
-      context: GraphQLContext
-    ): Promise<PrismaAmendment[]> => getManyAmendments({}, context.user),
   },
 
   Mutation: {
