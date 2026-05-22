@@ -436,7 +436,10 @@ export const PHASE_START_END_DATES: PhaseStartEndDateRecord = {
     startDate: "Approval Package Start Date",
     endDate: "Approval Package Completion Date",
   },
-  "Approval Summary": {},
+  "Approval Summary": {
+    startDate: "Approval Summary Start Date",
+    endDate: "Approval Summary Completion Date",
+  },
 };
 
 export const TAG_STATUSES = ["Unapproved", "Approved"] as const;

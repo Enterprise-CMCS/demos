@@ -66,16 +66,4 @@ describe("createPhaseStartDate", () => {
       });
     });
   });
-
-  describe("when phase has no start date", () => {
-    it("should return null for phase without start date", () => {
-      // approval summary phase currently has no start date
-      const phaseId = "Approval Summary" as PhaseName;
-
-      const result = createPhaseStartDate(phaseId, mockEasternNow);
-
-      expect(result).toBeNull();
-      expect(getDayBoundaryLabel).not.toHaveBeenCalled();
-    });
-  });
 });
