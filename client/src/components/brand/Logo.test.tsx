@@ -5,10 +5,11 @@ import { Logo } from "./Logo";
 describe("Logo", () => {
   it("renders the logo image with correct src and alt attributes", () => {
     render(<Logo />);
-    const logoImage = screen.getByAltText(
-      "DEMOS Logo with text: DEMOS, Demonstration Evaluation Management & Oversight System"
-    ) as HTMLImageElement;
+    const logoImage = screen.getByTestId("demos-logo") as HTMLImageElement;
     expect(logoImage).toBeInTheDocument();
     expect(logoImage.src).toContain("/img/logo.svg");
+    expect(logoImage.alt).toBe(
+      "DEMOS Logo with text: DEMOS, Demonstration Evaluation Management & Oversight System"
+    );
   });
 });
