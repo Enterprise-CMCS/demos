@@ -57,7 +57,6 @@ export const amendmentSchema = gql`
   }
 
   type Query {
-    amendments: [Amendment!]! @auth(requires: ["Access CMS Query"])
     amendment(id: ID!): Amendment! @auth(requires: ["Access CMS Query"])
   }
 `;
