@@ -16,7 +16,6 @@ export { skipConceptPhase } from "./skipConceptPhase.js";
 export { declareCompletenessPhaseIncomplete } from "./declareCompletenessPhaseIncomplete.js";
 export { startPhasesByDates } from "./startPhasesByDates.js";
 export { startPhase } from "./startPhase.js";
-export { getApplicationPhase, getManyApplicationPhases } from "./applicationPhaseData";
 
 // Queries
 export { getApplicationPhaseDocumentTypes } from "./queries/getApplicationPhaseDocumentTypes.js";

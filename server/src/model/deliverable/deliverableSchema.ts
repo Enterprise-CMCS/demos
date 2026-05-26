@@ -86,32 +86,32 @@ export const deliverableSchema = gql`
   }
 
   type Mutation {
-    createDeliverable(input: CreateDeliverableInput): Deliverable
+    createDeliverable(input: CreateDeliverableInput!): Deliverable!
       @auth(requires: ["Perform CMS Action"])
-    updateDeliverable(id: ID!, input: UpdateDeliverableInput!): Deliverable
+    updateDeliverable(id: ID!, input: UpdateDeliverableInput!): Deliverable!
       @auth(requires: ["Perform CMS Action"])
-    submitDeliverable(id: ID!): Deliverable
+    submitDeliverable(id: ID!): Deliverable!
       @auth(requires: ["Perform CMS Action", "Perform State Action"])
-    startDeliverableReview(id: ID!): Deliverable @auth(requires: ["Perform CMS Action"])
-    completeDeliverable(id: ID!, finalStatus: FinalDeliverableStatus!): Deliverable
+    startDeliverableReview(id: ID!): Deliverable! @auth(requires: ["Perform CMS Action"])
+    completeDeliverable(id: ID!, finalStatus: FinalDeliverableStatus!): Deliverable!
       @auth(requires: ["Perform CMS Action"])
     requestDeliverableResubmission(
       id: ID!
       input: RequestDeliverableResubmissionInput!
-    ): Deliverable @auth(requires: ["Perform CMS Action"])
+    ): Deliverable! @auth(requires: ["Perform CMS Action"])
     requestDeliverableExtension(
       deliverableId: ID!
       input: RequestDeliverableExtensionInput!
-    ): Deliverable @auth(requires: ["Perform State Action"])
+    ): Deliverable! @auth(requires: ["Perform State Action"])
     approveDeliverableExtension(
       deliverableId: ID!
       input: ApproveDeliverableExtensionInput!
-    ): Deliverable @auth(requires: ["Perform CMS Action"])
+    ): Deliverable! @auth(requires: ["Perform CMS Action"])
     denyDeliverableExtension(
       deliverableId: ID!
       input: DenyDeliverableExtensionInput!
-    ): Deliverable @auth(requires: ["Perform CMS Action"])
-    deleteDeliverable(id: ID!): Deliverable @auth(requires: ["Perform CMS Action"])
+    ): Deliverable! @auth(requires: ["Perform CMS Action"])
+    deleteDeliverable(id: ID!): Deliverable! @auth(requires: ["Perform CMS Action"])
   }
 `;
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
@@ -117,8 +117,12 @@ describe("AddDemonstrationTypesForm", () => {
 
     await user.click(screen.getByRole("textbox"));
     await user.click(screen.getByText("Type C (Unapproved)"));
-    await user.type(screen.getByLabelText(/effective date/i), "2024-01-03");
-    await user.type(screen.getByLabelText(/expiration date/i), "2025-01-03");
+    const effectiveDate = screen.getByLabelText(/effective date/i);
+    const expirationDate = screen.getByLabelText(/expiration date/i);
+    await user.type(effectiveDate, "2024-01-03");
+    await user.type(expirationDate, "2025-01-03");
+    fireEvent.blur(effectiveDate);
+    fireEvent.blur(expirationDate);
 
     expect(addButton).toBeEnabled();
   });
@@ -129,8 +133,12 @@ describe("AddDemonstrationTypesForm", () => {
 
     await user.click(screen.getByRole("textbox"));
     await user.click(screen.getByText("Type C (Unapproved)"));
-    await user.type(screen.getByLabelText(/effective date/i), "2024-01-03");
-    await user.type(screen.getByLabelText(/expiration date/i), "2025-01-03");
+    const effectiveDate = screen.getByLabelText(/effective date/i);
+    const expirationDate = screen.getByLabelText(/expiration date/i);
+    await user.type(effectiveDate, "2024-01-03");
+    await user.type(expirationDate, "2025-01-03");
+    fireEvent.blur(effectiveDate);
+    fireEvent.blur(expirationDate);
     await user.click(screen.getByTestId("button-add-demonstration-type"));
 
     expect(mockAddDemonstrationType).toHaveBeenCalledWith({
@@ -213,8 +221,12 @@ describe("AddDemonstrationTypesForm", () => {
     await user.type(input, "Brand New Type");
     await user.click(screen.getByTestId("button-create-type"));
 
-    await user.type(screen.getByLabelText(/effective date/i), "2024-01-03");
-    await user.type(screen.getByLabelText(/expiration date/i), "2025-01-03");
+    const effectiveDate = screen.getByLabelText(/effective date/i);
+    const expirationDate = screen.getByLabelText(/expiration date/i);
+    await user.type(effectiveDate, "2024-01-03");
+    await user.type(expirationDate, "2025-01-03");
+    fireEvent.blur(effectiveDate);
+    fireEvent.blur(expirationDate);
     await user.click(screen.getByTestId("button-add-demonstration-type"));
 
     expect(mockAddDemonstrationType).toHaveBeenCalledWith({
@@ -271,8 +283,12 @@ describe("AddDemonstrationTypesForm", () => {
     await user.click(screen.getByText("Type C (Unapproved)"));
     expect(screen.getByTestId("unapproved-warning-banner")).toBeInTheDocument();
 
-    await user.type(screen.getByLabelText(/effective date/i), "2024-01-03");
-    await user.type(screen.getByLabelText(/expiration date/i), "2025-01-03");
+    const effectiveDate = screen.getByLabelText(/effective date/i);
+    const expirationDate = screen.getByLabelText(/expiration date/i);
+    await user.type(effectiveDate, "2024-01-03");
+    await user.type(expirationDate, "2025-01-03");
+    fireEvent.blur(effectiveDate);
+    fireEvent.blur(expirationDate);
     await user.click(screen.getByTestId("button-add-demonstration-type"));
 
     expect(screen.queryByTestId("unapproved-warning-banner")).not.toBeInTheDocument();

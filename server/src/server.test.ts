@@ -8,11 +8,11 @@ const ApolloServerMock = class {
   }
 };
 
-const startServerAndCreateLambdaHandlerMock = vi.fn((server: any, handler: any, opts: any) => ({
+const startServerAndCreateLambdaHandlerMock = vi.fn(() => ({
   handlerCalled: true,
 }));
 const handlersMock = { createAPIGatewayProxyEventRequestHandler: vi.fn(() => ({ handler: true })) };
-const ApolloArmorMock = vi.fn(function (this: any, cfg: any) {
+const ApolloArmorMock = vi.fn(function (this: any) {
   this.protect = () => ({ plugins: [], validationRules: [] });
 });
 const validateClaimsMock = vi.fn();

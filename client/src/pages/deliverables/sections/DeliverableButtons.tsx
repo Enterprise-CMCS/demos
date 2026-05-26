@@ -29,7 +29,6 @@ export const DeliverableButtons = ({
     showRequestExtensionDeliverableDialog({
       id: deliverable.id,
       dueDate: deliverable.dueDate,
-      demonstration: { expirationDate: deliverable.demonstration.expirationDate },
     });
   };
 

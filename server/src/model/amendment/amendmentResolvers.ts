@@ -1,10 +1,19 @@
-import { Amendment as PrismaAmendment } from "@prisma/client";
+import {
+  Demonstration as PrismaDemonstration,
+  Amendment as PrismaAmendment,
+  Document as PrismaDocument,
+  ApplicationPhase as PrismaApplicationPhase,
+} from "@prisma/client";
 import { prisma } from "../../prismaClient";
 import {
   ApplicationStatus,
   ApplicationType,
+  ClearanceLevel,
   CreateAmendmentInput,
   PhaseName,
+  SignatureLevel,
+  Tag,
+  TagStatus,
   UiPathResultStatus,
   UpdateAmendmentInput,
 } from "../../types";
@@ -16,9 +25,9 @@ import { getDemonstration } from "../demonstration";
 import { GraphQLContext } from "../../auth";
 import { getAmendment, getManyAmendments } from "./amendmentData";
 import { getManyDocuments } from "../document";
-import { getManyApplicationPhases } from "../applicationPhase";
-import { getManyApplicationTagAssignments } from "../applicationTagAssignment";
-import { getManyApplicationTagSuggestions } from "../applicationTagSuggestion";
+import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
+import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
+import { selectManyApplicationPhases } from "../applicationPhase/queries";
 
 const amendmentApplicationType: ApplicationType = "Amendment";
 const conceptPhaseName: PhaseName = "Concept";
@@ -86,10 +95,16 @@ export async function deleteAmendment(
 
 export const amendmentResolvers = {
   Query: {
-    amendment: (parent: unknown, args: { id: string }, context: GraphQLContext) =>
-      getAmendment({ id: args.id }, context.user),
-    amendments: (parent: unknown, args: unknown, context: GraphQLContext) =>
-      getManyAmendments({}, context.user),
+    amendment: (
+      parent: unknown,
+      args: { id: string },
+      context: GraphQLContext
+    ): Promise<PrismaAmendment> => getAmendment({ id: args.id }, context.user),
+    amendments: (
+      parent: unknown,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaAmendment[]> => getManyAmendments({}, context.user),
   },
 
   Mutation: {
@@ -99,42 +114,43 @@ export const amendmentResolvers = {
   },
 
   Amendment: {
-    demonstration: (parent: PrismaAmendment, args: unknown, context: GraphQLContext) =>
-      getDemonstration({ id: parent.demonstrationId }, context.user),
-    documents: (parent: PrismaAmendment, args: unknown, context: GraphQLContext) =>
-      getManyDocuments({ applicationId: parent.id }, context.user),
-    currentPhaseName: (parent: PrismaAmendment) => parent.currentPhaseId,
-    status: (parent: PrismaAmendment) => parent.statusId,
-    phases: (parent: PrismaAmendment, args: unknown, context: GraphQLContext) =>
-      getManyApplicationPhases({ applicationId: parent.id }, context.user),
-    clearanceLevel: (parent: PrismaAmendment) => parent.clearanceLevelId,
-    tags: async (parent: PrismaAmendment, args: unknown, context: GraphQLContext) =>
-      (await getManyApplicationTagAssignments({ applicationId: parent.id }, context.user)).map(
-        (assignment) => {
-          const { statusId, tagNameId, ...tag } = assignment.tag;
-          return {
-            ...tag,
-            tagName: tagNameId,
-            approvalStatus: statusId,
-          };
-        }
-      ),
-    signatureLevel: (parent: PrismaAmendment) => parent.signatureLevelId,
-    suggestedApplicationTags: async (
+    demonstration: (
       parent: PrismaAmendment,
       args: unknown,
       context: GraphQLContext
-    ) =>
+    ): Promise<PrismaDemonstration> =>
+      getDemonstration({ id: parent.demonstrationId }, context.user),
+    documents: (
+      parent: PrismaAmendment,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaDocument[]> => getManyDocuments({ applicationId: parent.id }, context.user),
+    currentPhaseName: (parent: PrismaAmendment): PhaseName => parent.currentPhaseId as PhaseName,
+    status: (parent: PrismaAmendment): ApplicationStatus => parent.statusId as ApplicationStatus,
+    phases: (parent: PrismaAmendment): Promise<PrismaApplicationPhase[]> =>
+      selectManyApplicationPhases({ applicationId: parent.id }),
+    clearanceLevel: (parent: PrismaAmendment): ClearanceLevel =>
+      parent.clearanceLevelId as ClearanceLevel,
+    tags: async (parent: PrismaAmendment): Promise<Tag[]> =>
+      (await selectManyApplicationTagAssignments({ applicationId: parent.id })).map(
+        (assignment) => {
+          const { statusId, tagNameId } = assignment.tag;
+          return {
+            tagName: tagNameId,
+            approvalStatus: statusId as TagStatus,
+          };
+        }
+      ),
+    signatureLevel: (parent: PrismaAmendment): SignatureLevel =>
+      parent.signatureLevelId as SignatureLevel,
+    suggestedApplicationTags: async (parent: PrismaAmendment): Promise<string[]> =>
       (
-        await getManyApplicationTagSuggestions(
-          {
-            applicationId: parent.id,
-            statusId: {
-              in: ["Pending" satisfies UiPathResultStatus],
-            },
+        await selectManyApplicationTagSuggestions({
+          applicationId: parent.id,
+          statusId: {
+            in: ["Pending" satisfies UiPathResultStatus],
           },
-          context.user
-        )
+        })
       ).map((suggestion) => suggestion.value),
   },
 };

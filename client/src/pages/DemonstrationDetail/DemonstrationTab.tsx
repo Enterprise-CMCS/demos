@@ -21,6 +21,7 @@ import {
   Document,
   Person,
   PhaseName,
+  State,
   Tag,
 } from "demos-server";
 import { Tab, VerticalTabs } from "layout/Tabs";
@@ -45,7 +46,10 @@ export type DemonstrationDetailDemonstrationType = Pick<
   | "approvalStatus"
 >;
 
-export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "name" | "status" | "effectiveDate" | "expirationDate"> & {
+export type DemonstrationTabDemonstration = Pick<
+  Demonstration,
+  "id" | "name" | "status" | "effectiveDate" | "expirationDate"
+> & {
   demonstrationTypes: DemonstrationDetailDemonstrationType[];
   documents: (Pick<Document, "id" | "name" | "description" | "documentType" | "createdAt"> & {
     owner: {
@@ -54,6 +58,7 @@ export type DemonstrationTabDemonstration = Pick<Demonstration, "id" | "name" | 
   })[];
   roles: Role[];
   currentPhaseName: PhaseName;
+  state: Pick<State, "id">;
 };
 
 const TAB = {
@@ -140,7 +145,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
               Add Document
             </IconButton>
           </TabHeader>
-          <DocumentTable applicationId={demonstration.id} documents={demonstration.documents} />
+          <DocumentTable documents={demonstration.documents} />
         </Tab>
         <Tab
           icon={<CharacteristicIcon />}

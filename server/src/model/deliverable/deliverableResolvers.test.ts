@@ -31,10 +31,6 @@ import { DeliverableDemonstrationTypeQueryResult } from "../deliverableDemonstra
 import {
   resolveDeliverable,
   resolveManyDeliverables,
-  resolveDeliverableType,
-  resolveDeliverableStatus,
-  resolveDeliverableDueDateType,
-  resolveDemonstration,
   deliverableResolvers,
 } from "./deliverableResolvers";
 
@@ -57,20 +53,20 @@ vi.mock(".", () => ({
   updateDeliverable: vi.fn(),
 }));
 
-vi.mock("../application", () => ({
-  getApplication: vi.fn(),
+vi.mock("../demonstration/queries", () => ({
+  selectDemonstrationOrThrow: vi.fn(),
 }));
 
-vi.mock("../user", () => ({
-  getUser: vi.fn(),
+vi.mock("../user/queries", () => ({
+  selectUserOrThrow: vi.fn(),
 }));
 
 vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
 }));
 
-vi.mock("../deliverableDemonstrationType", () => ({
-  getManyDeliverableDemonstrationTypes: vi.fn(),
+vi.mock("../deliverableDemonstrationType/queries", () => ({
+  selectManyDeliverableDemonstrationTypes: vi.fn(),
 }));
 
 vi.mock("../deliverableAction", () => ({
@@ -106,14 +102,14 @@ import {
   getDeliverable,
   getManyDeliverables,
 } from ".";
-import { getApplication } from "../application";
-import { getUser } from "../user";
+import { selectUserOrThrow } from "../user/queries";
 import { getManyDocuments } from "../document";
-import { getManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
+import { selectManyDeliverableDemonstrationTypes } from "../deliverableDemonstrationType/queries";
 import { getFormattedDeliverableActions } from "../deliverableAction";
 import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
 import { selectManyPublicComments } from "../publicComment/queries";
 import { selectManyPrivateComments } from "../privateComment/queries";
+import { selectDemonstrationOrThrow } from "../demonstration/queries";
 
 describe("deliverableResolvers", () => {
   const testDeliverableId = "82ef9a17-e8b9-48ab-9aaf-3d1787822b13";
@@ -370,14 +366,10 @@ describe("deliverableResolvers", () => {
   });
 
   describe("Deliverable.cmsOwner", () => {
-    it("delegates to `userData.getUser`", async () => {
+    it("delegates to `userData/queries.selectUserOrThrow`", async () => {
       const mockDeliverable = { cmsOwnerUserId: testUserId } as PrismaDeliverable;
-      await deliverableResolvers.Deliverable.cmsOwner(
-        mockDeliverable,
-        undefined,
-        testContext as GraphQLContext
-      );
-      expect(getUser).toHaveBeenCalledExactlyOnceWith({ id: testUserId }, testContext.user);
+      await deliverableResolvers.Deliverable.cmsOwner(mockDeliverable);
+      expect(selectUserOrThrow).toHaveBeenCalledExactlyOnceWith({ id: testUserId });
     });
   });
 
@@ -585,32 +577,36 @@ describe("deliverableResolvers", () => {
     });
   });
 
-  describe("resolveDeliverableType", () => {
+  describe("Deliverable.deliverableType", () => {
     it("should return the deliverable type from a deliverable", () => {
-      const result = resolveDeliverableType(testDeliverable as PrismaDeliverable);
+      const result = deliverableResolvers.Deliverable.deliverableType(
+        testDeliverable as PrismaDeliverable
+      );
       expect(result).toBe(testDeliverableType);
     });
   });
 
-  describe("resolveDeliverableStatus", () => {
+  describe("Deliverable.Status", () => {
     it("should return the deliverable status from a deliverable", () => {
-      const result = resolveDeliverableStatus(testDeliverable as PrismaDeliverable);
+      const result = deliverableResolvers.Deliverable.status(testDeliverable as PrismaDeliverable);
       expect(result).toBe(testDeliverableStatus);
     });
   });
 
-  describe("resolveDeliverableDueDateType", () => {
+  describe("Deliverable.dueDateType", () => {
     it("should return the deliverable due date type from a deliverable", () => {
-      const result = resolveDeliverableDueDateType(testDeliverable as PrismaDeliverable);
+      const result = deliverableResolvers.Deliverable.dueDateType(
+        testDeliverable as PrismaDeliverable
+      );
       expect(result).toBe(testDeliverableDueDateType);
     });
   });
 
-  describe("resolveDemonstration", () => {
-    it("should query the demonstration of the parent deliverable", async () => {
-      await resolveDemonstration(testDeliverable as PrismaDeliverable);
-      expect(getApplication).toHaveBeenCalledExactlyOnceWith(testDemonstrationId, {
-        applicationTypeId: "Demonstration",
+  describe("Deliverable.demonstration", () => {
+    it("should defer to demonstration/queries.selectDemonstrationOrThrow", async () => {
+      await deliverableResolvers.Deliverable.demonstration(testDeliverable as PrismaDeliverable);
+      expect(selectDemonstrationOrThrow).toHaveBeenCalledExactlyOnceWith({
+        id: testDemonstrationId,
       });
     });
   });
@@ -683,19 +679,16 @@ describe("deliverableResolvers", () => {
               },
             },
           ] as DeliverableDemonstrationTypeQueryResult[];
-        vi.mocked(getManyDeliverableDemonstrationTypes).mockResolvedValue(
+        vi.mocked(selectManyDeliverableDemonstrationTypes).mockResolvedValue(
           mockDeliverableDemonstrationTypeQueryResult
         );
 
         const result = await deliverableResolvers.Deliverable.demonstrationTypes(
-          testDeliverable as PrismaDeliverable,
-          undefined,
-          mockContext
+          testDeliverable as PrismaDeliverable
         );
-        expect(getManyDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith(
-          { deliverableId: testDeliverableId },
-          mockUser
-        );
+        expect(selectManyDeliverableDemonstrationTypes).toHaveBeenCalledExactlyOnceWith({
+          deliverableId: testDeliverableId,
+        });
         expect(result).toStrictEqual([
           {
             approvalStatus: "Approved",
@@ -740,40 +733,12 @@ describe("deliverableResolvers", () => {
 
     describe("Deliverable.privateComments", () => {
       it("should query the private comments of the parent deliverable", async () => {
-        const testContext: DeepPartial<GraphQLContext> = {
-          user: {
-            id: "27cb9043-0016-44ca-a361-dd047bfa5993",
-            personTypeId: "demos-cms-user",
-          },
-        };
         await deliverableResolvers.Deliverable.privateComments(
-          testDeliverable as PrismaDeliverable,
-          undefined,
-          testContext as GraphQLContext
+          testDeliverable as PrismaDeliverable
         );
         expect(selectManyPrivateComments).toHaveBeenCalledExactlyOnceWith({
           deliverableId: testDeliverableId,
         });
-      });
-
-      it("should throw if a state user attempts the query", async () => {
-        const testContext: DeepPartial<GraphQLContext> = {
-          user: {
-            id: "27cb9043-0016-44ca-a361-dd047bfa5993",
-            personTypeId: "demos-state-user",
-          },
-        };
-
-        try {
-          await deliverableResolvers.Deliverable.privateComments(
-            testDeliverable as PrismaDeliverable,
-            undefined,
-            testContext as GraphQLContext
-          );
-          throw new Error("Expected Deliverable.privateComments to throw, but it did not.");
-        } catch (e) {
-          expect(selectManyPrivateComments).not.toHaveBeenCalled();
-        }
       });
     });
   });

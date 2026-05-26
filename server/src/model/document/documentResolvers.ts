@@ -1,4 +1,4 @@
-import { Document as PrismaDocument } from "@prisma/client";
+import { Document as PrismaDocument, User as PrismaUser } from "@prisma/client";
 import { GraphQLContext } from "../../auth";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { handlePrismaError } from "../../errors/handlePrismaError";
@@ -6,14 +6,14 @@ import { prisma } from "../../prismaClient";
 import type { UpdateDocumentInput, DocumentType, PhaseName } from "../../types";
 import { getS3Adapter } from "../../adapters";
 import { getApplication, PrismaApplication } from "../application";
-import { getUser } from "../user";
+import { selectUserOrThrow } from "../user/queries";
 import { enqueueUiPath } from "../../services/uipathQueue";
 import { resolveDeliverable } from "../deliverable";
 import { updateDocument as updateDocumentQuery, handleDeleteDocument } from ".";
 import { getDocument } from "./documentData";
 
 export async function updateDocument(
-  _: unknown,
+  parent: unknown,
   { id, input }: { id: string; input: UpdateDocumentInput }
 ): Promise<PrismaDocument> {
   checkOptionalNotNullFields(["name", "description", "documentType"], input);
@@ -26,7 +26,10 @@ export async function updateDocument(
   }
 }
 
-export async function deleteDocument(_: unknown, { id }: { id: string }): Promise<PrismaDocument> {
+export async function deleteDocument(
+  parent: unknown,
+  { id }: { id: string }
+): Promise<PrismaDocument> {
   const s3Adapter = getS3Adapter();
 
   try {
@@ -38,7 +41,10 @@ export async function deleteDocument(_: unknown, { id }: { id: string }): Promis
   }
 }
 
-export async function deleteDocuments(_: unknown, { ids }: { ids: string[] }): Promise<number> {
+export async function deleteDocuments(
+  parent: unknown,
+  { ids }: { ids: string[] }
+): Promise<number> {
   const s3Adapter = getS3Adapter();
 
   try {
@@ -55,12 +61,6 @@ export async function deleteDocuments(_: unknown, { ids }: { ids: string[] }): P
   }
 }
 
-/**
- * This will fail if doc does not exist or docId is null or empty
- * @param _ refetch
- * @param documentId the document to run through UiPath
- * @returns MessageId
- */
 export async function triggerUiPath(
   parent: unknown,
   args: { documentId: string },
@@ -78,10 +78,6 @@ export async function triggerUiPath(
   } catch (error) {
     handlePrismaError(error);
   }
-}
-
-export async function resolveApplication(parent: PrismaDocument): Promise<PrismaApplication> {
-  return await getApplication(parent.applicationId);
 }
 
 export async function resolveHasPendingUIPathResult(parent: PrismaDocument): Promise<boolean> {
@@ -102,13 +98,22 @@ export async function resolveHasPendingUIPathResult(parent: PrismaDocument): Pro
 
 export const documentResolvers = {
   Query: {
-    document: (parent: unknown, args: { id: string }, context: GraphQLContext) =>
-      getDocument({ id: args.id }, context.user),
+    document: (
+      parent: unknown,
+      args: { id: string },
+      context: GraphQLContext
+    ): Promise<PrismaDocument> => getDocument({ id: args.id }, context.user),
     documentExists: async (
       parent: unknown,
       args: { documentId: string },
       context: GraphQLContext
-    ) => !!(await getDocument({ id: args.documentId }, context.user)),
+    ): Promise<boolean> => {
+      try {
+        return !!(await getDocument({ id: args.documentId }, context.user));
+      } catch {
+        return false;
+      }
+    },
   },
 
   Mutation: {
@@ -119,16 +124,17 @@ export const documentResolvers = {
   },
 
   Document: {
-    owner: (parent: PrismaDocument, args: unknown, context: GraphQLContext) =>
-      getUser({ id: parent.ownerUserId }, context.user),
-    documentType: (parent: PrismaDocument) => parent.documentTypeId as DocumentType,
-    presignedDownloadUrl: async (parent: PrismaDocument) =>
-      await getS3Adapter().getPresignedDownloadUrl(parent.s3Path),
-    application: resolveApplication,
+    owner: (parent: PrismaDocument): Promise<PrismaUser> =>
+      selectUserOrThrow({ id: parent.ownerUserId }),
+    documentType: (parent: PrismaDocument): DocumentType => parent.documentTypeId as DocumentType,
+    presignedDownloadUrl: (parent: PrismaDocument): Promise<string> =>
+      getS3Adapter().getPresignedDownloadUrl(parent.s3Path),
+    application: (parent: PrismaDocument): Promise<PrismaApplication> =>
+      getApplication(parent.applicationId),
     deliverable: resolveDeliverable,
-    isPartOfDeliverableSubmission: (parent: PrismaDocument) =>
+    isPartOfDeliverableSubmission: (parent: PrismaDocument): boolean =>
       !!parent.deliverableSubmissionActionId,
-    phaseName: (parent: PrismaDocument) => parent.phaseId as PhaseName,
+    phaseName: (parent: PrismaDocument): PhaseName => parent.phaseId as PhaseName,
     hasPendingUIPathResult: resolveHasPendingUIPathResult,
   },
 };

@@ -60,7 +60,6 @@ export const REQUEST_REASON_OPTIONS: Option[] = DELIVERABLE_EXTENSION_REASON_COD
 export interface RequestExtensionDeliverableDialogDeliverable {
   id: string;
   dueDate: Date;
-  demonstration: { expirationDate?: Date | null };
 }
 
 export interface RequestExtensionFormData {
@@ -77,8 +76,7 @@ export const INITIAL_FORM_DATA: RequestExtensionFormData = {
 
 export const getExtensionDateValidationMessage = (
   extensionDate: string,
-  dueDate: Date,
-  demonstrationExpirationDate: Date | null | undefined
+  dueDate: Date
 ): string => {
   if (extensionDate === "") return "";
   const parsed = parseISO(extensionDate);
@@ -86,21 +84,13 @@ export const getExtensionDateValidationMessage = (
   if (!isAfter(parsed, dueDate)) {
     return "Extension Date must be after the current Due Date.";
   }
-  if (demonstrationExpirationDate && isAfter(parsed, demonstrationExpirationDate)) {
-    return "Extension Date cannot be after the Demonstration Expiration Date.";
-  }
   return "";
 };
 
-export const formIsValid = (
-  form: RequestExtensionFormData,
-  dueDate: Date,
-  demonstrationExpirationDate: Date | null | undefined
-): boolean => {
+export const formIsValid = (form: RequestExtensionFormData, dueDate: Date): boolean => {
   const extensionDateValid =
     form.extensionDate.trim().length > 0 &&
-    getExtensionDateValidationMessage(form.extensionDate, dueDate, demonstrationExpirationDate) ===
-      "";
+    getExtensionDateValidationMessage(form.extensionDate, dueDate) === "";
   return extensionDateValid && form.requestReason.length > 0 && form.details.trim().length > 0;
 };
 
@@ -122,13 +112,11 @@ export const RequestExtensionDeliverableDialog: React.FC<
   const [formData, setFormData] = useState<RequestExtensionFormData>(INITIAL_FORM_DATA);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
 
-  const expirationDate = deliverable.demonstration.expirationDate ?? null;
   const extensionDateError = getExtensionDateValidationMessage(
     formData.extensionDate,
-    deliverable.dueDate,
-    expirationDate
+    deliverable.dueDate
   );
-  const isValidForm = formIsValid(formData, deliverable.dueDate, expirationDate);
+  const isValidForm = formIsValid(formData, deliverable.dueDate);
   const hasChanges = formHasChanges(formData);
 
   const handleSubmit = async () => {

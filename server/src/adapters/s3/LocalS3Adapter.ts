@@ -1,6 +1,4 @@
-import { randomUUID } from "node:crypto";
 import { prisma, PrismaTransactionClient } from "../../prismaClient";
-import { log } from "../../log";
 import { S3Adapter } from "../";
 import { Prisma, DocumentPendingUpload as PrismaDocumentPendingUpload } from "@prisma/client";
 

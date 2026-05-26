@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { resolveApplicationType, PrismaApplication } from ".";
-import { ApplicationStatus, ApplicationType, PhaseName } from "../../types";
+import { PrismaApplication } from ".";
+import { ApplicationType } from "../../types";
+import { applicationResolvers } from "./applicationResolvers";
 
 vi.mock("../../prismaClient.js", () => ({
   prisma: vi.fn(),
@@ -24,12 +25,12 @@ describe("applicationResolvers", () => {
     vi.resetAllMocks();
   });
 
-  describe("resolveApplicationType", () => {
+  describe("application.__resolveType", () => {
     it("should resolve the application type", async () => {
       const input: Partial<PrismaApplication> = {
         applicationTypeId: testDemonstrationApplicationTypeId,
       };
-      const result = resolveApplicationType(input as PrismaApplication);
+      const result = applicationResolvers.Application.__resolveType(input as PrismaApplication);
       expect(result).toBe(testDemonstrationApplicationTypeId);
     });
   });

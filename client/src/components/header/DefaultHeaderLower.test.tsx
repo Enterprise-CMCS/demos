@@ -79,6 +79,22 @@ describe("DefaultHeaderLower", () => {
     expect(screen.queryByText("Demonstration")).not.toBeInTheDocument();
   });
 
+  it("does not show the Create New menu for state users", () => {
+    mockGetCurrentUser.mockReturnValue({
+      currentUser: {
+        ...mockUsers[0],
+        person: {
+          ...mockUsers[0].person,
+          personType: "demos-state-user",
+        },
+      },
+    });
+
+    render(<DefaultHeaderLower />);
+
+    expect(screen.queryByText("Create New")).not.toBeInTheDocument();
+  });
+
   it("opens CreateDemonstrationDialog when demonstration modal is clicked", () => {
     mockGetCurrentUser.mockReturnValue({
       currentUser: mockUsers[0],

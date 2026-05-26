@@ -4,6 +4,9 @@ type SortableDeliverable = {
   id: string;
   status: string;
   dueDate: string | Date;
+  extensionRequests?: {
+    status: string;
+  }[];
 };
 
 const STATUS_ORDER = [
@@ -40,14 +43,29 @@ const compareDueDateAsc = (firstDate: string | Date, secondDate: string | Date) 
   return String(firstDate).localeCompare(String(secondDate));
 };
 
+const hasRequestedExtension = (deliverable: SortableDeliverable): boolean =>
+  deliverable.extensionRequests?.some((request) => request.status === "Requested") ?? false;
+
 export const sortDeliverablesByDefault = <T extends SortableDeliverable>(
   deliverables: T[]
 ): T[] => {
   return [...deliverables].sort((firstDel, secondDel) => {
     const dueDateCompare = compareDueDateAsc(firstDel.dueDate, secondDel.dueDate);
+    const firstHasRequestedExtension = hasRequestedExtension(firstDel);
+    const secondHasRequestedExtension = hasRequestedExtension(secondDel);
 
-    const aRank = STATUS_RANK.get(firstDel.status as typeof STATUS_ORDER[number]) ?? Number.MAX_SAFE_INTEGER;
-    const bRank = STATUS_RANK.get(secondDel.status as typeof STATUS_ORDER[number]) ?? Number.MAX_SAFE_INTEGER;
+    if (firstHasRequestedExtension !== secondHasRequestedExtension) {
+      return firstHasRequestedExtension ? -1 : 1;
+    }
+
+    if (firstHasRequestedExtension && secondHasRequestedExtension) {
+      return dueDateCompare || firstDel.id.localeCompare(secondDel.id);
+    }
+
+    const aRank =
+      STATUS_RANK.get(firstDel.status as typeof STATUS_ORDER[number]) ?? Number.MAX_SAFE_INTEGER;
+    const bRank =
+      STATUS_RANK.get(secondDel.status as typeof STATUS_ORDER[number]) ?? Number.MAX_SAFE_INTEGER;
 
     if (aRank !== bRank) {
       return aRank - bRank;

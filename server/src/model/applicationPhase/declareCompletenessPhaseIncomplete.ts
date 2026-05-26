@@ -11,7 +11,7 @@ import {
 import { getApplicationDates, validateAndUpdateDates } from "../applicationDate";
 
 export async function declareCompletenessPhaseIncomplete(
-  _: unknown,
+  parent: unknown,
   { applicationId }: { applicationId: string }
 ): Promise<PrismaApplication> {
   try {

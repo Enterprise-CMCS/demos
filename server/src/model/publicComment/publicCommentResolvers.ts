@@ -6,24 +6,22 @@ import {
 import { NonEmptyString } from "../../types";
 import { GraphQLContext } from "../../auth";
 import { resolveDeliverable } from "../deliverable";
-import { selectUser } from "../user/queries";
+import { selectUserOrThrow } from "../user/queries";
 import { createPublicComment } from ".";
 
 export const publicCommentResolvers = {
   Mutation: {
-    createPublicComment: async (
+    createPublicComment: (
       parent: unknown,
       args: { deliverableId: string; comment: NonEmptyString },
       context: GraphQLContext
-    ) => {
-      return await createPublicComment(args.deliverableId, args.comment, context);
-    },
+    ): Promise<PrismaPublicComment> =>
+      createPublicComment(args.deliverableId, args.comment, context),
   },
 
   DeliverableComment: {
     deliverable: resolveDeliverable,
-    authorUser: async (parent: PrismaPublicComment | PrismaPrivateComment): Promise<PrismaUser> => {
-      return await selectUser({ id: parent.authorUserId }, true);
-    },
+    authorUser: (parent: PrismaPublicComment | PrismaPrivateComment): Promise<PrismaUser> =>
+      selectUserOrThrow({ id: parent.authorUserId }),
   },
 };

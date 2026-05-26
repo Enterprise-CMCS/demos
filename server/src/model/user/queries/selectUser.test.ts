@@ -1,6 +1,6 @@
 import { User as PrismaUser } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { prisma, PrismaTransactionClient } from "../../../prismaClient";
+import { prisma } from "../../../prismaClient";
 import { selectUser } from "./selectUser";
 
 vi.mock("../../../prismaClient", () => ({
@@ -43,38 +43,20 @@ describe("selectUser", () => {
   });
 
   it("should get user from the database directly if no transaction is given", async () => {
-    await selectUser(where, false);
+    await selectUser(where);
     expect(regularMocks.user.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
     expect(transactionMocks.user.findAtMostOne).not.toHaveBeenCalled();
   });
 
   it("should get user via a transaction if one is given", async () => {
-    await selectUser(where, false, mockTransaction);
+    await selectUser(where, mockTransaction);
     expect(regularMocks.user.findAtMostOne).not.toHaveBeenCalled();
     expect(transactionMocks.user.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
   });
 
-  it("should throw if a result is expected and not returned", async () => {
-    // Note: because vi.fn() returns undefined this isn't strictly necessary
-    // Adding it to make the intent of the test more clear
+  it("returns null when no user is found", async () => {
     regularMocks.user.findAtMostOne.mockResolvedValueOnce(null);
-
-    try {
-      await selectUser(where, true);
-      throw new Error("Expected selectUser to throw, but it did not.");
-    } catch (e) {
-      expect(e).toBeInstanceOf(Error);
-      const error = e as Error;
-      expect(error.message).toBe(
-        'Expected selectUser to return a record but it did not! Where clause: {"id":"user-1"}'
-      );
-    }
-  });
-
-  it("returns null when no user is found and result is not expected", async () => {
-    regularMocks.user.findAtMostOne.mockResolvedValueOnce(null);
-
-    const result = await selectUser(where, false);
+    const result = await selectUser(where);
     expect(regularMocks.user.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
     expect(result).toBeNull();
   });
@@ -83,7 +65,7 @@ describe("selectUser", () => {
     const user = { id: testUserId } as PrismaUser;
     regularMocks.user.findAtMostOne.mockResolvedValueOnce(user);
 
-    const result = await selectUser(where, true);
+    const result = await selectUser(where);
     expect(regularMocks.user.findAtMostOne).toHaveBeenCalledExactlyOnceWith(expectedCall);
     expect(result).toBe(user);
   });

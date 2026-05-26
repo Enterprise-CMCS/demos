@@ -1,14 +1,12 @@
 import { setApplicationClearanceLevel, PrismaApplication } from ".";
-
-export function resolveApplicationType(parent: PrismaApplication): string {
-  return parent.applicationTypeId;
-}
+import { ApplicationType } from "../../types";
 
 export const applicationResolvers = {
   Mutation: {
     setApplicationClearanceLevel: setApplicationClearanceLevel,
   },
   Application: {
-    __resolveType: resolveApplicationType,
+    __resolveType: (parent: PrismaApplication): ApplicationType =>
+      parent.applicationTypeId as ApplicationType,
   },
 };

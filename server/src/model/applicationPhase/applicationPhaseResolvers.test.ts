@@ -4,17 +4,14 @@ import {
   applicationPhaseResolvers,
 } from "./applicationPhaseResolvers";
 import { ApplicationPhase as PrismaApplicationPhase } from "@prisma/client";
-import { ApplicationStatus, PhaseName, PhaseStatus } from "../../types";
+import { PhaseName, PhaseStatus } from "../../types";
 
 // Mock imports
 import { prisma } from "../../prismaClient";
-import { handlePrismaError } from "../../errors/handlePrismaError";
-import { getApplication } from "../application";
-import { completePhase, declareCompletenessPhaseIncomplete, skipConceptPhase } from ".";
 import { GraphQLContext } from "../../auth";
 import { getManyDocuments } from "../document";
-import { getManyApplicationDates } from "../applicationDate";
-import { getManyApplicationNotes } from "../applicationNote";
+import { selectManyApplicationNotes } from "../applicationNote/queries";
+import { selectManyApplicationDates } from "../applicationDate/queries";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -24,12 +21,12 @@ vi.mock("../document", () => ({
   getManyDocuments: vi.fn(),
 }));
 
-vi.mock("../applicationDate", () => ({
-  getManyApplicationDates: vi.fn(),
+vi.mock("../applicationDate/queries", () => ({
+  selectManyApplicationDates: vi.fn(),
 }));
 
-vi.mock("../applicationNote", () => ({
-  getManyApplicationNotes: vi.fn(),
+vi.mock("../applicationNote/queries", () => ({
+  selectManyApplicationNotes: vi.fn(),
 }));
 
 const testHandlePrismaError = new Error("Test handlePrismaError!");
@@ -105,52 +102,38 @@ describe("applicationPhaseResolvers", () => {
   });
 
   describe("ApplicationPhase.phaseDates", () => {
-    it("delegates to `applicationDateData.getManyApplicationDates`", async () => {
+    it("delegates to `applicationDateData/queries.selectManyApplicationDates`", async () => {
       const mockApplicationPhase = {
         phaseId: "Completeness" satisfies PhaseName,
         applicationId: "abc123",
       } as PrismaApplicationPhase;
-      await applicationPhaseResolvers.ApplicationPhase.phaseDates(
-        mockApplicationPhase,
-        undefined,
-        mockContext
-      );
-      expect(getManyApplicationDates).toHaveBeenCalledExactlyOnceWith(
-        {
-          applicationId: "abc123",
-          dateType: {
-            phaseDateTypes: {
-              some: { phaseId: "Completeness" },
-            },
+      await applicationPhaseResolvers.ApplicationPhase.phaseDates(mockApplicationPhase);
+      expect(selectManyApplicationDates).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "abc123",
+        dateType: {
+          phaseDateTypes: {
+            some: { phaseId: "Completeness" },
           },
         },
-        mockContext.user
-      );
+      });
     });
   });
 
   describe("ApplicationPhase.phaseNotes", () => {
-    it("delegates to `applicationNoteData.getManyApplicationNotes`", async () => {
+    it("delegates to `applicationNoteData/queries.selectManyApplicationNotes`", async () => {
       const mockApplicationPhase = {
         phaseId: "Completeness" satisfies PhaseName,
         applicationId: "abc123",
       } as PrismaApplicationPhase;
-      await applicationPhaseResolvers.ApplicationPhase.phaseNotes(
-        mockApplicationPhase,
-        undefined,
-        mockContext
-      );
-      expect(getManyApplicationNotes).toHaveBeenCalledExactlyOnceWith(
-        {
-          applicationId: "abc123",
-          noteType: {
-            phaseNoteTypes: {
-              some: { phaseId: "Completeness" },
-            },
+      await applicationPhaseResolvers.ApplicationPhase.phaseNotes(mockApplicationPhase);
+      expect(selectManyApplicationNotes).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "abc123",
+        noteType: {
+          phaseNoteTypes: {
+            some: { phaseId: "Completeness" },
           },
         },
-        mockContext.user
-      );
+      });
     });
   });
 

@@ -7,6 +7,7 @@ import {
   Demonstration as ServerDemonstration,
   DemonstrationRoleAssignment,
   Person,
+  State,
 } from "demos-server";
 
 import { useDialog } from "components/dialog/DialogContext";
@@ -18,6 +19,7 @@ type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
 };
 
 type Demonstration = Pick<ServerDemonstration, "id"> & {
+  state: Pick<State, "id">;
   roles: Role[];
 };
 
@@ -43,7 +45,9 @@ export const ContactsTab: React.FC<{ demonstration: Demonstration }> = ({ demons
           icon={<EditIcon />}
           name="manage-contacts"
           size="small"
-          onClick={() => showManageContactsDialog(demonstration.id, rolesForDialog)}
+          onClick={() =>
+            showManageContactsDialog(demonstration.id, demonstration.state.id, rolesForDialog)
+          }
         >
           Manage Contact(s)
         </IconButton>

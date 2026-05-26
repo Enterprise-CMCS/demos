@@ -6,7 +6,6 @@ import { fileURLToPath } from "node:url";
 import {
   SDG_DIVISIONS,
   PERSON_TYPES,
-  SIGNATURE_LEVEL,
   PHASE_DOCUMENT_TYPE_MAP,
   NOTE_TYPES,
   TAG_TYPES,
@@ -21,7 +20,6 @@ import {
   UpdateAmendmentInput,
   UpdateExtensionInput,
   SetApplicationDatesInput,
-  Role,
   CreateDeliverableInput,
   PersonType,
   DateTimeOrLocalDate,

@@ -3,9 +3,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildAuthorizationFilter, ContextUser } from "../../auth";
 import { getAmendment, getManyAmendments } from "./amendmentData";
 import { selectAmendment, selectManyAmendments } from "./queries";
+import { log } from "../../log";
 
 vi.mock("../../auth", () => ({
   buildAuthorizationFilter: vi.fn(),
+}));
+
+vi.mock("../../log", () => ({
+  log: {
+    warn: vi.fn(),
+  },
 }));
 
 vi.mock("./queries", () => ({
@@ -45,17 +52,63 @@ describe("amendmentData", () => {
   });
 
   describe("getAmendment", () => {
-    it("returns null when authorization filter returns null", async () => {
+    it("throws not found error when authorization filter returns null", async () => {
       vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(null);
+      vi.mocked(selectAmendment).mockResolvedValueOnce(null);
 
-      const result = await getAmendment(where, user);
+      await expect(getAmendment(where, user)).rejects.toThrow(
+        "Requested Amendment not found or User does not have Permission to view it."
+      );
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
-      expect(selectAmendment).not.toHaveBeenCalled();
-      expect(result).toBeNull();
+      expect(selectAmendment).toHaveBeenCalledExactlyOnceWith(where, undefined);
     });
 
-    it("queries for a single amendment with the authorization filter applied", async () => {
+    it("throws not found error when amendment is not found even if auth filter is applied", async () => {
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+      vi.mocked(selectAmendment).mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+
+      await expect(getAmendment(where, user)).rejects.toThrow(
+        "Requested Amendment not found or User does not have Permission to view it."
+      );
+
+      expect(buildAuthorizationFilter).toHaveBeenCalledExactlyOnceWith(user, expect.any(Function));
+
+      expect(selectAmendment).toHaveBeenNthCalledWith(
+        1,
+        {
+          AND: [where, authFilter],
+        },
+        undefined
+      );
+      expect(selectAmendment).toHaveBeenNthCalledWith(2, where, undefined);
+    });
+
+    it("logs a warning and throws not found error when amendment is found but user does not have permission to view it", async () => {
+      const amendment = { id: "amendment-1" } as PrismaAmendment;
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+      vi.mocked(selectAmendment).mockResolvedValueOnce(null).mockResolvedValueOnce(amendment);
+
+      await expect(getAmendment(where, user)).rejects.toThrow(
+        "Requested Amendment not found or User does not have Permission to view it."
+      );
+
+      expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
+      expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
+      expect(selectAmendment).toHaveBeenNthCalledWith(
+        1,
+        {
+          AND: [where, authFilter],
+        },
+        undefined
+      );
+      expect(selectAmendment).toHaveBeenNthCalledWith(2, where, undefined);
+      expect(log.warn).toHaveBeenCalledExactlyOnceWith(
+        `User ${user.id} attempted to access Amendment ${amendment.id} without sufficient permissions.`
+      );
+    });
+
+    it("returns the amendment when found and user has permission to view it", async () => {
       const amendment = { id: "amendment-1" } as PrismaAmendment;
       vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
       vi.mocked(selectAmendment).mockResolvedValueOnce(amendment);
@@ -76,6 +129,8 @@ describe("amendmentData", () => {
     it("passes transaction client to selectAmendment if provided", async () => {
       const mockTransactionClient = {} as any;
       vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+      const amendment = { id: "amendment-1" } as PrismaAmendment;
+      vi.mocked(selectAmendment).mockResolvedValueOnce(amendment);
 
       await getAmendment(where, user, mockTransactionClient);
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();

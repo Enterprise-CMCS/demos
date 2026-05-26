@@ -67,16 +67,16 @@ export const demonstrationSchema = gql`
   }
 
   type Mutation {
-    createDemonstration(input: CreateDemonstrationInput!): Demonstration
+    createDemonstration(input: CreateDemonstrationInput!): Demonstration!
       @auth(requires: ["Perform CMS Action"])
-    updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration
+    updateDemonstration(id: ID!, input: UpdateDemonstrationInput!): Demonstration!
       @auth(requires: ["Perform CMS Action"])
-    deleteDemonstration(id: ID!): Demonstration @auth(requires: ["Perform CMS Action"])
+    deleteDemonstration(id: ID!): Demonstration! @auth(requires: ["Perform CMS Action"])
   }
 
   type Query {
     demonstrations: [Demonstration!]!
-    demonstration(id: ID!): Demonstration
+    demonstration(id: ID!): Demonstration!
   }
 `;
 

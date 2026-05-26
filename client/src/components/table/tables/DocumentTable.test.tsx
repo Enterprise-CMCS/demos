@@ -25,26 +25,17 @@ describe("DocumentTable", () => {
   beforeEach(() => {
     render(
       <MockedProvider mocks={ALL_MOCKS} addTypename={false}>
-        <DocumentTable applicationId="test-application-id" documents={mockDocuments} />
+        <DocumentTable documents={mockDocuments} />
       </MockedProvider>
     );
   });
 
-  it("renders action buttons (add/edit)", async () => {
+  it("renders action buttons (edit/delete)", async () => {
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
-    expect(screen.getByLabelText(/Add Document/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Edit Document/i)).toBeInTheDocument();
-  });
-
-  it("opens AddDocumentModal when add button is clicked", async () => {
-    await waitFor(() => {
-      expect(screen.getByRole("table")).toBeInTheDocument();
-    });
-    const user = userEvent.setup();
-    await user.click(screen.getByLabelText(/Add Document/i));
-    expect(showUploadDocumentDialog).toHaveBeenCalled();
+    expect(screen.getByLabelText(/Remove Document/i)).toBeInTheDocument();
   });
 
   it("disables Edit button when no or multiple documents are selected, enables for one", async () => {
@@ -105,7 +96,9 @@ describe("DocumentTable", () => {
     const endInput = document.body.querySelector('input[name="date-filter-end"]');
     // Open the start date picker calendar popup by clicking the calendar button
     fireEvent.change(startInput!, { target: { value: "2025-01-01" } });
+    fireEvent.blur(startInput!);
     fireEvent.change(endInput!, { target: { value: "2025-01-02" } });
+    fireEvent.blur(endInput!);
     const table = screen.getByRole("table");
     // Should show only documents within the range (inclusive)
     expect(within(table).getByText("Final Report")).toBeInTheDocument();

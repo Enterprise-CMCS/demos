@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { deleteApplicationDates } from "./deleteApplicationDates.js";
 import { ParsedSetApplicationDatesInput } from "..";
-import { EasternTZDate } from "../../../dateUtilities.js";
-import { TZDate } from "@date-fns/tz";
 
 describe("deleteApplicationDates", () => {
   const transactionMocks = {
