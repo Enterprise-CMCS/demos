@@ -424,7 +424,7 @@ erDiagram
     text validation_status_id FK "FK121: validation_status_id ∈ budget_neutrality_validation_status.id"
     jsonb validation_data
     text actuals
-    float netVarianceTotal
+    double net_variance_total
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_budget_neutrality_workbook_non_null_fields_when_succeeded "actuals and netVarianceTotal non null when status is succeeded"
