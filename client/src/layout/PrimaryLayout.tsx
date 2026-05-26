@@ -31,9 +31,9 @@ export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
             {!hideSideNav && <SideNav />}
             <div className="flex-1 overflow-auto min-h-0 flex flex-col">
               <div className="p-[16px] flex-1">{children}</div>
-              <Footer />
             </div>
           </div>
+          <Footer />
         </div>
       </DialogProvider>
       <ToastContainer />
