@@ -252,6 +252,8 @@ BEGIN
         application_id,
         phase_id,
         deliverable_id,
+        deliverable_type_id,
+        deliverable_is_cms_attached_file,
         created_at,
         updated_at
     )
@@ -265,6 +267,8 @@ BEGIN
         application_id,
         phase_id,
         deliverable_id,
+        deliverable_type_id,
+        deliverable_is_cms_attached_file,
         created_at,
         updated_at
     FROM
