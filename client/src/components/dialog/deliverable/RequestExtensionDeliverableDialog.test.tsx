@@ -45,7 +45,6 @@ vi.mock("@apollo/client", async () => {
 const TEST_DELIVERABLE: RequestExtensionDeliverableDialogDeliverable = {
   id: "deliverable-1",
   dueDate: new Date("2026-02-12"),
-  demonstration: { expirationDate: new Date("2026-12-31") },
 };
 
 const setup = (overrides?: Partial<RequestExtensionDeliverableDialogDeliverable>) => {
@@ -133,20 +132,19 @@ describe("RequestExtensionDeliverableDialog", () => {
     ).toBeInTheDocument();
   });
 
-  it("keeps Submit disabled when the extension date is after the demonstration expiration", async () => {
+  it("allows extension dates beyond the demonstration expiration", async () => {
     const user = userEvent.setup();
     setup();
 
     fireEvent.change(screen.getByTestId(REQUEST_EXTENSION_DATE_FIELD_NAME), {
-      target: { value: "2027-01-15" }, // past expiration
+      target: { value: "2027-01-15" },
     });
     await user.selectOptions(screen.getByTestId(REQUEST_EXTENSION_REASON_FIELD_NAME), "Other");
     await user.type(screen.getByTestId(REQUEST_EXTENSION_DETAILS_FIELD_NAME), "x");
 
-    expect(screen.getByTestId(REQUEST_EXTENSION_SUBMIT_BUTTON_NAME)).toBeDisabled();
-    expect(
-      screen.getByText("Extension Date cannot be after the Demonstration Expiration Date.")
-    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByTestId(REQUEST_EXTENSION_SUBMIT_BUTTON_NAME)).not.toBeDisabled()
+    );
   });
 
   it("submits the mutation, shows a success toast, and closes the dialog", async () => {
@@ -256,34 +254,23 @@ describe("canRequestExtension", () => {
 
 describe("getExtensionDateValidationMessage", () => {
   const dueDate = new Date("2026-02-12");
-  const expirationDate = new Date("2026-12-31");
 
   it("returns empty for an empty value", () => {
-    expect(getExtensionDateValidationMessage("", dueDate, expirationDate)).toBe("");
+    expect(getExtensionDateValidationMessage("", dueDate)).toBe("");
   });
 
   it("flags dates not after the due date", () => {
-    expect(getExtensionDateValidationMessage("2026-02-12", dueDate, expirationDate)).toBe(
+    expect(getExtensionDateValidationMessage("2026-02-12", dueDate)).toBe(
       "Extension Date must be after the current Due Date."
     );
-    expect(getExtensionDateValidationMessage("2026-01-01", dueDate, expirationDate)).toBe(
+    expect(getExtensionDateValidationMessage("2026-01-01", dueDate)).toBe(
       "Extension Date must be after the current Due Date."
     );
   });
 
-  it("flags dates beyond the demonstration expiration", () => {
-    expect(getExtensionDateValidationMessage("2027-01-15", dueDate, expirationDate)).toBe(
-      "Extension Date cannot be after the Demonstration Expiration Date."
-    );
-  });
-
-  it("skips the expiration check when no expiration date is known", () => {
-    expect(getExtensionDateValidationMessage("2099-01-01", dueDate, null)).toBe("");
-    expect(getExtensionDateValidationMessage("2099-01-01", dueDate, undefined)).toBe("");
-  });
-
-  it("accepts a valid date between due date and expiration", () => {
-    expect(getExtensionDateValidationMessage("2026-06-01", dueDate, expirationDate)).toBe("");
+  it("accepts any valid date after the due date, regardless of demonstration expiration", () => {
+    expect(getExtensionDateValidationMessage("2026-06-01", dueDate)).toBe("");
+    expect(getExtensionDateValidationMessage("2099-01-01", dueDate)).toBe("");
   });
 });
 
@@ -310,27 +297,18 @@ describe("formIsValid / formHasChanges", () => {
 
   it("formIsValid requires all three fields", () => {
     expect(
-      formIsValid({ extensionDate: "", requestReason: "Other", details: "reason" }, dueDate, null)
+      formIsValid({ extensionDate: "", requestReason: "Other", details: "reason" }, dueDate)
     ).toBe(false);
     expect(
-      formIsValid(
-        { extensionDate: "2026-03-01", requestReason: "", details: "reason" },
-        dueDate,
-        null
-      )
+      formIsValid({ extensionDate: "2026-03-01", requestReason: "", details: "reason" }, dueDate)
     ).toBe(false);
     expect(
-      formIsValid(
-        { extensionDate: "2026-03-01", requestReason: "Other", details: "   " },
-        dueDate,
-        null
-      )
+      formIsValid({ extensionDate: "2026-03-01", requestReason: "Other", details: "   " }, dueDate)
     ).toBe(false);
     expect(
       formIsValid(
         { extensionDate: "2026-03-01", requestReason: "Other", details: "reason" },
-        dueDate,
-        null
+        dueDate
       )
     ).toBe(true);
   });
