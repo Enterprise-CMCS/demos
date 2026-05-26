@@ -2,7 +2,8 @@ import { gql, TypedDocumentNode, useLazyQuery } from "@apollo/client";
 import { triggerFaqDownload } from "./triggerFaqDownload";
 
 // TODO: server support for this query does not exist yet, implemented to
-// demonstrate the intended flow between the server and s3
+// demonstrate the intended flow between the server and s3. This is likely
+// not the intended query
 export const DOWNLOAD_FAQ_QUERY: TypedDocumentNode<{
   downloadFAQ: {
     presignedDownloadUrl: string;
