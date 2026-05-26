@@ -2,7 +2,7 @@ import React from "react";
 
 const LOGO_SRC = "/img/logo.svg";
 const LOGO_ALT =
-  "DEMOS Logo with text: DEMOS, Demonstration Evaluation Management & Oversight System";
+  "DEMOS Logo with text: 1115, DEMOS, Demonstration Evaluation Management & Oversight System";
 
 export const Logo: React.FC = () => {
   return (

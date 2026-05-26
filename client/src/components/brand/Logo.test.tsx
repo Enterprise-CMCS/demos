@@ -9,7 +9,7 @@ describe("Logo", () => {
     expect(logoImage).toBeInTheDocument();
     expect(logoImage.src).toContain("/img/logo.svg");
     expect(logoImage.alt).toBe(
-      "DEMOS Logo with text: DEMOS, Demonstration Evaluation Management & Oversight System"
+      "DEMOS Logo with text: 1115, DEMOS, Demonstration Evaluation Management & Oversight System"
     );
   });
 });
