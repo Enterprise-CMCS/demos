@@ -137,7 +137,6 @@ describe("DeliverableButtons", () => {
     expect(mockShowRequestExtensionDeliverableDialog).toHaveBeenCalledWith({
       id: MOCK_DELIVERABLE_1.id,
       dueDate: MOCK_DELIVERABLE_1.dueDate,
-      demonstration: { expirationDate: MOCK_DELIVERABLE_1.demonstration.expirationDate },
     });
   });
 
