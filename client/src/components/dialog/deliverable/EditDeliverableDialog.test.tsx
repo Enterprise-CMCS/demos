@@ -100,6 +100,7 @@ describe("EditDeliverableDialog", () => {
     fireEvent.change(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME), {
       target: { value: "2026-07-20" },
     });
+    fireEvent.blur(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME));
     expect(screen.getByTestId(EDIT_DELIVERABLE_REASON_FIELD_NAME)).toBeInTheDocument();
   });
 
@@ -133,6 +134,7 @@ describe("EditDeliverableDialog", () => {
     fireEvent.change(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME), {
       target: { value: "2026-07-20" },
     });
+    fireEvent.blur(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME));
 
     expect(screen.getByTestId(EDIT_DELIVERABLE_SAVE_BUTTON_NAME)).toBeDisabled();
 
@@ -160,6 +162,7 @@ describe("EditDeliverableDialog", () => {
     fireEvent.change(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME), {
       target: { value: "2026-07-20" },
     });
+    fireEvent.blur(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME));
 
     await user.type(screen.getByTestId(EDIT_DELIVERABLE_REASON_FIELD_NAME), "Schedule slip");
 

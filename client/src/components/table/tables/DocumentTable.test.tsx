@@ -96,7 +96,9 @@ describe("DocumentTable", () => {
     const endInput = document.body.querySelector('input[name="date-filter-end"]');
     // Open the start date picker calendar popup by clicking the calendar button
     fireEvent.change(startInput!, { target: { value: "2025-01-01" } });
+    fireEvent.blur(startInput!);
     fireEvent.change(endInput!, { target: { value: "2025-01-02" } });
+    fireEvent.blur(endInput!);
     const table = screen.getByRole("table");
     // Should show only documents within the range (inclusive)
     expect(within(table).getByText("Final Report")).toBeInTheDocument();

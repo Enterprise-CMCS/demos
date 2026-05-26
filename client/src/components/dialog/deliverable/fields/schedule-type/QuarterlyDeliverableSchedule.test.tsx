@@ -55,6 +55,7 @@ describe("QuarterlyDeliverableSchedule", () => {
     );
 
     fireEvent.change(screen.getByTestId("quarter-3"), { target: { value: "2026-07-15" } });
+    fireEvent.blur(screen.getByTestId("quarter-3"));
 
     expect(onSelectQuarterDate).toHaveBeenCalledWith(2, "2026-07-15");
   });
