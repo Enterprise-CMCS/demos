@@ -22,6 +22,7 @@ export type StateFilesTabProps = {
   onDelete?: (fileIds: string[]) => void;
   onSubmit?: () => void;
   disabled?: boolean;
+  submitDisabled?: boolean;
 };
 
 export const StateFilesTab: React.FC<StateFilesTabProps> = ({
@@ -31,9 +32,11 @@ export const StateFilesTab: React.FC<StateFilesTabProps> = ({
   onDelete,
   onSubmit,
   disabled = false,
+  submitDisabled,
 }) => {
   const columns = makeStateFileColumns();
   const hasFiles = files.length > 0;
+  const isSubmitDisabled = submitDisabled ?? (disabled || !hasFiles);
 
   return (
     <DeliverableFileTable
@@ -57,7 +60,7 @@ export const StateFilesTab: React.FC<StateFilesTabProps> = ({
             <SecondaryButton
               name={STATE_FILES_SUBMIT_BUTTON_NAME}
               onClick={onSubmit}
-              disabled={disabled}
+              disabled={isSubmitDisabled}
             >
               Submit Deliverable
             </SecondaryButton>

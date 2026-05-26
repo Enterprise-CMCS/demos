@@ -290,6 +290,7 @@ export type DocumentDialogProps = {
   titleOverride?: string;
   cancelButtonIsDisabled?: boolean;
   canEditDocumentType?: boolean;
+  hideDocumentType?: boolean;
 };
 
 // Sets the default document type if a subset is provided
@@ -312,6 +313,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   initialDocument,
   titleOverride,
   canEditDocumentType = true,
+  hideDocumentType = false,
 }) => {
   const { showSuccess, showError } = useToast();
   const hydratedInitialDocument = setDefaultDocumentType(
@@ -440,14 +442,16 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
         onChange={(val) => setActiveDocument((prev) => ({ ...prev, description: val }))}
       />
 
-      <DocumentTypeInput
-        value={activeDocument.documentType}
-        onSelect={(val) =>
-          setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }))
-        }
-        documentTypeSubset={documentTypeSubset}
-        canEditDocumentType={canEditDocumentType}
-      />
+      {!hideDocumentType && (
+        <DocumentTypeInput
+          value={activeDocument.documentType}
+          onSelect={(val) =>
+            setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }))
+          }
+          documentTypeSubset={documentTypeSubset}
+          canEditDocumentType={canEditDocumentType}
+        />
+      )}
     </BaseDialog>
   );
 };

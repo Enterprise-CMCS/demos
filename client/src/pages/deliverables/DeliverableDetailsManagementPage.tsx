@@ -6,6 +6,7 @@ import {
   DeliverableAction,
   DeliverableExtension,
   Demonstration,
+  DocumentType,
   PersonType,
 } from "demos-server";
 import { Loading } from "components/loading/Loading";
@@ -55,6 +56,7 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
       id
       name
       deliverableType
+      allowedDocumentTypes
       dueDate
       status
       demonstration {
@@ -118,6 +120,7 @@ export type DeliverableDetailsManagementDeliverable = Pick<
   Deliverable,
   "id" | "deliverableType" | "dueDate" | "status" | "name"
 > & {
+  allowedDocumentTypes: DocumentType[];
   demonstration: Pick<Demonstration, "id" | "name" | "expirationDate"> & { state: { id: string } };
   cmsOwner: { person: { fullName: string } };
   stateDocuments: DeliverableFileRow[];

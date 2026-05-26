@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from "react";
+import { DocumentNode } from "@apollo/client";
 import { DocumentType, TagName, DemonstrationTypeAssignment, Tag } from "demos-server";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
@@ -7,6 +8,7 @@ import { EditDemonstrationDialog } from "./demonstration";
 import { ExistingContactType, ManageContactsDialog } from "./ManageContactsDialog";
 import {
   AddDocumentToApplicationDialog,
+  AddDocumentToDeliverableDialog,
   DocumentDialogFields,
   EditDocumentDialog,
   RemoveDocumentDialog,
@@ -136,20 +138,47 @@ export const useDialog = () => {
 
   const showEditDocumentDialog = (
     initialDocument: DocumentDialogFields,
-    canEditDocumentType?: boolean
+    options: {
+      canEditDocumentType?: boolean;
+      hideDocumentType?: boolean;
+      documentTypeSubset?: DocumentType[];
+      refetchQueries?: DocumentNode[];
+    } = {}
   ) => {
     context.showDialog(
       <EditDocumentDialog
         initialDocument={initialDocument}
         onClose={context.hideDialog}
-        canEditDocumentType={canEditDocumentType}
+        canEditDocumentType={options.canEditDocumentType}
+        hideDocumentType={options.hideDocumentType}
+        documentTypeSubset={options.documentTypeSubset}
+        refetchQueries={options.refetchQueries}
       />
     );
   };
 
-  const showRemoveDocumentDialog = (documentIds: string[]) => {
+  const showRemoveDocumentDialog = (
+    documentIds: string[],
+    options: { refetchQueries?: DocumentNode[] } = {}
+  ) => {
     context.showDialog(
-      <RemoveDocumentDialog documentIds={documentIds} onClose={context.hideDialog} />
+      <RemoveDocumentDialog
+        documentIds={documentIds}
+        onClose={context.hideDialog}
+        refetchQueries={options.refetchQueries}
+      />
+    );
+  };
+
+  const showAddDeliverableFileDialog = (args: {
+    deliverableId: string;
+    applicationId: string;
+    isCmsFile: boolean;
+    documentTypeSubset?: DocumentType[];
+    refetchQueries?: string[];
+  }) => {
+    context.showDialog(
+      <AddDocumentToDeliverableDialog onClose={context.hideDialog} {...args} />
     );
   };
 
@@ -333,6 +362,7 @@ export const useDialog = () => {
     showUploadDocumentDialog,
     showEditDocumentDialog,
     showRemoveDocumentDialog,
+    showAddDeliverableFileDialog,
     showApplicationIntakeDocumentUploadDialog,
     showCompletenessDocumentUploadDialog,
     showConceptPreSubmissionDocumentUploadDialog,
