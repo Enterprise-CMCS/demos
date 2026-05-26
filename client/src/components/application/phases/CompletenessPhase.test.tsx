@@ -258,6 +258,7 @@ describe("CompletenessPhase", () => {
 
       const dateInput = screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME);
       fireEvent.change(dateInput, { target: { value: "2026-03-15" } });
+      fireEvent.blur(dateInput);
       expect(dateInput).toHaveValue("2026-03-15");
 
       const declareIncompleteButton = screen.getByTestId(
@@ -298,6 +299,7 @@ describe("CompletenessPhase", () => {
       expect(dateInput.value).toBe("");
 
       fireEvent.change(dateInput, { target: { value: "2026-04-10" } });
+      fireEvent.blur(dateInput);
 
       expect(dateInput.value).toBe("2026-04-10");
       expect(screen.getByTestId(FEDERAL_COMMENT_START_DATEPICKER_NAME)).toHaveValue("2026-04-11");

@@ -57,6 +57,7 @@ describe("OgcAndOmbSection", () => {
     const datepicker = screen.getByTestId("datepicker-bn-pmt-approval-received-date");
 
     fireEvent.change(datepicker, { target: { value: "2025-01-01" } });
+    fireEvent.blur(datepicker);
 
     expect(mockSetSectionFormData).toHaveBeenCalledWith({
       ...defaultProps.sectionFormData,

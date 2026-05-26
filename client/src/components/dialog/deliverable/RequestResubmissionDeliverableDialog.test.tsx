@@ -123,6 +123,7 @@ describe("RequestResubmissionDeliverableDialog", () => {
         target: { value: "2026-03-01" },
       }
     );
+    fireEvent.blur(screen.getByTestId(REQUEST_RESUBMISSION_DATE_FIELD_NAME));
 
     expect(submit).toBeDisabled();
 
@@ -145,6 +146,7 @@ describe("RequestResubmissionDeliverableDialog", () => {
         target: { value: "2026-01-01" },
       }
     );
+    fireEvent.blur(screen.getByTestId(REQUEST_RESUBMISSION_DATE_FIELD_NAME));
 
     await user.type(
       screen.getByTestId(REQUEST_RESUBMISSION_DETAILS_FIELD_NAME),
@@ -172,6 +174,7 @@ describe("RequestResubmissionDeliverableDialog", () => {
         target: { value: "2026-03-15" },
       }
     );
+    fireEvent.blur(screen.getByTestId(REQUEST_RESUBMISSION_DATE_FIELD_NAME));
 
     await user.type(
       screen.getByTestId(REQUEST_RESUBMISSION_DETAILS_FIELD_NAME),
@@ -221,6 +224,7 @@ describe("RequestResubmissionDeliverableDialog", () => {
         target: { value: "2026-03-15" },
       }
     );
+    fireEvent.blur(screen.getByTestId(REQUEST_RESUBMISSION_DATE_FIELD_NAME));
 
     await user.type(
       screen.getByTestId(REQUEST_RESUBMISSION_DETAILS_FIELD_NAME),

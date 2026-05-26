@@ -1,7 +1,7 @@
 import "@testing-library/jest-dom";
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import {
@@ -238,6 +238,7 @@ describe("SdgPreparationPhase", () => {
       const expectedApprovalDateInput = screen.getByTestId("datepicker-expected-approval-date");
       await userEvent.clear(expectedApprovalDateInput);
       await userEvent.type(expectedApprovalDateInput, "2025-02-01");
+      fireEvent.blur(expectedApprovalDateInput);
 
       expect(saveButton).toBeEnabled();
     });
@@ -442,6 +443,7 @@ describe("Completed Phase Behavior", () => {
     const dateInput = screen.getByTestId("datepicker-expected-approval-date");
     await userEvent.clear(dateInput);
     await userEvent.type(dateInput, "2025-06-01");
+    fireEvent.blur(dateInput);
 
     expect(saveButton).toBeEnabled();
   });
