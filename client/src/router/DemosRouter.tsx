@@ -17,6 +17,8 @@ import { DeliverableDetailsManagementPage } from "pages/deliverables/Deliverable
 import { AdminPage } from "pages/admin/AdminPage";
 import { RequireRole } from "./RequireRole";
 
+const DEMONSTRATION_ACCESS_ROLES = ["demos-admin", "demos-cms-user"];
+
 const HomePage = () => {
   const { currentUser } = getCurrentUser();
 
@@ -38,8 +40,22 @@ export const DemosRouter: React.FC = () => {
               <Route element={<DemosLayoutProvider />}>
                 <Route path="*" element={<div>404: Page Not Found</div>} />
                 <Route path="/" element={<HomePage />} />
-                <Route path="demonstrations" element={<DemonstrationsPage />} />
-                <Route path="demonstrations/:id" element={<DemonstrationDetail />} />
+                <Route
+                  path="demonstrations"
+                  element={
+                    <RequireRole allowedRoles={DEMONSTRATION_ACCESS_ROLES}>
+                      <DemonstrationsPage />
+                    </RequireRole>
+                  }
+                />
+                <Route
+                  path="demonstrations/:id"
+                  element={
+                    <RequireRole allowedRoles={DEMONSTRATION_ACCESS_ROLES}>
+                      <DemonstrationDetail />
+                    </RequireRole>
+                  }
+                />
                 <Route path="deliverables" element={<DeliverablesPage />} />
                 <Route
                   path="deliverables/:deliverableId"
