@@ -36,7 +36,7 @@ export async function updateBudgetNeutralityWorkbook(
       validation_status_id = $3::TEXT,
       validation_data = $4::JSON,
       actuals = $5::TEXT,
-      netVarianceTotal = $6::NUMERIC,
+      net_variance_total = $6::NUMERIC,
       updated_at = CURRENT_TIMESTAMP
     WHERE id = $1::UUID;`;
 
