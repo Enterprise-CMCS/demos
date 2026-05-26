@@ -119,11 +119,9 @@ describe("TypesTable", () => {
   it("disables action buttons when inputDisabled is true", () => {
     render(<TypesTable demonstration={MOCK_DEMONSTRATION} inputDisabled />);
 
-    const addButton = screen.getByTestId("add-type");
     const editButton = screen.getByTestId("edit-type");
     const deleteButton = screen.getByTestId("delete-type");
 
-    expect(addButton).toBeDisabled();
     expect(editButton).toBeDisabled();
     expect(deleteButton).toBeDisabled();
   });

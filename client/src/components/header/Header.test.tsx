@@ -17,23 +17,21 @@ function renderWithProviders(ui: React.ReactNode) {
   );
 }
 
-vi.mock(
-  "pages/deliverables/DeliverableDetailHeader",
-  async (importOriginal) => {
-    const actual = await importOriginal<typeof import("pages/deliverables/DeliverableDetailHeader")>();
-    return {
-      ...actual,
-      DeliverableDetailHeader: ({ deliverableId }: { deliverableId: string }) => (
-        <div data-testid="deliverable-detail-header">{deliverableId}</div>
-      ),
-    };
-  }
-);
+vi.mock("pages/deliverables/DeliverableDetailHeader", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("pages/deliverables/DeliverableDetailHeader")>();
+  return {
+    ...actual,
+    DeliverableDetailHeader: ({ deliverableId }: { deliverableId: string }) => (
+      <div data-testid="deliverable-detail-header">{deliverableId}</div>
+    ),
+  };
+});
 
 describe("Header", () => {
   it("renders the logo", async () => {
     renderWithProviders(<Header />);
-    await waitFor(() => expect(screen.getByAltText("Logo")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByTestId("demos-logo")).toBeInTheDocument());
   });
 
   it("renders the QuickLinks", async () => {

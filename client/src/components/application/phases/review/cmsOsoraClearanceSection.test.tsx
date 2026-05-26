@@ -57,6 +57,7 @@ describe("CmsOsoraClearanceSection", () => {
     const datepicker = screen.getByTestId("datepicker-osora-r1-comments-due-date");
 
     fireEvent.change(datepicker, { target: { value: "2025-01-01" } });
+    fireEvent.blur(datepicker);
 
     expect(mockSetSectionFormData).toHaveBeenCalledWith({
       ...defaultProps.sectionFormData,
@@ -72,6 +73,7 @@ describe("CmsOsoraClearanceSection", () => {
     const datepicker = screen.getByTestId("datepicker-submit-approval-package-to-osora");
 
     fireEvent.change(datepicker, { target: { value: "2025-01-01" } });
+    fireEvent.blur(datepicker);
 
     expect(mockSetSectionFormData).toHaveBeenCalledWith({
       ...defaultProps.sectionFormData,
@@ -99,6 +101,7 @@ describe("CmsOsoraClearanceSection", () => {
     const datepicker = screen.getByTestId("datepicker-submit-approval-package-to-osora");
 
     fireEvent.change(datepicker, { target: { value: "2025-01-01" } });
+    fireEvent.blur(datepicker);
 
     expect(mockSetSectionFormData).toHaveBeenCalledWith({
       ...propsWithClearanceEndDate.sectionFormData,
