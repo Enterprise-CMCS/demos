@@ -57,6 +57,7 @@ describe("PoAndOgdSection", () => {
     const datepicker = screen.getByTestId("datepicker-ogc-approval-to-share-date");
 
     fireEvent.change(datepicker, { target: { value: "2025-01-01" } });
+    fireEvent.blur(datepicker);
 
     expect(mockSetSectionFormData).toHaveBeenCalledWith({
       ...defaultProps.sectionFormData,
