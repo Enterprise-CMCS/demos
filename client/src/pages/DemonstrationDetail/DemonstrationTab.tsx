@@ -145,7 +145,7 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
               Add Document
             </IconButton>
           </TabHeader>
-          <DocumentTable applicationId={demonstration.id} documents={demonstration.documents} />
+          <DocumentTable documents={demonstration.documents} />
         </Tab>
         <Tab
           icon={<CharacteristicIcon />}
