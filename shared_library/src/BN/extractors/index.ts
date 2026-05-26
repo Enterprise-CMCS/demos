@@ -2,13 +2,13 @@ import type {ExtractionFunction} from "../validation.js";
 import {excelColumnRow} from "../index.js";
 
 
-export const extractions: ExtractionFunction[] = [
+export const extractorFunctions: ExtractionFunction[] = [
   function extractActuals(data) {
-    const b8 = excelColumnRow("B8", "Summary", data);
-    if(b8 === "" || b8 === null || b8 === undefined){
+    const B8 = excelColumnRow("B8", "Summary", data);
+    if(B8 === "" || B8 === null || B8 === undefined){
         throw new Error("Unable to extract actuals from cell B8 in Summary tab. Please ensure the value is a string and is not empty.");
     }
-    return new Map<string, string>([["actuals", b8 as string]]);
+    return new Map<string, string>([["actuals", B8 as string]]);
   },
 
   function extractNetVariance(data) {

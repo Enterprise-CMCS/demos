@@ -17,14 +17,14 @@ export type ValidationFunction = (data: ExcelData) => ValidationError | null;
 export type ExtractionFunction = (data: ExcelData) => Map<string, string | number> | null;
 
 
-export async function validateBNWorkbook(data:ExcelData, validations: ValidationFunction[], extractions: ExtractionFunction[]): Promise<ValidationResult>{
+export async function validateBNWorkbook(data:ExcelData, validations: ValidationFunction[], extractionFunctions: ExtractionFunction[]): Promise<ValidationResult>{
   
   const errors: ValidationError[] = validations.map((validation) => validation(data)).filter((error) => error !== null) as ValidationError[] ;
   const isValid = errors.length === 0;
   const extractedValues = new Map<string, string | number>();
 
   if(isValid){
-    extractions.forEach((extraction) => {
+    extractionFunctions.forEach((extraction) => {
       const result = extraction(data);
       if(result){
         result.forEach((value, key) => {

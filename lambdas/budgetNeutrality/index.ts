@@ -12,7 +12,7 @@ import {
 import { parseBNFileFromPath } from "demos-shared-library/src/BN/index";
 import { validateBNWorkbook, ValidationError, ValidationResult } from "demos-shared-library/src/BN/validation";
 import { validations } from "demos-shared-library/src/BN/rulesets/v1/index";
-import { extractions } from "demos-shared-library/src/BN/extractors/index";
+import { extractorFunctions } from "demos-shared-library/src/BN/extractors/index";
 
 const SUCCEEDED_VALIDATION_STATUS_ID = "Succeeded";
 const FAILED_VALIDATION_STATUS_ID = "Failed";
@@ -84,7 +84,7 @@ export const handler = async (event: SQSEvent, context: Context) =>
       const parsedData = await parseBNFileFromPath(downloadedDocumentPath); 
 
       log.info("Parsing completed. Starting validation against ruleset.");
-      const validationResults = await validateBNWorkbook(parsedData, validations, extractions);
+      const validationResults = await validateBNWorkbook(parsedData, validations, extractorFunctions);
       
 
       log.info("Validation completed. Inserting BN results into database.");
