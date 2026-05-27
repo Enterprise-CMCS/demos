@@ -17,7 +17,7 @@ type CommentQueryResult = {
 };
 
 const COMMENT_FIELDS_FRAGMENT = gql`
-  fragment CommentFields on Comment {
+  fragment CommentFields on DeliverableComment {
     id
     content
     createdAt
@@ -72,13 +72,13 @@ export const CREATE_PRIVATE_COMMENT_MUTATION = gql`
 `;
 
 function toCommentBoxComment(
-  c: CommentQueryResult,
+  queryComment: CommentQueryResult,
   visibility: CommentVisibility
 ): CommentBoxComment {
   return {
-    commentText: c.content,
-    userFullName: c.authorUser.person.fullName,
-    timestamp: new Date(c.createdAt),
+    commentText: queryComment.content,
+    userFullName: queryComment.authorUser.person.fullName,
+    timestamp: new Date(queryComment.createdAt),
     commentVisibility: visibility,
   };
 }
