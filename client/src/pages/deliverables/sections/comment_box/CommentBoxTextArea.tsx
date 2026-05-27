@@ -2,7 +2,6 @@ import React from "react";
 
 import { Textarea } from "components/input";
 import { Button } from "components/button";
-import { Loading } from "components/loading/Loading";
 import { getCurrentUser } from "components/user/UserContext";
 import { CommentVisibility } from "./Comment";
 
@@ -51,7 +50,7 @@ export const CommentBoxTextArea = ({
         onClick={handleAddComment}
         disabled={isSubmitting}
       >
-        {isSubmitting ? <Loading /> : "Add Comment"}
+        {isSubmitting ? "Adding Comment... " : "Add Comment"}
       </Button>
     </div>
   );
