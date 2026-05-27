@@ -43,8 +43,6 @@ export const demonstrationSchema = gql`
     demonstrationTypes: [DemonstrationTypeAssignment!]!
     suggestedApplicationTags: [TagName!]! @auth(requires: ["Access CMS Field"])
     deliverables: [Deliverable!]!
-    medicaidId: String!
-    chipId: String
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -104,8 +102,6 @@ export interface Demonstration {
   demonstrationTypes: DemonstrationTypeAssignment[];
   suggestedApplicationTags: TagName[];
   deliverables: Deliverable[];
-  medicaidId: string;
-  chipId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
