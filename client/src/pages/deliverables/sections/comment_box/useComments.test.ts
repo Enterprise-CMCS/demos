@@ -4,11 +4,7 @@ import { vi } from "vitest";
 import { getCurrentUser } from "components/user/UserContext";
 import { PersonType } from "demos-server";
 import { developmentMockUser } from "mock-data/userMocks";
-import {
-  useComments,
-  GET_PUBLIC_COMMENTS_QUERY,
-  GET_PRIVATE_COMMENTS_QUERY,
-} from "./useComments";
+import { useComments, GET_PUBLIC_COMMENTS_QUERY, GET_PRIVATE_COMMENTS_QUERY } from "./useComments";
 
 const mockRefetchPublic = vi.fn();
 const mockRefetchPrivate = vi.fn();
