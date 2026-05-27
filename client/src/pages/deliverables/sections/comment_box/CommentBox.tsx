@@ -37,6 +37,7 @@ export const CommentBox = ({ deliverableId }: { deliverableId: string }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [currentComment, setCurrentComment] = useState("");
   const [commentVisibility, setCommentVisibility] = useState<CommentVisibility>("public");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { isCmsOrAdminUser, visibleComments, addComment } = useComments(
     deliverableId,
@@ -49,10 +50,13 @@ export const CommentBox = ({ deliverableId }: { deliverableId: string }) => {
 
   const handleAddComment = async (commentText: string) => {
     try {
+      setIsSubmitting(true);
       await addComment(commentText);
       setCurrentComment("");
     } catch {
       // error already displayed via toast in useComments
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -81,6 +85,7 @@ export const CommentBox = ({ deliverableId }: { deliverableId: string }) => {
         currentComment={currentComment}
         setCurrentComment={setCurrentComment}
         commentVisibility={commentVisibility}
+        isSubmitting={isSubmitting}
       />
       <CommentBoxHistory comments={visibleComments} />
     </div>

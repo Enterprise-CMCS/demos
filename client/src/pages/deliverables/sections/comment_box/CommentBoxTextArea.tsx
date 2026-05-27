@@ -2,6 +2,7 @@ import React from "react";
 
 import { Textarea } from "components/input";
 import { Button } from "components/button";
+import { Loading } from "components/loading/Loading";
 import { getCurrentUser } from "components/user/UserContext";
 import { CommentVisibility } from "./Comment";
 
@@ -13,11 +14,13 @@ export const CommentBoxTextArea = ({
   currentComment,
   setCurrentComment,
   commentVisibility,
+  isSubmitting,
 }: {
   addComment: (commentText: string) => void;
   currentComment: string;
   setCurrentComment: (value: string) => void;
   commentVisibility: CommentVisibility;
+  isSubmitting: boolean;
 }) => {
   const { currentUser } = getCurrentUser();
 
@@ -46,8 +49,9 @@ export const CommentBoxTextArea = ({
         name={ADD_COMMENT_BUTTON_NAME}
         data-testid={ADD_COMMENT_BUTTON_NAME}
         onClick={handleAddComment}
+        disabled={isSubmitting}
       >
-        Add Comment
+        {isSubmitting ? <Loading /> : "Add Comment"}
       </Button>
     </div>
   );
