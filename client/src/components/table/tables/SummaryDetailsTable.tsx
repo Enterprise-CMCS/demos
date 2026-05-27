@@ -17,6 +17,7 @@ export type Demonstration = Pick<
   | "effectiveDate"
   | "expirationDate"
   | "status"
+  | "medicaidId"
   | "chipId"
 > & {
   state: Pick<State, "id" | "name">;
@@ -34,6 +35,7 @@ export const DEMONSTRATION_SUMMARY_DETAILS_QUERY = gql`
       effectiveDate
       expirationDate
       status
+      medicaidId
       chipId
       state {
         id
@@ -94,7 +96,7 @@ export const SummaryDetailsTable: React.FC<{ demonstrationId: string }> = ({ dem
 
       <div className={FIELD_CONTAINER_CLASSES}>
         <div className={LABEL_CLASSES}>Demonstration ID</div>
-        <div className={VALUE_CLASSES}>{demonstration.id}</div>
+        <div className={VALUE_CLASSES}>{demonstration.medicaidId}</div>
       </div>
 
       <div className={FIELD_CONTAINER_CLASSES}>
