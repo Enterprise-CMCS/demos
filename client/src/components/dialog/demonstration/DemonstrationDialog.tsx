@@ -34,7 +34,6 @@ export type DemonstrationDialogFields = Pick<
   projectOfficerId: string;
   effectiveDate: string;
   expirationDate: string;
-  demoIds: string[];
 };
 
 const DemonstrationDescriptionTextArea: React.FC<{
@@ -104,9 +103,7 @@ export const checkFormHasChanges = (
     updatedDemonstration.effectiveDate !== initialDemonstration.effectiveDate ||
     updatedDemonstration.expirationDate !== initialDemonstration.expirationDate ||
     updatedDemonstration.sdgDivision !== initialDemonstration.sdgDivision ||
-    updatedDemonstration.signatureLevel !== initialDemonstration.signatureLevel ||
-    [...updatedDemonstration.demoIds].sort((a, b) => a.localeCompare(b)).join(",") !==
-      [...initialDemonstration.demoIds].sort((a, b) => a.localeCompare(b)).join(",")
+    updatedDemonstration.signatureLevel !== initialDemonstration.signatureLevel
   );
 };
 
@@ -118,9 +115,6 @@ export const checkFormIsValid = (demonstration: DemonstrationDialogFields) => {
     return false;
   }
   if (!demonstration.projectOfficerId) {
-    return false;
-  }
-  if (demonstration.demoIds.length === 0) {
     return false;
   }
   if (
