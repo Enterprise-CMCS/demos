@@ -14,6 +14,7 @@ export const AmendmentsTab: React.FC<{
   const amendmentsWithType = amendments.map((amendment) => ({
     ...amendment,
     modificationType: "amendment" as const,
+    demonstrationId: demonstrationId,
   }));
 
   return (

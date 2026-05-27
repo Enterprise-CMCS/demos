@@ -31,18 +31,17 @@ const ModificationDetailsFields = ({
       <div className="flex justify-between w-full">
         <Field label={`${labelPrefix} Title`} value={modificationItem.name} />
         <Field label="Effective Date" value={effectiveDateValue} />
-        <Field label="Status" value={modificationItem.status ?? ""} />
+        <Field label="Status" value={modificationItem.status ?? "-"} />
       </div>
-      {modificationItem.description && (
-        <div className="w-full">
-          <Field label={`${labelPrefix} Description`} value={modificationItem.description} />
-        </div>
-      )}
-      {modificationItem.signatureLevel && (
-        <div className="w-full">
-          <Field label="Signature Level" value={modificationItem.signatureLevel} />
-        </div>
-      )}
+      <div className="w-full">
+        <Field label="Demonstration Id" value={modificationItem.demonstrationId ?? "-"} />
+      </div>
+      <div className="w-full">
+        <Field label={`${labelPrefix} Description`} value={modificationItem.description ?? "-"} />
+      </div>
+      <div className="w-full">
+        <Field label="Signature Level" value={modificationItem.signatureLevel ?? "-"} />
+      </div>
     </div>
   );
 };
