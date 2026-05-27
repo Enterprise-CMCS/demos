@@ -64,13 +64,7 @@ export const ConfirmSuggestedSparklyTagDialog = ({
             Remove
           </button>
           <div className={STYLES.rightActions}>
-            {/* <SecondaryButton
-              name="button-improve-suggested-tag"
-              onClick={() => {
-                console.log("Thanks for pressing me. But i don't work yet. :-)");
-              }}>
-              Improve this Suggestion
-            </SecondaryButton> */}
+            {/* Improve Suggestion button goes here */}
             <Button
               name="button-confirm-suggested-tag"
               onClick={() => onConfirm(tagName)}
