@@ -10,6 +10,7 @@ import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFie
 import { getS3Adapter } from "../../adapters";
 import { updateAssociatedPhase } from "./updateAssociatedPhase";
 import { handleUploadDocumentToDeliverable } from "./handleUploadDocumentToDeliverable";
+import { validateStateUserCanUploadStateDocumentToDeliverable } from "./validateStateUserCanUploadStateDocumentToDeliverable";
 
 vi.mock("../../errors/checkOptionalNotNullFields", () => ({
   checkOptionalNotNullFields: vi.fn(),
@@ -44,6 +45,10 @@ vi.mock("../deliverable", () => ({
 
 vi.mock("./handleUploadDocumentToDeliverable", () => ({
   handleUploadDocumentToDeliverable: vi.fn(),
+}));
+
+vi.mock("./validateStateUserCanUploadStateDocumentToDeliverable", () => ({
+  validateStateUserCanUploadStateDocumentToDeliverable: vi.fn(),
 }));
 
 const mockTransaction = {} as any;
@@ -178,6 +183,18 @@ describe("documentResolvers", () => {
         description: "Test document description",
         deliverableId: "deliverable-123",
       };
+
+      it("should validate state user can upload state document to deliverable", async () => {
+        await documentPendingUploadResolvers.Mutation.uploadDocumentToDeliverableStateFiles(
+          undefined,
+          { input },
+          { user: { id: "state-user-id", personTypeId: "demos-state-user" } } as GraphQLContext
+        );
+
+        expect(
+          validateStateUserCanUploadStateDocumentToDeliverable
+        ).toHaveBeenCalledExactlyOnceWith("state-user-id", input.applicationId);
+      });
 
       it("should defer to handleUploadDocumentToDeliverable with correct parameters", async () => {
         await documentPendingUploadResolvers.Mutation.uploadDocumentToDeliverableStateFiles(
