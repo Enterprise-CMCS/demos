@@ -213,16 +213,14 @@ export const DeliverableDetailsManagementPage: React.FC<{
 
   const userPersonType = currentUser.person.personType;
   const canStartReview =
-    REVIEW_STARTER_PERSON_TYPES.has(userPersonType) &&
-    data.deliverable.status === "Submitted";
+    REVIEW_STARTER_PERSON_TYPES.has(userPersonType) && data.deliverable.status === "Submitted";
   const isFinalized = !isDeliverableEditable(data.deliverable.status);
 
   const submitterName =
     [...data.deliverable.deliverableActions]
       .filter((action) => action.actionType === "Submitted Deliverable")
       .sort(
-        (a, b) =>
-          new Date(b.actionTimestamp).getTime() - new Date(a.actionTimestamp).getTime()
+        (a, b) => new Date(b.actionTimestamp).getTime() - new Date(a.actionTimestamp).getTime()
       )[0]?.userFullName ?? "State User";
 
   const pendingExtensionRequest =
@@ -299,7 +297,7 @@ export const DeliverableDetailsManagementPage: React.FC<{
             <FileAndHistoryTabs deliverable={data.deliverable} />
           </div>
           <div>
-            <CommentBox />
+            <CommentBox deliverableId={data.deliverable.id} />
           </div>
         </div>
       </div>
