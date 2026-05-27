@@ -17,6 +17,7 @@ export const DEMONSTRATION_HEADER_DETAILS_QUERY = gql`
       expirationDate
       effectiveDate
       status
+      medicaidId
       state {
         id
       }
@@ -30,7 +31,7 @@ export const DEMONSTRATION_HEADER_DETAILS_QUERY = gql`
 
 export type DemonstrationHeaderDetails = Pick<
   Demonstration,
-  "id" | "name" | "expirationDate" | "effectiveDate" | "status"
+  "id" | "name" | "expirationDate" | "effectiveDate" | "status" | "medicaidId"
 > & {
   state: Pick<State, "id">;
   primaryProjectOfficer: Pick<Person, "id" | "fullName">;
@@ -110,7 +111,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
               Demonstration List
             </a>
             {/* \u00A0 is unicode for non-breaking space */}
-            {"\u00A0 > \u00A0"} {demonstration.id} {"\u00A0|\u00A0"} 21-W-00014/8
+            {"\u00A0 > \u00A0"} {demonstration.id} {"\u00A0|\u00A0"} {demonstration.medicaidId}
           </span>
           <div className="flex gap-1 items-center -ml-2">
             <div>

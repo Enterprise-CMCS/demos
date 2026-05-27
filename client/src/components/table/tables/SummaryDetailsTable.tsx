@@ -17,6 +17,7 @@ export type Demonstration = Pick<
   | "effectiveDate"
   | "expirationDate"
   | "status"
+  | "chipId"
 > & {
   state: Pick<State, "id" | "name">;
   primaryProjectOfficer: Pick<Person, "id" | "fullName">;
@@ -33,6 +34,7 @@ export const DEMONSTRATION_SUMMARY_DETAILS_QUERY = gql`
       effectiveDate
       expirationDate
       status
+      chipId
       state {
         id
         name
@@ -57,6 +59,7 @@ const prepareDisplayData = (demonstration: Demonstration) => ({
   sdgDivision: demonstration.sdgDivision || "-",
   signatureLevel: demonstration.signatureLevel || "-",
   primaryProjectOfficerName: demonstration.primaryProjectOfficer?.fullName || "-",
+  chipId: demonstration.chipId || "-",
 });
 
 export const SummaryDetailsTable: React.FC<{ demonstrationId: string }> = ({ demonstrationId }) => {
@@ -96,7 +99,7 @@ export const SummaryDetailsTable: React.FC<{ demonstrationId: string }> = ({ dem
 
       <div className={FIELD_CONTAINER_CLASSES}>
         <div className={LABEL_CLASSES}>CHIP ID</div>
-        <div className={VALUE_CLASSES}>21-W-00014/8</div>
+        <div className={VALUE_CLASSES}>{displayData.chipId}</div>
       </div>
 
       <div className={FIELD_CONTAINER_CLASSES}>
