@@ -233,7 +233,8 @@ export const DeliverableDetailsManagementPage: React.FC<{
 
   const canReviewExtension =
     EXTENSION_REVIEWER_PERSON_TYPES.has(userPersonType) && pendingExtensionRequest !== null;
-  const canEditDelete = EDIT_DELETE_PERSON_TYPES.has(userPersonType);
+
+  const canEditDelete = EDIT_DELETE_PERSON_TYPES.has(userPersonType) ?? userPersonType !== "demos-state-user";
 
   const handleReviewExtensionRequest = () => {
     if (!pendingExtensionRequest) return;
