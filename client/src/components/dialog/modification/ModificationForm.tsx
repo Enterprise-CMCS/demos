@@ -1,6 +1,6 @@
 import React from "react";
 import { Textarea, TextInput } from "components/input";
-import { LocalDate, SignatureLevel } from "demos-server";
+import { SignatureLevel } from "demos-server";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
 import { SelectDemonstration } from "components/input/select/SelectDemonstration";
 import { DatePicker } from "components/input/date/DatePicker";
@@ -21,9 +21,9 @@ export type ModificationFormData = {
   id?: string;
   name?: string;
   description?: string;
-  signatureLevel?: SignatureLevel;
+  signatureLevel?: SignatureLevel | null;
   demonstrationId?: string;
-  effectiveDate?: LocalDate;
+  effectiveDate?: string | null;
 };
 
 export const isValid = (createModificationFormData: ModificationFormData): boolean => {
@@ -104,10 +104,10 @@ export const ModificationForm: React.FC<{
             <DatePicker
               name="effectiveDate"
               label="Effective Date"
-              value={modificationFormData.effectiveDate}
+              value={modificationFormData.effectiveDate ?? undefined}
               onChange={(date) =>
                 setModificationFormDataField({
-                  effectiveDate: date as LocalDate,
+                  effectiveDate: date as string,
                 })
               }
             />
@@ -133,7 +133,7 @@ export const ModificationForm: React.FC<{
               signatureLevel: signatureLevel,
             })
           }
-          initialValue={modificationFormData.signatureLevel}
+          initialValue={modificationFormData.signatureLevel ?? undefined}
         />
       </div>
     </>
