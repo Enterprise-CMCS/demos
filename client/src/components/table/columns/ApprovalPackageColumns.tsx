@@ -77,7 +77,7 @@ export function ApprovalPackageColumns(demonstrationId: string) {
                         file: null,
                         documentType: doc.documentType as DocumentType,
                       },
-                      false
+                      { canEditDocumentType: false }
                     )
                   }
                 >

@@ -65,9 +65,8 @@ export function makeStateFileColumns() {
   ];
 }
 
-export function makeCmsFileColumns() {
-  return [
-    createSelectColumnDef(columnHelper),
+export function makeCmsFileColumns({ showSelect = true }: { showSelect?: boolean } = {}) {
+  const baseColumns = [
     typeColumn,
     fileNameColumn,
     descriptionColumn,
@@ -88,6 +87,7 @@ export function makeCmsFileColumns() {
       enableSorting: false,
     }),
   ];
+  return showSelect ? [createSelectColumnDef(columnHelper), ...baseColumns] : baseColumns;
 }
 
 // Uses the shared `react-switch` styling (matching ContactColumns) so the
