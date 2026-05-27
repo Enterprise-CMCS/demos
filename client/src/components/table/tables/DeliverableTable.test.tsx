@@ -491,15 +491,31 @@ describe("DeliverableTable default sorting behavior", () => {
       id: string,
       name: string,
       status: DeliverableTableRow["status"],
-      dueDate: string
+      dueDate: string,
+      extensionRequests: DeliverableTableRow["extensionRequests"] = []
     ): DeliverableTableRow => ({
       ...base,
       id,
       name,
       status,
       dueDate: new Date(dueDate),
+      extensionRequests,
     });
 
+    const requestedEarly = createDeliverable(
+      "requested-early",
+      "Requested Early",
+      "Submitted",
+      "2026-05-02",
+      [{ id: "request-early", status: "Requested" }]
+    );
+    const requestedLate = createDeliverable(
+      "requested-late",
+      "Requested Late",
+      "Approved",
+      "2026-05-04",
+      [{ id: "request-late", status: "Requested" }]
+    );
     const pastDue = createDeliverable("past-due", "Past Due", "Past Due", "2026-05-03");
     const upcoming = createDeliverable("upcoming", "Upcoming", "Upcoming", "2026-05-02");
     const submitted = createDeliverable("submitted", "Submitted", "Submitted", "2026-05-01");
@@ -510,19 +526,37 @@ describe("DeliverableTable default sorting behavior", () => {
         .map((checkbox) => checkbox.getAttribute("data-testid")?.replace("select-row-", ""));
 
     const { rerender } = render(
-      <DeliverableTable deliverables={[submitted, pastDue, upcoming]} viewMode="demos-cms-user" />
+      <DeliverableTable
+        deliverables={[submitted, requestedLate, pastDue, upcoming, requestedEarly]}
+        viewMode="demos-cms-user"
+      />
     );
 
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
 
-    expect(getRenderedRowIds()).toEqual(["past-due", "upcoming", "submitted"]);
+    expect(getRenderedRowIds()).toEqual([
+      "requested-early",
+      "requested-late",
+      "past-due",
+      "upcoming",
+      "submitted",
+    ]);
 
     rerender(
-      <DeliverableTable deliverables={[upcoming, submitted, pastDue]} viewMode="demos-cms-user" />
+      <DeliverableTable
+        deliverables={[upcoming, requestedEarly, submitted, requestedLate, pastDue]}
+        viewMode="demos-cms-user"
+      />
     );
 
-    expect(getRenderedRowIds()).toEqual(["past-due", "upcoming", "submitted"]);
+    expect(getRenderedRowIds()).toEqual([
+      "requested-early",
+      "requested-late",
+      "past-due",
+      "upcoming",
+      "submitted",
+    ]);
   });
 });

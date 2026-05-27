@@ -54,6 +54,7 @@ describe("DemonstrationDeliverableTable", () => {
             dueDate: new Date("2026-05-10"),
             status: "Upcoming",
             ...baseDeliverable,
+            extensionRequests: [{ id: "request-later", status: "Requested" }],
           },
           {
             id: "past-due-1",
@@ -68,6 +69,7 @@ describe("DemonstrationDeliverableTable", () => {
             dueDate: new Date("2026-04-20"),
             status: "Approved",
             ...baseDeliverable,
+            extensionRequests: [{ id: "request-earlier", status: "Requested" }],
           },
           {
             id: "upcoming-1",
@@ -84,11 +86,11 @@ describe("DemonstrationDeliverableTable", () => {
     const orderedNames = rows.map((row) => within(row).getAllByRole("cell")[1].textContent);
 
     expect(orderedNames).toEqual([
-      "Past Due Item",
+      "Extension Earlier",
       "Extension Later",
+      "Past Due Item",
       "Upcoming Item",
       "Submitted Item",
-      "Extension Earlier",
     ]);
   });
 
@@ -259,6 +261,22 @@ describe("DemonstrationDeliverableTable", () => {
       status: "Submitted" as const,
       ...baseDeliverable,
     };
+    const requestedEarly: DeliverableTableRow = {
+      id: "requested-early-2",
+      name: "Requested Early",
+      dueDate: new Date("2026-05-02"),
+      status: "Submitted" as const,
+      ...baseDeliverable,
+      extensionRequests: [{ id: "request-early-2", status: "Requested" }],
+    };
+    const requestedLate: DeliverableTableRow = {
+      id: "requested-late-2",
+      name: "Requested Late",
+      dueDate: new Date("2026-05-04"),
+      status: "Approved" as const,
+      ...baseDeliverable,
+      extensionRequests: [{ id: "request-late-2", status: "Requested" }],
+    };
 
     const getOrderedNames = () =>
       screen
@@ -269,19 +287,31 @@ describe("DemonstrationDeliverableTable", () => {
     const { rerender } = render(
       <DemonstrationDeliverableTable
         viewMode="demos-state-user"
-        deliverables={[submitted, pastDue, upcoming]}
+        deliverables={[submitted, requestedLate, pastDue, upcoming, requestedEarly]}
       />
     );
 
-    expect(getOrderedNames()).toEqual(["Past Due", "Upcoming", "Submitted"]);
+    expect(getOrderedNames()).toEqual([
+      "Requested Early",
+      "Requested Late",
+      "Past Due",
+      "Upcoming",
+      "Submitted",
+    ]);
 
     rerender(
       <DemonstrationDeliverableTable
         viewMode="demos-state-user"
-        deliverables={[upcoming, submitted, pastDue]}
+        deliverables={[upcoming, requestedEarly, submitted, requestedLate, pastDue]}
       />
     );
 
-    expect(getOrderedNames()).toEqual(["Past Due", "Upcoming", "Submitted"]);
+    expect(getOrderedNames()).toEqual([
+      "Requested Early",
+      "Requested Late",
+      "Past Due",
+      "Upcoming",
+      "Submitted",
+    ]);
   });
 });

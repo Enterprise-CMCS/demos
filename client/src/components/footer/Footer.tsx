@@ -50,21 +50,21 @@ const FooterLinks: React.FC = () => {
 };
 
 const FooterUpper: React.FC = () => (
-  <div className="flex w-full items-center px-2 py-1">
-    <div className="flex w-1/3 items-center text-left">
+  <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-8 px-12 py-6">
+    <div className="justify-self-start text-left">
       <HhsLogo />
     </div>
-    <div className="flex w-1/3 items-center justify-center text-center">
+    <div className="justify-self-center text-center">
       <FooterLinks />
     </div>
-    <div className="flex w-1/3 items-center justify-end">
+    <div className="justify-self-end">
       <LogoSimplified />
     </div>
   </div>
 );
 
 const FooterLower: React.FC = () => (
-  <div className="flex w-full bg-brand text-white p-1">
+  <div className="flex w-full items-center bg-brand px-4 py-1 text-white">
     <div className="w-1/3" />
     <div className="w-1/3 text-center">DEMOS version {DEMOS_VERSION}</div>
     <div className="w-1/3 text-right">{DEMOS_ADDRESS}</div>
