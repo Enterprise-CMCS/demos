@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 
 import { CircleButton } from "components/button";
 import { BaseButton } from "components/button/BaseButton";
-import { AddNewIcon, ChevronLeftIcon, DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
+import { AddNewIcon, ChevronLeftIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { Demonstration, Person, State } from "demos-server";
 import { formatDate } from "util/formatDate";
 import { gql, useQuery } from "@apollo/client";
@@ -164,14 +164,6 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
         {showButtons && (
           <span className="mr-0.75">
             <span>
-              <CircleButton
-                name="Delete demonstration"
-                data-testid="delete-button"
-                size="small"
-                onClick={() => {}}
-              >
-                <DeleteIcon />
-              </CircleButton>
               <CircleButton
                 name="Edit demonstration"
                 data-testid="edit-button"
