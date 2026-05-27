@@ -32,7 +32,7 @@ import {
 import { EasternTZDate, parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities";
 import { ContextUser, GraphQLContext } from "../../auth";
 import { getDemonstration } from "../demonstration";
-import { getAmendment, getManyAmendments } from "./amendmentData";
+import { getAmendment } from "./amendmentData";
 import { getManyDocuments } from "../document";
 import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
@@ -44,7 +44,6 @@ vi.mock("../../prismaClient", () => ({
 
 vi.mock("./amendmentData", () => ({
   getAmendment: vi.fn(),
-  getManyAmendments: vi.fn(),
 }));
 
 vi.mock("../document", () => ({
@@ -147,13 +146,6 @@ describe("amendmentResolvers", () => {
     });
   });
 
-  describe("Query.amendments", () => {
-    it("delegates to amendmentData.getManyAmendments", async () => {
-      await amendmentResolvers.Query.amendments(undefined, {}, mockContext);
-      expect(getManyAmendments).toHaveBeenCalledExactlyOnceWith({}, mockUser);
-    });
-  });
-
   describe("Amendment.documents", () => {
     it("delegates to documentData.getManyDocuments", async () => {
       const mockAmendment = { id: "abc123" } as PrismaAmendment;
@@ -178,9 +170,7 @@ describe("amendmentResolvers", () => {
 
   describe("Amendment.phases", () => {
     it("delegates to `applicationPhaseData/queries.selectManyApplicationPhases`", async () => {
-      await amendmentResolvers.Amendment.phases(
-        { id: "amendmentId" } as PrismaAmendment,
-      );
+      await amendmentResolvers.Amendment.phases({ id: "amendmentId" } as PrismaAmendment);
       expect(selectManyApplicationPhases).toHaveBeenCalledExactlyOnceWith({
         applicationId: "amendmentId",
       });
@@ -235,14 +225,12 @@ describe("amendmentResolvers", () => {
       ] as PrismaApplicationTagSuggestion[]);
 
       const result = await amendmentResolvers.Amendment.suggestedApplicationTags(mockAmendment);
-      expect(selectManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith(
-        {
-          applicationId: "abc123",
-          statusId: {
-            in: ["Pending"],
-          },
+      expect(selectManyApplicationTagSuggestions).toHaveBeenCalledExactlyOnceWith({
+        applicationId: "abc123",
+        statusId: {
+          in: ["Pending"],
         },
-      );
+      });
       expect(result).toEqual(["Suggestion1", "Suggestion2"]);
     });
   });

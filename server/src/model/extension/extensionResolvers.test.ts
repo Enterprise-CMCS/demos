@@ -35,7 +35,7 @@ import {
 import { EasternTZDate, parseDateTimeOrLocalDateToEasternTZDate } from "../../dateUtilities";
 import { ContextUser, GraphQLContext } from "../../auth";
 import { getDemonstration } from "../demonstration";
-import { getExtension, getManyExtensions } from "./extensionData";
+import { getExtension } from "./extensionData";
 import { getManyDocuments } from "../document";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
 import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
@@ -48,7 +48,6 @@ vi.mock("../../prismaClient", () => ({
 
 vi.mock("./extensionData", () => ({
   getExtension: vi.fn(),
-  getManyExtensions: vi.fn(),
 }));
 
 vi.mock("../document", () => ({
@@ -152,13 +151,6 @@ describe("extensionResolvers", () => {
     it("delegates to `extensionData.getExtension`", async () => {
       await extensionResolvers.Query.extension(undefined, { id: "abc123" }, mockContext);
       expect(getExtension).toHaveBeenCalledExactlyOnceWith({ id: "abc123" }, mockUser);
-    });
-  });
-
-  describe("Query.extensions", () => {
-    it("delegates to `extensionData.getManyExtensions`", async () => {
-      await extensionResolvers.Query.extensions(undefined, {}, mockContext);
-      expect(getManyExtensions).toHaveBeenCalledExactlyOnceWith({}, mockUser);
     });
   });
 

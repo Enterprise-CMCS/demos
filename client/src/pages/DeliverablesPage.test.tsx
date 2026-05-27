@@ -15,12 +15,24 @@ vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({ showEditDeliverableDialog: vi.fn() }),
 }));
 
+const CURRENT_USER_ID = "current-user-id";
+
 const MOCK_DELIVERABLE_TABLE_ROWS = [
-  MOCK_DELIVERABLE_TABLE_ROW,
+  {
+    ...MOCK_DELIVERABLE_TABLE_ROW,
+    cmsOwner: {
+      ...MOCK_DELIVERABLE_TABLE_ROW.cmsOwner,
+      id: CURRENT_USER_ID,
+    },
+  },
   {
     ...MOCK_DELIVERABLE_TABLE_ROW,
     id: "2",
     name: "Budget Neutrality Worksheet",
+    cmsOwner: {
+      ...MOCK_DELIVERABLE_TABLE_ROW.cmsOwner,
+      id: CURRENT_USER_ID,
+    },
   },
   {
     ...MOCK_DELIVERABLE_TABLE_ROW,
@@ -62,6 +74,13 @@ const STATE_USER_DELIVERABLES_TABLE_MOCKS: MockedResponse[] = [
                 demonstration: {
                   id: "assigned-demonstration",
                   deliverables: MOCK_DELIVERABLE_TABLE_ROWS,
+                },
+              },
+              {
+                role: "State Point of Contact",
+                demonstration: {
+                  id: "second-assigned-demonstration",
+                  deliverables: [MOCK_DELIVERABLE_TABLE_ROWS[0]],
                 },
               },
               {
@@ -112,7 +131,6 @@ const EMPTY_STATE_USER_DELIVERABLES_TABLE_MOCKS: MockedResponse[] = [
 
 describe("DeliverablesPage tab persistence", () => {
   const TAB_KEY = "selectedDeliverableTab";
-  const CURRENT_USER_ID = MOCK_DELIVERABLE_TABLE_ROW.cmsOwner.id;
   const DEFAULT_TEST_USER = { ...mockUsers[0], id: CURRENT_USER_ID };
   const STATE_TEST_USER = {
     ...mockUsers[0],
@@ -219,6 +237,36 @@ describe("DeliverablesPage tab persistence", () => {
     expect(screen.getByText("Quarterly Report For NYC Demonstration")).toBeInTheDocument();
   });
 
+  it.each([
+    ["CMS", "demos-cms-user" as const],
+    ["Admin", "demos-admin" as const],
+  ])(
+    "%s users see all deliverables in All Deliverables and only owned deliverables in My Deliverables",
+    async (_label, personType) => {
+      const currentUser = {
+        ...DEFAULT_TEST_USER,
+        person: {
+          ...DEFAULT_TEST_USER.person,
+          personType,
+        },
+      };
+
+      await renderDeliverablesPage(currentUser);
+
+      expect(screen.getByTestId("button-my-deliverables")).toBeInTheDocument();
+      expect(screen.getByTestId("button-deliverables")).toBeInTheDocument();
+      expect(screen.getByText("Budget Neutrality Report")).toBeInTheDocument();
+      expect(screen.getByText("Budget Neutrality Worksheet")).toBeInTheDocument();
+      expect(screen.queryByText("Quarterly Report For NYC Demonstration")).not.toBeInTheDocument();
+
+      fireEvent.click(screen.getByTestId("button-deliverables"));
+
+      expect(screen.getByText("Budget Neutrality Report")).toBeInTheDocument();
+      expect(screen.getByText("Budget Neutrality Worksheet")).toBeInTheDocument();
+      expect(screen.getByText("Quarterly Report For NYC Demonstration")).toBeInTheDocument();
+    }
+  );
+
   it("uses distinct empty messages for My Deliverables and All Deliverables", async () => {
     await renderDeliverablesPage(DEFAULT_TEST_USER, EMPTY_DELIVERABLES_TABLE_MOCKS);
 
@@ -248,6 +296,12 @@ describe("DeliverablesPage tab persistence", () => {
     expect(screen.getByText("Budget Neutrality Worksheet")).toBeInTheDocument();
     expect(screen.getByText("Quarterly Report For NYC Demonstration")).toBeInTheDocument();
     expect(screen.queryByText("Unassigned Demonstration Deliverable")).not.toBeInTheDocument();
+  });
+
+  it("dedupes state-user deliverables across State Point of Contact demonstrations", async () => {
+    await renderStateDeliverablesPage();
+
+    expect(screen.getAllByText("Budget Neutrality Report")).toHaveLength(1);
   });
 
   it("shows state-user empty message when there are no deliverables", async () => {

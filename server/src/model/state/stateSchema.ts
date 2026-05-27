@@ -7,11 +7,6 @@ export const stateSchema = gql`
     name: String!
     demonstrations: [Demonstration!]! @auth(requires: ["Access CMS Field"])
   }
-
-  type Query {
-    states: [State!]!
-    state(id: String!): State!
-  }
 `;
 
 export interface State {
