@@ -80,6 +80,12 @@ export const ACTIVE_DELIVERABLE_STATUSES = [
   "Under CMS Review",
 ] as const satisfies DeliverableStatus[];
 
+export type DeliverableType = (typeof DELIVERABLE_TYPES)[number];
+export const REQUIRED_DEMO_TYPE_DELIVERABLES: readonly DeliverableType[] = [
+  "Monitoring Protocol",
+  "Implementation Plan",
+];
+
 export const FINAL_DELIVERABLE_STATUSES = [
   "Accepted",
   "Approved",

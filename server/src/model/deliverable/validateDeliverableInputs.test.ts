@@ -361,6 +361,34 @@ describe("validateDeliverableInputs", () => {
         ]);
       }
     });
+
+    it("should throw if a required deliverable type does not have demonstration types", async () => {
+      const modifiedTestInput: ParsedCreateDeliverableInput = {
+        ...testInput,
+        deliverableType: "Implementation Plan",
+        demonstrationTypes: undefined,
+      };
+
+      try {
+        await validateCreateDeliverableInput(modifiedTestInput, mockTransaction);
+        throw new Error("Expected validateCreateDeliverableInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+
+        expect(error.message).toBe(
+          "One or more validation checks for createDeliverable have failed."
+        );
+
+        expect(error.extensions.code).toBe(
+          "CREATE_DELIVERABLE_VALIDATION_FAILED"
+        );
+
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "Deliverable type Implementation Plan requires at least one demonstration type",
+        ]);
+      }
+    });
   });
 
   describe("validateUpdateDeliverableInput", () => {

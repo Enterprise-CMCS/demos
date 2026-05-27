@@ -29,7 +29,7 @@ import {
 } from "@prisma/client";
 import { GraphQLContext } from "../../auth";
 import { PersonType } from "../../types";
-import { ACTIVE_DELIVERABLE_STATUSES } from "../../constants";
+import { ACTIVE_DELIVERABLE_STATUSES, REQUIRED_DEMO_TYPE_DELIVERABLES } from "../../constants";
 
 function cleanErrorsAndThrow(errors: (string | undefined)[], mutator: string, code: string): void {
   const cleanedErrors = errors.filter((e) => e !== undefined);
@@ -80,6 +80,14 @@ export async function validateCreateDeliverableInput(
     checkOwnerPersonType(cmsOwnerUser),
     checkDueDateInFuture(input.dueDate)
   );
+  if (
+    REQUIRED_DEMO_TYPE_DELIVERABLES.includes(input.deliverableType) &&
+    (!input.demonstrationTypes || input.demonstrationTypes.size === 0)
+  ) {
+    errors.push(
+      `Deliverable type ${input.deliverableType} requires at least one demonstration type`
+    );
+  }
   if (input.demonstrationTypes && input.demonstrationTypes.size > 0) {
     for (const requestedDeliverableDemonstrationType of input.demonstrationTypes) {
       errors.push(
