@@ -57,7 +57,6 @@ export const extensionSchema = gql`
   }
 
   type Query {
-    extensions: [Extension!]! @auth(requires: ["Access CMS Query"])
     extension(id: ID!): Extension! @auth(requires: ["Access CMS Query"])
   }
 `;

@@ -23,7 +23,7 @@ import { parseAndValidateEffectiveAndExpirationDates } from "../applicationDate"
 import { deleteApplication } from "../application";
 import { getDemonstration } from "../demonstration";
 import { GraphQLContext } from "../../auth";
-import { getExtension, getManyExtensions } from "./extensionData";
+import { getExtension } from "./extensionData";
 import { getManyDocuments } from "../document";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
 import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
@@ -100,11 +100,6 @@ export const extensionResolvers = {
       args: { id: string },
       context: GraphQLContext
     ): Promise<PrismaExtension> => getExtension({ id: args.id }, context.user),
-    extensions: (
-      parent: unknown,
-      args: unknown,
-      context: GraphQLContext
-    ): Promise<PrismaExtension[]> => getManyExtensions({}, context.user),
   },
 
   Mutation: {
