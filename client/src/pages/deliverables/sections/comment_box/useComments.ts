@@ -16,68 +16,57 @@ type CommentQueryResult = {
   };
 };
 
+const COMMENT_FIELDS_FRAGMENT = gql`
+  fragment CommentFields on Comment {
+    id
+    content
+    createdAt
+    authorUser {
+      person {
+        fullName
+      }
+    }
+  }
+`;
+
 export const GET_PUBLIC_COMMENTS_QUERY = gql`
+  ${COMMENT_FIELDS_FRAGMENT}
   query GetPublicDeliverableComments($id: ID!) {
     deliverable(id: $id) {
       id
       publicComments {
-        id
-        content
-        createdAt
-        authorUser {
-          person {
-            fullName
-          }
-        }
+        ...CommentFields
       }
     }
   }
 `;
 
 export const GET_PRIVATE_COMMENTS_QUERY = gql`
+  ${COMMENT_FIELDS_FRAGMENT}
   query GetPrivateDeliverableComments($id: ID!) {
     deliverable(id: $id) {
       id
       privateComments {
-        id
-        content
-        createdAt
-        authorUser {
-          person {
-            fullName
-          }
-        }
+        ...CommentFields
       }
     }
   }
 `;
 
 export const CREATE_PUBLIC_COMMENT_MUTATION = gql`
+  ${COMMENT_FIELDS_FRAGMENT}
   mutation CreatePublicComment($deliverableId: ID!, $comment: NonEmptyString!) {
     createPublicComment(deliverableId: $deliverableId, comment: $comment) {
-      id
-      content
-      createdAt
-      authorUser {
-        person {
-          fullName
-        }
-      }
+      ...CommentFields
     }
   }
 `;
 
 export const CREATE_PRIVATE_COMMENT_MUTATION = gql`
+  ${COMMENT_FIELDS_FRAGMENT}
   mutation CreatePrivateComment($deliverableId: ID!, $comment: NonEmptyString!) {
     createPrivateComment(deliverableId: $deliverableId, comment: $comment) {
-      id
-      content
-      createdAt
-      authorUser {
-        person {
-          fullName
-        }
-      }
+      ...CommentFields
     }
   }
 `;
