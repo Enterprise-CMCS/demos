@@ -37,8 +37,6 @@ export const BaseEditModificationDialog: React.FC<{
   }, [modification]);
 
   const handleSubmit = async () => {
-    console.log("formData:", formData);
-    console.log("modification:", modification);
     if (!formData) {
       showError("Form data is not loaded yet.");
       return;

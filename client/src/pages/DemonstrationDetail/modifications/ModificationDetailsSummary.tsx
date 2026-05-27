@@ -34,13 +34,13 @@ const ModificationDetailsFields = ({
         <Field label="Status" value={modificationItem.status ?? "-"} />
       </div>
       <div className="w-full">
-        <Field label="Demonstration Id" value={modificationItem.demonstrationId ?? "-"} />
+        <Field label="Demonstration Id" value={modificationItem.demonstrationId || "-"} />
       </div>
       <div className="w-full">
-        <Field label={`${labelPrefix} Description`} value={modificationItem.description ?? "-"} />
+        <Field label={`${labelPrefix} Description`} value={modificationItem.description || "-"} />
       </div>
       <div className="w-full">
-        <Field label="Signature Level" value={modificationItem.signatureLevel ?? "-"} />
+        <Field label="Signature Level" value={modificationItem.signatureLevel || "-"} />
       </div>
     </div>
   );
