@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 
 import { CircleButton } from "components/button";
 import { BaseButton } from "components/button/BaseButton";
-import { AddNewIcon, ChevronLeftIcon, DeleteIcon, EditIcon, EllipsisIcon } from "components/icons";
+import { AddNewIcon, ChevronLeftIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { Demonstration, Person, State } from "demos-server";
 import { formatDate } from "util/formatDate";
 import { gql, useQuery } from "@apollo/client";
@@ -17,6 +17,8 @@ export const DEMONSTRATION_HEADER_DETAILS_QUERY = gql`
       expirationDate
       effectiveDate
       status
+      medicaidId
+      chipId
       state {
         id
       }
@@ -30,7 +32,7 @@ export const DEMONSTRATION_HEADER_DETAILS_QUERY = gql`
 
 export type DemonstrationHeaderDetails = Pick<
   Demonstration,
-  "id" | "name" | "expirationDate" | "effectiveDate" | "status"
+  "id" | "name" | "expirationDate" | "effectiveDate" | "status" | "medicaidId" | "chipId"
 > & {
   state: Pick<State, "id">;
   primaryProjectOfficer: Pick<Person, "id" | "fullName">;
@@ -110,7 +112,10 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
               Demonstration List
             </a>
             {/* \u00A0 is unicode for non-breaking space */}
-            {"\u00A0 > \u00A0"} {demonstration.id} {"\u00A0|\u00A0"} 21-W-00014/8
+            {"\u00A0 > \u00A0"} {demonstration.medicaidId}
+            { demonstration.chipId && (
+              <span>{"\u00A0|\u00A0"} {demonstration.chipId}</span>
+            )}
           </span>
           <div className="flex gap-1 items-center -ml-2">
             <div>
@@ -164,14 +169,6 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
         {showButtons && (
           <span className="mr-0.75">
             <span>
-              <CircleButton
-                name="Delete demonstration"
-                data-testid="delete-button"
-                size="small"
-                onClick={() => {}}
-              >
-                <DeleteIcon />
-              </CircleButton>
               <CircleButton
                 name="Edit demonstration"
                 data-testid="edit-button"

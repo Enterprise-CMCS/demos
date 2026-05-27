@@ -113,7 +113,6 @@ const getDemonstrationDialogFields = (demonstration: Demonstration): Demonstrati
   expirationDate: demonstration.expirationDate
     ? formatDateForServer(demonstration.expirationDate)
     : "",
-  demoIds: ["medicaid"],
 });
 
 const useUpdateDemonstration = () => {

@@ -28,6 +28,8 @@ vi.mock("components/dialog/DialogContext", () => ({
 
 const testDemonstration = {
   id: "1",
+  medicaidId: "11-W-99999/8",
+  chipId: "11-W-99998/8",
   name: "Montana Medicaid Waiver",
   status: "Approved",
   effectiveDate: new Date("2025-01-01"),
@@ -51,6 +53,23 @@ const mockDemonstrationQuery = {
   result: {
     data: {
       demonstration: testDemonstration,
+    },
+  },
+};
+
+const testDemonstrationWithoutChipId = {
+  ...testDemonstration,
+  chipId: null,
+};
+
+const mockDemonstrationQueryWithoutChipId = {
+  request: {
+    query: DEMONSTRATION_HEADER_DETAILS_QUERY,
+    variables: { id: "1" },
+  },
+  result: {
+    data: {
+      demonstration: testDemonstrationWithoutChipId,
     },
   },
 };
@@ -292,5 +311,48 @@ describe("Demonstration Detail Header", () => {
     fireEvent.click(screen.getByTestId("button-create-new-extension"));
 
     expect(showCreateExtensionDialog).toHaveBeenCalledWith("1");
+  });
+
+  it("renders both medicaidId and chipId when chipId exists", async () => {
+    render(
+      <MemoryRouter>
+        <MockedProvider mocks={[mockDemonstrationQuery]} addTypename={false}>
+          <DemonstrationDetailHeader demonstrationId="1" />
+        </MockedProvider>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
+    });
+
+    const breadcrumb = screen
+      .getByRole("link", { name: /demonstration list/i })
+      .parentElement;
+
+    expect(breadcrumb).toHaveTextContent("11-W-99999/8");
+    expect(breadcrumb).toHaveTextContent("11-W-99998/8");
+    expect(breadcrumb).toHaveTextContent("|");
+  });
+
+  it("renders only medicaidId when chipId is missing", async () => {
+    render(
+      <MemoryRouter>
+        <MockedProvider mocks={[mockDemonstrationQueryWithoutChipId]} addTypename={false}>
+          <DemonstrationDetailHeader demonstrationId="1" />
+        </MockedProvider>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
+    });
+
+    const breadcrumb = screen
+      .getByRole("link", { name: /demonstration list/i })
+      .parentElement;
+
+    expect(breadcrumb).toHaveTextContent("11-W-99999/8");
+    expect(breadcrumb).not.toHaveTextContent("11-W-99998/8");
   });
 });

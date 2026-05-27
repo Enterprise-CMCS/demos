@@ -310,7 +310,6 @@ describe("DemonstrationDialog", () => {
       expirationDate: "2024-12-31",
       sdgDivision: "Division of System Reform Demonstrations",
       signatureLevel: "OA",
-      demoIds: ["medicaid"],
     };
 
     it("returns false when demonstrations are identical", () => {

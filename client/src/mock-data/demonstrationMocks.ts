@@ -31,7 +31,7 @@ import { DEMONSTRATION_HEADER_DETAILS_QUERY } from "pages/DemonstrationDetail/De
 
 export type MockDemonstration = Pick<
   Demonstration,
-  "id" | "name" | "description" | "sdgDivision" | "signatureLevel" | "currentPhaseName"
+  "id" | "name" | "description" | "sdgDivision" | "signatureLevel" | "currentPhaseName" | "medicaidId" | "chipId"
 > & {
   effectiveDate: Date;
   expirationDate: Date;
@@ -71,6 +71,8 @@ export const MOCK_DEMONSTRATION: MockDemonstration = {
   currentPhaseName: "Concept",
   primaryProjectOfficer: mockPeople[0],
   demonstrationTypes: MOCK_DEMONSTRATION_TYPE_ASSIGNMENTS,
+  medicaidId: "11-W-99999/8",
+  chipId: "11-W-99998/8",
 };
 
 export const mockAddDemonstrationInput: CreateDemonstrationInput = {
