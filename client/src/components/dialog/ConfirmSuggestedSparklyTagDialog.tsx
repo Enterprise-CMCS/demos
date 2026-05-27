@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Button, SecondaryButton } from "components/button";
+import { Button } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { SparklyIcon } from "components/icons";
 import { TagChip } from "components/tags/TagChip";
@@ -25,18 +25,6 @@ type ConfirmSuggestedSparklyTagDialogProps = {
   onRemove: (tagName: TagName) => void;
   isSubmitting?: boolean;
 };
-
-// Apparently NOT part of DEMOS-1638
-const SourcePassagePdfPreviewPlaceholder = ({ tagName }: { tagName: TagName }) => (
-  <div>
-    <h3 className={STYLES.sourceTitle}>Source Passage</h3>
-    <div className={STYLES.sourcePreview}>
-      &quot;...This specifically references {tagName} in the application
-      text...&quot;
-    </div>
-    <div className={STYLES.sourceMeta}>(Found in Document X, Page N, Position NN/NNN)</div>
-  </div>
-);
 
 export const ConfirmSuggestedSparklyTagDialog = ({
   tagName,
@@ -66,8 +54,6 @@ export const ConfirmSuggestedSparklyTagDialog = ({
           />
         </div>
 
-        <SourcePassagePdfPreviewPlaceholder tagName={tagName} />
-
         <div className={STYLES.footer}>
           <button
             type="button"
@@ -78,13 +64,13 @@ export const ConfirmSuggestedSparklyTagDialog = ({
             Remove
           </button>
           <div className={STYLES.rightActions}>
-            <SecondaryButton
+            {/* <SecondaryButton
               name="button-improve-suggested-tag"
               onClick={() => {
                 console.log("Thanks for pressing me. But i don't work yet. :-)");
               }}>
               Improve this Suggestion
-            </SecondaryButton>
+            </SecondaryButton> */}
             <Button
               name="button-confirm-suggested-tag"
               onClick={() => onConfirm(tagName)}
