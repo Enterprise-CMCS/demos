@@ -9,7 +9,6 @@ import { useComments, GET_PUBLIC_COMMENTS_QUERY, GET_PRIVATE_COMMENTS_QUERY } fr
 const mockRefetchPublic = vi.fn();
 const mockRefetchPrivate = vi.fn();
 const mockMutate = vi.fn(() => Promise.resolve({ data: {} }));
-const mockShowError = vi.fn();
 const mockUseQuery = vi.fn();
 
 vi.mock("@apollo/client", async () => {
