@@ -2,7 +2,6 @@ import { gql, useMutation, useQuery } from "@apollo/client";
 import { PersonType } from "demos-server";
 
 import { getCurrentUser } from "components/user/UserContext";
-import { useToast } from "components/toast";
 import { CommentBoxComment, CommentVisibility } from "./Comment";
 
 type CommentQueryResult = {
@@ -16,87 +15,75 @@ type CommentQueryResult = {
   };
 };
 
+const COMMENT_FIELDS_FRAGMENT = gql`
+  fragment CommentFields on DeliverableComment {
+    id
+    content
+    createdAt
+    authorUser {
+      person {
+        fullName
+      }
+    }
+  }
+`;
+
 export const GET_PUBLIC_COMMENTS_QUERY = gql`
+  ${COMMENT_FIELDS_FRAGMENT}
   query GetPublicDeliverableComments($id: ID!) {
     deliverable(id: $id) {
       id
       publicComments {
-        id
-        content
-        createdAt
-        authorUser {
-          person {
-            fullName
-          }
-        }
+        ...CommentFields
       }
     }
   }
 `;
 
 export const GET_PRIVATE_COMMENTS_QUERY = gql`
+  ${COMMENT_FIELDS_FRAGMENT}
   query GetPrivateDeliverableComments($id: ID!) {
     deliverable(id: $id) {
       id
       privateComments {
-        id
-        content
-        createdAt
-        authorUser {
-          person {
-            fullName
-          }
-        }
+        ...CommentFields
       }
     }
   }
 `;
 
 export const CREATE_PUBLIC_COMMENT_MUTATION = gql`
+  ${COMMENT_FIELDS_FRAGMENT}
   mutation CreatePublicComment($deliverableId: ID!, $comment: NonEmptyString!) {
     createPublicComment(deliverableId: $deliverableId, comment: $comment) {
-      id
-      content
-      createdAt
-      authorUser {
-        person {
-          fullName
-        }
-      }
+      ...CommentFields
     }
   }
 `;
 
 export const CREATE_PRIVATE_COMMENT_MUTATION = gql`
+  ${COMMENT_FIELDS_FRAGMENT}
   mutation CreatePrivateComment($deliverableId: ID!, $comment: NonEmptyString!) {
     createPrivateComment(deliverableId: $deliverableId, comment: $comment) {
-      id
-      content
-      createdAt
-      authorUser {
-        person {
-          fullName
-        }
-      }
+      ...CommentFields
     }
   }
 `;
 
 function toCommentBoxComment(
-  c: CommentQueryResult,
+  queryComment: CommentQueryResult,
   visibility: CommentVisibility
 ): CommentBoxComment {
   return {
-    commentText: c.content,
-    userFullName: c.authorUser.person.fullName,
-    timestamp: new Date(c.createdAt),
+    commentText: queryComment.content,
+    userFullName: queryComment.authorUser.person.fullName,
+    timestamp: new Date(queryComment.createdAt),
     commentVisibility: visibility,
   };
 }
 
 export const useComments = (deliverableId: string, commentVisibility: CommentVisibility) => {
   const { currentUser } = getCurrentUser();
-  const { showError } = useToast();
 
   const userPersonType: PersonType | undefined = currentUser?.person.personType;
   const isCmsOrAdminUser = userPersonType === "demos-cms-user" || userPersonType === "demos-admin";
@@ -136,7 +123,6 @@ export const useComments = (deliverableId: string, commentVisibility: CommentVis
         refetchPrivate();
       }
     } catch {
-      showError("Failed to add comment. Please try again.");
       throw new Error("Failed to add comment");
     }
   };

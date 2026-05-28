@@ -9,7 +9,6 @@ import { useComments, GET_PUBLIC_COMMENTS_QUERY, GET_PRIVATE_COMMENTS_QUERY } fr
 const mockRefetchPublic = vi.fn();
 const mockRefetchPrivate = vi.fn();
 const mockMutate = vi.fn(() => Promise.resolve({ data: {} }));
-const mockShowError = vi.fn();
 const mockUseQuery = vi.fn();
 
 vi.mock("@apollo/client", async () => {
@@ -24,11 +23,6 @@ vi.mock("@apollo/client", async () => {
 vi.mock("components/user/UserContext", async () => {
   const actual = await vi.importActual("components/user/UserContext");
   return { ...actual, getCurrentUser: vi.fn() };
-});
-
-vi.mock("components/toast", async () => {
-  const actual = await vi.importActual("components/toast");
-  return { ...actual, useToast: vi.fn(() => ({ showError: mockShowError })) };
 });
 
 const TEST_DELIVERABLE_ID = "test-deliverable-id";
@@ -194,14 +188,7 @@ describe("useComments", () => {
       expect(mockRefetchPublic).not.toHaveBeenCalled();
     });
 
-    it("shows an error toast when the mutation fails", async () => {
-      mockMutate.mockRejectedValueOnce(new Error("Network error"));
-      const { result } = renderHook(() => useComments(TEST_DELIVERABLE_ID, "public"));
-      await expect(act(async () => result.current.addComment("hello"))).rejects.toThrow();
-      expect(mockShowError).toHaveBeenCalledWith("Failed to add comment. Please try again.");
-    });
-
-    it("re-throws after showing the error toast", async () => {
+    it("throws an error after failing addComment", async () => {
       mockMutate.mockRejectedValueOnce(new Error("Network error"));
       const { result } = renderHook(() => useComments(TEST_DELIVERABLE_ID, "public"));
       await expect(act(async () => result.current.addComment("hello"))).rejects.toThrow(
