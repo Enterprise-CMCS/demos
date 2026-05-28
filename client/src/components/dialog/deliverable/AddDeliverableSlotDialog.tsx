@@ -88,7 +88,13 @@ export const buildAddDeliverableSlotPayloads = (
   formData: AddDeliverableSlotFormData
 ): CreateDeliverableInput[] => {
   const { quarterlyDueDates, scheduleType, deliverableName, ...rest } = formData;
-  const payloadBase = { ...rest, name: deliverableName, demonstrationId, dueDate: formData.dueDate as LocalDate };
+  const trimmedDeliverableName = deliverableName.trim();
+  const payloadBase = {
+    ...rest,
+    name: trimmedDeliverableName,
+    demonstrationId,
+    dueDate: formData.dueDate as LocalDate,
+  };
 
   if (scheduleType === "Single") {
     return [payloadBase];
@@ -96,11 +102,7 @@ export const buildAddDeliverableSlotPayloads = (
 
   return ALL_QUARTERS.map((quarter, quarterIndex) => ({
     ...payloadBase,
-    name: getQuarterlyDeliverableSlotName(
-      demonstrationYear,
-      quarter,
-      formData.deliverableName
-    ),
+    name: getQuarterlyDeliverableSlotName(demonstrationYear, quarter, trimmedDeliverableName),
     dueDate: quarterlyDueDates[quarterIndex] as LocalDate,
   }));
 };
