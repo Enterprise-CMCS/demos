@@ -26,11 +26,6 @@ vi.mock("components/user/UserContext", async () => {
   return { ...actual, getCurrentUser: vi.fn() };
 });
 
-vi.mock("components/toast", async () => {
-  const actual = await vi.importActual("components/toast");
-  return { ...actual, useToast: vi.fn(() => ({ showError: mockShowError })) };
-});
-
 const TEST_DELIVERABLE_ID = "test-deliverable-id";
 
 type StubComment = {
@@ -194,14 +189,7 @@ describe("useComments", () => {
       expect(mockRefetchPublic).not.toHaveBeenCalled();
     });
 
-    it("shows an error toast when the mutation fails", async () => {
-      mockMutate.mockRejectedValueOnce(new Error("Network error"));
-      const { result } = renderHook(() => useComments(TEST_DELIVERABLE_ID, "public"));
-      await expect(act(async () => result.current.addComment("hello"))).rejects.toThrow();
-      expect(mockShowError).toHaveBeenCalledWith("Failed to add comment. Please try again.");
-    });
-
-    it("re-throws after showing the error toast", async () => {
+    it("throws an error after failing addComment", async () => {
       mockMutate.mockRejectedValueOnce(new Error("Network error"));
       const { result } = renderHook(() => useComments(TEST_DELIVERABLE_ID, "public"));
       await expect(act(async () => result.current.addComment("hello"))).rejects.toThrow(

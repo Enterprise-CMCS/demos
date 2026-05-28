@@ -2,7 +2,6 @@ import { gql, useMutation, useQuery } from "@apollo/client";
 import { PersonType } from "demos-server";
 
 import { getCurrentUser } from "components/user/UserContext";
-import { useToast } from "components/toast";
 import { CommentBoxComment, CommentVisibility } from "./Comment";
 
 type CommentQueryResult = {
@@ -85,7 +84,6 @@ function toCommentBoxComment(
 
 export const useComments = (deliverableId: string, commentVisibility: CommentVisibility) => {
   const { currentUser } = getCurrentUser();
-  const { showError } = useToast();
 
   const userPersonType: PersonType | undefined = currentUser?.person.personType;
   const isCmsOrAdminUser = userPersonType === "demos-cms-user" || userPersonType === "demos-admin";
@@ -125,7 +123,6 @@ export const useComments = (deliverableId: string, commentVisibility: CommentVis
         refetchPrivate();
       }
     } catch {
-      showError("Failed to add comment. Please try again.");
       throw new Error("Failed to add comment");
     }
   };
