@@ -13,6 +13,16 @@ export const DocumentPreview = ({
   const [fileType, setFileType] = React.useState<string>();
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string>();
+  const [blobUrl, setBlobUrl] = React.useState<string>();
+
+  React.useEffect(() => {
+    if (!blob) return;
+    const file = new File([blob], filename, { type: fileType ?? blob.type });
+    const url = URL.createObjectURL(file);
+    if (!url.startsWith("blob:")) return;
+    setBlobUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [blob, filename, fileType]);
 
   React.useEffect(() => {
     const downloadAndAnalyzeFile = async () => {
@@ -42,10 +52,7 @@ export const DocumentPreview = ({
 
   if (loading) return <div>Loading file...</div>;
   if (error) return <div>Error loading file: {error}</div>;
-  if (!blob) return <div>No file available</div>;
-
-  const file = new File([blob], filename, { type: fileType ?? blob.type });
-  const blobUrl = URL.createObjectURL(file);
+  if (!blob || !blobUrl) return <div>No file available</div>;
 
   return fileType == "application/pdf" ? (
     <embed src={blobUrl} className="w-full h-full" />
