@@ -487,6 +487,8 @@ BEGIN
             document_type_id,
             validation_status_id,
             validation_data,
+            actuals,
+            net_variance_total,
             created_at,
             updated_at
         )
@@ -499,6 +501,8 @@ BEGIN
             NEW.document_type_id,
             NEW.validation_status_id,
             NEW.validation_data,
+            NEW.actuals,
+            NEW.net_variance_total,
             NEW.created_at,
             NEW.updated_at
         );
@@ -510,6 +514,8 @@ BEGIN
             document_type_id,
             validation_status_id,
             validation_data,
+            actuals,
+            net_variance_total,
             created_at,
             updated_at
         )
@@ -519,6 +525,8 @@ BEGIN
             OLD.document_type_id,
             OLD.validation_status_id,
             OLD.validation_data,
+            OLD.actuals,
+            OLD.net_variance_total,
             OLD.created_at,
             OLD.updated_at
         );

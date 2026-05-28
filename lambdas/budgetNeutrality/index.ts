@@ -10,8 +10,9 @@ import {
   validateSingleRecordCount,
 } from "./budgetNeutralityValidation";
 import { parseBNFileFromPath } from "demos-shared-library/src/BN/index";
-import { validateBNWorkbook, ValidationError } from "demos-shared-library/src/BN/validation";
+import { validateBNWorkbook, ValidationError, ValidationResult } from "demos-shared-library/src/BN/validation";
 import { validations } from "demos-shared-library/src/BN/rulesets/v1/index";
+import { extractorFunctions } from "demos-shared-library/src/BN/extractors/index";
 
 const SUCCEEDED_VALIDATION_STATUS_ID = "Succeeded";
 const FAILED_VALIDATION_STATUS_ID = "Failed";
@@ -27,21 +28,25 @@ interface Results {
 export async function updateBudgetNeutralityWorkbook(
   pool: Pool,
   message: BudgetNeutralityMessage,
-  validationResults: ValidationError[]
+  validationResults: ValidationResult
 ): Promise<void> {
   const query = `UPDATE ${DB_SCHEMA}.budget_neutrality_workbook
     SET
       document_type_id = $2::TEXT,
       validation_status_id = $3::TEXT,
       validation_data = $4::JSON,
+      actuals = $5::TEXT,
+      net_variance_total = $6::NUMERIC,
       updated_at = CURRENT_TIMESTAMP
     WHERE id = $1::UUID;`;
 
   await pool.query(query, [
     message.documentId,
     message.documentTypeId,
-    validationResults.length > 0 ? FAILED_VALIDATION_STATUS_ID : SUCCEEDED_VALIDATION_STATUS_ID,
-    JSON.stringify(validationResults),
+    validationResults.isValid ? SUCCEEDED_VALIDATION_STATUS_ID : FAILED_VALIDATION_STATUS_ID,
+    JSON.stringify(validationResults.errors),
+    validationResults.extractedValues?.get("actuals"),
+    validationResults.extractedValues?.get("netVariance"),
   ]);
 }
 
@@ -79,7 +84,7 @@ export const handler = async (event: SQSEvent, context: Context) =>
       const parsedData = await parseBNFileFromPath(downloadedDocumentPath); 
 
       log.info("Parsing completed. Starting validation against ruleset.");
-      const validationResults = await validateBNWorkbook(parsedData, validations);
+      const validationResults = await validateBNWorkbook(parsedData, validations, extractorFunctions);
       
 
       log.info("Validation completed. Inserting BN results into database.");
