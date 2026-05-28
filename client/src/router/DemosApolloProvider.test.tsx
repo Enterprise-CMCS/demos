@@ -4,6 +4,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DemosApolloProvider } from "./DemosApolloProvider";
 import type { ApolloLink } from "@apollo/client";
 
+const FAKE_ACCESS_TOKEN = "fake-access";
+const FAKE_ID_TOKEN = "fake-id";
+
 // ---- Fix the env mock: include isLocalDevelopment and shouldUseMocks ----
 vi.mock("config/env", async (importOriginal) => {
   const actual = await importOriginal<typeof import("config/env")>();
@@ -18,13 +21,13 @@ vi.mock("config/env", async (importOriginal) => {
 
 type MockAuth = { user: { access_token?: string; id_token?: string } | null };
 
-// react-oidc-context mock
+// // react-oidc-context mock
 vi.mock("react-oidc-context", () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useAuth: vi.fn(() => ({
     user: {
-      access_token: "mock-access-token-123",
-      id_token: "mock-id-token-123",
+      access_token: FAKE_ACCESS_TOKEN,
+      id_token: FAKE_ID_TOKEN,
     },
   })),
 }));
@@ -77,7 +80,7 @@ describe("DemosApolloProvider", () => {
     expect(result).toEqual({
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer mock-id-token-123",
+        Authorization: `Bearer ${FAKE_ID_TOKEN}`,
       },
     });
   });
