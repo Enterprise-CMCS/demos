@@ -1,7 +1,7 @@
 import React from "react";
 import { render } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { DemosApolloProvider } from "./DemosApolloProvider";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { DemosApolloProvider, syncTokensToCookiesInLocal } from "./DemosApolloProvider";
 import type { ApolloLink } from "@apollo/client";
 
 // Intentionally obscure values to avoid snyk confusing it for a real secret.
@@ -118,5 +118,42 @@ describe("DemosApolloProvider", () => {
         "Content-Type": "application/json",
       },
     });
+  });
+});
+
+describe("syncTokensToCookiesInLocal", () => {
+  const cookieSetter = vi.fn();
+  const originalDescriptor = Object.getOwnPropertyDescriptor(Document.prototype, "cookie")!;
+
+  beforeEach(() => {
+    Object.defineProperty(document, "cookie", { configurable: true, set: cookieSetter });
+  });
+
+  afterEach(() => {
+    Object.defineProperty(document, "cookie", originalDescriptor);
+  });
+
+  it("does not write cookies when not in local development", async () => {
+    const { isLocalDevelopment } = await import("config/env");
+    vi.mocked(isLocalDevelopment).mockReturnValue(false);
+
+    syncTokensToCookiesInLocal(FAKE_ID_TOKEN, FAKE_ACCESS_TOKEN);
+
+    expect(cookieSetter).not.toHaveBeenCalled();
+  });
+
+  it("sets both token cookies when in local development", async () => {
+    const { isLocalDevelopment } = await import("config/env");
+    vi.mocked(isLocalDevelopment).mockReturnValue(true);
+
+    syncTokensToCookiesInLocal(FAKE_ID_TOKEN, FAKE_ACCESS_TOKEN);
+
+    expect(cookieSetter).toHaveBeenCalledTimes(2);
+    expect(cookieSetter).toHaveBeenCalledWith(
+      expect.stringContaining(`id_token=${encodeURIComponent(FAKE_ID_TOKEN)}`)
+    );
+    expect(cookieSetter).toHaveBeenCalledWith(
+      expect.stringContaining(`access_token=${encodeURIComponent(FAKE_ACCESS_TOKEN)}`)
+    );
   });
 });
