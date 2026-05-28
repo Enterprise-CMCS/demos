@@ -168,7 +168,6 @@ export function checkRequiredDeliverableDemonstrationTypes(
   deliverableType: DeliverableType,
   demonstrationTypes?: Set<TagName>
 ): string | undefined {
-  // Cast here denotes that
   const requiresDemoTypes = REQUIRED_DEMONSTRATION_TYPE_DELIVERABLES.includes(deliverableType);
 
   if (requiresDemoTypes && (!demonstrationTypes || demonstrationTypes.size === 0)) {
