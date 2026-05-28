@@ -14,7 +14,7 @@ import { useAuth } from "react-oidc-context";
 
 const GRAPHQL_ENDPOINT = import.meta.env.VITE_API_URL_PREFIX ?? "/graphql";
 
-function syncTokensToCookiesInDev(idToken: string, accessToken: string) {
+export function syncTokensToCookiesInLocal(idToken: string, accessToken: string) {
   if (!isLocalDevelopment()) return;
   const opts = "; Path=/; SameSite=Lax";
   // document.cookie assignments are additive — each assignment sets one cookie.
@@ -45,7 +45,7 @@ export const DemosApolloProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // In local development, mirror tokens to cookies since we don't
   // go through the backend's /auth/callback route where they would normally be set.
   useEffect(() => {
-    syncTokensToCookiesInDev(auth.user?.id_token ?? "", auth.user?.access_token ?? "");
+    syncTokensToCookiesInLocal(auth.user?.id_token ?? "", auth.user?.access_token ?? "");
   }, [auth.user]);
 
   // Read token per request (not just once)
