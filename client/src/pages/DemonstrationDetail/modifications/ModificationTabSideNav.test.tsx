@@ -1,38 +1,22 @@
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { ModificationTabSideNav } from "./ModificationTabSideNav";
 import { ModificationItem } from "./ModificationTabs";
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { NON_DELIVERABLE_DOCUMENT_TYPES } from "demos-server-constants";
 
-const showUploadDocumentDialogMock = vi.fn();
-
-vi.mock("components/dialog/DialogContext", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("components/dialog/DialogContext")>();
-  return {
-    ...actual,
-    useDialog: () => ({
-      showUploadDocumentDialog: showUploadDocumentDialogMock,
-    }),
-  };
-});
-
 vi.mock("components/application", async (importOriginal) => {
   const actual = await importOriginal<typeof import("components/application")>();
 
   return {
     ...actual,
-    AmendmentWorkflow: () => (
-      <div data-testid="amendment-workflow">Amendment Workflow</div>
-    ),
-    ExtensionWorkflow: () => (
-      <div data-testid="extension-workflow">Extension Workflow</div>
-    ),
+    AmendmentWorkflow: () => <div data-testid="amendment-workflow">Amendment Workflow</div>,
+    ExtensionWorkflow: () => <div data-testid="extension-workflow">Extension Workflow</div>,
   };
 });
-
 
 describe("ModificationTabSideNav", () => {
   const mockModificationItem: ModificationItem = {
@@ -54,11 +38,11 @@ describe("ModificationTabSideNav", () => {
 
   const setup = (modificationItem: ModificationItem) => {
     render(
-      <DialogProvider>
-        <TestProvider>
+      <TestProvider>
+        <DialogProvider>
           <ModificationTabSideNav modificationItem={modificationItem} />
-        </TestProvider>
-      </DialogProvider>
+        </DialogProvider>
+      </TestProvider>
     );
   };
 
@@ -141,14 +125,16 @@ describe("ModificationTabSideNav", () => {
     it("displays correct document count in tab label with non-zero documents", () => {
       const modificationWithDocs: ModificationItem = {
         ...mockModificationItem,
-        documents: [{
-          id: "doc1",
-          name: "Document 1",
-          documentType: "General File",
-          description: "Test Document",
-          createdAt: new Date(),
-          owner: { person: { fullName: "Test User" } },
-        }],
+        documents: [
+          {
+            id: "doc1",
+            name: "Document 1",
+            documentType: "General File",
+            description: "Test Document",
+            createdAt: new Date(),
+            owner: { person: { fullName: "Test User" } },
+          },
+        ],
       };
       setup(modificationWithDocs);
 
@@ -159,14 +145,16 @@ describe("ModificationTabSideNav", () => {
     it("render DocumentTable with correct props when Documents tab is selected", () => {
       const modificationWithDocs: ModificationItem = {
         ...mockModificationItem,
-        documents: [{
-          id: "doc1",
-          name: "Document 1",
-          documentType: "General File",
-          description: "Test Document",
-          createdAt: new Date(),
-          owner: { person: { fullName: "Test User" } },
-        }],
+        documents: [
+          {
+            id: "doc1",
+            name: "Document 1",
+            documentType: "General File",
+            description: "Test Document",
+            createdAt: new Date(),
+            owner: { person: { fullName: "Test User" } },
+          },
+        ],
       };
       setup(modificationWithDocs);
 
@@ -176,32 +164,28 @@ describe("ModificationTabSideNav", () => {
       expect(screen.getByText("Document 1")).toBeInTheDocument();
     });
 
-    it("calls showUploadDocumentDialog when Add Document button is clicked", async () => {
+    it("opens the document upload dialog when Add Document button is clicked", () => {
       setup(mockModificationItem);
 
-      const documentsTab = screen.getByTestId("button-documents");
-      fireEvent.click(documentsTab);
+      fireEvent.click(screen.getByTestId("button-documents"));
+      fireEvent.click(screen.getByTestId("add-new-document"));
 
-      const addDocumentButton = screen.getByTestId("add-new-document");
-      fireEvent.click(addDocumentButton);
-
-      expect(showUploadDocumentDialogMock).toHaveBeenCalledTimes(1);
+      expect(screen.getByText("Add New Document")).toBeInTheDocument();
     });
 
-    it("calls showUploadDocumentDialog with NON_DELIVERABLE_DOCUMENT_TYPES as the document type subset", () => {
+    it("shows only NON_DELIVERABLE_DOCUMENT_TYPES in the document type dropdown", async () => {
+      const user = userEvent.setup();
       setup(mockModificationItem);
 
-      const documentsTab = screen.getByTestId("button-documents");
-      fireEvent.click(documentsTab);
+      fireEvent.click(screen.getByTestId("button-documents"));
+      fireEvent.click(screen.getByTestId("add-new-document"));
 
-      const addDocumentButton = screen.getByTestId("add-new-document");
-      fireEvent.click(addDocumentButton);
+      await user.click(screen.getByTestId("input-autocomplete-select"));
 
-      expect(showUploadDocumentDialogMock).toHaveBeenCalledWith(
-        mockModificationItem.id,
-        expect.any(Function),
-        NON_DELIVERABLE_DOCUMENT_TYPES
-      );
+      for (const docType of NON_DELIVERABLE_DOCUMENT_TYPES) {
+        expect(screen.getByText(docType)).toBeInTheDocument();
+      }
+      expect(screen.queryByText("Interim Evaluation Report")).not.toBeInTheDocument();
     });
   });
 });
