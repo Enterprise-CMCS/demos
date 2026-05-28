@@ -31,6 +31,7 @@ import { ContactsTab } from "./ContactsTab";
 import { useApolloClient } from "@apollo/client/react/hooks/useApolloClient";
 import { TypesTable } from "components/table/tables/TypesTable";
 import { DeliverablesTab } from "./deliverables/DeliverablesTab";
+import { NON_DELIVERABLE_DOCUMENT_TYPES } from "demos-server-constants";
 
 type Role = Pick<DemonstrationRoleAssignment, "role" | "isPrimary"> & {
   person: Pick<Person, "fullName" | "id" | "email" | "personType">;
@@ -140,7 +141,13 @@ export const DemonstrationTab: React.FC<{ demonstration: DemonstrationTabDemonst
               icon={<AddNewIcon />}
               name="add-new-document"
               size="small"
-              onClick={() => showUploadDocumentDialog(demonstration.id, refetchApplicationWorkflow)}
+              onClick={() =>
+                showUploadDocumentDialog(
+                  demonstration.id,
+                  refetchApplicationWorkflow,
+                  NON_DELIVERABLE_DOCUMENT_TYPES
+                )
+              }
             >
               Add Document
             </IconButton>
