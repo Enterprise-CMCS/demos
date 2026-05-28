@@ -5,8 +5,8 @@ import { DemosApolloProvider } from "./DemosApolloProvider";
 import type { ApolloLink } from "@apollo/client";
 
 // Intentionally obscure values to avoid snyk confusing it for a real secret.
-const FAKE_ACCESS_TOKEN = "a";
-const FAKE_ID_TOKEN = "b";
+const FAKE_ACCESS_TOKEN = "giraffe";
+const FAKE_ID_TOKEN = "elephant";
 
 // ---- Fix the env mock: include isLocalDevelopment and shouldUseMocks ----
 vi.mock("config/env", async (importOriginal) => {
