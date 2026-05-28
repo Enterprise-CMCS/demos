@@ -10,6 +10,7 @@ import {
   ApplicationStatus,
   DeliverableExtensionStatus,
   DeliverableStatus,
+  DeliverableType,
   PersonType,
   TagName,
 } from "../../types";
@@ -19,7 +20,7 @@ import { selectManyDocuments } from "../document";
 import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
 import { selectManyPublicComments } from "../publicComment/queries";
 import { selectManyPrivateComments } from "../privateComment/queries";
-import { REQUIRED_DEMO_TYPE_DELIVERABLES } from "../../constants";
+import { REQUIRED_DEMONSTRATION_TYPE_DELIVERABLES } from "../../constants";
 
 export function checkDemonstrationStatus(demonstration: PrismaDemonstration): string | undefined {
   const approvedStatus: ApplicationStatus = "Approved";
@@ -164,10 +165,11 @@ export async function checkDeliverableHasNoComments(
 }
 
 export function checkRequiredDeliverableDemonstrationTypes(
-  deliverableType: string,
-  demonstrationTypes?: Set<string>
+  deliverableType: DeliverableType,
+  demonstrationTypes?: Set<TagName>
 ): string | undefined {
-  const requiresDemoTypes = REQUIRED_DEMO_TYPE_DELIVERABLES.includes(deliverableType as any);
+  // Cast here denotes that
+  const requiresDemoTypes = REQUIRED_DEMONSTRATION_TYPE_DELIVERABLES.includes(deliverableType);
 
   if (requiresDemoTypes && (!demonstrationTypes || demonstrationTypes.size === 0)) {
     return `Deliverable type ${deliverableType} requires at least one demonstration type`;

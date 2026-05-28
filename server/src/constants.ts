@@ -45,6 +45,7 @@ export const DELIVERABLE_TYPES = [
   "Summative Evaluation Report",
   "Transition Plan",
 ] as const;
+export type DeliverableType = (typeof DELIVERABLE_TYPES)[number];
 
 export const DELIVERABLE_DUE_DATE_TYPES = ["Normal", "Open Ended"] as const;
 
@@ -80,8 +81,7 @@ export const ACTIVE_DELIVERABLE_STATUSES = [
   "Under CMS Review",
 ] as const satisfies DeliverableStatus[];
 
-export type DeliverableType = (typeof DELIVERABLE_TYPES)[number];
-export const REQUIRED_DEMO_TYPE_DELIVERABLES: readonly DeliverableType[] = [
+export const REQUIRED_DEMONSTRATION_TYPE_DELIVERABLES: DeliverableType[] = [
   "Monitoring Protocol",
   "Implementation Plan",
 ];
