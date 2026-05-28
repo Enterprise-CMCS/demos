@@ -84,6 +84,7 @@ import {
   checkNewDueDateIsGreaterThanCurrentDueDate,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
+  checkRequiredDeliverableDemonstrationTypes,
   selectDeliverableOrThrow,
 } from ".";
 import { ACTIVE_DELIVERABLE_STATUSES } from "../../constants";
@@ -293,6 +294,27 @@ describe("validateDeliverableInputs", () => {
       }
     });
 
+    it("should throw if the required demonstration type check fails", async () => {
+      vi.mocked(checkRequiredDeliverableDemonstrationTypes).mockReturnValue(
+        "The required demonstration type check failed!"
+      );
+
+      try {
+        await validateCreateDeliverableInput(testInput, mockTransaction);
+        throw new Error("Expected validateCreateDeliverableInput to throw, but it did not.");
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for createDeliverable have failed."
+        );
+        expect(error.extensions.code).toBe("CREATE_DELIVERABLE_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The required demonstration type check failed!",
+        ]);
+      }
+    });
+
     it("should throw if the allowed demonstration type check fails", async () => {
       vi.mocked(checkRequestedDeliverableDemonstrationType).mockReturnValue(
         "The demonstration type check failed"
@@ -343,6 +365,9 @@ describe("validateDeliverableInputs", () => {
       vi.mocked(checkRequestedDeliverableDemonstrationType).mockReturnValueOnce(
         "The demonstration type check failed"
       );
+      vi.mocked(checkRequiredDeliverableDemonstrationTypes).mockReturnValue(
+        "The required demonstration type check failed!"
+      );
 
       try {
         await validateCreateDeliverableInput(testInput, mockTransaction);
@@ -358,6 +383,7 @@ describe("validateDeliverableInputs", () => {
           "The demo status check failed",
           "The owner person type check failed",
           "The future due date check failed",
+          "The required demonstration type check failed!",
           "The demonstration type check failed",
         ]);
       }

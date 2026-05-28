@@ -14,7 +14,7 @@ export {
   checkNewDueDateIsGreaterThanCurrentDueDate,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
-  checkRequiredDeliverableDemonstrationTypes
+  checkRequiredDeliverableDemonstrationTypes,
 } from "./checkDeliverableInputFunctions";
 export { completeDeliverable } from "./completeDeliverable";
 export { createDeliverable } from "./createDeliverable";
