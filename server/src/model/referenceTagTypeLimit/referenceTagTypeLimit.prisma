@@ -1,0 +1,10 @@
+// Flags: TYPE_LIMITER
+model ReferenceTagTypeLimit {
+  id String
+
+  tagType                 TagType                  @relation(fields: [id], references: [id])
+  referenceTagAssignments ReferenceTagAssignment[]
+
+  @@id([id])
+  @@map("reference_tag_type_limit")
+}

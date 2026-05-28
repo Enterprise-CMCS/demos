@@ -455,7 +455,7 @@ export const UIPATH_RESULT_STATUSES = ["Pending", "Finished", "Failed"] as const
 
 export const TAG_SOURCES = ["User", "System"] as const;
 
-export const TAG_TYPES = ["Application", "Demonstration Type"] as const;
+export const TAG_TYPES = ["Application", "Demonstration Type", "Reference"] as const;
 
 // This seemed like a no brainer.
 export const PRIMARY_AWS_REGION = "us-east-1";
@@ -489,3 +489,5 @@ export const PERMISSIONS = [
 ] as const;
 
 export const SYSTEM_ROLES = ["Admin User", "CMS User", "State User"] as const;
+
+export const REFERENCE_CONFIGURATION_STATUSES = ["Inactive", "Active"] as const;

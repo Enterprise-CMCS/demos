@@ -1,0 +1,15 @@
+// Flags: NO_CREATED_TS, NO_UPDATED_TS, NO_HISTORY
+// Time is captured by the acceptance timestamp; table is append-only logging
+model ReferenceAgreementAcceptance {
+  referenceId          String   @map("reference_id") @db.Uuid
+  referenceAgreementId String   @map("reference_agreement_id") @db.Uuid
+  userId               String   @map("user_id") @db.Uuid
+  acceptanceTimestamp  DateTime @default(now()) @map("acceptance_timestamp") @db.Timestamptz
+
+  // Do nothing on update, which prevents editing of configurations that have acceptances
+  referenceConfiguration ReferenceConfiguration @relation(fields: [referenceId, referenceAgreementId], references: [referenceId, referenceAgreementId], onUpdate: NoAction)
+  user                   User                   @relation(fields: [userId], references: [id])
+
+  @@id([referenceId, referenceAgreementId, userId])
+  @@map("reference_agreement_acceptance")
+}

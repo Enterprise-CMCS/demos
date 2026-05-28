@@ -1,0 +1,14 @@
+model ReferenceAgreement {
+  id          String   @default(uuid()) @db.Uuid
+  name        String
+  s3Path      String   @map("s3_path")
+  ownerUserId String   @map("owner_user_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  owner                   User                     @relation(fields: [ownerUserId], references: [id])
+  referenceConfigurations ReferenceConfiguration[]
+
+  @@id([id])
+  @@map("reference_agreement")
+}

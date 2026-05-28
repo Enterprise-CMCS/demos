@@ -1,0 +1,9 @@
+// Flags: STATIC_CONSTRAINT
+model ReferenceConfigurationStatus {
+  id String
+
+  referenceConfigurations ReferenceConfiguration[]
+
+  @@id([id])
+  @@map("reference_configuration_status")
+}

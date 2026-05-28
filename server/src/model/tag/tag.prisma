@@ -12,6 +12,8 @@ model Tag {
   status                          TagStatus                        @relation(fields: [statusId], references: [id])
   applicationTagAssignments       ApplicationTagAssignment[]
   demonstrationTypeTagAssignments DemonstrationTypeTagAssignment[]
+  referenceTagAssignments         ReferenceTagAssignment[]
+  referenceDemonstrationTypes     ReferenceDemonstrationType[]
 
   @@id([tagNameId, tagTypeId])
   @@map("tag")

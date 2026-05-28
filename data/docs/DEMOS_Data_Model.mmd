@@ -730,8 +730,8 @@ erDiagram
     uuid reference_id FK, UK "FK143: reference_id ∈ reference.id<br>UK: (reference_id, reference_agreement_id)"
     uuid reference_agreement_id FK, UK "FK146: reference_agreement_id ∈ reference_agreement.id<br>UK: (reference_id, reference_agreement_id)<br>NULLABLE"
     text status_id FK "FK147: status_id ∈ reference_configuration_status.id"
-    PARTIAL_UNIQUE_INDEX unique_index_on_active_reference_id "reference_id must be unique where status_id is Active."
-    NULLS_NOT_DISTINCT_UNIQUE_INDEX unique_index_reference_id_reference_agreement_id "The unique index on (reference_id, reference_agreement_id) is created with NULLS NOT DISTINCT."
+    PARTIAL_UNIQUE_INDEX reference_configuration_unique_index_on_active_reference_id "reference_id must be unique where status_id is Active."
+    NULLS_NOT_DISTINCT_UNIQUE_INDEX reference_configuration_unique_index_reference_id_reference_agreement_id "The unique index on (reference_id, reference_agreement_id) is created with NULLS NOT DISTINCT."
     HAS_HISTORY true
   }
 

@@ -17,6 +17,7 @@ import {
   PERMISSIONS,
   PERSON_TYPES,
   PHASE_STATUS,
+  REFERENCE_CONFIGURATION_STATUSES,
   REVIEW_PHASE_DATE_TYPES,
   REVIEW_PHASE_NOTE_TYPES,
   ROLES,
@@ -171,3 +172,4 @@ export type DeliverableExtensionReasonCode = (typeof DELIVERABLE_EXTENSION_REASO
 export type DeliverableExtensionStatus = (typeof DELIVERABLE_EXTENSION_STATUSES)[number];
 export type Permission = (typeof PERMISSIONS)[number];
 export type SystemRole = (typeof SYSTEM_ROLES)[number];
+export type ReferenceConfigurationStatus = (typeof REFERENCE_CONFIGURATION_STATUSES)[number];
