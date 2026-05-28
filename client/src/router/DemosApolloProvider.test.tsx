@@ -4,6 +4,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DemosApolloProvider } from "./DemosApolloProvider";
 import type { ApolloLink } from "@apollo/client";
 
+// Intentionally obscure values to avoid snyk confusing it for a real secret.
+const FAKE_ACCESS_TOKEN = "giraffe";
+const FAKE_ID_TOKEN = "elephant";
+
 // ---- Fix the env mock: include isLocalDevelopment and shouldUseMocks ----
 vi.mock("config/env", async (importOriginal) => {
   const actual = await importOriginal<typeof import("config/env")>();
@@ -23,8 +27,8 @@ vi.mock("react-oidc-context", () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   useAuth: vi.fn(() => ({
     user: {
-      access_token: "mock-access-token-123",
-      id_token: "mock-id-token-123",
+      access_token: FAKE_ACCESS_TOKEN,
+      id_token: FAKE_ID_TOKEN,
     },
   })),
 }));
@@ -77,7 +81,7 @@ describe("DemosApolloProvider", () => {
     expect(result).toEqual({
       headers: {
         "Content-Type": "application/json",
-        Authorization: "Bearer mock-id-token-123",
+        Authorization: `Bearer ${FAKE_ID_TOKEN}`,
       },
     });
   });
