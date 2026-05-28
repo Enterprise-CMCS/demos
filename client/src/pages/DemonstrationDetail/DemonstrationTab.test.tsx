@@ -1,9 +1,23 @@
 import React from "react";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { NON_DELIVERABLE_DOCUMENT_TYPES } from "demos-server-constants";
+
+const showUploadDocumentDialogMock = vi.fn();
+
+vi.mock("components/dialog/DialogContext", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("components/dialog/DialogContext")>();
+  return {
+    ...actual,
+    useDialog: () => ({
+      showUploadDocumentDialog: showUploadDocumentDialogMock,
+      showApplyDemonstrationTypesDialog: vi.fn(),
+    }),
+  };
+});
 import { DemonstrationTab, DemonstrationTabDemonstration } from "./DemonstrationTab";
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
@@ -123,6 +137,23 @@ describe("DemonstrationTab", () => {
 
     // Verify documents tab content is rendered
     expect(screen.getByRole("button", { name: "add-new-document" })).toBeInTheDocument();
+  });
+
+  it("calls showUploadDocumentDialog with NON_DELIVERABLE_DOCUMENT_TYPES when Add Document is clicked", async () => {
+    const user = userEvent.setup();
+    renderWithProvider(<DemonstrationTab demonstration={mockDemonstration} />);
+
+    const documentsTab = screen.getByRole("button", { name: "Documents (2)" });
+    await user.click(documentsTab);
+
+    const addDocumentButton = screen.getByRole("button", { name: "add-new-document" });
+    await user.click(addDocumentButton);
+
+    expect(showUploadDocumentDialogMock).toHaveBeenCalledWith(
+      mockDemonstration.id,
+      expect.any(Function),
+      NON_DELIVERABLE_DOCUMENT_TYPES
+    );
   });
 
   it("switches to types tab when clicked", async () => {

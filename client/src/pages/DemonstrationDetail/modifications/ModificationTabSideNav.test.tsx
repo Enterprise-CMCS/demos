@@ -5,6 +5,7 @@ import { ModificationTabSideNav } from "./ModificationTabSideNav";
 import { ModificationItem } from "./ModificationTabs";
 import { TestProvider } from "test-utils/TestProvider";
 import { DialogProvider } from "components/dialog/DialogContext";
+import { NON_DELIVERABLE_DOCUMENT_TYPES } from "demos-server-constants";
 
 const showUploadDocumentDialogMock = vi.fn();
 
@@ -185,6 +186,22 @@ describe("ModificationTabSideNav", () => {
       fireEvent.click(addDocumentButton);
 
       expect(showUploadDocumentDialogMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("calls showUploadDocumentDialog with NON_DELIVERABLE_DOCUMENT_TYPES as the document type subset", () => {
+      setup(mockModificationItem);
+
+      const documentsTab = screen.getByTestId("button-documents");
+      fireEvent.click(documentsTab);
+
+      const addDocumentButton = screen.getByTestId("add-new-document");
+      fireEvent.click(addDocumentButton);
+
+      expect(showUploadDocumentDialogMock).toHaveBeenCalledWith(
+        mockModificationItem.id,
+        expect.any(Function),
+        NON_DELIVERABLE_DOCUMENT_TYPES
+      );
     });
   });
 });
