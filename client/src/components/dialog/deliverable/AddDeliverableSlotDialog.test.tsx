@@ -233,6 +233,22 @@ describe("buildAddDeliverableSlotPayloads", () => {
     ]);
   });
 
+  it("trims the deliverable name for single payloads", () => {
+    const formData: AddDeliverableSlotFormData = {
+      deliverableName: "  My Deliverable  ",
+      cmsOwnerUserId: "user-1",
+      deliverableType: "Annual Budget Neutrality Report",
+      scheduleType: "Single" as const,
+      dueDate: "2026-04-01",
+      quarterlyDueDates: ["", "", "", ""],
+      demonstrationTypes: ["Aggregate Cap"],
+    };
+
+    expect(buildAddDeliverableSlotPayloads(TEST_DEMO_ID, 2, formData)[0].name).toBe(
+      "My Deliverable"
+    );
+  });
+
   it("returns four quarterly payloads when schedule type is Quarterly", () => {
     const formData: AddDeliverableSlotFormData = {
       deliverableName: "My Deliverable",
@@ -277,6 +293,27 @@ describe("buildAddDeliverableSlotPayloads", () => {
         demonstrationTypes: ["Aggregate Cap"],
         demonstrationId: TEST_DEMO_ID,
       },
+    ]);
+  });
+
+  it("trims the deliverable name before formatting quarterly payloads", () => {
+    const formData: AddDeliverableSlotFormData = {
+      deliverableName: "  My Deliverable  ",
+      cmsOwnerUserId: "user-1",
+      deliverableType: "Annual Budget Neutrality Report",
+      scheduleType: "Quarterly" as const,
+      dueDate: "",
+      quarterlyDueDates: ["2026-01-15", "2026-04-15", "2026-07-15", "2026-10-15"],
+      demonstrationTypes: ["Aggregate Cap"],
+    };
+
+    expect(
+      buildAddDeliverableSlotPayloads(TEST_DEMO_ID, 2, formData).map(({ name }) => name)
+    ).toEqual([
+      "DY2Q1 My Deliverable",
+      "DY2Q2 My Deliverable",
+      "DY2Q3 My Deliverable",
+      "DY2Q4 My Deliverable",
     ]);
   });
 });
