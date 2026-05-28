@@ -9,6 +9,7 @@ import { CommentBoxTextArea } from "./CommentBoxTextArea";
 import { CommentBoxHistory } from "./CommentBoxHistory";
 import { CommentVisibility } from "./Comment";
 import { useComments } from "./useComments";
+import { useToast } from "components/toast/ToastContext";
 
 export const COMMENT_BOX_NAME = "comment-box";
 export const COLLAPSE_COMMENTS_BUTTON_NAME = "button-collapse-comments";
@@ -37,6 +38,8 @@ export const CommentBox = ({ deliverableId }: { deliverableId: string }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [currentComment, setCurrentComment] = useState("");
   const [commentVisibility, setCommentVisibility] = useState<CommentVisibility>("public");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { showError } = useToast();
 
   const { isCmsOrAdminUser, visibleComments, addComment } = useComments(
     deliverableId,
@@ -49,10 +52,13 @@ export const CommentBox = ({ deliverableId }: { deliverableId: string }) => {
 
   const handleAddComment = async (commentText: string) => {
     try {
+      setIsSubmitting(true);
       await addComment(commentText);
       setCurrentComment("");
     } catch {
-      // error already displayed via toast in useComments
+      showError("Failed to add comment. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -81,6 +87,7 @@ export const CommentBox = ({ deliverableId }: { deliverableId: string }) => {
         currentComment={currentComment}
         setCurrentComment={setCurrentComment}
         commentVisibility={commentVisibility}
+        isSubmitting={isSubmitting}
       />
       <CommentBoxHistory comments={visibleComments} />
     </div>

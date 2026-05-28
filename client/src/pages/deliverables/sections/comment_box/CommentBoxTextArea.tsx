@@ -13,11 +13,13 @@ export const CommentBoxTextArea = ({
   currentComment,
   setCurrentComment,
   commentVisibility,
+  isSubmitting,
 }: {
   addComment: (commentText: string) => void;
   currentComment: string;
   setCurrentComment: (value: string) => void;
   commentVisibility: CommentVisibility;
+  isSubmitting: boolean;
 }) => {
   const { currentUser } = getCurrentUser();
 
@@ -26,7 +28,7 @@ export const CommentBoxTextArea = ({
   }
 
   const handleAddComment = () => {
-    if (currentComment.trim() !== "") {
+    if (!isSubmitting && currentComment.trim() !== "") {
       addComment(currentComment);
     }
   };
@@ -46,8 +48,9 @@ export const CommentBoxTextArea = ({
         name={ADD_COMMENT_BUTTON_NAME}
         data-testid={ADD_COMMENT_BUTTON_NAME}
         onClick={handleAddComment}
+        disabled={isSubmitting}
       >
-        Add Comment
+        {isSubmitting ? "Adding Comment... " : "Add Comment"}
       </Button>
     </div>
   );
