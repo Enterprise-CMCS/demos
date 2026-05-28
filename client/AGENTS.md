@@ -57,14 +57,21 @@ This file provides instructions for AI agents to use when generating or editing 
 
 ## Testing
 
+### Unit Testing
+
 - Place tests next to implementation (`Foo.tsx` and `Foo.test.tsx`).
 - Use `@testing-library/react` with `vitest`; prefer `screen.getByTestId()` queries.
 - Often times `name` attributes are propagated to `data-test-id`, try this approach first.
 - Prefer real behavior over heavy mocking; use `vi.mock(...)` only at clear boundaries.
 - Run tests with `npm run test:once ...`
-- Run linting + typechecking with `npm run lint`
 - Prefer to keep mock data in test files for clarity / isolation rather than in `/mock-data`.
-- For testing behavior with different roles you can use the different variants of `npm run dev:mocks` - `dev:mocks:admin`, `dev:mocks:state`, etc. Some functionality is only available through certain roles. 
+- Use <TestProvider> as needed to provide dependencies such as toasts, auth, routing, etc.
+- Prefer to not mock <DialogProvider>. Also <TestProvider> does not provide dialogs and they should be provided inside of <TestProvider> if needed.
+
+### General Testing
+
+- Run linting + typechecking with `npm run lint`
+- For testing behavior with different roles you can use the different variants of `npm run dev:mocks` - `dev:mocks:admin`, `dev:mocks:state`, etc. Some functionality is only available through certain roles.
 
 ### Mocking Mutations
 

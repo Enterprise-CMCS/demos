@@ -125,13 +125,15 @@ export const useDialog = () => {
 
   const showUploadDocumentDialog = (
     applicationId: string,
-    onDocumentUploadSucceeded?: () => void
+    onDocumentUploadSucceeded?: () => void,
+    documentTypeSubset?: DocumentType[]
   ) => {
     context.showDialog(
       <AddDocumentToApplicationDialog
         onClose={context.hideDialog}
         applicationId={applicationId}
         onDocumentUploadSucceeded={onDocumentUploadSucceeded}
+        documentTypeSubset={documentTypeSubset}
       />
     );
   };
@@ -177,9 +179,7 @@ export const useDialog = () => {
     documentTypeSubset?: DocumentType[];
     refetchQueries?: string[];
   }) => {
-    context.showDialog(
-      <AddDocumentToDeliverableDialog onClose={context.hideDialog} {...args} />
-    );
+    context.showDialog(<AddDocumentToDeliverableDialog onClose={context.hideDialog} {...args} />);
   };
 
   const showApplicationIntakeDocumentUploadDialog = (applicationId: string) => {

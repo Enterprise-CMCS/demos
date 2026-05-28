@@ -175,6 +175,20 @@ export const DOCUMENT_TYPES = [
 ] as const;
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 
+export const NON_DELIVERABLE_DOCUMENT_TYPES: DocumentType[] = [
+  "Application Completeness Letter",
+  "Approval Letter",
+  "Final Budget Neutrality Formulation Workbook",
+  "Formal OMB Policy Concurrence Email",
+  "General File",
+  "Internal Completeness Review Form",
+  "Payment Ratio Analysis",
+  "Pre-Submission",
+  "Q&A",
+  "Signed Decision Memo",
+  "State Application",
+] as const;
+
 export const PHASE_NAMES = [
   "Concept",
   "Application Intake",
