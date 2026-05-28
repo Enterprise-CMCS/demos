@@ -1,6 +1,6 @@
 SET search_path TO demos_app;
 
-BEGIND;
+BEGIN;
 
 UPDATE
     demos_app.deliverable
