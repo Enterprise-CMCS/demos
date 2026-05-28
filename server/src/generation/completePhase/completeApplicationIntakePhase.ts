@@ -4,29 +4,31 @@ import { applicationDateResolvers } from "../../model/applicationDate/applicatio
 import { uploadDocumentToPhase } from "../uploadDocumentToPhase";
 import { formatEasternTZDateToMMDDYYYY, parseJSDateToEasternTZDate } from "../../dateUtilities";
 import { TZDate } from "@date-fns/tz";
+import { addDays } from "date-fns";
 
-const PHASE_NAME: PhaseName = "Concept";
+const PHASE_NAME: PhaseName = "Application Intake";
 
-export const completeConceptPhase = async (
+export const completeApplicationIntakePhase = async (
   applicationId: string,
   contextUserId: string,
   baseNow: TZDate
 ) => {
-  await uploadDocumentToPhase(
-    applicationId,
-    PHASE_NAME,
-    "Pre-Submission",
-    contextUserId
-  );
+  await uploadDocumentToPhase(applicationId, PHASE_NAME, "State Application", contextUserId);
 
   await applicationDateResolvers.Mutation.setApplicationDates(null, {
     input: {
       applicationId,
       applicationDates: [
         {
-          dateType: "Pre-Submission Submitted Date",
+          dateType: "State Application Submitted Date",
           dateValue: formatEasternTZDateToMMDDYYYY(
             parseJSDateToEasternTZDate(baseNow)
+          ) as LocalDate,
+        },
+        {
+          dateType: "Completeness Review Due Date",
+          dateValue: formatEasternTZDateToMMDDYYYY(
+            parseJSDateToEasternTZDate(addDays(baseNow, 15))
           ) as LocalDate,
         },
       ],

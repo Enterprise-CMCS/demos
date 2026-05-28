@@ -1,24 +1,23 @@
 import { demonstrationResolvers } from "../model/demonstration/demonstrationResolvers";
-import { SdgDivision } from "../types";
+import { Demonstration as PrismaDemonstration } from "@prisma/client";
 
 export const generateDemonstration = async ({
   name,
   state,
-  sdgDivision,
   projectOfficerUserId,
 }: {
   name: string;
   state: string;
-  sdgDivision: SdgDivision;
   projectOfficerUserId: string;
-}) => {
-  await demonstrationResolvers.Mutation.createDemonstration(null, {
+}): Promise<PrismaDemonstration> => {
+  const demonstration = await demonstrationResolvers.Mutation.createDemonstration(null, {
     input: {
       name,
       description: `Description for ${name}`,
-      sdgDivision,
       stateId: state,
       projectOfficerUserId,
     },
   });
+
+  return demonstration;
 };

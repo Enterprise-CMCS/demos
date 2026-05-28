@@ -26,6 +26,7 @@
     "graphql-tools": "^9.0.28",
     "jsonwebtoken": "^9.0.3",
     "jwks-rsa": "^3.2.2",
+    "pdfkit": "^0.18.0",
     "pg": "^8.20.0",
     "pino": "^10.3.1"
   },
@@ -53,7 +54,8 @@
     "test:verbose": "vitest run --reporter=verbose",
     "coverage": "vitest run --coverage",
     "coverage:ci": "vitest run --no-color --coverage --coverage.reporter=lcov --reporter=default --reporter=vitest-sonar-reporter --outputFile=coverage/test-results.xml",
-    "dbrefresh": "tsx --inspect ./src/refreshDbObjects.ts"
+    "dbrefresh": "tsx --inspect ./src/refreshDbObjects.ts",
+    "new-seed": "tsx --inspect ./src/generation/newSeeder.ts"
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.1045.0",
@@ -64,6 +66,7 @@
     "@graphql-tools/merge": "^9.1.9",
     "@parcel/watcher": "^2.5.6",
     "@types/node": "^22.19.18",
+    "@types/pdfkit": "^0.17.6",
     "@vitest/coverage-v8": "^4.1.5",
     "@vitest/ui": "^4.1.5",
     "concurrently": "^9.2.1",

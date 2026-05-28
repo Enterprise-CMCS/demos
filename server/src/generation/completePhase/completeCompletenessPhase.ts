@@ -4,10 +4,11 @@ import { applicationDateResolvers } from "../../model/applicationDate/applicatio
 import { uploadDocumentToPhase } from "../uploadDocumentToPhase";
 import { formatEasternTZDateToMMDDYYYY, parseJSDateToEasternTZDate } from "../../dateUtilities";
 import { TZDate } from "@date-fns/tz";
+import { addDays } from "date-fns";
 
-const PHASE_NAME: PhaseName = "Concept";
+const PHASE_NAME: PhaseName = "Completeness";
 
-export const completeConceptPhase = async (
+export const completeCompletenessPhase = async (
   applicationId: string,
   contextUserId: string,
   baseNow: TZDate
@@ -15,7 +16,13 @@ export const completeConceptPhase = async (
   await uploadDocumentToPhase(
     applicationId,
     PHASE_NAME,
-    "Pre-Submission",
+    "Application Completeness Letter",
+    contextUserId
+  );
+  await uploadDocumentToPhase(
+    applicationId,
+    PHASE_NAME,
+    "Internal Completeness Review Form",
     contextUserId
   );
 
@@ -24,9 +31,21 @@ export const completeConceptPhase = async (
       applicationId,
       applicationDates: [
         {
-          dateType: "Pre-Submission Submitted Date",
+          dateType: "State Application Deemed Complete",
           dateValue: formatEasternTZDateToMMDDYYYY(
             parseJSDateToEasternTZDate(baseNow)
+          ) as LocalDate,
+        },
+        {
+          dateType: "Federal Comment Period Start Date",
+          dateValue: formatEasternTZDateToMMDDYYYY(
+            parseJSDateToEasternTZDate(addDays(baseNow, 1))
+          ) as LocalDate,
+        },
+        {
+          dateType: "Federal Comment Period End Date",
+          dateValue: formatEasternTZDateToMMDDYYYY(
+            parseJSDateToEasternTZDate(addDays(baseNow, 31))
           ) as LocalDate,
         },
       ],

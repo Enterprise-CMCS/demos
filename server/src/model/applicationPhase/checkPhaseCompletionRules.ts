@@ -15,7 +15,7 @@ import {
   COMMS_CLEARANCE_DATE_TYPES,
 } from "../../constants.js";
 
-const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
+export const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
   Concept: {
     datesMustExist: ["Pre-Submission Submitted Date"],
     documentTypesMustExist: ["Pre-Submission"],
@@ -94,7 +94,7 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
       "Approval Package",
     ],
   },
-};
+} as const;
 
 export function checkPhaseCompletionRules(
   applicationId: string,

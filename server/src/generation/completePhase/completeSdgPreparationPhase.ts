@@ -1,30 +1,36 @@
 import { applicationPhaseResolvers } from "../../model/applicationPhase/applicationPhaseResolvers";
 import { LocalDate, PhaseName } from "../../types";
 import { applicationDateResolvers } from "../../model/applicationDate/applicationDateResolvers";
-import { uploadDocumentToPhase } from "../uploadDocumentToPhase";
 import { formatEasternTZDateToMMDDYYYY, parseJSDateToEasternTZDate } from "../../dateUtilities";
 import { TZDate } from "@date-fns/tz";
 
-const PHASE_NAME: PhaseName = "Concept";
+const PHASE_NAME: PhaseName = "SDG Preparation";
 
-export const completeConceptPhase = async (
-  applicationId: string,
-  contextUserId: string,
-  baseNow: TZDate
-) => {
-  await uploadDocumentToPhase(
-    applicationId,
-    PHASE_NAME,
-    "Pre-Submission",
-    contextUserId
-  );
-
+export const completeSdgPreparationPhase = async (applicationId: string, baseNow: TZDate) => {
   await applicationDateResolvers.Mutation.setApplicationDates(null, {
     input: {
       applicationId,
       applicationDates: [
         {
-          dateType: "Pre-Submission Submitted Date",
+          dateType: "Expected Approval Date",
+          dateValue: formatEasternTZDateToMMDDYYYY(
+            parseJSDateToEasternTZDate(baseNow)
+          ) as LocalDate,
+        },
+        {
+          dateType: "SME Review Date",
+          dateValue: formatEasternTZDateToMMDDYYYY(
+            parseJSDateToEasternTZDate(baseNow)
+          ) as LocalDate,
+        },
+        {
+          dateType: "FRT Initial Meeting Date",
+          dateValue: formatEasternTZDateToMMDDYYYY(
+            parseJSDateToEasternTZDate(baseNow)
+          ) as LocalDate,
+        },
+        {
+          dateType: "BNPMT Initial Meeting Date",
           dateValue: formatEasternTZDateToMMDDYYYY(
             parseJSDateToEasternTZDate(baseNow)
           ) as LocalDate,

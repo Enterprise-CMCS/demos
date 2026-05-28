@@ -1,6 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { prisma } from "../prismaClient";
 import { SystemRole, UserType } from "../types";
+import { User as PrismaUser } from "@prisma/client";
 
 const SYSTEM_ROLE_MAP: Record<UserType, SystemRole> = {
   "demos-admin": "Admin User",
@@ -16,7 +17,7 @@ export const generateUser = async ({
   firstName: string;
   lastName: string;
   personTypeId: UserType;
-}) => {
+}): Promise<PrismaUser> => {
   const email = `${firstName.toLocaleLowerCase()}.${lastName.toLocaleLowerCase()}@example.com`;
   const username = `${firstName.toLocaleLowerCase()}_${lastName.toLocaleLowerCase()}`;
   const person = await prisma().person.create({
@@ -27,7 +28,7 @@ export const generateUser = async ({
       lastName,
     },
   });
-  await prisma().user.create({
+  const user = await prisma().user.create({
     data: {
       id: person.id,
       personTypeId,
@@ -43,4 +44,5 @@ export const generateUser = async ({
       grantLevelId: "System",
     },
   });
+  return user;
 };
