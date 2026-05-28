@@ -28,7 +28,7 @@ export const CommentBoxTextArea = ({
   }
 
   const handleAddComment = () => {
-    if (currentComment.trim() !== "") {
+    if (!isSubmitting && currentComment.trim() !== "") {
       addComment(currentComment);
     }
   };
