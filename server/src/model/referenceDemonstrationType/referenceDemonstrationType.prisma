@@ -1,0 +1,12 @@
+model ReferenceDemonstrationType {
+  referenceId                String @map("reference_id") @db.Uuid
+  demonstrationTypeTagNameId String @map("demonstration_type_tag_name_id")
+  demonstrationTypeTagTypeId String @map("demonstration_type_tag_type_id")
+
+  reference Reference                     @relation(fields: [referenceId], references: [id])
+  tag       Tag                           @relation(fields: [demonstrationTypeTagNameId, demonstrationTypeTagTypeId], references: [tagNameId, tagTypeId])
+  tagType   DemonstrationTypeTagTypeLimit @relation(fields: [demonstrationTypeTagTypeId], references: [id])
+
+  @@id([referenceId, demonstrationTypeTagNameId, demonstrationTypeTagTypeId])
+  @@map("reference_demonstration_type")
+}
