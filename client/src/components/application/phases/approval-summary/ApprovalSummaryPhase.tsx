@@ -465,6 +465,7 @@ export const ApprovalSummaryPhase = ({
           onMarkComplete={handleMarkComplete}
           onMarkIncomplete={handleMarkIncomplete}
           completionDate={applicationDetailsCompletionDate}
+          demonstrationId={demonstrationId}
         />
 
         <DemonstrationTypesSection

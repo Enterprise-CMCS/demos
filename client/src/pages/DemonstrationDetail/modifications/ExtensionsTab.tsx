@@ -12,6 +12,7 @@ export const ExtensionsTab: React.FC<{
   const extensionsWithType = extensions.map((extension) => ({
     ...extension,
     modificationType: "extension" as const,
+    demonstrationId: demonstrationId,
   }));
 
   const { showCreateExtensionDialog } = useDialog();

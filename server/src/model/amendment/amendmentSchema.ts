@@ -92,5 +92,5 @@ export interface UpdateAmendmentInput {
   description?: string | null;
   effectiveDate?: DateTimeOrLocalDate | null;
   status?: ApplicationStatus;
-  signatureLevel?: AmendmentSignatureLevel;
+  signatureLevel?: AmendmentSignatureLevel | null;
 }

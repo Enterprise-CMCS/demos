@@ -46,7 +46,11 @@ vi.mock("demos-shared-library/src/BN/index", () => ({
 }));
 
 vi.mock("demos-shared-library/src/BN/validation", () => ({
-  validateBNWorkbook: vi.fn().mockResolvedValue([]),
+  validateBNWorkbook: vi.fn().mockResolvedValue({
+    isValid: true,
+    errors: [],
+    extractedValues: new Map<string, string | number>(),
+  }),
 }));
 
 import { handler } from "./index";
@@ -101,6 +105,8 @@ describe("budgetNeutrality index", () => {
       "BN Workbook",
       "Succeeded",
       "[]",
+      undefined,
+      undefined,
     ]);
     expect(mocks.logInfoMock).toHaveBeenCalledWith(
       {

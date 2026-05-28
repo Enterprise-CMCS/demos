@@ -323,5 +323,6 @@ export const demonstrationResolvers = {
         }
       ),
     deliverables: resolveManyDeliverables,
-  },
+    medicaidId: (): string => "11-W-99999/8", // Placeholder value to be updated in DEMOS-2124
+  }
 };

@@ -36,6 +36,7 @@ vi.mock("components/application", async (importOriginal) => {
 describe("ModificationTabSideNav", () => {
   const mockModificationItem: ModificationItem = {
     id: "1",
+    demonstrationId: "demo-1",
     modificationType: "amendment",
     name: "Test Modification",
     description: "Test Description",
