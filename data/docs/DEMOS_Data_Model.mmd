@@ -481,11 +481,11 @@ erDiagram
     uuid id PK, UK "UK: (id, action_type_id)"
     timestamptz action_timestamp
     uuid deliverable_id FK "FK109: deliverable_id ∈ deliverable.id<br>FK128: (active_extension_id, deliverable_id) ∈ deliverable_extension.(id, deliverable_id)"
-    text action_type_id FK, UK "FK114: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)<br>FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)<br>UK: (id, action_type_id)"
+    text action_type_id FK, UK "FK114: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)<br>FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)<br>UK: (id, action_type_id)<br>UK(Partial): (action_type_id, active_extension_id)"
     text old_status_id FK "FK114: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)"
     text new_status_id FK "FK114: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)"
     text note "NULLABLE"
-    uuid active_extension_id FK, UK "FK128: (active_extension_id, deliverable_id) ∈ deliverable_extension.(id, deliverable_id)<br>NULLABLE"
+    uuid active_extension_id FK, UK "FK128: (active_extension_id, deliverable_id) ∈ deliverable_extension.(id, deliverable_id)<br>UK(Partial): (action_type_id, active_extension_id)<br>NULLABLE"
     bool due_date_change_allowed FK "FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)"
     bool should_have_note FK "FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)"
     bool should_have_user_id FK "FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)"
@@ -727,7 +727,7 @@ erDiagram
 
   reference_configuration:::dataTable {
     uuid id PK
-    uuid reference_id FK, UK "FK143: reference_id ∈ reference.id<br>UK: (reference_id, reference_agreement_id)"
+    uuid reference_id FK, UK "FK143: reference_id ∈ reference.id<br>UK: (reference_id, reference_agreement_id)<br>UK(Partial): (reference_id)"
     uuid reference_agreement_id FK, UK "FK146: reference_agreement_id ∈ reference_agreement.id<br>UK: (reference_id, reference_agreement_id)<br>NULLABLE"
     text status_id FK "FK147: status_id ∈ reference_configuration_status.id"
     PARTIAL_UNIQUE_INDEX reference_configuration_unique_index_on_active_reference_id "reference_id must be unique where status_id is Active."
