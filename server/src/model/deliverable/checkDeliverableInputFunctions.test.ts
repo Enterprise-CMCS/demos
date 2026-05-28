@@ -35,6 +35,7 @@ import {
   checkNewDueDateIsGreaterThanCurrentDueDate,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
+  checkRequiredDeliverableDemonstrationTypes,
 } from "./checkDeliverableInputFunctions";
 
 // Mock imports
@@ -536,6 +537,37 @@ describe("checkDeliverableInputFunctions", () => {
         `Expected deliverable ${testDeliverable.id} to have no ` +
           "comments, but public or private comments were found."
       );
+    });
+  });
+
+  describe("checkRequiredDeliverableDemonstrationTypes", () => {
+    it("should return undefined if a required deliverable type has demonstration types", () => {
+      const result = checkRequiredDeliverableDemonstrationTypes(
+        "Implementation Plan",
+        new Set(["Free Insulin"])
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it("should return an error string if a required deliverable type has no demonstration types", () => {
+      const result = checkRequiredDeliverableDemonstrationTypes(
+        "Implementation Plan",
+        undefined
+      );
+
+      expect(result).toBe(
+        "Deliverable type Implementation Plan requires at least one demonstration type"
+      );
+    });
+
+    it("should return undefined if the deliverable type does not require demonstration types", () => {
+      const result = checkRequiredDeliverableDemonstrationTypes(
+        "Evaluation Design",
+        undefined
+      );
+
+      expect(result).toBeUndefined();
     });
   });
 });
