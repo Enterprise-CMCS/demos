@@ -2,6 +2,11 @@ declare const process: {
   env: Record<string, string | undefined>;
 };
 
+type IssueComparison = {
+  open: SnykIssue[];
+  close: JiraSearchIssue[];
+};
+
 interface JiraSearchIssueFields {
   summary: string;
   customfield_12104: string; // External ID
@@ -15,31 +20,31 @@ interface JiraSearchIssue {
   fields: JiraSearchIssueFields;
 }
 
-interface SnykIssueAttributesCoordinatesRemedies {
+interface SnykRemedy {
   description: string;
-  type: string 
+  type: string;
 }
 
-interface SnykIssueAttributesCoordinatesRepresentationsSourceLocation {
+interface SnykSourceLocation {
   file: string;
   commit_id: string;
 }
 
-interface SnykIssueAttributesCoordinatesRepresentations {
-  sourceLocation: SnykIssueAttributesCoordinatesRepresentationsSourceLocation;
+interface SnykRepresentation {
+  sourceLocation: SnykSourceLocation;
 }
 
-interface SnykIssueAttributesCoordinates {
-  remedies: SnykIssueAttributesCoordinatesRemedies[];
-  representations: SnykIssueAttributesCoordinatesRepresentations[];
+interface SnykCoordinate {
+  remedies: SnykRemedy[];
+  representations: SnykRepresentation[];
 }
 
-interface SnykIssueAttributesRiskScore {
-  value: number
+interface SnykRiskScore {
+  value: number;
 }
 
-interface SnykIssueAttributesRisk {
-  score: SnykIssueAttributesRiskScore;
+interface SnykRisk {
+  score: SnykRiskScore;
 }
 
 interface SnykIssueAttributes {
@@ -47,63 +52,68 @@ interface SnykIssueAttributes {
   effective_severity_level: string;
   status: string;
   title: string;
-  coordinates: SnykIssueAttributesCoordinates[];
-  risk: SnykIssueAttributesRisk;
+  coordinates: SnykCoordinate[];
+  risk: SnykRisk;
 }
 
 interface SnykIssue {
-  id: string
-  attributes: SnykIssueAttributes
+  id: string;
+  attributes: SnykIssueAttributes;
 }
 
-const jiraLabel = "snyk-sync"
+const jiraLabel = "snyk-sync";
+const jiraBaseUrl = "https://jiraent.cms.gov/rest/api/2";
+const jiraProjectKey = "DEMOS";
+const jiraDoneTransitionId = 41; // 41 is "Done". The full list of options can be retrieved with a GET to the same endpoint.
+const requiredEnvs = ["SNYK_TOKEN", "SNYK_ORG_ID", "JIRA_TOKEN", "JIRA_EPIC"];
+const snykApiVersion = "2025-11-05";
 
 function validateSetup() {
-  const requiredEnvs = ["SNYK_TOKEN", "SNYK_ORG_ID", "JIRA_TOKEN", "JIRA_EPIC"]
-
   for (const envName of requiredEnvs) {
     if (!process.env[envName]?.trim()) {
-      throw new Error(`${envName} must be set`)
+      throw new Error(`${envName} must be set`);
     }
   }
 }
 
 async function getSnykCodeIssues(): Promise<SnykIssue[]> {
+  const orgId = process.env.SNYK_ORG_ID;
+  const url = `https://api.snyk.io/rest/orgs/${orgId}/issues?version=${snykApiVersion}&type=code&status=open&ignored=false`;
 
-  const orgId = process.env.SNYK_ORG_ID
-
-  const response = await fetch(`https://api.snyk.io/rest/orgs/${orgId}/issues?version=2025-11-05&type=code&status=open&ignored=false`, {
+  const response = await fetch(url, {
     headers: {
       Authorization: process.env.SNYK_TOKEN!
     }
-  })
-  const body = await response.json()
+  });
+  const payload = await response.json();
 
-  return body.data
+  return payload.data;
 }
 
 async function getJiraTickets(): Promise<JiraSearchIssue[]> {
-  const response = await fetch(`https://jiraent.cms.gov/rest/api/2/search`, {
+  const response = await fetch(`${jiraBaseUrl}/search`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${process.env.JIRA_TOKEN}`,
       "content-type": "application/json"
     },
-    body: JSON.stringify({jql: `project = DEMOS AND labels = ${jiraLabel} AND resolution = Unresolved`, fields: ["summary", "customfield_12104", "priority"]})
-  })
+    body: JSON.stringify({
+      jql: `project = ${jiraProjectKey} AND labels = ${jiraLabel} AND resolution = Unresolved`,
+      fields: ["summary", "customfield_12104", "priority"]
+    })
+  });
 
-  const body = await response.json()
+  const payload = await response.json();
 
-  return body.issues
+  return payload.issues;
 }
 
-function compareIssues(jiraIssues: JiraSearchIssue[], snykIssues: SnykIssue[]): {open: SnykIssue[], close: JiraSearchIssue[]} {
-
+function compareIssues(jiraIssues: JiraSearchIssue[], snykIssues: SnykIssue[]): IssueComparison {
   const snykIds = new Set(snykIssues.map((issue) => issue.id));
   const jiraByExternalId = new Map<string, JiraSearchIssue>();
 
   for (const jiraIssue of jiraIssues) {
-    const externalId = jiraIssue.fields.customfield_12104?.trim();
+    const externalId = getExternalId(jiraIssue);
     if (externalId) {
       jiraByExternalId.set(externalId, jiraIssue);
     }
@@ -112,42 +122,45 @@ function compareIssues(jiraIssues: JiraSearchIssue[], snykIssues: SnykIssue[]): 
   const open = snykIssues.filter((snykIssue) => !jiraByExternalId.has(snykIssue.id));
 
   const close = jiraIssues.filter((jiraIssue) => {
-    const externalId = jiraIssue.fields.customfield_12104?.trim();
+    const externalId = getExternalId(jiraIssue);
     return !externalId || !snykIds.has(externalId);
   });
 
   return { open, close };
+}
 
+function getExternalId(issue: JiraSearchIssue): string | undefined {
+  return issue.fields.customfield_12104?.trim();
 }
 
 async function createJiraIssue(snykIssue: SnykIssue) {
   try {
-  const response = await fetch(`https://jiraent.cms.gov/rest/api/2/issue`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.JIRA_TOKEN}`,
-      "content-type": "application/json"
-    },
-    body: JSON.stringify({
-      fields: {
-        project: {key: "DEMOS"},
-        issuetype: {name: "Story"},
-        priority: {
-          name: snykToJiraPriority(snykIssue.attributes.effective_severity_level)
-        },
-        summary: `Snyk Code Finding: ${snykIssue.attributes.title}`,
-        description: createTicketDescription(snykIssue),
-        labels: [jiraLabel],
-        customfield_12104: snykIssue.id,
-        customfield_10100: process.env.JIRA_EPIC,
-        duedate: getDueDateByPriority(snykIssue.attributes.effective_severity_level)
-      }
-    })
-  })
-  const body = await response.json()
-} catch (err) {
-  console.log(err)
-}
+    const response = await fetch(`${jiraBaseUrl}/issue`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.JIRA_TOKEN}`,
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        fields: {
+          project: { key: jiraProjectKey },
+          issuetype: { name: "Story" },
+          priority: {
+            name: snykToJiraPriority(snykIssue.attributes.effective_severity_level)
+          },
+          summary: `Snyk Code Finding: ${snykIssue.attributes.title}`,
+          description: createTicketDescription(snykIssue),
+          labels: [jiraLabel],
+          customfield_12104: snykIssue.id,
+          customfield_10100: process.env.JIRA_EPIC,
+          duedate: getDueDateByPriority(snykIssue.attributes.effective_severity_level)
+        }
+      })
+    });
+    const payload = await response.json();
+  } catch (err) {
+    console.log(err);
+  }
 }
 
 function getDueDateByPriority(priority: string, currentDate: Date = new Date()): string {
@@ -171,14 +184,14 @@ function getDueDateByPriority(priority: string, currentDate: Date = new Date()):
 function createTicketDescription(issue: SnykIssue) {
   const title = issue.attributes.title?.trim() || "Snyk Code Issue";
   const snykDescription = issue.attributes.description?.trim() || "No description provided by Snyk.";
-  const riskScore = issue.attributes.risk.score.value
-  const details =
+  const riskScore = issue.attributes.risk.score.value;
+  const affectedFiles =
     issue.attributes.coordinates
       ?.flatMap((coordinate) => coordinate.representations ?? [])
       .map((representation) => `* ${representation.sourceLocation.file}`)
       .join("\n") || "No files provided";
 
-  const remedies =
+  const suggestedRemedies =
     issue.attributes.coordinates
       ?.flatMap((coordinate) => coordinate.remedies ?? [])
       .map((remedy) => remedy.description)
@@ -187,7 +200,7 @@ function createTicketDescription(issue: SnykIssue) {
 
   // Outline for Jira wiki-style markup body.
   // Expand sections as needed (links, remediation, file paths, CWE, etc.).
-  const body = [
+  const descriptionLines = [
     "----",
     "*This issue was generated automatically based on findings in Snyk Code*",
     "Do not mark this ticket as 'Done' manually. The automation pipeline will close it once the finding is resolved or ignored in Snyk.", 
@@ -202,73 +215,70 @@ function createTicketDescription(issue: SnykIssue) {
     snykDescription,
     "h3. Suggestions from Snyk",
     "{code}",
-    remedies,
+    suggestedRemedies,
     "{code}",
     "h4. Affected files",
-    details,
+    affectedFiles,
   ];
 
-  return body.join("\n");
-}
-
-async function run() {
-  validateSetup()
-  const jiraIssues = await getJiraTickets()
-  const snykIssues = await getSnykCodeIssues()
-  const next = compareIssues(jiraIssues, snykIssues)
-
-  console.log(`${next.close.length} to close. ${next.open.length} to open.`)
-  
-  console.log("dry run, not opening or closing any tickets.")
-
-  // next.open.forEach(issue => createJiraIssue(issue))
-  // next.close.forEach(issue => closeJiraIssue(issue))
-  // createJiraIssue(next.open[1])
-
+  return descriptionLines.join("\n");
 }
 
 function snykToJiraPriority(snykPriority: string): string {
   switch (snykPriority) {
     case "medium":
-      return "Medium"
+      return "Medium";
     case "high":
-      return "High"
+      return "High";
     default:
-      return "Low"
+      return "Low";
   }
 }
 
 async function closeJiraIssue(issue: JiraSearchIssue) {
-try {
-  const response = await fetch(`https://jiraent.cms.gov/rest/api/2/issue/${issue.key}/transitions`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.JIRA_TOKEN}`,
-      "content-type": "application/json"
-    },
-    body: JSON.stringify({
-      transition: {
-        id: 41 // 41 is "Done". The full list of options can be retrieved with a GET to the same endpoint
+  try {
+    const response = await fetch(`${jiraBaseUrl}/issue/${issue.key}/transitions`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.JIRA_TOKEN}`,
+        "content-type": "application/json"
       },
-      fields: {
-        resolution: {
-          name: "Done"
-        }
-      },
-      update: {
-        comment: [
-          {
-            add: {
-              body: "Closing this ticket because the Snyk finding is no longer reported."
-            }
+      body: JSON.stringify({
+        transition: {
+          id: jiraDoneTransitionId
+        },
+        fields: {
+          resolution: {
+            name: "Done"
           }
-        ]
-      }
-    })
-  })
-} catch (err) {
-  console.error(err)
+        },
+        update: {
+          comment: [
+            {
+              add: {
+                body: "Closing this ticket because the Snyk finding is no longer reported."
+              }
+            }
+          ]
+        }
+      })
+    });
+  } catch (err) {
+    console.error(err);
+  }
 }
+
+async function run() {
+  validateSetup();
+
+  const jiraIssues = await getJiraTickets();
+  const snykIssues = await getSnykCodeIssues();
+  const syncPlan = compareIssues(jiraIssues, snykIssues);
+
+  console.log(`${syncPlan.close.length} to close. ${syncPlan.open.length} to open.`);
+
+  syncPlan.open.forEach(issue => createJiraIssue(issue));
+  syncPlan.close.forEach(issue => closeJiraIssue(issue));
 }
 
 await run();
