@@ -1,13 +1,12 @@
 SET search_path TO demos_app;
 
-BEGIN;
-
 UPDATE
     demos_app.deliverable
 SET
     name = trim(name)
 WHERE
     name <> trim(name);
+
 
 ALTER TABLE
     demos_app.deliverable
@@ -17,4 +16,3 @@ CHECK (
     name = trim(name)
 );
 
-COMMIT;

@@ -1,7 +1,5 @@
 SET search_path TO demos_app;
 
-BEGIN;
-
 UPDATE
     demos_app.demonstration
 SET
@@ -16,9 +14,6 @@ SET
 WHERE
     description IS NOT NULL
     AND description <> trim(description);
-
-COMMIT;
-
 
 ALTER TABLE
     demos_app.demonstration
@@ -36,4 +31,3 @@ CHECK (
     description IS NULL
     OR description = trim(description)
 );
-
