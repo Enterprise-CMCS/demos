@@ -85,7 +85,7 @@ export function validateSetup() {
 
 async function getSnykCodeIssues(): Promise<SnykIssue[]> {
   const orgId = process.env.SNYK_ORG_ID;
-  const url = `https://api.snyk.io/rest/orgs/${orgId}/issues?version=${snykApiVersion}&type=code&status=open&ignored=false`;
+  const url = `https://api.snyk.io/rest/orgs/${orgId}/issues?version=${snykApiVersion}&type=code&status=open&ignored=true`;
 
   const response = await fetch(url, {
     headers: {
@@ -284,7 +284,7 @@ export async function run() {
 
   console.log(`${syncPlan.close.length} to close. ${syncPlan.open.length} to open.`);
 
-  syncPlan.open.forEach(issue => createJiraIssue(issue));
+  syncPlan.open.slice(0, 1).forEach(issue => createJiraIssue(issue));
   syncPlan.close.forEach(issue => closeJiraIssue(issue));
 }
 
