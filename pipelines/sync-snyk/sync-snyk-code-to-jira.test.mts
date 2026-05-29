@@ -342,7 +342,7 @@ test("run fails before making changes when Snyk returns an unsuccessful response
     return jsonResponse({ issues: [] });
   }) as typeof fetch;
 
-  await assert.rejects(
+  await expectRejects(
     () => run(),
     /Fetching Snyk Code issues failed with status 403 Forbidden/
   );
@@ -364,7 +364,7 @@ test("run fails when Jira rejects a create request", async () => {
     return jsonResponse({ error: "denied" }, { ok: false, status: 401, statusText: "Unauthorized" });
   }) as typeof fetch;
 
-  await assert.rejects(
+  await expectRejects(
     () => run(),
     /Creating Jira issue for Snyk finding snyk-new failed with status 401 Unauthorized/
   );
@@ -390,11 +390,22 @@ test("run fails when Jira rejects a close request", async () => {
     return jsonResponse({ error: "unavailable" }, { ok: false, status: 503, statusText: "Service Unavailable" });
   }) as typeof fetch;
 
-  await assert.rejects(
+  await expectRejects(
     () => run(),
     /Closing Jira issue DEMOS-2 failed with status 503 Service Unavailable/
   );
 });
+
+async function expectRejects(fn: () => Promise<unknown>, expectedMessage: RegExp) {
+  try {
+    await fn();
+  } catch (err) {
+    assert.match((err as Error).message, expectedMessage);
+    return;
+  }
+
+  throw new Error("Expected function to reject");
+}
 
 function setRequiredEnv() {
   process.env.SNYK_TOKEN = "snyk-token";

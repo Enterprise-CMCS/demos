@@ -79,7 +79,7 @@ interface SnykIssue {
 const jiraLabel = "snyk-sync";
 const jiraBaseUrl = "https://jiraent.cms.gov/rest/api/2";
 const jiraProjectKey = "DEMOS";
-const jiraDoneTransitionId = 41; // 41 is "Done". The full list of options can be retrieved with a GET to the same endpoint.
+const jiraDoneTransitionId = 41; // 41 is "Done". The full list of options can be retrieved with a GET to the /issue/${issue.key}/transitions endpoint.
 const requiredEnvs = ["SNYK_TOKEN", "SNYK_ORG_ID", "JIRA_TOKEN", "JIRA_EPIC"];
 const snykApiVersion = "2025-11-05";
 
