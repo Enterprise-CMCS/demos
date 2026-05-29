@@ -71,7 +71,7 @@ export const ApplicationDetailsSection = ({
   onMarkComplete,
   onMarkIncomplete,
   completionDate,
-  demonstrationId,
+  medicaidId,
 }: {
   sectionFormData: ApplicationDetailsFormData;
   setSectionFormData: (data: ApplicationDetailsFormData) => void;
@@ -80,7 +80,7 @@ export const ApplicationDetailsSection = ({
   onMarkComplete: () => void;
   onMarkIncomplete: () => void;
   completionDate?: string;
-  demonstrationId?: string;
+  medicaidId?: string;
 }) => {
   const capitalizedType = sectionFormData.applicationType.charAt(0).toUpperCase() + sectionFormData.applicationType.slice(1);
   const isApplicationDetailsComplete = (data: ApplicationDetailsFormData) => {
@@ -247,7 +247,7 @@ export const ApplicationDetailsSection = ({
                 Demonstration ID
               </div>
               <div className={VALUE_CLASSES}>
-                { demonstrationId || "-" }
+                { medicaidId || "-" }
               </div>
             </div>
           </div>

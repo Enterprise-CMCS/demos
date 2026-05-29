@@ -631,6 +631,7 @@ describe("ConceptPhase", () => {
     it("should return ConceptPhase component with extracted pre-submission docs", () => {
       const mockDemonstration: ApplicationWorkflowDemonstration = {
         id: "demo-111",
+        medicaidId: "medicaid-123",
         name: "Test Demo",
         state: {
           id: "CA",
@@ -699,6 +700,7 @@ describe("ConceptPhase", () => {
     it("should extract the presubmissionDocumentSubmittedDate if it exists on the phase", () => {
       const mockDemonstration: ApplicationWorkflowDemonstration = {
         id: "demo-222",
+        medicaidId: "medicaid-456",
         name: "Test Demo 2",
         state: {
           id: "NY",

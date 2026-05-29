@@ -22,6 +22,7 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
       sdgDivision
       signatureLevel
       clearanceLevel
+      medicaidId
       state {
         id
         name
@@ -58,6 +59,7 @@ export const GET_WORKFLOW_DEMONSTRATION_QUERY = gql`
 export type ApplicationWorkflowDemonstration = WorkflowApplication &
   Pick<
     Demonstration,
+    | "medicaidId"
     | "status"
     | "name"
     | "effectiveDate"
