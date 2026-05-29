@@ -72,8 +72,8 @@ export async function __createDemonstration(
         data: {
           id: application.id,
           applicationTypeId: application.applicationTypeId,
-          name: input.name,
-          description: input.description,
+          name: input.name.trim(),
+          description: input.description?.trim(),
           sdgDivisionId: input.sdgDivision,
           signatureLevelId: DEFAULT_SIGNATURE_LEVEL,
           statusId: newApplicationStatusId,
@@ -129,8 +129,8 @@ export async function __updateDemonstration(
       const demonstration = await tx.demonstration.update({
         where: { id },
         data: {
-          name: input.name,
-          description: input.description,
+          name: input.name?.trim(),
+          description: input.description?.trim(),
           effectiveDate: effectiveDate,
           expirationDate: expirationDate,
           sdgDivisionId: input.sdgDivision,
