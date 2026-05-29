@@ -577,6 +577,37 @@ describe("demonstrationResolvers", () => {
       expect(handlePrismaError).not.toHaveBeenCalled();
     });
 
+    it("should trim the demonstration name and description when creating", async () => {
+      transactionMocks.application.create.mockResolvedValueOnce({
+        id: testValues.demonstrationId,
+        applicationTypeId: testValues.applicationTypeId,
+      });
+      transactionMocks.person.findUnique.mockResolvedValueOnce({
+        personTypeId: testValues.personTypeId,
+      });
+
+      const testInput: { input: CreateDemonstrationInput } = {
+        input: {
+          name: `  ${testValues.demonstrationName}  `,
+          projectOfficerUserId: testValues.userId,
+          stateId: testValues.stateId,
+          description: `  ${testValues.demonstrationDescription}  `,
+          sdgDivision: testValues.sdgDivisionId,
+        },
+      };
+
+      await __createDemonstration(undefined, testInput);
+
+      expect(transactionMocks.demonstration.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            name: testValues.demonstrationName,
+            description: testValues.demonstrationDescription,
+          }),
+        })
+      );
+    });
+
     it("should throw if the requested person does not exist", async () => {
       transactionMocks.application.create.mockResolvedValueOnce({
         id: testValues.demonstrationId,
@@ -671,6 +702,27 @@ describe("demonstrationResolvers", () => {
       );
       expect(transactionMocks.demonstration.update).toHaveBeenCalledExactlyOnceWith(expectedCall);
       expect(handlePrismaError).not.toHaveBeenCalled();
+    });
+
+    it("should trim the demonstration name and description when updating", async () => {
+      const testInput: { id: string; input: UpdateDemonstrationInput } = {
+        id: testValues.demonstrationId,
+        input: {
+          name: `  ${testValues.demonstrationName}  `,
+          description: `  ${testValues.demonstrationDescription}  `,
+        },
+      };
+
+      await __updateDemonstration(undefined, testInput);
+
+      expect(transactionMocks.demonstration.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            name: testValues.demonstrationName,
+            description: testValues.demonstrationDescription,
+          }),
+        })
+      );
     });
 
     it("should not touch the person tables if no update to project officer is requested", async () => {
