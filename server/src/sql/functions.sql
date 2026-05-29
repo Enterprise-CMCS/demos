@@ -1441,3 +1441,126 @@ ON demos_app.deliverable
 DEFERRABLE INITIALLY DEFERRED
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_required_deliverable_demonstration_types();
+
+-- trim_input_text_fields
+CREATE FUNCTION demos_app.trim_input_text_fields()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    tbls_with_content text[] := ARRAY[
+        'application_note',
+        'private_comment',
+        'public_comment'
+    ];
+
+    tbls_with_note text[] := ARRAY[
+        'deliverable_action'
+    ];
+
+    tbls_with_name text[] := ARRAY[
+        'amendment',
+        'deliverable',
+        'demonstration',
+        'document_infected',
+        'document_pending_upload',
+        'document',
+        'extension',
+        'reference_agreement',
+        'reference'
+    ];
+
+    tbls_with_description text[] := ARRAY[
+        'amendment',
+        'demonstration',
+        'document_infected',
+        'document_pending_upload',
+        'document',
+        'extension',
+        'reference'
+    ];
+BEGIN
+    IF TG_TABLE_NAME = ANY(tbls_with_content) THEN
+        NEW.content := trim(NEW.content);
+    END IF;
+
+    IF TG_TABLE_NAME = ANY(tbls_with_note) THEN
+        NEW.note := trim(NEW.note);
+    END IF;
+
+    IF TG_TABLE_NAME = ANY(tbls_with_name) THEN
+        NEW.name := trim(NEW.name);
+    END IF;
+
+    IF TG_TABLE_NAME = ANY(tbls_with_description) THEN
+        NEW.description := trim(NEW.description);
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.amendment
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.application_note
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.deliverable
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.deliverable_action
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.demonstration
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.document
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.document_infected
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.document_pending_upload
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.extension
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.private_comment
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.public_comment
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.reference
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.reference_agreement
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();

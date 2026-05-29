@@ -370,6 +370,7 @@ erDiagram
     CONSTRAINT_CHECK check_amendment_non_null_fields_when_approved  "Validate that required fields exist if amendment is approved."
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
     HAS_HISTORY true
   }
 
@@ -399,6 +400,7 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
     HAS_HISTORY true
   }
 
@@ -475,6 +477,7 @@ erDiagram
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK check_deliverable_name_has_no_leading_trailing_whitespace "Validate that the trim of the name is identical to the name."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
     HAS_HISTORY true
   }
 
@@ -503,6 +506,7 @@ erDiagram
     TRIGGER_BEFORE_INSERT block_final_states_if_extension_request_active "If an active extension request exists, do not allow moving the deliverable to completed."
     TRIGGER_BEFORE_INSERT capture_active_extension_request_id_for_action "Before insert, look in deliverable_active_extension and if there is an active extension for this deliverable, add the ID here."
     TRIGGER_AFTER_INSERT update_documents_in_submission "After insert, if it is a submission, go to the documents table and associate the action with any documents not belonging to a submission."
+    TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
     HAS_HISTORY true
   }
 
@@ -553,6 +557,7 @@ erDiagram
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     TRIGGER_BEFORE_UPDATE check_demonstration_type_exists_for_approved_demonstrations "Check that approved demonstrations have at least one demonstration type."
     TRIGGER_AFTER_UPDATE change_open_ended_due_dates_to_expiration_date "If the demonstration is approved, when the expiration date changes, change all the open-ended due dates for associated deliverables."
+    TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
     HAS_HISTORY true
   }
 
@@ -592,6 +597,7 @@ erDiagram
     CONSTRAINT_CHECK check_deliverable_null_states "Validate that the deliverable-related fields are NULL or NOT NULL appropriately.<br>If deliverable_id is NULL, all other deliverable fields must be NULL.<br>If deliverable_id is NOT NULL, deliverable_type_id and deliverable_is_cms_attached_file must be NOT NULL."
     CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_budget_neutrality_validation_record_exists "Verify that a corresponding record exists in the budget_neutrality_workbook table for budget neutrality records."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
     HAS_HISTORY true
   }
 
@@ -616,6 +622,7 @@ erDiagram
     CONSTRAINT_CHECK check_phase_id_deliverable_id_null "Validate that at least one of phase_id and deliverable_id are NULL."
     CONSTRAINT_CHECK check_deliverable_null_states "If deliverable_id is NULL, deliverable_type_id and deliverable_is_cms_attached_file must be NULL.<br>If deliverable_id is NOT NULL, deliverable_type_id and deliverable_is_cms_attached_file must be NOT NULL."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
     HAS_HISTORY true
   }
 
@@ -636,6 +643,7 @@ erDiagram
     CONSTRAINT_CHECK check_phase_id_deliverable_id_null "Validate that at least one of phase_id and deliverable_id are NULL."
     CONSTRAINT_CHECK check_deliverable_null_states "If deliverable_id is NULL, deliverable_type_id and deliverable_is_cms_attached_file must be NULL.<br>If deliverable_id is NOT NULL, deliverable_type_id and deliverable_is_cms_attached_file must be NOT NULL."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
     HAS_HISTORY true
   }
 
@@ -656,6 +664,7 @@ erDiagram
     CONSTRAINT_CHECK check_extension_non_null_fields_when_approved  "Validate that required fields exist if extension is approved."
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
     HAS_HISTORY true
   }
 
@@ -680,8 +689,9 @@ erDiagram
     text content
     timestamptz created_at
     timestamptz updated_at
-    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     CONSTRAINT_CHECK check_non_empty_content "Validate that the content is not empty or only whitespace."
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
     HAS_HISTORY true
   }
 
@@ -692,20 +702,24 @@ erDiagram
     text content
     timestamptz created_at
     timestamptz updated_at
-    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     CONSTRAINT_CHECK check_non_empty_content "Validate that the content is not empty or only whitespace."
+    TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
+    TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
     HAS_HISTORY true
   }
 
   reference:::dataTable {
     uuid id PK
     text name
+    text description
     text s3_path
     uuid owner_user_id FK "FK140: owner_user_id ∈ users.id"
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
+    CONSTRAINT_CHECK check_non_empty_description "Validate that the description is not empty or only whitespace."
     CONSTRAINT_CHECK check_non_empty_s3_path "Validate that the S3 path is not empty or only whitespace."
+    TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
     HAS_HISTORY true
   }
 
@@ -718,6 +732,7 @@ erDiagram
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK check_non_empty_s3_path "Validate that the S3 path is not empty or only whitespace."
+    TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
     HAS_HISTORY true
   }
 

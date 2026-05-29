@@ -1,6 +1,7 @@
 model Reference {
   id          String   @default(uuid()) @db.Uuid
   name        String
+  description String
   s3Path      String   @map("s3_path")
   ownerUserId String   @map("owner_user_id") @db.Uuid
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
