@@ -17,11 +17,14 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env: 
-      ENVS_HERE: true
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: 24
       - run: node pipelines/sync-snyk-code-to-jira.mts
+        env:
+          SNYK_TOKEN: ${{ secrets.DEMOS_SNYK_SERVICE_ACCOUNT_TOKEN }}
+          SNYK_ORG_ID: ${{ secrets.DEMOS_SNYK_ORG_ID }}
+          JIRA_TOKEN: ${{ secrets.DEMOS_JIRA_SERVICE_ACCOUNT_TOKEN }}
+          JIRA_EPIC: ${{ vars.DEMOS_SNYK_SYNC_JIRA_EPIC }}
