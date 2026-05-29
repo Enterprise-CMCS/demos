@@ -1,10 +1,10 @@
 name: Sync Snyk Code Findings to Jira
 
 on:
-  push:
-    branches:
-      - DEMOS-2175-snyk-code-pipeline
   workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'
+      timezone: "America/New_York"
 
 permissions:
   contents: read
