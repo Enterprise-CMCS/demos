@@ -473,6 +473,7 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
+    CONSTRAINT_CHECK check_deliverable_name_has_no_leading_trailing_whitespace "Validate that the trim of the name is identical to the name."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }
@@ -545,6 +546,8 @@ erDiagram
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
     CONSTRAINT_CHECK effective_date_check "Validate that the effective date is before the expiration date."
     CONSTRAINT_CHECK check_demonstration_non_null_fields_when_approved "Validate that required fields exist if demonstration is approved."
+    CONSTRAINT_CHECK check_demonstration_name_trimmed "Validate that the trim of the name is identical to the name."
+    CONSTRAINT_CHECK check_demonstration_description_trimmed "Validate that the trim of the description is identical to the description."
     CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_demonstration_primary_project_officer "Check that a primary project officer exists for this demonstration."
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
