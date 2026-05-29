@@ -152,6 +152,7 @@ export const DOCUMENT_TYPES = [
   "Application Completeness Letter",
   "Approval Letter",
   "BN Workbook",
+  "BN Template",
   "Close Out Report",
   "Demonstration-Specific Deliverable",
   "Evaluation Design",
