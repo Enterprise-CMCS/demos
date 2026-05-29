@@ -14,6 +14,14 @@ type IssueComparison = {
   close: JiraSearchIssue[];
 };
 
+type SnykIssuesResponse = {
+  data: SnykIssue[];
+};
+
+type JiraSearchResponse = {
+  issues: JiraSearchIssue[];
+};
+
 interface JiraSearchIssueFields {
   summary: string;
   customfield_12104: string; // External ID
@@ -85,14 +93,19 @@ export function validateSetup() {
 
 async function getSnykCodeIssues(): Promise<SnykIssue[]> {
   const orgId = process.env.SNYK_ORG_ID;
-  const url = `https://api.snyk.io/rest/orgs/${orgId}/issues?version=${snykApiVersion}&type=code&status=open&ignored=true`;
+  const url = `https://api.snyk.io/rest/orgs/${orgId}/issues?version=${snykApiVersion}&type=code&status=open&ignored=false`;
 
   const response = await fetch(url, {
     headers: {
       Authorization: process.env.SNYK_TOKEN!
     }
   });
-  const payload = await response.json();
+  assertResponseOk(response, "Fetching Snyk Code issues");
+
+  const payload = await response.json() as SnykIssuesResponse;
+  if (!Array.isArray(payload.data)) {
+    throw new Error("Unexpected Snyk response: data was not an array");
+  }
 
   return payload.data;
 }
@@ -109,8 +122,12 @@ async function getJiraTickets(): Promise<JiraSearchIssue[]> {
       fields: ["summary", "customfield_12104", "priority"]
     })
   });
+  assertResponseOk(response, "Fetching Jira tickets");
 
-  const payload = await response.json();
+  const payload = await response.json() as JiraSearchResponse;
+  if (!Array.isArray(payload.issues)) {
+    throw new Error("Unexpected Jira response: issues was not an array");
+  }
 
   return payload.issues;
 }
@@ -141,33 +158,29 @@ function getExternalId(issue: JiraSearchIssue): string | undefined {
 }
 
 async function createJiraIssue(snykIssue: SnykIssue) {
-  try {
-    const response = await fetch(`${jiraBaseUrl}/issue`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.JIRA_TOKEN}`,
-        "content-type": "application/json"
-      },
-      body: JSON.stringify({
-        fields: {
-          project: { key: jiraProjectKey },
-          issuetype: { name: "Story" },
-          priority: {
-            name: snykToJiraPriority(snykIssue.attributes.effective_severity_level)
-          },
-          summary: `Snyk Code Finding: ${snykIssue.attributes.title}`,
-          description: createTicketDescription(snykIssue),
-          labels: [jiraLabel],
-          customfield_12104: snykIssue.id,
-          customfield_10100: process.env.JIRA_EPIC,
-          duedate: getDueDateByPriority(snykIssue.attributes.effective_severity_level)
-        }
-      })
-    });
-    await response.json();
-  } catch (err) {
-    console.log(err);
-  }
+  const response = await fetch(`${jiraBaseUrl}/issue`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.JIRA_TOKEN}`,
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      fields: {
+        project: { key: jiraProjectKey },
+        issuetype: { name: "Story" },
+        priority: {
+          name: snykToJiraPriority(snykIssue.attributes.effective_severity_level)
+        },
+        summary: `Snyk Code Finding: ${snykIssue.attributes.title}`,
+        description: createTicketDescription(snykIssue),
+        labels: [jiraLabel],
+        customfield_12104: snykIssue.id,
+        customfield_10100: process.env.JIRA_EPIC,
+        duedate: getDueDateByPriority(snykIssue.attributes.effective_severity_level)
+      }
+    })
+  });
+  assertResponseOk(response, `Creating Jira issue for Snyk finding ${snykIssue.id}`);
 }
 
 export function getDueDateByPriority(priority: string, currentDate: Date = new Date()): string {
@@ -243,35 +256,39 @@ export function snykToJiraPriority(snykPriority: string): string {
 }
 
 async function closeJiraIssue(issue: JiraSearchIssue) {
-  try {
-    await fetch(`${jiraBaseUrl}/issue/${issue.key}/transitions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.JIRA_TOKEN}`,
-        "content-type": "application/json"
+  const response = await fetch(`${jiraBaseUrl}/issue/${issue.key}/transitions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.JIRA_TOKEN}`,
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      transition: {
+        id: jiraDoneTransitionId
       },
-      body: JSON.stringify({
-        transition: {
-          id: jiraDoneTransitionId
-        },
-        fields: {
-          resolution: {
-            name: "Done"
-          }
-        },
-        update: {
-          comment: [
-            {
-              add: {
-                body: "Closing this ticket because the Snyk finding is no longer reported."
-              }
-            }
-          ]
+      fields: {
+        resolution: {
+          name: "Done"
         }
-      })
-    });
-  } catch (err) {
-    console.error(err);
+      },
+      update: {
+        comment: [
+          {
+            add: {
+              body: "Closing this ticket because the Snyk finding is no longer reported."
+            }
+          }
+        ]
+      }
+    })
+  });
+  assertResponseOk(response, `Closing Jira issue ${issue.key}`);
+}
+
+function assertResponseOk(response: Response, action: string) {
+  if (!response.ok) {
+    const status = response.statusText ? `${response.status} ${response.statusText}` : response.status;
+    throw new Error(`${action} failed with status ${status}`);
   }
 }
 
@@ -284,8 +301,10 @@ export async function run() {
 
   console.log(`${syncPlan.close.length} to close. ${syncPlan.open.length} to open.`);
 
-  syncPlan.open.slice(0, 1).forEach(issue => createJiraIssue(issue));
-  syncPlan.close.forEach(issue => closeJiraIssue(issue));
+  await Promise.all([
+    ...syncPlan.open.map(issue => createJiraIssue(issue)),
+    ...syncPlan.close.map(issue => closeJiraIssue(issue))
+  ]);
 }
 
 if (process.argv[1] === import.meta.filename) {

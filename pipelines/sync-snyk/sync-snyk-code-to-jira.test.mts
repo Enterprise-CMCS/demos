@@ -75,6 +75,12 @@ type JiraCreateIssueBody = {
   };
 };
 
+type JsonResponseOptions = {
+  ok?: boolean;
+  status?: number;
+  statusText?: string;
+};
+
 const managedEnvNames = ["SNYK_TOKEN", "SNYK_ORG_ID", "JIRA_TOKEN", "JIRA_EPIC"] as const;
 type ManagedEnvName = typeof managedEnvNames[number];
 
@@ -281,7 +287,7 @@ test("run fetches Snyk and Jira, then sends the expected create and close reques
 
   assert.equal(
     snykRequest.url,
-    "https://api.snyk.io/rest/orgs/org-1/issues?version=2025-11-05&type=code&status=open&ignored=false"
+    "https://api.snyk.io/rest/orgs/org-1/issues?version=2025-11-05&type=code&status=open&ignored=true"
   );
   assert.equal(snykRequest.options.headers?.Authorization, "snyk-token");
 
@@ -324,6 +330,79 @@ test("run fetches Snyk and Jira, then sends the expected create and close reques
   });
 });
 
+test("run fails before making changes when Snyk returns an unsuccessful response", async () => {
+  setRequiredEnv();
+  console.log = (() => undefined) as typeof console.log;
+
+  globalThis.fetch = (async (url: RequestInfo | URL) => {
+    if (String(url).includes("api.snyk.io")) {
+      return jsonResponse({ error: "denied" }, { ok: false, status: 403, statusText: "Forbidden" });
+    }
+
+    return jsonResponse({ issues: [] });
+  }) as typeof fetch;
+
+  await assert.rejects(
+    () => run(),
+    /Fetching Snyk Code issues failed with status 403 Forbidden/
+  );
+});
+
+test("run fails when Jira rejects a create request", async () => {
+  setRequiredEnv();
+  console.log = (() => undefined) as typeof console.log;
+
+  globalThis.fetch = (async (url: RequestInfo | URL) => {
+    if (String(url).endsWith("/search")) {
+      return jsonResponse({ issues: [] });
+    }
+
+    if (String(url).includes("api.snyk.io")) {
+      return jsonResponse({ data: [snykIssue({ id: "snyk-new" })] });
+    }
+
+    return jsonResponse({ error: "denied" }, { ok: false, status: 401, statusText: "Unauthorized" });
+  }) as typeof fetch;
+
+  await assert.rejects(
+    () => run(),
+    /Creating Jira issue for Snyk finding snyk-new failed with status 401 Unauthorized/
+  );
+});
+
+test("run fails when Jira rejects a close request", async () => {
+  setRequiredEnv();
+  console.log = (() => undefined) as typeof console.log;
+
+  globalThis.fetch = (async (url: RequestInfo | URL) => {
+    if (String(url).endsWith("/search")) {
+      return jsonResponse({
+        issues: [
+          jiraIssue("DEMOS-2", "snyk-resolved")
+        ]
+      });
+    }
+
+    if (String(url).includes("api.snyk.io")) {
+      return jsonResponse({ data: [] });
+    }
+
+    return jsonResponse({ error: "unavailable" }, { ok: false, status: 503, statusText: "Service Unavailable" });
+  }) as typeof fetch;
+
+  await assert.rejects(
+    () => run(),
+    /Closing Jira issue DEMOS-2 failed with status 503 Service Unavailable/
+  );
+});
+
+function setRequiredEnv() {
+  process.env.SNYK_TOKEN = "snyk-token";
+  process.env.SNYK_ORG_ID = "org-1";
+  process.env.JIRA_TOKEN = "jira-token";
+  process.env.JIRA_EPIC = "DEMO-EPIC";
+}
+
 function snykIssue(overrides: SnykIssueOverrides = {}): SnykIssueFixture {
   return {
     id: overrides.id ?? "snyk-1",
@@ -360,8 +439,11 @@ function jiraIssue(key: string, externalId: string): JiraIssueFixture {
   };
 }
 
-function jsonResponse(payload: unknown): Response {
+function jsonResponse(payload: unknown, options: JsonResponseOptions = {}): Response {
   return {
+    ok: options.ok ?? true,
+    status: options.status ?? 200,
+    statusText: options.statusText ?? "OK",
     json: async () => payload
   } as Response;
 }

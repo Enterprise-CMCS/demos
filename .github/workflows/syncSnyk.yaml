@@ -5,10 +5,6 @@ on:
     branches:
       - DEMOS-2175-snyk-code-pipeline
   workflow_dispatch:
-    inputs:
-      dry_run:
-        type: boolean
-        default: true
 
 permissions:
   contents: read
@@ -22,7 +18,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 24
-      # - run: node --experimental-test-coverage --test pipelines/sync-snyk/sync-snyk-code-to-jira.test.mts
+      - run: node --experimental-test-coverage --test pipelines/sync-snyk/sync-snyk-code-to-jira.test.mts
       - run: node pipelines/sync-snyk/sync-snyk-code-to-jira.mts
         env:
           SNYK_TOKEN: ${{ secrets.DEMOS_SNYK_SERVICE_ACCOUNT_TOKEN }}

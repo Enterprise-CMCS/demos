@@ -4,6 +4,7 @@ declare module "node:assert/strict" {
   export function equal(actual: unknown, expected: unknown, message?: string): void;
   export function match(value: string, regexp: RegExp, message?: string): void;
   export function ok(value: unknown, message?: string): asserts value;
+  export function rejects(fn: () => Promise<unknown>, expected?: RegExp, message?: string): Promise<void>;
   export function throws(fn: () => unknown, expected?: RegExp, message?: string): void;
 }
 
