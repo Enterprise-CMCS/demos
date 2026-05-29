@@ -287,7 +287,7 @@ test("run fetches Snyk and Jira, then sends the expected create and close reques
 
   assert.equal(
     snykRequest.url,
-    "https://api.snyk.io/rest/orgs/org-1/issues?version=2025-11-05&type=code&status=open&ignored=true"
+    "https://api.snyk.io/rest/orgs/org-1/issues?version=2025-11-05&type=code&status=open&ignored=false"
   );
   assert.equal(snykRequest.options.headers?.Authorization, "snyk-token");
 
