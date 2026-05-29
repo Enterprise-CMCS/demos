@@ -1,6 +1,13 @@
 declare const process: {
   env: Record<string, string | undefined>;
+  argv: string[];
 };
+
+declare global {
+  interface ImportMeta {
+    filename: string;
+  }
+}
 
 type IssueComparison = {
   open: SnykIssue[];
@@ -68,7 +75,7 @@ const jiraDoneTransitionId = 41; // 41 is "Done". The full list of options can b
 const requiredEnvs = ["SNYK_TOKEN", "SNYK_ORG_ID", "JIRA_TOKEN", "JIRA_EPIC"];
 const snykApiVersion = "2025-11-05";
 
-function validateSetup() {
+export function validateSetup() {
   for (const envName of requiredEnvs) {
     if (!process.env[envName]?.trim()) {
       throw new Error(`${envName} must be set`);
@@ -108,7 +115,7 @@ async function getJiraTickets(): Promise<JiraSearchIssue[]> {
   return payload.issues;
 }
 
-function compareIssues(jiraIssues: JiraSearchIssue[], snykIssues: SnykIssue[]): IssueComparison {
+export function compareIssues(jiraIssues: JiraSearchIssue[], snykIssues: SnykIssue[]): IssueComparison {
   const snykIds = new Set(snykIssues.map((issue) => issue.id));
   const jiraByExternalId = new Map<string, JiraSearchIssue>();
 
@@ -157,13 +164,13 @@ async function createJiraIssue(snykIssue: SnykIssue) {
         }
       })
     });
-    const payload = await response.json();
+    await response.json();
   } catch (err) {
     console.log(err);
   }
 }
 
-function getDueDateByPriority(priority: string, currentDate: Date = new Date()): string {
+export function getDueDateByPriority(priority: string, currentDate: Date = new Date()): string {
   const normalized = priority.trim().toLowerCase();
 
   const daysToAdd =
@@ -181,7 +188,7 @@ function getDueDateByPriority(priority: string, currentDate: Date = new Date()):
   return `${year}-${month}-${day}`;
 }
 
-function createTicketDescription(issue: SnykIssue) {
+export function createTicketDescription(issue: SnykIssue) {
   const title = issue.attributes.title?.trim() || "Snyk Code Issue";
   const snykDescription = issue.attributes.description?.trim() || "No description provided by Snyk.";
   const riskScore = issue.attributes.risk.score.value;
@@ -203,7 +210,7 @@ function createTicketDescription(issue: SnykIssue) {
   const descriptionLines = [
     "----",
     "*This issue was generated automatically based on findings in Snyk Code*",
-    "Do not mark this ticket as 'Done' manually. The automation pipeline will close it once the finding is resolved or ignored in Snyk.", 
+    "Do not mark this ticket as 'Done' manually. The automation pipeline will close it once the finding is resolved or ignored in Snyk.",
     `Do not edit the 'External ID' or remove the '${jiraLabel}' label. All other edits/comments are welcome.`,
     "----",
     "h2. Snyk Code Finding",
@@ -224,7 +231,7 @@ function createTicketDescription(issue: SnykIssue) {
   return descriptionLines.join("\n");
 }
 
-function snykToJiraPriority(snykPriority: string): string {
+export function snykToJiraPriority(snykPriority: string): string {
   switch (snykPriority) {
     case "medium":
       return "Medium";
@@ -237,7 +244,7 @@ function snykToJiraPriority(snykPriority: string): string {
 
 async function closeJiraIssue(issue: JiraSearchIssue) {
   try {
-    const response = await fetch(`${jiraBaseUrl}/issue/${issue.key}/transitions`, {
+    await fetch(`${jiraBaseUrl}/issue/${issue.key}/transitions`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.JIRA_TOKEN}`,
@@ -268,7 +275,7 @@ async function closeJiraIssue(issue: JiraSearchIssue) {
   }
 }
 
-async function run() {
+export async function run() {
   validateSetup();
 
   const jiraIssues = await getJiraTickets();
@@ -281,4 +288,6 @@ async function run() {
   syncPlan.close.forEach(issue => closeJiraIssue(issue));
 }
 
-await run();
+if (process.argv[1] === import.meta.filename) {
+  await run();
+}
