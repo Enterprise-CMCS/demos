@@ -1,16 +1,14 @@
 import React from "react";
 import { getCurrentUser } from "components/user/UserContext";
 import { Navigate } from "react-router-dom";
+import { PersonType } from "demos-server";
 
 type RequireRoleProps = {
-  allowedRoles: string[];
+  allowedRoles: PersonType[];
   children: React.ReactNode;
 };
 
-export const RequireRole: React.FC<RequireRoleProps> = ({
-  allowedRoles,
-  children,
-}) => {
+export const RequireRole: React.FC<RequireRoleProps> = ({ allowedRoles, children }) => {
   const { currentUser } = getCurrentUser();
 
   const userRole = currentUser?.person?.personType;
