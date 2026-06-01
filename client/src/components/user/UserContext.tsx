@@ -38,7 +38,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     skip: !auth.isAuthenticated,
   });
 
-  if (loading) {
+  if (auth.isLoading || loading) {
     return (
       <div className="flex items-center justify-center h-screen w-screen">
         <Loading />
