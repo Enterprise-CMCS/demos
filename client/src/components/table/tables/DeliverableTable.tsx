@@ -44,6 +44,10 @@ export type DeliverableTableRow = Omit<
   submissionDate?: string;
   extensionRequests: Pick<Deliverable["extensionRequests"][number], "id" | "status">[];
   deliverableActions: Pick<Deliverable["deliverableActions"][number], "id" | "actionType">[];
+  cmsDocuments?: Pick<Deliverable["cmsDocuments"][number], "id">[];
+  stateDocuments?: Pick<Deliverable["stateDocuments"][number], "id">[];
+  publicComments?: Pick<Deliverable["publicComments"][number], "id">[];
+  privateComments?: Pick<Deliverable["privateComments"][number], "id">[];
 };
 
 export type FormattedDeliverableTableRow = DeliverableTableRow & {
@@ -106,6 +110,18 @@ export const DELIVERABLES_PAGE_QUERY = gql`
         id
         actionType
       }
+      cmsDocuments {
+        id
+      }
+      stateDocuments {
+        id
+      }
+      publicComments {
+        id
+      }
+      privateComments {
+        id
+      }
     }
   }
 `;
@@ -164,10 +180,7 @@ const NO_RESULTS_FOUND = "No deliverables match your search.";
 const FINAL_STATUSES = ["Accepted", "Approved", "Received and Filed"];
 
 export const formatDeliverableStatus = (
-  deliverable: Pick<
-    DeliverableTableRow,
-    "status" | "deliverableActions" | "extensionRequests"
-  >
+  deliverable: Pick<DeliverableTableRow, "status" | "deliverableActions" | "extensionRequests">
 ) => {
   const { status, deliverableActions, extensionRequests } = deliverable;
 
