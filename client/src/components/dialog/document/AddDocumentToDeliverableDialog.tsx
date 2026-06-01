@@ -13,8 +13,11 @@ import {
 } from "components/dialog/document/DocumentDialog";
 import { useToast } from "components/toast/ToastContext";
 import { tryUploadingFileToS3 } from "./tryUploadingFileToS3";
+import { useBNValidationStatus } from "./useBNValidationStatus";
 import { useDocumentPassedVirusScan } from "./useDocumentPassedVirusScan";
 import { useUploadDocument } from "./useUploadDocument";
+
+const BN_WORKBOOK_DOCUMENT_TYPE: DocumentType = "BN Workbook";
 
 export const UPLOAD_DOCUMENT_TO_DELIVERABLE_STATE_FILES_MUTATION: TypedDocumentNode<
   {
@@ -78,6 +81,7 @@ export const AddDocumentToDeliverableDialog: React.FC<AddDocumentToDeliverableDi
   const { showError } = useToast();
   const client = useApolloClient();
   const { documentPassedVirusScan } = useDocumentPassedVirusScan();
+  const { waitForBNValidation } = useBNValidationStatus();
   const { uploadDocument: uploadStateDocument } = useUploadDocument(
     UPLOAD_DOCUMENT_TO_DELIVERABLE_STATE_FILES_MUTATION
   );
@@ -115,6 +119,19 @@ export const AddDocumentToDeliverableDialog: React.FC<AddDocumentToDeliverableDi
     const isDocumentClean = await documentPassedVirusScan(pendingUpload.id);
     if (!isDocumentClean) {
       return "virus-scan-failed";
+    }
+
+    if (uploadDocumentInput.documentType === BN_WORKBOOK_DOCUMENT_TYPE) {
+      const validation = await waitForBNValidation(pendingUpload.id);
+      if (validation?.status === "Failed") {
+        const errorSummary = validation.errors.map((e) => `${e.code}: ${e.message}`).join("\n");
+        showError(
+          errorSummary
+            ? `Budget Neutrality validation failed:\n${errorSummary}`
+            : "Budget Neutrality validation failed."
+        );
+        return "bn-validation-failed";
+      }
     }
 
     if (refetchQueries) {

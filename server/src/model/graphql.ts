@@ -22,6 +22,9 @@ import { applicationTagAssignmentResolvers } from "./applicationTagAssignment/ap
 import { applicationTagSuggestionSchema } from "./applicationTagSuggestion/applicationTagSuggestionSchema.js";
 import { applicationTagSuggestionResolvers } from "./applicationTagSuggestion/applicationTagSuggestionResolvers.js";
 
+import { budgetNeutralityValidationStatusSchema } from "./budgetNeutralityValidationStatus/budgetNeutralityValidationStatusSchema.js";
+import { budgetNeutralityValidationStatusResolvers } from "./budgetNeutralityValidationStatus/budgetNeutralityValidationStatusResolvers.js";
+
 import { sdgDivisionSchema } from "./sdgDivision/sdgDivisionSchema.js";
 import { sdgDivisionResolvers } from "./sdgDivision/sdgDivisionResolvers.js";
 
@@ -154,6 +157,7 @@ export const typeDefs = [
   applicationStatusSchema,
   applicationTagAssignmentSchema,
   applicationTagSuggestionSchema,
+  budgetNeutralityValidationStatusSchema,
   clearanceLevelSchema,
   dateTypeSchema,
   deliverableActionSchema,
@@ -204,6 +208,7 @@ export const resolvers = [
   applicationStatusResolvers,
   applicationTagAssignmentResolvers,
   applicationTagSuggestionResolvers,
+  budgetNeutralityValidationStatusResolvers,
   clearanceLevelResolvers,
   customScalarResolvers,
   dateTypeResolvers,

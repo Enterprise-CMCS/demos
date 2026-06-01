@@ -3,7 +3,12 @@ import { GraphQLContext } from "../../auth";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { prisma } from "../../prismaClient";
-import type { UpdateDocumentInput, DocumentType, PhaseName } from "../../types";
+import type {
+  BudgetNeutralityValidationStatus,
+  DocumentType,
+  PhaseName,
+  UpdateDocumentInput,
+} from "../../types";
 import { getS3Adapter } from "../../adapters";
 import { getApplication, PrismaApplication } from "../application";
 import { selectUserOrThrow } from "../user/queries";
@@ -11,6 +16,10 @@ import { enqueueUiPath } from "../../services/uipathQueue";
 import { resolveDeliverable } from "../deliverable";
 import { updateDocument as updateDocumentQuery, handleDeleteDocument } from ".";
 import { getDocument } from "./documentData";
+import type {
+  BudgetNeutralityValidationError,
+  BudgetNeutralityValidationResult,
+} from "./documentSchema";
 
 export async function updateDocument(
   parent: unknown,
@@ -96,6 +105,24 @@ export async function resolveHasPendingUIPathResult(parent: PrismaDocument): Pro
   }
 }
 
+export async function resolveBudgetNeutralityValidation(
+  parent: PrismaDocument
+): Promise<BudgetNeutralityValidationResult | null> {
+  try {
+    const row = await prisma().budgetNeutralityWorkbook.findUnique({
+      where: { id: parent.id },
+      select: { validationStatusId: true, validationData: true },
+    });
+    if (!row) return null;
+    return {
+      status: row.validationStatusId as BudgetNeutralityValidationStatus,
+      errors: (row.validationData as unknown as BudgetNeutralityValidationError[]) ?? [],
+    };
+  } catch (error) {
+    handlePrismaError(error);
+  }
+}
+
 export const documentResolvers = {
   Query: {
     document: (
@@ -136,5 +163,6 @@ export const documentResolvers = {
       !!parent.deliverableSubmissionActionId,
     phaseName: (parent: PrismaDocument): PhaseName => parent.phaseId as PhaseName,
     hasPendingUIPathResult: resolveHasPendingUIPathResult,
+    budgetNeutralityValidation: resolveBudgetNeutralityValidation,
   },
 };
