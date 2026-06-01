@@ -70,8 +70,8 @@ export const getUpdateDemonstrationInput = (
       projectOfficerUserId: demonstration.projectOfficerId,
     }),
     description: demonstration.description?.trim(),
-    effectiveDate: demonstration.effectiveDate as LocalDate,
-    expirationDate: demonstration.expirationDate as LocalDate,
+    effectiveDate: (demonstration.effectiveDate as LocalDate) || null,
+    expirationDate: (demonstration.expirationDate as LocalDate) || null,
     sdgDivision: demonstration.sdgDivision,
   };
 };

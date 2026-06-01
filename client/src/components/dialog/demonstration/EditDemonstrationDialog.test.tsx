@@ -257,7 +257,7 @@ describe("EditDemonstrationDialog", () => {
 });
 
 describe("getUpdateDemonstrationInput", () => {
-  const BASE_FIELDS = {
+  const BASE_DEMONSTRATION = {
     name: "My Demo",
     description: "A description",
     stateId: "AL",
@@ -267,7 +267,7 @@ describe("getUpdateDemonstrationInput", () => {
   };
 
   it("maps name, stateId, and projectOfficerId as-is", () => {
-    const result = getUpdateDemonstrationInput(BASE_FIELDS);
+    const result = getUpdateDemonstrationInput(BASE_DEMONSTRATION);
     expect(result.name).toBe("My Demo");
     expect(result.stateId).toBe("AL");
     expect(result.projectOfficerUserId).toBe("officer-1");
@@ -275,7 +275,7 @@ describe("getUpdateDemonstrationInput", () => {
 
   it("passes through effectiveDate and expirationDate as-is", () => {
     const result = getUpdateDemonstrationInput({
-      ...BASE_FIELDS,
+      ...BASE_DEMONSTRATION,
       effectiveDate: "2024-06-01",
       expirationDate: "2025-06-01",
     });
@@ -283,23 +283,26 @@ describe("getUpdateDemonstrationInput", () => {
     expect(result.expirationDate).toBe("2025-06-01");
   });
 
-  it("passes empty string through for effectiveDate and expirationDate when empty", () => {
+  it("passes null for effectiveDate and expirationDate when empty", () => {
     const result = getUpdateDemonstrationInput({
-      ...BASE_FIELDS,
+      ...BASE_DEMONSTRATION,
       effectiveDate: "",
       expirationDate: "",
     });
-    expect(result.effectiveDate).toBe("");
-    expect(result.expirationDate).toBe("");
+    expect(result.effectiveDate).toBeNull();
+    expect(result.expirationDate).toBeNull();
   });
 
   it("trims whitespace from description", () => {
-    const result = getUpdateDemonstrationInput({ ...BASE_FIELDS, description: "  trimmed  " });
+    const result = getUpdateDemonstrationInput({
+      ...BASE_DEMONSTRATION,
+      description: "  trimmed  ",
+    });
     expect(result.description).toBe("trimmed");
   });
 
   it("sets description to empty string when blank", () => {
-    const result = getUpdateDemonstrationInput({ ...BASE_FIELDS, description: "   " });
+    const result = getUpdateDemonstrationInput({ ...BASE_DEMONSTRATION, description: "   " });
     expect(result.description).toBe("");
   });
 });
