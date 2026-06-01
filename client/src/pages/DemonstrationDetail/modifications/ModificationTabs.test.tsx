@@ -8,7 +8,7 @@ import { DialogProvider } from "components/dialog/DialogContext";
 const createModificationItem = (overrides?: Partial<ModificationItem>): ModificationItem => {
   return {
     id: "default-id",
-    demonstrationId: "default-demo-id",
+    medicaidId: "default-demo-id",
     modificationType: "amendment",
     name: "Default Item",
     description: undefined,

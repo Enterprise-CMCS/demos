@@ -4,6 +4,7 @@ model TagType {
 
   applicationTagTypeLimit       ApplicationTagTypeLimit[]
   demonstrationTypeTagTypeLimit DemonstrationTypeTagTypeLimit[]
+  referenceTagTypeLimit         ReferenceTagTypeLimit[]
   tags                          Tag[]
 
   @@id([id])

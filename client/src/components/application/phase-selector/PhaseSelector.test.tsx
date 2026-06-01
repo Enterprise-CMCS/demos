@@ -43,6 +43,7 @@ describe("PhaseSelector", () => {
   it("renders all phase names", () => {
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "fcf8d9f9-03ff-4092-b784-937a760e5f5b",
+      medicaidId: "123456789",
       name: "Test Demo",
       state: {
         id: "CA",
@@ -81,6 +82,7 @@ describe("PhaseSelector", () => {
   it("renders only three phase group categories", () => {
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "fcf8d9f9-03ff-4092-b784-937a760e5f5b",
+      medicaidId: "123456789",
       name: "Test Demo",
       state: {
         id: "CA",
@@ -114,6 +116,7 @@ describe("PhaseSelector", () => {
 
     const demonstration: ApplicationWorkflowDemonstration = {
       id: "fcf8d9f9-03ff-4092-b784-937a760e5f5b",
+      medicaidId: "123456789",
       name: "Test Demo",
       state: {
         id: "CA",
@@ -170,6 +173,7 @@ describe("getDisplayedPhaseStatus", () => {
       documents: [],
       demonstrationTypes: [],
       tags: [],
+      medicaidId: "123456789",
     };
 
     expect(getDisplayedPhaseStatus(demonstration, "Concept")).toBe("Started");
@@ -199,6 +203,7 @@ describe("getDisplayedPhaseStatus", () => {
       documents: [],
       demonstrationTypes: [],
       tags: [],
+      medicaidId: "123456789",
     };
 
     expect(getDisplayedPhaseStatus(demonstration, "Completeness")).toBe("Not Started");
@@ -220,6 +225,7 @@ describe("getDisplayedPhaseStatus", () => {
       documents: [],
       demonstrationTypes: [],
       tags: [],
+      medicaidId: "123456789",
     };
 
     expect(getDisplayedPhaseStatus(demonstration, "Concept")).toBe("Not Started");
@@ -243,6 +249,7 @@ describe("getDisplayedPhaseDate", () => {
       documents: [],
       demonstrationTypes: [],
       tags: [],
+      medicaidId: "123456789",
     };
 
     expect(getDisplayedPhaseDate(demonstration, "Concept")).toBeUndefined();
@@ -271,6 +278,7 @@ describe("getDisplayedPhaseDate", () => {
       documents: [],
       demonstrationTypes: [],
       tags: [],
+      medicaidId: "123456789",
     };
 
     expect(getDisplayedPhaseDate(demonstration, "Concept")).toBeUndefined();
@@ -311,6 +319,7 @@ describe("getDisplayedPhaseDate", () => {
       documents: [],
       demonstrationTypes: [],
       tags: [],
+      medicaidId: "123456789",
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Application Intake");
@@ -349,6 +358,7 @@ describe("getDisplayedPhaseDate", () => {
       documents: [],
       demonstrationTypes: [],
       tags: [],
+      medicaidId: "123456789",
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Completeness");
@@ -387,6 +397,7 @@ describe("getDisplayedPhaseDate", () => {
       documents: [],
       demonstrationTypes: [],
       tags: [],
+      medicaidId: "123456789",
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Concept");
@@ -424,6 +435,7 @@ describe("getDisplayedPhaseDate", () => {
       documents: [],
       demonstrationTypes: [],
       tags: [],
+      medicaidId: "123456789",
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Federal Comment");
@@ -460,6 +472,7 @@ describe("getDisplayedPhaseDate", () => {
       documents: [],
       demonstrationTypes: [],
       tags: [],
+      medicaidId: "123456789",
     };
 
     const result = getDisplayedPhaseDate(demonstration, "Concept");
@@ -489,6 +502,7 @@ describe("completeness phase component", () => {
       documents: [],
       demonstrationTypes: [],
       tags: [],
+      medicaidId: "123456789",
     };
 
     render(
@@ -528,6 +542,7 @@ describe("sdg preparation phase component", () => {
       documents: [],
       demonstrationTypes: [],
       tags: [],
+      medicaidId: "123456789",
     };
 
     render(
@@ -563,6 +578,7 @@ describe("Review phase component", () => {
       documents: [],
       demonstrationTypes: [],
       tags: [],
+      medicaidId: "123456789",
     };
 
     render(
@@ -625,6 +641,7 @@ describe("completeness phase component", () => {
       documents: [],
       demonstrationTypes: [],
       tags: [],
+      medicaidId: "123456789",
     };
 
     render(
@@ -677,6 +694,7 @@ describe("completeness phase component", () => {
       documents: [],
       demonstrationTypes: [],
       tags: [],
+      medicaidId: "123456789",
     };
 
     const { rerender } = render(
@@ -726,6 +744,7 @@ describe("application intake phase component", () => {
       demonstrationTypes: [],
       tags: [],
       suggestedApplicationTags: [],
+      medicaidId: "123456789",
     };
 
     render(
@@ -765,6 +784,7 @@ describe("Approval Summary phase component", () => {
       documents: [],
       demonstrationTypes: [],
       tags: [],
+      medicaidId: "123456789",
     };
 
     render(

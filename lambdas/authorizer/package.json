@@ -12,9 +12,9 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.161",
-    "@vitest/coverage-v8": "^4.1.5",
+    "@vitest/coverage-v8": "^4.1.7",
     "esbuild": "^0.28.0",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.5"
+    "vitest": "^4.1.7"
   }
 }

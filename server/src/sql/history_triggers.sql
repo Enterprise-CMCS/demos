@@ -1616,6 +1616,253 @@ CREATE OR REPLACE TRIGGER log_changes_public_comment
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.public_comment
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_public_comment();
 
+CREATE OR REPLACE FUNCTION demos_app.log_changes_reference()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.reference_history (
+            revision_type,
+            id,
+            name,
+            description,
+            s3_path,
+            owner_user_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.name,
+            NEW.description,
+            NEW.s3_path,
+            NEW.owner_user_id,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.reference_history (
+            revision_type,
+            id,
+            name,
+            description,
+            s3_path,
+            owner_user_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.name,
+            OLD.description,
+            OLD.s3_path,
+            OLD.owner_user_id,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_reference
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.reference
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_reference();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_reference_agreement()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.reference_agreement_history (
+            revision_type,
+            id,
+            name,
+            s3_path,
+            owner_user_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.name,
+            NEW.s3_path,
+            NEW.owner_user_id,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.reference_agreement_history (
+            revision_type,
+            id,
+            name,
+            s3_path,
+            owner_user_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.name,
+            OLD.s3_path,
+            OLD.owner_user_id,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_reference_agreement
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.reference_agreement
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_reference_agreement();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_reference_configuration()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.reference_configuration_history (
+            revision_type,
+            id,
+            reference_id,
+            reference_agreement_id,
+            status_id
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.reference_id,
+            NEW.reference_agreement_id,
+            NEW.status_id
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.reference_configuration_history (
+            revision_type,
+            id,
+            reference_id,
+            reference_agreement_id,
+            status_id
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.reference_id,
+            OLD.reference_agreement_id,
+            OLD.status_id
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_reference_configuration
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.reference_configuration
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_reference_configuration();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_reference_demonstration_type()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.reference_demonstration_type_history (
+            revision_type,
+            reference_id,
+            demonstration_type_tag_name_id,
+            demonstration_type_tag_type_id
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.reference_id,
+            NEW.demonstration_type_tag_name_id,
+            NEW.demonstration_type_tag_type_id
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.reference_demonstration_type_history (
+            revision_type,
+            reference_id,
+            demonstration_type_tag_name_id,
+            demonstration_type_tag_type_id
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.reference_id,
+            OLD.demonstration_type_tag_name_id,
+            OLD.demonstration_type_tag_type_id
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_reference_demonstration_type
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.reference_demonstration_type
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_reference_demonstration_type();
+
+CREATE OR REPLACE FUNCTION demos_app.log_changes_reference_tag_assignment()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.reference_tag_assignment_history (
+            revision_type,
+            reference_id,
+            tag_name_id,
+            tag_type_id
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.reference_id,
+            NEW.tag_name_id,
+            NEW.tag_type_id
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.reference_tag_assignment_history (
+            revision_type,
+            reference_id,
+            tag_name_id,
+            tag_type_id
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.reference_id,
+            OLD.tag_name_id,
+            OLD.tag_type_id
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER log_changes_reference_tag_assignment
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.reference_tag_assignment
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_reference_tag_assignment();
+
 CREATE OR REPLACE FUNCTION demos_app.log_changes_role_permission()
 RETURNS TRIGGER AS $$
 BEGIN

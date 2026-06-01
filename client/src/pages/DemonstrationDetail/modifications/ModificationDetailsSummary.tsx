@@ -34,7 +34,7 @@ const ModificationDetailsFields = ({
         <Field label="Status" value={modificationItem.status ?? "-"} />
       </div>
       <div className="w-full">
-        <Field label="Demonstration ID" value={modificationItem.demonstrationId || "-"} />
+        <Field label="Demonstration ID" value={modificationItem.medicaidId || "-"} />
       </div>
       <div className="w-full">
         <Field label={`${labelPrefix} Description`} value={modificationItem.description || "-"} />

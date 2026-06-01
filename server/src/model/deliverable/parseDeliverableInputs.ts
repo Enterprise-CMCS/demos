@@ -62,7 +62,7 @@ export function parseCreateDeliverableInput(
   checkInputDateIsEndOfDay("dueDate", parsedDueDate);
 
   const result: ParsedCreateDeliverableInput = {
-    name: input.name,
+    name: input.name.trim(),
     deliverableType: input.deliverableType,
     demonstrationId: input.demonstrationId,
     cmsOwnerUserId: input.cmsOwnerUserId,
@@ -85,6 +85,10 @@ export function parseUpdateDeliverableInput(
 ): ParsedUpdateDeliverableInput {
   const { dueDate: inputDueDate, demonstrationTypes: inputDemonstrationTypes, ...rest } = input;
   const result: ParsedUpdateDeliverableInput = { ...rest };
+
+  if (result.name !== undefined) {
+    result.name = result.name.trim();
+  }
 
   if (inputDueDate) {
     const parsedDueDate = parseDateTimeOrLocalDateToEasternTZDate(
