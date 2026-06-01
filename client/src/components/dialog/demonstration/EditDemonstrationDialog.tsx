@@ -60,7 +60,7 @@ export const UPDATE_DEMONSTRATION_MUTATION = gql`
   }
 `;
 
-const getUpdateDemonstrationInput = (
+export const getUpdateDemonstrationInput = (
   demonstration: DemonstrationDialogFields
 ): UpdateDemonstrationInput => {
   return {
