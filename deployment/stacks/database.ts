@@ -112,7 +112,6 @@ export class DatabaseStack extends Stack {
         storageEncrypted: true,
         credentials: aws_rds.Credentials.fromGeneratedSecret("demos_admin", {
           secretName: `${commonProps.project}-${commonProps.stage}-rds-admin`,
-          encryptionKey: rdsKMSKey
         }),
         securityGroups: [rdsSecurityGroup.securityGroup, commonProps.cloudVpnSecurityGroup, sharedServicesSg, cmsSecuritySg],
         publiclyAccessible: false,
@@ -231,23 +230,38 @@ export class DatabaseStack extends Stack {
 class SuppressCheckovLogRetentionPolicy implements IAspect {
   visit(node: IConstruct): void {
     if (!CfnResource.isCfnResource(node)) return;
-    if (node.cfnResourceType !== "AWS::IAM::Policy") return;
+    if (node.cfnResourceType === "AWS::IAM::Policy") {
 
-    const path = node.node.path;
-    
-    if (
-      path.includes("/LogRetention") &&
-      path.endsWith("/ServiceRole/DefaultPolicy/Resource")
-    ) {
-      node.addMetadata("checkov", {
-        skip: [
-          {
-            id: "CKV_AWS_111",
-            comment:
-              "CDK-managed LogRetention custom resource role; only used to apply CloudWatch Logs retention. Not worth updating or managing",
-          },
-        ],
-      });
+      const path = node.node.path;
+
+      if (
+        path.includes("/LogRetention") &&
+        path.endsWith("/ServiceRole/DefaultPolicy/Resource")
+      ) {
+        node.addMetadata("checkov", {
+          skip: [
+            {
+              id: "CKV_AWS_111",
+              comment:
+                "CDK-managed LogRetention custom resource role; only used to apply CloudWatch Logs retention. Not worth updating or managing",
+            },
+          ],
+        });
+      }
+    }
+
+    if (node.cfnResourceType === "AWS::SecretsManager::Secret") {
+      const path = node.node.path
+      if (path.includes("demos-dev-rds/Secret/Resource")) {
+        node.addMetadata("checkov", {
+          skip: [
+            {
+              id: "CKV_AWS_149",
+              reason: "Sticking with AWS owned KMS key for now. Can revisit a CMK in the future"
+            }
+          ]
+        })
+      }
     }
   }
 }
