@@ -1,6 +1,9 @@
 import { prisma, PrismaTransactionClient } from "../../../prismaClient";
 import { Prisma } from "@prisma/client";
-import { SelectManyReferenceConfigurationsResult } from ".";
+import {
+  selectManyReferenceConfigurationsRequest,
+  SelectManyReferenceConfigurationsResult,
+} from ".";
 
 export async function selectManyReferenceConfigurations(
   where: Prisma.ReferenceConfigurationWhereInput,
@@ -9,47 +12,6 @@ export async function selectManyReferenceConfigurations(
   const prismaClient = tx ?? prisma();
   return await prismaClient.referenceConfiguration.findMany({
     where,
-    select: {
-      id: true,
-      statusId: true,
-      reference: {
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          referenceTagAssignments: {
-            select: {
-              tag: {
-                select: {
-                  tagNameId: true,
-                  statusId: true,
-                },
-              },
-            },
-          },
-          referenceDemonstrationTypes: {
-            select: {
-              tag: {
-                select: {
-                  tagNameId: true,
-                  statusId: true,
-                },
-              },
-            },
-          },
-          s3Path: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      },
-      referenceAgreement: {
-        select: {
-          id: true,
-          name: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      },
-    },
+    select: selectManyReferenceConfigurationsRequest,
   });
 }
