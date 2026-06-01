@@ -132,4 +132,13 @@ describe("validateReferenceDownloadRequest", () => {
         `but the agreement required is "${testReferenceAgreementId}".`
     );
   });
+
+  it("returns what is returned if nothing throws", async () => {
+    vi.mocked(selectReferenceConfiguration).mockResolvedValueOnce(
+      mockActiveConfigWithoutAgreement as SelectManyReferenceConfigurationsResult
+    );
+
+    const result = await validateReferenceDownloadRequest(testReferenceConfigurationId);
+    expect(result).toBe(mockActiveConfigWithoutAgreement);
+  });
 });
