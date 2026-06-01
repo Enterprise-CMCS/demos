@@ -16,6 +16,37 @@ const mockCommonProps: DeploymentConfigProperties = {
   dataConnectRoleArn: "arn:aws:iam::1234567890:role/dataconnectrole",
 };
 
+function expectRdsAlarm(
+  template: Template,
+  props: {
+    alarmName: string;
+    metricName: string;
+    comparisonOperator: string;
+    threshold: number;
+    evaluationPeriods?: number;
+    datapointsToAlarm?: number;
+  }
+) {
+  template.hasResourceProperties("AWS::CloudWatch::Alarm", {
+    AlarmName: props.alarmName,
+    ComparisonOperator: props.comparisonOperator,
+    EvaluationPeriods: props.evaluationPeriods ?? 2,
+    DatapointsToAlarm: props.datapointsToAlarm ?? 2,
+    MetricName: props.metricName,
+    Namespace: "AWS/RDS",
+    Period: 300,
+    Statistic: "Average",
+    Threshold: props.threshold,
+    TreatMissingData: "notBreaching",
+    Dimensions: Match.arrayWith([
+      Match.objectLike({
+        Name: "DBInstanceIdentifier",
+        Value: Match.anyValue(),
+      }),
+    ]),
+  });
+}
+
 describe("Database Stack", () => {
   test("should create proper resources when non-ephemeral", () => {
     const app = new App();
@@ -52,6 +83,7 @@ describe("Database Stack", () => {
     template.resourceCountIs("AWS::EC2::SecurityGroup", 2);
     template.resourceCountIs("AWS::RDS::DBInstance", 1);
     template.resourceCountIs("AWS::KMS::Key", 1);
+    template.resourceCountIs("AWS::CloudWatch::Alarm", 7);
 
     template.hasResource("AWS::RDS::DBInstance", {
       DeletionPolicy: "Delete",
@@ -60,6 +92,51 @@ describe("Database Stack", () => {
     template.hasResourceProperties("AWS::RDS::DBInstance", {
       Engine: "postgres",
       DBInstanceClass: "db.t4g.micro",
+    });
+
+    expectRdsAlarm(template, {
+      alarmName: "demos-unittest-rds-free-storage-space-low",
+      metricName: "FreeStorageSpace",
+      comparisonOperator: "LessThanThreshold",
+      threshold: 5368709120,
+    });
+    expectRdsAlarm(template, {
+      alarmName: "demos-unittest-rds-cpu-utilization-high",
+      metricName: "CPUUtilization",
+      comparisonOperator: "GreaterThanThreshold",
+      threshold: 80,
+      evaluationPeriods: 3,
+      datapointsToAlarm: 3,
+    });
+    expectRdsAlarm(template, {
+      alarmName: "demos-unittest-rds-database-connections-high",
+      metricName: "DatabaseConnections",
+      comparisonOperator: "GreaterThanThreshold",
+      threshold: 80,
+    });
+    expectRdsAlarm(template, {
+      alarmName: "demos-unittest-rds-freeable-memory-low",
+      metricName: "FreeableMemory",
+      comparisonOperator: "LessThanThreshold",
+      threshold: 134217728,
+    });
+    expectRdsAlarm(template, {
+      alarmName: "demos-unittest-rds-read-latency-high",
+      metricName: "ReadLatency",
+      comparisonOperator: "GreaterThanThreshold",
+      threshold: 0.1,
+    });
+    expectRdsAlarm(template, {
+      alarmName: "demos-unittest-rds-write-latency-high",
+      metricName: "WriteLatency",
+      comparisonOperator: "GreaterThanThreshold",
+      threshold: 0.1,
+    });
+    expectRdsAlarm(template, {
+      alarmName: "demos-unittest-rds-disk-queue-depth-high",
+      metricName: "DiskQueueDepth",
+      comparisonOperator: "GreaterThanThreshold",
+      threshold: 5,
     });
 
     template.hasOutput("dbHost", {

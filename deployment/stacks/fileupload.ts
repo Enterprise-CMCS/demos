@@ -19,6 +19,7 @@ import { Bucket, HttpMethods } from "aws-cdk-lib/aws-s3";
 import { Queue, QueueEncryption } from "aws-cdk-lib/aws-sqs";
 import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import * as lambda from "../lib/lambda";
+import * as alarms from "../lib/alarms";
 import { IVpc } from "aws-cdk-lib/aws-ec2";
 import { DeploymentConfigProperties } from "../config";
 import * as securityGroup from "../lib/security-group";
@@ -41,12 +42,29 @@ export class FileUploadStack extends Stack {
       enableKeyRotation: true,
       alias: `alias/demos-${props.stage}-file-upload-sqs`,
     });
+    const lambdaErrorAlarmPeriod = Duration.minutes(5);
+    const sqsOldestMessageAgeAlarmPeriod = Duration.minutes(5);
+    const sqsVisibleMessagesAlarmPeriod = Duration.minutes(5);
 
     const deadLetterQueue = new Queue(this, "FileUploadDLQ", {
       removalPolicy: RemovalPolicy.DESTROY,
       enforceSSL: true,
       encryption: QueueEncryption.KMS,
       encryptionMasterKey: kmsKey,
+    });
+
+    alarms.createSqsVisibleMessagesAlarm({
+      ...props,
+      scope: this,
+      id: "FileWorkflowDlqVisibleMessagesAlarm",
+      name: "file-workflow-dlq-visible-messages",
+      description:
+        "File upload, infected-file cleanup, UiPath, or budget-neutrality DLQ contains one or more messages.",
+      queue: deadLetterQueue,
+      period: sqsVisibleMessagesAlarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
     });
 
     const uploadQueue = new Queue(this, "FileUploadQueue", {
@@ -60,6 +78,19 @@ export class FileUploadStack extends Stack {
       encryptionMasterKey: kmsKey,
     });
 
+    alarms.createSqsOldestMessageAgeAlarm({
+      ...props,
+      scope: this,
+      id: "FileUploadQueueOldestMessageAgeAlarm",
+      name: "file-upload-queue-oldest-message-age-high",
+      description: "File upload queue has messages older than 15 minutes.",
+      queue: uploadQueue,
+      period: sqsOldestMessageAgeAlarmPeriod,
+      threshold: Duration.minutes(15),
+      evaluationPeriods: 2,
+      datapointsToAlarm: 2,
+    });
+
     const deleteInfectedFileQueue = new Queue(this, "DeleteInfectedFileQueue", {
       removalPolicy: RemovalPolicy.DESTROY,
       enforceSSL: true,
@@ -69,6 +100,19 @@ export class FileUploadStack extends Stack {
         maxReceiveCount: 5,
         queue: deadLetterQueue,
       },
+    });
+
+    alarms.createSqsOldestMessageAgeAlarm({
+      ...props,
+      scope: this,
+      id: "DeleteInfectedFileQueueOldestMessageAgeAlarm",
+      name: "delete-infected-file-queue-oldest-message-age-high",
+      description: "Delete infected file queue has messages older than 60 minutes.",
+      queue: deleteInfectedFileQueue,
+      period: sqsOldestMessageAgeAlarmPeriod,
+      threshold: Duration.minutes(60),
+      evaluationPeriods: 2,
+      datapointsToAlarm: 2,
     });
 
     const accessLogs = new Bucket(this, "fileUploadAccessLogBucket", {
@@ -395,6 +439,45 @@ export class FileUploadStack extends Stack {
       depsLockFilePath: "../lambdas/fileprocess/package-lock.json",
     });
 
+    alarms.createLambdaErrorsAlarm({
+      ...props,
+      scope: this,
+      id: "FileProcessLambdaErrorsAlarm",
+      name: "file-process-lambda-errors",
+      description: "File processing Lambda has one or more errors in a 5-minute period.",
+      lambdaFunction: fileProcessLambda.lambda,
+      period: lambdaErrorAlarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createLambdaDurationAlarm({
+      ...props,
+      scope: this,
+      id: "FileProcessLambdaDurationAlarm",
+      name: "file-process-lambda-duration-near-timeout",
+      description: "File processing Lambda duration is above 80% of its configured timeout.",
+      lambdaFunction: fileProcessLambda.lambda,
+      period: lambdaErrorAlarmPeriod,
+      threshold: Duration.seconds(24),
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createLambdaThrottlesAlarm({
+      ...props,
+      scope: this,
+      id: "FileProcessLambdaThrottlesAlarm",
+      name: "file-process-lambda-throttles",
+      description: "File processing Lambda has one or more throttled invocations in a 5-minute period.",
+      lambdaFunction: fileProcessLambda.lambda,
+      period: lambdaErrorAlarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
     fileProcessLambda.lambda.addEventSource(
       new SqsEventSource(uploadQueue, {
         batchSize: 1,
@@ -430,6 +513,45 @@ export class FileUploadStack extends Stack {
         NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
       },
       depsLockFilePath: "../lambdas/deleteinfectedfile/package-lock.json",
+    });
+
+    alarms.createLambdaErrorsAlarm({
+      ...props,
+      scope: this,
+      id: "DeleteInfectedFileLambdaErrorsAlarm",
+      name: "delete-infected-file-lambda-errors",
+      description: "Delete infected file Lambda has one or more errors in a 5-minute period.",
+      lambdaFunction: deleteInfectedFileLambda.lambda,
+      period: lambdaErrorAlarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createLambdaDurationAlarm({
+      ...props,
+      scope: this,
+      id: "DeleteInfectedFileLambdaDurationAlarm",
+      name: "delete-infected-file-lambda-duration-near-timeout",
+      description: "Delete infected file Lambda duration is above 80% of its configured timeout.",
+      lambdaFunction: deleteInfectedFileLambda.lambda,
+      period: lambdaErrorAlarmPeriod,
+      threshold: Duration.seconds(24),
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createLambdaThrottlesAlarm({
+      ...props,
+      scope: this,
+      id: "DeleteInfectedFileLambdaThrottlesAlarm",
+      name: "delete-infected-file-lambda-throttles",
+      description: "Delete infected file Lambda has one or more throttled invocations in a 5-minute period.",
+      lambdaFunction: deleteInfectedFileLambda.lambda,
+      period: lambdaErrorAlarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
     });
 
     deleteInfectedFileLambda.lambda.addEventSource(

@@ -18,6 +18,54 @@ const mockCommonProps: DeploymentConfigProperties = {
   dataConnectRoleArn: "arn:aws:iam::1234567890:role/dataconnectrole",
 };
 
+function expectWafBlockedRequestsAnomalyAlarm(
+  template: Template,
+  props: {
+    alarmName: string;
+    rule: string;
+    webAcl: string;
+    region: string | ReturnType<typeof Match.anyValue>;
+  }
+) {
+  template.hasResourceProperties("AWS::CloudWatch::Alarm", {
+    AlarmName: props.alarmName,
+    ComparisonOperator: "GreaterThanUpperThreshold",
+    EvaluationPeriods: 3,
+    DatapointsToAlarm: 2,
+    ThresholdMetricId: Match.anyValue(),
+    Metrics: Match.arrayWith([
+      Match.objectLike({
+        Expression: Match.stringLikeRegexp("ANOMALY_DETECTION_BAND"),
+      }),
+      Match.objectLike({
+        MetricStat: Match.objectLike({
+          Metric: Match.objectLike({
+            MetricName: "BlockedRequests",
+            Namespace: "AWS/WAFV2",
+            Dimensions: Match.arrayWith([
+              Match.objectLike({
+                Name: "Region",
+                Value: props.region,
+              }),
+              Match.objectLike({
+                Name: "Rule",
+                Value: props.rule,
+              }),
+              Match.objectLike({
+                Name: "WebACL",
+                Value: props.webAcl,
+              }),
+            ]),
+          }),
+          Period: 300,
+          Stat: "Sum",
+        }),
+      }),
+    ]),
+    TreatMissingData: "notBreaching",
+  });
+}
+
 describe("UI Stack", () => {
   test("should create only basic cloudfront config when srr is not configured", () => {
     const app = new App();
@@ -76,6 +124,7 @@ describe("UI Stack", () => {
     // addition to the actual bucket deployment
     template.resourceCountIs("Custom::CDKBucketDeployment", 2);
     template.resourceCountIs("AWS::WAFv2::WebACL", 2);
+    template.resourceCountIs("AWS::CloudWatch::Alarm", 5);
 
     template.hasResourceProperties("AWS::CloudFront::Distribution", {
       DistributionConfig: Match.objectLike({
@@ -109,6 +158,96 @@ describe("UI Stack", () => {
     const cacheBehaviors = dist.Properties.DistributionConfig.CacheBehaviors;
     expect(cacheBehaviors.length).toEqual(1);
     expect(cacheBehaviors[0].TargetOriginId).toEqual(apiOrigin.Id);
+  });
+
+  test("should create CloudFront error rate alarms", () => {
+    const app = new App();
+
+    const uiStack = new UiStack(app, "mockUi", {
+      ...mockCommonProps,
+      env: {
+        region: "us-east-1",
+        account: "0123456789",
+      },
+      cognitoParamNames: {
+        authority: "authority",
+        clientId: "clientId",
+      },
+    });
+
+    const template = Template.fromStack(uiStack);
+
+    template.hasResourceProperties("AWS::CloudWatch::Alarm", {
+      AlarmName: "demos-unittest-cloudfront-5xx-error-rate-high",
+      ComparisonOperator: "GreaterThanThreshold",
+      EvaluationPeriods: 2,
+      DatapointsToAlarm: 2,
+      MetricName: "5xxErrorRate",
+      Namespace: "AWS/CloudFront",
+      Statistic: "Average",
+      Threshold: 1,
+      TreatMissingData: "notBreaching",
+    });
+
+    template.hasResourceProperties("AWS::CloudWatch::Alarm", {
+      AlarmName: "demos-unittest-cloudfront-4xx-error-rate-anomaly",
+      ComparisonOperator: "GreaterThanUpperThreshold",
+      EvaluationPeriods: 3,
+      DatapointsToAlarm: 2,
+      ThresholdMetricId: Match.anyValue(),
+      Metrics: Match.arrayWith([
+        Match.objectLike({
+          Expression: Match.stringLikeRegexp("ANOMALY_DETECTION_BAND"),
+        }),
+        Match.objectLike({
+          MetricStat: Match.objectLike({
+            Metric: Match.objectLike({
+              MetricName: "4xxErrorRate",
+              Namespace: "AWS/CloudFront",
+            }),
+            Stat: "Average",
+          }),
+        }),
+      ]),
+      TreatMissingData: "notBreaching",
+    });
+  });
+
+  test("should create WAF blocked request anomaly alarms", () => {
+    const app = new App();
+
+    const uiStack = new UiStack(app, "mockUi", {
+      ...mockCommonProps,
+      env: {
+        region: "us-east-1",
+        account: "0123456789",
+      },
+      cognitoParamNames: {
+        authority: "authority",
+        clientId: "clientId",
+      },
+    });
+
+    const template = Template.fromStack(uiStack);
+
+    expectWafBlockedRequestsAnomalyAlarm(template, {
+      alarmName: "demos-unittest-api-waf-missing-cloudfront-header-blocked-requests-anomaly",
+      rule: "DenyWithoutCloudfrontHeader",
+      webAcl: "unittestApiWafMetric",
+      region: Match.anyValue(),
+    });
+    expectWafBlockedRequestsAnomalyAlarm(template, {
+      alarmName: "demos-unittest-api-waf-rate-limiting-blocked-requests-anomaly",
+      rule: "RateLimiting",
+      webAcl: "unittestApiWafMetric",
+      region: Match.anyValue(),
+    });
+    expectWafBlockedRequestsAnomalyAlarm(template, {
+      alarmName: "demos-unittest-cloudfront-waf-rate-limiting-blocked-requests-anomaly",
+      rule: "RateLimiting",
+      webAcl: "WebACL",
+      region: "CloudFront",
+    });
   });
 
   test("should include header passthrough when a zapHeaderValue exists", () => {

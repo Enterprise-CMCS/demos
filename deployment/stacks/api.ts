@@ -19,6 +19,7 @@ import { DeploymentConfigProperties } from "../config";
 
 import * as apigateway from "../lib/apigateway";
 import * as lambda from "../lib/lambda";
+import * as alarms from "../lib/alarms";
 import * as securityGroup from "../lib/security-group";
 import { IVpc } from "aws-cdk-lib/aws-ec2";
 import importNumberValue from "../util/importNumberValue";
@@ -53,6 +54,9 @@ export class ApiStack extends Stack {
             )
           ,
     };
+    const lambdaErrorAlarmPeriod = Duration.minutes(5);
+    const sqsOldestMessageAgeAlarmPeriod = Duration.minutes(5);
+    const sqsVisibleMessagesAlarmPeriod = Duration.minutes(5);
 
     const graphqlLambdaSecurityGroup = securityGroup.create({
       ...commonProps,
@@ -142,9 +146,46 @@ export class ApiStack extends Stack {
         externalModules: ["aws-sdk"],
         nodeModules: ["jsonwebtoken", "jwks-rsa", "pino"],
         depsLockFilePath: path.join(rel, "package-lock.json"),
+        timeout: Duration.seconds(10),
       },
       "authorizer"
     );
+
+    alarms.createLambdaErrorsAlarm({
+      ...commonProps,
+      id: "AuthorizerLambdaErrorsAlarm",
+      name: "authorizer-lambda-errors",
+      description: "Authorizer Lambda has one or more errors in a 5-minute period.",
+      lambdaFunction: authorizerLambda.lambda.lambda,
+      period: lambdaErrorAlarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createLambdaDurationAlarm({
+      ...commonProps,
+      id: "AuthorizerLambdaDurationAlarm",
+      name: "authorizer-lambda-duration-near-timeout",
+      description: "Authorizer Lambda duration is above 80% of its configured timeout.",
+      lambdaFunction: authorizerLambda.lambda.lambda,
+      period: lambdaErrorAlarmPeriod,
+      threshold: Duration.seconds(8),
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createLambdaThrottlesAlarm({
+      ...commonProps,
+      id: "AuthorizerLambdaThrottlesAlarm",
+      name: "authorizer-lambda-throttles",
+      description: "Authorizer Lambda has one or more throttled invocations in a 5-minute period.",
+      lambdaFunction: authorizerLambda.lambda.lambda,
+      period: lambdaErrorAlarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
 
     const tokenAuthorizer = new aws_apigateway.TokenAuthorizer(
       commonProps.scope,
@@ -194,6 +235,30 @@ export class ApiStack extends Stack {
       },
       "graphql"
     );
+    alarms.createLambdaErrorsAlarm({
+      ...commonProps,
+      id: "GraphqlLambdaErrorsAlarm",
+      name: "graphql-lambda-errors",
+      description: "GraphQL Lambda has one or more errors in a 5-minute period.",
+      lambdaFunction: graphqlLambda.lambda.lambda,
+      period: lambdaErrorAlarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createLambdaThrottlesAlarm({
+      ...commonProps,
+      id: "GraphqlLambdaThrottlesAlarm",
+      name: "graphql-lambda-throttles",
+      description: "GraphQL Lambda has one or more throttled invocations in a 5-minute period.",
+      lambdaFunction: graphqlLambda.lambda.lambda,
+      period: lambdaErrorAlarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
     dbSecret.grantRead(graphqlLambda.lambda.role);
     uploadBucket.grantPut(graphqlLambda.lambda.role);
     cleanBucket.grantDelete(graphqlLambda.lambda.role);
@@ -222,6 +287,18 @@ export class ApiStack extends Stack {
       encryptionMasterKey: kmsKey,
     });
 
+    alarms.createSqsVisibleMessagesAlarm({
+      ...commonProps,
+      id: "EmailerDlqVisibleMessagesAlarm",
+      name: "emailer-dlq-visible-messages",
+      description: "Emailer DLQ contains one or more messages.",
+      queue: deadLetterQueue,
+      period: sqsVisibleMessagesAlarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
     const emailQueue = new Queue(this, "EmailerQueue", {
       removalPolicy: RemovalPolicy.DESTROY,
       enforceSSL: true,
@@ -232,6 +309,18 @@ export class ApiStack extends Stack {
       encryption: QueueEncryption.KMS,
       encryptionMasterKey: kmsKey,
       visibilityTimeout: emailerTimeout,
+    });
+
+    alarms.createSqsOldestMessageAgeAlarm({
+      ...commonProps,
+      id: "EmailerQueueOldestMessageAgeAlarm",
+      name: "emailer-queue-oldest-message-age-high",
+      description: "Emailer queue has messages older than 15 minutes.",
+      queue: emailQueue,
+      period: sqsOldestMessageAgeAlarmPeriod,
+      threshold: Duration.minutes(15),
+      evaluationPeriods: 2,
+      datapointsToAlarm: 2,
     });
 
     const emailerLambdaSecurityGroup = securityGroup.create({
@@ -295,6 +384,42 @@ export class ApiStack extends Stack {
           return [];
         },
       },
+    });
+
+    alarms.createLambdaErrorsAlarm({
+      ...commonProps,
+      id: "EmailerLambdaErrorsAlarm",
+      name: "emailer-lambda-errors",
+      description: "Emailer Lambda has one or more errors in a 5-minute period.",
+      lambdaFunction: emailerLambda.lambda,
+      period: lambdaErrorAlarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createLambdaDurationAlarm({
+      ...commonProps,
+      id: "EmailerLambdaDurationAlarm",
+      name: "emailer-lambda-duration-near-timeout",
+      description: "Emailer Lambda duration is above 80% of its configured timeout.",
+      lambdaFunction: emailerLambda.lambda,
+      period: lambdaErrorAlarmPeriod,
+      threshold: Duration.seconds(48),
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createLambdaThrottlesAlarm({
+      ...commonProps,
+      id: "EmailerLambdaThrottlesAlarm",
+      name: "emailer-lambda-throttles",
+      description: "Emailer Lambda has one or more throttled invocations in a 5-minute period.",
+      lambdaFunction: emailerLambda.lambda,
+      period: lambdaErrorAlarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
     });
 
     if (commonProps.stage != "prod") {

@@ -9,6 +9,7 @@ import {
   Duration,
   aws_certificatemanager,
   aws_cloudfront_origins,
+  aws_cloudwatch,
   aws_wafv2,
   Fn,
   Aws,
@@ -21,6 +22,7 @@ import { Construct } from "constructs";
 import { DeploymentConfigProperties } from "../config";
 
 import * as uiDeploy from "../lib/ui-deploy";
+import * as alarms from "../lib/alarms";
 import { HttpOrigin } from "aws-cdk-lib/aws-cloudfront-origins";
 import { DemosLogGroup } from "../lib/logGroup";
 import { accessDeniedBodyName, createCloudfrontRules, createRegionalRules } from "../lib/waf";
@@ -209,6 +211,67 @@ export class UiStack extends Stack {
       ]
     });
 
+    const wafBlockedRequestsMetricOptions = {
+      metricName: "BlockedRequests",
+      namespace: "AWS/WAFV2",
+      period: Duration.minutes(5),
+      statistic: "Sum",
+    };
+
+    alarms.createAnomalyAlarm({
+      ...commonProps,
+      id: "ApiWafMissingCloudFrontHeaderBlockedRequestsAnomalyAlarm",
+      name: "api-waf-missing-cloudfront-header-blocked-requests-anomaly",
+      description: "API WAF missing CloudFront header blocked requests are above their expected anomaly band.",
+      metric: new aws_cloudwatch.Metric({
+        ...wafBlockedRequestsMetricOptions,
+        dimensionsMap: {
+          Region: Aws.REGION,
+          Rule: "DenyWithoutCloudfrontHeader",
+          WebACL: `${commonProps.stage}ApiWafMetric`,
+        },
+      }),
+      evaluationPeriods: 3,
+      datapointsToAlarm: 2,
+      stdDevs: 3,
+    });
+
+    alarms.createAnomalyAlarm({
+      ...commonProps,
+      id: "ApiWafRateLimitingBlockedRequestsAnomalyAlarm",
+      name: "api-waf-rate-limiting-blocked-requests-anomaly",
+      description: "API WAF rate limiting blocked requests are above their expected anomaly band.",
+      metric: new aws_cloudwatch.Metric({
+        ...wafBlockedRequestsMetricOptions,
+        dimensionsMap: {
+          Region: Aws.REGION,
+          Rule: "RateLimiting",
+          WebACL: `${commonProps.stage}ApiWafMetric`,
+        },
+      }),
+      evaluationPeriods: 3,
+      datapointsToAlarm: 2,
+      stdDevs: 3,
+    });
+
+    alarms.createAnomalyAlarm({
+      ...commonProps,
+      id: "CloudFrontWafRateLimitingBlockedRequestsAnomalyAlarm",
+      name: "cloudfront-waf-rate-limiting-blocked-requests-anomaly",
+      description: "CloudFront WAF rate limiting blocked requests are above their expected anomaly band.",
+      metric: new aws_cloudwatch.Metric({
+        ...wafBlockedRequestsMetricOptions,
+        dimensionsMap: {
+          Region: "CloudFront",
+          Rule: "RateLimiting",
+          WebACL: "WebACL",
+        },
+      }),
+      evaluationPeriods: 3,
+      datapointsToAlarm: 2,
+      stdDevs: 3,
+    });
+
     const cognitoDomain = Fn.importValue(`${commonProps.stage}CognitoDomain`);
     const uploadBucketName = Fn.importValue(`${commonProps.stage}UploadBucketName`);
     const cleanBucketName = Fn.importValue(`${commonProps.stage}CleanBucketName`);
@@ -305,6 +368,34 @@ export class UiStack extends Stack {
       comment: `Env Name: ${commonProps.stage}`,
     });
     distribution.applyRemovalPolicy(commonProps.isDev ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN);
+
+    const cloudFrontErrorMetricOptions = {
+      period: Duration.minutes(5),
+      statistic: "Average",
+    };
+
+    alarms.createMetricAlarm({
+      ...commonProps,
+      id: "CloudFront5xxErrorRateAlarm",
+      name: "cloudfront-5xx-error-rate-high",
+      description: "CloudFront 5xx error rate is above 1% for 10 minutes.",
+      metric: distribution.metric5xxErrorRate(cloudFrontErrorMetricOptions),
+      threshold: 1,
+      comparisonOperator: aws_cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+      evaluationPeriods: 2,
+      datapointsToAlarm: 2,
+    });
+
+    alarms.createAnomalyAlarm({
+      ...commonProps,
+      id: "CloudFront4xxErrorRateAnomalyAlarm",
+      name: "cloudfront-4xx-error-rate-anomaly",
+      description: "CloudFront 4xx error rate is above its expected anomaly band.",
+      metric: distribution.metric4xxErrorRate(cloudFrontErrorMetricOptions),
+      evaluationPeriods: 3,
+      datapointsToAlarm: 2,
+      stdDevs: 2,
+    });
 
     Tags.of(distribution).add("Name", `demos-${commonProps.stage}-cloudfront-dist`);
 

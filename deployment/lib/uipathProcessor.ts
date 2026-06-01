@@ -10,6 +10,7 @@ import {
 } from "aws-cdk-lib";
 import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import * as demosLambda from "./lambda";
+import * as alarms from "./alarms";
 import path from "node:path";
 import { DeploymentConfigProperties } from "../config";
 import { OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
@@ -54,6 +55,19 @@ export class UiPathProcessor extends Construct {
       },
     });
 
+    alarms.createSqsOldestMessageAgeAlarm({
+      ...props,
+      scope: this,
+      id: "UiPathQueueOldestMessageAgeAlarm",
+      name: "uipath-queue-oldest-message-age-high",
+      description: "UiPath queue has messages older than 60 minutes.",
+      queue: this.queue,
+      period: Duration.minutes(5),
+      threshold: Duration.minutes(60),
+      evaluationPeriods: 2,
+      datapointsToAlarm: 2,
+    });
+
     const clientSecret = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
       "UiPathClientSecret",
@@ -93,6 +107,32 @@ export class UiPathProcessor extends Construct {
         CLEAN_BUCKET: cleanReadBucket?.bucketName ?? "",
         NODE_EXTRA_CA_CERTS: "/var/runtime/ca-cert.pem",
       },
+    });
+
+    alarms.createLambdaErrorsAlarm({
+      ...props,
+      scope: this,
+      id: "UiPathLambdaErrorsAlarm",
+      name: "uipath-lambda-errors",
+      description: "UiPath Lambda has one or more errors in a 5-minute period.",
+      lambdaFunction: uipathLambda.lambda,
+      period: Duration.minutes(5),
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createLambdaThrottlesAlarm({
+      ...props,
+      scope: this,
+      id: "UiPathLambdaThrottlesAlarm",
+      name: "uipath-lambda-throttles",
+      description: "UiPath Lambda has one or more throttled invocations in a 5-minute period.",
+      lambdaFunction: uipathLambda.lambda,
+      period: Duration.minutes(5),
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
     });
 
     uipathLambda.lambda.addEventSource(new SqsEventSource(this.queue, { batchSize: 1 }));
