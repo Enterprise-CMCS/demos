@@ -1,13 +1,14 @@
 import { prisma, PrismaTransactionClient } from "../../../prismaClient";
-import { Prisma } from "@prisma/client";
 import { SelectManyReferenceConfigurationsResult } from ".";
+import { Prisma } from "@prisma/client";
 
-export async function selectManyReferenceConfigurations(
-  where: Prisma.ReferenceConfigurationWhereInput,
+export async function selectReferenceConfiguration(
+  where: Prisma.ReferenceConfigurationWhereUniqueInput,
   tx?: PrismaTransactionClient
-): Promise<SelectManyReferenceConfigurationsResult[]> {
+): Promise<SelectManyReferenceConfigurationsResult | null> {
   const prismaClient = tx ?? prisma();
-  return await prismaClient.referenceConfiguration.findMany({
+
+  return await prismaClient.referenceConfiguration.findAtMostOne({
     where,
     select: {
       id: true,

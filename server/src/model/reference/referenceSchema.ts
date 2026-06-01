@@ -22,6 +22,8 @@ export const referenceSchema = gql`
 
   type Query {
     references(withTag: TagName): [Reference!]!
+    referenceDownloadUrl(id: ID!, acceptedAgreementId: ID): String!
+    referenceAgreementDownloadUrl(id: ID!): String!
   }
 `;
 

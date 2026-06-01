@@ -4,6 +4,7 @@ import {
   SelectManyReferenceConfigurationsResult,
 } from "../referenceConfiguration/queries";
 import { NonEmptyString, ReferenceAgreement, Tag, TagName, TagStatus } from "../../types";
+import { getReferenceAgreementDownloadUrl, getReferenceDownloadUrl } from ".";
 
 export const referenceResolvers = {
   Query: {
@@ -28,6 +29,8 @@ export const referenceResolvers = {
         statusId: "Active",
       });
     },
+    referenceDownloadUrl: getReferenceDownloadUrl,
+    referenceAgreementDownloadUrl: getReferenceAgreementDownloadUrl,
   },
 
   // Tag Status casts below are enforced by the database

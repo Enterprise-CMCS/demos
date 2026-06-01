@@ -554,14 +554,14 @@ async function seedReferences() {
   const faqReferenceId = referenceIds[2];
   const doubledReferenceId = referenceIds[3];
   const referenceNoAgreementId = referenceIds[4];
-  const referenceAgreementIds = [faker.string.uuid(), faker.string.uuid()];
+  const referenceAgreementIds = [faker.string.uuid(), faker.string.uuid(), faker.string.uuid()];
 
   for (const referenceAgreementId of referenceAgreementIds) {
     await prisma().referenceAgreement.create({
       data: {
         id: referenceAgreementId,
         name: faker.lorem.words(3),
-        s3Path: `references/agreements/${referenceAgreementId[0]}`,
+        s3Path: `references/agreements/${referenceAgreementId}`,
         ownerUserId: BYPASS_USER_ID,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -706,6 +706,7 @@ async function clearDatabase() {
   return await prisma().$transaction([
     // Truncates must be done in proper order for relational reasons
     // Reference section
+    prisma().referenceAgreementAcceptance.deleteMany(),
     prisma().referenceDemonstrationType.deleteMany(),
     prisma().referenceTagAssignment.deleteMany(),
     prisma().referenceConfiguration.deleteMany(),

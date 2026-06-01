@@ -10,6 +10,6 @@ model ReferenceAgreementAcceptance {
   referenceConfiguration ReferenceConfiguration @relation(fields: [referenceId, referenceAgreementId], references: [referenceId, referenceAgreementId], onUpdate: NoAction)
   user                   User                   @relation(fields: [userId], references: [id])
 
-  @@id([referenceId, referenceAgreementId, userId])
+  @@id([referenceId, referenceAgreementId, userId, acceptanceTimestamp])
   @@map("reference_agreement_acceptance")
 }

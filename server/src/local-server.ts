@@ -18,6 +18,7 @@ import { JwtPayload } from "jsonwebtoken";
 import { parseCookie } from "cookie";
 import { decodeToken } from "./auth/decodeToken.js";
 import { fieldAuthPlugin } from "./plugins/fieldAuthPlugin.js";
+import { formatGraphQLErrorCode } from "./errors/errorCodes.js";
 
 log.debug("Starting server...");
 
@@ -27,16 +28,18 @@ const protection = armor.protect();
 const server = new ApolloServer<GraphQLContext>({
   typeDefs,
   resolvers,
-  introspection: process.env.ALLOW_INTROSPECTION === "true",
   ...protection,
+  introspection: process.env.ALLOW_INTROSPECTION === "true",
   plugins: [
     ...protection.plugins,
     authGatePlugin,
-    gatedLandingPagePlugin(),
     loggingPlugin,
     fieldAuthPlugin,
+    gatedLandingPagePlugin(),
   ],
   validationRules: [...protection.validationRules],
+  formatError: formatGraphQLErrorCode,
+  logger: log,
 });
 
 export function extractClaimsFromDecodedToken(decodedToken: JwtPayload): AuthorizationClaims {
