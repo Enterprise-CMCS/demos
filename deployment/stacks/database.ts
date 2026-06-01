@@ -12,8 +12,11 @@ import {
   Fn,
   aws_lambda,
   aws_logs,
+  IAspect,
+  CfnResource,
+  Aspects,
 } from "aws-cdk-lib";
-import { Construct } from "constructs";
+import { Construct, IConstruct } from "constructs";
 
 import { DeploymentConfigProperties } from "../config";
 
@@ -82,14 +85,15 @@ export class DatabaseStack extends Stack {
       parameters: {
         shared_preload_libraries: "pg_stat_statements,pg_tle,pg_cron,pgaudit",
         "cron.database_name": "demos",
-        ssl_min_protocol_version: "TLSv1.3",
+        ssl_min_protocol_version: "TLSv1.2",
         log_replication_commands: "on",
         log_disconnections: "on",
         log_connections: "on",
         log_line_prefix: "%m:%r:%u@%d:[%p]:%l:%e:%s:%v:%x:%c:%q%a:",
         log_statement: "ddl",
         log_error_verbosity: "verbose",
-        log_rotation_size: "1000000"
+        log_rotation_size: "1000000",
+        "rds.force_ssl": "1",
       }
     })
 
@@ -108,6 +112,7 @@ export class DatabaseStack extends Stack {
         storageEncrypted: true,
         credentials: aws_rds.Credentials.fromGeneratedSecret("demos_admin", {
           secretName: `${commonProps.project}-${commonProps.stage}-rds-admin`,
+          encryptionKey: rdsKMSKey
         }),
         securityGroups: [rdsSecurityGroup.securityGroup, commonProps.cloudVpnSecurityGroup, sharedServicesSg, cmsSecuritySg],
         publiclyAccessible: false,
@@ -119,9 +124,29 @@ export class DatabaseStack extends Stack {
         cloudwatchLogsRetention: RetentionDays.THREE_MONTHS,
         storageEncryptionKey: rdsKMSKey,
         port: 15432,
-        parameterGroup: parameterGroup
+        parameterGroup: parameterGroup,
+        monitoringInterval:  ["prod", "impl"].includes(commonProps.stage) ?  Duration.seconds(60) : undefined
       }
     );
+
+    const cfnDbInstance = dbInstance.node.defaultChild as aws_rds.CfnDBInstance;
+    cfnDbInstance.cfnOptions.metadata = {
+      checkov: {
+        skip: [{
+          id: "CKV_AWS_161",
+          reason: "Using username/password with auto-rotations for now"
+        },
+        {
+          id: "CKV_AWS_157",
+          reason: "To save costs, lower environments will not use multi-az"
+        },{
+          id: "CKV_AWS_118",
+          reason: "Enhanced monitoring is enabled in IMPL and PROD"
+        }]
+      }
+    };
+
+    Aspects.of(this).add(new SuppressCheckovLogRetentionPolicy());
 
     const cmsCloudLogFunc = aws_lambda.Function.fromFunctionName(
       commonProps.scope,
@@ -200,5 +225,29 @@ export class DatabaseStack extends Stack {
       value: dbInstance.instanceEndpoint.port.toString(),
       exportName: `${commonProps.project}-${commonProps.stage}-rds-port`,
     });
+  }
+}
+
+class SuppressCheckovLogRetentionPolicy implements IAspect {
+  visit(node: IConstruct): void {
+    if (!CfnResource.isCfnResource(node)) return;
+    if (node.cfnResourceType !== "AWS::IAM::Policy") return;
+
+    const path = node.node.path;
+    
+    if (
+      path.includes("/LogRetention") &&
+      path.endsWith("/ServiceRole/DefaultPolicy/Resource")
+    ) {
+      node.addMetadata("checkov", {
+        skip: [
+          {
+            id: "CKV_AWS_111",
+            comment:
+              "CDK-managed LogRetention custom resource role; only used to apply CloudWatch Logs retention. Not worth updating or managing",
+          },
+        ],
+      });
+    }
   }
 }
