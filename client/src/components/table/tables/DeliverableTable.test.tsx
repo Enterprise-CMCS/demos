@@ -517,7 +517,7 @@ describe("DeliverableTable Remove gating with finalized rows", () => {
 
     const removeButton = screen.getByTestId("remove-deliverable");
     expect(removeButton).toBeDisabled();
-    expect(removeButton).toHaveAttribute("title", "Cannot Delete - Has Files or Comments");
+    expect(removeButton).toHaveAttribute("title", "Cannot Delete -\nHas Files or Comments");
   });
 
   it("disables Remove when a selected row has comments", async () => {
@@ -540,7 +540,7 @@ describe("DeliverableTable Remove gating with finalized rows", () => {
 
     const removeButton = screen.getByTestId("remove-deliverable");
     expect(removeButton).toBeDisabled();
-    expect(removeButton).toHaveAttribute("title", "Cannot Delete - Has Files or Comments");
+    expect(removeButton).toHaveAttribute("title", "Cannot Delete -\nHas Files or Comments");
   });
 });
 

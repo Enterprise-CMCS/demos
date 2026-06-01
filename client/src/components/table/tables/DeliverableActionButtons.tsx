@@ -46,7 +46,7 @@ export const DeliverableActionButtons: React.FC<{
 
   const deleteTooltip = (() => {
     if (selectedCount === 0) return "Select a Deliverable to Delete";
-    if (selectedIncludesFilesOrComments) return "Cannot Delete - Has Files or Comments";
+    if (selectedIncludesFilesOrComments) return "Cannot Delete -\nHas Files or Comments";
     if (!allSelectedAreEditable) return "Finalized Deliverables cannot be deleted";
 
     return selectionTooltip({
