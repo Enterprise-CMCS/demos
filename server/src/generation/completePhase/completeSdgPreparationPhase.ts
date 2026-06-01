@@ -1,42 +1,39 @@
 import { applicationPhaseResolvers } from "../../model/applicationPhase/applicationPhaseResolvers";
-import { LocalDate, PhaseName } from "../../types";
-import { applicationDateResolvers } from "../../model/applicationDate/applicationDateResolvers";
-import { formatEasternTZDateToMMDDYYYY, parseJSDateToEasternTZDate } from "../../dateUtilities";
+import { ApplicationType, PhaseName } from "../../types";
 import { TZDate } from "@date-fns/tz";
+import { addApplicationDates } from "../addApplicationDates";
 
 const PHASE_NAME: PhaseName = "SDG Preparation";
 
-export const completeSdgPreparationPhase = async (applicationId: string, baseNow: TZDate) => {
-  await applicationDateResolvers.Mutation.setApplicationDates(null, {
-    input: {
-      applicationId,
-      applicationDates: [
-        {
-          dateType: "Expected Approval Date",
-          dateValue: formatEasternTZDateToMMDDYYYY(
-            parseJSDateToEasternTZDate(baseNow)
-          ) as LocalDate,
-        },
-        {
-          dateType: "SME Review Date",
-          dateValue: formatEasternTZDateToMMDDYYYY(
-            parseJSDateToEasternTZDate(baseNow)
-          ) as LocalDate,
-        },
-        {
-          dateType: "FRT Initial Meeting Date",
-          dateValue: formatEasternTZDateToMMDDYYYY(
-            parseJSDateToEasternTZDate(baseNow)
-          ) as LocalDate,
-        },
-        {
-          dateType: "BNPMT Initial Meeting Date",
-          dateValue: formatEasternTZDateToMMDDYYYY(
-            parseJSDateToEasternTZDate(baseNow)
-          ) as LocalDate,
-        },
-      ],
-    },
+export const completeSdgPreparationPhase = async ({
+  applicationId,
+  baseNow,
+  applicationType,
+}: {
+  applicationId: string;
+  baseNow: TZDate;
+  applicationType: ApplicationType;
+}) => {
+  await addApplicationDates({
+    applicationId,
+    dates: [
+      {
+        dateType: "Expected Approval Date",
+        dateValue: baseNow,
+      },
+      {
+        dateType: "SME Review Date",
+        dateValue: baseNow,
+      },
+      {
+        dateType: "FRT Initial Meeting Date",
+        dateValue: baseNow,
+      },
+      {
+        dateType: "BNPMT Initial Meeting Date",
+        dateValue: baseNow,
+      },
+    ],
   });
 
   await applicationPhaseResolvers.Mutation.completePhase(null, {

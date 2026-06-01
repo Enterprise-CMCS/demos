@@ -8,13 +8,24 @@ import { completeConceptPhase } from "./completeConceptPhase";
 import { completeReviewPhase } from "./completeReviewPhase";
 import { completeSdgPreparationPhase } from "./completeSdgPreparationPhase";
 import { updateCronbasedPhaseStatuses } from "./updateCronbasedPhaseStatuses";
+import { ApplicationType } from "../../types";
+import { addDays } from "date-fns";
 
-export const progressThroughPhase = async (
-  demonstrationId: string,
-  phaseName: PhaseName,
-  contextUserId: string,
-  baseNow: TZDate
-) => {
+export type ProgressThroughPhaseInput = {
+  applicationId: string;
+  documentOwnerUserId: string;
+  phaseName?: PhaseName;
+  baseNow?: TZDate;
+  applicationType: ApplicationType;
+};
+
+export const progressThroughPhase = async ({
+  applicationId,
+  documentOwnerUserId,
+  phaseName = "Approval Summary",
+  baseNow = addDays(new TZDate(), -90),
+  applicationType,
+}: ProgressThroughPhaseInput) => {
   const targetPhaseIndex = PHASE_NAMES.indexOf(phaseName);
 
   if (targetPhaseIndex === -1) {
@@ -24,28 +35,48 @@ export const progressThroughPhase = async (
   for (const currentPhaseName of PHASE_NAMES.slice(0, targetPhaseIndex + 1)) {
     switch (currentPhaseName) {
       case "Concept":
-        await completeConceptPhase(demonstrationId, contextUserId, baseNow);
+        await completeConceptPhase({
+          applicationId,
+          documentOwnerUserId,
+          baseNow,
+          applicationType,
+        });
         break;
       case "Application Intake":
-        await completeApplicationIntakePhase(demonstrationId, contextUserId, baseNow);
+        await completeApplicationIntakePhase({
+          applicationId,
+          documentOwnerUserId,
+          baseNow,
+          applicationType,
+        });
         break;
       case "Completeness":
-        await completeCompletenessPhase(demonstrationId, contextUserId, baseNow);
+        await completeCompletenessPhase({
+          applicationId,
+          documentOwnerUserId,
+          baseNow,
+          applicationType,
+        });
         break;
       case "Federal Comment":
         await updateCronbasedPhaseStatuses();
         break;
       case "SDG Preparation":
-        await completeSdgPreparationPhase(demonstrationId, baseNow);
+        await completeSdgPreparationPhase({ applicationId, baseNow, applicationType });
         break;
       case "Review":
-        await completeReviewPhase(demonstrationId, "CMS (OSORA)", baseNow);
+        await completeReviewPhase({
+          applicationId,
+          baseNow,
+          clearanceLevel: "CMS (OSORA)",
+          applicationType,
+        });
         break;
       case "Approval Package":
-        await completeApprovalPackagePhase(demonstrationId, contextUserId);
+        await completeApprovalPackagePhase({ applicationId, documentOwnerUserId, applicationType });
         break;
       case "Approval Summary":
-        await completeApprovalSummaryPhase(demonstrationId, baseNow, "Demonstration");
+        await completeApprovalSummaryPhase({ applicationId, baseNow, applicationType });
         break;
       default:
         throw new Error(`No completion handler configured for phase ${currentPhaseName}`);

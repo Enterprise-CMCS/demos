@@ -1,38 +1,42 @@
 import { applicationPhaseResolvers } from "../../model/applicationPhase/applicationPhaseResolvers";
-import { LocalDate, PhaseName } from "../../types";
-import { applicationDateResolvers } from "../../model/applicationDate/applicationDateResolvers";
-import { uploadDocumentToPhase } from "../uploadDocumentToPhase";
-import { formatEasternTZDateToMMDDYYYY, parseJSDateToEasternTZDate } from "../../dateUtilities";
+import { ApplicationType, PhaseName } from "../../types";
+import { uploadDocumentsToPhase } from "../uploadDocumentsToPhase";
 import { TZDate } from "@date-fns/tz";
 import { addDays } from "date-fns";
+import { addApplicationDates } from "../addApplicationDates";
 
 const PHASE_NAME: PhaseName = "Application Intake";
 
-export const completeApplicationIntakePhase = async (
-  applicationId: string,
-  contextUserId: string,
-  baseNow: TZDate
-) => {
-  await uploadDocumentToPhase(applicationId, PHASE_NAME, "State Application", contextUserId);
+export const completeApplicationIntakePhase = async ({
+  applicationId,
+  documentOwnerUserId,
+  baseNow,
+  applicationType,
+}: {
+  applicationId: string;
+  documentOwnerUserId: string;
+  baseNow: TZDate;
+  applicationType: ApplicationType;
+}) => {
+  await uploadDocumentsToPhase({
+    applicationId,
+    phaseName: PHASE_NAME,
+    documentOwnerUserId,
+    documentTypes: ["State Application"],
+  });
 
-  await applicationDateResolvers.Mutation.setApplicationDates(null, {
-    input: {
-      applicationId,
-      applicationDates: [
-        {
-          dateType: "State Application Submitted Date",
-          dateValue: formatEasternTZDateToMMDDYYYY(
-            parseJSDateToEasternTZDate(baseNow)
-          ) as LocalDate,
-        },
-        {
-          dateType: "Completeness Review Due Date",
-          dateValue: formatEasternTZDateToMMDDYYYY(
-            parseJSDateToEasternTZDate(addDays(baseNow, 15))
-          ) as LocalDate,
-        },
-      ],
-    },
+  await addApplicationDates({
+    applicationId,
+    dates: [
+      {
+        dateType: "State Application Submitted Date",
+        dateValue: baseNow,
+      },
+      {
+        dateType: "Completeness Review Due Date",
+        dateValue: addDays(baseNow, 15),
+      },
+    ],
   });
 
   await applicationPhaseResolvers.Mutation.completePhase(null, {

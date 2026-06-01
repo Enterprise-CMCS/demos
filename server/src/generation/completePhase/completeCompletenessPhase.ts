@@ -1,55 +1,46 @@
 import { applicationPhaseResolvers } from "../../model/applicationPhase/applicationPhaseResolvers";
-import { LocalDate, PhaseName } from "../../types";
-import { applicationDateResolvers } from "../../model/applicationDate/applicationDateResolvers";
-import { uploadDocumentToPhase } from "../uploadDocumentToPhase";
-import { formatEasternTZDateToMMDDYYYY, parseJSDateToEasternTZDate } from "../../dateUtilities";
+import { ApplicationType, PhaseName } from "../../types";
+import { uploadDocumentsToPhase } from "../uploadDocumentsToPhase";
 import { TZDate } from "@date-fns/tz";
 import { addDays } from "date-fns";
+import { addApplicationDates } from "../addApplicationDates";
 
 const PHASE_NAME: PhaseName = "Completeness";
 
-export const completeCompletenessPhase = async (
-  applicationId: string,
-  contextUserId: string,
-  baseNow: TZDate
-) => {
-  await uploadDocumentToPhase(
+export const completeCompletenessPhase = async ({
+  applicationId,
+  documentOwnerUserId,
+  baseNow,
+  applicationType,
+}: {
+  applicationId: string;
+  documentOwnerUserId: string;
+  baseNow: TZDate;
+  applicationType: ApplicationType;
+}) => {
+  await uploadDocumentsToPhase({
     applicationId,
-    PHASE_NAME,
-    "Application Completeness Letter",
-    contextUserId
-  );
-  await uploadDocumentToPhase(
-    applicationId,
-    PHASE_NAME,
-    "Internal Completeness Review Form",
-    contextUserId
-  );
+    phaseName: PHASE_NAME,
+    documentTypes: ["Application Completeness Letter", "Internal Completeness Review Form"],
+    documentOwnerUserId,
+  });
 
-  await applicationDateResolvers.Mutation.setApplicationDates(null, {
-    input: {
-      applicationId,
-      applicationDates: [
-        {
-          dateType: "State Application Deemed Complete",
-          dateValue: formatEasternTZDateToMMDDYYYY(
-            parseJSDateToEasternTZDate(baseNow)
-          ) as LocalDate,
-        },
-        {
-          dateType: "Federal Comment Period Start Date",
-          dateValue: formatEasternTZDateToMMDDYYYY(
-            parseJSDateToEasternTZDate(addDays(baseNow, 1))
-          ) as LocalDate,
-        },
-        {
-          dateType: "Federal Comment Period End Date",
-          dateValue: formatEasternTZDateToMMDDYYYY(
-            parseJSDateToEasternTZDate(addDays(baseNow, 31))
-          ) as LocalDate,
-        },
-      ],
-    },
+  await addApplicationDates({
+    applicationId,
+    dates: [
+      {
+        dateType: "State Application Deemed Complete",
+        dateValue: baseNow,
+      },
+      {
+        dateType: "Federal Comment Period Start Date",
+        dateValue: addDays(baseNow, 1),
+      },
+      {
+        dateType: "Federal Comment Period End Date",
+        dateValue: addDays(baseNow, 31),
+      },
+    ],
   });
 
   await applicationPhaseResolvers.Mutation.completePhase(null, {

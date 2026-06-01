@@ -55,7 +55,7 @@
     "coverage": "vitest run --coverage",
     "coverage:ci": "vitest run --no-color --coverage --coverage.reporter=lcov --reporter=default --reporter=vitest-sonar-reporter --outputFile=coverage/test-results.xml",
     "dbrefresh": "tsx --inspect ./src/refreshDbObjects.ts",
-    "new-seed": "tsx --inspect ./src/generation/newSeeder.ts"
+    "new-seed": "npm run migrate:reset && prisma generate && npm run dbrefresh && tsx --inspect ./src/generation/newSeeder.ts"
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.1045.0",

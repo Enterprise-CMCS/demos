@@ -1,36 +1,37 @@
 import { applicationPhaseResolvers } from "../../model/applicationPhase/applicationPhaseResolvers";
-import { LocalDate, PhaseName } from "../../types";
-import { applicationDateResolvers } from "../../model/applicationDate/applicationDateResolvers";
-import { uploadDocumentToPhase } from "../uploadDocumentToPhase";
-import { formatEasternTZDateToMMDDYYYY, parseJSDateToEasternTZDate } from "../../dateUtilities";
+import { ApplicationType, PhaseName } from "../../types";
+import { uploadDocumentsToPhase } from "../uploadDocumentsToPhase";
 import { TZDate } from "@date-fns/tz";
+import { addApplicationDates } from "../addApplicationDates";
 
 const PHASE_NAME: PhaseName = "Concept";
 
-export const completeConceptPhase = async (
-  applicationId: string,
-  contextUserId: string,
-  baseNow: TZDate
-) => {
-  await uploadDocumentToPhase(
+export const completeConceptPhase = async ({
+  applicationId,
+  documentOwnerUserId,
+  baseNow = new TZDate(),
+  applicationType,
+}: {
+  applicationId: string;
+  documentOwnerUserId: string;
+  baseNow?: TZDate;
+  applicationType: ApplicationType;
+}) => {
+  await uploadDocumentsToPhase({
     applicationId,
-    PHASE_NAME,
-    "Pre-Submission",
-    contextUserId
-  );
+    phaseName: PHASE_NAME,
+    documentTypes: ["Pre-Submission"],
+    documentOwnerUserId,
+  });
 
-  await applicationDateResolvers.Mutation.setApplicationDates(null, {
-    input: {
-      applicationId,
-      applicationDates: [
-        {
-          dateType: "Pre-Submission Submitted Date",
-          dateValue: formatEasternTZDateToMMDDYYYY(
-            parseJSDateToEasternTZDate(baseNow)
-          ) as LocalDate,
-        },
-      ],
-    },
+  await addApplicationDates({
+    applicationId,
+    dates: [
+      {
+        dateType: "Pre-Submission Submitted Date",
+        dateValue: baseNow,
+      },
+    ],
   });
 
   await applicationPhaseResolvers.Mutation.completePhase(null, {

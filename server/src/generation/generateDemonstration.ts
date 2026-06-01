@@ -1,15 +1,17 @@
 import { demonstrationResolvers } from "../model/demonstration/demonstrationResolvers";
 import { Demonstration as PrismaDemonstration } from "@prisma/client";
 
+export type GenerateDemonstrationInput = {
+  name: string;
+  state: string;
+  projectOfficerUserId: string;
+};
+
 export const generateDemonstration = async ({
   name,
   state,
   projectOfficerUserId,
-}: {
-  name: string;
-  state: string;
-  projectOfficerUserId: string;
-}): Promise<PrismaDemonstration> => {
+}: GenerateDemonstrationInput): Promise<PrismaDemonstration> => {
   const demonstration = await demonstrationResolvers.Mutation.createDemonstration(null, {
     input: {
       name,
@@ -18,6 +20,5 @@ export const generateDemonstration = async ({
       projectOfficerUserId,
     },
   });
-
   return demonstration;
 };
