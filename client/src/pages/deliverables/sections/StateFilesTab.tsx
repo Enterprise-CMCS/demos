@@ -8,6 +8,7 @@ export const STATE_FILES_TAB_NAME = "state-files-tab";
 export const STATE_FILES_ADD_BUTTON_NAME = "button-add-state-files";
 export const STATE_FILES_EDIT_BUTTON_NAME = "button-edit-state-files";
 export const STATE_FILES_DELETE_BUTTON_NAME = "button-delete-state-files";
+export const STATE_FILES_SUBMIT_BUTTON_NAME = "button-submit-deliverable";
 
 const STATE_FILES_EMPTY_MESSAGE =
   "No files have been added yet. Appropriate files must be attached AND submitted before CMS can review.";

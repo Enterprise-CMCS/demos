@@ -10,7 +10,7 @@ import {
 } from "../DeliverableDetailsManagementPage";
 import type { DeliverableFileRow } from "./DeliverableFileTypes";
 import { HistoryTab, type DeliverableHistoryRow } from "./HistoryTab";
-import { StateFilesTab } from "./StateFilesTab";
+import { STATE_FILES_SUBMIT_BUTTON_NAME, StateFilesTab } from "./StateFilesTab";
 import { Button } from "components/button/Button";
 import { useDialog } from "components/dialog/DialogContext";
 import { canCompleteReview, isDeliverableEditable } from "components/dialog/deliverable";
@@ -209,7 +209,7 @@ export const FileAndHistoryTabs: React.FC<{
           disabled={isSubmitDisabled}
           onClick={handleSubmitDeliverable}
           size="large"
-          name="button-actions-submit-deliverable"
+          name={STATE_FILES_SUBMIT_BUTTON_NAME}
         >
           Submit Deliverable
         </Button>
