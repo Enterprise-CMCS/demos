@@ -135,6 +135,13 @@ export class BootstrapStack extends Stack {
             "arn:aws:s3:::demos-impl-file-upload-*/*"
           ],
         }),
+        new aws_iam.PolicyStatement({
+          actions: [
+            "cloudformation:DescribeChangeSet",
+            "cloudformation:DeleteChangeSet"
+          ],
+          resources: ["*"]
+        })
       ],
     });
 
