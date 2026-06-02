@@ -174,7 +174,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
           </div>
         </div>
       </div>
-      {canManageDemonstration ? (
+      {canManageDemonstration && (
         <div className="relative mt-4">
           {showButtons && (
             <span className="mr-0.75">
@@ -242,7 +242,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
             </span>
           </CircleButton>
         </div>
-      ) : null}
+      )}
     </div>
   );
 };
