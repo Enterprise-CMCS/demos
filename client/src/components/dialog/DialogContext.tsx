@@ -51,6 +51,8 @@ import {
   ReviewExtensionDeliverableDialog,
   ReviewExtensionDeliverableDialogDeliverable,
 } from "./deliverable/ReviewExtensionDeliverableDialog";
+import { Reference, ReferenceAgreement } from "components/table/tables/ReferencesTable";
+import { ReferenceAgreementDialog } from "./referenceAgreement/ReferenceAgreementDialog";
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -358,6 +360,12 @@ export const useDialog = () => {
     );
   };
 
+  const showReferenceAgreementDialog = (
+    reference: Pick<Reference, "id"> & { agreement: ReferenceAgreement }
+  ) => {
+    context.showDialog(<ReferenceAgreementDialog reference={reference} />);
+  };
+
   return {
     closeDialog: context.hideDialog,
     showCreateDemonstrationDialog,
@@ -389,5 +397,6 @@ export const useDialog = () => {
     showRequestResubmissionDeliverableDialog,
     showCompleteReviewDeliverableDialog,
     showReviewExtensionDeliverableDialog,
+    showReferenceAgreementDialog,
   };
 };

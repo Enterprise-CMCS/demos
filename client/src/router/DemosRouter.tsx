@@ -17,6 +17,7 @@ import { DeliverableDetailsManagementPage } from "pages/deliverables/Deliverable
 import { AdminPage } from "pages/admin/AdminPage";
 import { RequireRole } from "./RequireRole";
 import { PersonType } from "demos-server";
+import { ReferencesPage } from "pages/ReferencesPage";
 
 const DEMONSTRATION_ACCESS_ROLES: PersonType[] = ["demos-admin", "demos-cms-user"];
 
@@ -78,6 +79,8 @@ export const DemosRouter: React.FC = () => {
                     </RequireRole>
                   }
                 />
+                <Route path="references" element={<ReferencesPage />} />
+
                 {isLocalDevelopment() && (
                   <>
                     <Route path="components" element={<ComponentLibrary />} />

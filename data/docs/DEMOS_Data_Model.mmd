@@ -155,6 +155,8 @@ erDiagram
   users ||--|{ reference : "FK140"
   users ||--|{ reference_agreement : "FK141"
   users ||--|{ reference_agreement_acceptance : "FK142"
+  cms_user_person_type_limit ||--|{ reference: "FK154"
+  cms_user_person_type_limit ||--|{ reference_agreement: "FK155"
   reference ||--|{ reference_configuration : "FK143"
   reference ||--|{ reference_tag_assignment : "FK144"
   reference ||--|{ reference_demonstration_type : "FK145"
@@ -485,15 +487,15 @@ erDiagram
     uuid id PK, UK "UK: (id, action_type_id)"
     timestamptz action_timestamp
     uuid deliverable_id FK "FK109: deliverable_id ∈ deliverable.id<br>FK128: (active_extension_id, deliverable_id) ∈ deliverable_extension.(id, deliverable_id)"
-    text action_type_id FK, UK "FK114: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)<br>FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)<br>UK: (id, action_type_id)<br>UK(Partial): (action_type_id, active_extension_id)"
+    text action_type_id FK, UK "FK114: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)<br>FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)<br>UK: (id, action_type_id)<br>UK(Partial): (action_type_id, active_extension_id)"
     text old_status_id FK "FK114: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)"
     text new_status_id FK "FK114: (action_type_id, old_status_id, new_status_id) ∈ deliverable_action_configuration.(action_type_id, old_status_id, new_status_id)"
     text note "NULLABLE"
     uuid active_extension_id FK, UK "FK128: (active_extension_id, deliverable_id) ∈ deliverable_extension.(id, deliverable_id)<br>UK(Partial): (action_type_id, active_extension_id)<br>NULLABLE"
-    bool due_date_change_allowed FK "FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)"
-    bool should_have_note FK "FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)"
-    bool should_have_user_id FK "FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)"
-    bool extension_id_optional FK "FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)"
+    bool due_date_change_allowed FK "FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)"
+    bool should_have_note FK "FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)"
+    bool should_have_user_id FK "FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)"
+    bool extension_id_optional FK "FK136: (action_type_id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional) ∈ deliverable_action_type.(id, due_date_change_allowed, should_have_note, should_have_user_id, extension_id_optional)"
     timestamptz old_due_date
     timestamptz new_due_date
     uuid user_id FK "FK112: user_id ∈ users.id<br>NULLABLE"
@@ -713,7 +715,8 @@ erDiagram
     text name
     text description
     text s3_path
-    uuid owner_user_id FK "FK140: owner_user_id ∈ users.id"
+    uuid owner_user_id FK "FK140: (owner_user_id, owner_person_type_id) ∈ users.(id, person_type_id)"
+    text owner_person_type_id FK "FK140: (owner_user_id, owner_person_type_id) ∈ users.(id, person_type_id)<br>FK154: owner_person_type_id ∈ cms_user_person_type_limit.id"
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
@@ -727,7 +730,8 @@ erDiagram
     uuid id PK
     text name
     text s3_path
-    uuid owner_user_id FK "FK141: owner_user_id ∈ users.id"
+    uuid owner_user_id FK "FK141: (owner_user_id, owner_person_type_id) ∈ users.(id, person_type_id)"
+    text owner_person_type_id FK "FK141: (owner_user_id, owner_person_type_id) ∈ users.(id, person_type_id)<br>FK155: owner_person_type_id ∈ cms_user_person_type_limit.id"
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
@@ -740,7 +744,7 @@ erDiagram
     uuid reference_id PK, FK "FK148: (reference_id, reference_agreement_id) ∈ reference_configuration.(reference_id, reference_agreement_id) ON DELETE RESTRICT ON UPDATE NO ACTION"
     uuid reference_agreement_id PK, FK "FK148: (reference_id, reference_agreement_id) ∈ reference_configuration.(reference_id, reference_agreement_id) ON DELETE RESTRICT ON UPDATE NO ACTION"
     uuid user_id PK, FK "FK142: user_id ∈ users.id"
-    timestamptz acceptance_timestamp
+    timestamptz acceptance_timestamp PK
   }
 
   reference_configuration:::dataTable {
