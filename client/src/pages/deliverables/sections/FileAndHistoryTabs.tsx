@@ -46,25 +46,11 @@ export const RESUBMISSION_DISABLED_STATUSES: ReadonlySet<DeliverableStatus> =
 export const isResubmissionDisabled = (status: DeliverableStatus): boolean =>
   RESUBMISSION_DISABLED_STATUSES.has(status);
 
-const COMPLETE_REVIEW_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
-  "demos-admin",
-  "demos-cms-user",
-]);
-
-const REQUEST_RESUBMISSION_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
-  "demos-admin",
-  "demos-cms-user",
-]);
+const CMS_STAFF_PERSON_TYPES: ReadonlySet<PersonType> = new Set(["demos-admin", "demos-cms-user"]);
 
 const STATE_FILE_MANAGER_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
-  "demos-admin",
-  "demos-cms-user",
+  ...CMS_STAFF_PERSON_TYPES,
   "demos-state-user",
-]);
-
-const CMS_FILE_MANAGER_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
-  "demos-admin",
-  "demos-cms-user",
 ]);
 
 const TABS = {
@@ -105,18 +91,16 @@ export const FileAndHistoryTabs: React.FC<{
   const isFinalized = !isDeliverableEditable(deliverable.status);
   const refetchAfterFileChange = [DELIVERABLE_DETAILS_QUERY];
 
-  const userPersonType = currentUser?.person.personType;
-  const isCompleteReviewAllowedForUser =
-    !!userPersonType && COMPLETE_REVIEW_PERSON_TYPES.has(userPersonType);
-  const canRequestResubmission =
-    !!userPersonType && REQUEST_RESUBMISSION_PERSON_TYPES.has(userPersonType);
-  const isCompleteReviewDisabled =
-    !isCompleteReviewAllowedForUser ||
+  if (!currentUser) {
+    throw new Error("FileAndHistoryTabs requires an authenticated user.");
+  }
+
+  const userPersonType = currentUser.person.personType;
+  const isCmsStaffUser = CMS_STAFF_PERSON_TYPES.has(userPersonType);
+  const isCompleteReviewDisabled = !isCmsStaffUser ||
     !canCompleteReview(deliverable.status, deliverable.extensionRequests);
-  const canManageStateFiles =
-    !!userPersonType && STATE_FILE_MANAGER_PERSON_TYPES.has(userPersonType);
-  const canManageCmsFiles =
-    !!userPersonType && CMS_FILE_MANAGER_PERSON_TYPES.has(userPersonType);
+  const canManageStateFiles = STATE_FILE_MANAGER_PERSON_TYPES.has(userPersonType);
+  const canManageCmsFiles = isCmsStaffUser;
 
   const handleRequestResubmission = () => {
     showRequestResubmissionDeliverableDialog({
@@ -211,7 +195,7 @@ export const FileAndHistoryTabs: React.FC<{
         </Tab>
       </HorizontalSectionTabs>
       <div data-testid={FILE_AND_HISTORY_ACTIONS_NAME} className="flex justify-end mt-2 gap-2">
-        {canRequestResubmission ? (
+        {isCmsStaffUser ? (
           <Button
             onClick={handleRequestResubmission}
             size="large"
@@ -229,7 +213,7 @@ export const FileAndHistoryTabs: React.FC<{
         >
           Submit Deliverable
         </Button>
-        {isCompleteReviewAllowedForUser ? (
+        {isCmsStaffUser ? (
           <Button
             disabled={isCompleteReviewDisabled}
             onClick={handleCompleteReview}
