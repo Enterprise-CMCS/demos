@@ -439,7 +439,7 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_application_type_record_exists();
 
 -- update_application_current_phase_on_phase_update
-CREATE OR REPLACE FUNCTION demos_app.update_application_current_phase_on_phase_update()
+CREATE FUNCTION demos_app.update_application_current_phase_on_phase_update()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
@@ -525,7 +525,7 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.update_application_current_phase_on_phase_update();
 
 -- update_application_status_on_phase_update
-CREATE OR REPLACE FUNCTION demos_app.update_application_status_on_phase_update()
+CREATE FUNCTION demos_app.update_application_status_on_phase_update()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
@@ -759,7 +759,7 @@ END;
 $$;
 
 -- disable_redundant_updates
-CREATE OR REPLACE FUNCTION demos_app.disable_redundant_updates()
+CREATE FUNCTION demos_app.disable_redundant_updates()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
@@ -1049,7 +1049,7 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_suggestion_has_extract();
 
 -- check_demonstration_type_exists_for_approved_demos
-CREATE OR REPLACE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations()
+CREATE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
@@ -1574,3 +1574,45 @@ CREATE TRIGGER trim_input_text_fields
 BEFORE INSERT OR UPDATE ON demos_app.reference_agreement
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+-- create_medicaid_chip_id_numbers
+CREATE FUNCTION demos_app.create_medicaid_chip_id_numbers()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    region_number INT;
+    medicaid_seq_number INT;
+    chip_seq_number INT;
+BEGIN
+    IF NEW.medicaid_id IS NOT NULL OR NEW.chip_id IS NOT NULL THEN
+        RAISE EXCEPTION 'medicaid_id and chip_id are system-generated and must not be set manually';
+    END IF;
+
+    SELECT
+        region
+    INTO
+        region_number
+    FROM
+        demos_app.state
+    WHERE
+        id = NEW.state_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Unknown state code: %', NEW.state_id;
+    END IF;
+
+    medicaid_seq_number := nextval('demos_app.medicaid_id_number_seq');
+    chip_seq_number := nextval('demos_app.chip_id_number_seq');
+
+    NEW.medicaid_id := format('11-W-%s/%s', lpad(medicaid_seq_number::TEXT, 5, '0'), region_number);
+    NEW.chip_id := format('21-W-%s/%s', lpad(chip_seq_number::TEXT, 5, '0'), region_number);
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER create_medicaid_chip_id_numbers
+BEFORE INSERT ON demos_app.demonstration
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.create_medicaid_chip_id_numbers();

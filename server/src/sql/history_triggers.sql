@@ -838,6 +838,8 @@ BEGIN
             current_phase_id,
             state_id,
             clearance_level_id,
+            medicaid_id,
+            chip_id,
             created_at,
             updated_at
         )
@@ -858,6 +860,8 @@ BEGIN
             NEW.current_phase_id,
             NEW.state_id,
             NEW.clearance_level_id,
+            NEW.medicaid_id,
+            NEW.chip_id,
             NEW.created_at,
             NEW.updated_at
         );
@@ -877,6 +881,8 @@ BEGIN
             current_phase_id,
             state_id,
             clearance_level_id,
+            medicaid_id,
+            chip_id,
             created_at,
             updated_at
         )
@@ -894,6 +900,8 @@ BEGIN
             OLD.current_phase_id,
             OLD.state_id,
             OLD.clearance_level_id,
+            OLD.medicaid_id,
+            OLD.chip_id,
             OLD.created_at,
             OLD.updated_at
         );
