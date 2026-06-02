@@ -11,7 +11,6 @@ import { TestProvider } from "test-utils/TestProvider";
 import { FileAndHistoryTabs } from "./FileAndHistoryTabs";
 import {
   STATE_FILES_ADD_BUTTON_NAME,
-  STATE_FILES_SUBMIT_BUTTON_NAME,
   STATE_FILES_TAB_NAME,
 } from "./StateFilesTab";
 import { CMS_FILES_ADD_BUTTON_NAME, CMS_FILES_TAB_NAME } from "./CmsFilesTab";
@@ -113,15 +112,6 @@ describe("FileAndHistoryTabs", () => {
     await user.click(screen.getByTestId("button-history"));
 
     expect(screen.getByText(/No history available\./i)).toBeInTheDocument();
-  });
-
-  it("renders the Submit Deliverable button in the State Files tab when files exist", () => {
-    setup();
-
-    const stateTab = screen.getByTestId(STATE_FILES_TAB_NAME);
-    expect(
-      within(stateTab).getByTestId("button-submit-deliverable")
-    ).toBeInTheDocument();
   });
 
   describe("Action Buttons", () => {
@@ -296,7 +286,7 @@ describe("FileAndHistoryTabs", () => {
         setup({ status });
 
         expect(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME)).toBeDisabled();
-        expect(screen.getByTestId(STATE_FILES_SUBMIT_BUTTON_NAME)).toBeDisabled();
+        expect(screen.getByTestId("button-actions-submit-deliverable")).toBeDisabled();
       }
     );
 

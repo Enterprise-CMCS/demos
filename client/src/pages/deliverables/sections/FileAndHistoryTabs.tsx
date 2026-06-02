@@ -194,8 +194,6 @@ export const FileAndHistoryTabs: React.FC<{
             onAdd={canManageStateFiles ? handleAddStateFile : undefined}
             onEdit={canManageStateFiles ? handleEditStateFile : undefined}
             onDelete={canManageStateFiles ? handleDeleteFiles : undefined}
-            onSubmit={handleSubmitDeliverable}
-            submitDisabled={isSubmitDisabled}
           />
         </Tab>
         <Tab label={buildTabLabel("CMS Files", cmsFiles.length)} value={TABS.CMS_FILES}>
