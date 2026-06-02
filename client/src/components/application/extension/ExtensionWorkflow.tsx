@@ -22,6 +22,7 @@ export const GET_EXTENSION_WORKFLOW_QUERY = gql`
       demonstration {
         id
         status
+        medicaidId
         demonstrationTypes {
           demonstrationTypeName
           status
@@ -62,6 +63,7 @@ export type ApplicationWorkflowExtension =
         Demonstration,
         | "id"
         | "status"
+        | "medicaidId"
       > & {
       demonstrationTypes: Pick<
         DemonstrationTypeAssignment,

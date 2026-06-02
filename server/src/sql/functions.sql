@@ -252,6 +252,8 @@ BEGIN
         application_id,
         phase_id,
         deliverable_id,
+        deliverable_type_id,
+        deliverable_is_cms_attached_file,
         created_at,
         updated_at
     )
@@ -265,6 +267,8 @@ BEGIN
         application_id,
         phase_id,
         deliverable_id,
+        deliverable_type_id,
+        deliverable_is_cms_attached_file,
         created_at,
         updated_at
     FROM
@@ -317,6 +321,9 @@ BEGIN
         document_type_id,
         application_id,
         phase_id,
+        deliverable_id,
+        deliverable_type_id,
+        deliverable_is_cms_attached_file,
         infection_status,
         infection_threats,
         created_at,
@@ -331,6 +338,9 @@ BEGIN
         document_type_id,
         application_id,
         phase_id,
+        deliverable_id,
+        deliverable_type_id,
+        deliverable_is_cms_attached_file,
         p_infection_status,
         p_infection_threats,
         created_at,
