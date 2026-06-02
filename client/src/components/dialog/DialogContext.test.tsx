@@ -9,6 +9,7 @@ import { DeclareIncompleteForm } from "./DeclareIncompleteDialog";
 import { TagName } from "demos-server";
 import { DemonstrationType } from "./DemonstrationTypes/EditDemonstrationTypeDialog";
 import { formatDateForServer } from "util/formatDate";
+import { Reference, ReferenceAgreement } from "components/table/tables/ReferencesTable";
 
 const MockDialog = ({ onClose }: { onClose: () => void }) => (
   <div data-testid="mock-dialog">
@@ -336,6 +337,29 @@ vi.mock("./ApplyTagsDialog", () => ({
   ),
 }));
 
+vi.mock("./references/CompletenessDocumentUploadDialog", () => ({
+  CompletenessDocumentUploadDialog: ({
+    applicationId,
+    onClose,
+  }: {
+    applicationId: string;
+    onClose: () => void;
+  }) => (
+    <div data-testid="completeness-upload-dialog">
+      Completeness Upload Dialog {applicationId}
+      <button data-testid="close-completeness-upload-btn" onClick={onClose}>
+        Close
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock("./referenceAgreement/ReferenceAgreementDialog", () => ({
+  ReferenceAgreementDialog: ({ reference }: { reference: Reference; onClose: () => void }) => (
+    <div data-testid="reference-agreement-dialog">Reference Agreement Dialog {reference.id}</div>
+  ),
+}));
+
 const mockRoles: ExistingContactType[] = [
   {
     id: "person-1",
@@ -390,6 +414,7 @@ const TestConsumer: React.FC = () => {
     showEditDemonstrationTypeDialog,
     showApplyTagsDialog,
     showConfirmApproveDialog,
+    showReferenceAgreementDialog,
     closeDialog,
   } = useDialog();
 
@@ -524,6 +549,16 @@ const TestConsumer: React.FC = () => {
         onClick={() => showConfirmApproveDialog(vi.fn(), "demonstration")}
       >
         Open Confirm Approve Dialog
+      </button>
+      <button
+        data-testid="open-reference-agreement-btn"
+        onClick={() =>
+          showReferenceAgreementDialog({ id: "ref-1" } as Pick<Reference, "id"> & {
+            agreement: ReferenceAgreement;
+          })
+        }
+      >
+        Open Reference Agreement Dialog
       </button>
     </div>
   );
@@ -860,5 +895,18 @@ describe("DialogContext", () => {
 
     await user.click(screen.getByTestId("close-apply-tags-btn"));
     expect(screen.queryByTestId("apply-tags-dialog")).not.toBeInTheDocument();
+  });
+
+  it("shows Reference Agreement Dialog via context", async () => {
+    render(
+      <DialogProvider>
+        <TestConsumer />
+      </DialogProvider>
+    );
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("open-reference-agreement-btn"));
+    expect(screen.getByTestId("reference-agreement-dialog")).toBeInTheDocument();
+    expect(screen.getByText(/Reference Agreement Dialog ref-1/)).toBeInTheDocument();
   });
 });

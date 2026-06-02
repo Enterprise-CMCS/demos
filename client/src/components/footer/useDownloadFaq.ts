@@ -1,5 +1,5 @@
 import { gql, TypedDocumentNode, useLazyQuery } from "@apollo/client";
-import { triggerFaqDownload } from "./triggerFaqDownload";
+import { useTriggerDownload } from "hooks/useTriggerDownload";
 
 // TODO: server support for this query does not exist yet, implemented to
 // demonstrate the intended flow between the server and s3. This is likely
@@ -20,6 +20,7 @@ export const useDownloadFaq = () => {
   const [fetchFaqDownloadUrl] = useLazyQuery(DOWNLOAD_FAQ_QUERY, {
     fetchPolicy: "network-only",
   });
+  const { triggerDownload } = useTriggerDownload();
 
   const downloadFaq = async (): Promise<string> => {
     try {
@@ -30,7 +31,7 @@ export const useDownloadFaq = () => {
         throw new Error("Missing FAQ download URL.");
       }
 
-      triggerFaqDownload(presignedDownloadUrl);
+      triggerDownload(presignedDownloadUrl);
       return presignedDownloadUrl;
     } catch {
       throw new Error("Unable to download FAQ.");

@@ -2,7 +2,7 @@ import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useLazyQuery } from "@apollo/client";
 import { DOWNLOAD_FAQ_QUERY, useDownloadFaq } from "./useDownloadFaq";
-import { triggerFaqDownload } from "./triggerFaqDownload";
+import { useTriggerDownload } from "hooks/useTriggerDownload";
 
 vi.mock("@apollo/client", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@apollo/client")>();
@@ -13,14 +13,15 @@ vi.mock("@apollo/client", async (importOriginal) => {
   };
 });
 
-vi.mock("./triggerFaqDownload", () => ({
-  triggerFaqDownload: vi.fn(),
+vi.mock("hooks/useTriggerDownload", () => ({
+  useTriggerDownload: vi.fn(),
 }));
 
 type UseLazyQueryTuple = ReturnType<typeof useLazyQuery>;
 
 describe("useDownloadFaq", () => {
   const fetchFaqDownloadUrl = vi.fn();
+  const triggerDownload = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -28,6 +29,10 @@ describe("useDownloadFaq", () => {
       fetchFaqDownloadUrl,
       {},
     ] as unknown as UseLazyQueryTuple);
+
+    vi.mocked(useTriggerDownload).mockReturnValue({
+      triggerDownload,
+    });
   });
 
   it("configures the FAQ query with network-only fetch policy", () => {
@@ -54,7 +59,7 @@ describe("useDownloadFaq", () => {
     );
 
     expect(fetchFaqDownloadUrl).toHaveBeenCalledExactlyOnceWith();
-    expect(triggerFaqDownload).toHaveBeenCalledExactlyOnceWith(
+    expect(triggerDownload).toHaveBeenCalledExactlyOnceWith(
       "https://example.com/faq.pdf?signature=abc123"
     );
   });
