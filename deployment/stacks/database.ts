@@ -236,7 +236,7 @@ export class DatabaseStack extends Stack {
     props: DeploymentConfigProperties,
     resources: alarms.CloudWatchAlarmRegistry
   ) {
-    if (props.isEphemeral) {
+    if (props.isEphemeral && !props.enableAlarms) {
       return;
     }
 

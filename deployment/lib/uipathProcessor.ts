@@ -119,7 +119,7 @@ export class UiPathProcessor extends Construct {
     props: DeploymentConfigProperties,
     resources: alarms.CloudWatchAlarmRegistry
   ) {
-    if (props.isEphemeral) {
+    if (props.isEphemeral && !props.enableAlarms) {
       return;
     }
 

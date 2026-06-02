@@ -2,6 +2,7 @@ import {
   Duration,
   aws_cloudfront,
   aws_cloudwatch,
+  aws_cloudwatch_actions,
   aws_lambda,
   aws_rds,
   aws_sqs,
@@ -124,6 +125,21 @@ function alarmDescription(props: Pick<DemosAlarmBaseProps, "stage" | "descriptio
   return `[${props.stage}] ${props.description}`;
 }
 
+function alarmActions(props: DemosAlarmBaseProps): IAlarmAction[] {
+  const notifierLambda = aws_lambda.Function.fromFunctionName(
+    props.scope,
+    `${props.id}NotifierAlarmActionFunction`,
+    `${props.project}-${props.stage}-notifier`
+  );
+
+  return [
+    new aws_cloudwatch_actions.LambdaAction(notifierLambda, {
+      useUniquePermissionId: true,
+    }),
+    ...(props.alarmActions ?? []),
+  ];
+}
+
 export function createMetricAlarm(props: DemosMetricAlarmProps): aws_cloudwatch.Alarm {
   const alarm = new aws_cloudwatch.Alarm(props.scope, props.id, {
     alarmName: alarmName(props),
@@ -136,9 +152,9 @@ export function createMetricAlarm(props: DemosMetricAlarmProps): aws_cloudwatch.
     treatMissingData: props.treatMissingData ?? aws_cloudwatch.TreatMissingData.NOT_BREACHING,
   });
 
-  if (props.alarmActions) {
-    alarm.addAlarmAction(...props.alarmActions);
-  }
+  const actions = alarmActions(props);
+  alarm.addAlarmAction(...actions);
+  alarm.addOkAction(...actions);
 
   return alarm;
 }
@@ -238,9 +254,9 @@ export function createAnomalyAlarm(
     stdDevs: props.stdDevs,
   });
 
-  if (props.alarmActions) {
-    alarm.addAlarmAction(...props.alarmActions);
-  }
+  const actions = alarmActions(props);
+  alarm.addAlarmAction(...actions);
+  alarm.addOkAction(...actions);
 
   return alarm;
 }
