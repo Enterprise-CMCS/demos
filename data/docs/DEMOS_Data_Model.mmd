@@ -744,7 +744,7 @@ erDiagram
     uuid reference_id PK, FK "FK148: (reference_id, reference_agreement_id) ∈ reference_configuration.(reference_id, reference_agreement_id) ON DELETE RESTRICT ON UPDATE NO ACTION"
     uuid reference_agreement_id PK, FK "FK148: (reference_id, reference_agreement_id) ∈ reference_configuration.(reference_id, reference_agreement_id) ON DELETE RESTRICT ON UPDATE NO ACTION"
     uuid user_id PK, FK "FK142: user_id ∈ users.id"
-    timestamptz acceptance_timestamp
+    timestamptz acceptance_timestamp PK
   }
 
   reference_configuration:::dataTable {
