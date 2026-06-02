@@ -43,7 +43,7 @@ export const documentSchema = gql`
 
   type Query {
     document(id: ID!): Document! @auth(requires: ["Access CMS Query"])
-    documentExists(documentId: ID!): Boolean! @auth(requires: ["Access CMS Query"])
+    documentExists(documentId: ID!): Boolean!
   }
 `;
 
