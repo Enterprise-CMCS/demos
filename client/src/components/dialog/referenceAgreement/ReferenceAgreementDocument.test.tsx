@@ -1,17 +1,17 @@
 import React from "react";
-import { ReferenceAgreement } from "components/table/tables/ReferencesTable";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { ReferenceAgreementDocument } from "./ReferenceAgreementDocument";
 import { useDownloadReference } from "hooks/useDownloadReference";
+import { ReferenceAgreement } from "demos-server";
 describe("ReferenceAgreementDocument", () => {
   vi.mock("hooks/useDownloadReference", () => ({
     useDownloadReference: vi.fn(),
   }));
 
-  const mockAgreement: ReferenceAgreement = {
+  const mockAgreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt"> = {
     id: "agreement-456",
     name: "Agreement abc",
-    createdAt: "2024-01-01",
+    createdAt: new Date("2024-01-01"),
   };
   const downloadReferenceAgreement = vi.fn();
 
@@ -27,7 +27,7 @@ describe("ReferenceAgreementDocument", () => {
     render(<ReferenceAgreementDocument agreement={mockAgreement} />);
 
     expect(screen.getByText(mockAgreement.name)).toBeInTheDocument();
-    expect(screen.getByText(mockAgreement.createdAt)).toBeInTheDocument();
+    expect(screen.getByText("01/01/2024")).toBeInTheDocument();
   });
 
   it("calls downloadReferenceAgreement when the document is clicked", () => {

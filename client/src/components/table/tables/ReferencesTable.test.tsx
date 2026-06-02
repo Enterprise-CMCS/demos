@@ -5,8 +5,14 @@ import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { ToastProvider } from "components/toast";
 import { useDownloadReference } from "hooks/useDownloadReference";
+import { Reference, ReferenceAgreement, Tag } from "demos-server";
 
-const getReferencesQueryMock: MockedResponse[] = [
+const getReferencesQueryMock: MockedResponse<{
+  references: (Pick<Reference, "id" | "name" | "description" | "updatedAt"> & {
+    agreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt"> | null;
+    demonstrationTypes: Pick<Tag, "tagName">[];
+  })[];
+}>[] = [
   {
     request: {
       query: GET_REFERENCES_QUERY,
@@ -21,18 +27,23 @@ const getReferencesQueryMock: MockedResponse[] = [
             agreement: {
               id: "agreement1",
               name: "Reference Agreement 1",
-              createdAt: "2024-01-01",
+              createdAt: new Date("2024-01-01"),
             },
-            demonstrationTypes: ["Type A", "Type B"],
-            updatedAt: "2024-01-01",
+            demonstrationTypes: [
+              {
+                tagName: "Type A",
+              },
+              { tagName: "Type B" },
+            ],
+            updatedAt: new Date("2024-01-01"),
           },
           {
             id: "ref2",
             name: "Reference Document 2",
             description: "Description for Reference Document 2",
             agreement: null,
-            demonstrationTypes: ["Type C"],
-            updatedAt: "2024-01-04",
+            demonstrationTypes: [{ tagName: "Type C" }],
+            updatedAt: new Date("2024-01-04"),
           },
         ],
       },
@@ -84,11 +95,11 @@ describe("ReferencesTable", () => {
       expect(screen.getByText("Reference Document 1")).toBeInTheDocument();
       expect(screen.getByText("Description for Reference Document 1")).toBeInTheDocument();
       expect(screen.getByText("Type A, Type B")).toBeInTheDocument();
-      expect(screen.getByText("2024-01-01")).toBeInTheDocument();
+      expect(screen.getByText("01/01/2024")).toBeInTheDocument();
       expect(screen.getByText("Reference Document 2")).toBeInTheDocument();
       expect(screen.getByText("Description for Reference Document 2")).toBeInTheDocument();
       expect(screen.getByText("Type C")).toBeInTheDocument();
-      expect(screen.getByText("2024-01-04")).toBeInTheDocument();
+      expect(screen.getByText("01/04/2024")).toBeInTheDocument();
     });
   });
 

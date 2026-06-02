@@ -6,7 +6,7 @@ import { tw } from "tags/tw";
 import { Checkbox } from "components/input";
 import { useDownloadReference } from "hooks/useDownloadReference";
 import { ReferenceAgreementDocument } from "./ReferenceAgreementDocument";
-import { Reference, ReferenceAgreement } from "components/table/tables/ReferencesTable";
+import { Reference, ReferenceAgreement } from "demos-server";
 
 const STYLES = {
   termsCheckbox: tw`flex items-center p-1 cursor-pointer`,
@@ -15,7 +15,9 @@ const STYLES = {
 export const ReferenceAgreementDialog = ({
   reference,
 }: {
-  reference: Pick<Reference, "id"> & { agreement: ReferenceAgreement };
+  reference: Pick<Reference, "id"> & {
+    agreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt">;
+  };
 }) => {
   const { closeDialog } = useDialog();
   const [termsAccepted, setTermsAccepted] = React.useState(false);
@@ -32,12 +34,13 @@ export const ReferenceAgreementDialog = ({
         <Button
           disabled={!termsAccepted}
           name={"button-download-reference"}
-          onClick={() =>
+          onClick={() => {
             downloadReference({
               id: reference.id,
               acceptedAgreementId: reference.agreement.id,
-            })
-          }
+            });
+            closeDialog();
+          }}
         >
           Download
         </Button>

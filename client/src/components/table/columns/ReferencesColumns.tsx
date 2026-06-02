@@ -5,13 +5,19 @@ import { highlightCell } from "components/table/KeywordSearch";
 import { SecondaryButton } from "components/button";
 import { useDialog } from "components/dialog/DialogContext";
 import { useDownloadReference } from "hooks/useDownloadReference";
-import { Reference } from "../tables/ReferencesTable";
+import { Reference, ReferenceAgreement, Tag } from "demos-server";
+import { formatDate } from "util/formatDate";
 
 export function ReferencesColumns() {
   const { showReferenceAgreementDialog } = useDialog();
 
   const { downloadReference } = useDownloadReference();
-  const columnHelper = createColumnHelper<Reference>();
+  const columnHelper = createColumnHelper<
+    Pick<Reference, "id" | "name" | "description" | "updatedAt"> & {
+      agreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt"> | null;
+      demonstrationTypes: Pick<Tag, "tagName">[];
+    }
+  >();
 
   return [
     columnHelper.accessor("name", {
@@ -21,7 +27,11 @@ export function ReferencesColumns() {
     }),
     columnHelper.accessor("demonstrationTypes", {
       header: "Demo Type",
-      cell: (cell) => cell.getValue().join(", "),
+      cell: (cell) =>
+        cell
+          .getValue()
+          .map((tag) => tag.tagName)
+          .join(", "),
       enableColumnFilter: false,
     }),
     columnHelper.accessor("description", {
@@ -31,7 +41,7 @@ export function ReferencesColumns() {
     }),
     columnHelper.accessor("updatedAt", {
       header: "Last Updated",
-      cell: highlightCell,
+      cell: (cell) => formatDate(cell.getValue()),
       enableColumnFilter: false,
     }),
     columnHelper.display({
@@ -53,7 +63,7 @@ export function ReferencesColumns() {
                     agreement: row.original.agreement,
                   });
                 } else {
-                  downloadReference(row.original);
+                  downloadReference({ id: row.original.id, acceptedAgreementId: null });
                 }
               }}
             >

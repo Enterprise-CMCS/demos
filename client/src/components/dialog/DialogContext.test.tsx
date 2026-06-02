@@ -6,10 +6,9 @@ import { DialogProvider, useDialog } from "./DialogContext";
 import { ExistingContactType } from "./ManageContactsDialog";
 import { DocumentDialogFields } from "./document/DocumentDialog";
 import { DeclareIncompleteForm } from "./DeclareIncompleteDialog";
-import { TagName } from "demos-server";
+import { Reference, ReferenceAgreement, TagName } from "demos-server";
 import { DemonstrationType } from "./DemonstrationTypes/EditDemonstrationTypeDialog";
 import { formatDateForServer } from "util/formatDate";
-import { Reference, ReferenceAgreement } from "components/table/tables/ReferencesTable";
 
 const MockDialog = ({ onClose }: { onClose: () => void }) => (
   <div data-testid="mock-dialog">
@@ -355,7 +354,7 @@ vi.mock("./references/CompletenessDocumentUploadDialog", () => ({
 }));
 
 vi.mock("./referenceAgreement/ReferenceAgreementDialog", () => ({
-  ReferenceAgreementDialog: ({ reference }: { reference: Reference; onClose: () => void }) => (
+  ReferenceAgreementDialog: ({ reference }: { reference: Reference }) => (
     <div data-testid="reference-agreement-dialog">Reference Agreement Dialog {reference.id}</div>
   ),
 }));
@@ -554,7 +553,7 @@ const TestConsumer: React.FC = () => {
         data-testid="open-reference-agreement-btn"
         onClick={() =>
           showReferenceAgreementDialog({ id: "ref-1" } as Pick<Reference, "id"> & {
-            agreement: ReferenceAgreement;
+            agreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt">;
           })
         }
       >
