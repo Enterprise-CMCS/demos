@@ -61,7 +61,12 @@ export type {
   UpdateExtensionInput,
 } from "./model/extension/extensionSchema.js";
 
-export type { Document, UpdateDocumentInput } from "./model/document/documentSchema.js";
+export type {
+  BudgetNeutralityValidationError,
+  BudgetNeutralityValidationResult,
+  Document,
+  UpdateDocumentInput,
+} from "./model/document/documentSchema.js";
 
 export type {
   DocumentPendingUpload,
@@ -122,6 +127,8 @@ export type { DeliverableAction } from "./model/deliverableAction/deliverableAct
 export type { DeliverableExtension } from "./model/deliverableExtension/deliverableExtensionSchema";
 
 export type { DeliverableComment } from "./model/publicComment/publicCommentSchema";
+
+export type { Reference, ReferenceAgreement } from "./model/reference/referenceSchema";
 
 // Alias is not enforced in TS but maintains alignment between GQL and TS
 export type NonEmptyString = string; // NOSONAR: typescript:S6564

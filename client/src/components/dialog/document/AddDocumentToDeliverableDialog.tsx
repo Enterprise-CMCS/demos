@@ -13,8 +13,11 @@ import {
 } from "components/dialog/document/DocumentDialog";
 import { useToast } from "components/toast/ToastContext";
 import { tryUploadingFileToS3 } from "./tryUploadingFileToS3";
+import { useBNValidationStatus } from "./useBNValidationStatus";
 import { useDocumentPassedVirusScan } from "./useDocumentPassedVirusScan";
 import { useUploadDocument } from "./useUploadDocument";
+
+const BN_WORKBOOK_DOCUMENT_TYPE: DocumentType = "BN Workbook";
 
 export const UPLOAD_DOCUMENT_TO_DELIVERABLE_STATE_FILES_MUTATION: TypedDocumentNode<
   {
@@ -52,10 +55,11 @@ export const UPLOAD_DOCUMENT_TO_DELIVERABLE_CMS_FILES_MUTATION: TypedDocumentNod
 
 const CMS_FILE_DEFAULT_DOCUMENT_TYPE: DocumentType = "General File";
 
-const pickCmsDocumentType = (allowed?: DocumentType[]): DocumentType => {
-  if (!allowed || allowed.length === 0) return CMS_FILE_DEFAULT_DOCUMENT_TYPE;
-  if (allowed.includes(CMS_FILE_DEFAULT_DOCUMENT_TYPE)) return CMS_FILE_DEFAULT_DOCUMENT_TYPE;
-  return allowed[0];
+const CMS_FILE_DOCUMENT_TYPES: DocumentType[] = [CMS_FILE_DEFAULT_DOCUMENT_TYPE, "BN Template"];
+
+const getCmsFileDocumentTypeSubset = (allowed: DocumentType[] = []): DocumentType[] => {
+  const subset = CMS_FILE_DOCUMENT_TYPES.filter((type) => allowed.includes(type));
+  return subset.length > 0 ? subset : [CMS_FILE_DEFAULT_DOCUMENT_TYPE];
 };
 
 interface AddDocumentToDeliverableDialogProps {
@@ -77,7 +81,11 @@ export const AddDocumentToDeliverableDialog: React.FC<AddDocumentToDeliverableDi
 }) => {
   const { showError } = useToast();
   const client = useApolloClient();
+  const effectiveDocumentTypeSubset = isCmsFile
+    ? getCmsFileDocumentTypeSubset(documentTypeSubset)
+    : documentTypeSubset;
   const { documentPassedVirusScan } = useDocumentPassedVirusScan();
+  const { waitForBNValidation } = useBNValidationStatus();
   const { uploadDocument: uploadStateDocument } = useUploadDocument(
     UPLOAD_DOCUMENT_TO_DELIVERABLE_STATE_FILES_MUTATION
   );
@@ -98,9 +106,7 @@ export const AddDocumentToDeliverableDialog: React.FC<AddDocumentToDeliverableDi
       deliverableId,
       name: dialogFields.name,
       description: dialogFields.description,
-      documentType: isCmsFile
-        ? pickCmsDocumentType(documentTypeSubset)
-        : dialogFields.documentType,
+      documentType: dialogFields.documentType,
     };
 
     const pendingUpload = isCmsFile
@@ -117,6 +123,19 @@ export const AddDocumentToDeliverableDialog: React.FC<AddDocumentToDeliverableDi
       return "virus-scan-failed";
     }
 
+    if (uploadDocumentInput.documentType === BN_WORKBOOK_DOCUMENT_TYPE) {
+      const validation = await waitForBNValidation(pendingUpload.id);
+      if (validation?.status === "Failed") {
+        const errorSummary = validation.errors.map((e) => `${e.code}: ${e.message}`).join("\n");
+        showError(
+          errorSummary
+            ? `Budget Neutrality validation failed:\n${errorSummary}`
+            : "Budget Neutrality validation failed."
+        );
+        return "bn-validation-failed";
+      }
+    }
+
     if (refetchQueries) {
       await client.refetchQueries({ include: refetchQueries });
     }
@@ -129,10 +148,9 @@ export const AddDocumentToDeliverableDialog: React.FC<AddDocumentToDeliverableDi
       onClose={onClose}
       mode="add"
       onSubmit={handleUpload}
-      documentTypeSubset={documentTypeSubset}
+      documentTypeSubset={effectiveDocumentTypeSubset}
       titleOverride="Upload Document"
-      hideDocumentType={isCmsFile}
-      canEditDocumentType={!isCmsFile && (documentTypeSubset?.length ?? 0) !== 1}
+      canEditDocumentType={(effectiveDocumentTypeSubset?.length ?? 0) !== 1}
     />
   );
 };

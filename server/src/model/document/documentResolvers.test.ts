@@ -15,6 +15,7 @@ import {
   deleteDocument,
   deleteDocuments,
   documentResolvers,
+  resolveBudgetNeutralityValidation,
   resolveHasPendingUIPathResult,
 } from "./documentResolvers";
 import { getDocument } from "./documentData";
@@ -75,6 +76,9 @@ describe("documentResolvers", () => {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
     uiPathResult: {
       findFirst: vi.fn(),
+    },
+    budgetNeutralityWorkbook: {
+      findUnique: vi.fn(),
     },
   };
 
@@ -356,6 +360,54 @@ describe("documentResolvers", () => {
     });
   });
 
+  describe("resolveBudgetNeutralityValidation", () => {
+    it("returns null when no budget_neutrality_workbook row exists for the document", async () => {
+      vi.mocked(mockPrismaClient.budgetNeutralityWorkbook.findUnique).mockResolvedValue(null);
+
+      const result = await resolveBudgetNeutralityValidation(mockDocument);
+
+      expect(mockPrismaClient.budgetNeutralityWorkbook.findUnique).toHaveBeenCalledExactlyOnceWith({
+        where: { id: testDocumentId },
+        select: { validationStatusId: true, validationData: true },
+      });
+      expect(result).toBeNull();
+    });
+
+    it("returns the mapped result with an empty errors array when validation succeeded", async () => {
+      vi.mocked(mockPrismaClient.budgetNeutralityWorkbook.findUnique).mockResolvedValue({
+        validationStatusId: "Succeeded",
+        validationData: [],
+      } as any);
+
+      const result = await resolveBudgetNeutralityValidation(mockDocument);
+
+      expect(result).toEqual({ status: "Succeeded", errors: [] });
+    });
+
+    it("returns the mapped result with the errors array when validation failed", async () => {
+      const errors = [
+        { code: "RULE_1", message: "Cell A1 must not be empty." },
+        { code: "RULE_2", message: "Total does not match sum of rows." },
+      ];
+      vi.mocked(mockPrismaClient.budgetNeutralityWorkbook.findUnique).mockResolvedValue({
+        validationStatusId: "Failed",
+        validationData: errors,
+      } as any);
+
+      const result = await resolveBudgetNeutralityValidation(mockDocument);
+
+      expect(result).toEqual({ status: "Failed", errors });
+    });
+
+    it("throws when the database query fails", async () => {
+      vi.mocked(mockPrismaClient.budgetNeutralityWorkbook.findUnique).mockRejectedValue(
+        new Error("DB error")
+      );
+
+      await expect(resolveBudgetNeutralityValidation(mockDocument)).rejects.toThrow("DB error");
+    });
+  });
+
   describe("resolver exports", () => {
     it("should export Mutation resolvers", () => {
       expect(documentResolvers.Mutation).toHaveProperty("updateDocument");
@@ -367,6 +419,7 @@ describe("documentResolvers", () => {
     it("should export Document field resolvers", () => {
       expect(documentResolvers.Document).toHaveProperty("owner");
       expect(documentResolvers.Document).toHaveProperty("application");
+      expect(documentResolvers.Document).toHaveProperty("budgetNeutralityValidation");
     });
   });
 });

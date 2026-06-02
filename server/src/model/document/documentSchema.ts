@@ -2,6 +2,7 @@ import { gql } from "graphql-tag";
 
 import {
   Application,
+  BudgetNeutralityValidationStatus,
   Deliverable,
   DocumentType,
   NonEmptyString,
@@ -10,6 +11,16 @@ import {
 } from "../../types.js";
 
 export const documentSchema = gql`
+  type BudgetNeutralityValidationError {
+    code: String!
+    message: String!
+  }
+
+  type BudgetNeutralityValidationResult {
+    status: BudgetNeutralityValidationStatus!
+    errors: [BudgetNeutralityValidationError!]!
+  }
+
   type Document {
     id: ID!
     name: NonEmptyString!
@@ -23,6 +34,7 @@ export const documentSchema = gql`
     deliverable: Deliverable @auth(requires: ["Access CMS Field"])
     isPartOfDeliverableSubmission: Boolean!
     hasPendingUIPathResult: Boolean! @auth(requires: ["Access CMS Field"])
+    budgetNeutralityValidation: BudgetNeutralityValidationResult
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -42,10 +54,20 @@ export const documentSchema = gql`
   }
 
   type Query {
-    document(id: ID!): Document! @auth(requires: ["Access CMS Query"])
-    documentExists(documentId: ID!): Boolean! @auth(requires: ["Access CMS Query"])
+    document(id: ID!): Document!
+    documentExists(documentId: ID!): Boolean!
   }
 `;
+
+export interface BudgetNeutralityValidationError {
+  code: string;
+  message: string;
+}
+
+export interface BudgetNeutralityValidationResult {
+  status: BudgetNeutralityValidationStatus;
+  errors: BudgetNeutralityValidationError[];
+}
 
 export interface Document {
   id: string;
@@ -62,6 +84,7 @@ export interface Document {
   updatedAt: Date;
   presignedDownloadUrl: string;
   hasPendingUIPathResult: boolean;
+  budgetNeutralityValidation?: BudgetNeutralityValidationResult;
 }
 
 export interface UpdateDocumentInput {
