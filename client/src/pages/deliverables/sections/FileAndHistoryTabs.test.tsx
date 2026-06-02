@@ -11,6 +11,8 @@ import { TestProvider } from "test-utils/TestProvider";
 import { FileAndHistoryTabs } from "./FileAndHistoryTabs";
 import {
   STATE_FILES_ADD_BUTTON_NAME,
+  STATE_FILES_DELETE_BUTTON_NAME,
+  STATE_FILES_EDIT_BUTTON_NAME,
   STATE_FILES_TAB_NAME,
 } from "./StateFilesTab";
 import { CMS_FILES_ADD_BUTTON_NAME, CMS_FILES_TAB_NAME } from "./CmsFilesTab";
@@ -276,6 +278,18 @@ describe("FileAndHistoryTabs", () => {
 
       expect(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME)).toBeInTheDocument();
       expect(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME)).not.toBeDisabled();
+    });
+
+    it("disables State Files actions after the deliverable is submitted", async () => {
+      const user = userEvent.setup();
+      setup({ status: "Submitted" }, "demos-state-user");
+
+      expect(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME)).toBeDisabled();
+
+      await user.click(screen.getByTestId("select-row-state-file-1"));
+
+      expect(screen.getByTestId(STATE_FILES_EDIT_BUTTON_NAME)).toBeDisabled();
+      expect(screen.getByTestId(STATE_FILES_DELETE_BUTTON_NAME)).toBeDisabled();
     });
   });
 

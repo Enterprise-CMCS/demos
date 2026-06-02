@@ -106,6 +106,8 @@ export const FileAndHistoryTabs: React.FC<{
   const refetchAfterFileChange = [DELIVERABLE_DETAILS_QUERY];
 
   const userPersonType = currentUser?.person.personType;
+  const isStateUser = userPersonType === "demos-state-user";
+  const isPreSubmission = deliverable.status === "Upcoming" || deliverable.status === "Past Due";
   const isCompleteReviewAllowedForUser =
     !!userPersonType && COMPLETE_REVIEW_PERSON_TYPES.has(userPersonType);
   const canRequestResubmission =
@@ -114,7 +116,9 @@ export const FileAndHistoryTabs: React.FC<{
     !isCompleteReviewAllowedForUser ||
     !canCompleteReview(deliverable.status, deliverable.extensionRequests);
   const canManageStateFiles =
-    !!userPersonType && STATE_FILE_MANAGER_PERSON_TYPES.has(userPersonType);
+    !!userPersonType &&
+    STATE_FILE_MANAGER_PERSON_TYPES.has(userPersonType) &&
+    (!isStateUser || isPreSubmission);
   const canManageCmsFiles =
     !!userPersonType && CMS_FILE_MANAGER_PERSON_TYPES.has(userPersonType);
 

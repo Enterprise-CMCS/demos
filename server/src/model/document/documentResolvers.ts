@@ -14,12 +14,13 @@ import { getDocument } from "./documentData";
 
 export async function updateDocument(
   parent: unknown,
-  { id, input }: { id: string; input: UpdateDocumentInput }
+  { id, input }: { id: string; input: UpdateDocumentInput },
+  context: GraphQLContext
 ): Promise<PrismaDocument> {
   checkOptionalNotNullFields(["name", "description", "documentType"], input);
   try {
     return await prisma().$transaction(async (tx) => {
-      return await updateDocumentQuery(tx, id, input);
+      return await updateDocumentQuery(tx, id, input, context.user);
     });
   } catch (error) {
     handlePrismaError(error);
@@ -28,13 +29,14 @@ export async function updateDocument(
 
 export async function deleteDocument(
   parent: unknown,
-  { id }: { id: string }
+  { id }: { id: string },
+  context: GraphQLContext
 ): Promise<PrismaDocument> {
   const s3Adapter = getS3Adapter();
 
   try {
     return prisma().$transaction(async (tx) => {
-      return handleDeleteDocument(tx, s3Adapter, id);
+      return handleDeleteDocument(tx, s3Adapter, id, context.user);
     });
   } catch (error) {
     handlePrismaError(error);
@@ -43,7 +45,8 @@ export async function deleteDocument(
 
 export async function deleteDocuments(
   parent: unknown,
-  { ids }: { ids: string[] }
+  { ids }: { ids: string[] },
+  context: GraphQLContext
 ): Promise<number> {
   const s3Adapter = getS3Adapter();
 
@@ -51,7 +54,7 @@ export async function deleteDocuments(
     return prisma().$transaction(async (tx) => {
       let count = 0;
       for (const documentId of ids) {
-        await handleDeleteDocument(tx, s3Adapter, documentId);
+        await handleDeleteDocument(tx, s3Adapter, documentId, context.user);
         count++;
       }
       return count;

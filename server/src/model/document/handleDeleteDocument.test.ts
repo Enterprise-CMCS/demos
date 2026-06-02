@@ -15,11 +15,13 @@ vi.mock("./validateDocumentCanBeDeleted", () => ({
 describe("handleDeleteDocument", () => {
   const transactionMocks = {
     document: {
+      findUnique: vi.fn(),
       delete: vi.fn(),
     },
   };
   const mockTransaction = {
     document: {
+      findUnique: transactionMocks.document.findUnique,
       delete: transactionMocks.document.delete,
     },
   } as any;
@@ -42,10 +44,16 @@ describe("handleDeleteDocument", () => {
     phaseId: "Concept",
     createdAt: new Date("2025-01-01T00:00:00.000Z"),
     updatedAt: new Date("2025-01-02T00:00:00.000Z"),
+    deliverableId: null,
+    deliverableTypeId: null,
+    deliverableIsCmsAttachedFile: null,
+    deliverableSubmissionActionId: null,
+    deliverableSubmissionActionTypeId: null,
   };
 
   beforeEach(() => {
     vi.resetAllMocks();
+    transactionMocks.document.findUnique.mockResolvedValue(mockDeletedDocument);
   });
 
   it("should validate that the document can be deleted before proceeding", async () => {
@@ -53,7 +61,10 @@ describe("handleDeleteDocument", () => {
 
     await handleDeleteDocument(mockTransaction, mockS3Adapter, testDocumentId);
 
-    expect(validateDocumentCanBeDeleted).toHaveBeenCalledExactlyOnceWith(mockDeletedDocument);
+    expect(validateDocumentCanBeDeleted).toHaveBeenCalledExactlyOnceWith(
+      mockDeletedDocument,
+      undefined
+    );
     expect(deleteDocumentById).toHaveBeenCalledExactlyOnceWith(mockTransaction, testDocumentId);
     expect(mockS3Adapter.moveDocumentFromCleanToDeleted).toHaveBeenCalledExactlyOnceWith(
       `${testApplicationId}/${testDocumentId}`

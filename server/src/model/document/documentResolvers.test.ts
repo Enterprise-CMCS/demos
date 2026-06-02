@@ -261,10 +261,14 @@ describe("documentResolvers", () => {
     it("should update document metadata", async () => {
       vi.mocked(updateDocument).mockResolvedValue(mockDocument);
 
-      const result = await updateDocumentResolver(undefined, {
-        id: testDocumentId,
-        input: mockUpdateInput,
-      });
+      const result = await updateDocumentResolver(
+        undefined,
+        {
+          id: testDocumentId,
+          input: mockUpdateInput,
+        },
+        mockContext
+      );
 
       expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(
         ["name", "description", "documentType"],
@@ -274,7 +278,8 @@ describe("documentResolvers", () => {
       expect(updateDocument).toHaveBeenCalledExactlyOnceWith(
         mockTransaction,
         testDocumentId,
-        mockUpdateInput
+        mockUpdateInput,
+        mockContext.user
       );
       expect(result).toEqual(mockDocument);
     });
@@ -284,13 +289,14 @@ describe("documentResolvers", () => {
     it("should delete document and move to deleted bucket", async () => {
       vi.mocked(handleDeleteDocument).mockResolvedValue(mockDocument);
 
-      const result = await deleteDocument(undefined, { id: testDocumentId });
+      const result = await deleteDocument(undefined, { id: testDocumentId }, mockContext);
 
       expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
       expect(handleDeleteDocument).toHaveBeenCalledExactlyOnceWith(
         mockTransaction,
         mockS3Adapter,
-        testDocumentId
+        testDocumentId,
+        mockContext.user
       );
       expect(result).toEqual(mockDocument);
     });
@@ -301,18 +307,33 @@ describe("documentResolvers", () => {
 
     it("should delete multiple documents and return count", async () => {
       vi.mocked(handleDeleteDocument).mockResolvedValue(mockDocument);
-      const result = await deleteDocuments(undefined, { ids: testDocumentIds });
+      const result = await deleteDocuments(undefined, { ids: testDocumentIds }, mockContext);
 
       expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
       expect(handleDeleteDocument).toHaveBeenCalledTimes(3);
-      expect(handleDeleteDocument).toHaveBeenCalledWith(mockTransaction, mockS3Adapter, "doc-1");
-      expect(handleDeleteDocument).toHaveBeenCalledWith(mockTransaction, mockS3Adapter, "doc-2");
-      expect(handleDeleteDocument).toHaveBeenCalledWith(mockTransaction, mockS3Adapter, "doc-3");
+      expect(handleDeleteDocument).toHaveBeenCalledWith(
+        mockTransaction,
+        mockS3Adapter,
+        "doc-1",
+        mockContext.user
+      );
+      expect(handleDeleteDocument).toHaveBeenCalledWith(
+        mockTransaction,
+        mockS3Adapter,
+        "doc-2",
+        mockContext.user
+      );
+      expect(handleDeleteDocument).toHaveBeenCalledWith(
+        mockTransaction,
+        mockS3Adapter,
+        "doc-3",
+        mockContext.user
+      );
       expect(result).toBe(3);
     });
 
     it("should return 0 for empty array", async () => {
-      const result = await deleteDocuments(undefined, { ids: [] });
+      const result = await deleteDocuments(undefined, { ids: [] }, mockContext);
 
       expect(handleDeleteDocument).not.toHaveBeenCalled();
       expect(result).toBe(0);
