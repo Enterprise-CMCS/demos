@@ -15,7 +15,12 @@ import {
   STATE_FILES_EDIT_BUTTON_NAME,
   STATE_FILES_TAB_NAME,
 } from "./StateFilesTab";
-import { CMS_FILES_ADD_BUTTON_NAME, CMS_FILES_TAB_NAME } from "./CmsFilesTab";
+import {
+  CMS_FILES_ADD_BUTTON_NAME,
+  CMS_FILES_DELETE_BUTTON_NAME,
+  CMS_FILES_EDIT_BUTTON_NAME,
+  CMS_FILES_TAB_NAME,
+} from "./CmsFilesTab";
 import { HISTORY_TAB_NAME } from "./HistoryTab";
 
 const mockShowRequestResubmissionDeliverableDialog = vi.fn();
@@ -271,6 +276,9 @@ describe("FileAndHistoryTabs", () => {
       await user.click(screen.getByTestId("button-cms_files"));
 
       expect(screen.queryByTestId(CMS_FILES_ADD_BUTTON_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(CMS_FILES_EDIT_BUTTON_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(CMS_FILES_DELETE_BUTTON_NAME)).not.toBeInTheDocument();
+      expect(screen.queryByTestId("select-row-cms-file-1")).not.toBeInTheDocument();
     });
 
     it("still allows state users to manage the State Files tab", () => {
