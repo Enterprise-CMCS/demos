@@ -45,7 +45,7 @@ export const ReferenceAgreementDialog = ({
     >
       <>
         <p data-testid="reference-agreement-instructions">
-          Void the demonstration type and then accept and download the technical specifications of
+          View the demonstration type and then accept and download the technical specifications of
           the National Stewards Terms and Conditions &quot;Point and Click&quot; Agreement below
         </p>
         <ReferenceAgreementDocument agreement={reference.agreement} />

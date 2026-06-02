@@ -41,7 +41,7 @@ describe("ReferenceAgreementDialog", () => {
     expect(screen.getByText("Point and Click Agreement")).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Void the demonstration type and then accept and download the technical specifications of the National Stewards Terms and Conditions "Point and Click" Agreement below'
+        'View the demonstration type and then accept and download the technical specifications of the National Stewards Terms and Conditions "Point and Click" Agreement below'
       )
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "button-download-reference" })).toBeInTheDocument();
