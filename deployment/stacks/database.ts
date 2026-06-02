@@ -46,6 +46,7 @@ export class DatabaseStack extends Stack {
         props.iamPermissionsBoundaryArn == null
           ? undefined: aws_iam.ManagedPolicy.fromManagedPolicyArn(this, "iamPermissionsBoundary", props.iamPermissionsBoundaryArn),
     };
+    const alarmResources = new alarms.CloudWatchAlarmRegistry();
 
     const rdsSecurityGroup = securityGroup.create({
       ...commonProps,
@@ -129,6 +130,7 @@ export class DatabaseStack extends Stack {
         monitoringInterval:  ["prod", "impl"].includes(commonProps.stage) ?  Duration.seconds(60) : undefined
       }
     );
+    alarmResources.registerDatabaseInstance("rds", dbInstance);
 
     const cfnDbInstance = dbInstance.node.defaultChild as aws_rds.CfnDBInstance;
     cfnDbInstance.cfnOptions.metadata = {
@@ -149,114 +151,7 @@ export class DatabaseStack extends Stack {
 
     Aspects.of(this).add(new SuppressCheckovLogRetentionPolicy());
 
-    const rdsAlarmPeriod = Duration.minutes(5);
-    const gibibyte = 1024 * 1024 * 1024;
-    const mebibyte = 1024 * 1024;
-
-    alarms.createMetricAlarm({
-      ...commonProps,
-      id: "RdsFreeStorageSpaceAlarm",
-      name: "rds-free-storage-space-low",
-      description: "RDS free storage is below 5 GiB.",
-      metric: dbInstance.metricFreeStorageSpace({
-        period: rdsAlarmPeriod,
-        statistic: "Average",
-      }),
-      threshold: 5 * gibibyte,
-      comparisonOperator: aws_cloudwatch.ComparisonOperator.LESS_THAN_THRESHOLD,
-      evaluationPeriods: 2,
-      datapointsToAlarm: 2,
-    });
-
-    alarms.createMetricAlarm({
-      ...commonProps,
-      id: "RdsCpuUtilizationAlarm",
-      name: "rds-cpu-utilization-high",
-      description: "RDS CPU utilization is above 80% for 15 minutes.",
-      metric: dbInstance.metricCPUUtilization({
-        period: rdsAlarmPeriod,
-        statistic: "Average",
-      }),
-      threshold: 80,
-      comparisonOperator: aws_cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
-      evaluationPeriods: 3,
-      datapointsToAlarm: 3,
-    });
-
-    alarms.createMetricAlarm({
-      ...commonProps,
-      id: "RdsDatabaseConnectionsAlarm",
-      name: "rds-database-connections-high",
-      description: "RDS database connections are above the initial safe threshold.",
-      metric: dbInstance.metricDatabaseConnections({
-        period: rdsAlarmPeriod,
-        statistic: "Average",
-      }),
-      threshold: 80,
-      comparisonOperator: aws_cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
-      evaluationPeriods: 2,
-      datapointsToAlarm: 2,
-    });
-
-    alarms.createMetricAlarm({
-      ...commonProps,
-      id: "RdsFreeableMemoryAlarm",
-      name: "rds-freeable-memory-low",
-      description: "RDS freeable memory is below 128 MiB.",
-      metric: dbInstance.metricFreeableMemory({
-        period: rdsAlarmPeriod,
-        statistic: "Average",
-      }),
-      threshold: 128 * mebibyte,
-      comparisonOperator: aws_cloudwatch.ComparisonOperator.LESS_THAN_THRESHOLD,
-      evaluationPeriods: 2,
-      datapointsToAlarm: 2,
-    });
-
-    alarms.createMetricAlarm({
-      ...commonProps,
-      id: "RdsReadLatencyAlarm",
-      name: "rds-read-latency-high",
-      description: "RDS read latency is above 100 ms.",
-      metric: dbInstance.metric("ReadLatency", {
-        period: rdsAlarmPeriod,
-        statistic: "Average",
-      }),
-      threshold: 0.1,
-      comparisonOperator: aws_cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
-      evaluationPeriods: 2,
-      datapointsToAlarm: 2,
-    });
-
-    alarms.createMetricAlarm({
-      ...commonProps,
-      id: "RdsWriteLatencyAlarm",
-      name: "rds-write-latency-high",
-      description: "RDS write latency is above 100 ms.",
-      metric: dbInstance.metric("WriteLatency", {
-        period: rdsAlarmPeriod,
-        statistic: "Average",
-      }),
-      threshold: 0.1,
-      comparisonOperator: aws_cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
-      evaluationPeriods: 2,
-      datapointsToAlarm: 2,
-    });
-
-    alarms.createMetricAlarm({
-      ...commonProps,
-      id: "RdsDiskQueueDepthAlarm",
-      name: "rds-disk-queue-depth-high",
-      description: "RDS disk queue depth is above 5.",
-      metric: dbInstance.metric("DiskQueueDepth", {
-        period: rdsAlarmPeriod,
-        statistic: "Average",
-      }),
-      threshold: 5,
-      comparisonOperator: aws_cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
-      evaluationPeriods: 2,
-      datapointsToAlarm: 2,
-    });
+    this.setupCloudWatchAlarms(commonProps, alarmResources);
 
     const cmsCloudLogFunc = aws_lambda.Function.fromFunctionName(
       commonProps.scope,
@@ -334,6 +229,132 @@ export class DatabaseStack extends Stack {
     new CfnOutput(commonProps.scope, "dbPort", {
       value: dbInstance.instanceEndpoint.port.toString(),
       exportName: `${commonProps.project}-${commonProps.stage}-rds-port`,
+    });
+  }
+
+  private setupCloudWatchAlarms(
+    props: DeploymentConfigProperties,
+    resources: alarms.CloudWatchAlarmRegistry
+  ) {
+    if (props.isEphemeral) {
+      return;
+    }
+
+    const dbInstance = resources.databaseInstance("rds");
+    const rdsAlarmPeriod = Duration.minutes(5);
+    const gibibyte = 1024 * 1024 * 1024;
+    const mebibyte = 1024 * 1024;
+
+    alarms.createMetricAlarm({
+      ...props,
+      scope: this,
+      id: "RdsFreeStorageSpaceAlarm",
+      name: "rds-free-storage-space-low",
+      description: "RDS free storage is below 5 GiB.",
+      metric: dbInstance.metricFreeStorageSpace({
+        period: rdsAlarmPeriod,
+        statistic: "Average",
+      }),
+      threshold: 5 * gibibyte,
+      comparisonOperator: aws_cloudwatch.ComparisonOperator.LESS_THAN_THRESHOLD,
+      evaluationPeriods: 2,
+      datapointsToAlarm: 2,
+    });
+
+    alarms.createMetricAlarm({
+      ...props,
+      scope: this,
+      id: "RdsCpuUtilizationAlarm",
+      name: "rds-cpu-utilization-high",
+      description: "RDS CPU utilization is above 80% for 15 minutes.",
+      metric: dbInstance.metricCPUUtilization({
+        period: rdsAlarmPeriod,
+        statistic: "Average",
+      }),
+      threshold: 80,
+      comparisonOperator: aws_cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+      evaluationPeriods: 3,
+      datapointsToAlarm: 3,
+    });
+
+    alarms.createMetricAlarm({
+      ...props,
+      scope: this,
+      id: "RdsDatabaseConnectionsAlarm",
+      name: "rds-database-connections-high",
+      description: "RDS database connections are above the initial safe threshold.",
+      metric: dbInstance.metricDatabaseConnections({
+        period: rdsAlarmPeriod,
+        statistic: "Average",
+      }),
+      threshold: 80,
+      comparisonOperator: aws_cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+      evaluationPeriods: 2,
+      datapointsToAlarm: 2,
+    });
+
+    alarms.createMetricAlarm({
+      ...props,
+      scope: this,
+      id: "RdsFreeableMemoryAlarm",
+      name: "rds-freeable-memory-low",
+      description: "RDS freeable memory is below 128 MiB.",
+      metric: dbInstance.metricFreeableMemory({
+        period: rdsAlarmPeriod,
+        statistic: "Average",
+      }),
+      threshold: 128 * mebibyte,
+      comparisonOperator: aws_cloudwatch.ComparisonOperator.LESS_THAN_THRESHOLD,
+      evaluationPeriods: 2,
+      datapointsToAlarm: 2,
+    });
+
+    alarms.createMetricAlarm({
+      ...props,
+      scope: this,
+      id: "RdsReadLatencyAlarm",
+      name: "rds-read-latency-high",
+      description: "RDS read latency is above 100 ms.",
+      metric: dbInstance.metric("ReadLatency", {
+        period: rdsAlarmPeriod,
+        statistic: "Average",
+      }),
+      threshold: 0.1,
+      comparisonOperator: aws_cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+      evaluationPeriods: 2,
+      datapointsToAlarm: 2,
+    });
+
+    alarms.createMetricAlarm({
+      ...props,
+      scope: this,
+      id: "RdsWriteLatencyAlarm",
+      name: "rds-write-latency-high",
+      description: "RDS write latency is above 100 ms.",
+      metric: dbInstance.metric("WriteLatency", {
+        period: rdsAlarmPeriod,
+        statistic: "Average",
+      }),
+      threshold: 0.1,
+      comparisonOperator: aws_cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+      evaluationPeriods: 2,
+      datapointsToAlarm: 2,
+    });
+
+    alarms.createMetricAlarm({
+      ...props,
+      scope: this,
+      id: "RdsDiskQueueDepthAlarm",
+      name: "rds-disk-queue-depth-high",
+      description: "RDS disk queue depth is above 5.",
+      metric: dbInstance.metric("DiskQueueDepth", {
+        period: rdsAlarmPeriod,
+        statistic: "Average",
+      }),
+      threshold: 5,
+      comparisonOperator: aws_cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+      evaluationPeriods: 2,
+      datapointsToAlarm: 2,
     });
   }
 }

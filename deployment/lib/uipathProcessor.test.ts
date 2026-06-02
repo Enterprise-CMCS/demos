@@ -107,4 +107,30 @@ describe("UiPathProcessor construct", () => {
       0
     );
   });
+
+  it("does not synthesize alarms when ephemeral", () => {
+    const app = new App({
+      context: {
+        [BUNDLING_STACKS]: [],
+      },
+    });
+
+    const stack = new Stack(app, "uiPathProcessorTest", {
+      env: { account: "0123456789", region: "us-east-1" },
+    });
+
+    new UiPathProcessor(stack, "UiPathProcessor", {
+      ...mockProps,
+      isEphemeral: true,
+      removalPolicy: RemovalPolicy.DESTROY,
+      documentsBucket: new Bucket(stack, "UiPathDocumentsBucket"),
+      kmsKey: new Key(stack, "UiPathKmsKey"),
+    });
+
+    const template = Template.fromStack(stack);
+
+    template.resourceCountIs("AWS::SQS::Queue", 2);
+    template.resourceCountIs("AWS::Lambda::Function", 1);
+    template.resourceCountIs("AWS::CloudWatch::Alarm", 0);
+  });
 });

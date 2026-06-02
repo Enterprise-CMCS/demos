@@ -312,5 +312,6 @@ describe("File Upload Stack", () => {
       },
       0,
     );
+    template.resourceCountIs("AWS::CloudWatch::Alarm", 0);
   });
 });

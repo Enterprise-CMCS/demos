@@ -250,6 +250,28 @@ describe("UI Stack", () => {
     });
   });
 
+  test("should not create alarms when ephemeral", () => {
+    const app = new App();
+
+    const uiStack = new UiStack(app, "mockUi", {
+      ...mockCommonProps,
+      isEphemeral: true,
+      env: {
+        region: "us-east-1",
+        account: "0123456789",
+      },
+      cognitoParamNames: {
+        authority: "authority",
+        clientId: "clientId",
+      },
+    });
+
+    const template = Template.fromStack(uiStack);
+
+    template.resourceCountIs("AWS::CloudFront::Distribution", 1);
+    template.resourceCountIs("AWS::CloudWatch::Alarm", 0);
+  });
+
   test("should include header passthrough when a zapHeaderValue exists", () => {
     const app = new App();
 

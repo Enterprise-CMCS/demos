@@ -152,6 +152,43 @@ describe("Database Stack", () => {
     });
   });
 
+  test("should not create alarms when ephemeral", () => {
+    const app = new App();
+    const mockCoreStack = new Stack(app, "mockCore");
+
+    const mockPrivateSubnets = ["subnet-private1", "subnet-private2"];
+    const mockVpc = aws_ec2.Vpc.fromVpcAttributes(mockCoreStack, "mockVpc", {
+      vpcId: "vpc-123456789",
+      availabilityZones: ["us-east-1a", "us-east-1b"],
+      publicSubnetIds: ["subnet-public1", "subnet-public2"],
+      privateSubnetIds: mockPrivateSubnets,
+    });
+
+    const mockSecurityGroupId = "sg-1234abcd";
+    const mockSecurityGroup = aws_ec2.SecurityGroup.fromSecurityGroupId(
+      mockCoreStack,
+      "mockSecurityGroup",
+      mockSecurityGroupId,
+    );
+
+    const databaseStack = new DatabaseStack(app, "mockDatabase", {
+      ...mockCommonProps,
+      isEphemeral: true,
+      env: {
+        region: "us-east-1",
+        account: "0123456789",
+      },
+      vpc: mockVpc,
+      cloudVpnSecurityGroup: mockSecurityGroup,
+      secretsManagerVpceSg: mockSecurityGroup,
+    });
+
+    const template = Template.fromStack(databaseStack);
+
+    template.resourceCountIs("AWS::RDS::DBInstance", 1);
+    template.resourceCountIs("AWS::CloudWatch::Alarm", 0);
+  });
+
   test("should retain rds for impl/prod", () => {
     const app = new App();
     const mockCoreStack = new Stack(app, "mockCore");

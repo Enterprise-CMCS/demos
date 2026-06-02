@@ -288,6 +288,34 @@ describe("Api Stack", () => {
     });
   });
 
+  test("should not create alarms when ephemeral", () => {
+    const app = new App(commongAppArgs);
+    const mockCoreStack = new Stack(app, "mockCore");
+
+    const mockPrivateSubnets = ["subnet-private1", "subnet-private2"];
+    const mockVpc = aws_ec2.Vpc.fromVpcAttributes(mockCoreStack, "mockVpc", {
+      vpcId: "vpc-123456789",
+      availabilityZones: ["us-east-1a", "us-east-1b"],
+      publicSubnetIds: ["subnet-public1", "subnet-public2"],
+      privateSubnetIds: mockPrivateSubnets,
+    });
+
+    const apiStack = new ApiStack(app, "mockApi", {
+      ...mockCommonProps,
+      isEphemeral: true,
+      env: {
+        region: "us-east-1",
+        account: "0123456789",
+      },
+      vpc: mockVpc,
+    });
+
+    const template = Template.fromStack(apiStack);
+
+    template.resourceCountIs("AWS::Lambda::Function", 3);
+    template.resourceCountIs("AWS::CloudWatch::Alarm", 0);
+  });
+
   test("UiPathProcessor construct synthesizes queue, DLQ, and lambda", () => {
     const app = new App(commongAppArgs);
     const stack = new Stack(app, "uipathTest", {

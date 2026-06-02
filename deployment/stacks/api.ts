@@ -54,9 +54,7 @@ export class ApiStack extends Stack {
             )
           ,
     };
-    const lambdaErrorAlarmPeriod = Duration.minutes(5);
-    const sqsOldestMessageAgeAlarmPeriod = Duration.minutes(5);
-    const sqsVisibleMessagesAlarmPeriod = Duration.minutes(5);
+    const alarmResources = new alarms.CloudWatchAlarmRegistry();
 
     const graphqlLambdaSecurityGroup = securityGroup.create({
       ...commonProps,
@@ -150,42 +148,7 @@ export class ApiStack extends Stack {
       },
       "authorizer"
     );
-
-    alarms.createLambdaErrorsAlarm({
-      ...commonProps,
-      id: "AuthorizerLambdaErrorsAlarm",
-      name: "authorizer-lambda-errors",
-      description: "Authorizer Lambda has one or more errors in a 5-minute period.",
-      lambdaFunction: authorizerLambda.lambda.lambda,
-      period: lambdaErrorAlarmPeriod,
-      threshold: 0,
-      evaluationPeriods: 1,
-      datapointsToAlarm: 1,
-    });
-
-    alarms.createLambdaDurationAlarm({
-      ...commonProps,
-      id: "AuthorizerLambdaDurationAlarm",
-      name: "authorizer-lambda-duration-near-timeout",
-      description: "Authorizer Lambda duration is above 80% of its configured timeout.",
-      lambdaFunction: authorizerLambda.lambda.lambda,
-      period: lambdaErrorAlarmPeriod,
-      threshold: Duration.seconds(8),
-      evaluationPeriods: 1,
-      datapointsToAlarm: 1,
-    });
-
-    alarms.createLambdaThrottlesAlarm({
-      ...commonProps,
-      id: "AuthorizerLambdaThrottlesAlarm",
-      name: "authorizer-lambda-throttles",
-      description: "Authorizer Lambda has one or more throttled invocations in a 5-minute period.",
-      lambdaFunction: authorizerLambda.lambda.lambda,
-      period: lambdaErrorAlarmPeriod,
-      threshold: 0,
-      evaluationPeriods: 1,
-      datapointsToAlarm: 1,
-    });
+    alarmResources.registerLambda("authorizer", authorizerLambda.lambda.lambda);
 
     const tokenAuthorizer = new aws_apigateway.TokenAuthorizer(
       commonProps.scope,
@@ -235,29 +198,7 @@ export class ApiStack extends Stack {
       },
       "graphql"
     );
-    alarms.createLambdaErrorsAlarm({
-      ...commonProps,
-      id: "GraphqlLambdaErrorsAlarm",
-      name: "graphql-lambda-errors",
-      description: "GraphQL Lambda has one or more errors in a 5-minute period.",
-      lambdaFunction: graphqlLambda.lambda.lambda,
-      period: lambdaErrorAlarmPeriod,
-      threshold: 0,
-      evaluationPeriods: 1,
-      datapointsToAlarm: 1,
-    });
-
-    alarms.createLambdaThrottlesAlarm({
-      ...commonProps,
-      id: "GraphqlLambdaThrottlesAlarm",
-      name: "graphql-lambda-throttles",
-      description: "GraphQL Lambda has one or more throttled invocations in a 5-minute period.",
-      lambdaFunction: graphqlLambda.lambda.lambda,
-      period: lambdaErrorAlarmPeriod,
-      threshold: 0,
-      evaluationPeriods: 1,
-      datapointsToAlarm: 1,
-    });
+    alarmResources.registerLambda("graphql", graphqlLambda.lambda.lambda);
 
     dbSecret.grantRead(graphqlLambda.lambda.role);
     uploadBucket.grantPut(graphqlLambda.lambda.role);
@@ -286,18 +227,7 @@ export class ApiStack extends Stack {
       encryption: QueueEncryption.KMS,
       encryptionMasterKey: kmsKey,
     });
-
-    alarms.createSqsVisibleMessagesAlarm({
-      ...commonProps,
-      id: "EmailerDlqVisibleMessagesAlarm",
-      name: "emailer-dlq-visible-messages",
-      description: "Emailer DLQ contains one or more messages.",
-      queue: deadLetterQueue,
-      period: sqsVisibleMessagesAlarmPeriod,
-      threshold: 0,
-      evaluationPeriods: 1,
-      datapointsToAlarm: 1,
-    });
+    alarmResources.registerQueue("emailerDeadLetter", deadLetterQueue);
 
     const emailQueue = new Queue(this, "EmailerQueue", {
       removalPolicy: RemovalPolicy.DESTROY,
@@ -310,18 +240,7 @@ export class ApiStack extends Stack {
       encryptionMasterKey: kmsKey,
       visibilityTimeout: emailerTimeout,
     });
-
-    alarms.createSqsOldestMessageAgeAlarm({
-      ...commonProps,
-      id: "EmailerQueueOldestMessageAgeAlarm",
-      name: "emailer-queue-oldest-message-age-high",
-      description: "Emailer queue has messages older than 15 minutes.",
-      queue: emailQueue,
-      period: sqsOldestMessageAgeAlarmPeriod,
-      threshold: Duration.minutes(15),
-      evaluationPeriods: 2,
-      datapointsToAlarm: 2,
-    });
+    alarmResources.registerQueue("emailer", emailQueue);
 
     const emailerLambdaSecurityGroup = securityGroup.create({
       ...commonProps,
@@ -385,42 +304,7 @@ export class ApiStack extends Stack {
         },
       },
     });
-
-    alarms.createLambdaErrorsAlarm({
-      ...commonProps,
-      id: "EmailerLambdaErrorsAlarm",
-      name: "emailer-lambda-errors",
-      description: "Emailer Lambda has one or more errors in a 5-minute period.",
-      lambdaFunction: emailerLambda.lambda,
-      period: lambdaErrorAlarmPeriod,
-      threshold: 0,
-      evaluationPeriods: 1,
-      datapointsToAlarm: 1,
-    });
-
-    alarms.createLambdaDurationAlarm({
-      ...commonProps,
-      id: "EmailerLambdaDurationAlarm",
-      name: "emailer-lambda-duration-near-timeout",
-      description: "Emailer Lambda duration is above 80% of its configured timeout.",
-      lambdaFunction: emailerLambda.lambda,
-      period: lambdaErrorAlarmPeriod,
-      threshold: Duration.seconds(48),
-      evaluationPeriods: 1,
-      datapointsToAlarm: 1,
-    });
-
-    alarms.createLambdaThrottlesAlarm({
-      ...commonProps,
-      id: "EmailerLambdaThrottlesAlarm",
-      name: "emailer-lambda-throttles",
-      description: "Emailer Lambda has one or more throttled invocations in a 5-minute period.",
-      lambdaFunction: emailerLambda.lambda,
-      period: lambdaErrorAlarmPeriod,
-      threshold: 0,
-      evaluationPeriods: 1,
-      datapointsToAlarm: 1,
-    });
+    alarmResources.registerLambda("emailer", emailerLambda.lambda);
 
     if (commonProps.stage != "prod") {
       const allowListParam = aws_ssm.StringParameter.fromStringParameterName(
@@ -444,11 +328,156 @@ export class ApiStack extends Stack {
       })
     );
 
+    this.setupCloudWatchAlarms(props, alarmResources);
+
     // Outputs
 
     new CfnOutput(this, "ApiUrl", {
       value: apigateway_outputs.apiGatewayRestApiUrl,
       exportName: `${commonProps.stage}ApiGWUrl`,
+    });
+  }
+
+  private setupCloudWatchAlarms(
+    props: DeploymentConfigProperties,
+    resources: alarms.CloudWatchAlarmRegistry
+  ) {
+    if (props.isEphemeral) {
+      return;
+    }
+
+    const lambdaAlarmPeriod = Duration.minutes(5);
+    const sqsOldestMessageAgeAlarmPeriod = Duration.minutes(5);
+    const sqsVisibleMessagesAlarmPeriod = Duration.minutes(5);
+
+    alarms.createLambdaErrorsAlarm({
+      ...props,
+      scope: this,
+      id: "AuthorizerLambdaErrorsAlarm",
+      name: "authorizer-lambda-errors",
+      description: "Authorizer Lambda has one or more errors in a 5-minute period.",
+      lambdaFunction: resources.lambda("authorizer"),
+      period: lambdaAlarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createLambdaDurationAlarm({
+      ...props,
+      scope: this,
+      id: "AuthorizerLambdaDurationAlarm",
+      name: "authorizer-lambda-duration-near-timeout",
+      description: "Authorizer Lambda duration is above 80% of its configured timeout.",
+      lambdaFunction: resources.lambda("authorizer"),
+      period: lambdaAlarmPeriod,
+      threshold: Duration.seconds(8),
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createLambdaThrottlesAlarm({
+      ...props,
+      scope: this,
+      id: "AuthorizerLambdaThrottlesAlarm",
+      name: "authorizer-lambda-throttles",
+      description: "Authorizer Lambda has one or more throttled invocations in a 5-minute period.",
+      lambdaFunction: resources.lambda("authorizer"),
+      period: lambdaAlarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createLambdaErrorsAlarm({
+      ...props,
+      scope: this,
+      id: "GraphqlLambdaErrorsAlarm",
+      name: "graphql-lambda-errors",
+      description: "GraphQL Lambda has one or more errors in a 5-minute period.",
+      lambdaFunction: resources.lambda("graphql"),
+      period: lambdaAlarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createLambdaThrottlesAlarm({
+      ...props,
+      scope: this,
+      id: "GraphqlLambdaThrottlesAlarm",
+      name: "graphql-lambda-throttles",
+      description: "GraphQL Lambda has one or more throttled invocations in a 5-minute period.",
+      lambdaFunction: resources.lambda("graphql"),
+      period: lambdaAlarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createSqsVisibleMessagesAlarm({
+      ...props,
+      scope: this,
+      id: "EmailerDlqVisibleMessagesAlarm",
+      name: "emailer-dlq-visible-messages",
+      description: "Emailer DLQ contains one or more messages.",
+      queue: resources.queue("emailerDeadLetter"),
+      period: sqsVisibleMessagesAlarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createSqsOldestMessageAgeAlarm({
+      ...props,
+      scope: this,
+      id: "EmailerQueueOldestMessageAgeAlarm",
+      name: "emailer-queue-oldest-message-age-high",
+      description: "Emailer queue has messages older than 15 minutes.",
+      queue: resources.queue("emailer"),
+      period: sqsOldestMessageAgeAlarmPeriod,
+      threshold: Duration.minutes(15),
+      evaluationPeriods: 2,
+      datapointsToAlarm: 2,
+    });
+
+    alarms.createLambdaErrorsAlarm({
+      ...props,
+      scope: this,
+      id: "EmailerLambdaErrorsAlarm",
+      name: "emailer-lambda-errors",
+      description: "Emailer Lambda has one or more errors in a 5-minute period.",
+      lambdaFunction: resources.lambda("emailer"),
+      period: lambdaAlarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createLambdaDurationAlarm({
+      ...props,
+      scope: this,
+      id: "EmailerLambdaDurationAlarm",
+      name: "emailer-lambda-duration-near-timeout",
+      description: "Emailer Lambda duration is above 80% of its configured timeout.",
+      lambdaFunction: resources.lambda("emailer"),
+      period: lambdaAlarmPeriod,
+      threshold: Duration.seconds(48),
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createLambdaThrottlesAlarm({
+      ...props,
+      scope: this,
+      id: "EmailerLambdaThrottlesAlarm",
+      name: "emailer-lambda-throttles",
+      description: "Emailer Lambda has one or more throttled invocations in a 5-minute period.",
+      lambdaFunction: resources.lambda("emailer"),
+      period: lambdaAlarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
     });
   }
 }

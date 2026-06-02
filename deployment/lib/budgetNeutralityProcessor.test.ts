@@ -114,4 +114,29 @@ describe("BudgetNeutralityProcessor construct", () => {
       ]),
     });
   });
+
+  it("does not synthesize alarms when ephemeral", () => {
+    const app = new App({
+      context: {
+        [BUNDLING_STACKS]: [],
+      },
+    });
+
+    const stack = new Stack(app, "budgetNeutralityProcessorTest", {
+      env: { account: "0123456789", region: "us-east-1" },
+    });
+
+    new BudgetNeutralityProcessor(stack, "BudgetNeutralityProcessor", {
+      ...mockProps,
+      isEphemeral: true,
+      removalPolicy: RemovalPolicy.DESTROY,
+      kmsKey: new Key(stack, "BudgetNeutralityKmsKey"),
+    });
+
+    const template = Template.fromStack(stack);
+
+    template.resourceCountIs("AWS::SQS::Queue", 2);
+    template.resourceCountIs("AWS::Lambda::Function", 1);
+    template.resourceCountIs("AWS::CloudWatch::Alarm", 0);
+  });
 });
