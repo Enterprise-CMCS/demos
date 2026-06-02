@@ -54,7 +54,7 @@ export const documentSchema = gql`
   }
 
   type Query {
-    document(id: ID!): Document! @auth(requires: ["Access CMS Query"])
+    document(id: ID!): Document!
     documentExists(documentId: ID!): Boolean!
   }
 `;
