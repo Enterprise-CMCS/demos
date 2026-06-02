@@ -26,6 +26,7 @@ import { log } from "../../log";
 describe("validateReferenceDownloadRequest", () => {
   const testReferenceConfigurationId = "reference-configuration-1";
   const testReferenceAgreementId = "reference-agreement-1";
+  const mockTransaction: any = "Test!";
 
   const mockActiveConfigWithoutAgreement: DeepPartial<SelectManyReferenceConfigurationsResult> = {
     id: testReferenceConfigurationId,
@@ -56,7 +57,7 @@ describe("validateReferenceDownloadRequest", () => {
     vi.mocked(selectReferenceConfiguration).mockResolvedValueOnce(null);
 
     await expect(
-      validateReferenceDownloadRequest(testReferenceConfigurationId)
+      validateReferenceDownloadRequest(testReferenceConfigurationId, mockTransaction)
     ).rejects.toMatchObject({
       message: `Reference ${testReferenceConfigurationId} not found.`,
       extensions: { code: "REFERENCE_NOT_FOUND" },
@@ -72,7 +73,7 @@ describe("validateReferenceDownloadRequest", () => {
     );
 
     await expect(
-      validateReferenceDownloadRequest(testReferenceConfigurationId)
+      validateReferenceDownloadRequest(testReferenceConfigurationId, mockTransaction)
     ).rejects.toMatchObject({
       message: `Reference ${testReferenceConfigurationId} not found.`,
       extensions: { code: "REFERENCE_NOT_ACTIVE" },
@@ -88,7 +89,11 @@ describe("validateReferenceDownloadRequest", () => {
     );
 
     await expect(
-      validateReferenceDownloadRequest(testReferenceConfigurationId, "unexpected-agreement-id")
+      validateReferenceDownloadRequest(
+        testReferenceConfigurationId,
+        mockTransaction,
+        "unexpected-agreement-id"
+      )
     ).rejects.toMatchObject({
       message: "Cannot download requested reference using provided agreement ID.",
       extensions: { code: "REFERENCE_AGREEMENT_ERROR" },
@@ -105,7 +110,7 @@ describe("validateReferenceDownloadRequest", () => {
     );
 
     await expect(
-      validateReferenceDownloadRequest(testReferenceConfigurationId)
+      validateReferenceDownloadRequest(testReferenceConfigurationId, mockTransaction)
     ).rejects.toMatchObject({
       message: "Cannot download requested reference using provided agreement ID.",
       extensions: { code: "REFERENCE_AGREEMENT_ERROR" },
@@ -122,7 +127,11 @@ describe("validateReferenceDownloadRequest", () => {
     );
 
     await expect(
-      validateReferenceDownloadRequest(testReferenceConfigurationId, "wrong-agreement-id")
+      validateReferenceDownloadRequest(
+        testReferenceConfigurationId,
+        mockTransaction,
+        "wrong-agreement-id"
+      )
     ).rejects.toMatchObject({
       message: "Cannot download requested reference using provided agreement ID.",
       extensions: { code: "REFERENCE_AGREEMENT_ERROR" },
@@ -138,7 +147,10 @@ describe("validateReferenceDownloadRequest", () => {
       mockActiveConfigWithoutAgreement as SelectManyReferenceConfigurationsResult
     );
 
-    const result = await validateReferenceDownloadRequest(testReferenceConfigurationId);
+    const result = await validateReferenceDownloadRequest(
+      testReferenceConfigurationId,
+      mockTransaction
+    );
     expect(result).toBe(mockActiveConfigWithoutAgreement);
   });
 });

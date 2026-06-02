@@ -5,14 +5,19 @@ import {
   SelectManyReferenceConfigurationsResult,
   selectReferenceConfiguration,
 } from "../referenceConfiguration/queries";
+import { PrismaTransactionClient } from "../../prismaClient";
 
 export async function validateReferenceDownloadRequest(
   referenceConfigurationId: string,
+  tx: PrismaTransactionClient,
   agreementId?: string
 ): Promise<SelectManyReferenceConfigurationsResult> {
-  const referenceConfiguration = await selectReferenceConfiguration({
-    id: referenceConfigurationId,
-  });
+  const referenceConfiguration = await selectReferenceConfiguration(
+    {
+      id: referenceConfigurationId,
+    },
+    tx
+  );
 
   if (!referenceConfiguration) {
     log.info(`Reference "${referenceConfigurationId}" was requested, but could not be found.`);

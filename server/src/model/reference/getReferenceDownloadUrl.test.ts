@@ -9,6 +9,10 @@ import { GraphQLContext } from "../../auth";
 import { getReferenceDownloadUrl } from "./getReferenceDownloadUrl";
 
 // Mock imports
+vi.mock("../../prismaClient", () => ({
+  prisma: vi.fn(),
+}));
+
 vi.mock("./validateReferenceDownloadRequest", () => ({
   validateReferenceDownloadRequest: vi.fn(),
 }));
@@ -25,6 +29,7 @@ vi.mock("../../adapters", () => ({
   getS3Adapter: vi.fn(() => mockS3Adapter),
 }));
 
+import { prisma } from "../../prismaClient";
 import { validateReferenceDownloadRequest } from "./validateReferenceDownloadRequest";
 import { insertReferenceAgreementAcceptance } from "../referenceAgreementAcceptance/queries";
 import { getS3Adapter } from "../../adapters";
@@ -51,15 +56,34 @@ describe("getReferenceDownloadUrl", () => {
     },
   };
 
+  // Mock transaction
+  const mockTransaction: any = "Test!";
+  const mockPrismaClient = {
+    $transaction: vi.fn(),
+  };
+
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
+    vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
+    // Note: this line is necessary because resetAllMocks() clears the implementation each time
+    mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
     vi.mocked(validateReferenceDownloadRequest).mockResolvedValue(
       mockReferenceConfiguration as any
     );
     mockS3Adapter.getPresignedDownloadUrl.mockResolvedValue(testDownloadUrl);
   });
 
-  it("calls validateReferenceDownloadRequest with the configuration ID and agreement ID", async () => {
+  it("creates a transaction whenever it is called", async () => {
+    await getReferenceDownloadUrl(
+      {},
+      { id: testReferenceConfigurationId },
+      testContext as GraphQLContext
+    );
+    expect(prisma).toHaveBeenCalledOnce();
+    expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
+  });
+
+  it("calls validateReferenceDownloadRequest with the configuration ID, transaction, and agreement ID", async () => {
     await getReferenceDownloadUrl(
       {},
       { id: testReferenceConfigurationId, acceptedAgreementId: testReferenceAgreementId },
@@ -67,6 +91,7 @@ describe("getReferenceDownloadUrl", () => {
     );
     expect(validateReferenceDownloadRequest).toHaveBeenCalledExactlyOnceWith(
       testReferenceConfigurationId,
+      mockTransaction,
       testReferenceAgreementId
     );
   });
@@ -77,11 +102,14 @@ describe("getReferenceDownloadUrl", () => {
       { id: testReferenceConfigurationId, acceptedAgreementId: testReferenceAgreementId },
       testContext as GraphQLContext
     );
-    expect(insertReferenceAgreementAcceptance).toHaveBeenCalledExactlyOnceWith({
-      referenceId: testReferenceId,
-      referenceAgreementId: testReferenceAgreementId,
-      userId: testUserId,
-    });
+    expect(insertReferenceAgreementAcceptance).toHaveBeenCalledExactlyOnceWith(
+      {
+        referenceId: testReferenceId,
+        referenceAgreementId: testReferenceAgreementId,
+        userId: testUserId,
+      },
+      mockTransaction
+    );
   });
 
   it("does not insert an acceptance record when no agreement ID is provided", async () => {
