@@ -58,7 +58,7 @@ describe("validateReferenceDownloadRequest", () => {
     await expect(
       validateReferenceDownloadRequest(testReferenceConfigurationId)
     ).rejects.toMatchObject({
-      message: `Reference configuration ${testReferenceConfigurationId} not found.`,
+      message: `Reference ${testReferenceConfigurationId} not found.`,
       extensions: { code: "REFERENCE_NOT_FOUND" },
     });
     expect(log.info).toHaveBeenCalledExactlyOnceWith(
@@ -74,7 +74,7 @@ describe("validateReferenceDownloadRequest", () => {
     await expect(
       validateReferenceDownloadRequest(testReferenceConfigurationId)
     ).rejects.toMatchObject({
-      message: `Reference configuration ${testReferenceConfigurationId} not found.`,
+      message: `Reference ${testReferenceConfigurationId} not found.`,
       extensions: { code: "REFERENCE_NOT_ACTIVE" },
     });
     expect(log.info).toHaveBeenCalledExactlyOnceWith(

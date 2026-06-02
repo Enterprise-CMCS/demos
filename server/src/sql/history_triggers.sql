@@ -1627,6 +1627,7 @@ BEGIN
             description,
             s3_path,
             owner_user_id,
+            owner_person_type_id,
             created_at,
             updated_at
         )
@@ -1640,6 +1641,7 @@ BEGIN
             NEW.description,
             NEW.s3_path,
             NEW.owner_user_id,
+            NEW.owner_person_type_id,
             NEW.created_at,
             NEW.updated_at
         );
@@ -1652,6 +1654,7 @@ BEGIN
             description,
             s3_path,
             owner_user_id,
+            owner_person_type_id,
             created_at,
             updated_at
         )
@@ -1662,6 +1665,7 @@ BEGIN
             OLD.description,
             OLD.s3_path,
             OLD.owner_user_id,
+            OLD.owner_person_type_id,
             OLD.created_at,
             OLD.updated_at
         );
@@ -1685,6 +1689,7 @@ BEGIN
             name,
             s3_path,
             owner_user_id,
+            owner_person_type_id,
             created_at,
             updated_at
         )
@@ -1697,6 +1702,7 @@ BEGIN
             NEW.name,
             NEW.s3_path,
             NEW.owner_user_id,
+            NEW.owner_person_type_id,
             NEW.created_at,
             NEW.updated_at
         );
@@ -1708,6 +1714,7 @@ BEGIN
             name,
             s3_path,
             owner_user_id,
+            owner_person_type_id,
             created_at,
             updated_at
         )
@@ -1717,6 +1724,7 @@ BEGIN
             OLD.name,
             OLD.s3_path,
             OLD.owner_user_id,
+            OLD.owner_person_type_id,
             OLD.created_at,
             OLD.updated_at
         );

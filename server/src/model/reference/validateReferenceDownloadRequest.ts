@@ -16,7 +16,7 @@ export async function validateReferenceDownloadRequest(
 
   if (!referenceConfiguration) {
     log.info(`Reference "${referenceConfigurationId}" was requested, but could not be found.`);
-    throw new GraphQLError(`Reference configuration ${referenceConfigurationId} not found.`, {
+    throw new GraphQLError(`Reference ${referenceConfigurationId} not found.`, {
       extensions: {
         code: "REFERENCE_NOT_FOUND" satisfies CustomInternalErrorCode,
       },
@@ -25,7 +25,7 @@ export async function validateReferenceDownloadRequest(
 
   if (referenceConfiguration.statusId !== "Active") {
     log.info(`Reference "${referenceConfigurationId}" was requested, but is inactive.`);
-    throw new GraphQLError(`Reference configuration ${referenceConfigurationId} not found.`, {
+    throw new GraphQLError(`Reference ${referenceConfigurationId} not found.`, {
       extensions: {
         code: "REFERENCE_NOT_ACTIVE" satisfies CustomInternalErrorCode,
       },

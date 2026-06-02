@@ -556,6 +556,20 @@ async function seedReferences() {
   const referenceNoAgreementId = referenceIds[4];
   const referenceAgreementIds = [faker.string.uuid(), faker.string.uuid(), faker.string.uuid()];
 
+  const s3Client = new S3Client(
+    process.env.S3_ENDPOINT_LOCAL
+      ? {
+          region: "us-east-1",
+          endpoint: process.env.S3_ENDPOINT_LOCAL,
+          forcePathStyle: true,
+          credentials: {
+            accessKeyId: "test",
+            secretAccessKey: "test", // pragma: allowlist secret
+          },
+        }
+      : {}
+  );
+
   for (const referenceAgreementId of referenceAgreementIds) {
     await prisma().referenceAgreement.create({
       data: {
@@ -563,10 +577,18 @@ async function seedReferences() {
         name: faker.lorem.words(3),
         s3Path: `references/agreements/${referenceAgreementId}`,
         ownerUserId: BYPASS_USER_ID,
+        ownerPersonTypeId: "demos-admin",
         createdAt: new Date(),
         updatedAt: new Date(),
       },
     });
+    await s3Client.send(
+      new PutObjectCommand({
+        Bucket: process.env.CLEAN_BUCKET,
+        Key: `references/agreements/${referenceAgreementId}`,
+        Body: Buffer.from(`Test reference agreement: ${referenceAgreementId}`),
+      })
+    );
   }
   for (const referenceId of referenceIds) {
     await prisma().reference.create({
@@ -576,10 +598,18 @@ async function seedReferences() {
         description: faker.lorem.sentence(),
         s3Path: `references/${referenceId}`,
         ownerUserId: BYPASS_USER_ID,
+        ownerPersonTypeId: "demos-admin",
         createdAt: new Date(),
         updatedAt: new Date(),
       },
     });
+    await s3Client.send(
+      new PutObjectCommand({
+        Bucket: process.env.CLEAN_BUCKET,
+        Key: `references/${referenceId}`,
+        Body: Buffer.from(`Test reference: ${referenceId}`),
+      })
+    );
 
     if (referenceId === faqReferenceId) {
       await prisma().referenceTagAssignment.create({
