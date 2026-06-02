@@ -12,9 +12,11 @@ const sqsMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@aws-sdk/client-sqs", () => {
-  sqsMocks.SQSClientMock.mockImplementation(() => ({
+  sqsMocks.SQSClientMock.mockImplementation(function() {
+    return {
     send: sqsMocks.sendMock,
-  }));
+    }
+  });
 
   return {
     SQSClient: sqsMocks.SQSClientMock,
@@ -46,7 +48,7 @@ vi.mock("pg", () => {
     end: () => mockEnd(),
   };
 
-  return { Client: vi.fn(() => mockClient) };
+  return { Client: vi.fn(function() {return mockClient}) };
 });
 
 let mockEventBase: GuardDutyScanResultNotificationEvent;
