@@ -1,16 +1,8 @@
 import { gql, TypedDocumentNode, useLazyQuery } from "@apollo/client";
 import { useToast } from "components/toast";
+import { useTriggerDownload } from "./useTriggerDownload";
 
-const triggerReferenceDownload = (url: string) => {
-  const link = document.createElement("a");
-  link.href = url;
-  link.rel = "noopener noreferrer";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
-const DOWNLOAD_REFERENCE_QUERY: TypedDocumentNode<
+export const DOWNLOAD_REFERENCE_QUERY: TypedDocumentNode<
   {
     referenceDownloadUrl: string;
   },
@@ -24,7 +16,7 @@ const DOWNLOAD_REFERENCE_QUERY: TypedDocumentNode<
   }
 `;
 
-const DOWNLOAD_REFERENCE_AGREEMENT_QUERY: TypedDocumentNode<
+export const DOWNLOAD_REFERENCE_AGREEMENT_QUERY: TypedDocumentNode<
   {
     referenceAgreementDownloadUrl: string;
   },
@@ -39,6 +31,7 @@ const DOWNLOAD_REFERENCE_AGREEMENT_QUERY: TypedDocumentNode<
 
 export const useDownloadReference = () => {
   const { showError } = useToast();
+  const { triggerDownload } = useTriggerDownload();
   const [fetchReferenceDownloadUrl] = useLazyQuery(DOWNLOAD_REFERENCE_QUERY, {
     fetchPolicy: "network-only",
   });
@@ -63,11 +56,11 @@ export const useDownloadReference = () => {
         throw new Error("Missing Reference download URL.");
       }
 
-      triggerReferenceDownload(presignedDownloadUrl);
+      triggerDownload(presignedDownloadUrl);
       return presignedDownloadUrl;
     } catch {
-      showError("Unable to download Reference.");
-      throw new Error("Unable to download Reference.");
+      showError("Unable to download reference.");
+      throw new Error("Unable to download reference.");
     }
   };
 
@@ -79,14 +72,14 @@ export const useDownloadReference = () => {
       const presignedDownloadUrl = data?.referenceAgreementDownloadUrl;
 
       if (error || !presignedDownloadUrl) {
-        throw new Error("Missing Reference download URL.");
+        throw new Error("Missing reference agreement download URL.");
       }
 
-      triggerReferenceDownload(presignedDownloadUrl);
+      triggerDownload(presignedDownloadUrl);
       return presignedDownloadUrl;
     } catch {
-      showError("Unable to download Reference.");
-      throw new Error("Unable to download Reference.");
+      showError("Unable to download reference agreement.");
+      throw new Error("Unable to download reference agreement.");
     }
   };
 
