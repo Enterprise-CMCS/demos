@@ -51,6 +51,11 @@ const COMPLETE_REVIEW_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
   "demos-cms-user",
 ]);
 
+const REQUEST_RESUBMISSION_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
+  "demos-admin",
+  "demos-cms-user",
+]);
+
 const STATE_FILE_MANAGER_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
   "demos-admin",
   "demos-cms-user",
@@ -103,6 +108,8 @@ export const FileAndHistoryTabs: React.FC<{
   const userPersonType = currentUser?.person.personType;
   const isCompleteReviewAllowedForUser =
     !!userPersonType && COMPLETE_REVIEW_PERSON_TYPES.has(userPersonType);
+  const canRequestResubmission =
+    !!userPersonType && REQUEST_RESUBMISSION_PERSON_TYPES.has(userPersonType);
   const isCompleteReviewDisabled =
     !isCompleteReviewAllowedForUser ||
     !canCompleteReview(deliverable.status, deliverable.extensionRequests);
@@ -206,14 +213,16 @@ export const FileAndHistoryTabs: React.FC<{
         </Tab>
       </HorizontalSectionTabs>
       <div data-testid={FILE_AND_HISTORY_ACTIONS_NAME} className="flex justify-end mt-2 gap-2">
-        <Button
-          onClick={handleRequestResubmission}
-          size="large"
-          name="button-actions-request-resubmission"
-          disabled={isResubmissionDisabled(deliverable.status)}
-        >
-          Request Re-submission
-        </Button>
+        {canRequestResubmission ? (
+          <Button
+            onClick={handleRequestResubmission}
+            size="large"
+            name="button-actions-request-resubmission"
+            disabled={isResubmissionDisabled(deliverable.status)}
+          >
+            Request Re-submission
+          </Button>
+        ) : null}
         <Button
           disabled={isSubmitDisabled}
           onClick={handleSubmitDeliverable}
@@ -222,14 +231,16 @@ export const FileAndHistoryTabs: React.FC<{
         >
           Submit Deliverable
         </Button>
-        <Button
-          disabled={isCompleteReviewDisabled}
-          onClick={handleCompleteReview}
-          size="large"
-          name="button-actions-complete-review"
-        >
-          Complete Review
-        </Button>
+        {isCompleteReviewAllowedForUser ? (
+          <Button
+            disabled={isCompleteReviewDisabled}
+            onClick={handleCompleteReview}
+            size="large"
+            name="button-actions-complete-review"
+          >
+            Complete Review
+          </Button>
+        ) : null}
       </div>
     </div>
   );
