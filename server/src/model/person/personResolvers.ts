@@ -4,10 +4,11 @@ import {
   State,
 } from "@prisma/client";
 
-import { selectManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment/queries";
 import { selectManyPeople } from "./queries";
 import { PersonType } from "../../types";
 import { selectManyStates } from "../state/queries";
+import { getManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment";
+import { GraphQLContext } from "../../auth";
 
 export const personResolvers = {
   Query: {
@@ -17,8 +18,12 @@ export const personResolvers = {
   Person: {
     fullName: (parent: PrismaPerson): string => `${parent.firstName} ${parent.lastName}`,
     personType: (parent: PrismaPerson): PersonType => parent.personTypeId as PersonType,
-    roles: (parent: PrismaPerson): Promise<PrismaDemonstrationRoleAssignment[]> =>
-      selectManyDemonstrationRoleAssignments({ personId: parent.id }),
+    roles: (
+      parent: PrismaPerson,
+      args: unknown,
+      context: GraphQLContext
+    ): Promise<PrismaDemonstrationRoleAssignment[]> =>
+      getManyDemonstrationRoleAssignments({ personId: parent.id }, context.user),
     states: async (parent: PrismaPerson): Promise<State[]> =>
       selectManyStates({
         personStates: {
