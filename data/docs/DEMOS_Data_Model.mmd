@@ -556,7 +556,7 @@ erDiagram
     CONSTRAINT_CHECK check_demonstration_non_null_fields_when_approved "Validate that required fields exist if demonstration is approved."
     CONSTRAINT_CHECK check_demonstration_name_trimmed "Validate that the trim of the name is identical to the name."
     CONSTRAINT_CHECK check_demonstration_description_trimmed "Validate that the trim of the description is identical to the description."
-    CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_demonstration_primary_project_officer "Check that a primary project officer exists for this demonstration."
+    CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT check_demonstration_primary_project_officer "Check that a primary project officer exists for this demonstration."
     TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
     TRIGGER_BEFORE_INSERT generate_medicaid_chip_id_numbers "Create the Medicaid and CHIP ID numbers before inserting to the table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."

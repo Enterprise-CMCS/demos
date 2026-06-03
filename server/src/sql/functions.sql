@@ -121,7 +121,7 @@ END;
 $$;
 
 CREATE CONSTRAINT TRIGGER check_demonstration_primary_project_officer
-AFTER INSERT OR UPDATE ON demos_app.demonstration
+AFTER INSERT ON demos_app.demonstration
 DEFERRABLE INITIALLY DEFERRED
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_demonstration_primary_project_officer();
@@ -161,7 +161,7 @@ END;
 $$;
 
 CREATE CONSTRAINT TRIGGER check_demonstration_retains_primary_project_officer
-AFTER UPDATE OR DELETE ON demos_app.primary_demonstration_role_assignment
+AFTER UPDATE OF role_id OR DELETE ON demos_app.primary_demonstration_role_assignment
 DEFERRABLE INITIALLY DEFERRED
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_demonstration_retains_primary_project_officer();
@@ -520,7 +520,7 @@ END;
 $$;
 
 CREATE TRIGGER update_application_current_phase_on_phase_update
-AFTER UPDATE ON demos_app.application_phase
+AFTER UPDATE OF phase_status_id ON demos_app.application_phase
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.update_application_current_phase_on_phase_update();
 
@@ -623,7 +623,7 @@ END;
 $$;
 
 CREATE TRIGGER update_application_status_on_phase_update
-AFTER UPDATE ON demos_app.application_phase
+AFTER UPDATE OF phase_id, phase_status_id ON demos_app.application_phase
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.update_application_status_on_phase_update();
 
@@ -1115,7 +1115,7 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations();
 
 CREATE TRIGGER check_demonstration_type_exists_for_approved_demonstrations
-BEFORE UPDATE ON demos_app.demonstration
+BEFORE UPDATE of status_id ON demos_app.demonstration
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations();
 
@@ -1283,7 +1283,7 @@ END;
 $$;
 
 CREATE TRIGGER change_open_ended_due_dates_to_expiration_date
-AFTER UPDATE ON demos_app.demonstration
+AFTER UPDATE OF expiration_date ON demos_app.demonstration
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.change_open_ended_due_dates_to_expiration_date();
 
