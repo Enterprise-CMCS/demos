@@ -10,6 +10,7 @@ import {
   DELETE_DELIVERABLE_MUTATION,
   DELETE_DELIVERABLE_ERROR_MESSAGE,
   DELIVERABLE_DELETED_MESSAGE,
+  getRemoveDeliverableConfirmMessage,
   RemoveDeliverableDialog,
   REMOVE_DELIVERABLE_CONFIRM_MESSAGE,
 } from "./RemoveDeliverableDialog";
@@ -57,6 +58,12 @@ describe("RemoveDeliverableDialog", () => {
     expect(screen.getByText(REMOVE_DELIVERABLE_CONFIRM_MESSAGE)).toBeInTheDocument();
     expect(screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID)).toHaveTextContent("Remove");
     expect(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME)).toHaveTextContent("Cancel");
+  });
+
+  it("renders the plural confirmation message when removing multiple deliverables", () => {
+    setup(["deliverable-1", "deliverable-2", "deliverable-3", "deliverable-4", "deliverable-5"]);
+
+    expect(screen.getByText(getRemoveDeliverableConfirmMessage(5))).toBeInTheDocument();
   });
 
   it("calls onClose when Cancel is clicked", () => {

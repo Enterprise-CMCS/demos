@@ -14,6 +14,10 @@ export const DELETE_DELIVERABLE_MUTATION = gql`
 
 export const REMOVE_DELIVERABLE_CONFIRM_MESSAGE =
   "Are you sure you want to remove this deliverable? This action cannot be undone!";
+export const getRemoveDeliverableConfirmMessage = (deliverableCount: number): string =>
+  deliverableCount === 1
+    ? REMOVE_DELIVERABLE_CONFIRM_MESSAGE
+    : `Are you sure you want to remove these ${deliverableCount} deliverables? This action cannot be undone!`;
 export const DELIVERABLE_DELETED_MESSAGE =
   "Your deliverable has been deleted.";
 export const DELIVERABLE_CANT_DELETE_HAS_FILES =
@@ -30,6 +34,7 @@ export const RemoveDeliverableDialog: React.FC<{
 }> = ({ deliverableIds, onClose, onDeleted }) => {
   const { showSuccess, showError } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
+  const confirmMessage = getRemoveDeliverableConfirmMessage(deliverableIds.length);
   const [deleteDeliverable] = useMutation(DELETE_DELIVERABLE_MUTATION, {
     refetchQueries: ["GetDeliverablesPage"],
     awaitRefetchQueries: true,
@@ -74,7 +79,7 @@ export const RemoveDeliverableDialog: React.FC<{
         </ErrorButton>
       }
     >
-      <div className="mb-2 text-sm text-text-filled">{REMOVE_DELIVERABLE_CONFIRM_MESSAGE}</div>
+      <div className="mb-2 text-sm text-text-filled">{confirmMessage}</div>
     </BaseDialog>
   );
 };
