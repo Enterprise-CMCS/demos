@@ -35,13 +35,13 @@ const FooterLinks: React.FC = () => {
   const { showError } = useToast();
   const { downloadReference } = useDownloadReference();
 
-  const [getFaqReferenceMaterial] = useLazyQuery(GET_FAQ_REFERENCES_QUERY, {
-    variables: { withTag: FAQ_REFERENCE_TAG },
-  });
+  const [getFaqReferenceMaterial] = useLazyQuery(GET_FAQ_REFERENCES_QUERY);
 
   const handleFaqClick = async () => {
     try {
-      const { data } = await getFaqReferenceMaterial();
+      const { data } = await getFaqReferenceMaterial({
+        variables: { withTag: FAQ_REFERENCE_TAG },
+      });
       const faqReferences = data?.references;
       if (!faqReferences || faqReferences.length === 0) {
         showError("No FAQ reference material found.");
@@ -101,7 +101,7 @@ const FooterUpper: React.FC = () => (
 const FooterLower: React.FC = () => (
   <div className="flex w-full bg-brand text-white p-1">
     <div className="w-1/3" />
-    <div className="w-1/3"/>
+    <div className="w-1/3" />
     <div className="w-1/3 text-right">{DEMOS_ADDRESS}</div>
   </div>
 );
