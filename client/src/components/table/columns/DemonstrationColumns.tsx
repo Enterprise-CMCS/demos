@@ -93,7 +93,7 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
     }),
     columnHelper.display({
       id: "viewDetails",
-      header: "View",
+      header: () => <span className="sr-only">View</span>,
       cell: ({ row }) => {
         // Always link to the parent demonstration page
         // If this row is an amendment or extension, use the parent id and add the correct query param

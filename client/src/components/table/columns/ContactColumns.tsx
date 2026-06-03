@@ -112,7 +112,7 @@ export function ContactColumns({
     }),
     columnHelper.display({
       id: "actions",
-      header: "Actions",
+      header: () => <span className="sr-only">Actions</span>,
       size: 80,
       cell: (info) => {
         const contact = info.row.original;

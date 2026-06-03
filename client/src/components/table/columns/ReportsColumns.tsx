@@ -16,7 +16,7 @@ export function ReportsColumns() {
     }),
     columnHelper.display({
       id: "actions",
-      header: "Actions",
+      header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => {
         return (
           <div className="flex gap-2 justify-center">

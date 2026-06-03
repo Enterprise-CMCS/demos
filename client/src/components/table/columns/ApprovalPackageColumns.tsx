@@ -45,7 +45,7 @@ export function ApprovalPackageColumns(demonstrationId: string) {
     }),
     columnHelper.display({
       id: "actions",
-      header: "Actions",
+      header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => {
         const doc = row.original.document;
 
