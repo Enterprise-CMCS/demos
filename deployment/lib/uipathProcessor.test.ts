@@ -43,6 +43,94 @@ describe("UiPathProcessor construct", () => {
 
     template.resourceCountIs("AWS::SQS::Queue", 2);
     template.resourceCountIs("AWS::Lambda::Function", 1);
+    template.resourceCountIs("AWS::CloudWatch::Alarm", 3);
     template.hasResourceProperties("AWS::Lambda::Function", Match.objectLike({}));
+    template.hasResourceProperties("AWS::CloudWatch::Alarm", {
+      AlarmName: "demos-unittest-uipath-lambda-errors",
+      ComparisonOperator: "GreaterThanThreshold",
+      MetricName: "Errors",
+      Namespace: "AWS/Lambda",
+      Period: 300,
+      Statistic: "Sum",
+      Threshold: 0,
+      TreatMissingData: "notBreaching",
+      Dimensions: Match.arrayWith([
+        Match.objectLike({
+          Name: "FunctionName",
+          Value: Match.objectLike({
+            Ref: Match.stringLikeRegexp("uipath"),
+          }),
+        }),
+      ]),
+    });
+    template.hasResourceProperties("AWS::CloudWatch::Alarm", {
+      AlarmName: "demos-unittest-uipath-queue-oldest-message-age-high",
+      ComparisonOperator: "GreaterThanThreshold",
+      EvaluationPeriods: 2,
+      DatapointsToAlarm: 2,
+      MetricName: "ApproximateAgeOfOldestMessage",
+      Namespace: "AWS/SQS",
+      Period: 300,
+      Statistic: "Maximum",
+      Threshold: 3600,
+      TreatMissingData: "notBreaching",
+      Dimensions: Match.arrayWith([
+        Match.objectLike({
+          Name: "QueueName",
+          Value: Match.anyValue(),
+        }),
+      ]),
+    });
+    template.hasResourceProperties("AWS::CloudWatch::Alarm", {
+      AlarmName: "demos-unittest-uipath-lambda-throttles",
+      ComparisonOperator: "GreaterThanThreshold",
+      MetricName: "Throttles",
+      Namespace: "AWS/Lambda",
+      Period: 300,
+      Statistic: "Sum",
+      Threshold: 0,
+      TreatMissingData: "notBreaching",
+      Dimensions: Match.arrayWith([
+        Match.objectLike({
+          Name: "FunctionName",
+          Value: Match.objectLike({
+            Ref: Match.stringLikeRegexp("uipath"),
+          }),
+        }),
+      ]),
+    });
+    template.resourcePropertiesCountIs(
+      "AWS::CloudWatch::Alarm",
+      {
+        AlarmName: "demos-unittest-uipath-lambda-duration-near-timeout",
+      },
+      0
+    );
+  });
+
+  it("does not synthesize alarms when ephemeral", () => {
+    const app = new App({
+      context: {
+        [BUNDLING_STACKS]: [],
+      },
+    });
+
+    const stack = new Stack(app, "uiPathProcessorTest", {
+      env: { account: "0123456789", region: "us-east-1" },
+    });
+
+    new UiPathProcessor(stack, "UiPathProcessor", {
+      ...mockProps,
+      isEphemeral: true,
+      removalPolicy: RemovalPolicy.DESTROY,
+      documentsBucket: new Bucket(stack, "UiPathDocumentsBucket"),
+      kmsKey: new Key(stack, "UiPathKmsKey"),
+    });
+
+    const template = Template.fromStack(stack);
+
+    template.resourceCountIs("AWS::SQS::Queue", 2);
+    template.resourceCountIs("AWS::Lambda::Function", 1);
+    template.resourceCountIs("AWS::CloudWatch::Alarm", 0);
   });
 });
