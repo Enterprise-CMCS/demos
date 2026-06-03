@@ -566,7 +566,7 @@ describe("DeliverableTable Remove action", () => {
     expect(removeButton).toHaveAttribute("title", DELIVERABLE_CANT_DELETE_HAS_FILES);
   });
 
-  it("enables Remove when one of multiple selected rows has files or comments", async () => {
+  it("opens Remove only for selected rows without files or comments", async () => {
     render(
       <DeliverableTable
         deliverables={[
@@ -595,6 +595,13 @@ describe("DeliverableTable Remove action", () => {
     const removeButton = screen.getByTestId("remove-deliverable");
     expect(removeButton).not.toBeDisabled();
     expect(removeButton).toHaveAttribute("title", "Delete");
+
+    await user.click(removeButton);
+
+    expect(showRemoveDeliverableDialog).toHaveBeenCalledWith(
+      ["delete-ready"],
+      expect.any(Function)
+    );
   });
 
   it("keeps Remove enabled when multiple selected rows include files or comments", async () => {
@@ -630,6 +637,36 @@ describe("DeliverableTable Remove action", () => {
     const removeButton = screen.getByTestId("remove-deliverable");
     expect(removeButton).not.toBeDisabled();
     expect(removeButton).toHaveAttribute("title", "Delete");
+  });
+
+  it("disables Remove when multiple selected rows all have files or comments", async () => {
+    render(
+      <DeliverableTable
+        deliverables={[
+          {
+            ...MOCK_DELIVERABLE_TABLE_ROW,
+            id: "has-file",
+            status: "Upcoming",
+            cmsDocuments: [{ id: "doc-1" }],
+          },
+          {
+            ...MOCK_DELIVERABLE_TABLE_ROW,
+            id: "has-comment",
+            status: "Upcoming",
+            publicComments: [{ id: "comment-1" }],
+          },
+        ]}
+        viewMode="demos-cms-user"
+      />
+    );
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("select-row-has-file"));
+    await user.click(screen.getByTestId("select-row-has-comment"));
+
+    const removeButton = screen.getByTestId("remove-deliverable");
+    expect(removeButton).toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", DELIVERABLE_CANT_DELETE_HAS_FILES);
   });
 });
 

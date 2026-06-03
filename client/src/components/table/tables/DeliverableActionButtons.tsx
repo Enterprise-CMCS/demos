@@ -26,14 +26,17 @@ export const DeliverableActionButtons: React.FC<{
   const selectedRows = table.getSelectedRowModel().rows;
   const selectedCount = selectedRows.length;
   const selectedDeliverables = selectedRows.map((row) => row.original);
+  const deletableSelectedDeliverables = selectedDeliverables.filter(
+    (deliverable) => !hasFilesOrComments(deliverable)
+  );
+  const deletableSelectedCount = deletableSelectedDeliverables.length;
   const oneSelectedDeliverable = selectedCount === 1 ? selectedRows[0].original : null;
 
   const selectedIsEditable =
     oneSelectedDeliverable === null || isDeliverableEditable(oneSelectedDeliverable.status);
   const selectedIncludesFilesOrComments = selectedDeliverables.some(hasFilesOrComments);
   const editEnabled = selectedCount === 1 && selectedIsEditable;
-  const deleteEnabled = selectedCount >= 1 &&
-    (selectedCount > 1 || !selectedIncludesFilesOrComments);
+  const deleteEnabled = deletableSelectedCount >= 1;
 
   const baseEditTooltip = selectionTooltip({
     action: "Edit",
@@ -47,6 +50,9 @@ export const DeliverableActionButtons: React.FC<{
   const deleteTooltip = (() => {
     if (selectedCount === 0) return "Select a Deliverable to Delete";
     if (selectedCount === 1 && selectedIncludesFilesOrComments) {
+      return DELIVERABLE_CANT_DELETE_HAS_FILES;
+    }
+    if (selectedCount > 1 && deletableSelectedCount === 0) {
       return DELIVERABLE_CANT_DELETE_HAS_FILES;
     }
 
@@ -81,7 +87,7 @@ export const DeliverableActionButtons: React.FC<{
         disabled={!deleteEnabled}
         onClick={() => {
           showRemoveDeliverableDialog(
-            selectedDeliverables.map((deliverable) => deliverable.id),
+            deletableSelectedDeliverables.map((deliverable) => deliverable.id),
             () => table.resetRowSelection()
           );
         }}
