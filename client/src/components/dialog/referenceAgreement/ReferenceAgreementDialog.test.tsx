@@ -45,7 +45,7 @@ describe("ReferenceAgreementDialog", () => {
       )
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "button-download-reference" })).toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: "I accept the terms" })).toBeInTheDocument();
+    expect(screen.getByTestId("checkbox-accept-terms")).toBeInTheDocument();
   });
 
   it("enables the download button only when the terms are accepted", () => {
@@ -69,7 +69,7 @@ describe("ReferenceAgreementDialog", () => {
     const downloadButton = screen.getByRole("button", { name: "button-download-reference" });
 
     expect(downloadButton).toBeDisabled();
-    screen.getByRole("checkbox", { name: "I accept the terms" }).click();
+    screen.getByTestId("checkbox-accept-terms").click();
     expect(downloadButton).toBeEnabled();
   });
 
@@ -91,7 +91,7 @@ describe("ReferenceAgreementDialog", () => {
       </DialogProvider>
     );
 
-    screen.getByRole("checkbox", { name: "I accept the terms" }).click();
+    screen.getByTestId("checkbox-accept-terms").click();
     screen.getByRole("button", { name: "button-download-reference" }).click();
 
     expect(downloadReference).toHaveBeenCalledWith({
