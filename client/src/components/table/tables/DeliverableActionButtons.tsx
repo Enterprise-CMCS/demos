@@ -13,6 +13,12 @@ import { EditIcon } from "components/icons/Navigation/EditIcon";
 import { selectionTooltip } from "./actionTooltips";
 import type { FormattedDeliverableTableRow } from "./DeliverableTable";
 
+const hasFilesOrComments = (deliverable: FormattedDeliverableTableRow): boolean =>
+  Boolean(deliverable.cmsDocuments?.length) ||
+  Boolean(deliverable.stateDocuments?.length) ||
+  Boolean(deliverable.publicComments?.length) ||
+  Boolean(deliverable.privateComments?.length);
+
 export const DeliverableActionButtons: React.FC<{
   table: TanstackTable<FormattedDeliverableTableRow>;
 }> = ({ table }) => {
@@ -20,19 +26,14 @@ export const DeliverableActionButtons: React.FC<{
   const selectedRows = table.getSelectedRowModel().rows;
   const selectedCount = selectedRows.length;
   const selectedDeliverables = selectedRows.map((row) => row.original);
-  const singleSelectedDeliverable = selectedCount === 1 ? selectedRows[0].original : null;
+  const oneSelectedDeliverable = selectedCount === 1 ? selectedRows[0].original : null;
 
   const selectedIsEditable =
-    singleSelectedDeliverable === null || isDeliverableEditable(singleSelectedDeliverable.status);
-  const selectedIncludesFilesOrComments = selectedDeliverables.some(
-    (deliverable) =>
-      Boolean(deliverable.cmsDocuments?.length) ||
-      Boolean(deliverable.stateDocuments?.length) ||
-      Boolean(deliverable.publicComments?.length) ||
-      Boolean(deliverable.privateComments?.length)
-  );
+    oneSelectedDeliverable === null || isDeliverableEditable(oneSelectedDeliverable.status);
+  const selectedIncludesFilesOrComments = selectedDeliverables.some(hasFilesOrComments);
   const editEnabled = selectedCount === 1 && selectedIsEditable;
-  const deleteEnabled = selectedCount >= 1 && !selectedIncludesFilesOrComments;
+  const deleteEnabled = selectedCount >= 1 &&
+    (selectedCount > 1 || !selectedIncludesFilesOrComments);
 
   const baseEditTooltip = selectionTooltip({
     action: "Edit",
@@ -45,7 +46,9 @@ export const DeliverableActionButtons: React.FC<{
 
   const deleteTooltip = (() => {
     if (selectedCount === 0) return "Select a Deliverable to Delete";
-    if (selectedIncludesFilesOrComments) return DELIVERABLE_CANT_DELETE_HAS_FILES;
+    if (selectedCount === 1 && selectedIncludesFilesOrComments) {
+      return DELIVERABLE_CANT_DELETE_HAS_FILES;
+    }
 
     return selectionTooltip({
       action: "Delete",
@@ -63,8 +66,8 @@ export const DeliverableActionButtons: React.FC<{
         tooltip={editTooltip}
         disabled={!editEnabled}
         onClick={() => {
-          if (singleSelectedDeliverable) {
-            showEditDeliverableDialog(singleSelectedDeliverable);
+          if (oneSelectedDeliverable) {
+            showEditDeliverableDialog(oneSelectedDeliverable);
           }
         }}
       >

@@ -566,7 +566,7 @@ describe("DeliverableTable Remove action", () => {
     expect(removeButton).toHaveAttribute("title", DELIVERABLE_CANT_DELETE_HAS_FILES);
   });
 
-  it("disables Remove when one of multiple selected rows has files or comments", async () => {
+  it("enables Remove when one of multiple selected rows has files or comments", async () => {
     render(
       <DeliverableTable
         deliverables={[
@@ -593,8 +593,43 @@ describe("DeliverableTable Remove action", () => {
     await user.click(screen.getByTestId("select-row-has-comment"));
 
     const removeButton = screen.getByTestId("remove-deliverable");
-    expect(removeButton).toBeDisabled();
-    expect(removeButton).toHaveAttribute("title", DELIVERABLE_CANT_DELETE_HAS_FILES);
+    expect(removeButton).not.toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", "Delete");
+  });
+
+  it("keeps Remove enabled when multiple selected rows include files or comments", async () => {
+    render(
+      <DeliverableTable
+        deliverables={[
+          {
+            ...MOCK_DELIVERABLE_TABLE_ROW,
+            id: "delete-ready",
+            status: "Upcoming",
+            cmsDocuments: [],
+            publicComments: [],
+          },
+          {
+            ...MOCK_DELIVERABLE_TABLE_ROW,
+            id: "has-file",
+            status: "Upcoming",
+            cmsDocuments: [{ id: "doc-1" }],
+          },
+        ]}
+        viewMode="demos-cms-user"
+      />
+    );
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("select-row-delete-ready"));
+    await user.click(screen.getByTestId("select-row-has-file"));
+
+    expect(screen.getByTestId("remove-deliverable")).not.toBeDisabled();
+
+    await user.click(screen.getByTestId("select-row-has-file"));
+
+    const removeButton = screen.getByTestId("remove-deliverable");
+    expect(removeButton).not.toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", "Delete");
   });
 });
 
