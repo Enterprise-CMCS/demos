@@ -47,6 +47,7 @@ export const DeliverableActionButtons: React.FC<{
   const selectedIsEditable =
     oneSelectedDeliverable === null || isDeliverableEditable(oneSelectedDeliverable.status);
   const editEnabled = selectedCount === 1 && selectedIsEditable;
+  const iconColor = deleteEnabled ? "var(--color-error-dark)" : "var(--color-gray-darker)";
 
   const baseEditTooltip = selectionTooltip({
     action: "Edit",
@@ -86,7 +87,7 @@ export const DeliverableActionButtons: React.FC<{
           );
         }}
       >
-        <DeleteIcon />
+        <DeleteIcon fill={iconColor} />
       </CircleButton>
     </div>
   );
