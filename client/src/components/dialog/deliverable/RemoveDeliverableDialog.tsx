@@ -13,19 +13,16 @@ export const DELETE_DELIVERABLE_MUTATION = gql`
 `;
 
 export const REMOVE_DELIVERABLE_CONFIRM_MESSAGE =
-"Are you sure you want to remove this deliverable? This action cannot be undone!";
-export const DELIVERABLE_DELETED_MESSAGE =
-"Your deliverable(s) have been deleted.";
+  "Are you sure you want to remove this deliverable? This action cannot be undone!";
+export const DELIVERABLE_DELETED_MESSAGE = "Your deliverable(s) have been deleted.";
 export const DELETE_DELIVERABLE_ERROR_MESSAGE =
-"Your changes could not be saved due to an unknown problem.";
-const DELETE_DELIVERABLES_NAME =
-"button-confirm-delete-deliverable";
+  "Your changes could not be saved due to an unknown problem.";
+const DELETE_DELIVERABLES_NAME = "button-confirm-delete-deliverable";
 
 export const getRemoveDeliverableConfirmMessage = (deliverableCount: number): string =>
   deliverableCount === 1
     ? REMOVE_DELIVERABLE_CONFIRM_MESSAGE
     : `Are you sure you want to remove these ${deliverableCount} deliverables? This action cannot be undone!`;
-export const getDeliverableDeletedMessage = (): string => DELIVERABLE_DELETED_MESSAGE;
 
 export const RemoveDeliverableDialog: React.FC<{
   deliverableIds: string[];
@@ -34,8 +31,6 @@ export const RemoveDeliverableDialog: React.FC<{
 }> = ({ deliverableIds, onClose, onDeleted }) => {
   const { showSuccess, showError } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
-  const confirmMessage = getRemoveDeliverableConfirmMessage(deliverableIds.length);
-  const deletedMessage = getDeliverableDeletedMessage();
   const [deleteDeliverable] = useMutation(DELETE_DELIVERABLE_MUTATION, {
     refetchQueries: ["GetDeliverablesPage"],
     awaitRefetchQueries: true,
@@ -53,7 +48,7 @@ export const RemoveDeliverableDialog: React.FC<{
       );
 
       onDeleted?.();
-      showSuccess(deletedMessage);
+      showSuccess(DELIVERABLE_DELETED_MESSAGE);
       onClose();
     } catch {
       showError(DELETE_DELIVERABLE_ERROR_MESSAGE);
@@ -80,7 +75,9 @@ export const RemoveDeliverableDialog: React.FC<{
         </ErrorButton>
       }
     >
-      <div className="mb-2 text-sm text-text-filled">{confirmMessage}</div>
+      <div className="mb-2 text-sm text-text-filled">
+        {getRemoveDeliverableConfirmMessage(deliverableIds.length)}
+      </div>
     </BaseDialog>
   );
 };
