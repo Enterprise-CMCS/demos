@@ -3,7 +3,10 @@ import type { Table as TanstackTable } from "@tanstack/react-table";
 
 import { CircleButton } from "components/index";
 import { useDialog } from "components/dialog/DialogContext";
-import { isDeliverableEditable } from "components/dialog/deliverable";
+import {
+  DELIVERABLE_CANT_DELETE_HAS_FILES,
+  isDeliverableEditable,
+} from "components/dialog/deliverable";
 import { DeleteIcon } from "components/icons/Action/DeleteIcon";
 import { EditIcon } from "components/icons/Navigation/EditIcon";
 
@@ -21,8 +24,15 @@ export const DeliverableActionButtons: React.FC<{
 
   const selectedIsEditable =
     singleSelectedDeliverable === null || isDeliverableEditable(singleSelectedDeliverable.status);
+  const selectedIncludesFilesOrComments = selectedDeliverables.some(
+    (deliverable) =>
+      Boolean(deliverable.cmsDocuments?.length) ||
+      Boolean(deliverable.stateDocuments?.length) ||
+      Boolean(deliverable.publicComments?.length) ||
+      Boolean(deliverable.privateComments?.length)
+  );
   const editEnabled = selectedCount === 1 && selectedIsEditable;
-  const deleteEnabled = selectedCount >= 1;
+  const deleteEnabled = selectedCount >= 1 && !selectedIncludesFilesOrComments;
 
   const baseEditTooltip = selectionTooltip({
     action: "Edit",
@@ -35,6 +45,7 @@ export const DeliverableActionButtons: React.FC<{
 
   const deleteTooltip = (() => {
     if (selectedCount === 0) return "Select a Deliverable to Delete";
+    if (selectedIncludesFilesOrComments) return DELIVERABLE_CANT_DELETE_HAS_FILES;
 
     return selectionTooltip({
       action: "Delete",

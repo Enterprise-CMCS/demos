@@ -3,7 +3,10 @@ export {
   ADD_DELIVERABLE_SLOT_DIALOG_TITLE,
 } from "./AddDeliverableSlotDialog";
 export { EditDeliverableDialog, isDeliverableEditable } from "./EditDeliverableDialog";
-export { RemoveDeliverableDialog } from "./RemoveDeliverableDialog";
+export {
+  DELIVERABLE_CANT_DELETE_HAS_FILES,
+  RemoveDeliverableDialog,
+} from "./RemoveDeliverableDialog";
 export {
   RequestExtensionDeliverableDialog,
   canRequestExtension,

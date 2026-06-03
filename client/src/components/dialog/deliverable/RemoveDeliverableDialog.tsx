@@ -17,7 +17,7 @@ export const REMOVE_DELIVERABLE_CONFIRM_MESSAGE =
 export const DELIVERABLE_DELETED_MESSAGE =
   "Your deliverable has been deleted.";
 export const DELIVERABLE_CANT_DELETE_HAS_FILES =
-  "Cannot Delete - Has Files or Comments.";
+  "Cannot Delete -\nHas Files or Comments";
 export const DELETE_DELIVERABLE_ERROR_MESSAGE =
   "Your changes could not be saved due to an unknown problem.";
 const DELETE_DELIVERABLES_NAME =
