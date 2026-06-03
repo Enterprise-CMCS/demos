@@ -38,7 +38,10 @@ import { getManyExtensions } from "../extension";
 import { getManyDocuments } from "../document";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
 import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
-import { selectManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment/queries";
+import {
+  selectDemonstrationTypeTagAssignment,
+  selectManyDemonstrationTypeTagAssignments,
+} from "../demonstrationTypeTagAssignment/queries";
 import {
   selectDemonstrationRoleAssignmentOrThrow,
   selectManyDemonstrationRoleAssignments,
@@ -323,6 +326,16 @@ export const demonstrationResolvers = {
         }
       ),
     deliverables: resolveManyDeliverables,
-    medicaidId: (): string => "11-W-99999/8", // Placeholder value to be updated in DEMOS-2124
-  }
+    chipId: async (parent: PrismaDemonstration): Promise<string | null> => {
+      const chipDemonstrationType = await selectDemonstrationTypeTagAssignment({
+        demonstrationId: parent.id,
+        tagNameId: "Children's Health Insurance Program (CHIP)",
+      });
+      if (!chipDemonstrationType) {
+        return null;
+      } else {
+        return parent.chipId;
+      }
+    },
+  },
 };
