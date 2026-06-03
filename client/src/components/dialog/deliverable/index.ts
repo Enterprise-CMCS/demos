@@ -4,7 +4,6 @@ export {
 } from "./AddDeliverableSlotDialog";
 export { EditDeliverableDialog, isDeliverableEditable } from "./EditDeliverableDialog";
 export {
-  DELIVERABLE_CANT_DELETE_HAS_FILES,
   RemoveDeliverableDialog,
 } from "./RemoveDeliverableDialog";
 export {

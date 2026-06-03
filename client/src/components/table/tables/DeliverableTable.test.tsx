@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { DELIVERABLE_CANT_DELETE_HAS_FILES } from "components/dialog/deliverable";
 import { DeliverableTable, formatDeliverableStatus } from "./DeliverableTable";
+import { DELIVERABLE_CANT_DELETE_HAS_FILES } from "./DeliverableActionButtons";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
 import type { DeliverableTableRow } from "./DeliverableTable";
 import { MOCK_DELIVERABLE_TABLE_ROW } from "mock-data/deliverableMocks";
