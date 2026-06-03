@@ -16,7 +16,7 @@ import {
 } from "@tanstack/react-table";
 
 import { arrIncludesAllInsensitive } from "./KeywordSearch";
-import { THead } from "./THead";
+import { TableHead } from "./TableHead";
 
 const STYLES = {
   table: "w-full min-w-max table-auto",
@@ -204,7 +204,7 @@ export function Table<T extends { id: string }>({
 
       <div className="w-full overflow-x-auto">
         <table className={STYLES.table}>
-          <THead headerGroups={table.getHeaderGroups()} />
+          <TableHead headerGroups={table.getHeaderGroups()} />
           <TableBody
             data={data}
             table={table}
