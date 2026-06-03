@@ -16,15 +16,14 @@ export function ReportsColumns() {
     }),
     columnHelper.display({
       id: "actions",
+      header: "Actions",
       cell: ({ row }) => {
         return (
           <div className="flex gap-2 justify-center">
             <SecondaryButton
               name={`download-${row.original.id}`}
               ariaLabel={`Download ${row.original.id}`}
-              onClick={() =>
-                console.info(`Download action for report with id: ${row.original.id}`)
-              }
+              onClick={() => console.info(`Download action for report with id: ${row.original.id}`)}
             >
               Download
             </SecondaryButton>
@@ -35,4 +34,4 @@ export function ReportsColumns() {
       enableColumnFilter: false,
     }),
   ];
-};
+}

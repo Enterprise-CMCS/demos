@@ -36,6 +36,7 @@ export function ReferencesColumns() {
     }),
     columnHelper.display({
       id: "actions",
+      header: "Actions",
       cell: ({ row }) => {
         return (
           <div className="flex gap-2 justify-center">
