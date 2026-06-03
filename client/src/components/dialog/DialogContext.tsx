@@ -1,6 +1,13 @@
 import React, { createContext, useContext, useState } from "react";
 import { DocumentNode } from "@apollo/client";
-import { DocumentType, TagName, DemonstrationTypeAssignment, Tag } from "demos-server";
+import {
+  DocumentType,
+  TagName,
+  DemonstrationTypeAssignment,
+  Tag,
+  Reference,
+  ReferenceAgreement,
+} from "demos-server";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
 import { CreateExtensionDialog } from "./modification/CreateExtensionDialog";
@@ -51,7 +58,6 @@ import {
   ReviewExtensionDeliverableDialog,
   ReviewExtensionDeliverableDialogDeliverable,
 } from "./deliverable/ReviewExtensionDeliverableDialog";
-import { Reference, ReferenceAgreement } from "components/table/tables/ReferencesTable";
 import { ReferenceAgreementDialog } from "./referenceAgreement/ReferenceAgreementDialog";
 
 type DialogContextType = {
@@ -355,7 +361,9 @@ export const useDialog = () => {
   };
 
   const showReferenceAgreementDialog = (
-    reference: Pick<Reference, "id"> & { agreement: ReferenceAgreement }
+    reference: Pick<Reference, "id"> & {
+      agreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt">;
+    }
   ) => {
     context.showDialog(<ReferenceAgreementDialog reference={reference} />);
   };

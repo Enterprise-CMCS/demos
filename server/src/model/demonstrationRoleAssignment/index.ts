@@ -1,0 +1,1 @@
+export { getManyDemonstrationRoleAssignments } from "./demonstrationRoleAssignmentData";

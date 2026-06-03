@@ -6,7 +6,7 @@ import { TestProvider } from "test-utils/TestProvider";
 import { Route, Routes } from "react-router-dom";
 import { DefaultHeaderLower } from "./DefaultHeaderLower";
 import { Header } from "./Header";
-import { PROFILE_BLOCK_TEST_ID, ProfileBlock } from "./ProfileBlock";
+import { PROFILE_BUTTON_TEST_ID, ProfileBlock, SIGNOUT_LINK_TEST_ID } from "./ProfileBlock";
 import { QUICK_LINKS_TEST_ID } from "./QuickLinks";
 
 function renderWithProviders(ui: React.ReactNode) {
@@ -46,14 +46,14 @@ describe("Header", () => {
 
   it("opens and closes the ProfileBlock menu when toggled by clicking the name", async () => {
     renderWithProviders(<ProfileBlock />);
-    const profileName = screen.getByTestId(PROFILE_BLOCK_TEST_ID);
+    const profileButton = screen.getByTestId(PROFILE_BUTTON_TEST_ID);
 
-    fireEvent.click(profileName);
-    const signOutLink = await screen.findByRole("button", { name: /Sign Out/i });
+    fireEvent.click(profileButton);
+    const signOutLink = await screen.findByTestId(SIGNOUT_LINK_TEST_ID);
     expect(signOutLink).toBeVisible();
 
-    fireEvent.click(profileName);
-    expect(screen.queryByRole("button", { name: /Sign Out/i })).not.toBeInTheDocument();
+    fireEvent.click(profileButton);
+    expect(screen.queryByTestId(SIGNOUT_LINK_TEST_ID)).not.toBeInTheDocument();
   });
 
   it("renders DeliverableDetailHeader for deliverable routes", async () => {
@@ -77,14 +77,14 @@ describe("Header", () => {
       </>
     );
 
-    const profileName = screen.getByTestId(PROFILE_BLOCK_TEST_ID);
+    const profileButton = screen.getByTestId(PROFILE_BUTTON_TEST_ID);
 
-    fireEvent.click(profileName);
-    const signOutLink = await screen.findByRole("button", { name: /Sign Out/i });
+    fireEvent.click(profileButton);
+    const signOutLink = await screen.findByTestId(SIGNOUT_LINK_TEST_ID);
     expect(signOutLink).toBeVisible();
 
     fireEvent.mouseDown(screen.getByTestId("outside-area"));
 
-    expect(screen.queryByRole("button", { name: /Sign Out/i })).not.toBeInTheDocument();
+    expect(screen.queryByTestId(SIGNOUT_LINK_TEST_ID)).not.toBeInTheDocument();
   });
 });

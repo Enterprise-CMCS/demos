@@ -3,8 +3,8 @@ import { render, screen } from "@testing-library/react";
 import { ReferenceAgreementDialog } from "./ReferenceAgreementDialog";
 import { DialogProvider } from "../DialogContext";
 import { useDownloadReference } from "hooks/useDownloadReference";
-import { Reference, ReferenceAgreement } from "components/table/tables/ReferencesTable";
 import { ToastProvider } from "components/toast";
+import { Reference, ReferenceAgreement } from "demos-server";
 
 vi.mock("hooks/useDownloadReference", () => ({
   useDownloadReference: vi.fn(),
@@ -21,12 +21,14 @@ describe("ReferenceAgreementDialog", () => {
     });
   });
   it("renders the dialog with instructions, document download button, checkbox, and action buttons", () => {
-    const mockReference: Pick<Reference, "id"> & { agreement: ReferenceAgreement } = {
+    const mockReference: Pick<Reference, "id"> & {
+      agreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt">;
+    } = {
       id: "reference-123",
       agreement: {
         id: "agreement-456",
         name: "Agreement abc",
-        createdAt: "2024-01-01",
+        createdAt: new Date("2024-01-01"),
       },
     };
 
@@ -49,12 +51,14 @@ describe("ReferenceAgreementDialog", () => {
   });
 
   it("enables the download button only when the terms are accepted", () => {
-    const mockReference: Pick<Reference, "id"> & { agreement: ReferenceAgreement } = {
+    const mockReference: Pick<Reference, "id"> & {
+      agreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt">;
+    } = {
       id: "reference-123",
       agreement: {
         id: "agreement-456",
         name: "Agreement abc",
-        createdAt: "2024-01-01",
+        createdAt: new Date("2024-01-01"),
       },
     };
 
@@ -74,12 +78,14 @@ describe("ReferenceAgreementDialog", () => {
   });
 
   it("calls the downloadReference function with correct parameters when download button is clicked", () => {
-    const mockReference: Pick<Reference, "id"> & { agreement: ReferenceAgreement } = {
+    const mockReference: Pick<Reference, "id"> & {
+      agreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt">;
+    } = {
       id: "reference-123",
       agreement: {
         id: "agreement-456",
         name: "Agreement abc",
-        createdAt: "2024-01-01",
+        createdAt: new Date("2024-01-01"),
       },
     };
 
