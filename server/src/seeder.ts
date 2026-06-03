@@ -11,6 +11,7 @@ import {
   TAG_TYPES,
   AMENDMENT_SIGNATURE_LEVELS,
   EXTENSION_SIGNATURE_LEVELS,
+  FAQ_REFERENCE_TAG,
 } from "./constants.js";
 import {
   CreateDemonstrationInput,
@@ -615,7 +616,7 @@ async function seedReferences() {
       await prisma().referenceTagAssignment.create({
         data: {
           referenceId: referenceId,
-          tagNameId: "FAQ",
+          tagNameId: FAQ_REFERENCE_TAG,
           tagTypeId: "Reference",
         },
       });
