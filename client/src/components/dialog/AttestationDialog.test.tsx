@@ -19,7 +19,9 @@ describe("AttestationDialog", () => {
     renderDialog();
 
     expect(screen.getByRole("heading", { name: "Attestation Required" })).toBeInTheDocument();
-    expect(screen.getByText(/I attest that its content is/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/I attest the information included with this submission is true and accurate/i)
+    ).toBeInTheDocument();
     expect(screen.getByTestId("attestation-acknowledge")).toBeInTheDocument();
   });
 

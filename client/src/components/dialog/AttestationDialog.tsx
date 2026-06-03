@@ -12,9 +12,8 @@ const STYLES = {
 };
 
 const ATTESTATION_STATEMENT =
-  "By uploading this Budget Neutrality (BN) notebook, I attest that its content is " +
-  "accurate, complete, and compliant with all applicable CMS requirements to the best " +
-  "of my knowledge.";
+  "By uploading this Budget Neutrality (BN) notebook, I attest the information included " +
+  "with this submission is true and accurate to the best of my knowledge.";
 
 const ACKNOWLEDGEMENT_LABEL = "I acknowledge and attest to the statement above.";
 
