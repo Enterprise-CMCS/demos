@@ -65,7 +65,6 @@ export const getUpdateDemonstrationInput = (
 ): UpdateDemonstrationInput => {
   return {
     ...(demonstration.name && { name: demonstration.name }),
-    ...(demonstration.stateId && { stateId: demonstration.stateId }),
     ...(demonstration.projectOfficerId && {
       projectOfficerUserId: demonstration.projectOfficerId,
     }),
