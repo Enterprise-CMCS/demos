@@ -62,15 +62,26 @@ FROM
 WHERE
     d.id = n.id;
 
+WITH new_medicaid_chip_ids AS (
+    SELECT
+        dh.id,
+        format('11-W-%s/%s', lpad(nextval('demos_app.medicaid_id_number_seq')::TEXT, 5, '0'), s.region) AS new_medicaid_id,
+        format('21-W-%s/%s', lpad(nextval('demos_app.chip_id_number_seq')::TEXT, 5, '0'), s.region) AS new_chip_id
+    FROM
+        demos_app.demonstration_history AS dh
+    INNER JOIN
+        demos_app.state AS s ON
+            dh.state_id = s.id
+)
 UPDATE
     demos_app.demonstration_history AS dh
 SET
-    medicaid_id = d.medicaid_id,
-    chip_id = d.chip_id
+    medicaid_id = n.new_medicaid_id,
+    chip_id = n.new_chip_id
 FROM
-    demos_app.demonstration AS d
+    new_medicaid_chip_ids AS n
 WHERE
-    dh.id = d.id;
+    dh.id = n.id;
 
 -- Enable triggers now that the backfill is done
 ALTER TABLE demos_app.demonstration ENABLE TRIGGER ALL;

@@ -557,12 +557,13 @@ erDiagram
     CONSTRAINT_CHECK check_demonstration_name_trimmed "Validate that the trim of the name is identical to the name."
     CONSTRAINT_CHECK check_demonstration_description_trimmed "Validate that the trim of the description is identical to the description."
     CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_demonstration_primary_project_officer "Check that a primary project officer exists for this demonstration."
-    TRIGGER_BEFORE_INSERT create_medicaid_chip_id_numbers "Create the Medicaid and CHIP ID numbers before inserting to the table."
-    TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
+    TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
+    TRIGGER_BEFORE_INSERT generate_medicaid_chip_id_numbers "Create the Medicaid and CHIP ID numbers before inserting to the table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     TRIGGER_BEFORE_UPDATE check_demonstration_type_exists_for_approved_demonstrations "Check that approved demonstrations have at least one demonstration type."
+    TRIGGER_BEFORE_UPDATE prevent_changing_immutable_demonstration_fields "Prevent changes to state_id, medicaid_id, or chip_id."
+    TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
     TRIGGER_AFTER_UPDATE change_open_ended_due_dates_to_expiration_date "If the demonstration is approved, when the expiration date changes, change all the open-ended due dates for associated deliverables."
-    TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
     HAS_HISTORY true
   }
 

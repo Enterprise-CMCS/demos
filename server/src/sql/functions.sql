@@ -1575,8 +1575,8 @@ BEFORE INSERT OR UPDATE ON demos_app.reference_agreement
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.trim_input_text_fields();
 
--- create_medicaid_chip_id_numbers
-CREATE FUNCTION demos_app.create_medicaid_chip_id_numbers()
+-- generate_medicaid_chip_id_numbers
+CREATE FUNCTION demos_app.generate_medicaid_chip_id_numbers()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
@@ -1612,7 +1612,31 @@ BEGIN
 END;
 $$;
 
-CREATE TRIGGER create_medicaid_chip_id_numbers
+CREATE TRIGGER generate_medicaid_chip_id_numbers
 BEFORE INSERT ON demos_app.demonstration
 FOR EACH ROW
-EXECUTE FUNCTION demos_app.create_medicaid_chip_id_numbers();
+EXECUTE FUNCTION demos_app.generate_medicaid_chip_id_numbers();
+
+-- prevent_changing_immutable_demonstration_fields
+CREATE FUNCTION demos_app.prevent_changing_immutable_demonstration_fields()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF NEW.state_id IS DISTINCT FROM OLD.state_id THEN
+        RAISE EXCEPTION 'The state_id field in the demonstration table cannot be modified after creation.';
+    END IF;
+    IF NEW.medicaid_id IS DISTINCT FROM OLD.medicaid_id THEN
+        RAISE EXCEPTION 'The medicaid_id field in the demonstration table cannot be modified after creation.';
+    END IF;
+    IF NEW.chip_id IS DISTINCT FROM OLD.chip_id THEN
+        RAISE EXCEPTION 'The chip_id field in the demonstration table cannot be modified after creation.';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER prevent_changing_immutable_demonstration_fields
+BEFORE UPDATE OF state_id, medicaid_id, chip_id ON demos_app.demonstration
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.prevent_changing_immutable_demonstration_fields();
