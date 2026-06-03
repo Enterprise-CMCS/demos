@@ -478,6 +478,8 @@ export const TAG_SOURCES = ["User", "System"] as const;
 
 export const TAG_TYPES = ["Application", "Demonstration Type", "Reference"] as const;
 
+export const FAQ_REFERENCE_TAG = "FAQ";
+
 // This seemed like a no brainer.
 export const PRIMARY_AWS_REGION = "us-east-1";
 
@@ -501,6 +503,8 @@ export const PERMISSIONS = [
   "View Owned Documents",
   "View All Deliverables",
   "View Deliverables on Assigned Demonstrations",
+  "View All DemonstrationRoleAssignments",
+  "View DemonstrationRoleAssignments on Assigned Demonstrations",
 
   // Field Level Permissions
   "Access CMS Field",

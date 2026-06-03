@@ -1,9 +1,11 @@
 import { MockedResponse } from "@apollo/client/testing";
-import { GET_REFERENCES_QUERY, Reference } from "components/table/tables/ReferencesTable";
+import { GET_REFERENCES_QUERY } from "components/table/tables/ReferencesTable";
+import { Reference } from "demos-server";
 import {
   DOWNLOAD_REFERENCE_AGREEMENT_QUERY,
   DOWNLOAD_REFERENCE_QUERY,
 } from "hooks/useDownloadReference";
+import { MOCK_TAGS } from "./TagMocks";
 
 export const mockReferences: Reference[] = [
   {
@@ -13,18 +15,23 @@ export const mockReferences: Reference[] = [
     agreement: {
       id: "agreement1",
       name: "Reference Agreement 1",
-      createdAt: "2024-01-01",
+      createdAt: new Date("2024-01-01"),
+      updatedAt: new Date("2024-02-01"),
     },
-    demonstrationTypes: ["Type A", "Type B"],
-    updatedAt: "2024-01-01",
+    demonstrationTypes: [MOCK_TAGS[0], MOCK_TAGS[1]],
+    tags: [],
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-02-01"),
   },
   {
     id: "ref2",
     name: "Reference Document 2",
     description: "Description for Reference Document 2",
     agreement: null,
-    demonstrationTypes: ["Type C"],
-    updatedAt: "2024-01-04",
+    demonstrationTypes: [MOCK_TAGS[3]],
+    tags: [],
+    createdAt: new Date("2024-01-02"),
+    updatedAt: new Date("2024-02-02"),
   },
   {
     id: "ref3",
@@ -33,10 +40,13 @@ export const mockReferences: Reference[] = [
     agreement: {
       id: "agreement2",
       name: "Reference Agreement 2",
-      createdAt: "2024-01-02",
+      createdAt: new Date("2024-01-02"),
+      updatedAt: new Date("2024-02-02"),
     },
-    demonstrationTypes: ["Type B"],
-    updatedAt: "2024-01-03",
+    demonstrationTypes: [MOCK_TAGS[4]],
+    tags: [],
+    createdAt: new Date("2024-01-03"),
+    updatedAt: new Date("2024-02-03"),
   },
 ];
 

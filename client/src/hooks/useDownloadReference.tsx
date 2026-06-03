@@ -8,10 +8,10 @@ export const DOWNLOAD_REFERENCE_QUERY: TypedDocumentNode<
   },
   {
     id: string;
-    acceptedAgreementId?: string;
+    acceptedAgreementId: string | null;
   }
 > = gql`
-  query DownloadReference($id: ID!, $acceptedAgreementId: ID!) {
+  query DownloadReference($id: ID!, $acceptedAgreementId: ID) {
     referenceDownloadUrl(id: $id, acceptedAgreementId: $acceptedAgreementId)
   }
 `;
@@ -44,7 +44,7 @@ export const useDownloadReference = () => {
     acceptedAgreementId,
   }: {
     id: string;
-    acceptedAgreementId?: string;
+    acceptedAgreementId: string | null;
   }): Promise<string> => {
     try {
       const { data, error } = await fetchReferenceDownloadUrl({
