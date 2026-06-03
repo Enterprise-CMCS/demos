@@ -38,9 +38,7 @@ NO CYCLE;
 
 -- Disabling triggers during the backfill
 -- Necessary to conditionally do this because sometimes these triggers won't exist
--- For instance: in the Prisma Shadow DB or if doing a full DB reset
--- Note that this isn't necessarily how we would handle in production re: dropping the history
--- This case is unique
+-- Disabling the history log; would not normally do in a prod migration but makes sense here
 DO
 $$
 BEGIN
@@ -49,6 +47,17 @@ BEGIN
 END
 $$;
 
+-- Need to disable check_demonstration_primary_project_officer in this case
+-- This is fixed already in functions.sql, but can't be sure that will run before this
+DO
+$$
+BEGIN
+    ALTER TABLE demos_app.demonstration DISABLE TRIGGER check_demonstration_primary_project_officer;
+    EXCEPTION WHEN undefined_object THEN NULL;
+END
+$$;
+
+-- Disable the redundant updates checker, mostly for performance
 DO
 $$
 BEGIN
@@ -106,6 +115,14 @@ DO
 $$
 BEGIN
     ALTER TABLE demos_app.demonstration ENABLE TRIGGER log_changes_demonstration;
+    EXCEPTION WHEN undefined_object THEN NULL;
+END
+$$;
+
+DO
+$$
+BEGIN
+    ALTER TABLE demos_app.demonstration ENABLE TRIGGER check_demonstration_primary_project_officer;
     EXCEPTION WHEN undefined_object THEN NULL;
 END
 $$;
