@@ -269,7 +269,6 @@ describe("getUpdateDemonstrationInput", () => {
   it("maps name, stateId, and projectOfficerId as-is", () => {
     const result = getUpdateDemonstrationInput(BASE_DEMONSTRATION);
     expect(result.name).toBe("My Demo");
-    expect(result.stateId).toBe("AL");
     expect(result.projectOfficerUserId).toBe("officer-1");
   });
 

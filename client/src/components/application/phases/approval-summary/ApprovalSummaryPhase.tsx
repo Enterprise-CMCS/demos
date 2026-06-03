@@ -315,7 +315,6 @@ export const ApprovalSummaryPhase = ({
           ? formatDateForServer(parseFormDateString(formData.expirationDate))
           : null,
         sdgDivision: formData.sdgDivision,
-        stateId: formData.stateId,
         projectOfficerUserId: formData.projectOfficerId,
       };
 
