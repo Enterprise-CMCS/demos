@@ -331,10 +331,10 @@ export const demonstrationResolvers = {
         demonstrationId: parent.id,
         tagNameId: "Children's Health Insurance Program (CHIP)",
       });
-      if (!chipDemonstrationType) {
-        return null;
-      } else {
+      if (chipDemonstrationType) {
         return parent.chipId;
+      } else {
+        return null;
       }
     },
   },
