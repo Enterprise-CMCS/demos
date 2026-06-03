@@ -180,7 +180,10 @@ const NO_RESULTS_FOUND = "No deliverables match your search.";
 const FINAL_STATUSES = ["Accepted", "Approved", "Received and Filed"];
 
 export const formatDeliverableStatus = (
-  deliverable: Pick<DeliverableTableRow, "status" | "deliverableActions" | "extensionRequests">
+  deliverable: Pick<
+  DeliverableTableRow,
+  "status" | "deliverableActions" | "extensionRequests"
+  >
 ) => {
   const { status, deliverableActions, extensionRequests } = deliverable;
 
