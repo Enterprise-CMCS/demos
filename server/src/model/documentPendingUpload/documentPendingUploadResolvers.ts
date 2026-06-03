@@ -19,6 +19,7 @@ import { selectUserOrThrow } from "../user/queries";
 import { resolveDeliverable } from "../deliverable";
 import { updateAssociatedPhase } from "./updateAssociatedPhase";
 import { handleUploadDocumentToDeliverable } from "./handleUploadDocumentToDeliverable";
+import { validateStateUserCanUploadStateDocumentToDeliverable } from "./validateStateUserCanUploadStateDocumentToDeliverable";
 
 export const documentPendingUploadResolvers = {
   Mutation: {
@@ -76,8 +77,12 @@ export const documentPendingUploadResolvers = {
       parent: unknown,
       { input }: { input: UploadDocumentToDeliverableInput },
       context: GraphQLContext
-    ): Promise<PrismaDocumentPendingUpload> =>
-      handleUploadDocumentToDeliverable(input, context.user.id, false),
+    ): Promise<PrismaDocumentPendingUpload> => {
+      if (context.user.personTypeId === "demos-state-user") {
+        validateStateUserCanUploadStateDocumentToDeliverable(context.user.id, input.applicationId);
+      }
+      return handleUploadDocumentToDeliverable(input, context.user.id, false);
+    },
   },
 
   DocumentPendingUpload: {

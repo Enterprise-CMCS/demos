@@ -110,6 +110,17 @@ describe("parseDeliverableInputs", () => {
       expect(result).toStrictEqual(expectedResult);
     });
 
+    it("should trim the deliverable name", () => {
+      const testInput = {
+        ...baseTestInput,
+        name: "  A new deliverable name!  ",
+      };
+
+      const result = parseCreateDeliverableInput(testInput);
+
+      expect(result.name).toBe("A new deliverable name!");
+    });
+
     it("should throw if given duplicate demonstration types", () => {
       vi.mocked(checkForDuplicateDemonstrationTypes).mockReturnValue("There are duplicates!!");
       const testInput = {
@@ -143,6 +154,17 @@ describe("parseDeliverableInputs", () => {
 
       const result = parseUpdateDeliverableInput(testInput);
       expect(result).toStrictEqual(expectedResult);
+    });
+
+    it("should trim the deliverable name when one is provided", () => {
+      const testInput = {
+        ...baseTestInput,
+        name: "  An updated deliverable name!  ",
+      };
+
+      const result = parseUpdateDeliverableInput(testInput);
+
+      expect(result.name).toBe("An updated deliverable name!");
     });
 
     it("should not call date or demonstration type functions if those aren't passed in", () => {

@@ -11,6 +11,7 @@ import {
   checkNewDueDateIsGreaterThanCurrentDueDate,
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
+  checkRequiredDeliverableDemonstrationTypes,
   selectDeliverableOrThrow,
   ParsedApproveDeliverableExtensionInput,
   ParsedCreateDeliverableInput,
@@ -78,7 +79,11 @@ export async function validateCreateDeliverableInput(
   errors.push(
     checkDemonstrationStatus(demonstration),
     checkOwnerPersonType(cmsOwnerUser),
-    checkDueDateInFuture(input.dueDate)
+    checkDueDateInFuture(input.dueDate),
+    checkRequiredDeliverableDemonstrationTypes(
+      input.deliverableType,
+      input.demonstrationTypes
+    )
   );
   if (input.demonstrationTypes && input.demonstrationTypes.size > 0) {
     for (const requestedDeliverableDemonstrationType of input.demonstrationTypes) {

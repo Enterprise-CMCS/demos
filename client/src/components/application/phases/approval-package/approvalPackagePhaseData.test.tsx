@@ -66,6 +66,7 @@ const mockSetSelectedPhase = vi.fn();
 
 const baseDemonstration: ApplicationWorkflowDemonstration = {
   id: "demo-1",
+  medicaidId: "medicaid-123",
   name: "Test Demo",
   state: { id: "CA", name: "California" },
   primaryProjectOfficer: mockPO,

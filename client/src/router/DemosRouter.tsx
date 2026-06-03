@@ -16,8 +16,10 @@ import { ReportsPage } from "pages/ReportsPage";
 import { DeliverableDetailsManagementPage } from "pages/deliverables/DeliverableDetailsManagementPage";
 import { AdminPage } from "pages/admin/AdminPage";
 import { RequireRole } from "./RequireRole";
+import { PersonType } from "demos-server";
+import { ReferencesPage } from "pages/ReferencesPage";
 
-const DEMONSTRATION_ACCESS_ROLES = ["demos-admin", "demos-cms-user"];
+const DEMONSTRATION_ACCESS_ROLES: PersonType[] = ["demos-admin", "demos-cms-user"];
 
 const HomePage = () => {
   const { currentUser } = getCurrentUser();
@@ -40,14 +42,16 @@ export const DemosRouter: React.FC = () => {
               <Route element={<DemosLayoutProvider />}>
                 <Route path="*" element={<div>404: Page Not Found</div>} />
                 <Route path="/" element={<HomePage />} />
-                <Route path="demonstrations"
+                <Route
+                  path="demonstrations"
                   element={
                     <RequireRole allowedRoles={DEMONSTRATION_ACCESS_ROLES}>
                       <DemonstrationsPage />
                     </RequireRole>
                   }
                 />
-                <Route path="demonstrations/:id"
+                <Route
+                  path="demonstrations/:id"
                   element={
                     <RequireRole allowedRoles={DEMONSTRATION_ACCESS_ROLES}>
                       <DemonstrationDetail />
@@ -55,23 +59,28 @@ export const DemosRouter: React.FC = () => {
                   }
                 />
                 <Route path="deliverables" element={<DeliverablesPage />} />
-                <Route path="deliverables/:deliverableId"
+                <Route
+                  path="deliverables/:deliverableId"
                   element={<DeliverableDetailsManagementPage />}
                 />
-                <Route path="reports"
+                <Route
+                  path="reports"
                   element={
                     <RequireRole allowedRoles={["demos-admin", "demos-cms-user"]}>
                       <ReportsPage />
                     </RequireRole>
                   }
                 />
-                <Route path="admin"
+                <Route
+                  path="admin"
                   element={
                     <RequireRole allowedRoles={["demos-admin"]}>
                       <AdminPage />
                     </RequireRole>
                   }
                 />
+                <Route path="references" element={<ReferencesPage />} />
+
                 {isLocalDevelopment() && (
                   <>
                     <Route path="components" element={<ComponentLibrary />} />

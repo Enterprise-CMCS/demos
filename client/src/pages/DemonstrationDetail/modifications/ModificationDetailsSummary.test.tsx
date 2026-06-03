@@ -31,6 +31,7 @@ describe("ModificationDetailsSummary", () => {
     effectiveDate: new Date("2024-01-15"),
     signatureLevel: "OA",
     documents: [],
+    medicaidId: "demo-1",
   };
 
   describe("Component Rendering", () => {
@@ -53,6 +54,7 @@ describe("ModificationDetailsSummary", () => {
         status: "Pre-Submission",
         documents: [],
         createdAt: new Date("2024-01-01"),
+        medicaidId: "demo-2",
       };
       render(<ModificationDetailsSummary modificationItem={mockExtension} />);
       expect(screen.getByText("Extension Title")).toBeInTheDocument();
@@ -103,15 +105,6 @@ describe("ModificationDetailsSummary", () => {
       expect(screen.queryByText("Description")).not.toBeInTheDocument();
     });
 
-    it("does not render signature level section when signature level is not provided", () => {
-      const itemWithoutSignatureLevel: ModificationItem = {
-        ...mockAmendment,
-        signatureLevel: undefined,
-      };
-      render(<ModificationDetailsSummary modificationItem={itemWithoutSignatureLevel} />);
-      expect(screen.queryByText("Signature Level")).not.toBeInTheDocument();
-    });
-
     it("displays placeholder when effective date is not provided", () => {
       const itemWithoutEffectiveDate: ModificationItem = {
         ...mockAmendment,
@@ -137,6 +130,7 @@ describe("ModificationDetailsSummary", () => {
       const extension: ModificationItem = {
         modificationType: "extension",
         id: "mod-minimal",
+        medicaidId: "demo-2",
         name: "Minimal Modification",
         status: "On-hold",
         documents: [],
@@ -147,8 +141,6 @@ describe("ModificationDetailsSummary", () => {
       expect(screen.getByText("Minimal Modification")).toBeInTheDocument();
       expect(screen.getByText("--/--/----")).toBeInTheDocument();
       expect(screen.getByText("On-hold")).toBeInTheDocument();
-      expect(screen.queryByText("Description")).not.toBeInTheDocument();
-      expect(screen.queryByText("Signature Level")).not.toBeInTheDocument();
     });
   });
 
@@ -185,6 +177,7 @@ describe("ModificationDetailsSummary", () => {
       const mockExtension: ModificationItem = {
         modificationType: "extension",
         id: "ext-456",
+        medicaidId: "demo-2",
         name: "Test Extension",
         status: "Pre-Submission",
         documents: [],

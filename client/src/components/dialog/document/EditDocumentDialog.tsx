@@ -1,9 +1,8 @@
-import { gql, useMutation } from "@apollo/client";
-import { DocumentDialogFields, DocumentUploadResult } from "./DocumentDialog";
+import { gql, useMutation, DocumentNode } from "@apollo/client";
 import React from "react";
-import { Document, UpdateDocumentInput } from "demos-server";
+import { Document, DocumentType, UpdateDocumentInput } from "demos-server";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
-import { DocumentDialog } from "./DocumentDialog";
+import { DocumentDialog, DocumentDialogFields, DocumentUploadResult } from "./DocumentDialog";
 
 export const UPDATE_DOCUMENT_QUERY = gql`
   mutation UpdateDocument($id: ID!, $input: UpdateDocumentInput!) {
@@ -20,7 +19,17 @@ export const EditDocumentDialog: React.FC<{
   onClose: () => void;
   initialDocument: DocumentDialogFields;
   canEditDocumentType?: boolean;
-}> = ({ onClose, initialDocument, canEditDocumentType = true }) => {
+  hideDocumentType?: boolean;
+  documentTypeSubset?: DocumentType[];
+  refetchQueries?: DocumentNode[];
+}> = ({
+  onClose,
+  initialDocument,
+  canEditDocumentType = true,
+  hideDocumentType = false,
+  documentTypeSubset,
+  refetchQueries = [DEMONSTRATION_DETAIL_QUERY],
+}) => {
   const [updateDocumentTrigger] = useMutation<{ updateDocument: Document }>(UPDATE_DOCUMENT_QUERY);
 
   const handleEdit = async (dialogFields: DocumentDialogFields): Promise<DocumentUploadResult> => {
@@ -35,7 +44,7 @@ export const EditDocumentDialog: React.FC<{
         id: dialogFields.id,
         input: updateDocumentInput,
       },
-      refetchQueries: [DEMONSTRATION_DETAIL_QUERY],
+      refetchQueries,
     });
 
     return "succeeded";
@@ -48,6 +57,8 @@ export const EditDocumentDialog: React.FC<{
       onClose={onClose}
       onSubmit={handleEdit}
       canEditDocumentType={canEditDocumentType}
+      hideDocumentType={hideDocumentType}
+      documentTypeSubset={documentTypeSubset}
     />
   );
 };

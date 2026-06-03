@@ -14,6 +14,7 @@ import { TabHeader } from "components/table/TabHeader";
 import { DEMONSTRATION_DETAIL_QUERY } from "../DemonstrationDetail";
 import { useApolloClient } from "@apollo/client/react/hooks/useApolloClient";
 import { useDialog } from "components/dialog/DialogContext";
+import { NON_DELIVERABLE_DOCUMENT_TYPES } from "demos-server-constants";
 
 const TABS = {
   APPLICATION: "application",
@@ -62,7 +63,11 @@ export const ModificationTabSideNav = ({
             name="add-new-document"
             size="small"
             onClick={() =>
-              showUploadDocumentDialog(modificationItem.id, refetchApplicationWorkflow)
+              showUploadDocumentDialog(
+                modificationItem.id,
+                refetchApplicationWorkflow,
+                NON_DELIVERABLE_DOCUMENT_TYPES
+              )
             }
           >
             Add Document

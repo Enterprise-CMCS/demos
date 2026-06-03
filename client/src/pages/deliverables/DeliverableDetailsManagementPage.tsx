@@ -6,6 +6,7 @@ import {
   DeliverableAction,
   DeliverableExtension,
   Demonstration,
+  DocumentType,
   PersonType,
 } from "demos-server";
 import { Loading } from "components/loading/Loading";
@@ -55,6 +56,7 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
       id
       name
       deliverableType
+      allowedDocumentTypes
       dueDate
       status
       demonstration {
@@ -118,6 +120,7 @@ export type DeliverableDetailsManagementDeliverable = Pick<
   Deliverable,
   "id" | "deliverableType" | "dueDate" | "status" | "name"
 > & {
+  allowedDocumentTypes: DocumentType[];
   demonstration: Pick<Demonstration, "id" | "name" | "expirationDate"> & { state: { id: string } };
   cmsOwner: { person: { fullName: string } };
   stateDocuments: DeliverableFileRow[];
@@ -210,16 +213,14 @@ export const DeliverableDetailsManagementPage: React.FC<{
 
   const userPersonType = currentUser.person.personType;
   const canStartReview =
-    REVIEW_STARTER_PERSON_TYPES.has(userPersonType) &&
-    data.deliverable.status === "Submitted";
+    REVIEW_STARTER_PERSON_TYPES.has(userPersonType) && data.deliverable.status === "Submitted";
   const isFinalized = !isDeliverableEditable(data.deliverable.status);
 
   const submitterName =
     [...data.deliverable.deliverableActions]
       .filter((action) => action.actionType === "Submitted Deliverable")
       .sort(
-        (a, b) =>
-          new Date(b.actionTimestamp).getTime() - new Date(a.actionTimestamp).getTime()
+        (a, b) => new Date(b.actionTimestamp).getTime() - new Date(a.actionTimestamp).getTime()
       )[0]?.userFullName ?? "State User";
 
   const pendingExtensionRequest =
@@ -296,7 +297,7 @@ export const DeliverableDetailsManagementPage: React.FC<{
             <FileAndHistoryTabs deliverable={data.deliverable} />
           </div>
           <div>
-            <CommentBox />
+            <CommentBox deliverableId={data.deliverable.id} />
           </div>
         </div>
       </div>

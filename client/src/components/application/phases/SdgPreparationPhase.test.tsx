@@ -54,6 +54,7 @@ const mockPO = {
 
 const mockApplication: ApplicationWorkflowDemonstration = {
   id: "1",
+  medicaidId: "medicaid-123",
   name: "Test Demo",
   state: {
     id: "CA",
@@ -83,6 +84,7 @@ const mockApplication: ApplicationWorkflowDemonstration = {
 
 const mockCompleteApplication: ApplicationWorkflowDemonstration = {
   id: "1",
+  medicaidId: "medicaid-123",
   name: "Test Demo",
   state: {
     id: "CA",
@@ -524,6 +526,7 @@ describe("getSdgPreparationPhaseFromApplication", () => {
   it("renders the SDG Preparation Phase component when phase is found", () => {
     const application: ApplicationWorkflowDemonstration = {
       id: "demo-1",
+      medicaidId: "medicaid-123",
       name: "Test Demo",
       state: {
         id: "CA",
@@ -560,6 +563,7 @@ describe("getSdgPreparationPhaseFromApplication", () => {
   it("renders error message when SDG Preparation phase is not found", () => {
     const application: ApplicationWorkflowDemonstration = {
       id: "demo-1",
+      medicaidId: "medicaid-123",
       name: "Test Demo",
       state: {
         id: "CA",
@@ -590,6 +594,7 @@ describe("getSdgPreparationPhaseFromApplication", () => {
   it("disables Finish button when previous phases are not completed", () => {
     const application: ApplicationWorkflowDemonstration = {
       id: "demo-1",
+      medicaidId: "medicaid-123",
       name: "Test Demo",
       state: {
         id: "CA",
@@ -641,6 +646,7 @@ describe("getSdgPreparationPhaseFromApplication", () => {
   it("enables Finish button when all previous phases are completed or skipped", () => {
     const application: ApplicationWorkflowDemonstration = {
       id: "demo-1",
+      medicaidId: "medicaid-123",
       name: "Test Demo",
       state: {
         id: "CA",

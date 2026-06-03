@@ -47,6 +47,7 @@ export const DEMONSTRATION_DETAIL_QUERY = gql`
       currentPhaseName
       effectiveDate
       expirationDate
+      medicaidId
       state {
         id
       }
@@ -139,7 +140,7 @@ export type DemonstrationDetailModification = Pick<
 };
 export type DemonstrationDetail = Pick<
   Demonstration,
-  "id" | "name" | "status" | "currentPhaseName" | "effectiveDate" | "expirationDate"
+  "id" | "name" | "status" | "currentPhaseName" | "effectiveDate" | "expirationDate" | "medicaidId"
 > & {
   state: Pick<State, "id">;
   amendments: DemonstrationDetailModification[];
@@ -214,6 +215,7 @@ export const DemonstrationDetail: React.FC = () => {
             >
               <AmendmentsTab
                 demonstrationId={demonstration.id}
+                medicaidId={demonstration.medicaidId}
                 amendments={demonstration.amendments}
               />
             </Tab>
@@ -225,6 +227,7 @@ export const DemonstrationDetail: React.FC = () => {
             >
               <ExtensionsTab
                 demonstrationId={demonstration.id}
+                medicaidId={demonstration.medicaidId}
                 extensions={demonstration.extensions}
               />
             </Tab>

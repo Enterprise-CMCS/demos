@@ -39,6 +39,7 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
   id: "1",
   name: "Mock Deliverable 1",
   deliverableType: "Monitoring Report",
+  allowedDocumentTypes: ["Monitoring Report", "General File"],
   demonstration: {
     id: "1",
     name: "Demonstration 1",

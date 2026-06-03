@@ -71,6 +71,7 @@ export const ApplicationDetailsSection = ({
   onMarkComplete,
   onMarkIncomplete,
   completionDate,
+  medicaidId,
 }: {
   sectionFormData: ApplicationDetailsFormData;
   setSectionFormData: (data: ApplicationDetailsFormData) => void;
@@ -79,6 +80,7 @@ export const ApplicationDetailsSection = ({
   onMarkComplete: () => void;
   onMarkIncomplete: () => void;
   completionDate?: string;
+  medicaidId?: string;
 }) => {
   const capitalizedType = sectionFormData.applicationType.charAt(0).toUpperCase() + sectionFormData.applicationType.slice(1);
   const isApplicationDetailsComplete = (data: ApplicationDetailsFormData) => {
@@ -221,7 +223,7 @@ export const ApplicationDetailsSection = ({
                 Effective Date
               </div>
               <div className={VALUE_CLASSES}>
-                {sectionFormData.effectiveDate ? formatDate(sectionFormData.effectiveDate) : ""}
+                {sectionFormData.effectiveDate ? formatDate(sectionFormData.effectiveDate) : "-"}
               </div>
             </div>
           ) : (
@@ -237,6 +239,19 @@ export const ApplicationDetailsSection = ({
             />
           )}
         </div>
+
+        {sectionFormData.applicationType !== "demonstration" && (
+          <div className="flex flex-col col-span-4">
+            <div>
+              <div className={LABEL_CLASSES}>
+                Demonstration ID
+              </div>
+              <div className={VALUE_CLASSES}>
+                { medicaidId || "-" }
+              </div>
+            </div>
+          </div>
+        )}
 
         {sectionFormData.applicationType === "demonstration" && (
           <div className="flex flex-col">
@@ -272,7 +287,7 @@ export const ApplicationDetailsSection = ({
                 {`${capitalizedType} Description`}
               </div>
               <div className={VALUE_CLASSES}>
-                {sectionFormData.description || ""}
+                {sectionFormData.description || "-"}
               </div>
             </div>
           ) : (
@@ -321,7 +336,7 @@ export const ApplicationDetailsSection = ({
                 Signature Level
               </div>
               <div className={VALUE_CLASSES}>
-                {sectionFormData.signatureLevel || ""}
+                {sectionFormData.signatureLevel || "-"}
               </div>
             </div>
           ) : (

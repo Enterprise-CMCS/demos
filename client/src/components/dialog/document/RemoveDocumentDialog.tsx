@@ -1,4 +1,4 @@
-import { gql, useMutation } from "@apollo/client";
+import { gql, useMutation, DocumentNode } from "@apollo/client";
 import { useToast } from "components/toast";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { GET_WORKFLOW_DEMONSTRATION_QUERY } from "components/application/demonstration/DemonstrationWorkflow";
@@ -16,7 +16,12 @@ export const DELETE_DOCUMENTS_QUERY = gql`
 export const RemoveDocumentDialog: React.FC<{
   documentIds: string[];
   onClose: () => void;
-}> = ({ documentIds, onClose }) => {
+  refetchQueries?: DocumentNode[];
+}> = ({
+  documentIds,
+  onClose,
+  refetchQueries = [DEMONSTRATION_DETAIL_QUERY, GET_WORKFLOW_DEMONSTRATION_QUERY],
+}) => {
   const { showSuccess, showError } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -29,7 +34,7 @@ export const RemoveDocumentDialog: React.FC<{
       setIsDeleting(true);
       await deleteDocumentsTrigger({
         variables: { ids: documentIdList },
-        refetchQueries: [DEMONSTRATION_DETAIL_QUERY, GET_WORKFLOW_DEMONSTRATION_QUERY],
+        refetchQueries,
       });
 
       const isMultipleDocuments = documentIdList.length > 1;

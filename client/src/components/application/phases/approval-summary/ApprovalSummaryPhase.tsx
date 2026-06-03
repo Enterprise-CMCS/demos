@@ -65,6 +65,7 @@ const UPDATE_EXTENSION_MUTATION = gql`
 type ApprovalSummaryPhaseProps = {
   applicationId: string;
   demonstrationId: string;
+  medicaidId?: string;
   initialFormData: ApplicationDetailsFormData;
   initialTypes: DemonstrationDetailDemonstrationType[];
   approvalSummaryPhase?: {
@@ -200,6 +201,10 @@ export const getApprovalSummaryPhaseFromApplication = (
     (application as ApplicationWorkflowDemonstration).status :
     (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration.status;
 
+  const medicaidId = workflowApplicationType === "demonstration" ?
+    (application as ApplicationWorkflowDemonstration).medicaidId :
+    (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration.medicaidId;
+
   return (
     <ApprovalSummaryPhase
       applicationId={application.id}
@@ -210,6 +215,7 @@ export const getApprovalSummaryPhaseFromApplication = (
       demonstrationTypeCompletionDate={demonstrationTypeCompletionDate}
       allPreviousPhasesDone={allPreviousPhasesDone}
       demonstrationStatus={demonstrationStatus}
+      medicaidId={medicaidId}
     />
   );
 };
@@ -219,6 +225,7 @@ export const ApprovalSummaryPhase = ({
   initialTypes,
   applicationId,
   demonstrationId,
+  medicaidId,
   approvalSummaryPhase,
   demonstrationTypeCompletionDate,
   allPreviousPhasesDone,
@@ -465,6 +472,7 @@ export const ApprovalSummaryPhase = ({
           onMarkComplete={handleMarkComplete}
           onMarkIncomplete={handleMarkIncomplete}
           completionDate={applicationDetailsCompletionDate}
+          medicaidId={medicaidId}
         />
 
         <DemonstrationTypesSection

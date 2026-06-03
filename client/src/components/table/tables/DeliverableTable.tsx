@@ -18,6 +18,7 @@ export type DeliverableTableRow = Omit<
   | "demonstrationTypes"
   | "cmsDocuments"
   | "stateDocuments"
+  | "allowedDocumentTypes"
   | "name"
   | "dueDateType"
   | "expectedToBeSubmitted"

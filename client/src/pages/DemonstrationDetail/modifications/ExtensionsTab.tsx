@@ -7,11 +7,13 @@ import { ModificationTabs } from "./ModificationTabs";
 
 export const ExtensionsTab: React.FC<{
   demonstrationId: string;
+  medicaidId: string;
   extensions: DemonstrationDetailModification[];
-}> = ({ demonstrationId, extensions }) => {
+}> = ({ demonstrationId, medicaidId, extensions }) => {
   const extensionsWithType = extensions.map((extension) => ({
     ...extension,
     modificationType: "extension" as const,
+    medicaidId: medicaidId,
   }));
 
   const { showCreateExtensionDialog } = useDialog();

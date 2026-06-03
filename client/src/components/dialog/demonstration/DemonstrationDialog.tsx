@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { Textarea } from "components/input";
-import { Checkbox } from "components/input/Checkbox";
 import { SelectSdgDivision } from "components/input/select/SelectSdgDivision";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
 import { SelectUSAStates } from "components/input/select/SelectUSAStates";
@@ -12,7 +11,6 @@ import { Demonstration, SignatureLevel } from "demos-server";
 import { DatePicker } from "components/input/date/DatePicker";
 import { EXPIRATION_DATE_ERROR_MESSAGE } from "util/messages";
 import { SubmitButton } from "components/button/SubmitButton";
-import { HintIcon } from "components/icons/Input/HintIcon";
 import { isBefore } from "date-fns";
 
 export const DEMONSTRATION_DIALOG_DESCRIPTION_NAME = "textarea-demonstration-description";
@@ -36,7 +34,6 @@ export type DemonstrationDialogFields = Pick<
   projectOfficerId: string;
   effectiveDate: string;
   expirationDate: string;
-  demoIds: string[];
 };
 
 const DemonstrationDescriptionTextArea: React.FC<{
@@ -106,9 +103,7 @@ export const checkFormHasChanges = (
     updatedDemonstration.effectiveDate !== initialDemonstration.effectiveDate ||
     updatedDemonstration.expirationDate !== initialDemonstration.expirationDate ||
     updatedDemonstration.sdgDivision !== initialDemonstration.sdgDivision ||
-    updatedDemonstration.signatureLevel !== initialDemonstration.signatureLevel ||
-    [...updatedDemonstration.demoIds].sort((a, b) => a.localeCompare(b)).join(",") !==
-      [...initialDemonstration.demoIds].sort((a, b) => a.localeCompare(b)).join(",")
+    updatedDemonstration.signatureLevel !== initialDemonstration.signatureLevel
   );
 };
 
@@ -122,9 +117,6 @@ export const checkFormIsValid = (demonstration: DemonstrationDialogFields) => {
   if (!demonstration.projectOfficerId) {
     return false;
   }
-  if (demonstration.demoIds.length === 0) {
-    return false;
-  }
   if (
     demonstration.expirationDate &&
     demonstration.effectiveDate &&
@@ -133,45 +125,6 @@ export const checkFormIsValid = (demonstration: DemonstrationDialogFields) => {
     return false;
   }
   return true;
-};
-
-const DemoIdCheckboxes: React.FC<{
-  values: string[];
-  onChange: (values: string[]) => void;
-}> = ({ values, onChange }) => {
-  const toggle = (value: string) => {
-    if (values.includes(value)) {
-      onChange(values.filter((v) => v !== value));
-    } else {
-      onChange([...values, value]);
-    }
-  };
-
-  return (
-    <div className="flex flex-col gap-xs">
-      <div className="text-text-font font-semibold text-field-label flex items-center gap-0-5">
-        <span className="text-text-warn">*</span>
-        <span>DEMO ID</span>
-        <span
-          className="cursor-help text-text-placeholder"
-          title="Select Medicaid Demonstration, CHIP, or both. Selecting CHIP will generate a unique CHIP ID."
-        >
-          <HintIcon />
-        </span>
-      </div>
-      <div className="flex gap-8 items-center flex-nowrap whitespace-nowrap">
-        {DEMO_ID_OPTIONS.map((option) => (
-          <Checkbox
-            key={option.value}
-            name={`checkbox-demo-id-${option.value}`}
-            label={option.label}
-            checked={values.includes(option.value)}
-            onChange={() => toggle(option.value)}
-          />
-        ))}
-      </div>
-    </div>
-  );
 };
 
 export const DemonstrationDialog: React.FC<{
@@ -279,13 +232,6 @@ export const DemonstrationDialog: React.FC<{
             }
           />
         </div>
-
-        <DemoIdCheckboxes
-          values={activeDemonstration.demoIds}
-          onChange={(demoIds: string[]) =>
-            handleChange({ ...activeDemonstration, demoIds })
-          }
-        />
       </form>
     </BaseDialog>
   );

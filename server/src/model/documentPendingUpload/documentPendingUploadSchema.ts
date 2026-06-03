@@ -16,10 +16,10 @@ export const documentPendingUploadSchema = gql`
     description: String
     owner: User!
     documentType: DocumentType!
-    application: Application! @auth(requires: ["Perform CMS Action"])
+    application: Application!
     phaseName: PhaseName @auth(requires: ["Perform CMS Action"])
-    presignedUploadUrl: String! @auth(requires: ["Perform CMS Action"])
-    deliverable: Deliverable @auth(requires: ["Perform CMS Action"])
+    presignedUploadUrl: String!
+    deliverable: Deliverable
     createdAt: DateTime!
     updatedAt: DateTime!
   }

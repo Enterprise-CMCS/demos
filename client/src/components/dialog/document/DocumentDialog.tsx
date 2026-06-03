@@ -16,7 +16,11 @@ import { UploadButton } from "./UploadButton";
 
 type DocumentDialogType = "add" | "edit";
 
-export type DocumentUploadResult = "succeeded" | "virus-scan-failed" | "unknown-error";
+export type DocumentUploadResult =
+  | "succeeded"
+  | "virus-scan-failed"
+  | "bn-validation-failed"
+  | "unknown-error";
 export type DocumentDialogState = DocumentUploadResult | "idle" | "uploading";
 
 const STYLES = {
@@ -290,6 +294,7 @@ export type DocumentDialogProps = {
   titleOverride?: string;
   cancelButtonIsDisabled?: boolean;
   canEditDocumentType?: boolean;
+  hideDocumentType?: boolean;
 };
 
 // Sets the default document type if a subset is provided
@@ -312,6 +317,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   initialDocument,
   titleOverride,
   canEditDocumentType = true,
+  hideDocumentType = false,
 }) => {
   const { showSuccess, showError } = useToast();
   const hydratedInitialDocument = setDefaultDocumentType(
@@ -351,8 +357,12 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
 
   // On file change
   useEffect(() => {
-    // If uploading after a virus scan failure, reset the state
-    if (file && documentDialogState === "virus-scan-failed") {
+    // If uploading after a virus scan or BN validation failure, reset the state
+    if (
+      file &&
+      (documentDialogState === "virus-scan-failed" ||
+        documentDialogState === "bn-validation-failed")
+    ) {
       setDocumentDialogState("idle");
     }
 
@@ -378,8 +388,8 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     const uploadResult = await onSubmit(activeDocument);
     setDocumentDialogState(uploadResult);
 
-    // If virus scan failed, clear the selected file
-    if (uploadResult === "virus-scan-failed") {
+    // If virus scan or BN validation failed, clear the selected file so the user can choose a new one
+    if (uploadResult === "virus-scan-failed" || uploadResult === "bn-validation-failed") {
       setFile(null);
     }
 
@@ -440,14 +450,16 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
         onChange={(val) => setActiveDocument((prev) => ({ ...prev, description: val }))}
       />
 
-      <DocumentTypeInput
-        value={activeDocument.documentType}
-        onSelect={(val) =>
-          setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }))
-        }
-        documentTypeSubset={documentTypeSubset}
-        canEditDocumentType={canEditDocumentType}
-      />
+      {!hideDocumentType && (
+        <DocumentTypeInput
+          value={activeDocument.documentType}
+          onSelect={(val) =>
+            setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }))
+          }
+          documentTypeSubset={documentTypeSubset}
+          canEditDocumentType={canEditDocumentType}
+        />
+      )}
     </BaseDialog>
   );
 };

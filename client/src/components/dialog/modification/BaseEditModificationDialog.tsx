@@ -41,6 +41,18 @@ export const BaseEditModificationDialog: React.FC<{
       showError("Form data is not loaded yet.");
       return;
     }
+
+    /*
+     * Database expects null values to explicitly unset fields,
+     * but form fields return empty strings for unset values, so we need to convert them.
+     */
+    if (formData.effectiveDate === "") {
+      formData.effectiveDate = null;
+    }
+    if (formData.signatureLevel === undefined) {
+      formData.signatureLevel = null;
+    }
+
     try {
       await save(formData);
       showSuccess(`${modificationType} updated successfully.`);

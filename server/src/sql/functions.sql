@@ -252,6 +252,8 @@ BEGIN
         application_id,
         phase_id,
         deliverable_id,
+        deliverable_type_id,
+        deliverable_is_cms_attached_file,
         created_at,
         updated_at
     )
@@ -265,6 +267,8 @@ BEGIN
         application_id,
         phase_id,
         deliverable_id,
+        deliverable_type_id,
+        deliverable_is_cms_attached_file,
         created_at,
         updated_at
     FROM
@@ -317,6 +321,9 @@ BEGIN
         document_type_id,
         application_id,
         phase_id,
+        deliverable_id,
+        deliverable_type_id,
+        deliverable_is_cms_attached_file,
         infection_status,
         infection_threats,
         created_at,
@@ -331,6 +338,9 @@ BEGIN
         document_type_id,
         application_id,
         phase_id,
+        deliverable_id,
+        deliverable_type_id,
+        deliverable_is_cms_attached_file,
         p_infection_status,
         p_infection_threats,
         created_at,
@@ -1381,3 +1391,186 @@ BEGIN
 
 END;
 $$;
+
+CREATE FUNCTION demos_app.check_required_deliverable_demonstration_types()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    deliverable_type_id_value TEXT;
+    demonstration_types_count INT;
+BEGIN
+    IF TG_TABLE_NAME = 'deliverable_demonstration_type' AND TG_OP = 'DELETE' THEN
+        SELECT deliverable_type_id
+        FROM demos_app.deliverable
+        WHERE id = OLD.deliverable_id
+        INTO deliverable_type_id_value;
+        IF deliverable_type_id_value IN ('Implementation Plan', 'Monitoring Protocol') THEN
+            SELECT COUNT(*)
+            INTO demonstration_types_count
+            FROM demos_app.deliverable_demonstration_type
+            WHERE deliverable_id = OLD.deliverable_id;
+            IF demonstration_types_count = 0 THEN
+                RAISE EXCEPTION
+                    'Cannot delete the final demonstration type from deliverable %',
+                    OLD.deliverable_id;
+            END IF;
+        END IF;
+        RETURN OLD;
+    ELSIF TG_TABLE_NAME = 'deliverable' AND TG_OP IN ('INSERT', 'UPDATE') THEN
+        IF TG_OP = 'INSERT' OR (OLD.deliverable_type_id IS DISTINCT FROM NEW.deliverable_type_id) THEN
+            IF NEW.deliverable_type_id IN ('Implementation Plan', 'Monitoring Protocol') THEN
+                SELECT COUNT(*)
+                INTO demonstration_types_count
+                FROM demos_app.deliverable_demonstration_type
+                WHERE deliverable_id = NEW.id;
+                IF demonstration_types_count = 0 THEN
+                    RAISE EXCEPTION
+                        'Deliverable type % requires at least one demonstration type',
+                        NEW.deliverable_type_id;
+                END IF;
+            END IF;
+        END IF;
+        RETURN NEW;
+    ELSE
+        RAISE EXCEPTION 'This trigger has been assigned to an incorrect table/operation combination';
+    END IF;
+END;
+$$;
+
+CREATE CONSTRAINT TRIGGER check_required_demo_types_on_ddt
+AFTER DELETE
+ON demos_app.deliverable_demonstration_type
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.check_required_deliverable_demonstration_types();
+
+CREATE CONSTRAINT TRIGGER check_required_demo_types_on_deliverable
+AFTER INSERT OR UPDATE OF deliverable_type_id
+ON demos_app.deliverable
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.check_required_deliverable_demonstration_types();
+
+-- trim_input_text_fields
+CREATE FUNCTION demos_app.trim_input_text_fields()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    tbls_with_content text[] := ARRAY[
+        'application_note',
+        'private_comment',
+        'public_comment'
+    ];
+
+    tbls_with_note text[] := ARRAY[
+        'deliverable_action'
+    ];
+
+    tbls_with_name text[] := ARRAY[
+        'amendment',
+        'deliverable',
+        'demonstration',
+        'document_infected',
+        'document_pending_upload',
+        'document',
+        'extension',
+        'reference_agreement',
+        'reference'
+    ];
+
+    tbls_with_description text[] := ARRAY[
+        'amendment',
+        'demonstration',
+        'document_infected',
+        'document_pending_upload',
+        'document',
+        'extension',
+        'reference'
+    ];
+BEGIN
+    IF TG_TABLE_NAME = ANY(tbls_with_content) THEN
+        NEW.content := trim(NEW.content);
+    END IF;
+
+    IF TG_TABLE_NAME = ANY(tbls_with_note) THEN
+        NEW.note := trim(NEW.note);
+    END IF;
+
+    IF TG_TABLE_NAME = ANY(tbls_with_name) THEN
+        NEW.name := trim(NEW.name);
+    END IF;
+
+    IF TG_TABLE_NAME = ANY(tbls_with_description) THEN
+        NEW.description := trim(NEW.description);
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.amendment
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.application_note
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.deliverable
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.deliverable_action
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.demonstration
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.document
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.document_infected
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.document_pending_upload
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.extension
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.private_comment
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.public_comment
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.reference
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.reference_agreement
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();

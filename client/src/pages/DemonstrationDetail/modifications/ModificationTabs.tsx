@@ -12,6 +12,7 @@ const STYLES = {
 
 export type ModificationItem = DemonstrationDetailModification & {
   modificationType: "amendment" | "extension";
+  medicaidId: string;
 };
 
 const ModificationTab = ({
