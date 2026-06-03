@@ -478,6 +478,8 @@ export const TAG_SOURCES = ["User", "System"] as const;
 
 export const TAG_TYPES = ["Application", "Demonstration Type", "Reference"] as const;
 
+export const FAQ_REFERENCE_TAG = "FAQ";
+
 // This seemed like a no brainer.
 export const PRIMARY_AWS_REGION = "us-east-1";
 
