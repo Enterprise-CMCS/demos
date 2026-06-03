@@ -1,4 +1,4 @@
-import { CfnOutput, Stack, StackProps, aws_iam, aws_cognito, aws_ec2, RemovalPolicy, aws_s3, Duration, aws_kms } from "aws-cdk-lib";
+import { CfnOutput, Stack, StackProps, aws_iam, aws_cognito, aws_ec2, RemovalPolicy, aws_s3, Duration, aws_kms, aws_ssm } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
 import { DeploymentConfigProperties } from "../config";
@@ -7,6 +7,8 @@ import * as cognito from "../lib/cognito";
 import * as ssm from "../lib/ssm-parameter";
 import * as securityGroup from "../lib/security-group";
 import { Bucket } from "aws-cdk-lib/aws-s3";
+import * as lambda from "../lib/lambda";
+import * as path from "node:path"
 
 export class CoreStack extends Stack {
   public readonly cognito_outputs: aws_cognito.UserPool | aws_cognito.IUserPool;
@@ -183,6 +185,28 @@ export class CoreStack extends Stack {
       enableKeyRotation: true,
       alias: `alias/demos-${props.stage}-lambda-env`,
     });
+
+    const notifierPath = path.join(".", "lib");
+    const rel = path.resolve(notifierPath);
+    const notifierLambda = lambda.create(
+      {
+        ...commonProps,
+        entry: path.join(rel, "alarmNotifier.ts"),
+        handler: "index.handler",
+        asCode: false,
+        timeout: Duration.seconds(10),
+      },
+      "notifier"
+    );
+const webhookUrl = aws_ssm.StringParameter.fromSecureStringParameterAttributes(
+  this,
+  "webhookParam",
+  {
+    parameterName: "/demos/webhookUrl",
+  }
+);
+
+webhookUrl.grantRead(notifierLambda.lambda.role);
 
     new CfnOutput(commonProps.scope, "secretsManagerVpceSg", {
       value: secretsManagerEndpointSG.securityGroupId,

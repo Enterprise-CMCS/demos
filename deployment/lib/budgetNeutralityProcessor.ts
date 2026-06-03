@@ -10,6 +10,7 @@ import {
 } from "aws-cdk-lib";
 import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import * as demosLambda from "./lambda";
+import * as alarms from "./alarms";
 import path from "node:path";
 import { DeploymentConfigProperties } from "../config";
 import { OutputFormat } from "aws-cdk-lib/aws-lambda-nodejs";
@@ -30,6 +31,7 @@ export class BudgetNeutralityProcessor extends Construct {
   constructor(scope: Construct, id: string, props: BudgetNeutralityProcessorProps) {
     super(scope, id);
 
+    const alarmResources = new alarms.CloudWatchAlarmRegistry();
     const removalPolicy = props.removalPolicy ?? RemovalPolicy.DESTROY;
 
     this.deadLetterQueue =
@@ -52,6 +54,7 @@ export class BudgetNeutralityProcessor extends Construct {
         maxReceiveCount: 5,
       },
     });
+    alarmResources.registerQueue("budgetNeutrality", this.queue);
 
     const dbSecret = aws_secretsmanager.Secret.fromSecretNameV2(
       this,
@@ -103,10 +106,13 @@ export class BudgetNeutralityProcessor extends Construct {
         },
       }
     );
+    alarmResources.registerLambda("budgetNeutrality", budgetNeutralityLambda.lambda);
 
     budgetNeutralityLambda.lambda.addEventSource(
       new SqsEventSource(this.queue, { batchSize: 1 })
     );
+
+    this.setupCloudWatchAlarms(props, alarmResources);
 
     this.queue.grantConsumeMessages(budgetNeutralityLambda.lambda);
     dbSecret.grantRead(budgetNeutralityLambda.lambda);
@@ -114,5 +120,68 @@ export class BudgetNeutralityProcessor extends Construct {
       bucket.grantRead(budgetNeutralityLambda.lambda);
     }
     props.kmsKey.grantEncryptDecrypt(budgetNeutralityLambda.lambda);
+  }
+
+  private setupCloudWatchAlarms(
+    props: DeploymentConfigProperties,
+    resources: alarms.CloudWatchAlarmRegistry
+  ) {
+    if (props.isEphemeral && !props.enableAlarms) {
+      return;
+    }
+
+    const alarmPeriod = Duration.minutes(5);
+
+    alarms.createSqsOldestMessageAgeAlarm({
+      ...props,
+      scope: this,
+      id: "BudgetNeutralityQueueOldestMessageAgeAlarm",
+      name: "budget-neutrality-queue-oldest-message-age-high",
+      description: "Budget neutrality queue has messages older than 15 minutes.",
+      queue: resources.queue("budgetNeutrality"),
+      period: alarmPeriod,
+      threshold: Duration.minutes(15),
+      evaluationPeriods: 2,
+      datapointsToAlarm: 2,
+    });
+
+    alarms.createLambdaErrorsAlarm({
+      ...props,
+      scope: this,
+      id: "BudgetNeutralityLambdaErrorsAlarm",
+      name: "budget-neutrality-lambda-errors",
+      description: "Budget neutrality Lambda has one or more errors in a 5-minute period.",
+      lambdaFunction: resources.lambda("budgetNeutrality"),
+      period: alarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createLambdaDurationAlarm({
+      ...props,
+      scope: this,
+      id: "BudgetNeutralityLambdaDurationAlarm",
+      name: "budget-neutrality-lambda-duration-near-timeout",
+      description: "Budget neutrality Lambda duration is above 80% of its configured timeout.",
+      lambdaFunction: resources.lambda("budgetNeutrality"),
+      period: alarmPeriod,
+      threshold: Duration.seconds(48),
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
+
+    alarms.createLambdaThrottlesAlarm({
+      ...props,
+      scope: this,
+      id: "BudgetNeutralityLambdaThrottlesAlarm",
+      name: "budget-neutrality-lambda-throttles",
+      description: "Budget neutrality Lambda has one or more throttled invocations in a 5-minute period.",
+      lambdaFunction: resources.lambda("budgetNeutrality"),
+      period: alarmPeriod,
+      threshold: 0,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+    });
   }
 }
