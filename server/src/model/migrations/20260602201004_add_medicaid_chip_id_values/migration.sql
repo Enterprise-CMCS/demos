@@ -57,6 +57,15 @@ BEGIN
 END
 $$;
 
+-- This is unlikely to even be an issue, but disabling the thing that blocks changes to Medicaid / CHIP ID
+DO
+$$
+BEGIN
+    ALTER TABLE demos_app.demonstration DISABLE TRIGGER prevent_changing_immutable_demonstration_fields;
+    EXCEPTION WHEN undefined_object THEN NULL;
+END
+$$;
+
 -- Disable the redundant updates checker, mostly for performance
 DO
 $$
@@ -126,6 +135,15 @@ BEGIN
     EXCEPTION WHEN undefined_object THEN NULL;
 END
 $$;
+
+DO
+$$
+BEGIN
+    ALTER TABLE demos_app.demonstration ENABLE TRIGGER prevent_changing_immutable_demonstration_fields;
+    EXCEPTION WHEN undefined_object THEN NULL;
+END
+$$;
+
 
 DO
 $$
