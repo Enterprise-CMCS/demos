@@ -21,6 +21,15 @@ export function applyCoreSuppressions(core: Stack, stage: string) {
       }
     ]
   )
+
+  NagSuppressions.addResourceSuppressionsByPath(core, `/demos-${stage}-core/notifier/notifierLambdaExecutionRole/Resource`, 
+    [
+      {
+        id: "AwsSolutions-IAM5",
+        reason: "Permissions given are required for the lambda execution role"
+      }
+    ]
+  )
 }
 
 export function applyUISuppressionsCloudfrontOnly(ui: Stack) {
