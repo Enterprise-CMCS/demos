@@ -15,10 +15,12 @@ export const DELETE_DELIVERABLE_MUTATION = gql`
 
 export const REMOVE_DELIVERABLE_CONFIRM_MESSAGE =
   "Are you sure you want to remove this deliverable? This action cannot be undone!";
-export const DELIVERABLE_DELETED_MESSAGE = "Your deliverable has been deleted.";
+export const DELIVERABLE_DELETED_MESSAGE =
+  "Your deliverable has been deleted.";
 export const DELETE_DELIVERABLE_ERROR_MESSAGE =
   "Your changes could not be saved due to an unknown problem.";
-const DELETE_DELIVERABLES_NAME = "button-confirm-delete-deliverable";
+const DELETE_DELIVERABLES_NAME =
+  "button-confirm-delete-deliverable";
 
 export const RemoveDeliverableDialog: React.FC<{
   deliverableIds: string[];
