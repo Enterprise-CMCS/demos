@@ -110,6 +110,7 @@ export const DELIVERABLES_PAGE_QUERY = gql`
         id
         actionType
       }
+      # These are for determining if a deliverable can be deleted
       cmsDocuments {
         id
       }

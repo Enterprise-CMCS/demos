@@ -566,7 +566,7 @@ describe("DeliverableTable Remove action", () => {
     expect(removeButton).toHaveAttribute("title", DELIVERABLE_CANT_DELETE_HAS_FILES);
   });
 
-  it("opens Remove only for selected rows without files or comments", async () => {
+  it("disables Remove when one of multiple selected rows has files or comments", async () => {
     render(
       <DeliverableTable
         deliverables={[
@@ -593,18 +593,11 @@ describe("DeliverableTable Remove action", () => {
     await user.click(screen.getByTestId("select-row-has-comment"));
 
     const removeButton = screen.getByTestId("remove-deliverable");
-    expect(removeButton).not.toBeDisabled();
-    expect(removeButton).toHaveAttribute("title", "Delete");
-
-    await user.click(removeButton);
-
-    expect(showRemoveDeliverableDialog).toHaveBeenCalledWith(
-      ["delete-ready"],
-      expect.any(Function)
-    );
+    expect(removeButton).toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", DELIVERABLE_CANT_DELETE_HAS_FILES);
   });
 
-  it("keeps Remove enabled when multiple selected rows include files or comments", async () => {
+  it("enables Remove after the selected row with files or comments is deselected", async () => {
     render(
       <DeliverableTable
         deliverables={[
@@ -630,7 +623,7 @@ describe("DeliverableTable Remove action", () => {
     await user.click(screen.getByTestId("select-row-delete-ready"));
     await user.click(screen.getByTestId("select-row-has-file"));
 
-    expect(screen.getByTestId("remove-deliverable")).not.toBeDisabled();
+    expect(screen.getByTestId("remove-deliverable")).toBeDisabled();
 
     await user.click(screen.getByTestId("select-row-has-file"));
 
