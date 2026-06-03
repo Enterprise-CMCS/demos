@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { gql, useMutation } from "@apollo/client";
-import { useApolloClient } from "@apollo/client/react/hooks/useApolloClient";
 import { ErrorButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { useToast } from "components/toast";
@@ -17,6 +16,8 @@ export const REMOVE_DELIVERABLE_CONFIRM_MESSAGE =
   "Are you sure you want to remove this deliverable? This action cannot be undone!";
 export const DELIVERABLE_DELETED_MESSAGE =
   "Your deliverable has been deleted.";
+export const DELIVERABLE_CANT_DELETE_HAS_FILES =
+  "Cannot Delete - Has Files or Comments.";
 export const DELETE_DELIVERABLE_ERROR_MESSAGE =
   "Your changes could not be saved due to an unknown problem.";
 const DELETE_DELIVERABLES_NAME =
@@ -25,11 +26,14 @@ const DELETE_DELIVERABLES_NAME =
 export const RemoveDeliverableDialog: React.FC<{
   deliverableIds: string[];
   onClose: () => void;
-}> = ({ deliverableIds, onClose }) => {
-  const client = useApolloClient();
+  onDeleted?: () => void;
+}> = ({ deliverableIds, onClose, onDeleted }) => {
   const { showSuccess, showError } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteDeliverable] = useMutation(DELETE_DELIVERABLE_MUTATION);
+  const [deleteDeliverable] = useMutation(DELETE_DELIVERABLE_MUTATION, {
+    refetchQueries: ["GetDeliverablesPage"],
+    awaitRefetchQueries: true,
+  });
 
   const onConfirm = async () => {
     try {
@@ -41,8 +45,8 @@ export const RemoveDeliverableDialog: React.FC<{
           })
         )
       );
-      await client.refetchQueries({ include: ["GetDeliverablesPage"] });
 
+      onDeleted?.();
       showSuccess(DELIVERABLE_DELETED_MESSAGE);
       onClose();
     } catch {

@@ -21,19 +21,8 @@ export const DeliverableActionButtons: React.FC<{
 
   const selectedIsEditable =
     singleSelectedDeliverable === null || isDeliverableEditable(singleSelectedDeliverable.status);
-  const allSelectedAreEditable = selectedDeliverables.every((deliverable) =>
-    isDeliverableEditable(deliverable.status)
-  );
-  const selectedIncludesFilesOrComments = selectedDeliverables.some(
-    (deliverable) =>
-      Boolean(deliverable.cmsDocuments?.length) ||
-      Boolean(deliverable.stateDocuments?.length) ||
-      Boolean(deliverable.publicComments?.length) ||
-      Boolean(deliverable.privateComments?.length)
-  );
   const editEnabled = selectedCount === 1 && selectedIsEditable;
-  const deleteEnabled =
-    selectedCount >= 1 && allSelectedAreEditable && !selectedIncludesFilesOrComments;
+  const deleteEnabled = selectedCount >= 1;
 
   const baseEditTooltip = selectionTooltip({
     action: "Edit",
@@ -46,8 +35,6 @@ export const DeliverableActionButtons: React.FC<{
 
   const deleteTooltip = (() => {
     if (selectedCount === 0) return "Select a Deliverable to Delete";
-    if (selectedIncludesFilesOrComments) return "Cannot Delete -\nHas Files or Comments";
-    if (!allSelectedAreEditable) return "Finalized Deliverables cannot be deleted";
 
     return selectionTooltip({
       action: "Delete",
@@ -79,7 +66,10 @@ export const DeliverableActionButtons: React.FC<{
         tooltip={deleteTooltip}
         disabled={!deleteEnabled}
         onClick={() => {
-          showRemoveDeliverableDialog(selectedDeliverables.map((deliverable) => deliverable.id));
+          showRemoveDeliverableDialog(
+            selectedDeliverables.map((deliverable) => deliverable.id),
+            () => table.resetRowSelection()
+          );
         }}
       >
         <DeleteIcon />

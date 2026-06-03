@@ -290,9 +290,13 @@ export const useDialog = () => {
     );
   };
 
-  const showRemoveDeliverableDialog = (deliverableIds: string[]) => {
+  const showRemoveDeliverableDialog = (deliverableIds: string[], onDeleted?: () => void) => {
     context.showDialog(
-      <RemoveDeliverableDialog deliverableIds={deliverableIds} onClose={context.hideDialog} />
+      <RemoveDeliverableDialog
+        deliverableIds={deliverableIds}
+        onClose={context.hideDialog}
+        onDeleted={onDeleted}
+      />
     );
   };
 

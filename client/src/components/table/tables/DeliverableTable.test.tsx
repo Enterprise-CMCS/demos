@@ -1,6 +1,6 @@
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { DeliverableTable, formatDeliverableStatus } from "./DeliverableTable";
@@ -123,7 +123,29 @@ describe("DeliverableTable", () => {
     await user.click(screen.getByTestId(`select-row-${sortedFirstPageIds[0]}`));
     await user.click(screen.getByTestId("remove-deliverable"));
 
-    expect(showRemoveDeliverableDialog).toHaveBeenCalledWith([sortedFirstPageIds[0]]);
+    expect(showRemoveDeliverableDialog).toHaveBeenCalledWith(
+      [sortedFirstPageIds[0]],
+      expect.any(Function)
+    );
+  });
+
+  it("clears selected rows after selected deliverables are deleted", async () => {
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId(`select-row-${sortedFirstPageIds[0]}`));
+    await user.click(screen.getByTestId("remove-deliverable"));
+
+    const onDeleted = showRemoveDeliverableDialog.mock.calls[0][1];
+    act(() => {
+      onDeleted();
+    });
+
+    expect(screen.getByTestId(`select-row-${sortedFirstPageIds[0]}`)).not.toBeChecked();
+    expect(screen.getByTestId("remove-deliverable")).toBeDisabled();
+
+    await user.click(screen.getByTestId(`select-row-${sortedFirstPageIds[1]}`));
+
+    expect(screen.getByTestId("remove-deliverable")).not.toBeDisabled();
   });
 
   describe("Keyword Search functionality", () => {
@@ -462,30 +484,30 @@ describe("DeliverableTable demos-state-user view mode", () => {
   });
 });
 
-describe("DeliverableTable Remove gating with finalized rows", () => {
+describe("DeliverableTable Remove action", () => {
   const FINALIZED_ROWS: DeliverableTableRow[] = [
     { ...MOCK_DELIVERABLE_TABLE_ROW, id: "active", status: "Upcoming" },
     { ...MOCK_DELIVERABLE_TABLE_ROW, id: "approved", status: "Approved" },
     { ...MOCK_DELIVERABLE_TABLE_ROW, id: "accepted", status: "Accepted" },
   ];
 
-  it("disables Remove when the only selected row is finalized", async () => {
+  it("enables Remove when the only selected row is finalized", async () => {
     render(<DeliverableTable deliverables={FINALIZED_ROWS} viewMode="demos-cms-user" />);
     const user = userEvent.setup();
 
     await user.click(screen.getByTestId("select-row-approved"));
 
-    expect(screen.getByTestId("remove-deliverable")).toBeDisabled();
+    expect(screen.getByTestId("remove-deliverable")).not.toBeDisabled();
   });
 
-  it("disables Remove when any of multiple selected rows is finalized", async () => {
+  it("enables Remove when any of multiple selected rows is finalized", async () => {
     render(<DeliverableTable deliverables={FINALIZED_ROWS} viewMode="demos-cms-user" />);
     const user = userEvent.setup();
 
     await user.click(screen.getByTestId("select-row-active"));
     await user.click(screen.getByTestId("select-row-accepted"));
 
-    expect(screen.getByTestId("remove-deliverable")).toBeDisabled();
+    expect(screen.getByTestId("remove-deliverable")).not.toBeDisabled();
   });
 
   it("enables Remove when every selected row is not finalized", async () => {
@@ -497,7 +519,7 @@ describe("DeliverableTable Remove gating with finalized rows", () => {
     expect(screen.getByTestId("remove-deliverable")).not.toBeDisabled();
   });
 
-  it("disables Remove when a selected row has files", async () => {
+  it("enables Remove when a selected row has files", async () => {
     render(
       <DeliverableTable
         deliverables={[
@@ -516,11 +538,11 @@ describe("DeliverableTable Remove gating with finalized rows", () => {
     await user.click(screen.getByTestId("select-row-has-file"));
 
     const removeButton = screen.getByTestId("remove-deliverable");
-    expect(removeButton).toBeDisabled();
-    expect(removeButton).toHaveAttribute("title", "Cannot Delete -\nHas Files or Comments");
+    expect(removeButton).not.toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", "Delete");
   });
 
-  it("disables Remove when a selected row has comments", async () => {
+  it("enables Remove when a selected row has comments", async () => {
     render(
       <DeliverableTable
         deliverables={[
@@ -539,8 +561,8 @@ describe("DeliverableTable Remove gating with finalized rows", () => {
     await user.click(screen.getByTestId("select-row-has-comment"));
 
     const removeButton = screen.getByTestId("remove-deliverable");
-    expect(removeButton).toBeDisabled();
-    expect(removeButton).toHaveAttribute("title", "Cannot Delete -\nHas Files or Comments");
+    expect(removeButton).not.toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", "Delete");
   });
 });
 

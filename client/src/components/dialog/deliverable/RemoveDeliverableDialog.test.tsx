@@ -7,30 +7,25 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 import { ToastContainer, ToastProvider } from "components/toast";
 import {
+  DELETE_DELIVERABLE_MUTATION,
   DELETE_DELIVERABLE_ERROR_MESSAGE,
   DELIVERABLE_DELETED_MESSAGE,
   RemoveDeliverableDialog,
   REMOVE_DELIVERABLE_CONFIRM_MESSAGE,
 } from "./RemoveDeliverableDialog";
 
-const { mockDeleteDeliverable, mockRefetchQueries } = vi.hoisted(() => ({
+const { mockDeleteDeliverable, mockUseMutation } = vi.hoisted(() => ({
   mockDeleteDeliverable: vi.fn(),
-  mockRefetchQueries: vi.fn(),
+  mockUseMutation: vi.fn(),
 }));
 
 vi.mock("@apollo/client", async () => {
   const actual = await vi.importActual<typeof import("@apollo/client")>("@apollo/client");
   return {
     ...actual,
-    useMutation: () => [mockDeleteDeliverable],
+    useMutation: mockUseMutation,
   };
 });
-
-vi.mock("@apollo/client/react/hooks/useApolloClient", () => ({
-  useApolloClient: () => ({
-    refetchQueries: mockRefetchQueries,
-  }),
-}));
 
 const CONFIRM_REMOVE_BUTTON_TEST_ID = "button-confirm-delete-deliverable";
 
@@ -38,17 +33,21 @@ describe("RemoveDeliverableDialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockDeleteDeliverable.mockResolvedValue({});
-    mockRefetchQueries.mockResolvedValue({});
+    mockUseMutation.mockReturnValue([mockDeleteDeliverable]);
   });
 
-  const setup = (ids: string[] = ["deliverable-1"], onClose = vi.fn()) => {
+  const setup = (
+    ids: string[] = ["deliverable-1"],
+    onClose = vi.fn(),
+    onDeleted = vi.fn()
+  ) => {
     render(
       <ToastProvider>
-        <RemoveDeliverableDialog deliverableIds={ids} onClose={onClose} />
+        <RemoveDeliverableDialog deliverableIds={ids} onClose={onClose} onDeleted={onDeleted} />
         <ToastContainer />
       </ToastProvider>
     );
-    return { onClose };
+    return { onClose, onDeleted };
   };
 
   it("renders the confirmation message and actions", () => {
@@ -69,7 +68,12 @@ describe("RemoveDeliverableDialog", () => {
   });
 
   it("deletes selected deliverables, refetches deliverables, and shows a success message", async () => {
-    const { onClose } = setup(["deliverable-1", "deliverable-2"]);
+    const { onClose, onDeleted } = setup(["deliverable-1", "deliverable-2"]);
+
+    expect(mockUseMutation).toHaveBeenCalledWith(DELETE_DELIVERABLE_MUTATION, {
+      refetchQueries: ["GetDeliverablesPage"],
+      awaitRefetchQueries: true,
+    });
 
     fireEvent.click(screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID));
 
@@ -80,7 +84,7 @@ describe("RemoveDeliverableDialog", () => {
       expect(mockDeleteDeliverable).toHaveBeenCalledWith({
         variables: { id: "deliverable-2" },
       });
-      expect(mockRefetchQueries).toHaveBeenCalledWith({ include: ["GetDeliverablesPage"] });
+      expect(onDeleted).toHaveBeenCalled();
       expect(screen.getByText(DELIVERABLE_DELETED_MESSAGE)).toBeInTheDocument();
       expect(onClose).toHaveBeenCalled();
     });
@@ -88,13 +92,13 @@ describe("RemoveDeliverableDialog", () => {
 
   it("shows an error message when deletion fails", async () => {
     mockDeleteDeliverable.mockRejectedValueOnce(new Error("Delete failed"));
-    const { onClose } = setup(["deliverable-1"]);
+    const { onClose, onDeleted } = setup(["deliverable-1"]);
 
     fireEvent.click(screen.getByTestId(CONFIRM_REMOVE_BUTTON_TEST_ID));
 
     await waitFor(() => {
       expect(screen.getByText(DELETE_DELIVERABLE_ERROR_MESSAGE)).toBeInTheDocument();
-      expect(mockRefetchQueries).not.toHaveBeenCalled();
+      expect(onDeleted).not.toHaveBeenCalled();
       expect(onClose).not.toHaveBeenCalled();
     });
   });
