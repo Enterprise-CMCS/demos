@@ -18,6 +18,7 @@ export const REMOVE_DELIVERABLE_CONFIRM_MESSAGE =
 export const DELIVERABLE_DELETED_MESSAGE = "Your deliverable has been deleted.";
 export const DELETE_DELIVERABLE_ERROR_MESSAGE =
   "Your changes could not be saved due to an unknown problem.";
+const DELETE_DELIVERABLES_NAME = "button-confirm-delete-deliverable";
 
 export const RemoveDeliverableDialog: React.FC<{
   deliverableIds: string[];
@@ -56,7 +57,7 @@ export const RemoveDeliverableDialog: React.FC<{
       dialogHasChanges={false}
       actionButton={
         <ErrorButton
-          name="button-confirm-delete-deliverable"
+          name={DELETE_DELIVERABLES_NAME}
           size="small"
           onClick={onConfirm}
           aria-label="Confirm Remove Deliverable"
