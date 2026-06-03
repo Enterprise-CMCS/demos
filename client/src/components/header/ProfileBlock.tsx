@@ -5,6 +5,8 @@ import { getCurrentUser } from "components/user/UserContext";
 import { useAuthActions } from "components/auth/AuthActions";
 
 export const PROFILE_BLOCK_TEST_ID = "profile-block";
+export const SIGNOUT_LINK_TEST_ID = "signout-link";
+export const PROFILE_BUTTON_TEST_ID = "profile-button";
 
 export function SignoutLink() {
   const { signOut } = useAuthActions();
@@ -13,6 +15,7 @@ export function SignoutLink() {
       type="button"
       role="menuitem"
       className="w-full text-left cursor-pointer"
+      data-testid={SIGNOUT_LINK_TEST_ID}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -73,6 +76,7 @@ export const ProfileBlock: React.FC = () => {
       <button
         ref={triggerRef}
         type="button"
+        data-testid={PROFILE_BUTTON_TEST_ID}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={`User profile menu for ${resolvedName}`}
