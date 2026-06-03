@@ -37,8 +37,25 @@ MAXVALUE
 NO CYCLE;
 
 -- Disabling triggers during the backfill
-ALTER TABLE demos_app.demonstration DISABLE TRIGGER ALL;
-ALTER TABLE demos_app.demonstration_history DISABLE TRIGGER ALL;
+-- Necessary to conditionally do this because sometimes these triggers won't exist
+-- For instance: in the Prisma Shadow DB or if doing a full DB reset
+-- Note that this isn't necessarily how we would handle in production re: dropping the history
+-- This case is unique
+DO
+$$
+BEGIN
+    ALTER TABLE demos_app.demonstration DISABLE TRIGGER log_changes_demonstration;
+    EXCEPTION WHEN undefined_object THEN NULL;
+END
+$$;
+
+DO
+$$
+BEGIN
+    ALTER TABLE demos_app.demonstration DISABLE TRIGGER _disable_redundant_updates;
+    EXCEPTION WHEN undefined_object THEN NULL;
+END
+$$;
 
 -- Now, put generated IDs on all existing records
 WITH new_medicaid_chip_ids AS (
@@ -84,8 +101,22 @@ WHERE
     dh.id = n.id;
 
 -- Enable triggers now that the backfill is done
-ALTER TABLE demos_app.demonstration ENABLE TRIGGER ALL;
-ALTER TABLE demos_app.demonstration_history ENABLE TRIGGER ALL;
+-- Same conditional as before
+DO
+$$
+BEGIN
+    ALTER TABLE demos_app.demonstration ENABLE TRIGGER log_changes_demonstration;
+    EXCEPTION WHEN undefined_object THEN NULL;
+END
+$$;
+
+DO
+$$
+BEGIN
+    ALTER TABLE demos_app.demonstration ENABLE TRIGGER _disable_redundant_updates;
+    EXCEPTION WHEN undefined_object THEN NULL;
+END
+$$;
 
 -- Enabling rules again
 ALTER TABLE
