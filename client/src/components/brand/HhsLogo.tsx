@@ -2,7 +2,7 @@ import React from "react";
 
 export const LOGO_TEST_ID = "hhs-logo";
 export const LOGO_SRC = "/img/hhs-logo.svg";
-export const LOGO_ALT = "HHS Logo with text: U.S Department of Health & Human Services";
+export const LOGO_ALT = "HHS Logo with text: U.S. Department of Health & Human Services";
 
 export const HhsLogo: React.FC = () => {
   return (
