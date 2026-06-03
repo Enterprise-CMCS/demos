@@ -101,7 +101,7 @@ describe("ReferenceAgreementDialog", () => {
     screen.getByRole("button", { name: "button-download-reference" }).click();
 
     expect(downloadReference).toHaveBeenCalledWith({
-      id: mockReference.id,
+      id: "reference-123",
       acceptedAgreementId: "agreement-456",
     });
   });

@@ -33,8 +33,6 @@ describe("ReferenceAgreementDocument", () => {
   it("calls downloadReferenceAgreement when the document is clicked", () => {
     render(<ReferenceAgreementDocument agreement={mockAgreement} />);
     fireEvent.click(screen.getByRole("button"));
-    expect(downloadReferenceAgreement).toHaveBeenCalledWith({
-      id: mockAgreement.id,
-    });
+    expect(downloadReferenceAgreement).toHaveBeenCalledWith({ id: mockAgreement.id });
   });
 });
