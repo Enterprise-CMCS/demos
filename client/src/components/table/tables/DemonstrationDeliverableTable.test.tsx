@@ -7,8 +7,9 @@ import { DemonstrationDeliverableTable } from "./DemonstrationDeliverableTable";
 import type { DeliverableTableRow } from "./DeliverableTable";
 
 const showEditDeliverableDialog = vi.fn();
+const showRemoveDeliverableDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
-  useDialog: () => ({ showEditDeliverableDialog }),
+  useDialog: () => ({ showEditDeliverableDialog, showRemoveDeliverableDialog }),
 }));
 
 const baseDeliverable: Omit<DeliverableTableRow, "id" | "name" | "dueDate" | "status"> = {
@@ -34,6 +35,7 @@ const baseDeliverable: Omit<DeliverableTableRow, "id" | "name" | "dueDate" | "st
 describe("DemonstrationDeliverableTable", () => {
   beforeEach(() => {
     showEditDeliverableDialog.mockClear();
+    showRemoveDeliverableDialog.mockClear();
   });
 
   it("applies default deliverable ordering on first render", () => {

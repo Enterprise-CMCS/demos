@@ -10,21 +10,44 @@ import { EditIcon } from "components/icons/Navigation/EditIcon";
 import { selectionTooltip } from "./actionTooltips";
 import type { FormattedDeliverableTableRow } from "./DeliverableTable";
 
+export const DELIVERABLE_CANT_DELETE_HAS_FILES =
+  "Deliverables with comments or files cannot be deleted";
+
+const hasFilesOrComments = (deliverable: FormattedDeliverableTableRow): boolean =>
+  Boolean(deliverable.cmsDocuments?.length) ||
+  Boolean(deliverable.stateDocuments?.length) ||
+  Boolean(deliverable.publicComments?.length) ||
+  Boolean(deliverable.privateComments?.length);
+
+const getDeleteTooltip = (selectedCount: number, selectedHasFilesOrComments: boolean): string => {
+  if (selectedCount === 0) return "Select a Deliverable to Delete";
+  if (selectedHasFilesOrComments) return DELIVERABLE_CANT_DELETE_HAS_FILES;
+
+  return selectionTooltip({
+    action: "Delete",
+    nounSingular: "Deliverable",
+    selectedCount,
+    rule: { kind: "atLeast", count: 1 },
+  });
+};
+
+/**
+ * Action buttons for Deliverables Table.
+ */
 export const DeliverableActionButtons: React.FC<{
   table: TanstackTable<FormattedDeliverableTableRow>;
 }> = ({ table }) => {
-  const { showEditDeliverableDialog } = useDialog();
+  const { showEditDeliverableDialog, showRemoveDeliverableDialog } = useDialog();
   const selectedRows = table.getSelectedRowModel().rows;
   const selectedCount = selectedRows.length;
-  const singleSelectedDeliverable = selectedCount === 1 ? selectedRows[0].original : null;
-
+  const selectedDeliverables = selectedRows.map((row) => row.original);
+  const selectedHasFilesOrComments = selectedDeliverables.some(hasFilesOrComments);
+  const deleteEnabled = selectedCount >= 1 && !selectedHasFilesOrComments;
+  const oneSelectedDeliverable = selectedCount === 1 ? selectedRows[0].original : null;
   const selectedIsEditable =
-    singleSelectedDeliverable === null || isDeliverableEditable(singleSelectedDeliverable.status);
-  const allSelectedAreDeletable = selectedRows.every((row) =>
-    isDeliverableEditable(row.original.status)
-  );
+    oneSelectedDeliverable === null || isDeliverableEditable(oneSelectedDeliverable.status);
   const editEnabled = selectedCount === 1 && selectedIsEditable;
-  const deleteEnabled = selectedCount >= 1 && allSelectedAreDeletable;
+  const iconColor = deleteEnabled ? "var(--color-error-dark)" : "var(--color-gray-darker)";
 
   const baseEditTooltip = selectionTooltip({
     action: "Edit",
@@ -34,17 +57,7 @@ export const DeliverableActionButtons: React.FC<{
   });
   const editTooltip =
     selectedCount === 1 && !selectedIsEditable ? "Select a Deliverable to Edit" : baseEditTooltip;
-
-  const baseDeleteTooltip = selectionTooltip({
-    action: "Delete",
-    nounSingular: "Deliverable",
-    selectedCount,
-    rule: { kind: "atLeast", count: 1 },
-  });
-  const deleteTooltip =
-    selectedCount >= 1 && !allSelectedAreDeletable
-      ? "Finalized Deliverables cannot be deleted"
-      : baseDeleteTooltip;
+  const deleteTooltip = getDeleteTooltip(selectedCount, selectedHasFilesOrComments);
 
   return (
     <div className="flex gap-1 ml-4">
@@ -54,8 +67,8 @@ export const DeliverableActionButtons: React.FC<{
         tooltip={editTooltip}
         disabled={!editEnabled}
         onClick={() => {
-          if (singleSelectedDeliverable) {
-            showEditDeliverableDialog(singleSelectedDeliverable);
+          if (oneSelectedDeliverable) {
+            showEditDeliverableDialog(oneSelectedDeliverable);
           }
         }}
       >
@@ -67,9 +80,14 @@ export const DeliverableActionButtons: React.FC<{
         ariaLabel="Remove Deliverable"
         tooltip={deleteTooltip}
         disabled={!deleteEnabled}
-        onClick={() => {}}
+        onClick={() => {
+          showRemoveDeliverableDialog(
+            selectedDeliverables.map((deliverable) => deliverable.id),
+            () => table.resetRowSelection()
+          );
+        }}
       >
-        <DeleteIcon />
+        <DeleteIcon fill={iconColor} />
       </CircleButton>
     </div>
   );
