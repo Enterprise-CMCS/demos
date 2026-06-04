@@ -100,41 +100,53 @@ export const documentResolvers = {
       context: GraphQLContext
     ): Promise<PrismaDocument> {
       checkOptionalNotNullFields(["name", "description", "documentType"], input);
-      return await prisma().$transaction(async (tx) => {
-        return await editDocument(
-          { id },
-          {
-            name: input.name,
-            description: input.description,
-            documentTypeId: input.documentType,
-          },
-          context.user,
-          tx
-        );
-      });
+      try {
+        return await prisma().$transaction(async (tx) => {
+          return await editDocument(
+            { id },
+            {
+              name: input.name,
+              description: input.description,
+              documentTypeId: input.documentType,
+            },
+            context.user,
+            tx
+          );
+        });
+      } catch (error) {
+        handlePrismaError(error);
+      }
     },
     deleteDocument: async function deleteDocument(
       parent: unknown,
       { id }: { id: string },
       context: GraphQLContext
     ): Promise<PrismaDocument> {
-      return prisma().$transaction(async (tx) => {
-        return removeDocument({ id }, context.user, tx);
-      });
+      try {
+        return prisma().$transaction(async (tx) => {
+          return removeDocument({ id }, context.user, tx);
+        });
+      } catch (error) {
+        handlePrismaError(error);
+      }
     },
     deleteDocuments: async function deleteDocuments(
       parent: unknown,
       { ids }: { ids: string[] },
       context: GraphQLContext
     ): Promise<number> {
-      return prisma().$transaction(async (tx) => {
-        let count = 0;
-        for (const documentId of ids) {
-          await removeDocument({ id: documentId }, context.user, tx);
-          count++;
-        }
-        return count;
-      });
+      try {
+        return prisma().$transaction(async (tx) => {
+          let count = 0;
+          for (const documentId of ids) {
+            await removeDocument({ id: documentId }, context.user, tx);
+            count++;
+          }
+          return count;
+        });
+      } catch (error) {
+        handlePrismaError(error);
+      }
     },
     triggerUiPath: triggerUiPath,
   },
