@@ -28,17 +28,11 @@ import type {
 import { SET_APPLICATION_TAGS_MUTATION } from "components/dialog/ApplyTagsDialog";
 import { ConfirmSuggestedSparklyTagDialog } from "components/dialog/ConfirmSuggestedSparklyTagDialog";
 
-/** Business Rules for this Phase:
- * - **Application Intake Start Date** - Can start in one of two ways, whichever comes first:
-  - a. User clicked Skip or Finish on the Concept Phase
-  - b. When a change is submitted on this phase - document or date update.
+// Polling for refetch suggested tags for uipath every 5 seconds after file upload
+const UIPATH_SUGGESTION_POLL_INTERVAL_MS = 5_000;
+// stops after 2 minutes or when user leaves the phase.
+const UIPATH_SUGGESTION_POLL_TIMEOUT_MS = 120_000;
 
-- **State Application Submitted Date** - When the state formally submits their application.
-
-- **Application Intake Completion Date** - Completed when user clicks "Finish" to progress to the next phase.
-
-Note: If the user skips the concept phase this will be marked completed when the user clicks Finish on the Application Intake Phase.
- */
 const STYLES = {
   pane: tw`bg-white p-8`,
   grid: tw`relative grid grid-cols-2 gap-10`,
@@ -54,9 +48,6 @@ const STYLES = {
 
 const THIS_PHASE_NAME: PhaseName = "Application Intake";
 const NEXT_PHASE_NAME: PhaseName = "Completeness";
-
-const UIPATH_SUGGESTION_POLL_INTERVAL_MS = 5_000; // Poll every 5 seconds
-const UIPATH_SUGGESTION_POLL_TIMEOUT_MS = 120_000; // stop after 2 minutes
 
 const REFETCH_ACTIVE_QUERIES_AFTER_SUGGESTION_UPDATE = {
   awaitRefetchQueries: true,
