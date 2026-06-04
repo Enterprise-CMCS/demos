@@ -32,8 +32,8 @@
   },
   "scripts": {
     "clean": "rm -rf dist; npm ci",
-    "build": "prisma generate && tsc && esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify --external:@yaacovcr/transform && cp -r src/reports/queries build/",
-    "build:ci": "prisma generate && tsc && esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify --external:@yaacovcr/transform && cp -r src/reports/queries build/",
+    "build": "prisma generate && tsc && esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify --external:@yaacovcr/transform && cp -r src/onDemandReports/queries build/",
+    "build:ci": "prisma generate && tsc && esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify --external:@yaacovcr/transform && cp -r src/onDemandReports/queries build/",
     "depcheck": "depcheck",
     "pretest": "prisma generate",
     "predev": "prisma generate",
