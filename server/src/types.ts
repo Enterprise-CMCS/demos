@@ -30,7 +30,7 @@ import {
   TAG_TYPES,
   UIPATH_RESULT_STATUSES,
   USER_TYPES,
-  ON_DEMAND_REPORT_STATUS,
+  ON_DEMAND_REPORT_STATUSES,
 } from "./constants.js";
 
 export type {
@@ -182,4 +182,4 @@ export type Permission = (typeof PERMISSIONS)[number];
 export type SystemRole = (typeof SYSTEM_ROLES)[number];
 export type ReferenceConfigurationStatus = (typeof REFERENCE_CONFIGURATION_STATUSES)[number];
 export type OnDemandReportType = (typeof ON_DEMAND_REPORT_TYPES)[number];
-export type OnDemandReportStatus = (typeof ON_DEMAND_REPORT_STATUS)[number];
+export type OnDemandReportStatus = (typeof ON_DEMAND_REPORT_STATUSES)[number];

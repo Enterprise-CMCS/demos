@@ -4,7 +4,7 @@ import { fileURLToPath } from "url";
 import { OnDemandReportType } from "../types";
 import { prisma } from "../prismaClient";
 import z from "zod";
-import { onDemandReportConfigurations } from ".";
+import { onDemandReportConfigurations } from "./onDemandReportConfigurations";
 
 const __currentDir = dirname(fileURLToPath(import.meta.url));
 
