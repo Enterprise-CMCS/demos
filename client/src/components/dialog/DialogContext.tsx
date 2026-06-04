@@ -33,7 +33,7 @@ import { EditDemonstrationTypeDialog } from "./DemonstrationTypes/EditDemonstrat
 import { UpdateExtensionDialog } from "./modification/EditExtensionDialog";
 import { UpdateAmendmentDialog } from "./modification/EditAmendmentDialog";
 import { ConfirmApproveDialog } from "./ConfirmApproveDialog";
-import { AddDeliverableSlotDialog } from "./deliverable";
+import { AddDeliverableSlotDialog, RemoveDeliverableDialog } from "./deliverable";
 import { EditDeliverableDialog } from "./deliverable/EditDeliverableDialog";
 import {
   RequestExtensionDeliverableDialog,
@@ -296,6 +296,16 @@ export const useDialog = () => {
     );
   };
 
+  const showRemoveDeliverableDialog = (deliverableIds: string[], onDeleted?: () => void) => {
+    context.showDialog(
+      <RemoveDeliverableDialog
+        deliverableIds={deliverableIds}
+        onClose={context.hideDialog}
+        onDeleted={onDeleted}
+      />
+    );
+  };
+
   const showRequestExtensionDeliverableDialog = (
     deliverable: RequestExtensionDeliverableDialogDeliverable
   ) => {
@@ -393,6 +403,7 @@ export const useDialog = () => {
     showUpdateAmendmentDialog,
     showConfirmApproveDialog,
     showAddDeliverableSlotDialog,
+    showRemoveDeliverableDialog,
     showEditDeliverableDialog,
     showRequestExtensionDeliverableDialog,
     showRequestResubmissionDeliverableDialog,

@@ -12,6 +12,8 @@ import { DatePicker } from "components/input/date/DatePicker";
 import { EXPIRATION_DATE_ERROR_MESSAGE } from "util/messages";
 import { SubmitButton } from "components/button/SubmitButton";
 import { isBefore } from "date-fns";
+import { Input } from "components/input/Input";
+import { STATES_AND_TERRITORIES } from "demos-server-constants";
 
 export const DEMONSTRATION_DIALOG_DESCRIPTION_NAME = "textarea-demonstration-description";
 export const DEFAULT_DEMONSTRATION_SIGNATURE_LEVEL = "OA" as SignatureLevel;
@@ -167,12 +169,25 @@ export const DemonstrationDialog: React.FC<{
     >
       <form id="demonstration-form" className="flex flex-col gap-[24px]">
         <div className="grid grid-cols-3 gap-[24px]">
-          <SelectUSAStates
-            label="State/Territory"
-            value={activeDemonstration.stateId}
-            isRequired
-            onSelect={(stateId) => handleChange({ ...activeDemonstration, stateId })}
-          />
+          {mode === "create" ? (
+            <SelectUSAStates
+              label="State/Territory"
+              value={activeDemonstration.stateId}
+              isRequired
+              onSelect={(stateId) => handleChange({ ...activeDemonstration, stateId })}
+            />
+          ) : (
+            <Input
+              type="text"
+              name="state-display"
+              label="State/Territory"
+              value={
+                STATES_AND_TERRITORIES.find((state) => state.id === activeDemonstration.stateId)
+                  ?.name
+              }
+              isDisabled
+            />
+          )}
           <div className="col-span-2">
             <TextInput
               name="input-demonstration-title"
@@ -227,9 +242,7 @@ export const DemonstrationDialog: React.FC<{
             initialValue={DEFAULT_DEMONSTRATION_SIGNATURE_LEVEL}
             allowedSignatureLevels={["OA"]}
             isDisabled
-            onSelect={(signatureLevel) =>
-              handleChange({ ...activeDemonstration, signatureLevel })
-            }
+            onSelect={(signatureLevel) => handleChange({ ...activeDemonstration, signatureLevel })}
           />
         </div>
       </form>

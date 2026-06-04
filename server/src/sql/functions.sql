@@ -121,7 +121,7 @@ END;
 $$;
 
 CREATE CONSTRAINT TRIGGER check_demonstration_primary_project_officer
-AFTER INSERT OR UPDATE ON demos_app.demonstration
+AFTER INSERT ON demos_app.demonstration
 DEFERRABLE INITIALLY DEFERRED
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_demonstration_primary_project_officer();
@@ -161,7 +161,7 @@ END;
 $$;
 
 CREATE CONSTRAINT TRIGGER check_demonstration_retains_primary_project_officer
-AFTER UPDATE OR DELETE ON demos_app.primary_demonstration_role_assignment
+AFTER UPDATE OF role_id OR DELETE ON demos_app.primary_demonstration_role_assignment
 DEFERRABLE INITIALLY DEFERRED
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_demonstration_retains_primary_project_officer();
@@ -439,7 +439,7 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_application_type_record_exists();
 
 -- update_application_current_phase_on_phase_update
-CREATE OR REPLACE FUNCTION demos_app.update_application_current_phase_on_phase_update()
+CREATE FUNCTION demos_app.update_application_current_phase_on_phase_update()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
@@ -520,12 +520,12 @@ END;
 $$;
 
 CREATE TRIGGER update_application_current_phase_on_phase_update
-AFTER UPDATE ON demos_app.application_phase
+AFTER UPDATE OF phase_status_id ON demos_app.application_phase
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.update_application_current_phase_on_phase_update();
 
 -- update_application_status_on_phase_update
-CREATE OR REPLACE FUNCTION demos_app.update_application_status_on_phase_update()
+CREATE FUNCTION demos_app.update_application_status_on_phase_update()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
@@ -623,7 +623,7 @@ END;
 $$;
 
 CREATE TRIGGER update_application_status_on_phase_update
-AFTER UPDATE ON demos_app.application_phase
+AFTER UPDATE OF phase_id, phase_status_id ON demos_app.application_phase
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.update_application_status_on_phase_update();
 
@@ -759,7 +759,7 @@ END;
 $$;
 
 -- disable_redundant_updates
-CREATE OR REPLACE FUNCTION demos_app.disable_redundant_updates()
+CREATE FUNCTION demos_app.disable_redundant_updates()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
@@ -1049,7 +1049,7 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_suggestion_has_extract();
 
 -- check_demonstration_type_exists_for_approved_demos
-CREATE OR REPLACE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations()
+CREATE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
@@ -1115,7 +1115,7 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations();
 
 CREATE TRIGGER check_demonstration_type_exists_for_approved_demonstrations
-BEFORE UPDATE ON demos_app.demonstration
+BEFORE UPDATE of status_id ON demos_app.demonstration
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations();
 
@@ -1283,7 +1283,7 @@ END;
 $$;
 
 CREATE TRIGGER change_open_ended_due_dates_to_expiration_date
-AFTER UPDATE ON demos_app.demonstration
+AFTER UPDATE OF expiration_date ON demos_app.demonstration
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.change_open_ended_due_dates_to_expiration_date();
 
@@ -1574,3 +1574,69 @@ CREATE TRIGGER trim_input_text_fields
 BEFORE INSERT OR UPDATE ON demos_app.reference_agreement
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+-- generate_medicaid_chip_id_numbers
+CREATE FUNCTION demos_app.generate_medicaid_chip_id_numbers()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    region_number INT;
+    medicaid_seq_number INT;
+    chip_seq_number INT;
+BEGIN
+    IF NEW.medicaid_id IS NOT NULL OR NEW.chip_id IS NOT NULL THEN
+        RAISE EXCEPTION 'medicaid_id and chip_id are system-generated and must not be set manually';
+    END IF;
+
+    SELECT
+        region
+    INTO
+        region_number
+    FROM
+        demos_app.state
+    WHERE
+        id = NEW.state_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Unknown state code: %', NEW.state_id;
+    END IF;
+
+    medicaid_seq_number := nextval('demos_app.medicaid_id_number_seq');
+    chip_seq_number := nextval('demos_app.chip_id_number_seq');
+
+    NEW.medicaid_id := format('11-W-%s/%s', lpad(medicaid_seq_number::TEXT, 5, '0'), region_number);
+    NEW.chip_id := format('21-W-%s/%s', lpad(chip_seq_number::TEXT, 5, '0'), region_number);
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER generate_medicaid_chip_id_numbers
+BEFORE INSERT ON demos_app.demonstration
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.generate_medicaid_chip_id_numbers();
+
+-- prevent_changing_immutable_demonstration_fields
+CREATE FUNCTION demos_app.prevent_changing_immutable_demonstration_fields()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF NEW.state_id IS DISTINCT FROM OLD.state_id THEN
+        RAISE EXCEPTION 'The state_id field in the demonstration table cannot be modified after creation.';
+    END IF;
+    IF NEW.medicaid_id IS DISTINCT FROM OLD.medicaid_id THEN
+        RAISE EXCEPTION 'The medicaid_id field in the demonstration table cannot be modified after creation.';
+    END IF;
+    IF NEW.chip_id IS DISTINCT FROM OLD.chip_id THEN
+        RAISE EXCEPTION 'The chip_id field in the demonstration table cannot be modified after creation.';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER prevent_changing_immutable_demonstration_fields
+BEFORE UPDATE OF state_id, medicaid_id, chip_id ON demos_app.demonstration
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.prevent_changing_immutable_demonstration_fields();
