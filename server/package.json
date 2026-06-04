@@ -27,12 +27,13 @@
     "jsonwebtoken": "^9.0.3",
     "jwks-rsa": "^3.2.2",
     "pg": "^8.21.0",
-    "pino": "^10.3.1"
+    "pino": "^10.3.1",
+    "zod": "^4.4.3"
   },
   "scripts": {
     "clean": "rm -rf dist; npm ci",
-    "build": "prisma generate && tsc && esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify --external:@yaacovcr/transform",
-    "build:ci": "prisma generate && tsc && esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify --external:@yaacovcr/transform",
+    "build": "prisma generate && tsc && esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify --external:@yaacovcr/transform && cp -r src/reports/queries build/",
+    "build:ci": "prisma generate && tsc && esbuild dist/server.js --bundle --platform=node --outfile=build/server.cjs --minify --external:@yaacovcr/transform && cp -r src/reports/queries build/",
     "depcheck": "depcheck",
     "pretest": "prisma generate",
     "predev": "prisma generate",
