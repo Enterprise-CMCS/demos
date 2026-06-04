@@ -275,8 +275,7 @@ describe("documentResolvers", () => {
           description: "Updated description",
           documentTypeId: "State Application",
         },
-        mockContext.user,
-        mockTransaction
+        mockContext.user
       );
       expect(updatedDocument).toEqual(mockDocument);
     });

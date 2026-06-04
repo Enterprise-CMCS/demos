@@ -24,4 +24,12 @@ describe("deleteDocument", () => {
     await deleteDocument(where, mockTransaction);
     expect(transactionMocks.document.delete).toHaveBeenCalledExactlyOnceWith({ where });
   });
+
+  it("should throw an error if the document cannot be deleted", async () => {
+    const where = { id: testDocumentId };
+    transactionMocks.document.delete.mockRejectedValueOnce("Prisma error :(");
+
+    await expect(deleteDocument(where, mockTransaction)).rejects.toThrow("Prisma error :(");
+    expect(transactionMocks.document.delete).toHaveBeenCalledExactlyOnceWith({ where });
+  });
 });

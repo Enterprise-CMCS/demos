@@ -101,18 +101,15 @@ export const documentResolvers = {
     ): Promise<PrismaDocument> {
       checkOptionalNotNullFields(["name", "description", "documentType"], input);
       try {
-        return await prisma().$transaction(async (tx) => {
-          return await editDocument(
-            { id },
-            {
-              name: input.name,
-              description: input.description,
-              documentTypeId: input.documentType,
-            },
-            context.user,
-            tx
-          );
-        });
+        return await editDocument(
+          { id },
+          {
+            name: input.name,
+            description: input.description,
+            documentTypeId: input.documentType,
+          },
+          context.user
+        );
       } catch (error) {
         handlePrismaError(error);
       }

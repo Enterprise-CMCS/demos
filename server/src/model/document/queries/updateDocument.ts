@@ -6,7 +6,6 @@ export async function updateDocument(
   data: Prisma.DocumentUncheckedUpdateInput,
   tx?: PrismaTransactionClient
 ): Promise<PrismaDocument> {
-  return tx
-    ? tx.document.update({ where, data })
-    : prisma().$transaction((transaction) => transaction.document.update({ where, data }));
+  const prismaClient = tx ?? prisma();
+  return prismaClient.document.update({ where, data });
 }

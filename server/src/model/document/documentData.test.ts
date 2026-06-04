@@ -6,6 +6,7 @@ import { selectDocument, selectManyDocuments, updateDocument } from "./queries";
 import { log } from "../../log";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { handleDeleteDocument } from "./handleDeleteDocument";
+import { validateDocumentCanBeDeleted } from "./validateDocumentCanBeDeleted";
 
 vi.mock("../../auth", () => ({
   buildAuthorizationFilter: vi.fn(),
@@ -25,6 +26,10 @@ vi.mock("./queries", () => ({
 
 vi.mock("./handleDeleteDocument", () => ({
   handleDeleteDocument: vi.fn(),
+}));
+
+vi.mock("./validateDocumentCanBeDeleted", () => ({
+  validateDocumentCanBeDeleted: vi.fn(),
 }));
 
 describe("documentData", () => {
@@ -359,6 +364,7 @@ describe("documentData", () => {
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
+      expect(validateDocumentCanBeDeleted).toHaveBeenCalledExactlyOnceWith(document);
       expect(handleDeleteDocument).toHaveBeenCalledExactlyOnceWith(where, mockTransaction);
       expect(result).toStrictEqual(document);
     });

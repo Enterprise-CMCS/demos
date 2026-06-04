@@ -5,6 +5,7 @@ import { PrismaTransactionClient } from "../../prismaClient";
 import { log } from "../../log";
 import { isAStatePointOfContactAssociatedWithDeliverable } from "../deliverable/deliverableData";
 import { handleDeleteDocument } from "./handleDeleteDocument";
+import { validateDocumentCanBeDeleted } from "./validateDocumentCanBeDeleted";
 
 const getViewPermissionFilters = (userId: string) =>
   ({
@@ -157,6 +158,7 @@ export async function removeDocument(
     );
 
     if (authorizedDocument) {
+      validateDocumentCanBeDeleted(authorizedDocument);
       return await handleDeleteDocument(where, tx);
     }
   }

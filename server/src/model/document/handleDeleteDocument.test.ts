@@ -3,14 +3,9 @@ import { Document as PrismaDocument } from "@prisma/client";
 import { getS3Adapter, S3Adapter } from "../../adapters/s3/S3Adapter";
 import { handleDeleteDocument } from ".";
 import { deleteDocument } from "./queries/deleteDocument";
-import { validateDocumentCanBeDeleted } from "./validateDocumentCanBeDeleted";
 
 vi.mock("./queries/deleteDocument", () => ({
   deleteDocument: vi.fn(),
-}));
-
-vi.mock("./validateDocumentCanBeDeleted", () => ({
-  validateDocumentCanBeDeleted: vi.fn(),
 }));
 
 vi.mock("../../adapters/s3/S3Adapter", () => ({
@@ -62,7 +57,6 @@ describe("handleDeleteDocument", () => {
 
     await handleDeleteDocument({ id: testDocumentId }, mockTransaction);
 
-    expect(validateDocumentCanBeDeleted).toHaveBeenCalledExactlyOnceWith(mockDeletedDocument);
     expect(deleteDocument).toHaveBeenCalledExactlyOnceWith({ id: testDocumentId }, mockTransaction);
     expect(mockMoveDocumentFromCleanToDeleted).toHaveBeenCalledExactlyOnceWith(
       `${testApplicationId}/${testDocumentId}`
