@@ -15,7 +15,6 @@ export const Checkbox: React.FC<CheckboxProps> = ({
   checked,
   indeterminate = false,
 }) => {
-
   const checkboxRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
@@ -44,11 +43,12 @@ export const Checkbox: React.FC<CheckboxProps> = ({
           style={{ accentColor: "#0071bc" }}
           checked={checked}
           aria-checked={showIndeterminate ? "mixed" : checked}
+          aria-label={`Select ${label || name}`}
           onChange={handleChange}
         />
         {showIndeterminate && (
           <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <MinimizeIcon className="text-white"  thickness={2} />
+            <MinimizeIcon className="text-white" thickness={2} />
           </span>
         )}
       </span>
