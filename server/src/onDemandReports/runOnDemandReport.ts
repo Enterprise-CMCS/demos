@@ -1,6 +1,6 @@
-import { readFileSync } from "fs";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
+import { readFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { OnDemandReportType } from "../types";
 import { prisma } from "../prismaClient";
 import { z } from "zod";
