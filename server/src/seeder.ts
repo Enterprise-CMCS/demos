@@ -295,6 +295,21 @@ async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
       createdAt: new Date(),
     },
   });
+  // create a cms file
+  await prisma().document.create({
+    data: {
+      name: "This is a test document to support test submission of a deliverable",
+      description: faker.lorem.sentence(5),
+      s3Path: "tmp",
+      ownerUserId: context.user.id,
+      documentTypeId: "General File",
+      applicationId: deliverable.demonstrationId,
+      deliverableId: deliverable.id,
+      deliverableTypeId: deliverable.deliverableTypeId,
+      deliverableIsCmsAttachedFile: true,
+      createdAt: new Date(),
+    },
+  });
   await submitDeliverable(deliverable.id, context);
   await requestDeliverableResubmission(
     deliverable.id,

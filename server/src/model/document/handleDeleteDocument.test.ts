@@ -1,15 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Document as PrismaDocument } from "@prisma/client";
-import { S3Adapter } from "../../adapters";
-import { handleDeleteDocument, deleteDocumentById } from ".";
+import { getS3Adapter, S3Adapter } from "../../adapters/s3/S3Adapter";
+import { handleDeleteDocument } from ".";
+import { deleteDocument } from "./queries/deleteDocument";
 import { validateDocumentCanBeDeleted } from "./validateDocumentCanBeDeleted";
 
-vi.mock("./queries/deleteDocumentById", () => ({
-  deleteDocumentById: vi.fn(),
+vi.mock("./queries/deleteDocument", () => ({
+  deleteDocument: vi.fn(),
 }));
 
 vi.mock("./validateDocumentCanBeDeleted", () => ({
   validateDocumentCanBeDeleted: vi.fn(),
+}));
+
+vi.mock("../../adapters/s3/S3Adapter", () => ({
+  getS3Adapter: vi.fn(),
 }));
 
 describe("handleDeleteDocument", () => {
@@ -24,12 +29,15 @@ describe("handleDeleteDocument", () => {
     },
   } as any;
 
-  const mockS3Adapter = {
-    moveDocumentFromCleanToDeleted: vi.fn(),
-  } as unknown as S3Adapter;
-
   const testDocumentId = "doc-123-456";
   const testApplicationId = "app-123-456";
+  const mockMoveDocumentFromCleanToDeleted = vi.fn();
+  const mockS3Adapter: S3Adapter = {
+    getPresignedUploadUrl: vi.fn(),
+    getPresignedDownloadUrl: vi.fn(),
+    moveDocumentFromCleanToDeleted: mockMoveDocumentFromCleanToDeleted,
+    uploadDocument: vi.fn(),
+  };
 
   const mockDeletedDocument: Partial<PrismaDocument> = {
     name: "Test Document",
@@ -46,44 +54,45 @@ describe("handleDeleteDocument", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.mocked(getS3Adapter).mockReturnValue(mockS3Adapter);
   });
 
   it("should validate that the document can be deleted before proceeding", async () => {
-    vi.mocked(deleteDocumentById).mockResolvedValue(mockDeletedDocument as PrismaDocument);
+    vi.mocked(deleteDocument).mockResolvedValue(mockDeletedDocument as PrismaDocument);
 
-    await handleDeleteDocument(mockTransaction, mockS3Adapter, testDocumentId);
+    await handleDeleteDocument({ id: testDocumentId }, mockTransaction);
 
     expect(validateDocumentCanBeDeleted).toHaveBeenCalledExactlyOnceWith(mockDeletedDocument);
-    expect(deleteDocumentById).toHaveBeenCalledExactlyOnceWith(mockTransaction, testDocumentId);
-    expect(mockS3Adapter.moveDocumentFromCleanToDeleted).toHaveBeenCalledExactlyOnceWith(
+    expect(deleteDocument).toHaveBeenCalledExactlyOnceWith({ id: testDocumentId }, mockTransaction);
+    expect(mockMoveDocumentFromCleanToDeleted).toHaveBeenCalledExactlyOnceWith(
       `${testApplicationId}/${testDocumentId}`
     );
   });
 
   it("should delete document by id and move it to deleted bucket", async () => {
-    vi.mocked(deleteDocumentById).mockResolvedValue(mockDeletedDocument as PrismaDocument);
+    vi.mocked(deleteDocument).mockResolvedValue(mockDeletedDocument as PrismaDocument);
 
-    await handleDeleteDocument(mockTransaction, mockS3Adapter, testDocumentId);
+    await handleDeleteDocument({ id: testDocumentId }, mockTransaction);
 
-    expect(deleteDocumentById).toHaveBeenCalledExactlyOnceWith(mockTransaction, testDocumentId);
-    expect(mockS3Adapter.moveDocumentFromCleanToDeleted).toHaveBeenCalledExactlyOnceWith(
+    expect(deleteDocument).toHaveBeenCalledExactlyOnceWith({ id: testDocumentId }, mockTransaction);
+    expect(mockMoveDocumentFromCleanToDeleted).toHaveBeenCalledExactlyOnceWith(
       `${testApplicationId}/${testDocumentId}`
     );
   });
 
   it("should construct S3 key from applicationId and document id", async () => {
-    vi.mocked(deleteDocumentById).mockResolvedValue(mockDeletedDocument as PrismaDocument);
+    vi.mocked(deleteDocument).mockResolvedValue(mockDeletedDocument as PrismaDocument);
     const expectedKey = `${testApplicationId}/${testDocumentId}`;
 
-    await handleDeleteDocument(mockTransaction, mockS3Adapter, testDocumentId);
+    await handleDeleteDocument({ id: testDocumentId }, mockTransaction);
 
-    expect(mockS3Adapter.moveDocumentFromCleanToDeleted).toHaveBeenCalledWith(expectedKey);
+    expect(mockMoveDocumentFromCleanToDeleted).toHaveBeenCalledWith(expectedKey);
   });
 
   it("should return the deleted document", async () => {
-    vi.mocked(deleteDocumentById).mockResolvedValue(mockDeletedDocument as PrismaDocument);
+    vi.mocked(deleteDocument).mockResolvedValue(mockDeletedDocument as PrismaDocument);
 
-    const result = await handleDeleteDocument(mockTransaction, mockS3Adapter, testDocumentId);
+    const result = await handleDeleteDocument({ id: testDocumentId }, mockTransaction);
 
     expect(result).toEqual(mockDeletedDocument);
   });

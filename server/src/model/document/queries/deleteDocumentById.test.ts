@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { deleteDocumentById } from "../";
+import { deleteDocument } from "./deleteDocument";
 
-describe("deleteDocumentById", () => {
+describe("deleteDocument", () => {
   const transactionMocks = {
     document: {
       delete: vi.fn(),
@@ -18,12 +18,10 @@ describe("deleteDocumentById", () => {
     vi.resetAllMocks();
   });
 
-  it("should delete document by id from the database", async () => {
-    const expectedCall = {
-      where: { id: testDocumentId },
-    };
+  it("should delete document from the database", async () => {
+    const where = { id: testDocumentId };
 
-    await deleteDocumentById(mockTransaction, testDocumentId);
-    expect(transactionMocks.document.delete).toHaveBeenCalledExactlyOnceWith(expectedCall);
+    await deleteDocument(where, mockTransaction);
+    expect(transactionMocks.document.delete).toHaveBeenCalledExactlyOnceWith({ where });
   });
 });

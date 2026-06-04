@@ -1,16 +1,12 @@
 import { Prisma, Document as PrismaDocument } from "@prisma/client";
 import { buildAuthorizationFilter, PermissionFilters, ContextUser } from "../../auth";
-import { selectDocument, selectManyDocuments } from "./queries";
+import { selectDocument, selectManyDocuments, updateDocument } from "./queries";
 import { PrismaTransactionClient } from "../../prismaClient";
-import { isAStatePointOfContactAssociatedWithApplication } from "../application/applicationData";
 import { log } from "../../log";
+import { isAStatePointOfContactAssociatedWithDeliverable } from "../deliverable/deliverableData";
+import { handleDeleteDocument } from "./handleDeleteDocument";
 
-export const isAStatePointOfContactAssociatedWithDocument = (
-  userId: string
-): Prisma.DocumentWhereInput => ({
-  application: isAStatePointOfContactAssociatedWithApplication(userId),
-});
-const getPermissionFilters = (userId: string) =>
+const getViewPermissionFilters = (userId: string) =>
   ({
     "View All Documents": {
       NOT: {
@@ -19,10 +15,38 @@ const getPermissionFilters = (userId: string) =>
         },
       },
     },
-    "View Documents on Assigned Demonstrations":
-      isAStatePointOfContactAssociatedWithDocument(userId),
-    "View Owned Documents": {
-      ownerUserId: userId,
+    "View Documents on Assigned Deliverables": {
+      deliverable: isAStatePointOfContactAssociatedWithDeliverable(userId),
+    },
+  }) satisfies PermissionFilters<Prisma.DocumentWhereInput>;
+
+const getEditPermissionFilters = (userId: string) =>
+  ({
+    "Edit All Documents": {
+      NOT: {
+        id: {
+          in: [],
+        },
+      },
+    },
+    "Edit State Documents on Assigned Deliverables": {
+      deliverable: isAStatePointOfContactAssociatedWithDeliverable(userId),
+      deliverableIsCmsAttachedFile: false,
+    },
+  }) satisfies PermissionFilters<Prisma.DocumentWhereInput>;
+
+const getDeletePermissionFilters = (userId: string) =>
+  ({
+    "Delete All Documents": {
+      NOT: {
+        id: {
+          in: [],
+        },
+      },
+    },
+    "Delete State Documents on Assigned Deliverables": {
+      deliverable: isAStatePointOfContactAssociatedWithDeliverable(userId),
+      deliverableIsCmsAttachedFile: false,
     },
   }) satisfies PermissionFilters<Prisma.DocumentWhereInput>;
 
@@ -33,7 +57,7 @@ export async function getDocument(
 ): Promise<PrismaDocument> {
   const authFilter = buildAuthorizationFilter<Prisma.DocumentWhereInput>(
     user,
-    getPermissionFilters
+    getViewPermissionFilters
   );
 
   if (authFilter !== null) {
@@ -66,7 +90,7 @@ export async function getManyDocuments(
 ): Promise<PrismaDocument[]> {
   const authFilter = buildAuthorizationFilter<Prisma.DocumentWhereInput>(
     user,
-    getPermissionFilters
+    getViewPermissionFilters
   );
 
   if (authFilter === null) {
@@ -78,4 +102,71 @@ export async function getManyDocuments(
     },
     tx
   );
+}
+
+export async function editDocument(
+  where: Prisma.DocumentWhereUniqueInput,
+  data: Prisma.DocumentUncheckedUpdateInput,
+  user: ContextUser,
+  tx?: PrismaTransactionClient
+): Promise<PrismaDocument> {
+  const authFilter = buildAuthorizationFilter<Prisma.DocumentWhereInput>(
+    user,
+    getEditPermissionFilters
+  );
+
+  if (authFilter !== null) {
+    const authorizedDocument = await selectDocument(
+      {
+        AND: [where, authFilter],
+      },
+      tx
+    );
+
+    if (authorizedDocument) {
+      return await updateDocument(where, data, tx);
+    }
+  }
+
+  const document = await selectDocument(where, tx);
+  if (document) {
+    log.warn(
+      `User ${user.id} attempted to edit Document ${document.id} without sufficient permissions.`
+    );
+  }
+
+  throw new Error("Requested Document not found or User does not have Permission to edit it.");
+}
+
+export async function removeDocument(
+  where: Prisma.DocumentWhereUniqueInput,
+  user: ContextUser,
+  tx: PrismaTransactionClient
+): Promise<PrismaDocument> {
+  const authFilter = buildAuthorizationFilter<Prisma.DocumentWhereInput>(
+    user,
+    getDeletePermissionFilters
+  );
+
+  if (authFilter !== null) {
+    const authorizedDocument = await selectDocument(
+      {
+        AND: [where, authFilter],
+      },
+      tx
+    );
+
+    if (authorizedDocument) {
+      return await handleDeleteDocument(where, tx);
+    }
+  }
+
+  const document = await selectDocument(where, tx);
+  if (document) {
+    log.warn(
+      `User ${user.id} attempted to delete Document ${document.id} without sufficient permissions.`
+    );
+  }
+
+  throw new Error("Requested Document not found or User does not have Permission to delete it.");
 }

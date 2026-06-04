@@ -8,17 +8,13 @@ import { getS3Adapter } from "../../adapters";
 import { selectUserOrThrow } from "../user/queries";
 import { getApplication } from "../application";
 import { enqueueUiPath } from "../../services/uipathQueue";
-import { updateDocument, handleDeleteDocument } from ".";
 import {
   triggerUiPath,
-  updateDocument as updateDocumentResolver,
-  deleteDocument,
-  deleteDocuments,
   documentResolvers,
   resolveBudgetNeutralityValidation,
   resolveHasPendingUIPathResult,
 } from "./documentResolvers";
-import { getDocument } from "./documentData";
+import { editDocument, getDocument, removeDocument } from "./documentData";
 
 // Mock dependencies
 vi.mock("../../prismaClient", () => ({
@@ -35,6 +31,8 @@ vi.mock("../../adapters", () => ({
 
 vi.mock("./documentData", () => ({
   getDocument: vi.fn(),
+  editDocument: vi.fn(),
+  removeDocument: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -63,11 +61,6 @@ vi.mock("../../services/uipathQueue", () => ({
 
 vi.mock("../user/queries", () => ({
   selectUserOrThrow: vi.fn(),
-}));
-
-vi.mock(".", () => ({
-  updateDocument: vi.fn(),
-  handleDeleteDocument: vi.fn(),
 }));
 
 describe("documentResolvers", () => {
@@ -255,70 +248,83 @@ describe("documentResolvers", () => {
     });
   });
 
-  describe("updateDocument", () => {
-    const mockUpdateInput: UpdateDocumentInput = {
-      name: "Updated Document",
-      description: "Updated description",
-      documentType: "State Application",
-    };
-
-    it("should update document metadata", async () => {
-      vi.mocked(updateDocument).mockResolvedValue(mockDocument);
-
-      const result = await updateDocumentResolver(undefined, {
-        id: testDocumentId,
-        input: mockUpdateInput,
-      });
-
+  describe("Mutation.updateDocument", () => {
+    it("should update document metadata under a transaction", async () => {
+      const mockUpdateInput: UpdateDocumentInput = {
+        name: "Updated Document",
+        description: "Updated description",
+        documentType: "State Application",
+      };
+      vi.mocked(editDocument).mockResolvedValue(mockDocument);
+      const updatedDocument = await documentResolvers.Mutation.updateDocument(
+        undefined,
+        {
+          id: testDocumentId,
+          input: mockUpdateInput,
+        },
+        mockContext
+      );
       expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(
         ["name", "description", "documentType"],
         mockUpdateInput
       );
-      expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
-      expect(updateDocument).toHaveBeenCalledExactlyOnceWith(
-        mockTransaction,
-        testDocumentId,
-        mockUpdateInput
+      expect(editDocument).toHaveBeenCalledExactlyOnceWith(
+        { id: testDocumentId },
+        {
+          name: "Updated Document",
+          description: "Updated description",
+          documentTypeId: "State Application",
+        },
+        mockContext.user,
+        mockTransaction
       );
-      expect(result).toEqual(mockDocument);
+      expect(updatedDocument).toEqual(mockDocument);
     });
   });
 
-  describe("deleteDocument", () => {
-    it("should delete document and move to deleted bucket", async () => {
-      vi.mocked(handleDeleteDocument).mockResolvedValue(mockDocument);
-
-      const result = await deleteDocument(undefined, { id: testDocumentId });
-
-      expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
-      expect(handleDeleteDocument).toHaveBeenCalledExactlyOnceWith(
-        mockTransaction,
-        mockS3Adapter,
-        testDocumentId
+  describe("Mutation.deleteDocument", () => {
+    it("should delete the document under a transaction", () => {
+      documentResolvers.Mutation.deleteDocument(undefined, { id: testDocumentId }, mockContext);
+      expect(removeDocument).toHaveBeenCalledExactlyOnceWith(
+        { id: testDocumentId },
+        mockContext.user,
+        mockTransaction
       );
-      expect(result).toEqual(mockDocument);
     });
   });
 
-  describe("deleteDocuments", () => {
-    const testDocumentIds = ["doc-1", "doc-2", "doc-3"];
+  describe("Mutation.deleteDocuments", () => {
+    it("should delete multiple documents in a transaction and return count", async () => {
+      const documentIds = ["doc-1", "doc-2", "doc-3"];
+      vi.mocked(removeDocument).mockResolvedValue(mockDocument);
 
-    it("should delete multiple documents and return count", async () => {
-      vi.mocked(handleDeleteDocument).mockResolvedValue(mockDocument);
-      const result = await deleteDocuments(undefined, { ids: testDocumentIds });
+      const result = await documentResolvers.Mutation.deleteDocuments(
+        undefined,
+        { ids: documentIds },
+        mockContext
+      );
 
       expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
-      expect(handleDeleteDocument).toHaveBeenCalledTimes(3);
-      expect(handleDeleteDocument).toHaveBeenCalledWith(mockTransaction, mockS3Adapter, "doc-1");
-      expect(handleDeleteDocument).toHaveBeenCalledWith(mockTransaction, mockS3Adapter, "doc-2");
-      expect(handleDeleteDocument).toHaveBeenCalledWith(mockTransaction, mockS3Adapter, "doc-3");
-      expect(result).toBe(3);
+      expect(removeDocument).toHaveBeenCalledTimes(documentIds.length);
+      for (const documentId of documentIds) {
+        expect(removeDocument).toHaveBeenCalledWith(
+          { id: documentId },
+          mockContext.user,
+          mockTransaction
+        );
+      }
+      expect(result).toBe(documentIds.length);
     });
 
-    it("should return 0 for empty array", async () => {
-      const result = await deleteDocuments(undefined, { ids: [] });
+    it("should return 0 if no document ids are provided", async () => {
+      const result = await documentResolvers.Mutation.deleteDocuments(
+        undefined,
+        { ids: [] },
+        mockContext
+      );
 
-      expect(handleDeleteDocument).not.toHaveBeenCalled();
+      expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
+      expect(removeDocument).not.toHaveBeenCalled();
       expect(result).toBe(0);
     });
   });
