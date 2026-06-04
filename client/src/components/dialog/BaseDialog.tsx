@@ -89,7 +89,7 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
               ×
             </button>
             <h2 className={TITLE}>{title}</h2>
-            <hr className={HR} />
+            <hr className={HR} aria-hidden="true" />
           </>
         )}
 
@@ -97,7 +97,7 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
 
         {actionButton && (
           <>
-            <hr className={HR} />
+            <hr className={HR} aria-hidden="true" />
             <div className="flex justify-end gap-[24px]">
               <SecondaryButton
                 name={DIALOG_CANCEL_BUTTON_NAME}
