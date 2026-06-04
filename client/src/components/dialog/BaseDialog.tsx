@@ -85,7 +85,12 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
       >
         {!hideHeader && (
           <>
-            <button onClick={onCloseClicked} className={CLOSE_BUTTON} aria-label="Close dialog">
+            <button
+              type="button"
+              onClick={onCloseClicked}
+              className={CLOSE_BUTTON}
+              aria-label="Close dialog"
+            >
               ×
             </button>
             <h2 className={TITLE}>{title}</h2>

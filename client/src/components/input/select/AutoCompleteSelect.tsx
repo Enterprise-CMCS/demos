@@ -65,6 +65,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   }, [value, options]);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const closeSelect = () => {
     setIsOpen(false);
@@ -88,6 +89,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
     setFilterValue("");
     onFilterChangeProp?.("", true);
     closeSelect();
+    inputRef.current?.focus();
   };
 
   // Close on outside click
@@ -153,6 +155,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
 
       <div className="relative w-full">
         <input
+          ref={inputRef}
           data-testid={dataTestId || "input-autocomplete-select"}
           id={id}
           type="text"
@@ -171,11 +174,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
           <ChevronDownIcon className={ICON_CLASSES} />
         </div>
 
-        {isOpen && (
-          <ul className={LIST_CLASSES}>
-            {renderDropdownContent()}
-          </ul>
-        )}
+        {isOpen && <ul className={LIST_CLASSES}>{renderDropdownContent()}</ul>}
       </div>
     </div>
   );
