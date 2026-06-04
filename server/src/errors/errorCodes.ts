@@ -1,4 +1,4 @@
-import { GraphQLFormattedError } from "graphql";
+import { GraphQLError, GraphQLFormattedError } from "graphql";
 
 export const CUSTOM_INTERNAL_ERROR_CODES = [
   "ON_DEMAND_REPORT_ZOD_ERROR",
@@ -21,11 +21,6 @@ export function isCustomInternalErrorCode(value: string): value is CustomInterna
   return (CUSTOM_INTERNAL_ERROR_CODES as readonly string[]).includes(value);
 }
 
-const CUSTOM_PUBLIC_ERROR_MESSAGES: Record<CustomPublicErrorCode, string | undefined> = {
-  ON_DEMAND_REPORT_ERROR: "An error occurred while running an on-demand report.",
-  REFERENCE_ERROR: undefined,
-};
-
 export const CUSTOM_ERROR_CODES: Record<
   CustomInternalErrorCode,
   { publicErrorCode: CustomPublicErrorCode; logLevel: ErrorLogLevel }
@@ -38,6 +33,11 @@ export const CUSTOM_ERROR_CODES: Record<
   REFERENCE_AGREEMENT_NOT_ACTIVE: { publicErrorCode: "REFERENCE_ERROR", logLevel: "debug" },
 } as const;
 
+const CUSTOM_PUBLIC_ERROR_MESSAGES: Record<CustomPublicErrorCode, string | undefined> = {
+  ON_DEMAND_REPORT_ERROR: "An error occurred while running an on-demand report.",
+  REFERENCE_ERROR: undefined,
+};
+
 export function getPublicErrorCodeFromInternal(
   errorCode: CustomInternalErrorCode
 ): CustomPublicErrorCode {
@@ -49,6 +49,14 @@ export function getPublicErrorMessageFromCode(
   originalMessage: string
 ): string {
   return CUSTOM_PUBLIC_ERROR_MESSAGES[publicErrorCode] ?? originalMessage;
+}
+
+export function throwCustomGQLError(message: string, errorCode: CustomInternalErrorCode): void {
+  throw new GraphQLError(message, {
+    extensions: {
+      code: errorCode,
+    },
+  });
 }
 
 export function formatGraphQLErrorCode(
