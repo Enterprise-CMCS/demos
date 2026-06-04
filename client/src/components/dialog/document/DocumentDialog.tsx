@@ -12,9 +12,19 @@ import { useFileDrop } from "hooks/file/useFileDrop";
 import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
 import { tw } from "tags/tw";
 import { Notice } from "components/notice";
+import { AttestationDialog } from "components/dialog/AttestationDialog";
 import { UploadButton } from "./UploadButton";
 
 type DocumentDialogType = "add" | "edit";
+
+// BN notebook uploads require the user to attest to the content before submitting.
+const ATTESTATION_DOCUMENT_TYPES: DocumentType[] = [
+  "Final Budget Neutrality Formulation Workbook",
+  "BN Workbook",
+];
+
+export const documentTypeRequiresAttestation = (documentType: DocumentType): boolean =>
+  ATTESTATION_DOCUMENT_TYPES.includes(documentType);
 
 export type DocumentUploadResult =
   | "succeeded"
@@ -332,6 +342,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   const [documentDialogState, setDocumentDialogState] = useState<DocumentDialogState>("idle");
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
   const [formHasChanges, setFormHasChanges] = useState(false);
+  const [isAttestationOpen, setIsAttestationOpen] = useState(false);
 
   useEffect(() => {
     setFormHasChanges(
@@ -379,6 +390,16 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
       showError(ERROR_MESSAGES.missingField);
       return;
     }
+    // BN notebooks require an attestation before any data is submitted.
+    if (mode === "add" && documentTypeRequiresAttestation(activeDocument.documentType)) {
+      setIsAttestationOpen(true);
+      return;
+    }
+    await handleUpload();
+  };
+
+  const onAttestationConfirmed = async () => {
+    setIsAttestationOpen(false);
     await handleUpload();
   };
 
@@ -404,62 +425,71 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   const buttonName = mode == "edit" ? "Save Changes" : "Upload Document";
 
   return (
-    <BaseDialog
-      title={dialogTitle}
-      onClose={onClose}
-      dialogHasChanges={formHasChanges}
-      actionButton={
-        <UploadButton
-          onClick={onUploadClick}
-          disabled={isMissing || !formHasChanges}
-          isUploading={documentDialogState === "uploading"}
-          label={buttonName}
-          loadingLabel={mode === "edit" ? "Saving" : "Uploading"}
+    <>
+      <BaseDialog
+        title={dialogTitle}
+        onClose={onClose}
+        dialogHasChanges={formHasChanges}
+        actionButton={
+          <UploadButton
+            onClick={onUploadClick}
+            disabled={isMissing || !formHasChanges}
+            isUploading={documentDialogState === "uploading"}
+            label={buttonName}
+            loadingLabel={mode === "edit" ? "Saving" : "Uploading"}
+          />
+        }
+        cancelButtonIsDisabled={documentDialogState === "uploading"}
+      >
+        {mode !== "edit" ? (
+          <DropTarget
+            file={file}
+            onRemove={() => setFile(null)}
+            fileInputRef={fileInputRef}
+            uploadStatus={uploadStatus}
+            uploadProgress={uploadProgress}
+            handleFileChange={handleFileChange}
+          />
+        ) : (
+          ""
+        )}
+
+        <DocumentDialogNotice
+          documentDialogState={documentDialogState}
+          setDocumentDialogState={setDocumentDialogState}
         />
-      }
-      cancelButtonIsDisabled={documentDialogState === "uploading"}
-    >
-      {mode !== "edit" ? (
-        <DropTarget
-          file={file}
-          onRemove={() => setFile(null)}
-          fileInputRef={fileInputRef}
-          uploadStatus={uploadStatus}
-          uploadProgress={uploadProgress}
-          handleFileChange={handleFileChange}
+
+        <TitleInput
+          value={activeDocument.name}
+          onChange={(val) => {
+            setActiveDocument((prev) => ({ ...prev, name: val }));
+            setTitleManuallyEdited(true);
+          }}
         />
-      ) : (
-        ""
+
+        <DescriptionInput
+          value={activeDocument.description ?? ""}
+          onChange={(val) => setActiveDocument((prev) => ({ ...prev, description: val }))}
+        />
+
+        {!hideDocumentType && (
+          <DocumentTypeInput
+            value={activeDocument.documentType}
+            onSelect={(val) =>
+              setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }))
+            }
+            documentTypeSubset={documentTypeSubset}
+            canEditDocumentType={canEditDocumentType}
+          />
+        )}
+      </BaseDialog>
+
+      {isAttestationOpen && (
+        <AttestationDialog
+          onConfirm={onAttestationConfirmed}
+          onCancel={() => setIsAttestationOpen(false)}
+        />
       )}
-
-      <DocumentDialogNotice
-        documentDialogState={documentDialogState}
-        setDocumentDialogState={setDocumentDialogState}
-      />
-
-      <TitleInput
-        value={activeDocument.name}
-        onChange={(val) => {
-          setActiveDocument((prev) => ({ ...prev, name: val }));
-          setTitleManuallyEdited(true);
-        }}
-      />
-
-      <DescriptionInput
-        value={activeDocument.description ?? ""}
-        onChange={(val) => setActiveDocument((prev) => ({ ...prev, description: val }))}
-      />
-
-      {!hideDocumentType && (
-        <DocumentTypeInput
-          value={activeDocument.documentType}
-          onSelect={(val) =>
-            setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }))
-          }
-          documentTypeSubset={documentTypeSubset}
-          canEditDocumentType={canEditDocumentType}
-        />
-      )}
-    </BaseDialog>
+    </>
   );
 };

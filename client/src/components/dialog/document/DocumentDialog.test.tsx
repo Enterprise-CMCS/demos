@@ -1,6 +1,18 @@
-import { describe, it, expect } from "vitest";
-import { checkFormHasChanges } from "./DocumentDialog";
-import type { DocumentDialogFields } from "./DocumentDialog";
+import "@testing-library/jest-dom";
+
+import React from "react";
+
+import { describe, it, expect, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+
+import { ToastProvider } from "components/toast/ToastContext";
+import { DocumentType } from "demos-server";
+import {
+  checkFormHasChanges,
+  documentTypeRequiresAttestation,
+  DocumentDialog,
+} from "./DocumentDialog";
+import type { DocumentDialogFields, DocumentUploadResult } from "./DocumentDialog";
 
 describe("checkFormHasChanges", () => {
   const base: DocumentDialogFields = {
@@ -34,5 +46,85 @@ describe("checkFormHasChanges", () => {
 
   it("ignores id changes", () => {
     expect(checkFormHasChanges(base, { ...base, id: "2" })).toBe(false);
+  });
+});
+
+describe("documentTypeRequiresAttestation", () => {
+  it("requires attestation for BN notebook document types", () => {
+    expect(documentTypeRequiresAttestation("Final Budget Neutrality Formulation Workbook")).toBe(
+      true
+    );
+    expect(documentTypeRequiresAttestation("BN Workbook")).toBe(true);
+  });
+
+  it("does not require attestation for other document types", () => {
+    expect(documentTypeRequiresAttestation("General File")).toBe(false);
+    expect(documentTypeRequiresAttestation("Approval Letter")).toBe(false);
+  });
+});
+
+const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+const renderAddDialog = (documentType: DocumentType, onSubmit: () => Promise<DocumentUploadResult>) =>
+  render(
+    <ToastProvider>
+      <DocumentDialog mode="add" documentTypeSubset={[documentType]} onSubmit={onSubmit} />
+    </ToastProvider>
+  );
+
+const selectFile = (fileName: string) => {
+  const file = new File(["content"], fileName, { type: DOCX_MIME });
+  fireEvent.change(screen.getByTestId("input-file"), { target: { files: [file] } });
+};
+
+describe("DocumentDialog attestation gating", () => {
+  it("shows the attestation dialog and defers upload for a BN notebook", async () => {
+    const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
+    renderAddDialog("Final Budget Neutrality Formulation Workbook", onSubmit);
+
+    selectFile("bn-notebook.docx");
+    fireEvent.click(screen.getByTestId("button-confirm-upload-document"));
+
+    expect(
+      await screen.findByRole("heading", { name: "Attestation Required" })
+    ).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("proceeds with the upload after the attestation is confirmed", async () => {
+    const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
+    renderAddDialog("Final Budget Neutrality Formulation Workbook", onSubmit);
+
+    selectFile("bn-notebook.docx");
+    fireEvent.click(screen.getByTestId("button-confirm-upload-document"));
+
+    fireEvent.click(await screen.findByTestId("attestation-acknowledge"));
+    fireEvent.click(screen.getByTestId("button-attestation-confirm"));
+
+    expect(onSubmit).toHaveBeenCalledOnce();
+  });
+
+  it("cancels the upload without submitting when the attestation is dismissed", async () => {
+    const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
+    renderAddDialog("Final Budget Neutrality Formulation Workbook", onSubmit);
+
+    selectFile("bn-notebook.docx");
+    fireEvent.click(screen.getByTestId("button-confirm-upload-document"));
+
+    const cancelButtons = await screen.findAllByTestId("button-dialog-cancel");
+    fireEvent.click(cancelButtons[cancelButtons.length - 1]);
+
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("uploads non-BN documents directly without an attestation", async () => {
+    const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
+    renderAddDialog("General File", onSubmit);
+
+    selectFile("general.docx");
+    fireEvent.click(screen.getByTestId("button-confirm-upload-document"));
+
+    expect(onSubmit).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("heading", { name: "Attestation Required" })).not.toBeInTheDocument();
   });
 });
