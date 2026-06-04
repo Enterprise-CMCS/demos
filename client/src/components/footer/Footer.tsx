@@ -59,7 +59,7 @@ const FooterLinks: React.FC = () => {
 
   return (
     <ul
-      className="inline-flex flex-wrap items-center gap-1 text-gray-400"
+      className="inline-flex flex-wrap items-center gap-1 text-text-font"
       role="list"
       data-testid="demonstration-attributes-list"
     >
