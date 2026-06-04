@@ -1,0 +1,227 @@
+@Library('demos-lib@DEMOS-2206-database-pipeline') _
+
+pipeline {
+  agent {
+    kubernetes {
+      yaml kubeBlock(containerNames:['node', 'aws-cli'])
+    }
+  }
+
+  options {
+    disableConcurrentBuilds(abortPrevious: false)
+    skipDefaultCheckout(true)
+  }
+
+  parameters {
+    choice(name: 'TARGET_ENVIRONMENT', choices: ['dev', 'test', 'impl', 'prod'], description: 'Target environment for deployment')
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        script {
+          // Deployments are run from their respective branch based on the target
+          // environment
+          def deployBranchByEnv = [
+            dev : 'main',
+            test: 'main',
+            impl: 'impl',
+            prod: 'prod',
+          ]
+
+          currentBuild.description = "DB change set for ${params.TARGET_ENVIRONMENT}"
+
+          def deployBranch = deployBranchByEnv[params.TARGET_ENVIRONMENT]
+
+          checkout([
+              $class: 'GitSCM',
+              branches: [[name: "*/${deployBranch}"]],
+              userRemoteConfigs: [
+                [
+                  url: 'https://github.com/Enterprise-CMCS/demos.git',
+                  credentialsId: 'demos-git-svc-account'
+                ]
+              ]
+          ])
+        }
+      }
+    }
+
+    stage('CDK - Diff') {
+      steps {
+        script {
+          def region = "us-east-1"
+          def demosEnv = params.TARGET_ENVIRONMENT
+          def stackName = "demos-${demosEnv}-database"
+          def changeSetId = "ci-change-set"
+          env.STACK_NAME = stackName
+          env.DEMOS_ENV = demosEnv
+          env.CHANGE_SET_ID = changeSetId
+
+          def accountNumber = env.DEMOS_AWS_NONPROD_ACCOUNT_NUMBER
+          if (demosEnv == 'prod') {
+            accountNumber = env.DEMOS_AWS_PROD_ACCOUNT_NUMBER
+          }
+
+          assumeRole(accountNumber: accountNumber)
+          dirCon('shared_library', 'node') {
+            sh '''
+            mkdir ../client/dist
+            mkdir ../server/build
+            touch ../server/build/server.cjs
+            npm ci
+            npm run build
+            '''
+          }
+          dirCon('deployment', 'node') {
+            def commonParameters = "--context stage=${demosEnv} --context db=include --change-set-name ${changeSetId} ${stackName} --exclusively"
+            env.CDK_COMMON_PARAMETERS = commonParameters
+
+            // This runs a diff and a deploy with the "prepare-change-set"
+            // method, which creates a change set but does not execute it.
+            // Ideally, only one of these commands would be run, but currently,
+            // the cdk diff output it much more user friendly for reviewing
+            // changes, but it cannot store the planned changes into a permanent
+            // change set. The deploy command can store the change set, but its
+            // output is not straightforward to review.
+            //
+            // Running one right after the other should create identical diffs.
+            // Viewing the changeset on the AWS console (the url is provided in
+            // the logs) will show the complete, detailed changes if a full
+            // review is needed and is exactly what will be deployed if the
+            // change is approved in the pipeline
+            sh """
+            apk add bash
+            npm i -g esbuild
+            npm ci
+            npx cdk diff --method change-set ${commonParameters} 2>&1 | tee cdk-diff.txt
+            npx cdk deploy --method prepare-change-set --require-approval never ${commonParameters}
+            """
+
+            def changeSummary = sh(
+              script: "sed -n '/^Resources/,//p' cdk-diff.txt | sed '\$d'",
+              returnStdout: true
+            ).trim()
+            echo "--------------------------\nChanges to be Applied\n--------------------------\n${changeSummary}\n--------------------------"
+            writeFile file: 'change-summary.md', text: changeSummary
+
+            def changeSetUrl = "https://${region}.console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/changesets/changes?stackId=${stackName}&changeSetId=${changeSetId}"
+            env.CHANGE_SET_URL = changeSetUrl
+
+            echo "View the full, detailed change set in the AWS Console:"
+            echo changeSetUrl
+          }
+
+        }
+      }
+    }
+
+    stage('Approve') {
+      steps {
+        script {
+          def approval = null
+          try {
+            // Require the reviewer to input the Jira ticket number where this
+            // change is being tracked (this will also be used to post a comment
+            // on the ticket with the change summary). The reviewer must also
+            // type the stack name to confirm they are aware of the environment
+            // where the change is being applied and check a box confirming they
+            // have reviewed the changes
+
+            approval = input(
+              message: 'Execute DB change set?',
+              ok: "Approve",
+              cancel: "Reject",
+              submitter: 'database_approvers',
+              submitterParameter: 'APPROVED_BY',
+              parameters: [
+                string(
+                  name: 'JIRA_TICKET',
+                  description: 'Required Jira ticket, e.g. DEMOS-1234',
+                  trim: true
+                ),
+                string(
+                  name: 'CONFIRM_STACK',
+                  description: "Type ${env.STACK_NAME} to confirm the target stack",
+                  trim: true
+                ),
+                booleanParam(
+                  name: 'I_REVIEWED_CHANGE_SET',
+                  defaultValue: false,
+                  description: 'I reviewed the approval summary and raw change set'
+                )
+              ]
+            )
+
+            if (!(approval.JIRA_TICKET ==~ /DEMOS-\d+/)) {
+              error "Invalid Jira ticket: ${approval.JIRA_TICKET}"
+            }
+
+            if (approval.CONFIRM_STACK != env.STACK_NAME) {
+              error "Stack confirmation did not match"
+            }
+
+            if (!approval.I_REVIEWED_CHANGE_SET) {
+              error "Reviewer did not confirm change-set review"
+            }
+          } catch (err) {
+            def errorMessage = "Approval failed: ${err.getMessage()}"
+            echo errorMessage
+
+            // If the approval fails, the change set is removed
+            container("aws-cli") {
+              echo "Removing change set. Not applying changes..."
+              sh """
+              aws cloudformation delete-change-set --stack-name ${env.STACK_NAME} --change-set-name ${env.CHANGE_SET_ID}
+              """
+            }
+
+            error errorMessage
+          }
+
+          echo "Approved by ${approval.APPROVED_BY} for ${approval.JIRA_TICKET}"
+
+          def approvedChanges = fileExists('deployment/change-summary.md')
+          ? readFile('deployment/change-summary.md').trim()
+          : 'Change summary was not available in the Jenkins workspace.'
+
+          def jiraBody = """h3. Database change set approved
+
+*Approved by:* [~${approval.APPROVED_BY.toUpperCase()}]
+*Environment:* ${env.DEMOS_ENV}
+*Jenkins build:* ${env.BUILD_URL ?: env.JOB_NAME}
+(Jenkins build logs expire after 30 days, so link may not be available)
+
+h4. Approved changes
+{code}
+${approvedChanges}
+{code}
+"""
+
+          try {
+            jiraComment(approval.JIRA_TICKET, jiraBody)
+          } catch (err) {
+            error err.getMessage()
+          }
+
+        }
+      }
+    }
+
+    stage('Deploy Changes') {
+      steps {
+        dirCon('deployment', 'node') {
+          sh """
+          npx cdk deploy --method execute-change-set  --require-approval never ${env.CDK_COMMON_PARAMETERS}
+          """
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      cleanWs(deleteDirs: true)
+    }
+  }
+}

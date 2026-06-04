@@ -46,7 +46,10 @@ import { getManyDocuments } from "../document";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
 import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
-import { selectManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment/queries";
+import {
+  selectDemonstrationTypeTagAssignment,
+  selectManyDemonstrationTypeTagAssignments,
+} from "../demonstrationTypeTagAssignment/queries";
 import { DemonstrationTypeTagAssignmentQueryResult } from "../demonstrationTypeTagAssignment/queries";
 import {
   selectDemonstrationRoleAssignmentOrThrow,
@@ -91,6 +94,7 @@ vi.mock("../applicationTagSuggestion/queries", () => ({
 }));
 
 vi.mock("../demonstrationTypeTagAssignment/queries", () => ({
+  selectDemonstrationTypeTagAssignment: vi.fn(),
   selectManyDemonstrationTypeTagAssignments: vi.fn(),
 }));
 
@@ -491,6 +495,46 @@ describe("demonstrationResolvers", () => {
 
       const result = demonstrationResolvers.Demonstration.clearanceLevel(demonstration);
       expect(result).toBe(demonstration.clearanceLevelId);
+    });
+  });
+
+  describe("Demonstration.chipId", () => {
+    it("returns null if the demonstration type is not present", async () => {
+      const demonstration: Partial<PrismaDemonstration> = {
+        id: testValues.demonstrationId,
+        chipId: "21-W-99999/10",
+      };
+
+      const result = await demonstrationResolvers.Demonstration.chipId(
+        demonstration as PrismaDemonstration
+      );
+      expect(selectDemonstrationTypeTagAssignment).toHaveBeenCalledExactlyOnceWith({
+        demonstrationId: testValues.demonstrationId,
+        tagNameId: "Children's Health Insurance Program (CHIP)",
+      });
+      expect(result).toBeNull();
+    });
+
+    it("returns the CHIP ID if the demonstration type is present", async () => {
+      const mockResult: Partial<DemonstrationTypeTagAssignmentQueryResult> = {
+        demonstrationId: testValues.demonstrationId,
+      };
+      vi.mocked(selectDemonstrationTypeTagAssignment).mockResolvedValue(
+        mockResult as DemonstrationTypeTagAssignmentQueryResult
+      );
+      const demonstration: Partial<PrismaDemonstration> = {
+        id: testValues.demonstrationId,
+        chipId: "21-W-99999/10",
+      };
+
+      const result = await demonstrationResolvers.Demonstration.chipId(
+        demonstration as PrismaDemonstration
+      );
+      expect(selectDemonstrationTypeTagAssignment).toHaveBeenCalledExactlyOnceWith({
+        demonstrationId: testValues.demonstrationId,
+        tagNameId: "Children's Health Insurance Program (CHIP)",
+      });
+      expect(result).toBe(demonstration.chipId);
     });
   });
 

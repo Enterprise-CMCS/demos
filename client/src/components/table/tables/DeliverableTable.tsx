@@ -44,6 +44,10 @@ export type DeliverableTableRow = Omit<
   submissionDate?: string;
   extensionRequests: Pick<Deliverable["extensionRequests"][number], "id" | "status">[];
   deliverableActions: Pick<Deliverable["deliverableActions"][number], "id" | "actionType">[];
+  cmsDocuments?: Pick<Deliverable["cmsDocuments"][number], "id">[];
+  stateDocuments?: Pick<Deliverable["stateDocuments"][number], "id">[];
+  publicComments?: Pick<Deliverable["publicComments"][number], "id">[];
+  privateComments?: Pick<Deliverable["privateComments"][number], "id">[];
 };
 
 export type FormattedDeliverableTableRow = DeliverableTableRow & {
@@ -106,6 +110,19 @@ export const DELIVERABLES_PAGE_QUERY = gql`
         id
         actionType
       }
+      # These are for determining if a deliverable can be deleted
+      cmsDocuments {
+        id
+      }
+      stateDocuments {
+        id
+      }
+      publicComments {
+        id
+      }
+      privateComments {
+        id
+      }
     }
   }
 `;
@@ -165,8 +182,8 @@ const FINAL_STATUSES = ["Accepted", "Approved", "Received and Filed"];
 
 export const formatDeliverableStatus = (
   deliverable: Pick<
-    DeliverableTableRow,
-    "status" | "deliverableActions" | "extensionRequests"
+  DeliverableTableRow,
+  "status" | "deliverableActions" | "extensionRequests"
   >
 ) => {
   const { status, deliverableActions, extensionRequests } = deliverable;

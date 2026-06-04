@@ -14,7 +14,7 @@ def call(Map params) {
   aws_session_token = \$(grep -o '"SessionToken": "[^"]*"' /tmp/role-creds.json | awk -F'"' '{print \$4}')
 EOF
 
-  cp -v .aws-creds ${env.WORKSPACE}/aws_credentials
+  cp -v .aws-creds "${env.WORKSPACE}/aws_credentials"
   unset AWS_WEB_IDENTITY_TOKEN_FILE
   """
   env.AWS_WEB_IDENTITY_TOKEN_FILE=""

@@ -65,10 +65,17 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   }, [value, options]);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const closeSelect = () => {
     setIsOpen(false);
     setActiveIndex(-1);
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    if (!containerRef.current?.contains(e.relatedTarget as Node)) {
+      closeSelect();
+    }
   };
 
   const openSelect = () => {
@@ -88,18 +95,8 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
     setFilterValue("");
     onFilterChangeProp?.("", true);
     closeSelect();
+    inputRef.current?.focus();
   };
-
-  // Close on outside click
-  useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        closeSelect();
-      }
-    };
-    document.addEventListener("click", onClick);
-    return () => document.removeEventListener("click", onClick);
-  }, []);
 
   const filteredOptions = filterOptions(options, filterValue);
 
@@ -143,7 +140,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-xs" ref={containerRef}>
+    <div className="flex flex-col gap-xs" ref={containerRef} onBlur={handleBlur}>
       {label && (
         <label htmlFor={id} className={LABEL_CLASSES}>
           {isRequired && <span className="text-text-warn">*</span>}
@@ -153,6 +150,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
 
       <div className="relative w-full">
         <input
+          ref={inputRef}
           data-testid={dataTestId || "input-autocomplete-select"}
           id={id}
           type="text"
@@ -171,11 +169,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
           <ChevronDownIcon className={ICON_CLASSES} />
         </div>
 
-        {isOpen && (
-          <ul className={LIST_CLASSES}>
-            {renderDropdownContent()}
-          </ul>
-        )}
+        {isOpen && <ul className={LIST_CLASSES}>{renderDropdownContent()}</ul>}
       </div>
     </div>
   );
