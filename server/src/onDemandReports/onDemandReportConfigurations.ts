@@ -1,8 +1,8 @@
-import z from "zod";
+import { z } from "zod";
 import { OnDemandReportType } from "../types";
 import { basicTestReportSchema } from "./schemas/basicTestReportSchema";
 
-export const onDemandReportConfigurations: Record<
+export const ON_DEMAND_REPORT_CONFIGURATIONS: Record<
   OnDemandReportType,
   { queryFile: string; reportRowSchema: z.ZodType<unknown> }
 > = {

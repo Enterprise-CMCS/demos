@@ -8,8 +8,8 @@ export const onDemandReportResolvers = {
   Mutation: {
     generateOnDemandReport: async (parent: unknown, args: { reportType: OnDemandReportType }) => {
       try {
-        const results = await runOnDemandReport(args.reportType, prisma());
-        return JSON.stringify(results);
+        await runOnDemandReport(args.reportType, prisma());
+        return "The query for the report ran successfully!";
       } catch (error) {
         if (error instanceof ZodError) {
           throwCustomGQLError(
