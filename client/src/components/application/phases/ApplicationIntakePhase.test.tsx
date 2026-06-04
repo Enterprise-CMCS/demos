@@ -28,11 +28,13 @@ vi.mock("@apollo/client", async () => {
   return {
     ...actual,
     useMutation: vi.fn(() => [mockSetApplicationTagsMutation, { loading: false, error: null }]),
+    useApolloClient: vi.fn(() => ({ refetchQueries: mockRefetchQueries })),
   };
 });
 
 const mockSetApplicationDates = vi.fn(() => Promise.resolve({ data: {} }));
 const mockSetApplicationTagsMutation = vi.fn(() => Promise.resolve({ data: {} }));
+const mockRefetchQueries = vi.fn(() => Promise.resolve());
 
 vi.mock("components/application/date/dateQueries", () => ({
   useSetApplicationDates: vi.fn(() => ({
@@ -396,6 +398,21 @@ describe("ApplicationIntakePhase", () => {
         expect(screen.queryByText("Confirm Tags from DEMOS AI")).not.toBeInTheDocument();
       });
       expect(mockSetApplicationTagsMutation).not.toHaveBeenCalled();
+    });
+
+    it("does not poll for UiPath tag suggestions just because a State Application document exists", async () => {
+      vi.useFakeTimers();
+
+      try {
+        setup({
+          applicationIntakeDocuments: [MOCK_STATE_APPLICATION_DOCUMENT],
+        });
+
+        await vi.advanceTimersByTimeAsync(120_000);
+        expect(mockRefetchQueries).not.toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 

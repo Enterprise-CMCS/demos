@@ -7,6 +7,7 @@ import {
   Tag,
   Reference,
   ReferenceAgreement,
+  UploadDocumentToPhaseInput,
 } from "demos-server";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
@@ -190,9 +191,16 @@ export const useDialog = () => {
     context.showDialog(<AddDocumentToDeliverableDialog onClose={context.hideDialog} {...args} />);
   };
 
-  const showApplicationIntakeDocumentUploadDialog = (applicationId: string) => {
+  const showApplicationIntakeDocumentUploadDialog = (
+    applicationId: string,
+    onDocumentUploadSucceeded?: (payload?: UploadDocumentToPhaseInput) => void
+  ) => {
     context.showDialog(
-      <ApplicationIntakeUploadDialog onClose={context.hideDialog} applicationId={applicationId} />
+      <ApplicationIntakeUploadDialog
+        onClose={context.hideDialog}
+        applicationId={applicationId}
+        onDocumentUploadSucceeded={onDocumentUploadSucceeded}
+      />
     );
   };
 

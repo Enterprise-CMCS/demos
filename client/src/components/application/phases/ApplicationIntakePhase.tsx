@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
-import { gql, TypedDocumentNode, useMutation } from "@apollo/client";
+import { gql, TypedDocumentNode, useApolloClient, useMutation } from "@apollo/client";
 
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
@@ -16,7 +16,15 @@ import { getPhaseCompletedMessage } from "util/messages";
 import { useToast } from "components/toast";
 import { DatePicker } from "components/input/date/DatePicker";
 import { ApplicationHealthTypeTags } from "components/tags/ApplicationHealthTypeTags";
-import type { Application, LocalDate, PhaseName, PhaseStatus, Tag, TagName } from "demos-server";
+import type {
+  Application,
+  LocalDate,
+  PhaseName,
+  PhaseStatus,
+  Tag,
+  TagName,
+  UploadDocumentToPhaseInput,
+} from "demos-server";
 import { SET_APPLICATION_TAGS_MUTATION } from "components/dialog/ApplyTagsDialog";
 import { ConfirmSuggestedSparklyTagDialog } from "components/dialog/ConfirmSuggestedSparklyTagDialog";
 
@@ -46,6 +54,8 @@ const STYLES = {
 
 const THIS_PHASE_NAME: PhaseName = "Application Intake";
 const NEXT_PHASE_NAME: PhaseName = "Completeness";
+const UIPATH_SUGGESTION_POLL_INTERVAL_MS = 5_000;
+const UIPATH_SUGGESTION_POLL_TIMEOUT_MS = 120_000;
 const REFETCH_ACTIVE_QUERIES_AFTER_SUGGESTION_UPDATE = {
   awaitRefetchQueries: true,
   refetchQueries: "active" as const,
@@ -106,9 +116,11 @@ export const REMOVE_APPLICATION_TAG_SUGGESTION_MUTATION: TypedDocumentNode<
 const UploadSection = ({
   applicationId,
   documents,
+  onStateApplicationUploadSucceeded,
 }: {
   applicationId: string;
   documents: ApplicationWorkflowDocument[];
+  onStateApplicationUploadSucceeded: (payload?: UploadDocumentToPhaseInput) => void;
 }) => {
   const { showApplicationIntakeDocumentUploadDialog } = useDialog();
 
@@ -120,7 +132,12 @@ const UploadSection = ({
       <p className={STYLES.helper}>Upload State Application file</p>
 
       <SecondaryButton
-        onClick={() => showApplicationIntakeDocumentUploadDialog(applicationId)}
+        onClick={() =>
+          showApplicationIntakeDocumentUploadDialog(
+            applicationId,
+            onStateApplicationUploadSucceeded
+          )
+        }
         size="small"
         name={APPLICATION_INTAKE_UPLOAD_BUTTON_NAME}
       >
@@ -303,6 +320,7 @@ export const ApplicationIntakePhase = ({
   completenessPhaseStatus,
 }: ApplicationIntakeProps) => {
   const completenessIncomplete = completenessPhaseStatus === "Incomplete";
+  const client = useApolloClient();
   const { showSuccess, showError } = useToast();
   const { completePhase } = useCompletePhase();
   const { setApplicationDates } = useSetApplicationDates();
@@ -318,6 +336,9 @@ export const ApplicationIntakePhase = ({
 
   const [submittedDateOverride, setSubmittedDateOverride] = useState<string>("");
   const [selectedSuggestedTag, setSelectedSuggestedTag] = useState<TagName | null>(null);
+  // 0 = not polling
+  // ANYTHING ELSE == polling
+  const [uiPathSuggestionPollRequest, setUiPathSuggestionPollRequest] = useState(0);
 
   // Calculate the dates to display based on the following rules:
   // 1. If the user has manually entered a date (submittedDateOverride), use this
@@ -338,6 +359,33 @@ export const ApplicationIntakePhase = ({
   const hasDocuments = applicationIntakeDocuments.length > 0;
   const isFinishButtonEnabled =
     hasDocuments && Boolean(stateApplicationSubmittedDate) && !isPhaseFinalized;
+
+  useEffect(() => {
+    if (uiPathSuggestionPollRequest === 0) return;
+
+    let isMounted = true;
+    const pollForSuggestions = async () => {
+      try {
+        await client.refetchQueries({ include: "active" });
+      } catch (error) {
+        console.error("Failed to refetch Application Intake tag suggestions.", error);
+      }
+    };
+
+    void pollForSuggestions();
+    const intervalId = window.setInterval(pollForSuggestions, UIPATH_SUGGESTION_POLL_INTERVAL_MS);
+    const timeoutId = window.setTimeout(() => {
+      if (isMounted) {
+        setUiPathSuggestionPollRequest(0);
+      }
+    }, UIPATH_SUGGESTION_POLL_TIMEOUT_MS);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(intervalId);
+      window.clearTimeout(timeoutId);
+    };
+  }, [client, uiPathSuggestionPollRequest]);
 
   const sendDatesToServer = async () => {
     await setApplicationDates({
@@ -415,6 +463,12 @@ export const ApplicationIntakePhase = ({
     }
   };
 
+  const handleStateApplicationUploadSucceeded = (payload?: UploadDocumentToPhaseInput) => {
+    if (payload?.documentType !== "State Application") return;
+
+    setUiPathSuggestionPollRequest((request) => request + 1);
+  };
+
   return (
     <div>
       <h3 className="text-brand text-[22px] font-bold">APPLICATION INTAKE</h3>
@@ -426,7 +480,11 @@ export const ApplicationIntakePhase = ({
       <section className={STYLES.pane}>
         <div className={STYLES.grid}>
           <span aria-hidden className={STYLES.divider} />
-          <UploadSection applicationId={applicationId} documents={applicationIntakeDocuments} />
+          <UploadSection
+            applicationId={applicationId}
+            documents={applicationIntakeDocuments}
+            onStateApplicationUploadSucceeded={handleStateApplicationUploadSucceeded}
+          />
           <VerifyCompleteSection
             stateApplicationSubmittedDate={stateApplicationSubmittedDate}
             hasDocuments={hasDocuments}
