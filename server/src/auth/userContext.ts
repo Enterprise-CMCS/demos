@@ -2,6 +2,7 @@ import { prisma } from "../prismaClient";
 import { Permission, SystemRole, UserType } from "../types";
 import { AuthorizationClaims } from "./auth.util";
 import { upsertUserSession } from "../model/userSession/queries";
+import { USER_TYPES } from "../constants";
 
 const initialUserTypeRoles: Record<UserType, SystemRole> = {
   "demos-admin": "Admin User",
@@ -16,11 +17,27 @@ export type ContextUser = {
   permissions: Permission[];
 };
 
+export const getPersonTypeFromClaims = (claims: AuthorizationClaims): UserType => {
+  const claimsRoles = claims.role.split(",").map((role) => role.trim());
+  const applicableRoles = USER_TYPES.filter((userType) => claimsRoles.includes(userType));
+  if (applicableRoles.length === 0) {
+    throw new Error(`User with cognito subject ${claims.sub} does not have any applicable roles`);
+  } else if (applicableRoles.length > 1) {
+    throw new Error(
+      `Claims with cognito subject ${claims.sub} has multiple applicable roles: ${applicableRoles.join(", ")}`
+    );
+  }
+
+  return applicableRoles[0];
+};
+
 async function createNewUserFromClaims(claims: AuthorizationClaims): Promise<ContextUser> {
+  const personTypeId = getPersonTypeFromClaims(claims);
+
   return await prisma().$transaction(async (tx) => {
     const person = await tx.person.create({
       data: {
-        personTypeId: claims.role,
+        personTypeId,
         email: claims.email,
         firstName: claims.givenName,
         lastName: claims.familyName,
