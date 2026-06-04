@@ -54,8 +54,10 @@ const STYLES = {
 
 const THIS_PHASE_NAME: PhaseName = "Application Intake";
 const NEXT_PHASE_NAME: PhaseName = "Completeness";
-const UIPATH_SUGGESTION_POLL_INTERVAL_MS = 5_000;
-const UIPATH_SUGGESTION_POLL_TIMEOUT_MS = 120_000;
+
+const UIPATH_SUGGESTION_POLL_INTERVAL_MS = 5_000; // Poll every 5 seconds
+const UIPATH_SUGGESTION_POLL_TIMEOUT_MS = 120_000; // stop after 2 minutes
+
 const REFETCH_ACTIVE_QUERIES_AFTER_SUGGESTION_UPDATE = {
   awaitRefetchQueries: true,
   refetchQueries: "active" as const,
@@ -362,7 +364,6 @@ export const ApplicationIntakePhase = ({
 
   useEffect(() => {
     if (uiPathSuggestionPollRequest === 0) return;
-
     let isMounted = true;
     const pollForSuggestions = async () => {
       try {
