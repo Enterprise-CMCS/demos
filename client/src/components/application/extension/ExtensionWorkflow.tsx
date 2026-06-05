@@ -49,22 +49,9 @@ export const GET_EXTENSION_WORKFLOW_QUERY = gql`
   ${WORKFLOW_DOCUMENT_FIELDS}
 `;
 
-export type ApplicationWorkflowExtension =
-  WorkflowApplication &
-  Pick<
-    Extension,
-    "name" |
-    "description" |
-    "effectiveDate" |
-    "signatureLevel" |
-    "status"
-  > & {
-    demonstration: Pick<
-        Demonstration,
-        | "id"
-        | "status"
-        | "medicaidId"
-      > & {
+export type ApplicationWorkflowExtension = WorkflowApplication &
+  Pick<Extension, "name" | "description" | "effectiveDate" | "signatureLevel" | "status"> & {
+    demonstration: Pick<Demonstration, "id" | "status" | "medicaidId"> & {
       demonstrationTypes: Pick<
         DemonstrationTypeAssignment,
         | "demonstrationTypeName"
@@ -94,7 +81,7 @@ export const ExtensionWorkflow = ({ extensionId }: { extensionId: string }) => {
           <h3 className="text-brand text-2xl font-bold">APPLICATION</h3>
           <ApplicationStatusBadge applicationStatus={data.extension.status} />
         </div>
-        <hr className="text-border-rules" />
+        <hr className="text-border-rules" aria-hidden="true" />
         <PhaseSelector application={data.extension} workflowApplicationType="extension" />
       </div>
     );
