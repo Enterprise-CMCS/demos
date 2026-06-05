@@ -7,8 +7,8 @@ export const LOGO_ALT =
 
 export const Logo: React.FC = () => {
   return (
-    <a href="/" className="h-[40px]">
-      <img height="40px" src={LOGO_SRC} alt={LOGO_ALT} data-testid={LOGO_TEST_ID} />
+    <a href="/" className="inline-flex h-full items-center">
+      <img className="block max-h-full" src={LOGO_SRC} alt={LOGO_ALT} data-testid={LOGO_TEST_ID} />
     </a>
   );
 };

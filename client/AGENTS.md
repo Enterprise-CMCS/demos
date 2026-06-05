@@ -73,6 +73,10 @@ This file provides instructions for AI agents to use when generating or editing 
 - Run linting + typechecking with `npm run lint`
 - For testing behavior with different roles you can use the different variants of `npm run dev:mocks` - `dev:mocks:admin`, `dev:mocks:state`, etc. Some functionality is only available through certain roles.
 
+### Accessibility Testing
+
+- For testing focus changing throught the application add this temporary rule to `index.css`: `*:focus { outline: 3px solid red !important; }`
+
 ### Mocking Mutations
 
 For test files that don't care about testing mutations you can use this code to mock it.

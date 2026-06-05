@@ -1,18 +1,11 @@
-import { Document as PrismaDocument } from "@prisma/client";
-import { PrismaTransactionClient } from "../../../prismaClient";
-import { UpdateDocumentInput } from "../../../types";
+import { Prisma, Document as PrismaDocument } from "@prisma/client";
+import { prisma, PrismaTransactionClient } from "../../../prismaClient";
 
 export async function updateDocument(
-  tx: PrismaTransactionClient,
-  id: string,
-  input: UpdateDocumentInput
+  where: Prisma.DocumentWhereUniqueInput,
+  data: Prisma.DocumentUncheckedUpdateInput,
+  tx?: PrismaTransactionClient
 ): Promise<PrismaDocument> {
-  return await tx.document.update({
-    where: { id: id },
-    data: {
-      name: input.name,
-      description: input.description,
-      documentTypeId: input.documentType,
-    },
-  });
+  const prismaClient = tx ?? prisma();
+  return prismaClient.document.update({ where, data });
 }

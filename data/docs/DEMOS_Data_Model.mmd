@@ -168,6 +168,9 @@ erDiagram
   demonstration_type_tag_type_limit ||--|{ reference_demonstration_type : "FK151"
   tag_type ||--|| reference_tag_type_limit : "FK152"
   reference_tag_type_limit ||--|{ reference_tag_assignment : "FK153"
+  users ||--|{ on_demand_report : "FK156"
+  on_demand_report }|--|| on_demand_report_type : "FK157"
+  on_demand_report }|--|| on_demand_report_status : "FK158"
   application_tag_suggestion }|..|| application : ""
 
   %% Static Constraints
@@ -232,6 +235,14 @@ erDiagram
   }
 
   note_type:::staticConstraint {
+    text id PK
+  }
+
+  on_demand_report_status:::staticConstraint {
+    text id PK
+  }
+
+  on_demand_report_type:::staticConstraint {
     text id PK
   }
 
@@ -547,6 +558,8 @@ erDiagram
     text current_phase_id FK "FK061: current_phase_id ∈ phase.id"
     text state_id FK, UK "FK021: state_id ∈ state.id<br>UK: (id, state_id)"
     text clearance_level_id FK "FK084: clearance_level_id ∈ clearance_level.id"
+    text medicaid_id UK "UK: medicaid_id"
+    text chip_id UK "UK: chip_id"
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
@@ -554,12 +567,14 @@ erDiagram
     CONSTRAINT_CHECK check_demonstration_non_null_fields_when_approved "Validate that required fields exist if demonstration is approved."
     CONSTRAINT_CHECK check_demonstration_name_trimmed "Validate that the trim of the name is identical to the name."
     CONSTRAINT_CHECK check_demonstration_description_trimmed "Validate that the trim of the description is identical to the description."
-    CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_demonstration_primary_project_officer "Check that a primary project officer exists for this demonstration."
-    TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
+    CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT check_demonstration_primary_project_officer "Check that a primary project officer exists for this demonstration."
+    TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
+    TRIGGER_BEFORE_INSERT generate_medicaid_chip_id_numbers "Create the Medicaid and CHIP ID numbers before inserting to the table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     TRIGGER_BEFORE_UPDATE check_demonstration_type_exists_for_approved_demonstrations "Check that approved demonstrations have at least one demonstration type."
+    TRIGGER_BEFORE_UPDATE prevent_changing_immutable_demonstration_fields "Prevent changes to state_id, medicaid_id, or chip_id."
+    TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
     TRIGGER_AFTER_UPDATE change_open_ended_due_dates_to_expiration_date "If the demonstration is approved, when the expiration date changes, change all the open-ended due dates for associated deliverables."
-    TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
     HAS_HISTORY true
   }
 
@@ -668,6 +683,16 @@ erDiagram
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
     HAS_HISTORY true
+  }
+
+  on_demand_report:::dataTable {
+    uuid id PK
+    text s3_path
+    uuid requesting_user_id FK "FK156: requesting_user_id ∈ users.id"
+    text report_type_id FK "FK157: report_type_id ∈ on_demand_report_type.id"
+    text status_id FK "FK158: status_id ∈ on_demand_report_status.id"
+    timestamptz report_generated_at
+    CONSTRAINT_CHECK check_non_empty_s3_path "Validate that the S3 path is not empty or only whitespace."
   }
 
   person:::dataTable {

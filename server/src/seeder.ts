@@ -11,6 +11,7 @@ import {
   TAG_TYPES,
   AMENDMENT_SIGNATURE_LEVELS,
   EXTENSION_SIGNATURE_LEVELS,
+  FAQ_REFERENCE_TAG,
 } from "./constants.js";
 import {
   CreateDemonstrationInput,
@@ -47,7 +48,7 @@ import {
   updateDeliverable,
 } from "./model/deliverable";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { Deliverable as PrismaDeliverable } from "@prisma/client";
+import { Deliverable, Deliverable as PrismaDeliverable } from "@prisma/client";
 import { selectDeliverableExtension } from "./model/deliverableExtension/queries";
 
 const DOCUMENTS_PER_APPLICATION = 15;
@@ -256,6 +257,48 @@ async function seedDeliverables(actionUserId: string, actionUserPersonTypeId: Pe
     createdDeliverables.push(await createDeliverable(createInput, context));
   }
   return createdDeliverables;
+}
+
+async function addDocumentsToDeliverable(deliverable: Deliverable) {
+  const context = {
+    user: {
+      id: BYPASS_USER_ID,
+      personTypeId: "demos-admin",
+    },
+  } as GraphQLContext;
+  for (let i = 0; i < 5; i++) {
+    await prisma().document.create({
+      data: {
+        name: "Test deliverable cms document",
+        description: faker.lorem.sentence(5),
+        s3Path: "tmp",
+        ownerUserId: context.user.id,
+        documentTypeId: "General File",
+        applicationId: deliverable.demonstrationId,
+        deliverableId: deliverable.id,
+        deliverableTypeId: deliverable.deliverableTypeId,
+        deliverableIsCmsAttachedFile: true,
+        createdAt: new Date(),
+      },
+    });
+  }
+
+  for (let i = 0; i < 5; i++) {
+    await prisma().document.create({
+      data: {
+        name: faker.lorem.sentence(2),
+        description: faker.lorem.sentence(5),
+        s3Path: "tmp",
+        ownerUserId: context.user.id,
+        documentTypeId: "General File",
+        applicationId: deliverable.demonstrationId,
+        deliverableId: deliverable.id,
+        deliverableTypeId: deliverable.deliverableTypeId,
+        deliverableIsCmsAttachedFile: false,
+        createdAt: new Date(),
+      },
+    });
+  }
 }
 
 async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
@@ -615,7 +658,7 @@ async function seedReferences() {
       await prisma().referenceTagAssignment.create({
         data: {
           referenceId: referenceId,
-          tagNameId: "FAQ",
+          tagNameId: FAQ_REFERENCE_TAG,
           tagTypeId: "Reference",
         },
       });
@@ -1221,6 +1264,7 @@ async function seedDatabase() {
   await seedApprovedDemonstration();
   const createdDeliverables = await seedDeliverables(bypassUserId, "demos-admin");
   await simulateDeliverableActions(createdDeliverables[0]);
+  await addDocumentsToDeliverable(createdDeliverables[1]);
 
   await seedDocuments();
 

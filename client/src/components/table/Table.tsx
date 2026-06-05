@@ -9,7 +9,6 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  HeaderGroup,
   InitialTableState,
   RowSelectionState,
   Table as TanstackTable,
@@ -17,45 +16,14 @@ import {
 } from "@tanstack/react-table";
 
 import { arrIncludesAllInsensitive } from "./KeywordSearch";
-import { ChevronDownIcon, ChevronUpIcon, SortIcon } from "components/icons";
+import { TableHead } from "./TableHead";
 
 const STYLES = {
   table: "w-full min-w-max table-auto",
-  th: "bg-gray-primary-layout p-1 font-semibold text-left border-b cursor-pointer select-none",
   tr: "h-[56px] border-b p-1",
   td: "p-1 text-[14px] break-words overflow-wrap",
   subrow: "h-[56px] px-4 py-2 bg-gray-lighter border-b",
 };
-
-function TableHead<T>({ headerGroups }: { headerGroups: HeaderGroup<T>[] }) {
-  return (
-    <thead>
-      {headerGroups.map((hg) => (
-        <tr key={hg.id} className={STYLES.tr}>
-          {hg.headers.map((header) => (
-            <th
-              key={header.id}
-              className={STYLES.th}
-              onClick={header.column.getToggleSortingHandler()}
-            >
-              <div className="flex items-center gap-1">
-                {flexRender(header.column.columnDef.header, header.getContext())}
-                {header.column.getCanSort() && (
-                  <>
-                    {{
-                      asc: <ChevronUpIcon width={10} />,
-                      desc: <ChevronDownIcon width={10} />,
-                    }[header.column.getIsSorted() as string] ?? <SortIcon width={8} />}
-                  </>
-                )}
-              </div>
-            </th>
-          ))}
-        </tr>
-      ))}
-    </thead>
-  );
-}
 
 function TableBody<T>({
   data,

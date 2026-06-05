@@ -98,7 +98,7 @@ export const DemonstrationWorkflow = ({ demonstrationId }: { demonstrationId: st
           <h3 className="text-brand text-2xl font-bold">APPLICATION</h3>
           <ApplicationStatusBadge applicationStatus={data.demonstration.status} />
         </div>
-        <hr className="text-border-rules" />
+        <hr className="text-border-rules" aria-hidden="true" />
         <PhaseSelector application={data.demonstration} workflowApplicationType="demonstration" />
       </div>
     );

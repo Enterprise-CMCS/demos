@@ -126,7 +126,7 @@ export class Lambda extends Construct {
         sourceMap: true,
         externalModules: props.externalModules,
         nodeModules: props.nodeModules,
-        logLevel: LogLevel.VERBOSE,
+        logLevel: LogLevel.ERROR,
         commandHooks: props.commandHooks,
         format: props.format,
         esbuildArgs: props.esbuildArgs,

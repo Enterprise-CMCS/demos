@@ -10,7 +10,7 @@ import { Logo } from "components/brand/Logo";
 import { ReferencesHeader } from "pages/references/ReferencesHeader";
 
 const HEADER_STYLES = "w-full";
-const HEADER_UPPER_STYLES = "w-full flex justify-between p-[16px] h-[72px]";
+const HEADER_UPPER_STYLES = "w-full flex justify-between p-[4px] h-[72px]";
 const HEADER_LOWER_STYLES =
   "w-full bg-brand text-white px-[24px] py-[16px] flex items-center justify-between";
 

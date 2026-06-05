@@ -171,7 +171,7 @@ def get_trigger_code(prisma_lines: List[str]) -> str:
     old_name_list = old_name_list.replace("                ", "", 1)
 
     query = f"""
-    CREATE OR REPLACE FUNCTION {APP_SCHEMA}.log_changes_{table_name}()
+    CREATE FUNCTION {APP_SCHEMA}.log_changes_{table_name}()
     RETURNS TRIGGER AS $$
     BEGIN
         IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -202,7 +202,7 @@ def get_trigger_code(prisma_lines: List[str]) -> str:
     END;
     $$ LANGUAGE plpgsql;
 
-    CREATE OR REPLACE TRIGGER log_changes_{table_name}
+    CREATE TRIGGER log_changes_{table_name}
     AFTER INSERT OR UPDATE OR DELETE ON {APP_SCHEMA}.{table_name}
     FOR EACH ROW EXECUTE FUNCTION {APP_SCHEMA}.log_changes_{table_name}();"""
     query = query.replace("\n", "", 1)

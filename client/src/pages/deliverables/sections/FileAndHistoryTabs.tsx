@@ -10,7 +10,7 @@ import {
 } from "../DeliverableDetailsManagementPage";
 import type { DeliverableFileRow } from "./DeliverableFileTypes";
 import { HistoryTab, type DeliverableHistoryRow } from "./HistoryTab";
-import { StateFilesTab } from "./StateFilesTab";
+import { STATE_FILES_SUBMIT_BUTTON_NAME, StateFilesTab } from "./StateFilesTab";
 import { Button } from "components/button/Button";
 import { useDialog } from "components/dialog/DialogContext";
 import { canCompleteReview, isDeliverableEditable } from "components/dialog/deliverable";
@@ -46,20 +46,11 @@ export const RESUBMISSION_DISABLED_STATUSES: ReadonlySet<DeliverableStatus> =
 export const isResubmissionDisabled = (status: DeliverableStatus): boolean =>
   RESUBMISSION_DISABLED_STATUSES.has(status);
 
-const COMPLETE_REVIEW_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
-  "demos-admin",
-  "demos-cms-user",
-]);
+const CMS_STAFF_PERSON_TYPES: ReadonlySet<PersonType> = new Set(["demos-admin", "demos-cms-user"]);
 
 const STATE_FILE_MANAGER_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
-  "demos-admin",
-  "demos-cms-user",
+  ...CMS_STAFF_PERSON_TYPES,
   "demos-state-user",
-]);
-
-const CMS_FILE_MANAGER_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
-  "demos-admin",
-  "demos-cms-user",
 ]);
 
 const TABS = {
@@ -100,16 +91,16 @@ export const FileAndHistoryTabs: React.FC<{
   const isFinalized = !isDeliverableEditable(deliverable.status);
   const refetchAfterFileChange = [DELIVERABLE_DETAILS_QUERY];
 
-  const userPersonType = currentUser?.person.personType;
-  const isCompleteReviewAllowedForUser =
-    !!userPersonType && COMPLETE_REVIEW_PERSON_TYPES.has(userPersonType);
-  const isCompleteReviewDisabled =
-    !isCompleteReviewAllowedForUser ||
+  if (!currentUser) {
+    throw new Error("FileAndHistoryTabs requires an authenticated user.");
+  }
+
+  const userPersonType = currentUser.person.personType;
+  const isCmsStaffUser = CMS_STAFF_PERSON_TYPES.has(userPersonType);
+  const isCompleteReviewDisabled = !isCmsStaffUser ||
     !canCompleteReview(deliverable.status, deliverable.extensionRequests);
-  const canManageStateFiles =
-    !!userPersonType && STATE_FILE_MANAGER_PERSON_TYPES.has(userPersonType);
-  const canManageCmsFiles =
-    !!userPersonType && CMS_FILE_MANAGER_PERSON_TYPES.has(userPersonType);
+  const canManageStateFiles = STATE_FILE_MANAGER_PERSON_TYPES.has(userPersonType);
+  const canManageCmsFiles = isCmsStaffUser;
 
   const handleRequestResubmission = () => {
     showRequestResubmissionDeliverableDialog({
@@ -187,8 +178,6 @@ export const FileAndHistoryTabs: React.FC<{
             onAdd={canManageStateFiles ? handleAddStateFile : undefined}
             onEdit={canManageStateFiles ? handleEditStateFile : undefined}
             onDelete={canManageStateFiles ? handleDeleteFiles : undefined}
-            onSubmit={handleSubmitDeliverable}
-            submitDisabled={isSubmitDisabled}
           />
         </Tab>
         <Tab label={buildTabLabel("CMS Files", cmsFiles.length)} value={TABS.CMS_FILES}>
@@ -206,30 +195,34 @@ export const FileAndHistoryTabs: React.FC<{
         </Tab>
       </HorizontalSectionTabs>
       <div data-testid={FILE_AND_HISTORY_ACTIONS_NAME} className="flex justify-end mt-2 gap-2">
-        <Button
-          onClick={handleRequestResubmission}
-          size="large"
-          name="button-actions-request-resubmission"
-          disabled={isResubmissionDisabled(deliverable.status)}
-        >
-          Request Re-submission
-        </Button>
+        {isCmsStaffUser ? (
+          <Button
+            onClick={handleRequestResubmission}
+            size="large"
+            name="button-actions-request-resubmission"
+            disabled={isResubmissionDisabled(deliverable.status)}
+          >
+            Request Re-submission
+          </Button>
+        ) : null}
         <Button
           disabled={isSubmitDisabled}
           onClick={handleSubmitDeliverable}
           size="large"
-          name="button-actions-submit-deliverable"
+          name={STATE_FILES_SUBMIT_BUTTON_NAME}
         >
           Submit Deliverable
         </Button>
-        <Button
-          disabled={isCompleteReviewDisabled}
-          onClick={handleCompleteReview}
-          size="large"
-          name="button-actions-complete-review"
-        >
-          Complete Review
-        </Button>
+        {isCmsStaffUser ? (
+          <Button
+            disabled={isCompleteReviewDisabled}
+            onClick={handleCompleteReview}
+            size="large"
+            name="button-actions-complete-review"
+          >
+            Complete Review
+          </Button>
+        ) : null}
       </div>
     </div>
   );

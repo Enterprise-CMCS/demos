@@ -47,7 +47,7 @@ export function DocumentColumns() {
     createDateColumnDef(columnHelper, "createdAt", "Date Uploaded"),
     columnHelper.display({
       id: "view",
-      header: "View",
+      header: () => <span className="sr-only">View</span>,
       cell: ({ row }) => {
         const docId = row.original.id;
         const handleClick = () => {

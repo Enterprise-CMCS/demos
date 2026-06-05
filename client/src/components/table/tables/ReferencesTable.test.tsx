@@ -112,12 +112,15 @@ describe("ReferencesTable", () => {
     });
   });
 
-  it("calls downloadReferece when the download button is clicked for a reference without an agreement", async () => {
+  it("calls downloadReference when the download button is clicked for a reference without an agreement", async () => {
     renderWithProviders(getReferencesQueryMock);
 
     await waitFor(() => {
       screen.getByRole("button", { name: "Download ref2" }).click();
-      expect(downloadReference).toHaveBeenCalledWith(expect.objectContaining({ id: "ref2" }));
+      expect(downloadReference).toHaveBeenCalledWith({
+        id: "ref2",
+        acceptedAgreementId: null,
+      });
     });
   });
 

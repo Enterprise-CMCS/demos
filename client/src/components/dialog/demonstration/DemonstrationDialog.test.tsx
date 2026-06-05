@@ -205,7 +205,7 @@ describe("DemonstrationDialog", () => {
 
   it("should enable submit button when form has changes and is valid", async () => {
     const user = userEvent.setup();
-    const { getByTestId } = render(getDemonstrationDialog("edit"));
+    const { getByTestId } = render(getDemonstrationDialog("create"));
 
     const submitButton = getByTestId(SUBMIT_BUTTON_TEST_ID);
     expect(submitButton).toBeDisabled();

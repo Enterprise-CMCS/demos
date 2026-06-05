@@ -478,6 +478,8 @@ export const TAG_SOURCES = ["User", "System"] as const;
 
 export const TAG_TYPES = ["Application", "Demonstration Type", "Reference"] as const;
 
+export const FAQ_REFERENCE_TAG = "FAQ";
+
 // This seemed like a no brainer.
 export const PRIMARY_AWS_REGION = "us-east-1";
 
@@ -497,10 +499,15 @@ export const PERMISSIONS = [
   "View All Extensions",
   "View Extensions on Assigned Demonstrations",
   "View All Documents",
-  "View Documents on Assigned Demonstrations",
-  "View Owned Documents",
+  "View Documents on Assigned Deliverables",
   "View All Deliverables",
   "View Deliverables on Assigned Demonstrations",
+  "View All DemonstrationRoleAssignments",
+  "View DemonstrationRoleAssignments on Assigned Demonstrations",
+  "Edit All Documents",
+  "Edit State Documents on Assigned Deliverables",
+  "Delete All Documents",
+  "Delete State Documents on Assigned Deliverables",
 
   // Field Level Permissions
   "Access CMS Field",
@@ -512,3 +519,6 @@ export const PERMISSIONS = [
 export const SYSTEM_ROLES = ["Admin User", "CMS User", "State User"] as const;
 
 export const REFERENCE_CONFIGURATION_STATUSES = ["Inactive", "Active"] as const;
+
+export const ON_DEMAND_REPORT_TYPES = ["Basic Test Report"] as const;
+export const ON_DEMAND_REPORT_STATUSES = ["Available"] as const;

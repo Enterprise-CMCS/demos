@@ -26,7 +26,7 @@ const SIDE_NAV_STYLES = "h-full bg-white transition-all duration-300 flex flex-c
 
 const navLinks: NavLink[] = [
   { label: "Demonstrations", href: "/demonstrations", icon: <CompareIcon /> },
-  { label: "Deliverables", href: "/deliverables", icon: <FileIcon />},
+  { label: "Deliverables", href: "/deliverables", icon: <FileIcon /> },
   { label: "Reports", href: "/reports", icon: <FolderIcon /> },
 ];
 
@@ -173,7 +173,7 @@ export const SideNav = () => {
   const DebugLinks = () => {
     return (
       <DebugOnly>
-        <hr className="my-2 border-t border-gray-200" />
+        <hr className="my-2 border-t border-gray-200" aria-hidden="true" />
         <NavLinks isCollapsed={isCollapsed} navLinks={debugNavLinks} />
       </DebugOnly>
     );
