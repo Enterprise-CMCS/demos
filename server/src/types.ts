@@ -17,6 +17,7 @@ import {
   PERSON_TYPES,
   PHASE_STATUS,
   REFERENCE_CONFIGURATION_STATUSES,
+  ON_DEMAND_REPORT_TYPES,
   REVIEW_PHASE_DATE_TYPES,
   REVIEW_PHASE_NOTE_TYPES,
   ROLES,
@@ -29,6 +30,7 @@ import {
   TAG_TYPES,
   UIPATH_RESULT_STATUSES,
   USER_TYPES,
+  ON_DEMAND_REPORT_STATUSES,
 } from "./constants.js";
 
 export type {
@@ -179,3 +181,5 @@ export type DeliverableExtensionStatus = (typeof DELIVERABLE_EXTENSION_STATUSES)
 export type Permission = (typeof PERMISSIONS)[number];
 export type SystemRole = (typeof SYSTEM_ROLES)[number];
 export type ReferenceConfigurationStatus = (typeof REFERENCE_CONFIGURATION_STATUSES)[number];
+export type OnDemandReportType = (typeof ON_DEMAND_REPORT_TYPES)[number];
+export type OnDemandReportStatus = (typeof ON_DEMAND_REPORT_STATUSES)[number];

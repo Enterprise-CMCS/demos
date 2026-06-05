@@ -1,7 +1,10 @@
 import { describe, it, expect } from "vitest";
+import { GraphQLError } from "graphql";
 import {
   isCustomInternalErrorCode,
   getPublicErrorCodeFromInternal,
+  getPublicErrorMessageFromCode,
+  throwCustomGQLError,
   formatGraphQLErrorCode,
   CustomInternalErrorCode,
   CustomPublicErrorCode,
@@ -25,6 +28,41 @@ describe("errorCodes", () => {
       expect(
         getPublicErrorCodeFromInternal("REFERENCE_NOT_FOUND" satisfies CustomInternalErrorCode)
       ).toBe("REFERENCE_ERROR" satisfies CustomPublicErrorCode);
+    });
+  });
+
+  describe("getPublicErrorMessageFromCode", () => {
+    it("returns the custom message when one is defined for the public code", () => {
+      expect(
+        getPublicErrorMessageFromCode(
+          "ON_DEMAND_REPORT_ERROR" satisfies CustomPublicErrorCode,
+          "original message"
+        )
+      ).toBe("An error occurred while running an on-demand report.");
+    });
+
+    it("returns the original message when no custom message is defined for the public code", () => {
+      expect(
+        getPublicErrorMessageFromCode(
+          "REFERENCE_ERROR" satisfies CustomPublicErrorCode,
+          "original message"
+        )
+      ).toBe("original message");
+    });
+  });
+
+  describe("throwCustomGQLError", () => {
+    it("throws a GraphQLError with the given message and internal error code", () => {
+      try {
+        throwCustomGQLError("something failed", "REFERENCE_NOT_FOUND");
+        throw new Error("Expected throwCustomGQLError to throw, but it did not.");
+      } catch (error) {
+        expect(error).toBeInstanceOf(GraphQLError);
+        if (error instanceof GraphQLError) {
+          expect(error.message).toBe("something failed");
+          expect(error.extensions.code).toBe("REFERENCE_NOT_FOUND");
+        }
+      }
     });
   });
 

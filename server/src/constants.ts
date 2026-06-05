@@ -516,3 +516,6 @@ export const PERMISSIONS = [
 export const SYSTEM_ROLES = ["Admin User", "CMS User", "State User"] as const;
 
 export const REFERENCE_CONFIGURATION_STATUSES = ["Inactive", "Active"] as const;
+
+export const ON_DEMAND_REPORT_TYPES = ["Basic Test Report"] as const;
+export const ON_DEMAND_REPORT_STATUSES = ["Available"] as const;
