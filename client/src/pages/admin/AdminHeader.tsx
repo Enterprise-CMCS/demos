@@ -10,8 +10,7 @@ export const AdminHeader: React.FC = () => {
     <header className="w-full">
       <div className="w-full flex items-center justify-between">
         <div className="text-xl font-bold flex gap-0-5 items-baseline">
-          <SettingsIcon />
-          Admin
+          <SettingsIcon />Admin
         </div>
         <IconButton
           icon={<ExitIcon />}
