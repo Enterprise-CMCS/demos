@@ -499,12 +499,15 @@ export const PERMISSIONS = [
   "View All Extensions",
   "View Extensions on Assigned Demonstrations",
   "View All Documents",
-  "View Documents on Assigned Demonstrations",
-  "View Owned Documents",
+  "View Documents on Assigned Deliverables",
   "View All Deliverables",
   "View Deliverables on Assigned Demonstrations",
   "View All DemonstrationRoleAssignments",
   "View DemonstrationRoleAssignments on Assigned Demonstrations",
+  "Edit All Documents",
+  "Edit State Documents on Assigned Deliverables",
+  "Delete All Documents",
+  "Delete State Documents on Assigned Deliverables",
 
   // Field Level Permissions
   "Access CMS Field",
