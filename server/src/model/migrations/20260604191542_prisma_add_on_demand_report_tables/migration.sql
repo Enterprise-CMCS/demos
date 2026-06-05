@@ -3,10 +3,11 @@ SET search_path TO demos_app;
 -- CreateTable
 CREATE TABLE "on_demand_report" (
     "id" UUID NOT NULL,
+    "s3_path" TEXT NOT NULL,
     "requesting_user_id" UUID NOT NULL,
     "report_type_id" TEXT NOT NULL,
     "status_id" TEXT NOT NULL,
-    "report_generated_at" TIMESTAMP(3) NOT NULL,
+    "report_generated_at" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "on_demand_report_pkey" PRIMARY KEY ("id")
 );

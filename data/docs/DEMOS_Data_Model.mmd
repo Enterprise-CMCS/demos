@@ -168,6 +168,9 @@ erDiagram
   demonstration_type_tag_type_limit ||--|{ reference_demonstration_type : "FK151"
   tag_type ||--|| reference_tag_type_limit : "FK152"
   reference_tag_type_limit ||--|{ reference_tag_assignment : "FK153"
+  users ||--|{ on_demand_report : "FK156"
+  on_demand_report }|--|| on_demand_report_type : "FK157"
+  on_demand_report }|--|| on_demand_report_status : "FK158"
   application_tag_suggestion }|..|| application : ""
 
   %% Static Constraints
@@ -232,6 +235,14 @@ erDiagram
   }
 
   note_type:::staticConstraint {
+    text id PK
+  }
+
+  on_demand_report_status:::staticConstraint {
+    text id PK
+  }
+
+  on_demand_report_type:::staticConstraint {
     text id PK
   }
 
@@ -672,6 +683,16 @@ erDiagram
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
     HAS_HISTORY true
+  }
+
+  on_demand_report:::dataTable {
+    uuid id PK
+    text s3_path
+    uuid requesting_user_id FK "FK156: requesting_user_id ∈ users.id"
+    text report_type_id FK "FK157: report_type_id ∈ on_demand_report_type.id"
+    text status_id FK "FK158: status_id ∈ on_demand_report_status.id"
+    timestamptz report_generated_at
+    CONSTRAINT_CHECK check_non_empty_s3_path "Validate that the S3 path is not empty or only whitespace."
   }
 
   person:::dataTable {
