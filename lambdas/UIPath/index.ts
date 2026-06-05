@@ -10,6 +10,7 @@ import { runDocumentUnderstanding } from "./runDocumentUnderstanding";
 import { parseDocumentFromId, parseUiPathMessage } from "./parseDocumentFromId";
 import { region } from "./uipathClient";
 import { fileTypeFromFile } from "file-type";
+import { createSanitizedError, sanitizeError } from "./sanitizeError";
 
 const s3 = new S3Client({
   region,
@@ -87,37 +88,42 @@ async function downloadFromS3(bucket: string, key: string): Promise<DownloadedOb
 
 export const handler = async (event: SQSEvent) =>
   als.run(store, async () => {
-    log.info({ recordCount: event.Records.length }, "UiPath lambda invoked");
-    const documentBucket = getDocumentBucket();
-    const firstRecord = event.Records[0];
-    if (!firstRecord) {
-      throw new Error("No SQS records provided.");
+    try {
+      log.info({ recordCount: event.Records.length }, "UiPath lambda invoked");
+      const documentBucket = getDocumentBucket();
+      const firstRecord = event.Records[0];
+      if (!firstRecord) {
+        throw new Error("No SQS records provided.");
+      }
+      reqIdChild(firstRecord.messageId);
+
+      const { s3Key, documentId, applicationId } = await resolveS3InputFromMessage(firstRecord.body);
+
+      const downloadedObject = await downloadFromS3(documentBucket, s3Key);
+      const { localPath } = downloadedObject;
+      const uploadFileNameWithExtension = await resolveUploadFileNameWithExtension(
+        documentBucket,
+        s3Key,
+        downloadedObject
+      );
+      log.info(
+        { s3Bucket: documentBucket, s3Key, localPath, uploadFileNameWithExtension },
+        "Downloaded document from S3"
+      );
+
+      const status = await runDocumentUnderstanding(localPath, {
+        pollIntervalMs: 5000,
+        requestId: firstRecord.messageId,
+        fileNameWithExtension: uploadFileNameWithExtension,
+        documentId,
+        applicationId,
+      });
+
+      log.info("UiPath extraction completed successfully");
+      return status;
+    } catch (error) {
+      log.error({ error: sanitizeError(error) }, "UiPath lambda failed");
+      throw createSanitizedError(error);
     }
-    reqIdChild(firstRecord.messageId);
-
-    const { s3Key, documentId, applicationId } = await resolveS3InputFromMessage(firstRecord.body);
-
-    const downloadedObject = await downloadFromS3(documentBucket, s3Key);
-    const { localPath } = downloadedObject;
-    const uploadFileNameWithExtension = await resolveUploadFileNameWithExtension(
-      documentBucket,
-      s3Key,
-      downloadedObject
-    );
-    log.info(
-      { s3Bucket: documentBucket, s3Key, localPath, uploadFileNameWithExtension },
-      "Downloaded document from S3"
-    );
-
-    const status = await runDocumentUnderstanding(localPath, {
-      pollIntervalMs: 5000,
-      requestId: firstRecord.messageId,
-      fileNameWithExtension: uploadFileNameWithExtension,
-      documentId,
-      applicationId,
-    });
-
-    log.info("UiPath extraction completed successfully");
-    return status;
   }
 );

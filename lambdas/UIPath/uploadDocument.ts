@@ -2,11 +2,8 @@ import fs from "node:fs";
 import FormData from "form-data";
 import { AxiosProgressEvent } from "axios";
 import { log } from "./log";
-import {
-  uipathPostRequest,
-  UIPATH_TENANT,
-  UIPATH_BASE_URL
-} from "./uipathClient";
+import { uipathPostRequest, UIPATH_TENANT, UIPATH_BASE_URL } from "./uipathClient";
+import { createSanitizedError, sanitizeError } from "./sanitizeError";
 
 export interface UploadResponse {
   documentId: string;
@@ -20,7 +17,7 @@ export async function uploadDocument(
   fileNameWithExtension?: string
 ): Promise<string> {
   // As of now, this is a constant. but tenant contains "dev" in the URI, so this could be variable later.
-  if (! UIPATH_BASE_URL || ! UIPATH_TENANT) {
+  if (!UIPATH_BASE_URL || !UIPATH_TENANT) {
     throw new Error("Missing UiPath base URL or tenant configuration.");
   }
   const extensionURI = `du_/api/framework/projects/${projectId}/digitization/start`;
@@ -40,10 +37,12 @@ export async function uploadDocument(
         // form-data requires its own headers so axios can set boundaries
         ...formData.getHeaders(),
         "x-uipath-page-range": "All",
-    },
+      },
       onUploadProgress: (progressEvent?: AxiosProgressEvent) => {
         if (!progressEvent?.total) return;
-        const percentCompleted = Math.round(((progressEvent.loaded ?? 0) * 100) / progressEvent.total);
+        const percentCompleted = Math.round(
+          ((progressEvent.loaded ?? 0) * 100) / progressEvent.total
+        );
         log.info({ percentCompleted }, "Upload progress");
       },
     });
@@ -54,8 +53,7 @@ export async function uploadDocument(
     }
     return documentId;
   } catch (error) {
-    const err = error as Error & { response?: { data?: unknown } };
-    log.error({ err, response: err.response?.data }, "Error uploading document");
-    throw err;
+    log.error({ error: sanitizeError(error) }, "Error uploading document");
+    throw createSanitizedError(error);
   }
 }

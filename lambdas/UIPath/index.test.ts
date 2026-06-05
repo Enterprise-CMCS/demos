@@ -52,6 +52,7 @@ vi.mock("@aws-sdk/client-s3", () => {
 });
 
 import { handler as handlerRef } from "./index";
+import { log } from "./log";
 
 function createEvent(body: Record<string, unknown>, messageId = "id-1"): SQSEvent {
   return {
@@ -215,5 +216,58 @@ describe("handler", () => {
     await expect(handlerRef(event)).rejects.toThrow(
       `Unable to infer file extension for s3://clean-bucket/app-1/${SEEDED_DOCUMENT_ID} from file content.`
     );
+  });
+
+  it("logs sanitized errors and rethrows a sanitized Error", async () => {
+    process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
+    process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
+    mocks.sendMock.mockResolvedValue({ Body: Readable.from(["test"]) });
+    mocks.fileTypeFromFileMock.mockResolvedValue({ ext: "pdf", mime: "application/pdf" });
+    mocks.parseDocumentFromIdMock.mockResolvedValue({
+      key: `app-1/${SEEDED_DOCUMENT_ID}`,
+      documentId: SEEDED_DOCUMENT_ID,
+      applicationId: "app-1",
+    });
+    mocks.runDocumentUnderstandingMock.mockRejectedValue({
+      name: "AxiosError",
+      message: "Request failed with Bearer token-123", // pragma: allowlist secret
+      isAxiosError: true,
+      config: {
+        method: "get",
+        url: "https://govcloud.uipath.us/result",
+        headers: {
+          Authorization: "Bearer token-123", // pragma: allowlist secret
+        },
+      },
+      response: {
+        status: 401,
+        data: {
+          error: "unauthorized",
+          token: "token-123", // pragma: allowlist secret
+        },
+      },
+    });
+
+    const event = createEvent({ documentId: SEEDED_DOCUMENT_ID }, "id-sanitized");
+
+    await expect(handlerRef(event)).rejects.toThrow("Request failed with Bearer [REDACTED]");
+
+    expect(log.error).toHaveBeenCalledWith(
+      {
+        error: {
+          name: "AxiosError",
+          message: "Request failed with Bearer [REDACTED]",
+          status: 401,
+          responseData: {
+            error: "unauthorized",
+            token: "[REDACTED]",
+          },
+          method: "GET",
+          url: "https://govcloud.uipath.us/result",
+        },
+      },
+      "UiPath lambda failed"
+    );
+    expect(JSON.stringify(vi.mocked(log.error).mock.calls)).not.toContain("token-123");
   });
 });

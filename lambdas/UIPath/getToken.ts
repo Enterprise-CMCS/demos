@@ -1,5 +1,6 @@
 import axios from "axios";
 import { getUiPathSecret } from "./uipathSecrets";
+import { createSanitizedError, sanitizeError } from "./sanitizeError";
 
 interface TokenResponse {
   access_token: string;
@@ -28,7 +29,6 @@ function validateCredentialsAreNotDefault(credentials: UiPathCredentials) {
 }
 
 async function getCredentials(): Promise<UiPathCredentials> {
-
   if (!process.env.UIPATH_SECRET_ID) {
     throw new Error("Missing UIPATH_SECRET_ID or UIPATH_CLIENT_ID/UIPATH_CLIENT_SECRET.");
   }
@@ -46,9 +46,10 @@ async function getCredentials(): Promise<UiPathCredentials> {
 
     throw new Error("UiPath secret must contain clientId/clientSecret fields.");
   } catch (error) {
-    console.error(error);
+    const sanitizedError = sanitizeError(error);
+    console.error("Failed to retrieve UiPath credentials", sanitizedError);
     throw new Error(
-      `Failed to retrieve UiPath credentials from Secrets Manager: ${(error as Error).message}`
+      `Failed to retrieve UiPath credentials from Secrets Manager: ${sanitizedError.message}`
     );
   }
 }
@@ -75,11 +76,8 @@ export async function getToken(): Promise<string> {
     return token;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error("UiPath token request failed", {
-        status: error.response?.status,
-        data: error.response?.data,
-      });
+      console.error("UiPath token request failed", sanitizeError(error));
     }
-    throw error;
+    throw createSanitizedError(error);
   }
 }

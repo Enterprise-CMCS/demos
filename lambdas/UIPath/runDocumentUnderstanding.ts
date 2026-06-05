@@ -5,13 +5,9 @@ import { extractDoc } from "./extractDoc";
 import { fetchExtractionResult, ExtractionStatus } from "./fetchExtractResult";
 import { getDbPool } from "./db";
 import { getProjectIdByName } from "./getProjectId";
-import {
-  persistApplicationTagSuggestionExtracts,
-} from "./db/applicationTagSuggestionExtracts";
-import {
-  persistFinishedUiPathExtraction,
-  persistResultStatus,
-} from "./db/uiPathResults";
+import { persistApplicationTagSuggestionExtracts } from "./db/applicationTagSuggestionExtracts";
+import { persistFinishedUiPathExtraction, persistResultStatus } from "./db/uiPathResults";
+import { createSanitizedError, sanitizeError } from "./sanitizeError";
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
@@ -47,9 +43,15 @@ async function persistExtractionStatus(
   }
 }
 
-function buildFailureResponse(error: unknown, lastPolledStatus: ExtractionStatus | null): Record<string, unknown> {
-  const message = error instanceof Error ? error.message : String(error);
-  const response: Record<string, unknown> = { error: message };
+function buildFailureResponse(
+  error: unknown,
+  lastPolledStatus: ExtractionStatus | null
+): Record<string, unknown> {
+  const sanitizedError = sanitizeError(error);
+  const response: Record<string, unknown> = {
+    error: sanitizedError.message,
+    errorDetails: sanitizedError,
+  };
 
   if (lastPolledStatus) {
     response.lastPolledStatus = lastPolledStatus;
@@ -105,7 +107,7 @@ export async function runDocumentUnderstanding(
       documentId,
       applicationId,
       "Pending",
-      { status: "Pending" },
+      { status: "Pending" }
     );
 
     let attempt = 0;
@@ -139,9 +141,9 @@ export async function runDocumentUnderstanding(
         buildFailureResponse(error, lastPolledStatus),
       );
     } catch (persistError) {
-      log.error({ error: persistError }, "Failed to Fail UiPath status");
+      log.error({ error: sanitizeError(persistError) }, "Failed to Fail UiPath status");
     }
 
-    throw error;
+    throw createSanitizedError(error);
   }
 }

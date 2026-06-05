@@ -52,7 +52,7 @@ describe("getToken", () => {
     await expect(getToken()).rejects.toThrow("Auth token not returned from UiPath.");
   });
 
-  it("logs axios error details and rethrows", async () => {
+  it("logs sanitized axios error details and rethrows a sanitized error", async () => {
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     mocks.getUiPathSecretMock.mockResolvedValue({
@@ -60,16 +60,40 @@ describe("getToken", () => {
       clientSecret: "value-1", // pragma: allowlist secret
     });
     mocks.postMock.mockRejectedValue({
+      name: "AxiosError",
+      message: "Request failed with Basic encoded-secret", // pragma: allowlist secret
       isAxiosError: true,
-      response: { status: 400, data: { error: "invalid_client" } },
+      config: {
+        method: "post",
+        url: "https://govcloud.uipath.us/identity_/connect/token",
+        headers: {
+          Authorization: "Basic encoded-secret", // pragma: allowlist secret
+        },
+      },
+      response: {
+        status: 400,
+        data: {
+          error: "invalid_client",
+          clientSecret: "value-1", // pragma: allowlist secret
+        },
+      },
     });
 
-    await expect(getToken()).rejects.toBeDefined();
+    await expect(getToken()).rejects.toThrow("Request failed with Basic [REDACTED]");
 
     expect(consoleErrorSpy).toHaveBeenCalledWith("UiPath token request failed", {
+      name: "AxiosError",
+      message: "Request failed with Basic [REDACTED]",
       status: 400,
-      data: { error: "invalid_client" },
+      responseData: {
+        error: "invalid_client",
+        clientSecret: "[REDACTED]",
+      },
+      method: "POST",
+      url: "https://govcloud.uipath.us/identity_/connect/token",
     });
+    expect(JSON.stringify(consoleErrorSpy.mock.calls)).not.toContain("encoded-secret");
+    expect(JSON.stringify(consoleErrorSpy.mock.calls)).not.toContain("value-1");
 
     consoleErrorSpy.mockRestore();
   });
