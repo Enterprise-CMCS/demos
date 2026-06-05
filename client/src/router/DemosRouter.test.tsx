@@ -114,7 +114,7 @@ vi.mock("pages/DeliverablesPage", () => ({
 vi.mock("pages/ReportsPage", () => ({
   ReportsPage: () => <div>ReportsPage</div>,
 }));
-vi.mock("pages/ReferencesPage", () => ({
+vi.mock("pages/references/ReferencesPage.tsx", () => ({
   ReferencesPage: () => <div>ReferencesPage</div>,
 }));
 

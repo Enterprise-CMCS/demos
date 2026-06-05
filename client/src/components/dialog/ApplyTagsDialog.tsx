@@ -226,7 +226,9 @@ export const ApplyTagsDialog: React.FC<ApplyTagsDialogProps> = ({
   initiallySelectedTags,
   allTags,
 }) => {
-  const [setApplicationTagsMutation] = useMutation(SET_APPLICATION_TAGS_MUTATION);
+  const [setApplicationTagsMutation] = useMutation(SET_APPLICATION_TAGS_MUTATION, {
+    refetchQueries: [],
+  });
   const { showSuccess, showError } = useToast();
 
   const [selectedTags, setSelectedTags] = useState<Tag[]>([...initiallySelectedTags]);

@@ -145,6 +145,7 @@ export interface TableProps<T> {
   actionButtons?: (table: TanstackTable<T>) => React.ReactNode;
   actionModals?: (table: TanstackTable<T>) => React.ReactNode;
   hideSearchAndActions?: boolean;
+  descriptionText?: string;
 }
 
 export function Table<T extends { id: string }>({
@@ -160,6 +161,7 @@ export function Table<T extends { id: string }>({
   actionButtons,
   actionModals,
   hideSearchAndActions = false,
+  descriptionText,
 }: TableProps<T>) {
   const [expanded, setExpanded] = React.useState<ExpandedState>({});
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
@@ -235,6 +237,7 @@ export function Table<T extends { id: string }>({
       {actionModals && actionModals(table)}
 
       <div className="w-full overflow-x-auto">
+        {descriptionText && <div className="mb-2 text-sm text-gray-600">{descriptionText}</div>}
         <table className={STYLES.table}>
           <TableHead headerGroups={table.getHeaderGroups()} />
           <TableBody

@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
-import { GET_REFERENCES_QUERY, ReferencesTable } from "./ReferencesTable";
+import { DESCRIPTION_TEXT, GET_REFERENCES_QUERY, ReferencesTable } from "./ReferencesTable";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { ToastProvider } from "components/toast";
@@ -162,6 +162,54 @@ describe("ReferencesTable", () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Items per page/)).toBeInTheDocument();
+    });
+  });
+
+  it("renders the description text above the table", async () => {
+    renderWithProviders(getReferencesQueryMock);
+
+    await waitFor(() => {
+      expect(screen.getByText(DESCRIPTION_TEXT)).toBeInTheDocument();
+    });
+  });
+
+  it("sorts the references by updatedAt in descending order", async () => {
+    renderWithProviders(getReferencesQueryMock);
+
+    await waitFor(() => {
+      const rows = screen.getAllByRole("row");
+      // The first row is the header, so we check the order of the data rows
+      expect(rows[1]).toHaveTextContent("Reference Document 2");
+      expect(rows[2]).toHaveTextContent("Reference Document 1");
+    });
+  });
+
+  it("renders '-' for references without demonstration types", async () => {
+    const noDemoTypesMock: MockedResponse = {
+      request: {
+        query: GET_REFERENCES_QUERY,
+      },
+      result: {
+        data: {
+          references: [
+            {
+              id: "ref3",
+              name: "Reference Document 3",
+              description: "Description for Reference Document 3",
+              agreement: null,
+              demonstrationTypes: [],
+              updatedAt: new Date("2024-01-05"),
+            },
+          ],
+        },
+      },
+    };
+
+    renderWithProviders([noDemoTypesMock]);
+
+    await waitFor(() => {
+      expect(screen.getByText("Reference Document 3")).toBeInTheDocument();
+      expect(screen.getByText("-")).toBeInTheDocument();
     });
   });
 });

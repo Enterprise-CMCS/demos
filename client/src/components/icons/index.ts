@@ -53,6 +53,7 @@ export * from "./Navigation/ArchiveIcon";
 export * from "./Navigation/ArrowDownIcon";
 export * from "./Navigation/ArrowUpIcon";
 export * from "./Navigation/AttributesIcon";
+export * from "./Navigation/BookIcon";
 export * from "./Navigation/BookmarkIcon";
 export * from "./Navigation/BuildingIcon";
 export * from "./Navigation/BulletsIcon";

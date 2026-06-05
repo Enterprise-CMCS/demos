@@ -27,11 +27,13 @@ export function ReferencesColumns() {
     }),
     columnHelper.accessor("demonstrationTypes", {
       header: "Demo Type",
-      cell: (cell) =>
-        cell
-          .getValue()
-          .map((tag) => tag.tagName)
-          .join(", "),
+      cell: (cell) => {
+        const value = cell.getValue();
+        if (value.length === 0) {
+          return "-";
+        }
+        return value.map((tag) => tag.tagName).join(", ");
+      },
       enableColumnFilter: false,
     }),
     columnHelper.accessor("description", {

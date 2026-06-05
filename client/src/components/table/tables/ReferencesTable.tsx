@@ -5,6 +5,10 @@ import { gql, TypedDocumentNode, useQuery } from "@apollo/client";
 import { Reference, ReferenceAgreement, Tag } from "demos-server";
 import { KeywordSearch } from "../KeywordSearch";
 import { PaginationControls } from "../PaginationControls";
+import { compareDesc } from "date-fns";
+
+export const DESCRIPTION_TEXT =
+  "Documents supporting monitoring and evaluation for Medicaid Section 1115 demonstrations are listed below.";
 
 export const GET_REFERENCES_QUERY: TypedDocumentNode<
   {
@@ -48,8 +52,9 @@ export const ReferencesTable: React.FC = () => {
         <Table
           keywordSearch={(table) => <KeywordSearch table={table} />}
           pagination={(table) => <PaginationControls table={table} />}
-          data={references}
+          data={[...references].sort((a, b) => compareDesc(a.updatedAt, b.updatedAt))}
           columns={referencesColumns}
+          descriptionText={DESCRIPTION_TEXT}
         />
       )}
     </div>
