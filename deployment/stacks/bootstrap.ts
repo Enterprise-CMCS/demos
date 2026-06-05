@@ -78,8 +78,7 @@ export class BootstrapStack extends Stack {
 
     const cbcJenkinsRole = aws_iam.Role.fromRoleName(commonProps.scope, "cbcJenkinsRole", "jenkins-role");
 
-    const policy = new aws_iam.Policy(commonProps.scope, "actionsPolicy", {
-      statements: [
+    const policyStatements = [
         new aws_iam.PolicyStatement({
           actions: ["secretsmanager:GetSecretValue"],
           resources: [
@@ -129,6 +128,16 @@ export class BootstrapStack extends Stack {
           resources: ["*"],
         }),
         new aws_iam.PolicyStatement({
+          actions: [
+            "cloudformation:DescribeChangeSet",
+            "cloudformation:DeleteChangeSet"
+          ],
+          resources: ["*"]
+        })
+      ]
+
+    if (!props.bootstrapProd) {
+      policyStatements.push(new aws_iam.PolicyStatement({
           actions: ["s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:ListBucket", "s3:DeleteObjectVersion", "s3:ListBucketVersions"],
           resources: [
             "arn:aws:s3:::demos-dev-file-upload-*",
@@ -138,15 +147,11 @@ export class BootstrapStack extends Stack {
             "arn:aws:s3:::demos-impl-file-upload-*",
             "arn:aws:s3:::demos-impl-file-upload-*/*"
           ],
-        }),
-        new aws_iam.PolicyStatement({
-          actions: [
-            "cloudformation:DescribeChangeSet",
-            "cloudformation:DeleteChangeSet"
-          ],
-          resources: ["*"]
-        })
-      ],
+        }))
+    }
+
+    const policy = new aws_iam.Policy(commonProps.scope, "actionsPolicy", {
+      statements: policyStatements,
     });
 
     githubActionsRole.attachInlinePolicy(policy);
