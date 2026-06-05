@@ -13,8 +13,8 @@ import { gql, TypedDocumentNode, useMutation } from "@apollo/client";
 import { DatePicker } from "components/input/date/DatePicker";
 import { formatDateForServer, getTodayEst } from "util/formatDate";
 
-type Demonstration = Pick<ServerDemonstration, "id" | "chipId"> & {
-  demonstrationTypes: Pick<DemonstrationTypeAssignment, "demonstrationTypeName">[];
+type Demonstration = Pick<ServerDemonstration, "id"> & {
+  demonstrationTypes: DemonstrationType[];
 };
 
 export type DemonstrationType = Pick<
@@ -32,7 +32,9 @@ type DemonstrationTypeFormData = Pick<
 
 export const EDIT_DEMONSTRATION_TYPES_DIALOG_MUTATION: TypedDocumentNode<
   {
-    setDemonstrationTypes: Demonstration;
+    setDemonstrationTypes: Pick<Demonstration, "id"> & {
+      demonstrationTypes: Pick<DemonstrationTypeAssignment, "demonstrationTypeName">[];
+    };
   },
   { input: SetDemonstrationTypesInput }
 > = gql`
@@ -42,7 +44,6 @@ export const EDIT_DEMONSTRATION_TYPES_DIALOG_MUTATION: TypedDocumentNode<
       demonstrationTypes {
         demonstrationTypeName
       }
-      chipId
     }
   }
 `;
