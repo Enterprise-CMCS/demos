@@ -296,7 +296,7 @@ describe("Demonstrations", () => {
     });
 
     it("renders action buttons for each demonstration", () => {
-      const viewButtons = screen.getAllByText("View");
+      const viewButtons = screen.getAllByTestId(/^view-details-/);
       expect(viewButtons).toHaveLength(3);
     });
   });
