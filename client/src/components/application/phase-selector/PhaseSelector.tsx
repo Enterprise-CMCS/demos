@@ -119,7 +119,11 @@ export const PhaseSelector = ({
           setSelectedPhase
         );
       case "Application Intake":
-        return getApplicationIntakeComponentFromApplication(application, setSelectedPhase);
+        return getApplicationIntakeComponentFromApplication(
+          application,
+          workflowApplicationType,
+          setSelectedPhase
+        );
       case "Completeness":
         return getApplicationCompletenessFromApplication(application, setSelectedPhase);
       case "Federal Comment":

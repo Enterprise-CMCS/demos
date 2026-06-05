@@ -60,6 +60,7 @@ describe("ApplicationIntakePhase", () => {
     tags: [],
     phaseStatus: "Started",
     completenessPhaseStatus: "Not Started",
+    workflowApplicationType: "demonstration",
     setSelectedPhase: vi.fn(),
   };
 
@@ -538,7 +539,11 @@ describe("ApplicationIntakePhase", () => {
         tags: [],
       };
 
-      const component = getApplicationIntakeComponentFromApplication(mockApplication, () => {});
+      const component = getApplicationIntakeComponentFromApplication(
+        mockApplication,
+        "demonstration",
+        () => {}
+      );
 
       expect(component).toBeDefined();
       expect(component.type).toBe(ApplicationIntakePhase);
@@ -546,6 +551,7 @@ describe("ApplicationIntakePhase", () => {
       expect(component.props.applicationIntakeDocuments).toHaveLength(1);
       expect(component.props.initialStateApplicationSubmittedDate).toBe("2024-10-13");
       expect(component.props.completenessPhaseStatus).toBe("Not Started");
+      expect(component.props.workflowApplicationType).toBe("demonstration");
     });
 
     it("throws when the Completeness phase is missing from the application", () => {
@@ -566,9 +572,9 @@ describe("ApplicationIntakePhase", () => {
         tags: [],
       };
 
-      expect(() => getApplicationIntakeComponentFromApplication(mockApplication, () => {})).toThrow(
-        "Application is missing expected phase: Completeness"
-      );
+      expect(() =>
+        getApplicationIntakeComponentFromApplication(mockApplication, "demonstration", () => {})
+      ).toThrow("Application is missing expected phase: Completeness");
     });
 
     it("passes completenessPhaseStatus from the Completeness phase", () => {
@@ -595,7 +601,11 @@ describe("ApplicationIntakePhase", () => {
         tags: [],
       };
 
-      const component = getApplicationIntakeComponentFromApplication(mockApplication, () => {});
+      const component = getApplicationIntakeComponentFromApplication(
+        mockApplication,
+        "demonstration",
+        () => {}
+      );
 
       expect(component.props.completenessPhaseStatus).toBe("Incomplete");
     });

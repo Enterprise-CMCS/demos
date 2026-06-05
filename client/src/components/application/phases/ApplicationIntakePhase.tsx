@@ -7,7 +7,11 @@ import { ExportIcon } from "components/icons";
 import { addDays, compareDesc, parseISO } from "date-fns";
 import { tw } from "tags/tw";
 import { formatDateForServer, getDateEst } from "util/formatDate";
-import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
+import {
+  WorkflowApplication,
+  ApplicationWorkflowDocument,
+  WorkflowApplicationType,
+} from "components/application";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { useDialog } from "components/dialog/DialogContext";
@@ -16,9 +20,18 @@ import { getPhaseCompletedMessage } from "util/messages";
 import { useToast } from "components/toast";
 import { DatePicker } from "components/input/date/DatePicker";
 import { ApplicationHealthTypeTags } from "components/tags/ApplicationHealthTypeTags";
-import type { Application, LocalDate, PhaseName, PhaseStatus, Tag, TagName } from "demos-server";
+import type {
+  Application,
+  LocalDate,
+  PhaseName,
+  PhaseStatus,
+  Tag,
+  TagName,
+  UploadDocumentToPhaseInput,
+} from "demos-server";
 import { SET_APPLICATION_TAGS_MUTATION } from "components/dialog/ApplyTagsDialog";
 import { ConfirmSuggestedSparklyTagDialog } from "components/dialog/ConfirmSuggestedSparklyTagDialog";
+import { useUiPathSuggestionPolling } from "./useUiPathSuggestionPolling";
 
 /** Business Rules for this Phase:
  * - **Application Intake Start Date** - Can start in one of two ways, whichever comes first:
@@ -106,9 +119,11 @@ export const REMOVE_APPLICATION_TAG_SUGGESTION_MUTATION: TypedDocumentNode<
 const UploadSection = ({
   applicationId,
   documents,
+  onApplicationIntakeUploadSucceeded,
 }: {
   applicationId: string;
   documents: ApplicationWorkflowDocument[];
+  onApplicationIntakeUploadSucceeded: (payload?: UploadDocumentToPhaseInput) => void;
 }) => {
   const { showApplicationIntakeDocumentUploadDialog } = useDialog();
 
@@ -120,7 +135,12 @@ const UploadSection = ({
       <p className={STYLES.helper}>Upload State Application file</p>
 
       <SecondaryButton
-        onClick={() => showApplicationIntakeDocumentUploadDialog(applicationId)}
+        onClick={() =>
+          showApplicationIntakeDocumentUploadDialog(
+            applicationId,
+            onApplicationIntakeUploadSucceeded
+          )
+        }
         size="small"
         name={APPLICATION_INTAKE_UPLOAD_BUTTON_NAME}
       >
@@ -239,6 +259,7 @@ const VerifyCompleteSection = ({
 
 export const getApplicationIntakeComponentFromApplication = (
   application: WorkflowApplication,
+  workflowApplicationType: WorkflowApplicationType,
   setSelectedPhase: (phase: PhaseName) => void
 ) => {
   const applicationIntakePhase = application.phases.find(
@@ -275,6 +296,7 @@ export const getApplicationIntakeComponentFromApplication = (
       initialStateApplicationSubmittedDate={estStateApplicationSubmittedDate}
       tags={application.tags}
       suggestedTags={application.suggestedApplicationTags}
+      workflowApplicationType={workflowApplicationType}
       setSelectedPhase={setSelectedPhase}
       phaseStatus={applicationIntakePhase.phaseStatus ?? "Not Started"}
       completenessPhaseStatus={completenessPhase.phaseStatus ?? "Not Started"}
@@ -287,6 +309,7 @@ export interface ApplicationIntakeProps {
   initialStateApplicationSubmittedDate: string;
   tags: Tag[];
   suggestedTags?: TagName[];
+  workflowApplicationType: WorkflowApplicationType;
   setSelectedPhase: (phase: PhaseName) => void;
   phaseStatus: PhaseStatus;
   completenessPhaseStatus: PhaseStatus;
@@ -298,6 +321,7 @@ export const ApplicationIntakePhase = ({
   initialStateApplicationSubmittedDate,
   tags,
   suggestedTags = [],
+  workflowApplicationType,
   setSelectedPhase,
   phaseStatus,
   completenessPhaseStatus,
@@ -318,6 +342,10 @@ export const ApplicationIntakePhase = ({
 
   const [submittedDateOverride, setSubmittedDateOverride] = useState<string>("");
   const [selectedSuggestedTag, setSelectedSuggestedTag] = useState<TagName | null>(null);
+  const { startPollingForStateApplicationUpload } = useUiPathSuggestionPolling({
+    applicationId,
+    workflowApplicationType,
+  });
 
   // Calculate the dates to display based on the following rules:
   // 1. If the user has manually entered a date (submittedDateOverride), use this
@@ -426,7 +454,11 @@ export const ApplicationIntakePhase = ({
       <section className={STYLES.pane}>
         <div className={STYLES.grid}>
           <span aria-hidden className={STYLES.divider} />
-          <UploadSection applicationId={applicationId} documents={applicationIntakeDocuments} />
+          <UploadSection
+            applicationId={applicationId}
+            documents={applicationIntakeDocuments}
+            onApplicationIntakeUploadSucceeded={startPollingForStateApplicationUpload}
+          />
           <VerifyCompleteSection
             stateApplicationSubmittedDate={stateApplicationSubmittedDate}
             hasDocuments={hasDocuments}
