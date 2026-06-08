@@ -52,6 +52,7 @@ vi.mock("@aws-sdk/client-s3", () => {
 });
 
 import { handler as handlerRef } from "./index";
+import { log } from "./log";
 
 function createEvent(body: Record<string, unknown>, messageId = "id-1"): SQSEvent {
   return {
@@ -215,5 +216,44 @@ describe("handler", () => {
     await expect(handlerRef(event)).rejects.toThrow(
       `Unable to infer file extension for s3://clean-bucket/app-1/${SEEDED_DOCUMENT_ID} from file content.`
     );
+  });
+
+  it("logs and rethrows redacted UiPath errors", async () => {
+    process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
+    process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
+    mocks.sendMock.mockResolvedValue({ Body: Readable.from(["test"]) });
+    mocks.fileTypeFromFileMock.mockResolvedValue({ ext: "pdf", mime: "application/pdf" });
+    mocks.parseDocumentFromIdMock.mockResolvedValue({
+      key: `app-1/${SEEDED_DOCUMENT_ID}`,
+      documentId: SEEDED_DOCUMENT_ID,
+      applicationId: "app-1",
+    });
+    const redactedError = {
+      isErrorRedactedResponse: true,
+      message: "Request failed with status code 401",
+      fullURL: "https://govcloud.uipath.us/result",
+      response: {
+        statusCode: 401,
+        statusMessage: "Unauthorized",
+        data: "<REDACTED>",
+      },
+      request: {
+        baseURL: "",
+        path: "https://govcloud.uipath.us/result",
+        method: "get",
+        data: "<REDACTED>",
+      },
+    };
+    mocks.runDocumentUnderstandingMock.mockRejectedValue(redactedError);
+
+    const event = createEvent({ documentId: SEEDED_DOCUMENT_ID }, "id-redacted");
+
+    await expect(handlerRef(event)).rejects.toBe(redactedError);
+
+    expect(log.error).toHaveBeenCalledWith(
+      { error: redactedError },
+      "UiPath lambda failed"
+    );
+    expect(JSON.stringify(vi.mocked(log.error).mock.calls)).not.toContain("token-123");
   });
 });

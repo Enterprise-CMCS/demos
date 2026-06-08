@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
-import { ExitIcon, FileIcon } from "components/icons";
+import { ErrorIcon, ExitIcon, FileIcon } from "components/icons";
 import { TextInput } from "components/input";
 import { DocumentTypeInput } from "components/input/document/DocumentTypeInput";
 import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "components/input/Input";
@@ -14,6 +14,10 @@ import { tw } from "tags/tw";
 import { Notice } from "components/notice";
 import { AttestationDialog } from "components/dialog/AttestationDialog";
 import { UploadButton } from "./UploadButton";
+import {
+  BNPreValidationState,
+  useBNWorkbookPreValidation,
+} from "./useBNWorkbookPreValidation";
 
 type DocumentDialogType = "add" | "edit";
 
@@ -234,6 +238,49 @@ const DropTarget: React.FC<{
   );
 };
 
+const BNPreValidationNotice: React.FC<{ state: BNPreValidationState }> = ({ state }) => {
+  if (state.status === "idle") return null;
+  if (state.status === "validating") {
+    return (
+      <div className="px-2 py-1 text-sm text-text-placeholder" role="status" aria-live="polite">
+        Validating workbook...
+      </div>
+    );
+  }
+  if (state.status === "valid") {
+    return (
+      <div className="px-2 py-1">
+        <Notice title="File Validated Successfully" variant="success" />
+      </div>
+    );
+  }
+  return (
+    <div
+      className="px-2 py-1"
+      role="alert"
+      aria-live="assertive"
+      data-testid="bn-prevalidation-errors"
+    >
+      <div className="flex items-start gap-2 px-1 py-1 text-sm bg-white text-text-font border border-l-[10px] border-border-warn">
+        <span className="shrink-0 pt-0-5" aria-hidden="true">
+          <ErrorIcon />
+        </span>
+        <div className="flex-1 leading-2 space-y-2">
+          <p className="text-[15px] font-bold text-text-font">An Error has occurred</p>
+          {state.errors.map((error, index) => (
+            <p
+              key={`${error.code}-${index}`}
+              className="text-sm text-text-placeholder whitespace-pre-line"
+            >
+              {error.message}
+            </p>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const DocumentDialogNotice = ({
   documentDialogState,
   setDocumentDialogState,
@@ -359,6 +406,8 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     onErrorCallback: (msg: ErrorMessage) => showError(msg),
   });
 
+  const bnPreValidation = useBNWorkbookPreValidation(file, activeDocument.documentType);
+
   useEffect(() => {
     if (mode === "add" && file && !titleManuallyEdited && !activeDocument.name.trim()) {
       const base = file.name.replace(/\.[^.]+$/, "");
@@ -383,6 +432,11 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
 
   const isMissing =
     (mode === "add" && !file) || !activeDocument.documentType || !activeDocument.name.trim();
+
+  const isBNPreValidationBlocking =
+    mode === "add" &&
+    !!file &&
+    (bnPreValidation.status === "validating" || bnPreValidation.status === "invalid");
 
   const onUploadClick = async () => {
     if (documentDialogState === "uploading") return;
@@ -433,7 +487,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
         actionButton={
           <UploadButton
             onClick={onUploadClick}
-            disabled={isMissing || !formHasChanges}
+            disabled={isMissing || !formHasChanges || isBNPreValidationBlocking}
             isUploading={documentDialogState === "uploading"}
             label={buttonName}
             loadingLabel={mode === "edit" ? "Saving" : "Uploading"}
@@ -453,6 +507,8 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
         ) : (
           ""
         )}
+
+        <BNPreValidationNotice state={bnPreValidation} />
 
         <DocumentDialogNotice
           documentDialogState={documentDialogState}

@@ -2,8 +2,8 @@ import "@testing-library/jest-dom";
 
 import React from "react";
 
-import { describe, it, expect, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { ToastProvider } from "components/toast/ToastContext";
 import { DocumentType } from "demos-server";
@@ -13,6 +13,16 @@ import {
   DocumentDialog,
 } from "./DocumentDialog";
 import type { DocumentDialogFields, DocumentUploadResult } from "./DocumentDialog";
+
+const parseBNFile = vi.fn();
+const rule = vi.fn();
+
+vi.mock("demos-shared-library/dist/src/BN/index.js", () => ({
+  parseBNFile: (...args: unknown[]) => parseBNFile(...args),
+}));
+vi.mock("demos-shared-library/dist/src/BN/rulesets/v1/index.js", () => ({
+  validations: [rule],
+}));
 
 describe("checkFormHasChanges", () => {
   const base: DocumentDialogFields = {
@@ -126,5 +136,64 @@ describe("DocumentDialog attestation gating", () => {
 
     expect(onSubmit).toHaveBeenCalledOnce();
     expect(screen.queryByRole("heading", { name: "Attestation Required" })).not.toBeInTheDocument();
+  });
+});
+
+const XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+const selectWorkbook = (fileName = "wb.xlsx") => {
+  const file = new File(["xlsx-bytes"], fileName, { type: XLSX_MIME });
+  fireEvent.change(screen.getByTestId("input-file"), { target: { files: [file] } });
+};
+
+describe("DocumentDialog BN Workbook pre-validation", () => {
+  beforeEach(() => {
+    parseBNFile.mockReset();
+    rule.mockReset();
+  });
+
+  it("blocks upload and surfaces the rule errors when validation fails", async () => {
+    const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
+    parseBNFile.mockResolvedValue([{ sheet: "Sheet1", data: [] }]);
+    rule.mockReturnValue({ code: "1", message: "Error: C Report Tab - missing data." });
+
+    renderAddDialog("BN Workbook", onSubmit);
+    selectWorkbook();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("bn-prevalidation-errors")).toBeInTheDocument();
+    });
+    expect(screen.getByText(/missing data/)).toBeInTheDocument();
+    expect(screen.getByTestId("button-confirm-upload-document")).toBeDisabled();
+
+    fireEvent.click(screen.getByTestId("button-confirm-upload-document"));
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("shows the success notice and unblocks upload when every rule passes", async () => {
+    const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
+    parseBNFile.mockResolvedValue([{ sheet: "Sheet1", data: [] }]);
+    rule.mockReturnValue(null);
+
+    renderAddDialog("BN Workbook", onSubmit);
+    selectWorkbook();
+
+    await waitFor(() => {
+      expect(screen.getByText("File Validated Successfully")).toBeInTheDocument();
+    });
+    expect(screen.getByTestId("button-confirm-upload-document")).not.toBeDisabled();
+  });
+
+  it("does not run validation for non-BN-Workbook document types", async () => {
+    const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
+
+    renderAddDialog("General File", onSubmit);
+    selectWorkbook();
+
+    expect(parseBNFile).not.toHaveBeenCalled();
+    expect(rule).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("bn-prevalidation-errors")).not.toBeInTheDocument();
+    expect(screen.queryByText("File Validated Successfully")).not.toBeInTheDocument();
+    expect(screen.getByTestId("button-confirm-upload-document")).not.toBeDisabled();
   });
 });

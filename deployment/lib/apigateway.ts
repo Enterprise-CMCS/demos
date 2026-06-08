@@ -19,7 +19,7 @@ export function create(props: CommonProps) {
       stageName: props.stage,
       tracingEnabled: true,
       loggingLevel: aws_apigateway.MethodLoggingLevel.INFO,
-      dataTraceEnabled: true,
+      dataTraceEnabled: false,
       metricsEnabled: false,
       throttlingBurstLimit: 5000,
       throttlingRateLimit: 10000,

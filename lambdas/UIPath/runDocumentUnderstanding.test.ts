@@ -408,6 +408,47 @@ describe("runDocumentUnderstanding", () => {
     expect(mocks.queryMock.mock.calls[1]?.[1]?.[5]).toBe("Failed");
   });
 
+  it("persists redacted UiPath HTTP failure details", async () => {
+    mocks.uploadDocumentMock.mockResolvedValue("doc-1");
+    mocks.extractDocMock.mockResolvedValue("result-url");
+    mocks.queryMock.mockResolvedValue({ rows: [{ id: "result-1" }] });
+    const redactedError = {
+      isErrorRedactedResponse: true,
+      message: "Request failed with status code 401",
+      fullURL: "https://govcloud.uipath.us/result",
+      response: {
+        statusCode: 401,
+        statusMessage: "Unauthorized",
+        data: "<REDACTED>",
+      },
+      request: {
+        baseURL: "",
+        path: "https://govcloud.uipath.us/result",
+        method: "get",
+        data: "<REDACTED>",
+      },
+    };
+    mocks.fetchExtractionResultMock.mockRejectedValue(redactedError);
+
+    const promise = runDocumentUnderstanding("file.pdf", {
+      pollIntervalMs: 10,
+      requestId: "request-redacted-failure",
+      documentId: TEST_DOCUMENT_ID,
+      applicationId: TEST_APPLICATION_ID,
+    });
+
+    const expectation = expect(promise).rejects.toBe(redactedError);
+    await vi.runAllTimersAsync();
+    await expectation;
+
+    const failedResponse = JSON.parse(mocks.queryMock.mock.calls[1]?.[1]?.[2]);
+    expect(failedResponse).toEqual({
+      error: "Request failed with status code 401",
+      errorDetails: redactedError,
+    });
+    expect(JSON.stringify(failedResponse)).not.toContain("token-123");
+  });
+
   it("throws when document context is missing", async () => {
     await expect(runDocumentUnderstanding("file.pdf", { documentId: TEST_DOCUMENT_ID })).rejects.toThrow(
       "documentId and applicationId are required to persist UiPath results."
