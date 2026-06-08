@@ -33,8 +33,11 @@ vi.mock("config/env", async (importOriginal) => {
 });
 
 vi.mock("components/user/UserContext", () => ({
-  UserProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   getCurrentUser: () => ({ currentUser: currentUserState.currentUser }),
+}));
+
+vi.mock("components/user/UserProvider", () => ({
+  UserProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 vi.mock("react-oidc-context", () => {
