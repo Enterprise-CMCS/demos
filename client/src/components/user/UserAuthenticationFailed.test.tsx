@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { UserAuthenticationFailed } from "./UserAuthenticationFailed";
 import { CONTACT_US_MAILTO } from "components/footer/Footer";
 
@@ -38,14 +38,6 @@ describe("UserAuthenticationFailed", () => {
   it("omits error message when not provided", () => {
     render(<UserAuthenticationFailed />);
     expect(screen.queryByText(/Error:/)).not.toBeInTheDocument();
-  });
-
-  it("retry button calls window.location.reload", () => {
-    const reload = vi.fn();
-    vi.stubGlobal("location", { reload });
-    render(<UserAuthenticationFailed />);
-    fireEvent.click(screen.getByText("Retry"));
-    expect(reload).toHaveBeenCalled();
   });
 
   it("contact support link points to the support email", () => {

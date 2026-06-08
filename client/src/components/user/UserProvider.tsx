@@ -40,11 +40,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   // Render authentication failure component if there was an error
   if (error || !data?.currentUser) {
+    const errorParts = [auth.error?.message, error?.message].filter(Boolean);
     return (
       <UserAuthenticationFailed
         name={auth.user?.profile.name}
         email={auth.user?.profile.email}
-        errorMessage={error?.message}
+        errorMessage={errorParts.length > 0 ? errorParts.join("; ") : undefined}
       />
     );
   }

@@ -28,6 +28,7 @@ vi.mock("config/env", async (importOriginal) => {
     getAppMode: vi.fn(() => "test"),
     isLocalDevelopment: vi.fn(() => false),
     shouldUseMocks: vi.fn(() => true),
+    isMockUnauthenticated: vi.fn(() => false),
   };
 });
 

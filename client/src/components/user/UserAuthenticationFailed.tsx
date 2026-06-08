@@ -1,6 +1,11 @@
 import React from "react";
 import { CONTACT_US_MAILTO } from "components/footer/Footer";
 import { Notice } from "components/notice";
+import { useAuthActions } from "components/auth/AuthActions";
+import { Anchor, Button } from "components";
+
+const SIGNOUT_BUTTON_NAME = "sign-out-button";
+const CONTACT_US_ANCHOR_NAME = "contact-support";
 
 export const UserAuthenticationFailed = ({
   name,
@@ -11,6 +16,8 @@ export const UserAuthenticationFailed = ({
   email?: string;
   errorMessage?: string;
 }) => {
+  const { signOut } = useAuthActions();
+
   return (
     <div className="flex items-center justify-center h-screen w-screen">
       <div className="flex flex-col gap-2">
@@ -26,19 +33,13 @@ export const UserAuthenticationFailed = ({
           </p>
         )}
         {errorMessage && <p className="text-sm text-gray-500">Error: {errorMessage}</p>}
-        <div className="flex gap-4 text-sm">
-          <button
-            onClick={() => window.location.reload()}
-            className="text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-          >
-            Retry
-          </button>
-          <a
-            href={CONTACT_US_MAILTO}
-            className="text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded"
-          >
+        <div className="flex gap-4 text-sm items-center justify-center">
+          <Button name={SIGNOUT_BUTTON_NAME} onClick={signOut}>
+            Sign out
+          </Button>
+          <Anchor name={CONTACT_US_ANCHOR_NAME} href={CONTACT_US_MAILTO}>
             Contact support
-          </a>
+          </Anchor>
         </div>
       </div>
     </div>
