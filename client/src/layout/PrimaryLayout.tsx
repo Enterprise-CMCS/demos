@@ -6,7 +6,7 @@ import { DialogProvider } from "components/dialog/DialogContext";
 import { getCurrentUser } from "components/user/UserContext";
 import type { PersonType } from "demos-server";
 
-const ROUTES_WITH_HIDDEN_SIDENAV = ["/demonstrations/", "/deliverables/", "/admin"];
+const ROUTES_WITH_HIDDEN_SIDENAV = ["/demonstrations/", "/deliverables/", "/admin", "/references"];
 
 export const shouldHideSideNav = (pathname: string, personType?: PersonType) =>
   personType === "demos-state-user" ||
