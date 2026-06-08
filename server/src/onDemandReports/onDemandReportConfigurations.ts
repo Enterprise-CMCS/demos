@@ -1,13 +1,15 @@
 import { z } from "zod";
 import { OnDemandReportType } from "../types";
-import { basicTestReportSchema } from "./schemas/basicTestReportSchema";
+import { basicTestReportSchema, deliverableStatusReportSchema } from "./schemas";
+import { basicTestReportQuery, deliverableStatusReportQuery } from "./queries";
 
-export const ON_DEMAND_REPORT_CONFIGURATIONS: Record<
-  OnDemandReportType,
-  { queryFile: string; reportRowSchema: z.ZodType<unknown> }
-> = {
+export const ON_DEMAND_REPORT_CONFIGURATIONS = {
   "Basic Test Report": {
-    queryFile: "basicTestReport.sql",
+    sqlQuery: basicTestReportQuery,
     reportRowSchema: basicTestReportSchema,
   },
-};
+  "Deliverable Status Report": {
+    sqlQuery: deliverableStatusReportQuery,
+    reportRowSchema: deliverableStatusReportSchema,
+  },
+} satisfies Record<OnDemandReportType, { sqlQuery: string; reportRowSchema: z.ZodType }>;

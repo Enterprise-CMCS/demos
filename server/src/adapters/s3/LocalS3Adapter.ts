@@ -11,6 +11,8 @@ const BUCKET_NAME = "local-demos-bucket";
  */
 export function createLocalS3Adapter(): S3Adapter {
   const uploadedFiles = new Set<string>();
+  const uploadedOnDemandReports = new Set<string>();
+  const deletedOnDemandReports = new Set<string>();
 
   return {
     async getPresignedUploadUrl(key: string): Promise<string> {
@@ -54,6 +56,19 @@ export function createLocalS3Adapter(): S3Adapter {
       return prisma().$transaction(async (transaction) => {
         return createPendingDocumentAndDocument(transaction);
       });
+    },
+
+    async uploadOnDemandReport(reportId: string, reportFileData: Buffer): Promise<string> {
+      void reportFileData;
+      const key = `reports/on-demand/${reportId}.xlsx`;
+      uploadedOnDemandReports.add(key);
+      return key;
+    },
+
+    async deleteOnDemandReport(reportId: string): Promise<string> {
+      const key = `reports/on-demand/${reportId}.xlsx`;
+      deletedOnDemandReports.add(key);
+      return key;
     },
   };
 }
