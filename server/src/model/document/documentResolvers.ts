@@ -14,61 +14,11 @@ import { getApplication, PrismaApplication } from "../application";
 import { selectUserOrThrow } from "../user/queries";
 import { enqueueUiPath } from "../../services/uipathQueue";
 import { resolveDeliverable } from "../deliverable";
-import { updateDocument as updateDocumentQuery, handleDeleteDocument } from ".";
-import { getDocument } from "./documentData";
+import { editDocument, getDocument, removeDocument } from "./documentData";
 import type {
   BudgetNeutralityValidationError,
   BudgetNeutralityValidationResult,
 } from "./documentSchema";
-
-export async function updateDocument(
-  parent: unknown,
-  { id, input }: { id: string; input: UpdateDocumentInput }
-): Promise<PrismaDocument> {
-  checkOptionalNotNullFields(["name", "description", "documentType"], input);
-  try {
-    return await prisma().$transaction(async (tx) => {
-      return await updateDocumentQuery(tx, id, input);
-    });
-  } catch (error) {
-    handlePrismaError(error);
-  }
-}
-
-export async function deleteDocument(
-  parent: unknown,
-  { id }: { id: string }
-): Promise<PrismaDocument> {
-  const s3Adapter = getS3Adapter();
-
-  try {
-    return prisma().$transaction(async (tx) => {
-      return handleDeleteDocument(tx, s3Adapter, id);
-    });
-  } catch (error) {
-    handlePrismaError(error);
-  }
-}
-
-export async function deleteDocuments(
-  parent: unknown,
-  { ids }: { ids: string[] }
-): Promise<number> {
-  const s3Adapter = getS3Adapter();
-
-  try {
-    return prisma().$transaction(async (tx) => {
-      let count = 0;
-      for (const documentId of ids) {
-        await handleDeleteDocument(tx, s3Adapter, documentId);
-        count++;
-      }
-      return count;
-    });
-  } catch (error) {
-    handlePrismaError(error);
-  }
-}
 
 export async function triggerUiPath(
   parent: unknown,
@@ -144,9 +94,57 @@ export const documentResolvers = {
   },
 
   Mutation: {
-    updateDocument: updateDocument,
-    deleteDocument: deleteDocument,
-    deleteDocuments: deleteDocuments,
+    updateDocument: async function updateDocument(
+      parent: unknown,
+      { id, input }: { id: string; input: UpdateDocumentInput },
+      context: GraphQLContext
+    ): Promise<PrismaDocument> {
+      checkOptionalNotNullFields(["name", "description", "documentType"], input);
+      try {
+        return await editDocument(
+          { id },
+          {
+            name: input.name,
+            description: input.description,
+            documentTypeId: input.documentType,
+          },
+          context.user
+        );
+      } catch (error) {
+        handlePrismaError(error);
+      }
+    },
+    deleteDocument: async function deleteDocument(
+      parent: unknown,
+      { id }: { id: string },
+      context: GraphQLContext
+    ): Promise<PrismaDocument> {
+      try {
+        return prisma().$transaction(async (tx) => {
+          return removeDocument({ id }, context.user, tx);
+        });
+      } catch (error) {
+        handlePrismaError(error);
+      }
+    },
+    deleteDocuments: async function deleteDocuments(
+      parent: unknown,
+      { ids }: { ids: string[] },
+      context: GraphQLContext
+    ): Promise<number> {
+      try {
+        return prisma().$transaction(async (tx) => {
+          let count = 0;
+          for (const documentId of ids) {
+            await removeDocument({ id: documentId }, context.user, tx);
+            count++;
+          }
+          return count;
+        });
+      } catch (error) {
+        handlePrismaError(error);
+      }
+    },
     triggerUiPath: triggerUiPath,
   },
 

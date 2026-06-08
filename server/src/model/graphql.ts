@@ -83,6 +83,12 @@ import { extensionResolvers } from "./extension/extensionResolvers.js";
 import { noteTypeSchema } from "./noteType/noteTypeSchema.js";
 import { noteTypeResolvers } from "./noteType/noteTypeResolvers.js";
 
+import { onDemandReportSchema } from "./onDemandReport/onDemandReportSchema";
+import { onDemandReportResolvers } from "./onDemandReport/onDemandReportResolvers";
+
+import { onDemandReportTypeSchema } from "./onDemandReportType/onDemandReportTypeSchema";
+import { onDemandReportTypeResolvers } from "./onDemandReportType/onDemandReportTypeResolvers";
+
 import { permissionSchema } from "./permission/permissionSchema.js";
 import { permissionResolvers } from "./permission/permissionResolvers.js";
 
@@ -182,6 +188,8 @@ export const typeDefs = [
   documentTypeSchema,
   extensionSchema,
   noteTypeSchema,
+  onDemandReportSchema,
+  onDemandReportTypeSchema,
   permissionSchema,
   personSchema,
   personTypeSchema,
@@ -232,6 +240,8 @@ export const resolvers = [
   documentTypeResolvers,
   extensionResolvers,
   noteTypeResolvers,
+  onDemandReportResolvers,
+  onDemandReportTypeResolvers,
   permissionResolvers,
   personResolvers,
   personTypeResolvers,
