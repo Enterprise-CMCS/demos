@@ -46,6 +46,18 @@ export const RESUBMISSION_DISABLED_STATUSES: ReadonlySet<DeliverableStatus> =
 export const isResubmissionDisabled = (status: DeliverableStatus): boolean =>
   RESUBMISSION_DISABLED_STATUSES.has(status);
 
+// Documents may only be deleted before the deliverable has been submitted. Once it
+// is Submitted, Under CMS Review, or in any final status, files are locked from
+// deletion for every user (Add/Edit remain available until a final status — see
+// isDeliverableEditable). Expressed as an allow-list so any new status defaults to locked.
+export const FILE_DELETION_ALLOWED_STATUSES: ReadonlySet<DeliverableStatus> = new Set([
+  "Upcoming",
+  "Past Due",
+]);
+
+export const isFileDeletionLocked = (status: DeliverableStatus): boolean =>
+  !FILE_DELETION_ALLOWED_STATUSES.has(status);
+
 const CMS_STAFF_PERSON_TYPES: ReadonlySet<PersonType> = new Set(["demos-admin", "demos-cms-user"]);
 
 const STATE_FILE_MANAGER_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
@@ -89,6 +101,7 @@ export const FileAndHistoryTabs: React.FC<{
   const cmsFiles = deliverable.cmsDocuments;
   const historyRows: DeliverableHistoryRow[] = deliverable.deliverableActions.map(toHistoryRow);
   const isFinalized = !isDeliverableEditable(deliverable.status);
+  const isDeleteLocked = isFileDeletionLocked(deliverable.status);
   const refetchAfterFileChange = [DELIVERABLE_DETAILS_QUERY];
 
   if (!currentUser) {
@@ -175,6 +188,7 @@ export const FileAndHistoryTabs: React.FC<{
           <StateFilesTab
             files={stateFiles}
             disabled={isFinalized || !canManageStateFiles}
+            deleteDisabled={isDeleteLocked}
             onAdd={canManageStateFiles ? handleAddStateFile : undefined}
             onEdit={canManageStateFiles ? handleEditStateFile : undefined}
             onDelete={canManageStateFiles ? handleDeleteFiles : undefined}
@@ -184,6 +198,7 @@ export const FileAndHistoryTabs: React.FC<{
           <CmsFilesTab
             files={cmsFiles}
             disabled={isFinalized || !canManageCmsFiles}
+            deleteDisabled={isDeleteLocked}
             showActions={canManageCmsFiles}
             onAdd={canManageCmsFiles ? handleAddCmsFile : undefined}
             onEdit={canManageCmsFiles ? handleEditCmsFile : undefined}

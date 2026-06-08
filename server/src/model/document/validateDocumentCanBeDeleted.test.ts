@@ -19,4 +19,39 @@ describe("validateDocumentCanBeDeleted", () => {
     };
     expect(() => validateDocumentCanBeDeleted(document)).not.toThrow();
   });
+
+  it.each(["Submitted", "Under CMS Review", "Accepted", "Approved", "Received and Filed"] as const)(
+    "should throw an error when the deliverable status is %s",
+    (deliverableStatus) => {
+      const document = {
+        id: "doc3",
+        deliverableSubmissionActionId: null,
+        deliverableStatus,
+      };
+      expect(() => validateDocumentCanBeDeleted(document)).toThrow(
+        `Document with ID doc3 cannot be deleted because its deliverable has been submitted.`
+      );
+    }
+  );
+
+  it.each(["Upcoming", "Past Due"] as const)(
+    "should not throw an error when the deliverable status is %s",
+    (deliverableStatus) => {
+      const document = {
+        id: "doc4",
+        deliverableSubmissionActionId: null,
+        deliverableStatus,
+      };
+      expect(() => validateDocumentCanBeDeleted(document)).not.toThrow();
+    }
+  );
+
+  it("should not throw an error when the document is not attached to a deliverable", () => {
+    const document = {
+      id: "doc5",
+      deliverableSubmissionActionId: null,
+      deliverableStatus: null,
+    };
+    expect(() => validateDocumentCanBeDeleted(document)).not.toThrow();
+  });
 });
