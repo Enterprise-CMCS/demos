@@ -11,7 +11,7 @@ import { selectionTooltip } from "./actionTooltips";
 import type { FormattedDeliverableTableRow } from "./DeliverableTable";
 
 export const DELIVERABLE_CANT_DELETE_HAS_FILES =
-  "Deliverables can only be deleted \nif they are Upcoming or Past Due \nand have no comments or files.";
+  "Only Upcoming/Past Due \ndeliverables w/o comments \nor files can be deleted.";
 
 const hasFilesOrComments = (deliverable: FormattedDeliverableTableRow): boolean =>
   Boolean(deliverable.cmsDocuments?.length) ||
