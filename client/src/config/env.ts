@@ -40,6 +40,10 @@ export const getIdleTimeoutMs = (): number => {
   return Number.isFinite(n) ? n : 60 * 60 * 1000; // default 60 min per fisma
 };
 
+export const isMockUnauthenticated = (): boolean => {
+  return import.meta.env.VITE_MOCK_PERSON_TYPE === "unauth";
+};
+
 export const getMockPersonType = (): PersonType => {
   const defaultMockPersonType: PersonType = "demos-cms-user";
   const envMockPersonType = import.meta.env.VITE_MOCK_PERSON_TYPE;
@@ -48,7 +52,9 @@ export const getMockPersonType = (): PersonType => {
   if (PERSON_TYPES.includes(envMockPersonType as PersonType)) {
     return envMockPersonType as PersonType;
   } else {
-    console.warn(`Invalid VITE_MOCK_PERSON_TYPE: ${envMockPersonType}. Defaulting to ${defaultMockPersonType}.`);
+    console.warn(
+      `Invalid VITE_MOCK_PERSON_TYPE: ${envMockPersonType}. Defaulting to ${defaultMockPersonType}.`
+    );
     return defaultMockPersonType;
   }
 };

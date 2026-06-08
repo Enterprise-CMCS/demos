@@ -3,7 +3,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { DemonstrationDetail } from "pages/DemonstrationDetail/index";
 import { DemosApolloProvider } from "./DemosApolloProvider";
 import { DemosAuthProvider } from "./DemosAuthProvider";
-import { getCurrentUser, UserProvider } from "components/user/UserContext";
+import { getCurrentUser } from "components/user/UserContext";
+import { UserProvider } from "components/user/UserProvider";
 import { DemonstrationsPage } from "pages/DemonstrationsPage";
 import { ComponentLibrary, DialogSandbox } from "pages/debug";
 import { IconLibrary } from "pages/debug/IconLibrary";
@@ -17,7 +18,7 @@ import { DeliverableDetailsManagementPage } from "pages/deliverables/Deliverable
 import { AdminPage } from "pages/admin/AdminPage";
 import { RequireRole } from "./RequireRole";
 import { PersonType } from "demos-server";
-import { ReferencesPage } from "pages/ReferencesPage";
+import { ReferencesPage } from "pages/references/ReferencesPage";
 
 const DEMONSTRATION_ACCESS_ROLES: PersonType[] = ["demos-admin", "demos-cms-user"];
 
@@ -71,14 +72,7 @@ export const DemosRouter: React.FC = () => {
                     </RequireRole>
                   }
                 />
-                <Route
-                  path="admin"
-                  element={
-                    <RequireRole allowedRoles={["demos-admin"]}>
-                      <AdminPage />
-                    </RequireRole>
-                  }
-                />
+                <Route path="admin" element={<AdminPage />} />
                 <Route path="references" element={<ReferencesPage />} />
 
                 {isLocalDevelopment() && (

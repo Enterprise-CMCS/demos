@@ -5,13 +5,9 @@ import { extractDoc } from "./extractDoc";
 import { fetchExtractionResult, ExtractionStatus } from "./fetchExtractResult";
 import { getDbPool } from "./db";
 import { getProjectIdByName } from "./getProjectId";
-import {
-  persistApplicationTagSuggestionExtracts,
-} from "./db/applicationTagSuggestionExtracts";
-import {
-  persistFinishedUiPathExtraction,
-  persistResultStatus,
-} from "./db/uiPathResults";
+import { persistApplicationTagSuggestionExtracts } from "./db/applicationTagSuggestionExtracts";
+import { persistFinishedUiPathExtraction, persistResultStatus } from "./db/uiPathResults";
+import { isHttpErrorResponse } from "axios-error-redact";
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
@@ -47,15 +43,52 @@ async function persistExtractionStatus(
   }
 }
 
-function buildFailureResponse(error: unknown, lastPolledStatus: ExtractionStatus | null): Record<string, unknown> {
-  const message = error instanceof Error ? error.message : String(error);
-  const response: Record<string, unknown> = { error: message };
+function buildFailureResponse(
+  error: unknown,
+  lastPolledStatus: ExtractionStatus | null
+): Record<string, unknown> {
+  const errorDetails = getErrorDetails(error);
+  const response: Record<string, unknown> = {
+    error: getErrorMessage(errorDetails),
+    errorDetails,
+  };
 
   if (lastPolledStatus) {
     response.lastPolledStatus = lastPolledStatus;
   }
 
   return response;
+}
+
+function getErrorDetails(error: unknown): unknown {
+  if (isHttpErrorResponse(error)) {
+    return error;
+  }
+
+  if (error instanceof Error) {
+    return {
+      name: error.name,
+      message: error.message,
+    };
+  }
+
+  if (error && typeof error === "object" && "message" in error) {
+    return {
+      message: String((error as { message: unknown }).message),
+    };
+  }
+
+  return {
+    message: String(error),
+  };
+}
+
+function getErrorMessage(errorDetails: unknown): string {
+  if (errorDetails && typeof errorDetails === "object" && "message" in errorDetails) {
+    return String((errorDetails as { message: unknown }).message);
+  }
+
+  return String(errorDetails);
 }
 
 export interface RunDocumentUnderstandingOptions {
@@ -105,7 +138,7 @@ export async function runDocumentUnderstanding(
       documentId,
       applicationId,
       "Pending",
-      { status: "Pending" },
+      { status: "Pending" }
     );
 
     let attempt = 0;

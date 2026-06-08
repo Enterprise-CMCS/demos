@@ -5,7 +5,8 @@ import { ToastProvider } from "components/toast/ToastContext";
 import { MockedProvider, MockedProviderProps } from "@apollo/client/testing";
 import { MemoryRouter, MemoryRouterProps } from "react-router-dom";
 import { ALL_MOCKS } from "mock-data";
-import { CurrentUser, TestUserProvider } from "components/user/UserContext";
+import { CurrentUser } from "components/user/UserContext";
+import { TestUserProvider } from "components/user/UserProvider";
 import { developmentMockUser } from "mock-data/userMocks";
 
 interface TestProviderProps {
@@ -45,9 +46,7 @@ export const TestProvider: React.FC<TestProviderProps> = ({
     <MemoryRouter initialEntries={routerEntries}>
       <ToastProvider>
         <MockedProvider mocks={mocks} addTypename={addTypename}>
-          <TestUserProvider currentUser={currentUser}>
-            {children}
-          </TestUserProvider>
+          <TestUserProvider currentUser={currentUser}>{children}</TestUserProvider>
         </MockedProvider>
       </ToastProvider>
     </MemoryRouter>

@@ -5,12 +5,7 @@ import { DemonstrationTypesList } from "./DemonstrationTypesList";
 import { AddDemonstrationTypesForm } from "./AddDemonstrationTypesForm";
 import { useToast } from "components/toast";
 import { Button } from "components/button";
-import {
-  TagName,
-  LocalDate,
-  SetDemonstrationTypesInput,
-  TagStatus,
-} from "demos-server";
+import { TagName, LocalDate, SetDemonstrationTypesInput, TagStatus } from "demos-server";
 import { gql, TypedDocumentNode, useMutation } from "@apollo/client";
 
 export type DemonstrationType = {
@@ -27,6 +22,7 @@ export const ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION: TypedDocumentNode<
       demonstrationTypes: {
         demonstrationTypeName: TagName;
       };
+      chipId: string;
     };
   },
   { input: SetDemonstrationTypesInput }
@@ -37,6 +33,7 @@ export const ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION: TypedDocumentNode<
       demonstrationTypes {
         demonstrationTypeName
       }
+      chipId
     }
   }
 `;

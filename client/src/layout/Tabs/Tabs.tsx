@@ -59,7 +59,7 @@ export const Tabs: React.FC<TabsProps> = ({
 
   return (
     <div className="block">
-      <div className="flex">
+      <div className="flex" role="tablist">
         {visibleTabs.map((tab) => {
           const { label, value } = tab.props;
           const isSelected = value === selectedValue;
@@ -71,6 +71,8 @@ export const Tabs: React.FC<TabsProps> = ({
               onClick={() => handleTabSelect(value)}
               className={styles.getButtonStyles(isSelected)}
               aria-selected={isSelected}
+              aria-controls={`${value}-panel`}
+              role="tab"
             >
               <div className="flex items-center gap-1">{label}</div>
             </button>
@@ -79,7 +81,9 @@ export const Tabs: React.FC<TabsProps> = ({
         <div className="flex-1 border-b-1 border-b-gray-dark"></div>
       </div>
 
-      <div className={styles.contentStyles}>{selectedTab?.props.children}</div>
+      <div className={styles.contentStyles} id={`${selectedValue}-panel`} role="tabpanel">
+        {selectedTab?.props.children}
+      </div>
     </div>
   );
 };
