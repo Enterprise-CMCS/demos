@@ -79,11 +79,11 @@ describe("DemonstrationDetail", () => {
     renderWithRouter();
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /Demonstration Details/i })).toBeInTheDocument();
+      expect(screen.getByRole("tab", { name: /Demonstration Details/i })).toBeInTheDocument();
     });
 
-    expect(screen.getByRole("button", { name: /Amendments \(2\)/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Extensions \(1\)/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Amendments \(2\)/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Extensions \(1\)/i })).toBeInTheDocument();
   });
 
   it("renders on demonstration details tab by default", async () => {
@@ -146,7 +146,7 @@ describe("DemonstrationDetail", () => {
     });
 
     // Click on Amendments tab
-    const amendmentsTab = screen.getByRole("button", { name: /Amendments \(2\)/i });
+    const amendmentsTab = screen.getByRole("tab", { name: /Amendments \(2\)/i });
     await user.click(amendmentsTab);
 
     await waitFor(() => {
@@ -161,7 +161,7 @@ describe("DemonstrationDetail", () => {
     );
 
     // Click on Extensions tab
-    const extensionsTab = screen.getByRole("button", { name: /Extensions \(1\)/i });
+    const extensionsTab = screen.getByRole("tab", { name: /Extensions \(1\)/i });
     await user.click(extensionsTab);
 
     await waitFor(() => {
@@ -176,7 +176,7 @@ describe("DemonstrationDetail", () => {
     );
 
     // Click back to Demonstration Details tab
-    const detailsTab = screen.getByRole("button", { name: /Demonstration Details/i });
+    const detailsTab = screen.getByRole("tab", { name: /Demonstration Details/i });
     await user.click(detailsTab);
 
     await waitFor(() => {
