@@ -11,7 +11,7 @@ const BUCKET_NAME = "local-demos-bucket";
  */
 export function createLocalS3Adapter(): S3Adapter {
   const uploadedFiles = new Set<string>();
-  const uploadedOnDemandReports = new Set<string>();
+  const uploadedOnDemandReports = new Map<string, Buffer>();
 
   return {
     async getPresignedUploadUrl(key: string): Promise<string> {
@@ -58,9 +58,8 @@ export function createLocalS3Adapter(): S3Adapter {
     },
 
     async uploadOnDemandReport(reportId: string, reportFileData: Buffer): Promise<string> {
-      void reportFileData;
       const key = `reports/on-demand/${reportId}.xlsx`;
-      uploadedOnDemandReports.add(key);
+      uploadedOnDemandReports.set(key, reportFileData);
       return key;
     },
 
