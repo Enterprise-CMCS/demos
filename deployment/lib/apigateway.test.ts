@@ -35,6 +35,12 @@ describe("ApiGateway", () => {
 
     template.hasResourceProperties("AWS::ApiGateway::Stage", {
       StageName: mockCommonProps.stage,
+      MethodSettings: Match.arrayWith([
+        Match.objectLike({
+          DataTraceEnabled: false,
+          LoggingLevel: "INFO",
+        }),
+      ]),
     });
 
     template.hasResourceProperties("AWS::ApiGateway::Method", {
