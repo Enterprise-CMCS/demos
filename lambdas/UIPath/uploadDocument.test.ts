@@ -41,47 +41,28 @@ describe("uploadDocument", () => {
     vi.clearAllMocks();
   });
 
-  it("logs sanitized Axios errors and rethrows a sanitized Error", async () => {
-    mocks.uipathPostRequestMock.mockRejectedValue({
-      name: "AxiosError",
-      message: "Request failed with Bearer token-123", // pragma: allowlist secret
-      isAxiosError: true,
-      config: {
-        method: "post",
-        url: "https://govcloud.uipath.us/upload",
-        headers: {
-          Authorization: "Bearer token-123", // pragma: allowlist secret
-        },
-      },
+  it("rethrows redacted errors from the shared UiPath client", async () => {
+    const redactedError = {
+      isErrorRedactedResponse: true,
+      message: "Request failed with status code 500",
+      fullURL: "https://govcloud.uipath.us/upload",
       response: {
-        status: 500,
-        data: {
-          error: "server_error",
-          access_token: "token-123", // pragma: allowlist secret
-        },
+        statusCode: 500,
+        statusMessage: "Internal Server Error",
+        data: "<REDACTED>",
       },
-    });
-
-    await expect(uploadDocument("token-123", "file.pdf", "project-1")).rejects.toThrow(
-      "Request failed with Bearer [REDACTED]"
-    );
-
-    expect(mocks.logErrorMock).toHaveBeenCalledWith(
-      {
-        error: {
-          name: "AxiosError",
-          message: "Request failed with Bearer [REDACTED]",
-          status: 500,
-          responseData: {
-            error: "server_error",
-            access_token: "[REDACTED]",
-          },
-          method: "POST",
-          url: "https://govcloud.uipath.us/upload",
-        },
+      request: {
+        baseURL: "",
+        path: "https://govcloud.uipath.us/upload",
+        method: "post",
+        data: "<REDACTED>",
       },
-      "Error uploading document"
-    );
+    };
+    mocks.uipathPostRequestMock.mockRejectedValue(redactedError);
+
+    await expect(uploadDocument("token-123", "file.pdf", "project-1")).rejects.toBe(redactedError);
+
+    expect(mocks.logErrorMock).not.toHaveBeenCalled();
     expect(JSON.stringify(mocks.logErrorMock.mock.calls)).not.toContain("token-123");
   });
 });

@@ -3,7 +3,6 @@ import FormData from "form-data";
 import { AxiosProgressEvent } from "axios";
 import { log } from "./log";
 import { uipathPostRequest, UIPATH_TENANT, UIPATH_BASE_URL } from "./uipathClient";
-import { createSanitizedError, sanitizeError } from "./sanitizeError";
 
 export interface UploadResponse {
   documentId: string;
@@ -31,29 +30,24 @@ export async function uploadDocument(
       : fileName;
   formData.append("file", fs.createReadStream(fileName), uploadName);
 
-  try {
-    const doc = await uipathPostRequest<UploadResponse>(url, token, formData, {
-      headers: {
-        // form-data requires its own headers so axios can set boundaries
-        ...formData.getHeaders(),
-        "x-uipath-page-range": "All",
-      },
-      onUploadProgress: (progressEvent?: AxiosProgressEvent) => {
-        if (!progressEvent?.total) return;
-        const percentCompleted = Math.round(
-          ((progressEvent.loaded ?? 0) * 100) / progressEvent.total
-        );
-        log.info({ percentCompleted }, "Upload progress");
-      },
-    });
+  const doc = await uipathPostRequest<UploadResponse>(url, token, formData, {
+    headers: {
+      // form-data requires its own headers so axios can set boundaries
+      ...formData.getHeaders(),
+      "x-uipath-page-range": "All",
+    },
+    onUploadProgress: (progressEvent?: AxiosProgressEvent) => {
+      if (!progressEvent?.total) return;
+      const percentCompleted = Math.round(
+        ((progressEvent.loaded ?? 0) * 100) / progressEvent.total
+      );
+      log.info({ percentCompleted }, "Upload progress");
+    },
+  });
 
-    const documentId = doc?.data?.documentId || (doc?.data as unknown as string);
-    if (!documentId) {
-      throw new Error("UiPath upload did not return a documentId.");
-    }
-    return documentId;
-  } catch (error) {
-    log.error({ error: sanitizeError(error) }, "Error uploading document");
-    throw createSanitizedError(error);
+  const documentId = doc?.data?.documentId || (doc?.data as unknown as string);
+  if (!documentId) {
+    throw new Error("UiPath upload did not return a documentId.");
   }
+  return documentId;
 }

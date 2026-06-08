@@ -7,7 +7,7 @@ import { getDbPool } from "./db";
 import { getProjectIdByName } from "./getProjectId";
 import { persistApplicationTagSuggestionExtracts } from "./db/applicationTagSuggestionExtracts";
 import { persistFinishedUiPathExtraction, persistResultStatus } from "./db/uiPathResults";
-import { createSanitizedError, sanitizeError } from "./sanitizeError";
+import { isHttpErrorResponse } from "axios-error-redact";
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
@@ -47,10 +47,10 @@ function buildFailureResponse(
   error: unknown,
   lastPolledStatus: ExtractionStatus | null
 ): Record<string, unknown> {
-  const sanitizedError = sanitizeError(error);
+  const errorDetails = getErrorDetails(error);
   const response: Record<string, unknown> = {
-    error: sanitizedError.message,
-    errorDetails: sanitizedError,
+    error: getErrorMessage(errorDetails),
+    errorDetails,
   };
 
   if (lastPolledStatus) {
@@ -58,6 +58,37 @@ function buildFailureResponse(
   }
 
   return response;
+}
+
+function getErrorDetails(error: unknown): unknown {
+  if (isHttpErrorResponse(error)) {
+    return error;
+  }
+
+  if (error instanceof Error) {
+    return {
+      name: error.name,
+      message: error.message,
+    };
+  }
+
+  if (error && typeof error === "object" && "message" in error) {
+    return {
+      message: String((error as { message: unknown }).message),
+    };
+  }
+
+  return {
+    message: String(error),
+  };
+}
+
+function getErrorMessage(errorDetails: unknown): string {
+  if (errorDetails && typeof errorDetails === "object" && "message" in errorDetails) {
+    return String((errorDetails as { message: unknown }).message);
+  }
+
+  return String(errorDetails);
 }
 
 export interface RunDocumentUnderstandingOptions {
@@ -141,9 +172,9 @@ export async function runDocumentUnderstanding(
         buildFailureResponse(error, lastPolledStatus),
       );
     } catch (persistError) {
-      log.error({ error: sanitizeError(persistError) }, "Failed to Fail UiPath status");
+      log.error({ error: persistError }, "Failed to Fail UiPath status");
     }
 
-    throw createSanitizedError(error);
+    throw error;
   }
 }

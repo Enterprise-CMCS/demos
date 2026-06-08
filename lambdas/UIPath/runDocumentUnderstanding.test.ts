@@ -408,55 +408,43 @@ describe("runDocumentUnderstanding", () => {
     expect(mocks.queryMock.mock.calls[1]?.[1]?.[5]).toBe("Failed");
   });
 
-  it("persists sanitized Axios failure details", async () => {
+  it("persists redacted UiPath HTTP failure details", async () => {
     mocks.uploadDocumentMock.mockResolvedValue("doc-1");
     mocks.extractDocMock.mockResolvedValue("result-url");
     mocks.queryMock.mockResolvedValue({ rows: [{ id: "result-1" }] });
-    mocks.fetchExtractionResultMock.mockRejectedValue({
-      name: "AxiosError",
-      message: "Request failed with Bearer token-123", // pragma: allowlist secret
-      isAxiosError: true,
-      config: {
-        method: "get",
-        url: "https://govcloud.uipath.us/result",
-        headers: {
-          Authorization: "Bearer token-123", // pragma: allowlist secret
-        },
-      },
+    const redactedError = {
+      isErrorRedactedResponse: true,
+      message: "Request failed with status code 401",
+      fullURL: "https://govcloud.uipath.us/result",
       response: {
-        status: 401,
-        data: {
-          error: "unauthorized",
-          token: "token-123", // pragma: allowlist secret
-        },
+        statusCode: 401,
+        statusMessage: "Unauthorized",
+        data: "<REDACTED>",
       },
-    });
+      request: {
+        baseURL: "",
+        path: "https://govcloud.uipath.us/result",
+        method: "get",
+        data: "<REDACTED>",
+      },
+    };
+    mocks.fetchExtractionResultMock.mockRejectedValue(redactedError);
 
     const promise = runDocumentUnderstanding("file.pdf", {
       pollIntervalMs: 10,
-      requestId: "request-sanitized-failure",
+      requestId: "request-redacted-failure",
       documentId: TEST_DOCUMENT_ID,
       applicationId: TEST_APPLICATION_ID,
     });
 
-    const expectation = expect(promise).rejects.toThrow("Request failed with Bearer [REDACTED]");
+    const expectation = expect(promise).rejects.toBe(redactedError);
     await vi.runAllTimersAsync();
     await expectation;
 
     const failedResponse = JSON.parse(mocks.queryMock.mock.calls[1]?.[1]?.[2]);
     expect(failedResponse).toEqual({
-      error: "Request failed with Bearer [REDACTED]",
-      errorDetails: {
-        name: "AxiosError",
-        message: "Request failed with Bearer [REDACTED]",
-        status: 401,
-        responseData: {
-          error: "unauthorized",
-          token: "[REDACTED]",
-        },
-        method: "GET",
-        url: "https://govcloud.uipath.us/result",
-      },
+      error: "Request failed with status code 401",
+      errorDetails: redactedError,
     });
     expect(JSON.stringify(failedResponse)).not.toContain("token-123");
   });

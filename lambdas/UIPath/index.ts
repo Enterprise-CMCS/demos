@@ -10,7 +10,6 @@ import { runDocumentUnderstanding } from "./runDocumentUnderstanding";
 import { parseDocumentFromId, parseUiPathMessage } from "./parseDocumentFromId";
 import { region } from "./uipathClient";
 import { fileTypeFromFile } from "file-type";
-import { createSanitizedError, sanitizeError } from "./sanitizeError";
 
 const s3 = new S3Client({
   region,
@@ -122,8 +121,8 @@ export const handler = async (event: SQSEvent) =>
       log.info("UiPath extraction completed successfully");
       return status;
     } catch (error) {
-      log.error({ error: sanitizeError(error) }, "UiPath lambda failed");
-      throw createSanitizedError(error);
+      log.error({ error }, "UiPath lambda failed");
+      throw error;
     }
   }
 );

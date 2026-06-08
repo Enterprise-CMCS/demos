@@ -218,7 +218,7 @@ describe("handler", () => {
     );
   });
 
-  it("logs sanitized errors and rethrows a sanitized Error", async () => {
+  it("logs and rethrows redacted UiPath errors", async () => {
     process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
     process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
     mocks.sendMock.mockResolvedValue({ Body: Readable.from(["test"]) });
@@ -228,44 +228,30 @@ describe("handler", () => {
       documentId: SEEDED_DOCUMENT_ID,
       applicationId: "app-1",
     });
-    mocks.runDocumentUnderstandingMock.mockRejectedValue({
-      name: "AxiosError",
-      message: "Request failed with Bearer token-123", // pragma: allowlist secret
-      isAxiosError: true,
-      config: {
-        method: "get",
-        url: "https://govcloud.uipath.us/result",
-        headers: {
-          Authorization: "Bearer token-123", // pragma: allowlist secret
-        },
-      },
+    const redactedError = {
+      isErrorRedactedResponse: true,
+      message: "Request failed with status code 401",
+      fullURL: "https://govcloud.uipath.us/result",
       response: {
-        status: 401,
-        data: {
-          error: "unauthorized",
-          token: "token-123", // pragma: allowlist secret
-        },
+        statusCode: 401,
+        statusMessage: "Unauthorized",
+        data: "<REDACTED>",
       },
-    });
+      request: {
+        baseURL: "",
+        path: "https://govcloud.uipath.us/result",
+        method: "get",
+        data: "<REDACTED>",
+      },
+    };
+    mocks.runDocumentUnderstandingMock.mockRejectedValue(redactedError);
 
-    const event = createEvent({ documentId: SEEDED_DOCUMENT_ID }, "id-sanitized");
+    const event = createEvent({ documentId: SEEDED_DOCUMENT_ID }, "id-redacted");
 
-    await expect(handlerRef(event)).rejects.toThrow("Request failed with Bearer [REDACTED]");
+    await expect(handlerRef(event)).rejects.toBe(redactedError);
 
     expect(log.error).toHaveBeenCalledWith(
-      {
-        error: {
-          name: "AxiosError",
-          message: "Request failed with Bearer [REDACTED]",
-          status: 401,
-          responseData: {
-            error: "unauthorized",
-            token: "[REDACTED]",
-          },
-          method: "GET",
-          url: "https://govcloud.uipath.us/result",
-        },
-      },
+      { error: redactedError },
       "UiPath lambda failed"
     );
     expect(JSON.stringify(vi.mocked(log.error).mock.calls)).not.toContain("token-123");

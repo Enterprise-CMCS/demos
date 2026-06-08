@@ -3,19 +3,24 @@ import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 const mocks = vi.hoisted(() => ({
   postMock: vi.fn(),
   getUiPathSecretMock: vi.fn(),
+  logErrorMock: vi.fn(),
 }));
-
-vi.mock("axios", () => {
-  const isAxiosError = (err: unknown) => Boolean((err as { isAxiosError?: boolean })?.isAxiosError);
-  return {
-    default: { post: mocks.postMock, isAxiosError },
-    isAxiosError,
-  };
-});
 
 vi.mock("./uipathSecrets", () => {
   return { getUiPathSecret: mocks.getUiPathSecretMock };
 });
+
+vi.mock("./uipathClient", () => ({
+  uipathAxios: {
+    post: mocks.postMock,
+  },
+}));
+
+vi.mock("./log", () => ({
+  log: {
+    error: mocks.logErrorMock,
+  },
+}));
 
 import { getToken } from "./getToken";
 
@@ -26,6 +31,7 @@ describe("getToken", () => {
     process.env = { ...prevEnv, UIPATH_SECRET_ID: "uipath-ref" };
     mocks.postMock.mockReset();
     mocks.getUiPathSecretMock.mockReset();
+    mocks.logErrorMock.mockReset();
   });
 
   afterEach(() => {
@@ -52,50 +58,35 @@ describe("getToken", () => {
     await expect(getToken()).rejects.toThrow("Auth token not returned from UiPath.");
   });
 
-  it("logs sanitized axios error details and rethrows a sanitized error", async () => {
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
+  it("logs and rethrows redacted token request errors from the shared axios client", async () => {
     mocks.getUiPathSecretMock.mockResolvedValue({
       clientId: "clientId-1", // pragma: allowlist secret
       clientSecret: "value-1", // pragma: allowlist secret
     });
-    mocks.postMock.mockRejectedValue({
-      name: "AxiosError",
-      message: "Request failed with Basic encoded-secret", // pragma: allowlist secret
-      isAxiosError: true,
-      config: {
-        method: "post",
-        url: "https://govcloud.uipath.us/identity_/connect/token",
-        headers: {
-          Authorization: "Basic encoded-secret", // pragma: allowlist secret
-        },
-      },
+    const redactedError = {
+      isErrorRedactedResponse: true,
+      message: "Request failed with status code 400",
+      fullURL: "https://govcloud.uipath.us/identity_/connect/token",
       response: {
-        status: 400,
-        data: {
-          error: "invalid_client",
-          clientSecret: "value-1", // pragma: allowlist secret
-        },
+        statusCode: 400,
+        statusMessage: "Bad Request",
+        data: "<REDACTED>",
       },
-    });
-
-    await expect(getToken()).rejects.toThrow("Request failed with Basic [REDACTED]");
-
-    expect(consoleErrorSpy).toHaveBeenCalledWith("UiPath token request failed", {
-      name: "AxiosError",
-      message: "Request failed with Basic [REDACTED]",
-      status: 400,
-      responseData: {
-        error: "invalid_client",
-        clientSecret: "[REDACTED]",
+      request: {
+        baseURL: "",
+        path: "https://govcloud.uipath.us/identity_/connect/token",
+        method: "post",
+        data: "<REDACTED>",
       },
-      method: "POST",
-      url: "https://govcloud.uipath.us/identity_/connect/token",
-    });
-    expect(JSON.stringify(consoleErrorSpy.mock.calls)).not.toContain("encoded-secret");
-    expect(JSON.stringify(consoleErrorSpy.mock.calls)).not.toContain("value-1");
+    };
+    mocks.postMock.mockRejectedValue(redactedError);
 
-    consoleErrorSpy.mockRestore();
+    await expect(getToken()).rejects.toBe(redactedError);
+
+    expect(mocks.logErrorMock).toHaveBeenCalledWith(
+      { error: redactedError },
+      "UiPath token request failed"
+    );
   });
 
   it("throws when UIPATH_SECRET_ID is missing", async () => {
@@ -108,7 +99,6 @@ describe("getToken", () => {
   });
 
   it("rejects placeholder credentials from secret", async () => {
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     mocks.getUiPathSecretMock.mockResolvedValue({
       clientId: "local-uipath-client-id", // pragma: allowlist secret
       clientSecret: "local-uipath-client-secret", // pragma: allowlist secret
@@ -119,11 +109,13 @@ describe("getToken", () => {
     );
 
     expect(mocks.postMock).not.toHaveBeenCalled();
-    consoleErrorSpy.mockRestore();
+    expect(mocks.logErrorMock).toHaveBeenCalledWith(
+      { error: expect.any(Error) },
+      "Failed to retrieve UiPath credentials"
+    );
   });
 
   it("throws when secret does not include both client fields", async () => {
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     mocks.getUiPathSecretMock.mockResolvedValue({
       clientId: "clientId-1",
     });
@@ -132,6 +124,9 @@ describe("getToken", () => {
       "Failed to retrieve UiPath credentials from Secrets Manager: UiPath secret must contain clientId/clientSecret fields."
     );
     expect(mocks.postMock).not.toHaveBeenCalled();
-    consoleErrorSpy.mockRestore();
+    expect(mocks.logErrorMock).toHaveBeenCalledWith(
+      { error: expect.any(Error) },
+      "Failed to retrieve UiPath credentials"
+    );
   });
 });

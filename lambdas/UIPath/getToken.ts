@@ -1,6 +1,6 @@
-import axios from "axios";
 import { getUiPathSecret } from "./uipathSecrets";
-import { createSanitizedError, sanitizeError } from "./sanitizeError";
+import { log } from "./log";
+import { uipathAxios } from "./uipathClient";
 
 interface TokenResponse {
   access_token: string;
@@ -46,10 +46,10 @@ async function getCredentials(): Promise<UiPathCredentials> {
 
     throw new Error("UiPath secret must contain clientId/clientSecret fields.");
   } catch (error) {
-    const sanitizedError = sanitizeError(error);
-    console.error("Failed to retrieve UiPath credentials", sanitizedError);
+    const message = error instanceof Error ? error.message : String(error);
+    log.error({ error }, "Failed to retrieve UiPath credentials");
     throw new Error(
-      `Failed to retrieve UiPath credentials from Secrets Manager: ${sanitizedError.message}`
+      `Failed to retrieve UiPath credentials from Secrets Manager: ${message}`
     );
   }
 }
@@ -62,7 +62,7 @@ export async function getToken(): Promise<string> {
   const encodedCredentials = Buffer.from(clientId + ":" + clientSecret).toString("base64");
 
   try {
-    const tokenResponse = await axios.post<TokenResponse>(TOKEN_URL, params.toString(), {
+    const tokenResponse = await uipathAxios.post<TokenResponse>(TOKEN_URL, params.toString(), {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
         Authorization: "Basic " + encodedCredentials,
@@ -75,9 +75,7 @@ export async function getToken(): Promise<string> {
     }
     return token;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error("UiPath token request failed", sanitizeError(error));
-    }
-    throw createSanitizedError(error);
+    log.error({ error }, "UiPath token request failed");
+    throw error;
   }
 }
