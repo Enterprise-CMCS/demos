@@ -1,15 +1,16 @@
 import { PersonType, User } from "demos-server";
 
+import { MockedResponse } from "@apollo/client/testing";
+import { mockPeople, MockPerson } from "./personMocks";
+import { mockStates } from "./stateMocks";
+import { getMockPersonType, isMockUnauthenticated } from "config/env";
+import { GET_CURRENT_USER_QUERY } from "components/user/UserProvider";
+
 export type MockUser = Pick<User, "id" | "username"> & {
   person: MockPerson;
 };
-import { MockedResponse } from "@apollo/client/testing";
-import { GET_CURRENT_USER_QUERY } from "components/user/UserContext";
-import { mockPeople, MockPerson } from "./personMocks";
-import { mockStates } from "./stateMocks";
-import { getMockPersonType } from "config/env";
 
-const getPrettyFirstName =(personType: PersonType): string => {
+const getPrettyFirstName = (personType: PersonType): string => {
   switch (personType) {
     case "demos-admin":
       return "Admin";
@@ -49,14 +50,18 @@ export const mockUsers: MockUser[] = [
   { id: "10", username: "david.chen", person: mockPeople[9] },
 ];
 
-export const userMocks: MockedResponse[] = [
-  {
-    request: {
-      query: GET_CURRENT_USER_QUERY,
-    },
-    result: {
-      data: { currentUser: developmentMockUser },
-    },
-    maxUsageCount: Number.POSITIVE_INFINITY,
-  },
-];
+const mockUserFailureResponse: MockedResponse = {
+  request: { query: GET_CURRENT_USER_QUERY },
+  error: new Error("Mock authentication failure"),
+  maxUsageCount: Number.POSITIVE_INFINITY,
+};
+
+const mockUserSuccessResponse: MockedResponse = {
+  request: { query: GET_CURRENT_USER_QUERY },
+  result: { data: { currentUser: developmentMockUser } },
+  maxUsageCount: Number.POSITIVE_INFINITY,
+};
+
+export const userMocks: MockedResponse[] = isMockUnauthenticated()
+  ? [mockUserFailureResponse]
+  : [mockUserSuccessResponse];

@@ -28,12 +28,16 @@ vi.mock("config/env", async (importOriginal) => {
     getAppMode: vi.fn(() => "test"),
     isLocalDevelopment: vi.fn(() => false),
     shouldUseMocks: vi.fn(() => true),
+    isMockUnauthenticated: vi.fn(() => false),
   };
 });
 
 vi.mock("components/user/UserContext", () => ({
-  UserProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   getCurrentUser: () => ({ currentUser: currentUserState.currentUser }),
+}));
+
+vi.mock("components/user/UserProvider", () => ({
+  UserProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 vi.mock("react-oidc-context", () => {

@@ -72,6 +72,7 @@ This file provides instructions for AI agents to use when generating or editing 
 
 - Run linting + typechecking with `npm run lint`
 - For testing behavior with different roles you can use the different variants of `npm run dev:mocks` - `dev:mocks:admin`, `dev:mocks:state`, etc. Some functionality is only available through certain roles.
+- For testing an unauthenticated user: `npm run dev:mocks:unauth`
 
 ### Accessibility Testing
 
@@ -104,5 +105,4 @@ vi.mock("@apollo/client", async () => {
 
 Patterns that exist now that will likely be replaced in the future. Try not entrench these patterns further if avoidable and if not then implement them consistently with other usages to make for a simpler refactor.
 
-- `getCurrentUser` SHOULD NEVER return undefined for `currentUser`. If `getCurrentUser` cannot resolve a proper `currentUser` object then `<UserContext>` should show a relevant error page itself and cease operation.
 - `addTypename` on `<MockedProvider>` is deprecated and should be removed.

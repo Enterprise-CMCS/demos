@@ -7,7 +7,8 @@ import {
 import { MockedProvider, MockedProviderProps } from "@apollo/client/testing";
 import { GraphQLError } from "graphql";
 import { MemoryRouter } from "react-router-dom";
-import { CurrentUser, TestUserProvider } from "components/user/UserContext";
+import { CurrentUser } from "components/user/UserContext";
+import { TestUserProvider } from "components/user/UserProvider";
 import { developmentMockUser } from "mock-data/userMocks";
 
 vi.mock("components/toast/ToastContext", () => ({
@@ -317,9 +318,7 @@ describe("Demonstration Detail Header", () => {
       expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
     });
 
-    const breadcrumb = screen
-      .getByRole("link", { name: /demonstration list/i })
-      .parentElement;
+    const breadcrumb = screen.getByRole("link", { name: /demonstration list/i }).parentElement;
 
     expect(breadcrumb).toHaveTextContent("11-W-99999/8");
     expect(breadcrumb).toHaveTextContent("11-W-99998/8");
@@ -333,9 +332,7 @@ describe("Demonstration Detail Header", () => {
       expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
     });
 
-    const breadcrumb = screen
-      .getByRole("link", { name: /demonstration list/i })
-      .parentElement;
+    const breadcrumb = screen.getByRole("link", { name: /demonstration list/i }).parentElement;
 
     expect(breadcrumb).toHaveTextContent("11-W-99999/8");
     expect(breadcrumb).not.toHaveTextContent("11-W-99998/8");
