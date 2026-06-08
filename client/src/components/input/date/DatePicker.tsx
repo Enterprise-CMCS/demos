@@ -30,14 +30,12 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   onChange,
   isRequired,
   isDisabled,
-  minDate,
-  maxDate,
+  minDate = DEFAULT_MIN_DATE,
+  maxDate = DEFAULT_MAX_DATE,
   getValidationMessage,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const isFocusedRef = useRef(false);
-  const inputMin = minDate ?? DEFAULT_MIN_DATE;
-  const inputMax = maxDate ?? DEFAULT_MAX_DATE;
 
   // The input is uncontrolled (defaultValue + ref-sync). Native <input type="date"> is fragile:
   // any DOM mutation, parent re-render, or write to .value while the field is focused can drop
@@ -71,8 +69,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   // emits well-formed YYYY-MM-DD or "", so an ISO string compare is chronologically correct.
   const getRangeValidationMessage = (): string => {
     if (!value) return "";
-    if (value < inputMin) return `Date must be on or after ${formatDate(parseISO(inputMin))}.`;
-    if (value > inputMax) return `Date must be on or before ${formatDate(parseISO(inputMax))}.`;
+    if (value < minDate) return `Date must be on or after ${formatDate(parseISO(minDate))}.`;
+    if (value > maxDate) return `Date must be on or before ${formatDate(parseISO(maxDate))}.`;
     return "";
   };
 
@@ -96,8 +94,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         defaultValue={value ?? ""}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        min={inputMin}
-        max={inputMax}
+        min={minDate}
+        max={maxDate}
       />
       {validationMessage && <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>}
     </div>
