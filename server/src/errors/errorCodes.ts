@@ -51,7 +51,7 @@ export function getPublicErrorMessageFromCode(
   return CUSTOM_PUBLIC_ERROR_MESSAGES[publicErrorCode] ?? originalMessage;
 }
 
-export function throwCustomGQLError(message: string, errorCode: CustomInternalErrorCode): void {
+export function throwCustomGQLError(message: string, errorCode: CustomInternalErrorCode): never {
   throw new GraphQLError(message, {
     extensions: {
       code: errorCode,

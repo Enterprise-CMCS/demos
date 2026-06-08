@@ -47,12 +47,12 @@ export class ApiStack extends Stack {
       scope: this,
       iamPermissionsBoundary:
         props.iamPermissionsBoundaryArn == null
-          ? undefined : aws_iam.ManagedPolicy.fromManagedPolicyArn(
+          ? undefined
+          : aws_iam.ManagedPolicy.fromManagedPolicyArn(
               this,
               "iamPermissionsBoundary",
               props.iamPermissionsBoundaryArn
-            )
-          ,
+            ),
     };
     const alarmResources = new alarms.CloudWatchAlarmRegistry();
 
@@ -115,8 +115,6 @@ export class ApiStack extends Stack {
       aws_ec2.Port.HTTPS,
       "Allow traffic to SQS"
     );
-
-    
 
     const cognitoAuthority = Fn.importValue(`${commonProps.hostEnvironment}CognitoAuthority`);
     const apigateway_outputs = apigateway.create({
@@ -203,6 +201,7 @@ export class ApiStack extends Stack {
     dbSecret.grantRead(graphqlLambda.lambda.role);
     uploadBucket.grantPut(graphqlLambda.lambda.role);
     cleanBucket.grantDelete(graphqlLambda.lambda.role);
+    cleanBucket.grantPut(graphqlLambda.lambda.role);
     cleanBucket.grantRead(graphqlLambda.lambda.role);
     deletedBucket.grantPut(graphqlLambda.lambda.role);
     uipathQueue.grantSendMessages(graphqlLambda.lambda.role);
@@ -211,8 +210,7 @@ export class ApiStack extends Stack {
       aliasName: `alias/demos-${commonProps.stage}-file-upload-sqs`,
     });
 
-    fileUploadKms.grantEncrypt(graphqlLambda.lambda.role)
-
+    fileUploadKms.grantEncrypt(graphqlLambda.lambda.role);
 
     const emailerTimeout = Duration.minutes(1);
 

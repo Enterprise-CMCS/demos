@@ -10,6 +10,8 @@ export interface S3Adapter {
     documentData: Prisma.DocumentPendingUploadCreateArgs["data"],
     tx?: PrismaTransactionClient
   ): Promise<PrismaDocumentPendingUpload>;
+  uploadOnDemandReport(reportId: string, reportFileData: Buffer): Promise<string>;
+  deleteOnDemandReport(reportId: string): Promise<string>;
 }
 
 let s3AdapterInstance: S3Adapter | null = null;
