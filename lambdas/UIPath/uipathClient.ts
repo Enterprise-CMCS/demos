@@ -7,6 +7,7 @@ export const UIPATH_TENANT = "globalalliant/Dev";
 export const UIPATH_API_VERSION = "1.0";
 export const region = "us-east-1";
 
+// createErrorInterceptor included with the uipathAxios HTTP object
 export const uipathAxios = axios.create();
 uipathAxios.interceptors.response.use(undefined, createErrorInterceptor());
 
