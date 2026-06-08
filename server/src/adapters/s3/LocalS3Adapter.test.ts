@@ -199,6 +199,19 @@ describe("LocalS3Adapter", () => {
 
       expect(result).toBe(`reports/on-demand/${reportId}.xlsx`);
     });
+
+    it("should make the uploaded report downloadable with its byte size", async () => {
+      const adapter = createLocalS3Adapter();
+      const reportId = "report-abc-123";
+      const reportData = Buffer.from("report contents");
+
+      const key = await adapter.uploadOnDemandReport(reportId, reportData);
+      const downloadUrl = await adapter.getPresignedDownloadUrl(key);
+
+      expect(downloadUrl).toBe(
+        `LocalS3Adapter/local-demos-bucket/${key}?download=true&expires=3600&size=${reportData.byteLength}`
+      );
+    });
   });
 
   describe("deleteOnDemandReport", () => {

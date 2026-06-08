@@ -23,6 +23,11 @@ export function createLocalS3Adapter(): S3Adapter {
         return `${HOSTNAME}/${BUCKET_NAME}/${key}?download=true&expires=3600`;
       }
 
+      const onDemandReport = uploadedOnDemandReports.get(key);
+      if (onDemandReport) {
+        return `${HOSTNAME}/${BUCKET_NAME}/${key}?download=true&expires=3600&size=${onDemandReport.byteLength}`;
+      }
+
       return `${key} does not exist!`;
     },
 
