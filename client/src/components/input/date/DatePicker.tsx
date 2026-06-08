@@ -40,9 +40,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   // The input is uncontrolled (defaultValue + ref-sync). Native <input type="date"> is fragile:
   // any DOM mutation, parent re-render, or write to .value while the field is focused can drop
   // focus, reset the mm→dd→yyyy subfield cursor, or close the native calendar. So while the user
-  // is interacting with the field, React stays out — neither writing to the DOM here nor pushing
-  // updates to the parent (see handleBlur). The DOM is only synced from the value prop on
-  // external changes (load/reset) and only when the field is not focused.
+  // is interacting with the field, React stays out — not writing to the DOM. The DOM is only
+  // synced from the value prop on external changes (load/reset) and only when not focused.
   useEffect(() => {
     const input = inputRef.current;
     if (!input || isFocusedRef.current) return;
@@ -55,13 +54,19 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     isFocusedRef.current = true;
   };
 
-  // Commit on blur (and only on blur). Propagating live on each keystroke makes the parent
-  // re-render mid-edit, which in this app's dialog/form trees causes focus/calendar loss. Blur
-  // commits the final value — empty (cleared), in-range, or out-of-range — so the displayed
-  // value always matches what the parent holds and the out-of-range message surfaces correctly.
   const handleBlur = () => {
     isFocusedRef.current = false;
-    onChange?.(inputRef.current?.value ?? "");
+  };
+
+  // React's synthetic onChange fires for both DOM input and change events. For <input type="date">,
+  // the browser emits partial-year states during year-subfield editing (e.g., "0003-05-15" after
+  // typing "2", "0030-05-15" after "20", etc.). Filter these out so the parent only sees complete,
+  // meaningful dates. Year >= 1000 is a reliable signal the user has finished typing the year.
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (val === "" || val >= "1000-00-00") {
+      onChange?.(val);
+    }
   };
 
   // Default out-of-range message, consistent with the native (inclusive) min/max bounds.
@@ -94,6 +99,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         defaultValue={value ?? ""}
         onFocus={handleFocus}
         onBlur={handleBlur}
+        onChange={handleChange}
         min={minDate}
         max={maxDate}
       />

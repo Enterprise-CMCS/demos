@@ -240,7 +240,6 @@ describe("SdgPreparationPhase", () => {
       const expectedApprovalDateInput = screen.getByTestId("datepicker-expected-approval-date");
       await userEvent.clear(expectedApprovalDateInput);
       await userEvent.type(expectedApprovalDateInput, "2025-02-01");
-      fireEvent.blur(expectedApprovalDateInput);
 
       expect(saveButton).toBeEnabled();
     });
@@ -445,7 +444,6 @@ describe("Completed Phase Behavior", () => {
     const dateInput = screen.getByTestId("datepicker-expected-approval-date");
     await userEvent.clear(dateInput);
     await userEvent.type(dateInput, "2025-06-01");
-    fireEvent.blur(dateInput);
 
     expect(saveButton).toBeEnabled();
   });

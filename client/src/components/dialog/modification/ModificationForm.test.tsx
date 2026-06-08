@@ -258,7 +258,6 @@ describe("ModificationForm", () => {
       const effectiveDateInput = screen.getByLabelText(/Effective Date/);
       await user.clear(effectiveDateInput);
       await user.type(effectiveDateInput, "2024-02-20");
-      fireEvent.blur(effectiveDateInput);
 
       expect(mockSetModificationFormDataField).toHaveBeenCalledWith(
         expect.objectContaining({ effectiveDate: expect.any(String) })

@@ -324,7 +324,6 @@ describe("ReviewPhase Component", () => {
 
       const dateInput = screen.getByTestId("datepicker-ogc-approval-to-share-date");
       await userEvent.type(dateInput, "2025-12-25");
-      fireEvent.blur(dateInput);
 
       await waitFor(() => {
         const saveButton = screen.getByTestId("review-save-for-later");
@@ -342,7 +341,6 @@ describe("ReviewPhase Component", () => {
 
       const dateInput = screen.getByTestId("datepicker-ogc-approval-to-share-date");
       await userEvent.type(dateInput, "2025-12-25");
-      fireEvent.blur(dateInput);
 
       const saveButton = screen.getByTestId("review-save-for-later");
       await waitFor(() => {
@@ -366,7 +364,6 @@ describe("ReviewPhase Component", () => {
 
       const dateInput = screen.getByTestId("datepicker-ogc-approval-to-share-date");
       await userEvent.type(dateInput, "2025-12-25");
-      fireEvent.blur(dateInput);
 
       const saveButton = screen.getByTestId("review-save-for-later");
       await userEvent.click(saveButton);
@@ -378,7 +375,6 @@ describe("ReviewPhase Component", () => {
       // Make another change
       await userEvent.clear(dateInput);
       await userEvent.type(dateInput, "2025-12-31");
-      fireEvent.blur(dateInput);
 
       await waitFor(() => {
         expect(saveButton).toBeEnabled();

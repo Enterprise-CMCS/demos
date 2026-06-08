@@ -107,7 +107,6 @@ describe("RequestExtensionDeliverableDialog", () => {
     fireEvent.change(screen.getByTestId(REQUEST_EXTENSION_DATE_FIELD_NAME), {
       target: { value: "2026-03-15" },
     });
-    fireEvent.blur(screen.getByTestId(REQUEST_EXTENSION_DATE_FIELD_NAME));
     expect(submit).toBeDisabled();
 
     await user.selectOptions(screen.getByTestId(REQUEST_EXTENSION_REASON_FIELD_NAME), "Other");
@@ -124,7 +123,6 @@ describe("RequestExtensionDeliverableDialog", () => {
     fireEvent.change(screen.getByTestId(REQUEST_EXTENSION_DATE_FIELD_NAME), {
       target: { value: "2026-02-12" }, // equal to due date — invalid
     });
-    fireEvent.blur(screen.getByTestId(REQUEST_EXTENSION_DATE_FIELD_NAME));
     await user.selectOptions(screen.getByTestId(REQUEST_EXTENSION_REASON_FIELD_NAME), "COVID-19");
     await user.type(screen.getByTestId(REQUEST_EXTENSION_DETAILS_FIELD_NAME), "Delayed");
 
@@ -141,7 +139,6 @@ describe("RequestExtensionDeliverableDialog", () => {
     fireEvent.change(screen.getByTestId(REQUEST_EXTENSION_DATE_FIELD_NAME), {
       target: { value: "2027-01-15" },
     });
-    fireEvent.blur(screen.getByTestId(REQUEST_EXTENSION_DATE_FIELD_NAME));
     await user.selectOptions(screen.getByTestId(REQUEST_EXTENSION_REASON_FIELD_NAME), "Other");
     await user.type(screen.getByTestId(REQUEST_EXTENSION_DETAILS_FIELD_NAME), "x");
 
@@ -157,7 +154,6 @@ describe("RequestExtensionDeliverableDialog", () => {
     fireEvent.change(screen.getByTestId(REQUEST_EXTENSION_DATE_FIELD_NAME), {
       target: { value: "2026-03-15" },
     });
-    fireEvent.blur(screen.getByTestId(REQUEST_EXTENSION_DATE_FIELD_NAME));
     await user.selectOptions(
       screen.getByTestId(REQUEST_EXTENSION_REASON_FIELD_NAME),
       "Technical Difficulties"
@@ -196,7 +192,6 @@ describe("RequestExtensionDeliverableDialog", () => {
     fireEvent.change(screen.getByTestId(REQUEST_EXTENSION_DATE_FIELD_NAME), {
       target: { value: "2026-03-15" },
     });
-    fireEvent.blur(screen.getByTestId(REQUEST_EXTENSION_DATE_FIELD_NAME));
     await user.selectOptions(screen.getByTestId(REQUEST_EXTENSION_REASON_FIELD_NAME), "Other");
     await user.type(screen.getByTestId(REQUEST_EXTENSION_DETAILS_FIELD_NAME), "Need more time");
 
