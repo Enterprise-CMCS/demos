@@ -1,5 +1,4 @@
-import axios from "axios";
-import { UIPATH_API_VERSION } from "./uipathClient";
+import { uipathGetRequest } from "./uipathClient";
 
 export interface ExtractionStatus {
   status: string;
@@ -7,13 +6,6 @@ export interface ExtractionStatus {
 }
 
 export async function fetchExtractionResult(token: string, resultUrl: string): Promise<ExtractionStatus> {
-  const response = await axios.get<ExtractionStatus>(resultUrl, {
-     headers: {
-          Authorization: `Bearer ${token}`,
-      },
-      params: {
-        "api-version": UIPATH_API_VERSION,
-      },
-  });
+  const response = await uipathGetRequest<ExtractionStatus>(resultUrl, token);
   return response.data;
 }
