@@ -20,6 +20,10 @@ vi.mock("hooks/useDownloadReference", () => ({
   useDownloadReference: vi.fn(),
 }));
 
+vi.mock("config/env", () => ({
+  isLocalDevelopment: vi.fn(),
+}));
+
 type UseLazyQueryTuple = ReturnType<typeof useLazyQuery>;
 
 const fetchFaqReferenceMaterial = vi.fn();
@@ -35,7 +39,7 @@ const renderWithProviders = () =>
   );
 
 describe("Footer Component", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     vi.mocked(useLazyQuery).mockReturnValue([
       fetchFaqReferenceMaterial,
@@ -45,6 +49,8 @@ describe("Footer Component", () => {
       downloadReference,
       downloadReferenceAgreement: vi.fn(),
     });
+    const { isLocalDevelopment } = await import("config/env");
+    vi.mocked(isLocalDevelopment).mockReturnValue(false);
   });
 
   it("renders without crashing", () => {
@@ -119,5 +125,25 @@ describe("Footer Component", () => {
   it("displays the address", () => {
     renderWithProviders();
     expect(screen.getByText(DEMOS_ADDRESS)).toBeInTheDocument();
+  });
+
+  it("displays the git commit hash in local development", async () => {
+    vi.stubGlobal("__GIT_COMMIT__", "abc1234");
+    const { isLocalDevelopment } = await import("config/env");
+    vi.mocked(isLocalDevelopment).mockReturnValue(true);
+
+    renderWithProviders();
+
+    expect(screen.getByText(/commit: abc1234/i)).toBeInTheDocument();
+  });
+
+  it("hides the git commit hash outside of local development", async () => {
+    vi.stubGlobal("__GIT_COMMIT__", "abc1234");
+    const { isLocalDevelopment } = await import("config/env");
+    vi.mocked(isLocalDevelopment).mockReturnValue(false);
+
+    renderWithProviders();
+
+    expect(screen.queryByText(/commit:/i)).not.toBeInTheDocument();
   });
 });
