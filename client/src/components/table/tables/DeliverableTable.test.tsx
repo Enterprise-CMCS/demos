@@ -492,32 +492,108 @@ describe("DeliverableTable Remove action", () => {
     { ...MOCK_DELIVERABLE_TABLE_ROW, id: "accepted", status: "Accepted" },
   ];
 
-  it("enables Remove when the only selected row is finalized", async () => {
+  it("disables Remove when the only selected row is finalized", async () => {
     render(<DeliverableTable deliverables={FINALIZED_ROWS} viewMode="demos-cms-user" />);
     const user = userEvent.setup();
 
     await user.click(screen.getByTestId("select-row-approved"));
 
-    expect(screen.getByTestId("remove-deliverable")).not.toBeDisabled();
+    const removeButton = screen.getByTestId("remove-deliverable");
+    expect(removeButton).toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", "Delete");
   });
 
-  it("enables Remove when any of multiple selected rows is finalized", async () => {
+  it("disables Remove when any of multiple selected rows is finalized", async () => {
     render(<DeliverableTable deliverables={FINALIZED_ROWS} viewMode="demos-cms-user" />);
     const user = userEvent.setup();
 
     await user.click(screen.getByTestId("select-row-active"));
     await user.click(screen.getByTestId("select-row-accepted"));
 
-    expect(screen.getByTestId("remove-deliverable")).not.toBeDisabled();
+    const removeButton = screen.getByTestId("remove-deliverable");
+    expect(removeButton).toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", "Delete");
   });
 
-  it("enables Remove when every selected row is not finalized", async () => {
+  it("enables Remove when the selected row is Upcoming", async () => {
     render(<DeliverableTable deliverables={FINALIZED_ROWS} viewMode="demos-cms-user" />);
     const user = userEvent.setup();
 
     await user.click(screen.getByTestId("select-row-active"));
 
     expect(screen.getByTestId("remove-deliverable")).not.toBeDisabled();
+  });
+
+  it("enables Remove when the selected row is Past Due", async () => {
+    render(
+      <DeliverableTable
+        deliverables={[{ ...MOCK_DELIVERABLE_TABLE_ROW, id: "past-due", status: "Past Due" }]}
+        viewMode="demos-cms-user"
+      />
+    );
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("select-row-past-due"));
+
+    const removeButton = screen.getByTestId("remove-deliverable");
+    expect(removeButton).not.toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", "Delete");
+  });
+
+  it("disables Remove when a selected row has a non-deletable non-final status", async () => {
+    render(
+      <DeliverableTable
+        deliverables={[{ ...MOCK_DELIVERABLE_TABLE_ROW, id: "submitted", status: "Submitted" }]}
+        viewMode="demos-cms-user"
+      />
+    );
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("select-row-submitted"));
+
+    const removeButton = screen.getByTestId("remove-deliverable");
+    expect(removeButton).toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", "Delete");
+  });
+
+  it("enables Remove when selected rows are Upcoming and Past Due", async () => {
+    render(
+      <DeliverableTable
+        deliverables={[
+          { ...MOCK_DELIVERABLE_TABLE_ROW, id: "upcoming", status: "Upcoming" },
+          { ...MOCK_DELIVERABLE_TABLE_ROW, id: "past-due", status: "Past Due" },
+        ]}
+        viewMode="demos-cms-user"
+      />
+    );
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("select-row-upcoming"));
+    await user.click(screen.getByTestId("select-row-past-due"));
+
+    const removeButton = screen.getByTestId("remove-deliverable");
+    expect(removeButton).not.toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", "Delete");
+  });
+
+  it("disables Remove when one of multiple selected rows has a non-deletable status", async () => {
+    render(
+      <DeliverableTable
+        deliverables={[
+          { ...MOCK_DELIVERABLE_TABLE_ROW, id: "upcoming", status: "Upcoming" },
+          { ...MOCK_DELIVERABLE_TABLE_ROW, id: "submitted", status: "Submitted" },
+        ]}
+        viewMode="demos-cms-user"
+      />
+    );
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId("select-row-upcoming"));
+    await user.click(screen.getByTestId("select-row-submitted"));
+
+    const removeButton = screen.getByTestId("remove-deliverable");
+    expect(removeButton).toBeDisabled();
+    expect(removeButton).toHaveAttribute("title", "Delete");
   });
 
   it("disables Remove when a selected row has files", async () => {

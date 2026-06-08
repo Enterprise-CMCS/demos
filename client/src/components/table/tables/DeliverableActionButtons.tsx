@@ -11,13 +11,20 @@ import { selectionTooltip } from "./actionTooltips";
 import type { FormattedDeliverableTableRow } from "./DeliverableTable";
 
 export const DELIVERABLE_CANT_DELETE_HAS_FILES =
-  "Deliverables with comments or files cannot be deleted";
+  "Deliverables can only be deleted \nif they are Upcoming or Past Due \nand have no comments or files.";
 
 const hasFilesOrComments = (deliverable: FormattedDeliverableTableRow): boolean =>
   Boolean(deliverable.cmsDocuments?.length) ||
   Boolean(deliverable.stateDocuments?.length) ||
   Boolean(deliverable.publicComments?.length) ||
   Boolean(deliverable.privateComments?.length);
+
+const DELETABLE_DELIVERABLE_STATUSES: ReadonlySet<FormattedDeliverableTableRow["status"]> = new Set(
+  ["Upcoming", "Past Due"]
+);
+
+const hasDeletableStatus = (deliverable: FormattedDeliverableTableRow): boolean =>
+  DELETABLE_DELIVERABLE_STATUSES.has(deliverable.status);
 
 const getDeleteTooltip = (selectedCount: number, selectedHasFilesOrComments: boolean): string => {
   if (selectedCount === 0) return "Select a Deliverable to Delete";
@@ -42,7 +49,9 @@ export const DeliverableActionButtons: React.FC<{
   const selectedCount = selectedRows.length;
   const selectedDeliverables = selectedRows.map((row) => row.original);
   const selectedHasFilesOrComments = selectedDeliverables.some(hasFilesOrComments);
-  const deleteEnabled = selectedCount >= 1 && !selectedHasFilesOrComments;
+  const selectedAllHaveDeletableStatuses = selectedDeliverables.every(hasDeletableStatus);
+  const deleteEnabled =
+    selectedCount >= 1 && selectedAllHaveDeletableStatuses && !selectedHasFilesOrComments;
   const oneSelectedDeliverable = selectedCount === 1 ? selectedRows[0].original : null;
   const selectedIsEditable =
     oneSelectedDeliverable === null || isDeliverableEditable(oneSelectedDeliverable.status);
