@@ -1,4 +1,5 @@
 import { ZodError } from "zod";
+import { randomUUID } from "node:crypto";
 import { runOnDemandReport } from "../../onDemandReports";
 import { prisma } from "../../prismaClient";
 import { OnDemandReportType } from "../../types";
@@ -17,7 +18,7 @@ export const onDemandReportResolvers = {
       context: GraphQLContext
     ): Promise<string> => {
       let uploadedReportS3Path: string;
-      const reportId = crypto.randomUUID();
+      const reportId = randomUUID();
       const s3Adapter = getS3Adapter();
       try {
         uploadedReportS3Path = await prisma().$transaction(async (tx) => {
@@ -42,7 +43,7 @@ export const onDemandReportResolvers = {
       } catch (error) {
         await s3Adapter.deleteOnDemandReport(reportId).catch((cleanupError) => {
           const cleanupErrorMessage =
-            "s3Adapter.deleteOnDemandReport encountered an error while trying to" +
+            "s3Adapter.deleteOnDemandReport encountered an error while trying to " +
             `clean up after generating report with ID ${reportId} failed.`;
           log.error(cleanupErrorMessage);
           log.error(cleanupError);

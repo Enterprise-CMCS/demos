@@ -190,6 +190,34 @@ describe("LocalS3Adapter", () => {
     });
   });
 
+  describe("uploadOnDemandReport", () => {
+    it("should return the correct key for the report", async () => {
+      const adapter = createLocalS3Adapter();
+      const reportId = "report-abc-123";
+
+      const result = await adapter.uploadOnDemandReport(reportId, Buffer.from("data"));
+
+      expect(result).toBe(`reports/on-demand/${reportId}.xlsx`);
+    });
+  });
+
+  describe("deleteOnDemandReport", () => {
+    it("should return the correct key for the report", async () => {
+      const adapter = createLocalS3Adapter();
+      const reportId = "report-abc-123";
+
+      const result = await adapter.deleteOnDemandReport(reportId);
+
+      expect(result).toBe(`reports/on-demand/${reportId}.xlsx`);
+    });
+
+    it("should not throw when deleting a non-existent report", async () => {
+      const adapter = createLocalS3Adapter();
+
+      await expect(adapter.deleteOnDemandReport("non-existent-id")).resolves.not.toThrow();
+    });
+  });
+
   describe("in-memory state isolation", () => {
     it("should maintain separate state for each adapter instance", async () => {
       const adapter1 = createLocalS3Adapter();

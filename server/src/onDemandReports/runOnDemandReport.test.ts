@@ -2,20 +2,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Types
-import type { prisma } from "../prismaClient";
+import type { PrismaTransactionClient } from "../prismaClient";
 
 // Functions under test
 import { runOnDemandReport } from "./runOnDemandReport";
 
 // Mock imports
-vi.mock("fs", () => ({
-  readFileSync: vi.fn(),
-}));
-
 vi.mock("./onDemandReportConfigurations", () => ({
   ON_DEMAND_REPORT_CONFIGURATIONS: {
     "Basic Test Report": {
-      queryFile: "basicTestReport.sql",
+      sqlQuery: "SELECT 1",
       reportRowSchema: { _isMockSchema: true },
     },
   },
@@ -25,41 +21,29 @@ vi.mock("zod", () => ({
   z: { array: vi.fn() },
 }));
 
-import { readFileSync } from "fs";
 import { z } from "zod";
 import { ON_DEMAND_REPORT_CONFIGURATIONS } from "./onDemandReportConfigurations";
 
 describe("runOnDemandReport", () => {
   const mockQueryRawUnsafe = vi.fn();
-  const mockClient: Partial<ReturnType<typeof prisma>> = { $queryRawUnsafe: mockQueryRawUnsafe };
+  const mockTx: Partial<PrismaTransactionClient> = { $queryRawUnsafe: mockQueryRawUnsafe };
   const mockParse = vi.fn();
-  const mockZodArray: Partial<z.ZodArray<z.ZodTypeAny>> = { parse: mockParse };
+  const mockZodArray: Partial<z.ZodArray<z.ZodType>> = { parse: mockParse };
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.mocked(readFileSync).mockReturnValue("SELECT 1");
-    vi.mocked(z.array).mockReturnValue(mockZodArray as z.ZodArray<z.ZodTypeAny>);
+    vi.mocked(z.array).mockReturnValue(mockZodArray as z.ZodArray<z.ZodType>);
     mockQueryRawUnsafe.mockResolvedValue([{ some: "data" }]);
-    mockParse.mockReturnValue([]);
   });
 
-  it("reads the SQL file for the given report type", async () => {
-    await runOnDemandReport("Basic Test Report", mockClient as ReturnType<typeof prisma>);
+  it("executes the sqlQuery from the configuration against the transaction client", async () => {
+    await runOnDemandReport("Basic Test Report", mockTx as PrismaTransactionClient);
 
-    expect(readFileSync).toHaveBeenCalledWith(
-      expect.stringContaining("basicTestReport.sql"),
-      "utf-8"
-    );
-  });
-
-  it("executes the SQL from the query file against the client", async () => {
-    await runOnDemandReport("Basic Test Report", mockClient as ReturnType<typeof prisma>);
-
-    expect(mockClient.$queryRawUnsafe).toHaveBeenCalledExactlyOnceWith("SELECT 1");
+    expect(mockTx.$queryRawUnsafe).toHaveBeenCalledExactlyOnceWith("SELECT 1");
   });
 
   it("passes the report schema and query results to zod for parsing", async () => {
-    await runOnDemandReport("Basic Test Report", mockClient as ReturnType<typeof prisma>);
+    await runOnDemandReport("Basic Test Report", mockTx as PrismaTransactionClient);
 
     expect(z.array).toHaveBeenCalledWith(
       ON_DEMAND_REPORT_CONFIGURATIONS["Basic Test Report"].reportRowSchema

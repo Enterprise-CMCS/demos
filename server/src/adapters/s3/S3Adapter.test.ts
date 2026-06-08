@@ -2,23 +2,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Mock the adapter creation functions
 vi.mock("./AwsS3Adapter", () => ({
-  createAWSS3Adapter: vi.fn(() => ({
-    type: "aws",
-    getPresignedUploadUrl: vi.fn(),
-    getPresignedDownloadUrl: vi.fn(),
-    moveDocumentFromCleanToDeleted: vi.fn(),
-    uploadDocument: vi.fn(),
-  })),
+  createAWSS3Adapter: vi.fn(() => ({ type: "aws" })),
 }));
 
 vi.mock("./LocalS3Adapter", () => ({
-  createLocalS3Adapter: vi.fn(() => ({
-    type: "local",
-    getPresignedUploadUrl: vi.fn(),
-    getPresignedDownloadUrl: vi.fn(),
-    moveDocumentFromCleanToDeleted: vi.fn(),
-    uploadDocument: vi.fn(),
-  })),
+  createLocalS3Adapter: vi.fn(() => ({ type: "local" })),
 }));
 
 import { createAWSS3Adapter } from "./AwsS3Adapter";
@@ -164,24 +152,6 @@ describe("S3Adapter", () => {
       getS3Adapter();
 
       expect(createAWSS3Adapter).toHaveBeenCalledOnce();
-    });
-  });
-
-  describe("adapter interface", () => {
-    it("should return adapter with all required methods", async () => {
-      delete process.env.LOCAL_SIMPLE_UPLOAD;
-
-      const { getS3Adapter } = await import("../");
-      const adapter = getS3Adapter();
-
-      expect(adapter).toHaveProperty("getPresignedUploadUrl");
-      expect(adapter).toHaveProperty("getPresignedDownloadUrl");
-      expect(adapter).toHaveProperty("moveDocumentFromCleanToDeleted");
-      expect(adapter).toHaveProperty("uploadDocument");
-      expect(typeof adapter.getPresignedUploadUrl).toBe("function");
-      expect(typeof adapter.getPresignedDownloadUrl).toBe("function");
-      expect(typeof adapter.moveDocumentFromCleanToDeleted).toBe("function");
-      expect(typeof adapter.uploadDocument).toBe("function");
     });
   });
 });
