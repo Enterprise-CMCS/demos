@@ -46,10 +46,6 @@ export const RESUBMISSION_DISABLED_STATUSES: ReadonlySet<DeliverableStatus> =
 export const isResubmissionDisabled = (status: DeliverableStatus): boolean =>
   RESUBMISSION_DISABLED_STATUSES.has(status);
 
-// Documents may only be deleted before the deliverable has been submitted. Once it
-// is Submitted, Under CMS Review, or in any final status, files are locked from
-// deletion for every user (Add/Edit remain available until a final status — see
-// isDeliverableEditable). Expressed as an allow-list so any new status defaults to locked.
 export const FILE_DELETION_ALLOWED_STATUSES: ReadonlySet<DeliverableStatus> = new Set([
   "Upcoming",
   "Past Due",
