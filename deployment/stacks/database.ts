@@ -135,7 +135,7 @@ export class DatabaseStack extends Stack {
         storageEncryptionKey: rdsKMSKey,
         port: 15432,
         parameterGroup: parameterGroup,
-        monitoringInterval:  ["prod", "impl"].includes(commonProps.stage) ?  Duration.seconds(60) : undefined
+        // monitoringInterval:  ["prod", "impl"].includes(commonProps.stage) ?  Duration.seconds(60) : undefined
       }
     );
     alarmResources.registerDatabaseInstance("rds", dbInstance);
