@@ -2,16 +2,18 @@ import React from "react";
 import { CONTACT_US_MAILTO } from "components/footer/Footer";
 import { Notice } from "components/notice";
 
-interface Props {
+export const UserAuthenticationFailed = ({
+  name,
+  email,
+  errorMessage,
+}: {
   name?: string;
   email?: string;
   errorMessage?: string;
-}
-
-export const UserAuthenticationFailed: React.FC<Props> = ({ name, email, errorMessage }) => {
+}) => {
   return (
     <div className="flex items-center justify-center h-screen w-screen">
-      <div className="max-w-md w-full px-4 flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
         <Notice
           variant="error"
           title="Authentication Failed"
@@ -19,14 +21,11 @@ export const UserAuthenticationFailed: React.FC<Props> = ({ name, email, errorMe
         />
         {(name || email) && (
           <p className="text-sm text-gray-600">
-            Signed in as{name ? ` ${name}` : ""}{email ? ` (${email})` : ""}.
+            Signed in as{name ? ` ${name}` : ""}
+            {email ? ` (${email})` : ""}.
           </p>
         )}
-        {errorMessage && (
-          <p className="text-sm text-gray-500">
-            Error: {errorMessage}
-          </p>
-        )}
+        {errorMessage && <p className="text-sm text-gray-500">Error: {errorMessage}</p>}
         <div className="flex gap-4 text-sm">
           <button
             onClick={() => window.location.reload()}
