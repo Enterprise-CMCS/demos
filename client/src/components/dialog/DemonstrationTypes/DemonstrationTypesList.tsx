@@ -4,6 +4,8 @@ import { formatDate } from "util/formatDate";
 import { TagName } from "demos-server";
 import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
 import { parseISO } from "date-fns";
+import { CHIP_DEMONSTRATION_TYPE_TAG_NAME } from "demos-server-constants";
+import { Notice } from "components/notice";
 
 export const DemonstrationTypesList = ({
   demonstrationTypes,
@@ -12,6 +14,10 @@ export const DemonstrationTypesList = ({
   demonstrationTypes: DemonstrationType[];
   removeDemonstrationType: (demonstrationTypeName: TagName) => void;
 }) => {
+  const includesChipType = demonstrationTypes.some(
+    (demonstrationType) =>
+      demonstrationType.demonstrationTypeName === CHIP_DEMONSTRATION_TYPE_TAG_NAME
+  );
   return (
     demonstrationTypes.length > 0 && (
       <div className="flex flex-col gap-1">
@@ -49,6 +55,18 @@ export const DemonstrationTypesList = ({
             </li>
           ))}
         </ul>
+        {includesChipType && (
+          <Notice
+            title="Chip ID Generation"
+            variant="warning"
+            description={
+              <>
+                By adding <span className="font-bold">CHIP Type</span>, DEMOS will generate a CHIP
+                ID for the Demonstration.
+              </>
+            }
+          />
+        )}
       </div>
     )
   );

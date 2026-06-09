@@ -29,7 +29,7 @@ const VARIANT_TO_ICON: Record<NoticeVariant, React.ReactNode> = {
 
 interface NoticeProps {
   title: string;
-  description?: string;
+  description?: React.ReactNode;
   variant?: NoticeVariant;
   onDismiss?: () => void;
 }

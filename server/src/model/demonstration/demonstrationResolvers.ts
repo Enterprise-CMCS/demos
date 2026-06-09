@@ -49,6 +49,7 @@ import {
 import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
 import { selectPersonOrThrow } from "../person/queries";
 import { selectStateOrThrow } from "../state/queries";
+import { CHIP_DEMONSTRATION_TYPE_TAG_NAME } from "../../constants";
 
 const grantLevelDemonstration: GrantLevel = "Demonstration";
 const roleProjectOfficer: Role = "Project Officer";
@@ -329,7 +330,7 @@ export const demonstrationResolvers = {
     chipId: async (parent: PrismaDemonstration): Promise<string | null> => {
       const chipDemonstrationType = await selectDemonstrationTypeTagAssignment({
         demonstrationId: parent.id,
-        tagNameId: "Children's Health Insurance Program (CHIP)",
+        tagNameId: CHIP_DEMONSTRATION_TYPE_TAG_NAME,
       });
       if (chipDemonstrationType) {
         return parent.chipId;

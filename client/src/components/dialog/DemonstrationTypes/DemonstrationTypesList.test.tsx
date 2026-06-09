@@ -13,6 +13,15 @@ vi.mock("components/icons", () => ({
   ),
 }));
 
+vi.mock("components/notice", () => ({
+  Notice: ({ title, description }: { title: string; description: React.ReactNode }) => (
+    <div data-testid="notice">
+      <h2>{title}</h2>
+      {description}
+    </div>
+  ),
+}));
+
 describe("DemonstrationTypesList", () => {
   const mockRemoveDemonstrationType = vi.fn();
 
@@ -103,5 +112,34 @@ describe("DemonstrationTypesList", () => {
 
     expect(mockRemoveDemonstrationType).toHaveBeenCalledTimes(1);
     expect(mockRemoveDemonstrationType).toHaveBeenCalledWith("Type B");
+  });
+
+  it("displays notice when CHIP type is included", () => {
+    const chipDemonstrationType: DemonstrationType = {
+      demonstrationTypeName: "Children's Health Insurance Program (CHIP)",
+      effectiveDate: "2024-01-04",
+      expirationDate: "2025-01-04",
+      approvalStatus: "Approved",
+    };
+
+    render(
+      <DemonstrationTypesList
+        demonstrationTypes={[...demonstrationTypes, chipDemonstrationType]}
+        removeDemonstrationType={mockRemoveDemonstrationType}
+      />
+    );
+
+    const notice = screen.getByTestId("notice");
+
+    expect(screen.getByText(/chip id generation/i)).toBeInTheDocument();
+    expect(notice).toHaveTextContent(
+      "By adding CHIP Type, DEMOS will generate a CHIP ID for the Demonstration."
+    );
+  });
+
+  it("does not display notice when CHIP type is not included", () => {
+    renderDemonstrationTypesList();
+
+    expect(screen.queryByTestId("notice")).not.toBeInTheDocument();
   });
 });

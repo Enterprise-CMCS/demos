@@ -97,6 +97,9 @@ export const DELETED_DELIVERABLE_STATUS = "Deleted" as const satisfies Deliverab
 
 export const DEMONSTRATION_TYPE_STATUSES = ["Expired", "Pending", "Active"] as const;
 
+export const CHIP_DEMONSTRATION_TYPE_TAG_NAME =
+  "Children's Health Insurance Program (CHIP)" as const;
+
 export const ROLES = [
   "Project Officer",
   "State Point of Contact",
