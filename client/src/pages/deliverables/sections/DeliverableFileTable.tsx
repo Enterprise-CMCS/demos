@@ -29,6 +29,7 @@ export type DeliverableFileTableProps = {
   onDelete?: (fileIds: string[]) => void;
   footer?: React.ReactNode;
   disabled?: boolean;
+  deleteDisabled?: boolean;
   showActions?: boolean;
 };
 
@@ -48,6 +49,7 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
   onDelete,
   footer,
   disabled = false,
+  deleteDisabled = false,
   showActions = true,
 }) => (
   <div data-testid={testId} className="flex flex-col gap-1">
@@ -80,12 +82,14 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
               selectedCount,
               rule: { kind: "exactly", count: 1 },
             });
-            const deleteTooltip = selectionTooltip({
-              action: "Delete",
-              nounSingular: "File",
-              selectedCount,
-              rule: { kind: "atLeast", count: 1 },
-            });
+            const deleteTooltip = deleteDisabled
+              ? "Files cannot be deleted after the deliverable has been submitted."
+              : selectionTooltip({
+                action: "Delete",
+                nounSingular: "File",
+                selectedCount,
+                rule: { kind: "atLeast", count: 1 },
+              });
 
             return (
               <div className="flex gap-1 ml-4">
@@ -102,7 +106,7 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
                   name={deleteButtonName}
                   ariaLabel={deleteAriaLabel}
                   tooltip={deleteTooltip}
-                  disabled={disabled || selectedCount < 1}
+                  disabled={disabled || deleteDisabled || selectedCount < 1}
                   onClick={() => onDelete?.(selectedRows.map((row) => row.id))}
                 >
                   <DeleteIcon />

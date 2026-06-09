@@ -7,9 +7,14 @@ import { log } from "../../log";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { handleDeleteDocument } from "./handleDeleteDocument";
 import { validateDocumentCanBeDeleted } from "./validateDocumentCanBeDeleted";
+import { selectDeliverableOrThrow } from "../deliverable/queries/selectDeliverableOrThrow";
 
 vi.mock("../../auth", () => ({
   buildAuthorizationFilter: vi.fn(),
+}));
+
+vi.mock("../deliverable/queries/selectDeliverableOrThrow", () => ({
+  selectDeliverableOrThrow: vi.fn(),
 }));
 
 vi.mock("../../log", () => ({
@@ -355,7 +360,7 @@ describe("documentData", () => {
     });
 
     it("deletes and returns the document when found and user has permission to delete it", async () => {
-      const document = { id: "document-1" } as PrismaDocument;
+      const document = { id: "document-1", deliverableId: null } as PrismaDocument;
       vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
       vi.mocked(selectDocument).mockResolvedValueOnce(document);
       vi.mocked(handleDeleteDocument).mockResolvedValueOnce(document);
@@ -364,9 +369,35 @@ describe("documentData", () => {
 
       expect(buildAuthorizationFilter).toHaveBeenCalledOnce();
       expect(buildAuthorizationFilter).toHaveBeenCalledWith(user, expect.any(Function));
-      expect(validateDocumentCanBeDeleted).toHaveBeenCalledExactlyOnceWith(document);
+      expect(selectDeliverableOrThrow).not.toHaveBeenCalled();
+      expect(validateDocumentCanBeDeleted).toHaveBeenCalledExactlyOnceWith({
+        ...document,
+        deliverableStatus: null,
+      });
       expect(handleDeleteDocument).toHaveBeenCalledExactlyOnceWith(where, mockTransaction);
       expect(result).toStrictEqual(document);
+    });
+
+    it("passes the deliverable status to validation when the document is attached to a deliverable", async () => {
+      const document = { id: "document-1", deliverableId: "deliverable-1" } as PrismaDocument;
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+      vi.mocked(selectDocument).mockResolvedValueOnce(document);
+      vi.mocked(selectDeliverableOrThrow).mockResolvedValueOnce({
+        id: "deliverable-1",
+        statusId: "Under CMS Review",
+      } as Awaited<ReturnType<typeof selectDeliverableOrThrow>>);
+      vi.mocked(handleDeleteDocument).mockResolvedValueOnce(document);
+
+      await removeDocument(where, user, mockTransaction);
+
+      expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith(
+        { id: "deliverable-1" },
+        mockTransaction
+      );
+      expect(validateDocumentCanBeDeleted).toHaveBeenCalledExactlyOnceWith({
+        ...document,
+        deliverableStatus: "Under CMS Review",
+      });
     });
   });
 });

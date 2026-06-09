@@ -54,7 +54,11 @@ export function DocumentColumns() {
           window.open(`/document/${docId}`, "_blank");
         };
         return (
-          <SecondaryButton onClick={handleClick} name="view-document">
+          <SecondaryButton
+            onClick={handleClick}
+            name="view-document"
+            ariaLabel={`View ${row.original.name}`}
+          >
             View
           </SecondaryButton>
         );

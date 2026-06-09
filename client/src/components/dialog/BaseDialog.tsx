@@ -86,6 +86,7 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
         {!hideHeader && (
           <>
             <button
+              data-testid="button-dialog-close"
               type="button"
               onClick={onCloseClicked}
               className={CLOSE_BUTTON}
@@ -108,6 +109,7 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
                 name={DIALOG_CANCEL_BUTTON_NAME}
                 onClick={onCloseClicked}
                 disabled={cancelButtonIsDisabled}
+                ariaLabel="Cancel and close dialog"
               >
                 Cancel
               </SecondaryButton>

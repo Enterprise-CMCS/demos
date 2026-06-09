@@ -53,11 +53,27 @@ describe("AttestationDialog", () => {
     expect(onConfirm).not.toHaveBeenCalled();
   });
 
-  it("calls onCancel when the dialog is cancelled", () => {
+  it("warns about losing unsaved changes before cancelling, then calls onCancel on discard", () => {
     const { onCancel } = renderDialog();
 
     fireEvent.click(screen.getByTestId("button-dialog-cancel"));
 
+    // Standard cancel/close confirmation must appear before any data is discarded.
+    expect(screen.getByText(/You will lose any unsaved changes/i)).toBeInTheDocument();
+    expect(onCancel).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByTestId("button-cc-dialog-discard"));
+
     expect(onCancel).toHaveBeenCalledOnce();
+  });
+
+  it("keeps the attestation open when the cancellation is dismissed", () => {
+    const { onCancel } = renderDialog();
+
+    fireEvent.click(screen.getByTestId("button-dialog-cancel"));
+    fireEvent.click(screen.getByTestId("button-cc-dialog-cancel"));
+
+    expect(onCancel).not.toHaveBeenCalled();
+    expect(screen.getByRole("heading", { name: "Attestation Required" })).toBeInTheDocument();
   });
 });
