@@ -1,6 +1,5 @@
 import React, { useMemo } from "react";
 import { CompletableSection } from "layout/completableSection";
-import { SelectUSAStates } from "components/input/select/SelectUSAStates";
 import { Textarea, TextInput } from "components/input";
 import Switch from "react-switch";
 import { SdgDivision, SignatureLevel } from "demos-server";
@@ -33,35 +32,30 @@ export type DemonstrationDetailsFormData = BaseFormData & {
   projectOfficerName: string;
   expirationDate?: string;
   sdgDivision?: SdgDivision;
-  readonlyFields: Partial<Record<
-    | "stateId"
-    | "name"
-    | "projectOfficerId"
-    | "status"
-    | "effectiveDate"
-    | "expirationDate"
-    | "description"
-    | "sdgDivision"
-    | "signatureLevel",
-    boolean
-  >>;
+  readonlyFields: Partial<
+    Record<
+      | "stateId"
+      | "name"
+      | "projectOfficerId"
+      | "status"
+      | "effectiveDate"
+      | "expirationDate"
+      | "description"
+      | "sdgDivision"
+      | "signatureLevel",
+      boolean
+    >
+  >;
 };
 
 export type ModificationDetailsFormData = BaseFormData & {
   applicationType: "amendment" | "extension";
-  readonlyFields: Partial<Record<
-    | "name"
-    | "effectiveDate"
-    | "description"
-    | "signatureLevel",
-    boolean
-  >>;
+  readonlyFields: Partial<
+    Record<"name" | "effectiveDate" | "description" | "signatureLevel", boolean>
+  >;
 };
 
-export type ApplicationDetailsFormData =
-  | DemonstrationDetailsFormData
-  | ModificationDetailsFormData;
-
+export type ApplicationDetailsFormData = DemonstrationDetailsFormData | ModificationDetailsFormData;
 
 export const ApplicationDetailsSection = ({
   sectionFormData,
@@ -71,6 +65,7 @@ export const ApplicationDetailsSection = ({
   onMarkComplete,
   onMarkIncomplete,
   completionDate,
+  medicaidId,
 }: {
   sectionFormData: ApplicationDetailsFormData;
   setSectionFormData: (data: ApplicationDetailsFormData) => void;
@@ -79,8 +74,11 @@ export const ApplicationDetailsSection = ({
   onMarkComplete: () => void;
   onMarkIncomplete: () => void;
   completionDate?: string;
+  medicaidId?: string;
 }) => {
-  const capitalizedType = sectionFormData.applicationType.charAt(0).toUpperCase() + sectionFormData.applicationType.slice(1);
+  const capitalizedType =
+    sectionFormData.applicationType.charAt(0).toUpperCase() +
+    sectionFormData.applicationType.slice(1);
   const isApplicationDetailsComplete = (data: ApplicationDetailsFormData) => {
     if (data.applicationType === "demonstration") {
       return !!(
@@ -95,11 +93,7 @@ export const ApplicationDetailsSection = ({
       );
     }
 
-    return !!(
-      data.name &&
-      data.effectiveDate &&
-      data.signatureLevel
-    );
+    return !!(data.name && data.effectiveDate && data.signatureLevel);
   };
 
   const requiredFieldsFilled = useMemo(
@@ -108,32 +102,25 @@ export const ApplicationDetailsSection = ({
   );
 
   return (
-    <CompletableSection title="Application Details" isComplete={isComplete} completionDate={completionDate}>
+    <CompletableSection
+      title="Application Details"
+      isComplete={isComplete}
+      completionDate={completionDate}
+    >
       <p className="text-sm text-text-placeholder mt-1 mb-2">
-        Confirm all {sectionFormData.applicationType} information including dates and status are accurate.
+        Confirm all {sectionFormData.applicationType} information including dates and status are
+        accurate.
       </p>
       <div className="grid grid-cols-4 gap-8 text-sm text-text-placeholder">
         {sectionFormData.applicationType === "demonstration" && (
           <div className="flex flex-col">
-            {sectionFormData.readonlyFields.stateId ? (
-              <div>
-                <div className={LABEL_CLASSES}>
-                  <span className="text-text-warn mr-xs">*</span>
-                  State/Territory
-                </div>
-                <div className={VALUE_CLASSES}>
-                  {sectionFormData.stateName || ""}
-                </div>
+            <div>
+              <div className={LABEL_CLASSES}>
+                <span className="text-text-warn mr-xs">*</span>
+                State/Territory
               </div>
-            ) : (
-              <SelectUSAStates
-                label="State/Territory"
-                value={sectionFormData.stateId}
-                isRequired
-                isDisabled={isReadonly}
-                onSelect={(stateId) => setSectionFormData({ ...sectionFormData, stateId })}
-              />
-            )}
+              <div className={VALUE_CLASSES}>{sectionFormData.stateName || ""}</div>
+            </div>
           </div>
         )}
         <div className="flex flex-col col-span-3">
@@ -143,9 +130,7 @@ export const ApplicationDetailsSection = ({
                 <span className="text-text-warn mr-xs">*</span>
                 {capitalizedType} Title
               </div>
-              <div className={VALUE_CLASSES}>
-                {sectionFormData.name || ""}
-              </div>
+              <div className={VALUE_CLASSES}>{sectionFormData.name || ""}</div>
             </div>
           ) : (
             <TextInput
@@ -168,9 +153,7 @@ export const ApplicationDetailsSection = ({
                   <span className="text-text-warn mr-xs">*</span>
                   Project Officer
                 </div>
-                <div className={VALUE_CLASSES}>
-                  {sectionFormData.projectOfficerName || ""}
-                </div>
+                <div className={VALUE_CLASSES}>{sectionFormData.projectOfficerName || ""}</div>
               </div>
             ) : (
               <SelectUsers
@@ -195,9 +178,7 @@ export const ApplicationDetailsSection = ({
                   <span className="text-text-warn mr-xs">*</span>
                   Status
                 </div>
-                <div className={VALUE_CLASSES}>
-                  {sectionFormData.status || ""}
-                </div>
+                <div className={VALUE_CLASSES}>{sectionFormData.status || ""}</div>
               </div>
             ) : (
               <TextInput
@@ -221,7 +202,7 @@ export const ApplicationDetailsSection = ({
                 Effective Date
               </div>
               <div className={VALUE_CLASSES}>
-                {sectionFormData.effectiveDate ? formatDate(sectionFormData.effectiveDate) : ""}
+                {sectionFormData.effectiveDate ? formatDate(sectionFormData.effectiveDate) : "-"}
               </div>
             </div>
           ) : (
@@ -237,6 +218,15 @@ export const ApplicationDetailsSection = ({
             />
           )}
         </div>
+
+        {sectionFormData.applicationType !== "demonstration" && (
+          <div className="flex flex-col col-span-4">
+            <div>
+              <div className={LABEL_CLASSES}>Demonstration ID</div>
+              <div className={VALUE_CLASSES}>{medicaidId || "-"}</div>
+            </div>
+          </div>
+        )}
 
         {sectionFormData.applicationType === "demonstration" && (
           <div className="flex flex-col">
@@ -268,12 +258,8 @@ export const ApplicationDetailsSection = ({
         <div className="flex flex-col col-span-4">
           {sectionFormData.readonlyFields.description || isComplete ? (
             <div>
-              <div className={LABEL_CLASSES}>
-                {`${capitalizedType} Description`}
-              </div>
-              <div className={VALUE_CLASSES}>
-                {sectionFormData.description || ""}
-              </div>
+              <div className={LABEL_CLASSES}>{`${capitalizedType} Description`}</div>
+              <div className={VALUE_CLASSES}>{sectionFormData.description || "-"}</div>
             </div>
           ) : (
             <Textarea
@@ -295,17 +281,13 @@ export const ApplicationDetailsSection = ({
                   <span className="text-text-warn mr-xs">*</span>
                   SDG Division
                 </div>
-                <div className={VALUE_CLASSES}>
-                  {sectionFormData.sdgDivision || ""}
-                </div>
+                <div className={VALUE_CLASSES}>{sectionFormData.sdgDivision || ""}</div>
               </div>
             ) : (
               <SelectSdgDivision
                 key={`sdg-${sectionFormData.sdgDivision || "empty"}`}
                 initialValue={sectionFormData.sdgDivision}
-                onSelect={(sdgDivision) =>
-                  setSectionFormData({ ...sectionFormData, sdgDivision })
-                }
+                onSelect={(sdgDivision) => setSectionFormData({ ...sectionFormData, sdgDivision })}
                 isDisabled={isReadonly}
                 isRequired
               />
@@ -320,9 +302,7 @@ export const ApplicationDetailsSection = ({
                 <span className="text-text-warn mr-xs">*</span>
                 Signature Level
               </div>
-              <div className={VALUE_CLASSES}>
-                {sectionFormData.signatureLevel || ""}
-              </div>
+              <div className={VALUE_CLASSES}>{sectionFormData.signatureLevel || "-"}</div>
             </div>
           ) : (
             <SelectSignatureLevel
@@ -346,9 +326,7 @@ export const ApplicationDetailsSection = ({
       <div className="border-t-1 border-gray-dark mt-4">
         <div className="flex justify-end items-center mt-2 gap-2">
           <span className="text-sm font-semibold text-text-font">
-            <span className="text-text-warn mr-xs">*</span>
-            {" "}
-            Mark Complete
+            <span className="text-text-warn mr-xs">*</span> Mark Complete
           </span>
           <Switch
             checked={isComplete}

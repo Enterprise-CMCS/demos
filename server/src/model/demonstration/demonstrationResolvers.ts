@@ -38,7 +38,10 @@ import { getManyExtensions } from "../extension";
 import { getManyDocuments } from "../document";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
 import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
-import { selectManyDemonstrationTypeTagAssignments } from "../demonstrationTypeTagAssignment/queries";
+import {
+  selectDemonstrationTypeTagAssignment,
+  selectManyDemonstrationTypeTagAssignments,
+} from "../demonstrationTypeTagAssignment/queries";
 import {
   selectDemonstrationRoleAssignmentOrThrow,
   selectManyDemonstrationRoleAssignments,
@@ -72,8 +75,8 @@ export async function __createDemonstration(
         data: {
           id: application.id,
           applicationTypeId: application.applicationTypeId,
-          name: input.name,
-          description: input.description,
+          name: input.name.trim(),
+          description: input.description?.trim(),
           sdgDivisionId: input.sdgDivision,
           signatureLevelId: DEFAULT_SIGNATURE_LEVEL,
           statusId: newApplicationStatusId,
@@ -129,8 +132,8 @@ export async function __updateDemonstration(
       const demonstration = await tx.demonstration.update({
         where: { id },
         data: {
-          name: input.name,
-          description: input.description,
+          name: input.name?.trim(),
+          description: input.description?.trim(),
           effectiveDate: effectiveDate,
           expirationDate: expirationDate,
           sdgDivisionId: input.sdgDivision,
@@ -323,5 +326,16 @@ export const demonstrationResolvers = {
         }
       ),
     deliverables: resolveManyDeliverables,
+    chipId: async (parent: PrismaDemonstration): Promise<string | null> => {
+      const chipDemonstrationType = await selectDemonstrationTypeTagAssignment({
+        demonstrationId: parent.id,
+        tagNameId: "Children's Health Insurance Program (CHIP)",
+      });
+      if (chipDemonstrationType) {
+        return parent.chipId;
+      } else {
+        return null;
+      }
+    },
   },
 };

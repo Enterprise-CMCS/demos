@@ -12,11 +12,25 @@ import { useFileDrop } from "hooks/file/useFileDrop";
 import { ErrorMessage, UploadStatus, useFileUpload } from "hooks/file/useFileUpload";
 import { tw } from "tags/tw";
 import { Notice } from "components/notice";
+import { AttestationDialog } from "components/dialog/AttestationDialog";
 import { UploadButton } from "./UploadButton";
 
 type DocumentDialogType = "add" | "edit";
 
-export type DocumentUploadResult = "succeeded" | "virus-scan-failed" | "unknown-error";
+// BN notebook uploads require the user to attest to the content before submitting.
+const ATTESTATION_DOCUMENT_TYPES: DocumentType[] = [
+  "Final Budget Neutrality Formulation Workbook",
+  "BN Workbook",
+];
+
+export const documentTypeRequiresAttestation = (documentType: DocumentType): boolean =>
+  ATTESTATION_DOCUMENT_TYPES.includes(documentType);
+
+export type DocumentUploadResult =
+  | "succeeded"
+  | "virus-scan-failed"
+  | "bn-validation-failed"
+  | "unknown-error";
 export type DocumentDialogState = DocumentUploadResult | "idle" | "uploading";
 
 const STYLES = {
@@ -290,6 +304,7 @@ export type DocumentDialogProps = {
   titleOverride?: string;
   cancelButtonIsDisabled?: boolean;
   canEditDocumentType?: boolean;
+  hideDocumentType?: boolean;
 };
 
 // Sets the default document type if a subset is provided
@@ -312,6 +327,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   initialDocument,
   titleOverride,
   canEditDocumentType = true,
+  hideDocumentType = false,
 }) => {
   const { showSuccess, showError } = useToast();
   const hydratedInitialDocument = setDefaultDocumentType(
@@ -326,6 +342,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   const [documentDialogState, setDocumentDialogState] = useState<DocumentDialogState>("idle");
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
   const [formHasChanges, setFormHasChanges] = useState(false);
+  const [isAttestationOpen, setIsAttestationOpen] = useState(false);
 
   useEffect(() => {
     setFormHasChanges(
@@ -351,8 +368,12 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
 
   // On file change
   useEffect(() => {
-    // If uploading after a virus scan failure, reset the state
-    if (file && documentDialogState === "virus-scan-failed") {
+    // If uploading after a virus scan or BN validation failure, reset the state
+    if (
+      file &&
+      (documentDialogState === "virus-scan-failed" ||
+        documentDialogState === "bn-validation-failed")
+    ) {
       setDocumentDialogState("idle");
     }
 
@@ -369,6 +390,16 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
       showError(ERROR_MESSAGES.missingField);
       return;
     }
+    // BN notebooks require an attestation before any data is submitted.
+    if (mode === "add" && documentTypeRequiresAttestation(activeDocument.documentType)) {
+      setIsAttestationOpen(true);
+      return;
+    }
+    await handleUpload();
+  };
+
+  const onAttestationConfirmed = async () => {
+    setIsAttestationOpen(false);
     await handleUpload();
   };
 
@@ -378,8 +409,8 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     const uploadResult = await onSubmit(activeDocument);
     setDocumentDialogState(uploadResult);
 
-    // If virus scan failed, clear the selected file
-    if (uploadResult === "virus-scan-failed") {
+    // If virus scan or BN validation failed, clear the selected file so the user can choose a new one
+    if (uploadResult === "virus-scan-failed" || uploadResult === "bn-validation-failed") {
       setFile(null);
     }
 
@@ -394,60 +425,71 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   const buttonName = mode == "edit" ? "Save Changes" : "Upload Document";
 
   return (
-    <BaseDialog
-      title={dialogTitle}
-      onClose={onClose}
-      dialogHasChanges={formHasChanges}
-      actionButton={
-        <UploadButton
-          onClick={onUploadClick}
-          disabled={isMissing || !formHasChanges}
-          isUploading={documentDialogState === "uploading"}
-          label={buttonName}
-          loadingLabel={mode === "edit" ? "Saving" : "Uploading"}
-        />
-      }
-      cancelButtonIsDisabled={documentDialogState === "uploading"}
-    >
-      {mode !== "edit" ? (
-        <DropTarget
-          file={file}
-          onRemove={() => setFile(null)}
-          fileInputRef={fileInputRef}
-          uploadStatus={uploadStatus}
-          uploadProgress={uploadProgress}
-          handleFileChange={handleFileChange}
-        />
-      ) : (
-        ""
-      )}
-
-      <DocumentDialogNotice
-        documentDialogState={documentDialogState}
-        setDocumentDialogState={setDocumentDialogState}
-      />
-
-      <TitleInput
-        value={activeDocument.name}
-        onChange={(val) => {
-          setActiveDocument((prev) => ({ ...prev, name: val }));
-          setTitleManuallyEdited(true);
-        }}
-      />
-
-      <DescriptionInput
-        value={activeDocument.description ?? ""}
-        onChange={(val) => setActiveDocument((prev) => ({ ...prev, description: val }))}
-      />
-
-      <DocumentTypeInput
-        value={activeDocument.documentType}
-        onSelect={(val) =>
-          setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }))
+    <>
+      <BaseDialog
+        title={dialogTitle}
+        onClose={onClose}
+        dialogHasChanges={formHasChanges}
+        actionButton={
+          <UploadButton
+            onClick={onUploadClick}
+            disabled={isMissing || !formHasChanges}
+            isUploading={documentDialogState === "uploading"}
+            label={buttonName}
+            loadingLabel={mode === "edit" ? "Saving" : "Uploading"}
+          />
         }
-        documentTypeSubset={documentTypeSubset}
-        canEditDocumentType={canEditDocumentType}
-      />
-    </BaseDialog>
+        cancelButtonIsDisabled={documentDialogState === "uploading"}
+      >
+        {mode !== "edit" ? (
+          <DropTarget
+            file={file}
+            onRemove={() => setFile(null)}
+            fileInputRef={fileInputRef}
+            uploadStatus={uploadStatus}
+            uploadProgress={uploadProgress}
+            handleFileChange={handleFileChange}
+          />
+        ) : (
+          ""
+        )}
+
+        <DocumentDialogNotice
+          documentDialogState={documentDialogState}
+          setDocumentDialogState={setDocumentDialogState}
+        />
+
+        <TitleInput
+          value={activeDocument.name}
+          onChange={(val) => {
+            setActiveDocument((prev) => ({ ...prev, name: val }));
+            setTitleManuallyEdited(true);
+          }}
+        />
+
+        <DescriptionInput
+          value={activeDocument.description ?? ""}
+          onChange={(val) => setActiveDocument((prev) => ({ ...prev, description: val }))}
+        />
+
+        {!hideDocumentType && (
+          <DocumentTypeInput
+            value={activeDocument.documentType}
+            onSelect={(val) =>
+              setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }))
+            }
+            documentTypeSubset={documentTypeSubset}
+            canEditDocumentType={canEditDocumentType}
+          />
+        )}
+      </BaseDialog>
+
+      {isAttestationOpen && (
+        <AttestationDialog
+          onConfirm={onAttestationConfirmed}
+          onCancel={() => setIsAttestationOpen(false)}
+        />
+      )}
+    </>
   );
 };

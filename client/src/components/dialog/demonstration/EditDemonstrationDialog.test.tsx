@@ -6,10 +6,11 @@ import { describe, expect, it, vi } from "vitest";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import { EditDemonstrationDialog } from "./EditDemonstrationDialog";
 import {
+  EditDemonstrationDialog,
   GET_DEMONSTRATION_BY_ID_QUERY,
   UPDATE_DEMONSTRATION_MUTATION,
+  getUpdateDemonstrationInput,
 } from "./EditDemonstrationDialog";
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 import { DEMONSTRATION_DIALOG_DESCRIPTION_NAME } from "./DemonstrationDialog";
@@ -252,5 +253,55 @@ describe("EditDemonstrationDialog", () => {
       // If we get here without errors, the mock worked
       expect(submitButton).toBeInTheDocument();
     });
+  });
+});
+
+describe("getUpdateDemonstrationInput", () => {
+  const BASE_DEMONSTRATION = {
+    name: "My Demo",
+    description: "A description",
+    stateId: "AL",
+    projectOfficerId: "officer-1",
+    effectiveDate: "",
+    expirationDate: "",
+  };
+
+  it("maps name, stateId, and projectOfficerId as-is", () => {
+    const result = getUpdateDemonstrationInput(BASE_DEMONSTRATION);
+    expect(result.name).toBe("My Demo");
+    expect(result.projectOfficerUserId).toBe("officer-1");
+  });
+
+  it("passes through effectiveDate and expirationDate as-is", () => {
+    const result = getUpdateDemonstrationInput({
+      ...BASE_DEMONSTRATION,
+      effectiveDate: "2024-06-01",
+      expirationDate: "2025-06-01",
+    });
+    expect(result.effectiveDate).toBe("2024-06-01");
+    expect(result.expirationDate).toBe("2025-06-01");
+  });
+
+  it("passes null for effectiveDate and expirationDate when empty", () => {
+    const result = getUpdateDemonstrationInput({
+      ...BASE_DEMONSTRATION,
+      effectiveDate: "",
+      expirationDate: "",
+    });
+    expect(result.effectiveDate).toBeNull();
+    expect(result.expirationDate).toBeNull();
+  });
+
+  it("trims whitespace from description", () => {
+    const result = getUpdateDemonstrationInput({
+      ...BASE_DEMONSTRATION,
+      description: "  trimmed  ",
+    });
+    expect(result.description).toBe("trimmed");
+  });
+
+  it("sets description to empty string when blank", () => {
+    const result = getUpdateDemonstrationInput({ ...BASE_DEMONSTRATION, description: "   " });
+    expect(result.description).toBe("");
   });
 });

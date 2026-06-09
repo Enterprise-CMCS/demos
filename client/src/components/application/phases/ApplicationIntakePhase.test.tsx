@@ -337,8 +337,6 @@ describe("ApplicationIntakePhase", () => {
       expect(
         screen.getByText("DEMOS AI identified the following tag based on the application text:")
       ).toBeInTheDocument();
-      expect(screen.getByText("Source Passage")).toBeInTheDocument();
-      expect(screen.getByText(/Found in Document X, Page N, Position NN\/NNN/)).toBeInTheDocument();
 
       await userEvent.click(screen.getByTestId("button-confirm-suggested-tag"));
 

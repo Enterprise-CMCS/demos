@@ -1,5 +1,13 @@
 import React, { createContext, useContext, useState } from "react";
-import { DocumentType, TagName, DemonstrationTypeAssignment, Tag } from "demos-server";
+import { DocumentNode } from "@apollo/client";
+import {
+  DocumentType,
+  TagName,
+  DemonstrationTypeAssignment,
+  Tag,
+  Reference,
+  ReferenceAgreement,
+} from "demos-server";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
 import { CreateExtensionDialog } from "./modification/CreateExtensionDialog";
@@ -7,6 +15,7 @@ import { EditDemonstrationDialog } from "./demonstration";
 import { ExistingContactType, ManageContactsDialog } from "./ManageContactsDialog";
 import {
   AddDocumentToApplicationDialog,
+  AddDocumentToDeliverableDialog,
   DocumentDialogFields,
   EditDocumentDialog,
   RemoveDocumentDialog,
@@ -24,7 +33,7 @@ import { EditDemonstrationTypeDialog } from "./DemonstrationTypes/EditDemonstrat
 import { UpdateExtensionDialog } from "./modification/EditExtensionDialog";
 import { UpdateAmendmentDialog } from "./modification/EditAmendmentDialog";
 import { ConfirmApproveDialog } from "./ConfirmApproveDialog";
-import { AddDeliverableSlotDialog } from "./deliverable";
+import { AddDeliverableSlotDialog, RemoveDeliverableDialog } from "./deliverable";
 import { EditDeliverableDialog } from "./deliverable/EditDeliverableDialog";
 import {
   RequestExtensionDeliverableDialog,
@@ -49,6 +58,7 @@ import {
   ReviewExtensionDeliverableDialog,
   ReviewExtensionDeliverableDialogDeliverable,
 } from "./deliverable/ReviewExtensionDeliverableDialog";
+import { ReferenceAgreementDialog } from "./referenceAgreement/ReferenceAgreementDialog";
 
 type DialogContextType = {
   content: React.ReactNode | null;
@@ -123,34 +133,61 @@ export const useDialog = () => {
 
   const showUploadDocumentDialog = (
     applicationId: string,
-    onDocumentUploadSucceeded?: () => void
+    onDocumentUploadSucceeded?: () => void,
+    documentTypeSubset?: DocumentType[]
   ) => {
     context.showDialog(
       <AddDocumentToApplicationDialog
         onClose={context.hideDialog}
         applicationId={applicationId}
         onDocumentUploadSucceeded={onDocumentUploadSucceeded}
+        documentTypeSubset={documentTypeSubset}
       />
     );
   };
 
   const showEditDocumentDialog = (
     initialDocument: DocumentDialogFields,
-    canEditDocumentType?: boolean
+    options: {
+      canEditDocumentType?: boolean;
+      hideDocumentType?: boolean;
+      documentTypeSubset?: DocumentType[];
+      refetchQueries?: DocumentNode[];
+    } = {}
   ) => {
     context.showDialog(
       <EditDocumentDialog
         initialDocument={initialDocument}
         onClose={context.hideDialog}
-        canEditDocumentType={canEditDocumentType}
+        canEditDocumentType={options.canEditDocumentType}
+        hideDocumentType={options.hideDocumentType}
+        documentTypeSubset={options.documentTypeSubset}
+        refetchQueries={options.refetchQueries}
       />
     );
   };
 
-  const showRemoveDocumentDialog = (documentIds: string[]) => {
+  const showRemoveDocumentDialog = (
+    documentIds: string[],
+    options: { refetchQueries?: DocumentNode[] } = {}
+  ) => {
     context.showDialog(
-      <RemoveDocumentDialog documentIds={documentIds} onClose={context.hideDialog} />
+      <RemoveDocumentDialog
+        documentIds={documentIds}
+        onClose={context.hideDialog}
+        refetchQueries={options.refetchQueries}
+      />
     );
+  };
+
+  const showAddDeliverableFileDialog = (args: {
+    deliverableId: string;
+    applicationId: string;
+    isCmsFile: boolean;
+    documentTypeSubset?: DocumentType[];
+    refetchQueries?: string[];
+  }) => {
+    context.showDialog(<AddDocumentToDeliverableDialog onClose={context.hideDialog} {...args} />);
   };
 
   const showApplicationIntakeDocumentUploadDialog = (applicationId: string) => {
@@ -259,6 +296,16 @@ export const useDialog = () => {
     );
   };
 
+  const showRemoveDeliverableDialog = (deliverableIds: string[], onDeleted?: () => void) => {
+    context.showDialog(
+      <RemoveDeliverableDialog
+        deliverableIds={deliverableIds}
+        onClose={context.hideDialog}
+        onDeleted={onDeleted}
+      />
+    );
+  };
+
   const showRequestExtensionDeliverableDialog = (
     deliverable: RequestExtensionDeliverableDialogDeliverable
   ) => {
@@ -323,6 +370,14 @@ export const useDialog = () => {
     );
   };
 
+  const showReferenceAgreementDialog = (
+    reference: Pick<Reference, "id"> & {
+      agreement: Pick<ReferenceAgreement, "id" | "name" | "createdAt">;
+    }
+  ) => {
+    context.showDialog(<ReferenceAgreementDialog reference={reference} />);
+  };
+
   return {
     closeDialog: context.hideDialog,
     showCreateDemonstrationDialog,
@@ -333,6 +388,7 @@ export const useDialog = () => {
     showUploadDocumentDialog,
     showEditDocumentDialog,
     showRemoveDocumentDialog,
+    showAddDeliverableFileDialog,
     showApplicationIntakeDocumentUploadDialog,
     showCompletenessDocumentUploadDialog,
     showConceptPreSubmissionDocumentUploadDialog,
@@ -347,10 +403,12 @@ export const useDialog = () => {
     showUpdateAmendmentDialog,
     showConfirmApproveDialog,
     showAddDeliverableSlotDialog,
+    showRemoveDeliverableDialog,
     showEditDeliverableDialog,
     showRequestExtensionDeliverableDialog,
     showRequestResubmissionDeliverableDialog,
     showCompleteReviewDeliverableDialog,
     showReviewExtensionDeliverableDialog,
+    showReferenceAgreementDialog,
   };
 };

@@ -92,5 +92,5 @@ export interface UpdateExtensionInput {
   description?: string | null;
   effectiveDate?: DateTimeOrLocalDate | null;
   status?: ApplicationStatus;
-  signatureLevel?: ExtensionSignatureLevel;
+  signatureLevel?: ExtensionSignatureLevel | null;
 }

@@ -1,0 +1,17 @@
+// Flags: NO_CREATED_TS, NO_UPDATED_TS
+// Table is primarily an associative table
+model ReferenceConfiguration {
+  id                   String  @default(uuid()) @db.Uuid
+  referenceId          String  @map("reference_id") @db.Uuid
+  referenceAgreementId String? @map("reference_agreement_id") @db.Uuid
+  statusId             String  @map("status_id")
+
+  reference                     Reference                      @relation(fields: [referenceId], references: [id])
+  referenceAgreement            ReferenceAgreement?            @relation(fields: [referenceAgreementId], references: [id], onDelete: Restrict)
+  status                        ReferenceConfigurationStatus   @relation(fields: [statusId], references: [id])
+  referenceAgreementAcceptances ReferenceAgreementAcceptance[]
+
+  @@id([id])
+  @@unique([referenceId, referenceAgreementId]) // Unique index created with NULLS NOT DISTINCT in migration
+  @@map("reference_configuration")
+}

@@ -23,6 +23,7 @@ export const GET_AMENDMENT_WORKFLOW_QUERY = gql`
       demonstration {
         id
         status
+        medicaidId
         demonstrationTypes {
           demonstrationTypeName
           status
@@ -49,21 +50,9 @@ export const GET_AMENDMENT_WORKFLOW_QUERY = gql`
   ${WORKFLOW_DOCUMENT_FIELDS}
 `;
 
-export type ApplicationWorkflowAmendment =
-  WorkflowApplication &
-  Pick<
-    Amendment,
-    "name" |
-    "description" |
-    "effectiveDate" |
-    "signatureLevel" |
-    "status"
-  > & {
-    demonstration: Pick<
-        Demonstration,
-        | "id"
-        | "status"
-      > & {
+export type ApplicationWorkflowAmendment = WorkflowApplication &
+  Pick<Amendment, "name" | "description" | "effectiveDate" | "signatureLevel" | "status"> & {
+    demonstration: Pick<Demonstration, "id" | "status" | "medicaidId"> & {
       demonstrationTypes: Pick<
         DemonstrationTypeAssignment,
         | "demonstrationTypeName"
@@ -93,7 +82,7 @@ export const AmendmentWorkflow = ({ amendmentId }: { amendmentId: string }) => {
           <h3 className="text-brand text-2xl font-bold">APPLICATION</h3>
           <ApplicationStatusBadge applicationStatus={data.amendment.status} />
         </div>
-        <hr className="text-border-rules" />
+        <hr className="text-border-rules" aria-hidden="true" />
         <PhaseSelector application={data.amendment} workflowApplicationType="amendment" />
       </div>
     );

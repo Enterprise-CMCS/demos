@@ -16,7 +16,7 @@ describe("ExtensionsTab", () => {
   });
 
   const renderExtensionsTab = () => {
-    return render(<ExtensionsTab demonstrationId="mock-demonstration-id" extensions={[]} />);
+    return render(<ExtensionsTab demonstrationId="mock-demonstration-id" medicaidId="mock-medicaid-id" extensions={[]} />);
   };
 
   it("shows extensions tab title", async () => {

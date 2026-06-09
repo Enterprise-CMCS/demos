@@ -10,13 +10,14 @@ import {
   DELIVERABLE_DUE_DATE_TYPES,
   DELIVERABLE_EXTENSION_REASON_CODES,
   DELIVERABLE_EXTENSION_STATUSES,
-  DELIVERABLE_TYPES,
   DEMONSTRATION_TYPE_STATUSES,
   GRANT_LEVELS,
   NOTE_TYPES,
   PERMISSIONS,
   PERSON_TYPES,
   PHASE_STATUS,
+  REFERENCE_CONFIGURATION_STATUSES,
+  ON_DEMAND_REPORT_TYPES,
   REVIEW_PHASE_DATE_TYPES,
   REVIEW_PHASE_NOTE_TYPES,
   ROLES,
@@ -29,6 +30,7 @@ import {
   TAG_TYPES,
   UIPATH_RESULT_STATUSES,
   USER_TYPES,
+  ON_DEMAND_REPORT_STATUSES,
 } from "./constants.js";
 
 export type {
@@ -61,7 +63,12 @@ export type {
   UpdateExtensionInput,
 } from "./model/extension/extensionSchema.js";
 
-export type { Document, UpdateDocumentInput } from "./model/document/documentSchema.js";
+export type {
+  BudgetNeutralityValidationError,
+  BudgetNeutralityValidationResult,
+  Document,
+  UpdateDocumentInput,
+} from "./model/document/documentSchema.js";
 
 export type {
   DocumentPendingUpload,
@@ -123,6 +130,8 @@ export type { DeliverableExtension } from "./model/deliverableExtension/delivera
 
 export type { DeliverableComment } from "./model/publicComment/publicCommentSchema";
 
+export type { Reference, ReferenceAgreement } from "./model/reference/referenceSchema";
+
 // Alias is not enforced in TS but maintains alignment between GQL and TS
 export type NonEmptyString = string; // NOSONAR: typescript:S6564
 
@@ -130,6 +139,7 @@ export type NonEmptyString = string; // NOSONAR: typescript:S6564
 export type {
   DateType,
   DeliverableStatus,
+  DeliverableType,
   DocumentType,
   ExpectedTimestamp,
   FinalDeliverableStatus,
@@ -164,10 +174,12 @@ export type TagSource = (typeof TAG_SOURCES)[number];
 export type TagType = (typeof TAG_TYPES)[number];
 export type BudgetNeutralityValidationStatus =
   (typeof BUDGET_NEUTRALITY_VALIDATION_STATUSES)[number];
-export type DeliverableType = (typeof DELIVERABLE_TYPES)[number];
 export type DeliverableDueDateType = (typeof DELIVERABLE_DUE_DATE_TYPES)[number];
 export type DeliverableActionType = (typeof DELIVERABLE_ACTION_TYPES)[number];
 export type DeliverableExtensionReasonCode = (typeof DELIVERABLE_EXTENSION_REASON_CODES)[number];
 export type DeliverableExtensionStatus = (typeof DELIVERABLE_EXTENSION_STATUSES)[number];
 export type Permission = (typeof PERMISSIONS)[number];
 export type SystemRole = (typeof SYSTEM_ROLES)[number];
+export type ReferenceConfigurationStatus = (typeof REFERENCE_CONFIGURATION_STATUSES)[number];
+export type OnDemandReportType = (typeof ON_DEMAND_REPORT_TYPES)[number];
+export type OnDemandReportStatus = (typeof ON_DEMAND_REPORT_STATUSES)[number];

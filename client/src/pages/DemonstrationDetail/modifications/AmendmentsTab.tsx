@@ -7,13 +7,15 @@ import { ModificationTabs } from "./ModificationTabs";
 
 export const AmendmentsTab: React.FC<{
   demonstrationId: string;
+  medicaidId: string;
   amendments: DemonstrationDetailModification[];
-}> = ({ demonstrationId, amendments }) => {
+}> = ({ demonstrationId, medicaidId, amendments }) => {
   const { showCreateAmendmentDialog } = useDialog();
 
   const amendmentsWithType = amendments.map((amendment) => ({
     ...amendment,
     modificationType: "amendment" as const,
+    medicaidId: medicaidId,
   }));
 
   return (

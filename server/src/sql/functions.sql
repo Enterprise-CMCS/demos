@@ -121,7 +121,7 @@ END;
 $$;
 
 CREATE CONSTRAINT TRIGGER check_demonstration_primary_project_officer
-AFTER INSERT OR UPDATE ON demos_app.demonstration
+AFTER INSERT ON demos_app.demonstration
 DEFERRABLE INITIALLY DEFERRED
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_demonstration_primary_project_officer();
@@ -161,7 +161,7 @@ END;
 $$;
 
 CREATE CONSTRAINT TRIGGER check_demonstration_retains_primary_project_officer
-AFTER UPDATE OR DELETE ON demos_app.primary_demonstration_role_assignment
+AFTER UPDATE OF role_id OR DELETE ON demos_app.primary_demonstration_role_assignment
 DEFERRABLE INITIALLY DEFERRED
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_demonstration_retains_primary_project_officer();
@@ -321,6 +321,9 @@ BEGIN
         document_type_id,
         application_id,
         phase_id,
+        deliverable_id,
+        deliverable_type_id,
+        deliverable_is_cms_attached_file,
         infection_status,
         infection_threats,
         created_at,
@@ -335,6 +338,9 @@ BEGIN
         document_type_id,
         application_id,
         phase_id,
+        deliverable_id,
+        deliverable_type_id,
+        deliverable_is_cms_attached_file,
         p_infection_status,
         p_infection_threats,
         created_at,
@@ -433,7 +439,7 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_application_type_record_exists();
 
 -- update_application_current_phase_on_phase_update
-CREATE OR REPLACE FUNCTION demos_app.update_application_current_phase_on_phase_update()
+CREATE FUNCTION demos_app.update_application_current_phase_on_phase_update()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
@@ -514,12 +520,12 @@ END;
 $$;
 
 CREATE TRIGGER update_application_current_phase_on_phase_update
-AFTER UPDATE ON demos_app.application_phase
+AFTER UPDATE OF phase_status_id ON demos_app.application_phase
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.update_application_current_phase_on_phase_update();
 
 -- update_application_status_on_phase_update
-CREATE OR REPLACE FUNCTION demos_app.update_application_status_on_phase_update()
+CREATE FUNCTION demos_app.update_application_status_on_phase_update()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
@@ -617,7 +623,7 @@ END;
 $$;
 
 CREATE TRIGGER update_application_status_on_phase_update
-AFTER UPDATE ON demos_app.application_phase
+AFTER UPDATE OF phase_id, phase_status_id ON demos_app.application_phase
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.update_application_status_on_phase_update();
 
@@ -753,7 +759,7 @@ END;
 $$;
 
 -- disable_redundant_updates
-CREATE OR REPLACE FUNCTION demos_app.disable_redundant_updates()
+CREATE FUNCTION demos_app.disable_redundant_updates()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
@@ -1043,7 +1049,7 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_suggestion_has_extract();
 
 -- check_demonstration_type_exists_for_approved_demos
-CREATE OR REPLACE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations()
+CREATE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
@@ -1109,7 +1115,7 @@ FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations();
 
 CREATE TRIGGER check_demonstration_type_exists_for_approved_demonstrations
-BEFORE UPDATE ON demos_app.demonstration
+BEFORE UPDATE of status_id ON demos_app.demonstration
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.check_demonstration_type_exists_for_approved_demonstrations();
 
@@ -1277,7 +1283,7 @@ END;
 $$;
 
 CREATE TRIGGER change_open_ended_due_dates_to_expiration_date
-AFTER UPDATE ON demos_app.demonstration
+AFTER UPDATE OF expiration_date ON demos_app.demonstration
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.change_open_ended_due_dates_to_expiration_date();
 
@@ -1385,3 +1391,252 @@ BEGIN
 
 END;
 $$;
+
+CREATE FUNCTION demos_app.check_required_deliverable_demonstration_types()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    deliverable_type_id_value TEXT;
+    demonstration_types_count INT;
+BEGIN
+    IF TG_TABLE_NAME = 'deliverable_demonstration_type' AND TG_OP = 'DELETE' THEN
+        SELECT deliverable_type_id
+        FROM demos_app.deliverable
+        WHERE id = OLD.deliverable_id
+        INTO deliverable_type_id_value;
+        IF deliverable_type_id_value IN ('Implementation Plan', 'Monitoring Protocol') THEN
+            SELECT COUNT(*)
+            INTO demonstration_types_count
+            FROM demos_app.deliverable_demonstration_type
+            WHERE deliverable_id = OLD.deliverable_id;
+            IF demonstration_types_count = 0 THEN
+                RAISE EXCEPTION
+                    'Cannot delete the final demonstration type from deliverable %',
+                    OLD.deliverable_id;
+            END IF;
+        END IF;
+        RETURN OLD;
+    ELSIF TG_TABLE_NAME = 'deliverable' AND TG_OP IN ('INSERT', 'UPDATE') THEN
+        IF TG_OP = 'INSERT' OR (OLD.deliverable_type_id IS DISTINCT FROM NEW.deliverable_type_id) THEN
+            IF NEW.deliverable_type_id IN ('Implementation Plan', 'Monitoring Protocol') THEN
+                SELECT COUNT(*)
+                INTO demonstration_types_count
+                FROM demos_app.deliverable_demonstration_type
+                WHERE deliverable_id = NEW.id;
+                IF demonstration_types_count = 0 THEN
+                    RAISE EXCEPTION
+                        'Deliverable type % requires at least one demonstration type',
+                        NEW.deliverable_type_id;
+                END IF;
+            END IF;
+        END IF;
+        RETURN NEW;
+    ELSE
+        RAISE EXCEPTION 'This trigger has been assigned to an incorrect table/operation combination';
+    END IF;
+END;
+$$;
+
+CREATE CONSTRAINT TRIGGER check_required_demo_types_on_ddt
+AFTER DELETE
+ON demos_app.deliverable_demonstration_type
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.check_required_deliverable_demonstration_types();
+
+CREATE CONSTRAINT TRIGGER check_required_demo_types_on_deliverable
+AFTER INSERT OR UPDATE OF deliverable_type_id
+ON demos_app.deliverable
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.check_required_deliverable_demonstration_types();
+
+-- trim_input_text_fields
+CREATE FUNCTION demos_app.trim_input_text_fields()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    tbls_with_content text[] := ARRAY[
+        'application_note',
+        'private_comment',
+        'public_comment'
+    ];
+
+    tbls_with_note text[] := ARRAY[
+        'deliverable_action'
+    ];
+
+    tbls_with_name text[] := ARRAY[
+        'amendment',
+        'deliverable',
+        'demonstration',
+        'document_infected',
+        'document_pending_upload',
+        'document',
+        'extension',
+        'reference_agreement',
+        'reference'
+    ];
+
+    tbls_with_description text[] := ARRAY[
+        'amendment',
+        'demonstration',
+        'document_infected',
+        'document_pending_upload',
+        'document',
+        'extension',
+        'reference'
+    ];
+BEGIN
+    IF TG_TABLE_NAME = ANY(tbls_with_content) THEN
+        NEW.content := trim(NEW.content);
+    END IF;
+
+    IF TG_TABLE_NAME = ANY(tbls_with_note) THEN
+        NEW.note := trim(NEW.note);
+    END IF;
+
+    IF TG_TABLE_NAME = ANY(tbls_with_name) THEN
+        NEW.name := trim(NEW.name);
+    END IF;
+
+    IF TG_TABLE_NAME = ANY(tbls_with_description) THEN
+        NEW.description := trim(NEW.description);
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.amendment
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.application_note
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.deliverable
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.deliverable_action
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.demonstration
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.document
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.document_infected
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.document_pending_upload
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.extension
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.private_comment
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.public_comment
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.reference
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+CREATE TRIGGER trim_input_text_fields
+BEFORE INSERT OR UPDATE ON demos_app.reference_agreement
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.trim_input_text_fields();
+
+-- generate_medicaid_chip_id_numbers
+CREATE FUNCTION demos_app.generate_medicaid_chip_id_numbers()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    region_number INT;
+    medicaid_seq_number INT;
+    chip_seq_number INT;
+BEGIN
+    IF NEW.medicaid_id IS NOT NULL OR NEW.chip_id IS NOT NULL THEN
+        RAISE EXCEPTION 'medicaid_id and chip_id are system-generated and must not be set manually';
+    END IF;
+
+    SELECT
+        region
+    INTO
+        region_number
+    FROM
+        demos_app.state
+    WHERE
+        id = NEW.state_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Unknown state code: %', NEW.state_id;
+    END IF;
+
+    medicaid_seq_number := nextval('demos_app.medicaid_id_number_seq');
+    chip_seq_number := nextval('demos_app.chip_id_number_seq');
+
+    NEW.medicaid_id := format('11-W-%s/%s', lpad(medicaid_seq_number::TEXT, 5, '0'), region_number);
+    NEW.chip_id := format('21-W-%s/%s', lpad(chip_seq_number::TEXT, 5, '0'), region_number);
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER generate_medicaid_chip_id_numbers
+BEFORE INSERT ON demos_app.demonstration
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.generate_medicaid_chip_id_numbers();
+
+-- prevent_changing_immutable_demonstration_fields
+CREATE FUNCTION demos_app.prevent_changing_immutable_demonstration_fields()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF NEW.state_id IS DISTINCT FROM OLD.state_id THEN
+        RAISE EXCEPTION 'The state_id field in the demonstration table cannot be modified after creation.';
+    END IF;
+    IF NEW.medicaid_id IS DISTINCT FROM OLD.medicaid_id THEN
+        RAISE EXCEPTION 'The medicaid_id field in the demonstration table cannot be modified after creation.';
+    END IF;
+    IF NEW.chip_id IS DISTINCT FROM OLD.chip_id THEN
+        RAISE EXCEPTION 'The chip_id field in the demonstration table cannot be modified after creation.';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER prevent_changing_immutable_demonstration_fields
+BEFORE UPDATE OF state_id, medicaid_id, chip_id ON demos_app.demonstration
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.prevent_changing_immutable_demonstration_fields();

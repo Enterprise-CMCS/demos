@@ -10,6 +10,7 @@ import {
   DeliverableType,
   Demonstration,
   Document,
+  DocumentType,
   NonEmptyString,
   Tag,
   TagName,
@@ -30,6 +31,7 @@ export const deliverableSchema = gql`
     expectedToBeSubmitted: Boolean!
     cmsDocuments: [Document!]!
     stateDocuments: [Document!]!
+    allowedDocumentTypes: [DocumentType!]!
     deliverableActions: [DeliverableAction!]!
     extensionRequests: [DeliverableExtension!]!
     publicComments: [DeliverableComment!]!
@@ -128,6 +130,7 @@ export interface Deliverable {
   expectedToBeSubmitted: boolean;
   cmsDocuments: Document[];
   stateDocuments: Document[];
+  allowedDocumentTypes: DocumentType[];
   deliverableActions: DeliverableAction[];
   extensionRequests: DeliverableExtension[];
   publicComments: DeliverableComment[];

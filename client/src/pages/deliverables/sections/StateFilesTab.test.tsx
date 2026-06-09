@@ -10,7 +10,6 @@ import {
   STATE_FILES_ADD_BUTTON_NAME,
   STATE_FILES_DELETE_BUTTON_NAME,
   STATE_FILES_EDIT_BUTTON_NAME,
-  STATE_FILES_SUBMIT_BUTTON_NAME,
   StateFilesTab,
 } from "./StateFilesTab";
 
@@ -60,12 +59,6 @@ describe("StateFilesTab", () => {
       renderEmpty();
 
       expect(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME)).toBeInTheDocument();
-    });
-
-    it("hides the Submit Deliverable button", () => {
-      renderEmpty();
-
-      expect(screen.queryByTestId(STATE_FILES_SUBMIT_BUTTON_NAME)).not.toBeInTheDocument();
     });
 
     it("invokes onAdd when the header Add File(s) button is clicked", async () => {
@@ -147,18 +140,6 @@ describe("StateFilesTab", () => {
       expect(onAdd).toHaveBeenCalledTimes(1);
     });
 
-    it("shows Submit Deliverable only when files are present", async () => {
-      const user = userEvent.setup();
-      const onSubmit = vi.fn();
-      renderTab({ onSubmit });
-
-      const submitButton = screen.getByTestId(STATE_FILES_SUBMIT_BUTTON_NAME);
-      expect(submitButton).toBeInTheDocument();
-
-      await user.click(submitButton);
-      expect(onSubmit).toHaveBeenCalledTimes(1);
-    });
-
     it("renders the Current toggle as the shared styled switch", () => {
       renderTab();
 
@@ -177,12 +158,6 @@ describe("StateFilesTab", () => {
       renderTab({ disabled: true });
 
       expect(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME)).toBeDisabled();
-    });
-
-    it("disables the Submit Deliverable button", () => {
-      renderTab({ disabled: true });
-
-      expect(screen.getByTestId(STATE_FILES_SUBMIT_BUTTON_NAME)).toBeDisabled();
     });
 
     it("keeps Edit disabled even when a row is selected", async () => {

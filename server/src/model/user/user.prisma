@@ -6,16 +6,20 @@ model User {
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  person                 Person                  @relation(fields: [id, personTypeId], references: [id, personTypeId])
-  personType             UserPersonTypeLimit     @relation(fields: [personTypeId], references: [id])
-  deliverables           Deliverable[]
-  deliverableActions     DeliverableAction[]
-  documents              Document[]
-  documentsPendingUpload DocumentPendingUpload[]
-  documentsInfected      DocumentInfected[]
-  privateComments        PrivateComment[]
-  publicComments         PublicComment[]
-  userSessions           UserSession[]
+  person                        Person                         @relation(fields: [id, personTypeId], references: [id, personTypeId])
+  personType                    UserPersonTypeLimit            @relation(fields: [personTypeId], references: [id])
+  deliverables                  Deliverable[]
+  deliverableActions            DeliverableAction[]
+  documents                     Document[]
+  documentsPendingUpload        DocumentPendingUpload[]
+  documentsInfected             DocumentInfected[]
+  privateComments               PrivateComment[]
+  publicComments                PublicComment[]
+  userSessions                  UserSession[]
+  references                    Reference[]
+  referenceAgreements           ReferenceAgreement[]
+  referenceAgreementAcceptances ReferenceAgreementAcceptance[]
+  onDemandReportsRequested      OnDemandReport[]
 
   @@id([id])
   @@unique([id, personTypeId]) // Not required by Postgres, but Prisma requires this notation

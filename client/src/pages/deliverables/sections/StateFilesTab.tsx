@@ -1,7 +1,5 @@
 import React from "react";
 
-import { SecondaryButton } from "components/button";
-
 import type { DeliverableFileRow } from "./DeliverableFileTypes";
 import { DeliverableFileTable } from "./DeliverableFileTable";
 import { makeStateFileColumns } from "./fileColumns";
@@ -20,7 +18,6 @@ export type StateFilesTabProps = {
   onAdd?: () => void;
   onEdit?: (file: DeliverableFileRow) => void;
   onDelete?: (fileIds: string[]) => void;
-  onSubmit?: () => void;
   disabled?: boolean;
 };
 
@@ -29,11 +26,9 @@ export const StateFilesTab: React.FC<StateFilesTabProps> = ({
   onAdd,
   onEdit,
   onDelete,
-  onSubmit,
   disabled = false,
 }) => {
   const columns = makeStateFileColumns();
-  const hasFiles = files.length > 0;
 
   return (
     <DeliverableFileTable
@@ -51,19 +46,6 @@ export const StateFilesTab: React.FC<StateFilesTabProps> = ({
       onEdit={onEdit}
       onDelete={onDelete}
       disabled={disabled}
-      footer={
-        hasFiles && (
-          <div className="flex justify-end">
-            <SecondaryButton
-              name={STATE_FILES_SUBMIT_BUTTON_NAME}
-              onClick={onSubmit}
-              disabled={disabled}
-            >
-              Submit Deliverable
-            </SecondaryButton>
-          </div>
-        )
-      }
     />
   );
 };

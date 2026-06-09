@@ -4,12 +4,12 @@ import { MenuCollapseRightIcon } from "components/icons/Navigation/MenuCollapseR
 import { CommentIcon } from "components/icons";
 import { SecondaryButton } from "components/button";
 import { getCurrentUser } from "components/user/UserContext";
-import { PersonType } from "demos-server";
 import { CommentBoxTabs } from "./CommentBoxTabs";
 import { CommentBoxTextArea } from "./CommentBoxTextArea";
 import { CommentBoxHistory } from "./CommentBoxHistory";
-import { CommentBoxComment, CommentVisibility } from "./Comment";
-import { getComments } from "./getComments";
+import { CommentVisibility } from "./Comment";
+import { useComments } from "./useComments";
+import { useToast } from "components/toast/ToastContext";
 
 export const COMMENT_BOX_NAME = "comment-box";
 export const COLLAPSE_COMMENTS_BUTTON_NAME = "button-collapse-comments";
@@ -33,29 +33,33 @@ const CommentBoxHeader = ({ onCollapse }: { onCollapse: () => void }) => (
   </div>
 );
 
-export const CommentBox = () => {
+export const CommentBox = ({ deliverableId }: { deliverableId: string }) => {
   const { currentUser } = getCurrentUser();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [comments, setComments] = useState<CommentBoxComment[]>(() =>
-    getComments(currentUser?.person.personType ?? "demos-state-user")
-  );
   const [currentComment, setCurrentComment] = useState("");
   const [commentVisibility, setCommentVisibility] = useState<CommentVisibility>("public");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { showError } = useToast();
+
+  const { isCmsOrAdminUser, visibleComments, addComment } = useComments(
+    deliverableId,
+    commentVisibility
+  );
 
   if (!currentUser) {
     return null;
   }
 
-  const userPersonType: PersonType = currentUser.person.personType;
-  const isCmsOrAdminUser = userPersonType === "demos-cms-user" || userPersonType === "demos-admin";
-  const visibleComments = comments.filter((c) => c.commentVisibility === commentVisibility);
-
-  const addComment = (newComment: CommentBoxComment) => {
-    // TODO: Eventually we will replace this with the actual API call to save the comment,
-    // and we might want to handle the visibility differently depending on the API design.
-    // For now, we are just adding it to the local state with the visibility included.
-    console.log("Adding comment:", newComment);
-    setComments((prevComments) => [newComment, ...prevComments]);
+  const handleAddComment = async (commentText: string) => {
+    try {
+      setIsSubmitting(true);
+      await addComment(commentText);
+      setCurrentComment("");
+    } catch {
+      showError("Failed to add comment. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isCollapsed) {
@@ -79,10 +83,11 @@ export const CommentBox = () => {
       <CommentBoxHeader onCollapse={() => setIsCollapsed(true)} />
       {isCmsOrAdminUser && <CommentBoxTabs setCommentVisibility={setCommentVisibility} />}
       <CommentBoxTextArea
-        addComment={addComment}
+        addComment={handleAddComment}
         currentComment={currentComment}
         setCurrentComment={setCurrentComment}
         commentVisibility={commentVisibility}
+        isSubmitting={isSubmitting}
       />
       <CommentBoxHistory comments={visibleComments} />
     </div>

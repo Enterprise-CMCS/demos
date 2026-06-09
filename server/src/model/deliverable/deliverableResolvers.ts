@@ -36,6 +36,7 @@ import {
   DeliverableStatus,
   DeliverableType,
   DenyDeliverableExtensionInput,
+  DocumentType,
   FinalDeliverableStatus,
   RequestDeliverableExtensionInput,
   RequestDeliverableResubmissionInput,
@@ -51,6 +52,7 @@ import { selectManyDeliverableExtensions } from "../deliverableExtension/queries
 import { selectManyPublicComments } from "../publicComment/queries";
 import { selectManyPrivateComments } from "../privateComment/queries";
 import { selectDemonstrationOrThrow } from "../demonstration/queries";
+import { selectDocumentTypesForDeliverableType } from "../deliverableTypeDocumentType/selectDocumentTypesForDeliverableType";
 
 export async function resolveDeliverable(
   parent: PrismaDocument | PrismaDocumentPendingUpload | PrismaPrivateComment | PrismaPublicComment,
@@ -234,6 +236,8 @@ export const deliverableResolvers = {
         },
         context.user
       ),
+    allowedDocumentTypes: (parent: PrismaDeliverable): Promise<DocumentType[]> =>
+      selectDocumentTypesForDeliverableType(parent.deliverableTypeId),
     deliverableActions: (parent: PrismaDeliverable): Promise<DeliverableAction[]> =>
       getFormattedDeliverableActions(parent.id),
     extensionRequests: (parent: PrismaDeliverable): Promise<PrismaDeliverableExtension[]> =>

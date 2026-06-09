@@ -11,6 +11,7 @@ import {
   TAG_TYPES,
   AMENDMENT_SIGNATURE_LEVELS,
   EXTENSION_SIGNATURE_LEVELS,
+  FAQ_REFERENCE_TAG,
 } from "./constants.js";
 import {
   CreateDemonstrationInput,
@@ -47,7 +48,7 @@ import {
   updateDeliverable,
 } from "./model/deliverable";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { Deliverable as PrismaDeliverable } from "@prisma/client";
+import { Deliverable, Deliverable as PrismaDeliverable } from "@prisma/client";
 import { selectDeliverableExtension } from "./model/deliverableExtension/queries";
 
 const DOCUMENTS_PER_APPLICATION = 15;
@@ -61,6 +62,7 @@ const NEW_TAG_COUNT = 20;
 const TAG_ASSIGNMENT_MAX = 5;
 const DELIVERABLE_SEED_COUNT = 8;
 const APPLICATION_TAG_SUGGESTION_POOL_SIZE = 10;
+const BYPASS_USER_ID = "00000000-1111-2222-3333-123abc123abc";
 
 function getRandomPhaseDocumentTypeCombination(): {
   phaseName: PhaseName;
@@ -257,10 +259,52 @@ async function seedDeliverables(actionUserId: string, actionUserPersonTypeId: Pe
   return createdDeliverables;
 }
 
+async function addDocumentsToDeliverable(deliverable: Deliverable) {
+  const context = {
+    user: {
+      id: BYPASS_USER_ID,
+      personTypeId: "demos-admin",
+    },
+  } as GraphQLContext;
+  for (let i = 0; i < 5; i++) {
+    await prisma().document.create({
+      data: {
+        name: "Test deliverable cms document",
+        description: faker.lorem.sentence(5),
+        s3Path: "tmp",
+        ownerUserId: context.user.id,
+        documentTypeId: "General File",
+        applicationId: deliverable.demonstrationId,
+        deliverableId: deliverable.id,
+        deliverableTypeId: deliverable.deliverableTypeId,
+        deliverableIsCmsAttachedFile: true,
+        createdAt: new Date(),
+      },
+    });
+  }
+
+  for (let i = 0; i < 5; i++) {
+    await prisma().document.create({
+      data: {
+        name: faker.lorem.sentence(2),
+        description: faker.lorem.sentence(5),
+        s3Path: "tmp",
+        ownerUserId: context.user.id,
+        documentTypeId: "General File",
+        applicationId: deliverable.demonstrationId,
+        deliverableId: deliverable.id,
+        deliverableTypeId: deliverable.deliverableTypeId,
+        deliverableIsCmsAttachedFile: false,
+        createdAt: new Date(),
+      },
+    });
+  }
+}
+
 async function simulateDeliverableActions(deliverable: PrismaDeliverable) {
   const context = {
     user: {
-      id: "00000000-1111-2222-3333-123abc123abc",
+      id: BYPASS_USER_ID,
       personTypeId: "demos-admin",
     },
   } as GraphQLContext;
@@ -543,6 +587,150 @@ async function seedApplicationTagSuggestions() {
   }
 }
 
+async function seedReferences() {
+  console.log("🌱 Seeding reference records...");
+
+  const referenceIds = [];
+  for (let i = 0; i < 5; i++) {
+    referenceIds.push(faker.string.uuid());
+  }
+  const faqReferenceId = referenceIds[2];
+  const doubledReferenceId = referenceIds[3];
+  const referenceNoAgreementId = referenceIds[4];
+  const referenceAgreementIds = [faker.string.uuid(), faker.string.uuid(), faker.string.uuid()];
+
+  const s3Client = new S3Client(
+    process.env.S3_ENDPOINT_LOCAL
+      ? {
+          region: "us-east-1",
+          endpoint: process.env.S3_ENDPOINT_LOCAL,
+          forcePathStyle: true,
+          credentials: {
+            accessKeyId: "test",
+            secretAccessKey: "test", // pragma: allowlist secret
+          },
+        }
+      : {}
+  );
+
+  for (const referenceAgreementId of referenceAgreementIds) {
+    await prisma().referenceAgreement.create({
+      data: {
+        id: referenceAgreementId,
+        name: faker.lorem.words(3),
+        s3Path: `references/agreements/${referenceAgreementId}`,
+        ownerUserId: BYPASS_USER_ID,
+        ownerPersonTypeId: "demos-admin",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+    await s3Client.send(
+      new PutObjectCommand({
+        Bucket: process.env.CLEAN_BUCKET,
+        Key: `references/agreements/${referenceAgreementId}`,
+        Body: Buffer.from(`Test reference agreement: ${referenceAgreementId}`),
+      })
+    );
+  }
+  for (const referenceId of referenceIds) {
+    await prisma().reference.create({
+      data: {
+        id: referenceId,
+        name: faker.lorem.words(3),
+        description: faker.lorem.sentence(),
+        s3Path: `references/${referenceId}`,
+        ownerUserId: BYPASS_USER_ID,
+        ownerPersonTypeId: "demos-admin",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+    await s3Client.send(
+      new PutObjectCommand({
+        Bucket: process.env.CLEAN_BUCKET,
+        Key: `references/${referenceId}`,
+        Body: Buffer.from(`Test reference: ${referenceId}`),
+      })
+    );
+
+    if (referenceId === faqReferenceId) {
+      await prisma().referenceTagAssignment.create({
+        data: {
+          referenceId: referenceId,
+          tagNameId: FAQ_REFERENCE_TAG,
+          tagTypeId: "Reference",
+        },
+      });
+      await prisma().referenceConfiguration.create({
+        data: {
+          id: faker.string.uuid(),
+          referenceId: referenceId,
+          referenceAgreementId: null,
+          statusId: "Active",
+        },
+      });
+    } else if (referenceId === doubledReferenceId) {
+      await prisma().referenceConfiguration.create({
+        data: {
+          id: faker.string.uuid(),
+          referenceId: referenceId,
+          referenceAgreementId: referenceAgreementIds[0],
+          statusId: "Inactive",
+        },
+      });
+      await prisma().referenceConfiguration.create({
+        data: {
+          id: faker.string.uuid(),
+          referenceId: referenceId,
+          referenceAgreementId: referenceAgreementIds[1],
+          statusId: "Active",
+        },
+      });
+    } else if (referenceId === referenceNoAgreementId) {
+      await prisma().referenceConfiguration.create({
+        data: {
+          id: faker.string.uuid(),
+          referenceId: referenceId,
+          referenceAgreementId: null,
+          statusId: "Active",
+        },
+      });
+    } else {
+      await prisma().referenceConfiguration.create({
+        data: {
+          id: faker.string.uuid(),
+          referenceId: referenceId,
+          referenceAgreementId: referenceAgreementIds[0],
+          statusId: "Active",
+        },
+      });
+    }
+
+    if (referenceId !== faqReferenceId) {
+      const demonstrationTypes = sampleFromArray(
+        [
+          "Dental",
+          "Designated State Health Programs (DSHP)",
+          "Employment Supports",
+          "End-Stage Renal Disease (ESRD)",
+          "Enrollment Cap",
+        ],
+        sampleFromArray([1, 2, 3], 1)[0]
+      );
+      for (const demonstrationType of demonstrationTypes) {
+        await prisma().referenceDemonstrationType.create({
+          data: {
+            referenceId: referenceId,
+            demonstrationTypeTagNameId: demonstrationType,
+            demonstrationTypeTagTypeId: "Demonstration Type",
+          },
+        });
+      }
+    }
+  }
+}
+
 function randomDateRange() {
   const randomStart = faker.date.future({ years: 1 });
   const randomEnd = faker.date.future({ years: 1, refDate: randomStart });
@@ -590,12 +778,31 @@ async function clearDatabase() {
   // However, if this does not happen, the history tables will contain the truncates
   return await prisma().$transaction([
     // Truncates must be done in proper order for relational reasons
+    // Reference section
+    prisma().referenceAgreementAcceptance.deleteMany(),
+    prisma().referenceDemonstrationType.deleteMany(),
+    prisma().referenceTagAssignment.deleteMany(),
+    prisma().referenceConfiguration.deleteMany(),
+    prisma().referenceAgreement.deleteMany(),
+    prisma().reference.deleteMany(),
+
     prisma().primaryDemonstrationRoleAssignment.deleteMany(),
     prisma().demonstrationRoleAssignment.deleteMany(),
     prisma().applicationDate.deleteMany(),
     prisma().applicationPhase.deleteMany(),
     prisma().applicationNote.deleteMany(),
+    prisma().applicationTagAssignment.deleteMany(),
+    prisma().$executeRawUnsafe(
+      "TRUNCATE TABLE demos_app.demonstration_type_tag_assignment CASCADE;"
+    ),
+    prisma().applicationTagSuggestion.deleteMany(),
+    prisma().applicationTagSuggestionExtract.deleteMany(),
+    prisma().uiPathValue.deleteMany(),
+    prisma().uiPathResult.deleteMany(),
     prisma().document.deleteMany(),
+    prisma().deliverableAction.deleteMany(),
+    prisma().deliverableExtension.deleteMany(),
+    prisma().deliverable.deleteMany(),
 
     // Note that we must delete from application first
     // The foreign keys to that table from amendment/extension/demonstration are deferred
@@ -607,6 +814,7 @@ async function clearDatabase() {
 
     prisma().systemRoleAssignment.deleteMany(),
     prisma().personState.deleteMany(),
+    prisma().userSession.deleteMany(),
     prisma().user.deleteMany(),
     prisma().person.deleteMany(),
   ]);
@@ -625,7 +833,7 @@ async function seedDatabase() {
   const extensionCount = 8;
 
   console.log("🌱 Generating bypassed user and accompanying records...");
-  const bypassUserId = "00000000-1111-2222-3333-123abc123abc";
+  const bypassUserId = BYPASS_USER_ID;
   const bypassUserSub = "1234abcd-0000-1111-2222-333333333333";
 
   await prisma().person.create({
@@ -1056,12 +1264,15 @@ async function seedDatabase() {
   await seedApprovedDemonstration();
   const createdDeliverables = await seedDeliverables(bypassUserId, "demos-admin");
   await simulateDeliverableActions(createdDeliverables[0]);
+  await addDocumentsToDeliverable(createdDeliverables[1]);
 
   await seedDocuments();
 
   await seedApplicationTagSuggestions();
 
   await seedNotes();
+
+  await seedReferences();
 
   console.log("✨ Database seeding complete.");
 }

@@ -4,6 +4,7 @@ model DemonstrationTypeTagTypeLimit {
 
   tagType                         TagType                          @relation(fields: [id], references: [id])
   demonstrationTypeTagAssignments DemonstrationTypeTagAssignment[]
+  referenceDemonstrationTypes     ReferenceDemonstrationType[]
 
   @@id([id])
   @@map("demonstration_type_tag_type_limit")

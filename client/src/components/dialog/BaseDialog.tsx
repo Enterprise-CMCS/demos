@@ -85,11 +85,16 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
       >
         {!hideHeader && (
           <>
-            <button onClick={onCloseClicked} className={CLOSE_BUTTON} aria-label="Close dialog">
+            <button
+              type="button"
+              onClick={onCloseClicked}
+              className={CLOSE_BUTTON}
+              aria-label="Close dialog"
+            >
               ×
             </button>
             <h2 className={TITLE}>{title}</h2>
-            <hr className={HR} />
+            <hr className={HR} aria-hidden="true" />
           </>
         )}
 
@@ -97,7 +102,7 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
 
         {actionButton && (
           <>
-            <hr className={HR} />
+            <hr className={HR} aria-hidden="true" />
             <div className="flex justify-end gap-[24px]">
               <SecondaryButton
                 name={DIALOG_CANCEL_BUTTON_NAME}

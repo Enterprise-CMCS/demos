@@ -12,7 +12,7 @@ type TestPerson = Pick<Person, "id" | "fullName">;
 type TestState = Pick<State, "id" | "name">;
 type TestAmendment = Pick<Amendment, "id" | "name" | "status">;
 type TestExtension = Pick<Extension, "id" | "name" | "status">;
-type TestDemonstration = Pick<Demonstration, "id" | "name" | "status"> & {
+type TestDemonstration = Pick<Demonstration, "id" | "name" | "status" | "medicaidId"> & {
   state: TestState;
   primaryProjectOfficer: TestPerson;
   amendments: TestAmendment[];
@@ -110,6 +110,7 @@ const buildDemonstrations = (configs: TestDemoConfig[]): TestDemonstration[] => 
     id: config.id,
     name: config.name,
     status: config.status,
+    medicaidId: config.id,
     state: {
       id: config.state,
       name: STATE_NAMES[config.state],
@@ -295,7 +296,7 @@ describe("Demonstrations", () => {
     });
 
     it("renders action buttons for each demonstration", () => {
-      const viewButtons = screen.getAllByText("View");
+      const viewButtons = screen.getAllByTestId(/^view-details-/);
       expect(viewButtons).toHaveLength(3);
     });
   });

@@ -130,7 +130,7 @@ describe("ApprovalPackageTable", () => {
         documentType: "Signed Decision Memo",
         file: null,
       },
-      false
+      { canEditDocumentType: false }
     );
   });
 

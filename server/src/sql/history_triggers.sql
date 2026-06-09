@@ -45,7 +45,7 @@ BEGIN
 END
 $$;
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_amendment()
+CREATE FUNCTION demos_app.log_changes_amendment()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -120,11 +120,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_amendment
+CREATE TRIGGER log_changes_amendment
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.amendment
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_amendment();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_application()
+CREATE FUNCTION demos_app.log_changes_application()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -159,11 +159,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_application
+CREATE TRIGGER log_changes_application
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.application
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_application_date()
+CREATE FUNCTION demos_app.log_changes_application_date()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -210,11 +210,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_application_date
+CREATE TRIGGER log_changes_application_date
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.application_date
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application_date();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_application_note()
+CREATE FUNCTION demos_app.log_changes_application_note()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -261,11 +261,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_application_note
+CREATE TRIGGER log_changes_application_note
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.application_note
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application_note();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_application_phase()
+CREATE FUNCTION demos_app.log_changes_application_phase()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -312,11 +312,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_application_phase
+CREATE TRIGGER log_changes_application_phase
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.application_phase
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application_phase();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_application_tag_assignment()
+CREATE FUNCTION demos_app.log_changes_application_tag_assignment()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -355,11 +355,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_application_tag_assignment
+CREATE TRIGGER log_changes_application_tag_assignment
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.application_tag_assignment
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application_tag_assignment();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_application_tag_suggestion()
+CREATE FUNCTION demos_app.log_changes_application_tag_suggestion()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -410,11 +410,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_application_tag_suggestion
+CREATE TRIGGER log_changes_application_tag_suggestion
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.application_tag_suggestion
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application_tag_suggestion();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_application_tag_suggestion_extract()
+CREATE FUNCTION demos_app.log_changes_application_tag_suggestion_extract()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -473,11 +473,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_application_tag_suggestion_extract
+CREATE TRIGGER log_changes_application_tag_suggestion_extract
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.application_tag_suggestion_extract
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_application_tag_suggestion_extract();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_budget_neutrality_workbook()
+CREATE FUNCTION demos_app.log_changes_budget_neutrality_workbook()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -487,6 +487,8 @@ BEGIN
             document_type_id,
             validation_status_id,
             validation_data,
+            actuals,
+            net_variance_total,
             created_at,
             updated_at
         )
@@ -499,6 +501,8 @@ BEGIN
             NEW.document_type_id,
             NEW.validation_status_id,
             NEW.validation_data,
+            NEW.actuals,
+            NEW.net_variance_total,
             NEW.created_at,
             NEW.updated_at
         );
@@ -510,6 +514,8 @@ BEGIN
             document_type_id,
             validation_status_id,
             validation_data,
+            actuals,
+            net_variance_total,
             created_at,
             updated_at
         )
@@ -519,6 +525,8 @@ BEGIN
             OLD.document_type_id,
             OLD.validation_status_id,
             OLD.validation_data,
+            OLD.actuals,
+            OLD.net_variance_total,
             OLD.created_at,
             OLD.updated_at
         );
@@ -528,11 +536,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_budget_neutrality_workbook
+CREATE TRIGGER log_changes_budget_neutrality_workbook
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.budget_neutrality_workbook
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_budget_neutrality_workbook();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_deliverable()
+CREATE FUNCTION demos_app.log_changes_deliverable()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -611,11 +619,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_deliverable
+CREATE TRIGGER log_changes_deliverable
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.deliverable
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_deliverable();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_deliverable_action()
+CREATE FUNCTION demos_app.log_changes_deliverable_action()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -702,11 +710,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_deliverable_action
+CREATE TRIGGER log_changes_deliverable_action
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.deliverable_action
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_deliverable_action();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_deliverable_demonstration_type()
+CREATE FUNCTION demos_app.log_changes_deliverable_demonstration_type()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -745,11 +753,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_deliverable_demonstration_type
+CREATE TRIGGER log_changes_deliverable_demonstration_type
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.deliverable_demonstration_type
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_deliverable_demonstration_type();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_deliverable_extension()
+CREATE FUNCTION demos_app.log_changes_deliverable_extension()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -808,11 +816,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_deliverable_extension
+CREATE TRIGGER log_changes_deliverable_extension
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.deliverable_extension
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_deliverable_extension();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_demonstration()
+CREATE FUNCTION demos_app.log_changes_demonstration()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -830,6 +838,8 @@ BEGIN
             current_phase_id,
             state_id,
             clearance_level_id,
+            medicaid_id,
+            chip_id,
             created_at,
             updated_at
         )
@@ -850,6 +860,8 @@ BEGIN
             NEW.current_phase_id,
             NEW.state_id,
             NEW.clearance_level_id,
+            NEW.medicaid_id,
+            NEW.chip_id,
             NEW.created_at,
             NEW.updated_at
         );
@@ -869,6 +881,8 @@ BEGIN
             current_phase_id,
             state_id,
             clearance_level_id,
+            medicaid_id,
+            chip_id,
             created_at,
             updated_at
         )
@@ -886,6 +900,8 @@ BEGIN
             OLD.current_phase_id,
             OLD.state_id,
             OLD.clearance_level_id,
+            OLD.medicaid_id,
+            OLD.chip_id,
             OLD.created_at,
             OLD.updated_at
         );
@@ -895,11 +911,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_demonstration
+CREATE TRIGGER log_changes_demonstration
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.demonstration
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_demonstration();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_demonstration_role_assignment()
+CREATE FUNCTION demos_app.log_changes_demonstration_role_assignment()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -950,11 +966,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_demonstration_role_assignment
+CREATE TRIGGER log_changes_demonstration_role_assignment
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.demonstration_role_assignment
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_demonstration_role_assignment();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_demonstration_type_tag_assignment()
+CREATE FUNCTION demos_app.log_changes_demonstration_type_tag_assignment()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -1009,11 +1025,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_demonstration_type_tag_assignment
+CREATE TRIGGER log_changes_demonstration_type_tag_assignment
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.demonstration_type_tag_assignment
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_demonstration_type_tag_assignment();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_document()
+CREATE FUNCTION demos_app.log_changes_document()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -1100,11 +1116,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_document
+CREATE TRIGGER log_changes_document
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.document
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_document();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_document_infected()
+CREATE FUNCTION demos_app.log_changes_document_infected()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -1191,11 +1207,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_document_infected
+CREATE TRIGGER log_changes_document_infected
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.document_infected
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_document_infected();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_document_pending_upload()
+CREATE FUNCTION demos_app.log_changes_document_pending_upload()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -1270,11 +1286,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_document_pending_upload
+CREATE TRIGGER log_changes_document_pending_upload
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.document_pending_upload
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_document_pending_upload();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_extension()
+CREATE FUNCTION demos_app.log_changes_extension()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -1349,11 +1365,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_extension
+CREATE TRIGGER log_changes_extension
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.extension
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_extension();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_person()
+CREATE FUNCTION demos_app.log_changes_person()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -1408,11 +1424,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_person
+CREATE TRIGGER log_changes_person
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.person
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_person();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_person_state()
+CREATE FUNCTION demos_app.log_changes_person_state()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -1447,11 +1463,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_person_state
+CREATE TRIGGER log_changes_person_state
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.person_state
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_person_state();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_primary_demonstration_role_assignment()
+CREATE FUNCTION demos_app.log_changes_primary_demonstration_role_assignment()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -1490,11 +1506,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_primary_demonstration_role_assignment
+CREATE TRIGGER log_changes_primary_demonstration_role_assignment
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.primary_demonstration_role_assignment
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_primary_demonstration_role_assignment();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_private_comment()
+CREATE FUNCTION demos_app.log_changes_private_comment()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -1549,11 +1565,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_private_comment
+CREATE TRIGGER log_changes_private_comment
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.private_comment
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_private_comment();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_public_comment()
+CREATE FUNCTION demos_app.log_changes_public_comment()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -1604,11 +1620,266 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_public_comment
+CREATE TRIGGER log_changes_public_comment
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.public_comment
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_public_comment();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_role_permission()
+CREATE FUNCTION demos_app.log_changes_reference()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.reference_history (
+            revision_type,
+            id,
+            name,
+            description,
+            s3_path,
+            owner_user_id,
+            owner_person_type_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.name,
+            NEW.description,
+            NEW.s3_path,
+            NEW.owner_user_id,
+            NEW.owner_person_type_id,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.reference_history (
+            revision_type,
+            id,
+            name,
+            description,
+            s3_path,
+            owner_user_id,
+            owner_person_type_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.name,
+            OLD.description,
+            OLD.s3_path,
+            OLD.owner_user_id,
+            OLD.owner_person_type_id,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER log_changes_reference
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.reference
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_reference();
+
+CREATE FUNCTION demos_app.log_changes_reference_agreement()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.reference_agreement_history (
+            revision_type,
+            id,
+            name,
+            s3_path,
+            owner_user_id,
+            owner_person_type_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.name,
+            NEW.s3_path,
+            NEW.owner_user_id,
+            NEW.owner_person_type_id,
+            NEW.created_at,
+            NEW.updated_at
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.reference_agreement_history (
+            revision_type,
+            id,
+            name,
+            s3_path,
+            owner_user_id,
+            owner_person_type_id,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.name,
+            OLD.s3_path,
+            OLD.owner_user_id,
+            OLD.owner_person_type_id,
+            OLD.created_at,
+            OLD.updated_at
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER log_changes_reference_agreement
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.reference_agreement
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_reference_agreement();
+
+CREATE FUNCTION demos_app.log_changes_reference_configuration()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.reference_configuration_history (
+            revision_type,
+            id,
+            reference_id,
+            reference_agreement_id,
+            status_id
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.id,
+            NEW.reference_id,
+            NEW.reference_agreement_id,
+            NEW.status_id
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.reference_configuration_history (
+            revision_type,
+            id,
+            reference_id,
+            reference_agreement_id,
+            status_id
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.id,
+            OLD.reference_id,
+            OLD.reference_agreement_id,
+            OLD.status_id
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER log_changes_reference_configuration
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.reference_configuration
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_reference_configuration();
+
+CREATE FUNCTION demos_app.log_changes_reference_demonstration_type()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.reference_demonstration_type_history (
+            revision_type,
+            reference_id,
+            demonstration_type_tag_name_id,
+            demonstration_type_tag_type_id
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.reference_id,
+            NEW.demonstration_type_tag_name_id,
+            NEW.demonstration_type_tag_type_id
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.reference_demonstration_type_history (
+            revision_type,
+            reference_id,
+            demonstration_type_tag_name_id,
+            demonstration_type_tag_type_id
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.reference_id,
+            OLD.demonstration_type_tag_name_id,
+            OLD.demonstration_type_tag_type_id
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER log_changes_reference_demonstration_type
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.reference_demonstration_type
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_reference_demonstration_type();
+
+CREATE FUNCTION demos_app.log_changes_reference_tag_assignment()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        INSERT INTO demos_app.reference_tag_assignment_history (
+            revision_type,
+            reference_id,
+            tag_name_id,
+            tag_type_id
+        )
+        VALUES (
+            CASE TG_OP
+                WHEN 'INSERT' THEN 'I'::demos_app.revision_type_enum
+                WHEN 'UPDATE' THEN 'U'::demos_app.revision_type_enum
+            END,
+            NEW.reference_id,
+            NEW.tag_name_id,
+            NEW.tag_type_id
+        );
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO demos_app.reference_tag_assignment_history (
+            revision_type,
+            reference_id,
+            tag_name_id,
+            tag_type_id
+        )
+        VALUES (
+            'D'::demos_app.revision_type_enum,
+            OLD.reference_id,
+            OLD.tag_name_id,
+            OLD.tag_type_id
+        );
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER log_changes_reference_tag_assignment
+AFTER INSERT OR UPDATE OR DELETE ON demos_app.reference_tag_assignment
+FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_reference_tag_assignment();
+
+CREATE FUNCTION demos_app.log_changes_role_permission()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -1647,11 +1918,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_role_permission
+CREATE TRIGGER log_changes_role_permission
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.role_permission
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_role_permission();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_system_role_assignment()
+CREATE FUNCTION demos_app.log_changes_system_role_assignment()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -1694,11 +1965,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_system_role_assignment
+CREATE TRIGGER log_changes_system_role_assignment
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.system_role_assignment
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_system_role_assignment();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_tag()
+CREATE FUNCTION demos_app.log_changes_tag()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -1749,11 +2020,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_tag
+CREATE TRIGGER log_changes_tag
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.tag
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_tag();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_tag_name()
+CREATE FUNCTION demos_app.log_changes_tag_name()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -1792,11 +2063,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_tag_name
+CREATE TRIGGER log_changes_tag_name
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.tag_name
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_tag_name();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_uipath_result()
+CREATE FUNCTION demos_app.log_changes_uipath_result()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -1859,11 +2130,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_uipath_result
+CREATE TRIGGER log_changes_uipath_result
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.uipath_result
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_uipath_result();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_uipath_value()
+CREATE FUNCTION demos_app.log_changes_uipath_value()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -1938,11 +2209,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_uipath_value
+CREATE TRIGGER log_changes_uipath_value
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.uipath_value
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_uipath_value();
 
-CREATE OR REPLACE FUNCTION demos_app.log_changes_users()
+CREATE FUNCTION demos_app.log_changes_users()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP IN ('INSERT', 'UPDATE') THEN
@@ -1993,6 +2264,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER log_changes_users
+CREATE TRIGGER log_changes_users
 AFTER INSERT OR UPDATE OR DELETE ON demos_app.users
 FOR EACH ROW EXECUTE FUNCTION demos_app.log_changes_users();

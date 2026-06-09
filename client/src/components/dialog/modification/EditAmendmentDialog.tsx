@@ -1,7 +1,7 @@
 import React from "react";
 import { Modification, ModificationFormData } from "./ModificationForm";
 import { gql, TypedDocumentNode, useMutation, useQuery } from "@apollo/client";
-import { UpdateAmendmentInput } from "demos-server";
+import { DateTimeOrLocalDate, UpdateAmendmentInput } from "demos-server";
 import { BaseEditModificationDialog } from "./BaseEditModificationDialog";
 
 export const UPDATE_AMENDMENT_MUTATION: TypedDocumentNode<
@@ -49,7 +49,10 @@ export const useUpdateAmendment = (amendmentId: string, refetchQueries: string[]
     await updateAmendment({
       variables: {
         id: amendmentId,
-        input,
+        input: {
+          ...input,
+          effectiveDate: input.effectiveDate as DateTimeOrLocalDate | null | undefined,
+        },
       },
     });
   };

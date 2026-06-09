@@ -1,0 +1,9 @@
+// Flags: STATIC_CONSTRAINT
+model OnDemandReportStatus {
+  id String
+
+  onDemandReports OnDemandReport[]
+
+  @@id([id])
+  @@map("on_demand_report_status")
+}

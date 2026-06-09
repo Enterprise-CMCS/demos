@@ -1,0 +1,10 @@
+model ReferenceDemonstrationTypeHistory {
+  revisionId                 Int          @id @default(autoincrement()) @map("revision_id")
+  revisionType               RevisionType @map("revision_type")
+  modifiedAt                 DateTime     @default(now()) @map("modified_at") @db.Timestamptz
+  referenceId                String       @map("reference_id") @db.Uuid
+  demonstrationTypeTagNameId String       @map("demonstration_type_tag_name_id")
+  demonstrationTypeTagTypeId String       @map("demonstration_type_tag_type_id")
+
+  @@map("reference_demonstration_type_history")
+}

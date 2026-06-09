@@ -1,7 +1,6 @@
 # This script scans TypeScript and TSX files for JSX tags that are missing the `data-testid` attribute.
 import os
 import re
-import argparse
 
 
 TAGS_TO_SCAN = ["button", "input", "select", "option", "textarea"]
@@ -43,7 +42,5 @@ def main(src_dir):
     print(f"\nTotal missing data-testid attributes: {total_missing}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Scan for missing data-testid attributes in JSX tags.")
-    parser.add_argument("src_dir", type=str, help="Source directory to scan")
-    args = parser.parse_args()
-    main(args.src_dir)
+    src_dir = os.path.join(os.path.dirname(__file__), "..", "src")
+    main(src_dir)

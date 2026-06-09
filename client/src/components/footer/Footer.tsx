@@ -3,39 +3,74 @@ import { LogoSimplified } from "components/brand/LogoSimplified";
 import { useToast } from "components/toast";
 import React from "react";
 import { tw } from "tags/tw";
-import { useDownloadFaq } from "./useDownloadFaq";
+import { TypedDocumentNode, useLazyQuery } from "@apollo/client";
+import { Reference, TagName } from "demos-server";
+import gql from "graphql-tag";
+import { FAQ_REFERENCE_TAG } from "demos-server-constants";
+import { useDownloadReference } from "hooks/useDownloadReference";
 
-const DEMOS_ADDRESS = "7500 Security Boulevard Baltimore, MD 21244";
-const DEMOS_VERSION = "1.0.001";
+export const DEMOS_ADDRESS = "7500 Security Boulevard Baltimore, MD 21244";
+export const CONTACT_US_MAILTO = "mailto:DEMOS_Help@cms.hhs.gov";
+export const REFERENCES_PATH = "/references";
 
-const linkStyles = tw`text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded`;
+const linkStyles = tw`text-blue-600 hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded cursor-pointer`;
+
+export const GET_FAQ_REFERENCES_QUERY: TypedDocumentNode<
+  {
+    references: Pick<Reference, "id" | "createdAt">[];
+  },
+  {
+    withTag: TagName;
+  }
+> = gql`
+  query GetReferences($withTag: TagName) {
+    references(withTag: $withTag) {
+      id
+      createdAt
+    }
+  }
+`;
 
 const FooterLinks: React.FC = () => {
   const { showError } = useToast();
-  const { downloadFaq } = useDownloadFaq();
+  const { downloadReference } = useDownloadReference();
+
+  const [getFaqReferenceMaterial] = useLazyQuery(GET_FAQ_REFERENCES_QUERY);
 
   const handleFaqClick = async () => {
     try {
-      await downloadFaq();
+      const { data } = await getFaqReferenceMaterial({
+        variables: { withTag: FAQ_REFERENCE_TAG },
+      });
+      const faqReferences = data?.references;
+      if (!faqReferences || faqReferences.length === 0) {
+        showError("No FAQ reference material found.");
+        throw new Error("No FAQ reference material found.");
+      }
+      const latestFaqReference = faqReferences.sort(
+        (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+      )[0];
+
+      await downloadReference({ id: latestFaqReference.id, acceptedAgreementId: null });
     } catch {
-      showError("Unable to download the FAQ right now. Please try again.");
+      showError("Unable to download the FAQ.");
     }
   };
 
   return (
     <ul
-      className="inline-flex flex-wrap items-center gap-1 text-gray-400"
+      className="inline-flex flex-wrap items-center gap-1 text-text-font"
       role="list"
       data-testid="demonstration-attributes-list"
     >
       <li>
-        <a href="references" className={linkStyles}>
+        <a href={REFERENCES_PATH} className={linkStyles}>
           References
         </a>
       </li>
       |
       <li>
-        <a href="mailto:DEMOS_Help@cms.hhs.gov" className={linkStyles}>
+        <a href={CONTACT_US_MAILTO} className={linkStyles}>
           Contact Us
         </a>
       </li>
@@ -66,7 +101,7 @@ const FooterUpper: React.FC = () => (
 const FooterLower: React.FC = () => (
   <div className="flex w-full bg-brand text-white p-1">
     <div className="w-1/3" />
-    <div className="w-1/3 text-center">DEMOS version {DEMOS_VERSION}</div>
+    <div className="w-1/3" />
     <div className="w-1/3 text-right">{DEMOS_ADDRESS}</div>
   </div>
 );

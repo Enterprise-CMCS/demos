@@ -1,184 +1,162 @@
-import { generateDemonstration } from "./generateDemonstration";
-import { generateUser } from "./generateUser";
-import { generateExtension } from "./generateExtension";
-import { progressThroughPhase } from "./completePhase/progressThroughPhase";
 import { addDays } from "date-fns";
-import { TZDate } from "@date-fns/tz";
-import { PHASE_NAMES } from "../constants";
-import { generateAmendment } from "./generateAmendment";
-import { prepareApplicationForCompletion } from "./completePhase/prepareApplicationForCompletion";
-import { generateDeliverable } from "./generateDeliverable";
-import { uploadDocumentToDeliverableCMSFiles } from "./uploadDocumentsToDeliverableCMSFiles";
-import { uploadDocumentToDeliverableStateFiles } from "./uploadDocumentsToDeliverableStateFiles";
+import { generatePerson } from "./user/generatePerson";
+import { generateUser } from "./user/generateUser";
+import { PhaseName, STATES_AND_TERRITORIES } from "../constants";
+import { generateDemonstration } from "./application/demonstration/generateDemonstration";
+import { generateAmendmentOnDemonstration } from "./application/modification/generateAmendmentOnDemonstration";
+import { generateExtensionOnDemonstration } from "./application/modification/generateExtensionOnDemonstration";
+import { generateDeliverableOnDemonstration } from "./deliverable/generateDeliverableOnDemonstration";
+import { progressApplicationThroughApproval } from "./application/progressApplicationThroughApproval";
+import { generateSampleDateData } from "./generationData/generateSampleDateData";
+import { generateSampleDocumentData } from "./generationData/generateSampleDocumentData";
+import { updateRequiredFieldsForDemonstrationApproval } from "./application/updateRequiredFields/updateRequiredFieldsForDemonstration";
+import { applyDemonstrationTypes } from "./application/demonstration/applyDemonstrationTypes";
+import { updateRequiredFieldsForAmendmentApproval } from "./application/updateRequiredFields/updateRequiredFieldsForAmendment";
+import { updateRequiredFieldsForExtensionApproval } from "./application/updateRequiredFields/updateRequiredFieldsForExtension";
+import { State } from "../types";
+import { config } from "dotenv";
 
-const generateDemonstrationWithAmendments = async ({ userId }: { userId: string }) => {
-  const demonstrationWithAmendments = await generateDemonstration({
-    name: "Demonstration with Amendment - " + new Date().toISOString(),
-    state: "NY",
-    projectOfficerUserId: userId,
+type ModificationSeederConfiguration = {
+  name: string;
+  description: string;
+  effectiveDate: Date;
+  yearsActive: number;
+};
+
+type DeliverableSeederConfiguration = {
+  name: string;
+  deliverableType: string;
+  dueDate: Date;
+};
+
+type DemonstrationSeederConfiguration = {
+  projectOfficerUserId: string;
+  name: string;
+  description: string;
+  stateId: State["id"];
+  effectiveDate: Date;
+  expirationDate: Date;
+  completedThroughPhase: PhaseName | null;
+  amendments: ModificationSeederConfiguration[];
+  extensions: ModificationSeederConfiguration[];
+  deliverables: DeliverableSeederConfiguration[];
+};
+
+export const seedDemonstration = async (config: DemonstrationSeederConfiguration) => {
+  const demonstration = await generateDemonstration({
+    name: config.name,
+    description: config.description,
+    projectOfficerUserId: config.projectOfficerUserId,
+    stateId: config.stateId,
   });
-  await prepareApplicationForCompletion(
-    demonstrationWithAmendments.id,
-    "Demonstration",
-    new TZDate()
-  );
-  await progressThroughPhase({
-    applicationId: demonstrationWithAmendments.id,
-    documentOwnerUserId: userId,
-    phaseName: "Approval Summary",
-    baseNow: addDays(new TZDate(), -90),
-    applicationType: "Demonstration",
-  });
 
-  for (const phaseName of PHASE_NAMES) {
-    const amendment = await generateAmendment({
-      demonstrationId: demonstrationWithAmendments.id,
-      name: `Amendment on ${demonstrationWithAmendments.id} - ${new Date().toISOString()}`,
-    });
-    await prepareApplicationForCompletion(amendment.id, "Amendment", new TZDate());
-
-    await progressThroughPhase({
-      applicationId: amendment.id,
-      documentOwnerUserId: userId,
-      phaseName,
-      baseNow: addDays(new TZDate(), -90),
-      applicationType: "Amendment",
-    });
+  if (!config.completedThroughPhase) {
+    return;
   }
+  progressApplicationThroughPhase(demonstration.id);
+
+  if (config.amendments.length > 0) {
+    
 };
 
-const generateDemonstrationWithExtensions = async ({ userId }: { userId: string }) => {
-  const demonstrationWithExtensions = await generateDemonstration({
-    name: "Demonstration with Extension - " + new Date().toISOString(),
-    state: "NY",
-    projectOfficerUserId: userId,
-  });
-  await prepareApplicationForCompletion(
-    demonstrationWithExtensions.id,
-    "Demonstration",
-    new TZDate()
-  );
-  await progressThroughPhase({
-    applicationId: demonstrationWithExtensions.id,
-    documentOwnerUserId: userId,
-    phaseName: "Approval Summary",
-    baseNow: addDays(new TZDate(), -90),
-    applicationType: "Demonstration",
-  });
+//   const demonstration = await generateDemonstration({
+//     description: "Test demonstration description",
+//     name: "Test demonstration",
+//     projectOfficerUserId: cmsUserId,
+//     stateId: STATES_AND_TERRITORIES[0].id,
+//   });
 
-  for (const phaseName of PHASE_NAMES) {
-    const extension = await generateExtension({
-      demonstrationId: demonstrationWithExtensions.id,
-      name: `Extension on ${demonstrationWithExtensions.id} - ${new Date().toISOString()}`,
-    });
-    await prepareApplicationForCompletion(extension.id, "Extension", new TZDate());
+//   await updateRequiredFieldsForDemonstrationApproval({
+//     demonstrationId: demonstration.id,
+//     requiredFields: {
+//       effectiveDate: addDays(new Date(), -30),
+//       expirationDate: addDays(new Date(), 30),
+//       sdgDivision: "Division of Eligibility and Coverage Demonstrations",
+//     },
+//   });
 
-    await progressThroughPhase({
-      applicationId: extension.id,
-      documentOwnerUserId: userId,
-      phaseName,
-      baseNow: addDays(new TZDate(), -90),
-      applicationType: "Extension",
-    });
-  }
-};
+//   await applyDemonstrationTypes({
+//     demonstrationId: demonstration.id,
+//     demonstrationTypes: [
+//       {
+//         name: "demos-1115a",
+//         effectiveDate: addDays(new Date(), -30),
+//         expirationDate: addDays(new Date(), 30),
+//       },
+//     ],
+//   });
+//   await progressApplicationThroughApproval({
+//     applicationId: demonstration.id,
+//     documentOwnerUserId: cmsUserId,
+//     dates: generateSampleDateData({ approvalDate: addDays(new Date(), -10) }),
+//     documents: generateSampleDocumentData(),
+//     clearanceLevel: "CMS (OSORA)",
+//   });
 
-const generateDemonstrationsThroughAllPhases = async ({ userId }: { userId: string }) => {
-  for (const phaseName of PHASE_NAMES) {
-    const demonstration = await generateDemonstration({
-      name: "Demonstration" + new Date().toISOString(),
-      state: "NY",
-      projectOfficerUserId: userId,
-    });
-    await prepareApplicationForCompletion(demonstration.id, "Demonstration", new TZDate());
-    await progressThroughPhase({
-      applicationId: demonstration.id,
-      documentOwnerUserId: userId,
-      phaseName,
-      baseNow: addDays(new TZDate(), -90),
-      applicationType: "Demonstration",
-    });
-  }
-};
+//   const amendment = await generateAmendmentOnDemonstration({
+//     demonstrationId: demonstration.id,
+//     name: "Test amendment",
+//     description: "Test amendment description",
+//   });
+//   await updateRequiredFieldsForAmendmentApproval({
+//     amendmentId: amendment.id,
+//     requiredFields: {
+//       effectiveDate: addDays(new Date(), -15),
+//       signatureLevel: "OCD",
+//     },
+//   });
 
-const generateApprovedDemonstration = async ({ userId }: { userId: string }) => {
-  const approvedDemonstration = await generateDemonstration({
-    name: "Approved Demonstration - " + new Date().toISOString(),
-    state: "NY",
-    projectOfficerUserId: userId,
-  });
-  await prepareApplicationForCompletion(approvedDemonstration.id, "Demonstration", new TZDate());
-  await progressThroughPhase({
-    applicationId: approvedDemonstration.id,
-    documentOwnerUserId: userId,
-    phaseName: "Approval Summary",
-    baseNow: addDays(new TZDate(), -90),
-    applicationType: "Demonstration",
-  });
-  return approvedDemonstration;
-};
+//   await progressApplicationThroughApproval({
+//     applicationId: amendment.id,
+//     documentOwnerUserId: cmsUserId,
+//     dates: generateSampleDateData({ approvalDate: addDays(new Date(), -5) }),
+//     documents: generateSampleDocumentData(),
+//     clearanceLevel: "CMS (OSORA)",
+//   });
 
-const generateDemonstrationWithDeliverbleAndDocuments = async ({ userId }: { userId: string }) => {
-  const demonstration = await generateApprovedDemonstration({ userId });
-  const deliverable = await generateDeliverable({
-    demonstrationId: demonstration.id,
-    cmsOwnerUserId: userId,
-    deliverableType: "Close Out Report",
-  });
+//   const extension = await generateExtensionOnDemonstration({
+//     demonstrationId: demonstration.id,
+//     name: "Test extension",
+//     description: "Test extension description",
+//   });
 
-  await uploadDocumentToDeliverableCMSFiles({
-    demonstrationId: demonstration.id,
-    deliverableId: deliverable.id,
-    documentOwnerUserId: userId,
-    documentType: "General File",
-  });
-  await uploadDocumentToDeliverableStateFiles({
-    demonstrationId: demonstration.id,
-    deliverableId: deliverable.id,
-    documentOwnerUserId: userId,
-    documentType: "Close Out Report",
-  });
-  return demonstration;
-};
+//   await updateRequiredFieldsForExtensionApproval({
+//     extensionId: extension.id,
+//     requiredFields: {
+//       effectiveDate: addDays(new Date(), -15),
+//       signatureLevel: "OCD",
+//     },
+//   });
 
-const generateCmsUser = async () =>
-  generateUser({
-    firstName: "CMS",
-    lastName: "User",
-    personTypeId: "demos-cms-user",
-  });
+//   await progressApplicationThroughApproval({
+//     applicationId: extension.id,
+//     documentOwnerUserId: cmsUserId,
+//     dates: generateSampleDateData({ approvalDate: addDays(new Date(), -2) }),
+//     documents: generateSampleDocumentData(),
+//     clearanceLevel: "CMS (OSORA)",
+//   });
+
+//   const deliverable = await generateDeliverableOnDemonstration({
+//     demonstrationId: demonstration.id,
+//     name: "Test deliverable",
+//     cmsOwnerUserId: cmsUserId,
+//     deliverableType: "Close Out Report",
+//     dueDate: addDays(new Date(), 30),
+//   });
+// };
 
 const runSeeder = async () => {
-  console.log("Starting seeding process...");
-  const startTime = new Date();
-
-  const cmsUser = await generateCmsUser();
-
-  for (let i = 0; i < 10; i++) {
-    await generateApprovedDemonstration({ userId: cmsUser.id });
-    console.log(`Generating approved demonstration ${i + 1}/20.`);
-  }
-  for (let i = 0; i < 10; i++) {
-    await generateDemonstrationsThroughAllPhases({ userId: cmsUser.id });
-    console.log(`Generating demonstrations through all phases ${i + 1}/10.`);
-  }
-  for (let i = 0; i < 10; i++) {
-    await generateDemonstrationWithAmendments({ userId: cmsUser.id });
-    console.log(`Generating demonstration with amendments ${i + 1}/20.`);
-  }
-  for (let i = 0; i < 10; i++) {
-    await generateDemonstrationWithExtensions({ userId: cmsUser.id });
-    console.log(`Generating demonstration with extensions ${i + 1}/20.`);
-  }
-  for (let i = 0; i < 10; i++) {
-    await generateDemonstrationWithDeliverbleAndDocuments({ userId: cmsUser.id });
-    console.log(`Generating demonstration with deliverable and documents ${i + 1}/20.`);
-  }
-
-  const endTime = new Date();
-  console.log(
-    `Seeding process completed in ${(endTime.getTime() - startTime.getTime()) / 1000} seconds.`
-  );
+  const person = await generatePerson({
+    firstName: "CMS",
+    lastName: "User",
+    email: "cms_user@fakeemail.com",
+    personTypeId: "demos-cms-user",
+  });
+  const user = await generateUser({
+    personId: person.id,
+    username: "cms_user",
+    personTypeId: "demos-cms-user",
+  });
 };
 
 runSeeder();

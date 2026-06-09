@@ -106,16 +106,13 @@ describe("AddDocumentToApplicationDialog", () => {
     });
   });
 
-  it("renders and allows selecting a document type", async () => {
+  it("renders document type options from documentTypeSubset", async () => {
     setup();
     const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
     fireEvent.focus(input);
-    fireEvent.change(input, { target: { value: "General" } });
 
-    const option = await screen.findByText("General File");
-    fireEvent.click(option);
-
-    expect(input).toHaveValue("General File");
+    expect(await screen.findByText("General File")).toBeInTheDocument();
+    expect(screen.getByText("Application Completeness Letter")).toBeInTheDocument();
   });
 
   it("defaults to the first option in list for document type", async () => {
