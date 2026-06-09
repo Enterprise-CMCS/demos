@@ -1,4 +1,4 @@
-import { updateRequiredFieldsForDemonstrationApproval } from "../updateRequiredFields/updateRequiredFieldsForDemonstration";
+import { updateRequiredFieldsForDemonstrationApproval } from "../updateRequiredFields/updateAdditionalDemonstrationData";
 import { generateDemonstration } from "./generateDemonstration";
 import { applyDemonstrationTypes, DemonstrationTypeInput } from "./applyDemonstrationTypes";
 import { SdgDivision } from "../../../types";

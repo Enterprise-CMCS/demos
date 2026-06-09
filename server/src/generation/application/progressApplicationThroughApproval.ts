@@ -1,5 +1,6 @@
-import { ClearanceLevel } from "../../types";
-import { DatesInput, DocumentsInput } from "../types";
+import { ClearanceLevel, PhaseName } from "../../types";
+import { generateSampleDateData } from "../generationData/generateSampleDateData";
+import { generateSampleDocumentData } from "../generationData/generateSampleDocumentData";
 import { completeApplicationIntakePhase } from "./completePhase/completeApplicationIntakePhase";
 import { completeApprovalPackagePhase } from "./completePhase/completeApprovalPackagePhase";
 import { completeApprovalSummaryPhase } from "./completePhase/completeApprovalSummaryPhase";
@@ -9,58 +10,20 @@ import { completeFederalCommentPhase } from "./completePhase/completeFederalComm
 import { completeReviewPhase } from "./completePhase/completeReviewPhase";
 import { completeSdgPreparationPhase } from "./completePhase/completeSdgPreparationPhase";
 
-export type ProgressApplicationThroughApprovalInput = {
-  documentOwnerUserId: string;
-  dates: DatesInput<
-    | "Pre-Submission Submitted Date"
-    | "State Application Submitted Date"
-    | "Completeness Review Due Date"
-    | "State Application Deemed Complete"
-    | "Federal Comment Period Start Date"
-    | "Federal Comment Period End Date"
-    | "Expected Approval Date"
-    | "SME Review Date"
-    | "FRT Initial Meeting Date"
-    | "BNPMT Initial Meeting Date"
-    | "OGD Approval to Share with SMEs"
-    | "Draft Approval Package to Prep"
-    | "DDME Approval Received"
-    | "State Concurrence"
-    | "BN PMT Approval to Send to OMB"
-    | "Draft Approval Package Shared"
-    | "Receive OMB Concurrence"
-    | "Receive OGC Legal Clearance"
-    | "Submit Approval Package to OSORA"
-    | "OSORA R1 Comments Due"
-    | "OSORA R2 Comments Due"
-    | "CMS (OSORA) Clearance End"
-    | "Package Sent for COMMs Clearance"
-    | "COMMs Clearance Received"
-    | "Application Details Marked Complete Date"
-    | "Application Demonstration Types Marked Complete Date"
-  >;
-  documents: DocumentsInput<
-    | "Pre-Submission"
-    | "State Application"
-    | "Application Completeness Letter"
-    | "Internal Completeness Review Form"
-    | "Approval Letter"
-    | "Final Budget Neutrality Formulation Workbook"
-    | "Formal OMB Policy Concurrence Email"
-    | "Q&A"
-    | "Signed Decision Memo"
-    | "Special Terms & Conditions"
-  >;
-  applicationId: string;
-  clearanceLevel: ClearanceLevel;
-};
-export const progressApplicationThroughApproval = async ({
+export const progressApplicationThroughPhase = async ({
+  completedThroughPhase,
   applicationId,
   documentOwnerUserId,
-  dates,
-  documents,
-  clearanceLevel,
-}: ProgressApplicationThroughApprovalInput) => {
+}: {
+  completedThroughPhase: PhaseName;
+  documentOwnerUserId: string;
+  applicationId: string;
+  clearanceLevel: ClearanceLevel;
+}) => {
+  const dates = generateSampleDateData({
+    approvalDate: new Date(),
+  });
+  const documents = generateSampleDocumentData();
   await completeConceptPhase({
     applicationId,
     documentOwnerUserId,
@@ -71,6 +34,7 @@ export const progressApplicationThroughApproval = async ({
       "Pre-Submission": documents["Pre-Submission"],
     },
   });
+  if (completedThroughPhase === "Concept") return;
   await completeApplicationIntakePhase({
     applicationId,
     documentOwnerUserId,
@@ -81,6 +45,7 @@ export const progressApplicationThroughApproval = async ({
       "State Application Submitted Date": dates["State Application Submitted Date"],
     },
   });
+  if (completedThroughPhase === "Application Intake") return;
   await completeCompletenessPhase({
     applicationId,
     documentOwnerUserId,
@@ -94,7 +59,9 @@ export const progressApplicationThroughApproval = async ({
       "Internal Completeness Review Form": documents["Internal Completeness Review Form"],
     },
   });
+  if (completedThroughPhase === "Completeness") return;
   await completeFederalCommentPhase({ applicationId });
+  if (completedThroughPhase === "Federal Comment") return;
   await completeSdgPreparationPhase({
     applicationId,
     dates: {
@@ -104,9 +71,9 @@ export const progressApplicationThroughApproval = async ({
       "BNPMT Initial Meeting Date": dates["BNPMT Initial Meeting Date"],
     },
   });
+  if (completedThroughPhase === "SDG Preparation") return;
   await completeReviewPhase({
     applicationId,
-    clearanceLevel,
     dates: {
       "OGD Approval to Share with SMEs": dates["OGD Approval to Share with SMEs"],
       "Draft Approval Package to Prep": dates["Draft Approval Package to Prep"],
@@ -124,6 +91,7 @@ export const progressApplicationThroughApproval = async ({
       "COMMs Clearance Received": dates["COMMs Clearance Received"],
     },
   });
+  if (completedThroughPhase === "Review") return;
   await completeApprovalPackagePhase({
     applicationId,
     documentOwnerUserId,
@@ -137,6 +105,7 @@ export const progressApplicationThroughApproval = async ({
       "Special Terms & Conditions": documents["Special Terms & Conditions"],
     },
   });
+  if (completedThroughPhase === "Approval Package") return;
   await completeApprovalSummaryPhase({
     applicationId,
     dates: {

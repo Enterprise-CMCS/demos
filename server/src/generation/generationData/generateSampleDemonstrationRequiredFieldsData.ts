@@ -1,6 +1,6 @@
 import { addYears } from "date-fns";
 import { SdgDivision } from "../../types";
-import { DemonstrationRequiredFields } from "../application/updateRequiredFields/updateRequiredFieldsForDemonstration";
+import { DemonstrationRequiredFields } from "../application/updateRequiredFields/updateAdditionalDemonstrationData";
 
 export const generateSampleDemonstrationRequiredFieldsData = ({
   effectiveDate,

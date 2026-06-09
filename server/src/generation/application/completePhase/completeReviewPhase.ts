@@ -1,5 +1,5 @@
 import { applicationPhaseResolvers } from "../../../model/applicationPhase/applicationPhaseResolvers";
-import { ClearanceLevel, PhaseName } from "../../../types";
+import { PhaseName } from "../../../types";
 import { addApplicationDates } from "../addApplicationDates";
 import { DatesInput } from "../../types";
 import { applicationResolvers } from "../../../model/application/applicationResolvers";
@@ -8,11 +8,9 @@ const PHASE_NAME: PhaseName = "Review";
 
 export const completeReviewPhase = async ({
   applicationId,
-  clearanceLevel,
   dates,
 }: {
   applicationId: string;
-  clearanceLevel: ClearanceLevel;
   dates: DatesInput<
     | "OGD Approval to Share with SMEs"
     | "Draft Approval Package to Prep"
@@ -31,7 +29,7 @@ export const completeReviewPhase = async ({
   >;
 }) => {
   await applicationResolvers.Mutation.setApplicationClearanceLevel(null, {
-    input: { applicationId, clearanceLevel },
+    input: { applicationId, clearanceLevel: "CMS (OSORA)" },
   });
 
   await addApplicationDates({

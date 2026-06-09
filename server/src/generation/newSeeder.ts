@@ -6,21 +6,32 @@ import { generateDemonstration } from "./application/demonstration/generateDemon
 import { generateAmendmentOnDemonstration } from "./application/modification/generateAmendmentOnDemonstration";
 import { generateExtensionOnDemonstration } from "./application/modification/generateExtensionOnDemonstration";
 import { generateDeliverableOnDemonstration } from "./deliverable/generateDeliverableOnDemonstration";
-import { progressApplicationThroughApproval } from "./application/progressApplicationThroughApproval";
+import {
+  progressApplicationThroughApproval,
+  progressApplicationThroughPhase,
+} from "./application/progressApplicationThroughApproval";
 import { generateSampleDateData } from "./generationData/generateSampleDateData";
 import { generateSampleDocumentData } from "./generationData/generateSampleDocumentData";
-import { updateRequiredFieldsForDemonstrationApproval } from "./application/updateRequiredFields/updateRequiredFieldsForDemonstration";
+import {
+  updateAdditionalDemonstrationData,
+  updateRequiredFieldsForDemonstrationApproval,
+} from "./application/updateRequiredFields/updateAdditionalDemonstrationData";
 import { applyDemonstrationTypes } from "./application/demonstration/applyDemonstrationTypes";
 import { updateRequiredFieldsForAmendmentApproval } from "./application/updateRequiredFields/updateRequiredFieldsForAmendment";
 import { updateRequiredFieldsForExtensionApproval } from "./application/updateRequiredFields/updateRequiredFieldsForExtension";
-import { State } from "../types";
+import { LocalDate, SdgDivision, SignatureLevel, State, TagName } from "../types";
 import { config } from "dotenv";
+import { amendmentResolvers } from "../model/amendment/amendmentResolvers";
+import { formatEasternTZDateToMMDDYYYY, parseJSDateToEasternTZDate } from "../dateUtilities";
+import { extensionResolvers } from "../model/extension/extensionResolvers";
 
 type ModificationSeederConfiguration = {
   name: string;
   description: string;
-  effectiveDate: Date;
-  yearsActive: number;
+  effectiveDate?: Date;
+  signatureLevel?: SignatureLevel;
+  completedThroughPhase?: PhaseName;
+  documentOwnerUserId: string;
 };
 
 type DeliverableSeederConfiguration = {
@@ -29,34 +40,167 @@ type DeliverableSeederConfiguration = {
   dueDate: Date;
 };
 
-type DemonstrationSeederConfiguration = {
-  projectOfficerUserId: string;
-  name: string;
-  description: string;
-  stateId: State["id"];
+type DemonstrationTypeSeederConfiguration = {
+  name: TagName;
   effectiveDate: Date;
   expirationDate: Date;
-  completedThroughPhase: PhaseName | null;
-  amendments: ModificationSeederConfiguration[];
-  extensions: ModificationSeederConfiguration[];
-  deliverables: DeliverableSeederConfiguration[];
 };
 
-export const seedDemonstration = async (config: DemonstrationSeederConfiguration) => {
+type DemonstrationSeederConfiguration = {
+  documentOwnerUserId: string;
+  name: string;
+  sdgDivision?: SdgDivision;
+  completedThroughPhase?: PhaseName;
+  projectOfficerUserId: string;
+  expirationDate?: Date;
+  effectiveDate?: Date;
+  demonstrationTypes?: DemonstrationTypeSeederConfiguration[];
+  amendments?: ModificationSeederConfiguration[];
+  extensions?: ModificationSeederConfiguration[];
+  deliverables?: DeliverableSeederConfiguration[];
+};
+
+export const seedAmendment = async (
+  demonstrationId: string,
+  config: ModificationSeederConfiguration
+) => {
+  const amendment = await amendmentResolvers.Mutation.createAmendment(null, {
+    input: {
+      name: config.name,
+      description: config.description,
+      demonstrationId,
+    },
+  });
+  await amendmentResolvers.Mutation.updateAmendment(null, {
+    id: amendment.id,
+    input: {
+      effectiveDate: config.effectiveDate
+        ? (formatEasternTZDateToMMDDYYYY(
+            parseJSDateToEasternTZDate(config.effectiveDate)
+          ) as LocalDate)
+        : null,
+      signatureLevel: config.signatureLevel,
+    },
+  });
+  if (!config.completedThroughPhase) {
+    return;
+  }
+  if (
+    config.completedThroughPhase === "Approval Summary" &&
+    (!config.effectiveDate || !config.signatureLevel)
+  ) {
+    throw new Error(
+      "To seed an amendment through the Approval Summary phase, please provide values for effectiveDate and signatureLevel in the configuration."
+    );
+  }
+
+  await progressApplicationThroughPhase({
+    applicationId: amendment.id,
+    clearanceLevel: "CMS (OSORA)",
+    documentOwnerUserId: config.documentOwnerUserId,
+    completedThroughPhase: config.completedThroughPhase,
+  });
+};
+
+export const seedExtension = async (
+  demonstrationId: string,
+  config: ModificationSeederConfiguration
+) => {
+  const extension = await extensionResolvers.Mutation.createExtension(null, {
+    input: {
+      name: config.name,
+      description: config.description,
+      demonstrationId,
+    },
+  });
+  await extensionResolvers.Mutation.updateExtension(null, {
+    id: extension.id,
+    input: {
+      effectiveDate: config.effectiveDate
+        ? (formatEasternTZDateToMMDDYYYY(
+            parseJSDateToEasternTZDate(config.effectiveDate)
+          ) as LocalDate)
+        : null,
+      signatureLevel: config.signatureLevel,
+    },
+  });
+  if (!config.completedThroughPhase) {
+    return;
+  }
+  if (
+    config.completedThroughPhase === "Approval Summary" &&
+    (!config.effectiveDate || !config.signatureLevel)
+  ) {
+    throw new Error(
+      "To seed an extension through the Approval Summary phase, please provide values for effectiveDate and signatureLevel in the configuration."
+    );
+  }
+
+  await progressApplicationThroughPhase({
+    applicationId: extension.id,
+    clearanceLevel: "CMS (OSORA)",
+    documentOwnerUserId: config.documentOwnerUserId,
+    completedThroughPhase: config.completedThroughPhase,
+  });
+};
+
+export const seedDemonstration = async (
+  cmsUserId: string,
+  config: DemonstrationSeederConfiguration
+) => {
   const demonstration = await generateDemonstration({
     name: config.name,
-    description: config.description,
+    description: `Demonstration ${config.name} description`,
     projectOfficerUserId: config.projectOfficerUserId,
-    stateId: config.stateId,
+    stateId: STATES_AND_TERRITORIES[0].id,
+    sdgDivision: config.sdgDivision,
+  });
+
+  await updateAdditionalDemonstrationData({
+    demonstrationId: demonstration.id,
+    expirationDate: config.expirationDate,
+    effectiveDate: config.effectiveDate,
   });
 
   if (!config.completedThroughPhase) {
     return;
   }
-  progressApplicationThroughPhase(demonstration.id);
 
-  if (config.amendments.length > 0) {
-    
+  if (
+    config.completedThroughPhase === "Approval Summary" &&
+    (!config.sdgDivision ||
+      !config.effectiveDate ||
+      !config.expirationDate ||
+      !config.demonstrationTypes ||
+      config.demonstrationTypes.length === 0)
+  ) {
+    throw new Error(
+      "To seed a demonstration through the Approval Summary phase, please provide values for sdgDivision, effectiveDate, expirationDate, and demonstrationTypes in the configuration."
+    );
+  }
+
+  await progressApplicationThroughPhase({
+    applicationId: demonstration.id,
+    clearanceLevel: "CMS (OSORA)",
+    documentOwnerUserId: config.documentOwnerUserId,
+    completedThroughPhase: config.completedThroughPhase,
+  });
+
+  if (config.amendments) {
+    for (const amendmentConfig of config.amendments) {
+      const amendment = await seedAmendment(demonstration.id, amendmentConfig);
+    }
+    if (config.extensions) {
+      for (const extensionConfig of config.extensions) {
+        const extension = await seedExtensionOnDemonstration(config);
+      }
+    }
+    if (config.deliverables) {
+      for (const deliverableConfig of config.deliverables) {
+        const deliverable = await seedDeliverableOnDemonstration(config);
+      }
+    }
+  }
 };
 
 //   const demonstration = await generateDemonstration({
