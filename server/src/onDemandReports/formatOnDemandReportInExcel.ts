@@ -9,13 +9,15 @@ export async function formatOnDemandReportInExcel<T extends OnDemandReportType>(
   const workbook = new Workbook();
   const worksheet = workbook.addWorksheet(reportType);
 
-  worksheet.columns = Object.entries(
-    ON_DEMAND_REPORT_CONFIGURATIONS[reportType].excelConfiguration.columns
-  ).map(([key, header]) => ({ key, header }));
+  const { columnNames } = ON_DEMAND_REPORT_CONFIGURATIONS[reportType].excelConfiguration;
+  worksheet.columns = Object.entries(columnNames).map(([key, header]) => ({ key, header }));
 
   for (const row of rows) {
     worksheet.addRow(row);
   }
+
+  worksheet.getRow(1).font = { bold: true };
+  worksheet.autoFitColumns();
 
   const buffer = await workbook.xlsx.writeBuffer();
   return Buffer.from(buffer);

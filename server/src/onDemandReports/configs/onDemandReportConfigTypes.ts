@@ -5,5 +5,5 @@ export type OnDemandReportColumnHeader<T extends string> = Record<T, string>;
 export type OnDemandReportConfiguration = {
   sqlQuery: string;
   reportRowSchema: z.ZodType;
-  excelConfiguration: { columns: Record<string, string> };
+  excelConfiguration: { columnNames: Record<string, string> };
 };

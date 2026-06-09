@@ -30,5 +30,5 @@ const deliverableStatusReportColumnHeaders = {
 export const deliverableStatusReportConfiguration = {
   sqlQuery: deliverableStatusReportQuery,
   reportRowSchema: deliverableStatusReportSchema,
-  excelConfiguration: { columns: deliverableStatusReportColumnHeaders },
+  excelConfiguration: { columnNames: deliverableStatusReportColumnHeaders },
 } satisfies OnDemandReportConfiguration;

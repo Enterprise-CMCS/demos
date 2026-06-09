@@ -21,5 +21,5 @@ export const basicTestReportColumnHeaders = {
 export const basicTestReportConfiguration = {
   sqlQuery: basicTestReportQuery,
   reportRowSchema: basicTestReportSchema,
-  excelConfiguration: { columns: basicTestReportColumnHeaders },
+  excelConfiguration: { columnNames: basicTestReportColumnHeaders },
 } satisfies OnDemandReportConfiguration;
