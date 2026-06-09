@@ -178,4 +178,25 @@ describe("StateFilesTab", () => {
       expect(screen.getByTestId(STATE_FILES_DELETE_BUTTON_NAME)).toBeDisabled();
     });
   });
+
+  describe("when deleteDisabled", () => {
+    it("keeps Delete disabled even when rows are selected", async () => {
+      const user = userEvent.setup();
+      renderTab({ deleteDisabled: true });
+
+      await user.click(screen.getByTestId("select-row-file-a"));
+
+      expect(screen.getByTestId(STATE_FILES_DELETE_BUTTON_NAME)).toBeDisabled();
+    });
+
+    it("still allows Add and Edit", async () => {
+      const user = userEvent.setup();
+      renderTab({ deleteDisabled: true });
+
+      expect(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME)).not.toBeDisabled();
+
+      await user.click(screen.getByTestId("select-row-file-a"));
+      expect(screen.getByTestId(STATE_FILES_EDIT_BUTTON_NAME)).not.toBeDisabled();
+    });
+  });
 });
