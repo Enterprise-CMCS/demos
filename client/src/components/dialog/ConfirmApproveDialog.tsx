@@ -29,7 +29,11 @@ export const ConfirmApproveDialog: React.FC<ConfirmApproveDialogProps> = ({
       onClose={closeDialog}
       maxWidthClass="max-w-[600px]"
       actionButton={
-        <Button name="button-ca-dialog-approve" onClick={handleSubmitClicked}>
+        <Button
+          name="button-ca-dialog-approve"
+          ariaLabel={`Submit approved ${applicationType}`}
+          onClick={handleSubmitClicked}
+        >
           Submit Approved {applicationType.charAt(0).toUpperCase() + applicationType.slice(1)}
         </Button>
       }
@@ -41,8 +45,8 @@ export const ConfirmApproveDialog: React.FC<ConfirmApproveDialogProps> = ({
           {applicationType === "demonstration" && (
             <>
               {" "}
-              This will finalize the approval process and move the demonstration to the
-              deliverables phase.
+              This will finalize the approval process and move the demonstration to the deliverables
+              phase.
             </>
           )}
         </span>

@@ -256,11 +256,21 @@ export const ConceptPhase = ({
       </div>
 
       <div className={STYLES.actions}>
-        <SecondaryButton name={SKIP_BUTTON_NAME} onClick={onSkip} disabled={!isSkipEnabled}>
+        <SecondaryButton
+          name={SKIP_BUTTON_NAME}
+          ariaLabel="Skip this section"
+          onClick={onSkip}
+          disabled={!isSkipEnabled}
+        >
           Skip
           <ChevronRightIcon />
         </SecondaryButton>
-        <Button name={FINISH_BUTTON_NAME} onClick={onFinish} disabled={!isFinishEnabled}>
+        <Button
+          name={FINISH_BUTTON_NAME}
+          ariaLabel="Finish this section"
+          onClick={onFinish}
+          disabled={!isFinishEnabled}
+        >
           Finish
         </Button>
       </div>
