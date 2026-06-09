@@ -40,8 +40,13 @@ export const SUBMIT_DELIVERABLE_MUTATION = gql`
   }
 `;
 
-export const RESUBMISSION_DISABLED_STATUSES: ReadonlySet<DeliverableStatus> =
-  new Set(["Upcoming", "Past Due", "Accepted", "Approved", "Received and Filed"]);
+export const RESUBMISSION_DISABLED_STATUSES: ReadonlySet<DeliverableStatus> = new Set([
+  "Upcoming",
+  "Past Due",
+  "Accepted",
+  "Approved",
+  "Received and Filed",
+]);
 
 export const isResubmissionDisabled = (status: DeliverableStatus): boolean =>
   RESUBMISSION_DISABLED_STATUSES.has(status);
@@ -91,14 +96,10 @@ export const FileAndHistoryTabs: React.FC<{
   const isFinalized = !isDeliverableEditable(deliverable.status);
   const refetchAfterFileChange = [DELIVERABLE_DETAILS_QUERY];
 
-  if (!currentUser) {
-    throw new Error("FileAndHistoryTabs requires an authenticated user.");
-  }
-
   const userPersonType = currentUser.person.personType;
   const isCmsStaffUser = CMS_STAFF_PERSON_TYPES.has(userPersonType);
-  const isCompleteReviewDisabled = !isCmsStaffUser ||
-    !canCompleteReview(deliverable.status, deliverable.extensionRequests);
+  const isCompleteReviewDisabled =
+    !isCmsStaffUser || !canCompleteReview(deliverable.status, deliverable.extensionRequests);
   const canManageStateFiles = STATE_FILE_MANAGER_PERSON_TYPES.has(userPersonType);
   const canManageCmsFiles = isCmsStaffUser;
 

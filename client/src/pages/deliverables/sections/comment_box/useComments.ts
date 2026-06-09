@@ -85,21 +85,20 @@ function toCommentBoxComment(
 export const useComments = (deliverableId: string, commentVisibility: CommentVisibility) => {
   const { currentUser } = getCurrentUser();
 
-  const userPersonType: PersonType | undefined = currentUser?.person.personType;
+  const userPersonType: PersonType = currentUser.person.personType;
   const isCmsOrAdminUser = userPersonType === "demos-cms-user" || userPersonType === "demos-admin";
 
   const { data: publicData, refetch: refetchPublic } = useQuery<{
     deliverable: { id: string; publicComments: CommentQueryResult[] };
   }>(GET_PUBLIC_COMMENTS_QUERY, {
     variables: { id: deliverableId },
-    skip: !currentUser,
   });
 
   const { data: privateData, refetch: refetchPrivate } = useQuery<{
     deliverable: { id: string; privateComments: CommentQueryResult[] };
   }>(GET_PRIVATE_COMMENTS_QUERY, {
     variables: { id: deliverableId },
-    skip: !currentUser || !isCmsOrAdminUser,
+    skip: !isCmsOrAdminUser,
   });
 
   const [createPublicComment] = useMutation(CREATE_PUBLIC_COMMENT_MUTATION);

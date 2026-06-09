@@ -103,8 +103,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
       value: demonstration.expirationDate ? formatDate(demonstration.expirationDate) : "--/--/----",
     },
   ];
-  const canManageDemonstration =
-    !!currentUser && HEADER_ACTION_PERSON_TYPES.has(currentUser.person.personType);
+  const canManageDemonstration = HEADER_ACTION_PERSON_TYPES.has(currentUser.person.personType);
 
   return (
     <div
@@ -122,8 +121,10 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
             </a>
             {/* \u00A0 is unicode for non-breaking space */}
             {"\u00A0 > \u00A0"} {demonstration.medicaidId}
-            { demonstration.chipId && (
-              <span>{"\u00A0|\u00A0"} {demonstration.chipId}</span>
+            {demonstration.chipId && (
+              <span>
+                {"\u00A0|\u00A0"} {demonstration.chipId}
+              </span>
             )}
           </span>
           <div className="flex gap-1 items-center -ml-2">
@@ -153,7 +154,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
                   {displayFields.map((field, index) => (
                     <React.Fragment key={field.label}>
                       <li className="text-[16px] mt-0.5 font-title">
-                        <span className="font-semibold">{field.label}:{" "}</span>
+                        <span className="font-semibold">{field.label}: </span>
                         <span className="font-normal" data-testid={`demonstration-${field.label}`}>
                           {field.value}
                         </span>

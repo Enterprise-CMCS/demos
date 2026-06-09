@@ -2,7 +2,6 @@ import React from "react";
 
 import { Textarea } from "components/input";
 import { Button } from "components/button";
-import { getCurrentUser } from "components/user/UserContext";
 import { CommentVisibility } from "./Comment";
 
 export const COMMENT_BOX_TEXT_AREA_NAME = "textarea-comment-box";
@@ -21,12 +20,6 @@ export const CommentBoxTextArea = ({
   commentVisibility: CommentVisibility;
   isSubmitting: boolean;
 }) => {
-  const { currentUser } = getCurrentUser();
-
-  if (!currentUser) {
-    throw new Error("Current user is required to render CommentBoxTextArea");
-  }
-
   const handleAddComment = () => {
     if (!isSubmitting && currentComment.trim() !== "") {
       addComment(currentComment);

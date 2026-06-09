@@ -21,9 +21,8 @@ export const DeliverableButtons = ({
 }) => {
   const { showRequestExtensionDeliverableDialog } = useDialog();
   const { currentUser } = getCurrentUser();
-  const userPersonType = currentUser?.person.personType;
-  const canSeeRequestExtension =
-    !!userPersonType && REQUEST_EXTENSION_PERSON_TYPES.has(userPersonType);
+  const userPersonType = currentUser.person.personType;
+  const canSeeRequestExtension = REQUEST_EXTENSION_PERSON_TYPES.has(userPersonType);
 
   const handleRequestExtension = () => {
     showRequestExtensionDeliverableDialog({

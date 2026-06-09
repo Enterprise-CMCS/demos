@@ -67,7 +67,7 @@ const DeliverablesTabs: React.FC<{
 
 export const DeliverablesPage: React.FC = () => {
   const { currentUser } = getCurrentUser();
-  const rawPersonType = currentUser?.person.personType;
+  const rawPersonType = currentUser.person.personType;
   const viewMode = rawPersonType as UserType;
   const isStateUser = rawPersonType === "demos-state-user";
   const { data, loading, error } = useQuery<DeliverablesPageQueryResult>(
@@ -76,7 +76,7 @@ export const DeliverablesPage: React.FC = () => {
 
   const deliverables = isStateUser ? getStateUserDeliverables(data) : (data?.deliverables ?? []);
   const myDeliverables = deliverables.filter(
-    (deliverable) => deliverable.cmsOwner.id === currentUser?.id
+    (deliverable) => deliverable.cmsOwner.id === currentUser.id
   );
 
   return (

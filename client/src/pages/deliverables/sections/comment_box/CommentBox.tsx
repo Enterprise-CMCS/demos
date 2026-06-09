@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { MenuCollapseRightIcon } from "components/icons/Navigation/MenuCollapseRightIcon";
 import { CommentIcon } from "components/icons";
 import { SecondaryButton } from "components/button";
-import { getCurrentUser } from "components/user/UserContext";
 import { CommentBoxTabs } from "./CommentBoxTabs";
 import { CommentBoxTextArea } from "./CommentBoxTextArea";
 import { CommentBoxHistory } from "./CommentBoxHistory";
@@ -34,7 +33,6 @@ const CommentBoxHeader = ({ onCollapse }: { onCollapse: () => void }) => (
 );
 
 export const CommentBox = ({ deliverableId }: { deliverableId: string }) => {
-  const { currentUser } = getCurrentUser();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [currentComment, setCurrentComment] = useState("");
   const [commentVisibility, setCommentVisibility] = useState<CommentVisibility>("public");
@@ -45,10 +43,6 @@ export const CommentBox = ({ deliverableId }: { deliverableId: string }) => {
     deliverableId,
     commentVisibility
   );
-
-  if (!currentUser) {
-    return null;
-  }
 
   const handleAddComment = async (commentText: string) => {
     try {
