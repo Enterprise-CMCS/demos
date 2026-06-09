@@ -8,6 +8,7 @@ import {
   Demonstration,
   DocumentType,
   PersonType,
+  Tag,
 } from "demos-server";
 import { Loading } from "components/loading/Loading";
 import { useToast } from "components/toast";
@@ -66,11 +67,21 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
         state {
           id
         }
+        demonstrationTypes {
+          demonstrationTypeName
+          approvalStatus
+        }
       }
       cmsOwner {
+        id
         person {
+          id
           fullName
         }
+      }
+      demonstrationTypes {
+        tagName
+        approvalStatus
       }
       stateDocuments {
         id
@@ -121,8 +132,15 @@ export type DeliverableDetailsManagementDeliverable = Pick<
   "id" | "deliverableType" | "dueDate" | "status" | "name"
 > & {
   allowedDocumentTypes: DocumentType[];
-  demonstration: Pick<Demonstration, "id" | "name" | "expirationDate"> & { state: { id: string } };
-  cmsOwner: { person: { fullName: string } };
+  demonstration: Pick<Demonstration, "id" | "name" | "expirationDate"> & {
+    state: { id: string };
+    demonstrationTypes: {
+      demonstrationTypeName: string;
+      approvalStatus: "Approved" | "Unapproved";
+    }[];
+  };
+  cmsOwner: { id: string; person: { id: string; fullName: string } };
+  demonstrationTypes: Tag[];
   stateDocuments: DeliverableFileRow[];
   cmsDocuments: DeliverableFileRow[];
   deliverableActions: Pick<
@@ -147,7 +165,7 @@ export const DeliverableDetailsManagementPage: React.FC<{
 }> = ({ deliverableId, onBack }) => {
   const { currentUser } = getCurrentUser();
   const { showSuccess, showError } = useToast();
-  const { showReviewExtensionDeliverableDialog } = useDialog();
+  const { showEditDeliverableDialog, showReviewExtensionDeliverableDialog } = useDialog();
   const navigate = useNavigate();
   const { deliverableId: routeDeliverableId } = useParams<{ deliverableId?: string }>();
   const resolvedDeliverableId = deliverableId ?? routeDeliverableId;
@@ -187,7 +205,11 @@ export const DeliverableDetailsManagementPage: React.FC<{
   }, [resolvedDeliverableId, startReviewTrigger, showSuccess, showError]);
 
   const handleDeleteDeliverable = useCallback(() => {}, []);
-  const handleEditDeliverable = useCallback(() => {}, []);
+  const handleEditDeliverable = useCallback(() => {
+    if (data?.deliverable) {
+      showEditDeliverableDialog(data.deliverable);
+    }
+  }, [data?.deliverable, showEditDeliverableDialog]);
 
   const handleBack = useCallback(() => {
     if (onBack) {
