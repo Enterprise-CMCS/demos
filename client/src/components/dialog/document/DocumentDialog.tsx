@@ -543,7 +543,10 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
       {isAttestationOpen && (
         <AttestationDialog
           onConfirm={onAttestationConfirmed}
-          onCancel={() => setIsAttestationOpen(false)}
+          onCancel={() => {
+            setIsAttestationOpen(false);
+            onClose();
+          }}
         />
       )}
     </>
