@@ -150,8 +150,10 @@ describe("extractClaimsFromEvent", () => {
 
   it("throws when the authorizer claims are invalid", () => {
     const event = makeEvent();
-    (event.requestContext.authorizer as any).role = "not-a-real-role";
+    (event.requestContext.authorizer as any).role = undefined;
 
-    expect(() => extractClaimsFromEvent(event)).toThrow("Invalid user role: 'not-a-real-role'");
+    expect(() => extractClaimsFromEvent(event)).toThrow(
+      "Authorizer claims missing required 'role' field"
+    );
   });
 });
