@@ -1,6 +1,6 @@
 import { OnDemandReportType } from "../types";
+import { ON_DEMAND_REPORT_CONFIGURATIONS } from "./configs";
 import { z } from "zod";
-import { ON_DEMAND_REPORT_CONFIGURATIONS } from "./onDemandReportConfigurations";
 import { PrismaTransactionClient } from "../prismaClient";
 
 export async function runOnDemandReport(
