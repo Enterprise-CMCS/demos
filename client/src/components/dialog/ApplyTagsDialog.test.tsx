@@ -72,7 +72,7 @@ describe("ApplyTagsDialog", () => {
     expect(screen.getByText("Selected Tag(s) (3)")).toBeInTheDocument();
     expect(screen.getByTestId("checkbox-Behavioral Health")).toBeChecked();
     expect(screen.getByTestId("checkbox-Dental")).toBeChecked();
-    expect(screen.getByRole("button", { name: "button-confirm-apply-tags" })).toBeInTheDocument();
+    expect(screen.getByTestId("button-confirm-apply-tags")).toBeInTheDocument();
   });
 
   it("renders empty state when no tags provided", () => {
@@ -92,7 +92,7 @@ describe("ApplyTagsDialog", () => {
     ];
     const { onClose } = setup(selectedTags);
 
-    await user.click(screen.getByRole("button", { name: "button-confirm-apply-tags" }));
+    await user.click(screen.getByTestId("button-confirm-apply-tags"));
 
     expect(mockMutate).toHaveBeenCalledWith({
       variables: {
@@ -115,7 +115,7 @@ describe("ApplyTagsDialog", () => {
       },
     ]);
 
-    const closeButton = screen.getByRole("button", { name: /close/i });
+    const closeButton = screen.getByTestId("button-dialog-close");
     await user.click(closeButton);
 
     expect(onClose).toHaveBeenCalled();
@@ -258,7 +258,7 @@ describe("ApplyTagsDialog", () => {
 
     expect(screen.getByText("Selected Tag(s) (0)")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "button-confirm-apply-tags" }));
+    await user.click(screen.getByTestId("button-confirm-apply-tags"));
 
     expect(mockMutate).toHaveBeenCalledWith({
       variables: {
@@ -285,8 +285,6 @@ describe("ApplyTagsDialog", () => {
   it("renders Apply Tag(s) as action button text", () => {
     setup();
 
-    expect(screen.getByRole("button", { name: "button-confirm-apply-tags" })).toHaveTextContent(
-      "Apply Tag(s)"
-    );
+    expect(screen.getByTestId("button-confirm-apply-tags")).toHaveTextContent("Apply Tag(s)");
   });
 });
