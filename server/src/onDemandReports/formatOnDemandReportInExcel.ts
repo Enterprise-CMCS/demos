@@ -1,5 +1,5 @@
 import { OnDemandReportType } from "../types";
-import { ON_DEMAND_REPORT_CONFIGURATIONS, OnDemandReportRow } from "./configs";
+import { getOnDemandReportConfiguration, OnDemandReportRow } from "./configs";
 import { Workbook } from "@cj-tech-master/excelts";
 
 export async function formatOnDemandReportInExcel<T extends OnDemandReportType>(
@@ -9,7 +9,7 @@ export async function formatOnDemandReportInExcel<T extends OnDemandReportType>(
   const workbook = new Workbook();
   const worksheet = workbook.addWorksheet(reportType);
 
-  const { columnNames } = ON_DEMAND_REPORT_CONFIGURATIONS[reportType].excelConfiguration;
+  const { columnNames } = getOnDemandReportConfiguration(reportType).excelConfiguration;
   worksheet.columns = Object.entries(columnNames).map(([key, header]) => ({ key, header }));
 
   for (const row of rows) {
