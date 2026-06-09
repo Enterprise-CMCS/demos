@@ -75,10 +75,19 @@ describe("documentTypeRequiresAttestation", () => {
 
 const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-const renderAddDialog = (documentType: DocumentType, onSubmit: () => Promise<DocumentUploadResult>) =>
+const renderAddDialog = (
+  documentType: DocumentType,
+  onSubmit: () => Promise<DocumentUploadResult>,
+  onClose: () => void = vi.fn()
+) =>
   render(
     <ToastProvider>
-      <DocumentDialog mode="add" documentTypeSubset={[documentType]} onSubmit={onSubmit} />
+      <DocumentDialog
+        mode="add"
+        documentTypeSubset={[documentType]}
+        onSubmit={onSubmit}
+        onClose={onClose}
+      />
     </ToastProvider>
   );
 
@@ -114,9 +123,10 @@ describe("DocumentDialog attestation gating", () => {
     expect(onSubmit).toHaveBeenCalledOnce();
   });
 
-  it("cancels the upload without submitting when the attestation is dismissed", async () => {
+  it("confirms before cancelling the upload when the attestation is dismissed", async () => {
     const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
-    renderAddDialog("Final Budget Neutrality Formulation Workbook", onSubmit);
+    const onClose = vi.fn();
+    renderAddDialog("Final Budget Neutrality Formulation Workbook", onSubmit, onClose);
 
     selectFile("bn-notebook.docx");
     fireEvent.click(screen.getByTestId("button-confirm-upload-document"));
@@ -124,6 +134,13 @@ describe("DocumentDialog attestation gating", () => {
     const cancelButtons = await screen.findAllByTestId("button-dialog-cancel");
     fireEvent.click(cancelButtons[cancelButtons.length - 1]);
 
+    // Standard unsaved-changes confirmation must appear before anything is discarded.
+    expect(screen.getByText(/You will lose any unsaved changes/i)).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByTestId("button-cc-dialog-discard"));
+
+    expect(onClose).toHaveBeenCalledOnce();
     expect(onSubmit).not.toHaveBeenCalled();
   });
 

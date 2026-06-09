@@ -27,7 +27,6 @@ export const AttestationDialog: React.FC<{
     <BaseDialog
       name="attestation-dialog"
       title="Attestation Required"
-      dialogHasChanges={false}
       onClose={onCancel}
       maxWidthClass="max-w-[600px]"
       actionButton={

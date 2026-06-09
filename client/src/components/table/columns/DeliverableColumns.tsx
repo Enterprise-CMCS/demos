@@ -86,7 +86,11 @@ export function DeliverableColumns({
         window.open(`/deliverables/${deliverableId}`, "_blank");
       };
       return (
-        <SecondaryButton onClick={handleClick} name="view-deliverable">
+        <SecondaryButton
+          onClick={handleClick}
+          name="view-deliverable"
+          ariaLabel={`View ${row.original.name}`}
+        >
           View
         </SecondaryButton>
       );

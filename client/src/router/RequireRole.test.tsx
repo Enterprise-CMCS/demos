@@ -79,26 +79,4 @@ describe("RequireRole", () => {
     // Since Navigate goes to "/", we expect protected content NOT to render
     expect(screen.queryByText("Protected Content")).not.toBeInTheDocument();
   });
-
-  it("redirects when there is no user", () => {
-    currentUserState.currentUser = null as unknown as typeof currentUserState.currentUser;
-
-    render(
-      <MemoryRouter initialEntries={["/"]}>
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <RequireRole allowedRoles={["demos-admin"]}>
-                <div>Protected Content</div>
-              </RequireRole>
-            }
-          />
-          <Route path="/redirect" element={<div>Redirected</div>} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    expect(screen.queryByText("Protected Content")).not.toBeInTheDocument();
-  });
 });

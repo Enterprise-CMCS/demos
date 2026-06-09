@@ -140,16 +140,22 @@ describe("StateFilesTab", () => {
       expect(onAdd).toHaveBeenCalledTimes(1);
     });
 
-    it("renders the Current toggle as the shared styled switch", () => {
+    it("renders a View button per file", () => {
       renderTab();
 
-      // react-switch renders a role="switch" element with fixed px sizing, so
-      // it's immune to the custom Tailwind spacing theme that previously made
-      // the hand-rolled toggle render as a vertical sliver.
-      const toggle = screen.getByRole("switch", {
-        name: /toggle current file file-a/i,
-      });
-      expect(toggle).toBeInTheDocument();
+      expect(screen.getByTestId("view-file-file-a")).toBeInTheDocument();
+      expect(screen.getByTestId("view-file-file-b")).toBeInTheDocument();
+    });
+
+    it("opens a new tab via View button", async () => {
+      const user = userEvent.setup();
+      const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+      renderTab();
+
+      await user.click(screen.getByTestId("view-file-file-a"));
+
+      expect(openSpy).toHaveBeenCalledWith("/document/file-a", "_blank");
+      openSpy.mockRestore();
     });
   });
 
@@ -176,6 +182,27 @@ describe("StateFilesTab", () => {
       await user.click(screen.getByTestId("select-row-file-a"));
 
       expect(screen.getByTestId(STATE_FILES_DELETE_BUTTON_NAME)).toBeDisabled();
+    });
+  });
+
+  describe("when deleteDisabled", () => {
+    it("keeps Delete disabled even when rows are selected", async () => {
+      const user = userEvent.setup();
+      renderTab({ deleteDisabled: true });
+
+      await user.click(screen.getByTestId("select-row-file-a"));
+
+      expect(screen.getByTestId(STATE_FILES_DELETE_BUTTON_NAME)).toBeDisabled();
+    });
+
+    it("still allows Add and Edit", async () => {
+      const user = userEvent.setup();
+      renderTab({ deleteDisabled: true });
+
+      expect(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME)).not.toBeDisabled();
+
+      await user.click(screen.getByTestId("select-row-file-a"));
+      expect(screen.getByTestId(STATE_FILES_EDIT_BUTTON_NAME)).not.toBeDisabled();
     });
   });
 });

@@ -1,6 +1,5 @@
-import * as React from "react";
+import React from "react";
 import { createColumnHelper } from "@tanstack/react-table";
-import Switch from "react-switch";
 
 import { DOCUMENT_TYPES } from "demos-server-constants";
 import { SecondaryButton } from "components/button";
@@ -48,6 +47,23 @@ const uploadedByColumn = columnHelper.accessor("owner.person.fullName", {
 
 const uploadedDateColumn = createDateColumnDef(columnHelper, "createdAt", "Uploaded Date");
 
+// Opens the document in a new tab, where PDFs/images preview inline and other
+// formats download. Shared by the State Files and CMS Files tables.
+const viewColumn = columnHelper.display({
+  id: "view",
+  header: "View",
+  cell: ({ row }) => (
+    <SecondaryButton
+      size="small"
+      name={`view-file-${row.original.id}`}
+      onClick={() => window.open(`/document/${row.original.id}`, "_blank")}
+    >
+      View
+    </SecondaryButton>
+  ),
+  enableSorting: false,
+});
+
 export function makeStateFileColumns() {
   return [
     createSelectColumnDef(columnHelper),
@@ -56,12 +72,7 @@ export function makeStateFileColumns() {
     descriptionColumn,
     uploadedByColumn,
     uploadedDateColumn,
-    columnHelper.display({
-      id: "current",
-      header: "Current",
-      cell: ({ row }) => <CurrentToggle fileId={row.original.id} />,
-      enableSorting: false,
-    }),
+    viewColumn,
   ];
 }
 
@@ -72,42 +83,7 @@ export function makeCmsFileColumns({ showSelect = true }: { showSelect?: boolean
     descriptionColumn,
     uploadedByColumn,
     uploadedDateColumn,
-    columnHelper.display({
-      id: "view",
-      header: "View",
-      cell: ({ row }) => (
-        <SecondaryButton
-          size="small"
-          name={`view-file-${row.original.id}`}
-          onClick={() => window.open(`/document/${row.original.id}`, "_blank")}
-        >
-          View
-        </SecondaryButton>
-      ),
-      enableSorting: false,
-    }),
+    viewColumn,
   ];
   return showSelect ? [createSelectColumnDef(columnHelper), ...baseColumns] : baseColumns;
 }
-
-// Uses the shared `react-switch` styling (matching ContactColumns) so the
-// toggle renders consistently and isn't affected by the custom Tailwind
-// spacing theme.
-const CurrentToggle: React.FC<{ fileId: string }> = ({ fileId }) => (
-  <div className="inline-flex items-center justify-center">
-    <Switch
-      checked={false}
-      onChange={() => {}}
-      aria-label={`Toggle current file ${fileId}`}
-      onColor="#6B7280"
-      offColor="#E5E7EB"
-      checkedIcon={false}
-      uncheckedIcon={false}
-      height={18}
-      width={40}
-      handleDiameter={24}
-      boxShadow="0 2px 8px rgba(0, 0, 0, 0.6)"
-      activeBoxShadow="0 0 2px 3px #3bf"
-    />
-  </div>
-);

@@ -12,12 +12,12 @@ import {
 import { ErrorIcon } from "components/icons";
 import { gql, TypedDocumentNode, useMutation } from "@apollo/client";
 
-type Demonstration = Pick<ServerDemonstration, "id"> & {
-  demonstrationTypes: Pick<DemonstrationTypeAssignment, "demonstrationTypeName">[];
-};
-
 export const REMOVE_DEMONSTRATION_TYPES_DIALOG_MUTATION: TypedDocumentNode<
-  { setDemonstrationTypes: Demonstration },
+  {
+    setDemonstrationTypes: Pick<ServerDemonstration, "id" | "chipId"> & {
+      demonstrationTypes: Pick<DemonstrationTypeAssignment, "demonstrationTypeName">[];
+    };
+  },
   { input: SetDemonstrationTypesInput }
 > = gql`
   mutation removeDemonstrationTypes($input: SetDemonstrationTypesInput!) {
@@ -26,6 +26,7 @@ export const REMOVE_DEMONSTRATION_TYPES_DIALOG_MUTATION: TypedDocumentNode<
       demonstrationTypes {
         demonstrationTypeName
       }
+      chipId
     }
   }
 `;

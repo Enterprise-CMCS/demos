@@ -1,7 +1,7 @@
 // Flags: NO_CREATED_TS, NO_UPDATED_TS, NO_HISTORY
 // File logs when on demand reports are generated, intended as append-only
 model OnDemandReport {
-  id                String   @default(uuid()) @db.Uuid
+  id                String   @db.Uuid
   s3Path            String   @map("s3_path")
   requestingUserId  String   @map("requesting_user_id") @db.Uuid
   reportTypeId      String   @map("report_type_id")

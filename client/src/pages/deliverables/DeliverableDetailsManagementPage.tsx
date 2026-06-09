@@ -207,10 +207,6 @@ export const DeliverableDetailsManagementPage: React.FC<{
   if (!resolvedDeliverableId || !data?.deliverable) {
     return <div>Deliverable not found.</div>;
   }
-  if (!currentUser) {
-    throw new Error("DeliverableDetailsManagementPage requires an authenticated user.");
-  }
-
   const userPersonType = currentUser.person.personType;
   const canStartReview =
     REVIEW_STARTER_PERSON_TYPES.has(userPersonType) && data.deliverable.status === "Submitted";

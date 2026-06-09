@@ -27,7 +27,7 @@ describe("handleDeleteDocument", () => {
   const testDocumentId = "doc-123-456";
   const testApplicationId = "app-123-456";
   const mockMoveDocumentFromCleanToDeleted = vi.fn();
-  const mockS3Adapter: S3Adapter = {
+  const mockS3Adapter: Partial<S3Adapter> = {
     getPresignedUploadUrl: vi.fn(),
     getPresignedDownloadUrl: vi.fn(),
     moveDocumentFromCleanToDeleted: mockMoveDocumentFromCleanToDeleted,
@@ -49,7 +49,7 @@ describe("handleDeleteDocument", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.mocked(getS3Adapter).mockReturnValue(mockS3Adapter);
+    vi.mocked(getS3Adapter).mockReturnValue(mockS3Adapter as S3Adapter);
   });
 
   it("should validate that the document can be deleted before proceeding", async () => {

@@ -33,7 +33,12 @@ export const ApplicationUploadSection: React.FC<Props> = ({
       </h4>
       <p className={STYLES.helper}>{helperText}</p>
 
-      <SecondaryButton onClick={onUploadClick} size="small" name="button-open-upload-modal">
+      <SecondaryButton
+        onClick={onUploadClick}
+        size="small"
+        name="button-open-upload-modal"
+        ariaLabel="Upload"
+      >
         Upload
         <ExportIcon />
       </SecondaryButton>

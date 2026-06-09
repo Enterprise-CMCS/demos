@@ -8,10 +8,6 @@ import { useDialog } from "components/dialog/DialogContext";
 const UserGreeting = () => {
   const { currentUser } = getCurrentUser();
 
-  if (!currentUser) {
-    return <div>Loading user...</div>;
-  }
-
   return (
     <div>
       <span className="font-bold block">Hello {currentUser.person.fullName}</span>
@@ -27,8 +23,8 @@ export const DefaultHeaderLower: React.FC = () => {
   const { showCreateDemonstrationDialog, showCreateAmendmentDialog, showCreateExtensionDialog } =
     useDialog();
   const canCreate =
-    currentUser?.person.personType === "demos-admin" ||
-    currentUser?.person.personType === "demos-cms-user";
+    currentUser.person.personType === "demos-admin" ||
+    currentUser.person.personType === "demos-cms-user";
 
   useEffect(() => {
     // Close dropdown on outside click

@@ -38,8 +38,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Render authentication failure component if there was an error
-  if (error || !data?.currentUser) {
+  // Not yet authenticated — render children so withAuthenticationRequired can redirect
+  if (!auth.isAuthenticated) {
+    return <>{children}</>;
+  }
+
+  // Render authentication failure component if there was an error or no user data
+  if (error || auth.error || !data?.currentUser) {
     const errorParts = [auth.error?.message, error?.message].filter(Boolean);
     return (
       <UserAuthenticationFailed

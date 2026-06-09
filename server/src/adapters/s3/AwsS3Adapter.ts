@@ -117,5 +117,33 @@ export function createAWSS3Adapter(): S3Adapter {
             })
           );
     },
+
+    async uploadOnDemandReport(reportId: string, reportFileData: Buffer): Promise<string> {
+      const key = `reports/on-demand/${reportId}.xlsx`;
+
+      await s3Client.send(
+        new PutObjectCommand({
+          Bucket: cleanBucket,
+          Key: key,
+          Body: reportFileData,
+          ContentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        })
+      );
+
+      return key;
+    },
+
+    async deleteOnDemandReport(reportId: string): Promise<string> {
+      const key = `reports/on-demand/${reportId}.xlsx`;
+
+      await s3Client.send(
+        new DeleteObjectCommand({
+          Bucket: cleanBucket,
+          Key: key,
+        })
+      );
+
+      return key;
+    },
   };
 }
