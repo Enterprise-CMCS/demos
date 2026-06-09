@@ -10,6 +10,7 @@ import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectDemonstrationType";
 import { TagName, LocalDate, Tag } from "demos-server";
 import { ADD_DEMONSTRATION_TYPES_FORM_QUERY } from "./AddDemonstrationTypesForm";
+import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 
 const mockShowSuccess = vi.fn();
 const mockShowError = vi.fn();
@@ -159,10 +160,8 @@ describe("ApplyDemonstrationTypesDialog", () => {
   it("renders dialog elements with correct titles", () => {
     renderWithProvider();
     expect(screen.getByRole("heading", { name: "Apply Type(s)" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "button-dialog-cancel" })).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "button-submit-demonstration-dialog" })
-    ).toBeInTheDocument();
+    expect(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME)).toBeInTheDocument();
+    expect(screen.getByTestId("button-submit-demonstration-dialog")).toBeInTheDocument();
   });
 
   it("renders AddDemonstrationTypesForm component", async () => {
@@ -425,7 +424,7 @@ describe("ApplyDemonstrationTypesDialog", () => {
       await user.click(screen.getByTestId("button-add-demonstration-type"));
 
       // Cancel should trigger confirmation
-      await user.click(screen.getByRole("button", { name: "button-dialog-cancel" }));
+      await user.click(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME));
 
       expect(screen.getByText("Are you sure?")).toBeInTheDocument();
       expect(

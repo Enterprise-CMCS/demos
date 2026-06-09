@@ -39,7 +39,7 @@ describe("ConfirmationToast", () => {
 
     render(<ConfirmationToast {...defaultProps} onConfirm={onConfirm} />);
 
-    const confirmButton = screen.getByRole("button", { name: "confirmation-confirm" });
+    const confirmButton = screen.getByTestId("confirmation-confirm");
     await user.click(confirmButton);
 
     expect(onConfirm).toHaveBeenCalledTimes(1);
@@ -51,7 +51,7 @@ describe("ConfirmationToast", () => {
 
     render(<ConfirmationToast {...defaultProps} onCancel={onCancel} />);
 
-    const cancelButton = screen.getByRole("button", { name: "confirmation-cancel" });
+    const cancelButton = screen.getByTestId("confirmation-cancel");
     await user.click(cancelButton);
 
     expect(onCancel).toHaveBeenCalledTimes(1);
@@ -82,8 +82,8 @@ describe("ConfirmationToast", () => {
   it("has correct button names for identification", () => {
     render(<ConfirmationToast {...defaultProps} />);
 
-    expect(screen.getByRole("button", { name: "confirmation-confirm" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "confirmation-cancel" })).toBeInTheDocument();
+    expect(screen.getByTestId("confirmation-confirm")).toBeInTheDocument();
+    expect(screen.getByTestId("confirmation-cancel")).toBeInTheDocument();
   });
 
   it("applies correct CSS classes", () => {
