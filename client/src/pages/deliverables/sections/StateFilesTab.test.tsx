@@ -140,16 +140,22 @@ describe("StateFilesTab", () => {
       expect(onAdd).toHaveBeenCalledTimes(1);
     });
 
-    it("renders the Current toggle as the shared styled switch", () => {
+    it("renders a View button per file", () => {
       renderTab();
 
-      // react-switch renders a role="switch" element with fixed px sizing, so
-      // it's immune to the custom Tailwind spacing theme that previously made
-      // the hand-rolled toggle render as a vertical sliver.
-      const toggle = screen.getByRole("switch", {
-        name: /toggle current file file-a/i,
-      });
-      expect(toggle).toBeInTheDocument();
+      expect(screen.getByTestId("view-file-file-a")).toBeInTheDocument();
+      expect(screen.getByTestId("view-file-file-b")).toBeInTheDocument();
+    });
+
+    it("opens a new tab via View button", async () => {
+      const user = userEvent.setup();
+      const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+      renderTab();
+
+      await user.click(screen.getByTestId("view-file-file-a"));
+
+      expect(openSpy).toHaveBeenCalledWith("/document/file-a", "_blank");
+      openSpy.mockRestore();
     });
   });
 
