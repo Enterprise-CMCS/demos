@@ -6,7 +6,7 @@ import os from "node:os";
 import { region } from "./uipathClient";
 
 vi.mock("./log", () => ({
-  log: { info: vi.fn(), error: vi.fn() },
+  log: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
   reqIdChild: vi.fn(),
   als: { run: (_store: unknown, fn: () => Promise<unknown> | unknown) => fn() },
   store: new Map(),
@@ -200,7 +200,7 @@ describe("handler", () => {
     await expect(handlerRef(event)).rejects.toThrow("No body returned when fetching s3://");
   });
 
-  it("throws when file type cannot be inferred from downloaded content", async () => {
+  it("warns and skips UiPath when file type cannot be inferred from downloaded content", async () => {
     process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
     process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
     mocks.sendMock.mockResolvedValue({ Body: Readable.from(["test"]) });
@@ -213,9 +213,52 @@ describe("handler", () => {
 
     const event = createEvent({ documentId: SEEDED_DOCUMENT_ID }, "id-4");
 
-    await expect(handlerRef(event)).rejects.toThrow(
-      `Unable to infer file extension for s3://clean-bucket/app-1/${SEEDED_DOCUMENT_ID} from file content.`
+    await expect(handlerRef(event)).resolves.toEqual({
+      status: "Skipped",
+      reason: "Document is not a PDF.",
+      documentId: SEEDED_DOCUMENT_ID,
+    });
+
+    expect(log.warn).toHaveBeenCalledWith(
+      {
+        s3Bucket: "clean-bucket",
+        s3Key: `app-1/${SEEDED_DOCUMENT_ID}`,
+        localPath: tmpFile(SEEDED_DOCUMENT_ID),
+      },
+      "Skipping UiPath extraction because document file type could not be detected"
     );
+    expect(mocks.runDocumentUnderstandingMock).not.toHaveBeenCalled();
+  });
+
+  it("warns and skips UiPath when detected file type is not PDF", async () => {
+    process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
+    process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
+    mocks.sendMock.mockResolvedValue({ Body: Readable.from(["test"]) });
+    mocks.fileTypeFromFileMock.mockResolvedValue({ ext: "png", mime: "image/png" });
+    mocks.parseDocumentFromIdMock.mockResolvedValue({
+      key: `app-1/${SEEDED_DOCUMENT_ID}`,
+      documentId: SEEDED_DOCUMENT_ID,
+      applicationId: "app-1",
+    });
+
+    const event = createEvent({ documentId: SEEDED_DOCUMENT_ID }, "id-png");
+
+    await expect(handlerRef(event)).resolves.toEqual({
+      status: "Skipped",
+      reason: "Document is not a PDF.",
+      documentId: SEEDED_DOCUMENT_ID,
+    });
+
+    expect(log.warn).toHaveBeenCalledWith(
+      {
+        s3Bucket: "clean-bucket",
+        s3Key: `app-1/${SEEDED_DOCUMENT_ID}`,
+        localPath: tmpFile(SEEDED_DOCUMENT_ID),
+        detectedType: { ext: "png", mime: "image/png" },
+      },
+      "Skipping UiPath extraction because document is not a PDF"
+    );
+    expect(mocks.runDocumentUnderstandingMock).not.toHaveBeenCalled();
   });
 
   it("logs and rethrows redacted UiPath errors", async () => {

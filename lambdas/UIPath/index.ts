@@ -53,17 +53,35 @@ async function resolveS3InputFromMessage(body: string): Promise<ResolvedS3Input>
   };
 }
 
-async function resolveUploadFileNameWithExtension(
+type SkippedUiPathResult = {
+  status: "Skipped";
+  reason: string;
+  documentId: string;
+};
+
+async function resolvePdfUploadFileNameWithExtension(
   s3Bucket: string,
   s3Key: string,
   downloadedObject: DownloadedObject
-): Promise<string> {
+): Promise<string | null> {
   const keyBaseName = path.basename(s3Key);
   const keyNameWithoutExtension = path.parse(keyBaseName).name;
   const detectedType = await fileTypeFromFile(downloadedObject.localPath);
 
   if (!detectedType) {
-    throw new Error(`Unable to infer file extension for s3://${s3Bucket}/${s3Key} from file content.`);
+    log.warn(
+      { s3Bucket, s3Key, localPath: downloadedObject.localPath },
+      "Skipping UiPath extraction because document file type could not be detected"
+    );
+    return null;
+  }
+
+  if (detectedType.mime !== "application/pdf") {
+    log.warn(
+      { s3Bucket, s3Key, localPath: downloadedObject.localPath, detectedType },
+      "Skipping UiPath extraction because document is not a PDF"
+    );
+    return null;
   }
 
   return `${keyNameWithoutExtension}.${detectedType.ext}`;
@@ -100,11 +118,20 @@ export const handler = async (event: SQSEvent) =>
 
       const downloadedObject = await downloadFromS3(documentBucket, s3Key);
       const { localPath } = downloadedObject;
-      const uploadFileNameWithExtension = await resolveUploadFileNameWithExtension(
+      const uploadFileNameWithExtension = await resolvePdfUploadFileNameWithExtension(
         documentBucket,
         s3Key,
         downloadedObject
       );
+
+      if (!uploadFileNameWithExtension) {
+        return {
+          status: "Skipped",
+          reason: "Document is not a PDF.",
+          documentId,
+        } satisfies SkippedUiPathResult;
+      }
+
       log.info(
         { s3Bucket: documentBucket, s3Key, localPath, uploadFileNameWithExtension },
         "Downloaded document from S3"
