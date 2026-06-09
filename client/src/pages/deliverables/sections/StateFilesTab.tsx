@@ -19,6 +19,7 @@ export type StateFilesTabProps = {
   onEdit?: (file: DeliverableFileRow) => void;
   onDelete?: (fileIds: string[]) => void;
   disabled?: boolean;
+  deleteDisabled?: boolean;
 };
 
 export const StateFilesTab: React.FC<StateFilesTabProps> = ({
@@ -27,6 +28,7 @@ export const StateFilesTab: React.FC<StateFilesTabProps> = ({
   onEdit,
   onDelete,
   disabled = false,
+  deleteDisabled = false,
 }) => {
   const columns = makeStateFileColumns();
 
@@ -46,6 +48,7 @@ export const StateFilesTab: React.FC<StateFilesTabProps> = ({
       onEdit={onEdit}
       onDelete={onDelete}
       disabled={disabled}
+      deleteDisabled={deleteDisabled}
     />
   );
 };
