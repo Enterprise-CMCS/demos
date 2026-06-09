@@ -1,3 +1,5 @@
+declare const __GIT_COMMIT__: string;
+
 declare module "graphql-tag" {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   export const gql: any;
