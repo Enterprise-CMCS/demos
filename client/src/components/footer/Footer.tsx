@@ -1,5 +1,6 @@
 import { HhsLogo } from "components/brand/HhsLogo";
 import { LogoSimplified } from "components/brand/LogoSimplified";
+import { DebugOnly } from "components/debug/DebugOnly";
 import { useToast } from "components/toast";
 import React from "react";
 import { tw } from "tags/tw";
@@ -100,7 +101,9 @@ const FooterUpper: React.FC = () => (
 
 const FooterLower: React.FC = () => (
   <div className="flex w-full bg-brand text-white p-1">
-    <div className="w-1/3" />
+    <div className="w-1/3">
+      <DebugOnly>git commit: {__GIT_COMMIT__}</DebugOnly>
+    </div>
     <div className="w-1/3" />
     <div className="w-1/3 text-right">{DEMOS_ADDRESS}</div>
   </div>
