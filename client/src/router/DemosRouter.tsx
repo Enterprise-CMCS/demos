@@ -25,7 +25,7 @@ const DEMONSTRATION_ACCESS_ROLES: PersonType[] = ["demos-admin", "demos-cms-user
 const HomePage = () => {
   const { currentUser } = getCurrentUser();
 
-  return currentUser?.person.personType === "demos-state-user" ? (
+  return currentUser.person.personType === "demos-state-user" ? (
     <DeliverablesPage />
   ) : (
     <DemonstrationsPage />

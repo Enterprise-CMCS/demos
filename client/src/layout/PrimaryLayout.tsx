@@ -20,7 +20,7 @@ export const shouldHideSideNav = (pathname: string, personType?: PersonType) =>
 export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const { currentUser } = getCurrentUser();
-  const hideSideNav = shouldHideSideNav(location.pathname, currentUser?.person.personType);
+  const hideSideNav = shouldHideSideNav(location.pathname, currentUser.person.personType);
 
   return (
     <ToastProvider>

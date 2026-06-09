@@ -11,9 +11,9 @@ type RequireRoleProps = {
 export const RequireRole: React.FC<RequireRoleProps> = ({ allowedRoles, children }) => {
   const { currentUser } = getCurrentUser();
 
-  const userRole = currentUser?.person?.personType;
+  const userRole = currentUser.person.personType;
 
-  if (!userRole || !allowedRoles.includes(userRole)) {
+  if (!allowedRoles.includes(userRole)) {
     return <Navigate to="/" replace />;
   }
 
