@@ -60,6 +60,11 @@ import {
 } from "./deliverable/ReviewExtensionDeliverableDialog";
 import { ReferenceAgreementDialog } from "./referenceAgreement/ReferenceAgreementDialog";
 
+type EditDeliverableDialogSource = Pick<
+  DeliverableTableRow,
+  "id" | "name" | "deliverableType" | "dueDate" | "cmsOwner" | "demonstrationTypes" | "demonstration"
+>;
+
 type DialogContextType = {
   content: React.ReactNode | null;
   showDialog: (content: React.ReactNode) => void;
@@ -342,7 +347,7 @@ export const useDialog = () => {
   };
 
   const showEditDeliverableDialog = (
-    deliverable: DeliverableTableRow,
+    deliverable: EditDeliverableDialogSource,
     onSave?: (input: EditDeliverableInput, reasonForChange?: string) => Promise<void> | void
   ) => {
     const dialogDeliverable: EditDeliverableDialogDeliverable = {

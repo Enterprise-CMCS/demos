@@ -12,16 +12,21 @@ import {
 import { MOCK_DELIVERABLE_1 } from "mock-data/deliverableMocks";
 import { TestProvider } from "test-utils/TestProvider";
 import { COMMENT_BOX_NAME } from "./sections/comment_box";
-import { DELIVERABLE_INFO_FIELDS_NAME,   BACK_TO_DELIVERABLES_BUTTON_NAME} from "./sections/DeliverableInfoFields";
+import {
+  BACK_TO_DELIVERABLES_BUTTON_NAME,
+  DELIVERABLE_INFO_FIELDS_NAME,
+} from "./sections/DeliverableInfoFields";
 import { FILE_AND_HISTORY_TABS_NAME } from "./sections/FileAndHistoryTabs";
 import { REQUEST_EXTENSION_BUTTON_NAME } from "./sections/DeliverableButtons";
 import { DialogProvider } from "components/dialog/DialogContext";
+import { EDIT_DELIVERABLE_DIALOG_TITLE } from "components/dialog/deliverable/EditDeliverableDialog";
 import {
   DELIVERABLE_REVIEW_NOTICE_NAME,
   START_REVIEW_BUTTON_NAME,
 } from "./sections/PendingReviewNotice";
 import { CurrentUser } from "components/user/UserContext";
 import { developmentMockUser } from "mock-data/userMocks";
+import { personMocks } from "mock-data/personMocks";
 
 const renderAtRoute = (deliverableId: string) =>
   render(
@@ -218,6 +223,16 @@ describe("DeliverableDetailsManagementPage", () => {
 
     expect(await screen.findByTestId("edit-deliverable-button")).not.toBeDisabled();
     expect(screen.getByTestId("delete-deliverable-button")).not.toBeDisabled();
+  });
+
+  it("opens the edit deliverable modal from the header Edit button", async () => {
+    const user = userEvent.setup();
+    const deliverable = { ...MOCK_DELIVERABLE_1, status: "Upcoming" as const };
+    renderWithDeliverable(deliverable, "demos-admin", personMocks);
+
+    await user.click(await screen.findByTestId("edit-deliverable-button"));
+
+    expect(screen.getByText(EDIT_DELIVERABLE_DIALOG_TITLE)).toBeInTheDocument();
   });
 
   it("shows only the Request Extension button for state users", async () => {
