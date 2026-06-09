@@ -69,7 +69,7 @@ async function resolvePdfUploadFileNameWithExtension(
   const detectedType = await fileTypeFromFile(downloadedObject.localPath);
 
   if (!detectedType) {
-    log.warn(
+    log.info(
       { s3Bucket, s3Key, localPath: downloadedObject.localPath },
       "Skipping UiPath extraction because document file type could not be detected"
     );
@@ -77,7 +77,7 @@ async function resolvePdfUploadFileNameWithExtension(
   }
 
   if (detectedType.mime !== "application/pdf") {
-    log.warn(
+    log.info(
       { s3Bucket, s3Key, localPath: downloadedObject.localPath, detectedType },
       "Skipping UiPath extraction because document is not a PDF"
     );
