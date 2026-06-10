@@ -30,9 +30,9 @@ export async function uploadDocument(
       : fileName;
   formData.append("file", fs.createReadStream(fileName), uploadName);
 
+  // form-data (formData.getHeaders()) requires its own headers
   const doc = await uipathPostRequest<UploadResponse>(url, token, formData, {
     headers: {
-      // form-data requires its own headers so axios can set boundaries
       ...formData.getHeaders(),
       "x-uipath-page-range": "All",
     },

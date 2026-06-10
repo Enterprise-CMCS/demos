@@ -52,4 +52,23 @@ describe("setupLogger", () => {
     expect(output).not.toContain("basic-token-123");
     expect(output).not.toContain("access-token-123");
   });
+
+  it("serializes Error instances logged under the error key", () => {
+    process.env = { ...prevEnv, AWS_EXECUTION_ENV: "AWS_Lambda_nodejs22.x" };
+    const chunks: string[] = [];
+    const destination = new Writable({
+      write(chunk, _encoding, callback) {
+        chunks.push(chunk.toString());
+        callback();
+      },
+    });
+    const logger = setupLogger("test", destination);
+
+    logger.error({ error: new Error("UiPath failed before completion") }, "UiPath lambda failed");
+
+    const output = chunks.join("");
+    expect(output).toContain("UiPath failed before completion");
+    expect(output).toContain("stack");
+    expect(output).not.toContain('"error":{}');
+  });
 });
