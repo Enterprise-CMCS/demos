@@ -1,12 +1,11 @@
 import React from "react";
-import { DeleteIcon, FileIcon } from "components/icons";
 import { tw } from "tags/tw";
-import { formatDate } from "util/formatDate";
 import { ApplicationWorkflowDocument } from "components/application";
 import { useDialog } from "components/dialog/DialogContext";
+import { DocumentChip } from "components/document/documentChip";
 
 const STYLES = {
-  list: tw`mt-4 space-y-3`,
+  list: tw`mt-4 space-y-2`,
   fileRow: tw`bg-surface-secondary border border-border-fields py-2 px-2 flex items-center justify-between`,
   fileMeta: tw`text-xs text-text-placeholder mt-0.5`,
 };
@@ -19,7 +18,6 @@ export interface DocumentListProps {
 
 export const DocumentList: React.FC<DocumentListProps> = ({
   documents,
-  showDescription = true,
   emptyMessage = "No documents yet.",
 }) => {
   const { showRemoveDocumentDialog } = useDialog();
@@ -31,32 +29,11 @@ export const DocumentList: React.FC<DocumentListProps> = ({
       )}
 
       {documents.map((doc) => (
-        <div key={doc.id} className={STYLES.fileRow}>
-          <a
-            className="flex gap-2 items-center text-left w-full"
-            href={`/document/${doc.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <FileIcon className="w-2 h-2" />
-            <div>
-              <div className="font-medium">{doc.name}</div>
-              <div className={STYLES.fileMeta}>
-                {doc.createdAt ? formatDate(doc.createdAt) : "--/--/----"}
-                {showDescription && doc.description ? ` • ${doc.description}` : ""}
-              </div>
-            </div>
-          </a>
-
-          <button
-            className="text-red-600 hover:text-red-800 rounded hover:bg-red-50 transition-colors cursor-pointer px-2"
-            onClick={() => showRemoveDocumentDialog([doc.id])}
-            aria-label={`Delete ${doc.name}`}
-            title={`Delete ${doc.name}`}
-          >
-            <DeleteIcon className="w-2 h-2" />
-          </button>
-        </div>
+        <DocumentChip
+          document={doc}
+          key={doc.id}
+          onRemove={() => showRemoveDocumentDialog([doc.id])}
+        />
       ))}
     </div>
   );
