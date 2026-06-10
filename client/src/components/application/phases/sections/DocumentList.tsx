@@ -7,7 +7,7 @@ import { useDialog } from "components/dialog/DialogContext";
 
 const STYLES = {
   list: tw`mt-4 space-y-3`,
-  fileRow: tw`bg-surface-secondary border border-border-fields py-2 px-3 flex items-center justify-between`,
+  fileRow: tw`bg-surface-secondary border border-border-fields py-2 px-2 flex items-center justify-between`,
   fileMeta: tw`text-xs text-text-placeholder mt-0.5`,
 };
 
@@ -49,7 +49,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
           </a>
 
           <button
-            className="text-red-600 hover:text-red-800 rounded hover:bg-red-50 transition-colors cursor-pointer px-1"
+            className="text-red-600 hover:text-red-800 rounded hover:bg-red-50 transition-colors cursor-pointer px-2"
             onClick={() => showRemoveDocumentDialog([doc.id])}
             aria-label={`Delete ${doc.name}`}
             title={`Delete ${doc.name}`}
