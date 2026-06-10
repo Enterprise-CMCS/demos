@@ -32,10 +32,15 @@ export const DatePicker = ({
   maxDate?: string;
   getValidationMessage?: () => string;
 }) => {
+  // Displayed date is needed to show out of range values in the input while not propagating them to the parent component via onChange.
+  const [displayedDate, setDisplayedDate] = React.useState(value ?? "");
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = e.target.value;
-    const newDateInRange = newDate >= minDate && newDate <= maxDate;
-    if (newDate === "" || newDateInRange) {
+    setDisplayedDate(newDate);
+
+    // Only call onChange if the date is valid (empty or within range).
+    if (newDate === "" || (newDate >= minDate && newDate <= maxDate)) {
       console.log("Date is valid, calling onChange", newDate);
       onChange?.(newDate);
     }
@@ -48,12 +53,14 @@ export const DatePicker = ({
       if (customMessage) return customMessage;
     }
 
-    // Second check if there's a date to validate
-    if (!value) return "";
+    // Nothing to validate if there's no value, return
+    if (!displayedDate) return "";
 
-    // Second check for the date to be in range
-    if (value < minDate) return `Date must be on or after ${formatDate(parseISO(minDate))}.`;
-    if (value > maxDate) return `Date must be on or before ${formatDate(parseISO(maxDate))}.`;
+    // Check for the date to be in range
+    if (displayedDate < minDate)
+      return `Date must be on or after ${formatDate(parseISO(minDate))}.`;
+    if (displayedDate > maxDate)
+      return `Date must be on or before ${formatDate(parseISO(maxDate))}.`;
     return "";
   };
 
@@ -73,7 +80,7 @@ export const DatePicker = ({
         className={`${INPUT_BASE_CLASSES} ${getInputColors(validationMessage)}`}
         required={isRequired}
         disabled={isDisabled}
-        value={value}
+        value={displayedDate}
         onChange={handleChange}
         min={minDate}
         max={maxDate}

@@ -60,12 +60,13 @@ describe("DatePicker component", () => {
       expect(mockOnChange).toHaveBeenCalledWith("2025-03-20");
     });
 
-    it("commits the value on change, even when out of range", () => {
+    it("shows an out of range date and message while not propagating it to the caller", () => {
       render(<DatePicker {...requiredProps} />);
       const input = screen.getByTestId("test-date");
 
       fireEvent.change(input, { target: { value: "1899-12-31" } });
-      expect(mockOnChange).toHaveBeenCalledWith("1899-12-31");
+      expect(mockOnChange).not.toHaveBeenCalled();
+      expect(screen.getByText("Date must be on or after 01/01/1900.")).toBeInTheDocument();
     });
 
     // Regression for the year-typing bug: while typing year digits, the browser emits partial
