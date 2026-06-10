@@ -35,6 +35,8 @@ export const DatePicker = ({
   // Displayed date is needed to show out of range values in the input while not propagating them to the parent component via onChange.
   const [displayedDate, setDisplayedDate] = React.useState(value ?? "");
 
+  // This is needed to update the displayed date when the parent component controls the value (e.g. when resetting the form). Without this, the input would not update to reflect changes to the value prop after the initial render. We want to allow the parent to control the value while still letting the user type out-of-range values without immediately reverting them back to a valid date. This effect ensures that when the parent updates the value prop
+  // (e.g. a computed date), the displayed date in the input also updates accordingly.
   React.useEffect(() => {
     setDisplayedDate(value ?? "");
   }, [value]);

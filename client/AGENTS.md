@@ -47,6 +47,12 @@ This file provides instructions for AI agents to use when generating or editing 
 - Before using raw HTML controls, check `src/components/` and `src/layout/` for an existing wrapper.
 - Prefer project components for inputs, buttons, tables, dialogs, tabs, and toast/notice feedback.
 
+#### DatePicker
+
+- DatePickers propagate valid values (yyyy-mm-dd) back to calling components `onChange` handler.
+- Computed dates receive values via the `value` prop and display this.
+- Out-of-range inputs are displayed and flagged but not propagated.
+
 ## Apollo / GraphQL
 
 - Co-locate each `gql` document with the component/hook that owns it.
