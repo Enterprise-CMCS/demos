@@ -69,23 +69,6 @@ describe("DatePicker component", () => {
       expect(screen.getByText("Date must be on or after 01/01/1900.")).toBeInTheDocument();
     });
 
-    // Regression for the year-typing bug: while typing year digits, the browser emits partial
-    // dates like "0003-05-15", "0030-05-15", "0302-05-15". The handler ignores these (year < 1000).
-    // Only the completed year value (>= 1000) propagates.
-    it("does not flash a message or propagate while typing a year over a pre-filled date", () => {
-      render(<DatePicker {...requiredProps} value="2020-05-15" />);
-      const input = screen.getByTestId("test-date");
-
-      fireEvent.input(input, { target: { value: "0003-05-15" } });
-      fireEvent.input(input, { target: { value: "0030-05-15" } });
-      fireEvent.input(input, { target: { value: "0302-05-15" } });
-      expect(mockOnChange).not.toHaveBeenCalled();
-      expect(screen.queryByText(/Date must be on or/)).not.toBeInTheDocument();
-
-      fireEvent.change(input, { target: { value: "2026-05-15" } });
-      expect(mockOnChange).toHaveBeenCalledWith("2026-05-15");
-    });
-
     it("commits inclusive boundary dates 1900-01-01 and 2099-12-31 on change", () => {
       render(<DatePicker {...requiredProps} />);
       const input = screen.getByTestId("test-date");

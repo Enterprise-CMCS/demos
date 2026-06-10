@@ -35,13 +35,16 @@ export const DatePicker = ({
   // Displayed date is needed to show out of range values in the input while not propagating them to the parent component via onChange.
   const [displayedDate, setDisplayedDate] = React.useState(value ?? "");
 
+  React.useEffect(() => {
+    setDisplayedDate(value ?? "");
+  }, [value]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = e.target.value;
     setDisplayedDate(newDate);
 
     // Only call onChange if the date is valid (empty or within range).
     if (newDate === "" || (newDate >= minDate && newDate <= maxDate)) {
-      console.log("Date is valid, calling onChange", newDate);
       onChange?.(newDate);
     }
   };
