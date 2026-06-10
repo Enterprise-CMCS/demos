@@ -2,7 +2,7 @@ import React from "react";
 import { Route, Routes } from "react-router-dom";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   DeliverableDetailsManagementPage,
   DELIVERABLE_DETAILS_QUERY,
@@ -28,21 +28,6 @@ import { CurrentUser } from "components/user/UserContext";
 import { developmentMockUser } from "mock-data/userMocks";
 import { personMocks } from "mock-data/personMocks";
 
-const renderAtRoute = (deliverableId: string) =>
-  render(
-    <TestProvider routerEntries={[`/deliverables/${deliverableId}`]}>
-      <DialogProvider>
-        <Routes>
-          <Route
-            path="/deliverables/:deliverableId"
-            element={<DeliverableDetailsManagementPage />}
-          />
-          <Route path="/deliverables" element={<div>Deliverables list</div>} />
-        </Routes>
-      </DialogProvider>
-    </TestProvider>
-  );
-
 const buildSubmittedDeliverableMock = (overrides?: { submitterName?: string }) => ({
   ...MOCK_DELIVERABLE_1,
   status: "Submitted" as const,
@@ -64,6 +49,28 @@ const buildCurrentUser = (
   ...developmentMockUser,
   person: { ...developmentMockUser.person, personType },
 });
+
+const renderAtRoute = (
+  deliverableId: string,
+  personType: CurrentUser["person"]["personType"] = "demos-cms-user"
+) =>
+  render(
+    <TestProvider
+      currentUser={buildCurrentUser(personType)}
+      routerEntries={[`/deliverables/${deliverableId}`]}
+    >
+      <DialogProvider>
+        <Routes>
+          <Route
+            path="/deliverables/:deliverableId"
+            element={<DeliverableDetailsManagementPage />}
+          />
+          <Route path="/demonstrations/:id" element={<div>Demonstration deliverables list</div>} />
+          <Route path="/" element={<div>State home deliverables list</div>} />
+        </Routes>
+      </DialogProvider>
+    </TestProvider>
+  );
 
 const renderWithDeliverable = (
   deliverable: DeliverableDetailsManagementDeliverable,
@@ -88,7 +95,8 @@ const renderWithDeliverable = (
             path="/deliverables/:deliverableId"
             element={<DeliverableDetailsManagementPage />}
           />
-          <Route path="/deliverables" element={<div>Deliverables list</div>} />
+          <Route path="/demonstrations/:id" element={<div>Demonstration deliverables list</div>} />
+          <Route path="/" element={<div>State home deliverables list</div>} />
         </Routes>
       </DialogProvider>
     </TestProvider>
@@ -128,13 +136,53 @@ describe("DeliverableDetailsManagementPage", () => {
     await waitFor(() => expect(screen.getByTestId(COMMENT_BOX_NAME)).toBeInTheDocument());
   });
 
-  it("navigates back to the deliverables list", async () => {
+  it.each(["demos-cms-user", "demos-admin"] as const)(
+    "navigates %s users back to the demonstration deliverables list",
+    async (personType) => {
+      const user = userEvent.setup();
+      renderAtRoute("1", personType);
+
+      await user.click(await screen.findByTestId(BACK_TO_DELIVERABLES_BUTTON_NAME));
+
+      expect(screen.getByText("Demonstration deliverables list")).toBeInTheDocument();
+    }
+  );
+
+  it("navigates state users back to their home deliverables list", async () => {
     const user = userEvent.setup();
-    renderAtRoute("1");
+    renderAtRoute("1", "demos-state-user");
 
     await user.click(await screen.findByTestId(BACK_TO_DELIVERABLES_BUTTON_NAME));
 
-    expect(screen.getByText("Deliverables list")).toBeInTheDocument();
+    expect(screen.getByText("State home deliverables list")).toBeInTheDocument();
+  });
+
+  it("uses the supplied onBack handler when provided", async () => {
+    const user = userEvent.setup();
+    const onBack = vi.fn();
+    render(
+      <TestProvider
+        currentUser={buildCurrentUser("demos-admin")}
+        mocks={[
+          {
+            request: { query: DELIVERABLE_DETAILS_QUERY, variables: { id: MOCK_DELIVERABLE_1.id } },
+            result: { data: { deliverable: MOCK_DELIVERABLE_1 } },
+          },
+        ]}
+        routerEntries={[`/deliverables/${MOCK_DELIVERABLE_1.id}`]}
+      >
+        <DialogProvider>
+          <DeliverableDetailsManagementPage
+            deliverableId={MOCK_DELIVERABLE_1.id}
+            onBack={onBack}
+          />
+        </DialogProvider>
+      </TestProvider>
+    );
+
+    await user.click(await screen.findByTestId(BACK_TO_DELIVERABLES_BUTTON_NAME));
+
+    expect(onBack).toHaveBeenCalledOnce();
   });
 
   it("toggles more details", async () => {
