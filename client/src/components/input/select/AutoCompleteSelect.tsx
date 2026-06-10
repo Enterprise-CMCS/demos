@@ -21,7 +21,8 @@ export interface AutoCompleteSelectProps {
 }
 
 const ICON_CLASSES = tw`text-text-placeholder w-2 h-1`;
-const LIST_CLASSES = tw`absolute z-10 w-full bg-surface-white border border-border-fields rounded mt-0.5 max-h-56 overflow-auto shadow-sm`;
+const LIST_CLASSES_DOWN = tw`absolute z-10 w-full bg-surface-white border border-border-fields rounded mt-0.5 max-h-56 overflow-auto shadow-sm`;
+const LIST_CLASSES_UP = tw`absolute z-10 w-full bg-surface-white border border-border-fields rounded mb-0.5 max-h-56 overflow-auto shadow-sm bottom-full`;
 const ITEM_CLASSES = tw`px-1 py-1 text-sm text-text-font cursor-pointer hover:bg-surface-focus`;
 const ITEM_ACTIVE_CLASSES = tw`bg-surface-focus`;
 const EMPTY_CLASSES = tw`px-2 py-1 text-sm text-text-placeholder`;
@@ -50,6 +51,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   );
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [opensUpward, setOpensUpward] = useState(false);
 
   const prevValueRef = useRef(value);
 
@@ -79,6 +81,11 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   };
 
   const openSelect = () => {
+    if (containerRef.current) {
+      const { bottom } = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - bottom;
+      setOpensUpward(spaceBelow < 240);
+    }
     setIsOpen(true);
   };
 
@@ -156,7 +163,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
           type="text"
           placeholder={placeholder}
           value={isOpen ? filterValue : selectedOption?.label || ""}
-          onFocus={() => !isDisabled && setIsOpen(true)}
+          onFocus={() => !isDisabled && openSelect()}
           onChange={(e) => handleFilterChange(e.target.value)}
           onKeyDown={onKeyDown}
           required={isRequired}
@@ -169,7 +176,11 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
           <ChevronDownIcon className={ICON_CLASSES} />
         </div>
 
-        {isOpen && <ul className={LIST_CLASSES}>{renderDropdownContent()}</ul>}
+        {isOpen && (
+          <ul className={opensUpward ? LIST_CLASSES_UP : LIST_CLASSES_DOWN}>
+            {renderDropdownContent()}
+          </ul>
+        )}
       </div>
     </div>
   );
