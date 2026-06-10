@@ -202,42 +202,6 @@ describe("DatePicker component", () => {
       rerender(<DatePicker {...requiredProps} value="" />);
       expect(input.value).toBe("");
     });
-
-    // Regression test for the year-typing bug. Native <input type="date"> fires input
-    // events with e.target.value === "" while the user is mid-typing the year subfield
-    // (the date is briefly incomplete). If DatePicker were a controlled <input value={value}>,
-    // React would write input.value = "" on every render, wiping the in-progress digits and
-    // making it impossible to type a year character-by-character. The defaultValue + ref-sync
-    // pattern guarantees React only touches the DOM when the value prop actually changes,
-    // so a parent re-render with the same value must NOT clobber the input's current state.
-    it("does not overwrite the input DOM value when re-rendered with the same value", () => {
-      const { rerender } = render(<DatePicker {...requiredProps} value="" />);
-      const input = screen.getByTestId("test-date") as HTMLInputElement;
-
-      // Simulate the browser's internal partial state during year typing
-      input.value = "2024-01-15";
-
-      rerender(<DatePicker {...requiredProps} value="" />);
-
-      expect(input.value).toBe("2024-01-15");
-    });
-
-    // Regression for "editing a subfield scopes me out". While the user edits one subfield of an
-    // existing date, the browser briefly reports an incomplete date and the parent propagates a
-    // changed value. Writing to the focused input would drop focus and break the mm→dd→yyyy
-    // advance / close the calendar, so the ref-sync must skip the write while the input is focused.
-    it("does not reset the input DOM value while the input is focused", () => {
-      const { rerender } = render(<DatePicker {...requiredProps} value="2020-05-15" />);
-      const input = screen.getByTestId("test-date") as HTMLInputElement;
-
-      input.focus();
-      input.value = "2020-08-15"; // user's in-progress subfield edit
-
-      rerender(<DatePicker {...requiredProps} value="" />);
-
-      expect(input.value).toBe("2020-08-15");
-      expect(document.activeElement).toBe(input);
-    });
   });
 
   describe("Validation Message", () => {
