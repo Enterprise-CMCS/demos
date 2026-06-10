@@ -200,7 +200,7 @@ describe("handler", () => {
     await expect(handlerRef(event)).rejects.toThrow("No body returned when fetching s3://");
   });
 
-  it("warns and skips UiPath when file type cannot be inferred from downloaded content", async () => {
+  it("logs and skips UiPath when file type cannot be inferred from downloaded content", async () => {
     process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
     process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
     mocks.sendMock.mockResolvedValue({ Body: Readable.from(["test"]) });
@@ -219,7 +219,7 @@ describe("handler", () => {
       documentId: SEEDED_DOCUMENT_ID,
     });
 
-    expect(log.warn).toHaveBeenCalledWith(
+    expect(log.info).toHaveBeenCalledWith(
       {
         s3Bucket: "clean-bucket",
         s3Key: `app-1/${SEEDED_DOCUMENT_ID}`,
@@ -230,7 +230,7 @@ describe("handler", () => {
     expect(mocks.runDocumentUnderstandingMock).not.toHaveBeenCalled();
   });
 
-  it("warns and skips UiPath when detected file type is not PDF", async () => {
+  it("logs and skips UiPath when detected file type is not PDF", async () => {
     process.env.AWS_LAMBDA_FUNCTION_NAME = "testfn";
     process.env.AWS_EXECUTION_ENV = "AWS_Lambda_nodejs22.x";
     mocks.sendMock.mockResolvedValue({ Body: Readable.from(["test"]) });
@@ -249,7 +249,7 @@ describe("handler", () => {
       documentId: SEEDED_DOCUMENT_ID,
     });
 
-    expect(log.warn).toHaveBeenCalledWith(
+    expect(log.info).toHaveBeenCalledWith(
       {
         s3Bucket: "clean-bucket",
         s3Key: `app-1/${SEEDED_DOCUMENT_ID}`,
