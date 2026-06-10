@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 
 import { ChevronDownIcon } from "components/icons/Symbol/ChevronDownIcon";
+import { useDropdownPosition } from "hooks/useDropdownPosition";
 import { tw } from "tags/tw";
 
 import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "../Input";
@@ -21,7 +22,9 @@ export interface AutoCompleteSelectProps {
 }
 
 const ICON_CLASSES = tw`text-text-placeholder w-2 h-1`;
-const LIST_CLASSES = tw`absolute z-10 w-full bg-surface-white border border-border-fields rounded mt-0.5 max-h-56 overflow-auto shadow-sm`;
+const LIST_CLASSES = tw`absolute z-10 w-full bg-surface-white border border-border-fields rounded overflow-auto shadow-sm`;
+const LIST_DOWN_CLASSES = tw`top-full mt-0.5`;
+const LIST_UP_CLASSES = tw`bottom-full mb-0.5`;
 const ITEM_CLASSES = tw`px-1 py-1 text-sm text-text-font cursor-pointer hover:bg-surface-focus`;
 const ITEM_ACTIVE_CLASSES = tw`bg-surface-focus`;
 const EMPTY_CLASSES = tw`px-2 py-1 text-sm text-text-placeholder`;
@@ -66,6 +69,11 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const { direction: dropdownDirection, maxHeight: dropdownMaxHeight } = useDropdownPosition(
+    inputRef,
+    isOpen
+  );
 
   const closeSelect = () => {
     setIsOpen(false);
@@ -169,7 +177,14 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
           <ChevronDownIcon className={ICON_CLASSES} />
         </div>
 
-        {isOpen && <ul className={LIST_CLASSES}>{renderDropdownContent()}</ul>}
+        {isOpen && (
+          <ul
+            className={`${LIST_CLASSES} ${dropdownDirection === "up" ? LIST_UP_CLASSES : LIST_DOWN_CLASSES}`}
+            style={{ maxHeight: dropdownMaxHeight }}
+          >
+            {renderDropdownContent()}
+          </ul>
+        )}
       </div>
     </div>
   );

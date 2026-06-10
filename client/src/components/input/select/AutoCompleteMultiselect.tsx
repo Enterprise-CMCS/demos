@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ChevronDownIcon } from "components/icons/Symbol/ChevronDownIcon";
+import { useDropdownPosition } from "hooks/useDropdownPosition";
 import { tw } from "tags/tw";
 import { Option } from "./Select";
 
@@ -9,7 +10,9 @@ const INPUT_CLASSES = tw`w-full border border-border-fields rounded px-1 py-1
   disabled:text-text-placeholder placeholder-text-placeholder focus:outline-none
   focus:border-border-focus focus:ring-1 focus:ring-border-focus appearance-none text-sm`;
 const ICON_CLASSES = tw`text-text-placeholder w-2 h-1`;
-const LIST_CLASSES = tw`absolute z-10 w-full bg-surface-white border border-border-fields rounded mt-0.5 max-h-56 overflow-auto shadow-sm`;
+const LIST_CLASSES = tw`absolute z-10 w-full bg-surface-white border border-border-fields rounded overflow-auto shadow-sm`;
+const LIST_DOWN_CLASSES = tw`top-full mt-0.5`;
+const LIST_UP_CLASSES = tw`bottom-full mb-0.5`;
 const ITEM_CLASSES = tw`text-text-font cursor-pointer hover:bg-surface-focus`;
 const ITEM_ACTIVE_CLASSES = tw`bg-surface-focus`;
 const EMPTY_CLASSES = tw`px-2 py-1 text-text-placeholder`;
@@ -43,6 +46,12 @@ export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = (
   const [activeIndex, setActiveIndex] = useState(-1);
   const [selected, setSelected] = useState<string[]>(defaultValues);
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const { direction: dropdownDirection, maxHeight: dropdownMaxHeight } = useDropdownPosition(
+    inputRef,
+    isOpen
+  );
 
   const selectedLabels = selected
     .map((value) => options.find((option) => option.value === value)?.label ?? value)
@@ -117,6 +126,7 @@ export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = (
 
       <div className="relative w-full">
         <input
+          ref={inputRef}
           data-testid={id ?? "input-autocomplete-multiselect"}
           id={id}
           type="text"
@@ -139,7 +149,12 @@ export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = (
         </div>
 
         {isOpen && (
-          <ul className={LIST_CLASSES} role="listbox" aria-multiselectable="true">
+          <ul
+            className={`${LIST_CLASSES} ${dropdownDirection === "up" ? LIST_UP_CLASSES : LIST_DOWN_CLASSES}`}
+            style={{ maxHeight: dropdownMaxHeight }}
+            role="listbox"
+            aria-multiselectable="true"
+          >
             {filtered.length > 0 ? (
               filtered.map((opt, i) => {
                 const isActive = i === activeIndex;
