@@ -11,40 +11,6 @@ import { formatDate } from "util/formatDate";
 const DEFAULT_MIN_DATE = "1900-01-01";
 const DEFAULT_MAX_DATE = "2099-12-31";
 
-const DateValidationMessage = ({
-  value,
-  minDate,
-  maxDate,
-  customGetValidationMessage,
-}: {
-  value?: string;
-  minDate: string;
-  maxDate: string;
-  customGetValidationMessage?: () => string;
-}) => {
-  if (customGetValidationMessage) {
-    const customMessage = customGetValidationMessage();
-    if (customMessage) return <span className={VALIDATION_MESSAGE_CLASSES}>{customMessage}</span>;
-  }
-
-  if (!value) return null;
-
-  if (value < minDate)
-    return (
-      <span className={VALIDATION_MESSAGE_CLASSES}>
-        Date must be on or after {formatDate(parseISO(minDate))}.
-      </span>
-    );
-  if (value > maxDate)
-    return (
-      <span className={VALIDATION_MESSAGE_CLASSES}>
-        Date must be on or before {formatDate(parseISO(maxDate))}.
-      </span>
-    );
-
-  return null;
-};
-
 export const DatePicker = ({
   label,
   name,
@@ -112,12 +78,7 @@ export const DatePicker = ({
         min={minDate}
         max={maxDate}
       />
-      <DateValidationMessage
-        value={value}
-        minDate={minDate}
-        maxDate={maxDate}
-        customGetValidationMessage={getValidationMessage}
-      />
+      <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>
     </div>
   );
 };
