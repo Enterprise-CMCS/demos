@@ -143,15 +143,7 @@ export const FileAndHistoryTabs: React.FC<{
     });
   };
 
-  const handleEditStateFile = (file: DeliverableFileRow) => {
-    showEditDocumentDialog(fileRowToDialogFields(file), {
-      canEditDocumentType: true,
-      documentTypeSubset: deliverable.allowedDocumentTypes,
-      refetchQueries: refetchAfterFileChange,
-    });
-  };
-
-  const handleEditCmsFile = (file: DeliverableFileRow) => {
+  const handleEditFile = (file: DeliverableFileRow) => {
     showEditDocumentDialog(fileRowToDialogFields(file), {
       hideDocumentType: true,
       refetchQueries: refetchAfterFileChange,
@@ -187,7 +179,7 @@ export const FileAndHistoryTabs: React.FC<{
             disabled={isFinalized || !canManageStateFiles}
             deleteDisabled={isDeleteLocked}
             onAdd={canManageStateFiles ? handleAddStateFile : undefined}
-            onEdit={canManageStateFiles ? handleEditStateFile : undefined}
+            onEdit={canManageStateFiles ? handleEditFile : undefined}
             onDelete={canManageStateFiles ? handleDeleteFiles : undefined}
           />
         </Tab>
@@ -198,7 +190,7 @@ export const FileAndHistoryTabs: React.FC<{
             deleteDisabled={isDeleteLocked}
             showActions={canManageCmsFiles}
             onAdd={canManageCmsFiles ? handleAddCmsFile : undefined}
-            onEdit={canManageCmsFiles ? handleEditCmsFile : undefined}
+            onEdit={canManageCmsFiles ? handleEditFile : undefined}
             onDelete={canManageCmsFiles ? handleDeleteFiles : undefined}
           />
         </Tab>
