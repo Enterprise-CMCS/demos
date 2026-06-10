@@ -1,4 +1,4 @@
-import { ZodError } from "zod";
+import { prettifyError, ZodError } from "zod";
 import { randomUUID } from "node:crypto";
 import { formatOnDemandReportInExcel, runOnDemandReport } from "../../onDemandReports";
 import { prisma } from "../../prismaClient";
@@ -47,6 +47,7 @@ export const onDemandReportResolvers = {
           log.error(cleanupError);
         });
         if (error instanceof ZodError) {
+          log.error("Zod Validation Errors!\n" + prettifyError(error));
           throwCustomGQLError(
             `Running the on-demand ${args.reportType} report caused a Zod validation error.`,
             "ON_DEMAND_REPORT_ZOD_ERROR"

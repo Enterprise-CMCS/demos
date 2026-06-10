@@ -1,0 +1,32 @@
+[sqlfluff]
+dialect = postgres
+templater = jinja
+sql_file_exts = .sql,.sql.j2,.dml,.ddl
+large_file_skip_byte_limit = 0
+exclude_rules = ST06
+max_line_length = 120
+
+[sqlfluff:indentation]
+implicit_indents = forbid
+
+[sqlfluff:rules:capitalisation.keywords]
+capitalisation_policy = upper
+
+[sqlfluff:rules:capitalisation.identifiers]
+capitalisation_policy = consistent
+
+[sqlfluff:rules:capitalisation.functions]
+extended_capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.literals]
+capitalisation_policy = upper
+
+[sqlfluff:rules:capitalisation.types]
+extended_capitalisation_policy = upper
+
+[sqlfluff:rules:layout.long_lines]
+ignore_comment_clauses = false
+ignore_comment_lines = false
+
+[sqlfluff:layout:type:join_on_condition]
+keyword_line_position = alone:dedicated
