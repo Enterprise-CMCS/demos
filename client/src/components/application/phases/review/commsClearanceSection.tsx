@@ -79,7 +79,7 @@ export const CommsClearanceSection = ({
                 },
               })
             }
-            className="border rounded p-1 min-h-[40px] resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border rounded p-1 min-h-25 resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
             rows={1}
             disabled={isReadonly}
           />
