@@ -10,6 +10,7 @@ import { formatDate } from "util/formatDate";
 
 const DEFAULT_MIN_DATE = "1900-01-01";
 const DEFAULT_MAX_DATE = "2099-12-31";
+const FULL_YEAR_DATE = "1000-01-01";
 
 export const DatePicker = ({
   label,
@@ -60,6 +61,9 @@ export const DatePicker = ({
 
     // Nothing to validate if there's no value, return
     if (!displayedDate) return "";
+
+    // Don't show range errors while the year is still being typed (year < 1000)
+    if (displayedDate < FULL_YEAR_DATE) return "";
 
     // Check for the date to be in range
     if (displayedDate < minDate)
