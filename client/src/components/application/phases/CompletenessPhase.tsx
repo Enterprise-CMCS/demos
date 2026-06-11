@@ -3,7 +3,7 @@ import React, { useMemo, useState } from "react";
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
-import { formatDate, formatDateForServer, getDateEst } from "util/formatDate";
+import { formatDateForDisplay, formatDateForServer, getDateEst } from "util/formatDate";
 import { addDays, differenceInCalendarDays, parseISO } from "date-fns";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { useToast } from "components/toast";
@@ -51,20 +51,20 @@ const CompletenessNotice = ({
     if (daysLeft > 1) {
       return {
         title: `${daysLeft} days left`,
-        description: `This Demonstration must be declared complete by ${formatDate(noticeDueDateValue)}`,
+        description: `This Demonstration must be declared complete by ${formatDateForDisplay(noticeDueDateValue)}`,
         variant: "warning" as NoticeVariant,
       };
     }
     if (daysLeft === 1) {
       return {
         title: "1 day left in Completion Period",
-        description: `This Demonstration must be declared complete by ${formatDate(noticeDueDateValue)}`,
+        description: `This Demonstration must be declared complete by ${formatDateForDisplay(noticeDueDateValue)}`,
         variant: "error" as NoticeVariant,
       };
     } else {
       return {
         title: `${Math.abs(daysLeft)} days past due`,
-        description: `This Demonstration completeness was due on ${formatDate(noticeDueDateValue)}`,
+        description: `This Demonstration completeness was due on ${formatDateForDisplay(noticeDueDateValue)}`,
         variant: "error" as NoticeVariant,
       };
     }

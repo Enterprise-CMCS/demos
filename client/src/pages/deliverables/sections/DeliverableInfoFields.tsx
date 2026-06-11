@@ -3,7 +3,7 @@ import { compareDesc } from "date-fns";
 import { BaseButton } from "components/button/BaseButton";
 import { ChevronDownIcon, ChevronLeftIcon } from "components/icons";
 import type { DeliverableDetailsManagementDeliverable } from "../DeliverableDetailsManagementPage";
-import { formatDate } from "util/formatDate";
+import { formatDateForDisplay } from "util/formatDate";
 
 export const DELIVERABLE_INFO_FIELDS_NAME = "deliverable-info-fields";
 export const BACK_TO_DELIVERABLES_BUTTON_NAME = "button-back-to-deliverables";
@@ -48,7 +48,7 @@ export const DeliverableInfoFields = ({
 
   const baseFields: DeliverableInfoField[] = [
     { label: "Deliverable Type", value: deliverable.deliverableType },
-    { label: "Due Date", value: formatDate(deliverable.dueDate) },
+    { label: "Due Date", value: formatDateForDisplay(deliverable.dueDate) },
     { label: "Submission Date", value: "—" },
     { label: "Status", value: deliverable.status },
   ];
@@ -63,7 +63,9 @@ export const DeliverableInfoFields = ({
       : baseFields;
 
   const VerticalRule = () => (
-    <div className="text-[18px] mt-0.5 font-title font-normal opacity-70" aria-hidden="true">|</div>
+    <div className="text-[18px] mt-0.5 font-title font-normal opacity-70" aria-hidden="true">
+      |
+    </div>
   );
 
   return (

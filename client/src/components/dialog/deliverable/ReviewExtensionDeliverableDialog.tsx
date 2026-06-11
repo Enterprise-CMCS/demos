@@ -11,7 +11,7 @@ import { Notice } from "components/notice/Notice";
 import { useToast } from "components/toast";
 import { DeliverableExtensionReasonCode } from "demos-server";
 import { DELIVERABLE_DETAILS_QUERY } from "pages/deliverables/DeliverableDetailsManagementPage";
-import { formatDate, formatDateForServer } from "util/formatDate";
+import { formatDateForDisplay, formatDateForServer } from "util/formatDate";
 import { DELIVERABLE_EXTENSION_REVIEW_SUBMITTED_MESSAGE } from "util/messages";
 
 export const APPROVE_DELIVERABLE_EXTENSION_MUTATION = gql`
@@ -28,10 +28,7 @@ export const APPROVE_DELIVERABLE_EXTENSION_MUTATION = gql`
 `;
 
 export const DENY_DELIVERABLE_EXTENSION_MUTATION = gql`
-  mutation DenyDeliverableExtension(
-    $deliverableId: ID!
-    $input: DenyDeliverableExtensionInput!
-  ) {
+  mutation DenyDeliverableExtension($deliverableId: ID!, $input: DenyDeliverableExtensionInput!) {
     denyDeliverableExtension(deliverableId: $deliverableId, input: $input) {
       id
       status
@@ -124,9 +121,10 @@ export interface ReviewExtensionDeliverableDialogProps {
   deliverable: ReviewExtensionDeliverableDialogDeliverable;
 }
 
-export const ReviewExtensionDeliverableDialog: React.FC<
-  ReviewExtensionDeliverableDialogProps
-> = ({ onClose, deliverable }) => {
+export const ReviewExtensionDeliverableDialog: React.FC<ReviewExtensionDeliverableDialogProps> = ({
+  onClose,
+  deliverable,
+}) => {
   const { showSuccess, showError } = useToast();
 
   const [formData, setFormData] = useState<ReviewExtensionFormData>(INITIAL_FORM_DATA);
@@ -142,8 +140,8 @@ export const ReviewExtensionDeliverableDialog: React.FC<
   const hasChanges = formHasChanges(formData);
 
   const requestedDateDisplay = expired
-    ? `${formatDate(extensionRequest.originalDateRequested)} (Expired)`
-    : formatDate(extensionRequest.originalDateRequested);
+    ? `${formatDateForDisplay(extensionRequest.originalDateRequested)} (Expired)`
+    : formatDateForDisplay(extensionRequest.originalDateRequested);
 
   const handleSubmit = async () => {
     setAttemptedSubmit(true);
@@ -208,7 +206,7 @@ export const ReviewExtensionDeliverableDialog: React.FC<
         <div className="bg-surface-secondary p-sm rounded grid grid-cols-2 gap-sm">
           <Field
             label="Initial Due Date"
-            value={formatDate(extensionRequest.initialDueDateAtRequest)}
+            value={formatDateForDisplay(extensionRequest.initialDueDateAtRequest)}
           />
           <Field label="State Requested New Date" value={requestedDateDisplay} />
           <div className="col-span-2">
@@ -252,9 +250,7 @@ export const ReviewExtensionDeliverableDialog: React.FC<
               value={formData.newDate}
               onChange={(newDate) => setFormData((prev) => ({ ...prev, newDate }))}
               getValidationMessage={() =>
-                attemptedSubmit && formData.newDate === ""
-                  ? "New Date is required."
-                  : newDateError
+                attemptedSubmit && formData.newDate === "" ? "New Date is required." : newDateError
               }
             />
           )}

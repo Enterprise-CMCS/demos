@@ -6,7 +6,7 @@ import { SecondaryButton } from "components/button";
 import { useDialog } from "components/dialog/DialogContext";
 import { useDownloadReference } from "hooks/useDownloadReference";
 import { Reference, ReferenceAgreement, Tag } from "demos-server";
-import { formatDate } from "util/formatDate";
+import { formatDateForDisplay } from "util/formatDate";
 
 export function ReferencesColumns() {
   const { showReferenceAgreementDialog } = useDialog();
@@ -43,7 +43,7 @@ export function ReferencesColumns() {
     }),
     columnHelper.accessor("updatedAt", {
       header: "Last Updated",
-      cell: (cell) => formatDate(cell.getValue()),
+      cell: (cell) => formatDateForDisplay(cell.getValue()),
       enableColumnFilter: false,
     }),
     columnHelper.display({

@@ -4,7 +4,7 @@ import { CircleButton } from "components/button";
 import { BaseButton } from "components/button/BaseButton";
 import { AddNewIcon, ChevronLeftIcon, EditIcon, EllipsisIcon } from "components/icons";
 import { Demonstration, Person, PersonType, State } from "demos-server";
-import { formatDate } from "util/formatDate";
+import { formatDateForDisplay } from "util/formatDate";
 import { gql, useQuery } from "@apollo/client";
 import { useDialog } from "components/dialog/DialogContext";
 import { useNavigate } from "react-router-dom";
@@ -96,11 +96,15 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
     { label: "Status", value: demonstration.status },
     {
       label: "Effective",
-      value: demonstration.effectiveDate ? formatDate(demonstration.effectiveDate) : "--/--/----",
+      value: demonstration.effectiveDate
+        ? formatDateForDisplay(demonstration.effectiveDate)
+        : "--/--/----",
     },
     {
       label: "Expiration",
-      value: demonstration.expirationDate ? formatDate(demonstration.expirationDate) : "--/--/----",
+      value: demonstration.expirationDate
+        ? formatDateForDisplay(demonstration.expirationDate)
+        : "--/--/----",
     },
   ];
   const canManageDemonstration = HEADER_ACTION_PERSON_TYPES.has(currentUser.person.personType);

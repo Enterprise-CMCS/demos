@@ -8,7 +8,7 @@ import { SelectSdgDivision } from "components/input/select/SelectSdgDivision";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
 import { DatePicker } from "components/input/date/DatePicker";
 import { tw } from "tags/tw";
-import { formatDate } from "util/formatDate";
+import { formatDateForDisplay } from "util/formatDate";
 
 const LABEL_CLASSES = tw`text-text-font font-bold text-sm tracking-wide h-[14px] flex items-center`;
 const VALUE_CLASSES = tw`text-text-font text-base leading-relaxed h-[40px] flex items-start mt-1`;
@@ -202,7 +202,9 @@ export const ApplicationDetailsSection = ({
                 Effective Date
               </div>
               <div className={VALUE_CLASSES}>
-                {sectionFormData.effectiveDate ? formatDate(sectionFormData.effectiveDate) : "-"}
+                {sectionFormData.effectiveDate
+                  ? formatDateForDisplay(sectionFormData.effectiveDate)
+                  : "-"}
               </div>
             </div>
           ) : (
@@ -237,7 +239,9 @@ export const ApplicationDetailsSection = ({
                   Expiration Date
                 </div>
                 <div className={VALUE_CLASSES}>
-                  {sectionFormData.expirationDate ? formatDate(sectionFormData.expirationDate) : ""}
+                  {sectionFormData.expirationDate
+                    ? formatDateForDisplay(sectionFormData.expirationDate)
+                    : ""}
                 </div>
               </div>
             ) : (
