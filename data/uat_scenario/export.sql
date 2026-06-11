@@ -108,11 +108,33 @@ select * from demonstration_type_tag_assignment where demonstration_id = :'demon
 \g output/demonstration_type_tag_assignment.csv
 
 -- Export documents for the demonstration application graph. The document records are
--- preserved, but owner_user_id will be rewritten during import.
+-- preserved, but owner_user_id will be rewritten during import. Include the source
+-- owner's person_type_id so import can choose the correct target placeholder user.
 COPY (
-select * from document where application_id in (select id from demonstration where id = :'demonstration_id'
-union select id from amendment where demonstration_id = :'demonstration_id'
-union select id from extension where demonstration_id = :'demonstration_id'
+select
+	document.id,
+	document.name,
+	document.description,
+	document.s3_path,
+	document.owner_user_id,
+	users.person_type_id as owner_person_type_id,
+	document.document_type_id,
+	document.application_id,
+	document.phase_id,
+	document.deliverable_id,
+	document.deliverable_type_id,
+	document.deliverable_is_cms_attached_file,
+	document.deliverable_submission_action_id,
+	document.deliverable_submission_action_type_id,
+	document.created_at,
+	document.updated_at
+from document
+join users
+	on users.id = document.owner_user_id
+where document.application_id in (
+	select id from demonstration where id = :'demonstration_id'
+	union select id from amendment where demonstration_id = :'demonstration_id'
+	union select id from extension where demonstration_id = :'demonstration_id'
 )
 ) TO STDOUT WITH (format csv, header true)
 \g output/document.csv

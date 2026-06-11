@@ -78,12 +78,19 @@ create temporary table import_deliverable (
 	updated_at timestamptz
 ) on commit drop;
 
+create temporary table import_target_user (
+	owner_kind text,
+	user_id uuid,
+	person_type_id text
+) on commit drop;
+
 create temporary table import_document (
 	id uuid,
 	name text,
 	description text,
 	s3_path text,
 	owner_user_id uuid,
+	owner_person_type_id text,
 	document_type_id text,
 	application_id uuid,
 	phase_id text,
@@ -100,8 +107,6 @@ create temporary table import_document (
 -- for the target environment.
 \copy application from 'output/application.csv' with (format csv, header true)
 \copy import_demonstration from 'output/demonstration.csv' with (format csv, header true)
-\copy amendment from 'output/amendment.csv' with (format csv, header true)
-\copy extension from 'output/extension.csv' with (format csv, header true)
 \copy import_tag_name from 'output/tag_name.csv' with (format csv, header true)
 \copy import_tag from 'output/tag.csv' with (format csv, header true)
 
@@ -115,6 +120,11 @@ create temporary table import_document (
 insert into demonstration (id, application_type_id, name, description, effective_date, expiration_date, sdg_division_id, signature_level_id, status_id, current_phase_id, state_id, clearance_level_id, created_at, updated_at)
 select id, application_type_id, name, description, effective_date, expiration_date, sdg_division_id, signature_level_id, status_id, current_phase_id, state_id, clearance_level_id, created_at, updated_at
 from import_demonstration;
+
+-- Amendment and extension rows depend on demonstration existing first, so load them
+-- only after the staged demonstration row has been inserted.
+\copy amendment from 'output/amendment.csv' with (format csv, header true)
+\copy extension from 'output/extension.csv' with (format csv, header true)
 
 -- These two tables are populated by application-side trigger behavior, so a strict insert
 -- would fail even for a valid clone. Upsert here is intentional.
@@ -148,28 +158,47 @@ select tag_name_id, tag_type_id, source_id, status_id, created_at, updated_at
 from import_tag
 on conflict (tag_name_id, tag_type_id) do nothing;
 
--- Role assignments cannot be copied from the source environment because they depend on
--- target users. Fail early if no valid local CMS/admin user exists for a demo's state.
+-- Resolve the fixed target users that should receive rewritten CMS and state-backed
+-- references during import. Fail fast if either username is missing or ambiguous.
 DO $$
 BEGIN
-	IF EXISTS (
-		select 1
-		from import_demonstration as demonstration
-		where not exists (
-			select 1
-			from users
-			join person_state
-				on person_state.person_id = users.id
-				and person_state.state_id = demonstration.state_id
-			where users.person_type_id in ('demos-cms-user', 'demos-admin')
-		)
-	) THEN
-		raise exception 'No valid Project Officer candidate exists in the target database for at least one imported demonstration state.';
+	IF (select count(*) from users where username = 'DNTestCMSUser') <> 1 THEN
+		raise exception 'Expected exactly one target CMS user with username DNTestCMSUser.';
+	END IF;
+
+	IF (select count(*) from users where username = 'DavidState') <> 1 THEN
+		raise exception 'Expected exactly one target state user with username DavidState.';
 	END IF;
 END $$;
 
--- Synthesize a target-side Project Officer for each imported demonstration.
--- This should fail on conflicts so invalid target state is visible immediately.
+insert into import_target_user (owner_kind, user_id, person_type_id)
+select 'cms', id, person_type_id
+from users
+where username = 'DNTestCMSUser';
+
+insert into import_target_user (owner_kind, user_id, person_type_id)
+select 'state', id, person_type_id
+from users
+where username = 'DavidState';
+
+-- State-backed document ownership may reference a user that is not yet attached to the
+-- imported states. Seed only the fixed state user here; the CMS user is linked to all
+-- states by existing trigger behavior.
+insert into person_state (person_id, state_id)
+select
+	import_target_user.user_id,
+	imported_states.state_id
+from import_target_user
+cross join (
+	select distinct state_id
+	from import_demonstration
+) as imported_states
+where import_target_user.owner_kind = 'state'
+on conflict (person_id, state_id) do nothing;
+
+-- Synthesize a target-side Project Officer for each imported demonstration using the
+-- fixed CMS user chosen above. This should fail on conflicts so invalid target state
+-- is visible immediately.
 insert into demonstration_role_assignment (
 	person_id,
 	demonstration_id,
@@ -179,27 +208,15 @@ insert into demonstration_role_assignment (
 	grant_level_id
 )
 select
-	project_officer.person_id,
+	target_cms.user_id,
 	demonstration.id,
 	'Project Officer',
 	demonstration.state_id,
-	project_officer.person_type_id,
+	target_cms.person_type_id,
 	'Demonstration'
 from import_demonstration as demonstration
-cross join lateral (
-	select
-		users.id as person_id,
-		users.person_type_id
-	from users
-	join person_state
-		on person_state.person_id = users.id
-		and person_state.state_id = demonstration.state_id
-	where users.person_type_id in ('demos-cms-user', 'demos-admin')
-	order by
-		case users.person_type_id when 'demos-cms-user' then 0 else 1 end,
-		users.id
-	limit 1
-) as project_officer;
+join import_target_user as target_cms
+	on target_cms.owner_kind = 'cms';
 
 -- Mirror the generated assignment into the primary role table.
 insert into primary_demonstration_role_assignment (
@@ -220,7 +237,7 @@ where demonstration_role_assignment.role_id = 'Project Officer'
 \copy demonstration_type_tag_assignment from 'output/demonstration_type_tag_assignment.csv' with (format csv, header true)
 
 -- Deliverables carry a source cms owner that is not valid in the target environment.
--- Reassign them to the generated local Project Officer for the cloned demonstration.
+-- Reassign them to the fixed target CMS user.
 insert into deliverable (
 	id,
 	deliverable_type_id,
@@ -243,29 +260,24 @@ select
 	import_deliverable.demonstration_id,
 	import_deliverable.demonstration_status_id,
 	import_deliverable.status_id,
-	primary_demonstration_role_assignment.person_id,
-	demonstration_role_assignment.person_type_id,
+	target_cms.user_id,
+	target_cms.person_type_id,
 	import_deliverable.due_date,
 	import_deliverable.due_date_type_id,
 	import_deliverable.expected_to_be_submitted,
 	import_deliverable.created_at,
 	import_deliverable.updated_at
 from import_deliverable
-join primary_demonstration_role_assignment
-	on primary_demonstration_role_assignment.demonstration_id = import_deliverable.demonstration_id
-	and primary_demonstration_role_assignment.role_id = 'Project Officer'
-join demonstration_role_assignment
-	on demonstration_role_assignment.person_id = primary_demonstration_role_assignment.person_id
-	and demonstration_role_assignment.demonstration_id = primary_demonstration_role_assignment.demonstration_id
-	and demonstration_role_assignment.role_id = primary_demonstration_role_assignment.role_id;
+join import_target_user as target_cms
+	on target_cms.owner_kind = 'cms';
 
 \copy deliverable_extension from 'output/deliverable_extension.csv' with (format csv, header true)
 \copy deliverable_active_extension from 'output/deliverable_active_extension.csv' with (format csv, header true)
 \copy deliverable_action from 'output/deliverable_action.csv' with (format csv, header true)
 \copy deliverable_demonstration_type from 'output/deliverable_demonstration_type.csv' with (format csv, header true)
 
--- Documents also carry environment-specific ownership, so they are rewritten to the
--- same generated local Project Officer.
+-- Documents also carry environment-specific ownership. Route source CMS/admin owners
+-- to the fixed target CMS user and all other owners to the fixed target state user.
 insert into document (
 	id,
 	name,
@@ -288,7 +300,7 @@ select
 	import_document.name,
 	import_document.description,
 	import_document.s3_path,
-	primary_demonstration_role_assignment.person_id,
+	target_owner.user_id,
 	import_document.document_type_id,
 	import_document.application_id,
 	import_document.phase_id,
@@ -300,9 +312,11 @@ select
 	import_document.created_at,
 	import_document.updated_at
 from import_document
-join primary_demonstration_role_assignment
-	on primary_demonstration_role_assignment.demonstration_id = import_document.application_id
-	and primary_demonstration_role_assignment.role_id = 'Project Officer';
+join import_target_user as target_owner
+	on target_owner.owner_kind = case
+		when import_document.owner_person_type_id in ('demos-admin', 'demos-cms-user') then 'cms'
+		else 'state'
+	end;
 
 \copy budget_neutrality_workbook from 'output/budget_neutrality_workbook.csv' with (format csv, header true)
 \copy private_comment from 'output/private_comment.csv' with (format csv, header true)
