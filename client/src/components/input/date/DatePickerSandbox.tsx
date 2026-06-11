@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { DatePicker } from "./DatePicker";
 import { Button } from "components/button";
-import { addDays, formatISO } from "date-fns";
+import { addDays, formatISO, parseISO } from "date-fns";
 
 const computeEndDate = (startDate: string): string => {
   if (!startDate) return "";
-  return formatISO(addDays(new Date(startDate), 10), { representation: "date" });
+  return formatISO(addDays(parseISO(startDate), 10), { representation: "date" });
 };
 
 export const DatePickerSandbox: React.FC = () => {
