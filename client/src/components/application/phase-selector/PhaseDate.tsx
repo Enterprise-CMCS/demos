@@ -1,6 +1,6 @@
 import React from "react";
 import type { PhaseStatus } from "./PhaseSelector";
-import { formatDate } from "util/formatDate";
+import { formatDateForDisplay } from "util/formatDate";
 import { tw } from "tags/tw";
 
 const BASE_STYLES = tw`flex flex-col h-full items-center justify-center mt-1 text-md font-bold`;
@@ -46,7 +46,7 @@ export const PhaseDate: React.FC<PhaseDateProps> = ({ phaseStatus, date }) => {
   return (
     <div className={BASE_STYLES}>
       <span className={labelClass}>{label}</span>
-      <span className={dateClass}>{date ? formatDate(date) : "--/--/----"}</span>
+      <span className={dateClass}>{date ? formatDateForDisplay(date) : "--/--/----"}</span>
     </div>
   );
 };

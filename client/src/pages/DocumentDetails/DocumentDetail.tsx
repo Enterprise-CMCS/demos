@@ -9,7 +9,7 @@ import {
   Person as ServerPerson,
 } from "demos-server";
 import { useParams } from "react-router-dom";
-import { formatDate } from "util/formatDate";
+import { formatDateForDisplay } from "util/formatDate";
 import { tw } from "tags/tw";
 import { DocumentPreview } from "./DocumentPreview";
 
@@ -122,7 +122,7 @@ export const DocumentDetail: React.FC<{ documentId: string }> = ({ documentId })
           <span className="font-bold">Uploader:</span> {document.owner.person.fullName}
         </p>
         <p>
-          <span className="font-bold">Uploaded on:</span> {formatDate(document.createdAt)}
+          <span className="font-bold">Uploaded on:</span> {formatDateForDisplay(document.createdAt)}
         </p>
       </div>
       <div className="mt-2 flex-1 min-h-0">

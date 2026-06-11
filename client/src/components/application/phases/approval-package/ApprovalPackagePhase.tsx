@@ -8,7 +8,7 @@ import { Button } from "components/button";
 import { useCompletePhase } from "components/application/phase-status/phaseCompletionQueries";
 import { useToast } from "components/toast";
 import { FAILED_TO_SAVE_MESSAGE, getPhaseCompletedMessage } from "util/messages";
-import { formatDate } from "util/formatDate";
+import { formatDateForDisplay } from "util/formatDate";
 import { REQUIRED_DOCUMENT_TYPES } from "./approvalPackagePhaseData";
 
 export interface ApprovalPackagePhaseProps {
@@ -50,7 +50,7 @@ export const ApprovalPackagePhase = ({
       name: doc.name || "-",
       description: doc.description || "-",
       uploadedBy: doc.owner?.person?.fullName || "-",
-      uploadedDate: formatDate(doc.createdAt) || "-",
+      uploadedDate: formatDateForDisplay(doc.createdAt) || "-",
       document: doc,
     };
   });

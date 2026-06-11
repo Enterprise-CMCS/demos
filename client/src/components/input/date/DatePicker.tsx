@@ -6,7 +6,7 @@ import {
   VALIDATION_MESSAGE_CLASSES,
 } from "components/input/Input";
 import { parseISO } from "date-fns";
-import { formatDate } from "util/formatDate";
+import { formatDateForDisplay } from "util/formatDate";
 
 const DEFAULT_MIN_DATE = "1900-01-01";
 const DEFAULT_MAX_DATE = "2099-12-31";
@@ -67,9 +67,9 @@ export const DatePicker = ({
 
     // Check for the date to be in range
     if (displayedDate < minDate)
-      return `Date must be on or after ${formatDate(parseISO(minDate))}.`;
+      return `Date must be on or after ${formatDateForDisplay(parseISO(minDate))}.`;
     if (displayedDate > maxDate)
-      return `Date must be on or before ${formatDate(parseISO(maxDate))}.`;
+      return `Date must be on or before ${formatDateForDisplay(parseISO(maxDate))}.`;
     return "";
   };
 

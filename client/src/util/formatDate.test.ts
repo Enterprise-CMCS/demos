@@ -1,7 +1,7 @@
 import { UTCDate } from "@date-fns/utc";
 import { TZDate } from "@date-fns/tz";
 
-import { formatDate, formatDateForServer, getTodayEst, getDateEst } from "./formatDate";
+import { formatDateForDisplay, formatDateForServer, getTodayEst, getDateEst } from "./formatDate";
 
 const TEST_DATE_ISO = "2023-04-15T13:45:30.000Z";
 const LEAP_YEAR_DATE_ISO = "2024-02-29T23:59:59.000Z";
@@ -20,12 +20,12 @@ describe("formatDate utilities", () => {
   const midnight = new UTCDate(MIDNIGHT_ISO);
 
   it("formats date as MM/dd/yyyy", () => {
-    expect(formatDate(testDate)).toBe("04/15/2023");
-    expect(formatDate(leapYearDate)).toBe("02/29/2024");
-    expect(formatDate(startOfYear)).toBe("01/01/2022");
-    expect(formatDate(endOfYear)).toBe("12/31/2022");
-    expect(formatDate(noon)).toBe("07/04/2023");
-    expect(formatDate(midnight)).toBe("07/04/2023");
+    expect(formatDateForDisplay(testDate)).toBe("04/15/2023");
+    expect(formatDateForDisplay(leapYearDate)).toBe("02/29/2024");
+    expect(formatDateForDisplay(startOfYear)).toBe("01/01/2022");
+    expect(formatDateForDisplay(endOfYear)).toBe("12/31/2022");
+    expect(formatDateForDisplay(noon)).toBe("07/04/2023");
+    expect(formatDateForDisplay(midnight)).toBe("07/04/2023");
   });
 
   it("formats date as yyyy-MM-dd", () => {
