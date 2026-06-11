@@ -5,23 +5,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DemonstrationTypesList } from "./DemonstrationTypesList";
 import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
 
-vi.mock("components/icons", () => ({
-  DeleteIcon: ({ className }: { className?: string }) => (
-    <span data-testid="delete-icon" className={className}>
-      ×
-    </span>
-  ),
-}));
-
-vi.mock("components/notice", () => ({
-  Notice: ({ title, description }: { title: string; description: React.ReactNode }) => (
-    <div data-testid="notice">
-      <h2>{title}</h2>
-      {description}
-    </div>
-  ),
-}));
-
 describe("DemonstrationTypesList", () => {
   const mockRemoveDemonstrationType = vi.fn();
 
@@ -129,7 +112,7 @@ describe("DemonstrationTypesList", () => {
       />
     );
 
-    const notice = screen.getByTestId("notice");
+    const notice = screen.getByTestId("notice-warning");
 
     expect(screen.getByText(/chip id generation/i)).toBeInTheDocument();
     expect(notice).toHaveTextContent(

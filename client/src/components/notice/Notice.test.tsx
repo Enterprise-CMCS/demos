@@ -9,9 +9,11 @@ describe("Notice", () => {
   it("renders the provided title and description", () => {
     render(<Notice title="Heads up" description="Details about the notice" variant="warning" />);
 
-    expect(screen.getByRole("status")).toBeInTheDocument();
-    expect(screen.getByText("Heads up")).toBeVisible();
-    expect(screen.getByText("Details about the notice")).toBeVisible();
+    const notice = screen.getByTestId("notice-warning");
+    expect(notice).toBeInTheDocument();
+    expect(notice).toHaveRole("status");
+    expect(notice).toHaveTextContent("Heads up");
+    expect(notice).toHaveTextContent("Details about the notice");
   });
 
   it("calls onDismiss when the dismiss button is clicked", () => {

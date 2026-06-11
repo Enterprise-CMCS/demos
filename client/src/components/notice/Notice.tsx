@@ -44,7 +44,12 @@ export const Notice: React.FC<NoticeProps> = ({
   const icon = VARIANT_TO_ICON[variant];
 
   return (
-    <div role="status" aria-live="polite" className={`${COMMON_CLASSES} ${variantClasses}`}>
+    <div
+      data-testid={`notice-${variant}`}
+      role="status"
+      aria-live="polite"
+      className={`${COMMON_CLASSES} ${variantClasses}`}
+    >
       <span className="shrink-0" aria-hidden="true">
         {icon}
       </span>
