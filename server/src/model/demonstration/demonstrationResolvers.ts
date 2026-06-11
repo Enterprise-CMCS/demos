@@ -126,7 +126,7 @@ export async function __updateDemonstration(
   { id, input }: { id: string; input: UpdateDemonstrationInput }
 ): Promise<PrismaDemonstration> {
   const { effectiveDate, expirationDate } = parseAndValidateEffectiveAndExpirationDates(input);
-  checkOptionalNotNullFields(["name", "status", "stateId", "projectOfficerUserId"], input);
+  checkOptionalNotNullFields(["name", "status", "projectOfficerUserId"], input);
   try {
     return await prisma().$transaction(async (tx) => {
       const demonstration = await tx.demonstration.update({
@@ -138,7 +138,6 @@ export async function __updateDemonstration(
           expirationDate: expirationDate,
           sdgDivisionId: input.sdgDivision,
           statusId: input.status,
-          stateId: input.stateId,
         },
       });
 
