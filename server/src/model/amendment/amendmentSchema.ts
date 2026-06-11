@@ -45,12 +45,12 @@ export const amendmentSchema = gql`
     name: NonEmptyString
     description: String
     effectiveDate: DateTimeOrLocalDate
-    status: ApplicationStatus
     signatureLevel: AmendmentSignatureLevel
   }
 
   type Mutation {
-    createAmendment(input: CreateAmendmentInput!): Amendment! @auth(requires: ["Perform CMS Action"])
+    createAmendment(input: CreateAmendmentInput!): Amendment!
+      @auth(requires: ["Perform CMS Action"])
     updateAmendment(id: ID!, input: UpdateAmendmentInput!): Amendment!
       @auth(requires: ["Perform CMS Action"])
     deleteAmendment(id: ID!): Amendment! @auth(requires: ["Perform CMS Action"])
@@ -91,6 +91,5 @@ export interface UpdateAmendmentInput {
   name?: NonEmptyString;
   description?: string | null;
   effectiveDate?: DateTimeOrLocalDate | null;
-  status?: ApplicationStatus;
   signatureLevel?: AmendmentSignatureLevel | null;
 }

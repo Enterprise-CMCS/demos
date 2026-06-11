@@ -721,12 +721,7 @@ describe("demonstrationResolvers", () => {
         name: testValues.demonstrationName,
       },
     };
-    const expectedCheckOptionalNotNullFieldList = [
-      "name",
-      "status",
-      "stateId",
-      "projectOfficerUserId",
-    ];
+    const expectedCheckOptionalNotNullFieldList = ["name", "projectOfficerUserId"];
 
     it("should call update on the demonstration in a transaction", async () => {
       const expectedCall = {
