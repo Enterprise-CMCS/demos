@@ -8,6 +8,7 @@ import {
   Demonstration,
   DocumentType,
   PersonType,
+  Tag,
 } from "demos-server";
 import { Loading } from "components/loading/Loading";
 import { useToast } from "components/toast";
@@ -49,6 +50,11 @@ const EDIT_DELETE_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
   "demos-cms-user",
 ]);
 
+const DEMONSTRATION_DELIVERABLES_BACK_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
+  "demos-admin",
+  "demos-cms-user",
+]);
+
 export const GET_DELIVERABLE_DETAILS_QUERY_NAME = "GetDeliverableDetails";
 export const DELIVERABLE_DETAILS_QUERY = gql`
   query ${GET_DELIVERABLE_DETAILS_QUERY_NAME}($id: ID!) {
@@ -66,11 +72,21 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
         state {
           id
         }
+        demonstrationTypes {
+          demonstrationTypeName
+          approvalStatus
+        }
       }
       cmsOwner {
+        id
         person {
+          id
           fullName
         }
+      }
+      demonstrationTypes {
+        tagName
+        approvalStatus
       }
       stateDocuments {
         id
@@ -121,8 +137,15 @@ export type DeliverableDetailsManagementDeliverable = Pick<
   "id" | "deliverableType" | "dueDate" | "status" | "name"
 > & {
   allowedDocumentTypes: DocumentType[];
-  demonstration: Pick<Demonstration, "id" | "name" | "expirationDate"> & { state: { id: string } };
-  cmsOwner: { person: { fullName: string } };
+  demonstration: Pick<Demonstration, "id" | "name" | "expirationDate"> & {
+    state: { id: string };
+    demonstrationTypes: {
+      demonstrationTypeName: string;
+      approvalStatus: "Approved" | "Unapproved";
+    }[];
+  };
+  cmsOwner: { id: string; person: { id: string; fullName: string } };
+  demonstrationTypes: Tag[];
   stateDocuments: DeliverableFileRow[];
   cmsDocuments: DeliverableFileRow[];
   deliverableActions: Pick<
@@ -147,7 +170,7 @@ export const DeliverableDetailsManagementPage: React.FC<{
 }> = ({ deliverableId, onBack }) => {
   const { currentUser } = getCurrentUser();
   const { showSuccess, showError } = useToast();
-  const { showReviewExtensionDeliverableDialog } = useDialog();
+  const { showEditDeliverableDialog, showReviewExtensionDeliverableDialog } = useDialog();
   const navigate = useNavigate();
   const { deliverableId: routeDeliverableId } = useParams<{ deliverableId?: string }>();
   const resolvedDeliverableId = deliverableId ?? routeDeliverableId;
@@ -160,6 +183,7 @@ export const DeliverableDetailsManagementPage: React.FC<{
     variables: { id: resolvedDeliverableId ?? "" },
     skip: !resolvedDeliverableId,
   });
+  const userPersonType = currentUser.person.personType;
 
   const [startReviewTrigger, { loading: startReviewLoading }] = useMutation(
     START_DELIVERABLE_REVIEW_MUTATION
@@ -187,7 +211,11 @@ export const DeliverableDetailsManagementPage: React.FC<{
   }, [resolvedDeliverableId, startReviewTrigger, showSuccess, showError]);
 
   const handleDeleteDeliverable = useCallback(() => {}, []);
-  const handleEditDeliverable = useCallback(() => {}, []);
+  const handleEditDeliverable = useCallback(() => {
+    if (data?.deliverable) {
+      showEditDeliverableDialog(data.deliverable);
+    }
+  }, [data?.deliverable, showEditDeliverableDialog]);
 
   const handleBack = useCallback(() => {
     if (onBack) {
@@ -195,8 +223,17 @@ export const DeliverableDetailsManagementPage: React.FC<{
       return;
     }
 
-    navigate("/deliverables");
-  }, [navigate, onBack]);
+    if (DEMONSTRATION_DELIVERABLES_BACK_PERSON_TYPES.has(userPersonType)) {
+      const demonstrationId = data?.deliverable?.demonstration?.id;
+      if (!demonstrationId) {
+        throw new Error("Cannot navigate to demonstration deliverables without a demonstration id.");
+      }
+      navigate(`/demonstrations/${demonstrationId}`);
+      return;
+    }
+
+    navigate("/");
+  }, [data?.deliverable?.demonstration?.id, navigate, onBack, userPersonType]);
 
   if (loading) {
     return <Loading />;
@@ -207,7 +244,6 @@ export const DeliverableDetailsManagementPage: React.FC<{
   if (!resolvedDeliverableId || !data?.deliverable) {
     return <div>Deliverable not found.</div>;
   }
-  const userPersonType = currentUser.person.personType;
   const canStartReview =
     REVIEW_STARTER_PERSON_TYPES.has(userPersonType) && data.deliverable.status === "Submitted";
   const isFinalized = !isDeliverableEditable(data.deliverable.status);

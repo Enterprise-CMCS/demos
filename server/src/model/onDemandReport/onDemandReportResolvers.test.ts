@@ -12,6 +12,7 @@ import { onDemandReportResolvers } from "./onDemandReportResolvers";
 // Mock imports
 vi.mock("../../onDemandReports", () => ({
   runOnDemandReport: vi.fn(),
+  formatOnDemandReportInExcel: vi.fn(),
 }));
 
 vi.mock("../../prismaClient", () => ({
@@ -50,7 +51,7 @@ vi.mock("../../log", () => ({
   },
 }));
 
-import { runOnDemandReport } from "../../onDemandReports";
+import { runOnDemandReport, formatOnDemandReportInExcel } from "../../onDemandReports";
 import { prisma } from "../../prismaClient";
 import { getS3Adapter, S3Adapter } from "../../adapters";
 import { insertOnDemandReport } from "./queries";
@@ -67,6 +68,7 @@ describe("onDemandReportResolvers", () => {
   const mockCurrentDate = new Date(2024, 7, 19, 20, 10, 55, 181);
   const mockReportId = "11111111-1111-1111-1111-111111111111";
   const mockS3Path = `s3://clean-bucket/reports/on-demand/${mockReportId}.xlsx`;
+  const mockFormattedReport = Buffer.from("mock-excel-buffer");
   const mockTransaction = {} as any;
   const mockPrismaClient = {
     $transaction: vi.fn(),
@@ -88,6 +90,7 @@ describe("onDemandReportResolvers", () => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(getS3Adapter).mockReturnValue(mockS3Adapter as S3Adapter);
     vi.mocked(runOnDemandReport).mockResolvedValue([]);
+    vi.mocked(formatOnDemandReportInExcel).mockResolvedValue(mockFormattedReport);
     vi.mocked(mockUploadOnDemandReport).mockResolvedValue(mockS3Path);
     vi.mocked(mockDeleteOnDemandReport).mockResolvedValue(mockS3Path);
     vi.mocked(mockGetPresignedDownloadUrl).mockResolvedValue("https://presigned-download-url");
@@ -107,7 +110,7 @@ describe("onDemandReportResolvers", () => {
   });
 
   describe("Mutation.generateOnDemandReport", () => {
-    it("generates a report and returns a presigned download URL", async () => {
+    it("generates a report, formats it, and returns a presigned download URL", async () => {
       const result = await onDemandReportResolvers.Mutation.generateOnDemandReport(
         undefined,
         { reportType: testReportType },
@@ -115,9 +118,10 @@ describe("onDemandReportResolvers", () => {
       );
 
       expect(runOnDemandReport).toHaveBeenCalledExactlyOnceWith(testReportType, mockTransaction);
+      expect(formatOnDemandReportInExcel).toHaveBeenCalledExactlyOnceWith(testReportType, []);
       expect(mockUploadOnDemandReport).toHaveBeenCalledExactlyOnceWith(
         mockReportId,
-        Buffer.from(JSON.stringify([]))
+        mockFormattedReport
       );
       expect(insertOnDemandReport).toHaveBeenCalledExactlyOnceWith(
         {
@@ -147,6 +151,8 @@ describe("onDemandReportResolvers", () => {
         )
       ).rejects.toThrow(testCustomGQLError);
 
+      expect(log.error).toHaveBeenCalledTimes(1);
+      expect(log.error).toHaveBeenCalledWith("Zod Validation Errors!\n");
       expect(throwCustomGQLError).toHaveBeenCalledExactlyOnceWith(
         `Running the on-demand ${testReportType} report caused a Zod validation error.`,
         "ON_DEMAND_REPORT_ZOD_ERROR"
@@ -182,13 +188,14 @@ describe("onDemandReportResolvers", () => {
         )
       ).rejects.toThrow(testCustomGQLError);
 
-      expect(log.error).toHaveBeenCalledTimes(2);
+      expect(log.error).toHaveBeenCalledTimes(3);
       expect(log.error).toHaveBeenNthCalledWith(
         1,
         "s3Adapter.deleteOnDemandReport encountered an error while trying to clean up " +
           `after generating report with ID ${mockReportId} failed.`
       );
       expect(log.error).toHaveBeenNthCalledWith(2, cleanupError);
+      expect(log.error).toHaveBeenNthCalledWith(3, "Zod Validation Errors!\n");
     });
 
     it("delegates non-ZodErrors to handlePrismaError", async () => {

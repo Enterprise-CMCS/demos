@@ -5,11 +5,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import {
   EDIT_DELIVERABLE_DIALOG_TITLE,
+  DELIVERABLE_UPDATE_FAILED_MESSAGE,
   EDIT_DELIVERABLE_REASON_FIELD_NAME,
   EDIT_DELIVERABLE_SAVE_BUTTON_NAME,
   EditDeliverableDialog,
   EditDeliverableDialogDeliverable,
   EditDeliverableInput,
+  UPDATE_DELIVERABLE_MUTATION,
   buildInitialFormData,
   formHasChanges,
   formIsValid,
@@ -25,9 +27,11 @@ import { Tag } from "demos-server";
 import { DELIVERABLE_UPDATED_MESSAGE } from "util/messages";
 
 const mockShowSuccess = vi.fn();
+const mockShowError = vi.fn();
 vi.mock("components/toast", () => ({
   useToast: () => ({
     showSuccess: mockShowSuccess,
+    showError: mockShowError,
   }),
 }));
 
@@ -50,13 +54,14 @@ type OnSaveFn = (input: EditDeliverableInput, reasonForChange?: string) => Promi
 const setup = (overrides?: {
   deliverable?: Partial<EditDeliverableDialogDeliverable>;
   onSave?: OnSaveFn;
+  mocks?: React.ComponentProps<typeof TestProvider>["mocks"];
 }) => {
   const onClose = vi.fn();
   const onSave = overrides?.onSave;
   const deliverable = { ...TEST_DELIVERABLE, ...overrides?.deliverable };
 
   render(
-    <TestProvider mocks={personMocks}>
+    <TestProvider mocks={overrides?.mocks ?? personMocks}>
       <EditDeliverableDialog
         deliverable={deliverable}
         demonstrationTypeTags={MOCK_TAGS}
@@ -176,6 +181,90 @@ describe("EditDeliverableDialog", () => {
     );
     expect(mockShowSuccess).toHaveBeenCalledWith(DELIVERABLE_UPDATED_MESSAGE);
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("persists changes with the updateDeliverable mutation", async () => {
+    const user = userEvent.setup();
+    const mutationMock = {
+      request: {
+        query: UPDATE_DELIVERABLE_MUTATION,
+        variables: {
+          id: "deliverable-1",
+          input: {
+            name: "Updated Quarterly Report",
+            cmsOwnerUserId: "ashokatano",
+            demonstrationTypes: ["Aggregate Cap"],
+          },
+        },
+      },
+      result: {
+        data: {
+          updateDeliverable: {
+            id: "deliverable-1",
+            name: "Updated Quarterly Report",
+            dueDate: new Date("2026-06-15"),
+            cmsOwner: {
+              id: "ashokatano",
+              person: {
+                id: "person-1",
+                fullName: "Ahsoka Tano",
+              },
+            },
+            demonstrationTypes: [{ tagName: "Aggregate Cap", approvalStatus: "Approved" }],
+          },
+        },
+      },
+    };
+    const { onClose } = setup({ mocks: [...personMocks, mutationMock] });
+
+    await waitFor(() =>
+      expect(screen.getByTestId("select-demonstration-type")).toBeInTheDocument()
+    );
+    await user.clear(screen.getByTestId(DELIVERABLE_NAME_FIELD_ID));
+    await user.type(screen.getByTestId(DELIVERABLE_NAME_FIELD_ID), "Updated Quarterly Report");
+    await user.click(screen.getByTestId("select-demonstration-type"));
+    await user.click(screen.getByText("Aggregate Cap"));
+
+    await user.click(screen.getByTestId(EDIT_DELIVERABLE_SAVE_BUTTON_NAME));
+
+    await waitFor(() =>
+      expect(mockShowSuccess).toHaveBeenCalledWith(DELIVERABLE_UPDATED_MESSAGE)
+    );
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the modal open and shows an error when updateDeliverable fails", async () => {
+    const user = userEvent.setup();
+    const mutationMock = {
+      request: {
+        query: UPDATE_DELIVERABLE_MUTATION,
+        variables: {
+          id: "deliverable-1",
+          input: {
+            name: "Updated Quarterly Report",
+            cmsOwnerUserId: "ashokatano",
+            demonstrationTypes: ["Aggregate Cap"],
+          },
+        },
+      },
+      error: new Error("Update failed"),
+    };
+    const { onClose } = setup({ mocks: [...personMocks, mutationMock] });
+
+    await waitFor(() =>
+      expect(screen.getByTestId("select-demonstration-type")).toBeInTheDocument()
+    );
+    await user.clear(screen.getByTestId(DELIVERABLE_NAME_FIELD_ID));
+    await user.type(screen.getByTestId(DELIVERABLE_NAME_FIELD_ID), "Updated Quarterly Report");
+    await user.click(screen.getByTestId("select-demonstration-type"));
+    await user.click(screen.getByText("Aggregate Cap"));
+
+    await user.click(screen.getByTestId(EDIT_DELIVERABLE_SAVE_BUTTON_NAME));
+
+    await waitFor(() =>
+      expect(mockShowError).toHaveBeenCalledWith(DELIVERABLE_UPDATE_FAILED_MESSAGE)
+    );
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it("does not pass a reason to onSave when the due date was not modified", async () => {

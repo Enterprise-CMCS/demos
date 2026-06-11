@@ -1,6 +1,4 @@
-import { USER_TYPES } from "../constants.js";
 import { ContextUser, findOrCreateContextUserFromClaims } from "./userContext.js";
-import { UserType } from "../types.js";
 
 export interface GraphQLContext {
   user: ContextUser;
@@ -36,9 +34,6 @@ export function validateClaims(
   }
   if (!claims.role) {
     throw new Error("Authorizer claims missing required 'role' field");
-  }
-  if (!USER_TYPES.includes(claims.role as UserType)) {
-    throw new Error(`Invalid user role: '${claims.role}'`);
   }
   if (!claims.authTime) {
     throw new Error("Authorizer claims missing required 'authTime' field");

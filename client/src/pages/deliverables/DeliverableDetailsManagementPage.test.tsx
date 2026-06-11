@@ -2,7 +2,7 @@ import React from "react";
 import { Route, Routes } from "react-router-dom";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   DeliverableDetailsManagementPage,
   DELIVERABLE_DETAILS_QUERY,
@@ -12,31 +12,21 @@ import {
 import { MOCK_DELIVERABLE_1 } from "mock-data/deliverableMocks";
 import { TestProvider } from "test-utils/TestProvider";
 import { COMMENT_BOX_NAME } from "./sections/comment_box";
-import { DELIVERABLE_INFO_FIELDS_NAME,   BACK_TO_DELIVERABLES_BUTTON_NAME} from "./sections/DeliverableInfoFields";
+import {
+  BACK_TO_DELIVERABLES_BUTTON_NAME,
+  DELIVERABLE_INFO_FIELDS_NAME,
+} from "./sections/DeliverableInfoFields";
 import { FILE_AND_HISTORY_TABS_NAME } from "./sections/FileAndHistoryTabs";
 import { REQUEST_EXTENSION_BUTTON_NAME } from "./sections/DeliverableButtons";
 import { DialogProvider } from "components/dialog/DialogContext";
+import { EDIT_DELIVERABLE_DIALOG_TITLE } from "components/dialog/deliverable/EditDeliverableDialog";
 import {
   DELIVERABLE_REVIEW_NOTICE_NAME,
   START_REVIEW_BUTTON_NAME,
 } from "./sections/PendingReviewNotice";
 import { CurrentUser } from "components/user/UserContext";
 import { developmentMockUser } from "mock-data/userMocks";
-
-const renderAtRoute = (deliverableId: string) =>
-  render(
-    <TestProvider routerEntries={[`/deliverables/${deliverableId}`]}>
-      <DialogProvider>
-        <Routes>
-          <Route
-            path="/deliverables/:deliverableId"
-            element={<DeliverableDetailsManagementPage />}
-          />
-          <Route path="/deliverables" element={<div>Deliverables list</div>} />
-        </Routes>
-      </DialogProvider>
-    </TestProvider>
-  );
+import { personMocks } from "mock-data/personMocks";
 
 const buildSubmittedDeliverableMock = (overrides?: { submitterName?: string }) => ({
   ...MOCK_DELIVERABLE_1,
@@ -59,6 +49,28 @@ const buildCurrentUser = (
   ...developmentMockUser,
   person: { ...developmentMockUser.person, personType },
 });
+
+const renderAtRoute = (
+  deliverableId: string,
+  personType: CurrentUser["person"]["personType"] = "demos-cms-user"
+) =>
+  render(
+    <TestProvider
+      currentUser={buildCurrentUser(personType)}
+      routerEntries={[`/deliverables/${deliverableId}`]}
+    >
+      <DialogProvider>
+        <Routes>
+          <Route
+            path="/deliverables/:deliverableId"
+            element={<DeliverableDetailsManagementPage />}
+          />
+          <Route path="/demonstrations/:id" element={<div>Demonstration deliverables list</div>} />
+          <Route path="/" element={<div>State home deliverables list</div>} />
+        </Routes>
+      </DialogProvider>
+    </TestProvider>
+  );
 
 const renderWithDeliverable = (
   deliverable: DeliverableDetailsManagementDeliverable,
@@ -83,7 +95,8 @@ const renderWithDeliverable = (
             path="/deliverables/:deliverableId"
             element={<DeliverableDetailsManagementPage />}
           />
-          <Route path="/deliverables" element={<div>Deliverables list</div>} />
+          <Route path="/demonstrations/:id" element={<div>Demonstration deliverables list</div>} />
+          <Route path="/" element={<div>State home deliverables list</div>} />
         </Routes>
       </DialogProvider>
     </TestProvider>
@@ -123,13 +136,53 @@ describe("DeliverableDetailsManagementPage", () => {
     await waitFor(() => expect(screen.getByTestId(COMMENT_BOX_NAME)).toBeInTheDocument());
   });
 
-  it("navigates back to the deliverables list", async () => {
+  it.each(["demos-cms-user", "demos-admin"] as const)(
+    "navigates %s users back to the demonstration deliverables list",
+    async (personType) => {
+      const user = userEvent.setup();
+      renderAtRoute("1", personType);
+
+      await user.click(await screen.findByTestId(BACK_TO_DELIVERABLES_BUTTON_NAME));
+
+      expect(screen.getByText("Demonstration deliverables list")).toBeInTheDocument();
+    }
+  );
+
+  it("navigates state users back to their home deliverables list", async () => {
     const user = userEvent.setup();
-    renderAtRoute("1");
+    renderAtRoute("1", "demos-state-user");
 
     await user.click(await screen.findByTestId(BACK_TO_DELIVERABLES_BUTTON_NAME));
 
-    expect(screen.getByText("Deliverables list")).toBeInTheDocument();
+    expect(screen.getByText("State home deliverables list")).toBeInTheDocument();
+  });
+
+  it("uses the supplied onBack handler when provided", async () => {
+    const user = userEvent.setup();
+    const onBack = vi.fn();
+    render(
+      <TestProvider
+        currentUser={buildCurrentUser("demos-admin")}
+        mocks={[
+          {
+            request: { query: DELIVERABLE_DETAILS_QUERY, variables: { id: MOCK_DELIVERABLE_1.id } },
+            result: { data: { deliverable: MOCK_DELIVERABLE_1 } },
+          },
+        ]}
+        routerEntries={[`/deliverables/${MOCK_DELIVERABLE_1.id}`]}
+      >
+        <DialogProvider>
+          <DeliverableDetailsManagementPage
+            deliverableId={MOCK_DELIVERABLE_1.id}
+            onBack={onBack}
+          />
+        </DialogProvider>
+      </TestProvider>
+    );
+
+    await user.click(await screen.findByTestId(BACK_TO_DELIVERABLES_BUTTON_NAME));
+
+    expect(onBack).toHaveBeenCalledOnce();
   });
 
   it("toggles more details", async () => {
@@ -218,6 +271,16 @@ describe("DeliverableDetailsManagementPage", () => {
 
     expect(await screen.findByTestId("edit-deliverable-button")).not.toBeDisabled();
     expect(screen.getByTestId("delete-deliverable-button")).not.toBeDisabled();
+  });
+
+  it("opens the edit deliverable modal from the header Edit button", async () => {
+    const user = userEvent.setup();
+    const deliverable = { ...MOCK_DELIVERABLE_1, status: "Upcoming" as const };
+    renderWithDeliverable(deliverable, "demos-admin", personMocks);
+
+    await user.click(await screen.findByTestId("edit-deliverable-button"));
+
+    expect(screen.getByText(EDIT_DELIVERABLE_DIALOG_TITLE)).toBeInTheDocument();
   });
 
   it("shows only the Request Extension button for state users", async () => {

@@ -47,12 +47,16 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
     state: {
       id: "CA",
     },
+    demonstrationTypes: [],
   },
   cmsOwner: {
+    id: "mock-user",
     person: {
+      id: "mock-user-person",
       fullName: "Mock User",
     },
   },
+  demonstrationTypes: [],
   dueDate: new Date("2024-08-15"),
   status: "Upcoming",
   stateDocuments: [
