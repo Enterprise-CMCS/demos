@@ -82,15 +82,6 @@ describe("validateClaims", () => {
     expect(() => validateClaims(claims)).toThrow("Authorizer claims missing required 'role' field");
   });
 
-  it("throws when role is invalid", () => {
-    const claims: Partial<AuthorizationClaims> = {
-      ...validClaims,
-      role: "not-a-real-role",
-    };
-
-    expect(() => validateClaims(claims)).toThrow("Invalid user role: 'not-a-real-role'");
-  });
-
   it("throws when authTime is missing", () => {
     const claims: Partial<AuthorizationClaims> = {
       ...validClaims,

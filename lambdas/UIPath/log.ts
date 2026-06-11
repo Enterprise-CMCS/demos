@@ -3,6 +3,12 @@ import { AsyncLocalStorage } from "node:async_hooks";
 
 const isNotOnAWS = () => !process.env.AWS_EXECUTION_ENV;
 const REDACTED = "[REDACTED]";
+const serializeError = (value: unknown) =>
+  value instanceof Error ? pino.stdSerializers.err(value) : value;
+const serializeLogObject = (value: object) =>
+  Object.fromEntries(
+    Object.entries(value).map(([key, entryValue]) => [key, serializeError(entryValue)])
+  );
 const LOGGER_REDACTION_PATHS = [
   "authorization",
   "Authorization",
@@ -46,6 +52,10 @@ export const setupLogger = (serviceName: string, destination?: pino.DestinationS
       paths: LOGGER_REDACTION_PATHS,
       censor: REDACTED,
     },
+    serializers: {
+      err: serializeError,
+      error: serializeError,
+    },
     // match lambda application logs, which use "timestamp" rather than "time"
     timestamp: () => `,"timestamp":"${new Date().toISOString()}"`,
     base: {
@@ -60,7 +70,10 @@ export const setupLogger = (serviceName: string, destination?: pino.DestinationS
         // All other fields go under `ctx`
         const { type, ...rest } = obj;
         // check `rest` length to prevent logging ctx:{}
-        return { type, ctx: Object.keys(rest).length && rest || undefined };
+        return {
+          type,
+          ctx: Object.keys(rest).length ? serializeLogObject(rest) : undefined,
+        };
       },
     },
     // Disable pretty transport in bundled/worker contexts to avoid worker path issues.

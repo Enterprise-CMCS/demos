@@ -55,7 +55,6 @@ describe("CommsClearanceSection", () => {
     const datepicker = screen.getByTestId("datepicker-package-sent-for-comms-clearance-date");
 
     fireEvent.change(datepicker, { target: { value: "2025-01-01" } });
-    fireEvent.blur(datepicker);
 
     expect(mockSetSectionFormData).toHaveBeenCalledWith({
       ...defaultProps.sectionFormData,

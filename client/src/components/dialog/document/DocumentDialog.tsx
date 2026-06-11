@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { SecondaryButton } from "components/button";
 import { BaseDialog } from "components/dialog/BaseDialog";
-import { ErrorIcon, ExitIcon, FileIcon } from "components/icons";
+import { ErrorIcon } from "components/icons";
 import { TextInput } from "components/input";
 import { DocumentTypeInput } from "components/input/document/DocumentTypeInput";
 import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "components/input/Input";
@@ -14,10 +14,8 @@ import { tw } from "tags/tw";
 import { Notice } from "components/notice";
 import { AttestationDialog } from "components/dialog/AttestationDialog";
 import { UploadButton } from "./UploadButton";
-import {
-  BNPreValidationState,
-  useBNWorkbookPreValidation,
-} from "./useBNWorkbookPreValidation";
+import { BNPreValidationState, useBNWorkbookPreValidation } from "./useBNWorkbookPreValidation";
+import { DocumentChip } from "components/document/documentChip";
 
 type DocumentDialogType = "add" | "edit";
 
@@ -44,8 +42,6 @@ const STYLES = {
   dropzoneHeader: tw`text-sm font-bold text-text-font mb-xs`,
   dropzoneOr: tw`text-sm text-text-placeholder mb-sm`,
   fileNote: tw`text-[11px] text-text-placeholder mt-xs leading-tight`,
-  fileChip: tw`w-full border border-border-fields rounded flex items-center justify-between px-sm py-2 mt-sm`,
-  fileChipLeft: tw`flex items-center gap-2 text-sm font-medium text-text-font truncate`,
   fileMetaRow: tw`flex justify-between mt-1 text-[12px] text-text-placeholder font-medium`,
 };
 
@@ -63,7 +59,6 @@ const ALLOWED_FILE_EXTENSIONS = [".pdf", ".doc", ".docx", ".xls", ".xlsx", ".xls
 const ACCEPTED_EXTENSIONS = ALLOWED_FILE_EXTENSIONS.join(",");
 const MAX_FILE_SIZE_MB = 600;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-const MAX_FILENAME_DISPLAY_LENGTH = 60;
 
 const ERROR_MESSAGES = {
   noFileSelected: "Please select a file to upload.",
@@ -75,12 +70,6 @@ const SUCCESS_MESSAGES = {
   fileUploaded: "Your document has been added.",
   fileUpdated: "Your document has been updated.",
   fileDeleted: "Your document has been removed.",
-};
-
-const abbreviateLongFilename = (str: string, maxLength: number): string => {
-  if (str.length <= maxLength) return str;
-  const half = Math.floor((maxLength - 3) / 2);
-  return `${str.slice(0, half)}...${str.slice(-half)}`;
 };
 
 const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }> = ({
@@ -209,22 +198,7 @@ const DropTarget: React.FC<{
 
       {file && (
         <div className="mt-sm">
-          <div className={STYLES.fileChip}>
-            <span className={STYLES.fileChipLeft} title={file.name}>
-              <FileIcon />
-              <span className="truncate">
-                {abbreviateLongFilename(file.name, MAX_FILENAME_DISPLAY_LENGTH)}
-              </span>
-            </span>
-            <button
-              type="button"
-              aria-label="Remove file"
-              className="p-1 hover:opacity-80"
-              onClick={onRemove}
-            >
-              <ExitIcon />
-            </button>
-          </div>
+          <DocumentChip document={file} onRemove={onRemove} />
           <ProgressBar progress={uploadProgress} uploadStatus={uploadStatus} />
           {uploadProgress > 0 && (
             <div className={STYLES.fileMetaRow}>

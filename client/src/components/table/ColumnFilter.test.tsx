@@ -460,9 +460,7 @@ describe("ColumnFilter Component", () => {
       const endInput = document.body.querySelector('input[name="date-filter-end"]');
       // Open the start date picker calendar popup by clicking the calendar button
       fireEvent.change(startInput!, { target: { value: "2023-02-01" } });
-      fireEvent.blur(startInput!);
       fireEvent.change(endInput!, { target: { value: "2023-04-01" } });
-      fireEvent.blur(endInput!);
 
       // Wait for the filtered results
       await waitFor(() => {
@@ -487,9 +485,7 @@ describe("ColumnFilter Component", () => {
       const endInput = document.body.querySelector('input[name="date-filter-end"]');
       // Open the start date picker calendar popup by clicking the calendar button
       fireEvent.change(startInput!, { target: { value: "2000-01-01" } });
-      fireEvent.blur(startInput!);
       fireEvent.change(endInput!, { target: { value: "2000-01-02" } });
-      fireEvent.blur(endInput!);
 
       await waitFor(() => {
         expect(
@@ -508,9 +504,7 @@ describe("ColumnFilter Component", () => {
       const endInput = document.body.querySelector('input[name="date-filter-end"]');
 
       fireEvent.change(startInput!, { target: { value: "2023-02-01" } });
-      fireEvent.blur(startInput!);
       fireEvent.change(endInput!, { target: { value: "2023-04-01" } });
-      fireEvent.blur(endInput!);
 
       await user.selectOptions(columnSelect, "Name");
       await waitFor(() => {

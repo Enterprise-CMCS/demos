@@ -3,18 +3,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Types
 import type { PrismaTransactionClient } from "../prismaClient";
+import { OnDemandReportConfiguration } from "./configs/onDemandReportConfigTypes";
 
 // Functions under test
 import { runOnDemandReport } from "./runOnDemandReport";
 
 // Mock imports
-vi.mock("./onDemandReportConfigurations", () => ({
-  ON_DEMAND_REPORT_CONFIGURATIONS: {
-    "Basic Test Report": {
-      sqlQuery: "SELECT 1",
-      reportRowSchema: { _isMockSchema: true },
-    },
-  },
+vi.mock("./configs", () => ({
+  getOnDemandReportConfiguration: vi.fn(),
 }));
 
 vi.mock("zod", () => ({
@@ -22,32 +18,45 @@ vi.mock("zod", () => ({
 }));
 
 import { z } from "zod";
-import { ON_DEMAND_REPORT_CONFIGURATIONS } from "./onDemandReportConfigurations";
+import { getOnDemandReportConfiguration } from "./configs";
 
 describe("runOnDemandReport", () => {
   const mockQueryRawUnsafe = vi.fn();
+  const mockZodArray = { parse: vi.fn() };
   const mockTx: Partial<PrismaTransactionClient> = { $queryRawUnsafe: mockQueryRawUnsafe };
-  const mockParse = vi.fn();
-  const mockZodArray: Partial<z.ZodArray<z.ZodType>> = { parse: mockParse };
+
+  // Using as any here; we don't need a valid Zod schema, just a payload to test
+  const mockOnDemandReportConfiguration: OnDemandReportConfiguration = {
+    sqlQuery: "SELECT 1 as column1",
+    reportRowSchema: "Foo" as any,
+    excelConfiguration: { columnNames: { column1: "Column 1" } },
+  };
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.mocked(z.array).mockReturnValue(mockZodArray as z.ZodArray<z.ZodType>);
+    // Using as any here: the generic accessor returns a specific report's config
+    // However, for testing, we just care that the report config is a valid config shape (confirmed above)
+    vi.mocked(getOnDemandReportConfiguration).mockReturnValue(
+      mockOnDemandReportConfiguration as any
+    );
+    // Using as any here; just need to test the calls to what Zod returns, no Zod typing needed
+    vi.mocked(z.array).mockReturnValue(mockZodArray as any);
     mockQueryRawUnsafe.mockResolvedValue([{ some: "data" }]);
   });
 
   it("executes the sqlQuery from the configuration against the transaction client", async () => {
     await runOnDemandReport("Basic Test Report", mockTx as PrismaTransactionClient);
 
-    expect(mockTx.$queryRawUnsafe).toHaveBeenCalledExactlyOnceWith("SELECT 1");
+    expect(getOnDemandReportConfiguration).toHaveBeenCalledExactlyOnceWith("Basic Test Report");
+    expect(mockTx.$queryRawUnsafe).toHaveBeenCalledExactlyOnceWith(
+      mockOnDemandReportConfiguration.sqlQuery
+    );
   });
 
   it("passes the report schema and query results to zod for parsing", async () => {
     await runOnDemandReport("Basic Test Report", mockTx as PrismaTransactionClient);
 
-    expect(z.array).toHaveBeenCalledWith(
-      ON_DEMAND_REPORT_CONFIGURATIONS["Basic Test Report"].reportRowSchema
-    );
-    expect(mockParse).toHaveBeenCalledExactlyOnceWith([{ some: "data" }]);
+    expect(z.array).toHaveBeenCalledWith(mockOnDemandReportConfiguration.reportRowSchema);
+    expect(mockZodArray.parse).toHaveBeenCalledExactlyOnceWith([{ some: "data" }]);
   });
 });

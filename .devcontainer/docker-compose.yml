@@ -62,6 +62,7 @@ services:
       CORS_ALLOWED_HEADERS: "Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent"
       CORS_EXPOSE_HEADERS: "ETag"
       CORS_ALLOW_CREDENTIALS: "true"
+      S3_SKIP_SIGNATURE_VALIDATION: 0
     volumes:
       - "localstack-data:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"

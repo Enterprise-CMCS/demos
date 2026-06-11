@@ -45,12 +45,12 @@ export const extensionSchema = gql`
     name: NonEmptyString
     description: String
     effectiveDate: DateTimeOrLocalDate
-    status: ApplicationStatus
     signatureLevel: ExtensionSignatureLevel
   }
 
   type Mutation {
-    createExtension(input: CreateExtensionInput!): Extension! @auth(requires: ["Perform CMS Action"])
+    createExtension(input: CreateExtensionInput!): Extension!
+      @auth(requires: ["Perform CMS Action"])
     updateExtension(id: ID!, input: UpdateExtensionInput!): Extension!
       @auth(requires: ["Perform CMS Action"])
     deleteExtension(id: ID!): Extension! @auth(requires: ["Perform CMS Action"])
@@ -91,6 +91,5 @@ export interface UpdateExtensionInput {
   name?: NonEmptyString;
   description?: string | null;
   effectiveDate?: DateTimeOrLocalDate | null;
-  status?: ApplicationStatus;
   signatureLevel?: ExtensionSignatureLevel | null;
 }

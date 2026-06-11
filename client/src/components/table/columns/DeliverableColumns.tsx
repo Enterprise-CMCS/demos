@@ -3,7 +3,6 @@ import { createColumnHelper } from "@tanstack/react-table";
 import { createSelectColumnDef } from "./selectColumn";
 import { createDateColumnDef } from "./dateColumn";
 import {
-  DELIVERABLE_STATUSES,
   DELIVERABLE_TYPES,
   STATES_AND_TERRITORIES,
 } from "demos-server-constants";
@@ -19,6 +18,23 @@ type DeliverableColumnsProps = {
   demonstrationNameOptions: Option[];
   cmsOwnerOptions: Option[];
 };
+
+const COMBINED_STATUS_OPTIONS = [
+  "Upcoming",
+  "Upcoming - Extension Requested",
+  "Submitted",
+  "Submitted - Extension Requested",
+  "Past Due",
+  "Past Due - Extension Requested",
+  "Under CMS Review",
+  "Under CMS Review - Extension Requested",
+  "Approved",
+  "Accepted",
+  "Received and Filed",
+].map((status) => ({
+  label: status,
+  value: status,
+}));
 
 export function DeliverableColumns({
   viewMode,
@@ -69,11 +85,7 @@ export function DeliverableColumns({
     meta: {
       filterConfig: {
         filterType: "select",
-        // Extension Requested options not ready yet.
-        options: DELIVERABLE_STATUSES.filter((status) => status !== "Deleted").map((status) => ({
-          label: status,
-          value: status,
-        })),
+        options: COMBINED_STATUS_OPTIONS,
       },
     },
   });

@@ -1,6 +1,6 @@
-import { ZodError } from "zod";
+import { prettifyError, ZodError } from "zod";
 import { randomUUID } from "node:crypto";
-import { runOnDemandReport } from "../../onDemandReports";
+import { formatOnDemandReportInExcel, runOnDemandReport } from "../../onDemandReports";
 import { prisma } from "../../prismaClient";
 import { OnDemandReportType } from "../../types";
 import { throwCustomGQLError } from "../../errors/errorCodes";
@@ -23,10 +23,8 @@ export const onDemandReportResolvers = {
       try {
         uploadedReportS3Path = await prisma().$transaction(async (tx) => {
           const reportResults = await runOnDemandReport(args.reportType, tx);
-          const fileS3Path = await s3Adapter.uploadOnDemandReport(
-            reportId,
-            Buffer.from(JSON.stringify(reportResults))
-          );
+          const formattedReport = await formatOnDemandReportInExcel(args.reportType, reportResults);
+          const fileS3Path = await s3Adapter.uploadOnDemandReport(reportId, formattedReport);
           await insertOnDemandReport(
             {
               id: reportId,
@@ -49,6 +47,7 @@ export const onDemandReportResolvers = {
           log.error(cleanupError);
         });
         if (error instanceof ZodError) {
+          log.error("Zod Validation Errors!\n" + prettifyError(error));
           throwCustomGQLError(
             `Running the on-demand ${args.reportType} report caused a Zod validation error.`,
             "ON_DEMAND_REPORT_ZOD_ERROR"

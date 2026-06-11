@@ -38,69 +38,46 @@ describe("DatePicker component", () => {
     });
   });
 
-  // The component commits to the parent only on blur — never live during typing. Range is
-  // enforced by the native (inclusive) min/max attributes and surfaced via the validation
-  // message derived from the parent's committed value, so the displayed value can never
-  // silently diverge from what the parent holds.
-  describe("Blur-only commit + range messaging", () => {
-    it("does not propagate any value on input alone (live typing does not churn the parent)", () => {
+  // onChange commits immediately when a complete date is selected (calendar pick or keyboard).
+  // Range is enforced by the native (inclusive) min/max attributes and surfaced via the
+  // validation message derived from the parent's value prop.
+  describe("onChange commit + range messaging", () => {
+    it("does not propagate partial-year dates emitted during year-subfield editing", () => {
       render(<DatePicker {...requiredProps} />);
       const input = screen.getByTestId("test-date");
 
-      fireEvent.input(input, { target: { value: "2025-03-20" } });
-      fireEvent.input(input, { target: { value: "1899-12-31" } });
-      fireEvent.input(input, { target: { value: "2100-01-01" } });
+      fireEvent.input(input, { target: { value: "0003-03-20" } });
+      fireEvent.input(input, { target: { value: "0025-03-20" } });
+      fireEvent.input(input, { target: { value: "0202-01-01" } });
       expect(mockOnChange).not.toHaveBeenCalled();
     });
 
-    it("commits an in-range value on blur", () => {
+    it("commits an in-range value on change", () => {
       render(<DatePicker {...requiredProps} />);
       const input = screen.getByTestId("test-date");
 
-      fireEvent.input(input, { target: { value: "2025-03-20" } });
-      fireEvent.blur(input);
+      fireEvent.change(input, { target: { value: "2025-03-20" } });
       expect(mockOnChange).toHaveBeenCalledWith("2025-03-20");
     });
 
-    it("commits the final value on blur, even when out of range", () => {
+    it("shows an out of range date and message while not propagating it to the caller", () => {
       render(<DatePicker {...requiredProps} />);
       const input = screen.getByTestId("test-date");
 
-      fireEvent.input(input, { target: { value: "1899-12-31" } });
-      fireEvent.blur(input);
-      expect(mockOnChange).toHaveBeenCalledWith("1899-12-31");
-    });
-
-    // Regression for the year-typing bug: with month/day already filled (value set), the browser
-    // forms transient complete out-of-range dates ("0003-..", "0030-..") as each year digit is
-    // typed. Those must NOT propagate or flash a message during typing; only on blur does the
-    // final value commit.
-    it("does not flash a message or propagate while typing a year over a pre-filled date", () => {
-      render(<DatePicker {...requiredProps} value="2020-05-15" />);
-      const input = screen.getByTestId("test-date");
-
-      fireEvent.input(input, { target: { value: "0003-05-15" } });
-      fireEvent.input(input, { target: { value: "0030-05-15" } });
-      fireEvent.input(input, { target: { value: "0302-05-15" } });
-      fireEvent.input(input, { target: { value: "2026-05-15" } });
+      fireEvent.change(input, { target: { value: "1899-12-31" } });
       expect(mockOnChange).not.toHaveBeenCalled();
-      expect(screen.queryByText(/Date must be on or/)).not.toBeInTheDocument();
-
-      fireEvent.blur(input);
-      expect(mockOnChange).toHaveBeenCalledWith("2026-05-15");
+      expect(screen.getByText("Date must be on or after 01/01/1900.")).toBeInTheDocument();
     });
 
-    it("commits inclusive boundary dates 1900-01-01 and 2099-12-31 on blur", () => {
+    it("commits inclusive boundary dates 1900-01-01 and 2099-12-31 on change", () => {
       render(<DatePicker {...requiredProps} />);
       const input = screen.getByTestId("test-date");
 
-      fireEvent.input(input, { target: { value: "1900-01-01" } });
-      fireEvent.blur(input);
+      fireEvent.change(input, { target: { value: "1900-01-01" } });
       expect(mockOnChange).toHaveBeenCalledWith("1900-01-01");
 
       mockOnChange.mockClear();
-      fireEvent.input(input, { target: { value: "2099-12-31" } });
-      fireEvent.blur(input);
+      fireEvent.change(input, { target: { value: "2099-12-31" } });
       expect(mockOnChange).toHaveBeenCalledWith("2099-12-31");
     });
 
@@ -170,8 +147,7 @@ describe("DatePicker component", () => {
       const input = screen.getByTestId("test-date") as HTMLInputElement;
       expect(input.type).toBe("date");
 
-      fireEvent.input(input, { target: { value: "2025-01-15" } });
-      fireEvent.blur(input);
+      fireEvent.change(input, { target: { value: "2025-01-15" } });
       expect(mockOnChange).toHaveBeenCalledWith("2025-01-15");
     });
   });
@@ -180,17 +156,14 @@ describe("DatePicker component", () => {
     it("accepts leap year dates", () => {
       render(<DatePicker {...requiredProps} />);
       const input = screen.getByTestId("test-date");
-      fireEvent.input(input, { target: { value: "2024-02-29" } });
-      fireEvent.blur(input);
+      fireEvent.change(input, { target: { value: "2024-02-29" } });
       expect(mockOnChange).toHaveBeenCalledWith("2024-02-29");
     });
 
-    it("commits a cleared value on blur", () => {
+    it("commits a cleared value on change", () => {
       render(<DatePicker {...requiredProps} value="2024-01-15" />);
       const input = screen.getByTestId("test-date");
-      fireEvent.input(input, { target: { value: "" } });
-      expect(mockOnChange).not.toHaveBeenCalled();
-      fireEvent.blur(input);
+      fireEvent.change(input, { target: { value: "" } });
       expect(mockOnChange).toHaveBeenCalledWith("");
     });
   });
@@ -212,42 +185,6 @@ describe("DatePicker component", () => {
 
       rerender(<DatePicker {...requiredProps} value="" />);
       expect(input.value).toBe("");
-    });
-
-    // Regression test for the year-typing bug. Native <input type="date"> fires input
-    // events with e.target.value === "" while the user is mid-typing the year subfield
-    // (the date is briefly incomplete). If DatePicker were a controlled <input value={value}>,
-    // React would write input.value = "" on every render, wiping the in-progress digits and
-    // making it impossible to type a year character-by-character. The defaultValue + ref-sync
-    // pattern guarantees React only touches the DOM when the value prop actually changes,
-    // so a parent re-render with the same value must NOT clobber the input's current state.
-    it("does not overwrite the input DOM value when re-rendered with the same value", () => {
-      const { rerender } = render(<DatePicker {...requiredProps} value="" />);
-      const input = screen.getByTestId("test-date") as HTMLInputElement;
-
-      // Simulate the browser's internal partial state during year typing
-      input.value = "2024-01-15";
-
-      rerender(<DatePicker {...requiredProps} value="" />);
-
-      expect(input.value).toBe("2024-01-15");
-    });
-
-    // Regression for "editing a subfield scopes me out". While the user edits one subfield of an
-    // existing date, the browser briefly reports an incomplete date and the parent propagates a
-    // changed value. Writing to the focused input would drop focus and break the mm→dd→yyyy
-    // advance / close the calendar, so the ref-sync must skip the write while the input is focused.
-    it("does not reset the input DOM value while the input is focused", () => {
-      const { rerender } = render(<DatePicker {...requiredProps} value="2020-05-15" />);
-      const input = screen.getByTestId("test-date") as HTMLInputElement;
-
-      input.focus();
-      input.value = "2020-08-15"; // user's in-progress subfield edit
-
-      rerender(<DatePicker {...requiredProps} value="" />);
-
-      expect(input.value).toBe("2020-08-15");
-      expect(document.activeElement).toBe(input);
     });
   });
 

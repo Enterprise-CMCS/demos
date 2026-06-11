@@ -63,8 +63,6 @@ export const demonstrationSchema = gql`
     effectiveDate: DateTimeOrLocalDate
     expirationDate: DateTimeOrLocalDate
     sdgDivision: SdgDivision
-    status: ApplicationStatus
-    stateId: ID
     projectOfficerUserId: String
   }
 
@@ -124,7 +122,5 @@ export interface UpdateDemonstrationInput {
   effectiveDate?: DateTimeOrLocalDate | null;
   expirationDate?: DateTimeOrLocalDate | null;
   sdgDivision?: SdgDivision;
-  status?: ApplicationStatus;
-  stateId?: string;
   projectOfficerUserId?: string;
 }
