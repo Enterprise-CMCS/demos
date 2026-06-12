@@ -121,6 +121,6 @@ export interface UpdateDemonstrationInput {
   description?: string;
   effectiveDate?: DateTimeOrLocalDate | null;
   expirationDate?: DateTimeOrLocalDate | null;
-  sdgDivision?: SdgDivision;
+  sdgDivision?: SdgDivision | null;
   projectOfficerUserId?: string;
 }
