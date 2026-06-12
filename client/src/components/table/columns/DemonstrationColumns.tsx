@@ -18,19 +18,13 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
   return [
     columnHelper.accessor("state.id", {
       id: "stateId",
-      header: () => (
-        <span className="leading-tight" aria-label="State/Territory">
-          State /
-          <br />
-          Territory
-        </span>
-      ),
+      header: "State/\u200BTerritory", // using zero width space for word break
       cell: highlightCell,
       filterFn: "arrIncludesSome",
       meta: {
         filterLabel: "State/Territory",
-        headerClassName: "w-[100px]",
-        cellClassName: "w-[100px]",
+        headerClassName: "w-[120px] min-w-[120px]",
+        cellClassName: "break-words w-[100px]",
         filterConfig: {
           filterType: "select",
           options:
@@ -47,7 +41,7 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
       enableColumnFilter: false,
       meta: {
         headerClassName: "w-[250px]",
-        cellClassName: "min-w-[200px] whitespace-normal break-words leading-snug",
+        cellClassName: "min-w-[250px] whitespace-normal break-words leading-snug",
       },
     }),
     columnHelper.accessor((row) => row.primaryProjectOfficer.fullName, {
@@ -56,9 +50,9 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
       cell: highlightCell,
       filterFn: "arrIncludesSome",
       meta: {
-        headerClassName: "w-[140px]",
+        headerClassName: "w-[120px]",
         headerContentClassName: "whitespace-nowrap",
-        cellClassName: "w-[140px]",
+        cellClassName: "w-[120px]",
         filterConfig: {
           filterType: "select",
           options:
@@ -80,8 +74,8 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
       ),
       filterFn: "arrIncludesSome",
       meta: {
-        headerClassName: "w-[148px]",
-        cellClassName: "w-[148px]",
+        headerClassName: "w-[120px]",
+        cellClassName: "w-[120px]",
         filterConfig: {
           filterType: "select",
           options:
@@ -109,8 +103,8 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
         );
       },
       meta: {
-        headerClassName: "w-[132px]",
-        cellClassName: "w-[132px] leading-snug",
+        headerClassName: "w-[132px] ",
+        cellClassName: "w-[132px]",
       },
     }),
     columnHelper.display({
@@ -146,7 +140,7 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
       },
       meta: {
         headerClassName: "w-[76px]",
-        cellClassName: "w-[76px] text-right whitespace-nowrap",
+        cellClassName: "w-[76px] text-right",
       },
     }),
     columnHelper.display({
@@ -165,7 +159,7 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
           ""
         ),
       meta: {
-        headerClassName: "w-[32px]",
+        headerClassName: "w-[32px] text-left",
         cellClassName: "w-[32px] text-left",
       },
     }),
