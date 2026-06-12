@@ -18,10 +18,13 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
   return [
     columnHelper.accessor("state.id", {
       id: "stateId",
-      header: "State/Territory",
+      header: "State/\u200BTerritory", // using zero width space for word break
       cell: highlightCell,
       filterFn: "arrIncludesSome",
       meta: {
+        filterLabel: "State/Territory",
+        headerClassName: "w-[120px] min-w-[120px]",
+        cellClassName: "break-words w-[100px]",
         filterConfig: {
           filterType: "select",
           options:
@@ -36,6 +39,10 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
       header: "Title",
       cell: highlightCell,
       enableColumnFilter: false,
+      meta: {
+        headerClassName: "w-[250px]",
+        cellClassName: "min-w-[250px] whitespace-normal break-words leading-snug",
+      },
     }),
     columnHelper.accessor((row) => row.primaryProjectOfficer.fullName, {
       id: "projectOfficer",
@@ -43,6 +50,9 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
       cell: highlightCell,
       filterFn: "arrIncludesSome",
       meta: {
+        headerClassName: "w-[120px]",
+        headerContentClassName: "whitespace-nowrap",
+        cellClassName: "w-[120px]",
         filterConfig: {
           filterType: "select",
           options:
@@ -64,6 +74,8 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
       ),
       filterFn: "arrIncludesSome",
       meta: {
+        headerClassName: "w-[120px]",
+        cellClassName: "w-[120px]",
         filterConfig: {
           filterType: "select",
           options:
@@ -90,15 +102,18 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
           </div>
         );
       },
+      meta: {
+        headerClassName: "w-[132px] ",
+        cellClassName: "w-[132px]",
+      },
     }),
     columnHelper.display({
       id: "viewDetails",
       header: () => <span className="sr-only">View</span>,
       cell: ({ row }) => {
-        // Always link to the parent demonstration page
-        // If this row is an amendment or extension, use the parent id and add the correct query param
-        let demoId = row.original.id;
+        let demoId = row.original.id; // link directly to demos
         let queryParam = "";
+        // If amendment or extension use the parent id and add the correct query param
         if (row.original.type === "amendment" && row.original.parentId) {
           demoId = row.original.parentId;
           queryParam = `amendments=${row.original.id}`;
@@ -123,6 +138,10 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
           </SecondaryButton>
         );
       },
+      meta: {
+        headerClassName: "w-[76px]",
+        cellClassName: "w-[76px] text-right",
+      },
     }),
     columnHelper.display({
       id: "expander",
@@ -139,6 +158,10 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
         ) : (
           ""
         ),
+      meta: {
+        headerClassName: "w-[32px] text-left",
+        cellClassName: "w-[32px] text-left",
+      },
     }),
   ];
 }

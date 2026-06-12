@@ -43,7 +43,9 @@ export type DeliverableTableRow = Omit<
   demonstrationTypes: Tag[];
   submissionDate?: string;
   extensionRequests: Pick<Deliverable["extensionRequests"][number], "id" | "status">[];
-  deliverableActions: Pick<Deliverable["deliverableActions"][number], "id" | "actionType">[];
+  deliverableActions: (Pick<Deliverable["deliverableActions"][number], "id" | "actionType"> & {
+    actionTimestamp?: string;
+  })[];
   cmsDocuments?: Pick<Deliverable["cmsDocuments"][number], "id">[];
   stateDocuments?: Pick<Deliverable["stateDocuments"][number], "id">[];
   publicComments?: Pick<Deliverable["publicComments"][number], "id">[];
@@ -110,6 +112,7 @@ export const DELIVERABLES_PAGE_QUERY = gql`
       deliverableActions {
         id
         actionType
+        actionTimestamp
       }
       # These are for determining if a deliverable can be deleted
       cmsDocuments {
@@ -167,6 +170,7 @@ export const STATE_USER_DELIVERABLES_PAGE_QUERY = gql`
               deliverableActions {
                 id
                 actionType
+                actionTimestamp
               }
             }
           }
@@ -215,6 +219,16 @@ export const formatDeliverableStatus = (
   return formattedStatus;
 };
 
+export const getSubmissionDate = (
+  deliverableActions: DeliverableTableRow["deliverableActions"]
+) =>
+  deliverableActions
+    .filter((action) => action.actionType === "Submitted Deliverable" && action.actionTimestamp)
+    .sort(
+      (a, b) =>
+        new Date(b.actionTimestamp!).getTime() - new Date(a.actionTimestamp!).getTime()
+    )[0]?.actionTimestamp;
+
 /*
  * This generates a value that is used for filtering.
  * It's needed so the filter can match things like "Submitted (3) - Extension Requested"
@@ -254,6 +268,7 @@ export const DeliverableTable: React.FC<{
   });
   const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({
     ...deliverable,
+    submissionDate: getSubmissionDate(deliverable.deliverableActions),
     combinedStatus: formatDeliverableStatus(deliverable),
     combinedStatusFilter: formatDeliverableFilterStatus(deliverable),
   }));

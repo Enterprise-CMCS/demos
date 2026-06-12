@@ -102,6 +102,8 @@ export const DemonstrationTable: React.FC<{
           emptyRowsMessage={emptyRowsMessage}
           noResultsFoundMessage={noResultsFoundMessage}
           getSubRows={getSubRows}
+          tableClassName="w-full table-fixed"
+          tableContainerClassName="w-full overflow-x-hidden"
         />
       )}
     </div>

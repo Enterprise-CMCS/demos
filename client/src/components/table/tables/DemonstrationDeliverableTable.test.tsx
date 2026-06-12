@@ -138,6 +138,37 @@ describe("DemonstrationDeliverableTable", () => {
     ]);
   });
 
+  it("renders the latest submitted deliverable action timestamp as submission date", () => {
+    render(
+      <DemonstrationDeliverableTable
+        viewMode="demos-cms-user"
+        deliverables={[
+          {
+            id: "submitted-row",
+            name: "Submitted Item",
+            dueDate: new Date("2026-01-01"),
+            status: "Submitted",
+            ...baseDeliverable,
+            deliverableActions: [
+              {
+                id: "older-submission",
+                actionType: "Submitted Deliverable",
+                actionTimestamp: "2026-03-20T10:00:00Z",
+              },
+              {
+                id: "newer-submission",
+                actionType: "Submitted Deliverable",
+                actionTimestamp: "2026-04-01T10:00:00Z",
+              },
+            ],
+          },
+        ]}
+      />
+    );
+
+    expect(screen.getByText("04/01/2026")).toBeInTheDocument();
+  });
+
   it("shows row selection and action buttons for non-state users", async () => {
     const user = userEvent.setup();
     const deliverable = {
