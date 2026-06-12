@@ -18,10 +18,19 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
   return [
     columnHelper.accessor("state.id", {
       id: "stateId",
-      header: "State/Territory",
+      header: () => (
+        <span className="leading-tight" aria-label="State/Territory">
+          State /
+          <br />
+          Territory
+        </span>
+      ),
       cell: highlightCell,
       filterFn: "arrIncludesSome",
       meta: {
+        filterLabel: "State/Territory",
+        headerClassName: "w-[88px]",
+        cellClassName: "w-[88px]",
         filterConfig: {
           filterType: "select",
           options:
@@ -36,6 +45,9 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
       header: "Title",
       cell: highlightCell,
       enableColumnFilter: false,
+      meta: {
+        cellClassName: "min-w-0 whitespace-normal break-words leading-snug",
+      },
     }),
     columnHelper.accessor((row) => row.primaryProjectOfficer.fullName, {
       id: "projectOfficer",
@@ -43,6 +55,8 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
       cell: highlightCell,
       filterFn: "arrIncludesSome",
       meta: {
+        headerClassName: "w-[140px]",
+        cellClassName: "w-[140px]",
         filterConfig: {
           filterType: "select",
           options:
@@ -64,6 +78,8 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
       ),
       filterFn: "arrIncludesSome",
       meta: {
+        headerClassName: "w-[148px]",
+        cellClassName: "w-[148px]",
         filterConfig: {
           filterType: "select",
           options:
@@ -89,6 +105,10 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
             <div>Extensions ({extensionsCount})</div>
           </div>
         );
+      },
+      meta: {
+        headerClassName: "w-[132px]",
+        cellClassName: "w-[132px] leading-snug",
       },
     }),
     columnHelper.display({
@@ -123,6 +143,10 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
           </SecondaryButton>
         );
       },
+      meta: {
+        headerClassName: "w-[76px]",
+        cellClassName: "w-[76px]",
+      },
     }),
     columnHelper.display({
       id: "expander",
@@ -139,6 +163,10 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
         ) : (
           ""
         ),
+      meta: {
+        headerClassName: "w-[40px]",
+        cellClassName: "w-[40px] text-center",
+      },
     }),
   ];
 }

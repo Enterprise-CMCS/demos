@@ -9,6 +9,11 @@ const STYLES = {
   TR: "h-[56px] border-b p-1",
 };
 
+type TableColumnMeta = {
+  headerClassName?: string;
+  headerContentClassName?: string;
+};
+
 function getSortProps<T>(header: Header<T, unknown>) {
   const isSorted = header.column.getIsSorted();
   const ariaSortValue =
@@ -41,14 +46,17 @@ export function TableHead<T>({ headerGroups }: { headerGroups: HeaderGroup<T>[] 
           {hg.headers.map((header) => {
             const canSort = header.column.getCanSort();
             const isSorted = header.column.getIsSorted();
+            const meta = header.column.columnDef.meta as TableColumnMeta | undefined;
             return (
               <th
                 key={header.id}
                 scope="col"
-                className={`${STYLES.TH}${canSort ? " cursor-pointer select-none" : ""}`}
+                className={`${STYLES.TH} ${meta?.headerClassName ?? ""}${
+                  canSort ? " cursor-pointer select-none" : ""
+                }`}
                 {...(canSort ? getSortProps(header) : {})}
               >
-                <div className="flex items-center gap-1">
+                <div className={`flex items-center gap-1 ${meta?.headerContentClassName ?? ""}`}>
                   {flexRender(header.column.columnDef.header, header.getContext())}
                   {canSort &&
                     ({
