@@ -1,6 +1,6 @@
 import React from "react";
 import { ModificationItem } from "./ModificationTabs";
-import { formatDateForDisplay } from "util/formatDate";
+import { formatDateForDisplay, getDateEst } from "util/formatDate";
 import { IconButton } from "components/button";
 import { EditIcon } from "components/icons";
 import { useDialog } from "components/dialog/DialogContext";
@@ -21,7 +21,7 @@ const ModificationDetailsFields = ({
   modificationItem: ModificationItem;
 }) => {
   const effectiveDateValue = modificationItem.effectiveDate
-    ? formatDateForDisplay(modificationItem.effectiveDate)
+    ? formatDateForDisplay(getDateEst(modificationItem.effectiveDate))
     : "--/--/----";
 
   const labelPrefix = modificationItem.modificationType === "amendment" ? "Amendment" : "Extension";

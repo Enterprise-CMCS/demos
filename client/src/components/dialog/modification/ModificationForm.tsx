@@ -4,7 +4,7 @@ import { SignatureLevel } from "demos-server";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
 import { SelectDemonstration } from "components/input/select/SelectDemonstration";
 import { DatePicker } from "components/input/date/DatePicker";
-import { formatDateForServer } from "util/formatDate";
+import { getDateEst } from "util/formatDate";
 
 export type Modification = {
   id: string;
@@ -35,7 +35,7 @@ export const hasChanges = (
   initialModification: Partial<Modification>
 ): boolean => {
   const initialEffectiveDate = initialModification.effectiveDate
-    ? formatDateForServer(initialModification.effectiveDate)
+    ? getDateEst(new Date(initialModification.effectiveDate))
     : undefined;
 
   return !!(
@@ -52,7 +52,7 @@ export const getFormDataFromModification = (
   name: modification.name,
   description: modification.description ?? undefined,
   effectiveDate: modification.effectiveDate
-    ? formatDateForServer(modification.effectiveDate)
+    ? getDateEst(new Date(modification.effectiveDate))
     : undefined,
   signatureLevel: modification.signatureLevel ?? undefined,
   demonstrationId: modification.demonstration?.id,
