@@ -1059,7 +1059,7 @@ async function seedDatabase() {
         dateValue: new Date("2025-01-01T00:00:00.000-05:00"),
       },
       {
-        dateType: "Pre-Submission Submitted Date",
+        dateType: "Concept Paper Submitted Date",
         dateValue: new Date("2025-01-13T00:00:00.000-05:00"),
       },
       {
@@ -1111,7 +1111,7 @@ async function seedDatabase() {
         dateValue: new Date("2025-02-05T00:00:00.000-05:00"),
       },
       {
-        dateType: "SME Review Date",
+        dateType: "SME Initial Review Date",
         dateValue: new Date("2025-02-06T00:00:00.000-05:00"),
       },
       {

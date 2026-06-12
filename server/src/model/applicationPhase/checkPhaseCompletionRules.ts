@@ -17,7 +17,7 @@ import {
 
 const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
   Concept: {
-    datesMustExist: ["Pre-Submission Submitted Date"],
+    datesMustExist: ["Concept Paper Submitted Date"],
     documentTypesMustExist: ["Pre-Submission"],
     phasesMustBeComplete: [],
   },
@@ -42,7 +42,7 @@ const VALIDATION_CHECKS: PhaseCompletionValidationChecksRecord = {
   "SDG Preparation": {
     datesMustExist: [
       "Expected Approval Date",
-      "SME Review Date",
+      "SME Initial Review Date",
       "FRT Initial Meeting Date",
       "BNPMT Initial Meeting Date",
     ],
