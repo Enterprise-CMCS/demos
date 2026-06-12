@@ -29,8 +29,8 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
       filterFn: "arrIncludesSome",
       meta: {
         filterLabel: "State/Territory",
-        headerClassName: "w-[88px]",
-        cellClassName: "w-[88px]",
+        headerClassName: "w-[100px]",
+        cellClassName: "w-[100px]",
         filterConfig: {
           filterType: "select",
           options:
@@ -46,7 +46,8 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
       cell: highlightCell,
       enableColumnFilter: false,
       meta: {
-        cellClassName: "min-w-0 whitespace-normal break-words leading-snug",
+        headerClassName: "w-[250px]",
+        cellClassName: "min-w-[200px] whitespace-normal break-words leading-snug",
       },
     }),
     columnHelper.accessor((row) => row.primaryProjectOfficer.fullName, {
@@ -56,6 +57,7 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
       filterFn: "arrIncludesSome",
       meta: {
         headerClassName: "w-[140px]",
+        headerContentClassName: "whitespace-nowrap",
         cellClassName: "w-[140px]",
         filterConfig: {
           filterType: "select",

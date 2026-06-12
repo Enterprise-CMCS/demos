@@ -41,9 +41,10 @@ export type DeliverableTableRow = Omit<
     person: Pick<Person, "fullName" | "id">;
   };
   demonstrationTypes: Tag[];
-  submissionDate?: string;
+  submissionDate?: string | Date;
   extensionRequests: Pick<Deliverable["extensionRequests"][number], "id" | "status">[];
-  deliverableActions: Pick<Deliverable["deliverableActions"][number], "id" | "actionType">[];
+  deliverableActions: (Pick<Deliverable["deliverableActions"][number], "id" | "actionType"> &
+    Partial<Pick<Deliverable["deliverableActions"][number], "actionTimestamp">>)[];
   cmsDocuments?: Pick<Deliverable["cmsDocuments"][number], "id">[];
   stateDocuments?: Pick<Deliverable["stateDocuments"][number], "id">[];
   publicComments?: Pick<Deliverable["publicComments"][number], "id">[];
@@ -109,6 +110,7 @@ export const DELIVERABLES_PAGE_QUERY = gql`
       deliverableActions {
         id
         actionType
+        actionTimestamp
       }
       # These are for determining if a deliverable can be deleted
       cmsDocuments {
@@ -166,6 +168,7 @@ export const STATE_USER_DELIVERABLES_PAGE_QUERY = gql`
               deliverableActions {
                 id
                 actionType
+                actionTimestamp
               }
             }
           }
@@ -214,6 +217,16 @@ export const formatDeliverableStatus = (
   return formattedStatus;
 };
 
+export const getSubmissionDate = (
+  deliverableActions: DeliverableTableRow["deliverableActions"]
+) =>
+  deliverableActions
+    .filter((action) => action.actionType === "Submitted Deliverable" && action.actionTimestamp)
+    .sort(
+      (a, b) =>
+        new Date(b.actionTimestamp!).getTime() - new Date(a.actionTimestamp!).getTime()
+    )[0]?.actionTimestamp;
+
 export const DeliverableTable: React.FC<{
   deliverables: DeliverableTableRow[];
   emptyRowsMessage?: string;
@@ -227,6 +240,7 @@ export const DeliverableTable: React.FC<{
   });
   const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({
     ...deliverable,
+    submissionDate: getSubmissionDate(deliverable.deliverableActions),
     combinedStatus: formatDeliverableStatus(deliverable),
   }));
 

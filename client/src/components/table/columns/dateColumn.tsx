@@ -21,11 +21,11 @@ export function createDateColumnDef<
       id: fieldName,
       header,
       cell: ({ getValue }) => {
-        const value = getValue() as string | undefined;
+        const value = getValue() as Date | string | undefined;
         return value ? formatDate(value) : "";
       },
       filterFn: (row, columnId, filterValue: DateFilterValue) => {
-        const value = row.getValue(columnId) as string | undefined;
+        const value = row.getValue(columnId) as Date | string | undefined;
         if (!value) return false;
 
         const date = new Date(value);
