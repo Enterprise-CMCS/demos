@@ -27,7 +27,7 @@ describe("runOnDemandReport", () => {
 
   // Using as any here; we don't need a valid Zod schema, just a payload to test
   const mockOnDemandReportConfiguration: OnDemandReportConfiguration = {
-    sqlQuery: "SELECT 1 as column1",
+    sqlQueries: ["SELECT 1 AS column1", "SELECT 2 AS another_column"],
     reportRowSchema: "Foo" as any,
     excelConfiguration: { columnNames: { column1: "Column 1" } },
   };
@@ -41,16 +41,17 @@ describe("runOnDemandReport", () => {
     );
     // Using as any here; just need to test the calls to what Zod returns, no Zod typing needed
     vi.mocked(z.array).mockReturnValue(mockZodArray as any);
-    mockQueryRawUnsafe.mockResolvedValue([{ some: "data" }]);
+    mockQueryRawUnsafe.mockResolvedValueOnce([]).mockResolvedValueOnce([{ some: "data" }]);
   });
 
-  it("executes the sqlQuery from the configuration against the transaction client", async () => {
+  it("executes the sqlQueries from the configuration against the transaction client", async () => {
     await runOnDemandReport("Basic Test Report", mockTx as PrismaTransactionClient);
 
     expect(getOnDemandReportConfiguration).toHaveBeenCalledExactlyOnceWith("Basic Test Report");
-    expect(mockTx.$queryRawUnsafe).toHaveBeenCalledExactlyOnceWith(
-      mockOnDemandReportConfiguration.sqlQuery
-    );
+    expect(mockTx.$queryRawUnsafe.mock.calls).toStrictEqual([
+      [mockOnDemandReportConfiguration.sqlQueries[0]],
+      [mockOnDemandReportConfiguration.sqlQueries[1]],
+    ]);
   });
 
   it("passes the report schema and query results to zod for parsing", async () => {

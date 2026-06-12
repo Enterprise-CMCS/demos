@@ -1,4 +1,4 @@
-export const deliverableStatusReportQuery = `
+const dataFetchQuery = `
 WITH primary_roles AS (
     SELECT
         p.first_name || ' ' || p.last_name AS full_name,
@@ -256,3 +256,5 @@ LEFT JOIN
 WHERE
     deliv.status_id != 'Deleted';
 `;
+
+export const deliverableStatusReportQueries = [dataFetchQuery];

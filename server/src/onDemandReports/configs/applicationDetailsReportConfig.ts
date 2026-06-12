@@ -12,7 +12,7 @@ import {
   OnDemandReportColumnSchema,
   OnDemandReportConfiguration,
 } from "./onDemandReportConfigTypes";
-import { applicationDetailsReportQuery } from "./applicationDetailsReportQuery";
+import { applicationDetailsReportQueries } from "./applicationDetailsReportQueries";
 import { usDateString, usDateStringOrDash } from "./onDemandReportCustomSchemaTypes";
 
 type ApplicationDetailsReportColumn =
@@ -28,7 +28,7 @@ type ApplicationDetailsReportColumn =
   | "effective_date"
   | "expiration_date"
   | "concept_start_date"
-  | "pre_submission_submitted_date"
+  | "concept_paper_submitted_date"
   | "concept_skipped_date"
   | "concept_completion_date"
   | "application_intake_start_date"
@@ -43,7 +43,7 @@ type ApplicationDetailsReportColumn =
   | "federal_comment_internal_analysis_document_submitted_date"
   | "sdg_preparation_start_date"
   | "expected_approval_date"
-  | "sme_review_date"
+  | "sme_initial_review_date"
   | "frt_initial_meeting_date"
   | "bnpmt_initial_meeting_date"
   | "sdg_preparation_completion_date"
@@ -93,7 +93,7 @@ const applicationDetailsReportSchema = z
     effective_date: usDateString,
     expiration_date: usDateString,
     concept_start_date: usDateStringOrDash,
-    pre_submission_submitted_date: usDateStringOrDash,
+    concept_paper_submitted_date: usDateStringOrDash,
     concept_skipped_date: usDateStringOrDash,
     concept_completion_date: usDateStringOrDash,
     application_intake_start_date: usDateStringOrDash,
@@ -108,7 +108,7 @@ const applicationDetailsReportSchema = z
     federal_comment_internal_analysis_document_submitted_date: usDateStringOrDash,
     sdg_preparation_start_date: usDateStringOrDash,
     expected_approval_date: usDateStringOrDash,
-    sme_review_date: usDateStringOrDash,
+    sme_initial_review_date: usDateStringOrDash,
     frt_initial_meeting_date: usDateStringOrDash,
     bnpmt_initial_meeting_date: usDateStringOrDash,
     sdg_preparation_completion_date: usDateStringOrDash,
@@ -159,7 +159,7 @@ const applicationDetailsReportColumnHeaders = {
   effective_date: "Effective Date",
   expiration_date: "Expiration Date",
   concept_start_date: "Concept Start Date",
-  pre_submission_submitted_date: "Pre-Submission Submitted Date",
+  concept_paper_submitted_date: "Concept Paper Submitted Date",
   concept_skipped_date: "Concept Skipped Date",
   concept_completion_date: "Concept Completion Date",
   application_intake_start_date: "Application Intake Start Date",
@@ -175,7 +175,7 @@ const applicationDetailsReportColumnHeaders = {
     "Federal Comment Internal Analysis Document Submitted Date",
   sdg_preparation_start_date: "SDG Preparation Start Date",
   expected_approval_date: "Expected Approval Date",
-  sme_review_date: "SME Review Date",
+  sme_initial_review_date: "SME Initial Review Date",
   frt_initial_meeting_date: "FRT Initial Meeting Date",
   bnpmt_initial_meeting_date: "BNPMT Initial Meeting Date",
   sdg_preparation_completion_date: "SDG Preparation Completion Date",
@@ -215,7 +215,7 @@ const applicationDetailsReportColumnHeaders = {
 } satisfies OnDemandReportColumnHeader<ApplicationDetailsReportColumn>;
 
 export const applicationDetailsReportConfiguration = {
-  sqlQuery: applicationDetailsReportQuery,
+  sqlQueries: applicationDetailsReportQueries,
   reportRowSchema: applicationDetailsReportSchema,
   excelConfiguration: { columnNames: applicationDetailsReportColumnHeaders },
 } satisfies OnDemandReportConfiguration;

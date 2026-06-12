@@ -7,7 +7,11 @@ export async function runOnDemandReport(
   onDemandReportType: OnDemandReportType,
   tx: PrismaTransactionClient
 ) {
-  const { sqlQuery, reportRowSchema } = getOnDemandReportConfiguration(onDemandReportType);
-  const results = await tx.$queryRawUnsafe(sqlQuery);
+  const { sqlQueries, reportRowSchema } = getOnDemandReportConfiguration(onDemandReportType);
+  // Note: the final query is what is returned!
+  let results;
+  for (const sqlQuery of sqlQueries) {
+    results = await tx.$queryRawUnsafe(sqlQuery);
+  }
   return z.array(reportRowSchema).parse(results);
 }
