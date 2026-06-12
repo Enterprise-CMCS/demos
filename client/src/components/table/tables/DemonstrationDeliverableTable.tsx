@@ -10,7 +10,11 @@ import { createDateColumnDef } from "components/table/columns/dateColumn";
 import { highlightCell, KeywordSearch } from "components/table/KeywordSearch";
 import { ColumnFilter } from "components/table/ColumnFilter";
 import { PaginationControls } from "components/table/PaginationControls";
-import { formatDeliverableStatus, getSubmissionDate } from "./DeliverableTable";
+import {
+  formatDeliverableFilterStatus,
+  formatDeliverableStatus,
+  getSubmissionDate,
+} from "./DeliverableTable";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
 import { getDeliverableFilterOptions } from "./deliverablesFilterOptions";
 import { createSelectColumnDef } from "../columns/selectColumn";
@@ -112,6 +116,7 @@ export const DemonstrationDeliverableTable: React.FC<{
     ...deliverable,
     submissionDate: getSubmissionDate(deliverable.deliverableActions),
     combinedStatus: formatDeliverableStatus(deliverable),
+    combinedStatusFilter: formatDeliverableFilterStatus(deliverable),
   }));
 
   return (

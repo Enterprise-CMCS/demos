@@ -177,6 +177,7 @@ describe("DemonstrationDeliverableTable", () => {
       dueDate: new Date("2026-01-01"),
       status: "Upcoming" as const,
       combinedStatus: "Upcoming",
+      combinedStatusFilter: "Upcoming",
       ...baseDeliverable,
     };
 

@@ -53,6 +53,7 @@ export type DeliverableTableRow = Omit<
 
 export type FormattedDeliverableTableRow = DeliverableTableRow & {
   combinedStatus: string;
+  combinedStatusFilter: string;
 };
 
 export type DeliverablesQueryResult = {
@@ -227,6 +228,32 @@ export const getSubmissionDate = (
         new Date(b.actionTimestamp!).getTime() - new Date(a.actionTimestamp!).getTime()
     )[0]?.actionTimestamp;
 
+/*
+ * This generates a value that is used for filtering.
+ * It's needed so the filter can match things like "Submitted (3) - Extension Requested"
+ * without needing to display the resubmission count in the filter options.
+ */
+export const formatDeliverableFilterStatus = (
+  deliverable: Pick<
+    DeliverableTableRow,
+    "status" | "extensionRequests"
+  >
+) => {
+  const { status, extensionRequests } = deliverable;
+
+  if (FINAL_STATUSES.includes(status)) {
+    return status;
+  }
+
+  const hasOpenExtensionRequest = extensionRequests.some(
+    (request) => request.status === "Requested"
+  );
+
+  return hasOpenExtensionRequest
+    ? `${status} - Extension Requested`
+    : status;
+};
+
 export const DeliverableTable: React.FC<{
   deliverables: DeliverableTableRow[];
   emptyRowsMessage?: string;
@@ -242,6 +269,7 @@ export const DeliverableTable: React.FC<{
     ...deliverable,
     submissionDate: getSubmissionDate(deliverable.deliverableActions),
     combinedStatus: formatDeliverableStatus(deliverable),
+    combinedStatusFilter: formatDeliverableFilterStatus(deliverable),
   }));
 
   type RenderDeliverableActionButtons = NonNullable<

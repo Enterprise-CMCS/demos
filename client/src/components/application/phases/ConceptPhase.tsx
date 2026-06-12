@@ -17,7 +17,7 @@ import { useToast } from "components/toast";
 import { getPhaseCompletedMessage } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
 import { useSetApplicationDate } from "components/application/date/dateQueries";
-import type { LocalDate, PhaseName, PhaseStatus } from "demos-server";
+import type { DateType, LocalDate, PhaseName, PhaseStatus } from "demos-server";
 import {
   useCompletePhase,
   useSkipConceptPhase,
@@ -61,7 +61,7 @@ export const getConceptPhaseComponentFromApplication = (
   }
 
   const presubmissionSubmittedDate = conceptPhase.phaseDates.find(
-    (date) => date.dateType === "Pre-Submission Submitted Date"
+    (date) => date.dateType === "Concept Paper Submitted Date"
   )?.dateValue;
 
   return (
@@ -169,7 +169,7 @@ export const ConceptPhase = ({
     try {
       await setApplicationDate({
         applicationId: applicationId,
-        dateType: "Pre-Submission Submitted Date",
+        dateType: "Concept Paper Submitted Date",
         dateValue: submittedDate as LocalDate,
       });
     } catch (error) {
@@ -243,7 +243,7 @@ export const ConceptPhase = ({
         <div>
           <DatePicker
             name={DATE_PICKER_NAME}
-            label="Pre-Submission Document Submitted Date"
+            label={"Concept Paper Submitted Date" satisfies DateType}
             value={submittedDate}
             onChange={(newDate) => {
               setUserSubmittedDateOverride(newDate);

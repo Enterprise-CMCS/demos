@@ -1,7 +1,7 @@
 import React from "react";
 import { ExitIcon, FileIcon } from "components/icons";
 import { tw } from "tags/tw";
-import { formatDate } from "util/formatDate";
+import { formatDateForDisplay } from "util/formatDate";
 import { DocumentType } from "demos-server-constants";
 
 const abbreviateLongFilename = (str: string): string => {
@@ -43,7 +43,7 @@ export const DocumentChip: React.FC<{
         </span>
         {document.createdAt && document.documentType && (
           <span className={STYLES.subtext}>
-            {formatDate(document.createdAt)}
+            {formatDateForDisplay(document.createdAt)}
             {` • ${document.documentType}`}
           </span>
         )}
