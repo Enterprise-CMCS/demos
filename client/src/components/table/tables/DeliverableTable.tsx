@@ -41,10 +41,11 @@ export type DeliverableTableRow = Omit<
     person: Pick<Person, "fullName" | "id">;
   };
   demonstrationTypes: Tag[];
-  submissionDate?: string | Date;
+  submissionDate?: string;
   extensionRequests: Pick<Deliverable["extensionRequests"][number], "id" | "status">[];
-  deliverableActions: (Pick<Deliverable["deliverableActions"][number], "id" | "actionType"> &
-    Partial<Pick<Deliverable["deliverableActions"][number], "actionTimestamp">>)[];
+  deliverableActions: (Pick<Deliverable["deliverableActions"][number], "id" | "actionType"> & {
+    actionTimestamp?: string;
+  })[];
   cmsDocuments?: Pick<Deliverable["cmsDocuments"][number], "id">[];
   stateDocuments?: Pick<Deliverable["stateDocuments"][number], "id">[];
   publicComments?: Pick<Deliverable["publicComments"][number], "id">[];
