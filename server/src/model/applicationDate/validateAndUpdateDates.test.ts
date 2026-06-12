@@ -71,7 +71,7 @@ describe("validateAndUpdateDates", () => {
         dateValue: testDateTimeValue3,
       },
     ],
-    applicationDatesToDelete: ["SME Review Date"],
+    applicationDatesToDelete: ["SME Initial Review Date"],
   };
   const testExistingDates: ParsedApplicationDateInput[] = [
     {

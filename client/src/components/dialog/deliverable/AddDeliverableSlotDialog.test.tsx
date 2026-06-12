@@ -180,7 +180,6 @@ describe("AddDeliverableSlotDialog", () => {
     fireEvent.change(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME), {
       target: { value: "2026-06-15" },
     });
-    fireEvent.blur(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME));
 
     await user.type(screen.getByTestId(DELIVERABLE_NAME_FIELD_ID), "Test Deliverable");
 

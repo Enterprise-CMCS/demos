@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import {
   getInputColors,
   INPUT_BASE_CLASSES,
@@ -6,12 +6,23 @@ import {
   VALIDATION_MESSAGE_CLASSES,
 } from "components/input/Input";
 import { parseISO } from "date-fns";
-import { formatDate } from "util/formatDate";
+import { formatDateForDisplay } from "util/formatDate";
 
 const DEFAULT_MIN_DATE = "1900-01-01";
 const DEFAULT_MAX_DATE = "2099-12-31";
+const FULL_YEAR_DATE = "1000-01-01";
 
-interface DatePickerProps {
+export const DatePicker = ({
+  label,
+  name,
+  value,
+  onChange,
+  isRequired = false,
+  isDisabled = false,
+  minDate = DEFAULT_MIN_DATE,
+  maxDate = DEFAULT_MAX_DATE,
+  getValidationMessage = () => "",
+}: {
   name: string;
   label: string;
   onChange?: (newDate: string) => void;
@@ -21,62 +32,48 @@ interface DatePickerProps {
   minDate?: string;
   maxDate?: string;
   getValidationMessage?: () => string;
-}
-
-export const DatePicker: React.FC<DatePickerProps> = ({
-  label,
-  name,
-  value,
-  onChange,
-  isRequired,
-  isDisabled,
-  minDate,
-  maxDate,
-  getValidationMessage,
 }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const isFocusedRef = useRef(false);
-  const inputMin = minDate ?? DEFAULT_MIN_DATE;
-  const inputMax = maxDate ?? DEFAULT_MAX_DATE;
+  // Displayed date is needed to show out of range values in the input while not propagating them to the parent component via onChange.
+  const [displayedDate, setDisplayedDate] = React.useState(value ?? "");
 
-  // The input is uncontrolled (defaultValue + ref-sync). Native <input type="date"> is fragile:
-  // any DOM mutation, parent re-render, or write to .value while the field is focused can drop
-  // focus, reset the mm→dd→yyyy subfield cursor, or close the native calendar. So while the user
-  // is interacting with the field, React stays out — neither writing to the DOM here nor pushing
-  // updates to the parent (see handleBlur). The DOM is only synced from the value prop on
-  // external changes (load/reset) and only when the field is not focused.
-  useEffect(() => {
-    const input = inputRef.current;
-    if (!input || isFocusedRef.current) return;
-    if (input.value !== (value ?? "")) {
-      input.value = value ?? "";
-    }
+  // This is needed to update the displayed date when the parent component controls the value (e.g. when resetting the form). Without this, the input would not update to reflect changes to the value prop after the initial render. We want to allow the parent to control the value while still letting the user type out-of-range values without immediately reverting them back to a valid date. This effect ensures that when the parent updates the value prop
+  // (e.g. a computed date), the displayed date in the input also updates accordingly.
+  React.useEffect(() => {
+    setDisplayedDate(value ?? "");
   }, [value]);
 
-  const handleFocus = () => {
-    isFocusedRef.current = true;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newDate = e.target.value;
+    setDisplayedDate(newDate);
+
+    // Only call onChange if the date is valid (empty or within range).
+    if (newDate === "" || (newDate >= minDate && newDate <= maxDate)) {
+      onChange?.(newDate);
+    }
   };
 
-  // Commit on blur (and only on blur). Propagating live on each keystroke makes the parent
-  // re-render mid-edit, which in this app's dialog/form trees causes focus/calendar loss. Blur
-  // commits the final value — empty (cleared), in-range, or out-of-range — so the displayed
-  // value always matches what the parent holds and the out-of-range message surfaces correctly.
-  const handleBlur = () => {
-    isFocusedRef.current = false;
-    onChange?.(inputRef.current?.value ?? "");
-  };
+  const getDateValidationMessage = (): string => {
+    // First check if there's a custom validation message from the caller
+    if (getValidationMessage) {
+      const customMessage = getValidationMessage();
+      if (customMessage) return customMessage;
+    }
 
-  // Default out-of-range message, consistent with the native (inclusive) min/max bounds.
-  // A caller-supplied getValidationMessage always takes precedence. Native <input type="date">
-  // emits well-formed YYYY-MM-DD or "", so an ISO string compare is chronologically correct.
-  const getRangeValidationMessage = (): string => {
-    if (!value) return "";
-    if (value < inputMin) return `Date must be on or after ${formatDate(parseISO(inputMin))}.`;
-    if (value > inputMax) return `Date must be on or before ${formatDate(parseISO(inputMax))}.`;
+    // Nothing to validate if there's no value, return
+    if (!displayedDate) return "";
+
+    // Don't show range errors while the year is still being typed (year < 1000)
+    if (displayedDate < FULL_YEAR_DATE) return "";
+
+    // Check for the date to be in range
+    if (displayedDate < minDate)
+      return `Date must be on or after ${formatDateForDisplay(parseISO(minDate))}.`;
+    if (displayedDate > maxDate)
+      return `Date must be on or before ${formatDateForDisplay(parseISO(maxDate))}.`;
     return "";
   };
 
-  const validationMessage = getValidationMessage?.() || getRangeValidationMessage();
+  const validationMessage = getDateValidationMessage();
 
   return (
     <div className="flex flex-col gap-xs">
@@ -85,21 +82,19 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         {label}
       </label>
       <input
-        ref={inputRef}
         type="date"
         id={name}
         name={name}
         data-testid={name}
         className={`${INPUT_BASE_CLASSES} ${getInputColors(validationMessage)}`}
-        required={isRequired ?? false}
-        disabled={isDisabled ?? false}
-        defaultValue={value ?? ""}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        min={inputMin}
-        max={inputMax}
+        required={isRequired}
+        disabled={isDisabled}
+        value={displayedDate}
+        onChange={handleChange}
+        min={minDate}
+        max={maxDate}
       />
-      {validationMessage && <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>}
+      <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>
     </div>
   );
 };

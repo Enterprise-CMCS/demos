@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
-import { formatDate, formatDateForServer, getTodayEst } from "util/formatDate";
+import { formatDateForDisplay, formatDateForServer, getTodayEst } from "util/formatDate";
 import { ApplicationStatus, DateType, UpdateDemonstrationInput } from "demos-server";
 import {
   ApplicationWorkflowAmendment,
@@ -103,10 +103,10 @@ export const getDemonstrationApprovalSummaryFormData = (
     projectOfficerName: demonstration.primaryProjectOfficer?.fullName ?? "",
     status: demonstration.status,
     effectiveDate: demonstration.effectiveDate
-      ? formatDate(demonstration.effectiveDate)
+      ? formatDateForDisplay(demonstration.effectiveDate)
       : undefined,
     expirationDate: demonstration.expirationDate
-      ? formatDate(demonstration.expirationDate)
+      ? formatDateForDisplay(demonstration.expirationDate)
       : undefined,
     description: demonstration.description,
     sdgDivision: demonstration.sdgDivision,
@@ -137,7 +137,7 @@ export const getModificationApprovalSummaryFormData = (
     applicationType: modificationType,
     name: modification.name,
     effectiveDate: modification.effectiveDate
-      ? formatDate(modification.effectiveDate)
+      ? formatDateForDisplay(modification.effectiveDate)
       : undefined,
     description: modification.description,
     signatureLevel: modification.signatureLevel,
@@ -182,28 +182,32 @@ export const getApprovalSummaryPhaseFromApplication = (
   )?.dateValue;
 
   const allPreviousPhasesDone = application.phases
-    .filter(
-      (p) =>
-        p.phaseName !== "Concept" &&
-        p.phaseName !== "Approval Summary"
-    )
+    .filter((p) => p.phaseName !== "Concept" && p.phaseName !== "Approval Summary")
     .every((phase) => phase.phaseStatus === "Completed" || phase.phaseStatus === "Skipped");
 
-  const demonstrationId = workflowApplicationType === "demonstration" ?
-    application.id :
-    (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration.id;
+  const demonstrationId =
+    workflowApplicationType === "demonstration"
+      ? application.id
+      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
+        .id;
 
-  const demonstrationTypes = workflowApplicationType === "demonstration" ?
-    (application as ApplicationWorkflowDemonstration).demonstrationTypes :
-    (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration.demonstrationTypes;
+  const demonstrationTypes =
+    workflowApplicationType === "demonstration"
+      ? (application as ApplicationWorkflowDemonstration).demonstrationTypes
+      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
+        .demonstrationTypes;
 
-  const demonstrationStatus = workflowApplicationType === "demonstration" ?
-    (application as ApplicationWorkflowDemonstration).status :
-    (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration.status;
+  const demonstrationStatus =
+    workflowApplicationType === "demonstration"
+      ? (application as ApplicationWorkflowDemonstration).status
+      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
+        .status;
 
-  const medicaidId = workflowApplicationType === "demonstration" ?
-    (application as ApplicationWorkflowDemonstration).medicaidId :
-    (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration.medicaidId;
+  const medicaidId =
+    workflowApplicationType === "demonstration"
+      ? (application as ApplicationWorkflowDemonstration).medicaidId
+      : (application as ApplicationWorkflowAmendment | ApplicationWorkflowExtension).demonstration
+        .medicaidId;
 
   return (
     <ApprovalSummaryPhase
@@ -231,7 +235,9 @@ export const ApprovalSummaryPhase = ({
   allPreviousPhasesDone,
   demonstrationStatus,
 }: ApprovalSummaryPhaseProps) => {
-  const capitalizedType = initialFormData.applicationType.charAt(0).toUpperCase() + initialFormData.applicationType.slice(1);
+  const capitalizedType =
+    initialFormData.applicationType.charAt(0).toUpperCase() +
+    initialFormData.applicationType.slice(1);
   const [approvalSummaryFormData, setApprovalSummaryFormData] =
     useState<ApplicationDetailsFormData>(initialFormData);
 
@@ -254,7 +260,11 @@ export const ApprovalSummaryPhase = ({
   // Initialize completion date from backend if available
   const [applicationDetailsCompletionDate, setApplicationDetailsCompletionDate] = useState<
     string | undefined
-  >(applicationDetailsCompleteDate ? formatDate(applicationDetailsCompleteDate) : undefined);
+  >(
+    applicationDetailsCompleteDate
+      ? formatDateForDisplay(applicationDetailsCompleteDate)
+      : undefined
+  );
 
   // Find Approval Summary phase completion date (if backend has stored it)
   const approvalSummaryCompletionDateValue = approvalSummaryPhase?.phaseDates?.find(
@@ -264,7 +274,9 @@ export const ApprovalSummaryPhase = ({
   const [approvalSummaryCompletionDate, setApprovalSummaryCompletionDate] = useState<
     string | undefined
   >(
-    approvalSummaryCompletionDateValue ? formatDate(approvalSummaryCompletionDateValue) : undefined
+    approvalSummaryCompletionDateValue
+      ? formatDateForDisplay(approvalSummaryCompletionDateValue)
+      : undefined
   );
 
   const [updateDemonstrationTrigger] = useMutation(UPDATE_DEMONSTRATION_MUTATION);
@@ -358,16 +370,13 @@ export const ApprovalSummaryPhase = ({
         approvalSummaryFormData.signatureLevel
       );
     } else {
-      return !!(
-        approvalSummaryFormData.effectiveDate &&
-        approvalSummaryFormData.signatureLevel
-      );
+      return !!(approvalSummaryFormData.effectiveDate && approvalSummaryFormData.signatureLevel);
     }
   })();
 
   const setApplicationDetailsUIState = (complete: boolean) => {
     setIsApplicationDetailsComplete(complete);
-    setApplicationDetailsCompletionDate(complete ? formatDate(getTodayEst()) : undefined);
+    setApplicationDetailsCompletionDate(complete ? formatDateForDisplay(getTodayEst()) : undefined);
   };
 
   const handleMarkComplete = async () => {
@@ -448,7 +457,7 @@ export const ApprovalSummaryPhase = ({
         ) as typeof previousFormData.readonlyFields,
       }));
 
-      setApprovalSummaryCompletionDate(formatDate(today));
+      setApprovalSummaryCompletionDate(formatDateForDisplay(today));
 
       showSuccess(getPhaseCompletedMessage("Approval Summary"));
     } catch (error) {
@@ -460,7 +469,10 @@ export const ApprovalSummaryPhase = ({
   return (
     <div>
       <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">APPROVAL SUMMARY</h3>
-      <p className="text-sm text-text-placeholder mb-1">Review and verify {capitalizedType} Details and Performance Periods for Demonstration Types before approving this application.</p>
+      <p className="text-sm text-text-placeholder mb-1">
+        Review and verify {capitalizedType} Details and Performance Periods for Demonstration Types
+        before approving this application.
+      </p>
 
       <section className="bg-white pt-2 flex flex-col gap-2">
         <ApplicationDetailsSection
@@ -479,7 +491,7 @@ export const ApprovalSummaryPhase = ({
           isComplete={isDemonstrationTypesComplete}
           completionDate={
             demonstrationTypeCompletionDate
-              ? formatDate(demonstrationTypeCompletionDate)
+              ? formatDateForDisplay(demonstrationTypeCompletionDate)
               : undefined
           }
           isReadonly={isDemonstrationApproved}
@@ -495,9 +507,11 @@ export const ApprovalSummaryPhase = ({
           name="button-approve-application"
           size="small"
           disabled={!canApproveApplication}
-          onClick={() => showConfirmApproveDialog(handleApproveApplication, initialFormData.applicationType)}
+          onClick={() =>
+            showConfirmApproveDialog(handleApproveApplication, initialFormData.applicationType)
+          }
         >
-          Approve { capitalizedType }
+          Approve {capitalizedType}
         </Button>
       </div>
     </div>

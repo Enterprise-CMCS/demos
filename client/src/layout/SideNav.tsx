@@ -3,9 +3,7 @@ import React from "react";
 import { DebugOnly } from "components/debug/DebugOnly";
 import {
   ActionsIcon,
-  CommentIcon,
   CompareIcon,
-  DateIcon,
   FavoriteIcon,
   FileIcon,
   FolderIcon,
@@ -34,8 +32,6 @@ const debugNavLinks: NavLink[] = [
   { label: "Components", href: "/components", icon: <FolderIcon /> },
   { label: "Authentication", href: "/auth", icon: <ActionsIcon /> },
   { label: "Icons", href: "/icons", icon: <FavoriteIcon /> },
-  { label: "Events", href: "/events", icon: <CommentIcon /> },
-  { label: "Date Simulation", href: "/dates", icon: <DateIcon /> },
   { label: "Dialogs", href: "/dialogs", icon: <StackIcon /> },
 ];
 

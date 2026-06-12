@@ -177,7 +177,6 @@ describe("ReviewExtensionDeliverableDialog", () => {
     fireEvent.change(screen.getByTestId(REVIEW_EXTENSION_NEW_DATE_FIELD_NAME), {
       target: { value: "2099-03-25" },
     });
-    fireEvent.blur(screen.getByTestId(REVIEW_EXTENSION_NEW_DATE_FIELD_NAME));
     await user.click(screen.getByTestId(REVIEW_EXTENSION_SUBMIT_BUTTON_NAME));
 
     await waitFor(() => expect(mockApproveMutation).toHaveBeenCalledTimes(1));

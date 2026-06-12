@@ -1,7 +1,7 @@
 import "@testing-library/jest-dom";
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import {
@@ -11,7 +11,7 @@ import {
 } from "./SdgPreparationPhase";
 import { ApplicationWorkflowDemonstration } from "../demonstration/DemonstrationWorkflow";
 import { WorkflowApplication } from "components/application";
-import type { ApplicationStatus } from "demos-server";
+import type { ApplicationStatus, DateType, PhaseName, PhaseStatus } from "demos-server";
 import { parseISO } from "date-fns";
 import {
   FAILED_TO_SAVE_MESSAGE,
@@ -104,7 +104,7 @@ const mockCompleteApplication: ApplicationWorkflowDemonstration = {
           dateType: "Expected Approval Date",
           dateValue: parseISO("2025-01-01T05:00:00.000Z"),
         },
-        { dateType: "SME Review Date", dateValue: parseISO("2025-01-01T05:00:00.000Z") },
+        { dateType: "SME Initial Review Date", dateValue: parseISO("2025-01-01T05:00:00.000Z") },
         {
           dateType: "FRT Initial Meeting Date",
           dateValue: parseISO("2025-01-01T05:00:00.000Z"),
@@ -191,7 +191,7 @@ describe("SdgPreparationPhase", () => {
       setup();
 
       expect(screen.getByTestId("datepicker-sme-initial-review-date")).toHaveAccessibleName(
-        /SME Review Date/
+        /SME Initial Review Date/
       );
       expect(screen.getByTestId("datepicker-frt-initial-meeting-date")).toHaveAccessibleName(
         /FRT Initial Meeting Date/
@@ -240,7 +240,6 @@ describe("SdgPreparationPhase", () => {
       const expectedApprovalDateInput = screen.getByTestId("datepicker-expected-approval-date");
       await userEvent.clear(expectedApprovalDateInput);
       await userEvent.type(expectedApprovalDateInput, "2025-02-01");
-      fireEvent.blur(expectedApprovalDateInput);
 
       expect(saveButton).toBeEnabled();
     });
@@ -388,20 +387,23 @@ describe("Completed Phase Behavior", () => {
   });
 
   const completedPhase = {
-    phaseName: "SDG Preparation" as const,
-    phaseStatus: "Completed" as const,
+    phaseName: "SDG Preparation" as PhaseName,
+    phaseStatus: "Completed" as PhaseStatus,
     phaseDates: [
       {
-        dateType: "Expected Approval Date" as const,
-        dateValue: parseISO("2025-01-01T05:00:00.000Z"),
-      },
-      { dateType: "SME Review Date" as const, dateValue: parseISO("2025-01-01T05:00:00.000Z") },
-      {
-        dateType: "FRT Initial Meeting Date" as const,
+        dateType: "Expected Approval Date" as DateType,
         dateValue: parseISO("2025-01-01T05:00:00.000Z"),
       },
       {
-        dateType: "BNPMT Initial Meeting Date" as const,
+        dateType: "SME Initial Review Date" as DateType,
+        dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+      },
+      {
+        dateType: "FRT Initial Meeting Date" as DateType,
+        dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+      },
+      {
+        dateType: "BNPMT Initial Meeting Date" as DateType,
         dateValue: parseISO("2025-01-01T05:00:00.000Z"),
       },
     ],
@@ -445,7 +447,6 @@ describe("Completed Phase Behavior", () => {
     const dateInput = screen.getByTestId("datepicker-expected-approval-date");
     await userEvent.clear(dateInput);
     await userEvent.type(dateInput, "2025-06-01");
-    fireEvent.blur(dateInput);
 
     expect(saveButton).toBeEnabled();
   });
@@ -479,16 +480,19 @@ describe("Approved Application Behavior", () => {
 
   const allDates = [
     {
-      dateType: "Expected Approval Date" as const,
-      dateValue: parseISO("2025-01-01T05:00:00.000Z"),
-    },
-    { dateType: "SME Review Date" as const, dateValue: parseISO("2025-01-01T05:00:00.000Z") },
-    {
-      dateType: "FRT Initial Meeting Date" as const,
+      dateType: "Expected Approval Date" as DateType,
       dateValue: parseISO("2025-01-01T05:00:00.000Z"),
     },
     {
-      dateType: "BNPMT Initial Meeting Date" as const,
+      dateType: "SME Initial Review Date" as DateType,
+      dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+    },
+    {
+      dateType: "FRT Initial Meeting Date" as DateType,
+      dateValue: parseISO("2025-01-01T05:00:00.000Z"),
+    },
+    {
+      dateType: "BNPMT Initial Meeting Date" as DateType,
       dateValue: parseISO("2025-01-01T05:00:00.000Z"),
     },
   ];
@@ -620,7 +624,10 @@ describe("getSdgPreparationPhaseFromApplication", () => {
               dateType: "Expected Approval Date",
               dateValue: parseISO("2025-01-01T05:00:00.000Z"),
             },
-            { dateType: "SME Review Date", dateValue: parseISO("2025-01-02T05:00:00.000Z") },
+            {
+              dateType: "SME Initial Review Date",
+              dateValue: parseISO("2025-01-02T05:00:00.000Z"),
+            },
             {
               dateType: "FRT Initial Meeting Date",
               dateValue: parseISO("2025-01-03T05:00:00.000Z"),
@@ -684,7 +691,10 @@ describe("getSdgPreparationPhaseFromApplication", () => {
               dateType: "Expected Approval Date",
               dateValue: parseISO("2025-01-01T05:00:00.000Z"),
             },
-            { dateType: "SME Review Date", dateValue: parseISO("2025-01-02T05:00:00.000Z") },
+            {
+              dateType: "SME Initial Review Date",
+              dateValue: parseISO("2025-01-02T05:00:00.000Z"),
+            },
             {
               dateType: "FRT Initial Meeting Date",
               dateValue: parseISO("2025-01-03T05:00:00.000Z"),
@@ -806,7 +816,10 @@ describe("Amendment and Extension SDG Preparation", () => {
               dateType: "Expected Approval Date",
               dateValue: parseISO("2025-06-01T05:00:00.000Z"),
             },
-            { dateType: "SME Review Date", dateValue: parseISO("2025-05-01T05:00:00.000Z") },
+            {
+              dateType: "SME Initial Review Date",
+              dateValue: parseISO("2025-05-01T05:00:00.000Z"),
+            },
             {
               dateType: "FRT Initial Meeting Date",
               dateValue: parseISO("2025-05-15T05:00:00.000Z"),
@@ -843,7 +856,10 @@ describe("Amendment and Extension SDG Preparation", () => {
               dateType: "Expected Approval Date",
               dateValue: parseISO("2025-06-01T05:00:00.000Z"),
             },
-            { dateType: "SME Review Date", dateValue: parseISO("2025-05-01T05:00:00.000Z") },
+            {
+              dateType: "SME Initial Review Date",
+              dateValue: parseISO("2025-05-01T05:00:00.000Z"),
+            },
             {
               dateType: "FRT Initial Meeting Date",
               dateValue: parseISO("2025-05-15T05:00:00.000Z"),
@@ -897,7 +913,10 @@ describe("Amendment and Extension SDG Preparation", () => {
               dateType: "Expected Approval Date",
               dateValue: parseISO("2025-06-01T05:00:00.000Z"),
             },
-            { dateType: "SME Review Date", dateValue: parseISO("2025-05-01T05:00:00.000Z") },
+            {
+              dateType: "SME Initial Review Date",
+              dateValue: parseISO("2025-05-01T05:00:00.000Z"),
+            },
             {
               dateType: "FRT Initial Meeting Date",
               dateValue: parseISO("2025-05-15T05:00:00.000Z"),
