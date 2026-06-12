@@ -11,7 +11,7 @@ import {
   OnDemandReportColumnSchema,
   OnDemandReportConfiguration,
 } from "./onDemandReportConfigTypes";
-import { deliverableStatusReportQuery } from "./deliverableStatusReportQuery";
+import { deliverableStatusReportQueries } from "./deliverableStatusReportQueries";
 import { usDateString, usDateStringOrDash } from "./onDemandReportCustomSchemaTypes";
 
 type DeliverableStatusReportColumn =
@@ -112,7 +112,7 @@ const deliverableStatusReportColumnHeaders = {
 } satisfies OnDemandReportColumnHeader<DeliverableStatusReportColumn>;
 
 export const deliverableStatusReportConfiguration = {
-  sqlQuery: deliverableStatusReportQuery,
+  sqlQueries: deliverableStatusReportQueries,
   reportRowSchema: deliverableStatusReportSchema,
   excelConfiguration: { columnNames: deliverableStatusReportColumnHeaders },
 } satisfies OnDemandReportConfiguration;
