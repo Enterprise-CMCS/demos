@@ -16,11 +16,11 @@ export function createDateColumnDef<RowData, FieldName extends keyof RowData & s
     id: fieldName,
     header,
     cell: ({ getValue }) => {
-      const value = getValue() as Date | string | undefined;
+      const value = getValue() as string | undefined;
       return value ? formatDateForDisplay(value) : "";
     },
     filterFn: (row, columnId, filterValue: DateFilterValue) => {
-      const value = row.getValue(columnId) as Date | string | undefined;
+      const value = row.getValue(columnId) as string | undefined;
       if (!value) return false;
 
       const date = new Date(value);
