@@ -84,7 +84,6 @@ describe("EditDemonstrationTypeDialog", () => {
     const effectiveDateInput = screen.getByLabelText(/Effective Date/i);
     await user.clear(effectiveDateInput);
     await user.type(effectiveDateInput, "2024-02-01");
-    fireEvent.blur(effectiveDateInput);
 
     await waitFor(() => {
       const submitButton = screen.getByTestId(SUBMIT_BUTTON_TEST_ID);
@@ -146,7 +145,6 @@ describe("EditDemonstrationTypeDialog", () => {
       const effectiveDateInput = screen.getByLabelText(/Effective Date/i);
       await user.clear(effectiveDateInput);
       await user.type(effectiveDateInput, "2024-02-01");
-      fireEvent.blur(effectiveDateInput);
 
       await waitFor(() => {
         const submitButton = screen.getByTestId(SUBMIT_BUTTON_TEST_ID);
@@ -169,7 +167,6 @@ describe("EditDemonstrationTypeDialog", () => {
 
       const expirationDateInput = screen.getByLabelText(/Expiration Date/i);
       await user.clear(expirationDateInput);
-      fireEvent.blur(expirationDateInput);
 
       await waitFor(() => {
         expect(screen.getByText("Expiration Date is required.")).toBeInTheDocument();
@@ -183,7 +180,6 @@ describe("EditDemonstrationTypeDialog", () => {
 
       const effectiveDateInput = screen.getByLabelText(/Effective Date/i);
       await user.clear(effectiveDateInput);
-      fireEvent.blur(effectiveDateInput);
 
       await waitFor(() => {
         expect(screen.getByText("Effective Date is required.")).toBeInTheDocument();
@@ -200,10 +196,8 @@ describe("EditDemonstrationTypeDialog", () => {
 
       await user.clear(effectiveDateInput);
       await user.type(effectiveDateInput, "2024-12-31");
-      fireEvent.blur(effectiveDateInput);
       await user.clear(expirationDateInput);
       await user.type(expirationDateInput, "2024-01-01");
-      fireEvent.blur(expirationDateInput);
 
       await waitFor(() => {
         expect(
@@ -223,10 +217,8 @@ describe("EditDemonstrationTypeDialog", () => {
 
         await user.clear(effectiveDateInput);
         await user.type(effectiveDateInput, "2090-01-01");
-        fireEvent.blur(effectiveDateInput);
         await user.clear(expirationDateInput);
         await user.type(expirationDateInput, "2090-12-31");
-        fireEvent.blur(expirationDateInput);
 
         await waitFor(() => {
           expect(screen.getByText("Pending")).toBeInTheDocument();
@@ -242,10 +234,8 @@ describe("EditDemonstrationTypeDialog", () => {
 
         await user.clear(effectiveDateInput);
         await user.type(effectiveDateInput, "1901-01-01");
-        fireEvent.blur(effectiveDateInput);
         await user.clear(expirationDateInput);
         await user.type(expirationDateInput, "1901-12-31");
-        fireEvent.blur(expirationDateInput);
 
         await waitFor(() => {
           expect(screen.getByText("Expired")).toBeInTheDocument();
@@ -261,10 +251,8 @@ describe("EditDemonstrationTypeDialog", () => {
 
         await user.clear(effectiveDateInput);
         await user.type(effectiveDateInput, "1901-01-01");
-        fireEvent.blur(effectiveDateInput);
         await user.clear(expirationDateInput);
         await user.type(expirationDateInput, "2090-12-31");
-        fireEvent.blur(expirationDateInput);
 
         await waitFor(() => {
           expect(screen.getByText("Active")).toBeInTheDocument();
@@ -282,10 +270,8 @@ describe("EditDemonstrationTypeDialog", () => {
 
         await user.clear(effectiveDateInput);
         await user.type(effectiveDateInput, today);
-        fireEvent.blur(effectiveDateInput);
         await user.clear(expirationDateInput);
         await user.type(expirationDateInput, "2090-12-31");
-        fireEvent.blur(expirationDateInput);
 
         await waitFor(() => {
           expect(screen.getByText("Active")).toBeInTheDocument();
@@ -300,10 +286,8 @@ describe("EditDemonstrationTypeDialog", () => {
         const today = formatDateForServer(getTodayEst());
         await user.clear(effectiveDateInput);
         await user.type(effectiveDateInput, "1901-01-01");
-        fireEvent.blur(effectiveDateInput);
         await user.clear(expirationDateInput);
         await user.type(expirationDateInput, today);
-        fireEvent.blur(expirationDateInput);
         await waitFor(() => {
           expect(screen.getByText("Active")).toBeInTheDocument();
         });
@@ -371,7 +355,6 @@ describe("EditDemonstrationTypeDialog", () => {
       const effectiveDateInput = screen.getByLabelText(/Effective Date/i);
       await user.clear(effectiveDateInput);
       await user.type(effectiveDateInput, "2024-02-01");
-      fireEvent.blur(effectiveDateInput);
 
       await waitFor(() => {
         const submitButton = screen.getByTestId(SUBMIT_BUTTON_TEST_ID);
@@ -393,7 +376,6 @@ describe("EditDemonstrationTypeDialog", () => {
       const effectiveDateInput = screen.getByLabelText(/Effective Date/i);
       await user.clear(effectiveDateInput);
       await user.type(effectiveDateInput, "2024-02-01");
-      fireEvent.blur(effectiveDateInput);
 
       await waitFor(() => {
         const submitButton = screen.getByTestId(SUBMIT_BUTTON_TEST_ID);
@@ -414,10 +396,8 @@ describe("EditDemonstrationTypeDialog", () => {
 
       await user.clear(effectiveDateInput);
       await user.type(effectiveDateInput, "2024-03-15");
-      fireEvent.blur(effectiveDateInput);
       await user.clear(expirationDateInput);
       await user.type(expirationDateInput, "2024-11-30");
-      fireEvent.blur(expirationDateInput);
 
       await waitFor(() => {
         const submitButton = screen.getByTestId(SUBMIT_BUTTON_TEST_ID);

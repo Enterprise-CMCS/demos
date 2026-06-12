@@ -100,12 +100,20 @@ export class DatabaseStack extends Stack {
       }
     })
 
+    const instanceSizeByStage: Partial<Record<string, aws_ec2.InstanceSize>> = {
+      test: aws_ec2.InstanceSize.SMALL,
+      impl: aws_ec2.InstanceSize.LARGE,
+      prod: aws_ec2.InstanceSize.LARGE,
+    }
+
+    const instanceSize = instanceSizeByStage[props.stage] ?? aws_ec2.InstanceSize.MICRO
+
     const dbInstance = new aws_rds.DatabaseInstance(
       commonProps.scope,
       `${commonProps.project}-${commonProps.stage}-rds`,
       {
         engine,
-        instanceType: aws_ec2.InstanceType.of(aws_ec2.InstanceClass.BURSTABLE4_GRAVITON, aws_ec2.InstanceSize.MICRO),
+        instanceType: aws_ec2.InstanceType.of(aws_ec2.InstanceClass.BURSTABLE4_GRAVITON, instanceSize),
         vpc: commonProps.vpc,
         vpcSubnets: { subnets: props.vpc.privateSubnets },
         multiAz: commonProps.stage == "prod",

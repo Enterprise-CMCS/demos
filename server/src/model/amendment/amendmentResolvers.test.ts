@@ -345,7 +345,7 @@ describe("amendmentResolvers", () => {
         description: testAmendmentDescription,
       },
     };
-    const expectedCheckOptionalNotNullFieldList = ["demonstrationId", "name", "status"];
+    const expectedCheckOptionalNotNullFieldList = ["demonstrationId", "name"];
     const testEasternTZDate: EasternTZDate = {
       isEasternTZDate: true,
       easternTZDate: new TZDate(2025, 1, 1, 0, 0, 0, 0, "America/New_York"),

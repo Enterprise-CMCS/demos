@@ -21,11 +21,6 @@ vi.mock("components/table/tables/ApprovalPackageTable", () => ({
   ),
 }));
 
-vi.mock("util/formatDate", () => ({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  formatDate: (date: string | Date) => "FormattedDate",
-}));
-
 const mockCompletePhase = vi.fn();
 vi.mock("components/application/phase-status/phaseCompletionQueries", () => ({
   useCompletePhase: () => ({

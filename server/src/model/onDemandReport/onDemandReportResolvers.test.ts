@@ -151,6 +151,8 @@ describe("onDemandReportResolvers", () => {
         )
       ).rejects.toThrow(testCustomGQLError);
 
+      expect(log.error).toHaveBeenCalledTimes(1);
+      expect(log.error).toHaveBeenCalledWith("Zod Validation Errors!\n");
       expect(throwCustomGQLError).toHaveBeenCalledExactlyOnceWith(
         `Running the on-demand ${testReportType} report caused a Zod validation error.`,
         "ON_DEMAND_REPORT_ZOD_ERROR"
@@ -186,13 +188,14 @@ describe("onDemandReportResolvers", () => {
         )
       ).rejects.toThrow(testCustomGQLError);
 
-      expect(log.error).toHaveBeenCalledTimes(2);
+      expect(log.error).toHaveBeenCalledTimes(3);
       expect(log.error).toHaveBeenNthCalledWith(
         1,
         "s3Adapter.deleteOnDemandReport encountered an error while trying to clean up " +
           `after generating report with ID ${mockReportId} failed.`
       );
       expect(log.error).toHaveBeenNthCalledWith(2, cleanupError);
+      expect(log.error).toHaveBeenNthCalledWith(3, "Zod Validation Errors!\n");
     });
 
     it("delegates non-ZodErrors to handlePrismaError", async () => {

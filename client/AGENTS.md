@@ -47,13 +47,24 @@ This file provides instructions for AI agents to use when generating or editing 
 - Before using raw HTML controls, check `src/components/` and `src/layout/` for an existing wrapper.
 - Prefer project components for inputs, buttons, tables, dialogs, tabs, and toast/notice feedback.
 
+#### DatePicker
+
+- DatePickers propagate valid values (yyyy-mm-dd) back to calling components `onChange` handler.
+- Computed dates receive values via the `value` prop and display this.
+- Out-of-range inputs are displayed and flagged but not propagated.
+
 ## Apollo / GraphQL
 
 - Co-locate each `gql` document with the component/hook that owns it.
 - Export query/mutation documents if tests, mocks, or `refetchQueries` need them.
 - After successful mutations, refetch affected queries.
-- All outbound dates must use `formatDateForServer` from `util/formatDate`.
-- Inbound dates may need to use `getDateEst(date)`.
+
+### Dates
+
+- The type `LocalDate` is just an alias for `string`.
+- All outbound dates must use `formatDateForServer` from `util/formatDate`. This may require `as LocalDate` on the type.
+- Inbound dates from the server that should display as a date (no time component) should use `getDateEst(dateFromServer)`
+- `formatDateForDisplay` should be used only as a final wrapper in case a date should be displayed as mm/dd/yyyy instead of in ISO format.
 
 ## Testing
 
@@ -67,6 +78,7 @@ This file provides instructions for AI agents to use when generating or editing 
 - Prefer to keep mock data in test files for clarity / isolation rather than in `/mock-data`.
 - Use <TestProvider> as needed to provide dependencies such as toasts, auth, routing, etc.
 - Prefer to not mock <DialogProvider>. Also <TestProvider> does not provide dialogs and they should be provided inside of <TestProvider> if needed.
+- Generally, avoid firing manual focus / blur events in tests
 
 ### General Testing
 

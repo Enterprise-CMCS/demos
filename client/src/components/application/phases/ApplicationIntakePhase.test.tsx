@@ -230,7 +230,6 @@ describe("ApplicationIntakePhase", () => {
       expect(submittedDateInput.value).toBe("");
 
       fireEvent.change(submittedDateInput, { target: { value: "2024-04-10" } });
-      fireEvent.blur(submittedDateInput);
 
       expect(submittedDateInput.value).toBe("2024-04-10");
 
@@ -612,7 +611,6 @@ describe("ApplicationIntakePhase", () => {
       ) as HTMLInputElement;
 
       fireEvent.change(submittedDateInput, { target: { value: "2024-03-15" } });
-      fireEvent.blur(submittedDateInput);
 
       expect(submittedDateInput.value).toBe("2024-03-15");
     });
@@ -627,7 +625,6 @@ describe("ApplicationIntakePhase", () => {
       ) as HTMLInputElement;
 
       fireEvent.change(submittedDateInput, { target: { value: "2024-03-15" } });
-      fireEvent.blur(submittedDateInput);
 
       // Completeness review due date should be 15 days later: 2024-03-30
       await waitFor(() => {

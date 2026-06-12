@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { tw } from "tags/tw";
 import { ApplicationUploadSection } from "components/application/phases/sections";
-import { formatDate } from "util/formatDate";
+import { formatDateForDisplay } from "util/formatDate";
 import { useDialog } from "components/dialog/DialogContext";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { differenceInCalendarDays } from "date-fns";
@@ -61,20 +61,20 @@ const FederalCommentNotice: React.FC<{ phaseEndDate?: Date; phaseComplete: boole
     if (daysLeft > 1) {
       return {
         title: `${daysLeft} days left in Federal Comment Period`,
-        description: `The Federal Comment Period ends on ${formatDate(phaseEndDate)}`,
+        description: `The Federal Comment Period ends on ${formatDateForDisplay(phaseEndDate)}`,
         variant: "warning" as NoticeVariant,
       };
     }
     if (daysLeft === 1) {
       return {
         title: "1 day left in Federal Comment Period",
-        description: `The Federal Comment Period ends on ${formatDate(phaseEndDate)}`,
+        description: `The Federal Comment Period ends on ${formatDateForDisplay(phaseEndDate)}`,
         variant: "error" as NoticeVariant,
       };
     }
     return {
       title: `${Math.abs(daysLeft)} days past due`,
-      description: `The Federal Comment Period ended on ${formatDate(phaseEndDate)}`,
+      description: `The Federal Comment Period ended on ${formatDateForDisplay(phaseEndDate)}`,
       variant: "error" as NoticeVariant,
     };
   };
@@ -123,11 +123,11 @@ export const FederalCommentPhase: React.FC<FederalCommentPhaseProps> = ({
       <div className="flex gap-8 mt-4 text-sm text-text-placeholder">
         <div className="flex flex-col">
           <span className="font-bold">Federal Comment Period Start Date</span>
-          <span>{phaseStartDate ? formatDate(phaseStartDate) : "--/--/----"}</span>
+          <span>{phaseStartDate ? formatDateForDisplay(phaseStartDate) : "--/--/----"}</span>
         </div>
         <div className="flex flex-col">
           <span className="font-bold">Federal Comment Period End Date</span>
-          <span>{phaseEndDate ? formatDate(phaseEndDate) : "--/--/----"}</span>
+          <span>{phaseEndDate ? formatDateForDisplay(phaseEndDate) : "--/--/----"}</span>
         </div>
       </div>
     </div>

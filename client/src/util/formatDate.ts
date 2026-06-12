@@ -11,7 +11,7 @@ export const EST_TIMEZONE = "America/New_York";
 /**
  * Formats a date to MM/DD/YYYY
  */
-export const formatDate = (date: DateArgument): string => {
+export const formatDateForDisplay = (date: DateArgument): string => {
   return format(date, US_DATE_FORMAT);
 };
 
