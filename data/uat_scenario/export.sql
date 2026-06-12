@@ -65,7 +65,27 @@ select * from deliverable where demonstration_id = :'demonstration_id'
 \g output/deliverable.csv
 
 COPY (
-select * from deliverable_action where deliverable_id in (select id from deliverable where demonstration_id = :'demonstration_id')
+select
+	deliverable_action.id,
+	deliverable_action.action_timestamp,
+	deliverable_action.deliverable_id,
+	deliverable_action.action_type_id,
+	deliverable_action.old_status_id,
+	deliverable_action.new_status_id,
+	deliverable_action.note,
+	deliverable_action.active_extension_id,
+	deliverable_action.due_date_change_allowed,
+	deliverable_action.should_have_note,
+	deliverable_action.should_have_user_id,
+	deliverable_action.extension_id_optional,
+	deliverable_action.old_due_date,
+	deliverable_action.new_due_date,
+	deliverable_action.user_id,
+	users.person_type_id as user_person_type_id
+from deliverable_action
+left join users
+	on users.id = deliverable_action.user_id
+where deliverable_id in (select id from deliverable where demonstration_id = :'demonstration_id')
 ) TO STDOUT WITH (format csv, header true)
 \g output/deliverable_action.csv
 
@@ -145,12 +165,32 @@ select * from extension where demonstration_id = :'demonstration_id'
 \g output/extension.csv
 
 COPY (
-select * from private_comment where private_comment.deliverable_id in (select id from deliverable where demonstration_id = :'demonstration_id')
+select
+	private_comment.id,
+	private_comment.deliverable_id,
+	private_comment.author_user_id,
+	private_comment.author_person_type_id,
+	private_comment.content,
+	private_comment.created_at,
+	private_comment.updated_at
+from private_comment
+where private_comment.deliverable_id in (select id from deliverable where demonstration_id = :'demonstration_id')
 ) TO STDOUT WITH (format csv, header true)
 \g output/private_comment.csv
 
 COPY (
-select * from public_comment where public_comment.deliverable_id in (select id from deliverable where demonstration_id = :'demonstration_id')
+select
+	public_comment.id,
+	public_comment.deliverable_id,
+	public_comment.author_user_id,
+	users.person_type_id as author_person_type_id,
+	public_comment.content,
+	public_comment.created_at,
+	public_comment.updated_at
+from public_comment
+join users
+	on users.id = public_comment.author_user_id
+where public_comment.deliverable_id in (select id from deliverable where demonstration_id = :'demonstration_id')
 ) TO STDOUT WITH (format csv, header true)
 \g output/public_comment.csv
 

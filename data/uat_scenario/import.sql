@@ -78,6 +78,25 @@ create temporary table import_deliverable (
 	updated_at timestamptz
 ) on commit drop;
 
+create temporary table import_deliverable_action (
+	id uuid,
+	action_timestamp timestamptz,
+	deliverable_id uuid,
+	action_type_id text,
+	old_status_id text,
+	new_status_id text,
+	note text,
+	active_extension_id uuid,
+	due_date_change_allowed boolean,
+	should_have_note boolean,
+	should_have_user_id boolean,
+	extension_id_optional boolean,
+	old_due_date timestamptz,
+	new_due_date timestamptz,
+	user_id uuid,
+	user_person_type_id text
+) on commit drop;
+
 create temporary table import_target_user (
 	owner_kind text,
 	user_id uuid,
@@ -103,6 +122,26 @@ create temporary table import_document (
 	updated_at timestamptz
 ) on commit drop;
 
+create temporary table import_private_comment (
+	id uuid,
+	deliverable_id uuid,
+	author_user_id uuid,
+	author_person_type_id text,
+	content text,
+	created_at timestamptz,
+	updated_at timestamptz
+) on commit drop;
+
+create temporary table import_public_comment (
+	id uuid,
+	deliverable_id uuid,
+	author_user_id uuid,
+	author_person_type_id text,
+	content text,
+	created_at timestamptz,
+	updated_at timestamptz
+) on commit drop;
+
 -- Load direct-copy tables first, and stage the tables whose data must be rewritten
 -- for the target environment.
 \copy application from 'output/application.csv' with (format csv, header true)
@@ -115,7 +154,10 @@ create temporary table import_document (
 \copy import_application_phase from 'output/application_phase.csv' with (format csv, header true)
 \copy application_tag_assignment from 'output/application_tag_assignment.csv' with (format csv, header true)
 \copy import_deliverable from 'output/deliverable.csv' with (format csv, header true)
+\copy import_deliverable_action from 'output/deliverable_action.csv' with (format csv, header true)
 \copy import_document from 'output/document.csv' with (format csv, header true)
+\copy import_private_comment from 'output/private_comment.csv' with (format csv, header true)
+\copy import_public_comment from 'output/public_comment.csv' with (format csv, header true)
 
 insert into demonstration (id, application_type_id, name, description, effective_date, expiration_date, sdg_division_id, signature_level_id, status_id, current_phase_id, state_id, clearance_level_id, created_at, updated_at)
 select id, application_type_id, name, description, effective_date, expiration_date, sdg_division_id, signature_level_id, status_id, current_phase_id, state_id, clearance_level_id, created_at, updated_at
@@ -273,8 +315,53 @@ join import_target_user as target_cms
 
 \copy deliverable_extension from 'output/deliverable_extension.csv' with (format csv, header true)
 \copy deliverable_active_extension from 'output/deliverable_active_extension.csv' with (format csv, header true)
-\copy deliverable_action from 'output/deliverable_action.csv' with (format csv, header true)
 \copy deliverable_demonstration_type from 'output/deliverable_demonstration_type.csv' with (format csv, header true)
+
+-- Deliverable actions can reference environment-specific users. Preserve null user_id
+-- values, rewrite CMS/admin actors to the fixed CMS user, and route all other actors
+-- to the fixed state user.
+insert into deliverable_action (
+	id,
+	action_timestamp,
+	deliverable_id,
+	action_type_id,
+	old_status_id,
+	new_status_id,
+	note,
+	active_extension_id,
+	due_date_change_allowed,
+	should_have_note,
+	should_have_user_id,
+	extension_id_optional,
+	old_due_date,
+	new_due_date,
+	user_id
+)
+select
+	import_deliverable_action.id,
+	import_deliverable_action.action_timestamp,
+	import_deliverable_action.deliverable_id,
+	import_deliverable_action.action_type_id,
+	import_deliverable_action.old_status_id,
+	import_deliverable_action.new_status_id,
+	import_deliverable_action.note,
+	import_deliverable_action.active_extension_id,
+	import_deliverable_action.due_date_change_allowed,
+	import_deliverable_action.should_have_note,
+	import_deliverable_action.should_have_user_id,
+	import_deliverable_action.extension_id_optional,
+	import_deliverable_action.old_due_date,
+	import_deliverable_action.new_due_date,
+	case
+		when import_deliverable_action.user_id is null then null
+		else target_owner.user_id
+	end
+from import_deliverable_action
+left join import_target_user as target_owner
+	on target_owner.owner_kind = case
+		when import_deliverable_action.user_person_type_id in ('demos-admin', 'demos-cms-user') then 'cms'
+		else 'state'
+	end;
 
 -- Documents also carry environment-specific ownership. Route source CMS/admin owners
 -- to the fixed target CMS user and all other owners to the fixed target state user.
@@ -319,7 +406,55 @@ join import_target_user as target_owner
 	end;
 
 \copy budget_neutrality_workbook from 'output/budget_neutrality_workbook.csv' with (format csv, header true)
-\copy private_comment from 'output/private_comment.csv' with (format csv, header true)
-\copy public_comment from 'output/public_comment.csv' with (format csv, header true)
+
+-- Private comments also encode author person type, so rewrite both author columns to
+-- the fixed target CMS/state users.
+insert into private_comment (
+	id,
+	deliverable_id,
+	author_user_id,
+	author_person_type_id,
+	content,
+	created_at,
+	updated_at
+)
+select
+	import_private_comment.id,
+	import_private_comment.deliverable_id,
+	target_owner.user_id,
+	target_owner.person_type_id,
+	import_private_comment.content,
+	import_private_comment.created_at,
+	import_private_comment.updated_at
+from import_private_comment
+join import_target_user as target_owner
+	on target_owner.owner_kind = case
+		when import_private_comment.author_person_type_id in ('demos-admin', 'demos-cms-user') then 'cms'
+		else 'state'
+	end;
+
+-- Public comments only store author_user_id in the live table, so use the exported
+-- source author type to choose the fixed target CMS/state user.
+insert into public_comment (
+	id,
+	deliverable_id,
+	author_user_id,
+	content,
+	created_at,
+	updated_at
+)
+select
+	import_public_comment.id,
+	import_public_comment.deliverable_id,
+	target_owner.user_id,
+	import_public_comment.content,
+	import_public_comment.created_at,
+	import_public_comment.updated_at
+from import_public_comment
+join import_target_user as target_owner
+	on target_owner.owner_kind = case
+		when import_public_comment.author_person_type_id in ('demos-admin', 'demos-cms-user') then 'cms'
+		else 'state'
+	end;
 
 COMMIT;
