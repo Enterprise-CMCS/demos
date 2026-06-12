@@ -117,10 +117,9 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
       id: "viewDetails",
       header: () => <span className="sr-only">View</span>,
       cell: ({ row }) => {
-        // Always link to the parent demonstration page
-        // If this row is an amendment or extension, use the parent id and add the correct query param
-        let demoId = row.original.id;
+        let demoId = row.original.id; // link directly to demos
         let queryParam = "";
+        // If amendment or extension use the parent id and add the correct query param
         if (row.original.type === "amendment" && row.original.parentId) {
           demoId = row.original.parentId;
           queryParam = `amendments=${row.original.id}`;
@@ -147,7 +146,7 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
       },
       meta: {
         headerClassName: "w-[76px]",
-        cellClassName: "w-[76px]",
+        cellClassName: "w-[76px] text-right whitespace-nowrap",
       },
     }),
     columnHelper.display({
@@ -166,8 +165,8 @@ export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullNa
           ""
         ),
       meta: {
-        headerClassName: "w-[40px]",
-        cellClassName: "w-[40px] text-center",
+        headerClassName: "w-[32px]",
+        cellClassName: "w-[32px] text-left",
       },
     }),
   ];
