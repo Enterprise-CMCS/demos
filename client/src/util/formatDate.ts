@@ -9,21 +9,21 @@ const ISO_DATE_FORMAT = "yyyy-MM-dd";
 const US_DATE_FORMAT = "MM/dd/yyyy";
 export const EST_TIMEZONE = "America/New_York";
 
-/**
- * Formats a date to MM/DD/YYYY.
- * When passed a LocalDate string (yyyy-MM-dd), parses it in UTC to avoid
- * timezone-induced off-by-one shifts.
- */
+const isLocalDateString = (date: string): boolean => /^\d{4}-\d{2}-\d{2}$/.test(date);
+
+const formatLocalDateStringForDisplay = (date: LocalDate): string =>
+  format(parse(date, ISO_DATE_FORMAT, new UTCDate()), US_DATE_FORMAT);
+
 export const formatDateForDisplay = (date: DateArgument): string => {
-  // If the input is a string, check if it's a LocalDate (yyyy-MM-dd) and parse it as UTC to
-  // avoid timezone-induced off-by-one shifts. Otherwise, parse it as a full datetime.
   if (typeof date === "string") {
-    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      return format(parse(date, ISO_DATE_FORMAT, new UTCDate()), US_DATE_FORMAT);
+    // LocalDate strings (yyyy-MM-dd) must be parsed in UTC to avoid timezone-induced off-by-one shifts.
+    if (isLocalDateString(date)) {
+      return formatLocalDateStringForDisplay(date as LocalDate);
     }
+    // Full ISO datetime strings can be parsed directly by the Date constructor.
     return format(new Date(date), US_DATE_FORMAT);
   }
-  // Otherwise it's a date and we format it directly.
+  // Date objects are formatted directly.
   return format(date, US_DATE_FORMAT);
 };
 
