@@ -1,17 +1,29 @@
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
+import { UTCDate } from "@date-fns/utc";
 import { TZDate } from "@date-fns/tz";
 import { LocalDate } from "demos-server";
 
-type DateArgument = Date | string | number;
+type DateArgument = Date | string;
 
 const ISO_DATE_FORMAT = "yyyy-MM-dd";
 const US_DATE_FORMAT = "MM/dd/yyyy";
 export const EST_TIMEZONE = "America/New_York";
 
 /**
- * Formats a date to MM/DD/YYYY
+ * Formats a date to MM/DD/YYYY.
+ * When passed a LocalDate string (yyyy-MM-dd), parses it in UTC to avoid
+ * timezone-induced off-by-one shifts.
  */
 export const formatDateForDisplay = (date: DateArgument): string => {
+  // If the input is a string, check if it's a LocalDate (yyyy-MM-dd) and parse it as UTC to
+  // avoid timezone-induced off-by-one shifts. Otherwise, parse it as a full datetime.
+  if (typeof date === "string") {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return format(parse(date, ISO_DATE_FORMAT, new UTCDate()), US_DATE_FORMAT);
+    }
+    return format(new Date(date), US_DATE_FORMAT);
+  }
+  // Otherwise it's a date and we format it directly.
   return format(date, US_DATE_FORMAT);
 };
 
