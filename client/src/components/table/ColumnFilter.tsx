@@ -7,7 +7,6 @@ import { parseISO, format, isValid } from "date-fns";
 import { DatePicker } from "components/input/date/DatePicker";
 
 export interface ColumnMetaFilterConfig {
-  filterLabel?: string;
   filterConfig?:
     | {
         filterType: "select";
@@ -36,9 +35,7 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
 
   const columnOptions: Option[] = availableColumns.map((col) => {
     const columnDef = col.columnDef;
-    const meta = columnDef.meta as ColumnMetaFilterConfig | undefined;
-    const displayLabel =
-      meta?.filterLabel ?? (typeof columnDef.header === "string" ? columnDef.header : col.id);
+    const displayLabel = typeof columnDef.header === "string" ? columnDef.header : col.id;
 
     return {
       label: displayLabel,
@@ -83,10 +80,9 @@ export function ColumnFilter<T>({ table }: { table: Table<T> }) {
 
     const filterType = filterConfig?.filterType || "text";
     const columnDisplayName =
-      meta?.filterLabel ??
-      (typeof selectedColumnObj?.columnDef.header === "string"
+      typeof selectedColumnObj?.columnDef.header === "string"
         ? selectedColumnObj.columnDef.header
-        : selectedColumn);
+        : selectedColumn;
 
     switch (filterType) {
       case "select":
