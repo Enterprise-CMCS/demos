@@ -10,6 +10,8 @@ import { KeywordSearch } from "../KeywordSearch";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
 import { getDeliverableFilterOptions } from "./deliverablesFilterOptions";
 import { DeliverableActionButtons } from "./DeliverableActionButtons";
+import { formatDateForDisplay } from "util/formatDate";
+import { isAfter } from "date-fns";
 
 export type DeliverableTableRow = Omit<
   Deliverable,
@@ -44,7 +46,7 @@ export type DeliverableTableRow = Omit<
   submissionDate?: string;
   extensionRequests: Pick<Deliverable["extensionRequests"][number], "id" | "status">[];
   deliverableActions: (Pick<Deliverable["deliverableActions"][number], "id" | "actionType"> & {
-    actionTimestamp?: string;
+    actionTimestamp: Date;
   })[];
   cmsDocuments?: Pick<Deliverable["cmsDocuments"][number], "id">[];
   stateDocuments?: Pick<Deliverable["stateDocuments"][number], "id">[];
@@ -219,15 +221,22 @@ export const formatDeliverableStatus = (
   return formattedStatus;
 };
 
-export const getSubmissionDate = (
+export const getLatestSubmissionDate = (
   deliverableActions: DeliverableTableRow["deliverableActions"]
-) =>
-  deliverableActions
-    .filter((action) => action.actionType === "Submitted Deliverable" && action.actionTimestamp)
-    .sort(
-      (a, b) =>
-        new Date(b.actionTimestamp!).getTime() - new Date(a.actionTimestamp!).getTime()
-    )[0]?.actionTimestamp;
+): string | undefined => {
+  const submissions = deliverableActions.filter(
+    (action) => action.actionType === "Submitted Deliverable"
+  );
+
+  if (submissions.length === 0) {
+    return undefined;
+  }
+
+  submissions
+    .sort((a, b) => isAfter(a.actionTimestamp, b.actionTimestamp) ? -1 : 1);
+
+  return formatDateForDisplay(submissions[0].actionTimestamp);
+};
 
 /*
  * This generates a value that is used for filtering.
@@ -268,7 +277,7 @@ export const DeliverableTable: React.FC<{
   });
   const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({
     ...deliverable,
-    submissionDate: getSubmissionDate(deliverable.deliverableActions),
+    submissionDate: getLatestSubmissionDate(deliverable.deliverableActions),
     combinedStatus: formatDeliverableStatus(deliverable),
     combinedStatusFilter: formatDeliverableFilterStatus(deliverable),
   }));
