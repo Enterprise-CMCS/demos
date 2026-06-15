@@ -7,10 +7,17 @@ type DateFilterValue = {
   end?: Date;
 };
 
+type DateColumnMeta = {
+  headerClassName?: string;
+  headerContentClassName?: string;
+  cellClassName?: string;
+};
+
 export function createDateColumnDef<RowData, FieldName extends keyof RowData & string>(
   columnHelper: ColumnHelper<RowData>,
   fieldName: FieldName,
-  header: string
+  header: string,
+  meta?: DateColumnMeta
 ) {
   return columnHelper.accessor((row: RowData) => row[fieldName], {
     id: fieldName,
@@ -45,6 +52,7 @@ export function createDateColumnDef<RowData, FieldName extends keyof RowData & s
       return true;
     },
     meta: {
+      ...meta,
       filterConfig: {
         filterType: "date",
       },

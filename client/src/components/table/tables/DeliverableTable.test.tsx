@@ -368,7 +368,7 @@ describe("DeliverableTable", () => {
 
     expect(optionLabels).toEqual([
       "Select a Column...",
-      "State/Territory",
+      "State/\u200BTerritory",
       "Demonstration Name",
       "Deliverable Type",
       "Deliverable Name",

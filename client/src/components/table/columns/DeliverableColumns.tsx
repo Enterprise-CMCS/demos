@@ -72,17 +72,29 @@ export function DeliverableColumns({
     cell: highlightCell,
   });
 
-  const dueDateColumn = createDateColumnDef(columnHelper, "dueDate", "Due Date");
+  const dueDateColumn = createDateColumnDef(columnHelper, "dueDate", "Due Date", {
+    headerClassName: "w-[96px]",
+    headerContentClassName: "whitespace-nowrap",
+    cellClassName: "w-[96px] whitespace-nowrap",
+  });
   const submissionDateColumn = createDateColumnDef(
     columnHelper,
     "submissionDate",
-    "Submission Date"
+    "Submission Date",
+    {
+      headerClassName: "w-[128px]",
+      headerContentClassName: "whitespace-nowrap",
+      cellClassName: "w-[128px] whitespace-nowrap",
+    }
   );
   const statusColumn = columnHelper.accessor("combinedStatus", {
     header: "Status",
     cell: highlightCell,
     filterFn: "arrIncludesSome",
     meta: {
+      headerClassName: "w-[112px]",
+      headerContentClassName: "whitespace-nowrap",
+      cellClassName: "w-[112px] whitespace-nowrap",
       filterConfig: {
         filterType: "select",
         options: COMBINED_STATUS_OPTIONS,
@@ -108,6 +120,10 @@ export function DeliverableColumns({
       );
     },
     enableSorting: false,
+    meta: {
+      headerClassName: "w-[76px]",
+      cellClassName: "w-[76px] text-right",
+    },
   });
 
   if (viewMode === "demos-state-user") {
@@ -126,7 +142,7 @@ export function DeliverableColumns({
     createSelectColumnDef(columnHelper),
     columnHelper.accessor("demonstration.state.id", {
       id: "stateId",
-      header: "State/Territory",
+      header: "State/\u200BTerritory", // using zero width space for word break
       cell: highlightCell,
       filterFn: "arrIncludesSome",
       meta: {
