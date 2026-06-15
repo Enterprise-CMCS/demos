@@ -23,7 +23,9 @@ import { getOnDemandReportConfiguration } from "./configs";
 describe("runOnDemandReport", () => {
   const mockQueryRawUnsafe = vi.fn();
   const mockZodArray = { parse: vi.fn() };
-  const mockTx: Partial<PrismaTransactionClient> = { $queryRawUnsafe: mockQueryRawUnsafe };
+  const mockTx: Partial<PrismaTransactionClient> = {
+    $queryRawUnsafe: mockQueryRawUnsafe,
+  };
 
   // Using as any here; we don't need a valid Zod schema, just a payload to test
   const mockOnDemandReportConfiguration: OnDemandReportConfiguration = {
@@ -48,7 +50,7 @@ describe("runOnDemandReport", () => {
     await runOnDemandReport("Basic Test Report", mockTx as PrismaTransactionClient);
 
     expect(getOnDemandReportConfiguration).toHaveBeenCalledExactlyOnceWith("Basic Test Report");
-    expect(mockTx.$queryRawUnsafe.mock.calls).toStrictEqual([
+    expect(mockQueryRawUnsafe.mock.calls).toStrictEqual([
       [mockOnDemandReportConfiguration.sqlQueries[0]],
       [mockOnDemandReportConfiguration.sqlQueries[1]],
     ]);

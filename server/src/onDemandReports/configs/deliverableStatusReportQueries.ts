@@ -61,7 +61,7 @@ action_statistics AS (
 -- Means we don't need to mess with first_value(), etc
 current_extensions AS (
     SELECT
-        'Yes' AS extension_requested,
+        'Yes' AS extension_request_pending,
         de.id,
         de.deliverable_id,
         de.original_date_requested,
@@ -155,14 +155,14 @@ SELECT
     to_char(deliv.due_date AT TIME ZONE 'America/New_York', 'MM/DD/YYYY') AS due_date,
     coalesce(to_char(act_stats.most_recent_submission_timestamp AT TIME ZONE 'America/New_York', 'MM/DD/YYYY'), '-')
         AS submission_date,
-    coalesce(current_extensions.extension_requested, 'No') AS extension_requested,
+    coalesce(current_extensions.extension_request_pending, 'No') AS extension_request_pending,
     coalesce(to_char(current_extensions.original_date_requested AT TIME ZONE 'America/New_York', 'MM/DD/YYYY'), '-')
         AS extension_date_requested,
     coalesce(current_extensions.reason_code_id, '-') AS reason_for_extension,
     coalesce(current_extensions.note, '-') AS extension_request_comments,
     act_stats.n_requested_extensions AS total_extensions_requested,
     coalesce(to_char(most_recent_resub_reqs.new_due_date AT TIME ZONE 'America/New_York', 'MM/DD/YYYY'), '-')
-        AS resubmission_date,
+        AS resubmission_due_date,
     coalesce(most_recent_resub_reqs.note, '-') AS resubmission_request_comments,
     act_stats.n_requested_resubmissions AS total_resubmissions_requested,
     deliv.status_id AS deliverable_status,

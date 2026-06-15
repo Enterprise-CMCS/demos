@@ -1,3 +1,6 @@
+// plpgsql is used here so that we can dynamically pivot all the dates
+// Doing this helps to avoid silent errors happening if a date name changes
+// Since the generated column names will change, the Zod / TS validation will fail loudly
 const tempTableQuery = `
 DO $$
 BEGIN
