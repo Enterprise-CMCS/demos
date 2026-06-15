@@ -265,7 +265,7 @@ describe("ConceptPhase", () => {
     it("shows required asterisk when documents are uploaded", () => {
       setup();
 
-      const dateLabel = screen.getByText(/Pre-Submission Document Submitted Date/);
+      const dateLabel = screen.getByText(/Concept Paper Submitted Date/);
       const asterisk = dateLabel.parentElement?.querySelector(".text-text-warn");
       expect(asterisk).toBeInTheDocument();
     });
@@ -273,7 +273,7 @@ describe("ConceptPhase", () => {
     it("does not show required asterisk when no documents", () => {
       setup({ documents: [] });
 
-      const dateLabel = screen.getByText(/Pre-Submission Document Submitted Date/);
+      const dateLabel = screen.getByText(/Concept Paper Submitted Date/);
       const asterisk = dateLabel.parentElement?.querySelector(".text-text-warn");
       expect(asterisk).not.toBeInTheDocument();
     });
@@ -716,7 +716,7 @@ describe("ConceptPhase", () => {
             phaseStatus: "Started",
             phaseDates: [
               {
-                dateType: "Pre-Submission Submitted Date",
+                dateType: "Concept Paper Submitted Date",
                 dateValue: new Date("2024-03-15"),
               },
             ],

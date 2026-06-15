@@ -26,7 +26,7 @@ const STYLES = {
 };
 
 function getFormDataFromPhase(sdgPreparationPhase: SimplePhase): SdgPreparationPhaseFormData {
-  const getDateValue = (dateType: string) => {
+  const getDateValue = (dateType: DateType) => {
     const dateValue = sdgPreparationPhase.phaseDates.find(
       (d) => d.dateType === dateType
     )?.dateValue;
@@ -35,7 +35,7 @@ function getFormDataFromPhase(sdgPreparationPhase: SimplePhase): SdgPreparationP
 
   return {
     expectedApprovalDate: getDateValue("Expected Approval Date"),
-    smeInitialReviewDate: getDateValue("SME Review Date"),
+    smeInitialReviewDate: getDateValue("SME Initial Review Date"),
     frtInitialMeetingDate: getDateValue("FRT Initial Meeting Date"),
     bnpmtInitialMeetingDate: getDateValue("BNPMT Initial Meeting Date"),
   };
@@ -134,7 +134,7 @@ export const SdgPreparationPhase = ({
       if (sdgPreparationPhaseFormData.smeInitialReviewDate) {
         await setApplicationDate({
           applicationId: applicationId,
-          dateType: "SME Review Date" satisfies DateType,
+          dateType: "SME Initial Review Date" satisfies DateType,
           dateValue: sdgPreparationPhaseFormData.smeInitialReviewDate as LocalDate,
         });
       }
@@ -207,7 +207,7 @@ export const SdgPreparationPhase = ({
             <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
               <DatePicker
                 name="datepicker-expected-approval-date"
-                label="Expected Approval Date"
+                label={"Expected Approval Date" satisfies DateType}
                 value={sdgPreparationPhaseFormData.expectedApprovalDate}
                 onChange={(newDate) => {
                   setSdgPreparationPhaseFormData({
@@ -232,7 +232,7 @@ export const SdgPreparationPhase = ({
             <div className="flex flex-col gap-8 mt-2 text-sm text-text-placeholder">
               <DatePicker
                 name="datepicker-sme-initial-review-date"
-                label="SME Review Date"
+                label={"SME Initial Review Date" satisfies DateType}
                 isRequired={true}
                 value={sdgPreparationPhaseFormData.smeInitialReviewDate}
                 onChange={(newDate) => {
@@ -247,7 +247,7 @@ export const SdgPreparationPhase = ({
                 name="datepicker-frt-initial-meeting-date"
                 data-testid="datepicker-frt-initial-meeting-date"
                 isRequired={true}
-                label="FRT Initial Meeting Date"
+                label={"FRT Initial Meeting Date" satisfies DateType}
                 value={sdgPreparationPhaseFormData.frtInitialMeetingDate}
                 onChange={(newDate) => {
                   setSdgPreparationPhaseFormData({
@@ -259,7 +259,7 @@ export const SdgPreparationPhase = ({
               />
               <DatePicker
                 name="datepicker-bnpmt-initial-meeting-date"
-                label="BNPMT Initial Meeting Date"
+                label={"BNPMT Initial Meeting Date" satisfies DateType}
                 value={sdgPreparationPhaseFormData.bnpmtInitialMeetingDate}
                 onChange={(newDate) => {
                   setSdgPreparationPhaseFormData({

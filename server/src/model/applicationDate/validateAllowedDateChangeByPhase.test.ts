@@ -57,11 +57,11 @@ describe("validateAllowedDateChangeByPhase", () => {
             dateValue: "2026-01-01" as LocalDate,
           },
           {
-            dateType: "Pre-Submission Submitted Date",
+            dateType: "Concept Paper Submitted Date",
             dateValue: "2026-01-02" as LocalDate,
           },
           {
-            dateType: "SME Review Date",
+            dateType: "SME Initial Review Date",
             dateValue: "2026-01-03" as LocalDate,
           },
         ],
@@ -79,7 +79,7 @@ describe("validateAllowedDateChangeByPhase", () => {
       expect(getPhaseDateTypesByIds).toHaveBeenCalledExactlyOnceWith(
         mockTransaction,
         ["Review", "Concept"],
-        ["State Concurrence", "Pre-Submission Submitted Date", "SME Review Date"]
+        ["State Concurrence", "Concept Paper Submitted Date", "SME Initial Review Date"]
       );
     });
 
@@ -163,7 +163,7 @@ describe("validateAllowedDateChangeByPhase", () => {
             dateValue: "2026-01-01" as LocalDate,
           },
           {
-            dateType: "Pre-Submission Submitted Date",
+            dateType: "Concept Paper Submitted Date",
             dateValue: "2026-01-02" as LocalDate,
           },
         ],
@@ -177,12 +177,12 @@ describe("validateAllowedDateChangeByPhase", () => {
         },
         {
           phaseId: "Concept",
-          dateTypeId: "Pre-Submission Submitted Date",
+          dateTypeId: "Concept Paper Submitted Date",
         },
       ]);
 
       await expect(validateAllowedDateChangeByPhase(mockTransaction, input)).rejects.toThrow(
-        "Cannot modify dates because they are associated with finished phases: State Concurrence date on Review phase, Pre-Submission Submitted Date date on Concept phase."
+        "Cannot modify dates because they are associated with finished phases: State Concurrence date on Review phase, Concept Paper Submitted Date date on Concept phase."
       );
     });
 
@@ -223,11 +223,11 @@ describe("validateAllowedDateChangeByPhase", () => {
             dateValue: "2026-01-01" as LocalDate,
           },
           {
-            dateType: "Pre-Submission Submitted Date",
+            dateType: "Concept Paper Submitted Date",
             dateValue: "2026-01-02" as LocalDate,
           },
           {
-            dateType: "SME Review Date",
+            dateType: "SME Initial Review Date",
             dateValue: "2026-01-03" as LocalDate,
           },
         ],
@@ -245,16 +245,16 @@ describe("validateAllowedDateChangeByPhase", () => {
         },
         {
           phaseId: "Concept",
-          dateTypeId: "Pre-Submission Submitted Date",
+          dateTypeId: "Concept Paper Submitted Date",
         },
         {
           phaseId: "SDG Preparation",
-          dateTypeId: "SME Review Date",
+          dateTypeId: "SME Initial Review Date",
         },
       ]);
 
       await expect(validateAllowedDateChangeByPhase(mockTransaction, input)).rejects.toThrow(
-        "Cannot modify dates because they are associated with finished phases: State Concurrence date on Review phase, Pre-Submission Submitted Date date on Concept phase, SME Review Date date on SDG Preparation phase."
+        "Cannot modify dates because they are associated with finished phases: State Concurrence date on Review phase, Concept Paper Submitted Date date on Concept phase, SME Initial Review Date date on SDG Preparation phase."
       );
     });
   });
