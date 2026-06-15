@@ -29,7 +29,7 @@ export const CommentBoxTextArea = ({
   const textareaLabel = commentVisibility === "public" ? "Comments" : "CMS Internal Comments";
 
   return (
-    <div className="flex-1 flex flex-col gap-1">
+    <div className="flex flex-col gap-1">
       <Textarea
         label={textareaLabel}
         value={currentComment}
