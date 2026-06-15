@@ -11,7 +11,7 @@ import { sortDeliverablesByDefault } from "util/sortDeliverables";
 import { getDeliverableFilterOptions } from "./deliverablesFilterOptions";
 import { DeliverableActionButtons } from "./DeliverableActionButtons";
 import { formatDateForDisplay } from "util/formatDate";
-import { isAfter } from "date-fns";
+import { compareDesc } from "date-fns";
 
 export type DeliverableTableRow = Omit<
   Deliverable,
@@ -233,7 +233,7 @@ export const getLatestSubmissionDate = (
   }
 
   submissions
-    .sort((a, b) => isAfter(a.actionTimestamp, b.actionTimestamp) ? -1 : 1);
+    .sort((a, b) => compareDesc(a.actionTimestamp, b.actionTimestamp));
 
   return formatDateForDisplay(submissions[0].actionTimestamp);
 };

@@ -22,7 +22,7 @@ export function createDateColumnDef<RowData, FieldName extends keyof RowData & s
     },
     filterFn: (row, columnId, filterValue: DateFilterValue) => {
       const value = row.getValue(columnId) as string | undefined;
-      if (!value || value === defaultValue) return false;
+      if (!value) return false;
 
       const date = new Date(value);
       const { start, end } = filterValue || {};
