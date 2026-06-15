@@ -246,7 +246,7 @@ export const REVIEW_PHASE_DATE_TYPES = [
 
 export const DATE_TYPES = [
   "Concept Start Date",
-  "Pre-Submission Submitted Date",
+  "Concept Paper Submitted Date",
   "Concept Completion Date",
   "Concept Skipped Date",
   "Application Intake Start Date",
@@ -260,7 +260,7 @@ export const DATE_TYPES = [
   "Completeness Completion Date",
   "SDG Preparation Start Date",
   "Expected Approval Date",
-  "SME Review Date",
+  "SME Initial Review Date",
   "FRT Initial Meeting Date",
   "BNPMT Initial Meeting Date",
   "SDG Preparation Completion Date",
@@ -283,7 +283,7 @@ type DateTypeExpectedTimestampRecord = Record<DateType, { expectedTimestamp: Exp
 
 export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecord = {
   "Concept Start Date": { expectedTimestamp: "Start of Day" },
-  "Pre-Submission Submitted Date": { expectedTimestamp: "Start of Day" },
+  "Concept Paper Submitted Date": { expectedTimestamp: "Start of Day" },
   "Concept Completion Date": { expectedTimestamp: "Start of Day" },
   "Concept Skipped Date": { expectedTimestamp: "Start of Day" },
   "Application Intake Start Date": { expectedTimestamp: "Start of Day" },
@@ -297,7 +297,7 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "Completeness Completion Date": { expectedTimestamp: "Start of Day" },
   "SDG Preparation Start Date": { expectedTimestamp: "Start of Day" },
   "Expected Approval Date": { expectedTimestamp: "Start of Day" },
-  "SME Review Date": { expectedTimestamp: "Start of Day" },
+  "SME Initial Review Date": { expectedTimestamp: "Start of Day" },
   "FRT Initial Meeting Date": { expectedTimestamp: "Start of Day" },
   "BNPMT Initial Meeting Date": { expectedTimestamp: "Start of Day" },
   "SDG Preparation Completion Date": { expectedTimestamp: "Start of Day" },

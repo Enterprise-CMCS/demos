@@ -178,15 +178,15 @@ const applyProjectOfficerFilter = async (
 const applyStateFilter = async (user: ReturnType<typeof userEvent.setup>, stateCode: string) => {
   // Select state filter from column dropdown
   const columnSelect = screen.getByTestId("filter-by-column");
-  await user.selectOptions(columnSelect, ["State/Territory"]);
+  await user.selectOptions(columnSelect, ["stateId"]);
 
   // Wait for the state filter input to appear
   await waitFor(() => {
-    expect(screen.getByPlaceholderText(/select state\/territory/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/select state\/\u200Bterritory/i)).toBeInTheDocument();
   });
 
   // Filter by the specified state
-  const stateFilterInput = screen.getByPlaceholderText(/select state\/territory/i);
+  const stateFilterInput = screen.getByPlaceholderText(/select state\/\u200Bterritory/i);
   await user.type(stateFilterInput, stateCode);
 
   // Wait for dropdown and select state
@@ -275,7 +275,7 @@ describe("Demonstrations", () => {
       expect(headers).toHaveLength(7);
       expect(screen.getByRole("columnheader", { name: "Title Sort" })).toBeInTheDocument();
       expect(
-        screen.getByRole("columnheader", { name: "State/Territory Sort" })
+        screen.getByRole("columnheader", { name: "State/\u200BTerritory Sort" })
       ).toBeInTheDocument();
       expect(
         screen.getByRole("columnheader", { name: "Project Officer Sort" })
@@ -350,14 +350,14 @@ describe("Demonstrations", () => {
 
       // Open the column filter dropdown and select "State/Territory"
       const columnSelect = screen.getByTestId("filter-by-column");
-      await user.selectOptions(columnSelect, ["State/Territory"]);
+      await user.selectOptions(columnSelect, ["stateId"]);
 
       // Wait for the state filter input to appear
       await waitFor(() => {
-        expect(screen.getByPlaceholderText(/select state\/territory/i)).toBeInTheDocument();
+        expect(screen.getByPlaceholderText(/select state\/\u200Bterritory/i)).toBeInTheDocument();
       });
 
-      const stateFilterInput = screen.getByPlaceholderText(/select state\/territory/i);
+      const stateFilterInput = screen.getByPlaceholderText(/select state\/\u200Bterritory/i);
       await user.click(stateFilterInput);
 
       // Select "Montana"
