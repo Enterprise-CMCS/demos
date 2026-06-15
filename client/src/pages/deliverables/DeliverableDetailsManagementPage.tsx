@@ -328,7 +328,7 @@ export const DeliverableDetailsManagementPage: React.FC<{
           <div className="flex-1">
             <FileAndHistoryTabs deliverable={data.deliverable} />
           </div>
-          <div>
+          <div className="self-start">
             <CommentBox deliverableId={data.deliverable.id} />
           </div>
         </div>

@@ -2,6 +2,7 @@ import React from "react";
 import { compareDesc } from "date-fns";
 import { BaseButton } from "components/button/BaseButton";
 import { ChevronDownIcon, ChevronLeftIcon } from "components/icons";
+import { getLatestSubmissionDate } from "components/table/tables/DeliverableTable";
 import type { DeliverableDetailsManagementDeliverable } from "../DeliverableDetailsManagementPage";
 import { formatDateForDisplay } from "util/formatDate";
 
@@ -41,6 +42,8 @@ export const DeliverableInfoFields = ({
     (action) => action.actionType === "Requested Resubmission"
   ).length;
 
+  const submissionDate = getLatestSubmissionDate(deliverable.deliverableActions);
+
   const latestExtension = [...deliverable.extensionRequests].sort((a, b) =>
     compareDesc(a.createdAt, b.createdAt)
   )[0];
@@ -49,7 +52,7 @@ export const DeliverableInfoFields = ({
   const baseFields: DeliverableInfoField[] = [
     { label: "Deliverable Type", value: deliverable.deliverableType },
     { label: "Due Date", value: formatDateForDisplay(deliverable.dueDate) },
-    { label: "Submission Date", value: "—" },
+    { label: "Submission Date", value: submissionDate ?? "—" },
     { label: "Status", value: deliverable.status },
   ];
   const additionalFields: DeliverableInfoField[] = [

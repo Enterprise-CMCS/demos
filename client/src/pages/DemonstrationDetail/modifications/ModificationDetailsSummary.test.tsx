@@ -28,7 +28,7 @@ describe("ModificationDetailsSummary", () => {
     description: "This is a test modification description",
     status: "Pre-Submission",
     createdAt: new Date("2024-01-01"),
-    effectiveDate: new Date("2024-01-15"),
+    effectiveDate: new Date("2024-01-15T05:00:00.000Z"),
     signatureLevel: "OA",
     documents: [],
     medicaidId: "demo-1",

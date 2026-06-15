@@ -72,7 +72,7 @@ export function DeliverableColumns({
     cell: highlightCell,
   });
 
-  const dueDateColumn = createDateColumnDef(columnHelper, "dueDate", "Due Date", {
+  const dueDateColumn = createDateColumnDef(columnHelper, "dueDate", "Due Date", "", {
     headerClassName: "w-[96px]",
     headerContentClassName: "whitespace-nowrap",
     cellClassName: "w-[96px] whitespace-nowrap",
@@ -81,6 +81,7 @@ export function DeliverableColumns({
     columnHelper,
     "submissionDate",
     "Submission Date",
+    "-",
     {
       headerClassName: "w-[128px]",
       headerContentClassName: "whitespace-nowrap",

@@ -2,46 +2,94 @@ import React from "react";
 
 import { Loading } from "components/loading/Loading";
 import { useToast } from "components/toast";
-import { Demonstration, LocalDate, UpdateDemonstrationInput } from "demos-server";
+import {
+  Demonstration as ServerDemonstration,
+  LocalDate,
+  UpdateDemonstrationInput,
+  State as ServerState,
+  Person as ServerPerson,
+  DemonstrationRoleAssignment as ServerDemonstrationRoleAssignment,
+} from "demos-server";
 import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { formatDateForServer } from "util/formatDate";
 
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { gql, TypedDocumentNode, useMutation, useQuery } from "@apollo/client";
 
 import { DemonstrationDialog, DemonstrationDialogFields } from "./DemonstrationDialog";
 
 const SUCCESS_MESSAGE = "Your demonstration has been updated.";
 const ERROR_MESSAGE = "Your demonstration was not updated because of an unknown problem.";
 
-export const GET_DEMONSTRATION_BY_ID_QUERY = gql`
-  query GetDemonstrationById($id: ID!) {
+type Demonstration = Pick<
+  ServerDemonstration,
+  | "id"
+  | "name"
+  | "description"
+  | "status"
+  | "sdgDivision"
+  | "signatureLevel"
+  | "effectiveDate"
+  | "expirationDate"
+> & {
+  state: Pick<ServerState, "id">;
+  primaryProjectOfficer: Pick<ServerPerson, "id">;
+};
+
+export const GET_DEMONSTRATION_BY_ID_QUERY: TypedDocumentNode<
+  {
+    demonstration: Demonstration;
+  },
+  {
+    id: string;
+  }
+> = gql`
+  query EditDemonstrationDialog($id: ID!) {
     demonstration(id: $id) {
       id
       name
       description
+      status
       sdgDivision
       signatureLevel
+      effectiveDate
+      expirationDate
       state {
         id
       }
       primaryProjectOfficer {
         id
       }
-      effectiveDate
-      expirationDate
     }
   }
 `;
 
-export const UPDATE_DEMONSTRATION_MUTATION = gql`
+export const UPDATE_DEMONSTRATION_MUTATION: TypedDocumentNode<
+  {
+    demonstration: Demonstration & {
+      roles: (Pick<ServerDemonstrationRoleAssignment, "isPrimary" | "role"> & {
+        person: Pick<ServerPerson, "id">;
+      })[];
+    };
+  },
+  {
+    id: string;
+    input: UpdateDemonstrationInput;
+  }
+> = gql`
   mutation UpdateDemonstration($id: ID!, $input: UpdateDemonstrationInput!) {
     updateDemonstration(id: $id, input: $input) {
       id
       name
       description
+      status
       sdgDivision
       signatureLevel
+      effectiveDate
+      expirationDate
       state {
+        id
+      }
+      primaryProjectOfficer {
         id
       }
       roles {
@@ -51,11 +99,6 @@ export const UPDATE_DEMONSTRATION_MUTATION = gql`
           id
         }
       }
-      primaryProjectOfficer {
-        id
-      }
-      effectiveDate
-      expirationDate
     }
   }
 `;
@@ -71,7 +114,7 @@ export const getUpdateDemonstrationInput = (
     description: demonstration.description?.trim(),
     effectiveDate: (demonstration.effectiveDate as LocalDate) || null,
     expirationDate: (demonstration.expirationDate as LocalDate) || null,
-    sdgDivision: demonstration.sdgDivision,
+    sdgDivision: demonstration.sdgDivision || null,
   };
 };
 
@@ -142,6 +185,7 @@ export const EditDemonstrationDialog: React.FC<{
         <DemonstrationDialog
           onClose={onClose}
           mode="edit"
+          isApproved={data.demonstration.status === "Approved"}
           onSubmit={onSubmit}
           initialDemonstration={getDemonstrationDialogFields(data.demonstration)}
         />

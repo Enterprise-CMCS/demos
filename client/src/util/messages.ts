@@ -2,6 +2,8 @@ import { PhaseName } from "demos-server";
 
 // Demonstration
 export const EXPIRATION_DATE_ERROR_MESSAGE = "Expiration Date cannot be before Effective Date.";
+export const getRequiredFieldWhenApprovedMessage = (fieldName: string) =>
+  `${fieldName} is required when the application is approved.`;
 
 // Document Messages
 export const DOCUMENT_UPLOADED_MESSAGE = "Your document has been added.";

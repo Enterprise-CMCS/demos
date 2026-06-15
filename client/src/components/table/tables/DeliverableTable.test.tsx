@@ -3,11 +3,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { DeliverableTable, formatDeliverableStatus } from "./DeliverableTable";
+import { DeliverableTable, formatDeliverableStatus, getLatestSubmissionDate } from "./DeliverableTable";
 import { DELIVERABLE_CANT_DELETE_HAS_FILES } from "./DeliverableActionButtons";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
 import type { DeliverableTableRow } from "./DeliverableTable";
 import { MOCK_DELIVERABLE_TABLE_ROW } from "mock-data/deliverableMocks";
+import { formatDateForDisplay } from "util/formatDate";
 
 const showEditDeliverableDialog = vi.fn();
 const showRemoveDeliverableDialog = vi.fn();
@@ -227,6 +228,7 @@ describe("DeliverableTable", () => {
           {
             id: "1",
             actionType: "Requested Resubmission",
+            actionTimestamp: new Date("2024-01-01T00:00:00Z"),
           },
         ],
         extensionRequests: [
@@ -272,10 +274,12 @@ describe("DeliverableTable", () => {
           {
             id: "1",
             actionType: "Requested Resubmission",
+            actionTimestamp: new Date("2024-01-01T00:00:00Z"),
           },
           {
             id: "2",
             actionType: "Requested Resubmission",
+            actionTimestamp: new Date("2024-01-02T00:00:00Z"),
           },
         ],
         extensionRequests: [],
@@ -291,6 +295,7 @@ describe("DeliverableTable", () => {
           {
             id: "1",
             actionType: "Requested Resubmission",
+            actionTimestamp: new Date("2024-01-01T00:00:00Z"),
           },
         ],
         extensionRequests: [
@@ -326,6 +331,7 @@ describe("DeliverableTable", () => {
           {
             id: "1",
             actionType: "Created Deliverable Slot",
+            actionTimestamp: new Date("2024-01-01T00:00:00Z"),
           },
         ],
         extensionRequests: [],
@@ -737,6 +743,41 @@ describe("DeliverableTable Remove action", () => {
     expect(removeButton).toBeDisabled();
     expect(removeButton).toHaveAttribute("title", DELIVERABLE_CANT_DELETE_HAS_FILES);
   });
+
+  it("renders the latest submission date in the Submission Date column", async () => {
+    const latestSubmission = new Date("2024-02-01T00:00:00Z");
+
+    render(
+      <DeliverableTable
+        deliverables={[
+          {
+            ...MOCK_DELIVERABLE_TABLE_ROW,
+            deliverableActions: [
+              {
+                id: "1",
+                actionType: "Submitted Deliverable",
+                actionTimestamp: new Date("2024-01-01T00:00:00Z"),
+              },
+              {
+                id: "2",
+                actionType: "Submitted Deliverable",
+                actionTimestamp: latestSubmission,
+              },
+            ],
+          },
+        ]}
+        viewMode="demos-cms-user"
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+
+    expect(
+      screen.getByText(formatDateForDisplay(latestSubmission))
+    ).toBeInTheDocument();
+  });
 });
 
 describe("DeliverableTable default sorting behavior", () => {
@@ -779,5 +820,70 @@ describe("DeliverableTable default sorting behavior", () => {
     );
 
     expect(getRenderedRowIds()).toEqual(["past-due", "upcoming", "submitted"]);
+  });
+});
+
+describe("getLatestSubmissionDate", () => {
+  it("returns undefined when there are no submission actions", () => {
+    expect(
+      getLatestSubmissionDate([
+        {
+          id: "1",
+          actionType: "Created Deliverable Slot",
+          actionTimestamp: new Date("2024-01-01T00:00:00Z"),
+        },
+      ])
+    ).toBeUndefined();
+  });
+
+  it("returns the date of the only submission", () => {
+    expect(
+      getLatestSubmissionDate([
+        {
+          id: "1",
+          actionType: "Submitted Deliverable",
+          actionTimestamp: new Date("2024-01-15T00:00:00Z"),
+        },
+      ])
+    ).toBe(formatDateForDisplay(new Date("2024-01-15T00:00:00Z")));
+  });
+
+  it("returns the most recent submission date when multiple submissions exist", () => {
+    expect(
+      getLatestSubmissionDate([
+        {
+          id: "1",
+          actionType: "Submitted Deliverable",
+          actionTimestamp: new Date("2024-01-01T00:00:00Z"),
+        },
+        {
+          id: "2",
+          actionType: "Submitted Deliverable",
+          actionTimestamp: new Date("2024-02-01T00:00:00Z"),
+        },
+        {
+          id: "3",
+          actionType: "Submitted Deliverable",
+          actionTimestamp: new Date("2024-01-15T00:00:00Z"),
+        },
+      ])
+    ).toBe(formatDateForDisplay(new Date("2024-02-01T00:00:00Z")));
+  });
+
+  it("ignores non-submission actions when determining latest submission date", () => {
+    expect(
+      getLatestSubmissionDate([
+        {
+          id: "1",
+          actionType: "Created Deliverable Slot",
+          actionTimestamp: new Date("2025-01-01T00:00:00Z"),
+        },
+        {
+          id: "2",
+          actionType: "Submitted Deliverable",
+          actionTimestamp: new Date("2024-01-01T00:00:00Z"),
+        },
+      ])
+    ).toBe(formatDateForDisplay(new Date("2024-01-01T00:00:00Z")));
   });
 });

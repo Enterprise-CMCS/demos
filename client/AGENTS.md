@@ -47,24 +47,18 @@ This file provides instructions for AI agents to use when generating or editing 
 - Before using raw HTML controls, check `src/components/` and `src/layout/` for an existing wrapper.
 - Prefer project components for inputs, buttons, tables, dialogs, tabs, and toast/notice feedback.
 
-#### DatePicker
+#### DatePicker / Dates
 
 - DatePickers propagate valid values (yyyy-mm-dd) back to calling components `onChange` handler.
 - Computed dates receive values via the `value` prop and display this.
 - Out-of-range inputs are displayed and flagged but not propagated.
+- If needed, refer to the `src/util/formatDates.ts` for considerations on date utility functions.
 
 ## Apollo / GraphQL
 
 - Co-locate each `gql` document with the component/hook that owns it.
 - Export query/mutation documents if tests, mocks, or `refetchQueries` need them.
 - After successful mutations, refetch affected queries.
-
-### Dates
-
-- The type `LocalDate` is just an alias for `string`.
-- All outbound dates must use `formatDateForServer` from `util/formatDate`. This may require `as LocalDate` on the type.
-- Inbound dates from the server that should display as a date (no time component) should use `getDateEst(dateFromServer)`
-- `formatDateForDisplay` should be used only as a final wrapper in case a date should be displayed as mm/dd/yyyy instead of in ISO format.
 
 ## Testing
 

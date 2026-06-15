@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import { BaseDialog } from "components/dialog/BaseDialog";
 import { Textarea } from "components/input";
@@ -9,7 +9,7 @@ import { SelectUsers } from "components/input/select/SelectUsers";
 import { TextInput } from "components/input/TextInput";
 import { Demonstration, SignatureLevel } from "demos-server";
 import { DatePicker } from "components/input/date/DatePicker";
-import { EXPIRATION_DATE_ERROR_MESSAGE } from "util/messages";
+import { EXPIRATION_DATE_ERROR_MESSAGE, getRequiredFieldWhenApprovedMessage } from "util/messages";
 import { SubmitButton } from "components/button/SubmitButton";
 import { isBefore } from "date-fns";
 import { Input } from "components/input/Input";
@@ -54,44 +54,43 @@ const DemonstrationDescriptionTextArea: React.FC<{
 };
 
 const DateInputs: React.FC<{
+  isApproved: boolean;
   effectiveDate: string;
   expirationDate: string;
   setEffectiveDate: (date: string) => void;
   setExpirationDate: (date: string) => void;
-}> = ({ effectiveDate, expirationDate, setEffectiveDate, setExpirationDate }) => {
-  const [errorMessage, setErrorMessage] = useState<string>("");
-
-  // Validate expiration date is after effective date
-  useEffect(() => {
-    if (expirationDate && effectiveDate && isBefore(expirationDate, effectiveDate)) {
-      setErrorMessage(EXPIRATION_DATE_ERROR_MESSAGE);
-    } else {
-      setErrorMessage("");
-    }
-  }, [effectiveDate, expirationDate]);
-
-  return (
-    <>
-      <div className="flex flex-col gap-xs">
-        <DatePicker
-          name="datepicker-effective-date"
-          label="Effective Date"
-          value={effectiveDate}
-          onChange={(newDate) => setEffectiveDate(newDate)}
-        />
-      </div>
-      <div className="flex flex-col gap-xs">
-        <DatePicker
-          name="datepicker-expiration-date"
-          label="Expiration Date"
-          value={expirationDate}
-          onChange={(newDate) => setExpirationDate(newDate)}
-          getValidationMessage={() => errorMessage}
-        />
-      </div>
-    </>
-  );
-};
+}> = ({ isApproved, effectiveDate, expirationDate, setEffectiveDate, setExpirationDate }) => (
+  <>
+    <div className="flex flex-col gap-xs">
+      <DatePicker
+        isRequired={isApproved}
+        name="datepicker-effective-date"
+        label="Effective Date"
+        value={effectiveDate}
+        onChange={(newDate) => setEffectiveDate(newDate)}
+        getValidationMessage={() =>
+          isApproved && !effectiveDate ? getRequiredFieldWhenApprovedMessage("Effective Date") : ""
+        }
+      />
+    </div>
+    <div className="flex flex-col gap-xs">
+      <DatePicker
+        isRequired={isApproved}
+        name="datepicker-expiration-date"
+        label="Expiration Date"
+        value={expirationDate}
+        onChange={(newDate) => setExpirationDate(newDate)}
+        getValidationMessage={() =>
+          isApproved && !expirationDate
+            ? getRequiredFieldWhenApprovedMessage("Expiration Date")
+            : expirationDate && effectiveDate && isBefore(expirationDate, effectiveDate)
+              ? EXPIRATION_DATE_ERROR_MESSAGE
+              : ""
+        }
+      />
+    </div>
+  </>
+);
 
 export const checkFormHasChanges = (
   initialDemonstration: DemonstrationDialogFields,
@@ -109,7 +108,7 @@ export const checkFormHasChanges = (
   );
 };
 
-export const checkFormIsValid = (demonstration: DemonstrationDialogFields) => {
+export const checkFormIsValid = (demonstration: DemonstrationDialogFields, isApproved: boolean) => {
   if (!demonstration.name) {
     return false;
   }
@@ -117,6 +116,12 @@ export const checkFormIsValid = (demonstration: DemonstrationDialogFields) => {
     return false;
   }
   if (!demonstration.projectOfficerId) {
+    return false;
+  }
+  if (
+    isApproved &&
+    (!demonstration.effectiveDate || !demonstration.expirationDate || !demonstration.sdgDivision)
+  ) {
     return false;
   }
   if (
@@ -132,13 +137,12 @@ export const checkFormIsValid = (demonstration: DemonstrationDialogFields) => {
 export const DemonstrationDialog: React.FC<{
   onClose: () => void;
   mode: DemonstrationDialogMode;
+  isApproved?: boolean;
   initialDemonstration: DemonstrationDialogFields;
   onSubmit: (demonstration: DemonstrationDialogFields) => Promise<void>;
-}> = ({ onClose, mode, initialDemonstration, onSubmit }) => {
+}> = ({ onClose, mode, isApproved = false, initialDemonstration, onSubmit }) => {
   const [activeDemonstration, setActiveDemonstration] = useState(initialDemonstration);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [formHasChanges, setFormHasChanges] = useState<boolean>(false);
-  const [formIsValid, setFormIsValid] = useState<boolean>(false);
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -146,11 +150,7 @@ export const DemonstrationDialog: React.FC<{
     setIsSubmitting(false);
   };
 
-  const handleChange = (updatedDemonstration: DemonstrationDialogFields) => {
-    setActiveDemonstration(updatedDemonstration);
-    setFormHasChanges(checkFormHasChanges(initialDemonstration, updatedDemonstration));
-    setFormIsValid(checkFormIsValid(updatedDemonstration));
-  };
+  const formHasChanges = checkFormHasChanges(initialDemonstration, activeDemonstration);
 
   return (
     <BaseDialog
@@ -161,7 +161,7 @@ export const DemonstrationDialog: React.FC<{
       actionButton={
         <SubmitButton
           name={"button-submit-demonstration-dialog"}
-          disabled={!formHasChanges || !formIsValid}
+          disabled={!formHasChanges || !checkFormIsValid(activeDemonstration, isApproved)}
           isSubmitting={isSubmitting}
           onClick={handleSubmit}
         />
@@ -174,7 +174,7 @@ export const DemonstrationDialog: React.FC<{
               label="State/Territory"
               value={activeDemonstration.stateId}
               isRequired
-              onSelect={(stateId) => handleChange({ ...activeDemonstration, stateId })}
+              onSelect={(stateId) => setActiveDemonstration({ ...activeDemonstration, stateId })}
             />
           ) : (
             <Input
@@ -195,7 +195,9 @@ export const DemonstrationDialog: React.FC<{
               isRequired
               placeholder="Enter title"
               value={activeDemonstration.name}
-              onChange={(e) => handleChange({ ...activeDemonstration, name: e.target.value })}
+              onChange={(e) =>
+                setActiveDemonstration({ ...activeDemonstration, name: e.target.value })
+              }
             />
           </div>
         </div>
@@ -207,20 +209,21 @@ export const DemonstrationDialog: React.FC<{
               isRequired={true}
               value={activeDemonstration.projectOfficerId}
               onSelect={(projectOfficerId) =>
-                handleChange({ ...activeDemonstration, projectOfficerId })
+                setActiveDemonstration({ ...activeDemonstration, projectOfficerId })
               }
               personTypes={["demos-admin", "demos-cms-user"]}
             />
           </div>
           {mode === "edit" && (
             <DateInputs
+              isApproved={isApproved}
               effectiveDate={activeDemonstration.effectiveDate}
               expirationDate={activeDemonstration.expirationDate}
               setEffectiveDate={(effectiveDate) =>
-                handleChange({ ...activeDemonstration, effectiveDate })
+                setActiveDemonstration({ ...activeDemonstration, effectiveDate })
               }
               setExpirationDate={(expirationDate) =>
-                handleChange({ ...activeDemonstration, expirationDate })
+                setActiveDemonstration({ ...activeDemonstration, expirationDate })
               }
             />
           )}
@@ -229,20 +232,34 @@ export const DemonstrationDialog: React.FC<{
         <div className="flex flex-col gap-xs">
           <DemonstrationDescriptionTextArea
             description={activeDemonstration.description}
-            setDescription={(description) => handleChange({ ...activeDemonstration, description })}
+            setDescription={(description) =>
+              setActiveDemonstration({ ...activeDemonstration, description })
+            }
           />
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <SelectSdgDivision
-            initialValue={activeDemonstration.sdgDivision}
-            onSelect={(sdgDivision) => handleChange({ ...activeDemonstration, sdgDivision })}
-          />
+          <div className="flex flex-col gap-xs">
+            <SelectSdgDivision
+              isRequired={isApproved}
+              initialValue={activeDemonstration.sdgDivision}
+              onSelect={(sdgDivision) =>
+                setActiveDemonstration({ ...activeDemonstration, sdgDivision })
+              }
+            />
+            {isApproved && !activeDemonstration.sdgDivision && (
+              <span className="text-text-warn text-sm">
+                {getRequiredFieldWhenApprovedMessage("SDG Division")}
+              </span>
+            )}
+          </div>
           <SelectSignatureLevel
             initialValue={DEFAULT_DEMONSTRATION_SIGNATURE_LEVEL}
             allowedSignatureLevels={["OA"]}
             isDisabled
-            onSelect={(signatureLevel) => handleChange({ ...activeDemonstration, signatureLevel })}
+            onSelect={(signatureLevel) =>
+              setActiveDemonstration({ ...activeDemonstration, signatureLevel })
+            }
           />
         </div>
       </form>
