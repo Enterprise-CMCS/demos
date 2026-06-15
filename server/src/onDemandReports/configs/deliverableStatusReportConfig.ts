@@ -11,7 +11,7 @@ import {
   OnDemandReportColumnSchema,
   OnDemandReportConfiguration,
 } from "./onDemandReportConfigTypes";
-import { deliverableStatusReportQuery } from "./deliverableStatusReportQuery";
+import { deliverableStatusReportQueries } from "./deliverableStatusReportQueries";
 import { usDateString, usDateStringOrDash } from "./onDemandReportCustomSchemaTypes";
 
 type DeliverableStatusReportColumn =
@@ -28,12 +28,12 @@ type DeliverableStatusReportColumn =
   | "cms_owner"
   | "due_date"
   | "submission_date"
-  | "extension_requested"
+  | "extension_request_pending"
   | "extension_date_requested"
   | "reason_for_extension"
   | "extension_request_comments"
   | "total_extensions_requested"
-  | "resubmission_date"
+  | "resubmission_due_date"
   | "resubmission_request_comments"
   | "total_resubmissions_requested"
   | "deliverable_status"
@@ -60,12 +60,12 @@ const deliverableStatusReportSchema = z
     cms_owner: z.string(),
     due_date: usDateString,
     submission_date: usDateStringOrDash,
-    extension_requested: z.enum(["Yes", "No"]),
+    extension_request_pending: z.enum(["Yes", "No"]),
     extension_date_requested: usDateStringOrDash,
     reason_for_extension: z.enum([...DELIVERABLE_EXTENSION_REASON_CODES, "-"]),
     extension_request_comments: z.string(),
     total_extensions_requested: z.int(),
-    resubmission_date: usDateStringOrDash,
+    resubmission_due_date: usDateStringOrDash,
     resubmission_request_comments: z.string(),
     total_resubmissions_requested: z.int(),
     deliverable_status: z.enum(DELIVERABLE_STATUSES),
@@ -93,12 +93,12 @@ const deliverableStatusReportColumnHeaders = {
   cms_owner: "CMS Owner",
   due_date: "Due Date",
   submission_date: "Submission Date",
-  extension_requested: "Extension Requested",
+  extension_request_pending: "Extension Request Pending",
   extension_date_requested: "Extension Date Requested",
   reason_for_extension: "Reason for Extension",
   extension_request_comments: "Extension Request Comments",
   total_extensions_requested: "Total Extensions Requested",
-  resubmission_date: "Resubmission Date",
+  resubmission_due_date: "Resubmission Due Date",
   resubmission_request_comments: "Resubmission Request Comments",
   total_resubmissions_requested: "Total Resubmissions Requested",
   deliverable_status: "Deliverable Status",
@@ -112,7 +112,7 @@ const deliverableStatusReportColumnHeaders = {
 } satisfies OnDemandReportColumnHeader<DeliverableStatusReportColumn>;
 
 export const deliverableStatusReportConfiguration = {
-  sqlQuery: deliverableStatusReportQuery,
+  sqlQueries: deliverableStatusReportQueries,
   reportRowSchema: deliverableStatusReportSchema,
   excelConfiguration: { columnNames: deliverableStatusReportColumnHeaders },
 } satisfies OnDemandReportConfiguration;

@@ -4,7 +4,7 @@ import {
   OnDemandReportColumnSchema,
   OnDemandReportConfiguration,
 } from "./onDemandReportConfigTypes";
-import { basicTestReportQuery } from "./basicTestReportQuery";
+import { basicTestReportQueries } from "./basicTestReportQueries";
 
 type BasicTestReportColumn = "col1";
 
@@ -19,7 +19,7 @@ export const basicTestReportColumnHeaders = {
 } satisfies OnDemandReportColumnHeader<BasicTestReportColumn>;
 
 export const basicTestReportConfiguration = {
-  sqlQuery: basicTestReportQuery,
+  sqlQueries: basicTestReportQueries,
   reportRowSchema: basicTestReportSchema,
   excelConfiguration: { columnNames: basicTestReportColumnHeaders },
 } satisfies OnDemandReportConfiguration;

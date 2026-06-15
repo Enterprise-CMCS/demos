@@ -3,10 +3,12 @@ import { OnDemandReportType } from "../../types";
 import { OnDemandReportConfiguration } from "./onDemandReportConfigTypes";
 import { basicTestReportConfiguration } from "./basicTestReportConfig";
 import { deliverableStatusReportConfiguration } from "./deliverableStatusReportConfig";
+import { applicationDetailsReportConfiguration } from "./applicationDetailsReportConfig";
 
 export const ON_DEMAND_REPORT_CONFIGURATIONS = {
   "Basic Test Report": basicTestReportConfiguration,
   "Deliverable Status Report": deliverableStatusReportConfiguration,
+  "Application Details Report": applicationDetailsReportConfiguration,
 } satisfies Record<OnDemandReportType, OnDemandReportConfiguration>;
 
 export function getOnDemandReportConfiguration<T extends OnDemandReportType>(
