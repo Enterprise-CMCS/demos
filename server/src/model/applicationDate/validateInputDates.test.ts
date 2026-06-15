@@ -93,7 +93,7 @@ describe("validateInputDates", () => {
     it("should run checkInputDateIsStartOfDay on start of day dates", () => {
       const startOfDayDateTypes: DateType[] = [
         "Concept Start Date",
-        "Pre-Submission Submitted Date",
+        "Concept Paper Submitted Date",
         "Concept Completion Date",
         "Concept Skipped Date",
         "Application Intake Start Date",
@@ -105,7 +105,7 @@ describe("validateInputDates", () => {
         "Completeness Completion Date",
         "SDG Preparation Start Date",
         "Expected Approval Date",
-        "SME Review Date",
+        "SME Initial Review Date",
         "FRT Initial Meeting Date",
         "BNPMT Initial Meeting Date",
         "SDG Preparation Completion Date",

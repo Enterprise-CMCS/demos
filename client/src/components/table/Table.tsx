@@ -19,10 +19,15 @@ import { arrIncludesAllInsensitive } from "./KeywordSearch";
 import { TableHead } from "./TableHead";
 
 const STYLES = {
-  table: "w-full min-w-max table-auto",
+  table: "w-full table-auto",
+  tableContainer: "w-full overflow-x-auto",
   tr: "h-[56px] border-b p-1",
   td: "p-1 text-[14px] break-words overflow-wrap",
   subrow: "h-[56px] px-4 py-2 bg-gray-lighter border-b",
+};
+
+type TableColumnMeta = {
+  cellClassName?: string;
 };
 
 function TableBody<T>({
@@ -68,8 +73,9 @@ function TableBody<T>({
     return table.getRowModel().rows.map((row) => (
       <tr key={row.id} className={row.depth > 0 ? STYLES.subrow : STYLES.tr}>
         {row.getVisibleCells().map((cell) => {
+          const meta = cell.column.columnDef.meta as TableColumnMeta | undefined;
           return (
-            <td key={cell.id} className={STYLES.td}>
+            <td key={cell.id} className={`${STYLES.td} ${meta?.cellClassName ?? ""}`}>
               {flexRender(cell.column.columnDef.cell, cell.getContext())}
             </td>
           );
@@ -114,6 +120,8 @@ export interface TableProps<T> {
   actionModals?: (table: TanstackTable<T>) => React.ReactNode;
   hideSearchAndActions?: boolean;
   descriptionText?: string;
+  tableClassName?: string;
+  tableContainerClassName?: string;
 }
 
 export function Table<T extends { id: string }>({
@@ -130,6 +138,8 @@ export function Table<T extends { id: string }>({
   actionModals,
   hideSearchAndActions = false,
   descriptionText,
+  tableClassName,
+  tableContainerClassName,
 }: TableProps<T>) {
   const [expanded, setExpanded] = React.useState<ExpandedState>({});
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
@@ -204,9 +214,9 @@ export function Table<T extends { id: string }>({
 
       {actionModals && actionModals(table)}
 
-      <div className="w-full overflow-x-auto">
+      <div className={tableContainerClassName ?? STYLES.tableContainer}>
         {descriptionText && <div className="mb-2 text-sm text-gray-600">{descriptionText}</div>}
-        <table className={STYLES.table}>
+        <table className={tableClassName ?? STYLES.table}>
           <TableHead headerGroups={table.getHeaderGroups()} />
           <TableBody
             data={data}
