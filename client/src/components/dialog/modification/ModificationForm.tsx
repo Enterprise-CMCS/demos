@@ -4,7 +4,6 @@ import { ApplicationStatus, SignatureLevel } from "demos-server";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
 import { SelectDemonstration } from "components/input/select/SelectDemonstration";
 import { DatePicker } from "components/input/date/DatePicker";
-import { formatDateForServer } from "util/formatDate";
 import { getRequiredFieldWhenApprovedMessage } from "util/messages";
 
 export type Modification = {
@@ -50,9 +49,7 @@ export const hasChanges = (
   createModificationFormData: ModificationFormData,
   initialModification: Partial<Modification>
 ): boolean => {
-  const initialEffectiveDate = initialModification.effectiveDate
-    ? formatDateForServer(initialModification.effectiveDate)
-    : undefined;
+  const initialEffectiveDate = initialModification.effectiveDate ?? undefined;
 
   return !!(
     createModificationFormData.name != initialModification.name ||
@@ -67,9 +64,7 @@ export const getFormDataFromModification = (
 ): ModificationFormData => ({
   name: modification.name,
   description: modification.description ?? undefined,
-  effectiveDate: modification.effectiveDate
-    ? formatDateForServer(modification.effectiveDate)
-    : undefined,
+  effectiveDate: modification.effectiveDate ?? undefined,
   signatureLevel: modification.signatureLevel ?? undefined,
   demonstrationId: modification.demonstration?.id,
 });
