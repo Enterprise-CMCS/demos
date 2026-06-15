@@ -62,10 +62,10 @@ describe("DemonstrationDialog", () => {
     },
   };
 
-  const getDemonstrationDialog = (mode: "create" | "edit" = "create") => {
+  const getDemonstrationDialog = (mode: "create" | "edit" = "create", isApproved?: boolean) => {
     return (
       <TestProvider mocks={[GET_USER_SELECT_OPTIONS_MOCK]}>
-        <DemonstrationDialog {...DEFAULT_PROPS} mode={mode} />
+        <DemonstrationDialog {...DEFAULT_PROPS} mode={mode} isApproved={isApproved} />
       </TestProvider>
     );
   };
@@ -129,9 +129,30 @@ describe("DemonstrationDialog", () => {
     expect(screen.getByTestId(EFFECTIVE_DATE_INPUT_TEST_ID)).toBeInTheDocument();
   });
 
+  it("renders effective date field in edit mode as required when approved", () => {
+    render(getDemonstrationDialog("edit", true));
+    const effectiveDateInput = screen.getByTestId(EFFECTIVE_DATE_INPUT_TEST_ID);
+    expect(effectiveDateInput).toBeInTheDocument();
+    expect(effectiveDateInput).toHaveAttribute("required");
+  });
+
   it("renders expiration date field in edit mode", () => {
     render(getDemonstrationDialog("edit"));
     expect(screen.getByTestId(EXPIRATION_DATE_INPUT_TEST_ID)).toBeInTheDocument();
+  });
+
+  it("renders expiration date field as required in edit mode and approved", () => {
+    render(getDemonstrationDialog("edit", true));
+    const expirationDateInput = screen.getByTestId(EXPIRATION_DATE_INPUT_TEST_ID);
+    expect(expirationDateInput).toBeInTheDocument();
+    expect(expirationDateInput).toHaveAttribute("required");
+  });
+
+  it("renders SDG division select field as required when in edit mode and approved", () => {
+    render(getDemonstrationDialog("edit", true));
+    const sdgSelect = screen.getByTestId(SDG_DIVISION_SELECT_TEST_ID);
+    expect(sdgSelect).toBeInTheDocument();
+    expect(sdgSelect).toHaveAttribute("required");
   });
 
   it("shows error when expiration date is before effective date", async () => {
@@ -265,17 +286,17 @@ describe("DemonstrationDialog", () => {
   describe("checkFormIsValid", () => {
     it("returns false if state is not selected", () => {
       const invalidForm = { ...DEFAULT_DEMONSTRATION, stateId: "" };
-      expect(checkFormIsValid(invalidForm)).toBe(false);
+      expect(checkFormIsValid(invalidForm, false)).toBe(false);
     });
 
     it("returns false if name is empty", () => {
       const invalidForm = { ...DEFAULT_DEMONSTRATION, name: "" };
-      expect(checkFormIsValid(invalidForm)).toBe(false);
+      expect(checkFormIsValid(invalidForm, false)).toBe(false);
     });
 
     it("returns false if project officer is not selected", () => {
       const invalidForm = { ...DEFAULT_DEMONSTRATION, projectOfficerId: "" };
-      expect(checkFormIsValid(invalidForm)).toBe(false);
+      expect(checkFormIsValid(invalidForm, false)).toBe(false);
     });
 
     it("returns false if expiration date is before effective date", () => {
@@ -284,7 +305,35 @@ describe("DemonstrationDialog", () => {
         effectiveDate: "2024-12-01",
         expirationDate: "2024-11-01",
       };
-      expect(checkFormIsValid(invalidForm)).toBe(false);
+      expect(checkFormIsValid(invalidForm, false)).toBe(false);
+    });
+
+    it("returns false if expiration date is missing when approved", () => {
+      const invalidForm = {
+        ...DEFAULT_DEMONSTRATION,
+        effectiveDate: "2024-11-01",
+        expirationDate: "",
+      };
+      expect(checkFormIsValid(invalidForm, true)).toBe(false);
+    });
+
+    it("returns false if effective date is missing when approved", () => {
+      const invalidForm = {
+        ...DEFAULT_DEMONSTRATION,
+        effectiveDate: "",
+        expirationDate: "2024-12-01",
+      };
+      expect(checkFormIsValid(invalidForm, true)).toBe(false);
+    });
+
+    it("returns false if SDG division is missing when approved", () => {
+      const invalidForm = {
+        ...DEFAULT_DEMONSTRATION,
+        effectiveDate: "2024-11-01",
+        expirationDate: "2024-12-01",
+        sdgDivision: undefined,
+      };
+      expect(checkFormIsValid(invalidForm, true)).toBe(false);
     });
 
     it("returns true for a valid form", () => {
@@ -295,8 +344,9 @@ describe("DemonstrationDialog", () => {
         projectOfficerId: "officer-123",
         effectiveDate: "2024-11-01",
         expirationDate: "2024-12-01",
+        sdgDivision: "Division of System Reform Demonstrations" as SdgDivision,
       };
-      expect(checkFormIsValid(validForm)).toBe(true);
+      expect(checkFormIsValid(validForm, true)).toBe(true);
     });
   });
 

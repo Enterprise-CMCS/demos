@@ -292,6 +292,11 @@ describe("getUpdateDemonstrationInput", () => {
     expect(result.expirationDate).toBeNull();
   });
 
+  it("passes null for sdgDivision when not provided", () => {
+    const result = getUpdateDemonstrationInput(BASE_DEMONSTRATION);
+    expect(result.sdgDivision).toBeNull();
+  });
+
   it("trims whitespace from description", () => {
     const result = getUpdateDemonstrationInput({
       ...BASE_DEMONSTRATION,
