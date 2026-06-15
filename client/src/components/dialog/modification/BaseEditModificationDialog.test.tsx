@@ -124,6 +124,29 @@ describe("BaseEditModificationDialog", () => {
     expect(screen.getByLabelText(/Signature Level/)).toBeInTheDocument();
   });
 
+  it("calls the modificationForm with the correct approval state", async () => {
+    renderDialog("Amendment", {
+      modification: {
+        id: "modification-1",
+        name: "Test Amendment",
+        description: "Test description",
+        effectiveDate: "2024-01-15",
+        signatureLevel: "OA",
+        status: "Approved",
+        demonstration: { id: "demo-1" },
+      },
+      error: undefined,
+      save: vi.fn(),
+      saving: false,
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/Signature Level/)).toBeInTheDocument();
+    });
+
+    expect(screen.getByLabelText(/Signature Level/)).toHaveAttribute("required");
+  });
+
   it("populates form with initial modification data", async () => {
     renderDialog("Amendment", {
       modification: {

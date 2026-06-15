@@ -30,7 +30,7 @@ export type ModificationFormData = {
 
 export const isValid = (
   createModificationFormData: ModificationFormData,
-  isApproved: boolean
+  isApproved?: boolean
 ): boolean => {
   if (!createModificationFormData.name || !createModificationFormData.demonstrationId) {
     return false;
