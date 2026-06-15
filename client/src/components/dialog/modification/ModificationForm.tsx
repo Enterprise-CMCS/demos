@@ -1,9 +1,10 @@
 import React from "react";
 import { Textarea, TextInput } from "components/input";
-import { SignatureLevel } from "demos-server";
+import { ApplicationStatus, SignatureLevel } from "demos-server";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
 import { SelectDemonstration } from "components/input/select/SelectDemonstration";
 import { DatePicker } from "components/input/date/DatePicker";
+import { getRequiredFieldWhenApprovedMessage } from "util/messages";
 
 export type Modification = {
   id: string;
@@ -11,6 +12,7 @@ export type Modification = {
   demonstration: {
     id: string;
   };
+  status: ApplicationStatus;
   description: string | null;
   effectiveDate: string | null;
   signatureLevel: SignatureLevel | null;
@@ -25,8 +27,22 @@ export type ModificationFormData = {
   effectiveDate?: string | null;
 };
 
-export const isValid = (createModificationFormData: ModificationFormData): boolean => {
-  return !!createModificationFormData.demonstrationId && !!createModificationFormData.name;
+export const isValid = (
+  createModificationFormData: ModificationFormData,
+  isApproved?: boolean
+): boolean => {
+  if (!createModificationFormData.name || !createModificationFormData.demonstrationId) {
+    return false;
+  }
+
+  if (
+    isApproved &&
+    (!createModificationFormData.signatureLevel || !createModificationFormData.effectiveDate)
+  ) {
+    return false;
+  }
+
+  return true;
 };
 
 export const hasChanges = (
@@ -56,12 +72,14 @@ export const getFormDataFromModification = (
 export const ModificationForm: React.FC<{
   showDemonstrationSelect?: boolean;
   mode: "create" | "edit";
+  isApproved?: boolean;
   modificationType: "Amendment" | "Extension";
   modificationFormData: ModificationFormData;
   setModificationFormDataField: (field: Partial<ModificationFormData>) => void;
 }> = ({
   showDemonstrationSelect,
   mode,
+  isApproved,
   modificationType,
   modificationFormData,
   setModificationFormDataField,
@@ -99,11 +117,17 @@ export const ModificationForm: React.FC<{
             <DatePicker
               name="effectiveDate"
               label="Effective Date"
+              isRequired={isApproved}
               value={modificationFormData.effectiveDate ?? undefined}
               onChange={(date) =>
                 setModificationFormDataField({
                   effectiveDate: date as string,
                 })
+              }
+              getValidationMessage={() =>
+                isApproved && !modificationFormData.effectiveDate
+                  ? getRequiredFieldWhenApprovedMessage("Effective Date")
+                  : ""
               }
             />
           </div>
@@ -128,8 +152,14 @@ export const ModificationForm: React.FC<{
               signatureLevel: signatureLevel,
             })
           }
+          isRequired={isApproved}
           initialValue={modificationFormData.signatureLevel ?? undefined}
         />
+        {isApproved && !modificationFormData.signatureLevel && (
+          <span className="text-text-warn text-sm">
+            {getRequiredFieldWhenApprovedMessage("Signature Level")}
+          </span>
+        )}
       </div>
     </>
   );

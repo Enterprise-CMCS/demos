@@ -29,6 +29,7 @@ export const UPDATE_AMENDMENT_DIALOG_QUERY: TypedDocumentNode<
       name
       description
       effectiveDate
+      status
       signatureLevel
       demonstration {
         id
