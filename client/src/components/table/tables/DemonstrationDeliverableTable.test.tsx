@@ -153,12 +153,12 @@ describe("DemonstrationDeliverableTable", () => {
               {
                 id: "older-submission",
                 actionType: "Submitted Deliverable",
-                actionTimestamp: "2026-03-20T10:00:00Z",
+                actionTimestamp: new Date("2026-03-20T10:00:00Z"),
               },
               {
                 id: "newer-submission",
                 actionType: "Submitted Deliverable",
-                actionTimestamp: "2026-04-01T10:00:00Z",
+                actionTimestamp: new Date("2026-04-01T10:00:00Z"),
               },
             ],
           },
