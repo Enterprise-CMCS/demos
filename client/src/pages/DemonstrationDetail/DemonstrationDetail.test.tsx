@@ -113,6 +113,7 @@ describe("DemonstrationDetail", () => {
     expect(AmendmentsTab).toHaveBeenCalledWith(
       expect.objectContaining({
         demonstrationId: "1",
+        selectedAmendmentId: "amendment-1",
       }),
       undefined
     );
@@ -130,6 +131,7 @@ describe("DemonstrationDetail", () => {
     expect(ExtensionsTab).toHaveBeenCalledWith(
       expect.objectContaining({
         demonstrationId: "1",
+        selectedExtensionId: "extension-1",
       }),
       undefined
     );

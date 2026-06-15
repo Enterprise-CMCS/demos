@@ -9,7 +9,8 @@ export const ExtensionsTab: React.FC<{
   demonstrationId: string;
   medicaidId: string;
   extensions: DemonstrationDetailModification[];
-}> = ({ demonstrationId, medicaidId, extensions }) => {
+  selectedExtensionId?: string;
+}> = ({ demonstrationId, medicaidId, extensions, selectedExtensionId }) => {
   const extensionsWithType = extensions.map((extension) => ({
     ...extension,
     modificationType: "extension" as const,
@@ -30,7 +31,7 @@ export const ExtensionsTab: React.FC<{
           Add Extension
         </IconButton>
       </div>
-      <ModificationTabs items={extensionsWithType} />
+      <ModificationTabs items={extensionsWithType} selectedItemId={selectedExtensionId} />
     </div>
   );
 };
