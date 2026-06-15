@@ -527,5 +527,6 @@ export const ON_DEMAND_REPORT_TYPES = [
   "Basic Test Report",
   "Deliverable Status Report",
   "Application Details Report",
+  "Demonstration Overview Report",
 ] as const;
 export const ON_DEMAND_REPORT_STATUSES = ["Available"] as const;
