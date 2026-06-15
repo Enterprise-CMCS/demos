@@ -30,6 +30,7 @@ export const UPDATE_EXTENSION_DIALOG_QUERY: TypedDocumentNode<
       description
       effectiveDate
       signatureLevel
+      status
       demonstration {
         id
       }

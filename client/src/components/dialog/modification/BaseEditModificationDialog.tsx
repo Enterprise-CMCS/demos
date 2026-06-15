@@ -77,7 +77,7 @@ export const BaseEditModificationDialog: React.FC<{
             !modification ||
             saving ||
             !hasChanges(formData, modification) ||
-            !isValid(formData)
+            !isValid(formData, modification.status === "Approved")
           }
           onClick={handleSubmit}
         >
@@ -87,13 +87,14 @@ export const BaseEditModificationDialog: React.FC<{
     >
       <>
         {error && <p>Error loading {modificationType}</p>}
-        {!formData ? (
+        {!formData || !modification ? (
           <p>Loading...</p>
         ) : (
           <div className="flex flex-col gap-2">
             <ModificationForm
               mode="edit"
               modificationType={modificationType}
+              isApproved={modification.status === "Approved"}
               modificationFormData={formData}
               setModificationFormDataField={(field: Partial<ModificationFormData>) =>
                 setFormData((prev) => ({ ...prev, ...field }))
