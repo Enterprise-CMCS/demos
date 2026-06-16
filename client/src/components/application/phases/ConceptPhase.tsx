@@ -27,7 +27,7 @@ import { TZDate } from "@date-fns/tz/date";
 const STYLES = {
   pane: tw`bg-white`,
   grid: tw`relative grid grid-cols-2 gap-10 py-1`,
-  divider: tw`pointer-events-none absolute left-1/2 top-0 h-full border-l border-border-subtle`,
+  divider: tw`pointer-events-none absolute left-1/2 top-0 h-full border-l border-surface-placeholder`,
   stepEyebrow: tw`text-xs font-semibold uppercase tracking-wide text-text-placeholder mb-2`,
   title: tw`text-xl font-semibold mb-1 uppercase`,
   helper: tw`text-sm text-text-placeholder mb-2`,
@@ -57,7 +57,7 @@ export const CONCEPT_PHASE_STEP_ONE_DESCRIPTION = {
 
 export const CONCEPT_PHASE_STEP_TWO_DESCRIPTION = {
   testId: "concept-phase-step-two-description",
-  text: "Check uploaded files. If needed, correct the Concept Paper submitted date before finishing the phase. (Due Date will be adjusted for Weekends/Holidays)",
+  text: "Check uploaded files. If needed, correct the Concept Paper submitted date before finishing the phase.",
 };
 
 export const getConceptPhaseComponentFromApplication = (
