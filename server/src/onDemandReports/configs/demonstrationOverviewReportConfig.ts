@@ -29,6 +29,7 @@ type demonstrationOverviewReportColumn =
   | "approved_amendment_applications"
   | "primary_project_officer"
   | "project_officers"
+  | "primary_policy_tech_director"
   | "primary_ddme_analyst"
   | "ddme_analysts"
   | "primary_state_poc"
@@ -53,6 +54,7 @@ export const demonstrationOverviewReportSchema = z
     approved_amendment_applications: z.int(),
     primary_project_officer: z.string(),
     project_officers: z.string(),
+    primary_policy_tech_director: z.string(),
     primary_ddme_analyst: z.string(),
     ddme_analysts: z.string(),
     primary_state_poc: z.string(),
@@ -78,6 +80,7 @@ export const demonstrationOverviewReportColumnHeaders = {
   approved_amendment_applications: "Approved Amendment Applications",
   primary_project_officer: "Primary Project Officer",
   project_officers: "Project Officers",
+  primary_policy_tech_director: "Primary Policy Technical Director",
   primary_ddme_analyst: "Primary DDME Analyst",
   ddme_analysts: "DDME Analysts",
   primary_state_poc: "Primary State POC",
