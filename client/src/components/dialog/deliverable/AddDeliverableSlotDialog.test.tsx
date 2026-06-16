@@ -191,7 +191,6 @@ describe("AddDeliverableSlotDialog", () => {
     await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_NAME));
     await user.click(screen.getByText("Aggregate Cap"));
 
-    screen.debug(undefined, 9999999999);
     await waitFor(() =>
       expect(screen.getByTestId(ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME)).not.toBeDisabled()
     );
