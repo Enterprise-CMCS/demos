@@ -25,11 +25,11 @@ import {
 import { TZDate } from "@date-fns/tz/date";
 
 const STYLES = {
-  pane: tw`bg-white p-8`,
-  grid: tw`relative grid grid-cols-2 gap-10`,
+  pane: tw`bg-white`,
+  grid: tw`relative grid grid-cols-2 gap-10 py-1`,
   divider: tw`pointer-events-none absolute left-1/2 top-0 h-full border-l border-border-subtle`,
   stepEyebrow: tw`text-xs font-semibold uppercase tracking-wide text-text-placeholder mb-2`,
-  title: tw`text-xl font-semibold mb-2`,
+  title: tw`text-xl font-semibold mb-1 uppercase`,
   helper: tw`text-sm text-text-placeholder mb-2`,
   list: tw`mt-4 space-y-3`,
   fileRow: tw`bg-surface-secondary border border-border-fields px-3 py-2 flex items-center justify-between`,
@@ -44,6 +44,21 @@ export const UPLOAD_BUTTON_NAME = "button-open-upload-modal";
 export const FINISH_BUTTON_NAME = "button-finish-concept";
 export const SKIP_BUTTON_NAME = "button-skip-concept";
 export const DATE_PICKER_NAME = "datepicker-pre-submission-date";
+
+export const CONCEPT_PHASE_DESCRIPTION = {
+  testId: "concept-phase-description",
+  text: "Use the Concept Phase to track consultation and technical assistance to States before they submit a formal application. This phase can be skipped, especially if there is no concept paper to store.",
+};
+
+export const CONCEPT_PHASE_STEP_ONE_DESCRIPTION = {
+  testId: "concept-phase-step-one-description",
+  text: "Upload the Pre-Submission Concept Paper and any supplemental documents when they are available.",
+};
+
+export const CONCEPT_PHASE_STEP_TWO_DESCRIPTION = {
+  testId: "concept-phase-step-two-description",
+  text: "Check uploaded files. If needed, correct the Concept Paper submitted date before finishing the phase. (Due Date will be adjusted for Weekends/Holidays)",
+};
 
 export const getConceptPhaseComponentFromApplication = (
   application: WorkflowApplication,
@@ -72,7 +87,6 @@ export const getConceptPhaseComponentFromApplication = (
         presubmissionSubmittedDate ? formatDateForServer(presubmissionSubmittedDate) : undefined
       }
       setSelectedPhase={setSelectedPhase}
-      workflowApplicationType={workflowApplicationType}
       phaseStatus={conceptPhase.phaseStatus}
     />
   );
@@ -104,7 +118,6 @@ export interface ConceptPhaseProps {
   documents: ApplicationWorkflowDocument[];
   setSelectedPhase: (phase: PhaseName) => void;
   initialPresubmissionSubmittedDate?: string;
-  workflowApplicationType: WorkflowApplicationType;
   phaseStatus: PhaseStatus;
 }
 
@@ -113,7 +126,6 @@ export const ConceptPhase = ({
   documents,
   setSelectedPhase,
   initialPresubmissionSubmittedDate,
-  workflowApplicationType,
   phaseStatus,
 }: ConceptPhaseProps) => {
   const { showSuccess } = useToast();
@@ -203,17 +215,13 @@ export const ConceptPhase = ({
     setSelectedPhase(NEXT_PHASE_NAME);
   };
 
-  const UploadSection = ({
-    workflowApplicationType,
-  }: {
-    workflowApplicationType: WorkflowApplicationType;
-  }) => (
+  const UploadSection = () => (
     <div aria-labelledby="state-application-upload-title">
       <h4 id="state-application-upload-title" className={STYLES.title}>
-        STEP 1 - UPLOAD
+        Step 1 - Upload
       </h4>
-      <p className={STYLES.helper}>
-        Upload the Pre-Submission Document describing your {workflowApplicationType}.
+      <p data-testId={CONCEPT_PHASE_STEP_ONE_DESCRIPTION.testId} className={STYLES.helper}>
+        {CONCEPT_PHASE_STEP_ONE_DESCRIPTION.text}
       </p>
 
       <SecondaryButton
@@ -231,12 +239,11 @@ export const ConceptPhase = ({
 
   const VerifyCompleteSection = () => (
     <div aria-labelledby="concept-verify-title">
-      <div className={STYLES.stepEyebrow}>Step 2 - Verify/Complete</div>
       <h4 id="concept-verify-title" className={STYLES.title}>
-        VERIFY/COMPLETE
+        Step 2 - Verify/Complete
       </h4>
-      <p className={STYLES.helper}>
-        Verify that the document is uploaded/accurate and that all the required fields are filled.
+      <p data-testId={CONCEPT_PHASE_STEP_TWO_DESCRIPTION.testId} className={STYLES.helper}>
+        {CONCEPT_PHASE_STEP_TWO_DESCRIPTION.text}
       </p>
 
       <div className="space-y-4">
@@ -278,17 +285,16 @@ export const ConceptPhase = ({
   );
 
   return (
-    <div>
+    <div className="p-1">
       <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">CONCEPT</h3>
-      <p className="text-sm text-text-placeholder mb-4">
-        Pre-Submission Consultation and Technical Assistance – Time spent with the state prior to
-        the formal submission
+      <p data-testId={CONCEPT_PHASE_DESCRIPTION.testId} className={STYLES.helper}>
+        {CONCEPT_PHASE_DESCRIPTION.text}
       </p>
 
       <section className={STYLES.pane}>
         <div className={STYLES.grid}>
           <span aria-hidden className={STYLES.divider} />
-          <UploadSection workflowApplicationType={workflowApplicationType} />
+          <UploadSection />
           <VerifyCompleteSection />
         </div>
       </section>

@@ -1,4 +1,5 @@
 import React from "react";
+import { addYears } from "date-fns";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -22,6 +23,7 @@ import {
 } from "./AddDeliverableSlotDialog";
 import { TestProvider } from "test-utils/TestProvider";
 import { DELIVERABLE_SLOTS_CREATED_MESSAGE } from "util/messages";
+import { formatDateForServer } from "util/formatDate";
 
 const mockMutate = vi.fn(() => Promise.resolve({ data: {} }));
 vi.mock("@apollo/client", async () => {
@@ -178,7 +180,7 @@ describe("AddDeliverableSlotDialog", () => {
     await user.click(screen.getByText("Annual Budget Neutrality Report"));
 
     fireEvent.change(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME), {
-      target: { value: "2026-06-15" },
+      target: { value: formatDateForServer(addYears(new Date(), 1)) },
     });
 
     await user.type(screen.getByTestId(DELIVERABLE_NAME_FIELD_ID), "Test Deliverable");
@@ -189,6 +191,7 @@ describe("AddDeliverableSlotDialog", () => {
     await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_NAME));
     await user.click(screen.getByText("Aggregate Cap"));
 
+    screen.debug(undefined, 9999999999);
     await waitFor(() =>
       expect(screen.getByTestId(ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME)).not.toBeDisabled()
     );

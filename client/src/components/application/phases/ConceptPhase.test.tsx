@@ -15,6 +15,9 @@ import {
   FINISH_BUTTON_NAME,
   SKIP_BUTTON_NAME,
   DATE_PICKER_NAME,
+  CONCEPT_PHASE_DESCRIPTION,
+  CONCEPT_PHASE_STEP_ONE_DESCRIPTION,
+  CONCEPT_PHASE_STEP_TWO_DESCRIPTION,
 } from "./ConceptPhase";
 
 import {
@@ -63,7 +66,6 @@ const MOCK_DOCUMENT: ApplicationWorkflowDocument = {
 
 const DEFAULT_PROPS: ConceptPhaseProps = {
   applicationId: TEST_APPLICATION_ID,
-  workflowApplicationType: "demonstration",
   documents: [MOCK_DOCUMENT],
   setSelectedPhase: () => {},
   phaseStatus: "Started",
@@ -101,19 +103,19 @@ describe("ConceptPhase", () => {
 
     it("renders phase description", () => {
       setup();
-      expect(
-        screen.getByText(/Pre-Submission Consultation and Technical Assistance/)
-      ).toBeInTheDocument();
+      expect(screen.getByTestId(CONCEPT_PHASE_DESCRIPTION.testId)).toHaveTextContent(
+        CONCEPT_PHASE_DESCRIPTION.text
+      );
     });
   });
 
   describe("Step 1 - Upload Section", () => {
     it("renders Step 1 title and description", () => {
       setup();
-      expect(screen.getByText("STEP 1 - UPLOAD")).toBeInTheDocument();
-      expect(
-        screen.getByText(/Upload the Pre-Submission Document describing your demonstration/)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Step 1 - Upload/i)).toBeInTheDocument();
+      expect(screen.getByTestId(CONCEPT_PHASE_STEP_ONE_DESCRIPTION.testId)).toHaveTextContent(
+        CONCEPT_PHASE_STEP_ONE_DESCRIPTION.text
+      );
     });
 
     it("renders upload button", () => {
@@ -137,38 +139,15 @@ describe("ConceptPhase", () => {
       const deleteButton = screen.getByLabelText("Delete Pre-Submission Document 1");
       expect(deleteButton).toBeInTheDocument();
     });
-
-    describe("WorkflowApplicationType text rendering", () => {
-      it("renders helper text with 'demonstration' when workflowApplicationType is demonstration", () => {
-        setup({ workflowApplicationType: "demonstration" });
-        expect(
-          screen.getByText(/Upload the Pre-Submission Document describing your demonstration/)
-        ).toBeInTheDocument();
-      });
-      it("renders helper text with 'extension' when workflowApplicationType is extension", () => {
-        setup({ workflowApplicationType: "extension" });
-        expect(
-          screen.getByText(/Upload the Pre-Submission Document describing your extension/)
-        ).toBeInTheDocument();
-      });
-
-      it("renders helper text with 'amendment' when workflowApplicationType is amendment", () => {
-        setup({ workflowApplicationType: "amendment" });
-        expect(
-          screen.getByText(/Upload the Pre-Submission Document describing your amendment/)
-        ).toBeInTheDocument();
-      });
-    });
   });
 
   describe("Step 2 - Verify/Complete Section", () => {
     it("renders Step 2 title and description", () => {
       setup();
       expect(screen.getByText("Step 2 - Verify/Complete")).toBeInTheDocument();
-      expect(screen.getByText("VERIFY/COMPLETE")).toBeInTheDocument();
-      expect(
-        screen.getByText(/Verify that the document is uploaded\/accurate/)
-      ).toBeInTheDocument();
+      expect(screen.getByTestId(CONCEPT_PHASE_STEP_TWO_DESCRIPTION.testId)).toHaveTextContent(
+        CONCEPT_PHASE_STEP_TWO_DESCRIPTION.text
+      );
     });
 
     it("renders date input field", () => {
