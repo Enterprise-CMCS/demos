@@ -13,7 +13,7 @@ import {
 } from "../../constants";
 import { usDateString, usDateStringOrDash } from "./onDemandReportCustomSchemaTypes";
 
-type demonstrationOverviewReportColumn =
+type DemonstrationOverviewReportColumn =
   | "state_territory"
   | "demonstration_title"
   | "demonstration_number"
@@ -59,7 +59,7 @@ export const demonstrationOverviewReportSchema = z
     state_pocs: z.string(),
     primary_monitoring_evaluation_tech_director: z.string(),
     application_approval_date: usDateStringOrDash,
-  } satisfies OnDemandReportColumnSchema<demonstrationOverviewReportColumn>)
+  } satisfies OnDemandReportColumnSchema<DemonstrationOverviewReportColumn>)
   .strict();
 
 export const demonstrationOverviewReportColumnHeaders = {
@@ -84,7 +84,7 @@ export const demonstrationOverviewReportColumnHeaders = {
   state_pocs: "State POCs",
   primary_monitoring_evaluation_tech_director: "Primary Monitoring & Evaluation Technical Director",
   application_approval_date: "Application Approval Date",
-} satisfies OnDemandReportColumnHeader<demonstrationOverviewReportColumn>;
+} satisfies OnDemandReportColumnHeader<DemonstrationOverviewReportColumn>;
 
 export const demonstrationOverviewReportConfiguration = {
   sqlQueries: demonstrationOverviewReportQueries,

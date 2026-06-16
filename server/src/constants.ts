@@ -528,5 +528,6 @@ export const ON_DEMAND_REPORT_TYPES = [
   "Deliverable Status Report",
   "Application Details Report",
   "Demonstration Overview Report",
+  "Demonstration Types Report",
 ] as const;
 export const ON_DEMAND_REPORT_STATUSES = ["Available"] as const;
