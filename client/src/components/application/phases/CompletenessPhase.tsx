@@ -29,8 +29,7 @@ const STYLES = {
   list: tw`mt-4 space-y-3`,
   fileRow: tw`bg-surface-secondary border border-border-fields px-3 py-2 flex items-center justify-between`,
   fileMeta: tw`text-[12px] text-text-placeholder mt-0.5`,
-  actions: tw`mt-8 flex items-center gap-3`,
-  actionsEnd: tw`ml-auto flex gap-3`,
+  actions: tw`mt-8 flex justify-end gap-2`,
 };
 
 export const COMPLETENESS_PHASE_DESCRIPTION = {
@@ -357,16 +356,14 @@ export const CompletenessPhase = ({
         >
           Declare Incomplete
         </SecondaryButton>
-        <div className={STYLES.actionsEnd}>
-          <Button
-            name={COMPLETENESS_FINISH_BUTTON_NAME}
-            size="small"
-            disabled={!finishIsEnabled()}
-            onClick={handleFinishCompleteness}
-          >
-            Finish
-          </Button>
-        </div>
+        <Button
+          name={COMPLETENESS_FINISH_BUTTON_NAME}
+          size="small"
+          disabled={!finishIsEnabled()}
+          onClick={handleFinishCompleteness}
+        >
+          Finish
+        </Button>
       </div>
     </div>
   );
