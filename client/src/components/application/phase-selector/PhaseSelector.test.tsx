@@ -6,7 +6,12 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { PhaseSelector, getDisplayedPhaseStatus, getDisplayedPhaseDate } from "./PhaseSelector";
+import {
+  PhaseSelector,
+  getDisplayedPhaseStatus,
+  getDisplayedPhaseDate,
+  PHASE_SELECTOR_CONTAINER_TEST_ID,
+} from "./PhaseSelector";
 import { ApplicationWorkflowDemonstration } from "../demonstration/DemonstrationWorkflow";
 import {
   getApplicationIntakeComponentFromApplication,
@@ -65,7 +70,7 @@ describe("PhaseSelector", () => {
         <PhaseSelector application={demonstration} workflowApplicationType="demonstration" />
       </TestProvider>
     );
-    const phaseSelectorGrid = screen.getByTestId("phase-selector-grid");
+    const phaseSelectorGrid = screen.getByTestId(PHASE_SELECTOR_CONTAINER_TEST_ID);
 
     [
       "Concept",

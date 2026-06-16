@@ -21,6 +21,8 @@ export type PhaseStatus = ServerPhaseStatus | "past-due";
 
 type PhaseDateDisplayMap = Record<PhaseName, Partial<Record<PhaseStatus, DateType>>>;
 
+export const PHASE_SELECTOR_CONTAINER_TEST_ID = "phase-selector-container";
+
 const PHASE_DISPLAY_DATES: PhaseDateDisplayMap = {
   Concept: {
     Started: "Concept Start Date",
@@ -139,7 +141,7 @@ export const PhaseSelector = ({
 
   return (
     <>
-      <div className="grid grid-cols-8 gap-md mb-2" data-testid="phase-selector-grid">
+      <div className="grid grid-cols-8 gap-md mb-2" data-testid={PHASE_SELECTOR_CONTAINER_TEST_ID}>
         <PhaseGroups />
         {PHASE_NAMES.map((phaseName, index) => {
           const displayDate = getDisplayedPhaseDate(application, phaseName);
