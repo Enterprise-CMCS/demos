@@ -217,6 +217,7 @@ export const DemonstrationDetail: React.FC = () => {
                 demonstrationId={demonstration.id}
                 medicaidId={demonstration.medicaidId}
                 amendments={demonstration.amendments}
+                selectedAmendmentId={amendmentParam || undefined}
               />
             </Tab>
 
@@ -229,6 +230,7 @@ export const DemonstrationDetail: React.FC = () => {
                 demonstrationId={demonstration.id}
                 medicaidId={demonstration.medicaidId}
                 extensions={demonstration.extensions}
+                selectedExtensionId={extensionParam || undefined}
               />
             </Tab>
           </Tabs>

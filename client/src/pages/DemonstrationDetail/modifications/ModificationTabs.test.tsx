@@ -70,6 +70,22 @@ describe("ModificationTabs Component", () => {
     expect(tab2Button).toHaveAttribute("aria-selected", "true");
   });
 
+  it("sets the selected tab based on selectedItemId prop on initial render", () => {
+    render(
+      <DialogProvider>
+        <TestProvider>
+          <ModificationTabs items={mockItems} selectedItemId="2" />
+        </TestProvider>
+      </DialogProvider>
+    );
+
+    const tab1Button = screen.getByTestId("modification-tab-1");
+    const tab2Button = screen.getByTestId("modification-tab-2");
+
+    expect(tab1Button).toHaveAttribute("aria-selected", "false");
+    expect(tab2Button).toHaveAttribute("aria-selected", "true");
+  });
+
   it("renders nothing when items array is empty", () => {
     const { container } = render(
       <DialogProvider>
@@ -129,5 +145,21 @@ describe("ModificationTabs Component", () => {
     expect(tabButtons[0]).toHaveTextContent("Second");
     expect(tabButtons[1]).toHaveTextContent("First");
     expect(tabButtons[2]).toHaveTextContent("Third");
+  });
+
+  it("initially selects the tab based on selectedItemId prop", () => {
+    render(
+      <DialogProvider>
+        <TestProvider>
+          <ModificationTabs items={mockItems} selectedItemId="2" />
+        </TestProvider>
+      </DialogProvider>
+    );
+
+    const tab1Button = screen.getByTestId("modification-tab-1");
+    const tab2Button = screen.getByTestId("modification-tab-2");
+
+    expect(tab1Button).toHaveAttribute("aria-selected", "false");
+    expect(tab2Button).toHaveAttribute("aria-selected", "true");
   });
 });
