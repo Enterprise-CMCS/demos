@@ -170,7 +170,7 @@ describe("AddDeliverableSlotDialog", () => {
 
   it("shows success toast and calls onClose when save is clicked with a valid Single schedule form", async () => {
     const user = userEvent.setup();
-    const { onClose } = setup();
+    const { onClose } = setup({ expirationDate: new Date("2099-12-31") });
 
     await waitFor(() => expect(screen.getByTestId("select-users")).toBeInTheDocument());
 
@@ -178,7 +178,7 @@ describe("AddDeliverableSlotDialog", () => {
     await user.click(screen.getByText("Annual Budget Neutrality Report"));
 
     fireEvent.change(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME), {
-      target: { value: "2026-06-15" },
+      target: { value: "2099-06-15" },
     });
 
     await user.type(screen.getByTestId(DELIVERABLE_NAME_FIELD_ID), "Test Deliverable");

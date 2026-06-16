@@ -97,9 +97,9 @@ export function DeliverableColumns({
     "Submission Date",
     "-",
     {
-      headerClassName: "w-[100px]",
-      headerContentClassName: "break-words",
-      cellClassName: "w-[100px] break-words",
+      headerClassName: "w-[130px]",
+      headerContentClassName: "whitespace-normal",
+      cellClassName: "w-[130px] whitespace-normal",
     }
   );
   const statusColumn = columnHelper.accessor("combinedStatus", {
