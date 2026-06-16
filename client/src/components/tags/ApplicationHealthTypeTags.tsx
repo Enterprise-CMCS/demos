@@ -31,8 +31,6 @@ export const GET_APPLICATION_TAG_OPTIONS: TypedDocumentNode<
 export interface ApplicationHealthTypeTagsProps {
   applicationId: string;
   selectedTags: Tag[];
-  title: string;
-  description?: string;
   suggestedTags?: TagName[];
   onRemoveTag: (tag: string) => void;
   onAcceptSuggestedTag?: (tag: TagName) => void;
@@ -42,8 +40,6 @@ export interface ApplicationHealthTypeTagsProps {
 export const ApplicationHealthTypeTags = ({
   applicationId,
   selectedTags,
-  title,
-  description,
   suggestedTags = [],
   onRemoveTag,
   onAcceptSuggestedTag,
@@ -65,11 +61,7 @@ export const ApplicationHealthTypeTags = ({
   };
 
   return (
-    <div aria-labelledby="state-application-tags-title">
-      <h4 id="state-application-tags-title" className={STYLES.stepThree}>
-        {title}
-      </h4>
-      {description && description.trim() !== "" && <p className={STYLES.helper}>{description}</p>}
+    <>
       <div className={STYLES.tagList}>
         {selectedTags.map((tag) => (
           <TagChip key={tag.tagName} tag={tag} onRemoveTag={onRemoveTag} />
@@ -90,6 +82,6 @@ export const ApplicationHealthTypeTags = ({
           isApplyingSuggestion={isApplyingSuggestedTag}
         />
       )}
-    </div>
+    </>
   );
 };

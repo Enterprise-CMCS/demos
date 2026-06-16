@@ -54,8 +54,6 @@ describe("DemonstrationHealthTypeTags", () => {
         <DialogProvider>
           <ApplicationHealthTypeTags
             applicationId="demo-123"
-            title="STEP 3 - APPLY TAGS"
-            description="You must tag this application with one or more demonstration types involved."
             selectedTags={[
               {
                 tagName: "Behavioral Health",
@@ -68,16 +66,9 @@ describe("DemonstrationHealthTypeTags", () => {
         </DialogProvider>
       </TestProvider>
     );
-
     await waitFor(() => {
-      expect(screen.getByText("STEP 3 - APPLY TAGS")).toBeInTheDocument();
+      expect(screen.getByText("Behavioral Health")).toBeInTheDocument();
     });
-    expect(
-      screen.getByText(
-        "You must tag this application with one or more demonstration types involved."
-      )
-    ).toBeInTheDocument();
-    expect(screen.getByText("Behavioral Health")).toBeInTheDocument();
     expect(screen.getByText("Dental (Unapproved)")).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "button-apply-application-tags" })
@@ -105,8 +96,6 @@ describe("DemonstrationHealthTypeTags", () => {
         <DialogProvider>
           <ApplicationHealthTypeTags
             applicationId="demo-123"
-            title="STEP 3 - APPLY TAGS"
-            description="You must tag this application with one or more demonstration types involved."
             selectedTags={[
               {
                 tagName: "Behavioral Health",
@@ -121,7 +110,7 @@ describe("DemonstrationHealthTypeTags", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("STEP 3 - APPLY TAGS")).toBeInTheDocument();
+      expect(screen.getByLabelText("Remove Dental")).toBeInTheDocument();
     });
 
     await user.click(screen.getByLabelText("Remove Dental"));
@@ -137,7 +126,6 @@ describe("DemonstrationHealthTypeTags", () => {
         <DialogProvider>
           <ApplicationHealthTypeTags
             applicationId="demo-123"
-            title="STEP 3 - APPLY TAGS"
             selectedTags={[{ tagName: "Behavioral Health", approvalStatus: "Approved" }]}
             suggestedTags={["Health Equity", "Behavioral Health"]}
             onRemoveTag={() => {}}
