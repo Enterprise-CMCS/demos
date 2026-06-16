@@ -38,7 +38,7 @@ export const COMPLETENESS_PHASE_DESCRIPTION = {
   testId: "completeness-phase-description",
 };
 export const COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION = {
-  text: "Upload the Internal Completeness Review Form and the Signed Completeness Letter.",
+  text: "Upload the Internal Completeness Review Form and the Signed Completeness Letter. Both files are required to finish the phase.",
   testId: "completeness-phase-step-one-description",
 };
 export const COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION = {
