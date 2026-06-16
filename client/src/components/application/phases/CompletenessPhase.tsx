@@ -8,7 +8,7 @@ import { addDays, differenceInCalendarDays, parseISO } from "date-fns";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { useToast } from "components/toast";
 import { DocumentList } from "./sections";
-import { ApplicationDateInput, LocalDate, PhaseName, PhaseStatus } from "demos-server";
+import { ApplicationDateInput, DateType, LocalDate, PhaseName, PhaseStatus } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
@@ -24,13 +24,25 @@ const STYLES = {
   grid: tw`relative grid grid-cols-2 gap-10`,
   divider: tw`pointer-events-none absolute left-1/2 top-0 h-full border-l border-border-subtle`,
   stepEyebrow: tw`text-[12px] font-semibold uppercase tracking-wide text-text-placeholder mb-2`,
-  title: tw`text-xl font-semibold mb-2`,
+  title: tw`text-xl font-semibold mb-2 uppercase`,
   helper: tw`text-sm text-text-placeholder mb-2`,
   list: tw`mt-4 space-y-3`,
   fileRow: tw`bg-surface-secondary border border-border-fields px-3 py-2 flex items-center justify-between`,
   fileMeta: tw`text-[12px] text-text-placeholder mt-0.5`,
-  actions: tw`mt-8 flex items-center gap-3`,
-  actionsEnd: tw`ml-auto flex gap-3`,
+  actions: tw`mt-8 flex justify-end gap-2`,
+};
+
+export const COMPLETENESS_PHASE_DESCRIPTION = {
+  text: "Verify the application is complete and accurate. Resolving gaps confirms readiness and starts the Completeness Review period.",
+  testId: "completeness-phase-description",
+};
+export const COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION = {
+  text: "Upload the Internal Completeness Review Form and the Signed Completeness Letter. Both files are required to finish the phase.",
+  testId: "completeness-phase-step-one-description",
+};
+export const COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION = {
+  text: "Verify that the document is uploaded/accurate and that all required fields are filled. Review the file and fix the Submitted Date if needed. Hitting Finish sets the Due Date.",
+  testId: "completeness-phase-step-two-description",
 };
 
 const CompletenessNotice = ({
@@ -127,7 +139,7 @@ export const getApplicationCompletenessFromApplication = (
     throw new Error("Application is missing expected phase: Application Intake");
   }
 
-  const findDate = (dateType: string): string => {
+  const findDate = (dateType: DateType): LocalDate | "" => {
     const dateValue = completenessPhase.phaseDates.find(
       (date) => date.dateType === dateType
     )?.dateValue;
@@ -277,10 +289,10 @@ export const CompletenessPhase = ({
   const UploadSection = () => (
     <div aria-labelledby="completeness-upload-title">
       <h4 id="completeness-upload-title" className={STYLES.title}>
-        STEP 1 - UPLOAD
+        Step 1 - Upload
       </h4>
-      <p className={STYLES.helper}>
-        Upload the officially signed State Completeness Letter/internal checklists
+      <p className={STYLES.helper} data-testId={COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION.testId}>
+        {COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION.text}
       </p>
       <SecondaryButton
         onClick={() => showCompletenessDocumentUploadDialog(applicationId)}
@@ -297,17 +309,17 @@ export const CompletenessPhase = ({
   const VerifyCompleteSection = () => (
     <div aria-labelledby="completeness-verify-title">
       <h4 id="completeness-verify-title" className={STYLES.title}>
-        Step 2 - VERIFY/COMPLETE
+        Step 2 - Verify/Complete
       </h4>
-      <p className={STYLES.helper}>
-        Verify that the document(s) are uploaded/accurate and that all required fields are filled.
+      <p className={STYLES.helper} data-testId={COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION.testId}>
+        {COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION.text}
       </p>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2">
           <DatePicker
             name={STATE_DEEMED_COMPLETE_DATEPICKER_NAME}
-            label="State Application Deemed Complete"
+            label={"State Application Deemed Complete" satisfies DateType}
             value={stateDeemedComplete}
             onChange={(date) => {
               setUserSelectedStateDeemedCompleteDate(date);
@@ -319,7 +331,7 @@ export const CompletenessPhase = ({
         <div>
           <DatePicker
             name={FEDERAL_COMMENT_START_DATEPICKER_NAME}
-            label="Federal Comment Period Start Date"
+            label={"Federal Comment Period Start Date" satisfies DateType}
             value={federalStartDate}
             isDisabled
           />
@@ -328,7 +340,7 @@ export const CompletenessPhase = ({
         <div>
           <DatePicker
             name={FEDERAL_COMMENT_END_DATEPICKER_NAME}
-            label="Federal Comment Period End Date"
+            label={"Federal Comment Period End Date" satisfies DateType}
             value={federalEndDate}
             isDisabled
           />
@@ -344,16 +356,14 @@ export const CompletenessPhase = ({
         >
           Declare Incomplete
         </SecondaryButton>
-        <div className={STYLES.actionsEnd}>
-          <Button
-            name={COMPLETENESS_FINISH_BUTTON_NAME}
-            size="small"
-            disabled={!finishIsEnabled()}
-            onClick={handleFinishCompleteness}
-          >
-            Finish
-          </Button>
-        </div>
+        <Button
+          name={COMPLETENESS_FINISH_BUTTON_NAME}
+          size="small"
+          disabled={!finishIsEnabled()}
+          onClick={handleFinishCompleteness}
+        >
+          Finish
+        </Button>
       </div>
     </div>
   );
@@ -365,19 +375,14 @@ export const CompletenessPhase = ({
           completenessReviewDate={completenessReviewDate}
           completenessComplete={completenessComplete}
         />
-        <h3 className="text-brand text-[22px] font-bold">COMPLETENESS</h3>
+        <h3 className="text-brand text-[22px] font-bold uppercase">Completeness</h3>
       </div>
       <div id="completeness-phase-content">
-        <p className="text-sm text-text-placeholder mb-4">
-          Completeness Checklist - Find completeness guidelines online at{" "}
-          <a
-            className="text-blue-700 underline"
-            href="https://www.medicaid.gov"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Medicaid.gov
-          </a>
+        <p
+          className="text-sm text-text-placeholder mb-4"
+          data-testId={COMPLETENESS_PHASE_DESCRIPTION.testId}
+        >
+          {COMPLETENESS_PHASE_DESCRIPTION.text}
         </p>
 
         <section className={STYLES.pane}>

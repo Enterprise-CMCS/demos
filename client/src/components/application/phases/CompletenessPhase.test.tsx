@@ -14,6 +14,9 @@ import {
   FEDERAL_COMMENT_START_DATEPICKER_NAME,
   FEDERAL_COMMENT_END_DATEPICKER_NAME,
   getApplicationCompletenessFromApplication,
+  COMPLETENESS_PHASE_DESCRIPTION,
+  COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION,
+  COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION,
 } from "./CompletenessPhase";
 import { ApplicationWorkflowDocument, WorkflowApplication } from "components/application";
 import { TZDate } from "@date-fns/tz";
@@ -108,28 +111,26 @@ describe("CompletenessPhase", () => {
   describe("Phase Header", () => {
     it("renders COMPLETENESS header", () => {
       setup();
-      const header = screen.getByText("COMPLETENESS");
+      const header = screen.getByText("Completeness");
       expect(header).toBeInTheDocument();
       expect(header).toHaveClass("text-brand");
     });
 
-    it("renders description with link to Medicaid.gov", () => {
+    it("renders description", () => {
       setup();
-      expect(
-        screen.getByText(/Completeness Checklist - Find completeness guidelines online at/i)
-      ).toBeInTheDocument();
-      const link = screen.getByRole("link", { name: "Medicaid.gov" });
-      expect(link).toBeInTheDocument();
-      expect(link).toHaveAttribute("href", "https://www.medicaid.gov");
-      expect(link).toHaveAttribute("target", "_blank");
-      expect(link).toHaveAttribute("rel", "noreferrer");
+      expect(screen.getByTestId(COMPLETENESS_PHASE_DESCRIPTION.testId)).toHaveTextContent(
+        COMPLETENESS_PHASE_DESCRIPTION.text
+      );
     });
   });
 
   describe("Step 1 - Upload Section", () => {
     it("renders upload button and helper text", () => {
       setup();
-      expect(screen.getByText("STEP 1 - UPLOAD")).toBeInTheDocument();
+      expect(screen.getByText("Step 1 - Upload")).toBeInTheDocument();
+      expect(screen.getByTestId(COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION.testId)).toHaveTextContent(
+        COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION.text
+      );
       expect(screen.getByTestId(COMPLETENESS_UPLOAD_BUTTON_NAME)).toBeInTheDocument();
     });
 
@@ -141,6 +142,13 @@ describe("CompletenessPhase", () => {
   });
 
   describe("Step 2 - Verify/Complete Section", () => {
+    it("renders section title and description", () => {
+      setup();
+      expect(screen.getByText("Step 2 - Verify/Complete")).toBeInTheDocument();
+      expect(screen.getByTestId(COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION.testId)).toHaveTextContent(
+        COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION.text
+      );
+    });
     it("renders date picker for State Application Deemed Complete", () => {
       setup();
       const dateInput = screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME);
@@ -468,7 +476,7 @@ describe("getApplicationCompletenessFromApplication", () => {
 
   it("renders the completeness phase component", () => {
     setup();
-    expect(screen.getByText("COMPLETENESS")).toBeInTheDocument();
+    expect(screen.getByText("Completeness")).toBeInTheDocument();
   });
 
   it("populates date pickers from phaseDates", () => {
