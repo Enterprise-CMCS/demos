@@ -9,7 +9,8 @@ export const AmendmentsTab: React.FC<{
   demonstrationId: string;
   medicaidId: string;
   amendments: DemonstrationDetailModification[];
-}> = ({ demonstrationId, medicaidId, amendments }) => {
+  selectedAmendmentId?: string;
+}> = ({ demonstrationId, medicaidId, amendments, selectedAmendmentId }) => {
   const { showCreateAmendmentDialog } = useDialog();
 
   const amendmentsWithType = amendments.map((amendment) => ({
@@ -31,7 +32,7 @@ export const AmendmentsTab: React.FC<{
           Add Amendment
         </IconButton>
       </div>
-      <ModificationTabs items={amendmentsWithType} />
+      <ModificationTabs items={amendmentsWithType} selectedItemId={selectedAmendmentId} />
     </div>
   );
 };
