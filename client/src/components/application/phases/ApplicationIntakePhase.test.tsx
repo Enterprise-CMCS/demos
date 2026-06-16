@@ -14,6 +14,10 @@ import {
   calculateStateApplicationSubmittedDate,
   getCompletenessReviewDueDate,
   getApplicationIntakeComponentFromApplication,
+  APPLICATION_INTAKE_PHASE_DESCRIPTION,
+  APPLICATION_INTAKE_PHASE_STEP_ONE_DESCRIPTION,
+  APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION,
+  APPLICATION_INTAKE_PHASE_STEP_THREE_DESCRIPTION,
 } from "./ApplicationIntakePhase";
 import { ApplicationWorkflowDocument, WorkflowApplication } from "components/application";
 import { TZDate } from "@date-fns/tz";
@@ -115,19 +119,19 @@ describe("ApplicationIntakePhase", () => {
 
     it("renders phase description", () => {
       setup();
-      expect(
-        screen.getByText(/When the state submits an official application/)
-      ).toBeInTheDocument();
-      expect(screen.getByText(/closes Pre-Submission Technical Assistance/)).toBeInTheDocument();
-      expect(screen.getByText(/opens the Completeness Review period/)).toBeInTheDocument();
+      expect(screen.getByTestId(APPLICATION_INTAKE_PHASE_DESCRIPTION.testId)).toHaveTextContent(
+        APPLICATION_INTAKE_PHASE_DESCRIPTION.text
+      );
     });
   });
 
   describe("Step 1 - Upload Section", () => {
     it("renders Step 1 title and description", () => {
       setup();
-      expect(screen.getByText("STEP 1 - UPLOAD")).toBeInTheDocument();
-      expect(screen.getByText(/Upload State Application file/)).toBeInTheDocument();
+      expect(screen.getByText("Step 1 - Upload")).toBeInTheDocument();
+      expect(
+        screen.getByTestId(APPLICATION_INTAKE_PHASE_STEP_ONE_DESCRIPTION.testId)
+      ).toHaveTextContent(APPLICATION_INTAKE_PHASE_STEP_ONE_DESCRIPTION.text);
     });
 
     it("renders upload button", () => {
@@ -169,12 +173,9 @@ describe("ApplicationIntakePhase", () => {
     it("renders Step 2 title and description", () => {
       setup();
       expect(screen.getByText("Step 2 - Verify/Complete")).toBeInTheDocument();
-      expect(screen.getByText("VERIFY/COMPLETE")).toBeInTheDocument();
       expect(
-        screen.getByText(
-          /Verify that the document is uploaded\/accurate and that all required fields are filled/
-        )
-      ).toBeInTheDocument();
+        screen.getByTestId(APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.testId)
+      ).toHaveTextContent(APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.text);
     });
 
     it("renders State Application Submitted Date input field", () => {
@@ -256,9 +257,11 @@ describe("ApplicationIntakePhase", () => {
       await waitFor(() => {
         expect(screen.getByText("APPLICATION INTAKE")).toBeInTheDocument();
       });
+
+      expect(screen.getByText("Step 3 - Apply Tags")).toBeInTheDocument();
       expect(
-        screen.getByText(/You must tag this application with one or more demonstration types/)
-      ).toBeInTheDocument();
+        screen.getByTestId(APPLICATION_INTAKE_PHASE_STEP_THREE_DESCRIPTION.testId)
+      ).toHaveTextContent(APPLICATION_INTAKE_PHASE_STEP_THREE_DESCRIPTION.text);
     });
 
     it("renders selected tags as removable chips", async () => {
