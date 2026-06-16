@@ -447,7 +447,7 @@ export const ApplicationIntakePhase = ({
         </div>
         <div className="mt-8" aria-labelledby="state-application-tags-title">
           <h4 id="state-application-verify-title" className={STYLES.title}>
-            STEP 3 - APPLY TAGS
+            Step 3 - Apply Tags
           </h4>
           <p
             className={STYLES.helper}

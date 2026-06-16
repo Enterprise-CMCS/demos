@@ -257,6 +257,8 @@ describe("ApplicationIntakePhase", () => {
       await waitFor(() => {
         expect(screen.getByText("APPLICATION INTAKE")).toBeInTheDocument();
       });
+
+      expect(screen.getByText("Step 3 - Apply Tags")).toBeInTheDocument();
       expect(
         screen.getByTestId(APPLICATION_INTAKE_PHASE_STEP_THREE_DESCRIPTION.testId)
       ).toHaveTextContent(APPLICATION_INTAKE_PHASE_STEP_THREE_DESCRIPTION.text);
