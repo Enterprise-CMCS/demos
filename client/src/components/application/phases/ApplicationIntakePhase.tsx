@@ -57,11 +57,11 @@ export const APPLICATION_SUBMITTED_DATEPICKER_NAME = "datepicker-state-applicati
 export const COMPLETENESS_REVIEW_DATEPICKER_NAME = "datepicker-completeness-review-due-date";
 
 export const APPLICATION_INTAKE_PHASE_DESCRIPTION = {
-  text: "When the state submits an official application, completing this form closes Pre-Submission Technical Assistance and opens the Completeness Review period",
+  text: "When the state submits an official application, completing this form closes Pre-Submission Technical Assistance and opens the Completeness Review period.",
   testId: "application-intake-phase-description",
 };
 export const APPLICATION_INTAKE_PHASE_STEP_ONE_DESCRIPTION = {
-  text: "Upload the State Application.",
+  text: "Upload the State Application file.",
   testId: "application-intake-phase-step-one-description",
 };
 export const APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION = {
@@ -69,7 +69,7 @@ export const APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION = {
   testId: "application-intake-phase-step-two-description",
 };
 export const APPLICATION_INTAKE_PHASE_STEP_THREE_DESCRIPTION = {
-  text: "Upload the State Application and any other relevant documents.",
+  text: "Application tags track workloads and facilitate reviews. Add tags for the demonstration types discussed in this application. You will update the full set of approved demonstration types and effective dates at approval time.",
   testId: "application-intake-phase-step-three-description",
 };
 
