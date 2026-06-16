@@ -31,7 +31,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
   const classes = `form-checkbox w-[24px] h-[24px] cursor-pointer ${showIndeterminate ? "appearance-none border border-[#0071bc] bg-[#0071bc] hover:bg-[#004F84]" : ""}`;
 
   return (
-    <label className="flex items-center gap-2 cursor-pointer">
+    <label className="flex items-center cursor-pointer">
       <span className="relative inline-flex items-center justify-center">
         <input
           ref={checkboxRef}
