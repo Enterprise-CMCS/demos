@@ -71,7 +71,7 @@ export const CommentBox = ({ deliverableId }: { deliverableId: string }) => {
 
   return (
     <div
-      className="flex flex-col gap-1 bg-gray-primary-layout p-1 min-h-full min-w-87.5 max-w-87.5"
+      className="flex flex-col gap-1 bg-gray-primary-layout p-1 min-w-87.5 max-w-87.5"
       data-testid={COMMENT_BOX_NAME}
     >
       <CommentBoxHeader onCollapse={() => setIsCollapsed(true)} />

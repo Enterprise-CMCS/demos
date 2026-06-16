@@ -5,7 +5,7 @@ import { useDialog } from "components/dialog/DialogContext";
 import { DocumentChip } from "components/document/documentChip";
 
 const STYLES = {
-  list: tw`mt-4 space-y-2`,
+  list: tw`mt-2 space-y-2`,
   fileRow: tw`bg-surface-secondary border border-border-fields py-2 px-2 flex items-center justify-between`,
   fileMeta: tw`text-xs text-text-placeholder mt-0.5`,
 };

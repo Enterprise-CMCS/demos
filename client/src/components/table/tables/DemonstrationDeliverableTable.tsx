@@ -13,7 +13,7 @@ import { PaginationControls } from "components/table/PaginationControls";
 import {
   formatDeliverableFilterStatus,
   formatDeliverableStatus,
-  getSubmissionDate,
+  getLatestSubmissionDate,
 } from "./DeliverableTable";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
 import { getDeliverableFilterOptions } from "./deliverablesFilterOptions";
@@ -71,7 +71,7 @@ export const DemonstrationDeliverableTable: React.FC<{
       cell: highlightCell,
     }),
     createDateColumnDef(columnHelper, "dueDate", "Due Date"),
-    createDateColumnDef(columnHelper, "submissionDate", "Submission Date"),
+    createDateColumnDef(columnHelper, "submissionDate", "Submission Date", "-"),
     columnHelper.accessor("combinedStatus", {
       header: "Status",
       cell: highlightCell,
@@ -114,7 +114,7 @@ export const DemonstrationDeliverableTable: React.FC<{
 
   const formattedDeliverables = sortDeliverablesByDefault(deliverables).map((deliverable) => ({
     ...deliverable,
-    submissionDate: getSubmissionDate(deliverable.deliverableActions),
+    submissionDate: getLatestSubmissionDate(deliverable.deliverableActions),
     combinedStatus: formatDeliverableStatus(deliverable),
     combinedStatusFilter: formatDeliverableFilterStatus(deliverable),
   }));

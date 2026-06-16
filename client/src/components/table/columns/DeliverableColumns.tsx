@@ -76,7 +76,8 @@ export function DeliverableColumns({
   const submissionDateColumn = createDateColumnDef(
     columnHelper,
     "submissionDate",
-    "Submission Date"
+    "Submission Date",
+    "-"
   );
   const statusColumn = columnHelper.accessor("combinedStatus", {
     header: "Status",

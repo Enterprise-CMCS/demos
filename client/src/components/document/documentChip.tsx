@@ -21,7 +21,7 @@ const STYLES = {
   name: tw`font-medium`,
   subtext: tw`text-xs text-text-placeholder mt-0.5`,
   exitButton: tw`shrink-0 flex items-center cursor-pointer hover:bg-red-50 rounded-r`,
-  exitIconContainer: tw`border-l border-border-fields px-1 h-[50%] flex items-center`,
+  exitIconContainer: tw`border-l border-surface-placeholder px-1 h-[50%] flex items-center`,
   exitIcon: tw`w-[16px] h-[16px]`,
 };
 
