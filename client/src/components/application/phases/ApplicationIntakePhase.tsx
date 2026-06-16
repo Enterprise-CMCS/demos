@@ -36,7 +36,7 @@ const STYLES = {
   grid: tw`relative grid grid-cols-2 gap-10`,
   divider: tw`pointer-events-none absolute left-1/2 top-0 h-full border-l border-border-subtle`,
   stepEyebrow: tw`text-xs font-semibold uppercase tracking-wide text-text-placeholder mb-2`,
-  title: tw`text-xl font-semibold mb-2`,
+  title: tw`text-xl font-semibold mb-2 uppercase`,
   helper: tw`text-sm text-text-placeholder mb-2`,
   list: tw`mt-4 space-y-3`,
   fileRow: tw`bg-surface-secondary border border-border-fields px-3 py-2 flex items-center justify-between`,
@@ -55,6 +55,23 @@ export const APPLICATION_INTAKE_FINISH_BUTTON_NAME = "button-finish-state-applic
 export const APPLICATION_INTAKE_UPLOAD_BUTTON_NAME = "button-open-upload-modal";
 export const APPLICATION_SUBMITTED_DATEPICKER_NAME = "datepicker-state-application-submitted-date";
 export const COMPLETENESS_REVIEW_DATEPICKER_NAME = "datepicker-completeness-review-due-date";
+
+export const APPLICATION_INTAKE_PHASE_DESCRIPTION = {
+  text: "When the state submits an official application, completing this form closes Pre-Submission Technical Assistance and opens the Completeness Review period",
+  testId: "application-intake-phase-description",
+};
+export const APPLICATION_INTAKE_PHASE_STEP_ONE_DESCRIPTION = {
+  text: "Upload the State Application.",
+  testId: "application-intake-phase-step-one-description",
+};
+export const APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION = {
+  text: "Check uploaded files. If needed, correct the Concept Paper submitted date before finishing the phase.",
+  testId: "application-intake-phase-step-two-description",
+};
+export const APPLICATION_INTAKE_PHASE_STEP_THREE_DESCRIPTION = {
+  text: "Upload the State Application and any other relevant documents.",
+  testId: "application-intake-phase-step-three-description",
+};
 
 export const ACCEPT_APPLICATION_TAG_SUGGESTION_MUTATION: TypedDocumentNode<
   { acceptApplicationTagSuggestion: Application | null },
@@ -115,9 +132,14 @@ const UploadSection = ({
   return (
     <div aria-labelledby="state-application-upload-title">
       <h4 id="state-application-upload-title" className={STYLES.title}>
-        STEP 1 - UPLOAD
+        Step 1 - Upload
       </h4>
-      <p className={STYLES.helper}>Upload State Application file</p>
+      <p
+        className={STYLES.helper}
+        data-testId={APPLICATION_INTAKE_PHASE_STEP_ONE_DESCRIPTION.testId}
+      >
+        {APPLICATION_INTAKE_PHASE_STEP_ONE_DESCRIPTION.text}
+      </p>
 
       <SecondaryButton
         onClick={() => showApplicationIntakeDocumentUploadDialog(applicationId)}
@@ -165,8 +187,6 @@ interface VerifyCompleteSectionProps {
   stateApplicationSubmittedDate: string;
   hasDocuments: boolean;
   onDateChange: (newDate: string) => void;
-  isFinishButtonEnabled: boolean;
-  onFinish: () => void;
   isPhaseFinalized: boolean;
 }
 
@@ -174,8 +194,6 @@ const VerifyCompleteSection = ({
   stateApplicationSubmittedDate,
   hasDocuments,
   onDateChange,
-  isFinishButtonEnabled,
-  onFinish,
   isPhaseFinalized,
 }: VerifyCompleteSectionProps) => {
   const completenessReviewDueDate = stateApplicationSubmittedDate
@@ -184,12 +202,14 @@ const VerifyCompleteSection = ({
 
   return (
     <div aria-labelledby="state-application-verify-title">
-      <div className={STYLES.stepEyebrow}>Step 2 - Verify/Complete</div>
       <h4 id="state-application-verify-title" className={STYLES.title}>
-        VERIFY/COMPLETE
+        Step 2 - Verify/Complete
       </h4>
-      <p className={STYLES.helper}>
-        Verify that the document is uploaded/accurate and that all required fields are filled.
+      <p
+        className={STYLES.helper}
+        data-testId={APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.testId}
+      >
+        {APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.text}
       </p>
 
       <div className="space-y-4">
@@ -221,17 +241,6 @@ const VerifyCompleteSection = ({
             Automatically calculated as 15 calendar days after State Application Submitted Date
           </div>
         </div>
-      </div>
-
-      <div className={STYLES.actions}>
-        <Button
-          name={APPLICATION_INTAKE_FINISH_BUTTON_NAME}
-          onClick={onFinish}
-          disabled={!isFinishButtonEnabled}
-          size="small"
-        >
-          Finish
-        </Button>
       </div>
     </div>
   );
@@ -418,9 +427,11 @@ export const ApplicationIntakePhase = ({
   return (
     <div>
       <h3 className="text-brand text-[22px] font-bold">APPLICATION INTAKE</h3>
-      <p className="text-sm text-text-placeholder mb-4">
-        When the state submits an official application, completing this form closes Pre-Submission
-        Technical Assistance and opens the Completeness Review period
+      <p
+        className="text-sm text-text-placeholder mb-4"
+        data-testId={APPLICATION_INTAKE_PHASE_DESCRIPTION.testId}
+      >
+        {APPLICATION_INTAKE_PHASE_DESCRIPTION.text}
       </p>
 
       <section className={STYLES.pane}>
@@ -431,18 +442,21 @@ export const ApplicationIntakePhase = ({
             stateApplicationSubmittedDate={stateApplicationSubmittedDate}
             hasDocuments={hasDocuments}
             onDateChange={setSubmittedDateOverride}
-            isFinishButtonEnabled={isFinishButtonEnabled}
-            onFinish={onFinishButtonClick}
             isPhaseFinalized={isPhaseFinalized}
           />
         </div>
-        <div className="mt-8">
+        <div className="mt-8" aria-labelledby="state-application-tags-title">
+          <h4 id="state-application-verify-title" className={STYLES.title}>
+            STEP 3 - APPLY TAGS
+          </h4>
+          <p
+            className={STYLES.helper}
+            data-testId={APPLICATION_INTAKE_PHASE_STEP_THREE_DESCRIPTION.testId}
+          >
+            {APPLICATION_INTAKE_PHASE_STEP_THREE_DESCRIPTION.text}
+          </p>
           <ApplicationHealthTypeTags
             applicationId={applicationId}
-            title={"STEP 3 - APPLY TAGS"}
-            description={
-              "You must tag this application with one or more demonstration types involved in this request before it can be reviewed and approved."
-            }
             selectedTags={tags}
             suggestedTags={suggestedTags}
             onRemoveTag={handleRemoveTag}
@@ -451,6 +465,16 @@ export const ApplicationIntakePhase = ({
           />
         </div>
       </section>
+      <div className={STYLES.actions}>
+        <Button
+          name={APPLICATION_INTAKE_FINISH_BUTTON_NAME}
+          onClick={onFinishButtonClick}
+          disabled={!isFinishButtonEnabled}
+          size="small"
+        >
+          Finish
+        </Button>
+      </div>
       {selectedSuggestedTag && (
         <ConfirmSuggestedSparklyTagDialog
           tagName={selectedSuggestedTag}
