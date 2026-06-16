@@ -8,6 +8,7 @@ model Demonstration {
   sdgDivisionId     String?   @map("sdg_division_id")
   signatureLevelId  String?   @map("signature_level_id")
   statusId          String    @map("status_id")
+  statusUpdatedAt   DateTime  @default(now()) @map("status_updated_at") @db.Timestamptz
   currentPhaseId    String    @map("current_phase_id")
   stateId           String    @map("state_id")
   clearanceLevelId  String    @default("CMS (OSORA)") @map("clearance_level_id")

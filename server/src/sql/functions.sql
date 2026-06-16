@@ -502,17 +502,29 @@ BEGIN
     WHERE id = NEW.application_id;
 
     IF v_application_type_id = 'Demonstration' THEN
-        UPDATE demos_app.demonstration
-        SET current_phase_id = v_current_phase_id
-        WHERE id = NEW.application_id;
+        UPDATE
+            demos_app.demonstration
+        SET
+            current_phase_id = v_current_phase_id,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE
+            id = NEW.application_id;
     ELSIF v_application_type_id = 'Amendment' THEN
-        UPDATE demos_app.amendment
-        SET current_phase_id = v_current_phase_id
-        WHERE id = NEW.application_id;
+        UPDATE
+            demos_app.amendment
+        SET
+            current_phase_id = v_current_phase_id,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE
+            id = NEW.application_id;
     ELSIF v_application_type_id = 'Extension' THEN
-        UPDATE demos_app.extension
-        SET current_phase_id = v_current_phase_id
-        WHERE id = NEW.application_id;
+        UPDATE
+            demos_app.extension
+        SET
+            current_phase_id = v_current_phase_id,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE
+            id = NEW.application_id;
     END IF;
 
     RETURN NEW;
@@ -598,21 +610,27 @@ BEGIN
             UPDATE
                 demos_app.demonstration
             SET
-                status_id = v_new_application_status
+                status_id = v_new_application_status,
+                status_updated_at = CURRENT_TIMESTAMP,
+                updated_at = CURRENT_TIMESTAMP
             WHERE
                 id = NEW.application_id;
         ELSIF v_application_type = 'Amendment' THEN
             UPDATE
                 demos_app.amendment
             SET
-                status_id = v_new_application_status
+                status_id = v_new_application_status,
+                status_updated_at = CURRENT_TIMESTAMP,
+                updated_at = CURRENT_TIMESTAMP
             WHERE
                 id = NEW.application_id;
         ELSIF v_application_type = 'Extension' THEN
             UPDATE
                 demos_app.extension
             SET
-                status_id = v_new_application_status
+                status_id = v_new_application_status,
+                status_updated_at = CURRENT_TIMESTAMP,
+                updated_at = CURRENT_TIMESTAMP
             WHERE
                 id = NEW.application_id;
         END IF;
@@ -1187,11 +1205,15 @@ BEGIN
         WHERE id = NEW.action_type_id
     ) THEN
         -- link any documents that are part of the submission to the action
-        UPDATE demos_app.document
-        SET deliverable_submission_action_id = NEW.id,
-            deliverable_submission_action_type_id = NEW.action_type_id
-        WHERE deliverable_id = NEW.deliverable_id
-        AND deliverable_submission_action_id IS NULL;
+        UPDATE
+            demos_app.document
+        SET
+            deliverable_submission_action_id = NEW.id,
+            deliverable_submission_action_type_id = NEW.action_type_id,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE
+            deliverable_id = NEW.deliverable_id
+            AND deliverable_submission_action_id IS NULL;
     END IF;
 
     RETURN NEW;
@@ -1272,10 +1294,14 @@ BEGIN
     -- Only proceed if demonstration is approved and expiration_date changed
     IF NEW.status_id = 'Approved' AND OLD.expiration_date IS DISTINCT FROM NEW.expiration_date THEN
         -- Update all open-ended deliverables for this demonstration
-        UPDATE demos_app.deliverable
-        SET due_date = NEW.expiration_date
-        WHERE demonstration_id = NEW.id
-        AND due_date_type_id = 'Open Ended';
+        UPDATE
+            demos_app.deliverable
+        SET
+            due_date = NEW.expiration_date,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE
+            demonstration_id = NEW.id
+            AND due_date_type_id = 'Open Ended';
     END IF;
 
     RETURN NEW;
