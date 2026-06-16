@@ -34,7 +34,7 @@ type demonstrationOverviewReportColumn =
   | "primary_state_poc"
   | "state_pocs"
   | "primary_monitoring_evaluation_tech_director"
-  | "actual_approval_date";
+  | "application_approval_date";
 
 export const demonstrationOverviewReportSchema = z
   .object({
@@ -58,7 +58,7 @@ export const demonstrationOverviewReportSchema = z
     primary_state_poc: z.string(),
     state_pocs: z.string(),
     primary_monitoring_evaluation_tech_director: z.string(),
-    actual_approval_date: usDateStringOrDash,
+    application_approval_date: usDateStringOrDash,
   } satisfies OnDemandReportColumnSchema<demonstrationOverviewReportColumn>)
   .strict();
 
@@ -83,7 +83,7 @@ export const demonstrationOverviewReportColumnHeaders = {
   primary_state_poc: "Primary State POC",
   state_pocs: "State POCs",
   primary_monitoring_evaluation_tech_director: "Primary Monitoring & Evaluation Technical Director",
-  actual_approval_date: "Actual Approval Date",
+  application_approval_date: "Application Approval Date",
 } satisfies OnDemandReportColumnHeader<demonstrationOverviewReportColumn>;
 
 export const demonstrationOverviewReportConfiguration = {

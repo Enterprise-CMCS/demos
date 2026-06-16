@@ -67,7 +67,7 @@ SELECT
     demo.medicaid_id AS demonstration_number,
     CASE WHEN demo_type.demonstration_id IS NOT NULL THEN demo.chip_id ELSE '-' END AS chip_id,
     demo.status_id AS status,
-    '01/01/1900' AS status_update_date,
+    to_char(demo.status_updated_at AT TIME ZONE 'America/New_York', 'MM/DD/YYYY') AS status_update_date,
     coalesce(demo.sdg_division_id, '-') AS sdg_division,
     coalesce(demo.signature_level_id, '-') AS signature_level,
     to_char(demo.effective_date AT TIME ZONE 'America/New_York', 'MM/DD/YYYY') AS effective_date,
@@ -82,7 +82,8 @@ SELECT
     coalesce(primary_state_poc.full_name, '-') AS primary_state_poc,
     coalesce(state_pocs.people_assigned, '-') AS state_pocs,
     coalesce(primary_monitoring_evaluation_tech_director.full_name, '-') AS primary_monitoring_evaluation_tech_director,
-    '01/01/1900' AS actual_approval_date
+    coalesce(to_char(app_date.date_value AT TIME ZONE 'America/New_York', 'MM/DD/YYYY'), '-')
+        AS application_approval_date
 FROM
     demos_app.demonstration AS demo
 
@@ -159,7 +160,15 @@ LEFT JOIN
     ON
         demo.id = primary_monitoring_evaluation_tech_director.demonstration_id
         AND primary_monitoring_evaluation_tech_director.role_id = 'Monitoring & Evaluation Technical Director'
-        AND primary_monitoring_evaluation_tech_director.is_primary;
+        AND primary_monitoring_evaluation_tech_director.is_primary
+
+-- Not all demonstrations have an approval date
+-- Note every application / date_type pair exists once, making cardinality fine
+LEFT JOIN
+    demos_app.application_date AS app_date
+    ON
+        demo.id = app_date.application_id
+        AND app_date.date_type_id = 'Approval Summary Completion Date';
 `;
 
 export const demonstrationOverviewReportQueries = [dataFetchQuery];
