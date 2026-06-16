@@ -374,6 +374,7 @@ erDiagram
     text description "NULLABLE"
     timestamptz effective_date "NULLABLE"
     text status_id FK "FK018: status_id ∈ application_status.id"
+    timestamptz status_updated_at
     text current_phase_id FK "FK020: current_phase_id ∈ phase.id"
     text signature_level_id FK "FK087: signature_level_id ∈ signature_level.id<br>NULLABLE"
     text clearance_level_id FK "FK085: clearance_level_id ∈ clearance_level.id"
@@ -555,6 +556,7 @@ erDiagram
     text sdg_division_id FK "FK010: sdg_division_id ∈ sdg_division.id<br>NULLABLE"
     text signature_level_id FK "FK011: signature_level_id ∈ signature_level.id<br>NULLABLE"
     text status_id FK, UK "FK060: status_id ∈ application_status.id<br>UK: (id, status_id)"
+    timestamptz status_updated_at
     text current_phase_id FK "FK061: current_phase_id ∈ phase.id"
     text state_id FK, UK "FK021: state_id ∈ state.id<br>UK: (id, state_id)"
     text clearance_level_id FK "FK084: clearance_level_id ∈ clearance_level.id"
@@ -672,6 +674,7 @@ erDiagram
     text description "NULLABLE"
     timestamptz effective_date "NULLABLE"
     text status_id FK "FK058: status_id ∈ application_status.id"
+    timestamptz status_updated_at
     text current_phase_id FK "FK059: current_phase_id ∈ phase.id"
     text signature_level_id FK "FK088: signature_level_id ∈ signature_level.id<br>NULLABLE"
     text clearance_level_id FK "FK086: clearance_level_id ∈ clearance_level.id"
