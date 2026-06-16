@@ -6,7 +6,12 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { FederalCommentPhase } from "./FederalCommentPhase";
+import {
+  FEDERAL_COMMENT_PHASE_DESCRIPTION,
+  FEDERAL_COMMENT_PHASE_STEP_ONE_DESCRIPTION,
+  FEDERAL_COMMENT_PHASE_STEP_TWO_DESCRIPTION,
+  FederalCommentPhase,
+} from "./FederalCommentPhase";
 import { TZDate } from "@date-fns/tz";
 import { ApplicationWorkflowDocument } from "components/application";
 import { DialogProvider } from "components/dialog/DialogContext";
@@ -64,23 +69,40 @@ describe("FederalCommentPhase", () => {
   describe("Header and Description", () => {
     it("renders header", () => {
       setup();
-      const header = screen.getByText("FEDERAL COMMENT PERIOD");
+      const header = screen.getByText("Federal Comment");
       expect(header).toBeInTheDocument();
       expect(header).toHaveClass("text-brand");
     });
 
-    it("renders description with Medicaid.gov link", () => {
+    it("renders description", () => {
       setup();
-      const link = screen.getByRole("link", { name: "Medicaid.gov" });
-      expect(link).toHaveAttribute("href", "https://www.medicaid.gov");
+      expect(screen.getByTestId(FEDERAL_COMMENT_PHASE_DESCRIPTION.testId)).toHaveTextContent(
+        FEDERAL_COMMENT_PHASE_DESCRIPTION.text
+      );
     });
   });
 
-  describe("Step 1 - Upload Section", () => {
+  describe("Step 1 - Verify Section", () => {
+    it("renders step 1 title and description", () => {
+      setup();
+      expect(screen.getByText("Step 1 - Verify")).toBeInTheDocument();
+      expect(
+        screen.getByTestId(FEDERAL_COMMENT_PHASE_STEP_ONE_DESCRIPTION.testId)
+      ).toHaveTextContent(FEDERAL_COMMENT_PHASE_STEP_ONE_DESCRIPTION.text);
+    });
+
+    it("shows formatted start and end dates", () => {
+      setup();
+      expect(screen.getByText(/Federal Comment Period Start Date/i)).toBeInTheDocument();
+      expect(screen.getByText(/Federal Comment Period End Date/i)).toBeInTheDocument();
+    });
+  });
+
+  describe("Step 2 - Upload Section", () => {
     it("renders upload section with title and helper text", () => {
       setup();
-      expect(screen.getByText("STEP 2 - UPLOAD")).toBeInTheDocument();
-      expect(screen.getByText(/Upload the Internal Analysis Document/)).toBeInTheDocument();
+      expect(screen.getByText("Step 2 - Upload")).toBeInTheDocument();
+      expect(screen.getByText(FEDERAL_COMMENT_PHASE_STEP_TWO_DESCRIPTION.text)).toBeInTheDocument();
     });
 
     it("shows 'No documents yet' when no documents", () => {
@@ -104,22 +126,6 @@ describe("FederalCommentPhase", () => {
       expect(dialog.tagName).toBe("DIALOG");
 
       expect(dialog).toHaveTextContent("Add Federal Comment Document");
-    });
-  });
-
-  describe("Step 2 - Verify/Complete Section", () => {
-    it("renders step 2 title and description", () => {
-      setup();
-      expect(screen.getByText("STEP 1 - VERIFY/COMPLETE")).toBeInTheDocument();
-      expect(
-        screen.getByText(/The Federal Comment phase automatically completes after/i)
-      ).toBeInTheDocument();
-    });
-
-    it("shows formatted start and end dates", () => {
-      setup();
-      expect(screen.getByText(/Federal Comment Period Start Date/i)).toBeInTheDocument();
-      expect(screen.getByText(/Federal Comment Period End Date/i)).toBeInTheDocument();
     });
   });
 
