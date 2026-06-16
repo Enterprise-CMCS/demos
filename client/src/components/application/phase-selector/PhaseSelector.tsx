@@ -139,7 +139,7 @@ export const PhaseSelector = ({
 
   return (
     <>
-      <div className="grid grid-cols-8 gap-md mb-2">
+      <div className="grid grid-cols-8 gap-md mb-2" data-testid="phase-selector-grid">
         <PhaseGroups />
         {PHASE_NAMES.map((phaseName, index) => {
           const displayDate = getDisplayedPhaseDate(application, phaseName);

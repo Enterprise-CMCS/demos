@@ -3,7 +3,7 @@ import React from "react";
 import { TestProvider } from "test-utils/TestProvider";
 import { describe, expect, it, vi } from "vitest";
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { PhaseSelector, getDisplayedPhaseStatus, getDisplayedPhaseDate } from "./PhaseSelector";
@@ -65,6 +65,8 @@ describe("PhaseSelector", () => {
         <PhaseSelector application={demonstration} workflowApplicationType="demonstration" />
       </TestProvider>
     );
+    const phaseSelectorGrid = screen.getByTestId("phase-selector-grid");
+
     [
       "Concept",
       "Application Intake",
@@ -75,7 +77,7 @@ describe("PhaseSelector", () => {
       "Approval Package",
       "Approval Summary",
     ].forEach((name) => {
-      expect(screen.getByText(name)).toBeInTheDocument();
+      expect(within(phaseSelectorGrid).getByText(name)).toBeInTheDocument();
     });
   });
 
