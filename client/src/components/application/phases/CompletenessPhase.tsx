@@ -8,7 +8,7 @@ import { addDays, differenceInCalendarDays, parseISO } from "date-fns";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { useToast } from "components/toast";
 import { DocumentList } from "./sections";
-import { ApplicationDateInput, LocalDate, PhaseName, PhaseStatus } from "demos-server";
+import { ApplicationDateInput, DateType, LocalDate, PhaseName, PhaseStatus } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
@@ -140,7 +140,7 @@ export const getApplicationCompletenessFromApplication = (
     throw new Error("Application is missing expected phase: Application Intake");
   }
 
-  const findDate = (dateType: string): string => {
+  const findDate = (dateType: DateType): LocalDate | "" => {
     const dateValue = completenessPhase.phaseDates.find(
       (date) => date.dateType === dateType
     )?.dateValue;
@@ -320,7 +320,7 @@ export const CompletenessPhase = ({
         <div className="col-span-2">
           <DatePicker
             name={STATE_DEEMED_COMPLETE_DATEPICKER_NAME}
-            label="State Application Deemed Complete"
+            label={"State Application Deemed Complete" satisfies DateType}
             value={stateDeemedComplete}
             onChange={(date) => {
               setUserSelectedStateDeemedCompleteDate(date);
@@ -332,7 +332,7 @@ export const CompletenessPhase = ({
         <div>
           <DatePicker
             name={FEDERAL_COMMENT_START_DATEPICKER_NAME}
-            label="Federal Comment Period Start Date"
+            label={"Federal Comment Period Start Date" satisfies DateType}
             value={federalStartDate}
             isDisabled
           />
@@ -341,7 +341,7 @@ export const CompletenessPhase = ({
         <div>
           <DatePicker
             name={FEDERAL_COMMENT_END_DATEPICKER_NAME}
-            label="Federal Comment Period End Date"
+            label={"Federal Comment Period End Date" satisfies DateType}
             value={federalEndDate}
             isDisabled
           />
