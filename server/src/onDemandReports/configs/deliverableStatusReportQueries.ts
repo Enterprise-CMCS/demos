@@ -22,7 +22,6 @@ flat_demonstration_types AS (
         deliverable_id
 ),
 
-
 action_statistics AS (
     SELECT DISTINCT
         deliverable_id,
