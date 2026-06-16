@@ -15,6 +15,7 @@ import type { ApplicationStatus } from "demos-server";
 export function DemonstrationColumns(projectOfficerOptions: Pick<Person, "fullName">[]) {
   const columnHelper = createColumnHelper<DemonstrationTableRow>();
 
+  // Note, this now hosts/shares some columns with DemonstrationDeliverableTable.
   return [
     columnHelper.accessor("state.id", {
       id: "stateId",
