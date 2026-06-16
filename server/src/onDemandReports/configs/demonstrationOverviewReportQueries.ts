@@ -77,6 +77,7 @@ SELECT
     coalesce(active_approved_amendments.approved_amendment_applications::INT, 0) AS approved_amendment_applications,
     primary_project_officer.full_name AS primary_project_officer,
     coalesce(project_officers.people_assigned, '-') AS project_officers,
+    coalesce(primary_policy_tech_director.full_name, '-') AS primary_policy_tech_director,
     coalesce(primary_ddme_analyst.full_name, '-') AS primary_ddme_analyst,
     coalesce(ddme_analysts.people_assigned, '-') AS ddme_analysts,
     coalesce(primary_state_poc.full_name, '-') AS primary_state_poc,
@@ -120,6 +121,14 @@ LEFT JOIN
     ON
         demo.id = project_officers.demonstration_id
         AND project_officers.role_id = 'Project Officer'
+
+-- Not all demonstrations have a primary policy technical director
+LEFT JOIN
+    role_assignments AS primary_policy_tech_director
+    ON
+        demo.id = primary_policy_tech_director.demonstration_id
+        AND primary_policy_tech_director.role_id = 'Policy Technical Director'
+        AND primary_policy_tech_director.is_primary
 
 -- Not all demonstrations have a primary DDME Analyst
 -- However, only ever one primary at a time
