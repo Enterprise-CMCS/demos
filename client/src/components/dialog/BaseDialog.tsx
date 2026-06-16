@@ -20,6 +20,7 @@ interface BaseDialogProps {
 
 const DIALOG = tw`bg-surface-white text-text-font w-full rounded shadow-md p-md relative max-h-[85vh] overflow-y-auto space-y-sm backdrop:bg-black/40`;
 const CLOSE_BUTTON = tw`absolute top-xs right-sm text-[22px] text-text-placeholder hover:text-text-font cursor-pointer`;
+const CLOSE_BUTTON_DISABLED = tw`absolute top-xs right-sm text-[22px] text-text-placeholder/50 cursor-not-allowed`;
 const TITLE = tw`text-[18px] font-bold mb-xs`;
 const HR = tw`border-border-rules my-sm`;
 
@@ -89,7 +90,8 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
               data-testid="button-dialog-close"
               type="button"
               onClick={onCloseClicked}
-              className={CLOSE_BUTTON}
+              disabled={cancelButtonIsDisabled}
+              className={cancelButtonIsDisabled ? CLOSE_BUTTON_DISABLED : CLOSE_BUTTON}
               aria-label="Close dialog"
             >
               ×

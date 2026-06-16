@@ -74,6 +74,18 @@ describe("BaseDialog", () => {
     expect(screen.queryByText("Cancel")).not.toBeInTheDocument();
   });
 
+  it("disables the close button and does not close when cancelButtonIsDisabled is true", () => {
+    const onClose = vi.fn();
+    render(<BaseDialog {...defaultProps} onClose={onClose} cancelButtonIsDisabled={true} />);
+    const closeBtn = screen.getByLabelText("Close dialog");
+    expect(closeBtn).toBeDisabled();
+    fireEvent.click(closeBtn);
+    expect(onClose).not.toHaveBeenCalled();
+    expect(
+      screen.queryByText("You will lose any unsaved changes in this view.")
+    ).not.toBeInTheDocument();
+  });
+
   it("hides header when hideHeader is true", () => {
     render(<BaseDialog {...defaultProps} hideHeader={true} />);
     expect(screen.queryByText("Test Dialog")).not.toBeInTheDocument();

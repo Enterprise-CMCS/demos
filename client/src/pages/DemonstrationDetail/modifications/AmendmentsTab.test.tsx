@@ -2,6 +2,7 @@ import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { AmendmentsTab } from "./AmendmentsTab";
+import { ModificationTabs } from "./ModificationTabs";
 
 const showCreateAmendmentDialog = vi.fn();
 vi.mock("components/dialog/DialogContext", () => ({
@@ -10,13 +11,24 @@ vi.mock("components/dialog/DialogContext", () => ({
   }),
 }));
 
+vi.mock("./ModificationTabs", () => ({
+  ModificationTabs: vi.fn(() => <div data-testid="modification-tabs">Modification Tabs</div>),
+}));
+
 describe("AmendmentsTab", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   const renderAmendmentsTab = () => {
-    return render(<AmendmentsTab demonstrationId="mock-demonstration-id" medicaidId="mock-medicaid-id" amendments={[]} />);
+    return render(
+      <AmendmentsTab
+        demonstrationId="mock-demonstration-id"
+        medicaidId="mock-medicaid-id"
+        amendments={[]}
+        selectedAmendmentId="mock-amendment-id"
+      />
+    );
   };
 
   it("shows amendments tab title", async () => {
@@ -40,5 +52,19 @@ describe("AmendmentsTab", () => {
     await fireEvent.click(addButton);
 
     expect(showCreateAmendmentDialog).toHaveBeenCalledWith("mock-demonstration-id");
+  });
+
+  it("passes the selected amendment to ModificationTabs", async () => {
+    renderAmendmentsTab();
+
+    expect(ModificationTabs).toHaveBeenCalledWith(
+      expect.objectContaining({
+        items: [],
+        selectedItemId: "mock-amendment-id",
+      }),
+      undefined
+    );
+
+    expect(screen.getByTestId("modification-tabs")).toBeInTheDocument();
   });
 });
