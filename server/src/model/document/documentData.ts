@@ -8,6 +8,7 @@ import { selectDeliverableOrThrow } from "../deliverable/queries/selectDeliverab
 import { DeliverableStatus } from "../../constants";
 import { handleDeleteDocument } from "./handleDeleteDocument";
 import { validateDocumentCanBeDeleted } from "./validateDocumentCanBeDeleted";
+import { validateDocumentCanBeUpdated } from "./validateDocumentCanBeUpdated";
 
 const getViewPermissionFilters = (userId: string) =>
   ({
@@ -127,6 +128,7 @@ export async function editDocument(
     );
 
     if (authorizedDocument) {
+      await validateDocumentCanBeUpdated(authorizedDocument.id);
       return await updateDocument(where, data, tx);
     }
   }

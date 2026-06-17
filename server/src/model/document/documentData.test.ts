@@ -8,6 +8,7 @@ import { PrismaTransactionClient } from "../../prismaClient";
 import { handleDeleteDocument } from "./handleDeleteDocument";
 import { validateDocumentCanBeDeleted } from "./validateDocumentCanBeDeleted";
 import { selectDeliverableOrThrow } from "../deliverable/queries/selectDeliverableOrThrow";
+import { validateDocumentCanBeUpdated } from "./validateDocumentCanBeUpdated";
 
 vi.mock("../../auth", () => ({
   buildAuthorizationFilter: vi.fn(),
@@ -35,6 +36,10 @@ vi.mock("./handleDeleteDocument", () => ({
 
 vi.mock("./validateDocumentCanBeDeleted", () => ({
   validateDocumentCanBeDeleted: vi.fn(),
+}));
+
+vi.mock("./validateDocumentCanBeUpdated", () => ({
+  validateDocumentCanBeUpdated: vi.fn(),
 }));
 
 describe("documentData", () => {
@@ -276,6 +281,21 @@ describe("documentData", () => {
         undefined
       );
       expect(result).toStrictEqual({ ...document, name: "Updated Name" });
+    });
+
+    it("validates that the document can be updated before updating", async () => {
+      const document = { id: "document-1" } as PrismaDocument;
+      vi.mocked(buildAuthorizationFilter).mockReturnValueOnce(authFilter);
+      vi.mocked(selectDocument).mockResolvedValueOnce(document);
+
+      await editDocument(where, { name: "Updated Name" }, user);
+      expect(selectDocument).toHaveBeenCalledExactlyOnceWith(
+        {
+          AND: [where, authFilter],
+        },
+        undefined
+      );
+      expect(validateDocumentCanBeUpdated).toHaveBeenCalledExactlyOnceWith(document.id);
     });
 
     it("passes transaction client to updateDocument if provided", async () => {

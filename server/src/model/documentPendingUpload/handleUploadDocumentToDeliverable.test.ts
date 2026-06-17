@@ -3,6 +3,7 @@ import { handleUploadDocumentToDeliverable } from "./handleUploadDocumentToDeliv
 import { UploadDocumentToDeliverableInput } from "./documentPendingUploadSchema";
 import { checkOptionalNotNullFields } from "../../errors/checkOptionalNotNullFields";
 import { selectDeliverableOrThrow } from "../deliverable";
+import { FINAL_DELIVERABLE_STATUSES } from "../../constants";
 
 const testInput: UploadDocumentToDeliverableInput = {
   applicationId: "app-123",
@@ -47,6 +48,18 @@ describe("handleUploadDocumentToDeliverable", () => {
     expect(selectDeliverableOrThrow).toHaveBeenCalledExactlyOnceWith({
       id: testInput.deliverableId,
     });
+  });
+
+  it("throws an error if the deliverable is in a finalized status", async () => {
+    vi.mocked(selectDeliverableOrThrow).mockResolvedValue({
+      statusId: FINAL_DELIVERABLE_STATUSES[0],
+    } as any);
+
+    await expect(
+      handleUploadDocumentToDeliverable(testInput, testOwnerUserId, false)
+    ).rejects.toThrow(
+      `Document cannot be uploaded to Deliverable with ID ${testInput.deliverableId} because its in a finalized status of ${FINAL_DELIVERABLE_STATUSES[0]}.`
+    );
   });
 
   it("calls uploadDocument with appropriate cms-file configuration", async () => {
