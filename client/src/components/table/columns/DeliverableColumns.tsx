@@ -107,9 +107,9 @@ export function DeliverableColumns({
     cell: highlightCell,
     filterFn: "arrIncludesSome",
     meta: {
-      headerClassName: "w-[100px]",
-      headerContentClassName: "whitespace-nowrap",
-      cellClassName: "w-[100px] whitespace-nowrap",
+      headerClassName: "w-min-[100px] w-max-[200px]",
+      headerContentClassName: "whitespace-normal break-words leading-snug",
+      cellClassName: "w-min-[100px] w-max-[200px] whitespace-normal break-words leading-snug",
       filterConfig: {
         filterType: "select",
         options: isDemonstrationDetail
