@@ -19,11 +19,8 @@ import { DocumentChip } from "components/document/documentChip";
 
 type DocumentDialogType = "add" | "edit";
 
-// BN notebook uploads require the user to attest to the content before submitting.
-const ATTESTATION_DOCUMENT_TYPES: DocumentType[] = [
-  "Final Budget Neutrality Formulation Workbook",
-  "BN Workbook",
-];
+// BN Workbook uploads require the user to attest to the content before submitting.
+const ATTESTATION_DOCUMENT_TYPES: DocumentType[] = ["BN Workbook"];
 
 export const documentTypeRequiresAttestation = (documentType: DocumentType): boolean =>
   ATTESTATION_DOCUMENT_TYPES.includes(documentType);

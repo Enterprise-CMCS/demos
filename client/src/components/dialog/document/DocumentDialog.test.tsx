@@ -60,20 +60,21 @@ describe("checkFormHasChanges", () => {
 });
 
 describe("documentTypeRequiresAttestation", () => {
-  it("requires attestation for BN notebook document types", () => {
-    expect(documentTypeRequiresAttestation("Final Budget Neutrality Formulation Workbook")).toBe(
-      true
-    );
+  it("requires attestation for the BN Workbook document type", () => {
     expect(documentTypeRequiresAttestation("BN Workbook")).toBe(true);
   });
 
   it("does not require attestation for other document types", () => {
+    expect(documentTypeRequiresAttestation("Final Budget Neutrality Formulation Workbook")).toBe(
+      false
+    );
     expect(documentTypeRequiresAttestation("General File")).toBe(false);
     expect(documentTypeRequiresAttestation("Approval Letter")).toBe(false);
   });
 });
 
 const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+const XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
 const renderAddDialog = (
   documentType: DocumentType,
@@ -96,12 +97,28 @@ const selectFile = (fileName: string) => {
   fireEvent.change(screen.getByTestId("input-file"), { target: { files: [file] } });
 };
 
-describe("DocumentDialog attestation gating", () => {
-  it("shows the attestation dialog and defers upload for a BN notebook", async () => {
-    const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
-    renderAddDialog("Final Budget Neutrality Formulation Workbook", onSubmit);
+const selectWorkbook = (fileName = "wb.xlsx") => {
+  const file = new File(["xlsx-bytes"], fileName, { type: XLSX_MIME });
+  fireEvent.change(screen.getByTestId("input-file"), { target: { files: [file] } });
+};
 
-    selectFile("bn-notebook.docx");
+// BN Workbook uploads run async pre-validation that disables the upload button until it settles.
+const waitForUploadEnabled = () =>
+  waitFor(() => expect(screen.getByTestId("button-confirm-upload-document")).not.toBeDisabled());
+
+describe("DocumentDialog attestation gating", () => {
+  // BN Workbook pre-validation passes by default since parseBNFile/rule mocks return undefined.
+  beforeEach(() => {
+    parseBNFile.mockReset();
+    rule.mockReset();
+  });
+
+  it("shows the attestation dialog and defers upload for a BN Workbook", async () => {
+    const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
+    renderAddDialog("BN Workbook", onSubmit);
+
+    selectWorkbook();
+    await waitForUploadEnabled();
     fireEvent.click(screen.getByTestId("button-confirm-upload-document"));
 
     expect(
@@ -112,9 +129,10 @@ describe("DocumentDialog attestation gating", () => {
 
   it("proceeds with the upload after the attestation is confirmed", async () => {
     const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
-    renderAddDialog("Final Budget Neutrality Formulation Workbook", onSubmit);
+    renderAddDialog("BN Workbook", onSubmit);
 
-    selectFile("bn-notebook.docx");
+    selectWorkbook();
+    await waitForUploadEnabled();
     fireEvent.click(screen.getByTestId("button-confirm-upload-document"));
 
     fireEvent.click(await screen.findByTestId("attestation-acknowledge"));
@@ -126,9 +144,10 @@ describe("DocumentDialog attestation gating", () => {
   it("confirms before cancelling the upload when the attestation is dismissed", async () => {
     const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
     const onClose = vi.fn();
-    renderAddDialog("Final Budget Neutrality Formulation Workbook", onSubmit, onClose);
+    renderAddDialog("BN Workbook", onSubmit, onClose);
 
-    selectFile("bn-notebook.docx");
+    selectWorkbook();
+    await waitForUploadEnabled();
     fireEvent.click(screen.getByTestId("button-confirm-upload-document"));
 
     const cancelButtons = await screen.findAllByTestId("button-dialog-cancel");
@@ -144,6 +163,17 @@ describe("DocumentDialog attestation gating", () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
+  it("uploads a Final Budget Neutrality Formulation Workbook directly without an attestation", async () => {
+    const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
+    renderAddDialog("Final Budget Neutrality Formulation Workbook", onSubmit);
+
+    selectFile("bn-formulation-workbook.docx");
+    fireEvent.click(screen.getByTestId("button-confirm-upload-document"));
+
+    expect(onSubmit).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("heading", { name: "Attestation Required" })).not.toBeInTheDocument();
+  });
+
   it("uploads non-BN documents directly without an attestation", async () => {
     const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
     renderAddDialog("General File", onSubmit);
@@ -155,13 +185,6 @@ describe("DocumentDialog attestation gating", () => {
     expect(screen.queryByRole("heading", { name: "Attestation Required" })).not.toBeInTheDocument();
   });
 });
-
-const XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-
-const selectWorkbook = (fileName = "wb.xlsx") => {
-  const file = new File(["xlsx-bytes"], fileName, { type: XLSX_MIME });
-  fireEvent.change(screen.getByTestId("input-file"), { target: { files: [file] } });
-};
 
 describe("DocumentDialog BN Workbook pre-validation", () => {
   beforeEach(() => {
