@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { CompletableSection } from "layout/completableSection";
 import { Textarea, TextInput } from "components/input";
 import Switch from "react-switch";
-import { LocalDate, SdgDivision, SignatureLevel } from "demos-server";
+import { DateType, LocalDate, SdgDivision, SignatureLevel } from "demos-server";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { SelectSdgDivision } from "components/input/select/SelectSdgDivision";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
@@ -337,7 +337,7 @@ export const ApplicationDetailsSection = ({
             <div>
               <div className={LABEL_CLASSES}>
                 <span className="text-text-warn mr-xs">*</span>
-                Application Approval Date
+                {"Application Approval Date" satisfies DateType}
               </div>
               <div className={VALUE_CLASSES}>
                 {sectionFormData.applicationApprovalDate
@@ -348,7 +348,7 @@ export const ApplicationDetailsSection = ({
           ) : (
             <DatePicker
               name="datepicker-application-approval-date"
-              label="Application Approval Date"
+              label={"Application Approval Date" satisfies DateType}
               value={sectionFormData.applicationApprovalDate}
               onChange={(date) =>
                 setSectionFormData({

@@ -177,7 +177,7 @@ LEFT JOIN
     demos_app.application_date AS app_date
     ON
         demo.id = app_date.application_id
-        AND app_date.date_type_id = 'Approval Summary Completion Date';
+        AND app_date.date_type_id = 'Application Approval Date';
 `;
 
 export const demonstrationOverviewReportQueries = [dataFetchQuery];

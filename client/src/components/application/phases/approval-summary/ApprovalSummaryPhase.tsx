@@ -346,7 +346,7 @@ export const ApprovalSummaryPhase = ({
 
       await setApplicationDate({
         applicationId: applicationId,
-        dateType: "Application Approval Date" satisfies DateType,
+        dateType: "Application Approval Date",
         dateValue: formData.applicationApprovalDate ?? null,
       });
 
@@ -367,7 +367,7 @@ export const ApprovalSummaryPhase = ({
     if (formData.applicationType === "amendment") {
       await setApplicationDate({
         applicationId: applicationId,
-        dateType: "Application Approval Date" satisfies DateType,
+        dateType: "Application Approval Date",
         dateValue: formData.applicationApprovalDate ?? null,
       });
       return await updateAmendmentTrigger({
@@ -379,7 +379,7 @@ export const ApprovalSummaryPhase = ({
     } else {
       await setApplicationDate({
         applicationId: applicationId,
-        dateType: "Application Approval Date" satisfies DateType,
+        dateType: "Application Approval Date",
         dateValue: formData.applicationApprovalDate ?? null,
       });
       return await updateExtensionTrigger({
