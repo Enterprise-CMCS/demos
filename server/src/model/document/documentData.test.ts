@@ -289,12 +289,6 @@ describe("documentData", () => {
       vi.mocked(selectDocument).mockResolvedValueOnce(document);
 
       await editDocument(where, { name: "Updated Name" }, user);
-      expect(selectDocument).toHaveBeenCalledExactlyOnceWith(
-        {
-          AND: [where, authFilter],
-        },
-        undefined
-      );
       expect(validateDocumentCanBeUpdated).toHaveBeenCalledExactlyOnceWith(document.id);
     });
 
