@@ -5,11 +5,8 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MockedProvider } from "@apollo/client/testing";
 
-import {
-  ApplicationDetailsSection,
-  ApplicationDetailsFormData,
-} from "./applicationDetailsSection";
-
+import { ApplicationDetailsSection, ApplicationDetailsFormData } from "./applicationDetailsSection";
+import { LocalDate } from "demos-server";
 
 type SelectUSAStatesProps = {
   label: string;
@@ -87,21 +84,15 @@ describe("ApplicationDetailsSection", () => {
     setup();
 
     expect(screen.getByText("Application Details")).toBeInTheDocument();
-    expect(
-      screen.getByText(/Confirm all demonstration information/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Confirm all demonstration information/i)).toBeInTheDocument();
   });
 
   it("shows 'demonstration' text for demonstration", () => {
     setup();
 
-    expect(
-      screen.getByText(/confirm all demonstration information/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/confirm all demonstration information/i)).toBeInTheDocument();
 
-    expect(
-      screen.getByLabelText(/demonstration title/i)
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/demonstration title/i)).toBeInTheDocument();
   });
 
   it("renders editable input when field is not readonly", () => {
@@ -121,9 +112,7 @@ describe("ApplicationDetailsSection", () => {
     });
 
     expect(screen.getByText("Readonly Demo")).toBeInTheDocument();
-    expect(
-      screen.queryByLabelText(/demonstration title/i)
-    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/demonstration title/i)).not.toBeInTheDocument();
   });
 
   it("enables Mark Complete toggle when required fields are filled", () => {
@@ -137,6 +126,7 @@ describe("ApplicationDetailsSection", () => {
       expirationDate: "2026-01-01",
       sdgDivision: "Division of System Reform Demonstrations",
       signatureLevel: "OA",
+      applicationApprovalDate: "2025-06-01" as LocalDate,
     });
 
     const toggle = screen.getByRole("switch", { name: /mark complete/i });
@@ -156,7 +146,7 @@ describe("ApplicationDetailsSection", () => {
         sdgDivision: "Division of System Reform Demonstrations",
         signatureLevel: "OA",
       },
-      true,  // isComplete
+      true, // isComplete
       false
     );
     const user = userEvent.setup();
@@ -181,6 +171,7 @@ describe("ApplicationDetailsSection", () => {
       expirationDate: "2026-01-01",
       sdgDivision: "Division of System Reform Demonstrations",
       signatureLevel: "OA",
+      applicationApprovalDate: "2025-06-01" as LocalDate,
     });
 
     const toggle = screen.getByRole("switch", { name: /mark complete/i });
@@ -199,13 +190,9 @@ describe("ApplicationDetailsSection", () => {
         readonlyFields: {},
       } as ApplicationDetailsFormData);
 
-      expect(
-        screen.getByText(/confirm all amendment information/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/confirm all amendment information/i)).toBeInTheDocument();
 
-      expect(
-        screen.getByLabelText(/amendment title/i)
-      ).toBeInTheDocument();
+      expect(screen.getByLabelText(/amendment title/i)).toBeInTheDocument();
     });
 
     it("does not render demonstration-only fields for amendment", () => {
@@ -217,17 +204,11 @@ describe("ApplicationDetailsSection", () => {
         readonlyFields: {},
       } as ApplicationDetailsFormData);
 
-      expect(
-        screen.queryByText(/state\/territory/i)
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/state\/territory/i)).not.toBeInTheDocument();
 
-      expect(
-        screen.queryByText(/project officer/i)
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/project officer/i)).not.toBeInTheDocument();
 
-      expect(
-        screen.queryByText(/sdg division/i)
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/sdg division/i)).not.toBeInTheDocument();
     });
 
     it("enables Mark Complete for amendment with minimal required fields", () => {
@@ -237,6 +218,7 @@ describe("ApplicationDetailsSection", () => {
         effectiveDate: "2025-01-01",
         signatureLevel: "OA",
         readonlyFields: {},
+        applicationApprovalDate: "2025-06-01",
       } as ApplicationDetailsFormData);
 
       const toggle = screen.getByRole("switch", { name: /mark complete/i });
@@ -264,9 +246,7 @@ describe("ApplicationDetailsSection", () => {
         readonlyFields: {},
       } as ApplicationDetailsFormData);
 
-      expect(
-        screen.getByLabelText(/extension title/i)
-      ).toBeInTheDocument();
+      expect(screen.getByLabelText(/extension title/i)).toBeInTheDocument();
     });
   });
 });

@@ -273,6 +273,7 @@ export const DATE_TYPES = [
   "Application Demonstration Types Marked Complete Date",
   "Approval Summary Start Date",
   "Approval Summary Completion Date",
+  "Application Approval Date",
 ] as const;
 export type DateType = (typeof DATE_TYPES)[number];
 
@@ -323,6 +324,7 @@ export const DATE_TYPES_WITH_EXPECTED_TIMESTAMPS: DateTypeExpectedTimestampRecor
   "Application Demonstration Types Marked Complete Date": { expectedTimestamp: "Start of Day" },
   "Approval Summary Start Date": { expectedTimestamp: "Start of Day" },
   "Approval Summary Completion Date": { expectedTimestamp: "Start of Day" },
+  "Application Approval Date": { expectedTimestamp: "Start of Day" },
 } as const;
 
 export const STATES_AND_TERRITORIES = [
