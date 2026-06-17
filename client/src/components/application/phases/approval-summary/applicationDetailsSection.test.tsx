@@ -248,5 +248,48 @@ describe("ApplicationDetailsSection", () => {
 
       expect(screen.getByLabelText(/extension title/i)).toBeInTheDocument();
     });
+
+    it("renders application approval date field for demonstrations", () => {
+      setup({
+        applicationType: "demonstration",
+        name: "Demo",
+        stateId: "CA",
+        projectOfficerId: "Officer",
+        projectOfficerName: "Officer",
+        status: "Active",
+        effectiveDate: "2025-01-01",
+        expirationDate: "2026-01-01",
+        sdgDivision: "Division of System Reform Demonstrations",
+        signatureLevel: "OA",
+        readonlyFields: {},
+        applicationApprovalDate: "2025-06-01" as LocalDate,
+      } as ApplicationDetailsFormData);
+
+      expect(screen.getByLabelText(/application approval date/i)).toBeInTheDocument();
+    });
+
+    it("renders application approval date field for both amendments and extensions", () => {
+      setup({
+        applicationType: "amendment",
+        name: "Amendment 1",
+        effectiveDate: "2025-01-01",
+        signatureLevel: "OA",
+        readonlyFields: {},
+        applicationApprovalDate: "2025-06-01",
+      } as ApplicationDetailsFormData);
+
+      expect(screen.getByLabelText(/application approval date/i)).toBeInTheDocument();
+
+      setup({
+        applicationType: "extension",
+        name: "Extension 1",
+        effectiveDate: "2025-01-01",
+        signatureLevel: "OA",
+        readonlyFields: {},
+        applicationApprovalDate: "2025-06-01",
+      } as ApplicationDetailsFormData);
+
+      expect(screen.getByLabelText(/application approval date/i)).toBeInTheDocument();
+    });
   });
 });
