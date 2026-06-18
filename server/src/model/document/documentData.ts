@@ -4,8 +4,6 @@ import { selectDocument, selectManyDocuments, updateDocument } from "./queries";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { log } from "../../log";
 import { isAStatePointOfContactAssociatedWithDeliverable } from "../deliverable/deliverableData";
-import { selectDeliverableOrThrow } from "../deliverable/queries/selectDeliverableOrThrow";
-import { DeliverableStatus } from "../../constants";
 import { handleDeleteDocument } from "./handleDeleteDocument";
 import { validateDocumentCanBeDeleted } from "./validateDocumentCanBeDeleted";
 import { validateDocumentCanBeUpdated } from "./validateDocumentCanBeUpdated";
@@ -162,11 +160,7 @@ export async function removeDocument(
     );
 
     if (authorizedDocument) {
-      const deliverableStatus = authorizedDocument.deliverableId
-        ? ((await selectDeliverableOrThrow({ id: authorizedDocument.deliverableId }, tx))
-            .statusId as DeliverableStatus)
-        : null;
-      validateDocumentCanBeDeleted({ ...authorizedDocument, deliverableStatus });
+      validateDocumentCanBeDeleted(authorizedDocument);
       return await handleDeleteDocument(where, tx);
     }
   }
