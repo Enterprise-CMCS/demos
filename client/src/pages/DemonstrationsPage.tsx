@@ -11,6 +11,7 @@ import {
 } from "demos-server";
 import { Tab, HorizontalSectionTabs } from "layout/Tabs";
 import { useSessionTab } from "hooks/useSessionTab";
+import { CreateNewButton } from "components/header/CreateNewButton";
 
 export const DEMONSTRATIONS_PAGE_QUERY = gql`
   query GetDemonstrationsPage {
@@ -65,9 +66,8 @@ export type DemonstrationsPageQueryResult = {
 };
 
 export const DemonstrationsPage: React.FC = () => {
-  const { data, loading, error } = useQuery<DemonstrationsPageQueryResult>(
-    DEMONSTRATIONS_PAGE_QUERY
-  );
+  const { data, loading, error } =
+    useQuery<DemonstrationsPageQueryResult>(DEMONSTRATIONS_PAGE_QUERY);
 
   const demonstrations = data?.demonstrations || [];
   const myDemonstrations = demonstrations.filter(
@@ -82,16 +82,14 @@ export const DemonstrationsPage: React.FC = () => {
 
   return (
     <div className="shadow-md bg-white p-[16px]">
-      <h1 className="text-[20px] font-bold mb-[24px] text-brand uppercase border-b-1 pb-[8px]">
-        Demonstrations
-      </h1>
+      <div className="flex items-center justify-between mb-[24px] border-b-1 pb-[8px]">
+        <h1 className="text-[20px] font-bold text-brand uppercase">Demonstrations</h1>
+        <CreateNewButton />
+      </div>
       {loading && <div className="p-4">Loading demonstrations...</div>}
       {error && <div className="p-4 text-red-500">Error loading demonstrations.</div>}
       {data && (
-        <HorizontalSectionTabs
-          defaultValue={tabValue}
-          onSelect={onTabSelect}
-        >
+        <HorizontalSectionTabs defaultValue={tabValue} onSelect={onTabSelect}>
           <Tab label={`My Demonstrations (${myDemonstrations.length})`} value="my-demonstrations">
             <DemonstrationTable
               demonstrations={myDemonstrations}

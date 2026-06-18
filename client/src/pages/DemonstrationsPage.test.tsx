@@ -11,6 +11,10 @@ vi.mock("@apollo/client", () => ({
   useQuery: (...args: unknown[]) => mockUseQuery(...args),
 }));
 
+vi.mock("components/header/CreateNewButton", () => ({
+  CreateNewButton: () => <div data-testid="create-new-button" />,
+}));
+
 const baseData = {
   demonstrations: [
     {
@@ -46,6 +50,7 @@ describe("DemonstrationsPage tab persistence", () => {
   it("defaults to My Demonstrations when no tab is stored", () => {
     render(<DemonstrationsPage />);
 
+    expect(screen.getByTestId("create-new-button")).toBeInTheDocument();
     expect(screen.getByTestId("button-my-demonstrations")).toHaveAttribute("aria-selected", "true");
     expect(sessionStorage.getItem("selectedDemonstrationTab")).toBe("my-demonstrations");
   });
