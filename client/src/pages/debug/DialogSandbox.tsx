@@ -132,8 +132,6 @@ export const DialogSandbox: React.FC = () => {
               id: ID,
               name: "foo",
               description: "",
-              documentType: "Other" as DocumentType,
-              file: null,
             })
           }
         >

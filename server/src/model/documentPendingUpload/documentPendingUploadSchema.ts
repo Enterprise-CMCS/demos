@@ -47,12 +47,6 @@ export const documentPendingUploadSchema = gql`
     deliverableId: ID!
   }
 
-  input UpdateDocumentInput {
-    name: NonEmptyString
-    description: String
-    documentType: DocumentType
-  }
-
   type Mutation {
     uploadDocumentToApplication(input: UploadDocumentToApplicationInput!): DocumentPendingUpload!
       @auth(requires: ["Perform CMS Action"])

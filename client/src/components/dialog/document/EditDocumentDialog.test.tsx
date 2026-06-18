@@ -7,7 +7,8 @@ import { describe, expect, it, vi } from "vitest";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import { DocumentDialogFields, EditDocumentDialog } from "./";
+import { EditDocumentDialog } from "./";
+import { Document as ServerDocument } from "demos-server";
 
 const mockQuery = vi.fn();
 
@@ -16,10 +17,17 @@ beforeEach(() => {
     const actual = await vi.importActual("@apollo/client");
     return {
       ...actual,
-      useMutation: () => [mockQuery],
+      useMutation: () => [mockQuery, { loading: false }],
     };
   });
 });
+
+const mockCloseDialog = vi.fn();
+vi.mock("../DialogContext", () => ({
+  useDialog: () => ({
+    closeDialog: mockCloseDialog,
+  }),
+}));
 
 afterEach(() => {
   vi.resetModules();
@@ -27,35 +35,27 @@ afterEach(() => {
 });
 
 const UPLOAD_DOCUMENT_BUTTON_TEST_ID = "button-confirm-upload-document";
-const AUTOCOMPLETE_SELECT_TEST_ID = "input-autocomplete-select";
 
 describe("EditDocumentDialog", () => {
-  const existingDocument: DocumentDialogFields = {
+  const existingDocument: Pick<ServerDocument, "id" | "name" | "description"> = {
     id: "123",
     name: "Existing Document",
     description: "This is an existing document",
-    documentType: "General File",
-    file: null,
   };
   const setup = () => {
-    const onClose = vi.fn();
     render(
       <ToastProvider>
-        <EditDocumentDialog initialDocument={existingDocument} onClose={onClose} />
+        <EditDocumentDialog document={existingDocument} />
       </ToastProvider>
     );
-    return { onClose };
   };
 
   it("renders dialog with correct title and fields", () => {
     setup();
 
     expect(screen.getByText("Edit Document")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Existing Document")).toBeInTheDocument(); // Title
-    expect(screen.getByDisplayValue("This is an existing document")).toBeInTheDocument(); // Description
-    const documentTypeInput = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
-    expect(documentTypeInput).toBeInTheDocument();
-    expect(screen.getByDisplayValue("General File")).toBeInTheDocument(); // Document Type
+    expect(screen.getByDisplayValue("Existing Document")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("This is an existing document")).toBeInTheDocument();
   });
 
   it("enables 'Save Changes' button after a field is changed", async () => {
@@ -87,12 +87,11 @@ describe("EditDocumentDialog", () => {
   });
 
   it("calls onClose when cancel is confirmed", async () => {
-    const { onClose } = setup();
-
+    setup();
     fireEvent.click(screen.getByText("Cancel"));
 
     await waitFor(() => {
-      expect(onClose).toHaveBeenCalled();
+      expect(mockCloseDialog).toHaveBeenCalled();
     });
   });
 });

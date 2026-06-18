@@ -142,19 +142,8 @@ vi.mock("./document", () => ({
       </button>
     </div>
   ),
-  EditDocumentDialog: ({
-    initialDocument,
-    onClose,
-  }: {
-    initialDocument: { id: string };
-    onClose: () => void;
-  }) => (
-    <div data-testid="edit-document-dialog">
-      Edit Document Dialog {initialDocument.id}
-      <button data-testid="close-edit-document-btn" onClick={onClose}>
-        Close
-      </button>
-    </div>
+  EditDocumentDialog: ({ document }: { document: { id: string } }) => (
+    <div data-testid="edit-document-dialog">Edit Document Dialog {document.id}</div>
   ),
   RemoveDocumentDialog: ({
     documentIds,
@@ -716,7 +705,7 @@ describe("DialogContext", () => {
     expect(screen.queryByTestId("add-document-dialog")).not.toBeInTheDocument();
   });
 
-  it("shows and hides EditDocumentDialog via context", async () => {
+  it("shows EditDocumentDialog via context", async () => {
     render(
       <DialogProvider>
         <TestConsumer />
@@ -729,9 +718,6 @@ describe("DialogContext", () => {
     await user.click(screen.getByTestId("open-edit-document-btn"));
     expect(screen.getByTestId("edit-document-dialog")).toBeInTheDocument();
     expect(screen.getByText(/Edit Document Dialog doc-1/)).toBeInTheDocument();
-
-    await user.click(screen.getByTestId("close-edit-document-btn"));
-    expect(screen.queryByTestId("edit-document-dialog")).not.toBeInTheDocument();
   });
 
   it("shows and hides RemoveDocumentDialog via context", async () => {

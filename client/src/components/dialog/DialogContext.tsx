@@ -7,6 +7,7 @@ import {
   Tag,
   Reference,
   ReferenceAgreement,
+  Document as ServerDocument,
 } from "demos-server";
 import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
 import { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
@@ -16,7 +17,6 @@ import { ExistingContactType, ManageContactsDialog } from "./ManageContactsDialo
 import {
   AddDocumentToApplicationDialog,
   AddDocumentToDeliverableDialog,
-  DocumentDialogFields,
   EditDocumentDialog,
   RemoveDocumentDialog,
 } from "./document";
@@ -62,7 +62,13 @@ import { ReferenceAgreementDialog } from "./referenceAgreement/ReferenceAgreemen
 
 type EditDeliverableDialogSource = Pick<
   DeliverableTableRow,
-  "id" | "name" | "deliverableType" | "dueDate" | "cmsOwner" | "demonstrationTypes" | "demonstration"
+  | "id"
+  | "name"
+  | "deliverableType"
+  | "dueDate"
+  | "cmsOwner"
+  | "demonstrationTypes"
+  | "demonstration"
 >;
 
 type DialogContextType = {
@@ -152,24 +158,10 @@ export const useDialog = () => {
   };
 
   const showEditDocumentDialog = (
-    initialDocument: DocumentDialogFields,
-    options: {
-      canEditDocumentType?: boolean;
-      hideDocumentType?: boolean;
-      documentTypeSubset?: DocumentType[];
-      refetchQueries?: DocumentNode[];
-    } = {}
+    document: Pick<ServerDocument, "id" | "name" | "description">,
+    refetchQueries?: DocumentNode[]
   ) => {
-    context.showDialog(
-      <EditDocumentDialog
-        initialDocument={initialDocument}
-        onClose={context.hideDialog}
-        canEditDocumentType={options.canEditDocumentType}
-        hideDocumentType={options.hideDocumentType}
-        documentTypeSubset={options.documentTypeSubset}
-        refetchQueries={options.refetchQueries}
-      />
-    );
+    context.showDialog(<EditDocumentDialog document={document} refetchQueries={refetchQueries} />);
   };
 
   const showRemoveDocumentDialog = (

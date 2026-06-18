@@ -253,7 +253,6 @@ describe("documentResolvers", () => {
       const mockUpdateInput: UpdateDocumentInput = {
         name: "Updated Document",
         description: "Updated description",
-        documentType: "State Application",
       };
       vi.mocked(editDocument).mockResolvedValue(mockDocument);
       const updatedDocument = await documentResolvers.Mutation.updateDocument(
@@ -265,7 +264,7 @@ describe("documentResolvers", () => {
         mockContext
       );
       expect(checkOptionalNotNullFields).toHaveBeenCalledExactlyOnceWith(
-        ["name", "description", "documentType"],
+        ["name", "description"],
         mockUpdateInput
       );
       expect(editDocument).toHaveBeenCalledExactlyOnceWith(
@@ -273,7 +272,6 @@ describe("documentResolvers", () => {
         {
           name: "Updated Document",
           description: "Updated description",
-          documentTypeId: "State Application",
         },
         mockContext.user
       );

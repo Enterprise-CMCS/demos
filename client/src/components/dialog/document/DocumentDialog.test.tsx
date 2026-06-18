@@ -84,8 +84,7 @@ const renderAddDialog = (
   render(
     <ToastProvider>
       <DocumentDialog
-        mode="add"
-        documentTypeSubset={[documentType]}
+        applicableDocumentTypes={[documentType]}
         onSubmit={onSubmit}
         onClose={onClose}
       />

@@ -1,6 +1,5 @@
 import React from "react";
 
-import { DocumentType } from "demos-server";
 import { DOCUMENT_TYPES } from "demos-server-constants";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -56,9 +55,10 @@ describe("DocumentTypeInput", () => {
 
   it("accepts a subset of document types", async () => {
     const user = userEvent.setup();
-    const documentTypeSubset: DocumentType[] = ["General File", "Approval Letter"];
 
-    render(<DocumentTypeInput {...defaultProps} documentTypeSubset={documentTypeSubset} />);
+    render(
+      <DocumentTypeInput {...defaultProps} documentTypes={["General File", "Approval Letter"]} />
+    );
 
     const input = screen.getByTestId("input-autocomplete-select");
     await user.click(input);
@@ -74,9 +74,8 @@ describe("DocumentTypeInput", () => {
 
   it("handles empty documentTypeSubset gracefully", async () => {
     const user = userEvent.setup();
-    const documentTypeSubset: DocumentType[] = [];
 
-    render(<DocumentTypeInput {...defaultProps} documentTypeSubset={documentTypeSubset} />);
+    render(<DocumentTypeInput {...defaultProps} documentTypes={[]} />);
 
     const input = screen.getByTestId("input-autocomplete-select");
     await user.click(input);
@@ -86,9 +85,11 @@ describe("DocumentTypeInput", () => {
     expect(screen.queryByText("Approval Letter")).not.toBeInTheDocument();
   });
 
-  it("disables the field and prevents onSelect callback when canEditDocumentType is false", async () => {
+  it("disables the field and prevents onSelect callback when documentTypes has one option", async () => {
     const user = userEvent.setup();
-    render(<DocumentTypeInput {...defaultProps} canEditDocumentType={false} />);
+    render(
+      <DocumentTypeInput {...defaultProps} documentTypes={["Application Completeness Letter"]} />
+    );
 
     const input = screen.getByTestId("input-autocomplete-select");
 
