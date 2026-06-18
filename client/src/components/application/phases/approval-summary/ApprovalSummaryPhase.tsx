@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
 import { formatDateForDisplay, formatDateForServer, getTodayEst } from "util/formatDate";
-import { ApplicationStatus, DateType, UpdateDemonstrationInput } from "demos-server";
+import { ApplicationStatus, DateType, LocalDate, UpdateDemonstrationInput } from "demos-server";
 import {
   ApplicationWorkflowAmendment,
   ApplicationWorkflowDemonstration,
@@ -94,6 +94,10 @@ const getReadonlyFields = (data: ApplicationDetailsFormData) => ({
 export const getDemonstrationApprovalSummaryFormData = (
   demonstration: ApplicationWorkflowDemonstration
 ): ApplicationDetailsFormData => {
+  const applicationApprovalDate = demonstration.phases
+    .find((p) => p.phaseName === "Approval Summary")
+    ?.phaseDates.find((d) => d.dateType === "Application Approval Date")?.dateValue;
+
   const formData = {
     applicationType: "demonstration" as const,
     stateId: demonstration.state.id,
@@ -111,6 +115,9 @@ export const getDemonstrationApprovalSummaryFormData = (
     description: demonstration.description,
     sdgDivision: demonstration.sdgDivision,
     signatureLevel: demonstration.signatureLevel,
+    applicationApprovalDate: applicationApprovalDate
+      ? (formatDateForServer(applicationApprovalDate) as LocalDate)
+      : undefined,
   };
 
   return {
@@ -133,6 +140,10 @@ export const getModificationApprovalSummaryFormData = (
   modification: ApplicationWorkflowAmendment | ApplicationWorkflowExtension,
   modificationType: "amendment" | "extension"
 ): ApplicationDetailsFormData => {
+  const applicationApprovalDate = modification.phases
+    .find((p) => p.phaseName === "Approval Summary")
+    ?.phaseDates.find((d) => d.dateType === "Application Approval Date")?.dateValue;
+
   const formData = {
     applicationType: modificationType,
     name: modification.name,
@@ -142,6 +153,9 @@ export const getModificationApprovalSummaryFormData = (
     description: modification.description,
     signatureLevel: modification.signatureLevel,
     status: modification.status,
+    applicationApprovalDate: applicationApprovalDate
+      ? (formatDateForServer(applicationApprovalDate) as LocalDate)
+      : undefined,
   };
 
   return {
@@ -330,6 +344,12 @@ export const ApprovalSummaryPhase = ({
         projectOfficerUserId: formData.projectOfficerId,
       };
 
+      await setApplicationDate({
+        applicationId: applicationId,
+        dateType: "Application Approval Date",
+        dateValue: formData.applicationApprovalDate ?? null,
+      });
+
       return await updateDemonstrationTrigger({
         variables: {
           id: applicationId,
@@ -345,6 +365,11 @@ export const ApprovalSummaryPhase = ({
         : null,
     };
     if (formData.applicationType === "amendment") {
+      await setApplicationDate({
+        applicationId: applicationId,
+        dateType: "Application Approval Date",
+        dateValue: formData.applicationApprovalDate ?? null,
+      });
       return await updateAmendmentTrigger({
         variables: {
           id: applicationId,
@@ -352,6 +377,11 @@ export const ApprovalSummaryPhase = ({
         },
       });
     } else {
+      await setApplicationDate({
+        applicationId: applicationId,
+        dateType: "Application Approval Date",
+        dateValue: formData.applicationApprovalDate ?? null,
+      });
       return await updateExtensionTrigger({
         variables: {
           id: applicationId,
@@ -367,10 +397,15 @@ export const ApprovalSummaryPhase = ({
         approvalSummaryFormData.effectiveDate &&
         approvalSummaryFormData.expirationDate &&
         approvalSummaryFormData.sdgDivision &&
-        approvalSummaryFormData.signatureLevel
+        approvalSummaryFormData.signatureLevel &&
+        approvalSummaryFormData.applicationApprovalDate
       );
     } else {
-      return !!(approvalSummaryFormData.effectiveDate && approvalSummaryFormData.signatureLevel);
+      return !!(
+        approvalSummaryFormData.effectiveDate &&
+        approvalSummaryFormData.signatureLevel &&
+        approvalSummaryFormData.applicationApprovalDate
+      );
     }
   })();
 

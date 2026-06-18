@@ -128,6 +128,7 @@ describe("validateInputDates", () => {
         "Application Demonstration Types Marked Complete Date",
         "Approval Summary Start Date",
         "Approval Summary Completion Date",
+        "Application Approval Date",
       ];
       const expectedCalls = startOfDayDateTypes.map((dateType) => [dateType, testDateValue]);
 
