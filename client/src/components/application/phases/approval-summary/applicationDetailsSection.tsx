@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { CompletableSection } from "layout/completableSection";
 import { Textarea, TextInput } from "components/input";
 import Switch from "react-switch";
-import { SdgDivision, SignatureLevel } from "demos-server";
+import { DateType, LocalDate, SdgDivision, SignatureLevel } from "demos-server";
 import { SelectUsers } from "components/input/select/SelectUsers";
 import { SelectSdgDivision } from "components/input/select/SelectSdgDivision";
 import { SelectSignatureLevel } from "components/input/select/SelectSignatureLevel";
@@ -22,6 +22,7 @@ export type BaseFormData = {
   effectiveDate?: string;
   signatureLevel?: SignatureLevel;
   status: string;
+  applicationApprovalDate?: LocalDate;
 };
 
 export type DemonstrationDetailsFormData = BaseFormData & {
@@ -89,11 +90,17 @@ export const ApplicationDetailsSection = ({
         data.effectiveDate &&
         data.expirationDate &&
         data.sdgDivision &&
-        data.signatureLevel
+        data.signatureLevel &&
+        data.applicationApprovalDate
       );
     }
 
-    return !!(data.name && data.effectiveDate && data.signatureLevel);
+    return !!(
+      data.name &&
+      data.effectiveDate &&
+      data.signatureLevel &&
+      data.applicationApprovalDate
+    );
   };
 
   const requiredFieldsFilled = useMemo(
@@ -319,6 +326,35 @@ export const ApplicationDetailsSection = ({
               }
               onSelect={(signatureLevel) =>
                 setSectionFormData({ ...sectionFormData, signatureLevel })
+              }
+              isDisabled={isReadonly}
+              isRequired
+            />
+          )}
+        </div>
+        <div className="flex flex-col">
+          {isComplete ? (
+            <div>
+              <div className={LABEL_CLASSES}>
+                <span className="text-text-warn mr-xs">*</span>
+                {"Application Approval Date" satisfies DateType}
+              </div>
+              <div className={VALUE_CLASSES}>
+                {sectionFormData.applicationApprovalDate
+                  ? formatDateForDisplay(sectionFormData.applicationApprovalDate)
+                  : "-"}
+              </div>
+            </div>
+          ) : (
+            <DatePicker
+              name="datepicker-application-approval-date"
+              label={"Application Approval Date" satisfies DateType}
+              value={sectionFormData.applicationApprovalDate}
+              onChange={(date) =>
+                setSectionFormData({
+                  ...sectionFormData,
+                  applicationApprovalDate: date as LocalDate,
+                })
               }
               isDisabled={isReadonly}
               isRequired
