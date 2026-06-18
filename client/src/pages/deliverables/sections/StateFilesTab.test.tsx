@@ -21,6 +21,7 @@ const MOCK_FILES: DeliverableFileRow[] = [
     documentType: "General File",
     createdAt: new Date("2026-01-15"),
     owner: { person: { fullName: "Alpha Owner" } },
+    isPartOfDeliverableSubmission: false,
   },
   {
     id: "file-b",
@@ -29,6 +30,16 @@ const MOCK_FILES: DeliverableFileRow[] = [
     documentType: "Monitoring Report",
     createdAt: new Date("2026-02-20"),
     owner: { person: { fullName: "Bravo Owner" } },
+    isPartOfDeliverableSubmission: false,
+  },
+  {
+    id: "file-c",
+    name: "Charlie.pdf",
+    description: "Charlie description",
+    documentType: "General File",
+    createdAt: new Date("2026-03-25"),
+    owner: { person: { fullName: "Charlie Owner" } },
+    isPartOfDeliverableSubmission: true,
   },
 ];
 
@@ -184,25 +195,23 @@ describe("StateFilesTab", () => {
       expect(screen.getByTestId(STATE_FILES_DELETE_BUTTON_NAME)).toBeDisabled();
     });
   });
-
-  describe("when deleteDisabled", () => {
-    it("keeps Delete disabled even when rows are selected", async () => {
+  describe("when file is part of a deliverable submission", () => {
+    it("disables Delete for files that are part of a submission", async () => {
       const user = userEvent.setup();
-      renderTab({ deleteDisabled: true });
+      renderTab();
 
-      await user.click(screen.getByTestId("select-row-file-a"));
+      await user.click(screen.getByTestId("select-row-file-c"));
 
       expect(screen.getByTestId(STATE_FILES_DELETE_BUTTON_NAME)).toBeDisabled();
     });
 
-    it("still allows Add and Edit", async () => {
+    it("allows Delete for files that are not part of a submission", async () => {
       const user = userEvent.setup();
-      renderTab({ deleteDisabled: true });
-
-      expect(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME)).not.toBeDisabled();
+      renderTab();
 
       await user.click(screen.getByTestId("select-row-file-a"));
-      expect(screen.getByTestId(STATE_FILES_EDIT_BUTTON_NAME)).not.toBeDisabled();
+
+      expect(screen.getByTestId(STATE_FILES_DELETE_BUTTON_NAME)).not.toBeDisabled();
     });
   });
 });

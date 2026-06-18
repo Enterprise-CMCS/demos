@@ -29,7 +29,6 @@ export type DeliverableFileTableProps = {
   onDelete?: (fileIds: string[]) => void;
   footer?: React.ReactNode;
   disabled?: boolean;
-  deleteDisabled?: boolean;
   showActions?: boolean;
 };
 
@@ -49,7 +48,6 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
   onDelete,
   footer,
   disabled = false,
-  deleteDisabled = false,
   showActions = true,
 }) => (
   <div data-testid={testId} className="flex flex-col gap-1">
@@ -76,14 +74,18 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
             const selectedRows = table.getSelectedRowModel().rows.map((row) => row.original);
             const selectedCount = selectedRows.length;
 
+            const hasSubmittedFile = selectedRows.some(
+              (row) => row.isPartOfDeliverableSubmission
+            );
+
             const editTooltip = selectionTooltip({
               action: "Edit",
               nounSingular: "File",
               selectedCount,
               rule: { kind: "exactly", count: 1 },
             });
-            const deleteTooltip = deleteDisabled
-              ? "Files cannot be deleted after the deliverable has been submitted."
+            const deleteTooltip = hasSubmittedFile
+              ? "Selection contains files that have been submitted. Cannot delete submitted files."
               : selectionTooltip({
                 action: "Delete",
                 nounSingular: "File",
@@ -106,7 +108,7 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
                   name={deleteButtonName}
                   ariaLabel={deleteAriaLabel}
                   tooltip={deleteTooltip}
-                  disabled={disabled || deleteDisabled || selectedCount < 1}
+                  disabled={disabled || hasSubmittedFile || selectedCount < 1}
                   onClick={() => onDelete?.(selectedRows.map((row) => row.id))}
                 >
                   <DeleteIcon />
