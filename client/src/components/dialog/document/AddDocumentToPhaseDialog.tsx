@@ -98,9 +98,8 @@ export const AddDocumentToPhaseDialog: React.FC<AddDocumentToPhaseDialogProps> =
   return (
     <DocumentDialog
       onClose={onClose}
-      mode="add"
       onSubmit={handleUpload}
-      documentTypeSubset={documentTypeSubset}
+      applicableDocumentTypes={documentTypeSubset}
       titleOverride={titleOverride}
     />
   );

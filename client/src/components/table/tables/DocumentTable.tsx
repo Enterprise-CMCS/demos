@@ -71,8 +71,6 @@ export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[
                       id: selectedDocs[0].id,
                       name: selectedDocs[0].name,
                       description: selectedDocs[0].description,
-                      documentType: selectedDocs[0].documentType,
-                      file: null,
                     })
                   }
                 >

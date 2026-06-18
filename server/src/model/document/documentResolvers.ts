@@ -99,14 +99,13 @@ export const documentResolvers = {
       { id, input }: { id: string; input: UpdateDocumentInput },
       context: GraphQLContext
     ): Promise<PrismaDocument> {
-      checkOptionalNotNullFields(["name", "description", "documentType"], input);
+      checkOptionalNotNullFields(["name", "description"], input);
       try {
         return await editDocument(
           { id },
           {
             name: input.name,
             description: input.description,
-            documentTypeId: input.documentType,
           },
           context.user
         );

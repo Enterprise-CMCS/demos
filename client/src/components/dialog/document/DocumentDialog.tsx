@@ -17,8 +17,6 @@ import { UploadButton } from "./UploadButton";
 import { BNPreValidationState, useBNWorkbookPreValidation } from "./useBNWorkbookPreValidation";
 import { DocumentChip } from "components/document/documentChip";
 
-type DocumentDialogType = "add" | "edit";
-
 // BN Workbook uploads require the user to attest to the content before submitting.
 const ATTESTATION_DOCUMENT_TYPES: DocumentType[] = ["BN Workbook"];
 
@@ -69,7 +67,7 @@ const SUCCESS_MESSAGES = {
   fileDeleted: "Your document has been removed.",
 };
 
-const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }> = ({
+export const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }> = ({
   value,
   onChange,
 }) => (
@@ -89,7 +87,7 @@ type DescriptionInputProps = {
   error?: string;
 };
 
-const DescriptionInput: React.FC<DescriptionInputProps> = ({ value, onChange, error }) => {
+export const DescriptionInput: React.FC<DescriptionInputProps> = ({ value, onChange, error }) => {
   const validationMessage = error ?? "";
   return (
     <div className="flex flex-col gap-sm">
@@ -315,14 +313,11 @@ export const checkFormHasChanges = (
 
 export type DocumentDialogProps = {
   onClose?: () => void;
-  mode: DocumentDialogType;
-  documentTypeSubset?: DocumentType[];
+  applicableDocumentTypes?: DocumentType[];
   onSubmit: (dialogFields: DocumentDialogFields) => Promise<DocumentUploadResult>;
   initialDocument?: DocumentDialogFields;
   titleOverride?: string;
   cancelButtonIsDisabled?: boolean;
-  canEditDocumentType?: boolean;
-  hideDocumentType?: boolean;
 };
 
 // Sets the default document type if a subset is provided
@@ -339,18 +334,15 @@ const setDefaultDocumentType = (
 
 export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   onClose = () => {},
-  mode,
-  documentTypeSubset,
+  applicableDocumentTypes,
   onSubmit,
   initialDocument,
   titleOverride,
-  canEditDocumentType = true,
-  hideDocumentType = false,
 }) => {
   const { showSuccess, showError } = useToast();
   const hydratedInitialDocument = setDefaultDocumentType(
     DEFAULT_DOCUMENT_FIELDS,
-    documentTypeSubset
+    applicableDocumentTypes
   );
 
   const [activeDocument, setActiveDocument] = useState<DocumentDialogFields>(
@@ -367,7 +359,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
       checkFormHasChanges(initialDocument || hydratedInitialDocument, activeDocument)
     );
   }, [activeDocument]);
-  const dialogTitle = titleOverride ?? (mode === "edit" ? "Edit Document" : "Add New Document");
+  const dialogTitle = titleOverride ?? "Add New Document";
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const { file, uploadProgress, uploadStatus, handleFileChange, setFile } = useFileUpload({
@@ -380,11 +372,11 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   const bnPreValidation = useBNWorkbookPreValidation(file, activeDocument.documentType);
 
   useEffect(() => {
-    if (mode === "add" && file && !titleManuallyEdited && !activeDocument.name.trim()) {
+    if (file && !titleManuallyEdited && !activeDocument.name.trim()) {
       const base = file.name.replace(/\.[^.]+$/, "");
       setActiveDocument((prev) => ({ ...prev, name: base }));
     }
-  }, [mode, file, titleManuallyEdited, activeDocument.name]);
+  }, [file, titleManuallyEdited, activeDocument.name]);
 
   // On file change
   useEffect(() => {
@@ -401,13 +393,10 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     setActiveDocument((prev) => ({ ...prev, file }));
   }, [file]);
 
-  const isMissing =
-    (mode === "add" && !file) || !activeDocument.documentType || !activeDocument.name.trim();
+  const isMissing = !file || !activeDocument.documentType || !activeDocument.name.trim();
 
   const isBNPreValidationBlocking =
-    mode === "add" &&
-    !!file &&
-    (bnPreValidation.status === "validating" || bnPreValidation.status === "invalid");
+    !!file && (bnPreValidation.status === "validating" || bnPreValidation.status === "invalid");
 
   const onUploadClick = async () => {
     if (documentDialogState === "uploading") return;
@@ -416,7 +405,7 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
       return;
     }
     // BN notebooks require an attestation before any data is submitted.
-    if (mode === "add" && documentTypeRequiresAttestation(activeDocument.documentType)) {
+    if (documentTypeRequiresAttestation(activeDocument.documentType)) {
       setIsAttestationOpen(true);
       return;
     }
@@ -443,11 +432,11 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
     if (uploadResult === "succeeded") {
       setDocumentDialogState("idle");
       onClose();
-      showSuccess(mode === "edit" ? SUCCESS_MESSAGES.fileUpdated : SUCCESS_MESSAGES.fileUploaded);
+      showSuccess(SUCCESS_MESSAGES.fileUploaded);
     }
   };
 
-  const buttonName = mode == "edit" ? "Save Changes" : "Upload Document";
+  const buttonName = "Upload Document";
 
   return (
     <>
@@ -461,23 +450,19 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
             disabled={isMissing || !formHasChanges || isBNPreValidationBlocking}
             isUploading={documentDialogState === "uploading"}
             label={buttonName}
-            loadingLabel={mode === "edit" ? "Saving" : "Uploading"}
+            loadingLabel={"Uploading"}
           />
         }
         cancelButtonIsDisabled={documentDialogState === "uploading"}
       >
-        {mode !== "edit" ? (
-          <DropTarget
-            file={file}
-            onRemove={() => setFile(null)}
-            fileInputRef={fileInputRef}
-            uploadStatus={uploadStatus}
-            uploadProgress={uploadProgress}
-            handleFileChange={handleFileChange}
-          />
-        ) : (
-          ""
-        )}
+        <DropTarget
+          file={file}
+          onRemove={() => setFile(null)}
+          fileInputRef={fileInputRef}
+          uploadStatus={uploadStatus}
+          uploadProgress={uploadProgress}
+          handleFileChange={handleFileChange}
+        />
 
         <BNPreValidationNotice state={bnPreValidation} />
 
@@ -499,16 +484,13 @@ export const DocumentDialog: React.FC<DocumentDialogProps> = ({
           onChange={(val) => setActiveDocument((prev) => ({ ...prev, description: val }))}
         />
 
-        {!hideDocumentType && (
-          <DocumentTypeInput
-            value={activeDocument.documentType}
-            onSelect={(val) =>
-              setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }))
-            }
-            documentTypeSubset={documentTypeSubset}
-            canEditDocumentType={canEditDocumentType}
-          />
-        )}
+        <DocumentTypeInput
+          value={activeDocument.documentType}
+          onSelect={(val) =>
+            setActiveDocument((prev) => ({ ...prev, documentType: val as DocumentType }))
+          }
+          documentTypes={applicableDocumentTypes}
+        />
       </BaseDialog>
 
       {isAttestationOpen && (

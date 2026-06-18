@@ -70,16 +70,11 @@ export function ApprovalPackageColumns(demonstrationId: string) {
                   name={`edit-${doc.documentType}`}
                   ariaLabel={`Edit ${doc.documentType}`}
                   onClick={() =>
-                    showEditDocumentDialog(
-                      {
-                        id: doc.id!,
-                        name: doc.name,
-                        description: doc.description,
-                        file: null,
-                        documentType: doc.documentType as DocumentType,
-                      },
-                      { canEditDocumentType: false }
-                    )
+                    showEditDocumentDialog({
+                      id: doc.id!,
+                      name: doc.name,
+                      description: doc.description,
+                    })
                   }
                 >
                   <EditIcon />

@@ -21,10 +21,7 @@ const BN_WORKBOOK_DOCUMENT_TYPE: DocumentType = "BN Workbook";
 
 export const UPLOAD_DOCUMENT_TO_DELIVERABLE_STATE_FILES_MUTATION: TypedDocumentNode<
   {
-    uploadDocumentToDeliverableStateFiles: Pick<
-      DocumentPendingUpload,
-      "presignedUploadUrl" | "id"
-    >;
+    uploadDocumentToDeliverableStateFiles: Pick<DocumentPendingUpload, "presignedUploadUrl" | "id">;
   },
   { input: UploadDocumentToDeliverableInput }
 > = gql`
@@ -38,10 +35,7 @@ export const UPLOAD_DOCUMENT_TO_DELIVERABLE_STATE_FILES_MUTATION: TypedDocumentN
 
 export const UPLOAD_DOCUMENT_TO_DELIVERABLE_CMS_FILES_MUTATION: TypedDocumentNode<
   {
-    uploadDocumentToDeliverableCMSFiles: Pick<
-      DocumentPendingUpload,
-      "presignedUploadUrl" | "id"
-    >;
+    uploadDocumentToDeliverableCMSFiles: Pick<DocumentPendingUpload, "presignedUploadUrl" | "id">;
   },
   { input: UploadDocumentToDeliverableInput }
 > = gql`
@@ -113,7 +107,10 @@ export const AddDocumentToDeliverableDialog: React.FC<AddDocumentToDeliverableDi
       ? (await uploadCmsDocument(uploadDocumentInput)).uploadDocumentToDeliverableCMSFiles
       : (await uploadStateDocument(uploadDocumentInput)).uploadDocumentToDeliverableStateFiles;
 
-    const response = await tryUploadingFileToS3(pendingUpload.presignedUploadUrl, dialogFields.file);
+    const response = await tryUploadingFileToS3(
+      pendingUpload.presignedUploadUrl,
+      dialogFields.file
+    );
     if (!response.success) {
       throw new Error(response.errorMessage);
     }
@@ -146,11 +143,9 @@ export const AddDocumentToDeliverableDialog: React.FC<AddDocumentToDeliverableDi
   return (
     <DocumentDialog
       onClose={onClose}
-      mode="add"
       onSubmit={handleUpload}
-      documentTypeSubset={effectiveDocumentTypeSubset}
+      applicableDocumentTypes={effectiveDocumentTypeSubset}
       titleOverride="Upload Document"
-      canEditDocumentType={(effectiveDocumentTypeSubset?.length ?? 0) !== 1}
     />
   );
 };

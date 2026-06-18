@@ -96,9 +96,8 @@ export const AddDocumentToApplicationDialog: React.FC<AddDocumentToApplicationDi
   return (
     <DocumentDialog
       onClose={onClose}
-      mode="add"
       onSubmit={handleUpload}
-      documentTypeSubset={documentTypeSubset}
+      applicableDocumentTypes={documentTypeSubset}
       titleOverride={titleOverride}
     />
   );

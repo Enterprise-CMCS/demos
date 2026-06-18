@@ -42,7 +42,6 @@ export const documentSchema = gql`
   input UpdateDocumentInput {
     name: NonEmptyString
     description: String
-    documentType: DocumentType
   }
 
   type Mutation {
@@ -92,5 +91,4 @@ export interface Document {
 export interface UpdateDocumentInput {
   name?: NonEmptyString;
   description?: string;
-  documentType?: DocumentType;
 }

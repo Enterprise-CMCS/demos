@@ -144,10 +144,7 @@ export const FileAndHistoryTabs: React.FC<{
   };
 
   const handleEditFile = (file: DeliverableFileRow) => {
-    showEditDocumentDialog(fileRowToDialogFields(file), {
-      hideDocumentType: true,
-      refetchQueries: refetchAfterFileChange,
-    });
+    showEditDocumentDialog(fileRowToDialogFields(file), refetchAfterFileChange);
   };
 
   const handleDeleteFiles = (fileIds: string[]) => {
