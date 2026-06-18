@@ -9,10 +9,10 @@ import {
   parseAndValidateBudgetNeutralityMessage,
   validateSingleRecordCount,
 } from "./budgetNeutralityValidation";
-import { parseBNFileFromPath } from "demos-shared-library/src/BN/index";
-import { validateBNWorkbook, ValidationError, ValidationResult } from "demos-shared-library/src/BN/validation";
-import { validations } from "demos-shared-library/src/BN/rulesets/v1/index";
-import { extractorFunctions } from "demos-shared-library/src/BN/extractors/index";
+import { parseBNFileFromPath } from "demos-shared-library/BN";
+import { validateBNWorkbook, ValidationError, ValidationResult } from "demos-shared-library/BN/validation";
+import { validations } from "demos-shared-library/BN/rulesets";
+import { extractorFunctions } from "demos-shared-library/BN/extractors";
 
 const SUCCEEDED_VALIDATION_STATUS_ID = "Succeeded";
 const FAILED_VALIDATION_STATUS_ID = "Failed";
