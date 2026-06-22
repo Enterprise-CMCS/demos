@@ -3,6 +3,8 @@ import { gql, useMutation } from "@apollo/client";
 import { BaseCreateModificationDialog } from "./BaseCreateModificationDialog";
 import { ModificationFormData } from "./ModificationForm";
 
+const DEMONSTRATION_DETAIL_QUERY_NAME = "DemonstrationDetailQuery";
+
 export const CREATE_EXTENSION_MUTATION = gql`
   mutation CreateExtension($input: CreateExtensionInput!) {
     createExtension(input: $input) {
@@ -29,6 +31,9 @@ export const useCreateExtension = () => {
           signatureLevel: input.signatureLevel,
         },
       },
+      ...(input.demonstrationId
+        ? { refetchQueries: [DEMONSTRATION_DETAIL_QUERY_NAME] }
+        : {}),
     });
   };
 

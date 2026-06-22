@@ -5,19 +5,39 @@ import { useDialog } from "components/dialog/DialogContext";
 import { DemonstrationDetailModification } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { ModificationTabs } from "./ModificationTabs";
 
+const EMPTY_EXTENSIONS_MESSAGE = "No extensions have been added yet";
+
 export const ExtensionsTab: React.FC<{
   demonstrationId: string;
   medicaidId: string;
   extensions: DemonstrationDetailModification[];
   selectedExtensionId?: string;
 }> = ({ demonstrationId, medicaidId, extensions, selectedExtensionId }) => {
+  const { showCreateExtensionDialog } = useDialog();
+
+  if (extensions.length === 0) {
+    return (
+      <div className="flex min-h-[360px] flex-col items-center justify-center gap-4 p-2">
+        <p className="text-sm text-text-primary">{EMPTY_EXTENSIONS_MESSAGE}</p>
+        <IconButton
+          ariaLabel="Create Extension"
+          icon={<AddNewIcon />}
+          name="create-new-extension"
+          size="small"
+          onClick={() => showCreateExtensionDialog(demonstrationId)}
+        >
+          Create Extension
+        </IconButton>
+      </div>
+    );
+  }
+
   const extensionsWithType = extensions.map((extension) => ({
     ...extension,
     modificationType: "extension" as const,
     medicaidId: medicaidId,
   }));
 
-  const { showCreateExtensionDialog } = useDialog();
   return (
     <div className="flex flex-col p-2 gap-2">
       <div className="flex justify-between items-center pb-1 border-b border-border-rules">
