@@ -194,9 +194,9 @@ export const DemonstrationDetail: React.FC = () => {
     return <div>Failed to load demonstration.</div>;
   }
 
-  const hasAmendments = demonstration.amendments && demonstration.amendments.length > 0;
-  const hasExtensions = demonstration.extensions && demonstration.extensions.length > 0;
-
+  const amendmentCount = demonstration.amendments?.length ?? 0;
+  const extensionCount = demonstration.extensions?.length ?? 0;
+  const isApproved = demonstration.status === "Approved";
   return (
     <div>
       {
@@ -209,9 +209,9 @@ export const DemonstrationDetail: React.FC = () => {
             </Tab>
 
             <Tab
-              label={`Amendments (${demonstration.amendments?.length ?? 0})`}
+              label={`Amendments (${amendmentCount})`}
               value="amendments"
-              shouldRender={hasAmendments}
+              shouldRender={isApproved || amendmentCount > 0}
             >
               <AmendmentsTab
                 demonstrationId={demonstration.id}
@@ -222,9 +222,9 @@ export const DemonstrationDetail: React.FC = () => {
             </Tab>
 
             <Tab
-              label={`Extensions (${demonstration.extensions?.length ?? 0})`}
+              label={`Extensions (${extensionCount})`}
               value="extensions"
-              shouldRender={hasExtensions}
+              shouldRender={isApproved || extensionCount > 0}
             >
               <ExtensionsTab
                 demonstrationId={demonstration.id}
