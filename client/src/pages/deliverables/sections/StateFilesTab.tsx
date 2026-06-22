@@ -15,10 +15,10 @@ const STATE_FILES_EMPTY_MESSAGE =
 
 export type StateFilesTabProps = {
   files: DeliverableFileRow[];
-  onAdd?: () => void;
-  onEdit?: (file: DeliverableFileRow) => void;
-  onDelete?: (fileIds: string[]) => void;
-  disabled?: boolean;
+  onAdd: () => void;
+  onEdit: (file: DeliverableFileRow) => void;
+  onDelete: (fileIds: string[]) => void;
+  isFinalized: boolean;
 };
 
 export const StateFilesTab: React.FC<StateFilesTabProps> = ({
@@ -26,7 +26,7 @@ export const StateFilesTab: React.FC<StateFilesTabProps> = ({
   onAdd,
   onEdit,
   onDelete,
-  disabled = false,
+  isFinalized,
 }) => {
   const columns = makeStateFileColumns();
 
@@ -45,7 +45,8 @@ export const StateFilesTab: React.FC<StateFilesTabProps> = ({
       onAdd={onAdd}
       onEdit={onEdit}
       onDelete={onDelete}
-      disabled={disabled}
+      showActions={true}
+      isFinalized={isFinalized}
     />
   );
 };

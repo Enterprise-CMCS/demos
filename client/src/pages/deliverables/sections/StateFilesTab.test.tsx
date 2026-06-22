@@ -43,31 +43,35 @@ const MOCK_FILES: DeliverableFileRow[] = [
   },
 ];
 
-const renderTab = (overrides: Partial<React.ComponentProps<typeof StateFilesTab>> = {}) =>
+const renderTab = (overrides: Partial<React.ComponentProps<typeof StateFilesTab>> = {}) => {
+  const baseRenderTabProps = {
+    files: MOCK_FILES,
+    onAdd: vi.fn(),
+    onEdit: vi.fn(),
+    onDelete: vi.fn(),
+    canManage: true,
+    isFinalized: false,
+  };
   render(
     <TestProvider>
-      <StateFilesTab files={MOCK_FILES} {...overrides} />
+      <StateFilesTab {...baseRenderTabProps} {...overrides} />
     </TestProvider>
   );
+};
+
 
 describe("StateFilesTab", () => {
   describe("empty state", () => {
-    const renderEmpty = (overrides: Partial<React.ComponentProps<typeof StateFilesTab>> = {}) =>
-      render(
-        <TestProvider>
-          <StateFilesTab files={[]} {...overrides} />
-        </TestProvider>
-      );
 
     it("renders the table header and shows the empty-rows message", () => {
-      renderEmpty();
+      renderTab({files: []});
 
       expect(screen.getByRole("table")).toBeInTheDocument();
       expect(screen.getByText(/No files have been added yet\./i)).toBeInTheDocument();
     });
 
     it("renders the header Add File(s) button", () => {
-      renderEmpty();
+      renderTab({files: []});
 
       expect(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME)).toBeInTheDocument();
     });
@@ -75,7 +79,7 @@ describe("StateFilesTab", () => {
     it("invokes onAdd when the header Add File(s) button is clicked", async () => {
       const user = userEvent.setup();
       const onAdd = vi.fn();
-      renderEmpty({ onAdd });
+      renderTab({files: [], onAdd});
 
       await user.click(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME));
 
@@ -170,31 +174,29 @@ describe("StateFilesTab", () => {
     });
   });
 
-  describe("when disabled", () => {
+  describe("when finalized", () => {
     it("disables the Add File(s) button", () => {
-      renderTab({ disabled: true });
+      renderTab({ isFinalized: true });
 
-      expect(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME)).toBeDisabled();
+      const addButton = screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME);
+      expect(addButton).toBeDisabled();
+      expect(addButton).toHaveAttribute("title", "Files cannot be added to a Finalized deliverable.");
     });
 
     it("keeps Edit disabled even when a row is selected", async () => {
       const user = userEvent.setup();
-      renderTab({ disabled: true });
+      renderTab({ isFinalized: true });
+
+      const editButton = screen.getByTestId(STATE_FILES_EDIT_BUTTON_NAME);
+      expect(editButton).toBeDisabled();
 
       await user.click(screen.getByTestId("select-row-file-a"));
 
-      expect(screen.getByTestId(STATE_FILES_EDIT_BUTTON_NAME)).toBeDisabled();
-    });
-
-    it("keeps Delete disabled even when rows are selected", async () => {
-      const user = userEvent.setup();
-      renderTab({ disabled: true });
-
-      await user.click(screen.getByTestId("select-row-file-a"));
-
-      expect(screen.getByTestId(STATE_FILES_DELETE_BUTTON_NAME)).toBeDisabled();
+      expect(editButton).toBeDisabled();
+      expect(editButton).toHaveAttribute("title", "Documents on Finalized deliverables cannot be edited.");
     });
   });
+
   describe("when file is part of a deliverable submission", () => {
     it("disables Delete for files that are part of a submission", async () => {
       const user = userEvent.setup();

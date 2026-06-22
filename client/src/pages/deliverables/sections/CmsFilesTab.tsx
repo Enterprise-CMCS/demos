@@ -13,11 +13,11 @@ const CMS_FILES_EMPTY_MESSAGE = "No files have been added yet.";
 
 export type CmsFilesTabProps = {
   files: DeliverableFileRow[];
-  onAdd?: () => void;
-  onEdit?: (file: DeliverableFileRow) => void;
-  onDelete?: (fileIds: string[]) => void;
-  disabled?: boolean;
-  showActions?: boolean;
+  onAdd: () => void;
+  onEdit: (file: DeliverableFileRow) => void;
+  onDelete: (fileIds: string[]) => void;
+  canManage: boolean;
+  isFinalized: boolean;
 };
 
 export const CmsFilesTab: React.FC<CmsFilesTabProps> = ({
@@ -25,10 +25,10 @@ export const CmsFilesTab: React.FC<CmsFilesTabProps> = ({
   onAdd,
   onEdit,
   onDelete,
-  disabled = false,
-  showActions = true,
+  canManage,
+  isFinalized,
 }) => {
-  const columns = makeCmsFileColumns({ showSelect: showActions });
+  const columns = makeCmsFileColumns({ showSelect: canManage });
 
   return (
     <DeliverableFileTable
@@ -45,8 +45,8 @@ export const CmsFilesTab: React.FC<CmsFilesTabProps> = ({
       onAdd={onAdd}
       onEdit={onEdit}
       onDelete={onDelete}
-      disabled={disabled}
-      showActions={showActions}
+      showActions={canManage}
+      isFinalized={isFinalized}
     />
   );
 };

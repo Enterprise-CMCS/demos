@@ -263,7 +263,7 @@ describe("FileAndHistoryTabs", () => {
   });
 
   describe("when the current user is a state user", () => {
-    it("hides Add File(s), Edit, and Delete on the CMS Files tab", async () => {
+    it("hides Add File(s) and action buttons on the CMS Files tab", async () => {
       const user = userEvent.setup();
       setup(undefined, "demos-state-user");
 
