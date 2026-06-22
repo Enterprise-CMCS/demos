@@ -5,6 +5,8 @@ import { useDialog } from "components/dialog/DialogContext";
 import { DemonstrationDetailModification } from "pages/DemonstrationDetail/DemonstrationDetail";
 import { ModificationTabs } from "./ModificationTabs";
 
+const EMPTY_AMENDMENTS_MESSAGE = "No amendments have been added yet";
+
 export const AmendmentsTab: React.FC<{
   demonstrationId: string;
   medicaidId: string;
@@ -12,6 +14,23 @@ export const AmendmentsTab: React.FC<{
   selectedAmendmentId?: string;
 }> = ({ demonstrationId, medicaidId, amendments, selectedAmendmentId }) => {
   const { showCreateAmendmentDialog } = useDialog();
+
+  if (amendments.length === 0) {
+    return (
+      <div className="flex min-h-70 flex-col items-center justify-center gap-4 p-2">
+        <p className="text-sm text-text-primary">{EMPTY_AMENDMENTS_MESSAGE}</p>
+        <IconButton
+          ariaLabel="Create Amendment"
+          icon={<AddNewIcon />}
+          name="create-new-amendment"
+          size="small"
+          onClick={() => showCreateAmendmentDialog(demonstrationId)}
+        >
+          Create Amendment
+        </IconButton>
+      </div>
+    );
+  }
 
   const amendmentsWithType = amendments.map((amendment) => ({
     ...amendment,
