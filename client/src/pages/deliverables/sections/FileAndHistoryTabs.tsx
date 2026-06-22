@@ -58,11 +58,6 @@ export const FILE_DELETION_ALLOWED_STATUSES: ReadonlySet<DeliverableStatus> = ne
 
 const CMS_STAFF_PERSON_TYPES: ReadonlySet<PersonType> = new Set(["demos-admin", "demos-cms-user"]);
 
-const STATE_FILE_MANAGER_PERSON_TYPES: ReadonlySet<PersonType> = new Set([
-  ...CMS_STAFF_PERSON_TYPES,
-  "demos-state-user",
-]);
-
 const TABS = {
   STATE_FILES: "state_files",
   CMS_FILES: "cms_files",
@@ -105,7 +100,6 @@ export const FileAndHistoryTabs: React.FC<{
   const isCmsStaffUser = CMS_STAFF_PERSON_TYPES.has(userPersonType);
   const isCompleteReviewDisabled =
     !isCmsStaffUser || !canCompleteReview(deliverable.status, deliverable.extensionRequests);
-  const canManageStateFiles = STATE_FILE_MANAGER_PERSON_TYPES.has(userPersonType);
   const canManageCmsFiles = isCmsStaffUser;
 
   const handleRequestResubmission = () => {
@@ -169,20 +163,20 @@ export const FileAndHistoryTabs: React.FC<{
         <Tab label={buildTabLabel("State Files", stateFiles.length)} value={TABS.STATE_FILES}>
           <StateFilesTab
             files={stateFiles}
-            disabled={isFinalized || !canManageStateFiles}
-            onAdd={canManageStateFiles ? handleAddStateFile : undefined}
-            onEdit={canManageStateFiles ? handleEditFile : undefined}
-            onDelete={canManageStateFiles ? handleDeleteFiles : undefined}
+            onAdd={handleAddStateFile}
+            onEdit={handleEditFile}
+            onDelete={handleDeleteFiles}
+            isFinalized={isFinalized}
           />
         </Tab>
         <Tab label={buildTabLabel("CMS Files", cmsFiles.length)} value={TABS.CMS_FILES}>
           <CmsFilesTab
             files={cmsFiles}
-            disabled={isFinalized || !canManageCmsFiles}
-            showActions={canManageCmsFiles}
-            onAdd={canManageCmsFiles ? handleAddCmsFile : undefined}
-            onEdit={canManageCmsFiles ? handleEditFile : undefined}
-            onDelete={canManageCmsFiles ? handleDeleteFiles : undefined}
+            canManage={canManageCmsFiles}
+            isFinalized={isFinalized}
+            onAdd={handleAddCmsFile}
+            onEdit={handleEditFile}
+            onDelete={handleDeleteFiles}
           />
         </Tab>
         <Tab label="History" value={TABS.HISTORY}>
