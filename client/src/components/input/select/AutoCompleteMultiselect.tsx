@@ -3,6 +3,8 @@ import { ChevronDownIcon } from "components/icons/Symbol/ChevronDownIcon";
 import { tw } from "tags/tw";
 import { Option } from "./Select";
 
+export const AUTOCOMPLETE_MULTISELECT_TEST_ID = "input-autocomplete-multiselect";
+
 const LABEL_CLASSES = tw`text-text-font font-semibold text-field-label flex gap-0-5`;
 const INPUT_CLASSES = tw`w-full border border-border-fields rounded px-1 py-1
   text-text-font bg-surface-white disabled:bg-surface-disabled

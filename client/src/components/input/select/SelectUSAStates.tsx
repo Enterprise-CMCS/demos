@@ -1,6 +1,8 @@
 import React from "react";
 import { STATES_AND_TERRITORIES } from "demos-server-constants";
 import { AutoCompleteSelect } from "./AutoCompleteSelect";
+
+export const SELECT_USA_STATES_TEST_ID = "select-us-state";
 import { Option } from "./Select";
 
 export const SelectUSAStates = ({

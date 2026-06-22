@@ -7,7 +7,7 @@ import {
   ASSIGN_DEMONSTRATION_TYPES_DIALOG_MUTATION,
 } from "./ApplyDemonstrationTypesDialog";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
-import { SELECT_DEMONSTRATION_TYPE_QUERY } from "components/input/select/SelectDemonstrationType";
+import { SELECT_DEMONSTRATION_TYPE_QUERY, SELECT_DEMONSTRATION_TYPE_TEST_ID } from "components/input/select/SelectDemonstrationType";
 import { TagName, LocalDate, Tag } from "demos-server";
 import { ADD_DEMONSTRATION_TYPES_FORM_QUERY } from "./AddDemonstrationTypesForm";
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
@@ -179,7 +179,7 @@ describe("ApplyDemonstrationTypesDialog", () => {
     const submitButton = screen.getByTestId("button-submit-demonstration-dialog");
     expect(submitButton).toBeDisabled();
 
-    await user.click(screen.getByRole("textbox"));
+    await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID));
     await user.click(screen.getByText("Type B (Unapproved)"));
     await user.type(screen.getByLabelText(/effective date/i), "2024-01-02");
     await user.type(screen.getByLabelText(/expiration date/i), "2025-01-02");
@@ -194,7 +194,7 @@ describe("ApplyDemonstrationTypesDialog", () => {
     const user = userEvent.setup();
     await renderWithProvider();
 
-    await user.click(screen.getByRole("textbox"));
+    await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID));
     await user.click(screen.getByText("Type B (Unapproved)"));
     await user.type(screen.getByLabelText(/effective date/i), "2024-01-02");
     await user.type(screen.getByLabelText(/expiration date/i), "2025-01-02");
@@ -205,7 +205,7 @@ describe("ApplyDemonstrationTypesDialog", () => {
     expect(screen.getByText(/effective: 01\/02\/2024/i)).toBeInTheDocument();
     expect(screen.getByText(/expires: 01\/02\/2025/i)).toBeInTheDocument();
 
-    await user.click(screen.getByRole("textbox"));
+    await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID));
     await user.click(screen.getByText("Type C"));
     await user.clear(screen.getByLabelText(/effective date/i));
     await user.type(screen.getByLabelText(/effective date/i), "2024-01-03");
@@ -237,7 +237,7 @@ describe("ApplyDemonstrationTypesDialog", () => {
 
     await renderWithProvider();
 
-    await user.click(screen.getByRole("textbox"));
+    await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID));
     await user.click(screen.getByText("Type B (Unapproved)"));
     await user.type(screen.getByLabelText(/effective date/i), "2024-01-02");
     await user.type(screen.getByLabelText(/expiration date/i), "2025-01-02");
@@ -258,7 +258,7 @@ describe("ApplyDemonstrationTypesDialog", () => {
 
     await renderWithProvider();
 
-    await user.click(screen.getByRole("textbox"));
+    await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID));
     await user.click(screen.getByText("Type B (Unapproved)"));
     await user.type(screen.getByLabelText(/effective date/i), "2024-01-02");
     await user.type(screen.getByLabelText(/expiration date/i), "2025-01-02");
@@ -291,7 +291,7 @@ describe("ApplyDemonstrationTypesDialog", () => {
       expect(screen.getByText("Demonstration Type")).toBeInTheDocument();
     });
 
-    await user.click(screen.getByRole("textbox"));
+    await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID));
     await user.click(screen.getByText("Type B (Unapproved)"));
     await user.type(screen.getByLabelText(/effective date/i), "2024-01-02");
     await user.type(screen.getByLabelText(/expiration date/i), "2025-01-02");
@@ -370,7 +370,7 @@ describe("ApplyDemonstrationTypesDialog", () => {
       expect(submitButton).toBeDisabled();
 
       // Type a non-existing type name
-      const input = screen.getByRole("textbox");
+      const input = screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID);
       await user.type(input, "Brand New Type");
 
       // Create Type button should be enabled
@@ -415,7 +415,7 @@ describe("ApplyDemonstrationTypesDialog", () => {
       });
 
       // Create a new type and add to list
-      const input = screen.getByRole("textbox");
+      const input = screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID);
       await user.type(input, "Brand New Type");
       await user.click(screen.getByTestId("button-create-type"));
 
