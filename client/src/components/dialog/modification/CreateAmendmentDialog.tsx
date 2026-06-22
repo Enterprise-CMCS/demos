@@ -2,8 +2,7 @@ import React from "react";
 import { gql, useMutation } from "@apollo/client";
 import { BaseCreateModificationDialog } from "./BaseCreateModificationDialog";
 import { ModificationFormData } from "./ModificationForm";
-
-const DEMONSTRATION_DETAIL_QUERY_NAME = "DemonstrationDetailQuery";
+import { DEMONSTRATION_DETAIL_QUERY } from "pages/DemonstrationDetail/DemonstrationDetail";
 
 export const CREATE_AMENDMENT_MUTATION = gql`
   mutation CreateAmendment($input: CreateAmendmentInput!) {
@@ -31,9 +30,7 @@ export const useCreateAmendment = () => {
           signatureLevel: input.signatureLevel,
         },
       },
-      ...(input.demonstrationId
-        ? { refetchQueries: [DEMONSTRATION_DETAIL_QUERY_NAME] }
-        : {}),
+      refetchQueries: [DEMONSTRATION_DETAIL_QUERY],
     });
   };
 
