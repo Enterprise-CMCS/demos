@@ -8,6 +8,7 @@ import {
   BNPreValidationState,
   useBNWorkbookPreValidation,
 } from "./useBNWorkbookPreValidation";
+import { BN_WORKBOOK_DOCUMENT_TYPE } from "demos-server-constants";
 
 const parseBNFile = vi.fn();
 const rule1 = vi.fn();
@@ -48,7 +49,7 @@ afterEach(() => {
 
 describe("useBNWorkbookPreValidation", () => {
   it("stays idle when no file is selected", () => {
-    render(<Probe file={null} documentType="BN Workbook" />);
+    render(<Probe file={null} documentType={BN_WORKBOOK_DOCUMENT_TYPE} />);
     expect(readState().status).toBe("idle");
     expect(parseBNFile).not.toHaveBeenCalled();
   });
@@ -64,7 +65,7 @@ describe("useBNWorkbookPreValidation", () => {
     rule1.mockReturnValue(null);
     rule2.mockReturnValue(null);
 
-    render(<Probe file={makeFile()} documentType="BN Workbook" />);
+    render(<Probe file={makeFile()} documentType={BN_WORKBOOK_DOCUMENT_TYPE} />);
 
     await waitFor(() => expect(readState().status).toBe("valid"));
   });
@@ -77,7 +78,7 @@ describe("useBNWorkbookPreValidation", () => {
       message: "Error: C Report - 'Data Pulled On' field is blank.",
     });
 
-    render(<Probe file={makeFile()} documentType="BN Workbook" />);
+    render(<Probe file={makeFile()} documentType={BN_WORKBOOK_DOCUMENT_TYPE} />);
 
     await waitFor(() => {
       const state = readState();
@@ -94,7 +95,7 @@ describe("useBNWorkbookPreValidation", () => {
   it("returns invalid with a PARSE_ERROR when the file cannot be parsed", async () => {
     parseBNFile.mockRejectedValue(new Error("bad xlsx"));
 
-    render(<Probe file={makeFile("not-really.xlsx")} documentType="BN Workbook" />);
+    render(<Probe file={makeFile("not-really.xlsx")} documentType={BN_WORKBOOK_DOCUMENT_TYPE} />);
 
     await waitFor(() => {
       const state = readState();
@@ -112,7 +113,7 @@ describe("useBNWorkbookPreValidation", () => {
     });
     rule2.mockReturnValue({ code: "2", message: "Error: Reporting Year missing." });
 
-    render(<Probe file={makeFile()} documentType="BN Workbook" />);
+    render(<Probe file={makeFile()} documentType={BN_WORKBOOK_DOCUMENT_TYPE} />);
 
     await waitFor(() => {
       const state = readState();

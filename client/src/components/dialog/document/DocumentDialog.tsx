@@ -16,9 +16,10 @@ import { AttestationDialog } from "components/dialog/AttestationDialog";
 import { UploadButton } from "./UploadButton";
 import { BNPreValidationState, useBNWorkbookPreValidation } from "./useBNWorkbookPreValidation";
 import { DocumentChip } from "components/document/documentChip";
+import { BN_WORKBOOK_DOCUMENT_TYPE } from "demos-server-constants";
 
 // BN Workbook uploads require the user to attest to the content before submitting.
-const ATTESTATION_DOCUMENT_TYPES: DocumentType[] = ["BN Workbook"];
+const ATTESTATION_DOCUMENT_TYPES: DocumentType[] = [BN_WORKBOOK_DOCUMENT_TYPE];
 
 export const documentTypeRequiresAttestation = (documentType: DocumentType): boolean =>
   ATTESTATION_DOCUMENT_TYPES.includes(documentType);
