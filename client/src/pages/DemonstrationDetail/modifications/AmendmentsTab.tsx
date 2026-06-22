@@ -17,7 +17,7 @@ export const AmendmentsTab: React.FC<{
 
   if (amendments.length === 0) {
     return (
-      <div className="flex min-h-[360px] flex-col items-center justify-center gap-4 p-2">
+      <div className="flex min-h-70 flex-col items-center justify-center gap-4 p-2">
         <p className="text-sm text-text-primary">{EMPTY_AMENDMENTS_MESSAGE}</p>
         <IconButton
           ariaLabel="Create Amendment"
