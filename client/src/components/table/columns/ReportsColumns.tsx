@@ -5,7 +5,9 @@ import { highlightCell } from "components/table/KeywordSearch";
 import { SecondaryButton } from "components/button";
 import { ReportsTableRow } from "../tables/ReportsTable";
 
-export function ReportsColumns() {
+export function ReportsColumns(
+  onDownload: (reportType: string) => void
+) {
   const columnHelper = createColumnHelper<ReportsTableRow>();
 
   return [
@@ -23,7 +25,7 @@ export function ReportsColumns() {
             <SecondaryButton
               name={`download-${row.original.id}`}
               ariaLabel={`Download ${row.original.id}`}
-              onClick={() => console.info(`Download action for report with id: ${row.original.id}`)}
+              onClick={() => onDownload(row.original.id)}
             >
               Download
             </SecondaryButton>

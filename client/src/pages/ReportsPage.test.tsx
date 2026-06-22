@@ -4,6 +4,18 @@ import { render, screen } from "@testing-library/react";
 
 import { ReportsPage } from "./ReportsPage";
 
+const mockShowError = vi.fn();
+
+vi.mock("@apollo/client/react/hooks/useMutation", () => ({
+  useMutation: vi.fn(() => [vi.fn(), {}]),
+}));
+
+vi.mock("components/toast", () => ({
+  useToast: () => ({
+    showError: mockShowError,
+  }),
+}));
+
 describe("ReportsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
