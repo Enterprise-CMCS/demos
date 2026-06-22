@@ -196,7 +196,6 @@ describe("StateFilesTab", () => {
       expect(editButton).toHaveAttribute("title", "Documents on Finalized deliverables cannot be edited.");
     });
   });
-
   describe("when file is part of a deliverable submission", () => {
     it("disables Delete for files that are part of a submission", async () => {
       const user = userEvent.setup();

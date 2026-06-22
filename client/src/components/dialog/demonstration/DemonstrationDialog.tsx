@@ -10,12 +10,14 @@ import { TextInput } from "components/input/TextInput";
 import { Demonstration, SignatureLevel } from "demos-server";
 import { DatePicker } from "components/input/date/DatePicker";
 import { EXPIRATION_DATE_ERROR_MESSAGE, getRequiredFieldWhenApprovedMessage } from "util/messages";
-import { SubmitButton } from "components/button/SubmitButton";
 import { isBefore } from "date-fns";
 import { Input } from "components/input/Input";
 import { STATES_AND_TERRITORIES } from "demos-server-constants";
+import { Button } from "components/button";
+import { Spinner } from "components/loading/Spinner";
 
 export const DEMONSTRATION_DIALOG_DESCRIPTION_NAME = "textarea-demonstration-description";
+export const SUBMIT_BUTTON_NAME = "button-submit-demonstration-dialog";
 export const DEFAULT_DEMONSTRATION_SIGNATURE_LEVEL = "OA" as SignatureLevel;
 
 export type DemonstrationDialogMode = "create" | "edit";
@@ -50,6 +52,28 @@ const DemonstrationDescriptionTextArea: React.FC<{
       value={description ?? ""}
       onChange={setDescription}
     />
+  );
+};
+
+const SubmitButton = ({
+  onClick,
+  disabled,
+  isSubmitting,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  isSubmitting: boolean;
+}) => {
+  return (
+    <Button
+      name={SUBMIT_BUTTON_NAME}
+      onClick={onClick}
+      ariaLabel={"Create New Demonstration"}
+      disabled={disabled || isSubmitting}
+    >
+      {isSubmitting && <Spinner />}
+      {isSubmitting ? "Loading" : "Submit"}
+    </Button>
   );
 };
 
@@ -160,7 +184,6 @@ export const DemonstrationDialog: React.FC<{
       dialogHasChanges={formHasChanges}
       actionButton={
         <SubmitButton
-          name={"button-submit-demonstration-dialog"}
           disabled={!formHasChanges || !checkFormIsValid(activeDemonstration, isApproved)}
           isSubmitting={isSubmitting}
           onClick={handleSubmit}

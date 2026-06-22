@@ -189,4 +189,24 @@ describe("CmsFilesTab", () => {
       expect(screen.getByTestId(CMS_FILES_DELETE_BUTTON_NAME)).not.toBeDisabled();
     });
   });
+
+  describe("when file is part of a deliverable submission", () => {
+    it("disables Delete for files that are part of a submission", async () => {
+      const user = userEvent.setup();
+      renderTab();
+
+      await user.click(screen.getByTestId("select-row-cms-b"));
+
+      expect(screen.getByTestId(CMS_FILES_DELETE_BUTTON_NAME)).toBeDisabled();
+    });
+
+    it("allows Delete for files that are not part of a submission", async () => {
+      const user = userEvent.setup();
+      renderTab();
+
+      await user.click(screen.getByTestId("select-row-cms-a"));
+
+      expect(screen.getByTestId(CMS_FILES_DELETE_BUTTON_NAME)).not.toBeDisabled();
+    });
+  });
 });
