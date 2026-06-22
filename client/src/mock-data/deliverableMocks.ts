@@ -67,6 +67,7 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
       documentType: "General File",
       createdAt: new Date("2026-03-23"),
       owner: { person: { fullName: "Florida State" } },
+      isPartOfDeliverableSubmission: false,
     },
   ],
   cmsDocuments: [
@@ -77,6 +78,7 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
       documentType: "General File",
       createdAt: new Date("2026-03-24"),
       owner: { person: { fullName: "Tess Davenport" } },
+      isPartOfDeliverableSubmission: false,
     },
   ],
   deliverableActions: [

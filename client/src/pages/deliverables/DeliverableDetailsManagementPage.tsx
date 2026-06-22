@@ -99,6 +99,7 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
             fullName
           }
         }
+        isPartOfDeliverableSubmission
       }
       cmsDocuments {
         id
@@ -111,6 +112,7 @@ export const DELIVERABLE_DETAILS_QUERY = gql`
             fullName
           }
         }
+        isPartOfDeliverableSubmission
       }
       deliverableActions {
         id

@@ -11,7 +11,6 @@ import { TestProvider } from "test-utils/TestProvider";
 import { FileAndHistoryTabs } from "./FileAndHistoryTabs";
 import {
   STATE_FILES_ADD_BUTTON_NAME,
-  STATE_FILES_DELETE_BUTTON_NAME,
   STATE_FILES_TAB_NAME,
   STATE_FILES_SUBMIT_BUTTON_NAME,
 } from "./StateFilesTab";
@@ -306,33 +305,5 @@ describe("FileAndHistoryTabs", () => {
 
       expect(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME)).not.toBeDisabled();
     });
-  });
-
-  describe("delete lock by status", () => {
-    it.each(["Upcoming", "Past Due"] as const)(
-      "enables Delete on the State Files tab once a row is selected for status %s",
-      async (status) => {
-        const user = userEvent.setup();
-        setup({ status });
-
-        await user.click(screen.getByTestId("select-row-state-file-1"));
-
-        expect(screen.getByTestId(STATE_FILES_DELETE_BUTTON_NAME)).not.toBeDisabled();
-      }
-    );
-
-    it.each(["Submitted", "Under CMS Review"] as const)(
-      "keeps Delete disabled on the State Files tab even with a row selected for status %s",
-      async (status) => {
-        const user = userEvent.setup();
-        setup({ status });
-
-        await user.click(screen.getByTestId("select-row-state-file-1"));
-
-        expect(screen.getByTestId(STATE_FILES_DELETE_BUTTON_NAME)).toBeDisabled();
-        // Add/Edit remain available until a final status.
-        expect(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME)).not.toBeDisabled();
-      }
-    );
   });
 });

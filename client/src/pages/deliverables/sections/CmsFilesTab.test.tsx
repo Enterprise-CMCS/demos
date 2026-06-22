@@ -21,6 +21,16 @@ const MOCK_FILES: DeliverableFileRow[] = [
     documentType: "General File",
     createdAt: new Date("2026-03-10"),
     owner: { person: { fullName: "Tess Davenport" } },
+    isPartOfDeliverableSubmission: false,
+  },
+  {
+    id: "cms-b",
+    name: "CmsBravo.pdf",
+    description: "CMS Bravo description",
+    documentType: "Monitoring Report",
+    createdAt: new Date("2026-04-15"),
+    owner: { person: { fullName: "Sam Smith" } },
+    isPartOfDeliverableSubmission: true,
   },
 ];
 
@@ -144,6 +154,26 @@ describe("CmsFilesTab", () => {
       await user.click(screen.getByTestId("select-row-cms-a"));
 
       expect(screen.getByTestId(CMS_FILES_DELETE_BUTTON_NAME)).toBeDisabled();
+    });
+  });
+
+  describe("when file is part of a deliverable submission", () => {
+    it("disables Delete for files that are part of a submission", async () => {
+      const user = userEvent.setup();
+      renderTab();
+
+      await user.click(screen.getByTestId("select-row-cms-b"));
+
+      expect(screen.getByTestId(CMS_FILES_DELETE_BUTTON_NAME)).toBeDisabled();
+    });
+
+    it("allows Delete for files that are not part of a submission", async () => {
+      const user = userEvent.setup();
+      renderTab();
+
+      await user.click(screen.getByTestId("select-row-cms-a"));
+
+      expect(screen.getByTestId(CMS_FILES_DELETE_BUTTON_NAME)).not.toBeDisabled();
     });
   });
 });
