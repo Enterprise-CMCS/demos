@@ -28,7 +28,7 @@ export const useCreateAmendment = () => {
           description: input.description,
           signatureLevel: input.signatureLevel,
         },
-      }
+      },
     });
   };
 

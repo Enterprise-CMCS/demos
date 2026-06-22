@@ -28,7 +28,7 @@ export const useCreateExtension = () => {
           description: input.description,
           signatureLevel: input.signatureLevel,
         },
-      }
+      },
     });
   };
 
