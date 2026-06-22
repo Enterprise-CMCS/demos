@@ -118,6 +118,11 @@ export const AutoCompleteMultiselect = ({
           data-testid={id ?? "input-autocomplete-multiselect"}
           id={id}
           type="text"
+          role="combobox"
+          aria-expanded={isOpen}
+          aria-haspopup="listbox"
+          aria-autocomplete="list"
+          aria-controls={id ? `${id}-listbox` : "multiselect-listbox"}
           placeholder={placeholder}
           value={displayValue}
           onFocus={() => {
@@ -137,12 +142,17 @@ export const AutoCompleteMultiselect = ({
         </div>
 
         {isOpen && (
-          <ul className={LIST_CLASSES} role="listbox" aria-multiselectable="true">
+          <ul
+            id={id ? `${id}-listbox` : "multiselect-listbox"}
+            className={LIST_CLASSES}
+            role="listbox"
+            aria-multiselectable="true"
+          >
             {filtered.length > 0 ? (
               filtered.map((opt, i) => {
                 const isActive = i === activeIndex;
                 return (
-                  <li key={opt.value} role="presentation">
+                  <li key={opt.value} role="option" aria-selected={selected.includes(opt.value)}>
                     <label
                       className={`${ITEM_CLASSES} ${isActive ? ITEM_ACTIVE_CLASSES : ""} flex items-center cursor-pointer`}
                       style={{ cursor: isDisabled ? "not-allowed" : "pointer" }}

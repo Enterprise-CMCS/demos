@@ -96,6 +96,8 @@ export const AutoCompleteSelect = ({
     inputRef.current?.focus();
   };
 
+  const listboxId = `${id || dataTestId || "autocomplete"}-listbox`;
+
   const filteredOptions = filterOptions(options, filterValue);
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -119,7 +121,7 @@ export const AutoCompleteSelect = ({
       return filteredOptions.map((option, i) => {
         const isActive = i === activeIndex;
         return (
-          <li key={option.value}>
+          <li key={option.value} role="option" aria-selected={option.value === value}>
             <button
               type="button"
               className={`${ITEM_CLASSES} ${isActive ? ITEM_ACTIVE_CLASSES : ""} w-full text-left`}
@@ -152,6 +154,11 @@ export const AutoCompleteSelect = ({
           data-testid={dataTestId || "input-autocomplete-select"}
           id={id}
           type="text"
+          role="combobox"
+          aria-expanded={isOpen}
+          aria-haspopup="listbox"
+          aria-autocomplete="list"
+          aria-controls={listboxId}
           placeholder={placeholder}
           value={isOpen ? filterValue : selectedOption?.label || ""}
           onFocus={() => !isDisabled && setIsOpen(true)}
@@ -167,7 +174,11 @@ export const AutoCompleteSelect = ({
           <ChevronDownIcon className={ICON_CLASSES} />
         </div>
 
-        {isOpen && <ul className={LIST_CLASSES}>{renderDropdownContent()}</ul>}
+        {isOpen && (
+          <ul id={listboxId} role="listbox" className={LIST_CLASSES}>
+            {renderDropdownContent()}
+          </ul>
+        )}
       </div>
     </div>
   );
