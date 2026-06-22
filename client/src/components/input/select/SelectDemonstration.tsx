@@ -8,11 +8,12 @@ export const SELECT_DEMONSTRATION_QUERY = gql`
     demonstrations {
       id
       name
+      status
     }
   }
 `;
 
-type Demonstration = Pick<ServerDemonstration, "id" | "name">;
+type Demonstration = Pick<ServerDemonstration, "id" | "name" | "status">;
 
 export const SelectDemonstration: React.FC<{
   isRequired?: boolean;
@@ -32,13 +33,17 @@ export const SelectDemonstration: React.FC<{
   const demonstrations = demonstrationsData?.demonstrations;
   if (demonstrationsError) return <p>Error retrieving list of demonstrations.</p>;
   if (!demonstrations || demonstrations.length < 1) return <p>No demonstrations found.</p>;
+  const approvedDemonstrations = demonstrations.filter(
+    (demonstration) => demonstration.status === "Approved"
+  );
+  if (approvedDemonstrations.length < 1) return <p>No demonstrations found.</p>;
 
   return (
     <AutoCompleteSelect
       id="select-demonstration"
       dataTestId="select-demonstration"
       label="Demonstration"
-      options={demonstrations.map((demonstration) => ({
+      options={approvedDemonstrations.map((demonstration) => ({
         label: demonstration.name,
         value: demonstration.id,
       }))}

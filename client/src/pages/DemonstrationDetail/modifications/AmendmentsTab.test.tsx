@@ -34,13 +34,17 @@ describe("AmendmentsTab", () => {
     vi.clearAllMocks();
   });
 
-  const renderAmendmentsTab = (amendments: DemonstrationDetailModification[] = []) => {
+  const renderAmendmentsTab = (
+    amendments: DemonstrationDetailModification[] = [],
+    canCreateModifications = true
+  ) => {
     return render(
       <AmendmentsTab
         demonstrationId="mock-demonstration-id"
         medicaidId="mock-medicaid-id"
         amendments={amendments}
         selectedAmendmentId="mock-amendment-id"
+        canCreateModifications={canCreateModifications}
       />
     );
   };
@@ -70,6 +74,16 @@ describe("AmendmentsTab", () => {
     expect(showCreateAmendmentDialog).toHaveBeenCalledWith("mock-demonstration-id");
   });
 
+  it("does not open Add New Amendment modal from the empty state when creation is disabled", async () => {
+    renderAmendmentsTab([], false);
+
+    const createButton = screen.getByRole("button", { name: /create amendment/i });
+    expect(createButton).toBeDisabled();
+    await fireEvent.click(createButton);
+
+    expect(showCreateAmendmentDialog).not.toHaveBeenCalled();
+  });
+
   it("shows amendments tab title when amendments exist", async () => {
     renderAmendmentsTab(mockAmendments);
 
@@ -91,6 +105,16 @@ describe("AmendmentsTab", () => {
     await fireEvent.click(addButton);
 
     expect(showCreateAmendmentDialog).toHaveBeenCalledWith("mock-demonstration-id");
+  });
+
+  it("does not open Add New Amendment modal from the header button when creation is disabled", async () => {
+    renderAmendmentsTab(mockAmendments, false);
+
+    const addButton = screen.getByRole("button", { name: /add-new-amendment/i });
+    expect(addButton).toBeDisabled();
+    await fireEvent.click(addButton);
+
+    expect(showCreateAmendmentDialog).not.toHaveBeenCalled();
   });
 
   it("passes the selected amendment to ModificationTabs when amendments exist", async () => {

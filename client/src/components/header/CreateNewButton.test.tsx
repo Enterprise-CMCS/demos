@@ -30,6 +30,9 @@ vi.mock("components/user/UserContext", async (importOriginal) => {
 describe("CreateNewButton", () => {
   const mockGetCurrentUser = vi.mocked(UserContext.getCurrentUser);
 
+  const renderCreateNewButton = (hasApprovedDemonstrations = true) =>
+    render(<CreateNewButton hasApprovedDemonstrations={hasApprovedDemonstrations} />);
+
   afterEach(() => {
     vi.resetAllMocks();
   });
@@ -39,7 +42,7 @@ describe("CreateNewButton", () => {
       currentUser: mockUsers[0],
     });
 
-    render(<CreateNewButton />);
+    renderCreateNewButton();
 
     fireEvent.click(screen.getByText("Create New"));
     expect(screen.getByText("Demonstration")).toBeInTheDocument();
@@ -59,7 +62,7 @@ describe("CreateNewButton", () => {
       },
     });
 
-    render(<CreateNewButton />);
+    renderCreateNewButton();
 
     expect(screen.queryByText("Create New")).not.toBeInTheDocument();
   });
@@ -69,7 +72,7 @@ describe("CreateNewButton", () => {
       currentUser: mockUsers[0],
     });
 
-    render(<CreateNewButton />);
+    renderCreateNewButton();
 
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Demonstration"));
@@ -82,7 +85,7 @@ describe("CreateNewButton", () => {
       currentUser: mockUsers[0],
     });
 
-    render(<CreateNewButton />);
+    renderCreateNewButton();
 
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Amendment"));
@@ -95,11 +98,45 @@ describe("CreateNewButton", () => {
       currentUser: mockUsers[0],
     });
 
-    render(<CreateNewButton />);
+    renderCreateNewButton();
 
     fireEvent.click(screen.getByText("Create New"));
     fireEvent.click(screen.getByText("Extension"));
 
     expect(showCreateExtensionDialog).toHaveBeenCalledWith();
+  });
+
+  it("disables amendment and extension creation when no approved demonstrations exist", () => {
+    mockGetCurrentUser.mockReturnValue({
+      currentUser: mockUsers[0],
+    });
+
+    renderCreateNewButton(false);
+
+    fireEvent.click(screen.getByText("Create New"));
+    const amendmentButton = screen.getByTestId("button-create-new-amendment");
+    const extensionButton = screen.getByTestId("button-create-new-extension");
+
+    expect(amendmentButton).toBeDisabled();
+    expect(extensionButton).toBeDisabled();
+
+    fireEvent.click(amendmentButton);
+    fireEvent.click(extensionButton);
+
+    expect(showCreateAmendmentDialog).not.toHaveBeenCalled();
+    expect(showCreateExtensionDialog).not.toHaveBeenCalled();
+  });
+
+  it("keeps demonstration creation enabled when no approved demonstrations exist", () => {
+    mockGetCurrentUser.mockReturnValue({
+      currentUser: mockUsers[0],
+    });
+
+    renderCreateNewButton(false);
+
+    fireEvent.click(screen.getByText("Create New"));
+    fireEvent.click(screen.getByText("Demonstration"));
+
+    expect(showCreateDemonstrationDialog).toHaveBeenCalledWith();
   });
 });
