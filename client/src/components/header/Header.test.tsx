@@ -4,7 +4,6 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { TestProvider } from "test-utils/TestProvider";
 import { Route, Routes } from "react-router-dom";
-import { DefaultHeaderLower } from "./DefaultHeaderLower";
 import { Header } from "./Header";
 import { PROFILE_BUTTON_TEST_ID, ProfileBlock, SIGNOUT_LINK_TEST_ID } from "./ProfileBlock";
 import { QUICK_LINKS_TEST_ID } from "./QuickLinks";
@@ -37,11 +36,6 @@ describe("Header", () => {
   it("renders the QuickLinks", async () => {
     renderWithProviders(<Header />);
     expect(await screen.findByTestId(QUICK_LINKS_TEST_ID)).toBeInTheDocument();
-  });
-
-  it("renders the Create New button", async () => {
-    renderWithProviders(<DefaultHeaderLower />);
-    expect(await screen.findByTestId("create-new")).toBeInTheDocument();
   });
 
   it("opens and closes the ProfileBlock menu when toggled by clicking the name", async () => {
