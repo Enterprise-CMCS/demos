@@ -6,20 +6,6 @@ import { tw } from "tags/tw";
 import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "../Input";
 import { Option } from "./Select";
 
-export interface AutoCompleteSelectProps {
-  options: Option[];
-  value: string;
-  onSelect: (value: string) => void;
-  label?: string;
-  id?: string;
-  placeholder?: string;
-  dataTestId?: string;
-  isRequired?: boolean;
-  isDisabled?: boolean;
-  noMatchMessage?: string;
-  onFilterChange?: (filterValue: string, hasMatches: boolean) => void;
-}
-
 const ICON_CLASSES = tw`text-text-placeholder w-2 h-1`;
 const LIST_CLASSES = tw`absolute z-10 w-full bg-surface-white border border-border-fields rounded mt-0.5 max-h-56 overflow-auto shadow-sm`;
 const ITEM_CLASSES = tw`px-1 py-1 text-sm text-text-font cursor-pointer hover:bg-surface-focus`;
@@ -31,7 +17,7 @@ const filterOptions = (options: Option[], searchTerm: string) => {
   return options.filter((opt) => opt.label.toLowerCase().includes(searchTerm));
 };
 
-export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
+export const AutoCompleteSelect = ({
   options,
   value,
   onSelect,
@@ -43,6 +29,18 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   isDisabled = false,
   noMatchMessage,
   onFilterChange: onFilterChangeProp,
+}: {
+  options: Option[];
+  value: string;
+  onSelect: (value: string) => void;
+  label?: string;
+  id?: string;
+  placeholder?: string;
+  dataTestId?: string;
+  isRequired?: boolean;
+  isDisabled?: boolean;
+  noMatchMessage?: string;
+  onFilterChange?: (filterValue: string, hasMatches: boolean) => void;
 }) => {
   const [filterValue, setFilterValue] = useState("");
   const [selectedOption, setSelectedOption] = useState<Option | undefined>(

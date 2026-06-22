@@ -14,19 +14,7 @@ const ITEM_CLASSES = tw`text-text-font cursor-pointer hover:bg-surface-focus`;
 const ITEM_ACTIVE_CLASSES = tw`bg-surface-focus`;
 const EMPTY_CLASSES = tw`px-2 py-1 text-text-placeholder`;
 
-export interface AutoCompleteMultiselectProps {
-  options: Option[];
-  placeholder?: string;
-  onSelect: (values: string[]) => void;
-  id?: string;
-  label?: string;
-  isRequired?: boolean;
-  isDisabled?: boolean;
-  defaultValues?: string[];
-  values?: string[];
-}
-
-export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = ({
+export const AutoCompleteMultiselect = ({
   options,
   placeholder = "Select",
   onSelect,
@@ -36,6 +24,16 @@ export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = (
   isDisabled = false,
   defaultValues = [],
   values,
+}: {
+  options: Option[];
+  placeholder?: string;
+  onSelect: (values: string[]) => void;
+  id?: string;
+  label?: string;
+  isRequired?: boolean;
+  isDisabled?: boolean;
+  defaultValues?: string[];
+  values?: string[];
 }) => {
   const [inputValue, setInputValue] = useState("");
   const [filtered, setFiltered] = useState<Option[]>(options);
