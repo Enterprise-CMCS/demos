@@ -132,7 +132,7 @@ export const AutoCompleteMultiselect = ({
           disabled={isDisabled}
           className={INPUT_CLASSES}
         />
-        <div className="pointer-events-none absolute inset-y-0 end-0 pr-1 flex items-center">
+        <div className="pointer-events-none absolute inset-y-0 inset-e-0 pr-1 flex items-center">
           <ChevronDownIcon className={ICON_CLASSES} />
         </div>
 
@@ -161,7 +161,7 @@ export const AutoCompleteMultiselect = ({
                             }
                           }
                         }}
-                        className="m-1 w-2 h-2 flex-shrink-0"
+                        className="m-1 w-2 h-2 shrink-0"
                         tabIndex={-1}
                       />
                       {opt.label}
