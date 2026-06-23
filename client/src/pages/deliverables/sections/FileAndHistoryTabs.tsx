@@ -110,7 +110,7 @@ export const FileAndHistoryTabs: React.FC<{
   };
 
   const handleCompleteReview = () => {
-    showCompleteReviewDeliverableDialog({ id: deliverable.id });
+    showCompleteReviewDeliverableDialog(deliverable);
   };
 
   const handleAddStateFile = () => {

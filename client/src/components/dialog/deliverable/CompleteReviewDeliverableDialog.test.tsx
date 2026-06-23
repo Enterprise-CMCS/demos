@@ -10,6 +10,7 @@ import {
   COMPLETE_REVIEW_SUBMIT_BUTTON_NAME,
   CompleteReviewDeliverableDialog,
   CompleteReviewDeliverableDialogDeliverable,
+  FINALIZE_REVIEW_ERROR_NOTICE,
   INITIAL_FORM_DATA,
   canCompleteReview,
   formHasChanges,
@@ -44,6 +45,14 @@ vi.mock("@apollo/client", async () => {
 
 const TEST_DELIVERABLE: CompleteReviewDeliverableDialogDeliverable = {
   id: "deliverable-1",
+  stateDocuments: [
+    {
+      deliverableSubmissionAction: {},
+    },
+    {
+      deliverableSubmissionAction: {},
+    },
+  ],
 };
 
 const setup = (overrides?: Partial<CompleteReviewDeliverableDialogDeliverable>) => {
@@ -105,10 +114,7 @@ describe("CompleteReviewDeliverableDialog", () => {
 
     expect(submit).toBeDisabled();
 
-    await user.selectOptions(
-      screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME),
-      "Approved"
-    );
+    await user.selectOptions(screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME), "Approved");
 
     await waitFor(() => expect(submit).not.toBeDisabled());
   });
@@ -117,10 +123,7 @@ describe("CompleteReviewDeliverableDialog", () => {
     const user = userEvent.setup();
     const { onClose } = setup();
 
-    await user.selectOptions(
-      screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME),
-      "Accepted"
-    );
+    await user.selectOptions(screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME), "Accepted");
 
     await user.click(screen.getByTestId(COMPLETE_REVIEW_SUBMIT_BUTTON_NAME));
 
@@ -131,9 +134,7 @@ describe("CompleteReviewDeliverableDialog", () => {
         id: "deliverable-1",
         finalStatus: "Accepted",
       },
-      refetchQueries: [
-        { query: DELIVERABLE_DETAILS_QUERY, variables: { id: "deliverable-1" } },
-      ],
+      refetchQueries: [{ query: DELIVERABLE_DETAILS_QUERY, variables: { id: "deliverable-1" } }],
       awaitRefetchQueries: true,
     });
 
@@ -147,10 +148,7 @@ describe("CompleteReviewDeliverableDialog", () => {
 
     const { onClose } = setup();
 
-    await user.selectOptions(
-      screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME),
-      "Approved"
-    );
+    await user.selectOptions(screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME), "Approved");
     await user.click(screen.getByTestId(COMPLETE_REVIEW_SUBMIT_BUTTON_NAME));
 
     await waitFor(() =>
@@ -199,9 +197,14 @@ describe("canCompleteReview", () => {
     expect(canCompleteReview("Under CMS Review", openExtensions)).toBe(false);
   });
 
-  it.each(
-    ["Upcoming", "Past Due", "Submitted", "Accepted", "Approved", "Received and Filed"] as const
-  )("returns false for %s", (status) => {
+  it.each([
+    "Upcoming",
+    "Past Due",
+    "Submitted",
+    "Accepted",
+    "Approved",
+    "Received and Filed",
+  ] as const)("returns false for %s", (status) => {
     expect(canCompleteReview(status, noExtensions)).toBe(false);
   });
 });
@@ -224,5 +227,43 @@ describe("formIsValid / formHasChanges", () => {
     expect(formIsValid({ finalStatus: "Accepted" })).toBe(true);
     expect(formIsValid({ finalStatus: "Approved" })).toBe(true);
     expect(formIsValid({ finalStatus: "Received and Filed" })).toBe(true);
+  });
+
+  describe("unsubmitted state documents", () => {
+    it("displays an error notice when there are unsubmitted state documents", () => {
+      setup({
+        stateDocuments: [
+          {
+            deliverableSubmissionAction: {},
+          },
+          {
+            deliverableSubmissionAction: null,
+          },
+        ],
+      });
+
+      const notice = screen.getByTestId(FINALIZE_REVIEW_ERROR_NOTICE.testId);
+      expect(notice).toBeInTheDocument();
+      expect(notice).toHaveTextContent(FINALIZE_REVIEW_ERROR_NOTICE.title);
+      expect(notice).toHaveTextContent(FINALIZE_REVIEW_ERROR_NOTICE.description);
+      expect(screen.queryByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME)).not.toBeInTheDocument();
+    });
+
+    it("does not display an error notice when all state documents have been submitted", () => {
+      setup({
+        stateDocuments: [
+          {
+            deliverableSubmissionAction: {},
+          },
+          {
+            deliverableSubmissionAction: {},
+          },
+        ],
+      });
+
+      expect(screen.queryByTestId(FINALIZE_REVIEW_ERROR_NOTICE.testId)).not.toBeInTheDocument();
+      expect(screen.getByTestId(COMPLETE_REVIEW_SUBMIT_BUTTON_NAME)).toBeInTheDocument();
+      expect(screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME)).toBeInTheDocument();
+    });
   });
 });
