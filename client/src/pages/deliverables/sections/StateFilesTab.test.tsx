@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -40,7 +40,7 @@ const MOCK_FILES: DeliverableFileRow[] = [
     createdAt: new Date("2026-03-25"),
     owner: { person: { fullName: "Charlie Owner" } },
     deliverableSubmissionAction: {
-      actionTimestamp: new Date("2026-03-25"),
+      actionTimestamp: new Date("2026-06-25"),
     },
   },
 ];
@@ -61,19 +61,17 @@ const renderTab = (overrides: Partial<React.ComponentProps<typeof StateFilesTab>
   );
 };
 
-
 describe("StateFilesTab", () => {
   describe("empty state", () => {
-
     it("renders the table header and shows the empty-rows message", () => {
-      renderTab({files: []});
+      renderTab({ files: [] });
 
       expect(screen.getByRole("table")).toBeInTheDocument();
       expect(screen.getByText(/No files have been added yet\./i)).toBeInTheDocument();
     });
 
     it("renders the header Add File(s) button", () => {
-      renderTab({files: []});
+      renderTab({ files: [] });
 
       expect(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME)).toBeInTheDocument();
     });
@@ -81,7 +79,7 @@ describe("StateFilesTab", () => {
     it("invokes onAdd when the header Add File(s) button is clicked", async () => {
       const user = userEvent.setup();
       const onAdd = vi.fn();
-      renderTab({files: [], onAdd});
+      renderTab({ files: [], onAdd });
 
       await user.click(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME));
 
@@ -95,6 +93,35 @@ describe("StateFilesTab", () => {
 
       expect(screen.getByText("Alpha.pdf")).toBeInTheDocument();
       expect(screen.getByText("Bravo.pdf")).toBeInTheDocument();
+    });
+
+    it("renders the expected columns", () => {
+      renderTab();
+
+      expect(screen.getByRole("columnheader", { name: /Type/i })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: /File Name/i })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: /Description/i })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: /Uploaded By/i })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: /Uploaded Date/i })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: /Submitted Date/i })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: /View/i })).toBeInTheDocument();
+    });
+
+    it("renders the expected data in each row", () => {
+      renderTab();
+
+      const row = screen.getByText("Charlie.pdf").closest("tr");
+      expect(row).not.toBeNull();
+
+      const cells = within(row as HTMLTableRowElement).getAllByRole("cell");
+      expect(within(cells[0]).getByTestId("select-row-file-c")).toBeInTheDocument();
+      expect(cells[1]).toHaveTextContent("General File");
+      expect(cells[2]).toHaveTextContent("Charlie.pdf");
+      expect(cells[3]).toHaveTextContent("Charlie description");
+      expect(cells[4]).toHaveTextContent("Charlie Owner");
+      expect(cells[5]).toHaveTextContent("03/25/2026");
+      expect(cells[6]).toHaveTextContent("06/25/2026");
+      expect(within(cells[7]).getByTestId("view-file-file-c")).toBeInTheDocument();
     });
 
     it("disables Edit until exactly one file is selected", async () => {
@@ -182,7 +209,10 @@ describe("StateFilesTab", () => {
 
       const addButton = screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME);
       expect(addButton).toBeDisabled();
-      expect(addButton).toHaveAttribute("title", "Files cannot be added to a Finalized deliverable.");
+      expect(addButton).toHaveAttribute(
+        "title",
+        "Files cannot be added to a Finalized deliverable."
+      );
     });
 
     it("keeps Edit disabled even when a row is selected", async () => {
@@ -195,7 +225,10 @@ describe("StateFilesTab", () => {
       await user.click(screen.getByTestId("select-row-file-a"));
 
       expect(editButton).toBeDisabled();
-      expect(editButton).toHaveAttribute("title", "Documents on Finalized deliverables cannot be edited.");
+      expect(editButton).toHaveAttribute(
+        "title",
+        "Documents on Finalized deliverables cannot be edited."
+      );
     });
   });
   describe("when file is part of a deliverable submission", () => {

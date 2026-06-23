@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -53,6 +53,35 @@ const renderTab = (overrides: Partial<React.ComponentProps<typeof CmsFilesTab>> 
 };
 
 describe("CmsFilesTab", () => {
+  describe("row data", () => {
+    it("renders the expected columns", () => {
+      renderTab();
+
+      expect(screen.getByRole("columnheader", { name: /Type/i })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: /File Name/i })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: /Description/i })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: /Uploaded By/i })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: /Uploaded Date/i })).toBeInTheDocument();
+      expect(screen.getByRole("columnheader", { name: /View/i })).toBeInTheDocument();
+    });
+
+    it("renders the expected data in each row", () => {
+      renderTab();
+
+      const row = screen.getByText("CmsAlpha.pdf").closest("tr");
+      expect(row).not.toBeNull();
+
+      const cells = within(row as HTMLTableRowElement).getAllByRole("cell");
+      expect(within(cells[0]).getByTestId("select-row-cms-a")).toBeInTheDocument();
+      expect(cells[1]).toHaveTextContent("General File");
+      expect(cells[2]).toHaveTextContent("CmsAlpha.pdf");
+      expect(cells[3]).toHaveTextContent("CMS Alpha description");
+      expect(cells[4]).toHaveTextContent("Tess Davenport");
+      expect(cells[5]).toHaveTextContent("03/10/2026");
+      expect(within(cells[6]).getByTestId("view-file-cms-a")).toBeInTheDocument();
+    });
+  });
+
   it("renders one row per CMS file", () => {
     renderTab();
 
@@ -154,7 +183,10 @@ describe("CmsFilesTab", () => {
 
       const addButton = screen.getByTestId(CMS_FILES_ADD_BUTTON_NAME);
       expect(addButton).toBeDisabled();
-      expect(addButton).toHaveAttribute("title", "Files cannot be added to a Finalized deliverable.");
+      expect(addButton).toHaveAttribute(
+        "title",
+        "Files cannot be added to a Finalized deliverable."
+      );
     });
 
     it("keeps Edit disabled even when a row is selected", async () => {
@@ -167,10 +199,12 @@ describe("CmsFilesTab", () => {
       await user.click(screen.getByTestId("select-row-cms-a"));
 
       expect(editButton).toBeDisabled();
-      expect(editButton).toHaveAttribute("title", "Documents on Finalized deliverables cannot be edited.");
+      expect(editButton).toHaveAttribute(
+        "title",
+        "Documents on Finalized deliverables cannot be edited."
+      );
     });
   });
-
 
   describe("when file is part of a deliverable submission", () => {
     it("disables Delete for files that are part of a submission", async () => {

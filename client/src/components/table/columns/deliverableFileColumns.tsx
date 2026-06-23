@@ -7,7 +7,7 @@ import { createDateColumnDef } from "components/table/columns/dateColumn";
 import { createSelectColumnDef } from "components/table/columns/selectColumn";
 import { highlightCell } from "components/table/KeywordSearch";
 
-import type { DeliverableFileRow } from "./DeliverableFileTypes";
+import type { DeliverableFileRow } from "../../../pages/deliverables/sections/DeliverableFileTypes";
 
 const DOCUMENT_TYPE_OPTIONS = DOCUMENT_TYPES.map((type) => ({ label: type, value: type }));
 
@@ -47,6 +47,13 @@ const uploadedByColumn = columnHelper.accessor("owner.person.fullName", {
 
 const uploadedDateColumn = createDateColumnDef(columnHelper, "createdAt", "Uploaded Date");
 
+const submittedDateColumn = createDateColumnDef(
+  columnHelper,
+  "deliverableSubmissionAction.actionTimestamp",
+  "Submitted Date",
+  "-"
+);
+
 // Opens the document in a new tab, where PDFs/images preview inline and other
 // formats download. Shared by the State Files and CMS Files tables.
 const viewColumn = columnHelper.display({
@@ -72,6 +79,7 @@ export function makeStateFileColumns() {
     descriptionColumn,
     uploadedByColumn,
     uploadedDateColumn,
+    submittedDateColumn,
     viewColumn,
   ];
 }

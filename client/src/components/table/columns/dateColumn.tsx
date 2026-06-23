@@ -1,4 +1,4 @@
-import { ColumnHelper } from "@tanstack/react-table";
+import { CellContext, ColumnHelper, DeepKeys, DeepValue, Row } from "@tanstack/react-table";
 import { isAfter, isBefore, isSameDay } from "date-fns";
 import { formatDateForDisplay } from "util/formatDate";
 
@@ -13,21 +13,21 @@ type DateColumnMeta = {
   cellClassName?: string;
 };
 
-export function createDateColumnDef<RowData, FieldName extends keyof RowData & string>(
+export function createDateColumnDef<RowData, FieldName extends DeepKeys<RowData>>(
   columnHelper: ColumnHelper<RowData>,
   fieldName: FieldName,
   header: string,
   defaultValue: string = "",
   meta?: DateColumnMeta
 ) {
-  return columnHelper.accessor((row: RowData) => row[fieldName], {
-    id: fieldName,
+  return columnHelper.accessor(fieldName, {
+    id: String(fieldName),
     header,
-    cell: ({ getValue }) => {
+    cell: ({ getValue }: CellContext<RowData, DeepValue<RowData, FieldName>>) => {
       const value = getValue() as string | undefined;
       return value ? formatDateForDisplay(value) : defaultValue;
     },
-    filterFn: (row, columnId, filterValue: DateFilterValue) => {
+    filterFn: (row: Row<RowData>, columnId: string, filterValue: DateFilterValue) => {
       const value = row.getValue(columnId) as string | undefined;
       if (!value) return false;
 
