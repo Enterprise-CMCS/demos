@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AuthorizationClaims } from "./auth.util";
-import { findOrCreateContextUserFromClaims, getPersonTypeFromClaims } from "./userContext";
+import { findOrCreateContextUserFromClaims } from "./userContext";
 
 vi.mock("../prismaClient", () => ({
   prisma: vi.fn(),
@@ -10,8 +10,13 @@ vi.mock("../model/userSession/queries", () => ({
   upsertUserSession: vi.fn(),
 }));
 
+vi.mock("./getPersonTypeFromClaims", () => ({
+  getPersonTypeFromClaims: vi.fn(),
+}));
+
 import { prisma } from "../prismaClient";
 import { upsertUserSession } from "../model/userSession/queries";
+import { getPersonTypeFromClaims } from "./getPersonTypeFromClaims";
 
 describe("findOrCreateContextUserFromClaims", () => {
   const mockTransaction = {
@@ -47,6 +52,7 @@ describe("findOrCreateContextUserFromClaims", () => {
     vi.clearAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
+    vi.mocked(getPersonTypeFromClaims).mockReturnValue("demos-admin");
   });
 
   it("returns the existing user when one matches the cognito subject", async () => {
@@ -101,6 +107,7 @@ describe("findOrCreateContextUserFromClaims", () => {
     );
     expect(mockTransaction.person.create).not.toHaveBeenCalled();
     expect(mockTransaction.user.create).not.toHaveBeenCalled();
+    expect(getPersonTypeFromClaims).not.toHaveBeenCalled();
     expect(result).toEqual({
       id: "user-1",
       cognitoSubject: claims.sub,
@@ -128,6 +135,7 @@ describe("findOrCreateContextUserFromClaims", () => {
 
     const result = await findOrCreateContextUserFromClaims(claims);
 
+    expect(getPersonTypeFromClaims).toHaveBeenCalledExactlyOnceWith(claims);
     expect(vi.mocked(prisma).mock.calls.length).toBe(2);
     expect(mockTransaction.user.findUnique).toHaveBeenCalledExactlyOnceWith({
       where: { cognitoSubject: claims.sub },
@@ -180,55 +188,6 @@ describe("findOrCreateContextUserFromClaims", () => {
       cognitoSubject: claims.sub,
       personTypeId: "demos-admin",
       permissions: ["permission-1", "permission-2"],
-    });
-  });
-
-  describe("getPersonTypeFromClaims", () => {
-    it("correctly extracts the person type from a single value", async () => {
-      const claims: AuthorizationClaims = {
-        role: "demos-admin",
-      } as AuthorizationClaims;
-
-      const result = getPersonTypeFromClaims(claims);
-      expect(result).toBe("demos-admin");
-    });
-
-    it("correctly extracts the person type from multiple values", async () => {
-      const claims: AuthorizationClaims = {
-        role: "demos-cms-user,unrelated-role1,unrelated-role2",
-      } as AuthorizationClaims;
-
-      const result = getPersonTypeFromClaims(claims);
-      expect(result).toBe("demos-cms-user");
-    });
-
-    it("throws an error if role is empty", async () => {
-      const claims: AuthorizationClaims = {
-        role: "",
-      } as AuthorizationClaims;
-
-      expect(() => getPersonTypeFromClaims(claims)).toThrow(
-        `User with cognito subject ${claims.sub} does not have any applicable roles`
-      );
-    });
-
-    it("throws an error if no applicable roles are found", async () => {
-      const claims: AuthorizationClaims = {
-        role: "unrecognized-role",
-      } as AuthorizationClaims;
-
-      expect(() => getPersonTypeFromClaims(claims)).toThrow(
-        `User with cognito subject ${claims.sub} does not have any applicable roles`
-      );
-    });
-
-    it("throws an error if multiple applicable roles are found", async () => {
-      const claims: AuthorizationClaims = {
-        role: "demos-admin,demos-cms-user",
-      } as AuthorizationClaims;
-      expect(() => getPersonTypeFromClaims(claims)).toThrow(
-        `Claims with cognito subject ${claims.sub} has multiple applicable roles: demos-admin, demos-cms-user`
-      );
     });
   });
 });
