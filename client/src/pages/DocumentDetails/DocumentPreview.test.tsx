@@ -87,7 +87,9 @@ describe("DocumentPreview", () => {
       const embed = document.querySelector("embed");
       expect(embed).toBeInTheDocument();
       expect(embed).toHaveClass("w-full", "h-full");
-      expect(embed?.getAttribute("src")).toBe("blob:mock-url");
+      // PDFs embed the presigned URL directly so the native viewer can read the
+      // document title from its Content-Disposition header (not a blob UUID).
+      expect(embed?.getAttribute("src")).toBe(mockPresignedUrl);
     });
   });
 

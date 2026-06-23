@@ -51,10 +51,13 @@ export function createAWSS3Adapter(): S3Adapter {
       });
     },
 
-    async getPresignedDownloadUrl(key: string): Promise<string> {
+    async getPresignedDownloadUrl(key: string, fileName?: string): Promise<string> {
       const getObjectCommand = new GetObjectCommand({
         Bucket: cleanBucket,
         Key: key,
+        ResponseContentDisposition: fileName
+          ? `inline; filename="${fileName.replace(/"/g, "")}"; filename*=UTF-8''${encodeURIComponent(fileName)}`
+          : undefined,
       });
       return await getSignedUrl(s3Client, getObjectCommand, {
         expiresIn: EXPIRATION_TIME_SECONDS,

@@ -6,16 +6,18 @@ const FilePreviewer = ({
   blob,
   filename,
   mimeType,
+  presignedDownloadUrl,
 }: {
   blob: Blob;
   filename: string;
   mimeType?: string;
+  presignedDownloadUrl: string;
 }) => {
   const file = new File([blob], filename, { type: mimeType ?? blob.type });
   const blobUrl = URL.createObjectURL(file);
 
   return mimeType == "application/pdf" ? (
-    <embed src={blobUrl} className="w-full h-full" />
+    <embed src={presignedDownloadUrl} className="w-full h-full" />
   ) : (
     <a href={blobUrl} download={filename} rel="noopener noreferrer">
       <Button size="large" name="button-download-file" ariaLabel="Download file">
@@ -65,5 +67,12 @@ export const DocumentPreview = ({
   if (error) return <div>Error loading file: {error}</div>;
   if (!blob) return <div>No file available</div>;
 
-  return <FilePreviewer blob={blob} filename={filename} mimeType={mimeType} />;
+  return (
+    <FilePreviewer
+      blob={blob}
+      filename={filename}
+      mimeType={mimeType}
+      presignedDownloadUrl={presignedDownloadUrl}
+    />
+  );
 };

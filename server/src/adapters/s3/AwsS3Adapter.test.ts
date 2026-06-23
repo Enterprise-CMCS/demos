@@ -119,6 +119,18 @@ describe("AwsS3Adapter", () => {
         expiresIn: 10,
       });
     });
+
+    it("sets a Content-Disposition with the file name when one is provided", async () => {
+      const adapter = createAWSS3Adapter();
+      await adapter.getPresignedDownloadUrl(testKey, 'My "Report".pdf');
+
+      expect(GetObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: testKey,
+        ResponseContentDisposition:
+          "inline; filename=\"My Report.pdf\"; filename*=UTF-8''My%20%22Report%22.pdf",
+      });
+    });
   });
 
   describe("moveDocumentFromCleanToDeleted", () => {
