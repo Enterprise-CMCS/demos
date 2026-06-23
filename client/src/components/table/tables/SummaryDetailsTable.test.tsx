@@ -86,7 +86,7 @@ describe("Error States", () => {
     };
 
     render(
-      <MockedProvider mocks={[errorMock]} addTypename={false}>
+      <MockedProvider mocks={[errorMock]}>
         <SummaryDetailsTable demonstrationId="1" />
       </MockedProvider>
     );

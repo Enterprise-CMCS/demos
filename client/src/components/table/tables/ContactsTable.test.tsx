@@ -85,7 +85,7 @@ describe("ContactsTable", () => {
     beforeEach(async () => {
       vi.clearAllMocks();
       render(
-        <MockedProvider mocks={[contactsTableQueryMock]} addTypename={false}>
+        <MockedProvider mocks={[contactsTableQueryMock]}>
           <ContactsTable demonstrationId={"demo-123"} />
         </MockedProvider>
       );
@@ -154,7 +154,7 @@ describe("ContactsTable", () => {
     beforeEach(async () => {
       vi.clearAllMocks();
       render(
-        <MockedProvider mocks={[contactsTableQuery25Mock]} addTypename={false}>
+        <MockedProvider mocks={[contactsTableQuery25Mock]}>
           <ContactsTable demonstrationId="demo-123" />
         </MockedProvider>
       );
@@ -186,7 +186,7 @@ describe("ContactsTable", () => {
     beforeEach(async () => {
       vi.clearAllMocks();
       render(
-        <MockedProvider mocks={[contactsTableQueryEmptyMock]} addTypename={false}>
+        <MockedProvider mocks={[contactsTableQueryEmptyMock]}>
           <ContactsTable demonstrationId="demo-123" />
         </MockedProvider>
       );

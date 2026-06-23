@@ -63,7 +63,7 @@ describe("ApprovalPackageTable", () => {
 
   const setup = () =>
     render(
-      <MockedProvider mocks={[]} addTypename={false}>
+      <MockedProvider mocks={[]}>
         <ApprovalPackageTable demonstrationId="demo-123" rows={rows} />
       </MockedProvider>
     );

@@ -24,7 +24,7 @@ vi.mock("components/dialog/DialogContext", () => ({
 describe("DocumentTable", () => {
   beforeEach(() => {
     render(
-      <MockedProvider mocks={ALL_MOCKS} addTypename={false}>
+      <MockedProvider mocks={ALL_MOCKS}>
         <DocumentTable documents={mockDocuments} />
       </MockedProvider>
     );
