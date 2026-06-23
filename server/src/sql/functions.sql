@@ -1213,7 +1213,8 @@ BEGIN
             updated_at = CURRENT_TIMESTAMP
         WHERE
             deliverable_id = NEW.deliverable_id
-            AND deliverable_submission_action_id IS NULL;
+            AND deliverable_submission_action_id IS NULL
+            AND deliverable_is_cms_attached_file = FALSE;
     END IF;
 
     RETURN NEW;
