@@ -215,7 +215,9 @@ export const DeliverableDetailsManagementPage: React.FC<{
   const handleDeleteDeliverable = useCallback(() => {}, []);
   const handleEditDeliverable = useCallback(() => {
     if (data?.deliverable) {
-      showEditDeliverableDialog(data.deliverable);
+      showEditDeliverableDialog(data.deliverable, {
+        refetchQueries: [GET_DELIVERABLE_DETAILS_QUERY_NAME],
+      });
     }
   }, [data?.deliverable, showEditDeliverableDialog]);
 

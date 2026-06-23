@@ -71,6 +71,11 @@ type EditDeliverableDialogSource = Pick<
   | "demonstration"
 >;
 
+type EditDeliverableDialogOptions = {
+  onSave?: (input: EditDeliverableInput, reasonForChange?: string) => Promise<void> | void;
+  refetchQueries?: string[];
+};
+
 type DialogContextType = {
   content: React.ReactNode | null;
   showDialog: (content: React.ReactNode) => void;
@@ -340,7 +345,7 @@ export const useDialog = () => {
 
   const showEditDeliverableDialog = (
     deliverable: EditDeliverableDialogSource,
-    onSave?: (input: EditDeliverableInput, reasonForChange?: string) => Promise<void> | void
+    options: EditDeliverableDialogOptions = {}
   ) => {
     const dialogDeliverable: EditDeliverableDialogDeliverable = {
       id: deliverable.id,
@@ -362,7 +367,8 @@ export const useDialog = () => {
         onClose={context.hideDialog}
         deliverable={dialogDeliverable}
         demonstrationTypeTags={demonstrationTypeTags}
-        onSave={onSave}
+        refetchQueries={options.refetchQueries}
+        onSave={options.onSave}
       />
     );
   };
