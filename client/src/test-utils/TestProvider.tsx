@@ -12,7 +12,6 @@ import { developmentMockUser } from "mock-data/userMocks";
 interface TestProviderProps {
   children: ReactNode;
   mocks?: MockedProviderProps["mocks"];
-  addTypename?: boolean;
   routerEntries?: MemoryRouterProps["initialEntries"];
   currentUser?: CurrentUser;
 }
@@ -38,14 +37,13 @@ interface TestProviderProps {
 export const TestProvider: React.FC<TestProviderProps> = ({
   children,
   mocks = ALL_MOCKS,
-  addTypename = false,
   routerEntries = ["/"],
   currentUser = developmentMockUser,
 }) => {
   return (
     <MemoryRouter initialEntries={routerEntries}>
       <ToastProvider>
-        <MockedProvider mocks={mocks} addTypename={addTypename}>
+        <MockedProvider mocks={mocks}>
           <TestUserProvider currentUser={currentUser}>{children}</TestUserProvider>
         </MockedProvider>
       </ToastProvider>

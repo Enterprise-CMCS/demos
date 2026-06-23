@@ -106,9 +106,3 @@ vi.mock("@apollo/client", async () => {
 - `src/router/`: app-level providers and routing
 - `src/layout/`: layout and navigation shells
 - `src/mock-data/`: Apollo `MockedResponse` fixtures
-
-## Outdated Patterns
-
-Patterns that exist now that will likely be replaced in the future. Try not entrench these patterns further if avoidable and if not then implement them consistently with other usages to make for a simpler refactor.
-
-- `addTypename` on `<MockedProvider>` is deprecated and should be removed.

@@ -13,7 +13,7 @@ import {
   OnDemandReportConfiguration,
 } from "./onDemandReportConfigTypes";
 import { applicationDetailsReportQueries } from "./applicationDetailsReportQueries";
-import { usDateString, usDateStringOrDash } from "./onDemandReportCustomSchemaTypes";
+import { usDateStringOrDash } from "./onDemandReportCustomSchemaTypes";
 
 type ApplicationDetailsReportColumn =
   | "state"
@@ -90,8 +90,8 @@ const applicationDetailsReportSchema = z
     status: z.enum(APPLICATION_STATUS),
     sdg_division: z.enum([...SDG_DIVISIONS, "-"]),
     signature_level: z.enum([...SIGNATURE_LEVEL, "-"]),
-    effective_date: usDateString,
-    expiration_date: usDateString,
+    effective_date: usDateStringOrDash,
+    expiration_date: usDateStringOrDash,
     concept_start_date: usDateStringOrDash,
     concept_paper_submitted_date: usDateStringOrDash,
     concept_skipped_date: usDateStringOrDash,

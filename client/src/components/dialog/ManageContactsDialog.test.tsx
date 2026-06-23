@@ -79,7 +79,7 @@ const defaultProps: ManageContactsDialogProps = {
 
 const renderWithProviders = (props = defaultProps, mocks: MockedResponse[] = []) => {
   return render(
-    <MockedProvider mocks={mocks} addTypename={false}>
+    <MockedProvider mocks={mocks}>
       <ToastProvider>
         <ManageContactsDialog {...props} />
       </ToastProvider>

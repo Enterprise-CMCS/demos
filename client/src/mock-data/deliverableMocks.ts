@@ -82,7 +82,8 @@ export const MOCK_DELIVERABLE_1: DeliverableDetailsManagementDeliverable = {
       owner: { person: { fullName: "Tess Davenport" } },
       deliverableSubmissionAction: {
         actionTimestamp: new Date("2026-03-24"),
-      }    },
+      },
+    },
   ],
   deliverableActions: [
     {

@@ -11,6 +11,6 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "model:update": "npx @mermaid-js/mermaid-cli -i docs/DEMOS_Data_Model.mmd --output docs/DEMOS_Data_Model.png -s 13 -p puppeteer-config.json"
+    "model:update": "npx @mermaid-js/mermaid-cli -i docs/DEMOS_Data_Model.mmd --output docs/DEMOS_Data_Model.png -s 13 -p puppeteer-config.json -c docs/mermaid-config.json"
   }
 }

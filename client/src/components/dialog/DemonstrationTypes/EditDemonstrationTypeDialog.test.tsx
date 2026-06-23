@@ -73,7 +73,7 @@ describe("EditDemonstrationTypeDialog", () => {
 
     const user = userEvent.setup();
     render(
-      <MockedProvider mocks={[errorMock]} addTypename={false}>
+      <MockedProvider mocks={[errorMock]}>
         <EditDemonstrationTypeDialog
           demonstrationId={MOCK_DEMONSTRATION_ID}
           initialDemonstrationType={MOCK_INITIAL_TYPE}

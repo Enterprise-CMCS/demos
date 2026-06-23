@@ -36,7 +36,7 @@ export const DemosApolloProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   if (shouldUseMocks()) {
     return (
-      <MockedProvider mocks={ALL_MOCKS} addTypename={false}>
+      <MockedProvider mocks={ALL_MOCKS}>
         {children}
       </MockedProvider>
     );

@@ -5,7 +5,10 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { ApprovalSummaryPhase } from "./ApprovalSummaryPhase";
-import { ApplicationDetailsFormData, ModificationDetailsFormData } from "./applicationDetailsSection";
+import {
+  ApplicationDetailsFormData,
+  ModificationDetailsFormData,
+} from "./applicationDetailsSection";
 import { TestProvider } from "test-utils/TestProvider";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
 import { UPDATE_DEMONSTRATION_MUTATION } from "components/dialog/demonstration/EditDemonstrationDialog";
@@ -180,7 +183,7 @@ describe("ApprovalSummaryPhase", () => {
     initialTypes: DemonstrationDetailDemonstrationType[] = []
   ) => {
     render(
-      <MockedProvider mocks={mocks} addTypename={false}>
+      <MockedProvider mocks={mocks}>
         <TestProvider>
           <ApprovalSummaryPhase
             applicationId="demo-123"
@@ -204,9 +207,7 @@ describe("ApprovalSummaryPhase", () => {
     setup();
 
     expect(screen.getByText("APPROVAL SUMMARY")).toBeInTheDocument();
-    expect(
-      screen.getByText(/Review and verify Demonstration Details/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Review and verify Demonstration Details/i)).toBeInTheDocument();
   });
 
   it("renders Application Details section", () => {
@@ -316,9 +317,7 @@ describe("ApprovalSummaryPhase", () => {
   it("shows 'Verify Amendment' for amendment", () => {
     setup(buildAmendmentFormData(), [mockUpdateAmendment]);
 
-    expect(
-      screen.getByText(/verify amendment/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/verify amendment/i)).toBeInTheDocument();
   });
 
   it("calls updateAmendment for amendment", async () => {
@@ -356,16 +355,21 @@ describe("ApprovalSummaryPhase", () => {
 
   it("covers amendment mark incomplete path", async () => {
     render(
-      <MockedProvider addTypename={false}>
+      <MockedProvider>
         <TestProvider>
           <ApprovalSummaryPhase
             applicationId="demo-123"
             initialFormData={buildAmendmentFormData()}
             initialTypes={[]}
-            approvalSummaryPhase={{ phaseStatus: "Started", phaseDates: [{
-              dateType: "Application Details Marked Complete Date",
-              dateValue: new Date("2025-01-01"),
-            }]}}
+            approvalSummaryPhase={{
+              phaseStatus: "Started",
+              phaseDates: [
+                {
+                  dateType: "Application Details Marked Complete Date",
+                  dateValue: new Date("2025-01-01"),
+                },
+              ],
+            }}
             allPreviousPhasesDone={true}
             demonstrationId="demo-123"
             demonstrationStatus="Approved"
@@ -388,16 +392,21 @@ describe("ApprovalSummaryPhase", () => {
 
   it("covers extension mark incomplete path", async () => {
     render(
-      <MockedProvider addTypename={false}>
+      <MockedProvider>
         <TestProvider>
           <ApprovalSummaryPhase
             applicationId="demo-123"
             initialFormData={buildExtensionFormData()}
             initialTypes={[]}
-            approvalSummaryPhase={{ phaseStatus: "Started", phaseDates: [{
-              dateType: "Application Details Marked Complete Date",
-              dateValue: new Date("2025-01-01"),
-            }]}}
+            approvalSummaryPhase={{
+              phaseStatus: "Started",
+              phaseDates: [
+                {
+                  dateType: "Application Details Marked Complete Date",
+                  dateValue: new Date("2025-01-01"),
+                },
+              ],
+            }}
             allPreviousPhasesDone={true}
             demonstrationId="demo-123"
             demonstrationStatus="Approved"

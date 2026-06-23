@@ -113,7 +113,7 @@ const renderHeader = (
 ) =>
   render(
     <MemoryRouter>
-      <MockedProvider mocks={mocks} addTypename={false}>
+      <MockedProvider mocks={mocks}>
         <TestUserProvider currentUser={currentUser}>
           <DemonstrationDetailHeader demonstrationId="1" />
         </TestUserProvider>
