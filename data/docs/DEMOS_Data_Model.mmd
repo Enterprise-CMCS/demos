@@ -519,7 +519,7 @@ erDiagram
     CONSTRAINT_CHECK check_non_empty_note "Check that the note is either null or a non empty string."
     TRIGGER_BEFORE_INSERT block_final_states_if_extension_request_active "If an active extension request exists, do not allow moving the deliverable to completed."
     TRIGGER_BEFORE_INSERT capture_active_extension_request_id_for_action "Before insert, look in deliverable_active_extension and if there is an active extension for this deliverable, add the ID here."
-    TRIGGER_AFTER_INSERT update_documents_in_submission "After insert, if it is a submission, go to the documents table and associate the action with any documents not belonging to a submission."
+    TRIGGER_AFTER_INSERT update_documents_in_submission "After insert, if it is a submission, go to the documents table and associate the action with any non-cms-attached documents not belonging to a submission."
     TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
     HAS_HISTORY true
   }
@@ -614,6 +614,7 @@ erDiagram
     CONSTRAINT_CHECK check_non_empty_s3_path "Validate that the S3 path is not empty or only whitespace."
     CONSTRAINT_CHECK check_phase_id_deliverable_id_null "Validate that at least one of phase_id and deliverable_id are NULL."
     CONSTRAINT_CHECK check_deliverable_null_states "Validate that the deliverable-related fields are NULL or NOT NULL appropriately.<br>If deliverable_id is NULL, all other deliverable fields must be NULL.<br>If deliverable_id is NOT NULL, deliverable_type_id and deliverable_is_cms_attached_file must be NOT NULL."
+    CONSTRAINT_CHECK no_submitted_deliverable_cms_files "Validate that a document cannot be both cms-attached and submitted.<br>If deliverable_id is NULL, all other deliverable fields must be NULL.<br>If deliverable_is_cms_attached_file is TRUE, deliverable_submission_action_id must be NULL"
     CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_budget_neutrality_validation_record_exists "Verify that a corresponding record exists in the budget_neutrality_workbook table for budget neutrality records."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
