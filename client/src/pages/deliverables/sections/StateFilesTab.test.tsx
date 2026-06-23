@@ -21,7 +21,7 @@ const MOCK_FILES: DeliverableFileRow[] = [
     documentType: "General File",
     createdAt: new Date("2026-01-15"),
     owner: { person: { fullName: "Alpha Owner" } },
-    isPartOfDeliverableSubmission: false,
+    deliverableSubmissionAction: null,
   },
   {
     id: "file-b",
@@ -30,7 +30,7 @@ const MOCK_FILES: DeliverableFileRow[] = [
     documentType: "Monitoring Report",
     createdAt: new Date("2026-02-20"),
     owner: { person: { fullName: "Bravo Owner" } },
-    isPartOfDeliverableSubmission: false,
+    deliverableSubmissionAction: null,
   },
   {
     id: "file-c",
@@ -39,7 +39,9 @@ const MOCK_FILES: DeliverableFileRow[] = [
     documentType: "General File",
     createdAt: new Date("2026-03-25"),
     owner: { person: { fullName: "Charlie Owner" } },
-    isPartOfDeliverableSubmission: true,
+    deliverableSubmissionAction: {
+      actionTimestamp: new Date("2026-03-25"),
+    },
   },
 ];
 
