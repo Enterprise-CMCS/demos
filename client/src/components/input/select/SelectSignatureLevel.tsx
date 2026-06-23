@@ -11,21 +11,19 @@ const labelMap: Record<SignatureLevel, string> = {
   OGD: "OGD - Office of the Group Director",
 };
 
-type SelectSignatureLevelProps = {
-  onSelect: (value: SignatureLevel | undefined) => void;
-  initialValue?: SignatureLevel;
-  isDisabled?: boolean;
-  isRequired?: boolean;
-  allowedSignatureLevels?: readonly SignatureLevel[];
-};
-
 export const SelectSignatureLevel = ({
   onSelect,
   initialValue,
   isDisabled = false,
   isRequired = false,
   allowedSignatureLevels = SIGNATURE_LEVEL,
-}: SelectSignatureLevelProps) => {
+}: {
+  onSelect: (value: SignatureLevel | undefined) => void;
+  initialValue?: SignatureLevel;
+  isDisabled?: boolean;
+  isRequired?: boolean;
+  allowedSignatureLevels?: readonly SignatureLevel[];
+}) => {
   const [signatureLevel, setSignatureLevel] = React.useState<SignatureLevel | undefined>(
     initialValue
   );

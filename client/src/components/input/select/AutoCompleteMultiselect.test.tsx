@@ -2,7 +2,7 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
-import { AutoCompleteMultiselect } from "./AutoCompleteMultiselect";
+import { AutoCompleteMultiselect, AUTOCOMPLETE_MULTISELECT_TEST_ID } from "./AutoCompleteMultiselect";
 import { Option } from "./Select";
 
 const onSelect: (value: string[]) => void = vi.fn();
@@ -49,7 +49,7 @@ describe("AutoCompleteMultiselect", () => {
 
   it("opens dropdown on input focus", async () => {
     render(<AutoCompleteMultiselect options={options} onSelect={onSelect} />);
-    const input = screen.getByRole("textbox");
+    const input = screen.getByTestId(AUTOCOMPLETE_MULTISELECT_TEST_ID);
     await userEvent.click(input);
     expect(screen.getByText("Apple")).toBeInTheDocument();
     expect(screen.getByText("Banana")).toBeInTheDocument();
@@ -57,7 +57,7 @@ describe("AutoCompleteMultiselect", () => {
 
   it("filters options as user types", async () => {
     render(<AutoCompleteMultiselect options={options} onSelect={onSelect} />);
-    const input = screen.getByRole("textbox");
+    const input = screen.getByTestId(AUTOCOMPLETE_MULTISELECT_TEST_ID);
     await userEvent.type(input, "Ban");
     expect(screen.getByText("Banana")).toBeInTheDocument();
     expect(screen.queryByText("Apple")).not.toBeInTheDocument();
@@ -65,14 +65,14 @@ describe("AutoCompleteMultiselect", () => {
 
   it("shows 'No matches found' if nothing matches", async () => {
     render(<AutoCompleteMultiselect options={options} onSelect={onSelect} />);
-    const input = screen.getByRole("textbox");
+    const input = screen.getByTestId(AUTOCOMPLETE_MULTISELECT_TEST_ID);
     await userEvent.type(input, "zzz");
     expect(screen.getByText(/no matches found/i)).toBeInTheDocument();
   });
 
   it("toggles selection on option click", async () => {
     render(<AutoCompleteMultiselect options={options} onSelect={onSelect} />);
-    const input = screen.getByRole("textbox");
+    const input = screen.getByTestId(AUTOCOMPLETE_MULTISELECT_TEST_ID);
     await userEvent.click(input);
     await userEvent.click(screen.getByText("Cherry"));
     expect(onSelect).toHaveBeenCalledWith(["cherry"]);
@@ -83,7 +83,7 @@ describe("AutoCompleteMultiselect", () => {
 
   it("toggles selection on keyboard selection", async () => {
     render(<AutoCompleteMultiselect options={options} onSelect={onSelect} />);
-    const input = screen.getByRole("textbox");
+    const input = screen.getByTestId(AUTOCOMPLETE_MULTISELECT_TEST_ID);
     await userEvent.click(input); // Ensure dropdown is open
     fireEvent.keyDown(input, { key: "ArrowDown" }); // highlight Apple
     fireEvent.keyDown(input, { key: "Enter" }); // select Apple
@@ -95,7 +95,7 @@ describe("AutoCompleteMultiselect", () => {
 
   it("keyboard navigation: ArrowDown/ArrowUp moves highlight", async () => {
     render(<AutoCompleteMultiselect options={options} onSelect={onSelect} />);
-    const input = screen.getByRole("textbox");
+    const input = screen.getByTestId(AUTOCOMPLETE_MULTISELECT_TEST_ID);
     input.focus();
     fireEvent.keyDown(input, { key: "ArrowDown" }); // index 0
     fireEvent.keyDown(input, { key: "ArrowDown" }); // index 1
@@ -106,7 +106,7 @@ describe("AutoCompleteMultiselect", () => {
 
   it("closes dropdown on Escape", async () => {
     render(<AutoCompleteMultiselect options={options} onSelect={onSelect} />);
-    const input = screen.getByRole("textbox");
+    const input = screen.getByTestId(AUTOCOMPLETE_MULTISELECT_TEST_ID);
     await userEvent.click(input);
     fireEvent.keyDown(input, { key: "Escape" });
     expect(screen.queryByText("Apple")).not.toBeInTheDocument();
@@ -119,7 +119,7 @@ describe("AutoCompleteMultiselect", () => {
         <button>outside</button>
       </div>
     );
-    const input = screen.getByRole("textbox");
+    const input = screen.getByTestId(AUTOCOMPLETE_MULTISELECT_TEST_ID);
     await userEvent.click(input);
     expect(screen.getByText("Apple")).toBeInTheDocument();
     await userEvent.click(screen.getByText("outside"));
@@ -131,7 +131,7 @@ describe("AutoCompleteMultiselect", () => {
       render(
         <AutoCompleteMultiselect options={options} onSelect={onSelect} placeholder="Pick fruit" />
       );
-      const input = screen.getByRole("textbox");
+      const input = screen.getByTestId(AUTOCOMPLETE_MULTISELECT_TEST_ID);
 
       // Open and select Apple
       await userEvent.click(input);
@@ -148,7 +148,7 @@ describe("AutoCompleteMultiselect", () => {
       render(
         <AutoCompleteMultiselect options={options} onSelect={onSelect} placeholder="Pick fruit" />
       );
-      const input = screen.getByRole("textbox");
+      const input = screen.getByTestId(AUTOCOMPLETE_MULTISELECT_TEST_ID);
 
       // Open and select Apple then Banana
       await userEvent.click(input);
@@ -165,7 +165,7 @@ describe("AutoCompleteMultiselect", () => {
       render(
         <AutoCompleteMultiselect options={options} onSelect={onSelect} placeholder="Pick fruit" />
       );
-      const input = screen.getByRole("textbox");
+      const input = screen.getByTestId(AUTOCOMPLETE_MULTISELECT_TEST_ID);
       expect(input).toHaveValue("");
       expect(input).toHaveAttribute("placeholder", "Pick fruit");
     });
@@ -174,7 +174,7 @@ describe("AutoCompleteMultiselect", () => {
       render(
         <AutoCompleteMultiselect options={options} onSelect={onSelect} placeholder="Pick fruit" />
       );
-      const input = screen.getByRole("textbox");
+      const input = screen.getByTestId(AUTOCOMPLETE_MULTISELECT_TEST_ID);
 
       // Select Apple then close
       await userEvent.click(input);
