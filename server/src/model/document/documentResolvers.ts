@@ -5,6 +5,8 @@ import { handlePrismaError } from "../../errors/handlePrismaError";
 import { prisma } from "../../prismaClient";
 import type {
   BudgetNeutralityValidationStatus,
+  DeliverableAction,
+  DeliverableActionType,
   DocumentType,
   PhaseName,
   UpdateDocumentInput,
@@ -19,6 +21,8 @@ import type {
   BudgetNeutralityValidationError,
   BudgetNeutralityValidationResult,
 } from "./documentSchema";
+import { selectDeliverableAction } from "../deliverableAction/queries";
+import { formatDetailsMessage, formatFullUserName } from "../deliverableAction";
 
 export async function triggerUiPath(
   parent: unknown,
@@ -156,8 +160,24 @@ export const documentResolvers = {
     application: (parent: PrismaDocument): Promise<PrismaApplication> =>
       getApplication(parent.applicationId),
     deliverable: resolveDeliverable,
-    isPartOfDeliverableSubmission: (parent: PrismaDocument): boolean =>
-      !!parent.deliverableSubmissionActionId,
+    deliverableSubmissionAction: async (parent: PrismaDocument): Promise<DeliverableAction | null> => {
+      if (!parent.deliverableSubmissionActionId) {
+        return null;
+      }
+      const deliverableAction = await selectDeliverableAction(
+        {
+          id: parent.deliverableSubmissionActionId,
+        },
+        true
+      );
+      return {
+        id: deliverableAction.id,
+        actionTimestamp: deliverableAction.actionTimestamp,
+        actionType: deliverableAction.actionTypeId as DeliverableActionType,
+        details: formatDetailsMessage(deliverableAction),
+        userFullName: formatFullUserName(deliverableAction),
+      };
+    },
     phaseName: (parent: PrismaDocument): PhaseName => parent.phaseId as PhaseName,
     hasPendingUIPathResult: resolveHasPendingUIPathResult,
     budgetNeutralityValidation: resolveBudgetNeutralityValidation,
