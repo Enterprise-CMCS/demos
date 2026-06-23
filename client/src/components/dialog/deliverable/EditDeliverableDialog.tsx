@@ -198,7 +198,6 @@ export const EditDeliverableDialog: React.FC<EditDeliverableDialogProps> = ({
             input: buildUpdateDeliverableInput(input, reasonForChange),
           },
           refetchQueries,
-          awaitRefetchQueries: true,
         });
       }
 
