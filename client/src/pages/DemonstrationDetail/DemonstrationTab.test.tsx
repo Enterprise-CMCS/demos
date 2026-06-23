@@ -63,7 +63,7 @@ const mockDemonstration: DemonstrationTabDemonstration = {
 
 const renderWithProvider = (component: React.ReactElement) => {
   return render(
-    <TestProvider mocks={deliverableMocks} addTypename={false}>
+    <TestProvider mocks={deliverableMocks}>
       <DialogProvider>{component}</DialogProvider>
     </TestProvider>
   );
