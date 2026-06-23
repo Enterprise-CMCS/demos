@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { AuthorizationClaims } from "./auth.util";
+import type { AuthorizationClaims } from ".";
 import { getPersonTypeFromClaims } from "./getPersonTypeFromClaims";
 
 describe("getPersonTypeFromClaims", () => {

@@ -6,13 +6,13 @@ import { GraphQLArmorConfig } from "./plugins/graphQLArmorConfig.js";
 import { typeDefs, resolvers } from "./model/graphql.js";
 import { loggingPlugin } from "./plugins/logging.plugin";
 import {
-  AuthorizationClaims,
-  GraphQLContext,
+  type AuthorizationClaims,
+  type GraphQLContext,
   buildContextFromClaims,
+  getPersonTypeFromClaims,
   validateClaims,
-} from "./auth/auth.util.js";
+} from "./auth";
 import { log, reqIdChild, als, store } from "./log.js";
-import { getPersonTypeFromClaims } from "./auth/getPersonTypeFromClaims.js";
 import type { APIGatewayProxyEvent } from "aws-lambda";
 import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 import { fieldAuthPlugin } from "./plugins/fieldAuthPlugin.js";

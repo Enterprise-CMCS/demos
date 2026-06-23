@@ -847,10 +847,14 @@ erDiagram
   users:::dataTable {
     uuid id PK, FK, UK "FK023: (id, person_type_id) ∈ person.(id, person_type_id)<br>UK: (id, person_type_id)"
     text person_type_id FK, UK "FK023: (id, person_type_id) ∈ person.(id, person_type_id)<br>FK025: person_type_id ∈ user_person_type_limit.id<br>UK: (id, person_type_id)"
-    uuid cognito_subject UK "UK: cognito_subject"
-    text username
+    uuid cognito_subject UK "UK: cognito_subject<br>NULLABLE"
+    text username UK "UK: username<br>NULLABLE"
+    bool is_migrated_from_pmda
+    bool has_logged_in
     timestamptz created_at
     timestamptz updated_at
+    CONSTRAINT_CHECK check_external_fields_exist_for_logged_in_users "The cognito_subject and username must exist if has_logged_in is TRUE.<br>The cognito_subject and username should not exist if has_logged_in is FALSE."
+    CONSTRAINT_CHECK check_all_regular_users_are_logged_in "If is_migrated_from_pmda is FALSE, has_logged_in must be TRUE."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }

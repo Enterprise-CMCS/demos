@@ -4,19 +4,19 @@ import { ApolloArmor } from "@escape.tech/graphql-armor";
 import { startStandaloneServer } from "@apollo/server/standalone";
 import { typeDefs, resolvers } from "./model/graphql.js";
 import {
-  buildContextFromClaims,
-  AuthorizationClaims,
+  type AuthorizationClaims,
   type GraphQLContext,
+  buildContextFromClaims,
+  decodeToken,
+  getPersonTypeFromClaims,
   validateClaims,
-} from "./auth/auth.util.js";
+} from "./auth";
 import { gatedLandingPagePlugin } from "./plugins/gatedLandingPage.plugin.js";
 import { als, log, reqIdChild, store } from "./log.js";
 import { loggingPlugin } from "./plugins/logging.plugin";
 import { GraphQLArmorConfig } from "./plugins/graphQLArmorConfig.js";
 import { JwtPayload } from "jsonwebtoken";
 import { parseCookie } from "cookie";
-import { decodeToken } from "./auth/decodeToken.js";
-import { getPersonTypeFromClaims } from "./auth/getPersonTypeFromClaims.js";
 import { fieldAuthPlugin } from "./plugins/fieldAuthPlugin.js";
 import { formatGraphQLErrorCode } from "./errors/errorCodes.js";
 

@@ -1,4 +1,4 @@
-import { ContextUser, findOrCreateContextUserFromClaims } from "./userContext.js";
+import { ContextUser, findOrCreateContextUserFromClaims } from "./user";
 
 export interface GraphQLContext {
   user: ContextUser;

@@ -1,10 +1,12 @@
 model User {
-  id             String   @db.Uuid
-  personTypeId   String   @map("person_type_id")
-  cognitoSubject String   @map("cognito_subject") @db.Uuid
-  username       String
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  id                 String   @db.Uuid
+  personTypeId       String   @map("person_type_id")
+  cognitoSubject     String?  @map("cognito_subject") @db.Uuid
+  username           String?
+  isMigratedFromPmda Boolean  @map("is_migrated_from_pmda")
+  hasLoggedIn        Boolean  @map("has_logged_in")
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   person                        Person                         @relation(fields: [id, personTypeId], references: [id, personTypeId])
   personType                    UserPersonTypeLimit            @relation(fields: [personTypeId], references: [id])
@@ -24,5 +26,6 @@ model User {
   @@id([id])
   @@unique([id, personTypeId]) // Not required by Postgres, but Prisma requires this notation
   @@unique([cognitoSubject])
+  @@unique([username])
   @@map("users")
 }
