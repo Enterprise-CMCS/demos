@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { BudgetNeutralityValidationError, DocumentType } from "demos-server";
-
-const BN_WORKBOOK_DOCUMENT_TYPE: DocumentType = "BN Workbook";
+import { BN_WORKBOOK_DOCUMENT_TYPE } from "demos-server-constants";
 
 const PARSE_ERROR: BudgetNeutralityValidationError = {
   code: "PARSE_ERROR",

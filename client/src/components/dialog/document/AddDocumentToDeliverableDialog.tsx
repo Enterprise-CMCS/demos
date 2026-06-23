@@ -16,8 +16,7 @@ import { tryUploadingFileToS3 } from "./tryUploadingFileToS3";
 import { useBNValidationStatus } from "./useBNValidationStatus";
 import { useDocumentPassedVirusScan } from "./useDocumentPassedVirusScan";
 import { useUploadDocument } from "./useUploadDocument";
-
-const BN_WORKBOOK_DOCUMENT_TYPE: DocumentType = "BN Workbook";
+import { BN_WORKBOOK_DOCUMENT_TYPE } from "demos-server-constants";
 
 export const UPLOAD_DOCUMENT_TO_DELIVERABLE_STATE_FILES_MUTATION: TypedDocumentNode<
   {
