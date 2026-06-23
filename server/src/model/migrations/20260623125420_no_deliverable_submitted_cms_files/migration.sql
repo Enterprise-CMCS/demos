@@ -1,3 +1,8 @@
+UPDATE demos_app.document
+    SET deliverable_submission_action_id = NULL
+    WHERE deliverable_is_cms_attached_file = TRUE
+;
+
 ALTER TABLE
     demos_app.document
 ADD CONSTRAINT
