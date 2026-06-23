@@ -23,8 +23,10 @@ SELECT
     ) AS chip_id,
     demo.status_id AS status,
     to_char(demo.status_updated_at AT TIME ZONE 'America/New_York', 'MM/DD/YYYY') AS status_update_date,
-    to_char(demo.effective_date AT TIME ZONE 'America/New_York', 'MM/DD/YYYY') AS demonstration_effective_date,
-    to_char(demo.expiration_date AT TIME ZONE 'America/New_York', 'MM/DD/YYYY') AS demonstration_expiration_date,
+    coalesce(to_char(demo.effective_date AT TIME ZONE 'America/New_York', 'MM/DD/YYYY'), '-')
+        AS demonstration_effective_date,
+    coalesce(to_char(demo.expiration_date AT TIME ZONE 'America/New_York', 'MM/DD/YYYY'), '-')
+        AS demonstration_expiration_date,
     primary_project_officer.full_name AS primary_project_officer,
     coalesce(primary_state_poc.full_name, '-') AS primary_state_poc,
     coalesce(to_char(app_date.date_value AT TIME ZONE 'America/New_York', 'MM/DD/YYYY'), '-')
