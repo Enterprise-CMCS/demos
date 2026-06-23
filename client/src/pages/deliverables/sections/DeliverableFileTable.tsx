@@ -81,7 +81,7 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
             const selectedCount = selectedRows.length;
 
             const hasSubmittedFile = selectedRows.some(
-              (row) => row.isPartOfDeliverableSubmission
+              (row) => row.deliverableSubmissionAction
             );
 
             return (

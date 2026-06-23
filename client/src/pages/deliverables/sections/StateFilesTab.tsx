@@ -2,7 +2,7 @@ import React from "react";
 
 import type { DeliverableFileRow } from "./DeliverableFileTypes";
 import { DeliverableFileTable } from "./DeliverableFileTable";
-import { makeStateFileColumns } from "./fileColumns";
+import { makeStateFileColumns } from "components/table/columns/deliverableFileColumns";
 
 export const STATE_FILES_TAB_NAME = "state-files-tab";
 export const STATE_FILES_ADD_BUTTON_NAME = "button-add-state-files";

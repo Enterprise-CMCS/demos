@@ -4,6 +4,7 @@ import {
   Application,
   BudgetNeutralityValidationStatus,
   Deliverable,
+  DeliverableAction,
   DocumentType,
   NonEmptyString,
   PhaseName,
@@ -32,7 +33,7 @@ export const documentSchema = gql`
     phaseName: PhaseName @auth(requires: ["Access CMS Field"])
     presignedDownloadUrl: String! @auth(requires: ["Access CMS Field"])
     deliverable: Deliverable @auth(requires: ["Access CMS Field"])
-    isPartOfDeliverableSubmission: Boolean!
+    deliverableSubmissionAction: DeliverableAction
     hasPendingUIPathResult: Boolean! @auth(requires: ["Access CMS Field"])
     budgetNeutralityValidation: BudgetNeutralityValidationResult
     createdAt: DateTime!
@@ -80,7 +81,7 @@ export interface Document {
   application: Application;
   phaseName?: PhaseName;
   deliverable?: Deliverable;
-  isPartOfDeliverableSubmission: boolean;
+  deliverableSubmissionAction?: DeliverableAction;
   createdAt: Date;
   updatedAt: Date;
   presignedDownloadUrl: string;
