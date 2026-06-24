@@ -829,13 +829,13 @@ describe("validateDeliverableInputs", () => {
       ).toBeUndefined();
     });
 
-    it("should call the check functions", () => {
+    it("should call the check functions", async () => {
       const testInput: Partial<PrismaDeliverable> = {
         id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
         statusId: "Under CMS Review",
       };
 
-      validateCompleteDeliverableInput(testInput as PrismaDeliverable, mockTransaction);
+      await validateCompleteDeliverableInput(testInput as PrismaDeliverable, mockTransaction);
       expect(checkDeliverableHasStatus).toHaveBeenCalledExactlyOnceWith(testInput, [
         "Under CMS Review",
       ]);
