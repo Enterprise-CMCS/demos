@@ -106,7 +106,7 @@ describe("CreateNewButton", () => {
     expect(showCreateExtensionDialog).toHaveBeenCalledWith();
   });
 
-  it("hides amendment and extension creation when no approved demonstrations exist", () => {
+  it("disables amendment and extension creation when no approved demonstrations exist", () => {
     mockGetCurrentUser.mockReturnValue({
       currentUser: mockUsers[0],
     });
@@ -114,8 +114,16 @@ describe("CreateNewButton", () => {
     renderCreateNewButton(false);
 
     fireEvent.click(screen.getByText("Create New"));
-    expect(screen.queryByTestId("button-create-new-amendment")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("button-create-new-extension")).not.toBeInTheDocument();
+    const amendmentButton = screen.getByTestId("button-create-new-amendment");
+    const extensionButton = screen.getByTestId("button-create-new-extension");
+
+    expect(amendmentButton).toBeDisabled();
+    expect(extensionButton).toBeDisabled();
+    expect(amendmentButton).toHaveAttribute("title", "No Approved Demonstrations Exist");
+    expect(extensionButton).toHaveAttribute("title", "No Approved Demonstrations Exist");
+
+    fireEvent.click(amendmentButton);
+    fireEvent.click(extensionButton);
 
     expect(showCreateAmendmentDialog).not.toHaveBeenCalled();
     expect(showCreateExtensionDialog).not.toHaveBeenCalled();

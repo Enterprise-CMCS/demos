@@ -7,6 +7,7 @@ import { getCurrentUser } from "components/user/UserContext";
 import { useDialog } from "components/dialog/DialogContext";
 
 const CREATE_PERSON_TYPES: ReadonlySet<PersonType> = new Set(["demos-admin", "demos-cms-user"]);
+const NO_APPROVED_DEMONSTRATIONS_TOOLTIP = "No Approved Demonstrations Exist";
 
 export const CreateNewButton: React.FC<{ hasApprovedDemonstrations: boolean }> = ({
   hasApprovedDemonstrations,
@@ -16,6 +17,9 @@ export const CreateNewButton: React.FC<{ hasApprovedDemonstrations: boolean }> =
   const { currentUser } = getCurrentUser();
   const { showCreateDemonstrationDialog, showCreateAmendmentDialog, showCreateExtensionDialog } =
     useDialog();
+  const modificationTooltip = hasApprovedDemonstrations
+    ? ""
+    : NO_APPROVED_DEMONSTRATIONS_TOOLTIP;
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -53,30 +57,30 @@ export const CreateNewButton: React.FC<{ hasApprovedDemonstrations: boolean }> =
           >
             Demonstration
           </button>
-          {hasApprovedDemonstrations && (
-            <>
-              <button
-                data-testid="button-create-new-amendment"
-                onClick={() => {
-                  setShowDropdown(false);
-                  showCreateAmendmentDialog();
-                }}
-                className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
-              >
-                Amendment
-              </button>
-              <button
-                data-testid="button-create-new-extension"
-                onClick={() => {
-                  setShowDropdown(false);
-                  showCreateExtensionDialog();
-                }}
-                className="w-full text-left px-1 py-[10px] hover:bg-gray-100"
-              >
-                Extension
-              </button>
-            </>
-          )}
+          <button
+            data-testid="button-create-new-amendment"
+            disabled={!hasApprovedDemonstrations}
+            title={modificationTooltip}
+            onClick={() => {
+              setShowDropdown(false);
+              showCreateAmendmentDialog();
+            }}
+            className="w-full text-left px-1 py-[10px] hover:bg-gray-100 disabled:text-text-placeholder disabled:cursor-not-allowed disabled:hover:bg-white"
+          >
+            Amendment
+          </button>
+          <button
+            data-testid="button-create-new-extension"
+            disabled={!hasApprovedDemonstrations}
+            title={modificationTooltip}
+            onClick={() => {
+              setShowDropdown(false);
+              showCreateExtensionDialog();
+            }}
+            className="w-full text-left px-1 py-[10px] hover:bg-gray-100 disabled:text-text-placeholder disabled:cursor-not-allowed disabled:hover:bg-white"
+          >
+            Extension
+          </button>
         </div>
       )}
     </div>
