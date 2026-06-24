@@ -6,13 +6,13 @@ import { GraphQLArmorConfig } from "./plugins/graphQLArmorConfig.js";
 import { typeDefs, resolvers } from "./model/graphql.js";
 import { loggingPlugin } from "./plugins/logging.plugin";
 import {
-  AuthorizationClaims,
-  GraphQLContext,
+  type AuthorizationClaims,
+  type GraphQLContext,
   buildContextFromClaims,
   validateClaims,
-} from "./auth/auth.util.js";
+  validatePersonTypeInClaim,
+} from "./auth";
 import { log, reqIdChild, als, store } from "./log.js";
-import { getPersonTypeFromClaims } from "./auth/getPersonTypeFromClaims.js";
 import type { APIGatewayProxyEvent } from "aws-lambda";
 import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 import { fieldAuthPlugin } from "./plugins/fieldAuthPlugin.js";
@@ -82,9 +82,7 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
           await setDatabaseUrl();
 
           const claims = extractClaimsFromEvent(event);
-          // Validate that the claims map to a valid person type (role gate);
-          // throws and rejects the request if the role is missing or ambiguous.
-          getPersonTypeFromClaims(claims);
+          validatePersonTypeInClaim(claims);
           const gqlCtx = await buildContextFromClaims(claims);
 
           const additionalContext = {
