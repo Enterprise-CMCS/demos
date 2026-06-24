@@ -119,6 +119,8 @@ describe("CreateNewButton", () => {
 
     expect(amendmentButton).toBeDisabled();
     expect(extensionButton).toBeDisabled();
+    expect(amendmentButton).toHaveAttribute("title", "No Approved Demonstrations Exist");
+    expect(extensionButton).toHaveAttribute("title", "No Approved Demonstrations Exist");
 
     fireEvent.click(amendmentButton);
     fireEvent.click(extensionButton);
