@@ -211,6 +211,7 @@ describe("EditDeliverableDialog", () => {
               },
             },
             demonstrationTypes: [{ tagName: "Aggregate Cap", approvalStatus: "Approved" }],
+            deliverableActions: [],
           },
         },
       },

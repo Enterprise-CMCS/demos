@@ -41,6 +41,13 @@ export const UPDATE_DELIVERABLE_MUTATION = gql`
         tagName
         approvalStatus
       }
+      deliverableActions {
+        id
+        actionType
+        actionTimestamp
+        userFullName
+        details
+      }
     }
   }
 `;
@@ -131,7 +138,6 @@ export interface EditDeliverableDialogProps {
   onClose: () => void;
   deliverable: EditDeliverableDialogDeliverable;
   demonstrationTypeTags: Tag[];
-  refetchQueries?: string[];
   onSave?: (input: EditDeliverableInput, reasonForChange?: string) => Promise<void> | void;
 }
 
@@ -156,7 +162,6 @@ export const EditDeliverableDialog: React.FC<EditDeliverableDialogProps> = ({
   onClose,
   deliverable,
   demonstrationTypeTags,
-  refetchQueries = [],
   onSave,
 }) => {
   const { showSuccess, showError } = useToast();
@@ -197,7 +202,6 @@ export const EditDeliverableDialog: React.FC<EditDeliverableDialogProps> = ({
             id: input.id,
             input: buildUpdateDeliverableInput(input, reasonForChange),
           },
-          refetchQueries,
         });
       }
 

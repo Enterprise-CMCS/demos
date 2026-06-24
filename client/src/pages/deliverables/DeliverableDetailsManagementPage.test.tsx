@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import { InMemoryCache } from "@apollo/client";
 import {
   DeliverableDetailsManagementPage,
   DELIVERABLE_DETAILS_QUERY,
@@ -81,7 +82,8 @@ const renderAtRoute = (
 const renderWithDeliverable = (
   deliverable: DeliverableDetailsManagementDeliverable,
   personType: CurrentUser["person"]["personType"] = "demos-cms-user",
-  extraMocks: import("@apollo/client/testing").MockedResponse[] = []
+  extraMocks: import("@apollo/client/testing").MockedResponse[] = [],
+  cache?: React.ComponentProps<typeof TestProvider>["cache"]
 ) =>
   render(
     <TestProvider
@@ -93,6 +95,7 @@ const renderWithDeliverable = (
         },
         ...extraMocks,
       ]}
+      cache={cache}
       routerEntries={[`/deliverables/${deliverable.id}`]}
     >
       <DialogProvider>
@@ -107,6 +110,13 @@ const renderWithDeliverable = (
       </DialogProvider>
     </TestProvider>
   );
+
+const createDeliverableCache = () =>
+  new InMemoryCache({
+    addTypename: false,
+    dataIdFromObject: (object) =>
+      object.__typename === "Deliverable" && object.id ? `Deliverable:${object.id}` : undefined,
+  });
 
 describe("DeliverableDetailsManagementPage", () => {
   it("renders the deliverable name heading", async () => {
@@ -291,7 +301,9 @@ describe("DeliverableDetailsManagementPage", () => {
 
   it("refreshes history after saving a due date edit from the route", async () => {
     const user = userEvent.setup();
+    const deliverable = { __typename: "Deliverable", ...MOCK_DELIVERABLE_1 };
     const updatedDeliverable = {
+      __typename: "Deliverable",
       ...MOCK_DELIVERABLE_1,
       dueDate: new Date("2026-07-20"),
       deliverableActions: [
@@ -307,44 +319,43 @@ describe("DeliverableDetailsManagementPage", () => {
       ],
     };
 
-    renderWithDeliverable(MOCK_DELIVERABLE_1, "demos-admin", [
-      ...personMocks,
-      {
-        request: {
-          query: UPDATE_DELIVERABLE_MUTATION,
-          variables: {
-            id: MOCK_DELIVERABLE_1.id,
-            input: {
-              name: MOCK_DELIVERABLE_1.name,
-              cmsOwnerUserId: MOCK_DELIVERABLE_1.cmsOwner.id,
-              demonstrationTypes: [],
-              dueDate: {
-                newDueDate: "2026-07-20",
-                dateChangeNote: "needed extra day",
+    renderWithDeliverable(
+      deliverable,
+      "demos-admin",
+      [
+        ...personMocks,
+        {
+          request: {
+            query: UPDATE_DELIVERABLE_MUTATION,
+            variables: {
+              id: MOCK_DELIVERABLE_1.id,
+              input: {
+                name: MOCK_DELIVERABLE_1.name,
+                cmsOwnerUserId: MOCK_DELIVERABLE_1.cmsOwner.id,
+                demonstrationTypes: [],
+                dueDate: {
+                  newDueDate: "2026-07-20",
+                  dateChangeNote: "needed extra day",
+                },
+              },
+            },
+          },
+          result: {
+            data: {
+              updateDeliverable: {
+                __typename: "Deliverable",
+                id: MOCK_DELIVERABLE_1.id,
+                name: MOCK_DELIVERABLE_1.name,
+                dueDate: new Date("2026-07-20"),
+                cmsOwner: MOCK_DELIVERABLE_1.cmsOwner,
+                demonstrationTypes: [],
+                deliverableActions: updatedDeliverable.deliverableActions,
               },
             },
           },
         },
-        result: {
-          data: {
-            updateDeliverable: {
-              id: MOCK_DELIVERABLE_1.id,
-              name: MOCK_DELIVERABLE_1.name,
-              dueDate: new Date("2026-07-20"),
-              cmsOwner: MOCK_DELIVERABLE_1.cmsOwner,
-              demonstrationTypes: [],
-            },
-          },
-        },
-      },
-      {
-        request: {
-          query: DELIVERABLE_DETAILS_QUERY,
-          variables: { id: MOCK_DELIVERABLE_1.id },
-        },
-        result: { data: { deliverable: updatedDeliverable } },
-      },
-    ]);
+      ]
+    );
 
     await user.click(await screen.findByTestId("edit-deliverable-button"));
     fireEvent.change(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME), {
