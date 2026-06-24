@@ -31,12 +31,13 @@ export const SelectDemonstration: React.FC<{
 
   if (demonstrationsLoading) return <p>Loading...</p>;
   const demonstrations = demonstrationsData?.demonstrations;
-  if (demonstrationsError) return <p>Error retrieving list of demonstrations.</p>;
-  if (!demonstrations || demonstrations.length < 1) return <p>No demonstrations found.</p>;
+  if (demonstrationsError || !demonstrations)
+    return <p>Error retrieving list of demonstrations.</p>;
+
   const approvedDemonstrations = demonstrations.filter(
     (demonstration) => demonstration.status === "Approved"
   );
-  if (approvedDemonstrations.length < 1) return <p>No demonstrations found.</p>;
+  if (approvedDemonstrations.length < 1) return <p>No approved demonstrations found.</p>;
 
   return (
     <AutoCompleteSelect

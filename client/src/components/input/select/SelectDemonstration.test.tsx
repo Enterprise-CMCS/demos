@@ -165,7 +165,7 @@ describe("SelectDemonstration", () => {
     });
   });
 
-  it("shows no demonstrations message when list is empty", async () => {
+  it("shows no approved demonstrations message when list is empty", async () => {
     render(
       <MockedProvider mocks={emptyMock}>
         <SelectDemonstration value="" onSelect={mockOnSelect} />
@@ -173,11 +173,11 @@ describe("SelectDemonstration", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("No demonstrations found.")).toBeInTheDocument();
+      expect(screen.getByText("No approved demonstrations found.")).toBeInTheDocument();
     });
   });
 
-  it("shows no demonstrations message when no approved demonstrations exist", async () => {
+  it("shows no approved demonstrations message when no approved demonstrations exist", async () => {
     render(
       <MockedProvider mocks={noApprovedMock} addTypename={false}>
         <SelectDemonstration value="" onSelect={mockOnSelect} />
@@ -185,7 +185,7 @@ describe("SelectDemonstration", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("No demonstrations found.")).toBeInTheDocument();
+      expect(screen.getByText("No approved demonstrations found.")).toBeInTheDocument();
     });
     expect(screen.queryByTestId("select-demonstration")).not.toBeInTheDocument();
   });
@@ -222,7 +222,7 @@ describe("SelectDemonstration", () => {
   it("passes value prop to AutoCompleteSelect", async () => {
     render(
       <MockedProvider mocks={successMock}>
-        <SelectDemonstration onSelect={mockOnSelect} value="demo-2" />
+        <SelectDemonstration onSelect={mockOnSelect} value="demo-3" />
       </MockedProvider>
     );
 
