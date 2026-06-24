@@ -46,8 +46,8 @@ export const EXTENSION_ELIGIBLE_STATUSES: ReadonlySet<DeliverableStatus> = new S
 export const hasOpenExtensionRequest = (
   extensions: { status: DeliverableExtensionStatus }[]
 ): boolean => extensions.some((extension) => extension.status === "Requested");
-export const canRequestExtension = (
 
+export const canRequestExtension = (
   status: DeliverableStatus,
   extensions: { status: DeliverableExtensionStatus }[]
 ): boolean => EXTENSION_ELIGIBLE_STATUSES.has(status) && !hasOpenExtensionRequest(extensions);
