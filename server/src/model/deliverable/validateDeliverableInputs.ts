@@ -167,7 +167,9 @@ export async function validateCompleteDeliverableInput(
 
   // Deliverables may only be completed from review status
   errors.push(checkDeliverableHasStatus(deliverable, ["Under CMS Review"]));
+  // Deliverables may only be completed if there are no unsubmitted state documents
   errors.push(await checkDeliverableHasNoUnsubmittedStateDocuments(deliverable, tx));
+  
   cleanErrorsAndThrow(errors, "completeDeliverable", "COMPLETE_DELIVERABLE_VALIDATION_FAILED");
 }
 
