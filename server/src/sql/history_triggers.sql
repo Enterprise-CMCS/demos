@@ -2235,6 +2235,8 @@ BEGIN
             person_type_id,
             cognito_subject,
             username,
+            is_migrated_from_pmda,
+            has_logged_in,
             created_at,
             updated_at
         )
@@ -2247,6 +2249,8 @@ BEGIN
             NEW.person_type_id,
             NEW.cognito_subject,
             NEW.username,
+            NEW.is_migrated_from_pmda,
+            NEW.has_logged_in,
             NEW.created_at,
             NEW.updated_at
         );
@@ -2258,6 +2262,8 @@ BEGIN
             person_type_id,
             cognito_subject,
             username,
+            is_migrated_from_pmda,
+            has_logged_in,
             created_at,
             updated_at
         )
@@ -2267,6 +2273,8 @@ BEGIN
             OLD.person_type_id,
             OLD.cognito_subject,
             OLD.username,
+            OLD.is_migrated_from_pmda,
+            OLD.has_logged_in,
             OLD.created_at,
             OLD.updated_at
         );
