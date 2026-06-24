@@ -27,11 +27,10 @@ vi.mock("@escape.tech/graphql-armor", () => ({ ApolloArmor: ApolloArmorMock }));
 vi.mock("./model/graphql.js", () => ({ typeDefs: [], resolvers: {} }));
 vi.mock("./plugins/logging.plugin", () => ({ loggingPlugin: {} }));
 vi.mock("./plugins/graphQLArmorConfig.js", () => ({ GraphQLArmorConfig: { __sentinel: true } }));
-vi.mock("./auth/auth.util.js", () => ({
-  buildLambdaContext: vi.fn(async () => ({})),
+vi.mock("./auth", () => ({
   buildContextFromClaims: vi.fn(async () => ({ user: { id: "user-1" } })),
   validateClaims: validateClaimsMock,
-  getDatabaseUrl: vi.fn(async () => "postgres://db"),
+  validatePersonTypeInClaim: vi.fn(),
 }));
 vi.mock("./log.js", () => ({
   log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },

@@ -1,5 +1,5 @@
 import { Permission } from "../types";
-import { ContextUser } from "./userContext";
+import { ContextUser } from "./user";
 
 export type PermissionFilters<WhereClause> = Partial<Record<Permission, WhereClause>>;
 

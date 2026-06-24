@@ -23,13 +23,14 @@ vi.mock("@apollo/server/standalone", () => ({ startStandaloneServer: startStanda
 vi.mock("@escape.tech/graphql-armor", () => ({ ApolloArmor: ApolloArmorMock }));
 
 vi.mock("./model/graphql.js", () => ({ typeDefs: [], resolvers: {} }));
-vi.mock("./auth/auth.util.js", () => ({
+vi.mock("./auth", () => ({
   buildContextFromClaims: vi.fn(async () => ({ user: { id: "user-1" } })),
+  decodeToken: vi.fn(),
   validateClaims: validateClaimsMock,
+  validatePersonTypeInClaim: vi.fn(),
 }));
 vi.mock("./plugins/gatedLandingPage.plugin.js", () => ({ gatedLandingPagePlugin: () => ({}) }));
 vi.mock("./plugins/logging.plugin", () => ({ loggingPlugin: {} }));
-vi.mock("./auth/decodeToken.js", () => ({ decodeToken: vi.fn() }));
 
 // Provide a sentinel config so we can assert it is forwarded to ApolloArmor
 vi.mock("./plugins/graphQLArmorConfig.js", () => ({ GraphQLArmorConfig: { __sentinel: true } }));
