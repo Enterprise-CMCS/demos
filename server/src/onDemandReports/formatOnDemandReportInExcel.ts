@@ -5,7 +5,7 @@ import type { OnDemandReportRow } from "./configs";
 import { getOnDemandReportConfiguration } from "./configs";
 import { Workbook } from "@cj-tech-master/excelts";
 
-type ReportMetadata = {
+export type ReportMetadata = {
   requestId: string;
   requestTimestamp: EasternTZDate;
 };
