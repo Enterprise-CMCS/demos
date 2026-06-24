@@ -31,6 +31,7 @@ import {
 import { GraphQLContext } from "../../auth";
 import { PersonType } from "../../types";
 import { ACTIVE_DELIVERABLE_STATUSES } from "../../constants";
+import { checkDeliverableHasNoUnsubmittedStateDocuments } from "./checkDeliverableInputFunctions";
 
 function cleanErrorsAndThrow(errors: (string | undefined)[], mutator: string, code: string): void {
   const cleanedErrors = errors.filter((e) => e !== undefined);
@@ -80,10 +81,7 @@ export async function validateCreateDeliverableInput(
     checkDemonstrationStatus(demonstration),
     checkOwnerPersonType(cmsOwnerUser),
     checkDueDateInFuture(input.dueDate),
-    checkRequiredDeliverableDemonstrationTypes(
-      input.deliverableType,
-      input.demonstrationTypes
-    )
+    checkRequiredDeliverableDemonstrationTypes(input.deliverableType, input.demonstrationTypes)
   );
   if (input.demonstrationTypes && input.demonstrationTypes.size > 0) {
     for (const requestedDeliverableDemonstrationType of input.demonstrationTypes) {
@@ -161,11 +159,14 @@ export function validateStartDeliverableReviewInput(deliverable: PrismaDeliverab
   );
 }
 
-export function validateCompleteDeliverableInput(deliverable: PrismaDeliverable): void {
+export async function validateCompleteDeliverableInput(
+  deliverable: PrismaDeliverable
+): Promise<void> {
   const errors: (string | undefined)[] = [];
 
   // Deliverables may only be completed from review status
   errors.push(checkDeliverableHasStatus(deliverable, ["Under CMS Review"]));
+  errors.push(await checkDeliverableHasNoUnsubmittedStateDocuments(deliverable));
   cleanErrorsAndThrow(errors, "completeDeliverable", "COMPLETE_DELIVERABLE_VALIDATION_FAILED");
 }
 
