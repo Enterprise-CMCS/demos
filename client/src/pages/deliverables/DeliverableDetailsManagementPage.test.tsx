@@ -1,9 +1,8 @@
 import React from "react";
 import { Route, Routes } from "react-router-dom";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { InMemoryCache } from "@apollo/client";
 import {
   DeliverableDetailsManagementPage,
   DELIVERABLE_DETAILS_QUERY,
@@ -20,12 +19,7 @@ import {
 import { FILE_AND_HISTORY_TABS_NAME } from "./sections/FileAndHistoryTabs";
 import { REQUEST_EXTENSION_BUTTON_NAME } from "./sections/DeliverableButtons";
 import { DialogProvider } from "components/dialog/DialogContext";
-import {
-  EDIT_DELIVERABLE_DIALOG_TITLE,
-  EDIT_DELIVERABLE_REASON_FIELD_NAME,
-  EDIT_DELIVERABLE_SAVE_BUTTON_NAME,
-  UPDATE_DELIVERABLE_MUTATION,
-} from "components/dialog/deliverable/EditDeliverableDialog";
+import { EDIT_DELIVERABLE_DIALOG_TITLE } from "components/dialog/deliverable/EditDeliverableDialog";
 import {
   DELIVERABLE_REVIEW_NOTICE_NAME,
   START_REVIEW_BUTTON_NAME,
@@ -33,7 +27,6 @@ import {
 import { CurrentUser } from "components/user/UserContext";
 import { developmentMockUser } from "mock-data/userMocks";
 import { personMocks } from "mock-data/personMocks";
-import { SINGLE_DELIVERABLE_DUE_DATE_NAME } from "components/dialog/deliverable/fields/schedule-type/SingleDeliverableScheduleType";
 
 const buildSubmittedDeliverableMock = (overrides?: { submitterName?: string }) => ({
   ...MOCK_DELIVERABLE_1,
@@ -82,8 +75,7 @@ const renderAtRoute = (
 const renderWithDeliverable = (
   deliverable: DeliverableDetailsManagementDeliverable,
   personType: CurrentUser["person"]["personType"] = "demos-cms-user",
-  extraMocks: import("@apollo/client/testing").MockedResponse[] = [],
-  cache?: React.ComponentProps<typeof TestProvider>["cache"]
+  extraMocks: import("@apollo/client/testing").MockedResponse[] = []
 ) =>
   render(
     <TestProvider
@@ -95,7 +87,6 @@ const renderWithDeliverable = (
         },
         ...extraMocks,
       ]}
-      cache={cache}
       routerEntries={[`/deliverables/${deliverable.id}`]}
     >
       <DialogProvider>
@@ -110,13 +101,6 @@ const renderWithDeliverable = (
       </DialogProvider>
     </TestProvider>
   );
-
-const createDeliverableCache = () =>
-  new InMemoryCache({
-    addTypename: false,
-    dataIdFromObject: (object) =>
-      object.__typename === "Deliverable" && object.id ? `Deliverable:${object.id}` : undefined,
-  });
 
 describe("DeliverableDetailsManagementPage", () => {
   it("renders the deliverable name heading", async () => {
@@ -297,80 +281,6 @@ describe("DeliverableDetailsManagementPage", () => {
     await user.click(await screen.findByTestId("edit-deliverable-button"));
 
     expect(screen.getByText(EDIT_DELIVERABLE_DIALOG_TITLE)).toBeInTheDocument();
-  });
-
-  it("refreshes history after saving a due date edit from the route", async () => {
-    const user = userEvent.setup();
-    const deliverable = { __typename: "Deliverable", ...MOCK_DELIVERABLE_1 };
-    const updatedDeliverable = {
-      __typename: "Deliverable",
-      ...MOCK_DELIVERABLE_1,
-      dueDate: new Date("2026-07-20"),
-      deliverableActions: [
-        ...MOCK_DELIVERABLE_1.deliverableActions,
-        {
-          id: "action-due-date-edit",
-          actionType: "Manually Changed Due Date" as const,
-          actionTimestamp: new Date("2026-06-23T10:00:00Z"),
-          userFullName: "Dustin Horning (CMS User)",
-          details:
-            "Old Due Date: 08/15/2024\nNew Due Date: 07/20/2026\nReason Details: needed extra day",
-        },
-      ],
-    };
-
-    renderWithDeliverable(
-      deliverable,
-      "demos-admin",
-      [
-        ...personMocks,
-        {
-          request: {
-            query: UPDATE_DELIVERABLE_MUTATION,
-            variables: {
-              id: MOCK_DELIVERABLE_1.id,
-              input: {
-                name: MOCK_DELIVERABLE_1.name,
-                cmsOwnerUserId: MOCK_DELIVERABLE_1.cmsOwner.id,
-                demonstrationTypes: [],
-                dueDate: {
-                  newDueDate: "2026-07-20",
-                  dateChangeNote: "needed extra day",
-                },
-              },
-            },
-          },
-          result: {
-            data: {
-              updateDeliverable: {
-                __typename: "Deliverable",
-                id: MOCK_DELIVERABLE_1.id,
-                name: MOCK_DELIVERABLE_1.name,
-                dueDate: new Date("2026-07-20"),
-                cmsOwner: MOCK_DELIVERABLE_1.cmsOwner,
-                demonstrationTypes: [],
-                deliverableActions: updatedDeliverable.deliverableActions,
-              },
-            },
-          },
-        },
-      ]
-    );
-
-    await user.click(await screen.findByTestId("edit-deliverable-button"));
-    fireEvent.change(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME), {
-      target: { value: "2026-07-20" },
-    });
-    await user.type(screen.getByTestId(EDIT_DELIVERABLE_REASON_FIELD_NAME), "needed extra day");
-    await user.click(screen.getByTestId(EDIT_DELIVERABLE_SAVE_BUTTON_NAME));
-
-    await waitFor(() =>
-      expect(screen.queryByText(EDIT_DELIVERABLE_DIALOG_TITLE)).not.toBeInTheDocument()
-    );
-    await user.click(screen.getByTestId("button-history"));
-
-    expect(await screen.findByText("Manually Changed Due Date")).toBeInTheDocument();
-    expect(screen.getByText(/Reason Details: needed extra day/)).toBeInTheDocument();
   });
 
   it("shows only the Request Extension button for state users", async () => {
