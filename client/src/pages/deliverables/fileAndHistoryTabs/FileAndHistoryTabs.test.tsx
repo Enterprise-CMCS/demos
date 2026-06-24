@@ -13,9 +13,11 @@ import {
   STATE_FILES_ADD_BUTTON_NAME,
   STATE_FILES_TAB_NAME,
   STATE_FILES_SUBMIT_BUTTON_NAME,
-} from "./StateFilesTab";
-import { CMS_FILES_ADD_BUTTON_NAME, CMS_FILES_TAB_NAME } from "./CmsFilesTab";
-import { HISTORY_TAB_NAME } from "./HistoryTab";
+} from "../sections/StateFilesTab";
+import { CMS_FILES_ADD_BUTTON_NAME, CMS_FILES_TAB_NAME } from "../sections/CmsFilesTab";
+import { HISTORY_TAB_NAME } from "../sections/HistoryTab";
+import { DeepPartial } from "@apollo/client/utilities";
+import { DeliverableDetailsManagementDeliverable } from "../DeliverableDetailsManagementPage";
 
 const mockShowRequestResubmissionDeliverableDialog = vi.fn();
 const mockShowCompleteReviewDeliverableDialog = vi.fn();
@@ -25,8 +27,7 @@ const mockShowRemoveDocumentDialog = vi.fn();
 
 vi.mock("components/dialog/DialogContext", () => ({
   useDialog: () => ({
-    showRequestResubmissionDeliverableDialog:
-      mockShowRequestResubmissionDeliverableDialog,
+    showRequestResubmissionDeliverableDialog: mockShowRequestResubmissionDeliverableDialog,
     showCompleteReviewDeliverableDialog: mockShowCompleteReviewDeliverableDialog,
     showAddDeliverableFileDialog: mockShowAddDeliverableFileDialog,
     showEditDocumentDialog: mockShowEditDocumentDialog,
@@ -43,22 +44,18 @@ vi.mock("@apollo/client", async () => {
   };
 });
 
-const buildCurrentUser = (
-  personType: CurrentUser["person"]["personType"]
-): CurrentUser => ({
+const buildCurrentUser = (personType: CurrentUser["person"]["personType"]): CurrentUser => ({
   ...developmentMockUser,
   person: { ...developmentMockUser.person, personType },
 });
 
 const setup = (
-  overrides?: Partial<typeof MOCK_DELIVERABLE_1>,
+  overrides?: DeepPartial<DeliverableDetailsManagementDeliverable>,
   personType: CurrentUser["person"]["personType"] = "demos-cms-user"
 ) =>
   render(
     <TestProvider currentUser={buildCurrentUser(personType)}>
-      <FileAndHistoryTabs
-        deliverable={{ ...MOCK_DELIVERABLE_1, ...overrides }}
-      />
+      <FileAndHistoryTabs deliverable={{ ...MOCK_DELIVERABLE_1, ...overrides }} />
     </TestProvider>
   );
 
@@ -119,9 +116,7 @@ describe("FileAndHistoryTabs", () => {
     it("renders Request Re-submission button", () => {
       setup();
 
-      expect(
-        screen.getByTestId("button-actions-request-resubmission")
-      ).toBeInTheDocument();
+      expect(screen.getByTestId("button-actions-request-resubmission")).toBeInTheDocument();
     });
 
     it("calls dialog when Request Re-submission button is clicked (enabled state)", async () => {
@@ -129,36 +124,22 @@ describe("FileAndHistoryTabs", () => {
 
       setup({ status: "Submitted" });
 
-      await user.click(
-        screen.getByTestId("button-actions-request-resubmission")
-      );
+      await user.click(screen.getByTestId("button-actions-request-resubmission"));
 
-      expect(
-        mockShowRequestResubmissionDeliverableDialog
-      ).toHaveBeenCalledTimes(1);
+      expect(mockShowRequestResubmissionDeliverableDialog).toHaveBeenCalledTimes(1);
 
-      expect(
-        mockShowRequestResubmissionDeliverableDialog
-      ).toHaveBeenCalledWith({
+      expect(mockShowRequestResubmissionDeliverableDialog).toHaveBeenCalledWith({
         id: MOCK_DELIVERABLE_1.id,
         dueDate: MOCK_DELIVERABLE_1.dueDate,
       });
     });
 
-    it.each([
-      "Upcoming",
-      "Past Due",
-      "Accepted",
-      "Approved",
-      "Received and Filed",
-    ] as const)(
+    it.each(["Upcoming", "Past Due", "Accepted", "Approved", "Received and Filed"] as const)(
       "disables Request Re-submission button for status %s",
       (status) => {
         setup({ status });
 
-        expect(
-          screen.getByTestId("button-actions-request-resubmission")
-        ).toBeDisabled();
+        expect(screen.getByTestId("button-actions-request-resubmission")).toBeDisabled();
       }
     );
 
@@ -167,9 +148,7 @@ describe("FileAndHistoryTabs", () => {
       (status) => {
         setup({ status });
 
-        expect(
-          screen.getByTestId("button-actions-request-resubmission")
-        ).not.toBeDisabled();
+        expect(screen.getByTestId("button-actions-request-resubmission")).not.toBeDisabled();
       }
     );
 
@@ -184,25 +163,19 @@ describe("FileAndHistoryTabs", () => {
 
       await user.click(button);
 
-      expect(
-        mockShowRequestResubmissionDeliverableDialog
-      ).not.toHaveBeenCalled();
+      expect(mockShowRequestResubmissionDeliverableDialog).not.toHaveBeenCalled();
     });
 
     it("enables Submit Deliverable when state files exist", () => {
       setup();
 
-      expect(
-        screen.getByTestId(STATE_FILES_SUBMIT_BUTTON_NAME)
-      ).not.toBeDisabled();
+      expect(screen.getByTestId(STATE_FILES_SUBMIT_BUTTON_NAME)).not.toBeDisabled();
     });
 
     it("disables Submit Deliverable when no state files have been uploaded", () => {
       setup({ stateDocuments: [] });
 
-      expect(
-        screen.getByTestId(STATE_FILES_SUBMIT_BUTTON_NAME)
-      ).toBeDisabled();
+      expect(screen.getByTestId(STATE_FILES_SUBMIT_BUTTON_NAME)).toBeDisabled();
     });
 
     it("calls the submit mutation when Submit Deliverable is clicked", async () => {
@@ -221,9 +194,7 @@ describe("FileAndHistoryTabs", () => {
     it("keeps Complete Review button disabled by default", () => {
       setup();
 
-      expect(
-        screen.getByTestId("button-actions-complete-review")
-      ).toBeDisabled();
+      expect(screen.getByTestId("button-actions-complete-review")).toBeDisabled();
     });
   });
 

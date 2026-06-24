@@ -3,20 +3,21 @@ import { gql, useMutation } from "@apollo/client";
 
 import { HorizontalSectionTabs, Tab } from "layout/Tabs";
 
-import { CmsFilesTab } from "./CmsFilesTab";
+import { CmsFilesTab } from "../sections/CmsFilesTab";
 import {
   DELIVERABLE_DETAILS_QUERY,
   type DeliverableDetailsManagementDeliverable,
 } from "../DeliverableDetailsManagementPage";
-import type { DeliverableFileRow } from "./DeliverableFileTypes";
-import { HistoryTab, type DeliverableHistoryRow } from "./HistoryTab";
-import { STATE_FILES_SUBMIT_BUTTON_NAME, StateFilesTab } from "./StateFilesTab";
+import type { DeliverableFileRow } from "../sections/DeliverableFileTypes";
+import { HistoryTab, type DeliverableHistoryRow } from "../sections/HistoryTab";
+import { STATE_FILES_SUBMIT_BUTTON_NAME, StateFilesTab } from "../sections/StateFilesTab";
 import { Button } from "components/button/Button";
 import { useDialog } from "components/dialog/DialogContext";
-import { canCompleteReview, isDeliverableEditable } from "components/dialog/deliverable";
+import { isDeliverableEditable } from "components/dialog/deliverable";
 import { useToast } from "components/toast";
 import { getCurrentUser } from "components/user/UserContext";
 import { DeliverableStatus, PersonType } from "demos-server";
+import { CompleteReviewButton } from "./CompleteReviewButton";
 
 type DeliverableActionRow = DeliverableDetailsManagementDeliverable["deliverableActions"][number];
 
@@ -79,7 +80,6 @@ export const FileAndHistoryTabs: React.FC<{
 }> = ({ deliverable }) => {
   const {
     showRequestResubmissionDeliverableDialog,
-    showCompleteReviewDeliverableDialog,
     showAddDeliverableFileDialog,
     showEditDocumentDialog,
     showRemoveDocumentDialog,
@@ -98,8 +98,6 @@ export const FileAndHistoryTabs: React.FC<{
 
   const userPersonType = currentUser.person.personType;
   const isCmsStaffUser = CMS_STAFF_PERSON_TYPES.has(userPersonType);
-  const isCompleteReviewDisabled =
-    !isCmsStaffUser || !canCompleteReview(deliverable.status, deliverable.extensionRequests);
   const canManageCmsFiles = isCmsStaffUser;
 
   const handleRequestResubmission = () => {
@@ -107,10 +105,6 @@ export const FileAndHistoryTabs: React.FC<{
       id: deliverable.id,
       dueDate: deliverable.dueDate,
     });
-  };
-
-  const handleCompleteReview = () => {
-    showCompleteReviewDeliverableDialog(deliverable);
   };
 
   const handleAddStateFile = () => {
@@ -202,16 +196,7 @@ export const FileAndHistoryTabs: React.FC<{
         >
           Submit Deliverable
         </Button>
-        {isCmsStaffUser ? (
-          <Button
-            disabled={isCompleteReviewDisabled}
-            onClick={handleCompleteReview}
-            size="large"
-            name="button-actions-complete-review"
-          >
-            Complete Review
-          </Button>
-        ) : null}
+        {isCmsStaffUser && <CompleteReviewButton deliverable={deliverable} />}
       </div>
     </div>
   );

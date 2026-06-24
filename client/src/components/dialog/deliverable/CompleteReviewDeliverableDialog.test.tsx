@@ -5,14 +5,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import {
   COMPLETE_REVIEW_DIALOG_TITLE,
-  COMPLETE_REVIEW_ELIGIBLE_STATUSES,
   COMPLETE_REVIEW_STATUS_FIELD_NAME,
   COMPLETE_REVIEW_SUBMIT_BUTTON_NAME,
   CompleteReviewDeliverableDialog,
   CompleteReviewDeliverableDialogDeliverable,
-  FINALIZE_REVIEW_ERROR_NOTICE,
   INITIAL_FORM_DATA,
-  canCompleteReview,
   formHasChanges,
   formIsValid,
 } from "./CompleteReviewDeliverableDialog";
@@ -45,14 +42,6 @@ vi.mock("@apollo/client", async () => {
 
 const TEST_DELIVERABLE: CompleteReviewDeliverableDialogDeliverable = {
   id: "deliverable-1",
-  stateDocuments: [
-    {
-      deliverableSubmissionAction: {},
-    },
-    {
-      deliverableSubmissionAction: {},
-    },
-  ],
 };
 
 const setup = (overrides?: Partial<CompleteReviewDeliverableDialogDeliverable>) => {
@@ -182,33 +171,6 @@ describe("CompleteReviewDeliverableDialog", () => {
   });
 });
 
-describe("canCompleteReview", () => {
-  const noExtensions: { status: "Requested" | "Approved" | "Denied" }[] = [];
-  const openExtensions = [{ status: "Requested" as const }];
-  const resolvedExtensions = [{ status: "Approved" as const }];
-
-  it("returns true for Under CMS Review with no open extensions", () => {
-    expect(canCompleteReview("Under CMS Review", noExtensions)).toBe(true);
-    expect(canCompleteReview("Under CMS Review", resolvedExtensions)).toBe(true);
-    expect(COMPLETE_REVIEW_ELIGIBLE_STATUSES.has("Under CMS Review")).toBe(true);
-  });
-
-  it("returns false when an extension is still Requested", () => {
-    expect(canCompleteReview("Under CMS Review", openExtensions)).toBe(false);
-  });
-
-  it.each([
-    "Upcoming",
-    "Past Due",
-    "Submitted",
-    "Accepted",
-    "Approved",
-    "Received and Filed",
-  ] as const)("returns false for %s", (status) => {
-    expect(canCompleteReview(status, noExtensions)).toBe(false);
-  });
-});
-
 describe("formIsValid / formHasChanges", () => {
   it("INITIAL_FORM_DATA has empty status", () => {
     expect(INITIAL_FORM_DATA).toEqual({ finalStatus: "" });
@@ -227,43 +189,5 @@ describe("formIsValid / formHasChanges", () => {
     expect(formIsValid({ finalStatus: "Accepted" })).toBe(true);
     expect(formIsValid({ finalStatus: "Approved" })).toBe(true);
     expect(formIsValid({ finalStatus: "Received and Filed" })).toBe(true);
-  });
-
-  describe("unsubmitted state documents", () => {
-    it("displays an error notice when there are unsubmitted state documents", () => {
-      setup({
-        stateDocuments: [
-          {
-            deliverableSubmissionAction: {},
-          },
-          {
-            deliverableSubmissionAction: null,
-          },
-        ],
-      });
-
-      const notice = screen.getByTestId(FINALIZE_REVIEW_ERROR_NOTICE.testId);
-      expect(notice).toBeInTheDocument();
-      expect(notice).toHaveTextContent(FINALIZE_REVIEW_ERROR_NOTICE.title);
-      expect(notice).toHaveTextContent(FINALIZE_REVIEW_ERROR_NOTICE.description);
-      expect(screen.queryByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME)).not.toBeInTheDocument();
-    });
-
-    it("does not display an error notice when all state documents have been submitted", () => {
-      setup({
-        stateDocuments: [
-          {
-            deliverableSubmissionAction: {},
-          },
-          {
-            deliverableSubmissionAction: {},
-          },
-        ],
-      });
-
-      expect(screen.queryByTestId(FINALIZE_REVIEW_ERROR_NOTICE.testId)).not.toBeInTheDocument();
-      expect(screen.getByTestId(COMPLETE_REVIEW_SUBMIT_BUTTON_NAME)).toBeInTheDocument();
-      expect(screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME)).toBeInTheDocument();
-    });
   });
 });

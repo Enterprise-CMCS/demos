@@ -7,3 +7,4 @@ export type DeliverableFileRow = Pick<
   deliverableSubmissionAction: Pick<DeliverableAction, "actionTimestamp"> | null;
   owner: { person: Pick<Person, "fullName"> };
 };
+
