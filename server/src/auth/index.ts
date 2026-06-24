@@ -4,5 +4,5 @@ export type { PermissionFilters } from "./buildAuthorizationFilter";
 
 export { buildAuthorizationFilter } from "./buildAuthorizationFilter";
 export { decodeToken } from "./decodeToken";
-export { getPersonTypeFromClaims } from "./getPersonTypeFromClaims";
 export { buildContextFromClaims, validateClaims } from "./auth.util";
+export { validatePersonTypeInClaim } from "./validatePersonTypeInClaim";

@@ -9,8 +9,8 @@ import {
   type AuthorizationClaims,
   type GraphQLContext,
   buildContextFromClaims,
-  getPersonTypeFromClaims,
   validateClaims,
+  validatePersonTypeInClaim,
 } from "./auth";
 import { log, reqIdChild, als, store } from "./log.js";
 import type { APIGatewayProxyEvent } from "aws-lambda";
@@ -82,9 +82,7 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
           await setDatabaseUrl();
 
           const claims = extractClaimsFromEvent(event);
-          // Validate that the claims map to a valid person type (role gate);
-          // throws and rejects the request if the role is missing or ambiguous.
-          getPersonTypeFromClaims(claims);
+          validatePersonTypeInClaim(claims);
           const gqlCtx = await buildContextFromClaims(claims);
 
           const additionalContext = {

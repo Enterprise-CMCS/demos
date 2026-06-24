@@ -30,6 +30,7 @@ vi.mock("./plugins/graphQLArmorConfig.js", () => ({ GraphQLArmorConfig: { __sent
 vi.mock("./auth", () => ({
   buildContextFromClaims: vi.fn(async () => ({ user: { id: "user-1" } })),
   validateClaims: validateClaimsMock,
+  validatePersonTypeInClaim: vi.fn(),
 }));
 vi.mock("./log.js", () => ({
   log: { debug: () => {}, info: () => {}, warn: () => {}, error: () => {} },

@@ -27,6 +27,7 @@ vi.mock("./auth", () => ({
   buildContextFromClaims: vi.fn(async () => ({ user: { id: "user-1" } })),
   decodeToken: vi.fn(),
   validateClaims: validateClaimsMock,
+  validatePersonTypeInClaim: vi.fn(),
 }));
 vi.mock("./plugins/gatedLandingPage.plugin.js", () => ({ gatedLandingPagePlugin: () => ({}) }));
 vi.mock("./plugins/logging.plugin", () => ({ loggingPlugin: {} }));

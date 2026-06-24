@@ -3,7 +3,7 @@ import type { Permission, SystemRole, UserType } from "../../types";
 import type { ContextUser } from ".";
 import type { AuthorizationClaims } from "..";
 
-import { getPersonTypeFromClaims } from "..";
+import { getPersonTypeFromClaims } from ".";
 import { insertPerson } from "../../model/person/queries";
 import { insertUser } from "../../model/user/queries";
 import { insertSystemRoleAssignment } from "../../model/systemRoleAssignment/queries";

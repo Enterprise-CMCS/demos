@@ -8,8 +8,8 @@ import {
   type GraphQLContext,
   buildContextFromClaims,
   decodeToken,
-  getPersonTypeFromClaims,
   validateClaims,
+  validatePersonTypeInClaim,
 } from "./auth";
 import { gatedLandingPagePlugin } from "./plugins/gatedLandingPage.plugin.js";
 import { als, log, reqIdChild, store } from "./log.js";
@@ -63,9 +63,7 @@ const { url } = await startStandaloneServer<GraphQLContext>(server, {
 
       const decodedToken = await decodeToken(token);
       const claims = extractClaimsFromDecodedToken(decodedToken);
-      // Validate that the claims map to a valid person type (role gate);
-      // throws and rejects the request if the role is missing or ambiguous.
-      getPersonTypeFromClaims(claims);
+      validatePersonTypeInClaim(claims);
       const ctx = await buildContextFromClaims(claims);
 
       const requestId = (req.headers["x-request-id"] as string | undefined) || randomUUID();
