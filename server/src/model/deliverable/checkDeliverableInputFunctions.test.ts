@@ -27,6 +27,7 @@ import {
   checkDeliverableHasNoActiveExtension,
   checkDeliverableHasNoComments,
   checkDeliverableHasNoDocuments,
+  checkDeliverableHasNoUnsubmittedStateDocuments,
   checkDeliverableHasStatus,
   checkDemonstrationStatus,
   checkDueDateInFuture,
@@ -105,6 +106,34 @@ describe("checkDeliverableInputFunctions", () => {
       expect(result).toBe(
         "Deliverable expected to have one of status Approved, Accepted, " +
           "Received and Filed; actual status was Under CMS Review."
+      );
+    });
+  });
+
+  describe("checkDeliverableHasNoUnsubmittedStateDocuments", () => {
+    const mockTransaction: any = "Test!";
+
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      id: "1e42da3a-9355-4c5d-a541-812a9f95ef56",
+    };
+
+    it("should return undefined if there are no found unsubmitted state documents", async () => {
+      vi.mocked(selectManyDocuments).mockResolvedValue([]);
+      const result = await checkDeliverableHasNoUnsubmittedStateDocuments(
+        testDeliverable as PrismaDeliverable,
+        mockTransaction
+      );
+      expect(result).toBeUndefined();
+    });
+
+    it("should return an error message if it finds unsubmitted state documents", async () => {
+      vi.mocked(selectManyDocuments).mockResolvedValue([{}] as PrismaDocument[]);
+      const result = await checkDeliverableHasNoUnsubmittedStateDocuments(
+        testDeliverable as PrismaDeliverable,
+        mockTransaction
+      );
+      expect(result).toBe(
+        "Deliverable 1e42da3a-9355-4c5d-a541-812a9f95ef56 has unsubmitted state documents; cannot complete deliverable."
       );
     });
   });
@@ -551,10 +580,7 @@ describe("checkDeliverableInputFunctions", () => {
     });
 
     it("should return an error string if a required deliverable type has no demonstration types", () => {
-      const result = checkRequiredDeliverableDemonstrationTypes(
-        "Implementation Plan",
-        undefined
-      );
+      const result = checkRequiredDeliverableDemonstrationTypes("Implementation Plan", undefined);
 
       expect(result).toBe(
         "Deliverable type Implementation Plan requires at least one demonstration type"
@@ -562,10 +588,7 @@ describe("checkDeliverableInputFunctions", () => {
     });
 
     it("should return undefined if the deliverable type does not require demonstration types", () => {
-      const result = checkRequiredDeliverableDemonstrationTypes(
-        "Evaluation Design",
-        undefined
-      );
+      const result = checkRequiredDeliverableDemonstrationTypes("Evaluation Design", undefined);
 
       expect(result).toBeUndefined();
     });

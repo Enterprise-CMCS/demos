@@ -44,13 +44,17 @@ export function checkDeliverableHasStatus(
 }
 
 export async function checkDeliverableHasNoUnsubmittedStateDocuments(
-  deliverable: PrismaDeliverable
+  deliverable: PrismaDeliverable,
+  tx: PrismaTransactionClient
 ): Promise<string | undefined> {
-  const documents = await selectManyDocuments({
-    deliverableId: deliverable.id,
-    deliverableIsCmsAttachedFile: false,
-    deliverableSubmissionActionId: null,
-  });
+  const documents = await selectManyDocuments(
+    {
+      deliverableId: deliverable.id,
+      deliverableIsCmsAttachedFile: false,
+      deliverableSubmissionActionId: null,
+    },
+    tx
+  );
   if (documents.length > 0) {
     return `Deliverable ${deliverable.id} has unsubmitted state documents; cannot complete deliverable.`;
   }

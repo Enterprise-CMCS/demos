@@ -103,7 +103,8 @@ describe("completeDeliverable", () => {
   it("should call the validator on the unchanged deliverable", async () => {
     await completeDeliverable(testDeliverableId, "Approved", testContext as GraphQLContext);
     expect(validateCompleteDeliverableInput).toHaveBeenCalledExactlyOnceWith(
-      mockIncompleteDeliverable
+      mockIncompleteDeliverable,
+      mockTransaction
     );
   });
 

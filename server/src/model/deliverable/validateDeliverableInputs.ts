@@ -18,6 +18,7 @@ import {
   ParsedRequestDeliverableExtensionInput,
   ParsedRequestDeliverableResubmissionInput,
   ParsedUpdateDeliverableInput,
+  checkDeliverableHasNoUnsubmittedStateDocuments,
 } from ".";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { getApplication } from "../application";
@@ -31,7 +32,6 @@ import {
 import { GraphQLContext } from "../../auth";
 import { PersonType } from "../../types";
 import { ACTIVE_DELIVERABLE_STATUSES } from "../../constants";
-import { checkDeliverableHasNoUnsubmittedStateDocuments } from "./checkDeliverableInputFunctions";
 
 function cleanErrorsAndThrow(errors: (string | undefined)[], mutator: string, code: string): void {
   const cleanedErrors = errors.filter((e) => e !== undefined);
@@ -160,13 +160,14 @@ export function validateStartDeliverableReviewInput(deliverable: PrismaDeliverab
 }
 
 export async function validateCompleteDeliverableInput(
-  deliverable: PrismaDeliverable
+  deliverable: PrismaDeliverable,
+  tx: PrismaTransactionClient
 ): Promise<void> {
   const errors: (string | undefined)[] = [];
 
   // Deliverables may only be completed from review status
   errors.push(checkDeliverableHasStatus(deliverable, ["Under CMS Review"]));
-  errors.push(await checkDeliverableHasNoUnsubmittedStateDocuments(deliverable));
+  errors.push(await checkDeliverableHasNoUnsubmittedStateDocuments(deliverable, tx));
   cleanErrorsAndThrow(errors, "completeDeliverable", "COMPLETE_DELIVERABLE_VALIDATION_FAILED");
 }
 
