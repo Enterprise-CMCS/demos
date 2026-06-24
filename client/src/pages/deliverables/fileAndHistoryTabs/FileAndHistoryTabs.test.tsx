@@ -11,13 +11,11 @@ import { TestProvider } from "test-utils/TestProvider";
 import { FileAndHistoryTabs } from "./FileAndHistoryTabs";
 import {
   STATE_FILES_ADD_BUTTON_NAME,
-  STATE_FILES_TAB_NAME,
   STATE_FILES_SUBMIT_BUTTON_NAME,
+  STATE_FILES_TAB_NAME,
 } from "../sections/StateFilesTab";
 import { CMS_FILES_ADD_BUTTON_NAME, CMS_FILES_TAB_NAME } from "../sections/CmsFilesTab";
 import { HISTORY_TAB_NAME } from "../sections/HistoryTab";
-import { DeepPartial } from "@apollo/client/utilities";
-import { DeliverableDetailsManagementDeliverable } from "../DeliverableDetailsManagementPage";
 
 const mockShowRequestResubmissionDeliverableDialog = vi.fn();
 const mockShowCompleteReviewDeliverableDialog = vi.fn();
@@ -50,7 +48,7 @@ const buildCurrentUser = (personType: CurrentUser["person"]["personType"]): Curr
 });
 
 const setup = (
-  overrides?: DeepPartial<DeliverableDetailsManagementDeliverable>,
+  overrides?: Partial<typeof MOCK_DELIVERABLE_1>,
   personType: CurrentUser["person"]["personType"] = "demos-cms-user"
 ) =>
   render(
