@@ -11,7 +11,6 @@ import {
   EditDeliverableDialog,
   EditDeliverableDialogDeliverable,
   EditDeliverableInput,
-  UPDATE_DELIVERABLE_MUTATION,
   buildInitialFormData,
   formHasChanges,
   formIsValid,
@@ -28,12 +27,22 @@ import { DELIVERABLE_UPDATED_MESSAGE } from "util/messages";
 
 const mockShowSuccess = vi.fn();
 const mockShowError = vi.fn();
+const mockMutation = vi.fn();
 vi.mock("components/toast", () => ({
   useToast: () => ({
     showSuccess: mockShowSuccess,
     showError: mockShowError,
   }),
 }));
+
+vi.mock("@apollo/client", async () => {
+  const actual = await vi.importActual("@apollo/client");
+
+  return {
+    ...actual,
+    useMutation: () => [mockMutation, { loading: false }],
+  };
+});
 
 const TEST_DELIVERABLE: EditDeliverableDialogDeliverable = {
   id: "deliverable-1",
@@ -77,6 +86,7 @@ const setup = (overrides?: {
 describe("EditDeliverableDialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockMutation.mockResolvedValue({});
   });
 
   it("renders with the correct title", () => {
@@ -185,37 +195,7 @@ describe("EditDeliverableDialog", () => {
 
   it("persists changes with the updateDeliverable mutation", async () => {
     const user = userEvent.setup();
-    const mutationMock = {
-      request: {
-        query: UPDATE_DELIVERABLE_MUTATION,
-        variables: {
-          id: "deliverable-1",
-          input: {
-            name: "Updated Quarterly Report",
-            cmsOwnerUserId: "ashokatano",
-            demonstrationTypes: ["Aggregate Cap"],
-          },
-        },
-      },
-      result: {
-        data: {
-          updateDeliverable: {
-            id: "deliverable-1",
-            name: "Updated Quarterly Report",
-            dueDate: new Date("2026-06-15"),
-            cmsOwner: {
-              id: "ashokatano",
-              person: {
-                id: "person-1",
-                fullName: "Ahsoka Tano",
-              },
-            },
-            demonstrationTypes: [{ tagName: "Aggregate Cap", approvalStatus: "Approved" }],
-          },
-        },
-      },
-    };
-    const { onClose } = setup({ mocks: [...personMocks, mutationMock] });
+    const { onClose } = setup();
 
     await waitFor(() =>
       expect(screen.getByTestId("select-demonstration-type")).toBeInTheDocument()
@@ -227,6 +207,17 @@ describe("EditDeliverableDialog", () => {
 
     await user.click(screen.getByTestId(EDIT_DELIVERABLE_SAVE_BUTTON_NAME));
 
+    await waitFor(() => expect(mockMutation).toHaveBeenCalledTimes(1));
+    expect(mockMutation).toHaveBeenCalledWith({
+      variables: {
+        id: "deliverable-1",
+        input: {
+          name: "Updated Quarterly Report",
+          cmsOwnerUserId: "ashokatano",
+          demonstrationTypes: ["Aggregate Cap"],
+        },
+      },
+    });
     await waitFor(() =>
       expect(mockShowSuccess).toHaveBeenCalledWith(DELIVERABLE_UPDATED_MESSAGE)
     );
@@ -235,21 +226,8 @@ describe("EditDeliverableDialog", () => {
 
   it("keeps the modal open and shows an error when updateDeliverable fails", async () => {
     const user = userEvent.setup();
-    const mutationMock = {
-      request: {
-        query: UPDATE_DELIVERABLE_MUTATION,
-        variables: {
-          id: "deliverable-1",
-          input: {
-            name: "Updated Quarterly Report",
-            cmsOwnerUserId: "ashokatano",
-            demonstrationTypes: ["Aggregate Cap"],
-          },
-        },
-      },
-      error: new Error("Update failed"),
-    };
-    const { onClose } = setup({ mocks: [...personMocks, mutationMock] });
+    mockMutation.mockRejectedValueOnce(new Error("Update failed"));
+    const { onClose } = setup();
 
     await waitFor(() =>
       expect(screen.getByTestId("select-demonstration-type")).toBeInTheDocument()

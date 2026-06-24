@@ -185,6 +185,8 @@ export const DOCUMENT_TYPES = [
 ] as const;
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 
+export const BN_WORKBOOK_DOCUMENT_TYPE = 'BN Workbook' as const satisfies DocumentType;
+
 export const NON_DELIVERABLE_DOCUMENT_TYPES: DocumentType[] = [
   "Application Completeness Letter",
   "Approval Letter",

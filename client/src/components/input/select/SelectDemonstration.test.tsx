@@ -95,7 +95,7 @@ describe("SelectDemonstration", () => {
 
   it("shows loading state initially", () => {
     render(
-      <MockedProvider mocks={successMock} addTypename={false}>
+      <MockedProvider mocks={successMock}>
         <SelectDemonstration value="" onSelect={mockOnSelect} />
       </MockedProvider>
     );
@@ -105,7 +105,7 @@ describe("SelectDemonstration", () => {
 
   it("renders AutoCompleteSelect with demonstrations after loading", async () => {
     render(
-      <MockedProvider mocks={successMock} addTypename={false}>
+      <MockedProvider mocks={successMock}>
         <SelectDemonstration value="" onSelect={mockOnSelect} />
       </MockedProvider>
     );
@@ -120,7 +120,7 @@ describe("SelectDemonstration", () => {
 
   it("passes approved demonstrations to AutoCompleteSelect", async () => {
     render(
-      <MockedProvider mocks={successMock} addTypename={false}>
+      <MockedProvider mocks={successMock}>
         <SelectDemonstration value="" onSelect={mockOnSelect} />
       </MockedProvider>
     );
@@ -138,7 +138,7 @@ describe("SelectDemonstration", () => {
     const user = userEvent.setup();
 
     render(
-      <MockedProvider mocks={successMock} addTypename={false}>
+      <MockedProvider mocks={successMock}>
         <SelectDemonstration value="" onSelect={mockOnSelect} />
       </MockedProvider>
     );
@@ -155,7 +155,7 @@ describe("SelectDemonstration", () => {
 
   it("shows error message when query fails", async () => {
     render(
-      <MockedProvider mocks={errorMock} addTypename={false}>
+      <MockedProvider mocks={errorMock}>
         <SelectDemonstration value="" onSelect={mockOnSelect} />
       </MockedProvider>
     );
@@ -167,7 +167,7 @@ describe("SelectDemonstration", () => {
 
   it("shows no demonstrations message when list is empty", async () => {
     render(
-      <MockedProvider mocks={emptyMock} addTypename={false}>
+      <MockedProvider mocks={emptyMock}>
         <SelectDemonstration value="" onSelect={mockOnSelect} />
       </MockedProvider>
     );
@@ -192,7 +192,7 @@ describe("SelectDemonstration", () => {
 
   it("passes isRequired prop to AutoCompleteSelect", async () => {
     render(
-      <MockedProvider mocks={successMock} addTypename={false}>
+      <MockedProvider mocks={successMock}>
         <SelectDemonstration value="" onSelect={mockOnSelect} isRequired />
       </MockedProvider>
     );
@@ -206,7 +206,7 @@ describe("SelectDemonstration", () => {
 
   it("passes isDisabled prop to AutoCompleteSelect", async () => {
     render(
-      <MockedProvider mocks={successMock} addTypename={false}>
+      <MockedProvider mocks={successMock}>
         <SelectDemonstration value="" onSelect={mockOnSelect} isDisabled />
       </MockedProvider>
     );
@@ -221,8 +221,8 @@ describe("SelectDemonstration", () => {
 
   it("passes value prop to AutoCompleteSelect", async () => {
     render(
-      <MockedProvider mocks={successMock} addTypename={false}>
-        <SelectDemonstration onSelect={mockOnSelect} value="demo-3" />
+      <MockedProvider mocks={successMock}>
+        <SelectDemonstration onSelect={mockOnSelect} value="demo-2" />
       </MockedProvider>
     );
 
@@ -236,7 +236,7 @@ describe("SelectDemonstration", () => {
 
   it("renders with correct placeholder text", async () => {
     render(
-      <MockedProvider mocks={successMock} addTypename={false}>
+      <MockedProvider mocks={successMock}>
         <SelectDemonstration value="" onSelect={mockOnSelect} />
       </MockedProvider>
     );

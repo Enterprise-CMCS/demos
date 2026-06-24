@@ -41,6 +41,13 @@ export const UPDATE_DELIVERABLE_MUTATION = gql`
         tagName
         approvalStatus
       }
+      deliverableActions {
+        id
+        actionType
+        actionTimestamp
+        userFullName
+        details
+      }
     }
   }
 `;

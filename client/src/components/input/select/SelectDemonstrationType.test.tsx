@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import {
   SELECT_DEMONSTRATION_TYPE_QUERY,
+  SELECT_DEMONSTRATION_TYPE_TEST_ID,
   SelectDemonstrationType,
   SelectDemonstrationTypeProps,
 } from "./SelectDemonstrationType";
@@ -116,7 +117,7 @@ describe("SelectDemonstrationTypes", () => {
         <SelectDemonstrationType {...DEFAULT_PROPS} filter={filterFn} />
       </MockedProvider>
     );
-    const input = screen.getByRole("textbox");
+    const input = screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID);
     await userEvent.click(input);
 
     expect(screen.getByPlaceholderText("No types available")).toBeInTheDocument();
@@ -148,7 +149,7 @@ describe("SelectDemonstrationTypes", () => {
     it("loads and displays demonstration types with approval status", async () => {
       await renderWithProvider();
 
-      const input = screen.getByRole("textbox");
+      const input = screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID);
       await userEvent.click(input);
 
       expect(screen.getByText("Type A")).toBeInTheDocument();
@@ -160,7 +161,7 @@ describe("SelectDemonstrationTypes", () => {
     it("calls onSelect when option is clicked", async () => {
       await renderWithProvider();
 
-      const input = screen.getByRole("textbox");
+      const input = screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID);
       await userEvent.click(input);
       await userEvent.click(screen.getByText("Type C (Unapproved)"));
 
@@ -174,7 +175,7 @@ describe("SelectDemonstrationTypes", () => {
       const filterFn = (type: string) => type !== "Type B";
       await renderWithProvider({ filter: filterFn });
 
-      const input = screen.getByRole("textbox");
+      const input = screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID);
       await userEvent.click(input);
 
       expect(screen.getByText("Type A")).toBeInTheDocument();
@@ -194,7 +195,7 @@ describe("SelectDemonstrationTypes", () => {
     it("sorts options alphabetically by tagName", async () => {
       await renderWithProvider({}, mockSelectDemonstrationTypeQueryUnsorted);
 
-      const input = screen.getByRole("textbox");
+      const input = screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID);
       await userEvent.click(input);
 
       const optionLabels = screen
@@ -228,7 +229,7 @@ describe("SelectDemonstrationTypes", () => {
     it("shows 'Entry not found' message when no matches and allowCreateNew is true", async () => {
       await renderWithCreateNew();
 
-      const input = screen.getByRole("textbox");
+      const input = screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID);
       await userEvent.type(input, "Nonexistent Type");
 
       expect(
@@ -249,7 +250,7 @@ describe("SelectDemonstrationTypes", () => {
         expect(screen.getByPlaceholderText("Select an option")).toBeInTheDocument();
       });
 
-      const input = screen.getByRole("textbox");
+      const input = screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID);
       await userEvent.type(input, "Nonexistent Type");
 
       expect(screen.getByText(/no matches found/i)).toBeInTheDocument();
@@ -258,7 +259,7 @@ describe("SelectDemonstrationTypes", () => {
     it("keeps input enabled even when no options match and allowCreateNew is true", async () => {
       await renderWithCreateNew();
 
-      const input = screen.getByRole("textbox");
+      const input = screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID);
       expect(input).not.toBeDisabled();
     });
   });
@@ -280,7 +281,7 @@ describe("SelectDemonstrationTypes", () => {
         expect(screen.getByPlaceholderText("Select an option")).toBeInTheDocument();
       });
 
-      const input = screen.getByRole("textbox");
+      const input = screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID);
       await userEvent.type(input, "zzz");
 
       expect(mockFilterChange).toHaveBeenLastCalledWith("zzz", false);

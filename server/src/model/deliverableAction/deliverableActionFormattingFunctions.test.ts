@@ -3,11 +3,11 @@ import { describe, it, expect } from "vitest";
 import { DeepPartial } from "../../testUtilities";
 
 // Types
-import { SelectManyDeliverableActionsRowResult } from "./queries";
 import { DeliverableActionType, DeliverableExtensionReasonCode, PersonType } from "../../types";
 
 // Functions under test
 import { formatFullUserName, formatDetailsMessage } from "./deliverableActionFormattingFunctions";
+import { SelectDeliverableActionRowResult } from "./queries";
 
 // Mock imports
 
@@ -16,16 +16,16 @@ describe("deliverableActionFormattingFunctions", () => {
 
   describe("formatFullUserName", () => {
     it("should return System Update if no user is present", () => {
-      const testInput: DeepPartial<SelectManyDeliverableActionsRowResult> = {
+      const testInput: DeepPartial<SelectDeliverableActionRowResult> = {
         deliverableId: testDeliverableId,
       };
 
-      const result = formatFullUserName(testInput as SelectManyDeliverableActionsRowResult);
+      const result = formatFullUserName(testInput as SelectDeliverableActionRowResult);
       expect(result).toBe("System Update");
     });
 
     it("should use the user.personTypeId (these should never be different anyway)", () => {
-      const testInput: DeepPartial<SelectManyDeliverableActionsRowResult> = {
+      const testInput: DeepPartial<SelectDeliverableActionRowResult> = {
         deliverableId: testDeliverableId,
         user: {
           personTypeId: "demos-admin" satisfies PersonType,
@@ -37,12 +37,12 @@ describe("deliverableActionFormattingFunctions", () => {
         },
       };
 
-      const result = formatFullUserName(testInput as SelectManyDeliverableActionsRowResult);
+      const result = formatFullUserName(testInput as SelectDeliverableActionRowResult);
       expect(result).toBe("Jane Smith (Admin User)");
     });
 
     it("should return a formatted admin user if present", () => {
-      const testInput: DeepPartial<SelectManyDeliverableActionsRowResult> = {
+      const testInput: DeepPartial<SelectDeliverableActionRowResult> = {
         deliverableId: testDeliverableId,
         user: {
           personTypeId: "demos-admin" satisfies PersonType,
@@ -54,12 +54,12 @@ describe("deliverableActionFormattingFunctions", () => {
         },
       };
 
-      const result = formatFullUserName(testInput as SelectManyDeliverableActionsRowResult);
+      const result = formatFullUserName(testInput as SelectDeliverableActionRowResult);
       expect(result).toBe("Jane Smith (Admin User)");
     });
 
     it("should return a formatted CMS user if present", () => {
-      const testInput: DeepPartial<SelectManyDeliverableActionsRowResult> = {
+      const testInput: DeepPartial<SelectDeliverableActionRowResult> = {
         deliverableId: testDeliverableId,
         user: {
           personTypeId: "demos-cms-user" satisfies PersonType,
@@ -71,12 +71,12 @@ describe("deliverableActionFormattingFunctions", () => {
         },
       };
 
-      const result = formatFullUserName(testInput as SelectManyDeliverableActionsRowResult);
+      const result = formatFullUserName(testInput as SelectDeliverableActionRowResult);
       expect(result).toBe("Billy Smith (CMS User)");
     });
 
     it("should return a formatted state user if present", () => {
-      const testInput: DeepPartial<SelectManyDeliverableActionsRowResult> = {
+      const testInput: DeepPartial<SelectDeliverableActionRowResult> = {
         deliverableId: testDeliverableId,
         user: {
           personTypeId: "demos-state-user" satisfies PersonType,
@@ -88,24 +88,24 @@ describe("deliverableActionFormattingFunctions", () => {
         },
       };
 
-      const result = formatFullUserName(testInput as SelectManyDeliverableActionsRowResult);
+      const result = formatFullUserName(testInput as SelectDeliverableActionRowResult);
       expect(result).toBe("Jackson Smith (State User)");
     });
   });
 
   describe("formatDetailsMessage", () => {
     it("should return the proper message for marking a deliverable past due", () => {
-      const testInput: DeepPartial<SelectManyDeliverableActionsRowResult> = {
+      const testInput: DeepPartial<SelectDeliverableActionRowResult> = {
         deliverableId: testDeliverableId,
         actionTypeId: "Marked as Past Due" satisfies DeliverableActionType,
       };
 
-      const result = formatDetailsMessage(testInput as SelectManyDeliverableActionsRowResult);
+      const result = formatDetailsMessage(testInput as SelectDeliverableActionRowResult);
       expect(result).toBe("The deliverable is past its due date");
     });
 
     it("should return the proper message for requesting an extension", () => {
-      const testInput: DeepPartial<SelectManyDeliverableActionsRowResult> = {
+      const testInput: DeepPartial<SelectDeliverableActionRowResult> = {
         deliverableId: testDeliverableId,
         actionTypeId: "Requested Extension" satisfies DeliverableActionType,
         oldDueDate: new Date(2026, 10, 13, 4, 59, 59, 999),
@@ -116,7 +116,7 @@ describe("deliverableActionFormattingFunctions", () => {
         note: "COVID-19 is causing major delays in processing of paperwork.",
       };
 
-      const result = formatDetailsMessage(testInput as SelectManyDeliverableActionsRowResult);
+      const result = formatDetailsMessage(testInput as SelectDeliverableActionRowResult);
       expect(result).toBe(
         "Current Due Date: 11/12/2026\n" +
           "New Due Date Requested: 01/11/2027\n" +
@@ -126,31 +126,31 @@ describe("deliverableActionFormattingFunctions", () => {
     });
 
     it("should return the proper message for approving an extension", () => {
-      const testInput: DeepPartial<SelectManyDeliverableActionsRowResult> = {
+      const testInput: DeepPartial<SelectDeliverableActionRowResult> = {
         deliverableId: testDeliverableId,
         actionTypeId: "Approved Extension Request" satisfies DeliverableActionType,
         newDueDate: new Date(2026, 10, 13, 4, 59, 59, 999),
       };
 
-      const result = formatDetailsMessage(testInput as SelectManyDeliverableActionsRowResult);
+      const result = formatDetailsMessage(testInput as SelectDeliverableActionRowResult);
       expect(result).toBe("Approved Due Date: 11/12/2026");
     });
 
     it("should return the proper message for denying an extension", () => {
-      const testInput: DeepPartial<SelectManyDeliverableActionsRowResult> = {
+      const testInput: DeepPartial<SelectDeliverableActionRowResult> = {
         deliverableId: testDeliverableId,
         actionTypeId: "Denied Extension Request" satisfies DeliverableActionType,
         note: "Your request for an extension is denied on the grounds of technical merit",
       };
 
-      const result = formatDetailsMessage(testInput as SelectManyDeliverableActionsRowResult);
+      const result = formatDetailsMessage(testInput as SelectDeliverableActionRowResult);
       expect(result).toBe(
         "Denial Reason: Your request for an extension is denied on the grounds of technical merit"
       );
     });
 
     it("should return the proper message for requesting resubmission", () => {
-      const testInput: DeepPartial<SelectManyDeliverableActionsRowResult> = {
+      const testInput: DeepPartial<SelectDeliverableActionRowResult> = {
         deliverableId: testDeliverableId,
         actionTypeId: "Requested Resubmission" satisfies DeliverableActionType,
         oldDueDate: new Date(2026, 10, 13, 4, 59, 59, 999),
@@ -158,7 +158,7 @@ describe("deliverableActionFormattingFunctions", () => {
         note: "Please resubmit with form J-127 attached! Thanks.",
       };
 
-      const result = formatDetailsMessage(testInput as SelectManyDeliverableActionsRowResult);
+      const result = formatDetailsMessage(testInput as SelectDeliverableActionRowResult);
       expect(result).toBe(
         "Old Due Date: 11/12/2026\n" +
           "New Due Date: 01/11/2027\n" +
@@ -167,7 +167,7 @@ describe("deliverableActionFormattingFunctions", () => {
     });
 
     it("should return the proper message for a manual date change", () => {
-      const testInput: DeepPartial<SelectManyDeliverableActionsRowResult> = {
+      const testInput: DeepPartial<SelectDeliverableActionRowResult> = {
         deliverableId: testDeliverableId,
         actionTypeId: "Manually Changed Due Date" satisfies DeliverableActionType,
         oldDueDate: new Date(2026, 10, 13, 4, 59, 59, 999),
@@ -175,7 +175,7 @@ describe("deliverableActionFormattingFunctions", () => {
         note: "Changed per request of PO",
       };
 
-      const result = formatDetailsMessage(testInput as SelectManyDeliverableActionsRowResult);
+      const result = formatDetailsMessage(testInput as SelectDeliverableActionRowResult);
       expect(result).toBe(
         "Old Due Date: 11/12/2026\n" +
           "New Due Date: 01/11/2027\n" +
@@ -184,12 +184,12 @@ describe("deliverableActionFormattingFunctions", () => {
     });
 
     it("should return nothing if none of the special cases are encountered", () => {
-      const testInput: DeepPartial<SelectManyDeliverableActionsRowResult> = {
+      const testInput: DeepPartial<SelectDeliverableActionRowResult> = {
         deliverableId: testDeliverableId,
         actionTypeId: "Submitted Deliverable" satisfies DeliverableActionType,
       };
 
-      const result = formatDetailsMessage(testInput as SelectManyDeliverableActionsRowResult);
+      const result = formatDetailsMessage(testInput as SelectDeliverableActionRowResult);
       expect(result).toBe("");
     });
   });

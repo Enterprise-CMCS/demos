@@ -13,6 +13,7 @@ import {
   DocumentDialog,
 } from "./DocumentDialog";
 import type { DocumentDialogFields, DocumentUploadResult } from "./DocumentDialog";
+import { BN_WORKBOOK_DOCUMENT_TYPE } from "demos-server-constants";
 
 const parseBNFile = vi.fn();
 const rule = vi.fn();
@@ -61,7 +62,7 @@ describe("checkFormHasChanges", () => {
 
 describe("documentTypeRequiresAttestation", () => {
   it("requires attestation for the BN Workbook document type", () => {
-    expect(documentTypeRequiresAttestation("BN Workbook")).toBe(true);
+    expect(documentTypeRequiresAttestation(BN_WORKBOOK_DOCUMENT_TYPE)).toBe(true);
   });
 
   it("does not require attestation for other document types", () => {
@@ -114,7 +115,7 @@ describe("DocumentDialog attestation gating", () => {
 
   it("shows the attestation dialog and defers upload for a BN Workbook", async () => {
     const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
-    renderAddDialog("BN Workbook", onSubmit);
+    renderAddDialog(BN_WORKBOOK_DOCUMENT_TYPE, onSubmit);
 
     selectWorkbook();
     await waitForUploadEnabled();
@@ -128,7 +129,7 @@ describe("DocumentDialog attestation gating", () => {
 
   it("proceeds with the upload after the attestation is confirmed", async () => {
     const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
-    renderAddDialog("BN Workbook", onSubmit);
+    renderAddDialog(BN_WORKBOOK_DOCUMENT_TYPE, onSubmit);
 
     selectWorkbook();
     await waitForUploadEnabled();
@@ -143,7 +144,7 @@ describe("DocumentDialog attestation gating", () => {
   it("confirms before cancelling the upload when the attestation is dismissed", async () => {
     const onSubmit = vi.fn(() => Promise.resolve<DocumentUploadResult>("succeeded"));
     const onClose = vi.fn();
-    renderAddDialog("BN Workbook", onSubmit, onClose);
+    renderAddDialog(BN_WORKBOOK_DOCUMENT_TYPE, onSubmit, onClose);
 
     selectWorkbook();
     await waitForUploadEnabled();
@@ -196,7 +197,7 @@ describe("DocumentDialog BN Workbook pre-validation", () => {
     parseBNFile.mockResolvedValue([{ sheet: "Sheet1", data: [] }]);
     rule.mockReturnValue({ code: "1", message: "Error: C Report Tab - missing data." });
 
-    renderAddDialog("BN Workbook", onSubmit);
+    renderAddDialog(BN_WORKBOOK_DOCUMENT_TYPE, onSubmit);
     selectWorkbook();
 
     await waitFor(() => {
@@ -214,7 +215,7 @@ describe("DocumentDialog BN Workbook pre-validation", () => {
     parseBNFile.mockResolvedValue([{ sheet: "Sheet1", data: [] }]);
     rule.mockReturnValue(null);
 
-    renderAddDialog("BN Workbook", onSubmit);
+    renderAddDialog(BN_WORKBOOK_DOCUMENT_TYPE, onSubmit);
     selectWorkbook();
 
     await waitFor(() => {

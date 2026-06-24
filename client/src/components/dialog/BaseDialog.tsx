@@ -6,25 +6,13 @@ import { ConfirmCancellationDialog } from "./ConfirmCancellationDialog";
 
 export const DIALOG_CANCEL_BUTTON_NAME = "button-dialog-cancel";
 
-interface BaseDialogProps {
-  name?: string;
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-  actionButton?: React.ReactNode;
-  dialogHasChanges?: boolean;
-  maxWidthClass?: string;
-  hideHeader?: boolean;
-  cancelButtonIsDisabled?: boolean;
-}
-
 const DIALOG = tw`bg-surface-white text-text-font w-full rounded shadow-md p-md relative max-h-[85vh] overflow-y-auto space-y-sm backdrop:bg-black/40`;
 const CLOSE_BUTTON = tw`absolute top-xs right-sm text-[22px] text-text-placeholder hover:text-text-font cursor-pointer`;
 const CLOSE_BUTTON_DISABLED = tw`absolute top-xs right-sm text-[22px] text-text-placeholder/50 cursor-not-allowed`;
 const TITLE = tw`text-[18px] font-bold mb-xs`;
 const HR = tw`border-border-rules my-sm`;
 
-export const BaseDialog: React.FC<BaseDialogProps> = ({
+export const BaseDialog = ({
   name,
   title,
   onClose,
@@ -34,6 +22,16 @@ export const BaseDialog: React.FC<BaseDialogProps> = ({
   maxWidthClass = "max-w-[720px]",
   hideHeader = false,
   cancelButtonIsDisabled = false,
+}: {
+  name?: string;
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+  actionButton?: React.ReactNode;
+  dialogHasChanges?: boolean;
+  maxWidthClass?: string;
+  hideHeader?: boolean;
+  cancelButtonIsDisabled?: boolean;
 }) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [isCancellationConfirmationOpen, setIsCancellationConfirmationOpen] = useState(false);

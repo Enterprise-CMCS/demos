@@ -4,7 +4,6 @@ import { ApolloArmor } from "@escape.tech/graphql-armor";
 import { startServerAndCreateLambdaHandler, handlers } from "@as-integrations/aws-lambda";
 import { GraphQLArmorConfig } from "./plugins/graphQLArmorConfig.js";
 import { typeDefs, resolvers } from "./model/graphql.js";
-import { authGatePlugin } from "./auth/auth.plugin.js";
 import { loggingPlugin } from "./plugins/logging.plugin";
 import {
   AuthorizationClaims,
@@ -13,6 +12,7 @@ import {
   validateClaims,
 } from "./auth/auth.util.js";
 import { log, reqIdChild, als, store } from "./log.js";
+import { getPersonTypeFromClaims } from "./auth/getPersonTypeFromClaims.js";
 import type { APIGatewayProxyEvent } from "aws-lambda";
 import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 import { fieldAuthPlugin } from "./plugins/fieldAuthPlugin.js";
@@ -47,7 +47,7 @@ const server = new ApolloServer<GraphQLContext>({
   typeDefs,
   resolvers,
   ...protection,
-  plugins: [...protection.plugins, authGatePlugin, loggingPlugin, fieldAuthPlugin],
+  plugins: [...protection.plugins, loggingPlugin, fieldAuthPlugin],
   validationRules: [...protection.validationRules],
   formatError: formatGraphQLErrorCode,
   logger: log,
@@ -82,6 +82,9 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
           await setDatabaseUrl();
 
           const claims = extractClaimsFromEvent(event);
+          // Validate that the claims map to a valid person type (role gate);
+          // throws and rejects the request if the role is missing or ambiguous.
+          getPersonTypeFromClaims(claims);
           const gqlCtx = await buildContextFromClaims(claims);
 
           const additionalContext = {

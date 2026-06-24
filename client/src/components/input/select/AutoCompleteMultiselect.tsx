@@ -3,6 +3,8 @@ import { ChevronDownIcon } from "components/icons/Symbol/ChevronDownIcon";
 import { tw } from "tags/tw";
 import { Option } from "./Select";
 
+export const AUTOCOMPLETE_MULTISELECT_TEST_ID = "input-autocomplete-multiselect";
+
 const LABEL_CLASSES = tw`text-text-font font-semibold text-field-label flex gap-0-5`;
 const INPUT_CLASSES = tw`w-full border border-border-fields rounded px-1 py-1
   text-text-font bg-surface-white disabled:bg-surface-disabled
@@ -14,19 +16,7 @@ const ITEM_CLASSES = tw`text-text-font cursor-pointer hover:bg-surface-focus`;
 const ITEM_ACTIVE_CLASSES = tw`bg-surface-focus`;
 const EMPTY_CLASSES = tw`px-2 py-1 text-text-placeholder`;
 
-export interface AutoCompleteMultiselectProps {
-  options: Option[];
-  placeholder?: string;
-  onSelect: (values: string[]) => void;
-  id?: string;
-  label?: string;
-  isRequired?: boolean;
-  isDisabled?: boolean;
-  defaultValues?: string[];
-  values?: string[];
-}
-
-export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = ({
+export const AutoCompleteMultiselect = ({
   options,
   placeholder = "Select",
   onSelect,
@@ -36,6 +26,16 @@ export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = (
   isDisabled = false,
   defaultValues = [],
   values,
+}: {
+  options: Option[];
+  placeholder?: string;
+  onSelect: (values: string[]) => void;
+  id?: string;
+  label?: string;
+  isRequired?: boolean;
+  isDisabled?: boolean;
+  defaultValues?: string[];
+  values?: string[];
 }) => {
   const [inputValue, setInputValue] = useState("");
   const [filtered, setFiltered] = useState<Option[]>(options);
@@ -120,6 +120,11 @@ export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = (
           data-testid={id ?? "input-autocomplete-multiselect"}
           id={id}
           type="text"
+          role="combobox"
+          aria-expanded={isOpen}
+          aria-haspopup="listbox"
+          aria-autocomplete="list"
+          aria-controls={id ? `${id}-listbox` : "multiselect-listbox"}
           placeholder={placeholder}
           value={displayValue}
           onFocus={() => {
@@ -134,17 +139,22 @@ export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = (
           disabled={isDisabled}
           className={INPUT_CLASSES}
         />
-        <div className="pointer-events-none absolute inset-y-0 end-0 pr-1 flex items-center">
+        <div className="pointer-events-none absolute inset-y-0 inset-e-0 pr-1 flex items-center">
           <ChevronDownIcon className={ICON_CLASSES} />
         </div>
 
         {isOpen && (
-          <ul className={LIST_CLASSES} role="listbox" aria-multiselectable="true">
+          <ul
+            id={id ? `${id}-listbox` : "multiselect-listbox"}
+            className={LIST_CLASSES}
+            role="listbox"
+            aria-multiselectable="true"
+          >
             {filtered.length > 0 ? (
               filtered.map((opt, i) => {
                 const isActive = i === activeIndex;
                 return (
-                  <li key={opt.value} role="presentation">
+                  <li key={opt.value} role="option" aria-selected={selected.includes(opt.value)}>
                     <label
                       className={`${ITEM_CLASSES} ${isActive ? ITEM_ACTIVE_CLASSES : ""} flex items-center cursor-pointer`}
                       style={{ cursor: isDisabled ? "not-allowed" : "pointer" }}
@@ -163,7 +173,7 @@ export const AutoCompleteMultiselect: React.FC<AutoCompleteMultiselectProps> = (
                             }
                           }
                         }}
-                        className="m-1 w-2 h-2 flex-shrink-0"
+                        className="m-1 w-2 h-2 shrink-0"
                         tabIndex={-1}
                       />
                       {opt.label}

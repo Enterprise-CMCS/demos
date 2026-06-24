@@ -1,4 +1,3 @@
-import { SelectManyDeliverableActionsRowResult } from "./queries";
 import {
   formatEasternTZDateToMMDDYYYY,
   parseJSDateToEasternTZDate,
@@ -10,6 +9,7 @@ import {
   NonEmptyString,
   PersonType,
 } from "../../types";
+import { SelectDeliverableActionRowResult } from "./queries";
 
 const PERSON_TYPE_DISPLAY_MAP = new Map<PersonType, string>([
   ["demos-admin", "Admin User"],
@@ -18,7 +18,7 @@ const PERSON_TYPE_DISPLAY_MAP = new Map<PersonType, string>([
 ]);
 
 // Note: casts below are enforced by the database
-export function formatFullUserName(input: SelectManyDeliverableActionsRowResult): NonEmptyString {
+export function formatFullUserName(input: SelectDeliverableActionRowResult): NonEmptyString {
   if (input.user) {
     const firstName = input.user.person.firstName;
     const lastName = input.user.person.lastName;
@@ -63,7 +63,7 @@ function makeResubmissionRequestedOrDateChangedMessage(
   return `Old Due Date: ${formattedOldDue}\nNew Due Date: ${formattedNewDue}\nReason Details: ${reason}`;
 }
 
-export function formatDetailsMessage(input: SelectManyDeliverableActionsRowResult): string {
+export function formatDetailsMessage(input: SelectDeliverableActionRowResult): string {
   // Field existence enforced by database for all objects below
   switch (input.actionTypeId as DeliverableActionType) {
     case "Marked as Past Due":

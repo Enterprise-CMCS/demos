@@ -2,7 +2,7 @@ import React from "react";
 
 import type { DeliverableFileRow } from "./DeliverableFileTypes";
 import { DeliverableFileTable } from "./DeliverableFileTable";
-import { makeCmsFileColumns } from "./fileColumns";
+import { makeCmsFileColumns } from "components/table/columns/deliverableFileColumns";
 
 export const CMS_FILES_TAB_NAME = "cms-files-tab";
 export const CMS_FILES_ADD_BUTTON_NAME = "button-add-cms-file";

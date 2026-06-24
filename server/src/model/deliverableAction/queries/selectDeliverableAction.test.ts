@@ -38,6 +38,14 @@ describe("selectDeliverableAction", () => {
 
   const expectedCall = {
     where: testInput,
+    include: {
+      user: {
+        include: {
+          person: true,
+        },
+      },
+      activeExtension: true,
+    }, 
   };
 
   beforeEach(() => {

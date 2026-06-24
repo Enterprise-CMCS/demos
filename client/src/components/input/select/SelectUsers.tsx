@@ -18,15 +18,6 @@ export const GET_USER_SELECT_OPTIONS_QUERY = gql`
 
 type Person = Pick<ServerPerson, "id" | "fullName" | "personType" | "firstName" | "lastName">;
 
-export interface SelectUsersProps {
-  value: string;
-  onSelect: (id: string) => void;
-  label?: string;
-  isRequired?: boolean;
-  isDisabled?: boolean;
-  personTypes?: PersonType[];
-}
-
 const getOptionsFromPeople = (people: Person[]): Option[] => {
   return people.map((person) => ({
     label: person.fullName ?? `${person.firstName} ${person.lastName}`,
@@ -34,13 +25,20 @@ const getOptionsFromPeople = (people: Person[]): Option[] => {
   }));
 };
 
-export const SelectUsers: React.FC<SelectUsersProps> = ({
+export const SelectUsers = ({
   value,
   onSelect,
   label = "Users",
   isRequired = false,
   isDisabled = false,
   personTypes,
+}: {
+  value: string;
+  onSelect: (id: string) => void;
+  label?: string;
+  isRequired?: boolean;
+  isDisabled?: boolean;
+  personTypes?: PersonType[];
 }) => {
   const { data, loading, error } = useQuery<{ people: Person[] }>(GET_USER_SELECT_OPTIONS_QUERY);
 

@@ -6,19 +6,7 @@ import { tw } from "tags/tw";
 import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "../Input";
 import { Option } from "./Select";
 
-export interface AutoCompleteSelectProps {
-  options: Option[];
-  value: string;
-  onSelect: (value: string) => void;
-  label?: string;
-  id?: string;
-  placeholder?: string;
-  dataTestId?: string;
-  isRequired?: boolean;
-  isDisabled?: boolean;
-  noMatchMessage?: string;
-  onFilterChange?: (filterValue: string, hasMatches: boolean) => void;
-}
+export const AUTOCOMPLETE_SELECT_TEST_ID = "input-autocomplete-select";
 
 const ICON_CLASSES = tw`text-text-placeholder w-2 h-1`;
 const LIST_CLASSES = tw`absolute z-10 w-full bg-surface-white border border-border-fields rounded mt-0.5 max-h-56 overflow-auto shadow-sm`;
@@ -31,7 +19,7 @@ const filterOptions = (options: Option[], searchTerm: string) => {
   return options.filter((opt) => opt.label.toLowerCase().includes(searchTerm));
 };
 
-export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
+export const AutoCompleteSelect = ({
   options,
   value,
   onSelect,
@@ -43,6 +31,18 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
   isDisabled = false,
   noMatchMessage,
   onFilterChange: onFilterChangeProp,
+}: {
+  options: Option[];
+  value: string;
+  onSelect: (value: string) => void;
+  label?: string;
+  id?: string;
+  placeholder?: string;
+  dataTestId?: string;
+  isRequired?: boolean;
+  isDisabled?: boolean;
+  noMatchMessage?: string;
+  onFilterChange?: (filterValue: string, hasMatches: boolean) => void;
 }) => {
   const [filterValue, setFilterValue] = useState("");
   const [selectedOption, setSelectedOption] = useState<Option | undefined>(
@@ -98,6 +98,8 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
     inputRef.current?.focus();
   };
 
+  const listboxId = `${id || dataTestId || "autocomplete"}-listbox`;
+
   const filteredOptions = filterOptions(options, filterValue);
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -121,7 +123,7 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
       return filteredOptions.map((option, i) => {
         const isActive = i === activeIndex;
         return (
-          <li key={option.value}>
+          <li key={option.value} role="option" aria-selected={option.value === value}>
             <button
               type="button"
               className={`${ITEM_CLASSES} ${isActive ? ITEM_ACTIVE_CLASSES : ""} w-full text-left`}
@@ -154,6 +156,11 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
           data-testid={dataTestId || "input-autocomplete-select"}
           id={id}
           type="text"
+          role="combobox"
+          aria-expanded={isOpen}
+          aria-haspopup="listbox"
+          aria-autocomplete="list"
+          aria-controls={listboxId}
           placeholder={placeholder}
           value={isOpen ? filterValue : selectedOption?.label || ""}
           onFocus={() => !isDisabled && setIsOpen(true)}
@@ -165,11 +172,15 @@ export const AutoCompleteSelect: React.FC<AutoCompleteSelectProps> = ({
           data-form-type="other"
           autoComplete="off"
         />
-        <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center pr-1">
+        <div className="pointer-events-none absolute inset-y-0 inset-e-0 flex items-center pr-1">
           <ChevronDownIcon className={ICON_CLASSES} />
         </div>
 
-        {isOpen && <ul className={LIST_CLASSES}>{renderDropdownContent()}</ul>}
+        {isOpen && (
+          <ul id={listboxId} role="listbox" className={LIST_CLASSES}>
+            {renderDropdownContent()}
+          </ul>
+        )}
       </div>
     </div>
   );

@@ -3,7 +3,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { DeepPartial } from "../../testUtilities";
 
 // Types
-import { SelectManyDeliverableActionsRowResult } from "./queries";
 import { DeliverableActionType } from "../../types";
 
 // Functions under test
@@ -25,7 +24,7 @@ vi.mock("./queries", () => ({
 
 import { prisma } from "../../prismaClient";
 import { formatDetailsMessage, formatFullUserName } from ".";
-import { selectManyDeliverableActions } from "./queries";
+import { SelectDeliverableActionRowResult, selectManyDeliverableActions } from "./queries";
 
 describe("selectManyDeliverableActions", () => {
   // Test inputs
@@ -34,7 +33,7 @@ describe("selectManyDeliverableActions", () => {
   // Mock return values
   const mockPrismaClient = "I'm a returned client!" as any;
   const mockTransaction = "I'm a transaction!" as any;
-  const mockQueryResults: DeepPartial<SelectManyDeliverableActionsRowResult>[] = [
+  const mockQueryResults: DeepPartial<SelectDeliverableActionRowResult>[] = [
     {
       id: "eafccca7-9b92-435d-8069-d065dbc52d0a",
       actionTimestamp: new Date(2026, 3, 23, 20, 20, 39, 131),
@@ -57,7 +56,7 @@ describe("selectManyDeliverableActions", () => {
     vi.mocked(formatFullUserName).mockReturnValueOnce(mockFullName[0]);
     vi.mocked(formatFullUserName).mockReturnValueOnce(mockFullName[1]);
     vi.mocked(selectManyDeliverableActions).mockResolvedValue(
-      mockQueryResults as SelectManyDeliverableActionsRowResult[]
+      mockQueryResults as SelectDeliverableActionRowResult[]
     );
   });
 

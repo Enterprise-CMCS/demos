@@ -16,7 +16,7 @@ vi.mock("../deliverableAction/queries", () => ({
   selectDeliverableAction: vi.fn(),
 }));
 
-import { selectDeliverableAction } from "../deliverableAction/queries";
+import { selectDeliverableAction, SelectDeliverableActionRowResult } from "../deliverableAction/queries";
 
 describe("deliverableExtensionResolvers", () => {
   const testDeliverableExtension: Partial<PrismaDeliverableExtension> = {
@@ -32,7 +32,7 @@ describe("deliverableExtensionResolvers", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(selectDeliverableAction).mockResolvedValue(
-      mockDeliverableAction as PrismaDeliverableAction
+      mockDeliverableAction as SelectDeliverableActionRowResult
     );
   });
 

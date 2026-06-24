@@ -72,7 +72,7 @@ describe("DemonstrationDetail", () => {
     mock = buildDemonstrationDetailMock()
   ) => {
     return render(
-      <MockedProvider mocks={[mock]} addTypename={false}>
+      <MockedProvider mocks={[mock]}>
         <MemoryRouter initialEntries={[initialEntry]}>
           <Routes>
             <Route path="/demonstrations/:id" element={<DemonstrationDetail />} />
