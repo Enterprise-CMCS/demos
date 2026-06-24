@@ -17,9 +17,8 @@ export const CreateNewButton: React.FC<{ hasApprovedDemonstrations: boolean }> =
   const { currentUser } = getCurrentUser();
   const { showCreateDemonstrationDialog, showCreateAmendmentDialog, showCreateExtensionDialog } =
     useDialog();
-  const modificationTooltip = hasApprovedDemonstrations
-    ? undefined
-    : NO_APPROVED_DEMONSTRATIONS_TOOLTIP;
+  const modificationTooltip = hasApprovedDemonstrations ? "" :
+    NO_APPROVED_DEMONSTRATIONS_TOOLTIP;
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
