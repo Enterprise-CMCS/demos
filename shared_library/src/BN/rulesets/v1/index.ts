@@ -65,10 +65,21 @@ export const validations: ValidationFunction[] = [
         row += 1;
         continue;
       }
-      for (let colNumber =  excelColumnToNumber(columnStart); colNumber <= excelColumnToNumber(columnEnd); colNumber++) {
+      for (
+        let colNumber = excelColumnToNumber(columnStart);
+        colNumber <= excelColumnToNumber(columnEnd);
+        colNumber++
+      ) {
         const col = numberToExcelColumn(colNumber);
         const cellValue = excelColumnRow(`${col}${row}`, "C Report", data);
-        if (cellValue !== "" && cellValue !== null) {
+        if (
+          cellValue !== "" &&
+          cellValue !== null &&
+          cellValue !== 0 &&
+          cellValue !== "Federal Share" &&
+          cellValue !== "ADM Waivers" &&
+          cellValue !== "Total Computable"
+        ) {
           return {
             code: "4",
             message:
@@ -106,8 +117,8 @@ export const validations: ValidationFunction[] = [
   },
 
   function error7(data: ExcelData) {
-    const k3 = Number(excelColumnRow("K3", "C Report", data));
-    if (isNaN(k3) || k3 < 1 || k3 > 4) {
+    const F3 = Number(excelColumnRow("F3", "C Report", data));
+    if (isNaN(F3) || F3 < 1 || F3 > 4) {
       return {
         code: "7",
         message:
@@ -124,8 +135,13 @@ export const validations: ValidationFunction[] = [
     const columnEnd = "AH";
 
     for (let row = rowStart; row <= rowEnd; row++) {
-      for (let colNumber = excelColumnToNumber(columnStart); colNumber <= excelColumnToNumber(columnEnd); colNumber++) {
+      for (
+        let colNumber = excelColumnToNumber(columnStart);
+        colNumber <= excelColumnToNumber(columnEnd);
+        colNumber++
+      ) {
         const col = numberToExcelColumn(colNumber);
+
         const cellValue = excelColumnRow(`${col}${row}`, "MemMon Actual", data);
         if (
           cellValue !== "" &&
@@ -151,8 +167,13 @@ export const validations: ValidationFunction[] = [
     const columnEnd = "AH";
 
     for (let row = rowStart; row <= rowEnd; row++) {
-      for (let colNumber = excelColumnToNumber(columnStart); colNumber <= excelColumnToNumber(columnEnd); colNumber++) {
+      for (
+        let colNumber = excelColumnToNumber(columnStart);
+        colNumber <= excelColumnToNumber(columnEnd);
+        colNumber++
+      ) {
         const col = numberToExcelColumn(colNumber);
+
         const cellValue = excelColumnRow(
           `${col}${row}`,
           "MemMon Projected",
@@ -183,7 +204,11 @@ export const validations: ValidationFunction[] = [
     const skipColumns = ["AR", "AS"];
 
     for (let row = rowStart; row <= rowEnd; row++) {
-      for (let colNumber = excelColumnToNumber(columnStart); colNumber <= excelColumnToNumber(columnEnd); colNumber++) {
+      for (
+        let colNumber = excelColumnToNumber(columnStart);
+        colNumber <= excelColumnToNumber(columnEnd);
+        colNumber++
+      ) {
         const col = numberToExcelColumn(colNumber);
         if (skipColumns.includes(col)) {
           continue;
@@ -214,10 +239,14 @@ export const validations: ValidationFunction[] = [
     const rowStart = 68;
     const rowEnd = 467;
     const columnStart = "D";
-    const columnEnd = "BV";  
+    const columnEnd = "BV";
 
     for (let row = rowStart; row <= rowEnd; row++) {
-      for (let colNumber = excelColumnToNumber(columnStart); colNumber <= excelColumnToNumber(columnEnd); colNumber++) {
+      for (
+        let colNumber = excelColumnToNumber(columnStart);
+        colNumber <= excelColumnToNumber(columnEnd);
+        colNumber++
+      ) {
         const col = numberToExcelColumn(colNumber);
         const cellValue = excelColumnRow(
           `${col}${row}`,

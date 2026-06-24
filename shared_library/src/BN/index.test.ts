@@ -87,10 +87,8 @@ describe("excelColumnRow", () => {
     );
   });
 
-  it("throws when row is out of range", () => {
-    expect(() => excelColumnRow("A99", "Sheet1", workbookData)).toThrow(
-      "Row 99 not found",
-    );
+  it("returns null when row is out of range", () => {
+    expect(excelColumnRow("A99", "Sheet1", workbookData)).toBeNull();
   });
 
   it("numberToExcelColumn converts numbers to Excel column letters correctly", () => {
