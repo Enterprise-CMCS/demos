@@ -149,7 +149,7 @@ SELECT
     coalesce(primary_ddme_analyst.full_name, '-') AS ddme_analyst,
     deliv.deliverable_type_id AS deliverable_type,
     deliv.name AS deliverable_name,
-    demo_types.demonstration_types,
+    coalesce(demo_types.demonstration_types, '-') AS demonstration_types,
     cms_owner.first_name || ' ' || cms_owner.last_name AS cms_owner,
     to_char(deliv.due_date AT TIME ZONE 'America/New_York', 'MM/DD/YYYY') AS due_date,
     coalesce(to_char(act_stats.most_recent_submission_timestamp AT TIME ZONE 'America/New_York', 'MM/DD/YYYY'), '-')
@@ -197,8 +197,8 @@ LEFT JOIN
         deliv.demonstration_id = primary_ddme_analyst.demonstration_id
         AND primary_ddme_analyst.role_id = 'DDME Analyst'
 
--- Approved demonstrations are required to have at least one demonstration type
-INNER JOIN
+-- Deliverables are not guaranteed to have demonstration types associated
+LEFT JOIN
     flat_demonstration_types AS demo_types
     ON
         deliv.id = demo_types.deliverable_id
