@@ -18,6 +18,7 @@ vi.mock(".", () => ({
 }));
 
 import { prisma } from "../../prismaClient";
+import { validateCreateExtensionInput } from ".";
 
 describe("createExtension", () => {
   const transactionMocks = {
@@ -52,7 +53,7 @@ describe("createExtension", () => {
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
-  it("should create an application and an extension in a transaction", async () => {
+  it("should validate and create an application and an extension in a transaction", async () => {
     transactionMocks.application.create.mockResolvedValueOnce({
       id: testExtensionId,
       applicationTypeId: testExtensionTypeId,
@@ -66,48 +67,33 @@ describe("createExtension", () => {
       description: testExtensionDescription,
       signatureLevelId: "OA",
     };
-    const expectedCalls = [
-      {
-        data: {
-          applicationTypeId: testExtensionTypeId,
-        },
-      },
-      {
-        data: {
-          id: testExtensionId,
-          applicationTypeId: testExtensionTypeId,
-          demonstrationId: testDemonstrationId,
-          name: testExtensionName,
-          description: testExtensionDescription,
-          statusId: testExtensionStatusId,
-          currentPhaseId: testExtensionPhaseId,
-          demonstrationStatusId: "Approved" satisfies ApplicationStatus,
-          signatureLevelId: "OA",
-        },
-      },
-    ];
     await createExtension(testInput);
-    expect(transactionMocks.application.create).toHaveBeenCalledExactlyOnceWith(expectedCalls[0]);
-    expect(transactionMocks.extension.create).toHaveBeenCalledExactlyOnceWith(expectedCalls[1]);
-  });
-
-  it.each(["OA", "OCD"] as const)(
-    "allows valid signature level %s during creation",
-    async (signatureLevel) => {
-      transactionMocks.application.create.mockResolvedValueOnce({
-        id: testExtensionId,
-        applicationTypeId: testExtensionTypeId,
-      });
-
-      await createExtension({
+    expect(validateCreateExtensionInput).toHaveBeenCalledExactlyOnceWith(
+      {
         demonstrationId: testDemonstrationId,
         name: testExtensionName,
         description: testExtensionDescription,
-        signatureLevelId: signatureLevel,
-      });
-
-      expect(transactionMocks.application.create).toHaveBeenCalledOnce();
-      expect(transactionMocks.extension.create).toHaveBeenCalledOnce();
-    }
-  );
+        signatureLevelId: "OA",
+      },
+      mockTransaction
+    );
+    expect(transactionMocks.application.create).toHaveBeenCalledExactlyOnceWith({
+      data: {
+        applicationTypeId: testExtensionTypeId,
+      },
+    });
+    expect(transactionMocks.extension.create).toHaveBeenCalledExactlyOnceWith({
+      data: {
+        id: testExtensionId,
+        applicationTypeId: testExtensionTypeId,
+        demonstrationId: testDemonstrationId,
+        name: testExtensionName,
+        description: testExtensionDescription,
+        statusId: testExtensionStatusId,
+        currentPhaseId: testExtensionPhaseId,
+        demonstrationStatusId: "Approved" satisfies ApplicationStatus,
+        signatureLevelId: "OA",
+      },
+    });
+  });
 });

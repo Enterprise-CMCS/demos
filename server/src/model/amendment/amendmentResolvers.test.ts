@@ -32,7 +32,7 @@ import { selectManyApplicationTagAssignments } from "../applicationTagAssignment
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
 import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
-import { createAmendment } from "./createAmendment";
+import { createAmendment } from ".";
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
@@ -71,7 +71,7 @@ vi.mock("../../errors/checkOptionalNotNullFields", () => ({
   checkOptionalNotNullFields: vi.fn(),
 }));
 
-vi.mock("./createAmendment", () => ({
+vi.mock(".", () => ({
   createAmendment: vi.fn(),
 }));
 

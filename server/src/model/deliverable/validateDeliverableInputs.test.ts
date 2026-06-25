@@ -23,6 +23,7 @@ import {
 } from "@prisma/client";
 import { GraphQLError } from "graphql";
 import { EasternTZDate } from "../../dateUtilities";
+import { ACTIVE_DELIVERABLE_STATUSES } from "../../constants";
 
 // Functions under test
 import {
@@ -91,7 +92,6 @@ import {
   checkRequiredDeliverableDemonstrationTypes,
   selectDeliverableOrThrow,
 } from ".";
-import { ACTIVE_DELIVERABLE_STATUSES } from "../../constants";
 import { checkDemonstrationStatus } from "../demonstration";
 
 describe("validateDeliverableInputs", () => {

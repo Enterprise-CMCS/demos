@@ -3,12 +3,6 @@ import { createAmendment } from "./createAmendment";
 import { ApplicationStatus, ApplicationType, PhaseName } from "../../types";
 import { Prisma } from "@prisma/client";
 
-const testDemonstrationId = "518aa497-d547-422e-95a0-02076c7f7698";
-const testAmendmentName = "The Amendment";
-const testAmendmentTypeId: ApplicationType = "Amendment";
-const testAmendmentStatusId: ApplicationStatus = "Pre-Submission";
-const testAmendmentPhaseId: PhaseName = "Concept";
-
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
@@ -18,8 +12,15 @@ vi.mock(".", () => ({
 }));
 
 import { prisma } from "../../prismaClient";
+import { validateCreateAmendmentInput } from ".";
 
 describe("createAmendment", () => {
+  const testDemonstrationId = "518aa497-d547-422e-95a0-02076c7f7698";
+  const testAmendmentName = "The Amendment";
+  const testAmendmentTypeId: ApplicationType = "Amendment";
+  const testAmendmentStatusId: ApplicationStatus = "Pre-Submission";
+  const testAmendmentPhaseId: PhaseName = "Concept";
+
   const transactionMocks = {
     application: {
       create: vi.fn(),
@@ -52,7 +53,7 @@ describe("createAmendment", () => {
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
-  it("should create an application and an amendment in a transaction", async () => {
+  it("should validate and create an application and an amendment in a transaction", async () => {
     transactionMocks.application.create.mockResolvedValueOnce({
       id: testAmendmentId,
       applicationTypeId: testAmendmentTypeId,
@@ -66,48 +67,33 @@ describe("createAmendment", () => {
       description: testAmendmentDescription,
       signatureLevelId: "OA",
     };
-    const expectedCalls = [
-      {
-        data: {
-          applicationTypeId: testAmendmentTypeId,
-        },
-      },
-      {
-        data: {
-          id: testAmendmentId,
-          applicationTypeId: testAmendmentTypeId,
-          demonstrationId: testDemonstrationId,
-          name: testAmendmentName,
-          description: testAmendmentDescription,
-          statusId: testAmendmentStatusId,
-          currentPhaseId: testAmendmentPhaseId,
-          demonstrationStatusId: "Approved" satisfies ApplicationStatus,
-          signatureLevelId: "OA",
-        },
-      },
-    ];
     await createAmendment(testInput);
-    expect(transactionMocks.application.create).toHaveBeenCalledExactlyOnceWith(expectedCalls[0]);
-    expect(transactionMocks.amendment.create).toHaveBeenCalledExactlyOnceWith(expectedCalls[1]);
-  });
-
-  it.each(["OA", "OCD"] as const)(
-    "allows valid signature level %s during creation",
-    async (signatureLevel) => {
-      transactionMocks.application.create.mockResolvedValueOnce({
-        id: testAmendmentId,
-        applicationTypeId: testAmendmentTypeId,
-      });
-
-      await createAmendment({
+    expect(validateCreateAmendmentInput).toHaveBeenCalledExactlyOnceWith(
+      {
         demonstrationId: testDemonstrationId,
         name: testAmendmentName,
         description: testAmendmentDescription,
-        signatureLevelId: signatureLevel,
-      });
-
-      expect(transactionMocks.application.create).toHaveBeenCalledOnce();
-      expect(transactionMocks.amendment.create).toHaveBeenCalledOnce();
-    }
-  );
+        signatureLevelId: "OA",
+      },
+      mockTransaction
+    );
+    expect(transactionMocks.application.create).toHaveBeenCalledExactlyOnceWith({
+      data: {
+        applicationTypeId: testAmendmentTypeId,
+      },
+    });
+    expect(transactionMocks.amendment.create).toHaveBeenCalledExactlyOnceWith({
+      data: {
+        id: testAmendmentId,
+        applicationTypeId: testAmendmentTypeId,
+        demonstrationId: testDemonstrationId,
+        name: testAmendmentName,
+        description: testAmendmentDescription,
+        statusId: testAmendmentStatusId,
+        currentPhaseId: testAmendmentPhaseId,
+        demonstrationStatusId: "Approved" satisfies ApplicationStatus,
+        signatureLevelId: "OA",
+      },
+    });
+  });
 });

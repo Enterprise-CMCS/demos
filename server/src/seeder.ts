@@ -15,8 +15,6 @@ import {
 } from "./constants.js";
 import {
   CreateDemonstrationInput,
-  CreateAmendmentInput,
-  CreateExtensionInput,
   UpdateDemonstrationInput,
   UpdateAmendmentInput,
   UpdateExtensionInput,
@@ -32,7 +30,7 @@ import {
   __updateDemonstration,
 } from "./model/demonstration/demonstrationResolvers.js";
 import { __updateAmendment } from "./model/amendment/amendmentResolvers.js";
-import { __createExtension, __updateExtension } from "./model/extension/extensionResolvers.js";
+import { __updateExtension } from "./model/extension/extensionResolvers.js";
 import { __setApplicationDates } from "./model/applicationDate/applicationDateResolvers.js";
 import { GraphQLContext } from "./auth";
 import { getManyApplications } from "./model/application";
@@ -48,9 +46,10 @@ import {
   updateDeliverable,
 } from "./model/deliverable";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { Deliverable, Deliverable as PrismaDeliverable } from "@prisma/client";
+import { Deliverable, Prisma, Deliverable as PrismaDeliverable } from "@prisma/client";
 import { selectDeliverableExtension } from "./model/deliverableExtension/queries";
-import { createAmendment } from "./model/amendment/index.js";
+import { createAmendment } from "./model/amendment";
+import { createExtension } from "./model/extension";
 
 const DOCUMENTS_PER_APPLICATION = 15;
 const UIPATH_SEED_DOCUMENT_ID = "00000000-0000-0000-0000-000000000000";
@@ -837,13 +836,16 @@ async function seedAmendments() {
 
   for (let i = 0; i < amendmentCount; i++) {
     try {
-      const createInput: CreateAmendmentInput = {
+      const createInput: Pick<
+        Prisma.AmendmentUncheckedCreateInput,
+        "demonstrationId" | "name" | "description" | "signatureLevelId"
+      > = {
         demonstrationId: faker.helpers.arrayElement(approvedDemonstrations).id,
         name: faker.lorem.words(3),
         description: faker.lorem.sentence(),
-        signatureLevel: sampleFromArray([...AMENDMENT_SIGNATURE_LEVELS, undefined], 1)[0],
+        signatureLevelId: sampleFromArray([...AMENDMENT_SIGNATURE_LEVELS, undefined], 1)[0],
       };
-      await createAmendment(undefined, { input: createInput });
+      await createAmendment(createInput);
     } catch (error) {
       console.error(`Error creating amendment: ${error}`);
     }
@@ -870,13 +872,16 @@ async function seedExtensions() {
   });
 
   for (let i = 0; i < extensionCount; i++) {
-    const createInput: CreateExtensionInput = {
+    const createInput: Pick<
+      Prisma.ExtensionUncheckedCreateInput,
+      "demonstrationId" | "name" | "description" | "signatureLevelId"
+    > = {
       demonstrationId: faker.helpers.arrayElement(approvedDemonstrations).id,
       name: faker.lorem.words(3),
       description: faker.lorem.sentence(),
-      signatureLevel: sampleFromArray([...EXTENSION_SIGNATURE_LEVELS, undefined], 1)[0],
+      signatureLevelId: sampleFromArray([...EXTENSION_SIGNATURE_LEVELS, undefined], 1)[0],
     };
-    await __createExtension(undefined, { input: createInput });
+    await createExtension(createInput);
   }
   const extensions = await getManyApplications("Extension");
   for (const extension of extensions!) {

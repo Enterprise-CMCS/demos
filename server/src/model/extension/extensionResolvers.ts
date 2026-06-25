@@ -27,7 +27,7 @@ import { getManyDocuments } from "../document";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
 import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
 import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
-import { createExtension } from "./createExtension";
+import { createExtension } from ".";
 
 export async function __updateExtension(
   parent: unknown,

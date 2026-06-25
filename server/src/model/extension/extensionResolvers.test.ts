@@ -35,7 +35,7 @@ import { selectManyApplicationPhases } from "../applicationPhase/queries";
 import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
 import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
-import { createExtension } from "./createExtension";
+import { createExtension } from ".";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -91,7 +91,7 @@ vi.mock("../../dateUtilities", () => ({
   parseDateTimeOrLocalDateToEasternTZDate: vi.fn(),
 }));
 
-vi.mock("./createExtension", () => ({
+vi.mock(".", () => ({
   createExtension: vi.fn(),
 }));
 
