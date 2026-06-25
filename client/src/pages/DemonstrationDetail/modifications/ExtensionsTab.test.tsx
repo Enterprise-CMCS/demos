@@ -34,13 +34,17 @@ describe("ExtensionsTab", () => {
     vi.clearAllMocks();
   });
 
-  const renderExtensionsTab = (extensions: DemonstrationDetailModification[] = []) => {
+  const renderExtensionsTab = (
+    extensions: DemonstrationDetailModification[] = [],
+    canCreateModifications = true
+  ) => {
     return render(
       <ExtensionsTab
         demonstrationId="mock-demonstration-id"
         medicaidId="mock-medicaid-id"
         extensions={extensions}
         selectedExtensionId="mock-extension-id"
+        canCreateModifications={canCreateModifications}
       />
     );
   };
@@ -70,6 +74,16 @@ describe("ExtensionsTab", () => {
     expect(showCreateExtensionDialog).toHaveBeenCalledWith("mock-demonstration-id");
   });
 
+  it("does not open Add New Extension modal from the empty state when creation is disabled", async () => {
+    renderExtensionsTab([], false);
+
+    const createButton = screen.getByRole("button", { name: /create extension/i });
+    expect(createButton).toBeDisabled();
+    await fireEvent.click(createButton);
+
+    expect(showCreateExtensionDialog).not.toHaveBeenCalled();
+  });
+
   it("shows extensions tab title when extensions exist", async () => {
     renderExtensionsTab(mockExtensions);
 
@@ -91,6 +105,16 @@ describe("ExtensionsTab", () => {
     await fireEvent.click(addButton);
 
     expect(showCreateExtensionDialog).toHaveBeenCalledWith("mock-demonstration-id");
+  });
+
+  it("does not open Add New Extension modal from the header button when creation is disabled", async () => {
+    renderExtensionsTab(mockExtensions, false);
+
+    const addButton = screen.getByRole("button", { name: /add-new-extension/i });
+    expect(addButton).toBeDisabled();
+    await fireEvent.click(addButton);
+
+    expect(showCreateExtensionDialog).not.toHaveBeenCalled();
   });
 
   it("passes the selected extension to ModificationTabs when extensions exist", async () => {

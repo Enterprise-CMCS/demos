@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ContextUser } from "./userContext";
+import type { ContextUser } from "./user";
 import { buildAuthorizationFilter, PermissionFilters } from "./buildAuthorizationFilter";
 import { ApplicationStatus, SignatureLevel } from "../types";
 

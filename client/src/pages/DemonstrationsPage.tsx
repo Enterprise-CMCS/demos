@@ -70,6 +70,9 @@ export const DemonstrationsPage: React.FC = () => {
     useQuery<DemonstrationsPageQueryResult>(DEMONSTRATIONS_PAGE_QUERY);
 
   const demonstrations = data?.demonstrations || [];
+  const hasApprovedDemonstrations = demonstrations.some(
+    (demonstration) => demonstration.status === "Approved"
+  );
   const myDemonstrations = demonstrations.filter(
     (d) => d.primaryProjectOfficer.id === data?.currentUser.id
   );
@@ -84,7 +87,7 @@ export const DemonstrationsPage: React.FC = () => {
     <div className="shadow-md bg-white p-[16px]">
       <div className="flex items-center justify-between mb-[24px] border-b-1 pb-[8px]">
         <h1 className="text-[20px] font-bold text-brand uppercase">Demonstrations</h1>
-        <CreateNewButton />
+        <CreateNewButton hasApprovedDemonstrations={hasApprovedDemonstrations} />
       </div>
       {loading && <div className="p-4">Loading demonstrations...</div>}
       {error && <div className="p-4 text-red-500">Error loading demonstrations.</div>}
