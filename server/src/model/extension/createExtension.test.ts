@@ -3,12 +3,6 @@ import { createExtension } from "./createExtension";
 import { ApplicationStatus, ApplicationType, PhaseName } from "../../types";
 import { Prisma } from "@prisma/client";
 
-const testDemonstrationId = "518aa497-d547-422e-95a0-02076c7f7698";
-const testExtensionName = "The Extension";
-const testExtensionTypeId: ApplicationType = "Extension";
-const testExtensionStatusId: ApplicationStatus = "Pre-Submission";
-const testExtensionPhaseId: PhaseName = "Concept";
-
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
@@ -21,6 +15,12 @@ import { prisma } from "../../prismaClient";
 import { validateCreateExtensionInput } from ".";
 
 describe("createExtension", () => {
+  const testDemonstrationId = "518aa497-d547-422e-95a0-02076c7f7698";
+  const testExtensionName = "The Extension";
+  const testExtensionTypeId: ApplicationType = "Extension";
+  const testExtensionStatusId: ApplicationStatus = "Pre-Submission";
+  const testExtensionPhaseId: PhaseName = "Concept";
+
   const transactionMocks = {
     application: {
       create: vi.fn(),
