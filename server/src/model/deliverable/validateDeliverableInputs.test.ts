@@ -686,14 +686,14 @@ describe("validateDeliverableInputs", () => {
       );
     });
 
-    it("should throw if the deliverable status check fails", async () => {
+    it("should throw if the deliverable file submission or status change check fails", async () => {
       const testInput: Partial<PrismaDeliverable> = {
         id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
         statusId: "Approved",
         cmsOwnerUserId: "7d8fdea5-ca19-42e5-af50-98836b6d47db",
       };
       vi.mocked(checkIsFileSubmissionOrStatusChange).mockResolvedValue(
-        "The deliverable status check failed!"
+        "The deliverable file submission or status change check failed!"
       );
 
       try {
@@ -707,7 +707,7 @@ describe("validateDeliverableInputs", () => {
         );
         expect(error.extensions.code).toBe("SUBMIT_DELIVERABLE_VALIDATION_FAILED");
         expect(error.extensions.originalMessages).toStrictEqual([
-          "The deliverable status check failed!",
+          "The deliverable file submission or status change check failed!",
         ]);
       }
     });
@@ -745,7 +745,7 @@ describe("validateDeliverableInputs", () => {
         cmsOwnerUserId: "7d8fdea5-ca19-42e5-af50-98836b6d47db",
       };
       vi.mocked(checkIsFileSubmissionOrStatusChange).mockResolvedValue(
-        "The deliverable status check failed!"
+        "The deliverable file submission or status change check failed!"
       );
       vi.mocked(checkDeliverableHasAtLeastOneDocument).mockResolvedValue(
         "The deliverable document check has failed!"
@@ -762,7 +762,7 @@ describe("validateDeliverableInputs", () => {
         );
         expect(error.extensions.code).toBe("SUBMIT_DELIVERABLE_VALIDATION_FAILED");
         expect(error.extensions.originalMessages).toStrictEqual([
-          "The deliverable status check failed!",
+          "The deliverable file submission or status change check failed!",
           "The deliverable document check has failed!",
         ]);
       }
