@@ -31,7 +31,7 @@ import {
   __createDemonstration,
   __updateDemonstration,
 } from "./model/demonstration/demonstrationResolvers.js";
-import { __createAmendment, __updateAmendment } from "./model/amendment/amendmentResolvers.js";
+import { __updateAmendment } from "./model/amendment/amendmentResolvers.js";
 import { __createExtension, __updateExtension } from "./model/extension/extensionResolvers.js";
 import { __setApplicationDates } from "./model/applicationDate/applicationDateResolvers.js";
 import { GraphQLContext } from "./auth/auth.util.js";
@@ -50,6 +50,7 @@ import {
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { Deliverable, Deliverable as PrismaDeliverable } from "@prisma/client";
 import { selectDeliverableExtension } from "./model/deliverableExtension/queries";
+import { createAmendment } from "./model/amendment/index.js";
 
 const DOCUMENTS_PER_APPLICATION = 15;
 const UIPATH_SEED_DOCUMENT_ID = "00000000-0000-0000-0000-000000000000";
@@ -842,7 +843,7 @@ async function seedAmendments() {
         description: faker.lorem.sentence(),
         signatureLevel: sampleFromArray([...AMENDMENT_SIGNATURE_LEVELS, undefined], 1)[0],
       };
-      await __createAmendment(undefined, { input: createInput });
+      await createAmendment(undefined, { input: createInput });
     } catch (error) {
       console.error(`Error creating amendment: ${error}`);
     }

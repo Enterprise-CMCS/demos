@@ -7,7 +7,6 @@ import {
 import { prisma } from "../../prismaClient";
 import {
   ApplicationStatus,
-  ApplicationType,
   ClearanceLevel,
   CreateAmendmentInput,
   PhaseName,
@@ -28,37 +27,7 @@ import { getManyDocuments } from "../document";
 import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
 import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
-
-const amendmentApplicationType: ApplicationType = "Amendment";
-const conceptPhaseName: PhaseName = "Concept";
-const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
-
-export async function __createAmendment(
-  parent: unknown,
-  { input }: { input: CreateAmendmentInput }
-): Promise<PrismaAmendment> {
-  return await prisma().$transaction(async (tx) => {
-    const application = await tx.application.create({
-      data: {
-        applicationTypeId: amendmentApplicationType,
-      },
-    });
-
-    return await tx.amendment.create({
-      data: {
-        id: application.id,
-        applicationTypeId: application.applicationTypeId,
-        demonstrationId: input.demonstrationId,
-        demonstrationStatusId: "Approved" satisfies ApplicationStatus,
-        name: input.name,
-        description: input.description,
-        statusId: newApplicationStatusId,
-        currentPhaseId: conceptPhaseName,
-        signatureLevelId: input.signatureLevel,
-      },
-    });
-  });
-}
+import { createAmendment } from "./createAmendment";
 
 export async function __updateAmendment(
   parent: unknown,
@@ -103,7 +72,13 @@ export const amendmentResolvers = {
   },
 
   Mutation: {
-    createAmendment: __createAmendment,
+    createAmendment: (parent: unknown, args: CreateAmendmentInput) =>
+      createAmendment({
+        demonstrationId: args.demonstrationId,
+        name: args.name,
+        description: args.description,
+        signatureLevelId: args.signatureLevel,
+      }),
     updateAmendment: __updateAmendment,
     deleteAmendment: deleteAmendment,
   },
