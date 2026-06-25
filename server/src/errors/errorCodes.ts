@@ -7,9 +7,14 @@ export const CUSTOM_INTERNAL_ERROR_CODES = [
   "REFERENCE_AGREEMENT_NOT_FOUND",
   "REFERENCE_NOT_ACTIVE",
   "REFERENCE_NOT_FOUND",
+  "USER_MIGRATION_MULTIPLE_RECORD_ERROR",
 ] as const;
 
-export const CUSTOM_PUBLIC_ERROR_CODES = ["REFERENCE_ERROR", "ON_DEMAND_REPORT_ERROR"] as const;
+export const CUSTOM_PUBLIC_ERROR_CODES = [
+  "REFERENCE_ERROR",
+  "ON_DEMAND_REPORT_ERROR",
+  "AUTHENTICATION_ERROR",
+] as const;
 
 export const ERROR_LOG_LEVELS = ["debug", "info", "warn", "error"] as const;
 
@@ -31,11 +36,16 @@ export const CUSTOM_ERROR_CODES: Record<
   REFERENCE_NOT_ACTIVE: { publicErrorCode: "REFERENCE_ERROR", logLevel: "debug" },
   REFERENCE_AGREEMENT_NOT_FOUND: { publicErrorCode: "REFERENCE_ERROR", logLevel: "debug" },
   REFERENCE_AGREEMENT_NOT_ACTIVE: { publicErrorCode: "REFERENCE_ERROR", logLevel: "debug" },
+  USER_MIGRATION_MULTIPLE_RECORD_ERROR: {
+    publicErrorCode: "AUTHENTICATION_ERROR",
+    logLevel: "error",
+  },
 } as const;
 
 const CUSTOM_PUBLIC_ERROR_MESSAGES: Record<CustomPublicErrorCode, string | undefined> = {
   ON_DEMAND_REPORT_ERROR: "An error occurred while running an on-demand report.",
   REFERENCE_ERROR: undefined,
+  AUTHENTICATION_ERROR: undefined,
 };
 
 export function getPublicErrorCodeFromInternal(
