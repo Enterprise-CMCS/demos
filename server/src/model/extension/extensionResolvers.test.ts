@@ -1,13 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  __createExtension,
-  __updateExtension,
-  deleteExtension,
-  extensionResolvers,
-} from "./extensionResolvers";
+import { __updateExtension, deleteExtension, extensionResolvers } from "./extensionResolvers";
 import {
   ApplicationStatus,
-  ApplicationType,
   ClearanceLevel,
   CreateExtensionInput,
   PhaseName,
@@ -41,6 +35,7 @@ import { selectManyApplicationPhases } from "../applicationPhase/queries";
 import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
 import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
+import { createExtension } from "./createExtension";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -96,28 +91,18 @@ vi.mock("../../dateUtilities", () => ({
   parseDateTimeOrLocalDateToEasternTZDate: vi.fn(),
 }));
 
+vi.mock("./createExtension", () => ({
+  createExtension: vi.fn(),
+}));
+
 describe("extensionResolvers", () => {
   const regularMocks = {
     extension: {
       update: vi.fn(),
     },
   };
-  const transactionMocks = {
-    application: {
-      create: vi.fn(),
-    },
-    extension: {
-      create: vi.fn(),
-    },
-  };
-  const mockTransaction = {
-    application: {
-      create: transactionMocks.application.create,
-    },
-    extension: {
-      create: transactionMocks.extension.create,
-    },
-  };
+
+  const mockTransaction = {};
   const mockPrismaClient = {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
     extension: {
@@ -133,12 +118,7 @@ describe("extensionResolvers", () => {
   };
 
   const testExtensionId = "8167c039-9c08-4203-b7d2-9e35ec156993";
-  const testDemonstrationId = "518aa497-d547-422e-95a0-02076c7f7698";
-  const testExtensionName = "The Extension";
   const testExtensionDescription = "A description of an extension";
-  const testExtensionTypeId: ApplicationType = "Extension";
-  const testExtensionStatusId: ApplicationStatus = "Pre-Submission";
-  const testExtensionPhaseId: PhaseName = "Concept";
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -287,63 +267,29 @@ describe("extensionResolvers", () => {
     });
   });
 
-  describe("__createExtension", () => {
-    it("should create an application and an extension in a transaction", async () => {
-      transactionMocks.application.create.mockResolvedValueOnce({
-        id: testExtensionId,
-        applicationTypeId: testExtensionTypeId,
-      });
+  describe("Mutation.createExtension", () => {
+    const testDemonstrationId = "123e4567-e89b-12d3-a456-426614174000";
+    const testName = "Test Extension";
+    const testDescription = "This is a test extension.";
+    const testSignatureLevel = "OA" satisfies SignatureLevel;
+    it("should call the createExtension function with the right arguments", async () => {
       const testInput: { input: CreateExtensionInput } = {
         input: {
           demonstrationId: testDemonstrationId,
-          name: testExtensionName,
-          description: testExtensionDescription,
+          name: testName,
+          description: testDescription,
+          signatureLevel: testSignatureLevel,
         },
       };
-      const expectedCalls = [
-        {
-          data: {
-            applicationTypeId: testExtensionTypeId,
-          },
-        },
-        {
-          data: {
-            id: testExtensionId,
-            applicationTypeId: testExtensionTypeId,
-            demonstrationId: testDemonstrationId,
-            name: testExtensionName,
-            description: testExtensionDescription,
-            statusId: testExtensionStatusId,
-            currentPhaseId: testExtensionPhaseId,
-          },
-        },
-      ];
-      await __createExtension(undefined, testInput);
-      expect(transactionMocks.application.create).toHaveBeenCalledExactlyOnceWith(expectedCalls[0]);
-      expect(transactionMocks.extension.create).toHaveBeenCalledExactlyOnceWith(expectedCalls[1]);
+
+      await extensionResolvers.Mutation.createExtension({}, testInput);
+      expect(createExtension).toHaveBeenCalledExactlyOnceWith({
+        demonstrationId: testDemonstrationId,
+        name: testName,
+        description: testDescription,
+        signatureLevelId: testSignatureLevel,
+      });
     });
-
-    it.each(["OA", "OCD"] as const)(
-      "allows valid signature level %s during creation",
-      async (signatureLevel) => {
-        transactionMocks.application.create.mockResolvedValueOnce({
-          id: testExtensionId,
-          applicationTypeId: testExtensionTypeId,
-        });
-
-        await __createExtension(undefined, {
-          input: {
-            demonstrationId: testDemonstrationId,
-            name: testExtensionName,
-            description: testExtensionDescription,
-            signatureLevel,
-          },
-        });
-
-        expect(transactionMocks.application.create).toHaveBeenCalledOnce();
-        expect(transactionMocks.extension.create).toHaveBeenCalledOnce();
-      }
-    );
   });
 
   describe("__updateExtension", () => {

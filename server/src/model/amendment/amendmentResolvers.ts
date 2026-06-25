@@ -72,12 +72,12 @@ export const amendmentResolvers = {
   },
 
   Mutation: {
-    createAmendment: (parent: unknown, args: CreateAmendmentInput) =>
+    createAmendment: (parent: unknown, args: { input: CreateAmendmentInput }) =>
       createAmendment({
-        demonstrationId: args.demonstrationId,
-        name: args.name,
-        description: args.description,
-        signatureLevelId: args.signatureLevel,
+        demonstrationId: args.input.demonstrationId,
+        name: args.input.name,
+        description: args.input.description,
+        signatureLevelId: args.input.signatureLevel,
       }),
     updateAmendment: __updateAmendment,
     deleteAmendment: deleteAmendment,

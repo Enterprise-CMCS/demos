@@ -265,11 +265,13 @@ describe("amendmentResolvers", () => {
     const testDescription = "This is a test amendment.";
     const testSignatureLevel = "OA" satisfies SignatureLevel;
     it("should call the createAmendment function with the right arguments", async () => {
-      const testInput: CreateAmendmentInput = {
-        demonstrationId: testDemonstrationId,
-        name: testName,
-        description: testDescription,
-        signatureLevel: testSignatureLevel,
+      const testInput: { input: CreateAmendmentInput } = {
+        input: {
+          demonstrationId: testDemonstrationId,
+          name: testName,
+          description: testDescription,
+          signatureLevel: testSignatureLevel,
+        },
       };
 
       await amendmentResolvers.Mutation.createAmendment({}, testInput);
