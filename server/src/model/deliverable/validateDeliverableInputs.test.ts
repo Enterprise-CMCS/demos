@@ -7,6 +7,7 @@ import { DeepPartial } from "../../testUtilities";
 import { GraphQLContext } from "../../auth";
 import { ApplicationStatus, PersonType } from "../../types";
 import {
+  checkDeliverableHasNoUnsubmittedStateDocuments,
   ParsedApproveDeliverableExtensionInput,
   ParsedCreateDeliverableInput,
   ParsedRequestDeliverableExtensionInput,
@@ -66,6 +67,7 @@ vi.mock(".", () => ({
   checkRequestedDeliverableDemonstrationType: vi.fn(),
   checkRequiredDeliverableDemonstrationTypes: vi.fn(),
   selectDeliverableOrThrow: vi.fn(),
+  checkDeliverableHasNoUnsubmittedStateDocuments: vi.fn(),
 }));
 
 import { getApplication } from "../application";
@@ -815,29 +817,31 @@ describe("validateDeliverableInputs", () => {
       vi.resetAllMocks();
     });
 
-    it("should not throw if none of the rules are violated", () => {
+    it("should not throw if none of the rules are violated", async () => {
       // Note: don't need to set returns to undefined, as this is what vi.fn() does already
       const testInput: Partial<PrismaDeliverable> = {
         id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
         statusId: "Under CMS Review",
       };
 
-      expect(validateCompleteDeliverableInput(testInput as PrismaDeliverable)).toBeUndefined();
+      expect(
+        await validateCompleteDeliverableInput(testInput as PrismaDeliverable, mockTransaction)
+      ).toBeUndefined();
     });
 
-    it("should call the check functions", () => {
+    it("should call the check functions", async () => {
       const testInput: Partial<PrismaDeliverable> = {
         id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
         statusId: "Under CMS Review",
       };
 
-      validateCompleteDeliverableInput(testInput as PrismaDeliverable);
+      await validateCompleteDeliverableInput(testInput as PrismaDeliverable, mockTransaction);
       expect(checkDeliverableHasStatus).toHaveBeenCalledExactlyOnceWith(testInput, [
         "Under CMS Review",
       ]);
     });
 
-    it("should throw if the deliverable status check fails", () => {
+    it("should throw if the deliverable status check fails", async () => {
       const testInput: Partial<PrismaDeliverable> = {
         id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
         statusId: "Submitted",
@@ -845,7 +849,7 @@ describe("validateDeliverableInputs", () => {
       vi.mocked(checkDeliverableHasStatus).mockReturnValue("The deliverable status check failed!");
 
       try {
-        validateCompleteDeliverableInput(testInput as PrismaDeliverable);
+        await validateCompleteDeliverableInput(testInput as PrismaDeliverable, mockTransaction);
         throw new Error("Expected validateCompleteDeliverableInput to throw, but it did not.");
       } catch (e) {
         expect(e).toBeInstanceOf(GraphQLError);
@@ -856,6 +860,32 @@ describe("validateDeliverableInputs", () => {
         expect(error.extensions.code).toBe("COMPLETE_DELIVERABLE_VALIDATION_FAILED");
         expect(error.extensions.originalMessages).toStrictEqual([
           "The deliverable status check failed!",
+        ]);
+      }
+    });
+
+    it("should throw if the unsubmitted state document check fails", async () => {
+      const testInput: Partial<PrismaDeliverable> = {
+        id: "86e6a9f2-ea55-40de-a802-507d5b2cd852",
+      };
+      vi.mocked(checkDeliverableHasNoUnsubmittedStateDocuments).mockResolvedValue(
+        "The unsubmitted state document check failed!"
+      );
+
+      try {
+        await validateCompleteDeliverableInput(testInput as PrismaDeliverable, mockTransaction);
+        throw new Error(
+          "Expected checkDeliverableHasNoUnsubmittedStateDocuments to throw, but it did not."
+        );
+      } catch (e) {
+        expect(e).toBeInstanceOf(GraphQLError);
+        const error = e as GraphQLError;
+        expect(error.message).toBe(
+          "One or more validation checks for completeDeliverable have failed."
+        );
+        expect(error.extensions.code).toBe("COMPLETE_DELIVERABLE_VALIDATION_FAILED");
+        expect(error.extensions.originalMessages).toStrictEqual([
+          "The unsubmitted state document check failed!",
         ]);
       }
     });

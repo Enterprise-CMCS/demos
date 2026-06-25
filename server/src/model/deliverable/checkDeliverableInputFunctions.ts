@@ -43,6 +43,23 @@ export function checkDeliverableHasStatus(
   }
 }
 
+export async function checkDeliverableHasNoUnsubmittedStateDocuments(
+  deliverable: PrismaDeliverable,
+  tx: PrismaTransactionClient
+): Promise<string | undefined> {
+  const documents = await selectManyDocuments(
+    {
+      deliverableId: deliverable.id,
+      deliverableIsCmsAttachedFile: false,
+      deliverableSubmissionActionId: null,
+    },
+    tx
+  );
+  if (documents.length > 0) {
+    return `Deliverable ${deliverable.id} has unsubmitted state documents; cannot complete deliverable.`;
+  }
+}
+
 export function checkOwnerPersonType(ownerUser: PrismaUser): string | undefined {
   const permittedOwnerPersonTypes: readonly PersonType[] = ["demos-admin", "demos-cms-user"];
   // Cast enforced by DB constraints
