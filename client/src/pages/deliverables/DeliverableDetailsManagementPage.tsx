@@ -19,7 +19,7 @@ import { useDialog } from "components/dialog/DialogContext";
 import { CommentBox } from "./sections/comment_box";
 import { DeliverableInfoFields } from "./sections/DeliverableInfoFields";
 import { ExtensionRequestedNotice } from "./sections/ExtensionRequestedNotice";
-import { FileAndHistoryTabs } from "./sections/FileAndHistoryTabs";
+import { FileAndHistoryTabs } from "./fileAndHistoryTabs/FileAndHistoryTabs";
 import { PendingReviewNotice } from "./sections/PendingReviewNotice";
 import { DeliverableButtons } from "./sections/DeliverableButtons";
 import type { DeliverableFileRow } from "./sections/DeliverableFileTypes";
@@ -232,7 +232,9 @@ export const DeliverableDetailsManagementPage: React.FC<{
     if (DEMONSTRATION_DELIVERABLES_BACK_PERSON_TYPES.has(userPersonType)) {
       const demonstrationId = data?.deliverable?.demonstration?.id;
       if (!demonstrationId) {
-        throw new Error("Cannot navigate to demonstration deliverables without a demonstration id.");
+        throw new Error(
+          "Cannot navigate to demonstration deliverables without a demonstration id."
+        );
       }
       navigate(`/demonstrations/${demonstrationId}`);
       return;

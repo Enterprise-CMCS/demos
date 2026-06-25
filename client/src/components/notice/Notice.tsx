@@ -27,25 +27,25 @@ const VARIANT_TO_ICON: Record<NoticeVariant, React.ReactNode> = {
   error: <ErrorIcon />,
 };
 
-interface NoticeProps {
+export const Notice = ({
+  title,
+  description,
+  variant = "info",
+  testId,
+  onDismiss,
+}: {
   title: string;
   description?: React.ReactNode;
   variant?: NoticeVariant;
   onDismiss?: () => void;
-}
-
-export const Notice: React.FC<NoticeProps> = ({
-  title,
-  description,
-  variant = "info",
-  onDismiss,
+  testId?: string;
 }) => {
   const variantClasses = VARIANT_TO_CLASSNAME[variant];
   const icon = VARIANT_TO_ICON[variant];
 
   return (
     <div
-      data-testid={`notice-${variant}`}
+      data-testid={testId ?? `notice-${variant}`}
       role="status"
       aria-live="polite"
       className={`${COMMON_CLASSES} ${variantClasses}`}

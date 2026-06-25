@@ -521,6 +521,7 @@ erDiagram
     CONSTRAINT_CHECK require_extension_id_for_extension_actions "If the action type requires an extension ID, require it to be present."
     CONSTRAINT_CHECK check_non_empty_note "Check that the note is either null or a non empty string."
     TRIGGER_BEFORE_INSERT block_final_states_if_extension_request_active "If an active extension request exists, do not allow moving the deliverable to completed."
+    TRIGGER_BEFORE_INSERT block_final_states_if_unsubmitted_state_documents_exist "If an unsubmitted state document exists, do not allow moving the deliverable to completed."
     TRIGGER_BEFORE_INSERT capture_active_extension_request_id_for_action "Before insert, look in deliverable_active_extension and if there is an active extension for this deliverable, add the ID here."
     TRIGGER_AFTER_INSERT update_documents_in_submission "After insert, if it is a submission, go to the documents table and associate the action with any non-cms-attached documents not belonging to a submission."
     TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."

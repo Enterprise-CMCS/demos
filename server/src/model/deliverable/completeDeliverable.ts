@@ -6,7 +6,7 @@ import {
   editDeliverable,
   validateCompleteDeliverableInput,
   validateUserPersonTypeAllowed,
-  selectDeliverableOrThrow
+  selectDeliverableOrThrow,
 } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 
@@ -18,7 +18,7 @@ export async function completeDeliverable(
   validateUserPersonTypeAllowed(context, "completeDeliverable", ["demos-admin", "demos-cms-user"]);
   return await prisma().$transaction(async (tx) => {
     const incompleteDeliverable = await selectDeliverableOrThrow({ id: deliverableId }, tx);
-    validateCompleteDeliverableInput(incompleteDeliverable);
+    await validateCompleteDeliverableInput(incompleteDeliverable, tx);
 
     const completedDeliverable = await editDeliverable(
       deliverableId,

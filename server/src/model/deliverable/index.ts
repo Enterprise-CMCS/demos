@@ -14,6 +14,7 @@ export {
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
   checkRequiredDeliverableDemonstrationTypes,
+  checkDeliverableHasNoUnsubmittedStateDocuments,
 } from "./checkDeliverableInputFunctions";
 export { completeDeliverable } from "./completeDeliverable";
 export { createDeliverable } from "./createDeliverable";

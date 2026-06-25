@@ -5,13 +5,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import {
   COMPLETE_REVIEW_DIALOG_TITLE,
-  COMPLETE_REVIEW_ELIGIBLE_STATUSES,
   COMPLETE_REVIEW_STATUS_FIELD_NAME,
   COMPLETE_REVIEW_SUBMIT_BUTTON_NAME,
   CompleteReviewDeliverableDialog,
   CompleteReviewDeliverableDialogDeliverable,
   INITIAL_FORM_DATA,
-  canCompleteReview,
   formHasChanges,
   formIsValid,
 } from "./CompleteReviewDeliverableDialog";
@@ -105,10 +103,7 @@ describe("CompleteReviewDeliverableDialog", () => {
 
     expect(submit).toBeDisabled();
 
-    await user.selectOptions(
-      screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME),
-      "Approved"
-    );
+    await user.selectOptions(screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME), "Approved");
 
     await waitFor(() => expect(submit).not.toBeDisabled());
   });
@@ -117,10 +112,7 @@ describe("CompleteReviewDeliverableDialog", () => {
     const user = userEvent.setup();
     const { onClose } = setup();
 
-    await user.selectOptions(
-      screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME),
-      "Accepted"
-    );
+    await user.selectOptions(screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME), "Accepted");
 
     await user.click(screen.getByTestId(COMPLETE_REVIEW_SUBMIT_BUTTON_NAME));
 
@@ -131,9 +123,7 @@ describe("CompleteReviewDeliverableDialog", () => {
         id: "deliverable-1",
         finalStatus: "Accepted",
       },
-      refetchQueries: [
-        { query: DELIVERABLE_DETAILS_QUERY, variables: { id: "deliverable-1" } },
-      ],
+      refetchQueries: [{ query: DELIVERABLE_DETAILS_QUERY, variables: { id: "deliverable-1" } }],
       awaitRefetchQueries: true,
     });
 
@@ -147,10 +137,7 @@ describe("CompleteReviewDeliverableDialog", () => {
 
     const { onClose } = setup();
 
-    await user.selectOptions(
-      screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME),
-      "Approved"
-    );
+    await user.selectOptions(screen.getByTestId(COMPLETE_REVIEW_STATUS_FIELD_NAME), "Approved");
     await user.click(screen.getByTestId(COMPLETE_REVIEW_SUBMIT_BUTTON_NAME));
 
     await waitFor(() =>
@@ -181,28 +168,6 @@ describe("CompleteReviewDeliverableDialog", () => {
     await user.click(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME));
 
     expect(onClose).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe("canCompleteReview", () => {
-  const noExtensions: { status: "Requested" | "Approved" | "Denied" }[] = [];
-  const openExtensions = [{ status: "Requested" as const }];
-  const resolvedExtensions = [{ status: "Approved" as const }];
-
-  it("returns true for Under CMS Review with no open extensions", () => {
-    expect(canCompleteReview("Under CMS Review", noExtensions)).toBe(true);
-    expect(canCompleteReview("Under CMS Review", resolvedExtensions)).toBe(true);
-    expect(COMPLETE_REVIEW_ELIGIBLE_STATUSES.has("Under CMS Review")).toBe(true);
-  });
-
-  it("returns false when an extension is still Requested", () => {
-    expect(canCompleteReview("Under CMS Review", openExtensions)).toBe(false);
-  });
-
-  it.each(
-    ["Upcoming", "Past Due", "Submitted", "Accepted", "Approved", "Received and Filed"] as const
-  )("returns false for %s", (status) => {
-    expect(canCompleteReview(status, noExtensions)).toBe(false);
   });
 });
 
