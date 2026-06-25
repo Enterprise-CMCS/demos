@@ -1,10 +1,12 @@
 // Vitest and other helpers
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { TZDate } from "@date-fns/tz";
+import { ZodError } from "zod";
 
 // Types
-import { ZodError } from "zod";
-import { ContextUser, GraphQLContext } from "../../auth";
-import { OnDemandReportType } from "../../types";
+import type { ContextUser, GraphQLContext } from "../../auth";
+import type { OnDemandReportType } from "../../types";
+import type { EasternNow } from "../../dateUtilities";
 
 // Functions under test
 import { onDemandReportResolvers } from "./onDemandReportResolvers";
@@ -51,6 +53,10 @@ vi.mock("../../log", () => ({
   },
 }));
 
+vi.mock("../../dateUtilities", () => ({
+  getEasternNow: vi.fn(),
+}));
+
 import { runOnDemandReport, formatOnDemandReportInExcel } from "../../onDemandReports";
 import { prisma } from "../../prismaClient";
 import { getS3Adapter, S3Adapter } from "../../adapters";
@@ -59,13 +65,19 @@ import { randomUUID } from "node:crypto";
 import { throwCustomGQLError } from "../../errors/errorCodes";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { log } from "../../log";
+import { getEasternNow } from "../../dateUtilities";
 
 describe("onDemandReportResolvers", () => {
   const testContextUser: Partial<ContextUser> = { id: "user-123" };
   const testContext: GraphQLContext = { user: testContextUser as ContextUser };
   const testReportType: OnDemandReportType = "Basic Test Report";
 
-  const mockCurrentDate = new Date(2024, 7, 19, 20, 10, 55, 181);
+  const mockEasternNow: Partial<EasternNow> = {
+    "Current Time": {
+      isEasternTZDate: true,
+      easternTZDate: new TZDate(2024, 7, 19, 20, 10, 55, 181, "America/New_York"),
+    },
+  };
   const mockReportId = "11111111-1111-1111-1111-111111111111";
   const mockS3Path = `s3://clean-bucket/reports/on-demand/${mockReportId}.xlsx`;
   const mockFormattedReport = Buffer.from("mock-excel-buffer");
@@ -84,8 +96,7 @@ describe("onDemandReportResolvers", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.useFakeTimers();
-    vi.setSystemTime(mockCurrentDate);
+    vi.mocked(getEasternNow).mockReturnValue(mockEasternNow as EasternNow);
     vi.mocked(randomUUID).mockReturnValue(mockReportId);
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(getS3Adapter).mockReturnValue(mockS3Adapter as S3Adapter);
@@ -105,10 +116,6 @@ describe("onDemandReportResolvers", () => {
     });
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
   describe("Mutation.generateOnDemandReport", () => {
     it("generates a report, formats it, and returns a presigned download URL", async () => {
       const result = await onDemandReportResolvers.Mutation.generateOnDemandReport(
@@ -118,7 +125,10 @@ describe("onDemandReportResolvers", () => {
       );
 
       expect(runOnDemandReport).toHaveBeenCalledExactlyOnceWith(testReportType, mockTransaction);
-      expect(formatOnDemandReportInExcel).toHaveBeenCalledExactlyOnceWith(testReportType, []);
+      expect(formatOnDemandReportInExcel).toHaveBeenCalledExactlyOnceWith(testReportType, [], {
+        requestId: mockReportId,
+        requestTimestamp: mockEasternNow["Current Time"],
+      });
       expect(mockUploadOnDemandReport).toHaveBeenCalledExactlyOnceWith(
         mockReportId,
         mockFormattedReport
@@ -130,7 +140,7 @@ describe("onDemandReportResolvers", () => {
           requestingUserId: testContextUser.id,
           reportTypeId: testReportType,
           statusId: "Available",
-          reportGeneratedAt: mockCurrentDate,
+          reportGeneratedAt: mockEasternNow["Current Time"]!.easternTZDate,
         },
         mockTransaction
       );
