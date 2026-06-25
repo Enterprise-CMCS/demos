@@ -20,7 +20,10 @@ import { selectManyDocuments } from "../document";
 import { selectManyDeliverableExtensions } from "../deliverableExtension/queries";
 import { selectManyPublicComments } from "../publicComment/queries";
 import { selectManyPrivateComments } from "../privateComment/queries";
-import { REQUIRED_DEMONSTRATION_TYPE_DELIVERABLES } from "../../constants";
+import {
+  REQUIRED_DEMONSTRATION_TYPE_DELIVERABLES,
+  STATE_ACTIONABLE_DELIVERABLE_STATUSES,
+} from "../../constants";
 
 export function checkDemonstrationStatus(demonstration: PrismaDemonstration): string | undefined {
   const approvedStatus: ApplicationStatus = "Approved";
@@ -189,5 +192,30 @@ export function checkRequiredDeliverableDemonstrationTypes(
 
   if (requiresDemoTypes && (!demonstrationTypes || demonstrationTypes.size === 0)) {
     return `Deliverable type ${deliverableType} requires at least one demonstration type`;
+  }
+}
+
+export async function checkIsFileSubmissionOrStatusChange(
+  deliverable: PrismaDeliverable,
+  tx: PrismaTransactionClient
+): Promise<string | undefined> {
+  const unsubmittedStateDocuments = await tx.document.findMany({
+    where: {
+      deliverableId: deliverable.id,
+      deliverableIsCmsAttachedFile: false,
+      deliverableSubmissionActionId: null,
+    },
+  });
+
+  if (
+    (STATE_ACTIONABLE_DELIVERABLE_STATUSES as DeliverableStatus[]).includes(
+      deliverable.statusId as DeliverableStatus
+    )
+  ) {
+    return undefined;
+  }
+
+  if (unsubmittedStateDocuments.length < 1) {
+    return `Deliverable ${deliverable.id} has no unsubmitted state documents and is not in a status that allows submission; cannot submit deliverable.`;
   }
 }

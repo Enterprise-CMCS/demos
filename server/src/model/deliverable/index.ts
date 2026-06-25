@@ -16,6 +16,7 @@ export {
   checkRequestedDeliverableDemonstrationType,
   checkRequiredDeliverableDemonstrationTypes,
   checkDeliverableHasNoUnsubmittedStateDocuments,
+  checkIsFileSubmissionOrStatusChange,
 } from "./checkDeliverableInputFunctions";
 export { completeDeliverable } from "./completeDeliverable";
 export { createDeliverable } from "./createDeliverable";

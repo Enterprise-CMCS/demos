@@ -28,6 +28,7 @@ import {
   checkDeliverableHasNoComments,
   checkDeliverableHasNoDocuments,
   checkDeliverableHasNoUnsubmittedStateDocuments,
+  checkIsFileSubmissionOrStatusChange,
   checkDeliverableHasStatus,
   checkDemonstrationStatus,
   checkDueDateInFuture,
@@ -591,6 +592,70 @@ describe("checkDeliverableInputFunctions", () => {
       const result = checkRequiredDeliverableDemonstrationTypes("Evaluation Design", undefined);
 
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe("checkIsFileSubmissionOrStatusChange", () => {
+    const testDeliverableId = "0cab48de-a565-4d16-b455-f4ec19f86386";
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      id: testDeliverableId,
+      statusId: "Approved" satisfies DeliverableStatus,
+    };
+
+    const mockFindMany = vi.fn();
+    const testTransaction = {
+      document: {
+        findMany: mockFindMany,
+      },
+    } as any;
+
+    beforeEach(() => {
+      vi.resetAllMocks();
+    });
+
+    it("should return undefined if the deliverable status allows submission", async () => {
+      mockFindMany.mockResolvedValue([]);
+
+      const result = await checkIsFileSubmissionOrStatusChange(
+        {
+          ...testDeliverable,
+          statusId: "Upcoming",
+        } as PrismaDeliverable,
+        testTransaction
+      );
+
+      expect(result).toBeUndefined();
+      expect(mockFindMany).toHaveBeenCalledExactlyOnceWith({
+        where: {
+          deliverableId: testDeliverableId,
+          deliverableIsCmsAttachedFile: false,
+          deliverableSubmissionActionId: null,
+        },
+      });
+    });
+
+    it("should return undefined if there are unsubmitted state documents", async () => {
+      mockFindMany.mockResolvedValue([{ id: "abc123" }]);
+
+      const result = await checkIsFileSubmissionOrStatusChange(
+        testDeliverable as PrismaDeliverable,
+        testTransaction
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it("should return an error message if there are no unsubmitted state documents and the status does not allow submission", async () => {
+      mockFindMany.mockResolvedValue([]);
+
+      const result = await checkIsFileSubmissionOrStatusChange(
+        testDeliverable as PrismaDeliverable,
+        testTransaction
+      );
+
+      expect(result).toBe(
+        `Deliverable ${testDeliverableId} has no unsubmitted state documents and is not in a status that allows submission; cannot submit deliverable.`
+      );
     });
   });
 });

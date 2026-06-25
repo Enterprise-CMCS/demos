@@ -68,6 +68,7 @@ vi.mock(".", () => ({
   checkRequiredDeliverableDemonstrationTypes: vi.fn(),
   selectDeliverableOrThrow: vi.fn(),
   checkDeliverableHasNoUnsubmittedStateDocuments: vi.fn(),
+  checkIsFileSubmissionOrStatusChange: vi.fn(),
 }));
 
 import { getApplication } from "../application";
@@ -88,6 +89,7 @@ import {
   checkRequestedDeliverableDemonstrationType,
   checkRequiredDeliverableDemonstrationTypes,
   selectDeliverableOrThrow,
+  checkIsFileSubmissionOrStatusChange,
 } from ".";
 import { ACTIVE_DELIVERABLE_STATUSES } from "../../constants";
 
@@ -674,9 +676,9 @@ describe("validateDeliverableInputs", () => {
       };
 
       await validateSubmitDeliverableInput(testInput as PrismaDeliverable, mockTransaction);
-      expect(checkDeliverableHasStatus).toHaveBeenCalledExactlyOnceWith(
+      expect(checkIsFileSubmissionOrStatusChange).toHaveBeenCalledExactlyOnceWith(
         testInput,
-        ACTIVE_DELIVERABLE_STATUSES
+        mockTransaction
       );
       expect(checkDeliverableHasAtLeastOneDocument).toHaveBeenCalledExactlyOnceWith(
         testInput,
@@ -690,7 +692,9 @@ describe("validateDeliverableInputs", () => {
         statusId: "Approved",
         cmsOwnerUserId: "7d8fdea5-ca19-42e5-af50-98836b6d47db",
       };
-      vi.mocked(checkDeliverableHasStatus).mockReturnValue("The deliverable status check failed!");
+      vi.mocked(checkIsFileSubmissionOrStatusChange).mockResolvedValue(
+        "The deliverable status check failed!"
+      );
 
       try {
         await validateSubmitDeliverableInput(testInput as PrismaDeliverable, mockTransaction);
@@ -740,7 +744,9 @@ describe("validateDeliverableInputs", () => {
         statusId: "Approved",
         cmsOwnerUserId: "7d8fdea5-ca19-42e5-af50-98836b6d47db",
       };
-      vi.mocked(checkDeliverableHasStatus).mockReturnValue("The deliverable status check failed!");
+      vi.mocked(checkIsFileSubmissionOrStatusChange).mockResolvedValue(
+        "The deliverable status check failed!"
+      );
       vi.mocked(checkDeliverableHasAtLeastOneDocument).mockResolvedValue(
         "The deliverable document check has failed!"
       );
