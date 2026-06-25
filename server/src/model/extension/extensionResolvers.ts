@@ -49,6 +49,7 @@ export async function __createExtension(
         id: application.id,
         applicationTypeId: application.applicationTypeId,
         demonstrationId: input.demonstrationId,
+        demonstrationStatusId: "Approved" satisfies ApplicationStatus,
         name: input.name,
         description: input.description,
         statusId: newApplicationStatusId,
