@@ -1,13 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  __createAmendment,
-  __updateAmendment,
-  deleteAmendment,
-  amendmentResolvers,
-} from "./amendmentResolvers";
+import { __updateAmendment, deleteAmendment, amendmentResolvers } from "./amendmentResolvers";
 import {
   ApplicationStatus,
-  ApplicationType,
   ClearanceLevel,
   CreateAmendmentInput,
   PhaseName,
@@ -38,6 +32,7 @@ import { selectManyApplicationTagAssignments } from "../applicationTagAssignment
 import { ApplicationTagAssignmentQueryResult } from "../applicationTagAssignment/queries";
 import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
+import { createAmendment } from ".";
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
 }));
@@ -76,6 +71,10 @@ vi.mock("../../errors/checkOptionalNotNullFields", () => ({
   checkOptionalNotNullFields: vi.fn(),
 }));
 
+vi.mock(".", () => ({
+  createAmendment: vi.fn(),
+}));
+
 const testHandlePrismaError = new Error("Test handlePrismaError!");
 vi.mock("../../errors/handlePrismaError", () => ({
   handlePrismaError: vi.fn(() => {
@@ -98,22 +97,8 @@ describe("amendmentResolvers", () => {
       update: vi.fn(),
     },
   };
-  const transactionMocks = {
-    application: {
-      create: vi.fn(),
-    },
-    amendment: {
-      create: vi.fn(),
-    },
-  };
-  const mockTransaction = {
-    application: {
-      create: transactionMocks.application.create,
-    },
-    amendment: {
-      create: transactionMocks.amendment.create,
-    },
-  };
+
+  const mockTransaction = {};
   const mockPrismaClient = {
     $transaction: vi.fn((callback) => callback(mockTransaction)),
     amendment: {
@@ -125,12 +110,7 @@ describe("amendmentResolvers", () => {
     user: mockUser,
   };
   const testAmendmentId = "8167c039-9c08-4203-b7d2-9e35ec156993";
-  const testDemonstrationId = "518aa497-d547-422e-95a0-02076c7f7698";
-  const testAmendmentName = "The Amendment";
   const testAmendmentDescription = "A description of an amendment";
-  const testAmendmentTypeId: ApplicationType = "Amendment";
-  const testAmendmentStatusId: ApplicationStatus = "Pre-Submission";
-  const testAmendmentPhaseId: PhaseName = "Concept";
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -279,63 +259,29 @@ describe("amendmentResolvers", () => {
     });
   });
 
-  describe("__createAmendment", () => {
-    it("should create an application and an amendment in a transaction", async () => {
-      transactionMocks.application.create.mockResolvedValueOnce({
-        id: testAmendmentId,
-        applicationTypeId: testAmendmentTypeId,
-      });
+  describe("Mutation.createAmendment", () => {
+    const testDemonstrationId = "123e4567-e89b-12d3-a456-426614174000";
+    const testName = "Test Amendment";
+    const testDescription = "This is a test amendment.";
+    const testSignatureLevel = "OA" satisfies SignatureLevel;
+    it("should call the createAmendment function with the right arguments", async () => {
       const testInput: { input: CreateAmendmentInput } = {
         input: {
           demonstrationId: testDemonstrationId,
-          name: testAmendmentName,
-          description: testAmendmentDescription,
+          name: testName,
+          description: testDescription,
+          signatureLevel: testSignatureLevel,
         },
       };
-      const expectedCalls = [
-        {
-          data: {
-            applicationTypeId: testAmendmentTypeId,
-          },
-        },
-        {
-          data: {
-            id: testAmendmentId,
-            applicationTypeId: testAmendmentTypeId,
-            demonstrationId: testDemonstrationId,
-            name: testAmendmentName,
-            description: testAmendmentDescription,
-            statusId: testAmendmentStatusId,
-            currentPhaseId: testAmendmentPhaseId,
-          },
-        },
-      ];
-      await __createAmendment(undefined, testInput);
-      expect(transactionMocks.application.create).toHaveBeenCalledExactlyOnceWith(expectedCalls[0]);
-      expect(transactionMocks.amendment.create).toHaveBeenCalledExactlyOnceWith(expectedCalls[1]);
+
+      await amendmentResolvers.Mutation.createAmendment({}, testInput);
+      expect(createAmendment).toHaveBeenCalledExactlyOnceWith({
+        demonstrationId: testDemonstrationId,
+        name: testName,
+        description: testDescription,
+        signatureLevelId: testSignatureLevel,
+      });
     });
-
-    it.each(["OA", "OCD"] as const)(
-      "allows valid signature level %s during creation",
-      async (signatureLevel) => {
-        transactionMocks.application.create.mockResolvedValueOnce({
-          id: testAmendmentId,
-          applicationTypeId: testAmendmentTypeId,
-        });
-
-        await __createAmendment(undefined, {
-          input: {
-            demonstrationId: testDemonstrationId,
-            name: testAmendmentName,
-            description: testAmendmentDescription,
-            signatureLevel,
-          },
-        });
-
-        expect(transactionMocks.application.create).toHaveBeenCalledOnce();
-        expect(transactionMocks.amendment.create).toHaveBeenCalledOnce();
-      }
-    );
   });
 
   describe("__updateAmendment", () => {

@@ -7,7 +7,6 @@ export {
   checkDeliverableHasNoComments,
   checkDeliverableHasNoDocuments,
   checkDeliverableHasStatus,
-  checkDemonstrationStatus,
   checkDueDateInFuture,
   checkForDuplicateDemonstrationTypes,
   checkNewDueDateIsAtLeastCurrentDueDate,

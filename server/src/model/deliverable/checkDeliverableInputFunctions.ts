@@ -1,13 +1,11 @@
 import {
   Deliverable as PrismaDeliverable,
   DeliverableExtension as PrismaDeliverableExtension,
-  Demonstration as PrismaDemonstration,
   DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
   User as PrismaUser,
 } from "@prisma/client";
 import { PrismaTransactionClient } from "../../prismaClient";
 import {
-  ApplicationStatus,
   DeliverableExtensionStatus,
   DeliverableStatus,
   DeliverableType,
@@ -21,13 +19,6 @@ import { selectManyDeliverableExtensions } from "../deliverableExtension/queries
 import { selectManyPublicComments } from "../publicComment/queries";
 import { selectManyPrivateComments } from "../privateComment/queries";
 import { REQUIRED_DEMONSTRATION_TYPE_DELIVERABLES } from "../../constants";
-
-export function checkDemonstrationStatus(demonstration: PrismaDemonstration): string | undefined {
-  const approvedStatus: ApplicationStatus = "Approved";
-  if (demonstration.statusId !== approvedStatus) {
-    return `Demonstration ${demonstration.id} is not in Approved status; cannot create deliverable.`;
-  }
-}
 
 export function checkDeliverableHasStatus(
   deliverable: PrismaDeliverable,
