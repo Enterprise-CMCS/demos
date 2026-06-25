@@ -16,6 +16,20 @@ describe("Notice", () => {
     expect(notice).toHaveTextContent("Details about the notice");
   });
 
+  it("overrides the default test ID when provided", () => {
+    render(
+      <Notice
+        title="Heads up"
+        description="Details about the notice"
+        variant="warning"
+        testId="custom-notice-id"
+      />
+    );
+
+    const notice = screen.getByTestId("custom-notice-id");
+    expect(notice).toBeInTheDocument();
+  });
+
   it("calls onDismiss when the dismiss button is clicked", () => {
     const handleDismiss = vi.fn();
 
