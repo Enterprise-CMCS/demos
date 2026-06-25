@@ -14,7 +14,7 @@ vi.mock("../../prismaClient", () => ({
 }));
 
 vi.mock(".", () => ({
-  findUserByCognitoSubject: vi.fn(),
+  findUserByClaims: vi.fn(),
   createNewUserFromClaims: vi.fn(),
 }));
 
@@ -23,7 +23,7 @@ vi.mock("../../model/userSession/queries", () => ({
 }));
 
 import { prisma } from "../../prismaClient";
-import { findUserByCognitoSubject, createNewUserFromClaims } from ".";
+import { findUserByClaims, createNewUserFromClaims } from ".";
 import { upsertUserSession } from "../../model/userSession/queries";
 
 describe("findOrCreateContextUserFromClaims", () => {
@@ -59,15 +59,12 @@ describe("findOrCreateContextUserFromClaims", () => {
   });
 
   it("should return the existing user and skip creation when one matches the Cognito subject", async () => {
-    vi.mocked(findUserByCognitoSubject).mockResolvedValue(mockExistingUser);
+    vi.mocked(findUserByClaims).mockResolvedValue(mockExistingUser);
 
     const result = await findOrCreateContextUserFromClaims(testClaims as AuthorizationClaims);
 
     expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
-    expect(findUserByCognitoSubject).toHaveBeenCalledExactlyOnceWith(
-      testClaims.sub,
-      testTransaction
-    );
+    expect(findUserByClaims).toHaveBeenCalledExactlyOnceWith(testClaims, testTransaction);
     expect(createNewUserFromClaims).not.toHaveBeenCalled();
     expect(upsertUserSession).toHaveBeenCalledExactlyOnceWith(
       mockExistingUser.id,
@@ -78,15 +75,12 @@ describe("findOrCreateContextUserFromClaims", () => {
   });
 
   it("should create a new user when none matches the Cognito subject", async () => {
-    vi.mocked(findUserByCognitoSubject).mockResolvedValue(null);
+    vi.mocked(findUserByClaims).mockResolvedValue(null);
     vi.mocked(createNewUserFromClaims).mockResolvedValue(mockNewUser);
 
     const result = await findOrCreateContextUserFromClaims(testClaims as AuthorizationClaims);
 
-    expect(findUserByCognitoSubject).toHaveBeenCalledExactlyOnceWith(
-      testClaims.sub,
-      testTransaction
-    );
+    expect(findUserByClaims).toHaveBeenCalledExactlyOnceWith(testClaims, testTransaction);
     expect(createNewUserFromClaims).toHaveBeenCalledExactlyOnceWith(testClaims, testTransaction);
     expect(upsertUserSession).toHaveBeenCalledExactlyOnceWith(
       mockNewUser.id,

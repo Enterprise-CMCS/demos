@@ -1,7 +1,7 @@
 import type { Permission, UserType } from "../../types";
 
 export { createNewUserFromClaims } from "./createNewUserFromClaims";
-export { findUserByCognitoSubject } from "./findUserByCognitoSubject";
+export { findUserByClaims } from "./findUserByClaims";
 export { findOrCreateContextUserFromClaims } from "./userContext";
 export { getPersonTypeFromClaims } from "./getPersonTypeFromClaims";
 
