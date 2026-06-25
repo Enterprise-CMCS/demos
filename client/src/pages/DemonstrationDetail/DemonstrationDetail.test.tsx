@@ -157,6 +157,7 @@ describe("DemonstrationDetail", () => {
 
     expect(AmendmentsTab).toHaveBeenCalledWith(
       expect.objectContaining({
+        canCreateModifications: false,
         demonstrationId: "1",
         selectedAmendmentId: "amendment-1",
       }),
@@ -175,6 +176,7 @@ describe("DemonstrationDetail", () => {
 
     expect(ExtensionsTab).toHaveBeenCalledWith(
       expect.objectContaining({
+        canCreateModifications: false,
         demonstrationId: "1",
         selectedExtensionId: "extension-1",
       }),
@@ -202,6 +204,7 @@ describe("DemonstrationDetail", () => {
 
     expect(AmendmentsTab).toHaveBeenCalledWith(
       expect.objectContaining({
+        canCreateModifications: false,
         demonstrationId: "1",
       }),
       undefined
@@ -217,6 +220,7 @@ describe("DemonstrationDetail", () => {
 
     expect(ExtensionsTab).toHaveBeenCalledWith(
       expect.objectContaining({
+        canCreateModifications: false,
         demonstrationId: "1",
       }),
       undefined

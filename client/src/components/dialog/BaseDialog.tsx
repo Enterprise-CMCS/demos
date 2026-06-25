@@ -6,7 +6,7 @@ import { ConfirmCancellationDialog } from "./ConfirmCancellationDialog";
 
 export const DIALOG_CANCEL_BUTTON_NAME = "button-dialog-cancel";
 
-const DIALOG = tw`bg-surface-white text-text-font w-full rounded shadow-md p-md relative max-h-[85vh] overflow-y-auto space-y-sm backdrop:bg-black/40`;
+const DIALOG = tw`bg-surface-white text-text-font w-full rounded shadow-md p-md relative flex flex-col space-y-sm overflow-visible backdrop:bg-black/40`;
 const CLOSE_BUTTON = tw`absolute top-xs right-sm text-[22px] text-text-placeholder hover:text-text-font cursor-pointer`;
 const CLOSE_BUTTON_DISABLED = tw`absolute top-xs right-sm text-[22px] text-text-placeholder/50 cursor-not-allowed`;
 const TITLE = tw`text-[18px] font-bold mb-xs`;

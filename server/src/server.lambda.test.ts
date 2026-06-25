@@ -43,14 +43,6 @@ vi.mock("../logger.js", () => ({
   addToRequestContext: vi.fn(),
 }));
 
-// Auth config (single specifier is fine here)
-vi.mock("./auth/auth.config.js", () => ({
-  getAuthConfig: () => ({
-    audience: "test-audience",
-    issuer: "https://issuer.example/",
-    jwksUri: "https://issuer.example/.well-known/jwks.json",
-  }),
-}));
 vi.mock("./model/graphql.js", () => ({ typeDefs: "type Query { _empty: String }", resolvers: {} }));
 
 // JWT libs (defensive)

@@ -64,10 +64,10 @@ export function excelColumnRow(
 
   const columnLetters = match[1]!;
   const rowNumber = parseInt(match[2]!, 10) - 1;
-  
+
   const row = sheetData.data[rowNumber];
   if (!row) {
-    throw new Error(`Row ${rowNumber + 1} not found`);
+    return null;
   }
 
   return row[excelColumnToNumber(columnLetters)] as CellValue;

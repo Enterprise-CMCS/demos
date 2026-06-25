@@ -34,7 +34,7 @@ import {
 import { __updateAmendment } from "./model/amendment/amendmentResolvers.js";
 import { __createExtension, __updateExtension } from "./model/extension/extensionResolvers.js";
 import { __setApplicationDates } from "./model/applicationDate/applicationDateResolvers.js";
-import { GraphQLContext } from "./auth/auth.util.js";
+import { GraphQLContext } from "./auth";
 import { getManyApplications } from "./model/application";
 import {
   approveDeliverableExtension,
@@ -921,6 +921,8 @@ async function seedDatabase() {
       personTypeId: "demos-admin",
       cognitoSubject: bypassUserSub,
       username: "BYPASSED_USER",
+      isMigratedFromPmda: false,
+      hasLoggedIn: true,
     },
   });
 
@@ -944,6 +946,8 @@ async function seedDatabase() {
         personTypeId: person.personTypeId,
         cognitoSubject: faker.string.uuid(),
         username: faker.internet.username(),
+        isMigratedFromPmda: false,
+        hasLoggedIn: true,
       },
     });
   }
