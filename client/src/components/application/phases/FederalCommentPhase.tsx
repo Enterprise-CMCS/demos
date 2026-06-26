@@ -30,7 +30,7 @@ export const FEDERAL_COMMENT_PHASE_STEP_ONE_DESCRIPTION = {
   testId: "federal-comment-phase-step-one-description",
 };
 export const FEDERAL_COMMENT_PHASE_STEP_TWO_DESCRIPTION = {
-  text: "Upload the internal Analysis Document (Optional).",
+  text: "Upload the Internal Analysis Document (Optional).",
 };
 
 export const getFederalCommentPhaseFromApplication = (application: WorkflowApplication) => {

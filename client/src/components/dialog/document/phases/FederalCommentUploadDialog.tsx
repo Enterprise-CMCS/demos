@@ -9,8 +9,8 @@ import {
 } from "components/application";
 
 const FEDERAL_COMMENT_DOCUMENT_TYPES: DocumentType[] = [
-  "General File",
   "Federal Comment Internal Analysis Document",
+  "General File",
 ];
 
 export const FederalCommentUploadDialog = ({
