@@ -329,6 +329,33 @@ describe("ApprovalSummaryPhase", () => {
     expect(screen.getByText(/verify amendment/i)).toBeInTheDocument();
   });
 
+  it("calls updateDemonstration for demonstration", async () => {
+    setup(
+      buildInitialFormData({
+        applicationApprovalDate:
+          "2025-02-15" as ApplicationDetailsFormData["applicationApprovalDate"],
+      }),
+      [mockUpdateDemonstration]
+    );
+
+    const toggle = screen.getByRole("switch", { name: /mark complete/i });
+    await userEvent.click(toggle);
+
+    await waitFor(() => {
+      expect(mockUpdateDemonstrationResult).toHaveBeenCalledWith({
+        id: "demo-123",
+        input: {
+          name: "Test Demonstration",
+          description: "Test description",
+          effectiveDate: "2025-01-01",
+          expirationDate: "2026-01-01",
+          sdgDivision: "Division of System Reform Demonstrations",
+          projectOfficerUserId: "user-123",
+        },
+      });
+    });
+  });
+
   it("calls updateAmendment for amendment", async () => {
     setup(
       buildAmendmentFormData({
