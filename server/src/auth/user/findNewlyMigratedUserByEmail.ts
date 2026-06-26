@@ -1,9 +1,11 @@
+import type { User as PrismaUser } from "@prisma/client";
 import type { PrismaTransactionClient } from "../../prismaClient";
 import { selectManyUsers } from "../../model/user/queries";
 
+type FindMigratedUserResultType = "Exactly One Match" | "No Match" | "More Than One Match";
 export type FindMigratedUserResult = {
-  userIds: string[];
-  resultType: "Exactly One Match" | "No Match" | "More Than One Match";
+  users: PrismaUser[];
+  resultType: FindMigratedUserResultType;
 };
 
 export async function findNewlyMigratedUserByEmail(
@@ -14,20 +16,18 @@ export async function findNewlyMigratedUserByEmail(
     { person: { email: email }, isMigratedFromPmda: true, hasLoggedIn: false },
     tx
   );
+
+  let resultType: FindMigratedUserResultType;
   if (users.length === 0) {
-    return {
-      userIds: [],
-      resultType: "No Match",
-    };
+    resultType = "No Match";
   } else if (users.length > 1) {
-    return {
-      userIds: users.map((u) => u.id),
-      resultType: "More Than One Match",
-    };
+    resultType = "More Than One Match";
   } else {
-    return {
-      userIds: [users[0].id],
-      resultType: "Exactly One Match",
-    };
+    resultType = "Exactly One Match";
   }
+
+  return {
+    users: users,
+    resultType: resultType,
+  };
 }
