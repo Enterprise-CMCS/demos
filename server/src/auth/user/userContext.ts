@@ -10,12 +10,8 @@ export async function findOrCreateContextUserFromClaims(
   return await prisma().$transaction(async (tx) => {
     let result: ContextUser | null;
     result = await findUserByClaims(claims, tx);
-    if (!result) {
-      result = await linkNewlyMigratedUserFromClaims(claims, tx);
-    }
-    if (!result) {
-      result = await createNewUserFromClaims(claims, tx);
-    }
+    result ??= await linkNewlyMigratedUserFromClaims(claims, tx);
+    result ??= await createNewUserFromClaims(claims, tx);
     await upsertUserSession(result.id, claims.authTime, tx);
     return result;
   });
