@@ -7,6 +7,7 @@ import {
   getOptionsForYearSelect,
   QuarterlyDeliverableSchedule,
 } from "./QuarterlyDeliverableSchedule";
+import { getTodayEst } from "util/formatDate";
 
 describe("QuarterlyDeliverableSchedule", () => {
   it("renders 4 quarter datepickers", () => {
@@ -43,6 +44,14 @@ describe("QuarterlyDeliverableSchedule", () => {
     expect(screen.getByTestId("quarter-2")).toHaveValue("2026-04-15");
     expect(screen.getByTestId("quarter-3")).toHaveValue("2026-07-15");
     expect(screen.getByTestId("quarter-4")).toHaveValue("2026-10-15");
+  });
+
+  it("requires quarterly due dates to be today or later", () => {
+    render(<QuarterlyDeliverableSchedule onSelectYear={vi.fn()} />);
+
+    screen.getAllByLabelText(/Quarter/i).forEach((datePicker) => {
+      expect(datePicker).toHaveAttribute("min", getTodayEst());
+    });
   });
 
   it("calls onSelectQuarterDate with the correct quarter index and date when a date is changed", () => {

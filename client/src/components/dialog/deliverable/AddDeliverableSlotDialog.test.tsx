@@ -170,6 +170,37 @@ describe("AddDeliverableSlotDialog", () => {
     expect(screen.getAllByLabelText(/Quarter/i)).toHaveLength(4);
   });
 
+  it("enables save when a valid Quarterly form is completed in a different order", async () => {
+    const user = userEvent.setup();
+    setup({ expirationDate: new Date("2099-12-31") });
+
+    await waitFor(() => expect(screen.getByTestId("select-users")).toBeInTheDocument());
+
+    await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_NAME));
+    await user.click(screen.getByText("Aggregate Cap"));
+
+    await user.click(screen.getByTestId("select-schedule-type"));
+    await user.click(screen.getByText("Quarterly"));
+
+    ["quarter-1", "quarter-2", "quarter-3", "quarter-4"].forEach((quarterName, index) => {
+      fireEvent.change(screen.getByTestId(quarterName), {
+        target: { value: formatDateForServer(addYears(new Date(), index + 1)) },
+      });
+    });
+
+    await user.type(screen.getByTestId(DELIVERABLE_NAME_FIELD_ID), "Quarterly Report");
+
+    await user.click(screen.getByTestId("select-users"));
+    await user.click(screen.getByText("John Doe"));
+
+    await user.click(screen.getByTestId(DELIVERABLE_TYPE_SELECT_NAME));
+    await user.click(screen.getByText("Implementation Plan"));
+
+    await waitFor(() =>
+      expect(screen.getByTestId(ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME)).not.toBeDisabled()
+    );
+  });
+
   it("shows success toast and calls onClose when save is clicked with a valid Single schedule form", async () => {
     const user = userEvent.setup();
     const { onClose } = setup({ expirationDate: new Date("2099-12-31") });
