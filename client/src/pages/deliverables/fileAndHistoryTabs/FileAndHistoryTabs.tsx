@@ -41,6 +41,11 @@ export const SUBMIT_DELIVERABLE_MUTATION = gql`
   }
 `;
 
+export const SUBMISSION_ALWAYS_ENABLED_STATUSES: ReadonlySet<DeliverableStatus> = new Set([
+  "Upcoming",
+  "Past Due",
+]);
+
 export const RESUBMISSION_DISABLED_STATUSES: ReadonlySet<DeliverableStatus> = new Set([
   "Upcoming",
   "Past Due",
@@ -100,6 +105,13 @@ export const FileAndHistoryTabs: React.FC<{
   const isCmsStaffUser = CMS_STAFF_PERSON_TYPES.has(userPersonType);
   const canManageCmsFiles = isCmsStaffUser;
 
+  const canSubmitWithoutUnsubmittedFiles =
+    SUBMISSION_ALWAYS_ENABLED_STATUSES.has(deliverable.status);
+
+  const hasUnsubmittedFiles = stateFiles.some(
+    file => file.deliverableSubmissionAction == null
+  );
+
   const handleRequestResubmission = () => {
     showRequestResubmissionDeliverableDialog({
       id: deliverable.id,
@@ -149,7 +161,11 @@ export const FileAndHistoryTabs: React.FC<{
     }
   };
 
-  const isSubmitDisabled = isFinalized || stateFiles.length === 0 || submitLoading;
+  const isSubmitDisabled =
+    isFinalized
+    || stateFiles.length === 0
+    || submitLoading
+    || (!hasUnsubmittedFiles && !canSubmitWithoutUnsubmittedFiles);
 
   return (
     <div data-testid={FILE_AND_HISTORY_TABS_NAME}>
