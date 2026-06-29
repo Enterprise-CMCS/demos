@@ -6,31 +6,16 @@ import { BaseDialog } from "components/dialog/BaseDialog";
 import { Select, Option } from "components/input/select/Select";
 import { useToast } from "components/toast";
 
-import {
-  DeliverableExtensionStatus,
-  DeliverableStatus,
-  FinalDeliverableStatus,
-} from "demos-server";
+import { FinalDeliverableStatus } from "demos-server";
 import { DELIVERABLE_REVIEW_COMPLETED_MESSAGE } from "util/messages";
 
 import { DELIVERABLE_DETAILS_QUERY } from "pages/deliverables/DeliverableDetailsManagementPage";
-import { hasOpenExtensionRequest } from "./RequestExtensionDeliverableDialog";
 
 export const COMPLETE_REVIEW_DIALOG_TITLE = "Complete Review";
 export const COMPLETE_REVIEW_DIALOG_NAME = "complete-review-dialog";
 
 export const COMPLETE_REVIEW_STATUS_FIELD_NAME = "complete-review-status";
 export const COMPLETE_REVIEW_SUBMIT_BUTTON_NAME = "button-complete-review-submit";
-
-export const COMPLETE_REVIEW_ELIGIBLE_STATUSES: ReadonlySet<DeliverableStatus> = new Set([
-  "Under CMS Review",
-]);
-
-export const canCompleteReview = (
-  status: DeliverableStatus,
-  extensions: { status: DeliverableExtensionStatus }[]
-): boolean =>
-  COMPLETE_REVIEW_ELIGIBLE_STATUSES.has(status) && !hasOpenExtensionRequest(extensions);
 
 const COMPLETE_DELIVERABLE_REVIEW_MUTATION = gql`
   mutation CompleteDeliverable($id: ID!, $finalStatus: FinalDeliverableStatus!) {
@@ -59,20 +44,19 @@ export const INITIAL_FORM_DATA: CompleteReviewFormData = {
   finalStatus: "",
 };
 
-export const formIsValid = (form: CompleteReviewFormData): boolean =>
-  form.finalStatus !== "";
+export const formIsValid = (form: CompleteReviewFormData): boolean => form.finalStatus !== "";
 
-export const formHasChanges = (form: CompleteReviewFormData): boolean =>
-  form.finalStatus !== "";
+export const formHasChanges = (form: CompleteReviewFormData): boolean => form.finalStatus !== "";
 
 export interface CompleteReviewDeliverableDialogProps {
   onClose: () => void;
   deliverable: CompleteReviewDeliverableDialogDeliverable;
 }
 
-export const CompleteReviewDeliverableDialog: React.FC<
-  CompleteReviewDeliverableDialogProps
-> = ({ onClose, deliverable }) => {
+export const CompleteReviewDeliverableDialog: React.FC<CompleteReviewDeliverableDialogProps> = ({
+  onClose,
+  deliverable,
+}) => {
   const { showSuccess, showError } = useToast();
 
   const [completeReviewTrigger] = useMutation(COMPLETE_DELIVERABLE_REVIEW_MUTATION);
@@ -91,9 +75,7 @@ export const CompleteReviewDeliverableDialog: React.FC<
           id: deliverable.id,
           finalStatus: formData.finalStatus,
         },
-        refetchQueries: [
-          { query: DELIVERABLE_DETAILS_QUERY, variables: { id: deliverable.id } },
-        ],
+        refetchQueries: [{ query: DELIVERABLE_DETAILS_QUERY, variables: { id: deliverable.id } }],
         awaitRefetchQueries: true,
       });
 
@@ -128,9 +110,7 @@ export const CompleteReviewDeliverableDialog: React.FC<
           isRequired
           options={FINAL_STATUS_OPTIONS}
           value={formData.finalStatus}
-          onSelect={(value) =>
-            setFormData({ finalStatus: value as FinalDeliverableStatus | "" })
-          }
+          onSelect={(value) => setFormData({ finalStatus: value as FinalDeliverableStatus | "" })}
         />
       </div>
     </BaseDialog>

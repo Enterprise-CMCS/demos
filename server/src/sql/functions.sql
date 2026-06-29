@@ -1166,6 +1166,37 @@ BEFORE INSERT ON demos_app.deliverable_action
 FOR EACH ROW
 EXECUTE FUNCTION demos_app.block_final_states_if_extension_request_active();
 
+-- block_final_states_if_unsubmitted_state_documents_exist
+CREATE FUNCTION demos_app.block_final_states_if_unsubmitted_state_documents_exist()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF NEW.new_status_id in (
+        'Accepted',
+        'Approved',
+        'Received and Filed'
+    ) THEN
+        IF EXISTS (
+            SELECT 1
+            FROM demos_app.document
+            WHERE document.deliverable_id = NEW.deliverable_id
+            AND document.deliverable_submission_action_id IS NULL
+            AND document.deliverable_is_cms_attached_file = FALSE
+        )
+        THEN
+            RAISE EXCEPTION 'Cannot finalize deliverable % when it has an unsubmitted state document', NEW.deliverable_id;
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER block_final_states_if_unsubmitted_state_documents_exist
+BEFORE INSERT ON demos_app.deliverable_action
+FOR EACH ROW
+EXECUTE FUNCTION demos_app.block_final_states_if_unsubmitted_state_documents_exist();
+
 -- capture_active_extension_request_id_for_action
 CREATE FUNCTION demos_app.capture_active_extension_request_id_for_action()
 RETURNS TRIGGER
@@ -1213,7 +1244,8 @@ BEGIN
             updated_at = CURRENT_TIMESTAMP
         WHERE
             deliverable_id = NEW.deliverable_id
-            AND deliverable_submission_action_id IS NULL;
+            AND deliverable_submission_action_id IS NULL
+            AND deliverable_is_cms_attached_file = FALSE;
     END IF;
 
     RETURN NEW;

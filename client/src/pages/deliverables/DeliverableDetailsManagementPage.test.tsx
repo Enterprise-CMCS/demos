@@ -16,7 +16,7 @@ import {
   BACK_TO_DELIVERABLES_BUTTON_NAME,
   DELIVERABLE_INFO_FIELDS_NAME,
 } from "./sections/DeliverableInfoFields";
-import { FILE_AND_HISTORY_TABS_NAME } from "./sections/FileAndHistoryTabs";
+import { FILE_AND_HISTORY_TABS_NAME } from "./fileAndHistoryTabs/FileAndHistoryTabs";
 import { REQUEST_EXTENSION_BUTTON_NAME } from "./sections/DeliverableButtons";
 import { DialogProvider } from "components/dialog/DialogContext";
 import { EDIT_DELIVERABLE_DIALOG_TITLE } from "components/dialog/deliverable/EditDeliverableDialog";
@@ -43,9 +43,7 @@ const buildSubmittedDeliverableMock = (overrides?: { submitterName?: string }) =
   ],
 });
 
-const buildCurrentUser = (
-  personType: CurrentUser["person"]["personType"]
-): CurrentUser => ({
+const buildCurrentUser = (personType: CurrentUser["person"]["personType"]): CurrentUser => ({
   ...developmentMockUser,
   person: { ...developmentMockUser.person, personType },
 });
@@ -172,10 +170,7 @@ describe("DeliverableDetailsManagementPage", () => {
         routerEntries={[`/deliverables/${MOCK_DELIVERABLE_1.id}`]}
       >
         <DialogProvider>
-          <DeliverableDetailsManagementPage
-            deliverableId={MOCK_DELIVERABLE_1.id}
-            onBack={onBack}
-          />
+          <DeliverableDetailsManagementPage deliverableId={MOCK_DELIVERABLE_1.id} onBack={onBack} />
         </DialogProvider>
       </TestProvider>
     );
@@ -241,7 +236,9 @@ describe("DeliverableDetailsManagementPage", () => {
           query: START_DELIVERABLE_REVIEW_MUTATION,
           variables: { id: deliverable.id },
         },
-        result: { data: { startDeliverableReview: { id: deliverable.id, status: "Under CMS Review" } } },
+        result: {
+          data: { startDeliverableReview: { id: deliverable.id, status: "Under CMS Review" } },
+        },
       },
       {
         request: { query: DELIVERABLE_DETAILS_QUERY, variables: { id: deliverable.id } },

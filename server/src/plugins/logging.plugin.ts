@@ -1,5 +1,5 @@
 import { ApolloServerPlugin } from "@apollo/server";
-import { GraphQLContext } from "../auth/auth.util";
+import { GraphQLContext } from "../auth";
 import { Logger } from "pino";
 import { CUSTOM_ERROR_CODES, ErrorLogLevel, isCustomInternalErrorCode } from "../errors/errorCodes";
 import { GraphQLError } from "graphql/error";

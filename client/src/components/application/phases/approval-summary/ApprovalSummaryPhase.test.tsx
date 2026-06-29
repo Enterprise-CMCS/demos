@@ -1,17 +1,22 @@
 import "@testing-library/jest-dom";
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { ApprovalSummaryPhase } from "./ApprovalSummaryPhase";
-import { ApplicationDetailsFormData, ModificationDetailsFormData } from "./applicationDetailsSection";
+import {
+  ApprovalSummaryPhase,
+  UPDATE_AMENDMENT_MUTATION,
+  UPDATE_DEMONSTRATION_MUTATION,
+  UPDATE_EXTENSION_MUTATION,
+} from "./ApprovalSummaryPhase";
+import {
+  ApplicationDetailsFormData,
+  ModificationDetailsFormData,
+} from "./applicationDetailsSection";
 import { TestProvider } from "test-utils/TestProvider";
-import { MockedProvider, MockedResponse } from "@apollo/client/testing";
-import { UPDATE_DEMONSTRATION_MUTATION } from "components/dialog/demonstration/EditDemonstrationDialog";
+import { MockedResponse } from "@apollo/client/testing";
 import { DemonstrationDetailDemonstrationType } from "pages/DemonstrationDetail/DemonstrationTab";
-import { UPDATE_AMENDMENT_MUTATION } from "components/dialog/modification/EditAmendmentDialog";
-import { UPDATE_EXTENSION_MUTATION } from "components/dialog/modification/EditExtensionDialog";
 
 const mockShowConfirmApproveDialog = vi.fn();
 
@@ -54,7 +59,7 @@ const buildAmendmentFormData = (
 ): ModificationDetailsFormData => ({
   applicationType: "amendment",
   name: "Test Amendment",
-  effectiveDate: "01/01/2025",
+  effectiveDate: "2025-01-01",
   description: "Test description",
   signatureLevel: "OA",
   status: "Active",
@@ -67,7 +72,7 @@ const buildExtensionFormData = (
 ): ModificationDetailsFormData => ({
   applicationType: "extension",
   name: "Test Extension",
-  effectiveDate: "01/01/2025",
+  effectiveDate: "2025-01-01",
   description: "Test description",
   signatureLevel: "OA",
   status: "Active",
@@ -93,6 +98,45 @@ const mockTypes = [
 ];
 
 describe("ApprovalSummaryPhase", () => {
+  const mockUpdateDemonstrationResult = vi.fn(() => ({
+    data: {
+      updateDemonstration: {
+        id: "demo-123",
+        name: "Test Demonstration",
+        description: "Test description",
+        effectiveDate: "2025-01-01",
+        expirationDate: "2026-01-01",
+        sdgDivision: "Division of System Reform Demonstrations",
+        state: { id: "CA" },
+        primaryProjectOfficer: { id: "user-123" },
+      },
+    },
+  }));
+
+  const mockUpdateAmendmentResult = vi.fn(() => ({
+    data: {
+      updateAmendment: {
+        id: "demo-123",
+        name: "Test Amendment",
+        description: "Test description",
+        effectiveDate: "2025-01-01",
+        signatureLevel: "OA",
+      },
+    },
+  }));
+
+  const mockUpdateExtensionResult = vi.fn(() => ({
+    data: {
+      updateExtension: {
+        id: "demo-123",
+        name: "Test Extension",
+        description: "Test description",
+        effectiveDate: "2025-01-01",
+        signatureLevel: "OA",
+      },
+    },
+  }));
+
   // Mock Apollo mutation for updateDemonstration
   const mockUpdateDemonstration = {
     request: {
@@ -102,30 +146,14 @@ describe("ApprovalSummaryPhase", () => {
         input: {
           name: "Test Demonstration",
           description: "Test description",
-          effectiveDate: "01/01/2025",
-          expirationDate: "01/01/2026",
+          effectiveDate: "2025-01-01",
+          expirationDate: "2026-01-01",
           sdgDivision: "Division of System Reform Demonstrations",
-          signatureLevel: "OA",
-          stateId: "CA",
           projectOfficerUserId: "user-123",
         },
       },
     },
-    result: {
-      data: {
-        updateDemonstration: {
-          id: "demo-123",
-          name: "Test Demonstration",
-          description: "Test description",
-          effectiveDate: "2025-01-01T00:00:00.000Z",
-          expirationDate: "2026-01-01T00:00:00.000Z",
-          sdgDivision: "Division of System Reform Demonstrations",
-          signatureLevel: "OA",
-          state: { id: "CA" },
-          primaryProjectOfficer: { id: "user-123" },
-        },
-      },
-    },
+    result: mockUpdateDemonstrationResult,
   };
 
   const mockUpdateAmendment = {
@@ -136,19 +164,12 @@ describe("ApprovalSummaryPhase", () => {
         input: {
           name: "Test Amendment",
           description: "Test description",
-          effectiveDate: "01/01/2025",
+          effectiveDate: "2025-01-01",
           signatureLevel: "OA",
         },
       },
     },
-    result: {
-      data: {
-        updateAmendment: {
-          id: "demo-123",
-          name: "Test Amendment",
-        },
-      },
-    },
+    result: mockUpdateAmendmentResult,
   };
 
   const mockUpdateExtension = {
@@ -159,19 +180,12 @@ describe("ApprovalSummaryPhase", () => {
         input: {
           name: "Test Extension",
           description: "Test description",
-          effectiveDate: "01/01/2025",
+          effectiveDate: "2025-01-01",
           signatureLevel: "OA",
         },
       },
     },
-    result: {
-      data: {
-        updateExtension: {
-          id: "demo-123",
-          name: "Test Extension",
-        },
-      },
-    },
+    result: mockUpdateExtensionResult,
   };
 
   const setup = (
@@ -180,19 +194,17 @@ describe("ApprovalSummaryPhase", () => {
     initialTypes: DemonstrationDetailDemonstrationType[] = []
   ) => {
     render(
-      <MockedProvider mocks={mocks} addTypename={false}>
-        <TestProvider>
-          <ApprovalSummaryPhase
-            applicationId="demo-123"
-            demonstrationId="demo-123"
-            demonstrationStatus="Under Review"
-            initialFormData={formData}
-            initialTypes={initialTypes}
-            approvalSummaryPhase={{ phaseStatus: "Not Started", phaseDates: [] }}
-            allPreviousPhasesDone={true}
-          />
-        </TestProvider>
-      </MockedProvider>
+      <TestProvider mocks={mocks}>
+        <ApprovalSummaryPhase
+          applicationId="demo-123"
+          demonstrationId="demo-123"
+          demonstrationStatus="Under Review"
+          initialFormData={formData}
+          initialTypes={initialTypes}
+          approvalSummaryPhase={{ phaseStatus: "Not Started", phaseDates: [] }}
+          allPreviousPhasesDone={true}
+        />
+      </TestProvider>
     );
   };
 
@@ -204,9 +216,7 @@ describe("ApprovalSummaryPhase", () => {
     setup();
 
     expect(screen.getByText("APPROVAL SUMMARY")).toBeInTheDocument();
-    expect(
-      screen.getByText(/Review and verify Demonstration Details/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Review and verify Demonstration Details/i)).toBeInTheDocument();
   });
 
   it("renders Application Details section", () => {
@@ -316,27 +326,84 @@ describe("ApprovalSummaryPhase", () => {
   it("shows 'Verify Amendment' for amendment", () => {
     setup(buildAmendmentFormData(), [mockUpdateAmendment]);
 
-    expect(
-      screen.getByText(/verify amendment/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/verify amendment/i)).toBeInTheDocument();
+  });
+
+  it("calls updateDemonstration for demonstration", async () => {
+    setup(
+      buildInitialFormData({
+        applicationApprovalDate:
+          "2025-02-15" as ApplicationDetailsFormData["applicationApprovalDate"],
+      }),
+      [mockUpdateDemonstration]
+    );
+
+    const toggle = screen.getByRole("switch", { name: /mark complete/i });
+    await userEvent.click(toggle);
+
+    await waitFor(() => {
+      expect(mockUpdateDemonstrationResult).toHaveBeenCalledWith({
+        id: "demo-123",
+        input: {
+          name: "Test Demonstration",
+          description: "Test description",
+          effectiveDate: "2025-01-01",
+          expirationDate: "2026-01-01",
+          sdgDivision: "Division of System Reform Demonstrations",
+          projectOfficerUserId: "user-123",
+        },
+      });
+    });
   });
 
   it("calls updateAmendment for amendment", async () => {
-    setup(buildAmendmentFormData(), [mockUpdateAmendment]);
+    setup(
+      buildAmendmentFormData({
+        applicationApprovalDate:
+          "2025-02-15" as ModificationDetailsFormData["applicationApprovalDate"],
+      }),
+      [mockUpdateAmendment]
+    );
 
     const toggle = screen.getByRole("switch", { name: /mark complete/i });
     await userEvent.click(toggle);
 
-    expect(toggle).toBeDefined();
+    await waitFor(() => {
+      expect(mockUpdateAmendmentResult).toHaveBeenCalledWith({
+        id: "demo-123",
+        input: {
+          name: "Test Amendment",
+          description: "Test description",
+          effectiveDate: "2025-01-01",
+          signatureLevel: "OA",
+        },
+      });
+    });
   });
 
   it("calls updateExtension for extension", async () => {
-    setup(buildExtensionFormData(), [mockUpdateExtension]);
+    setup(
+      buildExtensionFormData({
+        applicationApprovalDate:
+          "2025-02-15" as ModificationDetailsFormData["applicationApprovalDate"],
+      }),
+      [mockUpdateExtension]
+    );
 
     const toggle = screen.getByRole("switch", { name: /mark complete/i });
     await userEvent.click(toggle);
 
-    expect(toggle).toBeDefined();
+    await waitFor(() => {
+      expect(mockUpdateExtensionResult).toHaveBeenCalledWith({
+        id: "demo-123",
+        input: {
+          name: "Test Extension",
+          description: "Test description",
+          effectiveDate: "2025-01-01",
+          signatureLevel: "OA",
+        },
+      });
+    });
   });
 
   it("uses correct required fields for amendment", async () => {
@@ -356,22 +423,25 @@ describe("ApprovalSummaryPhase", () => {
 
   it("covers amendment mark incomplete path", async () => {
     render(
-      <MockedProvider addTypename={false}>
-        <TestProvider>
-          <ApprovalSummaryPhase
-            applicationId="demo-123"
-            initialFormData={buildAmendmentFormData()}
-            initialTypes={[]}
-            approvalSummaryPhase={{ phaseStatus: "Started", phaseDates: [{
-              dateType: "Application Details Marked Complete Date",
-              dateValue: new Date("2025-01-01"),
-            }]}}
-            allPreviousPhasesDone={true}
-            demonstrationId="demo-123"
-            demonstrationStatus="Approved"
-          />
-        </TestProvider>
-      </MockedProvider>
+      <TestProvider>
+        <ApprovalSummaryPhase
+          applicationId="demo-123"
+          initialFormData={buildAmendmentFormData()}
+          initialTypes={[]}
+          approvalSummaryPhase={{
+            phaseStatus: "Started",
+            phaseDates: [
+              {
+                dateType: "Application Details Marked Complete Date",
+                dateValue: new Date("2025-01-01"),
+              },
+            ],
+          }}
+          allPreviousPhasesDone={true}
+          demonstrationId="demo-123"
+          demonstrationStatus="Approved"
+        />
+      </TestProvider>
     );
 
     const headerButton = screen.getByRole("button", {
@@ -388,22 +458,25 @@ describe("ApprovalSummaryPhase", () => {
 
   it("covers extension mark incomplete path", async () => {
     render(
-      <MockedProvider addTypename={false}>
-        <TestProvider>
-          <ApprovalSummaryPhase
-            applicationId="demo-123"
-            initialFormData={buildExtensionFormData()}
-            initialTypes={[]}
-            approvalSummaryPhase={{ phaseStatus: "Started", phaseDates: [{
-              dateType: "Application Details Marked Complete Date",
-              dateValue: new Date("2025-01-01"),
-            }]}}
-            allPreviousPhasesDone={true}
-            demonstrationId="demo-123"
-            demonstrationStatus="Approved"
-          />
-        </TestProvider>
-      </MockedProvider>
+      <TestProvider>
+        <ApprovalSummaryPhase
+          applicationId="demo-123"
+          initialFormData={buildExtensionFormData()}
+          initialTypes={[]}
+          approvalSummaryPhase={{
+            phaseStatus: "Started",
+            phaseDates: [
+              {
+                dateType: "Application Details Marked Complete Date",
+                dateValue: new Date("2025-01-01"),
+              },
+            ],
+          }}
+          allPreviousPhasesDone={true}
+          demonstrationId="demo-123"
+          demonstrationStatus="Approved"
+        />
+      </TestProvider>
     );
 
     const headerButton = screen.getByRole("button", {

@@ -1,13 +1,11 @@
 import {
   Deliverable as PrismaDeliverable,
   DeliverableExtension as PrismaDeliverableExtension,
-  Demonstration as PrismaDemonstration,
   DemonstrationTypeTagAssignment as PrismaDemonstrationTypeTagAssignment,
   User as PrismaUser,
 } from "@prisma/client";
 import { PrismaTransactionClient } from "../../prismaClient";
 import {
-  ApplicationStatus,
   DeliverableExtensionStatus,
   DeliverableStatus,
   DeliverableType,
@@ -22,13 +20,6 @@ import { selectManyPublicComments } from "../publicComment/queries";
 import { selectManyPrivateComments } from "../privateComment/queries";
 import { REQUIRED_DEMONSTRATION_TYPE_DELIVERABLES } from "../../constants";
 
-export function checkDemonstrationStatus(demonstration: PrismaDemonstration): string | undefined {
-  const approvedStatus: ApplicationStatus = "Approved";
-  if (demonstration.statusId !== approvedStatus) {
-    return `Demonstration ${demonstration.id} is not in Approved status; cannot create deliverable.`;
-  }
-}
-
 export function checkDeliverableHasStatus(
   deliverable: PrismaDeliverable,
   expectedStatuses: DeliverableStatus[]
@@ -40,6 +31,23 @@ export function checkDeliverableHasStatus(
       `Deliverable expected to have one of status ${expectedStatuses.join(", ")}; ` +
       `actual status was ${deliverableStatus}.`
     );
+  }
+}
+
+export async function checkDeliverableHasNoUnsubmittedStateDocuments(
+  deliverable: PrismaDeliverable,
+  tx: PrismaTransactionClient
+): Promise<string | undefined> {
+  const documents = await selectManyDocuments(
+    {
+      deliverableId: deliverable.id,
+      deliverableIsCmsAttachedFile: false,
+      deliverableSubmissionActionId: null,
+    },
+    tx
+  );
+  if (documents.length > 0) {
+    return `Deliverable ${deliverable.id} has unsubmitted state documents; cannot complete deliverable.`;
   }
 }
 

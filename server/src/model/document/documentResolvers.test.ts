@@ -15,6 +15,7 @@ import {
   resolveHasPendingUIPathResult,
 } from "./documentResolvers";
 import { editDocument, getDocument, removeDocument } from "./documentData";
+import { selectDeliverableAction, SelectDeliverableActionRowResult } from "../deliverableAction/queries";
 
 // Mock dependencies
 vi.mock("../../prismaClient", () => ({
@@ -61,6 +62,10 @@ vi.mock("../../services/uipathQueue", () => ({
 
 vi.mock("../user/queries", () => ({
   selectUserOrThrow: vi.fn(),
+}));
+
+vi.mock("../deliverableAction/queries", () => ({
+  selectDeliverableAction: vi.fn(),
 }));
 
 describe("documentResolvers", () => {
@@ -177,23 +182,49 @@ describe("documentResolvers", () => {
     });
   });
 
-  describe("Document.isPartOfDeliverableSubmission", () => {
-    it("returns true when deliverableSubmissionActionId is not null", () => {
-      const document = {
-        deliverableSubmissionActionId: "action-123",
-      } as PrismaDocument;
-
-      const result = documentResolvers.Document.isPartOfDeliverableSubmission(document);
-      expect(result).toBe(true);
-    });
-
-    it("returns false when deliverableSubmissionActionId is null", () => {
+  describe("Document.deliverableSubmissionAction", () => {
+    it("returns null when deliverableSubmissionActionId is null ", async () => {
       const document = {
         deliverableSubmissionActionId: null,
       } as PrismaDocument;
 
-      const result = documentResolvers.Document.isPartOfDeliverableSubmission(document);
-      expect(result).toBe(false);
+      const result = await documentResolvers.Document.deliverableSubmissionAction(document);
+      expect(result).toBeNull();
+    });
+
+    it("finds and maps the delierableSubmissionAction based on the deliverableSubmissionActionId", async () => {
+      const document = {
+        deliverableSubmissionActionId: "action-123",
+      } as PrismaDocument;
+
+      const now = new Date("2025-01-01T00:00:00.000Z");
+      vi.mocked(selectDeliverableAction).mockResolvedValue({
+        id: "action-123",
+        actionTimestamp: now,
+        actionTypeId: "Submitted Deliverable",
+        user: {
+          personTypeId: "demos-cms-user",
+          person: {
+            firstName: "John",
+            lastName: "Doe",
+          },
+        },
+      } as SelectDeliverableActionRowResult);
+         
+      const result = await documentResolvers.Document.deliverableSubmissionAction(document);
+      expect(selectDeliverableAction).toHaveBeenCalledExactlyOnceWith(
+        {
+          id: document.deliverableSubmissionActionId,
+        },
+        true
+      );
+      expect(result).toEqual({
+        id: "action-123",
+        actionTimestamp: now,
+        actionType: "Submitted Deliverable",
+        details: "",
+        userFullName: "John Doe (CMS User)",
+      });
     });
   });
   describe("Document.phaseName", () => {

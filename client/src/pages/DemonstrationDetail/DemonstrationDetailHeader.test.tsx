@@ -91,6 +91,23 @@ const mockDemonstrationQueryWithoutDatesQuery = {
   },
 };
 
+const testNonApprovedDemonstration = {
+  ...testDemonstration,
+  status: "Pre-Submission",
+};
+
+const mockNonApprovedDemonstrationQuery = {
+  request: {
+    query: DEMONSTRATION_HEADER_DETAILS_QUERY,
+    variables: { id: "1" },
+  },
+  result: {
+    data: {
+      demonstration: testNonApprovedDemonstration,
+    },
+  },
+};
+
 // Mock for GraphQL error
 const mockDemonstrationQueryError = {
   request: {
@@ -113,7 +130,7 @@ const renderHeader = (
 ) =>
   render(
     <MemoryRouter>
-      <MockedProvider mocks={mocks} addTypename={false}>
+      <MockedProvider mocks={mocks}>
         <TestUserProvider currentUser={currentUser}>
           <DemonstrationDetailHeader demonstrationId="1" />
         </TestUserProvider>
@@ -122,6 +139,10 @@ const renderHeader = (
   );
 
 describe("Demonstration Detail Header", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("renders demonstration header info", async () => {
     renderHeader();
 
@@ -309,6 +330,30 @@ describe("Demonstration Detail Header", () => {
     fireEvent.click(screen.getByTestId("button-create-new-extension"));
 
     expect(showCreateExtensionDialog).toHaveBeenCalledWith("1");
+  });
+
+  it("disables Create New for non-approved demonstrations", async () => {
+    renderHeader([mockNonApprovedDemonstrationQuery]);
+
+    await waitFor(() => {
+      expect(screen.getByText("Montana Medicaid Waiver")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByTestId("Toggle more options"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("Create New")).toBeInTheDocument();
+    });
+
+    const createNewButton = screen.getByTestId("Create New");
+    expect(createNewButton).toBeDisabled();
+
+    fireEvent.click(createNewButton);
+
+    expect(screen.queryByTestId("button-create-new-amendment")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("button-create-new-extension")).not.toBeInTheDocument();
+    expect(showCreateAmendmentDialog).not.toHaveBeenCalled();
+    expect(showCreateExtensionDialog).not.toHaveBeenCalled();
   });
 
   it("renders both medicaidId and chipId when chipId exists", async () => {

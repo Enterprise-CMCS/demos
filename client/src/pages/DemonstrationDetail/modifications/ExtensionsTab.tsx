@@ -12,7 +12,8 @@ export const ExtensionsTab: React.FC<{
   medicaidId: string;
   extensions: DemonstrationDetailModification[];
   selectedExtensionId?: string;
-}> = ({ demonstrationId, medicaidId, extensions, selectedExtensionId }) => {
+  canCreateModifications: boolean;
+}> = ({ demonstrationId, medicaidId, extensions, selectedExtensionId, canCreateModifications }) => {
   const { showCreateExtensionDialog } = useDialog();
 
   if (extensions.length === 0) {
@@ -24,6 +25,7 @@ export const ExtensionsTab: React.FC<{
           icon={<AddNewIcon />}
           name="create-new-extension"
           size="small"
+          disabled={!canCreateModifications}
           onClick={() => showCreateExtensionDialog(demonstrationId)}
         >
           Create Extension
@@ -46,6 +48,7 @@ export const ExtensionsTab: React.FC<{
           icon={<AddNewIcon />}
           name="add-new-extension"
           size="small"
+          disabled={!canCreateModifications}
           onClick={() => showCreateExtensionDialog(demonstrationId)}
         >
           Add Extension

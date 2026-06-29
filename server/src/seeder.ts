@@ -15,8 +15,6 @@ import {
 } from "./constants.js";
 import {
   CreateDemonstrationInput,
-  CreateAmendmentInput,
-  CreateExtensionInput,
   UpdateDemonstrationInput,
   UpdateAmendmentInput,
   UpdateExtensionInput,
@@ -31,10 +29,10 @@ import {
   __createDemonstration,
   __updateDemonstration,
 } from "./model/demonstration/demonstrationResolvers.js";
-import { __createAmendment, __updateAmendment } from "./model/amendment/amendmentResolvers.js";
-import { __createExtension, __updateExtension } from "./model/extension/extensionResolvers.js";
+import { __updateAmendment } from "./model/amendment/amendmentResolvers.js";
+import { __updateExtension } from "./model/extension/extensionResolvers.js";
 import { __setApplicationDates } from "./model/applicationDate/applicationDateResolvers.js";
-import { GraphQLContext } from "./auth/auth.util.js";
+import { GraphQLContext } from "./auth";
 import { getManyApplications } from "./model/application";
 import {
   approveDeliverableExtension,
@@ -48,8 +46,10 @@ import {
   updateDeliverable,
 } from "./model/deliverable";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { Deliverable, Deliverable as PrismaDeliverable } from "@prisma/client";
+import { Deliverable, Prisma, Deliverable as PrismaDeliverable } from "@prisma/client";
 import { selectDeliverableExtension } from "./model/deliverableExtension/queries";
+import { createAmendment } from "./model/amendment";
+import { createExtension } from "./model/extension";
 
 const DOCUMENTS_PER_APPLICATION = 15;
 const UIPATH_SEED_DOCUMENT_ID = "00000000-0000-0000-0000-000000000000";
@@ -63,6 +63,8 @@ const TAG_ASSIGNMENT_MAX = 5;
 const DELIVERABLE_SEED_COUNT = 8;
 const APPLICATION_TAG_SUGGESTION_POOL_SIZE = 10;
 const BYPASS_USER_ID = "00000000-1111-2222-3333-123abc123abc";
+const extensionCount = 8;
+const amendmentCount = 10;
 
 function getRandomPhaseDocumentTypeCombination(): {
   phaseName: PhaseName;
@@ -152,9 +154,9 @@ async function seedTagsAndStatuses() {
   }
 }
 
-async function seedApprovedDemonstration() {
-  console.log("🌱 Seeding one approved demonstration...");
-  const approvedDemonstration = await prisma().demonstration.findFirst({
+async function seedApprovedDemonstrations() {
+  console.log("🌱 Seeding approved demonstrations...");
+  const approvableDemonstrations = await prisma().demonstration.findMany({
     where: {
       demonstrationTypeTagAssignments: {
         some: {},
@@ -165,33 +167,38 @@ async function seedApprovedDemonstration() {
       sdgDivisionId: true,
     },
   });
-  if (!approvedDemonstration) {
+  if (!approvableDemonstrations.length) {
     throw new Error("No demonstrations with demonstration types found for approved-demo seeding");
   }
 
-  await prisma().$transaction([
-    prisma().demonstration.update({
-      where: { id: approvedDemonstration.id },
-      data: {
-        signatureLevelId: "OA",
-        statusId: "Approved",
-        sdgDivisionId: approvedDemonstration.sdgDivisionId ?? SDG_DIVISIONS[0],
-      },
-    }),
-    prisma().applicationPhase.update({
-      where: {
-        applicationId_phaseId: {
-          applicationId: approvedDemonstration.id,
-          phaseId: "Approval Summary",
-        },
-      },
-      data: {
-        phaseStatusId: "Completed",
-      },
-    }),
-  ]);
+  const approvedDemonstrations = faker.helpers.arrayElements(
+    approvableDemonstrations,
+    faker.number.int({ min: 1, max: approvableDemonstrations.length })
+  );
 
-  console.log(`🌱 Seeded approved demonstration: ${approvedDemonstration.id}`);
+  for (const demonstration of approvedDemonstrations) {
+    await prisma().$transaction([
+      prisma().demonstration.update({
+        where: { id: demonstration.id },
+        data: {
+          signatureLevelId: "OA",
+          statusId: "Approved",
+          sdgDivisionId: demonstration.sdgDivisionId ?? SDG_DIVISIONS[0],
+        },
+      }),
+      prisma().applicationPhase.update({
+        where: {
+          applicationId_phaseId: {
+            applicationId: demonstration.id,
+            phaseId: "Approval Summary",
+          },
+        },
+        data: {
+          phaseStatusId: "Completed",
+        },
+      }),
+    ]);
+  }
 }
 
 async function seedDeliverables(actionUserId: string, actionUserPersonTypeId: PersonType) {
@@ -820,6 +827,76 @@ async function clearDatabase() {
   ]);
 }
 
+async function seedAmendments() {
+  console.log("🌱 Seeding amendments...");
+
+  const approvedDemonstrations = await prisma().demonstration.findMany({
+    where: { statusId: "Approved" },
+  });
+
+  for (let i = 0; i < amendmentCount; i++) {
+    try {
+      const createInput: Pick<
+        Prisma.AmendmentUncheckedCreateInput,
+        "demonstrationId" | "name" | "description" | "signatureLevelId"
+      > = {
+        demonstrationId: faker.helpers.arrayElement(approvedDemonstrations).id,
+        name: faker.lorem.words(3),
+        description: faker.lorem.sentence(),
+        signatureLevelId: sampleFromArray([...AMENDMENT_SIGNATURE_LEVELS, undefined], 1)[0],
+      };
+      await createAmendment(createInput);
+    } catch (error) {
+      console.error(`Error creating amendment: ${error}`);
+    }
+  }
+  const amendments = await getManyApplications("Amendment");
+  for (const amendment of amendments!) {
+    const randomDates = randomDateRange();
+    const updatePayload: UpdateAmendmentInput = {
+      effectiveDate: randomDates["start"],
+    };
+    const updateInput = {
+      id: amendment.id,
+      input: updatePayload,
+    };
+    await __updateAmendment(undefined, updateInput);
+  }
+}
+
+async function seedExtensions() {
+  console.log("🌱 Seeding extensions...");
+
+  const approvedDemonstrations = await prisma().demonstration.findMany({
+    where: { statusId: "Approved" },
+  });
+
+  for (let i = 0; i < extensionCount; i++) {
+    const createInput: Pick<
+      Prisma.ExtensionUncheckedCreateInput,
+      "demonstrationId" | "name" | "description" | "signatureLevelId"
+    > = {
+      demonstrationId: faker.helpers.arrayElement(approvedDemonstrations).id,
+      name: faker.lorem.words(3),
+      description: faker.lorem.sentence(),
+      signatureLevelId: sampleFromArray([...EXTENSION_SIGNATURE_LEVELS, undefined], 1)[0],
+    };
+    await createExtension(createInput);
+  }
+  const extensions = await getManyApplications("Extension");
+  for (const extension of extensions!) {
+    const randomDates = randomDateRange();
+    const updatePayload: UpdateExtensionInput = {
+      effectiveDate: randomDates["start"],
+    };
+    const updateInput = {
+      id: extension.id,
+      input: updatePayload,
+    };
+    await __updateExtension(undefined, updateInput);
+  }
+}
+
 async function seedDatabase() {
   console.log(process.env.ALLOW_SEED);
   checkIfAllowed();
@@ -829,8 +906,6 @@ async function seedDatabase() {
   // Setting constants for record generation
   const userCount = 9;
   const demonstrationCount = 20;
-  const amendmentCount = 10;
-  const extensionCount = 8;
 
   console.log("🌱 Generating bypassed user and accompanying records...");
   const bypassUserId = BYPASS_USER_ID;
@@ -851,6 +926,8 @@ async function seedDatabase() {
       personTypeId: "demos-admin",
       cognitoSubject: bypassUserSub,
       username: "BYPASSED_USER",
+      isMigratedFromPmda: false,
+      hasLoggedIn: true,
     },
   });
 
@@ -874,6 +951,8 @@ async function seedDatabase() {
         personTypeId: person.personTypeId,
         cognitoSubject: faker.string.uuid(),
         username: faker.internet.username(),
+        isMigratedFromPmda: false,
+        hasLoggedIn: true,
       },
     });
   }
@@ -1208,60 +1287,10 @@ async function seedDatabase() {
     },
   });
 
-  console.log("🌱 Seeding amendments...");
-  const demonstrationIds = await prisma().demonstration.findMany({
-    select: { id: true },
-  });
-  if (!demonstrationIds.length) {
-    throw new Error("No demonstrations found for amendment/extension seeding");
-  }
-  for (let i = 0; i < amendmentCount; i++) {
-    const createInput: CreateAmendmentInput = {
-      demonstrationId: faker.helpers.arrayElement(demonstrationIds).id,
-      name: faker.lorem.words(3),
-      description: faker.lorem.sentence(),
-      signatureLevel: sampleFromArray([...AMENDMENT_SIGNATURE_LEVELS, undefined], 1)[0],
-    };
-    await __createAmendment(undefined, { input: createInput });
-  }
-  const amendments = await getManyApplications("Amendment");
-  for (const amendment of amendments!) {
-    const randomDates = randomDateRange();
-    const updatePayload: UpdateAmendmentInput = {
-      effectiveDate: randomDates["start"],
-    };
-    const updateInput = {
-      id: amendment.id,
-      input: updatePayload,
-    };
-    await __updateAmendment(undefined, updateInput);
-  }
-
-  console.log("🌱 Seeding extensions...");
-  for (let i = 0; i < extensionCount; i++) {
-    const createInput: CreateExtensionInput = {
-      demonstrationId: faker.helpers.arrayElement(demonstrationIds).id,
-      name: faker.lorem.words(3),
-      description: faker.lorem.sentence(),
-      signatureLevel: sampleFromArray([...EXTENSION_SIGNATURE_LEVELS, undefined], 1)[0],
-    };
-    await __createExtension(undefined, { input: createInput });
-  }
-  const extensions = await getManyApplications("Extension");
-  for (const extension of extensions!) {
-    const randomDates = randomDateRange();
-    const updatePayload: UpdateExtensionInput = {
-      effectiveDate: randomDates["start"],
-    };
-    const updateInput = {
-      id: extension.id,
-      input: updatePayload,
-    };
-    await __updateExtension(undefined, updateInput);
-  }
-
   await seedTagsAndStatuses();
-  await seedApprovedDemonstration();
+  await seedApprovedDemonstrations();
+  await seedAmendments();
+  await seedExtensions();
   const createdDeliverables = await seedDeliverables(bypassUserId, "demos-admin");
   await simulateDeliverableActions(createdDeliverables[0]);
   await addDocumentsToDeliverable(createdDeliverables[1]);

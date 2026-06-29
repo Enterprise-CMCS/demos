@@ -9,6 +9,7 @@ import { GraphQLContext } from "../../auth";
 import { insertOnDemandReport } from "./queries";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { log } from "../../log";
+import { getEasternNow } from "../../dateUtilities";
 
 export const onDemandReportResolvers = {
   Mutation: {
@@ -23,7 +24,12 @@ export const onDemandReportResolvers = {
       try {
         uploadedReportS3Path = await prisma().$transaction(async (tx) => {
           const reportResults = await runOnDemandReport(args.reportType, tx);
-          const formattedReport = await formatOnDemandReportInExcel(args.reportType, reportResults);
+          const generatedDate = getEasternNow();
+          const formattedReport = await formatOnDemandReportInExcel(
+            args.reportType,
+            reportResults,
+            { requestId: reportId, requestTimestamp: generatedDate["Current Time"] }
+          );
           const fileS3Path = await s3Adapter.uploadOnDemandReport(reportId, formattedReport);
           await insertOnDemandReport(
             {
@@ -32,7 +38,7 @@ export const onDemandReportResolvers = {
               requestingUserId: context.user.id,
               reportTypeId: args.reportType,
               statusId: "Available",
-              reportGeneratedAt: new Date(),
+              reportGeneratedAt: generatedDate["Current Time"].easternTZDate,
             },
             tx
           );

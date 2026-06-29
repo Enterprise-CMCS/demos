@@ -97,9 +97,11 @@ describe("FederalCommentUploadDialog", () => {
   });
 
   describe("Federal Comment Configuration", () => {
-    it("defaults document type to 'General File'", () => {
+    it("defaults document type to 'Federal Comment Internal Analysis Document'", () => {
       setup();
-      expect(screen.getByDisplayValue("General File")).toBeInTheDocument();
+      expect(
+        screen.getByDisplayValue("Federal Comment Internal Analysis Document")
+      ).toBeInTheDocument();
     });
 
     it("shows Federal Comment specific dialog title", () => {

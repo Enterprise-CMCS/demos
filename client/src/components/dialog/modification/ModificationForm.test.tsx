@@ -323,16 +323,16 @@ describe("ModificationForm", () => {
     describe("hasChanges", () => {
       it("returns false when no fields have changed", () => {
         const formData: ModificationFormData = {
-          demonstrationId: "demo-1",
           name: "Test",
           description: "Description",
           signatureLevel: "OA",
+          effectiveDate: "2024-02-01" as LocalDate,
         };
         const original: Partial<Modification> = {
-          demonstration: { id: "demo-1" },
           name: "Test",
           description: "Description",
           signatureLevel: "OA",
+          effectiveDate: "2024-02-01T04:00:00.000Z",
         };
         expect(hasChanges(formData, original)).toBe(false);
       });
@@ -398,7 +398,7 @@ describe("ModificationForm", () => {
           name: "Test",
           description: "Description",
           signatureLevel: "OA",
-          effectiveDate: "2024-01-01" as LocalDate,
+          effectiveDate: "2024-06-01T04:00:00.000Z",
         };
         expect(hasChanges(formData, original)).toBe(true);
       });

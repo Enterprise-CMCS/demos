@@ -4,14 +4,14 @@ import { ApolloArmor } from "@escape.tech/graphql-armor";
 import { startServerAndCreateLambdaHandler, handlers } from "@as-integrations/aws-lambda";
 import { GraphQLArmorConfig } from "./plugins/graphQLArmorConfig.js";
 import { typeDefs, resolvers } from "./model/graphql.js";
-import { authGatePlugin } from "./auth/auth.plugin.js";
 import { loggingPlugin } from "./plugins/logging.plugin";
 import {
-  AuthorizationClaims,
-  GraphQLContext,
+  type AuthorizationClaims,
+  type GraphQLContext,
   buildContextFromClaims,
   validateClaims,
-} from "./auth/auth.util.js";
+  validatePersonTypeInClaim,
+} from "./auth";
 import { log, reqIdChild, als, store } from "./log.js";
 import type { APIGatewayProxyEvent } from "aws-lambda";
 import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
@@ -47,7 +47,7 @@ const server = new ApolloServer<GraphQLContext>({
   typeDefs,
   resolvers,
   ...protection,
-  plugins: [...protection.plugins, authGatePlugin, loggingPlugin, fieldAuthPlugin],
+  plugins: [...protection.plugins, loggingPlugin, fieldAuthPlugin],
   validationRules: [...protection.validationRules],
   formatError: formatGraphQLErrorCode,
   logger: log,
@@ -82,6 +82,7 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
           await setDatabaseUrl();
 
           const claims = extractClaimsFromEvent(event);
+          validatePersonTypeInClaim(claims);
           const gqlCtx = await buildContextFromClaims(claims);
 
           const additionalContext = {

@@ -5,7 +5,6 @@ import {
   checkDeliverableHasNoComments,
   checkDeliverableHasNoDocuments,
   checkDeliverableHasStatus,
-  checkDemonstrationStatus,
   checkDueDateInFuture,
   checkNewDueDateIsAtLeastCurrentDueDate,
   checkNewDueDateIsGreaterThanCurrentDueDate,
@@ -18,12 +17,12 @@ import {
   ParsedRequestDeliverableExtensionInput,
   ParsedRequestDeliverableResubmissionInput,
   ParsedUpdateDeliverableInput,
+  checkDeliverableHasNoUnsubmittedStateDocuments,
 } from ".";
 import { PrismaTransactionClient } from "../../prismaClient";
 import { getApplication } from "../application";
 import { selectUserOrThrow } from "../user/queries";
 import { getDemonstrationTypeAssignments } from "../demonstrationTypeTagAssignment";
-import { GraphQLError } from "graphql";
 import {
   Deliverable as PrismaDeliverable,
   DeliverableExtension as PrismaDeliverableExtension,
@@ -31,18 +30,8 @@ import {
 import { GraphQLContext } from "../../auth";
 import { PersonType } from "../../types";
 import { ACTIVE_DELIVERABLE_STATUSES } from "../../constants";
-
-function cleanErrorsAndThrow(errors: (string | undefined)[], mutator: string, code: string): void {
-  const cleanedErrors = errors.filter((e) => e !== undefined);
-  if (cleanedErrors.length > 0) {
-    throw new GraphQLError(`One or more validation checks for ${mutator} have failed.`, {
-      extensions: {
-        code: code,
-        originalMessages: cleanedErrors,
-      },
-    });
-  }
-}
+import { cleanErrorsAndThrow } from "../../errors/cleanErrorsAndThrow";
+import { checkDemonstrationStatus } from "../demonstration";
 
 // This probably will be modified when permissions are updated more generally
 // Temporary solution for deliverables
@@ -77,13 +66,10 @@ export async function validateCreateDeliverableInput(
 
   const errors: (string | undefined)[] = [];
   errors.push(
-    checkDemonstrationStatus(demonstration),
+    checkDemonstrationStatus(demonstration, "deliverable"),
     checkOwnerPersonType(cmsOwnerUser),
     checkDueDateInFuture(input.dueDate),
-    checkRequiredDeliverableDemonstrationTypes(
-      input.deliverableType,
-      input.demonstrationTypes
-    )
+    checkRequiredDeliverableDemonstrationTypes(input.deliverableType, input.demonstrationTypes)
   );
   if (input.demonstrationTypes && input.demonstrationTypes.size > 0) {
     for (const requestedDeliverableDemonstrationType of input.demonstrationTypes) {
@@ -161,11 +147,17 @@ export function validateStartDeliverableReviewInput(deliverable: PrismaDeliverab
   );
 }
 
-export function validateCompleteDeliverableInput(deliverable: PrismaDeliverable): void {
+export async function validateCompleteDeliverableInput(
+  deliverable: PrismaDeliverable,
+  tx: PrismaTransactionClient
+): Promise<void> {
   const errors: (string | undefined)[] = [];
 
   // Deliverables may only be completed from review status
   errors.push(checkDeliverableHasStatus(deliverable, ["Under CMS Review"]));
+  // Deliverables may only be completed if there are no unsubmitted state documents
+  errors.push(await checkDeliverableHasNoUnsubmittedStateDocuments(deliverable, tx));
+  
   cleanErrorsAndThrow(errors, "completeDeliverable", "COMPLETE_DELIVERABLE_VALIDATION_FAILED");
 }
 

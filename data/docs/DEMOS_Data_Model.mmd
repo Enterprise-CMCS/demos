@@ -124,8 +124,10 @@ erDiagram
   document }|--|| deliverable_type_document_type : "FK096"
   document_infected }|--|| deliverable_type_document_type : "FK097"
   document_pending_upload }|--|| deliverable_type_document_type : "FK098"
-  deliverable_demonstration_status_limit ||--|| application_status : "FK099"
-  deliverable }|--|| deliverable_demonstration_status_limit : "FK100"
+  approved_application_status_limit ||--|| application_status : "FK099"
+  deliverable }|--|| approved_application_status_limit : "FK100"
+  amendment }|--|| approved_application_status_limit : "FK159"
+  extension }|--|| approved_application_status_limit : "FK160"
   cms_user_person_type_limit ||--|{ deliverable : "FK101"
   person_type ||--|| cms_user_person_type_limit : "FK102"
   users ||--|{ deliverable : "FK103"
@@ -155,8 +157,8 @@ erDiagram
   users ||--|{ reference : "FK140"
   users ||--|{ reference_agreement : "FK141"
   users ||--|{ reference_agreement_acceptance : "FK142"
-  cms_user_person_type_limit ||--|{ reference: "FK154"
-  cms_user_person_type_limit ||--|{ reference_agreement: "FK155"
+  cms_user_person_type_limit ||--|{ reference : "FK154"
+  cms_user_person_type_limit ||--|{ reference_agreement : "FK155"
   reference ||--|{ reference_configuration : "FK143"
   reference ||--|{ reference_tag_assignment : "FK144"
   reference ||--|{ reference_demonstration_type : "FK145"
@@ -317,6 +319,10 @@ erDiagram
     text id PK, FK "FK079: id ∈ tag_type.id"
   }
 
+  approved_application_status_limit:::typeLimiter {
+    text id PK, FK "FK099: id ∈ application_status.id"
+  }
+
   budget_neutrality_workbook_document_type_limit:::typeLimiter {
     text id PK, FK "FK118: id ∈ document_type.id"
   }
@@ -327,10 +333,6 @@ erDiagram
 
   deliverable_active_extension_status_limit:::typeLimiter {
     text id PK, FK "FK126: id ∈ deliverable_extension_status.id"
-  }
-
-  deliverable_demonstration_status_limit:::typeLimiter {
-    text id PK, FK "FK099: id ∈ application_status.id"
   }
 
   deliverable_submission_action_type_limit:::typeLimiter {
@@ -369,7 +371,8 @@ erDiagram
   amendment:::dataTable {
     uuid id PK, FK, UK "FK054: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)"
     text application_type_id FK, UK "FK054: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)<br>FK057: application_type_id ∈ amendment_application_type_limit.id"
-    uuid demonstration_id FK "FK055: demonstration_id ∈ demonstration.id"
+    uuid demonstration_id FK "FK055: (demonstration_id, demonstration_status_id) ∈ demonstration.(id, status_id)"
+    text demonstration_status_id FK "FK055: (demonstration_id, demonstration_status_id) ∈ demonstration.(id, status_id)<br>FK159: demonstration_status_id ∈ approved_application_status_limit.id"
     text name
     text description "NULLABLE"
     timestamptz effective_date "NULLABLE"
@@ -381,7 +384,7 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
-    CONSTRAINT_CHECK check_amendment_non_null_fields_when_approved  "Validate that required fields exist if amendment is approved."
+    CONSTRAINT_CHECK check_amendment_non_null_fields_when_approved "Validate that required fields exist if amendment is approved."
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
@@ -479,7 +482,7 @@ erDiagram
     text deliverable_type_id FK, UK "FK062: deliverable_type_id ∈ deliverable_type.id<br>UK: (id, demonstration_id, deliverable_type_id)"
     text name
     uuid demonstration_id FK, UK "FK006: (demonstration_id, demonstration_status_id) ∈ demonstration.(id, status_id)<br>UK: (id, demonstration_id, deliverable_type_id)<br>UK: (id, demonstration_id)"
-    text demonstration_status_id FK "FK006: (demonstration_id, demonstration_status_id) ∈ demonstration.(id, status_id)<br>FK100: demonstration_status_id ∈ deliverable_demonstration_status_limit.id"
+    text demonstration_status_id FK "FK006: (demonstration_id, demonstration_status_id) ∈ demonstration.(id, status_id)<br>FK100: demonstration_status_id ∈ approved_application_status_limit.id"
     text status_id FK "FK089: status_id ∈ deliverable_status.id"
     uuid cms_owner_user_id FK "FK103: (cms_owner_user_id, cms_owner_person_type_id) ∈ users.(id, person_type_id)"
     text cms_owner_person_type_id FK "FK103: (cms_owner_user_id, cms_owner_person_type_id) ∈ users.(id, person_type_id)<br>FK101: cms_owner_person_type_id ∈ cms_user_person_type_limit.id"
@@ -518,8 +521,9 @@ erDiagram
     CONSTRAINT_CHECK require_extension_id_for_extension_actions "If the action type requires an extension ID, require it to be present."
     CONSTRAINT_CHECK check_non_empty_note "Check that the note is either null or a non empty string."
     TRIGGER_BEFORE_INSERT block_final_states_if_extension_request_active "If an active extension request exists, do not allow moving the deliverable to completed."
+    TRIGGER_BEFORE_INSERT block_final_states_if_unsubmitted_state_documents_exist "If an unsubmitted state document exists, do not allow moving the deliverable to completed."
     TRIGGER_BEFORE_INSERT capture_active_extension_request_id_for_action "Before insert, look in deliverable_active_extension and if there is an active extension for this deliverable, add the ID here."
-    TRIGGER_AFTER_INSERT update_documents_in_submission "After insert, if it is a submission, go to the documents table and associate the action with any documents not belonging to a submission."
+    TRIGGER_AFTER_INSERT update_documents_in_submission "After insert, if it is a submission, go to the documents table and associate the action with any non-cms-attached documents not belonging to a submission."
     TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
     HAS_HISTORY true
   }
@@ -614,6 +618,7 @@ erDiagram
     CONSTRAINT_CHECK check_non_empty_s3_path "Validate that the S3 path is not empty or only whitespace."
     CONSTRAINT_CHECK check_phase_id_deliverable_id_null "Validate that at least one of phase_id and deliverable_id are NULL."
     CONSTRAINT_CHECK check_deliverable_null_states "Validate that the deliverable-related fields are NULL or NOT NULL appropriately.<br>If deliverable_id is NULL, all other deliverable fields must be NULL.<br>If deliverable_id is NOT NULL, deliverable_type_id and deliverable_is_cms_attached_file must be NOT NULL."
+    CONSTRAINT_CHECK no_submitted_deliverable_cms_files "Validate that a document cannot be both cms-attached and submitted.<br>If deliverable_is_cms_attached_file is TRUE, deliverable_submission_action_id must be NULL"
     CONSTRAINT_TRIGGER_DEFERRABLE_AFTER_INSERT_OR_UPDATE check_budget_neutrality_validation_record_exists "Verify that a corresponding record exists in the budget_neutrality_workbook table for budget neutrality records."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
@@ -669,7 +674,8 @@ erDiagram
   extension:::dataTable {
     uuid id PK, FK, UK "FK009: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)"
     text application_type_id FK, UK "FK009: (id, application_type_id) ∈ application.(id, application_type_id) DEFERRED<br>UK: (id, application_type_id)<br>FK016: application_type_id ∈ extension_application_type_limit.id"
-    uuid demonstration_id FK "FK012: demonstration_id ∈ demonstration.id"
+    uuid demonstration_id FK "FK012: (demonstration_id, demonstration_status_id) ∈ demonstration.(id, status_id)"
+    text demonstration_status_id FK "FK012: (demonstration_id, demonstration_status_id) ∈ demonstration.(id, status_id)<br>FK160: demonstration_status_id ∈ approved_application_status_limit.id"
     text name
     text description "NULLABLE"
     timestamptz effective_date "NULLABLE"
@@ -681,7 +687,7 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
     CONSTRAINT_CHECK check_non_empty_name "Validate that the name is not empty or only whitespace."
-    CONSTRAINT_CHECK check_extension_non_null_fields_when_approved  "Validate that required fields exist if extension is approved."
+    CONSTRAINT_CHECK check_extension_non_null_fields_when_approved "Validate that required fields exist if extension is approved."
     TRIGGER_BEFORE_DELETE check_that_main_record_deleted_from_application "Verify that no corresponding record exists in the application table."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     TRIGGER_BEFORE_INSERT_OR_UPDATE trim_input_text_fields "Trim input text fields."
@@ -846,10 +852,14 @@ erDiagram
   users:::dataTable {
     uuid id PK, FK, UK "FK023: (id, person_type_id) ∈ person.(id, person_type_id)<br>UK: (id, person_type_id)"
     text person_type_id FK, UK "FK023: (id, person_type_id) ∈ person.(id, person_type_id)<br>FK025: person_type_id ∈ user_person_type_limit.id<br>UK: (id, person_type_id)"
-    uuid cognito_subject UK "UK: cognito_subject"
-    text username
+    uuid cognito_subject UK "UK: cognito_subject<br>NULLABLE"
+    text username UK "UK: username<br>NULLABLE"
+    bool is_migrated_from_pmda
+    bool has_logged_in
     timestamptz created_at
     timestamptz updated_at
+    CONSTRAINT_CHECK check_external_fields_exist_for_logged_in_users "The cognito_subject and username must exist if has_logged_in is TRUE.<br>The cognito_subject and username should not exist if has_logged_in is FALSE."
+    CONSTRAINT_CHECK check_all_regular_users_are_logged_in "If is_migrated_from_pmda is FALSE, has_logged_in must be TRUE."
     TRIGGER_BEFORE_UPDATE _disable_redundant_updates "Disable redundant database updates."
     HAS_HISTORY true
   }

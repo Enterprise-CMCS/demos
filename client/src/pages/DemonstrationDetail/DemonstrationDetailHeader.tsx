@@ -108,6 +108,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
     },
   ];
   const canManageDemonstration = HEADER_ACTION_PERSON_TYPES.has(currentUser.person.personType);
+  const canCreateModifications = demonstration.status === "Approved";
 
   return (
     <div
@@ -201,6 +202,7 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
                   data-testid="create-new-button"
                   size="small"
                   onClick={() => setShowDropdown((prev) => !prev)}
+                  disabled={!canCreateModifications}
                   tooltip="Create New"
                 >
                   <AddNewIcon />

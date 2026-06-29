@@ -12,7 +12,8 @@ export const AmendmentsTab: React.FC<{
   medicaidId: string;
   amendments: DemonstrationDetailModification[];
   selectedAmendmentId?: string;
-}> = ({ demonstrationId, medicaidId, amendments, selectedAmendmentId }) => {
+  canCreateModifications: boolean;
+}> = ({ demonstrationId, medicaidId, amendments, selectedAmendmentId, canCreateModifications }) => {
   const { showCreateAmendmentDialog } = useDialog();
 
   if (amendments.length === 0) {
@@ -24,6 +25,7 @@ export const AmendmentsTab: React.FC<{
           icon={<AddNewIcon />}
           name="create-new-amendment"
           size="small"
+          disabled={!canCreateModifications}
           onClick={() => showCreateAmendmentDialog(demonstrationId)}
         >
           Create Amendment
@@ -46,6 +48,7 @@ export const AmendmentsTab: React.FC<{
           icon={<AddNewIcon />}
           name="add-new-amendment"
           size="small"
+          disabled={!canCreateModifications}
           onClick={() => showCreateAmendmentDialog(demonstrationId)}
         >
           Add Amendment
