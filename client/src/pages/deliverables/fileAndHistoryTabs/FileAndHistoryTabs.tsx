@@ -167,6 +167,10 @@ export const FileAndHistoryTabs: React.FC<{
     || submitLoading
     || (!hasUnsubmittedFiles && !canSubmitWithoutUnsubmittedFiles);
 
+  const submitTooltip = isSubmitDisabled && !hasUnsubmittedFiles && !isFinalized
+    ? "No Unsubmitted Files"
+    : undefined;
+
   return (
     <div data-testid={FILE_AND_HISTORY_TABS_NAME}>
       <HorizontalSectionTabs defaultValue={TABS.STATE_FILES} variant="bordered">
@@ -209,6 +213,7 @@ export const FileAndHistoryTabs: React.FC<{
           onClick={handleSubmitDeliverable}
           size="large"
           name={STATE_FILES_SUBMIT_BUTTON_NAME}
+          tooltip={submitTooltip}
         >
           Submit Deliverable
         </Button>
