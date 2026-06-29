@@ -1,7 +1,6 @@
 import React from "react";
 
 import { Button, SecondaryButton } from "components/button";
-import { tw } from "tags/tw";
 import { DateType } from "demos-server";
 import { DatePicker } from "components/input/date/DatePicker";
 import {
@@ -13,23 +12,6 @@ import {
   STATE_DEEMED_COMPLETE_DATEPICKER_NAME,
 } from "./CompletenessPhase";
 
-const STYLES = {
-  title: tw`text-xl font-semibold mb-2 uppercase`,
-  helper: tw`text-sm text-text-placeholder mb-2`,
-  actions: tw`mt-8 flex justify-end gap-2`,
-};
-
-interface VerifyCompleteSectionProps {
-  stateDeemedComplete: string;
-  federalStartDate: string;
-  federalEndDate: string;
-  completenessComplete: boolean;
-  finishIsEnabled: boolean;
-  onDateChange: (date: string) => void;
-  onDeclareIncomplete: () => void;
-  onFinish: () => void;
-}
-
 export const VerifyCompleteSection = ({
   stateDeemedComplete,
   federalStartDate,
@@ -39,12 +21,24 @@ export const VerifyCompleteSection = ({
   onDateChange,
   onDeclareIncomplete,
   onFinish,
-}: VerifyCompleteSectionProps) => (
+}: {
+  stateDeemedComplete: string;
+  federalStartDate: string;
+  federalEndDate: string;
+  completenessComplete: boolean;
+  finishIsEnabled: boolean;
+  onDateChange: (date: string) => void;
+  onDeclareIncomplete: () => void;
+  onFinish: () => void;
+}) => (
   <div aria-labelledby="completeness-verify-title">
-    <h4 id="completeness-verify-title" className={STYLES.title}>
+    <h4 id="completeness-verify-title" className="text-xl font-semibold mb-2 uppercase">
       Step 2 - Verify/Complete
     </h4>
-    <p className={STYLES.helper} data-testId={COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION.testId}>
+    <p
+      className={"text-sm text-text-placeholder mb-2"}
+      data-testId={COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION.testId}
+    >
       {COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION.text}
     </p>
 
@@ -78,7 +72,7 @@ export const VerifyCompleteSection = ({
       </div>
     </div>
 
-    <div className={STYLES.actions}>
+    <div className={"mt-8 flex justify-end gap-2"}>
       <SecondaryButton
         name={COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME}
         size="small"
