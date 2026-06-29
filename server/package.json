@@ -5,7 +5,8 @@
   "overrides": {
     "@aws-sdk/client-s3": {
       "fast-xml-parser": "^5.3.6"
-    }
+    },
+    "fast-uri": "3.1.3"
   },
   "dependencies": {
     "@apollo/server": "^5.5.1",
