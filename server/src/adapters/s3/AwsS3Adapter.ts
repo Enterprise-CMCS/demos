@@ -56,10 +56,6 @@ export function createAWSS3Adapter(): S3Adapter {
       const getObjectCommand = new GetObjectCommand({
         Bucket: cleanBucket,
         Key: key,
-        // Tells the browser to present the file under its title rather than the
-        // S3 object key (a UUID). content-disposition handles RFC 6266/5987
-        // encoding, quoting, and control-character stripping so arbitrary
-        // document names can't malform or inject into the header.
         ResponseContentDisposition: fileName
           ? createContentDisposition(fileName, { type: "inline" })
           : undefined,

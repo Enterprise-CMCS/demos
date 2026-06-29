@@ -13,14 +13,10 @@ const FilePreviewer = ({
   mimeType?: string;
   presignedDownloadUrl: string;
 }) => {
-  // The document title is the download name, verbatim, to stay consistent with
-  // what's stored and displayed everywhere else (no extension appended).
+
   const file = new File([blob], filename, { type: mimeType ?? blob.type });
   const blobUrl = URL.createObjectURL(file);
 
-  // For PDFs, embed the presigned URL directly so the browser's native viewer
-  // shows the document title from its Content-Disposition header. Embedding the
-  // blob URL instead would label the toolbar with a random object-URL UUID.
   return mimeType == "application/pdf" ? (
     <embed src={presignedDownloadUrl} className="w-full h-full" />
   ) : (
