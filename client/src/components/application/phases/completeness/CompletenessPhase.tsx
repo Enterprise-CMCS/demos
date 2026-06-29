@@ -1,23 +1,23 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 
 import { Button, SecondaryButton } from "components/button";
 import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
-import { formatDateForDisplay, formatDateForServer, getDateEst } from "util/formatDate";
-import { addDays, differenceInCalendarDays, parseISO } from "date-fns";
+import { formatDateForServer, getDateEst } from "util/formatDate";
+import { addDays, parseISO } from "date-fns";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { useToast } from "components/toast";
-import { DocumentList } from "./sections";
+import { DocumentList } from "../sections";
 import { ApplicationDateInput, DateType, LocalDate, PhaseName, PhaseStatus } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
 import { DatePicker } from "components/input/date/DatePicker";
-import { Notice, NoticeVariant } from "components/notice/Notice";
 import {
   useCompletePhase,
   useDeclareCompletenessPhaseIncomplete,
 } from "components/application/phase-status/phaseCompletionQueries";
+import { CompletenessNotice } from "./CompletenessNotice";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -43,55 +43,6 @@ export const COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION = {
 export const COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION = {
   text: "Verify that the document is uploaded/accurate and that all required fields are filled. Review the file and fix the Submitted Date if needed. Hitting Finish sets the Due Date.",
   testId: "completeness-phase-step-two-description",
-};
-
-const CompletenessNotice = ({
-  completenessReviewDate,
-  completenessComplete,
-}: {
-  completenessReviewDate?: string;
-  completenessComplete: boolean;
-}) => {
-  const [isNoticeDismissed, setNoticeDismissed] = useState(
-    !(completenessReviewDate && !completenessComplete)
-  );
-
-  const noticeContent = useMemo(() => {
-    if (!completenessReviewDate) return null;
-    const noticeDueDateValue = parseISO(completenessReviewDate ?? "");
-    const daysLeft = differenceInCalendarDays(noticeDueDateValue, new Date());
-    if (daysLeft > 1) {
-      return {
-        title: `${daysLeft} days left`,
-        description: `This Demonstration must be declared complete by ${formatDateForDisplay(noticeDueDateValue)}`,
-        variant: "warning" as NoticeVariant,
-      };
-    }
-    if (daysLeft === 1) {
-      return {
-        title: "1 day left in Completion Period",
-        description: `This Demonstration must be declared complete by ${formatDateForDisplay(noticeDueDateValue)}`,
-        variant: "error" as NoticeVariant,
-      };
-    } else {
-      return {
-        title: `${Math.abs(daysLeft)} days past due`,
-        description: `This Demonstration completeness was due on ${formatDateForDisplay(noticeDueDateValue)}`,
-        variant: "error" as NoticeVariant,
-      };
-    }
-  }, [completenessReviewDate]);
-
-  if (isNoticeDismissed || !noticeContent) return null;
-
-  return (
-    <Notice
-      title={noticeContent.title}
-      description={noticeContent.description}
-      variant={noticeContent.variant}
-      onDismiss={() => setNoticeDismissed(true)}
-    />
-  );
 };
 
 const THIS_PHASE_NAME: PhaseName = "Completeness";
