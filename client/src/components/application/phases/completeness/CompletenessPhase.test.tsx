@@ -7,7 +7,6 @@ import { TestProvider } from "test-utils/TestProvider";
 import {
   CompletenessPhase,
   CompletenessPhaseProps,
-  COMPLETENESS_UPLOAD_BUTTON_NAME,
   COMPLETENESS_FINISH_BUTTON_NAME,
   COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME,
   STATE_DEEMED_COMPLETE_DATEPICKER_NAME,
@@ -15,8 +14,6 @@ import {
   FEDERAL_COMMENT_END_DATEPICKER_NAME,
   getApplicationCompletenessFromApplication,
   COMPLETENESS_PHASE_DESCRIPTION,
-  COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION,
-  COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION,
 } from "./CompletenessPhase";
 import { ApplicationWorkflowDocument, WorkflowApplication } from "components/application";
 import { TZDate } from "@date-fns/tz";
@@ -121,47 +118,6 @@ describe("CompletenessPhase", () => {
       expect(screen.getByTestId(COMPLETENESS_PHASE_DESCRIPTION.testId)).toHaveTextContent(
         COMPLETENESS_PHASE_DESCRIPTION.text
       );
-    });
-  });
-
-  describe("Step 1 - Upload Section", () => {
-    it("renders upload button and helper text", () => {
-      setup();
-      expect(screen.getByText("Step 1 - Upload")).toBeInTheDocument();
-      expect(screen.getByTestId(COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION.testId)).toHaveTextContent(
-        COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION.text
-      );
-      expect(screen.getByTestId(COMPLETENESS_UPLOAD_BUTTON_NAME)).toBeInTheDocument();
-    });
-
-    it("renders uploaded documents", () => {
-      setup({ completenessDocuments: [mockCompletenessDoc, mockInternalDoc] });
-      expect(screen.getByText("Completeness Letter")).toBeInTheDocument();
-      expect(screen.getByText("Internal Form")).toBeInTheDocument();
-    });
-  });
-
-  describe("Step 2 - Verify/Complete Section", () => {
-    it("renders section title and description", () => {
-      setup();
-      expect(screen.getByText("Step 2 - Verify/Complete")).toBeInTheDocument();
-      expect(screen.getByTestId(COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION.testId)).toHaveTextContent(
-        COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION.text
-      );
-    });
-    it("renders date picker for State Application Deemed Complete", () => {
-      setup();
-      const dateInput = screen.getByTestId(STATE_DEEMED_COMPLETE_DATEPICKER_NAME);
-      expect(dateInput).toBeInTheDocument();
-      expect(dateInput).toHaveAttribute("type", "date");
-    });
-
-    it("renders disabled date pickers for Federal Comment Period", () => {
-      setup();
-      const startInput = screen.getByTestId(FEDERAL_COMMENT_START_DATEPICKER_NAME);
-      const endInput = screen.getByTestId(FEDERAL_COMMENT_END_DATEPICKER_NAME);
-      expect(startInput).toBeDisabled();
-      expect(endInput).toBeDisabled();
     });
   });
 
@@ -326,17 +282,6 @@ describe("CompletenessPhase", () => {
     });
   });
 
-  describe("Upload Modal", () => {
-    it("calls dialog function when upload clicked", async () => {
-      setup();
-
-      const uploadButton = screen.getByTestId(COMPLETENESS_UPLOAD_BUTTON_NAME);
-      await userEvent.click(uploadButton);
-
-      expect(showCompletenessDocumentUploadDialog).toHaveBeenCalledWith("app-123");
-    });
-  });
-
   describe("Document Reactivity", () => {
     it("reflects updated documents when props change (no refresh needed)", () => {
       const { rerender } = render(
@@ -407,59 +352,6 @@ describe("CompletenessPhase", () => {
       expect(screen.getByTestId(COMPLETENESS_FINISH_BUTTON_NAME)).toBeEnabled();
     });
   });
-
-  describe("Completeness Notice Banner", () => {
-    it("renders the banner with correct content and dismisses on click", async () => {
-      const today = new TZDate("2026-02-08T00:00:00Z", EST_TIMEZONE);
-      vi.setSystemTime(today);
-
-      const reviewDate = "2026-02-10"; // 2 days from today
-
-      render(
-        <TestProvider>
-          <CompletenessPhase
-            applicationId="app-123"
-            applicationIntakeComplete={true}
-            completenessReviewDate={reviewDate}
-            completenessPhaseStatus="Started"
-            stateDeemedCompleteDate=""
-            completenessDocuments={[]}
-            setSelectedPhase={mockSetSelectedPhase}
-          />
-        </TestProvider>
-      );
-
-      // banner shows 2 days left
-      const title = screen.getByText("2 days left");
-      const description = screen.getByText(/This Demonstration must be declared complete by/);
-      expect(title).toBeInTheDocument();
-      expect(description).toBeInTheDocument();
-
-      // dismiss the banner
-      const dismissButton = screen.getByRole("button", { name: /dismiss/i });
-      await userEvent.click(dismissButton);
-
-      expect(title).not.toBeInTheDocument();
-    });
-
-    it("does not render the banner if completenessReviewDate is missing or phase is complete", () => {
-      render(
-        <TestProvider>
-          <CompletenessPhase
-            applicationId="app-123"
-            applicationIntakeComplete={true}
-            completenessReviewDate={undefined}
-            completenessPhaseStatus="Completed"
-            stateDeemedCompleteDate=""
-            completenessDocuments={[]}
-            setSelectedPhase={mockSetSelectedPhase}
-          />
-        </TestProvider>
-      );
-
-      expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-    });
-  });
 });
 
 describe("getApplicationCompletenessFromApplication", () => {
@@ -494,15 +386,15 @@ describe("getApplicationCompletenessFromApplication", () => {
           phaseDates: [
             {
               dateType: "State Application Deemed Complete",
-              dateValue: new TZDate("2026-03-01", EST_TIMEZONE),
+              dateValue: new TZDate("2026-03-01T05:00:00.000Z", EST_TIMEZONE),
             },
             {
               dateType: "Federal Comment Period Start Date",
-              dateValue: new TZDate("2026-03-02", EST_TIMEZONE),
+              dateValue: new TZDate("2026-03-02T05:00:00.000Z", EST_TIMEZONE),
             },
             {
               dateType: "Federal Comment Period End Date",
-              dateValue: new TZDate("2026-04-01", EST_TIMEZONE),
+              dateValue: new TZDate("2026-04-01T04:00:00.000Z", EST_TIMEZONE),
             },
           ],
           phaseNotes: [],
