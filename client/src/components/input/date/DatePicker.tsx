@@ -47,6 +47,7 @@ export const DatePicker = ({
     setDisplayedDate(newDate);
 
     // Only call onChange if the date is valid (empty or within range).
+    // (newDate === "" || newDate >= FULL_YEAR_DATE) <-- change that fixes min date validation.
     if (newDate === "" || (newDate >= minDate && newDate <= maxDate)) {
       onChange?.(newDate);
     }

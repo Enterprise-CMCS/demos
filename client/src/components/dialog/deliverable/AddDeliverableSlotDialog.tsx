@@ -20,8 +20,7 @@ import {
 import { useToast } from "components/toast";
 import { DELIVERABLE_SLOTS_CREATED_MESSAGE } from "util/messages";
 import { DELIVERABLES_PAGE_QUERY } from "components/table/tables/DeliverableTable";
-import { getTodayEst } from "util/formatDate";
-import { isBefore } from "date-fns";
+import { dueDateIsTodayOrFuture } from "./deliverableDueDateValidation";
 import { getCurrentUser } from "components/user/UserContext";
 
 export const CREATE_DELIVERABLE_MUTATION = gql`
@@ -102,11 +101,10 @@ export const buildAddDeliverableSlotPayloads = (
 };
 
 const hasValidDueDateForScheduleType = (data: AddDeliverableSlotFormData): boolean => {
-  const today = getTodayEst();
   if (data.scheduleType === "Single") {
-    return data.dueDate.length > 0 && !isBefore(data.dueDate, today);
+    return dueDateIsTodayOrFuture(data.dueDate);
   }
-  return data.quarterlyDueDates.every((dueDate) => dueDate.length > 0 && !isBefore(dueDate, today));
+  return data.quarterlyDueDates.every(dueDateIsTodayOrFuture);
 };
 
 const formIsValid = (data: AddDeliverableSlotFormData): boolean =>
