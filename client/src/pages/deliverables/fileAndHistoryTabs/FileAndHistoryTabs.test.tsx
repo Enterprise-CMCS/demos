@@ -164,12 +164,6 @@ describe("FileAndHistoryTabs", () => {
       expect(mockShowRequestResubmissionDeliverableDialog).not.toHaveBeenCalled();
     });
 
-    it("enables Submit Deliverable when state files exist", () => {
-      setup();
-
-      expect(screen.getByTestId(STATE_FILES_SUBMIT_BUTTON_NAME)).not.toBeDisabled();
-    });
-
     it("disables Submit Deliverable when no state files have been uploaded", () => {
       setup({ stateDocuments: [] });
 
@@ -273,6 +267,69 @@ describe("FileAndHistoryTabs", () => {
       setup({ status: "Submitted" });
 
       expect(screen.getByTestId(STATE_FILES_ADD_BUTTON_NAME)).not.toBeDisabled();
+    });
+
+    describe("Submit Deliverable button", () => {
+      it.each(["Upcoming", "Past Due"] as const)(
+        "enables Submit Deliverable for %s even when all files have already been submitted",
+        (status) => {
+          setup({
+            status,
+            stateDocuments: [
+              {
+                ...MOCK_DELIVERABLE_1.stateDocuments[0],
+                deliverableSubmissionAction: {
+                  actionTimestamp: new Date("2026-06-26T19:32:52.932Z"),
+                },
+              },
+            ],
+          });
+
+          expect(screen.getByTestId(STATE_FILES_SUBMIT_BUTTON_NAME)).not.toBeDisabled();
+        }
+      );
+
+      it.each(["Submitted", "Under CMS Review"] as const)(
+        "disables Submit Deliverable for %s when there are no unsubmitted files",
+        (status) => {
+          setup({
+            status,
+            stateDocuments: [
+              {
+                ...MOCK_DELIVERABLE_1.stateDocuments[0],
+                deliverableSubmissionAction: {
+                  actionTimestamp: new Date("2026-06-26T19:32:52.932Z"),
+                },
+              },
+            ],
+          });
+
+          expect(screen.getByTestId(STATE_FILES_SUBMIT_BUTTON_NAME)).toBeDisabled();
+        }
+      );
+
+      it.each(["Submitted", "Under CMS Review"] as const)(
+        "enables Submit Deliverable for %s when an unsubmitted file exists",
+        (status) => {
+          setup({
+            status,
+            stateDocuments: [
+              {
+                ...MOCK_DELIVERABLE_1.stateDocuments[0],
+                deliverableSubmissionAction: null,
+              },
+            ],
+          });
+
+          expect(screen.getByTestId(STATE_FILES_SUBMIT_BUTTON_NAME)).not.toBeDisabled();
+        }
+      );
+
+      it("disables Submit Deliverable when no state files have been uploaded", () => {
+        setup({ stateDocuments: [] });
+
+        expect(screen.getByTestId(STATE_FILES_SUBMIT_BUTTON_NAME)).toBeDisabled();
+      });
     });
   });
 });
