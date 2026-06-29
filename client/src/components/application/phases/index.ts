@@ -1,6 +1,6 @@
 export * from "./ConceptPhase";
 export * from "./ApplicationIntakePhase";
-export * from "./CompletenessPhase";
+export * from "./completeness";
 export * from "./FederalCommentPhase";
 export * from "./SdgPreparationPhase";
 export * from "./review/";
