@@ -1,5 +1,5 @@
 import React from "react";
-import { addYears } from "date-fns";
+import { addYears, subDays } from "date-fns";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -170,7 +170,7 @@ describe("AddDeliverableSlotDialog", () => {
     expect(screen.getAllByLabelText(/Quarter/i)).toHaveLength(4);
   });
 
-  it("enables save when a valid Quarterly form is completed in a different order", async () => {
+  it("enables save when a valid Quarterly form is completed in a different order and disables when a date becomes past", async () => {
     const user = userEvent.setup();
     setup({ expirationDate: new Date("2099-12-31") });
 
@@ -199,6 +199,13 @@ describe("AddDeliverableSlotDialog", () => {
     await waitFor(() =>
       expect(screen.getByTestId(ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME)).not.toBeDisabled()
     );
+
+    fireEvent.change(screen.getByTestId("quarter-1"), {
+      target: { value: formatDateForServer(subDays(new Date(), 1)) },
+    });
+
+    expect(screen.getByTestId(ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME)).toBeDisabled();
+    expect(screen.getByText(/Date must be on or after/)).toBeInTheDocument();
   });
 
   it("shows success toast and calls onClose when save is clicked with a valid Single schedule form", async () => {
@@ -230,6 +237,40 @@ describe("AddDeliverableSlotDialog", () => {
 
     expect(mockShowSuccess).toHaveBeenCalledWith(DELIVERABLE_SLOTS_CREATED_MESSAGE);
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("disables save when a valid Single due date is changed to a past date", async () => {
+    const user = userEvent.setup();
+    setup({ expirationDate: new Date("2099-12-31") });
+
+    await waitFor(() => expect(screen.getByTestId("select-users")).toBeInTheDocument());
+
+    await user.click(screen.getByTestId(DELIVERABLE_TYPE_SELECT_NAME));
+    await user.click(screen.getByText("Annual Budget Neutrality Report"));
+
+    const dueDateField = screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME);
+    fireEvent.change(dueDateField, {
+      target: { value: formatDateForServer(addYears(new Date(), 1)) },
+    });
+
+    await user.type(screen.getByTestId(DELIVERABLE_NAME_FIELD_ID), "Test Deliverable");
+
+    await user.click(screen.getByTestId("select-users"));
+    await user.click(screen.getByText("John Doe"));
+
+    await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_NAME));
+    await user.click(screen.getByText("Aggregate Cap"));
+
+    await waitFor(() =>
+      expect(screen.getByTestId(ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME)).not.toBeDisabled()
+    );
+
+    fireEvent.change(dueDateField, {
+      target: { value: formatDateForServer(subDays(new Date(), 1)) },
+    });
+
+    expect(screen.getByTestId(ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME)).toBeDisabled();
+    expect(screen.getByText(/Date must be on or after/)).toBeInTheDocument();
   });
 });
 

@@ -1,6 +1,6 @@
 import { DatePicker } from "components/input/date/DatePicker";
 import React from "react";
-import { getTodayEst } from "util/formatDate";
+import { getDueDateValidationMessage } from "../../deliverableDueDateValidation";
 
 export const SINGLE_DELIVERABLE_DUE_DATE_NAME = "single-deliverable-due-date";
 
@@ -11,7 +11,6 @@ export const SingleDeliverableScheduleType = ({
   value: string;
   onChange: (dueDate: string) => void;
 }) => {
-  const today = getTodayEst();
   return (
     <div className="grid grid-cols-2">
       <div className="col-span-1">
@@ -21,7 +20,8 @@ export const SingleDeliverableScheduleType = ({
           value={value}
           onChange={onChange}
           isRequired={true}
-          minDate={today}
+          // Temporary until we get datepicker fix tested. then we'lll use minDate=`{getTodayEst()}`
+          getValidationMessage={() => getDueDateValidationMessage(value)}
         />
       </div>
     </div>
