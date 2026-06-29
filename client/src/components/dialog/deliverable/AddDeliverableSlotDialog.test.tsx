@@ -15,7 +15,6 @@ import { SINGLE_DELIVERABLE_DUE_DATE_NAME } from "components/dialog/deliverable/
 import { personMocks } from "mock-data/personMocks";
 import { Tag } from "demos-server";
 import {
-  ADD_DELIVERABLE_SLOT_INVALID_DATE_TOOLTIP,
   ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME,
   AddDeliverableSlotDemonstration,
   AddDeliverableSlotFormData,
@@ -199,34 +198,6 @@ describe("AddDeliverableSlotDialog", () => {
 
     await waitFor(() =>
       expect(screen.getByTestId(ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME)).not.toBeDisabled()
-    );
-  });
-
-  it("shows a date invalid tooltip when dates are the only invalid fields", async () => {
-    const user = userEvent.setup();
-    setup({ expirationDate: new Date("2099-12-31") });
-
-    await waitFor(() => expect(screen.getByTestId("select-users")).toBeInTheDocument());
-
-    await user.click(screen.getByTestId("select-schedule-type"));
-    await user.click(screen.getByText("Quarterly"));
-
-    await user.type(screen.getByTestId(DELIVERABLE_NAME_FIELD_ID), "Quarterly Report");
-
-    await user.click(screen.getByTestId("select-users"));
-    await user.click(screen.getByText("John Doe"));
-
-    await user.click(screen.getByTestId(DELIVERABLE_TYPE_SELECT_NAME));
-    await user.click(screen.getByText("Demonstration-Specific Deliverable"));
-
-    await user.click(screen.getByTestId(SELECT_DEMONSTRATION_TYPE_NAME));
-    await user.click(screen.getByText("Aggregate Cap"));
-
-    await waitFor(() =>
-      expect(screen.getByTestId(ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME)).toHaveAttribute(
-        "title",
-        ADD_DELIVERABLE_SLOT_INVALID_DATE_TOOLTIP
-      )
     );
   });
 

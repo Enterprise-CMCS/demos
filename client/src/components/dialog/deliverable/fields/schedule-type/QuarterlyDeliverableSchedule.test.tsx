@@ -7,7 +7,8 @@ import {
   getOptionsForYearSelect,
   QuarterlyDeliverableSchedule,
 } from "./QuarterlyDeliverableSchedule";
-import { getTodayEst } from "util/formatDate";
+
+const DATE_IN_PAST_MESSAGE = "Date cannot be in the past";
 
 describe("QuarterlyDeliverableSchedule", () => {
   it("renders 4 quarter datepickers", () => {
@@ -46,12 +47,15 @@ describe("QuarterlyDeliverableSchedule", () => {
     expect(screen.getByTestId("quarter-4")).toHaveValue("2026-10-15");
   });
 
-  it("requires quarterly due dates to be today or later", () => {
-    render(<QuarterlyDeliverableSchedule onSelectYear={vi.fn()} />);
+  it("shows the date in past message for quarterly due dates before today", () => {
+    render(
+      <QuarterlyDeliverableSchedule
+        onSelectYear={vi.fn()}
+        quarterlyDueDates={["1900-01-01", "", "", ""]}
+      />
+    );
 
-    screen.getAllByLabelText(/Quarter/i).forEach((datePicker) => {
-      expect(datePicker).toHaveAttribute("min", getTodayEst());
-    });
+    expect(screen.getByText(DATE_IN_PAST_MESSAGE)).toBeInTheDocument();
   });
 
   it("calls onSelectQuarterDate with the correct quarter index and date when a date is changed", () => {

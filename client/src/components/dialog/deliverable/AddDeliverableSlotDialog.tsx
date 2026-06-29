@@ -43,7 +43,6 @@ export const useCreateDeliverable = () => {
 export const ADD_DELIVERABLE_SLOT_DIALOG_TITLE = "Add New Deliverable Slot(s)";
 export const ADD_DELIVERABLE_SLOT_DIALOG_NAME = "add-deliverable-slot-dialog";
 export const ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME = "button-add-deliverable-slot-confirm";
-export const ADD_DELIVERABLE_SLOT_INVALID_DATE_TOOLTIP = "Date is invalid";
 
 const ALL_QUARTERS = [1, 2, 3, 4] as const;
 type Quarter = (typeof ALL_QUARTERS)[number];
@@ -124,13 +123,6 @@ const formIsValid = (data: AddDeliverableSlotFormData): boolean =>
   hasValidDueDateForScheduleType(data) &&
   (!requiresDemonstrationTypes(data.deliverableType) || data.demonstrationTypes.length > 0);
 
-const hasValidNonDateFields = (data: AddDeliverableSlotFormData): boolean =>
-  data.deliverableName.trim().length > 0 &&
-  data.cmsOwnerUserId.length > 0 &&
-  data.deliverableType.length > 0 &&
-  data.scheduleType.length > 0 &&
-  (!requiresDemonstrationTypes(data.deliverableType) || data.demonstrationTypes.length > 0);
-
 const formHasChanges = (data: AddDeliverableSlotFormData): boolean =>
   data.deliverableName !== INITIAL_FORM_DATA.deliverableName ||
   data.cmsOwnerUserId !== INITIAL_FORM_DATA.cmsOwnerUserId ||
@@ -162,10 +154,6 @@ export const AddDeliverableSlotDialog = ({
 
   const isFormValid = formIsValid(formData);
   const hasFormChanges = formHasChanges(formData);
-  const saveButtonTooltip =
-    hasValidNonDateFields(formData) && !hasValidDueDateForScheduleType(formData)
-      ? ADD_DELIVERABLE_SLOT_INVALID_DATE_TOOLTIP
-      : undefined;
 
   return (
     <BaseDialog
@@ -188,7 +176,6 @@ export const AddDeliverableSlotDialog = ({
             onClose();
           }}
           disabled={!isFormValid || loading}
-          tooltip={saveButtonTooltip}
         >
           Save
         </Button>

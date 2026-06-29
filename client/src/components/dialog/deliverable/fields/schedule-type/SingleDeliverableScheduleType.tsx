@@ -1,9 +1,10 @@
 import { DatePicker } from "components/input/date/DatePicker";
 import React from "react";
-import { isBefore, parseISO } from "date-fns";
-import { formatDateForDisplay, getTodayEst } from "util/formatDate";
+import { isBefore } from "date-fns";
+import { getTodayEst } from "util/formatDate";
 
 export const SINGLE_DELIVERABLE_DUE_DATE_NAME = "single-deliverable-due-date";
+const DATE_IN_PAST_MESSAGE = "Date cannot be in the past";
 
 export const SingleDeliverableScheduleType = ({
   value,
@@ -22,11 +23,8 @@ export const SingleDeliverableScheduleType = ({
           value={value}
           onChange={onChange}
           isRequired={true}
-          minDate={today}
           getValidationMessage={() =>
-            value && isBefore(value, today)
-              ? `Date must be on or after ${formatDateForDisplay(parseISO(today))}.`
-              : ""
+            value && isBefore(value, today) ? DATE_IN_PAST_MESSAGE : ""
           }
         />
       </div>
