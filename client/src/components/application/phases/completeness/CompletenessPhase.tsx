@@ -1,23 +1,21 @@
 import React, { useState } from "react";
 
-import { Button, SecondaryButton } from "components/button";
-import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
 import { formatDateForServer, getDateEst } from "util/formatDate";
 import { addDays, parseISO } from "date-fns";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { useToast } from "components/toast";
-import { DocumentList } from "../sections";
 import { ApplicationDateInput, DateType, LocalDate, PhaseName, PhaseStatus } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
-import { DatePicker } from "components/input/date/DatePicker";
 import {
   useCompletePhase,
   useDeclareCompletenessPhaseIncomplete,
 } from "components/application/phase-status/phaseCompletionQueries";
 import { CompletenessNotice } from "./CompletenessNotice";
+import { UploadSection } from "./UploadSection";
+import { VerifyCompleteSection } from "./VerifyCompleteSection";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -237,88 +235,6 @@ export const CompletenessPhase = ({
     }
   };
 
-  const UploadSection = () => (
-    <div aria-labelledby="completeness-upload-title">
-      <h4 id="completeness-upload-title" className={STYLES.title}>
-        Step 1 - Upload
-      </h4>
-      <p className={STYLES.helper} data-testId={COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION.testId}>
-        {COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION.text}
-      </p>
-      <SecondaryButton
-        onClick={() => showCompletenessDocumentUploadDialog(applicationId)}
-        size="small"
-        name={COMPLETENESS_UPLOAD_BUTTON_NAME}
-      >
-        Upload
-        <ExportIcon />
-      </SecondaryButton>
-      <DocumentList documents={completenessDocuments} />
-    </div>
-  );
-
-  const VerifyCompleteSection = () => (
-    <div aria-labelledby="completeness-verify-title">
-      <h4 id="completeness-verify-title" className={STYLES.title}>
-        Step 2 - Verify/Complete
-      </h4>
-      <p className={STYLES.helper} data-testId={COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION.testId}>
-        {COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION.text}
-      </p>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="col-span-2">
-          <DatePicker
-            name={STATE_DEEMED_COMPLETE_DATEPICKER_NAME}
-            label={"State Application Deemed Complete" satisfies DateType}
-            value={stateDeemedComplete}
-            onChange={(date) => {
-              setUserSelectedStateDeemedCompleteDate(date);
-            }}
-            isDisabled={completenessComplete}
-          />
-        </div>
-
-        <div>
-          <DatePicker
-            name={FEDERAL_COMMENT_START_DATEPICKER_NAME}
-            label={"Federal Comment Period Start Date" satisfies DateType}
-            value={federalStartDate}
-            isDisabled
-          />
-        </div>
-
-        <div>
-          <DatePicker
-            name={FEDERAL_COMMENT_END_DATEPICKER_NAME}
-            label={"Federal Comment Period End Date" satisfies DateType}
-            value={federalEndDate}
-            isDisabled
-          />
-        </div>
-      </div>
-
-      <div className={STYLES.actions}>
-        <SecondaryButton
-          name={COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME}
-          size="small"
-          onClick={handleDeclareIncomplete}
-          disabled={completenessComplete}
-        >
-          Declare Incomplete
-        </SecondaryButton>
-        <Button
-          name={COMPLETENESS_FINISH_BUTTON_NAME}
-          size="small"
-          disabled={!finishIsEnabled()}
-          onClick={handleFinishCompleteness}
-        >
-          Finish
-        </Button>
-      </div>
-    </div>
-  );
-
   return (
     <div>
       <div className="flex flex-col gap-6">
@@ -339,8 +255,21 @@ export const CompletenessPhase = ({
         <section className={STYLES.pane}>
           <div className={STYLES.grid}>
             <span aria-hidden className={STYLES.divider} />
-            <UploadSection />
-            <VerifyCompleteSection />
+            <UploadSection
+              applicationId={applicationId}
+              completenessDocuments={completenessDocuments}
+              onUploadClick={showCompletenessDocumentUploadDialog}
+            />
+            <VerifyCompleteSection
+              stateDeemedComplete={stateDeemedComplete}
+              federalStartDate={federalStartDate}
+              federalEndDate={federalEndDate}
+              completenessComplete={completenessComplete}
+              finishIsEnabled={!!finishIsEnabled()}
+              onDateChange={setUserSelectedStateDeemedCompleteDate}
+              onDeclareIncomplete={handleDeclareIncomplete}
+              onFinish={handleFinishCompleteness}
+            />
           </div>
         </section>
       </div>
