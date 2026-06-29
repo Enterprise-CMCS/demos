@@ -109,13 +109,20 @@ describe("DocumentPreview", () => {
       mime: "image/png",
     });
 
-    render(<DocumentPreview presignedDownloadUrl={mockPresignedUrl} filename={mockFilename} />);
+    // The download uses the document title verbatim, consistent with what's
+    // stored and displayed elsewhere (no extension appended/slugified).
+    render(
+      <DocumentPreview
+        presignedDownloadUrl={mockPresignedUrl}
+        filename="Budget Neutrality Workbook Ohio"
+      />
+    );
 
     await waitFor(() => {
       expect(screen.getByText("Download File")).toBeInTheDocument();
       const link = screen.getByText("Download File").closest("a");
       expect(link).toHaveAttribute("href", "blob:mock-url");
-      expect(link).toHaveAttribute("download", mockFilename);
+      expect(link).toHaveAttribute("download", "Budget Neutrality Workbook Ohio");
     });
   });
 

@@ -6,6 +6,7 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { create as createContentDisposition } from "content-disposition";
 import { prisma, PrismaTransactionClient } from "../../prismaClient";
 import { S3Adapter } from "../";
 import { Prisma, DocumentPendingUpload as PrismaDocumentPendingUpload } from "@prisma/client";
@@ -55,8 +56,12 @@ export function createAWSS3Adapter(): S3Adapter {
       const getObjectCommand = new GetObjectCommand({
         Bucket: cleanBucket,
         Key: key,
+        // Tells the browser to present the file under its title rather than the
+        // S3 object key (a UUID). content-disposition handles RFC 6266/5987
+        // encoding, quoting, and control-character stripping so arbitrary
+        // document names can't malform or inject into the header.
         ResponseContentDisposition: fileName
-          ? `inline; filename="${fileName.replace(/"/g, "")}"; filename*=UTF-8''${encodeURIComponent(fileName)}`
+          ? createContentDisposition(fileName, { type: "inline" })
           : undefined,
       });
       return await getSignedUrl(s3Client, getObjectCommand, {
