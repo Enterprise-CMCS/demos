@@ -10,11 +10,18 @@ import { DemonstrationTypeField } from "./fields/DemonstrationTypeField";
 import { ScheduleType, ScheduleTypeField } from "./fields/schedule-type/ScheduleTypeField";
 import { SingleDeliverableScheduleType } from "./fields/schedule-type/SingleDeliverableScheduleType";
 import { QuarterlyDeliverableSchedule } from "./fields/schedule-type/QuarterlyDeliverableSchedule";
-import { CreateDeliverableInput, DeliverableType, Demonstration, LocalDate, Tag } from "demos-server";
+import {
+  CreateDeliverableInput,
+  DeliverableType,
+  Demonstration,
+  LocalDate,
+  Tag,
+} from "demos-server";
 import { useToast } from "components/toast";
 import { DELIVERABLE_SLOTS_CREATED_MESSAGE } from "util/messages";
 import { DELIVERABLES_PAGE_QUERY } from "components/table/tables/DeliverableTable";
 import { dueDateIsTodayOrFuture } from "./deliverableDueDateValidation";
+import { getCurrentUser } from "components/user/UserContext";
 
 export const CREATE_DELIVERABLE_MUTATION = gql`
   mutation CreateDeliverable($input: CreateDeliverableInput!) {
@@ -31,9 +38,7 @@ export const useCreateDeliverable = () => {
   });
 
   const createDeliverables = async (inputs: CreateDeliverableInput[]) => {
-    await Promise.all(
-      inputs.map((input) => createDeliverable({ variables: { input } }))
-    );
+    await Promise.all(inputs.map((input) => createDeliverable({ variables: { input } })));
   };
 
   return { createDeliverables, loading };
@@ -65,16 +70,6 @@ export type AddDeliverableSlotPayload = Omit<
   "quarterlyDueDates" | "scheduleType"
 > & { demonstrationId: string };
 
-const INITIAL_FORM_DATA: AddDeliverableSlotFormData = {
-  deliverableName: "",
-  cmsOwnerUserId: "",
-  deliverableType: "" as DeliverableType,
-  scheduleType: "Single",
-  dueDate: "",
-  quarterlyDueDates: ALL_QUARTERS.map(() => ""),
-  demonstrationTypes: [],
-};
-
 export const getQuarterlyDeliverableSlotName = (
   demonstrationYear: number,
   quarter: Quarter,
@@ -87,7 +82,12 @@ export const buildAddDeliverableSlotPayloads = (
   formData: AddDeliverableSlotFormData
 ): CreateDeliverableInput[] => {
   const { quarterlyDueDates, scheduleType, deliverableName, ...rest } = formData;
-  const payloadBase = { ...rest, name: deliverableName, demonstrationId, dueDate: formData.dueDate as LocalDate };
+  const payloadBase = {
+    ...rest,
+    name: deliverableName,
+    demonstrationId,
+    dueDate: formData.dueDate as LocalDate,
+  };
 
   if (scheduleType === "Single") {
     return [payloadBase];
@@ -95,11 +95,7 @@ export const buildAddDeliverableSlotPayloads = (
 
   return ALL_QUARTERS.map((quarter, quarterIndex) => ({
     ...payloadBase,
-    name: getQuarterlyDeliverableSlotName(
-      demonstrationYear,
-      quarter,
-      formData.deliverableName
-    ),
+    name: getQuarterlyDeliverableSlotName(demonstrationYear, quarter, formData.deliverableName),
     dueDate: quarterlyDueDates[quarterIndex] as LocalDate,
   }));
 };
@@ -119,12 +115,15 @@ const formIsValid = (data: AddDeliverableSlotFormData): boolean =>
   hasValidDueDateForScheduleType(data) &&
   (!requiresDemonstrationTypes(data.deliverableType) || data.demonstrationTypes.length > 0);
 
-const formHasChanges = (data: AddDeliverableSlotFormData): boolean =>
-  data.deliverableName !== INITIAL_FORM_DATA.deliverableName ||
-  data.cmsOwnerUserId !== INITIAL_FORM_DATA.cmsOwnerUserId ||
-  data.deliverableType !== INITIAL_FORM_DATA.deliverableType ||
-  data.scheduleType !== INITIAL_FORM_DATA.scheduleType ||
-  data.dueDate !== INITIAL_FORM_DATA.dueDate ||
+const formHasChanges = (
+  data: AddDeliverableSlotFormData,
+  initialFormData: AddDeliverableSlotFormData
+): boolean =>
+  data.deliverableName !== initialFormData.deliverableName ||
+  data.cmsOwnerUserId !== initialFormData.cmsOwnerUserId ||
+  data.deliverableType !== initialFormData.deliverableType ||
+  data.scheduleType !== initialFormData.scheduleType ||
+  data.dueDate !== initialFormData.dueDate ||
   data.quarterlyDueDates.some((dueDate) => dueDate.length > 0) ||
   data.demonstrationTypes.length !== 0;
 
@@ -145,11 +144,26 @@ export const AddDeliverableSlotDialog = ({
   const { showSuccess } = useToast();
   const { createDeliverables, loading } = useCreateDeliverable();
 
-  const [formData, setFormData] = useState<AddDeliverableSlotFormData>(INITIAL_FORM_DATA);
+  const contextUser = getCurrentUser();
+  if (!contextUser) {
+    throw new Error("User context is not available.");
+  }
+
+  const initialFormData: AddDeliverableSlotFormData = {
+    deliverableName: "",
+    deliverableType: "" as DeliverableType,
+    scheduleType: "Single",
+    dueDate: "",
+    quarterlyDueDates: ALL_QUARTERS.map(() => ""),
+    demonstrationTypes: [],
+    cmsOwnerUserId: contextUser.currentUser.id,
+  };
+
+  const [formData, setFormData] = useState<AddDeliverableSlotFormData>(initialFormData);
   const [demonstrationYear, setDemonstrationYear] = useState<number>(1);
 
   const isFormValid = formIsValid(formData);
-  const hasFormChanges = formHasChanges(formData);
+  const hasFormChanges = formHasChanges(formData, initialFormData);
 
   return (
     <BaseDialog
@@ -181,7 +195,12 @@ export const AddDeliverableSlotDialog = ({
         <div className="grid grid-cols-2 gap-sm">
           <DeliverableTypeField
             value={formData.deliverableType}
-            onSelect={(deliverableType) => setFormData((prev) => ({ ...prev, deliverableType: deliverableType as DeliverableType }))}
+            onSelect={(deliverableType) =>
+              setFormData((prev) => ({
+                ...prev,
+                deliverableType: deliverableType as DeliverableType,
+              }))
+            }
           />
           <ScheduleTypeField
             value={formData.scheduleType}
@@ -220,7 +239,9 @@ export const AddDeliverableSlotDialog = ({
         <div className="grid grid-cols-2 gap-sm">
           <CMSOwnerField
             value={formData.cmsOwnerUserId}
-            onSelect={(cmsOwnerId) => setFormData((prev) => ({ ...prev, cmsOwnerUserId: cmsOwnerId }))}
+            onSelect={(cmsOwnerId) =>
+              setFormData((prev) => ({ ...prev, cmsOwnerUserId: cmsOwnerId }))
+            }
           />
           <DemonstrationTypeField
             demonstrationTypeTags={demonstration.demonstrationTypes}

@@ -8,9 +8,10 @@ import {
   GET_WORKFLOW_DEMONSTRATION_QUERY,
 } from "components/application";
 
+// The top item is the default for doc dialog
 const FEDERAL_COMMENT_DOCUMENT_TYPES: DocumentType[] = [
-  "General File",
   "Federal Comment Internal Analysis Document",
+  "General File",
 ];
 
 export const FederalCommentUploadDialog = ({

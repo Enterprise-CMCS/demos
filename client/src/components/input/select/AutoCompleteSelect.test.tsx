@@ -80,6 +80,50 @@ describe("AutoCompleteSelect", () => {
     expect(onSelect).toHaveBeenCalledWith("cherry");
   });
 
+  it("closes the dropdown when reselecting the current value", async () => {
+    render(<AutoCompleteSelect value="banana" options={options} onSelect={onSelect} />);
+    const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
+
+    await userEvent.click(input);
+    expect(screen.getByText("Apple")).toBeInTheDocument();
+
+    await userEvent.click(screen.getByText("Banana"));
+
+    expect(screen.queryByText("Apple")).not.toBeInTheDocument();
+    expect(screen.getByDisplayValue("Banana")).toBeInTheDocument();
+  });
+
+  it("reopens dropdown when clicking the already-focused input after selection", async () => {
+    render(<AutoCompleteSelect value="" options={options} onSelect={onSelect} />);
+    const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
+
+    await userEvent.click(input);
+    await userEvent.click(screen.getByText("Cherry"));
+
+    expect(screen.queryByText("Apple")).not.toBeInTheDocument();
+
+    await userEvent.click(input);
+
+    expect(screen.getByText("Apple")).toBeInTheDocument();
+    expect(screen.getByText("Banana")).toBeInTheDocument();
+  });
+
+  it("starts a new search when typing after selection without requiring blur", async () => {
+    const user = userEvent.setup();
+
+    render(<AutoCompleteSelect value="" options={options} onSelect={onSelect} />);
+    const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);
+
+    await user.click(input);
+    await user.click(screen.getByText("Cherry"));
+
+    await user.keyboard("B");
+
+    expect(input).toHaveValue("B");
+    expect(screen.getByText("Banana")).toBeInTheDocument();
+    expect(screen.queryByText("Apple")).not.toBeInTheDocument();
+  });
+
   it("calls onSelect and closes dropdown on keyboard selection", async () => {
     render(<AutoCompleteSelect value="" options={options} onSelect={onSelect} />);
     const input = screen.getByTestId(AUTOCOMPLETE_SELECT_TEST_ID);

@@ -24,6 +24,7 @@ import {
 import { TestProvider } from "test-utils/TestProvider";
 import { DELIVERABLE_SLOTS_CREATED_MESSAGE } from "util/messages";
 import { formatDateForServer } from "util/formatDate";
+import { CurrentUser } from "components/user/UserContext";
 
 const mockMutate = vi.fn(() => Promise.resolve({ data: {} }));
 vi.mock("@apollo/client", async () => {
@@ -66,7 +67,7 @@ describe("AddDeliverableSlotDialog", () => {
     };
 
     render(
-      <TestProvider mocks={personMocks}>
+      <TestProvider mocks={personMocks} currentUser={{ id: "3" } as CurrentUser}>
         <AddDeliverableSlotDialog onClose={onClose} demonstration={demonstrationWithOverrides} />
       </TestProvider>
     );
