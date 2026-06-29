@@ -1,11 +1,9 @@
 import React, { useState } from "react";
-import { differenceInCalendarYears, isBefore } from "date-fns";
+import { differenceInCalendarYears } from "date-fns";
 
 import { DatePicker } from "components/input/date/DatePicker";
 import { Select } from "components/input/select/Select";
 import { getTodayEst } from "util/formatDate";
-
-const DATE_IN_PAST_MESSAGE = "Date cannot be in the past";
 
 export function getOptionsForYearSelect(
   demonstrationEffectiveDate?: Date,
@@ -42,10 +40,6 @@ export function QuarterlyDeliverableSchedule({
   const today = getTodayEst();
 
   const getQuarterDueDate = (quarterIndex: number) => quarterlyDueDates?.[quarterIndex] ?? "";
-  const getQuarterValidationMessage = (quarterIndex: number) => {
-    const dueDate = getQuarterDueDate(quarterIndex);
-    return dueDate && isBefore(dueDate, today) ? DATE_IN_PAST_MESSAGE : "";
-  };
 
   return (
     <div className="grid grid-cols-5 gap-sm">
@@ -72,7 +66,7 @@ export function QuarterlyDeliverableSchedule({
           value={getQuarterDueDate(0)}
           onChange={(newDate: string) => onSelectQuarterDate?.(0, newDate)}
           isRequired={true}
-          getValidationMessage={() => getQuarterValidationMessage(0)}
+          minDate={today}
         />
       </div>
 
@@ -84,7 +78,7 @@ export function QuarterlyDeliverableSchedule({
           value={getQuarterDueDate(1)}
           onChange={(newDate: string) => onSelectQuarterDate?.(1, newDate)}
           isRequired={true}
-          getValidationMessage={() => getQuarterValidationMessage(1)}
+          minDate={today}
         />
       </div>
 
@@ -96,7 +90,7 @@ export function QuarterlyDeliverableSchedule({
           value={getQuarterDueDate(2)}
           onChange={(newDate: string) => onSelectQuarterDate?.(2, newDate)}
           isRequired={true}
-          getValidationMessage={() => getQuarterValidationMessage(2)}
+          minDate={today}
         />
       </div>
 
@@ -108,7 +102,7 @@ export function QuarterlyDeliverableSchedule({
           value={getQuarterDueDate(3)}
           onChange={(newDate: string) => onSelectQuarterDate?.(3, newDate)}
           isRequired={true}
-          getValidationMessage={() => getQuarterValidationMessage(3)}
+          minDate={today}
         />
       </div>
     </div>
