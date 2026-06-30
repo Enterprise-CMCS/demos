@@ -20,7 +20,7 @@ export const TagChip = ({
   variant = "default",
   icon,
   onClick,
-  ariaLabel,
+  "aria-label": ariaLabel,
   disabled = false,
 }: {
   tag: Tag;
@@ -28,7 +28,7 @@ export const TagChip = ({
   variant?: TagChipVariant;
   icon?: React.ReactNode;
   onClick?: () => void;
-  ariaLabel?: string;
+  "aria-label"?: string;
   disabled?: boolean;
 }) => {
   const tagName = tag.tagName;

@@ -5,6 +5,7 @@ import { SelectSignatureLevel } from "components/input/select/SelectSignatureLev
 import { SelectDemonstration } from "components/input/select/SelectDemonstration";
 import { DatePicker } from "components/input/date/DatePicker";
 import { getRequiredFieldWhenApprovedMessage } from "util/messages";
+import { formatDateForServer } from "util/formatDate";
 
 export type Modification = {
   id: string;
@@ -49,13 +50,13 @@ export const hasChanges = (
   createModificationFormData: ModificationFormData,
   initialModification: Partial<Modification>
 ): boolean => {
-  const initialEffectiveDate = initialModification.effectiveDate ?? undefined;
+  const initialModifiactionFormData = getFormDataFromModification(initialModification);
 
   return !!(
-    createModificationFormData.name != initialModification.name ||
-    createModificationFormData.description != initialModification.description ||
-    createModificationFormData.signatureLevel != initialModification.signatureLevel ||
-    createModificationFormData.effectiveDate != initialEffectiveDate
+    createModificationFormData.name != initialModifiactionFormData.name ||
+    createModificationFormData.description != initialModifiactionFormData.description ||
+    createModificationFormData.signatureLevel != initialModifiactionFormData.signatureLevel ||
+    createModificationFormData.effectiveDate != initialModifiactionFormData.effectiveDate
   );
 };
 
@@ -64,7 +65,9 @@ export const getFormDataFromModification = (
 ): ModificationFormData => ({
   name: modification.name,
   description: modification.description ?? undefined,
-  effectiveDate: modification.effectiveDate ?? undefined,
+  effectiveDate: modification.effectiveDate
+    ? formatDateForServer(modification.effectiveDate)
+    : undefined,
   signatureLevel: modification.signatureLevel ?? undefined,
   demonstrationId: modification.demonstration?.id,
 });

@@ -121,7 +121,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({
               <div className="flex gap-1 ml-4">
                 <CircleButton
                   name="edit-type"
-                  ariaLabel="Edit Type"
+                  aria-label="Edit Type"
                   tooltip={editTooltip}
                   disabled={editDisabled || inputDisabled}
                   onClick={() =>
@@ -140,7 +140,7 @@ export const TypesTable: React.FC<TypesTableProps> = ({
 
                 <CircleButton
                   name="delete-type"
-                  ariaLabel="Delete Type"
+                  aria-label="Delete Type"
                   tooltip={removeTooltip}
                   disabled={removeDisabled}
                   onClick={() =>

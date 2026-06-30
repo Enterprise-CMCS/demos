@@ -22,7 +22,7 @@ describe("Notice", () => {
         title="Heads up"
         description="Details about the notice"
         variant="warning"
-        testId="custom-notice-id"
+        data-testid="custom-notice-id"
       />
     );
 

@@ -1,7 +1,14 @@
 import React, { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
 import { formatDateForDisplay, formatDateForServer, getTodayEst } from "util/formatDate";
-import { ApplicationStatus, DateType, LocalDate, UpdateDemonstrationInput } from "demos-server";
+import {
+  ApplicationStatus,
+  DateType,
+  LocalDate,
+  UpdateAmendmentInput,
+  UpdateDemonstrationInput,
+  UpdateExtensionInput,
+} from "demos-server";
 import {
   ApplicationWorkflowAmendment,
   ApplicationWorkflowDemonstration,
@@ -19,7 +26,7 @@ import { useToast } from "components/toast";
 import { getPhaseCompletedMessage } from "util/messages";
 import { useDialog } from "components/dialog/DialogContext";
 
-const UPDATE_DEMONSTRATION_MUTATION = gql`
+export const UPDATE_DEMONSTRATION_MUTATION = gql`
   mutation UpdateDemonstration($id: ID!, $input: UpdateDemonstrationInput!) {
     updateDemonstration(id: $id, input: $input) {
       id
@@ -38,7 +45,7 @@ const UPDATE_DEMONSTRATION_MUTATION = gql`
   }
 `;
 
-const UPDATE_AMENDMENT_MUTATION = gql`
+export const UPDATE_AMENDMENT_MUTATION = gql`
   mutation UpdateAmendment($id: ID!, $input: UpdateAmendmentInput!) {
     updateAmendment(id: $id, input: $input) {
       id
@@ -50,7 +57,7 @@ const UPDATE_AMENDMENT_MUTATION = gql`
   }
 `;
 
-const UPDATE_EXTENSION_MUTATION = gql`
+export const UPDATE_EXTENSION_MUTATION = gql`
   mutation UpdateExtension($id: ID!, $input: UpdateExtensionInput!) {
     updateExtension(id: $id, input: $input) {
       id
@@ -357,12 +364,13 @@ export const ApprovalSummaryPhase = ({
         },
       });
     }
-    const updateInput: UpdateDemonstrationInput = {
+    const updateInput: UpdateAmendmentInput | UpdateExtensionInput = {
       name: formData.name,
       description: formData.description,
       effectiveDate: formData.effectiveDate
         ? formatDateForServer(parseFormDateString(formData.effectiveDate))
         : null,
+      signatureLevel: formData.signatureLevel,
     };
     if (formData.applicationType === "amendment") {
       await setApplicationDate({

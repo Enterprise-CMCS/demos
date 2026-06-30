@@ -8,7 +8,7 @@ interface UploadButtonProps {
   isUploading: boolean;
   label?: string;
   loadingLabel?: string;
-  ariaLabel?: string;
+  "aria-label"?: string;
 }
 
 const ButtonText = ({
@@ -39,14 +39,14 @@ export const UploadButton: React.FC<UploadButtonProps> = ({
   isUploading,
   label = "Upload",
   loadingLabel = "Uploading",
-  ariaLabel,
+  "aria-label": ariaLabel,
 }) => {
   const resolvedAriaLabel = ariaLabel ?? `${label} Document`;
   return (
     <Button
       name="button-confirm-upload-document"
       onClick={onClick}
-      ariaLabel={resolvedAriaLabel}
+      aria-label={resolvedAriaLabel}
       aria-disabled={disabled || isUploading ? "true" : "false"}
       disabled={disabled || isUploading}
     >

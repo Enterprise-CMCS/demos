@@ -81,6 +81,11 @@ export const ACTIVE_DELIVERABLE_STATUSES = [
   "Under CMS Review",
 ] as const satisfies DeliverableStatus[];
 
+export const STATE_ACTIONABLE_DELIVERABLE_STATUSES = [
+  "Upcoming",
+  "Past Due",
+] as const satisfies DeliverableStatus[];
+
 export const REQUIRED_DEMONSTRATION_TYPE_DELIVERABLES: DeliverableType[] = [
   "Monitoring Protocol",
   "Implementation Plan",
@@ -185,7 +190,7 @@ export const DOCUMENT_TYPES = [
 ] as const;
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 
-export const BN_WORKBOOK_DOCUMENT_TYPE = 'BN Workbook' as const satisfies DocumentType;
+export const BN_WORKBOOK_DOCUMENT_TYPE = "BN Workbook" as const satisfies DocumentType;
 
 export const NON_DELIVERABLE_DOCUMENT_TYPES: DocumentType[] = [
   "Application Completeness Letter",

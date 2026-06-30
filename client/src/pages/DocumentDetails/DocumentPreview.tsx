@@ -18,7 +18,7 @@ const FilePreviewer = ({
     <embed src={blobUrl} className="w-full h-full" />
   ) : (
     <a href={blobUrl} download={filename} rel="noopener noreferrer">
-      <Button size="large" name="button-download-file" ariaLabel="Download file">
+      <Button size="large" name="button-download-file" aria-label="Download file">
         Download File
       </Button>
     </a>

@@ -82,7 +82,14 @@ export const AutoCompleteSelect = ({
     setIsOpen(true);
   };
 
+  const activateSelect = () => {
+    if (!isDisabled) {
+      openSelect();
+    }
+  };
+
   const handleFilterChange = (newFilterValue: string) => {
+    activateSelect();
     setFilterValue(newFilterValue);
     setActiveIndex(-1);
     const matches = filterOptions(options, newFilterValue);
@@ -95,7 +102,7 @@ export const AutoCompleteSelect = ({
     setFilterValue("");
     onFilterChangeProp?.("", true);
     closeSelect();
-    inputRef.current?.focus();
+    inputRef.current?.select();
   };
 
   const listboxId = `${id || dataTestId || "autocomplete"}-listbox`;
@@ -105,6 +112,11 @@ export const AutoCompleteSelect = ({
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isOpen && e.key === "ArrowDown") {
       openSelect();
+      return;
+    }
+    if (!isOpen && e.key.length === 1 && !e.altKey && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      handleFilterChange(e.key);
       return;
     }
     if (e.key === "ArrowDown") {
@@ -127,6 +139,7 @@ export const AutoCompleteSelect = ({
             <button
               type="button"
               className={`${ITEM_CLASSES} ${isActive ? ITEM_ACTIVE_CLASSES : ""} w-full text-left`}
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => handleSelectOption(option)}
               onMouseEnter={() => setActiveIndex(i)}
             >
@@ -163,7 +176,8 @@ export const AutoCompleteSelect = ({
           aria-controls={listboxId}
           placeholder={placeholder}
           value={isOpen ? filterValue : selectedOption?.label || ""}
-          onFocus={() => !isDisabled && setIsOpen(true)}
+          onFocus={activateSelect}
+          onClick={activateSelect}
           onChange={(e) => handleFilterChange(e.target.value)}
           onKeyDown={onKeyDown}
           required={isRequired}

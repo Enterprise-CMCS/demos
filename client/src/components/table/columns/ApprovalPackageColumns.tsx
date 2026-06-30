@@ -54,7 +54,7 @@ export function ApprovalPackageColumns(demonstrationId: string) {
             {!doc ? (
               <SecondaryButton
                 name={`upload-${row.original.documentType}`}
-                ariaLabel={`Upload ${row.original.documentType}`}
+                aria-label={`Upload ${row.original.documentType}`}
                 onClick={() =>
                   showApprovalPackageDocumentUploadDialog(
                     demonstrationId,
@@ -68,7 +68,7 @@ export function ApprovalPackageColumns(demonstrationId: string) {
               <>
                 <TertiaryButton
                   name={`edit-${doc.documentType}`}
-                  ariaLabel={`Edit ${doc.documentType}`}
+                  aria-label={`Edit ${doc.documentType}`}
                   onClick={() =>
                     showEditDocumentDialog({
                       id: doc.id,
@@ -81,7 +81,7 @@ export function ApprovalPackageColumns(demonstrationId: string) {
                 </TertiaryButton>
                 <TertiaryButton
                   name={`delete-${doc.documentType}`}
-                  ariaLabel={`Delete ${doc.documentType}`}
+                  aria-label={`Delete ${doc.documentType}`}
                   onClick={() => showRemoveDocumentDialog([doc.id])}
                 >
                   <DeleteIcon />

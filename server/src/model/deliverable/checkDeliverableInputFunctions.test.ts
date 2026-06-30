@@ -4,7 +4,6 @@ import { EasternTZDate, parseJSDateToEasternTZDate } from "../../dateUtilities";
 
 // Types
 import {
-  ApplicationStatus,
   DeliverableExtensionStatus,
   DeliverableStatus,
   PersonType,
@@ -28,8 +27,8 @@ import {
   checkDeliverableHasNoComments,
   checkDeliverableHasNoDocuments,
   checkDeliverableHasNoUnsubmittedStateDocuments,
+  checkIsFileSubmissionOrStatusChange,
   checkDeliverableHasStatus,
-  checkDemonstrationStatus,
   checkDueDateInFuture,
   checkForDuplicateDemonstrationTypes,
   checkNewDueDateIsAtLeastCurrentDueDate,
@@ -62,28 +61,6 @@ import { selectManyPublicComments } from "../publicComment/queries";
 import { selectManyPrivateComments } from "../privateComment/queries";
 
 describe("checkDeliverableInputFunctions", () => {
-  describe("checkDemonstrationStatus", () => {
-    it("should return undefined if the demonstration is Approved", () => {
-      const testInput: Partial<PrismaDemonstration> = {
-        id: "abc123",
-        statusId: "Approved" satisfies ApplicationStatus,
-      };
-      const result = checkDemonstrationStatus(testInput as PrismaDemonstration);
-      expect(result).toBeUndefined();
-    });
-
-    it("should return an error string if the demonstration is not Approved", () => {
-      const testInput: Partial<PrismaDemonstration> = {
-        id: "abc123",
-        statusId: "Under Review" satisfies ApplicationStatus,
-      };
-      const result = checkDemonstrationStatus(testInput as PrismaDemonstration);
-      expect(result).toBe(
-        "Demonstration abc123 is not in Approved status; cannot create deliverable."
-      );
-    });
-  });
-
   describe("checkDeliverableHasStatus", () => {
     const testDeliverable: Partial<PrismaDeliverable> = {
       id: "1e42da3a-9355-4c5d-a541-812a9f95ef56",
@@ -591,6 +568,70 @@ describe("checkDeliverableInputFunctions", () => {
       const result = checkRequiredDeliverableDemonstrationTypes("Evaluation Design", undefined);
 
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe("checkIsFileSubmissionOrStatusChange", () => {
+    const testDeliverableId = "0cab48de-a565-4d16-b455-f4ec19f86386";
+    const testDeliverable: Partial<PrismaDeliverable> = {
+      id: testDeliverableId,
+      statusId: "Approved" satisfies DeliverableStatus,
+    };
+
+    const mockFindMany = vi.fn();
+    const testTransaction = {
+      document: {
+        findMany: mockFindMany,
+      },
+    } as any;
+
+    beforeEach(() => {
+      vi.resetAllMocks();
+    });
+
+    it("should return undefined if the deliverable status allows submission", async () => {
+      mockFindMany.mockResolvedValue([]);
+
+      const result = await checkIsFileSubmissionOrStatusChange(
+        {
+          ...testDeliverable,
+          statusId: "Upcoming",
+        } as PrismaDeliverable,
+        testTransaction
+      );
+
+      expect(result).toBeUndefined();
+      expect(mockFindMany).toHaveBeenCalledExactlyOnceWith({
+        where: {
+          deliverableId: testDeliverableId,
+          deliverableIsCmsAttachedFile: false,
+          deliverableSubmissionActionId: null,
+        },
+      });
+    });
+
+    it("should return undefined if there are unsubmitted state documents", async () => {
+      mockFindMany.mockResolvedValue([{ id: "abc123" }]);
+
+      const result = await checkIsFileSubmissionOrStatusChange(
+        testDeliverable as PrismaDeliverable,
+        testTransaction
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it("should return an error message if there are no unsubmitted state documents and the status does not allow submission", async () => {
+      mockFindMany.mockResolvedValue([]);
+
+      const result = await checkIsFileSubmissionOrStatusChange(
+        testDeliverable as PrismaDeliverable,
+        testTransaction
+      );
+
+      expect(result).toBe(
+        `Deliverable ${testDeliverableId} has no unsubmitted state documents and is not in a status that allows submission; cannot submit deliverable.`
+      );
     });
   });
 });

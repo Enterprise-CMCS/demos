@@ -37,7 +37,7 @@ export const ApplicationUploadSection: React.FC<Props> = ({
         onClick={onUploadClick}
         size="small"
         name="button-open-upload-modal"
-        ariaLabel="Upload"
+        aria-label="Upload"
       >
         Upload
         <ExportIcon />

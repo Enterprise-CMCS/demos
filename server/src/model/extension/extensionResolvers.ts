@@ -7,7 +7,6 @@ import {
 import { prisma } from "../../prismaClient";
 import {
   ApplicationStatus,
-  ApplicationType,
   ClearanceLevel,
   CreateExtensionInput,
   PhaseName,
@@ -28,36 +27,7 @@ import { getManyDocuments } from "../document";
 import { selectManyApplicationPhases } from "../applicationPhase/queries";
 import { selectManyApplicationTagAssignments } from "../applicationTagAssignment/queries";
 import { selectManyApplicationTagSuggestions } from "../applicationTagSuggestion/queries";
-
-const extensionApplicationType: ApplicationType = "Extension";
-const conceptPhaseName: PhaseName = "Concept";
-const newApplicationStatusId: ApplicationStatus = "Pre-Submission";
-
-export async function __createExtension(
-  parent: unknown,
-  { input }: { input: CreateExtensionInput }
-): Promise<PrismaExtension> {
-  return await prisma().$transaction(async (tx) => {
-    const application = await tx.application.create({
-      data: {
-        applicationTypeId: extensionApplicationType,
-      },
-    });
-
-    return await tx.extension.create({
-      data: {
-        id: application.id,
-        applicationTypeId: application.applicationTypeId,
-        demonstrationId: input.demonstrationId,
-        name: input.name,
-        description: input.description,
-        statusId: newApplicationStatusId,
-        currentPhaseId: conceptPhaseName,
-        signatureLevelId: input.signatureLevel,
-      },
-    });
-  });
-}
+import { createExtension } from ".";
 
 export async function __updateExtension(
   parent: unknown,
@@ -102,7 +72,13 @@ export const extensionResolvers = {
   },
 
   Mutation: {
-    createExtension: __createExtension,
+    createExtension: (parent: unknown, args: { input: CreateExtensionInput }) =>
+      createExtension({
+        demonstrationId: args.input.demonstrationId,
+        name: args.input.name,
+        description: args.input.description,
+        signatureLevelId: args.input.signatureLevel,
+      }),
     updateExtension: __updateExtension,
     deleteExtension: deleteExtension,
   },

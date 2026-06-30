@@ -29,7 +29,7 @@ export const PrimaryLayout = ({ children }: { children: React.ReactNode }) => {
           <Header />
           <div className="flex flex-1 overflow-hidden bg-gray-primary-layout min-h-0">
             {!hideSideNav && <SideNav />}
-            <div className="flex-1 overflow-auto min-h-0 flex flex-col">
+            <div className="relative flex-1 overflow-auto min-h-0 flex flex-col">
               <div className="p-[16px] flex-1">{children}</div>
             </div>
           </div>

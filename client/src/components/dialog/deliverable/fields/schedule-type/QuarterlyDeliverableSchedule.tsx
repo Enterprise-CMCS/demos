@@ -3,6 +3,8 @@ import { differenceInCalendarYears } from "date-fns";
 
 import { DatePicker } from "components/input/date/DatePicker";
 import { Select } from "components/input/select/Select";
+// Temporary until we get datepicker fix tested.
+import { getDueDateValidationMessage } from "../../deliverableDueDateValidation";
 
 export function getOptionsForYearSelect(
   demonstrationEffectiveDate?: Date,
@@ -64,6 +66,8 @@ export function QuarterlyDeliverableSchedule({
           value={getQuarterDueDate(0)}
           onChange={(newDate: string) => onSelectQuarterDate?.(0, newDate)}
           isRequired={true}
+          // Temporary until we get datepicker fix tested. then we'lll use minDate=`{getTodayEst()}`
+          getValidationMessage={() => getDueDateValidationMessage(getQuarterDueDate(0))}
         />
       </div>
 
@@ -75,6 +79,7 @@ export function QuarterlyDeliverableSchedule({
           value={getQuarterDueDate(1)}
           onChange={(newDate: string) => onSelectQuarterDate?.(1, newDate)}
           isRequired={true}
+          getValidationMessage={() => getDueDateValidationMessage(getQuarterDueDate(1))}
         />
       </div>
 
@@ -86,6 +91,7 @@ export function QuarterlyDeliverableSchedule({
           value={getQuarterDueDate(2)}
           onChange={(newDate: string) => onSelectQuarterDate?.(2, newDate)}
           isRequired={true}
+          getValidationMessage={() => getDueDateValidationMessage(getQuarterDueDate(2))}
         />
       </div>
 
@@ -97,6 +103,7 @@ export function QuarterlyDeliverableSchedule({
           value={getQuarterDueDate(3)}
           onChange={(newDate: string) => onSelectQuarterDate?.(3, newDate)}
           isRequired={true}
+          getValidationMessage={() => getDueDateValidationMessage(getQuarterDueDate(3))}
         />
       </div>
     </div>
