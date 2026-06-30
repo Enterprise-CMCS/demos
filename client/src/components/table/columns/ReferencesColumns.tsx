@@ -54,7 +54,7 @@ export function ReferencesColumns() {
           <div className="flex gap-2 justify-center">
             <SecondaryButton
               name={`download-${row.original.id}`}
-              ariaLabel={
+              aria-label={
                 row.original.agreement
                   ? `Open ${row.original.id} agreement`
                   : `Download ${row.original.id}`

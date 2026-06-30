@@ -40,7 +40,7 @@ export const SparklyUIPathTags = ({
             variant="suggestion"
             icon={<SparklyIcon label="Suggested by DEMOS AI" className="shrink-0" />}
             onClick={() => onAcceptSuggestion(tagName)}
-            ariaLabel={`Apply suggested tag ${tagName}`}
+            aria-label={`Apply suggested tag ${tagName}`}
             disabled={isApplyingSuggestion}
           />
         ))}

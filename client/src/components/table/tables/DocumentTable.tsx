@@ -63,7 +63,7 @@ export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[
               <div className="flex gap-1 ml-4">
                 <CircleButton
                   name="edit-document"
-                  ariaLabel="Edit Document"
+                  aria-label="Edit Document"
                   tooltip={editTooltip}
                   disabled={!editEnabled}
                   onClick={() =>
@@ -79,7 +79,7 @@ export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[
 
                 <CircleButton
                   name="remove-document"
-                  ariaLabel="Remove Document"
+                  aria-label="Remove Document"
                   tooltip={deleteTooltip}
                   disabled={!deleteEnabled}
                   onClick={() => showRemoveDocumentDialog(selectedDocs.map((doc) => doc.id))}

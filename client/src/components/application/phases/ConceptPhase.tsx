@@ -265,7 +265,7 @@ export const ConceptPhase = ({
       <div className={STYLES.actions}>
         <SecondaryButton
           name={SKIP_BUTTON_NAME}
-          ariaLabel="Skip this section"
+          aria-label="Skip this section"
           onClick={onSkip}
           disabled={!isSkipEnabled}
         >
@@ -274,7 +274,7 @@ export const ConceptPhase = ({
         </SecondaryButton>
         <Button
           name={FINISH_BUTTON_NAME}
-          ariaLabel="Finish this section"
+          aria-label="Finish this section"
           onClick={onFinish}
           disabled={!isFinishEnabled}
         >

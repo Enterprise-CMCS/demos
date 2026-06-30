@@ -88,7 +88,7 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
               <div className="flex gap-1 ml-4">
                 <CircleButton
                   name={editButtonName}
-                  ariaLabel={editAriaLabel}
+                  aria-label={editAriaLabel}
                   tooltip={ isFinalized
                     ? "Documents on Finalized deliverables cannot be edited."
                     : selectionTooltip({
@@ -104,7 +104,7 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
                 </CircleButton>
                 <CircleButton
                   name={deleteButtonName}
-                  ariaLabel={deleteAriaLabel}
+                  aria-label={deleteAriaLabel}
                   tooltip={hasSubmittedFile
                     ? "Selection contains files that have been submitted. Cannot delete submitted files."
                     : selectionTooltip({

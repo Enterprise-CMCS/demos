@@ -159,7 +159,7 @@ describe("PaginationControls", () => {
       const data = createTestData(100);
       render(<TestWrapper data={data} />);
 
-      const prevButton = screen.getByRole("button", { name: /Go to previous page/i });
+      const prevButton = screen.getByRole("button", { name: /No previous page/i });
       expect(prevButton).toBeDisabled();
     });
 
@@ -244,7 +244,7 @@ describe("PaginationControls", () => {
       const data = createTestData(100);
       render(<TestWrapper data={data} />);
 
-      const currentPageButton = screen.getByRole("button", { name: "Go to page 1" });
+      const currentPageButton = screen.getByRole("button", { name: "Page 1, current page" });
       expect(currentPageButton).toBeInTheDocument();
       expect(currentPageButton).toHaveClass("bg-action");
     });
