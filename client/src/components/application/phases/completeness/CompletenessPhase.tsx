@@ -1,18 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 
 import { tw } from "tags/tw";
-import { formatDateForServer, getDateEst } from "util/formatDate";
-import { addDays, parseISO } from "date-fns";
+import { getDateEst } from "util/formatDate";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
-import { useToast } from "components/toast";
-import { ApplicationDateInput, DateType, LocalDate, PhaseName, PhaseStatus } from "demos-server";
-import { useDialog } from "components/dialog/DialogContext";
-import { useSetApplicationDates } from "components/application/date/dateQueries";
-import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
-import {
-  useCompletePhase,
-  useDeclareCompletenessPhaseIncomplete,
-} from "components/application/phase-status/phaseCompletionQueries";
+import { DateType, PhaseName, PhaseStatus } from "demos-server";
 import { CompletenessNotice } from "./CompletenessNotice";
 import { UploadSection } from "./UploadSection";
 import { VerifyCompleteSection } from "./VerifyCompleteSection";
@@ -21,13 +12,6 @@ const STYLES = {
   pane: tw`bg-white`,
   grid: tw`relative grid grid-cols-2 gap-10`,
   divider: tw`pointer-events-none absolute left-1/2 top-0 h-full border-l border-border-subtle`,
-  stepEyebrow: tw`text-[12px] font-semibold uppercase tracking-wide text-text-placeholder mb-2`,
-  title: tw`text-xl font-semibold mb-2 uppercase`,
-  helper: tw`text-sm text-text-placeholder mb-2`,
-  list: tw`mt-4 space-y-3`,
-  fileRow: tw`bg-surface-secondary border border-border-fields px-3 py-2 flex items-center justify-between`,
-  fileMeta: tw`text-[12px] text-text-placeholder mt-0.5`,
-  actions: tw`mt-8 flex justify-end gap-2`,
 };
 
 export const COMPLETENESS_PHASE_DESCRIPTION = {
@@ -43,9 +27,6 @@ export const COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION = {
   testId: "completeness-phase-step-two-description",
 };
 
-const THIS_PHASE_NAME: PhaseName = "Completeness";
-const NEXT_PHASE_NAME: PhaseName = "Federal Comment";
-
 export const COMPLETENESS_UPLOAD_BUTTON_NAME = "button-open-completeness-upload";
 export const COMPLETENESS_FINISH_BUTTON_NAME = "button-finish-completeness";
 export const COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME = "button-declare-incomplete";
@@ -53,31 +34,14 @@ export const STATE_DEEMED_COMPLETE_DATEPICKER_NAME = "datepicker-state-applicati
 export const FEDERAL_COMMENT_START_DATEPICKER_NAME = "datepicker-federal-comment-period-start";
 export const FEDERAL_COMMENT_END_DATEPICKER_NAME = "datepicker-federal-comment-period-end";
 
-const FEDERAL_COMMENT_PERIOD_DAYS = 30;
-
-const calculateFederalCommentPeriodDates = (
-  stateDeemedCompleteDate: string
-): { federalStartDate: string; federalEndDate: string } => {
-  if (!stateDeemedCompleteDate) return { federalStartDate: "", federalEndDate: "" };
-
-  const parsedStateDeemedCompleteDate = parseISO(stateDeemedCompleteDate);
-  const federalStartDate = addDays(parsedStateDeemedCompleteDate, 1);
-  const federalEndDate = addDays(parsedStateDeemedCompleteDate, 1 + FEDERAL_COMMENT_PERIOD_DAYS);
-
-  return {
-    federalStartDate: formatDateForServer(federalStartDate),
-    federalEndDate: formatDateForServer(federalEndDate),
-  };
-};
-
 export const getApplicationCompletenessFromApplication = (
   application: WorkflowApplication,
   setSelectedPhase: (phase: PhaseName) => void
 ) => {
-  const completenessPhase = application.phases.find((phase) => phase.phaseName === THIS_PHASE_NAME);
+  const completenessPhase = application.phases.find((phase) => phase.phaseName === "Completeness");
 
   if (!completenessPhase) {
-    throw new Error(`Application is missing expected phase: ${THIS_PHASE_NAME}`);
+    throw new Error("Application is missing expected phase: Completeness");
   }
 
   const applicationIntakePhase = application.phases.find(
@@ -88,7 +52,7 @@ export const getApplicationCompletenessFromApplication = (
     throw new Error("Application is missing expected phase: Application Intake");
   }
 
-  const findDate = (dateType: DateType): LocalDate | "" => {
+  const findDate = (dateType: DateType): string => {
     const dateValue = completenessPhase.phaseDates.find(
       (date) => date.dateType === dateType
     )?.dateValue;
@@ -96,7 +60,7 @@ export const getApplicationCompletenessFromApplication = (
   };
 
   const completenessDocuments = application.documents.filter(
-    (doc) => doc.phaseName === THIS_PHASE_NAME
+    (doc) => doc.phaseName === "Completeness"
   );
 
   return (
@@ -110,20 +74,6 @@ export const getApplicationCompletenessFromApplication = (
       setSelectedPhase={setSelectedPhase}
     />
   );
-};
-
-const calculateStateDeemedCompleteDate = (
-  stateDeemedCompleteDate: string,
-  completenessDocuments: ApplicationWorkflowDocument[],
-  completenessIncomplete: boolean
-): string => {
-  if (stateDeemedCompleteDate) return stateDeemedCompleteDate;
-  if (completenessIncomplete) return "";
-  const applicationCompletenessLetter = completenessDocuments.find(
-    (doc) => doc.documentType === "Application Completeness Letter"
-  );
-  if (!applicationCompletenessLetter) return "";
-  return getDateEst(applicationCompletenessLetter.createdAt);
 };
 
 export interface CompletenessPhaseProps {
@@ -146,94 +96,6 @@ export const CompletenessPhase = ({
   setSelectedPhase,
 }: CompletenessPhaseProps) => {
   const completenessComplete = completenessPhaseStatus === "Completed";
-  const completenessIncomplete = completenessPhaseStatus === "Incomplete";
-
-  const { showCompletenessDocumentUploadDialog, showDeclareIncompleteDialog } = useDialog();
-  const { showSuccess, showError } = useToast();
-  const { setApplicationDates } = useSetApplicationDates();
-  const { completePhase } = useCompletePhase();
-  const { declareCompletenessPhaseIncomplete } = useDeclareCompletenessPhaseIncomplete();
-
-  const [userSelectedStateDeemedCompleteDate, setUserSelectedStateDeemedCompleteDate] =
-    useState("");
-
-  const calculatedStateDeemedCompleteDate = calculateStateDeemedCompleteDate(
-    stateDeemedCompleteDate,
-    completenessDocuments,
-    completenessIncomplete
-  );
-  const stateDeemedComplete =
-    userSelectedStateDeemedCompleteDate || calculatedStateDeemedCompleteDate;
-  const { federalStartDate, federalEndDate } =
-    calculateFederalCommentPeriodDates(stateDeemedComplete);
-
-  const finishIsEnabled = () => {
-    const datesFilled = Boolean(stateDeemedComplete && federalStartDate && federalEndDate);
-    const datesAreValid =
-      federalStartDate && federalEndDate
-        ? true
-        : new Date(federalStartDate) <= new Date(federalEndDate);
-
-    return (
-      !completenessComplete &&
-      applicationIntakeComplete &&
-      completenessDocuments.find((doc) => doc.documentType === "Application Completeness Letter") &&
-      completenessDocuments.find(
-        (doc) => doc.documentType === "Internal Completeness Review Form"
-      ) &&
-      datesFilled &&
-      datesAreValid
-    );
-  };
-
-  const saveDates = async () => {
-    const dates: ApplicationDateInput[] = [
-      {
-        dateType: "State Application Deemed Complete",
-        dateValue: stateDeemedComplete as LocalDate,
-      },
-      {
-        dateType: "Federal Comment Period Start Date",
-        dateValue: federalStartDate as LocalDate,
-      },
-      {
-        dateType: "Federal Comment Period End Date",
-        dateValue: federalEndDate as LocalDate,
-      },
-    ];
-
-    await setApplicationDates({
-      applicationId,
-      applicationDates: dates,
-    });
-  };
-
-  const handleDeclareIncomplete = async () => {
-    showDeclareIncompleteDialog(async () => {
-      try {
-        await declareCompletenessPhaseIncomplete(applicationId);
-        setUserSelectedStateDeemedCompleteDate("");
-        showSuccess(SAVE_FOR_LATER_MESSAGE);
-      } catch (error) {
-        showError(error instanceof Error ? error.message : String(error));
-      }
-    });
-  };
-
-  const handleFinishCompleteness = async () => {
-    try {
-      await saveDates();
-      await completePhase({
-        applicationId: applicationId,
-        phaseName: THIS_PHASE_NAME,
-      });
-      showSuccess(getPhaseCompletedMessage(THIS_PHASE_NAME));
-      setSelectedPhase(NEXT_PHASE_NAME);
-    } catch (e) {
-      console.error(e);
-      showError(`Failed to complete ${THIS_PHASE_NAME} phase`);
-    }
-  };
 
   return (
     <div>
@@ -258,17 +120,14 @@ export const CompletenessPhase = ({
             <UploadSection
               applicationId={applicationId}
               completenessDocuments={completenessDocuments}
-              onUploadClick={showCompletenessDocumentUploadDialog}
             />
             <VerifyCompleteSection
-              stateDeemedComplete={stateDeemedComplete}
-              federalStartDate={federalStartDate}
-              federalEndDate={federalEndDate}
-              completenessComplete={completenessComplete}
-              finishIsEnabled={!!finishIsEnabled()}
-              onDateChange={setUserSelectedStateDeemedCompleteDate}
-              onDeclareIncomplete={handleDeclareIncomplete}
-              onFinish={handleFinishCompleteness}
+              applicationId={applicationId}
+              stateDeemedCompleteDate={stateDeemedCompleteDate}
+              completenessPhaseStatus={completenessPhaseStatus}
+              completenessDocuments={completenessDocuments}
+              applicationIntakeComplete={applicationIntakeComplete}
+              setSelectedPhase={setSelectedPhase}
             />
           </div>
         </section>
