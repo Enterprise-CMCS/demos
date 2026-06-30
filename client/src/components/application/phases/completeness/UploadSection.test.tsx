@@ -4,7 +4,6 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import { TestProvider } from "test-utils/TestProvider";
-import { DialogProvider } from "components/dialog/DialogContext";
 import { UploadSection } from "./UploadSection";
 import { ApplicationWorkflowDocument } from "components/application";
 import { TZDate } from "@date-fns/tz";
@@ -34,19 +33,18 @@ const mockInternalDoc: ApplicationWorkflowDocument = {
   createdAt: new TZDate("2026-02-02", EST_TIMEZONE),
 };
 
-describe("UploadSection", () => {
-  const onUploadClick = vi.fn();
+const mockShowCompletenessDocumentUploadDialog = vi.fn();
+vi.mock("components/dialog/DialogContext", () => ({
+  useDialog: () => ({
+    showCompletenessDocumentUploadDialog: mockShowCompletenessDocumentUploadDialog,
+  }),
+}));
 
+describe("UploadSection", () => {
   const setup = (completenessDocuments: ApplicationWorkflowDocument[] = []) => {
     render(
       <TestProvider>
-        <DialogProvider>
-          <UploadSection
-            applicationId="app-123"
-            completenessDocuments={completenessDocuments}
-            onUploadClick={onUploadClick}
-          />
-        </DialogProvider>
+        <UploadSection applicationId="app-123" completenessDocuments={completenessDocuments} />
       </TestProvider>
     );
   };
@@ -66,9 +64,9 @@ describe("UploadSection", () => {
     expect(screen.getByText("Internal Form")).toBeInTheDocument();
   });
 
-  it("calls onUploadClick with applicationId when upload button is clicked", async () => {
+  it("calls showCompletenessDocumentUploadDialog with applicationId when upload button is clicked", async () => {
     setup();
     await userEvent.click(screen.getByTestId(COMPLETENESS_UPLOAD_BUTTON_NAME));
-    expect(onUploadClick).toHaveBeenCalledWith("app-123");
+    expect(mockShowCompletenessDocumentUploadDialog).toHaveBeenCalledWith("app-123");
   });
 });
