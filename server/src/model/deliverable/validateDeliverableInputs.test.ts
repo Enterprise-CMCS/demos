@@ -23,6 +23,7 @@ import {
 } from "@prisma/client";
 import { GraphQLError } from "graphql";
 import { EasternTZDate } from "../../dateUtilities";
+import { ACTIVE_DELIVERABLE_STATUSES } from "../../constants";
 
 // Functions under test
 import {
@@ -44,6 +45,10 @@ vi.mock("../application", () => ({
   getApplication: vi.fn(),
 }));
 
+vi.mock("../demonstration", () => ({
+  checkDemonstrationStatus: vi.fn(),
+}));
+
 vi.mock("../user/queries", () => ({
   selectUserOrThrow: vi.fn(),
 }));
@@ -59,7 +64,6 @@ vi.mock(".", () => ({
   checkDeliverableHasNoComments: vi.fn(),
   checkDeliverableHasNoDocuments: vi.fn(),
   checkDeliverableHasStatus: vi.fn(),
-  checkDemonstrationStatus: vi.fn(),
   checkDueDateInFuture: vi.fn(),
   checkNewDueDateIsAtLeastCurrentDueDate: vi.fn(),
   checkNewDueDateIsGreaterThanCurrentDueDate: vi.fn(),
@@ -81,7 +85,6 @@ import {
   checkDeliverableHasNoComments,
   checkDeliverableHasNoDocuments,
   checkDeliverableHasStatus,
-  checkDemonstrationStatus,
   checkDueDateInFuture,
   checkNewDueDateIsAtLeastCurrentDueDate,
   checkNewDueDateIsGreaterThanCurrentDueDate,
@@ -91,7 +94,7 @@ import {
   selectDeliverableOrThrow,
   checkIsFileSubmissionOrStatusChange,
 } from ".";
-import { ACTIVE_DELIVERABLE_STATUSES } from "../../constants";
+import { checkDemonstrationStatus } from "../demonstration";
 
 describe("validateDeliverableInputs", () => {
   const testEasternDate: EasternTZDate = {
@@ -197,7 +200,10 @@ describe("validateDeliverableInputs", () => {
 
     it("should call the checking functions, using the results of the queries if appropriate", async () => {
       await validateCreateDeliverableInput(testInput, mockTransaction);
-      expect(checkDemonstrationStatus).toHaveBeenCalledExactlyOnceWith(mockDemonstration);
+      expect(checkDemonstrationStatus).toHaveBeenCalledExactlyOnceWith(
+        mockDemonstration,
+        "deliverable"
+      );
       expect(checkOwnerPersonType).toHaveBeenCalledExactlyOnceWith(mockUser);
       expect(checkDueDateInFuture).toHaveBeenCalledExactlyOnceWith(testEasternDate);
       expect(vi.mocked(checkRequestedDeliverableDemonstrationType).mock.calls).toStrictEqual([
@@ -224,7 +230,10 @@ describe("validateDeliverableInputs", () => {
       };
 
       await validateCreateDeliverableInput(modifiedTestInput, mockTransaction);
-      expect(checkDemonstrationStatus).toHaveBeenCalledExactlyOnceWith(mockDemonstration);
+      expect(checkDemonstrationStatus).toHaveBeenCalledExactlyOnceWith(
+        mockDemonstration,
+        "deliverable"
+      );
       expect(checkOwnerPersonType).toHaveBeenCalledExactlyOnceWith(mockUser);
       expect(checkRequestedDeliverableDemonstrationType).not.toHaveBeenCalled();
     });

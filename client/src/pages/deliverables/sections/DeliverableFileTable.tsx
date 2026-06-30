@@ -14,7 +14,7 @@ import type { DeliverableFileRow } from "./DeliverableFileTypes";
 const INITIAL_TABLE_STATE = { sorting: [{ id: "createdAt", desc: true }] };
 
 export type DeliverableFileTableProps = {
-  testId: string;
+  "data-testid": string;
   title: string;
   addButtonName: string;
   editButtonName: string;
@@ -33,7 +33,7 @@ export type DeliverableFileTableProps = {
 };
 
 export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
-  testId,
+  "data-testid": testId,
   title,
   addButtonName,
   editButtonName,
@@ -88,7 +88,7 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
               <div className="flex gap-1 ml-4">
                 <CircleButton
                   name={editButtonName}
-                  ariaLabel={editAriaLabel}
+                  aria-label={editAriaLabel}
                   tooltip={ isFinalized
                     ? "Documents on Finalized deliverables cannot be edited."
                     : selectionTooltip({
@@ -104,7 +104,7 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
                 </CircleButton>
                 <CircleButton
                   name={deleteButtonName}
-                  ariaLabel={deleteAriaLabel}
+                  aria-label={deleteAriaLabel}
                   tooltip={hasSubmittedFile
                     ? "Selection contains files that have been submitted. Cannot delete submitted files."
                     : selectionTooltip({

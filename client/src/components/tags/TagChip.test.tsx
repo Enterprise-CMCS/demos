@@ -55,7 +55,7 @@ describe("Approval status", () => {
         tag={{ tagName: "Health Equity", approvalStatus: "Approved" }}
         variant="suggestion"
         onClick={() => {}}
-        ariaLabel="Apply suggested tag Health Equity"
+        aria-label="Apply suggested tag Health Equity"
       />
     );
 

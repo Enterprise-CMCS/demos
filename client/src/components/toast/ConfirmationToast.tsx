@@ -31,7 +31,7 @@ export const ConfirmationToast: React.FC<ConfirmationToastProps> = ({
       <div className="flex justify-center gap-6">
         <SecondaryButton
           name="confirmation-cancel"
-          ariaLabel={cancelText}
+          aria-label={cancelText}
           size="small"
           onClick={onCancel}
         >
@@ -39,7 +39,7 @@ export const ConfirmationToast: React.FC<ConfirmationToastProps> = ({
         </SecondaryButton>
         <ErrorButton
           name="confirmation-confirm"
-          ariaLabel={confirmText}
+          aria-label={confirmText}
           isOutlined={true}
           size="small"
           onClick={onConfirm}

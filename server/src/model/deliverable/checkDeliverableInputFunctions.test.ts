@@ -4,7 +4,6 @@ import { EasternTZDate, parseJSDateToEasternTZDate } from "../../dateUtilities";
 
 // Types
 import {
-  ApplicationStatus,
   DeliverableExtensionStatus,
   DeliverableStatus,
   PersonType,
@@ -30,7 +29,6 @@ import {
   checkDeliverableHasNoUnsubmittedStateDocuments,
   checkIsFileSubmissionOrStatusChange,
   checkDeliverableHasStatus,
-  checkDemonstrationStatus,
   checkDueDateInFuture,
   checkForDuplicateDemonstrationTypes,
   checkNewDueDateIsAtLeastCurrentDueDate,
@@ -63,28 +61,6 @@ import { selectManyPublicComments } from "../publicComment/queries";
 import { selectManyPrivateComments } from "../privateComment/queries";
 
 describe("checkDeliverableInputFunctions", () => {
-  describe("checkDemonstrationStatus", () => {
-    it("should return undefined if the demonstration is Approved", () => {
-      const testInput: Partial<PrismaDemonstration> = {
-        id: "abc123",
-        statusId: "Approved" satisfies ApplicationStatus,
-      };
-      const result = checkDemonstrationStatus(testInput as PrismaDemonstration);
-      expect(result).toBeUndefined();
-    });
-
-    it("should return an error string if the demonstration is not Approved", () => {
-      const testInput: Partial<PrismaDemonstration> = {
-        id: "abc123",
-        statusId: "Under Review" satisfies ApplicationStatus,
-      };
-      const result = checkDemonstrationStatus(testInput as PrismaDemonstration);
-      expect(result).toBe(
-        "Demonstration abc123 is not in Approved status; cannot create deliverable."
-      );
-    });
-  });
-
   describe("checkDeliverableHasStatus", () => {
     const testDeliverable: Partial<PrismaDeliverable> = {
       id: "1e42da3a-9355-4c5d-a541-812a9f95ef56",

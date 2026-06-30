@@ -109,7 +109,7 @@ export const BaseDialog = ({
                 name={DIALOG_CANCEL_BUTTON_NAME}
                 onClick={onCloseClicked}
                 disabled={cancelButtonIsDisabled}
-                ariaLabel="Cancel and close dialog"
+                aria-label="Cancel and close dialog"
               >
                 Cancel
               </SecondaryButton>

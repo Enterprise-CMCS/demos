@@ -139,7 +139,7 @@ export function DeliverableColumns({
           size={isDemonstrationDetail ? "small" : undefined}
           onClick={handleClick}
           name={isDemonstrationDetail ? `view-deliverable-${deliverableId}` : "view-deliverable"}
-          ariaLabel={`View ${row.original.name}`}
+          aria-label={`View ${row.original.name}`}
         >
           View
         </SecondaryButton>

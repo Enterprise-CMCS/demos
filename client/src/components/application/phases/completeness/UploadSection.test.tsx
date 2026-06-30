@@ -1,0 +1,74 @@
+import "@testing-library/jest-dom";
+import React from "react";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, it, expect, vi } from "vitest";
+import { TestProvider } from "test-utils/TestProvider";
+import { DialogProvider } from "components/dialog/DialogContext";
+import { UploadSection } from "./UploadSection";
+import { ApplicationWorkflowDocument } from "components/application";
+import { TZDate } from "@date-fns/tz";
+import { EST_TIMEZONE } from "util/formatDate";
+import {
+  COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION,
+  COMPLETENESS_UPLOAD_BUTTON_NAME,
+} from "./CompletenessPhase";
+
+const mockCompletenessDoc: ApplicationWorkflowDocument = {
+  id: "doc-1",
+  name: "Completeness Letter",
+  description: "Test letter",
+  documentType: "Application Completeness Letter",
+  phaseName: "Completeness",
+  owner: { person: { fullName: "Jane Doe" } },
+  createdAt: new TZDate("2026-02-01", EST_TIMEZONE),
+};
+
+const mockInternalDoc: ApplicationWorkflowDocument = {
+  id: "doc-2",
+  name: "Internal Form",
+  description: "Internal form",
+  documentType: "Internal Completeness Review Form",
+  phaseName: "Completeness",
+  owner: { person: { fullName: "John Smith" } },
+  createdAt: new TZDate("2026-02-02", EST_TIMEZONE),
+};
+
+describe("UploadSection", () => {
+  const onUploadClick = vi.fn();
+
+  const setup = (completenessDocuments: ApplicationWorkflowDocument[] = []) => {
+    render(
+      <TestProvider>
+        <DialogProvider>
+          <UploadSection
+            applicationId="app-123"
+            completenessDocuments={completenessDocuments}
+            onUploadClick={onUploadClick}
+          />
+        </DialogProvider>
+      </TestProvider>
+    );
+  };
+
+  it("renders upload button and helper text", () => {
+    setup();
+    expect(screen.getByText("Step 1 - Upload")).toBeInTheDocument();
+    expect(screen.getByTestId(COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION.testId)).toHaveTextContent(
+      COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION.text
+    );
+    expect(screen.getByTestId(COMPLETENESS_UPLOAD_BUTTON_NAME)).toBeInTheDocument();
+  });
+
+  it("renders uploaded documents", () => {
+    setup([mockCompletenessDoc, mockInternalDoc]);
+    expect(screen.getByText("Completeness Letter")).toBeInTheDocument();
+    expect(screen.getByText("Internal Form")).toBeInTheDocument();
+  });
+
+  it("calls onUploadClick with applicationId when upload button is clicked", async () => {
+    setup();
+    await userEvent.click(screen.getByTestId(COMPLETENESS_UPLOAD_BUTTON_NAME));
+    expect(onUploadClick).toHaveBeenCalledWith("app-123");
+  });
+});

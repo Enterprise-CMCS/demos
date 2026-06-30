@@ -1,23 +1,21 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 
-import { Button, SecondaryButton } from "components/button";
-import { ExportIcon } from "components/icons";
 import { tw } from "tags/tw";
-import { formatDateForDisplay, formatDateForServer, getDateEst } from "util/formatDate";
-import { addDays, differenceInCalendarDays, parseISO } from "date-fns";
+import { formatDateForServer, getDateEst } from "util/formatDate";
+import { addDays, parseISO } from "date-fns";
 import { WorkflowApplication, ApplicationWorkflowDocument } from "components/application";
 import { useToast } from "components/toast";
-import { DocumentList } from "./sections";
 import { ApplicationDateInput, DateType, LocalDate, PhaseName, PhaseStatus } from "demos-server";
 import { useDialog } from "components/dialog/DialogContext";
 import { useSetApplicationDates } from "components/application/date/dateQueries";
 import { getPhaseCompletedMessage, SAVE_FOR_LATER_MESSAGE } from "util/messages";
-import { DatePicker } from "components/input/date/DatePicker";
-import { Notice, NoticeVariant } from "components/notice/Notice";
 import {
   useCompletePhase,
   useDeclareCompletenessPhaseIncomplete,
 } from "components/application/phase-status/phaseCompletionQueries";
+import { CompletenessNotice } from "./CompletenessNotice";
+import { UploadSection } from "./UploadSection";
+import { VerifyCompleteSection } from "./VerifyCompleteSection";
 
 const STYLES = {
   pane: tw`bg-white`,
@@ -43,55 +41,6 @@ export const COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION = {
 export const COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION = {
   text: "Verify that the document is uploaded/accurate and that all required fields are filled. Review the file and fix the Submitted Date if needed. Hitting Finish sets the Due Date.",
   testId: "completeness-phase-step-two-description",
-};
-
-const CompletenessNotice = ({
-  completenessReviewDate,
-  completenessComplete,
-}: {
-  completenessReviewDate?: string;
-  completenessComplete: boolean;
-}) => {
-  const [isNoticeDismissed, setNoticeDismissed] = useState(
-    !(completenessReviewDate && !completenessComplete)
-  );
-
-  const noticeContent = useMemo(() => {
-    if (!completenessReviewDate) return null;
-    const noticeDueDateValue = parseISO(completenessReviewDate ?? "");
-    const daysLeft = differenceInCalendarDays(noticeDueDateValue, new Date());
-    if (daysLeft > 1) {
-      return {
-        title: `${daysLeft} days left`,
-        description: `This Demonstration must be declared complete by ${formatDateForDisplay(noticeDueDateValue)}`,
-        variant: "warning" as NoticeVariant,
-      };
-    }
-    if (daysLeft === 1) {
-      return {
-        title: "1 day left in Completion Period",
-        description: `This Demonstration must be declared complete by ${formatDateForDisplay(noticeDueDateValue)}`,
-        variant: "error" as NoticeVariant,
-      };
-    } else {
-      return {
-        title: `${Math.abs(daysLeft)} days past due`,
-        description: `This Demonstration completeness was due on ${formatDateForDisplay(noticeDueDateValue)}`,
-        variant: "error" as NoticeVariant,
-      };
-    }
-  }, [completenessReviewDate]);
-
-  if (isNoticeDismissed || !noticeContent) return null;
-
-  return (
-    <Notice
-      title={noticeContent.title}
-      description={noticeContent.description}
-      variant={noticeContent.variant}
-      onDismiss={() => setNoticeDismissed(true)}
-    />
-  );
 };
 
 const THIS_PHASE_NAME: PhaseName = "Completeness";
@@ -286,88 +235,6 @@ export const CompletenessPhase = ({
     }
   };
 
-  const UploadSection = () => (
-    <div aria-labelledby="completeness-upload-title">
-      <h4 id="completeness-upload-title" className={STYLES.title}>
-        Step 1 - Upload
-      </h4>
-      <p className={STYLES.helper} data-testId={COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION.testId}>
-        {COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION.text}
-      </p>
-      <SecondaryButton
-        onClick={() => showCompletenessDocumentUploadDialog(applicationId)}
-        size="small"
-        name={COMPLETENESS_UPLOAD_BUTTON_NAME}
-      >
-        Upload
-        <ExportIcon />
-      </SecondaryButton>
-      <DocumentList documents={completenessDocuments} />
-    </div>
-  );
-
-  const VerifyCompleteSection = () => (
-    <div aria-labelledby="completeness-verify-title">
-      <h4 id="completeness-verify-title" className={STYLES.title}>
-        Step 2 - Verify/Complete
-      </h4>
-      <p className={STYLES.helper} data-testId={COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION.testId}>
-        {COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION.text}
-      </p>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="col-span-2">
-          <DatePicker
-            name={STATE_DEEMED_COMPLETE_DATEPICKER_NAME}
-            label={"State Application Deemed Complete" satisfies DateType}
-            value={stateDeemedComplete}
-            onChange={(date) => {
-              setUserSelectedStateDeemedCompleteDate(date);
-            }}
-            isDisabled={completenessComplete}
-          />
-        </div>
-
-        <div>
-          <DatePicker
-            name={FEDERAL_COMMENT_START_DATEPICKER_NAME}
-            label={"Federal Comment Period Start Date" satisfies DateType}
-            value={federalStartDate}
-            isDisabled
-          />
-        </div>
-
-        <div>
-          <DatePicker
-            name={FEDERAL_COMMENT_END_DATEPICKER_NAME}
-            label={"Federal Comment Period End Date" satisfies DateType}
-            value={federalEndDate}
-            isDisabled
-          />
-        </div>
-      </div>
-
-      <div className={STYLES.actions}>
-        <SecondaryButton
-          name={COMPLETENESS_DECLARE_INCOMPLETE_BUTTON_NAME}
-          size="small"
-          onClick={handleDeclareIncomplete}
-          disabled={completenessComplete}
-        >
-          Declare Incomplete
-        </SecondaryButton>
-        <Button
-          name={COMPLETENESS_FINISH_BUTTON_NAME}
-          size="small"
-          disabled={!finishIsEnabled()}
-          onClick={handleFinishCompleteness}
-        >
-          Finish
-        </Button>
-      </div>
-    </div>
-  );
-
   return (
     <div>
       <div className="flex flex-col gap-6">
@@ -380,7 +247,7 @@ export const CompletenessPhase = ({
       <div id="completeness-phase-content">
         <p
           className="text-sm text-text-placeholder mb-4"
-          data-testId={COMPLETENESS_PHASE_DESCRIPTION.testId}
+          data-testid={COMPLETENESS_PHASE_DESCRIPTION.testId}
         >
           {COMPLETENESS_PHASE_DESCRIPTION.text}
         </p>
@@ -388,8 +255,21 @@ export const CompletenessPhase = ({
         <section className={STYLES.pane}>
           <div className={STYLES.grid}>
             <span aria-hidden className={STYLES.divider} />
-            <UploadSection />
-            <VerifyCompleteSection />
+            <UploadSection
+              applicationId={applicationId}
+              completenessDocuments={completenessDocuments}
+              onUploadClick={showCompletenessDocumentUploadDialog}
+            />
+            <VerifyCompleteSection
+              stateDeemedComplete={stateDeemedComplete}
+              federalStartDate={federalStartDate}
+              federalEndDate={federalEndDate}
+              completenessComplete={completenessComplete}
+              finishIsEnabled={!!finishIsEnabled()}
+              onDateChange={setUserSelectedStateDeemedCompleteDate}
+              onDeclareIncomplete={handleDeclareIncomplete}
+              onFinish={handleFinishCompleteness}
+            />
           </div>
         </section>
       </div>

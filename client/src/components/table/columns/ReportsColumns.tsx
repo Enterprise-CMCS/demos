@@ -24,7 +24,7 @@ export function ReportsColumns(
           <div className="flex gap-2 justify-center">
             <SecondaryButton
               name={`download-${row.original.id}`}
-              ariaLabel={`Download ${row.original.id}`}
+              aria-label={`Download ${row.original.id}`}
               onClick={() => onDownload(row.original.id)}
             >
               Download

@@ -32,7 +32,7 @@ export const StateFilesTab: React.FC<StateFilesTabProps> = ({
 
   return (
     <DeliverableFileTable
-      testId={STATE_FILES_TAB_NAME}
+      data-testid={STATE_FILES_TAB_NAME}
       title="State Files"
       addButtonName={STATE_FILES_ADD_BUTTON_NAME}
       editButtonName={STATE_FILES_EDIT_BUTTON_NAME}

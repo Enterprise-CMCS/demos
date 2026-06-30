@@ -45,7 +45,7 @@ export interface ButtonProps {
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
   children: React.ReactNode;
   className: string;
-  ariaLabel?: string;
+  "aria-label"?: string;
   type?: ButtonType;
   form?: string;
   size?: ButtonSize;
@@ -60,7 +60,7 @@ export const BaseButton: React.FC<ButtonProps> = ({
   children,
   form,
   className,
-  ariaLabel,
+  "aria-label": ariaLabel,
   type = "button",
   size = "standard",
   disabled = false,

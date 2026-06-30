@@ -31,7 +31,7 @@ export const ConfirmApproveDialog: React.FC<ConfirmApproveDialogProps> = ({
       actionButton={
         <Button
           name="button-ca-dialog-approve"
-          ariaLabel={`Submit approved ${applicationType}`}
+          aria-label={`Submit approved ${applicationType}`}
           onClick={handleSubmitClicked}
         >
           Submit Approved {applicationType.charAt(0).toUpperCase() + applicationType.slice(1)}

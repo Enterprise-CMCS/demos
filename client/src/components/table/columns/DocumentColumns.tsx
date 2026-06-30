@@ -57,7 +57,7 @@ export function DocumentColumns() {
           <SecondaryButton
             onClick={handleClick}
             name="view-document"
-            ariaLabel={`View ${row.original.name}`}
+            aria-label={`View ${row.original.name}`}
           >
             View
           </SecondaryButton>
