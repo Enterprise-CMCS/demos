@@ -27,7 +27,11 @@ const ButtonText = ({
 
   return (
     <>
-      {isUploading && <Spinner />}
+      {isUploading && (
+        <span className="inline-flex size-[20px] shrink-0 items-center justify-center">
+          <Spinner />
+        </span>
+      )}
       {getButtonText()}
     </>
   );
