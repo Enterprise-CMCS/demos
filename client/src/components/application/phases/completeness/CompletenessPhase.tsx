@@ -247,7 +247,7 @@ export const CompletenessPhase = ({
       <div id="completeness-phase-content">
         <p
           className="text-sm text-text-placeholder mb-4"
-          data-testId={COMPLETENESS_PHASE_DESCRIPTION.testId}
+          data-testid={COMPLETENESS_PHASE_DESCRIPTION.testId}
         >
           {COMPLETENESS_PHASE_DESCRIPTION.text}
         </p>

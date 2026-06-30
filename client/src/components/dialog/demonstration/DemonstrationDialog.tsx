@@ -68,7 +68,7 @@ const SubmitButton = ({
     <Button
       name={SUBMIT_BUTTON_NAME}
       onClick={onClick}
-      ariaLabel={"Create New Demonstration"}
+      aria-label={"Create New Demonstration"}
       disabled={disabled || isSubmitting}
     >
       {isSubmitting && <Spinner />}

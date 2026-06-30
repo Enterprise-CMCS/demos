@@ -50,14 +50,14 @@ export const ConfirmCancellationDialog: React.FC<ConfirmCancellationDialogProps>
         <div className={STYLES.BUTTONS}>
           <SecondaryButton
             name="button-cc-dialog-cancel"
-            ariaLabel="Keep editing"
+            aria-label="Keep editing"
             onClick={onClose}
           >
             Cancel
           </SecondaryButton>
           <ErrorButton
             name="button-cc-dialog-discard"
-            ariaLabel="Discard changes"
+            aria-label="Discard changes"
             onClick={onConfirm}
           >
             Discard Changes

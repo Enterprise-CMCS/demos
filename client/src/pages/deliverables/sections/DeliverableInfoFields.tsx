@@ -77,7 +77,7 @@ export const DeliverableInfoFields = ({
         <BaseButton
           type="button"
           name={BACK_TO_DELIVERABLES_BUTTON_NAME}
-          ariaLabel="Back to deliverables"
+          aria-label="Back to deliverables"
           onClick={onBack}
           className="w-[48px] h-[60px] bg-white text-action hover:bg-action hover:text-white border border-action"
         >

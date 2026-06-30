@@ -21,7 +21,7 @@ export const ExtensionsTab: React.FC<{
       <div className="flex min-h-90 flex-col items-center justify-center gap-4 p-2">
         <p className="text-sm text-text-primary">{EMPTY_EXTENSIONS_MESSAGE}</p>
         <IconButton
-          ariaLabel="Create Extension"
+          aria-label="Create Extension"
           icon={<AddNewIcon />}
           name="create-new-extension"
           size="small"

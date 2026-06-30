@@ -32,7 +32,7 @@ export const CmsFilesTab: React.FC<CmsFilesTabProps> = ({
 
   return (
     <DeliverableFileTable
-      testId={CMS_FILES_TAB_NAME}
+      data-testid={CMS_FILES_TAB_NAME}
       title="CMS Files"
       addButtonName={CMS_FILES_ADD_BUTTON_NAME}
       editButtonName={CMS_FILES_EDIT_BUTTON_NAME}
