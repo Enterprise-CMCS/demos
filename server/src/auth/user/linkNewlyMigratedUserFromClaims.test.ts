@@ -22,8 +22,12 @@ vi.mock("../../log", () => ({
   },
 }));
 
+// Thrown by the mocked throwCustomGQLError
+const testCustomGQLError = new Error("Test throwCustomGQLError!");
 vi.mock("../../errors/errorCodes", () => ({
-  throwCustomGQLError: vi.fn(),
+  throwCustomGQLError: vi.fn(() => {
+    throw testCustomGQLError;
+  }),
 }));
 
 vi.mock("../../model/user/queries", () => ({
@@ -58,15 +62,9 @@ describe("linkNewlyMigratedUserFromClaims", () => {
     personTypeId: testPersonTypeId,
   };
 
-  // Thrown by the mocked throwCustomGQLError
-  const testCustomGQLError = new Error("Test throwCustomGQLError!");
-
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(getPersonTypeFromClaims).mockReturnValue(testPersonTypeId);
-    vi.mocked(throwCustomGQLError).mockImplementation(() => {
-      throw testCustomGQLError;
-    });
   });
 
   it("should look up newly migrated users by the claim email", async () => {
