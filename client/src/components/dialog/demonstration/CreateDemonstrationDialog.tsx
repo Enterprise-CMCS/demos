@@ -5,15 +5,7 @@ import { useMutation } from "@apollo/client";
 import { CreateDemonstrationInput, Demonstration } from "demos-server";
 import { gql } from "@apollo/client";
 import { DEMONSTRATIONS_PAGE_QUERY } from "pages/DemonstrationsPage";
-
-const DEFAULT_DEMONSTRATION_DIALOG_FIELDS: DemonstrationDialogFields = {
-  name: "",
-  effectiveDate: "",
-  expirationDate: "",
-  description: "",
-  stateId: "",
-  projectOfficerId: "",
-};
+import { getCurrentUser } from "components/user/UserContext";
 
 const SUCCESS_MESSAGE = "Your demonstration is ready.";
 const ERROR_MESSAGE = "Your demonstration was not created because of an unknown problem.";
@@ -33,6 +25,11 @@ export const CreateDemonstrationDialog: React.FC<{
   const [createDemonstrationTrigger] = useMutation<{
     createDemonstration: Demonstration;
   }>(CREATE_DEMONSTRATION_MUTATION);
+
+  const userContext = getCurrentUser();
+  if (!userContext) {
+    throw new Error("Unable to identify current user. Please ensure that the user is logged in.");
+  }
 
   const getCreateDemonstrationInput = (
     demonstration: DemonstrationDialogFields
@@ -70,7 +67,14 @@ export const CreateDemonstrationDialog: React.FC<{
     <DemonstrationDialog
       onClose={onClose}
       mode="create"
-      initialDemonstration={DEFAULT_DEMONSTRATION_DIALOG_FIELDS}
+      initialDemonstration={{
+        name: "",
+        effectiveDate: "",
+        expirationDate: "",
+        description: "",
+        stateId: "",
+        projectOfficerId: userContext.currentUser.id,
+      }}
       onSubmit={onSubmit}
     />
   );
