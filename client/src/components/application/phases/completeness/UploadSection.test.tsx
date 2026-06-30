@@ -69,4 +69,41 @@ describe("UploadSection", () => {
     await userEvent.click(screen.getByTestId(COMPLETENESS_UPLOAD_BUTTON_NAME));
     expect(mockShowCompletenessDocumentUploadDialog).toHaveBeenCalledWith("app-123");
   });
+
+  it("reflects updated documents when props change", () => {
+    const { rerender } = render(
+      <TestProvider>
+        <UploadSection applicationId="app-123" completenessDocuments={[]} />
+      </TestProvider>
+    );
+    expect(screen.queryByText("Completeness Letter")).not.toBeInTheDocument();
+
+    rerender(
+      <TestProvider>
+        <UploadSection applicationId="app-123" completenessDocuments={[mockCompletenessDoc]} />
+      </TestProvider>
+    );
+    expect(screen.getByText("Completeness Letter")).toBeInTheDocument();
+  });
+
+  it("reflects document removal when props change", () => {
+    const { rerender } = render(
+      <TestProvider>
+        <UploadSection
+          applicationId="app-123"
+          completenessDocuments={[mockCompletenessDoc, mockInternalDoc]}
+        />
+      </TestProvider>
+    );
+    expect(screen.getByText("Completeness Letter")).toBeInTheDocument();
+    expect(screen.getByText("Internal Form")).toBeInTheDocument();
+
+    rerender(
+      <TestProvider>
+        <UploadSection applicationId="app-123" completenessDocuments={[]} />
+      </TestProvider>
+    );
+    expect(screen.queryByText("Completeness Letter")).not.toBeInTheDocument();
+    expect(screen.queryByText("Internal Form")).not.toBeInTheDocument();
+  });
 });
