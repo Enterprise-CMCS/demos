@@ -26,7 +26,7 @@ export const UploadSection = ({
       </h4>
       <p
         className={"text-sm text-text-placeholder mb-2"}
-        data-testId={COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION.testId}
+        data-testid={COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION.testId}
       >
         {COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION.text}
       </p>
