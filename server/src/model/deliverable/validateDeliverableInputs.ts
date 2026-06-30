@@ -11,6 +11,7 @@ import {
   checkOwnerPersonType,
   checkRequestedDeliverableDemonstrationType,
   checkRequiredDeliverableDemonstrationTypes,
+  checkIsFileSubmissionOrStatusChange,
   selectDeliverableOrThrow,
   ParsedApproveDeliverableExtensionInput,
   ParsedCreateDeliverableInput,
@@ -128,8 +129,9 @@ export async function validateSubmitDeliverableInput(
   const errors: (string | undefined)[] = [];
 
   errors.push(
-    // Users may submit on all active deliverables
-    checkDeliverableHasStatus(deliverable, ACTIVE_DELIVERABLE_STATUSES),
+    // Users may submit when the action would cause a status change or when
+    // there are unsubmitted state documents
+    await checkIsFileSubmissionOrStatusChange(deliverable, tx),
     await checkDeliverableHasAtLeastOneDocument(deliverable, tx)
   );
   cleanErrorsAndThrow(errors, "submitDeliverable", "SUBMIT_DELIVERABLE_VALIDATION_FAILED");
@@ -157,7 +159,7 @@ export async function validateCompleteDeliverableInput(
   errors.push(checkDeliverableHasStatus(deliverable, ["Under CMS Review"]));
   // Deliverables may only be completed if there are no unsubmitted state documents
   errors.push(await checkDeliverableHasNoUnsubmittedStateDocuments(deliverable, tx));
-  
+
   cleanErrorsAndThrow(errors, "completeDeliverable", "COMPLETE_DELIVERABLE_VALIDATION_FAILED");
 }
 
