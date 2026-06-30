@@ -136,7 +136,7 @@ const UploadSection = ({
       </h4>
       <p
         className={STYLES.helper}
-        data-testId={APPLICATION_INTAKE_PHASE_STEP_ONE_DESCRIPTION.testId}
+        data-testid={APPLICATION_INTAKE_PHASE_STEP_ONE_DESCRIPTION.testId}
       >
         {APPLICATION_INTAKE_PHASE_STEP_ONE_DESCRIPTION.text}
       </p>
@@ -207,7 +207,7 @@ const VerifyCompleteSection = ({
       </h4>
       <p
         className={STYLES.helper}
-        data-testId={APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.testId}
+        data-testid={APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.testId}
       >
         {APPLICATION_INTAKE_PHASE_STEP_TWO_DESCRIPTION.text}
       </p>
@@ -429,7 +429,7 @@ export const ApplicationIntakePhase = ({
       <h3 className="text-brand text-[22px] font-bold">APPLICATION INTAKE</h3>
       <p
         className="text-sm text-text-placeholder mb-4"
-        data-testId={APPLICATION_INTAKE_PHASE_DESCRIPTION.testId}
+        data-testid={APPLICATION_INTAKE_PHASE_DESCRIPTION.testId}
       >
         {APPLICATION_INTAKE_PHASE_DESCRIPTION.text}
       </p>
@@ -451,7 +451,7 @@ export const ApplicationIntakePhase = ({
           </h4>
           <p
             className={STYLES.helper}
-            data-testId={APPLICATION_INTAKE_PHASE_STEP_THREE_DESCRIPTION.testId}
+            data-testid={APPLICATION_INTAKE_PHASE_STEP_THREE_DESCRIPTION.testId}
           >
             {APPLICATION_INTAKE_PHASE_STEP_THREE_DESCRIPTION.text}
           </p>

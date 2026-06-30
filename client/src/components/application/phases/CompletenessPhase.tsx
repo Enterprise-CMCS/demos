@@ -291,7 +291,7 @@ export const CompletenessPhase = ({
       <h4 id="completeness-upload-title" className={STYLES.title}>
         Step 1 - Upload
       </h4>
-      <p className={STYLES.helper} data-testId={COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION.testId}>
+      <p className={STYLES.helper} data-testid={COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION.testId}>
         {COMPLETENESS_PHASE_STEP_ONE_DESCRIPTION.text}
       </p>
       <SecondaryButton
@@ -311,7 +311,7 @@ export const CompletenessPhase = ({
       <h4 id="completeness-verify-title" className={STYLES.title}>
         Step 2 - Verify/Complete
       </h4>
-      <p className={STYLES.helper} data-testId={COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION.testId}>
+      <p className={STYLES.helper} data-testid={COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION.testId}>
         {COMPLETENESS_PHASE_STEP_TWO_DESCRIPTION.text}
       </p>
 
@@ -380,7 +380,7 @@ export const CompletenessPhase = ({
       <div id="completeness-phase-content">
         <p
           className="text-sm text-text-placeholder mb-4"
-          data-testId={COMPLETENESS_PHASE_DESCRIPTION.testId}
+          data-testid={COMPLETENESS_PHASE_DESCRIPTION.testId}
         >
           {COMPLETENESS_PHASE_DESCRIPTION.text}
         </p>

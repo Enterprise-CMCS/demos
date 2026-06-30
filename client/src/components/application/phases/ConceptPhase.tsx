@@ -220,7 +220,7 @@ export const ConceptPhase = ({
       <h4 id="state-application-upload-title" className={STYLES.title}>
         Step 1 - Upload
       </h4>
-      <p data-testId={CONCEPT_PHASE_STEP_ONE_DESCRIPTION.testId} className={STYLES.helper}>
+      <p data-testid={CONCEPT_PHASE_STEP_ONE_DESCRIPTION.testId} className={STYLES.helper}>
         {CONCEPT_PHASE_STEP_ONE_DESCRIPTION.text}
       </p>
 
@@ -242,7 +242,7 @@ export const ConceptPhase = ({
       <h4 id="concept-verify-title" className={STYLES.title}>
         Step 2 - Verify/Complete
       </h4>
-      <p data-testId={CONCEPT_PHASE_STEP_TWO_DESCRIPTION.testId} className={STYLES.helper}>
+      <p data-testid={CONCEPT_PHASE_STEP_TWO_DESCRIPTION.testId} className={STYLES.helper}>
         {CONCEPT_PHASE_STEP_TWO_DESCRIPTION.text}
       </p>
 
@@ -287,7 +287,7 @@ export const ConceptPhase = ({
   return (
     <div className="p-1">
       <h3 className="text-brand text-[22px] font-bold tracking-wide mb-1">CONCEPT</h3>
-      <p data-testId={CONCEPT_PHASE_DESCRIPTION.testId} className={STYLES.helper}>
+      <p data-testid={CONCEPT_PHASE_DESCRIPTION.testId} className={STYLES.helper}>
         {CONCEPT_PHASE_DESCRIPTION.text}
       </p>
 

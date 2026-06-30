@@ -14,7 +14,7 @@ import type { DeliverableFileRow } from "./DeliverableFileTypes";
 const INITIAL_TABLE_STATE = { sorting: [{ id: "createdAt", desc: true }] };
 
 export type DeliverableFileTableProps = {
-  testId: string;
+  "data-testid": string;
   title: string;
   addButtonName: string;
   editButtonName: string;
@@ -33,7 +33,7 @@ export type DeliverableFileTableProps = {
 };
 
 export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
-  testId,
+  "data-testid": testId,
   title,
   addButtonName,
   editButtonName,
