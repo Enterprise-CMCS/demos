@@ -72,7 +72,7 @@ export const DeliverableActionButtons: React.FC<{
     <div className="flex gap-1 ml-4">
       <CircleButton
         name="edit-deliverable"
-        ariaLabel="Edit Deliverable"
+        aria-label="Edit Deliverable"
         tooltip={editTooltip}
         disabled={!editEnabled}
         onClick={() => {
@@ -86,7 +86,7 @@ export const DeliverableActionButtons: React.FC<{
 
       <CircleButton
         name="remove-deliverable"
-        ariaLabel="Remove Deliverable"
+        aria-label="Remove Deliverable"
         tooltip={deleteTooltip}
         disabled={!deleteEnabled}
         onClick={() => {

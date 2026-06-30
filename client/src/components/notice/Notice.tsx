@@ -31,14 +31,14 @@ export const Notice = ({
   title,
   description,
   variant = "info",
-  testId,
+  "data-testid": testId,
   onDismiss,
 }: {
   title: string;
   description?: React.ReactNode;
   variant?: NoticeVariant;
   onDismiss?: () => void;
-  testId?: string;
+  "data-testid"?: string;
 }) => {
   const variantClasses = VARIANT_TO_CLASSNAME[variant];
   const icon = VARIANT_TO_ICON[variant];

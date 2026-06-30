@@ -48,7 +48,7 @@ export const SelectSignatureLevel = ({
         setSignatureLevel(selectedValue);
         onSelect(selectedValue);
       }}
-      data-testId="signature-level-select"
+      data-testid="signature-level-select"
       id="signature-level-select"
       label="Signature Level"
       isDisabled={isDisabled}
