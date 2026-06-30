@@ -7,7 +7,11 @@ ignore:
       reason: Dev Dependancy, only affects npm run watch command
       expires: 2026-06-05T23:59:59.999-05:00
       created: 2026-05-26T00:00:00.000-05:00
-
+  SNYK-JS-BRACEEXPANSION-17706650:
+    - '*':
+        reason: No clean fix available in current ESLint React plugin stack
+        expires: 2026-07-14T00:00:00.000Z
+        created: 2026-06-30T14:21:33.964Z
 #  EXAMPLE-VULNERABILITY:
 #    - '*':
 #        reason: Some reason.
