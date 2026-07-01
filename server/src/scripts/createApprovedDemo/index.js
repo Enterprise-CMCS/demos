@@ -4,7 +4,26 @@ import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { Buffer } from "node:buffer";
 import { randomUUID } from "node:crypto";
 import dotenv from "dotenv";
-import pg from "pg";
+import {
+  applyDemonstrationType,
+  beginTransaction,
+  commitTransaction,
+  completeApplicationPhases,
+  createDbClient,
+  createDemonstration,
+  ensureProjectOfficerAccess,
+  getOrCreateProjectOfficer,
+  getSeedState,
+  getSeededDemonstration,
+  insertSeededDocument,
+  requireIds,
+  requirePhaseDocumentTypes,
+  requirePhaseStatusPairs,
+  requireRole,
+  requireRolePersonType,
+  rollbackTransaction,
+  seedApplicationDates,
+} from "./db.js";
 
 dotenv.config({ path: new URL("../../../.env", import.meta.url), quiet: true });
 dotenv.config({ quiet: true });
@@ -105,12 +124,6 @@ const APPLICATION_DATE_OFFSETS_FROM_EFFECTIVE_DATE = [
   ["Approval Summary Completion Date", 60],
 ];
 
-const { Client } = pg;
-
-function getConnectionString() {
-  return process.env.DATABASE_URL ?? SEED_CONFIG.fallbackDatabaseUrl;
-}
-
 function getCleanBucket() {
   if (!process.env.CLEAN_BUCKET) {
     throw new Error("CLEAN_BUCKET environment variable is required to upload seeded documents.");
@@ -188,102 +201,6 @@ function buildDemoName(stateName) {
   return `${stateName} ${SEED_CONFIG.demoNameSuffix}`;
 }
 
-async function requireIds(client, tableName, ids) {
-  const result = await client.query(
-    `
-      select id
-      from demos_app.${tableName}
-      where id = any($1::text[])
-    `,
-    [ids]
-  );
-
-  const foundIds = new Set(result.rows.map((row) => row.id));
-  const missingIds = ids.filter((id) => !foundIds.has(id));
-  if (missingIds.length) {
-    throw new Error(`Missing required ${tableName} rows: ${missingIds.join(", ")}.`);
-  }
-}
-
-async function requireRole(client, roleId, grantLevelId) {
-  const result = await client.query(
-    `
-      select 1
-      from demos_app.role
-      where id = $1
-      and grant_level_id = $2
-    `,
-    [roleId, grantLevelId]
-  );
-
-  if (result.rows.length === 0) {
-    throw new Error(`Missing required role ${roleId} with grant level ${grantLevelId}.`);
-  }
-}
-
-async function requireRolePersonType(client, roleId, personTypeId) {
-  const result = await client.query(
-    `
-      select 1
-      from demos_app.role_person_type
-      where role_id = $1
-      and person_type_id = $2
-    `,
-    [roleId, personTypeId]
-  );
-
-  if (result.rows.length === 0) {
-    throw new Error(`Role ${roleId} is not available for person type ${personTypeId}.`);
-  }
-}
-
-async function requirePhaseStatusPairs(client) {
-  const result = await client.query(
-    `
-      select required_phase.id
-      from unnest($1::text[]) as required_phase(id)
-      where not exists (
-        select 1
-        from demos_app.phase_phase_status
-        where phase_id = required_phase.id
-        and phase_status_id = 'Completed'
-      )
-    `,
-    [PHASES]
-  );
-
-  if (result.rows.length) {
-    const missingPhases = result.rows.map((row) => row.id);
-    throw new Error(
-      `Missing required phase/status pairs for Completed phases: ${missingPhases.join(", ")}.`
-    );
-  }
-}
-
-async function requirePhaseDocumentTypes(client) {
-  const result = await client.query(
-    `
-      select required_document.phase_id, required_document.document_type_id
-      from unnest($1::text[], $2::text[]) as required_document(phase_id, document_type_id)
-      where not exists (
-        select 1
-        from demos_app.phase_document_type
-        where phase_id = required_document.phase_id
-        and document_type_id = required_document.document_type_id
-      )
-    `,
-    [
-      REQUIRED_PHASE_DOCUMENTS.map((document) => document.phaseId),
-      REQUIRED_PHASE_DOCUMENTS.map((document) => document.documentTypeId),
-    ]
-  );
-
-  if (result.rows.length) {
-    const missingPairs = result.rows.map((row) => `${row.phase_id}/${row.document_type_id}`);
-    throw new Error(`Missing required phase_document_type rows: ${missingPairs.join(", ")}.`);
-  }
-}
-
 async function validateStaticRows(client) {
   await requireIds(client, "application_type", [APPLICATION_TYPE_ID]);
   await requireIds(client, "application_status", [INITIAL_STATUS_ID, EXPECTED_FINAL_STATUS_ID]);
@@ -316,347 +233,8 @@ async function validateStaticRows(client) {
   await requireRole(client, SYSTEM_ROLE_ID, SYSTEM_GRANT_LEVEL_ID);
   await requireRolePersonType(client, PROJECT_OFFICER_ROLE_ID, PERSON_TYPE_ID);
   await requireRolePersonType(client, SYSTEM_ROLE_ID, PERSON_TYPE_ID);
-  await requirePhaseStatusPairs(client);
-  await requirePhaseDocumentTypes(client);
-}
-
-async function getSeedState(client) {
-  const result = await client.query(
-    `
-      select id, name
-      from demos_app.state
-      where id = $1
-    `,
-    [SEED_CONFIG.stateId]
-  );
-
-  if (result.rows.length !== 1) {
-    throw new Error(`Expected one state with id ${SEED_CONFIG.stateId}, found ${result.rows.length}.`);
-  }
-
-  return result.rows[0];
-}
-
-async function getOrCreateProjectOfficer(client) {
-  const existingCmsUser = await client.query(
-    `
-      select users.id, users.person_type_id
-      from demos_app.users
-      where users.person_type_id = $1
-      order by random()
-      limit 1
-    `,
-    [PERSON_TYPE_ID]
-  );
-
-  if (existingCmsUser.rows.length === 1) {
-    const user = existingCmsUser.rows[0];
-    return { id: user.id, personTypeId: user.person_type_id };
-  }
-
-  const personId = randomUUID();
-  const cognitoSubject = randomUUID();
-
-  await client.query(
-    `
-      insert into demos_app.person (
-        id,
-        person_type_id,
-        email,
-        first_name,
-        last_name,
-        created_at,
-        updated_at
-      ) values (
-        $1,
-        $2,
-        $3,
-        $4,
-        $5,
-        current_timestamp,
-        current_timestamp
-      )
-    `,
-    [
-      personId,
-      PERSON_TYPE_ID,
-      SEED_CONFIG.fallbackProjectOfficerEmail,
-      SEED_CONFIG.fallbackProjectOfficerFirstName,
-      SEED_CONFIG.fallbackProjectOfficerLastName,
-    ]
-  );
-
-  await client.query(
-    `
-      insert into demos_app.users (
-        id,
-        person_type_id,
-        cognito_subject,
-        username,
-        is_migrated_from_pmda,
-        has_logged_in,
-        created_at,
-        updated_at
-      ) values (
-        $1,
-        $2,
-        $3,
-        $4,
-        false,
-        true,
-        current_timestamp,
-        current_timestamp
-      )
-    `,
-    [personId, PERSON_TYPE_ID, cognitoSubject, SEED_CONFIG.fallbackProjectOfficerUsername]
-  );
-
-  return { id: personId, personTypeId: PERSON_TYPE_ID };
-}
-
-async function ensureProjectOfficerAccess(client, projectOfficer) {
-  await client.query(
-    `
-      insert into demos_app.system_role_assignment (
-        person_id,
-        role_id,
-        person_type_id,
-        grant_level_id
-      ) values (
-        $1,
-        $2,
-        $3,
-        $4
-      )
-      on conflict do nothing
-    `,
-    [projectOfficer.id, SYSTEM_ROLE_ID, projectOfficer.personTypeId, SYSTEM_GRANT_LEVEL_ID]
-  );
-
-  await client.query(
-    `
-      insert into demos_app.person_state (
-        person_id,
-        state_id
-      ) values (
-        $1,
-        $2
-      )
-      on conflict do nothing
-    `,
-    [projectOfficer.id, SEED_CONFIG.stateId]
-  );
-}
-
-async function createDemonstration(client, projectOfficer, demonstrationWindow, demoName) {
-  const demonstrationId = randomUUID();
-
-  await client.query(
-    `
-      insert into demos_app.application (
-        id,
-        application_type_id
-      ) values (
-        $1,
-        $2
-      )
-    `,
-    [demonstrationId, APPLICATION_TYPE_ID]
-  );
-
-  await client.query(
-    `
-      insert into demos_app.demonstration (
-        id,
-        application_type_id,
-        name,
-        description,
-        effective_date,
-        expiration_date,
-        sdg_division_id,
-        signature_level_id,
-        status_id,
-        status_updated_at,
-        current_phase_id,
-        state_id,
-        clearance_level_id,
-        created_at,
-        updated_at
-      ) values (
-        $1,
-        $2,
-        $3,
-        $4,
-        $5,
-        $6,
-        $7,
-        $8,
-        $9,
-        current_timestamp,
-        'Concept',
-        $10,
-        $11,
-        current_timestamp,
-        current_timestamp
-      )
-    `,
-    [
-      demonstrationId,
-      APPLICATION_TYPE_ID,
-      demoName,
-      SEED_CONFIG.demoDescription,
-      demonstrationWindow.effectiveDate,
-      demonstrationWindow.expirationDate,
-      SEED_CONFIG.sdgDivisionId,
-      SIGNATURE_LEVEL_ID,
-      INITIAL_STATUS_ID,
-      SEED_CONFIG.stateId,
-      CLEARANCE_LEVEL_ID,
-    ]
-  );
-
-  await client.query(
-    `
-      insert into demos_app.demonstration_role_assignment (
-        person_id,
-        demonstration_id,
-        role_id,
-        state_id,
-        person_type_id,
-        grant_level_id
-      ) values (
-        $1,
-        $2,
-        $3,
-        $4,
-        $5,
-        $6
-      )
-    `,
-    [
-      projectOfficer.id,
-      demonstrationId,
-      PROJECT_OFFICER_ROLE_ID,
-      SEED_CONFIG.stateId,
-      projectOfficer.personTypeId,
-      DEMONSTRATION_GRANT_LEVEL_ID,
-    ]
-  );
-
-  await client.query(
-    `
-      insert into demos_app.primary_demonstration_role_assignment (
-        person_id,
-        demonstration_id,
-        role_id
-      ) values (
-        $1,
-        $2,
-        $3
-      )
-    `,
-    [projectOfficer.id, demonstrationId, PROJECT_OFFICER_ROLE_ID]
-  );
-
-  return demonstrationId;
-}
-
-async function applyDemonstrationType(client, demonstrationId, demonstrationWindow) {
-  await client.query(
-    `
-      insert into demos_app.tag_name (
-        id,
-        created_at,
-        updated_at
-      ) values (
-        $1,
-        current_timestamp,
-        current_timestamp
-      )
-      on conflict do nothing
-    `,
-    [SEED_CONFIG.demonstrationType]
-  );
-
-  for (const tagTypeId of [TAG_TYPE_APPLICATION, TAG_TYPE_DEMONSTRATION_TYPE]) {
-    await client.query(
-      `
-        insert into demos_app.tag (
-          tag_name_id,
-          tag_type_id,
-          source_id,
-          status_id,
-          created_at,
-          updated_at
-        ) values (
-          $1,
-          $2,
-          $3,
-          $4,
-          current_timestamp,
-          current_timestamp
-        )
-        on conflict do nothing
-      `,
-      [SEED_CONFIG.demonstrationType, tagTypeId, TAG_SOURCE_ID, TAG_STATUS_ID]
-    );
-  }
-
-  await client.query(
-    `
-      insert into demos_app.demonstration_type_tag_assignment (
-        demonstration_id,
-        tag_name_id,
-        tag_type_id,
-        effective_date,
-        expiration_date,
-        created_at,
-        updated_at
-      ) values (
-        $1,
-        $2,
-        $3,
-        $4,
-        $5,
-        current_timestamp,
-        current_timestamp
-      )
-    `,
-    [
-      demonstrationId,
-      SEED_CONFIG.demonstrationType,
-      TAG_TYPE_DEMONSTRATION_TYPE,
-      demonstrationWindow.effectiveDate,
-      demonstrationWindow.expirationDate,
-    ]
-  );
-}
-
-async function seedApplicationDates(client, demonstrationId, demonstrationWindow) {
-  for (const { dateTypeId, dateValue } of buildApplicationDates(demonstrationWindow.effectiveDate)) {
-    await client.query(
-      `
-        insert into demos_app.application_date (
-          application_id,
-          date_type_id,
-          date_value,
-          created_at,
-          updated_at
-        ) values (
-          $1,
-          $2,
-          $3,
-          current_timestamp,
-          current_timestamp
-        )
-        on conflict (application_id, date_type_id)
-        do update set
-          date_value = excluded.date_value,
-          updated_at = current_timestamp
-      `,
-      [demonstrationId, dateTypeId, dateValue]
-    );
-  }
+  await requirePhaseStatusPairs(client, PHASES);
+  await requirePhaseDocumentTypes(client, REQUIRED_PHASE_DOCUMENTS);
 }
 
 async function createAndUploadRequiredDocuments({
@@ -672,43 +250,16 @@ async function createAndUploadRequiredDocuments({
     const s3Path = `${demonstrationId}/${documentId}`;
     const documentName = `${documentToUpload.documentTypeId} Seed File`;
 
-    await client.query(
-      `
-        insert into demos_app.document (
-          id,
-          name,
-          description,
-          s3_path,
-          owner_user_id,
-          document_type_id,
-          application_id,
-          phase_id,
-          created_at,
-          updated_at
-        ) values (
-          $1,
-          $2,
-          $3,
-          $4,
-          $5,
-          $6,
-          $7,
-          $8,
-          current_timestamp,
-          current_timestamp
-        )
-      `,
-      [
-        documentId,
-        documentName,
-        `Seeded ${documentToUpload.documentTypeId} document for ${demoName}.`,
-        s3Path,
-        ownerUserId,
-        documentToUpload.documentTypeId,
-        demonstrationId,
-        documentToUpload.phaseId,
-      ]
-    );
+    await insertSeededDocument(client, {
+      documentId,
+      documentName,
+      description: `Seeded ${documentToUpload.documentTypeId} document for ${demoName}.`,
+      s3Path,
+      ownerUserId,
+      documentTypeId: documentToUpload.documentTypeId,
+      applicationId: demonstrationId,
+      phaseId: documentToUpload.phaseId,
+    });
 
     await s3Client.send(
       new PutObjectCommand({
@@ -728,76 +279,8 @@ async function createAndUploadRequiredDocuments({
   }
 }
 
-async function completeApplicationPhases(client, demonstrationId) {
-  for (const phase of PHASES) {
-    const result = await client.query(
-      `
-        update demos_app.application_phase
-        set
-          phase_status_id = 'Completed',
-          updated_at = current_timestamp
-        where application_id = $1
-        and phase_id = $2
-      `,
-      [demonstrationId, phase]
-    );
-
-    if (result.rowCount !== 1) {
-      throw new Error(
-        `Expected one application_phase row for demonstration ${demonstrationId} and phase ${phase}, updated ${result.rowCount}.`
-      );
-    }
-  }
-}
-
-async function getSeededDemonstration(client, demonstrationId) {
-  const result = await client.query(
-    `
-      select
-        demonstration.id,
-        demonstration.name,
-        demonstration.effective_date,
-        demonstration.expiration_date,
-        demonstration.state_id,
-        demonstration.status_id,
-        demonstration.current_phase_id,
-        demonstration_type_tag_assignment.tag_name_id as demonstration_type,
-        primary_demonstration_role_assignment.person_id as project_officer_id,
-        count(document.id)::int as document_count
-      from demos_app.demonstration
-      left join demos_app.demonstration_type_tag_assignment
-        on demonstration_type_tag_assignment.demonstration_id = demonstration.id
-      left join demos_app.primary_demonstration_role_assignment
-        on primary_demonstration_role_assignment.demonstration_id = demonstration.id
-        and primary_demonstration_role_assignment.role_id = $2
-      left join demos_app.document
-        on document.application_id = demonstration.id
-      where demonstration.id = $1
-      group by
-        demonstration.id,
-        demonstration.name,
-        demonstration.effective_date,
-        demonstration.expiration_date,
-        demonstration.state_id,
-        demonstration.status_id,
-        demonstration.current_phase_id,
-        demonstration_type_tag_assignment.tag_name_id,
-        primary_demonstration_role_assignment.person_id
-    `,
-    [demonstrationId, PROJECT_OFFICER_ROLE_ID]
-  );
-
-  if (result.rows.length !== 1) {
-    throw new Error(
-      `Expected one seeded demonstration with id ${demonstrationId}, found ${result.rows.length}.`
-    );
-  }
-
-  return result.rows[0];
-}
-
 async function createApprovedDemo() {
-  const client = new Client({ connectionString: getConnectionString() });
+  const client = createDbClient(SEED_CONFIG.fallbackDatabaseUrl);
   const cleanBucket = getCleanBucket();
   const s3Client = createS3Client();
   let connected = false;
@@ -808,23 +291,54 @@ async function createApprovedDemo() {
   try {
     await client.connect();
     connected = true;
-    await client.query("begin");
+    await beginTransaction(client);
 
     await validateStaticRows(client);
-    const seedState = await getSeedState(client);
+    const seedState = await getSeedState(client, SEED_CONFIG.stateId);
     const demoName = buildDemoName(seedState.name);
-    const projectOfficer = await getOrCreateProjectOfficer(client);
-    await ensureProjectOfficerAccess(client, projectOfficer);
+    const projectOfficer = await getOrCreateProjectOfficer(client, {
+      personTypeId: PERSON_TYPE_ID,
+      fallbackProjectOfficerEmail: SEED_CONFIG.fallbackProjectOfficerEmail,
+      fallbackProjectOfficerFirstName: SEED_CONFIG.fallbackProjectOfficerFirstName,
+      fallbackProjectOfficerLastName: SEED_CONFIG.fallbackProjectOfficerLastName,
+      fallbackProjectOfficerUsername: SEED_CONFIG.fallbackProjectOfficerUsername,
+    });
+    await ensureProjectOfficerAccess(client, {
+      projectOfficer,
+      systemRoleId: SYSTEM_ROLE_ID,
+      systemGrantLevelId: SYSTEM_GRANT_LEVEL_ID,
+      stateId: SEED_CONFIG.stateId,
+    });
     const demonstrationWindow = buildDemonstrationWindow();
 
-    const demonstrationId = await createDemonstration(
-      client,
+    const demonstrationId = await createDemonstration(client, {
       projectOfficer,
       demonstrationWindow,
-      demoName
+      demoName,
+      applicationTypeId: APPLICATION_TYPE_ID,
+      demoDescription: SEED_CONFIG.demoDescription,
+      sdgDivisionId: SEED_CONFIG.sdgDivisionId,
+      signatureLevelId: SIGNATURE_LEVEL_ID,
+      initialStatusId: INITIAL_STATUS_ID,
+      stateId: SEED_CONFIG.stateId,
+      clearanceLevelId: CLEARANCE_LEVEL_ID,
+      projectOfficerRoleId: PROJECT_OFFICER_ROLE_ID,
+      demonstrationGrantLevelId: DEMONSTRATION_GRANT_LEVEL_ID,
+    });
+    await applyDemonstrationType(client, {
+      demonstrationId,
+      demonstrationWindow,
+      demonstrationType: SEED_CONFIG.demonstrationType,
+      tagTypeApplication: TAG_TYPE_APPLICATION,
+      tagTypeDemonstrationType: TAG_TYPE_DEMONSTRATION_TYPE,
+      tagSourceId: TAG_SOURCE_ID,
+      tagStatusId: TAG_STATUS_ID,
+    });
+    await seedApplicationDates(
+      client,
+      demonstrationId,
+      buildApplicationDates(demonstrationWindow.effectiveDate)
     );
-    await applyDemonstrationType(client, demonstrationId, demonstrationWindow);
-    await seedApplicationDates(client, demonstrationId, demonstrationWindow);
     await createAndUploadRequiredDocuments({
       client,
       s3Client,
@@ -833,22 +347,27 @@ async function createApprovedDemo() {
       ownerUserId: projectOfficer.id,
       demoName,
     });
-    await completeApplicationPhases(client, demonstrationId);
+    await completeApplicationPhases(client, demonstrationId, PHASES);
 
-    const demonstration = await getSeededDemonstration(client, demonstrationId);
+    const demonstration = await getSeededDemonstration(
+      client,
+      demonstrationId,
+      PROJECT_OFFICER_ROLE_ID
+    );
     if (demonstration.status_id !== EXPECTED_FINAL_STATUS_ID) {
       throw new Error(
-        `Expected demonstration ${demonstrationId} to be ${EXPECTED_FINAL_STATUS_ID}, found ${demonstration.status_id}.`
+        `Expected demonstration ${demonstrationId} to be ${EXPECTED_FINAL_STATUS_ID}, ` +
+          `found ${demonstration.status_id}.`
       );
     }
 
-    await client.query("commit");
+    await commitTransaction(client);
     seededDemonstration = demonstration;
   } catch (error) {
     caughtError = error;
     if (connected) {
       try {
-        await client.query("rollback");
+        await rollbackTransaction(client);
       } catch {
         // Preserve the original error.
       }
