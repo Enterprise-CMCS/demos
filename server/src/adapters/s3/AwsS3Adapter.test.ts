@@ -119,6 +119,19 @@ describe("AwsS3Adapter", () => {
         expiresIn: 10,
       });
     });
+
+    it("sets an inline Content-Disposition, safely encoding the file name", async () => {
+      const adapter = createAWSS3Adapter();
+      // Name with a quote (escaped) and a non-ASCII char (encoded via filename*)
+      // proves arbitrary document names can't malform or inject the header.
+      await adapter.getPresignedDownloadUrl(testKey, 'Quârterly "Report".pdf');
+
+      expect(GetObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: testKey,
+        ResponseContentDisposition: String.raw`inline; filename="Qu?rterly \"Report\".pdf"; filename*=UTF-8''Qu%C3%A2rterly%20%22Report%22.pdf`,
+      });
+    });
   });
 
   describe("moveDocumentFromCleanToDeleted", () => {

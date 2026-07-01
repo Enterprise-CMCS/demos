@@ -4,7 +4,7 @@ import { createLocalS3Adapter } from "./LocalS3Adapter";
 import { Prisma, DocumentPendingUpload as PrismaDocumentPendingUpload } from "@prisma/client";
 export interface S3Adapter {
   getPresignedUploadUrl(key: string): Promise<string>;
-  getPresignedDownloadUrl(key: string): Promise<string>;
+  getPresignedDownloadUrl(key: string, fileName?: string): Promise<string>;
   moveDocumentFromCleanToDeleted(key: string): Promise<void>;
   uploadDocument(
     documentData: Prisma.DocumentPendingUploadCreateArgs["data"],

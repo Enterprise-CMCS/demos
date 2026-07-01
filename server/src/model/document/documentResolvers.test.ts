@@ -171,11 +171,13 @@ describe("documentResolvers", () => {
     it("delegates to s3adapter.getPresignedDownloadUrl", async () => {
       const document = {
         s3Path: "s3/path/to/document.pdf",
+        name: "My Document.pdf",
       } as PrismaDocument;
 
       await documentResolvers.Document.presignedDownloadUrl(document);
       expect(mockS3Adapter.getPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith(
-        document.s3Path
+        document.s3Path,
+        document.name
       );
     });
   });

@@ -6,6 +6,7 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { create as createContentDisposition } from "content-disposition";
 import { prisma, PrismaTransactionClient } from "../../prismaClient";
 import { S3Adapter } from "../";
 import { Prisma, DocumentPendingUpload as PrismaDocumentPendingUpload } from "@prisma/client";
@@ -51,10 +52,13 @@ export function createAWSS3Adapter(): S3Adapter {
       });
     },
 
-    async getPresignedDownloadUrl(key: string): Promise<string> {
+    async getPresignedDownloadUrl(key: string, fileName?: string): Promise<string> {
       const getObjectCommand = new GetObjectCommand({
         Bucket: cleanBucket,
         Key: key,
+        ResponseContentDisposition: fileName
+          ? createContentDisposition(fileName, { type: "inline" })
+          : undefined,
       });
       return await getSignedUrl(s3Client, getObjectCommand, {
         expiresIn: EXPIRATION_TIME_SECONDS,

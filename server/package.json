@@ -5,7 +5,8 @@
   "overrides": {
     "@aws-sdk/client-s3": {
       "fast-xml-parser": "^5.3.6"
-    }
+    },
+    "fast-uri": "^4.0.1"
   },
   "dependencies": {
     "@apollo/server": "^5.5.1",
@@ -19,6 +20,7 @@
     "@escape.tech/graphql-armor": "^3.2.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "content-disposition": "^2.0.1",
     "cookie": "^1.1.1",
     "date-fns": "^4.4.0",
     "demos-shared-library": "file:../shared_library",
