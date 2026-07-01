@@ -24,13 +24,13 @@ export const AVAILABLE_REPORT_TYPES = [
 ] as const;
 
 export const ReportsTable: React.FC = () => {
-  const [currentDownload, setCurrentDownload] = useState<string | null>(null);
+  const [downloadingReports, setDownloadingReports] = useState<Set<string>>(new Set());
   const { triggerDownload } = useTriggerDownload();
   const { showSuccess, showError } = useToast();
   const [ generateOnDemandReport ] = useMutation(GENERATE_ON_DEMAND_REPORT_MUTATION);
 
   const handleDownload = async (reportType: string) => {
-    setCurrentDownload(reportType);
+    setDownloadingReports(prev => new Set(prev).add(reportType));
 
     try {
       const { data } = await generateOnDemandReport({
@@ -51,11 +51,15 @@ export const ReportsTable: React.FC = () => {
       console.error("Error generating on-demand report:", error);
       showError(`Failed to generate ${reportType} report`);
     } finally {
-      setCurrentDownload(null);
+      setDownloadingReports(prev => {
+        const next = new Set(prev);
+        next.delete(reportType);
+        return next;
+      });
     }
   };
 
-  const reportsColumns = ReportsColumns(handleDownload, currentDownload);
+  const reportsColumns = ReportsColumns(handleDownload, downloadingReports);
 
   const rows: ReportsTableRow[] = AVAILABLE_REPORT_TYPES.map((reportType) => ({
     id: reportType,

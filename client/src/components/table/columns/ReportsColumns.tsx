@@ -8,7 +8,7 @@ import { Spinner } from "components/loading/Spinner";
 
 export function ReportsColumns(
   onDownload: (reportType: string) => void,
-  currentDownload: string | null
+  downloadingReports: Set<string>
 ) {
   const columnHelper = createColumnHelper<ReportsTableRow>();
 
@@ -28,14 +28,14 @@ export function ReportsColumns(
               name={`download-${row.original.id}`}
               aria-label={`Download ${row.original.id}`}
               onClick={() => onDownload(row.original.id)}
-              disabled={currentDownload !== null}
+              disabled={downloadingReports.has(row.original.id)}
             >
               <span className="relative inline-flex items-center justify-center">
-                <span className={currentDownload === row.original.id ? "invisible" : ""}>
+                <span className={downloadingReports.has(row.original.id) ? "invisible" : ""}>
                   Download
                 </span>
 
-                {currentDownload === row.original.id && (
+                {downloadingReports.has(row.original.id) && (
                   <span className="absolute inset-0 flex items-center justify-center">
                     <Spinner />
                   </span>
