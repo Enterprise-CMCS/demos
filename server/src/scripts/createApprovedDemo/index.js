@@ -22,6 +22,7 @@ import {
   requireRole,
   requireRolePersonType,
   rollbackTransaction,
+  setSeededDemonstrationAuditDates,
   seedApplicationDates,
 } from "./db.js";
 
@@ -71,17 +72,92 @@ const PHASES = [
 ];
 
 const REQUIRED_PHASE_DOCUMENTS = [
-  { phaseId: "Concept", documentTypeId: "Pre-Submission" },
-  { phaseId: "Application Intake", documentTypeId: "State Application" },
-  { phaseId: "Completeness", documentTypeId: "Application Completeness Letter" },
-  { phaseId: "Completeness", documentTypeId: "Internal Completeness Review Form" },
-  { phaseId: "Approval Package", documentTypeId: "Approval Letter" },
-  { phaseId: "Approval Package", documentTypeId: "Final Budget Neutrality Formulation Workbook" },
-  { phaseId: "Approval Package", documentTypeId: "Formal OMB Policy Concurrence Email" },
-  { phaseId: "Approval Package", documentTypeId: "Special Terms & Conditions" },
-  { phaseId: "Approval Package", documentTypeId: "Q&A" },
-  { phaseId: "Approval Package", documentTypeId: "Signed Decision Memo" },
+  {
+    phaseId: "Concept",
+    documentTypeId: "Pre-Submission",
+    auditDateTypeId: "Concept Start Date",
+  },
+  {
+    phaseId: "Application Intake",
+    documentTypeId: "State Application",
+    auditDateTypeId: "State Application Submitted Date",
+  },
+  {
+    phaseId: "Completeness",
+    documentTypeId: "Application Completeness Letter",
+    auditDateTypeId: "State Application Deemed Complete",
+  },
+  {
+    phaseId: "Completeness",
+    documentTypeId: "Internal Completeness Review Form",
+    auditDateTypeId: "Completeness Start Date",
+  },
+  {
+    phaseId: "Approval Package",
+    documentTypeId: "Approval Letter",
+    auditDateTypeId: "Application Approval Date",
+  },
+  {
+    phaseId: "Approval Package",
+    documentTypeId: "Final Budget Neutrality Formulation Workbook",
+    auditDateTypeId: "BN PMT Approval to Send to OMB",
+  },
+  {
+    phaseId: "Approval Package",
+    documentTypeId: "Formal OMB Policy Concurrence Email",
+    auditDateTypeId: "Receive OMB Concurrence",
+  },
+  {
+    phaseId: "Approval Package",
+    documentTypeId: "Special Terms & Conditions",
+    auditDateTypeId: "Approval Package Completion Date",
+  },
+  {
+    phaseId: "Approval Package",
+    documentTypeId: "Q&A",
+    auditDateTypeId: "Draft Approval Package Shared",
+  },
+  {
+    phaseId: "Approval Package",
+    documentTypeId: "Signed Decision Memo",
+    auditDateTypeId: "Application Approval Date",
+  },
 ];
+
+const PHASE_AUDIT_DATE_TYPES = {
+  Concept: {
+    createdAt: "Concept Start Date",
+    updatedAt: "Concept Completion Date",
+  },
+  "Application Intake": {
+    createdAt: "Application Intake Start Date",
+    updatedAt: "Application Intake Completion Date",
+  },
+  Completeness: {
+    createdAt: "Completeness Start Date",
+    updatedAt: "Completeness Completion Date",
+  },
+  "Federal Comment": {
+    createdAt: "Federal Comment Period Start Date",
+    updatedAt: "Federal Comment Period End Date",
+  },
+  "SDG Preparation": {
+    createdAt: "SDG Preparation Start Date",
+    updatedAt: "SDG Preparation Completion Date",
+  },
+  Review: {
+    createdAt: "Review Start Date",
+    updatedAt: "Review Completion Date",
+  },
+  "Approval Package": {
+    createdAt: "Approval Package Start Date",
+    updatedAt: "Approval Package Completion Date",
+  },
+  "Approval Summary": {
+    createdAt: "Approval Summary Start Date",
+    updatedAt: "Approval Summary Completion Date",
+  },
+};
 
 const APPLICATION_DATE_OFFSETS_FROM_EFFECTIVE_DATE = [
   ["Concept Start Date", 100],
@@ -170,6 +246,12 @@ function buildDateBefore(baseDate, daysBeforeBaseDate, endOfDay = false) {
   return setUtcDayBoundary(date, endOfDay);
 }
 
+function addUtcMinutes(date, minutes) {
+  const newDate = new Date(date);
+  newDate.setUTCMinutes(newDate.getUTCMinutes() + minutes);
+  return newDate;
+}
+
 function buildDemonstrationWindow() {
   const latestEffectiveDate = setUtcDayBoundary(new Date());
   const earliestEffectiveDate = new Date(latestEffectiveDate);
@@ -195,6 +277,41 @@ function buildApplicationDates(effectiveDate) {
       dateValue: buildDateBefore(effectiveDate, daysBeforeApproval, endOfDay),
     })
   );
+}
+
+function buildApplicationDateMap(applicationDates) {
+  return new Map(applicationDates.map(({ dateTypeId, dateValue }) => [dateTypeId, dateValue]));
+}
+
+function getRequiredApplicationDate(applicationDateMap, dateTypeId) {
+  const date = applicationDateMap.get(dateTypeId);
+  if (!date) {
+    throw new Error(`Could not build audit timestamps: missing application date ${dateTypeId}.`);
+  }
+  return date;
+}
+
+function buildPhaseAuditDates(applicationDateMap) {
+  return Object.fromEntries(
+    PHASES.map((phase) => {
+      const auditDateTypes = PHASE_AUDIT_DATE_TYPES[phase];
+      return [
+        phase,
+        {
+          createdAt: getRequiredApplicationDate(applicationDateMap, auditDateTypes.createdAt),
+          updatedAt: getRequiredApplicationDate(applicationDateMap, auditDateTypes.updatedAt),
+        },
+      ];
+    })
+  );
+}
+
+function getDocumentAuditDate(documentToUpload, index, applicationDateMap) {
+  const auditDate = getRequiredApplicationDate(
+    applicationDateMap,
+    documentToUpload.auditDateTypeId
+  );
+  return addUtcMinutes(auditDate, index * 5);
 }
 
 function buildDemoName(stateName) {
@@ -244,11 +361,13 @@ async function createAndUploadRequiredDocuments({
   demonstrationId,
   ownerUserId,
   demoName,
+  applicationDateMap,
 }) {
-  for (const documentToUpload of REQUIRED_PHASE_DOCUMENTS) {
+  for (const [index, documentToUpload] of REQUIRED_PHASE_DOCUMENTS.entries()) {
     const documentId = randomUUID();
     const s3Path = `${demonstrationId}/${documentId}`;
     const documentName = `${documentToUpload.documentTypeId} Seed File`;
+    const auditDate = getDocumentAuditDate(documentToUpload, index, applicationDateMap);
 
     await insertSeededDocument(client, {
       documentId,
@@ -259,6 +378,8 @@ async function createAndUploadRequiredDocuments({
       documentTypeId: documentToUpload.documentTypeId,
       applicationId: demonstrationId,
       phaseId: documentToUpload.phaseId,
+      createdAt: auditDate,
+      updatedAt: auditDate,
     });
 
     await s3Client.send(
@@ -296,12 +417,25 @@ async function createApprovedDemo() {
     await validateStaticRows(client);
     const seedState = await getSeedState(client, SEED_CONFIG.stateId);
     const demoName = buildDemoName(seedState.name);
+    const demonstrationWindow = buildDemonstrationWindow();
+    const applicationDates = buildApplicationDates(demonstrationWindow.effectiveDate);
+    const applicationDateMap = buildApplicationDateMap(applicationDates);
+    const applicationCreatedAt = getRequiredApplicationDate(
+      applicationDateMap,
+      "Concept Start Date"
+    );
+    const applicationApprovedAt = getRequiredApplicationDate(
+      applicationDateMap,
+      "Application Approval Date"
+    );
     const projectOfficer = await getOrCreateProjectOfficer(client, {
       personTypeId: PERSON_TYPE_ID,
       fallbackProjectOfficerEmail: SEED_CONFIG.fallbackProjectOfficerEmail,
       fallbackProjectOfficerFirstName: SEED_CONFIG.fallbackProjectOfficerFirstName,
       fallbackProjectOfficerLastName: SEED_CONFIG.fallbackProjectOfficerLastName,
       fallbackProjectOfficerUsername: SEED_CONFIG.fallbackProjectOfficerUsername,
+      createdAt: applicationCreatedAt,
+      updatedAt: applicationCreatedAt,
     });
     await ensureProjectOfficerAccess(client, {
       projectOfficer,
@@ -309,7 +443,6 @@ async function createApprovedDemo() {
       systemGrantLevelId: SYSTEM_GRANT_LEVEL_ID,
       stateId: SEED_CONFIG.stateId,
     });
-    const demonstrationWindow = buildDemonstrationWindow();
 
     const demonstrationId = await createDemonstration(client, {
       projectOfficer,
@@ -324,6 +457,9 @@ async function createApprovedDemo() {
       clearanceLevelId: CLEARANCE_LEVEL_ID,
       projectOfficerRoleId: PROJECT_OFFICER_ROLE_ID,
       demonstrationGrantLevelId: DEMONSTRATION_GRANT_LEVEL_ID,
+      createdAt: applicationCreatedAt,
+      updatedAt: applicationCreatedAt,
+      statusUpdatedAt: applicationCreatedAt,
     });
     await applyDemonstrationType(client, {
       demonstrationId,
@@ -333,12 +469,10 @@ async function createApprovedDemo() {
       tagTypeDemonstrationType: TAG_TYPE_DEMONSTRATION_TYPE,
       tagSourceId: TAG_SOURCE_ID,
       tagStatusId: TAG_STATUS_ID,
+      createdAt: applicationCreatedAt,
+      updatedAt: applicationApprovedAt,
     });
-    await seedApplicationDates(
-      client,
-      demonstrationId,
-      buildApplicationDates(demonstrationWindow.effectiveDate)
-    );
+    await seedApplicationDates(client, demonstrationId, applicationDates);
     await createAndUploadRequiredDocuments({
       client,
       s3Client,
@@ -346,8 +480,18 @@ async function createApprovedDemo() {
       demonstrationId,
       ownerUserId: projectOfficer.id,
       demoName,
+      applicationDateMap,
     });
-    await completeApplicationPhases(client, demonstrationId, PHASES);
+    await completeApplicationPhases(
+      client,
+      demonstrationId,
+      buildPhaseAuditDates(applicationDateMap)
+    );
+    await setSeededDemonstrationAuditDates(client, demonstrationId, {
+      createdAt: applicationCreatedAt,
+      updatedAt: applicationApprovedAt,
+      statusUpdatedAt: applicationApprovedAt,
+    });
 
     const demonstration = await getSeededDemonstration(
       client,

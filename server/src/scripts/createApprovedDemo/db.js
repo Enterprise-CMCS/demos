@@ -144,6 +144,8 @@ export async function getOrCreateProjectOfficer(
     fallbackProjectOfficerFirstName,
     fallbackProjectOfficerLastName,
     fallbackProjectOfficerUsername,
+    createdAt,
+    updatedAt,
   }
 ) {
   const existingCmsUser = await client.query(
@@ -181,8 +183,8 @@ export async function getOrCreateProjectOfficer(
         $3,
         $4,
         $5,
-        current_timestamp,
-        current_timestamp
+        $6,
+        $7
       )
     `,
     [
@@ -191,6 +193,8 @@ export async function getOrCreateProjectOfficer(
       fallbackProjectOfficerEmail,
       fallbackProjectOfficerFirstName,
       fallbackProjectOfficerLastName,
+      createdAt,
+      updatedAt,
     ]
   );
 
@@ -212,11 +216,11 @@ export async function getOrCreateProjectOfficer(
         $4,
         false,
         true,
-        current_timestamp,
-        current_timestamp
+        $5,
+        $6
       )
     `,
-    [personId, personTypeId, cognitoSubject, fallbackProjectOfficerUsername]
+    [personId, personTypeId, cognitoSubject, fallbackProjectOfficerUsername, createdAt, updatedAt]
   );
 
   return { id: personId, personTypeId };
@@ -274,6 +278,9 @@ export async function createDemonstration(
     clearanceLevelId,
     projectOfficerRoleId,
     demonstrationGrantLevelId,
+    createdAt,
+    updatedAt,
+    statusUpdatedAt,
   }
 ) {
   const demonstrationId = randomUUID();
@@ -319,12 +326,12 @@ export async function createDemonstration(
         $7,
         $8,
         $9,
-        current_timestamp,
-        'Concept',
         $10,
+        'Concept',
         $11,
-        current_timestamp,
-        current_timestamp
+        $12,
+        $13,
+        $14
       )
     `,
     [
@@ -337,8 +344,11 @@ export async function createDemonstration(
       sdgDivisionId,
       signatureLevelId,
       initialStatusId,
+      statusUpdatedAt,
       stateId,
       clearanceLevelId,
+      createdAt,
+      updatedAt,
     ]
   );
 
@@ -398,6 +408,8 @@ export async function applyDemonstrationType(
     tagTypeDemonstrationType,
     tagSourceId,
     tagStatusId,
+    createdAt,
+    updatedAt,
   }
 ) {
   await client.query(
@@ -408,12 +420,12 @@ export async function applyDemonstrationType(
         updated_at
       ) values (
         $1,
-        current_timestamp,
-        current_timestamp
+        $2,
+        $3
       )
       on conflict do nothing
     `,
-    [demonstrationType]
+    [demonstrationType, createdAt, updatedAt]
   );
 
   for (const tagTypeId of [tagTypeApplication, tagTypeDemonstrationType]) {
@@ -431,12 +443,12 @@ export async function applyDemonstrationType(
           $2,
           $3,
           $4,
-          current_timestamp,
-          current_timestamp
+          $5,
+          $6
         )
         on conflict do nothing
       `,
-      [demonstrationType, tagTypeId, tagSourceId, tagStatusId]
+      [demonstrationType, tagTypeId, tagSourceId, tagStatusId, createdAt, updatedAt]
     );
   }
 
@@ -456,8 +468,8 @@ export async function applyDemonstrationType(
         $3,
         $4,
         $5,
-        current_timestamp,
-        current_timestamp
+        $6,
+        $7
       )
     `,
     [
@@ -466,6 +478,8 @@ export async function applyDemonstrationType(
       tagTypeDemonstrationType,
       demonstrationWindow.effectiveDate,
       demonstrationWindow.expirationDate,
+      createdAt,
+      updatedAt,
     ]
   );
 }
@@ -484,15 +498,16 @@ export async function seedApplicationDates(client, demonstrationId, applicationD
           $1,
           $2,
           $3,
-          current_timestamp,
-          current_timestamp
+          $4,
+          $5
         )
         on conflict (application_id, date_type_id)
         do update set
           date_value = excluded.date_value,
-          updated_at = current_timestamp
+          created_at = excluded.created_at,
+          updated_at = excluded.updated_at
       `,
-      [demonstrationId, dateTypeId, dateValue]
+      [demonstrationId, dateTypeId, dateValue, dateValue, dateValue]
     );
   }
 }
@@ -508,6 +523,8 @@ export async function insertSeededDocument(
     documentTypeId,
     applicationId,
     phaseId,
+    createdAt,
+    updatedAt,
   }
 ) {
   await client.query(
@@ -532,8 +549,8 @@ export async function insertSeededDocument(
         $6,
         $7,
         $8,
-        current_timestamp,
-        current_timestamp
+        $9,
+        $10
       )
     `,
     [
@@ -545,22 +562,25 @@ export async function insertSeededDocument(
       documentTypeId,
       applicationId,
       phaseId,
+      createdAt,
+      updatedAt,
     ]
   );
 }
 
-export async function completeApplicationPhases(client, demonstrationId, phases) {
-  for (const phase of phases) {
+export async function completeApplicationPhases(client, demonstrationId, phaseAuditDates) {
+  for (const [phase, auditDates] of Object.entries(phaseAuditDates)) {
     const result = await client.query(
       `
         update demos_app.application_phase
         set
           phase_status_id = 'Completed',
-          updated_at = current_timestamp
+          created_at = $3,
+          updated_at = $4
         where application_id = $1
         and phase_id = $2
       `,
-      [demonstrationId, phase]
+      [demonstrationId, phase, auditDates.createdAt, auditDates.updatedAt]
     );
 
     if (result.rowCount !== 1) {
@@ -569,6 +589,31 @@ export async function completeApplicationPhases(client, demonstrationId, phases)
           `phase ${phase}, updated ${result.rowCount}.`
       );
     }
+  }
+}
+
+export async function setSeededDemonstrationAuditDates(
+  client,
+  demonstrationId,
+  { createdAt, updatedAt, statusUpdatedAt }
+) {
+  const result = await client.query(
+    `
+      update demos_app.demonstration
+      set
+        created_at = $2,
+        updated_at = $3,
+        status_updated_at = $4
+      where id = $1
+    `,
+    [demonstrationId, createdAt, updatedAt, statusUpdatedAt]
+  );
+
+  if (result.rowCount !== 1) {
+    throw new Error(
+      `Expected one demonstration row to update audit timestamps for ${demonstrationId}, ` +
+        `updated ${result.rowCount}.`
+    );
   }
 }
 
