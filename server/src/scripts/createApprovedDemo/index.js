@@ -884,7 +884,7 @@ createApprovedDemo()
     console.log(`  demonstrationType: ${demonstration.demonstration_type}`);
     console.log(`  projectOfficerId: ${demonstration.project_officer_id}`);
     console.log(`  uploadedDocuments: ${demonstration.document_count}`);
-    console.log(`  url: /demonstrations/${demonstration.id}`);
+    console.log(`  http://localhost:3000/demonstrations/${demonstration.id}`);
   })
   .catch((error) => {
     console.error(error);
