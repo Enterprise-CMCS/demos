@@ -1,15 +1,16 @@
 import type { ContextUser } from ".";
 import type { UserType, Permission } from "../../types";
 import type { PrismaTransactionClient } from "../../prismaClient";
+import type { AuthorizationClaims } from "..";
 import { selectManyRolePermissions } from "../../model/rolePermission/queries";
 import { selectManySystemRoleAssignments } from "../../model/systemRoleAssignment";
 import { selectUser } from "../../model/user/queries";
 
-export async function findUserByCognitoSubject(
-  cognitoSubject: string,
+export async function findUserByClaims(
+  claims: AuthorizationClaims,
   tx: PrismaTransactionClient
 ): Promise<ContextUser | null> {
-  const user = await selectUser({ cognitoSubject: cognitoSubject }, tx);
+  const user = await selectUser({ cognitoSubject: claims.sub }, tx);
   if (!user) {
     return null;
   }
@@ -24,7 +25,7 @@ export async function findUserByCognitoSubject(
   // Casts enforced by database
   return {
     id: user.id,
-    cognitoSubject: cognitoSubject,
+    cognitoSubject: claims.sub,
     personTypeId: user.personTypeId as UserType,
     permissions: rolePermissions.map((rp) => rp.permissionId as Permission),
   };

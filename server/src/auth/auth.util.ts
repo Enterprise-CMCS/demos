@@ -1,3 +1,5 @@
+import { CustomInternalErrorCode, throwCustomGQLError } from "../errors/errorCodes";
+import { log } from "../log";
 import type { ContextUser } from "./user";
 import { findOrCreateContextUserFromClaims } from "./user";
 
@@ -18,30 +20,59 @@ export type AuthorizationClaims = {
 export function validateClaims(
   claims: Partial<AuthorizationClaims>
 ): asserts claims is AuthorizationClaims {
+  let errorMessage: string;
+  let errorCode: CustomInternalErrorCode;
   if (!claims.email) {
-    throw new Error("Authorizer claims missing required 'email' field");
+    errorCode = "CLAIM_VALIDATION_EMAIL_ERROR";
+    errorMessage = `Error Code ${errorCode}: Authorizer claims missing required 'email' field.`;
+    log.error(errorMessage);
+    throwCustomGQLError(errorMessage, errorCode);
   }
   if (!claims.givenName) {
-    throw new Error("Authorizer claims missing required 'given_name' field");
+    errorCode = "CLAIM_VALIDATION_GIVEN_NAME_ERROR";
+    errorMessage = `Error Code ${errorCode}: Authorizer claims missing required 'given_name' field.`;
+    log.error(errorMessage);
+    throwCustomGQLError(errorMessage, errorCode);
   }
   if (!claims.familyName) {
-    throw new Error("Authorizer claims missing required 'family_name' field");
+    errorCode = "CLAIM_VALIDATION_FAMILY_NAME_ERROR";
+    errorMessage = `Error Code ${errorCode}: Authorizer claims missing required 'family_name' field.`;
+    log.error(errorMessage);
+    throwCustomGQLError(errorMessage, errorCode);
   }
   if (!claims.externalUserId) {
-    throw new Error("Authorizer claims missing required 'externalUserId' field");
+    errorCode = "CLAIM_VALIDATION_EXTERNAL_USER_ID_ERROR";
+    errorMessage = `Error Code ${errorCode}: Authorizer claims missing required 'externalUserId' field.`;
+    log.error(errorMessage);
+    throwCustomGQLError(errorMessage, errorCode);
   }
   if (!claims.sub) {
-    throw new Error("Authorizer claims missing required 'sub' field");
+    errorCode = "CLAIM_VALIDATION_SUB_ERROR";
+    errorMessage = `Error Code ${errorCode}: Authorizer claims missing required 'sub' field.`;
+    log.error(errorMessage);
+    throwCustomGQLError(errorMessage, errorCode);
   }
   if (!claims.role) {
-    throw new Error("Authorizer claims missing required 'role' field");
+    errorCode = "CLAIM_VALIDATION_ROLE_ERROR";
+    errorMessage = `Error Code ${errorCode}: Authorizer claims missing required 'role' field.`;
+    log.error(errorMessage);
+    throwCustomGQLError(errorMessage, errorCode);
   }
   if (!claims.authTime) {
-    throw new Error("Authorizer claims missing required 'authTime' field");
+    errorCode = "CLAIM_VALIDATION_AUTHTIME_ERROR";
+    errorMessage = `Error Code ${errorCode}: Authorizer claims missing required 'authTime' field.`;
+    log.error(errorMessage);
+    throwCustomGQLError(errorMessage, errorCode);
   } else if (!(claims.authTime instanceof Date)) {
-    throw new TypeError("Authorizer claims has non-Date instance of 'authTime' field");
+    errorCode = "CLAIM_VALIDATION_AUTHTIME_ERROR";
+    errorMessage = `Error Code ${errorCode}: Authorizer claims has non-Date instance of 'authTime' field.`;
+    log.error(errorMessage);
+    throwCustomGQLError(errorMessage, errorCode);
   } else if (Number.isNaN(claims.authTime.getTime())) {
-    throw new TypeError("Authorizer claims has invalid Date instance of 'authTime' field");
+    errorCode = "CLAIM_VALIDATION_AUTHTIME_ERROR";
+    errorMessage = `Error Code ${errorCode}: Authorizer claims has invalid Date instance of 'authTime' field.`;
+    log.error(errorMessage);
+    throwCustomGQLError(errorMessage, errorCode);
   }
 }
 

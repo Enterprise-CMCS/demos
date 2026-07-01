@@ -1,4 +1,5 @@
 export { insertPerson } from "./insertPerson";
+export { selectManyPeople } from "./selectManyPeople";
 export { selectPerson } from "./selectPerson";
 export { selectPersonOrThrow } from "./selectPersonOrThrow";
-export { selectManyPeople } from "./selectManyPeople";
+export { updatePerson } from "./updatePerson";

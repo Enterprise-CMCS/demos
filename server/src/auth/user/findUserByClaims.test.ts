@@ -5,9 +5,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { User as PrismaUser, RolePermission as PrismaRolePermission } from "@prisma/client";
 import type { SystemRoleAssignmentQueryResult } from "../../model/systemRoleAssignment";
 import type { UserType, SystemRole } from "../../types";
+import type { AuthorizationClaims } from "..";
 
 // Functions under test
-import { findUserByCognitoSubject } from "./findUserByCognitoSubject";
+import { findUserByClaims } from "./findUserByClaims";
 
 // Mock imports
 vi.mock("../../model/user/queries", () => ({
@@ -26,10 +27,12 @@ import { selectUser } from "../../model/user/queries";
 import { selectManySystemRoleAssignments } from "../../model/systemRoleAssignment";
 import { selectManyRolePermissions } from "../../model/rolePermission/queries";
 
-describe("findUserByCognitoSubject", () => {
+describe("findUserByClaims", () => {
   // Test inputs
   const testTransaction = "test-transaction" as any;
-  const testCognitoSubject = "a1b2c3d4-e5f6-4789-a0b1-c2d3e4f5a6b7";
+  const testClaims: Partial<AuthorizationClaims> = {
+    sub: "a1b2c3d4-e5f6-4789-a0b1-c2d3e4f5a6b7",
+  };
 
   // Mock returns
   const mockUser: Partial<PrismaUser> = {
@@ -56,10 +59,10 @@ describe("findUserByCognitoSubject", () => {
   });
 
   it("should look up the user by Cognito subject", async () => {
-    await findUserByCognitoSubject(testCognitoSubject, testTransaction);
+    await findUserByClaims(testClaims as AuthorizationClaims, testTransaction);
 
     expect(selectUser).toHaveBeenCalledExactlyOnceWith(
-      { cognitoSubject: testCognitoSubject },
+      { cognitoSubject: testClaims.sub },
       testTransaction
     );
   });
@@ -67,7 +70,7 @@ describe("findUserByCognitoSubject", () => {
   it("should return null and not look up roles when no user matches", async () => {
     vi.mocked(selectUser).mockResolvedValue(null);
 
-    const result = await findUserByCognitoSubject(testCognitoSubject, testTransaction);
+    const result = await findUserByClaims(testClaims as AuthorizationClaims, testTransaction);
 
     expect(result).toBeNull();
     expect(selectManySystemRoleAssignments).not.toHaveBeenCalled();
@@ -75,7 +78,7 @@ describe("findUserByCognitoSubject", () => {
   });
 
   it("should look up the system role assignments for the user", async () => {
-    await findUserByCognitoSubject(testCognitoSubject, testTransaction);
+    await findUserByClaims(testClaims as AuthorizationClaims, testTransaction);
 
     expect(selectManySystemRoleAssignments).toHaveBeenCalledExactlyOnceWith(
       { personId: mockUser.id },
@@ -84,7 +87,7 @@ describe("findUserByCognitoSubject", () => {
   });
 
   it("should look up the permissions for the assigned roles", async () => {
-    await findUserByCognitoSubject(testCognitoSubject, testTransaction);
+    await findUserByClaims(testClaims as AuthorizationClaims, testTransaction);
 
     expect(selectManyRolePermissions).toHaveBeenCalledExactlyOnceWith(
       { roleId: { in: mockSystemRoles.map((sr) => sr.roleId) } },
@@ -93,11 +96,11 @@ describe("findUserByCognitoSubject", () => {
   });
 
   it("should return the context user", async () => {
-    const result = await findUserByCognitoSubject(testCognitoSubject, testTransaction);
+    const result = await findUserByClaims(testClaims as AuthorizationClaims, testTransaction);
 
     expect(result).toEqual({
       id: mockUser.id,
-      cognitoSubject: testCognitoSubject,
+      cognitoSubject: testClaims.sub,
       personTypeId: mockUser.personTypeId,
       permissions: mockRolePermissions.map((rp) => rp.permissionId),
     });

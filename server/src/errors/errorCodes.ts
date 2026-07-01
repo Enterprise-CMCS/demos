@@ -7,9 +7,25 @@ export const CUSTOM_INTERNAL_ERROR_CODES = [
   "REFERENCE_AGREEMENT_NOT_FOUND",
   "REFERENCE_NOT_ACTIVE",
   "REFERENCE_NOT_FOUND",
+  "USER_MIGRATION_MULTIPLE_RECORD_ERROR",
+  "USER_MIGRATION_PERSON_TYPE_MISMATCH_ERROR",
+  "USER_NO_VALID_ROLES_ERROR",
+  "USER_MORE_THAN_ONE_VALID_ROLE_ERROR",
+  "CLAIM_VALIDATION_EMAIL_ERROR",
+  "CLAIM_VALIDATION_GIVEN_NAME_ERROR",
+  "CLAIM_VALIDATION_FAMILY_NAME_ERROR",
+  "CLAIM_VALIDATION_EXTERNAL_USER_ID_ERROR",
+  "CLAIM_VALIDATION_SUB_ERROR",
+  "CLAIM_VALIDATION_ROLE_ERROR",
+  "CLAIM_VALIDATION_AUTHTIME_ERROR",
 ] as const;
 
-export const CUSTOM_PUBLIC_ERROR_CODES = ["REFERENCE_ERROR", "ON_DEMAND_REPORT_ERROR"] as const;
+export const CUSTOM_PUBLIC_ERROR_CODES = [
+  "REFERENCE_ERROR",
+  "ON_DEMAND_REPORT_ERROR",
+  "MIGRATION_ERROR",
+  "AUTHENTICATION_ERROR",
+] as const;
 
 export const ERROR_LOG_LEVELS = ["debug", "info", "warn", "error"] as const;
 
@@ -31,11 +47,57 @@ export const CUSTOM_ERROR_CODES: Record<
   REFERENCE_NOT_ACTIVE: { publicErrorCode: "REFERENCE_ERROR", logLevel: "debug" },
   REFERENCE_AGREEMENT_NOT_FOUND: { publicErrorCode: "REFERENCE_ERROR", logLevel: "debug" },
   REFERENCE_AGREEMENT_NOT_ACTIVE: { publicErrorCode: "REFERENCE_ERROR", logLevel: "debug" },
+  USER_MIGRATION_MULTIPLE_RECORD_ERROR: {
+    publicErrorCode: "MIGRATION_ERROR",
+    logLevel: "error",
+  },
+  USER_NO_VALID_ROLES_ERROR: {
+    publicErrorCode: "AUTHENTICATION_ERROR",
+    logLevel: "error",
+  },
+  USER_MORE_THAN_ONE_VALID_ROLE_ERROR: {
+    publicErrorCode: "AUTHENTICATION_ERROR",
+    logLevel: "error",
+  },
+  USER_MIGRATION_PERSON_TYPE_MISMATCH_ERROR: {
+    publicErrorCode: "MIGRATION_ERROR",
+    logLevel: "error",
+  },
+  CLAIM_VALIDATION_EMAIL_ERROR: {
+    publicErrorCode: "AUTHENTICATION_ERROR",
+    logLevel: "error",
+  },
+  CLAIM_VALIDATION_GIVEN_NAME_ERROR: {
+    publicErrorCode: "AUTHENTICATION_ERROR",
+    logLevel: "error",
+  },
+  CLAIM_VALIDATION_FAMILY_NAME_ERROR: {
+    publicErrorCode: "AUTHENTICATION_ERROR",
+    logLevel: "error",
+  },
+  CLAIM_VALIDATION_EXTERNAL_USER_ID_ERROR: {
+    publicErrorCode: "AUTHENTICATION_ERROR",
+    logLevel: "error",
+  },
+  CLAIM_VALIDATION_SUB_ERROR: {
+    publicErrorCode: "AUTHENTICATION_ERROR",
+    logLevel: "error",
+  },
+  CLAIM_VALIDATION_ROLE_ERROR: {
+    publicErrorCode: "AUTHENTICATION_ERROR",
+    logLevel: "error",
+  },
+  CLAIM_VALIDATION_AUTHTIME_ERROR: {
+    publicErrorCode: "AUTHENTICATION_ERROR",
+    logLevel: "error",
+  },
 } as const;
 
 const CUSTOM_PUBLIC_ERROR_MESSAGES: Record<CustomPublicErrorCode, string | undefined> = {
   ON_DEMAND_REPORT_ERROR: "An error occurred while running an on-demand report.",
   REFERENCE_ERROR: undefined,
+  MIGRATION_ERROR: "An error occurred while trying to authenticate a migrated user.",
+  AUTHENTICATION_ERROR: "An error occurred during user authentication.",
 };
 
 export function getPublicErrorCodeFromInternal(
