@@ -6,7 +6,7 @@ import { PhaseDate } from "./PhaseDate";
 import { PhaseName } from "demos-server";
 
 const BASE_STYLES = {
-  PHASE_BOX: tw`relative flex flex-col items-center justify-center rounded-sm hover:cursor-pointer aspect-2/1 p-1`,
+  PHASE_BOX: tw`relative flex flex-col items-center justify-center rounded-sm hover:cursor-pointer aspect-2/1 w-full min-w-0 p-1`,
   PHASE_NUMBER: tw`flex items-center justify-center text-lg w-3 h-3 my-1 rounded-full font-bold`,
   PHASE_NAME: tw`text-[12px] font-bold truncate max-w-full`,
   AI_SUGGESTION_ICON: tw`absolute right-[5px] top-[5px] text-purple-700 size-[1.8em]`,
@@ -57,7 +57,7 @@ export const PhaseBox = (props: PhaseBoxProps) => {
   const showSuccessIcon = isCompletionStatus(props.phaseStatus);
 
   return (
-    <div className="flex flex-col justify-center col-span-1">
+    <div className="flex flex-col justify-center col-span-1 min-w-0">
       <div
         key={props.phaseName}
         className={`${BASE_STYLES.PHASE_BOX} 

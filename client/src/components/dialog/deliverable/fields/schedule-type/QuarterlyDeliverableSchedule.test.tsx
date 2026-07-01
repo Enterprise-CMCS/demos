@@ -59,6 +59,14 @@ describe("QuarterlyDeliverableSchedule", () => {
     ).toBeInTheDocument();
   });
 
+  it("requires quarterly due dates to be today or later", () => {
+    render(<QuarterlyDeliverableSchedule onSelectYear={vi.fn()} />);
+
+    screen.getAllByLabelText(/Quarter/i).forEach((datePicker) => {
+      expect(datePicker).toHaveAttribute("min", getTodayEst());
+    });
+  });
+
   it("calls onSelectQuarterDate with the correct quarter index and date when a date is changed", () => {
     const onSelectQuarterDate = vi.fn();
     render(

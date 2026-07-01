@@ -39,8 +39,7 @@ describe("DatePicker component", () => {
   });
 
   // onChange commits immediately when a complete date is selected (calendar pick or keyboard).
-  // Range is enforced by the native (inclusive) min/max attributes and surfaced via the
-  // validation message derived from the parent's value prop.
+  // Range is surfaced through native min/max attributes and the component's validation message.
   describe("onChange commit + range messaging", () => {
     it("does not propagate partial-year dates emitted during year-subfield editing", () => {
       render(<DatePicker {...requiredProps} />);
@@ -60,13 +59,23 @@ describe("DatePicker component", () => {
       expect(mockOnChange).toHaveBeenCalledWith("2025-03-20");
     });
 
-    it("shows an out of range date and message while not propagating it to the caller", () => {
+    it("shows an out of range date and message while propagating it to the caller", () => {
       render(<DatePicker {...requiredProps} />);
       const input = screen.getByTestId("test-date");
 
       fireEvent.change(input, { target: { value: "1899-12-31" } });
-      expect(mockOnChange).not.toHaveBeenCalled();
+      expect(mockOnChange).toHaveBeenCalledWith("1899-12-31");
       expect(screen.getByText("Date must be on or after 01/01/1900.")).toBeInTheDocument();
+    });
+
+    it("propagates complete dates outside a provided minDate", () => {
+      render(<DatePicker {...requiredProps} minDate="2026-04-28" />);
+      const input = screen.getByTestId("test-date");
+
+      fireEvent.change(input, { target: { value: "2026-04-01" } });
+
+      expect(mockOnChange).toHaveBeenCalledWith("2026-04-01");
+      expect(screen.getByText("Date must be on or after 04/28/2026.")).toBeInTheDocument();
     });
 
     it("commits inclusive boundary dates 1900-01-01 and 2099-12-31 on change", () => {
