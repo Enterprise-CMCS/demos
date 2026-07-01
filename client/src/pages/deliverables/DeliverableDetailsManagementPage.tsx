@@ -10,7 +10,7 @@ import {
   PersonType,
   Tag,
 } from "demos-server";
-import { Loading } from "components/loading/Loading";
+import { Loading } from "components/loading";
 import { useToast } from "components/toast";
 import { getCurrentUser } from "components/user/UserContext";
 import { DELIVERABLE_REVIEW_STARTED_MESSAGE } from "util/messages";

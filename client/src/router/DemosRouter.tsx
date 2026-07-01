@@ -4,13 +4,13 @@ import { DemonstrationDetail } from "pages/DemonstrationDetail/index";
 import { DemosApolloProvider } from "./DemosApolloProvider";
 import { DemosAuthProvider } from "./DemosAuthProvider";
 import { getCurrentUser } from "components/user/UserContext";
-import { UserProvider } from "components/user/UserProvider";
 import { DemonstrationsPage } from "pages/DemonstrationsPage";
 import { ComponentLibrary, DialogSandbox } from "pages/debug";
 import { IconLibrary } from "pages/debug/IconLibrary";
 import { AuthDebugComponent } from "pages/debug/AuthDebugComponent";
 import { isLocalDevelopment } from "config/env";
 import { DemosLayoutProvider } from "./DemosLayoutProvider";
+import { DemosUserProvider } from "./DemosUserProvider";
 import { DocumentDetailPage } from "pages/DocumentDetails/DocumentDetail";
 import { DeliverablesPage } from "pages/DeliverablesPage";
 import { ReportsPage } from "pages/ReportsPage";
@@ -36,10 +36,10 @@ export const DemosRouter: React.FC = () => {
   return (
     <DemosAuthProvider>
       <DemosApolloProvider>
-        <UserProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="document/:id" element={<DocumentDetailPage />} />
+        <BrowserRouter>
+          <Routes>
+            <Route path="document/:id" element={<DocumentDetailPage />} />
+            <Route element={<DemosUserProvider />}>
               <Route element={<DemosLayoutProvider />}>
                 <Route path="*" element={<div>404: Page Not Found</div>} />
                 <Route path="/" element={<HomePage />} />
@@ -84,9 +84,9 @@ export const DemosRouter: React.FC = () => {
                   </>
                 )}
               </Route>
-            </Routes>
-          </BrowserRouter>
-        </UserProvider>
+            </Route>
+          </Routes>
+        </BrowserRouter>
       </DemosApolloProvider>
     </DemosAuthProvider>
   );

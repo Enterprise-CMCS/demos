@@ -1,7 +1,7 @@
 import React from "react";
 import { useQuery, gql } from "@apollo/client";
 import { useAuth } from "react-oidc-context";
-import { Loading } from "components/loading/Loading";
+import { LoadingScreen } from "components/loading";
 import { Ctx, CurrentUser } from "components/user/UserContext";
 import { UserAuthenticationFailed } from "components/user/UserAuthenticationFailed";
 
@@ -22,25 +22,12 @@ export const GET_CURRENT_USER_QUERY = gql`
   }
 `;
 
-export function UserProvider({ children }: { children: React.ReactNode }) {
+function AuthenticatedUserProvider({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
+  const { data, loading, error } = useQuery(GET_CURRENT_USER_QUERY);
 
-  const { data, loading, error } = useQuery(GET_CURRENT_USER_QUERY, {
-    skip: !auth.isAuthenticated,
-  });
-
-  // Render Loading state while authentication or user data is loading
-  if (auth.isLoading || loading) {
-    return (
-      <div className="flex items-center justify-center h-screen w-screen">
-        <Loading />
-      </div>
-    );
-  }
-
-  // Not yet authenticated — render children so withAuthenticationRequired can redirect
-  if (!auth.isAuthenticated) {
-    return <>{children}</>;
+  if (loading) {
+    return <LoadingScreen />;
   }
 
   // Render authentication failure component if there was an error or no user data
@@ -57,6 +44,16 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   // Provide the current user data to the rest of the app if auth succeeds
   return <Ctx.Provider value={{ currentUser: data.currentUser }}>{children}</Ctx.Provider>;
+}
+
+export function UserProvider({ children }: { children: React.ReactNode }) {
+  const auth = useAuth();
+
+  if (auth.isLoading || !auth.isAuthenticated) {
+    return <LoadingScreen />;
+  }
+
+  return <AuthenticatedUserProvider>{children}</AuthenticatedUserProvider>;
 }
 
 // A helper component for testing that allows us to provide a custom current user value
