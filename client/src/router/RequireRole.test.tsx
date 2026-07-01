@@ -79,4 +79,20 @@ describe("RequireRole", () => {
     // Since Navigate goes to "/", we expect protected content NOT to render
     expect(screen.queryByText("Protected Content")).not.toBeInTheDocument();
   });
+
+  it("renders an outlet child route when used as a route wrapper", () => {
+    currentUserState.currentUser.person.personType = "demos-admin";
+
+    render(
+      <MemoryRouter initialEntries={["/protected"]}>
+        <Routes>
+          <Route element={<RequireRole allowedRoles={["demos-admin"]} />}>
+            <Route path="/protected" element={<div>Protected Outlet Content</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText("Protected Outlet Content")).toBeInTheDocument();
+  });
 });

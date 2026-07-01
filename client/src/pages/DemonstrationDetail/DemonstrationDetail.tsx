@@ -171,16 +171,20 @@ const getQueryParamValue = (
 };
 
 export const DemonstrationDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id: demonstrationId } = useParams<{ id?: string }>();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const amendmentParam = getQueryParamValue(queryParams, "amendment", "amendments");
   const extensionParam = getQueryParamValue(queryParams, "extension", "extensions");
 
+  if (!demonstrationId) {
+    throw new Error("DemonstrationDetail requires route param id.");
+  }
+
   const { data, loading, error } = useQuery<{ demonstration: DemonstrationDetail }>(
     DEMONSTRATION_DETAIL_QUERY,
     {
-      variables: { id: id },
+      variables: { id: demonstrationId },
     }
   );
 

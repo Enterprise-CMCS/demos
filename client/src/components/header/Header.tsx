@@ -1,13 +1,7 @@
 import React from "react";
-import { useLocation, useParams } from "react-router-dom";
 import { ProfileBlock } from "./ProfileBlock";
 import { QuickLinks } from "./QuickLinks";
-import { DefaultHeaderLower } from "./DefaultHeaderLower";
-import { DemonstrationDetailHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
-import { DeliverableDetailHeader } from "pages/deliverables/DeliverableDetailHeader";
-import { AdminHeader } from "pages/admin/AdminHeader";
 import { Logo } from "components/brand/Logo";
-import { ReferencesHeader } from "pages/references/ReferencesHeader";
 
 const HEADER_STYLES = "w-full";
 const HEADER_UPPER_STYLES = "w-full flex justify-between p-[4px] h-[72px]";
@@ -26,47 +20,11 @@ const HeaderUpper: React.FC = () => {
   );
 };
 
-const HeaderLower: React.FC = () => {
-  // Get the current path and params
-  const location = useLocation();
-  const params = useParams<{ id?: string; deliverableId?: string }>();
-  const path = location.pathname;
-
-  // Match /demonstrations/:id
-  if (path.match(/^\/demonstrations\/[^/]+$/)) {
-    const demonstrationId = params.id;
-    if (demonstrationId) {
-      return <DemonstrationDetailHeader demonstrationId={demonstrationId} />;
-    }
-  }
-
-  // Match /deliverables/:deliverableId
-  if (path.match(/^\/deliverables\/[^/]+$/)) {
-    const deliverableId = params.deliverableId;
-    if (deliverableId) {
-      return <DeliverableDetailHeader deliverableId={deliverableId} />;
-    }
-  }
-
-  if (path.match(/^\/admin/)) {
-    return <AdminHeader />;
-  }
-
-  if (path.match(/^\/references/)) {
-    return <ReferencesHeader />;
-  }
-
-  // Default header for all other routes
-  return <DefaultHeaderLower />;
-};
-
-export const Header: React.FC = () => {
+export const Header: React.FC<{ headerLower: React.ReactNode }> = ({ headerLower }) => {
   return (
     <header className={HEADER_STYLES}>
       <HeaderUpper />
-      <div className={HEADER_LOWER_STYLES}>
-        <HeaderLower />
-      </div>
+      <div className={HEADER_LOWER_STYLES}>{headerLower}</div>
     </header>
   );
 };

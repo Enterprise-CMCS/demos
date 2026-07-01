@@ -8,18 +8,16 @@ import {
 import { TestProvider } from "test-utils/TestProvider";
 import { MockedResponse } from "@apollo/client/testing";
 
-vi.mock(
-  "pages/DemonstrationDetail/DemonstrationDetailHeader",
-  async (importOriginal) => {
-    const actual = await importOriginal<typeof import("pages/DemonstrationDetail/DemonstrationDetailHeader")>();
-    return {
-      ...actual,
-      DemonstrationDetailHeader: ({ demonstrationId }: { demonstrationId: string }) => (
-        <div data-testid="demonstration-detail-header">{demonstrationId}</div>
-      ),
-    };
-  }
-);
+vi.mock("pages/DemonstrationDetail/DemonstrationDetailHeader", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("pages/DemonstrationDetail/DemonstrationDetailHeader")>();
+  return {
+    ...actual,
+    DemonstrationDetailHeader: ({ demonstrationId }: { demonstrationId: string }) => (
+      <div data-testid="demonstration-detail-header">{demonstrationId}</div>
+    ),
+  };
+});
 
 function renderWithProviders(mocks: MockedResponse[]) {
   return render(
