@@ -57,7 +57,8 @@
     "test:verbose": "vitest run --reporter=verbose",
     "coverage": "vitest run --coverage",
     "coverage:ci": "vitest run --no-color --coverage --coverage.reporter=lcov --reporter=default --reporter=vitest-sonar-reporter --outputFile=coverage/test-results.xml",
-    "dbrefresh": "tsx --inspect ./src/refreshDbObjects.ts"
+    "dbrefresh": "tsx --inspect ./src/refreshDbObjects.ts",
+    "approve:demo": "node src/scripts/createApprovedDemo/index"
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.1065.0",
