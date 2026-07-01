@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Table } from "../Table";
 import { ReportsColumns } from "../columns/ReportsColumns";
 import { gql } from "@apollo/client/core";
@@ -24,11 +24,14 @@ export const AVAILABLE_REPORT_TYPES = [
 ] as const;
 
 export const ReportsTable: React.FC = () => {
+  const [currentDownload, setCurrentDownload] = useState<string | null>(null);
   const { triggerDownload } = useTriggerDownload();
-  const { showError } = useToast();
+  const { showSuccess, showError } = useToast();
   const [ generateOnDemandReport ] = useMutation(GENERATE_ON_DEMAND_REPORT_MUTATION);
 
   const handleDownload = async (reportType: string) => {
+    setCurrentDownload(reportType);
+
     try {
       const { data } = await generateOnDemandReport({
         variables: {
@@ -43,13 +46,16 @@ export const ReportsTable: React.FC = () => {
       }
 
       triggerDownload(downloadUrl);
+      showSuccess(`${reportType} has downloaded successfully.`);
     } catch (error) {
       console.error("Error generating on-demand report:", error);
-      showError("Failed to generate report");
+      showError(`Failed to generate ${reportType} report`);
+    } finally {
+      setCurrentDownload(null);
     }
   };
 
-  const reportsColumns = ReportsColumns(handleDownload);
+  const reportsColumns = ReportsColumns(handleDownload, currentDownload);
 
   const rows: ReportsTableRow[] = AVAILABLE_REPORT_TYPES.map((reportType) => ({
     id: reportType,
