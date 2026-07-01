@@ -46,7 +46,7 @@ export const ReportsTable: React.FC = () => {
       }
 
       triggerDownload(downloadUrl);
-      showSuccess(`${reportType} has downloaded successfully.`);
+      showSuccess(`${reportType} has generated successfully.`);
     } catch (error) {
       console.error("Error generating on-demand report:", error);
       showError(`Failed to generate ${reportType} report`);

@@ -62,6 +62,10 @@ export const onDemandReportResolvers = {
           handlePrismaError(error);
         }
       }
+
+      // Temporary delay for testing
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+
       return await s3Adapter.getPresignedDownloadUrl(uploadedReportS3Path);
     },
   },
