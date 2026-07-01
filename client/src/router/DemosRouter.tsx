@@ -36,10 +36,10 @@ export const DemosRouter: React.FC = () => {
   return (
     <DemosAuthProvider>
       <DemosApolloProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="document/:id" element={<DocumentDetailPage />} />
-            <Route element={<DemosUserProvider />}>
+        <DemosUserProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="document/:id" element={<DocumentDetailPage />} />
               <Route element={<DemosLayoutProvider />}>
                 <Route path="*" element={<div>404: Page Not Found</div>} />
                 <Route path="/" element={<HomePage />} />
@@ -84,9 +84,9 @@ export const DemosRouter: React.FC = () => {
                   </>
                 )}
               </Route>
-            </Route>
-          </Routes>
-        </BrowserRouter>
+            </Routes>
+          </BrowserRouter>
+        </DemosUserProvider>
       </DemosApolloProvider>
     </DemosAuthProvider>
   );
