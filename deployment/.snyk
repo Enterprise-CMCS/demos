@@ -2,6 +2,15 @@
 version: v1.25.0
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 patch: {}
+ignore:
+  SNYK-JS-BRACEEXPANSION-17706650:
+    - '*':
+        reason: No direct upgrade or patch available.
+        expires: 2026-07-15T00:00:00.000Z
+  SNYK-JS-FASTURI-17675102:
+    - '*':
+        reason: No direct upgrade or patch available.
+        expires: 2026-07-15T00:00:00.000Z
 exclude:
   global:
     - node_modules
