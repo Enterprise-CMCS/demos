@@ -6,8 +6,8 @@ import { MockedProvider, MockedProviderProps } from "@apollo/client/testing";
 import { MemoryRouter, MemoryRouterProps } from "react-router-dom";
 import { ALL_MOCKS } from "mock-data";
 import { CurrentUser } from "components/user/UserContext";
-import { TestUserProvider } from "components/user/UserProvider";
 import { developmentMockUser } from "mock-data/userMocks";
+import { TestUserProvider } from "./TestUserProvider";
 
 interface TestProviderProps {
   children: ReactNode;
