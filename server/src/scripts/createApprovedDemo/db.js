@@ -1,13 +1,12 @@
-/* global process */
-
 import { randomUUID } from "node:crypto";
 import pg from "pg";
+import { getLocalDatabaseUrl } from "../../../../scripts/localDatabaseGuard.js";
 
 const { Client } = pg;
 
 export function createDbClient(fallbackDatabaseUrl) {
   return new Client({
-    connectionString: process.env.DATABASE_URL ?? fallbackDatabaseUrl,
+    connectionString: getLocalDatabaseUrl(fallbackDatabaseUrl),
   });
 }
 

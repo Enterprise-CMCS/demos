@@ -3,10 +3,12 @@
 import { access, readFile } from "node:fs/promises";
 import { basename } from "node:path";
 import { randomUUID } from "node:crypto";
+import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
-import { tsImport } from "tsx/esm/api";
+import { getLocalDatabaseUrl } from "../localDatabaseGuard.js";
 
-dotenv.config({ path: new URL("../../../.env", import.meta.url), quiet: true });
+dotenv.config({ path: new URL("../../server/.env", import.meta.url), quiet: true });
 dotenv.config({ quiet: true });
 
 const SEED_CONFIG = {
@@ -91,7 +93,7 @@ const APPLICATION_DATE_OFFSETS_FROM_EFFECTIVE_DATE = [
   ["Application Approval Date", 60],
 ];
 
-process.env.DATABASE_URL ??= SEED_CONFIG.fallbackDatabaseUrl;
+process.env.DATABASE_URL = getLocalDatabaseUrl(SEED_CONFIG.fallbackDatabaseUrl);
 if (
   SEED_CONFIG.defaultLocalSimpleUpload &&
   process.env.LOCAL_SIMPLE_UPLOAD === undefined
@@ -99,30 +101,31 @@ if (
   process.env.LOCAL_SIMPLE_UPLOAD = "true";
 }
 
-const { APPROVAL_PACKAGE_PHASE_DOCUMENTS } = await tsImport(
-  "../../constants.ts",
-  import.meta.url
+const serverPackageJsonUrl = new URL("../../server/package.json", import.meta.url);
+const serverRequire = createRequire(serverPackageJsonUrl);
+const { require: tsxRequire } = serverRequire("tsx/cjs/api");
+const requireServerTs = (specifier) =>
+  tsxRequire(
+    fileURLToPath(new URL(`../../server/src/${specifier}`, import.meta.url)),
+    import.meta.url
+  );
+
+const { APPROVAL_PACKAGE_PHASE_DOCUMENTS } = requireServerTs("constants.ts");
+const { prisma } = requireServerTs("prismaClient.ts");
+const { demonstrationResolvers } = requireServerTs(
+  "model/demonstration/demonstrationResolvers.ts"
 );
-const { prisma } = await tsImport("../../prismaClient.ts", import.meta.url);
-const { demonstrationResolvers } = await tsImport(
-  "../../model/demonstration/demonstrationResolvers.ts",
-  import.meta.url
+const { applicationDateResolvers } = requireServerTs(
+  "model/applicationDate/applicationDateResolvers.ts"
 );
-const { applicationDateResolvers } = await tsImport(
-  "../../model/applicationDate/applicationDateResolvers.ts",
-  import.meta.url
+const { applicationPhaseResolvers } = requireServerTs(
+  "model/applicationPhase/applicationPhaseResolvers.ts"
 );
-const { applicationPhaseResolvers } = await tsImport(
-  "../../model/applicationPhase/applicationPhaseResolvers.ts",
-  import.meta.url
+const { demonstrationTypeTagAssignmentResolvers } = requireServerTs(
+  "model/demonstrationTypeTagAssignment/demonstrationTypeTagAssignmentResolvers.ts"
 );
-const { demonstrationTypeTagAssignmentResolvers } = await tsImport(
-  "../../model/demonstrationTypeTagAssignment/demonstrationTypeTagAssignmentResolvers.ts",
-  import.meta.url
-);
-const { documentPendingUploadResolvers } = await tsImport(
-  "../../model/documentPendingUpload/documentPendingUploadResolvers.ts",
-  import.meta.url
+const { documentPendingUploadResolvers } = requireServerTs(
+  "model/documentPendingUpload/documentPendingUploadResolvers.ts"
 );
 
 const db = prisma();
@@ -551,22 +554,26 @@ async function readUploadPdf() {
 }
 
 async function getFinalDemonstration(demonstrationId) {
-  return await db.demonstration.findUniqueOrThrow({
-    where: { id: demonstrationId },
-    select: {
-      id: true,
-      name: true,
-      statusId: true,
-      currentPhaseId: true,
-      sdgDivisionId: true,
-      state: { select: { id: true, name: true } },
-      demonstrationTypeTagAssignments: {
-        select: { tagNameId: true },
-        orderBy: { tagNameId: "asc" },
+  const [demonstration, documentCount] = await Promise.all([
+    db.demonstration.findUniqueOrThrow({
+      where: { id: demonstrationId },
+      select: {
+        id: true,
+        name: true,
+        statusId: true,
+        currentPhaseId: true,
+        sdgDivisionId: true,
+        state: { select: { id: true, name: true } },
+        demonstrationTypeTagAssignments: {
+          select: { tagNameId: true },
+          orderBy: { tagNameId: "asc" },
+        },
       },
-      _count: { select: { documents: true } },
-    },
-  });
+    }),
+    db.document.count({ where: { applicationId: demonstrationId } }),
+  ]);
+
+  return { ...demonstration, documentCount };
 }
 
 async function main() {
@@ -795,7 +802,7 @@ async function main() {
       .map((assignment) => assignment.tagNameId)
       .join(", ")}`
   );
-  console.log(`  uploadedDocuments: ${finalDemonstration._count.documents}`);
+  console.log(`  uploadedDocuments: ${finalDemonstration.documentCount}`);
   console.log(`  url: /demonstrations/${finalDemonstration.id}`);
 }
 
