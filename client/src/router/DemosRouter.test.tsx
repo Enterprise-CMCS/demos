@@ -111,10 +111,12 @@ vi.mock("layout/Layout", async () => {
       headerLower,
       sideNav,
       footer,
+      children,
     }: {
       headerLower?: React.ReactNode;
       sideNav?: React.ReactNode;
       footer?: React.ReactNode;
+      children?: React.ReactNode;
     }) => (
       <div>
         Layout
@@ -122,7 +124,7 @@ vi.mock("layout/Layout", async () => {
         {sideNav}
         {footer}
         {(sideNav || footer) && headerLower}
-        <Outlet />
+        {children ?? <Outlet />}
       </div>
     ),
   };

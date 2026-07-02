@@ -58,4 +58,17 @@ describe("Layout", () => {
     expect(screen.queryByText("SideNav")).not.toBeInTheDocument();
     expect(screen.queryByText("Footer")).not.toBeInTheDocument();
   });
+
+  it("renders explicit children when provided", () => {
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <Layout footer={<div>Footer</div>}>
+          <div>Child via props</div>
+        </Layout>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText("Child via props")).toBeInTheDocument();
+    expect(screen.queryByText("Child page")).not.toBeInTheDocument();
+  });
 });
