@@ -35,7 +35,11 @@ interface UIStackProps {
 }
 
 export class UiStack extends Stack {
-  constructor(scope: Construct, id: string, props: StackProps & DeploymentConfigProperties & UIStackProps) {
+  constructor(
+    scope: Construct,
+    id: string,
+    props: StackProps & DeploymentConfigProperties & UIStackProps
+  ) {
     super(scope, id, {
       ...props,
       terminationProtection: false,
@@ -46,19 +50,24 @@ export class UiStack extends Stack {
       scope: this,
       iamPermissionsBoundary:
         props.iamPermissionsBoundaryArn == null
-          ? undefined : aws_iam.ManagedPolicy.fromManagedPolicyArn(this, "iamPermissionsBoundary", props.iamPermissionsBoundaryArn),
+          ? undefined
+          : aws_iam.ManagedPolicy.fromManagedPolicyArn(
+              this,
+              "iamPermissionsBoundary",
+              props.iamPermissionsBoundaryArn
+            ),
     };
     const alarmResources = new alarms.CloudWatchAlarmRegistry();
 
     if (!commonProps.srrConfigured) {
       // STOP execution here if the cloudfront distribution has not yet been updated
       new aws_cloudfront.Distribution(commonProps.scope, "CloudFrontDistribution", {
-      priceClass: aws_cloudfront.PriceClass.PRICE_CLASS_ALL,
-      defaultBehavior: {
-        origin: new aws_cloudfront_origins.HttpOrigin("example.com")
-      }
-    });
-    return 
+        priceClass: aws_cloudfront.PriceClass.PRICE_CLASS_ALL,
+        defaultBehavior: {
+          origin: new aws_cloudfront_origins.HttpOrigin("example.com"),
+        },
+      });
+      return;
     }
 
     const serverAccessLogBucket = new aws_s3.Bucket(commonProps.scope, "CloudfrontLogBucket", {
@@ -66,7 +75,8 @@ export class UiStack extends Stack {
       publicReadAccess: false,
       blockPublicAccess: aws_s3.BlockPublicAccess.BLOCK_ALL,
       objectOwnership: aws_s3.ObjectOwnership.BUCKET_OWNER_PREFERRED,
-      removalPolicy: commonProps.isDev || commonProps.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
+      removalPolicy:
+        commonProps.isDev || commonProps.isEphemeral ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN,
       autoDeleteObjects: commonProps.isDev || commonProps.isEphemeral,
       enforceSSL: true,
       bucketName: `demos-${commonProps.stage}-ui-server-access`,
@@ -75,15 +85,18 @@ export class UiStack extends Stack {
     const accessLogBucketCfn = serverAccessLogBucket.node.defaultChild as aws_s3.CfnBucket;
     accessLogBucketCfn.cfnOptions.metadata = {
       checkov: {
-        skip: [{
-          id: "CKV_AWS_18",
-          reason: "the access log bucket itself does not need access logs"
-        },{
-          id: "CKV_AWS_21",
-          reason: "versioning on the access log bucket itself is intentionally disabled"
-        }]
-      }
-    }
+        skip: [
+          {
+            id: "CKV_AWS_18",
+            reason: "the access log bucket itself does not need access logs",
+          },
+          {
+            id: "CKV_AWS_21",
+            reason: "versioning on the access log bucket itself is intentionally disabled",
+          },
+        ],
+      },
+    };
 
     const cmsCloudLogBucket = aws_s3.Bucket.fromBucketName(
       commonProps.scope,
@@ -114,18 +127,19 @@ export class UiStack extends Stack {
     const uiBucketCfn = uiBucket.node.defaultChild as aws_s3.CfnBucket;
     uiBucketCfn.cfnOptions.metadata = {
       checkov: {
-        skip: [{
-          id: "CKV_AWS_21",
-          reason: "versioning is unnecessary for the UI bucket since these files are only static UI files"
-        }]
-      }
-    }
+        skip: [
+          {
+            id: "CKV_AWS_21",
+            reason:
+              "versioning is unnecessary for the UI bucket since these files are only static UI files",
+          },
+        ],
+      },
+    };
 
     //
     // WAF
     //
-
-    
 
     const customResponseBodies = {
       [accessDeniedBodyName]: {
@@ -141,12 +155,12 @@ export class UiStack extends Stack {
       stage: commonProps.stage,
     });
 
-    const cloudfrontRules = createCloudfrontRules(commonProps)   
-    const apiRules = createRegionalRules(commonProps) 
-    
+    const cloudfrontRules = createCloudfrontRules(commonProps);
+    const apiRules = createRegionalRules(commonProps);
+
     const webAcl = new aws_wafv2.CfnWebACL(commonProps.scope, "cloudfrontWafAcl", {
       scope: "CLOUDFRONT",
-      defaultAction: {allow: {}},
+      defaultAction: { allow: {} },
       visibilityConfig: {
         cloudWatchMetricsEnabled: true,
         metricName: "WebACL",
@@ -163,20 +177,20 @@ export class UiStack extends Stack {
       redactedFields: [
         {
           singleHeader: {
-            "Name": "Authorization"
-          }
+            Name: "Authorization",
+          },
         },
         {
           singleHeader: {
-            "Name": "cookie",
+            Name: "cookie",
           },
         },
-      ]
+      ],
     });
 
     const apiAcl = new aws_wafv2.CfnWebACL(commonProps.scope, "apiWaf", {
       scope: "REGIONAL",
-      defaultAction: {allow: {}},
+      defaultAction: { allow: {} },
       name: `demos-${commonProps.stage}-api`,
       visibilityConfig: {
         cloudWatchMetricsEnabled: true,
@@ -201,15 +215,15 @@ export class UiStack extends Stack {
       redactedFields: [
         {
           singleHeader: {
-            "Name": "Authorization"
-          }
+            Name: "Authorization",
+          },
         },
         {
           singleHeader: {
-            "Name": "cookie",
+            Name: "cookie",
           },
         },
-      ]
+      ],
     });
 
     const cognitoDomain = Fn.importValue(`${commonProps.stage}CognitoDomain`);
@@ -266,48 +280,54 @@ export class UiStack extends Stack {
             override: true,
           },
           contentSecurityPolicy: {
-            contentSecurityPolicy: `default-src 'self'; form-action 'self'; img-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self' https://cognito-idp.${Aws.REGION}.amazonaws.com ${cognitoDomain} https://${uploadBucketName}.s3.us-east-1.amazonaws.com https://${cleanBucketName}.s3.us-east-1.amazonaws.com; frame-ancestors 'none'; object-src 'self' blob:; frame-src 'self' blob: ${cognitoDomain}; worker-src 'self' blob:;`,
+            contentSecurityPolicy: `default-src 'self'; form-action 'self'; img-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self' https://cognito-idp.${Aws.REGION}.amazonaws.com ${cognitoDomain} https://${uploadBucketName}.s3.us-east-1.amazonaws.com https://${cleanBucketName}.s3.us-east-1.amazonaws.com; frame-ancestors 'none'; object-src 'self' blob: https://${uploadBucketName}.s3.us-east-1.amazonaws.com https://${cleanBucketName}.s3.us-east-1.amazonaws.com; frame-src 'self' blob: ${cognitoDomain}; worker-src 'self' blob:;`,
             override: true,
           },
         },
       }
     );
 
-    const distribution = new aws_cloudfront.Distribution(commonProps.scope, "CloudFrontDistribution", {
-      certificate: commonProps.cloudfrontCertificateArn
-        ? aws_certificatemanager.Certificate.fromCertificateArn(
-            commonProps.scope,
-            "certArn",
-            commonProps.cloudfrontCertificateArn
-          )
-        : undefined,
-      domainNames: [commonProps.cloudfrontHost],
-      geoRestriction: aws_cloudfront.GeoRestriction.allowlist("US"),
-      defaultBehavior: {
-        origin: aws_cloudfront_origins.S3BucketOrigin.withOriginAccessControl(uiBucket),
-        allowedMethods: aws_cloudfront.AllowedMethods.ALLOW_GET_HEAD,
-        viewerProtocolPolicy: aws_cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        cachePolicy: aws_cloudfront.CachePolicy.CACHING_OPTIMIZED,
-        compress: true,
-        responseHeadersPolicy: securityHeadersPolicy,
-      },
-      defaultRootObject: "index.html",
-      enableLogging: true,
-      logBucket: cmsCloudLogBucket,
-      logFilePrefix: `AWSLogs/${Aws.ACCOUNT_ID}/Cloudfront/demos-${commonProps.stage}/`,
-      httpVersion: aws_cloudfront.HttpVersion.HTTP2,
-      errorResponses: [
-        {
-          httpStatus: 403,
-          responseHttpStatus: 200,
-          responsePagePath: "/index.html",
+    const distribution = new aws_cloudfront.Distribution(
+      commonProps.scope,
+      "CloudFrontDistribution",
+      {
+        certificate: commonProps.cloudfrontCertificateArn
+          ? aws_certificatemanager.Certificate.fromCertificateArn(
+              commonProps.scope,
+              "certArn",
+              commonProps.cloudfrontCertificateArn
+            )
+          : undefined,
+        domainNames: [commonProps.cloudfrontHost],
+        geoRestriction: aws_cloudfront.GeoRestriction.allowlist("US"),
+        defaultBehavior: {
+          origin: aws_cloudfront_origins.S3BucketOrigin.withOriginAccessControl(uiBucket),
+          allowedMethods: aws_cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+          viewerProtocolPolicy: aws_cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy: aws_cloudfront.CachePolicy.CACHING_OPTIMIZED,
+          compress: true,
+          responseHeadersPolicy: securityHeadersPolicy,
         },
-      ],
-      webAclId: webAcl.attrArn,
-      enableIpv6: !["dev", "test", "impl"].includes(commonProps.hostEnvironment),
-      comment: `Env Name: ${commonProps.stage}`,
-    });
-    distribution.applyRemovalPolicy(commonProps.isDev ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN);
+        defaultRootObject: "index.html",
+        enableLogging: true,
+        logBucket: cmsCloudLogBucket,
+        logFilePrefix: `AWSLogs/${Aws.ACCOUNT_ID}/Cloudfront/demos-${commonProps.stage}/`,
+        httpVersion: aws_cloudfront.HttpVersion.HTTP2,
+        errorResponses: [
+          {
+            httpStatus: 403,
+            responseHttpStatus: 200,
+            responsePagePath: "/index.html",
+          },
+        ],
+        webAclId: webAcl.attrArn,
+        enableIpv6: !["dev", "test", "impl"].includes(commonProps.hostEnvironment),
+        comment: `Env Name: ${commonProps.stage}`,
+      }
+    );
+    distribution.applyRemovalPolicy(
+      commonProps.isDev ? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN
+    );
     alarmResources.registerDistribution("cloudfront", distribution);
 
     this.setupCloudWatchAlarms(commonProps, alarmResources);
@@ -322,7 +342,9 @@ export class UiStack extends Stack {
     new aws_route53.ARecord(commonProps.scope, "cloudfrontARecord", {
       zone,
       recordName: commonProps.isEphemeral ? commonProps.stage : undefined,
-      target: aws_route53.RecordTarget.fromAlias(new aws_route53_targets.CloudFrontTarget(distribution)),
+      target: aws_route53.RecordTarget.fromAlias(
+        new aws_route53_targets.CloudFrontTarget(distribution)
+      ),
     });
 
     const apiOrigin = new HttpOrigin(apiDomainName, {
@@ -399,7 +421,8 @@ export class UiStack extends Stack {
       scope: this,
       id: "ApiWafMissingCloudFrontHeaderBlockedRequestsAnomalyAlarm",
       name: "api-waf-missing-cloudfront-header-blocked-requests-anomaly",
-      description: "API WAF missing CloudFront header blocked requests are above their expected anomaly band.",
+      description:
+        "API WAF missing CloudFront header blocked requests are above their expected anomaly band.",
       metric: new aws_cloudwatch.Metric({
         ...wafBlockedRequestsMetricOptions,
         dimensionsMap: {
@@ -437,7 +460,8 @@ export class UiStack extends Stack {
       scope: this,
       id: "CloudFrontWafRateLimitingBlockedRequestsAnomalyAlarm",
       name: "cloudfront-waf-rate-limiting-blocked-requests-anomaly",
-      description: "CloudFront WAF rate limiting blocked requests are above their expected anomaly band.",
+      description:
+        "CloudFront WAF rate limiting blocked requests are above their expected anomaly band.",
       metric: new aws_cloudwatch.Metric({
         ...wafBlockedRequestsMetricOptions,
         dimensionsMap: {
