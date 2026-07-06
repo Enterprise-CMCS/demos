@@ -6,7 +6,7 @@ import {
 } from "@prisma/client";
 import { resolveManyDeliverables } from "../deliverable";
 import { getManyDocuments } from "../document";
-import { selectUserOrThrow } from "./queries";
+import { selectManyUsers, selectUserOrThrow } from "./queries";
 import { selectPersonOrThrow } from "../person/queries";
 import { Permission, Role } from "../../types";
 import { selectManySystemRoleAssignments } from "../systemRoleAssignment";
@@ -14,6 +14,7 @@ import { selectLastLoginForUser } from "../userSession/queries";
 
 export const userResolvers = {
   Query: {
+    users: (): Promise<PrismaUser[]> => selectManyUsers({}),
     currentUser: (parent: unknown, args: unknown, context: GraphQLContext): Promise<PrismaUser> =>
       selectUserOrThrow({ id: context.user.id }),
   },
