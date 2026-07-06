@@ -12,13 +12,10 @@ import {
   PHASES,
   PROJECT_OFFICER_ROLE_ID,
   SEED_CONFIG,
-  SYSTEM_GRANT_LEVEL_ID,
-  SYSTEM_ROLE_ID,
 } from "./config.js";
 import {
   buildApplicationDates,
   buildDemonstrationWindow,
-  randomIntInclusive,
   selectApplicationDates,
 } from "./dates.js";
 import { readUploadPdf, uploadPhaseDocuments } from "./uploads.js";
@@ -59,33 +56,11 @@ async function requireStaticRows(db, requiredPhaseDocuments) {
         },
       })
   );
-  await requireRecord(
-    `role ${SYSTEM_ROLE_ID} with grant level ${SYSTEM_GRANT_LEVEL_ID}`,
-    () =>
-      db.role.findUnique({
-        where: {
-          id_grantLevelId: {
-            id: SYSTEM_ROLE_ID,
-            grantLevelId: SYSTEM_GRANT_LEVEL_ID,
-          },
-        },
-      })
-  );
   await requireRecord(`role/person type ${PROJECT_OFFICER_ROLE_ID}/${PERSON_TYPE_ID}`, () =>
     db.rolePersonType.findUnique({
       where: {
         roleId_personTypeId: {
           roleId: PROJECT_OFFICER_ROLE_ID,
-          personTypeId: PERSON_TYPE_ID,
-        },
-      },
-    })
-  );
-  await requireRecord(`role/person type ${SYSTEM_ROLE_ID}/${PERSON_TYPE_ID}`, () =>
-    db.rolePersonType.findUnique({
-      where: {
-        roleId_personTypeId: {
-          roleId: SYSTEM_ROLE_ID,
           personTypeId: PERSON_TYPE_ID,
         },
       },
@@ -133,100 +108,17 @@ async function requireStaticRows(db, requiredPhaseDocuments) {
   }
 }
 
-async function getOrCreateProjectOfficer(db) {
-  const cmsUserCount = await db.user.count({
-    where: { personTypeId: PERSON_TYPE_ID },
-  });
-
-  if (cmsUserCount > 0) {
-    return await db.user.findFirstOrThrow({
-      where: { personTypeId: PERSON_TYPE_ID },
-      orderBy: { id: "asc" },
-      skip: randomIntInclusive(0, cmsUserCount - 1),
-      select: {
-        id: true,
-        personTypeId: true,
-        username: true,
-        person: {
-          select: {
-            email: true,
-            firstName: true,
-            lastName: true,
-          },
-        },
-      },
-    });
+function getConfiguredProjectOfficer() {
+  const id = SEED_CONFIG.projectOfficerUserId.trim();
+  if (!id || id === "TODO_PROJECT_OFFICER_USER_ID") {
+    throw new Error(
+      "Set SEED_CONFIG.projectOfficerUserId on config.js " +
+      "to an existing project officer id before running this script. Find one with: " +
+      "query ProjectOfficers { people { id fullName personType roles { role isPrimary } } }"
+    );
   }
 
-  const personId = randomUUID();
-  const createdUser = await db.$transaction(async (tx) => {
-    await tx.person.create({
-      data: {
-        id: personId,
-        personTypeId: PERSON_TYPE_ID,
-        email: SEED_CONFIG.fallbackProjectOfficerEmail,
-        firstName: SEED_CONFIG.fallbackProjectOfficerFirstName,
-        lastName: SEED_CONFIG.fallbackProjectOfficerLastName,
-      },
-    });
-    return await tx.user.create({
-      data: {
-        id: personId,
-        personTypeId: PERSON_TYPE_ID,
-        cognitoSubject: randomUUID(),
-        username: SEED_CONFIG.fallbackProjectOfficerUsername,
-        isMigratedFromPmda: false,
-        hasLoggedIn: true,
-      },
-      select: {
-        id: true,
-        personTypeId: true,
-        username: true,
-        person: {
-          select: {
-            email: true,
-            firstName: true,
-            lastName: true,
-          },
-        },
-      },
-    });
-  });
-
-  return createdUser;
-}
-
-async function ensureProjectOfficerAccess(db, projectOfficer) {
-  await db.$transaction(async (tx) => {
-    await tx.systemRoleAssignment.upsert({
-      where: {
-        personId_roleId: {
-          personId: projectOfficer.id,
-          roleId: SYSTEM_ROLE_ID,
-        },
-      },
-      update: {},
-      create: {
-        personId: projectOfficer.id,
-        personTypeId: PERSON_TYPE_ID,
-        roleId: SYSTEM_ROLE_ID,
-        grantLevelId: SYSTEM_GRANT_LEVEL_ID,
-      },
-    });
-    await tx.personState.upsert({
-      where: {
-        personId_stateId: {
-          personId: projectOfficer.id,
-          stateId: SEED_CONFIG.stateId,
-        },
-      },
-      update: {},
-      create: {
-        personId: projectOfficer.id,
-        stateId: SEED_CONFIG.stateId,
-      },
-    });
-  });
+  return { id, personTypeId: PERSON_TYPE_ID };
 }
 
 function makeContext(user) {
@@ -236,6 +128,10 @@ function makeContext(user) {
       personTypeId: user.personTypeId,
     },
   };
+}
+
+function buildDemoName(stateName) {
+  return `${stateName} ${SEED_CONFIG.demoNameSuffix} ${randomUUID().slice(0, 8)}`;
 }
 
 async function setApplicationDates(applicationDateResolvers, applicationId, applicationDates) {
@@ -256,8 +152,21 @@ async function completePhase(applicationPhaseResolvers, applicationId, phaseName
   });
 }
 
-async function callFederalCommentStatusProcedure(db) {
-  await db.$executeRawUnsafe("CALL demos_app.update_federal_comment_phase_status();");
+async function completeFederalCommentPhase(db, applicationId) {
+  return await db.applicationPhase.update({
+    where: {
+      applicationId_phaseId: {
+        applicationId,
+        phaseId: "Federal Comment",
+      },
+    },
+    data: {
+      phaseStatusId: COMPLETED_PHASE_STATUS_ID,
+    },
+    select: {
+      phaseStatusId: true,
+    },
+  });
 }
 
 async function getFinalDemonstration(db, demonstrationId) {
@@ -283,6 +192,18 @@ async function getFinalDemonstration(db, demonstrationId) {
   return { ...demonstration, documentCount };
 }
 
+/**
+ * Creates the approved demo
+ *
+ * @param db
+ * @param step
+ * @param approvalPackagePhaseDocuments
+ * @param demonstrationResolvers
+ * @param applicationDateResolvers
+ * @param applicationPhaseResolvers
+ * @param demonstrationTypeTagAssignmentResolvers
+ * @param documentPendingUploadResolvers
+ */
 export async function createApprovedDemo({
   db,
   step,
@@ -315,20 +236,13 @@ export async function createApprovedDemo({
     where: { id: SEED_CONFIG.stateId },
     select: { id: true, name: true },
   });
-  const demoName = `${state.name} ${SEED_CONFIG.demoNameSuffix}`;
+  const demoName = buildDemoName(state.name);
 
-  const projectOfficer = await step("Selecting project officer", () =>
-    getOrCreateProjectOfficer(db)
-  );
-  await step("Ensuring project officer access", () =>
-    ensureProjectOfficerAccess(db, projectOfficer)
-  );
+  const projectOfficer = getConfiguredProjectOfficer();
   const context = makeContext(projectOfficer);
 
   console.log(`Creating ${demoName}`);
-  console.log(
-    `Project officer: ${projectOfficer.person.firstName} ${projectOfficer.person.lastName} (${projectOfficer.person.email})`
-  );
+  console.log(`Project officer id: ${projectOfficer.id}`);
 
   const demonstration = await step("Creating demonstration", () =>
     demonstrationResolvers.Mutation.createDemonstration(null, {
@@ -430,17 +344,8 @@ export async function createApprovedDemo({
     await completePhase(applicationPhaseResolvers, demonstration.id, "Completeness");
   });
 
-  await step("Completing Federal Comment via backend status procedure", async () => {
-    await callFederalCommentStatusProcedure(db);
-    const federalComment = await db.applicationPhase.findUniqueOrThrow({
-      where: {
-        applicationId_phaseId: {
-          applicationId: demonstration.id,
-          phaseId: "Federal Comment",
-        },
-      },
-      select: { phaseStatusId: true },
-    });
+  await step("Completing Federal Comment for this application", async () => {
+    const federalComment = await completeFederalCommentPhase(db, demonstration.id);
     if (federalComment.phaseStatusId !== "Completed") {
       throw new Error(
         `Federal Comment ended as ${federalComment.phaseStatusId}; expected Completed.`

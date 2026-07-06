@@ -17,10 +17,9 @@ export const SEED_CONFIG = {
   demoWindowYears: 5,
   processedUploadTimeoutMs: 30_000,
   processedUploadPollMs: 500,
-  fallbackProjectOfficerUsername: "approved_demo_project_officer",
-  fallbackProjectOfficerEmail: "approved_demo_project_officer@example.com",
-  fallbackProjectOfficerFirstName: "Approved Demo",
-  fallbackProjectOfficerLastName: "Project Officer",
+  projectOfficerUserId:
+    process.env.APPROVED_DEMO_PROJECT_OFFICER_USER_ID ??
+    "ENTER GUID HERE",
 };
 
 export const APPLICATION_TYPE_ID = "Demonstration";
@@ -30,8 +29,6 @@ export const DEMONSTRATION_GRANT_LEVEL_ID = "Demonstration";
 export const EXPECTED_FINAL_STATUS_ID = "Approved";
 export const PERSON_TYPE_ID = "demos-cms-user";
 export const PROJECT_OFFICER_ROLE_ID = "Project Officer";
-export const SYSTEM_GRANT_LEVEL_ID = "System";
-export const SYSTEM_ROLE_ID = "CMS User";
 
 export const PHASES = [
   "Concept",
