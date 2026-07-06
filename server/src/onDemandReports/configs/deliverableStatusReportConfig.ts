@@ -75,7 +75,7 @@ const deliverableStatusReportSchema = z
     deliverable_reviewer: z.string(),
     deliverable_review_date: usDateStringOrDash,
     budget_neutrality_variance: z.string(),
-    actuals: z.enum(["Actuals Only", "Actual + Projected", "-"]),
+    actuals: z.enum(["Actuals Only", "Actuals + Projected", "-"]),
   } satisfies OnDemandReportColumnSchema<DeliverableStatusReportColumn>)
   .strict();
 
