@@ -9,12 +9,21 @@ import { PersonType } from "../../types";
 import { selectManyStates } from "../state/queries";
 import { getManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment";
 import { GraphQLContext } from "../../auth";
+import { setPersonStates } from "../personState/setPersonStates";
 
 export const personResolvers = {
   Query: {
     people: (): Promise<PrismaPerson[]> => selectManyPeople({}),
   },
 
+  Mutation: {
+    setPersonStates: (
+      parent: unknown,
+      args: { personId: string; stateIds: State["id"][] }
+    ): Promise<PrismaPerson> => {
+      return setPersonStates(args.personId, args.stateIds);
+    },
+  },
   Person: {
     fullName: (parent: PrismaPerson): string => `${parent.firstName} ${parent.lastName}`,
     personType: (parent: PrismaPerson): PersonType => parent.personTypeId as PersonType,

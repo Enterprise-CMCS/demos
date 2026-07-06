@@ -16,8 +16,13 @@ export const personSchema = gql`
     states: [State!]!
     roles: [DemonstrationRoleAssignment!]!
   }
+
   type Query {
     people: [Person!]! @auth(requires: ["Access CMS Query"])
+  }
+  type Mutation {
+    setPersonStates(personId: ID!, stateIds: [String!]!): Person!
+      @auth(requires: ["Perform Admin Action"])
   }
 `;
 
