@@ -25,36 +25,32 @@ import { PersonType } from "demos-server";
 
 type DemosRouteLayout = React.ComponentProps<typeof Layout>;
 
-export type DemosRouteProps = {
-  requiredRoles?: PersonType[];
-  debugOnly?: boolean;
-  layout?: DemosRouteLayout;
-  children?: React.ReactNode;
-};
-
-export const DemosRoute: React.FC<DemosRouteProps> = ({
+export const DemosRoute = ({
   requiredRoles,
   debugOnly,
   layout,
-  children,
+  page,
+}: {
+  requiredRoles?: PersonType[];
+  debugOnly?: boolean;
+  layout?: DemosRouteLayout;
+  page: React.ReactNode;
 }) => {
   const { currentUser } = getCurrentUser();
 
   if (debugOnly && !isLocalDevelopment()) {
-    return <Navigate to="/" replace />;
+    return <div>404: Page Not Found</div>;
   }
 
   if (requiredRoles && !requiredRoles.includes(currentUser.person.personType)) {
     return <Navigate to="/" replace />;
   }
 
-  const page = <Layout {...(layout ?? {})}>{children}</Layout>;
-
-  return page;
+  return <Layout {...layout}>{page}</Layout>;
 };
 
 type DemosRouterEntry = {
-  layout?: DemosRouteLayout;
+  layout: DemosRouteLayout;
   requiredRoles?: PersonType[];
   debugOnly?: boolean;
   page: React.ReactNode;
@@ -63,8 +59,9 @@ type DemosRouterEntry = {
 export const DemosRouter: React.FC = () => {
   const { currentUser } = getCurrentUser();
   const isStateUser = currentUser.person.personType === "demos-state-user";
-  const routeConfigByPath: Record<string, DemosRouterEntry> = {
+  const routes: Record<string, DemosRouterEntry> = {
     "document/:id": {
+      layout: {},
       page: <DocumentDetailPage />,
     },
     "*": {
@@ -179,12 +176,8 @@ export const DemosRouter: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {Object.entries(routeConfigByPath).map(([path, config]) => (
-          <Route
-            key={path}
-            path={path}
-            element={<DemosRoute {...config}>{config.page}</DemosRoute>}
-          />
+        {Object.entries(routes).map(([path, config]) => (
+          <Route key={path} path={path} element={<DemosRoute {...config} />} />
         ))}
       </Routes>
     </BrowserRouter>
