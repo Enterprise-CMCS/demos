@@ -1,4 +1,3 @@
-export * from "./queries";
-export * from "./setPersonStates";
-export * from "./validatePersonIsStateUser";
-export * from "./validatePersonNotAssignedToDemonstrationOfStates";
+export { setPersonStates } from "./setPersonStates";
+export { validatePersonIsStateUser } from "./validatePersonIsStateUser";
+export { validatePersonNotAssignedToDemonstrationOfStates } from "./validatePersonNotAssignedToDemonstrationOfStates";

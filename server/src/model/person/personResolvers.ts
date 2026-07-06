@@ -9,7 +9,7 @@ import { PersonType } from "../../types";
 import { selectManyStates } from "../state/queries";
 import { getManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment";
 import { GraphQLContext } from "../../auth";
-import { setPersonStates } from "../personState/setPersonStates";
+import { setPersonStates } from "../personState";
 
 export const personResolvers = {
   Query: {
