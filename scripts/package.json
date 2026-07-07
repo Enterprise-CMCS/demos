@@ -2,5 +2,8 @@
   "type": "module",
   "dependencies": {
     "dotenv": "^17.4.2"
+  },
+  "scripts": {
+    "create:demo": "node createApprovedDemoAPI/index"
   }
 }
