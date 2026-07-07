@@ -19,44 +19,20 @@ export const SEED_CONFIG = {
   processedUploadPollMs: 500,
   projectOfficerUserId:
     process.env.APPROVED_DEMO_PROJECT_OFFICER_USER_ID ??
-    "ENTER GUID HERE",
+    "MAKE AN .env",
 };
 
-export const APPLICATION_TYPE_ID = "Demonstration";
-export const CLEARANCE_LEVEL_ID = "CMS (OSORA)";
-export const COMPLETED_PHASE_STATUS_ID = "Completed";
-export const DEMONSTRATION_GRANT_LEVEL_ID = "Demonstration";
 export const EXPECTED_FINAL_STATUS_ID = "Approved";
+export const COMPLETED_PHASE_STATUS_ID = "Completed";
 export const PERSON_TYPE_ID = "demos-cms-user";
-export const PROJECT_OFFICER_ROLE_ID = "Project Officer";
-
-export const PHASES = [
-  "Concept",
-  "Application Intake",
-  "Completeness",
-  "Federal Comment",
-  "SDG Preparation",
-  "Review",
-  "Approval Package",
-  "Approval Summary",
-];
-
-export const PHASE_DOCUMENTS = [
-  { phaseName: "Concept", documentTypes: ["Pre-Submission"] },
-  { phaseName: "Application Intake", documentTypes: ["State Application"] },
-  {
-    phaseName: "Completeness",
-    documentTypes: ["Application Completeness Letter", "Internal Completeness Review Form"],
-  },
-];
 
 export const APPLICATION_DATE_OFFSETS_FROM_EFFECTIVE_DATE = [
   ["Concept Paper Submitted Date", 100],
-  ["State Application Submitted Date", 96],
-  ["Completeness Review Due Date", 81],
-  ["State Application Deemed Complete", 86],
-  ["Federal Comment Period Start Date", 85],
-  ["Federal Comment Period End Date", 55],
+  ["State Application Submitted Date", 76],
+  ["Completeness Review Due Date", 61],
+  ["State Application Deemed Complete", 61],
+  ["Federal Comment Period Start Date", 60],
+  ["Federal Comment Period End Date", 30],
   ["Expected Approval Date", 80],
   ["SME Initial Review Date", 79],
   ["FRT Initial Meeting Date", 78],

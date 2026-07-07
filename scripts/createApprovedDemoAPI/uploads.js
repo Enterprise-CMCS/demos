@@ -8,12 +8,11 @@ async function wait(milliseconds) {
   await new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
-async function waitForProcessedDocument({ db, documentId, documentType }) {
+async function waitForProcessedDocument({ documentExists, documentId, documentType }) {
   const startedAt = Date.now();
   while (true) {
-    const document = await db.document.findUnique({ where: { id: documentId } });
-    if (document) {
-      return document;
+    if (await documentExists(documentId)) {
+      return;
     }
 
     if (Date.now() - startedAt >= SEED_CONFIG.processedUploadTimeoutMs) {
@@ -46,54 +45,43 @@ async function putPdfToPresignedUrl(uploadUrl, documentType, pdfBytes) {
 }
 
 async function uploadPhaseDocument({
-  db,
-  documentPendingUploadResolvers,
+  api,
   applicationId,
   phaseName,
   documentType,
-  context,
   pdfBytes,
 }) {
-  const pendingUpload =
-    await documentPendingUploadResolvers.Mutation.uploadDocumentToPhase(
-      null,
-      {
-        input: {
-          name: `${documentType} - ${basename(SEED_CONFIG.documentPath)}`,
-          description: SEED_CONFIG.demoDescription,
-          documentType,
-          applicationId,
-          phaseName,
-        },
-      },
-      context
-    );
+  const pendingUpload = await api.uploadDocumentToPhase({
+    name: `${documentType} - ${basename(SEED_CONFIG.documentPath)}`,
+    description: SEED_CONFIG.demoDescription,
+    documentType,
+    applicationId,
+    phaseName,
+  });
 
-  const uploadUrl =
-    await documentPendingUploadResolvers.DocumentPendingUpload.presignedUploadUrl(pendingUpload);
-
-  await putPdfToPresignedUrl(uploadUrl, documentType, pdfBytes);
-  await waitForProcessedDocument({ db, documentId: pendingUpload.id, documentType });
+  await putPdfToPresignedUrl(pendingUpload.presignedUploadUrl, documentType, pdfBytes);
+  await api.processUploadedDocument(pendingUpload.id, applicationId);
+  await waitForProcessedDocument({
+    documentExists: api.documentExists,
+    documentId: pendingUpload.id,
+    documentType,
+  });
   return pendingUpload;
 }
 
 export async function uploadPhaseDocuments({
-  db,
-  documentPendingUploadResolvers,
+  api,
   applicationId,
   phaseName,
   documentTypes,
-  context,
   pdfBytes,
 }) {
   for (const documentType of documentTypes) {
     await uploadPhaseDocument({
-      db,
-      documentPendingUploadResolvers,
+      api,
       applicationId,
       phaseName,
       documentType,
-      context,
       pdfBytes,
     });
   }

@@ -5,10 +5,11 @@ import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 import { getLocalDatabaseUrl } from "../localDatabaseGuard.js";
 
+dotenv.config({ path: new URL("./.env", import.meta.url), quiet: true });
 dotenv.config({ path: new URL("../../server/.env", import.meta.url), quiet: true });
 dotenv.config({ quiet: true });
 
-const { SEED_CONFIG } = await import("./config.js");
+const { COMPLETED_PHASE_STATUS_ID, PERSON_TYPE_ID, SEED_CONFIG } = await import("./config.js");
 
 process.env.DATABASE_URL = getLocalDatabaseUrl(SEED_CONFIG.fallbackDatabaseUrl);
 
@@ -38,6 +39,7 @@ const { demonstrationTypeTagAssignmentResolvers } = requireServerTs(
 const { documentPendingUploadResolvers } = requireServerTs(
   "model/documentPendingUpload/documentPendingUploadResolvers.ts"
 );
+const { documentResolvers } = requireServerTs("model/document/documentResolvers.ts");
 
 const { createApprovedDemo } = await import("./workflow.js");
 const db = prisma();
@@ -54,16 +56,118 @@ async function step(label, action) {
   }
 }
 
+function makeContext() {
+  return {
+    user: {
+      id: SEED_CONFIG.projectOfficerUserId.trim(),
+      cognitoSubject: "create-approved-demo-script",
+      personTypeId: PERSON_TYPE_ID,
+      permissions: ["View All Demonstrations", "View All Documents"],
+    },
+  };
+}
+
+function makeApprovedDemoApi(context) {
+  return {
+    getState: (id) =>
+      db.state.findUniqueOrThrow({
+        where: { id },
+        select: { id: true, name: true },
+      }),
+
+    createDemonstration: (input) =>
+      demonstrationResolvers.Mutation.createDemonstration(null, { input }),
+
+    updateDemonstration: (id, input) =>
+      demonstrationResolvers.Mutation.updateDemonstration(null, { id, input }),
+
+    setDemonstrationTypes: (input) =>
+      demonstrationTypeTagAssignmentResolvers.Mutation.setDemonstrationTypes(null, { input }),
+
+    setApplicationDates: (input) =>
+      applicationDateResolvers.Mutation.setApplicationDates(null, { input }),
+
+    completePhase: (input) =>
+      applicationPhaseResolvers.Mutation.completePhase(null, { input }),
+
+    completeFederalComment: (applicationId) =>
+      db.applicationPhase.update({
+        where: {
+          applicationId_phaseId: {
+            applicationId,
+            phaseId: "Federal Comment",
+          },
+        },
+        data: {
+          phaseStatusId: COMPLETED_PHASE_STATUS_ID,
+        },
+        select: {
+          phaseStatusId: true,
+        },
+      }),
+
+    uploadDocumentToPhase: async (input) => {
+      const pendingUpload =
+        await documentPendingUploadResolvers.Mutation.uploadDocumentToPhase(
+          null,
+          { input },
+          context
+        );
+
+      const presignedUploadUrl =
+        await documentPendingUploadResolvers.DocumentPendingUpload.presignedUploadUrl(
+          pendingUpload
+        );
+
+      return { ...pendingUpload, presignedUploadUrl };
+    },
+
+    documentExists: (documentId) =>
+      documentResolvers.Query.documentExists(null, { documentId }, context),
+
+    processUploadedDocument: async (documentId, applicationId) => {
+      const rows = await db.$queryRawUnsafe(
+        "SELECT demos_app.move_document_from_pending_to_clean($1::UUID, $2::TEXT) AS document_type_id;",
+        documentId,
+        `${applicationId}/${documentId}`
+      );
+      const documentTypeId = rows[0]?.document_type_id;
+      if (!documentTypeId) {
+        throw new Error(`No document type returned while processing ${documentId}.`);
+      }
+    },
+
+    getDemonstration: async (id) => {
+      const demonstration = await demonstrationResolvers.Query.demonstration(
+        null,
+        { id },
+        context
+      );
+      const [state, documents, demonstrationTypes] = await Promise.all([
+        demonstrationResolvers.Demonstration.state(demonstration),
+        demonstrationResolvers.Demonstration.documents(demonstration, null, context),
+        demonstrationResolvers.Demonstration.demonstrationTypes(demonstration),
+      ]);
+
+      return {
+        ...demonstration,
+        state,
+        documents,
+        demonstrationTypes,
+        currentPhaseName:
+          demonstrationResolvers.Demonstration.currentPhaseName(demonstration),
+        sdgDivision: demonstrationResolvers.Demonstration.sdgDivision(demonstration),
+        status: demonstrationResolvers.Demonstration.status(demonstration),
+      };
+    },
+  };
+}
+
 try {
   await createApprovedDemo({
-    db,
     step,
+    api: makeApprovedDemoApi(makeContext()),
     approvalPackagePhaseDocuments: APPROVAL_PACKAGE_PHASE_DOCUMENTS,
-    demonstrationResolvers,
-    applicationDateResolvers,
-    applicationPhaseResolvers,
-    demonstrationTypeTagAssignmentResolvers,
-    documentPendingUploadResolvers,
   });
 } finally {
   await db.$disconnect();
