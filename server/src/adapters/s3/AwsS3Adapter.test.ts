@@ -12,6 +12,7 @@ import {
   S3Client,
   PutObjectCommand,
   GetObjectCommand,
+  HeadObjectCommand,
   CopyObjectCommand,
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
@@ -22,6 +23,7 @@ vi.mock("@aws-sdk/client-s3", () => ({
   S3Client: vi.fn(),
   PutObjectCommand: vi.fn(),
   GetObjectCommand: vi.fn(),
+  HeadObjectCommand: vi.fn(),
   CopyObjectCommand: vi.fn(),
   DeleteObjectCommand: vi.fn(),
 }));
@@ -53,6 +55,9 @@ describe("AwsS3Adapter", () => {
   const mockGetObjectCommand: Partial<GetObjectCommand> = {
     input: { Bucket: "test-bucket", Key: "get-object-command" },
   };
+  const mockHeadObjectCommand: Partial<HeadObjectCommand> = {
+    input: { Bucket: "test-bucket", Key: "head-object-command" },
+  };
   const mockCopyObjectCommand: Partial<CopyObjectCommand> = {
     input: { Bucket: "test-bucket", CopySource: "test-source", Key: "copy-object-command" },
   };
@@ -77,6 +82,9 @@ describe("AwsS3Adapter", () => {
     });
     vi.mocked(GetObjectCommand).mockImplementation(function () {
       return mockGetObjectCommand as GetObjectCommand;
+    });
+    vi.mocked(HeadObjectCommand).mockImplementation(function () {
+      return mockHeadObjectCommand as HeadObjectCommand;
     });
     vi.mocked(CopyObjectCommand).mockImplementation(function () {
       return mockCopyObjectCommand as CopyObjectCommand;
@@ -115,21 +123,74 @@ describe("AwsS3Adapter", () => {
         Bucket: testCleanBucket,
         Key: testKey,
       });
+      // No file name means no Content-Type lookup is needed.
+      expect(HeadObjectCommand).not.toHaveBeenCalled();
       expect(getSignedUrl).toHaveBeenCalledExactlyOnceWith(mockS3Client, mockGetObjectCommand, {
         expiresIn: 10,
       });
     });
 
-    it("sets an inline Content-Disposition, safely encoding the file name", async () => {
+    it("appends an extension derived from the object's Content-Type", async () => {
+      mockSend.mockResolvedValueOnce({ ContentType: "application/pdf" });
       const adapter = createAWSS3Adapter();
-      // Name with a quote (escaped) and a non-ASCII char (encoded via filename*)
-      // proves arbitrary document names can't malform or inject the header.
-      await adapter.getPresignedDownloadUrl(testKey, 'Quârterly "Report".pdf');
+      await adapter.getPresignedDownloadUrl(testKey, "Quarterly Report");
+
+      expect(HeadObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: testKey,
+      });
+      expect(GetObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: testKey,
+        ResponseContentDisposition: 'inline; filename="Quarterly Report.pdf"',
+      });
+    });
+
+    it("sanitizes the file name and safely encodes the Content-Disposition header", async () => {
+      mockSend.mockResolvedValueOnce({ ContentType: "application/pdf" });
+      const adapter = createAWSS3Adapter();
+      // Quotes are stripped as invalid; the non-ASCII char is percent-encoded via filename*.
+      await adapter.getPresignedDownloadUrl(testKey, 'Quârterly "Report"');
 
       expect(GetObjectCommand).toHaveBeenCalledExactlyOnceWith({
         Bucket: testCleanBucket,
         Key: testKey,
-        ResponseContentDisposition: String.raw`inline; filename="Qu?rterly \"Report\".pdf"; filename*=UTF-8''Qu%C3%A2rterly%20%22Report%22.pdf`,
+        ResponseContentDisposition:
+          String.raw`inline; filename="Qu?rterly Report.pdf"; ` +
+          String.raw`filename*=UTF-8''Qu%C3%A2rterly%20Report.pdf`,
+      });
+    });
+
+    it("falls back to the key when the name is entirely invalid characters", async () => {
+      mockSend.mockResolvedValueOnce({ ContentType: "application/pdf" });
+      const adapter = createAWSS3Adapter();
+      await adapter.getPresignedDownloadUrl("uuid-123", "///");
+
+      expect(GetObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: "uuid-123",
+        // No spaces/special chars, so content-disposition leaves it unquoted.
+        ResponseContentDisposition: "inline; filename=uuid-123.pdf",
+      });
+    });
+
+    it("forces a download and derives the extension when disposition is attachment", async () => {
+      mockSend.mockResolvedValueOnce({
+        ContentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const adapter = createAWSS3Adapter();
+      await adapter.getPresignedDownloadUrl("reports/on-demand/r1.xlsx", "Deliverable Report", {
+        disposition: "attachment",
+      });
+
+      expect(HeadObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: "reports/on-demand/r1.xlsx",
+      });
+      expect(GetObjectCommand).toHaveBeenCalledExactlyOnceWith({
+        Bucket: testCleanBucket,
+        Key: "reports/on-demand/r1.xlsx",
+        ResponseContentDisposition: 'attachment; filename="Deliverable Report.xlsx"',
       });
     });
   });

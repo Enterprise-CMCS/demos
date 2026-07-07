@@ -35,6 +35,7 @@ describe("getReferenceAgreementDownloadUrl", () => {
 
   const mockActiveReferenceAgreement: Partial<SelectReferenceAgreementResult> = {
     id: testReferenceAgreementId,
+    name: "Sample Agreement",
     s3Path: "some/s3/path",
     inActiveUse: true,
   };
@@ -86,7 +87,11 @@ describe("getReferenceAgreementDownloadUrl", () => {
   it("returns a presigned download URL for an active reference agreement", async () => {
     const result = await getReferenceAgreementDownloadUrl({}, { id: testReferenceAgreementId });
     expect(getS3Adapter).toHaveBeenCalledOnce();
-    expect(mockS3Adapter.getPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith("some/s3/path");
+    expect(mockS3Adapter.getPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith(
+      "some/s3/path",
+      "Sample Agreement",
+      { disposition: "attachment" }
+    );
     expect(result).toBe("https://example.com/download");
   });
 });
