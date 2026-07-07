@@ -1,5 +1,3 @@
-/* global process, URL */
-
 const LOCAL_DATABASE_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1", "db"]);
 const LOCAL_DATABASE_NAMES = new Set(["demos"]);
 
