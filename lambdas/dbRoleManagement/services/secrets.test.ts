@@ -1,11 +1,13 @@
 import { deleteSecrets, storeSecret } from "./secrets";
 
 import { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
+import * as secretsManager from "@aws-sdk/client-secrets-manager";
 
 import { getDatabaseSecret } from "../database/pool";
+import { Mock } from "vitest";
 
-jest.mock("@aws-sdk/client-secrets-manager");
-jest.mock("../database/pool");
+vi.mock("@aws-sdk/client-secrets-manager");
+vi.mock("../database/pool");
 
 const mockDBValues = {
   dbname: "utdb",
@@ -17,12 +19,12 @@ const mockDBValues = {
 
 describe("secrets", () => {
   test("should properly create the db secret and rotation", async () => {
-    (getDatabaseSecret as jest.Mock).mockResolvedValue(mockDBValues);
+    (getDatabaseSecret as Mock).mockResolvedValue(mockDBValues);
 
-    const sendMock = jest.fn().mockResolvedValue({ ARN: "mock:arn" });
-    (SecretsManagerClient as jest.Mock).mockImplementation(() => ({ send: sendMock }));
-    const createCmd = jest.spyOn(require("@aws-sdk/client-secrets-manager"), "CreateSecretCommand");
-    const rotateCmd = jest.spyOn(require("@aws-sdk/client-secrets-manager"), "RotateSecretCommand");
+    const sendMock = vi.fn().mockResolvedValue({ ARN: "mock:arn" });
+    (SecretsManagerClient as Mock).mockImplementation(function() { return { send: sendMock }});
+    const createCmd = vi.spyOn(secretsManager, "CreateSecretCommand");
+    const rotateCmd = vi.spyOn(secretsManager, "RotateSecretCommand");
 
     await storeSecret("unit-test", "myRole", "mockPass");
 
@@ -42,11 +44,11 @@ describe("secrets", () => {
   });
 
   test("should properly delete the db secret", async () => {
-    (getDatabaseSecret as jest.Mock).mockResolvedValue(mockDBValues);
+    (getDatabaseSecret as Mock).mockResolvedValue(mockDBValues);
 
-    const sendMock = jest.fn().mockResolvedValue({ ARN: "mock:arn" });
-    (SecretsManagerClient as jest.Mock).mockImplementation(() => ({ send: sendMock }));
-    const deleteCmd = jest.spyOn(require("@aws-sdk/client-secrets-manager"), "DeleteSecretCommand");
+    const sendMock = vi.fn(() => ({ ARN: "mock:arn" }));
+    (SecretsManagerClient as Mock).mockImplementation(function() { return {send: sendMock }});
+    const deleteCmd = vi.spyOn(secretsManager, "DeleteSecretCommand");
 
     await deleteSecrets([
       { name: "mockRole1", memberships: [] },

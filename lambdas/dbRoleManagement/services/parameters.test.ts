@@ -1,13 +1,15 @@
 import { PutParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
+import * as ssm from "@aws-sdk/client-ssm";
 import { deleteSecureStrings, storeSecureString } from "./parameters";
+import { Mock } from "vitest";
 
-jest.mock("@aws-sdk/client-ssm");
+vi.mock("@aws-sdk/client-ssm");
 
 describe("parameters", () => {
   test("create proper SecureString parameter", async () => {
-    const sendMock = jest.fn().mockResolvedValue({});
-    (SSMClient as jest.Mock).mockImplementation(() => ({ send: sendMock }));
-    const commandSPy = jest.spyOn(require("@aws-sdk/client-ssm"), "PutParameterCommand");
+    const sendMock = vi.fn().mockResolvedValue({});
+    (SSMClient as Mock).mockImplementation(function() { return { send: sendMock }});
+    const commandSPy = vi.spyOn(ssm, "PutParameterCommand");
 
     await storeSecureString("unit-test", "myRole", "mockSecret");
 
@@ -22,9 +24,9 @@ describe("parameters", () => {
   });
 
   test("delete proper SecureString parameter", async () => {
-    const sendMock = jest.fn().mockResolvedValue({});
-    (SSMClient as jest.Mock).mockImplementation(() => ({ send: sendMock }));
-    const commandSPy = jest.spyOn(require("@aws-sdk/client-ssm"), "DeleteParametersCommand");
+    const sendMock = vi.fn().mockResolvedValue({});
+    (SSMClient as Mock).mockImplementation(function() { return { send: sendMock }});
+    const commandSPy = vi.spyOn(ssm, "DeleteParametersCommand");
 
     await deleteSecureStrings("unit-test", ["myRole", "myRole2"]);
 
