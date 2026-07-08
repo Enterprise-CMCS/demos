@@ -522,8 +522,11 @@ export const PERMISSIONS = [
   "Delete State Documents on Assigned Deliverables",
 
   // Field Level Permissions
+  "Access Admin Field",
+  "Access Admin Query",
   "Access CMS Field",
   "Access CMS Query",
+  "Perform Admin Action",
   "Perform CMS Action",
   "Perform State Action",
 ] as const;

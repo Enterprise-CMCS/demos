@@ -28,5 +28,9 @@ export async function getReferenceDownloadUrl(
     }
     return validatedReferenceConfiguration;
   });
-  return getS3Adapter().getPresignedDownloadUrl(requestedReferenceConfiguration.reference.s3Path);
+  return getS3Adapter().getPresignedDownloadUrl(
+    requestedReferenceConfiguration.reference.s3Path,
+    requestedReferenceConfiguration.reference.name,
+    { disposition: "attachment" }
+  );
 }

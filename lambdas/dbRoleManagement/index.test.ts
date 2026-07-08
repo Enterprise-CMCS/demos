@@ -3,7 +3,7 @@ import { handler } from ".";
 
 import { applyRoleChanges, deleteAllRoles } from "./services/roles";
 
-jest.mock("./services/roles");
+vi.mock("./services/roles");
 
 const mockContext = {
   invokedFunctionArn: "arn:aws:lambda:region:accountid:function:function-name",
@@ -56,7 +56,7 @@ describe("handler", () => {
     expect(applyRoleChanges).toHaveBeenCalledTimes(1);
     expect(applyRoleChanges).toHaveBeenCalledWith(mockRolesConverted);
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     await handler(
       {
@@ -83,7 +83,7 @@ describe("handler", () => {
     expect(applyRoleChanges).toHaveBeenCalledTimes(1);
     expect(applyRoleChanges).toHaveBeenCalledWith(mockRolesConverted, mockRolesConverted);
 
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     await handler(
       {

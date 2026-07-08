@@ -144,7 +144,9 @@ describe("onDemandReportResolvers", () => {
         },
         mockTransaction
       );
-      expect(mockGetPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith(mockS3Path);
+      expect(mockGetPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith(mockS3Path, testReportType, {
+        disposition: "attachment",
+      });
       expect(mockDeleteOnDemandReport).not.toHaveBeenCalled();
       expect(result).toBe("https://presigned-download-url");
     });
