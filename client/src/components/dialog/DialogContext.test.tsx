@@ -10,35 +10,16 @@ import { Reference, ReferenceAgreement, TagName } from "demos-server";
 import { DemonstrationType } from "./DemonstrationTypes/EditDemonstrationTypeDialog";
 import { formatDateForServer } from "util/formatDate";
 
-const MockDialog = ({ onClose }: { onClose: () => void }) => (
-  <div data-testid="mock-dialog">
-    Mock Dialog
-    <button data-testid="close-btn" onClick={onClose}>
-      Close
-    </button>
-  </div>
-);
-
 // Patch DialogContext to use MockDialog for testing
 vi.mock("./demonstration", () => ({
-  CreateDemonstrationDialog: ({ onClose }: { onClose: () => void }) => (
-    <MockDialog onClose={onClose} />
+  CreateDemonstrationDialog: () => (
+    <div data-testid="create-demonstration-dialog">Create Demonstration Dialog</div>
   ),
-  EditDemonstrationDialog: ({
-    demonstrationId,
-    onClose,
-  }: {
-    demonstrationId: string;
-    onClose: () => void;
-  }) => (
-    <div data-testid="edit-dialog">
-      Edit Dialog {demonstrationId}
-      <button data-testid="close-edit-btn" onClick={onClose}>
-        Close
-      </button>
-    </div>
+  EditDemonstrationDialog: ({ demonstrationId }: { demonstrationId: string }) => (
+    <div data-testid="edit-demonstration-dialog">Edit Dialog {demonstrationId}</div>
   ),
 }));
+
 vi.mock("./modification/CreateAmendmentDialog", () => ({
   CreateAmendmentDialog: ({
     demonstrationId,
@@ -572,12 +553,12 @@ describe("DialogContext", () => {
     );
     const user = userEvent.setup();
     await user.click(screen.getByTestId("open-create-btn"));
-    expect(screen.getByTestId("mock-dialog")).toBeInTheDocument();
+    expect(screen.getByTestId("create-demonstration-dialog")).toBeInTheDocument();
     await user.click(screen.getByTestId("close-active-dialog-btn"));
     expect(screen.queryByTestId("mock-dialog")).not.toBeInTheDocument();
   });
 
-  it("shows and hides CreateDemonstrationDialog via context", async () => {
+  it("shows CreateDemonstrationDialog via context", async () => {
     render(
       <DialogProvider>
         <TestConsumer />
@@ -588,13 +569,10 @@ describe("DialogContext", () => {
     expect(screen.queryByTestId("mock-dialog")).not.toBeInTheDocument();
 
     await user.click(screen.getByTestId("open-create-btn"));
-    expect(screen.getByTestId("mock-dialog")).toBeInTheDocument();
-
-    await user.click(screen.getByTestId("close-btn"));
-    expect(screen.queryByTestId("mock-dialog")).not.toBeInTheDocument();
+    expect(screen.getByTestId("create-demonstration-dialog")).toBeInTheDocument();
   });
 
-  it("shows and hides EditDemonstrationDialog via context", async () => {
+  it("shows EditDemonstrationDialog via context", async () => {
     render(
       <DialogProvider>
         <TestConsumer />
@@ -602,13 +580,10 @@ describe("DialogContext", () => {
     );
     const user = userEvent.setup();
 
-    expect(screen.queryByTestId("edit-dialog")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("edit-demonstration-dialog")).not.toBeInTheDocument();
 
     await user.click(screen.getByTestId("open-edit-btn"));
-    expect(screen.getByTestId("edit-dialog")).toBeInTheDocument();
-
-    await user.click(screen.getByTestId("close-edit-btn"));
-    expect(screen.queryByTestId("edit-dialog")).not.toBeInTheDocument();
+    expect(screen.getByTestId("edit-demonstration-dialog")).toBeInTheDocument();
   });
 
   it("shows AmendmentDialog via context", async () => {

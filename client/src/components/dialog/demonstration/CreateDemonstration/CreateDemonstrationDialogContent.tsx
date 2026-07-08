@@ -41,14 +41,11 @@ export const checkFormIsValid = (demonstration: CreateDemonstrationFormData) => 
 
 export const CreateDemonstrationDialogContent = ({
   initialDemonstration,
-  onClose,
 }: {
   initialDemonstration: CreateDemonstrationFormData;
-  onClose?: () => void;
 }) => {
   const { closeDialog } = useDialog();
-  const handleClose = onClose ?? closeDialog;
-  const { onSubmit, saving } = useCreateDemonstration({ onSuccess: handleClose });
+  const { onSubmit, saving } = useCreateDemonstration({ onSuccess: closeDialog });
   const [demonstration, setDemonstration] =
     useState<CreateDemonstrationFormData>(initialDemonstration);
 
@@ -58,7 +55,7 @@ export const CreateDemonstrationDialogContent = ({
   return (
     <BaseDialog
       title={"New Demonstration"}
-      onClose={handleClose}
+      onClose={closeDialog}
       maxWidthClass="max-w-[920px]"
       dialogHasChanges={hasChanges}
       actionButton={

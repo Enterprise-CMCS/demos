@@ -36,13 +36,7 @@ export {
   getUpdateDemonstrationInput,
 };
 
-export const EditDemonstrationDialog = ({
-  demonstrationId,
-  onClose,
-}: {
-  demonstrationId: string;
-  onClose?: () => void;
-}) => {
+export const EditDemonstrationDialog = ({ demonstrationId }: { demonstrationId: string }) => {
   const { demonstration, loading, error } = useEditDemonstrationDialogData(demonstrationId);
 
   if (loading) {
@@ -58,7 +52,6 @@ export const EditDemonstrationDialog = ({
       demonstrationId={demonstration.id}
       initialDemonstration={getInitialDemonstration(demonstration)}
       isApproved={demonstration.status === "Approved"}
-      onClose={onClose}
     />
   );
 };

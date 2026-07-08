@@ -1,248 +1,159 @@
 import React from "react";
 import { LocalDate } from "demos-server";
 
-import { GET_USER_SELECT_OPTIONS_QUERY } from "components/input/select/SelectUsers";
-import { TestProvider } from "test-utils/TestProvider";
-import { describe, expect, it, vi } from "vitest";
-
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { EditDemonstrationDialog } from "./EditDemonstrationDialog";
-import {
-  DEMONSTRATION_DIALOG_DESCRIPTION_NAME,
-  getUpdateDemonstrationInput,
-} from "./EditDemonstrationForm";
-import { EDIT_DEMONSTRATION_DIALOG_QUERY as GET_DEMONSTRATION_BY_ID_QUERY } from "./useEditDemonstrationDialogData";
-import { UPDATE_DEMONSTRATION_MUTATION } from "./useUpdateDemonstration";
-import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
+import { getUpdateDemonstrationInput } from "./EditDemonstrationForm";
 
-const DEFAULT_PROPS = {
-  onClose: vi.fn(),
-};
+const useEditDemonstrationDialogDataMock = vi.fn();
+const editDemonstrationDialogContentMock = vi.fn();
 
-const SUBMIT_BUTTON_TEST_ID = "button-submit-demonstration-dialog";
+vi.mock("components/loading/Spinner", () => ({
+  Spinner: () => <div data-testid="edit-demonstration-spinner" aria-label="Loading" />,
+}));
+
+vi.mock("./useEditDemonstrationDialogData", async () => {
+  const actual = await vi.importActual<typeof import("./useEditDemonstrationDialogData")>(
+    "./useEditDemonstrationDialogData"
+  );
+
+  return {
+    ...actual,
+    useEditDemonstrationDialogData: (demonstrationId: string) =>
+      useEditDemonstrationDialogDataMock(demonstrationId),
+  };
+});
+
+vi.mock("./EditDemonstrationDialogContent", () => ({
+  EditDemonstrationDialogContent: (props: {
+    demonstrationId: string;
+    initialDemonstration: {
+      name: string;
+      description: string;
+      stateId: string;
+      sdgDivision?: string;
+      signatureLevel?: string;
+      projectOfficerUserId: string;
+      effectiveDate?: string;
+      expirationDate?: string;
+    };
+    isApproved: boolean;
+  }) => {
+    editDemonstrationDialogContentMock(props);
+    return <div data-testid="edit-demonstration-dialog-content" />;
+  },
+}));
 
 describe("EditDemonstrationDialog", () => {
   const TEST_DEMO_ID = "1";
 
-  const GET_USER_SELECT_OPTIONS_MOCK = {
-    request: {
-      query: GET_USER_SELECT_OPTIONS_QUERY,
-    },
-    result: {
-      data: {
-        people: [
-          {
-            id: "test-officer-id",
-            fullName: "Test Officer",
-            personType: "demos-cms-user",
-          },
-        ],
-      },
-    },
-  };
-
-  const GET_DEMONSTRATION_BY_ID_MOCK = {
-    request: {
-      query: GET_DEMONSTRATION_BY_ID_QUERY,
-      variables: { id: TEST_DEMO_ID },
-    },
-    result: {
-      data: {
-        demonstration: {
-          id: TEST_DEMO_ID,
-          name: "Test Demonstration",
-          description: "Test demonstration description",
-          sdgDivision: "Division of System Reform Demonstrations",
-          signatureLevel: "OA",
-          status: "Approved",
-          state: {
-            id: "test-state-id",
-          },
-          primaryProjectOfficer: {
-            id: "test-officer-id",
-          },
-          effectiveDate: "2023-01-01T00:00:00.000Z",
-          expirationDate: "2024-01-01T00:00:00.000Z",
-        },
-      },
-    },
-  };
-
-  // Mock for the update mutation - this needs to match what the form actually submits
-  const UPDATE_DEMONSTRATION_MOCK = {
-    request: {
-      query: UPDATE_DEMONSTRATION_MUTATION,
-      variables: {
-        id: "1",
-        input: {
-          name: "Test Demonstration 123",
-          description: "A test demonstration.",
-          stateId: "AL",
-          sdgDivision: "Division of System Reform Demonstrations",
-        },
-      },
-    },
-    result: {
-      data: {
-        updateDemonstration: {
-          id: "1",
-          name: "Test Demonstration 123",
-          description: "A test demonstration.",
-          effectiveDate: "2023-01-01T00:00:00.000Z",
-          expirationDate: "2024-01-01T00:00:00.000Z",
-          state: {
-            id: "AL",
-            name: "Alabama",
-          },
-        },
-      },
-    },
-  };
-
-  const getEditDemonstrationDialog = () => {
-    return (
-      <TestProvider
-        mocks={[
-          GET_DEMONSTRATION_BY_ID_MOCK,
-          GET_USER_SELECT_OPTIONS_MOCK,
-          UPDATE_DEMONSTRATION_MOCK,
-        ]}
-      >
-        <EditDemonstrationDialog {...DEFAULT_PROPS} demonstrationId={TEST_DEMO_ID} />
-      </TestProvider>
-    );
-  };
-
-  it("renders dialog title for edit mode", async () => {
-    render(getEditDemonstrationDialog());
-
-    // Wait for loading to complete
-    await waitFor(() => {
-      expect(screen.getByText(/Edit Demonstration/i)).toBeInTheDocument();
-    });
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it("renders the Cancel and Submit buttons", async () => {
-    render(getEditDemonstrationDialog());
-
-    // Wait for loading to complete
-    await waitFor(() => {
-      expect(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME)).toBeInTheDocument();
-      expect(screen.getByTestId(SUBMIT_BUTTON_TEST_ID)).toBeInTheDocument();
-    });
-  });
-
-  it("calls onClose when Cancel is clicked", async () => {
-    const onCloseMock = vi.fn();
-    render(
-      <TestProvider
-        mocks={[
-          GET_DEMONSTRATION_BY_ID_MOCK,
-          GET_USER_SELECT_OPTIONS_MOCK,
-          UPDATE_DEMONSTRATION_MOCK,
-        ]}
-      >
-        <EditDemonstrationDialog
-          {...DEFAULT_PROPS}
-          onClose={onCloseMock}
-          demonstrationId={TEST_DEMO_ID}
-        />
-      </TestProvider>
-    );
-
-    // Wait for loading to complete first
-    await waitFor(() => {
-      expect(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME)).toBeInTheDocument();
+  it("shows a spinner while loading demonstration data", () => {
+    useEditDemonstrationDialogDataMock.mockReturnValue({
+      loading: true,
+      error: undefined,
+      demonstration: undefined,
     });
 
-    fireEvent.click(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME));
+    render(<EditDemonstrationDialog demonstrationId={TEST_DEMO_ID} />);
 
-    // Verify onClose was called
-    await waitFor(() => {
-      expect(onCloseMock).toHaveBeenCalled();
-    });
+    expect(screen.getByTestId("edit-demonstration-spinner")).toBeInTheDocument();
   });
 
-  it("renders the description textarea", async () => {
-    render(getEditDemonstrationDialog());
-
-    // Wait for loading to complete
-    await waitFor(() => {
-      expect(screen.getByTestId(DEMONSTRATION_DIALOG_DESCRIPTION_NAME)).toBeInTheDocument();
-    });
-  });
-
-  it("shows loading state while fetching demonstration data", () => {
-    render(getEditDemonstrationDialog());
-    expect(screen.getByLabelText(/Loading/i)).toBeInTheDocument();
-  });
-
-  it("shows error state when query fails", async () => {
-    const errorMock = {
-      ...GET_DEMONSTRATION_BY_ID_MOCK,
+  it("shows an error state when the query returns an error", () => {
+    useEditDemonstrationDialogDataMock.mockReturnValue({
+      loading: false,
       error: new Error("Failed to fetch demonstration"),
-      result: undefined,
-    };
-
-    render(
-      <TestProvider mocks={[errorMock, GET_USER_SELECT_OPTIONS_MOCK, UPDATE_DEMONSTRATION_MOCK]}>
-        <EditDemonstrationDialog {...DEFAULT_PROPS} demonstrationId="1" />
-      </TestProvider>
-    );
-    await waitFor(() => {
-      expect(screen.getByText(/Error loading demonstration data/i)).toBeInTheDocument();
+      demonstration: undefined,
     });
+
+    render(<EditDemonstrationDialog demonstrationId={TEST_DEMO_ID} />);
+
+    expect(screen.getByText("Error loading demonstration data")).toBeInTheDocument();
   });
 
-  it("populates form fields after loading completes", async () => {
-    render(getEditDemonstrationDialog());
-
-    // Wait for the form to be populated with data from the query
-    await waitFor(() => {
-      expect(screen.getByDisplayValue("Test Demonstration")).toBeInTheDocument();
+  it("shows an error state when no demonstration is returned", () => {
+    useEditDemonstrationDialogDataMock.mockReturnValue({
+      loading: false,
+      error: undefined,
+      demonstration: undefined,
     });
 
-    await waitFor(() => {
-      expect(screen.getByDisplayValue("Test demonstration description")).toBeInTheDocument();
-    });
+    render(<EditDemonstrationDialog demonstrationId={TEST_DEMO_ID} />);
+
+    expect(screen.getByText("Error loading demonstration data")).toBeInTheDocument();
   });
 
-  it("can submit form changes successfully", async () => {
-    render(
-      <TestProvider
-        mocks={[
-          GET_DEMONSTRATION_BY_ID_MOCK,
-          GET_USER_SELECT_OPTIONS_MOCK,
-          UPDATE_DEMONSTRATION_MOCK,
-        ]}
-      >
-        <EditDemonstrationDialog onClose={vi.fn()} demonstrationId="1" />
-      </TestProvider>
-    );
-
-    // Wait for loading to complete
-    await waitFor(() => {
-      expect(screen.getByDisplayValue("Test Demonstration")).toBeInTheDocument();
+  it("renders the content component", () => {
+    useEditDemonstrationDialogDataMock.mockReturnValue({
+      loading: false,
+      error: undefined,
+      demonstration: {
+        id: TEST_DEMO_ID,
+        name: "Test Demonstration",
+        description: "Test demonstration description",
+        sdgDivision: "Division of System Reform Demonstrations",
+        signatureLevel: "OA",
+        status: "Approved",
+        state: {
+          id: "AL",
+        },
+        primaryProjectOfficer: {
+          id: "test-officer-id",
+        },
+        effectiveDate: "2024-06-01T12:00:00.000Z",
+        expirationDate: "2025-06-01T12:00:00.000Z",
+      },
     });
 
-    // Make a change to the form
-    const titleInput = screen.getByDisplayValue("Test Demonstration");
-    fireEvent.change(titleInput, { target: { value: "Test Demonstration 123" } });
+    render(<EditDemonstrationDialog demonstrationId={TEST_DEMO_ID} />);
 
-    // Submit the form - this should not throw an error if the mock is working
-    const submitButton = screen.getByTestId(SUBMIT_BUTTON_TEST_ID);
+    expect(screen.getByTestId("edit-demonstration-dialog-content")).toBeInTheDocument();
+  });
 
-    // The button should be enabled since we have all required fields
-    expect(submitButton).not.toBeDisabled();
+  it("passes mapped demonstration data to the content component", () => {
+    useEditDemonstrationDialogDataMock.mockReturnValue({
+      loading: false,
+      error: undefined,
+      demonstration: {
+        id: TEST_DEMO_ID,
+        name: "Test Demonstration",
+        description: "Test demonstration description",
+        sdgDivision: "Division of System Reform Demonstrations",
+        signatureLevel: "OA",
+        status: "Approved",
+        state: {
+          id: "AL",
+        },
+        primaryProjectOfficer: {
+          id: "test-officer-id",
+        },
+        effectiveDate: "2024-06-01T12:00:00.000Z",
+        expirationDate: "2025-06-01T12:00:00.000Z",
+      },
+    });
 
-    // Click submit - if the mock is working, this won't throw a "No more mocked responses" error
-    fireEvent.click(submitButton);
+    render(<EditDemonstrationDialog demonstrationId={TEST_DEMO_ID} />);
 
-    // Wait a moment to ensure the mutation would have been called
-    await waitFor(() => {
-      // If we get here without errors, the mock worked
-      expect(submitButton).toBeInTheDocument();
+    expect(useEditDemonstrationDialogDataMock).toHaveBeenCalledWith(TEST_DEMO_ID);
+    expect(editDemonstrationDialogContentMock).toHaveBeenCalledWith({
+      demonstrationId: TEST_DEMO_ID,
+      initialDemonstration: {
+        name: "Test Demonstration",
+        description: "Test demonstration description",
+        stateId: "AL",
+        sdgDivision: "Division of System Reform Demonstrations",
+        signatureLevel: "OA",
+        projectOfficerUserId: "test-officer-id",
+        effectiveDate: "2024-06-01",
+        expirationDate: "2025-06-01",
+      },
+      isApproved: true,
     });
   });
 });

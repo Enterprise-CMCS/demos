@@ -1,231 +1,59 @@
 import React from "react";
 
-import { GET_USER_SELECT_OPTIONS_QUERY } from "components/input/select/SelectUsers";
-import { CurrentUser } from "components/user/UserContext";
-import { TestProvider } from "test-utils/TestProvider";
-import { describe, expect, it, vi } from "vitest";
-
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CreateDemonstrationDialog } from "./CreateDemonstrationDialog";
-import {
-  DEFAULT_DEMONSTRATION_SIGNATURE_LEVEL,
-  DEMONSTRATION_DIALOG_DESCRIPTION_NAME,
-} from "./CreateDemonstrationForm";
-import { CREATE_DEMONSTRATION_MUTATION } from "./useCreateDemonstration";
-import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 
-const DEFAULT_PROPS = {
-  onClose: vi.fn(),
-};
+const getCurrentUserMock = vi.fn();
+const createDemonstrationDialogContentMock = vi.fn();
 
-const SUBMIT_BUTTON_TEST_ID = "button-submit-demonstration-dialog";
-const TITLE_INPUT_TEST_ID = "input-demonstration-title";
-const STATE_SELECT_ID = "us-state"; // This is an id, not data-testid
+vi.mock("components/user/UserContext", () => ({
+  getCurrentUser: () => getCurrentUserMock(),
+}));
 
-const CURRENT_USER = {
-  id: "test-current-user",
-};
+vi.mock("./CreateDemonstrationDialogContent", () => ({
+  CreateDemonstrationDialogContent: (props: {
+    initialDemonstration: {
+      name: string;
+      description: string;
+      stateId: string;
+      sdgDivision?: string;
+      projectOfficerUserId: string;
+    };
+  }) => {
+    createDemonstrationDialogContentMock(props);
+    return <div data-testid="create-demonstration-dialog-content" />;
+  },
+}));
 
 describe("CreateDemonstrationDialog", () => {
-  const GET_USER_SELECT_OPTIONS_MOCK = {
-    request: {
-      query: GET_USER_SELECT_OPTIONS_QUERY,
-    },
-    result: {
-      data: {
-        people: [
-          {
-            id: "test-officer-id",
-            fullName: "Test Officer",
-            personType: "demos-cms-user",
-          },
-          {
-            id: "test-current-user",
-            fullName: "Current User",
-            personType: "demos-cms-user",
-          },
-        ],
+  beforeEach(() => {
+    vi.clearAllMocks();
+    getCurrentUserMock.mockReturnValue({
+      currentUser: {
+        id: "test-current-user-id",
       },
-    },
-  };
-
-  const CREATE_DEMONSTRATION_MOCK = {
-    request: {
-      query: CREATE_DEMONSTRATION_MUTATION,
-      variables: {
-        input: {
-          name: "New Test Demonstration",
-          description: "Test description",
-          stateId: "AL",
-          projectOfficerUserId: "test-officer-id",
-          sdgDivision: "Division of System Reform Demonstrations",
-        },
-      },
-    },
-    result: {
-      data: {
-        createDemonstration: {
-          success: true,
-          message: "Your demonstration is ready.",
-        },
-      },
-    },
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const getCreateDemonstrationDialog = (additionalMocks: any[] = []) => {
-    return (
-      <TestProvider
-        mocks={[GET_USER_SELECT_OPTIONS_MOCK, ...additionalMocks]}
-        currentUser={CURRENT_USER as CurrentUser}
-      >
-        <CreateDemonstrationDialog {...DEFAULT_PROPS} />
-      </TestProvider>
-    );
-  };
-
-  it("disables Submit button if required fields are empty", () => {
-    render(getCreateDemonstrationDialog());
-    expect(screen.getByTestId(SUBMIT_BUTTON_TEST_ID)).toBeDisabled();
-  });
-
-  it("calls onClose when Cancel is clicked", async () => {
-    const onCloseMock = vi.fn();
-    render(
-      <TestProvider
-        mocks={[GET_USER_SELECT_OPTIONS_MOCK]}
-        currentUser={CURRENT_USER as CurrentUser}
-      >
-        <CreateDemonstrationDialog onClose={onCloseMock} />
-      </TestProvider>
-    );
-
-    fireEvent.click(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME));
-
-    // Verify onClose was called
-    await waitFor(() => {
-      expect(onCloseMock).toHaveBeenCalled();
     });
   });
 
-  it("renders all required form fields", () => {
-    render(getCreateDemonstrationDialog());
+  it("renders the content component", () => {
+    render(<CreateDemonstrationDialog />);
 
-    expect(screen.getByTestId(TITLE_INPUT_TEST_ID)).toBeInTheDocument();
-    expect(document.getElementById(STATE_SELECT_ID)).toBeInTheDocument();
-    expect(screen.getByTestId(DEMONSTRATION_DIALOG_DESCRIPTION_NAME)).toBeInTheDocument();
-  });
-  it("enables Submit button when all required fields are filled", async () => {
-    render(getCreateDemonstrationDialog());
-
-    const submitButton = screen.getByTestId(SUBMIT_BUTTON_TEST_ID);
-    expect(submitButton).toBeDisabled();
-
-    // Fill in title
-    const titleInput = screen.getByTestId(TITLE_INPUT_TEST_ID);
-    fireEvent.change(titleInput, { target: { value: "New Test Demonstration" } });
-
-    // Fill in state - this is more complex with AutoCompleteSelect
-    const stateInput = document.getElementById(STATE_SELECT_ID);
-    if (stateInput) {
-      fireEvent.change(stateInput, { target: { value: "Alabama" } });
-    }
-
-    // Wait for project officer select to load
-    await waitFor(() => {
-      const projectOfficerSelect = screen.getByLabelText(/Project Officer/i);
-      expect(projectOfficerSelect).toBeInTheDocument();
-    });
-
-    // Note: Actual selection of project officer would require more complex interaction
-    // This test verifies the fields render correctly
-  });
-  it("renders signature level select disabled and with the default value", () => {
-    render(getCreateDemonstrationDialog());
-
-    const signatureLevelSelect = screen.getByLabelText(/Signature Level/i);
-    expect(signatureLevelSelect).toBeInTheDocument();
-    expect(signatureLevelSelect).toBeDisabled();
-    expect(signatureLevelSelect).toHaveValue(DEFAULT_DEMONSTRATION_SIGNATURE_LEVEL);
+    expect(screen.getByTestId("create-demonstration-dialog-content")).toBeInTheDocument();
   });
 
-  it("calls onSubmit with correct data when form is submitted", async () => {
-    render(getCreateDemonstrationDialog([CREATE_DEMONSTRATION_MOCK]));
+  it("passes an empty initial demonstration seeded with the current user", () => {
+    render(<CreateDemonstrationDialog />);
 
-    // Fill in the form fields
-    const titleInput = screen.getByTestId(TITLE_INPUT_TEST_ID);
-    fireEvent.change(titleInput, { target: { value: "New Test Demonstration" } });
-
-    const descriptionTextarea = screen.getByTestId(DEMONSTRATION_DIALOG_DESCRIPTION_NAME);
-    fireEvent.change(descriptionTextarea, { target: { value: "Test description" } });
-
-    // Note: Full form submission would require selecting state and project officer
-    // which is complex with the AutoCompleteSelect components
-  });
-
-  it("does not show effective and expiration date fields in create mode", () => {
-    render(getCreateDemonstrationDialog());
-
-    expect(screen.queryByTestId("input-effective-date")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("input-expiration-date")).not.toBeInTheDocument();
-  });
-
-  it("shows success message on successful creation", async () => {
-    render(getCreateDemonstrationDialog([CREATE_DEMONSTRATION_MOCK]));
-
-    // This would require full form interaction to trigger submission
-    // The actual mutation would be tested in integration tests
-  });
-
-  it("shows error message on failed creation", async () => {
-    const errorMock = {
-      ...CREATE_DEMONSTRATION_MOCK,
-      result: {
-        data: {
-          createDemonstration: {
-            success: false,
-            message: "Your demonstration was not created because of an unknown problem.",
-          },
-        },
+    expect(createDemonstrationDialogContentMock).toHaveBeenCalledWith({
+      initialDemonstration: {
+        name: "",
+        description: "",
+        stateId: "",
+        sdgDivision: undefined,
+        projectOfficerUserId: "test-current-user-id",
       },
-    };
-
-    render(getCreateDemonstrationDialog([errorMock]));
-
-    // This would require full form interaction to trigger submission
-  });
-
-  it("closes dialog after successful submission", async () => {
-    const onCloseMock = vi.fn();
-
-    render(
-      <TestProvider
-        mocks={[GET_USER_SELECT_OPTIONS_MOCK, CREATE_DEMONSTRATION_MOCK]}
-        currentUser={CURRENT_USER as CurrentUser}
-      >
-        <CreateDemonstrationDialog onClose={onCloseMock} />
-      </TestProvider>
-    );
-
-    // This would require full form interaction and submission
-    // The onClose callback would be verified after submission
-  });
-
-  it("defaults the project officer to the current user", async () => {
-    const onCloseMock = vi.fn();
-    render(
-      <TestProvider
-        mocks={[GET_USER_SELECT_OPTIONS_MOCK, CREATE_DEMONSTRATION_MOCK]}
-        currentUser={CURRENT_USER as CurrentUser}
-      >
-        <CreateDemonstrationDialog onClose={onCloseMock} />
-      </TestProvider>
-    );
-    await waitFor(() => {
-      const projectOfficerSelect = screen.getByTestId("select-users");
-      expect(projectOfficerSelect).toBeInTheDocument();
-      expect(projectOfficerSelect).toHaveValue("Current User");
     });
   });
 });

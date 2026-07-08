@@ -42,23 +42,20 @@ export const checkFormIsValid = (demonstration: EditDemonstrationFormData, isApp
     demonstration.effectiveDate &&
     isBefore(demonstration.expirationDate, demonstration.effectiveDate);
 
-  return hasRequiredFields && hasRequiredApprovedFields && !hasInvalidDateRange;
+  return !!(hasRequiredFields && hasRequiredApprovedFields && !hasInvalidDateRange);
 };
 
 export const EditDemonstrationDialogContent = ({
   demonstrationId,
   initialDemonstration,
   isApproved,
-  onClose,
 }: {
   demonstrationId: string;
   initialDemonstration: EditDemonstrationFormData;
   isApproved: boolean;
-  onClose?: () => void;
 }) => {
   const { closeDialog } = useDialog();
-  const handleClose = onClose ?? closeDialog;
-  const { onSubmit, saving } = useUpdateDemonstration({ onSuccess: handleClose });
+  const { onSubmit, saving } = useUpdateDemonstration({ onSuccess: closeDialog });
 
   const [demonstration, setDemonstration] =
     useState<EditDemonstrationFormData>(initialDemonstration);
@@ -69,7 +66,7 @@ export const EditDemonstrationDialogContent = ({
   return (
     <BaseDialog
       title={"Edit Demonstration"}
-      onClose={handleClose}
+      onClose={closeDialog}
       maxWidthClass="max-w-[920px]"
       dialogHasChanges={hasChanges}
       actionButton={
