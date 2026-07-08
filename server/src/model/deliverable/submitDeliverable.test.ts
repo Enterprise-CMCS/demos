@@ -24,9 +24,15 @@ vi.mock("../deliverableAction/queries", () => ({
   insertDeliverableAction: vi.fn(),
 }));
 
+vi.mock("../../services/emailQueue", () => ({
+  buildRealtimeEmailEnvelope: vi.fn((input) => ({ ...input })),
+  enqueueRealtimeEmail: vi.fn(),
+}));
+
 import { prisma } from "../../prismaClient";
 import { editDeliverable, selectDeliverableOrThrow, validateSubmitDeliverableInput } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
+import { buildRealtimeEmailEnvelope, enqueueRealtimeEmail } from "../../services/emailQueue";
 
 describe("submitDeliverable", () => {
   // Test inputs
@@ -45,6 +51,10 @@ describe("submitDeliverable", () => {
   };
   const mockSubmittedDeliverable: Partial<PrismaDeliverable> = {
     id: testDeliverableId,
+    name: "My Deliverable",
+    deliverableTypeId: "Close Out Report",
+    demonstrationId: "demo-1",
+    cmsOwnerUserId: "owner-1",
     statusId: "Submitted",
     dueDate: new Date(2026, 9, 13, 4, 59, 59, 999),
   };
@@ -53,6 +63,12 @@ describe("submitDeliverable", () => {
   const mockTransaction: any = "Test!";
   const mockPrismaClient = {
     $transaction: vi.fn(),
+    user: {
+      findUniqueOrThrow: vi.fn(),
+    },
+    demonstration: {
+      findUniqueOrThrow: vi.fn(),
+    },
   };
 
   beforeEach(() => {
@@ -63,6 +79,16 @@ describe("submitDeliverable", () => {
     );
     vi.mocked(editDeliverable).mockResolvedValue(mockSubmittedDeliverable as PrismaDeliverable);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
+    mockPrismaClient.user.findUniqueOrThrow.mockResolvedValue({
+      person: {
+        email: "owner@example.com",
+      },
+    });
+    mockPrismaClient.demonstration.findUniqueOrThrow.mockResolvedValue({
+      id: "demo-1",
+      name: "Demo",
+      stateId: "CA",
+    });
   });
 
   it("should get the deliverable before making changes", async () => {
@@ -104,5 +130,11 @@ describe("submitDeliverable", () => {
       },
       mockTransaction
     );
+  });
+
+  it("should enqueue realtime deliverable submitted email", async () => {
+    await submitDeliverable(testDeliverableId, testContext as GraphQLContext);
+    expect(buildRealtimeEmailEnvelope).toHaveBeenCalledOnce();
+    expect(enqueueRealtimeEmail).toHaveBeenCalledOnce();
   });
 });

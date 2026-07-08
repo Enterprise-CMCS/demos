@@ -158,5 +158,36 @@ echo "✅ Budget Neutrality queue created"
 echo "   Queue ARN: $BN_QUEUE_ARN"
 echo "   DLQ ARN: $BN_DLQ_ARN"
 
+# ============================================================================
+# Emailer Queue
+# ============================================================================
+echo "Creating Emailer queue..."
+
+EMAILER_DLQ_URL=$($AWS_CMD sqs create-queue \
+    --queue-name emailer-dlq \
+    --attributes '{"MessageRetentionPeriod":"1209600"}' \
+    --output text --query 'QueueUrl')
+
+EMAILER_DLQ_ARN=$($AWS_CMD sqs get-queue-attributes \
+    --queue-url $EMAILER_DLQ_URL \
+    --attribute-names QueueArn \
+    --output text --query 'Attributes.QueueArn')
+
+EMAILER_REDRIVE_POLICY="{\"deadLetterTargetArn\":\"$EMAILER_DLQ_ARN\",\"maxReceiveCount\":\"5\"}"
+
+EMAILER_QUEUE_URL=$($AWS_CMD sqs create-queue \
+    --queue-name emailer-queue \
+    --attributes "{\"RedrivePolicy\":\"$(echo $EMAILER_REDRIVE_POLICY | sed 's/\"/\\\"/g')\",\"MessageRetentionPeriod\":\"1209600\",\"VisibilityTimeout\":\"60\"}" \
+    --output text --query 'QueueUrl')
+
+EMAILER_QUEUE_ARN=$($AWS_CMD sqs get-queue-attributes \
+    --queue-url $EMAILER_QUEUE_URL \
+    --attribute-names QueueArn \
+    --output text --query 'Attributes.QueueArn')
+
+echo "✅ Emailer queue created"
+echo "   Queue ARN: $EMAILER_QUEUE_ARN"
+echo "   DLQ ARN: $EMAILER_DLQ_ARN"
+
 echo ""
 echo "✅ All SQS queues setup complete"

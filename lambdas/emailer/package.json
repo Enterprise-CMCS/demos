@@ -14,7 +14,8 @@
   "license": "ISC",
   "dependencies": {
     "nodemailer": "^9.0.1",
-    "pino": "^10.3.1"
+    "pino": "^10.3.1",
+    "react-mailer": "^0.0.0"
   },
   "devDependencies": {
     "@aws-sdk/client-ssm": "^3.1063.0",

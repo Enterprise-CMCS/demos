@@ -32,6 +32,11 @@ vi.mock("../deliverableAction/queries", () => ({
   insertDeliverableAction: vi.fn(),
 }));
 
+vi.mock("../../services/emailQueue", () => ({
+  buildRealtimeEmailEnvelope: vi.fn((input) => ({ ...input })),
+  enqueueRealtimeEmail: vi.fn(),
+}));
+
 import { prisma } from "../../prismaClient";
 import {
   parseCreateDeliverableInput,
@@ -41,6 +46,7 @@ import {
 } from ".";
 import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 import { insertDeliverableAction } from "../deliverableAction/queries";
+import { buildRealtimeEmailEnvelope, enqueueRealtimeEmail } from "../../services/emailQueue";
 
 describe("createDeliverable", () => {
   // Test inputs
@@ -77,6 +83,12 @@ describe("createDeliverable", () => {
   const mockTransaction: any = "Test!";
   const mockPrismaClient = {
     $transaction: vi.fn(),
+    user: {
+      findUniqueOrThrow: vi.fn(),
+    },
+    demonstration: {
+      findUniqueOrThrow: vi.fn(),
+    },
   };
 
   beforeEach(() => {
@@ -85,6 +97,16 @@ describe("createDeliverable", () => {
     vi.mocked(parseCreateDeliverableInput).mockReturnValue(mockParsedInput);
     vi.mocked(insertDeliverable).mockResolvedValue(mockNewDeliverable as PrismaDeliverable);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
+    mockPrismaClient.user.findUniqueOrThrow.mockResolvedValue({
+      person: {
+        email: "owner@example.com",
+      },
+    });
+    mockPrismaClient.demonstration.findUniqueOrThrow.mockResolvedValue({
+      id: testInput.demonstrationId,
+      name: "Demo",
+      stateId: "CA",
+    });
   });
 
   it("should check that the user is allowed to do this operation", async () => {
@@ -173,5 +195,11 @@ describe("createDeliverable", () => {
       },
       mockTransaction
     );
+  });
+
+  it("should enqueue realtime deliverable created email", async () => {
+    await createDeliverable(testInput, testContext as GraphQLContext);
+    expect(buildRealtimeEmailEnvelope).toHaveBeenCalledOnce();
+    expect(enqueueRealtimeEmail).toHaveBeenCalledOnce();
   });
 });

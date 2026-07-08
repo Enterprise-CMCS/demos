@@ -1,4 +1,5 @@
 import {
+  coerceEmailData,
   clearCache,
   EmailData,
   getAllowList,
@@ -6,6 +7,7 @@ import {
   isEmailerAddress,
   isValidEmailData,
   redactEmailAddresses,
+  renderRealtimeEmail,
   sendEmailIsAllowed,
   stripDisallowedFields,
 } from ".";
@@ -272,5 +274,62 @@ describe("emailer", () => {
     const output = stripDisallowedFields({ ...mockEmailData, invalid: "none" } as EmailData);
     expect(output).toEqual(mockEmailData);
     expect(warnSpy).toHaveBeenCalledOnce();
+  });
+
+  it("should render realtime envelope into email data", () => {
+    const out = renderRealtimeEmail({
+      emailType: "Deliverable Created",
+      template: "deliverable-created",
+      entityType: "deliverable",
+      entityId: "del-1",
+      triggeredBy: {
+        type: "realtime",
+        id: "graphql-api",
+      },
+      triggeredAt: "2026-05-08T14:32:00.000Z",
+      idempotencyKey: "Deliverable Created:deliverable:del-1",
+      payload: {
+        to: "test@email.com",
+        id: "del-1",
+        name: "Budget Neutrality Report",
+        deliverableType: "Annual Budget Neutrality Report",
+        dueDate: "2024-07-01T00:00:00.000Z",
+        demonstration: {
+          id: "demo-1",
+          name: "Dusty Demo",
+          state: {
+            id: "CA",
+          },
+        },
+      },
+    });
+
+    expect(out).toBeDefined();
+    expect(out?.to).toEqual("test@email.com");
+    expect(out?.subject).toContain("Deliverable Created");
+    expect(out?.text).toContain("Budget Neutrality Report");
+    expect(out?.html).toContain("Dusty Demo");
+  });
+
+  it("should coerce realtime envelope payload in handler pipeline", () => {
+    const out = coerceEmailData({
+      emailType: "Deliverable Submitted",
+      template: "deliverable-submitted",
+      entityType: "deliverable",
+      entityId: "del-2",
+      triggeredBy: {
+        type: "realtime",
+        id: "graphql-api",
+      },
+      triggeredAt: "2026-05-08T14:32:00.000Z",
+      idempotencyKey: "Deliverable Submitted:deliverable:del-2",
+      payload: {
+        to: "test@email.com",
+        id: "del-2",
+      },
+    });
+
+    expect(out).toBeDefined();
+    expect(out?.subject).toContain("Deliverable Submitted");
   });
 });

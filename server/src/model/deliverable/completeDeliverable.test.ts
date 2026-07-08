@@ -25,6 +25,11 @@ vi.mock("../deliverableAction/queries", () => ({
   insertDeliverableAction: vi.fn(),
 }));
 
+vi.mock("../../services/emailQueue", () => ({
+  buildRealtimeEmailEnvelope: vi.fn((input) => ({ ...input })),
+  enqueueRealtimeEmail: vi.fn(),
+}));
+
 import { prisma } from "../../prismaClient";
 import {
   editDeliverable,
@@ -33,6 +38,7 @@ import {
   validateUserPersonTypeAllowed,
 } from ".";
 import { insertDeliverableAction } from "../deliverableAction/queries";
+import { buildRealtimeEmailEnvelope, enqueueRealtimeEmail } from "../../services/emailQueue";
 
 describe("completeDeliverable", () => {
   // Test inputs
@@ -52,6 +58,10 @@ describe("completeDeliverable", () => {
   };
   const mockCompleteDeliverable: Partial<PrismaDeliverable> = {
     id: testDeliverableId,
+    name: "My Deliverable",
+    deliverableTypeId: "Close Out Report",
+    demonstrationId: "demo-1",
+    cmsOwnerUserId: "owner-1",
     statusId: "Approved",
     dueDate: new Date(2026, 9, 13, 4, 59, 59, 999),
   };
@@ -60,6 +70,12 @@ describe("completeDeliverable", () => {
   const mockTransaction: any = "Test!";
   const mockPrismaClient = {
     $transaction: vi.fn(),
+    user: {
+      findUniqueOrThrow: vi.fn(),
+    },
+    demonstration: {
+      findUniqueOrThrow: vi.fn(),
+    },
   };
 
   beforeEach(() => {
@@ -70,6 +86,16 @@ describe("completeDeliverable", () => {
     );
     vi.mocked(editDeliverable).mockResolvedValue(mockCompleteDeliverable as PrismaDeliverable);
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
+    mockPrismaClient.user.findUniqueOrThrow.mockResolvedValue({
+      person: {
+        email: "owner@example.com",
+      },
+    });
+    mockPrismaClient.demonstration.findUniqueOrThrow.mockResolvedValue({
+      id: "demo-1",
+      name: "Demo",
+      stateId: "CA",
+    });
   });
 
   it("should check that the user is allowed to do this operation", async () => {
@@ -167,5 +193,11 @@ describe("completeDeliverable", () => {
       },
       mockTransaction
     );
+  });
+
+  it("should enqueue realtime final-status email", async () => {
+    await completeDeliverable(testDeliverableId, "Approved", testContext as GraphQLContext);
+    expect(buildRealtimeEmailEnvelope).toHaveBeenCalledOnce();
+    expect(enqueueRealtimeEmail).toHaveBeenCalledOnce();
   });
 });
