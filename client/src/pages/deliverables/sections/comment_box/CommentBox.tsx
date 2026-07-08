@@ -44,6 +44,11 @@ export const CommentBox = ({ deliverableId }: { deliverableId: string }) => {
     commentVisibility
   );
 
+  const commentBoxBackground =
+    commentVisibility === "public"
+      ? "bg-white"
+      : "bg-gray-primary-layout";
+
   const handleAddComment = async (commentText: string) => {
     try {
       setIsSubmitting(true);
@@ -71,7 +76,7 @@ export const CommentBox = ({ deliverableId }: { deliverableId: string }) => {
 
   return (
     <div
-      className="flex flex-col gap-1 bg-gray-primary-layout p-1 min-w-87.5 max-w-87.5"
+      className={`flex flex-col gap-1 ${commentBoxBackground} p-1 min-w-87.5 max-w-87.5`}
       data-testid={COMMENT_BOX_NAME}
     >
       <CommentBoxHeader onCollapse={() => setIsCollapsed(true)} />
