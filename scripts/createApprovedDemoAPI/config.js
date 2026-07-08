@@ -1,5 +1,24 @@
 /* global process */
 
+function parseBooleanEnv(name, defaultValue = false) {
+  const rawValue = process.env[name];
+  if (rawValue === undefined) {
+    return defaultValue;
+  }
+
+  const value = rawValue.trim().toLowerCase();
+  if (["true", "1", "yes", "y", "on"].includes(value)) {
+    return true;
+  }
+  if (["false", "0", "no", "n", "off", ""].includes(value)) {
+    return false;
+  }
+
+  throw new Error(
+    `${name} must be one of true/false/1/0/yes/no/on/off. Received: ${rawValue}`
+  );
+}
+
 export const SEED_CONFIG = {
   fallbackDatabaseUrl: "postgresql://localhost:5432/demos?schema=demos_app",
   demoNameSuffix: "Generated Approved Demonstration",
@@ -17,6 +36,7 @@ export const SEED_CONFIG = {
   demoWindowYears: 5,
   processedUploadTimeoutMs: 30_000,
   processedUploadPollMs: 500,
+  databaseCreateFile: parseBooleanEnv("DATABASE_CREATE_FILE", false),
   projectOfficerUserId:
     process.env.APPROVED_DEMO_PROJECT_OFFICER_USER_ID ??
     "MAKE AN .env",

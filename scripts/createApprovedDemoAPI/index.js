@@ -3,9 +3,28 @@ import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 import { getLocalDatabaseUrl } from "../localDatabaseGuard.js";
 
-dotenv.config({ path: new URL("./.env", import.meta.url), quiet: true });
-dotenv.config({ path: new URL("../../server/.env", import.meta.url), quiet: true });
-dotenv.config({ quiet: true });
+const dotenvResult = dotenv.config({ path: new URL("./.env", import.meta.url), quiet: true });
+
+if (dotenvResult.error) {
+  throw new Error(
+    "Could not load scripts/createApprovedDemoAPI/.env. " +
+      "Create it from scripts/createApprovedDemoAPI/.env.example before running create:demo."
+  );
+}
+
+function assertRequiredEnvVar(name) {
+  const value = process.env[name];
+  if (!value || !value.trim()) {
+    throw new Error(
+      `Missing required environment variable ${name} in scripts/createApprovedDemoAPI/.env.`
+    );
+  }
+}
+
+assertRequiredEnvVar("UPLOAD_BUCKET");
+assertRequiredEnvVar("CLEAN_BUCKET");
+assertRequiredEnvVar("DELETED_BUCKET");
+assertRequiredEnvVar("S3_ENDPOINT_LOCAL");
 
 const { COMPLETED_PHASE_STATUS_ID, PERSON_TYPE_ID, SEED_CONFIG } = await import("./config.js");
 

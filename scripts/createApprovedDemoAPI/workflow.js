@@ -65,6 +65,9 @@ export async function createApprovedDemo({
 
   console.log(`Creating ${demoName}`);
   console.log(`Project officer id: ${projectOfficer.id}`);
+  console.log(
+    `Document create path: ${SEED_CONFIG.databaseCreateFile ? "database" : "api"}`
+  );
 
   const demonstration = await step("Creating demonstration", () =>
     api.createDemonstration({
