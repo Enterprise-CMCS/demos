@@ -20,12 +20,10 @@ const MockDialog = ({ onClose }: { onClose: () => void }) => (
 );
 
 // Patch DialogContext to use MockDialog for testing
-vi.mock("./demonstration/CreateDemonstrationDialog", () => ({
+vi.mock("./demonstration", () => ({
   CreateDemonstrationDialog: ({ onClose }: { onClose: () => void }) => (
     <MockDialog onClose={onClose} />
   ),
-}));
-vi.mock("./demonstration", () => ({
   EditDemonstrationDialog: ({
     demonstrationId,
     onClose,

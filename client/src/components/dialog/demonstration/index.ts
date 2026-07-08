@@ -1,2 +1,2 @@
-export { CreateDemonstrationDialog } from "./CreateDemonstrationDialog";
-export { EditDemonstrationDialog } from "./EditDemonstrationDialog";
+export { CreateDemonstrationDialog } from "./CreateDemonstration/CreateDemonstrationDialog";
+export { EditDemonstrationDialog } from "./EditDemonstration/EditDemonstrationDialog";

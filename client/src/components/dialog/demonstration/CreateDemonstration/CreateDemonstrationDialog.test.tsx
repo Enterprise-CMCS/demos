@@ -7,15 +7,13 @@ import { describe, expect, it, vi } from "vitest";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import {
-  CreateDemonstrationDialog,
-  CREATE_DEMONSTRATION_MUTATION,
-} from "./CreateDemonstrationDialog";
-import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
+import { CreateDemonstrationDialog } from "./CreateDemonstrationDialog";
 import {
   DEFAULT_DEMONSTRATION_SIGNATURE_LEVEL,
   DEMONSTRATION_DIALOG_DESCRIPTION_NAME,
-} from "./DemonstrationDialog";
+} from "./CreateDemonstrationForm";
+import { CREATE_DEMONSTRATION_MUTATION } from "./useCreateDemonstration";
+import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
 
 const DEFAULT_PROPS = {
   onClose: vi.fn(),

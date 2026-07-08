@@ -9,7 +9,7 @@ import {
   ReferenceAgreement,
   Document as ServerDocument,
 } from "demos-server";
-import { CreateDemonstrationDialog } from "./demonstration/CreateDemonstrationDialog";
+import { CreateDemonstrationDialog } from "./demonstration";
 import { CreateAmendmentDialog } from "./modification/CreateAmendmentDialog";
 import { CreateExtensionDialog } from "./modification/CreateExtensionDialog";
 import { EditDemonstrationDialog } from "./demonstration";

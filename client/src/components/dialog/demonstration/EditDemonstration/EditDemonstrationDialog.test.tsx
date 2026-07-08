@@ -1,4 +1,5 @@
 import React from "react";
+import { LocalDate } from "demos-server";
 
 import { GET_USER_SELECT_OPTIONS_QUERY } from "components/input/select/SelectUsers";
 import { TestProvider } from "test-utils/TestProvider";
@@ -6,28 +7,17 @@ import { describe, expect, it, vi } from "vitest";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
+import { EditDemonstrationDialog } from "./EditDemonstrationDialog";
 import {
-  EditDemonstrationDialog,
-  GET_DEMONSTRATION_BY_ID_QUERY,
-  UPDATE_DEMONSTRATION_MUTATION,
+  DEMONSTRATION_DIALOG_DESCRIPTION_NAME,
   getUpdateDemonstrationInput,
-} from "./EditDemonstrationDialog";
+} from "./EditDemonstrationForm";
+import { EDIT_DEMONSTRATION_DIALOG_QUERY as GET_DEMONSTRATION_BY_ID_QUERY } from "./useEditDemonstrationDialogData";
+import { UPDATE_DEMONSTRATION_MUTATION } from "./useUpdateDemonstration";
 import { DIALOG_CANCEL_BUTTON_NAME } from "components/dialog/BaseDialog";
-import { DEMONSTRATION_DIALOG_DESCRIPTION_NAME } from "./DemonstrationDialog";
-
-const DEFAULT_DEMONSTRATION = {
-  name: "",
-  effectiveDate: "",
-  expirationDate: "",
-  description: "",
-  stateId: "",
-  projectOfficerId: "",
-};
 
 const DEFAULT_PROPS = {
   onClose: vi.fn(),
-  onSubmit: vi.fn(),
-  initialDemonstration: DEFAULT_DEMONSTRATION,
 };
 
 const SUBMIT_BUTTON_TEST_ID = "button-submit-demonstration-dialog";
@@ -65,6 +55,7 @@ describe("EditDemonstrationDialog", () => {
           description: "Test demonstration description",
           sdgDivision: "Division of System Reform Demonstrations",
           signatureLevel: "OA",
+          status: "Approved",
           state: {
             id: "test-state-id",
           },
@@ -257,13 +248,15 @@ describe("EditDemonstrationDialog", () => {
 });
 
 describe("getUpdateDemonstrationInput", () => {
+  const asLocalDate = (value: string) => value as LocalDate;
+
   const BASE_DEMONSTRATION = {
     name: "My Demo",
     description: "A description",
     stateId: "AL",
-    projectOfficerId: "officer-1",
-    effectiveDate: "",
-    expirationDate: "",
+    projectOfficerUserId: "officer-1",
+    effectiveDate: undefined,
+    expirationDate: undefined,
   };
 
   it("maps name, stateId, and projectOfficerId as-is", () => {
@@ -275,8 +268,8 @@ describe("getUpdateDemonstrationInput", () => {
   it("passes through effectiveDate and expirationDate as-is", () => {
     const result = getUpdateDemonstrationInput({
       ...BASE_DEMONSTRATION,
-      effectiveDate: "2024-06-01",
-      expirationDate: "2025-06-01",
+      effectiveDate: asLocalDate("2024-06-01"),
+      expirationDate: asLocalDate("2025-06-01"),
     });
     expect(result.effectiveDate).toBe("2024-06-01");
     expect(result.expirationDate).toBe("2025-06-01");
@@ -285,8 +278,8 @@ describe("getUpdateDemonstrationInput", () => {
   it("passes null for effectiveDate and expirationDate when empty", () => {
     const result = getUpdateDemonstrationInput({
       ...BASE_DEMONSTRATION,
-      effectiveDate: "",
-      expirationDate: "",
+      effectiveDate: undefined,
+      expirationDate: undefined,
     });
     expect(result.effectiveDate).toBeNull();
     expect(result.expirationDate).toBeNull();
