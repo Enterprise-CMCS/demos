@@ -86,10 +86,22 @@ function makeContext() {
 
 function makeApprovedDemoApi(context) {
   return {
-    getState: (id) =>
-      db.state.findUniqueOrThrow({
-        where: { id },
-        select: { id: true, name: true },
+    getProjectOfficerStates: (projectOfficerUserId) =>
+      db.state.findMany({
+        where: {
+          personStates: {
+            some: {
+              personId: projectOfficerUserId,
+            },
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+        orderBy: {
+          id: "asc",
+        },
       }),
 
     createDemonstration: (input) =>
@@ -141,18 +153,6 @@ function makeApprovedDemoApi(context) {
 
     documentExists: (documentId) =>
       documentResolvers.Query.documentExists(null, { documentId }, context),
-
-    processUploadedDocument: async (documentId, applicationId) => {
-      const rows = await db.$queryRawUnsafe(
-        "SELECT demos_app.move_document_from_pending_to_clean($1::UUID, $2::TEXT) AS document_type_id;",
-        documentId,
-        `${applicationId}/${documentId}`
-      );
-      const documentTypeId = rows[0]?.document_type_id;
-      if (!documentTypeId) {
-        throw new Error(`No document type returned while processing ${documentId}.`);
-      }
-    },
 
     getDemonstration: async (id) => {
       const demonstration = await demonstrationResolvers.Query.demonstration(

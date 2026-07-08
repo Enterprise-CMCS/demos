@@ -15,35 +15,13 @@ process.emitWarning = (warning, ...args) => {
   return originalEmitWarning(warning, ...args);
 };
 
-function parseBooleanEnv(name, defaultValue = false) {
-  const rawValue = process.env[name];
-  if (rawValue === undefined) {
-    return defaultValue;
-  }
-
-  const value = rawValue.trim().toLowerCase();
-  if (["true", "1", "yes", "y", "on"].includes(value)) {
-    return true;
-  }
-  if (["false", "0", "no", "n", "off", ""].includes(value)) {
-    return false;
-  }
-
-  throw new Error(
-    `${name} must be one of true/false/1/0/yes/no/on/off. Received: ${rawValue}`
-  );
-}
-
 export const SEED_CONFIG = {
   fallbackDatabaseUrl: "postgresql://localhost:5432/demos?schema=demos_app",
   demoNameSuffix: "Generated Approved Demonstration",
   demoDescription: "Approved demonstration created by createApprovedDemoAPI.",
-  stateId: process.env.APPROVED_DEMO_STATE_ID ?? "MD",
   sdgDivisionId:
     process.env.APPROVED_DEMO_SDG_DIVISION ??
     "Division of System Reform Demonstrations",
-  demonstrationType:
-    process.env.APPROVED_DEMO_TYPE ?? "Serious Mental Illness (SMI)",
   documentPath:
     process.env.APPROVED_DEMO_DOCUMENT_PATH ??
     "/workspaces/demos/junk_drawer/DEMOS DOCS/AAA_nothing_doc.pdf",
@@ -51,7 +29,6 @@ export const SEED_CONFIG = {
   demoWindowYears: 5,
   processedUploadTimeoutMs: 30_000,
   processedUploadPollMs: 500,
-  databaseCreateFile: parseBooleanEnv("DATABASE_CREATE_FILE", false),
   projectOfficerUserId:
     process.env.APPROVED_DEMO_PROJECT_OFFICER_USER_ID ??
     "MAKE AN .env",
@@ -60,6 +37,13 @@ export const SEED_CONFIG = {
 export const EXPECTED_FINAL_STATUS_ID = "Approved";
 export const COMPLETED_PHASE_STATUS_ID = "Completed";
 export const PERSON_TYPE_ID = "demos-cms-user";
+export const RANDOMIZED_HEALTH_FOCUS_TYPES = [
+  "Health-Related Social Needs (HRSN)",
+  "Substance Use Disorder (SUD)",
+  "Dental",
+  "Serious Mental Illness (SMI)",
+  "Special Needs",
+];
 
 export const APPLICATION_DATE_OFFSETS_FROM_EFFECTIVE_DATE = [
   ["Concept Paper Submitted Date", 100],

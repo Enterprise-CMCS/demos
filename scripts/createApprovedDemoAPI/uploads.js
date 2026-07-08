@@ -20,9 +20,7 @@ async function waitForProcessedDocument({
   documentExists,
   documentId,
   documentType,
-  usedDatabaseCreateFile,
 }) {
-  console.log("waitForProcessedDocument for " + documentType);
   const startedAt = Date.now();
   while (true) {
     if (await documentExists(documentId)) {
@@ -30,11 +28,9 @@ async function waitForProcessedDocument({
     }
 
     if (Date.now() - startedAt >= SEED_CONFIG.processedUploadTimeoutMs) {
-      const guidance = usedDatabaseCreateFile
-        ? ""
-        : " Ensure the fileprocess pipeline is running, or set DATABASE_CREATE_FILE=true to use the direct database finalize path.";
       throw new Error(
-        `Timed out waiting for uploaded ${documentType} document ${documentId} to be processed.${guidance}`
+        `Timed out waiting for uploaded ${documentType} document ${documentId} to be processed. ` +
+          "Ensure the fileprocess pipeline is running."
       );
     }
     await wait(SEED_CONFIG.processedUploadPollMs);
@@ -76,19 +72,12 @@ async function uploadPhaseDocument({
     phaseName,
   });
 
-  const usedDatabaseCreateFile = SEED_CONFIG.databaseCreateFile;
-
   await putPdfToPresignedUrl(pendingUpload.presignedUploadUrl, documentType, pdfBytes);
-
-  if (usedDatabaseCreateFile) {
-    await api.processUploadedDocument(pendingUpload.id, applicationId);
-  }
 
   await waitForProcessedDocument({
     documentExists: api.documentExists,
     documentId: pendingUpload.id,
     documentType,
-    usedDatabaseCreateFile,
   });
   return pendingUpload;
 }

@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import {
   COMPLETED_PHASE_STATUS_ID,
   EXPECTED_FINAL_STATUS_ID,
+  RANDOMIZED_HEALTH_FOCUS_TYPES,
   SEED_CONFIG,
 } from "./config.js";
 import {
@@ -27,6 +28,15 @@ function getConfiguredProjectOfficer() {
 
 function buildDemoName(stateName) {
   return `${stateName} ${SEED_CONFIG.demoNameSuffix} ${randomUUID().slice(0, 8)}`;
+}
+
+function pickRandomOrThrow(values, label) {
+  if (!values.length) {
+    throw new Error(`No values available to pick ${label}.`);
+  }
+
+  const index = Math.floor(Math.random() * values.length); // NOSONAR
+  return values[index];
 }
 
 async function setApplicationDates(api, applicationId, applicationDates) {
@@ -55,25 +65,31 @@ export async function createApprovedDemo({
   api,
   approvalPackagePhaseDocuments,
 }) {
+  const projectOfficer = getConfiguredProjectOfficer();
+  const stateOptions = await step("Loading project officer states", () =>
+    api.getProjectOfficerStates(projectOfficer.id)
+  );
+  const state = pickRandomOrThrow(stateOptions, "state");
+  const demonstrationType = pickRandomOrThrow(
+    RANDOMIZED_HEALTH_FOCUS_TYPES,
+    "demonstration type"
+  );
+
   const pdfBytes = await step("Reading upload PDF", readUploadPdf);
   const demoWindow = buildDemonstrationWindow();
   const applicationDates = buildApplicationDates(demoWindow.effectiveDate);
-  const state = await step("Loading state", () => api.getState(SEED_CONFIG.stateId));
   const demoName = buildDemoName(state.name);
-
-  const projectOfficer = getConfiguredProjectOfficer();
 
   console.log(`Creating ${demoName}`);
   console.log(`Project officer id: ${projectOfficer.id}`);
-  console.log(
-    `Document create path: ${SEED_CONFIG.databaseCreateFile ? "database" : "api"}`
-  );
+  console.log(`Randomized state: ${state.name} (${state.id})`);
+  console.log(`Randomized demonstration type: ${demonstrationType}`);
 
   const demonstration = await step("Creating demonstration", () =>
     api.createDemonstration({
       name: demoName,
       description: SEED_CONFIG.demoDescription,
-      stateId: SEED_CONFIG.stateId,
+      stateId: state.id,
       projectOfficerUserId: projectOfficer.id,
       sdgDivision: SEED_CONFIG.sdgDivisionId,
     })
@@ -91,7 +107,7 @@ export async function createApprovedDemo({
       demonstrationId: demonstration.id,
       demonstrationTypes: [
         {
-          demonstrationTypeName: SEED_CONFIG.demonstrationType,
+          demonstrationTypeName: demonstrationType,
           demonstrationTypeDates: {
             effectiveDate: demoWindow.effectiveDate,
             expirationDate: demoWindow.expirationDate,
