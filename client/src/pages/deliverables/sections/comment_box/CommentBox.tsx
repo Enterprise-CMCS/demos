@@ -46,7 +46,7 @@ export const CommentBox = ({ deliverableId }: { deliverableId: string }) => {
 
   const commentBoxBackground =
     commentVisibility === "public"
-      ? "bg-white"
+      ? "bg-white-primary-layout border border-gray-light"
       : "bg-gray-primary-layout";
 
   const handleAddComment = async (commentText: string) => {
