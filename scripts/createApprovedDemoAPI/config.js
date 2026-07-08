@@ -17,6 +17,10 @@ process.emitWarning = (warning, ...args) => {
 
 export const SEED_CONFIG = {
   fallbackDatabaseUrl: "postgresql://localhost:5432/demos?schema=demos_app",
+  graphqlEndpoint:
+    process.env.APPROVED_DEMO_GRAPHQL_ENDPOINT ?? "http://localhost:4000/graphql",
+  graphqlCookieHeader: process.env.APPROVED_DEMO_GRAPHQL_COOKIE,
+  graphqlIdToken: process.env.APPROVED_DEMO_ID_TOKEN,
   demoNameSuffix: "Generated Approved Demonstration",
   demoDescription: "Approved demonstration created by createApprovedDemoAPI.",
   sdgDivisionId:
@@ -37,6 +41,14 @@ export const SEED_CONFIG = {
 export const EXPECTED_FINAL_STATUS_ID = "Approved";
 export const COMPLETED_PHASE_STATUS_ID = "Completed";
 export const PERSON_TYPE_ID = "demos-cms-user";
+export const APPROVAL_PACKAGE_PHASE_DOCUMENTS = [
+  "Approval Letter",
+  "Final Budget Neutrality Formulation Workbook",
+  "Formal OMB Policy Concurrence Email",
+  "Special Terms & Conditions",
+  "Q&A",
+  "Signed Decision Memo",
+];
 export const RANDOMIZED_HEALTH_FOCUS_TYPES = [
   "Health-Related Social Needs (HRSN)",
   "Substance Use Disorder (SUD)",

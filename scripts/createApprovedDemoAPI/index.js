@@ -1,6 +1,5 @@
-import { createRequire } from "node:module";
-import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
+import { Pool } from "pg";
 import { getLocalDatabaseUrl } from "../localDatabaseGuard.js";
 
 const dotenvResult = dotenv.config({ path: new URL("./.env", import.meta.url), quiet: true });
@@ -25,45 +24,99 @@ assertRequiredEnvVar("UPLOAD_BUCKET");
 assertRequiredEnvVar("CLEAN_BUCKET");
 assertRequiredEnvVar("DELETED_BUCKET");
 assertRequiredEnvVar("S3_ENDPOINT_LOCAL");
+assertRequiredEnvVar("APPROVED_DEMO_GRAPHQL_ENDPOINT");
 
-const { COMPLETED_PHASE_STATUS_ID, PERSON_TYPE_ID, SEED_CONFIG } = await import("./config.js");
-
-process.env.DATABASE_URL = getLocalDatabaseUrl(SEED_CONFIG.fallbackDatabaseUrl);
-
-const serverPackageJsonUrl = new URL("../../server/package.json", import.meta.url);
-const serverRequire = createRequire(serverPackageJsonUrl);
-const { require: tsxRequire } = serverRequire("tsx/cjs/api");
-const requireServerTs = (specifier) =>
-  tsxRequire(
-    fileURLToPath(new URL(`../../server/src/${specifier}`, import.meta.url)),
-    import.meta.url
+if (
+  !process.env.APPROVED_DEMO_GRAPHQL_COOKIE?.trim() &&
+  !process.env.APPROVED_DEMO_ID_TOKEN?.trim()
+) {
+  throw new Error(
+    "Set APPROVED_DEMO_GRAPHQL_COOKIE or APPROVED_DEMO_ID_TOKEN in scripts/createApprovedDemoAPI/.env for API authentication."
   );
+}
 
-const { APPROVAL_PACKAGE_PHASE_DOCUMENTS } = requireServerTs("constants.ts");
-const { prisma } = requireServerTs("prismaClient.ts");
-const { demonstrationResolvers } = requireServerTs(
-  "model/demonstration/demonstrationResolvers.ts"
-);
-const { applicationDateResolvers } = requireServerTs(
-  "model/applicationDate/applicationDateResolvers.ts"
-);
-const { applicationPhaseResolvers } = requireServerTs(
-  "model/applicationPhase/applicationPhaseResolvers.ts"
-);
-const { demonstrationTypeTagAssignmentResolvers } = requireServerTs(
-  "model/demonstrationTypeTagAssignment/demonstrationTypeTagAssignmentResolvers.ts"
-);
-const { documentPendingUploadResolvers } = requireServerTs(
-  "model/documentPendingUpload/documentPendingUploadResolvers.ts"
-);
-const { documentResolvers } = requireServerTs("model/document/documentResolvers.ts");
+const {
+  APPROVAL_PACKAGE_PHASE_DOCUMENTS,
+  COMPLETED_PHASE_STATUS_ID,
+  SEED_CONFIG,
+} = await import("./config.js");
 
-const { createApprovedDemo } = await import("./workflow.js");
-const db = prisma();
+const databaseUrl = getLocalDatabaseUrl(SEED_CONFIG.fallbackDatabaseUrl);
+process.env.DATABASE_URL = databaseUrl;
 
 function toMessage(error) {
   return error instanceof Error ? error.message : String(error);
 }
+
+function assertSafeSqlIdentifier(identifier, label) {
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(identifier)) {
+    throw new Error(`Invalid ${label} SQL identifier: ${identifier}`);
+  }
+}
+
+function resolveSchemaFromDatabaseUrl(url) {
+  try {
+    const parsed = new URL(url);
+    return parsed.searchParams.get("schema") ?? "public";
+  } catch (error) {
+    throw new Error(`Invalid DATABASE_URL: ${toMessage(error)}`);
+  }
+}
+
+function makeDatabaseAdapter() {
+  const schema = resolveSchemaFromDatabaseUrl(databaseUrl);
+  assertSafeSqlIdentifier(schema, "schema");
+  const schemaPrefix = `"${schema}"`;
+
+  const pool = new Pool({
+    connectionString: databaseUrl,
+    ssl: false,
+  });
+
+  return {
+    async getProjectOfficerStates(projectOfficerUserId) {
+      const result = await pool.query(
+        `
+          SELECT s.id, s.name
+          FROM ${schemaPrefix}.state s
+          INNER JOIN ${schemaPrefix}.person_state ps ON ps.state_id = s.id
+          WHERE ps.person_id = $1
+          ORDER BY s.id ASC
+        `,
+        [projectOfficerUserId]
+      );
+
+      return result.rows.map((row) => ({ id: row.id, name: row.name }));
+    },
+
+    async completeFederalComment(applicationId) {
+      const result = await pool.query(
+        `
+          UPDATE ${schemaPrefix}.application_phase
+          SET phase_status_id = $2
+          WHERE application_id = $1 AND phase_id = 'Federal Comment'
+          RETURNING phase_status_id
+        `,
+        [applicationId, COMPLETED_PHASE_STATUS_ID]
+      );
+
+      if (!result.rows[0]) {
+        throw new Error(
+          `Could not update Federal Comment phase for application ${applicationId}.`
+        );
+      }
+
+      return { phaseStatusId: result.rows[0].phase_status_id };
+    },
+
+    async disconnect() {
+      await pool.end();
+    },
+  };
+}
+
+const { createApprovedDemo } = await import("./workflow.js");
+const db = makeDatabaseAdapter();
 
 async function step(label, action) {
   try {
@@ -73,109 +126,172 @@ async function step(label, action) {
   }
 }
 
-function makeContext() {
-  return {
-    user: {
-      id: SEED_CONFIG.projectOfficerUserId.trim(),
-      cognitoSubject: "create-approved-demo-script",
-      personTypeId: PERSON_TYPE_ID,
-      permissions: ["View All Demonstrations", "View All Documents"],
-    },
-  };
-}
+function makeApprovedDemoApi() {
+  const buildHeaders = () => {
+    const headers = {
+      "content-type": "application/json",
+    };
 
-function makeApprovedDemoApi(context) {
+    if (SEED_CONFIG.graphqlCookieHeader?.trim()) {
+      headers.cookie = SEED_CONFIG.graphqlCookieHeader.trim();
+    }
+    if (SEED_CONFIG.graphqlIdToken?.trim()) {
+      const token = SEED_CONFIG.graphqlIdToken.trim();
+      headers.cookie = headers.cookie ? `${headers.cookie}; id_token=${token}` : `id_token=${token}`;
+    }
+
+    return headers;
+  };
+
+  const gql = async (query, variables = {}) => {
+    const response = await fetch(SEED_CONFIG.graphqlEndpoint, {
+      method: "POST",
+      headers: buildHeaders(),
+      body: JSON.stringify({ query, variables }),
+    });
+
+    const payload = await response.json().catch(() => null);
+    if (!response.ok || payload?.errors?.length) {
+      const details = payload?.errors?.map((error) => error.message).join("; ");
+      throw new Error(
+        `GraphQL request failed (${response.status}). ${details ?? "No error details returned."}`
+      );
+    }
+
+    return payload.data;
+  };
+
   return {
     getProjectOfficerStates: (projectOfficerUserId) =>
-      db.state.findMany({
-        where: {
-          personStates: {
-            some: {
-              personId: projectOfficerUserId,
-            },
-          },
-        },
-        select: {
-          id: true,
-          name: true,
-        },
-        orderBy: {
-          id: "asc",
-        },
-      }),
+      db.getProjectOfficerStates(projectOfficerUserId),
 
-    createDemonstration: (input) =>
-      demonstrationResolvers.Mutation.createDemonstration(null, { input }),
-
-    updateDemonstration: (id, input) =>
-      demonstrationResolvers.Mutation.updateDemonstration(null, { id, input }),
-
-    setDemonstrationTypes: (input) =>
-      demonstrationTypeTagAssignmentResolvers.Mutation.setDemonstrationTypes(null, { input }),
-
-    setApplicationDates: (input) =>
-      applicationDateResolvers.Mutation.setApplicationDates(null, { input }),
-
-    completePhase: (input) =>
-      applicationPhaseResolvers.Mutation.completePhase(null, { input }),
-
-    completeFederalComment: (applicationId) =>
-      db.applicationPhase.update({
-        where: {
-          applicationId_phaseId: {
-            applicationId,
-            phaseId: "Federal Comment",
-          },
-        },
-        data: {
-          phaseStatusId: COMPLETED_PHASE_STATUS_ID,
-        },
-        select: {
-          phaseStatusId: true,
-        },
-      }),
-
-    uploadDocumentToPhase: async (input) => {
-      const pendingUpload =
-        await documentPendingUploadResolvers.Mutation.uploadDocumentToPhase(
-          null,
-          { input },
-          context
-        );
-
-      const presignedUploadUrl =
-        await documentPendingUploadResolvers.DocumentPendingUpload.presignedUploadUrl(
-          pendingUpload
-        );
-
-      return { ...pendingUpload, presignedUploadUrl };
+    createDemonstration: async (input) => {
+      const data = await gql(
+        `mutation CreateDemonstration($input: CreateDemonstrationInput!) {
+          createDemonstration(input: $input) {
+            id
+          }
+        }`,
+        { input }
+      );
+      return data.createDemonstration;
     },
 
-    documentExists: (documentId) =>
-      documentResolvers.Query.documentExists(null, { documentId }, context),
+    updateDemonstration: async (id, input) => {
+      const data = await gql(
+        `mutation UpdateDemonstration($id: ID!, $input: UpdateDemonstrationInput!) {
+          updateDemonstration(id: $id, input: $input) {
+            id
+          }
+        }`,
+        { id, input }
+      );
+      return data.updateDemonstration;
+    },
+
+    setDemonstrationTypes: async (input) => {
+      const data = await gql(
+        `mutation SetDemonstrationTypes($input: SetDemonstrationTypesInput!) {
+          setDemonstrationTypes(input: $input) {
+            id
+          }
+        }`,
+        { input }
+      );
+      return data.setDemonstrationTypes;
+    },
+
+    setApplicationDates: async (input) => {
+      const data = await gql(
+        `mutation SetApplicationDates($input: SetApplicationDatesInput!) {
+          setApplicationDates(input: $input) {
+            ... on Demonstration {
+              id
+            }
+            ... on Amendment {
+              id
+            }
+            ... on Extension {
+              id
+            }
+          }
+        }`,
+        { input }
+      );
+      return data.setApplicationDates;
+    },
+
+    completePhase: async (input) => {
+      const data = await gql(
+        `mutation CompletePhase($input: CompletePhaseInput!) {
+          completePhase(input: $input) {
+            ... on Demonstration {
+              id
+            }
+            ... on Amendment {
+              id
+            }
+            ... on Extension {
+              id
+            }
+          }
+        }`,
+        { input }
+      );
+      return data.completePhase;
+    },
+
+    completeFederalComment: (applicationId) =>
+      db.completeFederalComment(applicationId),
+
+    uploadDocumentToPhase: async (input) => {
+      const data = await gql(
+        `mutation UploadDocumentToPhase($input: UploadDocumentToPhaseInput!) {
+          uploadDocumentToPhase(input: $input) {
+            id
+            presignedUploadUrl
+          }
+        }`,
+        { input }
+      );
+
+      return data.uploadDocumentToPhase;
+    },
+
+    documentExists: async (documentId) => {
+      const data = await gql(
+        `query DocumentExists($documentId: ID!) {
+          documentExists(documentId: $documentId)
+        }`,
+        { documentId }
+      );
+      return data.documentExists;
+    },
 
     getDemonstration: async (id) => {
-      const demonstration = await demonstrationResolvers.Query.demonstration(
-        null,
-        { id },
-        context
+      const data = await gql(
+        `query DemonstrationForScript($id: ID!) {
+          demonstration(id: $id) {
+            id
+            name
+            status
+            currentPhaseName
+            sdgDivision
+            state {
+              id
+              name
+            }
+            documents {
+              id
+            }
+            demonstrationTypes {
+              demonstrationTypeName
+            }
+          }
+        }`,
+        { id }
       );
-      const [state, documents, demonstrationTypes] = await Promise.all([
-        demonstrationResolvers.Demonstration.state(demonstration),
-        demonstrationResolvers.Demonstration.documents(demonstration, null, context),
-        demonstrationResolvers.Demonstration.demonstrationTypes(demonstration),
-      ]);
-
-      return {
-        ...demonstration,
-        state,
-        documents,
-        demonstrationTypes,
-        currentPhaseName:
-          demonstrationResolvers.Demonstration.currentPhaseName(demonstration),
-        sdgDivision: demonstrationResolvers.Demonstration.sdgDivision(demonstration),
-        status: demonstrationResolvers.Demonstration.status(demonstration),
-      };
+      return data.demonstration;
     },
   };
 }
@@ -183,9 +299,9 @@ function makeApprovedDemoApi(context) {
 try {
   await createApprovedDemo({
     step,
-    api: makeApprovedDemoApi(makeContext()),
+    api: makeApprovedDemoApi(),
     approvalPackagePhaseDocuments: APPROVAL_PACKAGE_PHASE_DOCUMENTS,
   });
 } finally {
-  await db.$disconnect();
+  await db.disconnect();
 }

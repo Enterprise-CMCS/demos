@@ -1,9 +1,13 @@
 {
   "type": "module",
   "dependencies": {
-    "dotenv": "^17.4.2"
+    "dotenv": "^17.4.2",
+    "pg": "^8.16.3"
   },
   "scripts": {
-    "create:demo": "node createApprovedDemoAPI/index"
+    "create:demo": "node createApprovedDemoAPI/index",
+    "create:demo:set-auth": "node createApprovedDemoAPI/setGraphqlAuth.js",
+    "create:demo:with-cookie-file": "node createApprovedDemoAPI/setGraphqlAuth.js --cookie-file \"$APPROVED_DEMO_COOKIE_FILE\" && node createApprovedDemoAPI/index",
+    "create:demo:with-id-token": "node createApprovedDemoAPI/setGraphqlAuth.js --id-token \"$APPROVED_DEMO_ID_TOKEN_INPUT\" && node createApprovedDemoAPI/index"
   }
 }
