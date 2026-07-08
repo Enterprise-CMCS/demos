@@ -5,6 +5,7 @@ model ApplicationDateHistory {
   applicationId String       @map("application_id") @db.Uuid
   dateTypeId    String       @map("date_type_id")
   dateValue     DateTime     @map("date_value") @db.Timestamptz
+  plainDate     String       @map("plain_date")
   createdAt     DateTime     @map("created_at") @db.Timestamptz
   updatedAt     DateTime     @map("updated_at") @db.Timestamptz
 
