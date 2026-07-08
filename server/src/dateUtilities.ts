@@ -32,6 +32,14 @@ export function formatEasternTZDateToMMDDYYYY(input: EasternTZDate): string {
   });
 }
 
+export function formatEasternTZDateToISODate(input: EasternTZDate): string {
+  const d = input.easternTZDate;
+  const year = d.getFullYear().toString().padStart(4, "0");
+  const month = (d.getMonth() + 1).toString().padStart(2, "0");
+  const day = d.getDate().toString().padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export function parseJSDateToEasternTZDate(input: Date): EasternTZDate {
   return { isEasternTZDate: true, easternTZDate: new TZDate(input, "America/New_York") };
 }

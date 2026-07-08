@@ -207,6 +207,7 @@ BEGIN
             application_id,
             date_type_id,
             date_value,
+            plain_date,
             created_at,
             updated_at
         )
@@ -214,6 +215,7 @@ BEGIN
         NEW.id,
         'Concept Start Date',
         timezone('America/New_York', date_trunc('day', timezone('America/New_York', CURRENT_TIMESTAMP))),
+        to_char(CURRENT_TIMESTAMP AT TIME ZONE 'America/New_York', 'YYYY-MM-DD'),
         CURRENT_TIMESTAMP,
         CURRENT_TIMESTAMP
     );
@@ -762,12 +764,20 @@ BEGIN
                 phase_id = 'SDG Preparation';
 
             INSERT INTO
-                demos_app.application_date
+                demos_app.application_date (
+                    application_id,
+                    date_type_id,
+                    date_value,
+                    plain_date,
+                    created_at,
+                    updated_at
+                )
             VALUES
                 (
                     phase_status_record.application_id,
                     'SDG Preparation Start Date',
                     timezone('America/New_York', date_trunc('day', timezone('America/New_York', CURRENT_TIMESTAMP))),
+                    to_char(CURRENT_TIMESTAMP AT TIME ZONE 'America/New_York', 'YYYY-MM-DD'),
                     CURRENT_TIMESTAMP,
                     CURRENT_TIMESTAMP
                 );

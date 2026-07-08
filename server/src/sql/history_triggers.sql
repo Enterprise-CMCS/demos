@@ -176,6 +176,7 @@ BEGIN
             application_id,
             date_type_id,
             date_value,
+            plain_date,
             created_at,
             updated_at
         )
@@ -187,6 +188,7 @@ BEGIN
             NEW.application_id,
             NEW.date_type_id,
             NEW.date_value,
+            NEW.plain_date,
             NEW.created_at,
             NEW.updated_at
         );
@@ -197,6 +199,7 @@ BEGIN
             application_id,
             date_type_id,
             date_value,
+            plain_date,
             created_at,
             updated_at
         )
@@ -205,6 +208,7 @@ BEGIN
             OLD.application_id,
             OLD.date_type_id,
             OLD.date_value,
+            OLD.plain_date,
             OLD.created_at,
             OLD.updated_at
         );
