@@ -1,4 +1,3 @@
-import { CREATE_DEMONSTRATION_MUTATION } from "components/dialog/demonstration/CreateDemonstrationDialog";
 import {
   GET_DEMONSTRATION_BY_ID_QUERY,
   UPDATE_DEMONSTRATION_MUTATION,
@@ -28,10 +27,18 @@ import {
 } from "./DemonstrationTypeAssignmentMocks";
 import { ADD_DEMONSTRATION_TYPES_FORM_QUERY } from "components/dialog/DemonstrationTypes/AddDemonstrationTypesForm";
 import { DEMONSTRATION_HEADER_DETAILS_QUERY } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
+import { CREATE_DEMONSTRATION_MUTATION } from "components/dialog/demonstration/useCreateDemonstration";
 
 export type MockDemonstration = Pick<
   Demonstration,
-  "id" | "name" | "description" | "sdgDivision" | "signatureLevel" | "currentPhaseName" | "medicaidId" | "chipId"
+  | "id"
+  | "name"
+  | "description"
+  | "sdgDivision"
+  | "signatureLevel"
+  | "currentPhaseName"
+  | "medicaidId"
+  | "chipId"
 > & {
   effectiveDate: Date;
   expirationDate: Date;

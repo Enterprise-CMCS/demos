@@ -77,44 +77,7 @@ const SubmitButton = ({
   );
 };
 
-const DateInputs: React.FC<{
-  isApproved: boolean;
-  effectiveDate: string;
-  expirationDate: string;
-  setEffectiveDate: (date: string) => void;
-  setExpirationDate: (date: string) => void;
-}> = ({ isApproved, effectiveDate, expirationDate, setEffectiveDate, setExpirationDate }) => (
-  <>
-    <div className="flex flex-col gap-xs">
-      <DatePicker
-        isRequired={isApproved}
-        name="datepicker-effective-date"
-        label="Effective Date"
-        value={effectiveDate}
-        onChange={(newDate) => setEffectiveDate(newDate)}
-        getValidationMessage={() =>
-          isApproved && !effectiveDate ? getRequiredFieldWhenApprovedMessage("Effective Date") : ""
-        }
-      />
-    </div>
-    <div className="flex flex-col gap-xs">
-      <DatePicker
-        isRequired={isApproved}
-        name="datepicker-expiration-date"
-        label="Expiration Date"
-        value={expirationDate}
-        onChange={(newDate) => setExpirationDate(newDate)}
-        getValidationMessage={() =>
-          isApproved && !expirationDate
-            ? getRequiredFieldWhenApprovedMessage("Expiration Date")
-            : expirationDate && effectiveDate && isBefore(expirationDate, effectiveDate)
-              ? EXPIRATION_DATE_ERROR_MESSAGE
-              : ""
-        }
-      />
-    </div>
-  </>
-);
+
 
 export const checkFormHasChanges = (
   initialDemonstration: DemonstrationDialogFields,
