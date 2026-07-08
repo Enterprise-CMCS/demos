@@ -22,7 +22,7 @@ async function waitForProcessedDocument({
   documentType,
   usedDatabaseCreateFile,
 }) {
-  console.log('working');
+  console.log("waitForProcessedDocument for " + documentType);
   const startedAt = Date.now();
   while (true) {
     if (await documentExists(documentId)) {
