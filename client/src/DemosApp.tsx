@@ -1,6 +1,6 @@
 import React from "react";
-import { DemosRouter } from "router/DemosRouter";
+import { DemosBootstrap } from "router/DemosBootstrap";
 
 export const DemosApp: React.FC = () => {
-  return <DemosRouter />;
+  return <DemosBootstrap />;
 };

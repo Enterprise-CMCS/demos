@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "components/button";
-import { Spinner } from "components/loading/Spinner";
+import { Spinner } from "components/loading";
 
 interface UploadButtonProps {
   onClick: () => void;
