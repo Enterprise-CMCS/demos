@@ -22,6 +22,7 @@ async function waitForProcessedDocument({
   documentType,
 }) {
   const startedAt = Date.now();
+  console.log("Processing upload for " + documentType);
   while (true) {
     if (await documentExists(documentId)) {
       return;
