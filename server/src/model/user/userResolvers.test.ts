@@ -23,6 +23,7 @@ vi.mock("../document", () => ({
 
 vi.mock("./queries", () => ({
   selectUserOrThrow: vi.fn(),
+  selectManyUsers: vi.fn(),
 }));
 
 vi.mock("../person/queries", () => ({
@@ -35,7 +36,7 @@ vi.mock("../userSession/queries", () => ({
 
 import { selectManySystemRoleAssignments } from "../systemRoleAssignment";
 import { getManyDocuments } from "../document";
-import { selectUserOrThrow } from "./queries";
+import { selectManyUsers, selectUserOrThrow } from "./queries";
 import { selectPersonOrThrow } from "../person/queries";
 import { selectLastLoginForUser } from "../userSession/queries";
 
@@ -58,6 +59,13 @@ describe("userResolvers", () => {
       } as PrismaUser;
       await userResolvers.Query.currentUser(mockUser, undefined, mockContext);
       expect(selectUserOrThrow).toHaveBeenCalledExactlyOnceWith({ id: "abc123" });
+    });
+  });
+
+  describe("Query.users", () => {
+    it("delegates to `userData/queries.selectManyUsers`", async () => {
+      await userResolvers.Query.users();
+      expect(selectManyUsers).toHaveBeenCalledExactlyOnceWith({});
     });
   });
 
