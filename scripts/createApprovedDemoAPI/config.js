@@ -1,4 +1,19 @@
-/* global process */
+/**
+Suppresses: node:61989 - DeprecationWarning: client.query()
+*/
+const PG_CONCURRENT_QUERY_DEPRECATION =
+  "Calling client.query() when the client is already executing a query is deprecated";
+const originalEmitWarning = process.emitWarning.bind(process);
+
+process.emitWarning = (warning, ...args) => {
+  const message = warning instanceof Error ? warning.message : String(warning);
+
+  if (message.includes(PG_CONCURRENT_QUERY_DEPRECATION)) {
+    return;
+  }
+
+  return originalEmitWarning(warning, ...args);
+};
 
 function parseBooleanEnv(name, defaultValue = false) {
   const rawValue = process.env[name];
