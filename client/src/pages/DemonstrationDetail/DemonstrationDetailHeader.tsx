@@ -7,7 +7,7 @@ import { Demonstration, Person, PersonType, State } from "demos-server";
 import { formatDateForDisplay } from "util/formatDate";
 import { gql, useQuery } from "@apollo/client";
 import { useDialog } from "components/dialog/DialogContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { getCurrentUser } from "components/user/UserContext";
 
 export const DEMONSTRATION_HEADER_DETAILS_QUERY = gql`
@@ -252,4 +252,14 @@ export const DemonstrationDetailHeader: React.FC<DemonstrationDetailHeaderProps>
       )}
     </div>
   );
+};
+
+export const DemonstrationDetailRouteHeader: React.FC = () => {
+  const { id } = useParams<{ id?: string }>();
+
+  if (!id) {
+    throw new Error("DemonstrationDetailRouteHeader requires route param id.");
+  }
+
+  return <DemonstrationDetailHeader demonstrationId={id} />;
 };

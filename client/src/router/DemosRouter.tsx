@@ -1,83 +1,184 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { isLocalDevelopment } from "config/env";
+import { Footer } from "components";
 import { DemonstrationDetail } from "pages/DemonstrationDetail/index";
 import { getCurrentUser } from "components/user/UserContext";
 import { DemonstrationsPage } from "pages/DemonstrationsPage";
 import { ComponentLibrary, DialogSandbox } from "pages/debug";
 import { IconLibrary } from "pages/debug/IconLibrary";
 import { AuthDebugComponent } from "pages/debug/AuthDebugComponent";
-import { isLocalDevelopment } from "config/env";
-import { DemosLayoutProvider } from "./DemosLayoutProvider";
 import { DocumentDetailPage } from "pages/DocumentDetails/DocumentDetail";
 import { DeliverablesPage } from "pages/DeliverablesPage";
 import { ReportsPage } from "pages/ReportsPage";
 import { DeliverableDetailsManagementPage } from "pages/deliverables/DeliverableDetailsManagementPage";
 import { AdminPage } from "pages/admin/AdminPage";
-import { RequireRole } from "./RequireRole";
-import { PersonType } from "demos-server";
 import { ReferencesPage } from "pages/references/ReferencesPage";
+import { DefaultHeaderLower } from "components/header/DefaultHeaderLower";
+import { DemonstrationDetailRouteHeader } from "pages/DemonstrationDetail/DemonstrationDetailHeader";
+import { DeliverableDetailRouteHeader } from "pages/deliverables/DeliverableDetailHeader";
+import { AdminHeader } from "pages/admin/AdminHeader";
+import { ReferencesHeader } from "pages/references/ReferencesHeader";
+import { Layout } from "layout/Layout";
+import { SideNav } from "layout/SideNav";
+import { PersonType } from "demos-server";
 
-const DEMONSTRATION_ACCESS_ROLES: PersonType[] = ["demos-admin", "demos-cms-user"];
+type DemosRouteLayout = React.ComponentProps<typeof Layout>;
 
-const HomePage = () => {
+export const DemosRoute = ({
+  requiredRoles,
+  debugOnly,
+  layout,
+  page,
+}: {
+  requiredRoles?: PersonType[];
+  debugOnly?: boolean;
+  layout?: DemosRouteLayout;
+  page: React.ReactNode;
+}) => {
   const { currentUser } = getCurrentUser();
 
-  return currentUser.person.personType === "demos-state-user" ? (
-    <DeliverablesPage />
-  ) : (
-    <DemonstrationsPage />
-  );
+  if (debugOnly && !isLocalDevelopment()) {
+    return <div>404: Page Not Found</div>;
+  }
+
+  if (requiredRoles && !requiredRoles.includes(currentUser.person.personType)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Layout {...layout}>{page}</Layout>;
+};
+
+type DemosRouterEntry = {
+  layout: DemosRouteLayout;
+  requiredRoles?: PersonType[];
+  debugOnly?: boolean;
+  page: React.ReactNode;
 };
 
 export const DemosRouter: React.FC = () => {
+  const { currentUser } = getCurrentUser();
+  const isStateUser = currentUser.person.personType === "demos-state-user";
+  const routes: Record<string, DemosRouterEntry> = {
+    "document/:id": {
+      layout: {},
+      page: <DocumentDetailPage />,
+    },
+    "*": {
+      layout: {
+        headerLower: <DefaultHeaderLower />,
+        sideNav: isStateUser ? undefined : <SideNav />,
+        footer: <Footer />,
+      },
+      page: <div>404: Page Not Found</div>,
+    },
+    "/": {
+      layout: {
+        headerLower: <DefaultHeaderLower />,
+        sideNav: isStateUser ? undefined : <SideNav />,
+        footer: <Footer />,
+      },
+      page: isStateUser ? <DeliverablesPage /> : <DemonstrationsPage />,
+    },
+    deliverables: {
+      layout: {
+        headerLower: <DefaultHeaderLower />,
+        sideNav: isStateUser ? undefined : <SideNav />,
+        footer: <Footer />,
+      },
+      page: <DeliverablesPage />,
+    },
+    components: {
+      debugOnly: true,
+      layout: {
+        headerLower: <DefaultHeaderLower />,
+        sideNav: isStateUser ? undefined : <SideNav />,
+        footer: <Footer />,
+      },
+      page: <ComponentLibrary />,
+    },
+    icons: {
+      debugOnly: true,
+      layout: {
+        headerLower: <DefaultHeaderLower />,
+        sideNav: isStateUser ? undefined : <SideNav />,
+        footer: <Footer />,
+      },
+      page: <IconLibrary />,
+    },
+    auth: {
+      debugOnly: true,
+      layout: {
+        headerLower: <DefaultHeaderLower />,
+        sideNav: isStateUser ? undefined : <SideNav />,
+        footer: <Footer />,
+      },
+      page: <AuthDebugComponent />,
+    },
+    dialogs: {
+      debugOnly: true,
+      layout: {
+        headerLower: <DefaultHeaderLower />,
+        sideNav: isStateUser ? undefined : <SideNav />,
+        footer: <Footer />,
+      },
+      page: <DialogSandbox />,
+    },
+    demonstrations: {
+      requiredRoles: ["demos-admin", "demos-cms-user"],
+      layout: {
+        headerLower: <DefaultHeaderLower />,
+        sideNav: <SideNav />,
+        footer: <Footer />,
+      },
+      page: <DemonstrationsPage />,
+    },
+    reports: {
+      requiredRoles: ["demos-admin", "demos-cms-user"],
+      layout: {
+        headerLower: <DefaultHeaderLower />,
+        sideNav: <SideNav />,
+        footer: <Footer />,
+      },
+      page: <ReportsPage />,
+    },
+    "demonstrations/:id": {
+      requiredRoles: ["demos-admin", "demos-cms-user"],
+      layout: {
+        headerLower: <DemonstrationDetailRouteHeader />,
+        footer: <Footer />,
+      },
+      page: <DemonstrationDetail />,
+    },
+    "deliverables/:deliverableId": {
+      layout: {
+        headerLower: <DeliverableDetailRouteHeader />,
+        footer: <Footer />,
+      },
+      page: <DeliverableDetailsManagementPage />,
+    },
+    admin: {
+      layout: {
+        headerLower: <AdminHeader />,
+        footer: <Footer />,
+      },
+      page: <AdminPage />,
+    },
+    references: {
+      layout: {
+        headerLower: <ReferencesHeader />,
+        footer: <Footer />,
+      },
+      page: <ReferencesPage />,
+    },
+  };
+
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="document/:id" element={<DocumentDetailPage />} />
-        <Route element={<DemosLayoutProvider />}>
-          <Route path="*" element={<div>404: Page Not Found</div>} />
-          <Route path="/" element={<HomePage />} />
-          <Route
-            path="demonstrations"
-            element={
-              <RequireRole allowedRoles={DEMONSTRATION_ACCESS_ROLES}>
-                <DemonstrationsPage />
-              </RequireRole>
-            }
-          />
-          <Route
-            path="demonstrations/:id"
-            element={
-              <RequireRole allowedRoles={DEMONSTRATION_ACCESS_ROLES}>
-                <DemonstrationDetail />
-              </RequireRole>
-            }
-          />
-          <Route path="deliverables" element={<DeliverablesPage />} />
-          <Route
-            path="deliverables/:deliverableId"
-            element={<DeliverableDetailsManagementPage />}
-          />
-          <Route
-            path="reports"
-            element={
-              <RequireRole allowedRoles={["demos-admin", "demos-cms-user"]}>
-                <ReportsPage />
-              </RequireRole>
-            }
-          />
-          <Route path="admin" element={<AdminPage />} />
-          <Route path="references" element={<ReferencesPage />} />
-
-          {isLocalDevelopment() && (
-            <>
-              <Route path="components" element={<ComponentLibrary />} />
-              <Route path="icons" element={<IconLibrary />} />
-              <Route path="auth" element={<AuthDebugComponent />} />
-              <Route path="dialogs" element={<DialogSandbox />} />
-            </>
-          )}
-        </Route>
+        {Object.entries(routes).map(([path, config]) => (
+          <Route key={path} path={path} element={<DemosRoute {...config} />} />
+        ))}
       </Routes>
     </BrowserRouter>
   );
