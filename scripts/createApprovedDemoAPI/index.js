@@ -1,6 +1,7 @@
-import { createRequire } from "node:module";
-import { fileURLToPath } from "node:url";
+/* global process, URL */
+
 import dotenv from "dotenv";
+import { tsImport } from "tsx/esm/api";
 import { getLocalDatabaseUrl } from "../localDatabaseGuard.js";
 
 dotenv.config({ path: new URL("./.env", import.meta.url), quiet: true });
@@ -11,33 +12,27 @@ const { COMPLETED_PHASE_STATUS_ID, PERSON_TYPE_ID, SEED_CONFIG } = await import(
 
 process.env.DATABASE_URL = getLocalDatabaseUrl(SEED_CONFIG.fallbackDatabaseUrl);
 
-const serverPackageJsonUrl = new URL("../../server/package.json", import.meta.url);
-const serverRequire = createRequire(serverPackageJsonUrl);
-const { require: tsxRequire } = serverRequire("tsx/cjs/api");
-const requireServerTs = (specifier) =>
-  tsxRequire(
-    fileURLToPath(new URL(`../../server/src/${specifier}`, import.meta.url)),
-    import.meta.url
-  );
+const importServerTs = (specifier) =>
+  tsImport(new URL(`../../server/src/${specifier}`, import.meta.url).href, import.meta.url);
 
-const { APPROVAL_PACKAGE_PHASE_DOCUMENTS } = requireServerTs("constants.ts");
-const { prisma } = requireServerTs("prismaClient.ts");
-const { demonstrationResolvers } = requireServerTs(
+const { APPROVAL_PACKAGE_PHASE_DOCUMENTS } = await importServerTs("constants.ts");
+const { prisma } = await importServerTs("prismaClient.ts");
+const { demonstrationResolvers } = await importServerTs(
   "model/demonstration/demonstrationResolvers.ts"
 );
-const { applicationDateResolvers } = requireServerTs(
+const { applicationDateResolvers } = await importServerTs(
   "model/applicationDate/applicationDateResolvers.ts"
 );
-const { applicationPhaseResolvers } = requireServerTs(
+const { applicationPhaseResolvers } = await importServerTs(
   "model/applicationPhase/applicationPhaseResolvers.ts"
 );
-const { demonstrationTypeTagAssignmentResolvers } = requireServerTs(
+const { demonstrationTypeTagAssignmentResolvers } = await importServerTs(
   "model/demonstrationTypeTagAssignment/demonstrationTypeTagAssignmentResolvers.ts"
 );
-const { documentPendingUploadResolvers } = requireServerTs(
+const { documentPendingUploadResolvers } = await importServerTs(
   "model/documentPendingUpload/documentPendingUploadResolvers.ts"
 );
-const { documentResolvers } = requireServerTs("model/document/documentResolvers.ts");
+const { documentResolvers } = await importServerTs("model/document/documentResolvers.ts");
 
 const { createApprovedDemo } = await import("./workflow.js");
 const db = prisma();
