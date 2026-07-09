@@ -19,7 +19,6 @@ export const SEED_CONFIG = {
   fallbackDatabaseUrl: "postgresql://localhost:5432/demos?schema=demos_app",
   graphqlEndpoint:
     process.env.APPROVED_DEMO_GRAPHQL_ENDPOINT ?? "http://localhost:4000/graphql",
-  graphqlCookieHeader: process.env.APPROVED_DEMO_GRAPHQL_COOKIE,
   graphqlIdToken: process.env.APPROVED_DEMO_ID_TOKEN,
   demoNameSuffix: "Generated Approved Demonstration",
   demoDescription: "Approved demonstration created by createApprovedDemoAPI.",

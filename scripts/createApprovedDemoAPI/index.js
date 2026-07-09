@@ -25,15 +25,7 @@ assertRequiredEnvVar("CLEAN_BUCKET");
 assertRequiredEnvVar("DELETED_BUCKET");
 assertRequiredEnvVar("S3_ENDPOINT_LOCAL");
 assertRequiredEnvVar("APPROVED_DEMO_GRAPHQL_ENDPOINT");
-
-if (
-  !process.env.APPROVED_DEMO_GRAPHQL_COOKIE?.trim() &&
-  !process.env.APPROVED_DEMO_ID_TOKEN?.trim()
-) {
-  throw new Error(
-    "Set APPROVED_DEMO_GRAPHQL_COOKIE or APPROVED_DEMO_ID_TOKEN in scripts/createApprovedDemoAPI/.env for API authentication."
-  );
-}
+assertRequiredEnvVar("APPROVED_DEMO_ID_TOKEN");
 
 const {
   APPROVAL_PACKAGE_PHASE_DOCUMENTS,
@@ -132,13 +124,8 @@ function makeApprovedDemoApi() {
       "content-type": "application/json",
     };
 
-    if (SEED_CONFIG.graphqlCookieHeader?.trim()) {
-      headers.cookie = SEED_CONFIG.graphqlCookieHeader.trim();
-    }
-    if (SEED_CONFIG.graphqlIdToken?.trim()) {
-      const token = SEED_CONFIG.graphqlIdToken.trim();
-      headers.cookie = headers.cookie ? `${headers.cookie}; id_token=${token}` : `id_token=${token}`;
-    }
+    const token = SEED_CONFIG.graphqlIdToken.trim();
+    headers.cookie = `id_token=${token}`;
 
     return headers;
   };
