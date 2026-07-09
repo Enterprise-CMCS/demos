@@ -32,6 +32,7 @@ export const SelectUsers = ({
   isRequired = false,
   isDisabled = false,
   personTypes,
+  validationMessage,
 }: {
   value: string;
   onSelect: (id: string) => void;
@@ -39,6 +40,7 @@ export const SelectUsers = ({
   isRequired?: boolean;
   isDisabled?: boolean;
   personTypes?: PersonType[];
+  validationMessage?: string;
 }) => {
   const { data, loading, error } = useQuery<{ people: Person[] }>(GET_USER_SELECT_OPTIONS_QUERY);
 
@@ -62,6 +64,7 @@ export const SelectUsers = ({
       isRequired={isRequired}
       isDisabled={isDisabled || loading || !!error}
       value={value}
+      validationMessage={validationMessage}
     />
   );
 };

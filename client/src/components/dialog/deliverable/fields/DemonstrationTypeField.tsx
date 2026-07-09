@@ -18,11 +18,13 @@ export const DemonstrationTypeField = ({
   selectedValues,
   onSelect,
   isRequired = false,
+  validationMessage,
 }: {
   demonstrationTypeTags: Tag[];
   selectedValues: string[];
   onSelect: (values: string[]) => void;
   isRequired?: boolean;
+  validationMessage?: string;
 }) => {
   const selectOptions = getOptionsFromTags(demonstrationTypeTags);
 
@@ -35,6 +37,7 @@ export const DemonstrationTypeField = ({
       onSelect={onSelect}
       isRequired={isRequired}
       placeholder="Select demonstration type…"
+      validationMessage={validationMessage}
     />
   );
 };

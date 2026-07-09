@@ -22,6 +22,7 @@ import { DELIVERABLE_SLOTS_CREATED_MESSAGE } from "util/messages";
 import { DELIVERABLES_PAGE_QUERY } from "components/table/tables/DeliverableTable";
 import { dueDateIsTodayOrFuture } from "./deliverableDueDateValidation";
 import { getCurrentUser } from "components/user/UserContext";
+import { useValidation, ValidationSchema } from "hooks/useValidation";
 
 export const CREATE_DELIVERABLE_MUTATION = gql`
   mutation CreateDeliverable($input: CreateDeliverableInput!) {
@@ -100,21 +101,6 @@ export const buildAddDeliverableSlotPayloads = (
   }));
 };
 
-const hasValidDueDateForScheduleType = (data: AddDeliverableSlotFormData): boolean => {
-  if (data.scheduleType === "Single") {
-    return dueDateIsTodayOrFuture(data.dueDate);
-  }
-  return data.quarterlyDueDates.every(dueDateIsTodayOrFuture);
-};
-
-const formIsValid = (data: AddDeliverableSlotFormData): boolean =>
-  data.deliverableName.trim().length > 0 &&
-  data.cmsOwnerUserId.length > 0 &&
-  data.deliverableType.length > 0 &&
-  data.scheduleType.length > 0 &&
-  hasValidDueDateForScheduleType(data) &&
-  (!requiresDemonstrationTypes(data.deliverableType) || data.demonstrationTypes.length > 0);
-
 const formHasChanges = (
   data: AddDeliverableSlotFormData,
   initialFormData: AddDeliverableSlotFormData
@@ -132,6 +118,38 @@ export type AddDeliverableSlotDemonstration = Pick<
   "effectiveDate" | "expirationDate" | "id"
 > & {
   demonstrationTypes: Tag[];
+};
+
+const validation: ValidationSchema<AddDeliverableSlotFormData> = {
+  deliverableName: [
+    (formData) =>
+      formData.deliverableName.trim().length > 0 ? undefined : "Deliverable name is required.",
+  ],
+  cmsOwnerUserId: [(formData) => (formData.cmsOwnerUserId ? undefined : "CMS Owner is required.")],
+  deliverableType: [
+    (formData) => (formData.deliverableType ? undefined : "Deliverable type is required."),
+  ],
+  scheduleType: [(formData) => (formData.scheduleType ? undefined : "Schedule type is required.")],
+  dueDate: [
+    (formData) =>
+      formData.scheduleType === "Single" && !dueDateIsTodayOrFuture(formData.dueDate)
+        ? "Due date must be today or in the future."
+        : undefined,
+  ],
+  quarterlyDueDates: [
+    (formData) =>
+      formData.scheduleType === "Quarterly" &&
+      !formData.quarterlyDueDates.every(dueDateIsTodayOrFuture)
+        ? "All quarterly due dates must be today or in the future."
+        : undefined,
+  ],
+  demonstrationTypes: [
+    (formData) =>
+      requiresDemonstrationTypes(formData.deliverableType) &&
+      formData.demonstrationTypes.length === 0
+        ? "At least one demonstration type is required."
+        : undefined,
+  ],
 };
 
 export const AddDeliverableSlotDialog = ({
@@ -162,7 +180,8 @@ export const AddDeliverableSlotDialog = ({
   const [formData, setFormData] = useState<AddDeliverableSlotFormData>(initialFormData);
   const [demonstrationYear, setDemonstrationYear] = useState<number>(1);
 
-  const isFormValid = formIsValid(formData);
+  const { errors, isValid } = useValidation(formData, validation);
+
   const hasFormChanges = formHasChanges(formData, initialFormData);
 
   return (
@@ -185,7 +204,7 @@ export const AddDeliverableSlotDialog = ({
             showSuccess(DELIVERABLE_SLOTS_CREATED_MESSAGE);
             onClose();
           }}
-          disabled={!isFormValid || loading}
+          disabled={!isValid || loading}
         >
           Save
         </Button>
@@ -201,10 +220,12 @@ export const AddDeliverableSlotDialog = ({
                 deliverableType: deliverableType as DeliverableType,
               }))
             }
+            validationMessage={errors.deliverableType}
           />
           <ScheduleTypeField
             value={formData.scheduleType}
             onSelect={(scheduleType) => setFormData((prev) => ({ ...prev, scheduleType }))}
+            validationMessage={errors.scheduleType}
           />
         </div>
         {formData.scheduleType === "Quarterly" && (
@@ -224,17 +245,20 @@ export const AddDeliverableSlotDialog = ({
                 };
               })
             }
+            validationMessage={errors.quarterlyDueDates}
           />
         )}
         {formData.scheduleType === "Single" && (
           <SingleDeliverableScheduleType
             value={formData.dueDate}
             onChange={(dueDate) => setFormData((prev) => ({ ...prev, dueDate }))}
+            validationMessage={errors.dueDate}
           />
         )}
         <DeliverableNameField
           value={formData.deliverableName}
           onChange={(deliverableName) => setFormData((prev) => ({ ...prev, deliverableName }))}
+          validationMessage={errors.deliverableName}
         />
         <div className="grid grid-cols-2 gap-sm">
           <CMSOwnerField
@@ -242,6 +266,7 @@ export const AddDeliverableSlotDialog = ({
             onSelect={(cmsOwnerId) =>
               setFormData((prev) => ({ ...prev, cmsOwnerUserId: cmsOwnerId }))
             }
+            validationMessage={errors.cmsOwnerUserId}
           />
           <DemonstrationTypeField
             demonstrationTypeTags={demonstration.demonstrationTypes}
@@ -250,6 +275,7 @@ export const AddDeliverableSlotDialog = ({
               setFormData((prev) => ({ ...prev, demonstrationTypes: selectedTypes }))
             }
             isRequired={requiresDemonstrationTypes(formData.deliverableType)}
+            validationMessage={errors.demonstrationTypes}
           />
         </div>
       </div>

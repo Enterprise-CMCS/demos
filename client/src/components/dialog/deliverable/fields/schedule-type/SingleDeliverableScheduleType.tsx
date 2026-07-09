@@ -7,9 +7,11 @@ export const SINGLE_DELIVERABLE_DUE_DATE_NAME = "single-deliverable-due-date";
 export const SingleDeliverableScheduleType = ({
   value,
   onChange,
+  validationMessage,
 }: {
   value: string;
   onChange: (dueDate: string) => void;
+  validationMessage?: string;
 }) => {
   const today = getTodayEst();
   return (
@@ -23,6 +25,7 @@ export const SingleDeliverableScheduleType = ({
           isRequired={true}
           minDate={today}
         />
+        <span className="text-text-placeholder text-sm">{validationMessage}</span>
       </div>
     </div>
   );

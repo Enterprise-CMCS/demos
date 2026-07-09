@@ -7,6 +7,7 @@ import { TagName, Tag, TagStatus } from "demos-server";
 import { DemonstrationType } from "./ApplyDemonstrationTypesDialog";
 import { WarningIcon, LabelIcon } from "components/icons";
 import { tw } from "tags/tw";
+import { useValidation, ValidationSchema } from "hooks/useValidation";
 
 const CREATE_TYPE_BUTTON_CLASSES = tw`
   inline-flex items-center justify-center gap-xs
@@ -41,14 +42,28 @@ export const ADD_DEMONSTRATION_TYPES_FORM_QUERY: TypedDocumentNode<
 const UNAPPROVED_WARNING_MESSAGE =
   "Unapproved types are still searchable by others. Please verify it's correct before applying to prevent compounding errors.";
 
-function isValid(demonstrationType: DemonstrationType): boolean {
-  return !!(
-    demonstrationType.demonstrationTypeName &&
-    demonstrationType.effectiveDate &&
-    demonstrationType.expirationDate &&
-    new Date(demonstrationType.effectiveDate) <= new Date(demonstrationType.expirationDate)
-  );
-}
+const validation: ValidationSchema<DemonstrationType> = {
+  demonstrationTypeName: [
+    (formData) => (formData.demonstrationTypeName ? undefined : "Demonstration Type is required."),
+  ],
+  effectiveDate: [
+    (formData) => (formData.effectiveDate ? undefined : "Effective Date is required."),
+  ],
+  expirationDate: [
+    (formData) => (formData.expirationDate ? undefined : "Expiration Date is required."),
+    (formData) => {
+      if (
+        !formData.effectiveDate ||
+        !formData.expirationDate ||
+        new Date(formData.effectiveDate) <= new Date(formData.expirationDate)
+      ) {
+        return undefined;
+      }
+
+      return "Effective date must be on or before expiration date.";
+    },
+  ],
+};
 
 export const AddDemonstrationTypesForm = ({
   demonstrationId,
@@ -70,6 +85,7 @@ export const AddDemonstrationTypesForm = ({
       effectiveDate: "",
       expirationDate: "",
     });
+  const { errors, isValid } = useValidation(demonstrationTypeFormData, validation);
 
   const [filterValue, setFilterValue] = React.useState("");
   const [hasMatches, setHasMatches] = React.useState(true);
@@ -79,7 +95,7 @@ export const AddDemonstrationTypesForm = ({
   if (error || !data) return <div>Error loading demonstration.</div>;
 
   const handleAddDemonstrationType = () => {
-    if (!isValid(demonstrationTypeFormData)) return;
+    if (!isValid) return;
     addDemonstrationType(demonstrationTypeFormData);
     setDemonstrationTypeFormData({
       ...demonstrationTypeFormData,
@@ -94,19 +110,6 @@ export const AddDemonstrationTypesForm = ({
 
   const isAvailableType = (name: string) =>
     !alreadyAssigned.has(name) && !demonstrationTypeNames.includes(name);
-
-  const validateDatePicker = (effectiveDate: string, expirationDate: string) => {
-    if (
-      !effectiveDate ||
-      !expirationDate ||
-      new Date(demonstrationTypeFormData.effectiveDate) <=
-        new Date(demonstrationTypeFormData.expirationDate)
-    ) {
-      return "";
-    }
-
-    return "Effective date must be on or before expiration date.";
-  };
 
   const handleFilterChange = (value: string, matches: boolean) => {
     setFilterValue(value);
@@ -153,6 +156,7 @@ export const AddDemonstrationTypesForm = ({
               )
             }
             onFilterChange={handleFilterChange}
+            validationMessage={errors.demonstrationTypeName}
           />
         </div>
         <button
@@ -181,6 +185,7 @@ export const AddDemonstrationTypesForm = ({
               }
               label="Effective Date"
               name="date-picker-effective-date"
+              validationMessage={errors.effectiveDate}
             />
           </div>
           <div className="flex-1">
@@ -197,12 +202,7 @@ export const AddDemonstrationTypesForm = ({
               }
               label="Expiration Date"
               name="date-picker-expiration-date"
-              getValidationMessage={() =>
-                validateDatePicker(
-                  demonstrationTypeFormData.effectiveDate,
-                  demonstrationTypeFormData.expirationDate
-                )
-              }
+              validationMessage={errors.expirationDate}
             />
           </div>
         </div>
@@ -221,7 +221,7 @@ export const AddDemonstrationTypesForm = ({
 
       <div className="flex justify-end">
         <SecondaryButton
-          disabled={!isValid(demonstrationTypeFormData)}
+          disabled={!isValid}
           name="button-add-demonstration-type"
           type="button"
           onClick={handleAddDemonstrationType}

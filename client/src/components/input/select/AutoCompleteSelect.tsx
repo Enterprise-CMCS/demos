@@ -31,6 +31,7 @@ export const AutoCompleteSelect = ({
   isDisabled = false,
   noMatchMessage,
   onFilterChange: onFilterChangeProp,
+  validationMessage,
 }: {
   options: Option[];
   value: string;
@@ -43,11 +44,14 @@ export const AutoCompleteSelect = ({
   isDisabled?: boolean;
   noMatchMessage?: string;
   onFilterChange?: (filterValue: string, hasMatches: boolean) => void;
+  validationMessage?: string;
 }) => {
   const [filterValue, setFilterValue] = useState("");
   const [selectedOption, setSelectedOption] = useState<Option | undefined>(
     options.find((opt) => opt.value === value) || undefined
   );
+  const [touched, setTouched] = React.useState(false);
+
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
 
@@ -76,6 +80,7 @@ export const AutoCompleteSelect = ({
     if (!containerRef.current?.contains(e.relatedTarget as Node)) {
       closeSelect();
     }
+    setTouched(true);
   };
 
   const openSelect = () => {
@@ -196,6 +201,7 @@ export const AutoCompleteSelect = ({
           </ul>
         )}
       </div>
+      <span>{touched && validationMessage}</span>
     </div>
   );
 };

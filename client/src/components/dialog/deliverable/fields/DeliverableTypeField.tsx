@@ -11,10 +11,12 @@ export const DeliverableTypeField = ({
   value,
   onSelect,
   isDisabled = false,
+  validationMessage,
 }: {
   value: DeliverableType;
   onSelect: (value: string) => void;
   isDisabled?: boolean;
+  validationMessage?: string;
 }) => {
   return (
     <AutoCompleteSelect
@@ -27,6 +29,7 @@ export const DeliverableTypeField = ({
       isRequired
       isDisabled={isDisabled}
       placeholder="Select deliverable type…"
+      validationMessage={validationMessage}
     />
   );
 };

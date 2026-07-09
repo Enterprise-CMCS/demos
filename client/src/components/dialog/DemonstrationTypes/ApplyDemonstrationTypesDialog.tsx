@@ -7,6 +7,7 @@ import { useToast } from "components/toast";
 import { Button } from "components/button";
 import { TagName, LocalDate, SetDemonstrationTypesInput, TagStatus } from "demos-server";
 import { gql, TypedDocumentNode, useMutation } from "@apollo/client";
+import { useValidation, ValidationSchema } from "hooks/useValidation";
 
 export type DemonstrationType = {
   demonstrationTypeName: TagName;
@@ -54,6 +55,13 @@ const getSetDemonstrationTypesInput = (
   };
 };
 
+const validation: ValidationSchema<{ demonstrationTypes: DemonstrationType[] }> = {
+  demonstrationTypes: [
+    (data) =>
+      data.demonstrationTypes.length ? undefined : "At least one demonstration type is required.",
+  ],
+};
+
 export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrationId: string }) => {
   const { closeDialog } = useDialog();
   const { showSuccess, showError } = useToast();
@@ -62,6 +70,7 @@ export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrati
   );
 
   const [demonstrationTypes, setDemonstrationTypes] = useState<DemonstrationType[]>([]);
+  const { isValid } = useValidation({ demonstrationTypes }, validation);
 
   const handleSubmit = async () => {
     try {
@@ -88,7 +97,7 @@ export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrati
       actionButton={
         <Button
           name={"button-submit-demonstration-dialog"}
-          disabled={saving || !demonstrationTypes.length}
+          disabled={saving || !isValid}
           onClick={handleSubmit}
         >
           Apply Type(s)

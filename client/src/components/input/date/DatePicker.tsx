@@ -5,8 +5,6 @@ import {
   LABEL_CLASSES,
   VALIDATION_MESSAGE_CLASSES,
 } from "components/input/Input";
-import { parseISO } from "date-fns";
-import { formatDateForDisplay } from "util/formatDate";
 
 const DEFAULT_MIN_DATE = "1900-01-01";
 const DEFAULT_MAX_DATE = "2099-12-31";
@@ -21,7 +19,7 @@ export const DatePicker = ({
   isDisabled = false,
   minDate = DEFAULT_MIN_DATE,
   maxDate = DEFAULT_MAX_DATE,
-  getValidationMessage = () => "",
+  validationMessage,
 }: {
   name: string;
   label: string;
@@ -32,7 +30,10 @@ export const DatePicker = ({
   minDate?: string;
   maxDate?: string;
   getValidationMessage?: () => string;
+  validationMessage?: string;
 }) => {
+  const [touched, setTouched] = React.useState(false);
+
   // Displayed date is needed to keep partially typed year values visible before committing them.
   const [displayedDate, setDisplayedDate] = React.useState(value ?? "");
 
@@ -53,29 +54,6 @@ export const DatePicker = ({
     }
   };
 
-  const getDateValidationMessage = (): string => {
-    // First check if there's a custom validation message from the caller
-    if (getValidationMessage) {
-      const customMessage = getValidationMessage();
-      if (customMessage) return customMessage;
-    }
-
-    // Nothing to validate if there's no value, return
-    if (!displayedDate) return "";
-
-    // Don't show range errors while the year is still being typed (year < 1000)
-    if (displayedDate < FULL_YEAR_DATE) return "";
-
-    // Check for the date to be in range
-    if (displayedDate < minDate)
-      return `Date must be on or after ${formatDateForDisplay(parseISO(minDate))}.`;
-    if (displayedDate > maxDate)
-      return `Date must be on or before ${formatDateForDisplay(parseISO(maxDate))}.`;
-    return "";
-  };
-
-  const validationMessage = getDateValidationMessage();
-
   return (
     <div className="flex flex-col gap-xs">
       <label className={LABEL_CLASSES} htmlFor={name}>
@@ -87,15 +65,16 @@ export const DatePicker = ({
         id={name}
         name={name}
         data-testid={name}
-        className={`${INPUT_BASE_CLASSES} ${getInputColors(validationMessage)}`}
+        className={`${INPUT_BASE_CLASSES} ${getInputColors(validationMessage || "")}`}
         required={isRequired}
         disabled={isDisabled}
         value={displayedDate}
         onChange={handleChange}
         min={minDate}
         max={maxDate}
+        onBlur={() => setTouched(true)}
       />
-      <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>
+      <span className={VALIDATION_MESSAGE_CLASSES}>{touched && validationMessage}</span>
     </div>
   );
 };
