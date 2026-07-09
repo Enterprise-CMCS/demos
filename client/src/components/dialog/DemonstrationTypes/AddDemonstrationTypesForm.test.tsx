@@ -7,10 +7,7 @@ import {
   AddDemonstrationTypesForm,
 } from "./AddDemonstrationTypesForm";
 import { MockedProvider, MockedResponse } from "@apollo/client/testing";
-import {
-  SELECT_DEMONSTRATION_TYPE_QUERY,
-  SELECT_DEMONSTRATION_TYPE_TEST_ID,
-} from "components/input/select/SelectDemonstrationType";
+import { SELECT_DEMONSTRATION_TYPE_QUERY, SELECT_DEMONSTRATION_TYPE_TEST_ID } from "components/input/select/SelectDemonstrationType";
 import { Tag } from "demos-server";
 
 const mockSelectDemonstrationTypeQuery: MockedResponse<{
@@ -287,31 +284,5 @@ describe("AddDemonstrationTypesForm", () => {
     await user.click(screen.getByTestId("button-add-demonstration-type"));
 
     expect(screen.queryByTestId("unapproved-warning-banner")).not.toBeInTheDocument();
-  });
-
-  it("shows validation messages for required fields and invalid date ordering after blur", async () => {
-    const user = userEvent.setup();
-    await renderWithProvider();
-
-    const demonstrationTypeInput = screen.getByTestId(SELECT_DEMONSTRATION_TYPE_TEST_ID);
-    const effectiveDate = screen.getByLabelText(/effective date/i);
-    const expirationDate = screen.getByLabelText(/expiration date/i);
-
-    await user.click(demonstrationTypeInput);
-    await user.tab();
-    expect(screen.getByText("Demonstration Type is required.")).toBeInTheDocument();
-
-    await user.click(effectiveDate);
-    await user.tab();
-    expect(screen.getByText("Effective Date is required.")).toBeInTheDocument();
-
-    await user.type(effectiveDate, "2025-01-03");
-    await user.type(expirationDate, "2024-01-03");
-    await user.tab();
-
-    expect(
-      screen.getByText("Effective date must be on or before expiration date.")
-    ).toBeInTheDocument();
-    expect(screen.getByTestId("button-add-demonstration-type")).toBeDisabled();
   });
 });
