@@ -15,6 +15,7 @@ describe("insertOnDemandReport", () => {
   const testInput: Prisma.OnDemandReportUncheckedCreateInput = {
     id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
     s3Path: "s3://clean-bucket/reports/on-demand/a1b2c3d4-e5f6-7890-abcd-ef1234567890.xlsx",
+    generatedFileName: "Basic_Test_Report_20250115_150000.xlsx",
     requestingUserId: "11111111-2222-3333-4444-555555555555",
     reportTypeId: "Basic Test Report" satisfies OnDemandReportType,
     statusId: "Available" satisfies OnDemandReportStatus,
