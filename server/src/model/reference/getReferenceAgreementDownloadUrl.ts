@@ -32,5 +32,7 @@ export async function getReferenceAgreementDownloadUrl(
     });
   }
 
-  return getS3Adapter().getPresignedDownloadUrl(referenceAgreement.s3Path);
+  return getS3Adapter().getPresignedDownloadUrl(referenceAgreement.s3Path, referenceAgreement.name, {
+    disposition: "attachment",
+  });
 }

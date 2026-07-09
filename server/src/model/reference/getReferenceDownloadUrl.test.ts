@@ -46,9 +46,11 @@ describe("getReferenceDownloadUrl", () => {
     user: { id: testUserId },
   };
 
+  const testReferenceName = "Sample Reference";
   const mockReferenceConfiguration = {
     reference: {
       id: testReferenceId,
+      name: testReferenceName,
       s3Path: testS3Path,
     },
     referenceAgreement: {
@@ -128,7 +130,11 @@ describe("getReferenceDownloadUrl", () => {
       testContext as GraphQLContext
     );
     expect(getS3Adapter).toHaveBeenCalledOnce();
-    expect(mockS3Adapter.getPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith(testS3Path);
+    expect(mockS3Adapter.getPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith(
+      testS3Path,
+      testReferenceName,
+      { disposition: "attachment" }
+    );
     expect(result).toBe(testDownloadUrl);
   });
 });

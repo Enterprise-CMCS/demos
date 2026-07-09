@@ -1,5 +1,6 @@
 import { prisma, PrismaTransactionClient } from "../../prismaClient";
-import { S3Adapter } from "../";
+import { GetPresignedDownloadUrlOptions, S3Adapter } from "../";
+import { sanitizeDownloadFileName } from "./sanitizeDownloadFileName";
 import { Prisma, DocumentPendingUpload as PrismaDocumentPendingUpload } from "@prisma/client";
 
 const HOSTNAME = "LocalS3Adapter";
@@ -18,14 +19,25 @@ export function createLocalS3Adapter(): S3Adapter {
       return `${HOSTNAME}/${BUCKET_NAME}/${key}?upload=true&expires=3600`;
     },
 
-    async getPresignedDownloadUrl(key: string): Promise<string> {
+    async getPresignedDownloadUrl(
+      key: string,
+      fileName?: string,
+      options?: GetPresignedDownloadUrlOptions
+    ): Promise<string> {
+      // Fake URLs only — just reflect the sanitized name/disposition for local dev visibility.
+      const fileNameParam = fileName
+        ? `&fileName=${encodeURIComponent(
+            sanitizeDownloadFileName(fileName, key.split("/").pop() ?? key)
+          )}&disposition=${options?.disposition ?? "inline"}`
+        : "";
+
       if (uploadedFiles.has(key)) {
-        return `${HOSTNAME}/${BUCKET_NAME}/${key}?download=true&expires=3600`;
+        return `${HOSTNAME}/${BUCKET_NAME}/${key}?download=true&expires=3600${fileNameParam}`;
       }
 
       const onDemandReport = uploadedOnDemandReports.get(key);
       if (onDemandReport) {
-        return `${HOSTNAME}/${BUCKET_NAME}/${key}?download=true&expires=3600&size=${onDemandReport.byteLength}`;
+        return `${HOSTNAME}/${BUCKET_NAME}/${key}?download=true&expires=3600&size=${onDemandReport.byteLength}${fileNameParam}`;
       }
 
       return `${key} does not exist!`;
