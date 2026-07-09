@@ -138,7 +138,7 @@ export const AddDemonstrationTypesForm = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex gap-2 items-end">
+      <div className="flex gap-2 items-start">
         <div className="flex-1">
           <SelectDemonstrationType
             filter={isAvailableType}
@@ -159,17 +159,19 @@ export const AddDemonstrationTypesForm = ({
             validationMessage={errors.demonstrationTypeName}
           />
         </div>
-        <button
-          data-testid="button-create-type"
-          name="button-create-type"
-          type="button"
-          disabled={!canCreateType}
-          onClick={handleCreateType}
-          className={CREATE_TYPE_BUTTON_CLASSES}
-        >
-          Create Type
-          <LabelIcon />
-        </button>
+        <div className="pt-[32px]">
+          <button
+            data-testid="button-create-type"
+            name="button-create-type"
+            type="button"
+            disabled={!canCreateType}
+            onClick={handleCreateType}
+            className={CREATE_TYPE_BUTTON_CLASSES}
+          >
+            Create Type
+            <LabelIcon />
+          </button>
+        </div>
         <div className="flex-1 flex gap-2">
           <div className="flex-1">
             <DatePicker
