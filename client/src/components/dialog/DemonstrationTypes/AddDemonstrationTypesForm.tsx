@@ -185,7 +185,7 @@ export const AddDemonstrationTypesForm = ({
               }
               label="Effective Date"
               name="date-picker-effective-date"
-              validationMessage={errors.effectiveDate}
+              getValidationMessage={() => errors.effectiveDate || ""}
             />
           </div>
           <div className="flex-1">
@@ -202,7 +202,7 @@ export const AddDemonstrationTypesForm = ({
               }
               label="Expiration Date"
               name="date-picker-expiration-date"
-              validationMessage={errors.expirationDate}
+              getValidationMessage={() => errors.expirationDate || ""}
             />
           </div>
         </div>

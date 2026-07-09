@@ -3,7 +3,12 @@ import React, { useEffect, useRef, useState } from "react";
 import { ChevronDownIcon } from "components/icons/Symbol/ChevronDownIcon";
 import { tw } from "tags/tw";
 
-import { getInputColors, INPUT_BASE_CLASSES, LABEL_CLASSES } from "../Input";
+import {
+  getInputColors,
+  INPUT_BASE_CLASSES,
+  LABEL_CLASSES,
+  VALIDATION_MESSAGE_CLASSES,
+} from "../Input";
 import { Option } from "./Select";
 
 export const AUTOCOMPLETE_SELECT_TEST_ID = "input-autocomplete-select";
@@ -201,7 +206,7 @@ export const AutoCompleteSelect = ({
           </ul>
         )}
       </div>
-      <span>{touched && validationMessage}</span>
+      <span className={VALIDATION_MESSAGE_CLASSES}>{touched && validationMessage}</span>
     </div>
   );
 };

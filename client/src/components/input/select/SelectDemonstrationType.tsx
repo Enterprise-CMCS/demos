@@ -28,6 +28,7 @@ export type SelectDemonstrationTypeProps = {
   allowCreateNew?: boolean;
   onFilterChange?: (filterValue: string, hasMatches: boolean) => void;
   createdOptions?: Tag[];
+  validationMessage?: string;
 };
 export const SelectDemonstrationType = (props: SelectDemonstrationTypeProps) => {
   const {
