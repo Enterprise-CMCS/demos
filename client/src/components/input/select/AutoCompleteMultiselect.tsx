@@ -26,7 +26,6 @@ export const AutoCompleteMultiselect = ({
   isDisabled = false,
   defaultValues = [],
   values,
-  validationMessage,
 }: {
   options: Option[];
   placeholder?: string;
@@ -37,7 +36,6 @@ export const AutoCompleteMultiselect = ({
   isDisabled?: boolean;
   defaultValues?: string[];
   values?: string[];
-  validationMessage?: string;
 }) => {
   const [inputValue, setInputValue] = useState("");
   const [filtered, setFiltered] = useState<Option[]>(options);
@@ -189,7 +187,6 @@ export const AutoCompleteMultiselect = ({
           </ul>
         )}
       </div>
-      <span className="text-text-warn text-sm">{validationMessage}</span>
     </div>
   );
 };

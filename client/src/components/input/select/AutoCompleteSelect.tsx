@@ -55,11 +55,9 @@ export const AutoCompleteSelect = ({
   const [selectedOption, setSelectedOption] = useState<Option | undefined>(
     options.find((opt) => opt.value === value) || undefined
   );
-  const [touched, setTouched] = React.useState(false);
-
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-
+  const [touched, setTouched] = useState(false);
   const prevValueRef = useRef(value);
 
   useEffect(() => {
@@ -84,8 +82,8 @@ export const AutoCompleteSelect = ({
   const handleBlur = (e: React.FocusEvent<HTMLDivElement>) => {
     if (!containerRef.current?.contains(e.relatedTarget as Node)) {
       closeSelect();
+      setTouched(true);
     }
-    setTouched(true);
   };
 
   const openSelect = () => {
@@ -206,7 +204,9 @@ export const AutoCompleteSelect = ({
           </ul>
         )}
       </div>
-      <span className={VALIDATION_MESSAGE_CLASSES}>{touched && validationMessage}</span>
+      {touched && validationMessage && (
+        <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>
+      )}
     </div>
   );
 };

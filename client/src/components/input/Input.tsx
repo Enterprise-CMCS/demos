@@ -49,6 +49,7 @@ export const Input: React.FC<InputProps> = ({
   const isControlled = value !== undefined;
   const [internalValue, setInternalValue] = useState(defaultValue ?? "");
   const [touched, setTouched] = useState(false);
+
   const currentValue = isControlled ? value : internalValue;
 
   const validationMessage = getValidationMessage ? getValidationMessage(currentValue) : "";
@@ -77,7 +78,7 @@ export const Input: React.FC<InputProps> = ({
         onChange={handleChange}
         onBlur={() => setTouched(true)}
       />
-      {validationMessage && touched && (
+      {touched && validationMessage && (
         <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>
       )}
     </div>
