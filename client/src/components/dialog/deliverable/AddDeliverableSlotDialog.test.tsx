@@ -204,7 +204,6 @@ describe("AddDeliverableSlotDialog", () => {
     fireEvent.change(screen.getByTestId("quarter-1"), {
       target: { value: formatDateForServer(subDays(new Date(), 1)) },
     });
-    fireEvent.blur(screen.getByTestId("quarter-1"));
 
     expect(screen.getByTestId(ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME)).toBeDisabled();
     expect(screen.getByText(/Date must be on or after/)).toBeInTheDocument();
@@ -270,7 +269,6 @@ describe("AddDeliverableSlotDialog", () => {
     fireEvent.change(dueDateField, {
       target: { value: formatDateForServer(subDays(new Date(), 1)) },
     });
-    fireEvent.blur(dueDateField);
 
     expect(screen.getByTestId(ADD_DELIVERABLE_SLOT_SAVE_BUTTON_NAME)).toBeDisabled();
     expect(screen.getByText(/Date must be on or after/)).toBeInTheDocument();

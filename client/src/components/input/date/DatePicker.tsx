@@ -35,7 +35,7 @@ export const DatePicker = ({
 }) => {
   // Displayed date is needed to keep partially typed year values visible before committing them.
   const [displayedDate, setDisplayedDate] = React.useState(value ?? "");
-  const [touched, setTouched] = React.useState(false);
+
   // This is needed to update the displayed date when the parent component controls the value (e.g. when resetting the form). Without this, the input would not update to reflect changes to the value prop after the initial render. We want to allow the parent to control the value while still letting the user type out-of-range values without immediately reverting them back to a valid date. This effect ensures that when the parent updates the value prop
   // (e.g. a computed date), the displayed date in the input also updates accordingly.
   React.useEffect(() => {
@@ -94,9 +94,8 @@ export const DatePicker = ({
         onChange={handleChange}
         min={minDate}
         max={maxDate}
-        onBlur={() => setTouched(true)}
       />
-      <span className={VALIDATION_MESSAGE_CLASSES}>{touched && validationMessage}</span>
+      <span className={VALIDATION_MESSAGE_CLASSES}>{validationMessage}</span>
     </div>
   );
 };
