@@ -62,8 +62,10 @@ const ACCEPTED_EXTENSIONS = ALLOWED_FILE_EXTENSIONS.join(",");
 const MAX_FILE_SIZE_MB = 600;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
-const ERROR_MESSAGES = {
+export const ERROR_MESSAGES = {
   noFileSelected: "Please select a file to upload.",
+  missingDocumentTitle: "Document Title is required.",
+  missingDocumentType: "Document Type is required.",
   missingField: "A required field is missing.",
   failedUploadUnknownProblem: "Your document could not be added because of an unknown problem.",
   failedEditUnknownIssue: "Your changes could not be saved because of an unknown problem.",
@@ -359,8 +361,10 @@ const setDefaultDocumentType = (
 
 const formValidation: ValidationSchema<DocumentDialogFields> = {
   file: [(formData) => (formData.file ? undefined : ERROR_MESSAGES.noFileSelected)],
-  name: [(formData) => (formData.name.trim() ? undefined : "Document Title is required.")],
-  documentType: [(formData) => (formData.documentType ? undefined : "Document Type is required.")],
+  name: [(formData) => (formData.name.trim() ? undefined : ERROR_MESSAGES.missingDocumentTitle)],
+  documentType: [
+    (formData) => (formData.documentType ? undefined : ERROR_MESSAGES.missingDocumentType),
+  ],
 };
 
 export const DocumentDialog: React.FC<DocumentDialogProps> = ({
