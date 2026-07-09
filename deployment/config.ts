@@ -57,7 +57,7 @@ export const determineDeploymentConfig = async (
 
   const zScalerIps = await getZScalerIps();
 
-  let cloudfrontHost = `${hostEnvironment}.demos.internal.cms.gov`;
+  let cloudfrontHost = hostEnvironment == "prod" ? "demos.cms.gov" : `${hostEnvironment}.demos.internal.cms.gov`;
 
   if (isEphemeral) {
     cloudfrontHost = `${stage}.${cloudfrontHost}`;
