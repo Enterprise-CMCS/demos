@@ -1,5 +1,3 @@
-/* global console */
-
 import { randomUUID } from "node:crypto";
 import {
   COMPLETED_PHASE_STATUS_ID,
