@@ -3,7 +3,7 @@ import React from "react";
 import { DOCUMENT_TYPES } from "demos-server-constants";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { DocumentTypeInput } from "./DocumentTypeInput";
@@ -83,6 +83,17 @@ describe("DocumentTypeInput", () => {
     // Should show no options when subset is empty
     expect(screen.queryByText("General File")).not.toBeInTheDocument();
     expect(screen.queryByText("Approval Letter")).not.toBeInTheDocument();
+  });
+
+  it("passes the validationMessage prop through to the autocomplete input", () => {
+    render(<DocumentTypeInput {...defaultProps} validationMessage="Document Type is required." />);
+
+    const input = screen.getByTestId("input-autocomplete-select");
+
+    fireEvent.focus(input);
+    fireEvent.blur(input);
+
+    expect(screen.getByText("Document Type is required.")).toBeInTheDocument();
   });
 
   it("disables the field and prevents onSelect callback when documentTypes has one option", async () => {

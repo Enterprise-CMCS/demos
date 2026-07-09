@@ -3,7 +3,7 @@ import "@testing-library/jest-dom";
 import React from "react";
 
 import { ToastProvider } from "components/toast/ToastContext";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
@@ -77,6 +77,18 @@ describe("EditDocumentDialog", () => {
     fireEvent.change(titleInput, { target: { value: "" } });
     const uploadBtn = screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID);
     expect(uploadBtn).toBeDisabled();
+  });
+
+  it("shows a validation error and disables save when the title is only whitespace", () => {
+    setup();
+
+    const titleInput = screen.getByTestId("title");
+
+    fireEvent.change(titleInput, { target: { value: "   " } });
+    fireEvent.blur(titleInput);
+
+    expect(screen.getByText("Document Title is required.")).toBeInTheDocument();
+    expect(screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID)).toBeDisabled();
   });
 
   it("does not render file upload controls in edit mode", () => {
