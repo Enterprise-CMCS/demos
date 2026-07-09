@@ -6,6 +6,7 @@ const {
   prismaNamespaceMock,
   baseClientMock,
   extendedClientMock,
+  logInfoMock,
   logWarnMock,
   logErrorMock,
 } = vi.hoisted(() => {
@@ -29,6 +30,7 @@ const {
     },
     baseClientMock: baseClient,
     extendedClientMock: extendedClient,
+    logInfoMock: vi.fn(),
     logWarnMock: vi.fn(),
     logErrorMock: vi.fn(),
   };
@@ -45,6 +47,7 @@ vi.mock("@prisma/client", () => ({
 
 vi.mock("./log", () => ({
   log: {
+    info: logInfoMock,
     warn: logWarnMock,
     error: logErrorMock,
   },
@@ -264,7 +267,7 @@ describe("prismaClient", () => {
 
     expect(result).toEqual(existing);
     expect(findUnique).toHaveBeenCalledWith({ where: args.where });
-    expect(logWarnMock).toHaveBeenCalledWith(
+    expect(logInfoMock).toHaveBeenCalledWith(
       { model: "TestModel", where: args.where },
       "prisma.redundant_update_suppressed.update"
     );
@@ -347,7 +350,7 @@ describe("prismaClient", () => {
     });
 
     expect(result).toEqual(existing);
-    expect(logWarnMock).toHaveBeenCalledWith(
+    expect(logInfoMock).toHaveBeenCalledWith(
       { model: "TestModel", where: args.where },
       "prisma.redundant_update_suppressed.upsert"
     );
