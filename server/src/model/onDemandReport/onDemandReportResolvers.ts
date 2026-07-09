@@ -37,7 +37,7 @@ export const onDemandReportResolvers = {
             {
               id: reportId,
               s3Path: fileS3Path,
-              generatedFileName: generatedFileName,
+              generatedFileName: generatedFileName + ".xlsx",
               requestingUserId: context.user.id,
               reportTypeId: args.reportType,
               statusId: "Available",

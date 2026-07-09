@@ -144,7 +144,7 @@ describe("onDemandReportResolvers", () => {
         {
           id: mockReportId,
           s3Path: mockS3Path,
-          generatedFileName: mockOnDemandReportFileName,
+          generatedFileName: mockOnDemandReportFileName + ".xlsx",
           requestingUserId: testContextUser.id,
           reportTypeId: testReportType,
           statusId: "Available",
