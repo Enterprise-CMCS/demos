@@ -1,5 +1,3 @@
-/* global fetch, setTimeout */
-
 import { access, readFile } from "node:fs/promises";
 import { basename } from "node:path";
 import { isAbsolute, resolve } from "node:path";
