@@ -49,9 +49,7 @@ const TEST_DELIVERABLE: RequestResubmissionDeliverableDialogDeliverable = {
   dueDate: new Date("2026-02-12"),
 };
 
-const setup = (
-  overrides?: Partial<RequestResubmissionDeliverableDialogDeliverable>
-) => {
+const setup = (overrides?: Partial<RequestResubmissionDeliverableDialogDeliverable>) => {
   const onClose = vi.fn();
 
   render(
@@ -77,33 +75,23 @@ describe("RequestResubmissionDeliverableDialog", () => {
   it("renders with correct title", () => {
     setup();
 
-    expect(
-      screen.getByText(REQUEST_RESUBMISSION_DIALOG_TITLE)
-    ).toBeInTheDocument();
+    expect(screen.getByText(REQUEST_RESUBMISSION_DIALOG_TITLE)).toBeInTheDocument();
   });
 
   it("renders required fields", () => {
     setup();
 
-    expect(
-      screen.getByTestId(REQUEST_RESUBMISSION_DATE_FIELD_NAME)
-    ).toBeRequired();
+    expect(screen.getByTestId(REQUEST_RESUBMISSION_DATE_FIELD_NAME)).toBeRequired();
 
-    expect(
-      screen.getByTestId(REQUEST_RESUBMISSION_DETAILS_FIELD_NAME)
-    ).toBeRequired();
+    expect(screen.getByTestId(REQUEST_RESUBMISSION_DETAILS_FIELD_NAME)).toBeRequired();
   });
 
   it("renders Submit and Cancel buttons", () => {
     setup();
 
-    expect(
-      screen.getByTestId(REQUEST_RESUBMISSION_SUBMIT_BUTTON_NAME)
-    ).toBeInTheDocument();
+    expect(screen.getByTestId(REQUEST_RESUBMISSION_SUBMIT_BUTTON_NAME)).toBeInTheDocument();
 
-    expect(
-      screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME)
-    ).toBeInTheDocument();
+    expect(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME)).toBeInTheDocument();
   });
 
   it("disables Submit until required fields are valid", async () => {
@@ -111,18 +99,13 @@ describe("RequestResubmissionDeliverableDialog", () => {
 
     setup();
 
-    const submit = screen.getByTestId(
-      REQUEST_RESUBMISSION_SUBMIT_BUTTON_NAME
-    );
+    const submit = screen.getByTestId(REQUEST_RESUBMISSION_SUBMIT_BUTTON_NAME);
 
     expect(submit).toBeDisabled();
 
-    fireEvent.change(
-      screen.getByTestId(REQUEST_RESUBMISSION_DATE_FIELD_NAME),
-      {
-        target: { value: "2026-03-01" },
-      }
-    );
+    fireEvent.change(screen.getByTestId(REQUEST_RESUBMISSION_DATE_FIELD_NAME), {
+      target: { value: "2026-03-01" },
+    });
 
     expect(submit).toBeDisabled();
 
@@ -139,26 +122,19 @@ describe("RequestResubmissionDeliverableDialog", () => {
 
     setup();
 
-    fireEvent.change(
-      screen.getByTestId(REQUEST_RESUBMISSION_DATE_FIELD_NAME),
-      {
-        target: { value: "2026-01-01" },
-      }
-    );
+    const newDueDateInput = screen.getByTestId(REQUEST_RESUBMISSION_DATE_FIELD_NAME);
 
-    await user.type(
-      screen.getByTestId(REQUEST_RESUBMISSION_DETAILS_FIELD_NAME),
-      "Need time"
-    );
+    fireEvent.change(newDueDateInput, {
+      target: { value: "2026-01-01" },
+    });
+    fireEvent.blur(newDueDateInput);
 
-    expect(
-      screen.getByTestId(REQUEST_RESUBMISSION_SUBMIT_BUTTON_NAME)
-    ).toBeDisabled();
+    await user.type(screen.getByTestId(REQUEST_RESUBMISSION_DETAILS_FIELD_NAME), "Need time");
+
+    expect(screen.getByTestId(REQUEST_RESUBMISSION_SUBMIT_BUTTON_NAME)).toBeDisabled();
 
     expect(
-      screen.getByText(
-        "New Due Date must be greater than or equal to Current Due Date."
-      )
+      screen.getByText("New Due Date must be greater than or equal to Current Due Date.")
     ).toBeInTheDocument();
   });
 
@@ -166,25 +142,18 @@ describe("RequestResubmissionDeliverableDialog", () => {
     const user = userEvent.setup();
     const { onClose } = setup();
 
-    fireEvent.change(
-      screen.getByTestId(REQUEST_RESUBMISSION_DATE_FIELD_NAME),
-      {
-        target: { value: "2026-03-15" },
-      }
-    );
+    fireEvent.change(screen.getByTestId(REQUEST_RESUBMISSION_DATE_FIELD_NAME), {
+      target: { value: "2026-03-15" },
+    });
 
     await user.type(
       screen.getByTestId(REQUEST_RESUBMISSION_DETAILS_FIELD_NAME),
       "  Missing documentation  "
     );
 
-    await user.click(
-      screen.getByTestId(REQUEST_RESUBMISSION_SUBMIT_BUTTON_NAME)
-    );
+    await user.click(screen.getByTestId(REQUEST_RESUBMISSION_SUBMIT_BUTTON_NAME));
 
-    await waitFor(() =>
-      expect(mockMutation).toHaveBeenCalledTimes(1)
-    );
+    await waitFor(() => expect(mockMutation).toHaveBeenCalledTimes(1));
 
     expect(mockMutation).toHaveBeenCalledWith({
       variables: {
@@ -194,16 +163,16 @@ describe("RequestResubmissionDeliverableDialog", () => {
           details: "Missing documentation",
         },
       },
-      refetchQueries: [{
-        query: DELIVERABLE_DETAILS_QUERY,
-        variables: { id: "deliverable-1" },
-      }],
+      refetchQueries: [
+        {
+          query: DELIVERABLE_DETAILS_QUERY,
+          variables: { id: "deliverable-1" },
+        },
+      ],
       awaitRefetchQueries: true,
     });
 
-    expect(mockShowSuccess).toHaveBeenCalledWith(
-      RESUBMISSION_REQUESTED_MESSAGE
-    );
+    expect(mockShowSuccess).toHaveBeenCalledWith(RESUBMISSION_REQUESTED_MESSAGE);
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });
@@ -215,26 +184,19 @@ describe("RequestResubmissionDeliverableDialog", () => {
 
     const { onClose } = setup();
 
-    fireEvent.change(
-      screen.getByTestId(REQUEST_RESUBMISSION_DATE_FIELD_NAME),
-      {
-        target: { value: "2026-03-15" },
-      }
-    );
+    fireEvent.change(screen.getByTestId(REQUEST_RESUBMISSION_DATE_FIELD_NAME), {
+      target: { value: "2026-03-15" },
+    });
 
     await user.type(
       screen.getByTestId(REQUEST_RESUBMISSION_DETAILS_FIELD_NAME),
       "Need resubmission"
     );
 
-    await user.click(
-      screen.getByTestId(REQUEST_RESUBMISSION_SUBMIT_BUTTON_NAME)
-    );
+    await user.click(screen.getByTestId(REQUEST_RESUBMISSION_SUBMIT_BUTTON_NAME));
 
     await waitFor(() =>
-      expect(mockShowError).toHaveBeenCalledWith(
-        "Unable to submit resubmission request."
-      )
+      expect(mockShowError).toHaveBeenCalledWith("Unable to submit resubmission request.")
     );
 
     expect(onClose).not.toHaveBeenCalled();
@@ -245,14 +207,9 @@ describe("RequestResubmissionDeliverableDialog", () => {
 
     const { onClose } = setup();
 
-    await user.type(
-      screen.getByTestId(REQUEST_RESUBMISSION_DETAILS_FIELD_NAME),
-      "partial"
-    );
+    await user.type(screen.getByTestId(REQUEST_RESUBMISSION_DETAILS_FIELD_NAME), "partial");
 
-    await user.click(
-      screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME)
-    );
+    await user.click(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME));
 
     expect(await screen.findByText("Are you sure?")).toBeInTheDocument();
 
@@ -264,33 +221,26 @@ describe("RequestResubmissionDeliverableDialog", () => {
 
     const { onClose } = setup();
 
-    await user.click(
-      screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME)
-    );
+    await user.click(screen.getByTestId(DIALOG_CANCEL_BUTTON_NAME));
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 });
 
 describe("canRequestResubmission", () => {
-  it.each(["Past Due"] as const)(
-    "returns true for %s",
-    (status) => {
-      expect(canRequestResubmission(status)).toBe(true);
-      expect(RESUBMISSION_ELIGIBLE_STATUSES.has(status)).toBe(true);
-    }
-  );
+  it.each(["Past Due"] as const)("returns true for %s", (status) => {
+    expect(canRequestResubmission(status)).toBe(true);
+    expect(RESUBMISSION_ELIGIBLE_STATUSES.has(status)).toBe(true);
+  });
 
-  it.each(
-    [
-      "Upcoming",
-      "Submitted",
-      "Under CMS Review",
-      "Accepted",
-      "Approved",
-      "Received and Filed",
-    ] as const
-  )("returns false for %s", (status) => {
+  it.each([
+    "Upcoming",
+    "Submitted",
+    "Under CMS Review",
+    "Accepted",
+    "Approved",
+    "Received and Filed",
+  ] as const)("returns false for %s", (status) => {
     expect(canRequestResubmission(status)).toBe(false);
   });
 });
@@ -299,29 +249,21 @@ describe("getNewDueDateValidationMessage", () => {
   const dueDate = new Date("2026-02-12");
 
   it("returns empty for blank", () => {
-    expect(
-      getNewDueDateValidationMessage("", dueDate)
-    ).toBe("");
+    expect(getNewDueDateValidationMessage("", dueDate)).toBe("");
   });
 
   it("flags earlier dates", () => {
-    expect(
-      getNewDueDateValidationMessage("2026-01-01", dueDate)
-    ).toBe(
+    expect(getNewDueDateValidationMessage("2026-01-01", dueDate)).toBe(
       "New Due Date must be greater than or equal to Current Due Date."
     );
   });
 
   it("accepts equal date", () => {
-    expect(
-      getNewDueDateValidationMessage("2026-02-12", dueDate)
-    ).toBe("");
+    expect(getNewDueDateValidationMessage("2026-02-12", dueDate)).toBe("");
   });
 
   it("accepts later date", () => {
-    expect(
-      getNewDueDateValidationMessage("2026-03-01", dueDate)
-    ).toBe("");
+    expect(getNewDueDateValidationMessage("2026-03-01", dueDate)).toBe("");
   });
 });
 
@@ -356,25 +298,10 @@ describe("formIsValid / formHasChanges", () => {
   });
 
   it("formIsValid requires both fields", () => {
-    expect(
-      formIsValid(
-        { newDueDate: "", details: "reason" },
-        dueDate
-      )
-    ).toBe(false);
+    expect(formIsValid({ newDueDate: "", details: "reason" }, dueDate)).toBe(false);
 
-    expect(
-      formIsValid(
-        { newDueDate: "2026-03-01", details: "   " },
-        dueDate
-      )
-    ).toBe(false);
+    expect(formIsValid({ newDueDate: "2026-03-01", details: "   " }, dueDate)).toBe(false);
 
-    expect(
-      formIsValid(
-        { newDueDate: "2026-03-01", details: "reason" },
-        dueDate
-      )
-    ).toBe(true);
+    expect(formIsValid({ newDueDate: "2026-03-01", details: "reason" }, dueDate)).toBe(true);
   });
 });

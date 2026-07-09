@@ -54,6 +54,8 @@ describe("QuarterlyDeliverableSchedule", () => {
       />
     );
 
+    fireEvent.blur(screen.getByTestId("quarter-1"));
+
     expect(
       screen.getByText(`Date must be on or after ${formatDateForDisplay(getTodayEst())}.`)
     ).toBeInTheDocument();

@@ -120,9 +120,12 @@ describe("RequestExtensionDeliverableDialog", () => {
     const user = userEvent.setup();
     setup();
 
-    fireEvent.change(screen.getByTestId(REQUEST_EXTENSION_DATE_FIELD_NAME), {
+    const extensionDateInput = screen.getByTestId(REQUEST_EXTENSION_DATE_FIELD_NAME);
+
+    fireEvent.change(extensionDateInput, {
       target: { value: "2026-02-12" }, // equal to due date — invalid
     });
+    fireEvent.blur(extensionDateInput);
     await user.selectOptions(screen.getByTestId(REQUEST_EXTENSION_REASON_FIELD_NAME), "COVID-19");
     await user.type(screen.getByTestId(REQUEST_EXTENSION_DETAILS_FIELD_NAME), "Delayed");
 
@@ -175,9 +178,7 @@ describe("RequestExtensionDeliverableDialog", () => {
           requestedDueDate: "2026-03-15",
         },
       },
-      refetchQueries: [
-        { query: DELIVERABLE_DETAILS_QUERY, variables: { id: "deliverable-1" } },
-      ],
+      refetchQueries: [{ query: DELIVERABLE_DETAILS_QUERY, variables: { id: "deliverable-1" } }],
       awaitRefetchQueries: true,
     });
     expect(mockShowSuccess).toHaveBeenCalledWith(DELIVERABLE_EXTENSION_REQUESTED_MESSAGE);
@@ -246,9 +247,9 @@ describe("canRequestExtension", () => {
 
   it("returns true when prior extensions are no longer open", () => {
     expect(canRequestExtension("Upcoming", [{ status: "Approved" }])).toBe(true);
-    expect(
-      canRequestExtension("Past Due", [{ status: "Denied" }, { status: "Withdrawn" }])
-    ).toBe(true);
+    expect(canRequestExtension("Past Due", [{ status: "Denied" }, { status: "Withdrawn" }])).toBe(
+      true
+    );
   });
 });
 

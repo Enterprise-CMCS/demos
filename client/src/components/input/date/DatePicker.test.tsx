@@ -31,10 +31,10 @@ describe("DatePicker component", () => {
       expect(input.value).toBe("2025-06-15");
     });
 
-    it("displays validation message when provided", () => {
+    it("does not display a provided validation message before blur", () => {
       const getValidationMessage = vi.fn(() => "This date is required");
       render(<DatePicker {...requiredProps} getValidationMessage={getValidationMessage} />);
-      expect(screen.getByText("This date is required")).toBeInTheDocument();
+      expect(screen.queryByText("This date is required")).not.toBeInTheDocument();
     });
   });
 
@@ -59,22 +59,28 @@ describe("DatePicker component", () => {
       expect(mockOnChange).toHaveBeenCalledWith("2025-03-20");
     });
 
-    it("shows an out of range date and message while propagating it to the caller", () => {
+    it("shows an out of range date and message while propagating it to the caller after blur", () => {
       render(<DatePicker {...requiredProps} />);
       const input = screen.getByTestId("test-date");
 
       fireEvent.change(input, { target: { value: "1899-12-31" } });
       expect(mockOnChange).toHaveBeenCalledWith("1899-12-31");
+      expect(screen.queryByText("Date must be on or after 01/01/1900.")).not.toBeInTheDocument();
+
+      fireEvent.blur(input);
       expect(screen.getByText("Date must be on or after 01/01/1900.")).toBeInTheDocument();
     });
 
-    it("propagates complete dates outside a provided minDate", () => {
+    it("propagates complete dates outside a provided minDate and shows the message after blur", () => {
       render(<DatePicker {...requiredProps} minDate="2026-04-28" />);
       const input = screen.getByTestId("test-date");
 
       fireEvent.change(input, { target: { value: "2026-04-01" } });
 
       expect(mockOnChange).toHaveBeenCalledWith("2026-04-01");
+      expect(screen.queryByText("Date must be on or after 04/28/2026.")).not.toBeInTheDocument();
+
+      fireEvent.blur(input);
       expect(screen.getByText("Date must be on or after 04/28/2026.")).toBeInTheDocument();
     });
 
@@ -90,13 +96,17 @@ describe("DatePicker component", () => {
       expect(mockOnChange).toHaveBeenCalledWith("2099-12-31");
     });
 
-    it("shows a default message when the value prop is before the min bound", () => {
+    it("shows a default message when the value prop is before the min bound after blur", () => {
       render(<DatePicker {...requiredProps} value="1899-12-31" />);
+
+      fireEvent.blur(screen.getByTestId("test-date"));
       expect(screen.getByText("Date must be on or after 01/01/1900.")).toBeInTheDocument();
     });
 
-    it("shows a default message when the value prop is after the max bound", () => {
+    it("shows a default message when the value prop is after the max bound after blur", () => {
       render(<DatePicker {...requiredProps} value="2100-01-01" />);
+
+      fireEvent.blur(screen.getByTestId("test-date"));
       expect(screen.getByText("Date must be on or before 12/31/2099.")).toBeInTheDocument();
     });
 
@@ -108,17 +118,21 @@ describe("DatePicker component", () => {
       expect(screen.queryByText(/Date must be on or/)).not.toBeInTheDocument();
     });
 
-    it("uses the provided minDate/maxDate in the default message", () => {
+    it("uses the provided minDate/maxDate in the default message after blur", () => {
       const { rerender } = render(
         <DatePicker {...requiredProps} minDate="2026-04-28" value="2026-04-01" />
       );
+
+      fireEvent.blur(screen.getByTestId("test-date"));
       expect(screen.getByText("Date must be on or after 04/28/2026.")).toBeInTheDocument();
 
       rerender(<DatePicker {...requiredProps} maxDate="2026-04-28" value="2026-05-01" />);
+
+      fireEvent.blur(screen.getByTestId("test-date"));
       expect(screen.getByText("Date must be on or before 04/28/2026.")).toBeInTheDocument();
     });
 
-    it("lets getValidationMessage take precedence over the default range message", () => {
+    it("lets getValidationMessage take precedence over the default range message after blur", () => {
       render(
         <DatePicker
           {...requiredProps}
@@ -126,6 +140,8 @@ describe("DatePicker component", () => {
           getValidationMessage={() => "Custom message"}
         />
       );
+
+      fireEvent.blur(screen.getByTestId("test-date"));
       expect(screen.getByText("Custom message")).toBeInTheDocument();
       expect(screen.queryByText(/Date must be on or after/)).not.toBeInTheDocument();
     });
@@ -198,6 +214,17 @@ describe("DatePicker component", () => {
   });
 
   describe("Validation Message", () => {
+    it("shows a custom validation message on blur", () => {
+      const getValidationMessage = vi.fn(() => "Invalid date");
+      render(<DatePicker {...requiredProps} getValidationMessage={getValidationMessage} />);
+
+      const input = screen.getByTestId("test-date");
+      expect(screen.queryByText("Invalid date")).not.toBeInTheDocument();
+
+      fireEvent.blur(input);
+      expect(screen.getByText("Invalid date")).toBeInTheDocument();
+    });
+
     it("applies error styling when validation message is present", () => {
       const getValidationMessage = vi.fn(() => "Invalid date");
       render(<DatePicker {...requiredProps} getValidationMessage={getValidationMessage} />);

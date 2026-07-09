@@ -4,7 +4,7 @@ import { GET_USER_SELECT_OPTIONS_QUERY } from "components/input/select/SelectUse
 import { TestProvider } from "test-utils/TestProvider";
 import { describe, expect, it, vi } from "vitest";
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import {
   DemonstrationDialog,
   checkFormHasChanges,
@@ -171,6 +171,8 @@ describe("DemonstrationDialog", () => {
         <DemonstrationDialog {...propsWithDates} />
       </TestProvider>
     );
+
+    fireEvent.blur(screen.getByTestId(EXPIRATION_DATE_INPUT_TEST_ID));
 
     await waitFor(() => {
       expect(screen.getByText(EXPIRATION_DATE_ERROR_MESSAGE)).toBeInTheDocument();
