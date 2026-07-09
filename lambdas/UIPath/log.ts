@@ -46,8 +46,7 @@ for (const logObject of REDACTED_LOG_OBJECTS) {
   LOGGER_REDACTION_PATHS.push(...REDACTED_ERROR_PATHS.map((path) => `${logObject}.${path}`));
 }
 
-
-export const {log, reqIdChild, store, als } = createLambdaLogger("uipath", {
+export const loggerOptions: pino.LoggerOptions<never, boolean> = {
   formatters: {
     log: (obj) => {
       // Extract top-level fields (eg. type to match default AWS lambda logs)
@@ -78,4 +77,7 @@ export const {log, reqIdChild, store, als } = createLambdaLogger("uipath", {
         },
       }
     : undefined,
-})
+}
+
+export const {log, reqIdChild, store, als } = createLambdaLogger("uipath", loggerOptions)
+export {createLambdaLogger} from 'demos-shared-library/log'
