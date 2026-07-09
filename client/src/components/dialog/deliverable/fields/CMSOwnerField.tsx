@@ -9,12 +9,10 @@ export const CMSOwnerField = ({
   value,
   onSelect,
   isDisabled = false,
-  validationMessage,
 }: {
   value: string;
   onSelect: (id: string) => void;
   isDisabled?: boolean;
-  validationMessage?: string;
 }) => {
   return (
     <SelectUsers
@@ -24,7 +22,6 @@ export const CMSOwnerField = ({
       isRequired
       isDisabled={isDisabled}
       personTypes={ALLOWED_PERSON_TYPES}
-      validationMessage={validationMessage}
     />
   );
 };

@@ -1,55 +1,34 @@
-import React from "react";
-
 type ValidationMessage = string | undefined;
-
-type ValidationRule<TValues> = (values: TValues) => ValidationMessage;
-
-export type ValidationSchema<TValues> = {
-  [TField in keyof TValues]?: ValidationRule<TValues>[];
+type ValidationRule<TFormData> = (formData: TFormData) => ValidationMessage;
+export type ValidationSchema<TFormData> = {
+  [TField in keyof TFormData]?: ValidationRule<TFormData>[];
+};
+type ValidationErrors<TFormData> = {
+  [TField in keyof TFormData]?: ValidationMessage;
 };
 
-type ValidationErrors<TValues> = {
-  [TField in keyof TValues]?: ValidationMessage;
-};
-
-export const useValidation = <TValues extends object>(
-  values: TValues,
-  schema: ValidationSchema<TValues>
+export const useValidation = <TFormData extends object>(
+  formData: TFormData,
+  schema: ValidationSchema<TFormData>
 ) => {
-  const getValidationMessage = React.useCallback(
-    <TField extends keyof TValues>(field: TField): ValidationMessage => {
-      const rules = schema[field] ?? [];
+  const errors: ValidationErrors<TFormData> = {};
 
-      for (const rule of rules) {
-        const message = rule(values);
-        if (message) {
-          return message;
-        }
-      }
+  for (const field of Object.keys(schema) as (keyof TFormData)[]) {
+    const rules = schema[field] ?? [];
 
-      return undefined;
-    },
-    [schema, values]
-  );
-
-  const errors = React.useMemo(() => {
-    const nextErrors: ValidationErrors<TValues> = {};
-
-    for (const field of Object.keys(schema) as (keyof TValues)[]) {
-      const message = getValidationMessage(field);
+    for (const rule of rules) {
+      const message = rule(formData);
       if (message) {
-        nextErrors[field] = message;
+        errors[field] = message;
+        break;
       }
     }
+  }
 
-    return nextErrors;
-  }, [schema, getValidationMessage]);
-
-  const isValid = React.useMemo(() => Object.keys(errors).length === 0, [errors]);
+  const isValid = Object.keys(errors).length === 0;
 
   return {
     errors,
     isValid,
-    getValidationMessage,
   };
 };

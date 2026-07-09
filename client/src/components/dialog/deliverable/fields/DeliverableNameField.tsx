@@ -8,12 +8,10 @@ export const DeliverableNameField = ({
   value,
   onChange,
   isDisabled = false,
-  validationMessage,
 }: {
   value: string;
   onChange: (value: string) => void;
   isDisabled?: boolean;
-  validationMessage?: string;
 }) => {
   return (
     <TextInput
@@ -23,7 +21,6 @@ export const DeliverableNameField = ({
       isDisabled={isDisabled}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      getValidationMessage={() => validationMessage}
     />
   );
 };

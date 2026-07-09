@@ -8,11 +8,9 @@ export type ScheduleType = (typeof ALL_SCHEDULE_TYPES)[number];
 export const ScheduleTypeField = ({
   value,
   onSelect,
-  validationMessage,
 }: {
   value: ScheduleType;
   onSelect: (value: ScheduleType) => void;
-  validationMessage?: string;
 }) => {
   return (
     <AutoCompleteSelect
@@ -24,7 +22,6 @@ export const ScheduleTypeField = ({
       onSelect={onSelect}
       isRequired
       placeholder="Select..."
-      validationMessage={validationMessage}
     />
   );
 };

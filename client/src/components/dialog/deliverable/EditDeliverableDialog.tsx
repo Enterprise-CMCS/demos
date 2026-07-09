@@ -223,7 +223,7 @@ export const EditDeliverableDialog: React.FC<EditDeliverableDialogProps> = ({
         <Button
           name={EDIT_DELIVERABLE_SAVE_BUTTON_NAME}
           onClick={handleSave}
-          disabled={!isFormValid || isSaving || !hasChanges}
+          disabled={!isFormValid || isSaving}
         >
           {isSaving ? "Saving..." : "Save Changes"}
         </Button>
