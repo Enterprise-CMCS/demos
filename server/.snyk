@@ -2,11 +2,6 @@
 version: v1.25.0
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
-  SNYK-JS-SHELLQUOTE-16799355:
-    - '*':
-      reason: Dev Dependancy, only affects npm run watch command
-      expires: 2026-06-05T23:59:59.999-05:00
-      created: 2026-05-26T00:00:00.000-05:00
   SNYK-JS-BRACEEXPANSION-17706650:
     - '*':
         reason: No clean fix available in current ESLint React plugin stack
@@ -17,6 +12,11 @@ ignore:
         reason: No clean fix available yet in current Prisma stack
         expires: 2026-07-14T00:00:00.000Z
         created: 2026-06-30T14:21:33.964Z
+  SNYK-JS-HONO-17900542:
+    - '*':
+        reason: No fix available yet in Prisma stack.
+        expires: 2026-07-15T23:59:59.999-04:00
+        created: 2026-07-09T00:00:00.000-04:00
 #  EXAMPLE-VULNERABILITY:
 #    - '*':
 #        reason: Some reason.

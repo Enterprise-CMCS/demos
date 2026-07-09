@@ -2,9 +2,18 @@ import { PrismaTransactionClient } from "../../prismaClient";
 import { createAWSS3Adapter } from "./AwsS3Adapter";
 import { createLocalS3Adapter } from "./LocalS3Adapter";
 import { Prisma, DocumentPendingUpload as PrismaDocumentPendingUpload } from "@prisma/client";
+export interface GetPresignedDownloadUrlOptions {
+  /** Content-Disposition type. Defaults to "inline" (renders previews); use "attachment" to force download. */
+  disposition?: "inline" | "attachment";
+}
+
 export interface S3Adapter {
   getPresignedUploadUrl(key: string): Promise<string>;
-  getPresignedDownloadUrl(key: string, fileName?: string): Promise<string>;
+  getPresignedDownloadUrl(
+    key: string,
+    fileName?: string,
+    options?: GetPresignedDownloadUrlOptions
+  ): Promise<string>;
   moveDocumentFromCleanToDeleted(key: string): Promise<void>;
   uploadDocument(
     documentData: Prisma.DocumentPendingUploadCreateArgs["data"],

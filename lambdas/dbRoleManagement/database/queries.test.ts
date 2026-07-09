@@ -1,8 +1,9 @@
+import { Mock } from "vitest";
 import { Role } from "../types";
 import { getPool } from "./pool";
 import { createRole, deleteRoles, loginRolesNotInDb, syncRoleMemberships, validateRolesExist } from "./queries";
 
-jest.mock("./pool");
+vi.mock("./pool");
 
 const mockRoles: Role[] = [
   {
@@ -22,12 +23,12 @@ const mockRoles: Role[] = [
 
 describe("queries", () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
   describe("deleteRoles", () => {
     test("should query proper delete command", async () => {
-      const querySpy = jest.fn();
-      (getPool as jest.Mock).mockImplementation(() => ({
+      const querySpy = vi.fn();
+      (getPool as Mock).mockImplementation(() => ({
         query: querySpy,
       }));
       await deleteRoles(mockRoles);
@@ -36,10 +37,10 @@ describe("queries", () => {
   });
   describe("validateRolesExist", () => {
     test("should properly call request to validate roles", async () => {
-      const querySpy = jest
+      const querySpy = vi
         .fn()
         .mockImplementation((_, p: string[]) => ({ rows: p.map((r) => ({ role: r, exists: true })) }));
-      (getPool as jest.Mock).mockImplementation(() => ({
+      (getPool as Mock).mockImplementation(() => ({
         query: querySpy,
       }));
       const flatRoles = mockRoles.map((r) => r.memberships).flat();
@@ -48,10 +49,10 @@ describe("queries", () => {
     });
 
     test("should throw when role is missing", async () => {
-      const querySpy = jest
+      const querySpy = vi
         .fn()
         .mockImplementation((_, p: string[]) => ({ rows: p.map((r) => ({ role: r, exists: false })) }));
-      (getPool as jest.Mock).mockImplementation(() => ({
+      (getPool as Mock).mockImplementation(() => ({
         query: querySpy,
       }));
       const flatRoles = mockRoles.map((r) => r.memberships).flat();
@@ -66,11 +67,11 @@ describe("queries", () => {
         memberships: ["demos_read", "demos_delete"],
       };
 
-      const querySpy = jest
+      const querySpy = vi
         .fn()
         .mockImplementationOnce(() => null)
         .mockImplementationOnce((_, p: string[]) => ({ rows: mockDBRows }));
-      (getPool as jest.Mock).mockImplementation(() => ({
+      (getPool as Mock).mockImplementation(() => ({
         query: querySpy,
       }));
       await syncRoleMemberships(roleAfter);
@@ -88,11 +89,11 @@ describe("queries", () => {
         memberships: ["demos_read", "demos_delete"],
       };
 
-      const querySpy = jest
+      const querySpy = vi
         .fn()
         .mockImplementationOnce(() => null)
         .mockRejectedValueOnce(1);
-      (getPool as jest.Mock).mockImplementation(() => ({
+      (getPool as Mock).mockImplementation(() => ({
         query: querySpy,
       }));
       await syncRoleMemberships(roleAfter);
@@ -103,8 +104,8 @@ describe("queries", () => {
 
   describe("loginRolesNotInDb", () => {
     test("should return proper list of missing roles", async () => {
-      const querySpy = jest.fn().mockResolvedValue({ rows: [{ rolname: "mock_role_1" }, { rolname: "mock_role_2" }] });
-      (getPool as jest.Mock).mockImplementation(() => ({
+      const querySpy = vi.fn().mockResolvedValue({ rows: [{ rolname: "mock_role_1" }, { rolname: "mock_role_2" }] });
+      (getPool as Mock).mockImplementation(() => ({
         query: querySpy,
       }));
       const list = await loginRolesNotInDb(mockRoles);
@@ -114,8 +115,8 @@ describe("queries", () => {
   });
   describe("createRole", () => {
     test("should properly create a role", async () => {
-      const querySpy = jest.fn();
-      (getPool as jest.Mock).mockImplementation(() => ({
+      const querySpy = vi.fn();
+      (getPool as Mock).mockImplementation(() => ({
         query: querySpy,
       }));
       await createRole(mockRoles[0], "fakepw");

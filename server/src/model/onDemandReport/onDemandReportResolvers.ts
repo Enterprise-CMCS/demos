@@ -62,7 +62,10 @@ export const onDemandReportResolvers = {
           handlePrismaError(error);
         }
       }
-      return await s3Adapter.getPresignedDownloadUrl(uploadedReportS3Path);
+      // Name without extension — `.xlsx` is derived from the object's Content-Type.
+      return await s3Adapter.getPresignedDownloadUrl(uploadedReportS3Path, args.reportType, {
+        disposition: "attachment",
+      });
     },
   },
 };
