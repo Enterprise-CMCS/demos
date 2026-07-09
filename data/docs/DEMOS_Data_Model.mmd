@@ -697,6 +697,7 @@ erDiagram
   on_demand_report:::dataTable {
     uuid id PK
     text s3_path
+    text generated_file_name
     uuid requesting_user_id FK "FK156: requesting_user_id ∈ users.id"
     text report_type_id FK "FK157: report_type_id ∈ on_demand_report_type.id"
     text status_id FK "FK158: status_id ∈ on_demand_report_status.id"
