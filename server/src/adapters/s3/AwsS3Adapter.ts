@@ -10,7 +10,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { create as createContentDisposition } from "content-disposition";
 import { extension as extensionForContentType } from "mime-types";
 import { prisma, PrismaTransactionClient } from "../../prismaClient";
-import { GetPresignedDownloadUrlOptions, S3Adapter } from "../";
+import { CleanBucketObject, GetPresignedDownloadUrlOptions, S3Adapter } from "../";
 import { sanitizeDownloadFileName } from "./sanitizeDownloadFileName";
 import { Prisma, DocumentPendingUpload as PrismaDocumentPendingUpload } from "@prisma/client";
 
@@ -97,6 +97,31 @@ export function createAWSS3Adapter(): S3Adapter {
       return await getSignedUrl(s3Client, getObjectCommand, {
         expiresIn: EXPIRATION_TIME_SECONDS,
       });
+    },
+
+    async getCleanBucketObject(key: string): Promise<CleanBucketObject> {
+      const response = await s3Client.send(
+        new GetObjectCommand({ Bucket: cleanBucket, Key: key })
+      );
+      if (!response.Body) {
+        throw new Error(`Object ${key} in the clean bucket has no body.`);
+      }
+      return {
+        bytes: await response.Body.transformToByteArray(),
+        contentType: response.ContentType ?? "",
+      };
+    },
+
+    async putCleanBucketObject(key: string, bytes: Uint8Array, contentType: string): Promise<void> {
+      await s3Client.send(
+        new PutObjectCommand({
+          Bucket: cleanBucket,
+          Key: key,
+          Body: bytes,
+          // Kept so the download URL can still derive the file extension from it.
+          ContentType: contentType || undefined,
+        })
+      );
     },
 
     async moveDocumentFromCleanToDeleted(key: string): Promise<void> {

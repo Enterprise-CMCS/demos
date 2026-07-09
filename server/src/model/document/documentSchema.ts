@@ -53,6 +53,9 @@ export const documentSchema = gql`
     deleteDocuments(ids: [ID!]!): Int!
       @auth(requires: ["Perform CMS Action", "Perform State Action"])
     triggerUiPath(documentId: ID!): String! @auth(requires: ["Perform CMS Action"])
+    "Writes the document title into the stored PDF. False for non-PDFs or on failure."
+    applyDocumentTitleMetadata(documentId: ID!): Boolean!
+      @auth(requires: ["Perform CMS Action", "Perform State Action"])
   }
 
   type Query {

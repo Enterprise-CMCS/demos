@@ -7,6 +7,12 @@ export interface GetPresignedDownloadUrlOptions {
   disposition?: "inline" | "attachment";
 }
 
+export interface CleanBucketObject {
+  bytes: Uint8Array;
+  /** The object's stored Content-Type, or "" when it has none. */
+  contentType: string;
+}
+
 export interface S3Adapter {
   getPresignedUploadUrl(key: string): Promise<string>;
   getPresignedDownloadUrl(
@@ -14,6 +20,10 @@ export interface S3Adapter {
     fileName?: string,
     options?: GetPresignedDownloadUrlOptions
   ): Promise<string>;
+  /** Reads an object's raw bytes and Content-Type from the clean bucket. */
+  getCleanBucketObject(key: string): Promise<CleanBucketObject>;
+  /** Overwrites an object in the clean bucket, preserving its Content-Type. */
+  putCleanBucketObject(key: string, bytes: Uint8Array, contentType: string): Promise<void>;
   moveDocumentFromCleanToDeleted(key: string): Promise<void>;
   uploadDocument(
     documentData: Prisma.DocumentPendingUploadCreateArgs["data"],

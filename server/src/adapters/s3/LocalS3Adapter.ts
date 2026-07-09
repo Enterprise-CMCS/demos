@@ -1,5 +1,5 @@
 import { prisma, PrismaTransactionClient } from "../../prismaClient";
-import { GetPresignedDownloadUrlOptions, S3Adapter } from "../";
+import { CleanBucketObject, GetPresignedDownloadUrlOptions, S3Adapter } from "../";
 import { sanitizeDownloadFileName } from "./sanitizeDownloadFileName";
 import { Prisma, DocumentPendingUpload as PrismaDocumentPendingUpload } from "@prisma/client";
 
@@ -41,6 +41,15 @@ export function createLocalS3Adapter(): S3Adapter {
       }
 
       return `${key} does not exist!`;
+    },
+
+    // Local dev stores no real bytes; callers treat these failures as best-effort.
+    async getCleanBucketObject(key: string): Promise<CleanBucketObject> {
+      throw new Error(`LocalS3Adapter does not store bytes; cannot read ${key}.`);
+    },
+
+    async putCleanBucketObject(key: string): Promise<void> {
+      throw new Error(`LocalS3Adapter does not store bytes; cannot write ${key}.`);
     },
 
     async moveDocumentFromCleanToDeleted(key: string): Promise<void> {

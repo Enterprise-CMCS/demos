@@ -16,6 +16,7 @@ import { getApplication, PrismaApplication } from "../application";
 import { selectUserOrThrow } from "../user/queries";
 import { enqueueUiPath } from "../../services/uipathQueue";
 import { resolveDeliverable } from "../deliverable";
+import { applyPdfTitleMetadata } from "./applyPdfTitleMetadata";
 import { editDocument, getDocument, removeDocument } from "./documentData";
 import type {
   BudgetNeutralityValidationError,
@@ -105,7 +106,7 @@ export const documentResolvers = {
     ): Promise<PrismaDocument> {
       checkOptionalNotNullFields(["name", "description"], input);
       try {
-        return await editDocument(
+        const updatedDocument = await editDocument(
           { id },
           {
             name: input.name,
@@ -113,9 +114,23 @@ export const documentResolvers = {
           },
           context.user
         );
+
+        if (input.name !== undefined) {
+          await applyPdfTitleMetadata(updatedDocument.s3Path, updatedDocument.name);
+        }
+
+        return updatedDocument;
       } catch (error) {
         handlePrismaError(error);
       }
+    },
+    applyDocumentTitleMetadata: async function applyDocumentTitleMetadata(
+      parent: unknown,
+      { documentId }: { documentId: string },
+      context: GraphQLContext
+    ): Promise<boolean> {
+      const document = await getDocument({ id: documentId }, context.user);
+      return await applyPdfTitleMetadata(document.s3Path, document.name);
     },
     deleteDocument: async function deleteDocument(
       parent: unknown,

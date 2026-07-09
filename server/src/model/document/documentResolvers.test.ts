@@ -15,6 +15,7 @@ import {
   resolveHasPendingUIPathResult,
 } from "./documentResolvers";
 import { editDocument, getDocument, removeDocument } from "./documentData";
+import { applyPdfTitleMetadata } from "./applyPdfTitleMetadata";
 import { selectDeliverableAction, SelectDeliverableActionRowResult } from "../deliverableAction/queries";
 
 // Mock dependencies
@@ -34,6 +35,10 @@ vi.mock("./documentData", () => ({
   getDocument: vi.fn(),
   editDocument: vi.fn(),
   removeDocument: vi.fn(),
+}));
+
+vi.mock("./applyPdfTitleMetadata", () => ({
+  applyPdfTitleMetadata: vi.fn(),
 }));
 
 vi.mock("../application", () => ({
@@ -309,6 +314,66 @@ describe("documentResolvers", () => {
         mockContext.user
       );
       expect(updatedDocument).toEqual(mockDocument);
+    });
+
+    it("stamps the new title into the stored PDF when the name changes", async () => {
+      vi.mocked(editDocument).mockResolvedValue(mockDocument);
+
+      await documentResolvers.Mutation.updateDocument(
+        undefined,
+        { id: testDocumentId, input: { name: "Updated Document" } },
+        mockContext
+      );
+
+      expect(applyPdfTitleMetadata).toHaveBeenCalledExactlyOnceWith(
+        mockDocument.s3Path,
+        mockDocument.name
+      );
+    });
+
+    it("does not touch the PDF when only the description changes", async () => {
+      vi.mocked(editDocument).mockResolvedValue(mockDocument);
+
+      await documentResolvers.Mutation.updateDocument(
+        undefined,
+        { id: testDocumentId, input: { description: "Only the description" } },
+        mockContext
+      );
+
+      expect(applyPdfTitleMetadata).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("Mutation.applyDocumentTitleMetadata", () => {
+    it("applies the document's title to the stored PDF", async () => {
+      vi.mocked(getDocument).mockResolvedValue(mockDocument);
+      vi.mocked(applyPdfTitleMetadata).mockResolvedValue(true);
+
+      const result = await documentResolvers.Mutation.applyDocumentTitleMetadata(
+        undefined,
+        { documentId: testDocumentId },
+        mockContext
+      );
+
+      expect(getDocument).toHaveBeenCalledExactlyOnceWith({ id: testDocumentId }, mockContext.user);
+      expect(applyPdfTitleMetadata).toHaveBeenCalledExactlyOnceWith(
+        mockDocument.s3Path,
+        mockDocument.name
+      );
+      expect(result).toBe(true);
+    });
+
+    it("returns false when the document is not a PDF", async () => {
+      vi.mocked(getDocument).mockResolvedValue(mockDocument);
+      vi.mocked(applyPdfTitleMetadata).mockResolvedValue(false);
+
+      const result = await documentResolvers.Mutation.applyDocumentTitleMetadata(
+        undefined,
+        { documentId: testDocumentId },
+        mockContext
+      );
+
+      expect(result).toBe(false);
     });
   });
 
