@@ -10,6 +10,7 @@ import { insertOnDemandReport } from "./queries";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { log } from "../../log";
 import { getEasternNow } from "../../dateUtilities";
+import { generateOnDemandReportFileName } from "./generateOnDemandReportFileName";
 
 export const onDemandReportResolvers = {
   Mutation: {
@@ -18,11 +19,11 @@ export const onDemandReportResolvers = {
       args: { reportType: OnDemandReportType },
       context: GraphQLContext
     ): Promise<string> => {
-      let uploadedReportS3Path: string;
+      let uploadedReportPaths: [string, string];
       const reportId = randomUUID();
       const s3Adapter = getS3Adapter();
       try {
-        uploadedReportS3Path = await prisma().$transaction(async (tx) => {
+        uploadedReportPaths = await prisma().$transaction(async (tx) => {
           const reportResults = await runOnDemandReport(args.reportType, tx);
           const generatedDate = getEasternNow();
           const formattedReport = await formatOnDemandReportInExcel(
@@ -31,10 +32,12 @@ export const onDemandReportResolvers = {
             { requestId: reportId, requestTimestamp: generatedDate["Current Time"] }
           );
           const fileS3Path = await s3Adapter.uploadOnDemandReport(reportId, formattedReport);
+          const generatedFileName = generateOnDemandReportFileName(args.reportType, generatedDate);
           await insertOnDemandReport(
             {
               id: reportId,
               s3Path: fileS3Path,
+              generatedFileName: generatedFileName,
               requestingUserId: context.user.id,
               reportTypeId: args.reportType,
               statusId: "Available",
@@ -42,7 +45,7 @@ export const onDemandReportResolvers = {
             },
             tx
           );
-          return fileS3Path;
+          return [fileS3Path, generatedFileName];
         });
       } catch (error) {
         await s3Adapter.deleteOnDemandReport(reportId).catch((cleanupError) => {
@@ -63,9 +66,13 @@ export const onDemandReportResolvers = {
         }
       }
       // Name without extension — `.xlsx` is derived from the object's Content-Type.
-      return await s3Adapter.getPresignedDownloadUrl(uploadedReportS3Path, args.reportType, {
-        disposition: "attachment",
-      });
+      return await s3Adapter.getPresignedDownloadUrl(
+        uploadedReportPaths[0],
+        uploadedReportPaths[1],
+        {
+          disposition: "attachment",
+        }
+      );
     },
   },
 };

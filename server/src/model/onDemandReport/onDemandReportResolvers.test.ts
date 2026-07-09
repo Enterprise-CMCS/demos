@@ -57,6 +57,10 @@ vi.mock("../../dateUtilities", () => ({
   getEasternNow: vi.fn(),
 }));
 
+vi.mock("./generateOnDemandReportFileName", () => ({
+  generateOnDemandReportFileName: vi.fn(),
+}));
+
 import { runOnDemandReport, formatOnDemandReportInExcel } from "../../onDemandReports";
 import { prisma } from "../../prismaClient";
 import { getS3Adapter, S3Adapter } from "../../adapters";
@@ -66,6 +70,7 @@ import { throwCustomGQLError } from "../../errors/errorCodes";
 import { handlePrismaError } from "../../errors/handlePrismaError";
 import { log } from "../../log";
 import { getEasternNow } from "../../dateUtilities";
+import { generateOnDemandReportFileName } from "./generateOnDemandReportFileName";
 
 describe("onDemandReportResolvers", () => {
   const testContextUser: Partial<ContextUser> = { id: "user-123" };
@@ -93,6 +98,7 @@ describe("onDemandReportResolvers", () => {
     deleteOnDemandReport: mockDeleteOnDemandReport,
     getPresignedDownloadUrl: mockGetPresignedDownloadUrl,
   };
+  const mockOnDemandReportFileName = "This is a mock string";
 
   beforeEach(() => {
     vi.resetAllMocks();
@@ -114,6 +120,7 @@ describe("onDemandReportResolvers", () => {
     vi.mocked(throwCustomGQLError).mockImplementation(() => {
       throw testCustomGQLError;
     });
+    vi.mocked(generateOnDemandReportFileName).mockReturnValue(mockOnDemandReportFileName);
   });
 
   describe("Mutation.generateOnDemandReport", () => {
@@ -137,6 +144,7 @@ describe("onDemandReportResolvers", () => {
         {
           id: mockReportId,
           s3Path: mockS3Path,
+          generatedFileName: mockOnDemandReportFileName,
           requestingUserId: testContextUser.id,
           reportTypeId: testReportType,
           statusId: "Available",
@@ -144,9 +152,13 @@ describe("onDemandReportResolvers", () => {
         },
         mockTransaction
       );
-      expect(mockGetPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith(mockS3Path, testReportType, {
-        disposition: "attachment",
-      });
+      expect(mockGetPresignedDownloadUrl).toHaveBeenCalledExactlyOnceWith(
+        mockS3Path,
+        mockOnDemandReportFileName,
+        {
+          disposition: "attachment",
+        }
+      );
       expect(mockDeleteOnDemandReport).not.toHaveBeenCalled();
       expect(result).toBe("https://presigned-download-url");
     });
