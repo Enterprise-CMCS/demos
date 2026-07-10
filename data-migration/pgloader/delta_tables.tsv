@@ -1,0 +1,20 @@
+table_name	updated_col
+# Curated delta manifest: the mutable demonstration-anchor source tables to
+# re-pull during the cutover (and dress-rehearsal) delta. delta TRUNCATEs and
+# re-pulls each named table in FULL (load_delta._build_tables_block renders an
+# INCLUDING ONLY clause), so updated_col is documentary only -- it records the
+# column an operator would inspect to confirm post-freeze change, not an
+# incremental WHERE filter. An EMPTY manifest makes pgloader reload every table,
+# so keep this list curated. updated_col uses the source's change timestamp
+# where one exists, else creatd_dt (every anchor table carries it).
+mdcd_demo	updtd_dt
+mdcd_pendg_demo	updtd_dt
+mdcd_demo_aplctn	creatd_dt
+mdcd_demo_amndmt	creatd_dt
+mdcd_demo_rnwl	creatd_dt
+mdcd_dlvrbl	updtd_dt
+mdcd_dlvrbl_cmt	creatd_dt
+mdcd_dlvrbl_paper_cmt	creatd_dt
+mdcd_demo_cntct	creatd_dt
+mdcd_pendg_demo_cntct	creatd_dt
+users	updated_at

@@ -1,0 +1,141 @@
+= Reference: the demonstration migration flow
+
+How a legacy PMDA demonstration becomes a DEMOS `demonstration` row: the
+end-to-end path from `mysql_raw.mdcd_demo` through the staging filter, the
+id-map, the resolved projection, the crosswalks, and the application-layer
+loader, plus the parity checks that prove the result. This is the first
+per-table flow reference; the same structure is intended to be reused for the
+other tables.
+
+`demonstration` *is-a* `application`: the loader writes one
+`demos_app.application` anchor row and one `demos_app.demonstration` row in a
+single deferred-constraint transaction, sharing the same UUID. The column map,
+crosswalk tables, and SQL stage list below are generated from the same
+authoritative artifacts the pipeline uses, and the worked example at the end is
+a *real run* of the whole pipeline against a curated fixture.
+
+[NOTE]
+====
+The four included sections are generated, not hand-maintained:
+
+* the column, crosswalk, and stage tables come from
+  `docs/tools/table_flow_to_adoc.py` (run `make flow-pages` from `docs/`);
+* the worked-example run trace comes from `docs/tools/table_flow_trace.py`,
+  which replays the real pipeline against
+  `tests/sql/fixtures/demo_flow/seed_mdcd_demo.sql` on a throwaway Postgres
+  (run `make demonstration-flow-trace` from the repo root).
+
+Both are committed and drift-checked: the offline suite re-renders them and CI
+fails on any difference, and the live SQL harness
+(`tests/sql/test_demonstration_flow_live.py`) re-runs the pipeline and asserts
+the committed trace still matches. Edit the source artifacts and regenerate;
+never edit the generated partials by hand.
+====
+
+== The shape of the flow
+
+Every legacy row is either *loaded*, *held back* (it qualifies but is missing a
+hard requirement, so the loader skips it and a parity check counts it),
+*excluded* (soft-deleted at the source), or *filtered* (it never passes the
+PMDA project-number / state / date allowlist):
+
+[mermaid]
+....
+flowchart TD
+  src["mysql_raw.mdcd_demo<br/>(raw PMDA rows, via pgloader)"]
+  src --> filt{"PMDA filter<br/>11-W-NNNNN/R · 2-letter state · creatd_dt"}
+  filt -->|fails| fout[/"filtered out"/]
+  filt -->|passes| valid["stg._valid_demo_ids"]
+  valid --> idmap["migration._id_map_mdcd_demo<br/>mint one UUID per id"]
+  idmap --> resolved["stg.demonstration_resolved<br/>source-only projection · date-driven phase"]
+  resolved -->|dltd_ind = 1| sdel[/"excluded: soft-deleted"/]
+  resolved --> loader{"sql/20_app/30_demonstration.sql<br/>application anchor + demonstration"}
+  loader -->|Approved but missing required field| h13[/"held back → parity 13"/]
+  loader -->|state not in state_region| h8[/"held back → parity 8"/]
+  loader -->|loaded| app["demos_app.application + demos_app.demonstration<br/>(shared UUID)"]
+  app --> hist["demos_app.demonstration_history<br/>'I' snapshot"]
+  app --> par["parity 6 / 8 / 13"]
+....
+
+A few facts the column map below does not show, because they have no 1:1 source
+column and are computed by the loader:
+
+* `application_type_id` is the constant `Demonstration` and `signature_level_id`
+  the constant `OA` on the anchor row;
+* `current_phase_id` is derived from the legacy phase milestones (the §6.1
+  "highest started phase by date" rule), falling back to the status (Approved ->
+  _Approval Summary_) and finally the _Concept_ entry phase; the per-(status,
+  phase, derivation-path) tally in `migration._parity_demonstration_phase_derived`
+  (non-gating, surfaced by the _Demonstration phase derivation_ parity check)
+  lets an SME ratify the date approximation;
+* `medicaid_id` carries the legacy `11-W` project number; `chip_id` is preserved
+  when the source has one and otherwise minted as `21-W-NNNNN/<region>`. Both are
+  shown concretely in the worked example.
+
+For the legacy-id -> UUID mapping see
+xref:../developer/reference-id-maps.adoc[id maps]; for the full column-level
+contract across all tables see
+xref:../developer/reference-source-target-columns.adoc[the source/target column
+map]; for authoring crosswalk CSVs see
+xref:../sme/howto-author-a-crosswalk-csv.adoc[author a crosswalk CSV].
+
+== Source-to-target columns
+
+include::../shared/generated/demonstration-flow-columns.adoc[]
+
+== Crosswalks
+
+The status and SDG-division code translations this flow applies. Legacy status
+code `1` ("Pending") is deliberately withheld pending SME sign-off; the legacy
+SDG sentinel `0` maps to `NULL`.
+
+include::../shared/generated/demonstration-flow-crosswalks.adoc[]
+
+== SQL stages
+
+include::../shared/generated/demonstration-flow-stages.adoc[]
+
+== A worked example
+
+The trace below is a real run of the pipeline above against a curated
+nine-row fixture chosen to exercise every disposition (loaded, held back,
+excluded, filtered). Minted UUIDs are normalized to stable
+`DEMONSTRATION_UUID_NN` tokens (ordered by `medicaid_id`) and minted `21-W` chip
+sequence numbers are masked, so the trace is byte-stable across reruns on the
+same fixture; preserved chips and source-driven values are shown verbatim.
+
+include::../shared/generated/live/demonstration-flow-trace.adoc[]
+
+== The parity checks
+
+Three checks defend this flow; a non-zero count is not necessarily a failure,
+but each non-loaded row must be explained:
+
+* *Parity 6 -- id provenance* (`_parity_demonstration_id_provenance`): every
+  `demos_app.demonstration.id` must trace back to a PMDA legacy row. This must be
+  `0`; a non-zero count means a demonstration was loaded without provenance.
+* *Parity 8 -- completeness* (`_parity_demonstration_completeness`): rows that
+  reached `stg.demonstration_resolved` but were not loaded (e.g. a state code
+  with no `migration.state_region` row). Each must be a known, accepted
+  hold-back.
+* *Parity 13 -- approved-but-held* (`_parity_approved_demo_held`): Approved
+  demonstrations the loader held back for a missing required field (e.g.
+  `sdg_division`). These are surfaced for SME follow-up rather than silently
+  dropped.
+
+When any of these is unexpectedly non-zero, see
+xref:howto-troubleshoot-parity-red.adoc[troubleshoot red parity] and the
+human-review gates in xref:reference-human-inputs.adoc[human inputs].
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-human-inputs.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-amendment-flow.adoc[next >]
+|===
+endif::[]
+// docnav-end

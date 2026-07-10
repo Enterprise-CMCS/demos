@@ -130,7 +130,7 @@ const createExtendedClient = () => {
                 where: args.where,
               });
               if (existing) {
-                log.warn({ model, where: args.where }, "prisma.redundant_update_suppressed.update");
+                log.info({ model, where: args.where }, "prisma.redundant_update_suppressed.update");
                 return existing;
               } else {
                 log.error({ message: error.message }, "prisma.error");
@@ -150,7 +150,7 @@ const createExtendedClient = () => {
                 where: args.where,
               });
               if (existing) {
-                log.warn({ model, where: args.where }, "prisma.redundant_update_suppressed.upsert");
+                log.info({ model, where: args.where }, "prisma.redundant_update_suppressed.upsert");
                 return existing;
               } else {
                 log.error({ message: error.message }, "prisma.error");

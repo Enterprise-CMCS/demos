@@ -1,0 +1,36 @@
+// Shared snippet: architecture overview.
+
+The cutover is a layered pipeline. Inputs flow from the left; each layer
+reads the previous one and writes the next.
+
+[mermaid]
+....
+flowchart LR
+  M[MySQL prod] -->|pgloader| R[mysql_raw]
+  R -->|sql/10_stg/| S[stg]
+  S -->|sql/20_app/| A[demos_app]
+  SD[seeds] --> A
+  XW[crosswalks] --> S
+  A --> N[New backend]
+  M -.RO.-> O[Old app users]
+  O -.URL flip.-> N
+  D[DuckDB] -.attach RO.-> M
+  D -.load-fidelity.-> R
+....
+
+`D` = DuckDB: the pre-load source conduit (schema/reference dumps) and the
+separate, non-gating load-fidelity check (live MySQL vs `mysql_raw` via
+`mysql_scanner` + `postgres_scanner`). Parity itself is *pure Postgres*
+(`mysql_raw` vs `demos_app`), not a DuckDB job.
+
+The four schemas (`mysql_raw`, `stg`, `demos_app`, `migration`) live in a
+single PostgreSQL cluster. `migration` is the housekeeping schema --
+`_id_map_*`, `jsonb_schemas`, and helper functions live there. (`_delta_log`
+lives in `mysql_raw`, written by the delta pgloader template.)
+
+Orchestration is a Python package (`migration/`) exposing a Typer CLI
+(`migrate`) that wraps a numbered SQL pipeline (`sql/00_init/` through
+`sql/99_parity/`). SQL is the source of truth for transforms; Python
+is only the orchestrator. See
+xref:../developer/explanation-why-python-not-bash.adoc[why Python over bash]
+for the rationale.

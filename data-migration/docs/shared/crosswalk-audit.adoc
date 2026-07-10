@@ -1,0 +1,65 @@
+// Shared body: the crosswalk audit narrative. No H1/toc/docnav -- it is
+// `include::`d by developer/reference-crosswalk-audit.adoc. The summary table,
+// headline attributes, and findings come from the committed
+// `generated/live/crosswalk-audit-*.adoc` fragments that
+// scripts/crosswalk_audit.py emits against the live PROD source.
+
+include::generated/live/crosswalk-audit-attrs.adoc[]
+
+*Question.* Do the committed crosswalks (`sql/04_crosswalks/` +
+`reports/crosswalks/`) still agree with the *current* PROD source MySQL? The
+`*_check.sql` completeness guards only fire against `mysql_raw` (the post-load
+snapshot), and `reports/reference_data/*.csv` is a point-in-time dump. Neither
+catches a legacy code that appeared in the live source *after* those artifacts
+were captured.
+
+*Answer.* This audit attaches the live source READ_ONLY (the same DuckDB MySQL
+conduit `schema-snapshot` and `load-fidelity` use) and compares, per crosswalk:
+completeness (live codes the crosswalk does not map -- the load-blocking
+concern), orphans, label drift, per-code volume, and drift versus the captured
+snapshot. The two table-driven crosswalks (`demonstration_role`, `pgm_dtl_tag`)
+are audited structurally: their named source tables and date/source columns
+must exist in the live source.
+
+[IMPORTANT]
+====
+This audit needs live PROD access, which CI does not have. The fragments below
+are *operator-refreshed* artifacts: rerun `make crosswalk_audit` from a host
+that can reach the source. Unlike the derivability audit, they are *not*
+regenerated or drift-checked in CI.
+====
+
+== How to regenerate
+
+[source,bash]
+----
+make crosswalk_audit
+----
+
+Run from the repo root (or `uv run python scripts/crosswalk_audit.py`). It
+writes `reports/runs/crosswalk_audit_<stamp>.md` + `_manifest.json`, refreshes the
+fragments below, and -- with `ARGS=--strict` -- exits non-zero on a blocking
+finding (an unmapped live code, or a missing source table/column).
+
+== Summary
+
+The source database is `{crosswalk-audit-mysql-db}`; the snapshot-drift
+baseline is the `reports/reference_data` capture from
+`{crosswalk-audit-baseline}`. Overall status: *{crosswalk-audit-status}*
+({crosswalk-audit-blocking} blocking) across {crosswalk-audit-code} code +
+{crosswalk-audit-structural} structural crosswalks.
+
+include::generated/live/crosswalk-audit-summary.adoc[]
+
+The _Completeness_ column is the load-blocking dimension: it mirrors the
+`EXCEPT` in each `*_check.sql`, so a non-`OK` cell is a code present in the live
+source that no crosswalk row maps. _Orphans_, _Label drift_, and _Snapshot
+drift_ are reported for review but never fail the audit.
+
+== Findings
+
+include::generated/live/crosswalk-audit-findings.adoc[]
+
+The full per-crosswalk detail (orphans, label drift, snapshot add/remove/rename,
+and per-code volumes) lives in the timestamped
+`reports/runs/crosswalk_audit_<stamp>.md` report.

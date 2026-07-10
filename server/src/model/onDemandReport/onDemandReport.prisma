@@ -3,6 +3,7 @@
 model OnDemandReport {
   id                String   @db.Uuid
   s3Path            String   @map("s3_path")
+  generatedFileName String   @map("generated_file_name")
   requestingUserId  String   @map("requesting_user_id") @db.Uuid
   reportTypeId      String   @map("report_type_id")
   statusId          String   @map("status_id")

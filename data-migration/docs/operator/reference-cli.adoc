@@ -1,0 +1,560 @@
+// AUTO-GENERATED FROM migration/cli.py via docs/tools/cli_to_adoc.py.
+// Do not edit by hand. Run `make cli-ref` to regenerate.
+
+= CLI reference: `migrate`
+:toc: macro
+:source-highlighter: rouge
+
+toc::[]
+
+All commands run via `uv run migrate <name>`.
+`./scripts/cutover.sh <name>` is a thin shim that forwards to the same.
+
+== Phase order
+
+Cutover phases run in this canonical order (the order used by `migrate resume` and rendered by `migrate status`):
+
+[cols="1,1,4"]
+|===
+| # | Phase | Description
+
+| 0 | `preflight` | P0  Pre-flight checks (5 green checks or HOLD).
+| 1 | `freeze` | P1  Capture freeze instant; old app set read-only.
+| 2 | `delta` | P2  Final pgloader delta into mysql_raw.
+| 3 | `build_stg` | P3a Build stg from mysql_raw + crosswalks + id maps.
+| 4 | `build_app` | P3b Build demos_app from stg in one transaction.
+| 5 | `constraints` | P5  Validate FKs; add constraint triggers + indexes.
+| 6 | `parity` | P6  Pure-Postgres parity report (mysql_raw vs demos_app); gate marked only on GREEN.
+| 7 | `flip` | P7  Go-live verification: DEMOS healthz with retries + operator confirms PMDA is read-only.
+| 8 | `smoke` | P8  Manual smoke checklist for top-N user journeys.
+| 9 | `decom` | P10 Revoke MySQL access; final backup; post-mortem.
+|===
+
+== Top-level help
+
+[source]
+----
+Usage: migrate [OPTIONS] COMMAND [ARGS]...                                                         
+                                                                                                    
+ DEMOS migration toolkit. Run phases in order; each is gated and idempotent.                        
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --verbose  -v        Verbose diagnostics: echo each SQL file as it is applied and surface        │
+│                      PostgreSQL NOTICEs. Never changes gate or exit behavior. Also enabled by    │
+│                      setting VERBOSE=1.                                                          │
+│ --help               Show this message and exit.                                                 │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────╮
+│ init                 Apply sql/00_init/* (roles, schemas, extensions, helper fns).               │
+│ fetch-prisma         Download + hash-pin the Prisma-generated DDL artifact.                      │
+│ fetch-prisma-schema  Download + hash-pin the declarative Prisma model files (cross-validation    │
+│                      input).                                                                     │
+│ ddl                  Fetch Prisma DDL, reset demos_app schema, apply it, capture/drop FKs, apply │
+│                      supplements.                                                                │
+│ seeds                Apply sql/02_seeds_static and sql/03_seeds_limiters.                        │
+│ crosswalks           Apply sql/04_crosswalks (loads CSVs into mysql_raw.crosswalk_* tables).     │
+│ id-maps              Apply sql/05_id_maps (creates and populates migration._id_map_*).           │
+│ load-full            Full pgloader MySQL -> mysql_raw with drop list applied.                    │
+│ fk-candidates        Regenerate reports/generated/fk_candidates.csv (from mysql_raw + fk_overrides.yaml).  │
+│ load-fidelity        Compare live MySQL vs mysql_raw row counts via DuckDB dual-attach           │
+│                      (non-gating).                                                               │
+│ schema-snapshot      Snapshot the MySQL source information_schema to reports/schema_snapshot/.   │
+│ reference-data       Dump MySQL *_rfrnc lookup rows + views to reports/reference_data/           │
+│                      (crosswalk input).                                                          │
+│ analyze              Register reports/ CSV+Parquet artifacts as in-memory DuckDB views (offline  │
+│                      analysis).                                                                  │
+│ diagnose             Read-only triage: aggregate the non-gating probes (parity report-only +     │
+│                      load-fidelity) into reports/runs/diagnose_<stamp>.md. Marks no gates; exits │
+│                      0.                                                                          │
+│ verify-prod-schema   Diff the live PROD demos_app against REFERENCE_PG_URL                       │
+│                      (schema+seeds+emptiness); HOLD on drift.                                    │
+│ verify-prisma-local  Assert the local ../demos migration set matches the pinned Prisma manifest; │
+│                      die on drift.                                                               │
+│ preflight            P0 pre-flight checks.                                                       │
+│ freeze               P1 capture freeze instant (DBA-coordinated).                                │
+│ delta                P2 pgloader final delta.                                                    │
+│ build                P3 build_stg + build_app.                                                   │
+│ constraints          P5 apply FKs (NOT VALID then VALIDATE), triggers, indexes.                  │
+│ parity               P6 parity report.                                                           │
+│ flip                 P7 go-live verification: DEMOS healthz + operator confirms PMDA is          │
+│                      read-only.                                                                  │
+│ smoke                P8 smoke suite.                                                             │
+│ decom                P10 decommission MySQL (Day 7+).                                            │
+│ rollback             Rollback: restore PMDA to read-write; place DEMOS in read-only.             │
+│ resume               Run all remaining cutover phases from the current gate.                     │
+│ status               Print current cutover gate state.                                           │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+== Commands
+
+[[cmd_init]]
+=== `migrate init`
+
+Apply sql/00_init/* (roles, schemas, extensions, helper fns).
+
+[source]
+----
+Usage: migrate init [OPTIONS]                                                                      
+                                                                                                    
+ Apply sql/00_init/* (roles, schemas, extensions, helper fns).                                      
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_fetch_prisma]]
+=== `migrate fetch-prisma`
+
+Download + hash-pin the Prisma-generated DDL artifact.
+
+[source]
+----
+Usage: migrate fetch-prisma [OPTIONS]                                                              
+                                                                                                    
+ Download + hash-pin the Prisma-generated DDL artifact.                                             
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --verify-only          Fetch (or use cache) and verify the SHA256 against the pin; does not      │
+│                        apply any DDL. Used by CI to detect drift on PRs.                         │
+│ --refresh              Bypass the local cache and re-fetch from upstream, then re-verify the     │
+│                        SHA256 against the pin and rebuild the cache. Requires network (and       │
+│                        likely GITHUB_TOKEN).                                                     │
+│ --help                 Show this message and exit.                                               │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_fetch_prisma_schema]]
+=== `migrate fetch-prisma-schema`
+
+Download + hash-pin the declarative Prisma model files (cross-validation input).
+
+[source]
+----
+Usage: migrate fetch-prisma-schema [OPTIONS]                                                       
+                                                                                                    
+ Download + hash-pin the declarative Prisma model files (cross-validation input).                   
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --verify-only          Fetch (or use cache) and verify the SHA256 against the pin; does not      │
+│                        apply anything. Used by CI to detect drift on PRs.                        │
+│ --refresh              Bypass the local cache and re-fetch the .prisma model files from          │
+│                        upstream, then re-verify the SHA256 against the pin and rebuild the       │
+│                        cache. Requires network (and likely GITHUB_TOKEN).                        │
+│ --help                 Show this message and exit.                                               │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_ddl]]
+=== `migrate ddl`
+
+Fetch Prisma DDL, reset demos_app schema, apply it, capture/drop FKs, apply supplements.
+
+[source]
+----
+Usage: migrate ddl [OPTIONS]                                                                       
+                                                                                                    
+ Fetch Prisma DDL, reset demos_app schema, apply it, capture/drop FKs, apply supplements.           
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_seeds]]
+=== `migrate seeds`
+
+Apply sql/02_seeds_static and sql/03_seeds_limiters.
+
+[source]
+----
+Usage: migrate seeds [OPTIONS]                                                                     
+                                                                                                    
+ Apply sql/02_seeds_static and sql/03_seeds_limiters.                                               
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_crosswalks]]
+=== `migrate crosswalks`
+
+Apply sql/04_crosswalks (loads CSVs into mysql_raw.crosswalk_* tables).
+
+[source]
+----
+Usage: migrate crosswalks [OPTIONS]                                                                
+                                                                                                    
+ Apply sql/04_crosswalks (loads CSVs into mysql_raw.crosswalk_* tables).                            
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_id_maps]]
+=== `migrate id-maps`
+
+Apply sql/05_id_maps (creates and populates migration._id_map_*).
+
+[source]
+----
+Usage: migrate id-maps [OPTIONS]                                                                   
+                                                                                                    
+ Apply sql/05_id_maps (creates and populates migration._id_map_*).                                  
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_load_full]]
+=== `migrate load-full`
+
+Full pgloader MySQL -> mysql_raw with drop list applied.
+
+[source]
+----
+Usage: migrate load-full [OPTIONS]                                                                 
+                                                                                                    
+ Full pgloader MySQL -> mysql_raw with drop list applied.                                           
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_fk_candidates]]
+=== `migrate fk-candidates`
+
+Regenerate reports/generated/fk_candidates.csv (from mysql_raw + fk_overrides.yaml).
+
+[source]
+----
+Usage: migrate fk-candidates [OPTIONS]                                                             
+                                                                                                    
+ Regenerate reports/generated/fk_candidates.csv (from mysql_raw + fk_overrides.yaml).                         
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_load_fidelity]]
+=== `migrate load-fidelity`
+
+Compare live MySQL vs mysql_raw row counts via DuckDB dual-attach (non-gating).
+
+[source]
+----
+Usage: migrate load-fidelity [OPTIONS]                                                             
+                                                                                                    
+ Compare live MySQL vs mysql_raw row counts via DuckDB dual-attach (non-gating).                    
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --strict          Exit non-zero on any source/mysql_raw row-count mismatch. Default is           │
+│                   informational (report + WARN only).                                            │
+│ --help            Show this message and exit.                                                    │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_schema_snapshot]]
+=== `migrate schema-snapshot`
+
+Snapshot the MySQL source information_schema to reports/schema_snapshot/.
+
+[source]
+----
+Usage: migrate schema-snapshot [OPTIONS]                                                           
+                                                                                                    
+ Snapshot the MySQL source information_schema to reports/schema_snapshot/.                          
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_reference_data]]
+=== `migrate reference-data`
+
+Dump MySQL *_rfrnc lookup rows + views to reports/reference_data/ (crosswalk input).
+
+[source]
+----
+Usage: migrate reference-data [OPTIONS]                                                            
+                                                                                                    
+ Dump MySQL *_rfrnc lookup rows + views to reports/reference_data/ (crosswalk input).               
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_analyze]]
+=== `migrate analyze`
+
+Register reports/ CSV+Parquet artifacts as in-memory DuckDB views (offline analysis).
+
+[source]
+----
+Usage: migrate analyze [OPTIONS]                                                                   
+                                                                                                    
+ Register reports/ CSV+Parquet artifacts as in-memory DuckDB views (offline analysis).              
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_diagnose]]
+=== `migrate diagnose`
+
+Read-only triage: aggregate the non-gating probes (parity report-only +
+
+[source]
+----
+Usage: migrate diagnose [OPTIONS]                                                                  
+                                                                                                    
+ Read-only triage: aggregate the non-gating probes (parity report-only + load-fidelity) into        
+ reports/runs/diagnose_<stamp>.md. Marks no gates; exits 0.                                         
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_verify_prod_schema]]
+=== `migrate verify-prod-schema`
+
+Diff the live PROD demos_app against REFERENCE_PG_URL (schema+seeds+emptiness); HOLD on drift.
+
+[source]
+----
+Usage: migrate verify-prod-schema [OPTIONS]                                                        
+                                                                                                    
+ Diff the live PROD demos_app against REFERENCE_PG_URL (schema+seeds+emptiness); HOLD on drift.     
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --require-empty    --no-require-empty      Also assert the target's non-seeded demos_app tables  │
+│                                            are empty (greenfield). Disable when guarding the     │
+│                                            pre-rebuild DROP.                                     │
+│                                            [default: require-empty]                              │
+│ --help                                     Show this message and exit.                           │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_verify_prisma_local]]
+=== `migrate verify-prisma-local`
+
+Assert the local ../demos migration set matches the pinned Prisma manifest; die on drift.
+
+[source]
+----
+Usage: migrate verify-prisma-local [OPTIONS]                                                       
+                                                                                                    
+ Assert the local ../demos migration set matches the pinned Prisma manifest; die on drift.          
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_preflight]]
+=== `migrate preflight`
+
+P0 pre-flight checks.
+
+[source]
+----
+Usage: migrate preflight [OPTIONS]                                                                 
+                                                                                                    
+ P0 pre-flight checks.                                                                              
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_freeze]]
+=== `migrate freeze`
+
+P1 capture freeze instant (DBA-coordinated).
+
+[source]
+----
+Usage: migrate freeze [OPTIONS]                                                                    
+                                                                                                    
+ P1 capture freeze instant (DBA-coordinated).                                                       
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_delta]]
+=== `migrate delta`
+
+P2 pgloader final delta.
+
+[source]
+----
+Usage: migrate delta [OPTIONS]                                                                     
+                                                                                                    
+ P2 pgloader final delta.                                                                           
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_build]]
+=== `migrate build`
+
+P3 build_stg + build_app.
+
+[source]
+----
+Usage: migrate build [OPTIONS]                                                                     
+                                                                                                    
+ P3 build_stg + build_app.                                                                          
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_constraints]]
+=== `migrate constraints`
+
+P5 apply FKs (NOT VALID then VALIDATE), triggers, indexes.
+
+[source]
+----
+Usage: migrate constraints [OPTIONS]                                                               
+                                                                                                    
+ P5 apply FKs (NOT VALID then VALIDATE), triggers, indexes.                                         
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_parity]]
+=== `migrate parity`
+
+P6 parity report.
+
+[source]
+----
+Usage: migrate parity [OPTIONS]                                                                    
+                                                                                                    
+ P6 parity report.                                                                                  
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --accept-pending          Mark the parity gate green even when checks are PENDING. For dress     │
+│                           rehearsals only; logs a WARN with the pending checks.                  │
+│ --help                    Show this message and exit.                                            │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_flip]]
+=== `migrate flip`
+
+P7 go-live verification: DEMOS healthz + operator confirms PMDA is read-only.
+
+[source]
+----
+Usage: migrate flip [OPTIONS]                                                                      
+                                                                                                    
+ P7 go-live verification: DEMOS healthz + operator confirms PMDA is read-only.                      
+                                                                                                    
+ PMDA and DEMOS are separate apps on separate URLs; the dev team                                    
+ owns the URL/redirect work outside this repo, so this phase does                                   
+ not perform a DNS or load-balancer swap.                                                           
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_smoke]]
+=== `migrate smoke`
+
+P8 smoke suite.
+
+[source]
+----
+Usage: migrate smoke [OPTIONS]                                                                     
+                                                                                                    
+ P8 smoke suite.                                                                                    
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_decom]]
+=== `migrate decom`
+
+P10 decommission MySQL (Day 7+).
+
+[source]
+----
+Usage: migrate decom [OPTIONS]                                                                     
+                                                                                                    
+ P10 decommission MySQL (Day 7+).                                                                   
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_rollback]]
+=== `migrate rollback`
+
+Rollback: restore PMDA to read-write; place DEMOS in read-only.
+
+[source]
+----
+Usage: migrate rollback [OPTIONS]                                                                  
+                                                                                                    
+ Rollback: restore PMDA to read-write; place DEMOS in read-only.                                    
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_resume]]
+=== `migrate resume`
+
+Run all remaining cutover phases from the current gate.
+
+[source]
+----
+Usage: migrate resume [OPTIONS]                                                                    
+                                                                                                    
+ Run all remaining cutover phases from the current gate.                                            
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----
+
+[[cmd_status]]
+=== `migrate status`
+
+Print current cutover gate state.
+
+[source]
+----
+Usage: migrate status [OPTIONS]                                                                    
+                                                                                                    
+ Print current cutover gate state.                                                                  
+                                                                                                    
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+----

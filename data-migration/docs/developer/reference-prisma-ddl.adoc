@@ -1,0 +1,225 @@
+= Reference: Prisma DDL pipeline
+
+The DEMOS app team owns the source of truth for the `demos_app.*` schema
+(parent tables, columns, indexes, FKs, sequences) via Prisma. This
+repo *consumes* that schema rather than authoring it. This page
+documents the fetch + hash-pin + cache mechanism, the FK
+capture/re-apply round-trip, and the drift-detection workflow.
+
+== The four artifacts
+
+[cols="2,5"]
+|===
+| Artifact | Purpose
+
+| `reports/prisma_ddl.sha256`
+| Pinned SHA256 of the *concatenated* Prisma migration set. Tracked in git; bumped via reviewed PR. CI runs `migrate fetch-prisma --verify-only` so PRs that bump the pin without a matching upstream change (or vice versa) fail.
+
+| `state/prisma_ddl/<sha>.sql`
+| Local cache of the concatenated artifact, keyed by the pinned SHA. `.gitignored`. Re-using the cache makes `migrate ddl` offline-safe: cutover day must not depend on GitHub being reachable.
+
+| `state/prisma_fks.json`
+| FKs captured from `pg_constraint` after the Prisma SQL is applied (`schema`, `table`, `name`, `definition` per row). `migrate constraints` reads this back to re-create each FK as `NOT VALID`.
+
+| `reports/prisma_ddl_source.txt`
+| Provenance log written on every successful fetch: repo, ref, path, sha256, ordered migration list, fetched-at timestamp. `.gitignored`; regenerated on every fetch.
+|===
+
+== The declarative model files (`.prisma`)
+
+Separate from the compiled `migration.sql` artifact above, the DEMOS repo
+also holds the *declarative* Prisma model files
+(`server/src/model/<entity>/<entity>.prisma`). The compiled SQL is the
+source of truth for what `migrate ddl` *applies*; the model files carry
+metadata the SQL makes painful to recover -- `@@map`/`@map` (model/field
+-> table/column), `@relation` (named FKs, referential actions, composite
+keys), and `enum`s.
+
+`migrate fetch-prisma-schema` fetches and hash-pins these files exactly as
+`migrate fetch-prisma` does for migrations, but with a *separate* pin so
+the two drift independently:
+
+[cols="2,5"]
+|===
+| Artifact | Purpose
+
+| `reports/prisma_schema.sha256`
+| Pinned SHA256 of the concatenated, path-sorted `.prisma` model files. Tracked in git; bumped via reviewed PR. CI runs `migrate fetch-prisma-schema --verify-only` so a stale pin fails before merge.
+
+| `state/prisma_schema/<sha>.sql`
+| Local cache of the concatenated `.prisma` text, keyed by the pinned SHA. `.gitignored`.
+
+| `reports/prisma_schema_source.txt`
+| Provenance log (repo, ref, root, sha256, ordered file list, timestamp). `.gitignored`; regenerated on every fetch.
+|===
+
+Discovery differs from the migrations path: the model files are scattered
+under `$PRISMA_SCHEMA_PATH` rather than living in one directory, so the
+listing uses the GitHub *Git Trees* API (`/git/trees/<ref>?recursive=1`,
+one call) filtered to blobs under that root whose path ends `.prisma`.
+
+These files are **read-only cross-validation input** -- nothing derived
+from them is ever applied, so this artifact is off the cutover apply path.
+Its first consumer is `migrate fk-candidates` (see
+xref:explanation-fk-strategy.adoc[FK strategy]); it is parsed by the
+dependency-free `migration/prisma_schema.py` (no Node / Prisma CLI; see
+xref:#_why_concatenate_migrations_rather_than_just_prisma_migrate_diff[below]).
+
+Bump the pin the same way as the migration pin (run `migrate
+fetch-prisma-schema`, copy the sha out of the drift error, write it to
+`reports/prisma_schema.sha256`, re-run).
+
+== Source layout in the DEMOS repo
+
+Prisma stores its migrations as one directory per migration under
+`$PRISMA_MIGRATIONS_PATH` (default `server/src/model/migrations`),
+each containing a single `migration.sql`:
+
+[source]
+----
+server/src/model/migrations/
+  20260312131729_prisma_init_baseline/migration.sql
+  20260312131759_init_baseline/migration.sql
+  20260520153709_remove_unneeded_permissions/migration.sql
+  20260520180111_state_updates_and_fixes/migration.sql
+  migration_lock.toml                   # filtered out (not a directory)
+----
+
+`migrate fetch-prisma` reads:
+
+. `https://api.github.com/repos/$PRISMA_REPO/contents/$PRISMA_MIGRATIONS_PATH?ref=$PRISMA_REPO_REF` -- the GitHub Contents API listing.
+. For every directory whose name matches `^\d{14}_` (Prisma timestamp prefix), `https://raw.githubusercontent.com/$PRISMA_REPO/$PRISMA_REPO_REF/$PRISMA_MIGRATIONS_PATH/<dir>/migration.sql` -- one raw fetch per migration.
+
+Files (e.g. `migration_lock.toml`) and non-Prisma-named directories are
+filtered out. Migrations are sorted lexicographically, which orders them
+chronologically because of the timestamp prefix.
+
+== End-to-end flow
+
+[mermaid]
+....
+flowchart TD
+  A[migrate fetch-prisma] --> B[GH Contents API: list migrations]
+  B --> C[filter: ^digit14_]
+  C --> D[sort lexicographically]
+  D --> E[for each: fetch raw migration.sql]
+  E --> F[concatenate with banner comments]
+  F --> G{sha256 == pin?}
+  G -- no --> H[die: drift]
+  G -- yes --> I[write state/prisma_ddl/sha.sql]
+  I --> J[write reports/prisma_ddl_source.txt]
+  J --> K[migrate ddl: DROP+CREATE demos_app]
+  K --> L[apply cached artifact]
+  L --> M[capture FKs to prisma_fks.json]
+  M --> N[drop FKs in demos_app]
+  N --> O[apply 01_ddl_supplements/]
+....
+
+== Environment variables
+
+See xref:../operator/reference-environment.adoc#_loaded_variables[reference: environment]
+for the full table. The Prisma-specific subset:
+
+[cols="2,1,4"]
+|===
+| Variable | Default | Purpose
+
+| `PRISMA_REPO` | `Enterprise-CMCS/demos` | GitHub `owner/name` of the DEMOS app repo.
+| `PRISMA_REPO_REF` | `main` | Branch / tag / commit. Logged into `reports/prisma_ddl_source.txt` for forensics.
+| `PRISMA_MIGRATIONS_PATH` | `server/src/model/migrations` | Path within the repo where Prisma migrations live.
+| `PRISMA_SCHEMA_PATH` | `server/src/model` | Root under which the declarative `.prisma` model files live (discovered recursively, filtered to `*.prisma`).
+| `GITHUB_TOKEN` | (unset) | Optional PAT to raise the unauthenticated 60/hr rate limit to 5000/hr. Read-only `public_repo` scope is sufficient.
+|===
+
+On cache hit (`state/prisma_ddl/<pin>.sql` exists with matching SHA),
+no API or raw call is made. This is the cutover-day contract: the
+operator runs `make fetch_prisma` once before freeze; everything
+afterwards is offline-safe.
+
+== Bumping the pin
+
+When the DEMOS team adds or modifies a Prisma migration, the pin in
+this repo will drift and CI will fail. To update:
+
+[source,sh]
+----
+# Compute the new sha without going through the failure path:
+PRISMA_REPO=Enterprise-CMCS/demos PRISMA_REPO_REF=main \
+  uv run python -c "
+from migration.lib import Env
+from migration.phases.fetch_prisma import _compose_ddl
+import hashlib
+body, dirs = _compose_ddl(Env.load())
+print(hashlib.sha256(body).hexdigest())
+print('\n'.join(dirs))
+"
+
+# Or, equivalently, run the failing fetch and copy the sha out of the
+# error message:
+uv run migrate fetch-prisma     # dies with the actual sha printed
+
+# Then bump the pin and re-fetch:
+echo "<new sha>" > reports/prisma_ddl.sha256
+uv run migrate fetch-prisma     # succeeds; cache is populated
+----
+
+Open a PR with the new hash and a description naming the upstream
+DEMOS commit + the migration directories that contributed (`reports/prisma_ddl_source.txt`
+captures both). CI's drift-detection step runs the same fetch on
+every push and PR, so a stale pin fails before merge.
+
+== Failure modes
+
+[cols="2,5"]
+|===
+| Symptom | Cause / fix
+
+| `missing pin file reports/prisma_ddl.sha256`
+| The pin file is missing or unreadable. Restore it from git or create it (see xref:#_bumping_the_pin[bumping the pin]).
+
+| `pin file ... does not contain a valid hex sha256`
+| The pin is empty or malformed. Re-bump.
+
+| `prisma ddl drift: composed migration set sha256 ...`
+| Upstream migrations changed (or `$PRISMA_REPO_REF` advanced). Verify the change is expected, then bump the pin.
+
+| `cached prisma ddl ... sha256 ... does not match pin`
+| The cache file was tampered with or written under a previous pin. Delete `state/prisma_ddl/` and re-fetch.
+
+| `GitHub returned 403 ...` / `429 ...`
+| Rate-limited. Set `GITHUB_TOKEN` to a PAT with `public_repo` scope.
+
+| `no Prisma migration directories found ...`
+| `$PRISMA_REPO_REF` points at a tree that does not contain `$PRISMA_MIGRATIONS_PATH`, or the path itself contains no timestamp-prefixed dirs. Verify the env coordinates.
+|===
+
+== Why concatenate migrations rather than just `prisma migrate diff`?
+
+Prisma can produce a single bootstrap SQL via `prisma migrate diff
+--from-empty --to-schema-datamodel`. We deliberately do not depend on
+the Prisma CLI being installed in this repo: the migrations directory
+is already the canonical, reviewed, version-controlled artifact in the
+DEMOS repo. Concatenating them in chronological order is equivalent
+(when applied to an empty `demos_app` schema) and removes a Node toolchain
+dependency from this Python+SQL repo. The banner comments injected
+between migrations make the cached file trivially auditable by hand.
+
+== Related
+
+* xref:explanation-fk-strategy.adoc[FK strategy]
+* xref:reference-pipeline-stages.adoc[Pipeline stages]
+* xref:../operator/howto-rebuild-from-scratch.adoc[Rebuild from scratch]
+* xref:../operator/reference-environment.adoc[Environment variables]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-jsonb-schema-registry.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-prisma-migration-analysis.adoc[next >]
+|===
+endif::[]
+// docnav-end

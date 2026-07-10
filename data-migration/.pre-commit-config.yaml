@@ -1,0 +1,38 @@
+# SQL hygiene. Install both hook types once:
+#   uv run pre-commit install --hook-type pre-commit --hook-type pre-push
+# On commit, the per-file hooks below check only the staged .sql files
+# (fast). On push, `make sql-check` re-runs the full fmt + lint + front-matter
+# set across every in-scope file as a final guard. pg_format owns layout/case,
+# sqlfluff is lint-only, and every authored SQL file must carry its
+# front-matter block. See docs/developer/reference-sql-conventions.adoc.
+repos:
+  - repo: local
+    hooks:
+      - id: sql-format
+        name: pg_format (check)
+        entry: uv run python scripts/sql_fmt.py --check
+        language: system
+        types: [sql]
+        pass_filenames: true
+        stages: [pre-commit]
+      - id: sql-lint
+        name: sqlfluff lint
+        entry: uv run sqlfluff lint
+        language: system
+        types: [sql]
+        pass_filenames: true
+        stages: [pre-commit]
+      - id: sql-frontmatter
+        name: SQL front-matter check
+        entry: uv run python scripts/check_sql_frontmatter.py
+        language: system
+        types: [sql]
+        pass_filenames: true
+        stages: [pre-commit]
+      - id: sql-check
+        name: make sql-check (full SQL hygiene)
+        entry: make sql-check
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]

@@ -1,0 +1,84 @@
+= Reference: environment variables
+
+Connection strings and runtime knobs live in `.env`. The committed
+template is `.env.example`; copy it, fill it in, and never commit
+`.env`.
+
+== Loaded variables
+
+`migration.lib.Env` is a `pydantic_settings.BaseSettings` snapshot
+loaded once per process via `Env.load()`.
+
+[cols="2,1,4"]
+|===
+| Variable | Required | Notes
+
+| `PG_URL` | no | psycopg connection string (`postgresql://...`). Optional local/testing override: when set it is used verbatim for every `psql_*` helper and pgloader's PG endpoint; when unset the DEMOS RDS DSN is resolved from Secrets Manager on demand.
+| `REFERENCE_PG_URL` | no (required when `PG_URL` is unset) | Live PG DSN for a reference cluster that already has the pinned Prisma artifact applied. The prod-schema guard (run by `migrate preflight` P0.6, `migrate ddl` before the rebuild DROP, and `migrate verify-prod-schema`) dual-attaches this plus the live target via DuckDB `postgres_scanner` and HOLDs on schema, Prisma-seeded-row, or emptiness drift. Unset is allowed only for local dev (the guard skips with a `WARN`); when the target is the prod RDS the guard `die()`s if this is empty.
+| `MYSQL_URL` | yes | pgloader-style MySQL URI (`mysql://...`). Read by the rendered pgloader templates.
+| `MYSQL_DB` | no | MySQL database name. Available to templates.
+| `PG_DB` | no | PostgreSQL database name. Available to templates.
+| `DEMOS_ENV` | no (default `prod`) | Selects the RDS admin secret `demos-<DEMOS_ENV>-rds-admin` in Secrets Manager when `PG_URL` is unset.
+| `DB_SECRET_NAME` | no | Explicit Secrets Manager secret name; overrides the `demos-<DEMOS_ENV>-rds-admin` derivation.
+| `DB_NAME` | no (default `demos`) | PostgreSQL database name appended to the RDS DSN resolved from the secret.
+| `AWS_REGION` | no (default `us-east-1`) | AWS region for the Secrets Manager lookup.
+| `RDS_CA_BUNDLE_URL` | no (default `https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem`) | Source of the RDS CA bundle cached to `state/rds-ca.pem` for `sslmode=verify-full`.
+| `NEW_APP_HEALTHZ_URL` | no (flip dies if unset) | DEMOS healthz endpoint probed by `flip`. An `Env` field; `flip` hard-fails rather than probe a placeholder when it is empty. URL scheme is restricted to `http`/`https`.
+| `PRISMA_REPO` | no (default `Enterprise-CMCS/demos`) | GitHub `owner/name` of the DEMOS app repo. `migrate fetch-prisma` lists migration directories via the GitHub Contents API, fetches each `migration.sql` from `raw.githubusercontent.com`, and concatenates them.
+| `PRISMA_REPO_REF` | no (default `main`) | Branch / tag / commit of `$PRISMA_REPO` to read from. Logged into `reports/prisma_ddl_source.txt` for forensics.
+| `PRISMA_MIGRATIONS_PATH` | no (default `server/src/model/migrations`) | Path within `$PRISMA_REPO` where Prisma migration directories live (one timestamp-prefixed subdir per migration, each containing `migration.sql`).
+| `PRISMA_SCHEMA_PATH` | no (default `server/src/model`) | Root within `$PRISMA_REPO` under which the declarative `.prisma` model files live. `migrate fetch-prisma-schema` enumerates them recursively (GitHub Trees API), filtered to `*.prisma`, and hash-pins them against `reports/prisma_schema.sha256` (read-only cross-validation input; off the cutover apply path).
+| `GITHUB_TOKEN` | no | Optional PAT that raises the unauthenticated GitHub API rate limit (60/hr -> 5000/hr). In CI the workflow auto-injects `secrets.GITHUB_TOKEN`. May be empty for cache-hit runs (cutover day) since no API call is made.
+| `MIGRATE_NONINTERACTIVE` | no | When `1`, `lib.confirm()` refuses to prompt and dies. Use only for tooling that should never auto-confirm gates.
+| `PGLOADER_JAR` | no (default empty) | Path to a pgloader v4 jar (`pgloader.jar`). When set, load phases invoke `<java_bin> -Xmx<mb>m -jar <jar> <rendered>` instead of the SBCL binary. Empty falls back to the `pgloader` binary on PATH (v3).
+| `JAVA_BIN` | no (default empty, resolves to `java`) | Java runtime binary for the pgloader v4 (JVM) runner. Used only when `PGLOADER_JAR` is set.
+| `DEMOS_LOCAL` | no (default `../demos`) | Path to a local checkout of the DEMOS app repo, used by `migrate verify-prisma-local` to compare the local migration set against the pinned manifest.
+| `DEVCONTAINER_PG_URL` | no (default empty) | Full psycopg DSN for the DEMOS devcontainer Postgres. When set, used verbatim by `scripts/migrate_local.py`; otherwise the connection is assembled from the `DEVCONTAINER_PG_*` parts below.
+| `DEVCONTAINER_PG_USER` | no (default `postgres`) | Devcontainer PG user (used when `DEVCONTAINER_PG_URL` is unset).
+| `DEVCONTAINER_PG_PASSWORD` | no (default `postgres`) | Devcontainer PG password (used when `DEVCONTAINER_PG_URL` is unset).
+| `DEVCONTAINER_PG_HOST` | no (default `localhost`) | Devcontainer PG host (used when `DEVCONTAINER_PG_URL` is unset).
+| `DEVCONTAINER_PG_PORT` | no (default `5432`) | Devcontainer PG port (used when `DEVCONTAINER_PG_URL` is unset).
+| `DEVCONTAINER_PG_DB` | no (default `demos`) | Devcontainer PG database name (used when `DEVCONTAINER_PG_URL` is unset).
+|===
+
+The committed template:
+
+[source]
+----
+include::../../.env.example[]
+----
+
+== Notes
+
+* The `PG_*` and `MYSQL_*` host/port/db/user/password vars in the
+  template are convenience: they are not consumed by `Env`, but they
+  are interpolated into `PG_URL` and `MYSQL_URL` so the operator can
+  edit one place.
+* Subprocesses spawned by `lib.run()` (pgloader) inherit the current
+  process environment, so any value placed in `os.environ` (or read
+  from `.env` by pydantic-settings) propagates.
+* Logs use `lib.redact()` to mask passwords in connection strings;
+  rendered `state/*.rendered.load` files are `chmod 0600`.
+
+== Adding a variable
+
+If a phase needs a new variable:
+
+. Add it to `migration.lib.Env` with a default if optional.
+. Document it here.
+. Add it to `.env.example` with a stubbed value and a comment.
+. If the variable is sensitive, ensure it never shows up in logs
+  (audit `lib.run()` callers and any future log statements).
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-gates-state.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-human-inputs.adoc[next >]
+|===
+endif::[]
+// docnav-end

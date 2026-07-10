@@ -1,0 +1,64 @@
+legacy_cd,legacy_name,demonstration_type_tag_name_id,demonstration_type_tag_type_id,confidence,notes
+0,Not Applicable,,Demonstration Type,none,placeholder code; not a demonstration type -- no assignment; filter and flag
+AC,Aggregate Cap,Aggregate Cap,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+AHEAD,CMMI - AHEAD,CMMI - AHEAD,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+AL,Annual Limits,Annual Limits,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+APPK,PHE-Appendix K,PHE-Appendix K,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+BE,Beneficiary Engagement,Beneficiary Engagement,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+BH,Behavioral Health,Behavioral Health,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+BHP,Basic Health Plan (BHP),Basic Health Plan (BHP),Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+CE,Community Engagement,Community Engagement,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+CELIG,Continuous Eligibility,Continuous Eligibility,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+CHIP,Children's Health Insurance Program (CHIP),Children's Health Insurance Program (CHIP),Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+CM,Contingency Management,Contingency Management,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+COV,PHE-COVID-19,PHE-COVID-19,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+DENT,Dental,Dental,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+DSHP,Designated State Health Programs (DSHP),Designated State Health Programs (DSHP),Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+DSRIP,Delivery System Reform Incentive Payment (DSRIP),Delivery System Reform Incentive Payment (DSRIP),Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+ENC,Enrollment Cap,Enrollment Cap,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+ESRD,End-Stage Renal Disease (ESRD),End-Stage Renal Disease (ESRD),Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+ESUP,Employment Supports,Employment Supports,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+EXC,Expenditure Cap,Expenditure Cap,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+FERT,Reproductive Health: Fertility,Reproductive Health: Fertility,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+FFCY,Former Foster Care Youth (FFCY),Former Foster Care Youth (FFCY),Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+FP,Reproductive Health: Family Planning,Reproductive Health: Family Planning,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+GPP,Global Payment Program (GPP),Global Payment Program (GPP),Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+HBI,Healthy Behavior Incentives,Healthy Behavior Incentives,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+HCBS,Home Community Based Services (HCBS),Home Community Based Services (HCBS),Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+HEQ,Health Equity,Health Equity,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+HIV,HIV,HIV,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+HRSN,Health-Related Social Needs (HRSN),Health-Related Social Needs (HRSN),Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+HYDE,Reproductive Health: Hyde,Reproductive Health: Hyde,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+IncK,CMMI - Integrated Care for Kids (IncK),CMMI - Integrated Care for Kids (IncK),Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+LEX,Lead Exposure,Lead Exposure,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+LFLI,Lifetime Limits,Lifetime Limits,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+LTSS,Long-Term Services and Supports (LTSS),Long-Term Services and Supports (LTSS),Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+MC,Managed Care,Managed Care,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+MCPAW,Marketplace Coverage/Premium Assistance Wrap,Marketplace Coverage/Premium Assistance Wrap,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+MH,Reproductive Health: Maternal Health,Reproductive Health: Maternal Health,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+MOM,CMMI - Maternal Opioid Misuse (MOM),CMMI - Maternal Opioid Misuse (MOM),Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+NAGE,New Adult Group Expansion,New Adult Group Expansion,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+NELIG,Non-Eligibility Period,Non-Eligibility Period,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+NEMT,Non-Emergency Medical Transportation (NEMT),Non-Emergency Medical Transportation (NEMT),Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+OTHR,Other,,Demonstration Type,none,"no seeded 'Other' demonstration-type tag; SME: out-of-scope"
+PAEX,Partial Expansion of the New Adult Group,Partial Expansion of the New Adult Group,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+PCAP,Provider Cap,Provider Cap,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+PHAR,Pharmacy,Pharmacy,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+PPE,Reproductive Health: Post-Partum Extension,Reproductive Health: Post-Partum Extension,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+PR,Provider Restriction,Provider Restriction,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+PRCS,Premiums/Cost-Sharing,Premiums/Cost-Sharing,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+QHP,Premium Assistance/Employer-Sponsored Health Insurance (ESI)/Qualified Health Plan (QHP),Premium Assistance/Employer-Sponsored Health Insurance (ESI)/Qualified Health Plan (QHP),Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+RAD,Reproductive Health: RAD,Reproductive Health: RAD,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+RENT,ReEntry,ReEntry,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+RETRO,Retroactive Eligibility,Retroactive Eligibility,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+RMIT,PHE-Risk Mitigation,PHE-Risk Mitigation,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+ROP,PHE-Reasonable Opportunity Period (ROP),PHE-Reasonable Opportunity Period (ROP),Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+SMI,Serious Mental Illness (SMI),Serious Mental Illness (SMI),Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+SPNE,Special Needs,Special Needs,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+SUD,Substance Use Disorder (SUD),Substance Use Disorder (SUD),Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+TEX,Targeted Population Expansion,Targeted Population Expansion,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+TRIB,Tribal,Tribal,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+UC,Uncompensated Care,Uncompensated Care,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+VAC,PHE-Vaccine Coverage,PHE-Vaccine Coverage,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+VBC,Value Based Care (VBC),Value Based Care (VBC),Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id
+VIS,Vision,Vision,Demonstration Type,high,identity on mdcd_demo_type_name == demos_app.tag_name.id

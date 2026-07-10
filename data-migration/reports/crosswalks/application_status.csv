@@ -1,0 +1,12 @@
+legacy_int_cd,legacy_name,demos_text_id,notes
+1,Pre-Submission Development,Pre-Submission,high; direct match (application_status seed)
+2,Under Review,Under Review,high; direct match (application_status seed)
+3,In Clearance,Under Review,"medium; clearance is a review sub-stage, not a stored status"
+4,On Hold - Pending Policy Decision,On-hold,high; direct match (application_status seed)
+5,On Hold - State Request,On-hold,high; direct match (application_status seed)
+6,Denied,Denied,high; direct match (application_status seed)
+7,Disapproved,Denied,medium; Disapproved approx Denied (semantic approximation)
+8,Withdrawn,Withdrawn,high; direct match (application_status seed)
+9,Approved,Approved,high; direct match (application_status seed)
+10,Indefinite Hold,On-hold,high; direct match (application_status seed)
+11,On Hold - Workplan Queue,On-hold,high; On-hold exists in seed

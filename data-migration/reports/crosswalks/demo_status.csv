@@ -1,0 +1,10 @@
+legacy_int_cd,legacy_name,demos_text_id,notes
+1,Pending,Under Review,medium; need secondary SME confirmation
+2,Approved,Approved,high; confirmed by v_demo_status_dtl (stus_cd=2)
+3,Under Review,Under Review,high; direct
+4,Extended,Approved,medium; no stored Extended status; Active/Expired is a date overlay; extension lifecycle is a separate entity
+5,Temporarily Extended,Approved,medium; see code 4
+6,Expired,Approved,medium; Expired is a date overlay (expiration_date < now); it was Approved
+7,Extension Pending,Approved,medium; pending extension surfaces via the separate extension entity; demo stays Approved
+8,Demonstration Hold,On-hold,high; direct
+9,Withdrawn,Withdrawn,high; direct; migration-only (DEMOS has no in-app path to Withdrawn)
