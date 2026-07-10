@@ -67,11 +67,15 @@ export const DocumentTable = ({ documents }: { documents: DocumentTableDocument[
                   tooltip={editTooltip}
                   disabled={!editEnabled}
                   onClick={() =>
-                    showEditDocumentDialog({
-                      id: selectedDocs[0].id,
-                      name: selectedDocs[0].name,
-                      description: selectedDocs[0].description,
-                    })
+                    showEditDocumentDialog(
+                      {
+                        id: selectedDocs[0].id,
+                        name: selectedDocs[0].name,
+                        description: selectedDocs[0].description,
+                      },
+                      undefined,
+                      () => table.resetRowSelection(true)
+                    )
                   }
                 >
                   <EditIcon />

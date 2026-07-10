@@ -37,7 +37,8 @@ export const isValid = (document: Document): boolean => !!document.name.trim();
 export const EditDocumentDialog: React.FC<{
   document: Document;
   refetchQueries?: DocumentNode[];
-}> = ({ document, refetchQueries = [DEMONSTRATION_DETAIL_QUERY] }) => {
+  onSubmit?: () => void;
+}> = ({ document, refetchQueries = [DEMONSTRATION_DETAIL_QUERY], onSubmit }) => {
   const { closeDialog } = useDialog();
   const [activeDocument, setActiveDocument] = React.useState<Document>(document);
   const { showSuccess, showError } = useToast();
@@ -59,6 +60,7 @@ export const EditDocumentDialog: React.FC<{
         refetchQueries,
       });
       showSuccess(UPDATE_SUCCESS_MESSAGE);
+      onSubmit?.();
     } catch (error) {
       console.error("Error updating document:", error);
       showError(UPDATE_FAILURE_MESSAGE);

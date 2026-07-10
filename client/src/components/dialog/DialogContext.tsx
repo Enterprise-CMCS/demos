@@ -159,9 +159,12 @@ export const useDialog = () => {
 
   const showEditDocumentDialog = (
     document: Pick<ServerDocument, "id" | "name" | "description">,
-    refetchQueries?: DocumentNode[]
+    refetchQueries?: DocumentNode[],
+    onSubmit?: () => void
   ) => {
-    context.showDialog(<EditDocumentDialog document={document} refetchQueries={refetchQueries} />);
+    context.showDialog(
+      <EditDocumentDialog document={document} refetchQueries={refetchQueries} onSubmit={onSubmit} />
+    );
   };
 
   const showRemoveDocumentDialog = (
