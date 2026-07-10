@@ -1,0 +1,6 @@
+legacy_int_cd,legacy_name,demos_text_id,null_ok,notes
+0,-- Please Select --,,true,"sentinel 'no signature level selected'. SME decision: an approved PMDA demonstration on code 0 is an accepted case, not a data-quality RED. The DEMOS demonstration_signature_level_check forbids NULL and forces 'OA' (server hardcodes DEFAULT_SIGNATURE_LEVEL='OA'), so the app loader coerces it to 'OA'. null_ok=true exempts code 0 from the 31_* approved-NULL guard."
+1,OA,OA,false,
+2,OCD,OCD,false,
+3,OGD,OGD,false,"PRESERVE OGD (in signature_level seed). Loading OGD-level rows is blocked only by the demonstration/amendment/extension signature CHECK constraints; widening those is a DEMOS target-schema task (see _review.md), not a crosswalk change"
+4,DD,,false,"deleted in source (dltd_ind=1); no DD in signature_level seed. SME decision pending: treat as OGD, add a DD signature_level, or confirm no live DD rows exist. Fail-closed for any LIVE approved demonstration on code 4."

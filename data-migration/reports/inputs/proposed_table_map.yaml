@@ -1,0 +1,76 @@
+# Curated, confidence-tagged TABLE-level fold proposals for the DEMOS target
+# tables that the SME column map (reports/source_target_columns.csv) has not
+# reached yet. NOT wired into the pipeline -- this is a review starting sheet.
+#
+# Consumed by:
+#   * scripts/derivability_audit.py  -- reproducible bucket split
+#     (seeded / net_new / foldable / mapped) instead of a hand count.
+#   * scripts/propose_mappings.py    -- generates skeleton column proposals
+#     (reports/inputs/source_target_columns.proposed.csv) for the `foldable` tables.
+#
+# Partition contract (asserted by derivability_audit.py):
+#   every LIVE (non-history) target table is in exactly one of:
+#     - mapped     : already has rows in source_target_columns.csv
+#     - seeded     : state/prisma_seeded_tables.json (Prisma owns the rows;
+#                    no source mapping needed)
+#     - net_new    : empty at cutover, populated by the new app; no source
+#     - foldable   : a real source->target fold (listed below)
+
+# ---- net-new in DEMOS: no source, intentionally empty at cutover ---------- #
+# value = one-line reason (for the report / reviewer).
+net_new:
+  application_tag_assignment: "tag system; populated by the app, no PMDA source"
+  application_tag_suggestion: "AI tag-suggestion artifact; net-new"
+  application_tag_suggestion_extract: "AI extraction artifact; net-new"
+  deliverable_action: "deliverable workflow-action model; net-new (PMDA stores status, not discrete actions)"
+  deliverable_active_extension: "formal deliverable extensions; net-new"
+  deliverable_extension: "formal deliverable extensions; net-new"
+  document_infected: "AV-scan lifecycle of the new upload pipeline; net-new"
+  document_pending_upload: "pre-commit upload staging of the new pipeline; net-new"
+  on_demand_report: "on-demand reporting; net-new (added late in Prisma migrations)"
+  reference: "DEMOS reference-material system; net-new app feature"
+  reference_agreement: "net-new reference system"
+  reference_agreement_acceptance: "net-new reference system"
+  reference_configuration: "net-new reference system"
+  reference_demonstration_type: "net-new reference system associative"
+  reference_tag_assignment: "net-new reference system associative"
+  uipath_result: "UiPath integration output; net-new"
+  uipath_value: "UiPath integration output; net-new"
+  user_session: "runtime auth sessions; net-new (Cognito-owned)"
+
+# ---- foldable: a confident source->target table arrow --------------------- #
+# sources: PMDA tables that fold into this target (first is the primary, used
+#          for skeleton column matching). rationale: why.
+foldable:
+  application:
+    sources: [mdcd_demo_aplctn, mdcd_pendg_demo]
+    rationale: "pending + approved unify into one application (pending/approved rules)"
+  application_note:
+    sources: [mdcd_demo_aplctn_cmt]
+    rationale: "application-scoped comments"
+  application_phase:
+    sources: [mdcd_demo_aplctn]
+    rationale: "phase lifecycle derived from the phase_* date columns"
+  budget_neutrality_workbook:
+    sources: [bdgt_ntrlty_wvr, bdgt_ntrlty_demo_yr, bdgt_ntrlty_pgm_spnd_lmt]
+    rationale: "BN machinery collapses to one workbook row + JSONB payload; mostly json_pack, SME-gated"
+  deliverable:
+    sources: [mdcd_dlvrbl]
+    rationale: "one deliverable per source row; status/type/owner are SME-gated"
+  deliverable_demonstration_type:
+    sources: [mdcd_dlvrbl]
+    rationale: "links deliverable to demo type via mdcd_dlvrbl.mdcd_demo_type_cd (crosswalk)"
+  document:
+    sources: [mdcd_dlvrbl_fil_doc, mdcd_demo_authrty_fil_doc, mdcd_demo_sv_fil_doc, mdcd_demo_finl_dcsn_dtl_fil_doc, mdcd_pst_awd_frm_fil_doc]
+    rationale: "all *_fil_doc tables collapse into document with document_type_id discriminator"
+  extension:
+    sources: [mdcd_demo_rnwl]
+    rationale: "renewals map to extensions (renewal_status crosswalk is DEFERRED)"
+  person_state:
+    sources: [user_authrzd_state_acs]
+    rationale: "per-user state authorization; CMS/admin fan out to all states (DEMOS trigger semantics), non-CMS users get their explicit uasa states (XX held for SME)"
+
+# Graduated to `mapped` (now wired in reports/source_target_columns.csv) and so
+# removed from `foldable` above to keep the partition disjoint:
+# demonstration_role_assignment, primary_demonstration_role_assignment,
+# system_role_assignment, amendment, application_date.

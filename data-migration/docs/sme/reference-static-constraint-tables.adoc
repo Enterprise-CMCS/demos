@@ -1,0 +1,105 @@
+= Reference: static constraint tables
+
+include::../shared/generated/schema-counts.adoc[]
+
+The DEMOS schema has {static-constraint-count} *static-constraint* text-ID
+tables and {type-limiter-count} type-limiter tables. The values in these
+tables are the canonical DEMOS IDs that crosswalks resolve to.
+
+== Where they are defined
+
+* DDL: part of the Prisma-generated artifact published by the DEMOS
+  app team and applied by `migrate ddl` (see
+  xref:../developer/reference-pipeline-stages.adoc[Stage 01]).
+* Seed values: shipped *in the Prisma artifact* and applied by
+  `migrate ddl`. DEMOS owns both the table shape and the canonical
+  rows; this migration records the Prisma-seeded tables in
+  `state/prisma_seeded_tables.json` and excludes them from the
+  `build_app` truncate so a rebuild never wipes Prisma-seeded data.
+  This repo authors only `sql/02_seeds_static/25_state_region.sql`
+  (plus the crosswalk reference data).
+
+== Why text IDs
+
+DEMOS uses text IDs (`'pending'`, `'approved'`) for status-style
+columns rather than integer PKs. Three reasons:
+
+. Self-documenting -- a query result reads as English.
+. Easier crosswalks -- the SME maps to a meaningful name, not a
+  number.
+. Stable across environments -- no sequence drift between
+  rehearsal and production clusters.
+
+== The tables (shape)
+
+Static-constraint tables use `id text PRIMARY KEY`.
+{static-constraint-extra-col-count} of the {static-constraint-count} carry
+extra columns beyond `id`. These extra columns define the composite shape that
+junction tables (such as `deliverable_action_configuration`) reference via FK.
+The full set, generated from the Prisma DDL, is below.
+
+include::../shared/generated/schema-target-static-constraints-list.adoc[]
+
+Type-limiter tables are simple allow-lists: each is exactly
+`id text PRIMARY KEY` with no additional columns. Their rows constrain
+which FK values are legal for a particular entity type (for example,
+`amendment_application_type_limit` restricts which `application_type`
+rows an amendment may reference). The full list is in
+`state/prisma_seeded_tables.json` (any table ending in `_limit`).
+
+For the authoritative DDL see the Prisma schema in the DEMOS app repo
+(or, after `migrate ddl` runs locally, `\d demos_app.<table>` against
+the cluster).
+
+== The data (seed files)
+
+With the Prisma artifact now carrying the canonical rows, this repo no
+longer authors a seed file per table. `sql/02_seeds_static/` holds only
+`25_state_region.sql` (the `demos_app.state` region mapping), and
+`sql/03_seeds_limiters/` is currently empty. The full set of
+Prisma-seeded tables is listed in `state/prisma_seeded_tables.json`.
+That file must be refreshed whenever `migrate ddl` pulls a new Prisma
+artifact that adds or removes seeded tables (see
+xref:../developer/reference-prisma-ddl.adoc[Prisma DDL pipeline]).
+
+== Reading a row
+
+A `application_status` row has just `id` (the text ID). When you
+author a crosswalk, you map a legacy integer to one of these IDs.
+
+A `deliverable_action_type` row carries additional booleans
+(`due_date_change_allowed`, `should_have_note`, ...). This is a
+static-constraint table whose composite shape (`id` plus the booleans)
+is referenced by the `deliverable_action_configuration` junction table,
+which constrains which action-type + old-status + new-status
+combinations are legal.
+
+== Adding a new value
+
+. A new canonical DEMOS value is owned by the DEMOS app team: it must
+  be added to the Prisma schema upstream and arrive here via a bumped
+  Prisma pin (see
+  xref:../developer/reference-prisma-ddl.adoc[Prisma DDL pipeline]).
+  The one exception is `demos_app.state`, seeded in this repo at
+  `sql/02_seeds_static/25_state_region.sql`.
+. Update the crosswalks that should resolve to the value.
+. Run `make crosswalks build` to verify (run `make ddl` first if the
+  value arrived via a Prisma bump).
+
+== Related
+
+* xref:howto-author-a-crosswalk-csv.adoc[Review and sign off a crosswalk]
+* xref:reference-pending-approved-rules.adoc[Pending/approved rules]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:howto-review-bn-jsonb-payload.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-pgm-dtl-tag-mapping.adoc[next >]
+|===
+endif::[]
+// docnav-end

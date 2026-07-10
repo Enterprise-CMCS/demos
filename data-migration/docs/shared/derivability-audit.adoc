@@ -1,0 +1,167 @@
+// Shared body: the derivability audit narrative. No H1/toc/docnav -- it is
+// `include::`d by sme/explanation-derivability.adoc and
+// developer/reference-derivability-audit.adoc. Every number and table comes
+// from the committed `generated/derivability-*.adoc` fragments that
+// scripts/derivability_audit.py emits, so the prose cannot go stale.
+
+include::generated/derivability-attrs.adoc[]
+
+*Question.* For every column in the DEMOS (target) tables that does *not* come
+1:1 from the mapped MySQL (source) table, can it be _derived_ from other
+("Nth") source tables -- the way `person.person_type_id` was derived in
+`8bf725d` (`users` -> `user_role_asgnmt` -> `crosswalk_role_person_type`)?
+
+*Answer.* *No -- not entirely.* Most non-copy target columns are derivable (via
+id-mint, crosswalk, tag-pivot, or a join to an Nth table), but a hard residue
+is not derivable from any source table and must be supplied by a constant, a
+target-schema concession, or a human. Of the {derivability-gap-in-scope}
+currently in-scope target gaps, {derivability-derivable} are derivable and
+{derivability-nonderivable} are not (`users.cognito_subject`,
+`private_comment.deliverable_id`, `public_comment.deliverable_id`). See
+<<in-scope-gap-verdict>>.
+
+[NOTE]
+====
+*Coverage caveat.* This is only fully _answerable_ for the
+{derivability-mapped-tables} target tables mapped today;
+{derivability-pending-tables} of {derivability-live-tables} live target tables
+have no mapping rows yet ({derivability-gap-pending} NOT-NULL columns,
+`GAP_table_pending`). That raw count overstates the work: the reproducible
+bucket split (<<unmapped-table-buckets>>) shows only the
+{derivability-foldable-tables} `foldable` tables need a *source-derived*
+mapping -- {derivability-gap-foldable} NOT-NULL columns. The rest are `seeded`
+(static vocabularies loaded from reference data) or `net_new` (no source at
+all), so they are out of scope for derivation, not blocked on it.
+====
+
+== Inputs and a topology note
+
+This compares two *source-side* snapshots against the *target* schema. Both
+`reports/` folders describe the *source* MySQL DB (`cma_pro_11_1_000`), not the
+target, despite informal labelling.
+
+[cols="2,1,4",options="header"]
+|===
+| Artifact | Side | What it is
+
+| `reports/reference_data/*.csv`
+| source
+| row *data* of 68 `*_rfrnc` lookup tables + 5 `v_*` views
+
+| `reports/schema_snapshot/*.csv`
+| source
+| *structure* (columns, indexes, triggers, ...) of all {derivability-source-tables} source tables
+
+| `state/prisma_ddl/<sha>.sql`
+| target
+| the pinned Prisma-owned DEMOS schema ({derivability-live-tables} live tables) -- the real "target"
+
+| `reports/source_target_columns.csv`
+| bridge
+| SME column map: which `(demos_table, demos_column)` comes from which source column
+|===
+
+== How to regenerate
+
+[source,bash]
+----
+make derivability
+----
+
+Run from `docs/` (or `uv run python scripts/derivability_audit.py` from the
+repo root). It writes the per-column enumeration to
+`reports/generated/derivability_audit.csv`, regenerates the fragments below, and *fails
+closed* if `reports/inputs/derivability_verdicts.yaml` and the live gap set disagree.
+It reuses `docs/tools/schema_model.py`, so it tracks the pinned DDL and schema
+snapshot automatically.
+
+== Headline metrics
+
+The target DDL is pinned at `{derivability-ddl-label}`:
+{derivability-target-tables} tables total, {derivability-live-tables} live
+(non-history), against {derivability-source-tables} source tables in the
+snapshot.
+
+include::generated/derivability-classification.adoc[]
+
+`GAP` means "not a plain copy" -- it is the candidate set for derivation, *not*
+a synonym for "impossible". The verdict below splits the
+{derivability-gap-in-scope} in-scope gaps.
+
+[[in-scope-gap-verdict]]
+== In-scope gap verdict
+
+include::generated/derivability-verdict.adoc[]
+
+=== The non-derivable columns (evidence)
+
+include::generated/derivability-evidence.adoc[]
+
+These illustrate the two patterns to expect as coverage grows: *net-new
+identity columns* and *relational re-linking with no source key*.
+
+[[unmapped-table-buckets]]
+== Proposing the unmapped tables
+
+The "{derivability-pending-tables} unmapped" headline is misleading; the
+reproducible split (validated against `state/prisma_seeded_tables.json` and the
+curated `reports/inputs/proposed_table_map.yaml`) is:
+
+include::generated/derivability-buckets.adoc[]
+
+So only the `foldable` tables genuinely need a new source-derived mapping. The
+partition is asserted total + disjoint, so adding a table to the DDL fails the
+audit until it is classified.
+
+=== Generated proposal set
+
+`uv run python scripts/propose_mappings.py` writes
+`reports/inputs/source_target_columns.proposed.csv` -- one row per target column of the
+foldable tables, confidence-tagged:
+
+include::generated/derivability-proposals.adoc[]
+
+Only ~{derivability-prop-filled-pct}% of the {derivability-prop-rows} proposal
+rows is auto-fillable ({derivability-prop-filled} rows); the
+{derivability-prop-none-pct}% left blank ({derivability-prop-none} rows) is the
+honest boundary -- the generator refuses to guess (e.g. `deliverable.name` has
+six `*_name` source columns, so it is only filled via the exact table-stem
+match `mdcd_dlvrbl_name`, never an arbitrary pick). Not wired into the
+pipeline; transcribe confirmed rows into `reports/source_target_columns.csv`.
+
+== File-by-file review
+
+=== `schema_snapshot/` -- source structure
+
+The standout is `foreign_keys.csv` = 0 rows: the source declares *no* FKs, so
+derivation join paths cannot be read from declared keys. They are reconstructed
+by `fk_candidates.csv` + `fk_overrides.yaml`. *Every Nth-table derivation is
+only as trustworthy as those inferred joins.* `columns.csv` (every column of
+all source tables) is the map of what an Nth-table join _can_ supply;
+`table_stats.csv` says which Nth tables are populated; `indexes.csv` says
+whether an Nth join is 1:1 or fan-out; `triggers.csv` is source business logic
+that may need re-derivation.
+
+=== `reference_data/` -- source data
+
+* *68 `*_rfrnc` lookup tables* -- uniform shape `<x>_cd, <x>_name,
+  [dsply_sqnc_num], [dltd_ind], creatd_dt`. These are the legacy *code
+  vocabularies* every `crosswalk:*` derivation translates into DEMOS text IDs.
+* *5 `v_*` views* -- denormalized demonstration-type rows feeding the
+  `tag_pivot` derivations and the status overlay.
+* A few lookups encode their own join path (e.g. `email_subj_rfrnc` ->
+  `email_tmplt_cd`, `geo_ansi_state_rfrnc` -> `rgnl_ofc_cd`).
+
+== Bottom line
+
+Within the mapped scope, the existing transform vocabulary (`id_map`,
+`crosswalk:*`, `tag_pivot:*`, `derive`) covers all but
+{derivability-nonderivable} target NOT-NULL columns, and those are structurally
+underivable from the source -- already handled by a schema concession
+(`cognito_subject`) or still open (`*_comment.deliverable_id`). The larger risk
+is *coverage, not derivability* -- but narrowly scoped: of the
+{derivability-pending-tables} unmapped tables, only the
+{derivability-foldable-tables} `foldable` ones ({derivability-gap-foldable}
+NOT-NULL columns) need a source-derived mapping (<<unmapped-table-buckets>>);
+the rest are `seeded` or `net_new`. The two non-derivable patterns above will
+recur in that foldable residue.

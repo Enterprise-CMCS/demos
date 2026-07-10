@@ -1,0 +1,90 @@
+= How-to: snapshot the source schema
+
+pgloader's MySQL -> Postgres load into `mysql_raw` is deliberately
+lossy: the landing catalog flattens `ENUM`/`SET` to text, drops the
+source's declared foreign keys, and keeps no column comments, view
+bodies, triggers, or `AUTO_INCREMENT` values. That metadata lives only
+in MySQL's own `information_schema` -- and it is exactly what you need
+to author the transforms.
+
+`migrate schema-snapshot` captures it into `reports/schema_snapshot/`.
+
+== Run it
+
+[source,sh]
+----
+make schema_snapshot          # or: uv run migrate schema-snapshot
+----
+
+It reads `MYSQL_URL` / `MYSQL_DB` from `.env`, attaches the source
+database *read-only* through the DuckDB sidecar (the same engine
+`preflight` validates), and runs each `information_schema` query through
+DuckDB's `mysql_query` passthrough. Nothing is written back to MySQL,
+and -- unlike the rendered pgloader `.load` file -- no credentials are
+persisted to disk. It is safe to run against the live source at any
+time and is idempotent (each run overwrites the artifacts).
+
+The full source is captured; the pgloader drop list is *not* applied,
+so tables slated for exclusion stay visible for review.
+
+== What you get
+
+[cols="1,3"]
+|===
+| File | Use
+
+| `columns.csv` | Every column with `column_type`, `column_comment`, `column_key`, `extra`, nullability, defaults, lengths, charset. The column inventory for `20_app` mapping.
+| `enums.csv` | `ENUM`/`SET` columns *exploded one row per value* (`table, column, enum_ordinal, enum_value`). The complete value domain -- including values with zero rows that data profiling misses. The primary input for `04_crosswalks`.
+| `foreign_keys.csv` | Declared FKs (from/to columns, composite ordinal, `update_rule`/`delete_rule`). Cross-checks the heuristic `fk-candidates` output. May be empty -- the legacy schema declares few or no FKs.
+| `table_stats.csv` | `table_rows`, `auto_increment`, engine, comment. Feeds parity baselines (`99_parity`) and sequence seeding (`50_sequences`).
+| `views.csv` | View `view_definition` bodies -- the business-rule spec for `23_app_derived` and the `demo_status` logic.
+| `indexes.csv` | Index columns, `seq_in_index`, `non_unique`, `cardinality`. Feeds `40_indexes` and natural-key/dedup analysis.
+| `triggers.csv` | Trigger bodies -- logic to replicate or compensate for in `32_app_triggers` (DEMOS owns the `log_changes_*` history-capture triggers).
+| `check_constraints.csv` | `CHECK` clauses (value-domain rules). May be empty.
+| `_manifest.json` | Audit record: source db, capture timestamp, DuckDB version, per-artifact row counts.
+|===
+
+A capture that errors or returns nothing yields a header-only CSV plus a
+`WARNING` log line, never an aborted run.
+
+== Typical workflow
+
+. Run `make schema_snapshot` against the source (or a rehearsal copy).
+. Use `enums.csv` to seed `reports/crosswalks/<rfrnc>.csv` -- the value
+  list is authoritative, so you are mapping a known-complete domain (see
+  xref:howto-add-a-crosswalk.adoc[add a crosswalk]).
+. Compare `foreign_keys.csv` against `reports/generated/fk_candidates.csv` to
+  confirm or correct the name-heuristic inferences.
+. Read the relevant `views.csv` body before writing the matching
+  `23_app_derived` transform.
+
+== Why DuckDB, not a new MySQL driver
+
+The toolkit already depends on DuckDB and validates its `mysql_scanner`
+in `preflight`; the passthrough gives direct SQL access to the source's
+`information_schema` with no extra dependency. Note this metadata-loss
+problem is *not* a pgloader defect and would not be solved by swapping
+the loader -- any pipeline that copies rows into a target catalog drops
+this metadata. The fix is to read `information_schema` directly, which
+is what this phase does, independent of the loader.
+
+== Caveats
+
+* A MySQL password containing a space cannot be expressed in DuckDB's
+  space-delimited attach DSN; URL-encode other special characters in
+  `MYSQL_URL` (they are decoded before the DSN is built).
+* `check_constraints` and `foreign_keys` are commonly empty for this
+  source; that is information, not failure.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:howto-add-a-phase.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:howto-dump-reference-data.adoc[next >]
+|===
+endif::[]
+// docnav-end

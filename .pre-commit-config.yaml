@@ -15,4 +15,5 @@ repos:
     hooks:
     - id: detect-secrets
       args: ['--baseline', '.secrets.baseline']
+      exclude: 'data-migration/reports/prisma_ddl.manifest.json'
 

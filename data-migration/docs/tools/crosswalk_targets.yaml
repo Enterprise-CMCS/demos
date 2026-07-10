@@ -1,0 +1,36 @@
+# Explicit crosswalk -> demos_app constraint-table overrides for crosswalks
+# whose target table cannot be auto-derived from reports/source_target_columns.csv.
+# Consumed by docs/tools/verify_crosswalks.py. Most crosswalks resolve
+# automatically (via the `crosswalk:<name>` transform -> demos column -> FK
+# parent, or because the file stem is itself a seeded table). Only list the
+# exceptions here.
+overrides:
+  # Amendments and renewals reuse the shared application_status domain
+  # (amendment.status_id / extension.status_id both FK -> application_status),
+  # but the source crosswalk files are named after the legacy entity.
+  amendment_status: application_status
+  renewal_status: application_status
+  # role_person_type maps a legacy role code to a single demos person_type
+  # (person_type_id column). It has no crosswalk:<name> column-map rows and the
+  # stem is not a seeded table, so resolve it to the person_type domain here;
+  # verify_crosswalks then skips the value check (no demos_text_id column) and
+  # 43_role_person_type_check.sql validates person_type_id against the seed.
+  role_person_type: person_type
+  # system_role is a multi-column tuple crosswalk (role_id, grant_level_id,
+  # person_type_id) validated by 45_system_role_check.sql, not a single
+  # demos_text_id -> seeded row. Listed here so verify_crosswalks resolves
+  # the target; it then skips the value check (no demos_text_id column).
+  system_role: role
+  # demonstration_role is likewise a multi-column tuple crosswalk
+  # (role_id, grant_level_id, is_primary) validated by
+  # 47_demonstration_role_check.sql, not a single demos_text_id. Without this
+  # override it auto-resolves via the crosswalk:demonstration_role column-map
+  # rows to demonstration_role_assignment.person_id -> FK parent `person`
+  # (an app table, not seeded). It folds source POC/role columns into the
+  # `role` domain, so resolve here and skip the value check.
+  demonstration_role: role
+  # demonstration_type maps legacy demonstration-type codes to DEMOS tag_name
+  # rows. The stem is not a seeded table (the target is `tag_name`, not
+  # `demonstration_type`), and there is no crosswalk:demonstration_type
+  # column-map row, so resolve it here.
+  demonstration_type: tag_name

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "demos://jsonb/application_validation.json",
+  "title": "DEMOS application.validation_data",
+  "description": "DRAFT. Per-application checklist of validation rules + their pass/fail state.",
+  "type": "object",
+  "required": ["rules"],
+  "properties": {
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["rule_id", "status"],
+        "properties": {
+          "rule_id": { "type": "string" },
+          "status": { "type": "string", "enum": ["pass", "fail", "warn", "skip"] },
+          "message": { "type": "string" },
+          "evaluated_at": { "type": "string", "format": "date-time" },
+          "evidence": { "type": "object" }
+        }
+      }
+    },
+    "last_run_at": { "type": "string", "format": "date-time" },
+    "overall_status": { "type": "string", "enum": ["pass", "fail", "warn"] }
+  }
+}
