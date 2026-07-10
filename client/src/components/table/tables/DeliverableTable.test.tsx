@@ -1,9 +1,13 @@
-import React from "react";
+import React, { use } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { DeliverableTable, formatDeliverableStatus, getLatestSubmissionDate } from "./DeliverableTable";
+import {
+  DeliverableTable,
+  formatDeliverableStatus,
+  getLatestSubmissionDate,
+} from "./DeliverableTable";
 import { DELIVERABLE_CANT_DELETE_HAS_FILES } from "./DeliverableActionButtons";
 import { sortDeliverablesByDefault } from "util/sortDeliverables";
 import type { DeliverableTableRow } from "./DeliverableTable";
@@ -107,6 +111,21 @@ describe("DeliverableTable", () => {
 
     const editBtn = screen.getByTestId("edit-deliverable");
     expect(editBtn).toBeDisabled();
+  });
+
+  it("deselects rows after Edit dialog is submitted", async () => {
+    const user = userEvent.setup();
+
+    await user.click(screen.getByTestId(`select-row-${sortedFirstPageIds[0]}`));
+    expect(screen.getByTestId(`select-row-${sortedFirstPageIds[0]}`)).toBeChecked();
+
+    await user.click(screen.getByLabelText(/Edit Deliverable/i));
+    const onSubmit = showEditDeliverableDialog.mock.calls[0][1];
+    onSubmit();
+
+    await waitFor(() => {
+      expect(screen.getByTestId(`select-row-${sortedFirstPageIds[0]}`)).not.toBeChecked();
+    });
   });
 
   it("enables Remove when at least one row selected", async () => {
@@ -774,9 +793,7 @@ describe("DeliverableTable Remove action", () => {
       expect(screen.getByRole("table")).toBeInTheDocument();
     });
 
-    expect(
-      screen.getByText(formatDateForDisplay(latestSubmission))
-    ).toBeInTheDocument();
+    expect(screen.getByText(formatDateForDisplay(latestSubmission))).toBeInTheDocument();
   });
 });
 
