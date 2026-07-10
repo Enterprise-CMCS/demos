@@ -14,7 +14,7 @@ const CMS_FILES_EMPTY_MESSAGE = "No files have been added yet.";
 export type CmsFilesTabProps = {
   files: DeliverableFileRow[];
   onAdd: () => void;
-  onEdit: (file: DeliverableFileRow) => void;
+  onEdit: (file: DeliverableFileRow, onSubmit: () => void) => void;
   onDelete: (fileIds: string[]) => void;
   canManage: boolean;
   isFinalized: boolean;

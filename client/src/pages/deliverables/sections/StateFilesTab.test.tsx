@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -157,7 +157,22 @@ describe("StateFilesTab", () => {
       await user.click(screen.getByTestId("select-row-file-a"));
       await user.click(screen.getByTestId(STATE_FILES_EDIT_BUTTON_NAME));
 
-      expect(onEdit).toHaveBeenCalledWith(MOCK_FILES[0]);
+      expect(onEdit).toHaveBeenCalledWith(MOCK_FILES[0], expect.any(Function));
+    });
+
+    it("deselects rows after Edit dialog is submitted", async () => {
+      const user = userEvent.setup();
+      const onEdit = vi.fn();
+      renderTab({ onEdit });
+
+      await user.click(screen.getByTestId("select-row-file-a"));
+      expect(screen.getByTestId("select-row-file-a")).toBeChecked();
+      await user.click(screen.getByTestId(STATE_FILES_EDIT_BUTTON_NAME));
+
+      const closeDialogCallback = onEdit.mock.lastCall?.[1];
+      closeDialogCallback();
+
+      await waitFor(() => expect(screen.getByTestId("select-row-file-a")).not.toBeChecked());
     });
 
     it("invokes onDelete with all selected file ids", async () => {

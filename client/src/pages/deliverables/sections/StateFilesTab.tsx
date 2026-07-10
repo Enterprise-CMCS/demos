@@ -16,7 +16,7 @@ const STATE_FILES_EMPTY_MESSAGE =
 export type StateFilesTabProps = {
   files: DeliverableFileRow[];
   onAdd: () => void;
-  onEdit: (file: DeliverableFileRow) => void;
+  onEdit: (file: DeliverableFileRow, onSubmit: () => void) => void;
   onDelete: (fileIds: string[]) => void;
   isFinalized: boolean;
 };

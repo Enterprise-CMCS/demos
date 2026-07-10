@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -131,7 +131,22 @@ describe("CmsFilesTab", () => {
     await user.click(screen.getByTestId("select-row-cms-a"));
     await user.click(screen.getByTestId(CMS_FILES_EDIT_BUTTON_NAME));
 
-    expect(onEdit).toHaveBeenCalledWith(MOCK_FILES[0]);
+    expect(onEdit).toHaveBeenCalledWith(MOCK_FILES[0], expect.any(Function));
+  });
+
+  it("deselects all rows after edit dialog is submitted", async () => {
+    const user = userEvent.setup();
+    const onEdit = vi.fn();
+    renderTab({ onEdit });
+
+    await user.click(screen.getByTestId("select-row-cms-a"));
+    expect(screen.getByTestId("select-row-cms-a")).toBeChecked();
+    await user.click(screen.getByTestId(CMS_FILES_EDIT_BUTTON_NAME));
+
+    const closeDialogCallback = onEdit.mock.lastCall?.[1];
+    closeDialogCallback();
+
+    await waitFor(() => expect(screen.getByTestId("select-row-cms-a")).not.toBeChecked());
   });
 
   it("disables Delete until at least one file is selected", async () => {

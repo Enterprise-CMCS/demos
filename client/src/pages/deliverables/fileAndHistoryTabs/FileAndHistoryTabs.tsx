@@ -105,12 +105,11 @@ export const FileAndHistoryTabs: React.FC<{
   const isCmsStaffUser = CMS_STAFF_PERSON_TYPES.has(userPersonType);
   const canManageCmsFiles = isCmsStaffUser;
 
-  const canSubmitWithoutUnsubmittedFiles =
-    SUBMISSION_ALWAYS_ENABLED_STATUSES.has(deliverable.status);
-
-  const hasUnsubmittedFiles = stateFiles.some(
-    file => file.deliverableSubmissionAction == null
+  const canSubmitWithoutUnsubmittedFiles = SUBMISSION_ALWAYS_ENABLED_STATUSES.has(
+    deliverable.status
   );
+
+  const hasUnsubmittedFiles = stateFiles.some((file) => file.deliverableSubmissionAction == null);
 
   const handleRequestResubmission = () => {
     showRequestResubmissionDeliverableDialog({
@@ -139,8 +138,8 @@ export const FileAndHistoryTabs: React.FC<{
     });
   };
 
-  const handleEditFile = (file: DeliverableFileRow) => {
-    showEditDocumentDialog(fileRowToDialogFields(file), refetchAfterFileChange);
+  const handleEditFile = (file: DeliverableFileRow, onSubmit: () => void) => {
+    showEditDocumentDialog(fileRowToDialogFields(file), refetchAfterFileChange, onSubmit);
   };
 
   const handleDeleteFiles = (fileIds: string[]) => {
@@ -162,14 +161,13 @@ export const FileAndHistoryTabs: React.FC<{
   };
 
   const isSubmitDisabled =
-    isFinalized
-    || stateFiles.length === 0
-    || submitLoading
-    || (!hasUnsubmittedFiles && !canSubmitWithoutUnsubmittedFiles);
+    isFinalized ||
+    stateFiles.length === 0 ||
+    submitLoading ||
+    (!hasUnsubmittedFiles && !canSubmitWithoutUnsubmittedFiles);
 
-  const submitTooltip = isSubmitDisabled && !hasUnsubmittedFiles && !isFinalized
-    ? "No Unsubmitted Files"
-    : undefined;
+  const submitTooltip =
+    isSubmitDisabled && !hasUnsubmittedFiles && !isFinalized ? "No Unsubmitted Files" : undefined;
 
   return (
     <div data-testid={FILE_AND_HISTORY_TABS_NAME}>

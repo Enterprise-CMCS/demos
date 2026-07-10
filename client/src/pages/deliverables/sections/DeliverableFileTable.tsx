@@ -25,7 +25,7 @@ export type DeliverableFileTableProps = {
   files: DeliverableFileRow[];
   columns: TableProps<DeliverableFileRow>["columns"];
   onAdd: () => void;
-  onEdit: (file: DeliverableFileRow) => void;
+  onEdit: (file: DeliverableFileRow, onSubmit: () => void) => void;
   onDelete: (fileIds: string[]) => void;
   footer?: React.ReactNode;
   showActions: boolean;
@@ -98,7 +98,7 @@ export const DeliverableFileTable: React.FC<DeliverableFileTableProps> = ({
                       rule: { kind: "exactly", count: 1 },
                     })}
                   disabled={isFinalized || selectedCount !== 1}
-                  onClick={() => onEdit?.(selectedRows[0])}
+                  onClick={() => onEdit?.(selectedRows[0], () => table.resetRowSelection(true))}
                 >
                   <EditIcon />
                 </CircleButton>
