@@ -1,8 +1,8 @@
-import { PrismaTransactionClient } from "../../prismaClient";
+import type { PrismaTransactionClient } from "../../prismaClient";
 import { selectManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment/queries";
-import { State } from "../state/stateSchema";
+import type { State } from "../../types";
 
-export async function validatePersonNotAssignedToDemonstrationOfStates(
+export async function checkPersonNotAssignedToDemonstrationOfStates(
   personId: string,
   stateIds: State["id"][],
   tx: PrismaTransactionClient

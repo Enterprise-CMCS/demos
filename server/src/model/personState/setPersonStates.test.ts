@@ -5,8 +5,8 @@ import { selectPersonOrThrow } from "../person/queries";
 import { selectManyStates } from "../state/queries";
 import { cleanErrorsAndThrow } from "../../errors/cleanErrorsAndThrow";
 import { deleteManyPersonStates, insertManyPersonStates } from "./queries";
-import { validatePersonIsStateUser } from "./validatePersonIsStateUser";
-import { validatePersonNotAssignedToDemonstrationOfStates } from "./validatePersonNotAssignedToDemonstrationOfStates";
+import { checkPersonIsStateUser } from "./checkPersonIsStateUser";
+import { checkPersonNotAssignedToDemonstrationOfStates } from "./checkPersonNotAssignedToDemonstrationOfStates";
 
 vi.mock("../../prismaClient", () => ({
   prisma: vi.fn(),
@@ -29,12 +29,12 @@ vi.mock("../../errors/cleanErrorsAndThrow", () => ({
   cleanErrorsAndThrow: vi.fn(),
 }));
 
-vi.mock("./validatePersonIsStateUser", () => ({
-  validatePersonIsStateUser: vi.fn(),
+vi.mock("./checkPersonIsStateUser", () => ({
+  checkPersonIsStateUser: vi.fn(),
 }));
 
-vi.mock("./validatePersonNotAssignedToDemonstrationOfStates", () => ({
-  validatePersonNotAssignedToDemonstrationOfStates: vi.fn(),
+vi.mock("./checkPersonNotAssignedToDemonstrationOfStates", () => ({
+  checkPersonNotAssignedToDemonstrationOfStates: vi.fn(),
 }));
 
 describe("setPersonStates", () => {
@@ -59,14 +59,11 @@ describe("setPersonStates", () => {
 
   it("should throw if the person is not a state user", async () => {
     const validationMessage = "test validation error";
-    vi.mocked(validatePersonIsStateUser).mockResolvedValue(validationMessage);
+    vi.mocked(checkPersonIsStateUser).mockResolvedValue(validationMessage);
 
     await expect(setPersonStates(testPersonId, ["NY"])).rejects.toThrow(validationError);
 
-    expect(validatePersonIsStateUser).toHaveBeenCalledExactlyOnceWith(
-      testPersonId,
-      mockTransaction
-    );
+    expect(checkPersonIsStateUser).toHaveBeenCalledExactlyOnceWith(testPersonId, mockTransaction);
     expect(cleanErrorsAndThrow).toHaveBeenCalledExactlyOnceWith(
       [validationMessage],
       "setPersonStates",
@@ -77,11 +74,9 @@ describe("setPersonStates", () => {
 
   it("should throw if states to remove are assigned to demonstrations", async () => {
     const validationMessage = "test validation error";
-    vi.mocked(validatePersonIsStateUser).mockResolvedValue(undefined);
+    vi.mocked(checkPersonIsStateUser).mockResolvedValue(undefined);
     vi.mocked(selectManyStates).mockResolvedValue([{ id: "NY" }, { id: "CA" }] as never);
-    vi.mocked(validatePersonNotAssignedToDemonstrationOfStates).mockResolvedValue(
-      validationMessage
-    );
+    vi.mocked(checkPersonNotAssignedToDemonstrationOfStates).mockResolvedValue(validationMessage);
 
     await expect(setPersonStates(testPersonId, ["NY"])).rejects.toThrow(validationError);
 
@@ -92,7 +87,7 @@ describe("setPersonStates", () => {
         },
       },
     });
-    expect(validatePersonNotAssignedToDemonstrationOfStates).toHaveBeenCalledExactlyOnceWith(
+    expect(checkPersonNotAssignedToDemonstrationOfStates).toHaveBeenCalledExactlyOnceWith(
       testPersonId,
       ["CA"],
       mockTransaction
@@ -107,18 +102,15 @@ describe("setPersonStates", () => {
   });
 
   it("should remove old states, add new states, and return the updated person", async () => {
-    vi.mocked(validatePersonIsStateUser).mockResolvedValue(undefined);
+    vi.mocked(checkPersonIsStateUser).mockResolvedValue(undefined);
     vi.mocked(selectManyStates).mockResolvedValue([{ id: "NY" }, { id: "CA" }] as never);
-    vi.mocked(validatePersonNotAssignedToDemonstrationOfStates).mockResolvedValue(undefined);
+    vi.mocked(checkPersonNotAssignedToDemonstrationOfStates).mockResolvedValue(undefined);
     vi.mocked(selectPersonOrThrow).mockResolvedValue(testReturnedPerson as never);
 
     const result = await setPersonStates(testPersonId, ["CA", "TX"]);
 
-    expect(validatePersonIsStateUser).toHaveBeenCalledExactlyOnceWith(
-      testPersonId,
-      mockTransaction
-    );
-    expect(validatePersonNotAssignedToDemonstrationOfStates).toHaveBeenCalledExactlyOnceWith(
+    expect(checkPersonIsStateUser).toHaveBeenCalledExactlyOnceWith(testPersonId, mockTransaction);
+    expect(checkPersonNotAssignedToDemonstrationOfStates).toHaveBeenCalledExactlyOnceWith(
       testPersonId,
       ["NY"],
       mockTransaction
@@ -140,14 +132,14 @@ describe("setPersonStates", () => {
   });
 
   it("should not update person states if there are no changes", async () => {
-    vi.mocked(validatePersonIsStateUser).mockResolvedValue(undefined);
+    vi.mocked(checkPersonIsStateUser).mockResolvedValue(undefined);
     vi.mocked(selectManyStates).mockResolvedValue([{ id: "NY" }, { id: "CA" }] as never);
-    vi.mocked(validatePersonNotAssignedToDemonstrationOfStates).mockResolvedValue(undefined);
+    vi.mocked(checkPersonNotAssignedToDemonstrationOfStates).mockResolvedValue(undefined);
     vi.mocked(selectPersonOrThrow).mockResolvedValue(testReturnedPerson as never);
 
     const result = await setPersonStates(testPersonId, ["NY", "CA"]);
 
-    expect(validatePersonNotAssignedToDemonstrationOfStates).toHaveBeenCalledExactlyOnceWith(
+    expect(checkPersonNotAssignedToDemonstrationOfStates).toHaveBeenCalledExactlyOnceWith(
       testPersonId,
       [],
       mockTransaction

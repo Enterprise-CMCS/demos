@@ -1,6 +1,6 @@
 import { gql } from "graphql-tag";
 
-import { DemonstrationRoleAssignment, PersonType, State } from "../../types";
+import type { DemonstrationRoleAssignment, PersonType, State } from "../../types";
 
 export const personSchema = gql`
   type Person {

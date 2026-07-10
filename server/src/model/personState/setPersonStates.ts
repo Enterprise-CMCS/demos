@@ -1,19 +1,19 @@
-import { Person as PrismaPerson } from "@prisma/client";
+import type { Person as PrismaPerson } from "@prisma/client";
 import { selectPersonOrThrow } from "../person/queries";
 import { selectManyStates } from "../state/queries";
-import { State } from "../state/stateSchema";
+import type { State } from "../../types";
 import { deleteManyPersonStates, insertManyPersonStates } from "./queries";
 import { prisma } from "../../prismaClient";
-import { validatePersonNotAssignedToDemonstrationOfStates } from "./validatePersonNotAssignedToDemonstrationOfStates";
+import { checkPersonNotAssignedToDemonstrationOfStates } from "./checkPersonNotAssignedToDemonstrationOfStates";
 import { cleanErrorsAndThrow } from "../../errors/cleanErrorsAndThrow";
-import { validatePersonIsStateUser } from "./validatePersonIsStateUser";
+import { checkPersonIsStateUser } from "./checkPersonIsStateUser";
 
 export const setPersonStates = async (
   personId: string,
   stateIds: State["id"][]
 ): Promise<PrismaPerson> => {
   return prisma().$transaction(async (tx) => {
-    const personTypeValidationResult = await validatePersonIsStateUser(personId, tx);
+    const personTypeValidationResult = await checkPersonIsStateUser(personId, tx);
     if (personTypeValidationResult) {
       cleanErrorsAndThrow(
         [personTypeValidationResult],
@@ -34,7 +34,7 @@ export const setPersonStates = async (
     const statesToAdd = stateIds.filter((stateId) => !currentStateIds.includes(stateId));
 
     const demonstrationAssignmentValidationResult =
-      await validatePersonNotAssignedToDemonstrationOfStates(personId, statesToRemove, tx);
+      await checkPersonNotAssignedToDemonstrationOfStates(personId, statesToRemove, tx);
     if (demonstrationAssignmentValidationResult) {
       cleanErrorsAndThrow(
         [demonstrationAssignmentValidationResult],

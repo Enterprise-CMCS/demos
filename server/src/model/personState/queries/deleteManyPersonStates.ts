@@ -1,5 +1,5 @@
-import { Prisma } from "@prisma/client";
-import { prisma, PrismaTransactionClient } from "../../../prismaClient";
+import type { Prisma } from "@prisma/client";
+import { prisma, type PrismaTransactionClient } from "../../../prismaClient";
 
 export async function deleteManyPersonStates(
   where: Prisma.PersonStateWhereInput,

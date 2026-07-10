@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { personResolvers } from "./personResolvers";
-import { Person as PrismaPerson } from "@prisma/client";
+import type { Person as PrismaPerson } from "@prisma/client";
 
 // Mock imports
-import { ContextUser, GraphQLContext } from "../../auth";
+import type { ContextUser, GraphQLContext } from "../../auth";
 import { getManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment";
 import { setPersonStates } from "../personState";
 

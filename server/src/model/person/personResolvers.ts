@@ -1,14 +1,14 @@
-import {
+import type {
   DemonstrationRoleAssignment as PrismaDemonstrationRoleAssignment,
   Person as PrismaPerson,
   State,
 } from "@prisma/client";
 
 import { selectManyPeople } from "./queries";
-import { PersonType } from "../../types";
+import type { PersonType } from "../../types";
 import { selectManyStates } from "../state/queries";
 import { getManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment";
-import { GraphQLContext } from "../../auth";
+import type { GraphQLContext } from "../../auth";
 import { setPersonStates } from "../personState";
 
 export const personResolvers = {

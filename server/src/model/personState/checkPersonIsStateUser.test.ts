@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { validatePersonIsStateUser } from "./validatePersonIsStateUser";
+import { checkPersonIsStateUser } from "./checkPersonIsStateUser";
 import { selectPersonOrThrow } from "../person/queries";
+import type { Person as PrismaPerson } from "@prisma/client";
 
 vi.mock("../person/queries", () => ({
   selectPersonOrThrow: vi.fn(),
 }));
 
-describe("validatePersonIsStateUser", () => {
+describe("checkPersonIsStateUser", () => {
   const testPersonId = "person-123-456";
   const mockTransaction = "Test!" as any;
 
@@ -18,9 +19,9 @@ describe("validatePersonIsStateUser", () => {
     vi.mocked(selectPersonOrThrow).mockResolvedValue({
       id: testPersonId,
       personTypeId: "demos-state-user",
-    } as never);
+    } as PrismaPerson);
 
-    await expect(validatePersonIsStateUser(testPersonId, mockTransaction)).resolves.toBeUndefined();
+    await expect(checkPersonIsStateUser(testPersonId, mockTransaction)).resolves.toBeUndefined();
     expect(selectPersonOrThrow).toHaveBeenCalledExactlyOnceWith(
       { id: testPersonId },
       mockTransaction
@@ -31,9 +32,9 @@ describe("validatePersonIsStateUser", () => {
     vi.mocked(selectPersonOrThrow).mockResolvedValue({
       id: testPersonId,
       personTypeId: "demos-cms-user",
-    } as never);
+    } as PrismaPerson);
 
-    await expect(validatePersonIsStateUser(testPersonId, mockTransaction)).resolves.toBe(
+    await expect(checkPersonIsStateUser(testPersonId, mockTransaction)).resolves.toBe(
       `Person ${testPersonId} is not a state user.`
     );
     expect(selectPersonOrThrow).toHaveBeenCalledExactlyOnceWith(

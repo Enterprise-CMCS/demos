@@ -1,12 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { validatePersonNotAssignedToDemonstrationOfStates } from "./validatePersonNotAssignedToDemonstrationOfStates";
-import { selectManyDemonstrationRoleAssignments } from "../demonstrationRoleAssignment/queries";
+import { checkPersonNotAssignedToDemonstrationOfStates } from "./checkPersonNotAssignedToDemonstrationOfStates";
+import {
+  type DemonstrationRoleAssignmentQueryResult,
+  selectManyDemonstrationRoleAssignments,
+} from "../demonstrationRoleAssignment/queries";
 
 vi.mock("../demonstrationRoleAssignment/queries", () => ({
   selectManyDemonstrationRoleAssignments: vi.fn(),
 }));
 
-describe("validatePersonNotAssignedToDemonstrationOfStates", () => {
+describe("checkPersonNotAssignedToDemonstrationOfStates", () => {
   const testPersonId = "person-123-456";
   const testStateIds = ["NY", "CA"];
   const mockTransaction = "Test!" as any;
@@ -16,10 +19,12 @@ describe("validatePersonNotAssignedToDemonstrationOfStates", () => {
   });
 
   it("should return undefined if the person is not assigned to demonstrations of the states", async () => {
-    vi.mocked(selectManyDemonstrationRoleAssignments).mockResolvedValue([] as never);
+    vi.mocked(selectManyDemonstrationRoleAssignments).mockResolvedValue(
+      [] as DemonstrationRoleAssignmentQueryResult[]
+    );
 
     await expect(
-      validatePersonNotAssignedToDemonstrationOfStates(testPersonId, testStateIds, mockTransaction)
+      checkPersonNotAssignedToDemonstrationOfStates(testPersonId, testStateIds, mockTransaction)
     ).resolves.toBeUndefined();
     expect(selectManyDemonstrationRoleAssignments).toHaveBeenCalledExactlyOnceWith(
       {
@@ -36,10 +41,10 @@ describe("validatePersonNotAssignedToDemonstrationOfStates", () => {
     vi.mocked(selectManyDemonstrationRoleAssignments).mockResolvedValue([
       { stateId: "NY" },
       { stateId: "CA" },
-    ] as never);
+    ] as DemonstrationRoleAssignmentQueryResult[]);
 
     await expect(
-      validatePersonNotAssignedToDemonstrationOfStates(testPersonId, testStateIds, mockTransaction)
+      checkPersonNotAssignedToDemonstrationOfStates(testPersonId, testStateIds, mockTransaction)
     ).resolves.toBe(
       `Cannot unassign states NY, CA from person ${testPersonId} because they are assigned to demonstrations belonging to them.`
     );
