@@ -63,7 +63,33 @@ describe("DocumentTable", () => {
     const editBtn = screen.getByLabelText(/Edit Document/i);
     await user.click(editBtn);
     // Modal should open, assuming it renders 'edit document' text
-    expect(showEditDocumentDialog).toHaveBeenCalled();
+    expect(showEditDocumentDialog).toHaveBeenCalledWith(
+      {
+        id: mockDocuments[0].id,
+        description: mockDocuments[0].description,
+        name: mockDocuments[0].name,
+      },
+      undefined,
+      expect.any(Function)
+    );
+  });
+
+  it("deselects all rows after edit dialog is closed", async () => {
+    const user = userEvent.setup();
+    await waitFor(() => {
+      expect(screen.getByRole("table")).toBeInTheDocument();
+    });
+    // Select a row
+    await user.click(screen.getByTestId(`select-row-${mockDocuments[0].id}`));
+    const editBtn = screen.getByLabelText(/Edit Document/i);
+    await user.click(editBtn);
+
+    const closeDialogCallback = showEditDocumentDialog.mock.lastCall?.[2];
+    closeDialogCallback();
+
+    await waitFor(() =>
+      expect(screen.getByTestId(`select-row-${mockDocuments[0].id}`)).not.toBeChecked()
+    );
   });
 
   it("renders the filter dropdown initially", async () => {

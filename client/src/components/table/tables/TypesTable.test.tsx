@@ -1,5 +1,5 @@
 import React from "react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -43,6 +43,10 @@ const MOCK_DEMONSTRATION = {
 };
 
 describe("TypesTable", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("renders required columns", async () => {
     render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
     await waitFor(() => screen.getByRole("table"));
@@ -189,7 +193,25 @@ describe("TypesTable", () => {
 
       expect(mockShowEditDemonstrationTypeDialog).toHaveBeenCalledWith(
         MOCK_DEMONSTRATION_ID,
-        expectedDemonstrationType
+        expectedDemonstrationType,
+        expect.any(Function)
+      );
+    });
+
+    it("deselects all rows after edit dialog is closed", async () => {
+      render(<TypesTable demonstration={MOCK_DEMONSTRATION} />);
+      const user = userEvent.setup();
+      await user.click(screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`));
+      const editButton = screen.getByTestId("edit-type");
+      await user.click(editButton);
+
+      const closeDialogCallback = mockShowEditDemonstrationTypeDialog.mock.lastCall?.[2];
+      closeDialogCallback();
+
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(`select-row-${mockTypes[0].demonstrationTypeName}`)
+        ).not.toBeChecked()
       );
     });
 
