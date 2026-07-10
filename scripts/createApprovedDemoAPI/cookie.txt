@@ -1,0 +1,13 @@
+# Paste your local DEMOS Cookie request header below, then run:
+#   cd scripts
+#   npm run create:demo
+#
+# To get the header:
+# 1. Log in to the local DEMOS app.
+# 2. Open browser devtools and go to Network.
+# 3. Create or update something so a GraphQL POST request is sent.
+# 4. Select that POST request and copy the Request Headers value named Cookie.
+# 5. Replace the blank line below with that full Cookie header.
+#
+# You paste:
+#   <full cookie header>
