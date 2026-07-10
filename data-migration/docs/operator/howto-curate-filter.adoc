@@ -1,0 +1,160 @@
+= How-to: curate the row-level allowlist filter
+
+The migration runs a multi-anchor allowlist filter at the
+`mysql_raw -> stg` boundary. Every row from a demonstration-family
+anchor table is checked against per-column canonical-format regexes
+(CMS project number `11-W-NNNNN/R` where `N` is a single digit (5
+digits total) and `R` is the HHS regional office number 1-10, see
+`sql/02_seeds_static/25_state_region.sql`; 2-letter state code, ISO-ish
+date windows, email pattern, ...). Rows that fail any rule are
+excluded from `stg` and therefore never reach `demos_app`.
+
+This page is the tuning loop the SME runs before each rehearsal
+and at T-24h on cutover day.
+
+== Where the rules live
+
+* `sql/10_stg/00_keep_drop_ids.sql` -- override tables (`stg._keep_ids`,
+  `stg._drop_ids`); populated from the CSVs by `build.py`.
+* `sql/10_stg/10_filter_demo.sql` -- `mdcd_demo`.
+* `sql/10_stg/11_filter_pendg_demo.sql` -- `mdcd_pendg_demo`.
+* `sql/10_stg/12_filter_aplctn.sql` -- `mdcd_demo_aplctn`.
+* `sql/10_stg/13_filter_amndmt.sql` -- `mdcd_demo_amndmt` (dual parent: approved + pending demo).
+* `sql/10_stg/14_filter_rnwl.sql` -- `mdcd_demo_rnwl` (dual parent: approved + pending demo).
+* `sql/10_stg/15_filter_dlvrbl.sql` -- `mdcd_dlvrbl`.
+* `sql/10_stg/16_filter_cntct.sql` -- contact + pending sibling.
+* `sql/10_stg/17_filter_user.sql` -- `users`.
+* `sql/10_stg/99_filter_report.sql` -- the `stg._filter_violations` view
+  that drives the per-run report; `build.py` queries it and writes
+  `reports/runs/filter_<stamp>.md`.
+
+Each file has the same shape: one `WITH bad_<col> AS (...)` CTE
+per known-format column, combined with `EXCEPT` into a
+`stg._valid_<anchor>_ids` view. Cross-anchor cascades use a
+`bad_parent` CTE that references the parent anchor's view.
+
+== Triage: auto-drop vs review-required
+
+Project-number rules (`demo_prjct_nbr`, `aplctn_prjct_nbr`) classify
+violations into two severities:
+
+* *auto-drop* -- the value contains the substring `test`
+  (case-insensitive). Excluded silently; surfaces only under the
+  "Auto-dropped (test data)" section of `filter_<stamp>.md` for
+  completeness. SME triage normally ignores these.
+* *review-required* -- the value is non-`test` and fails the canonical
+  `11-W-NNNNN/R` regex, *or* is `NULL` on `mdcd_demo` where the field
+  is required, *or* fails any other rule (state code, dates, email,
+  user-name). Listed first in `filter_<stamp>.md` under "Flagged for
+  review". SME decides per row:
+
+. Confirm the exclusion is correct -- no action.
+. The value is real and was misclassified -- add the
+  `entity, legacy_id, reason` triple to
+  `reports/filter/keep_ids.csv`.
+. The rule is wrong (too aggressive or too narrow) -- edit the
+  matching `0X_filter_<anchor>.sql`, add or remove a `bad_<col>`
+  CTE, and re-run.
+
+Severity classification is the SQL view `stg._filter_violations`'s
+`severity` column; only project-number rules currently split
+auto-drop/review-required. Other rules carry `review-required`
+until SME feedback justifies splitting them.
+
+== Where the overrides live
+
+* `reports/filter/keep_ids.csv` -- force-keep. SME adds legitimate
+  rows the regex misclassified.
+* `reports/filter/drop_ids.csv` -- force-drop. SME adds confirmed
+  junk no rule caught.
+
+Both files share the column layout `entity, legacy_id, reason`.
+They are read at the start of every `stg` build into
+`stg._keep_ids` / `stg._drop_ids` and consulted by every per-anchor
+filter file.
+
+== Tuning loop
+
+. Run the `stg` build.
+. Open the newest `reports/runs/filter_<stamp>.md`.
+. Walk the table. For each excluded row, decide:
+.. The exclusion is correct -- nothing to do.
+.. The exclusion is wrong (real row, regex too strict) -- add the
+   `entity, legacy_id, reason` triple to
+   `reports/filter/keep_ids.csv`.
+.. The row should have been excluded but wasn't (long-tail junk) --
+   add it to `reports/filter/drop_ids.csv`.
+.. The rule is wrong (too aggressive or too narrow) -- edit the
+   matching `0X_filter_<anchor>.sql`, add or remove a `bad_<col>`
+   CTE, and re-run.
+. Re-run the `stg` build. The report regenerates.
+. Repeat until the report is small enough that the SME can sign it.
+
+== Adding a new column rule
+
+Inside the anchor's filter file, add one CTE and one `EXCEPT` line.
+Example -- enforcing a `wvr_nbr` format on `mdcd_demo`:
+
+[source,sql]
+----
+bad_wvr_nbr AS (
+  SELECT demo_id FROM mysql_raw.mdcd_demo
+   WHERE wvr_nbr IS NOT NULL AND wvr_nbr !~ '^[0-9]{4}\.[0-9]{2}$'
+),
+----
+
+Then add `EXCEPT SELECT demo_id FROM bad_wvr_nbr` to the final
+`SELECT ... FROM (...)` block. Append a matching `UNION ALL` block
+to `sql/10_stg/99_filter_report.sql` so the new rule appears in
+the per-run report.
+
+== Adding a new anchor
+
+Copy any of the existing `0X_filter_<anchor>.sql` files, change
+the table and PK column, and renumber. Append a matching block to
+`99_filter_report.sql`. If the new anchor has a parent
+demonstration / application, include a `bad_parent` CTE that
+references that parent's `stg._valid_*_ids` view so the cascade
+works.
+
+== Sign-off
+
+The generated `filter_<stamp>.md` ends with a `Sign-off` footer block
+(reviewer / date / notes) emitted by
+`migration.phases.build.emit_filter_report`. That signed report -- not a
+gate file -- is the approval artifact.
+
+* *Per-rehearsal*: SME reads the latest `filter_<stamp>.md`, edits
+  the CSV overrides, re-runs, and signs the report's footer block.
+* *Cutover (T-24h)*: the final report is regenerated against the freeze
+  image; the SME signs and dates its footer, and the run is archived to
+  `reports/filter/archive/cutover_<date>.md` for audit.
+
+[NOTE]
+====
+The xref:reference-gates-state.adoc[gates / state log] tracks only the
+mechanical pipeline gates; it has no SME-sign-off slot. The filter
+approval lives in the signed report artifact, not in a gate file.
+====
+
+== Related
+
+* xref:howto-troubleshoot-parity-red.adoc[Troubleshoot red parity]
+  -- excluded counts surface in the parity row-count check.
+* xref:howto-rebuild-from-scratch.adoc[Rebuild from scratch] --
+  the filter views are recreated automatically as part of the
+  `stg` rebuild.
+* `reports/filter/README.md` -- file-level layout reference.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:howto-rebuild-from-scratch.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:howto-troubleshoot-pgloader.adoc[next >]
+|===
+endif::[]
+// docnav-end

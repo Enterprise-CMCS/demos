@@ -1,0 +1,18 @@
+legacy_int_cd,legacy_name,status_id,due_date_type_id,expected_to_be_submitted,emit_extension_status,null_ok,notes
+0,N/A,,Normal,,,true,"sentinel; no deliverable state. SME: the 2 placeholder rows carrying code 0 are held back from the load and logged in _parity_deliverable_held; null_ok=true exempts code 0 from the completeness check (mirrors signature_level code 0)."
+1,Upcoming,Upcoming,Normal,true,,false,
+2,Work in Progress,Upcoming,Normal,true,,false,no Work in Progress in seed; in-progress slot = Upcoming
+3,Submitted,Submitted,Normal,true,,false,
+4,Requested Resubmission,Upcoming,Normal,true,,false,action -> Upcoming
+5,Past Due,Past Due,Normal,true,,false,
+6,Accepted,Accepted,Normal,false,,false,terminal; no longer expected
+7,Overridden,Under CMS Review,Normal,true,,false,"SME (data-profile match): all code-7 rows are submitted Budget-Neutrality reports, received and Ready for CMS Review, not yet reviewed/accepted (sent_for_cntrctr_rvw_ind=0, updt_aftr_acptd_ind=0); indicator profile identical to code 14 Under CMS Review"
+8,Under Review,Under CMS Review,Normal,true,,false,Under Review -> Under CMS Review (seed name)
+9,In Audit,Under CMS Review,Normal,true,,false,no In Audit status in DEMOS; likely Under CMS Review
+10,Overridden / Accepted,Accepted,Normal,false,,false,terminal outcome = Accepted
+11,Overridden / Request Resubmission,Upcoming,Normal,false,,false,action = Requested Resubmission -> Upcoming
+12,Received,Received and Filed,Normal,false,,false,Received -> Received and Filed (seed name); terminal
+13,Approved,Approved,Normal,false,,false,terminal
+14,Under CMS Review,Under CMS Review,Normal,true,,false,direct match
+15,Open-ended,Upcoming,Open Ended,true,,false,NOT a status: due_date_type_id=Open Ended; lifecycle inferred
+16,Pending Due Date Change,Upcoming,Normal,true,Requested,false,NOT a status: model as deliverable_extension (Requested)

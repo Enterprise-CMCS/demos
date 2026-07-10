@@ -1,0 +1,28 @@
+// Shared snippet: schema overview.
+
+[cols="1,3"]
+|===
+| Schema | Role
+
+| `mysql_raw`
+| 1:1 mirror of MySQL produced by pgloader. Every table has a `_loaded_at timestamptz` column added by the `AFTER LOAD DO` block in `pgloader/schema.load`. Read-only after load.
+
+| `stg`
+| Cleansed, remodeled intermediate rows. Built by `sql/10_stg/*`. Uses `migration._id_map_*` to reconstruct FKs across the int->UUID boundary.
+
+| `demos_app`
+| Final DEMOS shape. Parent tables, indexes, sequences, FK definitions, *and the `*_history` tables* (plus the `revision_type_enum`) are owned by Prisma in the DEMOS app repo (`Enterprise-CMCS/demos`, under `server/src/model/migrations/`). `migrate ddl` lists the migration directories via the GitHub Contents API, fetches each `migration.sql`, and concatenates them chronologically into a hash-pinned artifact at `state/prisma_ddl/<sha>.sql`. FKs are captured at apply time (to `state/prisma_fks.json`), dropped before the bulk build, then re-applied as `NOT VALID` and `VALIDATE`d by `migrate constraints`. This repo *populates* `demos_app`; it does not author it. The Prisma-owned `*_history` tables are left empty for the DEMOS `log_changes_*` capture triggers to populate post-cutover (this migration does not backfill history). The migration-private supplements layered on top are the JSONB schema registry and trigger function (`sql/01_ddl_supplements/00_jsonb_schema_registry.sql`) and the budget-neutrality parity aggregate plus its CONSTRAINT TRIGGER on `migration.bn_workbook_detail` (`sql/01_ddl_supplements/10_bn_workbook_detail.sql`). No trigger is wired on any live `demos_app.*` column.
+
+| `migration`
+| Housekeeping. Holds `_id_map_<src>` tables (legacy int -> new UUID), the `jsonb_schemas` registry plus its trigger function `migration.tg_validate_jsonb_against_registered_schema()` and the `migration.revalidate_jsonb(...)` helper, other helper functions (`migration.lookup_uuid`, `migration.crosswalk`, `migration.assert_zero`), and the `mysql_raw._delta_log` audit table written by `freeze.py` and updated by the delta pgloader template.
+|===
+
+The Prisma artifact owns the primary tables *and* the `*_history`
+tables in `demos_app`. The `*_history` tables use the DEMOS audit
+shape (`revision_id SERIAL` PK, `revision_type revision_type_enum`,
+`modified_at`, then the parent columns); their `log_changes_*`
+capture triggers are applied separately by the DEMOS deploy
+(`server/src/sql/history_triggers.sql` via `refreshDbObjects.ts`),
+not by this repo. Static-constraint and type-limiter tables are also
+part of the Prisma artifact; this repo only seeds their data via
+`sql/02_seeds_static/` and `sql/03_seeds_limiters/`.

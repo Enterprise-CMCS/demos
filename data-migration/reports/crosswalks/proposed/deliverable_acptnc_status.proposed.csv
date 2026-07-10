@@ -1,0 +1,8 @@
+legacy_int_cd,legacy_name,proposed_demos_text_id,confidence,sme_confirmed_value,notes
+0,N/A,,n/a,,"sentinel; map to NULL"
+1,Accept,Accepted,medium,Accepted,DDL-confirmed valid deliverable_status (subset dimension)
+2,Request Resubmission,Upcoming,medium,Upcoming,"DDL-confirmed valid deliverable_status; deliverable_action_configuration: 'Requested Resubmission' -> Upcoming"
+3,Upcoming,Upcoming,medium,Upcoming,DDL-confirmed valid deliverable_status (overlaps deliverable_status)
+4,Work in Progress,Upcoming,medium,Upcoming,"DDL-confirmed valid deliverable_status; no 'Work in Progress' in seed, pre-submission = Upcoming"
+5,Submitted,Submitted,medium,Submitted,DDL-confirmed valid deliverable_status (overlaps deliverable_status)
+6,Past Due,Past Due,medium,Past Due,DDL-confirmed valid deliverable_status (overlaps deliverable_status)
