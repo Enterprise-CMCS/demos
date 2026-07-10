@@ -27,7 +27,7 @@ DATA_CONVERSIONS = {
 DUCKDB_MYSQL_DB_NAME = "mysql_db"
 DUCKDB_POSTGRES_DB_NAME = "postgres_db"
 PG_SCHEMA = "legacy_pmda_raw"
-MYSQL_SCHEMA = "cma_dev_11_1_000"
+MYSQL_SCHEMA = "cma_imp_11_1_000"
 
 Path("logs").mkdir(parents=True, exist_ok=True)
 logger = logging.getLogger(__name__)
@@ -58,7 +58,7 @@ def parse_config() -> dict:
     parser = configparser.ConfigParser()
     parser.read("dbinfo.ini")
     config = {}
-    for section in ["dev-mysql", "dev-postgresql"]:
+    for section in ["pmda-mysql", "demos-postgresql"]:
         config[section] = {
             "host": parser.get(section, "host"),
             "port": parser.get(section, "port"),
@@ -66,6 +66,8 @@ def parse_config() -> dict:
             "password": parser.get(section, "password"),
             "database": parser.get(section, "database"),
         }
+        if section == "demos-postgresql":
+            config[section]["sslmode"] = parser.get(section, "sslmode")
     logger.info("Parsed config file successfully")
     return config
 
@@ -87,25 +89,35 @@ def create_duckdb_conn(config: dict) -> "DuckConn":
     conn.install_extension("postgres")
     conn.load_extension("postgres")
 
-    postgres_attach_str = (
-        f"host={config['dev-postgresql']['host']} "
-        + f"port={config['dev-postgresql']['port']} "
-        + f"user={config['dev-postgresql']['user']} "
-        + f"password={config['dev-postgresql']['password']} "
-        + f"dbname={config['dev-postgresql']['database']}"
-    )
-    conn.execute(f"ATTACH '{postgres_attach_str}' AS {DUCKDB_POSTGRES_DB_NAME} (TYPE postgres);")
+    clean_postgres_pwd = config['demos-postgresql']['password'].replace("'", "''")
+    conn.execute(f"""
+        CREATE SECRET (
+            TYPE postgres,
+            HOST '{config['demos-postgresql']['host']}',
+            PORT {config['demos-postgresql']['port']},
+            DATABASE {config['demos-postgresql']['database']},
+            USER '{config['demos-postgresql']['user']}',
+            PASSWORD '{clean_postgres_pwd}'
+        );
+    """)
+
+    conn.execute(f"ATTACH 'sslmode={config['demos-postgresql']['sslmode']}' AS {DUCKDB_POSTGRES_DB_NAME} (TYPE postgres);")
     conn.execute("SET pg_null_byte_replacement=''")  # This is necessary to handle nulls from MySQL
     logger.info(f"Attached PostgreSQL database AS {DUCKDB_POSTGRES_DB_NAME}")
 
-    mysql_attach_str = (
-        f"host={config['dev-mysql']['host']} "
-        + f"port={config['dev-mysql']['port']} "
-        + f"user={config['dev-mysql']['user']} "
-        + f"passwd={config['dev-mysql']['password']} "
-        + f"db={config['dev-mysql']['database']}"
-    )
-    conn.execute(f"ATTACH '{mysql_attach_str}' AS {DUCKDB_MYSQL_DB_NAME} (TYPE mysql);")
+    clean_mysql_pwd = config['pmda-mysql']['password'].replace("'", "''")
+    conn.execute(f"""
+        CREATE SECRET (
+            TYPE mysql,
+            HOST '{config['pmda-mysql']['host']}',
+            PORT {config['pmda-mysql']['port']},
+            DATABASE {config['pmda-mysql']['database']},
+            USER '{config['pmda-mysql']['user']}',
+            PASSWORD '{clean_mysql_pwd}'
+        );
+    """)
+
+    conn.execute(f"ATTACH '' AS {DUCKDB_MYSQL_DB_NAME} (TYPE mysql);")
     logger.info(f"Attached MySQL database AS {DUCKDB_MYSQL_DB_NAME}")
     return conn
 

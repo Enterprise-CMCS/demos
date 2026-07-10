@@ -12,19 +12,20 @@ import research.duckdb_exporter.duckdb_exporter as duckdb_exporter
 def make_duckdb_conn(module_mocker):
     """Make a properly mocked connection at the module level so we can test it."""
     db_conn_config = {
-        "dev-mysql": {
+        "pmda-mysql": {
             "host": "testhost1",
             "port": "12345",
             "user": "fakeuser1",
-            "password": "fakepasswd1",
+            "password": "fake?$'!@<&>passwd1", # pragma: allowlist secret
             "database": "fakedb1",
         },
-        "dev-postgresql": {
+        "demos-postgresql": {
             "host": "testhost2",
             "port": "23456",
             "user": "fakeuser2",
-            "password": "fakepasswd2",
+            "password": "fakepasswd2", # pragma: allowlist secret
             "database": "fakedb2",
+            "sslmode": "prefer",
         },
     }
     mocked_conn = module_mocker.patch("duckdb.connect")
@@ -103,8 +104,8 @@ class TestDuckDBExporter():
         ::It should connect to PostgreSQL.
         """
         mock_conn = make_duckdb_conn.return_value
-        assert mock_conn.execute.call_args_list[0] == call(f"ATTACH 'host=testhost2 port=23456 user=fakeuser2 password=fakepasswd2 dbname=fakedb2' AS {duckdb_exporter.DUCKDB_POSTGRES_DB_NAME} (TYPE postgres);")  # noqa: E501
-        assert mock_conn.execute.call_args_list[1] == call("SET pg_null_byte_replacement=''")
+        assert mock_conn.execute.call_args_list[1] == call(f"ATTACH 'sslmode=prefer' AS {duckdb_exporter.DUCKDB_POSTGRES_DB_NAME} (TYPE postgres);")  # noqa: E501
+        assert mock_conn.execute.call_args_list[2] == call("SET pg_null_byte_replacement=''")
 
     def test_create_duckdb_conn_04(self, make_duckdb_conn):
         """Test duckdb_exporter.py functions.
@@ -114,7 +115,7 @@ class TestDuckDBExporter():
         ::It should connect to MySQL.
         """
         mock_conn = make_duckdb_conn.return_value
-        assert mock_conn.execute.call_args_list[2] == call(f"ATTACH 'host=testhost1 port=12345 user=fakeuser1 passwd=fakepasswd1 db=fakedb1' AS {duckdb_exporter.DUCKDB_MYSQL_DB_NAME} (TYPE mysql);")  # noqa: E501
+        assert mock_conn.execute.call_args_list[4] == call(f"ATTACH '' AS {duckdb_exporter.DUCKDB_MYSQL_DB_NAME} (TYPE mysql);")  # noqa: E501
 
     def test_get_table_list(self, make_duckdb_conn):
         """Test duckdb_exporter.py functions.
@@ -125,7 +126,7 @@ class TestDuckDBExporter():
         """
         mock_conn = make_duckdb_conn.return_value
         duckdb_exporter.get_table_list(mock_conn)
-        assert mock_conn.execute.call_args_list[3] == call(
+        assert mock_conn.execute.call_args_list[5] == call(
             "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = $schema",
             {"schema": duckdb_exporter.MYSQL_SCHEMA}
         )
@@ -138,7 +139,7 @@ class TestDuckDBExporter():
         ::It should make a copy of the columns table locally.
         """
         mock_conn = make_duckdb_conn.return_value
-        actual_call = mock_conn.execute.call_args_list[4].args[0]
+        actual_call = mock_conn.execute.call_args_list[6].args[0]
         assert "CREATE TABLE mysql_columns AS" in actual_call
 
     def test_get_column_details_02(self, make_duckdb_conn, run_column_details):
@@ -150,9 +151,9 @@ class TestDuckDBExporter():
         """
         mock_conn = make_duckdb_conn.return_value
         actual_calls = [
-            mock_conn.execute.call_args_list[5].args[1],
-            mock_conn.execute.call_args_list[6].args[1],
-            mock_conn.execute.call_args_list[7].args[1]
+            mock_conn.execute.call_args_list[7].args[1],
+            mock_conn.execute.call_args_list[8].args[1],
+            mock_conn.execute.call_args_list[9].args[1]
         ]
         expected_calls = [
             {"schema": duckdb_exporter.MYSQL_SCHEMA, "name": self.test_table_list[0]},
@@ -269,7 +270,7 @@ class TestDuckDBExporter():
                 {duckdb_exporter.DUCKDB_MYSQL_DB_NAME}.mysql.tbl21
         """
         expected_qry = dedent(expected_qry)
-        assert dedent(mock_conn.execute.call_args_list[8].args[0]) == expected_qry
+        assert dedent(mock_conn.execute.call_args_list[10].args[0]) == expected_qry
 
     def test_transfer_table_02(self, make_duckdb_conn):
         """Test duckdb_exporter.py functions.
@@ -289,7 +290,7 @@ class TestDuckDBExporter():
                 {duckdb_exporter.DUCKDB_MYSQL_DB_NAME}.mysql."tbl-22"
         """
         expected_qry = dedent(expected_qry)
-        assert dedent(mock_conn.execute.call_args_list[9].args[0]) == expected_qry
+        assert dedent(mock_conn.execute.call_args_list[11].args[0]) == expected_qry
 
     def test_save_ddl(self, mocker):
         """Test duckdb_exporter.py functions.
