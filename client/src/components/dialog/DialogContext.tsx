@@ -39,10 +39,7 @@ import {
   RequestExtensionDeliverableDialog,
   RequestExtensionDeliverableDialogDeliverable,
 } from "./deliverable/RequestExtensionDeliverableDialog";
-import type {
-  EditDeliverableDialogDeliverable,
-  EditDeliverableInput,
-} from "./deliverable/EditDeliverableDialog";
+import type { EditDeliverableDialogDeliverable } from "./deliverable/EditDeliverableDialog";
 import { WorkflowApplicationType } from "components/application";
 import { AddDeliverableSlotDemonstration } from "./deliverable/AddDeliverableSlotDialog";
 import type { DeliverableTableRow } from "components/table/tables/DeliverableTable";
@@ -345,7 +342,7 @@ export const useDialog = () => {
 
   const showEditDeliverableDialog = (
     deliverable: EditDeliverableDialogSource,
-    onSave?: (input: EditDeliverableInput, reasonForChange?: string) => Promise<void> | void
+    onSubmit: () => void
   ) => {
     const dialogDeliverable: EditDeliverableDialogDeliverable = {
       id: deliverable.id,
@@ -367,7 +364,7 @@ export const useDialog = () => {
         onClose={context.hideDialog}
         deliverable={dialogDeliverable}
         demonstrationTypeTags={demonstrationTypeTags}
-        onSave={onSave}
+        onSubmit={onSubmit}
       />
     );
   };

@@ -10,7 +10,6 @@ import {
   EDIT_DELIVERABLE_SAVE_BUTTON_NAME,
   EditDeliverableDialog,
   EditDeliverableDialogDeliverable,
-  EditDeliverableInput,
   buildInitialFormData,
   formHasChanges,
   formIsValid,
@@ -58,15 +57,11 @@ const MOCK_TAGS: Tag[] = [
   { tagName: "Annual Limits", approvalStatus: "Approved" },
 ];
 
-type OnSaveFn = (input: EditDeliverableInput, reasonForChange?: string) => Promise<void> | void;
-
 const setup = (overrides?: {
   deliverable?: Partial<EditDeliverableDialogDeliverable>;
-  onSave?: OnSaveFn;
   mocks?: React.ComponentProps<typeof TestProvider>["mocks"];
 }) => {
   const onClose = vi.fn();
-  const onSave = overrides?.onSave;
   const deliverable = { ...TEST_DELIVERABLE, ...overrides?.deliverable };
 
   render(
@@ -75,12 +70,11 @@ const setup = (overrides?: {
         deliverable={deliverable}
         demonstrationTypeTags={MOCK_TAGS}
         onClose={onClose}
-        onSave={onSave}
       />
     </TestProvider>
   );
 
-  return { onClose, onSave };
+  return { onClose };
 };
 
 describe("EditDeliverableDialog", () => {
@@ -161,38 +155,6 @@ describe("EditDeliverableDialog", () => {
     );
   });
 
-  it("calls onSave with the reason and shows a success toast", async () => {
-    const user = userEvent.setup();
-    const onSave = vi.fn().mockResolvedValue(undefined);
-    const { onClose } = setup({ onSave });
-
-    await waitFor(() =>
-      expect(screen.getByTestId("select-demonstration-type")).toBeInTheDocument()
-    );
-    await user.click(screen.getByTestId("select-demonstration-type"));
-    await user.click(screen.getByText("Aggregate Cap"));
-
-    fireEvent.change(screen.getByTestId(SINGLE_DELIVERABLE_DUE_DATE_NAME), {
-      target: { value: "2026-07-20" },
-    });
-
-    await user.type(screen.getByTestId(EDIT_DELIVERABLE_REASON_FIELD_NAME), "Schedule slip");
-
-    await user.click(screen.getByTestId(EDIT_DELIVERABLE_SAVE_BUTTON_NAME));
-
-    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
-    expect(onSave).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: "deliverable-1",
-        dueDate: "2026-07-20",
-        demonstrationTypes: ["Aggregate Cap"],
-      }),
-      "Schedule slip"
-    );
-    expect(mockShowSuccess).toHaveBeenCalledWith(DELIVERABLE_UPDATED_MESSAGE);
-    expect(onClose).toHaveBeenCalledTimes(1);
-  });
-
   it("persists changes with the updateDeliverable mutation", async () => {
     const user = userEvent.setup();
     const { onClose } = setup();
@@ -218,9 +180,7 @@ describe("EditDeliverableDialog", () => {
         },
       },
     });
-    await waitFor(() =>
-      expect(mockShowSuccess).toHaveBeenCalledWith(DELIVERABLE_UPDATED_MESSAGE)
-    );
+    await waitFor(() => expect(mockShowSuccess).toHaveBeenCalledWith(DELIVERABLE_UPDATED_MESSAGE));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -243,23 +203,6 @@ describe("EditDeliverableDialog", () => {
       expect(mockShowError).toHaveBeenCalledWith(DELIVERABLE_UPDATE_FAILED_MESSAGE)
     );
     expect(onClose).not.toHaveBeenCalled();
-  });
-
-  it("does not pass a reason to onSave when the due date was not modified", async () => {
-    const user = userEvent.setup();
-    const onSave = vi.fn().mockResolvedValue(undefined);
-    setup({ onSave });
-
-    await waitFor(() =>
-      expect(screen.getByTestId("select-demonstration-type")).toBeInTheDocument()
-    );
-    await user.click(screen.getByTestId("select-demonstration-type"));
-    await user.click(screen.getByText("Aggregate Cap"));
-
-    await user.click(screen.getByTestId(EDIT_DELIVERABLE_SAVE_BUTTON_NAME));
-
-    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
-    expect(onSave).toHaveBeenCalledWith(expect.any(Object), undefined);
   });
 });
 
@@ -304,15 +247,15 @@ describe("formIsValid / formHasChanges / buildInitialFormData", () => {
   });
 
   it("formIsValid is false when demonstration types empty for Implementation Plan / Monitoring Protocol", () => {
-    expect(formIsValid(initial, { ...initial, demonstrationTypes: [] }, TODAY, TYPE_REQUIRES_DEMO)).toBe(
-      false
-    );
+    expect(
+      formIsValid(initial, { ...initial, demonstrationTypes: [] }, TODAY, TYPE_REQUIRES_DEMO)
+    ).toBe(false);
   });
 
   it("formIsValid is true when demonstration types empty for other deliverable types", () => {
-    expect(formIsValid(initial, { ...initial, demonstrationTypes: [] }, TODAY, TYPE_DEMO_OPTIONAL)).toBe(
-      true
-    );
+    expect(
+      formIsValid(initial, { ...initial, demonstrationTypes: [] }, TODAY, TYPE_DEMO_OPTIONAL)
+    ).toBe(true);
   });
 
   it("formIsValid requires reason when due date changes", () => {

@@ -192,7 +192,35 @@ describe("DemonstrationDeliverableTable", () => {
     expect(screen.getByLabelText(/Remove Deliverable/i)).not.toBeDisabled();
 
     await user.click(screen.getByLabelText(/Edit Deliverable/i));
-    expect(showEditDeliverableDialog).toHaveBeenCalledWith(deliverable);
+    expect(showEditDeliverableDialog).toHaveBeenCalledWith(deliverable, expect.any(Function));
+  });
+
+  it("deselects all rows after editing a deliverable", async () => {
+    const user = userEvent.setup();
+    const deliverable = {
+      id: "row-action",
+      name: "Editable Item",
+      dueDate: new Date("2026-01-01"),
+      status: "Upcoming" as const,
+      combinedStatus: "Upcoming",
+      combinedStatusFilter: "Upcoming",
+      ...baseDeliverable,
+    };
+
+    render(
+      <DemonstrationDeliverableTable viewMode="demos-cms-user" deliverables={[deliverable]} />
+    );
+
+    await user.click(screen.getByTestId("select-row-row-action"));
+    expect(screen.getByTestId("select-row-row-action")).toBeChecked();
+
+    await user.click(screen.getByLabelText(/Edit Deliverable/i));
+    const onSubmit = showEditDeliverableDialog.mock.calls[0][1];
+    onSubmit();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("select-row-row-action")).not.toBeChecked();
+    });
   });
 
   it("uses multiselect filter inputs for configured categorical fields", async () => {

@@ -138,7 +138,7 @@ export interface EditDeliverableDialogProps {
   onClose: () => void;
   deliverable: EditDeliverableDialogDeliverable;
   demonstrationTypeTags: Tag[];
-  onSave?: (input: EditDeliverableInput, reasonForChange?: string) => Promise<void> | void;
+  onSubmit?: () => void;
 }
 
 const buildUpdateDeliverableInput = (
@@ -162,7 +162,7 @@ export const EditDeliverableDialog: React.FC<EditDeliverableDialogProps> = ({
   onClose,
   deliverable,
   demonstrationTypeTags,
-  onSave,
+  onSubmit,
 }) => {
   const { showSuccess, showError } = useToast();
   const [updateDeliverable, { loading: isSaving }] = useMutation(UPDATE_DELIVERABLE_MUTATION);
@@ -194,18 +194,15 @@ export const EditDeliverableDialog: React.FC<EditDeliverableDialogProps> = ({
     const reasonForChange = dueDateWasChanged ? formData.reasonForChange.trim() : undefined;
 
     try {
-      if (onSave) {
-        await onSave(input, reasonForChange);
-      } else {
-        await updateDeliverable({
-          variables: {
-            id: input.id,
-            input: buildUpdateDeliverableInput(input, reasonForChange),
-          },
-        });
-      }
+      await updateDeliverable({
+        variables: {
+          id: input.id,
+          input: buildUpdateDeliverableInput(input, reasonForChange),
+        },
+      });
 
       showSuccess(DELIVERABLE_UPDATED_MESSAGE);
+      onSubmit?.();
       onClose();
     } catch {
       showError(DELIVERABLE_UPDATE_FAILED_MESSAGE);

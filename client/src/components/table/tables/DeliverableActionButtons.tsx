@@ -77,7 +77,7 @@ export const DeliverableActionButtons: React.FC<{
         disabled={!editEnabled}
         onClick={() => {
           if (oneSelectedDeliverable) {
-            showEditDeliverableDialog(oneSelectedDeliverable);
+            showEditDeliverableDialog(oneSelectedDeliverable, () => table.resetRowSelection(true));
           }
         }}
       >
