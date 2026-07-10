@@ -28,6 +28,8 @@ vi.mock("../DialogContext", () => ({
   }),
 }));
 
+const mockOnSubmit = vi.fn();
+
 const SUBMIT_BUTTON_TEST_ID = "button-submit-edit-demonstration-type-dialog";
 const MOCK_DEMONSTRATION_ID = "demo-123";
 const MOCK_INITIAL_TYPE: DemonstrationType = {
@@ -77,6 +79,7 @@ describe("EditDemonstrationTypeDialog", () => {
         <EditDemonstrationTypeDialog
           demonstrationId={MOCK_DEMONSTRATION_ID}
           initialDemonstrationType={MOCK_INITIAL_TYPE}
+          onSubmit={mockOnSubmit}
         />
       </MockedProvider>
     );
@@ -95,6 +98,7 @@ describe("EditDemonstrationTypeDialog", () => {
     await waitFor(() => {
       expect(mockShowError).toHaveBeenCalledWith("Failed to edit demonstration type.");
       expect(mockCloseDialog).toHaveBeenCalledTimes(1);
+      expect(mockOnSubmit).not.toHaveBeenCalled();
     });
   });
 
@@ -342,6 +346,7 @@ describe("EditDemonstrationTypeDialog", () => {
           <EditDemonstrationTypeDialog
             demonstrationId={MOCK_DEMONSTRATION_ID}
             initialDemonstrationType={initialType}
+            onSubmit={mockOnSubmit}
           />
         </MockedProvider>
       );
@@ -366,6 +371,7 @@ describe("EditDemonstrationTypeDialog", () => {
       await waitFor(() => {
         expect(mockShowSuccess).toHaveBeenCalledWith("Demonstration type edited successfully.");
         expect(mockCloseDialog).toHaveBeenCalledTimes(1);
+        expect(mockOnSubmit).toHaveBeenCalledTimes(1);
       });
     });
 

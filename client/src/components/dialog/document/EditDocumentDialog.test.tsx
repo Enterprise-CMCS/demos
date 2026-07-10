@@ -11,6 +11,7 @@ import { EditDocumentDialog } from "./";
 import { Document as ServerDocument } from "demos-server";
 
 const mockQuery = vi.fn();
+const mockOnSubmit = vi.fn();
 
 beforeEach(() => {
   vi.mock("@apollo/client", async () => {
@@ -45,7 +46,7 @@ describe("EditDocumentDialog", () => {
   const setup = () => {
     render(
       <ToastProvider>
-        <EditDocumentDialog document={existingDocument} />
+        <EditDocumentDialog document={existingDocument} onSubmit={mockOnSubmit} />
       </ToastProvider>
     );
   };
@@ -91,6 +92,31 @@ describe("EditDocumentDialog", () => {
     fireEvent.click(screen.getByText("Cancel"));
 
     await waitFor(() => {
+      expect(mockCloseDialog).toHaveBeenCalled();
+    });
+  });
+
+  it("calls onSubmit when document is successfully updated", async () => {
+    setup();
+
+    const titleInput = screen.getByDisplayValue("Existing Document");
+    fireEvent.change(titleInput, { target: { value: "Updated Document" } });
+
+    await fireEvent.click(screen.getByTestId(UPLOAD_DOCUMENT_BUTTON_TEST_ID));
+
+    await waitFor(() => {
+      expect(mockQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variables: {
+            id: existingDocument.id,
+            input: {
+              name: "Updated Document",
+              description: existingDocument.description,
+            },
+          },
+        })
+      );
+      expect(mockOnSubmit).toHaveBeenCalled();
       expect(mockCloseDialog).toHaveBeenCalled();
     });
   });

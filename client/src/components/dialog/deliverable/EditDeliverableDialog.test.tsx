@@ -62,6 +62,7 @@ const setup = (overrides?: {
   mocks?: React.ComponentProps<typeof TestProvider>["mocks"];
 }) => {
   const onClose = vi.fn();
+  const onSubmit = vi.fn();
   const deliverable = { ...TEST_DELIVERABLE, ...overrides?.deliverable };
 
   render(
@@ -70,11 +71,12 @@ const setup = (overrides?: {
         deliverable={deliverable}
         demonstrationTypeTags={MOCK_TAGS}
         onClose={onClose}
+        onSubmit={onSubmit}
       />
     </TestProvider>
   );
 
-  return { onClose };
+  return { onClose, onSubmit };
 };
 
 describe("EditDeliverableDialog", () => {
@@ -157,7 +159,7 @@ describe("EditDeliverableDialog", () => {
 
   it("persists changes with the updateDeliverable mutation", async () => {
     const user = userEvent.setup();
-    const { onClose } = setup();
+    const { onClose, onSubmit } = setup();
 
     await waitFor(() =>
       expect(screen.getByTestId("select-demonstration-type")).toBeInTheDocument()
@@ -182,12 +184,13 @@ describe("EditDeliverableDialog", () => {
     });
     await waitFor(() => expect(mockShowSuccess).toHaveBeenCalledWith(DELIVERABLE_UPDATED_MESSAGE));
     expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 
   it("keeps the modal open and shows an error when updateDeliverable fails", async () => {
     const user = userEvent.setup();
     mockMutation.mockRejectedValueOnce(new Error("Update failed"));
-    const { onClose } = setup();
+    const { onClose, onSubmit } = setup();
 
     await waitFor(() =>
       expect(screen.getByTestId("select-demonstration-type")).toBeInTheDocument()
@@ -203,6 +206,7 @@ describe("EditDeliverableDialog", () => {
       expect(mockShowError).toHaveBeenCalledWith(DELIVERABLE_UPDATE_FAILED_MESSAGE)
     );
     expect(onClose).not.toHaveBeenCalled();
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 });
 
