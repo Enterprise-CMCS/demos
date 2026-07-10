@@ -70,12 +70,14 @@ stages {
             lambdas.collate(maxParallel).each { batch ->
               def branches = batch.collectEntries { lambda ->
                 ["Unit Test - ${lambda.name}": {
-                  dirCon(lambda.dir, "node") {
-                    sh '''
-                      npm ci
-                      npm run lint
-                      npm run test
-                    '''
+                  stage("Unit Test - ${lambda.name}") {
+                    dirCon(lambda.dir, "node") {
+                      sh '''
+                        npm ci
+                        npm run lint
+                        npm run test
+                      '''
+                    }
                   }
                 }]
               }
