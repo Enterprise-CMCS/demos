@@ -51,128 +51,162 @@ stages {
   }
 
   stage('Lambdas - Test - All') {
-    failFast true
-    parallel {
-      stage('Unit Test - Authorizer') {
-        steps {
-          script {
-            handleError(params.HANDLE_ERRORS) {
-              if (hasChange('lambdas')) {
-                dirCon('lambdas/authorizer', 'node') {
-                  sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
-                }
+    steps {
+      script {
+        handleError(params.HANDLE_ERRORS) {
+          if (hasChange('lambdas')) {
+            def lambdas = [
+              [name: 'Authorizer', dir: 'lambdas/authorizer'],
+              [name: 'DB Role Management', dir: 'lambdas/dbRoleManagement'],
+              [name: 'File Process', dir: 'lambdas/fileprocess'],
+              [name: 'UI Path', dir: 'lambdas/UIPath'],
+              [name: 'Delete Infected File', dir: 'lambdas/deleteinfectedfile'],
+              [name: 'Emailer', dir: 'lambdas/emailer'],
+              [name: 'Budget Neutrality', dir: 'lambdas/budgetNeutrality']
+            ]
+
+            def maxParallel = 3
+
+            lambdas.collate(maxParallel).each { batch ->
+              def branches = batch.collectEntries { lambda ->
+                ["Unit Test - ${lambda.name}": {
+                  dirCon(lambda.dir, "node") {
+                    sh '''
+                      npm ci
+                      npm run lint
+                      npm run test
+                    '''
+                  }
+                }]
               }
-            }
-          }
-        }
-      }
-      stage('Lambdas - Unit Test - DB Role Management') {
-        steps {
-          script {
-            handleError(params.HANDLE_ERRORS) {
-              if (hasChange('lambdas')) {
-                dirCon('lambdas/dbRoleManagement', 'node') {
-                  sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
-                }
-              }
-            }
-          }
-        }
-      }
-      stage('Lambdas - Unit Test - File Process') {
-        steps {
-          script {
-            handleError(params.HANDLE_ERRORS) {
-              if (hasChange('lambdas')) {
-                dirCon('lambdas/fileprocess', 'node') {
-                  sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
-                }
-              }
-            }
-          }
-        }
-      }
-      stage('Lambdas - Unit Test - UI Path') {
-        steps {
-          script {
-            handleError(params.HANDLE_ERRORS) {
-              if (hasChange('lambdas')) {
-                dirCon('lambdas/UIPath', 'node') {
-                  sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
-                }
-              }
-            }
-          }
-        }
-      }
-      stage('Lambdas - Unit Test - Delete Infected File') {
-        steps {
-          script {
-            handleError(params.HANDLE_ERRORS) {
-              if (hasChange('lambdas')) {
-                dirCon('lambdas/deleteinfectedfile', 'node') {
-                  sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
-                }
-              }
-            }
-          }
-        }
-      }
-      stage('Lambdas - Unit Test - Emailer') {
-        steps {
-          script {
-            handleError(params.HANDLE_ERRORS) {
-              if (hasChange('lambdas')) {
-                dirCon('lambdas/emailer', 'node') {
-                  sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
-                }
-              }
-            }
-          }
-        }
-      }
-      stage('Lambdas - Unit Test - budgetNeutrality') {
-        steps {
-          script {
-            handleError(params.HANDLE_ERRORS) {
-              if (hasChange('lambdas')) {
-                dirCon('lambdas/budgetNeutrality', 'node') {
-                  sh '''
-                  npm ci
-                  npm run lint
-                  npm run test
-                  '''
-                }
-              }
+              parallel branches
             }
           }
         }
       }
     }
+    // failFast true
+    // parallel {
+    //   stage('Unit Test - Authorizer') {
+    //     steps {
+    //       script {
+    //         handleError(params.HANDLE_ERRORS) {
+    //           if (hasChange('lambdas')) {
+    //             dirCon('lambdas/authorizer', 'node') {
+    //               sh '''
+    //               npm ci
+    //               npm run lint
+    //               npm run test
+    //               '''
+    //             }
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    //   stage('Lambdas - Unit Test - DB Role Management') {
+    //     steps {
+    //       script {
+    //         handleError(params.HANDLE_ERRORS) {
+    //           if (hasChange('lambdas')) {
+    //             dirCon('lambdas/dbRoleManagement', 'node') {
+    //               sh '''
+    //               npm ci
+    //               npm run lint
+    //               npm run test
+    //               '''
+    //             }
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    //   stage('Lambdas - Unit Test - File Process') {
+    //     steps {
+    //       script {
+    //         handleError(params.HANDLE_ERRORS) {
+    //           if (hasChange('lambdas')) {
+    //             dirCon('lambdas/fileprocess', 'node') {
+    //               sh '''
+    //               npm ci
+    //               npm run lint
+    //               npm run test
+    //               '''
+    //             }
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    //   stage('Lambdas - Unit Test - UI Path') {
+    //     steps {
+    //       script {
+    //         handleError(params.HANDLE_ERRORS) {
+    //           if (hasChange('lambdas')) {
+    //             dirCon('lambdas/UIPath', 'node') {
+    //               sh '''
+    //               npm ci
+    //               npm run lint
+    //               npm run test
+    //               '''
+    //             }
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    //   stage('Lambdas - Unit Test - Delete Infected File') {
+    //     steps {
+    //       script {
+    //         handleError(params.HANDLE_ERRORS) {
+    //           if (hasChange('lambdas')) {
+    //             dirCon('lambdas/deleteinfectedfile', 'node') {
+    //               sh '''
+    //               npm ci
+    //               npm run lint
+    //               npm run test
+    //               '''
+    //             }
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    //   stage('Lambdas - Unit Test - Emailer') {
+    //     steps {
+    //       script {
+    //         handleError(params.HANDLE_ERRORS) {
+    //           if (hasChange('lambdas')) {
+    //             dirCon('lambdas/emailer', 'node') {
+    //               sh '''
+    //               npm ci
+    //               npm run lint
+    //               npm run test
+    //               '''
+    //             }
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    //   stage('Lambdas - Unit Test - budgetNeutrality') {
+    //     steps {
+    //       script {
+    //         handleError(params.HANDLE_ERRORS) {
+    //           if (hasChange('lambdas')) {
+    //             dirCon('lambdas/budgetNeutrality', 'node') {
+    //               sh '''
+    //               npm ci
+    //               npm run lint
+    //               npm run test
+    //               '''
+    //             }
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
   }
 
   stage('Lambdas - Lambdas - Code Scan') {
