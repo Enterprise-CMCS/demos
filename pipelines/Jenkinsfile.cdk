@@ -95,15 +95,6 @@ pipeline {
               npm run build
               '''
               }
-              // dirCon('lambdas', 'node') {
-              //   sh '''
-              //     set -e
-              //     for dir in */; do
-              //       [ -d "$dir" ] || continue
-              //       (cd "$dir" && npm ci)
-              //     done
-              //   '''
-              // }
               dirCon('deployment', 'node') {
                 sh '''
               npm run synth:dev
