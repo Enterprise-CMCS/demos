@@ -220,9 +220,12 @@ export const createCloudfrontRules = (
     ...baseWafRules
   ];
 
-  if (commonProps.stage != "prod") {
+  // TODO: PROD WILL NOT BE ACCESSIBLE IF THIS IS LEFT AS IS. THIS IS FOR
+  // PRE-PROD only. The if-statement should be uncommented
+  //
+  //  if (commonProps.stage != "prod") {
     rules.unshift(createCombinedBlockRule("ZScalerOrCloudbees", ipSet, commonProps.zapHeaderValue),);
-  }
+  // }
 
   return addPriorities(rules);
 };
