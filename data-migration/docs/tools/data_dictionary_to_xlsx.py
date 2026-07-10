@@ -20,14 +20,13 @@ The workbook needs the parent shape, the migration-private registry,
 and the Prisma-owned history tables, so the generator reads three
 sources:
 
-1. The SME-curated mermaid data model fragments under
-   ``../mmd_sql_compare/mmd_tables/`` (one ``.mmd`` per table; the
-   directory is laid out by class --
-   ``static_constraints/``, ``type_limiters/``, ``data_tables/``,
-   ``associative_tables/``). The mermaid model is the canonical SME
-   description of every parent table and is verified against the
-   Prisma DDL by ``mmd_sql_compare/split_and_compare.py``. Override
-   the path with ``--mmd-dir <path>`` if it lives elsewhere.
+1. The hand-authored DEMOS data model: a single mermaid file at
+   ``../demos/data/docs/DEMOS_Data_Model.mmd``. Each entity is a
+   ``name:::class { ... }`` block whose ``:::class`` marks it as a
+   static constraint / type limiter / data table / associative table.
+   It is the canonical description of every parent table. Override the
+   path with ``--mmd-file <path>`` or the ``DEMOS_DATA_MODEL_MMD`` env
+   var if it lives elsewhere.
 2. ``sql/01_ddl_supplements/00_jsonb_schema_registry.sql`` for the
    ``migration.jsonb_schemas`` housekeeping table.
 3. The pinned, cached Prisma artifact under
@@ -50,6 +49,7 @@ Output structure
 from __future__ import annotations
 
 import argparse
+import os
 import re
 from collections.abc import Iterable
 from dataclasses import dataclass, field
@@ -58,10 +58,26 @@ from pathlib import Path
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
+from schema_model import DEMOS_DATA_MODEL_MMD, MERMAID_CLASS_TO_DIR
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 SUPPLEMENTS_DIR = REPO_ROOT / "sql" / "01_ddl_supplements"
-DEFAULT_MMD_DIR = REPO_ROOT.parent / "mmd_sql_compare" / "mmd_tables"
+DEFAULT_MMD_FILE = Path(os.environ.get("DEMOS_DATA_MODEL_MMD", str(DEMOS_DATA_MODEL_MMD)))
+_WORKSPACE_ROOT = REPO_ROOT.parent
+
+
+def _confined_path(raw: str, *, what: str) -> Path:
+    """Resolve ``raw`` and refuse paths escaping the workspace (CWE-23 guard).
+
+    Inputs/outputs legitimately span this repo and its sibling checkouts (e.g.
+    ``mmd_sql_compare/``), so the boundary is the workspace root, not the repo.
+    Anything resolving outside it (``/etc``, ``/tmp``, ``../..`` escapes) is
+    rejected rather than read or written.
+    """
+    resolved = Path(raw).resolve()
+    if not resolved.is_relative_to(_WORKSPACE_ROOT):
+        raise SystemExit(f"refusing {what} outside {_WORKSPACE_ROOT}: {resolved}")
+    return resolved
 
 CLASS_DIR_TO_LABEL: dict[str, str] = {
     "static_constraints": "Static constraint",
@@ -295,23 +311,27 @@ def _parse_table_block(name: str, cls: str, cls_dir: str, body: str) -> TableSpe
     return spec
 
 
-def parse_mmd_dir(mmd_dir: Path) -> list[TableSpec]:
+def parse_mmd_file(mmd_file: Path) -> list[TableSpec]:
+    """Parse every table block from the single DEMOS data model file.
+
+    Each block is ``name:::mermaidClass { ... }``; the mermaid class is mapped
+    to the class-directory label the workbook groups on. Blocks with any other
+    class (e.g. the diagram ``legend``) are skipped.
+    """
     out: list[TableSpec] = []
-    for cls_dir in CLASS_DIR_TO_LABEL:
-        sub = mmd_dir / cls_dir
-        if not sub.is_dir():
+    text = mmd_file.read_text(encoding="utf-8")
+    for m in _TABLE_BLOCK_RE.finditer(text):
+        cls_dir = MERMAID_CLASS_TO_DIR.get(m.group("cls"))
+        if cls_dir is None:
             continue
-        for f in sorted(sub.glob("*.mmd")):
-            text = f.read_text(encoding="utf-8")
-            for m in _TABLE_BLOCK_RE.finditer(text):
-                out.append(
-                    _parse_table_block(
-                        name=m.group("name"),
-                        cls=m.group("cls"),
-                        cls_dir=cls_dir,
-                        body=m.group("body"),
-                    )
-                )
+        out.append(
+            _parse_table_block(
+                name=m.group("name"),
+                cls=m.group("cls"),
+                cls_dir=cls_dir,
+                body=m.group("body"),
+            )
+        )
     return out
 
 
@@ -752,8 +772,8 @@ def write_overview(
         bold=True, size=14
     )
     src_note = (
-        "Source: SME-curated mermaid model under "
-        "../mmd_sql_compare/mmd_tables/ (parents) + "
+        "Source: hand-authored DEMOS data model "
+        "../demos/data/docs/DEMOS_Data_Model.mmd (parents) + "
         "sql/01_ddl_supplements/ (migration.jsonb_schemas) + the pinned "
         "Prisma artifact (DEMOS-owned *_history tables). "
         f"Prisma DDL pin = {pin}."
@@ -955,12 +975,12 @@ def main(argv: Iterable[str] | None = None) -> int:
         help="Output xlsx path (default reports/inputs/demos_data_dictionary.xlsx).",
     )
     parser.add_argument(
-        "--mmd-dir",
-        default=str(DEFAULT_MMD_DIR),
+        "--mmd-file",
+        default=str(DEFAULT_MMD_FILE),
         help=(
-            "Mermaid table fragments directory; expects subdirectories "
-            "static_constraints/, type_limiters/, data_tables/, "
-            "associative_tables/."
+            "Hand-authored DEMOS data model (single mermaid file with "
+            "name:::class { ... } entity blocks). Defaults to "
+            "../demos/data/docs/DEMOS_Data_Model.mmd (or $DEMOS_DATA_MODEL_MMD)."
         ),
     )
     parser.add_argument(
@@ -974,22 +994,23 @@ def main(argv: Iterable[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    out_path = Path(args.out_path).resolve()
-    mmd_dir = Path(args.mmd_dir).resolve()
-    if not mmd_dir.is_dir():
+    # SECURITY: confine operator-supplied paths to the workspace (CWE-23 guard).
+    out_path = _confined_path(args.out_path, what="output path")
+    mmd_file = _confined_path(args.mmd_file, what="mmd file")
+    if not mmd_file.is_file():
         raise SystemExit(
-            f"mmd directory not found: {mmd_dir}; pass --mmd-dir or place "
-            "the SME mermaid fragments alongside the repo."
+            f"DEMOS data model not found: {mmd_file}; pass --mmd-file or set "
+            "DEMOS_DATA_MODEL_MMD to the DEMOS_Data_Model.mmd path."
         )
 
-    specs = parse_mmd_dir(mmd_dir)
+    specs = parse_mmd_file(mmd_file)
     if not specs:
-        raise SystemExit(f"no mermaid tables found under {mmd_dir}")
+        raise SystemExit(f"no mermaid tables found in {mmd_file}")
 
     pin = _pin_value(REPO_ROOT / "reports" / "prisma_ddl.sha256")
 
     if args.prisma_artifact:
-        artifact_path = Path(args.prisma_artifact).resolve()
+        artifact_path = _confined_path(args.prisma_artifact, what="prisma artifact")
     else:
         artifact_path = REPO_ROOT / "state" / "prisma_ddl" / f"{pin}.sql"
     if artifact_path.exists():

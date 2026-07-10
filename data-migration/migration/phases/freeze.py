@@ -34,6 +34,7 @@ def run_freeze() -> None:
     (STATE_DIR / "freeze_instant.txt").write_text(instant + "\n", encoding="utf-8")
     psql_command(
         env,
-        f"INSERT INTO mysql_raw._delta_log (freeze_instant) VALUES ('{instant}'::timestamptz);",
+        "INSERT INTO mysql_raw._delta_log (freeze_instant) VALUES (%s::timestamptz);",
+        [instant],
     )
     log(f"freeze instant: {instant}")
