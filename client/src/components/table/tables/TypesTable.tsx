@@ -126,13 +126,17 @@ export const TypesTable: React.FC<TypesTableProps> = ({
                   disabled={editDisabled || inputDisabled}
                   onClick={() =>
                     !editDisabled &&
-                    showEditDemonstrationTypeDialog(demonstration.id, {
-                      demonstrationTypeName: selected[0].typeLabel,
-                      status: selected[0].status,
-                      approvalStatus: selected[0].approvalStatus,
-                      effectiveDate: selected[0].effectiveDate,
-                      expirationDate: selected[0].expirationDate,
-                    })
+                    showEditDemonstrationTypeDialog(
+                      demonstration.id,
+                      {
+                        demonstrationTypeName: selected[0].typeLabel,
+                        status: selected[0].status,
+                        approvalStatus: selected[0].approvalStatus,
+                        effectiveDate: selected[0].effectiveDate,
+                        expirationDate: selected[0].expirationDate,
+                      },
+                      () => table.resetRowSelection(true)
+                    )
                   }
                 >
                   <EditIcon />

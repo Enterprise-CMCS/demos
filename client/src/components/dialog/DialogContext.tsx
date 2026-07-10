@@ -257,12 +257,14 @@ export const useDialog = () => {
     demonstrationType: Pick<
       DemonstrationTypeAssignment,
       "demonstrationTypeName" | "status" | "effectiveDate" | "expirationDate" | "approvalStatus"
-    >
+    >,
+    onSubmit?: () => void
   ) => {
     context.showDialog(
       <EditDemonstrationTypeDialog
         demonstrationId={demonstrationId}
         initialDemonstrationType={demonstrationType}
+        onSubmit={onSubmit}
       />
     );
   };

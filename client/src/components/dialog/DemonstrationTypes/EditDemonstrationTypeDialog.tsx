@@ -80,9 +80,11 @@ const isValid = (effectiveDate: LocalDate, expirationDate: LocalDate) => {
 export const EditDemonstrationTypeDialog = ({
   demonstrationId,
   initialDemonstrationType,
+  onSubmit,
 }: {
   demonstrationId: string;
   initialDemonstrationType: DemonstrationType;
+  onSubmit?: () => void;
 }) => {
   const { closeDialog } = useDialog();
   const { showSuccess, showError } = useToast();
@@ -117,6 +119,7 @@ export const EditDemonstrationTypeDialog = ({
       await editDemonstrationType({
         variables: { input: editDemonstrationTypeInput },
       });
+      onSubmit?.();
       showSuccess("Demonstration type edited successfully.");
     } catch (error) {
       console.error("Error editing demonstration type:", error);
