@@ -33,13 +33,13 @@ describe("emailQueue", () => {
     process.env = { ...originalEnv };
   });
 
-  it("builds expected envelope shape for realtime deliverable emails", async () => {
+  it("builds a generic realtime email envelope", async () => {
     const { buildRealtimeEmailEnvelope } = await loadModule();
 
     const out = buildRealtimeEmailEnvelope({
       emailType: "Deliverable Created",
+      entityType: "application",
       entityId: "del-123",
-      to: "owner@example.com",
       payload: {
         to: "owner@example.com",
         id: "del-123",
@@ -48,10 +48,23 @@ describe("emailQueue", () => {
     });
 
     expect(out.emailType).toBe("Deliverable Created");
-    expect(out.template).toBe("deliverable-created");
-    expect(out.entityType).toBe("deliverable");
+    expect(out).not.toHaveProperty("template");
+    expect(out.entityType).toBe("application");
     expect(out.entityId).toBe("del-123");
-    expect(out.idempotencyKey).toBe("Deliverable Created:deliverable:del-123");
+    expect(out.idempotencyKey).toBe("Deliverable Created:application:del-123");
+  });
+
+  it("rejects unsupported realtime email types", async () => {
+    const { buildRealtimeEmailEnvelope } = await loadModule();
+
+    expect(() =>
+      buildRealtimeEmailEnvelope({
+        emailType: "Unknown Email",
+        entityType: "application",
+        entityId: "application-1",
+        payload: {},
+      })
+    ).toThrow("Unsupported realtime email type: Unknown Email");
   });
 
   it("enqueues message and returns message id", async () => {
@@ -61,8 +74,8 @@ describe("emailQueue", () => {
 
     const message = buildRealtimeEmailEnvelope({
       emailType: "Deliverable Submitted",
+      entityType: "deliverable",
       entityId: "del-321",
-      to: "owner@example.com",
       payload: {
         to: "owner@example.com",
         id: "del-321",
@@ -87,8 +100,8 @@ describe("emailQueue", () => {
 
     const message = buildRealtimeEmailEnvelope({
       emailType: "Deliverable Approved",
+      entityType: "deliverable",
       entityId: "del-999",
-      to: "owner@example.com",
       payload: {
         to: "owner@example.com",
         id: "del-999",

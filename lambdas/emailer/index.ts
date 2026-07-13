@@ -10,10 +10,14 @@ import { renderEmail } from "./emailTemplates/renderEmail";
 type EmailerAddress = string | Address | Array<string | Address>;
 
 type RealtimeEmailEnvelope = {
-  template: string;
-  emailType?: string;
+  emailType: string;
+  entityType?: string;
   entityId?: string;
   payload: unknown;
+};
+
+const templateByEmailType: Record<string, string> = {
+  "Deliverable Created": "deliverable-created",
 };
 
 export interface EmailData extends Pick<Options, "html" | "cc" | "bcc"> {
@@ -92,16 +96,21 @@ export async function renderRealtimeEmailIfNeeded(email: unknown): Promise<unkno
     return email;
   }
 
+  const template = templateByEmailType[email.emailType];
+  if (!template) {
+    throw new Error(`Unsupported realtime email type: ${email.emailType}`);
+  }
+
   log.info(
     {
       emailType: email.emailType,
-      template: email.template,
+      template,
       entityId: email.entityId,
     },
     "rendering realtime email template"
   );
 
-  return renderEmail(email.template, email.payload);
+  return renderEmail(template, email.payload);
 }
 
 export function isValidEmailData(email: any): email is EmailData {
@@ -127,7 +136,7 @@ export function isRealtimeEmailEnvelope(email: unknown): email is RealtimeEmailE
   return (
     typeof email === "object" &&
     email !== null &&
-    typeof (email as RealtimeEmailEnvelope).template === "string" &&
+    typeof (email as RealtimeEmailEnvelope).emailType === "string" &&
     "payload" in email
   );
 }

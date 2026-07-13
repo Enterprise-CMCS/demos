@@ -1,4 +1,4 @@
-import { Deliverable as PrismaDeliverable, Prisma } from "@prisma/client";
+import { Deliverable as PrismaDeliverable } from "@prisma/client";
 import { CreateDeliverableInput } from "../../types";
 import { GraphQLContext } from "../../auth";
 import {
@@ -10,16 +10,7 @@ import {
 import { prisma } from "../../prismaClient";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
-import { buildRealtimeEmailEnvelope, enqueueRealtimeEmail } from "../../services/emailQueue";
-
-type CurrentUserWithPerson = Prisma.UserGetPayload<{ include: { person: true } }>;
-
-async function getCurrentUser(context: GraphQLContext): Promise<CurrentUserWithPerson> {
-  return prisma().user.findUniqueOrThrow({
-    where: { id: context.user.id },
-    include: { person: true },
-  });
-}
+import { createEmail } from "../email";
 
 export async function createDeliverable(
   input: CreateDeliverableInput,
@@ -27,13 +18,6 @@ export async function createDeliverable(
 ): Promise<PrismaDeliverable> {
   const currentUserId = context.user.id;
   validateUserPersonTypeAllowed(context, "createDeliverable", ["demos-admin", "demos-cms-user"]);
-  const currentUser = await getCurrentUser(context);
-  const currentUserEmail = currentUser.person.email.trim();
-  if (!currentUserEmail) {
-    throw new Error(
-      "Cannot enqueue Deliverable Created email because the current user email is missing."
-    );
-  }
 
   const parsedInput = parseCreateDeliverableInput(input);
   const createdDeliverable = await prisma().$transaction(async (tx) => {
@@ -67,21 +51,21 @@ export async function createDeliverable(
     return newDeliverable;
   });
 
-  const message = buildRealtimeEmailEnvelope({
-    emailType: "Deliverable Created",
-    entityId: createdDeliverable.id,
-    to: currentUserEmail,
-    payload: {
-      to: currentUserEmail,
-      id: createdDeliverable.id,
-      name: parsedInput.name,
-      deliverableType: parsedInput.deliverableType,
-      dueDate: parsedInput.dueDate.easternTZDate.toISOString(),
-      status: "Upcoming",
+  await createEmail(
+    {
+      emailType: "Deliverable Created",
+      entityType: "deliverable",
+      entityId: createdDeliverable.id,
+      payload: {
+        id: createdDeliverable.id,
+        name: parsedInput.name,
+        deliverableType: parsedInput.deliverableType,
+        dueDate: parsedInput.dueDate.easternTZDate.toISOString(),
+        status: "Upcoming",
+      },
     },
-  });
-
-  await enqueueRealtimeEmail(message);
+    context
+  );
 
   return createdDeliverable;
 }

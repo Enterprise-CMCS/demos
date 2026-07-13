@@ -25,7 +25,6 @@ const mockEmailData = {
 
 const realtimeDeliverableCreatedEnvelope = {
   emailType: "Deliverable Created",
-  template: "deliverable-created",
   entityType: "deliverable",
   entityId: "deliverable-1",
   payload: {
@@ -187,10 +186,12 @@ describe("emailer", () => {
     );
   });
 
-  it("should report unknown realtime email templates", async () => {
+  it("should report unsupported realtime email types", async () => {
     await expect(
-      handler(sqsEvent(JSON.stringify({ ...realtimeDeliverableCreatedEnvelope, template: "nope" })))
-    ).rejects.toThrow("Unknown email template: nope");
+      handler(
+        sqsEvent(JSON.stringify({ ...realtimeDeliverableCreatedEnvelope, emailType: "Unknown Email" }))
+      )
+    ).rejects.toThrow("Unsupported realtime email type: Unknown Email");
   });
 
   it("should report missing realtime email template payload values", async () => {

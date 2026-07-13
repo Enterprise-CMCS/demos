@@ -12,7 +12,6 @@ $AWS_CMD sqs send-message \
     --queue-url "$QUEUE_URL" \
     --message-body '{
       "emailType": "Deliverable Created",
-      "template": "deliverable-created",
       "entityType": "deliverable",
       "entityId": "local-deliverable-1",
       "triggeredBy": {

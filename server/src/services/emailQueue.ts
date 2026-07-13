@@ -21,8 +21,7 @@ export type RealtimeEmailType = (typeof REALTIME_EMAIL_TYPES)[number];
 
 export type RealtimeEmailEnvelope = {
   emailType: RealtimeEmailType;
-  template: string;
-  entityType: "deliverable";
+  entityType: string;
   entityId: string;
   triggeredBy: {
     type: "realtime";
@@ -30,21 +29,7 @@ export type RealtimeEmailEnvelope = {
   };
   triggeredAt: string;
   idempotencyKey: string;
-  payload: {
-    to: string;
-    id: string;
-    name?: string;
-    deliverableType?: string;
-    dueDate?: string;
-    status?: string;
-    demonstration?: {
-      id: string;
-      name: string;
-      state: {
-        id: string;
-      };
-    };
-  };
+  payload: object;
 };
 
 const region = PRIMARY_AWS_REGION;
@@ -86,42 +71,26 @@ async function resolveEmailQueueUrl(): Promise<string> {
 }
 
 export function buildRealtimeEmailEnvelope(input: {
-  emailType: RealtimeEmailType;
+  emailType: string;
+  entityType: string;
   entityId: string;
-  to: string;
   payload: RealtimeEmailEnvelope["payload"];
 }): RealtimeEmailEnvelope {
-  const templateByEmailType: Record<RealtimeEmailType, string> = {
-    "Deliverable Created": "deliverable-created",
-    "Deliverable Submitted": "deliverable-submitted",
-    "Deliverable Due Date Updated": "deliverable-due-date-updated",
-    "Extension Requested": "extension-requested",
-    "Extension Decision Made": "extension-decision-made",
-    "Resubmission Requested": "resubmission-requested",
-    "Deliverable Accepted": "deliverable-status",
-    "Deliverable Approved": "deliverable-status",
-    "Deliverable Received and Filed": "deliverable-status",
-    "Public Comment Added": "public-comment-added",
-    "Terms And Conditions Requested": "terms-and-conditions-requested",
-    "Application Status Updated": "application-status-updated",
-  };
+  if (!REALTIME_EMAIL_TYPES.includes(input.emailType as RealtimeEmailType)) {
+    throw new Error(`Unsupported realtime email type: ${input.emailType}`);
+  }
 
   return {
-    emailType: input.emailType,
-    template: templateByEmailType[input.emailType],
-    entityType: "deliverable",
+    emailType: input.emailType as RealtimeEmailType,
+    entityType: input.entityType,
     entityId: input.entityId,
     triggeredBy: {
       type: "realtime",
       id: "graphql-api",
     },
     triggeredAt: new Date().toISOString(),
-    idempotencyKey: `${input.emailType}:deliverable:${input.entityId}`,
-    payload: {
-      ...input.payload,
-      to: input.to,
-      id: input.entityId,
-    },
+    idempotencyKey: `${input.emailType}:${input.entityType}:${input.entityId}`,
+    payload: input.payload,
   };
 }
 
