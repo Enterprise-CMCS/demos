@@ -7,38 +7,8 @@ LOCALSTACK_ENDPOINT="http://localstack:4566"
 AWS_REGION="us-east-1"
 AWS_CMD="aws --endpoint-url=$LOCALSTACK_ENDPOINT --region $AWS_REGION"
 QUEUE_NAME="emailer-queue"
-DLQ_NAME="emailer-dlq"
 LAMBDA_NAME="emailer"
 ALLOW_LIST_PARAM_NAME="/demos/nonprod/email/allowlist"
-
-# Create the Emailer queue and its dead-letter queue.
-echo "📬 Creating emailer SQS queue..."
-
-DLQ_URL=$($AWS_CMD sqs create-queue \
-    --queue-name "$DLQ_NAME" \
-    --attributes '{"MessageRetentionPeriod":"1209600"}' \
-    --output text --query 'QueueUrl')
-
-DLQ_ARN=$($AWS_CMD sqs get-queue-attributes \
-    --queue-url "$DLQ_URL" \
-    --attribute-names QueueArn \
-    --output text --query 'Attributes.QueueArn')
-
-REDRIVE_POLICY="{\"deadLetterTargetArn\":\"$DLQ_ARN\",\"maxReceiveCount\":\"5\"}"
-
-QUEUE_URL=$($AWS_CMD sqs create-queue \
-    --queue-name "$QUEUE_NAME" \
-    --attributes "{\"RedrivePolicy\":\"$(echo "$REDRIVE_POLICY" | sed 's/"/\\"/g')\",\"MessageRetentionPeriod\":\"1209600\"}" \
-    --output text --query 'QueueUrl')
-
-QUEUE_ARN=$($AWS_CMD sqs get-queue-attributes \
-    --queue-url "$QUEUE_URL" \
-    --attribute-names QueueArn \
-    --output text --query 'Attributes.QueueArn')
-
-echo "✅ Emailer queue created"
-echo "   Queue ARN: $QUEUE_ARN"
-echo "   DLQ ARN: $DLQ_ARN"
 
 # Build Lambda package
 cd /workspaces/demos/lambdas/emailer
@@ -104,6 +74,13 @@ for i in {1..15}; do
     fi
     sleep 2
 done
+
+# Get queue ARN
+QUEUE_URL=$($AWS_CMD sqs get-queue-url --queue-name $QUEUE_NAME --output text --query 'QueueUrl')
+QUEUE_ARN=$($AWS_CMD sqs get-queue-attributes \
+    --queue-url $QUEUE_URL \
+    --attribute-names QueueArn \
+    --output text --query 'Attributes.QueueArn')
 
 echo "📬 Connecting emailer Lambda to emailer SQS queue..."
 
