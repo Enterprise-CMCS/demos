@@ -24,28 +24,41 @@ DATA_CONVERSIONS = {
     "timestamp": "timestamptz",
     "tinyint": "smallint",
 }
+
+DDL_DIR = Path(Path(__file__).parent.parent, "migration", "pmda_ddls")
+DDL_DIR.mkdir(parents=True, exist_ok=True)
+LOG_DIR = Path(Path(__file__).parent, "logs")
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+CONFIG_FILE = Path(__file__).parent / "dbinfo.ini"
+
 DUCKDB_MYSQL_DB_NAME = "mysql_db"
 DUCKDB_POSTGRES_DB_NAME = "postgres_db"
 PG_SCHEMA = "legacy_pmda_raw"
 MYSQL_SCHEMA = "cma_imp_11_1_000"
 
-Path("logs").mkdir(parents=True, exist_ok=True)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
-console_handler = logging.StreamHandler()
-log_file = f"logs/log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-file_handler = logging.FileHandler(log_file)
 
-log_formatter = logging.Formatter(
-    "[%(asctime)s] %(levelname)-8s - %(funcName)s() in %(name)s[%(lineno)d]: %(message)s",
-    "%Y-%m-%d %H:%M:%S %z"
-)
-console_handler.setFormatter(log_formatter)
-file_handler.setFormatter(log_formatter)
+def _configure_logging(verbose: bool = False) -> None:
+    # Configure the log level
+    logger.setLevel(logging.DEBUG if verbose else logging.INFO)
 
-logger.addHandler(console_handler)
-logger.addHandler(file_handler)
+    # Set up the two handlers
+    console_handler = logging.StreamHandler()
+    log_file = Path(LOG_DIR, f"log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
+    file_handler = logging.FileHandler(log_file)
+
+    # Format the handlers
+    log_formatter = logging.Formatter(
+        "[%(asctime)s] %(levelname)-8s - %(funcName)s() in %(name)s[%(lineno)d]: %(message)s",
+        "%Y-%m-%d %H:%M:%S %z",
+    )
+    console_handler.setFormatter(log_formatter)
+    file_handler.setFormatter(log_formatter)
+
+    # Add the handlers
+    logger.addHandler(console_handler)
+    logger.addHandler(file_handler)
 
 
 def parse_config() -> dict:
@@ -56,7 +69,7 @@ def parse_config() -> dict:
     """
     logger.info("Parsing config file")
     parser = configparser.ConfigParser()
-    parser.read("dbinfo.ini")
+    parser.read(CONFIG_FILE)
     config = {}
     for section in ["pmda-mysql", "demos-postgresql"]:
         config[section] = {
@@ -89,30 +102,32 @@ def create_duckdb_conn(config: dict) -> "DuckConn":
     conn.install_extension("postgres")
     conn.load_extension("postgres")
 
-    clean_postgres_pwd = config['demos-postgresql']['password'].replace("'", "''")
+    clean_postgres_pwd = config["demos-postgresql"]["password"].replace("'", "''")
     conn.execute(f"""
         CREATE SECRET (
             TYPE postgres,
-            HOST '{config['demos-postgresql']['host']}',
-            PORT {config['demos-postgresql']['port']},
-            DATABASE {config['demos-postgresql']['database']},
-            USER '{config['demos-postgresql']['user']}',
+            HOST '{config["demos-postgresql"]["host"]}',
+            PORT {config["demos-postgresql"]["port"]},
+            DATABASE {config["demos-postgresql"]["database"]},
+            USER '{config["demos-postgresql"]["user"]}',
             PASSWORD '{clean_postgres_pwd}'
         );
     """)
 
-    conn.execute(f"ATTACH 'sslmode={config['demos-postgresql']['sslmode']}' AS {DUCKDB_POSTGRES_DB_NAME} (TYPE postgres);")
+    conn.execute(
+        f"ATTACH 'sslmode={config['demos-postgresql']['sslmode']}' AS {DUCKDB_POSTGRES_DB_NAME} (TYPE postgres);"
+    )
     conn.execute("SET pg_null_byte_replacement=''")  # This is necessary to handle nulls from MySQL
     logger.info(f"Attached PostgreSQL database AS {DUCKDB_POSTGRES_DB_NAME}")
 
-    clean_mysql_pwd = config['pmda-mysql']['password'].replace("'", "''")
+    clean_mysql_pwd = config["pmda-mysql"]["password"].replace("'", "''")
     conn.execute(f"""
         CREATE SECRET (
             TYPE mysql,
-            HOST '{config['pmda-mysql']['host']}',
-            PORT {config['pmda-mysql']['port']},
-            DATABASE {config['pmda-mysql']['database']},
-            USER '{config['pmda-mysql']['user']}',
+            HOST '{config["pmda-mysql"]["host"]}',
+            PORT {config["pmda-mysql"]["port"]},
+            DATABASE {config["pmda-mysql"]["database"]},
+            USER '{config["pmda-mysql"]["user"]}',
             PASSWORD '{clean_mysql_pwd}'
         );
     """)
@@ -234,7 +249,7 @@ def generate_postgres_ddl(tbl: str, col_info: List[Tuple], schema: str = PG_SCHE
     last_line = "\n);"
     result = {
         "duckdb": duckdb_first_line + duckdb_second_line + col_lines + last_line,
-        "regular": regular_first_line + col_lines + last_line
+        "regular": regular_first_line + col_lines + last_line,
     }
     logger.debug("PostgreSQL DDLs created successfully")
     return result
@@ -248,7 +263,7 @@ def save_ddl(tbl: str, ddl: str) -> None:
         ddl (str): The DDL to write out.
     """
     logger.debug(f"Saving DDL for table {tbl}")
-    with open("ddls/" + tbl + ".sql", "w") as sql_file:
+    with open(Path(DDL_DIR, f"{tbl}.sql"), "w") as sql_file:
         sql_file.write(ddl + "\n")
     logger.debug("DDL saved successfully")
     return None
@@ -283,10 +298,7 @@ def main() -> None:
     db_config = parse_config()
     duck_conn = create_duckdb_conn(db_config)
     tbl_list = get_table_list(duck_conn)
-    tbl_details = get_column_details(
-        duck_conn,
-        tbl_list
-    )
+    tbl_details = get_column_details(duck_conn, tbl_list)
     tbl_ddls = {}
     for tbl, col_data in tbl_details.items():
         tbl_ddls[tbl] = generate_postgres_ddl(tbl, col_data)
@@ -300,7 +312,9 @@ def main() -> None:
     return None
 
 
-def custom_excepthook(e_type: Type[BaseException], val: BaseException, trace: Optional[types.TracebackType]) -> None:  # pragma: no cover # noqa: E501
+def custom_excepthook(
+    e_type: Type[BaseException], val: BaseException, trace: Optional[types.TracebackType]
+) -> None:  # pragma: no cover # noqa: E501
     """Log exceptions via the logger rather than stderr.
 
     Args:
@@ -308,10 +322,7 @@ def custom_excepthook(e_type: Type[BaseException], val: BaseException, trace: Op
         val (BaseException): The exception instance.
         trace (Optional[types.TracebackType]): The traceback object.
     """
-    logger.error(
-        "Unhandled exception",
-        exc_info=(e_type, val, trace)
-    )
+    logger.error("Unhandled exception", exc_info=(e_type, val, trace))
     return None
 
 
@@ -321,6 +332,5 @@ if __name__ == "__main__":  # pragma: no cover
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
     args = argparser.parse_args()
-    if args.verbose:
-        logger.setLevel(logging.DEBUG)
+    _configure_logging(args.verbose)
     main()

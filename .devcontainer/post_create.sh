@@ -1,5 +1,10 @@
 #!/usr/bin/bash
+pip install --break-system-packages -r ./.devcontainer/python/requirements.txt
 pre-commit install
+
+# Copy example settings over to settings.json
+[ -f .vscode/settings.json ] && cp .vscode/settings.json .vscode/settings.backup.json
+cp .vscode/settings.example.json .vscode/settings.json
 
 aws configure set aws_access_key_id test
 aws configure set aws_secret_access_key test # pragma: allowlist secret
