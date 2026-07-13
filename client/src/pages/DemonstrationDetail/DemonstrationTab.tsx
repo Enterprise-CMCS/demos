@@ -15,6 +15,7 @@ import {
 import { TabHeader } from "components/table/TabHeader";
 import { DocumentTable } from "components/table/tables/DocumentTable";
 import {
+  Deliverable,
   Demonstration,
   DemonstrationRoleAssignment,
   DemonstrationTypeAssignment,
@@ -60,6 +61,9 @@ export type DemonstrationTabDemonstration = Pick<
   roles: Role[];
   currentPhaseName: PhaseName;
   state: Pick<State, "id">;
+  deliverables?: (Pick<Deliverable, "id"> & {
+    demonstrationTypes: Pick<Tag, "tagName">[];
+  })[];
 };
 
 const TAB = {
