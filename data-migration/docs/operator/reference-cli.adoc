@@ -55,7 +55,8 @@ Usage: migrate [OPTIONS] COMMAND [ARGS]...
 │ crosswalks           Apply sql/04_crosswalks (loads CSVs into mysql_raw.crosswalk_* tables).     │
 │ id-maps              Apply sql/05_id_maps (creates and populates migration._id_map_*).           │
 │ load-full            Full pgloader MySQL -> mysql_raw with drop list applied.                    │
-│ fk-candidates        Regenerate reports/generated/fk_candidates.csv (from mysql_raw + fk_overrides.yaml).  │
+│ fk-candidates        Regenerate reports/generated/fk_candidates.csv (from mysql_raw +            │
+│                      fk_overrides.yaml).                                                         │
 │ load-fidelity        Compare live MySQL vs mysql_raw row counts via DuckDB dual-attach           │
 │                      (non-gating).                                                               │
 │ schema-snapshot      Snapshot the MySQL source information_schema to reports/schema_snapshot/.   │
@@ -235,7 +236,7 @@ Regenerate reports/generated/fk_candidates.csv (from mysql_raw + fk_overrides.ya
 ----
 Usage: migrate fk-candidates [OPTIONS]                                                             
                                                                                                     
- Regenerate reports/generated/fk_candidates.csv (from mysql_raw + fk_overrides.yaml).                         
+ Regenerate reports/generated/fk_candidates.csv (from mysql_raw + fk_overrides.yaml).               
                                                                                                     
 ╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
 │ --help          Show this message and exit.                                                      │

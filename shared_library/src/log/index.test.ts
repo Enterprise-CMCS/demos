@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 
-import * as log from './log'
+import * as log from './index.js'
 import { Writable } from "node:stream";
 
 describe("logger", () => {
@@ -34,7 +34,7 @@ describe("logger", () => {
         cb()
       }
     })
-    const logger = log.setupLogger("test", s)
+    const logger = log.setupLogger("test", undefined, s)
     logger.info("test-log")
     // pino-pretty overrides the destination settings, so no logs exist in the
     // stream
@@ -42,7 +42,7 @@ describe("logger", () => {
 
     process.stdout.isTTY = origTTY
 
-    const logger2 = log.setupLogger("test", s)
+    const logger2 = log.setupLogger("test", undefined,s)
     logger2.info("test-log")
     expect(logs).toHaveLength(1)
   })
@@ -56,11 +56,11 @@ describe("logger", () => {
       }
     })
     
-    const ll = log.setupLogger("test", s)  
+    const ll = log.setupLogger("test", undefined, s)  
     ll.info({type: "TEST_LOG", some: "test-value"}, "hi")
     ll.info({type: "TEST_LOG"}, "hi")
     expect(logs).toHaveLength(2)
-    const outLog = JSON.parse(logs[0])
+    const outLog = JSON.parse(logs[0] ?? "")
     expect(outLog).toHaveProperty("type", "TEST_LOG")
     expect(outLog).toHaveProperty("ctx", {some:"test-value"})
   })
@@ -68,7 +68,9 @@ describe("logger", () => {
 
 describe("reqIdChild", () => {
   it("should create child logger with request id", () => {
-    const child = log.reqIdChild("test-id");
+    const{reqIdChild} = log.createLambdaLogger("unit-test")
+
+    const child = reqIdChild("test-id");
     expect(child).toBeDefined();
     expect(child.info).toBeDefined()
     expect(child.bindings()).toMatchObject({requestId: "test-id"})
@@ -76,8 +78,10 @@ describe("reqIdChild", () => {
   });
 
   it("should create child logger with extra fields", () => {
+    const{reqIdChild} = log.createLambdaLogger("unit-test")
+
     const extra = { userId: "123" };
-    const child = log.reqIdChild("test-id", extra);
+    const child = reqIdChild("test-id", extra);
     expect(child).toBeDefined();
     expect(child.bindings()).toMatchObject({userId: "123"})
   });
@@ -85,15 +89,18 @@ describe("reqIdChild", () => {
 
 describe("log proxy", () => {
   it("should use parent logger by default", () => {
-    expect(log.log.info).toBeDefined();
+    const{log: ll} = log.createLambdaLogger("unit-test")
+    expect(ll.info).toBeDefined();
   });
 
   it("should use request-scoped logger when available", () => {
+    const{als, log: ll} = log.createLambdaLogger("unit-test")
+
     const testLogger = { info: vi.fn() };
     const store = new Map();
     store.set("logger", testLogger);
-    log.als.run(store, () => {
-      log.log.info("test");
+    als.run(store, () => {
+      ll.info("test");
       expect(testLogger.info).toHaveBeenCalledWith("test")
     });
   });

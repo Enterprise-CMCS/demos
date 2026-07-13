@@ -20,6 +20,7 @@
     "@aws-sdk/client-secrets-manager": "^3.1065.0",
     "axios": "^1.17.0",
     "axios-error-redact": "^1.1.146",
+    "demos-shared-library": "file:../../shared_library",
     "axios-oauth-client": "^2.2.0",
     "dotenv": "^17.4.2",
     "file-type": "^21.3.4",
@@ -33,7 +34,6 @@
     "@types/pg": "^8.20.0",
     "@vitest/coverage-v8": "^4.1.8",
     "esbuild": "^0.28.1",
-    "pino-pretty": "^11.3.0",
     "tsx": "^4.22.4",
     "typescript": "^5.9.3",
     "vitest": "^4.1.8"

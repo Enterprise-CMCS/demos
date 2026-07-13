@@ -802,10 +802,16 @@ def psql_file(env: Env, sql_path: Path) -> None:
         conn.execute(cast(LiteralString, sql_path.read_text(encoding="utf-8")))
 
 
-def psql_command(env: Env, sql: str) -> None:
-    """Execute one SQL string against Postgres in autocommit mode."""
+def psql_command(env: Env, sql: str, params: Sequence[Any] | None = None) -> None:
+    """Execute one SQL string against Postgres in autocommit mode.
+
+    Per the ``psql_query`` policy, values MUST be passed via ``params`` rather
+    than interpolated into ``sql``. ``params`` defaults to ``None`` so a
+    parameterless statement skips psycopg's ``%`` placeholder parsing (a bare
+    ``%`` in the SQL would otherwise raise at client-side conversion).
+    """
     with psycopg.connect(env.pg_dsn(), autocommit=True) as conn:
-        conn.execute(cast(LiteralString, sql))
+        conn.execute(cast(LiteralString, sql), params)
 
 
 def _sql_error_detail(path: Path, exc: psycopg.Error) -> str:
@@ -1070,6 +1076,13 @@ def rel(path: Path) -> str:
 # pgloader templates are not HTML and would otherwise see `&` in
 # connection strings rewritten. ``keep_trailing_newline=True`` preserves
 # the trailing `\n` Jinja2 would otherwise strip.
+#
+# SECURITY: the Snyk Code "autoescape=False -> XSS" finding here is an
+# accepted false positive. This Environment renders pgloader ``.load``
+# command files (consumed by the pgloader binary), never HTML served to a
+# browser -- there is no XSS sink. Enabling autoescape would HTML-entity-
+# encode ``& < > ' "`` inside DSNs/SQL and corrupt the rendered config.
+# See SECURITY_REVIEW.md.
 _jinja_env = Environment(
     undefined=StrictUndefined,
     autoescape=False,

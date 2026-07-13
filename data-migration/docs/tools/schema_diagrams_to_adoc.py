@@ -52,6 +52,7 @@ sys.path.insert(0, str(TOOLS_DIR))
 from schema_model import (  # noqa: E402
     CLASS_ORDER,
     CLASS_SLUG,
+    DEMOS_DATA_MODEL_MMD,
     FK,
     REPO_ROOT,
     Table,
@@ -73,9 +74,24 @@ FK_OVERRIDES_FILE = REPORTS_DIR / "inputs" / "fk_overrides.yaml"
 FK_CANDIDATES_FILE = REPORTS_DIR / "generated" / "fk_candidates.csv"
 DRIFT_REPORT_FILE = REPORTS_DIR / "schema_drift_report.md"
 
-# The hand-authored model lives in a sibling repo checkout; allow an env
-# override and degrade gracefully when it is not present locally.
-HAND_MMD_DEFAULT = REPO_ROOT.parent / "demos" / "data" / "docs" / "DEMOS_Data_Model.mmd"
+# The hand-authored model lives in the parent ../demos repo checkout (shared
+# path constant); allow an env override and degrade gracefully when it is not
+# present locally.
+HAND_MMD_DEFAULT = DEMOS_DATA_MODEL_MMD
+_WORKSPACE_ROOT = REPO_ROOT.parent
+
+
+def _confined_path(raw: str, *, what: str) -> Path:
+    """Resolve ``raw`` and refuse paths escaping the workspace (CWE-23 guard).
+
+    The hand model lives in a sibling checkout (``../demos``), so the boundary
+    is the workspace root, not the repo. A path resolving outside it (``/etc``,
+    ``/tmp``, ``../..`` escapes) is rejected rather than read.
+    """
+    resolved = Path(raw).resolve()
+    if not resolved.is_relative_to(_WORKSPACE_ROOT):
+        raise SystemExit(f"refusing {what} outside {_WORKSPACE_ROOT}: {resolved}")
+    return resolved
 
 # Class -> mermaid classDef styling, matching the legacy hand model.
 CLASS_STYLE: dict[str, str] = {
@@ -490,7 +506,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
     if args.check_drift:
-        check_drift(Path(args.hand_mmd))
+        # SECURITY: confine the operator/env-supplied model path (CWE-23 guard).
+        check_drift(_confined_path(args.hand_mmd, what="hand model"))
     else:
         generate()
     return 0
