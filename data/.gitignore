@@ -1,8 +1,10 @@
 __pycache__/
+.venv/
 .mypy_cache/
 .ruff_cache/
 .pytest_cache/
 .cov.html/
 .coverage
+boto/.env
 logs/
 dbinfo.ini
