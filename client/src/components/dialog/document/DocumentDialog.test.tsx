@@ -7,8 +7,10 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { ToastProvider } from "components/toast/ToastContext";
 import { DocumentType } from "demos-server";
+import { buildValidationSchema } from "hooks/useValidation";
 import {
   checkFormHasChanges,
+  documentValidationConfig,
   documentTypeRequiresAttestation,
   DocumentDialog,
   ERROR_MESSAGES,
@@ -72,6 +74,44 @@ describe("documentTypeRequiresAttestation", () => {
     );
     expect(documentTypeRequiresAttestation("General File")).toBe(false);
     expect(documentTypeRequiresAttestation("Approval Letter")).toBe(false);
+  });
+});
+
+describe("document validation config", () => {
+  const schema = buildValidationSchema(documentValidationConfig);
+
+  it("returns an error when no file is selected", () => {
+    expect(schema.file?.[0]({ file: null } as DocumentDialogFields)).toBe(
+      ERROR_MESSAGES.noFileSelected
+    );
+  });
+
+  it("returns undefined when a file is selected", () => {
+    const file = new File(["content"], "test.pdf", { type: "application/pdf" });
+
+    expect(schema.file?.[0]({ file } as DocumentDialogFields)).toBeUndefined();
+  });
+
+  it("returns an error when the document title is blank", () => {
+    expect(schema.name?.[0]({ name: "   " } as DocumentDialogFields)).toBe(
+      ERROR_MESSAGES.missingDocumentTitle
+    );
+  });
+
+  it("returns undefined when the document title is populated", () => {
+    expect(schema.name?.[0]({ name: "Quarterly Report" } as DocumentDialogFields)).toBeUndefined();
+  });
+
+  it("returns an error when the document type is missing", () => {
+    expect(
+      schema.documentType?.[0]({ documentType: "" as DocumentType } as DocumentDialogFields)
+    ).toBe(ERROR_MESSAGES.missingDocumentType);
+  });
+
+  it("returns undefined when the document type is present", () => {
+    expect(
+      schema.documentType?.[0]({ documentType: "General File" } as DocumentDialogFields)
+    ).toBeUndefined();
   });
 });
 

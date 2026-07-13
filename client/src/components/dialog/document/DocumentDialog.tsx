@@ -22,7 +22,7 @@ import { UploadButton } from "./UploadButton";
 import { BNPreValidationState, useBNWorkbookPreValidation } from "./useBNWorkbookPreValidation";
 import { DocumentChip } from "components/document/documentChip";
 import { BN_WORKBOOK_DOCUMENT_TYPE } from "demos-server-constants";
-import { useValidation, ValidationSchema } from "hooks/useValidation";
+import { buildValidationSchema, useValidation, type ValidationConfig } from "hooks/useValidation";
 
 // BN Workbook uploads require the user to attest to the content before submitting.
 const ATTESTATION_DOCUMENT_TYPES: DocumentType[] = [BN_WORKBOOK_DOCUMENT_TYPE];
@@ -359,13 +359,28 @@ const setDefaultDocumentType = (
   };
 };
 
-const formValidation: ValidationSchema<DocumentDialogFields> = {
-  file: [(formData) => (formData.file ? undefined : ERROR_MESSAGES.noFileSelected)],
-  name: [(formData) => (formData.name.trim() ? undefined : ERROR_MESSAGES.missingDocumentTitle)],
+export const documentValidationConfig: ValidationConfig<DocumentDialogFields> = {
+  file: [
+    {
+      check: ({ file }) => Boolean(file),
+      message: ERROR_MESSAGES.noFileSelected,
+    },
+  ],
+  name: [
+    {
+      check: ({ name }) => Boolean(name.trim()),
+      message: ERROR_MESSAGES.missingDocumentTitle,
+    },
+  ],
   documentType: [
-    (formData) => (formData.documentType ? undefined : ERROR_MESSAGES.missingDocumentType),
+    {
+      check: ({ documentType }) => Boolean(documentType),
+      message: ERROR_MESSAGES.missingDocumentType,
+    },
   ],
 };
+
+const formValidation = buildValidationSchema(documentValidationConfig);
 
 export const DocumentDialog: React.FC<DocumentDialogProps> = ({
   onClose = () => {},

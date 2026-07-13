@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { useValidation, ValidationSchema } from "./useValidation";
+import { buildValidationSchema, useValidation, ValidationSchema } from "./useValidation";
 
 type TestFormData = {
   title: string;
@@ -10,6 +10,24 @@ type TestFormData = {
 };
 
 describe("useValidation", () => {
+  it("builds a validation schema from a declarative config", () => {
+    const schema = buildValidationSchema<TestFormData>({
+      title: [
+        {
+          check: (formData) => Boolean(formData.title.trim()),
+          message: "Title is required.",
+        },
+      ],
+    });
+
+    expect(schema.title?.[0]({ title: "", startDate: "", endDate: "", tags: [] })).toBe(
+      "Title is required."
+    );
+    expect(
+      schema.title?.[0]({ title: "Valid", startDate: "", endDate: "", tags: [] })
+    ).toBeUndefined();
+  });
+
   it("returns no errors and isValid=true when all rules pass", () => {
     const formData: TestFormData = {
       title: "Demo title",

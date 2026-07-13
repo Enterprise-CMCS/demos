@@ -7,7 +7,7 @@ import { BaseDialog } from "../BaseDialog";
 import { UploadButton } from "./UploadButton";
 import { useToast } from "components/toast";
 import { useDialog } from "../DialogContext";
-import { useValidation, ValidationSchema } from "hooks/useValidation";
+import { buildValidationSchema, useValidation, type ValidationConfig } from "hooks/useValidation";
 
 type Document = Pick<ServerDocument, "id" | "name" | "description">;
 const UPDATE_SUCCESS_MESSAGE = "Your document has been updated.";
@@ -33,9 +33,16 @@ export const hasChanges = (initialDocument: Document, activeDocument: Document):
   );
 };
 
-const validation: ValidationSchema<Document> = {
-  name: [(formData) => (formData.name.trim() ? undefined : "Document Title is required.")],
+const validationConfig: ValidationConfig<Document> = {
+  name: [
+    {
+      check: (formData: Document) => Boolean(formData.name.trim()),
+      message: "Document Title is required.",
+    },
+  ],
 };
+
+const validation = buildValidationSchema(validationConfig);
 
 export const EditDocumentDialog: React.FC<{
   document: Document;
