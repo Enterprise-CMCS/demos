@@ -4,5 +4,8 @@
     "esModuleInterop": true,
     "target": "es2023",
     "moduleResolution":"bundler",
+    "jsx": "react-jsx",
   },
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["build", "coverage", "dist", "node_modules"],
 }

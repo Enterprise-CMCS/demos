@@ -239,6 +239,8 @@ export class ApiStack extends Stack {
       visibilityTimeout: emailerTimeout,
     });
     alarmResources.registerQueue("emailer", emailQueue);
+    graphqlLambda.lambda.lambda.addEnvironment("EMAILER_QUEUE_URL", emailQueue.queueUrl);
+    emailQueue.grantSendMessages(graphqlLambda.lambda.role);
 
     const emailerLambdaSecurityGroup = securityGroup.create({
       ...commonProps,
@@ -277,7 +279,14 @@ export class ApiStack extends Stack {
       handler: "index.handler",
       vpc: props.vpc,
       externalModules: ["@aws-sdk"],
-      nodeModules: ["nodemailer", "pino"],
+      nodeModules: [
+        "@react-email/components",
+        "@react-email/render",
+        "nodemailer",
+        "pino",
+        "react",
+        "react-dom",
+      ],
       securityGroup: [emailerLambdaSecurityGroup.securityGroup, sharedServicesSG],
       asCode: false,
       depsLockFilePath: path.join(emailerPath, "package-lock.json"),

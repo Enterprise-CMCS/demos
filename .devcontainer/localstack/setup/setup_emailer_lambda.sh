@@ -1,0 +1,134 @@
+#!/usr/bin/bash
+set -e
+
+echo "🚀 Deploying emailer Lambda function..."
+
+LOCALSTACK_ENDPOINT="http://localstack:4566"
+AWS_REGION="us-east-1"
+AWS_CMD="aws --endpoint-url=$LOCALSTACK_ENDPOINT --region $AWS_REGION"
+QUEUE_NAME="emailer-queue"
+DLQ_NAME="emailer-dlq"
+LAMBDA_NAME="emailer"
+ALLOW_LIST_PARAM_NAME="/demos/nonprod/email/allowlist"
+
+# Create the Emailer queue and its dead-letter queue.
+echo "📬 Creating emailer SQS queue..."
+
+DLQ_URL=$($AWS_CMD sqs create-queue \
+    --queue-name "$DLQ_NAME" \
+    --attributes '{"MessageRetentionPeriod":"1209600"}' \
+    --output text --query 'QueueUrl')
+
+DLQ_ARN=$($AWS_CMD sqs get-queue-attributes \
+    --queue-url "$DLQ_URL" \
+    --attribute-names QueueArn \
+    --output text --query 'Attributes.QueueArn')
+
+REDRIVE_POLICY="{\"deadLetterTargetArn\":\"$DLQ_ARN\",\"maxReceiveCount\":\"5\"}"
+
+QUEUE_URL=$($AWS_CMD sqs create-queue \
+    --queue-name "$QUEUE_NAME" \
+    --attributes "{\"RedrivePolicy\":\"$(echo "$REDRIVE_POLICY" | sed 's/"/\\"/g')\",\"MessageRetentionPeriod\":\"1209600\"}" \
+    --output text --query 'QueueUrl')
+
+QUEUE_ARN=$($AWS_CMD sqs get-queue-attributes \
+    --queue-url "$QUEUE_URL" \
+    --attribute-names QueueArn \
+    --output text --query 'Attributes.QueueArn')
+
+echo "✅ Emailer queue created"
+echo "   Queue ARN: $QUEUE_ARN"
+echo "   DLQ ARN: $DLQ_ARN"
+
+# Build Lambda package
+cd /workspaces/demos/lambdas/emailer
+
+npm ci --silent
+npx tsc --skipLibCheck --outDir build
+
+npx esbuild build/index.js \
+  --bundle \
+  --platform=node \
+  --target=node24 \
+  --sourcemap \
+  --outfile=dist/index.cjs
+rm -f lambda.zip
+zip -jqr lambda.zip dist/index.cjs dist/index.cjs.map
+
+cd - > /dev/null
+
+# Create or update local allowlist parameter. Empty allowlist keeps smoke tests in log-only mode.
+$AWS_CMD ssm put-parameter \
+    --name "$ALLOW_LIST_PARAM_NAME" \
+    --type String \
+    --value "[]" \
+    --overwrite >/dev/null
+
+# Delete existing Lambda if exists
+$AWS_CMD lambda delete-function --function-name $LAMBDA_NAME 2>/dev/null || true
+
+# Create Lambda function
+$AWS_CMD lambda create-function \
+    --function-name $LAMBDA_NAME \
+    --runtime nodejs24.x \
+    --role arn:aws:iam::000000000000:role/lambda-execution-role \
+    --handler index.handler \
+    --zip-file fileb:///workspaces/demos/lambdas/emailer/lambda.zip \
+    --timeout 60 \
+    --memory-size 1024 \
+    --environment "Variables={
+        AWS_REGION=$AWS_REGION,
+        AWS_ENDPOINT_URL=$LOCALSTACK_ENDPOINT,
+        ALLOW_LIST_PARAM_NAME=$ALLOW_LIST_PARAM_NAME,
+        DISABLE_EMAIL_ALLOWLIST=false,
+        EMAIL_FROM=demos-local-no-reply@example.com,
+        EMAIL_HOST=localhost,
+        EMAIL_PORT=1025,
+        NODE_OPTIONS=--enable-source-maps
+    }" >/dev/null
+
+# Wait for Lambda to be active
+echo "⏳ Waiting for emailer Lambda to be active..."
+for i in {1..15}; do
+    STATUS=$($AWS_CMD lambda get-function \
+        --function-name $LAMBDA_NAME \
+        --query 'Configuration.State' \
+        --output text 2>/dev/null || echo "Pending")
+
+    if [ "$STATUS" = "Active" ]; then
+        echo "✅ emailer Lambda function created"
+        break
+    elif [ "$STATUS" = "Failed" ]; then
+        echo "❌ emailer Lambda function failed to initialize in 30 seconds"
+        exit 1
+    fi
+    sleep 2
+done
+
+echo "📬 Connecting emailer Lambda to emailer SQS queue..."
+
+# Delete existing event source mappings
+EXISTING_MAPPINGS=$($AWS_CMD lambda list-event-source-mappings \
+    --function-name $LAMBDA_NAME \
+    --query 'EventSourceMappings[].UUID' \
+    --output text 2>/dev/null || echo "")
+
+if [ -n "$EXISTING_MAPPINGS" ]; then
+    for UUID in $EXISTING_MAPPINGS; do
+        $AWS_CMD lambda delete-event-source-mapping --uuid $UUID >/dev/null 2>&1 || true
+    done
+fi
+
+# Create event source mapping (SQS -> Lambda)
+$AWS_CMD lambda create-event-source-mapping \
+    --function-name $LAMBDA_NAME \
+    --event-source-arn $QUEUE_ARN \
+    --batch-size 1 \
+    --enabled \
+    > /dev/null
+
+echo "✅ emailer Lambda connected to emailer SQS queue"
+echo "   Queue ARN: $QUEUE_ARN"
+
+cd /workspaces/demos/lambdas/emailer
+rm lambda.zip

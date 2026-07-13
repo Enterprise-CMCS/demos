@@ -4,6 +4,7 @@ import {
   getAllowList,
   handler,
   isEmailerAddress,
+  renderRealtimeEmailIfNeeded,
   isValidEmailData,
   redactEmailAddresses,
   sendEmailIsAllowed,
@@ -21,6 +22,44 @@ const mockEmailData = {
   subject: "unit test subject",
   text: "unit test text",
 };
+
+const realtimeDeliverableCreatedEnvelope = {
+  emailType: "Deliverable Created",
+  template: "deliverable-created",
+  entityType: "deliverable",
+  entityId: "deliverable-1",
+  payload: {
+    to: "not-allowed@email.com",
+    id: "deliverable-1",
+    name: "Quarterly Budget Report",
+    deliverableType: "Close Out Report",
+    dueDate: "2026-06-01T12:00:00.000Z",
+    status: "Upcoming",
+  },
+};
+
+function sqsEvent(body: string): SQSEvent {
+  return {
+    Records: [
+      {
+        messageId: "19dd0b57-b21e-4ac1-bd88-01bbb068cb78",
+        receiptHandle: "MessageReceiptHandle",
+        body,
+        attributes: {
+          ApproximateReceiveCount: "1",
+          SentTimestamp: "1523232000000",
+          SenderId: "123456789012",
+          ApproximateFirstReceiveTimestamp: "1523232000001",
+        },
+        messageAttributes: {},
+        md5OfBody: "{{{md5_of_body}}}",
+        eventSource: "aws:sqs",
+        eventSourceARN: "arn:aws:sqs:us-east-1:123456789012:MyQueue",
+        awsRegion: "us-east-1",
+      },
+    ],
+  };
+}
 
 const ssmMock = mockClient(SSMClient);
 vi.mock("nodemailer");
@@ -109,6 +148,65 @@ describe("emailer", () => {
     expect(out).toEqual("success");
     expect(sendMailSpy).not.toHaveBeenCalled();
     expect(infoSpy).toHaveBeenCalledWith(expect.any(Object), "log only: email not in allowlist");
+  });
+
+  it("should render a realtime deliverable-created envelope before allowlist processing", async () => {
+    ssmMock.on(GetParameterCommand).resolves({
+      Parameter: {
+        Value: "[]",
+      },
+    });
+    const sendMailSpy = vi.fn(() => ({ messageId: "unit-test" }));
+    vi.spyOn(nodemailer, "createTransport").mockImplementation(
+      () => ({ sendMail: sendMailSpy } as unknown as Mail<SentMessageInfo, Options>)
+    );
+    const infoSpy = vi.spyOn(log, "info");
+
+    const out = await handler(sqsEvent(JSON.stringify(realtimeDeliverableCreatedEnvelope)));
+
+    expect(out).toEqual("success");
+    expect(sendMailSpy).not.toHaveBeenCalled();
+    expect(infoSpy).toHaveBeenCalledWith(
+      {
+        emailType: "Deliverable Created",
+        template: "deliverable-created",
+        entityId: "deliverable-1",
+      },
+      "rendering realtime email template"
+    );
+    expect(infoSpy).toHaveBeenCalledWith(
+      {
+        emailData: expect.objectContaining({
+          to: ["no****@email.com"],
+          subject: "CMS DEMOS Deliverable: Deliverable Created",
+          text: expect.stringContaining("Quarterly Budget Report"),
+          html: expect.stringContaining("Quarterly Budget Report"),
+        }),
+      },
+      "log only: email not in allowlist"
+    );
+  });
+
+  it("should report unknown realtime email templates", async () => {
+    await expect(
+      handler(sqsEvent(JSON.stringify({ ...realtimeDeliverableCreatedEnvelope, template: "nope" })))
+    ).rejects.toThrow("Unknown email template: nope");
+  });
+
+  it("should report missing realtime email template payload values", async () => {
+    await expect(
+      handler(
+        sqsEvent(
+          JSON.stringify({
+            ...realtimeDeliverableCreatedEnvelope,
+            payload: {
+              ...realtimeDeliverableCreatedEnvelope.payload,
+              name: "",
+            },
+          })
+        )
+      )
+    ).rejects.toThrow("Missing value for name while rendering deliverable-created.data");
   });
 
   it("should cancel processing if event body is invalid", async () => {
@@ -272,5 +370,9 @@ describe("emailer", () => {
     const output = stripDisallowedFields({ ...mockEmailData, invalid: "none" } as EmailData);
     expect(output).toEqual(mockEmailData);
     expect(warnSpy).toHaveBeenCalledOnce();
+  });
+
+  it("should leave legacy email payloads unchanged when realtime rendering is not needed", async () => {
+    await expect(renderRealtimeEmailIfNeeded(mockEmailData)).resolves.toBe(mockEmailData);
   });
 });

@@ -32,6 +32,11 @@ vi.mock("../deliverableAction/queries", () => ({
   insertDeliverableAction: vi.fn(),
 }));
 
+vi.mock("../../services/emailQueue", () => ({
+  buildRealtimeEmailEnvelope: vi.fn(),
+  enqueueRealtimeEmail: vi.fn(),
+}));
+
 import { prisma } from "../../prismaClient";
 import {
   parseCreateDeliverableInput,
@@ -41,6 +46,7 @@ import {
 } from ".";
 import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 import { insertDeliverableAction } from "../deliverableAction/queries";
+import { buildRealtimeEmailEnvelope, enqueueRealtimeEmail } from "../../services/emailQueue";
 
 describe("createDeliverable", () => {
   // Test inputs
@@ -55,6 +61,12 @@ describe("createDeliverable", () => {
     user: {
       id: "57f92f14-7c5e-4c78-a774-5a54d7e9c2e7",
       personTypeId: "demos-cms-user",
+    },
+  };
+  const mockCurrentUser = {
+    id: testContext.user!.id,
+    person: {
+      email: "current.user@example.com",
     },
   };
 
@@ -76,14 +88,34 @@ describe("createDeliverable", () => {
   // Mock transaction
   const mockTransaction: any = "Test!";
   const mockPrismaClient = {
+    user: {
+      findUniqueOrThrow: vi.fn(),
+    },
     $transaction: vi.fn(),
   };
 
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
+    mockPrismaClient.user.findUniqueOrThrow.mockResolvedValue(mockCurrentUser);
     vi.mocked(parseCreateDeliverableInput).mockReturnValue(mockParsedInput);
     vi.mocked(insertDeliverable).mockResolvedValue(mockNewDeliverable as PrismaDeliverable);
+    vi.mocked(buildRealtimeEmailEnvelope).mockReturnValue({
+      emailType: "Deliverable Created",
+      template: "deliverable-created",
+      entityType: "deliverable",
+      entityId: mockNewDeliverable.id!,
+      triggeredBy: {
+        type: "realtime",
+        id: "graphql-api",
+      },
+      triggeredAt: "2026-07-10T00:00:00.000Z",
+      idempotencyKey: `Deliverable Created:deliverable:${mockNewDeliverable.id}`,
+      payload: {
+        to: mockCurrentUser.person.email,
+        id: mockNewDeliverable.id!,
+      },
+    });
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
@@ -173,5 +205,44 @@ describe("createDeliverable", () => {
       },
       mockTransaction
     );
+  });
+
+  it("should enqueue a Deliverable Created email to the current user's email", async () => {
+    await createDeliverable(testInput, testContext as GraphQLContext);
+
+    expect(mockPrismaClient.user.findUniqueOrThrow).toHaveBeenCalledExactlyOnceWith({
+      where: { id: testContext.user!.id },
+      include: { person: true },
+    });
+    expect(buildRealtimeEmailEnvelope).toHaveBeenCalledExactlyOnceWith({
+      emailType: "Deliverable Created",
+      entityId: mockNewDeliverable.id,
+      to: mockCurrentUser.person.email,
+      payload: {
+        to: mockCurrentUser.person.email,
+        id: mockNewDeliverable.id,
+        name: mockParsedInput.name,
+        deliverableType: mockParsedInput.deliverableType,
+        dueDate: mockParsedInput.dueDate.easternTZDate.toISOString(),
+        status: "Upcoming",
+      },
+    });
+    expect(enqueueRealtimeEmail).toHaveBeenCalledExactlyOnceWith(
+      vi.mocked(buildRealtimeEmailEnvelope).mock.results[0].value
+    );
+  });
+
+  it("should throw a clear error if the current user email is missing", async () => {
+    mockPrismaClient.user.findUniqueOrThrow.mockResolvedValueOnce({
+      ...mockCurrentUser,
+      person: { email: "" },
+    });
+
+    await expect(createDeliverable(testInput, testContext as GraphQLContext)).rejects.toThrow(
+      "Cannot enqueue Deliverable Created email because the current user email is missing."
+    );
+
+    expect(enqueueRealtimeEmail).not.toHaveBeenCalled();
+    expect(mockPrismaClient.$transaction).not.toHaveBeenCalled();
   });
 });

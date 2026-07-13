@@ -5,8 +5,16 @@ import * as ssm from "@aws-sdk/client-ssm";
 
 import { log } from "./log";
 import { Address, Options } from "nodemailer/lib/mailer";
+import { renderEmail } from "./emailTemplates/renderEmail";
 
 type EmailerAddress = string | Address | Array<string | Address>;
+
+type RealtimeEmailEnvelope = {
+  template: string;
+  emailType?: string;
+  entityId?: string;
+  payload: unknown;
+};
 
 export interface EmailData extends Pick<Options, "html" | "cc" | "bcc"> {
   to: EmailerAddress;
@@ -37,6 +45,13 @@ export const handler = async (event: SQSEvent) => {
   } catch (err) {
     log.info({ error: (err as Error).message }, "unable to parse SQS message body");
     return;
+  }
+
+  try {
+    email = await renderRealtimeEmailIfNeeded(email);
+  } catch (err) {
+    log.error({ error: (err as Error).message }, "unable to render realtime email");
+    throw err;
   }
 
   if (!isValidEmailData(email)) {
@@ -72,6 +87,23 @@ export const handler = async (event: SQSEvent) => {
   return "success";
 };
 
+export async function renderRealtimeEmailIfNeeded(email: unknown): Promise<unknown> {
+  if (!isRealtimeEmailEnvelope(email)) {
+    return email;
+  }
+
+  log.info(
+    {
+      emailType: email.emailType,
+      template: email.template,
+      entityId: email.entityId,
+    },
+    "rendering realtime email template"
+  );
+
+  return renderEmail(email.template, email.payload);
+}
+
 export function isValidEmailData(email: any): email is EmailData {
   if (!isEmailerAddress(email.to)) {
     log.info("an email must have a valid 'to' property");
@@ -89,6 +121,15 @@ export function isValidEmailData(email: any): email is EmailData {
   }
 
   return true;
+}
+
+export function isRealtimeEmailEnvelope(email: unknown): email is RealtimeEmailEnvelope {
+  return (
+    typeof email === "object" &&
+    email !== null &&
+    typeof (email as RealtimeEmailEnvelope).template === "string" &&
+    "payload" in email
+  );
 }
 
 // Not real validation, just making sure its a valid format
