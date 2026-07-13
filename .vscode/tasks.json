@@ -1,5 +1,6 @@
 {
     "version": "2.0.0",
+    "options": { "env": { "PATH": "/opt/demos-data/bin:${env:PATH}" } },
     "tasks": [
         {
             "label": "Python: Radon CC",
