@@ -1,0 +1,128 @@
+= Table of contents
+:toc: left
+
+A flat index of every page in the documentation set, grouped by book.
+Use this page to jump directly between books or chapters without
+walking the prev/next chain.
+
+The audience books reorganise the same material for specific readers;
+the xref:spec/canonical-spec.adoc[canonical spec] is the single
+long-form plan.
+
+== Home
+
+* xref:README.adoc[DEMOS data migration -- overview]
+
+== Canonical spec
+
+* xref:spec/canonical-spec.adoc[Canonical migration specification]
+* xref:spec/migration-plan.adoc[Migration plan -- branch decision tree and status]
+
+== Operator book
+
+* xref:operator/index.adoc[Operator book -- index]
+
+=== Tutorial
+
+* xref:operator/tutorial-first-cutover-rehearsal.adoc[First cutover rehearsal]
+
+=== How-to
+
+* xref:operator/howto-cutover-day.adoc[Cutover day]
+* xref:operator/howto-rollback.adoc[Rollback]
+* xref:operator/howto-rebuild-from-scratch.adoc[Rebuild from scratch]
+* xref:operator/howto-curate-filter.adoc[Curate the row-level filter]
+* xref:operator/howto-troubleshoot-pgloader.adoc[Troubleshoot pgloader]
+* xref:operator/howto-troubleshoot-fk-violations.adoc[Troubleshoot FK violations]
+* xref:operator/howto-troubleshoot-parity-red.adoc[Troubleshoot red parity]
+
+=== Reference
+
+* xref:operator/reference-cli.adoc[CLI (auto-generated)]
+* xref:operator/reference-makefile.adoc[Makefile targets]
+* xref:operator/reference-rehearsal-commands.adoc[Rehearsal command inventory]
+* xref:operator/reference-gates-state.adoc[Gates and `state/` files]
+* xref:operator/reference-environment.adoc[Environment variables]
+* xref:operator/reference-human-inputs.adoc[Human inputs and review gates]
+* xref:operator/reference-demonstration-flow.adoc[The demonstration migration flow]
+* xref:operator/reference-amendment-flow.adoc[The amendment migration flow]
+* xref:operator/reference-comms-templates.adoc[Comms templates]
+
+=== Explanation
+
+* xref:operator/explanation-cutover-state-machine.adoc[The cutover state machine]
+* xref:operator/explanation-rehearsal-strategy.adoc[Why we rehearse twice]
+
+== Developer book
+
+* xref:developer/index.adoc[Developer book -- index]
+
+=== Tutorial
+
+* xref:developer/tutorial-follow-an-entity.adoc[Follow a demonstration through the SQL]
+* xref:developer/tutorial-add-a-new-transform.adoc[Add a new transform end-to-end]
+
+=== How-to
+
+* xref:developer/howto-add-a-phase.adoc[Add a phase]
+* xref:developer/howto-snapshot-source-schema.adoc[Snapshot the source schema]
+* xref:developer/howto-dump-reference-data.adoc[Dump source reference data]
+* xref:developer/howto-add-a-crosswalk.adoc[Add a crosswalk]
+* xref:developer/howto-edit-pgloader-cast.adoc[Edit pgloader CAST rules]
+* xref:developer/howto-promote-jsonb-schema.adoc[Promote a JSONB schema]
+* xref:developer/howto-revalidate-jsonb.adoc[Revalidate a JSONB column]
+* xref:developer/howto-write-a-parity-check.adoc[Write a parity check]
+* xref:developer/howto-run-tests-locally.adoc[Run tests locally]
+
+=== Reference
+
+* xref:developer/reference-pipeline-stages.adoc[Pipeline stages]
+* xref:developer/reference-sql-conventions.adoc[SQL conventions]
+* xref:developer/reference-python-package.adoc[Python package and `lib.py`]
+* xref:developer/reference-templates.adoc[pgloader template contract]
+* xref:developer/reference-fk-overrides-yaml.adoc[`fk_overrides.yaml`]
+* xref:developer/reference-jsonb-schema-registry.adoc[JSONB schema registry]
+* xref:developer/reference-prisma-ddl.adoc[Prisma DDL pipeline]
+* xref:developer/reference-prisma-migration-analysis.adoc[Prisma migration analysis]
+* xref:developer/reference-schema-diagrams.adoc[Schema diagrams (generated)]
+* xref:developer/reference-id-maps.adoc[id maps]
+* xref:developer/reference-data-dictionary.adoc[DEMOS data dictionary]
+* xref:developer/reference-source-target-columns.adoc[Source/target column map]
+* xref:developer/reference-derivability-audit.adoc[Derivability audit]
+* xref:developer/reference-users-person-migration.adoc[Users and person migration]
+* xref:developer/reference-demonstration-role-migration.adoc[Demonstration role assignment migration]
+
+=== Explanation
+
+* xref:developer/explanation-why-python-not-bash.adoc[Why Python over bash]
+* xref:developer/explanation-idempotency.adoc[Idempotency]
+* xref:developer/explanation-fk-strategy.adoc[FK strategy]
+* xref:developer/explanation-history-backfill.adoc[History is DEMOS-owned, not migrated]
+* xref:developer/explanation-demos-clone-vs-id-maps.adoc[The DEMOS clone tool vs. our id maps]
+
+== SME book
+
+* xref:sme/index.adoc[SME book -- index]
+
+=== How-to
+
+* xref:sme/howto-author-a-crosswalk-csv.adoc[Review and sign off a crosswalk]
+* xref:sme/howto-review-pending-approved-decisions.adoc[Review pending/approved decisions]
+* xref:sme/howto-review-pgm-dtl-tag-mapping.adoc[Review pgm_dtl tag mapping]
+* xref:sme/howto-review-bn-jsonb-payload.adoc[Review a BN JSONB payload]
+
+=== Reference
+
+* xref:sme/reference-source-target-map.adoc[Top-level source/target map]
+* xref:sme/reference-source-target-columns.adoc[Source/target column map]
+* xref:sme/reference-static-constraint-tables.adoc[Static constraint tables]
+* xref:sme/reference-pgm-dtl-tag-mapping.adoc[`pgm_dtl_tag_mapping.csv`]
+* xref:sme/reference-pending-approved-rules.adoc[Pending/approved rules]
+* xref:sme/reference-history-strategy.adoc[History strategy]
+* xref:sme/reference-drop-list.adoc[Drop list]
+
+=== Explanation
+
+* xref:sme/explanation-data-shape-decisions.adoc[Data-shape decisions (JSONB, tags, single document table)]
+* xref:sme/explanation-comments-routing.adoc[Comments: private vs public]
+* xref:sme/explanation-derivability.adoc[Derivability]

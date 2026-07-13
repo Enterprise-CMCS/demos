@@ -1,0 +1,143 @@
+= Reference: the amendment migration flow
+
+How a legacy PMDA amendment becomes a DEMOS `amendment` row: the end-to-end path
+from `mysql_raw.mdcd_demo_amndmt` through the staging filter, the id-map, the
+resolved projection, the status crosswalk, and the application-layer loader, plus
+the parity checks that account for what was not loaded. This is the second
+per-table flow reference; it reuses the structure of
+xref:reference-demonstration-flow.adoc[the demonstration flow].
+
+`amendment` *is-a* `application`, exactly like `demonstration`: the loader writes
+one `demos_app.application` anchor row and one `demos_app.amendment` row in a
+single deferred-constraint transaction, sharing the same UUID. Unlike a
+demonstration, an amendment's `demonstration_id` is NOT NULL and must point at a
+*loaded* demonstration, so an amendment whose parent did not migrate is held
+back rather than orphaned. The column map, crosswalk table, and SQL stage list
+below are generated from the same authoritative artifacts the pipeline uses, and
+the worked example at the end is a *real run* of the whole pipeline against a
+curated fixture.
+
+[NOTE]
+====
+The four included sections are generated, not hand-maintained:
+
+* the column, crosswalk, and stage tables come from
+  `docs/tools/table_flow_to_adoc.py` (run `make flow-pages` from `docs/`);
+* the worked-example run trace comes from `docs/tools/table_flow_trace.py`,
+  which replays the real pipeline against
+  `tests/sql/fixtures/amendment_flow/seed_mdcd_demo_amndmt.sql` on a throwaway
+  Postgres (run `make amendment-flow-trace` from the repo root).
+
+Both are committed and drift-checked: the offline suite re-renders them and CI
+fails on any difference, and the live SQL harness
+(`tests/sql/test_amendment_flow_live.py`) re-runs the pipeline and asserts the
+committed trace still matches. Edit the source artifacts and regenerate; never
+edit the generated partials by hand.
+====
+
+== The shape of the flow
+
+Every legacy amendment is either *loaded*, *held back* (it is PMDA-valid and
+projected but its parent demonstration was not loaded, so the loader skips it and
+a parity view counts it), *excluded* (soft-deleted at the source), or *filtered*
+(it never passes the date / parent-survival allowlist):
+
+[mermaid]
+....
+flowchart TD
+  src["mysql_raw.mdcd_demo_amndmt<br/>(raw PMDA amendments, via pgloader)"]
+  src --> filt{"filter<br/>creatd_dt · amndmt_aplctn_dt year · approved OR pending parent survives"}
+  filt -->|fails| fout[/"filtered out"/]
+  filt -->|passes| valid["stg._valid_amndmt_ids"]
+  valid --> idmap["migration._id_map_mdcd_demo_amndmt<br/>mint one shared UUID per id"]
+  idmap --> resolved["stg.amendment_resolved<br/>source-only projection · demo_uuid via approved parent only"]
+  resolved -->|dltd_ind = 1| sdel[/"excluded: soft-deleted"/]
+  resolved --> loader{"sql/20_app/35_amendment.sql<br/>application(Amendment) anchor + amendment"}
+  loader -->|parent demonstration not loaded| held[/"held back → parity 19"/]
+  loader -->|loaded| app["demos_app.application + demos_app.amendment<br/>(shared UUID)"]
+  app --> par["parity 19: held / signature-dropped / phase tally"]
+....
+
+A few facts the column map below does not show, because they have no 1:1 source
+column and are computed by the loader:
+
+* `application_type_id` is the constant `Amendment` on the anchor row;
+* `current_phase_id` is derived from the status (Approved -> _Approval Summary_,
+  Under Review -> _Review_, Withdrawn/Denied -> _Concept_), with no source
+  column; the per-phase tally in parity 19 lets an SME ratify the mapping;
+* `signature_level_id` is `OA` or `OCD` when the legacy code is `1`/`2` and
+  otherwise `NULL` (OGD/DD are barred on amendments by the
+  `amendment_signature_level_check`); dropped codes are logged, not silently
+  kept;
+* `demonstration_id` resolves only via the *approved* parent
+  (`migration._id_map_mdcd_demo`); a pending-only parent yields a NULL parent
+  UUID and the amendment is held back.
+
+For the legacy-id -> UUID mapping see
+xref:../developer/reference-id-maps.adoc[id maps]; for the full column-level
+contract across all tables see
+xref:../developer/reference-source-target-columns.adoc[the source/target column
+map]; for authoring crosswalk CSVs see
+xref:../sme/howto-author-a-crosswalk-csv.adoc[author a crosswalk CSV].
+
+== Source-to-target columns
+
+include::../shared/generated/amendment-flow-columns.adoc[]
+
+== Crosswalks
+
+The status code translation this flow applies. Legacy code `1` ("Pending") maps
+to `Under Review`; the loader derives both `current_phase_id` and (from a
+separate source column) `signature_level_id` itself, so neither appears here.
+
+include::../shared/generated/amendment-flow-crosswalks.adoc[]
+
+== SQL stages
+
+include::../shared/generated/amendment-flow-stages.adoc[]
+
+== A worked example
+
+The trace below is a real run of the pipeline above against a curated fixture:
+eight amendments plus three parent demonstrations, chosen to exercise every
+disposition (loaded, held back, excluded, filtered). Minted UUIDs are normalized
+to stable `AMENDMENT_UUID_NN` tokens (ordered by `mdcd_demo_amndmt_id`), so the
+trace is byte-stable across reruns on the same fixture; the parent demonstration
+is shown by its legacy `11-W` project number.
+
+include::../shared/generated/live/amendment-flow-trace.adoc[]
+
+== The parity checks
+
+One non-gating parity check (number 19, `sql/99_parity/52_amendment_load.sql`)
+accounts for the loader's deliberate, lossy-by-design choices through three
+views. None of these is a build failure; each is a review signal that must be
+explained rather than silently trusted:
+
+* *`_parity_amendment_held`*: PMDA-valid amendments the loader held back because
+  their parent demonstration is not loaded, either because only a pending parent
+  survived (NULL parent UUID) or because the approved parent was itself held
+  back. Each is written per-row to `reports/orphans/` for SME review.
+* *`_parity_amendment_signature_dropped`*: amendments whose legacy signature
+  code was not OA/OCD (e.g. OGD/DD) and so was set to `NULL` on load. These
+  surface the dropped codes for confirmation.
+* *`_parity_amendment_phase_derived`*: a status -> derived-`current_phase_id`
+  tally so an SME can ratify the phase approximation (there is no source phase
+  column on an amendment).
+
+When any of these is unexpectedly large, see
+xref:howto-troubleshoot-parity-red.adoc[troubleshoot red parity] and the
+human-review gates in xref:reference-human-inputs.adoc[human inputs].
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-demonstration-flow.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:reference-comms-templates.adoc[next >]
+|===
+endif::[]
+// docnav-end

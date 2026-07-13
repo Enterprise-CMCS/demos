@@ -1,0 +1,23 @@
+= How-to: revalidate a JSONB column
+
+The canonical procedure lives in `runbooks/revalidate-jsonb.md`; this
+page renders it for the documentation set so it cross-references
+cleanly from xref:howto-promote-jsonb-schema.adoc[the promotion
+how-to] and xref:reference-jsonb-schema-registry.adoc[the schema
+registry reference].
+
+:nested:
+include::../shared/generated/live/revalidate-jsonb.adoc[]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:howto-promote-jsonb-schema.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:howto-write-a-parity-check.adoc[next >]
+|===
+endif::[]
+// docnav-end

@@ -1,0 +1,199 @@
+= Reference: demonstration role assignment migration
+
+The audience is the engineer implementing the demonstration-level RBAC
+migration. By the end you will know how PMDA's per-demonstration staff
+columns become DEMOS `demonstration_role_assignment` (plus
+`primary_demonstration_role_assignment`) rows, which decisions were fixed,
+and how the composite foreign keys keep the projection honest.
+
+== The shape problem
+
+PMDA has *no* `(user, demonstration, role)` association table. Instead
+`mdcd_demo` carries one `user_id` FK *column* per functional role
+(`proj_ofcr_user_id`, `anlyst_user_id`, the five `state_*_poc_user_id`
+slots, ...). Each populated column on a kept demonstration is exactly one
+`(person, demonstration, role)` tuple, with the role fixed by the *column's*
+semantics -- not by the user's global `user_role_asgnmt` role (that feeds
+the *system*-level roles, a separate workstream).
+
+DEMOS represents the same idea relationally in
+`demonstration_role_assignment`, keyed `(person_id, demonstration_id,
+role_id)`, with five demonstration-grant roles: Project Officer, State Point
+of Contact, DDME Analyst, Policy Technical Director, and Monitoring &
+Evaluation Technical Director.
+
+[IMPORTANT]
+====
+`demonstration_role_assignment` is *not permission-bearing*: the pinned
+DEMOS DDL seeds zero `role_permission` rows at the `Demonstration` grant
+level. Capability rides on the *system* role
+(`system_role_assignment` -- CMS User / State User / Admin User). So
+`demonstration_role_assignment` is the *membership / scoping + title* layer:
+it is what makes a demonstration count as "assigned" to a person (driving
+every "... on Assigned Demonstrations" permission) and stamps a functional
+title. Migrating it is what keeps assigned-demonstration views populated at
+cutover; a column fold that is imperfect mislabels a *title*, never a
+*privilege*.
+====
+
+== Decisions
+
+[cols="1,3"]
+|===
+| Topic | Decision
+
+| Source of truth
+| The per-role `user_id` columns on `mdcd_demo` (schema-native), unpivoted
+  in `stg.demonstration_role_assignment_resolved`. `user_role_asgnmt` is
+  *not* used here.
+
+| Column -> role map
+| Data in `reports/crosswalks/demonstration_role.csv` ->
+  `mysql_raw.crosswalk_demonstration_role`
+  (`sql/04_crosswalks/46_demonstration_role.sql`), loaded by the crosswalks
+  phase and validated by `47_demonstration_role_check.sql`.
+
+| Generic Technical Director
+| `tchncl_drctr_user_id` -> *Policy Technical Director* always (Rule A); the
+  M&E Technical Director has its own dedicated column. A person who fills
+  both columns gets both rows (distinct `role_id`).
+
+| Lead folds
+| `ro_fincl_lead_user_id` (Financial Lead) -> Project Officer;
+  `ro_mntrg_lead_user_id` (Monitoring Lead) -> M&E Technical Director.
+
+| Specialty analysts
+| `mc_anlyst_id` (Managed Care) and `hcbs_anlyst_id` (HCBS) fold to DDME
+  Analyst (no MC/HCBS-specific role exists; DDME = Division of Demonstration
+  Monitoring & Evaluation).
+
+| Backup PO
+| `bkup_proj_ofcr_user_id` -> Project Officer (non-primary). The source
+  column is `NOT NULL DEFAULT 0`, so `0` means "no backup" and is dropped
+  (`treat_zero_as_null`).
+
+| Primary PO
+| `proj_ofcr_user_id` is marked `is_primary`; it additionally lands in
+  `primary_demonstration_role_assignment` (one primary per demonstration).
+
+| Scope
+| Live `mdcd_demo` only. `mdcd_pendg_demo` is not yet loaded as a
+  `demonstration`, so its assignments would dangle the FK; the resolver is
+  structured to extend to it once a pending-demonstration loader exists.
+|===
+
+== Column map
+
+[cols="2,2,1"]
+|===
+| `mdcd_demo` column | DEMOS `role_id` | primary
+
+| `proj_ofcr_user_id`                | Project Officer                            | yes
+| `bkup_proj_ofcr_user_id`           | Project Officer                            |
+| `ro_fincl_lead_user_id`            | Project Officer                            |
+| `tchncl_drctr_user_id`             | Policy Technical Director                  |
+| `mntrg_eval_tchncl_drctr_user_id`  | Monitoring & Evaluation Technical Director |
+| `ro_mntrg_lead_user_id`            | Monitoring & Evaluation Technical Director |
+| `anlyst_user_id`                   | DDME Analyst                               |
+| `anlyst_scndry_user_id`            | DDME Analyst                               |
+| `mc_anlyst_id`                     | DDME Analyst                               |
+| `hcbs_anlyst_id`                   | DDME Analyst                               |
+| `state_prmry_poc_user_id`          | State Point of Contact                     |
+| `state_scndry_poc_user_id`         | State Point of Contact                     |
+| `state_3rd_poc_user_id`            | State Point of Contact                     |
+| `state_4th_poc_user_id`            | State Point of Contact                     |
+| `state_5th_poc_user_id`            | State Point of Contact                     |
+|===
+
+Several columns folding to the same role with the same person on one
+demonstration collapse to a single row (the PK includes `role_id`).
+
+== How the composite FKs keep it honest
+
+The resolver emits *candidate* tuples and never filters on `person_type`
+or state; the loader (`sql/23_app_derived/30_demonstration_role_assignment.sql`)
+makes every composite FK satisfiable row-by-row with `JOIN`s, so any
+candidate that cannot satisfy one is *dropped* (not loaded), and surfaced
+in `migration._parity_demonstration_role_assignment_flags` for SME triage:
+
+. `(person_id, person_type_id) -> person`
+. `(role_id, person_type_id) -> role_person_type` -- e.g. a
+  `demos-state-user` sitting in a CMS column (Project Officer) is dropped,
+  since `role_person_type` allows Project Officer only for
+  `demos-admin`/`demos-cms-user`.
+. `(person_id, state_id) -> person_state`
+. `(demonstration_id, state_id) -> demonstration`
+
+The assignment's single `state_id` *is* the demonstration's state. Because
+a state user's `person_state` holds only their authorized states (CMS/Admin
+get all states), a state user can never be assigned to an out-of-state
+demonstration: the `person_state` leg fails and the row is held with reason
+`person_state_missing_for_state`. So a Delaware state user never appears on
+a California demonstration's assigned list.
+
+== Pipeline files
+
+[cols="2,3"]
+|===
+| File | Role
+
+| `sql/04_crosswalks/46_demonstration_role.sql`
+| `mysql_raw.crosswalk_demonstration_role` -- column -> role tuple DDL.
+  `47_demonstration_role_check.sql` validates it against the DEMOS seeds.
+
+| `reports/crosswalks/demonstration_role.csv`
+| Single source of the column -> role mapping (registry-loaded).
+
+| `sql/10_stg/25_demonstration_role_assignment_resolved.sql`
+| `stg.demonstration_role_assignment_resolved` -- unpivot of the 15
+  `mdcd_demo` columns into candidate tuples.
+
+| `sql/23_app_derived/30_demonstration_role_assignment.sql`
+| Guarded load of `demos_app.demonstration_role_assignment`.
+
+| `sql/23_app_derived/40_primary_demonstration_role_assignment.sql`
+| Guarded load of the per-demonstration primary Project Officer.
+
+| `sql/99_parity/24_demonstration_role_assignment_provenance.sql`
+| Integrity + flags views, wired into `migration/phases/parity.py` as
+  check 12.
+|===
+
+== Validation checklist
+
+Before cutover, confirm against the live `mysql_raw` snapshot:
+
+. `migration._parity_demonstration_role_assignment_integrity` is empty (the
+  loader's JOINs should guarantee it; a non-empty result is a defect).
+. Review `migration._parity_demonstration_role_assignment_flags`: every held
+  candidate is an expected anomaly (a `demos-state-user` in a CMS column, a
+  state POC on an out-of-state demonstration, or an unloaded demonstration),
+  not a mapping mistake.
+. Spot-check that each demonstration with a PMDA `proj_ofcr_user_id` has a
+  `primary_demonstration_role_assignment` row (unless the PO was dropped
+  upstream).
+. Confirm a person who fills both `tchncl_drctr_user_id` and
+  `mntrg_eval_tchncl_drctr_user_id` on one demonstration holds both Policy TD
+  and M&E TD.
+
+== Open items
+
+* `mdcd_pendg_demo` demonstration-role assignment rides on a future
+  pending-demonstration loader; the crosswalk carries no pending rows yet.
+* The column -> role folds (Financial Lead, Monitoring Lead, generic TD,
+  MC/HCBS analysts) are SME-confirmed for this workstream;
+  `47_demonstration_role_check.sql` guards only against the role/grant seeds
+  drifting, not against a re-classification of a column.
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:reference-users-person-migration.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:explanation-why-python-not-bash.adoc[next >]
+|===
+endif::[]
+// docnav-end

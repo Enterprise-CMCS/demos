@@ -1,0 +1,110 @@
+= Explanation: the DEMOS clone tool vs. our id maps
+
+The DEMOS application repo ships its own UUID-remapping tool
+(`data/uat_scenario/`, added 2026-06-15 in "tool for copying
+demonstrations"). Because it also mints fresh UUIDs and persists an
+old-to-new map, it is easy to mistake for something we should reuse.
+This page records what that tool does, why it solves a *different*
+problem than our id maps, and the few things it usefully confirms.
+
+== What the DEMOS tool is
+
+A repeatable *environment-to-environment demonstration clone* for UAT.
+`run_clone.sh` exports one demonstration's slice to CSVs, remaps the
+synthetic UUIDs, and re-imports into another DEMOS environment;
+`--copy-s3` optionally copies the document objects. It operates entirely
+*within* the DEMOS ecosystem -- both sides are DEMOS Postgres with
+`uuid` primary keys.
+
+`remap_ids.py`:
+
+* Seeds one stable old->new map by generating a fresh `uuid.uuid4()` for
+  every `id` in a small set of "new record" tables (`application`,
+  `deliverable`, `deliverable_action`, `deliverable_extension`,
+  `document`, `private_comment`, `public_comment`).
+* Propagates the map by *string replacement* across every field of every
+  exported CSV -- including UUIDs embedded inside composite strings such
+  as `s3_path` -- so foreign-key references stay consistent.
+* Drops `medicaid_id` / `chip_id` from the demonstration (a clone must
+  not carry real project identifiers into a synthetic environment).
+* Keeps the demonstration's own UUID (it is deliberately not a map
+  source); `import.sql` synthesizes a local `Project Officer` / owner and
+  treats `tag` / `tag_name` as global rows ignored on conflict.
+
+`uuid_remap.json` is not a committed file -- it is a runtime output under
+`output/` (git-ignored).
+
+== Why it is a different problem
+
+[cols="1,2,2"]
+|===
+| Concern | DEMOS clone tool | Our migration
+
+| Identity direction | `uuid` -> `uuid` | MySQL `int` PK -> `uuid`
+| Propagation | string replacement across CSVs | relational `JOIN` on `migration._id_map_*`
+| Lifecycle | repeatable environment clone | one-time legacy migration
+| Source system | DEMOS Postgres | MySQL (PMDA)
+|===
+
+It *cannot* replace our id maps: it consumes UUIDs, not MySQL integer
+PKs, and string replacement is the wrong tool for a relational load. Our
+`gen_random_uuid()`-backed `migration._id_map_<table>` tables remain the
+correct mechanism (see xref:reference-id-maps.adoc[Reference: id maps]).
+
+== What it usefully confirms
+
+. *Our identity philosophy matches DEMOS's own.* They mint fresh
+  per-record UUIDs and keep an explicit old-to-new manifest
+  (`uuid_remap.json`). Our `migration._id_map_*` tables are the
+  relational equivalent of that manifest -- independent convergence on
+  the same design.
+. *"Resolve, don't mint" for tags is correct.* They treat `tag` /
+  `tag_name` as global reference rows (ignored on conflict), exactly how
+  our tag-pivot and `reference_demonstration_type` loaders *resolve
+  against* the DEMOS-seeded vocabulary rather than inserting it.
+. *Do not copy their `medicaid_id` / `chip_id` drop.* That is
+  clone-specific; our migration correctly *preserves* valid project IDs.
+  It reinforces that this is a clone tool, not a migration tool.
+. *`s3_path` embeds UUIDs.* A concrete heads-up for the future
+  document / reference loaders: when we mint reference and document UUIDs
+  (the `sql/05_id_maps/14_rfrnc_matl.sql` workstream), the `s3_path` must
+  be built from those same minted UUIDs -- DEMOS keys S3 objects by UUID.
+
+[NOTE]
+====
+The clone tool's per-demo `CSV_FILES` list is effectively DEMOS's own
+definition of "a demonstration and everything hanging off it" -- a handy
+scope checklist for our target tables. `reference_demonstration_type` is
+*not* in it, because references are a global library rather than per-demo
+clone data; that is consistent with our reference work being a separate
+global workstream.
+====
+
+== Bottom line
+
+Nothing to adopt mechanically and no rework needed. The tool is a strong
+external confirmation of our id-map and tag-resolution design, plus a
+reminder about UUID-in-`s3_path` for the upcoming reference and document
+loaders.
+
+== Related
+
+* xref:reference-id-maps.adoc[Reference: id maps]
+* xref:explanation-idempotency.adoc[Explanation: idempotency] -- id maps
+  use `INSERT ... ON CONFLICT DO NOTHING` to preserve UUIDs across
+  rebuilds
+* xref:reference-users-person-migration.adoc[Reference: users and person
+  migration] -- shared-UUID identity across composite FKs
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:explanation-history-backfill.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:explanation-api-validator-conformance.adoc[next >]
+|===
+endif::[]
+// docnav-end

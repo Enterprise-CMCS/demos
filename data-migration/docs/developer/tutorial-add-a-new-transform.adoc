@@ -1,0 +1,160 @@
+= Tutorial: add a new transform end-to-end
+
+A worked example: a hypothetical new MySQL table `mdcd_demo_alert`
+needs to land as `demos_app.demonstration_alert`. This tutorial walks every
+file you touch.
+
+== Prerequisites
+
+* Working build environment (`make sync` succeeds; `make test` green).
+* Familiarity with xref:reference-pipeline-stages.adoc[the pipeline
+  stages].
+* The DEMOS app team has already added `demos_app.demonstration_alert` to
+  the Prisma schema upstream and republished the SQL artifact
+  (`sql/01_ddl/` no longer exists in this repo; parent-table DDL is
+  Prisma-owned -- see
+  xref:reference-pipeline-stages.adoc[Stage 01]). The pinned hash in
+  `reports/prisma_ddl.sha256` has been bumped to the new artifact
+  and `make fetch_prisma` runs clean against it.
+
+== Steps
+
+=== 1. Add an id map
+
+`sql/05_id_maps/<NN>_mdcd_demo_alert.sql`:
+
+[source,sql]
+----
+CREATE TABLE IF NOT EXISTS migration._id_map_mdcd_demo_alert (
+  legacy_int_id BIGINT PRIMARY KEY,
+  new_uuid      UUID UNIQUE NOT NULL DEFAULT gen_random_uuid(),
+  _created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+INSERT INTO migration._id_map_mdcd_demo_alert (legacy_int_id)
+SELECT alert_id FROM mysql_raw.mdcd_demo_alert
+ON CONFLICT DO NOTHING;
+----
+
+`ON CONFLICT DO NOTHING` keeps the transform idempotent: re-running
+on the same `mysql_raw` snapshot does not regenerate UUIDs.
+
+=== 2. Stage transform
+
+`sql/10_stg/<NN>_demonstration_alert.sql`:
+
+[source,sql]
+----
+TRUNCATE stg.demonstration_alert;
+
+INSERT INTO stg.demonstration_alert (id, demonstration_id, severity, raised_at)
+SELECT
+  m.new_uuid,
+  d.new_uuid,
+  src.severity_cd,
+  src.raised_at
+FROM mysql_raw.mdcd_demo_alert src
+JOIN migration._id_map_mdcd_demo_alert m ON m.legacy_int_id = src.alert_id
+JOIN migration._id_map_mdcd_demo d       ON d.legacy_int_id = src.demo_id;
+----
+
+Truncate-then-insert keeps the stage idempotent.
+
+=== 3. App-layer transform
+
+`sql/20_app/<NN>_demonstration_alert.sql`:
+
+[source,sql]
+----
+INSERT INTO demos_app.demonstration_alert (id, demonstration_id, severity_id, raised_at)
+SELECT id, demonstration_id, severity, raised_at
+FROM stg.demonstration_alert;
+----
+
+The whole `20_app/` stage runs inside a single
+`SET CONSTRAINTS ALL DEFERRED` transaction in `build.run_build_app`,
+so insert order across files does not matter.
+
+=== 4. FK constraint
+
+No file is needed. FKs on `demos_app.*` are owned by Prisma upstream; the
+new `demonstration_id` FK ships with the published artifact, is
+captured by `migrate ddl` to `state/prisma_fks.json`, dropped before
+the bulk build, and re-applied as `NOT VALID` + `VALIDATE`d by
+`migrate constraints`. See xref:explanation-fk-strategy.adoc[the FK
+strategy]. The migration-owned `sql/30_constraints/` directory
+remains in the pipeline and is the place for any FK that DEMOS does
+*not* model in Prisma (currently empty).
+
+=== 5. Parity check
+
+`sql/99_parity/<NN>_demonstration_alert_count.sql`:
+
+[source,sql]
+----
+CREATE OR REPLACE VIEW migration.parity_demonstration_alert AS
+SELECT
+  (SELECT count(*) FROM mysql_raw.mdcd_demo_alert) AS source_count,
+  (SELECT count(*) FROM demos_app.demonstration_alert)   AS target_count;
+----
+
+Wire it into `parity.py` (see
+xref:howto-write-a-parity-check.adoc[write a parity check]) so the
+report carries a `CheckResult` for it.
+
+=== 6. Test
+
+`tests/test_demonstration_alert.py` (smoke):
+
+[source,python]
+----
+def test_id_map_and_stage_present(tmp_path):
+    # Schema-only smoke test; full SQL coverage lives in CI integration tests.
+    expected = [
+        "sql/05_id_maps/12_mdcd_demo_alert.sql",
+        "sql/10_stg/22_demonstration_alert.sql",
+        "sql/20_app/22_demonstration_alert.sql",
+        "sql/99_parity/22_demonstration_alert_count.sql",
+    ]
+    for path in expected:
+        assert (PROJECT_ROOT / path).is_file(), path
+----
+
+=== 7. Verify
+
+[source,sh]
+----
+make rebuild       # full clean run
+make test lint typecheck
+----
+
+Open `reports/runs/parity_<latest>.md` and confirm the new check is
+GREEN.
+
+== Conventions checked off
+
+* [x] Truncate-then-insert (idempotent).
+* [x] FK comes from Prisma; captured + re-applied late as NOT VALID then VALIDATE.
+* [x] No triggers in app DDL until `32_app_triggers/`.
+* [x] Id map populated via `ON CONFLICT DO NOTHING`.
+* [x] Parity view authored alongside the transform.
+* [x] At least one test exercises the new file paths.
+
+== Related
+
+* xref:explanation-idempotency.adoc[Why drop-and-rebuild]
+* xref:reference-id-maps.adoc[id maps]
+* xref:howto-write-a-parity-check.adoc[Write a parity check]
+
+// docnav-start
+ifndef::nested[]
+'''
+
+[.docnav,cols="1,1,1",frame=none,grid=none,stripes=none]
+|===
+|xref:index.adoc[< prev]
+^|xref:../toc.adoc[Table of contents]
+>|xref:howto-add-a-phase.adoc[next >]
+|===
+endif::[]
+// docnav-end
