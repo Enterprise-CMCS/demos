@@ -1,0 +1,11 @@
+version: 2
+
+seeds:
+  - name: crosswalk_role_cd_to_person_type_id
+    columns:
+      - name: role_cd
+        data_tests:
+          - relationships:
+              arguments:
+                to: source('legacy_pmda_raw', 'role_rfrnc')
+                field: role_cd
