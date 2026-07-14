@@ -131,7 +131,9 @@ pipeline {
       post {
         failure {
           script {
-            notifyMigrationError(env.STAGE)
+            // TODO: Remove this
+            echo "there was an error with the migrations..."
+            // notifyMigrationError(env.STAGE)
           }
         }
       }
