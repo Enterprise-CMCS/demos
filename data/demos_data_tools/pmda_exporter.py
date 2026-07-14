@@ -6,7 +6,7 @@ import types
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, Tuple, Type
 
-import duckdb
+from duckdb_connection_manager import create_duckdb_conn
 from dotenv import load_dotenv
 from logger import get_logger
 
@@ -30,91 +30,6 @@ DDL_DIR.mkdir(parents=True, exist_ok=True)
 load_dotenv()
 
 logger = get_logger(__name__)
-
-
-def load_db_configs_from_env() -> dict:
-    """Load the DB configurations from the environment.
-
-    Returns:
-        dict: A dictionary containing the database configuration(s).
-    """
-    logger.info("Reading environment variables")
-    config = {
-        "ddb_pmda": {
-            "host": os.environ["PMDA_MYSQL_HOST"],
-            "port": os.environ["PMDA_MYSQL_PORT"],
-            "user": os.environ["PMDA_MYSQL_USER"],
-            "pwd": os.environ["PMDA_MYSQL_PWD"],
-            "db": os.environ["PMDA_MYSQL_DB"],
-        },
-        "ddb_demos": {
-            "host": os.environ["DEMOS_PGSQL_HOST"],
-            "port": os.environ["DEMOS_PGSQL_PORT"],
-            "user": os.environ["DEMOS_PGSQL_USER"],
-            "pwd": os.environ["DEMOS_PGSQL_PWD"],
-            "db": os.environ["DEMOS_PGSQL_DB"],
-            "sslmode": os.environ["DEMOS_PGSQL_SSLMODE"],
-        },
-    }
-    logger.info("Loading config from environment successfully")
-    return config
-
-
-def create_duckdb_conn(config: dict) -> "DuckConn":
-    """Take the config and create a proper DuckDB connection.
-
-    Args:
-        config (dict): A configuration for the two databases being connected.
-
-    Returns:
-        "DuckConn": A configured DuckDB connection.
-    """
-    logger.info("Creating DuckDB database")
-
-    # In-memory DB
-    conn = duckdb.connect(":memory:", config={"memory_limit": "8GB", "threads": 8})
-
-    # DEMOS PostgreSQL Connection
-    conn.install_extension("postgres")
-    conn.load_extension("postgres")
-
-    ddb_demos_config = config["ddb_demos"]
-    clean_demos_pwd = ddb_demos_config["pwd"].replace("'", "''")
-    conn.execute(f"""
-        CREATE SECRET (
-            TYPE postgres,
-            HOST '{ddb_demos_config["host"]}',
-            PORT {ddb_demos_config["port"]},
-            DATABASE {ddb_demos_config["db"]},
-            USER '{ddb_demos_config["user"]}',
-            PASSWORD '{clean_demos_pwd}'
-        );
-    """)
-
-    conn.execute(f"ATTACH 'sslmode={ddb_demos_config['sslmode']}' AS ddb_demos (TYPE postgres);")
-    conn.execute("SET pg_null_byte_replacement=''")  # This is necessary to handle nulls from MySQL
-    logger.info("Attached DEMOS PostgreSQL database AS ddb_demos")
-
-    # PMDA MySQL Connection
-    conn.install_extension("mysql")
-    conn.load_extension("mysql")
-
-    ddb_pmda_config = config["ddb_pmda"]
-    clean_pmda_pwd = ddb_pmda_config["pwd"].replace("'", "''")
-    conn.execute(f"""
-        CREATE SECRET (
-            TYPE mysql,
-            HOST '{ddb_pmda_config["host"]}',
-            PORT {ddb_pmda_config["port"]},
-            DATABASE {ddb_pmda_config["db"]},
-            USER '{ddb_pmda_config["user"]}',
-            PASSWORD '{clean_pmda_pwd}'
-        );
-    """)
-
-    conn.execute("ATTACH '' AS ddb_pmda (TYPE mysql);")
-    logger.info("Attached PMDA MySQL database AS ddb_pmda")
-    return conn
 
 
 def get_pmda_table_list(conn: "DuckConn", source_schema: str) -> List[str]:
@@ -286,8 +201,7 @@ def main() -> None:
     """Execute main program function."""
     source_schema = os.environ["PMDA_EXPORT_SOURCE_SCHEMA"]
     target_schema = os.environ["PMDA_EXPORT_TARGET_SCHEMA"]
-    db_config = load_db_configs_from_env()
-    duck_conn = create_duckdb_conn(db_config)
+    duck_conn = create_duckdb_conn()
     tbl_list = get_pmda_table_list(duck_conn, source_schema)
     tbl_details = get_pmda_column_details(duck_conn, tbl_list, source_schema)
 
