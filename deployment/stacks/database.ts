@@ -116,7 +116,7 @@ export class DatabaseStack extends Stack {
         instanceType: aws_ec2.InstanceType.of(aws_ec2.InstanceClass.BURSTABLE4_GRAVITON, instanceSize),
         vpc: commonProps.vpc,
         vpcSubnets: { subnets: props.vpc.privateSubnets },
-        multiAz: false, // commonProps.stage == "prod", ENABLE THIS BEFORE PROD IS LIVE
+        multiAz:  commonProps.stage == "prod",
         allocatedStorage: 20,
         databaseName: "demos",
         storageType: aws_rds.StorageType.GP3,
@@ -135,7 +135,7 @@ export class DatabaseStack extends Stack {
         storageEncryptionKey: rdsKMSKey,
         port: 15432,
         parameterGroup: parameterGroup,
-        // monitoringInterval:  ["prod", "impl"].includes(commonProps.stage) ?  Duration.seconds(60) : undefined
+        monitoringInterval:  ["prod", "impl"].includes(commonProps.stage) ?  Duration.seconds(60) : undefined
       }
     );
     alarmResources.registerDatabaseInstance("rds", dbInstance);
