@@ -28,12 +28,21 @@ const realtimeDeliverableCreatedEnvelope = {
   entityType: "deliverable",
   entityId: "deliverable-1",
   payload: {
-    to: "not-allowed@email.com",
-    id: "deliverable-1",
-    name: "Quarterly Budget Report",
-    deliverableType: "Close Out Report",
-    dueDate: "2026-06-01T12:00:00.000Z",
-    status: "Upcoming",
+    recipients: {
+      to: ["not-allowed@email.com"],
+    },
+    demonstration: {
+      id: "demonstration-1",
+      name: "Medicaid Demonstration",
+      stateId: "MD",
+    },
+    deliverable: {
+      id: "deliverable-1",
+      name: "Quarterly Budget Report",
+      deliverableTypeId: "Close Out Report",
+      dueDate: "2026-06-01T12:00:00.000Z",
+      statusId: "Upcoming",
+    },
   },
 };
 
@@ -186,6 +195,20 @@ describe("emailer", () => {
     );
   });
 
+  it("should select the deliverable-submitted template by email type", async () => {
+    const email = await renderRealtimeEmailIfNeeded({
+      ...realtimeDeliverableCreatedEnvelope,
+      emailType: "Deliverable Submitted",
+    });
+
+    expect(email).toEqual(
+      expect.objectContaining({
+        subject: "CMS DEMOS Deliverable: Deliverable Submitted",
+        text: expect.stringContaining("has been submitted for your Demonstration"),
+      })
+    );
+  });
+
   it("should report unsupported realtime email types", async () => {
     await expect(
       handler(
@@ -202,12 +225,17 @@ describe("emailer", () => {
             ...realtimeDeliverableCreatedEnvelope,
             payload: {
               ...realtimeDeliverableCreatedEnvelope.payload,
-              name: "",
+              deliverable: {
+                ...realtimeDeliverableCreatedEnvelope.payload.deliverable,
+                name: "",
+              },
             },
           })
         )
       )
-    ).rejects.toThrow("Missing value for name while rendering deliverable-created.data");
+    ).rejects.toThrow(
+      "Missing value for deliverable.name while rendering deliverable-created.data"
+    );
   });
 
   it("should cancel processing if event body is invalid", async () => {
@@ -309,6 +337,7 @@ describe("emailer", () => {
     expect(await sendEmailIsAllowed([{ name: "Unit Test", address: "email@example.com" }, "test@email.com"])).toEqual(
       true
     );
+    expect(await sendEmailIsAllowed("test@email.com", undefined, "unit@test.com")).toEqual(true);
   });
   it("should return false when an invalid address is included", async () => {
     ssmMock.on(GetParameterCommand).resolves({
@@ -321,6 +350,7 @@ describe("emailer", () => {
     expect(await sendEmailIsAllowed([{ name: "Unit Test", address: "bad@example.com" }, "test@email.com"])).toEqual(
       false
     );
+    expect(await sendEmailIsAllowed("test@email.com", undefined, "bad@email.com")).toEqual(false);
   });
 
   it("should successfully return a list of allowList email addresses", async () => {
@@ -338,11 +368,11 @@ describe("emailer", () => {
     expect(list2).toEqual(["email@example.com", "test@email.com", "unit@test.com"]);
     expect(ssmMock.calls()).toHaveLength(1);
   });
-  it("should throw proper error if value is not set", () => {
+  it("should throw proper error if value is not set", async () => {
     ssmMock.on(GetParameterCommand).resolves({
       Parameter: {},
     });
-    expect(() => getAllowList()).rejects.toThrow("unable to retrieve allowlist or value is empty");
+    await expect(getAllowList()).rejects.toThrow("unable to retrieve allowlist or value is empty");
   });
   it("should return empty array if value is invalid", async () => {
     ssmMock.on(GetParameterCommand).resolves({

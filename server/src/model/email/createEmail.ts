@@ -20,7 +20,14 @@ export async function createEmail(
     ...input,
     payload: {
       ...input.payload,
-      to: currentUserEmail,
+      recipients: {
+        to: [
+          {
+            name: `${currentUser.person.firstName} ${currentUser.person.lastName}`.trim(),
+            address: currentUserEmail,
+          },
+        ],
+      },
     },
   });
 

@@ -10,7 +10,6 @@ import {
 import { prisma } from "../../prismaClient";
 import { insertDeliverableAction } from "../deliverableAction/queries";
 import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
-import { createEmail } from "../email";
 
 export async function createDeliverable(
   input: CreateDeliverableInput,
@@ -20,7 +19,7 @@ export async function createDeliverable(
   validateUserPersonTypeAllowed(context, "createDeliverable", ["demos-admin", "demos-cms-user"]);
 
   const parsedInput = parseCreateDeliverableInput(input);
-  const createdDeliverable = await prisma().$transaction(async (tx) => {
+  return prisma().$transaction(async (tx) => {
     await validateCreateDeliverableInput(parsedInput, tx);
 
     const newDeliverable = await insertDeliverable(parsedInput, tx);
@@ -50,22 +49,4 @@ export async function createDeliverable(
 
     return newDeliverable;
   });
-
-  await createEmail(
-    {
-      emailType: "Deliverable Created",
-      entityType: "deliverable",
-      entityId: createdDeliverable.id,
-      payload: {
-        id: createdDeliverable.id,
-        name: parsedInput.name,
-        deliverableType: parsedInput.deliverableType,
-        dueDate: parsedInput.dueDate.easternTZDate.toISOString(),
-        status: "Upcoming",
-      },
-    },
-    context
-  );
-
-  return createdDeliverable;
 }

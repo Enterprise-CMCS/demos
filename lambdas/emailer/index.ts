@@ -18,6 +18,7 @@ type RealtimeEmailEnvelope = {
 
 const templateByEmailType: Record<string, string> = {
   "Deliverable Created": "deliverable-created",
+  "Deliverable Submitted": "deliverable-submitted",
 };
 
 export interface EmailData extends Pick<Options, "html" | "cc" | "bcc"> {
@@ -74,10 +75,19 @@ export const handler = async (event: SQSEvent) => {
       from: process.env.EMAIL_FROM,
     };
 
-    if (process.env.DISABLE_EMAIL_ALLOWLIST == "true" || (await sendEmailIsAllowed(email.to))) {
+    if (
+      process.env.DISABLE_EMAIL_ALLOWLIST == "true" ||
+      (await sendEmailIsAllowed(email.to, email.cc, email.bcc))
+    ) {
       info = await transporter.sendMail(emailData);
     } else {
       emailData.to = redactEmailAddresses(emailData.to);
+      if (emailData.cc) {
+        emailData.cc = redactEmailAddresses(emailData.cc);
+      }
+      if (emailData.bcc) {
+        emailData.bcc = redactEmailAddresses(emailData.bcc);
+      }
       log.info({ emailData }, "log only: email not in allowlist");
       info = { messageId: "log-only" };
     }
@@ -129,6 +139,16 @@ export function isValidEmailData(email: any): email is EmailData {
     return false;
   }
 
+  if (email.cc !== undefined && !isEmailerAddress(email.cc)) {
+    log.info("an email must have a valid 'cc' property");
+    return false;
+  }
+
+  if (email.bcc !== undefined && !isEmailerAddress(email.bcc)) {
+    log.info("an email must have a valid 'bcc' property");
+    return false;
+  }
+
   return true;
 }
 
@@ -164,22 +184,30 @@ export function isEmailerAddress(address?: EmailerAddress): address is EmailerAd
 
 let allowList: string[];
 
-export async function sendEmailIsAllowed(emails: EmailerAddress): Promise<boolean> {
+export async function sendEmailIsAllowed(
+  ...recipientGroups: Array<EmailerAddress | undefined>
+): Promise<boolean> {
   const al = await getAllowList();
 
   const standardizedEmails = [];
-  if (Array.isArray(emails)) {
-    for (const e of emails) {
-      if (typeof e == "string") {
-        standardizedEmails.push(e);
-      } else {
-        standardizedEmails.push(e.address);
-      }
+  for (const emails of recipientGroups) {
+    if (!emails) {
+      continue;
     }
-  } else if (typeof emails == "string") {
-    standardizedEmails.push(emails);
-  } else {
-    standardizedEmails.push(emails.address);
+
+    if (Array.isArray(emails)) {
+      for (const e of emails) {
+        if (typeof e == "string") {
+          standardizedEmails.push(e);
+        } else {
+          standardizedEmails.push(e.address);
+        }
+      }
+    } else if (typeof emails == "string") {
+      standardizedEmails.push(emails);
+    } else {
+      standardizedEmails.push(emails.address);
+    }
   }
 
   return standardizedEmails.every((e) => al.includes(e));

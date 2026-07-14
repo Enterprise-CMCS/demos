@@ -33,7 +33,14 @@ describe("createEmail", () => {
     idempotencyKey: "Deliverable Created:deliverable:deliverable-1",
     payload: {
       name: "Quarterly Report",
-      to: "current.user@example.com",
+      recipients: {
+        to: [
+          {
+            name: "Current User",
+            address: "current.user@example.com",
+          },
+        ],
+      },
     },
   };
   const findUniqueOrThrow = vi.fn();
@@ -44,7 +51,11 @@ describe("createEmail", () => {
       user: { findUniqueOrThrow },
     } as any);
     findUniqueOrThrow.mockResolvedValue({
-      person: { email: " current.user@example.com " },
+      person: {
+        email: " current.user@example.com ",
+        firstName: "Current",
+        lastName: "User",
+      },
     });
     vi.mocked(buildRealtimeEmailEnvelope).mockReturnValue(envelope);
     vi.mocked(enqueueRealtimeEmail).mockResolvedValue("message-1");
@@ -61,7 +72,14 @@ describe("createEmail", () => {
       ...input,
       payload: {
         ...input.payload,
-        to: "current.user@example.com",
+        recipients: {
+          to: [
+            {
+              name: "Current User",
+              address: "current.user@example.com",
+            },
+          ],
+        },
       },
     });
     expect(enqueueRealtimeEmail).toHaveBeenCalledExactlyOnceWith(envelope);

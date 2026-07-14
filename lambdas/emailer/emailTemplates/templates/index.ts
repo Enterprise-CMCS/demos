@@ -1,6 +1,6 @@
-import { deliverableCreatedTemplate } from "./deliverableCreated";
+import { deliverableEmailTemplates } from "./deliverableEmails";
 import type { EmailTemplateDefinition } from "../types";
 
 export const templates: Record<string, EmailTemplateDefinition<any, any>> = {
-  [deliverableCreatedTemplate.id]: deliverableCreatedTemplate,
+  ...deliverableEmailTemplates,
 };

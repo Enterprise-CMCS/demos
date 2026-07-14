@@ -21,12 +21,21 @@ $AWS_CMD sqs send-message \
       "triggeredAt": "2026-07-10T00:00:00.000Z",
       "idempotencyKey": "Deliverable Created:deliverable:local-deliverable-1",
       "payload": {
-        "to": "not-allowed@example.com",
-        "id": "local-deliverable-1",
-        "name": "LocalStack Deliverable",
-        "deliverableType": "Close Out Report",
-        "dueDate": "2026-07-10T12:00:00.000Z",
-        "status": "Upcoming"
+        "recipients": {
+          "to": ["not-allowed@example.com"]
+        },
+        "demonstration": {
+          "id": "local-demonstration-1",
+          "name": "LocalStack Demonstration",
+          "stateId": "MD"
+        },
+        "deliverable": {
+          "id": "local-deliverable-1",
+          "name": "LocalStack Deliverable",
+          "deliverableTypeId": "Close Out Report",
+          "dueDate": "2026-07-10T12:00:00.000Z",
+          "statusId": "Upcoming"
+        }
       }
     }' >/dev/null
 

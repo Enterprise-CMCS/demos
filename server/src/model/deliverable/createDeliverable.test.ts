@@ -32,10 +32,6 @@ vi.mock("../deliverableAction/queries", () => ({
   insertDeliverableAction: vi.fn(),
 }));
 
-vi.mock("../email", () => ({
-  createEmail: vi.fn(),
-}));
-
 import { prisma } from "../../prismaClient";
 import {
   parseCreateDeliverableInput,
@@ -45,7 +41,6 @@ import {
 } from ".";
 import { setDeliverableDemonstrationTypes } from "../deliverableDemonstrationType";
 import { insertDeliverableAction } from "../deliverableAction/queries";
-import { createEmail } from "../email";
 
 describe("createDeliverable", () => {
   // Test inputs
@@ -76,7 +71,6 @@ describe("createDeliverable", () => {
   const mockNewDeliverable: Partial<PrismaDeliverable> = {
     id: "2563ded3-b5c5-4d89-9ee4-0a9bc072e89e",
   };
-
   // Mock transaction
   const mockTransaction: any = "Test!";
   const mockPrismaClient = {
@@ -88,7 +82,6 @@ describe("createDeliverable", () => {
     vi.mocked(prisma).mockReturnValue(mockPrismaClient as any);
     vi.mocked(parseCreateDeliverableInput).mockReturnValue(mockParsedInput);
     vi.mocked(insertDeliverable).mockResolvedValue(mockNewDeliverable as PrismaDeliverable);
-    vi.mocked(createEmail).mockResolvedValue("message-1");
     mockPrismaClient.$transaction.mockImplementation((callback) => callback(mockTransaction));
   });
 
@@ -178,37 +171,5 @@ describe("createDeliverable", () => {
       },
       mockTransaction
     );
-  });
-
-  it("should create a Deliverable Created email after the transaction", async () => {
-    await createDeliverable(testInput, testContext as GraphQLContext);
-
-    expect(createEmail).toHaveBeenCalledExactlyOnceWith(
-      {
-        emailType: "Deliverable Created",
-        entityType: "deliverable",
-        entityId: mockNewDeliverable.id,
-        payload: {
-          id: mockNewDeliverable.id,
-          name: mockParsedInput.name,
-          deliverableType: mockParsedInput.deliverableType,
-          dueDate: mockParsedInput.dueDate.easternTZDate.toISOString(),
-          status: "Upcoming",
-        },
-      },
-      testContext
-    );
-  });
-
-  it("should surface email dispatch failures after creating the deliverable", async () => {
-    vi.mocked(createEmail).mockRejectedValueOnce(
-      new Error("Failed to enqueue realtime email message.")
-    );
-
-    await expect(createDeliverable(testInput, testContext as GraphQLContext)).rejects.toThrow(
-      "Failed to enqueue realtime email message."
-    );
-
-    expect(mockPrismaClient.$transaction).toHaveBeenCalledOnce();
   });
 });

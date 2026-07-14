@@ -2,7 +2,12 @@ import { render, toPlainText } from "@react-email/render";
 import type { ReactElement } from "react";
 
 import { templates } from "./templates";
-import type { EmailRecipient, EmailTemplateDefinition, RenderedEmailPayload } from "./types";
+import type {
+  EmailRecipient,
+  EmailRecipientGroups,
+  EmailTemplateDefinition,
+  RenderedEmailPayload,
+} from "./types";
 
 export async function renderEmail(
   templateId: string,
@@ -28,15 +33,31 @@ export async function renderEmail(
   const html = await render(element);
 
   return {
-    to: normalizeRecipients(template.getRecipients(input)),
+    ...normalizeRecipientGroups(template.getRecipients(input)),
     subject: typeof template.subject === "function" ? template.subject(props) : template.subject,
     text: toPlainText(html),
     html,
   };
 }
 
-function normalizeRecipients(recipients: EmailRecipient[]): EmailRecipient[] {
-  if (!Array.isArray(recipients) || recipients.length === 0) {
+function normalizeRecipientGroups(recipients: EmailRecipientGroups): EmailRecipientGroups {
+  if (!recipients || typeof recipients !== "object") {
+    throw new Error("Email template must include recipient groups.");
+  }
+
+  return {
+    to: normalizeRecipients(recipients.to, "to", true),
+    ...(recipients.cc ? { cc: normalizeRecipients(recipients.cc, "cc") } : {}),
+    ...(recipients.bcc ? { bcc: normalizeRecipients(recipients.bcc, "bcc") } : {}),
+  };
+}
+
+function normalizeRecipients(
+  recipients: EmailRecipient[],
+  group: keyof EmailRecipientGroups,
+  required = false
+): EmailRecipient[] {
+  if (!Array.isArray(recipients) || (required && recipients.length === 0)) {
     throw new Error("Email template must include at least one recipient.");
   }
 
@@ -54,6 +75,6 @@ function normalizeRecipients(recipients: EmailRecipient[]): EmailRecipient[] {
       return recipient;
     }
 
-    throw new Error(`Invalid email recipient at index ${index}.`);
+    throw new Error(`Invalid ${group} email recipient at index ${index}.`);
   });
 }

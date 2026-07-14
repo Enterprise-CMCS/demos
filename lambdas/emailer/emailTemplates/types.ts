@@ -7,8 +7,13 @@ export type EmailRecipient =
       address: string;
     };
 
-export type RenderedEmailPayload = {
+export type EmailRecipientGroups = {
   to: EmailRecipient[];
+  cc?: EmailRecipient[];
+  bcc?: EmailRecipient[];
+};
+
+export type RenderedEmailPayload = EmailRecipientGroups & {
   subject: string;
   text: string;
   html: string;
@@ -23,5 +28,5 @@ export type EmailTemplateDefinition<Props extends object = any, Input = any> = {
   subject: string | ((props: Props) => string);
   Component: ComponentType<Props>;
   getProps(input: Input, context: EmailRenderContext): Props;
-  getRecipients(input: Input): EmailRecipient[];
+  getRecipients(input: Input): EmailRecipientGroups;
 };
