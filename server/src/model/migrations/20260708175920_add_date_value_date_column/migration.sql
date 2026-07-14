@@ -6,10 +6,10 @@
 -- rather than a JS Date object, avoiding timezone shift issues at the application layer.
 
 ALTER TABLE demos_app.application_date
-  ADD COLUMN plain_date text;
+  ADD COLUMN plain_date text NOT NULL DEFAULT '';
 
 ALTER TABLE demos_app.application_date_history
-  ADD COLUMN plain_date text;
+  ADD COLUMN plain_date text NOT NULL DEFAULT '';
 
 -- Backfill existing rows for all date types.
 -- Convert the stored timestamptz to a plain date in Eastern time.
