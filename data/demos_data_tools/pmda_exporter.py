@@ -6,7 +6,7 @@ import types
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, Tuple, Type
 
-from duckdb_connection_manager import create_duckdb_conn
+from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME, PMDA_DDB_ATTACH_NAME, create_duckdb_conn
 from dotenv import load_dotenv
 from logger import get_logger
 
@@ -50,10 +50,10 @@ def get_pmda_table_list(conn: "DuckConn", source_schema: str) -> List[str]:
         FROM
             information_schema.TABLES
         WHERE
-            TABLE_CATALOG = 'ddb_pmda'
+            TABLE_CATALOG = $catalog
             AND TABLE_SCHEMA = $schema
     """
-    result = conn.execute(query, {"schema": source_schema}).fetchall()
+    result = conn.execute(query, {"catalog": PMDA_DDB_ATTACH_NAME, "schema": source_schema}).fetchall()
     result = [x[0] for x in result]
     logger.info(f"Returned {len(result)} table names from PMDA database for schema {source_schema}")
     return result
@@ -72,9 +72,9 @@ def get_pmda_column_details(conn: "DuckConn", tbl_list: List[str], source_schema
     """
     # Pull columns table to local DuckDB to improve processing speed
     logger.info("Copying PMDA columns table down to local DuckDB instance")
-    col_copy_qry = """
+    col_copy_qry = f"""
         CREATE TABLE mysql_columns AS
-        SELECT * FROM ddb_pmda.information_schema.COLUMNS;
+        SELECT * FROM {PMDA_DDB_ATTACH_NAME}.information_schema.COLUMNS;
     """
     conn.execute(col_copy_qry)
     logger.info("Local copy created")
@@ -147,8 +147,8 @@ def generate_demos_ddl(tbl: str, col_info: List[Tuple], target_schema: str) -> d
     logger.debug(f"Producing DEMOS DDL for table {tbl} in schema {target_schema}")
     col_lines = ",\n".join([make_postgresql_column_definition(col) for col in col_info])
     tbl = sanitize_table_name(tbl)
-    duckdb_first_line = f"DROP TABLE IF EXISTS ddb_demos.{target_schema}.{tbl};\n"
-    duckdb_second_line = f"CREATE TABLE ddb_demos.{target_schema}.{tbl} (\n"
+    duckdb_first_line = f"DROP TABLE IF EXISTS {DEMOS_DDB_ATTACH_NAME}.{target_schema}.{tbl};\n"
+    duckdb_second_line = f"CREATE TABLE {DEMOS_DDB_ATTACH_NAME}.{target_schema}.{tbl} (\n"
     regular_first_line = f"CREATE TABLE {target_schema}.{tbl} (\n"
     last_line = "\n);"
     result = {
@@ -186,11 +186,11 @@ def transfer_table(conn: "DuckConn", tbl: str, source_schema: str, target_schema
     tbl = sanitize_table_name(tbl)
     transfer_qry = f"""
         INSERT INTO
-            ddb_demos.{target_schema}.{tbl}
+            {DEMOS_DDB_ATTACH_NAME}.{target_schema}.{tbl}
         SELECT
             *
         FROM
-            ddb_pmda.{source_schema}.{tbl}
+            {PMDA_DDB_ATTACH_NAME}.{source_schema}.{tbl}
     """
     conn.execute(transfer_qry)
     logger.debug("Data transfer successful")

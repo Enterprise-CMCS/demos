@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any, Iterator, TypedDict
 
 import boto3
 import duckdb
+from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME
 from dotenv import load_dotenv
 from logger import get_logger
 
@@ -19,15 +20,14 @@ if TYPE_CHECKING:  # pragma: no cover
 
 
 ENV_FILE = Path(__file__).with_name(".env")
-DUCKDB_POSTGRES_DB_NAME = "postgres_db"
 logger = get_logger(__name__)
-SELECT_UNMIGRATED_FILES_QUERY = """
+SELECT_UNMIGRATED_FILES_QUERY = f"""
 SELECT old_path, new_path
-FROM postgres_db.public.file_migration_queue
+FROM {DEMOS_DDB_ATTACH_NAME}.public.file_migration_queue
 WHERE flag = true
 """
-MARK_FILE_MIGRATED_QUERY = """
-UPDATE postgres_db.public.file_migration_queue
+MARK_FILE_MIGRATED_QUERY = f"""
+UPDATE {DEMOS_DDB_ATTACH_NAME}.public.file_migration_queue
 SET flag = false
 WHERE old_path = ? AND new_path = ? AND flag = true
 """
@@ -61,7 +61,7 @@ def create_duckdb_postgres_conn() -> "DuckConn":
             PASSWORD '{clean_postgres_pwd}'
         );
     """)
-    conn.execute(f"ATTACH 'sslmode={os.environ['POSTGRES_SSLMODE']}' AS {DUCKDB_POSTGRES_DB_NAME} (TYPE postgres);")
+    conn.execute(f"ATTACH 'sslmode={os.environ['POSTGRES_SSLMODE']}' AS {DEMOS_DDB_ATTACH_NAME} (TYPE postgres);")
     return conn
 
 

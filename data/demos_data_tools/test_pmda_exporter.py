@@ -7,6 +7,7 @@ from unittest.mock import call
 import pytest
 
 import pmda_exporter
+from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME, PMDA_DDB_ATTACH_NAME
 
 
 class TestPmdaExporter:
@@ -51,13 +52,13 @@ class TestPmdaExporter:
             FROM
                 information_schema.TABLES
             WHERE
-                TABLE_CATALOG = 'ddb_pmda'
+                TABLE_CATALOG = $catalog
                 AND TABLE_SCHEMA = $schema
         """
         actual_query = mock_conn.execute.call_args_list[0].args[0]
         actual_params = mock_conn.execute.call_args_list[0].args[1]
         assert dedent(actual_query) == dedent(expected_query)
-        assert actual_params == {"schema": self.test_source_schema}
+        assert actual_params == {"catalog": PMDA_DDB_ATTACH_NAME, "schema": self.test_source_schema}
 
     def test_get_pmda_column_details_01(self, mock_conn):
         """Test pmda_exporter.py functions.
@@ -135,8 +136,8 @@ class TestPmdaExporter:
         """
         # Note that the little replace there at the end removes that empty first line, making dedent work correctly
         expected_duckdb_qry = f"""
-            DROP TABLE IF EXISTS ddb_demos.{self.test_target_schema}.tbl1;
-            CREATE TABLE ddb_demos.{self.test_target_schema}.tbl1 (
+            DROP TABLE IF EXISTS {DEMOS_DDB_ATTACH_NAME}.{self.test_target_schema}.tbl1;
+            CREATE TABLE {DEMOS_DDB_ATTACH_NAME}.{self.test_target_schema}.tbl1 (
                 col1 INTEGER,
                 col2 INTEGER,
                 col3 CHAR(30),
@@ -192,6 +193,9 @@ class TestPmdaExporter:
             FROM
                 ddb_pmda.mysql.tbl21
         """
+        expected_qry = expected_qry.replace("ddb_demos", DEMOS_DDB_ATTACH_NAME).replace(
+            "ddb_pmda", PMDA_DDB_ATTACH_NAME
+        )
         expected_qry = dedent(expected_qry)
         assert dedent(mock_conn.execute.call_args_list[0].args[0]) == expected_qry
 
@@ -211,6 +215,9 @@ class TestPmdaExporter:
             FROM
                 ddb_pmda.mysql."tbl-22"
         """
+        expected_qry = expected_qry.replace("ddb_demos", DEMOS_DDB_ATTACH_NAME).replace(
+            "ddb_pmda", PMDA_DDB_ATTACH_NAME
+        )
         expected_qry = dedent(expected_qry)
         assert dedent(mock_conn.execute.call_args_list[0].args[0]) == expected_qry
 

@@ -8,6 +8,7 @@ import os
 import pytest
 
 import migrate_files
+from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME
 
 
 @pytest.fixture
@@ -81,7 +82,7 @@ class TestMigrateFiles:
         assert "USER 'db-user'" in create_secret_sql
         assert "PASSWORD 'db''pass'" in create_secret_sql
         attach_sql = mock_conn.execute.call_args_list[1].args[0]
-        assert attach_sql == "ATTACH 'sslmode=require' AS postgres_db (TYPE postgres);"
+        assert attach_sql == f"ATTACH 'sslmode=require' AS {DEMOS_DDB_ATTACH_NAME} (TYPE postgres);"
 
     def test_create_duckdb_postgres_conn_requires_sslmode(
         self,
