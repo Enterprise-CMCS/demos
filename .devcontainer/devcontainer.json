@@ -24,7 +24,11 @@
                 "apollographql.vscode-apollo",
                 "esbenp.prettier-vscode",
                 "vitest.explorer",
-                "ryanluker.vscode-coverage-gutters"
+                "ryanluker.vscode-coverage-gutters",
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "charliermarsh.ruff",
+                "ms-python.mypy-type-checker"
             ]
         }
     }
