@@ -1,5 +1,3 @@
-@Library('demos-lib@DEMOS-1290-init-prod') _
-
 pipeline {
   agent {
     kubernetes {
