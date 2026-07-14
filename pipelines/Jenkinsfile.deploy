@@ -59,12 +59,15 @@ pipeline {
               parallel(
                 'Build Client': {
                   dirCon('deployment','node') {
-                    // sh "npx tsx demosctl/index build:client ${env.STAGE}"
-                    sh """
-                    mkdir -p ../client/dist
-                    cp ./mock-index.html ../client/dist/index.html
-                    """
-                      
+                    if (env.STAGE == 'prod') {
+                      // TODO: This needs to be removed before going live in PROD
+                      sh """
+                      mkdir -p ../client/dist
+                      cp ./mock-index.html ../client/dist/index.html
+                      """
+                    } else {
+                      sh "npx tsx demosctl/index build:client ${env.STAGE}"
+                    }
                       
                   }
                 }, 'Build Server': {
@@ -132,9 +135,7 @@ pipeline {
       post {
         failure {
           script {
-            echo "there was an error with the migrations"
-            // DO NOT MERGE - Remove echo above and uncomment line below after testing
-            // notifyMigrationError(env.STAGE)
+            notifyMigrationError(env.STAGE)
           }
         }
       }
