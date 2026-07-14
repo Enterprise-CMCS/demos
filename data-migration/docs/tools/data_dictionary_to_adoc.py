@@ -22,17 +22,27 @@ blocks, yielding the true final schema.
 
 Table intros come from the shared ``table_purpose.PURPOSE`` dict; table
 classification (data / associative / static-constraint / type-limiter) comes
-from the sibling ``mmd_sql_compare/mmd_tables/`` directory layout. The output
-is an AsciiDoc *partial* (no H1, no toc) included by
-``docs/developer/reference-data-dictionary.adoc``.
+from the hand-authored DEMOS data model
+(``../demos/data/docs/DEMOS_Data_Model.mmd``; override with the
+``DEMOS_DATA_MODEL_MMD`` env var). The output is an AsciiDoc *partial* (no H1,
+no toc) included by ``docs/developer/reference-data-dictionary.adoc``.
 """
 
 from __future__ import annotations
 
+import os
+import re
 import sys
 from pathlib import Path
 
-from schema_model import DDLColumn, DDLForeignKey, DDLTable, replay_ddl
+from schema_model import (
+    DEMOS_DATA_MODEL_MMD,
+    MERMAID_CLASS_TO_DIR,
+    DDLColumn,
+    DDLForeignKey,
+    DDLTable,
+    replay_ddl,
+)
 from table_purpose import (
     PURPOSE,
     STATIC_CONSTRAINT_PURPOSE,
@@ -51,8 +61,11 @@ DOCS_DIR = REPO_ROOT / "docs"
 PIN_FILE = REPO_ROOT / "reports" / "prisma_ddl.sha256"
 PRISMA_CACHE_DIR = REPO_ROOT / "state" / "prisma_ddl"
 SUPPLEMENTS_DIR = REPO_ROOT / "sql" / "01_ddl_supplements"
-MMD_DIR = REPO_ROOT.parent / "mmd_sql_compare" / "mmd_tables"
+DEMOS_MMD_FILE = Path(os.environ.get("DEMOS_DATA_MODEL_MMD", str(DEMOS_DATA_MODEL_MMD)))
 OUTPUT = DOCS_DIR / "shared" / "generated" / "data-dictionary.adoc"
+
+# Entity-block header in the DEMOS data model: ``name:::mermaidClass {``.
+_MMD_BLOCK_RE = re.compile(r"^\s*([A-Za-z_]\w*):::(\w+)\s*\{", re.MULTILINE)
 
 DEMO_SCHEMA = "demos_app"
 MIGRATION_SCHEMA = "migration"
@@ -77,14 +90,27 @@ def _resolve_artifact() -> Path:
 # --------------------------------------------------------------------------- #
 
 
+def _load_mmd_classes() -> dict[str, set[str]]:
+    """Table-class buckets parsed from the single DEMOS data model file.
+
+    Each entity block is ``name:::mermaidClass { ... }``; the mermaid class is
+    mapped to the same class-directory keys the classifier expects. Blocks with
+    any other class (e.g. the diagram ``legend``) are ignored.
+    """
+    buckets: dict[str, set[str]] = {}
+    if not DEMOS_MMD_FILE.exists():
+        return buckets
+    text = DEMOS_MMD_FILE.read_text(encoding="utf-8")
+    for match in _MMD_BLOCK_RE.finditer(text):
+        cls_dir = MERMAID_CLASS_TO_DIR.get(match.group(2))
+        if cls_dir:
+            buckets.setdefault(cls_dir, set()).add(match.group(1))
+    return buckets
+
+
 def _classify(tables: dict[str, Table]) -> dict[str, str]:
-    """Return table_name -> class label using the mmd dir layout + heuristics."""
-    mmd_classes: dict[str, set[str]] = {}
-    if MMD_DIR.exists():
-        for cls in ("data_tables", "associative_tables", "static_constraints", "type_limiters"):
-            d = MMD_DIR / cls
-            if d.exists():
-                mmd_classes[cls] = {p.stem for p in d.glob("*.mmd")}
+    """Return table_name -> class label using the DEMOS data model + heuristics."""
+    mmd_classes = _load_mmd_classes()
     out: dict[str, str] = {}
     for name, tbl in tables.items():
         if tbl.has_history:

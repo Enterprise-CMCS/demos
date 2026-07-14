@@ -1,5 +1,6 @@
+import {createLambdaLogger} from "demos-shared-library/log"
 import pino from "pino";
-import { AsyncLocalStorage } from "node:async_hooks";
+
 
 const isNotOnAWS = () => !process.env.AWS_EXECUTION_ENV;
 const REDACTED = "[REDACTED]";
@@ -45,40 +46,28 @@ for (const logObject of REDACTED_LOG_OBJECTS) {
   LOGGER_REDACTION_PATHS.push(...REDACTED_ERROR_PATHS.map((path) => `${logObject}.${path}`));
 }
 
-export const setupLogger = (serviceName: string, destination?: pino.DestinationStream) =>
-  pino({
-    level: process.env.LOG_LEVEL ?? "info",
-    redact: {
-      paths: LOGGER_REDACTION_PATHS,
-      censor: REDACTED,
+export const loggerOptions: pino.LoggerOptions<never, boolean> = {
+  formatters: {
+    log: (obj) => {
+      // Extract top-level fields (eg. type to match default AWS lambda logs)
+      // All other fields go under `ctx`
+      const { type, ...rest } = obj;
+      // check `rest` length to prevent logging ctx:{}
+      return {
+        type,
+        ctx: Object.keys(rest).length ? serializeLogObject(rest) : undefined,
+      };
     },
-    serializers: {
-      err: serializeError,
-      error: serializeError,
-    },
-    // match lambda application logs, which use "timestamp" rather than "time"
-    timestamp: () => `,"timestamp":"${new Date().toISOString()}"`,
-    base: {
-      svc: serviceName,
-    },
-    formatters: {
-      level(label) {
-        return { level: label.toUpperCase() };
-      },
-      log: (obj) => {
-        // Extract top-level fields (eg. type to match default AWS lambda logs)
-        // All other fields go under `ctx`
-        const { type, ...rest } = obj;
-        // check `rest` length to prevent logging ctx:{}
-        return {
-          type,
-          ctx: Object.keys(rest).length ? serializeLogObject(rest) : undefined,
-        };
-      },
-    },
-    // Disable pretty transport in bundled/worker contexts to avoid worker path issues.
-    transport: isNotOnAWS()
-    ? {
+  },
+  redact: {
+    paths: LOGGER_REDACTION_PATHS,
+    censor: REDACTED,
+  },
+  serializers: {
+    err: serializeError,
+    error: serializeError,
+  },
+  transport: isNotOnAWS() ? {
         target: "pino-pretty",
         options: {
           colorize: true,
@@ -88,22 +77,7 @@ export const setupLogger = (serviceName: string, destination?: pino.DestinationS
         },
       }
     : undefined,
-  }, destination);
+}
 
-export const parentLogger = setupLogger("uipath");
-
-export const reqIdChild = (id: string, extra?: object) => {
-  const child = parentLogger.child({requestId: id, ...extra });
-  als.getStore()?.set("logger", child);
-  return child;
-};
-
-export const store = new Map();
-export const als = new AsyncLocalStorage<typeof store>();
-
-export const log = new Proxy(parentLogger, {
-  get(target, property, receiver) {
-    target = als.getStore()?.get("logger") ?? target;
-    return Reflect.get(target, property, receiver);
-  },
-});
+export const {log, reqIdChild, store, als } = createLambdaLogger("uipath", loggerOptions)
+export {createLambdaLogger} from 'demos-shared-library/log'

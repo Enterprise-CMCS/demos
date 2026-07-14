@@ -299,6 +299,11 @@ def _run(label: str, command: str) -> int:
         _console.rule(f"[bold cyan]\u25b6 {label}[/bold cyan]", align="left")
     else:
         print(f">> {label}")
+    # shell=True is intentional and not a command-injection surface: `command`
+    # is always a static Makefile recipe (the $(STEP) targets) that depends on
+    # shell features -- `;`, `&&`, globs, redirects, env-var prefixes. Nothing
+    # untrusted or remote reaches here; the only variable portion is
+    # `make <target> ARGS="..."`, supplied by the developer running the build.
     result = subprocess.run(command, shell=True)
     code = result.returncode
     if _RICH:

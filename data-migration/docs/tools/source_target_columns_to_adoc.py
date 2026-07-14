@@ -72,8 +72,6 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 SPECS_ROOT = REPO_ROOT.parent
 
-DEFAULT_MYSQL_MMD = SPECS_ROOT / "mmd_sql_compare" / "mysql_pmda_data_model.dot"
-DEFAULT_DEMOS_MMD = SPECS_ROOT / "mmd_sql_compare" / "demos_data_model.mmd"
 DEFAULT_MYSQL_SNAPSHOT = REPO_ROOT / "reports" / "schema_snapshot" / "columns.csv"
 DEFAULT_CSV = REPO_ROOT / "reports" / "source_target_columns.csv"
 DEFAULT_DROP_LIST = REPO_ROOT / "reports" / "narrative" / "drop_list.md"

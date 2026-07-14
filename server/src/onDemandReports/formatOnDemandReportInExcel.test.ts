@@ -24,7 +24,7 @@ import { getOnDemandReportConfiguration } from "./configs";
 
 describe("formatOnDemandReportInExcel", () => {
   const testReportType: OnDemandReportType = "Basic Test Report";
-  const testRows = [{ col1: "value" }];
+  const testRows = [{ col1: "value", col2: "another value" }];
   const testRequestId = "test-request-id";
   const testReportMetadata: ReportMetadata = {
     requestId: testRequestId,
@@ -42,6 +42,7 @@ describe("formatOnDemandReportInExcel", () => {
     columns: [],
     addRow: vi.fn(),
     getRow: vi.fn(),
+    getColumn: vi.fn(),
     autoFitColumns: vi.fn(),
   };
   const mockMetadataWorksheet = {
@@ -52,9 +53,16 @@ describe("formatOnDemandReportInExcel", () => {
   };
   const mockGetCell = vi.fn();
   const mockOnDemandReportConfiguration: Partial<OnDemandReportConfiguration> = {
-    excelConfiguration: { columnNames: { col1: "Column 1" } },
+    excelConfiguration: {
+      columns: {
+        col1: { columnName: "Column 1" },
+        col2: { columnName: "Column 2", columnWidth: 30 },
+      },
+    },
   };
-  let mockPrimaryHeaderRow: { font?: { bold: boolean } } = {};
+  let mockPrimaryHeaderRow: { font?: { bold: boolean }; alignment?: { wrapText: boolean } } = {};
+  let mockAddedRow: { alignment?: { wrapText: boolean }; height?: number } = {};
+  let mockColumn: { width?: number };
   let mockMetadataLabelColumn: { font?: { bold: boolean } } = {};
   let mockMetadataValueColumn: { alignment?: { horizontal: string } } = {};
   let mockTimestampCell: { numFmt?: string } = {};
@@ -65,6 +73,8 @@ describe("formatOnDemandReportInExcel", () => {
 
     // Reset these before every test to ensure they are empty
     mockPrimaryWorksheet.columns = [];
+    mockAddedRow = {};
+    mockColumn = {};
     mockPrimaryHeaderRow = {};
     mockMetadataLabelColumn = {};
     mockMetadataValueColumn = {};
@@ -88,6 +98,8 @@ describe("formatOnDemandReportInExcel", () => {
     mockWorkbook.xlsx.writeBuffer.mockResolvedValue(mockWrittenBuffer);
 
     mockPrimaryWorksheet.getRow.mockReturnValue(mockPrimaryHeaderRow);
+    mockPrimaryWorksheet.addRow.mockReturnValue(mockAddedRow);
+    mockPrimaryWorksheet.getColumn.mockReturnValue(mockColumn);
 
     // The label column is fetched first, the value column second
     mockMetadataWorksheet.getColumn
@@ -109,20 +121,31 @@ describe("formatOnDemandReportInExcel", () => {
     await formatOnDemandReportInExcel(testReportType, testRows, testReportMetadata);
 
     expect(getOnDemandReportConfiguration).toHaveBeenCalledExactlyOnceWith(testReportType);
-    expect(mockPrimaryWorksheet.columns).toEqual([{ key: "col1", header: "Column 1" }]);
+    expect(mockPrimaryWorksheet.columns).toEqual([
+      { key: "col1", header: "Column 1" },
+      { key: "col2", header: "Column 2" },
+    ]);
   });
 
-  it("adds a row for each report row", async () => {
+  it("adds a row for each report row, word wraps it, and sets the height", async () => {
     await formatOnDemandReportInExcel(testReportType, testRows, testReportMetadata);
 
-    expect(mockPrimaryWorksheet.addRow).toHaveBeenCalledExactlyOnceWith({ col1: "value" });
+    expect(mockPrimaryWorksheet.addRow).toHaveBeenCalledExactlyOnceWith({
+      col1: "value",
+      col2: "another value",
+    });
+    expect(mockAddedRow.alignment).toEqual({ wrapText: true });
+    expect(mockAddedRow.height).toEqual(12);
   });
 
-  it("bolds the header row", async () => {
+  it("bolds and wraps the header row", async () => {
     await formatOnDemandReportInExcel(testReportType, testRows, testReportMetadata);
 
-    expect(mockPrimaryWorksheet.getRow).toHaveBeenCalledExactlyOnceWith(1);
+    expect(mockPrimaryWorksheet.getRow).toHaveBeenCalledTimes(2);
+    expect(mockPrimaryWorksheet.getRow).toHaveBeenNthCalledWith(1, 1);
+    expect(mockPrimaryWorksheet.getRow).toHaveBeenNthCalledWith(2, 1);
     expect(mockPrimaryHeaderRow.font).toEqual({ bold: true });
+    expect(mockPrimaryHeaderRow.alignment).toEqual({ wrapText: true });
   });
 
   it("auto-fits the columns of both worksheets to their content", async () => {
@@ -130,6 +153,16 @@ describe("formatOnDemandReportInExcel", () => {
 
     expect(mockPrimaryWorksheet.autoFitColumns).toHaveBeenCalledExactlyOnceWith();
     expect(mockMetadataWorksheet.autoFitColumns).toHaveBeenCalledExactlyOnceWith();
+  });
+
+  it("manually overrides columns where the width is set", async () => {
+    await formatOnDemandReportInExcel(testReportType, testRows, testReportMetadata);
+
+    expect(mockPrimaryWorksheet.autoFitColumns).toHaveBeenCalledBefore(
+      mockPrimaryWorksheet.getColumn
+    );
+    expect(mockPrimaryWorksheet.getColumn).toHaveBeenCalledExactlyOnceWith("col2");
+    expect(mockColumn.width).toEqual(30);
   });
 
   it("adds the request ID to the metadata worksheet", async () => {

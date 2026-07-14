@@ -7,7 +7,13 @@
     "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
     "features": {
         "ghcr.io/devcontainers-community/npm-features/typescript:1": {},
-        "ghcr.io/devcontainers-extra/features/ts-node:1": {}
+        "ghcr.io/devcontainers-extra/features/ts-node:1": {},
+        "ghcr.io/devcontainers/features/aws-cli:1": { "version": "2.35.22" },
+        "ghcr.io/devcontainers-extra/features/pre-commit:2": { "version": "4.2.0" },
+        "ghcr.io/devcontainers/features/python:1": {
+            "version": "3.13",
+            "installTools": false
+        }
     },
     "mounts": [
         "type=bind,source=${localEnv:HOME}/.ssh,target=/root/.ssh,readonly"
@@ -24,7 +30,11 @@
                 "apollographql.vscode-apollo",
                 "esbenp.prettier-vscode",
                 "vitest.explorer",
-                "ryanluker.vscode-coverage-gutters"
+                "ryanluker.vscode-coverage-gutters",
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "charliermarsh.ruff",
+                "ms-python.mypy-type-checker"
             ]
         }
     }

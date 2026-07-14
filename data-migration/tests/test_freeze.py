@@ -32,10 +32,14 @@ def test_run_freeze_writes_instant_and_delta_log(
     monkeypatch.setattr(freeze, "confirm", lambda _prompt: True)
     monkeypatch.setattr(freeze.Env, "load", classmethod(lambda cls: _fake_env()))
 
-    captured: dict[str, str] = {}
-    monkeypatch.setattr(
-        freeze, "psql_command", lambda _env, sql: captured.__setitem__("sql", sql)
-    )
+    captured_sql: list[str] = []
+    captured_params: list[object] = []
+
+    def _capture(_env: object, sql: str, params: object = None) -> None:
+        captured_sql.append(sql)
+        captured_params.append(params)
+
+    monkeypatch.setattr(freeze, "psql_command", _capture)
 
     freeze.run_freeze()
 
@@ -44,9 +48,11 @@ def test_run_freeze_writes_instant_and_delta_log(
     instant = instant_file.read_text(encoding="utf-8").strip()
     assert instant, "freeze_instant.txt must hold a non-empty timestamp"
 
-    assert "INSERT INTO mysql_raw._delta_log (freeze_instant)" in captured["sql"]
-    # The same instant written to disk must be the one logged to _delta_log.
-    assert f"'{instant}'::timestamptz" in captured["sql"]
+    assert "INSERT INTO mysql_raw._delta_log (freeze_instant)" in captured_sql[0]
+    # The value is parameterized (never interpolated); the same instant written
+    # to disk must be the one bound for the _delta_log row.
+    assert "VALUES (%s::timestamptz)" in captured_sql[0]
+    assert captured_params[0] == [instant]
 
     assert lib.gate_path("freeze").exists(), "freeze gate must be marked on success"
 
@@ -64,7 +70,9 @@ def test_run_freeze_aborts_when_not_confirmed(
 
     writes = {"n": 0}
     monkeypatch.setattr(
-        freeze, "psql_command", lambda _env, _sql: writes.__setitem__("n", writes["n"] + 1)
+        freeze,
+        "psql_command",
+        lambda _env, _sql, _params=None: writes.__setitem__("n", writes["n"] + 1),
     )
 
     with pytest.raises(SystemExit):
