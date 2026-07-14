@@ -11,7 +11,7 @@ addopts = "--mocha --cov=. --cov-report html:.cov.html --cov-report term-missing
 [tool.ruff]
 line-length = 120
 indent-width = 4
-target-version = "py311"
+target-version = "py313"
 output-format = "concise"
 
 [tool.ruff.lint]
@@ -34,7 +34,7 @@ style = "google"
 exclude = "test_.*\\.py$"
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.13"
 exclude = [
     "test_.*\\.py$"
 ]
