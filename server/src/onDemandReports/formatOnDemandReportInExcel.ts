@@ -19,15 +19,30 @@ export async function formatOnDemandReportInExcel<T extends OnDemandReportType>(
   const primaryWorksheet = workbook.addWorksheet(reportType);
   const metadataWorksheet = workbook.addWorksheet("Report Metadata");
 
-  const { columnNames } = getOnDemandReportConfiguration(reportType).excelConfiguration;
-  primaryWorksheet.columns = Object.entries(columnNames).map(([key, header]) => ({ key, header }));
+  const { columns } = getOnDemandReportConfiguration(reportType).excelConfiguration;
+  primaryWorksheet.columns = Object.entries(columns).map((column) => ({
+    key: column[0],
+    header: column[1].columnName,
+  }));
 
   for (const row of rows) {
-    primaryWorksheet.addRow(row);
+    const addedRow = primaryWorksheet.addRow(row);
+    addedRow.alignment = { wrapText: true };
+
+    // Note: I'm pretty sure this is expressed in typographic points
+    // 12 seems to return a sheet where the rows are 16, which is the default if this isn't set
+    addedRow.height = 12;
   }
 
   primaryWorksheet.getRow(1).font = { bold: true };
+  primaryWorksheet.getRow(1).alignment = { wrapText: true };
   primaryWorksheet.autoFitColumns();
+
+  for (const column of Object.entries(columns)) {
+    if (column[1].columnWidth !== undefined) {
+      primaryWorksheet.getColumn(column[0]).width = column[1].columnWidth;
+    }
+  }
 
   metadataWorksheet.addRow(["Request Id", reportMetadata.requestId]);
   metadataWorksheet.addRow([

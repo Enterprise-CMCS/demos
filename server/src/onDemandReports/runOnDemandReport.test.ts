@@ -31,7 +31,7 @@ describe("runOnDemandReport", () => {
   const mockOnDemandReportConfiguration: OnDemandReportConfiguration = {
     sqlQueries: ["SELECT 1 AS column1", "SELECT 2 AS another_column"],
     reportRowSchema: "Foo" as any,
-    excelConfiguration: { columnNames: { column1: "Column 1" } },
+    excelConfiguration: { columns: { column1: { columnName: "Column 1" } } },
   };
 
   beforeEach(() => {

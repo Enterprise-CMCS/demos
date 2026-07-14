@@ -17,7 +17,7 @@ export const ON_DEMAND_REPORT_CONFIGURATIONS = {
 
 export function getOnDemandReportConfiguration<T extends OnDemandReportType>(
   onDemandReportType: T
-): (typeof ON_DEMAND_REPORT_CONFIGURATIONS)[T] {
+): OnDemandReportConfiguration<(typeof ON_DEMAND_REPORT_CONFIGURATIONS)[T]["reportRowSchema"]> {
   return ON_DEMAND_REPORT_CONFIGURATIONS[onDemandReportType];
 }
 

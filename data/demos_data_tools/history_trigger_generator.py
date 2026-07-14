@@ -221,7 +221,7 @@ def get_prisma_lines(folder: str) -> List[str]:
     """
     # Join tables are prefixed with _ so this removes that
     file_name = folder if folder[0] != "_" else folder[1:]
-    file_path = f"../../../server/src/model/{folder}/{file_name}History.prisma"
+    file_path = f"../../server/src/model/{folder}/{file_name}History.prisma"
     with open(file_path, "r") as prisma_file:
         prisma_lines = prisma_file.readlines()
     return prisma_lines
@@ -237,7 +237,7 @@ def main() -> None:
         else:
             queries.append(get_trigger_code(prisma_lines) + "\n\n")
 
-    with open("../../../server/src/sql/history_triggers.sql", "w") as query_file:
+    with open("../../server/src/sql/history_triggers.sql", "w") as query_file:
         query_file.write(DROP_QUERY)
         query_file.writelines(queries)
 
