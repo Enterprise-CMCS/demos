@@ -1,7 +1,6 @@
 /// <reference types="vitest" />
 import { execSync } from "child_process";
 import { defineConfig } from "vitest/config";
-import tsconfigPaths from "vite-tsconfig-paths";
 
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
@@ -15,7 +14,10 @@ const getGitCommit = (): string => {
 };
 
 export const config = defineConfig({
-  plugins: [react(), tailwindcss(), tsconfigPaths()],
+  plugins: [react(), tailwindcss()],
+  resolve: {
+    tsconfigPaths: true,
+  },
   define: {
     __GIT_COMMIT__: JSON.stringify(getGitCommit()),
   },
