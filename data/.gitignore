@@ -5,4 +5,4 @@
 **/.cov.html/
 **/.coverage
 **/logs/
-**/dbinfo.ini
+.env
