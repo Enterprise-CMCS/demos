@@ -7,7 +7,7 @@ import {
   STATES_AND_TERRITORIES,
 } from "../../constants";
 import {
-  OnDemandReportColumnHeader,
+  OnDemandReportColumnConfiguration,
   OnDemandReportColumnSchema,
   OnDemandReportConfiguration,
 } from "./onDemandReportConfigTypes";
@@ -43,7 +43,9 @@ type DeliverableStatusReportColumn =
   | "deliverable_reviewer"
   | "deliverable_review_date"
   | "budget_neutrality_variance"
-  | "actuals";
+  | "actuals"
+  | "public_comments"
+  | "private_comments";
 
 const deliverableStatusReportSchema = z
   .object({
@@ -76,43 +78,47 @@ const deliverableStatusReportSchema = z
     deliverable_review_date: usDateStringOrDash,
     budget_neutrality_variance: z.string(),
     actuals: z.enum(["Actuals Only", "Actuals + Projected", "-"]),
+    public_comments: z.string(),
+    private_comments: z.string(),
   } satisfies OnDemandReportColumnSchema<DeliverableStatusReportColumn>)
   .strict();
 
 const deliverableStatusReportColumnHeaders = {
-  state: "State/Territory",
-  demonstration_title: "Demonstration Title",
-  demonstration_number: "Demonstration Number",
-  effective_date: "Effective Date",
-  expiration_date: "Expiration Date",
-  primary_project_officer: "Primary Project Officer",
-  ddme_analyst: "DDME Analyst",
-  deliverable_type: "Deliverable Type",
-  deliverable_name: "Deliverable Name",
-  demonstration_types: "Demonstration Type",
-  cms_owner: "CMS Owner",
-  due_date: "Due Date",
-  submission_date: "Submission Date",
-  extension_request_pending: "Extension Request Pending",
-  extension_date_requested: "Extension Date Requested",
-  reason_for_extension: "Reason for Extension",
-  extension_request_comments: "Extension Request Comments",
-  total_extensions_requested: "Total Extensions Requested",
-  resubmission_due_date: "Resubmission Due Date",
-  resubmission_request_comments: "Resubmission Request Comments",
-  total_resubmissions_requested: "Total Resubmissions Requested",
-  deliverable_status: "Deliverable Status",
-  last_deliverable_action: "Last Deliverable Action",
-  last_deliverable_action_date: "Last Deliverable Action Date",
-  updated_post_acceptance: "Updated Post Acceptance",
-  deliverable_reviewer: "Deliverable Reviewer",
-  deliverable_review_date: "Deliverable Review Date",
-  budget_neutrality_variance: "Budget Neutrality Variance",
-  actuals: "Actuals",
-} satisfies OnDemandReportColumnHeader<DeliverableStatusReportColumn>;
+  state: { columnName: "State/Territory" },
+  demonstration_title: { columnName: "Demonstration Title" },
+  demonstration_number: { columnName: "Demonstration Number" },
+  effective_date: { columnName: "Effective Date" },
+  expiration_date: { columnName: "Expiration Date" },
+  primary_project_officer: { columnName: "Primary Project Officer" },
+  ddme_analyst: { columnName: "DDME Analyst" },
+  deliverable_type: { columnName: "Deliverable Type" },
+  deliverable_name: { columnName: "Deliverable Name" },
+  demonstration_types: { columnName: "Demonstration Type" },
+  cms_owner: { columnName: "CMS Owner" },
+  due_date: { columnName: "Due Date" },
+  submission_date: { columnName: "Submission Date" },
+  extension_request_pending: { columnName: "Extension Request Pending" },
+  extension_date_requested: { columnName: "Extension Date Requested" },
+  reason_for_extension: { columnName: "Reason for Extension" },
+  extension_request_comments: { columnName: "Extension Request Comments" },
+  total_extensions_requested: { columnName: "Total Extensions Requested" },
+  resubmission_due_date: { columnName: "Resubmission Due Date" },
+  resubmission_request_comments: { columnName: "Resubmission Request Comments" },
+  total_resubmissions_requested: { columnName: "Total Resubmissions Requested" },
+  deliverable_status: { columnName: "Deliverable Status" },
+  last_deliverable_action: { columnName: "Last Deliverable Action" },
+  last_deliverable_action_date: { columnName: "Last Deliverable Action Date" },
+  updated_post_acceptance: { columnName: "Updated Post Acceptance" },
+  deliverable_reviewer: { columnName: "Deliverable Reviewer" },
+  deliverable_review_date: { columnName: "Deliverable Review Date" },
+  budget_neutrality_variance: { columnName: "Budget Neutrality Variance" },
+  actuals: { columnName: "Actuals" },
+  public_comments: { columnName: "Public Comments", columnWidth: 100 },
+  private_comments: { columnName: "Private Comments", columnWidth: 100 },
+} satisfies OnDemandReportColumnConfiguration<DeliverableStatusReportColumn>;
 
 export const deliverableStatusReportConfiguration = {
   sqlQueries: deliverableStatusReportQueries,
   reportRowSchema: deliverableStatusReportSchema,
-  excelConfiguration: { columnNames: deliverableStatusReportColumnHeaders },
+  excelConfiguration: { columns: deliverableStatusReportColumnHeaders },
 } satisfies OnDemandReportConfiguration;
