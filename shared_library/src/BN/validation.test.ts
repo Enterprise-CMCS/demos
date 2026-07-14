@@ -7,13 +7,16 @@ import { validations as v1Validations } from "./rulesets/v1/index.js";
 import { extractorFunctions } from "./extractors/index.js";
 
 describe("validateBNWorkbook", () => {
-  it("should validate a real file", async() => {
+  it("should validate a real file", async () => {
     const data = await BN.parseBNFileFromPath("test/fixtures/test-bn.xlsm");
-    const result = await validateBNWorkbook(data, v1Validations, extractorFunctions);    
+    const result = await validateBNWorkbook(
+      data,
+      v1Validations,
+      extractorFunctions,
+    );
     expect(result.isValid).toBe(true);
-    expect(result.extractedValues?.get("netVariance")).toBe(46848737436.56)
+    expect(result.extractedValues?.get("netVariance")).toBe(46848737436.56);
     expect(result.extractedValues?.get("actuals")).toBe("Actuals + Projected");
-    console.log(result);
   });
 
   it("returns a valid result with empty errors when no validations are provided", async () => {
@@ -39,13 +42,15 @@ describe("validateBNWorkbook", () => {
     const firstValidation = vi.fn(() => null);
     const secondValidation = vi.fn(() => expectedError);
     const thirdValidation = vi.fn(() => null);
-    const extraction = vi.fn(() => new Map<string, string | number>([["actuals", "FY25"]]));
+    const extraction = vi.fn(
+      () => new Map<string, string | number>([["actuals", "FY25"]]),
+    );
 
-    const result = await validateBNWorkbook(data, [
-      firstValidation,
-      secondValidation,
-      thirdValidation,
-    ], [extraction]);
+    const result = await validateBNWorkbook(
+      data,
+      [firstValidation, secondValidation, thirdValidation],
+      [extraction],
+    );
 
     expect(result).toEqual({
       isValid: false,
