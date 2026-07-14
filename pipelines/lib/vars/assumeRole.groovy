@@ -1,6 +1,16 @@
 def call(Map params) {
 
   def accountNumber = params.accountNumber
+  def accountEnv = params.accountEnv
+
+  if (!accountNumber && !accountEnv) {
+    error("Either accountNumber or accountEnv parameter is required")
+  }
+  if (!accountNumber) {
+    def prodNonProd = accountEnv.toLowerCase().contains("prod") ? "PROD" : "NONPROD"
+    accountNumber = env."DEMOS_AWS_${prodNonProd}_ACCOUNT_NUMBER"
+  }
+
   def role = params.role ?: "arn:aws:iam::${accountNumber}:role/delegatedadmin/developer/jenkins-role"
   def containerName = params.containerName ?: 'aws-cli'
 

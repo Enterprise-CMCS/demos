@@ -7,6 +7,11 @@ ignore:
         reason: No clean fix available in current ESLint React plugin stack
         expires: 2026-07-14T00:00:00.000Z
         created: 2026-06-30T14:21:33.964Z
+  SNYK-JS-JSYAML-17900054:
+    - '*':
+        reason: No direct upgrade or patch available in current ESLint dependency chain
+        expires: 2026-07-23T00:00:00.000Z
+        created: 2026-07-09T00:00:00.000Z
 patch: {}
 exclude:
   global:

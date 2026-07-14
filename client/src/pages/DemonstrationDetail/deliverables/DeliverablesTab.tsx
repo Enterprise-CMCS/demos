@@ -26,10 +26,13 @@ export const DeliverablesTab = ({
   const viewMode = rawPersonType as UserType;
   const navigate = useNavigate();
   const { data, loading, error } = useQuery<DeliverablesQueryResult>(DELIVERABLES_PAGE_QUERY);
-  const deliverables =
-    data?.deliverables.filter(
-      (deliverable) => deliverable.demonstration.id === parentDemonstration.id
-    ) ?? [];
+  const deliverables = React.useMemo(
+    () =>
+      data?.deliverables.filter(
+        (deliverable) => deliverable.demonstration.id === parentDemonstration.id
+      ) ?? [],
+    [data, parentDemonstration.id]
+  );
 
   return (
     <div className="flex flex-col">

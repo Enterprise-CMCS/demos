@@ -63,6 +63,23 @@ CLASS_SLUG: dict[str, str] = {
     "associativeTable": "associative-tables",
 }
 
+# Default location of the hand-authored DEMOS data model: a single mermaid
+# ``erDiagram`` file that lives in the parent ../demos repo checkout. The doc
+# tools (schema diagrams + the two data-dictionary generators) read it for
+# table classification and accept a ``DEMOS_DATA_MODEL_MMD`` env override at
+# their entry points.
+DEMOS_DATA_MODEL_MMD = REPO_ROOT.parent / "data" / "docs" / "DEMOS_Data_Model.mmd"
+
+# Mermaid ``:::class`` name -> the class-directory label the data-dictionary
+# generators group tables on. Blocks with any other class (e.g. the diagram
+# ``legend``) are not tables and are ignored by the parsers.
+MERMAID_CLASS_TO_DIR: dict[str, str] = {
+    "staticConstraint": "static_constraints",
+    "typeLimiter": "type_limiters",
+    "dataTable": "data_tables",
+    "associativeTable": "associative_tables",
+}
+
 
 # --------------------------------------------------------------------------- #
 # Data model
