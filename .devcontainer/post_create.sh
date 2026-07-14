@@ -1,11 +1,22 @@
 #!/usr/bin/bash
-pip install --break-system-packages -r ./.devcontainer/python/requirements.txt
+
+# Configure Python environment
+python -m venv /opt/demos-data
+/opt/demos-data/bin/pip install --upgrade pip
+/opt/demos-data/bin/pip install -r ./.devcontainer/python/requirements.txt
+
+# Install pre-commit hooks
 pre-commit install
+
+# Make terminals automatically run inside the virtual environment
+echo 'source /opt/demos-data/bin/activate' >> ~/.bashrc
+echo 'source /opt/demos-data/bin/activate' >> ~/.zshrc
 
 # Copy example settings over to settings.json
 [ -f .vscode/settings.json ] && cp .vscode/settings.json .vscode/settings.backup.json
 cp .vscode/settings.example.json .vscode/settings.json
 
+# Configure AWS
 aws configure set aws_access_key_id test
 aws configure set aws_secret_access_key test # pragma: allowlist secret
 aws configure set region us-east-1

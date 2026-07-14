@@ -6,6 +6,7 @@
     "python.testing.cwd": "${workspaceFolder}/data/demos_data_tools",
     "python.analysis.typeCheckingMode": "off",
     "python.analysis.extraPaths": ["data/demos_data_tools"],
+    "python.defaultInterpreterPath": "/opt/demos-data/bin/python",
     "mypy-type-checker.preferDaemon": false,
     "[typescript]": {
         "editor.insertSpaces": true,
