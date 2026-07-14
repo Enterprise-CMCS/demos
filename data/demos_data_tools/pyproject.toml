@@ -17,6 +17,7 @@ output-format = "concise"
 [tool.ruff.lint]
 select = ["E", "W", "F", "B", "D", "Q", "DOC"]
 preview = true
+unfixable = ["F401"]
 
 [tool.ruff.format]
 quote-style = "double"
