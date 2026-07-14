@@ -1,7 +1,7 @@
 {
   "name": "demos-client",
   "overrides": {
-    "brace-expansion": "5.0.7"
+    "brace-expansion": "1.1.16"
   },
   "description": "The client application for Demonstration Evaluation & Management Oversight System (DEMOS).",
   "version": "0.1.0",
