@@ -1,8 +1,8 @@
 """Testing out using DuckDB to ETL data from legacy system to new legacy schema."""
 
 import argparse
-import configparser
 import logging
+import os
 import sys
 import types
 from datetime import datetime
@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, Tuple, Type
 
 import duckdb
+from dotenv import load_dotenv
 
 if TYPE_CHECKING:  # pragma: no cover
     from duckdb import DuckDBPyConnection as DuckConn
@@ -29,12 +30,8 @@ DDL_DIR = Path(Path(__file__).parent.parent, "migration", "pmda_ddls")
 DDL_DIR.mkdir(parents=True, exist_ok=True)
 LOG_DIR = Path(Path(__file__).parent, "logs")
 LOG_DIR.mkdir(parents=True, exist_ok=True)
-CONFIG_FILE = Path(__file__).parent / "dbinfo.ini"
 
-DUCKDB_MYSQL_DB_NAME = "mysql_db"
-DUCKDB_POSTGRES_DB_NAME = "postgres_db"
-PG_SCHEMA = "legacy_pmda_raw"
-MYSQL_SCHEMA = "cma_imp_11_1_000"
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -61,27 +58,31 @@ def _configure_logging(verbose: bool = False) -> None:
     logger.addHandler(file_handler)
 
 
-def parse_config() -> dict:
-    """Parse the configuration file and return a dictionary.
+def load_db_configs_from_env() -> dict:
+    """Load the DB configurations from the environment.
 
     Returns:
         dict: A dictionary containing the database configuration(s).
     """
-    logger.info("Parsing config file")
-    parser = configparser.ConfigParser()
-    parser.read(CONFIG_FILE)
-    config = {}
-    for section in ["pmda-mysql", "demos-postgresql"]:
-        config[section] = {
-            "host": parser.get(section, "host"),
-            "port": parser.get(section, "port"),
-            "user": parser.get(section, "user"),
-            "password": parser.get(section, "password"),
-            "database": parser.get(section, "database"),
-        }
-        if section == "demos-postgresql":
-            config[section]["sslmode"] = parser.get(section, "sslmode")
-    logger.info("Parsed config file successfully")
+    logger.info("Reading environment variables")
+    config = {
+        "ddb_pmda": {
+            "host": os.environ["PMDA_MYSQL_HOST"],
+            "port": os.environ["PMDA_MYSQL_PORT"],
+            "user": os.environ["PMDA_MYSQL_USER"],
+            "pwd": os.environ["PMDA_MYSQL_PWD"],
+            "db": os.environ["PMDA_MYSQL_DB"],
+        },
+        "ddb_demos": {
+            "host": os.environ["DEMOS_PGSQL_HOST"],
+            "port": os.environ["DEMOS_PGSQL_PORT"],
+            "user": os.environ["DEMOS_PGSQL_USER"],
+            "pwd": os.environ["DEMOS_PGSQL_PWD"],
+            "db": os.environ["DEMOS_PGSQL_DB"],
+            "sslmode": os.environ["DEMOS_PGSQL_SSLMODE"],
+        },
+    }
+    logger.info("Loading config from environment successfully")
     return config
 
 
@@ -95,82 +96,96 @@ def create_duckdb_conn(config: dict) -> "DuckConn":
         "DuckConn": A configured DuckDB connection.
     """
     logger.info("Creating DuckDB database")
+
     # In-memory DB
     conn = duckdb.connect(":memory:", config={"memory_limit": "8GB", "threads": 8})
-    conn.install_extension("mysql")
-    conn.load_extension("mysql")
+
+    # DEMOS PostgreSQL Connection
     conn.install_extension("postgres")
     conn.load_extension("postgres")
 
-    clean_postgres_pwd = config["demos-postgresql"]["password"].replace("'", "''")
+    ddb_demos_config = config["ddb_demos"]
+    clean_demos_pwd = ddb_demos_config["pwd"].replace("'", "''")
     conn.execute(f"""
         CREATE SECRET (
             TYPE postgres,
-            HOST '{config["demos-postgresql"]["host"]}',
-            PORT {config["demos-postgresql"]["port"]},
-            DATABASE {config["demos-postgresql"]["database"]},
-            USER '{config["demos-postgresql"]["user"]}',
-            PASSWORD '{clean_postgres_pwd}'
+            HOST '{ddb_demos_config["host"]}',
+            PORT {ddb_demos_config["port"]},
+            DATABASE {ddb_demos_config["db"]},
+            USER '{ddb_demos_config["user"]}',
+            PASSWORD '{clean_demos_pwd}'
         );
     """)
 
-    conn.execute(
-        f"ATTACH 'sslmode={config['demos-postgresql']['sslmode']}' AS {DUCKDB_POSTGRES_DB_NAME} (TYPE postgres);"
-    )
+    conn.execute(f"ATTACH 'sslmode={ddb_demos_config['sslmode']}' AS ddb_demos (TYPE postgres);")
     conn.execute("SET pg_null_byte_replacement=''")  # This is necessary to handle nulls from MySQL
-    logger.info(f"Attached PostgreSQL database AS {DUCKDB_POSTGRES_DB_NAME}")
+    logger.info("Attached DEMOS PostgreSQL database AS ddb_demos")
 
-    clean_mysql_pwd = config["pmda-mysql"]["password"].replace("'", "''")
+    # PMDA MySQL Connection
+    conn.install_extension("mysql")
+    conn.load_extension("mysql")
+
+    ddb_pmda_config = config["ddb_pmda"]
+    clean_pmda_pwd = ddb_pmda_config["pwd"].replace("'", "''")
     conn.execute(f"""
         CREATE SECRET (
             TYPE mysql,
-            HOST '{config["pmda-mysql"]["host"]}',
-            PORT {config["pmda-mysql"]["port"]},
-            DATABASE {config["pmda-mysql"]["database"]},
-            USER '{config["pmda-mysql"]["user"]}',
-            PASSWORD '{clean_mysql_pwd}'
+            HOST '{ddb_pmda_config["host"]}',
+            PORT {ddb_pmda_config["port"]},
+            DATABASE {ddb_pmda_config["db"]},
+            USER '{ddb_pmda_config["user"]}',
+            PASSWORD '{clean_pmda_pwd}'
         );
     """)
 
-    conn.execute(f"ATTACH '' AS {DUCKDB_MYSQL_DB_NAME} (TYPE mysql);")
-    logger.info(f"Attached MySQL database AS {DUCKDB_MYSQL_DB_NAME}")
+    conn.execute("ATTACH '' AS ddb_pmda (TYPE mysql);")
+    logger.info("Attached PMDA MySQL database AS ddb_pmda")
     return conn
 
 
-def get_table_list(conn: "DuckConn", schema: str = MYSQL_SCHEMA) -> List[str]:
-    """Retrieve MySQL tables in a schema.
+def get_pmda_table_list(conn: "DuckConn", source_schema: str) -> List[str]:
+    """Get a list of the PMDA tables in a given schema.
 
     Args:
         conn ("DuckConn"): The connection to use.
-        schema (str, optional): The schema to obtain tables from.
+        source_schema (str): The schema to obtain tables from.
 
     Returns:
         List[str]: A list of the tables in the schema.
     """
-    logger.info(f"Querying table names from database for schema {schema}")
-    query = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = $schema"
-    result = conn.execute(query, {"schema": schema}).fetchall()
+    logger.info(f"Querying PMDA table names from database for schema {source_schema}")
+    # Note: query runs against DuckDB information_schema
+    query = """
+        SELECT
+            TABLE_NAME
+        FROM
+            information_schema.TABLES
+        WHERE
+            TABLE_CATALOG = 'ddb_pmda'
+            AND TABLE_SCHEMA = $schema
+    """
+    result = conn.execute(query, {"schema": source_schema}).fetchall()
     result = [x[0] for x in result]
-    logger.info(f"Returned {len(result)} table names from database for schema {schema}")
+    logger.info(f"Returned {len(result)} table names from PMDA database for schema {source_schema}")
     return result
 
 
-def get_column_details(conn: "DuckConn", tbl_list: List[str], schema: str = MYSQL_SCHEMA) -> dict:
-    """Retrieve column data from MySQL for a list of tables.
+def get_pmda_column_details(conn: "DuckConn", tbl_list: List[str], source_schema: str) -> dict:
+    """Retrieve column data from PMDA for a list of tables.
 
     Args:
         conn ("DuckConn"): The connection to use.
         tbl_list (List[str]): The tables to get column information for.
-        schema (str, optional): The schema of the tables.
+        source_schema (str): The schema of the tables.
 
     Returns:
         dict: A dictionary with results for every table.
     """
     # Pull columns table to local DuckDB to improve processing speed
-    logger.info("Copying columns table down to local DuckDB instance")
-    col_copy_qry = f"""
+    logger.info("Copying PMDA columns table down to local DuckDB instance")
+    col_copy_qry = """
         CREATE TABLE mysql_columns AS
-        SELECT * FROM {DUCKDB_MYSQL_DB_NAME}.information_schema.COLUMNS;
+        SELECT * FROM ddb_pmda.information_schema.COLUMNS;
     """
     conn.execute(col_copy_qry)
     logger.info("Local copy created")
@@ -188,12 +203,12 @@ def get_column_details(conn: "DuckConn", tbl_list: List[str], schema: str = MYSQ
     """
     result = {}
     for tbl in tbl_list:
-        result[tbl] = conn.execute(col_info_qry, {"schema": schema, "name": tbl}).fetchall()
-    logger.info(f"Queried column info for {len(tbl_list)} tables")
+        result[tbl] = conn.execute(col_info_qry, {"schema": source_schema, "name": tbl}).fetchall()
+    logger.info(f"Queried PMDA column info for {len(tbl_list)} tables")
     return result
 
 
-def make_column_definition(col_info: Tuple) -> str:
+def make_postgresql_column_definition(col_info: Tuple) -> str:
     """Generate a PostgreSQL column definition from a tuple of MySQL info.
 
     Args:
@@ -202,7 +217,7 @@ def make_column_definition(col_info: Tuple) -> str:
     Returns:
         str: A line of a DDL defining that column.
     """
-    logger.debug(f"Generating column definition line for column {col_info[0]}.{col_info[1]}")
+    logger.debug(f"Generating PostgreSQL column definition line for column {col_info[0]}.{col_info[1]}")
     col_name = col_info[1].lower()
     col_type = DATA_CONVERSIONS.get(col_info[3], col_info[4]).upper()
 
@@ -229,29 +244,29 @@ def sanitize_table_name(tbl: str) -> str:
     return tbl
 
 
-def generate_postgres_ddl(tbl: str, col_info: List[Tuple], schema: str = PG_SCHEMA) -> dict:
-    """Generate a PostgreSQL DDL from MySQL column info.
+def generate_demos_ddl(tbl: str, col_info: List[Tuple], target_schema: str) -> dict:
+    """Generate a DEMOS DDL from PMDA column info.
 
     Args:
         tbl (str): The name of the table to be created.
-        col_info (List[Tuple]): Column info from MySQL for the table.
-        schema (str, optional): Schema in which the new table should be created.
+        col_info (List[Tuple]): Column info from PMDA for the table.
+        target_schema (str): DEMOS schema in which the new table should be created.
 
     Returns:
         dict: A dictionary with the DuckDB and regular versions of the DB.
     """
-    logger.debug(f"Producing PostgreSQL DDL for table {tbl} in schema {schema}")
-    col_lines = ",\n".join([make_column_definition(col) for col in col_info])
+    logger.debug(f"Producing DEMOS DDL for table {tbl} in schema {target_schema}")
+    col_lines = ",\n".join([make_postgresql_column_definition(col) for col in col_info])
     tbl = sanitize_table_name(tbl)
-    duckdb_first_line = f"DROP TABLE IF EXISTS {DUCKDB_POSTGRES_DB_NAME}.{schema}.{tbl};\n"
-    duckdb_second_line = f"CREATE TABLE {DUCKDB_POSTGRES_DB_NAME}.{schema}.{tbl} (\n"
-    regular_first_line = f"CREATE TABLE {schema}.{tbl} (\n"
+    duckdb_first_line = f"DROP TABLE IF EXISTS ddb_demos.{target_schema}.{tbl};\n"
+    duckdb_second_line = f"CREATE TABLE ddb_demos.{target_schema}.{tbl} (\n"
+    regular_first_line = f"CREATE TABLE {target_schema}.{tbl} (\n"
     last_line = "\n);"
     result = {
         "duckdb": duckdb_first_line + duckdb_second_line + col_lines + last_line,
         "regular": regular_first_line + col_lines + last_line,
     }
-    logger.debug("PostgreSQL DDLs created successfully")
+    logger.debug("DEMOS DDLs created successfully")
     return result
 
 
@@ -269,24 +284,24 @@ def save_ddl(tbl: str, ddl: str) -> None:
     return None
 
 
-def transfer_table(conn: "DuckConn", tbl: str, mysql_schema: str = MYSQL_SCHEMA, pg_schema: str = PG_SCHEMA) -> None:
+def transfer_table(conn: "DuckConn", tbl: str, source_schema: str, target_schema: str) -> None:
     """Transfer the contents of a MySQL table to a PostgreSQL table.
 
     Args:
         conn ("DuckConn"): The connection to use.
         tbl (str): The table name to be transferred.
-        mysql_schema (str, optional): The MySQL schema from which to read.
-        pg_schema (str, optional): The PostgreSQL schema to which data is written.
+        source_schema (str): The source PMDA schema from which to read.
+        target_schema (str): The target DEMOS scehma to which data is written.
     """
     logger.debug(f"Attempting to transfer data for table {tbl}")
     tbl = sanitize_table_name(tbl)
     transfer_qry = f"""
         INSERT INTO
-            {DUCKDB_POSTGRES_DB_NAME}.{pg_schema}.{tbl}
+            ddb_demos.{target_schema}.{tbl}
         SELECT
             *
         FROM
-            {DUCKDB_MYSQL_DB_NAME}.{mysql_schema}.{tbl}
+            ddb_pmda.{source_schema}.{tbl}
     """
     conn.execute(transfer_qry)
     logger.debug("Data transfer successful")
@@ -295,20 +310,25 @@ def transfer_table(conn: "DuckConn", tbl: str, mysql_schema: str = MYSQL_SCHEMA,
 
 def main() -> None:
     """Execute main program function."""
-    db_config = parse_config()
+    source_schema = os.environ["PMDA_EXPORT_SOURCE_SCHEMA"]
+    target_schema = os.environ["PMDA_EXPORT_TARGET_SCHEMA"]
+    db_config = load_db_configs_from_env()
     duck_conn = create_duckdb_conn(db_config)
-    tbl_list = get_table_list(duck_conn)
-    tbl_details = get_column_details(duck_conn, tbl_list)
+    tbl_list = get_pmda_table_list(duck_conn, source_schema)
+    tbl_details = get_pmda_column_details(duck_conn, tbl_list, source_schema)
+
     tbl_ddls = {}
     for tbl, col_data in tbl_details.items():
-        tbl_ddls[tbl] = generate_postgres_ddl(tbl, col_data)
+        tbl_ddls[tbl] = generate_demos_ddl(tbl, col_data, target_schema)
 
     for tbl, ddl in tbl_ddls.items():
         save_ddl(tbl, ddl["regular"])
-        logger.debug(f"Attempting to create PostgreSQL table {tbl}")
+        logger.debug(f"Attempting to create DEMOS table {tbl}")
         duck_conn.execute(ddl["duckdb"])
+
     for tbl in tbl_ddls.keys():
-        transfer_table(duck_conn, tbl)
+        transfer_table(duck_conn, tbl, source_schema, target_schema)
+
     return None
 
 
