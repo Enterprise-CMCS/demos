@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any, Iterator, TypedDict
 import boto3
 import duckdb
 from dotenv import load_dotenv
+from logger import get_logger
 
 if TYPE_CHECKING:  # pragma: no cover
     from duckdb import DuckDBPyConnection as DuckConn
@@ -19,6 +20,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 ENV_FILE = Path(__file__).with_name(".env")
 DUCKDB_POSTGRES_DB_NAME = "postgres_db"
+logger = get_logger(__name__)
 SELECT_UNMIGRATED_FILES_QUERY = """
 SELECT old_path, new_path
 FROM postgres_db.public.file_migration_queue
@@ -130,7 +132,7 @@ def migrate_file(
     """
     source_bucket = os.environ["SOURCE_BUCKET"]
     destination_bucket = os.environ["DESTINATION_BUCKET"]
-    print(f"Copying s3://{source_bucket}/{row['old_path']} -> s3://{destination_bucket}/{row['new_path']}")
+    logger.info("Copying s3://%s/%s -> s3://%s/%s", source_bucket, row["old_path"], destination_bucket, row["new_path"])
     if os.environ["PRODUCTION"] == "1":
         copy_s3_object(
             s3_client,
@@ -156,13 +158,13 @@ def main() -> None:
     copied_count = 0
     try:
         for row_number, row in enumerate(get_unmigrated_files(db_connection), start=1):
-            print(f"Processing row {row_number}.")
+            logger.info("Processing row %s.", row_number)
             migrate_file(db_connection, row, s3_client)
             copied_count += 1
     finally:
         db_connection.close()
 
-    print(f"{'Copied' if os.environ['PRODUCTION'] == '1' else 'Would copy'} {copied_count} file(s).")
+    logger.info("%s %s file(s).", "Copied" if os.environ["PRODUCTION"] == "1" else "Would copy", copied_count)
     return None
 
 

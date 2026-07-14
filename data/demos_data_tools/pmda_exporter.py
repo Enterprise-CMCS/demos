@@ -1,16 +1,14 @@
 """Testing out using DuckDB to ETL data from legacy system to new legacy schema."""
 
-import argparse
-import logging
 import os
 import sys
 import types
-from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, Tuple, Type
 
 import duckdb
 from dotenv import load_dotenv
+from logger import get_logger
 
 if TYPE_CHECKING:  # pragma: no cover
     from duckdb import DuckDBPyConnection as DuckConn
@@ -28,34 +26,10 @@ DATA_CONVERSIONS = {
 
 DDL_DIR = Path(Path(__file__).parent.parent, "migration", "pmda_ddls")
 DDL_DIR.mkdir(parents=True, exist_ok=True)
-LOG_DIR = Path(Path(__file__).parent, "logs")
-LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 load_dotenv()
 
-logger = logging.getLogger(__name__)
-
-
-def _configure_logging(verbose: bool = False) -> None:
-    # Configure the log level
-    logger.setLevel(logging.DEBUG if verbose else logging.INFO)
-
-    # Set up the two handlers
-    console_handler = logging.StreamHandler()
-    log_file = Path(LOG_DIR, f"log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
-    file_handler = logging.FileHandler(log_file)
-
-    # Format the handlers
-    log_formatter = logging.Formatter(
-        "[%(asctime)s] %(levelname)-8s - %(funcName)s() in %(name)s[%(lineno)d]: %(message)s",
-        "%Y-%m-%d %H:%M:%S %z",
-    )
-    console_handler.setFormatter(log_formatter)
-    file_handler.setFormatter(log_formatter)
-
-    # Add the handlers
-    logger.addHandler(console_handler)
-    logger.addHandler(file_handler)
+logger = get_logger(__name__)
 
 
 def load_db_configs_from_env() -> dict:
@@ -349,8 +323,4 @@ def custom_excepthook(
 sys.excepthook = custom_excepthook
 
 if __name__ == "__main__":  # pragma: no cover
-    argparser = argparse.ArgumentParser()
-    argparser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
-    args = argparser.parse_args()
-    _configure_logging(args.verbose)
     main()

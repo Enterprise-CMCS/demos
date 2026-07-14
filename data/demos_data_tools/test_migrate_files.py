@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 
 import pytest
@@ -148,7 +149,7 @@ class TestMigrateFiles:
             "new/file.txt",
         )
 
-    def test_migrate_file_copies_one_row(self, mocker, migration_environment, capsys):
+    def test_migrate_file_copies_one_row(self, mocker, migration_environment, caplog):
         """Test migrate_files.py functions.
 
         ::migrate_file
@@ -161,6 +162,7 @@ class TestMigrateFiles:
         test_row = {"old_path": "old/1.txt", "new_path": "new/1.txt"}
         mock_copy_s3_object = mocker.patch.object(migrate_files, "copy_s3_object")
         mock_mark_row_copied = mocker.patch.object(migrate_files, "mark_row_copied")
+        caplog.set_level(logging.INFO, logger=migrate_files.logger.name)
 
         result = migrate_files.migrate_file(mock_conn, test_row, mock_s3_client)
 
@@ -173,7 +175,8 @@ class TestMigrateFiles:
             "new/1.txt",
         )
         mock_mark_row_copied.assert_called_once_with(mock_conn, test_row)
-        assert "Copying s3://source-bucket/old/1.txt -> s3://destination-bucket/new/1.txt" in capsys.readouterr().out
+        messages = [record.getMessage() for record in caplog.records]
+        assert "Copying s3://source-bucket/old/1.txt -> s3://destination-bucket/new/1.txt" in messages
 
     def test_migrate_file_dry_run(self, mocker, migration_environment):
         """Test migrate_files.py functions.
@@ -231,7 +234,7 @@ class TestMigrateFiles:
             ["old/1.txt", "new/1.txt"],
         )
 
-    def test_main_wires_dependencies(self, mocker, mock_boto3_session, migration_environment, capsys):
+    def test_main_wires_dependencies(self, mocker, mock_boto3_session, migration_environment, caplog):
         """Test migrate_files.py functions.
 
         ::main
@@ -256,6 +259,7 @@ class TestMigrateFiles:
         )
         mocked_migrate_file = mocker.patch.object(migrate_files, "migrate_file")
         mocked_load_dotenv = mocker.patch.object(migrate_files, "load_dotenv")
+        caplog.set_level(logging.INFO, logger=migrate_files.logger.name)
 
         migration_environment(PRODUCTION="0")
 
@@ -269,17 +273,17 @@ class TestMigrateFiles:
         mocked_get_unmigrated_files.assert_called_once_with(mock_conn)
         assert mocked_migrate_file.call_count == 2
         mock_conn.close.assert_called_once_with()
-        output = capsys.readouterr().out
-        assert "Processing row 1." in output
-        assert "Processing row 2." in output
-        assert "Would copy 2 file(s)." in output
+        messages = [record.getMessage() for record in caplog.records]
+        assert "Processing row 1." in messages
+        assert "Processing row 2." in messages
+        assert "Would copy 2 file(s)." in messages
 
     def test_main_reports_copied_count_in_production(
         self,
         mocker,
         mock_boto3_session,
         migration_environment,
-        capsys,
+        caplog,
     ):
         """Test migrate_files.py functions.
 
@@ -303,6 +307,7 @@ class TestMigrateFiles:
         )
         mocked_migrate_file = mocker.patch.object(migrate_files, "migrate_file")
         mocker.patch.object(migrate_files, "load_dotenv")
+        caplog.set_level(logging.INFO, logger=migrate_files.logger.name)
 
         migration_environment(PRODUCTION="1")
 
@@ -312,9 +317,10 @@ class TestMigrateFiles:
         mocked_create_conn.assert_called_once_with()
         mocked_get_unmigrated_files.assert_called_once_with(mock_conn)
         assert mocked_migrate_file.call_count == 2
-        assert "Copied 2 file(s)." in capsys.readouterr().out
+        messages = [record.getMessage() for record in caplog.records]
+        assert "Copied 2 file(s)." in messages
 
-    def test_main_with_zero_rows(self, mocker, mock_boto3_session, migration_environment, capsys):
+    def test_main_with_zero_rows(self, mocker, mock_boto3_session, migration_environment, caplog):
         """Test migrate_files.py functions.
 
         ::main
@@ -334,6 +340,7 @@ class TestMigrateFiles:
         )
         mocked_migrate_file = mocker.patch.object(migrate_files, "migrate_file")
         mocker.patch.object(migrate_files, "load_dotenv")
+        caplog.set_level(logging.INFO, logger=migrate_files.logger.name)
 
         migration_environment(PRODUCTION="0")
 
@@ -341,7 +348,8 @@ class TestMigrateFiles:
 
         assert result is None
         mocked_migrate_file.assert_not_called()
-        assert "Would copy 0 file(s)." in capsys.readouterr().out
+        messages = [record.getMessage() for record in caplog.records]
+        assert "Would copy 0 file(s)." in messages
 
     def test_main_closes_connection_when_migration_fails(
         self,
