@@ -54,7 +54,6 @@ export function highlightCell<TData>({
   if (!validKeywords.length) return text;
 
   const pattern = `(${validKeywords.map(escapeRegExp).join("|")})`;
-  console.log("Pattern:", pattern);
   const regex = new RegExp(pattern, "gi");
 
   const parts = text.split(regex);
