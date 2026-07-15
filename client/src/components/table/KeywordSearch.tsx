@@ -6,6 +6,12 @@ import { useDebounced } from "hooks/useDebounced";
 
 import { CellContext, Row, Table } from "@tanstack/react-table";
 
+declare global {
+  interface RegExpConstructor {
+    escape(str: string): string;
+  }
+}
+
 export const TEST_IDS = {
   input: "input-keyword-search",
   clearButton: "button-clear-search",
@@ -18,8 +24,6 @@ export interface KeywordSearchProps<T> {
   storageKey?: string;
   placeholder?: string;
 }
-
-const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 export const arrIncludesAllInsensitive = <T,>(
   row: Row<T>,
@@ -53,7 +57,7 @@ export function highlightCell<TData>({
 
   if (!validKeywords.length) return text;
 
-  const pattern = `(${validKeywords.map(escapeRegExp).join("|")})`;
+  const pattern = `(${validKeywords.map((keyword) => RegExp.escape(keyword)).join("|")})`;
   const regex = new RegExp(pattern, "gi");
 
   const parts = text.split(regex);
