@@ -36,7 +36,7 @@ class TestMigrateFiles:
             {
                 "SOURCE_BUCKET": "source-bucket",
                 "DESTINATION_BUCKET": "destination-bucket",
-                "PRODUCTION": "0",
+                "FILE_MIGRATION_PRODUCTION_MODE": "0",
             },
         )
 
@@ -48,7 +48,7 @@ class TestMigrateFiles:
             {
                 "SOURCE_BUCKET": "source-bucket",
                 "DESTINATION_BUCKET": "destination-bucket",
-                "PRODUCTION": "1",
+                "FILE_MIGRATION_PRODUCTION_MODE": "1",
             },
         )
 

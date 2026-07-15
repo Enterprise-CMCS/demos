@@ -114,7 +114,7 @@ def migrate_file(
     """
     source_bucket = os.environ["SOURCE_BUCKET"]
     destination_bucket = os.environ["DESTINATION_BUCKET"]
-    if os.environ["PRODUCTION"] == "1":
+    if os.environ["FILE_MIGRATION_PRODUCTION_MODE"] == "1":
         logger.info(f"Copying s3://{source_bucket}/{row['old_path']} -> s3://{destination_bucket}/{row['new_path']}")
         copy_s3_object(
             s3_client,
