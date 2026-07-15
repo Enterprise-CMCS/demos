@@ -1,10 +1,9 @@
-import { formatDate } from "../formatDate";
-import { getRequiredValue } from "../getRequiredValue";
-import { read } from "../read";
+import { formatDate, getRequiredValue } from "../EmailHelper";
 import type { EmailRecipientGroups, EmailTemplateDefinition } from "../types";
 import { DeliverableEmail } from "./DeliverableEmail";
 import type { DeliverableEmailConfig, DeliverableEmailInput, DeliverableEmailProps } from "./types";
 
+// TO BE SET IN A BETTER WAY SOON
 const demosAppUrl = "http://localhost:3000";
 
 export function createDeliverableEmailTemplate(
@@ -25,19 +24,41 @@ export function createDeliverableEmailTemplate(
     subject: `CMS DEMOS Deliverable: ${config.action}`,
     Component,
     getProps(input) {
-      const deliverableId = read(input, "deliverable.id", config.id);
+      const deliverableId = getRequiredValue(
+        input.deliverable?.id,
+        "deliverable.id",
+        config.id
+      );
 
       return {
-        demonstrationTitle: read(input, "demonstration.name", config.id),
-        state: read(input, "demonstration.stateId", config.id),
-        deliverableType: read(input, "deliverable.deliverableTypeId", config.id),
-        deliverableName: read(input, "deliverable.name", config.id),
-        currentDueDate: formatDate(read(input, "deliverable.dueDate", config.id)),
+        demonstrationTitle: getRequiredValue(
+          input.demonstration?.name,
+          "demonstration.name",
+          config.id
+        ),
+        state: getRequiredValue(
+          input.demonstration?.stateId,
+          "demonstration.stateId",
+          config.id
+        ),
+        deliverableType: getRequiredValue(
+          input.deliverable?.deliverableTypeId,
+          "deliverable.deliverableTypeId",
+          config.id
+        ),
+        deliverableName: getRequiredValue(
+          input.deliverable?.name,
+          "deliverable.name",
+          config.id
+        ),
+        currentDueDate: formatDate(
+          getRequiredValue(input.deliverable?.dueDate, "deliverable.dueDate", config.id)
+        ),
         link: `${demosAppUrl}/deliverables/${deliverableId}`,
       };
     },
     getRecipients(input) {
-      return getRequiredValue(input, "recipients", config.id, "data") as EmailRecipientGroups;
+      return getRequiredValue<EmailRecipientGroups>(input.recipients, "recipients", config.id);
     },
   };
 }
