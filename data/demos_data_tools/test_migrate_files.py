@@ -34,8 +34,8 @@ class TestMigrateFiles:
         mocker.patch.dict(
             os.environ,
             {
-                "SOURCE_BUCKET": "source-bucket",
-                "DESTINATION_BUCKET": "destination-bucket",
+                "PMDA_S3_BUCKET": "source-bucket",
+                "DEMOS_S3_BUCKET": "destination-bucket",
                 "FILE_MIGRATION_PRODUCTION_MODE": "0",
             },
         )
@@ -46,8 +46,8 @@ class TestMigrateFiles:
         mocker.patch.dict(
             os.environ,
             {
-                "SOURCE_BUCKET": "source-bucket",
-                "DESTINATION_BUCKET": "destination-bucket",
+                "PMDA_S3_BUCKET": "source-bucket",
+                "DEMOS_S3_BUCKET": "destination-bucket",
                 "FILE_MIGRATION_PRODUCTION_MODE": "1",
             },
         )

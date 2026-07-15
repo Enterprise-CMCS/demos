@@ -112,8 +112,8 @@ def migrate_file(
         row (CopyRow): The queued row describing the source and destination keys.
         s3_client ("S3Client"): The S3 client used to perform the copy.
     """
-    source_bucket = os.environ["SOURCE_BUCKET"]
-    destination_bucket = os.environ["DESTINATION_BUCKET"]
+    source_bucket = os.environ["PMDA_S3_BUCKET"]
+    destination_bucket = os.environ["DEMOS_S3_BUCKET"]
     if os.environ["FILE_MIGRATION_PRODUCTION_MODE"] == "1":
         logger.info(f"Copying s3://{source_bucket}/{row['old_path']} -> s3://{destination_bucket}/{row['new_path']}")
         copy_s3_object(
