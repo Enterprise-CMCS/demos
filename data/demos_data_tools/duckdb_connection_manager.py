@@ -76,7 +76,7 @@ def create_duckdb_conn() -> "DuckConn":
 
     conn.execute(f"ATTACH 'sslmode={ddb_demos_config['sslmode']}' AS {DEMOS_DDB_ATTACH_NAME} (TYPE postgres);")
     conn.execute("SET pg_null_byte_replacement=''")  # This is necessary to handle nulls from MySQL
-    logger.info("Attached DEMOS PostgreSQL database AS %s", DEMOS_DDB_ATTACH_NAME)
+    logger.info(f"Attached DEMOS PostgreSQL database AS {DEMOS_DDB_ATTACH_NAME}")
 
     # PMDA MySQL Connection
     conn.install_extension("mysql")
@@ -96,5 +96,7 @@ def create_duckdb_conn() -> "DuckConn":
     """)
 
     conn.execute(f"ATTACH '' AS {PMDA_DDB_ATTACH_NAME} (TYPE mysql);")
-    logger.info("Attached PMDA MySQL database AS %s", PMDA_DDB_ATTACH_NAME)
+    logger.info(
+        f"Attached PMDA MySQL database AS {PMDA_DDB_ATTACH_NAME}",
+    )
     return conn

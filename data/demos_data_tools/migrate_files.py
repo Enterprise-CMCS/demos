@@ -24,13 +24,13 @@ SELECT_UNMIGRATED_FILES_QUERY = f"""
     SELECT
         old_path, new_path
     FROM
-        {DEMOS_DDB_ATTACH_NAME}.legacy_pmda_staging.system_file_migration_queue
+        {DEMOS_DDB_ATTACH_NAME}.{os.environ["STAGING_SCHEMA"]}.system_file_migration_queue
     WHERE
         flag = TRUE
 """
 MARK_FILE_MIGRATED_QUERY = f"""
     UPDATE
-        {DEMOS_DDB_ATTACH_NAME}.legacy_pmda_staging.system_file_migration_queue
+        {DEMOS_DDB_ATTACH_NAME}.{os.environ["STAGING_SCHEMA"]}.system_file_migration_queue
     SET
         flag = false
     WHERE
