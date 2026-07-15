@@ -51,12 +51,13 @@ export function highlightCell<TData>({
 
   if (!validKeywords.length) return text;
 
-  const pattern = validKeywords.map((k) => `(${k})`).join("|");
+  const pattern = `(${validKeywords.map((keyword) => RegExp.escape(keyword)).join("|")})`;
   const regex = new RegExp(pattern, "gi");
+
   const parts = text.split(regex);
 
   return parts.map((part, index) =>
-    regex.test(part) ? (
+    index % 2 === 1 ? (
       <mark key={index} className="bg-yellow-200 font-semibold">
         {part}
       </mark>
@@ -75,7 +76,6 @@ export function KeywordSearch<T>({
 }: KeywordSearchProps<T>) {
   const [queryString, setQueryString] = React.useState<string>(() => {
     if (typeof window === "undefined") return "";
-
     try {
       return localStorage.getItem(storageKey) || "";
     } catch (error) {
