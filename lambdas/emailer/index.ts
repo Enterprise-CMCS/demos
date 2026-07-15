@@ -182,7 +182,7 @@ export function isEmailerAddress(address?: EmailerAddress): address is EmailerAd
   return false;
 }
 
-let allowList: string[];
+let allowList: string[] | undefined;
 
 export async function sendEmailIsAllowed(
   ...recipientGroups: Array<EmailerAddress | undefined>
