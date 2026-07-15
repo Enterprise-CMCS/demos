@@ -1,0 +1,12 @@
+version: 2
+
+seeds:
+  - name: crosswalk_role_cd_to_person_type_id
+    columns:
+      - name: role_cd
+        data_tests:
+          - relationships:
+              name: assert_all_role_cd_in_pmda_exist_in_crosswalk_role_cd_to_person_type_id
+              arguments:
+                to: source('legacy_pmda_raw', 'role_rfrnc')
+                field: role_cd

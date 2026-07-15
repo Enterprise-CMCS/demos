@@ -9,7 +9,7 @@
     "@date-fns/utc": "^2.1.1",
     "@eslint/js": "^9.39.4",
     "@faker-js/faker": "^9.9.0",
-    "@tailwindcss/vite": "^4.3.1",
+    "@tailwindcss/vite": "^4.3.2",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -17,23 +17,22 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
-    "@vitest/coverage-v8": "^4.1.9",
-    "eslint": "^10.0.0",
+    "@vitest/coverage-v8": "^4.1.10",
+    "eslint": "^10.6.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^16.5.0",
     "jsdom": "^26.1.0",
-    "prettier": "^3.8.4",
+    "prettier": "^3.9.4",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-idle-timer": "^5.7.3",
-    "tailwindcss": "^4.3.1",
+    "tailwindcss": "^4.3.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.62.0",
-    "vite": "^8.1.0",
+    "typescript-eslint": "^8.63.0",
+    "vite": "^8.1.3",
     "vite-bundle-visualizer": "^1.2.1",
-    "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^4.1.9",
+    "vitest": "^4.1.10",
     "vitest-sonar-reporter": "^3.0.0"
   },
   "browserslist": {
@@ -84,11 +83,11 @@
     "demos-shared-library": "file:../shared_library",
     "file-type": "^21.3.4",
     "react-oidc-context": "^3.3.1",
-    "react-router-dom": "^7.18.0",
+    "react-router-dom": "^7.18.1",
     "react-switch": "^7.1.0"
   },
   "optionalDependencies": {
-    "@emnapi/core": "^1.11.1",
+    "@emnapi/core": "^1.11.2",
     "@rollup/rollup-linux-x64-musl": "^4.62.2"
   }
 }
