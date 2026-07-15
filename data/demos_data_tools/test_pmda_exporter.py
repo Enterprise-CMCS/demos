@@ -18,19 +18,19 @@ class TestPmdaExporter:
 
     test_table_list = ["tbl1", "tbl2", "tbl4"]
     test_column_data = [
-        [("tbl1", "Col1", 1, "int", "int"), "    col1 INTEGER"],
-        [("tbl1", "Col2", 2, "int", "int unsigned"), "    col2 INTEGER"],
-        [("tbl1", "Col3", 3, "char", "char(30)"), "    col3 CHAR(30)"],
-        [("tbl1", "Col4", 4, "decimal", "decimal(15,2)"), "    col4 DECIMAL(15,2)"],
-        [("tbl1", "Col5", 5, "date", "date"), "    col5 DATE"],
-        [("tbl1", "Col6", 6, "datetime", "datetime"), "    col6 TIMESTAMP"],
-        [("tbl1", "Col7", 7, "float", "float"), "    col7 REAL"],
-        [("tbl1", "Col8", 8, "longtext", "longtext"), "    col8 TEXT"],
-        [("tbl1", "Col9", 9, "mediumtext", "mediumtext"), "    col9 TEXT"],
-        [("tbl1", "Col10", 10, "smallint", "smallint"), "    col10 SMALLINT"],
-        [("tbl1", "Col11", 11, "smallint", "smallint unsigned"), "    col11 SMALLINT"],
-        [("tbl1", "Col12", 12, "timestamp", "timestamp"), "    col12 TIMESTAMPTZ"],
-        [("tbl1", "Col13", 13, "varchar", "varchar(2048)"), "    col13 VARCHAR(2048)"],
+        (("tbl1", "Col1", 1, "int", "int"), "    col1 INTEGER"),
+        (("tbl1", "Col2", 2, "int", "int unsigned"), "    col2 INTEGER"),
+        (("tbl1", "Col3", 3, "char", "char(30)"), "    col3 CHAR(30)"),
+        (("tbl1", "Col4", 4, "decimal", "decimal(15,2)"), "    col4 DECIMAL(15,2)"),
+        (("tbl1", "Col5", 5, "date", "date"), "    col5 DATE"),
+        (("tbl1", "Col6", 6, "datetime", "datetime"), "    col6 TIMESTAMP"),
+        (("tbl1", "Col7", 7, "float", "float"), "    col7 REAL"),
+        (("tbl1", "Col8", 8, "longtext", "longtext"), "    col8 TEXT"),
+        (("tbl1", "Col9", 9, "mediumtext", "mediumtext"), "    col9 TEXT"),
+        (("tbl1", "Col10", 10, "smallint", "smallint"), "    col10 SMALLINT"),
+        (("tbl1", "Col11", 11, "smallint", "smallint unsigned"), "    col11 SMALLINT"),
+        (("tbl1", "Col12", 12, "timestamp", "timestamp"), "    col12 TIMESTAMPTZ"),
+        (("tbl1", "Col13", 13, "varchar", "varchar(2048)"), "    col13 VARCHAR(2048)"),
     ]
 
     @pytest.fixture

@@ -1,13 +1,11 @@
 """Shared utility for initializing a duckdb connection with both PMDA mysql and DEMOS postgres."""
 
-from __future__ import annotations
-
 import os
+from typing import TYPE_CHECKING
 
 import duckdb
-from logger import get_logger
 
-from typing import TYPE_CHECKING
+from logger_utils import get_logger
 
 if TYPE_CHECKING:  # pragma: no cover
     from duckdb import DuckDBPyConnection as DuckConn
@@ -19,7 +17,7 @@ PMDA_DDB_ATTACH_NAME = "ddb_pmda"
 DEMOS_DDB_ATTACH_NAME = "ddb_demos"
 
 
-def load_db_configs_from_env() -> dict:
+def _load_db_configs_from_env() -> dict:
     """Load the DB configurations from the environment.
 
     Returns:
@@ -47,20 +45,14 @@ def load_db_configs_from_env() -> dict:
     return config
 
 
-def create_duckdb_conn(config: dict | None = None) -> "DuckConn":
+def create_duckdb_conn() -> "DuckConn":
     """Take the config and create a proper DuckDB connection.
-
-    Args:
-        config (dict | None): A configuration for the two databases being connected.
-            When omitted, the configuration is loaded from environment variables.
 
     Returns:
         "DuckConn": A configured DuckDB connection.
     """
     logger.info("Creating DuckDB database")
-
-    if config is None:
-        config = load_db_configs_from_env()
+    config = _load_db_configs_from_env()
 
     # In-memory DB
     conn = duckdb.connect(":memory:", config={"memory_limit": "8GB", "threads": 8})

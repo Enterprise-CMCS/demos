@@ -33,6 +33,13 @@ class TestDuckDbConnectionManager:
         """Patch duckdb.connect so create_duckdb_conn runs against a mock."""
         return mocker.patch("duckdb.connect")
 
+    @pytest.fixture
+    def mock_load_credentials(self, mocker):
+        """Patch _load_db_configs_from_env to return mock configuration."""
+        mock_loader = mocker.patch("duckdb_connection_manager._load_db_configs_from_env")
+        mock_loader.return_value = self.db_conn_config
+        return mock_loader
+
     def test_load_db_configs_from_env(self, mocker):
         """Test duckdb_connection_manager.py functions.
 
@@ -55,7 +62,7 @@ class TestDuckDbConnectionManager:
         }
         mocker.patch.dict("os.environ", env_vars)
 
-        result = duckdb_connection_manager.load_db_configs_from_env()
+        result = duckdb_connection_manager._load_db_configs_from_env()
 
         expected = {
             "ddb_pmda": {
@@ -76,38 +83,39 @@ class TestDuckDbConnectionManager:
         }
         assert result == expected
 
-    def test_create_duckdb_conn_01(self, mock_duckdb_connect):
+    def test_create_duckdb_conn_01(self, mock_duckdb_connect, mock_load_credentials):
         """Test duckdb_connection_manager.py functions.
 
         ::create_duckdb_conn
 
         ::It should invoke an in-memory database.
         """
-        duckdb_connection_manager.create_duckdb_conn(self.db_conn_config)
+        duckdb_connection_manager.create_duckdb_conn()
 
+        mock_load_credentials.assert_called_once()
         mock_duckdb_connect.assert_called_once_with(":memory:", config={"memory_limit": "8GB", "threads": 8})
 
-    def test_create_duckdb_conn_02(self, mock_duckdb_connect):
+    def test_create_duckdb_conn_02(self, mock_duckdb_connect, mock_load_credentials):
         """Test duckdb_connection_manager.py functions.
 
         ::create_duckdb_conn
 
         ::It should install the PostgreSQL and MySQL extensions.
         """
-        duckdb_connection_manager.create_duckdb_conn(self.db_conn_config)
+        duckdb_connection_manager.create_duckdb_conn()
 
         mock_conn = mock_duckdb_connect.return_value
         assert mock_conn.install_extension.call_args_list == [call("postgres"), call("mysql")]
         assert mock_conn.load_extension.call_args_list == [call("postgres"), call("mysql")]
 
-    def test_create_duckdb_conn_03(self, mock_duckdb_connect):
+    def test_create_duckdb_conn_03(self, mock_duckdb_connect, mock_load_credentials):
         """Test duckdb_connection_manager.py functions.
 
         ::create_duckdb_conn
 
         ::It should create a PostgreSQL secret with the connection details.
         """
-        duckdb_connection_manager.create_duckdb_conn(self.db_conn_config)
+        duckdb_connection_manager.create_duckdb_conn()
 
         mock_conn = mock_duckdb_connect.return_value
         secret_sql = mock_conn.execute.call_args_list[0].args[0]
@@ -118,14 +126,14 @@ class TestDuckDbConnectionManager:
         assert "USER 'fakeuser2'" in secret_sql
         assert "PASSWORD 'fakepasswd2'" in secret_sql  # pragma: allowlist secret
 
-    def test_create_duckdb_conn_04(self, mock_duckdb_connect):
+    def test_create_duckdb_conn_04(self, mock_duckdb_connect, mock_load_credentials):
         """Test duckdb_connection_manager.py functions.
 
         ::create_duckdb_conn
 
         ::It should create a MySQL secret and escape single quotes in the password.
         """
-        duckdb_connection_manager.create_duckdb_conn(self.db_conn_config)
+        duckdb_connection_manager.create_duckdb_conn()
 
         mock_conn = mock_duckdb_connect.return_value
         secret_sql = mock_conn.execute.call_args_list[3].args[0]
@@ -136,27 +144,27 @@ class TestDuckDbConnectionManager:
         assert "USER 'fakeuser1'" in secret_sql
         assert "PASSWORD 'fake?$''!@<&>passwd1'" in secret_sql  # pragma: allowlist secret
 
-    def test_create_duckdb_conn_05(self, mock_duckdb_connect):
+    def test_create_duckdb_conn_05(self, mock_duckdb_connect, mock_load_credentials):
         """Test duckdb_connection_manager.py functions.
 
         ::create_duckdb_conn
 
         ::It should connect to PostgreSQL.
         """
-        duckdb_connection_manager.create_duckdb_conn(self.db_conn_config)
+        duckdb_connection_manager.create_duckdb_conn()
 
         mock_conn = mock_duckdb_connect.return_value
         assert mock_conn.execute.call_args_list[1] == call("ATTACH 'sslmode=prefer' AS ddb_demos (TYPE postgres);")
         assert mock_conn.execute.call_args_list[2] == call("SET pg_null_byte_replacement=''")
 
-    def test_create_duckdb_conn_06(self, mock_duckdb_connect):
+    def test_create_duckdb_conn_06(self, mock_duckdb_connect, mock_load_credentials):
         """Test duckdb_connection_manager.py functions.
 
         ::create_duckdb_conn
 
         ::It should connect to MySQL.
         """
-        duckdb_connection_manager.create_duckdb_conn(self.db_conn_config)
+        duckdb_connection_manager.create_duckdb_conn()
 
         mock_conn = mock_duckdb_connect.return_value
         assert mock_conn.execute.call_args_list[4] == call("ATTACH '' AS ddb_pmda (TYPE mysql);")

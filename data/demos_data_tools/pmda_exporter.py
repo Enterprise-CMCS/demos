@@ -1,14 +1,17 @@
 """Testing out using DuckDB to ETL data from legacy system to new legacy schema."""
 
+import argparse
+import logging
 import os
 import sys
 import types
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, Tuple, Type
 
-from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME, PMDA_DDB_ATTACH_NAME, create_duckdb_conn
 from dotenv import load_dotenv
-from logger import get_logger
+
+from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME, PMDA_DDB_ATTACH_NAME, create_duckdb_conn
+from logger_utils import get_logger
 
 if TYPE_CHECKING:  # pragma: no cover
     from duckdb import DuckDBPyConnection as DuckConn
@@ -237,4 +240,10 @@ def custom_excepthook(
 sys.excepthook = custom_excepthook
 
 if __name__ == "__main__":  # pragma: no cover
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
+    args = argparser.parse_args()
+    if args.verbose:
+        logger.setLevel(logging.DEBUG)
+
     main()

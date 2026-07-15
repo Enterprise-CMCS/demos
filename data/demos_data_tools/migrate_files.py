@@ -6,31 +6,40 @@ Only rows with `flag = true` are copied.
 """
 
 import os
-from pathlib import Path
-from typing import TYPE_CHECKING, Any, Iterator, TypedDict
+from typing import TYPE_CHECKING, List, TypedDict
 
 import boto3
-import duckdb
-from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME
 from dotenv import load_dotenv
-from logger import get_logger
+
+from duckdb_connection_manager import create_duckdb_conn, DEMOS_DDB_ATTACH_NAME
+from logger_utils import get_logger
 
 if TYPE_CHECKING:  # pragma: no cover
     from duckdb import DuckDBPyConnection as DuckConn
+    from mypy_boto3_s3 import S3Client
 
+load_dotenv()
 
-ENV_FILE = Path(__file__).with_name(".env")
-logger = get_logger(__name__)
 SELECT_UNMIGRATED_FILES_QUERY = f"""
-SELECT old_path, new_path
-FROM {DEMOS_DDB_ATTACH_NAME}.public.file_migration_queue
-WHERE flag = true
+    SELECT
+        old_path, new_path
+    FROM
+        {DEMOS_DDB_ATTACH_NAME}.legacy_pmda_staging.system_file_migration_queue
+    WHERE
+        flag = TRUE
 """
 MARK_FILE_MIGRATED_QUERY = f"""
-UPDATE {DEMOS_DDB_ATTACH_NAME}.public.file_migration_queue
-SET flag = false
-WHERE old_path = ? AND new_path = ? AND flag = true
+    UPDATE
+        {DEMOS_DDB_ATTACH_NAME}.legacy_pmda_staging.system_file_migration_queue
+    SET
+        flag = false
+    WHERE
+        old_path = $old_path
+        AND new_path = $new_path
+        AND flag = TRUE
 """
+
+logger = get_logger(__name__)
 
 
 class CopyRow(TypedDict):
@@ -40,46 +49,17 @@ class CopyRow(TypedDict):
     new_path: str
 
 
-def create_duckdb_postgres_conn() -> "DuckConn":
-    """Create a DuckDB connection with the Postgres database attached.
-
-    Returns:
-        "DuckConn": A DuckDB connection configured to query Postgres.
-    """
-    conn = duckdb.connect(":memory:")
-    conn.install_extension("postgres")
-    conn.load_extension("postgres")
-
-    clean_postgres_pwd = os.environ["POSTGRES_PASSWORD"].replace("'", "''")
-    conn.execute(f"""
-        CREATE SECRET (
-            TYPE postgres,
-            HOST '{os.environ["POSTGRES_HOST"]}',
-            PORT {os.environ["POSTGRES_PORT"]},
-            DATABASE '{os.environ["POSTGRES_DATABASE"]}',
-            USER '{os.environ["POSTGRES_USER"]}',
-            PASSWORD '{clean_postgres_pwd}'
-        );
-    """)
-    conn.execute(f"ATTACH 'sslmode={os.environ['POSTGRES_SSLMODE']}' AS {DEMOS_DDB_ATTACH_NAME} (TYPE postgres);")
-    return conn
-
-
-def get_unmigrated_files(connection: "DuckConn") -> Iterator[CopyRow]:
+def get_unmigrated_files(connection: "DuckConn") -> List[CopyRow]:
     """Read unmigrated file mappings from Postgres.
 
     Args:
         connection ("DuckConn"): The DuckDB connection with Postgres attached.
 
-    Yields:
-        CopyRow: One row to copy.
+    Returns:
+        List[CopyRow]: A list of the rows to copy.
     """
     rows = connection.execute(SELECT_UNMIGRATED_FILES_QUERY).fetchall()
-    for row in rows:
-        yield {
-            "old_path": row[0],
-            "new_path": row[1],
-        }
+    return [{"old_path": row[0], "new_path": row[1]} for row in rows]
 
 
 def mark_row_copied(connection: "DuckConn", row: CopyRow) -> None:
@@ -91,12 +71,13 @@ def mark_row_copied(connection: "DuckConn", row: CopyRow) -> None:
     """
     connection.execute(
         MARK_FILE_MIGRATED_QUERY,
-        [row["old_path"], row["new_path"]],
+        {"old_path": row["old_path"], "new_path": row["new_path"]},
     )
+    return None
 
 
 def copy_s3_object(
-    s3_client: Any,
+    s3_client: "S3Client",
     source_bucket: str,
     destination_bucket: str,
     old_path: str,
@@ -105,7 +86,7 @@ def copy_s3_object(
     """Copy one object within the same S3-compatible service.
 
     Args:
-        s3_client (Any): The S3 client used to perform the copy.
+        s3_client ("S3Client"): The S3 client used to perform the copy.
         source_bucket (str): The bucket containing the source object.
         destination_bucket (str): The bucket receiving the copied object.
         old_path (str): The source object key.
@@ -116,24 +97,25 @@ def copy_s3_object(
         destination_bucket,
         new_path,
     )
+    return None
 
 
 def migrate_file(
     connection: "DuckConn",
     row: CopyRow,
-    s3_client: Any,
+    s3_client: "S3Client",
 ) -> None:
     """Copy one row from the source bucket to the destination bucket.
 
     Args:
         connection ("DuckConn"): The DuckDB connection with Postgres attached.
         row (CopyRow): The queued row describing the source and destination keys.
-        s3_client (Any): The S3 client used to perform the copy.
+        s3_client ("S3Client"): The S3 client used to perform the copy.
     """
     source_bucket = os.environ["SOURCE_BUCKET"]
     destination_bucket = os.environ["DESTINATION_BUCKET"]
-    logger.info("Copying s3://%s/%s -> s3://%s/%s", source_bucket, row["old_path"], destination_bucket, row["new_path"])
     if os.environ["PRODUCTION"] == "1":
+        logger.info(f"Copying s3://{source_bucket}/{row['old_path']} -> s3://{destination_bucket}/{row['new_path']}")
         copy_s3_object(
             s3_client,
             source_bucket,
@@ -142,29 +124,25 @@ def migrate_file(
             row["new_path"],
         )
         mark_row_copied(connection, row)
+    else:
+        logger.info(
+            f"Would have copied s3://{source_bucket}/{row['old_path']} -> s3://{destination_bucket}/{row['new_path']}"
+        )
+    return None
 
 
 def main() -> None:
-    """Execute main program function.
-
-    Returns:
-        None: This function does not return a value.
-    """
-    load_dotenv(ENV_FILE)
-
-    db_connection = create_duckdb_postgres_conn()
-    session = boto3.Session()
-    s3_client = session.client("s3")
+    """Execute main program function."""
+    db_connection = create_duckdb_conn()
+    s3_client = boto3.Session().client("s3")
     copied_count = 0
-    try:
-        for row_number, row in enumerate(get_unmigrated_files(db_connection), start=1):
-            logger.info("Processing row %s.", row_number)
-            migrate_file(db_connection, row, s3_client)
-            copied_count += 1
-    finally:
-        db_connection.close()
+    unmigrated_files = get_unmigrated_files(db_connection)
 
-    logger.info("%s %s file(s).", "Copied" if os.environ["PRODUCTION"] == "1" else "Would copy", copied_count)
+    while copied_count < len(unmigrated_files):
+        logger.info(f"Processing {unmigrated_files[copied_count]['old_path']}")
+        migrate_file(db_connection, unmigrated_files[copied_count], s3_client)
+        copied_count += 1
+
     return None
 
 
