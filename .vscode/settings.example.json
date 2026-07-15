@@ -7,6 +7,7 @@
     "python.analysis.typeCheckingMode": "off",
     "python.analysis.extraPaths": ["data/demos_data_tools"],
     "python.defaultInterpreterPath": "/opt/demos-data/bin/python",
+    "python.terminal.activateEnvironment": false,
     "mypy-type-checker.preferDaemon": false,
     "mypy-type-checker.cwd": "${workspaceFolder}/data/demos_data_tools",
     "[typescript]": {
