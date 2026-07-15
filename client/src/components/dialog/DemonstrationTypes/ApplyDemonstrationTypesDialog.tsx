@@ -84,7 +84,7 @@ export const ApplyDemonstrationTypesDialog = ({ demonstrationId }: { demonstrati
       title="Apply Type(s)"
       onClose={closeDialog}
       dialogHasChanges={!!demonstrationTypes.length}
-      maxWidthClass="max-w-[920px]"
+      maxWidthClass="max-w-[920px] min-w-[520px]"
       actionButton={
         <Button
           name={"button-submit-demonstration-dialog"}
