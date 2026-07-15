@@ -1,0 +1,40 @@
+{
+    "prettier.configPath": "client/.prettierrc",
+    "prettier.prettierPath": "./client/node_modules/prettier",
+    "prettier.requireConfig": true,
+    "python.testing.pytestEnabled": true,
+    "python.testing.cwd": "${workspaceFolder}/data/demos_data_tools",
+    "python.analysis.typeCheckingMode": "off",
+    "python.analysis.extraPaths": ["data/demos_data_tools"],
+    "python.defaultInterpreterPath": "/opt/demos-data/bin/python",
+    "mypy-type-checker.preferDaemon": false,
+    "mypy-type-checker.cwd": "${workspaceFolder}/data/demos_data_tools",
+    "[typescript]": {
+        "editor.insertSpaces": true,
+        "editor.indentSize": 2,
+        "editor.tabSize": 2,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+    },
+    "[typescriptreact]": {
+        "editor.insertSpaces": true,
+        "editor.indentSize": 2,
+        "editor.tabSize": 2,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+    },
+    "[javascript]": {
+        "editor.insertSpaces": true,
+        "editor.indentSize": 2,
+        "editor.tabSize": 2,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+    },
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll.ruff": "explicit"
+        }
+    }
+}
