@@ -6,12 +6,6 @@ import { useDebounced } from "hooks/useDebounced";
 
 import { CellContext, Row, Table } from "@tanstack/react-table";
 
-declare global {
-  interface RegExpConstructor {
-    escape(str: string): string;
-  }
-}
-
 export const TEST_IDS = {
   input: "input-keyword-search",
   clearButton: "button-clear-search",
