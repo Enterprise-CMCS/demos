@@ -12343,6 +12343,7 @@ sources:
             data_type: integer
             data_tests:
             - relationships:
+                name: assert_all_role_cd_in_crosswalk_role_cd_to_person_type_id_exist_in_pmda
                 arguments:
                   to: ref('crosswalk_role_cd_to_person_type_id')
                   field: role_cd
@@ -12904,8 +12905,22 @@ sources:
         columns:
           - name: user_id
             data_type: integer
+            data_tests:
+            - relationships:
+                name: assert_no_pmda_nonexistent_users_assigned_to_roles
+                config:
+                  severity: warn
+                arguments:
+                  to: source('legacy_pmda_raw', 'users')
+                  field: id
           - name: role_cd
             data_type: integer
+            data_tests:
+            - relationships:
+                name: assert_no_pmda_nonexistent_roles_assigned_to_users
+                arguments:
+                  to: source('legacy_pmda_raw', 'role_rfrnc')
+                  field: role_cd
           - name: creatd_dt
             data_type: timestamp with time zone
 

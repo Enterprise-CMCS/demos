@@ -24,3 +24,9 @@ repos:
     hooks:
     - id: pydoclint
       args: ["--config=data/migration/pyproject.toml"]
+
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 4.2.2
+    hooks:
+      - id: sqlfluff-lint
+        files: ^data/migration/stage_pmda_for_migration/
