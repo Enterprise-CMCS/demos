@@ -1,6 +1,7 @@
 version: 2
 
 sources:
+  # Primary source of data for migration
   - name: legacy_pmda_raw
     tables:
       - name: aplctn_mngmt_raw_cleaned
@@ -13208,3 +13209,1910 @@ sources:
           - name: creatd_dt
             data_type: timestamp with time zone
 
+  # Can be used for tests that use constraint tables, etc
+  - name: demos_app
+    tables:
+      - name: _prisma_migrations
+        columns:
+          - name: id
+            data_type: character varying
+          - name: checksum
+            data_type: character varying
+          - name: finished_at
+            data_type: timestamp with time zone
+          - name: migration_name
+            data_type: character varying
+          - name: logs
+            data_type: text
+          - name: rolled_back_at
+            data_type: timestamp with time zone
+          - name: started_at
+            data_type: timestamp with time zone
+          - name: applied_steps_count
+            data_type: integer
+
+      - name: amendment
+        columns:
+          - name: id
+            data_type: uuid
+          - name: application_type_id
+            data_type: text
+          - name: demonstration_id
+            data_type: uuid
+          - name: name
+            data_type: text
+          - name: description
+            data_type: text
+          - name: effective_date
+            data_type: timestamp with time zone
+          - name: status_id
+            data_type: text
+          - name: current_phase_id
+            data_type: text
+          - name: clearance_level_id
+            data_type: text
+          - name: signature_level_id
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+          - name: status_updated_at
+            data_type: timestamp with time zone
+          - name: demonstration_status_id
+            data_type: text
+
+      - name: amendment_application_type_limit
+        columns:
+          - name: id
+            data_type: text
+
+      - name: amendment_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: id
+            data_type: uuid
+          - name: application_type_id
+            data_type: text
+          - name: demonstration_id
+            data_type: uuid
+          - name: name
+            data_type: text
+          - name: description
+            data_type: text
+          - name: effective_date
+            data_type: timestamp with time zone
+          - name: status_id
+            data_type: text
+          - name: current_phase_id
+            data_type: text
+          - name: clearance_level_id
+            data_type: text
+          - name: signature_level_id
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+          - name: status_updated_at
+            data_type: timestamp with time zone
+
+      - name: application
+        columns:
+          - name: id
+            data_type: uuid
+          - name: application_type_id
+            data_type: text
+
+      - name: application_date
+        columns:
+          - name: application_id
+            data_type: uuid
+          - name: date_type_id
+            data_type: text
+          - name: date_value
+            data_type: timestamp with time zone
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: application_date_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: application_id
+            data_type: uuid
+          - name: date_type_id
+            data_type: text
+          - name: date_value
+            data_type: timestamp with time zone
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: application_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: id
+            data_type: uuid
+          - name: application_type_id
+            data_type: text
+
+      - name: application_note
+        columns:
+          - name: application_id
+            data_type: uuid
+          - name: note_type_id
+            data_type: text
+          - name: content
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: application_note_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: application_id
+            data_type: uuid
+          - name: note_type_id
+            data_type: text
+          - name: content
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: application_phase
+        columns:
+          - name: application_id
+            data_type: uuid
+          - name: phase_id
+            data_type: text
+          - name: phase_status_id
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: application_phase_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: application_id
+            data_type: uuid
+          - name: phase_id
+            data_type: text
+          - name: phase_status_id
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: application_status
+        columns:
+          - name: id
+            data_type: text
+
+      - name: application_tag_assignment
+        columns:
+          - name: application_id
+            data_type: uuid
+          - name: tag_name_id
+            data_type: text
+          - name: tag_type_id
+            data_type: text
+
+      - name: application_tag_assignment_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: application_id
+            data_type: uuid
+          - name: tag_name_id
+            data_type: text
+          - name: tag_type_id
+            data_type: text
+
+      - name: application_tag_suggestion
+        columns:
+          - name: application_id
+            data_type: uuid
+          - name: value
+            data_type: text
+          - name: status_id
+            data_type: text
+          - name: replaced_value
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: application_tag_suggestion_extract
+        columns:
+          - name: uipath_value_id
+            data_type: uuid
+          - name: application_id
+            data_type: uuid
+          - name: field_id
+            data_type: text
+          - name: value
+            data_type: text
+          - name: start_page_no
+            data_type: integer
+          - name: end_page_no
+            data_type: integer
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: application_tag_suggestion_extract_field_limit
+        columns:
+          - name: id
+            data_type: text
+
+      - name: application_tag_suggestion_extract_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: uipath_value_id
+            data_type: uuid
+          - name: application_id
+            data_type: uuid
+          - name: field_id
+            data_type: text
+          - name: value
+            data_type: text
+          - name: start_page_no
+            data_type: integer
+          - name: end_page_no
+            data_type: integer
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: application_tag_suggestion_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: application_id
+            data_type: uuid
+          - name: value
+            data_type: text
+          - name: status_id
+            data_type: text
+          - name: replaced_value
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: application_tag_suggestion_status
+        columns:
+          - name: id
+            data_type: text
+
+      - name: application_tag_type_limit
+        columns:
+          - name: id
+            data_type: text
+
+      - name: application_type
+        columns:
+          - name: id
+            data_type: text
+
+      - name: approved_application_status_limit
+        columns:
+          - name: id
+            data_type: text
+
+      - name: budget_neutrality_validation_status
+        columns:
+          - name: id
+            data_type: text
+
+      - name: budget_neutrality_workbook
+        columns:
+          - name: id
+            data_type: uuid
+          - name: document_type_id
+            data_type: text
+          - name: validation_status_id
+            data_type: text
+          - name: validation_data
+            data_type: jsonb
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+          - name: actuals
+            data_type: text
+          - name: net_variance_total
+            data_type: double precision
+
+      - name: budget_neutrality_workbook_document_type_limit
+        columns:
+          - name: id
+            data_type: text
+
+      - name: budget_neutrality_workbook_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: id
+            data_type: uuid
+          - name: document_type_id
+            data_type: text
+          - name: validation_status_id
+            data_type: text
+          - name: validation_data
+            data_type: jsonb
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+          - name: actuals
+            data_type: text
+          - name: net_variance_total
+            data_type: double precision
+
+      - name: clearance_level
+        columns:
+          - name: id
+            data_type: text
+
+      - name: cms_user_person_type_limit
+        columns:
+          - name: id
+            data_type: text
+
+      - name: date_type
+        columns:
+          - name: id
+            data_type: text
+
+      - name: deliverable
+        columns:
+          - name: id
+            data_type: uuid
+          - name: deliverable_type_id
+            data_type: text
+          - name: name
+            data_type: text
+          - name: demonstration_id
+            data_type: uuid
+          - name: demonstration_status_id
+            data_type: text
+          - name: status_id
+            data_type: text
+          - name: cms_owner_user_id
+            data_type: uuid
+          - name: cms_owner_person_type_id
+            data_type: text
+          - name: due_date
+            data_type: timestamp with time zone
+          - name: due_date_type_id
+            data_type: text
+          - name: expected_to_be_submitted
+            data_type: boolean
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: deliverable_action
+        columns:
+          - name: id
+            data_type: uuid
+          - name: action_timestamp
+            data_type: timestamp with time zone
+          - name: deliverable_id
+            data_type: uuid
+          - name: action_type_id
+            data_type: text
+          - name: old_status_id
+            data_type: text
+          - name: new_status_id
+            data_type: text
+          - name: note
+            data_type: text
+          - name: active_extension_id
+            data_type: uuid
+          - name: due_date_change_allowed
+            data_type: boolean
+          - name: should_have_note
+            data_type: boolean
+          - name: should_have_user_id
+            data_type: boolean
+          - name: extension_id_optional
+            data_type: boolean
+          - name: old_due_date
+            data_type: timestamp with time zone
+          - name: new_due_date
+            data_type: timestamp with time zone
+          - name: user_id
+            data_type: uuid
+
+      - name: deliverable_action_configuration
+        columns:
+          - name: action_type_id
+            data_type: text
+          - name: old_status_id
+            data_type: text
+          - name: new_status_id
+            data_type: text
+
+      - name: deliverable_action_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: id
+            data_type: uuid
+          - name: action_timestamp
+            data_type: timestamp with time zone
+          - name: deliverable_id
+            data_type: uuid
+          - name: action_type_id
+            data_type: text
+          - name: old_status_id
+            data_type: text
+          - name: new_status_id
+            data_type: text
+          - name: note
+            data_type: text
+          - name: active_extension_id
+            data_type: uuid
+          - name: due_date_change_allowed
+            data_type: boolean
+          - name: should_have_note
+            data_type: boolean
+          - name: should_have_user_id
+            data_type: boolean
+          - name: extension_id_optional
+            data_type: boolean
+          - name: old_due_date
+            data_type: timestamp with time zone
+          - name: new_due_date
+            data_type: timestamp with time zone
+          - name: user_id
+            data_type: uuid
+
+      - name: deliverable_action_type
+        columns:
+          - name: id
+            data_type: text
+          - name: due_date_change_allowed
+            data_type: boolean
+          - name: should_have_note
+            data_type: boolean
+          - name: should_have_user_id
+            data_type: boolean
+          - name: extension_id_optional
+            data_type: boolean
+
+      - name: deliverable_active_extension
+        columns:
+          - name: deliverable_extension_id
+            data_type: uuid
+          - name: deliverable_id
+            data_type: uuid
+          - name: status_id
+            data_type: text
+
+      - name: deliverable_active_extension_status_limit
+        columns:
+          - name: id
+            data_type: text
+
+      - name: deliverable_demonstration_type
+        columns:
+          - name: deliverable_id
+            data_type: uuid
+          - name: demonstration_id
+            data_type: uuid
+          - name: demonstration_type_tag_name_id
+            data_type: text
+
+      - name: deliverable_demonstration_type_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: deliverable_id
+            data_type: uuid
+          - name: demonstration_id
+            data_type: uuid
+          - name: demonstration_type_tag_name_id
+            data_type: text
+
+      - name: deliverable_due_date_type
+        columns:
+          - name: id
+            data_type: text
+
+      - name: deliverable_extension
+        columns:
+          - name: id
+            data_type: uuid
+          - name: deliverable_id
+            data_type: uuid
+          - name: status_id
+            data_type: text
+          - name: reason_code_id
+            data_type: text
+          - name: original_date_requested
+            data_type: timestamp with time zone
+          - name: final_date_granted
+            data_type: timestamp with time zone
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: deliverable_extension_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: id
+            data_type: uuid
+          - name: deliverable_id
+            data_type: uuid
+          - name: status_id
+            data_type: text
+          - name: reason_code_id
+            data_type: text
+          - name: original_date_requested
+            data_type: timestamp with time zone
+          - name: final_date_granted
+            data_type: timestamp with time zone
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: deliverable_extension_reason_code
+        columns:
+          - name: id
+            data_type: text
+
+      - name: deliverable_extension_status
+        columns:
+          - name: id
+            data_type: text
+
+      - name: deliverable_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: id
+            data_type: uuid
+          - name: deliverable_type_id
+            data_type: text
+          - name: name
+            data_type: text
+          - name: demonstration_id
+            data_type: uuid
+          - name: demonstration_status_id
+            data_type: text
+          - name: status_id
+            data_type: text
+          - name: cms_owner_user_id
+            data_type: uuid
+          - name: cms_owner_person_type_id
+            data_type: text
+          - name: due_date
+            data_type: timestamp with time zone
+          - name: due_date_type_id
+            data_type: text
+          - name: expected_to_be_submitted
+            data_type: boolean
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: deliverable_status
+        columns:
+          - name: id
+            data_type: text
+
+      - name: deliverable_submission_action_type_limit
+        columns:
+          - name: id
+            data_type: text
+
+      - name: deliverable_type
+        columns:
+          - name: id
+            data_type: text
+
+      - name: deliverable_type_document_type
+        columns:
+          - name: deliverable_type_id
+            data_type: text
+          - name: document_type_id
+            data_type: text
+
+      - name: demonstration
+        columns:
+          - name: id
+            data_type: uuid
+          - name: application_type_id
+            data_type: text
+          - name: name
+            data_type: text
+          - name: description
+            data_type: text
+          - name: effective_date
+            data_type: timestamp with time zone
+          - name: expiration_date
+            data_type: timestamp with time zone
+          - name: sdg_division_id
+            data_type: text
+          - name: signature_level_id
+            data_type: text
+          - name: status_id
+            data_type: text
+          - name: current_phase_id
+            data_type: text
+          - name: state_id
+            data_type: text
+          - name: clearance_level_id
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+          - name: medicaid_id
+            data_type: text
+          - name: chip_id
+            data_type: text
+          - name: status_updated_at
+            data_type: timestamp with time zone
+
+      - name: demonstration_application_type_limit
+        columns:
+          - name: id
+            data_type: text
+
+      - name: demonstration_grant_level_limit
+        columns:
+          - name: id
+            data_type: text
+
+      - name: demonstration_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: id
+            data_type: uuid
+          - name: application_type_id
+            data_type: text
+          - name: name
+            data_type: text
+          - name: description
+            data_type: text
+          - name: effective_date
+            data_type: timestamp with time zone
+          - name: expiration_date
+            data_type: timestamp with time zone
+          - name: sdg_division_id
+            data_type: text
+          - name: signature_level_id
+            data_type: text
+          - name: status_id
+            data_type: text
+          - name: current_phase_id
+            data_type: text
+          - name: state_id
+            data_type: text
+          - name: clearance_level_id
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+          - name: medicaid_id
+            data_type: text
+          - name: chip_id
+            data_type: text
+          - name: status_updated_at
+            data_type: timestamp with time zone
+
+      - name: demonstration_role_assignment
+        columns:
+          - name: person_id
+            data_type: uuid
+          - name: demonstration_id
+            data_type: uuid
+          - name: role_id
+            data_type: text
+          - name: state_id
+            data_type: text
+          - name: person_type_id
+            data_type: text
+          - name: grant_level_id
+            data_type: text
+
+      - name: demonstration_role_assignment_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: person_id
+            data_type: uuid
+          - name: demonstration_id
+            data_type: uuid
+          - name: role_id
+            data_type: text
+          - name: state_id
+            data_type: text
+          - name: person_type_id
+            data_type: text
+          - name: grant_level_id
+            data_type: text
+
+      - name: demonstration_type_tag_assignment
+        columns:
+          - name: demonstration_id
+            data_type: uuid
+          - name: tag_name_id
+            data_type: text
+          - name: tag_type_id
+            data_type: text
+          - name: effective_date
+            data_type: timestamp with time zone
+          - name: expiration_date
+            data_type: timestamp with time zone
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: demonstration_type_tag_assignment_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: demonstration_id
+            data_type: uuid
+          - name: tag_name_id
+            data_type: text
+          - name: tag_type_id
+            data_type: text
+          - name: effective_date
+            data_type: timestamp with time zone
+          - name: expiration_date
+            data_type: timestamp with time zone
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: demonstration_type_tag_type_limit
+        columns:
+          - name: id
+            data_type: text
+
+      - name: document
+        columns:
+          - name: id
+            data_type: uuid
+          - name: name
+            data_type: text
+          - name: description
+            data_type: text
+          - name: s3_path
+            data_type: text
+          - name: owner_user_id
+            data_type: uuid
+          - name: document_type_id
+            data_type: text
+          - name: application_id
+            data_type: uuid
+          - name: phase_id
+            data_type: text
+          - name: deliverable_id
+            data_type: uuid
+          - name: deliverable_type_id
+            data_type: text
+          - name: deliverable_is_cms_attached_file
+            data_type: boolean
+          - name: deliverable_submission_action_id
+            data_type: uuid
+          - name: deliverable_submission_action_type_id
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: document_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: id
+            data_type: uuid
+          - name: name
+            data_type: text
+          - name: description
+            data_type: text
+          - name: s3_path
+            data_type: text
+          - name: owner_user_id
+            data_type: uuid
+          - name: document_type_id
+            data_type: text
+          - name: application_id
+            data_type: uuid
+          - name: phase_id
+            data_type: text
+          - name: deliverable_id
+            data_type: uuid
+          - name: deliverable_type_id
+            data_type: text
+          - name: deliverable_is_cms_attached_file
+            data_type: boolean
+          - name: deliverable_submission_action_id
+            data_type: uuid
+          - name: deliverable_submission_action_type_id
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: document_infected
+        columns:
+          - name: id
+            data_type: uuid
+          - name: name
+            data_type: text
+          - name: description
+            data_type: text
+          - name: s3_path
+            data_type: text
+          - name: owner_user_id
+            data_type: uuid
+          - name: document_type_id
+            data_type: text
+          - name: application_id
+            data_type: uuid
+          - name: phase_id
+            data_type: text
+          - name: deliverable_id
+            data_type: uuid
+          - name: deliverable_type_id
+            data_type: text
+          - name: deliverable_is_cms_attached_file
+            data_type: boolean
+          - name: infection_status
+            data_type: text
+          - name: infection_threats
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: document_infected_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: id
+            data_type: uuid
+          - name: name
+            data_type: text
+          - name: description
+            data_type: text
+          - name: s3_path
+            data_type: text
+          - name: owner_user_id
+            data_type: uuid
+          - name: document_type_id
+            data_type: text
+          - name: application_id
+            data_type: uuid
+          - name: phase_id
+            data_type: text
+          - name: deliverable_id
+            data_type: uuid
+          - name: deliverable_type_id
+            data_type: text
+          - name: deliverable_is_cms_attached_file
+            data_type: boolean
+          - name: infection_status
+            data_type: text
+          - name: infection_threats
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: document_pending_upload
+        columns:
+          - name: id
+            data_type: uuid
+          - name: name
+            data_type: text
+          - name: description
+            data_type: text
+          - name: owner_user_id
+            data_type: uuid
+          - name: document_type_id
+            data_type: text
+          - name: application_id
+            data_type: uuid
+          - name: phase_id
+            data_type: text
+          - name: deliverable_id
+            data_type: uuid
+          - name: deliverable_type_id
+            data_type: text
+          - name: deliverable_is_cms_attached_file
+            data_type: boolean
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: document_pending_upload_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: id
+            data_type: uuid
+          - name: name
+            data_type: text
+          - name: description
+            data_type: text
+          - name: owner_user_id
+            data_type: uuid
+          - name: document_type_id
+            data_type: text
+          - name: application_id
+            data_type: uuid
+          - name: phase_id
+            data_type: text
+          - name: deliverable_id
+            data_type: uuid
+          - name: deliverable_type_id
+            data_type: text
+          - name: deliverable_is_cms_attached_file
+            data_type: boolean
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: document_type
+        columns:
+          - name: id
+            data_type: text
+
+      - name: extension
+        columns:
+          - name: id
+            data_type: uuid
+          - name: application_type_id
+            data_type: text
+          - name: demonstration_id
+            data_type: uuid
+          - name: name
+            data_type: text
+          - name: description
+            data_type: text
+          - name: effective_date
+            data_type: timestamp with time zone
+          - name: status_id
+            data_type: text
+          - name: current_phase_id
+            data_type: text
+          - name: clearance_level_id
+            data_type: text
+          - name: signature_level_id
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+          - name: status_updated_at
+            data_type: timestamp with time zone
+          - name: demonstration_status_id
+            data_type: text
+
+      - name: extension_application_type_limit
+        columns:
+          - name: id
+            data_type: text
+
+      - name: extension_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: id
+            data_type: uuid
+          - name: application_type_id
+            data_type: text
+          - name: demonstration_id
+            data_type: uuid
+          - name: name
+            data_type: text
+          - name: description
+            data_type: text
+          - name: effective_date
+            data_type: timestamp with time zone
+          - name: status_id
+            data_type: text
+          - name: current_phase_id
+            data_type: text
+          - name: clearance_level_id
+            data_type: text
+          - name: signature_level_id
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+          - name: status_updated_at
+            data_type: timestamp with time zone
+
+      - name: grant_level
+        columns:
+          - name: id
+            data_type: text
+
+      - name: note_type
+        columns:
+          - name: id
+            data_type: text
+
+      - name: on_demand_report
+        columns:
+          - name: id
+            data_type: uuid
+          - name: s3_path
+            data_type: text
+          - name: requesting_user_id
+            data_type: uuid
+          - name: report_type_id
+            data_type: text
+          - name: status_id
+            data_type: text
+          - name: report_generated_at
+            data_type: timestamp with time zone
+          - name: generated_file_name
+            data_type: text
+
+      - name: on_demand_report_status
+        columns:
+          - name: id
+            data_type: text
+
+      - name: on_demand_report_type
+        columns:
+          - name: id
+            data_type: text
+
+      - name: permission
+        columns:
+          - name: id
+            data_type: text
+          - name: grant_level_id
+            data_type: text
+
+      - name: person
+        columns:
+          - name: id
+            data_type: uuid
+          - name: person_type_id
+            data_type: text
+          - name: email
+            data_type: text
+          - name: first_name
+            data_type: text
+          - name: last_name
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: person_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: id
+            data_type: uuid
+          - name: person_type_id
+            data_type: text
+          - name: email
+            data_type: text
+          - name: first_name
+            data_type: text
+          - name: last_name
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: person_state
+        columns:
+          - name: person_id
+            data_type: uuid
+          - name: state_id
+            data_type: text
+
+      - name: person_state_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: person_id
+            data_type: uuid
+          - name: state_id
+            data_type: text
+
+      - name: person_type
+        columns:
+          - name: id
+            data_type: text
+
+      - name: phase
+        columns:
+          - name: id
+            data_type: text
+          - name: phase_number
+            data_type: integer
+
+      - name: phase_date_type
+        columns:
+          - name: phase_id
+            data_type: text
+          - name: date_type_id
+            data_type: text
+
+      - name: phase_document_type
+        columns:
+          - name: phase_id
+            data_type: text
+          - name: document_type_id
+            data_type: text
+
+      - name: phase_note_type
+        columns:
+          - name: phase_id
+            data_type: text
+          - name: note_type_id
+            data_type: text
+
+      - name: phase_phase_status
+        columns:
+          - name: phase_id
+            data_type: text
+          - name: phase_status_id
+            data_type: text
+
+      - name: phase_status
+        columns:
+          - name: id
+            data_type: text
+
+      - name: primary_demonstration_role_assignment
+        columns:
+          - name: person_id
+            data_type: uuid
+          - name: demonstration_id
+            data_type: uuid
+          - name: role_id
+            data_type: text
+
+      - name: primary_demonstration_role_assignment_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: person_id
+            data_type: uuid
+          - name: demonstration_id
+            data_type: uuid
+          - name: role_id
+            data_type: text
+
+      - name: private_comment
+        columns:
+          - name: id
+            data_type: uuid
+          - name: deliverable_id
+            data_type: uuid
+          - name: author_user_id
+            data_type: uuid
+          - name: author_person_type_id
+            data_type: text
+          - name: content
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: private_comment_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: id
+            data_type: uuid
+          - name: deliverable_id
+            data_type: uuid
+          - name: author_user_id
+            data_type: uuid
+          - name: author_person_type_id
+            data_type: text
+          - name: content
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: public_comment
+        columns:
+          - name: id
+            data_type: uuid
+          - name: deliverable_id
+            data_type: uuid
+          - name: author_user_id
+            data_type: uuid
+          - name: content
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: public_comment_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: id
+            data_type: uuid
+          - name: deliverable_id
+            data_type: uuid
+          - name: author_user_id
+            data_type: uuid
+          - name: content
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: reference
+        columns:
+          - name: id
+            data_type: uuid
+          - name: name
+            data_type: text
+          - name: s3_path
+            data_type: text
+          - name: owner_user_id
+            data_type: uuid
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+          - name: description
+            data_type: text
+          - name: owner_person_type_id
+            data_type: text
+
+      - name: reference_agreement
+        columns:
+          - name: id
+            data_type: uuid
+          - name: name
+            data_type: text
+          - name: s3_path
+            data_type: text
+          - name: owner_user_id
+            data_type: uuid
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+          - name: owner_person_type_id
+            data_type: text
+
+      - name: reference_agreement_acceptance
+        columns:
+          - name: reference_id
+            data_type: uuid
+          - name: reference_agreement_id
+            data_type: uuid
+          - name: user_id
+            data_type: uuid
+          - name: acceptance_timestamp
+            data_type: timestamp with time zone
+
+      - name: reference_agreement_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: id
+            data_type: uuid
+          - name: name
+            data_type: text
+          - name: s3_path
+            data_type: text
+          - name: owner_user_id
+            data_type: uuid
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+          - name: owner_person_type_id
+            data_type: text
+
+      - name: reference_configuration
+        columns:
+          - name: id
+            data_type: uuid
+          - name: reference_id
+            data_type: uuid
+          - name: reference_agreement_id
+            data_type: uuid
+          - name: status_id
+            data_type: text
+
+      - name: reference_configuration_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: id
+            data_type: uuid
+          - name: reference_id
+            data_type: uuid
+          - name: reference_agreement_id
+            data_type: uuid
+          - name: status_id
+            data_type: text
+
+      - name: reference_configuration_status
+        columns:
+          - name: id
+            data_type: text
+
+      - name: reference_demonstration_type
+        columns:
+          - name: reference_id
+            data_type: uuid
+          - name: demonstration_type_tag_name_id
+            data_type: text
+          - name: demonstration_type_tag_type_id
+            data_type: text
+
+      - name: reference_demonstration_type_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: reference_id
+            data_type: uuid
+          - name: demonstration_type_tag_name_id
+            data_type: text
+          - name: demonstration_type_tag_type_id
+            data_type: text
+
+      - name: reference_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: id
+            data_type: uuid
+          - name: name
+            data_type: text
+          - name: s3_path
+            data_type: text
+          - name: owner_user_id
+            data_type: uuid
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+          - name: description
+            data_type: text
+          - name: owner_person_type_id
+            data_type: text
+
+      - name: reference_tag_assignment
+        columns:
+          - name: reference_id
+            data_type: uuid
+          - name: tag_name_id
+            data_type: text
+          - name: tag_type_id
+            data_type: text
+
+      - name: reference_tag_assignment_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: reference_id
+            data_type: uuid
+          - name: tag_name_id
+            data_type: text
+          - name: tag_type_id
+            data_type: text
+
+      - name: reference_tag_type_limit
+        columns:
+          - name: id
+            data_type: text
+
+      - name: role
+        columns:
+          - name: id
+            data_type: text
+          - name: grant_level_id
+            data_type: text
+
+      - name: role_permission
+        columns:
+          - name: role_id
+            data_type: text
+          - name: grant_level_id
+            data_type: text
+          - name: permission_id
+            data_type: text
+
+      - name: role_permission_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: role_id
+            data_type: text
+          - name: grant_level_id
+            data_type: text
+          - name: permission_id
+            data_type: text
+
+      - name: role_person_type
+        columns:
+          - name: role_id
+            data_type: text
+          - name: person_type_id
+            data_type: text
+
+      - name: sdg_division
+        columns:
+          - name: id
+            data_type: text
+
+      - name: signature_level
+        columns:
+          - name: id
+            data_type: text
+
+      - name: state
+        columns:
+          - name: id
+            data_type: text
+          - name: name
+            data_type: text
+          - name: region
+            data_type: integer
+
+      - name: system_grant_level_limit
+        columns:
+          - name: id
+            data_type: text
+
+      - name: system_role_assignment
+        columns:
+          - name: person_id
+            data_type: uuid
+          - name: role_id
+            data_type: text
+          - name: person_type_id
+            data_type: text
+          - name: grant_level_id
+            data_type: text
+
+      - name: system_role_assignment_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: person_id
+            data_type: uuid
+          - name: role_id
+            data_type: text
+          - name: person_type_id
+            data_type: text
+          - name: grant_level_id
+            data_type: text
+
+      - name: tag
+        columns:
+          - name: tag_name_id
+            data_type: text
+          - name: tag_type_id
+            data_type: text
+          - name: source_id
+            data_type: text
+          - name: status_id
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: tag_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: tag_name_id
+            data_type: text
+          - name: tag_type_id
+            data_type: text
+          - name: source_id
+            data_type: text
+          - name: status_id
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: tag_name
+        columns:
+          - name: id
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: tag_name_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: id
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: tag_source
+        columns:
+          - name: id
+            data_type: text
+
+      - name: tag_status
+        columns:
+          - name: id
+            data_type: text
+
+      - name: tag_type
+        columns:
+          - name: id
+            data_type: text
+
+      - name: uipath_result
+        columns:
+          - name: id
+            data_type: uuid
+          - name: request_id
+            data_type: text
+          - name: response
+            data_type: jsonb
+          - name: project_id
+            data_type: text
+          - name: document_id
+            data_type: uuid
+          - name: application_id
+            data_type: uuid
+          - name: status_id
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: uipath_result_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: id
+            data_type: uuid
+          - name: request_id
+            data_type: text
+          - name: response
+            data_type: jsonb
+          - name: project_id
+            data_type: text
+          - name: document_id
+            data_type: uuid
+          - name: application_id
+            data_type: uuid
+          - name: status_id
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: uipath_result_status
+        columns:
+          - name: id
+            data_type: text
+
+      - name: uipath_value
+        columns:
+          - name: id
+            data_type: uuid
+          - name: uipath_result_id
+            data_type: uuid
+          - name: document_id
+            data_type: uuid
+          - name: application_id
+            data_type: uuid
+          - name: field_id
+            data_type: text
+          - name: value
+            data_type: text
+          - name: text_length
+            data_type: integer
+          - name: text_start_index
+            data_type: integer
+          - name: confidence
+            data_type: double precision
+          - name: token_list
+            data_type: jsonb
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: uipath_value_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: id
+            data_type: uuid
+          - name: uipath_result_id
+            data_type: uuid
+          - name: document_id
+            data_type: uuid
+          - name: application_id
+            data_type: uuid
+          - name: field_id
+            data_type: text
+          - name: value
+            data_type: text
+          - name: text_length
+            data_type: integer
+          - name: text_start_index
+            data_type: integer
+          - name: confidence
+            data_type: double precision
+          - name: token_list
+            data_type: jsonb
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+
+      - name: user_person_type_limit
+        columns:
+          - name: id
+            data_type: text
+
+      - name: user_session
+        columns:
+          - name: user_id
+            data_type: uuid
+          - name: auth_time
+            data_type: timestamp with time zone
+          - name: last_auth_event_time
+            data_type: timestamp with time zone
+          - name: auth_event_count
+            data_type: integer
+
+      - name: users
+        columns:
+          - name: id
+            data_type: uuid
+          - name: person_type_id
+            data_type: text
+          - name: cognito_subject
+            data_type: uuid
+          - name: username
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+          - name: is_migrated_from_pmda
+            data_type: boolean
+          - name: has_logged_in
+            data_type: boolean
+
+      - name: users_history
+        columns:
+          - name: revision_id
+            data_type: integer
+          - name: revision_type
+            data_type: user-defined
+          - name: modified_at
+            data_type: timestamp with time zone
+          - name: id
+            data_type: uuid
+          - name: person_type_id
+            data_type: text
+          - name: cognito_subject
+            data_type: uuid
+          - name: username
+            data_type: text
+          - name: created_at
+            data_type: timestamp with time zone
+          - name: updated_at
+            data_type: timestamp with time zone
+          - name: is_migrated_from_pmda
+            data_type: boolean
+          - name: has_logged_in
+            data_type: boolean

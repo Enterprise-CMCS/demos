@@ -34,6 +34,13 @@ Run `dbt deps` to install the packages used in this project, and then `dbt debug
 
 Note that if you are editing models and you remove them, `dbt` **_does not_** clean up old tables. So you should regularly drop the contents of `legacy_pmda_staged` to ensure that you remove old tables.
 
+You can use `dbt-codegen` to generate a sources.yml style file for a schema. Note that if you point directly at the existing sources.yml file, you will overwrite what is there! So be careful.
+
+```sh
+dbt --quiet run-operation generate_source --args '{"schema_name": "legacy_pmda_raw", "generate_columns": true}' > _legacy_pmda_raw_source.yml
+dbt --quiet run-operation generate_source --args '{"schema_name": "demos_app", "generate_columns": true}' > _demos_app_source.yml
+```
+
 ## Documentation
 
 You can generate `dbt` documentation using `dbt docs generate --static` for a static file, or `dbt docs generate && dbt docs serve`. However, when serving, the `devcontainer` hasn't been configured yet to make that port available and visible, so it's usually simpler to just do the static generation, and then look in `target/` for the `static_index.html` file.
