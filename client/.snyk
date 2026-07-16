@@ -1,7 +1,12 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.0
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
-# ignore:
+ignore:
+  SNYK-JS-WS-17988732:
+    - '*':
+      reason: No clean fix available for JSDOM to upgrade WS
+      expires: 2026-07-30T04:00:00.000Z
+      created: 2026-07-16T16:00:59.209Z
 patch: {}
 exclude:
   global:

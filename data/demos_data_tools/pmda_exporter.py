@@ -5,12 +5,13 @@ import logging
 import os
 import sys
 import types
-from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, Tuple, Type
 
-import duckdb
 from dotenv import load_dotenv
+
+from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME, PMDA_DDB_ATTACH_NAME, create_duckdb_conn
+from logger_utils import get_logger
 
 if TYPE_CHECKING:  # pragma: no cover
     from duckdb import DuckDBPyConnection as DuckConn
@@ -28,119 +29,10 @@ DATA_CONVERSIONS = {
 
 DDL_DIR = Path(Path(__file__).parent.parent, "migration", "pmda_ddls")
 DDL_DIR.mkdir(parents=True, exist_ok=True)
-LOG_DIR = Path(Path(__file__).parent, "logs")
-LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 load_dotenv()
 
-logger = logging.getLogger(__name__)
-
-
-def _configure_logging(verbose: bool = False) -> None:
-    # Configure the log level
-    logger.setLevel(logging.DEBUG if verbose else logging.INFO)
-
-    # Set up the two handlers
-    console_handler = logging.StreamHandler()
-    log_file = Path(LOG_DIR, f"log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
-    file_handler = logging.FileHandler(log_file)
-
-    # Format the handlers
-    log_formatter = logging.Formatter(
-        "[%(asctime)s] %(levelname)-8s - %(funcName)s() in %(name)s[%(lineno)d]: %(message)s",
-        "%Y-%m-%d %H:%M:%S %z",
-    )
-    console_handler.setFormatter(log_formatter)
-    file_handler.setFormatter(log_formatter)
-
-    # Add the handlers
-    logger.addHandler(console_handler)
-    logger.addHandler(file_handler)
-
-
-def load_db_configs_from_env() -> dict:
-    """Load the DB configurations from the environment.
-
-    Returns:
-        dict: A dictionary containing the database configuration(s).
-    """
-    logger.info("Reading environment variables")
-    config = {
-        "ddb_pmda": {
-            "host": os.environ["PMDA_MYSQL_HOST"],
-            "port": os.environ["PMDA_MYSQL_PORT"],
-            "user": os.environ["PMDA_MYSQL_USER"],
-            "pwd": os.environ["PMDA_MYSQL_PWD"],
-            "db": os.environ["PMDA_MYSQL_DB"],
-        },
-        "ddb_demos": {
-            "host": os.environ["DEMOS_PGSQL_HOST"],
-            "port": os.environ["DEMOS_PGSQL_PORT"],
-            "user": os.environ["DEMOS_PGSQL_USER"],
-            "pwd": os.environ["DEMOS_PGSQL_PWD"],
-            "db": os.environ["DEMOS_PGSQL_DB"],
-            "sslmode": os.environ["DEMOS_PGSQL_SSLMODE"],
-        },
-    }
-    logger.info("Loading config from environment successfully")
-    return config
-
-
-def create_duckdb_conn(config: dict) -> "DuckConn":
-    """Take the config and create a proper DuckDB connection.
-
-    Args:
-        config (dict): A configuration for the two databases being connected.
-
-    Returns:
-        "DuckConn": A configured DuckDB connection.
-    """
-    logger.info("Creating DuckDB database")
-
-    # In-memory DB
-    conn = duckdb.connect(":memory:", config={"memory_limit": "8GB", "threads": 8})
-
-    # DEMOS PostgreSQL Connection
-    conn.install_extension("postgres")
-    conn.load_extension("postgres")
-
-    ddb_demos_config = config["ddb_demos"]
-    clean_demos_pwd = ddb_demos_config["pwd"].replace("'", "''")
-    conn.execute(f"""
-        CREATE SECRET (
-            TYPE postgres,
-            HOST '{ddb_demos_config["host"]}',
-            PORT {ddb_demos_config["port"]},
-            DATABASE {ddb_demos_config["db"]},
-            USER '{ddb_demos_config["user"]}',
-            PASSWORD '{clean_demos_pwd}'
-        );
-    """)
-
-    conn.execute(f"ATTACH 'sslmode={ddb_demos_config['sslmode']}' AS ddb_demos (TYPE postgres);")
-    conn.execute("SET pg_null_byte_replacement=''")  # This is necessary to handle nulls from MySQL
-    logger.info("Attached DEMOS PostgreSQL database AS ddb_demos")
-
-    # PMDA MySQL Connection
-    conn.install_extension("mysql")
-    conn.load_extension("mysql")
-
-    ddb_pmda_config = config["ddb_pmda"]
-    clean_pmda_pwd = ddb_pmda_config["pwd"].replace("'", "''")
-    conn.execute(f"""
-        CREATE SECRET (
-            TYPE mysql,
-            HOST '{ddb_pmda_config["host"]}',
-            PORT {ddb_pmda_config["port"]},
-            DATABASE {ddb_pmda_config["db"]},
-            USER '{ddb_pmda_config["user"]}',
-            PASSWORD '{clean_pmda_pwd}'
-        );
-    """)
-
-    conn.execute("ATTACH '' AS ddb_pmda (TYPE mysql);")
-    logger.info("Attached PMDA MySQL database AS ddb_pmda")
-    return conn
+logger = get_logger(__name__)
 
 
 def get_pmda_table_list(conn: "DuckConn", source_schema: str) -> List[str]:
@@ -161,10 +53,10 @@ def get_pmda_table_list(conn: "DuckConn", source_schema: str) -> List[str]:
         FROM
             information_schema.TABLES
         WHERE
-            TABLE_CATALOG = 'ddb_pmda'
+            TABLE_CATALOG = $catalog
             AND TABLE_SCHEMA = $schema
     """
-    result = conn.execute(query, {"schema": source_schema}).fetchall()
+    result = conn.execute(query, {"catalog": PMDA_DDB_ATTACH_NAME, "schema": source_schema}).fetchall()
     result = [x[0] for x in result]
     logger.info(f"Returned {len(result)} table names from PMDA database for schema {source_schema}")
     return result
@@ -183,9 +75,9 @@ def get_pmda_column_details(conn: "DuckConn", tbl_list: List[str], source_schema
     """
     # Pull columns table to local DuckDB to improve processing speed
     logger.info("Copying PMDA columns table down to local DuckDB instance")
-    col_copy_qry = """
+    col_copy_qry = f"""
         CREATE TABLE mysql_columns AS
-        SELECT * FROM ddb_pmda.information_schema.COLUMNS;
+        SELECT * FROM {PMDA_DDB_ATTACH_NAME}.information_schema.COLUMNS;
     """
     conn.execute(col_copy_qry)
     logger.info("Local copy created")
@@ -258,8 +150,8 @@ def generate_demos_ddl(tbl: str, col_info: List[Tuple], target_schema: str) -> d
     logger.debug(f"Producing DEMOS DDL for table {tbl} in schema {target_schema}")
     col_lines = ",\n".join([make_postgresql_column_definition(col) for col in col_info])
     tbl = sanitize_table_name(tbl)
-    duckdb_first_line = f"DROP TABLE IF EXISTS ddb_demos.{target_schema}.{tbl};\n"
-    duckdb_second_line = f"CREATE TABLE ddb_demos.{target_schema}.{tbl} (\n"
+    duckdb_first_line = f"DROP TABLE IF EXISTS {DEMOS_DDB_ATTACH_NAME}.{target_schema}.{tbl};\n"
+    duckdb_second_line = f"CREATE TABLE {DEMOS_DDB_ATTACH_NAME}.{target_schema}.{tbl} (\n"
     regular_first_line = f"CREATE TABLE {target_schema}.{tbl} (\n"
     last_line = "\n);"
     result = {
@@ -297,11 +189,11 @@ def transfer_table(conn: "DuckConn", tbl: str, source_schema: str, target_schema
     tbl = sanitize_table_name(tbl)
     transfer_qry = f"""
         INSERT INTO
-            ddb_demos.{target_schema}.{tbl}
+            {DEMOS_DDB_ATTACH_NAME}.{target_schema}.{tbl}
         SELECT
             *
         FROM
-            ddb_pmda.{source_schema}.{tbl}
+            {PMDA_DDB_ATTACH_NAME}.{source_schema}.{tbl}
     """
     conn.execute(transfer_qry)
     logger.debug("Data transfer successful")
@@ -312,8 +204,7 @@ def main() -> None:
     """Execute main program function."""
     source_schema = os.environ["PMDA_EXPORT_SOURCE_SCHEMA"]
     target_schema = os.environ["PMDA_EXPORT_TARGET_SCHEMA"]
-    db_config = load_db_configs_from_env()
-    duck_conn = create_duckdb_conn(db_config)
+    duck_conn = create_duckdb_conn()
     tbl_list = get_pmda_table_list(duck_conn, source_schema)
     tbl_details = get_pmda_column_details(duck_conn, tbl_list, source_schema)
 
@@ -352,5 +243,7 @@ if __name__ == "__main__":  # pragma: no cover
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
     args = argparser.parse_args()
-    _configure_logging(args.verbose)
+    if args.verbose:
+        logger.setLevel(logging.DEBUG)
+
     main()
