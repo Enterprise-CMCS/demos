@@ -1,17 +1,18 @@
 """Shared utility for initializing a duckdb connection with both PMDA mysql and DEMOS postgres."""
 
 import os
+from logging import getLogger
 from typing import TYPE_CHECKING
 
 import duckdb
 
-from logger_utils import get_logger
+from logger_utils import config_logger
 
 if TYPE_CHECKING:  # pragma: no cover
     from duckdb import DuckDBPyConnection as DuckConn
 
 
-logger = get_logger(__name__)
+logger = config_logger(getLogger(__name__))
 
 PMDA_DDB_ATTACH_NAME = "ddb_pmda"
 DEMOS_DDB_ATTACH_NAME = "ddb_demos"
@@ -49,7 +50,7 @@ def create_duckdb_conn() -> "DuckConn":
     """Take the config and create a proper DuckDB connection.
 
     Returns:
-        "DuckConn": A configured DuckDB connection.
+        DuckConn: A configured DuckDB connection.
     """
     logger.info("Creating DuckDB database")
     config = _load_db_configs_from_env()
@@ -96,7 +97,5 @@ def create_duckdb_conn() -> "DuckConn":
     """)
 
     conn.execute(f"ATTACH '' AS {PMDA_DDB_ATTACH_NAME} (TYPE mysql);")
-    logger.info(
-        f"Attached PMDA MySQL database AS {PMDA_DDB_ATTACH_NAME}",
-    )
+    logger.info(f"Attached PMDA MySQL database AS {PMDA_DDB_ATTACH_NAME}")
     return conn

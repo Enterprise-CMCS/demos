@@ -21,6 +21,9 @@
     "postCreateCommand": "bash .devcontainer/post_create.sh",
     "postStartCommand": "bash .devcontainer/localstack/setup_localstack.sh",
     "remoteUser": "root",
+    "remoteEnv": {
+        "DEVCONTAINER": "true"
+    },
     "otherPortsAttributes": {
         "onAutoForward": "ignore"
     },
@@ -34,7 +37,8 @@
                 "ms-python.python",
                 "ms-python.vscode-pylance",
                 "charliermarsh.ruff",
-                "ms-python.mypy-type-checker"
+                "ms-python.mypy-type-checker",
+                "sqlfluff.vscode-sqlfluff",
             ]
         }
     }

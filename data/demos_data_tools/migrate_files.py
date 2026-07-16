@@ -6,13 +6,14 @@ Only rows with `flag = true` are copied.
 """
 
 import os
+from logging import getLogger
 from typing import TYPE_CHECKING, List, TypedDict
 
 import boto3
 from dotenv import load_dotenv
 
-from duckdb_connection_manager import create_duckdb_conn, DEMOS_DDB_ATTACH_NAME
-from logger_utils import get_logger
+from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME, create_duckdb_conn
+from logger_utils import config_logger
 
 if TYPE_CHECKING:  # pragma: no cover
     from duckdb import DuckDBPyConnection as DuckConn
@@ -39,7 +40,7 @@ MARK_FILE_MIGRATED_QUERY = f"""
         AND flag = TRUE
 """
 
-logger = get_logger(__name__)
+logger = config_logger(getLogger(__name__))
 
 
 class CopyRow(TypedDict):
@@ -53,7 +54,7 @@ def get_unmigrated_files(connection: "DuckConn") -> List[CopyRow]:
     """Read unmigrated file mappings from Postgres.
 
     Args:
-        connection ("DuckConn"): The DuckDB connection with Postgres attached.
+        connection (DuckConn): The DuckDB connection with Postgres attached.
 
     Returns:
         List[CopyRow]: A list of the rows to copy.
@@ -66,7 +67,7 @@ def mark_row_copied(connection: "DuckConn", row: CopyRow) -> None:
     """Mark one row as copied in Postgres.
 
     Args:
-        connection ("DuckConn"): The DuckDB connection with Postgres attached.
+        connection (DuckConn): The DuckDB connection with Postgres attached.
         row (CopyRow): The migrated row to mark as copied.
     """
     connection.execute(
@@ -86,7 +87,7 @@ def copy_s3_object(
     """Copy one object within the same S3-compatible service.
 
     Args:
-        s3_client ("S3Client"): The S3 client used to perform the copy.
+        s3_client (S3Client): The S3 client used to perform the copy.
         source_bucket (str): The bucket containing the source object.
         destination_bucket (str): The bucket receiving the copied object.
         old_path (str): The source object key.
@@ -108,7 +109,7 @@ def migrate_file(
     """Copy one row from the source bucket to the destination bucket.
 
     Args:
-        connection ("DuckConn"): The DuckDB connection with Postgres attached.
+        connection (DuckConn): The DuckDB connection with Postgres attached.
         row (CopyRow): The queued row describing the source and destination keys.
         s3_client ("S3Client"): The S3 client used to perform the copy.
     """
