@@ -163,11 +163,11 @@ def skip_jsonschema() -> bool:
     Set ``SKIP_JSONSCHEMA=1`` (env) or ``skip_jsonschema=true`` (.env) to build
     against a stock Postgres that lacks ``pg_jsonschema`` (e.g. the DEMOS
     devcontainer's postgres:17 image). The extension is migration-internal only
-    (the BN parity oracle + the jsonb-shape parity check); no live
-    ``demos_app.*`` column uses it. In skip mode ``run_init`` installs a
-    permissive ``jsonb_matches_schema`` stub so the registry/oracle/parity SQL
-    still applies and runs (trivially GREEN on the jsonb-shape check). Never
-    affects the shipped ``demos_app`` data.
+    (the ``migration.jsonb_schemas`` registry trigger function + the
+    ``migration.revalidate_jsonb`` helper); no live ``demos_app.*`` column and
+    no currently-wired trigger use it. In skip mode ``run_init`` installs a
+    permissive ``jsonb_matches_schema`` stub so the registry SQL still applies
+    and runs. Never affects the shipped ``demos_app`` data.
 
     The os.environ check comes first so subprocesses (e.g. the migrate-local
     scratch build) that inject ``SKIP_JSONSCHEMA`` are honored without loading

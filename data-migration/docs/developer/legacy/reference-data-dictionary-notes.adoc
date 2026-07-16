@@ -75,9 +75,8 @@ notes that the schema sources leave implicit.
 | `validation_data`, `response`, and `token_list` are `jsonb NOT NULL`
   (there is no `event_data` column -- the Prisma schema has no `event`
   table). DEMOS owns these live columns and validates them at runtime,
-  so this migration wires no CONSTRAINT TRIGGER on any of them. The
-  only JSONB shape trigger is the budget-neutrality parity oracle on
-  the migration-private `migration.bn_workbook_detail`; see
+  so this migration wires no CONSTRAINT TRIGGER on any of them -- nor on
+  any migration-private table. See
   xref:reference-jsonb-schema-registry.adoc[JSONB schema registry].
 
 | Composite uniqueness for FK chaining
@@ -649,10 +648,10 @@ why the legacy `cmt_*` tables split this way.
 === `demos_app.budget_neutrality_workbook`
 
 One row per workbook. The workbook contents are stored as JSONB. The
-live `validation_data` column is owned and validated by DEMOS; this
-migration validates a migration-private copy
-(`migration.bn_workbook_detail`) against the `budget_neutrality` schema
-in `migration.jsonb_schemas` as a parity oracle.
+live `validation_data` column is owned and validated by DEMOS. This
+migration does not populate `budget_neutrality_workbook`: DEMOS owns
+budget-neutrality ingestion from uploaded workbooks (the former
+migration-private parity oracle was retired).
 
 [cols="2,2,1,2,4"]
 |===
@@ -661,7 +660,7 @@ in `migration.jsonb_schemas` as a parity oracle.
 | `id`                   | `uuid`        | N | PK                                                                |
 | `document_type_id`     | `text`        | N | FK -> `demos_app.document_type(id)`                                     | Constrained by `demos_app.budget_neutrality_workbook_document_type_limit`.
 | `validation_status_id` | `text`        | N | FK -> `demos_app.budget_neutrality_validation_status(id)`               |
-| `validation_data`      | `jsonb`       | N | DEMOS-validated; parity-checked via `migration.bn_workbook_detail` (schema `budget_neutrality`) |
+| `validation_data`      | `jsonb`       | N | DEMOS-owned and DEMOS-validated; not populated by this migration |
 | `created_at`           | `timestamptz` | N | `DEFAULT now()`                                                   |
 | `updated_at`           | `timestamptz` | N | `DEFAULT now()`                                                   |
 |===

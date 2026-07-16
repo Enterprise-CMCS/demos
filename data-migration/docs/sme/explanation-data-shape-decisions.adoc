@@ -3,39 +3,36 @@
 DEMOS reshapes the legacy schema heavily. Three large decisions in
 particular are worth a paragraph of context for the SME reviewer.
 
-== Why JSONB consolidation for budget neutrality
+== Why budget-neutrality is not migrated (DEMOS-owned)
 
 MySQL stores BN data across ~12 tables (`bdgt_ntrlty_demo_yr`,
 `bdgt_ntrlty_mdcd_elgblty_grp`, member-month actuals/projections,
-waiver roll-ups, spend limits, summaries). The migration consolidates
-the detailed figures into a single `validation_data` JSONB column on a
-*migration-private* parity table, `migration.bn_workbook_detail` (one
-row per BN file). The live DEMOS `demos_app.budget_neutrality_workbook`
-row is created per BN file but loaded with
-`validation_status_id='Pending'` and `validation_data='{}'::jsonb`; the
-DEMOS BN lambda later writes that live column as a `ValidationError[]`
-array. The SME reviews the migration-private aggregate for fidelity; it
-is not a load target for `demos_app`.
+waiver roll-ups, spend limits, summaries). None of it is migrated.
+DEMOS owns budget-neutrality end to end: a user uploads a BN workbook
+(v2.14 format), the app validates it, and the validated payload is
+stored in `demos_app.budget_neutrality_workbook` by DEMOS itself. The
+SME will translate the existing v2.13 workbooks to v2.14 and upload them
+post-launch.
 
-Why:
+Why the migration stays out of it:
 
-. *Reads are workbook-shaped.* The new app fetches a workbook and
-  shows a panel; it never queries member-month actuals across
-  workbooks.
-. *Writes are workbook-shaped.* A user uploads a BN spreadsheet,
-  the app validates it, the validated payload is stored. The
-  intermediate normalised rows had no independent lifecycle.
-. *Schema enforcement still works.* `migration.bn_workbook_detail.validation_data`
-  is validated against a JSON Schema on insert and on UPDATEs that touch
-  the column, via a CONSTRAINT TRIGGER described in the
-  xref:../developer/reference-jsonb-schema-registry.adoc[JSONB
-  schema registry]. The trigger fails closed for non-NULL JSONB
-  until the schema is registered. No trigger is wired on any live
-  `demos_app.*` column.
+. *Reads and writes are workbook-shaped.* The new app fetches a workbook
+  and shows a panel; it never queries member-month actuals across
+  workbooks. A user uploads a spreadsheet, the app validates it, the
+  validated payload is stored. The intermediate normalised rows had no
+  independent lifecycle worth reconstructing.
+. *The runtime contract is DEMOS's.* The BN lambda writes
+  `validation_data` as a `ValidationError[]` array, not an aggregated
+  object, so a migration-authored aggregate would be overwritten on the
+  next revalidation anyway.
+. *No migration BN machinery remains.* An earlier plan built a
+  migration-private aggregate (`migration.bn_workbook_detail`) validated
+  by a JSON schema and reviewed by the SME for fidelity. That was
+  retired with its code; the migration builds no BN staging, aggregate,
+  schema, or parity check.
 
-What this costs: ad-hoc queries that pivot across workbooks need
-JSON path expressions. Acceptable; we have ~hundreds of workbooks,
-not millions.
+`demos_app.budget_neutrality_workbook` remains a real DEMOS table; the
+migration simply leaves it empty for DEMOS to fill from uploads.
 
 == Why a tag system instead of ~70 program-detail tables
 

@@ -824,24 +824,6 @@ def test_active_users_coverage_red_with_sample(
     assert "_parity_active_users_coverage" in result.detail
 
 
-def test_jsonb_shape_green_on_zero(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Zero failing rows in the BN-oracle view -> GREEN."""
-    monkeypatch.setattr(parity, "psql_query", lambda _env, _sql: [(0,)])
-    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
-    result = parity._jsonb_shape(env)
-    assert result.status == "GREEN"
-    assert "budget_neutrality" in result.detail
-
-
-def test_jsonb_shape_red_on_violations(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Any failing rows -> RED naming the view."""
-    monkeypatch.setattr(parity, "psql_query", lambda _env, _sql: [(2,)])
-    env = lib.Env(pg_url="u", mysql_url="u", mysql_db="", pg_db="")
-    result = parity._jsonb_shape(env)
-    assert result.status == "RED"
-    assert "_parity_jsonb_shape" in result.detail
-
-
 def test_read_reconstructed_fks_filters_and_qualifies(tmp_path: Path) -> None:
     """Only HIGH/MED rows are kept; to_table schema defaults to the child's."""
     csv_path = tmp_path / "fk_candidates.csv"

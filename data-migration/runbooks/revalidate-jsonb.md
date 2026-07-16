@@ -2,21 +2,20 @@
 
 `migration.revalidate_jsonb(...)` is a one-shot helper that counts how
 many existing rows in a JSONB column fail a schema registered in
-`migration.jsonb_schemas`. It backs two uses:
+`migration.jsonb_schemas`. Today it backs one use:
 
-- the **budget-neutrality parity oracle** on the migration-private
-  `migration.bn_workbook_detail` table -- the only column this
-  migration guards with a `CONSTRAINT TRIGGER`
-  (`migration.tg_validate_jsonb_against_registered_schema`); and
 - ad-hoc **QA of DEMOS-owned live `demos_app.*` columns**, which carry
   no migration trigger (DEMOS owns and validates them at runtime) but
   can still be checked against the registered reference schemas.
 
-There is **no** validation trigger on any live `demos_app.*` column, so
-nothing fires automatically. Run this runbook by hand whenever a
-`migration.jsonb_schemas` row is added or altered after data already
-exists: schema promotion, SME-driven revision, hotfix to a draft
-schema, and the post-P5 sanity sweep on cutover day.
+There is **no** validation trigger on any table -- not on any live
+`demos_app.*` column, and not on any `migration` table. (The former
+budget-neutrality parity oracle on `migration.bn_workbook_detail` used a
+`CONSTRAINT TRIGGER`, but it was retired: budget-neutrality is out of
+scope and DEMOS-owned.) Nothing fires automatically. Run this runbook by
+hand whenever a `migration.jsonb_schemas` row is added or altered after
+data already exists: schema promotion, SME-driven revision, hotfix to a
+draft schema, and the post-P5 sanity sweep on cutover day.
 
 ## Pre-conditions
 
@@ -28,12 +27,16 @@ schema, and the post-P5 sanity sweep on cutover day.
 
 ## Columns under validation
 
+All live columns are DEMOS-owned; this is a reference cross-check only.
+
 | Table | Column | Registered schema | Status |
 | --- | --- | --- | --- |
-| `migration.bn_workbook_detail` | `validation_data` | `budget_neutrality` | Wired (parity oracle) |
-| `demos_app.budget_neutrality_workbook` | `validation_data` | `budget_neutrality` | DEMOS-owned; manual check only |
 | `demos_app.uipath_result` | `response` | `uipath_response` | DEMOS-owned; manual check only |
 | `demos_app.uipath_value` | `token_list` | `uipath_token_list` | DEMOS-owned; manual check only |
+
+(`application_validation` is registered as a reference schema only -- the
+Prisma contract has no matching live column, so there is nothing to
+sweep.)
 
 ## Procedure
 
@@ -41,9 +44,9 @@ schema, and the post-P5 sanity sweep on cutover day.
 
    ```sql
    SELECT migration.revalidate_jsonb(
-     'migration.bn_workbook_detail'::regclass,
-     'validation_data',
-     'budget_neutrality'
+     'demos_app.uipath_result'::regclass,
+     'response',
+     'uipath_response'
    );
    ```
 
@@ -54,16 +57,16 @@ schema, and the post-P5 sanity sweep on cutover day.
    triage:
 
    ```sql
-   SELECT id, validation_data
-     FROM migration.bn_workbook_detail
-    WHERE validation_data IS NOT NULL
+   SELECT id, response
+     FROM demos_app.uipath_result
+    WHERE response IS NOT NULL
       AND NOT jsonb_matches_schema(
-        (SELECT schema FROM migration.jsonb_schemas WHERE name = 'budget_neutrality'),
-        validation_data
+        (SELECT schema FROM migration.jsonb_schemas WHERE name = 'uipath_response'),
+        response
       );
    ```
 
-   Substitute `<table>`, `<col>`, `<schema_name>` for the other rows in
+   Substitute `<table>`, `<col>`, `<schema_name>` for the other row in
    the table above.
 
 3. **Decide** with the SME:
@@ -77,17 +80,12 @@ schema, and the post-P5 sanity sweep on cutover day.
 
 ## When to skip
 
-- Before `migrate ddl`: the `migration.bn_workbook_detail` table and
-  its trigger do not exist yet. Run this only after `migrate ddl` and
-  the relevant data load.
-- During a `pg_restore`: disable the BN trigger explicitly
-  (`ALTER TABLE migration.bn_workbook_detail DISABLE TRIGGER
-  bn_workbook_detail_validation_data_schema`) for the restore window,
-  then re-enable and run this runbook to confirm no drift.
+- These are DEMOS-owned live columns. Run this only after `migrate ddl`
+  and the relevant data load, and only as a reference cross-check --
+  DEMOS is the authority for whether these columns are valid.
 
 ## Related
 
 - `docs/developer/reference-jsonb-schema-registry.adoc`
 - `docs/developer/howto-promote-jsonb-schema.adoc`
 - `sql/01_ddl_supplements/00_jsonb_schema_registry.sql` (registry, trigger function, `revalidate_jsonb` helper)
-- `sql/01_ddl_supplements/10_bn_workbook_detail.sql` (the BN parity oracle and its trigger)

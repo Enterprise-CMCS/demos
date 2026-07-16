@@ -9,19 +9,12 @@ What lives here:
 
 - `00_jsonb_schema_registry.sql` — `migration.jsonb_schemas` registry
   table, the `migration.tg_validate_jsonb_against_registered_schema()`
-  trigger function backing the budget-neutrality parity trigger below, and
-  the `migration.revalidate_jsonb(...)` one-shot helper. Lives in the
-  `migration` schema; not affected by the `DROP SCHEMA demos_app CASCADE`
-  that `migrate ddl` issues before applying the Prisma SQL.
-- `10_bn_workbook_detail.sql` — `migration.bn_workbook_detail`, the
-  migration-private budget-neutrality aggregate (parity oracle), plus its
-  CONSTRAINT TRIGGER validating `validation_data` against the registered
-  `budget_neutrality` schema. This is deliberately *not* the live
-  `demos_app.budget_neutrality_workbook.validation_data` column (owned by
-  DEMOS, written as a `ValidationError[]` array and revalidated at flip);
-  see the JSONB-validator disposition in `docs/spec/canonical-spec.adoc`.
-  The trigger lives here (ddl phase) rather than in `31_constraint_triggers/`
-  so it is active when the W5 stg loader populates the table.
+  trigger function, and the `migration.revalidate_jsonb(...)` one-shot
+  helper. No schema currently wires a CONSTRAINT TRIGGER (the
+  budget-neutrality parity oracle that once did was retired -- DEMOS owns BN
+  ingestion from uploaded workbooks). Lives in the `migration` schema; not
+  affected by the `DROP SCHEMA demos_app CASCADE` that `migrate ddl` issues
+  before applying the Prisma SQL.
 
 What does NOT live here:
 

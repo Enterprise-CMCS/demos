@@ -4,10 +4,11 @@ The migration-private contract for validating a JSONB value against a
 named JSON Schema, without abusing PostgreSQL's
 CHECK-cannot-reference-other-rows semantics. DEMOS performs no
 in-database JSONB validation and owns its runtime JSONB columns, so
-this registry drives a trigger only on *migration-private* tables --
-today, just the budget-neutrality parity aggregate
-(`migration.bn_workbook_detail`). No live `demos_app.*` column has a
-validation trigger.
+this registry could drive a trigger only on *migration-private* tables.
+Today it drives none: it holds reference schemas only. (The
+budget-neutrality parity aggregate that formerly used one was retired --
+DEMOS owns BN ingestion from uploaded workbooks, so the migration builds
+no BN aggregate.) No live `demos_app.*` column has a validation trigger.
 
 == The three artifacts
 
@@ -61,8 +62,9 @@ be driven explicitly with `migration.revalidate_jsonb(...)`.
   the pipeline applies SQL through psycopg, so a `pg_read_file()` of a
   repo-relative path would not work here.)
 . Wire the CONSTRAINT TRIGGER, *only if* the schema guards a
-  migration-private table (never a live `demos_app` column). The BN
-  oracle does this in `sql/01_ddl_supplements/10_bn_workbook_detail.sql`:
+  migration-private table (never a live `demos_app` column). No schema
+  is wired today; if you add a migration-private JSONB aggregate that
+  needs shape-guarding, attach the trigger to the `migration` table:
 +
 [source,sql]
 ----
@@ -84,9 +86,9 @@ for parity-reference purposes.
 
 * *Schema not registered.* A trigger bound to the missing schema
   raises `check_violation`; the insert / update fails closed for
-  non-NULL JSONB. This is intentional and surfaces when the
-  migration-private table the trigger guards is first written (the BN
-  trigger is created during `migrate ddl`).
+  non-NULL JSONB. This is intentional and would surface when the
+  migration-private table the trigger guards is first written. No such
+  trigger is wired today.
 * *Schema registered but invalid.* `pg_jsonschema` returns false; the
   trigger raises `check_violation` naming the schema, table, and
   column. Fix the schema or the data.
@@ -99,10 +101,6 @@ for parity-reference purposes.
 
 Promoted (`reports/jsonb_schemas/*.schema.json`, loaded by `migrate seeds`):
 
-* `budget_neutrality` — *wired.* Validates the migration-private
-  `migration.bn_workbook_detail` aggregate (the parity oracle), *not*
-  the live `demos_app.budget_neutrality_workbook.validation_data`
-  column, which DEMOS owns and revalidates at flip.
 * `uipath_response` — *registered, not wired.* Documents the shape of
   the full UiPath OCR `{ "Fields": [...] }` result;
   `demos_app.uipath_result.response` is DEMOS-era with no legacy source
@@ -114,6 +112,11 @@ Promoted (`reports/jsonb_schemas/*.schema.json`, loaded by `migrate seeds`):
 * `application_validation` — *registered, not wired.* No producer
   pipeline and no `demos_app.application.validation_data` column exist
   in the Prisma contract; the schema is a reference artifact only.
+
+NOTE: A `budget_neutrality` schema and its migration-private parity
+oracle (`migration.bn_workbook_detail`) formerly lived here. Both were
+retired: DEMOS owns budget-neutrality ingestion from uploaded workbooks,
+so the migration builds no BN aggregate to validate.
 
 == Related
 

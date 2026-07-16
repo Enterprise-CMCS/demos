@@ -222,7 +222,7 @@ xref:../sme/howto-author-a-crosswalk-csv.adoc[the SME crosswalk how-to]).
 | Populated; `sql/03_seeds_limiters/` empty (Prisma owns limiter seeds)
 
 | JSONB validation schemas
-| `reports/jsonb_schemas/application_validation.schema.json`, `reports/jsonb_schemas/budget_neutrality.schema.json`, `reports/jsonb_schemas/uipath_response.schema.json`, `reports/jsonb_schemas/uipath_token_list.schema.json`
+| `reports/jsonb_schemas/application_validation.schema.json`, `reports/jsonb_schemas/uipath_response.schema.json`, `reports/jsonb_schemas/uipath_token_list.schema.json`
 | Developer / SME
 | seeds (`load_jsonb_schemas`)
 | `init_pg.load_jsonb_schemas`; registry trigger + xref:../developer/reference-jsonb-schema-registry.adoc[registry]. See {runbooks-dir}/revalidate-jsonb.md.
@@ -322,11 +322,11 @@ for a gate.
 | ownership / role assignment
 | Open actions
 
-| BN source enumeration
+| BN source enumeration (historical)
 | `reports/narrative/bn_source_enumeration.md`
 | SME
-| budget-neutrality payload
-| Reference for BN JSONB
+| budget-neutrality (out of scope)
+| Superseded: BN is DEMOS-owned; not migrated
 
 | DEMOS data dictionary
 | `reports/inputs/demos_data_dictionary.xlsx`

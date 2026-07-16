@@ -40,12 +40,13 @@ prod-schema guard:: A cross-instance check (DuckDB `postgres_scanner` dual-attac
          the irreversible `run_ddl` DROP and again at preflight; HOLDs on any drift.
 JSONB schema registry:: `migration.jsonb_schemas` plus the trigger function
                        `migration.tg_validate_jsonb_against_registered_schema()`
-                       that backs the budget-neutrality parity CONSTRAINT
-                       TRIGGER on `migration.bn_workbook_detail`
-                       (`sql/01_ddl_supplements/10_bn_workbook_detail.sql`),
                        and the `migration.revalidate_jsonb(...)` helper used
-                       after the registry changes. CHECK constraints can only
-                       see the current row, so a trigger is used instead.
+                       after the registry changes. It registers reference
+                       schemas but wires no trigger on any table today (the
+                       former budget-neutrality parity oracle was retired --
+                       DEMOS owns BN ingestion from uploaded workbooks). CHECK
+                       constraints can only see the current row, so a trigger
+                       would be used instead of a CHECK if one were needed.
 history (DEMOS-owned):: The `demos_app.*_history` tables, the
            `revision_type_enum`, and the `log_changes_*` capture triggers are
            owned by DEMOS. This migration does not populate them: every

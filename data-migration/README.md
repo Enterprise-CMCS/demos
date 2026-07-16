@@ -33,7 +33,7 @@ pgloader/         pgloader load files + manifests
   delta_tables.tsv tables to re-pull during delta (human-curated)
 sql/              numbered SQL pipeline (run in order)
   00_init/        roles, schemas, extensions, helper fns, _delta_log
-  01_ddl_supplements/  migration-private DDL on top of the Prisma artifact (JSONB registry, BN aggregate)
+  01_ddl_supplements/  migration-private DDL on top of the Prisma artifact (JSONB registry)
   02_seeds_static/, 03_seeds_limiters/, 04_crosswalks/, 05_id_maps/
   10_stg/         staging transforms
   20_app/, 21_app_associative/, 23_app_derived/
@@ -153,7 +153,7 @@ review-friendly commits with rationale in the commit message.
 | `reports/narrative/notes.md` | Append-only log of surprises, decisions, things-to-remember | Surprise occurs |
 | `runbooks/cutover.md`, `runbooks/rollback.md` | Operator playbooks (commands + expected output per phase) | Cutover script changes meaningfully |
 | `runbooks/comms/*.md` | Stakeholder comms templates (freeze, flip-complete, rollback, decom) | Messaging needs updating |
-| `sql/01_ddl_supplements/*` | Migration-private DDL on top of the Prisma artifact (JSONB registry, BN aggregate) | A migration-private object changes (the `demos_app` schema itself is Prisma-owned) |
+| `sql/01_ddl_supplements/*` | Migration-private DDL on top of the Prisma artifact (JSONB registry) | A migration-private object changes (the `demos_app` schema itself is Prisma-owned) |
 | `sql/02_seeds_static/*`, `sql/03_seeds_limiters/*` | Repo-authored seed data (only `25_state_region.sql` today; the static-constraint and limiter tables are Prisma-seeded) | New repo-owned reference value |
 | `sql/04_crosswalks/*` | SQL that loads SME-authored crosswalks (CSVs) | New crosswalk introduced |
 | `sql/10_stg/*` | Stage-shaping transforms | Source/target shape diverges |
@@ -334,8 +334,8 @@ Pass command flags via ARGS, e.g. make fetch_prisma ARGS="--refresh"
     ... ON CONFLICT (...) DO NOTHING` (often behind a `WHERE NOT EXISTS`
     pre-filter), chosen over truncate-reload so minted UUIDs and sequence
     `nextval`s stay stable across rebuilds;
-  - migration-private aggregates and scratch tables (`migration.bn_workbook_detail`,
-    `stg._keep_ids` / `_drop_ids`) → `TRUNCATE` + `INSERT`.
+  - migration-private scratch tables (`stg._keep_ids` / `_drop_ids`) →
+    `TRUNCATE` + `INSERT`.
   Data loaders never upsert (no `DO UPDATE`); the lone exception is the static
   `state_region` reference seed, which `DO UPDATE`s to reconcile its own values.
 - **Every transform is a guarded no-op until its inputs exist.** A `to_regclass`

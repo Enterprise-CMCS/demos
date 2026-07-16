@@ -33,6 +33,17 @@ Branch numbering is stable: cite "Branch 8" in commits and reviews.
 [[decision-tree]]
 == Branch decision tree
 
+[NOTE]
+====
+*Budget-neutrality is out of scope (SME decision, 2026-07-16).* DEMOS owns
+BN ingestion from uploaded workbooks; the SME will translate the existing
+v2.13 workbooks to v2.14 and upload them post-launch. The BN migration
+cluster below (branches 5-9) is therefore *superseded*: the BN staging
+aggregate, parity oracle, id-map, JSON schema, and parity check were
+retired. See the `[Unreleased]` CHANGELOG "Removed" entry and
+`reports/narrative/pending_approved_decisions.md`.
+====
+
 [cols="1,3,4,1,2",options="header"]
 |===
 | # | Branch | Resolution | Status | Evidence / artifact
@@ -51,7 +62,7 @@ Branch numbering is stable: cite "Branch 8" in commits and reviews.
 
 | 3
 | JSONB-validator disposition
-| No shape trigger on any live `demos_app.*` column; BN validates a migration-private parity table; uipath_* and application_validation stay registered-but-unwired.
+| No shape trigger on any live `demos_app.*` column; BN is out of scope (DEMOS-owned; see the note above); uipath_* and application_validation stay registered-but-unwired.
 | Done
 | `a93580d`, `e9bc54a`; `sql/31_constraint_triggers/00_jsonb_validation.sql`
 
@@ -64,26 +75,26 @@ Branch numbering is stable: cite "Branch 8" in commits and reviews.
 | 5
 | BN load target
 | Migrate the BN document + workbook row + scalar fields; the rich aggregate stays migration-private.
-| In progress
-| Source aggregate landed (`13b3eb7`); the `sql/20_app` workbook loader is pending.
+| Superseded
+| Retired: BN is DEMOS-owned (see the note above). The `sql/20_app` workbook loader was never authored.
 
 | 6
 | BN fill convention
 | Migrated workbooks load with `validation_status_id='Pending'` and `validation_data='{}'::jsonb`.
-| Pending
-| `e9bc54a` (spec); mirrors DEMOS `functions.sql` `move_document_from_pending_to_clean`
+| Superseded
+| Retired: BN is DEMOS-owned (see the note above); the migration loads no workbook rows.
 
 | 7
 | BN revalidation at flip
 | Flip enqueues one SQS revalidation message per migrated workbook; DEMOS recomputes and is checked against the parity oracle.
-| Pending
-| `e9bc54a` (spec); DEMOS `lambdas/budgetNeutrality`
+| Superseded
+| Retired: BN is DEMOS-owned (see the note above); no workbooks are migrated, so no flip-time revalidation is enqueued.
 
 | 8
 | BN source scope + staging
-| Enumerate `bdgt_ntrlty_*` + `mdcd_dlvrbl_fil_doc`; add the staging step that populates `migration.bn_workbook_detail`.
-| Done
-| `13b3eb7`; `reports/narrative/bn_source_enumeration.md`, `sql/10_stg/60_budget_neutrality.sql`
+| Enumerate `bdgt_ntrlty_*` + `mdcd_dlvrbl_fil_doc`; add the staging step that populated `migration.bn_workbook_detail`.
+| Superseded
+| `13b3eb7` landed, then retired: BN is DEMOS-owned (see the note above). `reports/narrative/bn_source_enumeration.md` (historical).
 
 | 9
 | Spec amendment (BN + JSONB)

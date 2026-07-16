@@ -28,7 +28,7 @@ include::reference-source-target-map.adoc[leveloffset=+1]
   pending/approved decisions]
 * xref:howto-review-pgm-dtl-tag-mapping.adoc[Review pgm_dtl tag
   mapping]
-* xref:howto-review-bn-jsonb-payload.adoc[Review a BN JSONB payload]
+* xref:howto-review-bn-jsonb-payload.adoc[Budget neutrality (retired -- DEMOS-owned)]
 
 === Reference (live-rendered from `reports/` and `sql/`)
 

@@ -131,6 +131,21 @@ behavior changes. Commit history follows [Conventional Commits](https://www.conv
   so a renamed/reordered/missing CSV column fails closed instead of mis-loading.
 
 ### Removed
+- Budget-neutrality migration machinery, per the SME decision that DEMOS owns
+  BN ingestion from uploaded workbooks (the SME will translate the existing
+  v2.13 workbooks to v2.14 and upload them post-launch). Deleted the staging
+  aggregate `sql/10_stg/60_budget_neutrality.sql`, the migration-private parity
+  oracle `sql/01_ddl_supplements/10_bn_workbook_detail.sql` (table + CONSTRAINT
+  TRIGGER), the BN id-map `sql/05_id_maps/12_mdcd_dlvrbl_fil_doc.sql`, the
+  parity view `sql/99_parity/03_jsonb_shape.sql`, the `budget_neutrality` JSON
+  schema `reports/jsonb_schemas/budget_neutrality.schema.json`, and the
+  `_jsonb_shape` parity check (its check position is left as a documented gap so
+  the remaining check numbers stay stable). `sql/31_constraint_triggers/00_jsonb_validation.sql`
+  now wires no trigger on any table; the JSONB schema registry stays as generic
+  infrastructure for the three remaining reference schemas (`uipath_response`,
+  `uipath_token_list`, `application_validation`). The live
+  `demos_app.budget_neutrality_workbook` table is unchanged (DEMOS-owned; the
+  migration leaves it empty for DEMOS to fill from uploads).
 - Superseded unified role crosswalk: `sql/04_crosswalks/40_role.sql`,
   `41_role_check.sql`, and the `reports/crosswalks/proposed/role.proposed.csv`
   / `contact_type.proposed.csv` proposal sheets. The single overlapping

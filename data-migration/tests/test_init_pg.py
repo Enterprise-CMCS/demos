@@ -25,11 +25,10 @@ def test_discover_jsonb_schemas_empty_dir(tmp_path: Path) -> None:
 
 
 def test_repo_promoted_schemas_are_valid_json() -> None:
-    """The promoted (non-draft) schemas in the repo parse and cover the wired set."""
+    """The promoted (non-draft) schemas in the repo parse and cover the registered set."""
     found = dict(init_pg.discover_jsonb_schemas())
     assert set(found) == {
         "application_validation",
-        "budget_neutrality",
         "uipath_response",
         "uipath_token_list",
     }

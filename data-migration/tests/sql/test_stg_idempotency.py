@@ -63,8 +63,10 @@ GOOD_FILES = [
     "99_filter_report",
 ]
 
-# Deferred: needs demos_app (Prisma) DDL + data, out of scope for vanilla-PG v1.
-SKIP_FILES = {"60_budget_neutrality": "needs demos_app (Prisma) DDL; deferred follow-up"}
+# No stg files are skipped. The former 60_budget_neutrality (the BN parity
+# aggregate) was retired with the BN machinery -- DEMOS owns BN ingestion from
+# uploaded workbooks, so the migration builds no BN staging.
+SKIP_FILES: dict[str, str] = {}
 
 
 def _provision(conn: Any) -> None:

@@ -51,7 +51,7 @@ Scope coverage is surfaced non-gating at the parity gate by
 | 5 | Waiver and expenditure authorities | **DEFERRED (loader); SME snapshot DELIVERED (2026-07-15)** | Target model confirmed = none: DEMOS has no authority entity (verified across the Prisma models and `demos/server/src`; "Expenditure Cap"/"Emergency Waiver Authority" exist only as flat demonstration-type tag strings), and the BN workbook path (`shared_library/src/BN/rulesets/*` -> `budget_neutrality` JSONB) is a separate DEMOS-owned concern that carries only spend numbers keyed by a free-text "Waiver Name", not the structured authority records. So there is nothing to load into and **no `demos_app` loader is built**. Instead the full ~38-table PMDA corpus (per-demo instances, reference lookups, library/catalog masters, bene-group links, program-detail overlaps, history/load + pending mirrors) is exported by `scripts/sme_review_exports.py authorities-snapshot` (`make sme_review_exports ARGS="authorities-snapshot"`): one full-fidelity CSV per present table (verbatim, all rows incl. soft-deleted; resolved `demonstration_id` where the source has `mdcd_demo_id`) + a manifest flagging each table's tier/history/pending/program-detail overlap. Preserves expiration dates, deleted flags, and section/title/category relationships. See **D5** below. |
 | 6 | Deliverables | **BUILT** | `deliverable` loader (`20_app/40_deliverable.sql`) is **live**: `deliverable_type_id` (NOT NULL) resolves via the now-authored single-input report-occurrence crosswalk `crosswalk_deliverable_type` (`04_crosswalks/52_deliverable_type.sql` + `reports/crosswalks/deliverable_type.csv`, registry-wired; the legacy `mdcd_dlvrbl_type_cd` maps directly to `demos_text_id` -- no BN matrix / second signal, per the correction banner in `reports/crosswalks/proposed/deliverable_type_bn_routing.md`). `demonstration_status_id` = constant 'Approved' (the composite FK forces attach only to a loaded Approved demonstration); `status_id`/`due_date_type_id`/`expected_to_be_submitted` via `crosswalk_deliverable_status` (50/51, code 0 N/A held back, fail-closed on undecided codes 7/9); `cms_owner_user_id`/`cms_owner_person_type_id` resolved (a state-user creator is held back). The RETURN still in the loader is now a **defensive guard** for a partial crosswalk build, not a block. Held-back rows are logged non-gating (`99_parity/40`, check 17) plus gating completeness/integrity (`99_parity/41`/`42`, checks 15/16). **Deliverable comments BUILT** -- `20_app/50_comment.sql` cascades each deliverable comment into `private_comment`/`public_comment`, routed by the (still-gated, empty) `crosswalk_comment_origin` with an author-person-type fallback (`docs/sme/explanation-comments-routing.adoc`). **Still deferred:** the seven non-deliverable comment sources (now exported as an SME snapshot by Branch 5 `scripts/sme_review_exports.py comments-snapshot`; their migration fate is still an SME decision) and the `cmt_orgn_cd` route authoring (SDG); uploaded files -> `document` (no `20_app` document loader yet; blocked on the `document_type` multi-source fan-in, `_review.md` P4); status history (DEMOS-owned, filled post-cutover by capture triggers); paper records; due-date-change requests -> `deliverable_extension` (proposed, not live); `deliverable_acptnc_status`/`deliverable_cnfrmtn_status` (overlap / no target -> likely drop). |
 | 7 | Application management / pending demos | **BUILT (2026-07-14)** | Pending demos now load as their own 'Under Review' `application`+`demonstration` when they have a project number and no approved counterpart (`sql/20_app/31_pending_demonstration.sql`, staged by `10_stg/23_pendg_demo_fold` + `10_stg/24_pending_demonstration_resolved`); pending demos that fold into an approved counterpart are represented by that approved row; no-project-number pending demos are held back non-gating and reconciled at Gate 4 against `reports/parity_accepted/pending_approved_deferrals.csv` (the SME-signed reversal record). Pending amendments follow workflow 3 (fold-aware, 162 statusless -> 'Under Review'); pending program-detail tags now load fold-aware from the populated pending mapping (workflow 4). **Still deferred:** pending extensions (renewals deferred post-MVP), application comments, federal decisions, application documents. |
-| 8 | Budget Neutrality | **PARTIAL** | JSONB shape is enforced by the BN oracle (parity check 3) on the `budget_neutrality` payload. **Out-of-scope here:** the file-backed + parsed BN corpus (template/workbook files, parsed demo years, MEGs, populations, PMPM/cost, warnings, totals, dashboard rows) -- DEMOS owns BN ingestion. Semi-annual BN type (5/6 + `bdgt_ntrlty_ind=1`) is an open SME blocker. |
+| 8 | Budget Neutrality | **OUT-OF-SCOPE (SME decision 2026-07-16)** | Not migrated. DEMOS owns BN ingestion from uploaded workbooks; the SME will translate the existing v2.13 workbooks to v2.14 and upload them post-launch. The former migration BN machinery (staging aggregate, migration-private parity oracle + JSONB-shape parity check 3, BN id-map, `budget_neutrality` schema) was **retired** -- see **D6** below. The live `demos_app.budget_neutrality_workbook` table is unchanged (empty at cutover, for DEMOS to fill). |
 | 9 | Monitoring Reporting Tool | **OUT-OF-SCOPE (SME-gated)** | File-backed + parsed workbook/report/protocol data; DEMOS owns MRT ingestion. Demo-level MRT flags/start dates ride along on `mdcd_demo`. Revisit only if SMEs require historical MRT content in DEMOS. |
 | 10 | STC documents | **OUT-OF-SCOPE (SME-gated)** | Document/search/cart workflow around Special Terms and Conditions. Migrate only if DEMOS needs STC search, generated docs, bookmarks, or cart history. |
 | 11 | Email, reports, help/support, admin | **OUT-OF-SCOPE** | Notification + operational/admin machinery; the source tables are already in `reports/narrative/drop_list.md` (`DROP_EMAIL`, `DROP_OPS`). New app handles notifications/auth audit/logging itself. |
@@ -222,6 +222,44 @@ scaffolding. Recorded here so that decision is explicit.
 
 - [x] Target model confirmed (none; snapshot + defer). Decided by: SME grill (engineer-facilitated)  Date: 2026-07-15
 - [ ] (Follow-up, non-blocking) Emergency-waiver overlap + deleted/history/pending fate -- SME to adjudicate from the snapshot.
+
+### D6. Budget neutrality is out of scope -- DEMOS-owned (workflow 8)
+
+**Status:** RESOLVED (2026-07-16, SME decision). No blocking sign-off remains.
+
+**Decision (SME).** Budget-neutrality is **not migrated**. DEMOS owns BN
+ingestion end to end: users upload BN workbooks (v2.14 format) into DEMOS,
+which validates them and writes `demos_app.budget_neutrality_workbook` itself.
+The SME will translate the existing v2.13 workbooks to v2.14 and upload them
+post-launch. This supersedes the earlier plan (workflows 5-9 BN cluster) to
+stage a migration-private BN aggregate and validate it as a parity oracle.
+
+**What was retired (code + tests).** The BN migration machinery was deleted:
+the staging aggregate `sql/10_stg/60_budget_neutrality.sql`; the
+migration-private parity oracle `sql/01_ddl_supplements/10_bn_workbook_detail.sql`
+(table + CONSTRAINT TRIGGER); the BN id-map
+`sql/05_id_maps/12_mdcd_dlvrbl_fil_doc.sql`; the parity view
+`sql/99_parity/03_jsonb_shape.sql` and its `_jsonb_shape` parity check (its
+check position is left as a documented gap so the remaining check numbers stay
+stable); and the `budget_neutrality` JSON schema
+`reports/jsonb_schemas/budget_neutrality.schema.json`.
+`sql/31_constraint_triggers/00_jsonb_validation.sql` now wires no trigger on
+any table. The JSONB schema registry
+(`sql/01_ddl_supplements/00_jsonb_schema_registry.sql`) stays as generic
+infrastructure for the three remaining reference schemas (`uipath_response`,
+`uipath_token_list`, `application_validation`).
+
+**What is unchanged.** `demos_app.budget_neutrality_workbook` remains a real
+DEMOS table in the target schema; the migration simply leaves it empty for
+DEMOS to fill from uploads. The `budget_neutrality_ind` deliverable-type
+routing QA (`sql/99_parity/43_deliverable_bn_qa.sql`) is unrelated to the BN
+corpus and stays.
+
+**Also resolved by this decision.** The former "semi-annual BN type
+(5/6 + `bdgt_ntrlty_ind=1`)" SME blocker in workflow 8 is moot -- BN is not
+migrated.
+
+- [x] BN out of scope; migration BN machinery retired. Decided by: SME  Date: 2026-07-16
 
 ## Sign-off
 

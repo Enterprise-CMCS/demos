@@ -104,10 +104,10 @@ def _apply_dir(conn: Any, directory: Path) -> None:
 def _load_jsonb_schemas(conn: Any) -> None:
     """Register promoted JSONB schemas into migration.jsonb_schemas.
 
-    Mirrors ``init_pg.load_jsonb_schemas`` but on the test's direct connection.
-    The 99_parity BN check revalidates ``budget_neutrality_workbook.payload``
-    against the registered schema, so the schema must be present or the parity
-    view raises a CheckViolation.
+    Mirrors ``init_pg.load_jsonb_schemas`` but on the test's direct connection,
+    so the standup matches the real seed step. No parity view or trigger
+    currently requires a registered schema (the BN parity oracle that did was
+    retired), but registering them keeps the harness faithful to init_pg.
     """
     for path in sorted(JSONB_SCHEMA_DIR.glob("*.schema.json")):
         name = path.name.removesuffix(".schema.json")

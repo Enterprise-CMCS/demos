@@ -13,11 +13,6 @@ The report contains one section per `CheckResult`:
   `demos_app` (check is PENDING on the SME consolidated-family
   mapping).
 * *numeric sums* -- money columns and core counts.
-* *JSONB shape* -- the migration-private `migration.bn_workbook_detail`
-  aggregate validated against
-  `reports/jsonb_schemas/budget_neutrality.schema.json` (the live
-  `demos_app.budget_neutrality_workbook.validation_data` column is
-  owned by DEMOS and revalidated at flip, not checked here).
 * *pending/approved unification* -- every `mdcd_pendg_*` row matched,
   materialized, or warned.
 * *reconstructed FK orphans* -- every reconstructed FK resolves.
@@ -102,21 +97,12 @@ checks are `GREEN`.
 * On RED in production, *roll back*. There is no "fix forward through
   red parity" path.
 * On PENDING in production, halt and call the SME and backup
-  operator. PENDING means the check could not run (e.g., a JSON
-  Schema is not yet in the registry). Decide whether to roll back or
-  ship a hotfix to the registry, then re-run parity.
+  operator. PENDING means the check could not run (e.g., a source
+  table or crosswalk it depends on is not yet loaded). Decide whether
+  to roll back or ship a hotfix, then re-run parity.
 
 == Common causes
 
-. JSON Schema not promoted: `migration.jsonb_schemas` does not
-  contain the `budget_neutrality` row, so the BN parity
-  CONSTRAINT TRIGGER on `migration.bn_workbook_detail` (in
-  `sql/01_ddl_supplements/10_bn_workbook_detail.sql`) fails
-  closed. Fix:
-  xref:../developer/howto-promote-jsonb-schema.adoc[promote JSONB
-  schema], then sweep existing rows with
-  xref:../developer/howto-revalidate-jsonb.adoc[revalidate a JSONB
-  column].
 . Crosswalk gap: a new reference code exists in `mysql_raw` data
   but not in `mysql_raw.crosswalk_*`.
 . Pending row without a rule: a `mdcd_pendg_*` row falls outside

@@ -8,9 +8,8 @@ The structural facts (columns, types, nullability, defaults, primary keys,
 foreign keys, unique indexes, CHECK constraints, ``*_history`` audit shape)
 are parsed straight from the Prisma DDL artifact that ``migrate ddl`` applies
 and ``reports/prisma_ddl.sha256`` pins, plus ``sql/01_ddl_supplements/`` for
-the migration-private tables (``migration.jsonb_schemas`` and
-``migration.bn_workbook_detail``). The page therefore cannot drift from the
-schema the build actually installs.
+the migration-private ``migration.jsonb_schemas`` registry. The page therefore
+cannot drift from the schema the build actually installs.
 
 The artifact is the *concatenated Prisma migration history* (19 migrations in
 two dialects: quoted Prisma form and unquoted schema-qualified form), not a

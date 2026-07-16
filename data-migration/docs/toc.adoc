@@ -109,7 +109,7 @@ long-form plan.
 * xref:sme/howto-author-a-crosswalk-csv.adoc[Review and sign off a crosswalk]
 * xref:sme/howto-review-pending-approved-decisions.adoc[Review pending/approved decisions]
 * xref:sme/howto-review-pgm-dtl-tag-mapping.adoc[Review pgm_dtl tag mapping]
-* xref:sme/howto-review-bn-jsonb-payload.adoc[Review a BN JSONB payload]
+* xref:sme/howto-review-bn-jsonb-payload.adoc[Budget neutrality (retired -- DEMOS-owned)]
 
 === Reference
 

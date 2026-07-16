@@ -12,22 +12,18 @@ populated from `reports/jsonb_schemas/*.schema.json`.
 ====
 DEMOS performs no in-database JSONB validation and owns its runtime
 JSONB columns, so this migration wires *no* CONSTRAINT TRIGGER on any
-live `demos_app.*` column. The only wired trigger is the
-budget-neutrality *parity oracle* on the migration-private
-`migration.bn_workbook_detail` table (in
-`sql/01_ddl_supplements/10_bn_workbook_detail.sql`).
-`sql/31_constraint_triggers/00_jsonb_validation.sql` is a disposition
-note only and ships no trigger.
+live `demos_app.*` column. In fact it wires no JSONB trigger at all: the
+registry holds reference schemas only. (The budget-neutrality parity
+oracle on the migration-private `migration.bn_workbook_detail` table
+that used one was retired -- DEMOS owns BN ingestion from uploaded
+workbooks.) `sql/31_constraint_triggers/00_jsonb_validation.sql` is a
+disposition note only and ships no trigger.
 ====
 
-All four schemas are promoted: `application_validation`,
-`budget_neutrality`, `uipath_response`, and `uipath_token_list` ship as
-`reports/jsonb_schemas/*.schema.json` and load into the registry on
-`migrate seeds`. Their *enforcement* differs: only `budget_neutrality`
-is wired (to `migration.bn_workbook_detail`, not the live
-`demos_app.budget_neutrality_workbook.validation_data` column);
-`uipath_response`, `uipath_token_list`, and `application_validation` are
-registered as reference documentation only and wire no trigger (see
+Three schemas are promoted: `application_validation`, `uipath_response`,
+and `uipath_token_list` ship as `reports/jsonb_schemas/*.schema.json`
+and load into the registry on `migrate seeds`. None is wired: all three
+are registered as reference documentation only (see
 xref:reference-jsonb-schema-registry.adoc[the registry reference] for
 the per-schema disposition). Promoting a draft is a registry-only
 change: skip step 4.
@@ -38,10 +34,10 @@ Validation needs a row from `migration.jsonb_schemas`, which lives in
 a separate table. CHECK constraints can't legally consult other rows,
 so validation runs through a CONSTRAINT TRIGGER instead. Until a schema
 is in the registry, a trigger bound to it fails closed for non-NULL
-JSONB inserts and updates. *That is intentional.* The only such trigger
-today is the BN parity oracle on `migration.bn_workbook_detail`, which
-is created with the rest of `sql/01_ddl_supplements/` during
-`migrate ddl`.
+JSONB inserts and updates. *That is intentional.* No such trigger is
+wired today (the former BN parity oracle on
+`migration.bn_workbook_detail` was retired), so registering a schema is
+currently a reference-only act.
 
 == Lifecycle
 
@@ -86,13 +82,10 @@ pipeline applies SQL through psycopg where a repo-relative
 === 4. Wire the CONSTRAINT TRIGGER (migration-private tables only)
 
 You almost never need this. The migration wires no trigger on any
-live `demos_app.*` column -- DEMOS owns those columns at runtime. The
-only wired trigger is the BN parity oracle on
-`migration.bn_workbook_detail` (in
-`sql/01_ddl_supplements/10_bn_workbook_detail.sql`). If you add another
-*migration-private* JSONB aggregate that needs shape-guarding, wire it
-the same way, against the `migration` table -- never a `demos_app`
-table:
+live `demos_app.*` column -- DEMOS owns those columns at runtime -- and
+none on any `migration` table either. If you add a *migration-private*
+JSONB aggregate that needs shape-guarding, wire it against the
+`migration` table -- never a `demos_app` table:
 
 [source,sql]
 ----
@@ -115,16 +108,11 @@ re-validated.
 === 5. Verify
 
 `make rebuild` performs `init -> ddl -> load_full -> seeds ->
-crosswalks -> id_maps -> build -> constraints -> parity`.
-The BN parity trigger is attached during `ddl` (it ships in
-`sql/01_ddl_supplements/`); subsequent inserts and updates against
-`migration.bn_workbook_detail` are validated against the
-`budget_neutrality` schema. The `JSONB shape` parity check section in
-`reports/runs/parity_*.md` records shape conformance for that aggregate.
-While the JSONB-shape parity SQL under `sql/99_parity/` is not yet
-authored, that section shows PENDING; smoke-test by inserting a sample
-valid payload and an intentionally invalid one, and confirm the second
-is rejected with ERRCODE `check_violation`.
+crosswalks -> id_maps -> build -> constraints -> parity`. No JSONB
+trigger is wired today, so there is nothing to enforce at build time. If
+you wire a migration-private trigger (step 4), smoke-test it by
+inserting a sample valid payload and an intentionally invalid one, and
+confirm the second is rejected with ERRCODE `check_violation`.
 
 === 6. Re-validate existing rows
 
@@ -144,19 +132,18 @@ Pulled from `reports/jsonb_schemas/`:
 | Name | File
 
 | `application_validation` | `application_validation.schema.json`
-| `budget_neutrality` | `budget_neutrality.schema.json`
 | `uipath_response` | `uipath_response.schema.json`
 | `uipath_token_list` | `uipath_token_list.schema.json`
 |===
 
-All four are promoted; `migrate seeds` loads them into the registry.
+All three are promoted; `migrate seeds` loads them into the registry.
 (There is no `event` schema -- the Prisma schema has no `event` table.)
 
 == Related
 
 * xref:reference-jsonb-schema-registry.adoc[JSONB schema registry]
-* xref:../sme/howto-review-bn-jsonb-payload.adoc[SME how-to: review a
-  BN JSONB payload]
+* xref:../sme/howto-review-bn-jsonb-payload.adoc[Budget-neutrality:
+  DEMOS-owned (retired here)]
 
 // docnav-start
 ifndef::nested[]

@@ -9,8 +9,10 @@ reference_data) and the separate, non-gating load-fidelity check
 
 Most checks read from a Postgres view created by the corresponding
 `sql/99_parity/*.sql` file; check 5 is CSV-driven (its reconstructed-FK
-bindings live in `reports/generated/fk_candidates.csv`, not in PG). Authored checks:
-3 (JSONB shape, BN oracle) and 8 (demonstration load completeness), the
+bindings live in `reports/generated/fk_candidates.csv`, not in PG). Check 3 (the
+former BN JSONB-shape oracle) was retired with the BN parity machinery; its
+number is left as a gap. Authored checks:
+8 (demonstration load completeness), the
 non-gating 5 (reconstructed-FK orphan review, scoped to the migration load
 surface; orphans logged per-row to
 `reports/orphans/reconstructed_fk_orphans.csv`), plus the pre-existing 6
@@ -276,39 +278,6 @@ def _numeric_sum_parity(env: Env) -> CheckResult:
             "literal numeric value-sum N/A (no numeric business columns move to "
             "demos_app; BN monetary shape covered by check 3); count-checksum "
             f"cross-foots: source {src} = target {tgt} + held {held}"
-        ),
-    )
-
-
-def _jsonb_shape(env: Env) -> CheckResult:
-    """Check 3: JSONB payload-shape conformance of the BN parity oracle.
-
-    Reads ``migration._parity_jsonb_shape`` (created by
-    ``sql/99_parity/03_jsonb_shape.sql``). The only migration-owned JSONB
-    whose shape matters for parity is
-    ``migration.bn_workbook_detail.validation_data`` vs the registered
-    ``budget_neutrality`` schema; the live ``demos_app.*`` JSONB columns are
-    DEMOS-owned and empty at cutover, so they are out of scope. Vacuously
-    GREEN until the W5 BN loader populates the oracle.
-    """
-    rows = psql_query(env, "SELECT count(*) FROM migration._parity_jsonb_shape")
-    count = int(rows[0][0]) if rows else 0
-    if count == 0:
-        return CheckResult(
-            name="3. JSONB shape conformance",
-            status="GREEN",
-            detail=(
-                "migration.bn_workbook_detail.validation_data conforms to the "
-                "registered budget_neutrality schema (DEMOS-owned demos_app JSONB "
-                "is out of scope)"
-            ),
-        )
-    return CheckResult(
-        name="3. JSONB shape conformance",
-        status="RED",
-        detail=(
-            f"{count} BN parity-oracle object(s) fail their registered JSON "
-            "schema; see view migration._parity_jsonb_shape"
         ),
     )
 
@@ -2426,7 +2395,6 @@ def build_parity_report(env: Env) -> ParityReport:
     checks: tuple[tuple[str, Callable[[Env], CheckResult]], ...] = (
         ("row-count parity", _row_count_parity),
         ("numeric-sum parity", _numeric_sum_parity),
-        ("jsonb shape", _jsonb_shape),
         ("pending/approved audit", _pending_approved_audit),
         ("orphans", _orphans),
         ("demonstration id provenance", _demonstration_id_provenance),

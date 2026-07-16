@@ -635,3 +635,28 @@ in code: the `mdcd_emer_wvr_authrty_pgm_dtl` workflow-4/-5 overlap
 (`pgm_dtl_overlap=1`) and the deleted/history/pending fate. A real load, if the
 SME later requires one, is a follow-up workflow (net-new DEMOS authority schema +
 full scaffolding). See `pending_approved_decisions.md` D5.
+
+2026-07-16 bn-out-of-scope (workflow 8): SME decided budget-neutrality is NOT
+migrated -- DEMOS owns BN ingestion from uploaded workbooks. Users upload BN
+workbooks (v2.14 format) into DEMOS, which validates them and writes
+`demos_app.budget_neutrality_workbook` itself; the SME will translate the
+existing v2.13 workbooks to v2.14 and upload them post-launch. This supersedes
+the BN cluster (workflows 5-9 / branches 5-9) that had staged a migration-private
+BN aggregate and validated it as a parity oracle, and it moots the
+"semi-annual BN -> keep Quarterly" workflow-8 override recorded on 2026-07-10
+(there is no BN load to override). The BN migration machinery was retired
+(code + tests, verified green): deleted `sql/10_stg/60_budget_neutrality.sql`,
+`sql/01_ddl_supplements/10_bn_workbook_detail.sql` (parity-oracle table +
+CONSTRAINT TRIGGER), `sql/05_id_maps/12_mdcd_dlvrbl_fil_doc.sql`,
+`sql/99_parity/03_jsonb_shape.sql` (+ its `_jsonb_shape` parity check; the check
+position is left as a documented numbering gap), and
+`reports/jsonb_schemas/budget_neutrality.schema.json`.
+`sql/31_constraint_triggers/00_jsonb_validation.sql` now wires no trigger on any
+table; the JSONB schema registry stays as generic infrastructure for the three
+remaining reference schemas (`uipath_response`, `uipath_token_list`,
+`application_validation`). The live `demos_app.budget_neutrality_workbook` table
+is unchanged (empty at cutover, for DEMOS to fill). The
+`budget_neutrality_ind` deliverable-type routing QA
+(`sql/99_parity/43_deliverable_bn_qa.sql`) is unrelated to the BN corpus and
+stays. See `pending_approved_decisions.md` D6 and the `[Unreleased]` CHANGELOG
+"Removed" entry.

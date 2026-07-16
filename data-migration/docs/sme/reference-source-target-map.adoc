@@ -14,7 +14,6 @@ flowchart LR
     rnwl[mdcd_demo_rnwl]
     dlvrbl[mdcd_dlvrbl]
     pgmdtl[mdcd_*_pgm_dtl x70]
-    bn[bdgt_ntrlty_* x12]
     docs[doc tables x10]
     cmts[cmt tables x10]
     usr[users + user_* + cntct]
@@ -27,7 +26,6 @@ flowchart LR
     ext[extension]
     dlv[deliverable]
     tag[demonstration_type_tag_assignment]
-    bnw[budget_neutrality_workbook]
     doc[document]
     pcm[private_comment]
     ucm[public_comment]
@@ -41,7 +39,6 @@ flowchart LR
   rnwl --> ext
   dlvrbl --> dlv
   pgmdtl --> tag
-  bn --> bnw
   docs --> doc
   cmts --> pcm
   cmts --> ucm
@@ -60,8 +57,11 @@ flowchart LR
   in `demonstration_type_tag_assignment` keyed
   by `tag_name`. See
   xref:reference-pgm-dtl-tag-mapping.adoc[tag mapping].
-* *Budget-neutrality machinery becomes one workbook row + JSONB.*
-  See xref:howto-review-bn-jsonb-payload.adoc[review a BN payload].
+* *Budget-neutrality is out of scope -- DEMOS-owned.* The migration
+  does not build a BN aggregate; DEMOS ingests BN from uploaded
+  workbooks into `budget_neutrality_workbook` (empty at cutover). See
+  xref:howto-review-bn-jsonb-payload.adoc[the retired BN how-to] and
+  xref:explanation-data-shape-decisions.adoc[data-shape decisions].
 * *All ~10 document tables collapse into one `document` table* with
   `document_type_id` as the discriminator.
 * *Comments split by origin* into `private_comment` (CMS) or

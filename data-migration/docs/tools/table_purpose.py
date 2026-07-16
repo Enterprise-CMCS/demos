@@ -163,15 +163,10 @@ PURPOSE: dict[str, str] = {
     ),
     "jsonb_schemas": (
         "Migration housekeeping: registered JSONB schemas keyed by name. "
-        "Used by the CONSTRAINT TRIGGER in "
-        "sql/31_constraint_triggers/00_jsonb_validation.sql to validate "
-        "JSONB columns at runtime."
-    ),
-    "bn_workbook_detail": (
-        "Migration-private budget-neutrality aggregate (parity oracle). "
-        "Validated against the registered 'budget_neutrality' JSON schema; "
-        "NOT the live demos_app.budget_neutrality_workbook.validation_data "
-        "column, which DEMOS owns and writes as a ValidationError[] array."
+        "Backs the migration.tg_validate_jsonb_against_registered_schema() "
+        "trigger function and the migration.revalidate_jsonb() helper "
+        "(sql/01_ddl_supplements/00_jsonb_schema_registry.sql); no schema "
+        "currently wires a CONSTRAINT TRIGGER."
     ),
 }
 

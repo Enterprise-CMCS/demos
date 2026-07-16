@@ -1,9 +1,18 @@
 # Budget-neutrality source enumeration (`bdgt_ntrlty_*` + `mdcd_dlvrbl_fil_doc`)
 
-Branch 8. Enumerates the legacy PMDA MySQL budget-neutrality source tables
-and maps them onto `reports/jsonb_schemas/budget_neutrality.schema.json`, the
-aggregate validated by `migration.bn_workbook_detail`
-(`sql/01_ddl_supplements/10_bn_workbook_detail.sql`). Counts are from
+> **SUPERSEDED (2026-07-16).** Budget-neutrality is out of scope for the
+> migration -- DEMOS owns BN ingestion from uploaded workbooks (the SME will
+> translate the existing v2.13 workbooks to v2.14 and upload them post-launch).
+> The migration BN machinery this enumeration fed (the staging aggregate, the
+> migration-private parity oracle `migration.bn_workbook_detail`, its JSON
+> schema, and the JSONB-shape parity check) was **retired**. This document is
+> kept only as a historical source census; the target artifacts it references
+> no longer exist. See `pending_approved_decisions.md` D6 and the `[Unreleased]`
+> CHANGELOG "Removed" entry.
+
+Branch 8 (historical). Enumerated the legacy PMDA MySQL budget-neutrality source
+tables and mapped them onto the former `budget_neutrality` JSON schema and the
+migration-private `migration.bn_workbook_detail` aggregate. Counts are from
 `reports/schema_snapshot/table_stats.csv`; columns from `columns.csv`.
 
 ## Workbook identity
