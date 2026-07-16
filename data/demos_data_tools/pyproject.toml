@@ -1,6 +1,7 @@
 [tool.coverage.run]
 omit = [
-    "*/test_*.py"
+    "*/test_*.py",
+    "*/history_trigger_generator.py"
 ]
 
 [tool.pytest.ini_options]
@@ -36,6 +37,4 @@ exclude = "test_.*\\.py$"
 
 [tool.mypy]
 python_version = "3.13"
-exclude = [
-    "test_.*\\.py$"
-]
+check_untyped_defs = true

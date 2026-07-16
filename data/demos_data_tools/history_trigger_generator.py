@@ -240,6 +240,7 @@ def main() -> None:
     with open("../../server/src/sql/history_triggers.sql", "w") as query_file:
         query_file.write(DROP_QUERY)
         query_file.writelines(queries)
+    return None
 
 
 if __name__ == "__main__":
