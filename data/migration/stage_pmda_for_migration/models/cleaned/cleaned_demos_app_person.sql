@@ -5,7 +5,8 @@ SELECT
     au.firstname AS first_name,
     au.lastname AS last_name,
     current_timestamp AS created_at,
-    current_timestamp AS updated_at
+    current_timestamp AS updated_at,
+    au.id AS _legacy_id
 FROM
     {{ ref('users_active_pmda_users') }} AS au
 WHERE
