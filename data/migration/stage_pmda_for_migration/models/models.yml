@@ -1,6 +1,47 @@
 version: 2
 
 models:
+  - name: users_cleaned_demos_app_person_state_user
+    description: All cleaned people records that are of type demos-state-user
+    columns:
+      - name: person_type_id
+        data_tests:
+          - accepted_values:
+              name: assert_person_type_id_is_demos_state_user_in_users_cleaned_demos_app_person_state_user
+              arguments:
+                values:
+                  - demos-state-user
+
+  - name: cleaned_demos_app_person_state
+    description: All cleaned person-state relations with state users and valid states
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: person_id
+        data_type: uuid
+        data_tests:
+          - relationships:
+              name: assert_person_state_person_exists_in_person
+              arguments:
+                to: ref('cleaned_demos_app_person')
+                field: id
+      - name: state_id
+        data_type: text
+        data_tests:
+          - relationships:
+              name: assert_person_state_state_exists_in_demos_app_state
+              arguments:
+                to: source('demos_app', 'state')
+                field: id
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          name: assert_person_state_is_unique
+          arguments:
+            combination_of_columns:
+              - person_id
+              - state_id
+
   - name: users_active_pmda_users
     columns:
       - name: id
@@ -44,6 +85,8 @@ models:
         data_type: timestamptz
       - name: updated_at
         data_type: timestamptz
+      - name: _legacy_id
+        data_type: integer
 
   - name: cleaned_demos_app_users
     config:
