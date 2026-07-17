@@ -4,7 +4,7 @@ CREATE TABLE legacy_pmda_raw.mdcd_sud_mntrg_prtcl_wkbk (
     mdcd_dlvrbl_fil_doc_id INTEGER,
     mdcd_demo_id INTEGER,
     mdcd_dlvrbl_id INTEGER,
-    msr_num VARCHAR(5),
+    msr_num VARCHAR(8),
     msr_name_txt VARCHAR(512),
     msr_desc_txt VARCHAR(2048),
     msr_milstn_rptg_topc_txt VARCHAR(256),

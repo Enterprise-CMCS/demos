@@ -1,6 +1,7 @@
 """Extract PMDA data from MySQL and load to a raw staging schema in PostgreSQL."""
 
 import os
+import re
 from logging import getLogger
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Tuple
@@ -97,6 +98,23 @@ def get_pmda_column_details(conn: "DuckConn", tbl_list: List[str], source_schema
     return result
 
 
+def sanitize_column_name(col_name: str) -> str:
+    """Clean up a column name of invalid characters.
+
+    Args:
+        col_name (str): The raw column name.
+
+    Returns:
+        str: The column name cleaned up for PostgreSQL use.
+    """
+    clean_col_name = re.sub(r"[^A-z0-9_]", "_", col_name)
+    if clean_col_name[0].isdigit():
+        clean_col_name = "_" + clean_col_name
+    if clean_col_name != col_name:
+        logger.warning(f"Renamed column {col_name} to {clean_col_name.lower()} to avoid formatting issues")
+    return clean_col_name.lower()
+
+
 def make_postgresql_column_definition(col_info: Tuple) -> str:
     """Generate a PostgreSQL column definition from a tuple of MySQL info.
 
@@ -107,7 +125,7 @@ def make_postgresql_column_definition(col_info: Tuple) -> str:
         str: A line of a DDL defining that column.
     """
     logger.debug(f"Generating PostgreSQL column definition line for column {col_info[0]}.{col_info[1]}")
-    col_name = col_info[1].lower()
+    col_name = sanitize_column_name(col_info[1])
     col_type = DATA_CONVERSIONS.get(col_info[3], col_info[4]).upper()
 
     # Put together the line and return
@@ -127,8 +145,11 @@ def sanitize_table_name(tbl: str) -> str:
     Returns:
         str: The safe table name.
     """
-    if "-" in tbl:
-        logger.warning(f"Dashes found in table name {tbl}! Properly escaping it")
+    if not re.search(r"^[a-z_][a-z0-9_]*$", tbl):
+        logger.warning(f"Non-standard tbl detected for input {tbl}! Quoting it")
+        if '"' in tbl:
+            logger.warning(f"Detected a double quote in tbl {tbl}! Escaping it")
+            tbl = tbl.replace('"', '""')
         tbl = '"' + tbl + '"'
     return tbl
 
