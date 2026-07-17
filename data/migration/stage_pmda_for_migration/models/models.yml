@@ -75,6 +75,11 @@ models:
         data_tests:
           - not_null:
               name: assert_person_type_id_not_null_in_cleaned_demos_app_users
+          - relationships:
+              name: assert_person_type_id_in_allowed_user_types_in_cleaned_demos_app_users
+              arguments:
+                to: source('demos_app', 'user_person_type_limit')
+                field: id
       - name: cognito_subject
         data_type: uuid
       - name: username

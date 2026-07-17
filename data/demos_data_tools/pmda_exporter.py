@@ -1,19 +1,16 @@
-"""Testing out using DuckDB to ETL data from legacy system to new legacy schema."""
+"""Extract PMDA data from MySQL and load to a raw staging schema in PostgreSQL."""
 
-import argparse
-import logging
 import os
-import sys
-import types
+from logging import getLogger
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional, Tuple, Type
+from typing import TYPE_CHECKING, List, Tuple
 
 from dotenv import load_dotenv
 
 from duckdb_connection_manager import DEMOS_DDB_ATTACH_NAME, PMDA_DDB_ATTACH_NAME, create_duckdb_conn
-from logger_utils import get_logger
+from logger_utils import config_logger
 
-if TYPE_CHECKING:  # pragma: no cover
+if TYPE_CHECKING:
     from duckdb import DuckDBPyConnection as DuckConn
 
 DATA_CONVERSIONS = {
@@ -32,14 +29,14 @@ DDL_DIR.mkdir(parents=True, exist_ok=True)
 
 load_dotenv()
 
-logger = get_logger(__name__)
+logger = config_logger(getLogger(__name__))
 
 
 def get_pmda_table_list(conn: "DuckConn", source_schema: str) -> List[str]:
     """Get a list of the PMDA tables in a given schema.
 
     Args:
-        conn ("DuckConn"): The connection to use.
+        conn (DuckConn): The connection to use.
         source_schema (str): The schema to obtain tables from.
 
     Returns:
@@ -66,7 +63,7 @@ def get_pmda_column_details(conn: "DuckConn", tbl_list: List[str], source_schema
     """Retrieve column data from PMDA for a list of tables.
 
     Args:
-        conn ("DuckConn"): The connection to use.
+        conn (DuckConn): The connection to use.
         tbl_list (List[str]): The tables to get column information for.
         source_schema (str): The schema of the tables.
 
@@ -185,7 +182,7 @@ def transfer_table(conn: "DuckConn", tbl: str, source_schema: str, target_schema
         source_schema (str): The source PMDA schema from which to read.
         target_schema (str): The target DEMOS scehma to which data is written.
     """
-    logger.debug(f"Attempting to transfer data for table {tbl}")
+    logger.info(f"Attempting to transfer data for table {tbl}")
     tbl = sanitize_table_name(tbl)
     transfer_qry = f"""
         INSERT INTO
@@ -196,7 +193,7 @@ def transfer_table(conn: "DuckConn", tbl: str, source_schema: str, target_schema
             {PMDA_DDB_ATTACH_NAME}.{source_schema}.{tbl}
     """
     conn.execute(transfer_qry)
-    logger.debug("Data transfer successful")
+    logger.info("Data transfer successful")
     return None
 
 
@@ -214,7 +211,7 @@ def main() -> None:
 
     for tbl, ddl in tbl_ddls.items():
         save_ddl(tbl, ddl["regular"])
-        logger.debug(f"Attempting to create DEMOS table {tbl}")
+        logger.info(f"Attempting to create DEMOS table {tbl}")
         duck_conn.execute(ddl["duckdb"])
 
     for tbl in tbl_ddls.keys():
@@ -223,27 +220,5 @@ def main() -> None:
     return None
 
 
-def custom_excepthook(
-    e_type: Type[BaseException], val: BaseException, trace: Optional[types.TracebackType]
-) -> None:  # pragma: no cover # noqa: E501
-    """Log exceptions via the logger rather than stderr.
-
-    Args:
-        e_type (Type[BaseException]): The type of the exception.
-        val (BaseException): The exception instance.
-        trace (Optional[types.TracebackType]): The traceback object.
-    """
-    logger.error("Unhandled exception", exc_info=(e_type, val, trace))
-    return None
-
-
-sys.excepthook = custom_excepthook
-
-if __name__ == "__main__":  # pragma: no cover
-    argparser = argparse.ArgumentParser()
-    argparser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
-    args = argparser.parse_args()
-    if args.verbose:
-        logger.setLevel(logging.DEBUG)
-
+if __name__ == "__main__":
     main()
