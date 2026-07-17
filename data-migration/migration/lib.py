@@ -160,14 +160,22 @@ def debug_log(msg: str) -> None:
 def skip_jsonschema() -> bool:
     """True when the build should not require the ``pg_jsonschema`` extension.
 
-    Set ``SKIP_JSONSCHEMA=1`` to build against a stock Postgres that lacks
-    ``pg_jsonschema``. The extension is migration-internal only (the BN parity
-    oracle + the jsonb-shape parity check); no live ``demos_app.*`` column uses
-    it. In skip mode ``run_init`` installs a permissive ``jsonb_matches_schema``
-    stub so the registry/oracle/parity SQL still applies and runs (trivially
-    GREEN on the jsonb-shape check). Never affects the shipped ``demos_app`` data.
+    Set ``SKIP_JSONSCHEMA=1`` (env) or ``skip_jsonschema=true`` (.env) to build
+    against a stock Postgres that lacks ``pg_jsonschema`` (e.g. the DEMOS
+    devcontainer's postgres:17 image). The extension is migration-internal only
+    (the BN parity oracle + the jsonb-shape parity check); no live
+    ``demos_app.*`` column uses it. In skip mode ``run_init`` installs a
+    permissive ``jsonb_matches_schema`` stub so the registry/oracle/parity SQL
+    still applies and runs (trivially GREEN on the jsonb-shape check). Never
+    affects the shipped ``demos_app`` data.
+
+    The os.environ check comes first so subprocesses (e.g. the migrate-local
+    scratch build) that inject ``SKIP_JSONSCHEMA`` are honored without loading
+    the full Env.
     """
-    return os.environ.get("SKIP_JSONSCHEMA", "").strip().lower() in ("1", "true", "yes")
+    if os.environ.get("SKIP_JSONSCHEMA", "").strip().lower() in ("1", "true", "yes"):
+        return True
+    return Env.load().skip_jsonschema
 
 
 # Loops below this many items render no bar (the per-item `>>>` log is clearer
@@ -323,6 +331,14 @@ class Env(BaseSettings):
     pgloader_jar: str = ""
     java_bin: str = ""
 
+    # Build against a stock Postgres that lacks the non-trusted pg_jsonschema
+    # extension (e.g. the DEMOS devcontainer's postgres:17 image). When true,
+    # run_init skips the extension and installs a permissive
+    # jsonb_matches_schema stub. .env-driven so `make migrate-local` (and a
+    # direct `make init` against such a target) can enable it without exporting
+    # a shell var. Also honored via the SKIP_JSONSCHEMA env var.
+    skip_jsonschema: bool = False
+
     # Path to a local checkout of the DEMOS app repo, used by
     # `verify-prisma-local` and the migrate-local devcontainer loader.
     # Relative paths resolve against the migration repo root.
@@ -339,6 +355,14 @@ class Env(BaseSettings):
     devcontainer_pg_host: str = "localhost"
     devcontainer_pg_port: int = 5432
     devcontainer_pg_db: str = "demos"
+    # Scratch database that `make migrate-local` builds inside the devcontainer's
+    # own Postgres (same server as devcontainer_pg_*, a *separate* database), so
+    # the full build runs without a separate spin_up container. Provisioned via
+    # the devcontainer superuser; the build then connects as scratch_pg_user.
+    # See devcontainer_scratch_dsn() and scripts/provision_scratch.sh.
+    scratch_pg_user: str = "migration_owner"
+    scratch_pg_password: str = "postgres"  # pragma: allowlist secret
+    scratch_pg_db: str = "demos_migration"
 
     model_config = SettingsConfigDict(
         env_file=ROOT_DIR / ".env",
@@ -392,6 +416,23 @@ class Env(BaseSettings):
         netloc = f"{user}:{password}@{self.devcontainer_pg_host}:{self.devcontainer_pg_port}"
         return urllib.parse.urlunsplit(
             ("postgresql", netloc, f"/{self.devcontainer_pg_db}", "", "")
+        )
+
+    def devcontainer_scratch_dsn(self) -> str:
+        """DSN of the migrate-local scratch database inside the devcontainer PG.
+
+        Shares the devcontainer's Postgres server (``devcontainer_pg_host`` /
+        ``devcontainer_pg_port``) but targets a separate database
+        (``scratch_pg_db``) owned by a least-privilege role
+        (``scratch_pg_user``), so the build never touches the app's ``demos``
+        database. Credentials are URL-encoded so specials cannot corrupt the
+        DSN. No literal credential string lives in source.
+        """
+        user = urllib.parse.quote(self.scratch_pg_user, safe="")
+        password = urllib.parse.quote(self.scratch_pg_password, safe="")
+        netloc = f"{user}:{password}@{self.devcontainer_pg_host}:{self.devcontainer_pg_port}"
+        return urllib.parse.urlunsplit(
+            ("postgresql", netloc, f"/{self.scratch_pg_db}", "", "")
         )
 
     def _secret(self) -> dict[str, Any]:

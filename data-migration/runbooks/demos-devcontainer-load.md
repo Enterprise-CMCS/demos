@@ -10,6 +10,13 @@ the local app's `prisma migrate deploy`. The scratch build's
 devcontainer never needs `pg_jsonschema` (it is migration-internal only; no
 live `demos_app.*` column uses it).
 
+By **default** that scratch is a separate `demos_migration` database **inside
+the devcontainer's own Postgres** (provisioned first, built with
+`SKIP_JSONSCHEMA`), so the whole flow needs **only the devcontainer** -- no
+separate `make spin_up` container. To build against a standalone scratch
+Postgres instead (e.g. the supabase `spin_up` target used for full parity),
+pass `--external-scratch` (which uses `--scratch-dsn` / `PG_URL`).
+
 Success criterion: the app boots and GraphQL returns migrated rows.
 
 ## Why this is safe
@@ -23,12 +30,15 @@ move the data rows. `make migrate-local-verify` fails closed if the local
 
 ## Pre-conditions
 
-- [ ] `MYSQL_URL` points at the source snapshot; `PG_URL` points at your
-      **scratch** target (the local 5433 target, which has `pg_jsonschema`).
+- [ ] `MYSQL_URL` points at the source snapshot. In the **default** flow you do
+      **not** set `PG_URL`: the scratch is provisioned inside the devcontainer
+      as `demos_migration`. (Only `--external-scratch` uses `--scratch-dsn` /
+      `PG_URL`, e.g. the 5433 supabase target that has `pg_jsonschema`.)
 - [ ] The DEMOS devcontainer is up (its `db` service publishes host `5432`).
-      The target defaults to the devcontainer's published local settings
-      (user/password/host/port/db via the `DEVCONTAINER_PG_*` vars, host
-      `localhost`, port `5432`, db `demos`); override the whole DSN with
+      Both the scratch and the app target live in that one Postgres; they
+      default to the devcontainer's published local settings (the
+      `DEVCONTAINER_PG_*` superuser + `SCRATCH_PG_*` for the scratch role/db,
+      host `localhost`, port `5432`); override the whole superuser DSN with
       `DEVCONTAINER_PG_URL`. See `../demos/.devcontainer/docker-compose.yml`.
 - [ ] `../demos/server` dependencies installed (`npm ci`) so `npx prisma` and
       `npm run dbrefresh` work; `psql`, `pg_dump`, `pg_restore` on `PATH`.
@@ -44,16 +54,23 @@ move the data rows. `make migrate-local-verify` fails closed if the local
 make migrate-local
 # pass flags via ARGS, e.g. reuse an existing scratch build:
 make migrate-local ARGS="--no-build"
-# build on a stock scratch Postgres (no pg_jsonschema):
-make migrate-local ARGS="--skip-jsonschema"
+# build against a standalone scratch Postgres (e.g. the supabase spin_up target):
+make migrate-local ARGS="--external-scratch"           # uses --scratch-dsn / PG_URL
+make migrate-local ARGS="--external-scratch --skip-jsonschema"
 ```
 
 `make migrate-local` runs `scripts/migrate_local.py`, which executes:
 
+0. **provision-scratch** (default flow) - as the devcontainer superuser,
+   idempotently create the `migration_owner` role (`LOGIN CREATEDB CREATEROLE`),
+   ensure `demos_read`/`demos_write`/`demos_delete` exist and `GRANT` them to
+   `migration_owner` `WITH ADMIN OPTION` (so the build's `ALTER ROLE ... IN
+   DATABASE` succeeds on PG16+), and create the owned `demos_migration`
+   database. Skipped under `--external-scratch`.
 1. **verify-prisma-local** - fail closed if `../demos` drifts from the pin.
 2. **scratch build** - `init ddl load-full seeds crosswalks id-maps build
-   constraints` against `PG_URL` (add `--parity` to also run
-   `parity --accept-pending`).
+   constraints` against the scratch DSN, with `SKIP_JSONSCHEMA` in the default
+   flow (add `--parity` to also run `parity --accept-pending`).
 3. **prisma migrate deploy** - build the devcontainer `demos_app` schema
    (`DATABASE_URL=<devcontainer>?schema=demos_app`); populates
    `_prisma_migrations` correctly.
@@ -70,9 +87,9 @@ make migrate-local ARGS="--skip-jsonschema"
    (skips `cron_schedules`, a pg_cron limitation).
 8. **smoke** - assert `demos_app.demonstration` is non-empty.
 
-Useful flags: `--no-build` (reuse scratch), `--no-schema` (schema already
-deployed), `--no-dbrefresh`, `--scratch-dsn`, `--devcontainer-dsn`,
-`--demos-local`.
+Useful flags: `--external-scratch` (build against a standalone scratch PG),
+`--no-build` (reuse scratch), `--no-schema` (schema already deployed),
+`--no-dbrefresh`, `--scratch-dsn`, `--devcontainer-dsn`, `--demos-local`.
 
 ## Verify manually
 
@@ -121,4 +138,7 @@ refresh only the data after schema is already in place, use
 - No production auth wiring (dev-login note only).
 - No devcontainer image change (`demos_app` needs no `pg_jsonschema`).
 - Full parity stays in the dedicated supabase-image environment (`make
-  test-db-up`); the devcontainer load is about feeding real data to the app.
+  spin_up` / `make test-db-up`), which has real `pg_jsonschema`; the default
+  devcontainer scratch builds with `SKIP_JSONSCHEMA`, so its jsonb-shape parity
+  check is trivially GREEN. The devcontainer load is about feeding real data to
+  the app, not gating parity.
