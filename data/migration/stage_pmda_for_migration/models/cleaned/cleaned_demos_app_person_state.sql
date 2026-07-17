@@ -1,5 +1,7 @@
 SELECT
     cp.id AS person_id,
+    cp._legacy_id,
+    cp.person_type_id AS _person_type_id,
     au.geo_ansi_state_cd AS state_id
 FROM
     {{ source('legacy_pmda_raw', 'user_authrzd_state_acs') }} AS au

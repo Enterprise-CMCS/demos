@@ -10,3 +10,13 @@ seeds:
               arguments:
                 to: source('legacy_pmda_raw', 'role_rfrnc')
                 field: role_cd
+
+  - name: crosswalk_demonstration_role
+    columns:
+      - name: role_id
+        data_tests:
+          - relationships:
+              name: assert_all_demonstration_crosswalk_roles_exist_in_demos_app_role
+              arguments:
+                to: source('demos_app', 'role')
+                field: id
