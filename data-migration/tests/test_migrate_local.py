@@ -13,6 +13,8 @@ from pathlib import Path
 
 import pytest
 
+import migration.lib as mlib
+
 _SCRIPTS_DIR = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(_SCRIPTS_DIR))
 
@@ -168,3 +170,76 @@ def test_run_plan_aborts_on_failure() -> None:
     # Stopped at the failing step; smoke never ran.
     assert "smoke" not in seen
     assert seen[-1] == "truncate-devcontainer"
+
+
+# --- provisioning (in-devcontainer scratch) -------------------------------- #
+
+
+def test_plan_no_provision_by_default() -> None:
+    assert "provision-scratch" not in [s.label for s in ml.build_plan(_cfg())]
+
+
+def test_plan_provision_step_ordered_before_build() -> None:
+    steps = ml.build_plan(_cfg(provision_scratch=True, superuser_dsn="postgresql://su/demos"))
+    labels = [s.label for s in steps]
+    assert labels.index("verify-prisma-local") < labels.index("provision-scratch")
+    assert labels.index("provision-scratch") < labels.index("scratch:init")
+
+
+def test_plan_provision_step_carries_admin_env() -> None:
+    steps = ml.build_plan(
+        _cfg(
+            provision_scratch=True,
+            superuser_dsn="postgresql://su/demos",
+            scratch_role="migration_owner",
+            scratch_password="pw",  # pragma: allowlist secret
+            scratch_db="demos_migration",
+        )
+    )
+    prov = next(s for s in steps if s.label == "provision-scratch")
+    assert prov.argv[0] == "sh"
+    assert prov.argv[1].endswith("provision_scratch.sh")
+    assert prov.env["ADMIN_DSN"] == "postgresql://su/demos"
+    assert prov.env["SCRATCH_ROLE"] == "migration_owner"
+    assert prov.env["SCRATCH_PASS"] == "pw"  # pragma: allowlist secret
+    assert prov.env["SCRATCH_DB"] == "demos_migration"
+
+
+# --- _config_from_args ----------------------------------------------------- #
+
+
+def test_config_default_is_devcontainer_scratch(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(mlib.Env, "load", classmethod(lambda cls: mlib.Env(mysql_url="y")))
+    cfg = ml._config_from_args(ml._parse_args([]))
+    assert cfg.provision_scratch is True
+    assert cfg.skip_jsonschema is True
+    assert cfg.scratch_dsn.endswith("/demos_migration")
+    assert cfg.scratch_role == "migration_owner"
+    assert cfg.scratch_db == "demos_migration"
+    assert cfg.superuser_dsn.endswith("/demos")
+
+
+def test_config_external_scratch_uses_pg_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        mlib.Env,
+        "load",
+        classmethod(lambda cls: mlib.Env(mysql_url="y", pg_url="postgresql://ext/scratch")),
+    )
+    cfg = ml._config_from_args(ml._parse_args(["--external-scratch"]))
+    assert cfg.provision_scratch is False
+    assert cfg.scratch_dsn == "postgresql://ext/scratch"
+
+
+def test_config_scratch_dsn_implies_external(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(mlib.Env, "load", classmethod(lambda cls: mlib.Env(mysql_url="y")))
+    cfg = ml._config_from_args(ml._parse_args(["--scratch-dsn", "postgresql://x/y"]))
+    assert cfg.provision_scratch is False
+    assert cfg.scratch_dsn == "postgresql://x/y"
+
+
+def test_config_external_scratch_requires_dsn(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        mlib.Env, "load", classmethod(lambda cls: mlib.Env(mysql_url="y", pg_url=""))
+    )
+    with pytest.raises(SystemExit):
+        ml._config_from_args(ml._parse_args(["--external-scratch"]))
