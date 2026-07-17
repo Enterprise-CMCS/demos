@@ -60,6 +60,11 @@ MIGRATION_CONFIGURATION: Tuple[TableMigrationConfiguration, ...] = (
         "target_table": "person_state",
         "column_list": ["person_id", "state_id"],
     },
+    {
+        "staged_table": "cleaned_demos_app_system_role_assignment",
+        "target_table": "system_role_assignment",
+        "column_list": ["person_id", "role_id", "person_type_id", "grant_level_id"],
+    },
 )
 
 

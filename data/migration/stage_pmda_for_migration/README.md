@@ -48,3 +48,7 @@ You can generate `dbt` documentation using `dbt docs generate --static` for a st
 ## Development Tooling
 
 To help keep the SQL code in this project clean, there is a pre-commit hook that runs `sqlfluff lint`. This is also available on the command line, as is `sqlfluff fix`. Running it fixes most linter issues, though some may be unfixable automatically and will require you to fix them manually. The `sqlfluff` config lives in `data/.sqlfluff`.
+
+## Conventions / Styling
+
+Often in the cleaned tables there is use for additional metadata columns which will not be exported to DEMOS. For instance, a record of the original ID used in PMDA assists with joining dependent tables.  For these columns, we should denote their metadata status by prefixing an underscore to the column name. Ex: cleaned_demos_app_person._legacy_id

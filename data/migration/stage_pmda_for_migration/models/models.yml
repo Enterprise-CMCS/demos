@@ -1,6 +1,52 @@
 version: 2
 
 models:
+  - name: cleaned_demos_app_system_role_assignment
+    description: default system role assignmend derived from idm role
+    config:
+      contract:
+        enforced: true
+    data_tests:
+      - dbt_utils.unique_combination_of_columns:
+          name: assert_system_role_assignment_is_unique
+          arguments:
+            combination_of_columns:
+              - person_id
+              - role_id
+    columns:
+      - name: person_id
+        data_type: uuid
+        data_tests:
+          - relationships:
+              name: assert_system_role_assignment_person_exists_in_person
+              arguments:
+                to: ref('cleaned_demos_app_person')
+                field: id
+      - name: role_id
+        data_type: text
+        data_tests:
+          - relationships:
+              name: assert_system_role_assignment_role_exists_in_demos_app_system_role
+              arguments:
+                to: source('demos_app', 'role')
+                field: id
+      - name: person_type_id
+        data_tests:
+          - relationships:
+              name: assert_system_role_assignment_person_type_exists_in_demos_app_person_type
+              arguments:
+                to: source('demos_app', 'person_type')
+                field: id
+        data_type: text
+      - name: grant_level_id
+        data_type: text
+        data_tests:
+          - accepted_values:
+              name: assert_system_role_assignment_grant_level_id_is_system
+              arguments:
+                values:
+                  - System
+
   - name: users_cleaned_demos_app_person_state_user
     description: All cleaned people records that are of type demos-state-user
     columns:

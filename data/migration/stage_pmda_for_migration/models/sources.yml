@@ -129,7 +129,7 @@ sources:
           - name: partial_approval
             data_type: character varying
           - name: partial_approval_status
-            data_type: date
+            data_type: character varying
           - name: demo_name_demoid_name
             data_type: character varying
           - name: demo_name_state_internal
@@ -195,10 +195,6 @@ sources:
           - name: smi_evaldesignsubmitdate
             data_type: date
           - name: smi_evaldesignapprdate
-            data_type: date
-          - name: actual_denied_date
-            data_type: date
-          - name: actual_withdrawn_date
             data_type: date
           - name: created_by
             data_type: character varying
@@ -1230,38 +1226,52 @@ sources:
           - name: creatd_dt
             data_type: timestamp with time zone
 
-      - name: ddme_div_rfrnc
+      - name: deliverables_load
         columns:
-          - name: ddme_div_cd
-            data_type: integer
-          - name: ddme_div_name
+          - name: state
             data_type: character varying
-          - name: creatd_dt
-            data_type: timestamp with time zone
-
-      - name: dlta_mgr_2020-07-22
-        columns:
-          - name: dlta_mgr_id
-            data_type: integer
-          - name: creatd_dt
-            data_type: timestamp with time zone
-          - name: dlta_mgr_ent_type_cd
-            data_type: smallint
-          - name: dlta_mgr_ent_id
-            data_type: integer
-          - name: obj_val_txt
+          - name: demoname
             data_type: character varying
-
-      - name: dlta_mgr_ent_type_rfrnc_2020-07-23
-        columns:
-          - name: dlta_mgr_ent_type_cd
-            data_type: smallint
-          - name: dlta_mgr_ent_type_name
+          - name: monitoring_lead
             data_type: character varying
-          - name: creatd_dt
-            data_type: timestamp with time zone
-          - name: dsply_sqnc_num
-            data_type: smallint
+          - name: delname
+            data_type: character varying
+          - name: currentdeltype
+            data_type: character varying
+          - name: quarterstartdate
+            data_type: character varying
+          - name: delduedate
+            data_type: character varying
+          - name: delsubmitteddate
+            data_type: character varying
+          - name: latesubmissiondetails
+            data_type: character varying
+          - name: delstatus
+            data_type: character varying
+          - name: delstatusdate
+            data_type: character varying
+          - name: delreviewer
+            data_type: character varying
+          - name: delreviewdate
+            data_type: character varying
+          - name: isdelcorrectcolumne
+            data_type: character varying
+          - name: newdeliverabletype
+            data_type: character varying
+          - name: notes
+            data_type: character varying
+          - name: cmsinfoprovided
+            data_type: character varying
+          - name: notes__2_
+            data_type: character varying
+          - name: myunknowncolumn
+            data_type: character varying
+          - name: pmda_comments
+            data_type: character varying
+          - name: newdeltypecode
+            data_type: integer
+          - name: currentdeltypecode
+            data_type: integer
 
       - name: dsrip_elgblty_grp_type_rfrnc
         columns:
@@ -1502,47 +1512,6 @@ sources:
             data_type: smallint
           - name: creatd_dt
             data_type: timestamp with time zone
-
-      - name: idm_user_load
-        columns:
-          - name: id
-            data_type: integer
-          - name: datecreated
-            data_type: timestamp with time zone
-          - name: username
-            data_type: character varying
-          - name: firstname
-            data_type: character varying
-          - name: lastname
-            data_type: character varying
-          - name: phone
-            data_type: character varying
-          - name: email
-            data_type: character varying
-          - name: role_name
-            data_type: character varying
-          - name: role_cd
-            data_type: integer
-          - name: mdcd_rgnl_ofc_type_name
-            data_type: character varying
-          - name: mdcd_rgnl_ofc_type_cd
-            data_type: integer
-          - name: geo_ansi_state_cds
-            data_type: character varying
-
-      - name: idm_user_states
-        columns:
-          - name: username
-            data_type: character varying
-          - name: geo_ansi_state_cd
-            data_type: character varying
-
-      - name: import_status
-        columns:
-          - name: state
-            data_type: character varying
-          - name: processed
-            data_type: smallint
 
       - name: intrfc_etl_run_cntl
         columns:
@@ -1786,31 +1755,6 @@ sources:
           - name: dltd_ind
             data_type: smallint
 
-      - name: mdcd_bene_enggmt_pgm_dtl_bkup
-        columns:
-          - name: mdcd_bene_enggmt_pgm_dtl_id
-            data_type: integer
-          - name: mdcd_demo_id
-            data_type: integer
-          - name: mdcd_pgm_id
-            data_type: integer
-          - name: from_dt
-            data_type: date
-          - name: to_dt
-            data_type: date
-          - name: mdcd_expnsn_ind
-            data_type: smallint
-          - name: bene_enggmt_fcs_area_type_cd
-            data_type: integer
-          - name: addtnl_fcs_area_dtl_desc
-            data_type: character varying
-          - name: cvrg_area_type_cd
-            data_type: integer
-          - name: creatd_dt
-            data_type: timestamp with time zone
-          - name: dltd_ind
-            data_type: smallint
-
       - name: mdcd_bene_enggmt_pgm_dtl_hstry
         columns:
           - name: mdcd_bene_enggmt_pgm_dtl_hstry_id
@@ -1825,31 +1769,6 @@ sources:
             data_type: date
           - name: to_dt
             data_type: date
-          - name: creatd_dt
-            data_type: timestamp with time zone
-          - name: dltd_ind
-            data_type: smallint
-          - name: hstry_ts
-            data_type: timestamp with time zone
-
-      - name: mdcd_bene_enggmt_pgm_dtl_hstry_bkup
-        columns:
-          - name: mdcd_bene_enggmt_pgm_dtl_hstry_id
-            data_type: integer
-          - name: mdcd_bene_enggmt_pgm_dtl_id
-            data_type: integer
-          - name: mdcd_demo_id
-            data_type: integer
-          - name: mdcd_pgm_id
-            data_type: integer
-          - name: mdcd_expnsn_ind
-            data_type: smallint
-          - name: bene_enggmt_fcs_area_type_cd
-            data_type: integer
-          - name: addtnl_fcs_area_dtl_desc
-            data_type: character varying
-          - name: cvrg_area_type_cd
-            data_type: integer
           - name: creatd_dt
             data_type: timestamp with time zone
           - name: dltd_ind
@@ -3876,7 +3795,7 @@ sources:
           - name: mdcd_dlvrbl_due_dt_chg_rsn_type_name
             data_type: character varying
           - name: creatd_dt
-            data_type: date
+            data_type: timestamp with time zone
           - name: dsply_sqnc_num
             data_type: smallint
           - name: dltd_ind
@@ -3922,10 +3841,10 @@ sources:
             data_type: integer
           - name: mntrg_rpt_fil_doc_id_msmtch_ind
             data_type: integer
-          - name: proc_mntrg_rpt_ind
-            data_type: smallint
           - name: mntrg_prtcl_fil_ind
             data_type: integer
+          - name: proc_mntrg_rpt_ind
+            data_type: smallint
           - name: mdcd_demo_type_cd
             data_type: character varying
           - name: fil_doc_cd
@@ -4158,40 +4077,6 @@ sources:
             data_type: smallint
 
       - name: mdcd_dlvrbl_rpt_ocrnc_rfrnc
-        columns:
-          - name: mdcd_dlvrbl_rpt_ocrnc_cd
-            data_type: integer
-          - name: mdcd_dlvrbl_rpt_ocrnc_name
-            data_type: character varying
-          - name: dsply_sqnc_num
-            data_type: smallint
-          - name: mdcd_dlvrbl_rpt_ocrnc_num
-            data_type: integer
-          - name: aprvd_wrkflw_ind
-            data_type: smallint
-          - name: dltd_ind
-            data_type: smallint
-          - name: creatd_dt
-            data_type: timestamp with time zone
-
-      - name: mdcd_dlvrbl_rpt_ocrnc_rfrnc_bkup_20230413
-        columns:
-          - name: mdcd_dlvrbl_rpt_ocrnc_cd
-            data_type: integer
-          - name: mdcd_dlvrbl_rpt_ocrnc_name
-            data_type: character varying
-          - name: dsply_sqnc_num
-            data_type: smallint
-          - name: mdcd_dlvrbl_rpt_ocrnc_num
-            data_type: integer
-          - name: aprvd_wrkflw_ind
-            data_type: smallint
-          - name: dltd_ind
-            data_type: smallint
-          - name: creatd_dt
-            data_type: timestamp with time zone
-
-      - name: mdcd_dlvrbl_rpt_ocrnc_rfrnc_bkup_20230414
         columns:
           - name: mdcd_dlvrbl_rpt_ocrnc_cd
             data_type: integer
@@ -4912,45 +4797,7 @@ sources:
           - name: dltd_ind
             data_type: smallint
 
-      - name: mdcd_fmly_plng_pgm_dtl_bkup
-        columns:
-          - name: mdcd_fmly_plng_pgm_dtl_id
-            data_type: integer
-          - name: mdcd_demo_id
-            data_type: integer
-          - name: mdcd_pgm_id
-            data_type: integer
-          - name: from_dt
-            data_type: date
-          - name: to_dt
-            data_type: date
-          - name: creatd_dt
-            data_type: timestamp with time zone
-          - name: dltd_ind
-            data_type: smallint
-
       - name: mdcd_fmly_plng_pgm_dtl_hstry
-        columns:
-          - name: mdcd_fmly_plng_pgm_dtl_hstry_id
-            data_type: integer
-          - name: mdcd_fmly_plng_pgm_dtl_id
-            data_type: integer
-          - name: mdcd_demo_id
-            data_type: integer
-          - name: mdcd_pgm_id
-            data_type: integer
-          - name: from_dt
-            data_type: date
-          - name: to_dt
-            data_type: date
-          - name: creatd_dt
-            data_type: timestamp with time zone
-          - name: dltd_ind
-            data_type: smallint
-          - name: hstry_ts
-            data_type: timestamp with time zone
-
-      - name: mdcd_fmly_plng_pgm_dtl_hstry_bkup
         columns:
           - name: mdcd_fmly_plng_pgm_dtl_hstry_id
             data_type: integer
@@ -6973,29 +6820,6 @@ sources:
           - name: mdcd_demo_aplctn_sgntr_lvl_cd
             data_type: integer
 
-      - name: mdcd_pendg_demo_amndmt
-        columns:
-          - name: mdcd_pendg_demo_amndmt_id
-            data_type: integer
-          - name: mdcd_pendg_demo_id
-            data_type: integer
-          - name: amndmt_prd_from_dt
-            data_type: date
-          - name: amndmt_prd_to_dt
-            data_type: date
-          - name: mdcd_demo_amndmt_stus_cd
-            data_type: integer
-          - name: amndmt_stus_dt
-            data_type: date
-          - name: amndmt_aplctn_dt
-            data_type: date
-          - name: amndmt_desc
-            data_type: character varying
-          - name: dltd_ind
-            data_type: smallint
-          - name: creatd_dt
-            data_type: timestamp with time zone
-
       - name: mdcd_pendg_demo_cntct
         columns:
           - name: mdcd_pendg_demo_id
@@ -7105,39 +6929,6 @@ sources:
           - name: hstry_ts
             data_type: timestamp with time zone
           - name: mdcd_demo_aplctn_sgntr_lvl_cd
-            data_type: integer
-
-      - name: mdcd_pendg_demo_rnwl
-        columns:
-          - name: mdcd_pendg_demo_rnwl_id
-            data_type: integer
-          - name: mdcd_pendg_demo_id
-            data_type: integer
-          - name: rnwl_prd_from_dt
-            data_type: date
-          - name: rnwl_prd_to_dt
-            data_type: date
-          - name: mdcd_demo_rnwl_stus_cd
-            data_type: integer
-          - name: rnwl_stus_dt
-            data_type: date
-          - name: rnwl_aplctn_dt
-            data_type: date
-          - name: rnwl_desc
-            data_type: character varying
-          - name: dltd_ind
-            data_type: smallint
-          - name: creatd_dt
-            data_type: timestamp with time zone
-          - name: temp_extnsn_ind
-            data_type: smallint
-          - name: temp_extnsn_from_dt
-            data_type: date
-          - name: temp_extnsn_to_dt
-            data_type: date
-          - name: orgnl_state_prfmnc_yr_end_dt
-            data_type: date
-          - name: orgnl_demo_stus_cd
             data_type: integer
 
       - name: mdcd_pendg_dgns_and_dease_specf_pgm_dtl
@@ -10752,31 +10543,6 @@ sources:
           - name: hstry_ts
             data_type: timestamp with time zone
 
-      - name: mdcd_prm_astnc_pgm_dtl_hstry_bkup
-        columns:
-          - name: mdcd_prm_astnc_pgm_dtl_hstry_id
-            data_type: integer
-          - name: mdcd_prm_astnc_pgm_dtl_id
-            data_type: integer
-          - name: mdcd_demo_id
-            data_type: integer
-          - name: mdcd_pgm_id
-            data_type: integer
-          - name: prm_astnc_fcs_area_type_cd
-            data_type: integer
-          - name: addtnl_fcs_area_dtl_desc
-            data_type: character varying
-          - name: mdcd_expnsn_ind
-            data_type: smallint
-          - name: cvrg_area_type_cd
-            data_type: integer
-          - name: creatd_dt
-            data_type: timestamp with time zone
-          - name: dltd_ind
-            data_type: smallint
-          - name: hstry_ts
-            data_type: timestamp with time zone
-
       - name: mdcd_prm_pgm_dtl
         columns:
           - name: mdcd_prm_pgm_dtl_id
@@ -11094,6 +10860,22 @@ sources:
             data_type: smallint
           - name: hstry_ts
             data_type: timestamp with time zone
+
+      - name: mdcd_rgnl_ofc_state_link
+        columns:
+          - name: mdcd_rgnl_ofc_state_link_id
+            data_type: integer
+          - name: mdcd_rgnl_ofc_type_cd
+            data_type: integer
+          - name: geo_ansi_state_cd
+            data_type: character varying
+
+      - name: mdcd_rgnl_ofc_type_rfrnc
+        columns:
+          - name: mdcd_rgnl_ofc_type_cd
+            data_type: integer
+          - name: mdcd_rgnl_ofc_name
+            data_type: character varying
 
       - name: mdcd_risk_mtgtn_pgm_dtl
         columns:
@@ -12253,80 +12035,6 @@ sources:
           - name: is_archived
             data_type: smallint
 
-      - name: rfrnc_matl_backup_20230227
-        columns:
-          - name: rfrnc_matl_id
-            data_type: integer
-          - name: mdcd_demo_type_cd
-            data_type: character varying
-          - name: rfrnc_matl_name
-            data_type: character varying
-          - name: rfrnc_matl_desc
-            data_type: character varying
-          - name: rfrnc_matl_doc_type_cd
-            data_type: smallint
-          - name: cy_num
-            data_type: smallint
-          - name: fil_name
-            data_type: character varying
-          - name: fil_zip_ind
-            data_type: smallint
-          - name: dsply_sqnc_num
-            data_type: smallint
-          - name: creatd_dt
-            data_type: timestamp with time zone
-          - name: dltd_ind
-            data_type: smallint
-          - name: dltd_dt
-            data_type: timestamp with time zone
-          - name: agrmt_dt
-            data_type: timestamp with time zone
-          - name: crnt_ind
-            data_type: smallint
-          - name: vrsn_num
-            data_type: numeric
-          - name: plcy_area_type_cd
-            data_type: integer
-          - name: updtd_dt
-            data_type: timestamp with time zone
-
-      - name: rfrnc_matl_backup_20231205
-        columns:
-          - name: rfrnc_matl_id
-            data_type: integer
-          - name: mdcd_demo_type_cd
-            data_type: character varying
-          - name: rfrnc_matl_name
-            data_type: character varying
-          - name: rfrnc_matl_desc
-            data_type: character varying
-          - name: rfrnc_matl_doc_type_cd
-            data_type: smallint
-          - name: cy_num
-            data_type: smallint
-          - name: fil_name
-            data_type: character varying
-          - name: fil_zip_ind
-            data_type: smallint
-          - name: dsply_sqnc_num
-            data_type: smallint
-          - name: creatd_dt
-            data_type: timestamp with time zone
-          - name: dltd_ind
-            data_type: smallint
-          - name: dltd_dt
-            data_type: timestamp with time zone
-          - name: agrmt_dt
-            data_type: timestamp with time zone
-          - name: crnt_ind
-            data_type: smallint
-          - name: vrsn_num
-            data_type: numeric
-          - name: plcy_area_type_cd
-            data_type: integer
-          - name: updtd_dt
-            data_type: timestamp with time zone
-
       - name: rfrnc_matl_doc_type_rfrnc
         columns:
           - name: rfrnc_matl_doc_type_cd
@@ -12533,263 +12241,12 @@ sources:
           - name: creatd_dt
             data_type: timestamp with time zone
 
-      - name: temptbl1
-        columns:
-          - name: task_id
-            data_type: integer
-          - name: title
-            data_type: character varying
-          - name: start_date
-            data_type: date
-          - name: due_date
-            data_type: date
-          - name: status
-            data_type: smallint
-          - name: priority
-            data_type: smallint
-          - name: description
-            data_type: character varying
-          - name: created_at
-            data_type: timestamp with time zone
-
-      - name: test_tbl1
-        columns:
-          - name: id
-            data_type: integer
-          - name: title
-            data_type: character varying
-
       - name: time_zn_rfrnc
         columns:
           - name: time_zn_cd
             data_type: character varying
           - name: time_zn_cd_name
             data_type: character varying
-
-      - name: tmp_bak_mdcd_demo
-        columns:
-          - name: mdcd_demo_id
-            data_type: integer
-          - name: mdcd_demo_num
-            data_type: character varying
-          - name: mdcd_scndry_demo_num
-            data_type: character varying
-          - name: mdcd_demo_name
-            data_type: character varying
-          - name: mdcd_demo_desc
-            data_type: character varying
-          - name: state_prfmnc_yr_strt_dt
-            data_type: date
-          - name: state_prfmnc_yr_end_dt
-            data_type: date
-          - name: proj_ofcr_user_id
-            data_type: integer
-          - name: tchncl_drctr_user_id
-            data_type: integer
-          - name: state_prmry_poc_user_id
-            data_type: integer
-          - name: state_scndry_poc_user_id
-            data_type: integer
-          - name: state_3rd_poc_user_id
-            data_type: integer
-          - name: state_4th_poc_user_id
-            data_type: integer
-          - name: state_5th_poc_user_id
-            data_type: integer
-          - name: ro_fincl_lead_user_id
-            data_type: integer
-          - name: ro_mntrg_lead_user_id
-            data_type: integer
-          - name: dltd_ind
-            data_type: smallint
-          - name: dltd_user_id
-            data_type: integer
-          - name: dltd_dt
-            data_type: timestamp with time zone
-          - name: mdcd_demo_stus_cd
-            data_type: integer
-          - name: demo_stus_dt
-            data_type: date
-          - name: cst_shrng_type_cd
-            data_type: integer
-          - name: exmpt_grp_type_desc
-            data_type: character varying
-          - name: fundng_pool_type_cd
-            data_type: integer
-          - name: fundng_pool_name
-            data_type: character varying
-          - name: creatd_dt
-            data_type: timestamp with time zone
-          - name: geo_ansi_state_cd
-            data_type: character varying
-          - name: creatd_user_id
-            data_type: integer
-          - name: anlyst_user_id
-            data_type: integer
-          - name: bkup_proj_ofcr_user_id
-            data_type: integer
-          - name: rcvd_dt
-            data_type: date
-          - name: submsn_dt
-            data_type: date
-          - name: mdcd_chip_div_cd
-            data_type: integer
-          - name: mdcd_demo_bdgt_ntrlty_mmbr_mnthly_amt
-            data_type: numeric
-          - name: aprvl_dt
-            data_type: date
-          - name: impltn_dt
-            data_type: date
-          - name: impltn_dt_ind
-            data_type: smallint
-          - name: bdgt_ntrlty_ind
-            data_type: smallint
-          - name: mntrg_prtcl_dsrip_ind
-            data_type: smallint
-          - name: mntrg_prtcl_dsrip_strt_dt
-            data_type: date
-          - name: mntrg_mtrc_dsrip_ind
-            data_type: smallint
-          - name: mntrg_mtrc_dsrip_strt_dt
-            data_type: date
-          - name: mntrg_prtcl_ffcy_ind
-            data_type: smallint
-          - name: mntrg_prtcl_ffcy_strt_dt
-            data_type: date
-          - name: mntrg_mtrc_ffcy_ind
-            data_type: smallint
-          - name: mntrg_mtrc_ffcy_strt_dt
-            data_type: date
-          - name: mntrg_prtcl_fmly_plng_ind
-            data_type: smallint
-          - name: mntrg_prtcl_fmly_plng_strt_dt
-            data_type: date
-          - name: mntrg_mtrc_fmly_plng_ind
-            data_type: smallint
-          - name: mntrg_mtrc_fmly_plng_strt_dt
-            data_type: date
-          - name: mntrg_prtcl_ltss_ind
-            data_type: smallint
-          - name: mntrg_prtcl_ltss_strt_dt
-            data_type: date
-          - name: mntrg_mtrc_ltss_ind
-            data_type: smallint
-          - name: mntrg_mtrc_ltss_strt_dt
-            data_type: date
-          - name: mntrg_prtcl_sud_ind
-            data_type: smallint
-          - name: mntrg_prtcl_sud_strt_dt
-            data_type: date
-          - name: mntrg_mtrc_sud_ind
-            data_type: smallint
-          - name: mntrg_mtrc_sud_strt_dt
-            data_type: date
-          - name: mntrg_prtcl_othr_ind
-            data_type: smallint
-          - name: mntrg_prtcl_othr_strt_dt
-            data_type: date
-          - name: mntrg_mtrc_othr_ind
-            data_type: smallint
-          - name: mntrg_mtrc_othr_strt_dt
-            data_type: date
-          - name: mntrg_prtcl_elgblty_and_cvrg_ind
-            data_type: smallint
-          - name: mntrg_prtcl_elgblty_and_cvrg_strt_dt
-            data_type: date
-          - name: mntrg_mtrc_elgblty_and_cvrg_ind
-            data_type: smallint
-          - name: mntrg_mtrc_elgblty_and_cvrg_strt_dt
-            data_type: date
-          - name: mntrg_prtcl_srus_mentl_ill_ind
-            data_type: smallint
-          - name: mntrg_prtcl_srus_mentl_ill_strt_dt
-            data_type: date
-          - name: mntrg_mtrc_srus_mentl_ill_ind
-            data_type: smallint
-          - name: mntrg_mtrc_srus_mentl_ill_strt_dt
-            data_type: date
-          - name: mntrg_prtcl_mc_ind
-            data_type: smallint
-          - name: mntrg_prtcl_mc_strt_dt
-            data_type: date
-          - name: mntrg_mtrc_mc_ind
-            data_type: smallint
-          - name: mntrg_mtrc_mc_strt_dt
-            data_type: date
-          - name: mntrg_prtcl_hlthy_adlt_oprtnty_ind
-            data_type: smallint
-          - name: mntrg_prtcl_hlthy_adlt_oprtnty_strt_dt
-            data_type: date
-          - name: mntrg_mtrc_hlthy_adlt_oprtnty_ind
-            data_type: smallint
-          - name: mntrg_mtrc_hlthy_adlt_oprtnty_strt_dt
-            data_type: date
-          - name: mntrg_prtcl_emer_wvr_authrty_ind
-            data_type: smallint
-          - name: mntrg_prtcl_emer_wvr_authrty_strt_dt
-            data_type: date
-          - name: mntrg_mtrc_emer_wvr_authrty_ind
-            data_type: smallint
-          - name: mntrg_mtrc_emer_wvr_authrty_strt_dt
-            data_type: date
-          - name: updtd_user_id
-            data_type: integer
-          - name: updtd_dt
-            data_type: timestamp with time zone
-          - name: mntrg_rptg_tool_dsrip_ind
-            data_type: smallint
-          - name: mntrg_rptg_tool_dsrip_strt_dt
-            data_type: date
-          - name: mntrg_rptg_tool_ffcy_ind
-            data_type: smallint
-          - name: mntrg_rptg_tool_ffcy_strt_dt
-            data_type: date
-          - name: mntrg_rptg_tool_fmly_plng_ind
-            data_type: smallint
-          - name: mntrg_rptg_tool_fmly_plng_strt_dt
-            data_type: date
-          - name: mntrg_rptg_tool_ltss_ind
-            data_type: smallint
-          - name: mntrg_rptg_tool_ltss_strt_dt
-            data_type: date
-          - name: mntrg_rptg_tool_sud_ind
-            data_type: smallint
-          - name: mntrg_rptg_tool_sud_strt_dt
-            data_type: date
-          - name: mntrg_rptg_tool_othr_ind
-            data_type: smallint
-          - name: mntrg_rptg_tool_othr_strt_dt
-            data_type: date
-          - name: mntrg_rptg_tool_elgblty_and_cvrg_ind
-            data_type: smallint
-          - name: mntrg_rptg_tool_elgblty_and_cvrg_strt_dt
-            data_type: date
-          - name: mntrg_rptg_tool_srus_mentl_ill_ind
-            data_type: smallint
-          - name: mntrg_rptg_tool_srus_mentl_ill_strt_dt
-            data_type: date
-          - name: mntrg_rptg_tool_mc_ind
-            data_type: smallint
-          - name: mntrg_rptg_tool_mc_strt_dt
-            data_type: date
-          - name: mntrg_rptg_tool_hlthy_adlt_oprtnty_ind
-            data_type: smallint
-          - name: mntrg_rptg_tool_hlthy_adlt_oprtnty_strt_dt
-            data_type: date
-          - name: mntrg_rptg_tool_emer_wvr_authrty_ind
-            data_type: smallint
-          - name: mntrg_rptg_tool_emer_wvr_authrty_strt_dt
-            data_type: date
-          - name: mntrg_eval_tchncl_drctr_user_id
-            data_type: integer
-          - name: wvr_authrty_ind
-            data_type: smallint
-          - name: phase_2_state_aplctn_deemd_cmpltn_dt
-            data_type: date
-          - name: phase_2_rcvd_dt
-            data_type: date
-          - name: mdcd_demo_aplctn_sgntr_lvl_cd
-            data_type: integer
 
       - name: tmplt_fil_doc
         columns:
@@ -12902,6 +12359,15 @@ sources:
           - name: user_id
             data_type: integer
 
+      - name: user_ro_asctn
+        columns:
+          - name: user_id
+            data_type: integer
+          - name: mdcd_rgnl_ofc_type_cd
+            data_type: integer
+          - name: creatd_dt
+            data_type: timestamp with time zone
+
       - name: user_role_asgnmt
         columns:
           - name: user_id
@@ -12988,8 +12454,6 @@ sources:
             data_type: character varying
           - name: active
             data_type: integer
-          - name: lastaccess
-            data_type: timestamp with time zone
           - name: email
             data_type: character varying
           - name: show_login_dshbd_ind
