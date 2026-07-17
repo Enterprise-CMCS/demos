@@ -9,7 +9,6 @@ CREATE TABLE legacy_pmda_raw.users_hstry (
     remote INTEGER,
     phone VARCHAR(32),
     active INTEGER,
-    lastaccess TIMESTAMPTZ,
     email VARCHAR(256),
     show_login_dshbd_ind SMALLINT,
     testing_user_ind SMALLINT,
