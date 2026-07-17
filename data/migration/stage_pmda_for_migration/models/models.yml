@@ -181,3 +181,66 @@ models:
         data_type: timestamptz
       - name: updated_at
         data_type: timestamptz
+
+  - name: apps_active_pmda_demos
+    columns:
+      - name: mdcd_demo_id
+        data_type: integer
+        data_tests:
+          - unique:
+              name: assert_active_pmda_demos_have_unique_ids
+      - name: mdcd_chip_div_cd
+        data_type: integer
+        data_tests:
+          - not_null:
+              name: assert_active_pmda_demos_have_no_missing_mdcd_chip_div_id
+      - name: mdcd_demo_stus_cd
+        data_type: integer
+        data_tests:
+          - not_null:
+              name: assert_active_pmda_demos_have_no_missing_mdcd_demo_stus_cd
+      - name: demo_stus_dt
+        data_type: date
+        data_tests:
+          - not_null:
+              name: assert_active_pmda_demos_have_no_missing_demo_stus_dt
+
+  - name: cleaned_demos_app_demonstration
+    config:
+      contract:
+        enforced: false # TODO: change to true when ready
+    columns:
+      - name: id
+        data_type: uuid
+      - name: application_type_id
+        data_type: text
+      - name: name
+        data_type: text
+      - name: description
+        data_type: text
+      - name: effective_date
+        data_type: timestamptz
+      - name: expiration_date
+        data_type: timestamptz
+      - name: sdg_division_id
+        data_type: text
+      - name: signature_level_id
+        data_type: text
+      - name: status_id
+        data_type: text
+      - name: status_updated_at
+        data_type: timestamptz
+      - name: current_phase_id
+        data_type: text
+      - name: state_id
+        data_type: text
+      - name: clearance_level_id
+        data_type: text
+      - name: medicaid_id
+        data_type: text
+      - name: chip_id
+        data_type: text
+      - name: created_at
+        data_type: timestamptz
+      - name: updated_at
+        data_type: timestamptz
