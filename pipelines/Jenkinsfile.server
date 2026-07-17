@@ -122,14 +122,6 @@ stages {
             handleError(params.HANDLE_ERRORS) {
               dirCon('deployment', 'node') {
                 sh """
-                # Build shared_library first so the linked package is ready for migration tests
-                if [ -d ../shared_library ]; then
-                cd ../shared_library
-                npm ci
-                npm run build || true
-                cd -
-                fi
-
                 npm ci
                 export IS_TEST_MIGRATION="true"
                 npx tsx demosctl/index test-migration dev "temp_${env.CHANGE_ID}_${currentBuild.startTimeInMillis}"
