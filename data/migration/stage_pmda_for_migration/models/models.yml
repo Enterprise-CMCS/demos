@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: users_cleaned_demos_app_person_state_user
-    description: All users from PMDA that are of type demos-state-user
+    description: All cleaned people records that are of type demos-state-user
     columns:
       - name: person_type_id
         data_tests:
@@ -13,6 +13,7 @@ models:
                   - demos-state-user
 
   - name: cleaned_demos_app_person_state
+    description: All cleaned person-state relations with state users and valid states
     config:
       contract:
         enforced: true
